@@ -1,8 +1,8 @@
 package metadata
 
 import (
-	jsonv1 "encoding/json"
 	"encoding/json/v2"
+	jsonv1 "encoding/json/v2"
 	"maps"
 	"strings"
 	"testing"

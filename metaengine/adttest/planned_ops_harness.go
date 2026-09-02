@@ -176,7 +176,10 @@ func RunPlannedOpsMatrix(t *testing.T, factories []Factory) {
 			// Column evolution: adding a column applies once, then nothing.
 			if evolver, evoOK := eng.(metaengine.LayoutPlanEvolver); evoOK {
 				grown := plan
-				grown.Columns = append(grown.Columns, metaengine.PlannedColumn{Name: "Qty", Type: "INTEGER"})
+				grown.Columns = append(
+					grown.Columns,
+					metaengine.PlannedColumn{Name: "Qty", Type: "INTEGER"},
+				)
 
 				applied, err := evolver.EvolveLayoutPlan(ctx, grown)
 				if err != nil {

@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
 	modernc.org/sqlite v1.56.0

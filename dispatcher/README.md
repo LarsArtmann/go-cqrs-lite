@@ -28,21 +28,21 @@ query.RegisterTyped(q, "user.get", typedHandler)
 
 ## API
 
-| Type                    | Description                                                                               |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| `Dispatcher[H, M]`      | Generic handler + middleware dispatcher. `H` = handler type, `M` = middleware type.       |
-| `Lifecycle`             | Embedded close/lifecycle support. Rejects operations after close with an error.           |
-| `handlerEntry[H, M]`    | Internal registry entry pairing a handler with its middleware-wrapped form.               |
+| Type                 | Description                                                                         |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| `Dispatcher[H, M]`   | Generic handler + middleware dispatcher. `H` = handler type, `M` = middleware type. |
+| `Lifecycle`          | Embedded close/lifecycle support. Rejects operations after close with an error.     |
+| `handlerEntry[H, M]` | Internal registry entry pairing a handler with its middleware-wrapped form.         |
 
 ### Methods (via embedding)
 
-| Method                                | Description                                                                  |
-| ------------------------------------- | ---------------------------------------------------------------------------- |
-| `Register(type, handler, wrap)`       | Bind a handler to a type; `wrap` folds middleware into the wrapped handler.  |
-| `Use(middleware...)`                  | Append middleware to the chain.                                              |
-| `Dispatch(type)`                      | Returns the middleware-wrapped handler for the type (or a rejection).        |
-| `Close()` / `IsClosed()`              | Close the dispatcher. Subsequent ops return an error.                        |
-| `CheckClosed(err)` / `WrapClose(...)` | Closed-guard helpers embedders call from their own public surface.           |
+| Method                                | Description                                                                 |
+| ------------------------------------- | --------------------------------------------------------------------------- |
+| `Register(type, handler, wrap)`       | Bind a handler to a type; `wrap` folds middleware into the wrapped handler. |
+| `Use(middleware...)`                  | Append middleware to the chain.                                             |
+| `Dispatch(type)`                      | Returns the middleware-wrapped handler for the type (or a rejection).       |
+| `Close()` / `IsClosed()`              | Close the dispatcher. Subsequent ops return an error.                       |
+| `CheckClosed(err)` / `WrapClose(...)` | Closed-guard helpers embedders call from their own public surface.          |
 
 ## Design
 

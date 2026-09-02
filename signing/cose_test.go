@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4/internal/testutil"
 )

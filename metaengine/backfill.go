@@ -62,7 +62,9 @@ func BackfillPlannedCollection(
 
 	mb, ok := eng.(MapBackend)
 	if !ok {
-		return 0, errors.New("metaengine.BackfillPlannedCollection: engine does not implement MapBackend")
+		return 0, errors.New(
+			"metaengine.BackfillPlannedCollection: engine does not implement MapBackend",
+		)
 	}
 
 	total := 0

@@ -37,7 +37,12 @@ func TestPgBackfillPlannedCollection(t *testing.T) {
 
 		key := fmt.Sprintf("k%02d", i)
 
-		if err := mb.MapSet(ctx, "backfill_items", key, item{Status: status, Amount: float64(i)}); err != nil {
+		if err := mb.MapSet(
+			ctx,
+			"backfill_items",
+			key,
+			item{Status: status, Amount: float64(i)},
+		); err != nil {
 			t.Fatalf("seed %d: %v", i, err)
 		}
 	}

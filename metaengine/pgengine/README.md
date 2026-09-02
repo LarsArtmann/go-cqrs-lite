@@ -49,10 +49,10 @@ Calibrated from benchmark measurements (see `calibration_bench_test.go`).
 
 ### Planned vs meta_map (measured, 2K rows, ephemeral PG testcontainer, 30-iter medians, 2026-08-30)
 
-| Operation                  | meta_map (JSONB) | planned (native columns) | Verdict                                  |
-| -------------------------- | ----------------: | -----------------------: | ---------------------------------------- |
-| Filtered scan (`status =`) | 873.8 µs          | 778.9 µs                 | planned wins; the gap grows with N       |
-| CounterGet                 | 287.4 µs          | 260.0 µs                 | equal within noise — counters STAY on meta_map (ADR-0124 addendum) |
+| Operation                  | meta_map (JSONB) | planned (native columns) | Verdict                                                            |
+| -------------------------- | ---------------: | -----------------------: | ------------------------------------------------------------------ |
+| Filtered scan (`status =`) |         873.8 µs |                 778.9 µs | planned wins; the gap grows with N                                 |
+| CounterGet                 |         287.4 µs |                 260.0 µs | equal within noise — counters STAY on meta_map (ADR-0124 addendum) |
 
 Source: `planned_vs_metamap_bench_test.go`. The planned-table decision rule
 lives in the ADR-0124 addendum; the observability surface (registration +

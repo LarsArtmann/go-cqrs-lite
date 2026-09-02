@@ -21,7 +21,13 @@ func (e *mysqlEngine) ExplainScanQuery(
 	// Planned collections explain the extracted-column query (D3 slice 3):
 	// EXPLAIN must reflect what actually executes.
 	if plan, ok := e.planFor(collection); ok {
-		q, args, err := buildPlannedScanQuery(plan, opts.Filters, opts.Sort, opts.Cursor, opts.Limit)
+		q, args, err := buildPlannedScanQuery(
+			plan,
+			opts.Filters,
+			opts.Sort,
+			opts.Cursor,
+			opts.Limit,
+		)
 		if err != nil {
 			return "", nil
 		}

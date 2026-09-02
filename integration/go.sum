@@ -72,6 +72,8 @@ github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeO
 github.com/felixge/httpsnoop v1.1.0/go.mod h1:Zqxgdd+1Rkcz8euOqdr7lqgCRJztwr5hp9vDSi5UZCE=
 github.com/fxamacker/cbor/v2 v2.9.2 h1:X4Ksno9+x3cz0TZv69ec1hxP/+tymuR8PXQJyDwfh78=
 github.com/fxamacker/cbor/v2 v2.9.2/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
+github.com/fxamacker/cbor/v2 v2.9.3 h1:oQBnFATpNdY8gJHTndDDv5Xl4QqNaz51G5LLEPhng3Q=
+github.com/fxamacker/cbor/v2 v2.9.3/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/getsentry/sentry-go v0.48.0 h1:FRZNr7Uk1C86ev1bSJmYlUkL9oyivQA6YOcdYfaaMmY=
 github.com/getsentry/sentry-go v0.48.0/go.mod h1:E5UkA5wp1qR2+MDydNYlVeUiNN2xEdjYMidkgf0Qoss=
 github.com/gkampitakis/ciinfo v0.3.4 h1:5eBSibVuSMbb/H6Elc0IIEFbkzCJi3lm94n0+U7Z0KY=
@@ -140,6 +142,8 @@ github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 h1:wNhasMA4HAPyKjKO/HaY
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0/go.mod h1:8uRRkMbtybkvxYVr1bLyxpX3QT7e6ZoBRzkv89ARSz4=
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0 h1:Vo6FwhFJo2a9tSvsfyu8FQhBYLSG/BYwxhcFeIkuRpI=
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0/go.mod h1:nbVEULesELBTU2oST5IKjjRxxfBviqqnG3wEqgInRiM=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0 h1:05pR8H7BXQD8s5JCN4y3P03Qdga7oZKKzSfnE64X5Ro=
+github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0/go.mod h1:m+GLeEYz/Hznu8IPNH9vRWrjmR8tHMDqiSUHJAHByw0=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0 h1:crv4LiYKOql624vrc2XvClk9vgo9/qumWU1M0IEPmMc=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0/go.mod h1:ftzLBt4BpjwVqSWoy9QJoztDJnxMYcsNDv3pDBg25GI=
 github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 h1:1Yk+FwA6cYEzPhRdtPct0+N9KdGYil5sYixfpz5mwW4=

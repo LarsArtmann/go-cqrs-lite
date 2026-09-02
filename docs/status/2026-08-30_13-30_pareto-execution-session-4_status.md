@@ -9,23 +9,23 @@ per-task, all gates run per task.
 
 ## a. Commits (in order)
 
-| Commit | Task | What |
-| ------ | ---- | ---- |
-| `3bcb7030e` | B1 | depguard restored (v2 object rules schema), 84-entry allow list, indentation-tolerant check-depguard.sh, all 119 requires covered, lint 76/76 clean |
-| `eef6fa85d` | A3 | dgraph `@recurse(depth: N)` counts node levels, not hops — GraphNeighbors requests depth+1; two tests that had pinned the bug recalibrated; ephemeral-dgraph.sh SIGTERM-wedge fixed (stop_pid + timeout -k); live suite 89/89 green |
-| `fd347183f` | B2.1 | nested RunInTx deadlock fixed via ctx-marker rejection (dgraph + identical latent bug in sqliteengine); read-your-writes / retry-after-abort / commit / rollback pins for both engines |
-| `97ad66f1a` | B2.2 | MariaDB DESC twin-column sort + flipped keyset cursor pinned live |
-| `218eb0c23` | B3 | storage's pgtestcontainer pin bumped v4.0.0→v4.1.0 (AfterRun existed only in the workspace; GOWORK=off was broken); full PG loop green |
-| `86bcd7aff` | B4 | wave-1 CHANGELOG backfill (8 symbols verified in source first); symbol gate: 119 honest citations |
-| `3e134939e` | B5+B6 | AGENTS disk-cache env chain + TEST_ARGS quoting trap; TODO L49/L66/L437 closed after verification; recipes 2.24 (RunInTx) + 2.25 (VectorCounter); faq KeysetPositionQueryChecked; doc-check 938 refs |
-| `5849c8ebb` | B8 | ErrWorkerFailed sentinel (Infrastructure, not Transient) for failed-worker staleness — consumer-visible reclassification, documented; boundedMap negative-dip comment; catalog multi-embed last-wins note; api golden +1 |
-| `41e04c969` | C3+C9+C10 | one-tx-per-event TODO closed with evidence; v5 deletion-safety scans recorded; macOS claim made honest (static-review-only + CI-runner route) |
-| `1fddcfbb5` | C5 | Calibration data race (mutex); routingSignature now covers ReadCosts + plan version (stale-cache fix); Replan oscillation killed by incumbent-aware hysteresis (complexity-class wins always pass); race-clean |
-| `a6cefd34a` | C6+C7 | create-github-releases.sh (changelog-extracted bodies); CONTRIBUTING pre-tag checklist + retract-and-republish policy; C6 closed as already-shipped (#verify-ci + CI matrix exist) |
-| `f063de4d1` | C1 | normalizeAny table tests; loopback dedup reset-window pins; 1K-op pooled-stream stress (streams==1); eviction→reopen pin; WithStreamPooling README |
-| `d7fbb9b06` | D8 | ClaimingTimerStore: lease-based claiming, PG SKIP LOCKED + SQLite single-writer, MySQL rejected loudly; live two-claimer contention test |
-| `6c7e08f4a` | D2 | mysqlengine planned tables (backtick quoting, split DDL, ON DUPLICATE KEY upserts); live MariaDB verified |
-| `b8aa29d96` | D1 | pgengine planned tables (JSONB value, DOUBLE PRECISION/BIGINT/TEXT columns, LayoutPlanApplier, Map routing); live PG verified incl. mis-type fail-loud |
+| Commit      | Task      | What                                                                                                                                                                                                                                |
+| ----------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `3bcb7030e` | B1        | depguard restored (v2 object rules schema), 84-entry allow list, indentation-tolerant check-depguard.sh, all 119 requires covered, lint 76/76 clean                                                                                 |
+| `eef6fa85d` | A3        | dgraph `@recurse(depth: N)` counts node levels, not hops — GraphNeighbors requests depth+1; two tests that had pinned the bug recalibrated; ephemeral-dgraph.sh SIGTERM-wedge fixed (stop_pid + timeout -k); live suite 89/89 green |
+| `fd347183f` | B2.1      | nested RunInTx deadlock fixed via ctx-marker rejection (dgraph + identical latent bug in sqliteengine); read-your-writes / retry-after-abort / commit / rollback pins for both engines                                              |
+| `97ad66f1a` | B2.2      | MariaDB DESC twin-column sort + flipped keyset cursor pinned live                                                                                                                                                                   |
+| `218eb0c23` | B3        | storage's pgtestcontainer pin bumped v4.0.0→v4.1.0 (AfterRun existed only in the workspace; GOWORK=off was broken); full PG loop green                                                                                              |
+| `86bcd7aff` | B4        | wave-1 CHANGELOG backfill (8 symbols verified in source first); symbol gate: 119 honest citations                                                                                                                                   |
+| `3e134939e` | B5+B6     | AGENTS disk-cache env chain + TEST_ARGS quoting trap; TODO L49/L66/L437 closed after verification; recipes 2.24 (RunInTx) + 2.25 (VectorCounter); faq KeysetPositionQueryChecked; doc-check 938 refs                                |
+| `5849c8ebb` | B8        | ErrWorkerFailed sentinel (Infrastructure, not Transient) for failed-worker staleness — consumer-visible reclassification, documented; boundedMap negative-dip comment; catalog multi-embed last-wins note; api golden +1            |
+| `41e04c969` | C3+C9+C10 | one-tx-per-event TODO closed with evidence; v5 deletion-safety scans recorded; macOS claim made honest (static-review-only + CI-runner route)                                                                                       |
+| `1fddcfbb5` | C5        | Calibration data race (mutex); routingSignature now covers ReadCosts + plan version (stale-cache fix); Replan oscillation killed by incumbent-aware hysteresis (complexity-class wins always pass); race-clean                      |
+| `a6cefd34a` | C6+C7     | create-github-releases.sh (changelog-extracted bodies); CONTRIBUTING pre-tag checklist + retract-and-republish policy; C6 closed as already-shipped (#verify-ci + CI matrix exist)                                                  |
+| `f063de4d1` | C1        | normalizeAny table tests; loopback dedup reset-window pins; 1K-op pooled-stream stress (streams==1); eviction→reopen pin; WithStreamPooling README                                                                                  |
+| `d7fbb9b06` | D8        | ClaimingTimerStore: lease-based claiming, PG SKIP LOCKED + SQLite single-writer, MySQL rejected loudly; live two-claimer contention test                                                                                            |
+| `6c7e08f4a` | D2        | mysqlengine planned tables (backtick quoting, split DDL, ON DUPLICATE KEY upserts); live MariaDB verified                                                                                                                           |
+| `b8aa29d96` | D1        | pgengine planned tables (JSONB value, DOUBLE PRECISION/BIGINT/TEXT columns, LayoutPlanApplier, Map routing); live PG verified incl. mis-type fail-loud                                                                              |
 
 ## b. Findings worth remembering
 

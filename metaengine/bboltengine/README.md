@@ -43,12 +43,12 @@ Measured by `calibration_bench_test.go` (medians of 3; baseline:
 `docs/benchmarks/calibration-2026-08-30.md`). The planner prices each query
 by its read pattern:
 
-| Pattern | Cost | Bench |
-| ------- | ---- | ----- |
-| Point lookup | ~750 ns/query | `BenchmarkCalibration_BboltGet` |
-| Filtered scan | ~620 ns/row | `BenchmarkCalibration_Bbolt_FilteredScan` (full scan + Go-side predicate — no SQL pushdown on a KV engine) |
-| Aggregate | ~100 ns/row | `BenchmarkCalibration_Bbolt_CounterScan` (`CounterGet` prefix scan — the `ReadAggregate` path, ADR-0133) |
-| Full scan | ~660 ns/row | `BenchmarkCalibration_Bbolt_FullScan` |
+| Pattern       | Cost          | Bench                                                                                                      |
+| ------------- | ------------- | ---------------------------------------------------------------------------------------------------------- |
+| Point lookup  | ~750 ns/query | `BenchmarkCalibration_BboltGet`                                                                            |
+| Filtered scan | ~620 ns/row   | `BenchmarkCalibration_Bbolt_FilteredScan` (full scan + Go-side predicate — no SQL pushdown on a KV engine) |
+| Aggregate     | ~100 ns/row   | `BenchmarkCalibration_Bbolt_CounterScan` (`CounterGet` prefix scan — the `ReadAggregate` path, ADR-0133)   |
+| Full scan     | ~660 ns/row   | `BenchmarkCalibration_Bbolt_FullScan`                                                                      |
 
 ## Backends
 

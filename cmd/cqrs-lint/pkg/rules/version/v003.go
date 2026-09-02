@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // latestKnownMinor is the latest known minor version of the v4 series.

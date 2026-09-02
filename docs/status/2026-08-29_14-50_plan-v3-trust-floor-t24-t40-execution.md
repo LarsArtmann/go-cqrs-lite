@@ -182,9 +182,10 @@ go.work 1.26.7 · `54e697c3a` golden regen · `4ec1fd594` gci restore ·
    I reverted that per AGENTS rule 18 — confirm that config change was
    unintended.
 2. T39.1 snapshot encryption is a feature-sized ask (design + implementation
-   + rotation test). Want it next session, or design-note first?
+   - rotation test). Want it next session, or design-note first?
 3. T41 July pass: same archive rule as August, or leave July frozen?
 
 ---
-*Point-in-time at `4ec1fd594` (my last commit) / `5e6dfffb2` (wave session's
-latest). 2026-08-29 14:42 CEST.*
+
+_Point-in-time at `4ec1fd594` (my last commit) / `5e6dfffb2` (wave session's
+latest). 2026-08-29 14:42 CEST._

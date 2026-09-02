@@ -135,8 +135,11 @@ func TestGraphRAG_SearchThenGraphTraverse(t *testing.T) {
 	// and grace were absent — asserting their PRESENCE pins hop-accurate depth.
 	for _, twoHop := range []string{"carol", "grace"} {
 		if !contextWindow[twoHop] {
-			t.Errorf("GraphRAG context: expected %s in expanded context window at 2 hops (got %d entities)",
-				twoHop, len(contextWindow))
+			t.Errorf(
+				"GraphRAG context: expected %s in expanded context window at 2 hops (got %d entities)",
+				twoHop,
+				len(contextWindow),
+			)
 		}
 	}
 

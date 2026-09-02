@@ -2,7 +2,7 @@ package metaengine
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"math"
 	"sort"
 )

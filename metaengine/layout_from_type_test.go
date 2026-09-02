@@ -60,7 +60,11 @@ func TestBuildLayoutPlanFromType_UnknownFieldFallsBackToHeuristic(t *testing.T) 
 }
 
 func TestBuildLayoutPlanFromType_MatchesBuildLayoutPlanShape(t *testing.T) {
-	fromType := metaengine.BuildLayoutPlanFromType[layoutFromTypeDoc]("d", []string{"status"}, []string{"priority"})
+	fromType := metaengine.BuildLayoutPlanFromType[layoutFromTypeDoc](
+		"d",
+		[]string{"status"},
+		[]string{"priority"},
+	)
 	heuristic := metaengine.BuildLayoutPlan("d", []string{"status"}, []string{"priority"})
 
 	if fromType.Table != heuristic.Table {

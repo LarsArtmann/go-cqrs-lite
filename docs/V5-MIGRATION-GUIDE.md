@@ -34,11 +34,11 @@ record.Type("x")` does not compile).
 
 ## 2. Deletion waves at the cut (each lands as one commit family)
 
-| Wave | Deleted | Replace with |
-| ---- | ------- | ------------ |
-| A | `stack.Materialize`, `stack.Bundle` + all 8 presets, `stack.RunProjections`, `stack/bench` | `system.New` composition root + `projectionhost.Host` |
-| B | `storage/view`, `storage/relational`, `graph.GraphProjection`, `storage/sql.BuildWhereClause`, ADR-0126 shells (`schema.VersionedStore`, `schema.VersionedSeekableJournal`, `signing.Rejecting*`, `encryption.ErrInnerStoreNot*`, `metadata.CustomData`) | metaengine auto-projection; `event.DecorateStore`/`DecorateJournal` + `SinkTransform`/`SourceTransform` |
-| C | `transport/http` (SSE), `transport/grpc`, tombstone metadata API (`event.DetectTombstone`, `MarkTombstone`, `MarkRebirth`, `TombstoneStatus`), `NewStreamRef` lenient validation, snapshot wire-tag legacy readers | `watermill/` brokers or go-sse; domain-event deletion types + `listing.StatusMiddleware`; strict validation |
+| Wave | Deleted                                                                                                                                                                                                                                                  | Replace with                                                                                                |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| A    | `stack.Materialize`, `stack.Bundle` + all 8 presets, `stack.RunProjections`, `stack/bench`                                                                                                                                                               | `system.New` composition root + `projectionhost.Host`                                                       |
+| B    | `storage/view`, `storage/relational`, `graph.GraphProjection`, `storage/sql.BuildWhereClause`, ADR-0126 shells (`schema.VersionedStore`, `schema.VersionedSeekableJournal`, `signing.Rejecting*`, `encryption.ErrInnerStoreNot*`, `metadata.CustomData`) | metaengine auto-projection; `event.DecorateStore`/`DecorateJournal` + `SinkTransform`/`SourceTransform`     |
+| C    | `transport/http` (SSE), `transport/grpc`, tombstone metadata API (`event.DetectTombstone`, `MarkTombstone`, `MarkRebirth`, `TombstoneStatus`), `NewStreamRef` lenient validation, snapshot wire-tag legacy readers                                       | `watermill/` brokers or go-sse; domain-event deletion types + `listing.StatusMiddleware`; strict validation |
 
 Consumer scans (v5-deprecation-sweep.md §6, 2026-08-30) confirmed the
 deleted modules have no in-repo consumers outside themselves.

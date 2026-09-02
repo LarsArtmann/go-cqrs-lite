@@ -11,25 +11,25 @@ for).
 
 ## a) FULLY DONE (verified, committed, gated)
 
-| Task | Commit(s) | Evidence |
-| ---- | --------- | -------- |
-| A3 dgraph `@recurse` off-by-one | `eef6fa85d` | live probe root-cause; live suite 89/89 green; two bug-pinning tests recalibrated |
-| B1 depguard restore | `3bcb7030e` | v2 object schema, 119 requires covered, lint 76/76 |
-| B2 dgraph tx + MariaDB DESC | `fd347183f`, `97ad66f1a` | nested-RunInTx deadlock fixed (dgraph + sqliteengine); live MariaDB DESC/keyset pins |
-| B3 storage pin fix | `218eb0c23` | pgtestcontainer v4.1.0; full PG loop green |
-| B4 wave-1 CHANGELOG backfill | `86bcd7aff` | 8 symbols verified in source; symbol gate honest (119 citations) |
-| B5+B6 memory/docs sweep | `3e134939e` | disk-cache env chain, TEST_ARGS trap, recipes 2.24/2.25, faq entry, TODO closes; doc-check 938 refs |
-| B8 hygiene batch | `5849c8ebb` | ErrWorkerFailed sentinel (Infrastructure), boundedMap dip comment, catalog embed note |
-| C3/C9/C10 | `41e04c969` | one-tx-per-event closed with evidence; v5 deletion-safety scans; macOS claim honesty |
-| C5 three routing bugs | `1fddcfbb5` | Calibration race, stale signature, replan oscillation; race-clean |
-| C6/C7 | `a6cefd34a` | GH-release changelog script, pre-tag checklist, retract policy |
-| C1 QUIC hardening | `f063de4d1` | normalizeAny table, dedup reset window, 1K-op pool==1 stream, eviction→reopen |
-| D8 ClaimingTimerStore | `d7fbb9b06` | PG SKIP LOCKED + SQLite leases + MySQL loud rejection; live two-claimer test green |
-| D2 mysqlengine planned | `6c7e08f4a` | live MariaDB roundtrip + conflict guard |
-| D1 pgengine planned | `b8aa29d96` | live PG roundtrip + conflict + mis-type fail-loud |
-| D7 v5 migration guide | `17fbdd3e4` | docs/V5-MIGRATION-GUIDE.md + cut checklist |
-| Gate repairs | `4b7d5a440`, `0c0d795eb`, `1955e6f21` | api golden +10 exports, lint fixes, 12 intentional-clone annotations |
-| Final gate | — | `nix run .#verify` EXIT=0: build/vet/test/race/lint 76-76/arch/depguard/duplication(0 new)/coverage/api-stability(4339)/doc-check |
+| Task                            | Commit(s)                             | Evidence                                                                                                                          |
+| ------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| A3 dgraph `@recurse` off-by-one | `eef6fa85d`                           | live probe root-cause; live suite 89/89 green; two bug-pinning tests recalibrated                                                 |
+| B1 depguard restore             | `3bcb7030e`                           | v2 object schema, 119 requires covered, lint 76/76                                                                                |
+| B2 dgraph tx + MariaDB DESC     | `fd347183f`, `97ad66f1a`              | nested-RunInTx deadlock fixed (dgraph + sqliteengine); live MariaDB DESC/keyset pins                                              |
+| B3 storage pin fix              | `218eb0c23`                           | pgtestcontainer v4.1.0; full PG loop green                                                                                        |
+| B4 wave-1 CHANGELOG backfill    | `86bcd7aff`                           | 8 symbols verified in source; symbol gate honest (119 citations)                                                                  |
+| B5+B6 memory/docs sweep         | `3e134939e`                           | disk-cache env chain, TEST_ARGS trap, recipes 2.24/2.25, faq entry, TODO closes; doc-check 938 refs                               |
+| B8 hygiene batch                | `5849c8ebb`                           | ErrWorkerFailed sentinel (Infrastructure), boundedMap dip comment, catalog embed note                                             |
+| C3/C9/C10                       | `41e04c969`                           | one-tx-per-event closed with evidence; v5 deletion-safety scans; macOS claim honesty                                              |
+| C5 three routing bugs           | `1fddcfbb5`                           | Calibration race, stale signature, replan oscillation; race-clean                                                                 |
+| C6/C7                           | `a6cefd34a`                           | GH-release changelog script, pre-tag checklist, retract policy                                                                    |
+| C1 QUIC hardening               | `f063de4d1`                           | normalizeAny table, dedup reset window, 1K-op pool==1 stream, eviction→reopen                                                     |
+| D8 ClaimingTimerStore           | `d7fbb9b06`                           | PG SKIP LOCKED + SQLite leases + MySQL loud rejection; live two-claimer test green                                                |
+| D2 mysqlengine planned          | `6c7e08f4a`                           | live MariaDB roundtrip + conflict guard                                                                                           |
+| D1 pgengine planned             | `b8aa29d96`                           | live PG roundtrip + conflict + mis-type fail-loud                                                                                 |
+| D7 v5 migration guide           | `17fbdd3e4`                           | docs/V5-MIGRATION-GUIDE.md + cut checklist                                                                                        |
+| Gate repairs                    | `4b7d5a440`, `0c0d795eb`, `1955e6f21` | api golden +10 exports, lint fixes, 12 intentional-clone annotations                                                              |
+| Final gate                      | —                                     | `nix run .#verify` EXIT=0: build/vet/test/race/lint 76-76/arch/depguard/duplication(0 new)/coverage/api-stability(4339)/doc-check |
 
 ## b) PARTIALLY DONE
 
@@ -134,6 +134,7 @@ for).
 ## f) NEXT — up to 50 things (sorted: do-first at top)
 
 **Immediately (correctness/honesty debt from this session)**
+
 1. D3 slice 1: route PushdownMapScan through planned tables (native filters,
    sort, keyset cursor — no twin columns needed on extracted columns).
 2. D3 slice 2: route MapScan + MapUpdate through planned tables (fixes the
@@ -165,73 +166,73 @@ for).
 
 **v5-train engineering (next slices)**
 16. D3 slice 3: EXPLAIN-based index-usage proofs (pg explain.go + mysql
-    EXPLAIN) for planned scans; assert index not seq-scan.
+EXPLAIN) for planned scans; assert index not seq-scan.
 17. D3 slice 4: cross-engine planned-table parity matrices (sqlite vs pg vs
-    mysql fixtures through adttest).
+mysql fixtures through adttest).
 18. LayoutPlanFromType for pg/mysql (reflection-derived column types, not
-    the name-heuristic inferColumnType).
+the name-heuristic inferColumnType).
 19. information_schema-based column evolution for planned tables (type
-    drift migration path).
+drift migration path).
 20. Planned-table backfill helper (opt-in meta_map → planned copy) to soften
-    the no-backfill contract where operators need it.
+the no-backfill contract where operators need it.
 21. D8: lease-renewal call (RenewLease(ctx, id, extend)) for handlers that
-    outlive DefaultClaimLease.
+outlive DefaultClaimLease.
 22. D8: metrics hooks (claimed/expired/reclaimed counters) via the existing
-    scheduling metrics surface.
+scheduling metrics surface.
 23. Doctor/Introspection: surface planned-table registration + row counts
-    per collection.
+per collection.
 24. Decision record: planned tables vs generated columns (gcn_ twins) — when
-    each applies; one ADR addendum or README section.
+each applies; one ADR addendum or README section.
 25. cqrs-lint rule idea: flag ApplyLayout usage on engines that also
-    implement LayoutPlanApplier (prefer the plan path).
+implement LayoutPlanApplier (prefer the plan path).
 
 **v5.0.0 cut execution (gated: needs your green light + push rights)**
 26. Answer/ratify the two open §g questions (DLQ semantics; unattended-job
-    policy) — D4–D6 start after that.
+policy) — D4–D6 start after that.
 27. D4 deletion wave A (stack.Materialize/Bundle/RunProjections/presets).
 28. D5 deletion wave B (storage view+relational, GraphProjection,
-    BuildWhereClause, ADR-0126 shells).
+BuildWhereClause, ADR-0126 shells).
 29. D6 deletion wave C (transport/http+grpc, tombstone metadata API,
-    NewStreamRef strictness, snapshot wire-tag renames + legacy readers).
+NewStreamRef strictness, snapshot wire-tag renames + legacy readers).
 30. Error-code batch rename (`aggregate_*` → `stream_*`) with dashboards note.
 31. Wire-tag rename release: snapshot JSON/CBOR stream_id/stream_type with
-    decode-only fallback + SQL ALTER migrations in storage/migrations.
+decode-only fallback + SQL ALTER migrations in storage/migrations.
 32. v5 CHANGELOG section assembly from the migration guide.
 33. Post-cut sweep: `grep -rn "Deprecated:"` must be empty; strike every
-    executed row in v5-deprecation-sweep.md.
+executed row in v5-deprecation-sweep.md.
 
 **Release mechanics (when you want the wave)**
 34. Cut + push the prepared v4 wave (dgraphengine v4.2.0, sqliteengine
-    v4.3.0, projectionhost v4.5.0) — dry-runs already green.
+v4.3.0, projectionhost v4.5.0) — dry-runs already green.
 35. Extend the wave: pgengine, mysqlengine, scheduling/sqlstore, metaengine
-    (D1/D2/D8 surface) — dry-run each first.
+(D1/D2/D8 surface) — dry-run each first.
 36. Post-tag replace-strip sweep (quic replace pending: irohengine/quic).
 37. `create-github-releases.sh` for each pushed tag (changelog bodies).
 38. Post-wave GOWORK=off matrix + cqrs-lint taskmanager golden refresh.
 39. Indirect-dep consolidation pass (CONTRIBUTING C7.5 leftover).
 40. Consider tagging storage (go.mod-only pin bump) or folding into next
-    code-touching storage release.
+code-touching storage release.
 
 **Hygiene / docs / infra**
 41. AGENTS.md: add the "per-task gate" rule and the background-job rule from
-    this session's mistakes (so the next session inherits them).
+this session's mistakes (so the next session inherits them).
 42. LSP: fix the golangci-lint LSP's GOLANGCI_LINT_CACHE for the editor
-    (phantom /mnt/buildcache diagnostics noise all session).
+(phantom /mnt/buildcache diagnostics noise all session).
 43. Give Dgraph a health-endpoint wait with a real timeout in the script
-    (the self-dial connection-refused log spam suggests the wait is loose).
+(the self-dial connection-refused log spam suggests the wait is loose).
 44. Consider `-shuffle=on` for the dgraph/mysql live suites to surface
-    order-dependence (contention flakes).
+order-dependence (contention flakes).
 45. Document SOAK_SKIP_* interaction with the dgraph loop (the 52s vs
-    15-min full-run discrepancy was never fully explained in the ledger).
+15-min full-run discrepancy was never fully explained in the ledger).
 46. Make ephemeral-pg.sh's PG_MODULES env-overridable (targeted loops
-    without the 7-module sweep).
+without the 7-module sweep).
 47. Add `--dry-run` support to batch-release.sh (parity with tag-release.sh).
 48. Retire or wire the untracked `t/tasks.buf` workflow (gitignored but
-    still accumulating).
+still accumulating).
 49. Sweep the dead `/home/lars/projects/.trash-*` + a3-*.log scratch files
-    from this session's runs.
+from this session's runs.
 50. Schedule a standalone `docs-health` pass: FEATURES/TODO/CHANGELOG vs the
-    24 new commits (item 4–6 are instances; this is the systematic pass).
+24 new commits (item 4–6 are instances; this is the systematic pass).
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 

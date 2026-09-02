@@ -2,7 +2,7 @@ package mysqlengine
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"

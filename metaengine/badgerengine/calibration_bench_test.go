@@ -154,7 +154,11 @@ func BenchmarkCalibration_Badger_CounterScan(b *testing.B) {
 	ctx := context.Background()
 
 	for i := range badgerCalibrationCounters {
-		if err := cb.CounterIncrement(ctx, "agg", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+		if err := cb.CounterIncrement(
+			ctx,
+			"agg",
+			metaengine.Delta{fmt.Sprintf("c%d", i): 1},
+		); err != nil {
 			b.Fatalf("seed CounterIncrement %d: %v", i, err)
 		}
 	}

@@ -17,11 +17,11 @@ Every engine's `NsPerAggregate` now prices the actual `ReadAggregate` execution 
 (`CounterBackend.CounterGet`), measured in live windows, count=5, run 1 discarded, median
 of the rest, ambient load recorded (calibration protocol):
 
-| Engine | Old | New (ns/row) | Median measured | Window | Bench |
-|---|---|---|---|---|---|
-| pg | 150 (SQL-SUM era) | **250** | 246.0 (242–248K ns/op / 1K rows, ±2%) | ephemeral nixpkgs PG (scripts/ephemeral-pg.sh, `go -C` + GOWORK=off) | `BenchmarkCalibration_Postgres_CounterGet` (existed) |
-| mysql | 150 (DIVERGENCE) | **320** | 320.8 | userspace MariaDB 11.4.12 :33061 (fresh datadir init) | `BenchmarkCalibration_MySQL_CounterGet` (**NEW** — written this session) |
-| dgraph | 950_000 (DIVERGENCE) | **2_700** | 2663.0 (cold run 3.8ms discarded) | ephemeral Dgraph 25.4.0 (`nix run .#integration-dgraph`) | `BenchmarkDgraph_CounterGet` (existed) |
+| Engine | Old                  | New (ns/row) | Median measured                       | Window                                                               | Bench                                                                    |
+| ------ | -------------------- | ------------ | ------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| pg     | 150 (SQL-SUM era)    | **250**      | 246.0 (242–248K ns/op / 1K rows, ±2%) | ephemeral nixpkgs PG (scripts/ephemeral-pg.sh, `go -C` + GOWORK=off) | `BenchmarkCalibration_Postgres_CounterGet` (existed)                     |
+| mysql  | 150 (DIVERGENCE)     | **320**      | 320.8                                 | userspace MariaDB 11.4.12 :33061 (fresh datadir init)                | `BenchmarkCalibration_MySQL_CounterGet` (**NEW** — written this session) |
+| dgraph | 950_000 (DIVERGENCE) | **2_700**    | 2663.0 (cold run 3.8ms discarded)     | ephemeral Dgraph 25.4.0 (`nix run .#integration-dgraph`)             | `BenchmarkDgraph_CounterGet` (existed)                                   |
 
 The dgraph old value misused a GraphNeighbors depth-3 **per-OP** number as a **per-ROW**
 constant — planner overpriced dgraph aggregates ~350×. Routing order vs SQL engines is
@@ -44,7 +44,7 @@ nit fixed), `check-changelog-symbols.sh` (143 citations), `cmd/doc-check` (956 r
 1. **API Stability workflow bug** (.github/workflows/ci.yml:334): `go run main.go` on a
    multi-file package (`undefined: collectExports`) → `go run -tags "goexperiment.jsonv2" .`
    (canonical form). Verified locally: 4368 exports OK + `cmd/api-stability` meta-tests ok
-   + actionlint clean.
+   - actionlint clean.
 2. **shfmt drift**: `scripts/calibration-drift.sh` + `scripts/ephemeral-dgraph.sh`
    reformatted with the CI-pinned shfmt; `shfmt -d scripts/` now exits 0.
 3. **Skill-doc TOC gates**: `references/core.md` (462→475 lines) and `references/faq.md`
@@ -171,7 +171,7 @@ gate before the session ended, and the tree's final state is fully gate-verified
    is honest, but the bench is one shared-persistent-server run away from drift).
 5. **Per-task gate checklist should name FEATURES.md** for behavior-affecting rows (§d-4).
 6. **check-version-drift.sh only scans single-level `*/go.mod`** — two-level modules
-   (stack/*, example/*, metaengine/*engine, cmd/*) are invisible to the CI drift gate.
+   (stack/_, example/_, metaengine/_engine, cmd/_) are invisible to the CI drift gate.
    The sweep fixed them anyway, but the gate has a blind spot worth closing (find-based
    glob).
 7. **CI drift for remote-engine constants has no automated leg** (local engines only,
@@ -194,8 +194,8 @@ gate before the session ended, and the tree's final state is fully gate-verified
 3. User: cqrs-lint Self-Lint needs go-finding credentials for GOWORK=off fetches.
 4. Infra: FlakeHub auth + magic-nix-cache 418 on CGo Build / Flake Check / Minimum
    Coverage / integration jobs.
-5. >350-line refactor wave, tranche 1: `cmd/cqrs-lint/pkg/rules/catalog_extra.go` (1207)
-   + `catalog.go` (746) — rule tables → data files or split by category.
+5. 350-line refactor wave, tranche 1: `cmd/cqrs-lint/pkg/rules/catalog_extra.go` (1207)
+   - `catalog.go` (746) — rule tables → data files or split by category.
 6. Tranche 2: `metaengine/typed_reader.go` (1127) — split per ADT family.
 7. Tranche 3: `metaengine/adttest/harness.go` (967) + `enginetest/enginetest.go` (935) —
    or exempt harness dirs via policy decision (see question 3).

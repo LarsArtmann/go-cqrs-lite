@@ -51,7 +51,10 @@ func TestClaimingSQLite_NoDoubleFireAcrossClaimers(t *testing.T) {
 	}
 
 	if len(second) != 0 {
-		t.Fatalf("second claimer got %d timers while leases fresh, want 0 (double fire)", len(second))
+		t.Fatalf(
+			"second claimer got %d timers while leases fresh, want 0 (double fire)",
+			len(second),
+		)
 	}
 
 	// Fired timers are deleted even though they were only leased.

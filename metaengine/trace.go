@@ -1,7 +1,7 @@
 package metaengine
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"io"
 	"sync"
 	"time"

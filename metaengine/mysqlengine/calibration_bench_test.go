@@ -84,7 +84,11 @@ func BenchmarkCalibration_MySQL_CounterGet(b *testing.B) {
 	ctx := context.Background()
 
 	for i := range mysqlCalibrationCounters {
-		if err := cb.CounterIncrement(ctx, "aggr", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+		if err := cb.CounterIncrement(
+			ctx,
+			"aggr",
+			metaengine.Delta{fmt.Sprintf("c%d", i): 1},
+		); err != nil {
 			b.Fatalf("seed CounterIncrement %d: %v", i, err)
 		}
 	}
@@ -98,7 +102,11 @@ func BenchmarkCalibration_MySQL_CounterGet(b *testing.B) {
 		}
 
 		if len(counts) != mysqlCalibrationCounters {
-			b.Fatalf("CounterGet: expected %d counters, got %d", mysqlCalibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet: expected %d counters, got %d",
+				mysqlCalibrationCounters,
+				len(counts),
+			)
 		}
 	}
 

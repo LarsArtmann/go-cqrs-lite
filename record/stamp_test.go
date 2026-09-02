@@ -1,7 +1,7 @@
 package record_test
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	jsonv2 "encoding/json/v2"
 	"testing"
 	"time"

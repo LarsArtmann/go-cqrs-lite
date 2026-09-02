@@ -5,9 +5,8 @@ import (
 	"go/ast"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // projectImportsModule returns true if any non-test file in the project imports

@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	_ "modernc.org/sqlite"
 )
 
 type testPayload struct {

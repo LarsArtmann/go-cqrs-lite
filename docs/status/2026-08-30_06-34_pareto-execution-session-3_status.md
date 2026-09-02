@@ -7,11 +7,11 @@
 
 ## Commits this session (3, per-task, no mega-commits)
 
-| Commit | Content |
-|---|---|
+| Commit      | Content                                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------------------------- |
 | `8c1009983` | test(a1): duplication-gate annotations (6 files) + snapshot `TransformedStore` floor tests (new file, +238) |
-| `16e2d4c31` | fix(a1): verify-fallout sweep — 15 files of lint/dead-code fixes across 9 modules + `.gitignore` for `t/` |
-| `b2930ff1f` | docs(a2): projectionhost doc-lie purge (Start godoc, doc.go, README, advanced.md) |
+| `16e2d4c31` | fix(a1): verify-fallout sweep — 15 files of lint/dead-code fixes across 9 modules + `.gitignore` for `t/`   |
+| `b2930ff1f` | docs(a2): projectionhost doc-lie purge (Start godoc, doc.go, README, advanced.md)                           |
 
 ---
 
@@ -82,6 +82,7 @@
 ## f) NEXT 50 (ordered by the plan's tiers; ~first 15 are the critical path)
 
 **1% — finish honest GREEN**
+
 1. Re-run A3 debug probe with log on disk + TEST_TIMEOUT=120; capture RAW @recurse JSON at depth 2/3 (file ready: `graph_parity_debug_test.go`).
 2. Fix `graph.go` depth semantics (recurse query or `extractNeighborIDs` descent) per captured evidence.
 3. Green `TestDgraphADTMatrix/GraphDepthBound` + `GraphDepth3Diamond` on ephemeral Dgraph; then FULL dgraphengine suite.

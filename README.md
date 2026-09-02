@@ -41,18 +41,18 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 ## How it compares
 
-| Capability                                    | go-cqrs-lite            | Hand-rolled (stdlib) | [looplab/eventhorizon](https://github.com/looplab/eventhorizon) | [ThreeDotsLabs/watermill](https://github.com/ThreeDotsLabs/watermill) |
-| --------------------------------------------- | :---------------------: | :------------------: | :-------------------------------------------------------------: | :-------------------------------------------------------------------: |
-| **Library (not framework)**                   | ✓                       | ✓                    | Partial                                                         | Partial                                                               |
-| **Event sourcing**                            | ✓                       |                      | ✓                                                               | Via plugins                                                           |
-| **Per-module go.mod**                         | ✓                       |                      | ✗                                                               | ✗                                                                     |
-| **Branded, mix-up-proof IDs**                 | ✓                       |                      | ✗                                                               | ✗                                                                     |
-| **Event signing** (HMAC, Ed25519, multisig)   | ✓                       |                      | ✗                                                               | ✗                                                                     |
-| **Payload encryption** (XChaCha20, AES-GCM)   | ✓                       |                      | ✗                                                               | ✗                                                                     |
-| **Schema evolution** (upcasters)              | ✓                       |                      | ✗                                                               | ✗                                                                     |
-| **Auto-docs** (AsyncAPI, OpenAPI, D2)         | ✓                       |                      | ✗                                                               | ✗                                                                     |
-| **Managed projection host** (crash-restart)   | ✓                       |                      | Partial                                                         | ✗                                                                     |
-| **One-call storage presets**                  | ✓                       |                      | ✗                                                               | ✗                                                                     |
+| Capability                                  | go-cqrs-lite | Hand-rolled (stdlib) | [looplab/eventhorizon](https://github.com/looplab/eventhorizon) | [ThreeDotsLabs/watermill](https://github.com/ThreeDotsLabs/watermill) |
+| ------------------------------------------- | :----------: | :------------------: | :-------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| **Library (not framework)**                 |      ✓       |          ✓           |                             Partial                             |                                Partial                                |
+| **Event sourcing**                          |      ✓       |                      |                                ✓                                |                              Via plugins                              |
+| **Per-module go.mod**                       |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Branded, mix-up-proof IDs**               |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Event signing** (HMAC, Ed25519, multisig) |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Payload encryption** (XChaCha20, AES-GCM) |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Schema evolution** (upcasters)            |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Auto-docs** (AsyncAPI, OpenAPI, D2)       |      ✓       |                      |                                ✗                                |                                   ✗                                   |
+| **Managed projection host** (crash-restart) |      ✓       |                      |                             Partial                             |                                   ✗                                   |
+| **One-call storage presets**                |      ✓       |                      |                                ✗                                |                                   ✗                                   |
 
 An empty cell means "you build it yourself." Claims verified against each project's repository (August 2026) — the links are there so you can check the cells.
 
@@ -198,14 +198,14 @@ Every module is independently importable and has its own `go.mod`. Here are the 
 
 Each module declares its own `go.mod`; this is the greatest-hits across the library:
 
-| Dependency                                                                        | Where                    | Purpose                              |
-| --------------------------------------------------------------------------------- | ------------------------ | ------------------------------------ |
-| [`ThreeDotsLabs/watermill`](https://github.com/ThreeDotsLabs/watermill)           | `watermill/`, presets    | In-process and broker pub/sub        |
-| [`failsafe-go/failsafe-go`](https://github.com/failsafe-go/failsafe-go)           | `middleware/`            | Circuit breaker                      |
-| [`maypok86/otter/v2`](https://github.com/maypok86/otter)                          | `decider/`               | TinyLFU state cache                  |
-| `golang.org/x/crypto`                                                             | `encryption/`            | XChaCha20-Poly1305 payload encryption |
-| `modernc.org/sqlite`                                                              | SQLite engines           | CGo-free SQLite driver               |
-| [`larsartmann/go-error-family`](https://github.com/larsartmann/go-error-family)   | all core modules         | 6-family error taxonomy              |
+| Dependency                                                                      | Where                 | Purpose                               |
+| ------------------------------------------------------------------------------- | --------------------- | ------------------------------------- |
+| [`ThreeDotsLabs/watermill`](https://github.com/ThreeDotsLabs/watermill)         | `watermill/`, presets | In-process and broker pub/sub         |
+| [`failsafe-go/failsafe-go`](https://github.com/failsafe-go/failsafe-go)         | `middleware/`         | Circuit breaker                       |
+| [`maypok86/otter/v2`](https://github.com/maypok86/otter)                        | `decider/`            | TinyLFU state cache                   |
+| `golang.org/x/crypto`                                                           | `encryption/`         | XChaCha20-Poly1305 payload encryption |
+| `modernc.org/sqlite`                                                            | SQLite engines        | CGo-free SQLite driver                |
+| [`larsartmann/go-error-family`](https://github.com/larsartmann/go-error-family) | all core modules      | 6-family error taxonomy               |
 
 ## Maturity
 

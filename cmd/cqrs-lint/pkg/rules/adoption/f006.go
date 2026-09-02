@@ -3,9 +3,8 @@ package adoption
 import (
 	"context"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // F006 detects event payloads with PII-like field names and no encryption import.

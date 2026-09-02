@@ -49,7 +49,11 @@ func TestClaimingSQLite_MetricsHooks(t *testing.T) {
 		t.Fatalf("Claimed batches = %v, want [1]", claimedBatches)
 	}
 
-	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-a"), time.Minute); err != nil {
+	if err := store.RenewLease(
+		ctx,
+		scheduling.MustParseTimerID("metrics-a"),
+		time.Minute,
+	); err != nil {
 		t.Fatalf("RenewLease: %v", err)
 	}
 
@@ -66,7 +70,11 @@ func TestClaimingSQLite_MetricsHooks(t *testing.T) {
 		t.Fatalf("MarkFired: %v", err)
 	}
 
-	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-a"), time.Minute); err == nil {
+	if err := store.RenewLease(
+		ctx,
+		scheduling.MustParseTimerID("metrics-a"),
+		time.Minute,
+	); err == nil {
 		t.Fatal("RenewLease on fired timer must fail")
 	} else if rejected != 1 {
 		t.Errorf("RenewRejected fired %d times, want 1", rejected)
@@ -98,7 +106,11 @@ func TestClaimingSQLite_NilMetrics(t *testing.T) {
 		t.Fatalf("Due with nil metrics: %v", err)
 	}
 
-	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-nil"), time.Minute); err != nil {
+	if err := store.RenewLease(
+		ctx,
+		scheduling.MustParseTimerID("metrics-nil"),
+		time.Minute,
+	); err != nil {
 		t.Fatalf("RenewLease with nil metrics: %v", err)
 	}
 }

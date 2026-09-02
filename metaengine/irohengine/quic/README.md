@@ -126,12 +126,12 @@ locally and do NOT replicate. This matches the CALM theorem constraint.
 
 ## Options
 
-| Option               | Description                                                |
-| -------------------- | ---------------------------------------------------------- |
-| `WithLocalOnly()`    | Localhost-only (no relay, 127.0.0.1 bind). Best for tests. |
-| `WithRelay()`        | Star-topology relay mode (forward ops to all peers).       |
-| `WithALPN(bytes)`    | Custom ALPN protocol. All nodes must match.                |
-| `WithBindAddr(addr)` | Override bind address.                                     |
+| Option                | Description                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `WithLocalOnly()`     | Localhost-only (no relay, 127.0.0.1 bind). Best for tests.                                                                                                                                                                                                                                                                                                         |
+| `WithRelay()`         | Star-topology relay mode (forward ops to all peers).                                                                                                                                                                                                                                                                                                               |
+| `WithALPN(bytes)`     | Custom ALPN protocol. All nodes must match.                                                                                                                                                                                                                                                                                                                        |
+| `WithBindAddr(addr)`  | Override bind address.                                                                                                                                                                                                                                                                                                                                             |
 | `WithStreamPooling()` | Persistent BiStream per peer (1 stream for N ops, strict per-peer FIFO). On any stream error the pool evicts and the next send reopens. Enable on BOTH nodes; loss semantics on error match the non-pooled path (the in-flight op is dropped, no retry). Pinned by `TestQuicPooledThousandOps` (1,000 ops, 1 stream) and `TestEvictPooledStream_ReopenOnNextSend`. |
 
 ## Related Modules

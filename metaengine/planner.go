@@ -315,7 +315,8 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	// Pure argmin assignment flips near-parity engines back and forth on
 	// every auto-replan tick (A→B→A oscillation) whenever live latency
 	// jitters around the tie point.
-	if incumbentName, ok := pc.incumbents[meta.QueryName()]; ok && incumbentName != best.engine.Profile().Name {
+	if incumbentName, ok := pc.incumbents[meta.QueryName()]; ok &&
+		incumbentName != best.engine.Profile().Name {
 		for i := range ranked {
 			if ranked[i].engine.Profile().Name != incumbentName {
 				continue

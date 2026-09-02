@@ -95,7 +95,10 @@ func TestDuckDBEngine_PushdownFloatFilter(t *testing.T) {
 
 			first := results.Items[0].(map[string]any)
 			if first["Name"] != "eggplant" {
-				t.Errorf("numeric order broken: first = %v, want eggplant (price 1.25)", first["Name"])
+				t.Errorf(
+					"numeric order broken: first = %v, want eggplant (price 1.25)",
+					first["Name"],
+				)
 			}
 		})
 }

@@ -149,7 +149,11 @@ func BenchmarkCalibration_SQLite_CounterGet(b *testing.B) {
 	ctx := context.Background()
 
 	for i := range sqliteCalibrationCounters {
-		if err := cb.CounterIncrement(ctx, "aggr", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+		if err := cb.CounterIncrement(
+			ctx,
+			"aggr",
+			metaengine.Delta{fmt.Sprintf("c%d", i): 1},
+		); err != nil {
 			b.Fatalf("seed CounterIncrement %d: %v", i, err)
 		}
 	}

@@ -76,10 +76,12 @@ func (e *mysqlEngine) updateMetaMap(
 	rm := func(ctx context.Context, q metaengine.SQLExec) error {
 		var raw []byte
 
-		err := q.QueryRowContext(ctx,
+		err := q.QueryRowContext(
+			ctx,
 			`SELECT CAST(value AS CHAR) FROM meta_map WHERE collection = ? AND `+keyCol+` = ? FOR UPDATE`,
-			col, keyStr,
-		//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
+			col,
+			keyStr,
+			//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 		).Scan(&raw)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("mysqlengine.MapUpdate: read: %w", err)

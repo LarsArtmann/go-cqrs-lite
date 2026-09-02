@@ -1,38 +1,38 @@
 module github.com/larsartmann/go-cqrs-lite/middleware/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
-	github.com/failsafe-go/failsafe-go v0.9.6
+	github.com/failsafe-go/failsafe-go v0.9.7
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
-	github.com/larsartmann/go-idempotency v0.1.2
-	github.com/larsartmann/go-retry v0.3.1
+	github.com/larsartmann/go-idempotency v0.2.0
+	github.com/larsartmann/go-retry v0.4.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
-	go.opentelemetry.io/otel v1.45.0
-	go.opentelemetry.io/otel/sdk v1.45.0
-	go.opentelemetry.io/otel/sdk/metric v1.45.0
-	go.opentelemetry.io/otel/trace v1.45.0
+	go.opentelemetry.io/otel v1.46.0
+	go.opentelemetry.io/otel/sdk v1.46.0
+	go.opentelemetry.io/otel/sdk/metric v1.46.0
+	go.opentelemetry.io/otel/trace v1.46.0
 	modernc.org/sqlite v1.56.0
 )
 
 require (
 	github.com/bits-and-blooms/bitset v1.25.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 // indirect
@@ -45,7 +45,7 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.45.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260810153831-ec0a7760b754 // indirect
 	google.golang.org/grpc v1.83.0 // indirect
 )
@@ -65,7 +65,7 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/otel/metric v1.45.0 // indirect
+	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.39.0 // indirect
 	golang.org/x/net v0.57.0 // indirect
@@ -73,6 +73,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.48.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	modernc.org/libc v1.75.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.0 // indirect

@@ -14,34 +14,34 @@ push/daemon moved it past my early commits); **4 commits unpushed**
 
 ## a) FULLY DONE (verified, committed, gated)
 
-| Task | Commit(s) | Evidence |
-| ---- | --------- | -------- |
-| Format the 2 calibration test files that blocked the verify lint gate | `cdc51f488` | golines+nlreturn fixed; module lint 0 issues on both |
-| Session-7 Pareto plan (39 ≤12-min tasks, d2 graph, exclusion list) | `ad77f5223` | HTML report committed; table reported back to the user |
-| CHANGELOG: planned-pushdown completion, RenewLease, float64→DOUBLE fix | `98ffa7bcb` | symbol gate EXIT=0 (129 citations) |
-| duckdb planned-path float investigation → verified safe by construction; added the missing float-filter pin | `79f7ef7cd` | CGo test suite green; §f 19 closed as verified-no-bug |
-| sqliteengine EXPLAIN QUERY PLAN proof for the planned path (also covers the index-name-drift pin) | `ca15e925f` | asserts index-backed plan, no bare SCAN, meta_planned_* target |
-| Planned-vs-meta_map bench evidence (T07) | `558b2d121` | live PG: filtered scan 873.8µs (meta_map) vs 778.9µs (planned); CounterGet equal (287.4 vs 260.0µs) → counters-stay-on-meta_map decision now has numbers |
-| `LayoutPlanEvolver` core interface + pg information_schema evolution | `558b2d121` | ADD COLUMN IF NOT EXISTS, ALTER COLUMN TYPE .. USING (42804 needs the explicit cast), applied-actions list |
-| mysql evolution + live tests both engines | `396b2639e` | information_schema DATABASE()-scoped; MODIFY COLUMN; idempotency + numeric-predicate-over-evolved-column tests green on ephemeral PG + userspace MariaDB |
-| Opt-in `BackfillPlannedCollection` + `KeyScanBackend` capability | `6c710e478` | meta_map-direct paged key+value reads; idempotent upsert backfill; live tests on PG + MariaDB; art-dupl accepts (gate green, baseline 131) |
-| Doctor `--- Planned tables ---` section + `PlannedTablesReporter` | `ad09ec75d` | pg+mysql implementations; live row counts; core test pins the no-reporter rendering; api golden 4365→4368 exports |
-| `EffectiveDurability()` on badger/bbolt/pebble/sqlite/pg | `9c32ccce2` | state-derived (sync flags, PRAGMA, DSN tier); registration tests pin the tier round trip incl. live PG; **caught the unpublished-symbol replace class 3 more times** (4 go.mods gained the sibling replace) |
-| `RunPlannedOpsMatrix` — D3 slice 4 parity harness (adttest) | `140409aec` | no-backfill invisibility, backfill, planned visibility, pushdown agreement, MapUpdate, evolution — each sub-capability interface-gated; wired into sqlite/pg/mysql/duckdb; **caught a real duckdb divergence** (MapScan leaked meta_map rows into planned scans) and the fix landed in the same commit |
-| Claiming metrics hooks (T17/T18) — option (a) zero-dep | `84ccb8549` | `ClaimMetrics{Claimed, Renewed, RenewRejected}` + variadic `ClaimOption`; nil-safe; tests pin all three hooks |
-| RenewLease renew-vs-claim race test (T19) | `84ccb8549` | live PG via ephemeral-pg loop, `-race`, EXIT=0: pollers can't steal a renewing holder's timer; exactly one reclaimer converges after lapse |
-| Claim-token ownership ADR stub (T20) | `84ccb8549` | `docs/adr/0134-claim-token-ownership.md` (proposed; additive-overload path sketched) |
-| Timer-store slot decision (T16) | `84ccb8549` (TODO) | adttest/enginetest are metaengine-engine harnesses; claiming is a scheduling decorator — tests stay in scheduling/sqlstore; ledger row closed with rationale |
-| Docs batch (T21–T26) | `4285defbb` | recipe 2.28 (visibility, backfill, evolution, EXPLAIN proof, measured numbers), modules.md metaengine+duckdb rows, SKILL.md decision-table row, ADR-0124 EXPLAIN-proof requirement, faq planned-visibility entry, pg/mysql README cost tables; **doc-check GREEN, 956 refs / 42 packages** |
-| dgraph health wait made tunable (T27) | `8e7dcddfe` | `DGRAPH_HEALTH_TIMEOUT` env, default 60s unchanged; bash -n clean |
-| `-shuffle=on` evaluation (T28) — **ADOPT verdict** | `8e7dcddfe` | first shuffled MariaDB run caught a real order dependence (fixed with `adttest.Factory.PreClean`); green over 2 seeds mysql + sqlite + duckdb targeted suites |
-| `SOAK_SKIP_DGRAPH=1` escape hatch + 52s-vs-15min discrepancy documented (T29) | `8e7dcddfe` + uncommitted test change (§d.4) | AGENTS Testing section updated |
-| LSP cache wrapper (T30) | `8e7dcddfe` | `scripts/golangci-lint-lsp-wrapper.sh` force-pins the disk cache; symlinked into ~/.local/bin; crush.json points at it (kills the 150+ phantom diagnostics) |
-| nix `#lint-module` app (T31) | `8e7dcddfe` | smoke-tested: `nix run .#lint-module -- metaengine/pgengine` → 0 issues |
-| AGENTS concurrent-session convention (T32) | `8e7dcddfe` | file-ownership + shared-ledger re-read rules |
-| Turso CTE-probe test (T34) — **genuine finding** | uncommitted (§d.4) | the turso (libSQL) driver REJECTS recursive CTEs → the construction probe correctly degrades graph traversal to iterative BFS; both the probe-failure and degraded-path contracts now pinned (`cte_probe_test.go`, 2 tests PASS, lint clean) |
-| Post-landing sweep, partial (T33) | — | api-stability meta-tests (TestEvery*) green; doc-check green; GOWORK=off standalone builds of 4 consumer modules clean |
-| Hygiene closes verified earlier | TODO | `.gitignore /t/` confirmed, `.gotmp` has no >7d logs, gh auth VERIFIED working (LarsArtmann, repo scope) |
+| Task                                                                                                        | Commit(s)                                    | Evidence                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Format the 2 calibration test files that blocked the verify lint gate                                       | `cdc51f488`                                  | golines+nlreturn fixed; module lint 0 issues on both                                                                                                                                                                                                                                                   |
+| Session-7 Pareto plan (39 ≤12-min tasks, d2 graph, exclusion list)                                          | `ad77f5223`                                  | HTML report committed; table reported back to the user                                                                                                                                                                                                                                                 |
+| CHANGELOG: planned-pushdown completion, RenewLease, float64→DOUBLE fix                                      | `98ffa7bcb`                                  | symbol gate EXIT=0 (129 citations)                                                                                                                                                                                                                                                                     |
+| duckdb planned-path float investigation → verified safe by construction; added the missing float-filter pin | `79f7ef7cd`                                  | CGo test suite green; §f 19 closed as verified-no-bug                                                                                                                                                                                                                                                  |
+| sqliteengine EXPLAIN QUERY PLAN proof for the planned path (also covers the index-name-drift pin)           | `ca15e925f`                                  | asserts index-backed plan, no bare SCAN, meta_planned_* target                                                                                                                                                                                                                                         |
+| Planned-vs-meta_map bench evidence (T07)                                                                    | `558b2d121`                                  | live PG: filtered scan 873.8µs (meta_map) vs 778.9µs (planned); CounterGet equal (287.4 vs 260.0µs) → counters-stay-on-meta_map decision now has numbers                                                                                                                                               |
+| `LayoutPlanEvolver` core interface + pg information_schema evolution                                        | `558b2d121`                                  | ADD COLUMN IF NOT EXISTS, ALTER COLUMN TYPE .. USING (42804 needs the explicit cast), applied-actions list                                                                                                                                                                                             |
+| mysql evolution + live tests both engines                                                                   | `396b2639e`                                  | information_schema DATABASE()-scoped; MODIFY COLUMN; idempotency + numeric-predicate-over-evolved-column tests green on ephemeral PG + userspace MariaDB                                                                                                                                               |
+| Opt-in `BackfillPlannedCollection` + `KeyScanBackend` capability                                            | `6c710e478`                                  | meta_map-direct paged key+value reads; idempotent upsert backfill; live tests on PG + MariaDB; art-dupl accepts (gate green, baseline 131)                                                                                                                                                             |
+| Doctor `--- Planned tables ---` section + `PlannedTablesReporter`                                           | `ad09ec75d`                                  | pg+mysql implementations; live row counts; core test pins the no-reporter rendering; api golden 4365→4368 exports                                                                                                                                                                                      |
+| `EffectiveDurability()` on badger/bbolt/pebble/sqlite/pg                                                    | `9c32ccce2`                                  | state-derived (sync flags, PRAGMA, DSN tier); registration tests pin the tier round trip incl. live PG; **caught the unpublished-symbol replace class 3 more times** (4 go.mods gained the sibling replace)                                                                                            |
+| `RunPlannedOpsMatrix` — D3 slice 4 parity harness (adttest)                                                 | `140409aec`                                  | no-backfill invisibility, backfill, planned visibility, pushdown agreement, MapUpdate, evolution — each sub-capability interface-gated; wired into sqlite/pg/mysql/duckdb; **caught a real duckdb divergence** (MapScan leaked meta_map rows into planned scans) and the fix landed in the same commit |
+| Claiming metrics hooks (T17/T18) — option (a) zero-dep                                                      | `84ccb8549`                                  | `ClaimMetrics{Claimed, Renewed, RenewRejected}` + variadic `ClaimOption`; nil-safe; tests pin all three hooks                                                                                                                                                                                          |
+| RenewLease renew-vs-claim race test (T19)                                                                   | `84ccb8549`                                  | live PG via ephemeral-pg loop, `-race`, EXIT=0: pollers can't steal a renewing holder's timer; exactly one reclaimer converges after lapse                                                                                                                                                             |
+| Claim-token ownership ADR stub (T20)                                                                        | `84ccb8549`                                  | `docs/adr/0134-claim-token-ownership.md` (proposed; additive-overload path sketched)                                                                                                                                                                                                                   |
+| Timer-store slot decision (T16)                                                                             | `84ccb8549` (TODO)                           | adttest/enginetest are metaengine-engine harnesses; claiming is a scheduling decorator — tests stay in scheduling/sqlstore; ledger row closed with rationale                                                                                                                                           |
+| Docs batch (T21–T26)                                                                                        | `4285defbb`                                  | recipe 2.28 (visibility, backfill, evolution, EXPLAIN proof, measured numbers), modules.md metaengine+duckdb rows, SKILL.md decision-table row, ADR-0124 EXPLAIN-proof requirement, faq planned-visibility entry, pg/mysql README cost tables; **doc-check GREEN, 956 refs / 42 packages**             |
+| dgraph health wait made tunable (T27)                                                                       | `8e7dcddfe`                                  | `DGRAPH_HEALTH_TIMEOUT` env, default 60s unchanged; bash -n clean                                                                                                                                                                                                                                      |
+| `-shuffle=on` evaluation (T28) — **ADOPT verdict**                                                          | `8e7dcddfe`                                  | first shuffled MariaDB run caught a real order dependence (fixed with `adttest.Factory.PreClean`); green over 2 seeds mysql + sqlite + duckdb targeted suites                                                                                                                                          |
+| `SOAK_SKIP_DGRAPH=1` escape hatch + 52s-vs-15min discrepancy documented (T29)                               | `8e7dcddfe` + uncommitted test change (§d.4) | AGENTS Testing section updated                                                                                                                                                                                                                                                                         |
+| LSP cache wrapper (T30)                                                                                     | `8e7dcddfe`                                  | `scripts/golangci-lint-lsp-wrapper.sh` force-pins the disk cache; symlinked into ~/.local/bin; crush.json points at it (kills the 150+ phantom diagnostics)                                                                                                                                            |
+| nix `#lint-module` app (T31)                                                                                | `8e7dcddfe`                                  | smoke-tested: `nix run .#lint-module -- metaengine/pgengine` → 0 issues                                                                                                                                                                                                                                |
+| AGENTS concurrent-session convention (T32)                                                                  | `8e7dcddfe`                                  | file-ownership + shared-ledger re-read rules                                                                                                                                                                                                                                                           |
+| Turso CTE-probe test (T34) — **genuine finding**                                                            | uncommitted (§d.4)                           | the turso (libSQL) driver REJECTS recursive CTEs → the construction probe correctly degrades graph traversal to iterative BFS; both the probe-failure and degraded-path contracts now pinned (`cte_probe_test.go`, 2 tests PASS, lint clean)                                                           |
+| Post-landing sweep, partial (T33)                                                                           | —                                            | api-stability meta-tests (TestEvery*) green; doc-check green; GOWORK=off standalone builds of 4 consumer modules clean                                                                                                                                                                                 |
+| Hygiene closes verified earlier                                                                             | TODO                                         | `.gitignore /t/` confirmed, `.gotmp` has no >7d logs, gh auth VERIFIED working (LarsArtmann, repo scope)                                                                                                                                                                                               |
 
 ## b) PARTIALLY DONE
 
@@ -154,6 +154,7 @@ push/daemon moved it past my early commits); **4 commits unpushed**
 ## f) NEXT — up to 50 (sorted: do-first at top)
 
 **Immediately (session-7 tails)**
+
 1. Commit the 3 uncommitted files (SKILL.md row, SOAK_SKIP_DGRAPH test,
    turso cte_probe_test.go) — preserve the work; see §d.4.
 2. Push the 4+1 unpushed commits after §f.4 goes green.
@@ -180,65 +181,65 @@ push/daemon moved it past my early commits); **4 commits unpushed**
 12. DuckDB: adopt `LayoutPlanEvolver` (matrix leg currently skips).
 13. sqliteengine: adopt `KeyScanBackend` + backfill (matrix leg skips).
 14. sqliteengine + duckdb: adopt `PlannedTablesReporter` (Doctor row counts
-    currently pg/mysql only).
+currently pg/mysql only).
 15. sqlite information_schema evolution (PRAGMA table_info path).
 16. Planned-vs-meta_map bench at 100K rows (the 2K-row numbers understate
-    the native-column gap; RTT dominates at small N).
+the native-column gap; RTT dominates at small N).
 17. Record the planned_vs_metamap bench results in
-    `docs/benchmarks/` alongside the calibration baseline.
+`docs/benchmarks/` alongside the calibration baseline.
 18. `RunPlannedOpsMatrix`: add a mis-type-filter rejection scenario
-    (ErrPlannedColumnTypeMismatch) to make the classification
-    cross-engine-pinned too.
+(ErrPlannedColumnTypeMismatch) to make the classification
+cross-engine-pinned too.
 19. `RunPlannedOpsMatrix`: add a MapScan-visibility subtest for
-    MapDelete (delete-visibility is unpinned).
+MapDelete (delete-visibility is unpinned).
 20. Evaluate `-shuffle=on` for the dgraph suite (the last live suite
-    without a verdict).
+without a verdict).
 21. Roll `-shuffle=on` into ephemeral-pg/mysql/dgraph app invocations at
-    the next tag wave (per the AGENTS verdict note).
+the next tag wave (per the AGENTS verdict note).
 
 **D8 continuation**
 22. Implement ADR-0134 additively (`RenewLeaseWithToken`/
-    `MarkFiredWithToken`) when a consumer asks or at v5.
+`MarkFiredWithToken`) when a consumer asks or at v5.
 23. Claim-storm contention test (>2 pollers, ~20 timers) on live PG.
 24. MariaDB SKIP LOCKED re-evaluation (MariaDB 11.8 status may have
-    changed — verify before relying on ErrClaimingUnsupported).
+changed — verify before relying on ErrClaimingUnsupported).
 
 **Observability/lint**
 25. cqrs-lint ApplyLayout→ApplyLayoutPlan rule: the design pass (type-impl
-    detection or api-stability-fed capability registry) — still scoped-only.
+detection or api-stability-fed capability registry) — still scoped-only.
 26. C5 remainder: plan-time diagnostic for engines over-declaring `Supports`.
 27. C5 remainder: graph BFS fallback `fmt.Sprint` node-key collision
-    (int(1) vs "1").
+(int(1) vs "1").
 28. C5 remainder: OnRecord folds returning Embedding/IndexedText/Point/
-    MultiEntry/Append get an always-zero Record silently.
+MultiEntry/Append get an always-zero Record silently.
 29. Doctor: surface `--- Planned tables ---` per-engine ERROR lines when
-    planned tables exist but COUNT fails (partial: N/A fallback exists).
+planned tables exist but COUNT fails (partial: N/A fallback exists).
 
 **Release mechanics (push-gated, user-gated where marked)**
 30. [Q1] Tag wave: dgraphengine v4.2.0, sqliteengine v4.3.0,
-    projectionhost v4.5.0 + the extended D3 wave (pgengine, mysqlengine,
-    scheduling-sqlstore, metaengine, badger/bbolt/pebble/sqlite/duckdb
-    engines — the session-7 surface grows it further). Dry-runs were green
-    for the session-4 subset; the extended wave needs fresh dry-runs.
+projectionhost v4.5.0 + the extended D3 wave (pgengine, mysqlengine,
+scheduling-sqlstore, metaengine, badger/bbolt/pebble/sqlite/duckdb
+engines — the session-7 surface grows it further). Dry-runs were green
+for the session-4 subset; the extended wave needs fresh dry-runs.
 31. [Q1] Post-wave replace-strip sweep — now includes the 5 new engine
-    sibling replaces added this session (badger, bbolt, pebble, sqlite,
-    duckdb go.mods).
+sibling replaces added this session (badger, bbolt, pebble, sqlite,
+duckdb go.mods).
 32. [Q1] Post-wave GOWORK=off build matrix over all swept modules.
 33. [Q2] GitHub Releases for accumulated tags via
-    `scripts/create-github-releases.sh` (gh auth verified working).
+`scripts/create-github-releases.sh` (gh auth verified working).
 34. Indirect-dep consolidation pass after the wave lands.
 35. GitHub Actions billing fix (user action — every paid job red).
 36. macOS runner leg for ephemeral-pg (hardware/user).
 37. mysql-nspawn full-flow verification (needs root).
 38. go-codec F46: commit + tag the UnwrapDecode sniff in ../go-codec, then
-    update the allocs expectations (user action on the sibling repo).
+update the allocs expectations (user action on the sibling repo).
 39. Ratify-or-revert the iroh P99 150ms judgment call (user).
 40. Dead eventtest tags: delete remotes or document-and-ignore (user).
 
 **v5 train (gated on the cut decision)**
 41. D4–D6 deletion-wave dry-runs on a branch (stack presets, view/
-    relational, transport, tombstone API, NewStreamRef).
-42. Error-code rename aggregate_*→stream_* dashboard inventory.
+relational, transport, tombstone API, NewStreamRef).
+42. Error-code rename aggregate__→stream__ dashboard inventory.
 43. Wire-tag rename decode-only fallback reader draft.
 44. v5 CHANGELOG assembly from V5-MIGRATION-GUIDE.md.
 45. Post-cut `grep -rn "Deprecated:"` empty gate script.
@@ -246,15 +247,15 @@ push/daemon moved it past my early commits); **4 commits unpushed**
 **Hygiene**
 46. Sweep stray bbolt .db test files in /home/lars/projects/.gotmp.
 47. Consider extracting the repeated "seed → layout → assert visibility"
-    pattern of the engine planned tests into adttest fully (retire the
-    per-engine one-off tests that RunPlannedOpsMatrix now covers).
+pattern of the engine planned tests into adttest fully (retire the
+per-engine one-off tests that RunPlannedOpsMatrix now covers).
 48. doc-check: teach it to resolve `sqlstore.` aliases without a visible
-    import (cost session-5 a cycle; still open).
+import (cost session-5 a cycle; still open).
 49. Consider a `#doc-check` scoped app (parity with `#lint-module`) for
-    per-task doc gates.
+per-task doc gates.
 50. Re-verify WS-M ownership: if the concurrent session is dormant, absorb
-    the pg/mysql CounterGet recalibration (G1) into the next session with
-    a live-PG/MySQL window.
+the pg/mysql CounterGet recalibration (G1) into the next session with
+a live-PG/MySQL window.
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 

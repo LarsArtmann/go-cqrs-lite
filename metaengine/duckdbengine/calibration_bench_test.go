@@ -251,7 +251,11 @@ func BenchmarkCalibration_DuckDB_CounterGet(b *testing.B) {
 	ctx := context.Background()
 
 	for i := range calibrationCounters {
-		if err := cb.CounterIncrement(ctx, "aggr", metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+		if err := cb.CounterIncrement(
+			ctx,
+			"aggr",
+			metaengine.Delta{fmt.Sprintf("c%d", i): 1},
+		); err != nil {
 			b.Fatalf("seed CounterIncrement %d: %v", i, err)
 		}
 	}
@@ -265,7 +269,12 @@ func BenchmarkCalibration_DuckDB_CounterGet(b *testing.B) {
 		}
 
 		if len(counts) != calibrationCounters {
-			b.Fatalf("CounterGet %d: expected %d counters, got %d", i, calibrationCounters, len(counts))
+			b.Fatalf(
+				"CounterGet %d: expected %d counters, got %d",
+				i,
+				calibrationCounters,
+				len(counts),
+			)
 		}
 	}
 

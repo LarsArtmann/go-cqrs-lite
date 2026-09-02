@@ -92,7 +92,7 @@
 
 1. T35 final: apply the 17-exclusion drop + engine-rule redundancy prune
    (e.g. pgengine rule's wrapcheck/varnamelen/wsl_v5 are blanket-covered)
-   + `nix run .#check-lint-config` + re-lint of affected modules.
+   - `nix run .#check-lint-config` + re-lint of affected modules.
 2. Formatter-exclusion cleanup (b.3 re-run).
 3. Plan-HTML execution-status banner (deliberately deferred until after
    verify so it records final truth).

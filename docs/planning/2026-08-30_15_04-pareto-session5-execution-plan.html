@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pareto Execution Plan — Session 5: D3 Pushdown &amp; the v5 Train</title>
+    <title>
+      Pareto Execution Plan — Session 5: D3 Pushdown &amp; the v5 Train
+    </title>
     <style>
       /* =========================================================================
          BAUHAUS DARK — Dashboard template
@@ -859,9 +861,9 @@
           <div class="hero-badge">Pareto Execution Plan</div>
           <h1>Session 5: D3 Pushdown &amp; the v5 Train</h1>
           <p class="hero-subtitle">
-            Every remaining TODO from the session-4 retrospective (§f 1–50, §g 1–3)
-            broken into 109 tasks of ≤12 minutes each, sorted by
-            importance / impact / effort / customer-value.
+            Every remaining TODO from the session-4 retrospective (§f 1–50, §g
+            1–3) broken into 109 tasks of ≤12 minutes each, sorted by importance
+            / impact / effort / customer-value.
           </p>
         </div>
 
@@ -896,12 +898,14 @@
         <div class="card card-solution">
           <h4>Do-first order (Pareto)</h4>
           <p>
-            <strong>1%</strong> — close session-4 honesty debt (strict-mode re-validation,
-            CHANGELOG/FEATURES/recipes) then ship D3 slices 1+2 (PushdownMapScan/MapScan/MapUpdate
-            through planned tables; fixes the documented meta_map/planned visibility split).
-            <strong>4%</strong> — prove it (EXPLAIN index proofs, cross-engine parity) and extend it
-            (schema evolution, backfill, RenewLease, metrics). <strong>20%</strong> — observability,
-            lint rule, process/infra hygiene. <strong>Gated</strong> — v4 tag wave and the v5.0.0
+            <strong>1%</strong> — close session-4 honesty debt (strict-mode
+            re-validation, CHANGELOG/FEATURES/recipes) then ship D3 slices 1+2
+            (PushdownMapScan/MapScan/MapUpdate through planned tables; fixes the
+            documented meta_map/planned visibility split). <strong>4%</strong> —
+            prove it (EXPLAIN index proofs, cross-engine parity) and extend it
+            (schema evolution, backfill, RenewLease, metrics).
+            <strong>20%</strong> — observability, lint rule, process/infra
+            hygiene. <strong>Gated</strong> — v4 tag wave and the v5.0.0
             deletion waves start only after the §g answers.
           </p>
         </div>
@@ -910,13 +914,17 @@
         <div class="issue issue-critical">
           <span class="severity severity-critical">1% → 51%</span>
           <h3>Trust + core capability (WS-A/B/C, 38 tasks)</h3>
-          <div class="where">scheduling/sqlstore · metaengine/pgengine · metaengine/mysqlengine · docs</div>
+          <div class="where">
+            scheduling/sqlstore · metaengine/pgengine · metaengine/mysqlengine ·
+            docs
+          </div>
           <p>
-            The session shipped GREEN but carried honesty debt: pgengine planned tests never
-            re-proven in strict GOWORK=off mode, new APIs missing CHANGELOG/FEATURES/recipes, and
-            the planned tables only route MapSet/MapGet/MapDelete. Closing the debt makes the
-            shipped work trustworthy; D3 slices 1+2 make planned tables real for reads and updates —
-            the single largest consumer-visible capability gap.
+            The session shipped GREEN but carried honesty debt: pgengine planned
+            tests never re-proven in strict GOWORK=off mode, new APIs missing
+            CHANGELOG/FEATURES/recipes, and the planned tables only route
+            MapSet/MapGet/MapDelete. Closing the debt makes the shipped work
+            trustworthy; D3 slices 1+2 make planned tables real for reads and
+            updates — the single largest consumer-visible capability gap.
           </p>
         </div>
         <div class="issue issue-important">
@@ -924,9 +932,10 @@
           <h3>Proof + evolution (WS-D/E/F/G, 22 tasks)</h3>
           <div class="where">metaengine/*engine · scheduling/sqlstore</div>
           <p>
-            EXPLAIN-based index-usage proofs turn "it routes" into "it is fast"; cross-engine parity
-            matrices make the capability contract testable; reflection-derived LayoutPlanFromType and
-            information_schema evolution remove the name-heuristic crutch; RenewLease and metrics
+            EXPLAIN-based index-usage proofs turn "it routes" into "it is fast";
+            cross-engine parity matrices make the capability contract testable;
+            reflection-derived LayoutPlanFromType and information_schema
+            evolution remove the name-heuristic crutch; RenewLease and metrics
             make ClaimingTimerStore production-grade.
           </p>
         </div>
@@ -935,398 +944,2021 @@
           <h3>Observability + hygiene (WS-H/I, 15 tasks)</h3>
           <div class="where">doctor · cqrs-lint · scripts · AGENTS.md</div>
           <p>
-            Doctor/introspection surfacing, the planned-vs-generated-columns ADR, an
-            ApplyLayout-preference lint rule, and the process/infra fixes that prevent a repeat of
-            session 4's wedged-job and stale-green failures.
+            Doctor/introspection surfacing, the planned-vs-generated-columns
+            ADR, an ApplyLayout-preference lint rule, and the process/infra
+            fixes that prevent a repeat of session 4's wedged-job and
+            stale-green failures.
           </p>
         </div>
         <div class="card card-problem">
           <h4>Gated work (WS-J/K/L, 34 tasks)</h4>
           <p>
-            The v4 tag wave needs a push authorization (Q1). The v5.0.0 deletion waves (D4–D6),
-            wire-tag rename, and error-code rename are semver-gated and blocked on the §g answers
-            (Q2 unattended-job policy, Q3 DLQ semantics). D9 remains externally blocked
-            (billing, root, macOS hardware, external tags).
+            The v4 tag wave needs a push authorization (Q1). The v5.0.0 deletion
+            waves (D4–D6), wire-tag rename, and error-code rename are
+            semver-gated and blocked on the §g answers (Q2 unattended-job
+            policy, Q3 DLQ semantics). D9 remains externally blocked (billing,
+            root, macOS hardware, external tags).
           </p>
         </div>
 
         <h2 id="graph"><span class="num">02</span>Execution Graph</h2>
         <!-- D2-rendered execution graph, inlined for a self-contained file -->
-        <div style="background: var(--surface-sunken); padding: 1rem; overflow-x: auto;">
-<svg preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.8.1-HEAD" preserveAspectRatio="xMinYMin meet" viewBox="0 0 4357 648"><svg class="d2-3636449944 d2-svg"  viewBox="-101 -101 4357 648"><rect x="-101.000000" y="-101.000000" width="4357.000000" height="648.000000" rx="0.000000" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
-.d2-3636449944 .text-bold {
-	font-family: "d2-3636449944-font-bold";
-}
-@font-face {
-	font-family: d2-3636449944-font-bold;
-	src: url("data:application/font-woff;base64,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");
-}
-.d2-3636449944 .text-italic {
-	font-family: "d2-3636449944-font-italic";
-}
-@font-face {
-	font-family: d2-3636449944-font-italic;
-	src: url("data:application/font-woff;base64,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");
-}]]></style><style type="text/css"><![CDATA[.shape {
-  shape-rendering: geometricPrecision;
-  stroke-linejoin: round;
-}
-.connection {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.blend {
-  mix-blend-mode: multiply;
-  opacity: 0.5;
-}
+        <div
+          style="
+            background: var(--surface-sunken);
+            padding: 1rem;
+            overflow-x: auto;
+          "
+        >
+          <svg
+            preserveAspectRatio="xMidYMid meet"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            data-d2-version="v0.8.1-HEAD"
+            preserveAspectRatio="xMinYMin meet"
+            viewBox="0 0 4357 648"
+          >
+            <svg class="d2-3636449944 d2-svg" viewBox="-101 -101 4357 648">
+              <rect
+                x="-101.000000"
+                y="-101.000000"
+                width="4357.000000"
+                height="648.000000"
+                rx="0.000000"
+                fill="#FFFFFF"
+                class="fill-N7"
+                stroke-width="0"
+              />
+              <style type="text/css">
+                <![CDATA[
+                .d2-3636449944 .text-bold {
+                	font-family: "d2-3636449944-font-bold";
+                }
+                @font-face {
+                	font-family: d2-3636449944-font-bold;
+                	src: url("data:application/font-woff;base64,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");
+                }
+                .d2-3636449944 .text-italic {
+                	font-family: "d2-3636449944-font-italic";
+                }
+                @font-face {
+                	font-family: d2-3636449944-font-italic;
+                	src: url("data:application/font-woff;base64,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");
+                }]]>
+              </style>
+              <style type="text/css">
+                <![CDATA[.shape {
+                  shape-rendering: geometricPrecision;
+                  stroke-linejoin: round;
+                }
+                .connection {
+                  stroke-linecap: round;
+                  stroke-linejoin: round;
+                }
+                .blend {
+                  mix-blend-mode: multiply;
+                  opacity: 0.5;
+                }
 
-		.d2-3636449944 .fill-N1{fill:#0A0F25;}
-		.d2-3636449944 .fill-N2{fill:#676C7E;}
-		.d2-3636449944 .fill-N3{fill:#9499AB;}
-		.d2-3636449944 .fill-N4{fill:#CFD2DD;}
-		.d2-3636449944 .fill-N5{fill:#DEE1EB;}
-		.d2-3636449944 .fill-N6{fill:#EEF1F8;}
-		.d2-3636449944 .fill-N7{fill:#FFFFFF;}
-		.d2-3636449944 .fill-B1{fill:#0D32B2;}
-		.d2-3636449944 .fill-B2{fill:#0D32B2;}
-		.d2-3636449944 .fill-B3{fill:#E3E9FD;}
-		.d2-3636449944 .fill-B4{fill:#E3E9FD;}
-		.d2-3636449944 .fill-B5{fill:#EDF0FD;}
-		.d2-3636449944 .fill-B6{fill:#F7F8FE;}
-		.d2-3636449944 .fill-AA2{fill:#4A6FF3;}
-		.d2-3636449944 .fill-AA4{fill:#EDF0FD;}
-		.d2-3636449944 .fill-AA5{fill:#F7F8FE;}
-		.d2-3636449944 .fill-AB4{fill:#EDF0FD;}
-		.d2-3636449944 .fill-AB5{fill:#F7F8FE;}
-		.d2-3636449944 .stroke-N1{stroke:#0A0F25;}
-		.d2-3636449944 .stroke-N2{stroke:#676C7E;}
-		.d2-3636449944 .stroke-N3{stroke:#9499AB;}
-		.d2-3636449944 .stroke-N4{stroke:#CFD2DD;}
-		.d2-3636449944 .stroke-N5{stroke:#DEE1EB;}
-		.d2-3636449944 .stroke-N6{stroke:#EEF1F8;}
-		.d2-3636449944 .stroke-N7{stroke:#FFFFFF;}
-		.d2-3636449944 .stroke-B1{stroke:#0D32B2;}
-		.d2-3636449944 .stroke-B2{stroke:#0D32B2;}
-		.d2-3636449944 .stroke-B3{stroke:#E3E9FD;}
-		.d2-3636449944 .stroke-B4{stroke:#E3E9FD;}
-		.d2-3636449944 .stroke-B5{stroke:#EDF0FD;}
-		.d2-3636449944 .stroke-B6{stroke:#F7F8FE;}
-		.d2-3636449944 .stroke-AA2{stroke:#4A6FF3;}
-		.d2-3636449944 .stroke-AA4{stroke:#EDF0FD;}
-		.d2-3636449944 .stroke-AA5{stroke:#F7F8FE;}
-		.d2-3636449944 .stroke-AB4{stroke:#EDF0FD;}
-		.d2-3636449944 .stroke-AB5{stroke:#F7F8FE;}
-		.d2-3636449944 .background-color-N1{background-color:#0A0F25;}
-		.d2-3636449944 .background-color-N2{background-color:#676C7E;}
-		.d2-3636449944 .background-color-N3{background-color:#9499AB;}
-		.d2-3636449944 .background-color-N4{background-color:#CFD2DD;}
-		.d2-3636449944 .background-color-N5{background-color:#DEE1EB;}
-		.d2-3636449944 .background-color-N6{background-color:#EEF1F8;}
-		.d2-3636449944 .background-color-N7{background-color:#FFFFFF;}
-		.d2-3636449944 .background-color-B1{background-color:#0D32B2;}
-		.d2-3636449944 .background-color-B2{background-color:#0D32B2;}
-		.d2-3636449944 .background-color-B3{background-color:#E3E9FD;}
-		.d2-3636449944 .background-color-B4{background-color:#E3E9FD;}
-		.d2-3636449944 .background-color-B5{background-color:#EDF0FD;}
-		.d2-3636449944 .background-color-B6{background-color:#F7F8FE;}
-		.d2-3636449944 .background-color-AA2{background-color:#4A6FF3;}
-		.d2-3636449944 .background-color-AA4{background-color:#EDF0FD;}
-		.d2-3636449944 .background-color-AA5{background-color:#F7F8FE;}
-		.d2-3636449944 .background-color-AB4{background-color:#EDF0FD;}
-		.d2-3636449944 .background-color-AB5{background-color:#F7F8FE;}
-		.d2-3636449944 .color-N1{color:#0A0F25;}
-		.d2-3636449944 .color-N2{color:#676C7E;}
-		.d2-3636449944 .color-N3{color:#9499AB;}
-		.d2-3636449944 .color-N4{color:#CFD2DD;}
-		.d2-3636449944 .color-N5{color:#DEE1EB;}
-		.d2-3636449944 .color-N6{color:#EEF1F8;}
-		.d2-3636449944 .color-N7{color:#FFFFFF;}
-		.d2-3636449944 .color-B1{color:#0D32B2;}
-		.d2-3636449944 .color-B2{color:#0D32B2;}
-		.d2-3636449944 .color-B3{color:#E3E9FD;}
-		.d2-3636449944 .color-B4{color:#E3E9FD;}
-		.d2-3636449944 .color-B5{color:#EDF0FD;}
-		.d2-3636449944 .color-B6{color:#F7F8FE;}
-		.d2-3636449944 .color-AA2{color:#4A6FF3;}
-		.d2-3636449944 .color-AA4{color:#EDF0FD;}
-		.d2-3636449944 .color-AA5{color:#F7F8FE;}
-		.d2-3636449944 .color-AB4{color:#EDF0FD;}
-		.d2-3636449944 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3636449944);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3636449944);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3636449944);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3636449944);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3636449944);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3636449944);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3636449944);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]></style><g class="cmVhZHk="><g class="shape" ><rect x="0.000000" y="315.000000" width="475.000000" height="66.000000" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="237.500000" y="353.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">Session-4 GREEN baseline (commit 96e78044e, verify EXIT=0)</text></g><g class="QQ=="><g class="shape" ><rect x="819.000000" y="252.000000" width="311.000000" height="66.000000" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="974.500000" y="290.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-A Honesty Debt (20 tasks, 1% tier)</text></g><g class="Qg=="><g class="shape" ><rect x="1729.000000" y="125.000000" width="424.000000" height="66.000000" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1941.000000" y="163.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-B D3 Slice 1 PushdownMapScan (11 tasks, 1% tier)</text></g><g class="Qw=="><g class="shape" ><rect x="2538.000000" y="125.000000" width="431.000000" height="66.000000" stroke="#0D32B2" fill="#f4d35e" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2753.500000" y="163.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-C D3 Slice 2 MapScan+MapUpdate (7 tasks, 1% tier)</text></g><g class="RA=="><g class="shape" ><rect x="3220.000000" y="0.000000" width="317.000000" height="66.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3378.500000" y="38.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-D EXPLAIN Proofs (4 tasks, 4% tier)</text></g><g class="RQ=="><g class="shape" ><rect x="3799.000000" y="0.000000" width="345.000000" height="66.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3971.500000" y="38.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-E Cross-Engine Parity (4 tasks, 4% tier)</text></g><g class="Rg=="><g class="shape" ><rect x="3208.000000" y="126.000000" width="342.000000" height="66.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3379.000000" y="164.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-F Evolution + Backfill (8 tasks, 4% tier)</text></g><g class="Rw=="><g class="shape" ><rect x="3186.000000" y="252.000000" width="385.000000" height="66.000000" stroke="#0D32B2" fill="#6eb5ff" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3378.500000" y="290.500000" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">WS-G D8 RenewLease + Metrics (6 tasks, 4% tier)</text></g><g class="SA=="><g class="shape" ><rect x="3788.000000" y="252.000000" width="367.000000" height="66.000000" stroke="#0D32B2" fill="#1d3557" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3971.500000" y="290.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px">WS-H Doctor/ADR/Lint Rule (5 tasks, 20% tier)</text></g><g class="SQ=="><g class="shape" ><rect x="782.000000" y="378.000000" width="384.000000" height="66.000000" stroke="#0D32B2" fill="#1d3557" class=" stroke-B1" style="stroke-width:2;" /></g><text x="974.000000" y="416.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px">WS-I Process + Infra Hygiene (10 tasks, 20% tier)</text></g><g class="Z2F0ZQ=="><g class="shape" ><path d="M 1750 377 L 1560 411 L 1750 446 L 2131 446 L 2321 411 L 2131 377 Z" stroke="#0D32B2" fill="#e63946" class=" stroke-B1" style="stroke-width:2;" /></g><text x="1940.500000" y="417.000000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px">USER GATE (Q1 tag wave, Q2 job policy, Q3 DLQ, D9 billing/root/mac)</text></g><g class="Sg=="><g class="shape" ><rect x="2608.000000" y="378.000000" width="291.000000" height="66.000000" stroke="#0D32B2" fill="#555555" class=" stroke-B1" style="stroke-width:2;" /></g><text x="2753.500000" y="416.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px">WS-J v4 Tag Wave (13 tasks, gated)</text></g><g class="Sw=="><g class="shape" ><rect x="3193.000000" y="378.000000" width="371.000000" height="66.000000" stroke="#0D32B2" fill="#555555" class=" stroke-B1" style="stroke-width:2;" /></g><text x="3378.500000" y="416.500000" fill="#f4f4f0" class="text-bold" style="text-anchor:middle;font-size:16px">WS-K v5.0.0 Cut Waves D4-D6 (18 tasks, gated)</text></g><g class="KHJlYWR5IC0mZ3Q7IEEpWzBd"><marker id="mk-d2-3636449944-3488378134" markerWidth="10.000000" markerHeight="12.000000" refX="7.000000" refY="6.000000" viewBox="0.000000 0.000000 10.000000 12.000000" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 444.474482 314.681535 C 591.299988 291.000000 666.500000 285.000000 814.500000 285.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEEgLSZndDsgQilbMF0="><path d="M 1076.901290 251.629440 C 1305.400024 177.050003 1436.099976 158.250000 1724.500000 158.250000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /><text x="1395.500000" y="170.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">planFor seam proven strict</text></g><g class="KEIgLSZndDsgQylbMF0="><path d="M 2155.500000 158.250000 C 2374.300049 158.250000 2451.300049 158.250000 2534.500000 158.250000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEMgLSZndDsgRClbMF0="><path d="M 2842.364449 124.276238 C 3030.100098 51.398998 3106.100098 33.000000 3216.500000 33.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEQgLSZndDsgRSlbMF0="><path d="M 3538.500000 33.000000 C 3650.899902 33.000000 3703.500000 33.000000 3795.500000 33.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEMgLSZndDsgRilbMF0="><path d="M 2970.500000 159.000000 C 3055.699951 159.000000 3103.500000 159.000000 3203.500000 159.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEMgLSZndDsgRylbMF0="><path d="M 2839.717530 191.978636 C 3029.571045 266.250000 3099.300049 285.000000 3182.500000 285.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEcgLSZndDsgSClbMF0="><path d="M 3572.500000 285.000000 C 3657.699951 285.000000 3701.300049 285.000000 3784.500000 285.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KHJlYWR5IC0mZ3Q7IEkpWzBd"><path d="M 444.474482 381.318465 C 591.299988 405.000000 659.299988 411.000000 778.500000 411.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /><text x="612.000000" y="412.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">parallel track</text></g><g class="KEEgLSZndDsgZ2F0ZSlbMF0="><path d="M 1077.902603 318.616523 C 1305.599976 392.399994 1402.400024 411.000000 1556.000000 411.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /><text x="1313.000000" y="399.000000" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">honesty closed</text></g><g class="KGdhdGUgLSZndDsgSilbMF0="><path d="M 2323.000000 411.000000 C 2407.800049 411.000000 2465.300049 411.000000 2604.500000 411.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><g class="KEogLSZndDsgSylbMF0="><path d="M 2900.500000 411.000000 C 3041.699951 411.000000 3100.699951 411.000000 3189.500000 411.000000" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-3636449944-3488378134)" mask="url(#d2-3636449944)" /></g><mask id="d2-3636449944" maskUnits="userSpaceOnUse" x="-101" y="-101" width="4357" height="648">
-<rect x="-101" y="-101" width="4357" height="648" fill="white"></rect>
-<rect x="1305.000000" y="154.000000" width="181" height="21" fill="black"></rect>
-<rect x="565.000000" y="396.000000" width="94" height="21" fill="black"></rect>
-<rect x="1262.000000" y="383.000000" width="102" height="21" fill="black"></rect>
-</mask></svg></svg>
-
+                		.d2-3636449944 .fill-N1{fill:#0A0F25;}
+                		.d2-3636449944 .fill-N2{fill:#676C7E;}
+                		.d2-3636449944 .fill-N3{fill:#9499AB;}
+                		.d2-3636449944 .fill-N4{fill:#CFD2DD;}
+                		.d2-3636449944 .fill-N5{fill:#DEE1EB;}
+                		.d2-3636449944 .fill-N6{fill:#EEF1F8;}
+                		.d2-3636449944 .fill-N7{fill:#FFFFFF;}
+                		.d2-3636449944 .fill-B1{fill:#0D32B2;}
+                		.d2-3636449944 .fill-B2{fill:#0D32B2;}
+                		.d2-3636449944 .fill-B3{fill:#E3E9FD;}
+                		.d2-3636449944 .fill-B4{fill:#E3E9FD;}
+                		.d2-3636449944 .fill-B5{fill:#EDF0FD;}
+                		.d2-3636449944 .fill-B6{fill:#F7F8FE;}
+                		.d2-3636449944 .fill-AA2{fill:#4A6FF3;}
+                		.d2-3636449944 .fill-AA4{fill:#EDF0FD;}
+                		.d2-3636449944 .fill-AA5{fill:#F7F8FE;}
+                		.d2-3636449944 .fill-AB4{fill:#EDF0FD;}
+                		.d2-3636449944 .fill-AB5{fill:#F7F8FE;}
+                		.d2-3636449944 .stroke-N1{stroke:#0A0F25;}
+                		.d2-3636449944 .stroke-N2{stroke:#676C7E;}
+                		.d2-3636449944 .stroke-N3{stroke:#9499AB;}
+                		.d2-3636449944 .stroke-N4{stroke:#CFD2DD;}
+                		.d2-3636449944 .stroke-N5{stroke:#DEE1EB;}
+                		.d2-3636449944 .stroke-N6{stroke:#EEF1F8;}
+                		.d2-3636449944 .stroke-N7{stroke:#FFFFFF;}
+                		.d2-3636449944 .stroke-B1{stroke:#0D32B2;}
+                		.d2-3636449944 .stroke-B2{stroke:#0D32B2;}
+                		.d2-3636449944 .stroke-B3{stroke:#E3E9FD;}
+                		.d2-3636449944 .stroke-B4{stroke:#E3E9FD;}
+                		.d2-3636449944 .stroke-B5{stroke:#EDF0FD;}
+                		.d2-3636449944 .stroke-B6{stroke:#F7F8FE;}
+                		.d2-3636449944 .stroke-AA2{stroke:#4A6FF3;}
+                		.d2-3636449944 .stroke-AA4{stroke:#EDF0FD;}
+                		.d2-3636449944 .stroke-AA5{stroke:#F7F8FE;}
+                		.d2-3636449944 .stroke-AB4{stroke:#EDF0FD;}
+                		.d2-3636449944 .stroke-AB5{stroke:#F7F8FE;}
+                		.d2-3636449944 .background-color-N1{background-color:#0A0F25;}
+                		.d2-3636449944 .background-color-N2{background-color:#676C7E;}
+                		.d2-3636449944 .background-color-N3{background-color:#9499AB;}
+                		.d2-3636449944 .background-color-N4{background-color:#CFD2DD;}
+                		.d2-3636449944 .background-color-N5{background-color:#DEE1EB;}
+                		.d2-3636449944 .background-color-N6{background-color:#EEF1F8;}
+                		.d2-3636449944 .background-color-N7{background-color:#FFFFFF;}
+                		.d2-3636449944 .background-color-B1{background-color:#0D32B2;}
+                		.d2-3636449944 .background-color-B2{background-color:#0D32B2;}
+                		.d2-3636449944 .background-color-B3{background-color:#E3E9FD;}
+                		.d2-3636449944 .background-color-B4{background-color:#E3E9FD;}
+                		.d2-3636449944 .background-color-B5{background-color:#EDF0FD;}
+                		.d2-3636449944 .background-color-B6{background-color:#F7F8FE;}
+                		.d2-3636449944 .background-color-AA2{background-color:#4A6FF3;}
+                		.d2-3636449944 .background-color-AA4{background-color:#EDF0FD;}
+                		.d2-3636449944 .background-color-AA5{background-color:#F7F8FE;}
+                		.d2-3636449944 .background-color-AB4{background-color:#EDF0FD;}
+                		.d2-3636449944 .background-color-AB5{background-color:#F7F8FE;}
+                		.d2-3636449944 .color-N1{color:#0A0F25;}
+                		.d2-3636449944 .color-N2{color:#676C7E;}
+                		.d2-3636449944 .color-N3{color:#9499AB;}
+                		.d2-3636449944 .color-N4{color:#CFD2DD;}
+                		.d2-3636449944 .color-N5{color:#DEE1EB;}
+                		.d2-3636449944 .color-N6{color:#EEF1F8;}
+                		.d2-3636449944 .color-N7{color:#FFFFFF;}
+                		.d2-3636449944 .color-B1{color:#0D32B2;}
+                		.d2-3636449944 .color-B2{color:#0D32B2;}
+                		.d2-3636449944 .color-B3{color:#E3E9FD;}
+                		.d2-3636449944 .color-B4{color:#E3E9FD;}
+                		.d2-3636449944 .color-B5{color:#EDF0FD;}
+                		.d2-3636449944 .color-B6{color:#F7F8FE;}
+                		.d2-3636449944 .color-AA2{color:#4A6FF3;}
+                		.d2-3636449944 .color-AA4{color:#EDF0FD;}
+                		.d2-3636449944 .color-AA5{color:#F7F8FE;}
+                		.d2-3636449944 .color-AB4{color:#EDF0FD;}
+                		.d2-3636449944 .color-AB5{color:#F7F8FE;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.sketch-overlay-B1{fill:url(#streaks-darker-d2-3636449944);mix-blend-mode:lighten}.sketch-overlay-B2{fill:url(#streaks-darker-d2-3636449944);mix-blend-mode:lighten}.sketch-overlay-B3{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-B4{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-B5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-B6{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AA2{fill:url(#streaks-dark-d2-3636449944);mix-blend-mode:overlay}.sketch-overlay-AA4{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AA5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AB4{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-AB5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-N1{fill:url(#streaks-darker-d2-3636449944);mix-blend-mode:lighten}.sketch-overlay-N2{fill:url(#streaks-dark-d2-3636449944);mix-blend-mode:overlay}.sketch-overlay-N3{fill:url(#streaks-normal-d2-3636449944);mix-blend-mode:color-burn}.sketch-overlay-N4{fill:url(#streaks-normal-d2-3636449944);mix-blend-mode:color-burn}.sketch-overlay-N5{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-N6{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.sketch-overlay-N7{fill:url(#streaks-bright-d2-3636449944);mix-blend-mode:darken}.light-code{display: block}.dark-code{display: none}]]>
+              </style>
+              <g class="cmVhZHk=">
+                <g class="shape">
+                  <rect
+                    x="0.000000"
+                    y="315.000000"
+                    width="475.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#F7F8FE"
+                    class="stroke-B1 fill-B6"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="237.500000"
+                  y="353.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  Session-4 GREEN baseline (commit 96e78044e, verify EXIT=0)
+                </text>
+              </g>
+              <g class="QQ==">
+                <g class="shape">
+                  <rect
+                    x="819.000000"
+                    y="252.000000"
+                    width="311.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#f4d35e"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="974.500000"
+                  y="290.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-A Honesty Debt (20 tasks, 1% tier)
+                </text>
+              </g>
+              <g class="Qg==">
+                <g class="shape">
+                  <rect
+                    x="1729.000000"
+                    y="125.000000"
+                    width="424.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#f4d35e"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1941.000000"
+                  y="163.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-B D3 Slice 1 PushdownMapScan (11 tasks, 1% tier)
+                </text>
+              </g>
+              <g class="Qw==">
+                <g class="shape">
+                  <rect
+                    x="2538.000000"
+                    y="125.000000"
+                    width="431.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#f4d35e"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="2753.500000"
+                  y="163.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-C D3 Slice 2 MapScan+MapUpdate (7 tasks, 1% tier)
+                </text>
+              </g>
+              <g class="RA==">
+                <g class="shape">
+                  <rect
+                    x="3220.000000"
+                    y="0.000000"
+                    width="317.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#6eb5ff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3378.500000"
+                  y="38.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-D EXPLAIN Proofs (4 tasks, 4% tier)
+                </text>
+              </g>
+              <g class="RQ==">
+                <g class="shape">
+                  <rect
+                    x="3799.000000"
+                    y="0.000000"
+                    width="345.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#6eb5ff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3971.500000"
+                  y="38.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-E Cross-Engine Parity (4 tasks, 4% tier)
+                </text>
+              </g>
+              <g class="Rg==">
+                <g class="shape">
+                  <rect
+                    x="3208.000000"
+                    y="126.000000"
+                    width="342.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#6eb5ff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3379.000000"
+                  y="164.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-F Evolution + Backfill (8 tasks, 4% tier)
+                </text>
+              </g>
+              <g class="Rw==">
+                <g class="shape">
+                  <rect
+                    x="3186.000000"
+                    y="252.000000"
+                    width="385.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#6eb5ff"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3378.500000"
+                  y="290.500000"
+                  fill="#0A0F25"
+                  class="text-bold fill-N1"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-G D8 RenewLease + Metrics (6 tasks, 4% tier)
+                </text>
+              </g>
+              <g class="SA==">
+                <g class="shape">
+                  <rect
+                    x="3788.000000"
+                    y="252.000000"
+                    width="367.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#1d3557"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3971.500000"
+                  y="290.500000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-H Doctor/ADR/Lint Rule (5 tasks, 20% tier)
+                </text>
+              </g>
+              <g class="SQ==">
+                <g class="shape">
+                  <rect
+                    x="782.000000"
+                    y="378.000000"
+                    width="384.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#1d3557"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="974.000000"
+                  y="416.500000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-I Process + Infra Hygiene (10 tasks, 20% tier)
+                </text>
+              </g>
+              <g class="Z2F0ZQ==">
+                <g class="shape">
+                  <path
+                    d="M 1750 377 L 1560 411 L 1750 446 L 2131 446 L 2321 411 L 2131 377 Z"
+                    stroke="#0D32B2"
+                    fill="#e63946"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="1940.500000"
+                  y="417.000000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  USER GATE (Q1 tag wave, Q2 job policy, Q3 DLQ, D9
+                  billing/root/mac)
+                </text>
+              </g>
+              <g class="Sg==">
+                <g class="shape">
+                  <rect
+                    x="2608.000000"
+                    y="378.000000"
+                    width="291.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#555555"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="2753.500000"
+                  y="416.500000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-J v4 Tag Wave (13 tasks, gated)
+                </text>
+              </g>
+              <g class="Sw==">
+                <g class="shape">
+                  <rect
+                    x="3193.000000"
+                    y="378.000000"
+                    width="371.000000"
+                    height="66.000000"
+                    stroke="#0D32B2"
+                    fill="#555555"
+                    class="stroke-B1"
+                    style="stroke-width: 2"
+                  />
+                </g>
+                <text
+                  x="3378.500000"
+                  y="416.500000"
+                  fill="#f4f4f0"
+                  class="text-bold"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  WS-K v5.0.0 Cut Waves D4-D6 (18 tasks, gated)
+                </text>
+              </g>
+              <g class="KHJlYWR5IC0mZ3Q7IEEpWzBd">
+                <marker
+                  id="mk-d2-3636449944-3488378134"
+                  markerWidth="10.000000"
+                  markerHeight="12.000000"
+                  refX="7.000000"
+                  refY="6.000000"
+                  viewBox="0.000000 0.000000 10.000000 12.000000"
+                  orient="auto"
+                  markerUnits="userSpaceOnUse"
+                >
+                  <polygon
+                    points="0.000000,0.000000 10.000000,6.000000 0.000000,12.000000"
+                    fill="#0D32B2"
+                    class="connection fill-B1"
+                    stroke-width="2"
+                  />
+                </marker>
+                <path
+                  d="M 444.474482 314.681535 C 591.299988 291.000000 666.500000 285.000000 814.500000 285.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEEgLSZndDsgQilbMF0=">
+                <path
+                  d="M 1076.901290 251.629440 C 1305.400024 177.050003 1436.099976 158.250000 1724.500000 158.250000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+                <text
+                  x="1395.500000"
+                  y="170.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  planFor seam proven strict
+                </text>
+              </g>
+              <g class="KEIgLSZndDsgQylbMF0=">
+                <path
+                  d="M 2155.500000 158.250000 C 2374.300049 158.250000 2451.300049 158.250000 2534.500000 158.250000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEMgLSZndDsgRClbMF0=">
+                <path
+                  d="M 2842.364449 124.276238 C 3030.100098 51.398998 3106.100098 33.000000 3216.500000 33.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEQgLSZndDsgRSlbMF0=">
+                <path
+                  d="M 3538.500000 33.000000 C 3650.899902 33.000000 3703.500000 33.000000 3795.500000 33.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEMgLSZndDsgRilbMF0=">
+                <path
+                  d="M 2970.500000 159.000000 C 3055.699951 159.000000 3103.500000 159.000000 3203.500000 159.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEMgLSZndDsgRylbMF0=">
+                <path
+                  d="M 2839.717530 191.978636 C 3029.571045 266.250000 3099.300049 285.000000 3182.500000 285.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEcgLSZndDsgSClbMF0=">
+                <path
+                  d="M 3572.500000 285.000000 C 3657.699951 285.000000 3701.300049 285.000000 3784.500000 285.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KHJlYWR5IC0mZ3Q7IEkpWzBd">
+                <path
+                  d="M 444.474482 381.318465 C 591.299988 405.000000 659.299988 411.000000 778.500000 411.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+                <text
+                  x="612.000000"
+                  y="412.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  parallel track
+                </text>
+              </g>
+              <g class="KEEgLSZndDsgZ2F0ZSlbMF0=">
+                <path
+                  d="M 1077.902603 318.616523 C 1305.599976 392.399994 1402.400024 411.000000 1556.000000 411.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+                <text
+                  x="1313.000000"
+                  y="399.000000"
+                  fill="#676C7E"
+                  class="text-italic fill-N2"
+                  style="text-anchor: middle; font-size: 16px"
+                >
+                  honesty closed
+                </text>
+              </g>
+              <g class="KGdhdGUgLSZndDsgSilbMF0=">
+                <path
+                  d="M 2323.000000 411.000000 C 2407.800049 411.000000 2465.300049 411.000000 2604.500000 411.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <g class="KEogLSZndDsgSylbMF0=">
+                <path
+                  d="M 2900.500000 411.000000 C 3041.699951 411.000000 3100.699951 411.000000 3189.500000 411.000000"
+                  stroke="#0D32B2"
+                  fill="none"
+                  class="connection stroke-B1"
+                  style="stroke-width: 2"
+                  marker-end="url(#mk-d2-3636449944-3488378134)"
+                  mask="url(#d2-3636449944)"
+                />
+              </g>
+              <mask
+                id="d2-3636449944"
+                maskUnits="userSpaceOnUse"
+                x="-101"
+                y="-101"
+                width="4357"
+                height="648"
+              >
+                <rect
+                  x="-101"
+                  y="-101"
+                  width="4357"
+                  height="648"
+                  fill="white"
+                ></rect>
+                <rect
+                  x="1305.000000"
+                  y="154.000000"
+                  width="181"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="565.000000"
+                  y="396.000000"
+                  width="94"
+                  height="21"
+                  fill="black"
+                ></rect>
+                <rect
+                  x="1262.000000"
+                  y="383.000000"
+                  width="102"
+                  height="21"
+                  fill="black"
+                ></rect>
+              </mask>
+            </svg>
+          </svg>
         </div>
 
-        <h2 id="t1"><span class="num">03</span>Plan — 1% Tier (WS-A/B/C, 38 tasks)</h2>
+        <h2 id="t1">
+          <span class="num">03</span>Plan — 1% Tier (WS-A/B/C, 38 tasks)
+        </h2>
 
         <h3>WS-A — Honesty Debt Close-out (session-4 §b/§f 3–15)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>A1</td><td>Start ephemeral PG; run pgengine planned tests under strict GOWORK=off + live DSN (closes b.4)</td><td>10m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>A2</td><td>Record b.4 closure in TODO_LIST + ledger note</td><td>5m</td><td>S</td><td>M</td><td>A1</td></tr>
-            <tr><td>A3</td><td>CHANGELOG [Unreleased]: ClaimingTimerStore (verify symbol in source first)</td><td>10m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>A4</td><td>CHANGELOG: ApplyLayoutPlan (pgengine)</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A5</td><td>CHANGELOG: ApplyLayoutPlan (mysqlengine) + planned-table routing</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A6</td><td>CHANGELOG: ErrWorkerFailed reclassification</td><td>5m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A7</td><td>Run changelog symbol gate; fix any findings</td><td>8m</td><td>S</td><td>H</td><td>A3–A6</td></tr>
-            <tr><td>A8</td><td>FEATURES.md rows: claiming timers, planned tables, ErrWorkerFailed</td><td>12m</td><td>S</td><td>M</td><td>A3–A6</td></tr>
-            <tr><td>A9</td><td>TODO_LIST: add new follow-ups (D3 slices, b.4, tag-wave pending state)</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A10</td><td>Recipe 2.26 ClaimingTimerStore (two-Scheduler setup, lease sizing)</td><td>12m</td><td>M</td><td>H</td><td>A3</td></tr>
-            <tr><td>A11</td><td>Recipe 2.27 planned tables (LayoutPlanApplier + no-backfill contract)</td><td>12m</td><td>M</td><td>H</td><td>A4–A5</td></tr>
-            <tr><td>A12</td><td>modules.md rows: planned-table capability per engine</td><td>10m</td><td>S</td><td>M</td><td>A11</td></tr>
-            <tr><td>A13</td><td>Run doc-check on skill docs (zero-warning policy)</td><td>8m</td><td>S</td><td>M</td><td>A10–A12</td></tr>
-            <tr><td>A14</td><td>pgengine README paragraph: ApplyLayout vs ApplyLayoutPlan decision guidance</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A15</td><td>Mis-type error classification: decide Rejection-vs-Infrastructure, implement + test</td><td>12m</td><td>M</td><td>H</td><td>—</td></tr>
-            <tr><td>A16</td><td>Document CounterIncrement/CounterGet routing decision for planned collections</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A17</td><td>Document graph/aggregate routing decision for planned collections</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>A18</td><td>Check adttest/enginetest for a timer-store slot; add ClaimingTimerStore or document why not</td><td>12m</td><td>M</td><td>M</td><td>—</td></tr>
-            <tr><td>A19</td><td>Run <code>nix run .#load-sweep</code> (C5 touched timing paths; discipline was skipped) — background, poll</td><td>12m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>A20</td><td>Strict 7-module PG loop re-run; record green entry for pgengine module</td><td>12m</td><td>M</td><td>M</td><td>A1</td></tr>
+            <tr>
+              <td>A1</td>
+              <td>
+                Start ephemeral PG; run pgengine planned tests under strict
+                GOWORK=off + live DSN (closes b.4)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A2</td>
+              <td>Record b.4 closure in TODO_LIST + ledger note</td>
+              <td>5m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>A1</td>
+            </tr>
+            <tr>
+              <td>A3</td>
+              <td>
+                CHANGELOG [Unreleased]: ClaimingTimerStore (verify symbol in
+                source first)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A4</td>
+              <td>CHANGELOG: ApplyLayoutPlan (pgengine)</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A5</td>
+              <td>
+                CHANGELOG: ApplyLayoutPlan (mysqlengine) + planned-table routing
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A6</td>
+              <td>CHANGELOG: ErrWorkerFailed reclassification</td>
+              <td>5m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A7</td>
+              <td>Run changelog symbol gate; fix any findings</td>
+              <td>8m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>A3–A6</td>
+            </tr>
+            <tr>
+              <td>A8</td>
+              <td>
+                FEATURES.md rows: claiming timers, planned tables,
+                ErrWorkerFailed
+              </td>
+              <td>12m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>A3–A6</td>
+            </tr>
+            <tr>
+              <td>A9</td>
+              <td>
+                TODO_LIST: add new follow-ups (D3 slices, b.4, tag-wave pending
+                state)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A10</td>
+              <td>
+                Recipe 2.26 ClaimingTimerStore (two-Scheduler setup, lease
+                sizing)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>A3</td>
+            </tr>
+            <tr>
+              <td>A11</td>
+              <td>
+                Recipe 2.27 planned tables (LayoutPlanApplier + no-backfill
+                contract)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>A4–A5</td>
+            </tr>
+            <tr>
+              <td>A12</td>
+              <td>modules.md rows: planned-table capability per engine</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>A11</td>
+            </tr>
+            <tr>
+              <td>A13</td>
+              <td>Run doc-check on skill docs (zero-warning policy)</td>
+              <td>8m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>A10–A12</td>
+            </tr>
+            <tr>
+              <td>A14</td>
+              <td>
+                pgengine README paragraph: ApplyLayout vs ApplyLayoutPlan
+                decision guidance
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A15</td>
+              <td>
+                Mis-type error classification: decide
+                Rejection-vs-Infrastructure, implement + test
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A16</td>
+              <td>
+                Document CounterIncrement/CounterGet routing decision for
+                planned collections
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A17</td>
+              <td>
+                Document graph/aggregate routing decision for planned
+                collections
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A18</td>
+              <td>
+                Check adttest/enginetest for a timer-store slot; add
+                ClaimingTimerStore or document why not
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A19</td>
+              <td>
+                Run <code>nix run .#load-sweep</code> (C5 touched timing paths;
+                discipline was skipped) — background, poll
+              </td>
+              <td>12m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>A20</td>
+              <td>
+                Strict 7-module PG loop re-run; record green entry for pgengine
+                module
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>A1</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-B — D3 Slice 1: PushdownMapScan → planned tables (§f 1)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>B1</td><td>Read pgengine planned.go + PushdownMapScan path; map the planFor seam</td><td>10m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>B2</td><td>Design filter→native-column SQL mapping (DOUBLE PRECISION/BIGINT/TEXT predicates)</td><td>12m</td><td>M</td><td>H</td><td>B1</td></tr>
-            <tr><td>B3</td><td>Implement planned branch in PushdownMapScan: filters (pg)</td><td>12m</td><td>M</td><td>H</td><td>B2</td></tr>
-            <tr><td>B4</td><td>Implement planned branch: sort (pg)</td><td>10m</td><td>S</td><td>H</td><td>B3</td></tr>
-            <tr><td>B5</td><td>Implement planned branch: keyset cursor (pg)</td><td>12m</td><td>M</td><td>H</td><td>B4</td></tr>
-            <tr><td>B6</td><td>Fallback policy: planless collections keep meta_map path (pin both routes)</td><td>10m</td><td>S</td><td>H</td><td>B3</td></tr>
-            <tr><td>B7</td><td>Live PG tests: filter/sort/keyset on a planned collection</td><td>12m</td><td>M</td><td>H</td><td>B5,B6</td></tr>
-            <tr><td>B8</td><td>mysqlengine port: filters (backtick identifiers)</td><td>12m</td><td>M</td><td>H</td><td>B3</td></tr>
-            <tr><td>B9</td><td>mysqlengine port: sort + keyset (DESC twin-column + flipped-cursor lessons)</td><td>12m</td><td>M</td><td>H</td><td>B4,B8</td></tr>
-            <tr><td>B10</td><td>Live MariaDB tests: pg↔mysql parity on planned scans</td><td>12m</td><td>M</td><td>H</td><td>B9</td></tr>
-            <tr><td>B11</td><td>Slice-1 gates (lint + dupl + api golden) + commit</td><td>10m</td><td>S</td><td>H</td><td>B7,B10</td></tr>
+            <tr>
+              <td>B1</td>
+              <td>
+                Read pgengine planned.go + PushdownMapScan path; map the planFor
+                seam
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>B2</td>
+              <td>
+                Design filter→native-column SQL mapping (DOUBLE
+                PRECISION/BIGINT/TEXT predicates)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B1</td>
+            </tr>
+            <tr>
+              <td>B3</td>
+              <td>Implement planned branch in PushdownMapScan: filters (pg)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B2</td>
+            </tr>
+            <tr>
+              <td>B4</td>
+              <td>Implement planned branch: sort (pg)</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>B3</td>
+            </tr>
+            <tr>
+              <td>B5</td>
+              <td>Implement planned branch: keyset cursor (pg)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B4</td>
+            </tr>
+            <tr>
+              <td>B6</td>
+              <td>
+                Fallback policy: planless collections keep meta_map path (pin
+                both routes)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>B3</td>
+            </tr>
+            <tr>
+              <td>B7</td>
+              <td>Live PG tests: filter/sort/keyset on a planned collection</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B5,B6</td>
+            </tr>
+            <tr>
+              <td>B8</td>
+              <td>mysqlengine port: filters (backtick identifiers)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B3</td>
+            </tr>
+            <tr>
+              <td>B9</td>
+              <td>
+                mysqlengine port: sort + keyset (DESC twin-column +
+                flipped-cursor lessons)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B4,B8</td>
+            </tr>
+            <tr>
+              <td>B10</td>
+              <td>Live MariaDB tests: pg↔mysql parity on planned scans</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B9</td>
+            </tr>
+            <tr>
+              <td>B11</td>
+              <td>Slice-1 gates (lint + dupl + api golden) + commit</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>B7,B10</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-C — D3 Slice 2: MapScan + MapUpdate → planned tables (§f 2)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>C1</td><td>MapScan planned branch (pg): route full scans through extracted-column table</td><td>12m</td><td>M</td><td>H</td><td>B11</td></tr>
-            <tr><td>C2</td><td>MapUpdate planned branch (pg): typed column SETs</td><td>12m</td><td>M</td><td>H</td><td>C1</td></tr>
-            <tr><td>C3</td><td>Live PG tests: planned-vs-meta_map visibility split closed</td><td>12m</td><td>M</td><td>H</td><td>C2</td></tr>
-            <tr><td>C4</td><td>mysqlengine MapScan port</td><td>10m</td><td>S</td><td>H</td><td>C1</td></tr>
-            <tr><td>C5</td><td>mysqlengine MapUpdate port (ON DUPLICATE KEY UPDATE)</td><td>12m</td><td>M</td><td>H</td><td>C2</td></tr>
-            <tr><td>C6</td><td>Live MariaDB parity tests</td><td>12m</td><td>M</td><td>H</td><td>C4,C5</td></tr>
-            <tr><td>C7</td><td>Slice-2 gates + commit; update faq (visibility split resolved)</td><td>10m</td><td>S</td><td>M</td><td>C6</td></tr>
+            <tr>
+              <td>C1</td>
+              <td>
+                MapScan planned branch (pg): route full scans through
+                extracted-column table
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>B11</td>
+            </tr>
+            <tr>
+              <td>C2</td>
+              <td>MapUpdate planned branch (pg): typed column SETs</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>C3</td>
+              <td>
+                Live PG tests: planned-vs-meta_map visibility split closed
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>C2</td>
+            </tr>
+            <tr>
+              <td>C4</td>
+              <td>mysqlengine MapScan port</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>C1</td>
+            </tr>
+            <tr>
+              <td>C5</td>
+              <td>mysqlengine MapUpdate port (ON DUPLICATE KEY UPDATE)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>C2</td>
+            </tr>
+            <tr>
+              <td>C6</td>
+              <td>Live MariaDB parity tests</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>C4,C5</td>
+            </tr>
+            <tr>
+              <td>C7</td>
+              <td>
+                Slice-2 gates + commit; update faq (visibility split resolved)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>C6</td>
+            </tr>
           </tbody>
         </table>
 
-        <h2 id="t2"><span class="num">04</span>Plan — 4% Tier (WS-D/E/F/G, 22 tasks)</h2>
+        <h2 id="t2">
+          <span class="num">04</span>Plan — 4% Tier (WS-D/E/F/G, 22 tasks)
+        </h2>
 
         <h3>WS-D — D3 Slice 3: EXPLAIN index-usage proofs (§f 16)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>D1</td><td>pg: EXPLAIN (FORMAT JSON) harness for planned scans</td><td>12m</td><td>M</td><td>H</td><td>C7</td></tr>
-            <tr><td>D2</td><td>pg: assert index used (no seq scan) for filter/sort predicates</td><td>12m</td><td>M</td><td>H</td><td>D1</td></tr>
-            <tr><td>D3</td><td>mysql: EXPLAIN harness + index assertion</td><td>12m</td><td>M</td><td>H</td><td>D2</td></tr>
-            <tr><td>D4</td><td>Wire proofs into the suite + gates + commit</td><td>10m</td><td>S</td><td>M</td><td>D3</td></tr>
+            <tr>
+              <td>D1</td>
+              <td>pg: EXPLAIN (FORMAT JSON) harness for planned scans</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>C7</td>
+            </tr>
+            <tr>
+              <td>D2</td>
+              <td>
+                pg: assert index used (no seq scan) for filter/sort predicates
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>D1</td>
+            </tr>
+            <tr>
+              <td>D3</td>
+              <td>mysql: EXPLAIN harness + index assertion</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>D2</td>
+            </tr>
+            <tr>
+              <td>D4</td>
+              <td>Wire proofs into the suite + gates + commit</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>D3</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-E — D3 Slice 4: cross-engine parity matrices (§f 17)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>E1</td><td>adttest: planned-collection matrix hooks</td><td>12m</td><td>M</td><td>M</td><td>C7</td></tr>
-            <tr><td>E2</td><td>sqlite vs pg parity fixtures</td><td>12m</td><td>M</td><td>M</td><td>E1</td></tr>
-            <tr><td>E3</td><td>mysql parity fixtures + run the matrix</td><td>12m</td><td>M</td><td>M</td><td>E2</td></tr>
-            <tr><td>E4</td><td>Gates + commit</td><td>8m</td><td>S</td><td>M</td><td>E3</td></tr>
+            <tr>
+              <td>E1</td>
+              <td>adttest: planned-collection matrix hooks</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>C7</td>
+            </tr>
+            <tr>
+              <td>E2</td>
+              <td>sqlite vs pg parity fixtures</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>E1</td>
+            </tr>
+            <tr>
+              <td>E3</td>
+              <td>mysql parity fixtures + run the matrix</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>E2</td>
+            </tr>
+            <tr>
+              <td>E4</td>
+              <td>Gates + commit</td>
+              <td>8m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>E3</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-F — Planned-table evolution + backfill (§f 18–20)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>F1</td><td>Design LayoutPlanFromType: reflection→ColumnType mapping (replace name heuristics)</td><td>12m</td><td>M</td><td>M</td><td>—</td></tr>
-            <tr><td>F2</td><td>Implement LayoutPlanFromType (pgengine) + tests</td><td>12m</td><td>M</td><td>M</td><td>F1</td></tr>
-            <tr><td>F3</td><td>Implement LayoutPlanFromType (mysqlengine) + tests</td><td>12m</td><td>M</td><td>M</td><td>F2</td></tr>
-            <tr><td>F4</td><td>information_schema column-evolution reader (pg)</td><td>12m</td><td>M</td><td>M</td><td>F2</td></tr>
-            <tr><td>F5</td><td>Idempotent ALTER TABLE ADD COLUMN evolution writer (pg)</td><td>12m</td><td>M</td><td>M</td><td>F4</td></tr>
-            <tr><td>F6</td><td>mysql evolution port + live tests</td><td>12m</td><td>M</td><td>M</td><td>F5</td></tr>
-            <tr><td>F7</td><td>Design opt-in backfill helper (meta_map→planned copy)</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>F8</td><td>Backfill helper implementation + tests + gates</td><td>12m</td><td>M</td><td>M</td><td>F7,C7</td></tr>
+            <tr>
+              <td>F1</td>
+              <td>
+                Design LayoutPlanFromType: reflection→ColumnType mapping
+                (replace name heuristics)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>F2</td>
+              <td>Implement LayoutPlanFromType (pgengine) + tests</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>F1</td>
+            </tr>
+            <tr>
+              <td>F3</td>
+              <td>Implement LayoutPlanFromType (mysqlengine) + tests</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>F2</td>
+            </tr>
+            <tr>
+              <td>F4</td>
+              <td>information_schema column-evolution reader (pg)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>F2</td>
+            </tr>
+            <tr>
+              <td>F5</td>
+              <td>Idempotent ALTER TABLE ADD COLUMN evolution writer (pg)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>F4</td>
+            </tr>
+            <tr>
+              <td>F6</td>
+              <td>mysql evolution port + live tests</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>F5</td>
+            </tr>
+            <tr>
+              <td>F7</td>
+              <td>Design opt-in backfill helper (meta_map→planned copy)</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>F8</td>
+              <td>Backfill helper implementation + tests + gates</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>F7,C7</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-G — D8 extensions: RenewLease + metrics (§f 21–22)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>G1</td><td>RenewLease API design (signature, fence semantics, error surface)</td><td>10m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>G2</td><td>RenewLease pg implementation (SKIP LOCKED-compatible)</td><td>12m</td><td>M</td><td>H</td><td>G1</td></tr>
-            <tr><td>G3</td><td>RenewLease sqlite implementation</td><td>12m</td><td>M</td><td>H</td><td>G2</td></tr>
-            <tr><td>G4</td><td>RenewLease tests: handler-outlives-lease scenario</td><td>12m</td><td>M</td><td>H</td><td>G3</td></tr>
-            <tr><td>G5</td><td>Metrics hooks: claimed/expired/reclaimed counters on the scheduling metrics surface</td><td>12m</td><td>M</td><td>M</td><td>G4</td></tr>
-            <tr><td>G6</td><td>Metrics tests + gates + commit</td><td>10m</td><td>S</td><td>M</td><td>G5</td></tr>
+            <tr>
+              <td>G1</td>
+              <td>
+                RenewLease API design (signature, fence semantics, error
+                surface)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>G2</td>
+              <td>RenewLease pg implementation (SKIP LOCKED-compatible)</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>G1</td>
+            </tr>
+            <tr>
+              <td>G3</td>
+              <td>RenewLease sqlite implementation</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>G2</td>
+            </tr>
+            <tr>
+              <td>G4</td>
+              <td>RenewLease tests: handler-outlives-lease scenario</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>G3</td>
+            </tr>
+            <tr>
+              <td>G5</td>
+              <td>
+                Metrics hooks: claimed/expired/reclaimed counters on the
+                scheduling metrics surface
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>G4</td>
+            </tr>
+            <tr>
+              <td>G6</td>
+              <td>Metrics tests + gates + commit</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>G5</td>
+            </tr>
           </tbody>
         </table>
 
-        <h2 id="t3"><span class="num">05</span>Plan — 20% Tier (WS-H/I, 15 tasks)</h2>
+        <h2 id="t3">
+          <span class="num">05</span>Plan — 20% Tier (WS-H/I, 15 tasks)
+        </h2>
 
         <h3>WS-H — Observability + lint (§f 23–25)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>H1</td><td>Doctor/Introspection: surface planned-table registration per collection</td><td>12m</td><td>M</td><td>M</td><td>C7</td></tr>
-            <tr><td>H2</td><td>Doctor: per-collection row counts</td><td>10m</td><td>S</td><td>M</td><td>H1</td></tr>
-            <tr><td>H3</td><td>ADR addendum: planned tables vs generated columns (gcn_ twins) — when each applies</td><td>12m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>H4</td><td>cqrs-lint rule: ApplyLayout on an engine that implements LayoutPlanApplier → prefer plan path</td><td>12m</td><td>M</td><td>M</td><td>—</td></tr>
-            <tr><td>H5</td><td>Lint-rule tests + golden refresh + commit</td><td>10m</td><td>S</td><td>M</td><td>H4</td></tr>
+            <tr>
+              <td>H1</td>
+              <td>
+                Doctor/Introspection: surface planned-table registration per
+                collection
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>C7</td>
+            </tr>
+            <tr>
+              <td>H2</td>
+              <td>Doctor: per-collection row counts</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>H1</td>
+            </tr>
+            <tr>
+              <td>H3</td>
+              <td>
+                ADR addendum: planned tables vs generated columns (gcn_ twins) —
+                when each applies
+              </td>
+              <td>12m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>H4</td>
+              <td>
+                cqrs-lint rule: ApplyLayout on an engine that implements
+                LayoutPlanApplier → prefer plan path
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>H5</td>
+              <td>Lint-rule tests + golden refresh + commit</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>H4</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-I — Process + infra hygiene (§f 41–50)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>I1</td><td>AGENTS.md: per-task gate rule (api golden + lint + dupl at task end, not session end)</td><td>10m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>I2</td><td>AGENTS.md: background-job rule (write to file, poll, <code>timeout -k</code>, never pipe through tail)</td><td>8m</td><td>S</td><td>H</td><td>—</td></tr>
-            <tr><td>I3</td><td>Fix LSP GOLANGCI_LINT_CACHE for the editor (kills the /mnt/buildcache phantom diagnostics)</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>I4</td><td>Dgraph health-endpoint wait with real timeout in ephemeral script (stop self-dial log spam)</td><td>12m</td><td>M</td><td>M</td><td>—</td></tr>
-            <tr><td>I5</td><td>Evaluate + wire <code>-shuffle=on</code> for dgraph/mysql live suites (surface order dependence)</td><td>12m</td><td>M</td><td>M</td><td>—</td></tr>
-            <tr><td>I6</td><td>Document SOAK_SKIP_* interaction with the dgraph loop (52s vs 15-min discrepancy)</td><td>10m</td><td>S</td><td>L</td><td>—</td></tr>
-            <tr><td>I7</td><td>ephemeral-pg.sh: make PG_MODULES env-overridable (targeted loops without the 7-module sweep)</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>I8</td><td>batch-release.sh: add --dry-run (parity with tag-release.sh)</td><td>10m</td><td>S</td><td>M</td><td>—</td></tr>
-            <tr><td>I9</td><td>Retire or wire the untracked t/tasks.buf workflow</td><td>8m</td><td>S</td><td>L</td><td>—</td></tr>
-            <tr><td>I10</td><td>Sweep dead /home/lars/projects/.trash-* + a3-*.log scratch files</td><td>8m</td><td>S</td><td>L</td><td>—</td></tr>
+            <tr>
+              <td>I1</td>
+              <td>
+                AGENTS.md: per-task gate rule (api golden + lint + dupl at task
+                end, not session end)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I2</td>
+              <td>
+                AGENTS.md: background-job rule (write to file, poll,
+                <code>timeout -k</code>, never pipe through tail)
+              </td>
+              <td>8m</td>
+              <td>S</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I3</td>
+              <td>
+                Fix LSP GOLANGCI_LINT_CACHE for the editor (kills the
+                /mnt/buildcache phantom diagnostics)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I4</td>
+              <td>
+                Dgraph health-endpoint wait with real timeout in ephemeral
+                script (stop self-dial log spam)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I5</td>
+              <td>
+                Evaluate + wire <code>-shuffle=on</code> for dgraph/mysql live
+                suites (surface order dependence)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I6</td>
+              <td>
+                Document SOAK_SKIP_* interaction with the dgraph loop (52s vs
+                15-min discrepancy)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>L</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I7</td>
+              <td>
+                ephemeral-pg.sh: make PG_MODULES env-overridable (targeted loops
+                without the 7-module sweep)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I8</td>
+              <td>
+                batch-release.sh: add --dry-run (parity with tag-release.sh)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I9</td>
+              <td>Retire or wire the untracked t/tasks.buf workflow</td>
+              <td>8m</td>
+              <td>S</td>
+              <td>L</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>I10</td>
+              <td>
+                Sweep dead /home/lars/projects/.trash-* + a3-*.log scratch files
+              </td>
+              <td>8m</td>
+              <td>S</td>
+              <td>L</td>
+              <td>—</td>
+            </tr>
           </tbody>
         </table>
 
-        <h2 id="t4"><span class="num">06</span>Plan — Gated (WS-J/K/L, 34 tasks)</h2>
+        <h2 id="t4">
+          <span class="num">06</span>Plan — Gated (WS-J/K/L, 34 tasks)
+        </h2>
         <div class="callout callout-warning">
-          <strong>Gate</strong> — WS-J starts after Q1 (tag-wave go/no-go); WS-K starts after Q2+Q3
-          ratification. Nothing here runs without explicit user authorization (push rights; semver).
+          <strong>Gate</strong> — WS-J starts after Q1 (tag-wave go/no-go); WS-K
+          starts after Q2+Q3 ratification. Nothing here runs without explicit
+          user authorization (push rights; semver).
         </div>
 
         <h3>WS-J — v4 Tag Wave (§f 34–40)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>J1</td><td><strong>[USER Q1]</strong> Tag-wave go/no-go + membership decision</td><td>—</td><td>—</td><td>H</td><td>—</td></tr>
-            <tr><td>J2</td><td>Confirm dry-runs green: dgraphengine v4.2.0, sqliteengine v4.3.0, projectionhost v4.5.0</td><td>10m</td><td>S</td><td>M</td><td>J1</td></tr>
-            <tr><td>J3</td><td>Cut + push dgraphengine v4.2.0 (annotated tag, tag-release.sh)</td><td>12m</td><td>M</td><td>H</td><td>J2</td></tr>
-            <tr><td>J4</td><td>Cut + push sqliteengine v4.3.0</td><td>12m</td><td>M</td><td>H</td><td>J3</td></tr>
-            <tr><td>J5</td><td>Cut + push projectionhost v4.5.0</td><td>12m</td><td>M</td><td>H</td><td>J4</td></tr>
-            <tr><td>J6</td><td>Dry-run extended wave: pgengine, mysqlengine, scheduling/sqlstore, metaengine</td><td>12m</td><td>M</td><td>M</td><td>J1</td></tr>
-            <tr><td>J7</td><td>Pre-bump dependent module pins for the extended wave (go mod edit sweep)</td><td>12m</td><td>M</td><td>M</td><td>J6</td></tr>
-            <tr><td>J8</td><td>Cut + push extended wave, interleaved cut→push→next</td><td>12m</td><td>M</td><td>H</td><td>J7</td></tr>
-            <tr><td>J9</td><td>Post-tag replace-strip sweep (quic replace pending: irohengine/quic)</td><td>10m</td><td>S</td><td>M</td><td>J8</td></tr>
-            <tr><td>J10</td><td>create-github-releases.sh for each pushed tag (changelog bodies)</td><td>12m</td><td>M</td><td>M</td><td>J8</td></tr>
-            <tr><td>J11</td><td>Post-wave GOWORK=off build matrix over all swept modules</td><td>12m</td><td>M</td><td>H</td><td>J8</td></tr>
-            <tr><td>J12</td><td>cqrs-lint taskmanager golden refresh (V006 version set)</td><td>10m</td><td>S</td><td>M</td><td>J8</td></tr>
-            <tr><td>J13</td><td>Indirect-dep consolidation pass + record storage-tag decision (bump now vs fold)</td><td>10m</td><td>S</td><td>L</td><td>J11</td></tr>
+            <tr>
+              <td>J1</td>
+              <td>
+                <strong>[USER Q1]</strong> Tag-wave go/no-go + membership
+                decision
+              </td>
+              <td>—</td>
+              <td>—</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>J2</td>
+              <td>
+                Confirm dry-runs green: dgraphengine v4.2.0, sqliteengine
+                v4.3.0, projectionhost v4.5.0
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>J1</td>
+            </tr>
+            <tr>
+              <td>J3</td>
+              <td>
+                Cut + push dgraphengine v4.2.0 (annotated tag, tag-release.sh)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>J2</td>
+            </tr>
+            <tr>
+              <td>J4</td>
+              <td>Cut + push sqliteengine v4.3.0</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>J3</td>
+            </tr>
+            <tr>
+              <td>J5</td>
+              <td>Cut + push projectionhost v4.5.0</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>J4</td>
+            </tr>
+            <tr>
+              <td>J6</td>
+              <td>
+                Dry-run extended wave: pgengine, mysqlengine,
+                scheduling/sqlstore, metaengine
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>J1</td>
+            </tr>
+            <tr>
+              <td>J7</td>
+              <td>
+                Pre-bump dependent module pins for the extended wave (go mod
+                edit sweep)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>J6</td>
+            </tr>
+            <tr>
+              <td>J8</td>
+              <td>Cut + push extended wave, interleaved cut→push→next</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>J7</td>
+            </tr>
+            <tr>
+              <td>J9</td>
+              <td>
+                Post-tag replace-strip sweep (quic replace pending:
+                irohengine/quic)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>J8</td>
+            </tr>
+            <tr>
+              <td>J10</td>
+              <td>
+                create-github-releases.sh for each pushed tag (changelog bodies)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>J8</td>
+            </tr>
+            <tr>
+              <td>J11</td>
+              <td>Post-wave GOWORK=off build matrix over all swept modules</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>H</td>
+              <td>J8</td>
+            </tr>
+            <tr>
+              <td>J12</td>
+              <td>cqrs-lint taskmanager golden refresh (V006 version set)</td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>J8</td>
+            </tr>
+            <tr>
+              <td>J13</td>
+              <td>
+                Indirect-dep consolidation pass + record storage-tag decision
+                (bump now vs fold)
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>L</td>
+              <td>J11</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-K — v5.0.0 Cut Waves D4–D6 (§f 26–33)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>K1</td><td><strong>[USER Q2+Q3]</strong> Ratify unattended-job policy + DLQ semantics</td><td>—</td><td>—</td><td>H</td><td>—</td></tr>
-            <tr><td>K2</td><td>D4: re-verify consumer-scan safety for deletion wave A (v5-deprecation-sweep §6)</td><td>12m</td><td>M</td><td>M</td><td>K1</td></tr>
-            <tr><td>K3</td><td>D4: delete stack presets (×8) + stack.Bundle</td><td>12m</td><td>M</td><td>M</td><td>K2</td></tr>
-            <tr><td>K4</td><td>D4: delete stack.Materialize + RunProjections; fix callers</td><td>12m</td><td>M</td><td>M</td><td>K3</td></tr>
-            <tr><td>K5</td><td>D4: api golden regen + V5 guide update + gates + commit</td><td>12m</td><td>M</td><td>M</td><td>K4</td></tr>
-            <tr><td>K6</td><td>D5: delete storage view + relational tiers</td><td>12m</td><td>M</td><td>M</td><td>K5</td></tr>
-            <tr><td>K7</td><td>D5: delete GraphProjection + storage/sql.BuildWhereClause</td><td>12m</td><td>M</td><td>M</td><td>K6</td></tr>
-            <tr><td>K8</td><td>D5: delete ADR-0126 compat shells (VersionedStore, Rejecting*, CustomData, ErrInnerStoreNot*)</td><td>12m</td><td>M</td><td>M</td><td>K7</td></tr>
-            <tr><td>K9</td><td>D5: golden + guide + gates + commit</td><td>12m</td><td>M</td><td>M</td><td>K8</td></tr>
-            <tr><td>K10</td><td>D6: delete transport/http + transport/grpc modules (ADR-0127)</td><td>12m</td><td>M</td><td>M</td><td>K9</td></tr>
-            <tr><td>K11</td><td>D6: delete deprecated tombstone metadata API (ADR-0114 completion)</td><td>12m</td><td>M</td><td>M</td><td>K10</td></tr>
-            <tr><td>K12</td><td>D6: NewStreamRef strictness + snapshot wire-tag renames + drop legacy readers</td><td>12m</td><td>L</td><td>H</td><td>K11</td></tr>
-            <tr><td>K13</td><td>D6: golden + guide + gates + commit</td><td>12m</td><td>M</td><td>M</td><td>K12</td></tr>
-            <tr><td>K14</td><td>Error-code batch rename aggregate_*→stream_* + dashboards note</td><td>12m</td><td>M</td><td>M</td><td>K13</td></tr>
-            <tr><td>K15</td><td>Wire-tag release: snapshot JSON/CBOR stream_id/stream_type + decode-only fallback</td><td>12m</td><td>L</td><td>H</td><td>K13</td></tr>
-            <tr><td>K16</td><td>Wire-tag: SQL ALTER migrations in storage/migrations</td><td>12m</td><td>M</td><td>M</td><td>K15</td></tr>
-            <tr><td>K17</td><td>v5 CHANGELOG section assembly from V5-MIGRATION-GUIDE</td><td>12m</td><td>M</td><td>M</td><td>K16</td></tr>
-            <tr><td>K18</td><td>Post-cut sweep: <code>grep -rn "Deprecated:"</code> empty; strike executed rows in v5-deprecation-sweep.md</td><td>10m</td><td>S</td><td>M</td><td>K17</td></tr>
+            <tr>
+              <td>K1</td>
+              <td>
+                <strong>[USER Q2+Q3]</strong> Ratify unattended-job policy + DLQ
+                semantics
+              </td>
+              <td>—</td>
+              <td>—</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>K2</td>
+              <td>
+                D4: re-verify consumer-scan safety for deletion wave A
+                (v5-deprecation-sweep §6)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K1</td>
+            </tr>
+            <tr>
+              <td>K3</td>
+              <td>D4: delete stack presets (×8) + stack.Bundle</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K2</td>
+            </tr>
+            <tr>
+              <td>K4</td>
+              <td>
+                D4: delete stack.Materialize + RunProjections; fix callers
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K3</td>
+            </tr>
+            <tr>
+              <td>K5</td>
+              <td>D4: api golden regen + V5 guide update + gates + commit</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K4</td>
+            </tr>
+            <tr>
+              <td>K6</td>
+              <td>D5: delete storage view + relational tiers</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K5</td>
+            </tr>
+            <tr>
+              <td>K7</td>
+              <td>D5: delete GraphProjection + storage/sql.BuildWhereClause</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K6</td>
+            </tr>
+            <tr>
+              <td>K8</td>
+              <td>
+                D5: delete ADR-0126 compat shells (VersionedStore, Rejecting*,
+                CustomData, ErrInnerStoreNot*)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K7</td>
+            </tr>
+            <tr>
+              <td>K9</td>
+              <td>D5: golden + guide + gates + commit</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K8</td>
+            </tr>
+            <tr>
+              <td>K10</td>
+              <td>
+                D6: delete transport/http + transport/grpc modules (ADR-0127)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K9</td>
+            </tr>
+            <tr>
+              <td>K11</td>
+              <td>
+                D6: delete deprecated tombstone metadata API (ADR-0114
+                completion)
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K10</td>
+            </tr>
+            <tr>
+              <td>K12</td>
+              <td>
+                D6: NewStreamRef strictness + snapshot wire-tag renames + drop
+                legacy readers
+              </td>
+              <td>12m</td>
+              <td>L</td>
+              <td>H</td>
+              <td>K11</td>
+            </tr>
+            <tr>
+              <td>K13</td>
+              <td>D6: golden + guide + gates + commit</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K12</td>
+            </tr>
+            <tr>
+              <td>K14</td>
+              <td>
+                Error-code batch rename aggregate_*→stream_* + dashboards note
+              </td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K13</td>
+            </tr>
+            <tr>
+              <td>K15</td>
+              <td>
+                Wire-tag release: snapshot JSON/CBOR stream_id/stream_type +
+                decode-only fallback
+              </td>
+              <td>12m</td>
+              <td>L</td>
+              <td>H</td>
+              <td>K13</td>
+            </tr>
+            <tr>
+              <td>K16</td>
+              <td>Wire-tag: SQL ALTER migrations in storage/migrations</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K15</td>
+            </tr>
+            <tr>
+              <td>K17</td>
+              <td>v5 CHANGELOG section assembly from V5-MIGRATION-GUIDE</td>
+              <td>12m</td>
+              <td>M</td>
+              <td>M</td>
+              <td>K16</td>
+            </tr>
+            <tr>
+              <td>K18</td>
+              <td>
+                Post-cut sweep: <code>grep -rn "Deprecated:"</code> empty;
+                strike executed rows in v5-deprecation-sweep.md
+              </td>
+              <td>10m</td>
+              <td>S</td>
+              <td>M</td>
+              <td>K17</td>
+            </tr>
           </tbody>
         </table>
 
         <h3>WS-L — Open questions + user-blocked (§g, D9)</h3>
         <table>
-          <thead><tr><th>#</th><th>Task</th><th>Est</th><th>Eff</th><th>Val</th><th>Dep</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Task</th>
+              <th>Est</th>
+              <th>Eff</th>
+              <th>Val</th>
+              <th>Dep</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>L1</td><td><strong>[USER Q2]</strong> Unattended long-job policy: poll cadence + auto-kill bound (or never-run-longer-than-X)</td><td>—</td><td>—</td><td>H</td><td>—</td></tr>
-            <tr><td>L2</td><td><strong>[USER Q3]</strong> DLQ semantics: fail-loud-only vs opt-in park-all (blocks projectionhost polish slice)</td><td>—</td><td>—</td><td>H</td><td>—</td></tr>
-            <tr><td>L3</td><td><strong>[BLOCKED D9]</strong> GitHub billing, root access, macOS hardware, external tags</td><td>—</td><td>—</td><td>M</td><td>—</td></tr>
+            <tr>
+              <td>L1</td>
+              <td>
+                <strong>[USER Q2]</strong> Unattended long-job policy: poll
+                cadence + auto-kill bound (or never-run-longer-than-X)
+              </td>
+              <td>—</td>
+              <td>—</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>L2</td>
+              <td>
+                <strong>[USER Q3]</strong> DLQ semantics: fail-loud-only vs
+                opt-in park-all (blocks projectionhost polish slice)
+              </td>
+              <td>—</td>
+              <td>—</td>
+              <td>H</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>L3</td>
+              <td>
+                <strong>[BLOCKED D9]</strong> GitHub billing, root access, macOS
+                hardware, external tags
+              </td>
+              <td>—</td>
+              <td>—</td>
+              <td>M</td>
+              <td>—</td>
+            </tr>
           </tbody>
         </table>
 
-        <h2 id="gates"><span class="num">07</span>User Gates (answers requested)</h2>
+        <h2 id="gates">
+          <span class="num">07</span>User Gates (answers requested)
+        </h2>
         <div class="card card-problem">
           <h4>Q1 — Tag wave go/no-go (WS-J)</h4>
           <p>
-            Cut and PUSH the prepared v4 wave now? Members: the three dry-run-proven modules
-            (dgraphengine v4.2.0, sqliteengine v4.3.0, projectionhost v4.5.0) — and, if approved,
-            also pgengine, mysqlengine, scheduling/sqlstore, metaengine after their dry-runs.
+            Cut and PUSH the prepared v4 wave now? Members: the three
+            dry-run-proven modules (dgraphengine v4.2.0, sqliteengine v4.3.0,
+            projectionhost v4.5.0) — and, if approved, also pgengine,
+            mysqlengine, scheduling/sqlstore, metaengine after their dry-runs.
             Pushing is the hard gate only the user can authorize.
           </p>
         </div>
         <div class="card card-problem">
           <h4>Q2 — Unattended long-job policy (WS-K, blocks L1)</h4>
           <p>
-            Options: poll-and-report every N minutes with an auto-kill at a named bound; never run
-            anything longer than X unattended; or a watchdog script that kills and leaves a report.
-            Open since session 3.
+            Options: poll-and-report every N minutes with an auto-kill at a
+            named bound; never run anything longer than X unattended; or a
+            watchdog script that kills and leaves a report. Open since session
+            3.
           </p>
         </div>
         <div class="card card-problem">
           <h4>Q3 — DLQ semantics (blocks projectionhost polish)</h4>
           <p>
-            Keep fail-loudly (non-retryable families park in DLQ; retryable families fail the
-            worker at budget exhaustion) as the only mode, or add an opt-in "park everything,
-            never fail the worker" flag? Changes projectionhost's public contract.
+            Keep fail-loudly (non-retryable families park in DLQ; retryable
+            families fail the worker at budget exhaustion) as the only mode, or
+            add an opt-in "park everything, never fail the worker" flag? Changes
+            projectionhost's public contract.
           </p>
         </div>
         <div class="card card-warning">
           <h4>D9 — Externally blocked</h4>
           <p>
-            GitHub Actions billing, root access (mysql-nspawn), macOS hardware for ephemeral-PG
-            verification, external tag creation. Unblocks: macOS verification leg, nspawn MySQL
-            leg, release-automation surface.
+            GitHub Actions billing, root access (mysql-nspawn), macOS hardware
+            for ephemeral-PG verification, external tag creation. Unblocks:
+            macOS verification leg, nspawn MySQL leg, release-automation
+            surface.
           </p>
         </div>
 
-        <h2 id="guardrails"><span class="num">08</span>Guardrails (session-4 lessons, in force)</h2>
+        <h2 id="guardrails">
+          <span class="num">08</span>Guardrails (session-4 lessons, in force)
+        </h2>
         <div class="strengths">
           <div class="strength">
             <div class="check">+</div>
-            <div class="text"><strong>Per-task gates</strong><span>Every code commit ends with the gates its diff can affect (api golden + lint + duplication); docs commits end with doc-check. No mega-verify at session end.</span></div>
+            <div class="text">
+              <strong>Per-task gates</strong
+              ><span
+                >Every code commit ends with the gates its diff can affect (api
+                golden + lint + duplication); docs commits end with doc-check.
+                No mega-verify at session end.</span
+              >
+            </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
-            <div class="text"><strong>Background jobs</strong><span>Always <code>&gt; file 2&gt;&amp;1</code>, polled on a timer, never piped through tail, auto-killed via <code>timeout -k</code>.</span></div>
+            <div class="text">
+              <strong>Background jobs</strong
+              ><span
+                >Always <code>&gt; file 2&gt;&amp;1</code>, polled on a timer,
+                never piped through tail, auto-killed via
+                <code>timeout -k</code>.</span
+              >
+            </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
-            <div class="text"><strong>Strict-mode honesty</strong><span>Live-DB validation runs under GOWORK=off + live DSN (the CI-matrix mode), or the ledger says so.</span></div>
+            <div class="text">
+              <strong>Strict-mode honesty</strong
+              ><span
+                >Live-DB validation runs under GOWORK=off + live DSN (the
+                CI-matrix mode), or the ledger says so.</span
+              >
+            </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
-            <div class="text"><strong>Read conventions first</strong><span>Serial-phase notes, fixture helpers, ID constructors read before writing any test; failing test written before claiming root cause.</span></div>
+            <div class="text">
+              <strong>Read conventions first</strong
+              ><span
+                >Serial-phase notes, fixture helpers, ID constructors read
+                before writing any test; failing test written before claiming
+                root cause.</span
+              >
+            </div>
           </div>
           <div class="strength">
             <div class="check">+</div>
-            <div class="text"><strong>Re-verify stale audits</strong><span>Status-report claims re-verified against code before executing (saved two wasted tasks in session 4).</span></div>
+            <div class="text">
+              <strong>Re-verify stale audits</strong
+              ><span
+                >Status-report claims re-verified against code before executing
+                (saved two wasted tasks in session 4).</span
+              >
+            </div>
           </div>
         </div>
 
         <footer class="footer">
-          Generated 2026-08-30 &middot; Covers retrospective §f 1–50 + §g 1–3 + D3/D4–D6/D9 &middot;
-          Companion: 2026-08-30_14-57_session-4-retrospective-and-status.md
+          Generated 2026-08-30 &middot; Covers retrospective §f 1–50 + §g 1–3 +
+          D3/D4–D6/D9 &middot; Companion:
+          2026-08-30_14-57_session-4-retrospective-and-status.md
         </footer>
       </main>
     </div>

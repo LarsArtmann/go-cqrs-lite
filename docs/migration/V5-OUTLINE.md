@@ -18,7 +18,7 @@ directives + import paths, then `go mod tidy`. 82 go.mod files today.
 - `graph.GraphProjection` (graphadapter keeps GraphDriver/GraphSink)
 - `storage/sql.BuildWhereClause` (deprecated 2026-08-15)
 - Replacement: `system.System` composition root + `projectionhost.Host`
-  + auto-projection (ADR-0116).
+  - auto-projection (ADR-0116).
 
 ## 3. Deletions (ADR-0127: deprecated transports)
 

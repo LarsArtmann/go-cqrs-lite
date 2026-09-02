@@ -153,8 +153,16 @@ func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 			status = "done"
 		}
 
-		g.Expect(mb.MapSet(ctx, "planned_scan", fmt.Sprintf("k%d", i),
-			map[string]any{"priority": float64(i), "status": status, "title": "t"})).To(gomega.Succeed())
+		g.Expect(mb.MapSet(
+			ctx,
+			"planned_scan",
+			fmt.Sprintf("k%d", i),
+			map[string]any{
+				"priority": float64(i),
+				"status":   status,
+				"title":    "t",
+			},
+		)).To(gomega.Succeed())
 	}
 
 	res, err := ps.PushdownMapScan(ctx, "planned_scan",
@@ -183,7 +191,8 @@ func TestMySQLPlannedPushdownScan_FilterSortKeyset(t *testing.T) {
 		nil, nil, 0)
 	g.Expect(errors.Is(err, metaengine.ErrPlannedColumnTypeMismatch)).To(gomega.BeTrue())
 
-	g.Expect(mb.MapSet(ctx, "plain_scan", "a", map[string]any{"v": float64(1)})).To(gomega.Succeed())
+	g.Expect(mb.MapSet(ctx, "plain_scan", "a", map[string]any{"v": float64(1)})).
+		To(gomega.Succeed())
 	plain, err := ps.PushdownMapScan(ctx, "plain_scan", nil, nil, nil, 0)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 	g.Expect(plain.Items).To(gomega.HaveLen(1))
@@ -306,7 +315,11 @@ func TestMySQLPlannedFromType_FloatColumnsAreNumeric(t *testing.T) {
 		State string  `json:"state"`
 	}
 
-	plan := metaengine.BuildLayoutPlanFromType[taskRow]("planned_float", []string{"state"}, []string{"score"})
+	plan := metaengine.BuildLayoutPlanFromType[taskRow](
+		"planned_float",
+		[]string{"state"},
+		[]string{"score"},
+	)
 	g.Expect(lpa.ApplyLayoutPlan(plan)).To(gomega.Succeed())
 
 	for i, score := range []float64{0.25, 9.5, 3.75} {

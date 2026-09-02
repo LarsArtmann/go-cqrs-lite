@@ -1,12 +1,12 @@
 module github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4
 
-go 1.26.5
+go 1.26.7
 
 require (
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-idempotency v0.1.2
+	github.com/larsartmann/go-idempotency v0.2.0
 	modernc.org/sqlite v1.56.0
 	pgregory.net/rapid v1.3.0
 )

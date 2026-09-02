@@ -8,16 +8,16 @@
 
 ## Constants shipped 2026-08-30
 
-| Engine | PointLookup (ns/query) | FilteredScan (ns/row) | Aggregate (ns/row) | Scan (ns/row) | Source |
-|---|---|---|---|---|---|
-| badger | 1100 | 650 | 165 | 630 | `BenchmarkCalibration_Badger_{Get,_FilteredScan,_CounterScan,_FullScan}` |
-| bbolt | 750 | 620 | 100 | 660 | `BenchmarkCalibration_Bbolt_*` (re-verified below) |
-| pebble | 700 | 830 | 125 | 700 | `BenchmarkCalibration_Pebble_*` (scan paths via ScanRawValues) |
-| sqlite | 3100 | 1080 | 530 | 1240 | `BenchmarkCalibration_SQLite_*` (in-memory modernc) |
-| duckdb (aggregate) | 50_000 (prior) | 450 (prior) | **420** | 1000 (prior) | `BenchmarkCalibration_DuckDB_CounterGet` (ADR-0133) |
-| pg (aggregate) | 5_000 (prior) | 400 (prior) | **250** | 800 (prior) | `BenchmarkCalibration_Postgres_CounterGet` (ADR-0133, 2026-09-01) |
-| mysql (aggregate) | 5_000 (prior) | 400 (prior) | **320** | 800 (prior) | `BenchmarkCalibration_MySQL_CounterGet` (ADR-0133, 2026-09-01) |
-| dgraph (aggregate) | 350_000 (prior) | 900_000 (prior) | **2_700** | 450_000 (prior) | `BenchmarkDgraph_CounterGet` (ADR-0133, 2026-09-01) |
+| Engine             | PointLookup (ns/query) | FilteredScan (ns/row) | Aggregate (ns/row) | Scan (ns/row)   | Source                                                                   |
+| ------------------ | ---------------------- | --------------------- | ------------------ | --------------- | ------------------------------------------------------------------------ |
+| badger             | 1100                   | 650                   | 165                | 630             | `BenchmarkCalibration_Badger_{Get,_FilteredScan,_CounterScan,_FullScan}` |
+| bbolt              | 750                    | 620                   | 100                | 660             | `BenchmarkCalibration_Bbolt_*` (re-verified below)                       |
+| pebble             | 700                    | 830                   | 125                | 700             | `BenchmarkCalibration_Pebble_*` (scan paths via ScanRawValues)           |
+| sqlite             | 3100                   | 1080                  | 530                | 1240            | `BenchmarkCalibration_SQLite_*` (in-memory modernc)                      |
+| duckdb (aggregate) | 50_000 (prior)         | 450 (prior)           | **420**            | 1000 (prior)    | `BenchmarkCalibration_DuckDB_CounterGet` (ADR-0133)                      |
+| pg (aggregate)     | 5_000 (prior)          | 400 (prior)           | **250**            | 800 (prior)     | `BenchmarkCalibration_Postgres_CounterGet` (ADR-0133, 2026-09-01)        |
+| mysql (aggregate)  | 5_000 (prior)          | 400 (prior)           | **320**            | 800 (prior)     | `BenchmarkCalibration_MySQL_CounterGet` (ADR-0133, 2026-09-01)           |
+| dgraph (aggregate) | 350_000 (prior)        | 900_000 (prior)       | **2_700**          | 450_000 (prior) | `BenchmarkDgraph_CounterGet` (ADR-0133, 2026-09-01)                      |
 
 Aggregate semantics on every engine: per-row cost of `CounterGet` over a
 1K-key counter map (ADR-0133 — the `ReadAggregate` pattern executes
@@ -29,6 +29,7 @@ carries a legacy aggregate number or DIVERGENCE marker anymore.
 ## Raw runs (ns/op; medians underlined in committed constant comments)
 
 ### badger (count=3, 2026-08-30 ~15:2x)
+
 ```
 Get            1150 / 1085 / 1076        → median 1085  → constant 1100
 FilteredScan   6391387 / 6372411 / 6410470 (10K rows)  → median 6.37ms → 639 ns/row → 650
@@ -37,6 +38,7 @@ FullScan       6381567 / 6284795 / 6291774 (10K rows)  → median 6.29ms → 629
 ```
 
 ### bbolt (count=3, 2026-08-30 ~15:3x — first campaign; superseded by re-run below)
+
 ```
 Get            761 / 742 / 737            → median 742   → constant 750
 FilteredScan   8477921 / 6139867 / 5938259 → first-run cold outlier ~30% high; median 6.14ms → 614 ns/row → 620
@@ -45,6 +47,7 @@ FullScan       6561501 / 6536647 / 7283958 → median 6.54ms → 654 ns/row → 
 ```
 
 ### pebble (count=3, 2026-08-30 ~15:4x)
+
 ```
 Get            666 / 684 / 685            → median 684   → constant 700
 FilteredScan   8951820 / 8329294 / 8111506 (10K rows, ScanRawValues) → median 8.33ms → 833 ns/row → 830
@@ -53,6 +56,7 @@ FullScan       6950028 / 6622967 / 7178342 (10K rows)  → median 6.95ms → 695
 ```
 
 ### sqlite (count=3, 2026-08-30 ~19:4x)
+
 ```
 PointLookup    3129 / 3057 / 3102         → median 3102  → constant 3100
 FilteredScan   10697334 / 11145647 / 10753330 (10K rows, json_extract pushdown) → median 10.75ms → 1075 ns/row → 1080
@@ -61,17 +65,20 @@ FullScan       12379020 / 11910681 / 13002722 (10K rows) → median 12.38ms → 
 ```
 
 ### duckdb CounterGet (count=3, 2026-08-30 ~19:3x, CGo embedded)
+
 ```
 CounterGet     470897 / 407230 / 418305 (1K rows) → median 418.3µs → 418 ns/row → 420
 ```
 
 ### bbolt re-run (count=5, 2026-08-30 ~19:5x, steady-state check)
+
 ```
 Get            (1029)/757/763/836/886      → discard first; median ~800  vs constant 750 (+7%)
 FilteredScan   (5951097)/5980036/6543350/6568908/6634477 → discard first; median ~6.55ms → ~655 vs constant 620 (+5.6%)
 CounterScan    (88385)/90100/91156/93161/94821 → discard first; median ~92µs → ~92 vs constant 100 (−8%)
 FullScan       (5938257)/6129576/6164832/6179682/7134950 → discard first; median ~6.17ms → ~617 vs constant 660 (−6.5%)
 ```
+
 Interpretation: ambient load was RISING during the re-run (concurrent
 planned-tables compile wave on the same host). All deltas are within ±8%
 — below any recalibration threshold, and the ±8% spread across patterns

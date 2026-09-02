@@ -121,7 +121,11 @@ func BenchmarkPlannedVsMetaMap_Postgres_CounterGet(b *testing.B) {
 
 	for _, col := range []string{"pvb_c_metamap", "pvb_c_planned"} {
 		for i := range counters {
-			if err := cb.CounterIncrement(ctx, col, metaengine.Delta{fmt.Sprintf("c%d", i): 1}); err != nil {
+			if err := cb.CounterIncrement(
+				ctx,
+				col,
+				metaengine.Delta{fmt.Sprintf("c%d", i): 1},
+			); err != nil {
 				b.Fatalf("seed counter %s/%d: %v", col, i, err)
 			}
 		}

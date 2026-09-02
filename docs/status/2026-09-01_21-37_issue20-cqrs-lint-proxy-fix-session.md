@@ -2,8 +2,8 @@
 
 > **Point-in-time snapshot: 2026-09-01 21:37 CEST.** Scope = this session's work
 > (go-cqrs-lite#20) plus everything it surfaced. Written on explicit request:
-> *"What did you forget? What could you have done better? What could you still
-> improve?"* — answers are brutal by design.
+> _"What did you forget? What could you have done better? What could you still
+> improve?"_ — answers are brutal by design.
 >
 > Format note: this is `.md` at the user's explicit instruction — the
 > status-report skill's canonical HTML dashboard was overridden (one-off, not a
@@ -350,10 +350,10 @@ Issue #20 closed with a full resolution comment.
    CHANGELOG your deliberate final answer? I can't infer the intent from one
    stray release page.
 2. **Tagging through dark CI**: is "CI has been dark since July, local gates
-   + post-push proxy verification are the real gate" an acceptable standing
-   policy for releases, or should releases hard-block on the CI repair
-   (items 4–7 of the 50-list)? I violated the skill's green-CI gate this
-   session and need to know which behavior you actually want.
+   - post-push proxy verification are the real gate" an acceptable standing
+     policy for releases, or should releases hard-block on the CI repair
+     (items 4–7 of the 50-list)? I violated the skill's green-CI gate this
+     session and need to know which behavior you actually want.
 3. **bank-sync scope**: may I finish the consumer update there (push
    `cef0425` and verify the flake's `cqrs-lint` package builds against the
    new path), or is bank-sync's workstream owned by another session right
@@ -361,4 +361,4 @@ Issue #20 closed with a full resolution comment.
 
 ---
 
-*Report ends. Waiting for instructions.*
+_Report ends. Waiting for instructions._

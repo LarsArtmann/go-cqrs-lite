@@ -11,9 +11,9 @@ require (
 require (
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect

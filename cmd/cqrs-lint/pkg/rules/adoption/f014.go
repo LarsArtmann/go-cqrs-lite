@@ -3,9 +3,8 @@ package adoption
 import (
 	"context"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // F014 detects projects using kv.NewTypedStore without kv.NewCache. The cache

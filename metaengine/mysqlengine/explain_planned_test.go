@@ -36,8 +36,15 @@ func TestMySQLPlannedExplain_IndexUsageProofs(t *testing.T) {
 	)).To(gomega.Succeed())
 
 	for i := 0; i < 500; i++ {
-		g.Expect(mb.MapSet(ctx, "planned_explain", fmt.Sprintf("k%d", i),
-			map[string]any{"priority": float64(i), "code": fmt.Sprintf("code-%03d", i%200)})).To(gomega.Succeed())
+		g.Expect(mb.MapSet(
+			ctx,
+			"planned_explain",
+			fmt.Sprintf("k%d", i),
+			map[string]any{
+				"priority": float64(i),
+				"code":     fmt.Sprintf("code-%03d", i%200),
+			},
+		)).To(gomega.Succeed())
 	}
 
 	// Selective filter on the indexed `code` column.
