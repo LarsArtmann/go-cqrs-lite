@@ -371,12 +371,6 @@ func TestPebbleLayoutPlanner_SortIndexAscending(t *testing.T) {
 
 	f := newLayoutFixture(t, "tasks", nil, []string{"priority"})
 	ctx, eng, mb := f.ctx, f.eng, f.mb
-	lp := f.lp
-	gomega.NewWithT(t).
-		Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).
-		To(gomega.Succeed())
-
-	mb := eng.(metaengine.MapBackend)
 
 	items := []struct {
 		key      string
@@ -408,12 +402,6 @@ func TestPebbleLayoutPlanner_SortIndexDescending(t *testing.T) {
 
 	f := newLayoutFixture(t, "tasks", nil, []string{"priority"})
 	ctx, eng, mb := f.ctx, f.eng, f.mb
-	lp := f.lp
-	gomega.NewWithT(t).
-		Expect(lp.ApplyLayout("tasks", nil, []string{"priority"})).
-		To(gomega.Succeed())
-
-	mb := eng.(metaengine.MapBackend)
 
 	items := []struct {
 		key      string

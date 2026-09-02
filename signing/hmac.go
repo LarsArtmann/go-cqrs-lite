@@ -57,14 +57,5 @@ func (s *hmacSigner) Sign(evt event.Event) (Signature, error) {
 
 // Verify checks that the HMAC-SHA256 signature matches the event.
 func (s *hmacSigner) Verify(evt event.Event, sig Signature) error {
-	if sig.IsZero() {
-		return ErrNilSignature
-	}
-
-	expected, err := s.Sign(evt)
-	if err != nil {
-		return err
-	}
-
-	return compareSig(expected, sig)
+	return verifyComputedSig(func() (Signature, error) { return s.Sign(evt) }, sig)
 }

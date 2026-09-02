@@ -27,6 +27,7 @@ type kvPair struct {
 // value correctly (it may be a raw field value rather than a full item — see
 // extractOrDirect).
 func sortAndPaginate(pairs []kvPair, sortFn func(a, b any) int, cursor any, limit int) []kvPair {
+	//art-dupl:accept cross-module KV engine pattern — dep-isolated go.mod modules
 	if sortFn != nil {
 		sort.Slice(pairs, func(i, j int) bool {
 			if c := sortFn(pairs[i].value, pairs[j].value); c != 0 {

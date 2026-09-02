@@ -109,6 +109,7 @@ func (e *mysqlEngine) CounterIncrement(
 	col string,
 	deltas metaengine.Delta,
 ) error {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if len(deltas) == 0 {
 		return nil
 	}

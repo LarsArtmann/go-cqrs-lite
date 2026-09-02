@@ -33,11 +33,11 @@ func newPebbleEngineOrSkip(tb testing.TB) metaengine.Engine {
 }
 
 // layoutFixture bundles the capabilities the layout-planner tests exercise:
-// the engine plus its LayoutPlanner and MapBackend facets.
+// the engine plus its MapBackend facet (the LayoutPlanner assertion doubles
+// as a capability check before ApplyLayout).
 type layoutFixture struct {
 	ctx context.Context
 	eng metaengine.Engine
-	lp  metaengine.LayoutPlanner
 	mb  metaengine.MapBackend
 }
 
@@ -55,8 +55,6 @@ func newLayoutFixture(tb testing.TB, col string, filterFields, sortFields []stri
 	if !ok {
 		tb.Fatal("expected pebbleEngine to implement LayoutPlanner")
 	}
-
-	f.lp = lp
 
 	if err := lp.ApplyLayout(col, filterFields, sortFields); err != nil {
 		tb.Fatalf("ApplyLayout: %v", err)

@@ -58,27 +58,36 @@ func (e *dgraphEngine) MultiGet(
 		}
 	}`
 
-	resp, err := e.readTx().QueryWithVars(ctx, q,
-		map[string]string{"$col": col, "$key": keyStr})
+	return e.queryValueEntries(ctx, "MultiGet", q,
+		map[string]string{"$col": col, "$key": keyStr}, "cqrs.multimap_value")
+}
+
+// queryValueEntries runs q and decodes each entry's predicate value (a JSON
+// document stored as a string) in entry order. op names the caller in errors.
+func (e *dgraphEngine) queryValueEntries(
+	ctx context.Context,
+	op, q string,
+	vars map[string]string,
+	pred string,
+) ([]any, error) {
+	resp, err := e.readTx().QueryWithVars(ctx, q, vars)
 	if err != nil {
-		return nil, fmt.Errorf("dgraphengine.MultiGet: %w", err)
+		return nil, fmt.Errorf("dgraphengine.%s: %w", op, err)
 	}
 
 	var result struct {
-		Entries []struct {
-			Value string `json:"cqrs.multimap_value"`
-		} `json:"entries"`
+		Entries []map[string]string `json:"entries"`
 	}
 
 	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
-		return nil, fmt.Errorf("dgraphengine.MultiGet: unmarshal: %w", err)
+		return nil, fmt.Errorf("dgraphengine.%s: unmarshal: %w", op, err)
 	}
 
 	out := make([]any, 0, len(result.Entries))
-	for _, e := range result.Entries {
+	for _, entry := range result.Entries {
 		var v any
-		if err := json.Unmarshal([]byte(e.Value), &v); err != nil {
-			return nil, fmt.Errorf("dgraphengine.MultiGet: decode value: %w", err)
+		if err := json.Unmarshal([]byte(entry[pred]), &v); err != nil {
+			return nil, fmt.Errorf("dgraphengine.%s: decode value: %w", op, err)
 		}
 
 		out = append(out, v)
@@ -130,32 +139,14 @@ func (e *dgraphEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 		}
 	}`, firstClause)
 
-	resp, err := e.readTx().QueryWithVars(ctx, q,
-		map[string]string{"$col": col})
+	out, err := e.queryValueEntries(ctx, "LogTail", q,
+		map[string]string{"$col": col}, "cqrs.log_value")
 	if err != nil {
-		return nil, fmt.Errorf("dgraphengine.LogTail: %w", err)
-	}
-
-	var result struct {
-		Entries []struct {
-			Value string `json:"cqrs.log_value"`
-		} `json:"entries"`
-	}
-
-	if err := json.Unmarshal(resp.GetJson(), &result); err != nil {
-		return nil, fmt.Errorf("dgraphengine.LogTail: unmarshal: %w", err)
+		return nil, err
 	}
 
 	// Reverse to chronological order (oldest first), matching memory engine.
-	out := make([]any, 0, len(result.Entries))
-	for i := range slices.Backward(result.Entries) {
-		var v any
-		if err := json.Unmarshal([]byte(result.Entries[i].Value), &v); err != nil {
-			return nil, fmt.Errorf("dgraphengine.LogTail: decode value: %w", err)
-		}
-
-		out = append(out, v)
-	}
+	slices.Reverse(out)
 
 	return out, nil
 }

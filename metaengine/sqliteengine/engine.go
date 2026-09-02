@@ -398,6 +398,7 @@ func (e *sqliteEngine) MapScan(
 		return strings.Compare(pairs[i].key, pairs[j].key) < 0
 	})
 
+	//art-dupl:accept cross-module engine pattern — dep-isolated go.mod modules
 	if cursor != nil && sortFunc != nil {
 		filtered := pairs[:0]
 

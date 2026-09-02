@@ -224,6 +224,7 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 
 // Close closes the underlying database. Safe to call multiple times.
 func (e *pgEngine) Close() error {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
@@ -329,6 +330,7 @@ func (e *pgEngine) CounterIncrement(
 	col string,
 	deltas metaengine.Delta,
 ) error {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if len(deltas) == 0 {
 		return nil
 	}

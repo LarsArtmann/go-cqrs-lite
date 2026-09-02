@@ -62,6 +62,7 @@ func (e *pgEngine) StreamRead(ctx context.Context, col, sid string) ([]any, erro
 }
 
 func (e *pgEngine) StreamVersion(ctx context.Context, col, sid string) (int64, error) {
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	var count int64
 
 	err := e.conn().QueryRowContext(

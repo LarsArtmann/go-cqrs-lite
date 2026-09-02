@@ -82,16 +82,7 @@ func (s *coseHMAC) Sign(data []byte) (Signature, error) {
 
 // Verify checks an HMAC-SHA256 signature over data.
 func (s *coseHMAC) Verify(data []byte, sig Signature) error {
-	if sig.IsZero() {
-		return ErrNilSignature
-	}
-
-	expected, err := s.Sign(data)
-	if err != nil {
-		return err
-	}
-
-	return compareSig(expected, sig)
+	return verifyComputedSig(func() (Signature, error) { return s.Sign(data) }, sig)
 }
 
 // COSEAlgorithm returns the COSE algorithm identifier for HMAC-SHA256 (5).

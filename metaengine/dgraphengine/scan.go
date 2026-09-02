@@ -75,6 +75,7 @@ func (e *dgraphEngine) MapScan(
 		})
 	}
 
+	//art-dupl:accept cross-module engine pattern — dep-isolated go.mod modules
 	if cursor != nil && sortFunc != nil {
 		filtered := pairs[:0]
 		for _, p := range pairs {

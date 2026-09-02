@@ -257,6 +257,7 @@ func (e *badgerEngine) StreamAppendExpected(
 	expectedVersion int64,
 	values []any,
 ) error {
+	//art-dupl:accept dep-isolated KV engines; same optimistic append as pebbleengine
 	e.mu.Lock()
 	defer e.mu.Unlock()
 

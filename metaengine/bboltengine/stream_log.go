@@ -173,6 +173,7 @@ func (e *bboltEngine) journalEntries(
 	afterSeq int64,
 	limit int,
 ) ([]metaengine.StreamLogEntry, error) {
+	//art-dupl:accept dep-isolated KV engines; same StreamLog head as badgerengine
 	prefix := journalPrefix(col)
 	startKey := journalKey(col, afterSeq+1)
 

@@ -42,6 +42,22 @@ func compareSig(expected, actual Signature) error {
 	return nil
 }
 
+// verifyComputedSig is the shared HMAC-style verify path: reject zero
+// signatures, compute the expected signature via compute, propagate signer
+// errors, then constant-time compare.
+func verifyComputedSig(compute func() (Signature, error), sig Signature) error {
+	if sig.IsZero() {
+		return ErrNilSignature
+	}
+
+	expected, err := compute()
+	if err != nil {
+		return err
+	}
+
+	return compareSig(expected, sig)
+}
+
 // String returns the URL-safe base64 encoding of the signature.
 func (s Signature) String() string {
 	return base64.URLEncoding.EncodeToString(s)
