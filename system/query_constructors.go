@@ -59,10 +59,7 @@ func (b *lookupBuilder[R]) Priority(p metaengine.Priority) *lookupBuilder[R] {
 
 // Done finalizes the projection declaration.
 func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
-	keyField := b.keyField
-	if keyField == "" {
-		keyField = "ID"
-	}
+	keyField := defaultKeyField(b.keyField)
 
 	name := b.name
 	rt := reflect.TypeFor[R]()
@@ -181,10 +178,7 @@ func (b *querySetBuilder[R]) Sortable(field string, desc bool) *querySetBuilder[
 
 // Done finalizes the projection declaration.
 func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
-	keyField := b.keyField
-	if keyField == "" {
-		keyField = "ID"
-	}
+	keyField := defaultKeyField(b.keyField)
 
 	name := b.name
 	rt := reflect.TypeFor[R]()
@@ -310,6 +304,15 @@ func (b *countBuilder) Done() ProjectionDeclaration {
 }
 
 // ─── Shared build helpers ───
+
+// defaultKeyField resolves the projection key field ("ID" unless overridden).
+func defaultKeyField(keyField string) string {
+	if keyField == "" {
+		return "ID"
+	}
+
+	return keyField
+}
 
 // buildCRUDQuery generates a CRUD query declaration from named event
 // samples. Extra options (FilterOnField, SortOnField, ...) are appended

@@ -45,7 +45,7 @@ type TraceOp struct {
 // SlowQueryThreshold — a trace that silently drops fast queries is useless.
 type TraceRecorder struct {
 	mu    sync.Mutex
-	enc   *json.Encoder
+	w     io.Writer
 	store *Store
 	prev  *Hooks
 	err   error
@@ -54,7 +54,7 @@ type TraceRecorder struct {
 // RecordTrace attaches a TraceRecorder to the store. The returned recorder
 // must be Closed when done to restore the previous hooks.
 func RecordTrace(store *Store, w io.Writer) *TraceRecorder {
-	tr := &TraceRecorder{enc: json.NewEncoder(w), store: store}
+	tr := &TraceRecorder{w: w, store: store}
 
 	if store.hooks != nil {
 		prevCopy := *store.hooks
@@ -102,8 +102,12 @@ func (tr *TraceRecorder) record(op, name string, d time.Duration, err error) {
 	tr.mu.Lock()
 	defer tr.mu.Unlock()
 
-	if encErr := tr.enc.Encode(opRecord); encErr != nil && tr.err == nil {
-		tr.err = encErr
+	if line, encErr := json.Marshal(opRecord); encErr != nil {
+		if tr.err == nil {
+			tr.err = encErr
+		}
+	} else if _, writeErr := tr.w.Write(append(line, '\n')); writeErr != nil && tr.err == nil {
+		tr.err = writeErr
 	}
 }
 

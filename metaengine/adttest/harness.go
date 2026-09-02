@@ -874,6 +874,16 @@ func CanonicalizeScanResults(v any) string {
 	return b.String()
 }
 
+// canonicalizeIDs projects result entries to their IDs, sorts them, and joins
+// with commas. Distances/scores may vary between engines (float arithmetic,
+// TF-IDF vs BM25) and ties may order differently, so comparisons use IDs only.
+func canonicalizeIDs(ids []string) string {
+	sorted := append([]string(nil), ids...)
+	sort.Strings(sorted)
+
+	return strings.Join(sorted, ",")
+}
+
 // CanonicalizeVector canonicalizes vector search results by sorted ID list.
 // Distances may vary slightly between engines due to float arithmetic, and
 // ties (equal distances) may be returned in different order by different
@@ -884,14 +894,12 @@ func CanonicalizeVector(v any) string {
 		return CanonicalizeAny(v)
 	}
 
-	strs := make([]string, 0, len(results))
+	ids := make([]string, 0, len(results))
 	for _, r := range results {
-		strs = append(strs, r.ID)
+		ids = append(ids, r.ID)
 	}
 
-	sort.Strings(strs)
-
-	return strings.Join(strs, ",")
+	return canonicalizeIDs(ids)
 }
 
 // CanonicalizeSearch canonicalizes full-text search results by ID list.
@@ -902,14 +910,12 @@ func CanonicalizeSearch(v any) string {
 		return CanonicalizeAny(v)
 	}
 
-	strs := make([]string, 0, len(results))
+	ids := make([]string, 0, len(results))
 	for _, r := range results {
-		strs = append(strs, r.ID)
+		ids = append(ids, r.ID)
 	}
 
-	sort.Strings(strs)
-
-	return strings.Join(strs, ",")
+	return canonicalizeIDs(ids)
 }
 
 // CanonicalizeSpatial canonicalizes spatial range results by ID list.
@@ -921,14 +927,12 @@ func CanonicalizeSpatial(v any) string {
 		return CanonicalizeAny(v)
 	}
 
-	strs := make([]string, 0, len(results))
+	ids := make([]string, 0, len(results))
 	for _, r := range results {
-		strs = append(strs, r.ID)
+		ids = append(ids, r.ID)
 	}
 
-	sort.Strings(strs)
-
-	return strings.Join(strs, ",")
+	return canonicalizeIDs(ids)
 }
 
 func mustJSON(v any) string {

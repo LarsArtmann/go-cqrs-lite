@@ -80,8 +80,7 @@ func TestInfer_BasicCreateDelete(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserDeleted{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -133,8 +132,7 @@ func TestInfer_FullCRUDLifecycle(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserUpdated{}, inferUserDeleted{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -208,8 +206,7 @@ func TestInfer_KeyFieldAutoDetected(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -245,8 +242,7 @@ func TestInfer_NestedStructFlattening(t *testing.T) {
 		metaengine.Infer(inferProfileCreated{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -291,8 +287,7 @@ func TestInfer_AutoFilterDetection(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -335,8 +330,7 @@ func TestInfer_PartialUpdate(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserUpdated{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -381,8 +375,7 @@ func TestInfer_OnlyCreated(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	store, err := metaengine.PlanFromMemory(q)
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -415,8 +408,7 @@ func TestInfer_ErrorNoCreated(t *testing.T) {
 		metaengine.Infer(inferUserDeleted{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	_, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	_, err := metaengine.PlanFromMemory(q)
 	if err == nil {
 		t.Fatal("expected error for Infer with no Created sample")
 	}
@@ -433,8 +425,7 @@ func TestInfer_ErrorUnrecognizedSuffix(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, WeirdEvent{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	_, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	_, err := metaengine.PlanFromMemory(q)
 	if err == nil {
 		t.Fatal("expected error for unrecognized suffix")
 	}
@@ -476,10 +467,7 @@ func TestInfer_DryRun(t *testing.T) {
 		metaengine.Infer(inferUserCreated{}, inferUserUpdated{}, inferUserDeleted{}),
 	)
 
-	eng := metaengine.NewMemoryEngine()
-	store, err := metaengine.Plan([]metaengine.Engine{eng},
-		q, metaengine.WithDryRun(),
-	)
+	store, err := metaengine.PlanFromMemory(q, metaengine.WithDryRun())
 	if err != nil {
 		t.Fatalf("Plan with dry run: %v", err)
 	}

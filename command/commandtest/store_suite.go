@@ -74,15 +74,23 @@ func RunStoreSuite(t *testing.T, factory StoreFactory) {
 	})
 }
 
-func testSaveAndLoad(t *testing.T, store StoreSuite) {
+// newTestStream creates a fresh stream ref plus a user.create command bound
+// to it — the shared setup for the Save/Load conformance subtests.
+func newTestStream(t *testing.T, store StoreSuite) (*command.PersistedCommand, command.StreamRef, context.Context) {
 	t.Helper()
 
 	ctx := context.Background()
-
 	streamID := id.NewStreamID()
 	ref := command.NewStreamRef("User", streamID)
-
 	cmd := MustCreateCommand(t, "user.create", ref)
+
+	return cmd, ref, ctx
+}
+
+func testSaveAndLoad(t *testing.T, store StoreSuite) {
+	t.Helper()
+
+	cmd, ref, ctx := newTestStream(t, store)
 
 	if err := store.Save(ctx, ref, cmd); err != nil {
 		t.Fatalf("Save: %v", err)
@@ -109,12 +117,7 @@ func testSaveAndLoad(t *testing.T, store StoreSuite) {
 func testDuplicateDetection(t *testing.T, store StoreSuite) {
 	t.Helper()
 
-	ctx := context.Background()
-
-	streamID := id.NewStreamID()
-	ref := command.NewStreamRef("User", streamID)
-
-	cmd := MustCreateCommand(t, "user.create", ref)
+	cmd, ref, ctx := newTestStream(t, store)
 
 	if err := store.Save(ctx, ref, cmd); err != nil {
 		t.Fatalf("Save: %v", err)
