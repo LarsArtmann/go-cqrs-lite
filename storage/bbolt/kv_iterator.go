@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	bolt "go.etcd.io/bbolt"
+
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // bboltIterator holds a long-lived read transaction + cursor.

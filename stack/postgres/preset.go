@@ -91,6 +91,7 @@ func WithStatementTimeout(d time.Duration) Option {
 //	    sqlopt.WithViewDB("postgres://host/views_db"),
 //	))
 func WithDSN(opts ...sqlopt.DSNOption) Option {
+	//art-dupl:accept cross-module preset twin — dep-isolated stack/* modules, removed in v5 (ADR-0123)
 	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 

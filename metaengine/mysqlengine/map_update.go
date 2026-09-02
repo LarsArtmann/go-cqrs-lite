@@ -157,6 +157,7 @@ func updatePlannedValue(
 			backtickIdent(table), keyCol),
 		keyStr,
 	).Scan(&raw)
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("mysqlengine.mapUpdatePlanned: read: %w", err)
 	}

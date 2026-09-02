@@ -9,6 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 

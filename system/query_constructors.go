@@ -59,6 +59,7 @@ func (b *lookupBuilder[R]) Priority(p metaengine.Priority) *lookupBuilder[R] {
 
 // Done finalizes the projection declaration.
 func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
+	//art-dupl:accept closure-capture idiom; builders differ in options and fold wiring
 	keyField := defaultKeyField(b.keyField)
 
 	name := b.name
@@ -178,6 +179,7 @@ func (b *querySetBuilder[R]) Sortable(field string, desc bool) *querySetBuilder[
 
 // Done finalizes the projection declaration.
 func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
+	//art-dupl:accept closure-capture idiom; builders differ in options and fold wiring
 	keyField := defaultKeyField(b.keyField)
 
 	name := b.name

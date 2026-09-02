@@ -190,6 +190,7 @@ func (pt *peerTransport) Subscribe(handler func(op WriteOp)) error {
 }
 
 func (pt *peerTransport) Close() error {
+	//art-dupl:accept idiomatic mutex close-guard — unrelated modules
 	pt.mu.Lock()
 	defer pt.mu.Unlock()
 	pt.closed = true

@@ -209,6 +209,7 @@ func (e *mysqlEngine) mapGetPlanned(
 			backtickIdent(plan.Table), keyCol),
 		fmt.Sprint(key),
 	).Scan(&raw)
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil

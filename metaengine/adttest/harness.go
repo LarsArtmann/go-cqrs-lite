@@ -874,14 +874,25 @@ func CanonicalizeScanResults(v any) string {
 	return b.String()
 }
 
-// canonicalizeIDs projects result entries to their IDs, sorts them, and joins
-// with commas. Distances/scores may vary between engines (float arithmetic,
-// TF-IDF vs BM25) and ties may order differently, so comparisons use IDs only.
-func canonicalizeIDs(ids []string) string {
-	sorted := append([]string(nil), ids...)
-	sort.Strings(sorted)
+// canonicalizeResults projects a typed result slice to its IDs, sorts them,
+// and joins with commas; falls back to CanonicalizeAny when the cast fails.
+// Distances/scores may vary between engines (float arithmetic, TF-IDF vs
+// BM25) and ties may order differently, so comparisons use IDs only. Each
+// Canonicalize* wrapper below supplies only its result type and ID extractor.
+func canonicalizeResults[T any](v any, extractID func(T) string) string {
+	results, ok := v.([]T)
+	if !ok {
+		return CanonicalizeAny(v)
+	}
 
-	return strings.Join(sorted, ",")
+	ids := make([]string, 0, len(results))
+	for _, r := range results {
+		ids = append(ids, extractID(r))
+	}
+
+	sort.Strings(ids)
+
+	return strings.Join(ids, ",")
 }
 
 // CanonicalizeVector canonicalizes vector search results by sorted ID list.
@@ -889,50 +900,20 @@ func canonicalizeIDs(ids []string) string {
 // ties (equal distances) may be returned in different order by different
 // engines, so we sort IDs for order-independent comparison.
 func CanonicalizeVector(v any) string {
-	results, ok := v.([]metaengine.VectorResult)
-	if !ok {
-		return CanonicalizeAny(v)
-	}
-
-	ids := make([]string, 0, len(results))
-	for _, r := range results {
-		ids = append(ids, r.ID)
-	}
-
-	return canonicalizeIDs(ids)
+	return canonicalizeResults(v, func(r metaengine.VectorResult) string { return r.ID })
 }
 
 // CanonicalizeSearch canonicalizes full-text search results by ID list.
 // Scores may vary between engines (TF-IDF vs BM25), so we compare IDs only.
 func CanonicalizeSearch(v any) string {
-	results, ok := v.([]metaengine.SearchResult)
-	if !ok {
-		return CanonicalizeAny(v)
-	}
-
-	ids := make([]string, 0, len(results))
-	for _, r := range results {
-		ids = append(ids, r.ID)
-	}
-
-	return canonicalizeIDs(ids)
+	return canonicalizeResults(v, func(r metaengine.SearchResult) string { return r.ID })
 }
 
 // CanonicalizeSpatial canonicalizes spatial range results by ID list.
 // Distances may vary slightly between engines, so we compare IDs (sorted,
 // since different engines may return points at similar distances in different order).
 func CanonicalizeSpatial(v any) string {
-	results, ok := v.([]metaengine.SpatialResult)
-	if !ok {
-		return CanonicalizeAny(v)
-	}
-
-	ids := make([]string, 0, len(results))
-	for _, r := range results {
-		ids = append(ids, r.ID)
-	}
-
-	return canonicalizeIDs(ids)
+	return canonicalizeResults(v, func(r metaengine.SpatialResult) string { return r.ID })
 }
 
 func mustJSON(v any) string {

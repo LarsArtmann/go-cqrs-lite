@@ -36,6 +36,7 @@ func defaultConfig() config {
 // WithDSN configures multi-database topology (event/query/view DSN overrides)
 // and auto-migration behavior.
 func WithDSN(opts ...sqlopt.DSNOption) Option {
+	//art-dupl:accept cross-module preset twin — dep-isolated stack/* modules, removed in v5 (ADR-0123)
 	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 

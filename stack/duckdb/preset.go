@@ -66,6 +66,7 @@ func WithMemoryLimit(limit string) Option {
 // configure event, query, or view database separation, or to disable
 // auto-migration.
 func WithDSN(opts ...sqlopt.DSNOption) Option {
+	//art-dupl:accept cross-module preset twin — dep-isolated stack/* modules, removed in v5 (ADR-0123)
 	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 

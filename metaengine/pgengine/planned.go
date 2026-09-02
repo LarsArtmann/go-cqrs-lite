@@ -205,6 +205,7 @@ func (e *pgEngine) mapGetPlanned(
 			metaengine.QuoteIdent(plan.Table)),
 		fmt.Sprint(key),
 	).Scan(&raw)
+	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"slices"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Handler processes one event, merging nodes and edges through sink. The

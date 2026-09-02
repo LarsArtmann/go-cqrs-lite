@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
+	"golang.org/x/sync/singleflight"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-	"golang.org/x/sync/singleflight"
 )
 
 // Decider defines how to reconstruct state from events.

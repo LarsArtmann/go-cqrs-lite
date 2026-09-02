@@ -17,10 +17,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 	"github.com/larsartmann/go-finding"
 	output "github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/table"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
 // parseColorMode resolves a --color flag value into a go-output ColorMode.

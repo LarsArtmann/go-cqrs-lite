@@ -10,6 +10,7 @@ type Lifecycle struct {
 
 // Close marks the lifecycle as closed. It is safe to call multiple times.
 func (m *Lifecycle) Close() error {
+	//art-dupl:accept idiomatic mutex close-guard — unrelated modules
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

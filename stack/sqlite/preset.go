@@ -126,6 +126,7 @@ func WithPragmas(opts ...sqlopt.PragmaOption) Option {
 //	    sqlopt.WithViewDB("views.db"),
 //	))
 func WithDSN(opts ...sqlopt.DSNOption) Option {
+	//art-dupl:accept cross-module preset twin — dep-isolated stack/* modules, removed in v5 (ADR-0123)
 	return func(c *config) { sqlopt.ApplyTo(opts, &c.DSNConfig) }
 }
 
