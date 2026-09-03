@@ -224,9 +224,12 @@ DEP_BUDGET["stack/duckdb"]=8
 DEP_BUDGET["stack/mysql"]=10
 DEP_BUDGET["stack/turso"]=13
 DEP_BUDGET["stack/bench"]=25
-# catalog: 5 = go-faster/yaml, go-error-family, go-snaps (cattest golden
-# helpers), a-h/templ + templ-components (approved docserver UI adoption).
-DEP_BUDGET[catalog]=5
+# catalog: 6 = go-faster/yaml, go-error-family, go-snaps (cattest golden
+# helpers), a-h/templ + templ-components (approved docserver UI adoption),
+# +1 templ-components/utils (generated d2view_templ.go imports it directly
+# since templ-components v1.11.0 — same +1-for-a-submodule precedent as
+# storage/pebble above).
+DEP_BUDGET[catalog]=6
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5

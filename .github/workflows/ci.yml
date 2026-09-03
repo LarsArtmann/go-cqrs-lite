@@ -33,6 +33,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Check formatting
         run: nix fmt -- --fail-on-change
@@ -137,6 +141,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Build CGo modules (DuckDB + cqrs-bench duckdb factory)
         run: |
@@ -173,6 +181,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       # Ephemeral nixpkgs Dgraph (Zero + Alpha), full dgraphengine suite,
       # teardown on exit. Same path as `nix run .#integration-dgraph`.
@@ -189,6 +201,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       # The Log order-tolerance fix landed 2026-08-15; running the convergence
       # suite three times under -race on every push surfaces recurrence early
@@ -211,6 +227,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run verify-fast (build + vet + short tests + lint)
         run: nix run .#verify-fast
@@ -229,6 +249,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Test module in isolation
         run: (cd ${{ matrix.module }} && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -race)
@@ -246,7 +270,7 @@ jobs:
         run: |
           modules=$(find . -name go.mod -not -path './vendor/*' \
             | sed 's|/go.mod||' | sed 's|^\./||' | sort \
-            | jq -R . | jq -s .)
+            | jq -R . | jq -s -c .)
           echo "modules=$modules" >> "$GITHUB_OUTPUT"
 
     timeout-minutes: 15
@@ -257,6 +281,10 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
       - name: Verify every module builds under GOWORK=off
         run: nix run .#check-isolation
 
@@ -270,6 +298,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run cqrs-lint on its own source (self-lint auto-detected)
         run: |
@@ -283,6 +315,10 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
       - name: Fail on placeholder doc.go stubs
         run: nix run .#check-doc-stubs
 
@@ -296,9 +332,17 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Check per-package coverage >= 80%
         run: |
+          # Drop external sibling use-entries (absent on CI) so ./... spans
+          # every repo-local workspace module, as intended.
+          grep -vE '^[[:space:]]*\.\.\/' go.work > go.work.ci
+          export GOWORK="$PWD/go.work.ci"
           pkgs=$(go list ./... | grep -v '/example/')
           failed=false
           for pkg in $pkgs; do
@@ -329,6 +373,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Verify API surface matches golden file
         run: cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" .
@@ -353,9 +401,18 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Verify go.work is synced
         run: |
+          # CI has no external sibling checkouts (../go-codec, ../go-retry, ...):
+          # sync the repo-local modules only. Without this, `go work sync`
+          # fails on the missing ../ use-entries before checking anything.
+          grep -vE '^[[:space:]]*\.\.\/' go.work > /tmp/go.work.filter
+          cp /tmp/go.work.filter go.work
           cp go.work go.work.before
           go work sync
           if ! diff -q go.work.before go.work > /dev/null 2>&1; then
@@ -403,6 +460,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run benchmarks
         run: nix run .#bench 2>&1 | tee benchmark-results.txt
@@ -421,12 +482,19 @@ jobs:
   gosec:
     name: Security Scan (gosec)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run gosec on core modules
         run: |
@@ -449,6 +517,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Verify module dependency layers
         run: bash scripts/check-module-layers.sh
@@ -469,6 +541,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run govulncheck
         run: |
@@ -501,6 +577,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Verify core modules compile to WASM
         run: |
@@ -535,6 +615,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run PostgreSQL integration tests
         env:
@@ -570,6 +654,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run Turso sync contract tests
         env:
@@ -643,6 +731,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Verify catalog golden files are up-to-date
         run: |
@@ -675,6 +767,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: ${{ matrix.db }} VM test
         run: nix build .#checks.x86_64-linux.${{ matrix.db }}-vm -L
@@ -692,6 +788,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run PG integration tests via ephemeral PostgreSQL
         run: nix run .#integration-pg -- -short
@@ -710,6 +810,10 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
       - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
 
       - name: Run watermill broker tests via ephemeral Redis
         run: nix run .#integration-redis
