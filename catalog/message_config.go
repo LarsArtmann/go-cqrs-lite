@@ -232,7 +232,11 @@ func newMessageBuilder[T any](
 	rt := reflect.TypeFor[T]()
 
 	name := camelCaseToHuman(rt.Name())
-	sch := schema.FromReflect(rt)
+	// Clone before applying options: FromReflect returns the SHARED cached
+	// schema for the type, and options (WithParam) append to its Parameters.
+	// Without the clone, concurrent builds race on the cached schema and
+	// leak parameters into each other.
+	sch := schema.FromReflect(rt).Clone()
 
 	msgBuilder := &messageBuilder{
 		kind:      kind,

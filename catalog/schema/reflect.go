@@ -5,8 +5,10 @@ package schema
 import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"maps"
 	"reflect"
 	"runtime"
+	"slices"
 	"sync"
 	"time"
 
@@ -23,6 +25,36 @@ func FromType[T any]() *Schema {
 
 func FromReflect(t reflect.Type) *Schema {
 	return fromReflect(t)
+}
+
+// Clone returns a copy of the schema that is safe to mutate without
+// affecting the package-level reflection cache. FromReflect and FromType
+// return the SHARED cached *Schema for a type, so any caller that mutates
+// the result (catalog message options such as WithParam append to
+// Parameters) must clone first: without a clone, concurrent builders race
+// on the cached schema and leak parameters into each other. The clone
+// copies the mutable containers (Parameters, Properties, Required,
+// Examples) with fresh ones sharing the read-only values; Type and Items
+// are immutable after a build.
+func (s *Schema) Clone() *Schema {
+	if s == nil {
+		return nil
+	}
+
+	clone := &Schema{
+		Type:       s.Type,
+		Items:      s.Items,
+		Examples:   slices.Clone(s.Examples),
+		Required:   slices.Clone(s.Required),
+		Parameters: slices.Clone(s.Parameters),
+	}
+
+	if s.Properties != nil {
+		clone.Properties = make(map[string]Property, len(s.Properties))
+		maps.Copy(clone.Properties, s.Properties)
+	}
+
+	return clone
 }
 
 func ToJSON(s *Schema) ([]byte, error) {
