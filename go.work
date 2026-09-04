@@ -2,10 +2,6 @@ go 1.26.7
 
 use (
 	.
-	../go-codec
-	../go-flightrecorder
-	../go-idempotency
-	../go-retry
 	./benchkit
 	./catalog
 	./cmd/api-stability

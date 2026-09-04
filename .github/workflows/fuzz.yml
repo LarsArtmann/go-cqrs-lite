@@ -22,10 +22,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc
-        with:
-          name: larsartmann
-          skipPush: true
+      # NOTE: cachix-action removed 2026-09-03 — with skipPush it only pulls
+      # and the larsartmann cache requires auth, so the step always failed.
 
       - name: Fuzz identifier + WHERE validation (60s per target)
         working-directory: storage

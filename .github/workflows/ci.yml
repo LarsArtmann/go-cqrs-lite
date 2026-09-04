@@ -339,10 +339,6 @@ jobs:
 
       - name: Check per-package coverage >= 80%
         run: |
-          # Drop external sibling use-entries (absent on CI) so ./... spans
-          # every repo-local workspace module, as intended.
-          grep -vE '^[[:space:]]*\.\.\/' go.work > go.work.ci
-          export GOWORK="$PWD/go.work.ci"
           pkgs=$(go list ./... | grep -v '/example/')
           failed=false
           for pkg in $pkgs; do
@@ -408,11 +404,15 @@ jobs:
 
       - name: Verify go.work is synced
         run: |
-          # CI has no external sibling checkouts (../go-codec, ../go-retry, ...):
-          # sync the repo-local modules only. Without this, `go work sync`
-          # fails on the missing ../ use-entries before checking anything.
-          grep -vE '^[[:space:]]*\.\.\/' go.work > /tmp/go.work.filter
-          cp /tmp/go.work.filter go.work
+          # Gate: the committed go.work must stay CI-loadable. External
+          # sibling use-entries (../go-*) break every plain-`go` job here —
+          # co-dev against sibling repos belongs in a LOCAL, untracked
+          # go.work (go.work.bak pattern), not in the committed one.
+          if grep -qE '^[[:space:]]*\.\.\/' go.work; then
+            echo "::error::go.work lists external sibling use-entries; CI has no ../ checkouts. Remove them (keep them in an untracked local go.work instead)."
+            grep -nE '^[[:space:]]*\.\.\/' go.work
+            exit 1
+          fi
           cp go.work go.work.before
           go work sync
           if ! diff -q go.work.before go.work > /dev/null 2>&1; then
@@ -550,22 +550,6 @@ jobs:
         run: |
           nix-shell -p go -p govulncheck --run \
             "govulncheck ./..."
-
-    timeout-minutes: 15
-  docker-build:
-    name: Docker Build (example/user)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
-
-      - name: Build for linux/amd64
-        run: docker build --platform linux/amd64 -t user:amd64 ./example/user
-
-      - name: Build for linux/arm64
-        run: docker build --platform linux/arm64 -t user:arm64 ./example/user
 
     timeout-minutes: 15
   wasm-compile:

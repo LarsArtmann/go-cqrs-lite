@@ -32,10 +32,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc
-        with:
-          name: larsartmann
-          skipPush: true
+      # cachix-action removed 2026-09-03: with skipPush it only pulls and
+      # the larsartmann cache requires auth, so the step always failed.
 
       - name: Build benchkit
         run: nix run .#build
@@ -92,10 +90,8 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc
-        with:
-          name: larsartmann
-          skipPush: true
+      # cachix-action removed 2026-09-03: with skipPush it only pulls and
+      # the larsartmann cache requires auth, so the step always failed.
 
       - name: Build
         run: nix run .#build
@@ -248,6 +244,9 @@ jobs:
       - uses: cachix/install-nix-action@ba0dd844c9180cbf77aa72a116d6fbc515d0e87b
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+
+      # cachix-action removed 2026-09-03: with skipPush it only pulls and
+      # the larsartmann cache requires auth, so the step always failed.
 
       - name: Run calibration drift check
         run: |

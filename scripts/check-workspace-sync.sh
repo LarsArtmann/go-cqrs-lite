@@ -5,6 +5,17 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
+# Gate: the committed go.work must list repo-local modules only. External
+# sibling use-entries (../go-*) break every plain-`go` command on CI, which
+# has no sibling checkouts. Co-dev against siblings belongs in a LOCAL,
+# untracked go.work override, not in the committed one.
+if grep -qE '^[[:space:]]*\.\./' go.work; then
+	echo "FAIL: go.work lists external sibling use-entries (CI cannot load them):"
+	grep -nE '^[[:space:]]*\.\./' go.work
+	echo "Remove them from the committed go.work; keep a local untracked go.work for co-dev instead."
+	exit 1
+fi
+
 # Modules that are test helpers (tested transitively by their parent module)
 EXCLUDE=(
 	"event/v4/eventtest" # tested by event/ tests
