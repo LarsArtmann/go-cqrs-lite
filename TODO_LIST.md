@@ -176,6 +176,36 @@ and is **never** duplicated here.
 
 > Blocked on user authorization (never tag/push without explicit instruction).
 
+- [PARTIAL ✓ 2026-09-03] **Repair master CI — second wave landed 2026-09-03
+  (auto-daemon commit, see CHANGELOG Fixed section):** (a) FIXED: FlakeHub
+  auth no longer kills jobs — every magic-nix-cache step now passes
+  `use-flakehub: false` (FlakeHub Cache requires registration; the action is
+  deprecated upstream); the GitHub Actions cache backend remains. (e) FIXED:
+  `Discover modules` wrote pretty-printed JSON to `$GITHUB_OUTPUT`
+  (`Invalid format '  ".",'` — the per-module test matrix NEVER ran);
+  now `jq -s -c` (compact single line). (f) FIXED: gosec SARIF upload lacked
+  `security-events: write` (Resource not accessible by integration).
+  (g) FIXED: the committed go.work listed external sibling use-entries
+  (`../go-codec` + 3 more) that CI cannot load — removed; the invariant is
+  GATED in the go-work-sync CI job and check-workspace-sync.sh; member
+  go.mod/go.sum re-synced (`go work sync` + 82-module `go mod tidy` sweep +
+  integration pins realigned to latest tags, `check-version-drift.sh`
+  green). This also un-blocks the benchmarks/fuzz nightlies (same workspace
+  load). (h) FIXED: fuzz + benchmarks nightlies' cachix-action (skipPush
+  pull requires auth) removed. (i) FIXED: Docker Build job built the
+  DELETED `./example/user` (9-examples consolidation; no Dockerfile remains
+  in the repo) — job removed. (j) ASSESSED 2026-09-03: Calibration Drift
+  >100% rows (badger aggregate/scan, bbolt scan, pebble aggregate) are
+  shared-runner noise, NOT constant drift — a local quiet-window run pins
+  pebble -7..+23%, sqlite +10..15%, badger within tolerance of the shipped
+  constants (bbolt local numbers are disk-artifact outliers, unusable).
+  Constants stay; the gate needs a CI-baseline comparison like the
+  regression job (see the deferred threshold re-tune above). STILL REMAINING
+  from the original list: (c) cqrs-lint Self-Lint go-finding credentials
+  under GOWORK=off; CI billing; >350-line production files (29 files —
+  catalog_extra.go 1207, typed_reader.go 1127, adttest/harness.go 967,
+  enginetest.go 935, store.go 898, …) — a standalone multi-session refactor
+  wave, kept open here.
 - [PARTIAL ✓ 2026-09-01] **Repair master CI (11 red jobs on the 2026-09-01 run,
   ALL pre-existing — surfaced by the #20 push; main CI has not completed
   green since 2026-07-17)**: (a) BLOCKED infra/user: FlakeHub

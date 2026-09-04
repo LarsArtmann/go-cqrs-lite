@@ -16,7 +16,12 @@ require (
 	go.etcd.io/bbolt v1.5.0
 )
 
-require go.yaml.in/yaml/v3 v3.0.5 // indirect
+require (
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/tools v0.49.0 // indirect
+)
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

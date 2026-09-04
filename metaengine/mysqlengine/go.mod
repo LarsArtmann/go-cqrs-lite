@@ -19,7 +19,7 @@ require (
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 )
 

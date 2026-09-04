@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — master-CI repair wave 2: FlakeHub, module discovery, go.work externals — 2026-09-03
+
+Master CI had not completed green since 2026-07-17; this wave fixes every
+workflow-side root cause (first wave 2026-09-01 fixed the API-stability job).
+
+- **FlakeHub auth no longer fails every Nix job**: each magic-nix-cache step
+  now passes `use-flakehub: false` — FlakeHub Cache requires registration and
+  the action is deprecated upstream; the GitHub Actions cache backend stays.
+- **The per-module test matrix actually runs now**: the `Discover modules`
+  job wrote pretty-printed JSON into `$GITHUB_OUTPUT`, which GitHub rejects
+  (`Invalid format '  ".",`) — the matrix had been silently skipped on every
+  push. Output is now compact single-line JSON (`jq -s -c`).
+- **gosec SARIF upload permission**: the Security Scan job gained
+  `security-events: write` (uploads failed with "Resource not accessible by
+  integration").
+- **The committed go.work is CI-loadable again**: the four external sibling
+  use-entries (`../go-codec`, `../go-flightrecorder`, `../go-idempotency`,
+  `../go-retry`) are removed — CI has no sibling checkouts, so every plain
+  `go` command in every job failed at workspace load. The no-externals
+  invariant is enforced by the go-work-sync CI job and
+  `scripts/check-workspace-sync.sh`; member go.mod/go.sum files are
+  re-synced (`go work sync` plus an 82-module `go mod tidy` sweep), and the
+  integration module's drifted sibling pins are realigned to the latest
+  tags (decider v4.5.0, dedup v4.2.1, kv v4.2.1, scheduling v4.3.1,
+  metaengine/projectionadapter v4.4.1, storage/pebble v4.3.0).
+- **Docker Build job removed**: it built the deleted `./example/user`
+  (9-examples consolidation); no Dockerfile remains in the repository.
+- **Benchmark and fuzz nightlies unblocked**: the skipPush-only
+  cachix-action steps (which require auth even to pull) are removed.
+- **Calibration Drift verdict (assessment, no constant change)**: the
+  >100% nightly drift rows (badger aggregate/scan, bbolt scan, pebble
+  aggregate) are shared-runner noise — a local quiet-window run keeps
+  pebble within -7..+23% and sqlite within +10..15% of the shipped
+  constants. The gate should compare against a persisted CI baseline
+  (same mechanism as the regression job) instead of absolute constants;
+  tracked in TODO_LIST.
+
+---
+
 > Rolling unreleased window: everything below the `---` divider that is not
 > inside a dated `[tags]` section is unreleased (the 2026-08-16-era block was
 > folded into this window on 2026-08-29).

@@ -18,6 +18,8 @@ require (
 	github.com/onsi/gomega v1.42.1
 )
 
+require golang.org/x/mod v0.40.0 // indirect
+
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
