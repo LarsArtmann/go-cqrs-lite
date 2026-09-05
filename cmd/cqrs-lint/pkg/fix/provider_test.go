@@ -251,6 +251,9 @@ func TestCQRSFixProvider_NoEditWhenBeforeCodeNotOnLine(t *testing.T) {
 	}
 
 	if len(edits) != 0 {
-		t.Fatalf("expected no edits when beforeCode is absent from the finding's line, got %d", len(edits))
+		t.Fatalf(
+			"expected no edits when beforeCode is absent from the finding's line, got %d",
+			len(edits),
+		)
 	}
 }
