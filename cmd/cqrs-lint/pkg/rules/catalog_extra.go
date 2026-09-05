@@ -427,6 +427,15 @@ func versionRules() []RuleInfo {
 			Description: "go-cqrs-lite modules within the same major version pinned to different releases",
 			AutoFix:     false,
 		},
+		{
+			ID:          "V007",
+			Name:        "v5-removed-api-usage",
+			Category:    "version",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126)",
+			AutoFix:     false,
+		},
 	}
 }
 

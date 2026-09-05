@@ -132,6 +132,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		version.NewV004Detector(ctx),
 		version.NewV005Detector(ctx),
 		version.NewV006Detector(ctx),
+		version.NewV007Detector(ctx),
 		// Consistency
 		consistency.NewD001Detector(ctx),
 		consistency.NewD002Detector(ctx),
