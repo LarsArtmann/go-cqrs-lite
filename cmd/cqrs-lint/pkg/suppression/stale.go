@@ -36,24 +36,6 @@ func DetectStaleSuppressions(
 	goFiles []string,
 	findings []finding.Finding,
 ) []StaleSuppression {
-	matched := make(map[suppressionLocation]bool)
-
-	for _, f := range findings {
-		file := string(f.Position.File)
-		if file == "" {
-			continue
-		}
-
-		rule := string(f.Rule)
-		line := f.Position.Line
-
-		// A suppression comment may be on the finding's line, the line above
-		// (typical: comment above code), or the line below. Match all three.
-		matched[suppressionLocation{file, line, rule}] = true
-		matched[suppressionLocation{file, line - 1, rule}] = true
-		matched[suppressionLocation{file, line + 1, rule}] = true
-	}
-
 	var stale []StaleSuppression
 
 	for _, path := range goFiles {
@@ -68,6 +50,13 @@ func DetectStaleSuppressions(
 
 		lines := strings.Split(string(data), "\n")
 
+		// Build the matched-location set from this file's own lines: whether a
+		// suppression comment is honored depends on the lines between it and
+		// the finding (the suppression filter skips blank lines when looking
+		// for the comment above a finding). Stale detection must mirror that
+		// semantic exactly, or it reports working suppressions as stale.
+		matched := matchedSuppressionsForFile(findings, path, lines)
+
 		// Check inline suppressions.
 		stale = append(stale, detectStaleInline(path, lines, matched)...)
 
@@ -76,6 +65,49 @@ func DetectStaleSuppressions(
 	}
 
 	return stale
+}
+
+// matchedSuppressionsForFile marks every (file, line, rule) location whose
+// //cqrs-lint:ignore(RULE) directive the suppression filter would honor for
+// the given findings in this file: the finding's own line, the line below
+// (leniency for trailing styles), and the first non-blank line above the
+// finding — the same blank-skipping walk the suppression filter performs.
+func matchedSuppressionsForFile(
+	findings []finding.Finding,
+	path string,
+	lines []string,
+) map[suppressionLocation]bool {
+	matched := make(map[suppressionLocation]bool)
+
+	for _, f := range findings {
+		if string(f.Position.File) != path {
+			continue
+		}
+
+		rule := string(f.Rule)
+		line := f.Position.Line
+
+		matched[suppressionLocation{path, line, rule}] = true
+		matched[suppressionLocation{path, line + 1, rule}] = true
+
+		// Mirror the suppression filter: scan up past blank lines and mark the
+		// first non-blank line (the comment-above-the-code position).
+		for checkLine := line - 1; checkLine >= 1; checkLine-- {
+			if checkLine > len(lines) {
+				continue
+			}
+
+			if strings.TrimSpace(lines[checkLine-1]) == "" {
+				continue
+			}
+
+			matched[suppressionLocation{path, checkLine, rule}] = true
+
+			break
+		}
+	}
+
+	return matched
 }
 
 // detectStaleInline checks each line for inline //cqrs-lint:ignore(RULE)
@@ -156,7 +188,11 @@ func detectStaleBlocks(
 		commentText := normalizeCommentPrefix(strings.TrimSpace(raw[cs:]))
 
 		if strings.HasPrefix(commentText, blockStartPrefix) {
-			rules := parseBlockStart(commentText)
+			rules, valid := parseBlockStart(commentText)
+			if !valid {
+				continue // malformed directive — inert for suppression and staleness
+			}
+
 			openBlocks = append(openBlocks, block{
 				startLine: lineNum,
 				rules:     rules,

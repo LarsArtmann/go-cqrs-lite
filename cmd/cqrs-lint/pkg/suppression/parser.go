@@ -263,7 +263,10 @@ func checkSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 	// meaningful content — the suppression intent is clearly directed at
 	// the next declaration. Without this skip, a blank line between a
 	// suppression comment and the finding silently breaks suppression.
-	for checkLine := fl.line - 1; checkLine >= 1; checkLine-- {
+	// The line is clamped to the file length first: a finding whose position
+	// is beyond EOF (file truncated after the AST was loaded) must not
+	// panic — mirror the bounds guard in checkBlockSuppressionInFile.
+	for checkLine := min(fl.line, len(fl.lines)) - 1; checkLine >= 1; checkLine-- {
 		if fl.rawLines[checkLine-1] {
 			continue // line is inside a multi-line raw string
 		}
@@ -325,7 +328,11 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 		}
 
 		if strings.HasPrefix(text, blockStartPrefix) {
-			suppressedRules := parseBlockStart(text)
+			suppressedRules, valid := parseBlockStart(text)
+			if !valid {
+				return false // malformed directive — suppress nothing (fail closed)
+			}
+
 			if len(suppressedRules) == 0 {
 				return true // suppresses all rules
 			}
@@ -339,19 +346,23 @@ func checkBlockSuppressionInFile(cache *lineCache, f finding.Finding) bool {
 }
 
 // parseBlockStart extracts the rule IDs from a block-start comment.
-// Returns nil if no rule IDs are specified (suppresses all).
-// Returns a map of rule IDs if specific rules are listed.
-func parseBlockStart(text string) map[string]struct{} {
+// A bare blockStartPrefix (no ID list) suppresses ALL rules: (nil, true).
+// A parenthesized ID list returns the parsed rule IDs: (ids, true).
+// Malformed directives — unclosed parenthesis or an ID list with no valid
+// IDs — return (nil, false): the block suppresses NOTHING. Fail-closed beats
+// fail-open: a typo like ignore-start(A01 must never silently disable every
+// rule inside the block.
+func parseBlockStart(text string) (map[string]struct{}, bool) {
 	rest := strings.TrimPrefix(text, blockStartPrefix)
 	rest = strings.TrimSpace(rest)
 
 	if !strings.HasPrefix(rest, "(") {
-		return nil // no rule IDs = suppress all
+		return nil, true // no rule IDs = suppress all
 	}
 
 	end := strings.Index(rest, ")")
 	if end <= 0 {
-		return nil
+		return nil, false // malformed: unclosed parenthesis
 	}
 
 	rawIDs := rest[1:end]
@@ -365,10 +376,10 @@ func parseBlockStart(text string) map[string]struct{} {
 	}
 
 	if len(result) == 0 {
-		return nil
+		return nil, false // malformed: empty ID list
 	}
 
-	return result
+	return result, true
 }
 
 // ParseSuppressions extracts suppressed rule IDs from comment text.
