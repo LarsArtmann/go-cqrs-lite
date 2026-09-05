@@ -870,8 +870,8 @@
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-value">360</div><div class="stat-label">Go files reviewed</div></div>
           <div class="stat-card stat-good"><div class="stat-value">204</div><div class="stat-label">Rules (V007 added)</div></div>
-          <div class="stat-card stat-bad"><div class="stat-value">5</div><div class="stat-label">Bugs fixed</div></div>
-          <div class="stat-card stat-warn"><div class="stat-value">9</div><div class="stat-label">Findings harvested to TODO_LIST</div></div>
+          <div class="stat-card stat-bad"><div class="stat-value">10</div><div class="stat-label">Findings fixed</div></div>
+          <div class="stat-card stat-warn"><div class="stat-value">8</div><div class="stat-label">Harvested to TODO_LIST</div></div>
         </div>
 
         <h2 id="v5"><span class="num">01</span>The v5 Gap, Quantified</h2>
@@ -964,6 +964,22 @@
           </p>
         </div>
 
+        <div class="card card-problem">
+          <h4>Bonus — the repo's own lint gate was red: 366 files failing gci <span class="badge badge-high">high</span></h4>
+          <p>
+            Running the full <code>nix run .#verify</code> exposed that a <code>.golangci.yml</code>
+            reformat had silently re-added <code>gci</code> to <code>formatters.enable</code> — the exact
+            config-reformat-mutates-linters class as the 2026-08-30 depguard incident, and the class
+            AGENTS gotcha 18 documents. Import grouping is owned by treefmt; gci made the linter fight
+            the formatter, failing 366 treefmt-clean files repo-wide. Fixed at root cause (gci removed
+            per the documented decision) and pinned mechanically: <code>scripts/check-formatters.sh</code>
+            now runs inside <code>nix run .#check-lint-config</code> and fails loudly on recurrence.
+            The four modules still red once the noise cleared (pre-existing: ST1019 duplicate
+            <code>encoding/json/v2</code> imports in metadata + record tests, a varnamelen rename in
+            catalog, a drifted <code>//nolint:contextcheck</code> in pgengine) were fixed in the same pass.
+          </p>
+        </div>
+
         <h2 id="findings"><span class="num">03</span>Open Findings (harvested to TODO_LIST)</h2>
         <p>Nine findings were real but beyond this pass's blast radius; each is a bounded TODO under
            <code>TODO_LIST.md &sect; cqrs-lint</code>. The three with v5 relevance:</p>
@@ -1035,7 +1051,8 @@
             <tr><td>5</td><td><span class="badge badge-low">Low</span></td><td>pkg/suppression/parser.go:266</td><td>Index panic on finding beyond EOF</td><td><span class="badge badge-fixed">Fixed + test</span></td></tr>
             <tr><td>6</td><td><span class="badge badge-high">High</span></td><td>pkg/rules/version/v007.go</td><td>v5 removal surface undetected (~150 symbols vs 2)</td><td><span class="badge badge-fixed">V007 shipped</span></td></tr>
             <tr><td>7</td><td><span class="badge badge-medium">Medium</span></td><td>TODO_LIST &sect; cqrs-lint</td><td>V007 drift meta-test, examples immunity, dot-import footgun</td><td><span class="badge badge-medium">Harvested</span></td></tr>
-            <tr><td>8</td><td><span class="badge badge-low">Low</span></td><td>TODO_LIST &sect; cqrs-lint</td><td>Severity meta-test, fix dual spec, dead exports, gci fight, DocURLs, 350-line exceedances</td><td><span class="badge badge-medium">Harvested</span></td></tr>
+            <tr><td>8</td><td><span class="badge badge-high">High</span></td><td>.golangci.yml + 4 modules</td><td>gci silently re-enabled (366-file gate failure) + 4 residual lint findings</td><td><span class="badge badge-fixed">Fixed + pinned</span></td></tr>
+            <tr><td>9</td><td><span class="badge badge-low">Low</span></td><td>TODO_LIST &sect; cqrs-lint</td><td>Severity meta-test, fix dual spec, dead exports, DocURLs, 350-line exceedances, examples immunity, dot-import footgun, V007 drift guard</td><td><span class="badge badge-medium">Harvested</span></td></tr>
           </tbody>
         </table>
 
