@@ -15,7 +15,7 @@ func TestCQRSFixProvider_C006(t *testing.T) {
 
 	f, err := finding.NewBuilder(
 		"C006", "cqrs-lint", "manual version arithmetic",
-		finding.SeverityWarning, finding.Pos("test.go", 5, 1),
+		finding.SeverityWarning, finding.Pos("test.go", 4, 1),
 	).
 		WithFixStrategy(finding.FixStrategyDirect).
 		WithBeforeCode("event.Version(version.Int()+1)").
@@ -60,7 +60,7 @@ func TestCQRSFixProvider_C003(t *testing.T) {
 
 	f, err := finding.NewBuilder(
 		"C003", "cqrs-lint", "silent fold",
-		finding.SeverityError, finding.Pos("test.go", 10, 2),
+		finding.SeverityError, finding.Pos("test.go", 2, 2),
 	).
 		WithFixStrategy(finding.FixStrategyDirect).
 		WithBeforeCode("return state, nil").
@@ -202,12 +202,12 @@ func TestCQRSFixProvider_FallbackStaysOnFindingLine(t *testing.T) {
 		BeforeCode: "w.Int() + 1",
 		AfterCode:  "w.Increment()",
 		Position: finding.Position{
-			Line:   5,
+			Line:   4,
 			Column: 99, // deliberately wrong — forces the line-scoped fallback
 		},
 	}
 
-	p := NewCQRSFixProvider()
+	p := fix.NewCQRSFixProvider()
 	edits, err := p.Edits(content, f)
 	if err != nil {
 		t.Fatal(err)
@@ -225,8 +225,8 @@ func TestCQRSFixProvider_FallbackStaysOnFindingLine(t *testing.T) {
 
 	// The edit must target line 5's occurrence (offset of "w.Int() + 1"),
 	// NOT line 3's "y.Int() + 1".
-	if edits[0].Offset != 44 {
-		t.Fatalf("edit offset = %d, want 44 (line 5 occurrence)", edits[0].Offset)
+	if edits[0].Offset != 45 {
+		t.Fatalf("edit offset = %d, want 45 (line 5 occurrence)", edits[0].Offset)
 	}
 }
 
@@ -244,7 +244,7 @@ func TestCQRSFixProvider_NoEditWhenBeforeCodeNotOnLine(t *testing.T) {
 		},
 	}
 
-	p := NewCQRSFixProvider()
+	p := fix.NewCQRSFixProvider()
 	edits, err := p.Edits(content, f)
 	if err != nil {
 		t.Fatal(err)
