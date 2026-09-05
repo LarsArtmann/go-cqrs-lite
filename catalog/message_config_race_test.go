@@ -66,6 +66,9 @@ func TestNewMessageBuilder_ConcurrentOptionsDoNotMutateSharedSchema(t *testing.T
 func TestSchemaClone_IsolatesMutableContainers(t *testing.T) {
 	original := schema.FromReflect(reflect.TypeFor[regressionPayload]())
 
+	wantParams := len(original.Parameters)
+	wantRequired := len(original.Required)
+
 	clone := original.Clone()
 	if clone == original {
 		t.Fatal("Clone must return a new pointer")
@@ -74,11 +77,11 @@ func TestSchemaClone_IsolatesMutableContainers(t *testing.T) {
 	clone.Parameters = append(clone.Parameters, Parameter{Name: "p1"})
 	clone.Required = append(clone.Required, "name")
 
-	if len(original.Parameters) != 0 {
-		t.Errorf("original Parameters leaked from clone: %d", len(original.Parameters))
+	if got := len(original.Parameters); got != wantParams {
+		t.Errorf("original Parameters leaked from clone: %d, want %d", got, wantParams)
 	}
 
-	if len(original.Required) != 0 {
-		t.Errorf("original Required leaked from clone: %d", len(original.Required))
+	if got := len(original.Required); got != wantRequired {
+		t.Errorf("original Required leaked from clone: %d, want %d", got, wantRequired)
 	}
 }
