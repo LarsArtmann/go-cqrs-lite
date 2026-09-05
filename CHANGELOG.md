@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — cqrs-lint v5-migration rule + suppression/fix hardening — 2026-09-05
+
+- **cqrs-lint V007 (`v5-removed-api-usage`)**: the linter now flags every
+  consumer reference to an API removed at v5, at its use site, with the ADR
+  reference and the sanctioned replacement in the suggestion. Two
+  granularities: wholly-removed modules (every `stack/*` preset,
+  `storage/relational`, `storage/view` — any import-qualified reference
+  fires) and deprecated symbols inside surviving modules (`stack.Bundle` /
+  `Materialize` / `RunProjections` / `TombstonePolicy`, `graph.GraphProjection`,
+  `schema.VersionedStore` / `VersionedSeekableJournal`,
+  `signing.RejectingPublishMiddleware` / `RejectingHandlerMiddleware`,
+  `encryption.ErrInnerStoreNotJournal` / `ErrInnerStoreNotSeekable` /
+  `ErrInnerStoreNotBackwards`, `metadata.CustomData`, and the ADR-0114
+  tombstone helpers). Rule catalog
+  grows to 204; F030 keeps owning `transport/*` imports. Detector
+  constructors are catalog-registered and README/AGENTS counts are
+  meta-test-enforced.
+- **cqrs-lint A014 import-alias safety**: the deprecated-API detector
+  resolves qualifiers through the file's import declarations instead of
+  matching the textual package name — aliased go-cqrs-lite imports are now
+  detected (previously missed) and a consumer's own package named `event`
+  no longer false-positives.
+- **cqrs-lint suppression hardening**: malformed `//cqrs-lint:ignore-start(`
+  directives (unclosed paren, empty ID list) previously failed OPEN and
+  suppressed every rule in the block; they now fail closed and suppress
+  nothing. A finding line beyond EOF no longer risks an index panic in the
+  suppression filter.
+- **cqrs-lint stale-suppression accuracy**: stale detection now mirrors the
+  suppression filter's blank-line skip, so a suppression comment separated
+  from its finding by a blank line is no longer reported stale under
+  `--fail-on-stale-suppressions`.
+- **cqrs-lint auto-fix blast radius**: the fix provider's position-miss
+  fallback no longer rewrites the FIRST occurrence anywhere in the file —
+  it scopes to the finding's line and refuses to edit when the pattern is
+  not there, so a drifted position can never fix the wrong occurrence.
+
 ### Fixed — master-CI repair wave 2: FlakeHub, module discovery, go.work externals — 2026-09-03
 
 Master CI had not completed green since 2026-07-17; this wave fixes every
