@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — V007 drift contract + v5-clean getting-started — 2026-09-06
+
+- **V007 drift meta-test (`v007_drift_test.go`)**: the linter's v5-removal
+  tables are now held against the repo's actual `Deprecated: … v5` markers in
+  both directions — a new v5 removal without a table (or allowlist) entry
+  fails the suite, and a stale table entry outliving its symbol fails the
+  reverse check. Explicit allowlists cover what V007 cannot see (methods,
+  package docs) and what F030 owns (`transport/*`).
+- **V007 removal-surface expansion (+30 symbols, 2 dead entries removed)**:
+  building the drift contract caught real gaps — mid-path `/v4` segments
+  (`storage/v4/relational`, `storage/v4/view`) never matched the module
+  table, so 2 of 10 removed modules were undetectable; 30 v5-removed
+  package-level symbols were missing (the per-module `ParseType` shims,
+  `snapshot.SaveSnapshot`, `graph.Handler` / `ProjectionOption` /
+  `WithSchema`, `listing.StatusMiddleware`,
+  `storage/sql.KeysetPositionQuery`, and the storage-root re-exports of the
+  removed view and relational tiers); two table entries pointed at methods
+  and could never fire (`stack.RunProjections`, `metadata.EnsureCustom`).
+  Table-backed markers now cite their v5 ADR so the repo is
+  self-describing, and the previously unmarked
+  `storage/relational_aliases.go` re-exports carry ADR-0123 markers.
+- **getting-started rewritten onto the v5 composition path**: the example
+  now builds through `system.New` (DomainConfig + DeploymentConfig) with
+  metaengine folds instead of `stack.New` + `stack.NewMaterialize`, and its
+  test runs the pipeline against a real SQLite engine — proving the
+  one-line engine swap end-to-end. `docs/getting-started.md` snippets and
+  the compile tests moved to the `*Ref` decider forms and `id.NewStreamID`.
+
 ### Added — cqrs-lint v5-migration rule + suppression/fix hardening — 2026-09-05
 
 - **cqrs-lint V007 (`v5-removed-api-usage`)**: the linter now flags every
