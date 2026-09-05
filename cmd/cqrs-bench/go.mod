@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-output/delimited v0.37.0
 	github.com/larsartmann/go-output/markdown v0.37.0
 	github.com/larsartmann/go-output/table v0.37.0
-	github.com/mattn/go-sqlite3 v1.14.50
+	github.com/mattn/go-sqlite3 v1.14.52
 )
 
 require (
@@ -45,9 +45,9 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260901234956-af8eda3ed701 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260903151058-ae99b731b8c5 // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
-	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260901172002-a5dee49b2863 // indirect
+	github.com/charmbracelet/x/exp/charmtone v0.0.0-20260902165432-6f6ad8b37b0a // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -88,7 +88,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/klauspost/compress v1.19.2 // indirect
+	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect
 	github.com/knadh/koanf/parsers/json v1.0.1 // indirect
@@ -190,7 +190,7 @@ require (
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
-	modernc.org/libc v1.75.6 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.58.0 // indirect

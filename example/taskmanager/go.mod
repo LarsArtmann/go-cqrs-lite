@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.6.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-idempotency v0.2.0
+	github.com/larsartmann/go-idempotency v0.3.0
 	go.opentelemetry.io/otel v1.46.0
 )
 
@@ -70,7 +70,7 @@ require (
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260831171406-18b4a7587f8a // indirect
 	google.golang.org/grpc v1.83.2 // indirect
-	modernc.org/libc v1.75.6 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.58.0 // indirect

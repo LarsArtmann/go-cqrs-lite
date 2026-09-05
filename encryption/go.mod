@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	pgregory.net/rapid v1.3.0
 )
 
