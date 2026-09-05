@@ -195,20 +195,23 @@ func cqrsModuleOf(importPath string) (string, bool) {
 	return stripVersionSuffix(rest), true
 }
 
-// stripVersionSuffix removes a trailing single-digit major-version suffix
-// ("/v2" .. "/v9") from a module path.
+// stripVersionSuffix removes every major-version segment ("/v2".."/v9")
+// from a module path. Both module-root imports ("stack/sqlite/v4") and
+// subpackages of versioned modules ("storage/v4/relational") must normalize
+// to the table fragment ("stack/sqlite", "storage/relational"): the version
+// segment sits mid-path whenever a module carries more than one package.
 func stripVersionSuffix(path string) string {
-	idx := strings.LastIndex(path, "/")
-	if idx < 0 {
-		return path
+	segs := strings.Split(path, "/")
+	kept := segs[:0]
+	for _, seg := range segs {
+		if len(seg) == 2 && seg[0] == 'v' && seg[1] >= '2' && seg[1] <= '9' {
+			continue
+		}
+
+		kept = append(kept, seg)
 	}
 
-	seg := path[idx+1:]
-	if len(seg) == 2 && seg[0] == 'v' && seg[1] >= '2' && seg[1] <= '9' {
-		return path[:idx]
-	}
-
-	return path
+	return strings.Join(kept, "/")
 }
 
 // defaultQualifier returns the package qualifier an unaliased import binds:
