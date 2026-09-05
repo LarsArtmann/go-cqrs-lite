@@ -240,7 +240,7 @@ func resolveQualifier(file *ast.File, qualifier string) (string, bool) {
 		path := strings.Trim(imp.Path.Value, `"`)
 
 		if imp.Name == nil {
-			if lastPathSegment(path) == qualifier {
+			if defaultQualifier(path) == qualifier {
 				return path, true
 			}
 
@@ -284,6 +284,12 @@ func stripVersionSuffix(path string) string {
 	}
 
 	return path
+}
+
+// defaultQualifier returns the package qualifier an unaliased import binds:
+// the last path segment, with a major-version suffix ("/v2".."/v9") stripped.
+func defaultQualifier(path string) string {
+	return lastPathSegment(stripVersionSuffix(path))
 }
 
 // lastPathSegment returns the final slash-separated segment of an import

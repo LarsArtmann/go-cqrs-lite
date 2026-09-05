@@ -193,7 +193,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ## Rule Count
 
-**203 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (9), version (6), testing (8), adoption (30).
+**204 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (9), version (7), testing (8), adoption (30).
 
 ## Correctness Rules (bugs)
 
@@ -348,6 +348,12 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | ID   | Rule                 | Severity | Description                                                          |
 | ---- | -------------------- | -------- | -------------------------------------------------------------------- |
 | V001 | mixed-major-versions | Error    | Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible |
+| V002 | unpinned-version | Warning | go-cqrs-lite dependency pinned to a pseudo-version instead of a tagged release |
+| V003 | version-lag | Info | go-cqrs-lite version more than 2 minor versions behind latest known release |
+| V004 | vendored-third-party | Warning | Vendored go-cqrs-lite code in third_party/ — bypasses go.mod updates |
+| V005 | eventtest-vendored-mismatch | Warning | Vendored eventtest alongside go-cqrs-lite imports — version mismatch workaround |
+| V006 | mixed-version-pins | Warning | go-cqrs-lite modules within the same major version pinned to different releases |
+| V007 | v5-removed-api-usage | Warning | References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126) |
 
 ## Testing Rules
 
