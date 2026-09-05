@@ -6,8 +6,10 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
+	"testing"
 )
 
 // This file implements the V007 drift contract's repo scanner: it walks the
@@ -56,15 +58,16 @@ var v5DriftMethodAllowlist = map[v5MethodKey]string{ //nolint:gochecknoglobals /
 	{"decider", "Repository", "LoadAtVersion"}:  "pair-form forwarder removed at v5; use LoadAtVersionRef",
 	{"decider", "Repository", "LoadAtTime"}:     "pair-form forwarder removed at v5; use LoadAtTimeRef",
 	{"decider", "Repository", "WaitForVersion"}: "pair-form forwarder removed at v5; use WaitForVersionRef",
-	{"decider", "TypedRepository", "ExecuteCommand"}: "pair-form forwarder removed at v5; use ExecuteCommandRef", //nolint:lll // reason text
+	{"decider", "TypedRepository", "ExecuteCommand"}: "pair-form forwarder removed at v5; use ExecuteCommandRef",
 	{"decider", "TypedRepository", "Load"}:      "pair-form forwarder removed at v5; use LoadRef",
+	{"metadata", "Metadata", "EnsureCustom"}:    "in-place mutation removed at v5 (ADR-0126); use WithCustom",
 }
 
 // v5StaleEntryAllowlist exempts table entries that have no live package-level
 // v5 marker, each with the reason the entry is still correct.
 var v5StaleEntryAllowlist = map[v5MarkerKey]string{ //nolint:gochecknoglobals // test fixture
-	{"event", "TombstoneActive"}:      "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
-	{"event", "TombstoneTombstoned"}:  "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
+	{"event", "TombstoneActive"}:       "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
+	{"event", "TombstoneTombstoned"}:   "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
 	{"event", "TombstoneUndetermined"}: "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
 }
 
@@ -76,10 +79,7 @@ var (
 
 // scanV5DriftMarkers returns the repo-wide v5 deprecation inventory, walking
 // the checkout once per process and caching the result across meta-tests.
-func scanV5DriftMarkers(t interface {
-	Helper()
-	Fatalf(string, ...any)
-}) []v5DriftDecl {
+func scanV5DriftMarkers(t *testing.T) []v5DriftDecl {
 	t.Helper()
 	v5DriftScanOnce.Do(func() {
 		root, err := repoRootFromCwd()
@@ -150,8 +150,7 @@ func walkV5Markers(root string) ([]v5DriftDecl, error) {
 		if rerr != nil {
 			return nil
 		}
-		relDir := filepath.ToSlash(filepath.Dir(rel))
-		frag := stripVersionSuffix(relDir)
+		frag := stripVersionSuffix(filepath.ToSlash(filepath.Dir(rel)))
 		posPrefix := rel
 
 		if _, v5 := v5DocSignal(src.Doc); v5 {
@@ -172,21 +171,23 @@ func walkV5Markers(root string) ([]v5DriftDecl, error) {
 func collectV5Marker(fset *token.FileSet, decl ast.Decl, frag, posPrefix string, out *[]v5DriftDecl) {
 	switch d := decl.(type) {
 	case *ast.FuncDecl:
-		_, v5 := v5DocSignal(d.Doc)
-		if !v5 {
+		if _, v5 := v5DocSignal(d.Doc); !v5 {
 			return
 		}
-		line := fset.Position(d.Pos()).Line
+		line := strconv.Itoa(fset.Position(d.Pos()).Line)
 		if d.Recv == nil {
-			*out = append(*out, v5DriftDecl{kind: "func", frag: frag, symbol: d.Name.Name, pos: posPrefix + ":" + itoa(line)})
+			*out = append(*out, v5DriftDecl{kind: "func", frag: frag, symbol: d.Name.Name, pos: posPrefix + ":" + line})
 			return
 		}
 		*out = append(*out, v5DriftDecl{
-			kind: "method", frag: frag, symbol: d.Name.Name,
-			recv: recvTypeName(d.Recv), pos: posPrefix + ":" + itoa(line),
+			kind:   "method",
+			frag:   frag,
+			symbol: d.Name.Name,
+			recv:   recvTypeName(d.Recv),
+			pos:    posPrefix + ":" + line,
 		})
 	case *ast.GenDecl:
-		if d.Tok.String() != "type" && d.Tok.String() != "var" && d.Tok.String() != "const" {
+		if d.Tok != token.TYPE && d.Tok != token.VAR && d.Tok != token.CONST {
 			return
 		}
 		for _, spec := range d.Specs {
@@ -195,7 +196,13 @@ func collectV5Marker(fset *token.FileSet, decl ast.Decl, frag, posPrefix string,
 	}
 }
 
-func collectV5Spec(fset *token.FileSet, decl *ast.GenDecl, spec ast.Spec, frag, posPrefix string, out *[]v5DriftDecl) {
+func collectV5Spec(
+	fset *token.FileSet,
+	decl *ast.GenDecl,
+	spec ast.Spec,
+	frag, posPrefix string,
+	out *[]v5DriftDecl,
+) {
 	var names []string
 	var doc *ast.CommentGroup
 	switch s := spec.(type) {
@@ -212,13 +219,12 @@ func collectV5Spec(fset *token.FileSet, decl *ast.GenDecl, spec ast.Spec, frag, 
 	if doc == nil && len(decl.Specs) == 1 {
 		doc = decl.Doc
 	}
-	_, v5 := v5DocSignal(doc)
-	if !v5 {
+	if _, v5 := v5DocSignal(doc); !v5 {
 		return
 	}
-	line := fset.Position(spec.Pos()).Line
+	line := strconv.Itoa(fset.Position(spec.Pos()).Line)
 	for _, n := range names {
-		*out = append(*out, v5DriftDecl{kind: decl.Tok.String(), frag: frag, symbol: n, pos: posPrefix + ":" + itoa(line)})
+		*out = append(*out, v5DriftDecl{kind: decl.Tok.String(), frag: frag, symbol: n, pos: posPrefix + ":" + line})
 	}
 }
 
@@ -271,18 +277,4 @@ func recvTypeName(fl *ast.FieldList) string {
 			return "?"
 		}
 	}
-}
-
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	var buf [20]byte
-	i := len(buf)
-	for n > 0 {
-		i--
-		buf[i] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(buf[i:])
 }

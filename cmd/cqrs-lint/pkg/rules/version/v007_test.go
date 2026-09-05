@@ -162,3 +162,61 @@ func check(events []event.Event) bool {
 	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
 	ruletest.AssertRule(t, findings, "V007", 2)
 }
+
+// storage/relational is a SUBPACKAGE of the storage module, so its import
+// path carries the /v4 segment mid-path ("storage/v4/relational"). The
+// fragment normalization must handle that, or two of the ten removed modules
+// are silently undetectable.
+func TestV007_DetectsStorageSubpackageImports(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/storage/v4/relational"
+
+var schema relational.RelationalSchema
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+}
+
+func TestV007_DetectsStorageRootAliasSymbols(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/storage/v4"
+
+var _ storage.Row
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+}
+
+func TestV007_DetectsStorageSQLKeysetQuery(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+
+var q = sql.KeysetPositionQuery(sql.DialectSQLite, nil, "events", "ts")
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+}
+
+// stack/bench is a surviving stack subpackage: having "stack" as a prefix
+// must not make the wholly-removed preset modules swallow it.
+func TestV007_SilentOnBenchmarkPreset(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/stack/bench/v4"
+
+var _ = bench.Something
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 0)
+}

@@ -164,8 +164,8 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 		replacement: "listing.StreamStatus or domain events",
 	},
 	{fragment: "event", symbol: "EnsureCustom", replacement: "event.Metadata.WithCustom"},
-	// ADR-0126: metadata in-place mutation.
-	{fragment: "metadata", symbol: "EnsureCustom", replacement: "metadata.WithCustom"},
+	// ADR-0126: metadata EnsureCustom is a method (undetectable via
+	// qualifier matching) — tracked in the drift method allowlist instead.
 	// ADR-0111: per-module ParseType shims replaced by record.ParseType.
 	{fragment: "command", symbol: "ParseType", replacement: "record.ParseType(s, ErrEmptyCommandType)"},
 	{fragment: "event", symbol: "ParseType", replacement: "record.ParseType(s, ErrEmptyEventType)"},

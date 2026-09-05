@@ -27,6 +27,14 @@ import (
 // The transport/* modules are intentionally NOT covered here — F030
 // (deprecated-transport-import) owns that surface at import granularity.
 //
+// Coverage contract: the removal surface (deprecatedV5Modules plus
+// deprecatedV5Symbols) is held against the repo's actual `Deprecated:` …v5
+// markers by the drift meta-tests in v007_drift_test.go. A new v5 removal
+// without a table (or allowlist) entry fails the suite, and a stale table
+// entry outliving its symbol fails the reverse check. Fragments are
+// normalized with stripVersionSuffix, so subpackages of versioned modules
+// (storage/v4/relational) map to the same fragment space as module roots.
+//
 // Skipped in library self-lint mode: the library legitimately references its
 // own deprecated surfaces while they exist (shims, tests, forwarders).
 
