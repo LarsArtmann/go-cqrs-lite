@@ -288,3 +288,49 @@ func TestAuditSuppressions_EmptyFiles(t *testing.T) {
 		t.Errorf("got %d entries, want 0", len(entries))
 	}
 }
+
+// TestDetectStaleSuppressions_BlankLineAboveCommentNotStale mirrors the
+// suppression filter's blank-skip: a suppression comment separated from the
+// finding by a blank line IS honored, so it must NOT be reported stale.
+func TestDetectStaleSuppressions_BlankLineAboveCommentNotStale(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+	// comment at line 3, blank at line 4, finding at line 5.
+	_ = os.WriteFile(
+		src,
+		[]byte("package main\n\n//cqrs-lint:ignore(D002)\n\ntype Foo struct{}\n"),
+		0o644,
+	)
+
+	findings := []finding.Finding{
+		{Rule: "D002", Position: finding.Position{File: finding.FilePath(src), Line: 5}},
+	}
+
+	stale := suppression.DetectStaleSuppressions([]string{src}, findings)
+	if len(stale) != 0 {
+		t.Fatalf("working suppression reported stale: %+v", stale)
+	}
+}
+
+// TestDetectStaleSuppressions_NonBlankLineBetweenCommentAndFindingIsStale:
+// when real code sits between the comment and the finding, the suppression
+// filter does NOT honor the comment, so it must be reported stale.
+func TestDetectStaleSuppressions_NonBlankLineBetweenCommentAndFindingIsStale(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "example.go")
+	// comment at line 3, unrelated code at line 4, finding at line 5.
+	_ = os.WriteFile(
+		src,
+		[]byte("package main\n\n//cqrs-lint:ignore(D002)\nvar x = 1\ntype Foo struct{}\n"),
+		0o644,
+	)
+
+	findings := []finding.Finding{
+		{Rule: "D002", Position: finding.Position{File: finding.FilePath(src), Line: 5}},
+	}
+
+	stale := suppression.DetectStaleSuppressions([]string{src}, findings)
+	if len(stale) != 1 {
+		t.Fatalf("got %d stale suppressions, want 1: %+v", len(stale), stale)
+	}
+}

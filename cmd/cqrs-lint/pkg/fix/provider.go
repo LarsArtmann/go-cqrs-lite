@@ -50,8 +50,11 @@ func (p *CQRSFixProvider) Edits(content []byte, f finding.Finding) ([]pipeline.F
 	// calls) by fixing the exact one the finding refers to.
 	idx := positionBasedIndex(content, f, beforeCode)
 	if idx == -1 {
-		// Fall back to first-occurrence substring search.
-		idx = bytes.Index(content, []byte(beforeCode))
+		// Column drifted (e.g. the report predates a whitespace change):
+		// fall back to the FIRST occurrence ON THE FINDING'S LINE only. A
+		// whole-file first-occurrence search can silently edit a different
+		// occurrence than the one reported — worse than not fixing.
+		idx = lineScopedIndex(content, f.Position.Line, beforeCode)
 	}
 
 	if idx == -1 {
@@ -100,4 +103,36 @@ func positionBasedIndex(content []byte, f finding.Finding, beforeCode string) in
 	}
 
 	return -1
+}
+
+// lineScopedIndex returns the offset of beforeCode within the given 1-based
+// source line, or -1 if it does not appear on that line.
+func lineScopedIndex(content []byte, lineNum int, beforeCode string) int {
+	if lineNum <= 0 {
+		return -1
+	}
+
+	lineStart := 0
+	for l := 1; l < lineNum; l++ {
+		next := bytes.IndexByte(content[lineStart:], '\n')
+		if next == -1 {
+			return -1 // line beyond content
+		}
+
+		lineStart += next + 1
+	}
+
+	lineEnd := bytes.IndexByte(content[lineStart:], '\n')
+	if lineEnd == -1 {
+		lineEnd = len(content)
+	} else {
+		lineEnd += lineStart
+	}
+
+	off := bytes.Index(content[lineStart:lineEnd], []byte(beforeCode))
+	if off == -1 {
+		return -1
+	}
+
+	return lineStart + off
 }

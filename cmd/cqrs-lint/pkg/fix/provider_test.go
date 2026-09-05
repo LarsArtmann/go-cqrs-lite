@@ -191,3 +191,66 @@ func applyEdit(content []byte, edit pipeline.FixEdit) []byte {
 
 	return result
 }
+
+// TestCQRSFixProvider_FallbackStaysOnFindingLine: when the exact position
+// misses, the fallback must fix the occurrence on the FINDING'S line, never
+// the first occurrence anywhere in the file.
+func TestCQRSFixProvider_FallbackStaysOnFindingLine(t *testing.T) {
+	content := []byte("package main\n\nx := y.Int() + 1 // first\nz := w.Int() + 1 // second\n")
+	f := finding.Finding{
+		ToolName:  "cqrs-lint",
+		BeforeCode: "w.Int() + 1",
+		AfterCode:  "w.Increment()",
+		Position: finding.Position{
+			Line:   5,
+			Column: 99, // deliberately wrong — forces the line-scoped fallback
+		},
+	}
+
+	p := NewCQRSFixProvider()
+	edits, err := p.Edits(content, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(edits) != 1 {
+		t.Fatalf("got %d edits, want 1", len(edits))
+	}
+
+	fixed := string(edits[0].Replacement)
+	want := "w.Increment()"
+	if fixed != want {
+		t.Fatalf("replacement = %q, want %q", fixed, want)
+	}
+
+	// The edit must target line 5's occurrence (offset of "w.Int() + 1"),
+	// NOT line 3's "y.Int() + 1".
+	if edits[0].Offset != 44 {
+		t.Fatalf("edit offset = %d, want 44 (line 5 occurrence)", edits[0].Offset)
+	}
+}
+
+// TestCQRSFixProvider_NoEditWhenBeforeCodeNotOnLine: the old whole-file
+// fallback would edit line 3's pattern; now the edit must be refused.
+func TestCQRSFixProvider_NoEditWhenBeforeCodeNotOnLine(t *testing.T) {
+	content := []byte("package main\n\nx := y.Int() + 1\n")
+	f := finding.Finding{
+		ToolName:  "cqrs-lint",
+		BeforeCode: "w.Int() + 1",
+		AfterCode:  "w.Increment()",
+		Position: finding.Position{
+			Line:   3,
+			Column: 1,
+		},
+	}
+
+	p := NewCQRSFixProvider()
+	edits, err := p.Edits(content, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(edits) != 0 {
+		t.Fatalf("expected no edits when beforeCode is absent from the finding's line, got %d", len(edits))
+	}
+}
