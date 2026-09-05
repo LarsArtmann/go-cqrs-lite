@@ -43,7 +43,8 @@ type v5MethodKey struct {
 
 // v5DriftAllowlist exempts forward-contract markers from needing table
 // entries, each with the reason it is intentionally not flagged by V007.
-var v5DriftAllowlist = map[v5MarkerKey]string{ //nolint:gochecknoglobals // test fixture
+// (Test fixture data — test files are exempt from gochecknoglobals.)
+var v5DriftAllowlist = map[v5MarkerKey]string{
 	{"transport/http", "(package)"}: "F030 (deprecated-transport-import) owns transport/* at import granularity",
 	{"transport/grpc", "(package)"}: "F030 (deprecated-transport-import) owns transport/* at import granularity",
 	{"stack", "(package)"}:          "package-doc deprecation; V007 flags the individual symbols instead",
@@ -52,7 +53,7 @@ var v5DriftAllowlist = map[v5MarkerKey]string{ //nolint:gochecknoglobals // test
 // v5DriftMethodAllowlist lists deprecated METHODS on receiver types that
 // survive v5. Methods are undetectable by V007 (it matches qualifier.Symbol
 // selectors only; a method call's receiver is a value, not a package).
-var v5DriftMethodAllowlist = map[v5MethodKey]string{ //nolint:gochecknoglobals // test fixture
+var v5DriftMethodAllowlist = map[v5MethodKey]string{
 	{"decider", "Repository", "Execute"}:        "pair-form forwarder removed at v5; use ExecuteRef",
 	{"decider", "Repository", "Load"}:           "pair-form forwarder removed at v5; use LoadRef",
 	{"decider", "Repository", "LoadAtVersion"}:  "pair-form forwarder removed at v5; use LoadAtVersionRef",
@@ -65,16 +66,17 @@ var v5DriftMethodAllowlist = map[v5MethodKey]string{ //nolint:gochecknoglobals /
 
 // v5StaleEntryAllowlist exempts table entries that have no live package-level
 // v5 marker, each with the reason the entry is still correct.
-var v5StaleEntryAllowlist = map[v5MarkerKey]string{ //nolint:gochecknoglobals // test fixture
+var v5StaleEntryAllowlist = map[v5MarkerKey]string{
 	{"event", "TombstoneActive"}:       "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
 	{"event", "TombstoneTombstoned"}:   "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
 	{"event", "TombstoneUndetermined"}: "enum member of deprecated TombstoneStatus; dies with the type (const carries no own marker)",
 }
 
 var (
-	v5DriftScanOnce sync.Once
-	v5DriftScanAll  []v5DriftDecl
-	v5DriftScanErr  error
+	v5DriftScanOnce   sync.Once
+	v5DriftScanAll    []v5DriftDecl
+	v5DriftScanFailed []string
+	v5DriftScanErr    error
 )
 
 // scanV5DriftMarkers returns the repo-wide v5 deprecation inventory, walking
@@ -87,10 +89,13 @@ func scanV5DriftMarkers(t *testing.T) []v5DriftDecl {
 			v5DriftScanErr = err
 			return
 		}
-		v5DriftScanAll, v5DriftScanErr = walkV5Markers(root)
+		v5DriftScanAll, v5DriftScanFailed, v5DriftScanErr = walkV5Markers(root)
 	})
 	if v5DriftScanErr != nil {
 		t.Fatalf("v5 drift scan failed: %v", v5DriftScanErr)
+	}
+	for _, f := range v5DriftScanFailed {
+		t.Logf("v5 drift scan: skipped unparseable file: %s", f)
 	}
 	return v5DriftScanAll
 }
@@ -121,8 +126,9 @@ func isRepoRoot(dir string) bool {
 	return true
 }
 
-func walkV5Markers(root string) ([]v5DriftDecl, error) {
+func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 	var out []v5DriftDecl
+	var failed []string
 	fset := token.NewFileSet()
 
 	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
@@ -143,11 +149,13 @@ func walkV5Markers(root string) ([]v5DriftDecl, error) {
 
 		src, perr := parser.ParseFile(fset, path, nil, parser.ParseComments|parser.SkipObjectResolution)
 		if perr != nil {
+			failed = append(failed, path+": "+perr.Error())
 			return nil
 		}
 
 		rel, rerr := filepath.Rel(root, path)
 		if rerr != nil {
+			failed = append(failed, path+": "+rerr.Error())
 			return nil
 		}
 		frag := stripVersionSuffix(filepath.ToSlash(filepath.Dir(rel)))
@@ -163,9 +171,9 @@ func walkV5Markers(root string) ([]v5DriftDecl, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return out, nil
+	return out, failed, nil
 }
 
 func collectV5Marker(fset *token.FileSet, decl ast.Decl, frag, posPrefix string, out *[]v5DriftDecl) {
@@ -207,9 +215,10 @@ func collectV5Spec(
 	var doc *ast.CommentGroup
 	switch s := spec.(type) {
 	case *ast.TypeSpec:
-		names, doc = []string{s.Name.Name}, s.Doc
+		names, doc = make([]string, 0, 1), s.Doc
+		names = append(names, s.Name.Name)
 	case *ast.ValueSpec:
-		doc = s.Doc
+		names, doc = make([]string, 0, len(s.Names)), s.Doc
 		for _, id := range s.Names {
 			names = append(names, id.Name)
 		}

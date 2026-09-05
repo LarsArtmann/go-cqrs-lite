@@ -821,8 +821,12 @@ linters:
             - storage/view/
             - vendor/
 formatters:
+    # NOTE: gci MUST stay out of this list — import grouping is owned by
+    # treefmt's goimports -local flag (AGENTS.md gotcha 18). Re-adding gci
+    # makes the linter fight the formatter over the same import blocks:
+    # 366 treefmt-clean files failed verify lint last time (2026-09-05).
+    # scripts/check-formatters.sh fails loudly if gci reappears here.
     enable:
-        - gci
         - goimports
         - gofumpt
         - golines

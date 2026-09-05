@@ -21,7 +21,10 @@ const minExpectedV5Markers = 90
 func TestV007_TablesCoverAllV5DeprecationMarkers(t *testing.T) {
 	markers := scanV5DriftMarkers(t)
 	if len(markers) < minExpectedV5Markers {
-		t.Fatalf("scanner found only %d v5 markers (expected ≥%d); scanner is broken", len(markers), minExpectedV5Markers)
+		t.Fatalf(
+			"scanner found only %d v5 markers (expected ≥%d); scanner is broken",
+			len(markers), minExpectedV5Markers,
+		)
 	}
 
 	var uncovered []string
