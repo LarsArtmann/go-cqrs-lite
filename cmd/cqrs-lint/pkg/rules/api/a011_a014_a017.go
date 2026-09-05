@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // A011: Inconsistent JSON key casing in event payloads.
@@ -113,14 +114,38 @@ func countJSONKeyCasings(st *ast.StructType) (int, int) {
 // A014: Deprecated API usage.
 // Detects calls to deprecated APIs: event.NewEvent (use event.New),
 // dispatcher.Register (use RegisterTyped).
+// The qualifier is resolved through the file's import declarations
+// (lintutil.QualifierResolvesTo), so aliased imports are detected and a
+// consumer's own package named "event" no longer false-positives.
+
+// deprecatedAPIEntry pairs a deprecated call target with its replacement.
+type deprecatedAPIEntry struct {
+	pathFragment string // go-cqrs-lite import path fragment that must own the qualifier
+	symbol       string // selector name being called
+	replacement  string // sanctioned replacement, shown in the suggestion
+}
+
+var deprecatedAPIEntries = []deprecatedAPIEntry{ //nolint:gochecknoglobals // static lookup table
+	{
+		pathFragment: "go-cqrs-lite/event",
+		symbol:       "NewEvent",
+		replacement:  "event.New (auto-marshaling, simpler API)",
+	},
+	{
+		pathFragment: "go-cqrs-lite/dispatcher",
+		symbol:       "Register",
+		replacement:  "RegisterTyped (type-safe handler registration)",
+	},
+	{
+		pathFragment: "go-cqrs-lite/command",
+		symbol:       "Register",
+		replacement:  "RegisterTyped (type-safe handler registration)",
+	},
+}
+
 //
 //nolint:ireturn // factory returns public interface
 func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
-	deprecatedAPIs := map[string]string{
-		"NewEvent": "event.New (auto-marshaling, simpler API)",
-		"Register": "RegisterTyped (type-safe handler registration)",
-	}
-
 	return finding.NamedDetectorFunc(
 		"A014-deprecated-api-usage",
 		func(_ context.Context) ([]finding.Finding, error) {
@@ -142,24 +167,19 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					replacement, deprecated := deprecatedAPIs[sel.Sel.Name]
+					qualifier := analyzer.SelectorPackage(sel)
+					if qualifier == "" {
+						return true
+					}
+
+					entry, deprecated := matchDeprecatedAPI(gf.AST, qualifier, sel.Sel.Name)
 					if !deprecated {
-						return true
-					}
-
-					pkgName := analyzer.SelectorPackage(sel)
-					if sel.Sel.Name == "NewEvent" && pkgName != "event" {
-						return true
-					}
-
-					if sel.Sel.Name == "Register" && pkgName != "dispatcher" &&
-						pkgName != "command" {
 						return true
 					}
 
 					// event.NewEvent inside schema.NewUpcaster closures is the
 					// correct API — upcasters reconstruct events from raw bytes.
-					if sel.Sel.Name == "NewEvent" && analyzer.IsInsideUpcasterClosure(gf, call) {
+					if entry.symbol == "NewEvent" && analyzer.IsInsideUpcasterClosure(gf, call) {
 						return true
 					}
 
@@ -170,10 +190,10 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						toolName,
 						fmt.Sprintf(
 							"Deprecated API %s.%s — use %s instead",
-							pkgName,
-							sel.Sel.Name,
-							replacement,
-						),
+								qualifier,
+								sel.Sel.Name,
+								entry.replacement,
+							),
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
@@ -195,6 +215,19 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// matchDeprecatedAPI reports the deprecated-API entry matching a call of
+// selName through qualifier, where the qualifier must resolve (via the file's
+// imports) to the entry's go-cqrs-lite path fragment.
+func matchDeprecatedAPI(file *ast.File, qualifier, selName string) (deprecatedAPIEntry, bool) {
+	for _, e := range deprecatedAPIEntries {
+		if e.symbol == selName && lintutil.QualifierResolvesTo(file, qualifier, e.pathFragment) {
+			return e, true
+		}
+	}
+
+	return deprecatedAPIEntry{}, false
 }
 
 // A017: Missing snapshot strategy.

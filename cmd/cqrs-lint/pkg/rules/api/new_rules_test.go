@@ -133,6 +133,8 @@ func TestA014_DetectsNewEventCall(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
 
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
 func createEvent() {
 	event.NewEvent("user.created", "id", "User", 1, nil)
 }
@@ -142,9 +144,46 @@ func createEvent() {
 	ruletest.AssertRule(t, findings, "A014", 1)
 }
 
+// TestA014_DetectsAliasedImportCall: an aliased go-cqrs-lite/event import
+// must still be detected — the qualifier resolves through the import decl.
+func TestA014_DetectsAliasedImportCall(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import ev "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+func createEvent() {
+	ev.NewEvent("user.created", "id", "User", 1, nil)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 1)
+}
+
+// TestA014_NoFindingForForeignEventPackage: a consumer's OWN package named
+// "event" must not trigger the rule — its import path does not point at
+// go-cqrs-lite.
+func TestA014_NoFindingForForeignEventPackage(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import "myapp/internal/event"
+
+func createEvent() {
+	event.NewEvent("user.created", "id", "User", 1, nil)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
+	ruletest.AssertRule(t, findings, "A014", 0)
+}
+
 func TestA014_NoFindingForEventNew(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"events.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
 
 func createEvent() {
 	event.New("user.created", "id", "User", 1, nil)
