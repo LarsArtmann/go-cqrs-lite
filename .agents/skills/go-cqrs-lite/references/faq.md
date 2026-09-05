@@ -324,3 +324,10 @@ should have data, check `Doctor`'s `--- Planned tables ---` section: it
 lists every registered planned table with a live row count, so you can see
 at a glance whether the collection you queried is registered — and on which
 engine.
+
+**Automated detection:** `cqrs-lint` catches this drift for you — rule
+V007 (`v5-removed-api-usage`) flags every wholly-removed module (stack
+presets, `storage/relational`, `storage/view`) and each deprecated symbol
+above at its use site, with the ADR reference and the sanctioned replacement
+in the suggestion. F030 covers the `transport/*` module imports. Run
+`cqrs-lint .` in CI and the v5 cut becomes a non-event.

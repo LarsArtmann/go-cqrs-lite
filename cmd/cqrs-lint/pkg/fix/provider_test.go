@@ -198,7 +198,7 @@ func applyEdit(content []byte, edit pipeline.FixEdit) []byte {
 func TestCQRSFixProvider_FallbackStaysOnFindingLine(t *testing.T) {
 	content := []byte("package main\n\nx := y.Int() + 1 // first\nz := w.Int() + 1 // second\n")
 	f := finding.Finding{
-		ToolName:  "cqrs-lint",
+		ToolName:   "cqrs-lint",
 		BeforeCode: "w.Int() + 1",
 		AfterCode:  "w.Increment()",
 		Position: finding.Position{
@@ -235,7 +235,7 @@ func TestCQRSFixProvider_FallbackStaysOnFindingLine(t *testing.T) {
 func TestCQRSFixProvider_NoEditWhenBeforeCodeNotOnLine(t *testing.T) {
 	content := []byte("package main\n\nx := y.Int() + 1\n")
 	f := finding.Finding{
-		ToolName:  "cqrs-lint",
+		ToolName:   "cqrs-lint",
 		BeforeCode: "w.Int() + 1",
 		AfterCode:  "w.Increment()",
 		Position: finding.Position{

@@ -190,10 +190,10 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						toolName,
 						fmt.Sprintf(
 							"Deprecated API %s.%s — use %s instead",
-								qualifier,
-								sel.Sel.Name,
-								entry.replacement,
-							),
+							qualifier,
+							sel.Sel.Name,
+							entry.replacement,
+						),
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
