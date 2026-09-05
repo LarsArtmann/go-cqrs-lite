@@ -1,7 +1,6 @@
 package record_test
 
 import (
-	"encoding/json/v2"
 	jsonv2 "encoding/json/v2"
 	"testing"
 	"time"
@@ -64,13 +63,13 @@ func TestStamp_JSONRoundTrip(t *testing.T) {
 			t.Parallel()
 
 			// encoding/json v1
-			data, err := json.Marshal(tc.stamp)
+			data, err := jsonv2.Marshal(tc.stamp)
 			if err != nil {
 				t.Fatalf("v1 Marshal: %v", err)
 			}
 
 			var got record.Stamp
-			if err := json.Unmarshal(data, &got); err != nil {
+			if err := jsonv2.Unmarshal(data, &got); err != nil {
 				t.Fatalf("v1 Unmarshal(%s): %v", data, err)
 			}
 
@@ -126,7 +125,7 @@ func TestStamp_UnmarshalForms(t *testing.T) {
 			t.Parallel()
 
 			var s record.Stamp
-			if err := json.Unmarshal([]byte(tc.data), &s); err != nil {
+			if err := jsonv2.Unmarshal([]byte(tc.data), &s); err != nil {
 				t.Fatalf("Unmarshal(%s): %v", tc.data, err)
 			}
 

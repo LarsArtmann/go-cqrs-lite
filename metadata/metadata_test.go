@@ -1,7 +1,6 @@
 package metadata
 
 import (
-	"encoding/json/v2"
 	jsonv1 "encoding/json/v2"
 	"maps"
 	"strings"
@@ -451,7 +450,7 @@ func TestTracing_JSON(t *testing.T) {
 	t.Run("zero ActorID is omitted from JSON", func(t *testing.T) {
 		t.Parallel()
 		tr := Tracing{}
-		data, err := json.Marshal(tr)
+		data, err := jsonv1.Marshal(tr)
 		if err != nil {
 			t.Fatalf("marshal error: %v", err)
 		}
@@ -464,7 +463,7 @@ func TestTracing_JSON(t *testing.T) {
 	t.Run("set ActorID appears in JSON", func(t *testing.T) {
 		t.Parallel()
 		tr := Tracing{ActorID: id.NewSystemActor("scheduler")}
-		data, err := json.Marshal(tr)
+		data, err := jsonv1.Marshal(tr)
 		if err != nil {
 			t.Fatalf("marshal error: %v", err)
 		}
@@ -478,13 +477,13 @@ func TestTracing_JSON(t *testing.T) {
 	t.Run("roundtrip preserves ActorID", func(t *testing.T) {
 		t.Parallel()
 		original := Tracing{ActorID: id.NewBotActor("ci-runner")}
-		data, err := json.Marshal(original)
+		data, err := jsonv1.Marshal(original)
 		if err != nil {
 			t.Fatalf("marshal error: %v", err)
 		}
 
 		var decoded Tracing
-		if err := json.Unmarshal(data, &decoded); err != nil {
+		if err := jsonv1.Unmarshal(data, &decoded); err != nil {
 			t.Fatalf("unmarshal error: %v", err)
 		}
 
