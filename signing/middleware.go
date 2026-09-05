@@ -38,7 +38,7 @@ func ExtractOrPassThrough[T any](
 //
 // Deprecated: Use [event.RejectingPublishMiddleware] — the canonical,
 // shared implementation in the event package. Kept as a forwarder so
-// existing consumer code keeps compiling.
+// existing consumer code keeps compiling. Removed at v5 (ADR-0126).
 func RejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 	return event.RejectingPublishMiddleware(code, msg)
 }
@@ -48,7 +48,7 @@ func RejectingPublishMiddleware(code, msg string) event.PublishMiddleware {
 //
 // Deprecated: Use [event.RejectingHandlerMiddleware] — the canonical,
 // shared implementation in the event package. Kept as a forwarder so
-// existing consumer code keeps compiling.
+// existing consumer code keeps compiling. Removed at v5 (ADR-0126).
 func RejectingHandlerMiddleware(code, msg string) event.Middleware {
 	return event.RejectingHandlerMiddleware(code, msg)
 }

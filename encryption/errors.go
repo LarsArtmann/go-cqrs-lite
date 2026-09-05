@@ -45,13 +45,13 @@ var (
 	// Deprecated: NewEncryptedStore is now built on event.DecorateStore, which
 	// reports unsupported inner-store capabilities via the event package's
 	// own sentinels. These aliases remain so existing errors.Is checks keep
-	// matching.
+	// matching. Removed at v5 (ADR-0126).
 	ErrInnerStoreNotJournal = event.ErrInnerStoreNotJournal
 
-	// Deprecated: See ErrInnerStoreNotJournal.
+	// Deprecated: See ErrInnerStoreNotJournal. Removed at v5 (ADR-0126).
 	ErrInnerStoreNotSeekable = event.ErrInnerStoreNotSeekable
 
-	// Deprecated: See ErrInnerStoreNotJournal.
+	// Deprecated: See ErrInnerStoreNotJournal. Removed at v5 (ADR-0126).
 	ErrInnerStoreNotBackwards = event.ErrInnerStoreNotBackwards
 
 	ErrUnknownAlgorithm = errorfamily.NewRejection(

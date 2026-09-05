@@ -62,6 +62,7 @@ func (m Metadata) WithCustom(key MetadataKey, value string) Metadata {
 // Deprecated: Use Metadata.WithCustom, which returns a new value without
 // mutating the receiver. EnsureCustom mutates in place via a pointer,
 // breaking the immutability contract that Clone and Merge establish.
+// Removed at v5.
 func EnsureCustom(m *Metadata) {
 	if m.Custom == nil {
 		m.Custom = make(map[MetadataKey]string)

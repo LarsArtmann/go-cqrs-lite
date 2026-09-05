@@ -24,6 +24,7 @@ var _ event.SeekableJournal = (*VersionedSeekableJournal)(nil)
 // ReadAll and ReadFrom keep applying upcasters. Unlike the shell, the
 // decorated journal ALSO forwards StreamingJournal reads (ReadStream,
 // ReadStreamFrom) with upcasting applied — the shell drops them.
+// Removed at v5 (ADR-0126).
 type VersionedSeekableJournal struct {
 	inner    event.Journal
 	seekable event.SeekableJournal
@@ -34,6 +35,7 @@ type VersionedSeekableJournal struct {
 //
 // Deprecated: Use [UpcastSourceTransform] with [event.DecorateJournal]. Kept
 // so existing consumers keep compiling; returns the compatibility shell.
+// Removed at v5 (ADR-0126).
 func NewVersionedSeekableJournal(
 	journal event.SeekableJournal,
 	upcasters ...Upcaster,

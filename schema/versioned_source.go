@@ -32,6 +32,7 @@ func UpcastSourceTransform(upcasters ...Upcaster) event.SourceTransform {
 //
 // The deprecated shell still works: it embeds the decorated store, so all
 // Store methods are available, and it additionally forwards Close.
+// Removed at v5 (ADR-0126).
 type VersionedStore struct {
 	event.Store
 }
@@ -40,6 +41,7 @@ type VersionedStore struct {
 //
 // Deprecated: Use [UpcastSourceTransform] with [event.DecorateStore]. Kept
 // so existing consumers keep compiling; returns the compatibility shell.
+// Removed at v5 (ADR-0126).
 func NewVersionedStore(store event.Store, upcasters ...Upcaster) (*VersionedStore, error) {
 	if store == nil {
 		return nil, ErrNilStore

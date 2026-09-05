@@ -113,6 +113,7 @@ func (m Metadata[K]) WithCustom(key K, value string) Metadata[K] {
 // Deprecated: Use WithCustom, which returns a new value without mutating
 // the receiver. EnsureCustom mutates in place via a pointer receiver,
 // breaking the immutability contract that Clone and Merge establish.
+// Removed at v5 (ADR-0126).
 func (m *Metadata[K]) EnsureCustom() {
 	if m.Custom == nil {
 		m.Custom = make(map[K]string)
@@ -123,7 +124,7 @@ func (m *Metadata[K]) EnsureCustom() {
 //
 // Deprecated: Use Metadata[K] directly. CustomData is kept as a generic type
 // alias so existing consumer code keeps compiling; it will not be removed
-// this major version.
+// this major version. Removed at v5 (ADR-0126).
 type CustomData[K ~string] = Metadata[K]
 
 // MergeCustomMaps returns a new map containing every entry from base overlaid
