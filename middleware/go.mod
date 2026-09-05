@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
-	github.com/larsartmann/go-idempotency v0.2.0
+	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/larsartmann/go-retry v0.4.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1

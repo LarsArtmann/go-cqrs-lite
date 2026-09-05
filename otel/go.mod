@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/otel/v4
 
-go 1.26.4
+go 1.26
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23

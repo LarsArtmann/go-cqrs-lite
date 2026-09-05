@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.1
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-idempotency v0.2.0
+	github.com/larsartmann/go-idempotency v0.3.0
 	modernc.org/sqlite v1.58.0
 	pgregory.net/rapid v1.3.0
 )
