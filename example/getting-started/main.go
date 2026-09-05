@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"
-	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine" // register the "sqlite" driver
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // register the "sqlite" driver
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
@@ -157,9 +157,15 @@ func buildSystem(ctx context.Context, dsn string) (*system.System, error) {
 	return system.New(ctx, domain, deployment)
 }
 
-// runPipeline dispatches the increments and reads the projected view,
-// polling until the asynchronous projection host catches up.
+// runPipeline starts the projection host (it replays the journal, then
+// follows live), dispatches the increments, and reads the projected view,
+// polling until the projection catches up.
 func runPipeline(ctx context.Context, sys *system.System, counterID id.StreamID) (CounterView, error) {
+	hostCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() { _ = sys.ProjectionHost().Start(hostCtx) }()
+
 	for _, amt := range []int{5, 3, 2} {
 		bc, err := command.New(cmdIncrement, counterID)
 		if err != nil {

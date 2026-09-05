@@ -60,10 +60,9 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 
 	streamID := id.NewStreamID()
 
-	err = repo.Execute(
+	err = repo.ExecuteRef(
 		ctx,
-		streamID,
-		"User",
+		id.NewStreamRef("User", streamID),
 		func(_ docUserState, v event.Version) ([]event.Event, error) {
 			return event.NewEvents(streamID, "User", v,
 				[]event.Type{"user.created"}, []any{docUserCreated{Name: "Alice"}})
@@ -73,7 +72,7 @@ func TestDocsSnippet2_EventSourcingWithDecider(t *testing.T) {
 		t.Fatalf("Execute: %v", err)
 	}
 
-	state, _, loadErr := repo.Load(ctx, streamID, "User")
+	state, _, loadErr := repo.LoadRef(ctx, id.NewStreamRef("User", streamID))
 	if loadErr != nil {
 		t.Fatalf("Load: %v", loadErr)
 	}
@@ -140,15 +139,14 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 	cmds := command.NewDispatcher()
 	_ = command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *docCreateUser) error {
-			return repo.Execute(
-				ctx,
-				cmd.StreamID(),
-				"User",
-				func(_ docUserState, v event.Version) ([]event.Event, error) {
-					return event.NewEvents(cmd.StreamID(), "User", v,
-						[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
-				},
-			)
+		return repo.ExecuteRef(
+			ctx,
+			id.NewStreamRef("User", cmd.StreamID()),
+			func(_ docUserState, v event.Version) ([]event.Event, error) {
+				return event.NewEvents(cmd.StreamID(), "User", v,
+					[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
+			},
+		)
 		})
 
 	basic, basicErr := command.New("user.create", streamID)
@@ -160,7 +158,7 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 		t.Fatalf("Dispatch: %v", err)
 	}
 
-	state, _, loadErr := repo.Load(ctx, streamID, "User")
+	state, _, loadErr := repo.LoadRef(ctx, id.NewStreamRef("User", streamID))
 	if loadErr != nil {
 		t.Fatalf("Load: %v", loadErr)
 	}

@@ -60,10 +60,10 @@ func main() {
         log.Fatal(err)
     }
 
-    aggID := id.NewAggregateID()
+    aggID := id.NewStreamID()
 
     // Execute a command (load state → fold → decide → save → publish)
-    err = repo.Execute(ctx, aggID, "User", func(_ UserState, v event.Version) ([]event.Event, error) {
+    err = repo.ExecuteRef(ctx, id.NewStreamRef("User", aggID), func(_ UserState, v event.Version) ([]event.Event, error) {
         return event.NewEvents(aggID, "User", v,
             []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
     })
@@ -72,7 +72,7 @@ func main() {
     }
 
     // Load current state
-    state, _, _ := repo.Load(ctx, aggID, "User")
+    state, _, _ := repo.LoadRef(ctx, id.NewStreamRef("User", aggID))
     fmt.Printf("User: %s\n", state.Name) // User: Alice
 }
 ```
@@ -83,7 +83,7 @@ func main() {
 import "github.com/larsartmann/go-cqrs-lite/id/v4"
 
 // Use built-in types
-aggID := id.NewAggregateID()
+aggID := id.NewStreamID()
 eventID := id.NewEventID()
 
 // Create custom branded types
@@ -108,8 +108,8 @@ type CreateUser struct {
 cmds := command.NewDispatcher()
 _ = command.RegisterTyped(cmds, "user.create",
     func(ctx context.Context, cmd *CreateUser) error {
-        return repo.Execute(ctx, cmd.AggregateID(), "User", func(_ UserState, v event.Version) ([]event.Event, error) {
-            return event.NewEvents(cmd.AggregateID(), "User", v,
+        return repo.ExecuteRef(ctx, id.NewStreamRef("User", cmd.StreamID()), func(_ UserState, v event.Version) ([]event.Event, error) {
+            return event.NewEvents(cmd.StreamID(), "User", v,
                 []event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
         })
     })
@@ -134,7 +134,7 @@ Query   → Dispatcher → Handler            Projection
 | command        | `.../command/v4`        | Commands, Dispatcher, typed handlers                          |
 | query          | `.../query/v4`          | Queries, Dispatcher, typed results                            |
 | decider        | `.../decider/v4`        | Pure-function aggregate pattern                               |
-| id             | `.../id/v4`             | Branded IDs (AggregateID, EventID, etc.)                      |
+| id             | `.../id/v4`             | Branded IDs (StreamID, EventID, etc.)                      |
 | projection     | `.../projection/v4`     | Projection interface (consumer-side)                          |
 | projectionhost | `.../projectionhost/v4` | Managed projection lifecycle (goroutines, DLQ, checkpointing) |
 | storage/memory | `.../storage/memory/v4` | In-memory implementations (testing)                           |
