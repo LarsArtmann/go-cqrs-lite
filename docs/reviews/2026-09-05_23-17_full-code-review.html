@@ -1057,16 +1057,27 @@
         </table>
 
         <h2 id="gates"><span class="num">06</span>Verification</h2>
-        <div class="dep-tree">nix run .#verify            <span class="ok">build + vet + test + race + lint + doc-check</span>
-  cmd/cqrs-lint module     <span class="ok">go test ./... — all packages ok</span>
-  pkg/suppression          <span class="ok">ok (incl. 5 new regression tests)</span>
-  pkg/fix                  <span class="ok">ok (incl. line-scoped fallback tests)</span>
-  pkg/rules                <span class="ok">ok — 204 detector pins, catalog bidirectional</span>
-  pkg/rules/version        <span class="ok">ok — 10 V007 tests</span>
-  V007 E2E                 <span class="ok">synthetic consumer: 3/3 finding classes fire</span>
-  doc-check                <span class="ok">956 references valid across 42 packages</span>
+        <div class="dep-tree">nix run .#verify            <span class="ok">EXIT 0 — build + vet + test + race + lint + doc-check + doc-assertions</span>
+  lint (all modules)       <span class="ok">0 issues — after the gci fix (was: 366 files red)</span>
+  cmd/cqrs-lint module     <span class="ok">go test ./... — all packages ok, 204-rule pins hold</span>
+  pkg/suppression          <span class="ok">ok — fail-closed, panic-guard, blank-skip tests</span>
+  pkg/fix                  <span class="ok">ok — line-scoped fallback tests</span>
+  pkg/rules/version        <span class="ok">ok — 10 V007 tests (module + symbol + alias + FP)</span>
+  V007 E2E                 <span class="ok">synthetic consumer: 3/3 finding classes fire, ADRs correct</span>
+  V007 self-lint           <span class="ok">silent on repo + examples (by design, harvested)</span>
+  check-lint-config        <span class="ok">config verify + depguard + NEW formatters pin</span>
+  docserver CSS            <span class="ok">regenerated, --check green</span>
+  duplication              <span class="ok">no new clones (baseline: 131 groups)</span>
+  doc-check                <span class="ok">1180 references valid across 61 packages</span>
   changelog-symbols        <span class="ok">citations honest</span>
-  api-stability            <span class="ok">meta-tests green (root-package golden unaffected)</span></div>
+  api-stability            <span class="ok">golden + meta-tests green</span></div>
+
+        <div class="callout callout-amber" style="margin-top:1rem">
+          <strong>Honesty note:</strong> the first <code>nix run .#verify</code> of this session was
+          RED — the repo's own gate had silently rotted (gci re-enabled by a config reformat, then a
+          stale docserver CSS pin). Both were pre-existing, surfaced layer by layer, and are now fixed
+          and mechanically guarded. A stale GREEN claim would have been worse than this dig.
+        </div>
       </main>
     </div>
     <script>
