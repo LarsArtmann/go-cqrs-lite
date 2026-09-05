@@ -188,9 +188,14 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 	},
 	// v5: silent-validation helper superseded by the checked form.
 	{
-		fragment:    "storage",
+		fragment:    "storage/sql",
 		symbol:      "KeysetPositionQuery",
-		replacement: "storage.KeysetPositionQueryChecked",
+		replacement: "storage/sql.KeysetPositionQueryChecked",
+	},
+	{
+		fragment:    "storage",
+		symbol:      "WithoutRelationalAutoMigrate",
+		replacement: "metaengine engines with layout planning",
 	},
 	// ADR-0123: storage-root re-exports of the removed view tier.
 	{fragment: "storage", symbol: "ViewColumn", replacement: "metaengine engines with layout planning"},
