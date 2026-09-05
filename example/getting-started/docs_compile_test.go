@@ -139,14 +139,14 @@ func TestDocsSnippet4_CommandsWithTypedHandlers(t *testing.T) {
 	cmds := command.NewDispatcher()
 	_ = command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *docCreateUser) error {
-		return repo.ExecuteRef(
-			ctx,
-			id.NewStreamRef("User", cmd.StreamID()),
-			func(_ docUserState, v event.Version) ([]event.Event, error) {
-				return event.NewEvents(cmd.StreamID(), "User", v,
-					[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
-			},
-		)
+			return repo.ExecuteRef(
+				ctx,
+				id.NewStreamRef("User", cmd.StreamID()),
+				func(_ docUserState, v event.Version) ([]event.Event, error) {
+					return event.NewEvents(cmd.StreamID(), "User", v,
+						[]event.Type{"user.created"}, []any{docUserCreated{Name: cmd.Name}})
+				},
+			)
 		})
 
 	basic, basicErr := command.New("user.create", streamID)

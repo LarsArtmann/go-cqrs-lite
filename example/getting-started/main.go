@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -29,7 +30,14 @@ const (
 	evtIncremented = event.Type("counter.incremented")
 	cmdIncrement   = command.Type("counter.increment")
 	streamType     = "Counter"
+
+	primaryEngine            = "primary"
+	counterCollection        = "counter_views"
+	projectionSettleDeadline = 5 * time.Second
+	projectionPollInterval   = 20 * time.Millisecond
 )
+
+var errProjectionConvergence = errors.New("projection did not converge")
 
 type IncrementedPayload struct {
 	Amount int `json:"amount"`
@@ -82,8 +90,8 @@ type CounterView struct {
 // counterProjection declares the read model as folds over the event types.
 // The first fold creates a view on the stream's first event; the second
 // updates existing views. metaengine picks the right one per event.
-func counterProjection() (system.ProjectionDeclaration, *projectionadapter.TypeDecoder) {
-	query := metaengine.Query[counterLookup, CounterView]("counter_views",
+func counterProjection() ([]system.ProjectionDeclaration, *projectionadapter.TypeDecoder) {
+	query := metaengine.Query[counterLookup, CounterView](counterCollection,
 		metaengine.OnRecordTyped(string(evtIncremented),
 			projectionadapter.EventWithID[IncrementedPayload]{},
 			func(_ record.Record, e projectionadapter.EventWithID[IncrementedPayload]) (string, CounterView) {
@@ -104,7 +112,7 @@ func counterProjection() (system.ProjectionDeclaration, *projectionadapter.TypeD
 		projectionadapter.Register(evtIncremented, IncrementedPayload{}),
 	)
 
-	return system.RawQuery(query), decoder
+	return []system.ProjectionDeclaration{system.RawQuery(query)}, decoder
 }
 
 // counterLookup is the (unused) query-input type; reads go through
@@ -125,10 +133,10 @@ func buildSystem(ctx context.Context, dsn string) (*system.System, error) {
 	}
 
 	deployment := system.DeploymentConfig{
-		Engines: map[string]system.EngineConfig{"primary": engine},
+		Engines: map[string]system.EngineConfig{primaryEngine: engine},
 		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleProjections, Engine: "primary"},
+			{Role: system.RoleSourceOfTruth, Engine: primaryEngine},
+			{Role: system.RoleProjections, Engine: primaryEngine},
 		},
 	}
 
@@ -150,7 +158,7 @@ func buildSystem(ctx context.Context, dsn string) (*system.System, error) {
 				panic(err)
 			}
 		},
-		Projections:           []system.ProjectionDeclaration{projection},
+		Projections:           projection,
 		ProjectionTypeDecoder: typeDecoder,
 	}
 
@@ -177,9 +185,10 @@ func runPipeline(ctx context.Context, sys *system.System, counterID id.StreamID)
 		}
 	}
 
-	reader := metaengine.NewReader[CounterView](sys.MetaEngine(), "counter_views")
+	reader := metaengine.NewReader[CounterView](sys.MetaEngine(), counterCollection)
 
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := time.Now().Add(projectionSettleDeadline)
+
 	for {
 		view, found, err := reader.Get(ctx, counterID.String())
 		if err != nil {
@@ -191,19 +200,25 @@ func runPipeline(ctx context.Context, sys *system.System, counterID id.StreamID)
 		}
 
 		if time.Now().After(deadline) {
-			return CounterView{}, fmt.Errorf("projection did not converge: got %+v (found=%t)", view, found)
+			return CounterView{}, fmt.Errorf("%w: got %+v (found=%t)", errProjectionConvergence, view, found)
 		}
 
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(projectionPollInterval)
 	}
 }
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	ctx := context.Background()
 
 	sys, err := buildSystem(ctx, "")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer func() { _ = sys.Close() }()
 
@@ -211,7 +226,7 @@ func main() {
 
 	view, err := runPipeline(ctx, sys, counterID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Printf("Counter %s: value=%d (expected 10)\n", counterID, view.Value)
@@ -219,4 +234,6 @@ func main() {
 	// Swap in-memory → persistent by changing ONE EngineConfig line:
 	//   system.EngineConfig{Driver: "sqlite", DSN: "counter.db"}
 	// The domain code above doesn't change.
+
+	return nil
 }
