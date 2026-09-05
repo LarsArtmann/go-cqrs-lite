@@ -396,6 +396,13 @@ and is **never** duplicated here.
 > imports) shipped 2026-08-14 — 203 rules total. V007 (v5-removed-api-usage)
 > shipped 2026-09-05 — 204 rules total.
 
+> **Prioritized execution plan (2026-09-06):** the full Pareto breakdown of
+> this section's follow-ups — 24 medium tasks / 96 micro-tasks with a mermaid
+> execution graph — lives at
+> `docs/planning/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
+> This section remains the living source; the plan is its point-in-time
+> snapshot.
+
 - [PARTIAL ✓ 2026-08-30 session 4] **Audit `.golangci.yml` exclusion blocks + RE-ENABLE depguard** — DONE (B1, `3bcb7030e`): depguard restored on the v2 object rules schema (`linters.settings.depguard.rules` — a YAML list gives incomprehensible mapstructure errors), 84-entry allow list, all 119 requires covered, `check-depguard.sh` awk made indentation-tolerant, lint 76/76 clean. REMAINING (exclusion audit tail): `system/` (20 linters disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest exclusions — track which can be removed after migrations complete.
 
 
