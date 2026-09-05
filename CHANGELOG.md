@@ -41,6 +41,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   fallback no longer rewrites the FIRST occurrence anywhere in the file —
   it scopes to the finding's line and refuses to edit when the pattern is
   not there, so a drifted position can never fix the wrong occurrence.
+- **Repo lint gate un-broken (366-file gci failure)**: a `.golangci.yml`
+  reformat had silently re-added `gci` to `formatters.enable`, making
+  `nix run .#verify` fail lint repo-wide on treefmt-clean files (the same
+  config-reformat-mutates-linters class as the 2026-08-30 depguard
+  incident). gci removed again per the documented treefmt-owns-grouping
+  decision, and the state is now pinned mechanically:
+  `scripts/check-formatters.sh` runs inside `nix run .#check-lint-config`
+  and fails loudly if gci (or a missing formatter) reappears.
 
 ### Fixed — master-CI repair wave 2: FlakeHub, module discovery, go.work externals — 2026-09-03
 
