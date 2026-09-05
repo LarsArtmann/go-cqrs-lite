@@ -6,83 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Added — V007 drift contract + v5-clean getting-started — 2026-09-06
-
-- **V007 drift meta-test (`v007_drift_test.go`)**: the linter's v5-removal
-  tables are now held against the repo's actual `Deprecated: … v5` markers in
-  both directions — a new v5 removal without a table (or allowlist) entry
-  fails the suite, and a stale table entry outliving its symbol fails the
-  reverse check. Explicit allowlists cover what V007 cannot see (methods,
-  package docs) and what F030 owns (`transport/*`).
-- **V007 removal-surface expansion (+30 symbols, 2 dead entries removed)**:
-  building the drift contract caught real gaps — mid-path `/v4` segments
-  (`storage/v4/relational`, `storage/v4/view`) never matched the module
-  table, so 2 of 10 removed modules were undetectable; 30 v5-removed
-  package-level symbols were missing (the per-module `ParseType` shims,
-  `snapshot.SaveSnapshot`, `graph.Handler` / `ProjectionOption` /
-  `WithSchema`, `listing.StatusMiddleware`,
-  `storage/sql.KeysetPositionQuery`, and the storage-root re-exports of the
-  removed view and relational tiers); two table entries pointed at methods
-  and could never fire (`stack.RunProjections`, `metadata.EnsureCustom`).
-  Table-backed markers now cite their v5 ADR so the repo is
-  self-describing, and the previously unmarked
-  `storage/relational_aliases.go` re-exports carry ADR-0123 markers.
-- **getting-started rewritten onto the v5 composition path**: the example
-  now builds through `system.New` (DomainConfig + DeploymentConfig) with
-  metaengine folds instead of `stack.New` + `stack.NewMaterialize`, and its
-  test runs the pipeline against a real SQLite engine — proving the
-  one-line engine swap end-to-end. `docs/getting-started.md` snippets and
-  the compile tests moved to the `*Ref` decider forms and `id.NewStreamID`.
-
-### Added — cqrs-lint v5-migration rule + suppression/fix hardening — 2026-09-05
-
-- **cqrs-lint V007 (`v5-removed-api-usage`)**: the linter now flags every
-  consumer reference to an API removed at v5, at its use site, with the ADR
-  reference and the sanctioned replacement in the suggestion. Two
-  granularities: wholly-removed modules (every `stack/*` preset,
-  `storage/relational`, `storage/view` — any import-qualified reference
-  fires) and deprecated symbols inside surviving modules (`stack.Bundle` /
-  `Materialize` / `RunProjections` / `TombstonePolicy`, `graph.GraphProjection`,
-  `schema.VersionedStore` / `VersionedSeekableJournal`,
-  `signing.RejectingPublishMiddleware` / `RejectingHandlerMiddleware`,
-  `encryption.ErrInnerStoreNotJournal` / `ErrInnerStoreNotSeekable` /
-  `ErrInnerStoreNotBackwards`, `metadata.CustomData`, and the ADR-0114
-  tombstone helpers). Rule catalog
-  grows to 204; F030 keeps owning `transport/*` imports. Detector
-  constructors are catalog-registered and README/AGENTS counts are
-  meta-test-enforced.
-- **cqrs-lint A014 import-alias safety**: the deprecated-API detector
-  resolves qualifiers through the file's import declarations instead of
-  matching the textual package name — aliased go-cqrs-lite imports are now
-  detected (previously missed) and a consumer's own package named `event`
-  no longer false-positives.
-- **cqrs-lint suppression hardening**: malformed `//cqrs-lint:ignore-start(`
-  directives (unclosed paren, empty ID list) previously failed OPEN and
-  suppressed every rule in the block; they now fail closed and suppress
-  nothing. A finding line beyond EOF no longer risks an index panic in the
-  suppression filter.
-- **cqrs-lint stale-suppression accuracy**: stale detection now mirrors the
-  suppression filter's blank-line skip, so a suppression comment separated
-  from its finding by a blank line is no longer reported stale under
-  `--fail-on-stale-suppressions`.
-- **cqrs-lint auto-fix blast radius**: the fix provider's position-miss
-  fallback no longer rewrites the FIRST occurrence anywhere in the file —
-  it scopes to the finding's line and refuses to edit when the pattern is
-  not there, so a drifted position can never fix the wrong occurrence.
-- **Repo lint gate un-broken (366-file gci failure)**: a `.golangci.yml`
-  reformat had silently re-added `gci` to `formatters.enable`, making
-  `nix run .#verify` fail lint repo-wide on treefmt-clean files (the same
-  config-reformat-mutates-linters class as the 2026-08-30 depguard
-  incident). gci removed again per the documented treefmt-owns-grouping
-  decision, and the state is now pinned mechanically:
-  `scripts/check-formatters.sh` runs inside `nix run .#check-lint-config`
-  and fails loudly if gci (or a missing formatter) reappears. The four
-  modules still red after the gci fix (pre-existing findings surfaced once
-  the noise cleared) were fixed: duplicate `encoding/json/v2` imports in
-  the metadata and record tests (ST1019), a scope-too-short variable name
-  in catalog (varnamelen), and a drifted `//nolint:contextcheck` comment
-  that no longer sat on the flagged line in pgengine's driver registration.
-
 ### Fixed — master-CI repair wave 2: FlakeHub, module discovery, go.work externals — 2026-09-03
 
 Master CI had not completed green since 2026-07-17; this wave fixes every
@@ -3238,6 +3161,87 @@ files. All fixed to unblock `verify-fast`:
   zero violations. Fixed 3 pre-existing lint issues (`unconvert`, 2× `unparam`).
 - **Pebbleengine test boilerplate eliminated**: all test files now use
   `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)` helpers.
+
+---
+
+## [cmd/cqrs-lint/v4.9.0] — 2026-09-06
+
+### Added — V007 drift contract + v5-clean getting-started — 2026-09-06
+
+- **V007 drift meta-test (`v007_drift_test.go`)**: the linter's v5-removal
+  tables are now held against the repo's actual `Deprecated: … v5` markers in
+  both directions — a new v5 removal without a table (or allowlist) entry
+  fails the suite, and a stale table entry outliving its symbol fails the
+  reverse check. Explicit allowlists cover what V007 cannot see (methods,
+  package docs) and what F030 owns (`transport/*`).
+- **V007 removal-surface expansion (+30 symbols, 2 dead entries removed)**:
+  building the drift contract caught real gaps — mid-path `/v4` segments
+  (`storage/v4/relational`, `storage/v4/view`) never matched the module
+  table, so 2 of 10 removed modules were undetectable; 30 v5-removed
+  package-level symbols were missing (the per-module `ParseType` shims,
+  `snapshot.SaveSnapshot`, `graph.Handler` / `ProjectionOption` /
+  `WithSchema`, `listing.StatusMiddleware`,
+  `storage/sql.KeysetPositionQuery`, and the storage-root re-exports of the
+  removed view and relational tiers); two table entries pointed at methods
+  and could never fire (`stack.RunProjections`, `metadata.EnsureCustom`).
+  Table-backed markers now cite their v5 ADR so the repo is
+  self-describing, and the previously unmarked
+  `storage/relational_aliases.go` re-exports carry ADR-0123 markers.
+- **getting-started rewritten onto the v5 composition path**: the example
+  now builds through `system.New` (DomainConfig + DeploymentConfig) with
+  metaengine folds instead of `stack.New` + `stack.NewMaterialize`, and its
+  test runs the pipeline against a real SQLite engine — proving the
+  one-line engine swap end-to-end. `docs/getting-started.md` snippets and
+  the compile tests moved to the `*Ref` decider forms and `id.NewStreamID`.
+
+### Added — cqrs-lint v5-migration rule + suppression/fix hardening — 2026-09-05
+
+- **cqrs-lint V007 (`v5-removed-api-usage`)**: the linter now flags every
+  consumer reference to an API removed at v5, at its use site, with the ADR
+  reference and the sanctioned replacement in the suggestion. Two
+  granularities: wholly-removed modules (every `stack/*` preset,
+  `storage/relational`, `storage/view` — any import-qualified reference
+  fires) and deprecated symbols inside surviving modules (`stack.Bundle` /
+  `Materialize` / `RunProjections` / `TombstonePolicy`, `graph.GraphProjection`,
+  `schema.VersionedStore` / `VersionedSeekableJournal`,
+  `signing.RejectingPublishMiddleware` / `RejectingHandlerMiddleware`,
+  `encryption.ErrInnerStoreNotJournal` / `ErrInnerStoreNotSeekable` /
+  `ErrInnerStoreNotBackwards`, `metadata.CustomData`, and the ADR-0114
+  tombstone helpers). Rule catalog
+  grows to 204; F030 keeps owning `transport/*` imports. Detector
+  constructors are catalog-registered and README/AGENTS counts are
+  meta-test-enforced.
+- **cqrs-lint A014 import-alias safety**: the deprecated-API detector
+  resolves qualifiers through the file's import declarations instead of
+  matching the textual package name — aliased go-cqrs-lite imports are now
+  detected (previously missed) and a consumer's own package named `event`
+  no longer false-positives.
+- **cqrs-lint suppression hardening**: malformed `//cqrs-lint:ignore-start(`
+  directives (unclosed paren, empty ID list) previously failed OPEN and
+  suppressed every rule in the block; they now fail closed and suppress
+  nothing. A finding line beyond EOF no longer risks an index panic in the
+  suppression filter.
+- **cqrs-lint stale-suppression accuracy**: stale detection now mirrors the
+  suppression filter's blank-line skip, so a suppression comment separated
+  from its finding by a blank line is no longer reported stale under
+  `--fail-on-stale-suppressions`.
+- **cqrs-lint auto-fix blast radius**: the fix provider's position-miss
+  fallback no longer rewrites the FIRST occurrence anywhere in the file —
+  it scopes to the finding's line and refuses to edit when the pattern is
+  not there, so a drifted position can never fix the wrong occurrence.
+- **Repo lint gate un-broken (366-file gci failure)**: a `.golangci.yml`
+  reformat had silently re-added `gci` to `formatters.enable`, making
+  `nix run .#verify` fail lint repo-wide on treefmt-clean files (the same
+  config-reformat-mutates-linters class as the 2026-08-30 depguard
+  incident). gci removed again per the documented treefmt-owns-grouping
+  decision, and the state is now pinned mechanically:
+  `scripts/check-formatters.sh` runs inside `nix run .#check-lint-config`
+  and fails loudly if gci (or a missing formatter) reappears. The four
+  modules still red after the gci fix (pre-existing findings surfaced once
+  the noise cleared) were fixed: duplicate `encoding/json/v2` imports in
+  the metadata and record tests (ST1019), a scope-too-short variable name
+  in catalog (varnamelen), and a drifted `//nolint:contextcheck` comment
+  that no longer sat on the flagged line in pgengine's driver registration.
 
 ---
 
