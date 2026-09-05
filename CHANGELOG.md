@@ -48,7 +48,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   incident). gci removed again per the documented treefmt-owns-grouping
   decision, and the state is now pinned mechanically:
   `scripts/check-formatters.sh` runs inside `nix run .#check-lint-config`
-  and fails loudly if gci (or a missing formatter) reappears.
+  and fails loudly if gci (or a missing formatter) reappears. The four
+  modules still red after the gci fix (pre-existing findings surfaced once
+  the noise cleared) were fixed: duplicate `encoding/json/v2` imports in
+  the metadata and record tests (ST1019), a scope-too-short variable name
+  in catalog (varnamelen), and a drifted `//nolint:contextcheck` comment
+  that no longer sat on the flagged line in pgengine's driver registration.
 
 ### Fixed — master-CI repair wave 2: FlakeHub, module discovery, go.work externals — 2026-09-03
 
