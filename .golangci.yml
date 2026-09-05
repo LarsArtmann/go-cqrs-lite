@@ -821,8 +821,15 @@ linters:
       - storage/view/
       - vendor/
 formatters:
+  # NOTE: gci intentionally NOT enabled. Import grouping (stdlib | rest |
+  # github.com/larsartmann/go-cqrs-lite) is owned by treefmt's goimports
+  # -local flag in flake.nix and enforced mechanically by CI's
+  # `nix fmt --fail-on-change` gate. Running gci here made the LINTER fight
+  # the FORMATTER over the same import blocks (re-broke 95+ files once) —
+  # one tool must own grouping, and it is the formatter. Re-enabling gci
+  # makes 366 treefmt-clean files fail `nix run .#verify` lint (seen
+  # 2026-09-05 after a config reformat silently re-added it).
   enable:
-    - gci
     - goimports
     - gofumpt
     - golines
