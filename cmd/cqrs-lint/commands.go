@@ -31,8 +31,19 @@ func registerCommand[F any](
 func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand(
 		"rules",
-		cmdguard.NoFlags{},
-		func(_ context.Context, cfg *AppConfig, _ cmdguard.NoFlags) error {
+		rulesFlags{},
+		func(_ context.Context, cfg *AppConfig, flags rulesFlags) error {
+			if flags.JSON {
+				out, err := renderRulesJSON()
+				if err != nil {
+					return fmt.Errorf("render rules json: %w", err)
+				}
+
+				fmt.Println(out)
+
+				return nil
+			}
+
 			out, err := renderRulesTable(parseColorMode(cfg.Color))
 			if err != nil {
 				return fmt.Errorf("render rules: %w", err)
@@ -46,6 +57,11 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "rules", cmd, err)
+}
+
+// rulesFlags carries the rules subcommand's output-format flag.
+type rulesFlags struct {
+	JSON bool `default:"false" flag:"json" help:"Emit the catalog as JSON for editor/tooling consumers"`
 }
 
 func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {

@@ -11,6 +11,7 @@ package main
 //     NO_COLOR/CI/FORCE_COLOR — do NOT reintroduce a hand-rolled terminal check.
 
 import (
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"slices"
@@ -234,4 +235,42 @@ func val(cond bool, ifTrue, ifFalse string) string {
 	}
 
 	return ifFalse
+}
+
+// ruleJSON is the editor/tooling view of one catalog entry, emitted by
+// `cqrs-lint rules --json`. Field names are stable API for consumers.
+type ruleJSON struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Category    string `json:"category"`
+	Severity    string `json:"severity"`
+	Confidence  string `json:"confidence"`
+	Description string `json:"description"`
+	AutoFix     bool   `json:"autoFix"`
+	DocURL      string `json:"docUrl,omitempty"`
+}
+
+func renderRulesJSON() (string, error) {
+	allRules := rules.AllRules()
+
+	entries := make([]ruleJSON, 0, len(allRules))
+	for _, r := range allRules {
+		entries = append(entries, ruleJSON{
+			ID:          r.ID,
+			Name:        r.Name,
+			Category:    r.Category,
+			Severity:    r.Severity,
+			Confidence:  r.Confidence,
+			Description: r.Description,
+			AutoFix:     r.AutoFix,
+			DocURL:      r.DocURL,
+		})
+	}
+
+	data, err := json.Marshal(entries)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
