@@ -91,7 +91,10 @@ func TestV007_TableEntriesHaveLiveMarkers(t *testing.T) {
 		if _, ok := v5StaleEntryAllowlist[key]; ok {
 			continue
 		}
-		stale = append(stale, fmt.Sprintf("%s.%s (no live v5 marker: symbol deleted, renamed, or unmarked)", s.fragment, s.symbol))
+		stale = append(
+			stale,
+			fmt.Sprintf("%s.%s (no live v5 marker: symbol deleted, renamed, or unmarked)", s.fragment, s.symbol),
+		)
 	}
 
 	if len(stale) > 0 {

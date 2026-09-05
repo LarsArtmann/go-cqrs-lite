@@ -54,14 +54,14 @@ var v5DriftAllowlist = map[v5MarkerKey]string{
 // survive v5. Methods are undetectable by V007 (it matches qualifier.Symbol
 // selectors only; a method call's receiver is a value, not a package).
 var v5DriftMethodAllowlist = map[v5MethodKey]string{
-	{"decider", "Repository", "Execute"}:        "pair-form forwarder removed at v5; use ExecuteRef",
-	{"decider", "Repository", "Load"}:           "pair-form forwarder removed at v5; use LoadRef",
-	{"decider", "Repository", "LoadAtVersion"}:  "pair-form forwarder removed at v5; use LoadAtVersionRef",
-	{"decider", "Repository", "LoadAtTime"}:     "pair-form forwarder removed at v5; use LoadAtTimeRef",
-	{"decider", "Repository", "WaitForVersion"}: "pair-form forwarder removed at v5; use WaitForVersionRef",
+	{"decider", "Repository", "Execute"}:             "pair-form forwarder removed at v5; use ExecuteRef",
+	{"decider", "Repository", "Load"}:                "pair-form forwarder removed at v5; use LoadRef",
+	{"decider", "Repository", "LoadAtVersion"}:       "pair-form forwarder removed at v5; use LoadAtVersionRef",
+	{"decider", "Repository", "LoadAtTime"}:          "pair-form forwarder removed at v5; use LoadAtTimeRef",
+	{"decider", "Repository", "WaitForVersion"}:      "pair-form forwarder removed at v5; use WaitForVersionRef",
 	{"decider", "TypedRepository", "ExecuteCommand"}: "pair-form forwarder removed at v5; use ExecuteCommandRef",
-	{"decider", "TypedRepository", "Load"}:      "pair-form forwarder removed at v5; use LoadRef",
-	{"metadata", "Metadata", "EnsureCustom"}:    "in-place mutation removed at v5 (ADR-0126); use WithCustom",
+	{"decider", "TypedRepository", "Load"}:           "pair-form forwarder removed at v5; use LoadRef",
+	{"metadata", "Metadata", "EnsureCustom"}:         "in-place mutation removed at v5 (ADR-0126); use WithCustom",
 }
 
 // v5StaleEntryAllowlist exempts table entries that have no live package-level
@@ -150,13 +150,13 @@ func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 		src, perr := parser.ParseFile(fset, path, nil, parser.ParseComments|parser.SkipObjectResolution)
 		if perr != nil {
 			failed = append(failed, path+": "+perr.Error())
-			return nil
+			return nil //nolint:nilerr // skip unparseable file, recorded in failed
 		}
 
 		rel, rerr := filepath.Rel(root, path)
 		if rerr != nil {
 			failed = append(failed, path+": "+rerr.Error())
-			return nil
+			return nil //nolint:nilerr // skip unrelativizable path, recorded in failed
 		}
 		frag := stripVersionSuffix(filepath.ToSlash(filepath.Dir(rel)))
 		posPrefix := rel
