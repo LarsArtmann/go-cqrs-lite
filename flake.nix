@@ -897,7 +897,9 @@
 
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
-            # bumps; check-depguard keeps the allow-list honest against go.mod.
+            # bumps; check-depguard keeps the allow-list honest against go.mod;
+            # check-formatters pins formatters.enable so a config reformat
+            # cannot silently resurrect gci (the treefmt-vs-golangci fight).
             check-lint-config =
               mkApp "check-lint-config" [ pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ]
                 ''
@@ -905,6 +907,8 @@
                   ${pkgs.golangci-lint}/bin/golangci-lint config verify --config "$PWD/.golangci.yml"
                   echo "==> depguard allow-list vs go.mod"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
+                  echo "==> formatters.enable pin (treefmt owns grouping)"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-formatters.sh"
                 '';
 
             # check-templ: templ codegen-drift gate — fails when a *_templ.go
