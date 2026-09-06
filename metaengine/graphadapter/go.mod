@@ -24,5 +24,6 @@ require (
 	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
+	modernc.org/libc v1.75.7 // indirect
 	modernc.org/sqlite v1.58.0 // indirect
 )

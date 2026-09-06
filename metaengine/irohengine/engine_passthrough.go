@@ -18,11 +18,14 @@ import (
 //
 //   - Closer: FORWARDED (engine.go) — Close shuts down transport first, then
 //     the local engine. Both halves always run.
-//   - MapUpdater, ScanBackend, VectorBackend, SearchBackend, SpatialBackend,
-//     graph dispatch: FORWARDED as local passthrough (this file). Reads are
-//     trivially safe; the write-shaped members (VectorInsert, SearchInsert,
-//     SpatialInsert, GraphAddEdge) do NOT replicate — the wire protocol has no
-//     WriteOp kinds for them; documented on each method.
+//   - MapUpdater, ScanBackend, VectorBackend, SearchBackend, SpatialBackend:
+//     FORWARDED as local passthrough (this file). Reads are trivially safe;
+//     the write-shaped members (VectorInsert, SearchInsert, SpatialInsert)
+//     do NOT replicate — the wire protocol has no WriteOp kinds for them;
+//     documented on each method and in Doctor's capability note.
+//   - graph dispatch: WRITES replicate (engine_graph.go — GraphAddEdge and
+//     GraphRemoveEdge publish per-edge LWW WriteOps); reads (GraphNeighbors,
+//     GraphNeighborsUndirected) forward as local passthrough (this file).
 //   - Transactional (RunInTx): DELIBERATELY NOT FORWARDED. A transaction that
 //     writes through the wrapper would replicate per-write (not atomically),
 //     and one that writes through the local engine would never replicate.
@@ -133,7 +136,7 @@ func (e *replicatedEngine) SpatialRange(
 	return nil, ErrSpatialBackendNotImplemented
 }
 
-// --- GraphBackend (local passthrough) ---
+// --- GraphBackend reads (local passthrough; writes live in engine_graph.go) ---
 
 // graphCapable mirrors metaengine's unexported graph dispatch contract
 // (ADR-0113). The canonical interface is deliberately unexported; this mirror
@@ -141,22 +144,6 @@ func (e *replicatedEngine) SpatialRange(
 type graphCapable interface {
 	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
 	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
-}
-
-// GraphAddEdge forwards to the local engine WITHOUT replication: the wire
-// protocol has no graph WriteOp kind yet, so edges added on one node do not
-// converge to peers. Profile() still declares the wrapped engine's graph
-// complexity, so the wrapper must forward the dispatch contract structurally —
-// graphadapter relies on HasGraphSupport detecting these methods.
-func (e *replicatedEngine) GraphAddEdge(
-	ctx context.Context,
-	collection string,
-	edge metaengine.Edge,
-) error {
-	if gb, ok := e.local.(graphCapable); ok {
-		return gb.GraphAddEdge(ctx, collection, edge)
-	}
-	return ErrGraphBackendNotImplemented
 }
 
 // GraphNeighbors forwards to the local engine. Reads never replicate.
@@ -184,18 +171,7 @@ type graphExtCapable interface {
 	) ([]any, error)
 }
 
-// GraphRemoveEdge forwards to the local engine WITHOUT replication (same
-// wire-protocol limitation as GraphAddEdge — edges do not converge).
-func (e *replicatedEngine) GraphRemoveEdge(
-	ctx context.Context,
-	collection string,
-	edge metaengine.Edge,
-) error {
-	if gx, ok := e.local.(graphExtCapable); ok {
-		return gx.GraphRemoveEdge(ctx, collection, edge)
-	}
-	return ErrGraphBackendNotImplemented
-}
+// GraphRemoveEdge replication lives in engine_graph.go (per-edge LWW).
 
 // GraphNeighborsUndirected forwards to the local engine. Reads never replicate.
 func (e *replicatedEngine) GraphNeighborsUndirected(

@@ -85,9 +85,10 @@ func nextOpID() string {
 //   - CounterIncrement (PN-Counter: per-author increments)
 //   - MultiAdd (OR-Set per key)
 //   - LogAppend (per-author append-only)
+//   - GraphAddEdge / GraphRemoveEdge (per-edge LWW register)
 //
-// Non-CRDT operations (MapUpdate, MapScan, Graph, Vector, Search, Spatial)
-// execute locally and do NOT replicate. This matches the CALM theorem constraint:
+// Non-CRDT operations (MapUpdate, MapScan, Vector, Search, Spatial) execute
+// locally and do NOT replicate. This matches the CALM theorem constraint:
 // only monotonic operations converge without coordination.
 func Replicated(local metaengine.Engine, opts ...Option) metaengine.Engine {
 	cfg := defaultConfig()

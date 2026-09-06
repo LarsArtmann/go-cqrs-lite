@@ -153,6 +153,12 @@ func (e *replicatedEngine) applyRemote(op WriteOp) {
 		if lb, ok := e.local.(metaengine.LogBackend); ok {
 			_ = lb.LogAppend(ctx, op.Collection, op.Value)
 		}
+
+	case OpGraphAddEdge:
+		e.applyRemoteGraphAdd(op)
+
+	case OpGraphRemoveEdge:
+		e.applyRemoteGraphRemove(op)
 	}
 }
 

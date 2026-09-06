@@ -10,12 +10,14 @@ import (
 type OpKind string
 
 const (
-	OpMapSet     OpKind = "map_set"
-	OpMapDelete  OpKind = "map_delete"
-	OpSetAdd     OpKind = "set_add"
-	OpCounterInc OpKind = "counter_increment"
-	OpMultiAdd   OpKind = "multi_add"
-	OpLogAppend  OpKind = "log_append"
+	OpMapSet          OpKind = "map_set"
+	OpMapDelete       OpKind = "map_delete"
+	OpSetAdd          OpKind = "set_add"
+	OpCounterInc      OpKind = "counter_increment"
+	OpMultiAdd        OpKind = "multi_add"
+	OpLogAppend       OpKind = "log_append"
+	OpGraphAddEdge    OpKind = "graph_add_edge"
+	OpGraphRemoveEdge OpKind = "graph_remove_edge"
 )
 
 // WriteOp is a CRDT-safe write operation envelope broadcast over the Transport.
@@ -23,6 +25,12 @@ const (
 // Each WriteOp carries enough information for a remote node to apply the same
 // mutation to its local engine. The Timestamp field implements last-writer-wins
 // (LWW) resolution for MapSet and MapDelete operations.
+//
+// Graph edge ops (OpGraphAddEdge, OpGraphRemoveEdge) carry the edge endpoints
+// in the existing fields: Key holds Edge.From, Value holds Edge.To. Edge
+// presence resolves per-edge by LWW — the same register semantics MapSet and
+// MapDelete use per key — so a remove with a newer timestamp than an add wins,
+// and a stale reordered add cannot resurrect a removed edge.
 //
 // ID uniquely identifies this op for delivery tracking and convergence measurement.
 // PublishedAt is set by the transport at the moment the op enters the network,
