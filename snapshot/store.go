@@ -24,12 +24,13 @@ import (
 //     written before the stamp existed; readers fall back to envelope or
 //     configured-codec detection for those.
 //
-// The JSON tags carry the historical v3 aggregate vocabulary; they are
-// renamed to honest stream names at v5 together with the on-disk migration
-// (see docs/planning/v5-deprecation-sweep.md).
+// The JSON tags carry the honest v5 stream vocabulary. Writers emit only
+// stream_id/stream_type; readers additionally accept the pre-v5
+// aggregateId/aggregateType spellings via the decode-only fallback in
+// wire.go (deleted at v6). See docs/planning/v5-deprecation-sweep.md.
 type Snapshot struct {
-	StreamID   id.StreamID     `json:"aggregateId"`
-	StreamType id.StreamType   `json:"aggregateType"`
+	StreamID   id.StreamID     `json:"stream_id"`
+	StreamType id.StreamType   `json:"stream_type"`
 	Version    event.Version   `json:"version"`
 	State      []byte          `json:"state"`
 	Encoding   record.Encoding `json:"encoding,omitempty"`

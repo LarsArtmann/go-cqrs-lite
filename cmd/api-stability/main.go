@@ -173,7 +173,7 @@ func collectAllModuleExports(modules []string, projectRoot string) ([]string, er
 			)
 		}
 
-		exps, err := collectExports(modPath)
+		exps, err := collectModuleExports(modPath)
 		if err != nil {
 			// Fail loudly: an unparseable module must never be mistaken for a
 			// legitimately-shrinking golden (corruption looks identical to

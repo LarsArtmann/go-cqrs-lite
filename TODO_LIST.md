@@ -137,41 +137,65 @@ and is **never** duplicated here. Historical session reports live under
 
 ## Metaengine — correctness & routing leftovers
 
-- [x] ~~dgraphengine graph parity (`GraphDepthBound`/`GraphDepth3Diamond`
-      cross-engine divergence)~~ FIXED 2026-08-30 (`eef6fa85d` + `6e62312eb`):
-      Dgraph `@recurse` counts node LEVELS, not hops — depth+1 requested for
-      depth>1; pinned by `TestDgraphGraph_RecurseDepthCountsHops`. Live suite
-      green. (Kept struck only to correct the previous stale open claim;
-      removed at the next pass.)
-- [ ] **Dgraph per-OP constants in per-ROW fields** — `NsPerFilteredScan`/
-      `NsPerScan` hold one-RPC per-OP numbers in per-ROW fields; recalibrate
-      only with result-size-scaled benches, never from a desk. (Flagged in
-      `docs/benchmarks/calibration-2026-08-30.md` + AGENTS ReadCosts gotcha.)
-      _(Effort: M)_
-- [ ] **Engines over-declaring `Supports` produce execution-time hard errors**
-      with no plan-time diagnostic or routing penalty (CapabilityAudit renders
-      a banner but is not a rule). _(Effort: M)_
-- [ ] **Graph BFS fallback dedups nodes by `fmt.Sprint`** — `int(1)` collides
-      with `"1"` on mixed-type nodes. _(Effort: S)_
-- [ ] **OnRecord folds returning Embedding/IndexedText/Point/MultiEntry/Append
-      receive an always-zero Record silently.** _(Effort: S)_
-- [ ] **Single-sourcing of calibrated constants** — expected per-pattern values
-      live in FOUR places (engine.go constants, routing-regression pins,
-      drift-script table, baseline doc); decide the canonical source (coupled
-      to the drift-gate redesign below). — source: session-6 §B4
-      _(Effort: S decision / M impl)_
-- [ ] **NsPerWrite/NetworkRTT "provably dead field" audit** — apply the
-      ReadCosts treatment (per-pattern benches or demote) to the write-side
-      profile fields. — source: archived/2026-08-29_18-38 §f47
-      _(Effort: M)_
-- [ ] **DuckDB + sqliteengine planned-table capability parity** — adopt
-      `KeyScanBackend` + backfill, `LayoutPlanEvolver` (sqlite: PRAGMA
-      table_info path), `PlannedTablesReporter` (Doctor row counts currently
-      pg/mysql only); matrix legs currently skip. — source: archived/2026-08-31_16-28 §f11–15
-      _(Effort: M)_
-- [ ] **MariaDB SKIP LOCKED re-evaluation** — MariaDB 11.8 status may have
-      changed; verify before relying on `ErrClaimingUnsupported`. — source: archived/2026-08-31_16-28 §f24
-      _(Effort: S)_
+- [x] ~~Dgraph per-OP constants in per-ROW fields~~ FIXED 2026-09-06:
+      `BenchmarkCalibration_DgraphScaled` (result sizes 100/1K/10K, live
+      ephemeral Dgraph 25.4.0) measured per-row slopes ~2.15-2.75 µs/row;
+      `NsPerScan`/`NsPerFilteredScan` re-shipped as 2_200 per-row (were
+      450_000/900_000 per-RPC totals — a 1K-row estimate was overstated
+      ~200-400x). Raw runs + slope table in
+      `docs/benchmarks/calibration-2026-08-30.md` §"Dgraph scaled-scan
+      recalibration".
+- [x] ~~Engines over-declaring `Supports` produce execution-time hard errors
+      with no plan-time diagnostic or routing penalty~~ FIXED 2026-09-06:
+      `planQuery` partitions candidates structurally (`engineServesADTNatively`
+      — backend implemented or declared degraded); honest engines always win,
+      over-declaring engines get a DEGRADED routing-exclusion diagnostic (or a
+      WARN when no honest alternative exists — last-resort routing preserved so
+      fallback-capable engines still serve). Pinned by
+      `planner_capability_test.go`; `universal_adt_test.go` native fake now
+      implements MapBackend to stay honest under the new contract.
+- [x] ~~Graph BFS fallback dedups nodes by `fmt.Sprint`~~ FIXED in commit
+      `ce98b2dda`: `typedNodeKey` prefixes the dynamic type
+      (`%[1]T:%[1]v`), so `int(1)` and `"1"` no longer collide.
+- [x] ~~OnRecord folds returning Embedding/IndexedText/Point/MultiEntry/Append
+      receive an always-zero Record silently~~ FIXED 2026-09-06: root cause is
+      `Store.Apply` synthesizing a Type-only Record (all fold kinds, not just
+      these five). Folds now carry a record-awareness marker;
+      `applyWithRecord` counts synthetic applies that reach record-aware
+      folds (one-time log via `Hooks.Logger`), Doctor renders a
+      "--- Record context ---" section, and `Apply`/`ApplyBatch`/`ApplyRecord`
+      docs state the contract. Pinned by `record_context_test.go`.
+- [x] ~~Single-sourcing of calibrated constants~~ DECIDED + DONE 2026-09-06:
+      the canonical source is each engine's `Profile().ReadCosts` — read LIVE
+      by `scripts/calibration-drift.sh` via the per-engine
+      `TestCalibrationConstantsDump` (`CALIB_DUMP=1`), replacing the
+      hand-copied table (verified lossless: all 16 dumped values matched the
+      old table exactly). The baseline doc is the dated measurement record.
+- [x] ~~NsPerWrite/NetworkRTT "provably dead field" audit~~ DONE 2026-09-06:
+      NetworkRTT is ALIVE (scan-read RTT amortization in `NsForRead`, what-if
+      planning, live probe). NsPerWrite is observability/calibration-only —
+      the routing cost model prices READS exclusively; field docs demoted
+      accordingly (engine.go, audited comment). Behavior deliberately
+      unchanged; wiring write cost into routing would be a feature, not an
+      audit fix.
+- [x] ~~DuckDB + sqliteengine planned-table capability parity~~ DONE
+      2026-09-06: both engines implement `KeyScanBackend` (paged key+value
+      over base meta_map), `LayoutPlanEvolver` (sqlite: PRAGMA table_info,
+      loud error on type drift — SQLite cannot ALTER COLUMN TYPE; duckdb:
+      information_schema + ALTER COLUMN TYPE), and `PlannedTablesReporter`
+      (Doctor row counts now cover all four SQL engines). Pinned by
+      `planned_parity*_test.go` in both modules; duckdb evolve avoids the
+      layoutMu self-deadlock via `applyLayoutPlanLocked`.
+- [x] ~~MariaDB SKIP LOCKED re-evaluation~~ VERIFIED + IMPLEMENTED 2026-09-06:
+      live probe on the userspace MariaDB 11.4.12 (:33061) — a transaction
+      holding row locks does NOT block a concurrent `FOR UPDATE SKIP LOCKED`
+      claim of the remaining rows (syntax + behavior). `NewClaimingMySQLStore`
+      now constructs a real claiming store (two-statement claim in-tx:
+      SELECT ... FOR UPDATE SKIP LOCKED + UPDATE by IDs — MariaDB lacks
+      UPDATE..FROM..RETURNING); `ErrClaimingUnsupported` only rejects unknown
+      dialects. Pinned by `mysql_claiming_integration_test.go` (build tag
+      `integration`, MYSQL_TEST_DSN) — TwoClaimersNoDoubleFire +
+      LeaseExpiryReclaims green against live 11.4.
 - [ ] **`errorfamily` code rename `aggregate_*` → `stream_*`** (v5 item) —
       with a dashboards/consumers note. — source: session-4 retro §f30, session-7 §f42
       _(Effort: M, v5)_
