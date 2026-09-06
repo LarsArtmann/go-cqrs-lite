@@ -2600,6 +2600,7 @@ metaengine/func ServeSSE
 metaengine/func ShouldMaterialize
 metaengine/func SortOn
 metaengine/func SortOnField
+metaengine/func SortPaginate
 metaengine/func SpatialExecuteTyped
 metaengine/func StoreTraceSink
 metaengine/func TopKNearest

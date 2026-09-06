@@ -14,6 +14,7 @@
 package badgerengine
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -232,19 +233,19 @@ func (e *badgerEngine) seedSeqCounters() error {
 		return nil
 	}
 
-	if err := e.seedPrefixSeqs("sl", &e.streamSeq); err != nil {
+	if err := e.seedPrefixSeqs("sl", &e.streamSeq, true); err != nil {
 		return fmt.Errorf("seed stream seqs: %w", err)
 	}
 
-	if err := e.seedPrefixSeqs("jl", &e.journalSeq); err != nil {
+	if err := e.seedPrefixSeqs("jl", &e.journalSeq, true); err != nil {
 		return fmt.Errorf("seed journal seqs: %w", err)
 	}
 
-	if err := e.seedPrefixSeqs("l", &e.logSeq); err != nil {
+	if err := e.seedPrefixSeqs("l", &e.logSeq, true); err != nil {
 		return fmt.Errorf("seed log seqs: %w", err)
 	}
 
-	if err := e.seedPrefixSeqs("mm", &e.mmSeq); err != nil {
+	if err := e.seedPrefixSeqs("mm", &e.mmSeq, false); err != nil {
 		return fmt.Errorf("seed multimap seqs: %w", err)
 	}
 
@@ -252,9 +253,11 @@ func (e *badgerEngine) seedSeqCounters() error {
 }
 
 // seedPrefixSeqs scans one keycodec tag prefix (e.g. "sl", "jl") and seeds the
-// target sync.Map to the max existing seq per group. The scan is O(N) in
-// existing keys — a one-time startup cost, mirroring pebbleengine's seeding.
-func (e *badgerEngine) seedPrefixSeqs(tag string, target *sync.Map) error {
+// target sync.Map to the max existing seq per group. With wholeGroup the group
+// is everything between tag and seq (sl uses "col\x00sid"); otherwise it is
+// only the first segment (mm and jl/l use the collection name). The scan is
+// O(N) in existing keys — a one-time startup cost, mirroring pebbleengine.
+func (e *badgerEngine) seedPrefixSeqs(tag string, target *sync.Map, wholeGroup bool) error {
 	prefix := []byte(tag + sep)
 
 	opts := badger.DefaultIteratorOptions
@@ -270,7 +273,7 @@ func (e *badgerEngine) seedPrefixSeqs(tag string, target *sync.Map) error {
 		for iter.Rewind(); iter.Valid(); iter.Next() {
 			key := iter.Item().KeyCopy(nil)
 
-			group, seq, ok := splitGroupAndSeq(key, tagLen)
+			group, seq, ok := splitGroupAndSeq(key, tagLen, wholeGroup)
 			if !ok {
 				continue
 			}
@@ -284,8 +287,9 @@ func (e *badgerEngine) seedPrefixSeqs(tag string, target *sync.Map) error {
 
 // splitGroupAndSeq parses a keycodec key ("<tag>\x00<group...>\x00<seq:020>")
 // into its group identifier and sequence. The seq is always the last 20
-// zero-padded digits, preceded by a NUL byte.
-func splitGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
+// zero-padded digits, preceded by a NUL byte. With wholeGroup the group spans
+// all segments between tag and seq; otherwise only the first segment.
+func splitGroupAndSeq(key []byte, prefixLen int, wholeGroup bool) (string, int64, bool) {
 	if len(key) < prefixLen+21 {
 		return "", 0, false
 	}
@@ -299,7 +303,15 @@ func splitGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
 		return "", 0, false
 	}
 
-	return string(key[prefixLen : len(key)-21]), seq, true
+	rest := key[prefixLen : len(key)-21]
+
+	if !wholeGroup {
+		if idx := bytes.IndexByte(rest, 0); idx >= 0 {
+			rest = rest[:idx]
+		}
+	}
+
+	return string(rest), seq, true
 }
 
 // seedSeqMax seeds a sync.Map (storing *atomic.Int64) to at least seq via a
