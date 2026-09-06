@@ -393,3 +393,45 @@ func TestComputeHealthScore_ProducesDifferentResultOnFilteredSet(t *testing.T) {
 
 	t.Errorf("filtered score (%d) should be higher than full score (%d)", filteredScore, fullScore)
 }
+
+// TestHealth_V007DeductionPolicy documents the health-score cost of V007
+// (v5-removed-api-usage), the headline v5-migration detector. Its catalog
+// severity is warning with high confidence, so each finding deducts
+// 2 points (warning deduction x 1.0 high-confidence weight) from the 100
+// baseline — visible in every health reading, but NOT fatal: even a
+// project riddled with removed-API calls cannot drop below the floor on
+// V007 alone unless the raw score goes negative, which the floor clamps
+// to 0. Consumers who want V007 to hurt more (block CI via --min-severity
+// error or a scorecard threshold) have the levers; the default stays
+// advisory per the v5-migration severity decision (plan ⛔Q2 default).
+func TestHealth_V007DeductionPolicy(t *testing.T) {
+	t.Parallel()
+
+	makeV007 := func() finding.Finding {
+		f, err := finding.NewBuilder("V007", "cqrs-lint",
+			"storage.NewRelationalStore is removed at v5",
+			finding.SeverityWarning,
+			finding.Position{File: "main.go", Line: 1, Column: 1}).
+			WithConfidence(finding.ConfidenceHigh).
+			Build()
+		if err != nil {
+			t.Fatalf("build V007 finding: %v", err)
+		}
+
+		return f
+	}
+
+	one := ComputeHealthScore([]finding.Finding{makeV007()})
+	if one.Score != 98 {
+		t.Fatalf("V007 must deduct exactly 2 points (warning x high confidence), got score %d", one.Score)
+	}
+
+	if got := one.Breakdown["warning V007"]; got != 2 {
+		t.Fatalf("breakdown[warning V007] = %d, want 2", got)
+	}
+
+	three := ComputeHealthScore([]finding.Finding{makeV007(), makeV007(), makeV007()})
+	if three.Score != 94 {
+		t.Fatalf("three V007 findings must deduct 6 points, got score %d", three.Score)
+	}
+}

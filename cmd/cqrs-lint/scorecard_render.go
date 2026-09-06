@@ -64,6 +64,17 @@ func renderScorecardText(result ScorecardResult, colorMode output.ColorMode) str
 		b.WriteString("\n")
 	}
 
+	// Deprecated-surface panel (V007/F030 — v5-readiness).
+	if result.Deprecated != nil {
+		b.WriteString("DEPRECATED SURFACES (v5-readiness)\n")
+		fmt.Fprintf(&b, "  v5-removed API uses:       %d\n", result.Deprecated.RemovedAPIUses)
+		fmt.Fprintf(&b, "  transport/http SSE uses:   %d\n", result.Deprecated.DeprecatedTransport)
+		if result.Deprecated.Suggestion != "" {
+			fmt.Fprintf(&b, "  → %s\n", result.Deprecated.Suggestion)
+		}
+		b.WriteString("\n")
+	}
+
 	// Used modules table.
 	if len(result.Used) > 0 {
 		b.WriteString("USED\n")
@@ -195,6 +206,15 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 		}
 		if result.Metaengine.Suggestion != "" {
 			fmt.Fprintf(&b, "\n_💡 %s_\n", result.Metaengine.Suggestion)
+		}
+	}
+
+	if result.Deprecated != nil {
+		b.WriteString("\n### Deprecated surfaces (v5-readiness)\n\n")
+		fmt.Fprintf(&b, "- **v5-removed API uses:** %d\n", result.Deprecated.RemovedAPIUses)
+		fmt.Fprintf(&b, "- **transport/http SSE uses:** %d\n", result.Deprecated.DeprecatedTransport)
+		if result.Deprecated.Suggestion != "" {
+			fmt.Fprintf(&b, "\n_💡 %s_\n", result.Deprecated.Suggestion)
 		}
 	}
 

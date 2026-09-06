@@ -30,13 +30,18 @@ and is **never** duplicated here. Historical session reports live under
 - [x] ~~T11 — V007 overhead measurement~~ DONE by follow-up session 2026-09-06: `docs/benchmarks/2026-09-06_cqrs-lint-v007-walltime.md` (verdict: below measurement noise).
 - [ ] **T13–T19 — rule audit batches:** RISK-BASED SAMPLE DONE 2026-09-06 (plan execution log): all C-family detector files read — one real bug found+fixed (C005 missed the `json.NewDecoder(bytes.NewReader(...))` idiom); empirical FP hunt over top-volume findings (C023/D006/D014/A032) — all correctly targeted. Severity/confidence meta-verified (T04); V007 coverage mechanized (T02 drift test). REMAINING (low-yield): exhaustive per-file checklist audits of A001–A034, B001–B031, D001–D019, E001–E017, S/T/V/F families. Only behind a green full gate. — source: 2026-09-06_02-40 §c
       _(Effort: M/L)_
-- [ ] **T20–T24 — subsystem reviews + design passes:** scanner/feature_profile,
-      CLI subsystem (doctor/health/scorecard/output), misc hardening
-      (`-shuffle=on` eval, `-race -count=3` on suppression/fix, preset V007
-      pins), design passes (`v5-ready` preset severity escalation ⛔Q2,
-      dot-import detection scope, typed-info integration for the
-      C008/C035 FP class), sibling link checks (go-sse/cqrs-htmx, docserver-CSS
-      drift root cause). — source: 2026-09-06_02-40 §c
+- [ ] **T20–T24 — subsystem reviews + design passes:** PARTIALLY DONE 2026-09-06.
+      DONE: T22 shuffle/race evals (3 shuffled seeds + `-race -count=3` on
+      suppression/fix, green — independently confirmed by two sessions; one
+      apparent failure was a mid-landing transient with `d341d95bd`, re-run
+      green); T23 design passes recorded
+      (`docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`: v5-ready
+      preset, dot-import detection, typed-info integration) + preset
+      deprecated-surface policy with V007/F030 pins locked by policy test;
+      sibling link checks (F092, session-3 log: go-sse v0.3.0+ /
+      cqrs-htmx v4.9.0+ path-accurate). REMAINING: scanner/feature_profile
+      split (T20), CLI subsystem file reviews (T21: doctor/health/scorecard/
+      output). — source: 2026-09-06_02-40 §c
       _(Effort: M)_
 - [ ] **Release-policy Q3: severity tightening in a minor.** S008/S009 now
       emit `error` (were `warning`); consumers using `--min-severity error` or
@@ -58,12 +63,23 @@ and is **never** duplicated here. Historical session reports live under
       pass (type-impl detection or a module-level capability registry fed from
       api-stability's scan) before implementation. — source: session-4 retro §f25
       _(Effort: M)_
-- [ ] **16 non-test linter files exceed the 350-line limit** (catalog_extra.go
-      1207, catalog.go 746, architecture/helpers.go 628, feature_profile.go
-      587, explain.go 517, …). Split by rule family or document an explicit
-      table-catalog exemption in the size check — today the limit is silently
-      unenforced for cmd/. — source: cqrs-lint deep review 2026-09-05
-      _(Effort: M)_
+- [ ] **350-line limit: enforced but silently red repo-wide — needs split
+      waves + a gate-policy decision.** VERIFIED 2026-09-06: the gate IS wired
+      (CI `file-size-gate` + `nix run .#check-file-size`) but 56 non-test
+      files exceed it (metaengine ~15: typed_reader.go 1127, adttest 935,
+      enginetest 935, store.go 898, execute.go 767, engines 724/722/694/650;
+      cqrs-lint remainder: architecture/helpers.go 627, feature_profile.go
+      587, suppression/parser.go 540, explain.go 516, b022_b025.go 493, …) and
+      it has been red since ≈2026-08-08 — unnoticed because red non-required
+      jobs don't block direct pushes (F040). DONE: the pure table-catalog
+      offenders are split (`pkg/rules/catalog.go` + `catalog_extra.go` → 12
+      per-family files, largest 294 lines; rule data unchanged, 204-count +
+      RULES.md freshness tests green). REMAINING: code-file splits need careful
+      manual extraction (NOT mechanical) — or the owner picks a gate policy:
+      full split vs baseline ratchet (no file grows, no new offender) vs
+      table-catalog exemption. — source: cqrs-lint deep review 2026-09-05 +
+      2026-09-06 verification
+      _(Effort: L)_
 
 ---
 

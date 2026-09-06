@@ -26,7 +26,7 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand(
 		"scorecard",
 		scorecardFlags{},
-		func(_ context.Context, cfg *AppConfig, flags scorecardFlags) error {
+		func(ctx context.Context, cfg *AppConfig, flags scorecardFlags) error {
 			actx, err := analyzer.BuildContext(cfg.Path)
 			if err != nil {
 				return fmt.Errorf("load packages: %w", err)
@@ -43,6 +43,7 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 				analyzer.DefaultCatalog, usage,
 				actx.FeatureProfile, cfg.Preset,
 			)
+			result.Deprecated = ComputeDeprecatedPanel(actx)
 
 			out, err := renderScorecard(result, flags.Format, parseColorMode(flags.Color))
 			if err != nil {

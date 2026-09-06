@@ -375,6 +375,7 @@ cmd/cqrs-bench/struct RunFlags
 cmd/cqrs-bench/struct SweepFlags
 cmd/cqrs-gen/struct AppConfig
 cmd/cqrs-gen/struct Entry
+cmd/cqrs-lint/func ComputeDeprecatedPanel
 cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
 cmd/cqrs-lint/func ComputeScorecard
@@ -383,6 +384,7 @@ cmd/cqrs-lint/struct AppConfig
 cmd/cqrs-lint/struct HealthConfig
 cmd/cqrs-lint/struct HealthScore
 cmd/cqrs-lint/struct JSONCLoader
+cmd/cqrs-lint/struct ScorecardDeprecated
 cmd/cqrs-lint/struct ScorecardMetaengine
 cmd/cqrs-lint/struct ScorecardModule
 cmd/cqrs-lint/struct ScorecardResult
@@ -1877,6 +1879,8 @@ metaengine/interface VectorFilterBackend
 metaengine/interface VersionedStorage
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const OpCounterInc
+metaengine/irohengine/const OpGraphAddEdge
+metaengine/irohengine/const OpGraphRemoveEdge
 metaengine/irohengine/const OpLogAppend
 metaengine/irohengine/const OpMapDelete
 metaengine/irohengine/const OpMapSet

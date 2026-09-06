@@ -10,8 +10,17 @@ import (
 
 // lyingEngine declares ADTs natively without implementing any backend —
 // the over-declaration the capability-aware router penalizes.
-func lyingEngine(name string) *fakeEngine {
-	return &fakeEngine{profile: EngineProfile{
+type lyingEngine struct {
+	profile EngineProfile
+}
+
+func (e *lyingEngine) Profile() EngineProfile { return e.profile }
+func (e *lyingEngine) Close() error           { return nil }
+
+var _ Engine = (*lyingEngine)(nil)
+
+func newLyingEngine(name string) *lyingEngine {
+	return &lyingEngine{profile: EngineProfile{
 		Name: name,
 		Supports: map[ADT]Complexity{
 			ADTMap: ComplexityO1,
@@ -38,7 +47,7 @@ func TestPlan_OverDeclaredEngineExcluded(t *testing.T) {
 	t.Parallel()
 
 	honest := NewMemoryEngine()
-	store, err := Plan([]Engine{lyingEngine("liar"), honest}, capabilityQuery())
+	store, err := Plan([]Engine{newLyingEngine("liar"), honest}, capabilityQuery())
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -68,7 +77,7 @@ func TestPlan_OverDeclaredEngineExcluded(t *testing.T) {
 func TestPlan_OverDeclaredEngineWarnedWhenOnly(t *testing.T) {
 	t.Parallel()
 
-	liar := lyingEngine("liar")
+	liar := newLyingEngine("liar")
 	store, err := Plan([]Engine{liar}, capabilityQuery())
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
