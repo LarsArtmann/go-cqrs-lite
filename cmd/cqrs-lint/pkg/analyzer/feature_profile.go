@@ -370,6 +370,9 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 			//
 			// Note: F009 and S007 already self-skip under Server=false, so they
 			// are not listed here to avoid redundant disables.
+			// V007/F030: a library legitimately references surfaces that v5
+			// removes (backward-compat re-exports, deprecated shells) while v4
+			// still ships them — parity with IsLibrarySelfLint for in-repo code.
 			Disable: []string{
 				"E003",
 				"E016", // architecture: domain-package mixing
@@ -383,8 +386,10 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 				"F024",
 				"F025",
 				"F026", // metaengine coaching (consumer's deployment choice)
+				"F030", // deprecated transport/http adoption (consumer's choice)
 				"S002",
 				"S003", // security middleware (consumer wires it)
+				"V007", // v5-removed-API self-reference (compat surface)
 			},
 		},
 	},
@@ -404,14 +409,16 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 			// Same disables as PresetLibrary, PLUS every F-series rule.
 			// A framework provides building blocks but cannot dictate how
 			// consumers adopt them — all adoption coaching is noise.
+			// V007 likewise: a framework carries backward-compat surfaces.
 			Disable: []string{
 				"E003", "E016",
 				"F001", "F002", "F003", "F004", "F005", "F006", "F007",
 				"F008", "F009", "F010", "F011", "F012", "F013", "F014",
 				"F015", "F016", "F017", "F018", "F019", "F020", "F021",
 				"F022", "F023", "F024", "F025", "F026", "F027", "F028",
-				"F029",
+				"F029", "F030",
 				"S002", "S003",
+				"V007",
 			},
 		},
 	},
