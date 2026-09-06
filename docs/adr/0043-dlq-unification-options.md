@@ -240,4 +240,4 @@ replay semantics.
 
 - ADR-0042 (pure replay design — the projectionhost side of this story)
 - `middleware/deadletter.go`, `projectionhost/dlq.go`
-- Plan C3 in `docs/planning/2026-06-29_brutal-self-review-execution-plan.md`
+- Plan C3 in `docs/planning/archived/2026-06-29_brutal-self-review-execution-plan.md`

@@ -15,6 +15,15 @@ same session) moved all 2026-07 status (240 files) and planning (52 files)
 snapshots to `archived/` — July work is shipped or superseded by the August
 waves; inbound references from active docs were repointed.
 
+**2026-09-06 passes (two):** the morning pass archived 83 files (25 status
+reports 08-27→09-06, 8 plans + 16 artifacts, 5 reviews, 23 feedback) and
+rebuilt TODO_LIST (817→452 lines). The evening pass harvested + inline-
+annotated all ten 2026-09-06 session reports (02:40→15:09) plus the cqrs-lint
+pareto plan (79 table rows struck), archived them (11 files), added the
+missing CHANGELOG `[Unreleased]` wave entries, and extended FEATURES/ROADMAP.
+New reports land here unarchived; the next docs-health pass harvests their
+forward-looking sections into TODO_LIST/ROADMAP, then archives them.
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves

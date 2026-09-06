@@ -78,5 +78,5 @@ the caller choosing whether to commit the result.
 ## References
 
 - Original bug fix: commit `9fda1454`
-- Plan entry: S5 in `docs/planning/2026-06-29_brutal-self-review-execution-plan.md`
+- Plan entry: S5 in `docs/planning/archived/2026-06-29_brutal-self-review-execution-plan.md`
 - Related: ADR-0043 (DLQ unification options) — deferred, pending user decision

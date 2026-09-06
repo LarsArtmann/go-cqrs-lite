@@ -214,13 +214,16 @@ work in waves (`dea5a1bbd` = 190 files); I authored no commits myself.
 1. Author ONE descriptive commit for the docs-health wave (or confirm the
    daemon's `chore: auto-commit 190` is acceptable history) — per-file
    attribution for the archive wave currently reads as noise.
-2. Update `docs/status/README.md` lane contract with the 2026-09-06 pass
-   (counts, active remainder, archive rule).
+2. ~~Update `docs/status/README.md` lane contract with the 2026-09-06 pass
+   (counts, active remainder, archive rule).~~ done by the evening pass
+   (same day).
 3. Post-hoc 5% verdict spot-check of the 83 archived files (read 4–5 at
    random, confirm no untracked-open item was lost; revert any miss).
-4. Prose-citation sweep of `.agents/skills/go-cqrs-lite/references/*.md`
+4. ~~Prose-citation sweep of `.agents/skills/go-cqrs-lite/references/*.md`
    for now-archived `docs/status|planning/2026-*` paths mentioned in prose
-   (doc-check validates import paths, not prose directions).
+   (doc-check validates import paths, not prose directions).~~ partially
+   done by the evening pass (irohengine `WithReplay` fiction removed from
+   modules.md; watermark skew caveat added to advanced.md §CatchUp).
 5. Fix ADR-0042/0043's dead link to
    `docs/planning/2026-06-29_brutal-self-review-execution-plan.md`
    (find the real target under `archived/` or annotate as unresolved).
