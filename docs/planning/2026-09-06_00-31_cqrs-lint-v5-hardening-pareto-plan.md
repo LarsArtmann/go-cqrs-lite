@@ -33,14 +33,14 @@ but modernize their code anyway.
 
 | #   | Task                                                                                                                           | Tier     | Effort | Impact | Cust. value | Depends on    |
 | --- | ------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ | ------ | ----------- | ------------- |
-| T01 | Cut + push `cmd/cqrs-lint` v4.9.0 (pins, standalone matrix, tag, install check) ⛔Q1 default: now                              | 1%       | 60m    | H      | H           | T02           |
-| T02 | V007 drift meta-test: repo `Deprecated:` markers ↔ tables, + negative tests (`stack/bench` etc.)                               | 4%       | 45m    | H      | M           | —             |
-| T03 | Examples modernization: `getting-started` off `stack.NewMaterialize`; survey other 3 ⛔Q3 default: keep suppression            | 4%       | 90m    | H      | H           | —             |
-| T04 | Severity/confidence-vs-catalog meta-test (constructor-body parser + allowlist) + fix mismatches found                          | 20%      | 60m    | H      | M           | —             |
-| T05 | Suppression parser robustness tail: 2 directives/line, space normalization, `/* */` model, unmatched-end warn                  | 20%      | 60m    | M      | M           | —             |
-| T06 | Fix-provider unification: single edit spec, Metadata-only CanHandle, `--fix` E2E pipeline test                                 | 20%      | 45m    | M      | M           | —             |
-| T07 | lintutil convergence: dot-import semantics, dead exports, `/v10+` suffix, path-based denylist                                  | 20%      | 45m    | M      | L           | —             |
-| T08 | Dead links: `RULES.md` stub with anchors + V007 DocURLs → ADR anchors (SARIF help URIs)                                        | 20%      | 30m    | M      | M           | —             |
+| T01 | Cut + push `cmd/cqrs-lint` v4.9.0 (pins, standalone matrix, tag, install check) ⛔Q1 default: now                              | 1%       | 60m    | H      | H           | T02 — **DONE at `dece8ccab` + tag `cmd/cqrs-lint/v4.9.0` (deviation: F011's CHANGELOG stamp landed BEFORE the tag so the tag carries it)** |
+| T02 | V007 drift meta-test: repo `Deprecated:` markers ↔ tables, + negative tests (`stack/bench` etc.)                               | 4%       | 45m    | H      | M           | — **DONE at `1e12d7e8d` (attribution shredded by daemon commits 5c246ea56/eae55e0f8/7711bf0b6)** |
+| T03 | Examples modernization: `getting-started` off `stack.NewMaterialize`; survey other 3 ⛔Q3 default: keep suppression            | 4%       | 90m    | H      | H           | — **DONE at `dece8ccab` (+ daemon f03ebaaa6/e3105d91b)** |
+| T04 | Severity/confidence-vs-catalog meta-test (constructor-body parser + allowlist) + fix mismatches found                          | 20%      | 60m    | H      | M           | — **DONE at `fbb10c0bb` (14 split-brains fixed)** |
+| T05 | Suppression parser robustness tail: 2 directives/line, space normalization, `/* */` model, unmatched-end warn                  | 20%      | 60m    | M      | M           | — **DONE at `ebfb5bc17` (inverted test assertion fixed in `0e74e2296`)** |
+| T06 | Fix-provider unification: single edit spec, Metadata-only CanHandle, `--fix` E2E pipeline test                                 | 20%      | 45m    | M      | M           | — **DONE (provider layer; the E2E half is BLOCKED-ON-UPSTREAM go-finding pipeline — see F031)** |
+| T07 | lintutil convergence: dot-import semantics, dead exports, `/v10+` suffix, path-based denylist                                  | 20%      | 45m    | M      | L           | — **DONE at `0e74e2296`** |
+| T08 | Dead links: `RULES.md` stub with anchors + V007 DocURLs → ADR anchors (SARIF help URIs)                                        | 20%      | 30m    | M      | M           | — **FAILED first pass — generator quoting bug, no artifact produced (status 2026-09-06 02:40 §b1); still open** |
 | T09 | CI: self-lint gate + examples lint matrix + required-check wiring + V007 demo capture                                          | 20%      | 45m    | M      | M           | T01           |
 | T10 | Rule-ID gap documentation (A028, A031, P002–P005, S004, D004) + `rules --json` V007 metadata check                             | 20%      | 30m    | L      | L           | —             |
 | T11 | V007 runtime overhead measurement + record in `docs/benchmarks/`                                                               | 20%      | 30m    | L      | L           | —             |
@@ -75,7 +75,7 @@ dropped.
 | F008 | `GOWORK=off` standalone build + `go test -run ZZNONE` matrix for the module                           | 12  | T01    |
 | F009 | `scripts/tag-release.sh` cut v4.9.0 (annotated); post-bump assert + clean install check               | 12  | T01    |
 | F010 | Push tag; `go install …/cmd/cqrs-lint/v4@latest`; verify `--version` + 204 rules                      | 12  | T01    |
-| F011 | Stamp CHANGELOG release section for v4.9.0; changelog-symbols gate                                    | 12  | T01    |
+| F011 | Stamp CHANGELOG release section for v4.9.0; changelog-symbols gate                                    | 12  | T01 — **DONE early (before the tag, deliberate reorder)** |
 | F012 | Survey all 4 examples for v5-removed usage; write inventory into plan appendix                        | 12  | T03    |
 | F013 | `getting-started`: design smallest honest rewrite off `Materialize` (metaengine auto-projection)      | 12  | T03    |
 | F014 | Implement rewrite part 1: imports, store wiring, bundle→system swap                                   | 12  | T03    |
@@ -95,7 +95,7 @@ dropped.
 | F028 | Update suppression docs in `main.go` long-help + README                                               | 12  | T05    |
 | F029 | Unify edit spec: `HasCodeChange` consults Metadata; `CanHandle` accepts either source                 | 12  | T06    |
 | F030 | Metadata-only round-trip test                                                                         | 12  | T06    |
-| F031 | E2E: `cqrs-lint --fix` on temp fixture; assert correct occurrence edited                              | 12  | T06    |
+| F031 | E2E: `cqrs-lint --fix` on temp fixture; assert correct occurrence edited                              | 12  | T06 — **BLOCKED-ON-UPSTREAM: --fix writes nothing through go-finding/pipeline@v1.6.0; provider unit-proven (status 2026-09-06 02:40 §b2)** |
 | F032 | Converge dot-import semantics (drop branch or return `(path, dotted)`); update call sites             | 12  | T07    |
 | F033 | Unexport/remove `ImportQualifierMap`, `SelectorIdent`; fix tests                                      | 12  | T07    |
 | F034 | `lastSegment`: strip `/v10`+ suffixes; test                                                           | 12  | T07    |
