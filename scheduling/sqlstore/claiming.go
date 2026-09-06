@@ -156,9 +156,9 @@ func (c *ClaimingTimerStore[P]) Due(
 				err, "scheduling.sqlstore.claim", "claim due timers")
 		}
 
-		timers, joinErr = c.scanClaimed(rows)
+		defer func() { _ = rows.Close() }()
 
-		_ = rows.Close()
+		timers, joinErr = c.scanClaimed(rows)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -321,14 +321,18 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 
 	var args []any
 
-	if c.dialect == DialectPostgres {
+	switch c.dialect {
+	case DialectPostgres:
 		query = `UPDATE timers SET lease_until = $1 WHERE id = $2 AND lease_until > $3`
 		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
-	} else if c.dialect == DialectMySQL {
+	case DialectMySQL:
 		// MySQL has no ordinal ?N placeholders — plain ? only.
 		query = `UPDATE timers SET lease_until = ? WHERE id = ? AND lease_until > ?`
 		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
-	} else {
+	case DialectSQLite:
+		query = `UPDATE timers SET lease_until = ?1 WHERE id = ?2 AND lease_until > ?3`
+		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
+	default:
 		query = `UPDATE timers SET lease_until = ?1 WHERE id = ?2 AND lease_until > ?3`
 		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
 	}

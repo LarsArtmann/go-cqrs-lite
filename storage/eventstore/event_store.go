@@ -49,6 +49,12 @@ func newSQLEventStoreWithDialect(db *sql.DB, d sqlpkg.Dialect) (*SQLEventStore, 
 	return &SQLEventStore{OwnedDBHandle: handle}, nil
 }
 
+// EventSchema returns the PostgreSQL DDL for the events table.
+func EventSchema() string { return sqlpkg.PostgresDialect{}.EventSchema() }
+
+// SQLiteEventSchema returns the SQLite DDL for the events table.
+func SQLiteEventSchema() string { return sqlpkg.SQLiteDialect{}.EventSchema() }
+
 // cqrs-lint:ignore(A021) library code or intentional pattern
 func (s *SQLEventStore) checkClosed() error {
 	return s.CheckClosed(sqlpkg.ErrClosed)

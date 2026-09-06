@@ -45,7 +45,7 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				emittedSet[t] = true
 			}
 
-			foldCases := collectFoldCasesWithPos(ctx)
+			foldCases := ctx.CollectFoldCasesWithPos()
 			if len(foldCases) == 0 {
 				return nil, nil
 			}
@@ -88,67 +88,4 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-type foldCaseInfo struct {
-	Value    string
-	FoldName string
-	File     string
-	Pos      token.Position
-}
-
-// collectFoldCasesWithPos walks all fold functions and extracts case clause
-// string literals with their positions. This is the position-aware variant of
-// C038's collectFoldCaseStrings — C040 needs positions to report findings at
-// the case clause location.
-func collectFoldCasesWithPos(ctx *analyzer.AnalysisContext) []foldCaseInfo {
-	var cases []foldCaseInfo
-
-	for _, fold := range ctx.Registry.Folds {
-		for _, gf := range ctx.GoFiles {
-			if gf.Path != fold.File || gf.IsTest {
-				continue
-			}
-
-			ast.Inspect(gf.AST, func(n ast.Node) bool {
-				fn, ok := n.(*ast.FuncDecl)
-				if !ok || fn.Name == nil {
-					return true
-				}
-
-				if fn.Name.Name != fold.FuncName {
-					return true
-				}
-
-				ast.Inspect(fn.Body, func(nn ast.Node) bool {
-					sw, ok := nn.(*ast.SwitchStmt)
-					if !ok {
-						return true
-					}
-
-					for _, stmt := range sw.Body.List {
-						cc, ok := stmt.(*ast.CaseClause)
-						if !ok || cc.List == nil {
-							continue
-						}
-
-						for _, expr := range cc.List {
-							if s := analyzer.StringLit(expr); s != "" {
-								cases = append(cases, foldCaseInfo{
-									Value:    s,
-									FoldName: fold.FuncName,
-									File:     fold.File,
-									Pos:      ctx.Fset.Position(expr.Pos()),
-								})
-							}
-						}
-					}
-
-					return true
-				})
-
-				return true
-			})
-		}
-	}
-
-	return cases
-}
+type foldCaseInfo = analyzer.FoldCaseInfo

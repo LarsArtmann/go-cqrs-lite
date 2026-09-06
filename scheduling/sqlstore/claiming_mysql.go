@@ -39,9 +39,17 @@ FOR UPDATE SKIP LOCKED`, c.formatTime(now), c.formatTime(now))
 			err, "scheduling.sqlstore.claim", "claim due timers")
 	}
 
-	timers, joinErr := c.scanClaimed(rows)
+	timers, joinErr := func() ([]scheduling.Timer[P], error) {
+		defer func() { _ = rows.Close() }()
 
-	_ = rows.Close()
+		t, jerr := c.scanClaimed(rows)
+		if jerr == nil {
+			jerr = errorfamily.WrapInfrastructure(
+				rows.Err(), "scheduling.sqlstore.claim_iter", "iterate claimed timers")
+		}
+
+		return t, jerr
+	}()
 
 	if len(timers) > 0 {
 		ids := make([]string, len(timers))
@@ -69,11 +77,13 @@ func stampLeaseMySQL(
 ) error {
 	args := make([]any, 0, len(ids)+1)
 	args = append(args, leaseUntil)
+
 	for _, id := range ids {
 		args = append(args, id)
 	}
 
-	query := "UPDATE timers SET lease_until = ? WHERE id IN (" +
+	// Concatenation builds ONLY "?" placeholders; ids are bound args.
+	query := "UPDATE timers SET lease_until = ? WHERE id IN (" + //nolint:gosec // placeholders only, ids bound
 		strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",") + ")"
 
 	if _, err := tx.ExecContext(ctx, query, args...); err != nil {

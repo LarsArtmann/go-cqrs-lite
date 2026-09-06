@@ -164,14 +164,17 @@ func TestWire_CBORRoundTripAndLegacyKeys(t *testing.T) {
 	// Pre-v5 CBOR bytes carry the aggregateId/aggregateType keys; the
 	// decode-only fallback must restore the identity.
 	legacy, err := codec.CBOREncMode().Marshal(struct {
-		StreamID   string          `json:"aggregateId"`
+		StreamID   []byte          `json:"aggregateId"`
 		StreamType string          `json:"aggregateType"`
 		Version    int             `json:"version"`
 		State      []byte          `json:"state"`
 		Encoding   record.Encoding `json:"encoding,omitempty"`
 		CreatedAt  time.Time       `json:"createdAt"`
 	}{
-		StreamID:   want.StreamID.String(),
+		// StreamID encodes as a CBOR byte string: pre-v5 writers serialized
+		// id.StreamID through its BinaryMarshaler, and that byte-string form
+		// is what snapshotWireLegacy must decode.
+		StreamID:   []byte(want.StreamID.String()),
 		StreamType: string(want.StreamType),
 		Version:    want.Version.Int(),
 		State:      want.State,

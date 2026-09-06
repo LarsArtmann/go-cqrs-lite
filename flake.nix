@@ -1392,9 +1392,13 @@
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=12m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
-                  echo "=== Check Depguard ===" && nix run .#check-depguard && \
+                  # check-lint-config is the superset of check-depguard: config
+                  # verify + depguard allow-list + formatters.enable pin.
+                  echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
                   echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Templ ===" && nix run .#check-templ && \
+                  echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
@@ -1414,9 +1418,13 @@
                   echo "=== Race (short) ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -short -race -count=1 -timeout=10m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
-                  echo "=== Check Depguard ===" && nix run .#check-depguard && \
+                  # check-lint-config is the superset of check-depguard: config
+                  # verify + depguard allow-list + formatters.enable pin.
+                  echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
                   echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Templ ===" && nix run .#check-templ && \
+                  echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "✅ All fast verification checks passed (soak tests skipped)"
