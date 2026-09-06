@@ -95,7 +95,9 @@ func f() {}
 
 	f := makeFinding(path, 6, "C001")
 	if !checkBlockSuppressionInFile(newLineCache(), f) {
-		t.Error("block suppression should not apply — the directive lines are inside a /* */ comment")
+		t.Error(
+			"block suppression should not apply — the directive lines are inside a /* */ comment",
+		)
 	}
 }
 

@@ -268,7 +268,6 @@ func TestCQRSFixProvider_MetadataOnlyRoundTrip(t *testing.T) {
 		"C006", "cqrs-lint", "manual version arithmetic",
 		finding.SeverityWarning, finding.Pos("test.go", 4, 1),
 	).
-		WithFixStrategy(finding.FixStrategyDirect).
 		WithMetadata(map[string]string{
 			"oldExpr": "event.Version(version.Int()+1)",
 			"newExpr": "version.Increment()",
@@ -281,6 +280,11 @@ func TestCQRSFixProvider_MetadataOnlyRoundTrip(t *testing.T) {
 	if f.HasCodeChange() {
 		t.Fatal("precondition: BeforeCode/AfterCode are empty")
 	}
+
+	// Note: go-finding validation forbids FixStrategyDirect without
+	// Before/AfterCode, so the pipeline's HasFix() gate stays code-change
+	// driven. CanHandle/Edits accept the Metadata source as defense-in-depth
+	// for direct callers of the provider.
 
 	if !provider.CanHandle(f) {
 		t.Fatal("CanHandle must accept a Metadata-only fix source")

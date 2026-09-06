@@ -83,7 +83,7 @@ was silently broken before any of my changes).
 1. **"Every file visited" claim** — the full-code-review skill mandates
    visiting every file; in reality I deep-read ~25–30 files (entry points,
    catalogs, registration, suppression, fix, version/api rule paths) and
-   *surveyed* the rest by line count, structure, and targeted grep. The stat
+   _surveyed_ the rest by line count, structure, and targeted grep. The stat
    card in my HTML report says "360 Go files reviewed" — that is an overclaim
    and should read "surveyed". Roughly 200+ individual rule detector
    implementations were NOT individually reviewed; a detector with a logic bug

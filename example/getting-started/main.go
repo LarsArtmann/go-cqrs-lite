@@ -92,13 +92,15 @@ type CounterView struct {
 // updates existing views. metaengine picks the right one per event.
 func counterProjection() ([]system.ProjectionDeclaration, *projectionadapter.TypeDecoder) {
 	query := metaengine.Query[counterLookup, CounterView](counterCollection,
-		metaengine.OnRecordTyped(string(evtIncremented),
+		metaengine.OnRecordTyped(
+			string(evtIncremented),
 			projectionadapter.EventWithID[IncrementedPayload]{},
 			func(_ record.Record, e projectionadapter.EventWithID[IncrementedPayload]) (string, CounterView) {
 				return e.ID, CounterView{Value: e.Payload.Amount}
 			},
 		),
-		metaengine.OnRecordTyped(string(evtIncremented),
+		metaengine.OnRecordTyped(
+			string(evtIncremented),
 			projectionadapter.EventWithID[IncrementedPayload]{},
 			func(_ record.Record, e projectionadapter.EventWithID[IncrementedPayload], prev CounterView) CounterView {
 				prev.Value += e.Payload.Amount
@@ -168,7 +170,11 @@ func buildSystem(ctx context.Context, dsn string) (*system.System, error) {
 // runPipeline starts the projection host (it replays the journal, then
 // follows live), dispatches the increments, and reads the projected view,
 // polling until the projection catches up.
-func runPipeline(ctx context.Context, sys *system.System, counterID id.StreamID) (CounterView, error) {
+func runPipeline(
+	ctx context.Context,
+	sys *system.System,
+	counterID id.StreamID,
+) (CounterView, error) {
 	hostCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -180,7 +186,8 @@ func runPipeline(ctx context.Context, sys *system.System, counterID id.StreamID)
 			return CounterView{}, err
 		}
 
-		if err := sys.CommandDispatcher().Dispatch(ctx, IncrementCmd{BasicCommand: bc, Amount: amt}); err != nil {
+		if err := sys.CommandDispatcher().
+			Dispatch(ctx, IncrementCmd{BasicCommand: bc, Amount: amt}); err != nil {
 			return CounterView{}, err
 		}
 	}
@@ -200,7 +207,12 @@ func runPipeline(ctx context.Context, sys *system.System, counterID id.StreamID)
 		}
 
 		if time.Now().After(deadline) {
-			return CounterView{}, fmt.Errorf("%w: got %+v (found=%t)", errProjectionConvergence, view, found)
+			return CounterView{}, fmt.Errorf(
+				"%w: got %+v (found=%t)",
+				errProjectionConvergence,
+				view,
+				found,
+			)
 		}
 
 		time.Sleep(projectionPollInterval)

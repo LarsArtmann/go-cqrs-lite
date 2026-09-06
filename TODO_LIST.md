@@ -195,17 +195,17 @@ and is **never** duplicated here.
   pull requires auth) removed. (i) FIXED: Docker Build job built the
   DELETED `./example/user` (9-examples consolidation; no Dockerfile remains
   in the repo) — job removed. (j) ASSESSED 2026-09-03: Calibration Drift
-  >100% rows (badger aggregate/scan, bbolt scan, pebble aggregate) are
-  shared-runner noise, NOT constant drift — a local quiet-window run pins
-  pebble -7..+23%, sqlite +10..15%, badger within tolerance of the shipped
-  constants (bbolt local numbers are disk-artifact outliers, unusable).
-  Constants stay; the gate needs a CI-baseline comparison like the
-  regression job (see the deferred threshold re-tune above). STILL REMAINING
-  from the original list: (c) cqrs-lint Self-Lint go-finding credentials
-  under GOWORK=off; CI billing; >350-line production files (29 files —
-  catalog_extra.go 1207, typed_reader.go 1127, adttest/harness.go 967,
-  enginetest.go 935, store.go 898, …) — a standalone multi-session refactor
-  wave, kept open here.
+  > 100% rows (badger aggregate/scan, bbolt scan, pebble aggregate) are
+  > shared-runner noise, NOT constant drift — a local quiet-window run pins
+  > pebble -7..+23%, sqlite +10..15%, badger within tolerance of the shipped
+  > constants (bbolt local numbers are disk-artifact outliers, unusable).
+  > Constants stay; the gate needs a CI-baseline comparison like the
+  > regression job (see the deferred threshold re-tune above). STILL REMAINING
+  > from the original list: (c) cqrs-lint Self-Lint go-finding credentials
+  > under GOWORK=off; CI billing; >350-line production files (29 files —
+  > catalog_extra.go 1207, typed_reader.go 1127, adttest/harness.go 967,
+  > enginetest.go 935, store.go 898, …) — a standalone multi-session refactor
+  > wave, kept open here.
 - [PARTIAL ✓ 2026-09-01] **Repair master CI (11 red jobs on the 2026-09-01 run,
   ALL pre-existing — surfaced by the #20 push; main CI has not completed
   green since 2026-07-17)**: (a) BLOCKED infra/user: FlakeHub
@@ -405,26 +405,25 @@ and is **never** duplicated here.
 
 - [PARTIAL ✓ 2026-08-30 session 4] **Audit `.golangci.yml` exclusion blocks + RE-ENABLE depguard** — DONE (B1, `3bcb7030e`): depguard restored on the v2 object rules schema (`linters.settings.depguard.rules` — a YAML list gives incomprehensible mapstructure errors), 84-entry allow list, all 119 requires covered, `check-depguard.sh` awk made indentation-tolerant, lint 76/76 clean. REMAINING (exclusion audit tail): `system/` (20 linters disabled), `cmd/cqrs-lint/` (17), `metaengine/` (24) have the broadest exclusions — track which can be removed after migrations complete.
 
-
 - [ ] **V007 symbol table can drift from the repo's `Deprecated:` markers.** The rule's `deprecatedV5Symbols`/`deprecatedV5Modules` tables are hand-curated from ADR-0114/0123/0126; the repo has ~150 `Deprecated:` markers and the tables cover the v5-removal subset only. Add a meta-test that greps the repo for `Deprecated: removed in v5` (and `Deprecated:` + ADR-0114/0126 markers) and asserts every referenced EXPORTED symbol appears in a V007 table (or an explicit allowlist), so a new v5 removal cannot ship without lint coverage. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: S)_
+      _(Effort: S)_
 - [ ] **Meta-test: detector-emitted severity/confidence must match catalog metadata.** `TestCatalogSeverityAndConfidenceValid` validates catalog strings are well-formed, but nothing pins that the DETECTOR's `finding.NewBuilder` severity equals the catalog's — a mismatch misleads `cqrs-lint rules`/docs vs actual findings and the health score. Needs per-constructor function-body parsing (multi-detector files like `b004_b008.go` host 3 severities), with an explicit allowlist for intentionally conditional severities. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: M)_
+      _(Effort: M)_
 - [ ] **fix.Provider: dual source of truth for the edit spec.** `CanHandle` requires `BeforeCode != ""` while `Edits` also accepts `Metadata["oldExpr"/"newExpr"]` — a Metadata-only finding passes neither path and is silently unfixed. Collapse to one field set (or make `HasCodeChange` consult Metadata too) and add a Metadata-only round-trip test. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: S)_
+      _(Effort: S)_
 - [ ] **lintutil.QualifierToImportPath dot-import footgun.** With a `.`-import of a go-cqrs-lite module in the file, the helper resolves ANY qualifier to that import path, so `foo.NewEvent` in an unrelated local package can false-positive (A014's `QualifierResolvesTo` inherits this). V007 shipped its own dot-import-skipping resolver (`version.resolveQualifier`) — converge on one semantics: either drop the dot-import branch or return `(path, dotted bool)` so callers decide. Needs a review of the other QualifierResolvesTo call sites first. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: M)_
+      _(Effort: M)_
 - [ ] **Dead exports in lintutil.** `ImportQualifierMap` has no production callers (only its own test); `SelectorIdent` is exported but only used inside the package. Unexport/remove both (api-stability golden tracks only the module root package, so no golden churn) and re-run the module tests. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: S)_
+      _(Effort: S)_
 - [x] **golangci `gci` vs treefmt fight — FIXED at root cause 2026-09-05.** `nix run .#verify` lint was failing 366 treefmt-clean files repo-wide because a `.golangci.yml` reformat (18f4b0e1c follow-up) silently re-added `gci` to `formatters.enable` — the exact two-formatters class AGENTS gotcha 18 documents, and the second config-reformat-silently-mutates-linters incident (depguard 2026-08-30 was the first). Restored the documented state: gci removed from formatters with an explanatory NOTE in the config. — source: cqrs-lint deep review 2026-09-05
 - [ ] **Catalog DocURLs point at a non-existent RULES.md.** ~5 catalog entries cite `.../cmd/cqrs-lint/RULES.md#c001`-style anchors but cmd/cqrs-lint has no RULES.md — dead links in SARIF/JSON output. Create a minimal RULES.md stub with anchors or drop the DocURL field values. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: S)_
+      _(Effort: S)_
 - [ ] **16 non-test linter files exceed the 350-line limit** (catalog_extra.go 1207, catalog.go 746, architecture/helpers.go 628, feature_profile.go 587, explain.go 517, and more). Either split by rule family or document an explicit table-catalog exemption in the size check — today the limit is silently unenforced for cmd/. — source: cqrs-lint deep review 2026-09-05
-  _(Effort: M)_
+      _(Effort: M)_
 - [ ] **Self-lint detection makes examples immune to consumer rules.** `IsLibrarySelfLint` prefix-matches any `go-cqrs-lite/...` package path, so `example/*` suppresses ALL consumer-coaching rules including V007 — an example demonstrating a v5-removed pattern would silently teach it. Consider exempting `example/` dirs from the self-lint classification (they are consumer code by the repo's own module table). — source: cqrs-lint deep review 2026-09-05
-  _(Effort: S)_
+      _(Effort: S)_
 - [ ] **Suppression parser robustness tail** (verified low-severity): two `ignore(...)` directives on one line — the second is swallowed into the first's reason; `//  cqrs-lint:` (two spaces) is not normalized; `/* */` block comments are not modeled so a directive inside one is honored; unmatched `ignore-end` and unterminated `ignore-start` are silent in the stale audit (could warn under `--fail-on-stale-suppressions`). — source: cqrs-lint deep review 2026-09-05
-  _(Effort: M)_
+      _(Effort: M)_
 
 ---
 

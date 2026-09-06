@@ -134,7 +134,7 @@ Query   → Dispatcher → Handler            Projection
 | command        | `.../command/v4`        | Commands, Dispatcher, typed handlers                          |
 | query          | `.../query/v4`          | Queries, Dispatcher, typed results                            |
 | decider        | `.../decider/v4`        | Pure-function aggregate pattern                               |
-| id             | `.../id/v4`             | Branded IDs (StreamID, EventID, etc.)                      |
+| id             | `.../id/v4`             | Branded IDs (StreamID, EventID, etc.)                         |
 | projection     | `.../projection/v4`     | Projection interface (consumer-side)                          |
 | projectionhost | `.../projectionhost/v4` | Managed projection lifecycle (goroutines, DLQ, checkpointing) |
 | storage/memory | `.../storage/memory/v4` | In-memory implementations (testing)                           |

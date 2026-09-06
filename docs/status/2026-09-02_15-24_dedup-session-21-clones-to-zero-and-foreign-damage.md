@@ -11,16 +11,16 @@
 
 ### Extraction wave (harmful duplication eliminated — 8 groups, ~45 call sites)
 
-| # | Clone group | Resolution |
-|---|---|---|
-| 1 | metaengine memory-engine test prologue (7 flagged, **15 total** sites in `fold_inference_test.go` + `infer_gaps_test.go`) | Replaced with the already-existing `metaengine.PlanFromMemory` — no new helper needed |
-| 2 | `adttest` `Canonicalize{Vector,Search,Spatial}` (3×) | One generic `canonicalizeResults[T](v any, extractID func(T) string)` in `adttest/harness.go` |
-| 3 | `command/commandtest` Save/Load + DuplicateDetection prologues (2×) | `newTestStream` helper — final version folds the first `Save` in, which is what killed the last threshold-3 residue |
-| 4 | `system` `lookupBuilder`/`querySetBuilder.Done()` keyField default (2×) | `defaultKeyField` helper; capture idiom itself annotated (see accept wave) |
-| 5 | pebble layout-planner test prologue (5 flagged, **10 total** sites) | `layoutFixture` struct + `newLayoutFixture(t, col, filterFields, sortFields)` in `helper_test.go`; dead `lp` field removed |
-| 6 | dgraph `MultiGet`/`LogTail` query→unmarshal→decode (2×, same file) | `queryValueEntries` helper; LogTail's backward loop became forward decode + `slices.Reverse` (order-identical, error messages preserved via `op` param) |
-| 7 | signing `Verify` zero-sig→compute→compare (cose + hmac) | `verifyComputedSig(compute func() (Signature, error), sig Signature)` in `signing/signature.go` |
-| 8 | restart-safety twins bbolt ≈ pebble (~90 lines each, 2 groups) | **New** `metaengine/enginetest/restart_safety.go`: exported `RunRestartSafetyTest(t, RestartSafetyFactory)` + `RestartSafetyFactory` type; both engine test files reduced to one-liner callers. Precedent: `storage/backuptest` shared-lifecycle pattern |
+| # | Clone group                                                                                                               | Resolution                                                                                                                                                                                                                                               |
+| - | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | metaengine memory-engine test prologue (7 flagged, **15 total** sites in `fold_inference_test.go` + `infer_gaps_test.go`) | Replaced with the already-existing `metaengine.PlanFromMemory` — no new helper needed                                                                                                                                                                    |
+| 2 | `adttest` `Canonicalize{Vector,Search,Spatial}` (3×)                                                                      | One generic `canonicalizeResults[T](v any, extractID func(T) string)` in `adttest/harness.go`                                                                                                                                                            |
+| 3 | `command/commandtest` Save/Load + DuplicateDetection prologues (2×)                                                       | `newTestStream` helper — final version folds the first `Save` in, which is what killed the last threshold-3 residue                                                                                                                                      |
+| 4 | `system` `lookupBuilder`/`querySetBuilder.Done()` keyField default (2×)                                                   | `defaultKeyField` helper; capture idiom itself annotated (see accept wave)                                                                                                                                                                               |
+| 5 | pebble layout-planner test prologue (5 flagged, **10 total** sites)                                                       | `layoutFixture` struct + `newLayoutFixture(t, col, filterFields, sortFields)` in `helper_test.go`; dead `lp` field removed                                                                                                                               |
+| 6 | dgraph `MultiGet`/`LogTail` query→unmarshal→decode (2×, same file)                                                        | `queryValueEntries` helper; LogTail's backward loop became forward decode + `slices.Reverse` (order-identical, error messages preserved via `op` param)                                                                                                  |
+| 7 | signing `Verify` zero-sig→compute→compare (cose + hmac)                                                                   | `verifyComputedSig(compute func() (Signature, error), sig Signature)` in `signing/signature.go`                                                                                                                                                          |
+| 8 | restart-safety twins bbolt ≈ pebble (~90 lines each, 2 groups)                                                            | **New** `metaengine/enginetest/restart_safety.go`: exported `RunRestartSafetyTest(t, RestartSafetyFactory)` + `RestartSafetyFactory` type; both engine test files reduced to one-liner callers. Precedent: `storage/backuptest` shared-lifecycle pattern |
 
 ### Accept wave (intentional clones documented — ~13 groups, 24 directives)
 
@@ -30,7 +30,7 @@
 - badger↔pebble `sortAndPaginate` + `StreamAppendExpected`; badger↔bbolt journalEntries head; dgraph↔sqlite cursor filter — "dep-isolated KV engines"
 - stack/{mysql,sqlite,duckdb,postgres} `WithDSN` — "cross-module preset twin — removed in v5 (ADR-0123)"
 - dispatcher/lifecycle ↔ irohengine/transport mutex close-guard — "idiomatic, unrelated modules"
-- system builder closure-capture idiom — "builders differ in options and fold wiring" (the skill's *abstraction-costs-more-than-the-clone* criterion)
+- system builder closure-capture idiom — "builders differ in options and fold wiring" (the skill's _abstraction-costs-more-than-the-clone_ criterion)
 
 ### Verification (per-task gate discipline)
 
@@ -80,6 +80,7 @@
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT (prioritized)
 
 **Immediate (this branch):**
+
 1. Commit the 4 remaining dedup files + taskmanager golden (done as part of this report's commit).
 2. Commit the ~350-file treefmt reformat as its own formatting-only commit (CI `nix fmt --fail-on-change` requires it).
 3. Fix `check-arch` catalog budget: bump `DEP_BUDGET[catalog]` 5→6 in `scripts/check-module-layers.sh` with a comment citing the docserver utils adoption — OR demote the dep; decide which is intended.

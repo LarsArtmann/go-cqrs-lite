@@ -40,7 +40,10 @@ func TestV007_TablesCoverAllV5DeprecationMarkers(t *testing.T) {
 			if _, ok := v5DriftMethodAllowlist[v5MethodKey{m.frag, m.recv, m.symbol}]; ok {
 				continue
 			}
-			uncovered = append(uncovered, fmt.Sprintf("%s (%s.%s on %s)", m.pos, m.frag, m.symbol, m.recv))
+			uncovered = append(
+				uncovered,
+				fmt.Sprintf("%s (%s.%s on %s)", m.pos, m.frag, m.symbol, m.recv),
+			)
 		case "package":
 			if _, hit := matchModule(m.frag); hit {
 				continue
@@ -93,7 +96,11 @@ func TestV007_TableEntriesHaveLiveMarkers(t *testing.T) {
 		}
 		stale = append(
 			stale,
-			fmt.Sprintf("%s.%s (no live v5 marker: symbol deleted, renamed, or unmarked)", s.fragment, s.symbol),
+			fmt.Sprintf(
+				"%s.%s (no live v5 marker: symbol deleted, renamed, or unmarked)",
+				s.fragment,
+				s.symbol,
+			),
 		)
 	}
 

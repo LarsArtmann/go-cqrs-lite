@@ -21,15 +21,15 @@ Stat: **9 failure classes fixed · ~159 files changed (go-cqrs-lite) · 4 unpush
 
 1. **Both repos mapped** — structure, module surfaces, version trains, relationship to CV (go-cqrs-lite = CV's eventstore dependency; cqrs-htmx = its HTTP/HTMX binding with absolute replaces to the local checkout).
 2. **go-cqrs-lite red CI: every workflow-side root cause identified AND fixed** (9 classes):
-   - *FlakeHub auth killed ~12 Nix jobs* (`Unable to authenticate to FlakeHub…` from the deprecated magic-nix-cache action) → `use-flakehub: false` on all 20 steps in ci.yml (GitHub Actions cache backend retained).
-   - *Per-module test matrix never ran in its life* — `Discover modules` wrote pretty-printed JSON into `$GITHUB_OUTPUT` → `Invalid format '  ".",'` → now `jq -s -c .` (compact single line).
-   - *gosec SARIF upload* failed `Resource not accessible by integration` → job gained `permissions: security-events: write`.
-   - *Committed go.work listed 4 external sibling use-entries* (`../go-codec`, `../go-flightrecorder`, `../go-idempotency`, `../go-retry`) that CI cannot load → **removed**; the "no externals" invariant is now **gated** in the CI go-work-sync job AND in `scripts/check-workspace-sync.sh` (with the co-dev-in-untracked-go.work guidance).
-   - *catalog dep-budget violation* (6 prod deps vs 5) — real: generated `d2view_templ.go` imports `templ-components/utils` directly since v1.11.0 → budget 6 with precedent-referencing comment (mirrors storage/pebble +1).
-   - *Docker Build job built a ghost* — `./example/user` was deleted in the 9-examples consolidation and **no Dockerfile exists anywhere in the repo** → dead job removed.
-   - *fuzz + benchmarks nightlies*: skipPush-only `cachix-action` requires auth even to pull (fuzz never fuzzed — died at cache setup) → action removed from all 4 sites across the two workflows.
-   - *go-work-sync check unrunnable*: `go work sync` aborted on the missing siblings before checking anything → now runs with the externals gone and is guarded by the new gate.
-   - *Coverage gate unrunnable*: same workspace-load failure → restored to its pre-externals semantics by the same systemic fix (the `./...` pattern covers the root module exactly as originally designed; verified in a sibling-less scratch worktree).
+   - _FlakeHub auth killed ~12 Nix jobs_ (`Unable to authenticate to FlakeHub…` from the deprecated magic-nix-cache action) → `use-flakehub: false` on all 20 steps in ci.yml (GitHub Actions cache backend retained).
+   - _Per-module test matrix never ran in its life_ — `Discover modules` wrote pretty-printed JSON into `$GITHUB_OUTPUT` → `Invalid format '  ".",'` → now `jq -s -c .` (compact single line).
+   - _gosec SARIF upload_ failed `Resource not accessible by integration` → job gained `permissions: security-events: write`.
+   - _Committed go.work listed 4 external sibling use-entries_ (`../go-codec`, `../go-flightrecorder`, `../go-idempotency`, `../go-retry`) that CI cannot load → **removed**; the "no externals" invariant is now **gated** in the CI go-work-sync job AND in `scripts/check-workspace-sync.sh` (with the co-dev-in-untracked-go.work guidance).
+   - _catalog dep-budget violation_ (6 prod deps vs 5) — real: generated `d2view_templ.go` imports `templ-components/utils` directly since v1.11.0 → budget 6 with precedent-referencing comment (mirrors storage/pebble +1).
+   - _Docker Build job built a ghost_ — `./example/user` was deleted in the 9-examples consolidation and **no Dockerfile exists anywhere in the repo** → dead job removed.
+   - _fuzz + benchmarks nightlies_: skipPush-only `cachix-action` requires auth even to pull (fuzz never fuzzed — died at cache setup) → action removed from all 4 sites across the two workflows.
+   - _go-work-sync check unrunnable_: `go work sync` aborted on the missing siblings before checking anything → now runs with the externals gone and is guarded by the new gate.
+   - _Coverage gate unrunnable_: same workspace-load failure → restored to its pre-externals semantics by the same systemic fix (the `./...` pattern covers the root module exactly as originally designed; verified in a sibling-less scratch worktree).
 3. **Blast radius of the systemic fix fully repaired**:
    - `go work sync` rewrote ~82 member go.mod/go.sum files (legitimate — this is the drift the CI check exists to catch) → **82-module `go mod tidy` sweep, 0 failures** (the first targeted pass missed modules due to a daemon-staging race; brute-force pass closed it).
    - **6 sibling pins drifted** in `integration/go.mod` (the sync lowered the workspace max once the externals left the graph) → realigned to latest tags: decider v4.5.0, dedup v4.2.1, kv v4.2.1, scheduling v4.3.1, metaengine/projectionadapter v4.4.1, storage/pebble v4.3.0. `check-version-drift.sh` → "No version drift detected."
@@ -77,7 +77,7 @@ Stat: **9 failure classes fixed · ~159 files changed (go-cqrs-lite) · 4 unpush
 2. **I filtered gate output and filtered away real findings.** To reduce noise I piped `check-version-drift.sh` through `grep -vE "^  go-cqrs-lite/(metaengine|storage|...)"` — which **hid two of the six drift rows** (projectionadapter, storage/pebble). I "fixed" 4 drifts, re-ran, and found 2 more. Debugging hygiene violation: never pre-filter a gate's failure list; read it whole, then summarize.
 3. **The module matrix has been silently dead since the workflow existed — and nobody noticed for ~6 weeks**, including every session that touched CI (this is a repo-level process failure, not only mine). Worse: my fix now ENABLES ~80 matrix jobs on every push, and I flagged the CI-minutes implication only as item c-5 AFTER making the change. Enabling an 80-job matrix on a repo with known billing constraints without a sizing/budget pass first is exactly the "surprise the operator" anti-pattern. It should have been a sizing decision presented with the fix.
 4. **My first cqrs-htmx verification pass reported "tests green" and nearly stopped there.** Lint was an afterthought added when composing the final summary — which is the ONLY reason the `readForDecode` unparam violation (shipped inside the unpushed auto-commit, unverified by any CI run because master CI last ran green before it) was caught at all. The correct behavior is lint+test+build in the first verification batch, not in the last.
-5. **Mixed staged/unstaged tree sat across multiple edit windows.** The daemon staged the workflow edits mid-session (`M ` vs ` M`), leaving a partially-staged tree while I continued editing — the exact discipline the CV AGENTS warn about ("never sit on staged changes across a failed commit"). It resolved without a mishap this time (no failed commit occurred), but I should have made a deliberate commit boundary immediately after the workflow edits instead of letting the tree accumulate 159 mixed-state files.
+5. **Mixed staged/unstaged tree sat across multiple edit windows.** The daemon staged the workflow edits mid-session (`M` vs `M`), leaving a partially-staged tree while I continued editing — the exact discipline the CV AGENTS warn about ("never sit on staged changes across a failed commit"). It resolved without a mishap this time (no failed commit occurred), but I should have made a deliberate commit boundary immediately after the workflow edits instead of letting the tree accumulate 159 mixed-state files.
 6. **Honest ledger note (repo history, not my session):** the 2026-09-01 "go.work↔flake sync FIXED" ledger claim was an over-claim — it fixed a substring leak in the check script but NOT the actual `go work sync`/workspace-load failure, which kept killing CI jobs on Sep-02/03. My wave finally fixed the real thing. Worth remembering when reading that ledger entry.
 
 ---
@@ -100,6 +100,7 @@ Stat: **9 failure classes fixed · ~159 files changed (go-cqrs-lite) · 4 unpush
 ## f) UP TO 50 THINGS WE SHOULD GET DONE NEXT (brainstorm, impact-sorted-ish; most are ROADMAP fuel)
 
 **Push & prove (highest impact, blocks everything else):**
+
 1. Push go-cqrs-lite master → watch the FIRST real CI run of the fixed workflows end-to-end; triage fallout.
 2. Push cqrs-htmx master (4 commits) → confirm CI green on the verified state.
 3. Pre-size the module-matrix minutes impact (80 jobs × ~2-5 min) BEFORE push if billing is tight; consider `fail-fast: false` + shard or a `paths:` filter.

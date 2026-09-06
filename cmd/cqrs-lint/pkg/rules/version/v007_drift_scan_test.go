@@ -137,7 +137,8 @@ func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 		}
 		if d.IsDir() {
 			name := d.Name()
-			if name == "vendor" || name == "node_modules" || name == "testdata" || strings.HasPrefix(name, ".") {
+			if name == "vendor" || name == "node_modules" || name == "testdata" ||
+				strings.HasPrefix(name, ".") {
 				return filepath.SkipDir
 			}
 			return nil
@@ -147,7 +148,12 @@ func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 			return nil
 		}
 
-		src, perr := parser.ParseFile(fset, path, nil, parser.ParseComments|parser.SkipObjectResolution)
+		src, perr := parser.ParseFile(
+			fset,
+			path,
+			nil,
+			parser.ParseComments|parser.SkipObjectResolution,
+		)
 		if perr != nil {
 			failed = append(failed, path+": "+perr.Error())
 			return nil //nolint:nilerr // skip unparseable file, recorded in failed
@@ -162,7 +168,15 @@ func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 		posPrefix := rel
 
 		if _, v5 := v5DocSignal(src.Doc); v5 {
-			out = append(out, v5DriftDecl{kind: "package", frag: frag, symbol: "(package)", pos: posPrefix + ":1"})
+			out = append(
+				out,
+				v5DriftDecl{
+					kind:   "package",
+					frag:   frag,
+					symbol: "(package)",
+					pos:    posPrefix + ":1",
+				},
+			)
 		}
 
 		for _, decl := range src.Decls {
@@ -176,7 +190,12 @@ func walkV5Markers(root string) ([]v5DriftDecl, []string, error) {
 	return out, failed, nil
 }
 
-func collectV5Marker(fset *token.FileSet, decl ast.Decl, frag, posPrefix string, out *[]v5DriftDecl) {
+func collectV5Marker(
+	fset *token.FileSet,
+	decl ast.Decl,
+	frag, posPrefix string,
+	out *[]v5DriftDecl,
+) {
 	switch d := decl.(type) {
 	case *ast.FuncDecl:
 		if _, v5 := v5DocSignal(d.Doc); !v5 {
@@ -184,7 +203,15 @@ func collectV5Marker(fset *token.FileSet, decl ast.Decl, frag, posPrefix string,
 		}
 		line := strconv.Itoa(fset.Position(d.Pos()).Line)
 		if d.Recv == nil {
-			*out = append(*out, v5DriftDecl{kind: "func", frag: frag, symbol: d.Name.Name, pos: posPrefix + ":" + line})
+			*out = append(
+				*out,
+				v5DriftDecl{
+					kind:   "func",
+					frag:   frag,
+					symbol: d.Name.Name,
+					pos:    posPrefix + ":" + line,
+				},
+			)
 			return
 		}
 		*out = append(*out, v5DriftDecl{
@@ -233,7 +260,15 @@ func collectV5Spec(
 	}
 	line := strconv.Itoa(fset.Position(spec.Pos()).Line)
 	for _, n := range names {
-		*out = append(*out, v5DriftDecl{kind: decl.Tok.String(), frag: frag, symbol: n, pos: posPrefix + ":" + line})
+		*out = append(
+			*out,
+			v5DriftDecl{
+				kind:   decl.Tok.String(),
+				frag:   frag,
+				symbol: n,
+				pos:    posPrefix + ":" + line,
+			},
+		)
 	}
 }
 

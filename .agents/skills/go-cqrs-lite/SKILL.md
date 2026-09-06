@@ -46,11 +46,11 @@ go build -o cqrs-bench ./cmd/cqrs-bench/
 
 go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — different layers, different data sources). **Both consume [`go-sse`](https://github.com/larsartmann/go-sse) internally** for wire-format serialization (`sse.WriteEvent`, `sse.SetHeaders`, `sse.WriteHeartbeat`) — the duplicated `fmt.Fprintf`/byte-append serializer was eliminated in ADR-0097. They are NOT merged: each preserves its own fan-out, replay, and feature set.
 
-| You want to push…                                             | Module           | Function            | Source                                | Replay                                           | Key features                                                                                                           |
-| ------------------------------------------------------------- | ---------------- | ------------------- | ------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| You want to push…                                             | Module           | Function            | Source                                | Replay                                           | Key features                                                                                                                                                     |
+| ------------------------------------------------------------- | ---------------- | ------------------- | ------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Raw domain events** to browser/HTTP client                  | `transport/http` | `SSEBroker`         | `event.Bus` + `event.SeekableJournal` | Journal-backed (**durable**)                     | **DEPRECATED** (ADR-0127) — use `go-sse` or `watermill/`; until v5: event filter, CBOR→JSON transform, byte budget, `BackfillHandler`, `Last-Event-ID` reconnect |
-| **Materialized query results** (read-model values) to browser | `metaengine`     | `ServeSSE[V]`       | `Watcher[V]` (Store collection)       | In-memory ring (`SSEReplay[V]`, **recent-only**) | Heartbeat keepalive, `Last-Event-ID` reconnect, drop-old backpressure, timeout                                         |
-| **Events to a server-side worker/projection** (not a browser) | `watermill`      | `CatchUpSubscriber` | `event.SeekableJournal` + live sub    | Checkpoint store (**durable**)                   | Crash-restart, routes through any broker (NATS/Kafka/Redis), ordered delivery                                          |
+| **Materialized query results** (read-model values) to browser | `metaengine`     | `ServeSSE[V]`       | `Watcher[V]` (Store collection)       | In-memory ring (`SSEReplay[V]`, **recent-only**) | Heartbeat keepalive, `Last-Event-ID` reconnect, drop-old backpressure, timeout                                                                                   |
+| **Events to a server-side worker/projection** (not a browser) | `watermill`      | `CatchUpSubscriber` | `event.SeekableJournal` + live sub    | Checkpoint store (**durable**)                   | Crash-restart, routes through any broker (NATS/Kafka/Redis), ordered delivery                                                                                    |
 
 **Rule of thumb:**
 
@@ -69,13 +69,13 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 > `projectionadapter` / `system` composition root. The v4 tiers below remain
 > fully functional through v4.x.
 
-| Data shape                                 | Query pattern            | Recommended tier                           |
-| ------------------------------------------ | ------------------------ | ------------------------------------------ |
-| One document per key                       | Get/Set by key           | `kv.ViewStore[V,K]` or `stack.Materialize` (deprecated, v5) |
-| Multi-table, joins, relations              | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection` (deprecated, v5)             |
-| Variable-depth traversal, adjacency, paths | N-hop queries            | `graph.GraphProjection` (deprecated, v5)                    |
-| Event-folded aggregations, counters        | Cost-planned queries     | `metaengine` Store + `projectionadapter`   |
-| Large map collections with known filters/sorts | Filter+sort scans     | `metaengine` planned tables (`LayoutPlanApplier` + `BuildLayoutPlanFromType[R]`; recipes §2.27/2.28) |
+| Data shape                                     | Query pattern            | Recommended tier                                                                                     |
+| ---------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| One document per key                           | Get/Set by key           | `kv.ViewStore[V,K]` or `stack.Materialize` (deprecated, v5)                                          |
+| Multi-table, joins, relations                  | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection` (deprecated, v5)                                                      |
+| Variable-depth traversal, adjacency, paths     | N-hop queries            | `graph.GraphProjection` (deprecated, v5)                                                             |
+| Event-folded aggregations, counters            | Cost-planned queries     | `metaengine` Store + `projectionadapter`                                                             |
+| Large map collections with known filters/sorts | Filter+sort scans        | `metaengine` planned tables (`LayoutPlanApplier` + `BuildLayoutPlanFromType[R]`; recipes §2.27/2.28) |
 
 #### Dead-letter handling: Which layer?
 

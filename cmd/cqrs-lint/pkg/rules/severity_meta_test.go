@@ -248,18 +248,31 @@ func TestRuleSeverityMatchesCatalog(t *testing.T) {
 
 		if sev, isLiteral := sevLiterals[d.sev]; isLiteral && sev != entry.Severity {
 			problems = append(problems, fmt.Sprintf(
-				"%s: %s builder emits severity %q but catalog says %q", d.pos, d.rule, sev, entry.Severity))
+				"%s: %s builder emits severity %q but catalog says %q",
+				d.pos,
+				d.rule,
+				sev,
+				entry.Severity,
+			))
 		}
 
 		if conf, isLiteral := confLiterals[d.conf]; isLiteral && conf != entry.Confidence {
 			problems = append(problems, fmt.Sprintf(
-				"%s: %s builder emits confidence %q but catalog says %q", d.pos, d.rule, conf, entry.Confidence))
+				"%s: %s builder emits confidence %q but catalog says %q",
+				d.pos,
+				d.rule,
+				conf,
+				entry.Confidence,
+			))
 		}
 
 		if strings.HasPrefix(d.sev, "IDENT:") {
 			if _, allowed := conditionalSeverityRules[d.rule]; !allowed {
 				problems = append(problems, fmt.Sprintf(
-					"%s: %s passes a dynamic severity but is not in conditionalSeverityRules", d.pos, d.rule))
+					"%s: %s passes a dynamic severity but is not in conditionalSeverityRules",
+					d.pos,
+					d.rule,
+				))
 			}
 		}
 	}
@@ -293,7 +306,9 @@ func TestCatalogRulesDeclareFindings(t *testing.T) {
 
 	if len(unexplained) > 0 {
 		sort.Strings(unexplained)
-		t.Fatalf("catalog rules with no finding.NewBuilder site and no helperMediatedRules entry:\n%s",
-			strings.Join(unexplained, ", "))
+		t.Fatalf(
+			"catalog rules with no finding.NewBuilder site and no helperMediatedRules entry:\n%s",
+			strings.Join(unexplained, ", "),
+		)
 	}
 }
