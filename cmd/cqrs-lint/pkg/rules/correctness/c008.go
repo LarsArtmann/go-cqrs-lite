@@ -18,7 +18,7 @@ import (
 // monetary contexts (e.g. observability counters, lag metrics), a field fires
 // only when it carries a STRONG money signal on its own (amount, price, cost,
 // balance, fee) OR when a WEAK signal is corroborated by a money-related
-// struct/package name. See feedback: docs/feedback/2026-07-16_DiscordSync.
+// struct/package name. See feedback: docs/feedback/archived/2026-07-16_DiscordSync.
 
 // strongMoneyFields are unambiguous enough to flag on field name alone.
 //

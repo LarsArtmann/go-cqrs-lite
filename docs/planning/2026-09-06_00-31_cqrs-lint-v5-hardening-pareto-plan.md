@@ -1,7 +1,7 @@
 # Pareto Execution Plan — cqrs-lint v5-Hardening Wave
 
 **Created:** 2026-09-06 00:31 CEST · **Scope:** all 50 open items from the
-cqrs-lint deep review (`docs/status/2026-09-06_00-19_cqrs-lint-deep-review-v5-migration-rule.md`)
+cqrs-lint deep review (`docs/status/archived/2026-09-06_00-19_cqrs-lint-deep-review-v5-migration-rule.md`)
 
 - `TODO_LIST.md § cqrs-lint` · **Baseline:** `nix run .#verify` EXIT 0
 

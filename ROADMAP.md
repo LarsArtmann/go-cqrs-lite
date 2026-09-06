@@ -358,7 +358,7 @@ first `ReplicationLeaderless` engine.
 
 Two interconnected design efforts documented in late 2026-08 planning sessions.
 
-**Persistence enum** (ADR-0098, `docs/planning/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md`):
+**Persistence enum** (ADR-0098, `docs/planning/archived/2026-08-04_07-15_SUPERB-METAENGINE-PERSISTENCE-ENUM.md`):
 Declares whether an engine's data survives process exit (DDIA Ch1 reliability
 axis). ✅ Shipped — `Persistence` field on `EngineProfile`, per-engine
 `Profile()` updates (Memory=volatile, SQLite/Pebble/DuckDB/PG=persistent),

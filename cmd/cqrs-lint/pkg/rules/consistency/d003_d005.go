@@ -341,7 +341,7 @@ func parseVersionParts(v string) []string {
 // "very", "vectors" — AND bare major versions like "v3"/"v4" that are
 // ambiguous in prose ("v3 Migration", "v4 release"). A real version reference
 // always includes at least major.minor. See feedback:
-// docs/feedback/2026-07-16_DiscordSync (D005 false positive on "via go-cqrs-lite").
+// docs/feedback/archived/2026-07-16_DiscordSync (D005 false positive on "via go-cqrs-lite").
 func looksLikeVersionToken(field string) bool {
 	return versionTokenRe.MatchString(field)
 }
