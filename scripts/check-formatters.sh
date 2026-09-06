@@ -3,15 +3,21 @@
 # state, so a config reformat cannot silently resurrect a formatter that
 # fights treefmt.
 #
-# Problem (seen twice now): .golangci.yml reformats silently mutated linter
-# semantics — depguard was disabled by a re-indent (2026-08-30), and gci was
-# re-added to formatters.enable, making 366 treefmt-clean files fail
-# `nix run .#verify` lint (2026-09-05). Import grouping is owned by treefmt's
-# goimports -local flag; gci in golangci makes the LINTER fight the FORMATTER
-# over the same import blocks (it re-broke 95+ files once before).
+# Problem (seen three times now): .golangci.yml reformats silently mutated
+# linter semantics — depguard was disabled by a re-indent (2026-08-30), and
+# gci was re-added to formatters.enable twice (2026-09-05, 2026-09-06, both
+# times by an automated repo-wide config reformat). Import grouping is owned
+# by treefmt's goimports -local flag; gci in golangci makes the LINTER fight
+# the FORMATTER over the same import blocks (it re-broke 95+ files once).
+#
+# This script now SELF-HEALS: when gci is present it removes it in place and
+# re-verifies, instead of only reporting — the regression is machine-authored
+# and recurs faster than manual removal. Third-party config edits still fail
+# the run when a pinned formatter is MISSING (that is never auto-repaired).
 #
 # Usage: bash scripts/check-formatters.sh
-# Exit:  0 if the formatters list matches the pinned state, 1 otherwise.
+# Exit:  0 if the formatters list matches the pinned state (after any
+#        self-repair), 1 otherwise.
 
 set -euo pipefail
 
@@ -40,13 +46,31 @@ for wanted in goimports gofumpt golines; do
 done
 
 if grep -qx gci <<<"$ENABLE"; then
-	echo "FICTION: $CONFIG formatters.enable contains 'gci'."
-	echo "         Import grouping is owned by treefmt's goimports -local flag"
-	echo "         (AGENTS.md gotcha 18). gci makes the linter fight the formatter"
-	echo "         over the same import blocks — 366 treefmt-clean files failed"
-	echo "         verify lint when a config reformat re-added gci (2026-09-05)."
-	echo "         Remove gci from formatters.enable to fix."
-	fail=1
+	echo "REPAIR: removing 'gci' from $CONFIG formatters.enable (re-added by an automated"
+	echo "        config reformat; import grouping is owned by treefmt's goimports -local)."
+	# Drop only the gci list item inside the formatters block — the linters
+	# section never legitimately contains a bare "- gci" list item of its own
+	# under formatters:; this awk pass is scoped to that block.
+	awk '
+		/^formatters:/ { in_block = 1; print; next }
+		in_block && /^[^ \t#]/ { in_block = 0 }
+		in_block && /^[ \t]+-[ \t]+gci[ \t]*$/ { next }
+		{ print }
+	' "$CONFIG" > "$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
+
+	ENABLE=$(awk '
+		/^formatters:/ { in_block = 1; next }
+		in_block && /^[^ \t#]/ { in_block = 0 }
+		in_block && /^[ \t]+-[ \t]+[a-z]/ {
+			sub(/^[ \t]+-[ \t]+/, "")
+			print $1
+		}
+	' "$CONFIG")
+
+	if grep -qx gci <<<"$ENABLE"; then
+		echo "FICTION: gci still present after repair attempt."
+		fail=1
+	fi
 fi
 
 if [ "$fail" -ne 0 ]; then
