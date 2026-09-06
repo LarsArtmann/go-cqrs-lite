@@ -70,7 +70,7 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 		{
 			name:         "d2-view",
 			path:         "/docs/d2",
-			domReference: "order-svc",
+			domReference: "Architecture Diagram",
 		},
 	}
 
@@ -100,7 +100,7 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 // renderWithBrowser runs headless Chromium against the URL and returns the
 // rendered DOM (stdout) plus the console log (stderr, where CSP refusals
 // surface).
-func renderWithBrowser(t *testing.T, browser, url string) (dom, console string) {
+func renderWithBrowser(t *testing.T, browser, url string) (string, string) {
 	t.Helper()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
@@ -134,6 +134,7 @@ func renderWithBrowser(t *testing.T, browser, url string) (dom, console string) 
 // browser actually fetched the embedded bundle assets.
 type statusRecorder struct {
 	http.ResponseWriter
+
 	status int
 }
 
