@@ -123,8 +123,12 @@ func main() {
 		"    //cqrs-lint:ignore-start(C007,A001)\n" +
 		"    ...code...\n" +
 		"    //cqrs-lint:ignore-end\n\n" +
-		"  Both //cqrs-lint: and // cqrs-lint: (with space) are accepted.\n" +
+		"  Both //cqrs-lint: and // cqrs-lint: (any spacing) are accepted.\n" +
 		"  Place inline suppressions on the line above the code or at end of line.\n" +
+		"  Several directives may share one line; each contributes its rules.\n" +
+		"  Directives as text inside /* */ blocks or raw strings are inert.\n" +
+		"  --fail-on-stale-suppressions also flags stray ignore-end lines and\n" +
+		"  ignore-start blocks never closed.\n" +
 		"  Struct-field-level: place the comment directly above the field.\n\n" +
 		"  Disable rules project-wide via config: {\"rules\": {\"disable\": [\"P012\"]}}\n" +
 		"  or the --exclude-rules flag.\n" +

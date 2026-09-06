@@ -10,6 +10,13 @@ import (
 	"github.com/larsartmann/go-finding"
 )
 
+// Sentinel reasons for the structural block-directive issues so the
+// formatter and the detector agree on the wording.
+const (
+	unmatchedEndReason     = "ignore-end without a matching ignore-start"
+	unterminatedStartReason = "ignore-start without a matching ignore-end — suppresses to EOF"
+)
+
 // StaleSuppression describes a //cqrs-lint:ignore(RULE) comment that
 // references a rule which does not fire at the comment's location.
 type StaleSuppression struct {
@@ -211,7 +218,7 @@ func detectStaleBlocks(
 					File:   path,
 					Line:   lineNum,
 					Rule:   "block:end",
-					Reason: "ignore-end without a matching ignore-start",
+					Reason: unmatchedEndReason,
 				})
 
 				continue
@@ -283,7 +290,7 @@ func detectStaleBlocks(
 			File:   path,
 			Line:   blk.startLine,
 			Rule:   "block:" + ruleDesc,
-			Reason: "ignore-start without a matching ignore-end — suppresses to EOF",
+			Reason: unterminatedStartReason,
 		})
 	}
 
@@ -292,12 +299,23 @@ func detectStaleBlocks(
 
 // FormatStaleWarning renders a stale suppression as a user-facing warning.
 func FormatStaleWarning(s StaleSuppression) string {
-	if s.Reason == "unknown rule" {
+	switch {
+	case s.Reason == "unknown rule":
 		return fmt.Sprintf(
 			"warning: suppression at %s:%d references unknown rule %s — possible typo or stale rule ID",
 			filepath.Base(s.File),
 			s.Line,
 			s.Rule,
+		)
+	case s.Reason == unmatchedEndReason:
+		return fmt.Sprintf(
+			"warning: block suppression issue at %s:%d — %s; delete the stray ignore-end",
+			filepath.Base(s.File), s.Line, s.Reason,
+		)
+	case s.Reason == unterminatedStartReason:
+		return fmt.Sprintf(
+			"warning: block suppression issue at %s:%d — %s; add an ignore-end or delete the start",
+			filepath.Base(s.File), s.Line, s.Reason,
 		)
 	}
 
