@@ -308,6 +308,37 @@ jobs:
           cd cmd/cqrs-lint && GOWORK=off go run -tags "goexperiment.jsonv2" . . --strict-load --fail-on-stale-suppressions
 
     timeout-minutes: 15
+  cqrs-lint-examples:
+    name: cqrs-lint Examples (V007-silent)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      - uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b
+        # FlakeHub Cache requires registration now; keep the GitHub Actions
+        # cache backend only (magic-nix-cache is deprecated upstream).
+        with:
+          use-flakehub: false
+
+      - name: Lint every example — V007 (v5-removed APIs) must be silent
+        run: |
+          cd cmd/cqrs-lint
+          status=0
+          for ex in ../../example/*/; do
+            echo "::group::Linting $ex"
+            out=$(GOWORK=off go run -tags "goexperiment.jsonv2" . "$ex" 2>&1) || true
+            echo "$out"
+            if echo "$out" | grep -q "\[V007\]"; then
+              echo "::error::V007 fired in $ex — examples are the copy-paste surface for consumers and must not use v5-removed APIs (AGENTS.md examples policy)"
+              status=1
+            fi
+            echo "::endgroup::"
+          done
+          exit $status
+
+    timeout-minutes: 15
   doc-stub-check:
     name: Doc Stub Check
     runs-on: ubuntu-latest
