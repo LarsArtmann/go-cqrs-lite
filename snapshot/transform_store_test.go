@@ -300,7 +300,7 @@ func TestNewRewritingTransformedStore_WritesBackStaleState(t *testing.T) {
 		t.Fatalf("seed stale snapshot: %v", err)
 	}
 
-	if err = inner.Save(t.Context(), *stale); err != nil {
+	if err = inner.Save(t.Context(), stale); err != nil {
 		t.Fatalf("seed inner store: %v", err)
 	}
 
