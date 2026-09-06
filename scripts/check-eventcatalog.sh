@@ -31,13 +31,13 @@ set -e
 tail -20 "$log"
 
 if [ "$build_exit" -ne 0 ]; then
-  echo "FAIL: eventcatalog build exited $build_exit (full log: $log)" >&2
-  exit 1
+	echo "FAIL: eventcatalog build exited $build_exit (full log: $log)" >&2
+	exit 1
 fi
 
 if grep -qi "invalid content reference" "$log"; then
-  echo "FAIL: unresolved content references in build output (full log: $log)" >&2
-  exit 1
+	echo "FAIL: unresolved content references in build output (full log: $log)" >&2
+	exit 1
 fi
 
 echo "OK: eventcatalog build clean (log: $log)"

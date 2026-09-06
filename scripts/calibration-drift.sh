@@ -103,7 +103,7 @@ while IFS='|' read -r mod suffix label; do
 
 	$skip && continue
 
-	expected="${CALIB[$mod|$label]:-}"
+	expected="${CALIB[$mod | $label]:-}"
 	if [ -z "$expected" ]; then
 		echo "::error::no shipped constant for $mod $label"
 		FAILED=1

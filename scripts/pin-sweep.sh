@@ -103,16 +103,16 @@ compile_check() {
 
 	echo "  verifying $dir (GOWORK=off tidy + build + test-compile)"
 
-	(cd "$dir" && GOWORK=off go mod tidy && GOWORK=off go build -tags "$GO_TAGS" ./... && GOWORK=off go test -tags "$GO_TAGS" -run ZZNONE -count=1 ./... > /dev/null)
+	(cd "$dir" && GOWORK=off go mod tidy && GOWORK=off go build -tags "$GO_TAGS" ./... && GOWORK=off go test -tags "$GO_TAGS" -run ZZNONE -count=1 ./... >/dev/null)
 }
 
 # refresh_goldens regenerates both cqrs-lint goldens that pin the version set.
 refresh_goldens() {
 	echo "==> refreshing cqrs-lint goldens (taskmanager finding list + rule profile)"
 
-	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestLintExampleTaskmanager . > /dev/null)
+	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestLintExampleTaskmanager . >/dev/null)
 
-	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/ > /dev/null)
+	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/ >/dev/null)
 }
 
 stale=$(collect_stale || true)
