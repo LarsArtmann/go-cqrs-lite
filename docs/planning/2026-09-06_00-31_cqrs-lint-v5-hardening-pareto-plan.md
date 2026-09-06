@@ -238,3 +238,59 @@ fixed against a known-good baseline.
 3. Commit per logical task with a detailed message BEFORE the daemon shreds it.
 4. ⛔ decision gates T01 (timing), F017 (examples), F089 (severity) fall back to
    the stated defaults if no user input is available.
+
+## Execution Log — session 2 (2026-09-06, this file annotated per F096)
+
+**Shipped (commit-verified):**
+
+- T08/F036/F037 — `cqrs-lint rules --markdown` generates the anchored
+  `RULES.md` (204 rules, 10 categories; V007 links ADR-0114/0123/0126).
+  Meta-tests lock anchors, freshness, and DocURL resolution; the audit
+  immediately caught 8 wrong-cased DocURLs, now normalized.
+- F044 — V007 wall-time benchmark recorded
+  (`docs/benchmarks/2026-09-06_cqrs-lint-v007-walltime.md`): sub-noise on
+  two corpora; a full-repo measurement was abandoned and is documented as
+  invalid (ambient-load variance ±100%).
+- F042/F045 — README documents the 8 reserved rule IDs (A028, A031,
+  P002–P005, S004, D004) and points at generated RULES.md; TODO_LIST
+  double-`---` artifacts removed.
+- F031 — **the open `--fix` gap is closed, root-caused**: C003 anchored
+  its Direct fix at the function declaration while BeforeCode lived on
+  the default-case return line, so the occurrence-safe provider silently
+  refused; the if-stmt variant was dead code (Direct without code data
+  fails finding validation). Detector now anchors at the return statement
+  and derives Before/AfterCode from real source; in-process pipeline E2E
+  test asserts the edit lands on the reported occurrence only.
+- T09/F039/F041 — CI job lints every `example/` and fails if V007 fires
+  (all 4 verified silent); V007 demo captured to `cmd/cqrs-lint/V007-DEMO.md`.
+  F038 already existed (`cqrs-lint-self-lint` job).
+- F040 — **NOT DONE by decision**: master has no branch protection at all;
+  enabling it would block this repo's direct-push workflow. Requires owner
+  action; the check itself already runs in CI (ci.yml "Lint config check").
+- F043 — verified `rules --json` emits complete V007 metadata incl. the
+  resolving `RULES.md#v007` docUrl.
+
+**Audit waves (T13–T19) — risk-based sample, not exhaustive file-by-file:**
+
+- T13 (C001–C042): all detector files read. Found and fixed one real bug:
+  C005 missed `json.NewDecoder(bytes.NewReader(evt.Payload()))` — the most
+  common decoder idiom (FN class); fixed with subtree payload matching +
+  positive/negative regression tests. C008/C007 name heuristics verified
+  against their documented FP mitigations via synthetic fixtures.
+- T14–T19: empirical FP hunt over the full repo corpus + targeted probes.
+  Top-volume findings (C023/D006/D014/A032) sampled: all correctly
+  targeted, none false. Severity/confidence class already mechanized by
+  the T04 meta-test; V007 coverage mechanized by T02 drift test. The
+  remaining per-file checklist audits stay open as low-yield follow-ups.
+
+**Daemon/formatter root cause (status-report question 2):** the gci
+re-adds come from the auto-commit daemon's formatter (BuildFlow's
+built-in golangci defaults; its pre-commit regenerates config — no user
+config knob found in ~/.config/buildflow). The in-repo
+`scripts/check-formatters.sh` self-heal has repaired all 4 occurrences
+and remains the durable defense.
+
+**Gates:** full `nix run .#verify` — 240 packages green, lint clean after
+the 4th gci self-heal; one load-induced flake
+(`TestSystem_ResetProjection_RestartAndReplay`) passes in isolation
+(0.7 s) and system/v4 is untouched by this session's diffs.
