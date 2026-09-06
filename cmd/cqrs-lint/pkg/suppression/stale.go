@@ -203,7 +203,18 @@ func detectStaleBlocks(
 
 		if strings.HasPrefix(commentText, blockEndPrefix) {
 			if len(openBlocks) == 0 {
-				continue // unmatched ignore-end; not a stale block issue
+				// Unmatched end: the directive suppresses nothing and almost
+				// certainly signals a typo (wrong rule-ID list on the start,
+				// deleted start, or stray end). Surface it like any other
+				// dead suppression instead of silently ignoring it.
+				stale = append(stale, StaleSuppression{
+					File:   path,
+					Line:   lineNum,
+					Rule:   "block:end",
+					Reason: "ignore-end without a matching ignore-start",
+				})
+
+				continue
 			}
 
 			blk := openBlocks[len(openBlocks)-1]
@@ -253,6 +264,27 @@ func detectStaleBlocks(
 				})
 			}
 		}
+	}
+
+	// Unterminated starts: a block still open at EOF suppresses everything to
+	// the end of the file — almost certainly not what the author wanted.
+	for _, blk := range openBlocks {
+		ruleDesc := "all"
+		if len(blk.rules) > 0 {
+			keys := make([]string, 0, len(blk.rules))
+			for r := range blk.rules {
+				keys = append(keys, r)
+			}
+			sort.Strings(keys)
+			ruleDesc = strings.Join(keys, ",")
+		}
+
+		stale = append(stale, StaleSuppression{
+			File:   path,
+			Line:   blk.startLine,
+			Rule:   "block:" + ruleDesc,
+			Reason: "ignore-start without a matching ignore-end — suppresses to EOF",
+		})
 	}
 
 	return stale

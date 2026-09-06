@@ -69,10 +69,12 @@ func (c *lineCache) getLines(path string) []string {
 	return lines
 }
 
-// getRawStringLines returns a set of 0-based line indices that fall ENTIRELY
-// inside a multi-line raw string literal (backtick string). Lines containing
-// a backtick are NOT included — commentTextStart handles those via its
-// single-line tracking. The result is cached alongside the file's lines.
+// getRawStringLines returns a set of 0-based line indices on which a
+// //cqrs-lint: directive is inert: lines entirely inside a multi-line raw
+// string literal (backtick) or entirely inside a multi-line /* */ block
+// comment. Lines containing the opening/closing delimiter are NOT included —
+// commentTextStart handles those via its within-line tracking. The result is
+// cached alongside the file's lines.
 func (c *lineCache) getRawStringLines(path string) map[int]bool {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -83,6 +85,10 @@ func (c *lineCache) getRawStringLines(path string) map[int]bool {
 
 	lines := c.files[path]
 	m := computeRawStringLines(lines)
+	for ln := range computeBlockCommentLines(lines) {
+		m[ln] = true
+	}
+
 	c.rawStrings[path] = m
 
 	return m
@@ -107,6 +113,31 @@ func computeRawStringLines(lines []string) map[int]bool {
 		backtickCount := strings.Count(line, "`")
 		if backtickCount%2 != 0 {
 			inRawString = !inRawString
+		}
+	}
+
+	return result
+}
+
+// computeBlockCommentLines scans lines forward and returns the set of 0-based
+// line indices that lie entirely inside a multi-line /* */ block comment
+// (opened on an earlier line and not closed on this one). A directive written
+// as literal text inside such a comment must never suppress anything. Lines
+// that OPEN or CLOSE the comment keep per-line handling: a directive can
+// legitimately follow a closing "*/".
+func computeBlockCommentLines(lines []string) map[int]bool {
+	result := make(map[int]bool)
+	inBlock := false
+
+	for i, line := range lines {
+		if inBlock && !strings.Contains(line, "*/") {
+			result[i] = true
+		}
+
+		opens := strings.Count(line, "/*")
+		closes := strings.Count(line, "*/")
+		if (opens+closes)%2 != 0 {
+			inBlock = !inBlock
 		}
 	}
 
@@ -407,58 +438,103 @@ func parseBlockStart(text string) (map[string]struct{}, bool) {
 }
 
 // ParseSuppressions extracts suppressed rule IDs from comment text.
-// Works on both single-line and multi-line comment text.
+// Works on both single-line and multi-line comment text. ALL directives in
+// the text are honored: a line may carry several ("//cqrs-lint:ignore(C007)
+// //cqrs-lint:ignore(A008)"), and every one contributes its rule IDs.
 func ParseSuppressions(commentText string) map[string]string {
 	result := make(map[string]string)
 
 	lines := strings.SplitSeq(commentText, "\n")
 	for line := range lines {
 		line = strings.TrimSpace(line)
-		// Locate the line's comment: the first "//" outside a string literal.
-		// Everything after it is comment text. This recognizes end-of-line
-		// suppressions ("code //cqrs-lint:ignore(A008)") while rejecting two
-		// classes of false match that an anywhere-in-line search would catch:
+		// Locate the line's comment: the first "//" outside a string literal
+		// or block comment. Everything after it is comment text. This
+		// recognizes end-of-line suppressions ("code //cqrs-lint:ignore(A008)")
+		// while rejecting two classes of false match that an anywhere-in-line
+		// search would catch:
 		//
 		//   1. Doc/example strings: fmt.Println("//cqrs-lint:ignore(RULE)")
 		//      (the // is inside a string literal → skipped).
 		//   2. Doc comments that merely mention the syntax:
 		//      "// see the //cqrs-lint:ignore docs" (the directive is NOT at the
-		//      start of the comment text → rejected by the HasPrefix check).
+		//      start of the comment text → rejected by the prefix check).
 		cs := commentTextStart(line)
 		if cs < 0 {
 			continue
 		}
 
 		text := strings.TrimSpace(line[cs+2:])
-
-		// Accept both "cqrs-lint:ignore" and "cqrs-lint:disable" as keywords.
-		// Consumers familiar with golangci-lint's "disable" syntax expect it to
-		// work; silently ignoring it is the worst outcome.
-		var rest string
-		switch {
-		case strings.HasPrefix(text, "cqrs-lint:ignore"):
-			rest = strings.TrimSpace(strings.TrimPrefix(text, "cqrs-lint:ignore"))
-		case strings.HasPrefix(text, "cqrs-lint:disable"):
-			rest = strings.TrimSpace(strings.TrimPrefix(text, "cqrs-lint:disable"))
-		default:
+		if !strings.HasPrefix(text, "cqrs-lint:") {
 			continue
 		}
 
-		if strings.HasPrefix(rest, "(") {
-			end := strings.Index(rest, ")")
-			if end > 0 {
-				rawIDs := rest[1:end]
-				reason := strings.TrimSpace(rest[end+1:])
-				// Support comma-separated rule IDs: ignore(A001,E005).
-				for id := range strings.SplitSeq(rawIDs, ",") {
-					id = strings.TrimSpace(id)
-					if id != "" {
-						result[id] = reason
-					}
-				}
-			}
-		}
+		parseDirectivesInComment(text, result)
 	}
 
 	return result
+}
+
+// parseDirectivesInComment scans one comment's text for every
+// "cqrs-lint:ignore(...)" / "cqrs-lint:disable(...)" occurrence and records
+// each directive's rule IDs into result. Directive keywords mentioned in
+// prose (not followed by an optional-space parenthesized ID list) are
+// skipped, and scanning continues past them.
+func parseDirectivesInComment(text string, result map[string]string) {
+	const (
+		kwIgnore  = "cqrs-lint:ignore"
+		kwDisable = "cqrs-lint:disable"
+	)
+
+	search := text
+	for {
+		idx := min(indexOrMax(search, kwIgnore), indexOrMax(search, kwDisable))
+		if idx >= len(search) {
+			return // neither keyword occurs
+		}
+
+		search = search[idx:]
+
+		kwEnd := len(kwIgnore)
+		if strings.HasPrefix(search, kwDisable) {
+			kwEnd = len(kwDisable)
+		}
+
+		afterKeyword := strings.TrimLeft(search[kwEnd:], " \t")
+		if !strings.HasPrefix(afterKeyword, "(") {
+			// Prose mention of the keyword, not a directive — keep scanning.
+			search = search[kwEnd:]
+
+			continue
+		}
+
+		body := afterKeyword[1:]
+		end := strings.Index(body, ")")
+		if end < 0 {
+			// Malformed: unclosed parenthesis — nothing to extract.
+			return
+		}
+
+		rawIDs := body[:end]
+		reason := strings.TrimSpace(body[end+1:])
+
+		// Support comma-separated rule IDs: ignore(A001,E005).
+		for id := range strings.SplitSeq(rawIDs, ",") {
+			id = strings.TrimSpace(id)
+			if id != "" {
+				result[id] = reason
+			}
+		}
+
+		search = body[end+1:]
+	}
+}
+
+// indexOrMax returns strings.Index(s, sub), or len(s) when absent, so
+// min(a, b) selects the earliest real occurrence.
+func indexOrMax(s, sub string) int {
+	if idx := strings.Index(s, sub); idx >= 0 {
+		return idx
+	}
+
+	return len(s)
 }
