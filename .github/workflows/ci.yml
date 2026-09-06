@@ -544,7 +544,11 @@ jobs:
     name: Module Layer Architecture Check
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth 0: the tag checks below (existence + pin staleness)
+      # compare go.mod pins against the full tag history.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
 
       - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
 
@@ -562,6 +566,9 @@ jobs:
 
       - name: Check tag existence
         run: bash scripts/check-tag-existence.sh
+
+      - name: Check sibling pins are at their latest tags
+        run: bash scripts/pin-sweep.sh --check
 
     timeout-minutes: 15
   govulncheck:
