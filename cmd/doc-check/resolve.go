@@ -133,7 +133,7 @@ func (r *resolver) loadAliasDirs() {
 
 		r.indexPackageDir(path)
 
-		return nil //nolint:nilerr // always continue the walk
+		return nil
 	})
 }
 
