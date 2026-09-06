@@ -5,10 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4"
-	bolt "go.etcd.io/bbolt"
 )
 
 type backupBackend struct{ b *Backend }

@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	_ "modernc.org/sqlite" // register sqlite driver
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type followEvent struct {

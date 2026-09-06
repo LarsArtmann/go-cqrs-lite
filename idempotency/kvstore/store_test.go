@@ -9,11 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-idempotency"
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4"
 	idemsqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
-	"github.com/larsartmann/go-idempotency"
-	_ "modernc.org/sqlite"
 )
 
 // ttlTestParams returns a (ttl, wait) pair with enough headroom to survive

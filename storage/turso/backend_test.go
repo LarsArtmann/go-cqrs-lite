@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -14,7 +16,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func newBackendDB(t *testing.T) (*storage.SQLBackend, func()) {

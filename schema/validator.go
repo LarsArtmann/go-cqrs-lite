@@ -7,8 +7,9 @@ import (
 	"sync"
 
 	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // Validator validates event payloads against registered Go types.

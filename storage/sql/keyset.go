@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // ResolveCursorTimestamp loads the timestamp-column value of the journal row

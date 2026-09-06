@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // LoadParams holds the parameters for a parameterized load query.

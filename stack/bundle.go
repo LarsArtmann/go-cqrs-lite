@@ -7,14 +7,15 @@ import (
 	"io"
 
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 // Bundle is a bag of peer capability fields assembled by a deployer.

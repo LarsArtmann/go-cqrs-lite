@@ -33,9 +33,10 @@ import (
 	"strings"
 	"time"
 
+	_ "turso.tech/database/tursogo" // registers "turso" driver with database/sql
+
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	_ "turso.tech/database/tursogo" // registers "turso" driver with database/sql
 )
 
 // Turso_NetworkRTT is the declared PRIOR for round-trip time to a remote Turso

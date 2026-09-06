@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 func TestSetup_Defaults(t *testing.T) {

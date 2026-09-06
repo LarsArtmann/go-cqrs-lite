@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 func TestKeysetPositionQueryChecked_ValidIdentifiers(t *testing.T) {

@@ -4,8 +4,9 @@ import (
 	"context"
 	"go/ast"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // Detects nil payload passed to event.New or event.NewEvent. Events with nil

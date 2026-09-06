@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // QueryFromPosition runs a paginated cursor-style SQL query against the given

@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/onsi/gomega"
 )
 
 func TestQuic3NodeRelayConvergence(t *testing.T) {
