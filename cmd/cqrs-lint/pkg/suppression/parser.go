@@ -113,23 +113,36 @@ func computeRawStringLines(lines []string) map[int]bool {
 	return result
 }
 
-// normalizeCommentPrefix converts the Go-idiomatic "// cqrs-lint:..." (space
-// after //) into the canonical "//cqrs-lint:..." form so both comment styles
-// are recognized. gofmt does not normalize the space after //, so consumers
-// naturally write "// cqrs-lint:ignore(C007)" — this must work.
+// normalizeCommentPrefix converts any "// cqrs-lint:..." spelling (one or
+// more spaces/tabs after //) into the canonical "//cqrs-lint:..." form so
+// every comment style is recognized. gofmt does not normalize the space
+// after //, so consumers naturally write "// cqrs-lint:ignore(C007)" — this
+// must work, including with multiple spaces.
 func normalizeCommentPrefix(line string) string {
-	return strings.Replace(line, "// cqrs-lint:", "//cqrs-lint:", 1)
+	text := strings.TrimSpace(line)
+	if !strings.HasPrefix(text, "//") {
+		return text
+	}
+
+	rest := strings.TrimLeft(text[2:], " \t")
+	if !strings.HasPrefix(rest, "cqrs-lint:") {
+		return text // not a directive comment — leave untouched
+	}
+
+	return "//" + rest
 }
 
 // commentTextStart returns the byte index in line of the first "//" that
 // begins a Go line comment AND is not inside a string literal (double- or
-// backtick-quoted). Only this first "//" starts the comment; everything after
-// it is comment text, so a later "//cqrs-lint:ignore" appearing in an
-// already-open comment or a doc string is literal text, not a directive.
+// backtick-quoted) or a block comment (/* */) opened earlier on the line.
+// Only this first "//" starts the comment; everything after it is comment
+// text, so a later "//cqrs-lint:ignore" appearing in an already-open comment
+// or a doc string is literal text, not a directive.
 // Returns -1 when the line has no out-of-string line comment.
 func commentTextStart(line string) int {
 	inDouble := false
 	inBacktick := false
+	inBlock := false
 
 	for i := 0; i < len(line); i++ {
 		c := line[i]
@@ -138,6 +151,11 @@ func commentTextStart(line string) int {
 		case inBacktick:
 			if c == '`' {
 				inBacktick = false
+			}
+		case inBlock:
+			if c == '*' && i+1 < len(line) && line[i+1] == '/' {
+				inBlock = false
+				i++
 			}
 		case inDouble:
 			if c == '\\' { // skip the next (escaped) byte
@@ -154,8 +172,14 @@ func commentTextStart(line string) int {
 			case '"':
 				inDouble = true
 			case '/':
-				if i+1 < len(line) && line[i+1] == '/' {
-					return i
+				if i+1 < len(line) {
+					switch {
+					case line[i+1] == '/':
+						return i
+					case line[i+1] == '*':
+						inBlock = true
+						i++
+					}
 				}
 			}
 		}
