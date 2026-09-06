@@ -21,6 +21,15 @@ import (
 type StateTransforms struct {
 	Protect func(state []byte) ([]byte, error)
 	Restore func(state []byte) ([]byte, error)
+
+	// NeedsRewrite reports whether raw stored state should be re-written in
+	// place (e.g. it was encrypted under a retired key). Optional; consult
+	// only together with Reencrypt.
+	NeedsRewrite func(raw []byte) bool
+	// Reencrypt maps raw stored state to raw state under the current
+	// transform (e.g. decrypt with the old key, encrypt with the active
+	// key). Optional; consult only together with NeedsRewrite.
+	Reencrypt func(raw []byte) ([]byte, error)
 }
 
 // TransformedStore wraps a SnapshotStore with state-level transforms. Use it
@@ -29,6 +38,29 @@ type StateTransforms struct {
 type TransformedStore struct {
 	inner      SnapshotStore
 	transforms StateTransforms
+}
+
+// NewRewritingTransformedStore is NewTransformedStore for transform sets that
+// carry optional migration funcs ([StateTransforms.NeedsRewrite] /
+// [StateTransforms.Reencrypt]): loads of stale-encoded snapshots are
+// re-encoded and written back through the inner store before being returned,
+// so a key rotation converges without a maintenance window. Each load
+// re-encodes at most one snapshot, and a failed write-back never fails the
+// load — the snapshot is still returned correctly and retried next time.
+func NewRewritingTransformedStore(inner SnapshotStore, transforms StateTransforms) (*TransformedStore, error) {
+	if (transforms.NeedsRewrite == nil) != (transforms.Reencrypt == nil) {
+		return nil, errorfamily.NewRejection(
+			"snapshot.transform_migration_partial",
+			"NeedsRewrite and Reencrypt must be set together",
+		)
+	}
+
+	store, err := newTransformedStore(inner, transforms)
+	if err != nil {
+		return nil, err
+	}
+
+	return store, nil
 }
 
 // NewTransformedStore protects snapshot state with protect before persisting
@@ -44,6 +76,13 @@ func NewTransformedStore(
 	protect func(state []byte) ([]byte, error),
 	restore func(state []byte) ([]byte, error),
 ) (*TransformedStore, error) {
+	return newTransformedStore(inner, StateTransforms{
+		Protect: protect,
+		Restore: restore,
+	})
+}
+
+func newTransformedStore(inner SnapshotStore, transforms StateTransforms) (*TransformedStore, error) {
 	if inner == nil {
 		return nil, errorfamily.NewRejection(
 			"snapshot.transform_nil_store",
@@ -51,20 +90,14 @@ func NewTransformedStore(
 		)
 	}
 
-	if protect == nil || restore == nil {
+	if transforms.Protect == nil || transforms.Restore == nil {
 		return nil, errorfamily.NewRejection(
 			"snapshot.transform_incomplete",
 			"both protect and restore transforms are required",
 		)
 	}
 
-	return &TransformedStore{
-		inner: inner,
-		transforms: StateTransforms{
-			Protect: protect,
-			Restore: restore,
-		},
-	}, nil
+	return &TransformedStore{inner: inner, transforms: transforms}, nil
 }
 
 // Save protects the snapshot state, then persists through the inner store.
@@ -101,6 +134,9 @@ func (s *TransformedStore) Delete(ctx context.Context, ref id.StreamRef) error {
 }
 
 // Load fetches the snapshot from the inner store and restores its state.
+// When migration transforms are configured and the stored state is stale
+// (NeedsRewrite), it is re-encoded (Reencrypt) and written back before the
+// restored snapshot is returned.
 func (s *TransformedStore) Load(
 	ctx context.Context,
 	ref id.StreamRef,
@@ -111,7 +147,7 @@ func (s *TransformedStore) Load(
 			"load %s", ref)
 	}
 
-	return s.restore(snap)
+	return s.restore(ctx, snap)
 }
 
 // LoadAtVersion fetches a specific version from the inner store and restores
@@ -127,13 +163,15 @@ func (s *TransformedStore) LoadAtVersion(
 			"snapshot.transformed_load_at_version", "load %s v%d", ref, version)
 	}
 
-	return s.restore(snap)
+	return s.restore(ctx, snap)
 }
 
-func (s *TransformedStore) restore(snap *Snapshot) (*Snapshot, error) {
+func (s *TransformedStore) restore(ctx context.Context, snap *Snapshot) (*Snapshot, error) {
 	if snap == nil {
 		return nil, nil //nolint:nilnil // defensive: pass a nil inner result through
 	}
+
+	s.rewriteInPlace(ctx, snap)
 
 	restored, err := s.transforms.Restore(snap.State)
 	if err != nil {
@@ -149,4 +187,26 @@ func (s *TransformedStore) restore(snap *Snapshot) (*Snapshot, error) {
 	snap.State = restored
 
 	return snap, nil
+}
+
+// rewriteInPlace re-encodes a stale-encoded snapshot and writes it back
+// through the inner store. Best-effort: any failure keeps the load on the
+// original state, so the next load can retry the migration.
+func (s *TransformedStore) rewriteInPlace(ctx context.Context, snap *Snapshot) {
+	if s.transforms.NeedsRewrite == nil || !s.transforms.NeedsRewrite(snap.State) {
+		return
+	}
+
+	reencoded, err := s.transforms.Reencrypt(snap.State)
+	if err != nil {
+		return
+	}
+
+	writeBack := *snap
+	writeBack.State = reencoded
+	if err := s.inner.Save(ctx, writeBack); err != nil {
+		return
+	}
+
+	snap.State = reencoded
 }
