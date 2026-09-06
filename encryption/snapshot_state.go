@@ -15,6 +15,15 @@ import (
 type StateTransforms struct {
 	Protect func(state []byte) ([]byte, error)
 	Restore func(state []byte) ([]byte, error)
+
+	// NeedsRewrite reports whether raw stored state carries a retired key ID
+	// and should be re-encrypted under the active key. Optional; only
+	// populated by [RotatingSnapshotStateCodec] (nil for single-key codecs).
+	NeedsRewrite func(raw []byte) bool
+	// Reencrypt decrypts raw stored state with its envelope's key and
+	// re-encrypts it under the active key. Optional; only populated by
+	// [RotatingSnapshotStateCodec].
+	Reencrypt func(raw []byte) ([]byte, error)
 }
 
 // SnapshotStateCodec returns state transforms that encrypt snapshot state on
@@ -40,6 +49,12 @@ func SnapshotStateCodec(cipher EncrypterDecrypter, keyID KeyID) (StateTransforms
 // retired-key snapshots resolve their decrypter and decrypt — which is what
 // makes rolling re-encryption (save under the new key on next write) work
 // without a migration window.
+//
+// The returned transforms also carry NeedsRewrite/Reencrypt, so consumers can
+// opt into re-encrypt-on-read write-back via snapshot's
+// [github.com/larsartmann/go-cqrs-lite/snapshot/v4.NewRewritingTransformedStore]:
+// every load of a retired-key snapshot re-encrypts it under the active key
+// and persists the result, converging the store without a maintenance window.
 func RotatingSnapshotStateCodec(
 	activeID KeyID,
 	active EncrypterDecrypter,
@@ -54,9 +69,86 @@ func RotatingSnapshotStateCodec(
 	}
 
 	return StateTransforms{
-		Protect: protectState(active, activeID),
-		Restore: rotatingRestore(activeID, active, resolver),
+		Protect:      protectState(active, activeID),
+		Restore:      rotatingRestore(activeID, active, resolver),
+		NeedsRewrite: needsRewrite(activeID),
+		Reencrypt:    reencryptState(activeID, active, resolver),
 	}, nil
+}
+
+// needsRewrite reports whether a raw stored envelope was written under a key
+// other than activeID. Empty key IDs (unknown provenance) never migrate.
+func needsRewrite(activeID KeyID) func(raw []byte) bool {
+	return func(raw []byte) bool {
+		env, err := UnmarshalEnvelope(string(raw))
+		if err != nil {
+			return false
+		}
+
+		return env.KeyID != "" && env.KeyID != activeID
+	}
+}
+
+// reencryptState maps raw stored state to raw state under the active key:
+// resolve the envelope's key, decrypt, re-encrypt with active, re-stamp the
+// envelope with activeID.
+func reencryptState(
+	activeID KeyID,
+	active EncrypterDecrypter,
+	resolver KeyResolver,
+) func(raw []byte) ([]byte, error) {
+	return func(raw []byte) ([]byte, error) {
+		env, err := UnmarshalEnvelope(string(raw))
+		if err != nil {
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Corruption,
+				"encryption.snapshot_envelope",
+				"snapshot state is not an encryption envelope",
+			)
+		}
+
+		var decrypter Decrypter = active
+		if env.KeyID != "" && env.KeyID != activeID {
+			resolved, resolveErr := resolver.Resolve(env.KeyID)
+			if resolveErr != nil {
+				return nil, resolveErr
+			}
+
+			decrypter = resolved
+		}
+
+		plaintext, err := decrypter.Decrypt(env.Ciphertext)
+		if err != nil {
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Corruption,
+				"encryption.snapshot_decrypt",
+				"decrypt snapshot state for re-encryption",
+			)
+		}
+
+		reencrypted, err := active.Encrypt(plaintext)
+		if err != nil {
+			return nil, errorfamily.Wrapf(
+				err,
+				errorfamily.Infrastructure,
+				"encryption.snapshot_reencrypt",
+				"re-encrypt snapshot state under %s",
+				activeID,
+			)
+		}
+
+		encoded, err := MarshalEnvelope(Envelope{ //nolint:exhaustruct_v5 // Version defaults inside MarshalEnvelope
+			Ciphertext: reencrypted,
+			KeyID:      activeID,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return []byte(encoded), nil
+	}
 }
 
 func protectState(cipher Encrypter, keyID KeyID) func([]byte) ([]byte, error) {

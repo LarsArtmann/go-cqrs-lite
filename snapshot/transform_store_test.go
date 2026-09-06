@@ -240,3 +240,113 @@ func TestTransformedStore_LoadNilResultPassesThrough(t *testing.T) {
 		t.Fatal("Load on missing stream returned nil error, want ErrSnapshotNotFound wrap")
 	}
 }
+
+// staleTag mirrors the encryption rotation shape: state prefixed with the
+// writing key ("k1:" is retired, "k2:" is active). NeedsRewrite reports k1
+// state; reencryptTag swaps the prefix to the active key.
+func needsRewriteTag(raw []byte) bool {
+	return bytes.HasPrefix(raw, []byte("k1:"))
+}
+
+func reencryptTag(raw []byte) ([]byte, error) {
+	rest, ok := bytes.CutPrefix(raw, []byte("k1:"))
+	if !ok {
+		return nil, errors.New("state not under retired key k1")
+	}
+
+	return append(bytes.Clone([]byte("k2:")), rest...), nil
+}
+
+func activeTag(state []byte) ([]byte, error) {
+	return append(bytes.Clone([]byte("k2:")), state...), nil
+}
+
+func restoreAnyKeyTag(state []byte) ([]byte, error) {
+	if rest, ok := bytes.CutPrefix(state, []byte("k2:")); ok {
+		return rest, nil
+	}
+
+	rest, ok := bytes.CutPrefix(state, []byte("k1:"))
+	if !ok {
+		return nil, errors.New("state not under any known key")
+	}
+
+	return rest, nil
+}
+
+// TestNewRewritingTransformedStore_WritesBackStaleState verifies the
+// re-encrypt-on-read migration: a stale-encoded snapshot is re-encoded under
+// the active transform, persisted through the inner store, and still loads
+// correctly — once per snapshot (the second load sees no stale state).
+func TestNewRewritingTransformedStore_WritesBackStaleState(t *testing.T) {
+	t.Parallel()
+
+	inner := newFakeStore()
+
+	store, err := snapshot.NewRewritingTransformedStore(inner, snapshot.StateTransforms{
+		Protect:      activeTag,
+		Restore:      restoreAnyKeyTag,
+		NeedsRewrite: needsRewriteTag,
+		Reencrypt:    reencryptTag,
+	})
+	if err != nil {
+		t.Fatalf("NewRewritingTransformedStore: %v", err)
+	}
+
+	ref := transformTestRef(t)
+
+	stale, err := snapshot.NewSnapshot(ref, event.Version(3), []byte("k1:old-state"), record.EncodingJSON)
+	if err != nil {
+		t.Fatalf("seed stale snapshot: %v", err)
+	}
+
+	if err = inner.Save(t.Context(), *stale); err != nil {
+		t.Fatalf("seed inner store: %v", err)
+	}
+
+	loaded, err := store.Load(t.Context(), ref)
+	if err != nil {
+		t.Fatalf("load through rewriting store: %v", err)
+	}
+
+	if string(loaded.State) != "old-state" {
+		t.Errorf("restored state = %q, want %q", loaded.State, "old-state")
+	}
+
+	persisted, err := inner.Load(t.Context(), ref)
+	if err != nil {
+		t.Fatalf("reload raw from inner: %v", err)
+	}
+
+	if string(persisted.State) != "k2:old-state" {
+		t.Errorf("write-back state = %q, want %q", persisted.State, "k2:old-state")
+	}
+
+	if needsRewriteTag(persisted.State) {
+		t.Error("persisted state still reported as stale after write-back")
+	}
+
+	again, err := store.Load(t.Context(), ref)
+	if err != nil {
+		t.Fatalf("second load: %v", err)
+	}
+
+	if string(again.State) != "old-state" {
+		t.Errorf("second restored state = %q, want %q", again.State, "old-state")
+	}
+}
+
+// TestNewRewritingTransformedStore_RejectsPartialMigration verifies the
+// NeedsRewrite/Reencrypt pair is validated up front.
+func TestNewRewritingTransformedStore_RejectsPartialMigration(t *testing.T) {
+	t.Parallel()
+
+	_, err := snapshot.NewRewritingTransformedStore(newFakeStore(), snapshot.StateTransforms{
+		Protect:      activeTag,
+		Restore:      restoreAnyKeyTag,
+		NeedsRewrite: needsRewriteTag,
+	})
+	if err == nil {
+		t.Fatal("expected error for NeedsRewrite without Reencrypt")
+	}
+}
