@@ -13,7 +13,7 @@ import (
 // Sentinel reasons for the structural block-directive issues so the
 // formatter and the detector agree on the wording.
 const (
-	unmatchedEndReason     = "ignore-end without a matching ignore-start"
+	unmatchedEndReason      = "ignore-end without a matching ignore-start"
 	unterminatedStartReason = "ignore-start without a matching ignore-end — suppresses to EOF"
 )
 

@@ -585,6 +585,16 @@ directives (sharing a line with code), block markers
 (`ignore-start`/`ignore-end`), and unknown-rule references are never rewritten —
 the report lists them for manual cleanup.
 
+Structural block-directive issues are reported too: a stray `ignore-end`
+without a start, and an `ignore-start` never closed (which silently
+suppresses everything to end-of-file). `--fail-on-stale-suppressions` treats
+both as failures.
+
+Directive syntax notes: any spacing after `//` works (`//cqrs-lint:` or
+`//  cqrs-lint:`); several directives may share one line, each contributing
+its rules; and directive text inside `/* */` block comments or raw strings
+is inert — prose that merely mentions the syntax never suppresses.
+
 ### Reviewing False Positives
 
 Use `--fp-suspects` to surface only low-confidence findings — the ones most
