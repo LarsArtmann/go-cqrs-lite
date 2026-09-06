@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — scorecard v5-readiness panel + preset deprecated-surface policy — 2026-09-06
+
+- **`cqrs-lint scorecard` deprecated-surfaces panel**: the scorecard now
+  runs the V007 (v5-removed-API) and F030 (deprecated transport/http
+  SSE) detectors directly and reports per-category counts plus a
+  remediation pointer — "is this codebase clean for the v5 cut?" no
+  longer needs a separate lint run and manual correlation. Available in
+  text, JSON, and markdown output.
+- **Library presets disable deprecated-surface detectors**: the
+  `library` and `library-framework` presets now disable V007 and F030 —
+  a library legitimately re-exports APIs that v5 removes while v4 still
+  ships them (same rationale as the in-repo library self-lint).
+  Application presets and the default keep both enabled; a policy test
+  and the README-table guard lock the split in both directions.
+- **Health-score policy test** pins V007's cost at exactly 2 points per
+  finding (warning × high confidence), documenting that the default is
+  advisory while consumers have CI-blocking levers.
+- **ruletest.AliasedImportSource**: one-line fixtures for the
+  alias-blindness bug class (the A014 family) instead of hand-written
+  import blocks per test.
+- Shuffle (`-shuffle=on`, 3 runs) and race (`-race -count=3`) evaluations
+  over the suppression, fix, and full linter suite: clean, no order
+  dependence, no data races.
+- Design passes recorded (`docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`):
+  a `v5-ready` preset with per-rule severity overrides, dot-import
+  detection for V007, and a three-tier typed-info integration to replace
+  curated name-heuristic tables with usage evidence.
+
 ### Fixed — `cqrs-lint --fix` silently did nothing — 2026-09-06
 
 An end-to-end probe (`cqrs-lint --fix` on a fixture triggering C003)
