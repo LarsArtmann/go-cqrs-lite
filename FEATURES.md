@@ -1259,7 +1259,7 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | F-series adoption coaching | 21 rules (F001–F021) that proactively coach consumers toward unused features | ✅ |
 | T-series testing quality | 8 rules (T001–T008) detecting missing test helpers, parallel coverage gaps, snapshot store misuse | ✅ |
 | E-series architecture | 17 rules (E001–E017) detecting consumer design issues (preset bypass, missing HTTP, signing disabled, etc.) | ✅ |
-| 203 total rules | Correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version. Metaengine-aware detection (F018-F026). Resilience rules (B029-B031: retry/circuit-breaker/DLQ). Observability rules (F027-F029: OTel init/slog/spans). Optimistic concurrency rules (C041-C042). Deprecated-transport coaching (F030, ADR-0127) | ✅ |
+| 204 total rules | Correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version. Metaengine-aware detection (F018-F026). Resilience rules (B029-B031: retry/circuit-breaker/DLQ). Observability rules (F027-F029: OTel init/slog/spans). Optimistic concurrency rules (C041-C042). Deprecated-transport coaching (F030, ADR-0127). v5-removed-API detection (V007, ADR-0123/0126; drift-meta-tested against the repo's `Deprecated:` markers) | ✅ |
 | A033 branded-ID roundtrip | Flags code that converts branded `id.Of[T]` to `string` and back (breaks type safety) | ✅ |
 | C037 codec mismatch | Detects codec mismatches across all typed stores: snapshot, command, query, kv (CBOR events + JSON snapshots = deserialization failure) | ✅ |
 | C038 event-type mismatch | Detects near-miss event type strings in `switch evt.Type()` blocks (Levenshtein distance) | ✅ |
@@ -1398,7 +1398,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `scheduling/sqlstore`            | `…/scheduling/sqlstore/v4`            | ✅ Production (SQL-backed timers: SQLite + Postgres + MySQL. Durable across restarts, M44)                                                                                                |
 | `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 88 tests, `--repeat N` available)                                                                                                                            |
 | `cmd/cqrs-bench`                 | `…/cmd/cqrs-bench`                    | 🔧 Tool                                                                                                                                                                                   |
-| `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (203-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version)                                |
+| `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (204-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version)                                |
 
 ---
 
