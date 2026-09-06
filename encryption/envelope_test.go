@@ -80,7 +80,7 @@ func TestUnmarshalEnvelope_InvalidBase64(t *testing.T) {
 func TestUnmarshalEnvelope_ReadsV1Base64(t *testing.T) {
 	t.Parallel()
 
-	inner := []byte(`{"v":"v1","ct":"ZGF0YQ","kid":"key-2025"}`)
+	inner := []byte(`{"v":"v1","ct":"ZGF0YQ==","kid":"key-2025"}`)
 	v1Envelope := base64.URLEncoding.EncodeToString(inner)
 
 	env, err := UnmarshalEnvelope(v1Envelope)

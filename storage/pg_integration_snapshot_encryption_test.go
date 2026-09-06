@@ -14,6 +14,7 @@ package storage_test
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -88,7 +89,7 @@ func TestPostgresSnapshotEncryption_AtRestAndRotation(t *testing.T) {
 		t.Fatalf("snapshot state column contains PLAINTEXT: %s", stored)
 	}
 
-	if !strings.Contains(stored, `"kid":"key-2025"`) {
+	if got := envelopeKeyID(t, stored); got != "key-2025" {
 		t.Fatalf("snapshot state column is not a key-2025 envelope: %s", stored)
 	}
 
@@ -127,12 +128,8 @@ func TestPostgresSnapshotEncryption_AtRestAndRotation(t *testing.T) {
 		t.Errorf("post-migration state column contains PLAINTEXT: %s", rotated)
 	}
 
-	if !strings.Contains(rotated, `"kid":"key-2026"`) {
+	if got := envelopeKeyID(t, rotated); got != "key-2026" {
 		t.Errorf("write-back did not re-encrypt under the active key: %s", rotated)
-	}
-
-	if strings.Contains(rotated, `"kid":"key-2025"`) {
-		t.Errorf("retired key id still present after write-back: %s", rotated)
 	}
 
 	reread, err := migrating.Load(ctx, ref)
@@ -148,6 +145,23 @@ func TestPostgresSnapshotEncryption_AtRestAndRotation(t *testing.T) {
 // pgQuerier is the subset of *sql.DB the raw-column probes need.
 type pgQuerier interface {
 	QueryRow(query string, args ...any) *sql.Row
+}
+
+// envelopeKeyID parses the stored envelope JSON and returns its key id,
+// asserting the column really holds an envelope.
+func envelopeKeyID(t *testing.T, raw string) string {
+	t.Helper()
+
+	var env struct {
+		Version string `json:"v"`
+		KeyID   string `json:"kid"`
+	}
+
+	if err := json.Unmarshal([]byte(raw), &env); err != nil {
+		t.Fatalf("stored state is not an envelope JSON object: %s", raw)
+	}
+
+	return env.KeyID
 }
 
 // snapshotColumnState reads the raw state column straight from the database,
