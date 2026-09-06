@@ -38,6 +38,11 @@ only the within-set ratio is meaningful.
 
 - Both corpora: on-median ≤ off-median, i.e. V007's marginal cost is
   smaller than run-to-run jitter (±10% under load 28–41, 37 users).
+- A third set over the full repo root (1092 files) was attempted but
+  ABANDONED as a measurement: ambient load ramped to 50 mid-run and the
+  with/without variants diverged ±100% (17–27 s), an order of magnitude
+  beyond any plausible single-rule delta. Recorded here so nobody trusts
+  those numbers later.
 - V007 is a pure AST pass over selector/ident names with no I/O; its
   theoretical cost is one extra comparison set per selector — consistent
   with the sub-noise measurement.
