@@ -6,6 +6,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — `cqrs-lint --fix` silently did nothing — 2026-09-06
+
+An end-to-end probe (`cqrs-lint --fix` on a fixture triggering C003)
+exposed that advertised auto-fixes never mutated a file, with no
+diagnostic. Root cause was a detector/provider contract mismatch: C003
+anchored the finding at the fold's function declaration while its
+BeforeCode text lived on the default-case return line, so the fix
+provider's occurrence-safe (line-scoped) matcher correctly refused to
+guess and the pipeline dropped the fix silently.
+
+- C003's switch-default finding now anchors at the offending return
+  statement and derives Before/AfterCode from the actual source text
+  (state expression and `evt.Type()` tag), so generated code compiles
+  even when the state variable is named something other than `state`.
+- The if-statement variant of C003 claimed `FixStrategyDirect` without
+  any code data, which go-finding validation rejects — the finding was
+  silently swallowed and the rule branch never emitted. It now emits as
+  an advisory finding.
+- New end-to-end test drives the real pipeline (triage → provider →
+  byte-level applier) over a fixture on disk and asserts the edit lands
+  on the reported occurrence and only there.
+
+### Added — anchored RULES.md reference page — 2026-09-06
+
+`cqrs-lint rules --markdown` generates `cmd/cqrs-lint/RULES.md`: the full
+204-rule catalog with a stable anchor per rule, so every catalog DocURL
+(previously dead links into a nonexistent file) resolves on GitHub. V007's
+entry links the three v5-removal ADRs. Meta-tests lock freshness and
+DocURL resolution. Eight intentionally unused rule IDs (A028, A031,
+P002–P005, S004, D004) are documented as reserved in the README.
+
 ### Fixed — cqrs-lint suppression parser tail, fix-provider unification, lintutil convergence — 2026-09-06
 
 Follow-up wave after the `cmd/cqrs-lint/v4.9.0` tag (post-tag work).
