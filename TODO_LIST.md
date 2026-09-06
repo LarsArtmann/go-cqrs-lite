@@ -510,30 +510,63 @@ and is **never** duplicated here. Historical session reports live under
 
 **Tooling / lint**
 
-- [ ] `exhaustruct` → `exhaustruct_v5` migration (deprecation warning fires
+- [x] `exhaustruct` → `exhaustruct_v5` migration (deprecation warning fires
       on every lint run today). — source: archived/2026-09-01_00-11 §f14
-- [ ] Formatter-exclusion probe rewrite; drop the dead `event/eventtest/`
+      DONE 2026-09-06: config (enable+settings+29 exclusion rules), all 82
+      `//nolint` sites renamed, `ignore-patterns` v5 schema, full lint green.
+- [x] Formatter-exclusion probe rewrite; drop the dead `event/eventtest/`
       formatter path; AGENTS note on golangci exclusion path-base + probe
       method. — source: archived/2026-09-01_00-11 §b3/§f3
-- [ ] Pin-sweep script (sibling pins to latest + golden refresh built in) in
+      DONE 2026-09-06: dead path removed from both lists; presence-vs-absence
+      probe shows `event/` (~120), `event/v4/eventtest/` (7),
+      `metaengine/sqliteengine/` (6) load-bearing, `storage/view/` drift
+      guard; probe method + path-base note in AGENTS.md.
+- [x] Pin-sweep script (sibling pins to latest + golden refresh built in) in
       `scripts/` + CI leg; record-pin sweep variant. — source:
       archived/2026-08-28_04-55 §f30, archived/2026-09-01_00-11 §f18
-- [ ] AGENTS gotcha: cross-binary DB naming lesson (session-0 phase-0
+      DONE 2026-09-06: `scripts/pin-sweep.sh` (sweep + `--check` staleness
+      mode with built-in cqrs-lint golden refresh + GOWORK=off test-compile
+      of changed modules), flake app `#pin-sweep`, CI step in module-layers
+      (fetch-depth 0). Validated end-to-end in a detached worktree.
+- [x] AGENTS gotcha: cross-binary DB naming lesson (session-0 phase-0
       finding). — source: archived/2026-08-28_07-55 §f46
-- [ ] doc-check: teach it to resolve `sqlstore.` aliases without a visible
+      DONE 2026-09-06: gotcha added to AGENTS.md Testing section.
+- [x] doc-check: teach it to resolve `sqlstore.` aliases without a visible
       import (cost two sessions a cycle each). — source: archived/2026-08-31_16-28 §f48
-- [ ] Wire check-apps (check-templ, check-bench-gate, check-lint-config)
+      DONE 2026-09-06: block-scoped resolution (same-named packages no longer
+      merge into one index bucket) + repo-wide package-alias fallback;
+      unit tests added; 1185 refs valid across 63 packages.
+- [x] Wire check-apps (check-templ, check-bench-gate, check-lint-config)
       into `#verify`. — source: archived/2026-08-29_18-38 §f73
-- [ ] LSP go-mod-tidy warnings (catalog, watermill dedup unused) —
+      DONE 2026-09-06: all three in `#verify` + `#verify-fast`
+      (check-lint-config supersedes the standalone depguard step);
+      also fixed the pre-existing check-templ red (templ cwd metadata
+      drift — regenerate from `catalog/docserver/`, never repo root).
+- [x] LSP go-mod-tidy warnings (catalog, watermill dedup unused) —
       investigate/tidy. — source: archived/2026-09-01_00-11 §f16
-- [ ] kvstore 3-way contract test: move to `integration/` to drop the sqlite
+      DONE 2026-09-06 (already resolved): catalog's templ-components was
+      promoted to direct in `18f4b0e1c`; watermill no longer requires dedup;
+      both modules `go mod tidy`-clean, no LSP diagnostics.
+- [x] kvstore 3-way contract test: move to `integration/` to drop the sqlite
       dep from idempotency/kvstore (deferred twice). — source:
       docs/status/archived/release-fix-2026-07-25 §f4
-- [ ] Engine restart-safety harness adoption tail: `RunRestartSafetyTest` for
+      DONE 2026-09-06: contract + TTL-validation + rapid property tests moved
+      to `integration/idempotency_{contract,ttl_validation,property}_test.go`;
+      kvstore go.mod no longer requires modernc.org/sqlite or
+      idempotency/sqlstore; race pass green.
+- [x] Engine restart-safety harness adoption tail: `RunRestartSafetyTest` for
       badgerengine (has stream_log, no restart_safety_test); consider
       sqliteengine/duckdbengine; extract badger↔pebble `sortAndPaginate`
       into a shared core helper (real logic duplication, currently
       accepted). — source: docs/status/archived/2026-09-02_15-24 §f14–16
+      DONE 2026-09-06: badgerengine + sqliteengine adopt the harness. The
+      harness EXPOSED A REAL BADGER DATA-LOSS BUG: seedSeqCounters only
+      seeded logSeq, so post-restart stream/journal/multimap appends
+      overwrote existing entries — fixed with full four-prefix seeding.
+      `sortAndPaginate` extracted to `metaengine.SortPaginate[T]` (generic;
+      engines pass key/value accessors, zero-copy). duckdbengine deferred:
+      concurrent session owns that module right now (uncommitted
+      planned_parity changes).
 
 ---
 
