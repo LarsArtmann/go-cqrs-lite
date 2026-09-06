@@ -1,4 +1,4 @@
-package kvstore_test
+package integration_test
 
 import (
 	"context"
@@ -50,8 +50,10 @@ func allStores() map[string]storeFactory {
 			if err != nil {
 				t.Fatalf("open sqlite: %v", err)
 			}
+
 			db.SetMaxOpenConns(1)
 			t.Cleanup(func() { _ = db.Close() })
+
 			s, err := idemsqlstore.NewSQLiteStore(context.Background(), db)
 			if err != nil {
 				t.Fatalf("new sqlite store: %v", err)
@@ -68,6 +70,7 @@ func runPropertyAllStores(
 	fn func(t *rapid.T, store idempotency.Store),
 ) {
 	t.Helper()
+
 	for name, factory := range allStores() {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -117,8 +120,11 @@ func TestProperty_CheckAndRecordExactlyOnce_AllStores(t *testing.T) {
 		ttl := time.Minute
 
 		results := make(chan error, n)
+
 		var wg sync.WaitGroup
+
 		wg.Add(n)
+
 		start := make(chan struct{})
 		for range n {
 			go func() {
@@ -127,10 +133,12 @@ func TestProperty_CheckAndRecordExactlyOnce_AllStores(t *testing.T) {
 				results <- store.CheckAndRecord(context.Background(), key, ttl)
 			}()
 		}
+
 		close(start)
 		wg.Wait()
 
 		var wins, dups atomic.Int64
+
 		for range n {
 			err := <-results
 			switch {
@@ -197,7 +205,7 @@ func TestProperty_TTLExpiry_AllStores(t *testing.T) {
 
 	runPropertyAllStores(t, func(rt *rapid.T, store idempotency.Store) {
 		key := rapid.String().Draw(rt, "key")
-		ttl, wait := ttlTestParams()
+		ttl, wait := kvstoreTTLParams()
 
 		if err := store.CheckAndRecord(context.Background(), key, ttl); err != nil {
 			rt.Fatalf("CheckAndRecord (first): %v", err)
