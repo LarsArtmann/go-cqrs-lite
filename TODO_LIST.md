@@ -226,11 +226,17 @@ and is **never** duplicated here. Historical session reports live under
 
 ## Code Quality
 
-- [ ] **>350-line production files (29 by the CI job's count)** —
-      catalog_extra.go 1207, typed_reader.go 1127, adttest/harness.go 967,
-      enginetest.go 935, store.go 898, …. A standalone multi-session refactor
-      wave; decide harness-dir exemptions (adttest/enginetest are exported
-      test harnesses, not production logic) first. _(Effort: XL, multi-session)_
+- [ ] **>350-line production files (54 by the flake `check-file-size` count,
+      2026-09-06)** — typed_reader.go 1127, adttest/harness.go 952,
+      enginetest.go 935, store.go 898, execute.go 767, engines
+      724/722/694/650, plus the cqrs-lint code files (see the cqrs-lint
+      section above for the verified full picture and gate-policy options;
+      the two catalog tables were split 2026-09-06 into 12 per-family files).
+      Gate silently red since ≈2026-08-08 (no branch protection → red
+      non-required jobs unnoticed). A standalone multi-session refactor wave;
+      decide harness-dir exemptions (adttest/enginetest are exported test
+      harnesses, not production logic) and the gate policy (ratchet vs
+      exemption) first. _(Effort: XL, multi-session)_
 - [ ] [BLOCKED] **macOS verification of ephemeral PG** —
       `scripts/ephemeral-pg.sh` claims cross-platform but was only
       static-review-tested; a GitHub Actions macOS runner leg is the
