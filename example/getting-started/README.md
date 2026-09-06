@@ -1,4 +1,4 @@
-# getting-started — go-cqrs-lite in 140 Lines
+# getting-started — go-cqrs-lite in a Single File
 
 The simplest useful example: a complete event-sourced counter with a
 metaengine-backed read model.

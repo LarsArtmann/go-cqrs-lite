@@ -28,19 +28,20 @@
 
 ## Modules
 
-The authoritative module index with README links lives in the **[project README](../README.md)** (68 modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
+The authoritative module index with README links lives in the **[project README](../README.md)** (80+ modules). Each module also has a `doc.go` rendered on [pkg.go.dev](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4).
 
 ## Examples
 
 | Example               | Demonstrates                                                                            | README                                                              |
 | --------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | **taskmanager**       | Flagship: full HTTP service, event sourcing, projections, signing, OTel, tombstone, SSE | [example/taskmanager](../example/taskmanager/README.md)             |
-| **getting-started**   | Minimal 80-line tour: event sourcing + projection + materialized view                   | [example/getting-started](../example/getting-started/README.md)     |
+| **getting-started**   | Minimal single-file tour: event sourcing + projection + materialized view               | [example/getting-started](../example/getting-started/README.md)     |
 | **readme-quickstart** | Absolute minimum: command handler + decider, no projections or bus                      | [example/readme-quickstart](../example/readme-quickstart/README.md) |
+| **metaengine-quickstart** | Map, graph, and vector projections over the metaengine pipeline                      | [example/metaengine-quickstart](../example/metaengine-quickstart/)  |
 
 ## Architecture Decision Records (ADR)
 
-109 ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
+130+ ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
 | ADR                                                               | Title                                                   | Status                   |
 | ----------------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |

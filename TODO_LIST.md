@@ -363,31 +363,71 @@ and is **never** duplicated here. Historical session reports live under
 
 **Watermill / catch-up**
 
-- [ ] Regression tests: CatchUp Close-while-blocked + double-Subscribe
+- [x] Regression tests: CatchUp Close-while-blocked + double-Subscribe
       (inspection → pinned property; grep-verified absent). — source:
       docs/status/archived/2026-08-28_04-55 §f30
-- [ ] Catch-up throughput benchmark (+ ack-window pipelining if numbers are
+      DONE 2026-09-06: `watermill/catchup_lifecycle_test.go` — Close on
+      full-buffer-blocked replay, Close during awaitAck (checkpoint untouched),
+      double-Subscribe same-topic (independent full replay per subscription,
+      joint shutdown, post-Close Subscribe rejected); race-clean 3×.
+- [x] Catch-up throughput benchmark (+ ack-window pipelining if numbers are
       bad); watermark ULD-ordering vs cross-process skew — document or
       property-test. — source: archived/2026-08-28_04-55 §f33–34
+      DONE 2026-09-06: `BenchmarkCatchUp_ReplayThroughput` in
+      `watermill/benchmark_test.go` — 3.6-6.2 µs/event (~160-280K ev/s) at
+      ambient load; pipelining deliberately deferred (documented threshold:
+      10x degradation). Skew caveat documented in the CatchUpSubscriber doc
+      comment (suppressed events are recovered on restart from checkpoint).
 
 **Docs honesty / README**
 
-- [ ] `example/readme-quickstart` still uses the deprecated Execute/Load pair
+- [x] `example/readme-quickstart` still uses the deprecated Execute/Load pair
       forms (main.go:51,65); the 2026-09-06 modernization covered
       getting-started only. — source: archived/2026-09-01_23-43 §f13
-- [ ] `metaengine/dsl.go:17` comment references nonexistent
+      DONE 2026-09-06: migrated to `ExecuteRef`/`LoadRef` + `id.NewStreamRef`
+      (main.go + README fence); example test green.
+- [x] `metaengine/dsl.go:17` comment references nonexistent
       `PlanFromSQLite` (comment rot, verified 2026-09-06). — source:
       archived/2026-09-01_23-43 §c5
-- [ ] README unverified claims: "3 dependencies" for event, coverage
+      DONE 2026-09-06: comment now references `Plan` /
+      `PlanFromMemory`; the real SQLite convenience remains
+      `sqliteengine.PlanFromDSN`.
+- [x] README unverified claims: "3 dependencies" for event, coverage
       percentages, exact "82 modules" phrase sweep; README-claims meta-test;
       homepage/social preview; `.github/` ISSUE_TEMPLATE +
       PULL_REQUEST_TEMPLATE missing. — source: archived/2026-09-01_23-43 §b3–b4/§f
-- [ ] example/ README audit (4 files) + docs/ README audit (24 non-archive
+      DONE 2026-09-06 (except social preview): event claim corrected to
+      "9 module deps — only 3 third-party" (verified via `go list`);
+      coverage claims re-floored to check-coverage baselines (event 90,
+      decider 96, id 86, dispatcher 87); "82" sweep done (V5-OUTLINE →
+      "80+"); meta-tests added in `cmd/api-stability/readme_claims_test.go`
+      (deps + module count + coverage floors vs baselines); `.github/`
+      PR + issue templates created. REMAINING (manual, GitHub settings UI):
+      social preview image + homepage URL.
+- [x] example/ README audit (4 files) + docs/ README audit (24 non-archive
       files). — source: archived/2026-09-01_23-43 §c1–c2
-- [ ] `storage.EventSchema` symmetry — add re-export or drop mention. —
+      DONE 2026-09-06: taskmanager README described the pre-modernization
+      architecture (CatchUpSubscriber/stack.Materialize/metadata tombstone)
+      — rewritten to the actual system.Execute + projectionhost + metaengine
+      pipeline, real file list, 11 commands; getting-started "140 Lines" →
+      "Single File" (251 lines); readme-quickstart fences modernized.
+      docs/README.md: 68→80+ modules, 109→130+ ADRs, metaengine-quickstart
+      row added. planning/status/benchmarks/adr READMEs audited — accurate
+      (snapshot-honesty framing correct, benchmarks dated). doc-check green
+      over all 8.
+- [x] `storage.EventSchema` symmetry — add re-export or drop mention. —
       source: archived/2026-09-01_23-43 §c6
-- [ ] `watermill.WithBackend(pub, sub, client)` / `WithCommandBackend` arity
+      DONE 2026-09-06: re-exports ADDED (`eventstore.EventSchema` /
+      `SQLiteEventSchema` + `storage` aliases, matching the
+      snapshot/checkpoint pattern); api golden regenerated; storage/README
+      DDL section completed.
+- [x] `watermill.WithBackend(pub, sub, client)` / `WithCommandBackend` arity
       signature-verification. — source: archived/2026-09-01_23-43 §c4
+      DONE 2026-09-06: signatures are 3-arg
+      (`pub message.Publisher, sub message.Subscriber, closer io.Closer`);
+      watermill/README + Redis integration test correct (`*redis.Client`
+      satisfies io.Closer). Two 2-arg doc instances fixed
+      (DOMAIN_LANGUAGE.md, book-insights table).
 
 **Catalog**
 

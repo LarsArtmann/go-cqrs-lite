@@ -6,11 +6,19 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression"
 )
+
+// fileExists reports whether path exists (any entry type).
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+
+	return err == nil
+}
 
 // doctorJSONReport is the machine-readable `doctor --format json` surface:
 // the resolved configuration, the detected feature profile, and — with
@@ -106,7 +114,7 @@ func buildDoctorJSONReport(cfg *AppConfig, actx *analyzer.AnalysisContext) docto
 		Features:      actx.FeatureProfile,
 	}
 
-	if configPath := joinPath(cfg.Path, ".cqrs-lint.json"); fileExists(configPath) {
+	if configPath := filepath.Join(cfg.Path, ".cqrs-lint.json"); fileExists(configPath) {
 		report.ConfigFile = configPath
 		report.ConfigFound = true
 	}
@@ -114,13 +122,13 @@ func buildDoctorJSONReport(cfg *AppConfig, actx *analyzer.AnalysisContext) docto
 	report.ParentConfigs = findParentConfigs(cfg.Path)
 
 	if cfg.Preset != "" {
-		report.Preset = cfg.Preset
+		report.Preset = string(cfg.Preset)
 	}
 
 	report.RulesTotal = len(rules.AllRules())
 	report.RulesDisabled = len(cfg.Rules.Disable)
 	report.RulesActive = report.RulesTotal - report.RulesDisabled
-	splitDisabledRules(&report, presetDef.Rules.Disable)
+	splitDisabledRules(&report, presetDef.Rules.Disable, cfg.Rules.Disable)
 
 	for dir, profile := range actx.FeatureProfiles {
 		report.Modules = append(report.Modules, moduleProfileJSON{Module: dir, Profile: profile})
@@ -131,23 +139,19 @@ func buildDoctorJSONReport(cfg *AppConfig, actx *analyzer.AnalysisContext) docto
 
 // splitDisabledRules breaks the effective disable list into preset-pinned and
 // config-supplied rule IDs, mirroring the text renderer's source breakdown.
-func splitDisabledRules(report *doctorJSONReport, presetDisabled []string) {
+func splitDisabledRules(report *doctorJSONReport, presetDisabled, disabled []string) {
 	presetSet := make(map[string]bool, len(presetDisabled))
 	for _, r := range presetDisabled {
 		presetSet[r] = true
 	}
 
-	for _, r := range report-disabled-list(report) {
+	for _, r := range disabled {
 		if presetSet[r] {
 			report.DisabledFromPreset = append(report.DisabledFromPreset, r)
 		} else {
 			report.DisabledFromConfig = append(report.DisabledFromConfig, r)
 		}
 	}
-}
-
-func report-disabled-list(report *doctorJSONReport) []string {
-	return report.Disabled // placeholder — replaced below
 }
 
 // buildSuppressionAuditJSON runs the suppression audit pipeline and shapes

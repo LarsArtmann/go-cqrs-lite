@@ -181,3 +181,58 @@ func TestPostgresBackend_FullStack(t *testing.T) {
 	_ = cmdStore
 	_ = qStore
 }
+
+func TestPostgresSnapshotColumnMigration(t *testing.T) {
+	url := pgTestDSN(t)
+	ctx := context.Background()
+
+	db, err := sql.Open("pgx", url)
+	if err != nil {
+		t.Fatalf("open pg: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	// Simulate a pre-v5 database: old snapshots table carrying data.
+	const legacyDDL = `CREATE TABLE snapshots (
+		aggregate_type  VARCHAR(255) NOT NULL,
+		aggregate_id    TEXT NOT NULL,
+		version         INTEGER NOT NULL,
+		state           JSONB NOT NULL,
+		created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+		PRIMARY KEY (aggregate_type, aggregate_id)
+	)`
+	if _, err := db.ExecContext(ctx, legacyDDL); err != nil {
+		t.Fatalf("create legacy snapshots table: %v", err)
+	}
+
+	streamID := id.NewStreamID()
+	if _, err := db.ExecContext(ctx,
+		`INSERT INTO snapshots (aggregate_type, aggregate_id, version, state, created_at)
+		 VALUES ('User', $1, 7, '{"k":"v"}', NOW())`, streamID.String(),
+	); err != nil {
+		t.Fatalf("insert legacy row: %v", err)
+	}
+
+	// v5 boot path: CREATE TABLE IF NOT EXISTS no-ops, the embedded
+	// migration renames the columns in place.
+	if err := storage.PostgresInitSchema(ctx, db); err != nil {
+		t.Fatalf("PostgresInitSchema over legacy table: %v", err)
+	}
+
+	store, err := storage.NewSQLSnapshotStore(db)
+	if err != nil {
+		t.Fatalf("NewSQLSnapshotStore: %v", err)
+	}
+
+	got, err := store.Load(ctx, id.NewStreamRef("User", streamID))
+	if err != nil {
+		t.Fatalf("Load migrated row: %v", err)
+	}
+
+	if got.StreamID != streamID || got.StreamType != "User" || got.Version.Int() != 7 {
+		t.Errorf("identity mismatch: got %s/%s v%d", got.StreamType, got.StreamID, got.Version.Int())
+	}
+	if string(got.State) != `{"k":"v"}` {
+		t.Errorf("state mismatch: %s", got.State)
+	}
+}

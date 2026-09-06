@@ -906,6 +906,7 @@ cmd/cqrs-lint/pkg/suppression/func DetectUnknownRuleSuppressions
 cmd/cqrs-lint/pkg/suppression/func FormatStaleWarning
 cmd/cqrs-lint/pkg/suppression/func NewSuppressionFilter
 cmd/cqrs-lint/pkg/suppression/func ParseSuppressions
+cmd/cqrs-lint/pkg/suppression/func PlanStaleInlineSuppressions
 cmd/cqrs-lint/pkg/suppression/func RemoveStaleInlineSuppressions
 cmd/cqrs-lint/pkg/suppression/struct FixResult
 cmd/cqrs-lint/pkg/suppression/struct StaleSuppression
@@ -5068,6 +5069,7 @@ storage/func DuckDBInitSchema
 storage/func EnsurePostgresStatementTimeout
 storage/func EnsurePostgresSynchronousCommit
 storage/func EnsureSQLiteDSNBusyTimeout
+storage/func MigrateSnapshotColumnsToStream
 storage/func MySQLInitSchema
 storage/func NewAggregateProjection
 storage/func NewDuckDBBackend

@@ -210,7 +210,7 @@ func TestRenderFixSummary_WithRemovals(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	renderFixSummary(buf, res)
+	renderFixSummary(buf, res, false)
 
 	out := buf.String()
 	if !strings.Contains(out, "AUTO-FIX — removed 1 stale suppression line(s) in 1 file(s)") {
@@ -231,7 +231,7 @@ func TestRenderFixSummary_NothingToDo(t *testing.T) {
 	t.Parallel()
 
 	buf := &bytes.Buffer{}
-	renderFixSummary(buf, suppression.FixResult{})
+	renderFixSummary(buf, suppression.FixResult{}, false)
 
 	out := buf.String()
 	if !strings.Contains(out, "nothing removed") {

@@ -6,34 +6,35 @@ A production-grade task management service that demonstrates go-cqrs-lite **to t
 
 | Feature              | How                                                                                         |
 | -------------------- | ------------------------------------------------------------------------------------------- |
-| **Event Sourcing**   | Per-event payloads (not fat payloads), `decider.Repository.Execute`, optimistic concurrency |
-| **CQRS**             | Command dispatcher with typed handlers; KV-backed read model via Materialize                |
-| **Projections**      | `stack.Materialize` with tombstone-aware `OnCreate`/`OnUpdate`/`OnTombstone` callbacks      |
-| **Ordered Delivery** | `CatchUpSubscriber` (journal replay + live handoff) consumed from a single goroutine        |
-| **Persistence**      | SQLite via `stack/sqlite` preset (swap to Pebble/Postgres by changing one line)             |
+| **Event Sourcing**   | Per-event payloads (not fat payloads), `system.Execute` Op, optimistic concurrency          |
+| **CQRS**             | Command dispatcher with typed handlers; metaengine Map read model                           |
+| **Projections**      | `metaengine` Map ADT folds + `projectionhost` (crash-restart, DLQ, checkpoints)             |
+| **Ordered Delivery** | `projectionhost` replays the journal, then follows live events into the metaengine store    |
+| **Persistence**      | SQLite via `system.EngineConfig{Driver: "sqlite"}` (swap by changing one `Driver` line)      |
 | **Middleware**       | Recovery, Logging, Retry on the command dispatcher                                          |
 | **Observability**    | OpenTelemetry tracing + metrics via `otel.Setup` + `middleware.NewOTelBundle`               |
 | **Signing**          | HMAC-SHA256 event signing (tamper-evident streams)                                          |
-| **Tombstone**        | Soft-delete via metadata — no hard deletes, data preserved                                  |
+| **Tombstone**        | Soft-delete as a `task.deleted` domain event (ADR-0114) — no hard deletes, data preserved   |
+| **Deriver sagas**    | `deriver` derives follow-up commands from events (assignment cascade)                       |
 | **Testing**          | Scenario DSL (`Given/When/Then`), integration tests, HTTP API tests                         |
 | **Error Taxonomy**   | 6-family error classification mapped to HTTP status codes                                   |
-| **Branded IDs**      | `id.AggregateID` for type-safe identifiers                                                  |
+| **Branded IDs**      | `TaskID = id.StreamID` for type-safe identifiers                                            |
 
 ## Architecture
 
 ```
-HTTP API ──▶ Command Dispatcher ──▶ Decider Repository ──▶ Event Store (SQLite)
-                 (middleware:         (load → fold →          │
-                  recovery,            decide → save)         ▼
-                  logging,                               EventBus (Watermill)
+HTTP API ──▶ Command Dispatcher ──▶ system.Execute Op ──▶ Event Store (SQLite)
+                 (middleware:         (decider:              │
+                  recovery,            load → fold →         ▼
+                  logging,             decide → save)   EventBus
                   retry, OTel)                               │
                                                              ▼
-                                                    CatchUpSubscriber
-                                                    (ordered replay + live)
+                                                    projectionhost
+                                                    (replay + live, DLQ)
                                                              │
                                                              ▼
-                                                    Materialize
-                                                    (KV-backed TaskView)
+                                                    metaengine Map ADT
+                                                    (TaskView read model)
                                                              │
                                                              ▼
                                                     Read Model Queries
@@ -89,17 +90,23 @@ curl -X DELETE http://localhost:8080/api/tasks/<id>
 
 ```
 taskmanager/
-├── domain.go          # Value types, branded IDs, validation, error helpers
-├── events.go          # Per-event payloads (11 event types)
-├── decider.go         # Pure fold + decide functions (10 commands)
-├── decider_test.go    # Scenario tests (Given/When/Then BDD)
-├── projection.go      # KV Materialize: TaskView read model
-├── handlers.go        # Command/query handler registration (typed dispatch)
-├── http.go            # HTTP routes, handlers, error taxonomy → status mapping
-├── setup.go           # Composition root: stack.Bundle, Repository, CatchUp
-├── features.go        # Middleware, OTel, signing
-├── main.go            # Entry point
-└── integration_test.go # End-to-end: command pipeline + HTTP API
+├── domain.go           # Value types, branded IDs, validation, error helpers
+├── events.go           # Per-event payloads (11 event types)
+├── decider.go          # Pure fold + decide functions (11 commands)
+├── decider_test.go     # Scenario tests (Given/When/Then BDD)
+├── projection.go       # TaskView read-model type
+├── metaengine.go       # metaengine Map ADT folds + projection adapter registration
+├── handlers.go         # Command/query handler registration (typed dispatch)
+├── deriver.go          # deriver: events → follow-up commands
+├── http.go             # HTTP routes, handlers, error taxonomy → status mapping
+├── setup.go            # Composition root: system.New with DomainConfig + DeploymentConfig
+├── features.go         # Middleware, OTel, signing
+├── codec_init.go       # Codec registration
+├── main.go             # Entry point
+├── integration_test.go # End-to-end: command pipeline + HTTP API
+├── idempotency_test.go # Idempotent command dispatch
+├── sse_test.go         # SSE stream tests
+└── metaengine_test.go  # Read-model convergence tests
 ```
 
 ## Key Design Decisions
@@ -108,13 +115,17 @@ taskmanager/
 
 Each event carries ONLY the data that changed. `TaskTitleUpdated` has just `{title}`, not the entire task state. This is the correct event sourcing pattern.
 
-### Decider.Repository.Execute (not raw store access)
+### system.Execute Op (not raw store access)
 
-Commands go through `decider.Repository.Execute`, which handles load → fold → decide → save → publish automatically. No manual event store access in handlers.
+Commands go through `system.RegisterCommand` + the `system.Execute` Op, which
+drives a decider underneath: load → fold → decide → save → publish happens
+automatically. No manual event store access in handlers.
 
 ### Deployer-First
 
-The deployer chooses infrastructure (one line: `sqlite.New(...)`). The consumer code is identical whether you use SQLite, Pebble, Postgres, or in-memory.
+The deployer chooses infrastructure in the `DeploymentConfig` (one `Driver`
+line in `setup.go`). The consumer code is identical whether you use SQLite,
+Pebble, Postgres, or in-memory.
 
 ### Error Taxonomy → HTTP Status
 
@@ -129,20 +140,18 @@ The 6-family error taxonomy maps directly to HTTP status codes:
 
 ## Swapping Databases
 
-Change ONE line in `setup.go`:
+Change ONE `Driver` line in the `Engines` map in `setup.go`:
 
 ```go
 // SQLite (default)
-bundle, err := sqlite.New("tasks.db", sqlite.WithPragmas(sqlopt.WithOptimizations()))
+Engines: map[string]system.EngineConfig{
+    primaryEngine: {Driver: "sqlite", DSN: cfg.DatabasePath},
+}
 
-// Pebble (embedded KV)
-bundle, err := pebble.New("./data")
-
-// Postgres
-bundle, err := postgres.New(dsn)
-
-// In-memory (testing)
-bundle, err := memory.New()
+// Pebble (embedded KV) — Driver: "pebble", DSN: "./data"
+// In-memory (testing) — Driver: "memory"
 ```
 
-The domain, events, decider, projection, and handler code doesn't change.
+Each backend the deployment might use needs one blank import so its driver
+self-registers (see `setup.go`). The domain, events, decider, projection, and
+handler code doesn't change.
