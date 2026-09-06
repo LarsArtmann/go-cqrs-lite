@@ -8,8 +8,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // newParityEngine opens an in-memory shared-cache SQLite engine with one

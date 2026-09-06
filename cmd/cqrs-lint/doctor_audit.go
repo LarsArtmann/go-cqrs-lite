@@ -16,20 +16,45 @@ import (
 // suppressions, cross-references them with findings, and renders an audit
 // report showing each suppression's status (active, stale, unknown-rule).
 // When fix is set, stale whole-line suppressions are removed from disk first
-// and the report reflects the post-fix state.
+// and the report reflects the post-fix state; with dryRun the fix is only
+// planned and no file changes.
 func runSuppressionAudit(
 	ctx context.Context,
 	cfg *AppConfig,
 	actx *analyzer.AnalysisContext,
 	fix bool,
+	dryRun bool,
 ) error {
+	entries, err := computeSuppressionAudit(ctx, cfg, actx)
+	if err != nil {
+		return err
+	}
+
+	if fix {
+		fixResult := applyOrPlanFix(entries, dryRun)
+		renderFixSummary(os.Stdout, fixResult, dryRun)
+		entries = dropRemovedEntries(entries, fixResult.Removed)
+	}
+
+	renderSuppressionAudit(os.Stdout, entries)
+
+	return nil
+}
+
+// computeSuppressionAudit runs the lint pipeline and classifies every inline
+// suppression in the target tree. Shared by the text and JSON doctor paths.
+func computeSuppressionAudit(
+	ctx context.Context,
+	cfg *AppConfig,
+	actx *analyzer.AnalysisContext,
+) ([]suppression.SuppressionAuditEntry, error) {
 	applyConfigOverrides(cfg, actx)
 
 	detectors := rules.RegisterAll(actx)
 
 	result, err := runPipeline(ctx, cfg, detectors)
 	if err != nil {
-		return fmt.Errorf("pipeline: %w", err)
+		return nil, fmt.Errorf("pipeline: %w", err)
 	}
 
 	allFindings := collectFindings(result)
@@ -44,17 +69,17 @@ func runSuppressionAudit(
 		knownRuleIDs[r.ID] = true
 	}
 
-	entries := suppression.AuditSuppressions(goFilePaths, allFindings, knownRuleIDs)
+	return suppression.AuditSuppressions(goFilePaths, allFindings, knownRuleIDs), nil
+}
 
-	if fix {
-		fixResult := suppression.RemoveStaleInlineSuppressions(entries)
-		renderFixSummary(os.Stdout, fixResult)
-		entries = dropRemovedEntries(entries, fixResult.Removed)
+// applyOrPlanFix removes stale directives from disk, or — with dryRun — only
+// plans the removal and reports what WOULD change.
+func applyOrPlanFix(entries []suppression.SuppressionAuditEntry, dryRun bool) suppression.FixResult {
+	if dryRun {
+		return suppression.PlanStaleInlineSuppressions(entries)
 	}
 
-	renderSuppressionAudit(os.Stdout, entries)
-
-	return nil
+	return suppression.RemoveStaleInlineSuppressions(entries)
 }
 
 // dropRemovedEntries filters audit entries whose (file, line) was rewritten
@@ -78,28 +103,53 @@ func dropRemovedEntries(
 	return kept
 }
 
-// renderFixSummary reports what --fix rewrote and what was left for manual
-// removal.
-func renderFixSummary(w io.Writer, res suppression.FixResult) {
+// renderFixSummary reports what --fix rewrote (or, in dry-run, WOULD rewrite)
+// and what was left for manual removal.
+func renderFixSummary(w io.Writer, res suppression.FixResult, dryRun bool) {
 	if len(res.Removed) == 0 && len(res.Skipped) == 0 {
+		if dryRun {
+			_, _ = fmt.Fprintln(
+				w,
+				"AUTO-FIX (dry-run): no stale whole-line suppressions found — nothing would be removed.",
+			)
+			_, _ = fmt.Fprintln(w)
+
+			return
+		}
+
 		_, _ = fmt.Fprintln(
 			w,
 			"AUTO-FIX: no stale whole-line suppressions found — nothing removed.",
 		)
 		_, _ = fmt.Fprintln(w)
+
 		return
 	}
 
+	action := "removed"
+	prefix := ""
+
+	if dryRun {
+		action = "would remove"
+		prefix = "DRY-RUN — no files changed. "
+	}
+
 	header := fmt.Sprintf(
-		"AUTO-FIX — removed %d stale suppression line(s) in %d file(s)",
+		"AUTO-FIX — %s %d stale suppression line(s) in %d file(s)",
+		action,
 		len(res.Removed),
 		len(res.Files),
 	)
 	_, _ = fmt.Fprintln(w, header)
 	_, _ = fmt.Fprintln(w, strings.Repeat("─", len(header)))
+	_, _ = fmt.Fprintln(w)
+
+	if dryRun {
+		_, _ = fmt.Fprintf(w, "  %s\n", prefix)
+	}
 
 	for _, e := range res.Removed {
-		_, _ = fmt.Fprintf(w, "  removed %s:%d  [%s]\n", shortenPath(e.File), e.Line, e.Rule)
+		_, _ = fmt.Fprintf(w, "  %s %s:%d  [%s]\n", action, shortenPath(e.File), e.Line, e.Rule)
 	}
 
 	if len(res.Skipped) > 0 {

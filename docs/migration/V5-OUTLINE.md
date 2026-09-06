@@ -9,7 +9,7 @@
 ## 1. Module path migration `/v4` → `/v5`
 
 Same mechanics as v3→v4 (see MIGRATION-GUIDE.md §1): go.mod require
-directives + import paths, then `go mod tidy`. 82 go.mod files today.
+directives + import paths, then `go mod tidy`. 80+ go.mod files today.
 
 ## 2. Deletions (ADR-0123: view + relational tiers, stack presets)
 

@@ -154,11 +154,12 @@ func BenchmarkMessageToCommand(b *testing.B) {
 // are the ceiling for one subscription against an in-memory journal and
 // checkpoint store. Real deployments add broker + network latency on top.
 //
-// 2026-09-06 baseline (idle machine): ~2-4 µs/event (~250-500K events/s).
-// If a future change degrades this by an order of magnitude, ack-window
-// pipelining (N in-flight unacked messages) is the designed remedy — it
-// trades strictly-serialized checkpointing for throughput and was
-// deliberately NOT added while the ceiling stayed in this range.
+// 2026-09-06 baseline: 3.6-6.2 µs/event (~160-280K events/s) at ambient
+// load avg 37-59 on 32 cores (an idle machine will land lower). Treat the
+// gate as order-of-magnitude: if a future change degrades this by 10x,
+// ack-window pipelining (N in-flight unacked messages) is the designed
+// remedy — it trades strictly-serialized checkpointing for throughput and
+// was deliberately NOT added while the ceiling stayed in this range.
 func BenchmarkCatchUp_ReplayThroughput(b *testing.B) {
 	b.ReportAllocs()
 

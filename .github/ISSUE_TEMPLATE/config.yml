@@ -1,0 +1,7 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage question
+    url: https://github.com/larsartmann/go-cqrs-lite/blob/master/SKILL.md
+    about: >-
+      Start with SKILL.md and the references under .agents/skills/go-cqrs-lite/ —
+      most questions are answered there with verified, copy-paste recipes.

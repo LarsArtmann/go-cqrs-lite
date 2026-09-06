@@ -17,8 +17,10 @@ import (
 
 // doctorFlags adds subcommand-level flags to the doctor command.
 type doctorFlags struct {
-	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
-	Fix               bool `default:"false" flag:"fix"                help:"Remove stale whole-line suppressions (implies audit)"`
+	AuditSuppressions bool   `default:"false" flag:"audit-suppressions"  help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
+	Fix               bool   `default:"false" flag:"fix"                 help:"Remove stale whole-line suppressions (implies audit)"`
+	DryRun            bool   `default:"false" flag:"dry-run"             help:"With --fix: show what would be removed without changing any file"`
+	Format            string `default:"text"  flag:"format"              help:"Output format: text or json"`
 }
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -31,8 +33,16 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 				return fmt.Errorf("load packages: %w", err)
 			}
 
+			if flags.Format != "text" && flags.Format != "json" {
+				return fmt.Errorf("invalid --format %q: want \"text\" or \"json\"", flags.Format)
+			}
+
+			if flags.Format == "json" {
+				return runDoctorJSON(ctx, cfg, actx, flags)
+			}
+
 			if flags.AuditSuppressions || flags.Fix {
-				return runSuppressionAudit(ctx, cfg, actx, flags.Fix)
+				return runSuppressionAudit(ctx, cfg, actx, flags.Fix, flags.DryRun)
 			}
 
 			renderDoctorLoadErrors(os.Stderr, actx)

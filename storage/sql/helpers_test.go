@@ -303,29 +303,47 @@ func TestSharedCheckpointSaveAndLoad(t *testing.T) {
 	}
 }
 
+func setupSnapshotsTable(t *testing.T) *sql.DB {
+	t.Helper()
+
+	db := openSQLite(t)
+	ctx := context.Background()
+	if _, err := db.ExecContext(ctx, sqlpkg.SQLiteDialect{}.SnapshotSchema()); err != nil {
+		t.Fatalf("create snapshots table: %v", err)
+	}
+
+	return db
+}
+
+func insertSnapshotRow(t *testing.T, db *sql.DB, ref id.StreamRef) {
+	t.Helper()
+
+	query := fmt.Sprintf(
+		"INSERT INTO %s (stream_type, stream_id, version, state) VALUES (?, ?, ?, ?)",
+		sqlpkg.TableSnapshots,
+	)
+	if _, err := db.ExecContext(context.Background(), query, "User", ref.ID, 1, []byte("s")); err != nil {
+		t.Fatalf("insert snapshot row: %v", err)
+	}
+}
+
 func TestDeleteByStream(t *testing.T) {
 	t.Parallel()
 
-	db := setupEventsTable(t)
+	db := setupSnapshotsTable(t)
 	ref := id.NewStreamRef("User", id.NewStreamID())
 	ctx := context.Background()
 
-	tx := beginTx(t, db)
+	insertSnapshotRow(t, db, ref)
 
-	_ = sqlpkg.SharedInsertEvents(
-		ctx, tx, ref, []event.Event{makeTestEvent(t, 1)},
-		sqliteInsertQuery(),
-		func(t time.Time) any { return t.Format(time.RFC3339Nano) },
-	)
-	_ = tx.Commit()
-
-	err := sqlpkg.DeleteByStream(db, ctx, ref, sqlpkg.TableEvents, "?", "?", "events")
+	err := sqlpkg.DeleteByStream(db, ctx, ref, sqlpkg.TableSnapshots, "?", "?", "snapshots")
 	if err != nil {
 		t.Fatalf("DeleteByStream: %v", err)
 	}
 
 	var count int
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM events").Scan(&count); err != nil {
+	query := "SELECT COUNT(*) FROM " + sqlpkg.TableSnapshots
+	if err := db.QueryRowContext(ctx, query).Scan(&count); err != nil {
 		t.Fatalf("count: %v", err)
 	}
 	if count != 0 {
@@ -336,28 +354,22 @@ func TestDeleteByStream(t *testing.T) {
 func TestDeleteByStream_OtherStreamUntouched(t *testing.T) {
 	t.Parallel()
 
-	db := setupEventsTable(t)
+	db := setupSnapshotsTable(t)
 	ctx := context.Background()
 	ref1 := id.NewStreamRef("User", id.NewStreamID())
 	ref2 := id.NewStreamRef("User", id.NewStreamID())
 
-	for _, ref := range []id.StreamRef{ref1, ref2} {
-		tx := beginTx(t, db)
-		_ = sqlpkg.SharedInsertEvents(
-			ctx, tx, ref, []event.Event{makeTestEvent(t, 1)},
-			sqliteInsertQuery(),
-			func(t time.Time) any { return t.Format(time.RFC3339Nano) },
-		)
-		_ = tx.Commit()
-	}
+	insertSnapshotRow(t, db, ref1)
+	insertSnapshotRow(t, db, ref2)
 
-	err := sqlpkg.DeleteByStream(db, ctx, ref1, sqlpkg.TableEvents, "?", "?", "events")
+	err := sqlpkg.DeleteByStream(db, ctx, ref1, sqlpkg.TableSnapshots, "?", "?", "snapshots")
 	if err != nil {
 		t.Fatalf("DeleteByStream: %v", err)
 	}
 
 	var count int
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM events").Scan(&count); err != nil {
+	query := "SELECT COUNT(*) FROM " + sqlpkg.TableSnapshots
+	if err := db.QueryRowContext(ctx, query).Scan(&count); err != nil {
 		t.Fatalf("count: %v", err)
 	}
 	if count != 1 {

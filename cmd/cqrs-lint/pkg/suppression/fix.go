@@ -50,6 +50,59 @@ func RemoveStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 	return res
 }
 
+// PlanStaleInlineSuppressions classifies stale directives exactly like
+// [RemoveStaleInlineSuppressions] would, WITHOUT touching any file:
+// Removed holds the lines that WOULD be deleted, Skipped those that would
+// be left for manual removal, and Files the files that would be rewritten.
+// It backs `doctor --fix --dry-run`.
+func PlanStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
+	var res FixResult
+
+	byFile := make(map[string][]SuppressionAuditEntry)
+	for _, e := range entries {
+		if e.Status == AuditStale {
+			byFile[e.File] = append(byFile[e.File], e)
+		}
+	}
+
+	for file, fileEntries := range byFile {
+		planStaleLinesInFile(file, fileEntries, &res)
+	}
+
+	sortAuditEntries(res.Removed)
+	dedupeByLine(&res.Removed)
+	sortAuditEntries(res.Skipped)
+	sort.Strings(res.Files)
+
+	return res
+}
+
+// planStaleLinesInFile classifies each stale entry of one file without
+// rewriting anything, recording the outcome in res.
+func planStaleLinesInFile(file string, entries []SuppressionAuditEntry, res *FixResult) {
+	data, err := os.ReadFile(file)
+	if err != nil {
+		res.Skipped = append(res.Skipped, entries...)
+		return
+	}
+
+	lines := strings.Split(string(data), "\n")
+
+	removable := false
+	for _, e := range entries {
+		if e.Line >= 1 && e.Line <= len(lines) && isWholeLineDirective(lines[e.Line-1]) {
+			res.Removed = append(res.Removed, e)
+			removable = true
+		} else {
+			res.Skipped = append(res.Skipped, e)
+		}
+	}
+
+	if removable {
+		res.Files = append(res.Files, file)
+	}
+}
+
 // removeStaleLinesInFile classifies each stale entry of one file, deletes the
 // whole-line directives, and records the outcome in res.
 func removeStaleLinesInFile(file string, entries []SuppressionAuditEntry, res *FixResult) {
