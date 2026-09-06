@@ -25,7 +25,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
@@ -39,13 +38,6 @@ var (
 	errWarningsFound    = errors.New("doc-check warning(s) found")
 	errNoReferences     = errors.New("no Go references found")
 )
-
-type ref struct {
-	pkg    string
-	symbol string
-	file   string
-	line   int
-}
 
 type AppConfig struct {
 	cmdguard.Config
@@ -124,37 +116,28 @@ func run(files []string) error {
 	// Resolve repo root by walking up from the first file's directory.
 	repoRoot := findRepoRootFromPath(filepath.Dir(files[0]))
 
-	var allRefs []ref
+	var allBlocks []block
 
 	var allImports []string
 
 	for _, file := range files {
-		refs, imports, err := scanMarkdown(file)
+		blocks, err := scanMarkdownBlocks(file)
 		if err != nil {
 			return fmt.Errorf("error reading %s: %w", file, err)
 		}
 
-		allRefs = append(allRefs, refs...)
-		allImports = append(allImports, imports...)
-	}
-
-	// Build package export index from cqrs-lite imports.
-	exportIndex, warnings := buildExportIndex(allImports, repoRoot)
-
-	// Verify references.
-	broken := 0
-
-	for _, r := range allRefs {
-		if _, ok := exportIndex[r.pkg]; !ok {
-			continue // external package, skip
+		for _, b := range blocks {
+			allImports = append(allImports, b.imports...)
 		}
 
-		if !exportIndex[r.pkg][r.symbol] {
-			log.Printf("  ✗ %s:%d: %s.%s not found", r.file, r.line, r.pkg, r.symbol)
-
-			broken++
-		}
+		allBlocks = append(allBlocks, blocks...)
 	}
+
+	// References resolve against each block's own imports first, then the
+	// repo-wide package-name index; same-named packages cannot cross-resolve.
+	res := newResolver(repoRoot)
+
+	broken, totalRefs, warnings := verifyBlocks(allBlocks, allImports, res)
 
 	if broken > 0 {
 		return fmt.Errorf("%w: %d broken reference(s) found", errBrokenReferences, broken)
@@ -177,7 +160,7 @@ func run(files []string) error {
 		)
 	}
 
-	if len(allRefs) == 0 {
+	if totalRefs == 0 {
 		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
 			"%w: no fenced ```go code blocks detected — documents were NOT verified. "+
 				"Add a verification code block or pass files with Go samples",
@@ -187,7 +170,7 @@ func run(files []string) error {
 
 	log.Printf( //nolint:lll
 		"✓ All %d references valid across %d package(s).",
-		len(allRefs), len(exportIndex),
+		totalRefs, len(res.clauses),
 	)
 
 	return nil
@@ -228,79 +211,3 @@ func findRepoRootFromPath(start string) string {
 	return "."
 }
 
-var (
-	goBlockRe = regexp.MustCompile("(?s)```go\n(.*?)```")
-	importRe  = regexp.MustCompile(`"(` + regexp.QuoteMeta(repoImportPrefix) + `[^"]+)"`)
-	refRe     = regexp.MustCompile(`\b([a-z][a-z0-9]*)\.([A-Z][A-Za-z0-9]*)\b`)
-)
-
-func scanMarkdown(path string) ([]ref, []string, error) {
-	data, err := os.ReadFile(filepath.Clean(path))
-	if err != nil {
-		return nil, nil, err //nolint:wrapcheck // tool exit
-	}
-
-	content := string(data)
-
-	var refs []ref
-
-	var imports []string
-
-	lineNum := 0
-
-	for _, match := range goBlockRe.FindAllStringSubmatchIndex(content, -1) {
-		blockStart := match[2]
-		blockEnd := match[3]
-		block := content[blockStart:blockEnd]
-
-		// Approximate line number of block start.
-		lineNum += strings.Count(content[:blockStart], "\n") + 1
-
-		// Extract imports.
-		for _, imp := range importRe.FindAllStringSubmatch(block, -1) {
-			imports = append(imports, imp[1])
-		}
-
-		// Extract qualified references.
-		for _, refMatch := range refRe.FindAllStringSubmatch(block, -1) {
-			pkgAlias := refMatch[1]
-			symbol := refMatch[2]
-
-			// Skip common non-package prefixes.
-			if isStdlibOrBuiltin(pkgAlias) {
-				continue
-			}
-
-			refs = append(refs, ref{
-				pkg:    pkgAlias,
-				symbol: symbol,
-				file:   path,
-				line:   lineNum,
-			})
-		}
-	}
-
-	return refs, imports, nil
-}
-
-func isStdlibOrBuiltin(alias string) bool {
-	skip := map[string]bool{
-		"fmt": true, "os": true, "time": true, "sync": true,
-		"context": true, "errors": true, "strings": true, "strconv": true,
-		"log": true, "testing": true, "bytes": true, "io": true,
-		"json": true, "database": true, "sql": true, "net": true,
-		"http": true, "reflect": true, "sort": true, "math": true,
-		"filepath": true, "regexp": true, "slog": true, "rand": true,
-		"otel":         true,
-		"grpc":         true,
-		"pebble":       true,
-		"projection":   true,
-		"turso":        true,
-		"asyncapi":     true,
-		"openapi":      true,
-		"eventcatalog": true,
-		"d2":           true,
-	}
-
-	return skip[alias]
-}
