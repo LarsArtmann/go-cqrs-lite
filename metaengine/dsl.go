@@ -14,7 +14,8 @@ func PlanFromMemory(args ...any) (*Store, error) {
 }
 
 // LogPlan logs the planner's decisions and diagnostics via slog. Call it
-// once after Plan or PlanFromSQLite, at startup, so the optimizer's choices
+// once after Plan (or a one-shot convenience such as PlanFromMemory), at
+// startup, so the optimizer's choices
 // are visible in production logs:
 //
 //	store, _, _ := metaengine.Plan(engines, stats)

@@ -48,10 +48,9 @@ func main() {
 	aggID := id.NewStreamID()
 	_ = command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *CreateUser) error {
-			return repo.Execute(
+			return repo.ExecuteRef(
 				ctx,
-				cmd.StreamID(),
-				streamType,
+				id.NewStreamRef(streamType, cmd.StreamID()),
 				func(_ UserState, v event.Version) ([]event.Event, error) {
 					return event.NewEvents(cmd.StreamID(), streamType, v,
 						[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
@@ -62,6 +61,6 @@ func main() {
 	basic, _ := command.New("user.create", aggID)
 	_ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
 
-	state, _, _ := repo.Load(ctx, aggID, streamType)
+	state, _, _ := repo.LoadRef(ctx, id.NewStreamRef(streamType, aggID))
 	fmt.Printf("User: %s\n", state.Name) // User: Alice
 }

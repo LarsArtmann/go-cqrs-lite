@@ -43,12 +43,12 @@ repo, _ := decider.NewRepository(store, bus, d)
 
 // 4. Register a typed command handler
 command.RegisterTyped(cmds, "user.create", func(ctx, cmd *CreateUser) error {
-    return repo.Execute(ctx, cmd.StreamID(), "User", decideFunc)
+    return repo.ExecuteRef(ctx, id.NewStreamRef("User", cmd.StreamID()), decideFunc)
 })
 
 // 5. Dispatch → event sourced → state readable
 cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
-state, _, _ := repo.Load(ctx, aggID, "User")
+state, _, _ := repo.LoadRef(ctx, id.NewStreamRef("User", aggID))
 fmt.Printf("User: %s\n", state.Name) // "Alice"
 ```
 
