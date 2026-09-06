@@ -51,6 +51,16 @@ type FoldInfo struct {
 	HasDefault  bool     // has a default case
 	DefaultNil  bool     // default case returns nil error
 	UnknownVars []string // variables for the event parameter
+	// DefaultNilPos is the source position of the nil-error return inside
+	// the default case. Zero when DefaultNil is false. C003 reports here so
+	// the auto-fix's BeforeCode matches the reported line byte-for-byte.
+	DefaultNilPos token.Position
+	// DefaultRetState is the source text of the state expression in the
+	// nil-error return (e.g. "next"); empty when it cannot be rendered.
+	DefaultRetState string
+	// SwitchTagExpr is the source text of the switch tag (e.g.
+	// "evt.Type()"), reused inside the generated fmt.Errorf argument.
+	SwitchTagExpr string
 }
 
 // DeciderInfo describes a decider construct.

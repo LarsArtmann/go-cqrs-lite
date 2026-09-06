@@ -23,25 +23,7 @@ func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, fold := range ctx.Registry.Folds {
 				if fold.HasSwitch && fold.HasDefault && fold.DefaultNil {
-					f, err := finding.NewBuilder(
-						"C003", toolName,
-						fmt.Sprintf("Fold %s silently ignores unknown event types in default case", fold.FuncName),
-						finding.SeverityError,
-						finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
-					).
-						WithCategory(finding.CategoryCorrectness).
-						WithConfidence(finding.ConfidenceHigh).
-						WithFixStrategy(finding.FixStrategyDirect).
-						WithSuggestion("Return an error in the default case: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
-						WithBeforeCode("return state, nil").
-						WithAfterCode(`return state, fmt.Errorf("fold: unknown event type: %s", evt.Type())`).
-						WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
-						Build()
-					if err != nil {
-						continue
-					}
-
-					findings = append(findings, f)
+					findings = append(findings, c003SwitchDefault(ctx, fold)...)
 				}
 
 				// Also check for the if-statement variant of the same bug:
@@ -55,7 +37,6 @@ func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					).
 						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
-						WithFixStrategy(finding.FixStrategyDirect).
 						WithSuggestion("Return an error for unknown event types: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
 						WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
 						Build()
@@ -68,6 +49,44 @@ func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// c003SwitchDefault builds findings for the switch-default variant. When the
+// scanner captured the nil-return's exact position and source text, the
+// finding carries a Direct fix positioned AT the return statement — the fix
+// provider matches BeforeCode at the reported line:column, so a finding
+// anchored to the function declaration would advertise a fix that could
+// never be located and apply as a silent no-op.
+func c003SwitchDefault(ctx *analyzer.AnalysisContext, fold analyzer.FoldInfo) []finding.Finding {
+	pos := fold.Pos
+	if fold.DefaultNilPos.Line > 0 {
+		pos = fold.DefaultNilPos
+	}
+
+	b := finding.NewBuilder(
+		"C003", toolName,
+		fmt.Sprintf("Fold %s silently ignores unknown event types in default case", fold.FuncName),
+		finding.SeverityError,
+		finding.Pos(finding.FilePath(fold.File), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryCorrectness).
+		WithConfidence(finding.ConfidenceHigh).
+		WithSuggestion("Return an error in the default case: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
+		WithSnippet(ctx.SourceLine(fold.File, pos.Line))
+
+	if fold.DefaultRetState != "" && fold.SwitchTagExpr != "" {
+		b = b.
+			WithFixStrategy(finding.FixStrategyDirect).
+			WithBeforeCode("return " + fold.DefaultRetState + ", nil").
+			WithAfterCode("return " + fold.DefaultRetState + ", fmt.Errorf(\"fold: unknown event type: %s\", " + fold.SwitchTagExpr + ")")
+	}
+
+	f, err := b.Build()
+	if err != nil {
+		return nil
+	}
+
+	return []finding.Finding{f}
 }
 
 // foldHasSilentIfStmt checks whether a fold function body contains an

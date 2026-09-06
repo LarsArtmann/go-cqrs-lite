@@ -182,6 +182,7 @@ func detectFoldFunc(
 		}
 
 		info.HasSwitch = true
+		info.SwitchTagExpr = ExprString(sw.Tag)
 
 		for _, stmt := range sw.Body.List {
 			cc, ok := stmt.(*ast.CaseClause)
@@ -203,6 +204,8 @@ func detectFoldFunc(
 							if id, ok := ret.Results[len(ret.Results)-1].(*ast.Ident); ok &&
 								id.Name == "nil" {
 								info.DefaultNil = true
+								info.DefaultNilPos = ctx.Fset.Position(ret.Pos())
+								info.DefaultRetState = ExprString(ret.Results[0])
 							}
 						}
 
