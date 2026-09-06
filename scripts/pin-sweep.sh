@@ -96,12 +96,14 @@ sweep_dir() {
 }
 
 # compile_check validates a bumped module standalone, including test files.
+# go mod tidy runs first: go mod edit leaves the module "not tidy" and the
+# build refuses until re-resolved.
 compile_check() {
 	local dir="$1"
 
-	echo "  verifying $dir (GOWORK=off build + test-compile)"
+	echo "  verifying $dir (GOWORK=off tidy + build + test-compile)"
 
-	(cd "$dir" && GOWORK=off go build -tags "$GO_TAGS" ./... && GOWORK=off go test -tags "$GO_TAGS" -run ZZNONE -count=1 ./... > /dev/null)
+	(cd "$dir" && GOWORK=off go mod tidy && GOWORK=off go build -tags "$GO_TAGS" ./... && GOWORK=off go test -tags "$GO_TAGS" -run ZZNONE -count=1 ./... > /dev/null)
 }
 
 # refresh_goldens regenerates both cqrs-lint goldens that pin the version set.
@@ -139,14 +141,15 @@ fi
 
 echo "==> bumping $stale_count stale pin(s)"
 
-printf '%s\n' "$stale" | while IFS=$'\t' read -r dir dep ver latest; do
+printf '%s\n' "$stale" | while IFS=$'	' read -r dir dep ver latest; do
 	echo "  $dir: $dep $ver → $latest"
 	sweep_dir "$dir" "$dep" "$latest"
 done
 
-# Recompute the changed module set from the working tree (the bump loop
-# runs in a pipe subshell, so thread state via git, not variables).
-mapfile -t changed < <(git diff --name-only -- '*/go.mod' 'go.mod' | grep -v '^vendor/' | xargs -r -n1 dirname | sort -u)
+# Modules to verify: every directory the stale list names. NOT git diff —
+# a sweep that restores a pin to its HEAD state produces a correct zero diff
+# and would false-abort here.
+mapfile -t changed < <(printf '%s\n' "$stale" | cut -f1 | sort -u)
 
 if [ "${#changed[@]}" -eq 0 ]; then
 	echo "ERROR: pins were stale but no go.mod changed — aborting"
