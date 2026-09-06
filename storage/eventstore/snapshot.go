@@ -78,8 +78,11 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		p5,
 		s.Dialect.OnConflictDoUpdate([]string{"stream_type", "stream_id"}, setExprs),
 	)
+	// Bind state as a string, not []byte: pgx sends []byte as bytea, which
+	// PostgreSQL rejects for the JSONB state column ("invalid input syntax
+	// for type json"). Text binds parse as JSON on every dialect.
 	_, err := s.DB.ExecContext(ctx, query, string(snap.StreamType), snap.StreamID,
-		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
+		snap.Version.Int(), string(snap.State), s.Dialect.FormatTime(snap.CreatedAt))
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 		return errorfamily.WrapInfrastructure(err, "storage.save_snapshot",

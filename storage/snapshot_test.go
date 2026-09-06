@@ -57,7 +57,7 @@ func TestSQLSnapshotStore_Save(t *testing.T) {
 	}
 
 	mock.ExpectExec(`INSERT INTO snapshots`).
-		WithArgs("User", snap.StreamID, 5, snap.State, snap.CreatedAt).
+		WithArgs("User", snap.StreamID, 5, string(snap.State), snap.CreatedAt).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
 	err := s.Save(context.Background(), snap)
