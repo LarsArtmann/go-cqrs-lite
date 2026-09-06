@@ -55,7 +55,11 @@ func NewC005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !isPayloadCall(payloadArg) {
+					// The decoder idiom wraps the payload in a reader:
+					// json.NewDecoder(bytes.NewReader(evt.Payload())) — the .Payload()
+					// call is nested inside the argument, so a direct-arg check
+					// silently missed the most common decoder form.
+					if !containsPayloadCall(payloadArg) {
 						return true
 					}
 					// json.Unmarshal inside schema.NewUpcaster closures is the

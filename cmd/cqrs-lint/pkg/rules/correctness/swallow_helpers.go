@@ -18,6 +18,29 @@ func isPayloadCall(expr ast.Expr) bool {
 	return sel.Sel.Name == "Payload"
 }
 
+// containsPayloadCall reports whether the expression tree contains a direct
+// `.Payload()` call anywhere — needed for decoder-style arguments where the
+// payload is wrapped (bytes.NewReader(evt.Payload())).
+func containsPayloadCall(expr ast.Expr) bool {
+	found := false
+
+	ast.Inspect(expr, func(n ast.Node) bool {
+		if found {
+			return false
+		}
+
+		if e, ok := n.(ast.Expr); ok && isPayloadCall(e) {
+			found = true
+
+			return false
+		}
+
+		return true
+	})
+
+	return found
+}
+
 func isLikelyDecider(fn *ast.FuncDecl) bool {
 	name := fn.Name.Name
 

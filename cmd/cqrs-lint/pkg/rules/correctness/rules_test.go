@@ -257,6 +257,52 @@ func handle(e *evt) {
 	ruletest.AssertRule(t, findings, "C005", 1)
 }
 
+func TestC005_DetectsWrappedDecoderPayload(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import (
+	"bytes"
+	"encoding/json"
+)
+
+type Payload struct{ Name string }
+
+type evt struct{}
+
+func (e *evt) Payload() []byte { return nil }
+
+func handle(e *evt) error {
+	var p Payload
+	return json.NewDecoder(bytes.NewReader(e.Payload())).Decode(&p)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC005Detector(ctx))
+	ruletest.AssertRule(t, findings, "C005", 1)
+}
+
+func TestC005_NoFindingForPlainDecoder(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"handler.go": `package main
+
+import (
+	"encoding/json"
+	"os"
+)
+
+type Payload struct{ Name string }
+
+func handle() error {
+	var p Payload
+	return json.NewDecoder(os.Stdin).Decode(&p)
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, correctness.NewC005Detector(ctx))
+	ruletest.AssertRule(t, findings, "C005", 0)
+}
+
 // --- C009: panic in production ---
 
 func TestC009_DetectsPanic(t *testing.T) {
