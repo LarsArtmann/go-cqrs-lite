@@ -34,7 +34,7 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"B021", toolName,
 					"Fold function silently ignores unknown event types — "+
 						"use decider.StrictApply for compile-time safety",
-					finding.SeverityInfo,
+					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
 				).
 					WithCategory(finding.CategoryBestPractice).

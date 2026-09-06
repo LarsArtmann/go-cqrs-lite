@@ -55,7 +55,7 @@ func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
 					).
 						WithCategory(finding.CategoryCorrectness).
-						WithConfidence(finding.ConfidenceMedium).
+						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategyDirect).
 						WithSuggestion("Return an error for unknown event types: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
 						WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).

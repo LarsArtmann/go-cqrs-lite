@@ -62,7 +62,7 @@ func NewC027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
 						WithCategory(finding.CategoryCorrectness).
-						WithConfidence(finding.ConfidenceLow).
+						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Register projections with projectionhost only, " +
 							"or use bus subscriptions only — not both for the same event types").

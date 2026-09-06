@@ -83,7 +83,7 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"S008", toolName,
 					"VerifyMiddleware configured but events are never signed — "+
 						"verification is a no-op on unsigned events",
-					finding.SeverityWarning,
+					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
 					WithCategory(finding.CategorySecurity).
@@ -175,7 +175,7 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"S009", toolName,
 					"DecryptMiddleware configured but events are never encrypted — "+
 						"decryption will fail on every event",
-					finding.SeverityWarning,
+					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
 					WithCategory(finding.CategorySecurity).

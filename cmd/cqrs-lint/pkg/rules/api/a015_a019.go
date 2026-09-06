@@ -169,7 +169,7 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
 			).
 				WithCategory(finding.CategoryBestPractice).
-				WithConfidence(finding.ConfidenceMedium).
+				WithConfidence(finding.ConfidenceHigh).
 				WithSuggestion("Wire up an event store and bus, or remove the unused import").
 				Build()
 			if err == nil {
