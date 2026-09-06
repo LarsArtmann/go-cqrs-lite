@@ -19,12 +19,12 @@ import (
 // double-fire it.
 const DefaultClaimLease = time.Minute
 
-// ErrClaimingUnsupported is returned by NewClaimingMySQLStore: MariaDB (the
-// MySQL-compatible server this repo tests against) has no SKIP LOCKED, and a
-// MySQL-only claiming path would silently behave differently under MariaDB —
-// the same dialect trap documented in AGENTS.md. Use Postgres or SQLite.
+// ErrClaimingUnsupported is returned when a claiming store is requested for
+// a dialect that cannot honor the claim contract. MySQL/MariaDB 10.6+
+// (FOR UPDATE SKIP LOCKED — verified live on MariaDB 11.4) IS supported;
+// only unknown dialects are rejected.
 var ErrClaimingUnsupported = errors.New(
-	"sqlstore: claiming store requires Postgres (FOR UPDATE SKIP LOCKED) or SQLite (single writer); MySQL/MariaDB is not supported",
+	"sqlstore: claiming store requires Postgres, SQLite, or MySQL/MariaDB 10.6+ (FOR UPDATE SKIP LOCKED)",
 )
 
 // ClaimingTimerStore wraps a [SQLTimerStore] with atomic claiming so MULTIPLE
@@ -73,14 +73,18 @@ func NewClaimingSQLiteStore[P any](
 	return newClaimingStore[P](ctx, db, DialectSQLite, lease, opts...)
 }
 
-// NewClaimingMySQLStore always fails: MySQL/MariaDB lacks SKIP LOCKED (MariaDB
-// explicitly does not have it), so claiming there cannot honor the contract.
+// NewClaimingMySQLStore creates a MySQL/MariaDB-backed claiming timer store.
+// Claiming uses FOR UPDATE SKIP LOCKED, which requires MySQL 8.0+ or
+// MariaDB 10.6+; older servers fail the claim query loudly at the first
+// Due. lease is how long a claim fences other pollers (DefaultClaimLease
+// when 0). The caller retains ownership of db.
 func NewClaimingMySQLStore[P any](
-	_ context.Context,
-	_ *sql.DB,
-	_ time.Duration,
+	ctx context.Context,
+	db *sql.DB,
+	lease time.Duration,
+	opts ...ClaimOption[P],
 ) (*ClaimingTimerStore[P], error) {
-	return nil, ErrClaimingUnsupported
+	return newClaimingStore[P](ctx, db, DialectMySQL, lease, opts...)
 }
 
 func newClaimingStore[P any](
@@ -90,7 +94,7 @@ func newClaimingStore[P any](
 	lease time.Duration,
 	opts ...ClaimOption[P],
 ) (*ClaimingTimerStore[P], error) {
-	if d != DialectPostgres && d != DialectSQLite {
+	if d != DialectPostgres && d != DialectSQLite && d != DialectMySQL {
 		return nil, ErrClaimingUnsupported
 	}
 
@@ -136,16 +140,26 @@ func (c *ClaimingTimerStore[P]) Due(
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	query, args := c.claimStmt(now, leaseUntil)
+	var (
+		timers  []scheduling.Timer[P]
+		joinErr error
+	)
 
-	rows, err := tx.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err, "scheduling.sqlstore.claim", "claim due timers")
+	if c.dialect == DialectMySQL {
+		timers, joinErr = claimDueMySQL(ctx, c, tx, now, leaseUntil)
+	} else {
+		query, args := c.claimStmt(now, leaseUntil)
+
+		rows, err := tx.QueryContext(ctx, query, args...)
+		if err != nil {
+			return nil, errorfamily.WrapInfrastructure(
+				err, "scheduling.sqlstore.claim", "claim due timers")
+		}
+
+		timers, joinErr = c.scanClaimed(rows)
+
+		_ = rows.Close()
 	}
-	defer func() { _ = rows.Close() }()
-
-	timers, joinErr := c.scanClaimed(rows)
 
 	if err := tx.Commit(); err != nil {
 		return nil, errorfamily.WrapInfrastructure(
