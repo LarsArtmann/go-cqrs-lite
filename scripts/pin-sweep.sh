@@ -73,6 +73,8 @@ collect_stale() {
 
 				[ -z "$latest" ] && continue
 
+				latest="${latest#"${moddir}"/}"
+
 				[ "$ver" = "$latest" ] && continue
 
 				oldest=$(printf '%s\n%s\n' "$ver" "$latest" | sort -V | head -1)
@@ -82,6 +84,8 @@ collect_stale() {
 				printf '%s\t%s\t%s\t%s\n' "$dir" "$dep" "$ver" "$latest"
 			done
 	done
+
+	return 0
 }
 
 # sweep_dir bumps one pin and returns success when the go.mod changed.
@@ -109,7 +113,7 @@ refresh_goldens() {
 	(cd cmd/cqrs-lint && CQRS_LINT_UPDATE_GOLDEN=1 GOWORK=off go test -tags "$GO_TAGS" -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/ > /dev/null)
 }
 
-stale=$(collect_stale)
+stale=$(collect_stale || true)
 
 stale_count=$(printf '%s' "$stale" | grep -c . || true)
 
@@ -158,7 +162,6 @@ fi
 refresh_goldens
 
 remaining=$(collect_stale | grep -c . || true)
-
 if [ "$remaining" -gt 0 ]; then
 	echo "ERROR: $remaining pin(s) still stale after sweep (tag missing or loop bug)"
 	exit 1
