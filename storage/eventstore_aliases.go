@@ -26,6 +26,8 @@ var (
 	NewSQLCheckpointStore            = eventstore.NewSQLCheckpointStore
 	NewSQLiteCheckpointStore         = eventstore.NewSQLiteCheckpointStore
 	NewSQLCheckpointStoreWithDialect = eventstore.NewSQLCheckpointStoreWithDialect
+	EventSchema                      = eventstore.EventSchema
+	SQLiteEventSchema                = eventstore.SQLiteEventSchema
 	SnapshotSchema                   = eventstore.SnapshotSchema
 	SQLiteSnapshotSchema             = eventstore.SQLiteSnapshotSchema
 	CheckpointSchema                 = eventstore.CheckpointSchema

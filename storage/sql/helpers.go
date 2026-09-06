@@ -14,8 +14,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
-// DeleteByStream is the shared implementation for Delete methods across event
-// and snapshot stores.
+// DeleteByStream is the shared implementation for Delete methods on stores
+// whose tables use the v5 stream column vocabulary (snapshots).
 func DeleteByStream(
 	db *sql.DB,
 	ctx context.Context,
@@ -26,7 +26,7 @@ func DeleteByStream(
 	what string,
 ) error {
 	query := fmt.Sprintf(
-		"DELETE FROM %s WHERE aggregate_type = %s AND aggregate_id = %s",
+		"DELETE FROM %s WHERE stream_type = %s AND stream_id = %s",
 		table, placeholder1, placeholder2,
 	)
 

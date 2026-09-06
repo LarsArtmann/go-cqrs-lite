@@ -39,16 +39,20 @@ FOR UPDATE SKIP LOCKED`, c.formatTime(now), c.formatTime(now))
 			err, "scheduling.sqlstore.claim", "claim due timers")
 	}
 
-	timers, joinErr := func() ([]scheduling.Timer[P], error) {
+	var (
+		timers  []scheduling.Timer[P]
+		joinErr error
+	)
+
+	func() {
 		defer func() { _ = rows.Close() }()
 
-		t, jerr := c.scanClaimed(rows)
-		if jerr == nil {
-			jerr = errorfamily.WrapInfrastructure(
-				rows.Err(), "scheduling.sqlstore.claim_iter", "iterate claimed timers")
-		}
+		timers, joinErr = c.scanClaimed(rows)
 
-		return t, jerr
+		if rerr := rows.Err(); joinErr == nil && rerr != nil {
+			joinErr = errorfamily.WrapInfrastructure(
+				rerr, "scheduling.sqlstore.claim_iter", "iterate claimed timers")
+		}
 	}()
 
 	if len(timers) > 0 {

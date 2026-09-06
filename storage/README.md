@@ -121,10 +121,12 @@ Get DDL strings for custom schema management (event tables come from the
 `storage/sql` — `PostgresDialect{}.EventSchema()`):
 
 ```go
-storage.SnapshotSchema()       // PostgreSQL snapshots DDL
+storage.EventSchema()          // PostgreSQL events DDL
 storage.CheckpointSchema()     // PostgreSQL checkpoints DDL
-storage.SQLiteSnapshotSchema() // SQLite variants...
+storage.SnapshotSchema()       // PostgreSQL snapshots DDL
+storage.SQLiteEventSchema()    // SQLite variants...
 storage.SQLiteCheckpointSchema()
+storage.SQLiteSnapshotSchema()
 ```
 
 ## Dialect

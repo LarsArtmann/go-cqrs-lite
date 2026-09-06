@@ -40,7 +40,7 @@ But the **README** — the first thing consumers read — says "52 independent m
 | Deployment shape             | Supported | How                                                                                                                 |
 | ---------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Single-process embedded**  | Yes       | `stack/sqlite`, `stack/pebble`, `stack/turso` — one process, one file                                               |
-| **Single-process + broker**  | Yes       | Any preset + `watermill.WithBackend(kafkaPub, kafkaSub)`                                                            |
+| **Single-process + broker**  | Yes       | Any preset + `watermill.WithBackend(kafkaPub, kafkaSub, closer)`                                                    |
 | **Multi-process shared DB**  | Yes       | `stack/postgres` + `WithDistributedBus(listener)` — `LISTEN/NOTIFY` for cross-process pub/sub                       |
 | **Multi-server distributed** | No        | No replication, consensus, or leader election. Use external coordination (etcd, Kubernetes) at the deployment layer |
 

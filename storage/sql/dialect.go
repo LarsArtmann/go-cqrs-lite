@@ -147,12 +147,12 @@ CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);`
 
 func (PostgresDialect) SnapshotSchema() string {
 	return `CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    TEXT NOT NULL,
+    stream_type  VARCHAR(255) NOT NULL,
+    stream_id    TEXT NOT NULL,
     version         INTEGER NOT NULL,
     state           JSONB NOT NULL,
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (aggregate_type, aggregate_id)
+    PRIMARY KEY (stream_type, stream_id)
 );`
 }
 
@@ -279,12 +279,12 @@ func (MySQLDialect) QuerySchema() string {
 
 func (MySQLDialect) SnapshotSchema() string {
 	return `CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    VARCHAR(255) NOT NULL,
+    stream_type  VARCHAR(255) NOT NULL,
+    stream_id    VARCHAR(255) NOT NULL,
     version         INTEGER NOT NULL,
     state           JSON NOT NULL,
     created_at      DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (aggregate_type, aggregate_id)
+    PRIMARY KEY (stream_type, stream_id)
 );`
 }
 
@@ -399,12 +399,12 @@ CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);`
 
 func (SQLiteDialect) SnapshotSchema() string {
 	return `CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  TEXT NOT NULL,
-    aggregate_id    TEXT NOT NULL,
+    stream_type  TEXT NOT NULL,
+    stream_id    TEXT NOT NULL,
     version         INTEGER NOT NULL,
     state           BLOB NOT NULL,
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    PRIMARY KEY (aggregate_type, aggregate_id)
+    PRIMARY KEY (stream_type, stream_id)
 );`
 }
 
@@ -529,12 +529,12 @@ CREATE INDEX IF NOT EXISTS idx_commands_received_at ON commands(received_at);`
 
 func (DuckDBDialect) SnapshotSchema() string {
 	return `CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  VARCHAR NOT NULL,
-    aggregate_id    VARCHAR NOT NULL,
+    stream_type  VARCHAR NOT NULL,
+    stream_id    VARCHAR NOT NULL,
     version         INTEGER NOT NULL,
     state           BLOB NOT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (aggregate_type, aggregate_id)
+    PRIMARY KEY (stream_type, stream_id)
 );`
 }
 

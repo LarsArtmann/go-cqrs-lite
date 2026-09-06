@@ -282,7 +282,7 @@ func TestSnapshotSchema_ContainsExpectedDDL(t *testing.T) {
 
 	schema := SnapshotSchema()
 
-	for _, want := range []string{"CREATE TABLE", "snapshots", "aggregate_type", "aggregate_id", "version", "state"} {
+	for _, want := range []string{"CREATE TABLE", "snapshots", "stream_type", "stream_id", "version", "state"} {
 		if !strings.Contains(schema, want) {
 			t.Errorf("schema missing %q", want)
 		}

@@ -1,6 +1,7 @@
 package correctness_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -166,4 +167,60 @@ func foldUser(state State, evt event.Event) (State, error) {
 
 	findings := ruletest.RunDetector(t, correctness.NewC040Detector(ctx))
 	ruletest.AssertRule(t, findings, "C040", 2)
+}
+
+func TestC040_ResolvesConstIdentifierCases(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+const userCreatedType event.Type = "user.created"
+const userDeletedType event.Type = "user.deleted"
+
+func decideCreate() {
+	_ = event.New("user.created", streamID, "User", UserCreated{})
+}
+
+func foldUser(state State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case userCreatedType:
+		// handled — const resolves to "user.created"
+	case userDeletedType:
+		// dead — const resolves to "user.deleted", nobody emits it
+	}
+	return state, nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC040Detector(ctx))
+	ruletest.AssertRule(t, findings, "C040", 1)
+
+	if !strings.Contains(findings[0].Message, `"user.deleted"`) {
+		t.Fatalf("finding should cite the resolved const value, got: %s", findings[0].Message)
+	}
+}
+
+func TestC040_IgnoresUnknownConstIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func decideCreate() {
+	_ = event.New("user.created", streamID, "User", UserCreated{})
+}
+
+func foldUser(state State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case unknownIdentifier:
+	}
+	return state, nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC040Detector(ctx))
+	ruletest.AssertRule(t, findings, "C040", 0)
 }

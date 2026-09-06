@@ -169,16 +169,18 @@ func capturePayloadTypeFromVar(
 	}
 }
 
-// scanConstDecl records command.Type / query.Type constant declarations so
-// that type-constant arguments passed to Register/RegisterTyped can be
-// resolved to their struct names later. Recognizes both forms:
+// scanConstDecl records command.Type / query.Type / event.Type constant
+// declarations so that type-constant arguments passed to Register/RegisterTyped
+// can be resolved to their struct names later and const-identifier fold cases
+// can be resolved to their string values. Recognizes both forms:
 //
 //	const GetVisitQueryType query.Type = "GetVisitQuery"
 //	const cmdCreate command.Type = "create"
 //
-// Only constants whose declared type is exactly command.Type or query.Type
-// (a SelectorExpr ending in ".Type") are recorded — this avoids capturing
-// unrelated string constants. See browser-history feedback (E005/E007).
+// Only constants whose declared type is exactly command.Type, query.Type, or
+// event.Type (a SelectorExpr ending in ".Type") are recorded — this avoids
+// capturing unrelated string constants. See browser-history feedback
+// (E005/E007).
 func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 	for _, spec := range decl.Specs {
 		vs, ok := spec.(*ast.ValueSpec)
@@ -201,9 +203,9 @@ func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 	}
 }
 
-// isCommandOrQueryType reports whether expr is "command.Type" or "query.Type"
-// (a SelectorExpr whose Sel is "Type" and whose qualifier contains "command"
-// or "query").
+// isCommandOrQueryType reports whether expr is a typed event/command/query
+// type: "command.Type", "query.Type", or "event.Type" (a SelectorExpr whose
+// Sel is "Type" and whose qualifier names one of those packages).
 func isCommandOrQueryType(expr ast.Expr) bool {
 	sel, ok := expr.(*ast.SelectorExpr)
 	if !ok || sel.Sel == nil {
@@ -216,7 +218,7 @@ func isCommandOrQueryType(expr ast.Expr) bool {
 
 	pkg := SelectorPackage(sel)
 
-	return pkg == "command" || pkg == "query"
+	return pkg == "command" || pkg == "query" || pkg == "event"
 }
 
 // ResolveRegisteredTypeConsts resolves type-constant arguments recorded during

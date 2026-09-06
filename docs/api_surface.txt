@@ -606,6 +606,7 @@ cmd/cqrs-lint/pkg/analyzer/method All
 cmd/cqrs-lint/pkg/analyzer/method ByCategory
 cmd/cqrs-lint/pkg/analyzer/method CategoryPriority
 cmd/cqrs-lint/pkg/analyzer/method CollectFoldCaseStrings
+cmd/cqrs-lint/pkg/analyzer/method CollectFoldCasesWithPos
 cmd/cqrs-lint/pkg/analyzer/method CommandByName
 cmd/cqrs-lint/pkg/analyzer/method Core
 cmd/cqrs-lint/pkg/analyzer/method DisabledSet
@@ -635,6 +636,7 @@ cmd/cqrs-lint/pkg/analyzer/struct DeciderInfo
 cmd/cqrs-lint/pkg/analyzer/struct EventEmission
 cmd/cqrs-lint/pkg/analyzer/struct EventInfo
 cmd/cqrs-lint/pkg/analyzer/struct FeatureProfile
+cmd/cqrs-lint/pkg/analyzer/struct FoldCaseInfo
 cmd/cqrs-lint/pkg/analyzer/struct FoldInfo
 cmd/cqrs-lint/pkg/analyzer/struct GoFile
 cmd/cqrs-lint/pkg/analyzer/struct ModuleEntry
@@ -4559,6 +4561,7 @@ snapshot/method ShouldSnapshot
 snapshot/method ShouldSnapshot
 snapshot/method ShouldSnapshotFor
 snapshot/method Store
+snapshot/method UnmarshalCBOR
 snapshot/method UnmarshalJSON
 snapshot/method Validate
 snapshot/struct ReadPressure
@@ -5014,6 +5017,7 @@ storage/bbolt/var ErrStreamTypeMismatch
 storage/bbolt/var ErrVersionMismatch
 storage/bbolt/var ErrVersionMismatch
 storage/eventstore/func CheckpointSchema
+storage/eventstore/func EventSchema
 storage/eventstore/func NewSQLCheckpointStore
 storage/eventstore/func NewSQLCheckpointStoreWithDialect
 storage/eventstore/func NewSQLEventStore
@@ -5024,6 +5028,7 @@ storage/eventstore/func NewSQLiteCheckpointStore
 storage/eventstore/func NewSQLiteEventStore
 storage/eventstore/func NewSQLiteSnapshotStore
 storage/eventstore/func SQLiteCheckpointSchema
+storage/eventstore/func SQLiteEventSchema
 storage/eventstore/func SQLiteSnapshotSchema
 storage/eventstore/func SnapshotSchema
 storage/eventstore/interface EventByIDLoader
@@ -6150,6 +6155,7 @@ storage/type ViewMapper
 storage/type ViewStoreOption
 storage/var CheckpointSchema
 storage/var ErrNilDB
+storage/var EventSchema
 storage/var NewRelationalProjection
 storage/var NewRelationalStore
 storage/var NewSQLCheckpointStore
@@ -6165,6 +6171,7 @@ storage/var NewSQLiteEventStore
 storage/var NewSQLiteKVStore
 storage/var NewSQLiteSnapshotStore
 storage/var SQLiteCheckpointSchema
+storage/var SQLiteEventSchema
 storage/var SQLiteSnapshotSchema
 storage/var SnapshotSchema
 storage/view/func AutoMapper

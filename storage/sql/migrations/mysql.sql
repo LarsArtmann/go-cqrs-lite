@@ -36,12 +36,12 @@ CREATE TABLE IF NOT EXISTS commands (
 );
 
 CREATE TABLE IF NOT EXISTS snapshots (
-    aggregate_type  VARCHAR(255) NOT NULL,
-    aggregate_id    VARCHAR(255) NOT NULL,
+    stream_type  VARCHAR(255) NOT NULL,
+    stream_id    VARCHAR(255) NOT NULL,
     version         INTEGER NOT NULL,
     state           JSON NOT NULL,
     created_at      DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    PRIMARY KEY (aggregate_type, aggregate_id)
+    PRIMARY KEY (stream_type, stream_id)
 );
 
 CREATE TABLE IF NOT EXISTS queries (

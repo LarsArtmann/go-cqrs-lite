@@ -3,8 +3,6 @@ package correctness
 import (
 	"context"
 	"fmt"
-	"go/ast"
-	"go/token"
 
 	"github.com/larsartmann/go-finding"
 

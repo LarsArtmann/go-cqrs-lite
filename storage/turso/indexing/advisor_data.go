@@ -45,7 +45,7 @@ var queryPatternsByTable = map[string][]queryPattern{
 	},
 	"snapshots": {
 		{
-			Query: "SELECT * FROM snapshots WHERE aggregate_type = ? AND aggregate_id = ?",
+			Query: "SELECT * FROM snapshots WHERE stream_type = ? AND stream_id = ?",
 			Args:  []any{"User", "dummy-id"},
 		},
 	},

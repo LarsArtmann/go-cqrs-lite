@@ -69,14 +69,14 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		"created_at = " + s.Dialect.ExcludedRef("created_at"),
 	}
 	query := fmt.Sprintf(
-		`INSERT INTO `+sqlpkg.TableSnapshots+` (aggregate_type, aggregate_id, version, state, created_at)
+		`INSERT INTO `+sqlpkg.TableSnapshots+` (stream_type, stream_id, version, state, created_at)
 		VALUES (%s, %s, %s, %s, %s) %s`,
 		p1,
 		p2,
 		p3,
 		p4,
 		p5,
-		s.Dialect.OnConflictDoUpdate([]string{"aggregate_type", "aggregate_id"}, setExprs),
+		s.Dialect.OnConflictDoUpdate([]string{"stream_type", "stream_id"}, setExprs),
 	)
 	_, err := s.DB.ExecContext(ctx, query, string(snap.StreamType), snap.StreamID,
 		snap.Version.Int(), snap.State, s.Dialect.FormatTime(snap.CreatedAt))
@@ -133,7 +133,7 @@ func (s *SQLSnapshotStore) querySnapshotAtVersion(
 ) (*snapshot.Snapshot, error) {
 	p1, p2, p3 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2), s.Dialect.Placeholder(3)
 	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
-		WHERE aggregate_type = %s AND aggregate_id = %s AND version <= %s
+		WHERE stream_type = %s AND stream_id = %s AND version <= %s
 		ORDER BY version DESC LIMIT 1`, p1, p2, p3)
 	return s.scanSnapshot(
 		s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID, maxVersion.Int()),
@@ -147,7 +147,7 @@ func (s *SQLSnapshotStore) querySnapshot(
 ) (*snapshot.Snapshot, error) {
 	p1, p2 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2)
 	query := fmt.Sprintf(`SELECT version, state, created_at FROM `+sqlpkg.TableSnapshots+`
-		WHERE aggregate_type = %s AND aggregate_id = %s`, p1, p2)
+		WHERE stream_type = %s AND stream_id = %s`, p1, p2)
 	return s.scanSnapshot(s.DB.QueryRowContext(ctx, query, string(ref.Type), ref.ID), ref)
 }
 
