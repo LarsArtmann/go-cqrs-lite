@@ -21,9 +21,24 @@ func NewCQRSFixProvider() *CQRSFixProvider {
 // Name returns the provider name.
 func (p *CQRSFixProvider) Name() string { return "cqrs-fix" }
 
-// CanHandle returns true if the finding has BeforeCode/AfterCode data.
+// CanHandle returns true when the finding carries fix data in EITHER source:
+// BeforeCode/AfterCode fields, or Metadata old/new expressions (the C006
+// style). Before this check accepted only BeforeCode, a finding whose fix
+// lived solely in Metadata was advertised as fixable nowhere even though
+// Edits knew how to apply it.
 func (p *CQRSFixProvider) CanHandle(f finding.Finding) bool {
-	return f.ToolName == "cqrs-lint" && f.HasCodeChange() && f.BeforeCode != ""
+	if f.ToolName != "cqrs-lint" {
+		return false
+	}
+
+	if f.BeforeCode != "" || f.AfterCode != "" {
+		return true
+	}
+
+	_, hasOld := f.Metadata["oldExpr"]
+	_, hasNew := f.Metadata["newExpr"]
+
+	return hasOld && hasNew
 }
 
 // Edits converts a finding into byte-level edits using BeforeCode/AfterCode matching.

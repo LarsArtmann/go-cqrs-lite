@@ -2,6 +2,7 @@ package fix_test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -255,5 +256,53 @@ func TestCQRSFixProvider_NoEditWhenBeforeCodeNotOnLine(t *testing.T) {
 			"expected no edits when beforeCode is absent from the finding's line, got %d",
 			len(edits),
 		)
+	}
+}
+
+// F030: a finding whose fix data lives ONLY in Metadata (BeforeCode empty)
+// must be handled — the metadata round-trip through a real edit.
+func TestCQRSFixProvider_MetadataOnlyRoundTrip(t *testing.T) {
+	provider := fix.NewCQRSFixProvider()
+
+	f, err := finding.NewBuilder(
+		"C006", "cqrs-lint", "manual version arithmetic",
+		finding.SeverityWarning, finding.Pos("test.go", 4, 1),
+	).
+		WithFixStrategy(finding.FixStrategyDirect).
+		WithMetadata(map[string]string{
+			"oldExpr": "event.Version(version.Int()+1)",
+			"newExpr": "version.Increment()",
+		}).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if f.HasCodeChange() {
+		t.Fatal("precondition: BeforeCode/AfterCode are empty")
+	}
+
+	if !provider.CanHandle(f) {
+		t.Fatal("CanHandle must accept a Metadata-only fix source")
+	}
+
+	content := []byte(`package main
+
+func decide(version event.Version) {
+	_ = event.Version(version.Int()+1)
+}
+`)
+
+	edits, err := provider.Edits(content, f)
+	if err != nil {
+		t.Fatalf("Edits() error: %v", err)
+	}
+
+	if len(edits) != 1 {
+		t.Fatalf("Edits() returned %d edits, want 1", len(edits))
+	}
+
+	if got := string(applyEdit(content, edits[0])); !strings.Contains(got, "version.Increment()") {
+		t.Errorf("metadata-only edit not applied\ngot: %s", got)
 	}
 }
