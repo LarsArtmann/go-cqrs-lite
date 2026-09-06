@@ -98,7 +98,13 @@ func TestDecodeKeyBase64(t *testing.T) {
 		{"tolerates whitespace", encryption.EncodeKeyBase64(valid) + "\n", false, nil, ""},
 		{"empty string", "", true, encryption.ErrInvalidKey, "empty"},
 		{"not base64", "!!!not-base64!!!", true, encryption.ErrInvalidKey, "base64"},
-		{"wrong length", encryption.EncodeKeyBase64(make([]byte, 24)), true, encryption.ErrInvalidKey, "24 bytes"},
+		{
+			"wrong length",
+			encryption.EncodeKeyBase64(make([]byte, 24)),
+			true,
+			encryption.ErrInvalidKey,
+			"24 bytes",
+		},
 	}
 
 	for _, tt := range tests {

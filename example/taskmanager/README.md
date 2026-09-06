@@ -4,21 +4,21 @@ A production-grade task management service that demonstrates go-cqrs-lite **to t
 
 ## What This Example Shows
 
-| Feature              | How                                                                                         |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| **Event Sourcing**   | Per-event payloads (not fat payloads), `system.Execute` Op, optimistic concurrency          |
-| **CQRS**             | Command dispatcher with typed handlers; metaengine Map read model                           |
-| **Projections**      | `metaengine` Map ADT folds + `projectionhost` (crash-restart, DLQ, checkpoints)             |
-| **Ordered Delivery** | `projectionhost` replays the journal, then follows live events into the metaengine store    |
-| **Persistence**      | SQLite via `system.EngineConfig{Driver: "sqlite"}` (swap by changing one `Driver` line)      |
-| **Middleware**       | Recovery, Logging, Retry on the command dispatcher                                          |
-| **Observability**    | OpenTelemetry tracing + metrics via `otel.Setup` + `middleware.NewOTelBundle`               |
-| **Signing**          | HMAC-SHA256 event signing (tamper-evident streams)                                          |
-| **Tombstone**        | Soft-delete as a `task.deleted` domain event (ADR-0114) — no hard deletes, data preserved   |
-| **Deriver sagas**    | `deriver` derives follow-up commands from events (assignment cascade)                       |
-| **Testing**          | Scenario DSL (`Given/When/Then`), integration tests, HTTP API tests                         |
-| **Error Taxonomy**   | 6-family error classification mapped to HTTP status codes                                   |
-| **Branded IDs**      | `TaskID = id.StreamID` for type-safe identifiers                                            |
+| Feature              | How                                                                                       |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| **Event Sourcing**   | Per-event payloads (not fat payloads), `system.Execute` Op, optimistic concurrency        |
+| **CQRS**             | Command dispatcher with typed handlers; metaengine Map read model                         |
+| **Projections**      | `metaengine` Map ADT folds + `projectionhost` (crash-restart, DLQ, checkpoints)           |
+| **Ordered Delivery** | `projectionhost` replays the journal, then follows live events into the metaengine store  |
+| **Persistence**      | SQLite via `system.EngineConfig{Driver: "sqlite"}` (swap by changing one `Driver` line)   |
+| **Middleware**       | Recovery, Logging, Retry on the command dispatcher                                        |
+| **Observability**    | OpenTelemetry tracing + metrics via `otel.Setup` + `middleware.NewOTelBundle`             |
+| **Signing**          | HMAC-SHA256 event signing (tamper-evident streams)                                        |
+| **Tombstone**        | Soft-delete as a `task.deleted` domain event (ADR-0114) — no hard deletes, data preserved |
+| **Deriver sagas**    | `deriver` derives follow-up commands from events (assignment cascade)                     |
+| **Testing**          | Scenario DSL (`Given/When/Then`), integration tests, HTTP API tests                       |
+| **Error Taxonomy**   | 6-family error classification mapped to HTTP status codes                                 |
+| **Branded IDs**      | `TaskID = id.StreamID` for type-safe identifiers                                          |
 
 ## Architecture
 

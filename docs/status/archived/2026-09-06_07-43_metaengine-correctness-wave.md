@@ -89,9 +89,10 @@
 (metaengine, sqliteengine, duckdbengine, dgraphengine, scheduling/sqlstore,
 metaengine/bench pins), golangci-lint clean on all five changed modules,
 api-stability golden regenerated + `TestEvery*` meta-tests, `go work sync`
-+ `check-workspace-sync.sh` OK, doc-check (956 refs, 0 warnings),
-check-changelog-symbols (145 citations honest), scoped gofumpt/goimports on
-all touched files, MySQL integration suite green.
+
+- `check-workspace-sync.sh` OK, doc-check (956 refs, 0 warnings),
+  check-changelog-symbols (145 citations honest), scoped gofumpt/goimports on
+  all touched files, MySQL integration suite green.
 
 ---
 
@@ -200,6 +201,7 @@ all touched files, MySQL integration suite green.
 ## f) NEXT 50 (ordered by impact; §numbers map to sections above)
 
 **Correctness debt from this session (do first, 1–8)**
+
 1. Fix the `ApplyBatch` doc lie; decide: correct the sentence vs make
    `ApplyBatch` honor `EventInput.Record` via `applyWithRecord` (preferred).
 2. Fix `OnRecord` doc comment: "receives full Record" → only when fed via
@@ -219,94 +221,94 @@ all touched files, MySQL integration suite green.
 
 **Verify the unverified claims (9–14)**
 9. Observe `Doctor` planned-tables section on sqlite + duckdb (row counts
-   appear) — screenshot or golden-test the section.
+appear) — screenshot or golden-test the section.
 10. Check whether adttest `RunPlannedOpsMatrix` legs for sqlite/duckdb now
-    run; add factories if the harness needs more surface.
+run; add factories if the harness needs more surface.
 11. E2E `BackfillPlannedCollection` on sqlite + duckdb (KeyScanBackend
-    consumer).
+consumer).
 12. MariaDB "since 10.6" floor: source it (release notes/MDEV) or reword to
-    "verified live on 11.4".
+"verified live on 11.4".
 13. E2E: lying-only-engine store → Apply hard error, correlate message with
-    the plan WARN.
+the plan WARN.
 14. Test `logSyntheticRecordAdvisory` with `Hooks.Logger` configured.
 
 **MySQL/MariaDB claiming completion (15–19)**
 15. `TestClaimingMySQL_RenewLease` (mirror the PG contract test).
 16. Construction-time version probe (SELECT VERSION()) with explicit error
-    for <10.6 servers — decide contract (question Q1).
+for <10.6 servers — decide contract (question Q1).
 17. Wire the MySQL claiming integration tests into the nix ephemeral-mysql
-    runners (`#test-integration` / nspawn / VM paths).
+runners (`#test-integration` / nspawn / VM paths).
 18. Update `scheduling/sqlstore/README.md` claiming support matrix.
 19. Confirm `ErrClaimingUnsupported` message + classification survive consumer
-    `errors.Is` checks (it is a plain sentinel — fine; pin it).
+`errors.Is` checks (it is a plain sentinel — fine; pin it).
 
 **Dgraph calibration completion (20–26)**
 20. Wire `BenchmarkCalibration_DgraphScaled` into a runnable gate (flake app
-    arg or nightly live-DSN window).
+arg or nightly live-DSN window).
 21. Add skip-guarded dgraph ReadCosts pins to
-    `TestRealProfiles_ReadCostsPinned` (per baseline Protocol #4).
+`TestRealProfiles_ReadCostsPinned` (per baseline Protocol #4).
 22. Decide the `NsPerPointLookup` OLogN-ops model mismatch (MapGet is one RPC;
-    OLogN × 350 µs overstates ~10×) — redeclare complexity or document as
-    upper bound (question Q2).
+OLogN × 350 µs overstates ~10×) — redeclare complexity or document as
+upper bound (question Q2).
 23. Bench SearchQuery (server-side anyofterms) separately; consider whether
-    `ReadFilteredScan` for ADTSearch deserves its own constant.
+`ReadFilteredScan` for ADTSearch deserves its own constant.
 24. Speed up scaled-bench seeding (batch/stream append instead of 10K MapSets).
 25. Extend baseline doc §Protocol with the CALIB_DUMP mechanism.
 26. Remote-engine dump tests (pg/mysql/dgraph) DSN-guarded so the drift script
-    can cover live windows.
+can cover live windows.
 
 **Planner capability routing polish (27–32)**
 27. Diagnostic richness: name the missing backend interface in the
-    over-declaration message (contract.backend).
+over-declaration message (contract.backend).
 28. Thread `CapabilityGaps` through Plan so documented gaps suppress the new
-    diagnostics consistently with CapabilityAudit.
+diagnostics consistently with CapabilityAudit.
 29. Verify Replan/CheckRouting surfaces the same exclusion logic and
-    diagnostics after live-latency flips.
+diagnostics after live-latency flips.
 30. Consider a routing-penalty knob (exclude vs penalize) if a consumer has a
-    lying engine they cannot fix yet.
+lying engine they cannot fix yet.
 31. Planner test: tie-break determinism when honest candidates have equal
-    weighted latency.
+weighted latency.
 32. Doc: planning.md/README — document the capability-aware partition rule.
 
 **Record-context hardening (33–37)**
 33. Exported counter accessor (e.g. `SyntheticRecordApplies()`) for
-    programmatic monitoring instead of Doctor-text parsing.
+programmatic monitoring instead of Doctor-text parsing.
 34. Per-event-type breakdown in the Doctor section.
 35. prometheus bridge: consider exposing the counter.
 36. Replay paths: audit applyReplay callers for Record context completeness
-    (Backfill/Verify/Demote catch-up already documented — verify Demote).
+(Backfill/Verify/Demote catch-up already documented — verify Demote).
 37. slog option alongside `*log.Logger` for the advisory.
 
 **Hygiene/gates (38–44)**
 38. shellcheck + shfmt on the rewritten `calibration-drift.sh`; fix usage
-    header to match arg parsing.
+header to match arg parsing.
 39. Prove the rewritten drift script in the nightly CI context (or document
-    the remaining shared-runner noise caveat inside the script header).
+the remaining shared-runner noise caveat inside the script header).
 40. Update skill references: modules.md/advanced.md/recipes.md — planned-table
-    capability roster, MySQL claiming, Doctor sections, CALIB_DUMP usage.
+capability roster, MySQL claiming, Doctor sections, CALIB_DUMP usage.
 41. Run cqrs-lint self-lint over the new files (V007/F030 n/a but C-family
-    rules apply).
+rules apply).
 42. Run the dgraphengine full live suite (not just the bench) after the
-    constants change — profile-dependent assertions may exist.
+constants change — profile-dependent assertions may exist.
 43. `scripts/check-heap-parallel.sh` + heap-parallel tripwire on new tests
-    (trivially clean; run it anyway).
+(trivially clean; run it anyway).
 44. Decide retention: userspace MariaDB on :33061 left running at session end —
-    kill or keep per your preference.
+kill or keep per your preference.
 
 **Adjacent strategic (45–50)**
 45. Wire `NsPerWrite` into the write-amplification warning as a real-ms
-    estimate (turns the audited "dead" field into a routed-observable) —
-    feature, needs design.
+estimate (turns the audited "dead" field into a routed-observable) —
+feature, needs design.
 46. DuckDB retype: preserve non-plan indexes? currently plan indexes only —
-    audit for out-of-band indexes on planned tables.
+audit for out-of-band indexes on planned tables.
 47. sqlite Evolve: include the concrete table-rebuild recipe in the drift
-    error text.
+error text.
 48. CapabilityAudit: surface it as a plan-rule (the original backlog ask
-    generalized) — banner → rule pipeline rule with severity from gaps.
+generalized) — banner → rule pipeline rule with severity from gaps.
 49. Consolidate the three `newClaimingStore` dialect guards + `claimStmt`
-    dialect branches into one dialect-strategy table (duplication creep).
+dialect branches into one dialect-strategy table (duplication creep).
 50. Post-CI-unblocking (billing item): first real matrix run will hit the
-    rewritten drift script + new integration tests — triage budget them.
+rewritten drift script + new integration tests — triage budget them.
 
 ---
 
@@ -334,4 +336,4 @@ and interacts with the existing "Calibration-drift gate redesign" item.
 
 ---
 
-*Prepared per session protocol. Awaiting instructions.*
+_Prepared per session protocol. Awaiting instructions._

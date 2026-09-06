@@ -74,7 +74,10 @@ func computeSuppressionAudit(
 
 // applyOrPlanFix removes stale directives from disk, or — with dryRun — only
 // plans the removal and reports what WOULD change.
-func applyOrPlanFix(entries []suppression.SuppressionAuditEntry, dryRun bool) suppression.FixResult {
+func applyOrPlanFix(
+	entries []suppression.SuppressionAuditEntry,
+	dryRun bool,
+) suppression.FixResult {
 	if dryRun {
 		return suppression.PlanStaleInlineSuppressions(entries)
 	}

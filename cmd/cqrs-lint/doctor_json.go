@@ -81,7 +81,11 @@ func runDoctorJSON(
 	return printDoctorJSON(buildDoctorJSONReport(cfg, actx))
 }
 
-func withAudit(cfg *AppConfig, actx *analyzer.AnalysisContext, audit *suppressionAuditJSON) doctorJSONReport {
+func withAudit(
+	cfg *AppConfig,
+	actx *analyzer.AnalysisContext,
+	audit *suppressionAuditJSON,
+) doctorJSONReport {
 	report := buildDoctorJSONReport(cfg, actx)
 	report.Audit = audit
 

@@ -110,7 +110,11 @@ func TestSQLite_EvolveLayoutPlan(t *testing.T) {
 
 	ev := eng.(metaengine.LayoutPlanEvolver)
 
-	plan := metaengine.BuildLayoutPlan("evolve_items", []string{"status", "region"}, []string{"priority"})
+	plan := metaengine.BuildLayoutPlan(
+		"evolve_items",
+		[]string{"status", "region"},
+		[]string{"priority"},
+	)
 	if _, err := ev.EvolveLayoutPlan(ctx, plan); err != nil {
 		t.Fatalf("EvolveLayoutPlan: %v", err)
 	}

@@ -322,7 +322,14 @@ func insertSnapshotRow(t *testing.T, db *sql.DB, ref id.StreamRef) {
 		"INSERT INTO %s (stream_type, stream_id, version, state) VALUES (?, ?, ?, ?)",
 		sqlpkg.TableSnapshots,
 	)
-	if _, err := db.ExecContext(context.Background(), query, "User", ref.ID, 1, []byte("s")); err != nil {
+	if _, err := db.ExecContext(
+		context.Background(),
+		query,
+		"User",
+		ref.ID,
+		1,
+		[]byte("s"),
+	); err != nil {
 		t.Fatalf("insert snapshot row: %v", err)
 	}
 }

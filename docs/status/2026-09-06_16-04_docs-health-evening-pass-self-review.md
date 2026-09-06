@@ -261,6 +261,7 @@ propagated back into the skill.
 ## f) Up to 50 things we should get done next
 
 **Close this pass (1–8):**
+
 1. Run `nix run .#verify-fast` exclusively; convert the component greens
    into one composed GREEN (docs diff is trivially safe). Impact H, Effort
    S, Quality.
@@ -282,94 +283,94 @@ propagated back into the skill.
 
 **Routed execution — already in TODO_LIST with sources (9–28):**
 9. Metaengine observe-before-claim set (Doctor planned-tables on
-   sqlite+duckdb; matrix legs; BackfillPlannedCollection e2e; lying-engine
-   correlation). H/M, Quality.
+sqlite+duckdb; matrix legs; BackfillPlannedCollection e2e; lying-engine
+correlation). H/M, Quality.
 10. `ApplyBatch` honors `EventInput.Record` via `applyWithRecord` (or
-    document the dead field). H/S, Bug.
+document the dead field). H/S, Bug.
 11. `recordAwareEvents` cache invalidation on RegisterQuery. M/S, Bug.
 12. MySQL claiming tail (RenewLease test, version probe decision, nix
-    wiring, README matrix). M/M, Quality.
+wiring, README matrix). M/M, Quality.
 13. Dgraph calibration completion (pins, point-lookup model decision,
-    SearchQuery bench, DSN-guarded dumps). M/M, Quality.
+SearchQuery bench, DSN-guarded dumps). M/M, Quality.
 14. Skill-reference propagation wave (envelope v2 + rotation recipe, doctor
-    JSON, check apps, claiming matrix, planned-table roster, CALIB_DUMP,
-    pre-v5 snapshot decode recipe). H/M, Documentation.
+JSON, check apps, claiming matrix, planned-table roster, CALIB_DUMP,
+pre-v5 snapshot decode recipe). H/M, Documentation.
 15. encryption README/doc.go + envelope-v2 wire-format golden + v1↔v2
-    symmetry property test. M/S, Documentation.
+symmetry property test. M/S, Documentation.
 16. `awaitAck`/`replayPhase` lying log line (Close ≠ Nack). M/XS, Bug.
 17. Benchmark auto-discovery check for
-    `BenchmarkCatchUp_ReplayThroughput` (CI flake guard). H/S, Quality.
+`BenchmarkCatchUp_ReplayThroughput` (CI flake guard). H/S, Quality.
 18. `example/metaengine-quickstart/README.md` +
-    `TestEveryExampleHasREADME` meta-test. M/M, Documentation.
+`TestEveryExampleHasREADME` meta-test. M/M, Documentation.
 19. Example v5-policy audit (taskmanager + metaengine-quickstart). H/M,
-    Quality.
+Quality.
 20. 5 pending clone groups (check-duplication) + pre-existing
-    scheduling/sqlstore lint findings. M/S, Quality.
+scheduling/sqlstore lint findings. M/S, Quality.
 21. Fresh-GOMODCACHE go.sum CI check + GOWORK=off build matrix sweep
-    (kills the 8-module rot class). H/M, Tooling.
+(kills the 8-module rot class). H/M, Tooling.
 22. `check-csp` CI wiring + `check-eventcatalog` nightly decision.
-    M/S-M, Tooling.
+M/S-M, Tooling.
 23. exhaustruct_v5 canary + deprecated-linter-name golden. M/S, Tooling.
 24. templ tripwire script (FileName metadata cwd check). L/S, Tooling.
 25. `metaengine.SortPaginate[T]` unit test + zero-alloc pin; keycodec
-    seq-seed extraction + layout round-trip pin. L/S, Quality.
+seq-seed extraction + layout round-trip pin. L/S, Quality.
 26. duckdbengine restart-safety adoption (unblocked now). M/S, Quality.
 27. iroh coverage holes (graphless remove pin, record-but-skip path,
-    non-string endpoints, loopback/quic race ×3, applyRemote extraction).
-    M/M, Quality.
+non-string endpoints, loopback/quic race ×3, applyRemote extraction).
+M/M, Quality.
 28. Structural load-robustness for benchkit + system/v4 flaky classes
-    (vis-key pattern). H/M, Quality.
+(vis-key pattern). H/M, Quality.
 
 **Release train (29–34):**
 29. Next v4 tag wave (incl. strip `storage/go.mod` replaces; badger
-    needs the metaengine pin bump). H/M, Release.
+needs the metaengine pin bump). H/M, Release.
 30. GitHub Releases run for outstanding tags. M/S, Release.
 31. `retract cmd/cqrs-lint/v4.8.0` + cqrs-bench deprecation stub. M/XS,
-    Release.
+Release.
 32. tag-release.sh hardening (tests, proxy smoke-check, path-vs-tag
-    audit). M/S-M, Release.
+audit). M/S-M, Release.
 33. Badger data-loss exposure retrospective (or pre-adoption confirmation).
-    M/S, Release.
+M/S, Release.
 34. Version-reporting unification (const vs debug/buildinfo). L/S,
-    Release.
+Release.
 
 **Owner decisions blocking work (35–39):**
 35. Severity/wire-format tightening in a minor (Q3, concretized by
-    envelope v2). Blocks tag-wave CHANGELOG framing.
+envelope v2). Blocks tag-wave CHANGELOG framing.
 36. 350-line gate policy (full split vs ratchet vs exemptions). Blocks the
-    largest code-quality program.
+largest code-quality program.
 37. F040 branch protection + required checks (vs direct-push/daemon
-    workflow).
+workflow).
 38. Daemon Q2: BuildFlow formatter exclusion for `.golangci.yml`
-    (root cause of 4+ gci incidents).
+(root cause of 4+ gci incidents).
 39. Commit attribution policy for doc/archive waves (descriptive commit
-    vs daemon `chore:` history).
+vs daemon `chore:` history).
 
 **Standing v5 + docs tail (40–46):**
 40. Sweep §4 remainder: watermill metadata keys, events/commands columns,
-    benchkit key, error-code batch. M/M, v5.
+benchkit key, error-code batch. M/M, v5.
 41. v6 deletion markers (snapshot fallback shims + pebble legacy window).
-    L/XS, v5.
+L/XS, v5.
 42. T18 migration-verification tail (live MySQL/DuckDB runs, mixed-state,
-    concurrent-init tests). M/M, v5.
+concurrent-init tests). M/M, v5.
 43. V5-MIGRATION-GUIDE expansion + envelope-v2 note + operator snippets.
-    M/M, Documentation.
+M/M, Documentation.
 44. Social preview image + homepage URL (GitHub UI — needs asset + paste).
-    M/S, Documentation.
+M/S, Documentation.
 45. Central wire-key table doc (rewrite sweep §4 as a table). L/M,
-    Documentation.
+Documentation.
 46. AGENTS.md indexed-split before it hits 450 lines. L/M, Process.
 
 **Bigger/deferred (47–50):**
 47. doc-check `--json` + ambiguity warning + release-posture decision.
-    M/S-M, Tooling.
+M/S-M, Tooling.
 48. pin-sweep `--check` nag semantics (blocking vs tag-triggered). M/S,
-    Tooling.
+Tooling.
 49. `docs/status/archived/` yearly shard if navigation degrades (~95 files
-    added 09-06 alone). L/XS, Process.
+added 09-06 alone). L/XS, Process.
 50. Feedback loop: fold this session's e-1/e-4/e-5 lessons into the
-    docs-health skill's local notes (2+ report occurrences → skill rule).
-    L/S, Process.
+docs-health skill's local notes (2+ report occurrences → skill rule).
+L/S, Process.
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF (max 3)
 
@@ -409,5 +410,5 @@ verified (15+64 rows) · HEAD-content grep after each daemon wave · NOT
 run: `nix run .#verify`/`#verify-fast`, Go builds/tests (zero Go diff),
 lint (nothing in treefmt scope touched).
 
-*Point-in-time snapshot — will go stale. Annotate, don't rewrite.
-Generated 2026-09-06 16:04 CEST. WAITING FOR INSTRUCTIONS.*
+_Point-in-time snapshot — will go stale. Annotate, don't rewrite.
+Generated 2026-09-06 16:04 CEST. WAITING FOR INSTRUCTIONS._

@@ -423,7 +423,10 @@ func TestHealth_V007DeductionPolicy(t *testing.T) {
 
 	one := ComputeHealthScore([]finding.Finding{makeV007()})
 	if one.Score != 98 {
-		t.Fatalf("V007 must deduct exactly 2 points (warning x high confidence), got score %d", one.Score)
+		t.Fatalf(
+			"V007 must deduct exactly 2 points (warning x high confidence), got score %d",
+			one.Score,
+		)
 	}
 
 	if got := one.Breakdown["warning V007"]; got != 2 {

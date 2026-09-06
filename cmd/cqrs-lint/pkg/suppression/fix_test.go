@@ -258,7 +258,12 @@ func TestPlanStaleInlineSuppressions_MissingFile(t *testing.T) {
 	t.Parallel()
 
 	res := suppression.PlanStaleInlineSuppressions([]suppression.SuppressionAuditEntry{
-		{File: filepath.Join(t.TempDir(), "absent.go"), Line: 3, Rule: "D002", Status: suppression.AuditStale},
+		{
+			File:   filepath.Join(t.TempDir(), "absent.go"),
+			Line:   3,
+			Rule:   "D002",
+			Status: suppression.AuditStale,
+		},
 	})
 
 	if len(res.Skipped) != 1 || len(res.Removed) != 0 {

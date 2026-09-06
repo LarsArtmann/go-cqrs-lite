@@ -32,12 +32,12 @@ The authoritative module index with README links lives in the **[project README]
 
 ## Examples
 
-| Example               | Demonstrates                                                                            | README                                                              |
-| --------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **taskmanager**       | Flagship: full HTTP service, event sourcing, projections, signing, OTel, tombstone, SSE | [example/taskmanager](../example/taskmanager/README.md)             |
-| **getting-started**   | Minimal single-file tour: event sourcing + projection + materialized view               | [example/getting-started](../example/getting-started/README.md)     |
-| **readme-quickstart** | Absolute minimum: command handler + decider, no projections or bus                      | [example/readme-quickstart](../example/readme-quickstart/README.md) |
-| **metaengine-quickstart** | Map, graph, and vector projections over the metaengine pipeline                      | [example/metaengine-quickstart](../example/metaengine-quickstart/)  |
+| Example                   | Demonstrates                                                                            | README                                                              |
+| ------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **taskmanager**           | Flagship: full HTTP service, event sourcing, projections, signing, OTel, tombstone, SSE | [example/taskmanager](../example/taskmanager/README.md)             |
+| **getting-started**       | Minimal single-file tour: event sourcing + projection + materialized view               | [example/getting-started](../example/getting-started/README.md)     |
+| **readme-quickstart**     | Absolute minimum: command handler + decider, no projections or bus                      | [example/readme-quickstart](../example/readme-quickstart/README.md) |
+| **metaengine-quickstart** | Map, graph, and vector projections over the metaengine pipeline                         | [example/metaengine-quickstart](../example/metaengine-quickstart/)  |
 
 ## Architecture Decision Records (ADR)
 

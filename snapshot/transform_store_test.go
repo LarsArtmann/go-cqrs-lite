@@ -295,7 +295,12 @@ func TestNewRewritingTransformedStore_WritesBackStaleState(t *testing.T) {
 
 	ref := transformTestRef(t)
 
-	stale, err := snapshot.NewSnapshot(ref, event.Version(3), []byte("k1:old-state"), record.EncodingJSON)
+	stale, err := snapshot.NewSnapshot(
+		ref,
+		event.Version(3),
+		[]byte("k1:old-state"),
+		record.EncodingJSON,
+	)
 	if err != nil {
 		t.Fatalf("seed stale snapshot: %v", err)
 	}

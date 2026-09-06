@@ -191,7 +191,11 @@ func TestWire_CBORRoundTripAndLegacyKeys(t *testing.T) {
 	}
 
 	if fromLegacy.StreamID != want.StreamID || fromLegacy.StreamType != want.StreamType {
-		t.Errorf("legacy CBOR identity mismatch: got %s/%s", fromLegacy.StreamType, fromLegacy.StreamID)
+		t.Errorf(
+			"legacy CBOR identity mismatch: got %s/%s",
+			fromLegacy.StreamType,
+			fromLegacy.StreamID,
+		)
 	}
 	if fromLegacy.Version != want.Version || !fromLegacy.CreatedAt.Equal(want.CreatedAt) {
 		t.Errorf("legacy CBOR payload mismatch: %+v", fromLegacy)

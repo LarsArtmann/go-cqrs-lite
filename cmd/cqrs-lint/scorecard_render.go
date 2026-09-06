@@ -212,7 +212,11 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 	if result.Deprecated != nil {
 		b.WriteString("\n### Deprecated surfaces (v5-readiness)\n\n")
 		fmt.Fprintf(&b, "- **v5-removed API uses:** %d\n", result.Deprecated.RemovedAPIUses)
-		fmt.Fprintf(&b, "- **transport/http SSE uses:** %d\n", result.Deprecated.DeprecatedTransport)
+		fmt.Fprintf(
+			&b,
+			"- **transport/http SSE uses:** %d\n",
+			result.Deprecated.DeprecatedTransport,
+		)
 		if result.Deprecated.Suggestion != "" {
 			fmt.Fprintf(&b, "\n_💡 %s_\n", result.Deprecated.Suggestion)
 		}

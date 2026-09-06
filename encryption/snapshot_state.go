@@ -136,10 +136,12 @@ func reencryptState(
 			)
 		}
 
-		encoded, err := MarshalEnvelope(Envelope{ //nolint:exhaustruct_v5 // Version defaults inside MarshalEnvelope
-			Ciphertext: reencrypted,
-			KeyID:      activeID,
-		})
+		encoded, err := MarshalEnvelope(
+			Envelope{ //nolint:exhaustruct_v5 // Version defaults inside MarshalEnvelope
+				Ciphertext: reencrypted,
+				KeyID:      activeID,
+			},
+		)
 		if err != nil {
 			return nil, err
 		}

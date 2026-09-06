@@ -10,16 +10,16 @@ go get github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4
 
 ## CRDT-Safe Operations
 
-| Operation           | CRDT Type              | Convergence guarantee              |
-| ------------------- | ---------------------- | ---------------------------------- |
-| `MapSet`            | LWW (last-writer-wins) | Highest timestamp wins             |
-| `MapDelete`         | LWW tombstone          | Highest timestamp wins             |
-| `SetAdd`            | OR-Set (add-wins)      | Union of all adds                  |
-| `CounterIncrement`  | PN-Counter             | Sum of all increments/decrements   |
-| `MultiAdd`          | OR-Set per key         | Union of all adds per multimap key |
-| `LogAppend`         | Append-only log        | Union of all appended entries      |
-| `GraphAddEdge`      | Per-edge LWW register  | Highest timestamp wins per edge    |
-| `GraphRemoveEdge`   | Per-edge LWW register  | Highest timestamp wins per edge    |
+| Operation          | CRDT Type              | Convergence guarantee              |
+| ------------------ | ---------------------- | ---------------------------------- |
+| `MapSet`           | LWW (last-writer-wins) | Highest timestamp wins             |
+| `MapDelete`        | LWW tombstone          | Highest timestamp wins             |
+| `SetAdd`           | OR-Set (add-wins)      | Union of all adds                  |
+| `CounterIncrement` | PN-Counter             | Sum of all increments/decrements   |
+| `MultiAdd`         | OR-Set per key         | Union of all adds per multimap key |
+| `LogAppend`        | Append-only log        | Union of all appended entries      |
+| `GraphAddEdge`     | Per-edge LWW register  | Highest timestamp wins per edge    |
+| `GraphRemoveEdge`  | Per-edge LWW register  | Highest timestamp wins per edge    |
 
 Non-CRDT operations (`MapUpdate`) stay local — they do NOT replicate. Vector,
 search, and spatial inserts also stay local (no WriteOp wire kinds for them).

@@ -232,7 +232,12 @@ func TestPostgresSnapshotColumnMigration(t *testing.T) {
 	}
 
 	if got.StreamID != streamID || got.StreamType != "User" || got.Version.Int() != 7 {
-		t.Errorf("identity mismatch: got %s/%s v%d", got.StreamType, got.StreamID, got.Version.Int())
+		t.Errorf(
+			"identity mismatch: got %s/%s v%d",
+			got.StreamType,
+			got.StreamID,
+			got.Version.Int(),
+		)
 	}
 
 	// JSONB canonicalizes spacing; compare decoded values, not bytes.

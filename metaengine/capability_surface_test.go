@@ -90,7 +90,10 @@ func TestDoctorGraphReplicationCarriesNoNote(t *testing.T) {
 	defer store.Close()
 
 	if out := store.Doctor(context.Background()); strings.Contains(out, "local-only") {
-		t.Errorf("replicated graph engine replicates edges and must carry no local-only note:\n%s", out)
+		t.Errorf(
+			"replicated graph engine replicates edges and must carry no local-only note:\n%s",
+			out,
+		)
 	}
 }
 

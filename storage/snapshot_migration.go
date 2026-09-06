@@ -121,7 +121,9 @@ func probeInformationSchemaColumns(
 	table string,
 	limitToCurrentSchema bool,
 ) ([]string, error) {
-	query := "SELECT column_name FROM information_schema.columns WHERE table_name = " + d.Placeholder(1)
+	query := "SELECT column_name FROM information_schema.columns WHERE table_name = " + d.Placeholder(
+		1,
+	)
 	if limitToCurrentSchema {
 		query += " AND table_schema = DATABASE()"
 	}

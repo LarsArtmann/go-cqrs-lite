@@ -152,7 +152,12 @@ func (r *resolver) indexPackageDir(dir string) {
 			continue
 		}
 
-		file, err := parser.ParseFile(fset, filepath.Join(dir, entry.Name()), nil, parser.PackageClauseOnly)
+		file, err := parser.ParseFile(
+			fset,
+			filepath.Join(dir, entry.Name()),
+			nil,
+			parser.PackageClauseOnly,
+		)
 		if err != nil {
 			continue
 		}

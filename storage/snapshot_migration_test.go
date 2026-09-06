@@ -95,7 +95,12 @@ func TestMigrateSnapshotColumnsToStream_SQLite(t *testing.T) {
 	}
 
 	if got.StreamID != streamID || got.StreamType != "User" || got.Version.Int() != 7 {
-		t.Errorf("identity mismatch: got %s/%s v%d", got.StreamType, got.StreamID, got.Version.Int())
+		t.Errorf(
+			"identity mismatch: got %s/%s v%d",
+			got.StreamType,
+			got.StreamID,
+			got.Version.Int(),
+		)
 	}
 	if string(got.State) != "state-bytes" {
 		t.Errorf("state mismatch: %q", got.State)

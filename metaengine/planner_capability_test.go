@@ -54,7 +54,11 @@ func TestPlan_OverDeclaredEngineExcluded(t *testing.T) {
 
 	assignment := store.Plan().Queries[0]
 	if assignment.EngineName != honest.Profile().Name {
-		t.Fatalf("routed to %q, want honest engine %q", assignment.EngineName, honest.Profile().Name)
+		t.Fatalf(
+			"routed to %q, want honest engine %q",
+			assignment.EngineName,
+			honest.Profile().Name,
+		)
 	}
 
 	found := false
@@ -128,7 +132,11 @@ func TestApply_CapabilityQuerySmoke(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	if err := store.Apply(context.Background(), "capabilityEvent", capabilityEvent{ID: "c1"}); err != nil {
+	if err := store.Apply(
+		context.Background(),
+		"capabilityEvent",
+		capabilityEvent{ID: "c1"},
+	); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 }

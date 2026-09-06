@@ -65,6 +65,7 @@
 ## f) NEXT 50 (brainstorm, roughly impact-ordered; most are ROADMAP fuel, not commitments)
 
 **This workstream, immediate**
+
 1. Owner decision: 350-line gate policy — full split vs baseline ratchet vs exemptions (unblocks items 2, 31–38, 44).
 2. Push the branch so CI validates the sync/reformat/catalog/gate fixes (owner word required).
 3. ~~Post-push: confirm `go.work sync check`, `Check formatting`, and `file-size-gate` (now expecting 54) go green; annotate the 01:20 infra incident run.~~ done — sync + formatting green (commits `ac9e11776`, `c3b9b0d20`); file-size gate still red by design pending the policy decision (TODO_LIST).
@@ -132,4 +133,4 @@
 
 ---
 
-*Point-in-time snapshot — will go stale. Annotate, don't rewrite. Generated 2026-09-06 06:56 CEST.*
+_Point-in-time snapshot — will go stale. Annotate, don't rewrite. Generated 2026-09-06 06:56 CEST._

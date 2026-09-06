@@ -66,7 +66,11 @@ func ValidateKey(key []byte) error {
 func DecodeKeyBase64(encoded string) ([]byte, error) {
 	trimmed := strings.TrimSpace(encoded)
 	if trimmed == "" {
-		return nil, fmt.Errorf("%w: key is empty, want base64-encoded %d bytes", ErrInvalidKey, KeySize)
+		return nil, fmt.Errorf(
+			"%w: key is empty, want base64-encoded %d bytes",
+			ErrInvalidKey,
+			KeySize,
+		)
 	}
 
 	key, err := base64.StdEncoding.DecodeString(trimmed)

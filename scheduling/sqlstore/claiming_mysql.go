@@ -86,7 +86,10 @@ func stampLeaseMySQL(
 
 	// Concatenation builds ONLY "?" placeholders; ids are bound args.
 	query := "UPDATE timers SET lease_until = ? WHERE id IN (" + //nolint:gosec // placeholders only, ids bound
-		strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",") + ")"
+		strings.TrimSuffix(
+			strings.Repeat("?,", len(ids)),
+			",",
+		) + ")"
 
 	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
 		return errorfamily.WrapInfrastructure(

@@ -47,7 +47,10 @@ type TransformedStore struct {
 // so a key rotation converges without a maintenance window. Each load
 // re-encodes at most one snapshot, and a failed write-back never fails the
 // load — the snapshot is still returned correctly and retried next time.
-func NewRewritingTransformedStore(inner SnapshotStore, transforms StateTransforms) (*TransformedStore, error) {
+func NewRewritingTransformedStore(
+	inner SnapshotStore,
+	transforms StateTransforms,
+) (*TransformedStore, error) {
 	if (transforms.NeedsRewrite == nil) != (transforms.Reencrypt == nil) {
 		return nil, errorfamily.NewRejection(
 			"snapshot.transform_migration_partial",
@@ -76,13 +79,19 @@ func NewTransformedStore(
 	protect func(state []byte) ([]byte, error),
 	restore func(state []byte) ([]byte, error),
 ) (*TransformedStore, error) {
-	return newTransformedStore(inner, StateTransforms{ //nolint:exhaustruct_v5 // optional funcs absent
-		Protect: protect,
-		Restore: restore,
-	})
+	return newTransformedStore(
+		inner,
+		StateTransforms{ //nolint:exhaustruct_v5 // optional funcs absent
+			Protect: protect,
+			Restore: restore,
+		},
+	)
 }
 
-func newTransformedStore(inner SnapshotStore, transforms StateTransforms) (*TransformedStore, error) {
+func newTransformedStore(
+	inner SnapshotStore,
+	transforms StateTransforms,
+) (*TransformedStore, error) {
 	if inner == nil {
 		return nil, errorfamily.NewRejection(
 			"snapshot.transform_nil_store",

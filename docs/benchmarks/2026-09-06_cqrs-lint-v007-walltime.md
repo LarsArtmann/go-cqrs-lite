@@ -20,19 +20,19 @@ only the within-set ratio is meaningful.
 
 ### Corpus A: `cmd/` + `example/` (196 files)
 
-| Variant      | Runs (ms)                     | Median |
-| ------------ | ----------------------------- | ------ |
-| V007 on      | 1777† 478 472 479 500         | 479 ms |
-| V007 off     | 479 478 503 490 574           | 490 ms |
+| Variant  | Runs (ms)             | Median |
+| -------- | --------------------- | ------ |
+| V007 on  | 1777† 478 472 479 500 | 479 ms |
+| V007 off | 479 478 503 490 574   | 490 ms |
 
 † cold run, discarded as warmup.
 
 ### Corpus B: `storage/` (263 files)
 
-| Variant      | Runs (ms)                     | Median |
-| ------------ | ----------------------------- | ------ |
-| V007 on      | 858 828 769 757 775           | 775 ms |
-| V007 off     | 840 923 889 753 718           | 840 ms |
+| Variant  | Runs (ms)           | Median |
+| -------- | ------------------- | ------ |
+| V007 on  | 858 828 769 757 775 | 775 ms |
+| V007 off | 840 923 889 753 718 | 840 ms |
 
 ## Interpretation
 

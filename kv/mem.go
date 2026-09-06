@@ -149,7 +149,9 @@ func (s *MemStore) NewIterator(_ context.Context, prefix []byte) (Iterator, erro
 		return nil, err
 	}
 
-	return &memIterator{pairs: pairs}, nil //nolint:exhaustruct_v5 // zero-value fields are intentional
+	return &memIterator{
+		pairs: pairs,
+	}, nil //nolint:exhaustruct_v5 // zero-value fields are intentional
 }
 
 func (s *MemStore) Close() error {

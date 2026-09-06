@@ -47,7 +47,10 @@ func (e *duckdbEngine) ApplyLayoutPlan(plan metaengine.LayoutPlan) error {
 
 // applyLayoutPlanLocked is ApplyLayoutPlan without the lock — for callers
 // already holding layoutMu (EvolveLayoutPlan). The caller must hold layoutMu.
-func (e *duckdbEngine) applyLayoutPlanLocked(ctx context.Context, plan metaengine.LayoutPlan) error {
+func (e *duckdbEngine) applyLayoutPlanLocked(
+	ctx context.Context,
+	plan metaengine.LayoutPlan,
+) error {
 	if e.plans == nil {
 		e.plans = make(map[string]metaengine.LayoutPlan)
 	}

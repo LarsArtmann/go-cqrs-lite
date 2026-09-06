@@ -73,6 +73,7 @@
 ## f) NEXT 50 (roughly impact-ordered; most need owner word or a quiet box)
 
 **This workstream, immediate**
+
 1. Push master (5 ahead) so CI validates the wave — owner word.
 2. Run full `nix run .#verify` on a quiet box (module-scoped greens above are not gate-scoped).
 3. Re-run cqrs-lint **self-lint** on the repo post-collector-change; triage the finding delta (const resolution + shared IsTest skip can shift C038/C040/E005/E007 counts).

@@ -8,6 +8,7 @@
 ## a) FULLY DONE
 
 **Wire-tag rename with dual-read fallbacks**
+
 1. **Research pass** — located the T18/P10 prescriptions (2026-08-22 core-data-model review, C9 note in `docs/planning/v5-deprecation-sweep.md` §4, `docs/V5-MIGRATION-GUIDE.md` §3) and inventoried every snapshot serialization site across all backends (snapshot, pebble, bbolt, SQL, memory, metaengine, turso).
 2. **`snapshot/v4`** — `Snapshot` tags renamed to `stream_id`/`stream_type`; new `snapshot/wire.go` with `UnmarshalJSON` + `UnmarshalCBOR` implementing the decode-only legacy fallback (writers emit new keys only, readers accept both). 6 wire tests added; goldens regenerated to the new shape.
 3. **Key discovery (load-bearing)** — fxamacker/cbor v2.9 falls back to the **json tag** as the CBOR map key when no cbor key exists. The tag rename therefore moves CBOR bytes too; the CBOR fallback is mandatory, not cosmetic. Pinned by `TestWire_CBORCarriesNewKeys`; recorded as a footgun in AGENTS.md.
@@ -34,11 +35,11 @@
 
 ## b) PARTIALLY DONE
 
-1. **Sweep §4 "wire tags" umbrella** — my item covered the *snapshot* half only. Watermill metadata keys (`aggregate_id`/`aggregate_type`), events/commands table columns, benchkit `aggregates` JSON key, and transport/grpc proto fields still carry aggregate vocabulary. Deliberate scoping per the TODO item, but the §4 wave is not closable yet.
+1. **Sweep §4 "wire tags" umbrella** — my item covered the _snapshot_ half only. Watermill metadata keys (`aggregate_id`/`aggregate_type`), events/commands table columns, benchkit `aggregates` JSON key, and transport/grpc proto fields still carry aggregate vocabulary. Deliberate scoping per the TODO item, but the §4 wave is not closable yet.
 2. **Error-code batch rename** — untouched (separate v5 item; ~14 family codes listed in sweep §4).
 3. **Migration verified live on 2 of 4 dialects** — SQLite (unit) and PostgreSQL (integration) verified end-to-end. MySQL/MariaDB and DuckDB migration paths are implemented + version-floored in docs but only code-reviewed, not run against live servers (`#integration-mysql-nspawn` / DuckDB CGo not exercised this session).
 4. **check-duplication overall exit** — red, but every flagged clone belongs to the concurrent session's in-flight files (`cmd/cqrs-lint/pkg/suppression/fix.go`, `metaengine/*engine/planned_parity*.go`). Repo-level gate not green; my diff contributes nothing.
-5. **go.sum hygiene root cause** — I repaired the 8 modules additively but did not investigate *why* the sums were missing repo-wide (suspect: `go mod tidy` run under a warm cache, or a pin-bump wave without a tidy sweep). Root cause open.
+5. **go.sum hygiene root cause** — I repaired the 8 modules additively but did not investigate _why_ the sums were missing repo-wide (suspect: `go mod tidy` run under a warm cache, or a pin-bump wave without a tidy sweep). Root cause open.
 6. **Consumer-facing migration docs** — the fallback contract lives in CHANGELOG + migration guide + code comments; no copy-paste recipe yet in the skill `references/` for consumers decoding pre-v5 snapshots.
 
 ---
@@ -85,13 +86,14 @@
 ## f) TOP 50 NEXT (brainstorm, sorted roughly by impact; most are ROADMAP fuel — harvest with routing rigor)
 
 **Wire-format continuity (rest of sweep §4)**
+
 1. Watermill metadata key rename + dual-read fallback (`aggregate_id`/`aggregate_type` → `stream_id`/`stream_type`).
 2. Error-code family batch rename (~14 codes) with CHANGELOG migration note + "update dashboards" warning.
 3. Generalize `MigrateSnapshotColumnsToStream` into a table/column-pair migration helper (prereq for #4/#5).
 4. events table column rename + migration.
 5. commands table column rename + migration.
 6. benchkit `aggregates` output-key rename + golden refresh.
-7. Confirm transport/grpc dies at wave C *before* anyone burns effort renaming its proto fields.
+7. Confirm transport/grpc dies at wave C _before_ anyone burns effort renaming its proto fields.
 8. Execute `storage/relational` + `storage/view` deletion (ADR-0123) — removes the remaining `aggregate_*` SQL surfaces wholesale instead of renaming them.
 9. bbolt/catch-all grep audit: prove no other aggregate-vocabulary wire keys remain post-waves.
 10. ROADMAP marker for the v6 deletion of snapshot fallback shims (with the one-release-cycle timer).
@@ -158,4 +160,4 @@
 
 ---
 
-*Report generated per status-report skill; format override: user explicitly requested `.md` (skill default is styled HTML — honored the user, flagging the divergence). WAITING FOR INSTRUCTIONS.*
+_Report generated per status-report skill; format override: user explicitly requested `.md` (skill default is styled HTML — honored the user, flagging the divergence). WAITING FOR INSTRUCTIONS._

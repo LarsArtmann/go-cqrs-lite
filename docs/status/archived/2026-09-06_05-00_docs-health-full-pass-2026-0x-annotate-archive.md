@@ -23,10 +23,10 @@ work in waves (`dea5a1bbd` = 190 files); I authored no commits myself.
    already-archived lanes (untouched).
 2. **Living docs read before editing:** TODO_LIST (817 lines, full),
    ROADMAP (664, full), README (220, full), CHANGELOG (`[Unreleased]` head
-   + the `cmd/cqrs-lint/v4.9.0` section), FEATURES (cqrs-lint rows), AGENTS
-   (in context). Historical reads: 2026-09-06_02-40 + 00-19, 2026-09-04,
-   2026-09-02, 2026-09-01_23-09 (full), 2026-08-31_16-28 + 2026-08-29_12-10
-   (heads, agent covered the rest).
+   - the `cmd/cqrs-lint/v4.9.0` section), FEATURES (cqrs-lint rows), AGENTS
+     (in context). Historical reads: 2026-09-06_02-40 + 00-19, 2026-09-04,
+     2026-09-02, 2026-09-01_23-09 (full), 2026-08-31_16-28 + 2026-08-29_12-10
+     (heads, agent covered the rest).
 3. **Primary-source verification of every load-bearing claim I acted on:**
    - **39-tag wave B1–B7 was cut+pushed 2026-08-29** (`git tag` dates +
      `2026-08-29_15-09` report) — TODO_LIST/ROADMAP still said B2–B7
@@ -77,7 +77,7 @@ work in waves (`dea5a1bbd` = 190 files); I authored no commits myself.
    files rather than overwritten.
 10. **ARCHIVE executed: 83 files + lane consolidation, 0 failures.**
     - `docs/status/` → `archived/`: **31 files** (25 .md reports 08-27→09-06
-      + 6 stale HTML dashboards). Active remainder: `2026-09-06_02-40` only.
+      - 6 stale HTML dashboards). Active remainder: `2026-09-06_02-40` only.
     - `docs/planning/` → `archived/`: **8 .md plans** + **16 artifacts**
       (persistence-enum, core-data-model plan, pending-tag-wave plan
       [wave record], ALL-TODOS-PARETO + V3, v4-closeout, session-5 master

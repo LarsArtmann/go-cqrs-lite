@@ -49,7 +49,10 @@ func drainUntilClosed(t *testing.T, ch <-chan *message.Message) int {
 			}
 
 			if msg == nil {
-				t.Fatalf("nil message (closed channel yields nil only via ok=false) after %d", received)
+				t.Fatalf(
+					"nil message (closed channel yields nil only via ok=false) after %d",
+					received,
+				)
 			}
 
 			msg.Ack()
@@ -254,7 +257,12 @@ func TestCatchUpSubscriber_DoubleSubscribeSameTopic(t *testing.T) {
 			select {
 			case msg := <-ch:
 				if msg == nil {
-					t.Fatalf("%s subscription closed after %d of %d replay events", name, got, total)
+					t.Fatalf(
+						"%s subscription closed after %d of %d replay events",
+						name,
+						got,
+						total,
+					)
 				}
 
 				msg.Ack()

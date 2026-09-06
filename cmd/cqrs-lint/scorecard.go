@@ -4,10 +4,11 @@ import (
 	"context"
 	"sort"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	lintversion "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/version"
-	"github.com/larsartmann/go-finding"
 )
 
 // ScorecardSummary is the headline math for the scorecard.
@@ -160,7 +161,10 @@ func ComputeScorecard(
 // separately from ComputeScorecard because it needs findings data, not just
 // the module usage map. Zero counts mean "checked, clean" — the panel is
 // the v5-readiness bill of health for the project.
-func ComputeDeprecatedPanel(ctx context.Context, actx *analyzer.AnalysisContext) *ScorecardDeprecated {
+func ComputeDeprecatedPanel(
+	ctx context.Context,
+	actx *analyzer.AnalysisContext,
+) *ScorecardDeprecated {
 	count := func(det finding.Detector) int {
 		fs, err := det.Detect(ctx)
 		if err != nil {

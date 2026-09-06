@@ -23,13 +23,16 @@ type recordContextView struct {
 func recordContextQuery() QueryDecl[recordContextEvent, map[string]recordContextView] {
 	return Query[recordContextEvent, map[string]recordContextView](
 		"record_context_tasks",
-		OnRecord(recordContextEvent{}, func(rec record.Record, e recordContextEvent) (string, recordContextView) {
-			return e.TaskID, recordContextView{
-				TaskID:   e.TaskID,
-				StreamID: string(rec.StreamID),
-				Version:  rec.Version,
-			}
-		}),
+		OnRecord(
+			recordContextEvent{},
+			func(rec record.Record, e recordContextEvent) (string, recordContextView) {
+				return e.TaskID, recordContextView{
+					TaskID:   e.TaskID,
+					StreamID: string(rec.StreamID),
+					Version:  rec.Version,
+				}
+			},
+		),
 	)
 }
 

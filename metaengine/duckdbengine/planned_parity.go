@@ -130,7 +130,11 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 				dropIdx := "DROP INDEX IF EXISTS " + metaengine.QuoteIdent(idx.Name)
 
 				if _, err := e.db.ExecContext(ctx, dropIdx); err != nil {
-					return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: drop index %s: %w", idx.Name, err)
+					return nil, fmt.Errorf(
+						"duckdbengine.EvolveLayoutPlan: drop index %s: %w",
+						idx.Name,
+						err,
+					)
 				}
 			}
 
@@ -150,7 +154,11 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 					metaengine.QuoteIdent(plan.Table),
 					metaengine.QuoteIdent(idx.Columns[0]),
 				)); err != nil {
-					return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: recreate index %s: %w", idx.Name, err)
+					return nil, fmt.Errorf(
+						"duckdbengine.EvolveLayoutPlan: recreate index %s: %w",
+						idx.Name,
+						err,
+					)
 				}
 			}
 

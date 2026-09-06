@@ -412,7 +412,11 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 // over-declaration is a routing exclusion (DEGRADED); without one the
 // engine is still routed to (a fallback may serve it) and the warning makes
 // the execution-time hard-error risk visible at plan time.
-func overDeclarationDiagnostics(meta queryMeta, overDeclared []string, honestExists bool) []Diagnostic {
+func overDeclarationDiagnostics(
+	meta queryMeta,
+	overDeclared []string,
+	honestExists bool,
+) []Diagnostic {
 	if len(overDeclared) == 0 {
 		return nil
 	}

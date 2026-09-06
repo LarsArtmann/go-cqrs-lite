@@ -40,9 +40,9 @@
    - `RunCapabilityConformance` added for loopback + quic transport
      wrappers (wave-4 status report had noted both tiers lacked it).
    - `metaengine/mysqlengine` joined `#test-integration` `MYSQL_MODULES`
-     + nspawn/VM scripts — conformance + ADT matrix now execute against a
-     real server under that gate. Verified live: full mysqlengine suite
-     green against the local MariaDB (:33061) in 0.17s.
+     - nspawn/VM scripts — conformance + ADT matrix now execute against a
+       real server under that gate. Verified live: full mysqlengine suite
+       green against the local MariaDB (:33061) in 0.17s.
 5. **Docs**: irohengine README (CRDT table + graph rows; fixed pre-existing
    stale claim that `MapDelete` stays local — it replicates via LWW
    tombstone), skill `modules.md` row, CHANGELOG `[Unreleased]` section,
@@ -146,6 +146,7 @@
 ## f) NEXT — up to 50 things (roughly impact-ordered)
 
 **Correctness / coverage follow-ups on this diff**
+
 1. Pin graphless `GraphRemoveEdge` → `ErrGraphBackendNotImplemented` (extend
    `TestReplicatedGraph_GraphlessLocalErrors`).
 2. Test `applyRemoteGraphRemove` record-but-skip path (engine without
@@ -169,48 +170,48 @@
 **Doc truth sweep**
 12. Remove `WithReplay` from the modules.md irohengine row (does not exist).
 13. Grep recipes.md / faq.md / core.md / readmodels.md for stale iroh
-    "local-only graph" prose.
+"local-only graph" prose.
 14. Check loopback/README.md + quic/README.md for op-coverage claims
-    (e.g. "no graph WriteOp kind" wording).
+(e.g. "no graph WriteOp kind" wording).
 15. FEATURES.md module-table row 1394 ("In-process Network mock…") — could
-    mention graph replication; minor.
+mention graph replication; minor.
 16. Add a graph-replication recipe (§2.x) to recipes.md: follow-graph over
-    iroh(memory) with code sample.
+iroh(memory) with code sample.
 17. ~~Update AGENTS.md: module-state note (iroh graph ops replicate) + the scoped-`--fix` gotcha (d1) + daemon-reformat edit friction already tracked.~~ done 2026-09-06 evening (scoped-`--fix` appended to the concurrent-session gotcha; module state in FEATURES/modules.md).
 
 **Design debt surfaced by this work**
 18. LWW timestamps table eviction (all op kinds, edges worsen growth).
 19. Anti-entropy / state transfer for late-joining peers (delivery-assumed
-    convergence is the honest current contract — document or build).
+convergence is the honest current contract — document or build).
 20. Equal-timestamp tie-break by author for edge LWW (README previously
-    CLAIMED "ties broken by author ID" for maps — code never did it; I
-    removed the claim. Implementing it would restore determinism).
+CLAIMED "ties broken by author ID" for maps — code never did it; I
+removed the claim. Implementing it would restore determinism).
 21. Consider OR-Set-with-tombstones semantics for edges as an alternative to
-    LWW (add-wins) — design note in an ADR if ever requested.
+LWW (add-wins) — design note in an ADR if ever requested.
 22. Heterogeneous-cluster guard: Doctor WARN when a replicated engine
-    declares graph but its local engine lacks graphExtCapable (removes
-    silently drop).
+declares graph but its local engine lacks graphExtCapable (removes
+silently drop).
 23. Decide and document the CALM ceiling: MapUpdate/Scan/Vector/Search/
-    Spatial writes stay local forever, or get WriteOp kinds next.
+Spatial writes stay local forever, or get WriteOp kinds next.
 
 **Gates / release**
 24. Full exclusive `#verify` once the concurrent planner work lands (their
-    `TestUniversalADT_PrefersNativeOverDegraded` RED must clear first).
+`TestUniversalADT_PrefersNativeOverDegraded` RED must clear first).
 25. Re-run metaengine root suite after their fix; confirm my Doctor tests
-    still green on the merged state.
+still green on the merged state.
 26. Tag wave: `metaengine/irohengine` v4.x.y for OpGraph* consts (user
-    decision — see question 1).
+decision — see question 1).
 27. Verify CI quic job + quic-flake-watch pass post-push (can't verify
-    locally pre-push).
+locally pre-push).
 28. Consider adding mysqlengine to `test-all-backends.sh` for symmetry with
-    dgraph (it is DSN-gated; currently only #test-integration covers it).
+dgraph (it is DSN-gated; currently only #test-integration covers it).
 
 **Unrelated-but-noticed (out of session scope, for the ledger)**
 29. Concurrent session is live-editing: planner capability work
-    (engineServesADTNatively), fold.go/record_fold.go, duckdbengine parity
-    tests, calibration-drift.sh — do not touch their dirty files.
+(engineServesADTNatively), fold.go/record_fold.go, duckdbengine parity
+tests, calibration-drift.sh — do not touch their dirty files.
 30. TODO_LIST line 108: "[BLOCKED] Ratify iroh latency P99 bound" — user
-    decision pending (related module).
+decision pending (related module).
 
 (30 items — the honest list; padding to 50 would be fabrication.)
 
@@ -234,4 +235,4 @@ closed in TODO_LIST. The session's real failures were procedural (the
 shared-module `--fix`, the limit blindspot, the test-semantics slip) — all
 caught within the session, all listed with follow-ups above.
 
-*Arte in Aeternum*
+_Arte in Aeternum_

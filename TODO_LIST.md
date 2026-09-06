@@ -420,13 +420,14 @@ and is **never** duplicated here. Historical session reports live under
 ## Core Data Model v4.x/v5 (2026-08-22 review + plan)
 
 > Source: [core data-model review](docs/reviews/2026-08-22_core-data-model-review.html)
-> + [execution plan](docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md).
-> Owner decision 2026-08-22 (Appendix B): string `record.StreamRef` SURVIVES
-> v5 with a validating constructor; the struct `record.Stream` proposal is
-> rejected. One open plan task: **T23** (upstream skill fixes:
-> docs/reviews↔brainstorming divergence; read-prior-reports +
-> copy-template steps in the review skills) — execute or decline at the next
-> skill-maintenance pass.
+>
+> - [execution plan](docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md).
+>   Owner decision 2026-08-22 (Appendix B): string `record.StreamRef` SURVIVES
+>   v5 with a validating constructor; the struct `record.Stream` proposal is
+>   rejected. One open plan task: **T23** (upstream skill fixes:
+>   docs/reviews↔brainstorming divergence; read-prior-reports +
+>   copy-template steps in the review skills) — execute or decline at the next
+>   skill-maintenance pass.
 
 ---
 

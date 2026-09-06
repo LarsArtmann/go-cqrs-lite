@@ -74,7 +74,12 @@ func TestPostgresSnapshotEncryption_AtRestAndRotation(t *testing.T) {
 	streamID := idtest.ParseStreamID(t, "01HGW5FPJPYK5RE8ACZDesWMY2")
 	ref := id.NewStreamRef("User", streamID)
 
-	snap, err := snapshot.NewSnapshot(ref, event.Version(7), []byte(plaintextMarker), record.EncodingJSON)
+	snap, err := snapshot.NewSnapshot(
+		ref,
+		event.Version(7),
+		[]byte(plaintextMarker),
+		record.EncodingJSON,
+	)
 	if err != nil {
 		t.Fatalf("NewSnapshot: %v", err)
 	}

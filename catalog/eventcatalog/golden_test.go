@@ -134,7 +134,11 @@ func TestGolden_EventCatalog_FlattenedSchema(t *testing.T) {
 
 	for _, leaked := range []string{"auditFields", "paymentMethod", "\"payment\""} {
 		if strings.Contains(string(schemaContent), leaked) {
-			t.Errorf("embedded type name %q leaked into flattened schema: %s", leaked, schemaContent)
+			t.Errorf(
+				"embedded type name %q leaked into flattened schema: %s",
+				leaked,
+				schemaContent,
+			)
 		}
 	}
 

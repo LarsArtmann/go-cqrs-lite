@@ -932,9 +932,11 @@
             # tag, refresh the cqrs-lint goldens that pin the version set, and
             # verify changed modules standalone (tidy + build + test-compile).
             # `--check` mode is the CI staleness gate (no go toolchain needed).
-            pin-sweep = mkApp "pin-sweep" [ goPkg pkgs.git pkgs.bash pkgs.coreutils pkgs.findutils pkgs.gnugrep ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/pin-sweep.sh" "$@"
-            '';
+            pin-sweep =
+              mkApp "pin-sweep" [ goPkg pkgs.git pkgs.bash pkgs.coreutils pkgs.findutils pkgs.gnugrep ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/pin-sweep.sh" "$@"
+                '';
 
             # check-eventcatalog: render-validation of the EventCatalog
             # exporter output — generates a fixture catalog, npm-installs
