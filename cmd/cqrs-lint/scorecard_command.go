@@ -43,7 +43,7 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 				analyzer.DefaultCatalog, usage,
 				actx.FeatureProfile, cfg.Preset,
 			)
-			result.Deprecated = ComputeDeprecatedPanel(actx)
+			result.Deprecated = ComputeDeprecatedPanel(ctx, actx)
 
 			out, err := renderScorecard(result, flags.Format, parseColorMode(flags.Color))
 			if err != nil {
