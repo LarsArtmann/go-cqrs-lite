@@ -16,10 +16,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/go-output v0.37.0
-	github.com/larsartmann/go-output/delimited v0.37.0
-	github.com/larsartmann/go-output/markdown v0.37.0
-	github.com/larsartmann/go-output/table v0.37.0
+	github.com/larsartmann/go-output v0.38.0
+	github.com/larsartmann/go-output/delimited v0.38.0
+	github.com/larsartmann/go-output/markdown v0.38.0
+	github.com/larsartmann/go-output/table v0.38.0
 	github.com/mattn/go-sqlite3 v1.14.52
 )
 
@@ -129,14 +129,14 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output/d2 v0.37.0 // indirect
-	github.com/larsartmann/go-output/daghtml v0.37.0 // indirect
-	github.com/larsartmann/go-output/escape v0.37.0 // indirect
-	github.com/larsartmann/go-output/graph v0.37.0 // indirect
-	github.com/larsartmann/go-output/markup v0.37.0 // indirect
-	github.com/larsartmann/go-output/plantuml v0.37.0 // indirect
-	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
-	github.com/larsartmann/go-output/tree v0.37.0 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.0 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.0 // indirect
+	github.com/larsartmann/go-output/escape v0.38.0 // indirect
+	github.com/larsartmann/go-output/graph v0.38.0 // indirect
+	github.com/larsartmann/go-output/markup v0.38.0 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.0 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
+	github.com/larsartmann/go-output/tree v0.38.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.10.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

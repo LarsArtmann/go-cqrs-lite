@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-gen/v4
 
-go 1.26.5
+go 1.26.7
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
@@ -36,18 +36,18 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.37.0 // indirect
-	github.com/larsartmann/go-output/d2 v0.37.0 // indirect
-	github.com/larsartmann/go-output/daghtml v0.37.0 // indirect
-	github.com/larsartmann/go-output/delimited v0.37.0 // indirect
-	github.com/larsartmann/go-output/escape v0.37.0 // indirect
-	github.com/larsartmann/go-output/graph v0.37.0 // indirect
-	github.com/larsartmann/go-output/markdown v0.37.0 // indirect
-	github.com/larsartmann/go-output/markup v0.37.0 // indirect
-	github.com/larsartmann/go-output/plantuml v0.37.0 // indirect
-	github.com/larsartmann/go-output/serialization v0.37.0 // indirect
-	github.com/larsartmann/go-output/table v0.37.0 // indirect
-	github.com/larsartmann/go-output/tree v0.37.0 // indirect
+	github.com/larsartmann/go-output v0.38.0 // indirect
+	github.com/larsartmann/go-output/d2 v0.38.0 // indirect
+	github.com/larsartmann/go-output/daghtml v0.38.0 // indirect
+	github.com/larsartmann/go-output/delimited v0.38.0 // indirect
+	github.com/larsartmann/go-output/escape v0.38.0 // indirect
+	github.com/larsartmann/go-output/graph v0.38.0 // indirect
+	github.com/larsartmann/go-output/markdown v0.38.0 // indirect
+	github.com/larsartmann/go-output/markup v0.38.0 // indirect
+	github.com/larsartmann/go-output/plantuml v0.38.0 // indirect
+	github.com/larsartmann/go-output/serialization v0.38.0 // indirect
+	github.com/larsartmann/go-output/table v0.38.0 // indirect
+	github.com/larsartmann/go-output/tree v0.38.0 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.10.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.29 // indirect
