@@ -143,15 +143,24 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 		RequiresNetwork: true,
 		NetworkRTT:      DG_NetworkRTT,
 		ReadCosts: metaengine.ReadCosts{
-			NsPerPointLookup:  350_000, // MapGet ~344µs
-			NsPerFilteredScan: 900_000, // SearchQuery anyofterms ~882µs
+			NsPerPointLookup: 350_000, // MapGet ~344µs (one RPC; OLogN ops × this value is an upper bound)
+			// Per-ROW marginal costs, result-size-scaled (2026-09-06,
+			// BenchmarkCalibration_DgraphScaled, ephemeral Dgraph 25.4.0):
+			// slopes over 100/1K/10K rows converge to ~2.15-2.75 µs/row
+			// (FullScan 100→1K: 2.74, 1K→10K: 2.26; FilteredScan tracks
+			// FullScan because the predicate runs client-side over all
+			// returned rows). The single-RPC FIXED cost (~0.5-0.7 ms) does
+			// NOT scale with volume — it is bounded by the NetworkRTT prior
+			// instead, so these fields must hold per-row numbers, never the
+			// per-RPC totals an unscaled bench measures (~450-900 µs).
+			NsPerFilteredScan: 2_200,
 			// Measured ~2663 ns/row (BenchmarkDgraph_CounterGet, ephemeral
 			// Dgraph 25.4.0 2026-09-01). ADR-0133: ReadAggregate executes
 			// CounterGet over the counter map — one gRPC round trip + JSON map
 			// decode, amortized over the counter-map size. Graph traversal is a
 			// different pattern and does not price this field.
 			NsPerAggregate: 2_700,
-			NsPerScan:      450_000, // GraphNeighbors depth-1 ~420µs
+			NsPerScan:      2_200,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTMap:       metaengine.ComplexityOLogN,

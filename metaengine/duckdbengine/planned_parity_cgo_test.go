@@ -7,10 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	_ "github.com/marcboeker/go-duckdb/v2"
-
-	"database/sql"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 )
@@ -20,17 +16,12 @@ import (
 func newDuckParityEngine(t *testing.T) metaengine.Engine {
 	t.Helper()
 
-	db, err := sql.Open("duckdb", "")
-	if err != nil {
-		t.Fatalf("open duckdb: %v", err)
-	}
-
-	t.Cleanup(func() { _ = db.Close() })
-
-	eng, err := duckdbengine.New(db)
+	eng, err := duckdbengine.New("")
 	if err != nil {
 		t.Fatalf("New: %v", err)
 	}
+
+	t.Cleanup(func() { _ = eng.Close() })
 
 	plan := metaengine.BuildLayoutPlan("parity_items", []string{"status"}, []string{"priority"})
 	if err := eng.(metaengine.LayoutPlanApplier).ApplyLayoutPlan(plan); err != nil {
