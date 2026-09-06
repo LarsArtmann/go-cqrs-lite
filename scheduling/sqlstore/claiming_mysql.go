@@ -64,7 +64,7 @@ FOR UPDATE SKIP LOCKED`, c.formatTime(now), c.formatTime(now))
 func stampLeaseMySQL(
 	ctx context.Context,
 	tx *sql.Tx,
-	leaseUntil string,
+	leaseUntil any,
 	ids []string,
 ) error {
 	args := make([]any, 0, len(ids)+1)

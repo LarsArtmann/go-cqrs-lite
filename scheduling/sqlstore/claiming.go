@@ -269,7 +269,7 @@ func ensureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect) error {
 
 		stmt = `ALTER TABLE timers ADD COLUMN lease_until TEXT`
 	case DialectMySQL:
-		return ErrClaimingUnsupported
+		return ensureLeaseColumnMySQL(ctx, db)
 	default:
 		return ErrClaimingUnsupported
 	}
@@ -323,6 +323,10 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 
 	if c.dialect == DialectPostgres {
 		query = `UPDATE timers SET lease_until = $1 WHERE id = $2 AND lease_until > $3`
+		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
+	} else if c.dialect == DialectMySQL {
+		// MySQL has no ordinal ?N placeholders — plain ? only.
+		query = `UPDATE timers SET lease_until = ? WHERE id = ? AND lease_until > ?`
 		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
 	} else {
 		query = `UPDATE timers SET lease_until = ?1 WHERE id = ?2 AND lease_until > ?3`

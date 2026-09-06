@@ -1,0 +1,71 @@
+package rules
+
+func versionRules() []RuleInfo {
+	return []RuleInfo{
+		{
+			ID:          "V001",
+			Name:        "mixed-major-versions",
+			Category:    "version",
+			Severity:    "error",
+			Confidence:  "high",
+			Description: "Project mixes v3 and v4 go-cqrs-lite modules — APIs are incompatible",
+			AutoFix:     false,
+		},
+		{
+			ID:          "V002",
+			Name:        "unpinned-version",
+			Category:    "version",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "go-cqrs-lite dependency pinned to a pseudo-version instead of a tagged release",
+			AutoFix:     false,
+		},
+		{
+			ID:          "V003",
+			Name:        "version-lag",
+			Category:    "version",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "go-cqrs-lite version more than 2 minor versions behind latest known release",
+			AutoFix:     false,
+		},
+		{
+			ID:          "V004",
+			Name:        "vendored-third-party",
+			Category:    "version",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Vendored go-cqrs-lite code in third_party/ — bypasses go.mod updates",
+			AutoFix:     false,
+		},
+		{
+			ID:          "V005",
+			Name:        "eventtest-vendored-mismatch",
+			Category:    "version",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Vendored eventtest alongside go-cqrs-lite imports — version mismatch workaround",
+			AutoFix:     false,
+		},
+		{
+			ID:          "V006",
+			Name:        "mixed-version-pins",
+			Category:    "version",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "go-cqrs-lite modules within the same major version pinned to different releases",
+			AutoFix:     false,
+		},
+		{
+			ID:          "V007",
+			Name:        "v5-removed-api-usage",
+			Category:    "version",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126)",
+			AutoFix:     false,
+			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#v007",
+		},
+	}
+}
+
