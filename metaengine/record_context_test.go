@@ -36,7 +36,7 @@ func recordContextQuery() QueryDecl[recordContextEvent, map[string]recordContext
 func newRecordContextStore(t *testing.T) *Store {
 	t.Helper()
 
-	store, err := Plan(NewMemoryEngine(), recordContextQuery())
+	store, err := Plan([]Engine{NewMemoryEngine()}, recordContextQuery())
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
@@ -110,15 +110,18 @@ func TestApplyRecord_FullContext(t *testing.T) {
 	}
 }
 
+// plainRecordEvent is an On-only event type (no Record parameter).
+type plainRecordEvent struct{ ID string }
+
 // TestApply_NoRecordAwareFolds_NoAdvisory proves plain On folds never trip
 // the advisory: synthesized Records are harmless when the handler ignores
 // the Record.
 func TestApply_NoRecordAwareFolds_NoAdvisory(t *testing.T) {
 	t.Parallel()
 
-	store, err := Plan(NewMemoryEngine(), Query[plainEvent, map[string]string](
+	store, err := Plan([]Engine{NewMemoryEngine()}, Query[plainRecordEvent, map[string]string](
 		"plain_tasks",
-		On(plainEvent{}, func(e plainEvent) (string, string) {
+		On(plainRecordEvent{}, func(e plainRecordEvent) (string, string) {
 			return e.ID, e.ID
 		}),
 	))
@@ -128,7 +131,7 @@ func TestApply_NoRecordAwareFolds_NoAdvisory(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "plainEvent", plainEvent{ID: "p1"}); err != nil {
+	if err := store.Apply(ctx, "plainRecordEvent", plainRecordEvent{ID: "p1"}); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 

@@ -148,14 +148,12 @@ func createEvent() {
 // must still be detected — the qualifier resolves through the import decl.
 func TestA014_DetectsAliasedImportCall(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"events.go": `package main
-
-import ev "github.com/larsartmann/go-cqrs-lite/event/v4"
-
-func createEvent() {
+		"events.go": ruletest.AliasedImportSource("ev",
+			"github.com/larsartmann/go-cqrs-lite/event/v4",
+			`func createEvent() {
 	ev.NewEvent("user.created", "id", "User", 1, nil)
-}
-`,
+}`,
+		),
 	})
 	findings := ruletest.RunDetector(t, api.NewA014Detector(ctx))
 	ruletest.AssertRule(t, findings, "A014", 1)
