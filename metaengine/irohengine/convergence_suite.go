@@ -116,7 +116,7 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
-		gd := nodeA.(graphDispatch)
+		gd := nodeA.(graphCapable)
 		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "bob"}))
 		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "carol"}))
 		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "bob", To: "dave"}))
@@ -130,12 +130,12 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 		ctx := context.Background()
 		nodeA, nodeB := factory(t)
 
-		gd := nodeA.(graphDispatch)
-		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "bob"}))
-		waitForGraphNeighbors(t, nodeB, "follows", "alice", 1, []string{"bob"})
+		gd := nodeA.(graphCapable)
+		mustNoErr(t, gd.GraphAddEdge(ctx, "blocks", metaengine.Edge{From: "mallory", To: "alice"}))
+		waitForGraphNeighbors(t, nodeB, "blocks", "mallory", 1, []string{"alice"})
 
 		mustNoErr(t, nodeA.(graphRemoveDispatch).
-			GraphRemoveEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "bob"}))
-		waitForGraphNeighbors(t, nodeB, "follows", "alice", 1, []string{})
+			GraphRemoveEdge(ctx, "blocks", metaengine.Edge{From: "mallory", To: "alice"}))
+		waitForGraphNeighbors(t, nodeB, "blocks", "mallory", 1, []string{})
 	})
 }

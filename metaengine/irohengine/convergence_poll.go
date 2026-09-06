@@ -134,21 +134,16 @@ func waitForMultimap(
 		collection, key, expected, vals)
 }
 
-// graphDispatch mirrors metaengine's unexported graph dispatch contract
-// (ADR-0113) for the convergence suite's graph scenarios.
-type graphDispatch interface {
-	GraphAddEdge(ctx context.Context, collection string, edge metaengine.Edge) error
-	GraphNeighbors(ctx context.Context, collection string, node any, depth int) ([]any, error)
-}
-
-// graphRemoveDispatch mirrors the optional edge-removal extension.
+// graphRemoveDispatch mirrors the optional edge-removal extension (a subset
+// of graphExtCapable: the suite only needs the write).
 type graphRemoveDispatch interface {
 	GraphRemoveEdge(ctx context.Context, collection string, edge metaengine.Edge) error
 }
 
 // waitForGraphNeighbors polls until the depth-limited neighbor set of node
 // matches expected exactly (order-insensitive). An empty expected asserts the
-// node has no neighbors — the edge-removal convergence shape.
+// node has no neighbors — the edge-removal convergence shape. Graph dispatch
+// goes through the package's graphCapable mirror (ADR-0113 contract).
 func waitForGraphNeighbors(
 	t *testing.T,
 	node metaengine.Engine,
@@ -159,14 +154,14 @@ func waitForGraphNeighbors(
 	t.Helper()
 	deadline := time.Now().Add(pollTimeout)
 	for time.Now().Before(deadline) {
-		neighbors, err := node.(graphDispatch).GraphNeighbors(
+		neighbors, err := node.(graphCapable).GraphNeighbors(
 			context.Background(), collection, start, depth)
 		if err == nil && sameSetAny(neighbors, expected) {
 			return
 		}
 		time.Sleep(pollInterval)
 	}
-	neighbors, _ := node.(graphDispatch).GraphNeighbors(
+	neighbors, _ := node.(graphCapable).GraphNeighbors(
 		context.Background(), collection, start, depth)
 	t.Fatalf("timeout: %s neighbors of %s (depth %d) expected %v (got %v)",
 		collection, start, depth, expected, neighbors)

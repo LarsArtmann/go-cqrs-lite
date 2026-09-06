@@ -1,6 +1,7 @@
 package metaengine_test
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -78,15 +79,58 @@ func TestUniversalADT_DegradedDiagnosticEmitted(t *testing.T) {
 
 // TestUniversalADT_NoDegradedDiagnosticForNative verifies that NO degraded
 // diagnostic is emitted when the engine handles the ADT natively.
+// nativeMapEngine is a structurally honest native-MAP engine: it declares
+// ADTMap natively AND implements MapBackend, matching the capability-aware
+// router's contract (a native claim without the backend is over-declaration
+// and gets excluded in favor of honest engines).
+type nativeMapEngine struct {
+	*fakeEngine
+
+	data map[string]map[any]any
+}
+
+func newNativeMapEngine(name string) *nativeMapEngine {
+	return &nativeMapEngine{
+		fakeEngine: &fakeEngine{profile: metaengine.EngineProfile{
+			Name: name,
+			Supports: map[metaengine.ADT]metaengine.Complexity{
+				metaengine.ADTMap: metaengine.ComplexityO1,
+			},
+		}},
+		data: make(map[string]map[any]any),
+	}
+}
+
+func (e *nativeMapEngine) MapSet(_ context.Context, col string, key any, value any) error {
+	m := e.data[col]
+	if m == nil {
+		m = make(map[any]any)
+		e.data[col] = m
+	}
+
+	m[key] = value
+
+	return nil
+}
+
+func (e *nativeMapEngine) MapGet(_ context.Context, col string, key any) (any, bool, error) {
+	v, ok := e.data[col][key]
+
+	return v, ok, nil
+}
+
+func (e *nativeMapEngine) MapDelete(_ context.Context, col string, key any) error {
+	delete(e.data[col], key)
+
+	return nil
+}
+
+var _ metaengine.MapBackend = (*nativeMapEngine)(nil)
+
 func TestUniversalADT_NoDegradedDiagnosticForNative(t *testing.T) {
 	t.Parallel()
 
-	engine := &fakeEngine{profile: metaengine.EngineProfile{
-		Name: "test-native-map",
-		Supports: map[metaengine.ADT]metaengine.Complexity{
-			metaengine.ADTMap: metaengine.ComplexityO1,
-		},
-	}}
+	engine := newNativeMapEngine("test-native-map")
 
 	store, err := metaengine.Plan([]metaengine.Engine{engine}, findTaskQuery())
 	if err != nil {
@@ -107,12 +151,8 @@ func TestUniversalADT_NoDegradedDiagnosticForNative(t *testing.T) {
 func TestUniversalADT_PrefersNativeOverDegraded(t *testing.T) {
 	t.Parallel()
 
-	nativeEngine := &fakeEngine{profile: metaengine.EngineProfile{
-		Name: "native-memory",
-		Supports: map[metaengine.ADT]metaengine.Complexity{
-			metaengine.ADTMap: metaengine.ComplexityO1,
-		},
-	}}
+	nativeEngine := newNativeMapEngine("native-memory")
+
 	degradedEngine := &fakeEngine{profile: metaengine.EngineProfile{
 		Name: "degraded-sqlite",
 		Supports: map[metaengine.ADT]metaengine.Complexity{
