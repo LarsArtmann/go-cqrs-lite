@@ -814,11 +814,6 @@ linters:
       - \.gen\.go$
       - \.pb\.go$
       - _templ\.go$
-      - event/
-      - event/eventtest/
-      - event/v4/eventtest/
-      - metaengine/sqliteengine/
-      - storage/view/
       - vendor/
 formatters:
   enable:
@@ -833,11 +828,6 @@ formatters:
     paths:
       - \.pb\.go$
       - _templ\.go$
-      - event/
-      - event/eventtest/
-      - event/v4/eventtest/
-      - metaengine/sqliteengine/
-      - storage/view/
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10

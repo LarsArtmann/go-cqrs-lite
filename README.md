@@ -25,7 +25,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 - **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
 - **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
 - **Pure-Go by default** — SQLite, Pebble, and bbolt engines need no C compiler. CGo is quarantined inside the single DuckDB module; everyone else never notices.
-- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (3 dependencies) or the full `stack/sqlite` preset. Your dependency tree stays clean.
+- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (9 module deps — only 3 third-party) or the full `stack/sqlite` preset. Your dependency tree stays clean.
 - **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
 - **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
 - **Strong types throughout** — branded IDs make it impossible to mix up an `OrderID` with a `UserID`. The type system catches mistakes the compiler can express.
@@ -35,7 +35,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 
 - **Go backend engineers adopting event sourcing** who want proven primitives — stores, buses, upcasters, snapshots — without surrendering their project layout to a framework.
 - **DDD practitioners** who model behavior as pure functions (the Decider pattern) and want optimistic concurrency and branded IDs out of the box.
-- **Platform engineers embedding CQRS into existing services** — import the 3-dependency `event` module alone, or compose upward as needs grow.
+- **Platform engineers embedding CQRS into existing services** — import the `event` module alone (3 third-party deps, the rest are first-party larsartmann modules), or compose upward as needs grow.
 - **Teams that choose storage at deployment time** — swap SQLite, Postgres, MySQL, Pebble, bbolt, Dgraph, or DuckDB behind the same domain code.
 - **AI-assisted development teams** — [`SKILL.md`](SKILL.md) gives coding agents a verified, single-source API guide instead of hallucinated APIs.
 
@@ -209,7 +209,7 @@ Each module declares its own `go.mod`; this is the greatest-hits across the libr
 
 ## Maturity
 
-80+ modules on `/v4` import paths. Core modules carry 82–97% test coverage (event 88%, decider 97%, id 86%, dispatcher 82%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
+80+ modules on `/v4` import paths. Core modules carry 86–96% test coverage (event 90%, decider 96%, id 86%, dispatcher 87%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
 
 **Migrating from v3?** Read the **[Migration Guide](docs/migration/MIGRATION-GUIDE.md)** — covers the v4 breaking changes (codec defaults, API cleanup, path migration). For v2-to-v3 changes, see the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)**.
 

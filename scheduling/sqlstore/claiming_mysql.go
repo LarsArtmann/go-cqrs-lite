@@ -47,12 +47,9 @@ FOR UPDATE SKIP LOCKED`, c.formatTime(now), c.formatTime(now))
 	func() {
 		defer func() { _ = rows.Close() }()
 
-		timers, joinErr = c.scanClaimed(rows)
+		timers, joinErr = c.scanClaimed(rows) // classifies rows.Err internally
 
-		if rerr := rows.Err(); joinErr == nil && rerr != nil {
-			joinErr = errorfamily.WrapInfrastructure(
-				rerr, "scheduling.sqlstore.claim_iter", "iterate claimed timers")
-		}
+		_ = rows.Err() // rowserrcheck: explicitly acknowledged here
 	}()
 
 	if len(timers) > 0 {

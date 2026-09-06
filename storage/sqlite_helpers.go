@@ -98,7 +98,11 @@ func execPragmas(ctx context.Context, db *sql.DB, pragmas []string, errCode stri
 }
 
 func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
-	return execDDL(ctx, db, []string{sqlpkg.SQLiteSchemaEmbed()})
+	if err := execDDL(ctx, db, []string{sqlpkg.SQLiteSchemaEmbed()}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.SQLiteDialect{})
 }
 
 // SQLiteEnableWAL enables Write-Ahead Logging for better read concurrency and
@@ -179,7 +183,11 @@ func SQLiteSetSynchronous(ctx context.Context, db *sql.DB, level string) error {
 func ConfigureTursoPool(db *sql.DB) { db.SetMaxOpenConns(1) }
 
 func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
-	return execDDL(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()})
+	if err := execDDL(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.PostgresDialect{})
 }
 
 // EnsurePostgresSynchronousCommit appends synchronous_commit=<on|off> to the
@@ -257,14 +265,22 @@ func PostgresSetSynchronousCommit(ctx context.Context, db *sql.DB, on bool) erro
 }
 
 func DuckDBInitSchema(ctx context.Context, db *sql.DB) error {
-	return execDDL(ctx, db, []string{sqlpkg.DuckDBSchemaEmbed()})
+	if err := execDDL(ctx, db, []string{sqlpkg.DuckDBSchemaEmbed()}); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.DuckDBDialect{})
 }
 
 func MySQLInitSchema(ctx context.Context, db *sql.DB) error {
 	// go-sql-driver/mysql does not support multi-statement execution unless
 	// multiStatements=true is in the DSN (a SQL-injection risk for non-DDL).
 	// Split the schema into individual CREATE TABLE statements instead.
-	return execDDL(ctx, db, splitMySQLDDL(sqlpkg.MySQLSchemaEmbed()))
+	if err := execDDL(ctx, db, splitMySQLDDL(sqlpkg.MySQLSchemaEmbed())); err != nil {
+		return err
+	}
+
+	return MigrateSnapshotColumnsToStream(ctx, db, sqlpkg.MySQLDialect{})
 }
 
 // splitMySQLDDL splits a multi-statement DDL schema into individual statements
