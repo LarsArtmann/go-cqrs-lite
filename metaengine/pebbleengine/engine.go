@@ -28,7 +28,6 @@ import (
 
 	"github.com/cockroachdb/pebble"
 	"github.com/cockroachdb/pebble/vfs"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )

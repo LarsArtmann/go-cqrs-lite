@@ -299,20 +299,20 @@ func detectStaleBlocks(
 
 // FormatStaleWarning renders a stale suppression as a user-facing warning.
 func FormatStaleWarning(s StaleSuppression) string {
-	switch {
-	case s.Reason == "unknown rule":
+	switch s.Reason {
+	case "unknown rule":
 		return fmt.Sprintf(
 			"warning: suppression at %s:%d references unknown rule %s — possible typo or stale rule ID",
 			filepath.Base(s.File),
 			s.Line,
 			s.Rule,
 		)
-	case s.Reason == unmatchedEndReason:
+	case unmatchedEndReason:
 		return fmt.Sprintf(
 			"warning: block suppression issue at %s:%d — %s; delete the stray ignore-end",
 			filepath.Base(s.File), s.Line, s.Reason,
 		)
-	case s.Reason == unterminatedStartReason:
+	case unterminatedStartReason:
 		return fmt.Sprintf(
 			"warning: block suppression issue at %s:%d — %s; add an ignore-end or delete the start",
 			filepath.Base(s.File), s.Line, s.Reason,

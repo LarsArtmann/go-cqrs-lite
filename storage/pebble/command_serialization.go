@@ -3,10 +3,9 @@ package pebble
 import (
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // serializableCommand is the CBOR (and legacy JSON) storage format for commands.

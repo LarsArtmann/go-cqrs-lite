@@ -204,10 +204,10 @@ func commentTextStart(line string) int {
 				inDouble = true
 			case '/':
 				if i+1 < len(line) {
-					switch {
-					case line[i+1] == '/':
+					switch line[i+1] {
+					case '/':
 						return i
-					case line[i+1] == '*':
+					case '*':
 						inBlock = true
 						i++
 					}
@@ -508,14 +508,14 @@ func parseDirectivesInComment(text string, result map[string]string) {
 		}
 
 		body := afterKeyword[1:]
-		end := strings.Index(body, ")")
-		if end < 0 {
+		before, after, ok := strings.Cut(body, ")")
+		if !ok {
 			// Malformed: unclosed parenthesis — nothing to extract.
 			return
 		}
 
-		rawIDs := body[:end]
-		reason := strings.TrimSpace(body[end+1:])
+		rawIDs := before
+		reason := strings.TrimSpace(after)
 
 		// Support comma-separated rule IDs: ignore(A001,E005).
 		for id := range strings.SplitSeq(rawIDs, ",") {
@@ -525,7 +525,7 @@ func parseDirectivesInComment(text string, result map[string]string) {
 			}
 		}
 
-		search = body[end+1:]
+		search = after
 	}
 }
 
