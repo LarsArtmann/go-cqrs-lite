@@ -217,16 +217,23 @@ func (s *Store) capabilityDoctorSection() string {
 			}
 		}
 
-		// Honest-degradation note: replicated engines forward graph dispatch
-		// as local passthrough (irohengine has no graph WriteOp wire kind), so
-		// a replicated engine with graph support does NOT converge edges
-		// across peers even though its declarations are consistent.
+		// Honest-degradation note: replicated engines forward vector/search/
+		// spatial inserts as local passthrough (irohengine has no WriteOp wire
+		// kinds for them), so those writes do NOT converge across peers even
+		// though the declarations are consistent. Graph edges replicate
+		// (OpGraphAddEdge/OpGraphRemoveEdge per-edge LWW) and get no note.
 		if profile.IsReplicated() {
-			if _, graphDeclared := profile.Supports[ADTGraph]; graphDeclared {
+			var localOnly []string
+			for _, adt := range []ADT{ADTVector, ADTSearch, ADTSpatial} {
+				if _, declared := profile.Supports[adt]; declared {
+					localOnly = append(localOnly, string(adt))
+				}
+			}
+			if len(localOnly) > 0 {
 				fmt.Fprintf(&b,
-					"    note: %s is replicated but graph writes are local-only "+
-						"(no graph WriteOp on the replication wire) — edges do NOT converge across peers\n",
-					profile.Name)
+					"    note: %s is replicated but %s writes are local-only "+
+						"(no WriteOp on the replication wire) — they do NOT converge across peers\n",
+					profile.Name, strings.Join(localOnly, "/"))
 			}
 		}
 	}

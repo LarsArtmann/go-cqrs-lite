@@ -39,3 +39,26 @@ func TestLoopbackADTMatrix(t *testing.T) {
 		},
 	})
 }
+
+// TestCapabilityConformance verifies the loopback-backed wrapper's Profile()
+// declarations against its implemented backend interfaces. The transport tier
+// must not change the capability surface the in-process tier declares (the
+// wave-4 capability loop noted loopback/quic had matrix tests but no
+// conformance wiring — closed 2026-09-06 alongside graph WriteOp convergence).
+func TestCapabilityConformance(t *testing.T) {
+	t.Parallel()
+
+	tr, err := loopback.New()
+	if err != nil {
+		t.Fatalf("loopback.New: %v", err)
+	}
+	t.Cleanup(func() { _ = tr.Close() })
+
+	eng := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithTransport(tr),
+	)
+	t.Cleanup(func() { _ = eng.Close() })
+
+	adttest.RunCapabilityConformance(t, "iroh-loopback", eng, nil)
+}

@@ -44,3 +44,23 @@ func TestQuicADTMatrix(t *testing.T) {
 		},
 	})
 }
+
+// TestCapabilityConformance verifies the QUIC-backed wrapper's Profile()
+// declarations against its implemented backend interfaces. The CGo transport
+// tier must not change the capability surface the in-process tier declares
+// (conformance wiring closed 2026-09-06 alongside graph WriteOp convergence).
+func TestCapabilityConformance(t *testing.T) {
+	tr, err := quic.New(quic.WithLocalOnly())
+	if err != nil {
+		t.Fatalf("quic.New: %v", err)
+	}
+	t.Cleanup(func() { _ = tr.Close() })
+
+	eng := irohengine.Replicated(
+		metaengine.NewMemoryEngine(),
+		irohengine.WithTransport(tr),
+	)
+	t.Cleanup(func() { _ = eng.Close() })
+
+	adttest.RunCapabilityConformance(t, "iroh-quic", eng, nil)
+}

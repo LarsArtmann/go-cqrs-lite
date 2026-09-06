@@ -32,7 +32,10 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 PG_MODULES="storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore benchkit"
-MYSQL_MODULES="stack/mysql"
+# metaengine/mysqlengine joined 2026-09-06: its TestCapabilityConformance + ADT
+# matrix only execute against a real server, which is exactly what this gate
+# provisions (capability-conformance wiring, TODO Phase 7).
+MYSQL_MODULES="stack/mysql metaengine/mysqlengine"
 
 # ─── Argument Parsing ─────────────────────────────────────────────────────────
 
