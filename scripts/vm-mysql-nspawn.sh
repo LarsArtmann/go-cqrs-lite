@@ -168,6 +168,13 @@ else
 		CGO_ENABLED=1 GOWORK=off \
 			go test -tags "integration goexperiment.jsonv2" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
+	echo ""
+	echo "--- metaengine/mysqlengine (capability conformance + ADT matrix) ---"
+	(
+		cd metaengine/mysqlengine
+		CGO_ENABLED=1 GOWORK=off \
+			go test -tags "goexperiment.jsonv2" ./... -count=1 -v 2>&1
+	)
 fi
 
 echo ""

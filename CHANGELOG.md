@@ -6,6 +6,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — iroh graph WriteOp convergence + capability-conformance wiring — 2026-09-06
+
+Edges added or removed through the irohengine `Replicated` wrapper now
+replicate cross-peer (previously local-only passthrough — the last
+declared-replicated ADT whose writes silently diverged).
+
+- **`irohengine.OpGraphAddEdge` / `irohengine.OpGraphRemoveEdge`**: new
+  wire op kinds. Edge endpoints travel in the existing `WriteOp.Key`
+  (From) and `WriteOp.Value` (To) fields, so every transport (in-process,
+  loopback TCP, QUIC) carries them without framing changes.
+- **Per-edge LWW register semantics**: edge presence resolves per
+  (collection, from, to) by last-writer-wins — the same register model
+  `MapSet`/`MapDelete` use per key. A remove with a newer timestamp than
+  an add wins everywhere; a stale reordered add cannot resurrect a
+  removed edge (pinned by a lagging-clock three-node test).
+- `GraphAddEdge`/`GraphRemoveEdge` moved from local passthrough to
+  replicated writes (`engine_graph.go`); graph reads stay local
+  passthrough. Graphless wrapped engines still get
+  `ErrGraphBackendNotImplemented`.
+- Convergence suite grows to 8 scenarios: `GraphConvergence` and
+  `GraphEdgeRemovalConvergence` now run across all three transport tiers
+  (in-process, loopback, QUIC).
+- **Doctor honest-degradation note re-aimed**: replicated engines
+  declaring vector/search/spatial get a "writes are local-only" note;
+  replicated graph engines are note-free because edges now converge.
+- **Capability-conformance wiring**: `RunCapabilityConformance` added
+  for the loopback and QUIC transport wrappers (the wave-4 conformance
+  loop had noted both tiers lacked it), and `metaengine/mysqlengine`
+  joined `#test-integration`'s MySQL module list so its conformance +
+  ADT matrix execute against a real server under that gate (nspawn/VM
+  paths included).
+
 ### Added — scorecard v5-readiness panel + preset deprecated-surface policy — 2026-09-06
 
 - **`cqrs-lint scorecard` deprecated-surfaces panel**: the scorecard now

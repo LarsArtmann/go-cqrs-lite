@@ -10,16 +10,20 @@ go get github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4
 
 ## CRDT-Safe Operations
 
-| Operation          | CRDT Type              | Convergence guarantee              |
-| ------------------ | ---------------------- | ---------------------------------- |
-| `MapSet`           | LWW (last-writer-wins) | Highest timestamp wins             |
-| `SetAdd`           | OR-Set (add-wins)      | Union of all adds                  |
-| `CounterIncrement` | PN-Counter             | Sum of all increments/decrements   |
-| `MultiAdd`         | OR-Set per key         | Union of all adds per multimap key |
-| `LogAppend`        | Append-only log        | Union of all appended entries      |
+| Operation           | CRDT Type              | Convergence guarantee              |
+| ------------------- | ---------------------- | ---------------------------------- |
+| `MapSet`            | LWW (last-writer-wins) | Highest timestamp wins             |
+| `MapDelete`         | LWW tombstone          | Highest timestamp wins             |
+| `SetAdd`            | OR-Set (add-wins)      | Union of all adds                  |
+| `CounterIncrement`  | PN-Counter             | Sum of all increments/decrements   |
+| `MultiAdd`          | OR-Set per key         | Union of all adds per multimap key |
+| `LogAppend`         | Append-only log        | Union of all appended entries      |
+| `GraphAddEdge`      | Per-edge LWW register  | Highest timestamp wins per edge    |
+| `GraphRemoveEdge`   | Per-edge LWW register  | Highest timestamp wins per edge    |
 
-Non-CRDT operations (`MapUpdate`, `MapDelete`, `SetRemove`) stay local — they
-do NOT replicate. This matches the CALM theorem constraint.
+Non-CRDT operations (`MapUpdate`) stay local — they do NOT replicate. Vector,
+search, and spatial inserts also stay local (no WriteOp wire kinds for them).
+This matches the CALM theorem constraint.
 
 ## Quick Start
 
@@ -81,7 +85,8 @@ Tier 0 is in this module. Tiers 1 and 2 are separate submodules:
 - **Reads are local**: All reads hit the local engine directly — zero replication latency.
 - **Writes are fire-and-forget**: CRDT-safe writes apply locally, then replicate
   asynchronously via the transport. Eventual convergence is guaranteed by the CRDT properties.
-- **LWW timestamps**: `MapSet` resolves conflicts by timestamp. Ties broken by author ID.
+- **LWW timestamps**: `MapSet`/`MapDelete` resolve conflicts per key by timestamp;
+  `GraphAddEdge`/`GraphRemoveEdge` resolve edge presence per (from, to) pair the same way.
 - **Separate module**: Lives outside metaengine core to preserve the zero-dependency boundary.
 
 ## Related Modules
