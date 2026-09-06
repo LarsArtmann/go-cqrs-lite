@@ -427,8 +427,6 @@ and is **never** duplicated here.
 
 ---
 
----
-
 ## Code Quality / Infrastructure
 
 - [ ] **macOS verification of ephemeral PG** — `scripts/ephemeral-pg.sh` claims
@@ -440,8 +438,6 @@ and is **never** duplicated here.
       2026-08-30 (C10): header now says the claim is static-review-only and
       names the verification route — a GitHub Actions macOS runner leg
       (blocked on macOS CI runner, same hardware constraint as D9).
-
----
 
 ---
 
