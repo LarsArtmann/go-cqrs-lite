@@ -6,10 +6,12 @@ import (
 	"go/ast"
 	"go/token"
 	"slices"
+	"strconv"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // ToolName is the canonical linter name used in every finding. Centralized
@@ -56,11 +58,42 @@ var nonCQRSRegisterPackages = map[string]bool{
 	"grpc":  true, // grpc-go Server.Register (proto service registration)
 }
 
-// IsNonCQRSRegisterPackage reports whether pkgName is a third-party package
-// qualifier whose Register/Handle method is unrelated to CQRS dispatching.
+// IsNonCQRSRegisterPackage reports whether qualifier, as imported in file,
+// resolves to a third-party package whose Register/Handle method is
+// unrelated to CQRS dispatching. Matching runs on the RESOLVED IMPORT PATH
+// (alias-safe, and immune to a consumer's own package merely sharing a
+// denylisted name); the bare-name list remains as fallback for unresolved
+// names.
 // Use to suppress false positives in rules that detect handler registration.
-func IsNonCQRSRegisterPackage(pkgName string) bool {
-	return nonCQRSRegisterPackages[pkgName]
+func IsNonCQRSRegisterPackage(file *ast.File, qualifier string) bool {
+	if path, ok := QualifierToImportPath(file, qualifier); ok && isNonCQRSRegisterImportPath(path) {
+		return true
+	}
+
+	return nonCQRSRegisterPackages[qualifier]
+}
+
+// nonCQRSRegisterImportFragments are import-path substrings of known
+// third-party frameworks whose Register/Handle methods collide with CQRS.
+var nonCQRSRegisterImportFragments = []string{ //nolint:gochecknoglobals // read-only denylist
+	"net/http",
+	"gorilla/mux",
+	"go-chi/chi",
+	"gin-gonic/gin",
+	"labstack/echo",
+	"gofiber/fiber",
+	"danielgtaylor/huma",
+	"google.golang.org/grpc",
+}
+
+func isNonCQRSRegisterImportPath(path string) bool {
+	for _, frag := range nonCQRSRegisterImportFragments {
+		if strings.Contains(path, frag) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // CollectPkgLevelVarCalls returns the set of CallExpr positions that are
@@ -121,10 +154,11 @@ func SelectorMatches(sel *ast.SelectorExpr, pkgName string, selNames ...string) 
 	return slices.Contains(selNames, sel.Sel.Name)
 }
 
-// SelectorIdent returns the package qualifier identifier from a selector
-// expression (e.g. the "event" in event.New). Shared by rules that need the
-// raw qualifier without matching a specific package name (d007, c037).
-func SelectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool) {
+// selectorIdent returns the package qualifier identifier from a selector
+// expression (e.g. the "event" in event.New). Used internally by
+// SelectorPkgName; rules should prefer SelectorPkgName or
+// QualifierToImportPath.
+func selectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool) {
 	ident, ok := sel.X.(*ast.Ident)
 	return ident, ok
 }
@@ -133,7 +167,7 @@ func SelectorIdent(sel *ast.SelectorExpr) (*ast.Ident, bool) {
 // selector expression (e.g. event.New → ("event", "New")). Returns ok=false
 // when the selector's receiver is not an identifier. Shared by d007, c037.
 func SelectorPkgName(sel *ast.SelectorExpr) (pkg, name string, ok bool) {
-	ident, ok := SelectorIdent(sel)
+	ident, ok := selectorIdent(sel)
 	if !ok {
 		return "", "", false
 	}
@@ -326,9 +360,9 @@ func QualifierToImportPath(file *ast.File, qualifier string) (string, bool) {
 			continue
 		}
 
-		if imp.Name != nil && imp.Name.Name == "." {
-			return path, true
-		}
+		// Note: dot imports (".") bind no qualifier, so they never match one
+		// here — returning their path for an arbitrary qualifier would
+		// false-attribute another package's symbols.
 
 		if imp.Name != nil {
 			if imp.Name.Name == qualifier {
@@ -346,36 +380,6 @@ func QualifierToImportPath(file *ast.File, qualifier string) (string, bool) {
 	return "", false
 }
 
-// ImportQualifierMap builds a complete qualifier to import-path map for a file.
-func ImportQualifierMap(file *ast.File) map[string]string {
-	result := make(map[string]string)
-
-	for _, imp := range file.Imports {
-		if imp == nil || imp.Path == nil {
-			continue
-		}
-
-		path := strings.Trim(imp.Path.Value, `"`)
-
-		if imp.Name != nil {
-			switch imp.Name.Name {
-			case "_":
-				continue
-			case ".":
-				result["."] = path
-				continue
-			default:
-				result[imp.Name.Name] = path
-				continue
-			}
-		}
-
-		result[lastSegment(path)] = path
-	}
-
-	return result
-}
-
 // QualifierResolvesTo checks whether a qualifier in the given file resolves to
 // an import path that contains the expected suffix.
 func QualifierResolvesTo(file *ast.File, qualifier, expectedPathSuffix string) bool {
@@ -391,12 +395,31 @@ func QualifierResolvesTo(file *ast.File, qualifier, expectedPathSuffix string) b
 // Go convention: the package name matches the last path segment, EXCEPT for
 // major-version suffixes (/v2, /v3, ...) which are stripped. For example,
 // "github.com/foo/event/v4" → "event", not "v4".
+// isMajorVersionSegment reports whether seg is a Go major-version suffix
+// ("v2" through "v99"). Only single-digit majors were handled before, so a
+// v10+ import yielded the bogus package name "v10".
+func isMajorVersionSegment(seg string) bool {
+	if len(seg) < 2 || seg[0] != 'v' {
+		return false
+	}
+
+	for _, r := range seg[1:] {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+
+	n, err := strconv.Atoi(seg[1:])
+
+	return err == nil && n >= 2
+}
+
 func lastSegment(importPath string) string {
 	if idx := strings.LastIndex(importPath, "/"); idx >= 0 {
 		seg := importPath[idx+1:]
-		// Strip major-version suffix (v2, v3, etc.) — the package name is
+		// Strip major-version suffix (v2, v3, ... v99) — the package name is
 		// the segment before it.
-		if len(seg) == 2 && seg[0] == 'v' && seg[1] >= '2' && seg[1] <= '9' {
+		if isMajorVersionSegment(seg) {
 			rest := importPath[:idx]
 			if idx2 := strings.LastIndex(rest, "/"); idx2 >= 0 {
 				return rest[idx2+1:]

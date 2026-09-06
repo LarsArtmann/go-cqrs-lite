@@ -162,7 +162,7 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							// method name collides with CQRS but serves a different
 							// purpose. Variable qualifiers (d, cmdDisp) are never
 							// denylisted — they are the idiomatic CQRS pattern.
-							if lintutil.IsNonCQRSRegisterPackage(analyzer.SelectorPackage(sel)) {
+							if lintutil.IsNonCQRSRegisterPackage(gf.AST, analyzer.SelectorPackage(sel)) {
 								continue
 							}
 

@@ -67,12 +67,11 @@ import . "github.com/larsartmann/go-cqrs-lite/event/v4"
 		t.Fatal(err)
 	}
 
-	path, ok := lintutil.QualifierToImportPath(file, "anything")
-	if !ok {
-		t.Fatal("expected dot import to resolve any qualifier")
-	}
-	if path != "github.com/larsartmann/go-cqrs-lite/event/v4" {
-		t.Errorf("got %q, want the event import path", path)
+	// A dot import binds no qualifier: it must never resolve, for any
+	// qualifier name. The old behavior returned the path for anything,
+	// letting rules attribute other packages' symbols to the dot import.
+	if path, ok := lintutil.QualifierToImportPath(file, "anything"); ok {
+		t.Errorf("dot import resolved for arbitrary qualifier: %q", path)
 	}
 }
 
@@ -115,16 +114,14 @@ import ev "github.com/larsartmann/go-cqrs-lite/event/v4"
 	}
 }
 
-func TestImportQualifierMap(t *testing.T) {
+func TestQualifierToImportPath_DotImportBindsNothing(t *testing.T) {
 	t.Parallel()
 
 	src := `package main
 
 import (
-	cqrs "github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	. "github.com/larsartmann/go-codec"
-	_ "github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 `
 	fset := token.NewFileSet()
@@ -133,21 +130,27 @@ import (
 		t.Fatal(err)
 	}
 
-	m := lintutil.ImportQualifierMap(file)
+	// A dot import binds no qualifier, so it must never resolve — for any
+	// qualifier name — or rules would attribute other packages' symbols to it.
+	if path, ok := lintutil.QualifierToImportPath(file, "go-codec"); ok {
+		t.Errorf("dot import resolved for arbitrary qualifier: %q, %v", path, ok)
+	}
+}
 
-	if m["cqrs"] != "github.com/larsartmann/go-cqrs-lite/event/v4" {
-		t.Errorf("cqrs alias: got %q", m["cqrs"])
+func TestLastSegment_StripsTwoDigitMajorVersions(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"github.com/foo/event/v4":  "event",
+		"github.com/foo/event/v10": "event",
+		"github.com/foo/event/v99": "event",
+		"github.com/foo/event":     "event",
+		"net/http":                 "http",
 	}
 
-	if m["command"] != "github.com/larsartmann/go-cqrs-lite/command/v4" {
-		t.Errorf("command: got %q", m["command"])
-	}
-
-	if m["."] != "github.com/larsartmann/go-codec" {
-		t.Errorf("dot import: got %q", m["."])
-	}
-
-	if _, ok := m["id"]; ok {
-		t.Error("blank import should not appear in the map")
+	for path, want := range cases {
+		if got := lintutil.LastSegmentForTest(path); got != want {
+			t.Errorf("lastSegment(%q) = %q, want %q", path, got, want)
+		}
 	}
 }

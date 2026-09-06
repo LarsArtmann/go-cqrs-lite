@@ -42,7 +42,7 @@ func NewA004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// whose method name collides with CQRS but serves a different
 					// purpose. Without this, any router/handler framework triggers the
 					// rule whenever a closure argument uses a type assertion.
-					if lintutil.IsNonCQRSRegisterPackage(analyzer.SelectorPackage(sel)) {
+					if lintutil.IsNonCQRSRegisterPackage(gf.AST, analyzer.SelectorPackage(sel)) {
 						return true
 					}
 					// Check if the handler function literal contains a type assertion.
