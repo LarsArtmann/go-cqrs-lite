@@ -36,7 +36,7 @@ func SnapshotStateCodec(cipher EncrypterDecrypter, keyID KeyID) (StateTransforms
 		return StateTransforms{}, ErrInvalidKey
 	}
 
-	return StateTransforms{
+	return StateTransforms{ //nolint:exhaustruct_v5 // migration funcs are rotation-only
 		Protect: protectState(cipher, keyID),
 		Restore: restoreState(cipher),
 	}, nil
@@ -110,12 +110,9 @@ func reencryptState(
 
 		var decrypter Decrypter = active
 		if env.KeyID != "" && env.KeyID != activeID {
-			resolved, resolveErr := resolver.Resolve(env.KeyID)
-			if resolveErr != nil {
-				return nil, resolveErr
+			if decrypter, err = resolver.Resolve(env.KeyID); err != nil {
+				return nil, err
 			}
-
-			decrypter = resolved
 		}
 
 		plaintext, err := decrypter.Decrypt(env.Ciphertext)

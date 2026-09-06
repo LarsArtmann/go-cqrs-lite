@@ -76,7 +76,7 @@ func NewTransformedStore(
 	protect func(state []byte) ([]byte, error),
 	restore func(state []byte) ([]byte, error),
 ) (*TransformedStore, error) {
-	return newTransformedStore(inner, StateTransforms{
+	return newTransformedStore(inner, StateTransforms{ //nolint:exhaustruct_v5 // optional funcs absent
 		Protect: protect,
 		Restore: restore,
 	})
@@ -204,6 +204,7 @@ func (s *TransformedStore) rewriteInPlace(ctx context.Context, snap *Snapshot) {
 
 	writeBack := *snap
 	writeBack.State = reencoded
+
 	if err := s.inner.Save(ctx, writeBack); err != nil {
 		return
 	}
