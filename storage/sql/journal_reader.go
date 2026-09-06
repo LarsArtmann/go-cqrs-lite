@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // JournalReader encapsulates the entity-specific bits needed to read a SQL

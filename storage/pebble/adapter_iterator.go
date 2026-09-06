@@ -4,9 +4,8 @@ import (
 	"slices"
 
 	"github.com/cockroachdb/pebble"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type pebbleIterator struct {

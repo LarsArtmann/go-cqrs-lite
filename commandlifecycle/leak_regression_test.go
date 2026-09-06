@@ -5,12 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	. "github.com/onsi/gomega"
 )
 
 func TestAttemptMiddleware_Standalone_ClearsAfterSuccess(t *testing.T) {

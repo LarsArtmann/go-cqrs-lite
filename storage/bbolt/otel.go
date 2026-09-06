@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const bboltComponent = "bbolt"

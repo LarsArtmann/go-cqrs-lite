@@ -5,10 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/onsi/gomega"
 )
 
 // mysqlTestDSN returns the DSN for a test MySQL instance, or empty if not configured.

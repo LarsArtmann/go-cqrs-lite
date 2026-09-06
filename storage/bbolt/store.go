@@ -7,12 +7,11 @@ import (
 	"log/slog"
 	"strconv"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 )
 
 // EventStore implements event.Store using an embedded bbolt database.

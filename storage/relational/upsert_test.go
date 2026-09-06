@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	_ "modernc.org/sqlite"
-
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	_ "modernc.org/sqlite"
 )
 
 // messagesRow is the minimal `messages` row used by every UpsertCols/UpsertExpr

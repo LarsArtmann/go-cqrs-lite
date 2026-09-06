@@ -9,9 +9,8 @@ import (
 	"sync/atomic"
 
 	"github.com/cockroachdb/pebble"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // maxByteValue is the largest value a single byte can hold (0xff).

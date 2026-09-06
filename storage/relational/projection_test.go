@@ -10,12 +10,11 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
-
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )
 
 // discordSchema mirrors DiscordSync's real relational read model: multiple

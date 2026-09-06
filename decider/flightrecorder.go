@@ -5,9 +5,8 @@ import (
 	"log/slog"
 	"time"
 
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 // maybeCaptureFlightRecorder evaluates the flight recorder trigger after

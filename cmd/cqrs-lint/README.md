@@ -198,6 +198,14 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 **204 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (9), version (7), testing (8), adoption (30).
 
+The tables below are curated highlights. The complete, generated catalog —
+every rule with severity, confidence, auto-fix support, and doc links — lives
+in [`RULES.md`](RULES.md); regenerate with `cqrs-lint rules --markdown > RULES.md`.
+
+**Rule ID numbering gaps:** IDs A028, A031, P002–P005, S004, and D004 are
+intentionally unused — reserved for future rules in their categories. They
+are not detectors; listing one in `rules.disable` is a silent no-op.
+
 ## Correctness Rules (bugs)
 
 | ID   | Rule                                      | Severity | Description                                                                                            |

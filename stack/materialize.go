@@ -6,11 +6,10 @@ import (
 	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TombstonePolicy controls which records appear in [Materialize.List] results.
