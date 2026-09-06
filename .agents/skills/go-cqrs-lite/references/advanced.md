@@ -326,6 +326,12 @@ go func() {
 (one goroutine per projection, FIFO from journal). For ordered multi-projection
 delivery, consume the `CatchUpSubscriber` output channel from a single goroutine.
 
+**⚠️ WATERMARK ORDERING ASSUMPTION:** the catch-up watermark dedup compares event
+IDs (ULIDs, time-sortable). Cross-process clock skew can mint an event whose ID
+sorts below the watermark — it is suppressed live and stays missing until the
+next restart, where replay from the checkpoint recovers it. The staleness window
+is bounded by the producer's skew; recovery is automatic on restart.
+
 #### Projection idempotency (at-least-once delivery)
 
 Event delivery is **at-least-once** — the same event may be replayed after a crash

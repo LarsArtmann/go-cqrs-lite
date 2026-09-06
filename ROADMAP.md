@@ -22,7 +22,7 @@ See CHANGELOG `[Unreleased]` for the full per-entry detail.
 | Version                      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [2026-08-16 module releases] | 2026-08-16 | 22 coordinated tags: `id/v4.5.0`, `record/v4.3.0`, `metadata/v4.5.0` (`Metadata[K]` generic), `schema/v4.3.0` (`UpcastSourceTransform`), `event/v4.7.0` (store transforms + actor context), `command/v4.7.1`, `query/v4.6.1` (`AsRecord`), `middleware/v4.5.0` (`CommandActorContext`), `watermill/v4.5.0` (CatchUpSubscriber replay fix), `metaengine/v4.11.0` (layout roles, DemoteEngine, MariaDB dialect, live-cost) + 8 engine tags, `storage/v4.7.0→v4.7.1` (keyset pagination ~285x, packet-safe chunking). **Retracted + repaired:** command/v4.7.0, query/v4.6.0, storage/v4.7.0 (standalone-build breaks)                                                                                                                                                 |
-| [Unreleased]                 | —          | • **2026-09-06**: cqrs-lint severity/confidence contract (14 split-brains fixed, S008/S009 now error), `rules --json`, suppression-parser/fix-provider/lintutil hardening, self-healing formatter guard<br/>• **2026-09-05**: V007 `v5-removed-api-usage` (204 rules) + getting-started modernized onto `system.New`<br/>• **2026-09-03**: master-CI repair wave 2 (FlakeHub, module matrix discovery, go.work externals)<br/>• **2026-08-30/31**: D3 planned-table pushdown train (filters/sort/keyset, MapScan/MapUpdate, EXPLAIN proofs, cross-engine parity matrix), `LayoutPlanEvolver`, `BackfillPlannedCollection`, `EffectiveDurability`, `RenewLease` + claim metrics<br/>• **v5 pre-cut**: 73 deprecation markers (stack tiers, view/relational, tombstone API, transport) landed 2026-08-17<br/>• **Durability tiers**: pebble/postgres/bbolt/badger map Strict/Normal/Relaxed (08-17/18)<br/>• **Vector/graph**: binary float32 vector payloads (~31-35x search), depth-1 graph short-circuit, filtered k-NN, GraphRemoveEdge (08-16/17) |
+| [Unreleased]                 | —          | • **2026-09-06**: eight waves — cqrs-lint severity/confidence contract + `rules --json` + suppression/fix/lintutil hardening + self-healing formatter guard; metaengine correctness (plan-time capability partition, record-context advisory, MariaDB SKIP LOCKED claiming, planned-table parity, dgraph per-row recalibration); iroh graph WriteOp convergence; catalog/encryption (key-management helpers, envelope v2, rotation write-back, `check-csp`/`check-eventcatalog`); honest snapshot wire tags (T18) + `MigrateSnapshotColumnsToStream`; watermill CatchUp hardening + events-DDL re-exports; tooling batch (badger restart data-loss fix, `SortPaginate[T]`, doc-check block-scoped resolver, pin-sweep, exhaustruct_v5)<br/>• **2026-09-05**: V007 `v5-removed-api-usage` (204 rules) + getting-started modernized onto `system.New`<br/>• **2026-09-03**: master-CI repair wave 2 (FlakeHub, module matrix discovery, go.work externals)<br/>• **2026-08-30/31**: D3 planned-table pushdown train (filters/sort/keyset, MapScan/MapUpdate, EXPLAIN proofs, cross-engine parity matrix), `LayoutPlanEvolver`, `BackfillPlannedCollection`, `EffectiveDurability`, `RenewLease` + claim metrics<br/>• **v5 pre-cut**: 73 deprecation markers (stack tiers, view/relational, tombstone API, transport) landed 2026-08-17<br/>• **Durability tiers**: pebble/postgres/bbolt/badger map Strict/Normal/Relaxed (08-17/18)<br/>• **Vector/graph**: binary float32 vector payloads (~31-35x search), depth-1 graph short-circuit, filtered k-NN, GraphRemoveEdge (08-16/17) |
 | v4.2.0                       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | v4.1.0                       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | v4.0.4                       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -65,11 +65,13 @@ The production maturity chain is complete. Highlights (full per-entry detail in
   `enginetest` shared contract suites (incl. StreamLog positional semantics),
   `AtomicAppender` optimistic concurrency, boundary key validation
 
-**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) — iroh graph
-`WriteOp` convergence (edges do not replicate cross-peer yet),
-capability-conformance wiring under `#test-integration`, and the pending tag-wave
-batches B2-B7 (B1 was cut 2026-08-29). (Layout calibration, seq-carrying journal reads, and the DuckDB float
-decode guard have shipped.)
+**Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) → Metaengine
+sections — the correctness-wave verification tail (`ApplyBatch` Record
+handling, record-aware-cache invalidation, Doctor observations),
+MySQL-claiming and dgraph-calibration completion, and the planner-polish
+items. (Iroh graph `WriteOp` convergence + capability-conformance wiring
+under `#test-integration` shipped 2026-09-06; the B1–B7 tag wave was cut
+2026-08-29.)
 
 **Metaengine v2 (ADRs 0111-0119) — ES-native architecture shipped:**
 
@@ -109,8 +111,10 @@ decode guard have shipped.)
   events, `Recorder`, middleware, DLQ/retry/failure projections.
 
 **Remaining (short-term):** See [TODO_LIST.md](TODO_LIST.md) → Metaengine
-sections — layout calibration, capability conformance test, DuckDB aggregation
-pushdown, seq-carrying journal reads, calibration benchmark regression check.
+sections — the correctness/verification tail above; every item named in the
+previous revision of this list (layout calibration, capability conformance,
+DuckDB aggregation pushdown, seq-carrying journal reads, calibration
+regression checking) has shipped.
 
 **Remaining (long-term, ROADMAP):**
 
@@ -310,8 +314,11 @@ backing (0 benchmarks exist for these engines).
   benchmarks. M4.2 DuckDB columnar extraction benchmark (3-way comparison).
 - ✅ **Full-pipeline benchmarks** — 7 new files in `stack/bench/` + 6 cross-module
   benchmark files (projectionhost, transport, decider, scheduling, middleware).
-- **Regression baseline + CI integration** — calibration benchmarks should run
-  in CI and fail if constants drift >3×. See [TODO_LIST.md](TODO_LIST.md).
+- ✅ **Regression baseline + CI integration** — the nightly calibration-drift
+  gate reads shipped constants live via `CALIB_DUMP` (single-sourced from each
+  engine's `Profile().ReadCosts`, 2026-09-06). Remaining redesign (persisted
+  CI-baseline artifact vs absolute constants) lives in
+  [TODO_LIST.md](TODO_LIST.md).
 
 ### 9. Deferred Debt (ADR-committed) — RESOLVED
 
@@ -544,6 +551,9 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
   26257 and run the Postgres test suite. Note: CockroachDB is source-available
   (not OSS) — single-node/dev use only without a commercial license. Users who
   bring their own license can run it; go-cqrs-lite just speaks Postgres wire.
+- **Vector search at scale — int8 quantization + ANN indexing** — adopt when a
+  real workload exceeds the brute-force budget (trigger-gated; full analysis:
+  `docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`)
 - **FoundationDB as a metaengine backend** — distributed ordered KV with
   ACID transactions (Apple, Apache-2.0). Atomic counters, consistent
   secondary indexes, push watches. Requires CGo binding + separate

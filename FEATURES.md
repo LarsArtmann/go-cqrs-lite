@@ -312,6 +312,11 @@ developer never declares "I need a Map" or "I need a Counter."
 | Command lifecycle as events     | `commandlifecycle/` events, `Recorder` (OCC version tracking, restart-safe), middleware pair, DLQ/retry/failure-log/processing-time projections, `system.WithCommandLifecycle()` wiring (ADR-0117)                                                                                                                                                                                                                                                                                                                                                                  | 🧪     |
 | Capability audit                | `CapabilityAudit`/`CapabilityAuditResult` enforce declared-vs-implemented engine capabilities (over/under-declaration, DegradedADTs ⊆ Supports); `Store.Doctor` renders a per-engine `--- Capability ---` section — lying engines surface at runtime                                                                                                                                                                                                                                                                                                                | 🧪     |
 | Idempotency window              | `WithIdempotencyCapacity(n)` bounds the in-memory dedup window of `Store.ApplyIdempotent` (default 131072; oldest IDs evicted — best-effort dedup within the at-least-once contract; `<= 0` = legacy unbounded)                                                                                                                                                                                                                                                                                                                                                     | 🧪     |
+| Plan-time capability partition | `planQuery` excludes over-declaring engines structurally (`engineServesADTNatively`: backend implemented or declared degraded) with a DEGRADED diagnostic, routing them last-resort under WARN — execution-time hard errors no longer surprise | 🧪 |
+| Record-context advisory | `Store.Apply` synthesizes a Type-only Record; applies reaching record-aware folds (`OnRecord` family) are counted with a one-time `Hooks.Logger` advisory, and Doctor's `--- Record context ---` section reports them — silent zero-Records are visible | 🧪 |
+| Planned tables (sqlite+duckdb) | Capability parity with pg/mysql: `KeyScanBackend` (paged key+value), `LayoutPlanEvolver` (sqlite: PRAGMA table_info, loud type-drift errors — SQLite cannot ALTER COLUMN TYPE; duckdb: information_schema, alias-canonical comparison, index drop/recreate around ALTER TYPE), `PlannedTablesReporter` | 🧪 |
+| `SortPaginate[T]` | Exported generic sort+paginate core shared by the badger/pebble engines (zero-copy accessor closures) | 🧪 |
+| Restart-safety harness | `enginetest.RunRestartSafetyTest` — reopen-the-database contract suite (adopted by badger/sqlite/pebble; found the badger seq-seeding data-loss bug) | 🧪 |
 
 **Coverage:** ~80% (`go test -tags "goexperiment.jsonv2" -cover`). 174 BDD specs
 
@@ -577,6 +582,8 @@ as a library primitive.
 | Read-pressure    | `ReadPressure` strategy — snapshots based on load frequency                         | ✅     |
 | Aggregate-aware  | `AggregateAwareStrategy` + `ReadTracker` optional interfaces                        | ✅     |
 | Helper functions | `ShouldSnapshot`, `ShouldSnapshotFor`, `SaveSnapshot` — decider integration helpers | ✅     |
+| Rotation write-back | `NewRewritingTransformedStore` — first load of a retired-key snapshot re-encrypts under the active key and persists it (best-effort; a failed write-back never fails the load) | ✅ |
+| Honest wire tags (v5 prep) | JSON tags renamed to `stream_id`/`stream_type`; decode-only fallbacks accept the pre-v5 `aggregateId`/`aggregateType` spellings in JSON AND CBOR (the json tag IS the CBOR key under fxamacker/cbor v2.9). Fallback shims die at v6 | ✅ |
 
 ---
 
@@ -859,6 +866,10 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | EncryptMiddleware  | `event.PublishMiddleware` — auto-encrypts event payloads                            | ✅     |
 | DecryptMiddleware  | `event.Middleware` — auto-decrypts event payloads                                   | ✅     |
 
+| Key lifecycle helpers | `GenerateKey`, `GenerateKeyBase64`, `EncodeKeyBase64`/`DecodeKeyBase64`, `ValidateKey`, `LoadKeyFromEnv`, `LoadKeyFromFile` + `ErrKeyNotSet` — openssl-style trailing newlines tolerated; malformed keys wrap `ErrInvalidKey` with byte counts | ✅ |
+| Envelope wire format v2 | `EnvelopeVersionV2` stores the JSON object directly (v1's base64-wrapped string is rejected by JSONB columns); v1 envelopes stay readable forever, new writes emit v2 | ✅ |
+| Key rotation state codec | `RotatingSnapshotStateCodec` + `NeedsRewrite`/`Reencrypt` transforms feeding the snapshot rotation write-back (see Snapshot section) | ✅ |
+
 **No external crypto dependencies beyond Go stdlib (`golang.org/x/crypto`).**
 
 ---
@@ -983,6 +994,9 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | Keyset pagination             | `ReadFrom`/`ReadStreamFrom` paginate via `sql.ResolveCursorTimestamp` + `sql.KeysetPositionQuery` — full drains drop from O(N²) self-JOIN to index range scans (~285x on a 200k-event SQLite journal)                                                                     | ✅     |
 | Packet-safe chunking          | `sql.MaxParametersForDialect`, `sql.MaxStatementBytes`, `sql.RowsWithinByteCap` — multi-VALUES INSERTs chunked by param limit AND byte cap (8 MiB default)                                                                                                                | ✅     |
 | In-memory SQLite shared-cache | `OpenSQLiteInMemory` uses a unique `file:<random>?mode=memory&cache=shared` DSN per call — modernc `file::memory:` gives each pooled connection a private DB; the named shared-cache DSN fixes this without pinning the pool to one connection, enabling read concurrency | ✅     |
+
+| Snapshot column migration | `MigrateSnapshotColumnsToStream(ctx, db, dialect)` — idempotent `aggregate_*` → `stream_*` snapshots-column rename across all four dialects, auto-run by every `InitSchema`; typed corruption error for half-migrated states | ✅ |
+| Events DDL re-exports | `eventstore.EventSchema()`/`SQLiteEventSchema()` + `storage.EventSchema`/`storage.SQLiteEventSchema` aliases — symmetry with the snapshot/checkpoint DDL re-exports | ✅ |
 
 ### Pebble Key-Value Store
 
@@ -1268,6 +1282,9 @@ Fluent BDD harness for deciders and projections — no store or bus needed, just
 | E009 transport detection | Detects `cqrs-htmx` import and suppresses missing-transport finding | ✅ |
 | B025 cross-package tracing | Scans ALL loaded packages for function declarations, resolves cross-package helper calls via import graph (including aliases) | ✅ |
 | Server detection | HTTP framework import detection (Gin/Echo/Fiber/Chi) for `HasServer` | ✅ |
+| `rules` subcommand | Full rule catalog: `--json` (stable fields for editor/tooling integration) and `--markdown` (generates the anchored `RULES.md` reference page — 204 `<a id>` anchors, byte-fresh vs the in-code catalog, every DocURL resolves) | ✅ |
+| `doctor` JSON + safe fix | `doctor --format json` emits resolved config/feature profile/suppression audit as JSON; `doctor --fix --dry-run` plans stale-suppression removal without touching files | ✅ |
+| Scorecard deprecated panel | Runs the V007/F030 detectors and reports counts + remediation in text/JSON/markdown; library presets disable V007+F030 for compat-surface parity (policy-tested) | ✅ |
 
 ---
 
