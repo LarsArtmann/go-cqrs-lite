@@ -24,11 +24,12 @@ type resolver struct {
 
 func newResolver(repoRoot string) *resolver {
 	return &resolver{
-		repoRoot:  repoRoot,
-		exports:   make(map[string]map[string]bool),
-		clauses:   make(map[string]string),
-		aliasDirs: make(map[string][]string),
-		aliasExps: make(map[string]map[string]bool),
+		repoRoot:    repoRoot,
+		exports:     make(map[string]map[string]bool),
+		clauses:     make(map[string]string),
+		aliasLoaded: false,
+		aliasDirs:   make(map[string][]string),
+		aliasExps:   make(map[string]map[string]bool),
 	}
 }
 

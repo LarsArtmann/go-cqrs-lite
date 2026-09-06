@@ -60,7 +60,7 @@ func blockLine(content string, offset int) int {
 
 // parseBlock extracts imports and qualified references from one code block.
 func parseBlock(raw, file string, line int) block {
-	b := block{file: file, line: line}
+	b := block{file: file, line: line} //nolint:exhaustruct_v5 // imports/refs are appended below
 
 	for _, imp := range importRe.FindAllStringSubmatch(raw, -1) {
 		b.imports = append(b.imports, imp[1])
