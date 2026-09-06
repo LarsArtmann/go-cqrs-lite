@@ -928,6 +928,16 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/test-benchmark-regression.sh"
             '';
 
+            # check-eventcatalog: render-validation of the EventCatalog
+            # exporter output — generates a fixture catalog, npm-installs
+            # @eventcatalog/core (NETWORK required, pinned by the exporter's
+            # generated package.json), runs `eventcatalog build`, and fails
+            # on build errors or unresolved content references. Replaces the
+            # manual /tmp/ec-validate flow.
+            check-eventcatalog = mkApp "check-eventcatalog" [ goPkg pkgs.nodejs pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-eventcatalog.sh"
+            '';
+
             # verify-module: scoped verification for ONE module — build, vet,
             # test, race, and lint under GOWORK=off (the consumer
             # perspective). Usage:

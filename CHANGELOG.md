@@ -51,7 +51,7 @@ and `docs/V5-MIGRATION-GUIDE.md` §3.
 - **`storage/v4/sql`: snapshots table columns renamed** in all four dialect
   schemas (`storage/sql/migrations/{postgres,sqlite,duckdb,mysql}.sql` +
   `Dialect.SnapshotSchema()`), the eventstore snapshot queries, and
-  `sqlpkg.DeleteByStream`. **`storage/v4: MigrateSnapshotColumnsToStream`**
+  `storage/sql.DeleteByStream`. **`storage/v4: MigrateSnapshotColumnsToStream`**
   migrates existing databases — idempotent, metadata-only
   `ALTER TABLE ... RENAME` per dialect (data moves with the columns; no
   backfill needed). Every `InitSchema` helper runs it automatically, so an

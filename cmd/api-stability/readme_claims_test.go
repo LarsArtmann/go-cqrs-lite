@@ -88,7 +88,8 @@ func TestREADMEClaim_ModuleCountFloor(t *testing.T) {
 			return err
 		}
 		if info.IsDir() {
-			if info.Name() == "vendor" || (strings.HasPrefix(info.Name(), ".") && path != projectRoot) {
+			if info.Name() == "vendor" ||
+				(strings.HasPrefix(info.Name(), ".") && path != projectRoot) {
 				return filepath.SkipDir
 			}
 
@@ -108,7 +109,8 @@ func TestREADMEClaim_ModuleCountFloor(t *testing.T) {
 		t.Errorf("repo has %d go.mod files, README claims 80+ — the claim overstates", count)
 	}
 
-	if !strings.Contains(readmePath(t), "80+ modules") && !strings.Contains(readmePath(t), "80+ independently-versioned modules") {
+	if !strings.Contains(readmePath(t), "80+ modules") &&
+		!strings.Contains(readmePath(t), "80+ independently-versioned modules") {
 		t.Error("README no longer carries the 80+ module-count claim — update the meta-test")
 	}
 }
@@ -149,7 +151,10 @@ func TestREADMEClaim_CoverageFloors(t *testing.T) {
 
 		base, ok := baselines[module]
 		if !ok {
-			t.Errorf("README claims coverage for %q but check-coverage.sh has no baseline for it", module)
+			t.Errorf(
+				"README claims coverage for %q but check-coverage.sh has no baseline for it",
+				module,
+			)
 
 			continue
 		}
