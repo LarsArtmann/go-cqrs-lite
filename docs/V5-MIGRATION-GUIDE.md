@@ -48,9 +48,16 @@ deleted modules have no in-repo consumers outside themselves.
 - **Snapshot JSON/CBOR tags** rename `aggregate_id`/`aggregateType` →
   `stream_id`/`stream_type` with DECODE-ONLY legacy fallback: pre-v5
   snapshots stay readable, no data migration. The fallback itself dies at v6.
+  DONE 2026-09-06 (`snapshot/wire.go`): fallback covers JSON and CBOR
+  (fxamacker/cbor v2.9 keys CBOR maps by the json tag when no cbor tag
+  exists). Pebble's envelope tags were renamed in the same wave; old pebble
+  rows keep loading because identity is rebuilt from the key.
 - **SQL `snapshots` columns** (`aggregate_type`, `aggregate_id`): renamed via
   `ALTER TABLE ... RENAME` migrations shipped in `storage/migrations` in the
   same release. Apply the embedded DDL before first boot of v5.
+  DONE 2026-09-06: `MigrateSnapshotColumnsToStream` runs automatically inside
+  every `InitSchema` helper — existing databases upgrade on first boot, no
+  manual step; data moves with the renamed columns (no backfill).
 - **Error-code strings** (`event.nil_aggregate_id`,
   `storage.aggregate_not_found`, …) rename to the stream vocabulary in ONE
   batch. If you alert on family codes, update dashboards at the cut; the

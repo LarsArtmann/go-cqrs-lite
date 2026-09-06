@@ -311,11 +311,14 @@ and is **never** duplicated here. Historical session reports live under
       `listing` (replaces the DetectTombstone call at listing/in_memory.go:155),
       migrate `example/taskmanager` off `OnTombstone`, regen golden, execute
       the tombstone section of `docs/planning/v5-deprecation-sweep.md`. _(Effort: M)_
-- [ ] **Honest snapshot wire tags at v5 (T18 audit)** — rename
-      `aggregateId`/`aggregateType` JSON tags per-backend with dual-read
-      fallbacks; SQL rename = ALTER TABLE + backfill per dialect
-      (`storage/sql/migrations/` + `nix run .#integration-pg`). Details in the
-      2026-08-22 T18 audit (CHANGELOG). _(Effort: M)_
+- [x] **Honest snapshot wire tags at v5 (T18 audit)** — DONE 2026-09-06.
+      `snapshot.Snapshot` + pebble `serializableSnapshot` tags renamed to
+      `stream_id`/`stream_type` with decode-only legacy fallbacks (JSON+CBOR);
+      SQL `snapshots` columns renamed via idempotent
+      `MigrateSnapshotColumnsToStream` (auto-run by every InitSchema, RENAME
+      carries the data — no backfill). Verified by `nix run .#integration-pg`
+      (`TestPostgresSnapshotColumnMigration`). Remaining for other items:
+      error codes, watermill metadata keys, events/commands columns.
 - [ ] **v5 items from extended review** — E1 (event-envelope Encoding →
       `record.Encoding`), E7 (watermill/middleware RetryConfig collision),
       E8 (typed Message Kind enum), E11 (AdapterCore.Encode error return),

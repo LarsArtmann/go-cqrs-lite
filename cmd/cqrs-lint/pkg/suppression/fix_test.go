@@ -221,3 +221,47 @@ func TestRemoveStaleInlineSuppressions_MultipleLinesShift(t *testing.T) {
 		t.Errorf("file after fix = %q, want %q", got, want)
 	}
 }
+
+// TestPlanStaleInlineSuppressions_NoMutation verifies the dry-run planner
+// reports exactly what the fixer WOULD do while leaving every file intact.
+func TestPlanStaleInlineSuppressions_NoMutation(t *testing.T) {
+	t.Parallel()
+
+	content := "package main\n\n//cqrs-lint:ignore(D002) stale\ntype Foo struct{ //cqrs-lint:ignore(D003) trailing\n}\n"
+	path := writeFixture(t, content)
+
+	res := suppression.PlanStaleInlineSuppressions([]suppression.SuppressionAuditEntry{
+		{File: path, Line: 3, Rule: "D002", Status: suppression.AuditStale},
+		{File: path, Line: 4, Rule: "D003", Status: suppression.AuditStale},
+	})
+
+	if len(res.Removed) != 1 || res.Removed[0].Line != 3 {
+		t.Errorf("Removed = %v, want only line 3 (whole-line directive)", res.Removed)
+	}
+
+	if len(res.Skipped) != 1 || res.Skipped[0].Line != 4 {
+		t.Errorf("Skipped = %v, want only line 4 (trailing on code)", res.Skipped)
+	}
+
+	if len(res.Files) != 1 || res.Files[0] != path {
+		t.Errorf("Files = %v, want [%s]", res.Files, path)
+	}
+
+	if got := readFixture(t, path); got != content {
+		t.Errorf("dry-run mutated the file:\n got %q\nwant %q", got, content)
+	}
+}
+
+// TestPlanStaleInlineSuppressions_MissingFile classifies an unreadable file
+// as skipped, matching the fixer's behavior.
+func TestPlanStaleInlineSuppressions_MissingFile(t *testing.T) {
+	t.Parallel()
+
+	res := suppression.PlanStaleInlineSuppressions([]suppression.SuppressionAuditEntry{
+		{File: filepath.Join(t.TempDir(), "absent.go"), Line: 3, Rule: "D002", Status: suppression.AuditStale},
+	})
+
+	if len(res.Skipped) != 1 || len(res.Removed) != 0 {
+		t.Errorf("want 1 skipped / 0 removed, got removed=%v skipped=%v", res.Removed, res.Skipped)
+	}
+}

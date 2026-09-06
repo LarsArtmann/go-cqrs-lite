@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,12 +16,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
+var errInvalidDoctorFormat = errors.New("invalid --format: want \"text\" or \"json\"")
+
 // doctorFlags adds subcommand-level flags to the doctor command.
 type doctorFlags struct {
-	AuditSuppressions bool   `default:"false" flag:"audit-suppressions"  help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
-	Fix               bool   `default:"false" flag:"fix"                 help:"Remove stale whole-line suppressions (implies audit)"`
-	DryRun            bool   `default:"false" flag:"dry-run"             help:"With --fix: show what would be removed without changing any file"`
-	Format            string `default:"text"  flag:"format"              help:"Output format: text or json"`
+	AuditSuppressions bool   `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
+	Fix               bool   `default:"false" flag:"fix"                help:"Remove stale whole-line suppressions (implies audit)"`
+	DryRun            bool   `default:"false" flag:"dry-run"            help:"With --fix: show what would be removed without changing any file"`
+	Format            string `default:"text"  flag:"format"             help:"Output format: text or json"`
 }
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -34,7 +37,7 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			}
 
 			if flags.Format != "text" && flags.Format != "json" {
-				return fmt.Errorf("invalid --format %q: want \"text\" or \"json\"", flags.Format)
+				return fmt.Errorf("%w: got %q", errInvalidDoctorFormat, flags.Format)
 			}
 
 			if flags.Format == "json" {

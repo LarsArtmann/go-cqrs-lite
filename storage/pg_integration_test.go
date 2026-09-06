@@ -14,6 +14,8 @@ package storage_test
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"reflect"
 	"testing"
 	"time"
 
@@ -232,7 +234,16 @@ func TestPostgresSnapshotColumnMigration(t *testing.T) {
 	if got.StreamID != streamID || got.StreamType != "User" || got.Version.Int() != 7 {
 		t.Errorf("identity mismatch: got %s/%s v%d", got.StreamType, got.StreamID, got.Version.Int())
 	}
-	if string(got.State) != `{"k":"v"}` {
-		t.Errorf("state mismatch: %s", got.State)
+
+	// JSONB canonicalizes spacing; compare decoded values, not bytes.
+	var gotState, wantState map[string]any
+	if err := json.Unmarshal(got.State, &gotState); err != nil {
+		t.Fatalf("decode migrated state %s: %v", got.State, err)
+	}
+	if err := json.Unmarshal([]byte(`{"k":"v"}`), &wantState); err != nil {
+		t.Fatalf("decode want state: %v", err)
+	}
+	if !reflect.DeepEqual(gotState, wantState) {
+		t.Errorf("state mismatch: got %v want %v", gotState, wantState)
 	}
 }

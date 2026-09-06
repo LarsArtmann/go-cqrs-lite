@@ -6,6 +6,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — events-DDL re-export symmetry + CatchUp hardening + README claims meta-tests — 2026-09-06
+
+- **Events DDL re-exports** (`storage/eventstore`, `storage`):
+  `eventstore.EventSchema()` / `eventstore.SQLiteEventSchema()` and the
+  matching `storage.EventSchema` / `storage.SQLiteEventSchema` aliases
+  complete the symmetry with the existing snapshot/checkpoint DDL
+  re-exports — the events DDL was previously reachable only as
+  `storage/sql` `Dialect` methods.
+- **CatchUpSubscriber regression pins** (`watermill`):
+  `catchup_lifecycle_test.go` pins Close-while-blocked (full output buffer
+  and pending-Ack paths — Close returns promptly, channel closes, checkpoint
+  untouched) and double-Subscribe same-topic (independent full replay per
+  subscription, joint shutdown, post-Close Subscribe rejected). The
+  watermark's cross-process ULID-skew caveat (suppressed live events are
+  recovered on restart from the checkpoint) is now documented on the type.
+  `BenchmarkCatchUp_ReplayThroughput` baselines the serialized
+  forward→ack→checkpoint pipeline (~160-280K events/s in-memory).
+- **README claims meta-tests** (`cmd/api-stability`):
+  `readme_claims_test.go` verifies the README's event-module third-party
+  dependency count against `go list`, the "80+ modules" claim against the
+  go.mod count, and per-module coverage claims against the
+  `check-coverage.sh` baselines (claims may round down, never up).
+
+### Added — honest snapshot wire tags at v5 (T18 audit) — 2026-09-06
+
+Implements the snapshot half of the 2026-08-22 data-model review (T18/P10):
+JSON tags that still said "aggregateId" on `Snapshot.StreamID` were lying
+about the domain. See `docs/planning/v5-deprecation-sweep.md` §4 (C9 note)
+and `docs/V5-MIGRATION-GUIDE.md` §3.
+
+- **`snapshot/v4`: honest wire tags with decode-only legacy fallback**
+  (`snapshot.Snapshot`): writers emit `stream_id`/`stream_type`; readers
+  additionally accept the pre-v5 `aggregateId`/`aggregateType` spellings via
+  new `Snapshot.UnmarshalJSON` and `Snapshot.UnmarshalCBOR`. The CBOR
+  fallback matters because fxamacker/cbor v2.9 falls back to the json tag
+  key when no cbor key is present — the rename moves CBOR map keys too
+  (pinned by `TestWire_CBORCarriesNewKeys`). The fallback shims die at v6.
+- **`storage/v4/pebble`**: `serializableSnapshot` json tags renamed to
+  `stream_id`/`stream_type` (they are also its CBOR keys). Rows written
+  before the rename keep loading: unknown keys are ignored and `toSnapshot`
+  rebuilds identity from the Pebble key while version/state/created_at keep
+  decoding (pinned by legacy JSON + legacy CBOR load tests).
+- **`storage/v4/sql`: snapshots table columns renamed** in all four dialect
+  schemas (`storage/sql/migrations/{postgres,sqlite,duckdb,mysql}.sql` +
+  `Dialect.SnapshotSchema()`), the eventstore snapshot queries, and
+  `sqlpkg.DeleteByStream`. **`storage/v4: MigrateSnapshotColumnsToStream`**
+  migrates existing databases — idempotent, metadata-only
+  `ALTER TABLE ... RENAME` per dialect (data moves with the columns; no
+  backfill needed). Every `InitSchema` helper runs it automatically, so an
+  existing database upgrades on first boot of the new version; fresh
+  databases are unaffected. Requires PostgreSQL, SQLite >= 3.25, DuckDB,
+  MySQL >= 8.0, or MariaDB >= 10.5.
+- Not renamed here (separate v5 items): error-code strings
+  (`storage.aggregate_not_found`, ...), events/commands table columns, and
+  watermill metadata keys.
+
 ### Added — metaengine correctness wave: routing honesty, claiming on MariaDB, planned-table parity — 2026-09-06
 
 - **Capability-aware routing** (`metaengine`): `Plan` now partitions

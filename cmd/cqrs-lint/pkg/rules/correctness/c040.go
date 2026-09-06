@@ -86,4 +86,6 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-type foldCaseInfo = analyzer.FoldCaseInfo
+// C040's fold cases come from the shared analyzer collector
+// ([analyzer.AnalysisContext.CollectFoldCasesWithPos]), which also powers
+// C038 and resolves const-identifier case labels to their string values.

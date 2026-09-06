@@ -84,7 +84,7 @@ func probeTableColumns(
 
 	_, isMySQL := d.(sqlpkg.MySQLDialect)
 
-	return probeInformationSchemaColumns(ctx, db, table, isMySQL)
+	return probeInformationSchemaColumns(ctx, db, d, table, isMySQL)
 }
 
 func probeSQLiteColumns(ctx context.Context, db *sql.DB, table string) ([]string, error) {
@@ -116,10 +116,11 @@ func probeSQLiteColumns(ctx context.Context, db *sql.DB, table string) ([]string
 func probeInformationSchemaColumns(
 	ctx context.Context,
 	db *sql.DB,
+	d sqlpkg.Dialect,
 	table string,
 	limitToCurrentSchema bool,
 ) ([]string, error) {
-	query := "SELECT column_name FROM information_schema.columns WHERE table_name = ?"
+	query := "SELECT column_name FROM information_schema.columns WHERE table_name = " + d.Placeholder(1)
 	if limitToCurrentSchema {
 		query += " AND table_schema = DATABASE()"
 	}

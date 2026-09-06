@@ -109,7 +109,13 @@ paths (see TODO_LIST §v5 "Delete deprecated tombstone metadata API"):
 
 **On-disk / wire tags (rename = migration, see T18 audit in TODO_LIST §v5):**
 
-- `snapshot.Snapshot` JSON tags `aggregateId`/`aggregateType`
+- ~~`snapshot.Snapshot` JSON tags `aggregateId`/`aggregateType`~~ DONE
+  2026-09-06: renamed to `stream_id`/`stream_type` with decode-only
+  JSON+CBOR legacy fallback (`snapshot/wire.go`); pebble tags renamed in the
+  same wave; SQL `snapshots` columns renamed + idempotent
+  `MigrateSnapshotColumnsToStream` wired into every InitSchema (verified by
+  `nix run .#integration-pg`). Error codes, watermill metadata keys, and
+  events/commands columns remain.
 - pebble `serializableSnapshot` CBOR tags `aggregate_id`/`aggregate_type`
 - bbolt `command_serialization.go` CBOR tags `aggregate_id`/`aggregate_type`
   (bbolt snapshot struct already uses `stream_*`)

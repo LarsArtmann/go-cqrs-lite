@@ -24,39 +24,39 @@ func fileExists(path string) bool {
 // the resolved configuration, the detected feature profile, and — with
 // --audit-suppressions / --fix — the suppression audit and fix outcome.
 type doctorJSONReport struct {
-	Path               string                    `json:"path"`
-	ConfigFile         string                    `json:"config_file,omitempty"`
-	ConfigFound        bool                      `json:"config_found"`
-	ParentConfigs      []string                  `json:"parent_configs,omitempty"`
-	Preset             string                    `json:"preset,omitempty"`
-	SeverityFloor      string                    `json:"severity_floor"`
-	MinConfidence      string                    `json:"min_confidence"`
-	RulesTotal         int                       `json:"rules_total"`
-	RulesActive        int                       `json:"rules_active"`
-	RulesDisabled      int                       `json:"rules_disabled"`
-	DisabledFromPreset []string                  `json:"disabled_from_preset,omitempty"`
-	DisabledFromConfig []string                  `json:"disabled_from_config,omitempty"`
-	Features           analyzer.FeatureProfile   `json:"features"`
-	Modules            []moduleProfileJSON       `json:"modules,omitempty"`
-	Audit              *suppressionAuditJSON     `json:"audit,omitempty"`
+	Path               string                  `json:"path"`
+	ConfigFile         string                  `json:"configFile,omitempty"`
+	ConfigFound        bool                    `json:"configFound"`
+	ParentConfigs      []string                `json:"parentConfigs,omitempty"`
+	Preset             string                  `json:"preset,omitempty"`
+	SeverityFloor      string                  `json:"severityFloor"`
+	MinConfidence      string                  `json:"minConfidence"`
+	RulesTotal         int                     `json:"rulesTotal"`
+	RulesActive        int                     `json:"rulesActive"`
+	RulesDisabled      int                     `json:"rulesDisabled"`
+	DisabledFromPreset []string                `json:"disabledFromPreset,omitempty"`
+	DisabledFromConfig []string                `json:"disabledFromConfig,omitempty"`
+	Features           analyzer.FeatureProfile `json:"features"`
+	Modules            []moduleProfileJSON     `json:"modules,omitempty"`
+	Audit              *suppressionAuditJSON   `json:"audit,omitempty"`
 }
 
 type moduleProfileJSON struct {
-	Module  string                   `json:"module"`
-	Profile analyzer.FeatureProfile  `json:"profile"`
+	Module  string                  `json:"module"`
+	Profile analyzer.FeatureProfile `json:"profile"`
 }
 
 type suppressionAuditJSON struct {
 	Total       int                                 `json:"total"`
 	Active      int                                 `json:"active"`
 	Stale       int                                 `json:"stale"`
-	UnknownRule int                                 `json:"unknown_rule"`
+	UnknownRule int                                 `json:"unknownRule"`
 	Entries     []suppression.SuppressionAuditEntry `json:"entries"`
 	Fix         *suppressionFixJSON                 `json:"fix,omitempty"`
 }
 
 type suppressionFixJSON struct {
-	DryRun  bool                                `json:"dry_run"`
+	DryRun  bool                                `json:"dryRun"`
 	Removed []suppression.SuppressionAuditEntry `json:"removed"`
 	Skipped []suppression.SuppressionAuditEntry `json:"skipped"`
 	Files   []string                            `json:"files,omitempty"`
