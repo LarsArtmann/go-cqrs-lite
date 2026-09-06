@@ -350,6 +350,13 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
     "key-v1": oldDecrypter,
     "key-v2": newDecrypter,
 })
+
+// Key lifecycle helpers (no more hand-rolled crypto/rand + base64)
+key, _ := encryption.GenerateKey()                  // 32 bytes from crypto/rand
+b64, _ := encryption.GenerateKeyBase64()            // ready for env/config
+key2, _ := encryption.LoadKeyFromEnv("APP_KEY")     // wraps ErrKeyNotSet if unset
+key3, _ := encryption.LoadKeyFromFile("key.b64")    // tolerates trailing newline
+bad, _ := encryption.DecodeKeyBase64("short")       // wraps ErrInvalidKey: got N bytes
 ```
 
 ### 2.7b Decorating Stores — Encryption/Upcasting at the Store Layer (event)

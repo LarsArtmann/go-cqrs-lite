@@ -434,31 +434,79 @@ and is **never** duplicated here. Historical session reports live under
 
 **Catalog**
 
-- [ ] Golden-test the flattened output for the eventcatalog exporter
+- [x] Golden-test the flattened output for the eventcatalog exporter
       (embedded fields change exporter output; downstream blast radius
       unverified) + check `cmd/cqrs-gen` + `catalog/eventcatalog` modules for
       embedded-flattening fallout. — source: archived/2026-08-29_20-23 §f30–31
-- [ ] CSP support never browser-validated against the embedded
+      DONE 2026-09-06: `catalog/eventcatalog/golden_test.go`
+      `TestGolden_EventCatalog_FlattenedSchema` — multi-level embedded
+      fixture through `SchemaFromType` → exporter, golden pins the flattened
+      schema.json + leak-check for embedded type names. cqrs-gen verified
+      unaffected (no catalog/schema coupling; pure struct-name codegen).
+      Full catalog module suite + lint green.
+- [x] CSP support never browser-validated against the embedded
       Scalar/AsyncAPI bundles. — source: archived/2026-08-29_17-35 §b2
-- [ ] EventCatalog render validation is a manual /tmp flow — make it a
+      DONE 2026-09-06: `catalog/docserver/csp_browser_test.go`
+      (skip-gated on CQRS_BROWSER) + `nix run .#check-csp` — headless
+      Chromium loads index/Scalar/AsyncAPI-React/D2 under CSP; asserts zero
+      CSP refusals on the browser console + 200 fetches of the embedded
+      bundles. Verified green with nixpkgs Chromium.
+- [x] EventCatalog render validation is a manual /tmp flow — make it a
       repeatable flake app (`check-eventcatalog`). — source: archived/2026-08-29_17-35 §b7
-- [ ] api-stability golden: include the `catalog/v4/docserver` package
+      DONE 2026-09-06: `nix run .#check-eventcatalog` +
+      `scripts/check-eventcatalog.sh` + `catalog/cmd/ec-fixture` —
+      generate → npm install → `eventcatalog build` → fail on unresolved
+      content references. Verified green end-to-end (57 pages, zero
+      warnings).
+- [x] api-stability golden: include the `catalog/v4/docserver` package
       (currently invisible to the golden). — source: archived/2026-08-29_18-38 §f16
-- [ ] cqrs-lint T38 tail: C040 follow-up + `doctor --format json` /
+      DONE 2026-09-06 — fixed the CLASS, not just the symptom:
+      `collectModuleExports` sweeps every non-internal sub-package of every
+      module (42 previously-invisible packages, +2372 golden lines,
+      4299→6671 exports); sub-package symbols carry their package path;
+      `main` sub-packages and internal/testdata are excluded.
+- [x] cqrs-lint T38 tail: C040 follow-up + `doctor --format json` /
       `--fix --dry-run` flags. — source: archived/2026-08-29_17-35 §b8
+      DONE 2026-09-06: shared position-aware fold-case collector
+      (`analyzer.CollectFoldCasesWithPos`) replaces the c040-local duplicate
+      AND resolves `event.Type` const-identifier case labels (bare or
+      selector) for C038/C040 (scanner widened to event.Type consts);
+      `doctor --format json` (`doctor_json.go`) and `--fix --dry-run`
+      (`suppression.PlanStaleInlineSuppressions`, no file mutation —
+      asserted by test) shipped, smoke-tested on example/taskmanager.
 
 **Encryption / consumer asks**
 
-- [ ] Key-management helpers (bank-sync ask): key-generation helper
+- [x] Key-management helpers (bank-sync ask): key-generation helper
       (`GenerateKey`) + key load/serialize from env/file — the envelope
       key-ID + StaticKeyResolver path shipped, these two helpers did not. —
       source: docs/feedback/archived/2026-07-17_bank-sync_encryption-key-management-standardization.md
-- [ ] Snapshot-encryption PG/SQL store test (encrypted-at-rest column
+      DONE 2026-09-06: `encryption/keys.go` — GenerateKey(Base64),
+      EncodeKeyBase64/DecodeKeyBase64, ValidateKey, LoadKeyFromEnv,
+      LoadKeyFromFile (+ ErrKeyNotSet); openssl-style trailing newlines
+      tolerated; errors wrap ErrInvalidKey with observed-vs-required byte
+      counts. Table-driven tests; full module suite + lint green.
+- [x] Snapshot-encryption PG/SQL store test (encrypted-at-rest column
       assertion against a real server); rotation write-back option
       (re-encrypt-on-read migration). — source: archived/2026-08-29_18-38 §f6–7
-- [ ] go-retry `DoWithValue[T]`: committed in the external repo but
+      DONE 2026-09-06: `storage/pg_integration_snapshot_encryption_test.go`
+      (ephemeral-PG green) asserts the JSONB column holds ciphertext, not
+      plaintext. The test exposed TWO real bugs, both fixed: (1)
+      `SQLSnapshotStore.Save` bound []byte → pgx bytea → JSONB rejected
+      every snapshot save (masked by a discarded error in the full-stack
+      test); (2) the v1 envelope's outer base64 wrap is invalid JSON — new
+      `encryption.EnvelopeVersionV2` writes raw JSON, v1 stays readable.
+      Rotation write-back shipped: `snapshot.NewRewritingTransformedStore`
+      + NeedsRewrite/Reencrypt from `RotatingSnapshotStateCodec` — first
+      load of a retired-key snapshot re-encrypts under the active key and
+      persists (asserted in the same PG test).
+- [x] go-retry `DoWithValue[T]`: committed in the external repo but
       push/tag state unverified — confirm release so consumers can adopt. —
       source: archived/2026-08-29_17-35 §b8
+      DONE 2026-09-06: verified the commit was pushed but NOT in any tag
+      (8 commits past v0.4.0); cut+pushed go-retry v0.5.0 (CHANGELOG
+      promoted, annotated tag, race+vet green first) and confirmed
+      resolvable via proxy.golang.org.
 
 **Tooling / lint**
 
