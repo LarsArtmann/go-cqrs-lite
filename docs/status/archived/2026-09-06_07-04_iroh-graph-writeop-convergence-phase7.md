@@ -80,7 +80,7 @@
 
 ## c) NOT STARTED
 
-1. ~~**Full exclusive `#verify`** — blocked: `TestUniversalADT_PrefersNativeOverDegraded` in metaengine root is RED from the CONCURRENT session's in-flight planner change.~~ resolved — the planner work landed (`engineServesADTNatively` shipped); master green.
+1. ~~**Full exclusive `#verify`** — blocked: `TestUniversalADT_PrefersNativeOverDegraded` in metaengine root is RED from the CONCURRENT session's in-flight planner change.~~ resolved — the planner work landed (`engineServesADTNatively` shipped, green in that session's module gates); tree clean and pushed at the evening pass.
 2. **Tag wave** for `metaengine/irohengine` (new exported consts) — tags are
    user-authorized per plan guardrails.
 3. **Anti-entropy / late-joiner sync for graph ops** (and all op kinds):

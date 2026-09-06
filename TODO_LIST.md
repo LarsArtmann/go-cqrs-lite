@@ -103,7 +103,9 @@ and is **never** duplicated here. Historical session reports live under
 ## Release / Tagging
 
 > The full 39-tag v4 wave (B1–B7) was cut, pushed, and verify-ci-green on
-> 2026-08-29. Master is pushed and CI-green as of 2026-09-06 evening. Zero
+> 2026-08-29. Master is pushed and in sync with origin as of 2026-09-06
+> evening (repo-gate GREEN not re-claimed by the docs-health pass — CI
+> billing is still broken, see below). Zero
 > local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 

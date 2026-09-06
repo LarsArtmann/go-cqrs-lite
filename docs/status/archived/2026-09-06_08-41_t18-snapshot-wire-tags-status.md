@@ -154,7 +154,7 @@
 
 1. **SQL scope & timing:** should the events/commands table columns rename in **5.0.0** (same wave as snapshots, sweep doc hints yes: "snapshots table + any commands table variants"), or in a later 5.x? This decides whether I generalize the migration helper now and how much consumer SQL breakage we accept in one release.
 2. **Backport expectation:** master now writes new wire keys while published v4 readers only read old keys (pre-v5 data stays readable; the reverse needs the upgrade). Is there any expectation of a v4.x patch release carrying the dual-read readers so old binaries can read new writes — or is the upgrade cut strictly one-way at 5.0.0?
-3. ~~**Concurrent session ownership:** the other session's `cqrs-lint/pkg/suppression` WIP currently keeps `check-duplication` red, and `scripts/pin-sweep.sh` + `metaengine/duckdbengine/planned_parity_cgo_test.go` are foreign-edited. Are those expected to land soon (I leave their gates alone), or is that session done/abandoned (then I should reconcile and clean)?~~ resolved — the concurrent waves landed; master is pushed and green (2026-09-06 evening). Residual clone-group cleanup is tracked in TODO_LIST.
+3. ~~**Concurrent session ownership:** the other session's `cqrs-lint/pkg/suppression` WIP currently keeps `check-duplication` red, and `scripts/pin-sweep.sh` + `metaengine/duckdbengine/planned_parity_cgo_test.go` are foreign-edited. Are those expected to land soon (I leave their gates alone), or is that session done/abandoned (then I should reconcile and clean)?~~ resolved — the concurrent waves landed; master is pushed and in sync with origin (2026-09-06 evening; repo-gate GREEN not re-claimed). Residual clone-group cleanup is tracked in TODO_LIST.
 
 ---
 
