@@ -1167,6 +1167,7 @@ encryption/const CiphertextV1
 encryption/const EncryptionEncoding
 encryption/const EnvelopeKey
 encryption/const EnvelopeVersionV1
+encryption/const EnvelopeVersionV2
 encryption/const KeyIDKey
 encryption/const KeySize
 encryption/const MaxHKDFKeyLen
@@ -4531,6 +4532,7 @@ signing/var ErrNilSigner
 signing/var ErrNilVerifier
 snapshot/func EveryNEvents
 snapshot/func NewReadPressure
+snapshot/func NewRewritingTransformedStore
 snapshot/func NewSnapshot
 snapshot/func NewTransformedStore
 snapshot/func NewTypedStore
