@@ -56,7 +56,7 @@ if grep -qx gci <<<"$ENABLE"; then
 		in_block && /^[^ \t#]/ { in_block = 0 }
 		in_block && /^[ \t]+-[ \t]+gci[ \t]*$/ { next }
 		{ print }
-	' "$CONFIG" > "$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
+	' "$CONFIG" >"$CONFIG.tmp" && mv "$CONFIG.tmp" "$CONFIG"
 
 	ENABLE=$(awk '
 		/^formatters:/ { in_block = 1; next }

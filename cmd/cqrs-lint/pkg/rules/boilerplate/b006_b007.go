@@ -7,9 +7,10 @@ import (
 	"go/token"
 	"strings"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
-	"github.com/larsartmann/go-finding"
 )
 
 // B006: Duplicate foreign-key stub SQL.
@@ -162,7 +163,10 @@ func NewB007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							// method name collides with CQRS but serves a different
 							// purpose. Variable qualifiers (d, cmdDisp) are never
 							// denylisted — they are the idiomatic CQRS pattern.
-							if lintutil.IsNonCQRSRegisterPackage(gf.AST, analyzer.SelectorPackage(sel)) {
+							if lintutil.IsNonCQRSRegisterPackage(
+								gf.AST,
+								analyzer.SelectorPackage(sel),
+							) {
 								continue
 							}
 

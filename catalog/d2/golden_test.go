@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/d2"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )

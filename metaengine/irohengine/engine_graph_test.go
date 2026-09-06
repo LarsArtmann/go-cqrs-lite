@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/onsi/gomega"
 )
 
 // graphDispatcher mirrors metaengine's unexported graph dispatch contract

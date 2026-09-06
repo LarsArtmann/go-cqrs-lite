@@ -6,10 +6,11 @@ import (
 	"math"
 
 	"github.com/cockroachdb/pebble"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Option configures the Pebble preset.
