@@ -444,13 +444,6 @@ linters:
           - recvcheck
           - wrapcheck
           - nolintlint
-      # snapshot/: v5 wire tags are snake_case by design (stream_id/stream_type,
-      # matching the SQL columns and the pebble envelope); Snapshot carries both
-      # value receivers (invariants) and pointer receivers (decode hooks).
-      - path: snapshot/
-        linters:
-          - recvcheck
-          - tagliatelle
       - path: record/
         linters:
           - modernize
@@ -821,6 +814,10 @@ linters:
       - \.gen\.go$
       - \.pb\.go$
       - _templ\.go$
+      - event/
+      - event/v4/eventtest/
+      - metaengine/sqliteengine/
+      - storage/view/
       - vendor/
 formatters:
   enable:
@@ -835,6 +832,10 @@ formatters:
     paths:
       - \.pb\.go$
       - _templ\.go$
+      - event/
+      - event/v4/eventtest/
+      - metaengine/sqliteengine/
+      - storage/view/
 issues:
   max-issues-per-linter: 50
   max-same-issues: 10

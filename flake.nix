@@ -938,6 +938,16 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-eventcatalog.sh"
             '';
 
+            # check-csp: browser validation of the docserver CSP policy —
+            # runs the real embedded Scalar/AsyncAPI bundles under headless
+            # Chromium with CSP enabled and fails on any CSP refusal or
+            # missing bundle fetch.
+            check-csp = mkApp "check-csp" [ goPkg pkgs.chromium pkgs.bash ] ''
+              export CQRS_BROWSER=${pkgs.chromium}/bin/chromium
+              cd catalog
+              GOWORK=off go test -tags "goexperiment.jsonv2" -run TestCSPBrowser -count=1 -v ./docserver/
+            '';
+
             # verify-module: scoped verification for ONE module — build, vet,
             # test, race, and lint under GOWORK=off (the consumer
             # perspective). Usage:
