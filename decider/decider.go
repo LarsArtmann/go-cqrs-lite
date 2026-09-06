@@ -70,7 +70,7 @@ func NewRepository[State any](
 		return nil, ErrNilApply
 	}
 
-	r := &Repository[State]{ //nolint:exhaustruct // options fill remaining fields
+	r := &Repository[State]{ //nolint:exhaustruct_v5 // options fill remaining fields
 		store:          store,
 		publisher:      publisher,
 		decider:        decider,

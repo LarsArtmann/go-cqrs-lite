@@ -91,7 +91,7 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 	defer e.layoutMu.Unlock()
 
 	if _, exists := e.plans[plan.Collection]; !exists {
-		if err := e.ApplyLayoutPlan(plan); err != nil {
+		if err := e.applyLayoutPlanLocked(plan); err != nil {
 			return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: %w", err)
 		}
 	}

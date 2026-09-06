@@ -1,4 +1,5 @@
-//lint:exhaustruct This package creates partial schemas via helper functions.
+// exhaustruct_v5 intentionally not enforced here: the package creates partial
+// schemas via helper functions (suppressed by the schema.* path exclusion rule).
 
 package schema
 

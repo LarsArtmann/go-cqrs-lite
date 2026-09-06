@@ -28,7 +28,7 @@ type CapturingSlogHandler struct {
 // NewCapturingSlogHandler creates a capturing handler that enables records at
 // or above level. Pass slog.LevelDebug to capture everything.
 func NewCapturingSlogHandler(level slog.Leveler) *CapturingSlogHandler {
-	return &CapturingSlogHandler{ //nolint:exhaustruct // recs is nil-capable
+	return &CapturingSlogHandler{ //nolint:exhaustruct_v5 // recs is nil-capable
 		level: level,
 	}
 }

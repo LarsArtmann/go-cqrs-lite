@@ -93,7 +93,7 @@ func NewOTelBundle(
 		opt(cfg)
 	}
 
-	b := &OTelBundle{ //nolint:exhaustruct // recorder set conditionally below
+	b := &OTelBundle{ //nolint:exhaustruct_v5 // recorder set conditionally below
 		tracer:         tracer,
 		metricsEnabled: cfg.metricsEnabled,
 	}

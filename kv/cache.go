@@ -94,7 +94,7 @@ func NewCache[T any, K fmt.Stringer](
 			fmt.Sprintf("capacity must be positive, got %d", cfg.capacity))
 	}
 
-	otterOpts := &otter.Options[string, *T]{ //nolint:exhaustruct // only MaximumSize needed by default
+	otterOpts := &otter.Options[string, *T]{ //nolint:exhaustruct_v5 // only MaximumSize needed by default
 		MaximumSize: cfg.capacity,
 	}
 

@@ -18,7 +18,7 @@ type MemStore struct {
 
 // NewMemStore creates a new empty [MemStore].
 func NewMemStore() *MemStore {
-	return &MemStore{ //nolint:exhaustruct // zero-value fields are intentional
+	return &MemStore{ //nolint:exhaustruct_v5 // zero-value fields are intentional
 		data: make(map[string][]byte),
 	}
 }
@@ -132,7 +132,7 @@ func (s *MemStore) Batch(_ context.Context) (Batch, error) {
 	var batch *memBatch
 
 	err := s.withRLock(func() {
-		batch = &memBatch{store: s} //nolint:exhaustruct // zero-value ops/closed are intentional
+		batch = &memBatch{store: s} //nolint:exhaustruct_v5 // zero-value ops/closed are intentional
 	})
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (s *MemStore) NewIterator(_ context.Context, prefix []byte) (Iterator, erro
 		return nil, err
 	}
 
-	return &memIterator{pairs: pairs}, nil //nolint:exhaustruct // zero-value fields are intentional
+	return &memIterator{pairs: pairs}, nil //nolint:exhaustruct_v5 // zero-value fields are intentional
 }
 
 func (s *MemStore) Close() error {

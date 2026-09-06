@@ -48,7 +48,7 @@ type hostOptions struct {
 }
 
 func defaultOptions() hostOptions {
-	return hostOptions{ //nolint:exhaustruct // option fields default to zero
+	return hostOptions{ //nolint:exhaustruct_v5 // option fields default to zero
 		maxRestarts:     defaultMaxRestarts,
 		backoffInitial:  defaultBackoffInitial,
 		backoffMax:      defaultBackoffMax,

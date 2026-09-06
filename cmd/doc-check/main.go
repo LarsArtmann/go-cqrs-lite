@@ -55,7 +55,7 @@ func main() {
 	cli, err := cmdguard.NewCLI(
 		"doc-check",
 		"Verify Go import paths and qualified symbols in documentation files",
-		//nolint:exhaustruct // defaults are fine for this one-shot CLI
+		//nolint:exhaustruct_v5 // defaults are fine for this one-shot CLI
 		AppConfig{
 			Config: cmdguard.Config{},
 		},

@@ -72,5 +72,5 @@ func (r StreamRef) Validate() error {
 
 // Verify StreamRef satisfies fmt.Stringer at compile time.
 //
-//nolint:exhaustruct // zero-value proves interface is satisfied at compile time
+//nolint:exhaustruct_v5 // zero-value proves interface is satisfied at compile time
 var _ fmt.Stringer = StreamRef{}

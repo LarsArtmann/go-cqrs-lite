@@ -39,7 +39,7 @@ linters:
     - errname
     - errorlint
     - exhaustive
-    - exhaustruct
+    - exhaustruct_v5
     - exptostd
     - fatcontext
     - forbidigo
@@ -234,8 +234,8 @@ linters:
         - fmt.Println
         - (*strings.Builder).WriteString
         - (*bytes.Buffer).WriteString
-    exhaustruct:
-      exclude:
+    exhaustruct_v5:
+      ignore-patterns:
         - os/exec.Cmd
         - go.etcd.io/bbolt.Options
         - github.com/larsartmann/go-cqrs-lite/stack/v4.Capabilities
@@ -346,7 +346,7 @@ linters:
       - path: _test\.go$
         linters:
           - err113
-          - exhaustruct
+          - exhaustruct_v5
           - makezero
           - paralleltest
           - thelper
@@ -374,7 +374,7 @@ linters:
           - tagliatelle
       - path: _test\.go
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - testpackage
           - gochecknoglobals
           - funlen
@@ -390,13 +390,13 @@ linters:
       - path: internal/cattest/
         linters:
           - thelper
-          - exhaustruct
+          - exhaustruct_v5
           - gosec
           - err113
           - goconst
       - path: testhelpers/fake.*\.go$
         linters:
-          - exhaustruct
+          - exhaustruct_v5
       - path: testhelpers/
         linters:
           - nlreturn
@@ -405,7 +405,7 @@ linters:
           - unparam
       - path: schema.*\.go$
         linters:
-          - exhaustruct
+          - exhaustruct_v5
       - path: integration/
         linters:
           - staticcheck
@@ -413,7 +413,7 @@ linters:
       - path: example/
         linters:
           - forbidigo
-          - exhaustruct
+          - exhaustruct_v5
           - wrapcheck
       - path: (storage|listing|watermill|stack/sqlite)/.*\.go$
         text: 'SA1019: .*event/v4\.(MarkTombstone|TombstoneStatus|TombstoneMark|DetectTombstone|MarkRebirth|MetadataKeyTombstone|MetadataKeyRebirth) is deprecated'
@@ -440,7 +440,7 @@ linters:
           - err113
           - errcheck
           - exhaustive
-          - exhaustruct
+          - exhaustruct_v5
           - recvcheck
           - wrapcheck
           - nolintlint
@@ -458,7 +458,7 @@ linters:
           - varnamelen
       - path: system/
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - wrapcheck
           - ireturn
           - gosec
@@ -481,7 +481,7 @@ linters:
         linters:
           - cyclop
           - gocyclo
-          - exhaustruct
+          - exhaustruct_v5
           - forcetypeassert
           - gocognit
           - ireturn
@@ -504,7 +504,7 @@ linters:
           - modernize
       - path: metaengine/irohengine/
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - wrapcheck
           - prealloc
           - gochecknoglobals
@@ -546,7 +546,7 @@ linters:
       - path: storage/
         linters:
           - dupl
-          - exhaustruct
+          - exhaustruct_v5
           - gosec
           - mnd
           - nestif
@@ -561,7 +561,7 @@ linters:
           - sqlclosecheck
       - path: turso/indexing/
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - goconst
           - exhaustive
           - errcheck
@@ -593,24 +593,24 @@ linters:
       - path: catalog/eventcatalog/
         linters:
           - dupl
-          - exhaustruct
+          - exhaustruct_v5
           - gocognit
           - nonamedreturns
           - varnamelen
           - wsl_v5
       - path: catalog/(d2|asyncapi|openapi|docserver|httptyped|huma|cmd)/
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - nlreturn
           - nolintlint
           - wrapcheck
           - staticcheck
       - path: catalog/(message_config|registry_build)\.go$
         linters:
-          - exhaustruct
+          - exhaustruct_v5
       - path: catalog/registry.go$
         linters:
-          - exhaustruct
+          - exhaustruct_v5
       - path: catalog/registry_copy.go$
         linters:
           - varnamelen
@@ -624,7 +624,7 @@ linters:
           - varnamelen
       - path: projection/
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - tagliatelle
           - nlreturn
           - ireturn
@@ -662,7 +662,7 @@ linters:
           - err113
           - nestif
           - mnd
-          - exhaustruct
+          - exhaustruct_v5
           - dupl
           - errcheck
           - perfsprint
@@ -671,7 +671,7 @@ linters:
           - varnamelen
       - path: transport/http/sse
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - wrapcheck
       - path: transport/http/sse_event\.go$
         linters:
@@ -688,11 +688,11 @@ linters:
       - path: stack/accessors\.go$
         linters:
           - err113
-          - exhaustruct
+          - exhaustruct_v5
           - wrapcheck
       - path: stack/(turso|pebble)/preset\.go$
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - err113
           - contextcheck
           - wrapcheck
@@ -705,7 +705,7 @@ linters:
       - path: benchkit/
         linters:
           - errcheck
-          - exhaustruct
+          - exhaustruct_v5
           - gochecknoglobals
           - goconst
           - gosec
@@ -717,7 +717,7 @@ linters:
       - path: cmd/cqrs-gen/
         linters:
           - dupl
-          - exhaustruct
+          - exhaustruct_v5
           - err113
           - funlen
           - gocognit
@@ -731,7 +731,7 @@ linters:
           - gosec
       - path: cmd/cqrs-lint/
         linters:
-          - exhaustruct
+          - exhaustruct_v5
           - funlen
           - gocognit
           - goconst
@@ -751,7 +751,7 @@ linters:
       - path: cmd/cqrs-bench/
         linters:
           - errcheck
-          - exhaustruct
+          - exhaustruct_v5
           - forbidigo
           - goconst
           - gosec
@@ -782,7 +782,7 @@ linters:
       - path: saga/
         linters:
           - nlreturn
-          - exhaustruct
+          - exhaustruct_v5
           - err113
           - mnd
           - dupl
@@ -796,12 +796,12 @@ linters:
       - path: command/
         linters:
           - wrapcheck
-          - exhaustruct
+          - exhaustruct_v5
           - nolintlint
       - path: query/
         linters:
           - wrapcheck
-          - exhaustruct
+          - exhaustruct_v5
           - nolintlint
       - path: sync/
         linters:

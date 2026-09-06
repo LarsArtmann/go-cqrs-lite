@@ -151,7 +151,7 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 				"scan dead-letter row")
 		}
 
-		entry := DeadLetterEntry{ //nolint:exhaustruct // StreamID/Error/FailedAt set below
+		entry := DeadLetterEntry{ //nolint:exhaustruct_v5 // StreamID/Error/FailedAt set below
 			Kind:     kind,
 			Type:     typ,
 			Attempts: attempts,

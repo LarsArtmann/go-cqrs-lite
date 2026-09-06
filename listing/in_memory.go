@@ -29,12 +29,12 @@ var _ StreamReader = (*InMemoryStreamReader)(nil)
 // Status is derived from event types when WithStatusClassifier is provided;
 // otherwise every stream reports StatusUndetermined.
 func NewInMemoryStreamReader(journal event.Journal, opts ...ReaderOption) *InMemoryStreamReader {
-	cfg := readerConfig{} //nolint:exhaustruct // classifier zero value = unconfigured
+	cfg := readerConfig{} //nolint:exhaustruct_v5 // classifier zero value = unconfigured
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 
-	return &InMemoryStreamReader{ //nolint:exhaustruct // mu and cached zero-initialized
+	return &InMemoryStreamReader{ //nolint:exhaustruct_v5 // mu and cached zero-initialized
 		journal:    journal,
 		classifier: cfg.classifier,
 	}
@@ -141,8 +141,8 @@ func buildRefs(events []event.Event, classifier StatusClassifier) []StreamStatus
 
 		b, ok := builders[key]
 		if !ok {
-			b = &streamBuilder{ //nolint:exhaustruct // fields populated incrementally below
-				ref: StreamListing{ //nolint:exhaustruct // ID+Type set; Version/EventCount/LastEventAt added in loop
+			b = &streamBuilder{ //nolint:exhaustruct_v5 // fields populated incrementally below
+				ref: StreamListing{ //nolint:exhaustruct_v5 // ID+Type set; Version/EventCount/LastEventAt added in loop
 					ID:   evt.StreamID(),
 					Type: evt.StreamType(),
 				},

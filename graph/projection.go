@@ -87,7 +87,7 @@ func NewGraphProjection(
 		return nil, errNilHandler
 	}
 
-	p := &GraphProjection{ //nolint:exhaustruct // schema applied via options below
+	p := &GraphProjection{ //nolint:exhaustruct_v5 // schema applied via options below
 		name:    name,
 		driver:  driver,
 		handler: handler,

@@ -80,7 +80,7 @@ func NewPersistedQuery(
 		queryType:  queryType,
 		receivedAt: time.Now(),
 		payload:    slices.Clone(payload),
-		metadata:   Metadata{}, //nolint:exhaustruct // zero-value metadata is the correct initial state
+		metadata:   Metadata{}, //nolint:exhaustruct_v5 // zero-value metadata is the correct initial state
 	}
 
 	for _, opt := range opts {

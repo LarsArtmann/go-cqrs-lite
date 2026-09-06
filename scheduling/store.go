@@ -105,7 +105,7 @@ type MemoryTimerStore[P any] struct {
 
 // NewMemoryTimerStore creates an in-memory timer store.
 func NewMemoryTimerStore[P any]() *MemoryTimerStore[P] {
-	return &MemoryTimerStore[P]{timers: make(map[TimerID]Timer[P])} //nolint:exhaustruct
+	return &MemoryTimerStore[P]{timers: make(map[TimerID]Timer[P])} //nolint:exhaustruct_v5
 }
 
 func (s *MemoryTimerStore[P]) Schedule(_ context.Context, t Timer[P]) error {

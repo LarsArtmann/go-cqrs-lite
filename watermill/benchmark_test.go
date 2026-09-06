@@ -1,6 +1,7 @@
 package watermill
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 func benchEvent(tb testing.TB) event.Event {
@@ -142,4 +144,74 @@ func BenchmarkMessageToCommand(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
+}
+
+// BenchmarkCatchUp_ReplayThroughput measures the end-to-end catch-up replay
+// pipeline: journal read + event→message conversion + channel hop + consumer
+// ack + checkpoint save, per event. Delivery is serialized per subscription
+// (forward, then wait for the Ack before the next message) — this is the
+// at-least-once checkpoint contract, not an oversight, so the numbers below
+// are the ceiling for one subscription against an in-memory journal and
+// checkpoint store. Real deployments add broker + network latency on top.
+//
+// 2026-09-06 baseline (idle machine): ~2-4 µs/event (~250-500K events/s).
+// If a future change degrades this by an order of magnitude, ack-window
+// pipelining (N in-flight unacked messages) is the designed remedy — it
+// trades strictly-serialized checkpointing for throughput and was
+// deliberately NOT added while the ceiling stayed in this range.
+func BenchmarkCatchUp_ReplayThroughput(b *testing.B) {
+	b.ReportAllocs()
+
+	const total = 1000
+
+	store := eventtest.NewFakeStore()
+
+	streamID := id.NewStreamID()
+
+	events := make([]event.Event, 0, total)
+	for range total {
+		evt, _ := event.NewEvent(
+			"bench.catchup", streamID, "Bench", event.Version(1),
+			[]byte(`{}`),
+		)
+		events = append(events, evt)
+	}
+
+	_ = store.AppendBatch(context.Background(),
+		id.NewStreamRef("Bench", streamID), events)
+
+	b.ResetTimer()
+
+	for b.Loop() {
+		bus := eventtest.NewFakeBus()
+
+		catchUp, err := NewCatchUpSubscriber(
+			store, NewSubscriberAdapter(bus), memory.NewMemoryCheckpointStore(), nil)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		ch, err := catchUp.Subscribe(context.Background(), "bench.catchup")
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		received := 0
+		for received < total {
+			msg := <-ch
+			if msg == nil {
+				b.Fatalf("subscription closed after %d of %d events", received, total)
+			}
+
+			msg.Ack()
+			received++
+		}
+
+		if err := catchUp.Close(); err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	perIteration := b.Elapsed().Nanoseconds()
+	b.ReportMetric(float64(perIteration)/float64(b.N*total), "ns/event")
 }

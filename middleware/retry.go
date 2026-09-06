@@ -27,7 +27,7 @@ func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Opti
 
 	return func(next Handler[M]) Handler[M] {
 		return func(ctx context.Context, msg M) error {
-			entry := DeadLetterEntry{ //nolint:exhaustruct // fields set incrementally during retry loop
+			entry := DeadLetterEntry{ //nolint:exhaustruct_v5 // fields set incrementally during retry loop
 				Kind: adapter.Kind,
 				Type: adapter.ExtractType(msg),
 			}

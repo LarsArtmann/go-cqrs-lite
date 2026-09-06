@@ -59,7 +59,7 @@ type schedulerOptions struct {
 type Option func(*schedulerOptions)
 
 func defaultOptions() schedulerOptions {
-	return schedulerOptions{ //nolint:exhaustruct // logger set by New() if nil
+	return schedulerOptions{ //nolint:exhaustruct_v5 // logger set by New() if nil
 		pollInterval: defaultPollInterval,
 		maxRetries:   defaultMaxRetries,
 		retryDelay:   defaultRetryDelay,

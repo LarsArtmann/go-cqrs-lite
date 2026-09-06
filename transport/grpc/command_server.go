@@ -30,7 +30,7 @@ type CommandDispatcher interface {
 func RegisterCommandService(srv *grpc.Server, dispatcher CommandDispatcher) {
 	cqrsproto.RegisterCommandServiceServer(
 		srv,
-		&commandServer{dispatcher: dispatcher}, //nolint:exhaustruct // grpc server pattern
+		&commandServer{dispatcher: dispatcher}, //nolint:exhaustruct_v5 // grpc server pattern
 	)
 }
 

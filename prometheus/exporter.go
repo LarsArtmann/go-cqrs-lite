@@ -98,7 +98,7 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 //	defer metricsProvider.Shutdown(ctx)
 //	otel.SetMeterProvider(metricsProvider.AsMeterProvider())
 func Setup(opts ...Option) (*Provider, error) {
-	cfg := &config{} //nolint:exhaustruct // options applied below
+	cfg := &config{} //nolint:exhaustruct_v5 // options applied below
 
 	for _, opt := range opts {
 		opt(cfg)

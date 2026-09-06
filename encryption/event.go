@@ -30,7 +30,7 @@ func AttachEncryption(
 		return nil, ErrNilEvent
 	}
 
-	cfg := attachConfig{} //nolint:exhaustruct // zero-valued fields are ready
+	cfg := attachConfig{} //nolint:exhaustruct_v5 // zero-valued fields are ready
 	for _, o := range opts {
 		o(&cfg)
 	}

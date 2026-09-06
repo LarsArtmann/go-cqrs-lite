@@ -235,7 +235,7 @@ func RunOptionalSuite[V any, K fmt.Stringer](t *testing.T, cfg Config[V, K]) {
 			}
 		}
 
-		count, err := counter.Count(ctx, kv.ViewQuery{}) //nolint:exhaustruct // count all
+		count, err := counter.Count(ctx, kv.ViewQuery{}) //nolint:exhaustruct_v5 // count all
 		if err != nil {
 			t.Fatalf("Count: %v", err)
 		}

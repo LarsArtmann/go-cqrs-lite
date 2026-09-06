@@ -67,7 +67,7 @@ func New(
 		opt(&o)
 	}
 
-	return &Host{ //nolint:exhaustruct // mutex/cancel/wg start zero-valued
+	return &Host{ //nolint:exhaustruct_v5 // mutex/cancel/wg start zero-valued
 		journal: journal,
 		cpStore: cpStore,
 		opts:    o,
@@ -116,7 +116,7 @@ func newWorker(
 	cpStore event.CheckpointStore,
 	opts hostOptions,
 ) *worker {
-	return &worker{ //nolint:exhaustruct // counters start at zero
+	return &worker{ //nolint:exhaustruct_v5 // counters start at zero
 		name:       name,
 		projection: p,
 		journal:    journal,
@@ -125,7 +125,7 @@ func newWorker(
 		logger:     opts.logger,
 		seenIDs:    dedup.NewRing(dedup.DefaultCapacity),
 		typeSet:    buildTypeSet(p.EventTypes()),
-		state: WorkerState{ //nolint:exhaustruct // zero-value counters
+		state: WorkerState{ //nolint:exhaustruct_v5 // zero-value counters
 			Name:   name,
 			Status: WorkerIdle,
 		},

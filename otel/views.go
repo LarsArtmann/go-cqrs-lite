@@ -21,11 +21,11 @@ import (
 func NewCQRSViews() []sdkmetric.View {
 	return []sdkmetric.View{
 		sdkmetric.NewView(
-			sdkmetric.Instrument{ //nolint:exhaustruct // only Name is a filter criteria
+			sdkmetric.Instrument{ //nolint:exhaustruct_v5 // only Name is a filter criteria
 				Name: "cqrs.*",
 			},
-			sdkmetric.Stream{ //nolint:exhaustruct // only Aggregation is configured
-				Aggregation: sdkmetric.AggregationExplicitBucketHistogram{ //nolint:exhaustruct // NoMinMax defaults to false
+			sdkmetric.Stream{ //nolint:exhaustruct_v5 // only Aggregation is configured
+				Aggregation: sdkmetric.AggregationExplicitBucketHistogram{ //nolint:exhaustruct_v5 // NoMinMax defaults to false
 					Boundaries: CQRSHistogramBoundaries,
 				},
 			},

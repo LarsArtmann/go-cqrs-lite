@@ -121,7 +121,7 @@ type MemoryDeadLetterStore struct {
 
 // NewMemoryDeadLetterStore creates an in-memory dead-letter store.
 func NewMemoryDeadLetterStore() *MemoryDeadLetterStore {
-	return &MemoryDeadLetterStore{} //nolint:exhaustruct // intentional zero-value init
+	return &MemoryDeadLetterStore{} //nolint:exhaustruct_v5 // intentional zero-value init
 }
 
 func (s *MemoryDeadLetterStore) Store(_ context.Context, entry DeadLetterEntry) error {

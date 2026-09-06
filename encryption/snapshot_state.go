@@ -71,7 +71,7 @@ func protectState(cipher Encrypter, keyID KeyID) func([]byte) ([]byte, error) {
 		}
 
 		encoded, err := MarshalEnvelope(
-			Envelope{ //nolint:exhaustruct // Version defaults inside MarshalEnvelope
+			Envelope{ //nolint:exhaustruct_v5 // Version defaults inside MarshalEnvelope
 				Ciphertext: ciphertext,
 				KeyID:      keyID,
 			},

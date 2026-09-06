@@ -21,7 +21,7 @@ type ListBuilder struct {
 func NewListBuilder(reader StreamReader) *ListBuilder {
 	return &ListBuilder{
 		reader: reader,
-		opts: ListOptions{ //nolint:exhaustruct // builder pattern: Type and After set via methods
+		opts: ListOptions{ //nolint:exhaustruct_v5 // builder pattern: Type and After set via methods
 			Limit:     defaultPageSize,
 			Tombstone: TombstoneExclude,
 		},

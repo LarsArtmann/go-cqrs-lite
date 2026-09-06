@@ -28,7 +28,7 @@ func WithD2Description(desc string) D2Option {
 // Use it when you only need the D2 diagram endpoint, or alongside
 // a DocsServer for the full documentation suite.
 func D2Handler(cat *catalog.Catalog, opts ...D2Option) http.HandlerFunc {
-	cfg := d2Config{} //nolint:exhaustruct // optional fields
+	cfg := d2Config{} //nolint:exhaustruct_v5 // optional fields
 
 	for _, opt := range opts {
 		opt(&cfg)

@@ -21,7 +21,7 @@ func EncryptSinkTransform(encrypter Encrypter, opts ...MiddlewareOption) event.S
 		)
 	}
 
-	cfg := middlewareConfig{} //nolint:exhaustruct // zero-valued fields are ready
+	cfg := middlewareConfig{} //nolint:exhaustruct_v5 // zero-valued fields are ready
 	for _, o := range opts {
 		o(&cfg)
 	}

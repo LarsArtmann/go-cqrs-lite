@@ -72,7 +72,7 @@ func (h *Host) ReplayDeadLetters(ctx context.Context, projectionName string) (Re
 		)
 	}
 
-	result := ReplayResult{} //nolint:exhaustruct // zero-value init
+	result := ReplayResult{} //nolint:exhaustruct_v5 // zero-value init
 
 	for _, entry := range entries {
 		w, ok := workers[entry.ProjectionName]

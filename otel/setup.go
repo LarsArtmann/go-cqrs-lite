@@ -152,7 +152,7 @@ func (p *Provider) Shutdown(ctx context.Context) error {
 // cqrsotel.NewTracer("middleware") and cqrsotel.NewMeter("middleware")
 // resolve to these providers without additional wiring.
 func Setup(opts ...SetupOption) (*Provider, error) {
-	cfg := &setupConfig{} //nolint:exhaustruct // options applied below
+	cfg := &setupConfig{} //nolint:exhaustruct_v5 // options applied below
 
 	for _, opt := range opts {
 		opt(cfg)

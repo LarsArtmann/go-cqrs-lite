@@ -136,7 +136,7 @@ func (w *worker) captureFlightRecorder(ctx context.Context, failedErr error) {
 		trigger = flightrecorder.OnAlways()
 	}
 
-	tc := flightrecorder.TriggerContext{ //nolint:exhaustruct // Duration N/A for projection failures
+	tc := flightrecorder.TriggerContext{ //nolint:exhaustruct_v5 // Duration N/A for projection failures
 		Kind: "projection",
 		Type: w.name,
 		Err:  failedErr,

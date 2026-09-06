@@ -146,7 +146,7 @@ type shutdownEdge struct {
 // Deprecated: removed in v5 (ADR-0123): use system.New — system.System is
 // the single composition root.
 func New(opts ...Option) (*Bundle, error) {
-	b := &Bundle{} //nolint:exhaustruct // options fill fields
+	b := &Bundle{} //nolint:exhaustruct_v5 // options fill fields
 
 	for _, opt := range opts {
 		if opt != nil {

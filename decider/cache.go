@@ -58,7 +58,7 @@ func NewStateCache[State any](capacity int) StateCache[State] {
 	}
 
 	cache := otter.Must(
-		&otter.Options[string, *cacheEntry[State]]{ //nolint:exhaustruct // only MaximumSize needed
+		&otter.Options[string, *cacheEntry[State]]{ //nolint:exhaustruct_v5 // only MaximumSize needed
 			MaximumSize: capacity,
 		},
 	)

@@ -46,6 +46,21 @@ type CheckpointStore = event.CheckpointStore
 // replayed event ID (a monotonic-ULID watermark) were already covered by the
 // replay and are suppressed; all other live events are forwarded.
 //
+// # Watermark ordering assumption
+//
+// The watermark compares event-ID strings and assumes ULIDs are monotonic
+// across the WHOLE journal — including events minted in other processes.
+// Within one process ULIDs are monotonic; across processes, clock skew can
+// mint an event whose ID sorts below the watermark even though it was
+// published after replay drained the journal. Such an event is suppressed
+// live (it looks "already covered") and stays missing from this subscription
+// until the next restart, where replay resumes from the checkpoint — which
+// sits behind the suppressed event — and delivers it. The staleness window
+// is therefore bounded by producer clock skew (milliseconds under
+// NTP-disciplined clocks) and is self-healing on restart. Deployments with
+// large, unbounded clock skew should not rely on the live-suppression
+// shortcut: restarting the projection re-syncs it deterministically.
+//
 // Usage:
 //
 //	catchUp := watermill.NewCatchUpSubscriber(journal, liveSub, cpStore, logger)

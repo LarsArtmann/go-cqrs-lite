@@ -40,7 +40,7 @@ func NewCommandClient(conn *grpc.ClientConn) *CommandClient {
 // Dispatch sends cmd to the remote gRPC server for processing.
 // Returns an error if the server returned a failure or the RPC failed.
 func (c *CommandClient) Dispatch(ctx context.Context, cmd command.Command) error {
-	envelope := &cqrsproto.CommandEnvelope{ //nolint:exhaustruct // proto
+	envelope := &cqrsproto.CommandEnvelope{ //nolint:exhaustruct_v5 // proto
 		Type:        string(cmd.Type()),
 		AggregateId: cmd.StreamID().String(),
 	}
@@ -99,7 +99,7 @@ func NewQueryClient(conn *grpc.ClientConn, opts ...Option) *QueryClient {
 func (c *QueryClient) Ask(ctx context.Context, queryType string, out any) error {
 	result, err := c.client.Ask(
 		ctx,
-		&cqrsproto.QueryEnvelope{Type: queryType}, //nolint:exhaustruct // proto
+		&cqrsproto.QueryEnvelope{Type: queryType}, //nolint:exhaustruct_v5 // proto
 	)
 	if err != nil {
 		return errorfamily.WrapInfrastructure(err, "grpc.ask",

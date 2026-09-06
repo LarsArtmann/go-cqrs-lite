@@ -34,7 +34,7 @@ func New(
 	var c codec.Codec
 
 	if len(opts) > 0 {
-		probe := &ImmutableEvent{} //nolint:exhaustruct // probe: only opts field accessed
+		probe := &ImmutableEvent{} //nolint:exhaustruct_v5 // probe: only opts field accessed
 
 		for _, opt := range opts {
 			opt(probe)

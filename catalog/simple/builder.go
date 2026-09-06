@@ -76,9 +76,9 @@ func WithServiceID(id string) Option {
 // The title becomes both the catalog title and the default service name.
 // The version applies to both the catalog and the service.
 func New(title, version string, opts ...Option) *Builder {
-	b := &Builder{ //nolint:exhaustruct // fields set below
+	b := &Builder{ //nolint:exhaustruct_v5 // fields set below
 		inner: catalog.NewBuilder(title, version),
-		serviceCfg: serviceConfig{ //nolint:exhaustruct // summary is optional
+		serviceCfg: serviceConfig{ //nolint:exhaustruct_v5 // summary is optional
 			name:    title,
 			version: version,
 		},
@@ -217,7 +217,7 @@ func (b *Builder) AddEntity(entity catalog.Entity) *Builder {
 
 // Entity registers a typed entity with auto-derived schema on the builder.
 func Entity[T any](b *Builder, id string) *Builder {
-	b.inner.AddEntity(catalog.Entity{ //nolint:exhaustruct // optional fields default to zero
+	b.inner.AddEntity(catalog.Entity{ //nolint:exhaustruct_v5 // optional fields default to zero
 		ID:      catalog.EntityID(id),
 		Name:    catalog.Name(id),
 		Version: catalog.Version(b.serviceCfg.version),

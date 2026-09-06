@@ -71,7 +71,7 @@ type MemoryDeadLetterStore struct {
 
 // NewMemoryDeadLetterStore creates an empty in-memory dead-letter store.
 func NewMemoryDeadLetterStore() *MemoryDeadLetterStore {
-	return &MemoryDeadLetterStore{ //nolint:exhaustruct // mu is zero-value (unlocked)
+	return &MemoryDeadLetterStore{ //nolint:exhaustruct_v5 // mu is zero-value (unlocked)
 		entries: make([]DeadLetterEntry, 0),
 	}
 }

@@ -144,7 +144,7 @@ func EncryptCOSE0(plaintext []byte, enc COSEEncrypter, opts ...COSEEncryptOption
 		return nil, ErrNilEncrypter
 	}
 
-	cfg := coseEncryptConfig{} //nolint:exhaustruct // zero values are ready
+	cfg := coseEncryptConfig{} //nolint:exhaustruct_v5 // zero values are ready
 
 	protected, err := codec.PrepareCOSESetup(&cfg, opts, enc.COSEAlgorithm())
 	if err != nil {
@@ -201,7 +201,7 @@ func DecryptCOSE0(coseBytes []byte, dec COSEDecrypter, opts ...COSEEncryptOption
 		return nil, ErrNilDecrypter
 	}
 
-	cfg := coseEncryptConfig{} //nolint:exhaustruct // zero values are ready
+	cfg := coseEncryptConfig{} //nolint:exhaustruct_v5 // zero values are ready
 	for _, o := range opts {
 		o(&cfg)
 	}

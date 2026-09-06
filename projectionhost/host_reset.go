@@ -86,7 +86,7 @@ func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) erro
 	if err := h.cpStore.Save(
 		ctx,
 		name,
-		event.Checkpoint{}, //nolint:exhaustruct // zero-value is the cleared-checkpoint intent
+		event.Checkpoint{}, //nolint:exhaustruct_v5 // zero-value is the cleared-checkpoint intent
 	); err != nil {
 		return errorfamily.WrapInfrastructure(err, "projectionhost.reset_checkpoint",
 			fmt.Sprintf("clear checkpoint for %q", name))

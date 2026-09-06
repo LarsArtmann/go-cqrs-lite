@@ -70,7 +70,7 @@ func DeadLetterQueue() metaengine.QueryDecl[DeadLetterQuery, DeadLetterEntry] {
 		"command_dlq",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeDeadLettered),
-			commandlifecycle.DeadLetteredPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			commandlifecycle.DeadLetteredPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
 			func(rec record.Record, payload commandlifecycle.DeadLetteredPayload) (string, DeadLetterEntry) {
 				return rec.MetaData.Cause.ID, payload
 			},
@@ -88,7 +88,7 @@ func RetryCount() metaengine.QueryDecl[RetryCountQuery, map[string]int64] {
 		"command_retry_count",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeRetried),
-			commandlifecycle.RetriedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			commandlifecycle.RetriedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
 			func(rec record.Record, _ commandlifecycle.RetriedPayload) metaengine.Delta {
 				return metaengine.Delta{rec.MetaData.Cause.ID: 1}
 			},
@@ -106,7 +106,7 @@ func FailureLog() metaengine.QueryDecl[FailureLogQuery, []commandlifecycle.Faile
 		"command_failure_log",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeFailed),
-			commandlifecycle.FailedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			commandlifecycle.FailedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
 			func(_ record.Record, payload commandlifecycle.FailedPayload) metaengine.Append {
 				return metaengine.Append{Value: payload}
 			},
@@ -139,7 +139,7 @@ func ProcessingTime() metaengine.QueryDecl[ProcessingTimeQuery, ProcessingTimeEn
 		"command_processing_time",
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeReceived),
-			commandlifecycle.ReceivedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			commandlifecycle.ReceivedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
 			func(_ record.Record, p commandlifecycle.ReceivedPayload) (commandlifecycle.CommandKey, ProcessingTimeEntry) {
 				return p.CommandID, ProcessingTimeEntry{
 					CommandID:   p.CommandID,
@@ -151,7 +151,7 @@ func ProcessingTime() metaengine.QueryDecl[ProcessingTimeQuery, ProcessingTimeEn
 		),
 		metaengine.OnRecordTyped(
 			string(commandlifecycle.TypeCompleted),
-			commandlifecycle.CompletedPayload{}, //nolint:exhaustruct // type inference hint for OnRecordTyped
+			commandlifecycle.CompletedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
 			func(_ record.Record, p commandlifecycle.CompletedPayload, prev ProcessingTimeEntry) ProcessingTimeEntry {
 				prev.CompletedAt = p.CompletedAt
 

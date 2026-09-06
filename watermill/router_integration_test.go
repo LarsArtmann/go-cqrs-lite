@@ -23,12 +23,12 @@ func TestRouterIntegration_CorrelationIDAndRetry(t *testing.T) {
 	t.Parallel()
 
 	pubSub := gochannel.NewGoChannel(
-		gochannel.Config{Persistent: true}, //nolint:exhaustruct // test config
+		gochannel.Config{Persistent: true}, //nolint:exhaustruct_v5 // test config
 		watermill.NopLogger{},
 	)
 
 	router, err := message.NewRouter(
-		message.RouterConfig{}, //nolint:exhaustruct // default config for test
+		message.RouterConfig{}, //nolint:exhaustruct_v5 // default config for test
 		watermill.NopLogger{},
 	)
 	if err != nil {

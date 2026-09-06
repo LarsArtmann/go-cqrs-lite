@@ -83,7 +83,7 @@ func NewReadPressure(threshold int, opts ...ReadPressureOption) (*ReadPressure, 
 		return nil, ErrInvalidThreshold
 	}
 
-	strategy := &ReadPressure{ //nolint:exhaustruct // inner is zero-valued
+	strategy := &ReadPressure{ //nolint:exhaustruct_v5 // inner is zero-valued
 		threshold: threshold,
 		reads:     make(map[string]int),
 		lru:       list.New(),

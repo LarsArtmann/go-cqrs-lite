@@ -46,7 +46,7 @@ var (
 	}
 
 	//nolint:gochecknoglobals // immutable adapter, used throughout package
-	QueryAdapter = MessageAdapter[query.Query]{ //nolint:exhaustruct // queries have no streamID
+	QueryAdapter = MessageAdapter[query.Query]{ //nolint:exhaustruct_v5 // queries have no streamID
 		Kind:        kindQuery,
 		ExtractType: func(q query.Query) string { return string(q.Type()) },
 	}

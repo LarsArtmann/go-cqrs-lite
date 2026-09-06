@@ -24,7 +24,7 @@ func (b *memBatch) Set(_ context.Context, key, value []byte) error {
 		return ErrClosed
 	}
 
-	b.ops = append(b.ops, batchOp{ //nolint:exhaustruct // set op: isDelete=false is correct
+	b.ops = append(b.ops, batchOp{ //nolint:exhaustruct_v5 // set op: isDelete=false is correct
 		key:   slices.Clone(key),
 		value: slices.Clone(value),
 	})
@@ -37,7 +37,7 @@ func (b *memBatch) Delete(_ context.Context, key []byte) error {
 		return ErrClosed
 	}
 
-	b.ops = append(b.ops, batchOp{ //nolint:exhaustruct // delete op: value omitted is correct
+	b.ops = append(b.ops, batchOp{ //nolint:exhaustruct_v5 // delete op: value omitted is correct
 		isDelete: true,
 		key:      slices.Clone(key),
 	})

@@ -46,7 +46,7 @@ func Given[Cmd, State any](
 ) *DeciderScenario[Cmd, State] {
 	t.Helper()
 
-	s := &DeciderScenario[Cmd, State]{ //nolint:exhaustruct // cmd+decide set by When()
+	s := &DeciderScenario[Cmd, State]{ //nolint:exhaustruct_v5 // cmd+decide set by When()
 		t:       t,
 		apply:   apply,
 		initial: initial,
@@ -69,7 +69,7 @@ func GivenState[State any](
 ) *DeciderScenario[any, State] {
 	t.Helper()
 
-	s := &DeciderScenario[any, State]{ //nolint:exhaustruct // cmd+decide set by When()
+	s := &DeciderScenario[any, State]{ //nolint:exhaustruct_v5 // cmd+decide set by When()
 		t:       t,
 		apply:   apply,
 		initial: initial,
@@ -265,7 +265,7 @@ func GivenProjection(
 	events ...event.Event,
 ) *ProjectionScenario {
 	t.Helper()
-	scenario := &ProjectionScenario{proj: proj, t: t} //nolint:exhaustruct // errs populated below
+	scenario := &ProjectionScenario{proj: proj, t: t} //nolint:exhaustruct_v5 // errs populated below
 	t.Cleanup(func() {
 		if !scenario.asserted {
 			t.Errorf(

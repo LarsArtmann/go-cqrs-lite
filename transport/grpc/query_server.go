@@ -27,7 +27,7 @@ func RegisterQueryService(srv *grpc.Server, dispatcher QueryDispatcher, opts ...
 	cfg := resolveConfig(opts)
 	cqrsproto.RegisterQueryServiceServer(
 		srv,
-		&queryServer{ //nolint:exhaustruct // grpc server pattern: embedded Unimplemented is zero-valued
+		&queryServer{ //nolint:exhaustruct_v5 // grpc server pattern: embedded Unimplemented is zero-valued
 			dispatcher: dispatcher,
 			codec:      cfg.codec,
 		},
@@ -74,13 +74,13 @@ func (s *queryServer) Ask(
 			"marshal result")), nil
 	}
 
-	return &cqrsproto.QueryResult{Payload: payload}, nil //nolint:exhaustruct // proto
+	return &cqrsproto.QueryResult{Payload: payload}, nil //nolint:exhaustruct_v5 // proto
 }
 
 func queryErrorResult(err error) *cqrsproto.QueryResult {
 	code, family := classifyError(err)
 
-	return &cqrsproto.QueryResult{ //nolint:exhaustruct // proto
+	return &cqrsproto.QueryResult{ //nolint:exhaustruct_v5 // proto
 		Error:       err.Error(),
 		ErrorCode:   code,
 		ErrorFamily: family,

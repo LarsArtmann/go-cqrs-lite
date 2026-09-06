@@ -26,7 +26,7 @@ type MemoryBus struct {
 
 // NewMemoryBus creates a new in-memory command bus.
 func NewMemoryBus() *MemoryBus {
-	return &MemoryBus{ //nolint:exhaustruct // handlers lazily initialized
+	return &MemoryBus{ //nolint:exhaustruct_v5 // handlers lazily initialized
 		handlers: make(map[Type][]Handler),
 	}
 }

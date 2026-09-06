@@ -120,7 +120,7 @@ func main() {
 		"api-stability",
 		"API surface stability checker for go-cqrs-lite",
 		AppConfig{
-			Config: cmdguard.Config{ //nolint:exhaustruct // defaults acceptable for this one-shot CLI
+			Config: cmdguard.Config{ //nolint:exhaustruct_v5 // defaults acceptable for this one-shot CLI
 			},
 			Update: false,
 		},

@@ -24,7 +24,7 @@ type EventSubscriber interface {
 // The server subscribes to ALL events on the bus and fans them out to each
 // connected client. Clients can filter by event type via SubscriptionRequest.
 func RegisterEventService(srv *grpc.Server, bus EventSubscriber) (*EventServer, error) {
-	eventSrv := &EventServer{ //nolint:exhaustruct // grpc server pattern
+	eventSrv := &EventServer{ //nolint:exhaustruct_v5 // grpc server pattern
 		clients: make(map[int64]chan *cqrsproto.EventEnvelope),
 		nextID:  1,
 	}

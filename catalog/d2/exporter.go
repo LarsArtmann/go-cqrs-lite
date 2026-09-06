@@ -34,7 +34,7 @@ func WithDirection(dir string) Option {
 
 // NewExporter creates a D2 exporter with the given title and version.
 func NewExporter(title, version string, opts ...Option) *Exporter {
-	e := &Exporter{ //nolint:exhaustruct // Description is optional, filled by WithDescription
+	e := &Exporter{ //nolint:exhaustruct_v5 // Description is optional, filled by WithDescription
 		title:     title,
 		version:   version,
 		direction: "down",

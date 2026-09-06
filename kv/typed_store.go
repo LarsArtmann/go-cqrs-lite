@@ -35,7 +35,7 @@ func NewTypedStore[T any, K fmt.Stringer](
 	backend Store,
 	opts ...TypedOption[T, K],
 ) *TypedStore[T, K] {
-	s := &TypedStore[T, K]{ //nolint:exhaustruct // prefix set via WithKeyPrefix option
+	s := &TypedStore[T, K]{ //nolint:exhaustruct_v5 // prefix set via WithKeyPrefix option
 		backend: backend,
 		codec:   codec.CBORCodec{},
 		keyFunc: func(k K) []byte { return []byte(k.String()) },
