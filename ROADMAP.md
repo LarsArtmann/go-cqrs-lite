@@ -4,16 +4,16 @@
 
 ---
 
-**Release cadence since 2026-08-16:** the 22-tag chain (largest release day
-in the project's history), then system/v4.5.0 + engine tags (08-18), the core
-data-model 8-tag wave (08-22), and tag-wave batch B1 (08-29: event/v4.9.0,
-schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1) — with three broken versions
-retracted + repaired same-day on 08-16 (command/v4.7.0, query/v4.6.0,
-storage/v4.7.0). **v5 unification in progress** (ADR-0123). 82 `go.mod`
-files. The `[Unreleased]` window carries the 2026-08-27 correctness waves
-(catch-up at-least-once, listing type-driven status, error-family truth,
-PG test isolation). See CHANGELOG `[Unreleased]` for the full per-entry
-detail.
+**Release cadence since 2026-08-16:** the 22-tag chain, the full 39-tag v4
+wave B1–B7 (2026-08-29 — cut, pushed, verify-ci 76/76 green, zero local
+replaces remain), the issue-#20 cqrs-lint proxy-repair tags (09-01:
+v4.8.1 + the `/v4`-suffix guard in tag-release.sh), and `cmd/cqrs-lint/v4.9.0`
+(09-06: V007 `v5-removed-api-usage` + hardening) — with three broken versions
+retracted + repaired same-day on 08-16. **v5 unification in progress**
+(ADR-0123). 82 `go.mod` files. The `[Unreleased]` window carries the
+2026-09-06 waves (severity/confidence contract, suppression/fix/lintutil
+hardening, self-healing formatter guard) and the 2026-09-03 master-CI repair.
+See CHANGELOG `[Unreleased]` for the full per-entry detail.
 
 ---
 
@@ -22,7 +22,7 @@ detail.
 | Version                      | Date       | Highlights                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ---------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [2026-08-16 module releases] | 2026-08-16 | 22 coordinated tags: `id/v4.5.0`, `record/v4.3.0`, `metadata/v4.5.0` (`Metadata[K]` generic), `schema/v4.3.0` (`UpcastSourceTransform`), `event/v4.7.0` (store transforms + actor context), `command/v4.7.1`, `query/v4.6.1` (`AsRecord`), `middleware/v4.5.0` (`CommandActorContext`), `watermill/v4.5.0` (CatchUpSubscriber replay fix), `metaengine/v4.11.0` (layout roles, DemoteEngine, MariaDB dialect, live-cost) + 8 engine tags, `storage/v4.7.0→v4.7.1` (keyset pagination ~285x, packet-safe chunking). **Retracted + repaired:** command/v4.7.0, query/v4.6.0, storage/v4.7.0 (standalone-build breaks)                                                                                                                                                 |
-| [Unreleased]                 | —          | • **2026-08-27 correctness waves**: watermill CatchUpSubscriber at-least-once (Ack-time checkpoints + watermark), listing type-driven status (StatusClassifier), system synthetic-engine shutdown validation, error-family preservation across dispatcher/command/query/stores, per-test PG isolation<br/>• **v5 pre-cut**: 73 deprecation markers (stack tiers, view/relational, tombstone API, transport) landed 2026-08-17<br/>• **Durability tiers**: pebble/postgres/bbolt/badger map Strict/Normal/Relaxed (08-17/18)<br/>• **Vector/graph**: binary float32 vector payloads (~31-35x search), depth-1 graph short-circuit, filtered k-NN, GraphRemoveEdge (08-16/17)<br/>• Tag-wave B1 (08-29): event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1 |
+| [Unreleased]                 | —          | • **2026-09-06**: cqrs-lint severity/confidence contract (14 split-brains fixed, S008/S009 now error), `rules --json`, suppression-parser/fix-provider/lintutil hardening, self-healing formatter guard<br/>• **2026-09-05**: V007 `v5-removed-api-usage` (204 rules) + getting-started modernized onto `system.New`<br/>• **2026-09-03**: master-CI repair wave 2 (FlakeHub, module matrix discovery, go.work externals)<br/>• **2026-08-30/31**: D3 planned-table pushdown train (filters/sort/keyset, MapScan/MapUpdate, EXPLAIN proofs, cross-engine parity matrix), `LayoutPlanEvolver`, `BackfillPlannedCollection`, `EffectiveDurability`, `RenewLease` + claim metrics<br/>• **v5 pre-cut**: 73 deprecation markers (stack tiers, view/relational, tombstone API, transport) landed 2026-08-17<br/>• **Durability tiers**: pebble/postgres/bbolt/badger map Strict/Normal/Relaxed (08-17/18)<br/>• **Vector/graph**: binary float32 vector payloads (~31-35x search), depth-1 graph short-circuit, filtered k-NN, GraphRemoveEdge (08-16/17) |
 | v4.2.0                       | 2026-07-27 | CBOR→JSON transcoding, 3 new cqrs-lint rules (65 total), coverage-drift checker, CI gates (duplication/layers/api-stability/coverage), wrapClosed consolidation, UP1 test hardening, go-error-family v0.10.0 (6-family)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | v4.1.0                       | 2026-07-23 | Deprecated API removal, metaengine, benchkit, Increment/Reset rollups, README overhaul, error taxonomy migration, Aggregate→Stream rename (ADR-0058)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | v4.0.4                       | 2026-07-23 | COSE signing/encryption, multi-batch event store, OTel storage instrumentation, getting-started guide, architecture docs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -184,14 +184,17 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to **203 rules** across 10 categories. Quality has been
+The linter grew from 65 to **204 rules** across 10 categories. Quality has been
 hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **203 rules shipped** across correctness, API misuse, boilerplate, adoption,
+- ✅ **204 rules shipped** across correctness, API misuse, boilerplate, adoption,
   architecture, consistency, security, performance, testing, version.
   Metaengine-aware detection (F018-F026). Resilience rules (B029-B031).
   Observability rules (F027-F029). Optimistic concurrency rules (C041-C042).
-  Deprecated-transport coaching (F030, ADR-0127).
+  Deprecated-transport coaching (F030, ADR-0127). v5-removed-API detection
+  (V007, 2026-09-05) with a two-directional drift meta-test; severity/
+  confidence contract meta-tested (14 split-brains fixed); suppression
+  parser, fix provider, and lintutil hardened (2026-09-06).
 - ✅ **Feature profile system** — auto-detects consumer module usage and adapts
   context-dependent rules. TLS-aware server detection, ServerLocal heuristic.
   Per-module detection infrastructure (`ProfileForFile`) — C017, S002, S003,
@@ -566,12 +569,13 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 > Standing questions from recent sessions that block or shape work. Answers
 > should be folded into TODO_LIST once decided.
 
-1. **Pending tag-wave B2-B7** (updated 2026-08-29): B1 was cut 2026-08-29
-   (event/v4.9.0, schema/v4.3.1, dedup/v4.2.1, dispatcher/v4.3.1). B2-B7
-   (32 remaining tags per
-   [plan](docs/planning/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md)) await
-   your sign-off, incl. whether `listing` + `pgtestcontainer` get pre-v5
-   patch tags so their sibling replaces can drop.
+1. **Next tag wave + severity policy** (updated 2026-09-06): the 39-tag v4
+   wave B1–B7 was cut+pushed 2026-08-29 (plan archived at
+   `docs/planning/archived/2026-08-27_17-30_PENDING-TAG-WAVE-PLAN.md`).
+   OPEN decisions: (a) authorize the next patch/minor wave (metaengine
+   session-7 surface is ≥1 minor untagged; see TODO_LIST Release section);
+   (b) is severity-tightening (S008/S009 now `error` in v4.9.0) acceptable
+   in a minor release, or gated behind a "Changed" + dedicated minor?
 2. **SA1019 exclusion permanence**: keep the scoped
    `(middleware|idempotency)/.*_test\.go$` exclusion permanently, or migrate
    kvstore test matrices onto the go-idempotency contract suite before v5?
