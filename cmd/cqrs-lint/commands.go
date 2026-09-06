@@ -33,6 +33,17 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"rules",
 		rulesFlags{},
 		func(_ context.Context, cfg *AppConfig, flags rulesFlags) error {
+			if flags.Markdown {
+				out, err := renderRulesMarkdown()
+				if err != nil {
+					return fmt.Errorf("render rules markdown: %w", err)
+				}
+
+				fmt.Print(out)
+
+				return nil
+			}
+
 			if flags.JSON {
 				out, err := renderRulesJSON()
 				if err != nil {
@@ -61,7 +72,8 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 // rulesFlags carries the rules subcommand's output-format flag.
 type rulesFlags struct {
-	JSON bool `default:"false" flag:"json" help:"Emit the catalog as JSON for editor/tooling consumers"`
+	JSON     bool `default:"false" flag:"json" help:"Emit the catalog as JSON for editor/tooling consumers"`
+	Markdown bool `default:"false" flag:"markdown" help:"Emit the anchored RULES.md page (regen: rules --markdown > RULES.md)"`
 }
 
 func setupVersionCommand(cli *cmdguard.CLI[AppConfig]) error {
