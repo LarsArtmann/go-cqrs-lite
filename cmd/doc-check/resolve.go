@@ -54,10 +54,10 @@ func (r *resolver) warm(imp string) []string {
 // resolve reports whether one reference is valid. A reference whose alias is
 // neither a block import nor a repo package alias is treated as external and
 // skipped (documented limitation, matches the historical behavior).
-func (r *resolver) resolve(b block, rr ref) bool {
-	if paths := r.blockPaths(b, rr.pkg); len(paths) > 0 {
+func (r *resolver) resolve(b block, ref ref) bool {
+	if paths := r.blockPaths(b, ref.pkg); len(paths) > 0 {
 		for _, p := range paths {
-			if r.exports[p][rr.symbol] {
+			if r.exports[p][ref.symbol] {
 				return true
 			}
 		}
@@ -65,8 +65,8 @@ func (r *resolver) resolve(b block, rr ref) bool {
 		return false
 	}
 
-	if alias := r.aliasExports(rr.pkg); alias != nil {
-		return alias[rr.symbol]
+	if alias := r.aliasExports(ref.pkg); alias != nil {
+		return alias[ref.symbol]
 	}
 
 	return true
@@ -171,7 +171,7 @@ func (r *resolver) indexPackageDir(dir string) {
 // verifyBlocks checks every reference block-scoped and returns the broken
 // count, the total, and any parse warnings for the zero-warning gate.
 func verifyBlocks(blocks []block, allImports []string, res *resolver) (int, int, []string) {
-	var warnings []string
+	warnings := make([]string, 0, len(allImports))
 
 	for _, imp := range dedupe(allImports) {
 		warnings = append(warnings, res.warm(imp)...)
@@ -180,11 +180,11 @@ func verifyBlocks(blocks []block, allImports []string, res *resolver) (int, int,
 	broken, total := 0, 0
 
 	for _, b := range blocks {
-		for _, rr := range b.refs {
+		for _, ref := range b.refs {
 			total++
 
-			if !res.resolve(b, rr) {
-				log.Printf("  ✗ %s:%d: %s.%s not found", rr.file, rr.line, rr.pkg, rr.symbol)
+			if !res.resolve(b, ref) {
+				log.Printf("  ✗ %s:%d: %s.%s not found", ref.file, ref.line, ref.pkg, ref.symbol)
 
 				broken++
 			}
