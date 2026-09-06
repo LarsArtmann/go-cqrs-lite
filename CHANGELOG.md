@@ -6,6 +6,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — badgerengine restart data loss + gate/tooling batch — 2026-09-06
+
+- **Reopening a badgerengine database silently overwrote existing entries**
+  (`metaengine/badgerengine`): restart-time sequence seeding only seeded the
+  log prefix, so post-restart `StreamAppend`/journal/multimap writes restarted
+  sequence counters at 1 and clobbered earlier entries. Found by adopting
+  `enginetest.RunRestartSafetyTest` (badgerengine + sqliteengine now run it,
+  each with a FromDB variant that reopens the raw database). Fixed with
+  four-prefix seeding (streams/journal/log/multimap, group-aware per keycodec
+  layout, CAS max-seeding) mirroring pebbleengine's `seq_seeding.go`.
+- **check-templ was permanently red** (gate set): committed `*_templ.go`
+  files carried repo-root-prefixed FileName metadata (generated from the
+  wrong cwd). Regenerated canonically from `catalog/docserver/` with nixpkgs
+  templ; the cwd rule is documented in AGENTS.md.
+- **`exhaustruct` → `exhaustruct_v5` migration**: `.golangci.yml` enable
+  entry + v5 `ignore-patterns` settings + 29 exclusion-rule renames; all 82
+  `//nolint:exhaustruct` sites renamed; the deprecation warning on every lint
+  run is gone.
+
+### Added — pin-sweep script, doc-check block-scoped resolver, `SortPaginate[T]` — 2026-09-06
+
+- **`scripts/pin-sweep.sh` + `#pin-sweep` flake app + CI leg**: sweep mode
+  bumps sibling-module pins to the latest local tags, `go mod tidy`es,
+  GOWORK=off builds + test-compiles every changed module, and refreshes BOTH
+  cqrs-lint goldens; `--check` staleness mode annotates and fails. Validated
+  end-to-end in a detached worktree (planted staleness detected and swept).
+- **doc-check resolves same-named packages correctly** (`cmd/doc-check`):
+  the export index merged all doc imports by package basename, so
+  `scheduling/sqlstore` and `idempotency/sqlstore` cross-contaminated
+  (false passes, historically false failures). Rewritten as block-scoped
+  resolution with a repo-wide package-alias fallback and unit tests —
+  stricter AND wider: 1185 references validated across 63 packages (was
+  961/42). No-import `sqlstore.` aliases now resolve.
+- **`metaengine.SortPaginate[T]`** (`metaengine`): the generic sort+paginate
+  core extracted from the badger/pebble engine twins (zero-copy via key/value
+  accessor closures). Retires the last accepted badger↔pebble clone.
+- **api-stability golden: sub-package symbols carry their package path**
+  (`cmd/api-stability`): the export collector now walks every non-internal
+  sub-package (fixing accumulating line-number drift alongside).
+
+### Changed — formatter/gate wiring — 2026-09-06
+
+- **`#verify` + `#verify-fast` now run the check apps**: Check Lint Config
+  (superset of the standalone depguard step: config verify + depguard +
+  formatters pin), Check Templ, Check Bench Gate.
+- **idempotency/kvstore 3-way contract tests moved to `integration/`**
+  (record-noop + concurrent CheckAndRecord + TTL validation + rapid property
+  suite): kvstore's go.mod sheds `modernc.org/sqlite`,
+  `idempotency/sqlstore`, and `pgregory.net/rapid` (integration is a
+  test-only module, dep-budget exempt); race pass green in the new home.
+- **Dead `event/eventtest/` exclusion paths removed** from
+  `.golangci.yml` (directory no longer exists); the remaining exclusion
+  paths are probe-verified load-bearing (`event/` ~120 findings,
+  `event/v4/eventtest/` 7, `metaengine/sqliteengine/` 6; `storage/view/`
+  kept as a drift guard) — probe method documented in AGENTS.md.
+
 ### Added — catalog/encryption TODO wave: key management, browser CSP validation, sub-package API coverage — 2026-09-06
 
 - **Key-management helpers** (`encryption`): `encryption.GenerateKey`,
