@@ -52,8 +52,8 @@ func TestGolden_SnapshotStructure(t *testing.T) {
 	}
 
 	got, err := json.Marshal(struct {
-		StreamID   string `json:"aggregateId"`
-		StreamType string `json:"aggregateType"`
+		StreamID   string `json:"stream_id"`
+		StreamType string `json:"stream_type"`
 		Version    int    `json:"version"`
 		State      string `json:"state"`
 		CreatedAt  string `json:"createdAt"`

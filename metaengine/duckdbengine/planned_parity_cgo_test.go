@@ -120,6 +120,25 @@ func TestDuck_EvolveLayoutPlan(t *testing.T) {
 		t.Fatalf("second evolve applied %v, want no-op (type alias mismatch?)", applied)
 	}
 
+	// A genuine type drift retypes in place: priority is INTEGER with an
+	// index on it — DuckDB needs the index dropped around ALTER TYPE, which
+	// the evolve handles. INTEGER→REAL is a safe widening.
+	widen := plan
+	for i := range widen.Columns {
+		if widen.Columns[i].Name == "priority" {
+			widen.Columns[i].Type = "REAL"
+		}
+	}
+
+	applied, err = ev.EvolveLayoutPlan(ctx, widen)
+	if err != nil {
+		t.Fatalf("EvolveLayoutPlan (retype): %v", err)
+	}
+
+	if len(applied) != 1 || applied[0] != "retype:priority" {
+		t.Fatalf("retype applied %v, want [retype:priority]", applied)
+	}
+
 	rep := eng.(metaengine.PlannedTablesReporter)
 
 	infos, err := rep.PlannedTables(ctx)

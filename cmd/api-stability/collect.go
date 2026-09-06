@@ -13,22 +13,12 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-func collectExports(dir string) ([]string, error) {
-	_, exports, err := collectDirExports(dir)
-
-	return exports, err
-}
-
-// collectDirExports parses the non-test .go files of a single directory and
-// returns the package name plus the exported symbol list. Callers sweeping a
-// whole module use the package name to skip non-importable `main`
-// sub-packages.
 func collectDirExports(dir string) (string, []string, error) {
 	fset := token.NewFileSet()
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, errorfamily.Wrapf(
+		return "", nil, errorfamily.Wrapf(
 			err,
 			errorfamily.Infrastructure,
 			"api_stability.read_dir",
@@ -128,7 +118,13 @@ func collectModuleExports(modPath string) ([]string, error) {
 
 		rel, relErr := filepath.Rel(modPath, path)
 		if relErr != nil {
-			return relErr
+			return errorfamily.Wrapf(
+				relErr,
+				errorfamily.Infrastructure,
+				"api_stability.rel_path",
+				"rel %s",
+				path,
+			)
 		}
 
 		for _, e := range subExports {

@@ -99,8 +99,6 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 	applied := make([]string, 0)
 
 	for _, c := range plan.Columns {
-		want := strings.ToUpper(c.Type)
-
 		var got string
 
 		err := e.db.QueryRowContext(
@@ -124,7 +122,30 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 			applied = append(applied, "add:"+c.Name)
 		case err != nil:
 			return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: introspect %s: %w", c.Name, err)
-		case !strings.EqualFold(got, want):
+		case duckdbCanonicalType(got) != duckdbCanonicalType(c.Type):
+			// Genuinely drifted type. DuckDB refuses ALTER TYPE while an
+			// index depends on the column — drop the plan's indexes on it,
+			// retype, recreate them.
+			dependent := make([]metaengine.PlannedIndex, 0)
+
+			for _, idx := range plan.Indexes {
+				for _, col := range idx.Columns {
+					if strings.EqualFold(col, c.Name) {
+						dependent = append(dependent, idx)
+
+						break
+					}
+				}
+			}
+
+			for _, idx := range dependent {
+				if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
+					"DROP INDEX IF EXISTS %s", metaengine.QuoteIdent(idx.Name),
+				)); err != nil {
+					return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: drop index %s: %w", idx.Name, err)
+				}
+			}
+
 			if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
 				"ALTER TABLE %s ALTER COLUMN %s TYPE %s",
 				metaengine.QuoteIdent(plan.Table),
@@ -132,6 +153,17 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 				c.Type,
 			)); err != nil {
 				return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: retype %s: %w", c.Name, err)
+			}
+
+			for _, idx := range dependent {
+				if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
+					"CREATE INDEX IF NOT EXISTS %s ON %s(%s)",
+					metaengine.QuoteIdent(idx.Name),
+					metaengine.QuoteIdent(plan.Table),
+					metaengine.QuoteIdent(idx.Columns[0]),
+				)); err != nil {
+					return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: recreate index %s: %w", idx.Name, err)
+				}
 			}
 
 			applied = append(applied, "retype:"+c.Name)
@@ -152,6 +184,30 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 	e.plans[plan.Collection] = plan
 
 	return applied, nil
+}
+
+// duckdbCanonicalType maps DDL type spellings AND information_schema's
+// reported names onto one canonical set, so alias pairs (TEXT/VARCHAR,
+// REAL/FLOAT) compare equal — DuckDB reports the canonical name, not the
+// DDL spelling, and an un-normalized compare would retype every TEXT column
+// on every evolve (non-idempotent, plus an index dance per column).
+func duckdbCanonicalType(t string) string {
+	switch strings.ToUpper(strings.TrimSpace(t)) {
+	case "TEXT", "VARCHAR", "CHAR", "BPCHAR", "STRING":
+		return "VARCHAR"
+	case "REAL", "FLOAT", "FLOAT4":
+		return "FLOAT"
+	case "DOUBLE", "FLOAT8":
+		return "DOUBLE"
+	case "INT", "INTEGER", "INT4", "SIGNED":
+		return "INTEGER"
+	case "BIGINT", "INT8", "LONG":
+		return "BIGINT"
+	case "BOOLEAN", "BOOL", "LOGICAL":
+		return "BOOLEAN"
+	default:
+		return strings.ToUpper(strings.TrimSpace(t))
+	}
 }
 
 // PlannedTables implements metaengine.PlannedTablesReporter: every registered
