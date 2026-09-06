@@ -107,15 +107,29 @@ dgraph  CounterGet  3837756 / 2666601 / 2744322 / 2549433 / 2659298 (1K rows) �
 ```
 
 Superseded: pg/mysql 150 (SQL-SUM-era, AggregateSum benches — those now
-document the planner-bypassing typed path only) and dgraph 950_000
-(GraphNeighbors depth-3 per-op misused as a per-row constant, ~350x high).
+document the planner-bypassing typed path only), dgraph 950_000
+(GraphNeighbors depth-3 per-op misused as a per-row constant, ~350x high),
+and the dgraph per-OP-in-per-ROW divergence below (RECALIBRATED 2026-09-06).
 
-Known remaining divergence (OUT of G1 scope, flagged not silently changed):
-dgraph `NsPerFilteredScan` (900_000) and `NsPerScan` (450_000) carry
-per-OP measurements (SearchQuery anyofterms / GraphNeighbors depth-1) in
-per-ROW fields — a k-row result is one RPC, so per-row pricing overstates
-by ~k×. Honest recalibration needs result-size-scaled benches (cost as a
-function of k); the point-lookup and aggregate fields are already correct.
+### Dgraph scaled-scan recalibration (2026-09-06, closes the per-OP divergence)
+
+`BenchmarkCalibration_DgraphScaled` (new; ephemeral Dgraph 25.4.0, ambient
+load ~3, count=3, benchtime=20x, discard-cold medians) measured MapScan cost
+as a function of result size:
+
+| rows  | FullScan (ns/op) | FilteredScan 10% (ns/op) |
+| ----- | ---------------- | ------------------------ |
+| 100   | 757_409          | 754_532                  |
+| 1 000 | 3_222_189        | 3_193_921                |
+| 10 000| 23_517_460       | 22_564_076               |
+
+Per-row slopes: 100→1K ≈ 2_740 (full) / 2_710 (filtered); 1K→10K ≈ 2_255 /
+2_152 ns/row. Filtered tracks full because the predicate runs client-side
+over all returned rows. The single-RPC FIXED cost (~0.5-0.7 ms) does not
+scale with volume; it is bounded by the NetworkRTT prior. Shipped:
+`NsPerScan = NsPerFilteredScan = 2_200` (was 450_000 / 900_000 per-RPC
+totals — a 1K-row estimate was overstated ~200-400x). Point-lookup and
+aggregate fields were already correct and are unchanged.
 
 ## Protocol
 
