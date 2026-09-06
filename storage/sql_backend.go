@@ -5,11 +5,12 @@ import (
 	"errors"
 	"sync"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4/eventstore"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4/readmodel"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SQLBackend is a facade that provides access to all SQL-backed stores

@@ -6,9 +6,10 @@ import (
 	"io"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MemoryCommandStore is an in-memory implementation of command.Store.

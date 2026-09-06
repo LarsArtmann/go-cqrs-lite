@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SQLTimerStore is a persistent [scheduling.TimerStore] backed by a SQL database.

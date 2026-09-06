@@ -26,9 +26,10 @@ import (
 
 	"github.com/dgraph-io/dgo/v240"
 	"github.com/dgraph-io/dgo/v240/protos/api"
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // DG_NsPerOp models production Dgraph (RAFT consensus + gRPC round-trip).

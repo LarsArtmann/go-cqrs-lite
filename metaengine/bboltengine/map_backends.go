@@ -6,8 +6,9 @@ import (
 	"slices"
 	"sort"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	bolt "go.etcd.io/bbolt"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // --- MapBackend ---

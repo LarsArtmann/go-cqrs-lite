@@ -8,12 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-finding/pipeline"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/fix"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression"
-	"github.com/larsartmann/go-finding"
-	"github.com/larsartmann/go-finding/pipeline"
 )
 
 // errAbortClean signals that the lint found nothing to analyze but no error

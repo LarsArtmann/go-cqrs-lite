@@ -96,11 +96,12 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			return results[0].Interface(), results[1].Interface()
 		}
 		f := &insertFold{
-			eventType: eventType,
-			sample:    sample,
-			keyType:   handlerType.Out(0),
-			valueType: handlerType.Out(1),
-			invoke:    invoke,
+			recordCtx:  recordCtx{recordAware: true},
+			eventType:  eventType,
+			sample:     sample,
+			keyType:    handlerType.Out(0),
+			valueType:  handlerType.Out(1),
+			invoke:     invoke,
 		}
 		return f
 
@@ -119,6 +120,7 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			return hv.Call(args)[0].Interface()
 		}
 		f := &updateFold{
+			recordCtx: recordCtx{recordAware: true},
 			eventType: eventType,
 			sample:    sample,
 			valueType: handlerType.Out(0),
@@ -134,39 +136,39 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			invoke := func(rec record.Record, event any) Delta {
 				return callWithRecord(rec, event)[0].Interface().(Delta)
 			}
-			return &countFold{eventType: eventType, sample: sample, invoke: invoke}
+			return &countFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Edge]():
 			invoke := func(rec record.Record, event any) Edge {
 				return callWithRecord(rec, event)[0].Interface().(Edge)
 			}
-			f := &edgeFold{eventType: eventType, sample: sample, invoke: invoke}
+			f := &edgeFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 			return f
 
 		case reflect.TypeFor[EdgeRemoval]():
 			invoke := func(rec record.Record, event any) EdgeRemoval {
 				return callWithRecord(rec, event)[0].Interface().(EdgeRemoval)
 			}
-			f := &edgeRemoveFold{eventType: eventType, sample: sample, invoke: invoke}
+			f := &edgeRemoveFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 			return f
 
 		case reflect.TypeFor[Embedding]():
 			invoke := func(rec record.Record, event any) Embedding {
 				return callWithRecord(rec, event)[0].Interface().(Embedding)
 			}
-			return &vectorFold{eventType: eventType, sample: sample, invoke: invoke}
+			return &vectorFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[IndexedText]():
 			invoke := func(rec record.Record, event any) IndexedText {
 				return callWithRecord(rec, event)[0].Interface().(IndexedText)
 			}
-			return &searchFold{eventType: eventType, sample: sample, invoke: invoke}
+			return &searchFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Point]():
 			invoke := func(rec record.Record, event any) Point {
 				return callWithRecord(rec, event)[0].Interface().(Point)
 			}
-			return &spatialFold{eventType: eventType, sample: sample, invoke: invoke}
+			return &spatialFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Skip]():
 			return &skipFold{eventType: eventType, sample: sample}
@@ -175,19 +177,19 @@ func onRecordFold[E any](eventType string, sample E, handler any) Fold {
 			invoke := func(rec record.Record, event any) MultiEntry {
 				return callWithRecord(rec, event)[0].Interface().(MultiEntry)
 			}
-			return &multiInsertFold{eventType: eventType, sample: sample, invoke: invoke}
+			return &multiInsertFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 
 		case reflect.TypeFor[Append]():
 			invoke := func(rec record.Record, event any) Append {
 				return callWithRecord(rec, event)[0].Interface().(Append)
 			}
-			return &appendFold{eventType: eventType, sample: sample, invoke: invoke}
+			return &appendFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, invoke: invoke}
 
 		default:
 			invoke := func(rec record.Record, event any) any {
 				return callWithRecord(rec, event)[0].Interface()
 			}
-			f := &setFold{eventType: eventType, sample: sample, keyType: outType, invoke: invoke}
+			f := &setFold{recordCtx: recordCtx{recordAware: true}, eventType: eventType, sample: sample, keyType: outType, invoke: invoke}
 			return f
 		}
 	}

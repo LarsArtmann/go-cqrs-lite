@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

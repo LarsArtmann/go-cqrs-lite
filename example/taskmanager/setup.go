@@ -11,6 +11,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/larsartmann/go-idempotency"
+	gomust "github.com/larsartmann/go-must"
+	otel "go.opentelemetry.io/otel"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // register "sqlite" driver
@@ -21,9 +25,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	"github.com/larsartmann/go-idempotency"
-	gomust "github.com/larsartmann/go-must"
-	otel "go.opentelemetry.io/otel"
 )
 
 const (

@@ -45,6 +45,24 @@ type Fold interface {
 	Kind() FoldKind
 }
 
+// recordCtx is embedded by every handler-carrying fold struct and records
+// whether the handler declared a record.Record first parameter (created via
+// OnRecord/OnRecordTyped). The zero value means On-style: the handler never
+// sees the Record, so synthetic-record applies are harmless for it.
+type recordCtx struct {
+	recordAware bool
+}
+
+func (c recordCtx) recordsRecordContext() bool { return c.recordAware }
+
+// foldWantsRecord reports whether the fold's handler takes a record.Record
+// first parameter (OnRecord/OnRecordTyped construction).
+func foldWantsRecord(f Fold) bool {
+	rc, ok := f.(interface{ recordsRecordContext() bool })
+
+	return ok && rc.recordsRecordContext()
+}
+
 // ── Concrete fold types ──
 // Each type stores exactly its own typed handler as a pre-bound closure.
 // The closure captures the reflect.Value once at construction time;
@@ -52,6 +70,7 @@ type Fold interface {
 
 // insertFold: func(E) (K, V) → MapSet(collection, K, V).
 type insertFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	keyType   reflect.Type
@@ -66,6 +85,7 @@ func (f *insertFold) Kind() FoldKind    { return FoldInsert }
 
 // updateFold: func(E, prev V) V → MapUpdate.
 type updateFold struct {
+	recordCtx
 	eventType    string
 	sample       any
 	valueType    reflect.Type
@@ -93,6 +113,7 @@ func (f *removeFold) Kind() FoldKind    { return FoldRemove }
 
 // countFold: func(E) Delta → CounterIncrement.
 type countFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) Delta
@@ -105,6 +126,7 @@ func (f *countFold) Kind() FoldKind    { return FoldCount }
 
 // edgeFold: func(E) Edge → GraphAddEdge.
 type edgeFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) Edge
@@ -118,6 +140,7 @@ func (f *edgeFold) Kind() FoldKind    { return FoldEdge }
 // edgeRemoveFold: func(E) EdgeRemoval → GraphRemoveEdge (ADR-0114 style
 // tombstone: the event retracts a previously added edge).
 type edgeRemoveFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) EdgeRemoval
@@ -130,6 +153,7 @@ func (f *edgeRemoveFold) Kind() FoldKind    { return FoldEdgeRemove }
 
 // setFold: func(E) K → SetAdd.
 type setFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	keyType   reflect.Type
@@ -143,6 +167,7 @@ func (f *setFold) Kind() FoldKind    { return FoldSet }
 
 // multiInsertFold: func(E) MultiEntry → MultiAdd.
 type multiInsertFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) MultiEntry
@@ -155,6 +180,7 @@ func (f *multiInsertFold) Kind() FoldKind    { return FoldMultiInsert }
 
 // appendFold: func(E) Append → LogAppend.
 type appendFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) Append
@@ -167,6 +193,7 @@ func (f *appendFold) Kind() FoldKind    { return FoldAppend }
 
 // vectorFold: func(E) Embedding → VectorInsert.
 type vectorFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) Embedding
@@ -179,6 +206,7 @@ func (f *vectorFold) Kind() FoldKind    { return FoldVector }
 
 // searchFold: func(E) IndexedText → SearchInsert.
 type searchFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) IndexedText
@@ -191,6 +219,7 @@ func (f *searchFold) Kind() FoldKind    { return FoldSearch }
 
 // spatialFold: func(E) Point → SpatialInsert.
 type spatialFold struct {
+	recordCtx
 	eventType string
 	sample    any
 	invoke    func(rec record.Record, event any) Point

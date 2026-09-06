@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-codec"
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 )
 
 type userResult struct {

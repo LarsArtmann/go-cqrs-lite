@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"testing"
 
+	_ "modernc.org/sqlite" // register sqlite driver
+
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
-	_ "modernc.org/sqlite" // register sqlite driver
 )
 
 // TestGraphFallback_E2E_SQLiteStore runs the full Store pipeline against a real
