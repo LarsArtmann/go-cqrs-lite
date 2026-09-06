@@ -126,7 +126,7 @@ func isOOAggregate(fn *ast.FuncDecl) bool {
 }
 
 func detectFoldFunc(
-	_ *AnalysisContext,
+	ctx *AnalysisContext,
 	gf *GoFile,
 	fn *ast.FuncDecl,
 	pos token.Position,
@@ -182,7 +182,7 @@ func detectFoldFunc(
 		}
 
 		info.HasSwitch = true
-		info.SwitchTagExpr = ExprString(sw.Tag)
+		info.SwitchTagExpr = typeCallText(sw.Tag)
 
 		for _, stmt := range sw.Body.List {
 			cc, ok := stmt.(*ast.CaseClause)
@@ -219,6 +219,24 @@ func detectFoldFunc(
 	})
 
 	return info
+}
+
+// typeCallText renders an "X.Type()" expression back to source text for fix
+// codegen. ExprString cannot be used here: it elides call arguments, which
+// would splice "evt.Type(...)" — non-compiling — into generated code. Tags
+// with any other shape return "" and the rule degrades to advisory output.
+func typeCallText(e ast.Expr) string {
+	call, ok := e.(*ast.CallExpr)
+	if !ok || len(call.Args) != 0 {
+		return ""
+	}
+
+	sel, ok := call.Fun.(*ast.SelectorExpr)
+	if !ok || sel.Sel.Name != "Type" {
+		return ""
+	}
+
+	return ExprString(sel.X) + ".Type()"
 }
 
 // looksLikeEventType checks if a parameter type string represents an event type.
