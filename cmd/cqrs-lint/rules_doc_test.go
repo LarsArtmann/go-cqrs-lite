@@ -13,9 +13,11 @@ import (
 func rulesMDAnchors(t *testing.T) map[string]bool {
 	t.Helper()
 
+	regen := "cd cmd/cqrs-lint && GOWORK=off go run . rules --markdown > RULES.md"
+
 	data, err := os.ReadFile("RULES.md")
 	if err != nil {
-		t.Fatalf("read RULES.md: %v (regenerate: cd cmd/cqrs-lint && GOWORK=off go run -tags \"goexperiment.jsonv2\" . rules --markdown > RULES.md)", err)
+		t.Fatalf("read RULES.md: %v (regenerate: %s)", err, regen)
 	}
 
 	re := regexp.MustCompile(`<a id="([a-z0-9]+)"></a>`)
@@ -33,10 +35,11 @@ func rulesMDAnchors(t *testing.T) map[string]bool {
 // without regenerating RULES.md.
 func TestRULESMD_CoversEveryCatalogID(t *testing.T) {
 	anchors := rulesMDAnchors(t)
+	regen := "cd cmd/cqrs-lint && GOWORK=off go run . rules --markdown > RULES.md"
 
 	for _, r := range rules.AllRules() {
 		if !anchors[strings.ToLower(r.ID)] {
-			t.Errorf("RULES.md has no anchor for %s — regenerate: cd cmd/cqrs-lint && GOWORK=off go run -tags \"goexperiment.jsonv2\" . rules --markdown > RULES.md", r.ID)
+			t.Errorf("RULES.md has no anchor for %s — regenerate: %s", r.ID, regen)
 		}
 	}
 }
@@ -44,10 +47,7 @@ func TestRULESMD_CoversEveryCatalogID(t *testing.T) {
 // TestRULESMD_Fresh fails when RULES.md is stale relative to the in-code
 // catalog (description/severity edits count too, not just new rules).
 func TestRULESMD_Fresh(t *testing.T) {
-	want, err := renderRulesMarkdown()
-	if err != nil {
-		t.Fatalf("render: %v", err)
-	}
+	want := renderRulesMarkdown()
 
 	got, err := os.ReadFile("RULES.md")
 	if err != nil {
@@ -55,7 +55,7 @@ func TestRULESMD_Fresh(t *testing.T) {
 	}
 
 	if string(got) != want {
-		t.Fatal("RULES.md is stale — regenerate: cd cmd/cqrs-lint && GOWORK=off go run -tags \"goexperiment.jsonv2\" . rules --markdown > RULES.md")
+		t.Fatal("RULES.md is stale — regenerate: cd cmd/cqrs-lint && GOWORK=off go run . rules --markdown > RULES.md")
 	}
 }
 
