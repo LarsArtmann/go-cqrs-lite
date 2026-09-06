@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — cqrs-lint suppression parser tail, fix-provider unification, lintutil convergence — 2026-09-06
+
+Follow-up wave after the `cmd/cqrs-lint/v4.9.0` tag (post-tag work).
+
+- **Suppression parser blind spots closed** (T05): two `//cqrs-lint:ignore(...)`
+  directives on one line no longer swallow the second; multi-space/tab between
+  `//` and `cqrs-lint:` is normalized; directives written inside `/* */`
+  block comments are now inert (previously honored as real suppressions);
+  stray `ignore-end` and never-closed `ignore-start` (which suppressed to
+  EOF) now fail under `--fail-on-stale-suppressions` with remediation hints.
+- **fix.Provider dual edit-spec source unified** (T06): `CanHandle` accepts
+  the `Edits` Metadata path (`oldExpr`/`newExpr`) alongside Before/AfterCode,
+  so a Metadata-only finding is no longer silently unfixed; round-trip test
+  added.
+- **lintutil convergence** (T07): `lastSegment` handles `/v10`+ import
+  suffixes (v2–v99); the Register/Handle denylist resolves qualifiers to
+  import paths (a consumer's own `mux`/`http` package is no longer wrongly
+  skipped); the dot-import false-attribution branch is removed from
+  `QualifierToImportPath`; dead exports `ImportQualifierMap` and
+  `SelectorIdent` unexported/removed.
+- **Self-healing formatter guard**: `scripts/check-formatters.sh` now strips
+  a re-added `gci` entry from `.golangci.yml` in place and re-verifies
+  instead of only reporting (the auto-commit daemon re-added it a third
+  time on 2026-09-06); missing pinned formatters still fail loudly.
+
 ### Added — severity/confidence contract + rules --json — 2026-09-06
 
 - **cqrs-lint severity meta-test**: what a detector's finding.NewBuilder call
