@@ -18,12 +18,11 @@ import (
 	"math"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	cqrsbbolt "github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 )
 
 // Option configures the bbolt preset.

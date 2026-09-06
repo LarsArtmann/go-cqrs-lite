@@ -55,7 +55,9 @@ func TestRULESMD_Fresh(t *testing.T) {
 	}
 
 	if string(got) != want {
-		t.Fatal("RULES.md is stale — regenerate: cd cmd/cqrs-lint && GOWORK=off go run . rules --markdown > RULES.md")
+		t.Fatal(
+			"RULES.md is stale — regenerate: cd cmd/cqrs-lint && GOWORK=off go run . rules --markdown > RULES.md",
+		)
 	}
 }
 
