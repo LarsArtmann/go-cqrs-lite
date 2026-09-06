@@ -7,10 +7,9 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // CheckpointStore is the interface for persisting the last-processed event ID.

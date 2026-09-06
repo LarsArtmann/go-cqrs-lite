@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // BuildWhereClause turns structured [kv.Condition]s into a parameterised WHERE

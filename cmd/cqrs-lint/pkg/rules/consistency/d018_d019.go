@@ -7,11 +7,10 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-	"golang.org/x/tools/go/packages"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
+	"github.com/larsartmann/go-finding"
+	"golang.org/x/tools/go/packages"
 )
 
 // D018: Stale catalog entries.

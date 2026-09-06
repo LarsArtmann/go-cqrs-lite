@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-idempotency"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -15,6 +13,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	"github.com/larsartmann/go-idempotency"
 )
 
 // TestIdempotencyIntegration tests the full idempotency pipeline:

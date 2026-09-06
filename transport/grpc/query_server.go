@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-codec"
-	errorfamily "github.com/larsartmann/go-error-family"
-	"google.golang.org/grpc"
-
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
+	errorfamily "github.com/larsartmann/go-error-family"
+	"google.golang.org/grpc"
 )
 
 // QueryDispatcher is the server-side interface that the gRPC query service

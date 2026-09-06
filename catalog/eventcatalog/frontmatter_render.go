@@ -5,9 +5,8 @@ import (
 	"time"
 
 	yaml "github.com/go-faster/yaml"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // renderMDX marshals frontmatter to YAML and wraps it with the MDX body.

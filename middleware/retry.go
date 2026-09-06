@@ -6,13 +6,12 @@ import (
 	"log/slog"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	retrypkg "github.com/larsartmann/go-retry"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	retrypkg "github.com/larsartmann/go-retry"
 )
 
 // NewRetry returns a generic middleware that retries on retryable errors.

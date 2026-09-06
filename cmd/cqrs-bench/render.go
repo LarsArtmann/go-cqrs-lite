@@ -9,12 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
 	"github.com/larsartmann/go-output/markdown"
 	gotable "github.com/larsartmann/go-output/table"
-
-	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
 // ── format resolution ──

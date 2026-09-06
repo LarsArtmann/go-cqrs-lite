@@ -6,11 +6,10 @@ import (
 	"io"
 	"testing"
 
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )
 
 func newSQLiteStreamStore(t *testing.T) *storage.SQLEventStore {

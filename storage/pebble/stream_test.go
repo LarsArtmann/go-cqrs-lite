@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"

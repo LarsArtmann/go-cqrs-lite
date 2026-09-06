@@ -18,10 +18,9 @@ package simple
 import (
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var ErrCatalogValidation = errorfamily.NewRejection(

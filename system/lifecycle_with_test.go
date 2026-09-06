@@ -4,13 +4,12 @@ import (
 	"context"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystore "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	. "github.com/onsi/gomega"
 )
 
 func TestWithCommandLifecycle_ReturnsAllComponents(t *testing.T) {

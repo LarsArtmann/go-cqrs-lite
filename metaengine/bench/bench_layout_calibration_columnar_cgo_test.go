@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	_ "github.com/duckdb/duckdb-go/v2" // register duckdb driver for calibration
-
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
