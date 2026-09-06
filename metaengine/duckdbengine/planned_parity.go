@@ -91,7 +91,7 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 	defer e.layoutMu.Unlock()
 
 	if _, exists := e.plans[plan.Collection]; !exists {
-		if err := e.applyLayoutPlanLocked(plan); err != nil {
+		if err := e.applyLayoutPlanLocked(ctx, plan); err != nil {
 			return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: %w", err)
 		}
 	}
@@ -127,9 +127,9 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 			// index exists on the TABLE (not just the altered column), so
 			// all plan indexes are dropped and recreated around the change.
 			for _, idx := range plan.Indexes {
-				if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
-					"DROP INDEX IF EXISTS %s", metaengine.QuoteIdent(idx.Name),
-				)); err != nil {
+				dropIdx := "DROP INDEX IF EXISTS " + metaengine.QuoteIdent(idx.Name)
+
+				if _, err := e.db.ExecContext(ctx, dropIdx); err != nil {
 					return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: drop index %s: %w", idx.Name, err)
 				}
 			}

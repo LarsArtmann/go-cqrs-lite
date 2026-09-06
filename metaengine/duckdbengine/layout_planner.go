@@ -42,12 +42,12 @@ func (e *duckdbEngine) ApplyLayoutPlan(plan metaengine.LayoutPlan) error {
 	e.layoutMu.Lock()
 	defer e.layoutMu.Unlock()
 
-	return e.applyLayoutPlanLocked(plan)
+	return e.applyLayoutPlanLocked(context.Background(), plan)
 }
 
 // applyLayoutPlanLocked is ApplyLayoutPlan without the lock — for callers
 // already holding layoutMu (EvolveLayoutPlan). The caller must hold layoutMu.
-func (e *duckdbEngine) applyLayoutPlanLocked(plan metaengine.LayoutPlan) error {
+func (e *duckdbEngine) applyLayoutPlanLocked(ctx context.Context, plan metaengine.LayoutPlan) error {
 	if e.plans == nil {
 		e.plans = make(map[string]metaengine.LayoutPlan)
 	}
@@ -66,7 +66,7 @@ func (e *duckdbEngine) applyLayoutPlanLocked(plan metaengine.LayoutPlan) error {
 		return nil
 	}
 
-	if _, err := e.conn().ExecContext(context.Background(), plan.DDL()); err != nil {
+	if _, err := e.conn().ExecContext(ctx, plan.DDL()); err != nil {
 		return fmt.Errorf("duckdbengine.ApplyLayoutPlan: create table %s: %w", plan.Table, err)
 	}
 

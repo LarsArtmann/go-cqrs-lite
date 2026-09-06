@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -16,8 +18,10 @@ import (
 // docs/planning/v5-deprecation-sweep.md §4 and the 2026-08-22 data-model
 // review (T18/P10).
 //
-// CBOR is unaffected: canonical CBOR (fxamacker/cbor) keys structs by Go
-// field name, so those wire bytes never carried the aggregate vocabulary.
+// The fallback covers CBOR as well as JSON: fxamacker/cbor v2.9 falls back
+// to the json tag key when no cbor key is present, so the rename moves the
+// CBOR map keys too (pinned by TestWire_CBORCarriesNewKeys). Readers of
+// pre-v5 bytes decode both spellings via the legacy shadows below.
 
 type snapshotWire struct {
 	StreamID   id.StreamID     `json:"stream_id"`
@@ -44,20 +48,38 @@ type snapshotWireLegacy struct {
 // invariant enforcement happens here — check the decoded value with
 // [Snapshot.Validate].
 func (s *Snapshot) UnmarshalJSON(data []byte) error {
+	return decodeSnapshotWire(data, json.Unmarshal, s)
+}
+
+// UnmarshalCBOR is the CBOR twin of [Snapshot.UnmarshalJSON]: fxamacker/cbor
+// routes struct decoding through it and applies the same new-keys-first,
+// legacy-fallback resolution.
+func (s *Snapshot) UnmarshalCBOR(data []byte) error {
+	return decodeSnapshotWire(data, codec.CBORDecMode().Unmarshal, s)
+}
+
+// decodeSnapshotWire fills dst from wire bytes using the given unmarshaler,
+// resolving the pre-v5 aggregate spelling when the stream identity is
+// missing from the new keys.
+func decodeSnapshotWire(
+	data []byte,
+	unmarshal func([]byte, any) error,
+	dst *Snapshot,
+) error {
 	var wire snapshotWire
-	if err := json.Unmarshal(data, &wire); err != nil {
+	if err := unmarshal(data, &wire); err != nil {
 		return err
 	}
 
 	if wire.StreamID.IsZero() || wire.StreamType.IsZero() {
 		var legacy snapshotWireLegacy
-		if err := json.Unmarshal(data, &legacy); err == nil &&
+		if err := unmarshal(data, &legacy); err == nil &&
 			!legacy.StreamID.IsZero() && !legacy.StreamType.IsZero() {
 			wire.StreamID, wire.StreamType = legacy.StreamID, legacy.StreamType
 		}
 	}
 
-	*s = Snapshot{
+	*dst = Snapshot{
 		StreamID:   wire.StreamID,
 		StreamType: wire.StreamType,
 		Version:    wire.Version,

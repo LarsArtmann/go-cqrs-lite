@@ -429,12 +429,12 @@ func TestSnapshotStore_LegacyJSONEnvelopeStillLoads(t *testing.T) {
 	}
 }
 
-func TestSerializableSnapshot_CBORKeysAreFieldNames(t *testing.T) {
+func TestSerializableSnapshot_CBORCarriesStreamKeys(t *testing.T) {
 	t.Parallel()
 
-	// The v5 tag rename must not alter the CBOR wire bytes: canonical CBOR
-	// keys structs by Go field name, so pre- and post-rename rows are
-	// mutually readable.
+	// fxamacker/cbor v2.9 falls back to the json tag key when no cbor key is
+	// present, so the tags ARE the CBOR map keys: post-rename rows must
+	// carry the honest stream keys.
 	streamID := id.NewStreamID()
 	data, err := marshalCBOR(serializableSnapshot{
 		StreamID: streamID, StreamType: "Order", Version: 3,
@@ -449,14 +449,57 @@ func TestSerializableSnapshot_CBORKeysAreFieldNames(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	for _, key := range []string{"StreamID", "StreamType", "Version", "State", "CreatedAt"} {
-		if _, ok := keys[key]; !ok {
-			t.Errorf("CBOR map missing field-name key %q: %v", key, keys)
+	for _, want := range []string{"stream_id", "stream_type", "version", "state", "created_at"} {
+		if _, ok := keys[want]; !ok {
+			t.Errorf("CBOR map missing new key %q: %v", want, keys)
 		}
 	}
-	for _, legacy := range []string{"aggregate_id", "stream_id"} {
-		if _, ok := keys[legacy]; ok {
-			t.Errorf("CBOR map must not use json-tag key %q: %v", legacy, keys)
+	for _, banned := range []string{"aggregate_id", "aggregate_type"} {
+		if _, ok := keys[banned]; ok {
+			t.Errorf("CBOR map still emits legacy key %q: %v", banned, keys)
 		}
+	}
+}
+
+func TestSnapshotStore_LegacyCBOREnvelopeStillLoads(t *testing.T) {
+	t.Parallel()
+
+	store := newSnapshotStore(t)
+	streamID := id.NewStreamID()
+	ctx := context.Background()
+
+	// A row written before the v5 tag rename carries aggregate_id/
+	// aggregate_type CBOR keys. Loading must not fail: unknown keys are
+	// ignored and identity is rebuilt from the Pebble key.
+	type preV5Snapshot struct {
+		StreamID   string `json:"aggregate_id"`
+		StreamType string `json:"aggregate_type"`
+		Version    int    `json:"version"`
+		State      []byte `json:"state"`
+		CreatedAt  int64  `json:"created_at"`
+	}
+
+	legacy, err := marshalCBOR(preV5Snapshot{
+		StreamID: streamID.String(), StreamType: "Order", Version: 3,
+		State: []byte("old"), CreatedAt: 1750000000000000000,
+	})
+	if err != nil {
+		t.Fatalf("marshal legacy row: %v", err)
+	}
+
+	if err := store.db.Set(store.snapshotKey("Order", streamID), legacy, nil); err != nil {
+		t.Fatalf("seed legacy row: %v", err)
+	}
+
+	got, err := store.Load(ctx, id.NewStreamRef("Order", streamID))
+	if err != nil {
+		t.Fatalf("Load legacy row: %v", err)
+	}
+
+	if got.StreamID != streamID || got.StreamType != "Order" {
+		t.Errorf("identity mismatch: got %s/%s", got.StreamType, got.StreamID)
+	}
+	if got.Version.Int() != 3 || string(got.State) != "old" {
+		t.Errorf("payload mismatch: v%d state %q", got.Version.Int(), got.State)
 	}
 }

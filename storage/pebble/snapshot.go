@@ -256,12 +256,14 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 // serializableSnapshot is the CBOR envelope for stored snapshots.
 // Timestamps use UnixNano for deterministic, locale-independent ordering.
 //
-// The json tags carry the v5 stream vocabulary; they only affect the legacy
-// JSON fallback path (pre-CBOR rows), since canonical CBOR keys structs by
-// Go field name. Rows written before the v5 rename carry aggregate_id/
-// aggregate_type JSON keys: those decode with zeroed identity because
-// unknown keys are ignored, which is safe — toSnapshot rebuilds identity
-// from the Pebble key, and version/state/created_at keep decoding.
+// The json tags carry the v5 stream vocabulary. fxamacker/cbor v2.9 falls
+// back to the json tag key when no cbor key is present, so the tags ARE the
+// CBOR map keys and the v5 rename moved them. Rows written before the
+// rename carry aggregate_id/aggregate_type keys: those decode with zeroed
+// identity because unknown keys are ignored, which is safe — toSnapshot
+// rebuilds identity from the Pebble key, and version/state/created_at keep
+// decoding (pinned by TestSnapshotStore_LegacyJSONEnvelopeStillLoads and
+// TestSerializableSnapshot_CBORCarriesStreamKeys).
 type serializableSnapshot struct {
 	StreamID   id.StreamID     `json:"stream_id"`
 	StreamType string          `json:"stream_type"`

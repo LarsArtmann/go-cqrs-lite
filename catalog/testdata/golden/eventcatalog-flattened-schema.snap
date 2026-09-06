@@ -1,0 +1,40 @@
+
+[TestGolden_EventCatalog_FlattenedSchema - 1]
+{
+  "type": "object",
+  "properties": {
+    "actor": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    },
+    "correlationId": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    },
+    "kind": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    },
+    "orderId": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    },
+    "reference": {
+      "type": "string",
+      "nullable": false,
+      "deprecated": false
+    }
+  },
+  "required": [
+    "correlationId",
+    "actor",
+    "kind",
+    "reference",
+    "orderId"
+  ]
+}
+---

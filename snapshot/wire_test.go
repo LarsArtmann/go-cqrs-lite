@@ -109,12 +109,37 @@ func TestWire_NewKeysWinOverLegacy(t *testing.T) {
 	}
 }
 
-func TestWire_CBORRoundTripUnaffectedByTagRename(t *testing.T) {
+func TestWire_CBORCarriesNewKeys(t *testing.T) {
 	t.Parallel()
 
-	// Canonical CBOR keys structs by Go field name, so the wire bytes never
-	// carried the aggregate vocabulary: pre-v5 and post-rename CBOR payloads
-	// are interchangeable.
+	// fxamacker/cbor v2.9 falls back to the json tag key when no cbor key is
+	// present, so the tag rename moves the CBOR map keys as well: writers
+	// must emit the honest stream keys from now on.
+	data, err := codec.CBORCodec{}.Encode(wireTestSnapshot(t))
+	if err != nil {
+		t.Fatalf("cbor encode: %v", err)
+	}
+
+	var keys map[string]any
+	if err := codec.CBORDecMode().Unmarshal(data, &keys); err != nil {
+		t.Fatalf("cbor decode map: %v", err)
+	}
+
+	for _, want := range []string{"stream_id", "stream_type"} {
+		if _, ok := keys[want]; !ok {
+			t.Errorf("CBOR map missing new key %q: %v", want, keys)
+		}
+	}
+	for _, banned := range []string{"aggregateId", "aggregateType"} {
+		if _, ok := keys[banned]; ok {
+			t.Errorf("CBOR map still emits legacy key %q: %v", banned, keys)
+		}
+	}
+}
+
+func TestWire_CBORRoundTripAndLegacyKeys(t *testing.T) {
+	t.Parallel()
+
 	want := wireTestSnapshot(t)
 
 	encoded, err := codec.CBORCodec{}.Encode(want)
@@ -134,5 +159,38 @@ func TestWire_CBORRoundTripUnaffectedByTagRename(t *testing.T) {
 	got.CreatedAt, want.CreatedAt = time.Time{}, time.Time{}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("cbor roundtrip mismatch:\n got %+v\nwant %+v", got, want)
+	}
+
+	// Pre-v5 CBOR bytes carry the aggregateId/aggregateType keys; the
+	// decode-only fallback must restore the identity.
+	legacy, err := codec.CBOREncMode().Marshal(struct {
+		StreamID   string          `json:"aggregateId"`
+		StreamType string          `json:"aggregateType"`
+		Version    int             `json:"version"`
+		State      []byte          `json:"state"`
+		Encoding   record.Encoding `json:"encoding,omitempty"`
+		CreatedAt  time.Time       `json:"createdAt"`
+	}{
+		StreamID:   want.StreamID.String(),
+		StreamType: string(want.StreamType),
+		Version:    want.Version.Int(),
+		State:      want.State,
+		Encoding:   want.Encoding,
+		CreatedAt:  want.CreatedAt,
+	})
+	if err != nil {
+		t.Fatalf("cbor marshal legacy: %v", err)
+	}
+
+	var fromLegacy snapshot.Snapshot
+	if err := (codec.CBORCodec{}).Decode(legacy, &fromLegacy); err != nil {
+		t.Fatalf("cbor decode legacy: %v", err)
+	}
+
+	if fromLegacy.StreamID != want.StreamID || fromLegacy.StreamType != want.StreamType {
+		t.Errorf("legacy CBOR identity mismatch: got %s/%s", fromLegacy.StreamType, fromLegacy.StreamID)
+	}
+	if fromLegacy.Version != want.Version || !fromLegacy.CreatedAt.Equal(want.CreatedAt) {
+		t.Errorf("legacy CBOR payload mismatch: %+v", fromLegacy)
 	}
 }
