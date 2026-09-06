@@ -210,4 +210,3 @@ func findRepoRootFromPath(start string) string {
 
 	return "."
 }
-
