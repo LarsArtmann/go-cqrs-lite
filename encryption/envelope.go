@@ -3,6 +3,7 @@ package encryption
 import (
 	"encoding/base64"
 	"encoding/json/v2"
+	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -10,8 +11,17 @@ import (
 )
 
 const (
-	// EnvelopeVersionV1 is the initial ciphertext envelope version.
+	// EnvelopeVersionV1 is the initial ciphertext envelope version: a JSON
+	// object, base64-encoded as one opaque string. It predates the discovery
+	// that snapshot state lives in JSON/JSONB columns on PostgreSQL and
+	// MySQL, where a bare base64 string is rejected ("invalid input syntax
+	// for type json"). Still readable, never written.
 	EnvelopeVersionV1 = "v1"
+
+	// EnvelopeVersionV2 is the current envelope version: the JSON object
+	// itself, with no outer base64 wrap. Storable in JSON columns on every
+	// SQL dialect, and as opaque bytes on KV engines.
+	EnvelopeVersionV2 = "v2"
 
 	// EnvelopeKey is the metadata key for the ciphertext envelope.
 	// Opt-in: consumers who want envelope-based metadata can use this key
@@ -29,10 +39,14 @@ type Envelope struct {
 	KeyID      KeyID      `json:"kid,omitempty"`
 }
 
-// MarshalEnvelope serializes an Envelope to a base64-encoded JSON string.
+// MarshalEnvelope serializes an Envelope to its versioned wire format.
+// Since v2 the output is the JSON object itself — storable in JSON/JSONB
+// columns (the v1 outer base64 wrap was rejected by PostgreSQL and MySQL
+// snapshot state columns). v1 envelopes remain readable via
+// [UnmarshalEnvelope].
 func MarshalEnvelope(env Envelope) (string, error) {
 	if env.Version == "" {
-		env.Version = EnvelopeVersionV1
+		env.Version = EnvelopeVersionV2
 	}
 
 	data, err := json.Marshal(env, json.Deterministic(true))
@@ -44,18 +58,29 @@ func MarshalEnvelope(env Envelope) (string, error) {
 		)
 	}
 
-	return base64.URLEncoding.EncodeToString(data), nil
+	return string(data), nil
 }
 
-// UnmarshalEnvelope deserializes a base64-encoded JSON string into an Envelope.
+// UnmarshalEnvelope deserializes an Envelope from its wire format, reading
+// both generations: v2 raw JSON and the v1 base64-wrapped JSON.
 func UnmarshalEnvelope(encoded string) (Envelope, error) {
-	data, err := base64.URLEncoding.DecodeString(encoded)
-	if err != nil {
-		return Envelope{}, errorfamily.WrapInfrastructure(
-			err,
-			"encryption.unmarshal_envelope",
-			"decode envelope base64",
-		)
+	trimmed := strings.TrimSpace(encoded)
+
+	var data []byte
+
+	if strings.HasPrefix(trimmed, "{") {
+		data = []byte(trimmed)
+	} else {
+		decoded, err := base64.URLEncoding.DecodeString(trimmed)
+		if err != nil {
+			return Envelope{}, errorfamily.WrapInfrastructure(
+				err,
+				"encryption.unmarshal_envelope",
+				"decode envelope base64",
+			)
+		}
+
+		data = decoded
 	}
 
 	var env Envelope

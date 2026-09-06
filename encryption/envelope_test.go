@@ -2,6 +2,7 @@ package encryption
 
 import (
 	"encoding/base64"
+	"strings"
 	"testing"
 )
 
@@ -59,17 +60,55 @@ func TestMarshalEnvelope_DefaultVersion(t *testing.T) {
 		t.Fatalf("UnmarshalEnvelope: %v", err)
 	}
 
-	if got.Version != EnvelopeVersionV1 {
-		t.Errorf("Version: got %q, want %q", got.Version, EnvelopeVersionV1)
+	if got.Version != EnvelopeVersionV2 {
+		t.Errorf("Version: got %q, want %q", got.Version, EnvelopeVersionV2)
 	}
 }
 
 func TestUnmarshalEnvelope_InvalidBase64(t *testing.T) {
 	t.Parallel()
 
-	_, err := UnmarshalEnvelope("not-valid-base64!!!")
+	_, err := UnmarshalEnvelope("!!!not-valid-base64-or-json!!!")
 	if err == nil {
-		t.Fatal("expected error for invalid base64")
+		t.Fatal("expected error for invalid envelope")
+	}
+}
+
+// TestUnmarshalEnvelope_ReadsV1Base64 pins backward compatibility: v1
+// envelopes (base64-wrapped JSON) written before the v2 switch stay
+// readable forever.
+func TestUnmarshalEnvelope_ReadsV1Base64(t *testing.T) {
+	t.Parallel()
+
+	inner := []byte(`{"v":"v1","ct":"ZGF0YQ","kid":"key-2025"}`)
+	v1Envelope := base64.URLEncoding.EncodeToString(inner)
+
+	env, err := UnmarshalEnvelope(v1Envelope)
+	if err != nil {
+		t.Fatalf("UnmarshalEnvelope (v1): %v", err)
+	}
+
+	if env.Version != EnvelopeVersionV1 {
+		t.Errorf("Version: got %q, want %q", env.Version, EnvelopeVersionV1)
+	}
+
+	if env.KeyID != "key-2025" {
+		t.Errorf("KeyID: got %q, want %q", env.KeyID, "key-2025")
+	}
+}
+
+// TestMarshalEnvelope_OutputIsRawJSON pins the v2 wire format: the output
+// must be a JSON object (storable in JSONB columns), not base64.
+func TestMarshalEnvelope_OutputIsRawJSON(t *testing.T) {
+	t.Parallel()
+
+	encoded, err := MarshalEnvelope(Envelope{Ciphertext: Ciphertext("data")})
+	if err != nil {
+		t.Fatalf("MarshalEnvelope: %v", err)
+	}
+
+	if !strings.HasPrefix(encoded, "{") {
+		t.Fatalf("v2 envelope must be raw JSON, got %q", encoded)
 	}
 }
 
