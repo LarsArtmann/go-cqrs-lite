@@ -2,11 +2,9 @@ package metaengine
 
 import (
 	"fmt"
-	"log"
 	"maps"
 	"slices"
 	"strings"
-	"sync/atomic"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -125,6 +123,3 @@ func (s *Store) recordContextDoctorSection() string {
 
 	return b.String()
 }
-
-// recordAwareCache is the lazy memoization cell for recordAwareEventTypes.
-var _ = atomic.Value{} // keep the atomic import anchored if fields move

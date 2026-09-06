@@ -42,6 +42,13 @@ type Store struct {
 	routingDiags      []Diagnostic
 	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)
 	sharedCollections map[string]bool // child types shared across collections (ADR-0124 boundaries)
+
+	// Record-context hazard tracking: applies that arrived as a synthesized
+	// Type-only Record (Store.Apply) while OnRecord folds were registered for
+	// the event type. See record_context.go.
+	recordAwareEvents       atomic.Pointer[map[string]bool]
+	syntheticRecordApplies  atomic.Uint64
+	syntheticRecordAdvisory sync.Once
 }
 
 func (s *Store) Plan() *PlanResult { return s.plan }
@@ -382,6 +389,11 @@ func (s *Store) notifyLive(q queryMeta, collection string, key any, value any) {
 // Apply processes an event through ALL queries that listen to it.
 // Each query has its own independent projection — the same event updates
 // each matching query's collection separately.
+//
+// The Record handed to folds is SYNTHESIZED: only Type is set — StreamID,
+// Version, and metadata are zero. OnRecord handlers that read per-instance
+// context must be fed via ApplyRecord instead; Store counts such applies
+// and Doctor's "--- Record context ---" section reports them.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
 	return s.applyWithRecord(ctx, eventType, record.Record{Type: eventType}, payload)
 }
@@ -401,6 +413,9 @@ type EventInput struct {
 // Events are applied sequentially; on the first error, remaining events are
 // skipped and the error is returned. This is the primary API for replay
 // scenarios where many events need to be processed.
+//
+// Events without a Record get the same synthesized Type-only Record as
+// Store.Apply — set EventInput.Record for OnRecord folds that read context.
 func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 	for _, evt := range events {
 		if err := s.Apply(ctx, evt.Type, evt.Payload); err != nil {
@@ -414,7 +429,8 @@ func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 // ApplyRecord processes a decoded payload with full Record context (ADR-0112).
 // Record-aware folds (created via OnRecord) receive the full Record — StreamID,
 // Version, MetaData — alongside the payload. Non-Record-aware folds (created via
-// On) receive only the payload, as usual.
+// On) receive only the payload, as usual. This is the ONLY entry point that
+// provides per-instance context: Apply synthesizes a Type-only Record.
 //
 // The decodedPayload is the already-decoded Go struct (e.g. UserCreated{...}),
 // not raw bytes. The Record carries metadata context; the payload carries the
@@ -461,6 +477,10 @@ func (s *Store) applyWithRecord(
 
 	if s.eventLog != nil {
 		s.eventLog.RecordEvent(eventType, rec, payload)
+	}
+
+	if isSyntheticRecord(rec) {
+		s.noteSyntheticRecordApply(eventType)
 	}
 
 	dispatchErr := s.dispatchFoldsLocked(ctx, eventType, rec, payload, nil)
