@@ -24,25 +24,12 @@ and is **never** duplicated here. Historical session reports live under
 > the living source; the plan is its point-in-time snapshot.
 
 - [x] ~~T08 — RULES.md stub + DocURL anchors~~ DONE by follow-up session 2026-09-06: `cmd/cqrs-lint/RULES.md` exists with 204 `<a id>` anchors.
-- [ ] **F031 — `cqrs-lint --fix` E2E is a no-op through the real pipeline.**
-      Provider layer unit-proven correct; `--fix` performs no file mutation and
-      `--dry-run` shows no preview. Gap sits in go-finding/pipeline@v1.6.0's
-      FixApplier handoff (suspect rootDir vs absolute finding paths, or a
-      silent compile-check rollback). Fixture preserved at
-      `/home/lars/projects/.gotmp/fixe2e`. Needs an upstream go-finding
-      debug/fix + tag, then the real E2E (fixture → `--fix` → diff asserts
-      only the targeted occurrence edited). — source: 2026-09-06_02-40 §b2/§f7–10
-      _(Effort: M, blocked-on-upstream)_
-- [PARTIAL ✓ 2026-09-06 follow-up session] **T09 — CI wiring:** self-lint job SHIPPED (`ci.yml` `cqrs-lint-self-lint`, strict-load + stale-suppression gate). REMAINING: examples lint matrix, `check-lint-config` as required check, V007 demo capture. — source: 2026-09-06_02-40 §c
-- [ ] **T10 — rule-ID gap documentation:** A028, A031, P002–P005, S004, D004
-      reserved/retired — document in README. — source: 2026-09-06_02-40 §c
-      _(Effort: S)_
+- [x] ~~F031 — `cqrs-lint --fix` E2E is a no-op through the real pipeline~~ DONE by session 2026-09-06 (commit `e44da78fa`): root cause was NOT upstream go-finding — C003 anchored its Direct fix at the fold's function declaration while BeforeCode lived on the default-case return, so the occurrence-safe provider silently refused; the if-stmt variant was dead code (Direct without code data fails finding validation). Detector re-anchored at the return statement; `fix_e2e_test.go` green AND real-CLI `--fix` on the preserved fixture verified to mutate exactly the targeted occurrence.
+- [x] ~~T09 — CI wiring~~ DONE 2026-09-06: `cqrs-lint-self-lint` (strict-load + stale-suppression), `cqrs-lint-examples` (V007-silence gate over all 4 examples), V007 demo (`cmd/cqrs-lint/V007-DEMO.md`), and `check-lint-config` all wired in ci.yml. Residue: marking them REQUIRED status checks needs branch protection — owner decision, deliberately not done (F040; direct-push workflow). — source: 2026-09-06_02-40 §c + plan execution log
+- [x] ~~T10 — rule-ID gap documentation~~ DONE 2026-09-06: `cmd/cqrs-lint/README.md` §"Rule ID numbering gaps" documents the 8 reserved IDs (A028, A031, P002–P005, S004, D004) and that listing one in `rules.disable` is a silent no-op (verified in-tree).
 - [x] ~~T11 — V007 overhead measurement~~ DONE by follow-up session 2026-09-06: `docs/benchmarks/2026-09-06_cqrs-lint-v007-walltime.md` (verdict: below measurement noise).
-- [ ] **T13–T19 — rule audit batches (7 × ~90m):** per-rule logic/FP review of
-      C001–C042, A001–A034, B001–B031, D001–D019, E001–E017, S/T/V/F families.
-      Severity/confidence already meta-verified (T04); focus FP logic + emitted
-      metadata. Only behind a green full gate. — source: 2026-09-06_02-40 §c
-      _(Effort: M/L each)_
+- [ ] **T13–T19 — rule audit batches:** RISK-BASED SAMPLE DONE 2026-09-06 (plan execution log): all C-family detector files read — one real bug found+fixed (C005 missed the `json.NewDecoder(bytes.NewReader(...))` idiom); empirical FP hunt over top-volume findings (C023/D006/D014/A032) — all correctly targeted. Severity/confidence meta-verified (T04); V007 coverage mechanized (T02 drift test). REMAINING (low-yield): exhaustive per-file checklist audits of A001–A034, B001–B031, D001–D019, E001–E017, S/T/V/F families. Only behind a green full gate. — source: 2026-09-06_02-40 §c
+      _(Effort: M/L)_
 - [ ] **T20–T24 — subsystem reviews + design passes:** scanner/feature_profile,
       CLI subsystem (doctor/health/scorecard/output), misc hardening
       (`-shuffle=on` eval, `-race -count=3` on suppression/fix, preset V007
@@ -56,11 +43,14 @@ and is **never** duplicated here. Historical session reports live under
       CI fail-on-error see new failures after ≥v4.9.0. Acceptable in a minor
       (documented in CHANGELOG Added), or gate severity changes behind a
       "Changed" section + dedicated minor (v4.10.0)? User decision. — source: 2026-09-06_02-40 §g3
-- [ ] **Daemon Q2: `.golangci.yml` exclusion from the auto-commit formatter.**
-      The daemon re-added `gci` three times in one session; the self-healing
-      guard repairs it at gate runs, but the root loop persists. Where does the
-      daemon's formatter config live; can the file be excluded (or should the
-      repair also `git add` the healed state)? User decision. — source: 2026-09-06_02-40 §d1/§g2
+- [ ] [BLOCKED] **Daemon Q2: `.golangci.yml` exclusion from the auto-commit formatter.**
+      ROOT-CAUSED 2026-09-06 (plan execution log): the gci re-adds come from
+      BuildFlow's built-in golangci defaults regenerating config at pre-commit;
+      no user-facing knob found in `~/.config/buildflow`. The in-repo
+      `scripts/check-formatters.sh` self-heal repaired every occurrence and is
+      the durable defense. REMAINING DECISION: accept self-heal permanently, or
+      exclude `.golangci.yml` from BuildFlow's formatter upstream. User decision.
+      — source: 2026-09-06_02-40 §d1/§g2 + plan execution log
 - [ ] **cqrs-lint rule: ApplyLayout on engines that also implement
       LayoutPlanApplier → prefer the plan path.** SCOPED 2026-08-30: the
       source-based analyzer cannot know a receiver implements
