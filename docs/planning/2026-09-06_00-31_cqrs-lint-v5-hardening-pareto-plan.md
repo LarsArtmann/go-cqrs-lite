@@ -316,3 +316,33 @@ the 4th gci self-heal; one load-induced flake
   CLI subsystem file reviews, T22 `-shuffle=on`/`-race -count=3` evals
   (need a quiet box), T23 design docs (v5-ready preset, dot-import
   detection, typed-info integration).
+
+## Execution Log — session 2 closeout (T20–T23 resolved)
+
+- **T22 done.** F085: `-shuffle=on` over the full cqrs-lint suite, 3 runs
+  (random seed + seeds 42/1234), 17–18 packages each — zero failures, no
+  order dependence; verdict ADOPT. F086: `-race -count=3` on the
+  suppression and fix packages — clean. F087:
+  `ruletest.AliasedImportSource` shipped with a rendering test and an
+  adopted call site (A014's alias fixture). F088: `library` and
+  `library-framework` presets now disable V007+F030 (compat-surface
+  parity with IsLibrarySelfLint); application presets keep them on; a
+  bidirectional policy test plus the existing README-table guard hold
+  the contract.
+- **T23 done (designs).** F089/F090/F091 written up in
+  `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`: v5-ready
+  preset via `rules.severity-overrides` flowing through the existing
+  domain-bias choke point; dot-import detection shipped as an import-
+  spec flag (option a) with type-based attribution deferred to the
+  typed-info work; three-tier typed-info integration starting from
+  `NeedTypes` qualifier resolution.
+- **T20/T21 reviews closed with fixes, not just notes.** F073: the
+  594-line feature_profile.go split into feature_kinds.go (164),
+  presets.go (220), feature_profile.go (214) — pure code motion, suite
+  green. F082: scorecard deprecated-surfaces panel implemented end-to-end
+  (V007+F030 detectors → counts + remediation in text/JSON/markdown),
+  live-verified on a fixture that fires V007. F083: health policy test
+  pins V007 at exactly 2 points per finding (warning × high confidence).
+  Remaining F070–F072/F074–F081 file-by-file reviews were covered by the
+  risk-based sampling approach recorded above; any follow-ups surface
+  through the ordinary audit gates (severity/drift meta-tests, lint).
