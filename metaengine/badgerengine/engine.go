@@ -17,7 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
+	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -224,41 +224,100 @@ var (
 )
 
 // seedSeqCounters scans existing keys to seed log/multimap/journal/stream seq
-// counters on restart, preventing key collisions.
+// counters on restart, preventing key collisions (the restart-safety harness
+// caught the original log-only seeding: post-restart appends overwrote the
+// first stream entries and journal items).
 func (e *badgerEngine) seedSeqCounters() error {
 	if e.persistence == metaengine.PersistenceVolatile {
 		return nil
 	}
 
-	return e.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.Prefix = []byte("l" + sep)
-		opts.PrefetchValues = false
+	if err := e.seedPrefixSeqs("sl", &e.streamSeq); err != nil {
+		return fmt.Errorf("seed stream seqs: %w", err)
+	}
 
+	if err := e.seedPrefixSeqs("jl", &e.journalSeq); err != nil {
+		return fmt.Errorf("seed journal seqs: %w", err)
+	}
+
+	if err := e.seedPrefixSeqs("l", &e.logSeq); err != nil {
+		return fmt.Errorf("seed log seqs: %w", err)
+	}
+
+	if err := e.seedPrefixSeqs("mm", &e.mmSeq); err != nil {
+		return fmt.Errorf("seed multimap seqs: %w", err)
+	}
+
+	return nil
+}
+
+// seedPrefixSeqs scans one keycodec tag prefix (e.g. "sl", "jl") and seeds the
+// target sync.Map to the max existing seq per group. The scan is O(N) in
+// existing keys — a one-time startup cost, mirroring pebbleengine's seeding.
+func (e *badgerEngine) seedPrefixSeqs(tag string, target *sync.Map) error {
+	prefix := []byte(tag + sep)
+
+	opts := badger.DefaultIteratorOptions
+	opts.Prefix = prefix
+	opts.PrefetchValues = false
+
+	return e.db.View(func(txn *badger.Txn) error {
 		iter := txn.NewIterator(opts)
 		defer iter.Close()
 
+		tagLen := len(prefix)
+
 		for iter.Rewind(); iter.Valid(); iter.Next() {
-			keyStr := string(iter.Item().Key())
-			parts := strings.SplitN(keyStr, sep, 3)
-			if len(parts) < 3 {
+			key := iter.Item().KeyCopy(nil)
+
+			group, seq, ok := splitGroupAndSeq(key, tagLen)
+			if !ok {
 				continue
 			}
 
-			col := parts[1]
-
-			var seq int64
-			_, _ = fmt.Sscanf(parts[2], "%020d", &seq)
-
-			actual, _ := e.logSeq.LoadOrStore(col, &atomic.Int64{})
-			existing := actual.(*atomic.Int64).Load()
-			if seq > existing {
-				actual.(*atomic.Int64).Store(seq)
-			}
+			seedSeqMax(target, group, seq)
 		}
 
 		return nil
 	})
+}
+
+// splitGroupAndSeq parses a keycodec key ("<tag>\x00<group...>\x00<seq:020>")
+// into its group identifier and sequence. The seq is always the last 20
+// zero-padded digits, preceded by a NUL byte.
+func splitGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
+	if len(key) < prefixLen+21 {
+		return "", 0, false
+	}
+
+	if key[len(key)-21] != 0 {
+		return "", 0, false
+	}
+
+	seq, err := strconv.ParseInt(string(key[len(key)-20:]), 10, 64)
+	if err != nil {
+		return "", 0, false
+	}
+
+	return string(key[prefixLen : len(key)-21]), seq, true
+}
+
+// seedSeqMax seeds a sync.Map (storing *atomic.Int64) to at least seq via a
+// CAS loop.
+func seedSeqMax(target *sync.Map, group string, seq int64) {
+	actual, _ := target.LoadOrStore(group, &atomic.Int64{})
+	counter := actual.(*atomic.Int64)
+
+	for {
+		existing := counter.Load()
+		if existing >= seq {
+			return
+		}
+
+		if counter.CompareAndSwap(existing, seq) {
+			return
+		}
+	}
 }
 
 // Compile-time assertions.
