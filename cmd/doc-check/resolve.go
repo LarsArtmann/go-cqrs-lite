@@ -98,6 +98,12 @@ func (r *resolver) aliasExports(alias string) map[string]bool {
 		return exp
 	}
 
+	if len(r.aliasDirs[alias]) == 0 {
+		r.aliasExps[alias] = nil
+
+		return nil
+	}
+
 	union := make(map[string]bool)
 
 	for _, dir := range r.aliasDirs[alias] {
