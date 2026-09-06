@@ -6,6 +6,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — catalog/encryption TODO wave: key management, browser CSP validation, sub-package API coverage — 2026-09-06
+
+- **Key-management helpers** (`encryption`): `encryption.GenerateKey`,
+  `encryption.GenerateKeyBase64`, `encryption.EncodeKeyBase64`,
+  `encryption.ValidateKey`, `encryption.DecodeKeyBase64`,
+  `encryption.LoadKeyFromEnv`, `encryption.LoadKeyFromFile`, and
+  `encryption.ErrKeyNotSet` close the bank-sync ask — consumers no longer
+  hand-roll `crypto/rand` + base64 + config-loading with inconsistent
+  error messages. Loaders tolerate `openssl rand -base64 32 > file`
+  trailing newlines; malformed values wrap `encryption.ErrInvalidKey`
+  with observed-vs-required byte counts.
+- **Envelope wire format v2** (`encryption`): `encryption.EnvelopeVersionV2`
+  stores the JSON object itself instead of a base64-wrapped string. The v1
+  outer base64 wrap is rejected by PostgreSQL/MySQL JSONB snapshot state
+  columns ("invalid input syntax for type json") — caught by the new
+  encrypted-snapshot integration test. v1 envelopes stay readable forever;
+  all new writes emit v2.
+- **Rotation write-back** (`snapshot` + `encryption`):
+  `snapshot.NewRewritingTransformedStore` consumes the new
+  `NeedsRewrite`/`Reencrypt` transform pair populated by
+  `encryption.RotatingSnapshotStateCodec`: loads of retired-key snapshots
+  are re-encrypted under the active key and persisted, converging a store
+  without a maintenance window. Best-effort per load; a failed write-back
+  never fails the load.
+- **Sub-package API coverage** (`cmd/api-stability`): the golden now sweeps
+  every non-internal sub-package (42 previously-invisible packages incl.
+  `catalog/docserver`, `catalog/eventcatalog`, `metaengine/adttest`,
+  `cmd/cqrs-lint/pkg/*`), prefixing symbols with the sub-package path.
+- **`check-eventcatalog` app**: render-validation of the EventCatalog
+  exporter output as a repeatable flake app (generate fixture → npm
+  install → `eventcatalog build` → fail on unresolved content references),
+  replacing the manual /tmp/ec-validate flow. Verified green end-to-end.
+- **`check-csp` app**: browser validation of the docserver CSP policy —
+  headless Chromium loads index/Scalar/AsyncAPI-React/D2 pages with CSP
+  enabled and fails on any CSP refusal or unsuccessful bundle fetch
+  (`csp_browser_test.go`, skip-gated on `CQRS_BROWSER`).
+- **cqrs-lint doctor JSON + safe fix** (`cmd/cqrs-lint`):
+  `doctor --format json` emits the resolved config, feature profile, and
+  suppression audit as JSON; `doctor --fix --dry-run` plans the stale
+  suppression removal (`suppression.PlanStaleInlineSuppressions`) without
+  touching files.
+
+### Fixed — catalog/encryption TODO wave — 2026-09-06
+
+- **Encrypted snapshots were unsaveable on PostgreSQL** (`storage`):
+  `SQLSnapshotStore.Save` bound snapshot state as `[]byte`, which pgx sends
+  as bytea — rejected by the JSONB `state` column. Binds as text now.
+  Masked until now because the full-stack test discarded the Save error.
+- **storage module did not compile** (`storage`): `snapshot_migration.go`
+  referenced a deleted `containsString` helper; replaced with the
+  `slices.Contains` the same file already used.
+- **cqrs-lint C040 follow-ups** (`cmd/cqrs-lint`): the duplicated fold-case
+  walkers (analyzer `CollectFoldCaseStrings` vs the c040-local copy) are
+  one position-aware collector; fold cases written as `event.Type`
+  const identifiers (bare or selector) now resolve to their string values
+  for C038/C040 instead of being silently skipped.
+
 ### Added — events-DDL re-export symmetry + CatchUp hardening + README claims meta-tests — 2026-09-06
 
 - **Events DDL re-exports** (`storage/eventstore`, `storage`):
