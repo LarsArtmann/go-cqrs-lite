@@ -428,11 +428,18 @@ func overDeclarationDiagnostics(meta queryMeta, overDeclared []string, honestExi
 		action = "excluded from routing in favor of structurally capable engines"
 	}
 
-	return []Diagnostic{{
-		Level:   level,
-		Query:   meta.QueryName(),
-		Message: fmt.Sprintf("engine(s) %s over-declare ADT %s (native claim, no backend) — %s", names, meta.QueryADT(), action),
-	}}
+	return []Diagnostic{
+		{
+			Level: level,
+			Query: meta.QueryName(),
+			Message: fmt.Sprintf(
+				"engine(s) %s over-declare ADT %s (native claim, no backend) — %s",
+				names,
+				meta.QueryADT(),
+				action,
+			),
+		},
+	}
 }
 
 func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagnostic {

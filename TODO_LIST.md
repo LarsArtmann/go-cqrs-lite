@@ -418,9 +418,16 @@ and is **never** duplicated here. Historical session reports live under
 
 ## Metaengine — Universal ADT Coverage (Phase 7)
 
-- [ ] **iroh graph `WriteOp` convergence** — edges do not replicate
-      cross-peer yet; capability-conformance wiring under `#test-integration`.
-      _(Effort: M)_
+- [x] **iroh graph `WriteOp` convergence** — DONE 2026-09-06:
+      `OpGraphAddEdge`/`OpGraphRemoveEdge` wire kinds (endpoints in
+      WriteOp.Key/Value), per-edge LWW register semantics, replicated
+      `GraphAddEdge`/`GraphRemoveEdge` in `engine_graph.go`; convergence
+      suite grew to 8 scenarios across all three transport tiers; Doctor
+      note re-aimed at vector/search/spatial (still local-only).
+      Capability-conformance wired: loopback + quic `RunCapabilityConformance`
+      tests added; `metaengine/mysqlengine` joined `#test-integration`
+      MYSQL_MODULES (+ nspawn/VM scripts) so conformance runs against a
+      real server.
 
 ---
 

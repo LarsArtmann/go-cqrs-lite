@@ -37,7 +37,13 @@ type EngineProfile struct {
 	NsPerRead float64
 
 	// NsPerWrite is the calibrated nanoseconds-per-WRITE-operation (inserts,
-	// updates, folds). When zero, the planner falls back to NsPerOp.
+	// updates, folds). When zero, WriteNsPerOp falls back to NsPerOp.
+	//
+	// Scope (audited 2026-09-06): NsPerWrite is OBSERVABILITY and
+	// calibration-feedback only — Doctor/plan reports (explain.go) and the
+	// live calibration loop (reliability.go). The routing cost model prices
+	// READS exclusively (estimateCost); writes never influence routing, so
+	// per-pattern write benches are not part of calibration.
 	NsPerWrite float64
 
 	// ReadCosts holds per-read-pattern calibrated costs. A single NsPerRead

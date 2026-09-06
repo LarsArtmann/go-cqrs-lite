@@ -33,6 +33,29 @@ func edgeFromOp(op WriteOp) metaengine.Edge {
 	return metaengine.Edge{From: op.Key, To: op.Value}
 }
 
+// writeEdge is the shared body of GraphAddEdge and GraphRemoveEdge: stamp the
+// edge's LWW timestamp, apply the local mutation via apply, then publish the
+// op for the given kind. Callers assert their own capability first and hand
+// the local mutation in as a closure.
+func (e *replicatedEngine) writeEdge(
+	ctx context.Context,
+	collection string,
+	edge metaengine.Edge,
+	kind OpKind,
+	apply func() error,
+) error {
+	now := e.cfg.clock.Now()
+	e.recordLWW(collection, graphLWWKey(edge.From, edge.To), now)
+	if err := apply(); err != nil {
+		return err
+	}
+	e.publish(ctx, WriteOp{
+		Collection: collection, Kind: kind, Author: e.cfg.author,
+		Timestamp: now, Key: edge.From, Value: edge.To,
+	})
+	return nil
+}
+
 // GraphAddEdge applies the edge locally and replicates it to peers. The local
 // engine must satisfy the graph dispatch contract (graphCapable); a graphless
 // wrapped engine gets ErrGraphBackendNotImplemented rather than silent
@@ -47,16 +70,9 @@ func (e *replicatedEngine) GraphAddEdge(
 	if !ok {
 		return ErrGraphBackendNotImplemented
 	}
-	now := e.cfg.clock.Now()
-	e.recordLWW(collection, graphLWWKey(edge.From, edge.To), now)
-	if err := gb.GraphAddEdge(ctx, collection, edge); err != nil {
-		return err
-	}
-	e.publish(ctx, WriteOp{
-		Collection: collection, Kind: OpGraphAddEdge, Author: e.cfg.author,
-		Timestamp: now, Key: edge.From, Value: edge.To,
+	return e.writeEdge(ctx, collection, edge, OpGraphAddEdge, func() error {
+		return gb.GraphAddEdge(ctx, collection, edge)
 	})
-	return nil
 }
 
 // GraphRemoveEdge removes the edge locally and replicates the removal. A local
@@ -72,16 +88,9 @@ func (e *replicatedEngine) GraphRemoveEdge(
 	if !ok {
 		return ErrGraphBackendNotImplemented
 	}
-	now := e.cfg.clock.Now()
-	e.recordLWW(collection, graphLWWKey(edge.From, edge.To), now)
-	if err := gx.GraphRemoveEdge(ctx, collection, edge); err != nil {
-		return err
-	}
-	e.publish(ctx, WriteOp{
-		Collection: collection, Kind: OpGraphRemoveEdge, Author: e.cfg.author,
-		Timestamp: now, Key: edge.From, Value: edge.To,
+	return e.writeEdge(ctx, collection, edge, OpGraphRemoveEdge, func() error {
+		return gx.GraphRemoveEdge(ctx, collection, edge)
 	})
-	return nil
 }
 
 // applyRemoteGraphAdd applies an incoming edge-add op under LWW guard.

@@ -3,8 +3,12 @@
 > Hardware: AMD Ryzen AI MAX+ 395, 32 threads, shared multi-user host
 > Ambient load at measurement: load avg ~3.8 (22 users, no compile storms)
 > Toolchain: Go 1.26.7, `-tags "goexperiment.jsonv2"`, GOWORK=off per module
-> Protocol: this file is the baseline the CI drift job and future
-> recalibrations diff against. See §Protocol.
+> Protocol: this file is the dated measurement record. Since 2026-09-06 the
+> drift gate (`scripts/calibration-drift.sh`) no longer diffs against a
+> hand-copied table: it reads the SHIPPED constants live from each engine's
+> `Profile().ReadCosts` (via `TestCalibrationConstantsDump`, `CALIB_DUMP=1`),
+> so the profile is the single source of truth and this file documents the
+> measurements that produced them. See §Protocol.
 
 ## Constants shipped 2026-08-30
 
