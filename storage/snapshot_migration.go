@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -37,7 +38,7 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 		return nil
 	}
 
-	if containsString(columns, "stream_type") || containsString(columns, "stream_id") {
+	if slices.Contains(columns, "stream_type") || slices.Contains(columns, "stream_id") {
 		return errorfamily.NewCorruption(
 			"storage.snapshot_column_mixed",
 			"snapshots table carries both aggregate and stream columns; "+
@@ -49,7 +50,7 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 		{"aggregate_type", "stream_type"},
 		{"aggregate_id", "stream_id"},
 	} {
-		if !containsString(columns, rename[0]) {
+		if !slices.Contains(columns, rename[0]) {
 			continue
 		}
 
@@ -92,15 +93,15 @@ func probeSQLiteColumns(ctx context.Context, db *sql.DB, table string) ([]string
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var names []string
 	for rows.Next() {
 		var (
-			cid                int
-			name, colType      string
-			notNull            int
-			defaultValue, pk   sql.NullString
+			cid              int
+			name, colType    string
+			notNull          int
+			defaultValue, pk sql.NullString
 		)
 
 		if err := rows.Scan(&cid, &name, &colType, &notNull, &defaultValue, &pk); err != nil {
@@ -129,7 +130,7 @@ func probeInformationSchemaColumns(
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var names []string
 	for rows.Next() {
@@ -142,14 +143,4 @@ func probeInformationSchemaColumns(
 	}
 
 	return names, rows.Err()
-}
-
-func containsString(values []string, want string) bool {
-	for _, v := range values {
-		if v == want {
-			return true
-		}
-	}
-
-	return false
 }

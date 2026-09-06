@@ -79,14 +79,7 @@ func decodeSnapshotWire(
 		}
 	}
 
-	*dst = Snapshot{
-		StreamID:   wire.StreamID,
-		StreamType: wire.StreamType,
-		Version:    wire.Version,
-		State:      wire.State,
-		Encoding:   wire.Encoding,
-		CreatedAt:  wire.CreatedAt,
-	}
+	*dst = Snapshot(wire)
 
 	return nil
 }

@@ -444,6 +444,13 @@ linters:
           - recvcheck
           - wrapcheck
           - nolintlint
+      # snapshot/: v5 wire tags are snake_case by design (stream_id/stream_type,
+      # matching the SQL columns and the pebble envelope); Snapshot carries both
+      # value receivers (invariants) and pointer receivers (decode hooks).
+      - path: snapshot/
+        linters:
+          - recvcheck
+          - tagliatelle
       - path: record/
         linters:
           - modernize

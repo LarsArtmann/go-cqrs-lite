@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"slices"
 	"testing"
 	"time"
 
@@ -50,7 +51,7 @@ func assertHasColumns(t *testing.T, names []string, want []string, should bool, 
 	t.Helper()
 
 	for _, col := range want {
-		has := containsString(names, col)
+		has := slices.Contains(names, col)
 		if should != has {
 			t.Errorf("%s: column %q present=%v", label, col, has)
 		}
