@@ -3,6 +3,7 @@ package metaengine
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -247,8 +248,17 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 
 	var ranked []rankedEngine
 
-	for _, eng := range engines {
-		if c, ok := eng.Profile().SupportsADT(adt); ok {
+	var overDeclared []string
+
+	rankCandidates := func(candidates []Engine) []rankedEngine {
+		out := make([]rankedEngine, 0, len(candidates))
+
+		for _, eng := range candidates {
+			c, ok := eng.Profile().SupportsADT(adt)
+			if !ok {
+				continue
+			}
+
 			profile := eng.Profile()
 
 			if pc.replicationOverride != nil {
@@ -273,7 +283,7 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 				weightedMs = cost.EstimatedLatencyMs * priorityFactor(p, readC)
 			}
 
-			ranked = append(ranked, rankedEngine{
+			out = append(out, rankedEngine{
 				engine:            eng,
 				complexity:        c,
 				readComplexity:    readC,
@@ -281,6 +291,33 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 				weightedLatencyMs: weightedMs,
 			})
 		}
+
+		return out
+	}
+
+	// Capability-aware routing: engines that DECLARE the ADT but do not
+	// implement its backend produce execution-time hard errors. Honest
+	// candidates always win; over-declaring engines are only ranked when no
+	// honest candidate exists (a fallback path may still serve the query),
+	// and the over-declaration is diagnosed either way.
+	var honest, over []Engine
+
+	for _, eng := range engines {
+		if _, ok := eng.Profile().SupportsADT(adt); !ok {
+			continue
+		}
+
+		if engineServesADTNatively(eng, adt) {
+			honest = append(honest, eng)
+		} else {
+			over = append(over, eng)
+			overDeclared = append(overDeclared, eng.Profile().Name)
+		}
+	}
+
+	ranked = rankCandidates(honest)
+	if len(ranked) == 0 {
+		ranked = rankCandidates(over)
 	}
 
 	assignment := QueryAssignment{
@@ -360,10 +397,42 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 	assignment.Layout, _ = SelectLayout(best.engine.Profile(), resolvedPriority)
 
 	assignment.Diagnostics = planDiagnostics(meta, best, cfg)
+	assignment.Diagnostics = append(
+		assignment.Diagnostics,
+		overDeclarationDiagnostics(meta, overDeclared, len(honest) > 0)...,
+	)
 
 	meta.assignPlan(best.engine, best.complexity, foldByEvent)
 
 	return assignment, nil
+}
+
+// overDeclarationDiagnostics diagnoses engines that declared the query's ADT
+// natively without implementing its backend. With an honest alternative the
+// over-declaration is a routing exclusion (DEGRADED); without one the
+// engine is still routed to (a fallback may serve it) and the warning makes
+// the execution-time hard-error risk visible at plan time.
+func overDeclarationDiagnostics(meta queryMeta, overDeclared []string, honestExists bool) []Diagnostic {
+	if len(overDeclared) == 0 {
+		return nil
+	}
+
+	names := strings.Join(overDeclared, ", ")
+
+	level := DiagLevelWarn
+	action := "execution will fail unless a fallback serves it; " +
+		"mark the ADT in DegradedADTs, implement the backend, or fix the declaration"
+
+	if honestExists {
+		level = DiagLevelDegraded
+		action = "excluded from routing in favor of structurally capable engines"
+	}
+
+	return []Diagnostic{{
+		Level:   level,
+		Query:   meta.QueryName(),
+		Message: fmt.Sprintf("engine(s) %s over-declare ADT %s (native claim, no backend) — %s", names, meta.QueryADT(), action),
+	}}
 }
 
 func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagnostic {

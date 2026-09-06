@@ -76,4 +76,3 @@ func testingRules() []RuleInfo {
 		},
 	}
 }
-

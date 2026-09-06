@@ -96,4 +96,3 @@ func securityRules() []RuleInfo {
 		},
 	}
 }
-

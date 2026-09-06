@@ -64,7 +64,6 @@ func LookupRule(id string) (RuleInfo, bool) {
 	return r, ok
 }
 
-
 // correctnessRules aggregates both halves of the correctness family table.
 func correctnessRules() []RuleInfo {
 	return slices.Concat(correctnessRulesPart1(), correctnessRulesPart2())

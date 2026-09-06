@@ -68,4 +68,3 @@ func versionRules() []RuleInfo {
 		},
 	}
 }
-

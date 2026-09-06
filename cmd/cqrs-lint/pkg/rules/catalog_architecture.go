@@ -159,4 +159,3 @@ func architectureRules() []RuleInfo {
 		},
 	}
 }
-

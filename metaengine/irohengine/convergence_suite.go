@@ -2,9 +2,7 @@ package irohengine
 
 import (
 	"context"
-	"reflect"
 	"testing"
-	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -22,16 +20,19 @@ type ClusterFactory func(t *testing.T) (nodeA, nodeB metaengine.Engine)
 // convergence tests across the in-process, loopback, and QUIC transport test
 // files.
 //
-// The suite covers the 6 common CRDT convergence scenarios:
+// The suite covers the 8 common CRDT convergence scenarios:
 //   - MapConvergence (A→B MapSet/MapGet)
 //   - Bidirectional (A→B and B→A)
 //   - CounterConvergence (PN-Counter)
 //   - SetConvergence (OR-Set)
 //   - LogConvergence (append-only log)
 //   - MultimapConvergence (OR-Set per key)
+//   - GraphConvergence (per-edge LWW: adds replicate)
+//   - GraphEdgeRemovalConvergence (per-edge LWW: removes replicate)
 //
 // Transport-specific tests (LWW with clock, RTT measurement, protocol mismatch,
-// stream pooling) remain in their respective test files.
+// stream pooling) remain in their respective test files. Polling helpers live
+// in convergence_poll.go.
 func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 	t.Helper()
 
@@ -109,183 +110,32 @@ func RunConvergenceSuite(t *testing.T, factory ClusterFactory) {
 		waitForMultimap(t, nodeA, "members", "team-a", []string{"alice", "bob", "carol"})
 		waitForMultimap(t, nodeB, "members", "team-a", []string{"alice", "bob", "carol"})
 	})
-}
 
-// --- Polling helpers (work with both sync and async transports) ---
+	t.Run("GraphConvergence", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+		nodeA, nodeB := factory(t)
 
-const (
-	pollInterval = 50 * time.Millisecond
-	// pollTimeout bounds each convergence assertion. 30s (was 15s) after a
-	// 15s near-miss under -race load on 2026-08-16: passing runs still exit
-	// as soon as replicas agree, so only genuinely slow convergence pays.
-	pollTimeout = 30 * time.Second
-)
+		gd := nodeA.(graphDispatch)
+		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "bob"}))
+		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "carol"}))
+		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "bob", To: "dave"}))
 
-func mustNoErr(t *testing.T, err error) {
-	t.Helper()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
+		waitForGraphNeighbors(t, nodeB, "follows", "alice", 1, []string{"bob", "carol"})
+		waitForGraphNeighbors(t, nodeB, "follows", "alice", 2, []string{"bob", "carol", "dave"})
+	})
 
-func waitForMap(
-	t *testing.T,
-	node metaengine.Engine,
-	collection, key string,
-	expected any,
-) {
-	t.Helper()
-	deadline := time.Now().Add(pollTimeout)
-	for time.Now().Before(deadline) {
-		val, ok, err := node.(metaengine.MapBackend).MapGet(
-			context.Background(), collection, key)
-		if err == nil && ok && reflect.DeepEqual(val, expected) {
-			return
-		}
-		time.Sleep(pollInterval)
-	}
-	val, ok, _ := node.(metaengine.MapBackend).MapGet(
-		context.Background(), collection, key)
-	t.Fatalf("timeout: %s/%s expected %v (got ok=%v val=%v)",
-		collection, key, expected, ok, val)
-}
+	t.Run("GraphEdgeRemovalConvergence", func(t *testing.T) {
+		t.Parallel()
+		ctx := context.Background()
+		nodeA, nodeB := factory(t)
 
-func waitForCounter(
-	t *testing.T,
-	node metaengine.Engine,
-	collection, counter string,
-	expected int64,
-) {
-	t.Helper()
-	deadline := time.Now().Add(pollTimeout)
-	for time.Now().Before(deadline) {
-		counts, err := node.(metaengine.CounterBackend).CounterGet(
-			context.Background(), collection)
-		if err == nil && counts[counter] == expected {
-			return
-		}
-		time.Sleep(pollInterval)
-	}
-	counts, _ := node.(metaengine.CounterBackend).CounterGet(
-		context.Background(), collection)
-	t.Fatalf("timeout: %s/%s expected %d (got %v)",
-		collection, counter, expected, counts[counter])
-}
+		gd := nodeA.(graphDispatch)
+		mustNoErr(t, gd.GraphAddEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "bob"}))
+		waitForGraphNeighbors(t, nodeB, "follows", "alice", 1, []string{"bob"})
 
-func waitForSetContains(
-	t *testing.T,
-	node metaengine.Engine,
-	collection, value string,
-) {
-	t.Helper()
-	deadline := time.Now().Add(pollTimeout)
-	for time.Now().Before(deadline) {
-		contains, err := node.(metaengine.SetBackend).SetContains(
-			context.Background(), collection, value)
-		if err == nil && contains {
-			return
-		}
-		time.Sleep(pollInterval)
-	}
-	t.Fatalf("timeout: %s does not contain %q", collection, value)
-}
-
-func waitForLogTail(
-	t *testing.T,
-	node metaengine.Engine,
-	collection string,
-	expected []string,
-) {
-	t.Helper()
-	deadline := time.Now().Add(pollTimeout)
-	for time.Now().Before(deadline) {
-		entries, err := node.(metaengine.LogBackend).LogTail(
-			context.Background(), collection, len(expected))
-		if err == nil && sameLogTail(entries, expected) {
-			return
-		}
-		time.Sleep(pollInterval)
-	}
-	entries, _ := node.(metaengine.LogBackend).LogTail(
-		context.Background(), collection, len(expected))
-	t.Fatalf("timeout: %s tail expected %v (got %v)",
-		collection, expected, entries)
-}
-
-func waitForMultimap(
-	t *testing.T,
-	node metaengine.Engine,
-	collection, key string,
-	expected []string,
-) {
-	t.Helper()
-	deadline := time.Now().Add(pollTimeout)
-	for time.Now().Before(deadline) {
-		vals, err := node.(metaengine.MultimapBackend).MultiGet(
-			context.Background(), collection, key)
-		if err == nil && sameSetAny(vals, expected) {
-			return
-		}
-		time.Sleep(pollInterval)
-	}
-	vals, _ := node.(metaengine.MultimapBackend).MultiGet(
-		context.Background(), collection, key)
-	t.Fatalf("timeout: %s/%s expected %v (got %v)",
-		collection, key, expected, vals)
-}
-
-// sameSetAny checks that a []any slice contains the same string elements as
-// expected, regardless of order (set equality). Non-string elements fail.
-func sameSetAny(actual []any, expected []string) bool {
-	if len(actual) != len(expected) {
-		return false
-	}
-	expectedSet := make(map[string]bool, len(expected))
-	for _, v := range expected {
-		expectedSet[v] = true
-	}
-	for _, v := range actual {
-		s, ok := v.(string)
-		if !ok || !expectedSet[s] {
-			return false
-		}
-	}
-	return true
-}
-
-// sameLogTail compares a replicated log tail against the expected values as
-// an unordered multiset: replicated log transports guarantee eventual
-// delivery, not cross-op ordering (per-op streams apply concurrently on the
-// receiver, so two appends can land in either order under load). Order-
-// sensitive consumers need a sequenced log, which these engines do not
-// promise.
-func sameLogTail(actual []any, expected []string) bool {
-	if len(actual) != len(expected) {
-		return false
-	}
-
-	remaining := make([]string, len(expected))
-	copy(remaining, expected)
-
-	for _, v := range actual {
-		s, ok := v.(string)
-		if !ok {
-			return false
-		}
-
-		matched := false
-		for i, want := range remaining {
-			if s == want {
-				remaining = append(remaining[:i], remaining[i+1:]...)
-				matched = true
-				break
-			}
-		}
-
-		if !matched {
-			return false
-		}
-	}
-
-	return true
+		mustNoErr(t, nodeA.(graphRemoveDispatch).
+			GraphRemoveEdge(ctx, "follows", metaengine.Edge{From: "alice", To: "bob"}))
+		waitForGraphNeighbors(t, nodeB, "follows", "alice", 1, []string{})
+	})
 }

@@ -283,4 +283,3 @@ func boilerplateRules() []RuleInfo {
 		},
 	}
 }
-

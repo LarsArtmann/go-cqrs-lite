@@ -27,6 +27,7 @@ type ScorecardResult struct {
 	Irrelevant      []ScorecardModule    `json:"irrelevant,omitempty"`
 	Recommendations []string             `json:"recommendations,omitempty"`
 	Metaengine      *ScorecardMetaengine `json:"metaengine,omitempty"`
+	Deprecated      *ScorecardDeprecated `json:"deprecated,omitempty"`
 }
 
 // ScorecardMetaengine holds detected metaengine usage details — which engines
@@ -38,6 +39,18 @@ type ScorecardMetaengine struct {
 	Engines         []string `json:"engines,omitempty"`
 	PushdownAdopted bool     `json:"pushdown_adopted"`
 	Suggestion      string   `json:"suggestion,omitempty"`
+}
+
+// ScorecardDeprecated reports usage of surfaces that v5 removes: V007
+// (v5-removed-API references) and F030 (deprecated transport/http SSE).
+// The panel answers "is this project already clean for the v5 cut?" from
+// the same detectors the lint run uses, independent of preset disables.
+//
+//nolint:tagliatelle // snake_case JSON for CLI tool consumers
+type ScorecardDeprecated struct {
+	RemovedAPIUses      int    `json:"removed_api_uses"`
+	DeprecatedTransport int    `json:"deprecated_transport_uses"`
+	Suggestion          string `json:"suggestion,omitempty"`
 }
 
 // ScorecardModule is one row in the scorecard output.
@@ -136,6 +149,38 @@ func ComputeScorecard(
 	}
 
 	return result
+}
+
+// ComputeDeprecatedPanel runs the two deprecated-surface detectors against
+// the analysis context and reports their finding counts. It is computed
+// separately from ComputeScorecard because it needs findings data, not just
+// the module usage map. Zero counts mean "checked, clean" — the panel is
+// the v5-readiness bill of health for the project.
+func ComputeDeprecatedPanel(actx *analyzer.AnalysisContext) *ScorecardDeprecated {
+	count := func(det finding.Detector) int {
+		fs, err := det.Detect(context.Background())
+		if err != nil {
+			return 0
+		}
+
+		return len(fs)
+	}
+
+	panel := &ScorecardDeprecated{
+		RemovedAPIUses:      count(version.NewV007Detector(actx)),
+		DeprecatedTransport: count(adoption.NewF030Detector(actx)),
+	}
+
+	switch {
+	case panel.RemovedAPIUses > 0:
+		panel.Suggestion = "Migrate off APIs removed at v5 before the major " +
+			"bump — each use becomes a compile error at the cut (RULES.md#v007)"
+	case panel.DeprecatedTransport > 0:
+		panel.Suggestion = "Replace transport/http SSE with go-sse or watermill " +
+			"before the v5 cut"
+	}
+
+	return panel
 }
 
 // scorecardLess defines the sort order for scorecard rows: by category

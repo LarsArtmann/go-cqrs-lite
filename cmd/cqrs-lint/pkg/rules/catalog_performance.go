@@ -86,4 +86,3 @@ func performanceRules() []RuleInfo {
 		},
 	}
 }
-

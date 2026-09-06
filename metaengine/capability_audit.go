@@ -164,6 +164,23 @@ func auditADTRow(
 	return row, violation
 }
 
+// engineServesADTNatively reports whether an engine that DECLARES the ADT can
+// actually serve it structurally: either it implements the ADT's backend
+// interface, or it declared the ADT degraded (a deliberate fallback, not a
+// lying native claim). ADTs without a structural contract are trusted.
+func engineServesADTNatively(eng Engine, adt ADT) bool {
+	contract, ok := adtContracts[adt]
+	if !ok || contract.backend == nil {
+		return true
+	}
+
+	if eng.Profile().IsDegraded(adt) {
+		return true
+	}
+
+	return reflect.TypeOf(eng).Implements(contract.backend)
+}
+
 // capabilityDoctorSection renders the "--- Capability ---" section of the
 // Doctor() report: one conformance line per registered engine, with full
 // violations inline. This surfaces lying engines at runtime, complementing
