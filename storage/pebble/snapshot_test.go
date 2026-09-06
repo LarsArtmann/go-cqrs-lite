@@ -396,3 +396,67 @@ func TestSnapshotStore_Close_NoOp(t *testing.T) {
 		t.Fatalf("Save after Close: %v", err)
 	}
 }
+
+func TestSnapshotStore_LegacyJSONEnvelopeStillLoads(t *testing.T) {
+	t.Parallel()
+
+	store := newSnapshotStore(t)
+	streamID := id.NewStreamID()
+	ctx := context.Background()
+
+	// A pre-CBOR row written before the v5 tag rename carries aggregate_id/
+	// aggregate_type JSON keys. Loading must not fail: unknown keys are
+	// ignored and identity is rebuilt from the Pebble key.
+	legacy := `{"aggregate_id":"` + streamID.String() +
+		`","aggregate_type":"Order","version":3,"state":"b2xk","created_at":1750000000000000000}`
+	if err := store.db.Set(store.snapshotKey("Order", streamID), []byte(legacy), nil); err != nil {
+		t.Fatalf("seed legacy row: %v", err)
+	}
+
+	got, err := store.Load(ctx, id.NewStreamRef("Order", streamID))
+	if err != nil {
+		t.Fatalf("Load legacy row: %v", err)
+	}
+
+	if got.StreamID != streamID || got.StreamType != "Order" {
+		t.Errorf("identity mismatch: got %s/%s", got.StreamType, got.StreamID)
+	}
+	if got.Version.Int() != 3 || string(got.State) != "old" {
+		t.Errorf("payload mismatch: v%d state %q", got.Version.Int(), got.State)
+	}
+	if !got.CreatedAt.Equal(time.Unix(0, 1750000000000000000).UTC()) {
+		t.Errorf("created-at mismatch: %v", got.CreatedAt)
+	}
+}
+
+func TestSerializableSnapshot_CBORKeysAreFieldNames(t *testing.T) {
+	t.Parallel()
+
+	// The v5 tag rename must not alter the CBOR wire bytes: canonical CBOR
+	// keys structs by Go field name, so pre- and post-rename rows are
+	// mutually readable.
+	streamID := id.NewStreamID()
+	data, err := marshalCBOR(serializableSnapshot{
+		StreamID: streamID, StreamType: "Order", Version: 3,
+		State: []byte("old"), CreatedAt: 1750000000000000000,
+	})
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	var keys map[string]any
+	if err := unmarshalCBOR(data, &keys); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	for _, key := range []string{"StreamID", "StreamType", "Version", "State", "CreatedAt"} {
+		if _, ok := keys[key]; !ok {
+			t.Errorf("CBOR map missing field-name key %q: %v", key, keys)
+		}
+	}
+	for _, legacy := range []string{"aggregate_id", "stream_id"} {
+		if _, ok := keys[legacy]; ok {
+			t.Errorf("CBOR map must not use json-tag key %q: %v", legacy, keys)
+		}
+	}
+}

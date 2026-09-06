@@ -123,22 +123,10 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 		case err != nil:
 			return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: introspect %s: %w", c.Name, err)
 		case duckdbCanonicalType(got) != duckdbCanonicalType(c.Type):
-			// Genuinely drifted type. DuckDB refuses ALTER TYPE while an
-			// index depends on the column — drop the plan's indexes on it,
-			// retype, recreate them.
-			dependent := make([]metaengine.PlannedIndex, 0)
-
+			// Genuinely drifted type. DuckDB refuses ALTER TYPE while ANY
+			// index exists on the TABLE (not just the altered column), so
+			// all plan indexes are dropped and recreated around the change.
 			for _, idx := range plan.Indexes {
-				for _, col := range idx.Columns {
-					if strings.EqualFold(col, c.Name) {
-						dependent = append(dependent, idx)
-
-						break
-					}
-				}
-			}
-
-			for _, idx := range dependent {
 				if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
 					"DROP INDEX IF EXISTS %s", metaengine.QuoteIdent(idx.Name),
 				)); err != nil {
@@ -155,7 +143,7 @@ func (e *duckdbEngine) EvolveLayoutPlan(
 				return nil, fmt.Errorf("duckdbengine.EvolveLayoutPlan: retype %s: %w", c.Name, err)
 			}
 
-			for _, idx := range dependent {
+			for _, idx := range plan.Indexes {
 				if _, err := e.db.ExecContext(ctx, fmt.Sprintf(
 					"CREATE INDEX IF NOT EXISTS %s ON %s(%s)",
 					metaengine.QuoteIdent(idx.Name),

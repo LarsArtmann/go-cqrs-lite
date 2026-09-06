@@ -6,6 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine correctness wave: routing honesty, claiming on MariaDB, planned-table parity — 2026-09-06
+
+- **Capability-aware routing** (`metaengine`): `Plan` now partitions
+  candidates structurally — an engine that DECLARES an ADT natively but does
+  not implement its backend interface is over-declared and loses routing to
+  structurally capable engines (plan-time DEGRADED diagnostic names the
+  exclusion). With no honest alternative, the over-declaring engine is still
+  routed to (fallback paths may serve it) under a plan-time WARN — the
+  execution-time hard error is no longer the first signal.
+- **Record-context hazard made visible**: `Store.Apply` feeds folds a
+  synthesized Type-only Record; OnRecord folds that read StreamID/Version
+  silently saw zeros. Record-awareness is now tracked per fold, synthetic
+  applies that reach record-aware folds are counted (one-time log via
+  `Hooks.Logger`), and `Doctor` renders a "--- Record context ---" section
+  pointing at `Store.ApplyRecord`. `Apply`/`ApplyBatch`/`ApplyRecord` docs
+  state the contract.
+- **MySQL/MariaDB claiming store**: `NewClaimingMySQLStore` now constructs a
+  real claiming timer store — `FOR UPDATE SKIP LOCKED` verified live on
+  MariaDB 11.4 (syntax + no-double-fire behavior; MariaDB has it since 10.6).
+  The claim runs two statements in one transaction (SELECT ... FOR UPDATE
+  SKIP LOCKED, then UPDATE by IDs) because MySQL-compatible servers lack
+  UPDATE..FROM..RETURNING. `ErrClaimingUnsupported` now rejects only unknown
+  dialects. Integration-pinned against live MariaDB by
+  `mysql_claiming_integration_test.go`.
+- **Planned-table capability parity for sqliteengine and duckdbengine**:
+  both implement `KeyScanBackend` (paged key+value reads over the base
+  `meta_map`), `LayoutPlanEvolver` (SQLite: PRAGMA table_info; type drift
+  fails loudly because SQLite cannot ALTER COLUMN TYPE. DuckDB:
+  information_schema with alias-canonical comparison — TEXT/VARCHAR,
+  REAL/FLOAT — plus index drop/recreate around ALTER TYPE), and
+  `PlannedTablesReporter` (Doctor row counts now cover all four SQL
+  engines).
+- **Calibration constants single-sourced**: `scripts/calibration-drift.sh`
+  reads the SHIPPED per-pattern constants live from each engine's
+  `Profile().ReadCosts` (new per-engine `TestCalibrationConstantsDump`,
+  `CALIB_DUMP=1`) instead of a hand-copied table — the profile is the only
+  editable home for a constant; the baseline doc remains the dated
+  measurement record.
+- **Dgraph per-OP constants recalibrated honestly**: new
+  `BenchmarkCalibration_DgraphScaled` (result sizes 100/1K/10K on live
+  Dgraph 25.4.0) measured per-row slopes ~2.2 µs/row;
+  `NsPerScan`/`NsPerFilteredScan` ship 2_200 per-row instead of the
+  450_000/900_000 per-RPC totals that overstated a 1K-row scan estimate
+  ~200-400x. The RPC fixed cost belongs to the NetworkRTT prior, which does
+  not scale with volume.
+- **NsPerWrite scope documented** (audit outcome): it feeds observability
+  (Doctor/plan reports) and the live calibration loop only — the routing
+  cost model prices READS exclusively.
+
 ### Added — iroh graph WriteOp convergence + capability-conformance wiring — 2026-09-06
 
 Edges added or removed through the irohengine `Replicated` wrapper now

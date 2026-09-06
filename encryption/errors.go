@@ -12,6 +12,11 @@ var (
 		"encryption key is empty or invalid",
 	)
 
+	ErrKeyNotSet = errorfamily.NewRejection(
+		"encryption.key_not_set",
+		"encryption key source is empty or unset",
+	)
+
 	ErrDecryptionFailed = errorfamily.NewRejection(
 		"encryption.decryption_failed",
 		"decryption failed, ciphertext may be corrupt or wrong key",
