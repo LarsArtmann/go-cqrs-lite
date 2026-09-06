@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — severity/confidence contract + rules --json — 2026-09-06
+
+- **cqrs-lint severity meta-test**: what a detector's finding.NewBuilder call
+  statically declares must now match the catalog entry for the same rule ID.
+  The contract found and fixed 14 real split-brains — including S008/S009
+  (asymmetric signing/encryption) emitting warnings while the catalog
+  declared errors, and P006/B021 understating severity — and aligns the
+  remaining mismatches to the authoritative side per rule intent.
+  Conditional-severity detectors (B008/C008/S002/S006) and helper-mediated
+  rule families are explicitly allowlisted for the audit waves.
+- **cqrs-lint rules --json**: the rule catalog is now machine-readable
+  (id, name, category, severity, confidence, autoFix, docUrl) for editor
+  and tooling consumers; the linter itself uses it to cross-check the
+  catalog against builder declarations.
+
 ### Fixed — master-CI repair wave 2: FlakeHub, module discovery, go.work externals — 2026-09-03
 
 Master CI had not completed green since 2026-07-17; this wave fixes every

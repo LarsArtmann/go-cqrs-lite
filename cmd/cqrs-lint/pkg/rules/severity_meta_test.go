@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -30,7 +31,7 @@ type builderDecl struct {
 
 // conditionalSeverityRules escalate severity/confidence at runtime from
 // detector inputs; their catalog value documents the TYPICAL case.
-var conditionalSeverityRules = map[string]string{ //nolint:gochecknoglobals // test fixture
+var conditionalSeverityRules = map[string]string{
 	"B008": "manual-retry severity depends on loop shape",
 	"C008": "escalates when the field is a confirmed money name",
 	"S002": "escalates for high-sensitivity payload names",
@@ -41,39 +42,31 @@ var conditionalSeverityRules = map[string]string{ //nolint:gochecknoglobals // t
 // (singleFinding/singleInfoFinding and siblings), so no literal rule ID sits
 // inside a finding.NewBuilder call for the meta-test to read. Each batch was
 // or will be verified in the rule audit waves (TODO_LIST § cqrs-lint).
-var helperMediatedRules = map[string]string{ //nolint:gochecknoglobals // test fixture
-	"B023": "built via boilerplate helper",
-	"B029": "built via boilerplate helper",
-	"B030": "built via boilerplate helper",
-	"B031": "built via boilerplate helper",
-	"E008": "built via singleFinding helper",
-	"E009": "built via singleFinding helper",
-	"E010": "built via singleFinding helper",
-	"E011": "built via singleFinding helper",
-	"E012": "built via singleFinding helper",
-	"E013": "built via singleFinding helper",
-	"E014": "built via singleFinding helper",
-	"E015": "built via singleFinding helper",
-	"T001": "built via testing helper",
-	"T002": "built via testing helper",
-	"T003": "built via testing helper",
-	"T004": "built via testing helper",
-	"T005": "built via testing helper",
-	"T006": "built via testing helper",
-	"T007": "built via testing helper",
-	"T008": "built via testing helper",
-}
+// helperMediatedRules is built by a function (not init) so gochecknoinits
+// stays quiet and the F001-F030 family needs no 30 hand-written entries.
+var helperMediatedRules = buildHelperMediated()
 
-func init() {
-	for i := 1; i <= 30; i++ {
-		helperMediatedRules[fmt.Sprintf("F%03d", i)] = "built via adoption helper"
+func buildHelperMediated() map[string]string {
+	m := map[string]string{
+		"B023": "built via boilerplate helper",
+		"B029": "built via boilerplate helper",
+		"B030": "built via boilerplate helper",
+		"B031": "built via boilerplate helper",
 	}
+	for i := 1; i <= 8; i++ {
+		m[fmt.Sprintf("E%03d", i+7)] = "built via singleFinding helper"
+		m[fmt.Sprintf("T%03d", i)] = "built via testing helper"
+	}
+	for i := 1; i <= 30; i++ {
+		m[fmt.Sprintf("F%03d", i)] = "built via adoption helper"
+	}
+	return m
 }
 
 // severityVariants allowlist documented secondary emission paths for a rule
 // whose sub-conditions warrant a different severity than the catalog
 // headline. Key: "RULE|severity|confidence".
-var severityVariants = map[string]string{ //nolint:gochecknoglobals // test fixture
+var severityVariants = map[string]string{
 	"A017|info|low": "advisory branch (no snapshot store AND no state cache); the catalog headline (warning/high) covers the WithSnapshotStore-without-strategy misconfiguration",
 }
 
@@ -153,7 +146,7 @@ func scanBuilderDecls(t *testing.T) []builderDecl {
 					return true
 				}
 
-				pos := rel + ":" + fmt.Sprint(fset.Position(call.Pos()).Line)
+				pos := rel + ":" + strconv.Itoa(fset.Position(call.Pos()).Line)
 				out = append(out, builderDecl{
 					rule: strings.Trim(lit.Value, `"`),
 					sev:  exprLabel(call.Args[3]),
@@ -175,7 +168,7 @@ func scanBuilderDecls(t *testing.T) []builderDecl {
 
 					if sel2.Sel.Name == "NewBuilder" {
 						if _, ok := call2.Args[0].(*ast.BasicLit); ok {
-							pos2 := rel + ":" + fmt.Sprint(fset.Position(call2.Pos()).Line)
+							pos2 := rel + ":" + strconv.Itoa(fset.Position(call2.Pos()).Line)
 							confByPos[pos2] = exprLabel(call.Args[0])
 						}
 
