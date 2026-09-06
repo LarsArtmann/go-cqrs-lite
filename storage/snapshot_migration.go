@@ -34,7 +34,7 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 		)
 	}
 
-	if !containsString(columns, "aggregate_type") && !containsString(columns, "aggregate_id") {
+	if !slices.Contains(columns, "aggregate_type") && !slices.Contains(columns, "aggregate_id") {
 		return nil
 	}
 

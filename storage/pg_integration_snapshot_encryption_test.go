@@ -78,7 +78,7 @@ func TestPostgresSnapshotEncryption_AtRestAndRotation(t *testing.T) {
 		t.Fatalf("NewSnapshot: %v", err)
 	}
 
-	if err = legacyStore.Save(ctx, *snap); err != nil {
+	if err = legacyStore.Save(ctx, snap); err != nil {
 		t.Fatalf("save encrypted snapshot: %v", err)
 	}
 

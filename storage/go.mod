@@ -26,8 +26,6 @@ require (
 	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
 )
 
 require (
@@ -62,8 +60,9 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect
@@ -116,3 +115,7 @@ require (
 )
 
 retract v4.7.0 // does not compile: sql/keyset.go:43 assigns undeclared err; use v4.7.1
+
+replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => ../encryption
+
+replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
