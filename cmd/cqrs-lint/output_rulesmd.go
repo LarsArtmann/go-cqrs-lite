@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -107,7 +108,9 @@ func ruleDocLinks(r rules.RuleInfo) []string {
 	}
 	links := make([]string, 0, len(v007AdrLinks))
 	for _, adr := range v007AdrLinks {
-		links = append(links, "[ADR "+adr[8:12]+"](../../"+adr+")")
+		base := strings.TrimSuffix(path.Base(adr), ".md")
+		num := strings.SplitN(base, "-", 2)[0]
+		links = append(links, "[ADR "+num+"](../../"+adr+")")
 	}
 	return links
 }

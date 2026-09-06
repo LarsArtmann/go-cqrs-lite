@@ -74,7 +74,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "Transaction wrapper returns nil instead of tx.Commit()",
 			AutoFix:     true,
-			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c001",
+			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c001",
 		},
 		{
 			ID:          "C002",
@@ -138,7 +138,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "float64 field with monetary name — use decimal or cents",
 			AutoFix:     false,
-			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c008",
+			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c008",
 		},
 		{
 			ID:          "C009",
@@ -157,7 +157,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "Error from decode/unmarshal discarded in fold",
 			AutoFix:     false,
-			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c010",
+			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c010",
 		},
 		{
 			ID:          "C011",
@@ -185,7 +185,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "medium",
 			Description: "time.Time field in event payload loses timezone via CBOR epoch encoding",
 			AutoFix:     false,
-			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/docs/TIMEZONE_HANDLING.md",
+			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/docs/TIMEZONE_HANDLING.md",
 		},
 		{
 			ID:          "C014",
@@ -222,7 +222,7 @@ func correctnessRules() []RuleInfo {
 			Confidence:  "high",
 			Description: "In-memory snapshot/checkpoint/dead-letter/timer store with persistent event store — lost on restart",
 			AutoFix:     false,
-			DocURL:      "https://github.com/LarsArtmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c017",
+			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#c017",
 		},
 		{
 			ID:          "C018",
