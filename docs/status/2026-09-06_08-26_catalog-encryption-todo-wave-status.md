@@ -25,7 +25,7 @@
 ## b) PARTIALLY DONE
 
 1. **Skill reference updates.** Added the key-lifecycle snippet to `recipes.md` §2.7 (doc-check green afterwards). NOT yet documented in skill refs: envelope v2 wire format, rotation write-back recipe, `doctor --format json`, the two check apps. CHANGELOG + code docs carry the truth; the skill surface lags.
-2. **AGENTS.md gotchas.** Nothing added for: envelope v2 (wire-format change in a minor), the pgx `[]byte`→bytea/JSONB trap, the "release an external sibling repo" checklist, exhaustruct_v5 nolint-placement quirks. The lessons exist only in this report.
+2. ~~**AGENTS.md gotchas.** Nothing added for: envelope v2 (wire-format change in a minor), the pgx `[]byte`→bytea/JSONB trap, the "release an external sibling repo" checklist, exhaustruct_v5 nolint-placement quirks.~~ partially done — pgx bytea/JSONB + envelope v2 recorded by the 2026-09-06 evening docs-health pass; the rest routed to TODO_LIST (Docs section).
 3. **Verification scope.** Module-scoped GREEN everywhere; the full `nix run .#verify` (build+vet+test+race+lint+doc-check battery) was NOT run — parallel session live, box contended. Stated as such rather than claimed.
 4. **C040 follow-up #206 skipped.** Projection-handler dead-case detection (the third documented follow-up) not started — the idea itself flags higher false-positive risk; I did the two safe ones (#207 dedup, #208 const resolution) and left #206 with its design note.
 5. **cqrs-lint self-lint delta not measured.** The collector unification changed C038/C040 semantics (IsTest skip now shared; const resolution added). Module tests green, but I did not re-run the linter against the repo itself to measure the finding-delta on real code.
@@ -39,7 +39,7 @@
 1. **CI wiring** for `check-csp` (cheap; chromium from nix) and `check-eventcatalog` (needs npm network — nightly candidate). Both are flake apps only.
 2. **README / AGENTS quick-reference rows** for `check-csp` + `check-eventcatalog`.
 3. **Tag wave for this session's unpublished symbols** — encryption (keys + v2 envelope), snapshot (`NewRewritingTransformedStore`), cmd/cqrs-lint (analyzer/suppression/doctor), catalog. **`storage/go.mod` currently carries `replace => ../encryption` and `=> ../snapshot`** (the documented unpublished-sibling pattern; tag-release strips at cut) — a pin sweep + strip is REQUIRED at the next wave.
-4. **Push** — 5 commits ahead of origin; prior session's "owner word required" still stands.
+4. ~~**Push** — 5 commits ahead of origin; prior session's "owner word required" still stands.~~ resolved — master pushed and in sync with origin (2026-09-06 evening).
 5. **Full `#verify` / vulncheck / coverage / duplication battery.**
 6. **Envelope v2 consumer note** (V5-MIGRATION-GUIDE / FAQ): "old readers stay compatible; no action needed" is true but undocumented outside CHANGELOG.
 7. **C040 #206** (projection-handler dead-case) — design note exists in IMPROVEMENT_IDEAS, untouched.
@@ -107,7 +107,7 @@
 
 **Catalog / docs**
 28. Recipes/skill refs: add envelope v2 + rotation write-back recipe + doctor JSON (close the §b-1 gap).
-29. docs-health pass: harvest this report + prior reports into TODO_LIST/FEATURES; FEATURES.md lacks the new capabilities (key helpers, write-back, check apps).
+29. ~~docs-health pass: harvest this report + prior reports into TODO_LIST/FEATURES; FEATURES.md lacks the new capabilities (key helpers, write-back, check apps).~~ done (docs-health pass 2026-09-06 evening).
 30. EventCatalog exporter: emit `package-lock.json` (reproducible npm install for check-eventcatalog).
 31. ec-fixture: widen coverage (domains, channels, custom docs) toward real-consumer render paths; dedupe with cattest builders.
 32. check-csp: also pin the CSP-OFF pages as byte-identical (protect the opt-in contract against drift).

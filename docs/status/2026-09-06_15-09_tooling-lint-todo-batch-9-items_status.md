@@ -29,7 +29,7 @@ All 9 items ticked in `TODO_LIST.md` with inline DONE annotations (dated, with t
 
 1. **duckdbengine restart-safety adoption — deferred, not forgotten.** The concurrent session has uncommitted changes in `metaengine/duckdbengine/` (planned_parity workstream). Ownership protocol forbids adding files to a module another session is mid-editing. The harness applies mechanically (same shape as sqlite: persistent engine, full StreamLogBackend surface) — 15-minute job once their work lands.
 2. **check-duplication is RED — entirely foreign, verified not mine.** 5 new clone groups vs the 131-group baseline: `cmd/cqrs-lint/pkg/suppression/fix.go` (sortAuditEntries prologue ×2), the `duckdbengine/pgengine/sqliteengine planned_parity` sort.Slice trio (the duckdb file is the concurrent session's uncommitted edit), and a `catalog/docserver/csp_browser_test.go` ↔ `metaengine/store_collaborators.go` mutex-idiom pair. I did not annotate or fix these — the files belong to the in-flight session. My diff introduced zero new groups (the sortAndPaginate extraction removed one accepted clone).
-3. **CHANGELOG entries not written.** The exhaustruct_v5 migration, the badger data-loss fix, the `metaengine.SortPaginate[T]` API addition, and doc-check's behavior change all deserve `[Unreleased]` entries, but `CHANGELOG.md` had uncommitted concurrent-session edits at decision time (shared-ledger protocol). The work itself is committed via the daemon.
+3. ~~**CHANGELOG entries not written.** The exhaustruct_v5 migration, the badger data-loss fix, the `metaengine.SortPaginate[T]` API addition, and doc-check's behavior change all deserve `[Unreleased]` entries, but `CHANGELOG.md` had uncommitted concurrent-session edits at decision time (shared-ledger protocol). The work itself is committed via the daemon.~~ done — [Unreleased] subsection added by the 2026-09-06 evening docs-health pass (badger fix + pin-sweep + doc-check resolver + `SortPaginate[T]` + gate wiring).
 4. **`nix run .#verify` was never run to green this session.** First attempt (early, full lint) died on 22 modules — a mix of the concurrent session's mid-write typecheck breakage (snapshot/wire.go referencing not-yet-written symbols) and pre-existing reds. Final full lint: 22 → 3 failing modules, all three foreign (snapshot `recvcheck`/`tagliatelle` from their v5 wire-tag rename; catalog `goconst` in their ec-fixture). Every per-task gate for MY diffs ran green individually; the aggregate gate is owned by their in-flight state. Workspace `go build -tags goexperiment.jsonv2 ./...` passes as of session end.
 
 ---
@@ -72,7 +72,7 @@ All 9 items ticked in `TODO_LIST.md` with inline DONE annotations (dated, with t
 ## f) Up to 50 things we should get done next (brainstorm — ROADMAP/HARVEST fuel, not commitments)
 
 1. Adopt `RunRestartSafetyTest` for duckdbengine (unblocked when the concurrent session's planned_parity work lands).
-2. CHANGELOG `[Unreleased]` entries: exhaustruct_v5 migration; badger data-loss fix; `metaengine.SortPaginate[T]` (check-changelog-symbols after); doc-check block-scoped resolution (user-visible behavior change); check-templ drift fix.
+2. ~~CHANGELOG `[Unreleased]` entries: exhaustruct_v5 migration; badger data-loss fix; `metaengine.SortPaginate[T]` (check-changelog-symbols after); doc-check block-scoped resolution (user-visible behavior change); check-templ drift fix.~~ done (docs-health pass 2026-09-06 evening; changelog-symbols gate re-run).
 3. Attribute + resolve the 5 foreign clone groups (cqrs-lint `fix.go` ×2 → extract/dedupe `sortAuditEntries` callers; planned_parity trio → cross-engine pattern decision; csp mutex idiom → directive or extraction).
 4. Fix pre-existing scheduling/sqlstore findings (gosec G202, sqlclosecheck ×2, staticcheck QF1003, wsl_v5) — proven pre-session.
 5. exhaustruct_v5 canary: unit-test that each `ignore-patterns` entry still matches under v5 full-type-name semantics.
@@ -119,7 +119,7 @@ All 9 items ticked in `TODO_LIST.md` with inline DONE annotations (dated, with t
 46. snapshot coverage was 91.9% in the coverage gate log — the foreign wire-tag work may shift it; recheck after they land.
 47. Add badgerengine to any next multi-module tag wave: it now uses a NEW exported metaengine symbol (`SortPaginate`) — engines need the metaengine pin bumped + replaces stripped at cut time (standard wave mechanics, now load-bearing for badger).
 48. doc-check: consider caching the repo alias walk between invocations (startup cost ~sub-second today; only if it grows).
-49. TODO_LIST: the batch's source sections (archived 2026-09-01 §f14–18 etc.) are now fully consumed — next docs-health pass can mark that report's tooling section fully harvested.
+49. ~~TODO_LIST: the batch's source sections (archived 2026-09-01 §f14–18 etc.) are now fully consumed — next docs-health pass can mark that report's tooling section fully harvested.~~ confirmed (docs-health pass 2026-09-06 evening).
 50. Bigger idea from this session: a `persistent-engine conformance` flake app that runs restart-safety + backup + planned-ops matrix per engine on demand (`#engine-conformance <engine>`).
 
 ---

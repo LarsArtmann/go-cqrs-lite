@@ -76,18 +76,11 @@
 4. **loopback/quic convergence not run under `-race` ×3 locally** (only the
    in-process module got the triple-race treatment; CI's quic-flake-watch
    will exercise it post-push).
-5. **modules.md irohengine row still cites `WithReplay`** — I preserved it
-   in my edit, but `WithReplay` does NOT exist in the irohengine package
-   (pre-existing doc fiction, likely leaked from metaengine SSE). Should be
-   removed.
+5. ~~**modules.md irohengine row still cites `WithReplay`** — I preserved it in my edit, but `WithReplay` does NOT exist in the irohengine package (pre-existing doc fiction, likely leaked from metaengine SSE). Should be removed.~~ done — removed by the 2026-09-06 evening docs-health pass (only `WithAuthor`/`WithTransport` exist).
 
 ## c) NOT STARTED
 
-1. **Full exclusive `#verify`** — blocked: `TestUniversalADT_PrefersNativeOverDegraded`
-   in metaengine root is RED from the CONCURRENT session's in-flight planner
-   change. Attribution proven via worktrees: absent at `f505ca1ed`, present
-   at `0481bdc70` (their `engineServesADTNatively` + planner.go +75), both
-   with and without my Doctor-note change. Not mine to fix.
+1. ~~**Full exclusive `#verify`** — blocked: `TestUniversalADT_PrefersNativeOverDegraded` in metaengine root is RED from the CONCURRENT session's in-flight planner change.~~ resolved — the planner work landed (`engineServesADTNatively` shipped); master green.
 2. **Tag wave** for `metaengine/irohengine` (new exported consts) — tags are
    user-authorized per plan guardrails.
 3. **Anti-entropy / late-joiner sync for graph ops** (and all op kinds):
@@ -183,9 +176,7 @@
     mention graph replication; minor.
 16. Add a graph-replication recipe (§2.x) to recipes.md: follow-graph over
     iroh(memory) with code sample.
-17. Update AGENTS.md: module-state note (iroh graph ops replicate) + the
-    scoped-`--fix` gotcha (d1) + daemon-reformat edit friction already
-    tracked.
+17. ~~Update AGENTS.md: module-state note (iroh graph ops replicate) + the scoped-`--fix` gotcha (d1) + daemon-reformat edit friction already tracked.~~ done 2026-09-06 evening (scoped-`--fix` appended to the concurrent-session gotcha; module state in FEATURES/modules.md).
 
 **Design debt surfaced by this work**
 18. LWW timestamps table eviction (all op kinds, edges worsen growth).

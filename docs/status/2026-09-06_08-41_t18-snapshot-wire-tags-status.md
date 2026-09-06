@@ -50,7 +50,7 @@
 3. events/commands table column rename (v5 §4 "any commands table variants") — undecided whether it lands in 5.0.0 or a later 5.x.
 4. benchkit `aggregates` wire-key rename + re-golden.
 5. v6 deletion of the fallback shims (scheduled; needs a ROADMAP marker).
-6. HARVEST of section (f) below into TODO_LIST/ROADMAP (per status-report skill: report first, harvest when session continues).
+6. ~~HARVEST of section (f) below into TODO_LIST/ROADMAP (per status-report skill: report first, harvest when session continues).~~ done (docs-health pass 2026-09-06 evening).
 7. All other TODO_LIST §v5 items (transport/http+grpc module deletion, tombstone metadata API deletion, E1/E7/E8/E11/E13/E15, more extended-review follow-ups) — untouched.
 
 ---
@@ -154,7 +154,7 @@
 
 1. **SQL scope & timing:** should the events/commands table columns rename in **5.0.0** (same wave as snapshots, sweep doc hints yes: "snapshots table + any commands table variants"), or in a later 5.x? This decides whether I generalize the migration helper now and how much consumer SQL breakage we accept in one release.
 2. **Backport expectation:** master now writes new wire keys while published v4 readers only read old keys (pre-v5 data stays readable; the reverse needs the upgrade). Is there any expectation of a v4.x patch release carrying the dual-read readers so old binaries can read new writes — or is the upgrade cut strictly one-way at 5.0.0?
-3. **Concurrent session ownership:** the other session's `cqrs-lint/pkg/suppression` WIP currently keeps `check-duplication` red, and `scripts/pin-sweep.sh` + `metaengine/duckdbengine/planned_parity_cgo_test.go` are foreign-edited. Are those expected to land soon (I leave their gates alone), or is that session done/abandoned (then I should reconcile and clean)?
+3. ~~**Concurrent session ownership:** the other session's `cqrs-lint/pkg/suppression` WIP currently keeps `check-duplication` red, and `scripts/pin-sweep.sh` + `metaengine/duckdbengine/planned_parity_cgo_test.go` are foreign-edited. Are those expected to land soon (I leave their gates alone), or is that session done/abandoned (then I should reconcile and clean)?~~ resolved — the concurrent waves landed; master is pushed and green (2026-09-06 evening). Residual clone-group cleanup is tracked in TODO_LIST.
 
 ---
 

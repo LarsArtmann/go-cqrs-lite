@@ -52,8 +52,8 @@ Planned-adjacent work this session surfaced but did not begin. None of it was in
 | - | ---- | --------------- | ------------- |
 | C1 | **Catalog tail items** (same TODO_LIST neighborhood): golden-test the flattened eventcatalog exporter output + embedded-flattening fallout check in `cmd/cqrs-gen` + `catalog/eventcatalog`; browser-validate CSP against embedded Scalar/AsyncAPI bundles; automate the EventCatalog render validation | Outside this session's harvest block | Yes — untouched TODO_LIST items |
 | C2 | **`awaitAck` lying log line** — on `Close()`, `awaitAck` returns false and `replayPhase` logs `ERROR ... "consumer nacked replay event"` even though the consumer never nacked (it was a Close). Noticed during test writing (visible in test output), deliberately deferred to keep the diff on one variable, then FAILED to record it anywhere. Logged here now. | Scope discipline (correct call), follow-through lapse (no TODO entry until now) | Yes — small truthfulness fix |
-| C3 | **Skill-reference propagation of the skew caveat** — the watermark caveat now lives in the Go doc comment; `.agents/skills/go-cqrs-lite/references/advanced.md` §CatchUp likely documents the watermark dedup without the skew caveat. doc-check passes (it checks symbol existence, not contract completeness), so nothing forces this | Not in scope; doc-check gave no signal | Yes — consumers read advanced.md, not doc comments |
-| C4 | **FEATURES.md update** for the new public re-exports (`storage.EventSchema`/`SQLiteEventSchema`) — API additions should touch the feature inventory, not just CHANGELOG + golden | Not in my write-reflex; process gap noted in (e) | Yes |
+| C3 | ~~**Skill-reference propagation of the skew caveat** — the watermark caveat now lives in the Go doc comment; `.agents/skills/go-cqrs-lite/references/advanced.md` §CatchUp likely documents the watermark dedup without the skew caveat.~~ done — caveat added to advanced.md §CatchUp (docs-health pass 2026-09-06 evening) | Not in scope; doc-check gave no signal | Yes — consumers read advanced.md, not doc comments |
+| C4 | ~~**FEATURES.md update** for the new public re-exports (`storage.EventSchema`/`SQLiteEventSchema`)~~ done (docs-health pass 2026-09-06 evening: DDL re-export + migration rows; encryption/snapshot/metaengine sections extended) | Not in my write-reflex; process gap noted in (e) | Yes |
 | C5 | **Ack-window pipelining** for CatchUpSubscriber | Deliberately deferred — throughput ceiling is ~160-280K ev/s in-memory; trigger documented (10× degradation) | On hold by design |
 | C6 | **Idle benchmark re-run + docs/benchmarks/ entry** | Ambient load never dropped below ~35 this session | Nice-to-have |
 
@@ -97,8 +97,8 @@ Brainstorm ranked by impact; HARVEST should apply routing rigor (most Medium/Low
 | 2 | Check whether `scripts/benchmark-regression.sh` auto-discovers `BenchmarkCatchUp_ReplayThroughput`; pin/exclude it so the new load-sensitive benchmark can't flake the CI regression gate | High | S | Quality |
 | 3 | Fix `awaitAck`/`replayPhase` truthfulness: distinguish Close from Nack so Close doesn't log `ERROR "consumer nacked replay event"` (C2) | Medium | S | Bug |
 | 4 | Propagate the watermark ULID-skew caveat into `advanced.md` §CatchUp + run doc-check (C3) | Medium | S | Documentation |
-| 5 | Resolve the parallel session's `sqlpkg.DeleteByStream` changelog fiction once their wave lands — re-run `check-changelog-symbols.sh` to repo-green (D3a) | High | S | Bug |
-| 6 | Fix `storage/snapshot_migration.go` lint (errcheck ×2, gofumpt, modernize) after the parallel session's file settles (D3b) | Medium | S | Quality |
+| 5 | ~~Resolve the parallel session's `sqlpkg.DeleteByStream` changelog fiction once their wave lands — re-run `check-changelog-symbols.sh` to repo-green (D3a)~~ done — citation corrected to `storage/sql.DeleteByStream`; gate green (150 citations, 08-41 §a12) | High | S | Bug |
+| 6 | ~~Fix `storage/snapshot_migration.go` lint (errcheck ×2, gofumpt, modernize) after the parallel session's file settles (D3b)~~ done — per-module lint 0 issues (08-41 §a11) | Medium | S | Quality |
 | 7 | Storage tag wave: `EventSchema`/`SQLiteEventSchema` are new API — include in the next `storage/v4` tag with the consumer pin sweep and GOWORK=off build matrix | High | M | Release |
 | 8 | Example v5-policy audit (Q3 policy): verify taskmanager + metaengine-quickstart use no v5-removed APIs (getting-started/readme-quickstart verified this session; those two not) | High | M | Quality |
 | 9 | Author `example/metaengine-quickstart/README.md` (B2) | Medium | M | Documentation |
@@ -136,13 +136,13 @@ Brainstorm ranked by impact; HARVEST should apply routing rigor (most Medium/Low
 | 41 | ROADMAP-route: F19 (hybrid suppression), F12 (doc-check arity), F10 (go.sum sweep) if not TODO_LIST-grade after HARVEST review | Low | S | Documentation |
 | 42 | Annotate/archive this report at the next docs-health pass (point-in-time, will rot) | Low | S | Documentation |
 | 43 | `advanced.md`: surface the pipelining-deferral threshold + benchmark ceiling next to the CatchUp recipe (pairs with F4) | Low | S | Documentation |
-| 44 | TODO_LIST: add the awaited `awaitAck` fix + the benchmark-discovery check so they don't live only in this report | Medium | S | Documentation |
+| 44 | ~~TODO_LIST: add the awaited `awaitAck` fix + the benchmark-discovery check so they don't live only in this report~~ done (docs-health pass 2026-09-06 evening — both items in the Docs/consumer-surface section) | Medium | S | Documentation |
 | 45 | Verify the parallel session's T18 snapshot-tag wave didn't change `storage` test expectations this session touched (coordinated re-run of storage suite after their landing) | Medium | S | Quality |
 | 46 | Consider `Suppress`-log dedup in catchup: repeated per-message errors during Close flood logs (observed in benchmark output) | Low | S | Quality |
 | 47 | Add `docs/status/README.md` pointer convention check: ensure new reports land unarchived with the harvest note | Low | S | Documentation |
 | 48 |getting-started README: swap-to-sqlite claim says "one EngineConfig line" — add the blank-import caveat visible in the code fence (partially there; tighten) | Low | S | Documentation |
 | 49 | Bench: add allocs/event sub-metric to the catch-up benchmark for regression visibility (currently only ns/event) | Low | S | Quality |
-| 50 | Close the loop: run docs-health HARVEST on this report's (f) section into TODO_LIST/ROADMAP | Medium | S | Documentation |
+| 50 | ~~Close the loop: run docs-health HARVEST on this report's (f) section into TODO_LIST/ROADMAP~~ done (docs-health pass 2026-09-06 evening) | Medium | S | Documentation |
 
 ---
 

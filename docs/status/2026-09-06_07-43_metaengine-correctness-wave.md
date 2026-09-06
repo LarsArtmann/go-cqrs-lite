@@ -149,13 +149,7 @@ all touched files, MySQL integration suite green.
 
 ## d) TOTALLY FUCKED UP (own failures, no varnish)
 
-1. **I introduced a doc LIE in `ApplyBatch`.** My added sentence tells users to
-   "set `EventInput.Record` for OnRecord folds that read context" — but
-   `ApplyBatch` structurally IGNORES `evt.Record` (it calls `s.Apply` per
-   event, which synthesizes). The guidance is false; a consumer following it
-   gets exactly the silent zeros the section warns about. Fix is one of:
-   correct the sentence, or (better) make `ApplyBatch` route Record-carrying
-   events through `applyWithRecord`. NOT yet fixed — top of the next list.
+1. ~~**I introduced a doc LIE in `ApplyBatch`.**~~ corrected — the EventInput/Apply docs now state the synthesized-Record contract truthfully (replay paths only); the remaining behavior gap (ApplyBatch dropping `EventInput.Record`) is tracked in TODO_LIST → Metaengine follow-ups.
 2. **I shipped a regression into the MySQL claim path mid-session** — the
    "satisfy rowserrcheck" edit unconditionally wrapped `rows.Err()` via
    `errorfamily.WrapInfrastructure(nil, …)`, which returns a NON-nil error for
@@ -170,9 +164,7 @@ all touched files, MySQL integration suite green.
    memory, not source; (b) "Doctor row counts now cover all four SQL engines"
    — inferred from the interface, never observed in Doctor output. Both violate
    the verify-external-claims discipline I'm supposed to hold.
-4. **`OnRecord`'s own doc comment still says handlers "receive the full
-   Record" unconditionally** — I fixed Apply/ApplyRecord docs and left the
-   constructor doc lying in the same way. Half-done doc truth.
+4. ~~**`OnRecord`'s own doc comment still says handlers "receive the full Record" unconditionally**~~ fixed — `record_context.go` + the Apply-family docs state the synthesized/ApplyRecord contract.
 5. **Skip-then-claim pattern**: I listed `nix run .#verify` as a gate and then
    ended the session on per-module gates only, with ~6 files uncommitted in
    the tree at hand-off. By this repo's own standard ("stale GREEN is worse
@@ -220,8 +212,8 @@ all touched files, MySQL integration suite green.
    `check-workspace-sync.sh`.
 6. Run `check-duplication` and validate the 6 new `art-dupl:accept` groups
    actually suppress (iterative unmasking applies).
-7. Run `check-arch` (test-only dep exclusion for go-sql-driver), `check-coverage`,
-   `check-lint-config` (drift script + .golangci untouched but cheap).
+7. ~~Run `check-arch` (test-only dep exclusion for go-sql-driver), `check-coverage`,
+   `check-lint-config` (drift script + .golangci untouched but cheap).~~ done by later sessions — check-arch green (08-26 §a10), check-lint-config green (15-09 §a6), coverage gate green.
 8. Resolve the ~6-file working-tree residue (daemon or explicit commit) and
    confirm HEAD is gate-clean.
 

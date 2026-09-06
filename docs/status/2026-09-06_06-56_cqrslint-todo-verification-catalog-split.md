@@ -67,9 +67,9 @@
 **This workstream, immediate**
 1. Owner decision: 350-line gate policy — full split vs baseline ratchet vs exemptions (unblocks items 2, 31–38, 44).
 2. Push the branch so CI validates the sync/reformat/catalog/gate fixes (owner word required).
-3. Post-push: confirm `go.work sync check`, `Check formatting`, and `file-size-gate` (now expecting 54) go green; annotate the 01:20 infra incident run.
+3. ~~Post-push: confirm `go.work sync check`, `Check formatting`, and `file-size-gate` (now expecting 54) go green; annotate the 01:20 infra incident run.~~ done — sync + formatting green (commits `ac9e11776`, `c3b9b0d20`); file-size gate still red by design pending the policy decision (TODO_LIST).
 4. Re-run `-race -count=3` on cqrs-lint post-`d341d95bd` (close the race-coverage seam).
-5. Split `feature_profile.go` (587) — doubles as T20 scanner refactor.
+5. ~~Split `feature_profile.go` (587) — doubles as T20 scanner refactor.~~ done at `207bdc46f` (feature_kinds.go 164 + presets.go 220 + feature_profile.go 214).
 6. Split `architecture/helpers.go` (627).
 7. Split `suppression/parser.go` (540) — input-handling code, add fuzz seed corpus first.
 8. Split `explain.go` (516).
@@ -80,7 +80,7 @@
 13. Resolve Daemon Q2: BuildFlow exclusion knob or documented acceptance; then close the item.
 14. ApplyLayout design pass: prototype `go/packages` type-impl detection (`types.Implements` at module scope) vs capability registry fed from api-stability's scan.
 15. Promote the C003 fixture into `cmd/cqrs-lint/testdata/` if not already embedded in `fix_e2e_test.go`; stop relying on volatile `.gotmp`.
-16. Harvest this report's (f) into TODO_LIST/ROADMAP at the next docs-health pass.
+16. ~~Harvest this report's (f) into TODO_LIST/ROADMAP at the next docs-health pass.~~ done (docs-health pass 2026-09-06 evening).
 
 **Noticed in-session, small**
 17. Full audit of the 729-file reformat commit for any non-import change (sampled so far).
@@ -127,7 +127,7 @@
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
 1. **350-line gate policy:** full split, baseline ratchet (no file grows, no new offender), or explicit exemptions for table-catalog/harness dirs? This single decision decides whether items 2, 31–38, 44 are a multi-week split program or a one-day gate change — and whether AGENTS.md contract #1 stays as written.
-2. **Push timing:** the branch is ~15+ commits ahead (formatter restore, sync sweep, catalog split, gate-copy fix). Push now so CI validates, or hold until the parallel session's scorecard/irohengine work lands to avoid interleaving two unpushed streams? I never push without your word.
+2. ~~**Push timing:** the branch is ~15+ commits ahead (formatter restore, sync sweep, catalog split, gate-copy fix). Push now so CI validates, or hold until the parallel session's scorecard/irohengine work lands to avoid interleaving two unpushed streams? I never push without your word.~~ resolved — master pushed and in sync with origin (verified 2026-09-06 evening docs-health pass).
 3. **Q3 severity policy:** are there EXTERNAL consumers of cqrs-lint gating CI on `--min-severity error`, or is every consumer in-repo/examples today? If nothing external gates on it, Q3 collapses from a release-policy risk to a documentation note, and I can propose the cheap resolution myself next time.
 
 ---
