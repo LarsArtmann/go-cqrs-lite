@@ -67,7 +67,7 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 // rulesFlags carries the rules subcommand's output-format flag.
 type rulesFlags struct {
-	JSON     bool `default:"false" flag:"json" help:"Emit the catalog as JSON for tooling consumers"`
+	JSON     bool `default:"false" flag:"json"     help:"Emit the catalog as JSON for tooling consumers"`
 	Markdown bool `default:"false" flag:"markdown" help:"Emit the anchored RULES.md doc page"`
 }
 

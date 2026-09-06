@@ -22,13 +22,6 @@ func categoryTitle(c string) string {
 	return strings.ToUpper(c[:1]) + c[1:]
 }
 
-// markdownCategoryOrder fixes the RULES.md section order; unknown categories
-// are appended after these so a new category never breaks generation.
-var markdownCategoryOrder = []string{
-	"correctness", "api", "boilerplate", "performance", "consistency",
-	"architecture", "security", "testing", "version", "adoption",
-}
-
 // v007AdrLinks are rendered inside the V007 section: the rule spans three
 // v5-removal ADRs, and its catalog DocURL anchors here.
 func v007AdrLinks() []string {
@@ -80,7 +73,8 @@ func renderRulesMarkdown() string {
 	b.WriteString("Detectors per category (severities: `error` blocks CI, `warning` reports, `info` is advisory):\n\n")
 	b.WriteString("| Category | Rules | Section |\n|---|---|---|\n")
 	for _, c := range cats {
-		b.WriteString("| [" + categoryTitle(c) + "](#" + c + ") | " + strconv.Itoa(len(byCat[c])) + " | " + categoryIDRange(byCat[c]) + " |\n")
+		b.WriteString("| [" + categoryTitle(c) + "](#" + c + ") | " + strconv.Itoa(len(byCat[c])) +
+			" | " + categoryIDRange(byCat[c]) + " |\n")
 	}
 
 	for _, c := range cats {
@@ -90,7 +84,8 @@ func renderRulesMarkdown() string {
 		for _, r := range rs {
 			b.WriteString("<a id=\"" + strings.ToLower(r.ID) + "\"></a>\n\n")
 			b.WriteString("#### " + r.ID + " — `" + r.Name + "`\n\n")
-			b.WriteString("Severity: `" + r.Severity + "` · Confidence: `" + r.Confidence + "` · Auto-fix: " + yesNo(r.AutoFix) + " · Category: `" + r.Category + "`\n\n")
+			b.WriteString("Severity: `" + r.Severity + "` · Confidence: `" + r.Confidence +
+				"` · Auto-fix: " + yesNo(r.AutoFix) + " · Category: `" + r.Category + "`\n\n")
 			b.WriteString(r.Description + "\n")
 			if links := ruleDocLinks(r); len(links) > 0 {
 				b.WriteString("\nReferences:\n\n")
