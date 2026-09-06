@@ -1,9 +1,6 @@
 package pebbleengine
 
 import (
-	"bytes"
-	"sort"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -16,52 +13,16 @@ type kvPair struct {
 	raw   []byte // original JSON bytes (ScanRawValues return path; nil for MapScan)
 }
 
-// sortAndPaginate sorts pairs by value (with byte-key tiebreak for determinism),
-// applies keyset pagination (skipping items at or before cursor), and truncates
-// to limit+1 (the +1 lets callers detect has-more).
-//
-// sortFn is a tri-state comparator (negative = a before b). When nil, no
-// sorting or cursor pagination is applied — only the limit truncation runs.
-// cursor is the keyset pagination cursor: items where sortFn(item, cursor) <= 0
-// are skipped (already seen). The caller must ensure sortFn handles the cursor
-// value correctly (it may be a raw field value rather than a full item — see
-// extractOrDirect).
+// kvPairKey/kvPairValue are the accessors handed to metaengine.SortPaginate.
+func kvPairKey(p kvPair) []byte { return p.key }
+
+func kvPairValue(p kvPair) any { return p.value }
+
+// sortAndPaginate delegates to the shared metaengine.SortPaginate core; the
+// algorithm (sort by value, byte-key tiebreak, keyset cursor, limit+1) lives
+// in one place for all KV engines.
 func sortAndPaginate(pairs []kvPair, sortFn func(a, b any) int, cursor any, limit int) []kvPair {
-	//art-dupl:accept cross-module KV engine pattern — dep-isolated go.mod modules
-	if sortFn != nil {
-		sort.Slice(pairs, func(i, j int) bool {
-			if c := sortFn(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
-
-			return bytes.Compare(pairs[i].key, pairs[j].key) < 0
-		})
-	}
-
-	if cursor != nil && sortFn != nil {
-		filtered := pairs[:0]
-
-		for _, p := range pairs {
-			if sortFn(p.value, cursor) <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
-	}
-
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
-	}
-
-	return pairs
+	return metaengine.SortPaginate(pairs, kvPairKey, kvPairValue, sortFn, cursor, limit)
 }
 
 func trimRaw(results [][]byte, limit int) metaengine.RawScanResult {

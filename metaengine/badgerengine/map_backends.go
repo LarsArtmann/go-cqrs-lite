@@ -1,11 +1,8 @@
 package badgerengine
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
-	"sort"
 
 	"github.com/dgraph-io/badger/v4"
 
@@ -162,7 +159,7 @@ func (e *badgerEngine) MapScan(
 		return metaengine.ScanResult{}, err
 	}
 
-	pairs = sortAndPaginate(pairs, sortFunc, cursor, limit)
+	pairs = metaengine.SortPaginate(pairs, kvPairKey, kvPairValue, sortFunc, cursor, limit)
 
 	hasMore := limit > 0 && len(pairs) > limit
 	if hasMore {
@@ -177,43 +174,7 @@ func (e *badgerEngine) MapScan(
 	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
 }
 
-// sortAndPaginate sorts pairs by value (with byte-key tiebreak for determinism),
-// applies keyset pagination, and truncates to limit+1.
-func sortAndPaginate(pairs []kvPair, sortFn func(a, b any) int, cursor any, limit int) []kvPair {
-	if sortFn != nil {
-		sort.Slice(pairs, func(i, j int) bool {
-			if c := sortFn(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
+// kvPairKey/kvPairValue are the accessors handed to metaengine.SortPaginate.
+func kvPairKey(p kvPair) []byte { return p.key }
 
-			return bytes.Compare(pairs[i].key, pairs[j].key) < 0
-		})
-	}
-
-	if cursor != nil && sortFn != nil {
-		filtered := pairs[:0]
-
-		for _, p := range pairs {
-			if sortFn(p.value, cursor) <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
-	}
-
-	truncLimit := 0
-	if limit > 0 {
-		truncLimit = limit + 1
-	}
-
-	if truncLimit > 0 && len(pairs) > truncLimit {
-		pairs = pairs[:truncLimit]
-	}
-
-	return pairs
-}
-
-var _ = fmt.Sprintf // suppress unused import
+func kvPairValue(p kvPair) any { return p.value }
