@@ -312,6 +312,22 @@ nix run .#sweep                  # auto-fix formatting + lint drift (run after d
 ```
 
 **Before pushing:** run `nix run .#verify` (or at minimum `nix run .#verify-fast`).
+
+### Dependency bumps that regenerate generated assets
+
+Bumping `templ-components` changes the generated docserver CSS — the next
+`nix run .#verify` fails with `catalog/docserver/static/docs-ui.css is
+stale`. The bump is not done until the asset is regenerated and committed
+in the same change:
+
+```bash
+nix run .#build-docserver-css    # regenerate docs-ui.css from docs-ui.src.css
+```
+
+The same rule holds for any generated file verified against a source (go
+goldens via `--update`, catalog exports, embeds): regenerate in the bump
+commit, never as a follow-up — the gate red-window is otherwise indistinguishable
+from a real regression.
 **After the auto-commit daemon touches code:** run `nix run .#sweep` — the daemon
 occasionally ships unformatted code or breaking dependency bumps (e.g. the
 go-output v0.33.0 incident that broke cqrs-lint for 3+ sessions).
