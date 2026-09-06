@@ -40,6 +40,9 @@ cqrs-lint --fix ./...
 # List available rules
 cqrs-lint rules
 
+# Machine-readable rule catalog (id, severity, confidence, autofix, docUrl)
+cqrs-lint rules --json
+
 # Config file support (auto-loaded from .cqrs-lint.json)
 # .cqrs-lint.json supports // line comments and /* block comments */ (JSONC)
 cqrs-lint init --preset local-cli   # generate a config for a local CLI project
@@ -255,7 +258,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (event.NewEvent, Register)                                 |
 | A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                       |
 | A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                     |
-| A017 | missing-snapshot-strategy                   | Info     | Repository without snapshot strategy — slow aggregates                              |
+| A017 | missing-snapshot-strategy                   | Warning  | Repository without snapshot strategy — slow aggregates                              |
 | A018 | no-actual-event-sourcing                    | Info     | Imports go-cqrs-lite but never calls Save/Publish                                   |
 | A019 | vendored-cqrs                               | Warning  | Vendored copy of go-cqrs-lite detected                                              |
 | A027 | repeated-withcodec                          | Info     | event.WithCodec called 3+ times in one file — set codec once via event.DefaultCodec |
@@ -318,7 +321,7 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 | E004 | event-not-in-catalog     | Info     | Event type emitted but not in catalog      |
 | E005 | command-without-handler  | Warning  | Command type defined but never registered  |
 | E006 | event-without-projection | Info     | Event emitted but no projection handles it |
-| E007 | query-without-handler    | Warning  | Query type defined but never registered    |
+| E007 | query-without-handler    | Info     | Query type defined but never registered    |
 
 ## Security Rules
 
