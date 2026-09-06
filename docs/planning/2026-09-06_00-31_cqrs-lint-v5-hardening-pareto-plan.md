@@ -294,3 +294,25 @@ and remains the durable defense.
 the 4th gci self-heal; one load-induced flake
 (`TestSystem_ResetProjection_RestartAndReplay`) passes in isolation
 (0.7 s) and system/v4 is untouched by this session's diffs.
+
+## Execution Log — session 2 addendum (final gate outcome)
+
+- F092 verified: both F030 replacement targets are live and path-accurate
+  (`github.com/larsartmann/go-sse` v0.3.0+, `github.com/larsartmann/cqrs-htmx/v4`
+  v4.9.0+; F030's test pins the full import paths).
+- F093 done: the final gate failed ONLY on `docs-ui.css is stale` (a
+  templ-components bump had landed without regenerating the asset);
+  regenerated via `nix run .#build-docserver-css` and added the
+  regenerate-in-the-bump-commit rule to CONTRIBUTING.
+- Final `nix run .#verify`: 238+ packages ok, lint 0 issues, doc-check,
+  api-stability, coverage, changelog, formatter, heap, and docserver-CSS
+  gates all green. Two failures, both the AGENTS.md-documented
+  ambient-load flake classes (benchkit `Duration=10ms` timing bound;
+  system/v4 snapshot-load deadline), reproduced at box load 60–87 with
+  33+ users and GREEN in isolation (benchkit 7.0 s, system 0.2 s).
+  Neither module is touched by this session's diffs.
+- Still open (deliberately, long-tail): T20 scanner refactors
+  (feature_profile.go split), T21 scorecard deprecated-usage panel +
+  CLI subsystem file reviews, T22 `-shuffle=on`/`-race -count=3` evals
+  (need a quiet box), T23 design docs (v5-ready preset, dot-import
+  detection, typed-info integration).
