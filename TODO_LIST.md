@@ -23,14 +23,7 @@ and is **never** duplicated here. Historical session reports live under
 > (T01–T07 executed 2026-09-06, annotated inline in the plan). This section is
 > the living source; the plan is its point-in-time snapshot.
 
-- [ ] **T08 — RULES.md stub + DocURL anchors.** ~9 catalog DocURLs cite
-      `cmd/cqrs-lint/RULES.md#c001`-style anchors but the file does not exist
-      (dead links in SARIF/JSON output). The generator script was written but
-      failed on a Python quoting bug and produced nothing (status 2026-09-06
-      02:40 §b1). Fix the generator, emit `<a id>` anchors for all 204 IDs,
-      give V007's section its four ADR links, add a docurl_test that every
-      catalog DocURL anchor exists. — source: docs/status/2026-09-06_02-40 §b1/§f1
-      _(Effort: S)_
+- [x] ~~T08 — RULES.md stub + DocURL anchors~~ DONE by follow-up session 2026-09-06: `cmd/cqrs-lint/RULES.md` exists with 204 `<a id>` anchors.
 - [ ] **F031 — `cqrs-lint --fix` E2E is a no-op through the real pipeline.**
       Provider layer unit-proven correct; `--fix` performs no file mutation and
       `--dry-run` shows no preview. Gap sits in go-finding/pipeline@v1.6.0's
@@ -40,17 +33,11 @@ and is **never** duplicated here. Historical session reports live under
       debug/fix + tag, then the real E2E (fixture → `--fix` → diff asserts
       only the targeted occurrence edited). — source: 2026-09-06_02-40 §b2/§f7–10
       _(Effort: M, blocked-on-upstream)_
-- [ ] **T09 — CI wiring:** cqrs-lint self-lint job (errors block, warnings
-      report), examples lint matrix (4 examples, zero-findings assertion),
-      `check-lint-config` as a required check, V007 demo capture for release
-      notes. — source: 2026-09-06_02-40 §c
-      _(Effort: S/M)_
+- [PARTIAL ✓ 2026-09-06 follow-up session] **T09 — CI wiring:** self-lint job SHIPPED (`ci.yml` `cqrs-lint-self-lint`, strict-load + stale-suppression gate). REMAINING: examples lint matrix, `check-lint-config` as required check, V007 demo capture. — source: 2026-09-06_02-40 §c
 - [ ] **T10 — rule-ID gap documentation:** A028, A031, P002–P005, S004, D004
       reserved/retired — document in README. — source: 2026-09-06_02-40 §c
       _(Effort: S)_
-- [ ] **T11 — V007 overhead measurement:** self-lint wall time with/without
-      V007 → `docs/benchmarks/cqrs-lint-v007-overhead.md`. — source: 2026-09-06_02-40 §c
-      _(Effort: S)_
+- [x] ~~T11 — V007 overhead measurement~~ DONE by follow-up session 2026-09-06: `docs/benchmarks/2026-09-06_cqrs-lint-v007-walltime.md` (verdict: below measurement noise).
 - [ ] **T13–T19 — rule audit batches (7 × ~90m):** per-rule logic/FP review of
       C001–C042, A001–A034, B001–B031, D001–D019, E001–E017, S/T/V/F families.
       Severity/confidence already meta-verified (T04); focus FP logic + emitted
