@@ -188,7 +188,7 @@ func BenchmarkMatViewRead(b *testing.B) {
 
 	for _, scale := range scales {
 		for _, c := range cases {
-			b.Run(c.name+"/scale="+scale.name, func(b *testing.B) {
+			b.Run("agg="+c.name+"/scale="+scale.name, func(b *testing.B) {
 				dir := b.TempDir()
 
 				acc := openBenchEngine(ctx, b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
