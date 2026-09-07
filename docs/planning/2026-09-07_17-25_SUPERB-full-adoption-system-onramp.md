@@ -105,8 +105,9 @@ Sorted by importance/impact/effort/customer-value. Owner tags: `[APK]` go-appkit
 | T26 | APK docs-mod: refresh catalog wiring for system-based services | APK | 4 | 45m | auto-docs current | W3 |
 | T27 | project-dependency-graph: fix who-uses miscounts — (a) go.work `use` entries counted as direct requires, (b) `// indirect` comments ignored; regression fixtures + re-audit | DG | 8 | 90m | honest adoption metrics (feeds §7) | W1 |
 | T28 | FIR adoption depth: cqrs-lint gate in its CI + scenario/Ginkgo BDD for rename rules + catalog event-doc generation | FIR | 5 | 100m | flagship quality depth | W3 |
+| T29 | APK: Command/Query facade on EventService v2 — RegisterDecider/RegisterCommand/RegisterQuery/Execute passthroughs, default dispatcher middleware chain (retry, recovery, validation, idempotency/sqlstore, OTel tracing, circuit breaker), staleness-gated query answering | APK | 9 | 100m | closes the verified C/Q gap | W0 |
 
-IDs reflect drafting order; rows are placed by wave (the importance sort). Owners: `DG` = project-dependency-graph repo. **Effort per wave:** W0 ≈ 11 h · W1 ≈ 12 h (incl. T27) · W2 ≈ 6.75 h · W3 ≈ 13 h (incl. T28) · **total ≈ 43 h.** All tasks within the 30–100 min band.
+IDs reflect drafting order; rows are placed by wave (the importance sort). Owners: `DG` = project-dependency-graph repo. **Effort per wave:** W0 ≈ 12.7 h (incl. T27, T29) · W1 ≈ 12 h (incl. T27) · W2 ≈ 6.75 h · W3 ≈ 13 h (incl. T28) · **total ≈ 45 h.** All tasks within the 30–100 min band.
 
 ### 3.1 Adjacent work — explicitly routed, NOT in this plan
 
@@ -234,6 +235,10 @@ IDs reflect drafting order; rows are placed by wave (the importance sort). Owner
 | M28.2 | T28 | scenario Given/When/Then suite for rename rules |
 | M28.3 | T28 | catalog Registry wiring + event-doc generation |
 | M28.4 | T28 | Link generated docs from FIR README; doc-check |
+| M29.1 | T29 | Expose RegisterDecider/RegisterCommand/RegisterQuery/Execute on System() accessor |
+| M29.2 | T29 | Default dispatcher middleware chain builder + consumer override hook |
+| M29.3 | T29 | Idempotency/sqlstore wiring + staleness-gated query answering (reuse CheckStaleness) |
+| M29.4 | T29 | C/Q lifecycle: drain in-flight commands on Shutdown; -race test |
 
 ---
 
@@ -288,6 +293,7 @@ Order within waves: G1 (v5 cliff) first — it is the only time-boxed risk (v5 r
 6. FIR stays the flagship: every new system feature gets its first real consumer there before general recipes ship.
 7. Engine self-registration is a blank-import contract (`metaengine/*engine/register.go`, gotcha #19): any new engine require in appkit/FIR go.mod files MUST ship with the blank import or `system.New` fails at runtime with "unknown driver" — never hand-write Store wrappers (ADR-0126), compose via system's adapters.
 8. Concurrent sessions own foreign dirty files (e.g. `metaengine/tursoengine/matview_bench_test.go` at plan time): this plan's commits stage only files its tasks author.
+9. C/Q integration (T29) rides the SAME system migration as T02 — it must never be built on `stack.Bundle` sinks/sources (deprecated v5) even though Bundle exposes CommandSink/QuerySink today.
 
 ## 7. Success Criteria
 
