@@ -163,7 +163,15 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			NsPerScan:      2_200,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
-			metaengine.ADTMap:       metaengine.ComplexityOLogN,
+			// ADTMap is O1 (decision 2026-09-07, TODO 07-43 §g2): every point
+			// op (MapGet/MapSet/MapUpdate) is exactly ONE gRPC round trip —
+			// the O(log N) index work runs server-side inside the measured
+			// NsPerPointLookup. The previous OLogN declaration made the
+			// planner multiply the per-RPC constant by log2(volume),
+			// overstating a 1K-row point lookup ~10×. The remaining OLogN
+			// ADTs (Set/Multimap/Log/StreamLog) keep their prior until each
+			// gets the same one-RPC-vs-ops reassessment.
+			metaengine.ADTMap:       metaengine.ComplexityO1,
 			metaengine.ADTCounter:   metaengine.ComplexityO1,
 			metaengine.ADTGraph:     metaengine.ComplexityODegree,
 			metaengine.ADTSet:       metaengine.ComplexityOLogN,

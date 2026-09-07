@@ -98,3 +98,49 @@ func BenchmarkCalibration_DgraphScaled(b *testing.B) {
 		})
 	}
 }
+
+// BenchmarkCalibration_DgraphSearchQuery benches SearchQuery (SERVER-side
+// anyofterms over the term index) separately from the client-side filtered
+// scan above — the two were conflated in earlier calibration runs. Per-row
+// slope across 100/1K/10K docs isolates the server's marginal index cost
+// from the fixed gRPC round trip. Run live only (same invocation as the
+// scaled bench, -bench BenchmarkCalibration_DgraphSearchQuery).
+func BenchmarkCalibration_DgraphSearchQuery(b *testing.B) {
+	eng := mustNewDgraphEngine(b)
+	ctx := context.Background()
+
+	sb, ok := eng.(metaengine.SearchBackend)
+	if !ok {
+		b.Fatal("dgraph engine does not implement SearchBackend")
+	}
+
+	for _, rows := range []int{100, 1000, 10000} {
+		col := uniqueCollection(b, fmt.Sprintf("search_%d", rows))
+
+		for i := 0; i < rows; i++ {
+			doc := metaengine.IndexedText{
+				ID:      fmt.Sprintf("k%06d", i),
+				Content: fmt.Sprintf("alpha beta gamma delta token%04d", i%10),
+			}
+
+			if err := sb.SearchInsert(ctx, col, doc); err != nil {
+				b.Fatalf("SearchInsert %d: %v", i, err)
+			}
+		}
+
+		b.Run(fmt.Sprintf("rows=%d", rows), func(b *testing.B) {
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				res, err := sb.SearchQuery(ctx, col, "alpha beta", 0)
+				if err != nil {
+					b.Fatalf("SearchQuery: %v", err)
+				}
+
+				if len(res) != rows {
+					b.Fatalf("got %d results, want %d", len(res), rows)
+				}
+			}
+		})
+	}
+}

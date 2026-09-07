@@ -207,6 +207,14 @@ func renderDoctorPreset(w io.Writer, cfg *AppConfig) {
 		)
 	}
 
+	if len(presetDef.Rules.SeverityOverrides) > 0 {
+		_, _ = fmt.Fprintf(
+			w,
+			"    Severity overrides: %s\n",
+			formatSeverityOverrides(presetDef.Rules.SeverityOverrides),
+		)
+	}
+
 	if presetDef.MinSeverity != "" {
 		_, _ = fmt.Fprintf(w, "    Severity floor:   %s\n", presetDef.MinSeverity)
 	}
@@ -286,6 +294,14 @@ func renderDoctorEffectiveSettings(w io.Writer, cfg *AppConfig) {
 			strings.Join(cfg.Rules.IgnoreStructs, ", "))
 	}
 
+	// Severity overrides (preset defaults merged with explicit config).
+	if merged := mergeSeverityOverrides(
+		presetDef.Rules.SeverityOverrides, cfg.Rules.SeverityOverrides,
+	); len(merged) > 0 {
+		_, _ = fmt.Fprintf(w, "  severity-overrides: %s\n",
+			formatSeverityOverrides(merged))
+	}
+
 	// Health config
 	if cfg.Health.InfoCap != 0 {
 		_, _ = fmt.Fprintf(w, "  health.info-cap: %d\n", cfg.Health.InfoCap)
@@ -360,4 +376,21 @@ func renderDoctorPerModuleProfiles(w io.Writer, actx *analyzer.AnalysisContext) 
 		_, _ = fmt.Fprint(w, m.profile)
 		_, _ = fmt.Fprintln(w)
 	}
+}
+
+// formatSeverityOverrides renders a severity-override map as sorted
+// "ID→severity" pairs for deterministic doctor output.
+func formatSeverityOverrides(overrides map[string]string) string {
+	ids := make([]string, 0, len(overrides))
+	for id := range overrides {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+
+	parts := make([]string, 0, len(ids))
+	for _, id := range ids {
+		parts = append(parts, id+"→"+overrides[id])
+	}
+
+	return strings.Join(parts, ", ")
 }
