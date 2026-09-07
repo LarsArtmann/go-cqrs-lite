@@ -39,8 +39,7 @@ the same connection that writes** and still fails — but only once the delta
 state reaches ~27k rows, i.e. it looks like the creating-connection merge
 **does** go disk-backed at volume. Does the `commit_in_flight()` widening
 cover that case? Our repro is deterministic (12/12 rounds at the same
-chunk) and should work as a regression test either way — happy to verify
-against your branch.
+chunk) and should work as a regression test either way.
 
 <details>
 <summary>Self-contained repro (verified: 12/12 rounds fail at chunk 27000)</summary>
