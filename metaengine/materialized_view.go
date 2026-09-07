@@ -127,7 +127,7 @@ func (s MaterializedViewSpec) ViewName() string {
 		name = name[:maxReadable]
 	}
 
-	return name + "_x" + fmt.Sprintf("%08x", h.Sum32()&0xFFFFFFFF)
+	return name + "_x" + fmt.Sprintf("%08x", h.Sum64()&0xFFFFFFFF)
 }
 
 // MaterializedViewInfo describes one operator-declared materialized view for

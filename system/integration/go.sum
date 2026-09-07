@@ -233,8 +233,7 @@ github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
 github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
-github.com/larsartmann/go-retry v0.4.0 h1:74VGrb8OZOq0zZg61xIiIyyri3Bdhv+zqnKxp3dRC8c=
-github.com/larsartmann/go-retry v0.4.0/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
+github.com/larsartmann/go-retry v0.5.0 h1:2DsZQKdHqUCwbt8eSdjPaFXDQJpDD62FjOf46hY+VP0=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=

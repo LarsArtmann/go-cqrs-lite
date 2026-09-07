@@ -180,8 +180,6 @@ github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 h1:UN
 github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1/go.mod h1:OWoOVGZmECGa4lVJmU/qUnLy1dIawZUIdn6FCsPdZVQ=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0 h1:ygWc2WUZ7xvFuycV6lkxBBcbmbCuQzqQMJtGOmIyGZs=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0/go.mod h1:CjTGl8v3DJfBaAit4G58Xn/utk7P5V2bkpCSoWU8kQ8=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 h1:eUZJxVRFbwtA1zzVLwzUc1aZN/ba94/C9ffXUL9ZI1A=
-github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0/go.mod h1:4ZSRF9/8v54YqetN80wWfPD12m/drXleSwn9q97pZ0I=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.0 h1:RARMSNJgPur8kHZsQo9oWB3kEWr+5FBCS/JLR7OvbJE=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.0/go.mod h1:5UNKG5JtSu7/VSDmvMe7/9H0J0KNGoU3rsoLrn16aes=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 h1:s9XLaYa8jLAK3uBl6giJKStiQA+1ag9VmjQEU4AKZbg=
@@ -216,8 +214,7 @@ github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
 github.com/larsartmann/go-idempotency v0.3.0/go.mod h1:VjTQypq0FQLA9AmageDkuFoUFfN2hd3eErSFZo9ip+I=
-github.com/larsartmann/go-retry v0.4.0 h1:74VGrb8OZOq0zZg61xIiIyyri3Bdhv+zqnKxp3dRC8c=
-github.com/larsartmann/go-retry v0.4.0/go.mod h1:Lbi4UAbiRgM4BqfRtMFPW8umNF4qnIApNLw0RRoTqVg=
+github.com/larsartmann/go-retry v0.5.0 h1:2DsZQKdHqUCwbt8eSdjPaFXDQJpDD62FjOf46hY+VP0=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=

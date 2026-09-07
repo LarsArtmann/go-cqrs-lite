@@ -21,11 +21,17 @@ func createEngineFromDriver(
 		return nil, err
 	}
 
+	matViews, err := cfg.materializedViewSpecs()
+	if err != nil {
+		return nil, err
+	}
+
 	eng, err := factory(ctx, metaengine.DriverConfig{
-		DSN:        cfg.DSN,
-		Pragmas:    cfg.Pragmas,
-		Priority:   cfg.Priority,
-		Durability: durability,
+		DSN:                cfg.DSN,
+		Pragmas:            cfg.Pragmas,
+		Priority:           cfg.Priority,
+		Durability:         durability,
+		MaterializedViews:  matViews,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("system: driver %q create: %w", cfg.Driver, err)
