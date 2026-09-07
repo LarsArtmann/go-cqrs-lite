@@ -165,10 +165,12 @@ func specsForCase(c aggCase, full bool) []metaengine.MaterializedViewSpec {
 func BenchmarkMatViewRead(b *testing.B) {
 	ctx := context.Background()
 
-	// 100k is intentionally absent: seeding 100k view-maintained rows trips
-	// the upstream turso-go v0.7.2 commit bug (~30k cumulative IVM writes per
-	// process; see AGENTS.md). Baseline scan cost scales linearly — the 10k
-	// baseline number extrapolates.
+	// The accelerated ("matview") side benches at 1k only: the upstream
+	// turso-go v0.7.2 commit bug makes seeding ≥10k view-maintained rows a
+	// coin flip (AGENTS.md). Matview reads cost O(1) (scalar view) or
+	// O(groups) (grouped view) — independent of N — so the 1k number IS the
+	// number a larger collection would see. The baseline side runs at 1k,
+	// 10k, AND 100k to show the O(N) scan it accelerates.
 	scales := []struct {
 		name      string
 		n         int
@@ -176,6 +178,7 @@ func BenchmarkMatViewRead(b *testing.B) {
 	}{
 		{"1k", 1_000, 31},
 		{"10k", 10_000, 99},
+		{"100k", 100_000, 316},
 	}
 
 	cases := []aggCase{
@@ -191,7 +194,33 @@ func BenchmarkMatViewRead(b *testing.B) {
 			b.Run("agg="+c.name+"/scale="+scale.name, func(b *testing.B) {
 				dir := b.TempDir()
 
-				acc := openBenchEngine(ctx, b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
+				// Above 1k only the baseline runs: accelerated reads are
+				// O(1)/O(groups) — benched once, at 1k.
+				if scale.name != "1k" {
+					base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
+
+					b.Run("baseline", func(b *testing.B) {
+						b.ReportAllocs()
+
+						for b.Loop() {
+							if _, err := base.agg.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
+								b.Fatal(err)
+							}
+						}
+					})
+
+					if err := base.eng.Close(); err != nil {
+						b.Fatal(err)
+					}
+
+					b.Run("matview", func(b *testing.B) {
+						b.Skip("accelerated read is O(1) in N — see scale=1k (upstream seeding constraint)")
+					})
+
+					return
+				}
+
+				acc := openBenchEngine(ctx, b, dir, "accel", specsForCase(c, true), scale.n, scale.customers)
 
 				base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
