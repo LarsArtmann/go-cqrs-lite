@@ -170,6 +170,14 @@ func checkQueryRouting(
 			continue
 		}
 
+		// Capability-aware partition (same rule as planQuery): an
+		// over-declaring engine is never suggested as a re-route target —
+		// Replan would refuse that route and execution would hard-error
+		// on the missing backend.
+		if profile.Name != qa.EngineName && !engineServesADTNatively(eng, adt) {
+			continue
+		}
+
 		readC := effectiveReadComplexity(rp, c)
 		cost := estimateCost(
 			readC,

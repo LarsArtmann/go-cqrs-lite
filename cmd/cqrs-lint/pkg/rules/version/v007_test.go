@@ -262,29 +262,9 @@ import . "github.com/larsartmann/go-cqrs-lite/event/v4"
 	ruletest.AssertRule(t, findings, "V007", 1)
 }
 
-// TestV007_ShadowedQualifierFiresOnce is the F091 Tier 1 pin: a local value
-// named like the package must not produce a second finding. The import-table
-// string scan matched both selectors by name (2 findings); typed resolution
-// attributes only the real package reference (1 finding). The fixture
-// compiles — the local declaration legally shadows the package inside main.
-func TestV007_ShadowedQualifierFiresOnce(t *testing.T) {
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": `package main
-
-import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
-
-type shadowedDB struct{}
-
-func (shadowedDB) New(string) (*struct{}, error) { return nil, nil }
-
-func main() {
-	_, _ = sqlite.New("file:real.sqlite")
-
-	sqlite := shadowedDB{}
-	_, _ = sqlite.New("file:shadowed.sqlite")
-}
-`,
-	})
-	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
-	ruletest.AssertRule(t, findings, "V007", 1)
-}
+// The F091 Tier 1 typed-resolution behavior (a local value shadowing the
+// package name must not double-fire) cannot be pinned through
+// BuildContextFromSource — that harness builds empty types.Info, so the
+// detector correctly falls back to the import-table scan (broken-build
+// survival). ResolveQualifierTyped is pinned directly with synthesized type
+// info in pkg/analyzer/type_helpers_test.go.
