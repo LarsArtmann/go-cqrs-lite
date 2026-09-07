@@ -30,14 +30,14 @@ type planConfig struct {
 	writeAmplificationBudget int
 	dryRun                   bool
 	stats                    map[string]WorkloadStats
-	replicationOverride      *Replication      // overrides all engines' declared replication for cost estimation
-	networkRTTOverride       *time.Duration    // overrides all engines' declared NetworkRTT for cost estimation
-	routingHysteresis        float64           // min fractional improvement for re-routing suggestions
-	routingMinDeltaMs        float64           // min absolute improvement (ms) for re-route suggestions
-	incumbents               map[string]string // query → currently-assigned engine (Replan only); enables hysteresis-gated re-assignment
-	priority                 *PriorityConfig   // operator-driven layout priorities (ADR-0124)
-	sharedCollections        map[string]bool   // child Go types shared across collections (ADR-0124 aggregate boundaries)
-	idempotencyCapacity      int               // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
+	replicationOverride      *Replication              // overrides all engines' declared replication for cost estimation
+	networkRTTOverride       *time.Duration            // overrides all engines' declared NetworkRTT for cost estimation
+	routingHysteresis        float64                   // min fractional improvement for re-routing suggestions
+	routingMinDeltaMs        float64                   // min absolute improvement (ms) for re-route suggestions
+	incumbents               map[string]string         // query → currently-assigned engine (Replan only); enables hysteresis-gated re-assignment
+	priority                 *PriorityConfig           // operator-driven layout priorities (ADR-0124)
+	sharedCollections        map[string]bool           // child Go types shared across collections (ADR-0124 aggregate boundaries)
+	idempotencyCapacity      int                       // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
 	capabilityGaps           map[string]CapabilityGaps // engine name → documented ADT conformance gaps; suppresses over-declaration diagnostics
 }
 

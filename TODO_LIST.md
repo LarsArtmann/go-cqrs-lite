@@ -25,9 +25,13 @@ and is **never** duplicated here. Historical session reports live under
 - [ ] **T13–T19 — exhaustive rule audit batches.** RISK-BASED SAMPLE DONE
       2026-09-06 (all C-family detectors read; C003 + C005 real bugs found and
       fixed; top-volume findings sampled zero-false; severity/confidence and
-      V007 coverage mechanized by meta-tests). REMAINING (explicitly low-yield,
-      only behind a green full gate): per-file checklist audits of A001–A034,
-      B001–B031, D001–D019, E001–E017, S/T/V/F families. — source:
+      V007 coverage mechanized by meta-tests). S-FAMILY BATCH DONE 2026-09-07
+      (see addendum in
+      `docs/status/2026-09-07_cqrs-lint-t20-t21-subsystem-reviews.md`:
+      financialEscalatedRules comment drift + missing S011 escalation fixed,
+      completeness meta-test added). REMAINING (explicitly low-yield, only
+      behind a green full gate): per-file checklist audits of A001–A034,
+      B001–B031, D001–D019, E001–E017, T/V/F families. — source:
       archived/2026-09-06_02-40 §c
       _(Effort: M/L)_
 - [x] **T20–T21 — subsystem reviews.** DONE: feature_profile split (F073),

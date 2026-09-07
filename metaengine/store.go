@@ -40,8 +40,8 @@ type Store struct {
 	routingMu         sync.Mutex       // protects routingSig + routingDiags
 	routingSig        string
 	routingDiags      []Diagnostic
-	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)
-	sharedCollections map[string]bool // child types shared across collections (ADR-0124 boundaries)
+	priorityConfig    *PriorityConfig           // operator-driven layout priority (ADR-0124)
+	sharedCollections map[string]bool           // child types shared across collections (ADR-0124 boundaries)
 	capabilityGaps    map[string]CapabilityGaps // engine name → documented ADT gaps (persist across Replan)
 
 	// Record-context hazard tracking: applies that arrived as a synthesized
