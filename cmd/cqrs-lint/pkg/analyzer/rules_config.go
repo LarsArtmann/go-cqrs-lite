@@ -64,6 +64,21 @@ type RulesConfig struct {
 	//
 	//	{"rules": {"c008-ignore-structs": ["PricingMetrics", "CostEstimate"]}}
 	IgnoreStructs []string `json:"c008-ignore-structs,omitempty"` //nolint:tagliatelle // CLI config key
+
+	// SeverityOverrides rewrites a rule's catalog severity for this project,
+	// e.g. {"V007": "error"} makes v5-removed-API findings block CI without
+	// disabling anything. The "v5-ready" preset is sugar for exactly that
+	// override. Precedence is fixed: catalog → preset override → parent
+	// config → local config → domain bias (escalates further) → --min-severity
+	// (filter only). An override that lowers severity is allowed — it is an
+	// explicit project decision — but invalid severity names are dropped with
+	// a warning (the rule keeps its catalog severity; nothing silently
+	// demotes to info).
+	//
+	// Example:
+	//
+	//	{"rules": {"severity-overrides": {"V007": "error"}}}
+	SeverityOverrides map[string]string `json:"severity-overrides,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // DisabledSet returns the set of disabled rule IDs as a map for O(1) lookup.
@@ -90,6 +105,16 @@ var knownRulesConfigKeys = map[string]bool{
 	"external-api-struct-prefixes": true,
 	"c008-ignore-fields":           true,
 	"c008-ignore-structs":          true,
+	"severity-overrides":           true,
+}
+
+// knownSeverities is the closed set of severity names accepted in
+// severity-overrides values. Mirrors finding.Severity + parseSeverity.
+var knownSeverities = map[string]bool{ //nolint:gochecknoglobals // static lookup table
+	"critical": true,
+	"error":    true,
+	"warning":  true,
+	"info":     true,
 }
 
 // Validate checks the rules config for common misconfigurations and writes
@@ -167,6 +192,32 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 	}
 	rc.IgnoreStructs = cleanedStructs
 
+	// Normalize severity-overrides: uppercase rule IDs, lowercase severities,
+	// drop empties. Invalid severity names are dropped WITH a warning — an
+	// unknown value must not fall through to parseSeverity's info default,
+	// which would silently demote the rule instead of raising it.
+	if rc.SeverityOverrides != nil {
+		cleanedOverrides := make(map[string]string, len(rc.SeverityOverrides))
+		for id, sev := range rc.SeverityOverrides {
+			id = strings.ToUpper(strings.TrimSpace(id))
+			sev = strings.ToLower(strings.TrimSpace(sev))
+			if id == "" || sev == "" {
+				continue
+			}
+			if !knownSeverities[sev] {
+				_, _ = fmt.Fprintf(
+					w,
+					"warning: invalid severity %q in severity-overrides for rule %q "+
+						"(known: critical, error, warning, info) — override dropped, rule keeps its catalog severity\n",
+						sev, id,
+				)
+				continue
+			}
+			cleanedOverrides[id] = sev
+		}
+		rc.SeverityOverrides = cleanedOverrides
+	}
+
 	// Check for unknown keys in the raw JSON (catches typos).
 	if len(rawRulesJSON) > 0 {
 		var raw map[string]any
@@ -175,7 +226,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 				if !knownRulesConfigKeys[key] {
 					_, _ = fmt.Fprintf(
 						w,
-						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes, c008-ignore-fields, c008-ignore-structs)\n",
+						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes, c008-ignore-fields, c008-ignore-structs, severity-overrides)\n",
 						key,
 					)
 				}

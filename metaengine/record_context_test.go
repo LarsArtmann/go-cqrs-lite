@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"log"
 	"strings"
 	"testing"
 
@@ -245,5 +246,70 @@ func TestApplyBatch_SyntheticRecord_Counted(t *testing.T) {
 
 	if view.StreamID != "" || view.Version != 0 {
 		t.Fatalf("synthetic batch apply must see empty context, got %+v", view)
+	}
+}
+
+// TestRegisterQuery_InvalidatesRecordAwareCache proves the record-aware
+// event-type memo is recomputed when a query with OnRecord folds is
+// registered at runtime: applies AFTER registration must count as synthetic,
+// even though an earlier apply already populated the cache.
+func TestRegisterQuery_InvalidatesRecordAwareCache(t *testing.T) {
+	t.Parallel()
+
+	store, err := Plan([]Engine{NewMemoryEngine()}, Query[plainRecordEvent, map[string]string](
+		"plain_tasks",
+		On(plainRecordEvent{}, func(e plainRecordEvent) (string, string) {
+			return e.ID, e.ID
+		}),
+	))
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	ctx := context.Background()
+
+	if err := store.Apply(ctx, "plainRecordEvent", plainRecordEvent{ID: "p1"}); err != nil {
+		t.Fatalf("Apply: %v", err)
+	}
+
+	if err := store.RegisterQuery(recordContextQuery()); err != nil {
+		t.Fatalf("RegisterQuery: %v", err)
+	}
+
+	if err := store.Apply(ctx, "recordContextEvent", recordContextEvent{TaskID: "t1"}); err != nil {
+		t.Fatalf("Apply after RegisterQuery: %v", err)
+	}
+
+	doctor := store.Doctor(ctx)
+	if !strings.Contains(doctor, "1 apply event(s) arrived with a synthesized Type-only Record") {
+		t.Fatalf("advisory missed the post-registration synthetic apply:\n%s", doctor)
+	}
+}
+
+// TestSyntheticRecordAdvisory_LoggerPath pins the Hooks.Logger advisory: the
+// first synthetic apply logs once, subsequent applies stay silent.
+func TestSyntheticRecordAdvisory_LoggerPath(t *testing.T) {
+	t.Parallel()
+
+	store := newRecordContextStore(t)
+	ctx := context.Background()
+
+	var buf strings.Builder
+
+	WithHooks(store, Hooks{Logger: log.New(&buf, "", 0)})
+
+	for i := range 3 {
+		if err := store.Apply(ctx, "recordContextEvent", recordContextEvent{TaskID: "t1"}); err != nil {
+			t.Fatalf("Apply %d: %v", i, err)
+		}
+	}
+
+	logged := buf.String()
+	if !strings.Contains(logged, `event "recordContextEvent" applied via Store.Apply`) {
+		t.Fatalf("advisory not logged:\n%s", logged)
+	}
+
+	if n := strings.Count(logged, "recordContextEvent"); n != 1 {
+		t.Fatalf("one-time advisory logged %d times, want 1:\n%s", n, logged)
 	}
 }
