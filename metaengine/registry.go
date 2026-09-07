@@ -26,6 +26,13 @@ type DriverConfig struct {
 	// implement per-tier behavior fail construction on any non-empty value
 	// (see RejectDurabilityTier) rather than silently ignoring the request.
 	Durability DurabilityTier
+
+	// MaterializedViews lists operator-declared aggregate accelerations
+	// (see MaterializedViewSpec). Engines that cannot serve them fail
+	// construction loudly; engines that can (Turso via incremental view
+	// maintenance) derive and create the views at construction. Empty (the
+	// default) changes nothing.
+	MaterializedViews []MaterializedViewSpec
 }
 
 // DriverFactory creates an Engine from a DriverConfig. Implementations are
