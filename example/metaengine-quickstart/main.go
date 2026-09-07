@@ -67,9 +67,10 @@ func main() {
 		title string
 		run   func(context.Context) error
 	}{
-		{title: "1/3 Map ADT: CRUD task view (convention folds)", run: runTaskDemo},
-		{title: "2/3 Graph ADT: follow network traversal", run: runGraphDemo},
-		{title: "3/3 Vector ADT: k-NN semantic search", run: runVectorDemo},
+		{title: "1/4 Map ADT: CRUD task view (convention folds)", run: runTaskDemo},
+		{title: "2/4 Graph ADT: follow network traversal", run: runGraphDemo},
+		{title: "3/4 Vector ADT: k-NN semantic search", run: runVectorDemo},
+		{title: "4/4 Operator config: boot from cqrs.yaml", run: runConfigFileDemo},
 	}
 
 	for _, section := range sections {

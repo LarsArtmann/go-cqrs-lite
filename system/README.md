@@ -133,6 +133,67 @@ func main() {
 }
 ```
 
+## Two-Engine Deployment (events on disk, projections in memory)
+
+Split roles across engines: the source of truth on a durable engine, the
+projection layer on a fast one. The metaengine planner routes queries within
+the projections engine pool. Verified against `system/v4.6.0`:
+
+```go
+import (
+    _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // registers "sqlite"
+)
+
+deployment := system.DeploymentConfig{
+    Engines: map[string]system.EngineConfig{
+        "primary":     {Driver: "sqlite", DSN: "/var/lib/myapp/events.db", Pragmas: []string{"journal_mode=WAL"}},
+        "projections": {Driver: "memory"},
+    },
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleSourceOfTruth, Engine: "primary"},
+        {Role: system.RoleProjections, Engine: "projections"},
+    },
+}
+```
+
+The projection host exists only when the domain declares projections
+(`DomainConfig.Projections`/`Evolutions`) — a deployment without projections is
+a pure event log and `System.ProjectionHost()` returns nil.
+
+## Operator Config File (koanf YAML + env overrides)
+
+`LoadConfig` reads the deployment from YAML and applies `CQRS_` env overrides
+(`CQRS_ENGINES__PRIMARY__DRIVER=postgres` — double underscore maps to the koanf
+delimiter). Operators swap engines at deployment time; the binary never changes:
+
+```go
+deployment, err := system.LoadConfig("/etc/myapp/cqrs.yaml")
+if err != nil {
+    log.Fatal(err)
+}
+sys, err := system.New(ctx, domain, deployment)
+```
+
+`cqrs.yaml` (same shape as the Go literals — every DeploymentConfig field
+carries a koanf tag):
+
+```yaml
+engines:
+  primary:
+    driver: sqlite
+    dsn: /var/lib/myapp/events.db
+    pragmas: ["journal_mode=WAL", "busy_timeout=5000"]
+  projections:
+    driver: memory
+instances:
+  - role: source-of-truth
+    engine: primary
+  - role: projections
+    engine: projections
+acknowledge_warnings: []        # e.g. "durability-downgrade:events"
+manifest_path: ""               # pin projection-plan drift detection
+```
+
 ## API
 
 ### Constructor
