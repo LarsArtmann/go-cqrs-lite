@@ -13,7 +13,7 @@ import (
 // count, plus an explicit "none" when no engine reports materialized views.
 // Operators use it to verify their deployment-time accelerations are actually
 // registered and being maintained.
-func (s *Store) MaterializedViewsDoctorSection(ctx context.Context) string {
+func (s *Store) MaterializedViewsDoctorSection(_ context.Context) string {
 	var b strings.Builder
 
 	b.WriteString("\n--- Materialized views ---\n")

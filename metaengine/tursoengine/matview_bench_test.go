@@ -55,12 +55,10 @@ func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []
 	}
 }
 
-// benchEngine is one opened+seeded engine for a benchmark phase. Phases run
-// SEQUENTIALLY (open → seed → measure → close) because the embedded turso
-// driver exhibits a flaky "cannot commit - no transaction is active" failure
-// when MULTIPLE embedded engines run write transactions in one process
-// (2026-09-07, observed under ambient load with 7 maintained views). One
-// live engine at a time keeps measurements stable.
+// benchEngine is one opened+seeded engine for a benchmark phase. The
+// accelerated engine is always SEEDED FIRST (before scan-heavy baseline work
+// runs in this process): the upstream commit bug's failure probability grows
+// with scan activity that preceded the IVM writes.
 type benchEngine struct {
 	eng     metaengine.Engine
 	agg     metaengine.AggregateReader
@@ -101,7 +99,9 @@ type aggCase struct {
 
 // BenchmarkMatViewRead measures scalar and grouped aggregates against the
 // base tables (baseline) versus operator-declared materialized views
-// (matview) at three collection sizes.
+// (matview) at three collection sizes. Phase order per case: seed the
+// accelerated engine (pristine-process IVM writes), seed + bench the
+// baseline, close it, then bench the accelerated reads.
 func BenchmarkMatViewRead(b *testing.B) {
 	ctx := context.Background()
 
@@ -125,8 +125,10 @@ func BenchmarkMatViewRead(b *testing.B) {
 
 	for _, scale := range scales {
 		for _, c := range cases {
-			b.Run(fmt.Sprintf("agg=%s/scale=%s", c.name, scale.name), func(b *testing.B) {
+			b.Run(c.name+"/scale="+scale.name, func(b *testing.B) {
 				dir := b.TempDir()
+
+				acc := openBenchEngine(ctx, b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
 
 				base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
@@ -144,17 +146,6 @@ func BenchmarkMatViewRead(b *testing.B) {
 					b.Fatal(err)
 				}
 
-				acc := openBenchEngine(
-					ctx,
-					b,
-					dir,
-					"accel",
-					matviewBenchSpecs(),
-					scale.n,
-					scale.customers,
-				)
-				defer func() { _ = acc.eng.Close() }()
-
 				b.Run("matview", func(b *testing.B) {
 					b.ReportAllocs()
 
@@ -164,6 +155,10 @@ func BenchmarkMatViewRead(b *testing.B) {
 						}
 					}
 				})
+
+				if err := acc.eng.Close(); err != nil {
+					b.Fatal(err)
+				}
 			})
 		}
 
@@ -171,6 +166,8 @@ func BenchmarkMatViewRead(b *testing.B) {
 		// versus reading the precomputed view rows.
 		b.Run("agg=SUM_GROUPED/scale="+scale.name, func(b *testing.B) {
 			dir := b.TempDir()
+
+			acc := openBenchEngine(ctx, b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
 
 			base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
@@ -190,17 +187,6 @@ func BenchmarkMatViewRead(b *testing.B) {
 				b.Fatal(err)
 			}
 
-			acc := openBenchEngine(
-				ctx,
-				b,
-				dir,
-				"accel",
-				matviewBenchSpecs(),
-				scale.n,
-				scale.customers,
-			)
-			defer func() { _ = acc.eng.Close() }()
-
 			b.Run("matview", func(b *testing.B) {
 				b.ReportAllocs()
 
@@ -212,20 +198,21 @@ func BenchmarkMatViewRead(b *testing.B) {
 					}
 				}
 			})
+
+			if err := acc.eng.Close(); err != nil {
+				b.Fatal(err)
+			}
 		})
 
 		// Scalar SUM served via the GROUPED view's sums (O(groups) middle path).
 		b.Run("agg=SUM_VIA_GROUPED/scale="+scale.name, func(b *testing.B) {
 			onlyGrouped := []metaengine.MaterializedViewSpec{
-				{
-					Collection: "orders",
-					Fn:         metaengine.MatViewSum,
-					Column:     "amount",
-					GroupBy:    "customer",
-				},
+				{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
 			}
 
 			dir := b.TempDir()
+
+			acc := openBenchEngine(ctx, b, dir, "accel", onlyGrouped, scale.n, scale.customers)
 
 			base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
@@ -243,9 +230,6 @@ func BenchmarkMatViewRead(b *testing.B) {
 				b.Fatal(err)
 			}
 
-			acc := openBenchEngine(ctx, b, dir, "accel", onlyGrouped, scale.n, scale.customers)
-			defer func() { _ = acc.eng.Close() }()
-
 			b.Run("matview", func(b *testing.B) {
 				b.ReportAllocs()
 
@@ -255,6 +239,10 @@ func BenchmarkMatViewRead(b *testing.B) {
 					}
 				}
 			})
+
+			if err := acc.eng.Close(); err != nil {
+				b.Fatal(err)
+			}
 		})
 	}
 }
@@ -262,7 +250,7 @@ func BenchmarkMatViewRead(b *testing.B) {
 // BenchmarkMatViewWrite measures steady-state MapSet (REPLACE) throughput on
 // a bounded 10k-key working set with 0, 1, or 3 maintained views — the IVM
 // overhead the operator pays on writes for read acceleration. Each mode runs
-// in its own engine (sequential lifecycles; see benchEngine).
+// its own engine sequentially (single autocommit writes; no bulk IVM txs).
 func BenchmarkMatViewWrite(b *testing.B) {
 	ctx := context.Background()
 
@@ -274,27 +262,12 @@ func BenchmarkMatViewWrite(b *testing.B) {
 	}{
 		{"views=0", nil},
 		{"views=1", []metaengine.MaterializedViewSpec{
-			{
-				Collection: "orders",
-				Fn:         metaengine.MatViewSum,
-				Column:     "amount",
-				GroupBy:    "customer",
-			},
+			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
 		}},
 		{"views=3", []metaengine.MaterializedViewSpec{
-			{
-				Collection: "orders",
-				Fn:         metaengine.MatViewSum,
-				Column:     "amount",
-				GroupBy:    "customer",
-			},
+			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
 			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
-			{
-				Collection: "orders",
-				Fn:         metaengine.MatViewAvg,
-				Column:     "amount",
-				GroupBy:    "customer",
-			},
+			{Collection: "orders", Fn: metaengine.MatViewAvg, Column: "amount", GroupBy: "customer"},
 		}},
 	}
 
@@ -304,7 +277,8 @@ func BenchmarkMatViewWrite(b *testing.B) {
 		b.Run(mode.name, func(b *testing.B) {
 			eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
 				filepath.Join(dir, "write_"+mode.name+".db"),
-				tursoengine.WithMaterializedViews(mode.specs))
+				tursoengine.WithMaterializedViews(mode.specs),
+			)
 			if err != nil {
 				b.Skipf("turso not available: %v", err)
 			}
