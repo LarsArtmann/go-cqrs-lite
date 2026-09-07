@@ -1,7 +1,9 @@
 benchkit/const SchemaVersion
+benchkit/func AdaptSystem
 benchkit/func BatchSizeSweep
 benchkit/func Compare
 benchkit/func ExpectedJSONFields
+benchkit/func FactoryFromSystem
 benchkit/func FormatBytes
 benchkit/func FormatDuration
 benchkit/func FormatFloat
@@ -35,6 +37,7 @@ benchkit/func WriteManifest
 benchkit/func WriteSoakJSON
 benchkit/func WriteSweepJSON
 benchkit/interface DiskSizer
+benchkit/method Close
 benchkit/method MarshalJSON
 benchkit/method MeanSize
 benchkit/method Payload
@@ -65,12 +68,15 @@ benchkit/struct SoakSample
 benchkit/struct SuiteManifest
 benchkit/struct SweepResult
 benchkit/type Factory
+benchkit/type SystemFactory
 benchkit/var ErrFactoryFailed
 benchkit/var ErrIncompleteBundle
 benchkit/var ErrInvalidConfig
 benchkit/var ErrMEEvent
 benchkit/var ErrNilBundle
+benchkit/var ErrNilSystem
 benchkit/var ErrStrictSkip
+benchkit/var ErrSystemEventStoreMissing
 benchkit/var ErrWarmupFailed
 benchkit/var ProfileAnalytical
 benchkit/var ProfileDev
