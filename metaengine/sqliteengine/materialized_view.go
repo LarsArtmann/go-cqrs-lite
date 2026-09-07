@@ -53,7 +53,9 @@ func (e *sqliteEngine) createMatViews(ctx context.Context) error {
 		if _, err := e.db.ExecContext(ctx, ddl); err != nil {
 			return fmt.Errorf(
 				"metaengine: create materialized view %s: %w (materialized views require Turso/libSQL with the \"views\" experimental feature, e.g. DSN \"file:app.db?experimental=views\" or server flag --experimental-views)",
-				mv.name, err)
+				mv.name,
+				err,
+			)
 		}
 	}
 
@@ -75,16 +77,30 @@ func matViewDDL(spec metaengine.MaterializedViewSpec) string {
 		expr := fmt.Sprintf("json_extract(value, '%s')", jsonPath(spec.Column))
 		aggPart = fmt.Sprintf("SUM(%s) AS agg, COUNT(%s) AS cnt", expr, expr)
 	default:
-		aggPart = fmt.Sprintf("%s(json_extract(value, '%s')) AS agg", spec.Fn, jsonPath(spec.Column))
+		aggPart = fmt.Sprintf(
+			"%s(json_extract(value, '%s')) AS agg",
+			spec.Fn,
+			jsonPath(spec.Column),
+		)
 	}
 
 	var b strings.Builder
 
-	fmt.Fprintf(&b, "CREATE MATERIALIZED VIEW IF NOT EXISTS %s AS SELECT ", metaengine.QuoteIdent(spec.ViewName()))
+	fmt.Fprintf(
+		&b,
+		"CREATE MATERIALIZED VIEW IF NOT EXISTS %s AS SELECT ",
+		metaengine.QuoteIdent(spec.ViewName()),
+	)
 
 	if spec.GroupBy != "" {
 		grpExpr := fmt.Sprintf("json_extract(value, '%s')", jsonPath(spec.GroupBy))
-		fmt.Fprintf(&b, "%s AS grp, %s FROM meta_map WHERE collection = '%s' GROUP BY grp", grpExpr, aggPart, coll)
+		fmt.Fprintf(
+			&b,
+			"%s AS grp, %s FROM meta_map WHERE collection = '%s' GROUP BY grp",
+			grpExpr,
+			aggPart,
+			coll,
+		)
 
 		return b.String()
 	}
@@ -99,7 +115,11 @@ func matViewDDL(spec metaengine.MaterializedViewSpec) string {
 // unplanned (views over meta_map go stale once a collection migrates to a
 // planned table) and the query must be unfiltered (views do not carry the
 // base rows needed for filtered aggregates).
-func (e *sqliteEngine) matViewExact(col string, fn metaengine.AggregateFn, column, groupBy string) *matView {
+func (e *sqliteEngine) matViewExact(
+	col string,
+	fn metaengine.AggregateFn,
+	column, groupBy string,
+) *matView {
 	if len(e.matViews) == 0 {
 		return nil
 	}
@@ -110,7 +130,8 @@ func (e *sqliteEngine) matViewExact(col string, fn metaengine.AggregateFn, colum
 
 	for i := range e.matViews {
 		mv := &e.matViews[i]
-		if mv.spec.Collection == col && mv.spec.Fn == fn && mv.spec.Column == column && mv.spec.GroupBy == groupBy {
+		if mv.spec.Collection == col && mv.spec.Fn == fn && mv.spec.Column == column &&
+			mv.spec.GroupBy == groupBy {
 			return mv
 		}
 	}
@@ -121,7 +142,11 @@ func (e *sqliteEngine) matViewExact(col string, fn metaengine.AggregateFn, colum
 // matViewGrouped returns a grouped view accelerating (col, fn, column) for any
 // group-by field, enabling exact scalar derivations (e.g. scalar SUM of a
 // grouped SUM view equals SUM over the group sums).
-func (e *sqliteEngine) matViewGrouped(col string, fn metaengine.AggregateFn, column string) *matView {
+func (e *sqliteEngine) matViewGrouped(
+	col string,
+	fn metaengine.AggregateFn,
+	column string,
+) *matView {
 	if len(e.matViews) == 0 {
 		return nil
 	}
@@ -132,7 +157,8 @@ func (e *sqliteEngine) matViewGrouped(col string, fn metaengine.AggregateFn, col
 
 	for i := range e.matViews {
 		mv := &e.matViews[i]
-		if mv.spec.Collection == col && mv.spec.Fn == fn && mv.spec.Column == column && mv.spec.GroupBy != "" {
+		if mv.spec.Collection == col && mv.spec.Fn == fn && mv.spec.Column == column &&
+			mv.spec.GroupBy != "" {
 			return mv
 		}
 	}
@@ -141,7 +167,10 @@ func (e *sqliteEngine) matViewGrouped(col string, fn metaengine.AggregateFn, col
 }
 
 // matViewScanScalar runs a single-row view query and decodes the aggregate.
-func (e *sqliteEngine) matViewScanScalar(ctx context.Context, query, errContext string) (float64, error) {
+func (e *sqliteEngine) matViewScanScalar(
+	ctx context.Context,
+	query, errContext string,
+) (float64, error) {
 	var raw any
 
 	if err := e.xd().QueryRowContext(ctx, query).Scan(&raw); err != nil {
@@ -189,7 +218,10 @@ func (e *sqliteEngine) matViewScalarViaGrouped(ctx context.Context, mv *matView)
 
 // matViewGroupedAgg serves an unfiltered grouped aggregate from its exact
 // grouped view. AVG views divide the per-group SUM by the per-group COUNT.
-func (e *sqliteEngine) matViewGroupedAgg(ctx context.Context, mv *matView) (map[string]float64, error) {
+func (e *sqliteEngine) matViewGroupedAgg(
+	ctx context.Context,
+	mv *matView,
+) (map[string]float64, error) {
 	selectExpr := "grp, agg"
 
 	if mv.spec.Fn == metaengine.MatViewAvg {
@@ -232,7 +264,11 @@ func (e *sqliteEngine) serveScalarMatView(
 
 // matViewExplainSQL returns the SQL the serving path would run, keeping
 // EXPLAIN honest about view-accelerated reads.
-func (e *sqliteEngine) matViewExplainSQL(fn metaengine.AggregateFn, mv *matView, grouped bool) string {
+func (e *sqliteEngine) matViewExplainSQL(
+	fn metaengine.AggregateFn,
+	mv *matView,
+	grouped bool,
+) string {
 	if !grouped {
 		if mv.spec.Fn == metaengine.MatViewAvg {
 			return fmt.Sprintf("SELECT agg / cnt FROM %s", metaengine.QuoteIdent(mv.name))

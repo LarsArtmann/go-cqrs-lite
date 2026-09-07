@@ -21,7 +21,12 @@ func TestMaterializedViewSpec_Validate(t *testing.T) {
 		},
 		{
 			name: "valid grouped AVG",
-			spec: MaterializedViewSpec{Collection: "orders", Fn: MatViewAvg, Column: "amount", GroupBy: "customer"},
+			spec: MaterializedViewSpec{
+				Collection: "orders",
+				Fn:         MatViewAvg,
+				Column:     "amount",
+				GroupBy:    "customer",
+			},
 		},
 		{
 			name: "valid scalar COUNT (no column)",
@@ -57,8 +62,13 @@ func TestMaterializedViewSpec_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "semicolon in groupBy",
-			spec:    MaterializedViewSpec{Collection: "orders", Fn: MatViewSum, Column: "amount", GroupBy: "a;b"},
+			name: "semicolon in groupBy",
+			spec: MaterializedViewSpec{
+				Collection: "orders",
+				Fn:         MatViewSum,
+				Column:     "amount",
+				GroupBy:    "a;b",
+			},
 			wantErr: true,
 		},
 	}
@@ -80,7 +90,12 @@ func TestMaterializedViewSpec_ViewName(t *testing.T) {
 
 	g := gomega.NewWithT(t)
 
-	spec := MaterializedViewSpec{Collection: "orders", Fn: MatViewSum, Column: "amount", GroupBy: "customer"}
+	spec := MaterializedViewSpec{
+		Collection: "orders",
+		Fn:         MatViewSum,
+		Column:     "amount",
+		GroupBy:    "customer",
+	}
 	name := spec.ViewName()
 
 	g.Expect(name).To(gomega.HavePrefix("cqrs_mv_orders_sum_amount_by_customer"))

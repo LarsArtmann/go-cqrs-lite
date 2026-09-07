@@ -8,31 +8,31 @@ health, docs-mod, integration, example) calls either. The breaking change is mec
 
 ## Field/method mapping (v1 → v2)
 
-| v1 (`EventConfig` v0.4.0) | v2 decision | Rationale |
-| --- | --- | --- |
-| `SQLitePath string` (required) | `DSN string` + `Driver string` (default `sqlite`). `SQLitePath` kept as deprecated alias. Empty DSN = in-memory (`memory` driver). | Driver names are metaengine's; operator can swap engines without code change. |
-| `StackOptions []sqlite.Option` | **DROPPED** → `Pragmas []string`. | `stack/sqlite` preset is removed at v5 (ADR-0123); wrapping it is the v5 cliff. Pragmas are the EngineConfig-shaped equivalent. |
-| `Logger *slog.Logger` | kept → `projectionhost.WithLogger` | unchanged semantics |
-| `DLQ *DLQConfig` | kept. Default store: aux `*sql.DB` on the same SQLite DSN (one handle shared with the checkpoint store, closed via `System.RegisterCloser`). Non-sqlite drivers must supply `DLQConfig.Store`. | parity with v1's in-bundle store |
-| `FlightRecorder` / `FlightRecorderTrigger` | kept → `projectionhost.WithFlightRecorder` | unchanged |
-| `Metrics projectionhost.MetricsRecorder` | kept → `projectionhost.WithMetrics` | unchanged |
-| `HostOptions []projectionhost.HostOption` | kept → `DomainConfig.ProjectionHostOptions` (consumer options first, derived wiring appended after — wins conflicts) | identical ordering contract to v1 |
-| — | **NEW** `CheckpointStore event.CheckpointStore` override; default = persistent `eventstore.NewSQLiteCheckpointStore` on the aux handle (sqlite+DSN), in-memory otherwise | v1 bundle checkpoints were persistent; system defaults to in-memory — parity restores durability |
-| — | **NEW** `ConfigPath string` (koanf YAML via `system.LoadConfig`) and `Deployment *system.DeploymentConfig` (pre-loaded config) | G3: the operator declares engines at deployment time |
-| — | **NEW** `CommandMiddleware` / `QueryMiddleware` passthroughs (T29 C/Q facade) | M29.2 override hook |
+| v1 (`EventConfig` v0.4.0)                  | v2 decision                                                                                                                                                                                    | Rationale                                                                                                                       |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `SQLitePath string` (required)             | `DSN string` + `Driver string` (default `sqlite`). `SQLitePath` kept as deprecated alias. Empty DSN = in-memory (`memory` driver).                                                             | Driver names are metaengine's; operator can swap engines without code change.                                                   |
+| `StackOptions []sqlite.Option`             | **DROPPED** → `Pragmas []string`.                                                                                                                                                              | `stack/sqlite` preset is removed at v5 (ADR-0123); wrapping it is the v5 cliff. Pragmas are the EngineConfig-shaped equivalent. |
+| `Logger *slog.Logger`                      | kept → `projectionhost.WithLogger`                                                                                                                                                             | unchanged semantics                                                                                                             |
+| `DLQ *DLQConfig`                           | kept. Default store: aux `*sql.DB` on the same SQLite DSN (one handle shared with the checkpoint store, closed via `System.RegisterCloser`). Non-sqlite drivers must supply `DLQConfig.Store`. | parity with v1's in-bundle store                                                                                                |
+| `FlightRecorder` / `FlightRecorderTrigger` | kept → `projectionhost.WithFlightRecorder`                                                                                                                                                     | unchanged                                                                                                                       |
+| `Metrics projectionhost.MetricsRecorder`   | kept → `projectionhost.WithMetrics`                                                                                                                                                            | unchanged                                                                                                                       |
+| `HostOptions []projectionhost.HostOption`  | kept → `DomainConfig.ProjectionHostOptions` (consumer options first, derived wiring appended after — wins conflicts)                                                                           | identical ordering contract to v1                                                                                               |
+| —                                          | **NEW** `CheckpointStore event.CheckpointStore` override; default = persistent `eventstore.NewSQLiteCheckpointStore` on the aux handle (sqlite+DSN), in-memory otherwise                       | v1 bundle checkpoints were persistent; system defaults to in-memory — parity restores durability                                |
+| —                                          | **NEW** `ConfigPath string` (koanf YAML via `system.LoadConfig`) and `Deployment *system.DeploymentConfig` (pre-loaded config)                                                                 | G3: the operator declares engines at deployment time                                                                            |
+| —                                          | **NEW** `CommandMiddleware` / `QueryMiddleware` passthroughs (T29 C/Q facade)                                                                                                                  | M29.2 override hook                                                                                                             |
 
 ## Service surface mapping
 
-| v1 method | v2 decision |
-| --- | --- |
-| `Bundle() *stack.Bundle` | **DEPRECATED → removed at next minor; replaced by `System() *system.System`.** Accessors: `EventSink()`/`EventSource()`/`Publisher()` preserved as direct methods so simple consumers don't touch System. |
-| `Host() *projectionhost.Host` | kept (delegates to `System().ProjectionHost()`) |
-| `DeadLetterStore`, `ReplayDeadLetters`, `ResetProjection` | kept, delegate to host |
-| `DB() (*sql.DB, error)` | kept — returns the aux handle (sqlite); Rejection for non-SQL drivers |
-| `ReadyCheck`, `LagPerProjection`, `CheckStaleness`, `CheckProjectionStaleness` | kept, delegate to host |
-| `StartProjections(ctx)` | kept → `System().Start(ctx)` |
-| `Shutdown(ctx)` | kept — appkit idempotency guard + in-flight command drain, then `System().GracefulClose(ctx)` |
-| — | **NEW (T29)** `RegisterDecider`, `RegisterCommand`, `RegisterQuery`, `Execute`, `DispatchQuery`, `DispatchQueryChecked`, `CommandDispatcher()`, `DefaultCommandMiddleware(logger)` |
+| v1 method                                                                      | v2 decision                                                                                                                                                                                               |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Bundle() *stack.Bundle`                                                       | **DEPRECATED → removed at next minor; replaced by `System() *system.System`.** Accessors: `EventSink()`/`EventSource()`/`Publisher()` preserved as direct methods so simple consumers don't touch System. |
+| `Host() *projectionhost.Host`                                                  | kept (delegates to `System().ProjectionHost()`)                                                                                                                                                           |
+| `DeadLetterStore`, `ReplayDeadLetters`, `ResetProjection`                      | kept, delegate to host                                                                                                                                                                                    |
+| `DB() (*sql.DB, error)`                                                        | kept — returns the aux handle (sqlite); Rejection for non-SQL drivers                                                                                                                                     |
+| `ReadyCheck`, `LagPerProjection`, `CheckStaleness`, `CheckProjectionStaleness` | kept, delegate to host                                                                                                                                                                                    |
+| `StartProjections(ctx)`                                                        | kept → `System().Start(ctx)`                                                                                                                                                                              |
+| `Shutdown(ctx)`                                                                | kept — appkit idempotency guard + in-flight command drain, then `System().GracefulClose(ctx)`                                                                                                             |
+| —                                                                              | **NEW (T29)** `RegisterDecider`, `RegisterCommand`, `RegisterQuery`, `Execute`, `DispatchQuery`, `DispatchQueryChecked`, `CommandDispatcher()`, `DefaultCommandMiddleware(logger)`                        |
 
 ## Default deployment (engine room)
 

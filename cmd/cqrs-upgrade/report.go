@@ -7,9 +7,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/larsartmann/go-finding"
+
 	cqrsanalyzer "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	cqrsversion "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/version"
-	"github.com/larsartmann/go-finding"
 )
 
 // deprecationReport runs the cqrs-lint V007 detector (v5-removed API usage)
@@ -41,7 +42,11 @@ func writeFindings(w io.Writer, findings []finding.Finding) {
 		return
 	}
 
-	fmt.Fprintf(w, "deprecation report: %d finding(s) — APIs removed at go-cqrs-lite v5:\n", len(findings))
+	fmt.Fprintf(
+		w,
+		"deprecation report: %d finding(s) — APIs removed at go-cqrs-lite v5:\n",
+		len(findings),
+	)
 
 	sorted := append([]finding.Finding(nil), findings...)
 	sort.Slice(sorted, func(i, j int) bool {

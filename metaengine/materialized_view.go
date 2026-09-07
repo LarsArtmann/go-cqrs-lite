@@ -72,7 +72,10 @@ func (s MaterializedViewSpec) Validate() error {
 	switch s.Fn {
 	case MatViewCount:
 		if s.Column != "" {
-			return fmt.Errorf("materialized view %q: COUNT does not take a column (it counts rows)", s.Collection)
+			return fmt.Errorf(
+				"materialized view %q: COUNT does not take a column (it counts rows)",
+				s.Collection,
+			)
 		}
 	case MatViewSum, MatViewMin, MatViewMax, MatViewAvg:
 		if s.Column == "" {

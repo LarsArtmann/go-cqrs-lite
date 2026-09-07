@@ -117,7 +117,12 @@ func TestEditGoMod_UpdatesOnlyChangedPins(t *testing.T) {
 
 	bumps := []bump{
 		{Module: "github.com/larsartmann/go-cqrs-lite/event/v4", From: "v4.8.0", To: "v4.9.0"},
-		{Module: "github.com/larsartmann/go-cqrs-lite/system/v4", From: "v4.5.0", To: "v4.5.0", upToDate: true},
+		{
+			Module:   "github.com/larsartmann/go-cqrs-lite/system/v4",
+			From:     "v4.5.0",
+			To:       "v4.5.0",
+			upToDate: true,
+		},
 		{Module: "github.com/larsartmann/go-cqrs-lite/id/v4", From: "v4.5.0", To: "v4.99.0"},
 	}
 
@@ -145,7 +150,10 @@ func TestEditGoMod_UpdatesOnlyChangedPins(t *testing.T) {
 	}
 
 	if got["github.com/larsartmann/go-cqrs-lite/system/v4"] != "v4.5.0" {
-		t.Errorf("system/v4 unexpectedly changed: %s", got["github.com/larsartmann/go-cqrs-lite/system/v4"])
+		t.Errorf(
+			"system/v4 unexpectedly changed: %s",
+			got["github.com/larsartmann/go-cqrs-lite/system/v4"],
+		)
 	}
 
 	if !strings.Contains(readAll(t, modPath), "// indirect") {

@@ -105,7 +105,7 @@ var modules = []string{
 	"system/integration",
 	"cmd/cqrs-lint",
 	"cmd/cqrs-bench",
-"cmd/cqrs-upgrade",
+	"cmd/cqrs-upgrade",
 	"cmd/cqrs-gen",
 	"cmd/doc-check",
 }

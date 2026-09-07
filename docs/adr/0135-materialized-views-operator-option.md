@@ -54,11 +54,11 @@ declared by the OPERATOR, not the developer.
      SUM of counts, MIN of mins, MAX of maxes, weighted average);
    - unfiltered grouped aggregate ↔ grouped view of the same shape
      (per-group SUM/COUNT quotient for AVG).
-   Everything else — filtered aggregates, planned-table collections,
-   multi-aggregates, DISTINCT — falls through to the base path. The
-   planned-table guard is a correctness rule, not an optimization detail:
-   `ApplyLayout` creates an EMPTY planned table with no backfill, so a view
-   over `meta_map` cannot serve a collection once it has migrated.
+     Everything else — filtered aggregates, planned-table collections,
+     multi-aggregates, DISTINCT — falls through to the base path. The
+     planned-table guard is a correctness rule, not an optimization detail:
+     `ApplyLayout` creates an EMPTY planned table with no backfill, so a view
+     over `meta_map` cannot serve a collection once it has migrated.
 
 5. **Observability.** Engines report their views via
    `MaterializedViewsReporter`; `Store.Doctor` renders a

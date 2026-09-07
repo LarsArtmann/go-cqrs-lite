@@ -203,7 +203,13 @@ func BenchmarkMatViewRead(b *testing.B) {
 						b.ReportAllocs()
 
 						for b.Loop() {
-							if _, err := base.agg.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
+							if _, err := base.agg.Aggregate(
+								ctx,
+								"orders",
+								c.fn,
+								c.column,
+								nil,
+							); err != nil {
 								b.Fatal(err)
 							}
 						}
@@ -214,13 +220,23 @@ func BenchmarkMatViewRead(b *testing.B) {
 					}
 
 					b.Run("matview", func(b *testing.B) {
-						b.Skip("accelerated read is O(1) in N — see scale=1k (upstream seeding constraint)")
+						b.Skip(
+							"accelerated read is O(1) in N — see scale=1k (upstream seeding constraint)",
+						)
 					})
 
 					return
 				}
 
-				acc := openBenchEngine(ctx, b, dir, "accel", specsForCase(c, true), scale.n, scale.customers)
+				acc := openBenchEngine(
+					ctx,
+					b,
+					dir,
+					"accel",
+					specsForCase(c, true),
+					scale.n,
+					scale.customers,
+				)
 
 				base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
@@ -228,7 +244,13 @@ func BenchmarkMatViewRead(b *testing.B) {
 					b.ReportAllocs()
 
 					for b.Loop() {
-						if _, err := base.agg.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
+						if _, err := base.agg.Aggregate(
+							ctx,
+							"orders",
+							c.fn,
+							c.column,
+							nil,
+						); err != nil {
 							b.Fatal(err)
 						}
 					}
@@ -242,7 +264,13 @@ func BenchmarkMatViewRead(b *testing.B) {
 					b.ReportAllocs()
 
 					for b.Loop() {
-						if _, err := acc.agg.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
+						if _, err := acc.agg.Aggregate(
+							ctx,
+							"orders",
+							c.fn,
+							c.column,
+							nil,
+						); err != nil {
 							b.Fatal(err)
 						}
 					}
@@ -261,7 +289,9 @@ func BenchmarkMatViewRead(b *testing.B) {
 			// larger scales bench the baseline only.
 			if scale.name != "1k" {
 				b.Run("matview", func(b *testing.B) {
-					b.Skip("grouped matview seeding is unreliable above ~1k rows (turso-go v0.7.2 upstream commit bug)")
+					b.Skip(
+						"grouped matview seeding is unreliable above ~1k rows (turso-go v0.7.2 upstream commit bug)",
+					)
 				})
 
 				return
@@ -312,14 +342,21 @@ func BenchmarkMatViewRead(b *testing.B) {
 		b.Run("agg=SUM_VIA_GROUPED/scale="+scale.name, func(b *testing.B) {
 			if scale.name != "1k" {
 				b.Run("matview", func(b *testing.B) {
-					b.Skip("grouped matview seeding is unreliable above ~1k rows (turso-go v0.7.2 upstream commit bug)")
+					b.Skip(
+						"grouped matview seeding is unreliable above ~1k rows (turso-go v0.7.2 upstream commit bug)",
+					)
 				})
 
 				return
 			}
 
 			onlyGrouped := []metaengine.MaterializedViewSpec{
-				{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+				{
+					Collection: "orders",
+					Fn:         metaengine.MatViewSum,
+					Column:     "amount",
+					GroupBy:    "customer",
+				},
 			}
 
 			dir := b.TempDir()
@@ -332,7 +369,13 @@ func BenchmarkMatViewRead(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := base.agg.Aggregate(ctx, "orders", metaengine.MatViewSum, "amount", nil); err != nil {
+					if _, err := base.agg.Aggregate(
+						ctx,
+						"orders",
+						metaengine.MatViewSum,
+						"amount",
+						nil,
+					); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -346,7 +389,13 @@ func BenchmarkMatViewRead(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := acc.agg.Aggregate(ctx, "orders", metaengine.MatViewSum, "amount", nil); err != nil {
+					if _, err := acc.agg.Aggregate(
+						ctx,
+						"orders",
+						metaengine.MatViewSum,
+						"amount",
+						nil,
+					); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -373,14 +422,35 @@ func BenchmarkMatViewWrite(b *testing.B) {
 		specs []metaengine.MaterializedViewSpec
 	}{
 		{"views=0", nil},
-		{"views=1", []metaengine.MaterializedViewSpec{
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
-		}},
-		{"views=3", []metaengine.MaterializedViewSpec{
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
-			{Collection: "orders", Fn: metaengine.MatViewAvg, Column: "amount", GroupBy: "customer"},
-		}},
+		{
+			"views=1",
+			[]metaengine.MaterializedViewSpec{
+				{
+					Collection: "orders",
+					Fn:         metaengine.MatViewSum,
+					Column:     "amount",
+					GroupBy:    "customer",
+				},
+			},
+		},
+		{
+			"views=3",
+			[]metaengine.MaterializedViewSpec{
+				{
+					Collection: "orders",
+					Fn:         metaengine.MatViewSum,
+					Column:     "amount",
+					GroupBy:    "customer",
+				},
+				{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+				{
+					Collection: "orders",
+					Fn:         metaengine.MatViewAvg,
+					Column:     "amount",
+					GroupBy:    "customer",
+				},
+			},
+		},
 	}
 
 	dir := b.TempDir()

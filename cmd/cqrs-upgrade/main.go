@@ -30,7 +30,12 @@ func parseFlags(args []string) (config, error) {
 
 	fs := flag.NewFlagSet("cqrs-upgrade", flag.ContinueOnError)
 	fs.BoolVar(&cfg.dryRun, "dry-run", false, "show planned bumps without changing go.mod")
-	fs.BoolVar(&cfg.noBuild, "no-build", false, "skip the go mod tidy + build + vet verification after bumping")
+	fs.BoolVar(
+		&cfg.noBuild,
+		"no-build",
+		false,
+		"skip the go mod tidy + build + vet verification after bumping",
+	)
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err

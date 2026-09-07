@@ -196,6 +196,7 @@
 ## f) NEXT — up to 50 actionable items (rough priority order)
 
 **Correctness/quality (this feature)**
+
 1. Run `nix run .#verify` end-to-end on the final tree; fix anything it
    surfaces; only then declare session GREEN in the ledger.
 2. Add `TestMaterializedViewsDoctorSection` (content + "none" + error
@@ -236,72 +237,72 @@
 **Upstream / ecosystem**
 19. File the turso-go issue (repro + envelope data) — pending user go-ahead.
 20. Track turso-go releases; re-run the envelope probe on each new version;
-    flip the bench skip-markers when fixed.
+flip the bench skip-markers when fixed.
 21. Tag wave: bump sqliteengine/tursoengine/system pins, strip sibling
-    replaces, GOWORK=off matrix over all consumers (documented procedure;
-    timing = release decision).
+replaces, GOWORK=off matrix over all consumers (documented procedure;
+timing = release decision).
 22. Refresh cqrs-lint taskmanager golden if the wave changes version sets
-    (V006 coupling).
+(V006 coupling).
 
 **Feature completion (v2 candidates)**
 23. Planned-table matviews (ordered with `ApplyLayoutPlan`, incl. backfill
-    then view creation).
+then view creation).
 24. Filtered view variants (spec carries `Filters []FilterSpec`; serving
-    matches filters structurally).
+matches filters structurally).
 25. `MultiAggregate`/`MultiGroupedAggregate` serving from views whose
-    columns cover the full spec set.
+columns cover the full spec set.
 26. `DistinctValues` from grouped views (the group column IS the distinct
-    set).
+set).
 27. HAVING-style min-count guards for grouped views (operator tweak).
 28. Remote Turso deployment guide + live benchmark (needs credentials).
 29. Replan/routing integration: teach the cost model that matview-covered
-    aggregates are O(1)/O(groups) so cross-engine routing prefers the
-    Turso engine for covered shapes.
+aggregates are O(1)/O(groups) so cross-engine routing prefers the
+Turso engine for covered shapes.
 30. Store-level matview declaration API alternative
-    (`Store.DeclareMaterializedView`) for non-system consumers.
+(`Store.DeclareMaterializedView`) for non-system consumers.
 31. View-drop lifecycle: `DropMaterializedView(spec)` for clean operator
-    off-boarding.
+off-boarding.
 32. Metric: per-view IVM write-amplification counter (otel/ counter per
-    spec) so operators can see the tax in production.
+spec) so operators can see the tax in production.
 33. Doctor: warn when a declared view has 0 reads served (wasted IVM cost)
-    — needs a served-counter first (see 32).
+— needs a served-counter first (see 32).
 34. cqrs-lint rules: (a) matview spec on unsupported driver; (b) matview on
-    a collection that also has a planned table (staleness trap).
+a collection that also has a planned table (staleness trap).
 35. `example/materialized-views/` runnable example (YAML + queries +
-    Doctor output).
+Doctor output).
 
 **Docs/site**
 36. docs-site page for the operator option (docserver render of ADR-0135 +
-    recipes §2.29).
+recipes §2.29).
 37. FAQ entry: "why is my aggregate still slow?" → Doctor section +
-    EXPLAIN proof workflow.
+EXPLAIN proof workflow.
 38. Reference the bench doc from the tursoengine README table.
 
 **Hygiene / repo**
 39. Remove the accidentally committed `cmd/cqrs-upgrade/cqrs-upgrade`
-    binary (10.7 MB) — foreign session's cleanup, flag to its owner.
+binary (10.7 MB) — foreign session's cleanup, flag to its owner.
 40. Foreign `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries in
-    `scripts/check-module-layers.sh` (their session) to un-red check-arch.
+`scripts/check-module-layers.sh` (their session) to un-red check-arch.
 41. Update TODO_LIST.md with items 19-38 (report currently holds them).
 42. `docs/DOMAIN_LANGUAGE.md` entry: "materialized view acceleration",
-    "IVM", "view-maintained write".
+"IVM", "view-maintained write".
 43. Consider `soak_skip` env for the new bench in CI (`SOAK_SKIP_*`
-    convention) if CI time hurts.
+convention) if CI time hurts.
 44. Double-check `check-formatters.sh` healed state after the session's
-    daemon interference (it fired once mid-session — confirm it stayed).
+daemon interference (it fired once mid-session — confirm it stayed).
 45. Sweep `.art-dupl-baseline.json` re-pin into a titled commit message
-    (currently landed in a heuristic auto-commit; future re-pins should
-    say WHY per the gotcha).
+(currently landed in a heuristic auto-commit; future re-pins should
+say WHY per the gotcha).
 46. Verify `#verify-ci` (GOWORK=off matrix) includes the new files — it
-    runs per existing module so it should; confirm once.
+runs per existing module so it should; confirm once.
 47. Re-run the write bench on an idle machine; replace the mixed-run table
-    in the bench doc with one clean run.
+in the bench doc with one clean run.
 48. Add `agg=COUNT_VIA_GROUPED` bench case (derivation coverage for the
-    remaining fn).
+remaining fn).
 49. Evaluate `sqlite_engine` PRAGMA `synchronous` interplay with IVM write
-    cost (views=0 curve at relaxed tier) — one extra bench column.
+cost (views=0 curve at relaxed tier) — one extra bench column.
 50. Schedule the load-sweep before the next `#verify` if any timing-adjacent
-    path gets touched by follow-ups (per AGENTS pre-verify rule).
+path gets touched by follow-ups (per AGENTS pre-verify rule).
 
 ## g) QUESTIONS (cannot answer from the repo myself)
 

@@ -8,13 +8,13 @@ connection, chunked 1k-row seed transactions, per-case isolated processes).
 
 ## Environment
 
-| Item    | Value                                        |
-| ------- | -------------------------------------------- |
-| Date    | 2026-09-07, 18:55 UTC+2                      |
-| CPU     | AMD Ryzen AI MAX+ 395 (32 threads)           |
-| RAM     | 124 GB                                       |
-| Go      | 1.26.x, `-tags "goexperiment.jsonv2"`        |
-| Storage | NVMe-backed datadir (`.gotmp` on disk), WAL  |
+| Item    | Value                                                                                                                                           |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Date    | 2026-09-07, 18:55 UTC+2                                                                                                                         |
+| CPU     | AMD Ryzen AI MAX+ 395 (32 threads)                                                                                                              |
+| RAM     | 124 GB                                                                                                                                          |
+| Go      | 1.26.x, `-tags "goexperiment.jsonv2"`                                                                                                           |
+| Storage | NVMe-backed datadir (`.gotmp` on disk), WAL                                                                                                     |
 | Load    | **load avg 82/72/46 during this run** — absolute numbers are inflated; ratios are stable across runs (a low-load repeat is included for writes) |
 
 Workload: `orders` rows `{customer: "c<i%N>", amount: (i%7)*10 + i/100}`,
@@ -41,10 +41,10 @@ collection size.
 
 ### Grouped and derived reads (1k rows, 31 groups)
 
-| Shape                                    | Baseline  | Matview   | Speedup |
-| ---------------------------------------- | --------- | --------- | ------- |
-| GROUP BY customer, SUM (exact grouped view) | 1.89 ms  | **115 µs** | 16×    |
-| Scalar SUM via grouped view (derivation)  | 974 µs    | **41 µs** | **24×** |
+| Shape                                       | Baseline | Matview    | Speedup |
+| ------------------------------------------- | -------- | ---------- | ------- |
+| GROUP BY customer, SUM (exact grouped view) | 1.89 ms  | **115 µs** | 16×     |
+| Scalar SUM via grouped view (derivation)    | 974 µs   | **41 µs**  | **24×** |
 
 Grouped reads scale with the number of GROUPS (31 here), not rows. The
 scalar-through-grouped derivation shows the middle option: one grouped view

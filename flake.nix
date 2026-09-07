@@ -225,7 +225,7 @@
             "cmd/cqrs-gen"
             "cmd/cqrs-lint"
             "cmd/cqrs-bench"
-"cmd/cqrs-upgrade"
+            "cmd/cqrs-upgrade"
             "cmd/doc-check"
             "idempotency/kvstore"
             "idempotency/sqlstore"

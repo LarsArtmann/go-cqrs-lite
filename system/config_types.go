@@ -215,7 +215,12 @@ func (c EngineConfig) materializedViewSpecs() ([]metaengine.MaterializedViewSpec
 	for i, mv := range c.MaterializedViews {
 		fn, err := parseMatViewFn(mv.Fn)
 		if err != nil {
-			return nil, fmt.Errorf("system: engine %q materialized_views[%d]: %w", labelOr(c.Driver, i+1), i, err)
+			return nil, fmt.Errorf(
+				"system: engine %q materialized_views[%d]: %w",
+				labelOr(c.Driver, i+1),
+				i,
+				err,
+			)
 		}
 
 		spec := metaengine.MaterializedViewSpec{
@@ -226,7 +231,12 @@ func (c EngineConfig) materializedViewSpecs() ([]metaengine.MaterializedViewSpec
 		}
 
 		if err := spec.Validate(); err != nil {
-			return nil, fmt.Errorf("system: engine %q materialized_views[%d]: %w", labelOr(c.Driver, i+1), i, err)
+			return nil, fmt.Errorf(
+				"system: engine %q materialized_views[%d]: %w",
+				labelOr(c.Driver, i+1),
+				i,
+				err,
+			)
 		}
 
 		specs = append(specs, spec)

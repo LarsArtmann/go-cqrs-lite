@@ -87,7 +87,11 @@ func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, e
 // NewSQLiteEngineFromDSNWith is the options-aware variant of
 // [NewSQLiteEngineFromDSN]: same pragma handling, plus EngineOption
 // capabilities (e.g. WithMaterializedViews).
-func NewSQLiteEngineFromDSNWith(dsn string, pragmas []string, opts ...EngineOption) (metaengine.Engine, error) {
+func NewSQLiteEngineFromDSNWith(
+	dsn string,
+	pragmas []string,
+	opts ...EngineOption,
+) (metaengine.Engine, error) {
 	if dsn == "" {
 		dsn = ":memory:"
 	}

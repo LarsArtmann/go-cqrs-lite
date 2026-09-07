@@ -6,9 +6,9 @@ use (
 	./catalog
 	./cmd/api-stability
 	./cmd/cqrs-bench
-	./cmd/cqrs-upgrade
 	./cmd/cqrs-gen
 	./cmd/cqrs-lint
+	./cmd/cqrs-upgrade
 	./cmd/doc-check
 	./command
 	./commandlifecycle
