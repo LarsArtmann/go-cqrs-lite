@@ -455,7 +455,7 @@ func TestRun_DurationAborts(t *testing.T) {
 	// Hang detection only: parallel verify load inflates setup + teardown
 	// wall-clock well past 10x regardless of the race detector, so the ceiling
 	// must be generous. A true hang is still caught by the go test timeout.
-	hangThreshold := 30 * time.Second
+	hangThreshold := loadScaledCeiling(30 * time.Second)
 
 	// The run should finish quickly.
 	if elapsed > hangThreshold {
@@ -487,7 +487,7 @@ func TestRun_CancelledContext(t *testing.T) {
 	// Hang detection only: parallel verify load inflates wall-clock well past
 	// 10x regardless of the race detector, so the ceiling must be generous.
 	// A true hang is still caught by the go test timeout.
-	hangThreshold := 30 * time.Second
+	hangThreshold := loadScaledCeiling(30 * time.Second)
 
 	// Must not hang.
 	if elapsed > hangThreshold {
@@ -821,7 +821,7 @@ func TestRun_SQLite_DurationAborts(t *testing.T) {
 	// wall-clock well past 10x regardless of the race detector (SQLite CGo
 	// setup included), so the ceiling must be generous. A true hang is still
 	// caught by the go test timeout.
-	hangThreshold := 30 * time.Second
+	hangThreshold := loadScaledCeiling(30 * time.Second)
 
 	// SQLite respects context deadlines via SQL query cancellation.
 	// This can return either a partial result or an error — both are correct.

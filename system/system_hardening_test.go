@@ -272,7 +272,7 @@ func memoryProjectionDeployment() system.DeploymentConfig {
 func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed int) bool {
 	t.Helper()
 
-	deadline := time.Now().Add(15 * time.Second)
+	deadline := loadScaledDeadline(15 * time.Second)
 
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {

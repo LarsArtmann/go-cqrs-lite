@@ -110,7 +110,7 @@ func TestSystem_AutoProjection_MemoryEngine(t *testing.T) {
 	}
 
 	// Wait for projection to process.
-	deadline := time.Now().Add(5 * time.Second)
+	deadline := loadScaledDeadline(5 * time.Second)
 
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {

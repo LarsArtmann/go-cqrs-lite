@@ -92,7 +92,7 @@ func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 	}
 
 	// Wait for projection to catch up.
-	deadline := time.Now().Add(8 * time.Second)
+	deadline := loadScaledDeadline(8 * time.Second)
 
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {
