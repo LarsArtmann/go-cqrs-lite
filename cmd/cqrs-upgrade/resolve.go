@@ -15,7 +15,7 @@ var versionResolver = resolveLatest
 // highest semver tag. Resolves through the module proxy, so it works for any
 // published module regardless of the local checkout state.
 func resolveLatest(module string) (string, error) {
-	out, err := goOut(nil, "list", "-m", "-versions", module)
+	out, err := goOut("", "list", "-m", "-versions", module)
 	if err != nil {
 		return "", fmt.Errorf("resolve latest %s: %w", module, err)
 	}

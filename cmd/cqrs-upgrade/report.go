@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 
 	cqrsanalyzer "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -13,29 +15,25 @@ import (
 // deprecationReport runs the cqrs-lint V007 detector (v5-removed API usage)
 // in-process over dir and prints a per-finding report. Best-effort: a load
 // failure becomes a warning, never an upgrade abort.
-func deprecationReport(w io.Writer, dir string) error {
+func deprecationReport(w io.Writer, dir string) {
 	ctx, err := cqrsanalyzer.BuildContext(dir)
 	if err != nil {
 		fmt.Fprintf(w, "deprecation report skipped (analysis failed): %v\n", err)
 
-		return nil
+		return
 	}
 
-	detector := cqrsversion.NewV007Detector(ctx)
+	findings, detErr := cqrsversion.NewV007Detector(ctx).Detect(context.Background())
+	if detErr != nil {
+		fmt.Fprintf(w, "deprecation report skipped (detector failed): %v\n", detErr)
 
-	findings, err := detector.Detect(ctx)
-	if err != nil {
-		fmt.Fprintf(w, "deprecation report skipped (detector failed): %v\n", err)
-
-		return nil
+		return
 	}
 
 	writeFindings(w, findings)
-
-	return nil
 }
 
-// writeFindings prints V007 findings sorted by file for stable output.
+// writeFindings prints V007 findings sorted by position for stable output.
 func writeFindings(w io.Writer, findings []finding.Finding) {
 	if len(findings) == 0 {
 		fmt.Fprintln(w, "deprecation report: no v5-removed API usage detected")
@@ -45,13 +43,13 @@ func writeFindings(w io.Writer, findings []finding.Finding) {
 
 	fmt.Fprintf(w, "deprecation report: %d finding(s) — APIs removed at go-cqrs-lite v5:\n", len(findings))
 
-	for _, f := range findings {
-		line := ""
+	sorted := append([]finding.Finding(nil), findings...)
+	sort.Slice(sorted, func(i, j int) bool {
+		return sorted[i].Position.String() < sorted[j].Position.String()
+	})
 
-		if f.Location() != nil {
-			line = fmt.Sprintf("%s:%d", f.Location().Filename, f.Location().Line)
-		}
-
-		fmt.Fprintf(w, "  %s %s %s\n", line, strings.TrimSpace(f.Message()), f.Rule().ID())
+	for _, f := range sorted {
+		fmt.Fprintf(w, "  %s %s [%s]\n",
+			f.Position.String(), strings.TrimSpace(f.Message), f.Rule)
 	}
 }
