@@ -35,9 +35,11 @@ func (s *Store) recordAwareEventTypes() map[string]bool {
 	return out
 }
 
-// recordAwareEventTypesCached is recordAwareEventTypes memoized: folds are
-// fixed at Plan time, so the map is computed once and read lock-free on the
-// apply hot path.
+// recordAwareEventTypesCached is recordAwareEventTypes memoized: the map is
+// computed on first use and invalidated by RegisterQuery when a runtime-
+// registered query may add OnRecord folds. The apply hot path reads it under
+// s.mu.RLock and RegisterQuery stores nil under the write lock, so the
+// invalidate/recompute pair cannot interleave.
 func (s *Store) recordAwareEventTypesCached() map[string]bool {
 	if p := s.recordAwareEvents.Load(); p != nil {
 		return *p
