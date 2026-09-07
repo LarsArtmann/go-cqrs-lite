@@ -208,16 +208,22 @@ func TestReplan_KeepsExcludingOverDeclaredEngine(t *testing.T) {
 }
 
 // TestCheckRouting_NeverSuggestsOverDeclaredEngine pins the routing-check
-// half of the partition: a lying engine with zero-latency priors looks
-// infinitely cheaper than the honest incumbent, but CheckRouting must not
-// emit a REPLAN-SUGGESTED diagnostic pointing at an engine Replan would
-// refuse and whose Apply would hard-error.
+// half of the partition: a lying engine with cheaper priors looks strictly
+// better than the honest incumbent, but CheckRouting must not emit a
+// REPLAN-SUGGESTED diagnostic pointing at an engine Replan would refuse and
+// whose Apply would hard-error.
 func TestCheckRouting_NeverSuggestsOverDeclaredEngine(t *testing.T) {
 	t.Parallel()
 
+	liar := &lyingEngine{profile: EngineProfile{
+		Name:      "liar",
+		Supports:  map[ADT]Complexity{ADTMap: ComplexityO1},
+		ReadCosts: ReadCosts{NsPerPointLookup: 1},
+	}}
+
 	honest := NewMemoryEngine()
 
-	store, err := Plan([]Engine{newLyingEngine("liar"), honest}, capabilityQuery())
+	store, err := Plan([]Engine{liar, honest}, capabilityQuery())
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}
