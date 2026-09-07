@@ -108,7 +108,8 @@ func withEncryptionParams(dsn string, cipher Cipher, hexKey string) (string, err
 	if _, query, hasQuery := strings.Cut(dsn, "?"); hasQuery {
 		for _, part := range strings.Split(query, "&") {
 			if key, _, _ := strings.Cut(part, "="); key == "encryption_cipher" || key == "encryption_hexkey" {
-				return "", fmt.Errorf("DSN already carries %q; remove it from the DSN or drop WithEncryption so exactly one key source remains", key)
+				return "", fmt.Errorf("DSN already carries %q; remove it from the DSN or drop "+
+					"WithEncryption so exactly one key source remains", key)
 			}
 		}
 	}

@@ -66,15 +66,17 @@ write-heavy collection with three rollup views pays ~3× the base write cost.
 
 ## Known constraints (upstream turso-go v0.7.2)
 
-- COMMIT of a large single transaction (≥ ~5k statements) driving IVM across
-  many views fails nondeterministically with "cannot commit — no transaction
-  is active". Chunked writes (≤ ~1k statements/tx) at ≤ ~1k view-maintained
-  rows per process are stable; ≥10k view-maintained rows (any view count)
-  is a coin flip. Scalar-view seeds are far more tolerant than grouped ones.
-  Bench seeds chunk at 1k rows and retry on a fresh engine; the
-  `agg=*/scale=10k|100k` matview cases are skip-marked for this reason.
-- Candidates for an upstream report (reproducible in-process): see AGENTS.md
-  "turso-go v0.7.2 flaky COMMIT on large IVM transactions".
+- COMMIT of transactions that maintain materialized views fails
+  **deterministically at ~27,000 cumulative view-maintained rows per
+  process** ("cannot commit — no transaction is active"; verified 24/24
+  rounds at exactly chunk 27000 with 50k rows × 1 grouped view × 316
+  groups). Below the wall, failure is probabilistic: large single
+  transactions (≥~5k statements) through many views fail earlier, prior
+  scan activity shrinks the budget, grouped views fail before scalar ones.
+  Committed data is always intact. Bench seeds chunk at 1k rows and retry
+  on a fresh engine; the `agg=*/scale=10k|100k` matview cases are
+  skip-marked for this reason. Ready-to-file upstream draft:
+  `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
 
 ## Reproducing
 

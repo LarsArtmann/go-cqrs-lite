@@ -77,10 +77,14 @@ declared by the OPERATOR, not the developer.
 - v1 scope limits: `meta_map` (standard-path) collections only; planned-table
   acceleration would need view creation to be ordered with `ApplyLayout`
   (and backfill semantics) — deferred until a deployment needs it.
-- Upstream constraint (turso-go v0.7.2): COMMIT of a very large single
-  transaction driving IVM across many views can fail with "cannot commit -
-  no transaction is active". Chunked writes (≤ ~1k statements per tx) are
-  unaffected. See the AGENTS.md gotcha; candidates for an upstream report.
+- Upstream constraint (turso-go v0.7.2, repro verified): COMMIT of
+  transactions that maintain materialized views fails deterministically
+  once a process has written ~27k view-maintained rows ("no transaction is
+  active"); smaller shapes fail probabilistically near the boundary. Keep
+  cumulative view-maintained writes per process under that ceiling — chunk
+  transactions to ≤ ~1k statements AND rotate process/file beyond the
+  budget. See AGENTS.md and the upstream issue draft
+  (`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`).
 
 ## Alternatives considered
 

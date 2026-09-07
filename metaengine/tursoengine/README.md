@@ -23,6 +23,39 @@ engine, err := tursoengine.New("libsql://myapp.turso.io?authToken=...")
 Empty DSN defaults to `:memory:`; plain file paths and `file:` DSNs work for
 embedded libSQL use.
 
+## Encryption at Rest (embedded, experimental)
+
+The embedded Turso engine encrypts every page and the WAL with a native AEAD
+cipher (experimental upstream — not yet third-party audited; Turso Cloud BYOK
+is the production-ready path for regulated workloads). Pass a typed cipher
+and a hex-encoded key — the Turso Database convention (Turso Cloud BYOK uses
+base64 keys and is a separate, per-connection mechanism):
+
+```go
+// openssl rand -hex 32 — store the key in a secret manager, never in code.
+eng, err := tursoengine.New("/data/app.db",
+    tursoengine.WithEncryption(tursoengine.CipherAES256GCM, hexKey))
+```
+
+Ciphers: `CipherAEGIS256` (default recommendation), `CipherAEGIS128L` (faster,
+128-bit), `CipherAEGIS128X2/X4`, `CipherAEGIS256X2/X4` (SIMD variants), and
+`CipherAES128GCM`/`CipherAES256GCM` (NIST-approved — the auditor-friendly
+choice for HIPAA/PCI-DSS). ChaCha20-Poly1305 exists only in Turso Cloud, not
+in the local engine.
+
+Semantics:
+
+- A wrong or missing key fails decryption explicitly (`Decryption failed for
+  page=N`), never silently returns garbage — that is the AEAD auth tag.
+- The key is merged into the DSN at construction (`experimental=encryption`,
+  `encryption_cipher`, `encryption_hexkey`), and `redactDSN` strips
+  encryption parameters from every engine error message, so key material
+  never reaches logs. `WithEncryption` refuses a DSN that already carries
+  encryption parameters — exactly one key source must remain.
+- Remote DSNs are rejected: Cloud BYOK keys ride the connection/sync layer,
+  which this engine does not manage (configure via Turso tooling today).
+- Upstream has no native rekeying yet — rotation is export/reimport.
+
 ## Materialized Views (operator option, ADR-0135)
 
 Turso's incremental view maintenance turns declared aggregate shapes into
