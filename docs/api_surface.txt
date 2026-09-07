@@ -601,6 +601,7 @@ cmd/cqrs-lint/pkg/analyzer/func ResolveFeatureProfile
 cmd/cqrs-lint/pkg/analyzer/func ResolveHandlerMethods
 cmd/cqrs-lint/pkg/analyzer/func ResolvePreset
 cmd/cqrs-lint/pkg/analyzer/func ResolvePresetDefinition
+cmd/cqrs-lint/pkg/analyzer/func ResolveQualifierTyped
 cmd/cqrs-lint/pkg/analyzer/func ResolveRegisteredTypeConsts
 cmd/cqrs-lint/pkg/analyzer/func ResolveTransportAdapters
 cmd/cqrs-lint/pkg/analyzer/func SelectorFromExpr

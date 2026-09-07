@@ -33,11 +33,12 @@ type planConfig struct {
 	replicationOverride      *Replication      // overrides all engines' declared replication for cost estimation
 	networkRTTOverride       *time.Duration    // overrides all engines' declared NetworkRTT for cost estimation
 	routingHysteresis        float64           // min fractional improvement for re-routing suggestions
-	routingMinDeltaMs        float64           // min absolute improvement (ms) for re-routing suggestions
+	routingMinDeltaMs        float64           // min absolute improvement (ms) for re-route suggestions
 	incumbents               map[string]string // query → currently-assigned engine (Replan only); enables hysteresis-gated re-assignment
 	priority                 *PriorityConfig   // operator-driven layout priorities (ADR-0124)
 	sharedCollections        map[string]bool   // child Go types shared across collections (ADR-0124 aggregate boundaries)
 	idempotencyCapacity      int               // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
+	capabilityGaps           map[string]CapabilityGaps // engine name → documented ADT conformance gaps; suppresses over-declaration diagnostics
 }
 
 type planOption func(*planConfig)
@@ -46,6 +47,16 @@ type planOption func(*planConfig)
 // may update without triggering a write amplification warning.
 func WithWriteAmplificationBudget(n int) planOption {
 	return func(c *planConfig) { c.writeAmplificationBudget = n }
+}
+
+// WithEngineCapabilityGaps documents known ADT conformance gaps per engine
+// (same semantics as CapabilityAudit's gaps argument). An over-declaring
+// engine whose gap is documented for the query's ADT is still EXCLUDED from
+// routing — the backend does not exist and execution would hard-error — but
+// the plan stays silent about it instead of re-announcing the known gap on
+// every plan/replan. Gaps persist across Replan.
+func WithEngineCapabilityGaps(engineGaps map[string]CapabilityGaps) planOption {
+	return func(c *planConfig) { c.capabilityGaps = engineGaps }
 }
 
 // WithDryRun returns a planOption that skips DDL creation and engine pinning —
@@ -168,6 +179,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		sharedCollections: cfg.sharedCollections,
 		routingHysteresis: defaultRoutingHysteresis(cfg.routingHysteresis),
 		routingMinDelta:   defaultRoutingMinDelta(cfg.routingMinDeltaMs),
+		capabilityGaps:    cfg.capabilityGaps,
 	}
 
 	for _, q := range queries {

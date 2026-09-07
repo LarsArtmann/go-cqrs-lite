@@ -42,6 +42,7 @@ type Store struct {
 	routingDiags      []Diagnostic
 	priorityConfig    *PriorityConfig // operator-driven layout priority (ADR-0124)
 	sharedCollections map[string]bool // child types shared across collections (ADR-0124 boundaries)
+	capabilityGaps    map[string]CapabilityGaps // engine name → documented ADT gaps (persist across Replan)
 
 	// Record-context hazard tracking: applies that arrived as a synthesized
 	// Type-only Record (Store.Apply) while OnRecord folds were registered for
@@ -102,6 +103,7 @@ func (s *Store) replanWithTransition(
 		writeAmplificationBudget: DefaultWriteAmplificationBudget,
 		priority:                 s.priorityConfig,
 		sharedCollections:        s.sharedCollections,
+		capabilityGaps:           s.capabilityGaps,
 		routingHysteresis:        s.routingHysteresis,
 		routingMinDeltaMs:        s.routingMinDelta,
 	}

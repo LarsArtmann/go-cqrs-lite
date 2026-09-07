@@ -115,3 +115,52 @@ cost — measure per-corpus, not per-file.
 independently valuable; ship it alone first behind no flag (load mode
 change only), then Tier 2 behind `--typed-info=auto` (default on when
 type load succeeded, off on fallback).
+
+---
+
+## Addendum (2026-09-07) — ApplyLayout vs LayoutPlanApplier rule (design pass)
+
+**Problem.** Metaengine engines expose two write paths: the legacy
+`ApplyLayout(layout)` and the planned path via `LayoutPlanApplier`
+(`BuildLayoutPlanFromType[R]` → plan → apply). An engine that implements
+both should be driven through the plan path; a consumer calling
+`ApplyLayout` directly on such an engine bypasses type-derived planning
+(no pushdown/aggregate cost inference). Today nothing steers consumers —
+session-4 retro §f25 asked for a rule.
+
+**Detection options reviewed.**
+
+1. *Type-impl detection via go/packages.* The loader already ships
+   `NeedTypes|NeedTypesInfo` (verified 2026-09-07, see
+   `docs/benchmarks/2026-09-07_cqrs-lint-f091-tier1-typed-qualifier.md`),
+   so `types.Implements(recvType, planApplierIface)` is mechanically
+   available. Blocked by one thing: naming the interface requires
+   importing `metaengine/v4`, which the linter cannot do (dep budget,
+   Layer rules).
+2. *Capability registry fed from api-stability's scan.* Zero new deps but
+   a second source of truth that drifts from the real interface (the
+   split-brain the registry pattern exists to kill).
+3. **Selected: structural method-shape detection (no imports).** A type
+   "is a LayoutPlanApplier" when its method set contains the plan-path
+   method NAMES (`ApplyLayoutPlan` + `BuildLayoutPlan`, matched
+   case-insensitively on the receiver's named type via
+   `TypesInfo.MethodSet`/AST method scan). Then flag `X.ApplyLayout(...)`
+   selector calls where X's receiver/variable type qualifies. Method-shape
+   matching is the same contract style as `ResolveTransportAdapters`
+   (conversion-method names) and degrades safely: rename the interface and
+   the rule goes silent, it never false-fires on unrelated types because
+   both names must co-occur on one type.
+
+**Rule shape.** Category `performance` (it is a cost/adoption concern, not
+correctness): severity `info`, confidence `medium`, auto-fix `no` (the fix
+requires choosing plan parameters). Message: "ApplyLayout on
+<type> bypasses the LayoutPlan path — derive a plan from the read-model
+type instead (see recipes §2.27)". Fires only when the engine variable's
+type resolves (typed path from F091 Tier 1); name-only fallback stays
+silent rather than guessing.
+
+**Sequencing.** Behind the F091 Tier-2 `--typed-info=auto` flag: without
+type info the rule cannot attribute receiver types, so it must not fire
+on the fallback path. Implementation estimate: 0.5 day incl. fixtures
+(engine fixture implementing both paths must fire; plan-path-only and
+ApplyLayout-only engines stay silent).
