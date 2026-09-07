@@ -2634,6 +2634,7 @@ metaengine/func WithDebug
 metaengine/func WithDemoteForce
 metaengine/func WithDemoteRole
 metaengine/func WithDryRun
+metaengine/func WithEngineCapabilityGaps
 metaengine/func WithEngineRole
 metaengine/func WithEventLog
 metaengine/func WithFilter

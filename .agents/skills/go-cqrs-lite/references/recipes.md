@@ -711,6 +711,29 @@ declarations fail CI, not production routing.
 
 Key types: `CapabilityAudit`, `CapabilityAuditResult`, `CapabilityGaps`.
 
+**Planner-side routing rule.** `Plan`/`Replan` partition candidates by the
+same structural truth: an engine that declares an ADT natively but does not
+implement its backend interface (e.g. `MapBackend` for `ADTMap`) is excluded
+whenever an honest candidate exists; with no honest candidate the query is
+still routed to it (a fallback may serve it) and a WARN makes the
+execution-time hard-error risk visible at plan time. Every exclusion also
+carries a DEGRADED diagnostic naming the missing interface.
+
+Known-but-accepted over-declarations are documented once per plan — the gap
+suppresses the diagnostic but NEVER re-enables routing:
+
+```go
+store, err := metaengine.Plan(engines,
+    metaengine.WithEngineCapabilityGaps(map[string]metaengine.CapabilityGaps{
+        "postgres": {metaengine.ADTSearch: "tracked: search backend lands in v5"},
+    }),
+    myQuery,
+)
+```
+
+Gaps persist across `Replan` (the Store re-threads them into every
+re-plan).
+
 ### 2.13 SQL-Backed Idempotency (idempotency/sqlstore)
 
 Durable dedup for at-least-once delivery, surviving process restarts.
