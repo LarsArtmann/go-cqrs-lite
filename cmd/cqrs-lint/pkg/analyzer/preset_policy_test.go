@@ -27,7 +27,7 @@ func TestPreset_DeprecatedSurfacePolicy(t *testing.T) {
 		}
 	}
 
-	for _, p := range []ConfigPreset{PresetNone, PresetProduction, PresetLocalCLI, PresetReadOnly} {
+	for _, p := range []ConfigPreset{PresetNone, PresetProduction, PresetLocalCLI, PresetReadOnly, PresetV5Ready} {
 		if disabled(p, "V007") {
 			t.Errorf("preset %q must keep V007 enabled for application code", p)
 		}
@@ -35,5 +35,26 @@ func TestPreset_DeprecatedSurfacePolicy(t *testing.T) {
 		if disabled(p, "F030") {
 			t.Errorf("preset %q must keep F030 enabled for application code", p)
 		}
+	}
+}
+
+// TestPreset_V5ReadyEscalationPolicy locks the v5-ready preset contract: it
+// never disables anything, and it escalates V007 (v5-removed-API usage) to
+// error so findings block CI once a project's v5 migration is complete.
+func TestPreset_V5ReadyEscalationPolicy(t *testing.T) {
+	t.Parallel()
+
+	def := ResolvePresetDefinition(PresetV5Ready)
+
+	if len(def.Rules.Disable) != 0 {
+		t.Errorf("v5-ready must disable nothing, got disables: %v", def.Rules.Disable)
+	}
+
+	if got := def.Rules.SeverityOverrides["V007"]; got != "error" {
+		t.Errorf("v5-ready must escalate V007 to error, got %q", got)
+	}
+
+	if def.MinSeverity != "" {
+		t.Errorf("v5-ready must not set a severity floor, got %q", def.MinSeverity)
 	}
 }
