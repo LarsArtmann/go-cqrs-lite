@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -138,5 +139,94 @@ func TestApply_CapabilityQuerySmoke(t *testing.T) {
 		capabilityEvent{ID: "c1"},
 	); err != nil {
 		t.Fatalf("Apply: %v", err)
+	}
+}
+
+// TestApply_LyingOnlyEngine_HardErrorCorrelatesWithPlanWarn correlates the
+// two halves of the over-declaration contract: the plan-time WARN announces
+// the execution-time risk, and the runtime actually hard-errors on Apply
+// instead of silently no-oping. The error must carry the ApplyError structure
+// and name the unsupported capability.
+func TestApply_LyingOnlyEngine_HardErrorCorrelatesWithPlanWarn(t *testing.T) {
+	t.Parallel()
+
+	store, err := Plan([]Engine{newLyingEngine("liar")}, capabilityQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	warned := false
+
+	for _, d := range store.Plan().Queries[0].Diagnostics {
+		if d.Level == DiagLevelWarn && strings.Contains(d.Message, "over-declare") {
+			warned = true
+		}
+	}
+
+	if !warned {
+		t.Fatalf("plan must WARN about the over-declaration before Apply:\n%+v",
+			store.Plan().Queries[0].Diagnostics)
+	}
+
+	applyErr := store.Apply(context.Background(), "capabilityEvent", capabilityEvent{ID: "c1"})
+	if applyErr == nil {
+		t.Fatal("Apply on a lying-only-engine store must hard-error, got nil")
+	}
+
+	var applyErrStruct *ApplyError
+	if !errors.As(applyErr, &applyErrStruct) {
+		t.Fatalf("Apply error must wrap *ApplyError, got %T: %v", applyErr, applyErr)
+	}
+
+	if !strings.Contains(applyErr.Error(), "liar") {
+		t.Fatalf("Apply error must name the engine, got: %v", applyErr)
+	}
+}
+
+// TestReplan_KeepsExcludingOverDeclaredEngine proves the capability partition
+// is stable across re-plans: a Replan (e.g. triggered by a live-latency shift)
+// must not re-route the query onto an engine that declares the ADT without
+// implementing the backend.
+func TestReplan_KeepsExcludingOverDeclaredEngine(t *testing.T) {
+	t.Parallel()
+
+	honest := NewMemoryEngine()
+
+	store, err := Plan([]Engine{newLyingEngine("liar"), honest}, capabilityQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	if err := store.Replan(context.Background()); err != nil {
+		t.Fatalf("Replan: %v", err)
+	}
+
+	if got := store.Plan().Queries[0].EngineName; got != honest.Profile().Name {
+		t.Fatalf("after Replan routed to %q, want honest engine %q",
+			got, honest.Profile().Name)
+	}
+}
+
+// TestCheckRouting_NeverSuggestsOverDeclaredEngine pins the routing-check
+// half of the partition: a lying engine with zero-latency priors looks
+// infinitely cheaper than the honest incumbent, but CheckRouting must not
+// emit a REPLAN-SUGGESTED diagnostic pointing at an engine Replan would
+// refuse and whose Apply would hard-error.
+func TestCheckRouting_NeverSuggestsOverDeclaredEngine(t *testing.T) {
+	t.Parallel()
+
+	honest := NewMemoryEngine()
+
+	store, err := Plan([]Engine{newLyingEngine("liar"), honest}, capabilityQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	diags := store.CheckRouting(context.Background())
+
+	for _, d := range diags {
+		if strings.Contains(d.Message, "liar") {
+			t.Fatalf("CheckRouting suggested the over-declaring engine: %+v", d)
+		}
 	}
 }
