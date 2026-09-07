@@ -302,3 +302,32 @@ Order within waves: G1 (v5 cliff) first — it is the only time-boxed risk (v5 r
 - A new consumer reaches "full stack with latest features" via: appkit EventService + operator YAML + `cqrs upgrade` + copy-paste recipes — no manual pin sweeps, no stack imports.
 - metaengine/system production consumers: 1 → ≥4 (FIR, cqrs-htmx setup path, ≥2 apps via appkit).
 - who-uses output matches a manual source-level audit (T27 regression fixtures pin this) — adoption numbers are honest before being used to steer waves.
+
+---
+
+## 8. Execution Status (2026-09-07, same-day implementation pass)
+
+| Task | Status | Evidence |
+| --- | --- | --- |
+| T01 | DONE | `docs/planning/2026-09-07_19-40_T01-appkit-eventservice-v2-migration.md` (mapping + rejected alternatives) |
+| T02–T05, T29 | DONE | go-appkit/cqrs **v0.5.0 tagged + pushed + proxy-verified**: system.New engine room (sqliteengine blank import, WAL/busy_timeout defaults), persistent default checkpoints, DLQ via aux handle (consumer stores required for non-sqlite), ReadyCheck not-ready-before-start, C/Q facade (Register*/Dispatch/DispatchQueryChecked), DefaultCommandMiddleware, ConfigPath/Deployment operator surfaces, in-flight command drain; `-race` 3× green, 0 lint issues, fresh-consumer smoke (`go get` → build → run) |
+| T06 | DONE | Full rewritten suite race-green 3×; WaitGroup-drain race root-caused and fixed (mutex counter); typed-nil aux close fixed; DLQ-passthrough + busy_timeout bugs found by the suite and fixed |
+| T07 | DONE | `cqrs/v0.5.0` on origin; proxy smoke from clean /tmp module green |
+| T08 | DONE | Skill quickstart rewritten on system.New; recipes §2.0b (appkit EventService); FAQ "stack vs system"; doc-check 997→1012 refs 0 warnings |
+| T09+T10 | DONE | `cmd/cqrs-upgrade/v4` **v4.0.0 tagged + pushed + `go install` verified**: proxy latest-tag resolution, offline edit, GOWORK=off tidy+build+vet gate, in-process V007 report; caught a real published-tag break (stack/sqlite v4.3.0 pins incompatible stack pseudo-version) during the smoke |
+| T11 | DONE | `benchkit.FactoryFromSystem`/`AdaptSystem`: full dev-profile suite race-green against a memory system; unsupported phases recorded as skips (honest capability reporting); metaengine read-model phase = follow-up |
+| T12 | DONE (API promotion) | `RunWithAppkit` spike markers removed, published-tag require, tests race-green; the RunHandler default-flip items (health dedup, chain dedup, logging posture, Addr()) stay cqrs-htmx's ADR-001 decision per their DataStar ADR-first sequencing |
+| T13 | ROUTED | cqrs-htmx setup rewiring gated on their ADR-001 sequencing (their fresh rollout plan owns the ordering); recorded in their TODO_LIST |
+| T14+T15 | DONE (core) | FIR `FIR_CQRS_CONFIG` operator seam (koanf via system.LoadConfig, stores derive from resolved topology) + two-engine boot test (sqlite events, pebble projections tier, priority hint) race-green; pkg/cqrs suite green; pushed |
+| T16+T17 | DONE | Priority/perQuery, OnEvolution folds, operator YAML, 2-engine recipes — every snippet run-verified against published system/v4.6.0; materialized-views recipe explicitly marked UNRELEASED (HEAD-only) |
+| T18 | PARTIAL | Via appkit v0.5.0's opt-in middleware surfaces; signing/encryption/scheduling battery opt-ins remain appkit-side follow-up (their TODO_LIST) |
+| T19 | DONE | system README 2-engine + config-file sections (run-verified); metaengine-quickstart §4/4 boots from cqrs.yaml |
+| T20 | DONE (today's modules) | `otel/v4.4.0` + `cmd/cqrs-upgrade/v4.0.0` tagged (detached-worktree path around foreign dirty files), pushed, proxy-verified; system re-tag deferred — its HEAD carries other sessions' in-flight work |
+| T21 | DONE | go-appkit CI: per-module GOWORK=off matrix, fresh-consumer proxy smoke, cqrs-lint job |
+| T22 | GATED | USER decision recorded in appkit TODO_LIST P2 (LICENSE files already in every module root; pkg.go.dev check remains) |
+| T23 | DONE | otel ForceFlush-before-Shutdown + ordering regression test + `WithSpanProcessor`; shipped in otel/v4.4.0 |
+| T24 | PARTIAL | FIR signing = key-management deployment decision (owner gate); bench regression gate = follow-up |
+| T25 | ROUTED | appkit security module stays their TODO_LIST P2 per the batteries spec |
+| T26 | VERIFIED NO-OP | docs-mod wraps catalog.Builder only — no stack/system coupling to refresh; tests green |
+| T27 | DONE | project-dependency-graph: go.work external members no longer merge requires; who-uses defaults to direct consumers; filesystem + who-uses regression fixtures; re-audit reports exactly the 3 real system consumers (FIR, cqrs-htmx, go-appkit); pushed |
+| T28 | PARTIAL | T28.1 cqrs-lint CI gate landed (with analyzed-file-count assertion); scenario BDD + catalog docs = FIR follow-ups |
