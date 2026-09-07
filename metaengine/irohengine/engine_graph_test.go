@@ -77,6 +77,10 @@ func TestReplicatedGraph_GraphlessLocalErrors(t *testing.T) {
 	err := gd.GraphAddEdge(context.Background(), "follows", metaengine.Edge{From: "a", To: "b"})
 	g.Expect(err).To(gomega.MatchError(irohengine.ErrGraphBackendNotImplemented))
 
+	err = eng.(graphEdgeRemover).
+		GraphRemoveEdge(context.Background(), "follows", metaengine.Edge{From: "a", To: "b"})
+	g.Expect(err).To(gomega.MatchError(irohengine.ErrGraphBackendNotImplemented))
+
 	neighbors, err := gd.GraphNeighbors(context.Background(), "follows", "a", 1)
 	g.Expect(err).To(gomega.MatchError(irohengine.ErrGraphBackendNotImplemented))
 	g.Expect(neighbors).To(gomega.BeNil())
