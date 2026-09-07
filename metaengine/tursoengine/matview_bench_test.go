@@ -97,6 +97,30 @@ type aggCase struct {
 	column string
 }
 
+// specsForCase picks the accelerated engine's declared views: the full
+// 7-view matrix at 1k (all aggregate fns plus grouped SUM/AVG), or exactly
+// the one view the benchmarked shape needs at larger scales — multiple views
+// multiply IVM updates and cross the upstream commit-bug wall.
+func specsForCase(c aggCase, full bool) []metaengine.MaterializedViewSpec {
+	if full {
+		return matviewBenchSpecs()
+	}
+
+	switch c.name {
+	case "SUM_GROUPED":
+		return []metaengine.MaterializedViewSpec{
+			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+		}
+	default:
+		spec := metaengine.MaterializedViewSpec{Collection: "orders", Fn: c.fn, Column: c.column}
+		if err := spec.Validate(); err != nil {
+			panic(err)
+		}
+
+		return []metaengine.MaterializedViewSpec{spec}
+	}
+}
+
 // BenchmarkMatViewRead measures scalar and grouped aggregates against the
 // base tables (baseline) versus operator-declared materialized views
 // (matview) at three collection sizes. Phase order per case: seed the
@@ -105,6 +129,10 @@ type aggCase struct {
 func BenchmarkMatViewRead(b *testing.B) {
 	ctx := context.Background()
 
+	// 100k is intentionally absent: seeding 100k view-maintained rows trips
+	// the upstream turso-go v0.7.2 commit bug (~30k cumulative IVM writes per
+	// process; see AGENTS.md). Baseline scan cost scales linearly — the 10k
+	// baseline number extrapolates.
 	scales := []struct {
 		name      string
 		n         int
@@ -112,7 +140,6 @@ func BenchmarkMatViewRead(b *testing.B) {
 	}{
 		{"1k", 1_000, 31},
 		{"10k", 10_000, 99},
-		{"100k", 100_000, 316},
 	}
 
 	cases := []aggCase{
@@ -254,7 +281,7 @@ func BenchmarkMatViewRead(b *testing.B) {
 func BenchmarkMatViewWrite(b *testing.B) {
 	ctx := context.Background()
 
-	const keys = 10_000
+	const keys = 5_000 // 3 views × 5k seed writes stays under the upstream ~30k IVM-write wall
 
 	modes := []struct {
 		name  string
