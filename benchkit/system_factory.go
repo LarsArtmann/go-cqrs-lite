@@ -49,7 +49,7 @@ func AdaptSystem(sys *system.System) (*stack.Bundle, error) {
 		return nil, ErrSystemEventStoreMissing
 	}
 
-	bundle, err := stack.New(stack.WithCloser(closerFunc(sys.Close)))
+	bundle, err := stack.New(stack.WithCloser(&closerFunc{fn: sys.Close}))
 	if err != nil {
 		return nil, fmt.Errorf("bundle for system adapter: %w", err)
 	}
@@ -76,7 +76,11 @@ func AdaptSystem(sys *system.System) (*stack.Bundle, error) {
 	return bundle, nil
 }
 
-// closerFunc adapts a close function onto io.Closer.
-type closerFunc func() error
+// closerFunc adapts a close function onto io.Closer. It is a struct (not a
+// func type) with pointer semantics because Bundle.Close deduplicates closers
+// through a map — func values are unhashable and panic as map keys.
+type closerFunc struct {
+	fn func() error
+}
 
-func (f closerFunc) Close() error { return f() }
+func (f *closerFunc) Close() error { return f.fn() }
