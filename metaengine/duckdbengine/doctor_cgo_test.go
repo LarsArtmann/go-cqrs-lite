@@ -1,63 +1,16 @@
-package sqliteengine_test
+//go:build cgo
+
+package duckdbengine_test
 
 import (
 	"context"
-	"database/sql"
 	"strings"
 	"testing"
 
-	_ "modernc.org/sqlite"
-
-	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
-
-func TestDoctor_RealSQLiteEngine(t *testing.T) {
-	t.Parallel()
-
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	t.Cleanup(func() { _ = db.Close() })
-	db.SetMaxOpenConns(1)
-
-	eng, err := sqliteengine.NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("new sqlite engine: %v", err)
-	}
-
-	store, err := metaengine.Plan(
-		[]metaengine.Engine{eng},
-		findTaskQuery(),
-	)
-	if err != nil {
-		t.Fatalf("plan: %v", err)
-	}
-	t.Cleanup(func() { _ = store.Close() })
-
-	ctx := context.Background()
-
-	output := store.Doctor(ctx)
-
-	for _, want := range []string{
-		"=== Metaengine Doctor ===",
-		"--- Health ---",
-		"--- Collections ---",
-		"--- Persistence ---",
-		"find_task",
-	} {
-		if !strings.Contains(output, want) {
-			t.Errorf("Doctor output missing %q, got:\n%s", want, output)
-		}
-	}
-
-	// SQLite engine should report as healthy.
-	if !strings.Contains(output, "all engines healthy") {
-		t.Errorf("Doctor should report healthy SQLite engine, got:\n%s", output)
-	}
-}
 
 // doctorPlannedItem drives the planned-tables Doctor observation: declaring
 // FilterOnField/SortOnField makes Plan auto-create a planned table for the
@@ -92,17 +45,13 @@ func doctorPlannedQuery() metaengine.QueryDecl[doctorPlannedList, doctorPlannedI
 func TestDoctor_PlannedTablesSection_RendersRowCounts(t *testing.T) {
 	t.Parallel()
 
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	t.Cleanup(func() { _ = db.Close() })
-	db.SetMaxOpenConns(1)
+	dir := t.TempDir()
 
-	eng, err := sqliteengine.NewSQLiteEngine(db)
+	eng, err := duckdbengine.New(dir + "/test.duckdb")
 	if err != nil {
-		t.Fatalf("new sqlite engine: %v", err)
+		t.Skipf("DuckDB not available: %v", err)
 	}
+	t.Cleanup(func() { _ = eng.Close() })
 
 	store, err := metaengine.Plan([]metaengine.Engine{eng}, doctorPlannedQuery())
 	if err != nil {

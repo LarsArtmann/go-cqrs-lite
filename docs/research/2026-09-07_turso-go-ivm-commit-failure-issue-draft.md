@@ -41,7 +41,7 @@ tested (100k+ rows, single or chunked transactions).
 
 | Item | Value |
 | --- | --- |
-| Driver | `turso.tech/database/tursogo` **v0.7.2** (embedded libSQL, purego, `database/sql`) |
+| Driver | `turso.tech/database/tursogo` **v0.7.2** (official Go SDK for the embedded Turso database — SQLite-compatible ground-up rewrite; purego, no CGo; `database/sql` driver). **Also reproduces on v0.8.0-pre.8 (latest release)** |
 | Mode | Embedded local file databases (`<path>?experimental=views`) |
 | Go | 1.26.x |
 | OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395 |
@@ -220,12 +220,32 @@ throughput and are easy to get wrong because the boundary is undocumented.
 - Chunking alone does NOT help past the boundary (each 1k-statement chunk
   counts toward the same total).
 
+## Related upstream work (IMPORTANT — affects filing strategy)
+
+- **PR #8257 (OPEN, unmerged): "core/vdbe: keep the transaction alive when
+  COMMIT's view merge yields I/O"** describes our exact mechanism: the
+  COMMIT-time view-delta merge faults the view's persisted B-tree in from
+  disk, yields I/O while `commit_state` is still `Ready`, and the re-entry
+  is misclassified as a COMMIT outside a transaction. Our repro is
+  consistent with it (deterministic threshold = delta state large enough to
+  force a disk-backed merge).
+  => **Recommended action: comment on #8257 with this independent repro and
+  characterization data instead of opening a duplicate issue** — it
+  strengthens an already-open fix. A standalone issue is only warranted if
+  maintainers consider #8257's two-handle shape different from ours.
+- #7942 "Rewrite the materialized view engine to maintain views using
+  VDBE" was closed UNMERGED (2026-07-22) — the IVM engine is mid-rework.
+- Other open matview correctness bugs: #6771 (stale deltas after aborted
+  INSERT), #4089 (matview btree inserts do not handle IO properly),
+  #8531 (emptied group lost permanently), #8641 (cross-process INSERT
+  panics + loses committed write).
+
 ## Pre-filing checklist (author of this draft)
 
-- [ ] Search tursodatabase/turso issues for
-      `"cannot commit - no transaction is active"` and IVM-related dups.
-- [ ] Confirm v0.7.2 is the latest turso-go release; re-run the repro on
-      the newest release/main if practical.
+- [x] Searched tursodatabase/turso issues/PRs — no duplicate found;
+      PR #8257 covers the likely mechanism (comment there instead).
+- [x] Reproduced on v0.8.0-pre.8 (latest release): 12/12 rounds fail at
+      chunk 27000 — NOT fixed yet.
 - [ ] Optionally: test whether the boundary moves with `-race`, other OSes,
       or a plain (non-json_extract) view body to help maintainers localize.
 - [ ] Fill in the filing account + paste the verified output (already

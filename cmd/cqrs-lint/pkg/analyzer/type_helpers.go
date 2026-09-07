@@ -58,11 +58,15 @@ func ReceiverIsEventBus(pkg *packages.Package, call *ast.CallExpr) bool {
 // matching by construction, and the answer is exact for aliased and
 // versioned paths alike.
 //
-// Returns ok=false when type info is unavailable (non-compiling project —
-// the load fell back to syntax-only) or when ident does not reference a
-// package. Callers MUST keep their string-based fallback: partial results
-// must survive broken builds.
-func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (string, bool) {
+// The second result is authoritative-resolution, not success:
+//
+//   - resolved=false  → type info is unavailable (non-compiling project,
+//     syntax-only load). The caller MUST fall back to its string-based scan
+//     so partial results survive broken builds.
+//   - resolved=true   → the answer is final. path is empty when ident does
+//     not reference a package (it is a value/type shadowing the name) — the
+//     caller must NOT fall back in this case, or the shadow dies.
+func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (path string, resolved bool) {
 	if gf == nil || gf.Pkg == nil || gf.Pkg.TypesInfo == nil || ident == nil {
 		return "", false
 	}
@@ -72,8 +76,12 @@ func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (string, bool) {
 		return "", false
 	}
 
-	pkgName, ok := obj.(*types.PkgName)
-	if !ok || pkgName.Imported() == nil {
+	pkgName, isPkg := obj.(*types.PkgName)
+	if !isPkg {
+		return "", true
+	}
+
+	if pkgName.Imported() == nil {
 		return "", false
 	}
 

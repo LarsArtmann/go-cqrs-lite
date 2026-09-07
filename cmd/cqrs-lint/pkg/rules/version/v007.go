@@ -83,12 +83,13 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// F091 Tier 1: resolve the qualifier through the type checker
 					// first (exact, shadow-proof); fall back to the import-table
-					// scan when type info is unavailable (broken builds).
-					path, ok := analyzer.ResolveQualifierTyped(gf, ident)
-					if !ok {
-						path, ok = resolveQualifier(gf.AST, ident.Name)
+					// scan ONLY when type info is unavailable (broken builds) —
+					// a typed "not a package" answer is final.
+					path, known := analyzer.ResolveQualifierTyped(gf, ident)
+					if !known {
+						path, _ = resolveQualifier(gf.AST, ident.Name)
 					}
-					if !ok {
+					if path == "" {
 						return true
 					}
 

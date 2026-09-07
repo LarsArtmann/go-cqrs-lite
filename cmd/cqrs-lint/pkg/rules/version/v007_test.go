@@ -261,3 +261,30 @@ import . "github.com/larsartmann/go-cqrs-lite/event/v4"
 	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
 	ruletest.AssertRule(t, findings, "V007", 1)
 }
+
+// TestV007_ShadowedQualifierFiresOnce is the F091 Tier 1 pin: a local value
+// named like the package must not produce a second finding. The import-table
+// string scan matched both selectors by name (2 findings); typed resolution
+// attributes only the real package reference (1 finding). The fixture
+// compiles — the local declaration legally shadows the package inside main.
+func TestV007_ShadowedQualifierFiresOnce(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
+type shadowedDB struct{}
+
+func (shadowedDB) New(string) (*struct{}, error) { return nil, nil }
+
+func main() {
+	_, _ = sqlite.New("file:real.sqlite")
+
+	sqlite := shadowedDB{}
+	_, _ = sqlite.New("file:shadowed.sqlite")
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+}
