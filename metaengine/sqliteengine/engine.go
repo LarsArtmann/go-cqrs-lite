@@ -41,6 +41,11 @@ type sqliteEngine struct {
 	txMu     sync.Mutex
 	activeTx atomic.Pointer[txExecutor]
 	probeFn  func(context.Context) (time.Duration, error)
+	// matViews holds operator-declared materialized view specs (Turso IVM
+	// acceleration); matViewErr captures a spec-validation failure to surface
+	// at construction.
+	matViews   []matView
+	matViewErr error
 }
 
 // sqliteQuerySet holds pre-built SQL strings for each operation.
@@ -151,12 +156,16 @@ func defaultSQLiteQueries() sqliteQuerySet {
 
 // NewSQLiteEngine creates a SQLite-backed metaengine engine. The caller owns
 // the *sql.DB. Tables are created automatically if they don't exist.
-func NewSQLiteEngine(database *sql.DB) (metaengine.Engine, error) {
+func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine, error) {
 	eng := &sqliteEngine{
 		db:       database,
 		queries:  defaultSQLiteQueries(),
 		cache:    newStmtCache(database),
 		graphCTE: probeRecursiveCTE(database),
+	}
+
+	for _, opt := range opts {
+		opt(eng)
 	}
 
 	if _, err := database.ExecContext(context.Background(), eng.queries.ddl); err != nil {
@@ -166,6 +175,10 @@ func NewSQLiteEngine(database *sql.DB) (metaengine.Engine, error) {
 	// Enable memory-mapped I/O for faster point lookups on file-backed databases.
 	// 256MB mmap window; harmless on :memory: databases.
 	_, _ = database.ExecContext(context.Background(), `PRAGMA mmap_size = 268435456`)
+
+	if err := eng.createMatViews(context.Background()); err != nil {
+		return nil, err
+	}
 
 	return eng, nil
 }
