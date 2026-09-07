@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Turso embedded encryption at rest (`WithEncryption`) — 2026-09-07
+
+- **`tursoengine.WithEncryption(cipher, hexKey)`**: opt-in experimental
+  page-level AEAD encryption for embedded Turso databases (native Turso
+  Database encryption; every page + the WAL encrypted at rest). Typed
+  `tursoengine.Cipher` constants — `CipherAEGIS256` (recommended),
+  `CipherAEGIS128L` (+ `X2`/`X4` SIMD variants), `CipherAES128GCM`/
+  `CipherAES256GCM` (NIST-approved for compliance audits). Construction
+  validates cipher + hex key length (16/32 bytes by cipher) and merges the
+  driver's `experimental=encryption` + `encryption_cipher` +
+  `encryption_hexkey` parameters into the DSN; key material never needs to
+  be written into a caller-owned DSN and `redactDSN` strips encryption
+  parameters (any `*key*` parameter) from error messages. Remote DSNs and
+  DSNs that already carry encryption parameters are rejected loudly (one
+  key source, Cloud BYOK keys ride the connection/sync layer). Wrong-key
+  loads fail explicitly (`Decryption failed for page=N`) — the AEAD tag
+  detects tampering. Verified live against the pinned turso-go driver
+  (round-trip + wrong-key rejection for aegis256/aegis128l/aes256gcm).
+- **Matview DSN flag merge fix** (`metaengine/tursoengine`): a DSN that
+  already carried an `experimental=` parameter (e.g. `experimental=encryption`)
+  silently skipped adding the `views` flag, so `WithMaterializedViews` failed
+  at construction with a confusing engine error. Experimental flags now
+  merge into a comma-list (`experimental=views,encryption`); other DSN
+  parameters stay byte-identical, and unparseable queries pass through
+  untouched.
+
+### Fixed — Turso DSN redaction leaked encryption keys — 2026-09-07
+
+- **`tursoengine.redactDSN` redacted no encryption keys, and local DSNs
+  bypassed redaction entirely** (found during the Turso BYOK encryption
+  assessment): the redaction path only parsed remote URLs, but embedded
+  encryption keys ride LOCAL file-path DSNs — an open failure logged
+  `tursoengine: open "/data/app.db?...encryption_hexkey=<raw key>"`. Any DSN
+  with a query string is now redacted: query parameters whose name contains
+  `key` (e.g. `encryption_hexkey`) and auth params (`authToken`/`token`)
+  are replaced, unparseable local DSNs fall back to the path before `?`, and
+  non-URL DSNs without queries pass through unchanged as before.
+
 ### Added — Turso materialized views as an operator option (ADR-0135) — 2026-09-07
 
 - **Operator-declared aggregate accelerations** (`metaengine` +

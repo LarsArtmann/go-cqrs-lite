@@ -351,3 +351,25 @@ presets, `storage/relational`, `storage/view`) and each deprecated symbol
 above at its use site, with the ADR reference and the sanctioned replacement
 in the suggestion. F030 covers the `transport/*` module imports. Run
 `cqrs-lint .` in CI and the v5 cut becomes a non-event.
+
+### "Does the Turso engine support encryption at rest?"
+
+Yes for embedded databases, via `tursoengine.WithEncryption(cipher, hexKey)`
+(experimental upstream). Every page and the WAL are AEAD-encrypted; a wrong
+key fails construction/load explicitly (`Decryption failed for page=N`), so
+tampering is detected, not silently ignored. Key format differs by layer and
+the mixup is the classic failure: the LOCAL engine takes HEX keys
+(`openssl rand -hex 32`), Turso Cloud BYOK takes BASE64 keys
+(`openssl rand -base64 32`). Cloud BYOK is a separate mechanism — the key
+rides each connection (not the DSN) and is only configurable through Turso
+tooling today, so `WithEncryption` rejects remote DSNs loudly. Cipher pick:
+`CipherAES256GCM` when an auditor needs a NIST-approved name (HIPAA/PCI-DSS),
+`CipherAEGIS256` otherwise (faster on AES hardware, not yet a finalized
+standard). The engine redacts `encryption_hexkey` (and any `*key*` DSN
+parameter) from error messages, and `WithEncryption` refuses a DSN that
+already carries encryption parameters so exactly one key source remains.
+Local ciphers: `aegis256`, `aegis128l` (+`x2`/`x4` variants), `aes128gcm`,
+`aes256gcm` — no ChaCha20-Poly1305 locally (cloud-only). There is no native
+rekeying upstream yet: rotation is export/reimport. The turso-go driver's
+`database/sql` path opens EMBEDDED engines only; pure-remote connections to
+an encrypted cloud database are not reachable from Go today.
