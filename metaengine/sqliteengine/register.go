@@ -21,7 +21,10 @@ func init() {
 			// Owning variant: the driver factory cannot hand the *sql.DB to
 			// the caller, so the engine must close it on Close.
 			// Engine API takes no ctx (same as benchkit/phases_metaengine_sqlite.go).
-			return NewSQLiteEngineFromDSN(cfg.DSN, pragmas...) //nolint:contextcheck,wrapcheck
+			// Materialized-view specs flow through so unsupported engines fail
+			// construction loudly instead of silently ignoring the operator.
+			return NewSQLiteEngineFromDSNWith(cfg.DSN, pragmas,
+				WithMaterializedViews(cfg.MaterializedViews)) //nolint:contextcheck,wrapcheck
 		},
 	)
 }

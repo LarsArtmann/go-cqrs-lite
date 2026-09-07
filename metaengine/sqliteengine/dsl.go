@@ -81,6 +81,13 @@ func PlanFromDSN(dsn string, args ...any) (*metaengine.Store, *sql.DB, error) {
 // keep the handle (or pass their own pool) should use [NewFromDSN] or
 // [NewSQLiteEngine], where the caller owns the database.
 func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, error) {
+	return NewSQLiteEngineFromDSNWith(dsn, pragmas)
+}
+
+// NewSQLiteEngineFromDSNWith is the options-aware variant of
+// [NewSQLiteEngineFromDSN]: same pragma handling, plus EngineOption
+// capabilities (e.g. WithMaterializedViews).
+func NewSQLiteEngineFromDSNWith(dsn string, pragmas []string, opts ...EngineOption) (metaengine.Engine, error) {
 	if dsn == "" {
 		dsn = ":memory:"
 	}
@@ -114,7 +121,7 @@ func NewSQLiteEngineFromDSN(dsn string, pragmas ...string) (metaengine.Engine, e
 		}
 	}
 
-	eng, err := NewSQLiteEngine(db)
+	eng, err := NewSQLiteEngine(db, opts...)
 	if err != nil {
 		_ = db.Close()
 
