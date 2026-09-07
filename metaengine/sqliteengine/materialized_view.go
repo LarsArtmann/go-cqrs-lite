@@ -140,6 +140,17 @@ func (e *sqliteEngine) matViewGrouped(col string, fn metaengine.AggregateFn, col
 	return nil
 }
 
+// matViewScanScalar runs a single-row view query and decodes the aggregate.
+func (e *sqliteEngine) matViewScanScalar(ctx context.Context, query, errContext string) (float64, error) {
+	var raw any
+
+	if err := e.xd().QueryRowContext(ctx, query).Scan(&raw); err != nil {
+		return 0, fmt.Errorf("%s: %w", errContext, err)
+	}
+
+	return metaengine.DecodeFloat(raw)
+}
+
 // matViewScalarAgg serves an unfiltered scalar aggregate from its own scalar
 // view. AVG views store SUM and COUNT columns; the average is the quotient.
 func (e *sqliteEngine) matViewScalarAgg(ctx context.Context, mv *matView) (float64, error) {
@@ -149,15 +160,9 @@ func (e *sqliteEngine) matViewScalarAgg(ctx context.Context, mv *matView) (float
 		selectExpr = "agg / cnt"
 	}
 
-	var raw any
-
-	query := fmt.Sprintf("SELECT %s FROM %s", selectExpr, metaengine.QuoteIdent(mv.name))
-
-	if err := e.xd().QueryRowContext(ctx, query).Scan(&raw); err != nil {
-		return 0, fmt.Errorf("matview aggregate %s(%s): %w", mv.spec.Fn, mv.spec.Column, err)
-	}
-
-	return metaengine.DecodeFloat(raw)
+	return e.matViewScanScalar(ctx,
+		fmt.Sprintf("SELECT %s FROM %s", selectExpr, metaengine.QuoteIdent(mv.name)),
+		fmt.Sprintf("matview aggregate %s(%s)", mv.spec.Fn, mv.spec.Column))
 }
 
 // matViewScalarViaGrouped serves an unfiltered scalar aggregate from a grouped

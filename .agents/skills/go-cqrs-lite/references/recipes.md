@@ -1816,8 +1816,8 @@ construction with the feature hint. On embedded DSNs the driver appends
 view SQL when a query would be served from a view.
 
 **Write cost.** Every base-table write maintains each declared view in the
-same transaction (counts as of 2026-09-07 in
-`docs/benchmarks/2026-09-07_turso-materialized-views.md`): ~10-15% steady-
-state write overhead per view group. Declare accelerations for HOT aggregates
-only. Bulk loaders should chunk transactions (≤ ~1k statements) — see the
-turso-go upstream constraint in AGENTS.md.
+same transaction — IVM is not free; declare accelerations for HOT aggregates
+only. Measured read speedups and write overhead:
+`docs/benchmarks/2026-09-07_turso-materialized-views.md`. Bulk loaders should
+chunk transactions (≤ ~1k statements) — see the turso-go upstream constraint
+in AGENTS.md.

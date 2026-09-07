@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — Turso materialized views as an operator option (ADR-0135) — 2026-09-07
+
+- **Operator-declared aggregate accelerations** (`metaengine` +
+  `metaengine/tursoengine`): `metaengine.MaterializedViewSpec` (collection +
+  aggregate fn + column + optional group-by) declared via
+  `system.EngineConfig.MaterializedViews` (YAML: `materialized_views`) or
+  `metaengine.DriverConfig.MaterializedViews`. The Turso engine derives and
+  creates the views (`CREATE MATERIALIZED VIEW IF NOT EXISTS`) at
+  construction — enabled by Turso's incremental view maintenance — and serves
+  matching UNFILTERED scalar/grouped aggregates from them (exact algebraic
+  rewrites only; AVG views store SUM+COUNT and divide; grouped views also
+  serve their scalar aggregate by derivation). Filtered aggregates and
+  planned-table collections fall through to the base tables (planned tables
+  start empty after `ApplyLayout`, so a stale-prone view must never serve
+  them). Unsupported engines fail construction loudly with the
+  `experimental=views` hint (`sqliteengine.WithMaterializedViews` +
+  `NewSQLiteEngineFromDSNWith`; the `sqlite` driver factory forwards specs so
+  specs are never silently ignored). Views are observable via
+  `metaengine.MaterializedViewsReporter`, a `Store.Doctor` "Materialized
+  views" section, and `ExplainAggregateQuery` (returns the view SQL the
+  serving path would run). Benchmarks:
+  `docs/benchmarks/2026-09-07_turso-materialized-views.md`.
+
 ### Fixed — badgerengine restart data loss + gate/tooling batch — 2026-09-06
 
 - **Reopening a badgerengine database silently overwrote existing entries**
