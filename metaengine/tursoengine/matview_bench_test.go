@@ -33,22 +33,22 @@ type benchEngines struct {
 
 // seedInTx seeds inside a single transaction when the engine supports it —
 // one fsync instead of one per row, so setup stays fast on file-backed DSNs.
-func seedInTx(ctx context.Context, b *testing.B, eng metaengine.Engine, rows []orderRow) {
-	b.Helper()
+func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []orderRow) {
+	tb.Helper()
 
 	tx, ok := eng.(metaengine.Transactional)
 	if !ok {
-		seedOrders(ctx, b, eng, rows)
+		seedOrders(ctx, tb, eng, rows)
 
 		return
 	}
 
 	if err := tx.RunInTx(ctx, func(ctx context.Context) error {
-		seedOrders(ctx, b, eng, rows)
+		seedOrders(ctx, tb, eng, rows)
 
 		return nil
 	}); err != nil {
-		b.Fatalf("seed tx: %v", err)
+		tb.Fatalf("seed tx: %v", err)
 	}
 }
 
