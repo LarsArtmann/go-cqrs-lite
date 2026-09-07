@@ -41,7 +41,7 @@ func TestRedactDSN(t *testing.T) {
 		{
 			name: "encryption key query parameter redacted",
 			dsn:  "/data/secret.db?experimental=encryption&encryption_cipher=aes256gcm&encryption_hexkey=aabbccdd",
-			want: "/data/secret.db?experimental=encryption&encryption_cipher=aes256gcm&encryption_hexkey=%5Bredacted%5D",
+			want: "/data/secret.db?encryption_cipher=aes256gcm&encryption_hexkey=%5Bredacted%5D&experimental=encryption",
 		},
 		{
 			name: "unrelated query parameters preserved",
