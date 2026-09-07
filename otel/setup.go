@@ -27,10 +27,22 @@ type setupConfig struct {
 	metricReader   metric.Reader
 	propagator     propagation.TextMapPropagator
 	stdoutWriter   io.Writer // non-nil → construct a pretty-printing stdout span exporter
+	// spanProcessors are appended as raw span processors (after any exporter
+	// batcher). Set by WithSpanProcessor for custom pipelines and tests.
+	spanProcessors []sdktrace.SpanProcessor
 	// skipGlobalRegistration omits registering the providers as the process-wide
 	// globals. Set by WithoutGlobalRegistration for isolated use (tests,
 	// multi-service processes). The returned Provider is fully functional.
 	skipGlobalRegistration bool
+}
+
+// WithSpanProcessor attaches a raw span processor to the tracer provider
+// (after any exporter batcher). Useful for custom pipelines and tests that
+// need to observe provider lifecycle events.
+func WithSpanProcessor(p sdktrace.SpanProcessor) SetupOption {
+	return func(c *setupConfig) {
+		c.spanProcessors = append(c.spanProcessors, p)
+	}
 }
 
 // WithService identifies the service in telemetry via resource attributes.
@@ -114,8 +126,21 @@ var errBuildResource = errors.New("failed to build OTel resource")
 func (p *Provider) Shutdown(ctx context.Context) error {
 	var errs []error
 
+	// ForceFlush BEFORE Shutdown: the batcher drops spans recorded between the
+	// last flush and Shutdown only if the batch interval has not elapsed, and
+	// ForceFlush gives the exporter a bounded window to drain batches while
+	// the provider is still fully active. Ordering (flush → shutdown) is
+	// pinned by TestProvider_Shutdown_FlushesBeforeShutdown.
+	if err := p.tracerProvider.ForceFlush(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("tracer flush: %w", err))
+	}
+
 	if err := p.tracerProvider.Shutdown(ctx); err != nil {
 		errs = append(errs, fmt.Errorf("tracer shutdown: %w", err))
+	}
+
+	if err := p.meterProvider.ForceFlush(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("meter flush: %w", err))
 	}
 
 	if err := p.meterProvider.Shutdown(ctx); err != nil {
@@ -189,6 +214,10 @@ func Setup(opts ...SetupOption) (*Provider, error) {
 
 	if spanExporter != nil {
 		tpOpts = append(tpOpts, sdktrace.WithBatcher(spanExporter))
+	}
+
+	for _, proc := range cfg.spanProcessors {
+		tpOpts = append(tpOpts, sdktrace.WithSpanProcessor(proc))
 	}
 
 	tracerProvider := sdktrace.NewTracerProvider(tpOpts...)

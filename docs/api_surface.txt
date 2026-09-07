@@ -4114,6 +4114,7 @@ otel/func WithPropagator
 otel/func WithService
 otel/func WithSpanExporter
 otel/func WithSpanKind
+otel/func WithSpanProcessor
 otel/func WithStdoutExporter
 otel/func WithoutGlobalRegistration
 otel/method AsMeterProvider
