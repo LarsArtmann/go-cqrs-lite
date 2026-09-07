@@ -209,7 +209,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 					w,
 					"warning: invalid severity %q in severity-overrides for rule %q "+
 						"(known: critical, error, warning, info) — override dropped, rule keeps its catalog severity\n",
-						sev, id,
+					sev, id,
 				)
 				continue
 			}

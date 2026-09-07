@@ -159,6 +159,37 @@ func validateDisabledRuleIDs(w io.Writer, disabled []string) {
 	}
 }
 
+// validateSeverityOverrideRuleIDs warns when a rules.severity-overrides entry
+// references a rule ID that doesn't match any known rule. Same typo class as
+// validateDisabledRuleIDs: the override silently does nothing. Runs after the
+// parent-config merge so inherited overrides are covered; keys are sorted for
+// deterministic output.
+func validateSeverityOverrideRuleIDs(w io.Writer, overrides map[string]string) {
+	if len(overrides) == 0 {
+		return
+	}
+
+	ids := make([]string, 0, len(overrides))
+	for id := range overrides {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+
+	for _, id := range ids {
+		id = strings.ToUpper(strings.TrimSpace(id))
+		if id == "" {
+			continue
+		}
+		if _, ok := rules.LookupRule(id); !ok {
+			_, _ = fmt.Fprintf(
+				w,
+				"warning: severity override for %q is not a known rule ID (typo or removed rule?)\n",
+				id,
+			)
+		}
+	}
+}
+
 func printDetectorTimings(w io.Writer, snap pipeline.MetricsSnapshot) {
 	if len(snap.DetectorTimes) == 0 {
 		return

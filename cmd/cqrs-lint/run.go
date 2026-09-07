@@ -146,6 +146,10 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	cfg.Rules.ExternalAPIStructPrefixes = mergeStringSlices(
 		presetDef.Rules.ExternalAPIStructPrefixes, cfg.Rules.ExternalAPIStructPrefixes,
 	)
+	// Severity overrides: preset defaults first, config wins per rule ID.
+	cfg.Rules.SeverityOverrides = mergeSeverityOverrides(
+		presetDef.Rules.SeverityOverrides, cfg.Rules.SeverityOverrides,
+	)
 
 	// Resolve features: preset defaults overridden by explicit config flags.
 	actx.FeatureProfile = analyzer.ResolveFeatureProfile(
@@ -180,6 +184,13 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 		cfg.Rules.ExternalAPIStructPrefixes,
 		parentRules.ExternalAPIStructPrefixes...,
 	)
+	cfg.Rules.SeverityOverrides = mergeSeverityOverrides(
+		parentRules.SeverityOverrides, cfg.Rules.SeverityOverrides,
+	)
+
+	// Warn on severity-overrides referencing unknown rule IDs (runs after the
+	// parent merge so inherited overrides are checked too).
+	validateSeverityOverrideRuleIDs(os.Stderr, cfg.Rules.SeverityOverrides)
 
 	actx.RulesConfig = cfg.Rules
 }
@@ -191,6 +202,27 @@ func mergeStringSlices(preset, config []string) []string {
 	result = append(result, preset...)
 	result = append(result, config...)
 	return result
+}
+
+// mergeSeverityOverrides merges two severity-override maps (base = preset or
+// parent config, override = local config). Later wins per rule ID; inputs are
+// never mutated. Returns an input unchanged when the other is empty.
+func mergeSeverityOverrides(base, override map[string]string) map[string]string {
+	if len(base) == 0 {
+		return override
+	}
+	if len(override) == 0 {
+		return base
+	}
+
+	merged := make(map[string]string, len(base)+len(override))
+	for id, sev := range base {
+		merged[id] = sev
+	}
+	for id, sev := range override {
+		merged[id] = sev
+	}
+	return merged
 }
 
 // resolveMinSeverity applies the preset severity floor to the user's min-severity
@@ -372,6 +404,11 @@ func filterFindings(
 	// Auto-suppress consumer-only rules when linting the library itself.
 	var librarySuppressed []finding.Finding
 	allFindings, librarySuppressed = filterLibrarySelfLint(allFindings, actx.IsLibrarySelfLint())
+
+	// Apply rules.severity-overrides (preset defaults + explicit config).
+	// Runs BEFORE domain bias so the financial escalation still wins on top
+	// of an explicit override, and both compose (only ever escalate).
+	allFindings = applySeverityOverrides(allFindings, actx.RulesConfig.SeverityOverrides)
 
 	// Escalate security/money rule severities for financial domains.
 	allFindings = applyDomainBias(allFindings, actx.FeatureProfile.Domain)

@@ -23,10 +23,13 @@
 package keycodec
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/json/v2"
 	"fmt"
 	"strconv"
+	"sync"
+	"sync/atomic"
 )
 
 // Sep is the key separator. Null byte sorts before all printable characters,
@@ -225,4 +228,62 @@ func DecodeCounterValue(data []byte) int64 {
 	}
 
 	return int64(binary.BigEndian.Uint64(data))
+}
+
+// SeqTailLen is the length of the sequence tail on seq-encoded keys: the
+// NUL separator byte plus the 20 zero-padded digits. A key longer than
+// prefixLen+SeqTailLen carries a non-empty group between prefix and tail.
+const SeqTailLen = 21
+
+// SplitGroupAndSeq parses a seq-encoded key ("<tag>\x00<group...>\x00<seq:020>")
+// into its group identifier and sequence. prefixLen is the number of key bytes
+// to skip (the tag prefix, e.g. len("sl\x00")); the seq is always the last 20
+// zero-padded digits preceded by a NUL. With wholeGroup the group spans all
+// segments between prefix and seq (stream keys use "col\x00sid"); otherwise
+// only the first segment (multimap, log, and journal keys group by collection
+// alone). Returns ok=false for keys that do not carry the canonical tail.
+// Shared by the LSM engines' restart-time sequence seeding.
+func SplitGroupAndSeq(key []byte, prefixLen int, wholeGroup bool) (string, int64, bool) {
+	if len(key) < prefixLen+SeqTailLen {
+		return "", 0, false
+	}
+
+	if key[len(key)-SeqTailLen] != 0 {
+		return "", 0, false
+	}
+
+	seq, err := strconv.ParseInt(string(key[len(key)-SeqTailLen+1:]), 10, 64)
+	if err != nil {
+		return "", 0, false
+	}
+
+	rest := key[prefixLen : len(key)-SeqTailLen]
+
+	if !wholeGroup {
+		if idx := bytes.IndexByte(rest, 0); idx >= 0 {
+			rest = rest[:idx]
+		}
+	}
+
+	return string(rest), seq, true
+}
+
+// SeedSeqMax seeds a sync.Map (storing *atomic.Int64) so the counter for
+// group is at least seq. Uses a CAS loop so concurrent seeding converges.
+// Used at engine construction to resume per-group sequence counters at the
+// max existing key seq instead of restarting at 1 (which would overwrite).
+func SeedSeqMax(target *sync.Map, group string, seq int64) {
+	actual, _ := target.LoadOrStore(group, new(atomic.Int64))
+	counter := actual.(*atomic.Int64)
+
+	for {
+		existing := counter.Load()
+		if existing >= seq {
+			return
+		}
+
+		if counter.CompareAndSwap(existing, seq) {
+			return
+		}
+	}
 }

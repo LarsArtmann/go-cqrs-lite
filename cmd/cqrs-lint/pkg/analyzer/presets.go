@@ -189,9 +189,9 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 	PresetV5Ready: {
 		Rules: RulesConfig{
 			// The whole point of the preset: v5-removed-API usage escalates
-		// to error so it blocks CI. Flows through the same severity
-		// choke point as domain bias (post-detection, pre-filter), so
-		// --min-severity=error catches it and triage behavior is unchanged.
+			// to error so it blocks CI. Flows through the same severity
+			// choke point as domain bias (post-detection, pre-filter), so
+			// --min-severity=error catches it and triage behavior is unchanged.
 			SeverityOverrides: map[string]string{"V007": "error"},
 		},
 	},

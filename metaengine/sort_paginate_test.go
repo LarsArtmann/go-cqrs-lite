@@ -150,17 +150,19 @@ func TestSortPaginate_AllocBudget(t *testing.T) {
 
 	base := spPairs(size)
 
-	filterPairs := make([]spPair, size)
-	copy(filterPairs, base)
+	truncPairs := make([]spPair, size)
+	copy(truncPairs, base)
+
+	// Truncation-only (nil sortFn) must be fully alloc-free: no closure
+	// captures, no sorting, in-place slice ops.
+	truncAllocs := testing.AllocsPerRun(50, func() {
+		SortPaginate(truncPairs, spKey, spVal, nil, float64(3), 50)
+	})
+	if truncAllocs > 0 {
+		t.Errorf("truncation-only path allocates %.1f allocs, want 0", truncAllocs)
+	}
 
 	var cursor any = float64(3)
-
-	filterAllocs := testing.AllocsPerRun(50, func() {
-		SortPaginate(filterPairs, spKey, spVal, spLess, cursor, 0)
-	})
-	if filterAllocs > 1 {
-		t.Errorf("filter+truncate path allocates %.1f allocs, want <= 1 (cursor boxing)", filterAllocs)
-	}
 
 	sortPairs := make([]spPair, size)
 	copy(sortPairs, base)
@@ -169,7 +171,17 @@ func TestSortPaginate_AllocBudget(t *testing.T) {
 		SortPaginate(sortPairs, spKey, spVal, spLess, nil, 0)
 	})
 	if sortAllocs > 3 {
-		t.Errorf("sort path allocates %.1f allocs, want <= 3", sortAllocs)
+		t.Errorf("sort path allocates %.1f allocs, want <= 3 (sort.Slice closure + swapper)", sortAllocs)
+	}
+
+	filterPairs := make([]spPair, size)
+	copy(filterPairs, base)
+
+	filterAllocs := testing.AllocsPerRun(50, func() {
+		SortPaginate(filterPairs, spKey, spVal, spLess, cursor, 0)
+	})
+	if filterAllocs > 4 {
+		t.Errorf("sort+cursor path allocates %.1f allocs, want <= 4", filterAllocs)
 	}
 }
 

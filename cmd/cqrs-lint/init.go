@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
@@ -16,7 +17,7 @@ var errConfigExists = errors.New(".cqrs-lint.json already exists")
 
 // initPresetFlags holds the --preset flag for the init command.
 type initPresetFlags struct {
-	Preset string `default:"" flag:"preset" help:"Config preset: local-cli, production, library, read-only"`
+	Preset string `default:"" flag:"preset" help:"Config preset: local-cli, production, library, library-framework, read-only, v5-ready"`
 }
 
 func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -118,6 +119,26 @@ func presetConfigTemplate(preset string) string {
 		b.WriteString("\" is the preset floor (lower bound).\n")
 		b.WriteString("  // You can raise this (e.g. to \"error\") but not lower it.\n")
 		fmt.Fprintf(&b, "  \"min-severity\": \"%s\"", presetDef.MinSeverity)
+	}
+
+	if len(presetDef.Rules.SeverityOverrides) > 0 {
+		b.WriteString(",\n\n")
+		b.WriteString("  // Severity overrides: rewrite a rule's catalog severity\n")
+		b.WriteString("  // (explicit config entries win over the preset's).\n")
+		b.WriteString("  \"rules\": {\n    \"severity-overrides\": {")
+
+		ids := make([]string, 0, len(presetDef.Rules.SeverityOverrides))
+		for id := range presetDef.Rules.SeverityOverrides {
+			ids = append(ids, id)
+		}
+		slices.Sort(ids)
+		for i, id := range ids {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			fmt.Fprintf(&b, "%q: %q", id, presetDef.Rules.SeverityOverrides[id])
+		}
+		b.WriteString("}\n  }")
 	}
 
 	b.WriteString("\n}\n")

@@ -375,6 +375,37 @@ var financialEscalatedRules = map[string]bool{ //nolint:gochecknoglobals // stat
 	"C008": true, // money-as-float64
 }
 
+// applySeverityOverrides rewrites finding severities according to the
+// rules.severity-overrides config (preset defaults merged with explicit
+// config). Runs post-detection, pre-filter so triage, the health score, and
+// --min-severity all observe the overridden severity. Rule-ID lookup is
+// case-insensitive (parent configs are merged without normalization).
+func applySeverityOverrides(
+	findings []finding.Finding,
+	overrides map[string]string,
+) []finding.Finding {
+	if len(overrides) == 0 {
+		return findings
+	}
+
+	result := make([]finding.Finding, len(findings))
+	for i, f := range findings {
+		sev, ok := overrides[strings.ToUpper(string(f.Rule))]
+		if ok {
+			parsed := parseSeverity(sev)
+			if parsed != f.Severity {
+				f.Severity = parsed
+				if f.Message != "" {
+					f.Message += " [severity overridden: " + sev + "]"
+				}
+			}
+		}
+		result[i] = f
+	}
+
+	return result
+}
+
 // applyDomainBias escalates finding severities based on the project domain.
 // Financial domains escalate security and money-handling rules to Error so
 // they cannot be filtered out by --min-severity=warning.

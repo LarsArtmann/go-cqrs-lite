@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
@@ -36,6 +37,7 @@ var presetDescriptions = map[analyzer.ConfigPreset]string{
 	analyzer.PresetLibrary:          "Library/SDK modules consumed by other Go programs: silences app-only rules.",
 	analyzer.PresetLibraryFramework: "Framework/SDK modules: disables ALL adoption-coaching (F-series) rules.",
 	analyzer.PresetReadOnly:         "Event/query consumers that never dispatch commands.",
+	analyzer.PresetV5Ready:          "v5 migration complete (or a hard deadline): escalates V007 (v5-removed APIs) to error so it blocks CI.",
 }
 
 func renderExplain() string {
@@ -217,6 +219,19 @@ func renderPresets(b *strings.Builder) {
 
 		if len(def.Rules.Disable) > 0 {
 			fmt.Fprintf(b, "    Rules disabled:   %s\n", strings.Join(def.Rules.Disable, ", "))
+		}
+
+		if len(def.Rules.SeverityOverrides) > 0 {
+			ids := make([]string, 0, len(def.Rules.SeverityOverrides))
+			for id := range def.Rules.SeverityOverrides {
+				ids = append(ids, id)
+			}
+			slices.Sort(ids)
+			parts := make([]string, 0, len(ids))
+			for _, id := range ids {
+				parts = append(parts, id+"→"+def.Rules.SeverityOverrides[id])
+			}
+			fmt.Fprintf(b, "    Severity overrides: %s\n", strings.Join(parts, ", "))
 		}
 
 		if def.MinSeverity != "" {
@@ -417,6 +432,11 @@ var ruleConfigKeys = []ruleConfigKey{
 		`["P012", "C007"]`,
 	},
 	{
+		"severity-overrides", "map[string]string",
+		"Rule ID → severity rewrites (preset v5-ready is sugar for V007=error)",
+		`{"V007": "error"}`,
+	},
+	{
 		"external-api-struct-prefixes",
 		"[]string",
 		"Struct-name prefixes whose JSON tags mirror an external API (Discord, Stripe). Excludes them from D002 mixed-casing check.",
@@ -474,7 +494,7 @@ func renderResolutionOrder(b *strings.Builder) {
 	b.WriteString("  Settings are resolved in this order (later overrides earlier):\n")
 	b.WriteString("\n")
 	b.WriteString("    1. Built-in defaults (from struct tags)\n")
-	b.WriteString("    2. Preset (if set: features, rule disables, severity floor)\n")
+	b.WriteString("    2. Preset (if set: features, rule disables, severity overrides, severity floor)\n")
 	b.WriteString("    3. Config file (.cqrs-lint.json: explicit overrides)\n")
 	b.WriteString("    4. Auto-detection (fills in what's not pinned)\n")
 	b.WriteString("    5. CLI flags (highest priority)\n")
@@ -485,6 +505,9 @@ func renderResolutionOrder(b *strings.Builder) {
 	)
 	b.WriteString("\n")
 	b.WriteString("  Rule disables from preset and config are UNIONED (never subtracted).\n")
+	b.WriteString("  Severity overrides resolve in a fixed order (later wins per rule):\n")
+	b.WriteString("  catalog → preset → parent config → local config → domain bias →\n")
+	b.WriteString("  --min-severity (filter only, never rewrites severity).\n")
 	b.WriteString("  Parent .cqrs-lint.json files (ancestor directories) are also merged\n")
 	b.WriteString("  (monorepo config inheritance).\n")
 	b.WriteString("\n\n")
