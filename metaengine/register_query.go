@@ -53,6 +53,9 @@ func (s *Store) RegisterQuery(query any) error {
 	s.queries[meta.QueryName()] = meta
 	s.byInputType[meta.QueryInputTypeName()] = meta.QueryName()
 	s.rebuildTaskSnapLocked()
+	// Drop the memoized record-aware event-type map: the new query may
+	// register OnRecord folds, and the apply hot path must observe them.
+	s.recordAwareEvents.Store(nil)
 
 	if s.plan != nil {
 		s.plan.Queries = append(s.plan.Queries, assignment)

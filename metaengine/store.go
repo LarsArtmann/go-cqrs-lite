@@ -399,9 +399,9 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 }
 
 // EventInput pairs an event type with its payload for batch application.
-// Record optionally carries the full record context: when set, replay paths
-// (Backfill, Verify, DemoteEngine catch-up) rebuild Record-aware projections
-// with the original StreamID/Version/metadata instead of a synthesized
+// Record optionally carries the full record context: when set, ApplyBatch and
+// the replay paths (Backfill, Verify, DemoteEngine catch-up) hand Record-aware
+// projections the original StreamID/Version/metadata instead of a synthesized
 // minimal record.
 type EventInput struct {
 	Type    string
@@ -414,11 +414,18 @@ type EventInput struct {
 // skipped and the error is returned. This is the primary API for replay
 // scenarios where many events need to be processed.
 //
-// Events without a Record get the same synthesized Type-only Record as
-// Store.Apply — set EventInput.Record for OnRecord folds that read context.
+// Each event's Record context is honored: an event carrying EventInput.Record
+// feeds it to OnRecord folds as-is (Type defaults to evt.Type when unset);
+// an event without one gets the same synthesized Type-only Record as
+// Store.Apply, and the synthetic-apply advisory counts it.
 func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 	for _, evt := range events {
-		if err := s.Apply(ctx, evt.Type, evt.Payload); err != nil {
+		rec := evt.Record
+		if rec.Type == "" {
+			rec.Type = evt.Type
+		}
+
+		if err := s.applyWithRecord(ctx, evt.Type, rec, evt.Payload); err != nil {
 			return fmt.Errorf("batch apply event %q: %w", evt.Type, err)
 		}
 	}

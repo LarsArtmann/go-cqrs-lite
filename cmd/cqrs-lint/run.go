@@ -115,7 +115,6 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		}
 		unknown := suppression.DetectUnknownRuleSuppressions(goFilePaths, knownRuleIDs)
 		if len(stale) > 0 || len(unknown) > 0 {
-			//cqrs-lint:ignore(C025) no underlying error to wrap — this is a new validation error
 			return fmt.Errorf(
 				"%d %w",
 				len(stale)+len(unknown), errStaleSuppressions,

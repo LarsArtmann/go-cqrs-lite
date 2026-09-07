@@ -155,3 +155,95 @@ func TestIsSyntheticRecord(t *testing.T) {
 		t.Fatal("stream-scoped record must not be synthetic")
 	}
 }
+
+// TestApplyBatch_HonorsRecord pins the contract that ApplyBatch forwards
+// EventInput.Record to OnRecord folds instead of synthesizing a Type-only
+// Record (the pre-fix behavior silently dropped the field).
+func TestApplyBatch_HonorsRecord(t *testing.T) {
+	t.Parallel()
+
+	store := newRecordContextStore(t)
+	ctx := context.Background()
+
+	events := []EventInput{
+		{
+			Type:    "recordContextEvent",
+			Payload: recordContextEvent{TaskID: "t1"},
+			Record: record.Record{
+				Type:     "recordContextEvent",
+				StreamID: "Task/01JTEST",
+				Version:  3,
+			},
+		},
+		{
+			Type:    "recordContextEvent",
+			Payload: recordContextEvent{TaskID: "t2"},
+			Record:  record.Record{StreamID: "Task/01JOTHER", Version: 1},
+		},
+	}
+
+	if err := store.ApplyBatch(ctx, events); err != nil {
+		t.Fatalf("ApplyBatch: %v", err)
+	}
+
+	mb := store.engines[0].(MapBackend)
+
+	for key, wantStream := range map[string]string{"t1": "Task/01JTEST", "t2": "Task/01JOTHER"} {
+		raw, ok, err := mb.MapGet(ctx, "record_context_tasks", key)
+		if err != nil || !ok {
+			t.Fatalf("MapGet(%s): ok=%v err=%v", key, ok, err)
+		}
+
+		view, err := reify[recordContextView](raw)
+		if err != nil {
+			t.Fatalf("reify(%s): %v", key, err)
+		}
+
+		if view.StreamID != wantStream {
+			t.Fatalf("fold for %s saw StreamID %q, want %q", key, view.StreamID, wantStream)
+		}
+	}
+
+	if doctor := store.Doctor(ctx); !strings.Contains(doctor, "all applies carried full Record context") {
+		t.Fatalf("Doctor should report full context only:\n%s", doctor)
+	}
+}
+
+// TestApplyBatch_SyntheticRecord_Counted proves a batch event without a
+// Record gets the same synthesized Type-only Record as Apply, and the
+// synthetic-apply advisory still counts it.
+func TestApplyBatch_SyntheticRecord_Counted(t *testing.T) {
+	t.Parallel()
+
+	store := newRecordContextStore(t)
+	ctx := context.Background()
+
+	events := []EventInput{
+		{Type: "recordContextEvent", Payload: recordContextEvent{TaskID: "t1"}},
+		{Type: "recordContextEvent", Payload: recordContextEvent{TaskID: "t2"}, Record: record.Record{Type: "recordContextEvent"}},
+	}
+
+	if err := store.ApplyBatch(ctx, events); err != nil {
+		t.Fatalf("ApplyBatch: %v", err)
+	}
+
+	doctor := store.Doctor(ctx)
+	if !strings.Contains(doctor, "2 apply event(s) arrived with a synthesized Type-only Record") {
+		t.Fatalf("Doctor should count both synthesized batch applies:\n%s", doctor)
+	}
+
+	mb := store.engines[0].(MapBackend)
+	raw, ok, err := mb.MapGet(ctx, "record_context_tasks", "t1")
+	if err != nil || !ok {
+		t.Fatalf("MapGet: ok=%v err=%v", ok, err)
+	}
+
+	view, err := reify[recordContextView](raw)
+	if err != nil {
+		t.Fatalf("reify: %v", err)
+	}
+
+	if view.StreamID != "" || view.Version != 0 {
+		t.Fatalf("synthetic batch apply must see empty context, got %+v", view)
+	}
+}
