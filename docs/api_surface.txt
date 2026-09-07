@@ -3200,6 +3200,7 @@ metaengine/method MapScan
 metaengine/method MapSet
 metaengine/method MapUpdate
 metaengine/method MarshalJSON
+metaengine/method MaterializedViewsDoctorSection
 metaengine/method Max
 metaengine/method Milliseconds
 metaengine/method Min
