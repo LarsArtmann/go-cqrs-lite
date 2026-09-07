@@ -188,3 +188,52 @@ func TestClaimingMySQL_LeaseExpiryReclaims(t *testing.T) {
 		t.Fatalf("timer not reclaimed after lease expiry: got %v", after)
 	}
 }
+
+// TestClaimingMySQL_RenewLease mirrors the Postgres contract test on live
+// MariaDB: renewal extends a live claim (another claimer gets nothing), and
+// renewal of a missing timer fails.
+func TestClaimingMySQL_RenewLease(t *testing.T) {
+	db := mysqlClaimOpen(t)
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingMySQLStore[struct{}](ctx, db, time.Minute)
+	if err != nil {
+		t.Fatalf("NewClaimingMySQLStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	timer := scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("mysql-renew"),
+		FireAt: now.Add(-time.Second),
+	}
+
+	if err := store.Schedule(ctx, timer); err != nil {
+		t.Fatalf("Schedule: %v", err)
+	}
+
+	claimed, err := store.Due(ctx, now)
+	if err != nil || len(claimed) != 1 {
+		t.Fatalf("Due: %v (%d timers)", err, len(claimed))
+	}
+
+	if err := store.RenewLease(ctx, timer.ID, 5*time.Minute); err != nil {
+		t.Fatalf("RenewLease (live lease): %v", err)
+	}
+
+	other, err := store.Due(ctx, now)
+	if err != nil {
+		t.Fatalf("Due (second claimer after renewal): %v", err)
+	}
+
+	if len(other) != 0 {
+		t.Fatal("renewed timer re-claimed while lease live (double fire)")
+	}
+
+	// Renewal of a missing timer fails.
+	err = store.RenewLease(ctx, scheduling.MustParseTimerID("gone-mysql"), time.Minute)
+	if err == nil {
+		t.Fatal("renewing a missing timer must fail")
+	}
+}

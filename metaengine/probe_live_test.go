@@ -21,6 +21,8 @@ type fakeRemoteEngine struct {
 	profile  metaengine.EngineProfile
 	probeRTT time.Duration
 	probeErr error
+
+	honestMapMixin
 }
 
 func (e *fakeRemoteEngine) Profile() metaengine.EngineProfile {
@@ -223,6 +225,8 @@ type fakeLocalEngine struct {
 
 	name    string
 	nsPerOp float64
+
+	honestMapMixin
 }
 
 func newFakeLocal(name string, nsPerOp float64) *fakeLocalEngine {
@@ -244,6 +248,40 @@ func (e *fakeLocalEngine) Profile() metaengine.EngineProfile {
 }
 
 func (e *fakeLocalEngine) Close() error { return nil }
+
+// honestMapMixin gives the live-latency test fakes a no-op MapBackend so they
+// are structurally honest: the capability partition (planQuery and
+// CheckRouting) treats engines that declare an ADT without implementing its
+// backend as over-declaring liars and refuses to suggest or route to them.
+type honestMapMixin struct {
+	maps map[string]map[any]any
+}
+
+func (m *honestMapMixin) MapSet(_ context.Context, collection string, key, value any) error {
+	if m.maps == nil {
+		m.maps = make(map[string]map[any]any)
+	}
+
+	if m.maps[collection] == nil {
+		m.maps[collection] = make(map[any]any)
+	}
+
+	m.maps[collection][key] = value
+
+	return nil
+}
+
+func (m *honestMapMixin) MapGet(_ context.Context, collection string, key any) (any, bool, error) {
+	v, ok := m.maps[collection][key]
+
+	return v, ok, nil
+}
+
+func (m *honestMapMixin) MapDelete(_ context.Context, collection string, key any) error {
+	delete(m.maps[collection], key)
+
+	return nil
+}
 
 func winnerEngine(store *metaengine.Store) string {
 	for _, qa := range store.Plan().Queries {
