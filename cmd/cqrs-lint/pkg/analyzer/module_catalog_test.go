@@ -219,6 +219,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"cmd/cqrs-bench":                 "tooling",
 		"cmd/cqrs-gen":                   "tooling",
 		"cmd/cqrs-lint":                  "tooling",
+		"cmd/cqrs-upgrade":               "tooling (code-migration assistant)",
 		"cmd/doc-check":                  "tooling",
 		"commandlifecycle/projections":   "sub-package (covered by commandlifecycle)",
 		"dispatcher":                     "internal infrastructure (generic dispatcher used by command/query)",

@@ -1434,7 +1434,7 @@ go-cqrs-lite modules within the same major version pinned to different releases
 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `version`
 
-References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126)
+References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126); also flags dot-imports of go-cqrs-lite modules, which hide removed-API usage from attribution
 
 References:
 

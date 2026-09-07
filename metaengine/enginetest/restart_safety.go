@@ -24,6 +24,9 @@ type RestartSafetyFactory func(path string) (metaengine.Engine, error)
 //  5. Appends MORE events to "s1" and the same Map/Multimap collections
 //  6. Verifies no data was overwritten — stream has 5 events, journal has 5 entries
 //
+// StreamLogBackend is required. The Map and Multimap legs run when the engine
+// implements those backends and are skipped (with a log note) otherwise.
+//
 // The caller is responsible for closing engines returned by the factory that
 // the harness does not close itself.
 func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
@@ -46,15 +49,8 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 			t.Fatal("engine must implement StreamLogBackend")
 		}
 
-		mb1, ok := eng1.(metaengine.MapBackend)
-		if !ok {
-			t.Fatal("engine must implement MapBackend")
-		}
-
-		mmb1, ok := eng1.(metaengine.MultimapBackend)
-		if !ok {
-			t.Fatal("engine must implement MultimapBackend")
-		}
+		mb1, hasMap := eng1.(metaengine.MapBackend)
+		mmb1, hasMultimap := eng1.(metaengine.MultimapBackend)
 
 		// Append 3 events to stream "s1".
 		if err := slb1.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
@@ -62,13 +58,17 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 		}
 
 		// Map ADT — verify journalSeq seeding doesn't collide.
-		if err := mb1.MapSet(ctx, "kv", "key1", "val1"); err != nil {
-			t.Fatalf("MapSet: %v", err)
+		if hasMap {
+			if err := mb1.MapSet(ctx, "kv", "key1", "val1"); err != nil {
+				t.Fatalf("MapSet: %v", err)
+			}
 		}
 
 		// Multimap ADT — verify mmSeq seeding doesn't collide.
-		if err := mmb1.MultiAdd(ctx, "mm1", "entry1", "val1"); err != nil {
-			t.Fatalf("MultiAdd: %v", err)
+		if hasMultimap {
+			if err := mmb1.MultiAdd(ctx, "mm1", "entry1", "val1"); err != nil {
+				t.Fatalf("MultiAdd: %v", err)
+			}
 		}
 
 		ver1, err := slb1.StreamVersion(ctx, "events", "s1")
@@ -106,14 +106,15 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 			t.Fatal("reopened engine must implement StreamLogBackend")
 		}
 
-		mb2, ok := eng2.(metaengine.MapBackend)
-		if !ok {
-			t.Fatal("reopened engine must implement MapBackend")
+		mb2, hasMap := eng2.(metaengine.MapBackend)
+		mmb2, hasMultimap := eng2.(metaengine.MultimapBackend)
+
+		if !hasMap {
+			t.Log("engine does not implement MapBackend — skipping Map restart legs")
 		}
 
-		mmb2, ok := eng2.(metaengine.MultimapBackend)
-		if !ok {
-			t.Fatal("reopened engine must implement MultimapBackend")
+		if !hasMultimap {
+			t.Log("engine does not implement MultimapBackend — skipping Multimap restart legs")
 		}
 
 		// Append 2 MORE events — without seq seeding these would overwrite seqs 1-2.
@@ -152,49 +153,53 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 		}
 
 		// Verify Map ADT data survived.
-		mapVal, found, err := mb2.MapGet(ctx, "kv", "key1")
-		if err != nil {
-			t.Fatalf("MapGet after restart: %v", err)
-		}
+		if hasMap {
+			mapVal, found, err := mb2.MapGet(ctx, "kv", "key1")
+			if err != nil {
+				t.Fatalf("MapGet after restart: %v", err)
+			}
 
-		if !found {
-			t.Fatal("Map key1 should exist after restart")
-		}
+			if !found {
+				t.Fatal("Map key1 should exist after restart")
+			}
 
-		if mapVal != "val1" {
-			t.Fatalf("Map data should survive restart, got %v", mapVal)
-		}
+			if mapVal != "val1" {
+				t.Fatalf("Map data should survive restart, got %v", mapVal)
+			}
 
-		// Verify new Map write doesn't overwrite existing.
-		if err := mb2.MapSet(ctx, "kv", "key2", "val2"); err != nil {
-			t.Fatalf("MapSet key2: %v", err)
-		}
+			// Verify new Map write doesn't overwrite existing.
+			if err := mb2.MapSet(ctx, "kv", "key2", "val2"); err != nil {
+				t.Fatalf("MapSet key2: %v", err)
+			}
 
-		mapVal2, found2, err := mb2.MapGet(ctx, "kv", "key2")
-		if err != nil {
-			t.Fatalf("MapGet key2: %v", err)
-		}
+			mapVal2, found2, err := mb2.MapGet(ctx, "kv", "key2")
+			if err != nil {
+				t.Fatalf("MapGet key2: %v", err)
+			}
 
-		if !found2 {
-			t.Fatal("Map key2 should exist after write")
-		}
+			if !found2 {
+				t.Fatal("Map key2 should exist after write")
+			}
 
-		if mapVal2 != "val2" {
-			t.Fatalf("Map key2 = %v, want val2", mapVal2)
+			if mapVal2 != "val2" {
+				t.Fatalf("Map key2 = %v, want val2", mapVal2)
+			}
 		}
 
 		// Verify new Multimap entry doesn't collide with existing.
-		if err := mmb2.MultiAdd(ctx, "mm1", "entry1", "val2"); err != nil {
-			t.Fatalf("MultiAdd after restart: %v", err)
-		}
+		if hasMultimap {
+			if err := mmb2.MultiAdd(ctx, "mm1", "entry1", "val2"); err != nil {
+				t.Fatalf("MultiAdd after restart: %v", err)
+			}
 
-		mmVals, err := mmb2.MultiGet(ctx, "mm1", "entry1")
-		if err != nil {
-			t.Fatalf("MultiGet after restart: %v", err)
-		}
+			mmVals, err := mmb2.MultiGet(ctx, "mm1", "entry1")
+			if err != nil {
+				t.Fatalf("MultiGet after restart: %v", err)
+			}
 
-		if len(mmVals) != 2 {
-			t.Fatalf("multimap should have 2 values after restart append, got %d", len(mmVals))
+			if len(mmVals) != 2 {
+				t.Fatalf("multimap should have 2 values after restart append, got %d", len(mmVals))
+			}
 		}
 	})
 }

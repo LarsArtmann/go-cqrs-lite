@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"strings"
 	"time"
@@ -216,12 +217,8 @@ func mergeSeverityOverrides(base, override map[string]string) map[string]string 
 	}
 
 	merged := make(map[string]string, len(base)+len(override))
-	for id, sev := range base {
-		merged[id] = sev
-	}
-	for id, sev := range override {
-		merged[id] = sev
-	}
+	maps.Copy(merged, base)
+	maps.Copy(merged, override)
 	return merged
 }
 

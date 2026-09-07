@@ -74,9 +74,9 @@ func TestRulesConfig_Validate_NormalizesSeverityOverrides(t *testing.T) {
 	rc := &RulesConfig{
 		SeverityOverrides: map[string]string{
 			"  v007 ": " ERROR ",
-			"c008": "warning",
-			"":     "error",
-			"S001": "",
+			"c008":    "warning",
+			"":        "error",
+			"S001":    "",
 		},
 	}
 	var buf bytes.Buffer

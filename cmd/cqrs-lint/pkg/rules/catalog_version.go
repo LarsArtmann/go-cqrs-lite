@@ -62,7 +62,7 @@ func versionRules() []RuleInfo {
 			Category:    "version",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126)",
+			Description: "References APIs removed at v5 (stack presets, Materialize, relational/view tiers, VersionedStore shells, tombstone helpers — ADR-0114/0123/0126); also flags dot-imports of go-cqrs-lite modules, which hide removed-API usage from attribution",
 			AutoFix:     false,
 			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#v007",
 		},
