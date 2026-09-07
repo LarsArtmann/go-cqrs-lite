@@ -39,6 +39,11 @@ func TestRedactDSN(t *testing.T) {
 			want: "libsql://my-db.turso.io?authToken=%5Bredacted%5D",
 		},
 		{
+			name: "encryption key query parameter redacted",
+			dsn:  "/data/secret.db?experimental=encryption&encryption_cipher=aes256gcm&encryption_hexkey=aabbccdd",
+			want: "/data/secret.db?experimental=encryption&encryption_cipher=aes256gcm&encryption_hexkey=%5Bredacted%5D",
+		},
+		{
 			name: "unrelated query parameters preserved",
 			dsn:  "https://db.example.com/dbname?jwt=abc",
 			want: "https://db.example.com/dbname?jwt=abc",
@@ -71,6 +76,7 @@ func TestRedactDSN_NeverLeaksSecrets(t *testing.T) {
 		"libsql://my-db.turso.io?authToken=" + secret,
 		"libsql://my-db.turso.io?token=" + secret,
 		"libsql://my-db.turso.io?apikey=" + secret,
+		"/data/secret.db?experimental=encryption&encryption_cipher=aes256gcm&encryption_hexkey=" + secret,
 	} {
 		if got := redactDSN(dsn); strings.Contains(got, secret) {
 			t.Errorf("redactDSN(%q) leaked secret: %q", dsn, got)

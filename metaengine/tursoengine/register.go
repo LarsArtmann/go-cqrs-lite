@@ -54,17 +54,25 @@ func isRemoteDSN(dsn string) bool {
 }
 
 // redactDSN strips credentials from a DSN so connection errors never leak
-// secrets into logs. It removes URL userinfo (libsql://token@host) and the
-// authToken query parameter; non-URL DSNs (file paths, :memory:) pass through
-// unchanged. Redaction is best-effort: an unparseable URL is replaced with a
-// fixed placeholder rather than risked in an error message.
+// secrets into logs. It removes URL userinfo (libsql://token@host) and any
+// query parameter carrying a credential: auth tokens (authToken, token,
+// apiKey) and encryption keys (e.g. encryption_hexkey — any param whose name
+// contains "key"). Query redaction applies to local DSNs too, because
+// embedded-database encryption keys ride on file-path DSNs. Non-URL DSNs
+// (file paths, :memory:) pass through unchanged. Redaction is best-effort: an
+// unparseable URL is replaced with a fixed placeholder rather than risked in
+// an error message.
 func redactDSN(dsn string) string {
-	if !isRemoteDSN(dsn) {
+	if !isRemoteDSN(dsn) && !strings.Contains(dsn, "?") {
 		return dsn
 	}
 
 	u, err := url.Parse(dsn)
 	if err != nil {
+		if !isRemoteDSN(dsn) {
+			return strings.SplitN(dsn, "?", 2)[0]
+		}
+
 		return "libsql://[redacted]"
 	}
 
@@ -77,7 +85,7 @@ func redactDSN(dsn string) string {
 		for key := range q {
 			if strings.EqualFold(key, "authtoken") ||
 				strings.EqualFold(key, "token") ||
-				strings.EqualFold(key, "apikey") {
+				strings.Contains(strings.ToLower(key), "key") {
 				q.Set(key, "[redacted]")
 			}
 		}
