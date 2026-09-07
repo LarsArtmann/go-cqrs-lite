@@ -31,6 +31,27 @@ type benchEngines struct {
 	accelAR  metaengine.AggregateReader
 }
 
+// seedInTx seeds inside a single transaction when the engine supports it —
+// one fsync instead of one per row, so setup stays fast on file-backed DSNs.
+func seedInTx(ctx context.Context, b *testing.B, eng metaengine.Engine, rows []orderRow) {
+	b.Helper()
+
+	tx, ok := eng.(metaengine.Transactional)
+	if !ok {
+		seedOrders(ctx, b, eng, rows)
+
+		return
+	}
+
+	if err := tx.RunInTx(ctx, func(ctx context.Context) error {
+		seedOrders(ctx, b, eng, rows)
+
+		return nil
+	}); err != nil {
+		b.Fatalf("seed tx: %v", err)
+	}
+}
+
 func setupBenchEngines(b *testing.B, n, customers int, specs []metaengine.MaterializedViewSpec) benchEngines {
 	b.Helper()
 
@@ -55,8 +76,8 @@ func setupBenchEngines(b *testing.B, n, customers int, specs []metaengine.Materi
 
 	rows := orderRows(n, customers)
 
-	seedOrders(ctx, b, base, rows)
-	seedOrders(ctx, b, acc, rows)
+	seedInTx(ctx, b, base, rows)
+	seedInTx(ctx, b, acc, rows)
 
 	return benchEngines{
 		baseline: base,
@@ -218,7 +239,7 @@ func BenchmarkMatViewWrite(b *testing.B) {
 
 			mb := eng.(metaengine.MapBackend)
 
-			seedOrders(ctx, b, eng, orderRows(keys, 100))
+			seedInTx(ctx, b, eng, orderRows(keys, 100))
 
 			b.ReportAllocs()
 			b.ResetTimer()
