@@ -50,9 +50,9 @@ func passesFilterSpecs(item any, specs []FilterSpec) bool {
 func evalFilterOp(op FilterOp, actual, expected any) bool {
 	switch op {
 	case FilterEq:
-		return reflect.DeepEqual(actual, expected)
+		return filterValuesEqual(actual, expected)
 	case FilterNe:
-		return !reflect.DeepEqual(actual, expected)
+		return !filterValuesEqual(actual, expected)
 	case FilterLt:
 		return compareValue(actual, expected) < 0
 	case FilterLe:
@@ -68,12 +68,50 @@ func evalFilterOp(op FilterOp, actual, expected any) bool {
 		}
 
 		for _, v := range values {
-			if reflect.DeepEqual(actual, v) {
+			if filterValuesEqual(actual, v) {
 				return true
 			}
 		}
 
 		return false
+	default:
+		return false
+	}
+}
+
+// filterValuesEqual compares a stored field value against a filter value by
+// VALUE, not Go type identity. Engines round-trip rows through JSON where
+// named types (e.g. `type Status string`) vanish, so a filter written
+// against a typed enum field must match both the typed form (memory engine)
+// and the decoded primitive form (JSON-backed engines). DeepEqual alone
+// makes the same query engine-dependent.
+func filterValuesEqual(actual, expected any) bool {
+	if reflect.DeepEqual(actual, expected) {
+		return true
+	}
+
+	av, ev := reflect.ValueOf(actual), reflect.ValueOf(expected)
+	if !av.IsValid() || !ev.IsValid() {
+		return false
+	}
+
+	if av.Kind() == reflect.String && ev.Kind() == reflect.String {
+		return av.String() == ev.String()
+	}
+
+	if isNumericKind(av.Kind()) && isNumericKind(ev.Kind()) {
+		return compareValue(actual, expected) == 0
+	}
+
+	return false
+}
+
+func isNumericKind(k reflect.Kind) bool {
+	switch k {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		return true
 	default:
 		return false
 	}
@@ -85,9 +123,9 @@ func evalFilterOp(op FilterOp, actual, expected any) bool {
 func matchFilter(itemVal any, op FilterOp, expected any) bool {
 	switch op {
 	case FilterEq:
-		return reflect.DeepEqual(itemVal, expected)
+		return filterValuesEqual(itemVal, expected)
 	case FilterNe:
-		return !reflect.DeepEqual(itemVal, expected)
+		return !filterValuesEqual(itemVal, expected)
 	case FilterLt, FilterLe, FilterGt, FilterGe:
 		if itemVal == nil {
 			return false

@@ -122,7 +122,10 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 
 	db.SetMaxOpenConns(1)
 
-	eng, err := sqliteengine.NewSQLiteEngine(db, sqliteengine.WithMaterializedViews(cfg.matViewSpecs)) //nolint:contextcheck,wrapcheck // takes *sql.DB
+	eng, err := sqliteengine.NewSQLiteEngine(
+		db,
+		sqliteengine.WithMaterializedViews(cfg.matViewSpecs),
+	) //nolint:contextcheck,wrapcheck // takes *sql.DB
 	if err != nil {
 		_ = db.Close()
 

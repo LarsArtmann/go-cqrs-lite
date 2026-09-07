@@ -61,7 +61,11 @@ func seedOrders(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows 
 	}
 }
 
-func mustEngineWithMatViews(tb testing.TB, dsn string, specs ...metaengine.MaterializedViewSpec) metaengine.Engine {
+func mustEngineWithMatViews(
+	tb testing.TB,
+	dsn string,
+	specs ...metaengine.MaterializedViewSpec,
+) metaengine.Engine {
 	tb.Helper()
 
 	eng, err := tursoengine.New(dsn, tursoengine.WithMaterializedViews(specs))
@@ -90,7 +94,8 @@ func expectScalar(t *testing.T, eng metaengine.Engine, col string,
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	// Tolerance covers floating-point association differences between a
 	// matview derivation (sums of group sums) and the sequential expectation.
-	g.Expect(got).To(gomega.BeNumerically("~", want, 1e-6), "aggregate %s(%s) on %s", fn, column, col)
+	g.Expect(got).
+		To(gomega.BeNumerically("~", want, 1e-6), "aggregate %s(%s) on %s", fn, column, col)
 }
 
 func approxEqual(a, b float64) bool {
@@ -105,13 +110,36 @@ func TestTursoMatView_Serving(t *testing.T) {
 
 	ctx := context.Background()
 
-	eng := mustEngineWithMatViews(t, "",
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+		},
 		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewCount},
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewAvg, Column: "amount"},
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewMin, Column: "amount"},
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewMax, Column: "amount"},
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewAvg,
+			Column:     "amount",
+		},
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewMin,
+			Column:     "amount",
+		},
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewMax,
+			Column:     "amount",
+		},
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+			GroupBy:    "customer",
+		},
 	)
 
 	rows := orderRows(200, 8)
@@ -137,14 +165,28 @@ func TestTursoMatView_Serving(t *testing.T) {
 
 	gr := eng.(metaengine.GroupedAggregateReader)
 
-	groups, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+	groups, err := gr.GroupedAggregate(
+		ctx,
+		"orders",
+		metaengine.MatViewSum,
+		"amount",
+		"customer",
+		nil,
+	)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	g.Expect(groups).To(gomega.HaveLen(8))
 	g.Expect(sumAmountGroups(groups)).To(gomega.BeNumerically("~", sumAmounts(rows), 1e-6))
 
 	// Grouped AVG: exact per-group weighted averages; recombining with group
 	// counts reconstructs the global average.
-	avgGroups, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewAvg, "amount", "customer", nil)
+	avgGroups, err := gr.GroupedAggregate(
+		ctx,
+		"orders",
+		metaengine.MatViewAvg,
+		"amount",
+		"customer",
+		nil,
+	)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	g.Expect(avgGroups).To(gomega.HaveLen(8))
 
@@ -159,7 +201,9 @@ func TestTursoMatView_Serving(t *testing.T) {
 	g.Expect(mb.MapDelete(ctx, "orders", rows[1].Key)).To(gomega.Succeed())
 
 	rows[0].Amount = 1000
-	rows = append([]orderRow{rows[0]}, rows[2:]...) // order-0000 replaced in place, order-0001 deleted
+	rows = append(
+		[]orderRow{rows[0]},
+		rows[2:]...) // order-0000 replaced in place, order-0001 deleted
 
 	expectScalar(t, eng, "orders", metaengine.MatViewCount, "", nil, float64(len(rows)))
 	expectScalar(t, eng, "orders", metaengine.MatViewSum, "amount", nil, sumAmounts(rows))
@@ -197,8 +241,15 @@ func TestTursoMatView_ScalarViaGroupedView(t *testing.T) {
 
 	ctx := context.Background()
 
-	eng := mustEngineWithMatViews(t, "",
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+			GroupBy:    "customer",
+		},
 	)
 
 	rows := orderRows(120, 5)
@@ -214,8 +265,15 @@ func TestTursoMatView_GroupedAvgExact(t *testing.T) {
 
 	ctx := context.Background()
 
-	eng := mustEngineWithMatViews(t, "",
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewAvg, Column: "amount", GroupBy: "customer"},
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewAvg,
+			Column:     "amount",
+			GroupBy:    "customer",
+		},
 	)
 
 	rows := orderRows(97, 6)
@@ -225,7 +283,14 @@ func TestTursoMatView_GroupedAvgExact(t *testing.T) {
 
 	gr := eng.(metaengine.GroupedAggregateReader)
 
-	groups, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewAvg, "amount", "customer", nil)
+	groups, err := gr.GroupedAggregate(
+		ctx,
+		"orders",
+		metaengine.MatViewAvg,
+		"amount",
+		"customer",
+		nil,
+	)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	g.Expect(groups).To(gomega.HaveLen(6))
 
@@ -257,8 +322,14 @@ func TestTursoMatView_RestartIdempotent(t *testing.T) {
 
 	dsn := filepath.Join(t.TempDir(), "matview.db")
 
-	eng := mustEngineWithMatViews(t, dsn,
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+	eng := mustEngineWithMatViews(
+		t,
+		dsn,
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+		},
 	)
 
 	seedOrders(ctx, t, eng, orderRows(50, 4))
@@ -267,9 +338,12 @@ func TestTursoMatView_RestartIdempotent(t *testing.T) {
 		t.Fatalf("close: %v", err)
 	}
 
-	reopened, err := tursoengine.New(dsn, tursoengine.WithMaterializedViews([]metaengine.MaterializedViewSpec{
-		{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
-	}))
+	reopened, err := tursoengine.New(
+		dsn,
+		tursoengine.WithMaterializedViews([]metaengine.MaterializedViewSpec{
+			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+		}),
+	)
 	if err != nil {
 		t.Fatalf("reopen: %v", err)
 	}
@@ -289,8 +363,15 @@ func TestTursoMatView_Reporter(t *testing.T) {
 
 	g := gomega.NewWithT(t)
 
-	eng := mustEngineWithMatViews(t, "",
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+			GroupBy:    "customer",
+		},
 	)
 
 	reporter, ok := eng.(metaengine.MaterializedViewsReporter)
@@ -314,35 +395,60 @@ func TestTursoMatView_ExplainReflectsServing(t *testing.T) {
 
 	g := gomega.NewWithT(t)
 
-	eng := mustEngineWithMatViews(t, "",
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+		},
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+			GroupBy:    "customer",
+		},
 	)
 
 	ex := eng.(metaengine.ExplainableAggregate)
 
-	sql, args := ex.ExplainAggregateQuery(context.Background(), "orders", metaengine.ExplainAggregateOptions{
-		Fn:     metaengine.MatViewSum,
-		Column: "amount",
-	})
+	sql, args := ex.ExplainAggregateQuery(
+		context.Background(),
+		"orders",
+		metaengine.ExplainAggregateOptions{
+			Fn:     metaengine.MatViewSum,
+			Column: "amount",
+		},
+	)
 	g.Expect(sql).To(gomega.ContainSubstring("cqrs_mv_orders_sum_amount"))
 	g.Expect(sql).To(gomega.Not(gomega.ContainSubstring("meta_map")))
 	g.Expect(args).To(gomega.BeEmpty())
 
-	sql, _ = ex.ExplainAggregateQuery(context.Background(), "orders", metaengine.ExplainAggregateOptions{
-		Fn:      metaengine.MatViewSum,
-		Column:  "amount",
-		GroupBy: "customer",
-	})
+	sql, _ = ex.ExplainAggregateQuery(
+		context.Background(),
+		"orders",
+		metaengine.ExplainAggregateOptions{
+			Fn:      metaengine.MatViewSum,
+			Column:  "amount",
+			GroupBy: "customer",
+		},
+	)
 	g.Expect(sql).To(gomega.ContainSubstring("grp, agg"))
 	g.Expect(sql).To(gomega.ContainSubstring("by_customer"))
 
 	// Filtered explain stays on the base path.
-	sql, _ = ex.ExplainAggregateQuery(context.Background(), "orders", metaengine.ExplainAggregateOptions{
-		Fn:      metaengine.MatViewSum,
-		Column:  "amount",
-		Filters: []metaengine.FilterSpec{{Column: "customer", Op: metaengine.FilterEq, Value: "c1"}},
-	})
+	sql, _ = ex.ExplainAggregateQuery(
+		context.Background(),
+		"orders",
+		metaengine.ExplainAggregateOptions{
+			Fn:     metaengine.MatViewSum,
+			Column: "amount",
+			Filters: []metaengine.FilterSpec{
+				{Column: "customer", Op: metaengine.FilterEq, Value: "c1"},
+			},
+		},
+	)
 	g.Expect(sql).To(gomega.ContainSubstring("meta_map"))
 }
 
@@ -355,8 +461,14 @@ func TestTursoMatView_PlannedMigrationFallsThrough(t *testing.T) {
 
 	ctx := context.Background()
 
-	eng := mustEngineWithMatViews(t, "",
-		metaengine.MaterializedViewSpec{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+		},
 	)
 
 	seedOrders(ctx, t, eng, orderRows(40, 4))

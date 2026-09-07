@@ -57,12 +57,19 @@ type benchEngine struct {
 	grouped metaengine.GroupedAggregateReader
 }
 
-func openBenchEngine(tb testing.TB, dir, name string, specs []metaengine.MaterializedViewSpec, n, customers int) *benchEngine {
+func openBenchEngine(
+	ctx context.Context,
+	tb testing.TB,
+	dir, name string,
+	specs []metaengine.MaterializedViewSpec,
+	n, customers int,
+) *benchEngine {
 	tb.Helper()
 
-	ctx := context.Background()
-
-	eng, err := tursoengine.New(filepath.Join(dir, name+".db"), tursoengine.WithMaterializedViews(specs))
+	eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
+		filepath.Join(dir, name+".db"),
+		tursoengine.WithMaterializedViews(specs),
+	)
 	if err != nil {
 		tb.Skipf("turso not available: %v", err)
 	}
@@ -111,7 +118,7 @@ func BenchmarkMatViewRead(b *testing.B) {
 			b.Run(fmt.Sprintf("agg=%s/scale=%s", c.name, scale.name), func(b *testing.B) {
 				dir := b.TempDir()
 
-				base := openBenchEngine(b, dir, "baseline", nil, scale.n, scale.customers)
+				base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
 				b.Run("baseline", func(b *testing.B) {
 					b.ReportAllocs()
@@ -127,7 +134,15 @@ func BenchmarkMatViewRead(b *testing.B) {
 					b.Fatal(err)
 				}
 
-				acc := openBenchEngine(b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
+				acc := openBenchEngine(
+					ctx,
+					b,
+					dir,
+					"accel",
+					matviewBenchSpecs(),
+					scale.n,
+					scale.customers,
+				)
 				defer func() { _ = acc.eng.Close() }()
 
 				b.Run("matview", func(b *testing.B) {
@@ -144,16 +159,18 @@ func BenchmarkMatViewRead(b *testing.B) {
 
 		// Grouped aggregate (GROUP BY customer): baseline full scan + group
 		// versus reading the precomputed view rows.
-		b.Run(fmt.Sprintf("agg=SUM_GROUPED/scale=%s", scale.name), func(b *testing.B) {
+		b.Run("agg=SUM_GROUPED/scale="+scale.name, func(b *testing.B) {
 			dir := b.TempDir()
 
-			base := openBenchEngine(b, dir, "baseline", nil, scale.n, scale.customers)
+			base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
 			b.Run("baseline", func(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := base.grouped.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil); err != nil {
+					if _, err := base.grouped.GroupedAggregate(
+						ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil,
+					); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -163,14 +180,24 @@ func BenchmarkMatViewRead(b *testing.B) {
 				b.Fatal(err)
 			}
 
-			acc := openBenchEngine(b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
+			acc := openBenchEngine(
+				ctx,
+				b,
+				dir,
+				"accel",
+				matviewBenchSpecs(),
+				scale.n,
+				scale.customers,
+			)
 			defer func() { _ = acc.eng.Close() }()
 
 			b.Run("matview", func(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := acc.grouped.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil); err != nil {
+					if _, err := acc.grouped.GroupedAggregate(
+						ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil,
+					); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -178,14 +205,19 @@ func BenchmarkMatViewRead(b *testing.B) {
 		})
 
 		// Scalar SUM served via the GROUPED view's sums (O(groups) middle path).
-		b.Run(fmt.Sprintf("agg=SUM_VIA_GROUPED/scale=%s", scale.name), func(b *testing.B) {
+		b.Run("agg=SUM_VIA_GROUPED/scale="+scale.name, func(b *testing.B) {
 			onlyGrouped := []metaengine.MaterializedViewSpec{
-				{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+				{
+					Collection: "orders",
+					Fn:         metaengine.MatViewSum,
+					Column:     "amount",
+					GroupBy:    "customer",
+				},
 			}
 
 			dir := b.TempDir()
 
-			base := openBenchEngine(b, dir, "baseline", nil, scale.n, scale.customers)
+			base := openBenchEngine(ctx, b, dir, "baseline", nil, scale.n, scale.customers)
 
 			b.Run("baseline", func(b *testing.B) {
 				b.ReportAllocs()
@@ -201,7 +233,7 @@ func BenchmarkMatViewRead(b *testing.B) {
 				b.Fatal(err)
 			}
 
-			acc := openBenchEngine(b, dir, "accel", onlyGrouped, scale.n, scale.customers)
+			acc := openBenchEngine(ctx, b, dir, "accel", onlyGrouped, scale.n, scale.customers)
 			defer func() { _ = acc.eng.Close() }()
 
 			b.Run("matview", func(b *testing.B) {
@@ -232,12 +264,27 @@ func BenchmarkMatViewWrite(b *testing.B) {
 	}{
 		{"views=0", nil},
 		{"views=1", []metaengine.MaterializedViewSpec{
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+			{
+				Collection: "orders",
+				Fn:         metaengine.MatViewSum,
+				Column:     "amount",
+				GroupBy:    "customer",
+			},
 		}},
 		{"views=3", []metaengine.MaterializedViewSpec{
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+			{
+				Collection: "orders",
+				Fn:         metaengine.MatViewSum,
+				Column:     "amount",
+				GroupBy:    "customer",
+			},
 			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
-			{Collection: "orders", Fn: metaengine.MatViewAvg, Column: "amount", GroupBy: "customer"},
+			{
+				Collection: "orders",
+				Fn:         metaengine.MatViewAvg,
+				Column:     "amount",
+				GroupBy:    "customer",
+			},
 		}},
 	}
 
@@ -245,7 +292,8 @@ func BenchmarkMatViewWrite(b *testing.B) {
 
 	for _, mode := range modes {
 		b.Run(mode.name, func(b *testing.B) {
-			eng, err := tursoengine.New(filepath.Join(dir, fmt.Sprintf("write_%s.db", mode.name)),
+			eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
+				filepath.Join(dir, "write_"+mode.name+".db"),
 				tursoengine.WithMaterializedViews(mode.specs))
 			if err != nil {
 				b.Skipf("turso not available: %v", err)

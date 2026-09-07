@@ -316,7 +316,7 @@ func printMetaEngineSection(w io.Writer, r *Result) {
 	printLatencyLine(w, "  Point read:", r.MetaEnginePointReadLatency)
 
 	if r.MetaEngineScanResults > 0 {
-		fmt.Fprintf(w, "  Scan results: %d items (status=active)\n", r.MetaEngineScanResults)
+		fmt.Fprintf(w, "  Scan results: %d items\n", r.MetaEngineScanResults)
 	}
 
 	if r.MetaEngineSQLiteScanLatency.Count > 0 {
