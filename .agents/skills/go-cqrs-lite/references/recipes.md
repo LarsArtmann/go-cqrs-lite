@@ -1868,3 +1868,88 @@ only. Measured read speedups and write overhead:
 `docs/benchmarks/2026-09-07_turso-materialized-views.md`. Bulk loaders should
 chunk transactions (≤ ~1k statements) — see the turso-go upstream constraint
 in AGENTS.md.
+
+### 2.22. Operator Priority Routing — global / perEngine / perQuery (system, verified v4.6.0)
+
+The operator steers the metaengine layout planner per deployment (ADR-0124).
+Resolution order: perQuery → perEngine → global → Balanced. Developers never
+see it; operators set it in Go literals or the koanf YAML config file:
+
+```go
+deployment := system.DeploymentConfig{
+    Engines: map[string]system.EngineConfig{
+        "primary": {Driver: "sqlite", DSN: "events.db"},
+    },
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleSourceOfTruth, Engine: "primary"},
+        {Role: system.RoleProjections, Engine: "primary"},
+    },
+    Priority: &system.PriorityConfig{
+        Global:    "Balanced",
+        PerEngine: map[string]metaengine.Priority{"primary": "ReadSpeed"},
+        PerQuery:  map[string]metaengine.Priority{"order_totals": "ReadSpeed"},
+    },
+}
+```
+
+YAML equivalent (`cqrs.yaml`, loaded via `system.LoadConfig`, see §2.0b):
+
+```yaml
+priority:
+  global: Balanced
+  perEngine:
+    primary: ReadSpeed
+  perQuery:
+    order_totals: ReadSpeed
+```
+
+### 2.23. Evolutions — declare folds for a result type (system, verified v4.6.0)
+
+Evolutions are the developer-side fold declarations. Projections without their
+own samples inherit the matching Evolution's folds by result type:
+
+```go
+type OrderCreated struct {
+    Amount float64 `json:"amount"`
+}
+
+type OrderTotals struct {
+    Count int     `json:"count"`
+    Sum   float64 `json:"sum"`
+}
+
+domain := system.DomainConfig{
+    Evolutions: []system.EvolutionSpec{
+        system.OnEvolution(
+            system.Evolve[OrderTotals]("order_totals"),
+            "order.created", OrderCreated{},
+            func(e OrderCreated, r *OrderTotals) { r.Count++; r.Sum += e.Amount },
+        ).Done(),
+    },
+}
+```
+
+Zero fold funcs (`OnEvolution` without the closure) selects the convention
+fold: the result struct mirrors the event payload field-by-field.
+
+### 2.24. Materialized Views — operator-declared aggregate accelerations (UNRELEASED: ships in system > v4.6.0)
+
+> These fields are on the workspace HEAD and are exercised by
+> `system/matview_config_test.go`, but are NOT in published system v4.6.0 —
+> pin this recipe to the next system tag wave.
+
+Operators declare aggregate accelerations per engine; unsupported engines fail
+construction loudly. Turbo/libSQL engines serve matching unfiltered aggregates
+from the maintained view (incremental view maintenance):
+
+```yaml
+engines:
+  primary:
+    driver: sqlite
+    dsn: events.db
+    materialized_views:
+      - collection: order_views
+        fn: COUNT              # COUNT | SUM | MIN | MAX | AVG
+        column: ""             # required for SUM/MIN/MAX/AVG; must be empty for COUNT
+        group_by: ""           # optional; empty = single-row scalar view (fastest)
+```
