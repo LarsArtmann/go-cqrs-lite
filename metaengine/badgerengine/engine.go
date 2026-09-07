@@ -14,13 +14,10 @@
 package badgerengine
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"sync"
-	"sync/atomic"
 
 	"github.com/dgraph-io/badger/v4"
 

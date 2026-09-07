@@ -1,13 +1,11 @@
 package pebbleengine
 
 import (
-	"bytes"
 	"fmt"
-	"strconv"
 	"sync"
-	"sync/atomic"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
 
 // seedSeqCounters scans existing keys and seeds all in-memory sequence counters
@@ -17,28 +15,30 @@ import (
 // Called once during construction when the engine wraps a persistent DB.
 // The scan is O(N) in existing key count — acceptable as a one-time startup cost.
 func (e *pebbleEngine) seedSeqCounters() error {
-	if err := e.seedCollectionSeqs("sl", &e.streamSeq); err != nil {
+	if err := e.seedCollectionSeqs("sl", &e.streamSeq, true); err != nil {
 		return fmt.Errorf("seed stream seqs: %w", err)
 	}
 
-	if err := e.seedCollectionSeqs("jl", &e.journalSeq); err != nil {
+	if err := e.seedCollectionSeqs("jl", &e.journalSeq, false); err != nil {
 		return fmt.Errorf("seed journal seqs: %w", err)
 	}
 
-	if err := e.seedCollectionSeqs("l", &e.logSeq); err != nil {
+	if err := e.seedCollectionSeqs("l", &e.logSeq, false); err != nil {
 		return fmt.Errorf("seed log seqs: %w", err)
 	}
 
-	if err := e.seedMultimapSeqs(); err != nil {
+	if err := e.seedCollectionSeqs("mm", &e.mmSeq, false); err != nil {
 		return fmt.Errorf("seed multimap seqs: %w", err)
 	}
 
 	return nil
 }
 
-// seedCollectionSeqs scans a tag prefix (e.g. "jl", "l") and seeds a
-// per-collection counter sync.Map. The group key is the collection name only.
-func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map) error {
+// seedCollectionSeqs scans a tag prefix (e.g. "jl", "l", "mm") and seeds a
+// per-group counter sync.Map via keycodec.SeedSeqMax. With wholeGroup the
+// group is everything between tag and seq ("sl" uses "col\x00sid"); otherwise
+// it is only the first segment (collection name).
+func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map, wholeGroup bool) error {
 	iter, err := e.newPrefixIter([]byte(tag + sep))
 	if err != nil {
 		return err
@@ -49,94 +49,13 @@ func (e *pebbleEngine) seedCollectionSeqs(tag string, target *sync.Map) error {
 	tagLen := len(tag + sep)
 
 	for iter.First(); iter.Valid(); iter.Next() {
-		key := iter.Key()
-		group, seq, ok := extractGroupAndSeq(key, tagLen)
+		group, seq, ok := keycodec.SplitGroupAndSeq(iter.Key(), tagLen, wholeGroup)
 		if !ok {
 			continue
 		}
 
-		seedSyncMapMax(target, group, seq)
+		keycodec.SeedSeqMax(target, group, seq)
 	}
 
 	return iter.Error()
-}
-
-// seedMultimapSeqs scans the mm\x00 prefix and seeds mmSeq counters.
-// The mmSeq counter is keyed by collection name only (not collection+key).
-func (e *pebbleEngine) seedMultimapSeqs() error {
-	tag := "mm"
-	iter, err := e.newPrefixIter([]byte(tag + sep))
-	if err != nil {
-		return err
-	}
-
-	defer metaengine.DeferClose(iter)
-
-	tagLen := len(tag + sep)
-
-	for iter.First(); iter.Valid(); iter.Next() {
-		key := iter.Key()
-		if len(key) < tagLen+22 {
-			continue
-		}
-
-		rest := key[tagLen:]
-		nulIdx := bytes.IndexByte(rest, 0)
-		if nulIdx < 0 {
-			continue
-		}
-
-		col := string(rest[:nulIdx])
-
-		if key[len(key)-21] != 0 {
-			continue
-		}
-
-		seq, err := strconv.ParseInt(string(key[len(key)-20:]), 10, 64)
-		if err != nil {
-			continue
-		}
-
-		seedSyncMapMax(&e.mmSeq, col, seq)
-	}
-
-	return iter.Error()
-}
-
-// extractGroupAndSeq parses a Pebble key into its group identifier and seq.
-// prefixLen is the number of bytes to strip from the front (tag + sep).
-// The seq is always the last 20 zero-padded digits, preceded by a \x00.
-func extractGroupAndSeq(key []byte, prefixLen int) (string, int64, bool) {
-	if len(key) < prefixLen+22 {
-		return "", 0, false
-	}
-
-	if key[len(key)-21] != 0 {
-		return "", 0, false
-	}
-
-	seq, err := strconv.ParseInt(string(key[len(key)-20:]), 10, 64)
-	if err != nil {
-		return "", 0, false
-	}
-
-	return string(key[prefixLen : len(key)-21]), seq, true
-}
-
-// seedSyncMapMax seeds a sync.Map (storing *atomic.Int64) to at least seq.
-// Uses CAS loop to handle concurrent seeding (shouldn't happen, but safe).
-func seedSyncMapMax(m *sync.Map, key string, seq int64) {
-	actual, _ := m.LoadOrStore(key, new(atomic.Int64))
-	counter := actual.(*atomic.Int64)
-
-	for {
-		existing := counter.Load()
-		if existing >= seq {
-			return
-		}
-
-		if counter.CompareAndSwap(existing, seq) {
-			return
-		}
-	}
 }

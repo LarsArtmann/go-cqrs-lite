@@ -68,6 +68,8 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				checkDotImports(ctx, gf, &out)
+
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					sel, ok := n.(*ast.SelectorExpr)
 					if !ok {
@@ -110,6 +112,59 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return out, nil
 		},
 	)
+}
+
+// checkDotImports flags dot-imports of go-cqrs-lite modules (F090). A
+// dot-import leaves v5-removed-API references qualifier-less, so the
+// selector-based checks below cannot attribute them — flagging the import
+// itself closes that hole with a message that teaches the fix. The finding
+// fires on any go-cqrs-lite module, not just removed ones: the hole exists
+// the moment the import is dot-shaped, and dot-importing library internals
+// is rare and already discouraged.
+func checkDotImports(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile, out *[]finding.Finding) {
+	for _, imp := range gf.AST.Imports {
+		if imp == nil || imp.Name == nil || imp.Name.Name != "." || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+		module, ok := cqrsModuleOf(path)
+		if !ok {
+			continue
+		}
+
+		*out = append(*out, v007DotImportFinding(ctx, imp, module, path))
+	}
+}
+
+// v007DotImportFinding builds the F090 finding for one dot-import spec.
+func v007DotImportFinding(
+	ctx *analyzer.AnalysisContext,
+	imp *ast.ImportSpec,
+	module, path string,
+) finding.Finding {
+	pos := ctx.Fset.Position(imp.Pos())
+
+	f, _ := finding.NewBuilder(
+		"V007",
+		"cqrs-lint",
+		fmt.Sprintf(
+			"dot-import of go-cqrs-lite module %s hides v5-removed-API usage from this linter — name the import",
+			module,
+		),
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryBestPractice).
+		WithConfidence(finding.ConfidenceHigh).
+		WithSuggestion(fmt.Sprintf(
+			"Replace the dot-import of %s with a named or default import so V007 can attribute removed-API usage",
+			path,
+		)).
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+		Build()
+
+	return f
 }
 
 // v007Finding builds one V007 finding for the given selector position.

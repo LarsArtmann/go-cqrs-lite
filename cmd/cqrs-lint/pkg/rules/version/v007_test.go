@@ -220,3 +220,44 @@ var _ = bench.Something
 	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
 	ruletest.AssertRule(t, findings, "V007", 0)
 }
+
+func TestV007_DetectsDotImport(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import . "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
+func main() {
+	_, _ = New("file:db.sqlite")
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+}
+
+func TestV007_DotImportOnNonCQRSPackageIsSilent(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import . "strings"
+
+func main() {
+	_ = Title("x")
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 0)
+}
+
+func TestV007_DotImportOnSurvivingModuleStillFires(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import . "github.com/larsartmann/go-cqrs-lite/event/v4"
+`,
+	})
+	findings := ruletest.RunDetector(t, NewV007Detector(ctx))
+	ruletest.AssertRule(t, findings, "V007", 1)
+}
