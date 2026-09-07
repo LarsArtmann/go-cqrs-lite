@@ -81,7 +81,13 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true // method call on a value, not a package ref
 					}
 
-					path, ok := resolveQualifier(gf.AST, ident.Name)
+					// F091 Tier 1: resolve the qualifier through the type checker
+					// first (exact, shadow-proof); fall back to the import-table
+					// scan when type info is unavailable (broken builds).
+					path, ok := analyzer.ResolveQualifierTyped(gf, ident)
+					if !ok {
+						path, ok = resolveQualifier(gf.AST, ident.Name)
+					}
 					if !ok {
 						return true
 					}

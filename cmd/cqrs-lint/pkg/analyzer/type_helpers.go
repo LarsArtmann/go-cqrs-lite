@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"go/ast"
+	"go/types"
 	"strings"
 
 	"golang.org/x/tools/go/packages"
@@ -47,4 +48,34 @@ func IsEventBusType(typeStr string) bool {
 // yes to preserve current behavior when types can't be resolved).
 func ReceiverIsEventBus(pkg *packages.Package, call *ast.CallExpr) bool {
 	return IsEventBusType(ReceiverTypeName(pkg, call))
+}
+
+// ResolveQualifierTyped resolves a package-qualifier identifier to its import
+// path through the type checker (F091 Tier 1). Where the import-table scan
+// string-matches a qualifier against import declarations, this asks the
+// compiler's own resolution: Uses[ident] must be the PkgName that the import
+// bound. Shadowed qualifiers (a local variable named like the package) stop
+// matching by construction, and the answer is exact for aliased and
+// versioned paths alike.
+//
+// Returns ok=false when type info is unavailable (non-compiling project —
+// the load fell back to syntax-only) or when ident does not reference a
+// package. Callers MUST keep their string-based fallback: partial results
+// must survive broken builds.
+func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (string, bool) {
+	if gf == nil || gf.Pkg == nil || gf.Pkg.TypesInfo == nil || ident == nil {
+		return "", false
+	}
+
+	obj, ok := gf.Pkg.TypesInfo.Uses[ident]
+	if !ok || obj == nil {
+		return "", false
+	}
+
+	pkgName, ok := obj.(*types.PkgName)
+	if !ok || pkgName.Imported() == nil {
+		return "", false
+	}
+
+	return pkgName.Imported().Path(), true
 }
