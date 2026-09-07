@@ -323,7 +323,15 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 			honest = append(honest, eng)
 		} else {
 			over = append(over, eng)
-			overDeclared = append(overDeclared, eng.Profile().Name)
+
+			// A documented capability gap (WithEngineCapabilityGaps) means
+			// the over-declaration is already known and tracked — the engine
+			// stays EXCLUDED from honest routing (the backend does not exist
+			// and execution would hard-error) but the plan does not
+			// re-announce the gap on every plan/replan.
+			if _, documented := pc.capabilityGaps[eng.Profile().Name][adt]; !documented {
+				overDeclared = append(overDeclared, eng.Profile().Name)
+			}
 		}
 	}
 
@@ -423,7 +431,9 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 // natively without implementing its backend. With an honest alternative the
 // over-declaration is a routing exclusion (DEGRADED); without one the
 // engine is still routed to (a fallback may serve it) and the warning makes
-// the execution-time hard-error risk visible at plan time.
+// the execution-time hard-error risk visible at plan time. The diagnostic
+// names the missing backend interface (e.g. metaengine.MapBackend) so the
+// fix points at the exact method surface to implement.
 func overDeclarationDiagnostics(
 	meta queryMeta,
 	overDeclared []string,
@@ -449,13 +459,26 @@ func overDeclarationDiagnostics(
 			Level: level,
 			Query: meta.QueryName(),
 			Message: fmt.Sprintf(
-				"engine(s) %s over-declare ADT %s (native claim, no backend) — %s",
+				"engine(s) %s over-declare ADT %s (native claim, missing %s) — %s",
 				names,
 				meta.QueryADT(),
+				missingBackendName(meta.QueryADT()),
 				action,
 			),
 		},
 	}
+}
+
+// missingBackendName names the structural interface an ADT's contract
+// requires (e.g. metaengine.MapBackend). Returns "backend" for ADTs without
+// a structural contract — overDeclarationDiagnostics never fires for those
+// (engineServesADTNatively trusts contract-less ADTs), so this is defensive.
+func missingBackendName(adt ADT) string {
+	if contract, ok := adtContracts[adt]; ok && contract.backend != nil {
+		return contract.backend.String()
+	}
+
+	return "backend"
 }
 
 func planDiagnostics(meta queryMeta, best rankedEngine, cfg QueryConfig) []Diagnostic {
