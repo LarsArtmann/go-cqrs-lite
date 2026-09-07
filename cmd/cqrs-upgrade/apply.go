@@ -62,9 +62,9 @@ func editGoMod(path string, bumps []bump) error {
 		return nil
 	}
 
-	for _, req := range mod.Require {
-		if v, ok := target[req.Mod.Path]; ok {
-			req.Mod.Version = v
+	for path, v := range target {
+		if err := mod.AddRequire(path, v); err != nil {
+			return fmt.Errorf("update %s: %w", path, err)
 		}
 	}
 
