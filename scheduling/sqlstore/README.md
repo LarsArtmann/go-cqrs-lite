@@ -95,13 +95,14 @@ Claiming store support matrix:
 | `NewClaimingMySQLStore[P](ctx, db, lease)`    | `FOR UPDATE SKIP LOCKED` + `UPDATE` by IDs (two statements, one tx) | MariaDB 11.4 (live) |
 
 MySQL/MariaDB version floor: the claim transaction uses
-`FOR UPDATE SKIP LOCKED` — MySQL 8.0+ and MariaDB 10.6+. There is NO
-construction-time version probe: older servers accept the store and fail
-loudly at the first `Due` call with a syntax error. This is the documented
-contract — probe your server version at deployment time if you need an
-earlier, clearer signal. `SKIP LOCKED` semantics (not just syntax) were
-verified live on MariaDB 11.4 (2026-09-06): a transaction holding row locks
-does not block a concurrent SKIP LOCKED claim of the remaining rows.
+`FOR UPDATE SKIP LOCKED` — MySQL 8.0.1+ and MariaDB 10.6.0+ (InnoDB;
+MDEV-13115). There is NO construction-time version probe: older servers
+accept the store and fail loudly at the first `Due` call with a syntax
+error. This is the documented contract — probe your server version at
+deployment time if you need an earlier, clearer signal. SKIP LOCKED
+semantics (not just syntax) were additionally verified live on MariaDB
+11.4 (2026-09-06): a transaction holding row locks does not block a
+concurrent SKIP LOCKED claim of the remaining rows.
 `ErrClaimingUnsupported` is a plain sentinel (`errors.Is` works) returned
 only for unknown SQL dialects.
 
