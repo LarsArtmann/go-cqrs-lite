@@ -3,6 +3,7 @@
 > **Contents** — jump to the recipe you need:
 >
 > - [§2.0 Bundle Presets](#20-bundle-presets--one-call-infrastructure-wiring) — one-call infrastructure wiring
+> - [§2.0b Framework lifecycle (go-appkit)](#20b-framework-style-lifecycle--go-appkit-cqrs-eventservice-external-module) — EventService on system.New
 > - [§2.1 Minimal Event Sourcing](#21-minimal-event-sourcing-event--command--decider--id--memory)
 > - [§2.2 Production Persistence](#22-production-persistence-storage-or-pebble)
 > - §2.3 Read Models → moved to [`readmodels.md`](readmodels.md) (projections, SQL views, CatchUpSubscriber, projection-tier selection)
@@ -191,6 +192,52 @@ fmt.Println(b.Debug())
 A ✗ on `Journal` or `SeekableJournal` means `CatchUpSubscriber` will fail.
 A ✗ on `ReadModels` means `stack.ReadModel` and `stack.NewMaterialize` will fail.
 Use this in tests to verify your preset configuration before deployment.
+
+### 2.0b Framework-style lifecycle — go-appkit `cqrs` EventService (external module)
+
+When you want projections/DLQ/metrics/health managed as a service lifecycle
+(appkit `Service` integration, graceful shutdown, readiness probes), use
+[github.com/larsartmann/go-appkit/cqrs](https://pkg.go.dev/github.com/larsartmann/go-appkit/cqrs)
+(v0.5.0+). It wraps `system.New` (NOT the deprecated stack presets) behind
+`EventService`:
+
+```go
+import (
+    appkitcqrs "github.com/larsartmann/go-appkit/cqrs"
+    _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // driver self-registers
+)
+
+es, err := appkitcqrs.NewEventService(appkitcqrs.EventConfig{
+    DSN:    "app.db",                   // or Driver: "memory"; or ConfigPath: "cqrs.yaml"
+    Logger: logger,                     // projection worker logs in one place
+    DLQ:    &appkitcqrs.DLQConfig{},    // default SQLite dead-letter store
+})
+if err != nil {
+    return err
+}
+defer func() { _ = es.Shutdown(ctx) }() // drains in-flight commands, stops projections, closes engines
+
+// Typed C/Q facade (wraps system.Register*/Dispatch):
+_ = appkitcqrs.RegisterDecider(es, "Task", TaskDecider)
+_ = appkitcqrs.RegisterCommand[*command.BasicCommand, TaskState](es, "task.create", handler)
+_ = appkitcqrs.RegisterQuery[TaskQuery, TaskView](es, "task.view", viewHandler)
+_ = es.Dispatch(ctx, cmd)
+view, _ := appkitcqrs.DispatchQueryChecked[TaskQuery, TaskView](ctx, es, 2*time.Second, q) // staleness-gated
+
+// Projections: register raw host projections, then start
+_ = es.Host().Register(myProjection)
+_ = es.StartProjections(ctx)
+
+// Readiness for /health/ready: NOT ready until StartProjections, then
+// live once workers catch up; flips back if a worker dies.
+cfg.ReadyCheck = es.ReadyCheck
+```
+
+Operator config file (G3): `EventConfig.ConfigPath: "cqrs.yaml"` loads the
+DeploymentConfig via `system.LoadConfig` — koanf YAML + `CQRS_` env overrides
+(`CQRS_ENGINES__PRIMARY__DRIVER=postgres`). Or pass a pre-loaded
+`EventConfig.Deployment`. Storage precedence: Deployment > ConfigPath >
+Driver/DSN/Pragmas.
 
 ### 2.1 Minimal Event Sourcing (event + command + decider + id + memory)
 

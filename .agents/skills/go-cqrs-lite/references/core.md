@@ -42,12 +42,13 @@ Query   → Dispatcher → Handler → Read Model
 | **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack`        |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` (delivery: `watermill/`, `go-sse`) |
 
-You do NOT need all of them. Start with the 30-second quickstart below, then use §1 to pick modules.
+You do NOT need all of them. Start with the 60-second quickstart below, then use §1 to pick modules.
 
-### 30-second quickstart — "Hello CQRS"
+### 60-second quickstart — "Hello CQRS" (composition root: `system.New`)
 
-The minimal loop: define state + events → wire infrastructure → execute → query. This is the
-complete example from `example/getting-started/main.go` distilled to its essence:
+**Default path: `system/v4`.** You declare Commands + Events + Queries and their folds;
+the operator picks engines in ONE place (`DeploymentConfig`). This is the complete loop
+from `example/getting-started/main.go` (runnable; SQLite via one line):
 
 ```go
 // 1. Define your domain (pure functions, no framework coupling)
@@ -60,36 +61,60 @@ func apply(s CounterState, evt event.Event) (CounterState, error) {
     return s, nil
 }
 
-// 2. Wire infrastructure (one call — swap memory→sqlite→pebble by changing ONE line)
-bundle, _ := stack.New(
-    stack.WithEventStore(memory.NewMemoryStore()),
-    stack.WithBus(cqrswatermill.NewEventBus()),
-    stack.WithReadModels(kv.NewMemStore()),
-    stack.WithCheckpointStore(memory.NewMemoryCheckpointStore()),
+// 2. Declare the read model as folds over events (metaengine Map query)
+query := metaengine.Query[counterLookup, CounterView]("counter_views",
+    metaengine.OnRecordTyped("counter.incremented",
+        projectionadapter.EventWithID[Incremented]{},
+        func(_ record.Record, e projectionadapter.EventWithID[Incremented]) (string, CounterView) {
+            return e.ID, CounterView{Value: e.Payload.Amount}
+        }),
 )
-defer bundle.Close()
+decoder := projectionadapter.NewTypeDecoder(
+    projectionadapter.Register("counter.incremented", Incremented{}))
 
-// 3. Create repository (load → fold → decide → save → publish in one call)
-repo, _ := stack.Repository(bundle, decider.Decider[CounterState]{
-    Initial: CounterState{}, Apply: apply,
-})
+// 3. Wire the composition root — engines are a DEPLOYMENT decision.
+//    Blank-import every driver you might deploy (here: sqlite) — they
+//    self-register via init(); a missing import fails with "unknown driver".
+deployment := system.DeploymentConfig{
+    Engines: map[string]system.EngineConfig{"primary": {Driver: "memory"}}, // or {Driver: "sqlite", DSN: "app.db"}
+    Instances: []system.InstanceConfig{
+        {Role: system.RoleSourceOfTruth, Engine: "primary"},
+        {Role: system.RoleProjections, Engine: "primary"},
+    },
+}
+domain := system.DomainConfig{
+    Commands: func(sys *system.System) {
+        _ = system.RegisterDecider(sys, "Counter", decider.Decider[CounterState]{Initial: CounterState{}, Apply: apply})
+        _ = system.RegisterCommand[IncrementCmd, CounterState](sys, "counter.increment",
+            func(ctx context.Context, cmd IncrementCmd) system.Op[CounterState] {
+                return system.Execute(ctx, cmd.StreamID(), "Counter",
+                    func(_ CounterState, v event.Version) ([]event.Event, error) {
+                        evt, _ := event.New("counter.incremented", cmd.StreamID(), "Counter", v.Increment(), Incremented{Amount: 5})
+                        return []event.Event{evt}, nil
+                    })
+            })
+    },
+    Projections:           []system.ProjectionDeclaration{system.RawQuery(query)},
+    ProjectionTypeDecoder: decoder,
+}
+sys, err := system.New(ctx, domain, deployment)
+defer sys.Close()
 
-// 4. Execute commands — events are sourced and published
-ctx := context.Background()
-aggID := id.NewStreamID()
-_ = repo.Execute(ctx, aggID, "Counter", func(_ CounterState, v event.Version) ([]event.Event, error) {
-    evt, _ := event.New("counter.incremented", aggID, "Counter", v.Increment(), Incremented{Amount: 5})
-    return []event.Event{evt}, nil
-})
+// 4. Start projections, execute commands — events are sourced + projected
+_ = sys.ProjectionHost().Start(ctx)
+_ = sys.CommandDispatcher().Dispatch(ctx, cmd)
 
-// 5. Query the materialized view (projection not shown — see example/getting-started)
-//    view, _ := mat.View(ctx, aggID)
-//    fmt.Println(view.Value) // 5
+// 5. Query the read model (typed reader over the metaengine collection)
+reader := metaengine.NewReader[CounterView](sys.MetaEngine(), "counter_views")
+view, found, _ := reader.Get(ctx, counterID.String()) // Value: 5
 ```
 
-Swap `memory.NewMemoryStore()` → `sqlite.New("app.db")` → `pebble.New("./data")` for persistence.
-**The domain code doesn't change.** See `example/getting-started/` for the full runnable version
-with projection + read model.
+**The domain code never changes when the operator swaps engines** — memory → sqlite →
+postgres → pebble is one `EngineConfig` line plus the driver's blank import. The
+deprecated `stack.New` presets still compile until v5 but are NOT the recommended
+surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
+(health/DLQ/metrics managed for you), see the go-appkit `cqrs` EventService recipe in
+[recipes.md](recipes.md).
 
 ---
 

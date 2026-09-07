@@ -26,6 +26,7 @@
 > - [KeysetPositionQuery empty string](#why-does-storagesqlkeysetpositionquery-return-an-empty-string-for-a-bad-table-name)
 > - [Planned-collection scan misses meta_map rows](#my-planned-collection-scan-doesnt-see-rows-that-exist-in-meta_map)
 > - [Will the v5 cut break my imports?](#will-the-v5-cut-break-my-imports-what-is-going-away)
+> - [stack vs system — which composition layer?](#stack-vs-system--which-composition-layer-should-i-import)
 
 ### "My event payload won't decode"
 
@@ -307,6 +308,25 @@ Nothing in the tier-0/1 core (`id`, `record`, `event`, `command`, `query`,
 `decider`, `metaengine`) is removed at v5 beyond the tombstone metadata
 surface above; v5 renames (`StreamRef` → `StreamKey`, stricter constructors)
 are migration-guide items, not deletions.
+
+## stack vs system — which composition layer should I import?
+
+**`system/v4` — full stop, for new code.** The `stack/` presets (Bundle,
+`stack/sqlite`, `RunProjections`, ...) are deprecated and removed at v5
+(ADR-0123); importing them today hands your consumers the same v5 cliff.
+
+- **`system.New(ctx, DomainConfig, DeploymentConfig)`** is the composition
+  root: you declare Commands + Events + Queries + folds; the operator declares
+  engines, buses, instances, durability in `DeploymentConfig` (loadable from
+  YAML via `system.LoadConfig`). Swap engines at deployment time without
+  touching domain code.
+- **`stack.New`/`stack/sqlite.New`** still compile through v4.x, and a few
+  recipes here show them only where the API genuinely has no system
+  equivalent yet — treat those as migration inputs, not recommendations.
+- **Framework-style lifecycle** (readiness probes, DLQ admin, OTel metrics,
+  graceful drain wired for you): use `go-appkit/cqrs` v0.5.0+ `EventService`,
+  which wraps `system.New` — see [recipes.md](recipes.md) §2.0b. It is the
+  fastest "full stack, latest features" on-ramp.
 
 ### "My planned-collection scan doesn't see rows that exist in meta_map"
 
