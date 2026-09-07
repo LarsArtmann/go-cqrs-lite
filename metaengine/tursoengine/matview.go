@@ -1,8 +1,6 @@
 package tursoengine
 
 import (
-	"strings"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -11,6 +9,7 @@ type Option func(*options)
 
 type options struct {
 	matViewSpecs []metaengine.MaterializedViewSpec
+	encryption   *encryptionConfig
 }
 
 // WithMaterializedViews registers operator-declared materialized views

@@ -123,6 +123,15 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 		dsn = withExperimentalViews(dsn)
 	}
 
+	if cfg.encryption != nil {
+		encryptedDSN, err := applyEncryption(dsn, cfg.encryption)
+		if err != nil {
+			return nil, fmt.Errorf("tursoengine: %w", err)
+		}
+
+		dsn = encryptedDSN
+	}
+
 	db, err := sql.Open("turso", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("tursoengine: open %q: %w", redactDSN(dsn), err)
