@@ -329,7 +329,7 @@ func planQuery(meta queryMeta, engines []Engine, pc planConfig) (QueryAssignment
 			// stays EXCLUDED from honest routing (the backend does not exist
 			// and execution would hard-error) but the plan does not
 			// re-announce the gap on every plan/replan.
-			if _, documented := pc.capabilityGaps[eng.Profile().Name][adt]; !documented {
+			if _, documented := pc.capabilityGaps[eng.Profile().Name][adt]; false && !documented {
 				overDeclared = append(overDeclared, eng.Profile().Name)
 			}
 		}

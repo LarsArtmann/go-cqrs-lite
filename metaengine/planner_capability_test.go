@@ -67,6 +67,10 @@ func TestPlan_OverDeclaredEngineExcluded(t *testing.T) {
 	for _, d := range assignment.Diagnostics {
 		if d.Level == DiagLevelDegraded && strings.Contains(d.Message, "over-declare ADT map") {
 			found = true
+
+			if !strings.Contains(d.Message, "metaengine.MapBackend") {
+				t.Fatalf("diagnostic must name the missing backend interface: %q", d.Message)
+			}
 		}
 	}
 
@@ -243,5 +247,148 @@ func TestCheckRouting_NeverSuggestsOverDeclaredEngine(t *testing.T) {
 
 	if diag != nil {
 		t.Fatalf("routing check suggested an alternative despite the liar being the only cheaper engine: %+v", diag)
+	}
+}
+
+// TestPlan_DocumentedCapabilityGap_SuppressesDiagnostic proves the gap
+// contract: an over-declaration documented via WithEngineCapabilityGaps is
+// still EXCLUDED from honest routing (the backend does not exist) but no
+// longer re-announced as a diagnostic on every plan.
+func TestPlan_DocumentedCapabilityGap_SuppressesDiagnostic(t *testing.T) {
+	t.Parallel()
+
+	honest := NewMemoryEngine()
+
+	store, err := Plan(
+		[]Engine{newLyingEngine("liar"), honest},
+		WithEngineCapabilityGaps(map[string]CapabilityGaps{
+			"liar": {ADTMap: "tracked in TODO_LIST: MapBackend landing in v5 wave"},
+		}),
+		capabilityQuery(),
+	)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	assignment := store.Plan().Queries[0]
+	if assignment.EngineName != honest.Profile().Name {
+		t.Fatalf("routed to %q, want honest engine %q (a documented gap must not re-enable a lying engine)",
+			assignment.EngineName, honest.Profile().Name)
+	}
+
+	for _, d := range assignment.Diagnostics {
+		if strings.Contains(d.Message, "over-declare") {
+			t.Fatalf("documented gap must suppress the diagnostic: %+v", d)
+		}
+	}
+}
+
+// TestPlan_DocumentedCapabilityGap_FallbackStillRoutedSilently proves the
+// gap suppression on the WARN path: with only a lying engine whose gap is
+// documented, the query is still routed (a fallback may serve it) but the
+// known gap is not re-warned.
+func TestPlan_DocumentedCapabilityGap_FallbackStillRoutedSilently(t *testing.T) {
+	t.Parallel()
+
+	store, err := Plan(
+		[]Engine{newLyingEngine("liar")},
+		WithEngineCapabilityGaps(map[string]CapabilityGaps{
+			"liar": {ADTMap: "accepted: fallback projection serves reads"},
+		}),
+		capabilityQuery(),
+	)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	if got := store.Plan().Queries[0].EngineName; got != "liar" {
+		t.Fatalf("routed to %q, want the only candidate %q", got, "liar")
+	}
+
+	for _, d := range store.Plan().Queries[0].Diagnostics {
+		if strings.Contains(d.Message, "over-declare") {
+			t.Fatalf("documented gap must suppress the diagnostic: %+v", d)
+		}
+	}
+}
+
+// TestReplan_DocumentedGap_StaysSilent proves gaps persist across Replan:
+// the suppression survives re-planning (Store carries the gap map and re-threads
+// it into every planConfig), so operators document a gap once, not per replan.
+func TestReplan_DocumentedGap_StaysSilent(t *testing.T) {
+	t.Parallel()
+
+	store, err := Plan(
+		[]Engine{newLyingEngine("liar")},
+		WithEngineCapabilityGaps(map[string]CapabilityGaps{
+			"liar": {ADTMap: "tracked backlog item"},
+		}),
+		capabilityQuery(),
+	)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	if err := store.Replan(context.Background()); err != nil {
+		t.Fatalf("Replan: %v", err)
+	}
+
+	for _, d := range store.Plan().Queries[0].Diagnostics {
+		if strings.Contains(d.Message, "over-declare") {
+			t.Fatalf("gap must stay silent after Replan: %+v", d)
+		}
+	}
+}
+
+// namedEngines returns two fresh, structurally identical honest engines with
+// distinct profile names (memoryEngine.name is a test-only override point).
+func namedEngines(first, second string) (Engine, Engine) {
+	a, ok := NewMemoryEngine().(*memoryEngine)
+	if !ok {
+		panic("NewMemoryEngine returned non-memoryEngine")
+	}
+
+	b, ok := NewMemoryEngine().(*memoryEngine)
+	if !ok {
+		panic("NewMemoryEngine returned non-memoryEngine")
+	}
+
+	a.name = first
+	b.name = second
+
+	return a, b
+}
+
+// TestPlan_EqualLatencyTieBreakIsDeterministic pins the tie-break contract:
+// two structurally identical honest candidates produce exactly equal weighted
+// latencies, and the winner is deterministic — the stable sort preserves
+// candidate input order instead of flipping with map iteration or sort
+// instability. Also proves the winner follows input order (reversing the
+// engines flips the winner), so the test is sensitive to regressions.
+func TestPlan_EqualLatencyTieBreakIsDeterministic(t *testing.T) {
+	t.Parallel()
+
+	a, b := namedEngines("alpha", "beta")
+
+	const planRounds = 5
+
+	for i := 0; i < planRounds; i++ {
+		store, err := Plan([]Engine{a, b}, capabilityQuery())
+		if err != nil {
+			t.Fatalf("Plan round %d: %v", i, err)
+		}
+
+		if got := store.Plan().Queries[0].EngineName; got != "alpha" {
+			t.Fatalf("round %d: tie broken to %q, want input-order-stable %q", i, got, "alpha")
+		}
+	}
+
+	store, err := Plan([]Engine{b, a}, capabilityQuery())
+	if err != nil {
+		t.Fatalf("Plan reversed: %v", err)
+	}
+
+	if got := store.Plan().Queries[0].EngineName; got != "beta" {
+		t.Fatalf("reversed input routed to %q, want %q (winner must follow input order)", got, "beta")
 	}
 }
