@@ -77,14 +77,15 @@ declared by the OPERATOR, not the developer.
 - v1 scope limits: `meta_map` (standard-path) collections only; planned-table
   acceleration would need view creation to be ordered with `ApplyLayout`
   (and backfill semantics) — deferred until a deployment needs it.
-- Upstream constraint (turso-go v0.7.2, repro verified): COMMIT of
-  transactions that maintain materialized views fails deterministically
-  once a process has written ~27k view-maintained rows ("no transaction is
-  active"); smaller shapes fail probabilistically near the boundary. Keep
-  cumulative view-maintained writes per process under that ceiling — chunk
-  transactions to ≤ ~1k statements AND rotate process/file beyond the
-  budget. See AGENTS.md and the upstream issue draft
-  (`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`).
+- Upstream constraints (turso-go v0.7.2 and v0.8.0-pre.8, repros verified;
+  see AGENTS.md and `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`):
+  (1) GROUPED views return silently wrong SUMs once a group is updated by a
+  second transaction — grouped specs are unsafe beyond one transaction's
+  rows until upstream fixes; SCALAR views stayed exact in every test and are
+  the recommended shape today. (2) COMMIT of view-maintaining transactions
+  fails deterministically from ~27k cumulative view-maintained rows per
+  process ("no transaction is active", PR #8257); keep cumulative
+  view-maintained writes per process under that ceiling.
 
 ## Alternatives considered
 

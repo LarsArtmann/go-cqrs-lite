@@ -64,6 +64,17 @@ low-load repeat isolates the CPU+IO cost: **each maintained view adds a fixed
 collection size. Guidance: declare views for hot aggregates only; a
 write-heavy collection with three rollup views pays ~3× the base write cost.
 
+## CORRECTNESS WARNING (upstream turso-go v0.7.2 AND v0.8.0-pre.8, verified 2026-09-07)
+
+**GROUPED materialized views return silently wrong SUMs once a group is
+updated by a second transaction** — exact within one transaction, then
+diverging (3 of 316 groups each ~half-wrong at 2k rows; view total 496,034
+vs true 1,308,429 at 27k rows while reads succeed). **The grouped
+benchmark numbers below measure SPEED, not currently-correct results at
+>1k rows.** Scalar SUM views stayed exact in every test. Full
+characterization + repro:
+`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
+
 ## Known constraints (upstream turso-go v0.7.2)
 
 - COMMIT of transactions that maintain materialized views fails

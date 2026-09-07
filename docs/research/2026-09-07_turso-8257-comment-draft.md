@@ -23,15 +23,23 @@ fix.
 - 1 grouped `SUM(json_extract(...))` matview, 316 groups, 50k rows written
   in 1k-statement transactions → **COMMIT fails deterministically at
   exactly 27,000 cumulative view-maintained rows** (chunks 1–26 commit,
-  chunk 27 aborts; **24/24 rounds across 2 fresh processes** at the same
-  chunk). Error: `turso: error: Transaction error: cannot commit - no
-  transaction is active`.
-- **Both v0.7.2 and v0.8.0-pre.8** reproduce.
+  chunk 27 aborts; **24/24 rounds across 2 fresh processes on v0.7.2**,
+  12/12 on v0.8.0-pre.8, always at the same chunk). Error: `turso: error:
+  Transaction error: cannot commit - no transaction is active`.
 - Plain tables (no views) never fail at any size; ≤1k view-maintained rows
   never fails; grouped views fail earlier than scalar; prior scan-heavy
   activity in the process shrinks the budget.
-- All 1,000 statements of the failing transaction report success; data is
-  never corrupted (clean rollback).
+- All 1,000 statements of the failing transaction report success; the base
+  table matches the committed transactions afterward (no partial
+  persistence of the aborted chunk).
+- **Separately, and independent of any commit failure: grouped SUM views
+  return silently wrong results once a group is updated by a second
+  transaction** (first transaction: exact; from the second on, groups
+  spanning multiple transactions lose part of their delta — e.g. at 2k
+  rows, 3 of 316 groups each miss ~half their sum; by 27k rows the view
+  reports 496,034 vs a true 1,308,429 while reads succeed). Scalar SUM
+  views stayed exact in all our tests. Details + per-group diff in the
+  linked draft.
 
 **Scope question:** your description says a *creating-connection* merge
 "completes without I/O" and is unaffected. Our repro **creates the views in
@@ -42,7 +50,7 @@ cover that case? Our repro is deterministic (12/12 rounds at the same
 chunk) and should work as a regression test either way.
 
 <details>
-<summary>Self-contained repro (verified: 12/12 rounds fail at chunk 27000)</summary>
+<summary>Self-contained repro (verified: 3/3 fresh processes fail at chunk 27000 on v0.8.0-pre.8; 12-round variant: 24/24 on v0.7.2)</summary>
 
 ```go
 package main

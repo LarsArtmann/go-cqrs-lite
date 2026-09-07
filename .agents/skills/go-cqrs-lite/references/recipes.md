@@ -1870,6 +1870,12 @@ eng, err := tursoengine.New(dsn,
     }))
 ```
 
+**⚠ Upstream correctness limit (2026-09-07, tursogo v0.7.2 + v0.8.0-pre.8):
+grouped views return SILENTLY WRONG SUMs once a group is updated by a
+second transaction** (verified: diverges from 2 transactions on, collapses
+at ~27k rows; scalar views exact). Until upstream fixes this, declare
+SCALAR views only — grouped specs are unsafe beyond one transaction's rows.
+
 **What gets accelerated.** Unfiltered scalar aggregates (SUM/COUNT/MIN/MAX/
 AVG) and unfiltered grouped aggregates whose shape matches a declared view.
 Scalar views are single-row (O(1) reads); grouped views are O(groups). A
