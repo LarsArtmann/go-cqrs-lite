@@ -2216,7 +2216,7 @@ func TestRun_SystemBacked(t *testing.T) {
 	// The adapter leaves bundle ReadModels nil: read-model phases must be
 	// recorded as skips, proving the runner's capability honesty carries over.
 	skipped := strings.Join(result.SkippedPhases, ",")
-	if !strings.Contains(skipped, "read-model") {
+	if !strings.Contains(skipped, "read model") {
 		t.Errorf("expected read-model phase skipped for system backend, skipped=%q", skipped)
 	}
 }

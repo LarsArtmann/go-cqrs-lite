@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
@@ -49,21 +48,16 @@ func AdaptSystem(sys *system.System) (*stack.Bundle, error) {
 		return nil, ErrSystemEventStoreMissing
 	}
 
-	bundle, err := stack.New(stack.WithCloser(&closerFunc{fn: sys.Close}))
+	// WithEventStore anchors the bundle's required capability AND registers
+	// the store's Journal/SeekableJournal/BackwardsSource capabilities via
+	// the same detection the preset path uses; the closer keeps system
+	// lifetime tied to bundle lifetime.
+	bundle, err := stack.New(
+		stack.WithEventStore(store),
+		stack.WithCloser(&closerFunc{fn: sys.Close}),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("bundle for system adapter: %w", err)
-	}
-
-	bundle.EventSink = store
-	bundle.EventSource = store
-
-	if journal, ok := store.(event.SeekableJournal); ok {
-		bundle.Journal = journal
-		bundle.SeekableJournal = journal
-	}
-
-	if backwards, ok := store.(event.BackwardsSource); ok {
-		bundle.BackwardsSource = backwards
 	}
 
 	bundle.Publisher = sys.Publisher()
