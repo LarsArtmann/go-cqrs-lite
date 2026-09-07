@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -18,6 +19,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 // parallelTimeoutCtx marks the test as parallel and returns a context that
@@ -2176,4 +2178,53 @@ func extractTopLevelKeys(t *testing.T, jsonStr string) []string {
 	}
 
 	return keys
+}
+
+// TestRun_SystemBacked pins the system adapter end-to-end: a system.New
+// deployment (memory engine + source-of-truth/projections instances) runs the
+// full benchkit suite through FactoryFromSystem. Read-model phases skip with
+// recorded warnings (system read models live in metaengine, not bundle kv).
+func TestRun_SystemBacked(t *testing.T) {
+	t.Parallel()
+
+	result := mustRun(t, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 128,
+		Warmup:      1,
+	}, FactoryFromSystem(func(ctx context.Context) (*system.System, error) {
+		deployment := system.DeploymentConfig{
+			Engines: map[string]system.EngineConfig{
+				"primary": {Driver: "memory"},
+			},
+			Instances: []system.InstanceConfig{
+				{Role: system.RoleSourceOfTruth, Engine: "primary"},
+				{Role: system.RoleProjections, Engine: "primary"},
+			},
+		}
+
+		return system.New(ctx, system.DomainConfig{}, deployment)
+	}))
+
+	if result.TotalEvents != ProfileDev.TotalEvents() {
+		t.Errorf("TotalEvents = %d, want %d", result.TotalEvents, ProfileDev.TotalEvents())
+	}
+
+	if result.WriteLatency.Count == 0 {
+		t.Error("WriteLatency.Count is 0, expected nonzero")
+	}
+
+	// The adapter leaves bundle ReadModels nil: read-model phases must be
+	// recorded as skips, proving the runner's capability honesty carries over.
+	skipped := strings.Join(result.SkippedPhases, ",")
+	if !strings.Contains(skipped, "read-model") {
+		t.Errorf("expected read-model phase skipped for system backend, skipped=%q", skipped)
+	}
+}
+
+func TestAdaptSystem_NilSystem(t *testing.T) {
+	t.Parallel()
+
+	if _, err := AdaptSystem(nil); !errors.Is(err, ErrNilSystem) {
+		t.Errorf("expected ErrNilSystem, got %v", err)
+	}
 }

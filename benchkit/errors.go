@@ -28,6 +28,19 @@ var (
 		"factory returned nil bundle",
 	)
 
+	// ErrNilSystem is returned by AdaptSystem for a nil *system.System.
+	ErrNilSystem = errorfamily.NewInfrastructure(
+		"benchkit.nil_system",
+		"adapted nil system",
+	)
+
+	// ErrSystemEventStoreMissing is returned when a system.System has no
+	// event store wired (no source-of-truth instance).
+	ErrSystemEventStoreMissing = errorfamily.NewInfrastructure(
+		"benchkit.system_event_store_missing",
+		"system has no event store",
+	)
+
 	// ErrIncompleteBundle is returned when the Bundle is missing required
 	// capabilities (EventSink or EventSource).
 	ErrIncompleteBundle = errorfamily.NewInfrastructure(
