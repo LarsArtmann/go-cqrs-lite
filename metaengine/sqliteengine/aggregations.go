@@ -9,6 +9,8 @@ import (
 )
 
 // Aggregate pushes the aggregate function into SQL, returning a single scalar.
+// Unfiltered scalar aggregates on unplanned collections are served from
+// operator-declared materialized views when one covers the shape (Turso IVM).
 func (e *sqliteEngine) Aggregate(
 	ctx context.Context,
 	col string,
@@ -18,6 +20,12 @@ func (e *sqliteEngine) Aggregate(
 ) (float64, error) {
 	if plan, ok := e.plans[col]; ok {
 		return e.aggregatePlanned(ctx, plan, fn, column, filters)
+	}
+
+	if len(filters) == 0 {
+		if v, served, err := e.serveScalarMatView(ctx, col, fn, column); served {
+			return v, err
+		}
 	}
 
 	return e.aggregateStandard(ctx, col, fn, column, filters)

@@ -107,6 +107,20 @@ func (e *sqliteEngine) ExplainAggregateQuery(
 		planned = true
 	}
 
+	// Mirror the serving path: unfiltered scalar/grouped aggregates on
+	// unplanned collections may be served from a materialized view.
+	if !planned && len(opts.Filters) == 0 && len(opts.Specs) == 0 && opts.Distinct == "" {
+		if mv := e.matViewExact(collection, opts.Fn, opts.Column, opts.GroupBy); mv != nil {
+			return e.matViewExplainSQL(opts.Fn, mv, opts.GroupBy != ""), nil
+		}
+
+		if opts.GroupBy == "" {
+			if gv := e.matViewGrouped(collection, opts.Fn, opts.Column); gv != nil {
+				return e.matViewExplainSQL(opts.Fn, gv, false), nil
+			}
+		}
+	}
+
 	var b strings.Builder
 
 	args := []any{}

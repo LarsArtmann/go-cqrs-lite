@@ -33,6 +33,12 @@ func (e *sqliteEngine) GroupedAggregate(
 		return e.groupedAggregatePlanned(ctx, plan, fn, column, groupBy, filters)
 	}
 
+	if len(filters) == 0 {
+		if mv := e.matViewExact(col, fn, column, groupBy); mv != nil {
+			return e.matViewGroupedAgg(ctx, mv)
+		}
+	}
+
 	return e.groupedAggregateStandard(ctx, col, fn, column, groupBy, filters)
 }
 
@@ -459,4 +465,5 @@ var (
 	_ metaengine.MultiAggregateReader        = (*sqliteEngine)(nil)
 	_ metaengine.MultiGroupedAggregateReader = (*sqliteEngine)(nil)
 	_ metaengine.DistinctReader              = (*sqliteEngine)(nil)
+	_ metaengine.MaterializedViewsReporter   = (*sqliteEngine)(nil)
 )

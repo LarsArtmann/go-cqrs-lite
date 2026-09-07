@@ -94,9 +94,25 @@ func redactDSN(dsn string) string {
 // When the DSN is a remote URL (libsql://, https://), the engine declares a
 // same-datacenter RTT prior via calibration so the cost-based planner accounts
 // for network latency.
-func New(dsn string) (metaengine.Engine, error) {
+func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 	if dsn == "" {
 		dsn = ":memory:"
+	}
+
+	var cfg options
+
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	if len(cfg.matViewSpecs) > 0 {
+		for _, spec := range cfg.matViewSpecs {
+			if err := spec.Validate(); err != nil {
+				return nil, fmt.Errorf("tursoengine: %w", err)
+			}
+		}
+
+		dsn = withExperimentalViews(dsn)
 	}
 
 	db, err := sql.Open("turso", dsn)
@@ -106,7 +122,7 @@ func New(dsn string) (metaengine.Engine, error) {
 
 	db.SetMaxOpenConns(1)
 
-	eng, err := sqliteengine.NewSQLiteEngine(db) //nolint:contextcheck,wrapcheck // takes *sql.DB
+	eng, err := sqliteengine.NewSQLiteEngine(db, sqliteengine.WithMaterializedViews(cfg.matViewSpecs)) //nolint:contextcheck,wrapcheck // takes *sql.DB
 	if err != nil {
 		_ = db.Close()
 
@@ -149,7 +165,9 @@ func init() {
 				return nil, err
 			}
 
-			return New(cfg.DSN) //nolint:contextcheck // constructor doesn't take ctx
+			opts := []Option{WithMaterializedViews(cfg.MaterializedViews)}
+
+			return New(cfg.DSN, opts...) //nolint:contextcheck // constructor doesn't take ctx
 		},
 	)
 }
