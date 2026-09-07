@@ -221,7 +221,11 @@ func TestApplyBatch_SyntheticRecord_Counted(t *testing.T) {
 
 	events := []EventInput{
 		{Type: "recordContextEvent", Payload: recordContextEvent{TaskID: "t1"}},
-		{Type: "recordContextEvent", Payload: recordContextEvent{TaskID: "t2"}, Record: record.Record{Type: "recordContextEvent"}},
+		{
+			Type:    "recordContextEvent",
+			Payload: recordContextEvent{TaskID: "t2"},
+			Record:  record.Record{Type: "recordContextEvent"},
+		},
 	}
 
 	if err := store.ApplyBatch(ctx, events); err != nil {

@@ -37,9 +37,8 @@ fix.
   transaction** (first transaction: exact; from the second on, groups
   spanning multiple transactions lose part of their delta — e.g. at 2k
   rows, 3 of 316 groups each miss ~half their sum; by 27k rows the view
-  reports 496,034 vs a true 1,308,429 while reads succeed). Scalar SUM
-  views stayed exact in all our tests. Details + per-group diff in the
-  linked draft.
+  reports 496,034 vs a true 1,308,429 while reads succeed; scalar SUM
+  views stayed exact in all our tests).
 
 **Scope question:** your description says a *creating-connection* merge
 "completes without I/O" and is unaffected. Our repro **creates the views in
@@ -127,7 +126,8 @@ func main() {
 }
 ```
 
-Full characterization table (view count / group count / scan-pressure
-sensitivity): [go-cqrs-lite issue draft](https://github.com/LarsArtmann/go-cqrs-lite/blob/1c9f3bf33c002060fd563c3853edb7fb1a4923e5/docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md)
-(SHA-pinned permalink — immutable snapshot).
+Full commit-abort characterization (shape/view-count/scan-pressure
+sensitivity table):
+[go-cqrs-lite research draft](https://github.com/LarsArtmann/go-cqrs-lite/blob/1c9f3bf33c002060fd563c3853edb7fb1a4923e5/docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md)
+(SHA-pinned permalink).
 </details>

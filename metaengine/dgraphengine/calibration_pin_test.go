@@ -36,7 +36,7 @@ func TestRealProfile_ReadCostsPinned(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := eng.Profile().NsForRead(tt.pattern); got != tt.want {
 				t.Errorf(
-					"NsForRead(%s) = %.0f, want %.0f — a recalibration moved this constant; update this pin in the same commit with fresh bench medians",
+					"NsForRead(%s) = %.0f, want %.0f — recalibrated constant moved; refresh the pin with fresh medians",
 					tt.pattern, got, tt.want,
 				)
 			}
