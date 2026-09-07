@@ -182,15 +182,9 @@ func (e *sqliteEngine) matViewScalarViaGrouped(ctx context.Context, mv *matView)
 		expr = "MAX(agg)"
 	}
 
-	var raw any
-
-	query := fmt.Sprintf("SELECT %s FROM %s", expr, metaengine.QuoteIdent(mv.name))
-
-	if err := e.xd().QueryRowContext(ctx, query).Scan(&raw); err != nil {
-		return 0, fmt.Errorf("matview scalar derivation %s(%s): %w", mv.spec.Fn, mv.spec.Column, err)
-	}
-
-	return metaengine.DecodeFloat(raw)
+	return e.matViewScanScalar(ctx,
+		fmt.Sprintf("SELECT %s FROM %s", expr, metaengine.QuoteIdent(mv.name)),
+		fmt.Sprintf("matview scalar derivation %s(%s)", mv.spec.Fn, mv.spec.Column))
 }
 
 // matViewGroupedAgg serves an unfiltered grouped aggregate from its exact
