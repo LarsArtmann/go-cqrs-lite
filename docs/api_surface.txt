@@ -2287,6 +2287,11 @@ metaengine/const LayoutKV
 metaengine/const LayoutLSM
 metaengine/const LayoutNormalize
 metaengine/const LayoutRow
+metaengine/const MatViewAvg
+metaengine/const MatViewCount
+metaengine/const MatViewMax
+metaengine/const MatViewMin
+metaengine/const MatViewSum
 metaengine/const MemoryNsPerOp
 metaengine/const PersistencePersistent
 metaengine/const PersistenceVolatile
@@ -2702,6 +2707,7 @@ metaengine/interface LayoutPlanner
 metaengine/interface LogBackend
 metaengine/interface MapBackend
 metaengine/interface MapUpdater
+metaengine/interface MaterializedViewsReporter
 metaengine/interface MetricsRecorder
 metaengine/interface MultiAggregateReader
 metaengine/interface MultiGroupedAggregateReader
@@ -3308,6 +3314,7 @@ metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
 metaengine/method Valid
+metaengine/method Validate
 metaengine/method VectorCollections
 metaengine/method VectorCount
 metaengine/method VectorInsert
@@ -3315,6 +3322,7 @@ metaengine/method VectorSearch
 metaengine/method VectorSearchFiltered
 metaengine/method Verify
 metaengine/method VerifyFingerprint
+metaengine/method ViewName
 metaengine/method Watch
 metaengine/method WatchWithSeq
 metaengine/method Weights
@@ -3638,10 +3646,14 @@ metaengine/sqliteengine/func NewSQLiteEngine
 metaengine/sqliteengine/func NewSQLiteEngine
 metaengine/sqliteengine/func NewSQLiteEngineFromDSN
 metaengine/sqliteengine/func NewSQLiteEngineFromDSN
+metaengine/sqliteengine/func NewSQLiteEngineFromDSNWith
+metaengine/sqliteengine/func NewSQLiteEngineFromDSNWith
 metaengine/sqliteengine/func OwnDB
 metaengine/sqliteengine/func OwnDB
 metaengine/sqliteengine/func PlanFromDSN
 metaengine/sqliteengine/func PlanFromDSN
+metaengine/sqliteengine/func WithMaterializedViews
+metaengine/sqliteengine/func WithMaterializedViews
 metaengine/sqliteengine/interface ProberSetter
 metaengine/sqliteengine/interface ProberSetter
 metaengine/sqliteengine/method Aggregate
@@ -3704,6 +3716,8 @@ metaengine/sqliteengine/method MapSet
 metaengine/sqliteengine/method MapSet
 metaengine/sqliteengine/method MapUpdate
 metaengine/sqliteengine/method MapUpdate
+metaengine/sqliteengine/method MaterializedViews
+metaengine/sqliteengine/method MaterializedViews
 metaengine/sqliteengine/method MultiAdd
 metaengine/sqliteengine/method MultiAdd
 metaengine/sqliteengine/method MultiAggregate
@@ -3752,6 +3766,8 @@ metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamScan
 metaengine/sqliteengine/method StreamVersion
 metaengine/sqliteengine/method StreamVersion
+metaengine/sqliteengine/type EngineOption
+metaengine/sqliteengine/type EngineOption
 metaengine/sqliteengine/var ErrNoProber
 metaengine/sqliteengine/var ErrNoProber
 metaengine/struct AddedEngine
@@ -3798,6 +3814,8 @@ metaengine/struct LayoutVersion
 metaengine/struct LayoutWarning
 metaengine/struct LiveLatency
 metaengine/struct Manifest
+metaengine/struct MaterializedViewInfo
+metaengine/struct MaterializedViewSpec
 metaengine/struct MemorySearchIndex
 metaengine/struct MemorySpatialIndex
 metaengine/struct MemoryVectorIndex
@@ -3859,6 +3877,10 @@ metaengine/tursoengine/const Turso_NetworkRTT
 metaengine/tursoengine/const Turso_NetworkRTT
 metaengine/tursoengine/func New
 metaengine/tursoengine/func New
+metaengine/tursoengine/func WithMaterializedViews
+metaengine/tursoengine/func WithMaterializedViews
+metaengine/tursoengine/type Option
+metaengine/tursoengine/type Option
 metaengine/type ADT
 metaengine/type AddEngineOption
 metaengine/type AggregateFn
@@ -6369,6 +6391,7 @@ system/struct EventAdapter
 system/struct InstanceConfig
 system/struct InstanceTopology
 system/struct LookupInput
+system/struct MaterializedViewConfig
 system/struct MultiBus
 system/struct Op
 system/struct PriorityConfig

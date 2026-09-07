@@ -24,13 +24,6 @@ func matviewBenchSpecs() []metaengine.MaterializedViewSpec {
 	}
 }
 
-type benchEngines struct {
-	baseline metaengine.Engine
-	accel    metaengine.Engine
-	baseAR   metaengine.AggregateReader
-	accelAR  metaengine.AggregateReader
-}
-
 // seedInTx seeds inside a single transaction when the engine supports it —
 // one fsync instead of one per row, so setup stays fast on file-backed DSNs.
 func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []orderRow) {
@@ -52,38 +45,34 @@ func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []
 	}
 }
 
-func setupBenchEngines(b *testing.B, n, customers int, specs []metaengine.MaterializedViewSpec) benchEngines {
-	b.Helper()
+// benchEngine is one opened+seeded engine for a benchmark phase. Phases run
+// SEQUENTIALLY (open → seed → measure → close) because the embedded turso
+// driver exhibits a flaky "cannot commit - no transaction is active" failure
+// when MULTIPLE embedded engines run write transactions in one process
+// (2026-09-07, observed under ambient load with 7 maintained views). One
+// live engine at a time keeps measurements stable.
+type benchEngine struct {
+	eng     metaengine.Engine
+	agg     metaengine.AggregateReader
+	grouped metaengine.GroupedAggregateReader
+}
+
+func openBenchEngine(tb testing.TB, dir, name string, specs []metaengine.MaterializedViewSpec, n, customers int) *benchEngine {
+	tb.Helper()
 
 	ctx := context.Background()
 
-	dir := b.TempDir()
-
-	base, err := tursoengine.New(filepath.Join(dir, "baseline.db"))
+	eng, err := tursoengine.New(filepath.Join(dir, name+".db"), tursoengine.WithMaterializedViews(specs))
 	if err != nil {
-		b.Skipf("turso not available: %v", err)
+		tb.Skipf("turso not available: %v", err)
 	}
 
-	acc, err := tursoengine.New(filepath.Join(dir, "accel.db"), tursoengine.WithMaterializedViews(specs))
-	if err != nil {
-		b.Fatalf("accel engine: %v", err)
-	}
+	seedInTx(ctx, tb, eng, orderRows(n, customers))
 
-	b.Cleanup(func() {
-		_ = base.Close()
-		_ = acc.Close()
-	})
-
-	rows := orderRows(n, customers)
-
-	seedInTx(ctx, b, base, rows)
-	seedInTx(ctx, b, acc, rows)
-
-	return benchEngines{
-		baseline: base,
-		accel:    acc,
-		baseAR:   base.(metaengine.AggregateReader),
-		accelAR:  acc.(metaengine.AggregateReader),
+	return &benchEngine{
+		eng:     eng,
+		agg:     eng.(metaengine.AggregateReader),
+		grouped: eng.(metaengine.GroupedAggregateReader),
 	}
 }
 
@@ -93,6 +82,9 @@ type aggCase struct {
 	column string
 }
 
+// BenchmarkMatViewRead measures scalar and grouped aggregates against the
+// base tables (baseline) versus operator-declared materialized views
+// (matview) at three collection sizes.
 func BenchmarkMatViewRead(b *testing.B) {
 	ctx := context.Background()
 
@@ -117,23 +109,32 @@ func BenchmarkMatViewRead(b *testing.B) {
 	for _, scale := range scales {
 		for _, c := range cases {
 			b.Run(fmt.Sprintf("agg=%s/scale=%s", c.name, scale.name), func(b *testing.B) {
-				eng := setupBenchEngines(b, scale.n, scale.customers, matviewBenchSpecs())
+				dir := b.TempDir()
+
+				base := openBenchEngine(b, dir, "baseline", nil, scale.n, scale.customers)
 
 				b.Run("baseline", func(b *testing.B) {
 					b.ReportAllocs()
 
 					for b.Loop() {
-						if _, err := eng.baseAR.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
+						if _, err := base.agg.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
 							b.Fatal(err)
 						}
 					}
 				})
 
+				if err := base.eng.Close(); err != nil {
+					b.Fatal(err)
+				}
+
+				acc := openBenchEngine(b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
+				defer func() { _ = acc.eng.Close() }()
+
 				b.Run("matview", func(b *testing.B) {
 					b.ReportAllocs()
 
 					for b.Loop() {
-						if _, err := eng.accelAR.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
+						if _, err := acc.agg.Aggregate(ctx, "orders", c.fn, c.column, nil); err != nil {
 							b.Fatal(err)
 						}
 					}
@@ -141,29 +142,35 @@ func BenchmarkMatViewRead(b *testing.B) {
 			})
 		}
 
-		// Grouped aggregate (GROUP BY customer): baseline full scan + group vs
-		// reading the precomputed view rows.
+		// Grouped aggregate (GROUP BY customer): baseline full scan + group
+		// versus reading the precomputed view rows.
 		b.Run(fmt.Sprintf("agg=SUM_GROUPED/scale=%s", scale.name), func(b *testing.B) {
-			eng := setupBenchEngines(b, scale.n, scale.customers, matviewBenchSpecs())
+			dir := b.TempDir()
 
-			base := eng.baseline.(metaengine.GroupedAggregateReader)
-			acc := eng.accel.(metaengine.GroupedAggregateReader)
+			base := openBenchEngine(b, dir, "baseline", nil, scale.n, scale.customers)
 
 			b.Run("baseline", func(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := base.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil); err != nil {
+					if _, err := base.grouped.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil); err != nil {
 						b.Fatal(err)
 					}
 				}
 			})
 
+			if err := base.eng.Close(); err != nil {
+				b.Fatal(err)
+			}
+
+			acc := openBenchEngine(b, dir, "accel", matviewBenchSpecs(), scale.n, scale.customers)
+			defer func() { _ = acc.eng.Close() }()
+
 			b.Run("matview", func(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := acc.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil); err != nil {
+					if _, err := acc.grouped.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -176,23 +183,32 @@ func BenchmarkMatViewRead(b *testing.B) {
 				{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
 			}
 
-			eng := setupBenchEngines(b, scale.n, scale.customers, onlyGrouped)
+			dir := b.TempDir()
+
+			base := openBenchEngine(b, dir, "baseline", nil, scale.n, scale.customers)
 
 			b.Run("baseline", func(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := eng.baseAR.Aggregate(ctx, "orders", metaengine.MatViewSum, "amount", nil); err != nil {
+					if _, err := base.agg.Aggregate(ctx, "orders", metaengine.MatViewSum, "amount", nil); err != nil {
 						b.Fatal(err)
 					}
 				}
 			})
 
+			if err := base.eng.Close(); err != nil {
+				b.Fatal(err)
+			}
+
+			acc := openBenchEngine(b, dir, "accel", onlyGrouped, scale.n, scale.customers)
+			defer func() { _ = acc.eng.Close() }()
+
 			b.Run("matview", func(b *testing.B) {
 				b.ReportAllocs()
 
 				for b.Loop() {
-					if _, err := eng.accelAR.Aggregate(ctx, "orders", metaengine.MatViewSum, "amount", nil); err != nil {
+					if _, err := acc.agg.Aggregate(ctx, "orders", metaengine.MatViewSum, "amount", nil); err != nil {
 						b.Fatal(err)
 					}
 				}
@@ -203,7 +219,8 @@ func BenchmarkMatViewRead(b *testing.B) {
 
 // BenchmarkMatViewWrite measures steady-state MapSet (REPLACE) throughput on
 // a bounded 10k-key working set with 0, 1, or 3 maintained views — the IVM
-// overhead the operator pays on writes for read acceleration.
+// overhead the operator pays on writes for read acceleration. Each mode runs
+// in its own engine (sequential lifecycles; see benchEngine).
 func BenchmarkMatViewWrite(b *testing.B) {
 	ctx := context.Background()
 
@@ -228,14 +245,11 @@ func BenchmarkMatViewWrite(b *testing.B) {
 
 	for _, mode := range modes {
 		b.Run(mode.name, func(b *testing.B) {
-			dsn := filepath.Join(dir, fmt.Sprintf("write_%s.db", mode.name))
-
-			eng, err := tursoengine.New(dsn, tursoengine.WithMaterializedViews(mode.specs))
+			eng, err := tursoengine.New(filepath.Join(dir, fmt.Sprintf("write_%s.db", mode.name)),
+				tursoengine.WithMaterializedViews(mode.specs))
 			if err != nil {
 				b.Skipf("turso not available: %v", err)
 			}
-
-			defer func() { _ = eng.Close() }()
 
 			mb := eng.(metaengine.MapBackend)
 
@@ -258,6 +272,10 @@ func BenchmarkMatViewWrite(b *testing.B) {
 				}
 
 				i++
+			}
+
+			if err := eng.Close(); err != nil {
+				b.Fatal(err)
 			}
 		})
 	}
