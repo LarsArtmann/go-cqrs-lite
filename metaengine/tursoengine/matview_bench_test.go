@@ -24,8 +24,12 @@ func matviewBenchSpecs() []metaengine.MaterializedViewSpec {
 	}
 }
 
-// seedInTx seeds inside a single transaction when the engine supports it —
-// one fsync instead of one per row, so setup stays fast on file-backed DSNs.
+// seedInTx seeds in 1000-row transactions when the engine supports them —
+// one fsync per chunk instead of one per row, so setup stays fast on
+// file-backed DSNs. Chunks (rather than one giant tx) also sidestep an
+// upstream turso-go v0.7.2 bug: COMMIT of a very large single transaction
+// that drives IVM across many materialized views intermittently fails with
+// "cannot commit - no transaction is active".
 func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []orderRow) {
 	tb.Helper()
 
@@ -36,12 +40,18 @@ func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []
 		return
 	}
 
-	if err := tx.RunInTx(ctx, func(ctx context.Context) error {
-		seedOrders(ctx, tb, eng, rows)
+	const chunkSize = 1000
 
-		return nil
-	}); err != nil {
-		tb.Fatalf("seed tx: %v", err)
+	for start := 0; start < len(rows); start += chunkSize {
+		end := min(start+chunkSize, len(rows))
+
+		if err := tx.RunInTx(ctx, func(ctx context.Context) error {
+			seedOrders(ctx, tb, eng, rows[start:end])
+
+			return nil
+		}); err != nil {
+			tb.Fatalf("seed tx at %d: %v", start, err)
+		}
 	}
 }
 
