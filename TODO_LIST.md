@@ -30,37 +30,65 @@ and is **never** duplicated here. Historical session reports live under
       B001–B031, D001–D019, E001–E017, S/T/V/F families. — source:
       archived/2026-09-06_02-40 §c
       _(Effort: M/L)_
-- [ ] **T20–T21 — subsystem reviews.** DONE: feature_profile split (F073),
+- [x] **T20–T21 — subsystem reviews.** DONE: feature_profile split (F073),
       scorecard deprecated panel (F082), health-policy test (F083), sibling
-      link checks + docserver-CSS root cause (T24). REMAINING: line-by-line
-      reviews of scanner*.go / feature_detect* / loader-registry-upcaster /
-      module_catalog* (T20) and doctor/health/scorecard/output/explain CLI
-      files (T21). — source: archived/2026-09-06_02-40 §c + 06-58 §b3
-      _(Effort: M)_
-- [ ] **F089–F091 implementations** (designs recorded in
-      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`):
-      `rules.severity-overrides` + `v5-ready` preset wiring; dot-import
-      flagging in V007; `NeedTypes` qualifier resolution (Tier 1) then
-      C008/C035 payload-flow confirmation (Tiers 2–3). Pre-measure Tier 1
-      wall-time cost on the repo-root corpus before adopting. — source:
-      06-58 §f5–10
-      _(Effort: M)_
-- [ ] **Self-lint finding delta after the collector unification** — the shared
-      position-aware fold-case collector + const resolution changed C038/C040
-      semantics; re-run cqrs-lint over this repo and triage the delta. —
-      source: 08-26 §b5
-      _(Effort: S)_
-- [ ] **go-finding upstream issues (verify-before-filing first):** (a)
-      providers returning zero edits are indistinguishable from success;
-      (b) a provider resolveError rolls back ALL applied edits in the file.
-      Evidence preserved from the F031 investigation. — source: 06-58 §e9
-      _(Effort: S)_
-- [ ] **Structural load-robustness for the two known flaky test classes** —
-      benchkit timing bounds + system/v4 snapshot deadline should skip-or-scale
-      under ambient load (vis-key pattern from `idempotency/sqlstore`), not
-      flake; every full gate on this shared box is currently a coin flip. —
-      source: 06-58 §e2
-      _(Effort: M)_
+      link checks + docserver-CSS root cause (T24), and the line-by-line
+      reviews of scanner*/feature_detect*/loader/registry/module_catalog*/
+      upcaster (T20) and doctor/health/scorecard/output/explain CLI files
+      (T21) — report:
+      `docs/status/2026-09-07_cqrs-lint-t20-t21-subsystem-reviews.md`
+      (no correctness bugs; 4 fixed in-pass — doctor severity-overrides
+      rendering, 2 map-order nondeterminism bugs, Monetary override check;
+      T20-1 store-detection gap + accepted heuristics recorded there).
+      — source: archived/2026-09-06_02-40 §c + 06-58 §b3
+- [x] **F089 — `rules.severity-overrides` + `v5-ready` preset** — DONE
+      2026-09-07: `RulesConfig.SeverityOverrides` with catalog precedence
+      (catalog → preset → parent → config → domain bias → min-severity),
+      invalid severities dropped with a warning (never silently demoted to
+      info), unknown rule IDs warned post-merge; `v5-ready` preset = sugar
+      for `{"V007": "error"}`; init template, explain, doctor text+JSON,
+      README preset table (test-locked) all wired. Design:
+      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`.
+- [x] **F090(a) — dot-import flagging in V007** — DONE 2026-09-07: any
+      dot-import of a go-cqrs-lite module fires V007 at the import position
+      ("hides v5-removed-API usage — name the import"); non-CQRS dot-imports
+      stay silent; fixture tests pin fire + silence. F090(b) (type-based
+      attribution) is now implementable on the F091 Tier 1 machinery.
+- [x] **F091 Tier 1 — typed qualifier resolution** — DONE 2026-09-07:
+      `analyzer.ResolveQualifierTyped` (Uses[ident] → PkgName → import path)
+      with authoritative semantics — typed "not a package" is final, string
+      scan only on missing type info (broken-build survival). V007 adopted;
+      the shadow false-positive class is dead (verified end-to-end: old
+      binary double-fires a shadowed qualifier, new fires once). Wall-time
+      gate PASSED (medians old 14.7s vs new 12.4s at load 65; loader has
+      shipped NeedTypes since day one — the design's load-cost concern was
+      already paid): `docs/benchmarks/2026-09-07_cqrs-lint-f091-tier1-typed-qualifier.md`.
+      REMAINING (Tiers 2–3): C008 usage-confirmation + C035/C013
+      payload-shape confirmation behind `--typed-info=auto`; adopt
+      ResolveQualifierTyped in `capturePayloadTypeFromVar` /
+      `looksLikeEventType` / `IsInsideUpcasterClosure` (T20-8).
+- [x] **Self-lint finding delta after the collector unification** — DONE
+      2026-09-07: full self-lint run = ZERO findings; the delta was one STALE
+      C025 suppression at `cmd/cqrs-lint/run.go` (left over from the
+      `31b779b1b` refactor that added `%w` to the stale-suppressions error —
+      C025 correctly stopped firing). Directive removed; the CI
+      `cqrs-lint-self-lint` job was RED on master and is green again.
+      C038/C040: no findings on the repo corpus, nothing to triage.
+- [x] **go-finding upstream issues (verify-before-filing first):** DONE
+      2026-09-07 — both claims verified at source level
+      (`pipeline/fix_engine.go:59-92` zero-edits-success-shape;
+      `pipeline/fix_applier.go:140-167` RollbackAll(modified) spans earlier
+      files) and filed: [#27](https://github.com/LarsArtmann/go-finding/issues/27)
+      (zero edits indistinguishable from success),
+      [#28](https://github.com/LarsArtmann/go-finding/issues/28)
+      (resolveError rolls back all applied edits).
+- [x] **Structural load-robustness for the two known flaky test classes** —
+      DONE 2026-09-07: `benchkit.loadScaledCeiling` (3 hang ceilings scaled by
+      ambient load1/GOMAXPROCS, cap 8x, go-test timeout stays the structural
+      backstop) + `system_test.loadScaledDeadline` (catch-up poll deadlines
+      8s/5s/15s scaled the same way). Full benchkit (152s) + system suites
+      green under load 65. Both helpers are local copies (dep budgets) with
+      `//art-dupl:accept`.
 - [ ] [BLOCKED] **Release-policy Q3: severity tightening in a minor.**
       S008/S009 now emit `error` (were `warning`); consumers using
       `--min-severity error` see new failures after ≥v4.9.0. Acceptable in a
@@ -79,11 +107,17 @@ and is **never** duplicated here. Historical session reports live under
       and the daemon workflow. Owner decision on protection + which checks +
       exceptions. — source: 06-58 §g1
 - [ ] **cqrs-lint rule: ApplyLayout on engines that also implement
-      LayoutPlanApplier → prefer the plan path.** Needs a design pass
-      (type-impl detection via go/packages, or a capability registry fed from
-      api-stability's scan) before implementation. — source: session-4 retro
+      LayoutPlanApplier → prefer the plan path.** DESIGN PASS DONE
+      2026-09-07 (appendix in
+      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`): selected
+      structural method-shape detection (`ApplyLayoutPlan` +
+      `BuildLayoutPlan` co-occurring on the receiver type — no metaengine
+      import needed, no registry split-brain); fires behind F091 Tier-2
+      `--typed-info=auto`, silent on the name-only fallback. REMAINING:
+      implementation + fixtures (engine implementing both paths fires;
+      plan-only and ApplyLayout-only stay silent). — source: session-4 retro
       §f25
-      _(Effort: M)_
+      _(Effort: M — implementation now unblocked)_
 - [ ] 🔥 **350-line limit: gate red repo-wide — split waves + gate-policy
       decision.** VERIFIED 2026-09-06: the gate IS wired (CI `file-size-gate`
       + `nix run .#check-file-size`) but ~54 non-test files exceed it, red

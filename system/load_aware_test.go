@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// art-dupl:accept local copy — mirrors benchkit.loadScaledCeiling (dep-budget isolation)
 // loadScaledDeadline widens a catch-up-poll deadline by the ambient load
 // factor. Projection catch-up is eventual by construction: the poll loop is
 // timing-proof, but a fixed wall-clock deadline expires under a loaded host

@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// art-dupl:accept local copy — benchkit is dep-budget-lean, testutil would exceed it
 // loadScaledCeiling widens a wall-clock assertion ceiling by the ambient load
 // factor. The benchkit timing tests assert "a Duration-bounded run returns
 // promptly"; under a loaded host (shared box, parallel sessions) even trivial
