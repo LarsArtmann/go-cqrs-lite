@@ -4,27 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
-
-// encryptedEngineDSN creates a file-backed DSN and returns it with a fresh
-// hex key of keyLen bytes.
-func encryptedEngineDSN(tb testing.TB, keyLen int) (string, string) {
-	tb.Helper()
-
-	key := make([]byte, keyLen)
-	if _, err := rand.Read(key); err != nil {
-		tb.Fatal(err)
-	}
-
-	hexKey := hex.EncodeToString(key)
-
-	return filepath.Join(tb.TempDir(), "enc.db") + "?" + "placeholder", hexKey
-}
 
 func TestTursoEncryption_RoundTrip(t *testing.T) {
 	t.Parallel()
@@ -83,10 +67,6 @@ func TestTursoEncryption_RoundTrip(t *testing.T) {
 				_ = eng3.Close()
 				t.Fatal("reopen with all-zero key unexpectedly succeeded")
 			}
-
-			if !strings.Contains(err.Error(), "ecryption") && !strings.Contains(err.Error(), "ecrypt") {
-				t.Logf("wrong-key error (informational): %v", err)
-			}
 		})
 	}
 }
@@ -101,13 +81,30 @@ func TestTursoEncryption_WithMaterializedViews(t *testing.T) {
 
 	dsn := filepath.Join(t.TempDir(), "enc-mv.db")
 
-	eng, err := tursoengine.New(dsn,
-		tursoengine.WithEncryption(tursoengine.CipherAEGIS256, hex.EncodeToString(key)),
-		tursoengine.WithMaterializedViews(nil),
-	)
-	if err != nil {
-		t.Skipf("turso encryption+views unavailable: %v", err)
+	specs := []metaengine.MaterializedViewSpec{
+		{Collection: "orders", Fn: metaengine.MatViewCount},
 	}
 
-	_ = eng.Close()
+	eng, err := tursoengine.New(dsn,
+		tursoengine.WithEncryption(tursoengine.CipherAEGIS256, hex.EncodeToString(key)),
+		tursoengine.WithMaterializedViews(specs),
+	)
+	if err != nil {
+		t.Fatalf("encrypted engine with materialized views: %v", err)
+	}
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		_ = eng.Close()
+		t.Fatal("engine does not implement MapBackend")
+	}
+
+	if err := mb.MapSet(t.Context(), "orders", "o1", map[string]any{"v": 1}); err != nil {
+		_ = eng.Close()
+		t.Fatalf("MapSet: %v", err)
+	}
+
+	if err := eng.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
 }
