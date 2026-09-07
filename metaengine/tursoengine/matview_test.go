@@ -88,7 +88,9 @@ func expectScalar(t *testing.T, eng metaengine.Engine, col string,
 
 	got, err := ar.Aggregate(context.Background(), col, fn, column, filters)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
-	g.Expect(got).To(gomega.Equal(want), "aggregate %s(%s) on %s", fn, column, col)
+	// Tolerance covers floating-point association differences between a
+	// matview derivation (sums of group sums) and the sequential expectation.
+	g.Expect(got).To(gomega.BeNumerically("~", want, 1e-6), "aggregate %s(%s) on %s", fn, column, col)
 }
 
 func approxEqual(a, b float64) bool {
@@ -138,7 +140,7 @@ func TestTursoMatView_Serving(t *testing.T) {
 	groups, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	g.Expect(groups).To(gomega.HaveLen(8))
-	g.Expect(sumAmountGroups(groups)).To(gomega.Equal(sumAmounts(rows)))
+	g.Expect(sumAmountGroups(groups)).To(gomega.BeNumerically("~", sumAmounts(rows), 1e-6))
 
 	// Grouped AVG: exact per-group weighted averages; recombining with group
 	// counts reconstructs the global average.
@@ -157,7 +159,7 @@ func TestTursoMatView_Serving(t *testing.T) {
 	g.Expect(mb.MapDelete(ctx, "orders", rows[1].Key)).To(gomega.Succeed())
 
 	rows[0].Amount = 1000
-	rows = rows[2:]
+	rows = append([]orderRow{rows[0]}, rows[2:]...) // order-0000 replaced in place, order-0001 deleted
 
 	expectScalar(t, eng, "orders", metaengine.MatViewCount, "", nil, float64(len(rows)))
 	expectScalar(t, eng, "orders", metaengine.MatViewSum, "amount", nil, sumAmounts(rows))
@@ -241,7 +243,7 @@ func TestTursoMatView_GroupedAvgExact(t *testing.T) {
 	}
 
 	for customer, want := range perGroup {
-		g.Expect(groups[customer]).To(gomega.Equal(want.sum / float64(want.count)),
+		g.Expect(groups[customer]).To(gomega.BeNumerically("~", want.sum/float64(want.count), 1e-6),
 			"group %s average", customer)
 	}
 }
@@ -361,7 +363,9 @@ func TestTursoMatView_PlannedMigrationFallsThrough(t *testing.T) {
 
 	planner := eng.(metaengine.LayoutPlanner)
 
-	if err := planner.ApplyLayout("orders", []string{"customer"}, nil); err != nil {
+	// Declare every queried field as a plan column (the planned-table contract:
+	// aggregated columns must be extracted columns).
+	if err := planner.ApplyLayout("orders", []string{"customer", "amount"}, nil); err != nil {
 		t.Fatalf("ApplyLayout: %v", err)
 	}
 
