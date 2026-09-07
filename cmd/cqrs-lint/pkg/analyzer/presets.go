@@ -52,6 +52,13 @@ const (
 	// but cannot dictate how consumers compose them. Consumers of the framework
 	// should use "production" or "local-cli" instead.
 	PresetLibraryFramework ConfigPreset = "library-framework"
+	// PresetV5Ready is for projects whose go-cqrs-lite v5 migration is complete
+	// (or that want a hard migration deadline): it escalates V007
+	// (v5-removed-API usage) from warning to error so findings block CI.
+	// Nothing is disabled — the default stays untouched for everyone else;
+	// this preset is the opt-in escalation mechanism. Pin more overrides via
+	// rules.severity-overrides in .cqrs-lint.json (config wins over preset).
+	PresetV5Ready ConfigPreset = "v5-ready"
 )
 
 // PresetDefinition is the single source of truth for a named preset. It bundles
@@ -177,6 +184,15 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 				"S002", "S003",
 				"V007",
 			},
+		},
+	},
+	PresetV5Ready: {
+		Rules: RulesConfig{
+			// The whole point of the preset: v5-removed-API usage escalates
+		// to error so it blocks CI. Flows through the same severity
+		// choke point as domain bias (post-detection, pre-filter), so
+		// --min-severity=error catches it and triage behavior is unchanged.
+			SeverityOverrides: map[string]string{"V007": "error"},
 		},
 	},
 }
