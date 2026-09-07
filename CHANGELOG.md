@@ -43,6 +43,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   job is green again.
 - **`RULES.md` regenerated** — the committed copy had treefmt-padded
   tables that no longer matched the generator (freshness meta-test red).
+- **Financial escalation split-brain fixed** — `financialEscalatedRules`
+  still named pre-v4.9 rule names in comments, and `S011`
+  (pii-without-encryption) was missing from the escalation set (every other
+  security rule escalates for financial domains). S011 now escalates, the
+  comments match the catalog, and a completeness meta-test fails the suite
+  when a security rule is neither escalated nor explicitly exempted.
 - **doctor determinism**: the primary-module profile selection
   (`analyzer/loader.go`) and the per-module doctor panel broke ties on map
   iteration order — both now tie-break by path name; the feature-profile

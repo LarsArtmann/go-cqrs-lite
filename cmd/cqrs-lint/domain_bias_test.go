@@ -6,6 +6,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
 func TestApplyDomainBias_FinancialEscalatesSecurity(t *testing.T) {
@@ -128,5 +129,51 @@ func TestDetectDomain_NonFinancialUnknown(t *testing.T) {
 
 	if d := analyzer.DetectFeatures(ctx).Domain; d != analyzer.DomainUnknown {
 		t.Errorf("expected DomainUnknown for user event, got %s", d)
+	}
+}
+
+// TestFinancialEscalation_CoversEverySecurityRule is the S-family
+// completeness meta-test (T13-T19 audit): every rule in the security
+// category must appear in financialEscalatedRules or in
+// financialEscalationExempt (with a reason). Without this lock, renaming or
+// adding an S-rule silently changes which findings the financial domain
+// escalates — the map's own comments drifted from the catalog once already
+// (pre-v4.9 rule names: signing-disabled, hmac-secret-too-short, ...).
+func TestFinancialEscalation_CoversEverySecurityRule(t *testing.T) {
+	t.Parallel()
+
+	for _, r := range rules.AllRules() {
+		if r.Category != "security" {
+			continue
+		}
+
+		if financialEscalatedRules[r.ID] {
+			continue
+		}
+
+		if _, exempt := financialEscalationExempt[r.ID]; exempt {
+			continue
+		}
+
+		t.Errorf(
+			"security rule %s (%s) is neither escalated nor explicitly exempt "+
+				"in financialEscalatedRules/financialEscalationExempt — "+
+				"decide and record it (filters.go)",
+			r.ID, r.Name,
+		)
+	}
+}
+
+func TestApplyDomainBias_EscalatesS011(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{Rule: "S011", Severity: finding.SeverityWarning, Message: "pii without encryption"},
+	}
+
+	result := applyDomainBias(findings, analyzer.DomainFinancial)
+
+	if result[0].Severity != finding.SeverityError {
+		t.Errorf("S011 should be escalated to Error for financial domain, got %s", result[0].Severity)
 	}
 }

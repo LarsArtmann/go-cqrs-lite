@@ -361,18 +361,29 @@ func filterFPSuspects(findings []finding.Finding) []finding.Finding {
 
 // financialEscalatedRules are rules whose severity is escalated to Error when
 // the project domain is financial. Security and money-handling bugs in
-// financial systems are always errors, never warnings.
+// financial systems are always errors, never warnings. Names must match the
+// catalog (catalog_security.go) — the S-family completeness meta-test in
+// domain_bias_test.go fails when a security rule is added to the catalog
+// without an explicit entry or exemption here.
 var financialEscalatedRules = map[string]bool{ //nolint:gochecknoglobals // static lookup table
-	"S001": true, // hardcoded-secret
-	"S002": true, // signing-disabled
-	"S003": true, // encryption-disabled
-	"S005": true, // hmac-secret-too-short
-	"S006": true, // encryption-key-too-short
-	"S007": true, // insecure-random
-	"S008": true, // missing-event-signing
-	"S009": true, // missing-event-encryption
+	"S001": true, // hardcoded-secrets
+	"S002": true, // missing-encryption-for-sensitive-payloads
+	"S003": true, // missing-event-signing
+	"S005": true, // signing-available-but-disabled
+	"S006": true, // financial-data-without-encryption
+	"S007": true, // in-memory-session-store
+	"S008": true, // asymmetric-signing
+	"S009": true, // asymmetric-encryption
 	"S010": true, // encryption-signing-mismatch
+	"S011": true, // pii-without-encryption
 	"C008": true, // money-as-float64
+}
+
+// financialEscalationExempt records S-family rules deliberately excluded from
+// financial escalation, with the reason. Currently empty: every security rule
+// escalates. The map exists so the completeness meta-test can distinguish
+// "forgotten" from "exempt on purpose" when new S-rules land.
+var financialEscalationExempt = map[string]string{ //nolint:gochecknoglobals // documented exemption table
 }
 
 // applySeverityOverrides rewrites finding severities according to the

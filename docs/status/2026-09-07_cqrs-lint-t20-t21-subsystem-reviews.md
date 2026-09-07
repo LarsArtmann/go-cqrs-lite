@@ -83,3 +83,28 @@ entry point.
 `scanner_adapters.go`, `scanner_calls_helpers.go`, `registry.go`,
 `output.go` (color-layering contract documented in-file),
 `output_rulesmd.go`, `scorecard.go` structure, `explain.go`.
+
+## Addendum — S-family audit (first T13–T19 batch, 2026-09-07)
+
+Audited the security family end-to-end: catalog rows (catalog_security.go),
+the `financialEscalatedRules` policy map (filters.go), detector files
+(s002_s003, s005, s006, s007, s008_s009, s010, s011, rules.go/S001), and
+their test coverage.
+
+**Found and fixed (same-session):**
+
+- `financialEscalatedRules` comments named pre-v4.9 rule names
+  (signing-disabled, hmac-secret-too-short, insecure-random,
+  missing-event-signing/encryption) that no longer exist — the IDs happened
+  to still resolve, so the drift was invisible at compile time.
+- Policy gap: `S011` (pii-without-encryption — the most financial-relevant
+  security rule) was NOT escalated for financial domains while every other
+  S-rule was. Added to the escalation set.
+- New meta-test `TestFinancialEscalation_CoversEverySecurityRule` locks the
+  set: every security-category rule must be escalated or explicitly exempted
+  (with reason) — rename/add drift now fails the suite, same pattern as the
+  V007 drift meta-tests.
+
+**Clean:** detector logic matches catalog descriptions; per-rule test
+coverage present for all ten detectors; severity/confidence rows are
+consistent with the RULES.md contract (S008/S009 at error per the Q3 note).
