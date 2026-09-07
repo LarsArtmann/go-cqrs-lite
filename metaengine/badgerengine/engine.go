@@ -273,63 +273,16 @@ func (e *badgerEngine) seedPrefixSeqs(tag string, target *sync.Map, wholeGroup b
 		for iter.Rewind(); iter.Valid(); iter.Next() {
 			key := iter.Item().KeyCopy(nil)
 
-			group, seq, ok := splitGroupAndSeq(key, tagLen, wholeGroup)
+			group, seq, ok := keycodec.SplitGroupAndSeq(key, tagLen, wholeGroup)
 			if !ok {
 				continue
 			}
 
-			seedSeqMax(target, group, seq)
+			keycodec.SeedSeqMax(target, group, seq)
 		}
 
 		return nil
 	})
-}
-
-// splitGroupAndSeq parses a keycodec key ("<tag>\x00<group...>\x00<seq:020>")
-// into its group identifier and sequence. The seq is always the last 20
-// zero-padded digits, preceded by a NUL byte. With wholeGroup the group spans
-// all segments between tag and seq; otherwise only the first segment.
-func splitGroupAndSeq(key []byte, prefixLen int, wholeGroup bool) (string, int64, bool) {
-	if len(key) < prefixLen+21 {
-		return "", 0, false
-	}
-
-	if key[len(key)-21] != 0 {
-		return "", 0, false
-	}
-
-	seq, err := strconv.ParseInt(string(key[len(key)-20:]), 10, 64)
-	if err != nil {
-		return "", 0, false
-	}
-
-	rest := key[prefixLen : len(key)-21]
-
-	if !wholeGroup {
-		if idx := bytes.IndexByte(rest, 0); idx >= 0 {
-			rest = rest[:idx]
-		}
-	}
-
-	return string(rest), seq, true
-}
-
-// seedSeqMax seeds a sync.Map (storing *atomic.Int64) to at least seq via a
-// CAS loop.
-func seedSeqMax(target *sync.Map, group string, seq int64) {
-	actual, _ := target.LoadOrStore(group, &atomic.Int64{})
-	counter := actual.(*atomic.Int64)
-
-	for {
-		existing := counter.Load()
-		if existing >= seq {
-			return
-		}
-
-		if counter.CompareAndSwap(existing, seq) {
-			return
-		}
-	}
 }
 
 // Compile-time assertions.
