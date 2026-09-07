@@ -33,25 +33,8 @@ func matviewBenchSpecs() []metaengine.MaterializedViewSpec {
 func seedInTx(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []orderRow) {
 	tb.Helper()
 
-	tx, ok := eng.(metaengine.Transactional)
-	if !ok {
-		seedOrders(ctx, tb, eng, rows)
-
-		return
-	}
-
-	const chunkSize = 1000
-
-	for start := 0; start < len(rows); start += chunkSize {
-		end := min(start+chunkSize, len(rows))
-
-		if err := tx.RunInTx(ctx, func(ctx context.Context) error {
-			seedOrders(ctx, tb, eng, rows[start:end])
-
-			return nil
-		}); err != nil {
-			tb.Fatalf("seed tx at %d: %v", start, err)
-		}
+	if err := seedInTxE(ctx, eng, rows); err != nil {
+		tb.Fatalf("seed tx: %v", err)
 	}
 }
 
@@ -74,21 +57,80 @@ func openBenchEngine(
 ) *benchEngine {
 	tb.Helper()
 
-	eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
-		filepath.Join(dir, name+".db"),
-		tursoengine.WithMaterializedViews(specs),
-	)
-	if err != nil {
-		tb.Skipf("turso not available: %v", err)
+	// Upstream flake guard: the commit bug is probabilistic per database
+	// file, so a failed seed is retried on a FRESH engine+file (fresh IVM
+	// state) instead of failing the benchmark.
+	const attempts = 3
+
+	var lastErr error
+
+	for attempt := range attempts {
+		eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
+			filepath.Join(dir, fmt.Sprintf("%s_%d.db", name, attempt)),
+			tursoengine.WithMaterializedViews(specs),
+		)
+		if err != nil {
+			tb.Skipf("turso not available: %v", err)
+		}
+
+		if err := seedInTxE(ctx, eng, orderRows(n, customers)); err == nil {
+			return &benchEngine{
+				eng:     eng,
+				agg:     eng.(metaengine.AggregateReader),
+				grouped: eng.(metaengine.GroupedAggregateReader),
+			}
+		} else {
+			lastErr = err
+			_ = eng.Close()
+		}
 	}
 
-	seedInTx(ctx, tb, eng, orderRows(n, customers))
+	tb.Fatalf("seed %s after %d attempts: %v", name, attempts, lastErr)
 
-	return &benchEngine{
-		eng:     eng,
-		agg:     eng.(metaengine.AggregateReader),
-		grouped: eng.(metaengine.GroupedAggregateReader),
+	return nil
+}
+
+// seedInTxE is seedInTx returning the error instead of failing tb (the
+// retry caller decides). Seeds in 1000-row transactions when the engine
+// supports them, falling back to autocommit MapSets otherwise.
+func seedInTxE(ctx context.Context, eng metaengine.Engine, rows []orderRow) error {
+	tx, transactable := eng.(metaengine.Transactional)
+	mb := eng.(metaengine.MapBackend)
+
+	const chunkSize = 1000
+
+	seedChunk := func(rows []orderRow) error {
+		if !transactable {
+			for _, row := range rows {
+				value := map[string]any{"customer": row.Customer, "amount": row.Amount}
+				if err := mb.MapSet(ctx, "orders", row.Key, value); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		}
+
+		return tx.RunInTx(ctx, func(ctx context.Context) error {
+			for _, row := range rows {
+				value := map[string]any{"customer": row.Customer, "amount": row.Amount}
+				if err := mb.MapSet(ctx, "orders", row.Key, value); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
 	}
+
+	for start := 0; start < len(rows); start += chunkSize {
+		end := min(start+chunkSize, len(rows))
+		if err := seedChunk(rows[start:end]); err != nil {
+			return fmt.Errorf("chunk at %d: %w", start, err)
+		}
+	}
+
+	return nil
 }
 
 type aggCase struct {
