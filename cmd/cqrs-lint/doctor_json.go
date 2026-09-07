@@ -36,6 +36,7 @@ type doctorJSONReport struct {
 	RulesDisabled      int                     `json:"rulesDisabled"`
 	DisabledFromPreset []string                `json:"disabledFromPreset,omitempty"`
 	DisabledFromConfig []string                `json:"disabledFromConfig,omitempty"`
+	SeverityOverrides  map[string]string       `json:"severityOverrides,omitempty"`
 	Features           analyzer.FeatureProfile `json:"features"`
 	Modules            []moduleProfileJSON     `json:"modules,omitempty"`
 	Audit              *suppressionAuditJSON   `json:"audit,omitempty"`
@@ -133,6 +134,9 @@ func buildDoctorJSONReport(cfg *AppConfig, actx *analyzer.AnalysisContext) docto
 	report.RulesDisabled = len(cfg.Rules.Disable)
 	report.RulesActive = report.RulesTotal - report.RulesDisabled
 	splitDisabledRules(&report, presetDef.Rules.Disable, cfg.Rules.Disable)
+	report.SeverityOverrides = mergeSeverityOverrides(
+		presetDef.Rules.SeverityOverrides, cfg.Rules.SeverityOverrides,
+	)
 
 	for dir, profile := range actx.FeatureProfiles {
 		report.Modules = append(report.Modules, moduleProfileJSON{Module: dir, Profile: profile})

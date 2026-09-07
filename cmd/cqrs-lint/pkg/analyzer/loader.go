@@ -187,10 +187,12 @@ func primaryModuleProfile(
 		return p
 	}
 
-	// Shallowest dir wins (closest to the filesystem root).
+	// Shallowest dir wins (closest to the filesystem root). Ties break on
+	// path name so the selection is deterministic (map iteration is not).
 	var best string
 	for dir := range profiles {
-		if best == "" || pathDepth(dir) < pathDepth(best) {
+		if best == "" || pathDepth(dir) < pathDepth(best) ||
+			(pathDepth(dir) == pathDepth(best) && dir < best) {
 			best = dir
 		}
 	}

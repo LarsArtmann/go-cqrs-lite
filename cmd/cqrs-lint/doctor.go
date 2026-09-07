@@ -326,7 +326,8 @@ func renderDoctorFeatureProfile(w io.Writer, actx *analyzer.AnalysisContext) {
 	cf := actx.FeatureProfile.ToConfigFeatures()
 	hasOverrides := cf.Store != nil || cf.CommandFlow != nil || cf.Server != nil ||
 		cf.SoftDelete != nil || cf.Tracing != nil || cf.Snapshot != nil ||
-		cf.Domain != nil || cf.Transport != nil || cf.ServerLocal != nil || cf.AsyncBus != nil
+		cf.Domain != nil || cf.Monetary != nil || cf.Transport != nil || cf.ServerLocal != nil ||
+		cf.AsyncBus != nil
 
 	if hasOverrides {
 		_, _ = fmt.Fprintln(
@@ -363,7 +364,12 @@ func renderDoctorPerModuleProfiles(w io.Writer, actx *analyzer.AnalysisContext) 
 	}
 
 	sort.Slice(mods, func(i, j int) bool {
-		return len(mods[i].dir) < len(mods[j].dir)
+		// Length order groups nested modules under their parents; the name
+		// tie-break makes the output deterministic (map iteration is not).
+		if len(mods[i].dir) != len(mods[j].dir) {
+			return len(mods[i].dir) < len(mods[j].dir)
+		}
+		return mods[i].dir < mods[j].dir
 	})
 
 	for _, m := range mods {

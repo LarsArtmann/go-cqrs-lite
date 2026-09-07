@@ -21,8 +21,6 @@ import (
 func TestRealProfile_ReadCostsPinned(t *testing.T) {
 	eng := mustNewDgraphEngine(t)
 
-	rc := eng.Profile().ReadCosts
-
 	tests := []struct {
 		name    string
 		pattern metaengine.ReadPattern
