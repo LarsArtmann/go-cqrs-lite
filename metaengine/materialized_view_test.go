@@ -48,8 +48,12 @@ func TestMaterializedViewSpec_Validate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "quote injection in collection",
-			spec:    MaterializedViewSpec{Collection: "orders'; DROP TABLE meta_map; --", Fn: MatViewSum, Column: "amount"},
+			name: "quote injection in collection",
+			spec: MaterializedViewSpec{
+				Collection: "orders'; DROP TABLE meta_map; --",
+				Fn:         MatViewSum,
+				Column:     "amount",
+			},
 			wantErr: true,
 		},
 		{

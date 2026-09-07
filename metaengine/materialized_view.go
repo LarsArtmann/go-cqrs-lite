@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"strings"
@@ -65,7 +66,7 @@ func (s MaterializedViewSpec) Validate() error {
 	}
 
 	if s.Collection == "" {
-		return fmt.Errorf("materialized view: collection must not be empty")
+		return errors.New("materialized view: collection must not be empty")
 	}
 
 	switch s.Fn {
@@ -78,7 +79,11 @@ func (s MaterializedViewSpec) Validate() error {
 			return fmt.Errorf("materialized view %q: %s requires a column", s.Collection, s.Fn)
 		}
 	default:
-		return fmt.Errorf("materialized view %q: unsupported aggregate fn %q (want COUNT, SUM, MIN, MAX, or AVG)", s.Collection, s.Fn)
+		return fmt.Errorf(
+			"materialized view %q: unsupported aggregate fn %q (want COUNT, SUM, MIN, MAX, or AVG)",
+			s.Collection,
+			s.Fn,
+		)
 	}
 
 	return nil
