@@ -11,7 +11,7 @@ import (
 func TestCollectPins_FiltersIndirectAndNonCQRS(t *testing.T) {
 	t.Parallel()
 
-	pins, err := collectPins(filepath.Join("testdata", "go.mod"))
+	pins, err := collectPins(filepath.Join("testdata", "go.mod.txt"))
 	if err != nil {
 		t.Fatalf("collectPins: %v", err)
 	}
@@ -36,7 +36,7 @@ func TestCollectPins_FiltersIndirectAndNonCQRS(t *testing.T) {
 func TestCollectPins_MissingFile(t *testing.T) {
 	t.Parallel()
 
-	_, err := collectPins(filepath.Join(t.TempDir(), "go.mod"))
+	_, err := collectPins(filepath.Join(t.TempDir(), "missing", "go.mod"))
 	if err == nil {
 		t.Fatal("expected error for missing go.mod")
 	}
@@ -106,7 +106,7 @@ func TestEditGoMod_UpdatesOnlyChangedPins(t *testing.T) {
 	dir := t.TempDir()
 	modPath := filepath.Join(dir, "go.mod")
 
-	src, err := os.ReadFile(filepath.Join("testdata", "go.mod"))
+	src, err := os.ReadFile(filepath.Join("testdata", "go.mod.txt"))
 	if err != nil {
 		t.Fatalf("read fixture: %v", err)
 	}

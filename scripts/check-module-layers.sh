@@ -87,6 +87,7 @@ LAYER[benchkit]=7
 LAYER["cmd/cqrs-gen"]=7
 LAYER["cmd/cqrs-lint"]=7
 LAYER["cmd/cqrs-bench"]=7
+LAYER["cmd/cqrs-upgrade"]=7
 LAYER["cmd/api-stability"]=7
 LAYER["cmd/doc-check"]=7
 LAYER["example/taskmanager"]=7
@@ -258,6 +259,7 @@ DEP_BUDGET["cmd/cqrs-gen"]=2
 DEP_BUDGET["cmd/cqrs-lint"]=8
 # metaengine/v4 added for the `cqrs-bench layout` planning CLI.
 DEP_BUDGET["cmd/cqrs-bench"]=19
+DEP_BUDGET["cmd/cqrs-upgrade"]=2
 DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
 DEP_BUDGET["example/taskmanager"]=25
