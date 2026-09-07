@@ -1,6 +1,6 @@
 # SUPERB — Full-Adoption System On-Ramp
 
-**Date:** 2026-09-07 17:25 · **Author:** session (adoption analysis) · **Status:** PLAN (no code changed)
+**Date:** 2026-09-07 17:25 · **Author:** session (adoption analysis) · **Status:** PLAN v2 (revised same day after critical self-review) · **No code changed**
 
 **Questions answered:**
 1. How can we make go-cqrs-lite easier to use FULLY and with the latest features?
@@ -103,8 +103,24 @@ Sorted by importance/impact/effort/customer-value. Owner tags: `[APK]` go-appkit
 | T24 | FIR: event signing adoption (audit-trail tamper evidence) + bench regression gate in its CI | FIR | 5 | 100m | flagship depth | W3 |
 | T25 | APK security module W2 (per their batteries spec — port from CV inventory) | APK | 6 | 100m×3 | consumer demand | W3 |
 | T26 | APK docs-mod: refresh catalog wiring for system-based services | APK | 4 | 45m | auto-docs current | W3 |
+| T27 | project-dependency-graph: fix who-uses miscounts — (a) go.work `use` entries counted as direct requires, (b) `// indirect` comments ignored; regression fixtures + re-audit | DG | 8 | 90m | honest adoption metrics (feeds §7) | W1 |
+| T28 | FIR adoption depth: cqrs-lint gate in its CI + scenario/Ginkgo BDD for rename rules + catalog event-doc generation | FIR | 5 | 100m | flagship quality depth | W3 |
 
-**Total:** ~35–40 h. Waves are sequential per repo but T09–T15 parallelize across repos.
+IDs reflect drafting order; rows are placed by wave (the importance sort). Owners: `DG` = project-dependency-graph repo. **Effort per wave:** W0 ≈ 11 h · W1 ≈ 12 h (incl. T27) · W2 ≈ 6.75 h · W3 ≈ 13 h (incl. T28) · **total ≈ 43 h.** All tasks within the 30–100 min band.
+
+### 3.1 Adjacent work — explicitly routed, NOT in this plan
+
+"All TODOs" honored by explicit routing (each has an owner and a home; none silently dropped):
+
+| Item | Home | Why not here |
+| --- | --- | --- |
+| APK logging posture decision (P2, data exists) | go-appkit TODO_LIST | core-framework work, not cqrs adoption |
+| APK Go toolchain bump past 1.26.7 | go-appkit TODO_LIST | gated on nixpkgs |
+| APK W1 leftovers (G2 metrics, F5 buildinfo, E1 testkit) | go-appkit TODO_LIST | core batteries, demand-gated |
+| APK W3–W5 batteries (httpx, worker, sqlite, polite, realtime C2) | batteries spec doc | framework scope, own waves |
+| cordis bridge, PapDashboard reverse adoption, TLS | go-appkit TODO_LIST P3 | trigger-gated, researched NO-WORK-NOW |
+| who-uses **reporting** UX beyond the 2 miscount bugs | dependency-graph repo roadmap | only correctness bugs block §7 |
+| v5 removal execution (ADR-0123 surfaces) | go-cqrs-lite v5 milestone | this plan is the *preparation* for it |
 
 ---
 
@@ -121,6 +137,7 @@ Sorted by importance/impact/effort/customer-value. Owner tags: `[APK]` go-appkit
 | M02.3 | T02 | Wire system.New with single-engine DeploymentConfig (sqlite driver, pragmas) |
 | M02.4 | T02 | Expose System() accessor + deprecation note on Bundle() |
 | M02.5 | T02 | Compile + gofumpt + fix depguard allow-list entries |
+| M02.6 | T02 | Blank-import sqliteengine registration (engines self-register via init() — gotcha #19; a missing blank import means "unknown driver: sqlite" at system.New) |
 | M03.1 | T03 | Port construction-failure close semantics (close-on-error ordering) |
 | M03.2 | T03 | Port idempotent Shutdown + drain ordering via ShutdownDependencies |
 | M03.3 | T03 | Port staleness guards onto system projection host checkpoint API |
@@ -208,6 +225,15 @@ Sorted by importance/impact/effort/customer-value. Owner tags: `[APK]` go-appkit
 | M25.1–3 | T25 | APK security module per their W2 spec (staged separately) |
 | M26.1 | T26 | APK docs-mod catalog wiring refresh for v2 services |
 | M26.2 | T26 | docs smoke + example regeneration |
+| M27.1 | T27 | Reproduce go.work-as-direct on a fixture workspace; pin expected output |
+| M27.2 | T27 | Classify workspace `use` entries as non-dependencies in module discovery |
+| M27.3 | T27 | Parse `// indirect` comments into dependency classification |
+| M27.4 | T27 | Regression fixtures: go.work consumer + indirect-only consumer |
+| M27.5 | T27 | Re-run `who-uses go-cqrs-lite` and diff against the manual 2026-09-07 audit |
+| M28.1 | T28 | FIR CI: cqrs-lint job (`.` arg form, not `./...`) |
+| M28.2 | T28 | scenario Given/When/Then suite for rename rules |
+| M28.3 | T28 | catalog Registry wiring + event-doc generation |
+| M28.4 | T28 | Link generated docs from FIR README; doc-check |
 
 ---
 
@@ -226,6 +252,7 @@ flowchart TD
         T11[T11 benchkit system]
         T12[T12 RunWithAppkit] --> T13[T13 systemadapter adoption]
         T14[T14 FIR koanf] --> T15[T15 FIR 2-engine]
+        T27[T27 who-uses fix]
     end
     subgraph W2["Wave 2 — 20% → 80%"]
         T16[T16 recipes MV+priority]
@@ -243,12 +270,13 @@ flowchart TD
     end
     T07 --> T12
     T07 --> T18
+    T07 --> T08
     T09 --> T20
-    T16 --> T15
+    T15 --> T16
     T08 --> T09
 ```
 
-Order within waves: G1 (v5 cliff) first — it is the only time-boxed risk (v5 removes stack). Everything else composes behind it.
+Order within waves: G1 (v5 cliff) first — it is the only time-boxed risk (v5 removes stack). Everything else composes behind it. Edge fix from v1: recipes (T16) are *proven by* FIR's 2-engine dogfood (T15), not the reverse. The micro-task table inherits this sort: wave order first, then task-ID order inside each wave.
 
 ## 6. Guardrails (no VERSCHLIMMBESSER)
 
@@ -258,10 +286,12 @@ Order within waves: G1 (v5 cliff) first — it is the only time-boxed risk (v5 r
 4. Licensing (T22) and any external issue filing (T23) are USER-GATED / verify-before-filing.
 5. Cross-repo waves respect each repo's concurrent-session ownership rules (git status check before editing).
 6. FIR stays the flagship: every new system feature gets its first real consumer there before general recipes ship.
+7. Engine self-registration is a blank-import contract (`metaengine/*engine/register.go`, gotcha #19): any new engine require in appkit/FIR go.mod files MUST ship with the blank import or `system.New` fails at runtime with "unknown driver" — never hand-write Store wrappers (ADR-0126), compose via system's adapters.
+8. Concurrent sessions own foreign dirty files (e.g. `metaengine/tursoengine/matview_bench_test.go` at plan time): this plan's commits stage only files its tasks author.
 
 ## 7. Success Criteria
 
 - `go-appkit/cqrs` v0.5.0 on system — proxy-verified; cqrs-htmx fold-in merged.
 - A new consumer reaches "full stack with latest features" via: appkit EventService + operator YAML + `cqrs upgrade` + copy-paste recipes — no manual pin sweeps, no stack imports.
 - metaengine/system production consumers: 1 → ≥4 (FIR, cqrs-htmx setup path, ≥2 apps via appkit).
-- who-uses tooling fixed (go.work + indirect mislabels) so adoption numbers are honest — tracked separately in the dependency-graph repo.
+- who-uses output matches a manual source-level audit (T27 regression fixtures pin this) — adoption numbers are honest before being used to steer waves.
