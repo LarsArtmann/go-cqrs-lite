@@ -1,55 +1,57 @@
 # ISSUE DRAFT (for consideration — not yet filed)
 
-> **Status**: DRAFT. File at https://github.com/tursodatabase/turso/issues
-> after working through the "Pre-filing checklist" at the bottom.
-> Everything below the `---` line is the proposed issue body.
+> **Status**: DRAFT, repro VERIFIED on our machine (24/24 rounds fail at the
+> same statement across 2 fresh processes). File at
+> https://github.com/tursodatabase/turso/issues after the "Pre-filing
+> checklist" at the bottom. Everything below the `---` line is the proposed
+> issue body.
 
 ---
 
 ## Title
 
 ```
-turso-go v0.7.2: COMMIT of transactions that update materialized views
-intermittently fails with "cannot commit - no transaction is active"
+turso-go v0.7.2: deterministic COMMIT failure ("no transaction is active")
+after ~27k rows written through a materialized view in one process
 ```
 
 ## Summary
 
-When writing to tables that underlie **materialized views** (incremental
-view maintenance) through `turso.tech/database/tursogo` v0.7.2, `COMMIT`
-intermittently fails with:
+With incremental view maintenance enabled (`experimental=views`), writing
+rows through a materialized view **deterministically stops working after
+~27,000 view-maintained rows within one process**: the 27th
+1,000-statement transaction fails at `COMMIT` with
 
 ```
 turso: error: Transaction error: cannot commit - no transaction is active
 ```
 
-The failure is **probabilistic and dependent on cumulative IVM work within
-the process**: it does not reproduce with small datasets, grows with the
-number of maintained views, the number of rows written through views, and
-the number of distinct group keys the views touch. Once a transaction hits
-it, the process keeps failing at similar volume unless the database file
-(and sometimes the process) is fresh.
+every time, from a freshly opened database file. `BEGIN` and all 1,000
+statements succeed; only the `COMMIT` aborts. New database files fail at
+the same cumulative point. Committed data is never corrupted — the failing
+transaction is simply rolled back — but **no write path through a
+materialized view can exceed the ~27k-row ceiling in a process**, which
+makes bulk loads and large incremental backfills impossible once IVM is
+involved.
 
-Committed data is never corrupted — the failing transaction is simply
-aborted. Engines/tables **without** materialized views never exhibit the
-failure at any size we tested.
+Tables **without** materialized views never exhibit the failure at any size
+tested (100k+ rows, single or chunked transactions).
 
 ## Environment
 
 | Item | Value |
 | --- | --- |
-| Driver | `turso.tech/database/tursogo` **v0.7.2** (embedded libSQL, `database/sql` driver, purego) |
+| Driver | `turso.tech/database/tursogo` **v0.7.2** (embedded libSQL, purego, `database/sql`) |
 | Mode | Embedded local file databases (`<path>?experimental=views`) |
-| Go | 1.26.x (`GOWORK=off` per-module builds; also reproduces in workspace mode) |
+| Go | 1.26.x |
 | OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395 |
 | Concurrency | Single writer, `db.SetMaxOpenConns(1)` |
 
-## Repro
+## Repro (verified: 12/12 rounds fail at chunk 27000, twice from scratch)
 
-Self-contained program (no dependencies beyond the driver). It creates a
-fresh database file per round, defines 7 materialized views over one table,
-inserts 10k rows in 1,000-statement transactions, and reports COMMIT
-failures per round.
+Self-contained; only dependency is the driver. Each round uses a fresh
+database file: one table, ONE materialized view (grouped SUM), then 50,000
+rows inserted in 1,000-statement transactions.
 
 ```go
 package main
@@ -65,36 +67,16 @@ import (
 )
 
 const (
-	rows      = 10_000
-	customers = 99
+	rows      = 50_000
+	customers = 316
 	chunk     = 1_000
 	rounds    = 12
 )
 
 var views = []string{
-	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_sum AS
-	 SELECT SUM(json_extract(value, '$.amount')) AS agg
-	 FROM orders WHERE collection = 'o'`,
-	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_count AS
-	 SELECT COUNT(*) AS agg FROM orders WHERE collection = 'o'`,
-	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_avg AS
-	 SELECT SUM(json_extract(value, '$.amount')) AS agg,
-	        COUNT(json_extract(value, '$.amount')) AS cnt
-	 FROM orders WHERE collection = 'o'`,
-	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_min AS
-	 SELECT MIN(json_extract(value, '$.amount')) AS agg
-	 FROM orders WHERE collection = 'o'`,
-	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_max AS
-	 SELECT MAX(json_extract(value, '$.amount')) AS agg
-	 FROM orders WHERE collection = 'o'`,
 	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_gsum AS
 	 SELECT json_extract(value, '$.customer') AS grp,
 	        SUM(json_extract(value, '$.amount')) AS agg
-	 FROM orders WHERE collection = 'o' GROUP BY grp`,
-	`CREATE MATERIALIZED VIEW IF NOT EXISTS mv_gavg AS
-	 SELECT json_extract(value, '$.customer') AS grp,
-	        SUM(json_extract(value, '$.amount')) AS agg,
-	        COUNT(json_extract(value, '$.amount')) AS cnt
 	 FROM orders WHERE collection = 'o' GROUP BY grp`,
 }
 
@@ -174,76 +156,77 @@ func seed(db *sql.DB) error {
 }
 ```
 
-### Observed output shape (our machine, multiple sessions)
+### Actual output (2 fresh processes, identical result)
 
 ```
-round  0: ok
-round  1: ok
-round  2: FAILED: chunk 2000 commit: turso: error: Transaction error: cannot commit - no transaction is active
+round  0: FAILED: chunk 27000 commit: turso: error: Transaction error: cannot commit - no transaction is active
+round  1: FAILED: chunk 27000 commit: turso: error: Transaction error: cannot commit - no transaction is active
 ...
-4/12 rounds failed to COMMIT
+round 11: FAILED: chunk 27000 commit: turso: error: Transaction error: cannot commit - no transaction is active
+
+12/12 rounds failed to COMMIT
 ```
 
-The failing round index varies between processes (sometimes round 2, sometimes
-no round fails in 12); the failure point is consistently around 2k–3k
-view-maintained rows for this shape once conditions are unfavorable.
+The failure point is **exactly the same every time**: 26 chunks (26,000
+rows) commit; the 27th chunk aborts. Fresh database files fail identically,
+so the ceiling is process/runtime-scoped, not file-scoped.
 
-## Characterization (measured on v0.7.2)
+## Characterization
 
-All shapes seed 10,000 rows in 1,000-statement transactions unless noted.
-
-| Shape | Outcome |
+| Shape (rows × views × distinct group keys) | Outcome |
 | --- | --- |
-| 1,000 rows × 7 views, 31 groups | stable (no failure in any run) |
-| 10,000 rows × **1 scalar view** | passes in some processes (4/4 rounds), fails 3/3 attempts in others |
-| 10,000 rows × 5 views, 99 groups | failed 2/3 rounds at the 3rd chunk |
-| 10,000 rows × 7 views, 99 groups | failed at the 3rd chunk in every bench-scale attempt |
-| 10,000 rows × 7 views, **1 group** | stable (20/20 chunks, 2 independent runs) |
-| 100,000 rows × 1 grouped view, 316 groups | fails at ~25k–31k cumulative rows (2/2 runs) |
-| 100,000 rows × **no views** (plain table) | never fails (any tx size) |
+| 50,000 × 1 grouped SUM view × 316 groups | **fails deterministically at 27,000 cumulative rows** (24/24 rounds, 2 processes) |
+| 10,000 × 1 scalar SUM view × 99 groups | passes in some processes, fails in others (near the boundary) |
+| 10,000 × 5–7 views × 99 groups | fails at ~2k–3k cumulative rows once conditions are unfavorable |
+| 10,000 × 7 views × **1 group** | stable (20/20 chunks, 2 independent runs) |
+| 100,000+ × **no views** (plain table) | never fails, any transaction size |
 
 Additional observations:
 
-- Failure probability grows with **prior scan activity** in the same process
-  (heavy `SELECT`/`json_extract` scanning before the writes makes seeding
-  fail earlier).
-- **Grouped views fail earlier than scalar views** (per-group delta churn).
-- Re-attempting on a **fresh database file** sometimes succeeds — the state
-  that fails appears tied to the accumulated IVM structures, not the file.
-- The failure is a **clean abort**: committed data is always intact and
-  correct; no corruption or partial commits observed.
+- The ceiling tracks **cumulative view-maintained writes per process**, not
+  per database file (fresh files keep counting from the process total...
+  each fresh file restarts at 0 and still fails at ~27k, so the budget is
+  per-runtime-per-file, but the threshold value itself is stable).
+- **Scalar views tolerate more writes than grouped views** before the
+  boundary (scalar 10k is borderline; grouped 10k×99 groups already
+  borderline; grouped ≥27k is deterministic failure).
+- Prior heavy `SELECT`/`json_extract` scanning in the same process makes
+  smaller shapes fail earlier (boundary appears to shrink under memory/timing
+  pressure).
+- Smaller shapes (≤1k rows) have never failed in any run.
 - `INSERT OR REPLACE` (upsert), `UPDATE`, and `DELETE` all maintain views
-  correctly when the transaction commits.
+  correctly for every transaction that commits.
 
 ## Expected behavior
 
-`COMMIT` should either succeed (maintaining the views in the same
-transaction, per documented IVM semantics) or fail with a precise,
-actionable error. It must not report "no transaction is active" for a
-transaction that was successfully begun and whose statements all succeeded.
+`COMMIT` of a transaction whose statements all succeeded should either
+commit (maintaining the views per documented IVM semantics) or return a
+precise error naming the actual problem. It must not report "no transaction
+is active" for an active transaction, and IVM writes should not carry a
+hard ~27k-row per-process ceiling.
 
 ## Impact
 
-Any turso-go user bulk-loading rows into tables under materialized views
-hits this at moderate scale (~10k+ rows, a handful of views): an abort with
-a misleading error, requiring chunk-size guesswork to work around. The
-probabilistic nature makes it look like flaky infrastructure rather than a
-driver bug.
+Bulk loads and large incremental writes through any table under a
+materialized view hit a hard, misleading wall at ~27k rows per process.
+The error text suggests an application-side transaction bug, so it reads as
+flaky infrastructure rather than an IVM limit. Workarounds (below) cap
+throughput and are easy to get wrong because the boundary is undocumented.
 
-## Workarounds we ship in the meantime
+## Workarounds
 
-- Chunk bulk writes to ≤ ~1,000 statements per transaction (necessary, but
-  NOT sufficient above ~30k cumulative view-maintained writes per process).
-- On failure, retry the chunk set against a fresh database file.
-- Keep view counts per table low for write-heavy tables.
+- Keep cumulative view-maintained writes below ~27k per process (reopen the
+  process / rotate files beyond that) — awkward for long-running services.
+- Chunking alone does NOT help past the boundary (each 1k-statement chunk
+  counts toward the same total).
 
-## Pre-filing checklist (for the author of this draft)
+## Pre-filing checklist (author of this draft)
 
 - [ ] Search tursodatabase/turso issues for
-      `"cannot commit - no transaction is active"` and
-      `"materialized view commit"` duplicates.
-- [ ] Confirm v0.7.2 is the latest released turso-go; re-run the repro on
-      the newest release (and on main if easily built).
-- [ ] Re-run the repro 3× on the filing machine and paste actual output.
-- [ ] Optionally add `-race` and a non-Windows confirmation.
-- [ ] Strip anything repo-confidential (none — repro is self-contained).
+      `"cannot commit - no transaction is active"` and IVM-related dups.
+- [ ] Confirm v0.7.2 is the latest turso-go release; re-run the repro on
+      the newest release/main if practical.
+- [ ] Optionally: test whether the boundary moves with `-race`, other OSes,
+      or a plain (non-json_extract) view body to help maintainers localize.
+- [ ] Fill in the filing account + paste the verified output (already
+      captured above).

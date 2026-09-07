@@ -2,6 +2,7 @@ package tursoengine
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -76,12 +77,14 @@ type encryptionConfig struct {
 // fixes, never key material.
 func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 	if isRemoteDSN(dsn) {
-		return "", fmt.Errorf("encryption applies to embedded databases only, but the DSN is remote; Turso Cloud BYOK keys are per-connection and not configurable on this engine yet")
+		return "", errors.New("encryption applies to embedded databases only; remote Turso Cloud BYOK " +
+			"keys are per-connection and not configurable on this engine yet")
 	}
 
 	keyLen, known := cipherKeyLen(cfg.cipher)
 	if !known {
-		return "", fmt.Errorf("unknown encryption cipher %q (valid: aegis256, aegis128l, aegis128x2, aegis128x4, aegis256x2, aegis256x4, aes128gcm, aes256gcm)", string(cfg.cipher))
+		return "", fmt.Errorf("unknown encryption cipher %q (valid: aegis256, aegis128l, aegis128x2, aegis128x4, "+
+			"aegis256x2, aegis256x4, aes128gcm, aes256gcm)", string(cfg.cipher))
 	}
 
 	key, err := hex.DecodeString(cfg.hexKey)
@@ -90,7 +93,8 @@ func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 	}
 
 	if len(key) != keyLen {
-		return "", fmt.Errorf("encryption key is %d bytes, want %d for %s (openssl rand -hex %d)", len(key), keyLen, cfg.cipher, keyLen)
+		return "", fmt.Errorf("encryption key is %d bytes, want %d for %s (openssl rand -hex %d)",
+			len(key), keyLen, cfg.cipher, keyLen)
 	}
 
 	return withEncryptionParams(dsn, cfg.cipher, cfg.hexKey)

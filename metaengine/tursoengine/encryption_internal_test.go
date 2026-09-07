@@ -32,12 +32,15 @@ func TestApplyEncryption_CoexistsWithViewsFlag(t *testing.T) {
 
 	key := strings.Repeat("ab", 16)
 
-	dsn, err := applyEncryption("/data/app.db?experimental=views", &encryptionConfig{cipher: CipherAES128GCM, hexKey: key})
+	dsn, err := applyEncryption("/data/app.db?experimental=views",
+		&encryptionConfig{cipher: CipherAES128GCM, hexKey: key})
 	if err != nil {
 		t.Fatalf("applyEncryption: %v", err)
 	}
 
-	if !strings.Contains(dsn, "experimental=views%2Cencryption") && !strings.Contains(dsn, "experimental=views,encryption") {
+	mergedViews := strings.Contains(dsn, "experimental=views%2Cencryption") ||
+		strings.Contains(dsn, "experimental=views,encryption")
+	if !mergedViews {
 		t.Errorf("DSN %q did not merge views+encryption flags", dsn)
 	}
 }
