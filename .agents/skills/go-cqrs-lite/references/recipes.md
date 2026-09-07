@@ -1765,3 +1765,59 @@ engine's EXPLAIN test; the sqliteengine pins the same contract via
 **Measured (2K rows, ephemeral PG testcontainer, 2026-08-30):** planned
 filtered scan 779 µs vs meta_map 874 µs; CounterGet equal within noise
 (287 vs 260 µs) — the evidence behind "counters stay on meta_map".
+
+### 2.29 Materialized Views: Operator-Declared Aggregate Acceleration (tursoengine, ADR-0135)
+
+Turso (libSQL) maintains materialized views incrementally inside every write
+transaction — no REFRESH step. Declare WHAT to accelerate as an operator
+(deployment-time concern, metaengine north star); the engine derives the DDL
+and serves matching unfiltered aggregates from the views.
+
+Via the system composition root (YAML):
+
+```yaml
+engines:
+  orders-db:
+    driver: turso
+    dsn: "libsql://myapp.turso.io?authToken=..."
+    materialized_views:
+      - collection: orders
+        fn: SUM
+        column: amount
+      - collection: orders
+        fn: AVG
+        column: amount
+        group_by: customer
+```
+
+Direct engine construction:
+
+```go
+eng, err := tursoengine.New(dsn,
+    tursoengine.WithMaterializedViews([]metaengine.MaterializedViewSpec{
+        {Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+        {Collection: "orders", Fn: metaengine.MatViewAvg, Column: "amount", GroupBy: "customer"},
+    }))
+```
+
+**What gets accelerated.** Unfiltered scalar aggregates (SUM/COUNT/MIN/MAX/
+AVG) and unfiltered grouped aggregates whose shape matches a declared view.
+Scalar views are single-row (O(1) reads); grouped views are O(groups). A
+grouped view also serves its scalar aggregate via exact derivation (SUM of
+group sums, weighted AVG from stored SUM+COUNT). Everything else — filtered
+aggregates, planned-table collections, multi-aggregate/DISTINCT — falls
+through to the base tables unchanged.
+
+**Safety rails.** The mapping spec→DDL is exact by construction (the library
+derives the SQL, never parses operator SQL). Plain SQLite rejects specs at
+construction with the feature hint. On embedded DSNs the driver appends
+`experimental=views` automatically; remote DSNs need the flag server-side.
+`Store.Doctor` lists registered views with live row counts; EXPLAIN shows the
+view SQL when a query would be served from a view.
+
+**Write cost.** Every base-table write maintains each declared view in the
+same transaction (counts as of 2026-09-07 in
+`docs/benchmarks/2026-09-07_turso-materialized-views.md`): ~10-15% steady-
+state write overhead per view group. Declare accelerations for HOT aggregates
+only. Bulk loaders should chunk transactions (≤ ~1k statements) — see the
+turso-go upstream constraint in AGENTS.md.
