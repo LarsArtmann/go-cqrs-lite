@@ -388,9 +388,16 @@ func applySeverityOverrides(
 		return findings
 	}
 
+	// Normalize keys once: parent configs are merged without validation, so
+	// key casing is not guaranteed (local config is normalized upstream).
+	normalized := make(map[string]string, len(overrides))
+	for id, sev := range overrides {
+		normalized[strings.ToUpper(strings.TrimSpace(id))] = sev
+	}
+
 	result := make([]finding.Finding, len(findings))
 	for i, f := range findings {
-		sev, ok := overrides[strings.ToUpper(string(f.Rule))]
+		sev, ok := normalized[string(f.Rule)]
 		if ok {
 			parsed := parseSeverity(sev)
 			if parsed != f.Severity {

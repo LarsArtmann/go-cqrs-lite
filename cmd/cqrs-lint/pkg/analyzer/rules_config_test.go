@@ -67,3 +67,53 @@ func TestRulesConfig_Validate_NilIsSafe(t *testing.T) {
 		t.Errorf("expected no output for nil config, got: %s", buf.String())
 	}
 }
+
+func TestRulesConfig_Validate_NormalizesSeverityOverrides(t *testing.T) {
+	t.Parallel()
+
+	rc := &RulesConfig{
+		SeverityOverrides: map[string]string{
+			"  v007 ": " ERROR ",
+			"c008": "warning",
+			"":     "error",
+			"S001": "",
+		},
+	}
+	var buf bytes.Buffer
+	rc.Validate(&buf, nil)
+
+	if buf.Len() > 0 {
+		t.Errorf("expected no warnings, got: %s", buf.String())
+	}
+	if len(rc.SeverityOverrides) != 2 {
+		t.Fatalf("expected 2 normalized overrides, got %d: %v",
+			len(rc.SeverityOverrides), rc.SeverityOverrides)
+	}
+	if rc.SeverityOverrides["V007"] != "error" || rc.SeverityOverrides["C008"] != "warning" {
+		t.Errorf("normalized overrides wrong: %v", rc.SeverityOverrides)
+	}
+}
+
+func TestRulesConfig_Validate_DropsInvalidSeverityWithWarning(t *testing.T) {
+	t.Parallel()
+
+	rc := &RulesConfig{
+		SeverityOverrides: map[string]string{
+			"V007": "fatal", // unknown severity — must be dropped, not demoted to info
+			"S001": "error",
+		},
+	}
+	var buf bytes.Buffer
+	rc.Validate(&buf, nil)
+
+	out := buf.String()
+	if !strings.Contains(out, "invalid severity") || !strings.Contains(out, "fatal") {
+		t.Errorf("expected invalid-severity warning naming %q, got: %s", "fatal", out)
+	}
+	if _, ok := rc.SeverityOverrides["V007"]; ok {
+		t.Errorf("invalid override for V007 must be dropped, got: %v", rc.SeverityOverrides)
+	}
+	if rc.SeverityOverrides["S001"] != "error" {
+		t.Errorf("valid override for S001 must survive, got: %v", rc.SeverityOverrides)
+	}
+}

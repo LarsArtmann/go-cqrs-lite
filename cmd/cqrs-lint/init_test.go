@@ -111,3 +111,25 @@ func TestGenerateInitConfigLocalCLIIncludesMinSeverity(t *testing.T) {
 		t.Errorf("production config should NOT include min-severity\ngot: %s", content)
 	}
 }
+
+// TestGenerateInitConfigV5ReadyCarriesSeverityOverrides verifies the
+// v5-ready preset's generated config keeps the V007 severity override after
+// JSONC comment stripping and AppConfig loading.
+func TestGenerateInitConfigV5ReadyCarriesSeverityOverrides(t *testing.T) {
+	t.Parallel()
+
+	content, err := generateInitConfig("v5-ready")
+	if err != nil {
+		t.Fatalf("generateInitConfig(v5-ready) failed: %v", err)
+	}
+
+	var cfg AppConfig
+	cleaned := stripJSONComments([]byte(content))
+	if err := json.Unmarshal(cleaned, &cfg, json.MatchCaseInsensitiveNames(true)); err != nil {
+		t.Fatalf("config does not load into AppConfig: %v\nconfig:\n%s", err, content)
+	}
+
+	if got := cfg.Rules.SeverityOverrides["V007"]; got != "error" {
+		t.Errorf("generated v5-ready config must override V007 to error, got %q\nconfig:\n%s", got, content)
+	}
+}

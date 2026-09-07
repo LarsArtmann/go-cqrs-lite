@@ -873,9 +873,23 @@ func main() {
 func TestPresetDefinitions_AllPresetsHaveFeatures(t *testing.T) {
 	t.Parallel()
 
+	// rulesOnlyPresets carry rules-side defaults (severity overrides) instead
+	// of feature pins — v5-ready intentionally leaves features auto-detected
+	// and only escalates V007 to error.
+	rulesOnlyPresets := map[ConfigPreset]bool{
+		PresetV5Ready: true,
+	}
+
 	for name, def := range PresetDefinitions {
 		t.Run(string(name), func(t *testing.T) {
 			t.Parallel()
+
+			if rulesOnlyPresets[name] {
+				if len(def.Rules.SeverityOverrides) == 0 && len(def.Rules.Disable) == 0 {
+					t.Errorf("rules-only preset %q carries no rule defaults", name)
+				}
+				return
+			}
 
 			if def.Features.Server == nil && def.Features.CommandFlow == nil &&
 				def.Features.Tracing == nil && def.Features.Snapshot == nil &&
@@ -924,7 +938,7 @@ func TestValidPresetNames_ContainsAllPresets(t *testing.T) {
 	t.Parallel()
 
 	names := ValidPresetNames()
-	expected := []string{"library", "library-framework", "local-cli", "production", "read-only"}
+	expected := []string{"library", "library-framework", "local-cli", "production", "read-only", "v5-ready"}
 	if len(names) != len(expected) {
 		t.Fatalf("expected %d preset names, got %d: %v", len(expected), len(names), names)
 	}

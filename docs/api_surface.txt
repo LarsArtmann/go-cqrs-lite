@@ -547,6 +547,7 @@ cmd/cqrs-lint/pkg/analyzer/const PresetLocalCLI
 cmd/cqrs-lint/pkg/analyzer/const PresetNone
 cmd/cqrs-lint/pkg/analyzer/const PresetProduction
 cmd/cqrs-lint/pkg/analyzer/const PresetReadOnly
+cmd/cqrs-lint/pkg/analyzer/const PresetV5Ready
 cmd/cqrs-lint/pkg/analyzer/const SnapshotOff
 cmd/cqrs-lint/pkg/analyzer/const SnapshotOn
 cmd/cqrs-lint/pkg/analyzer/const SnapshotUnknown
@@ -3007,6 +3008,7 @@ metaengine/irohengine/var ErrTransportClosed
 metaengine/irohengine/var ErrVectorBackendNotImplemented
 metaengine/irohengine/var ErrVectorBackendNotImplemented
 metaengine/keycodec/const Sep
+metaengine/keycodec/const SeqTailLen
 metaengine/keycodec/func CollectionPrefix
 metaengine/keycodec/func CounterKey
 metaengine/keycodec/func CounterPrefix
@@ -3027,7 +3029,9 @@ metaengine/keycodec/func LogPrefix
 metaengine/keycodec/func MapKey
 metaengine/keycodec/func MultimapKey
 metaengine/keycodec/func MultimapPrefix
+metaengine/keycodec/func SeedSeqMax
 metaengine/keycodec/func SetKey
+metaengine/keycodec/func SplitGroupAndSeq
 metaengine/keycodec/func StreamKey
 metaengine/keycodec/func StreamPrefix
 metaengine/keycodec/func StreamSeqKey

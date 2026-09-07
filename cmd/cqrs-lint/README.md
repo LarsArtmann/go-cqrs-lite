@@ -134,9 +134,17 @@ explicit `rules.disable` entries are added on top (union).
 | `library`           | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, F030, S002, S003, V007                                                                                                                   | (default)      |
 | `library-framework` | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, S002, S003, V007 | (default)      |
 | `read-only`         | `command-flow: read-only`                                                   | (none)                                                                                                                                                                                                           | (default)      |
+| `v5-ready`          | (none)                                                                      | (none)                                                                                                                                                                                                           | (default)      |
 
-cqrs-lint warns on unknown preset names (typos) and unknown disabled rule IDs,
-so misconfigurations surface immediately instead of silently doing nothing.
+The `v5-ready` preset is the opt-in escalation for a completed (or deadline-
+bound) v5 migration: V007 (v5-removed-API usage) findings are rewritten from
+`warning` to `error`, so `--min-severity error` CI jobs block on them. It
+disables nothing. Add more via `rules.severity-overrides` in
+`.cqrs-lint.json` — explicit config entries win over the preset's.
+
+cqrs-lint warns on unknown preset names (typos), unknown disabled rule IDs,
+and unknown severity-override rule IDs, so misconfigurations surface
+immediately instead of silently doing nothing.
 
 ## Configuration Reference
 
@@ -150,7 +158,7 @@ for a full interactive reference.
 
 | Key              | Type   | Default     | Description                                                    |
 | ---------------- | ------ | ----------- | -------------------------------------------------------------- |
-| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `read-only` |
+| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready` |
 | `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical` |
 | `min-confidence` | string | `"low"`     | Minimum confidence shown: `low`, `medium`, `high`              |
 | `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`             |
@@ -181,12 +189,19 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ### `rules` keys
 
-| Key                            | Type     | Description                                               |
-| ------------------------------ | -------- | --------------------------------------------------------- |
-| `disable`                      | string[] | Rule IDs to suppress project-wide                         |
-| `external-api-struct-prefixes` | string[] | Struct prefixes mirroring external APIs (suppresses D002) |
-| `c008-ignore-fields`           | string[] | Field names to exclude from C008 (case-insensitive)       |
-| `c008-ignore-structs`          | string[] | Struct names to exclude entirely from C008                |
+| Key                            | Type               | Description                                               |
+| ------------------------------ | ------------------ | --------------------------------------------------------- |
+| `disable`                      | string[]           | Rule IDs to suppress project-wide                         |
+| `severity-overrides`           | map[string]string  | Rule ID → severity rewrite (e.g. `{"V007": "error"}`)     |
+| `external-api-struct-prefixes` | string[]           | Struct prefixes mirroring external APIs (suppresses D002) |
+| `c008-ignore-fields`           | string[]           | Field names to exclude from C008 (case-insensitive)       |
+| `c008-ignore-structs`          | string[]           | Struct names to exclude entirely from C008                |
+
+Severity overrides resolve in a fixed order (later wins per rule ID):
+catalog → preset → parent config → local config → domain bias →
+`--min-severity` (filter only, never rewrites severity). Unknown rule IDs
+warn; invalid severity values are dropped with a warning (the rule keeps its
+catalog severity — nothing silently demotes to `info`).
 
 ### `health` keys
 
