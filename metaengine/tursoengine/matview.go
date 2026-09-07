@@ -24,20 +24,14 @@ func WithMaterializedViews(specs []metaengine.MaterializedViewSpec) Option {
 	}
 }
 
-// withExperimentalViews appends the libSQL "views" experimental-feature flag
-// to an embedded DSN (e.g. ":memory:?experimental=views"). Remote DSNs pass
-// through unchanged: the driver ignores DSN params there, and the flag is a
-// server-side setting (libsqld --experimental-views) — construction then
-// fails with the server's own clear error if the feature is missing.
+// withExperimentalViews appends the "views" experimental-feature flag to an
+// embedded DSN (e.g. ":memory:?experimental=views"). An existing
+// experimental list is MERGED (comma-separated), so a DSN already carrying
+// e.g. "experimental=encryption" gains "encryption,views" instead of losing
+// the views flag. Remote DSNs pass through unchanged: the driver ignores DSN
+// params there, and the flag is a server-side setting
+// (libsqld --experimental-views) — construction then fails with the server's
+// own clear error if the feature is missing.
 func withExperimentalViews(dsn string) string {
-	if isRemoteDSN(dsn) || strings.Contains(dsn, "experimental=") {
-		return dsn
-	}
-
-	sep := "?"
-	if strings.Contains(dsn, "?") {
-		sep = "&"
-	}
-
-	return dsn + sep + "experimental=views"
+	return withExperimentalToken(dsn, "views")
 }
