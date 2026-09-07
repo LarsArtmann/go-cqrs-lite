@@ -209,9 +209,11 @@ func TestReplan_KeepsExcludingOverDeclaredEngine(t *testing.T) {
 
 // TestCheckRouting_NeverSuggestsOverDeclaredEngine pins the routing-check
 // half of the partition: a lying engine with cheaper priors looks strictly
-// better than the honest incumbent, but CheckRouting must not emit a
-// REPLAN-SUGGESTED diagnostic pointing at an engine Replan would refuse and
-// whose Apply would hard-error.
+// better than the honest incumbent, but checkQueryRouting (the engine behind
+// Store.CheckRouting) must not emit a REPLAN-SUGGESTED diagnostic pointing
+// at an engine Replan would refuse and whose Apply would hard-error.
+// Thresholds mirror the shipped defaults (hysteresis 0.20, no min-delta
+// floor) — the improvement here is ~99.8%, far beyond the deadband.
 func TestCheckRouting_NeverSuggestsOverDeclaredEngine(t *testing.T) {
 	t.Parallel()
 
@@ -228,11 +230,18 @@ func TestCheckRouting_NeverSuggestsOverDeclaredEngine(t *testing.T) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	diags := store.CheckRouting(context.Background())
+	diag := checkQueryRouting(
+		store.queries["capability_tasks"],
+		store.Plan().Queries[0],
+		store.routableLocked(),
+		DefaultRoutingHysteresis,
+		0,
+	)
+	if diag != nil && strings.Contains(diag.Message, "liar") {
+		t.Fatalf("routing check suggested the over-declaring engine: %+v", diag)
+	}
 
-	for _, d := range diags {
-		if strings.Contains(d.Message, "liar") {
-			t.Fatalf("CheckRouting suggested the over-declaring engine: %+v", d)
-		}
+	if diag != nil {
+		t.Fatalf("routing check suggested an alternative despite the liar being the only cheaper engine: %+v", diag)
 	}
 }
