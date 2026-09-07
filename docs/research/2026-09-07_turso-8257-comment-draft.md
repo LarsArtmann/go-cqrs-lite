@@ -9,7 +9,7 @@
 ---
 
 **Disclosure:** report produced by an AI agent (GLM-5.3 via the
-[Crush](https://github.com/crusheio/crush) CLI), operated and reviewed by
+[Crush](https://github.com/charmbracelet/crush) CLI), operated and reviewed by
 @LarsArtmann. Everything below is machine-verified and runnable.
 
 ---
@@ -121,5 +121,6 @@ func main() {
 ```
 
 Full characterization table (view count / group count / scan-pressure
-sensitivity): [go-cqrs-lite issue draft](https://github.com/LarsArtmann/go-cqrs-lite/blob/master/docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md).
+sensitivity): [go-cqrs-lite issue draft](https://github.com/LarsArtmann/go-cqrs-lite/blob/1c9f3bf33c002060fd563c3853edb7fb1a4923e5/docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md)
+(SHA-pinned permalink — immutable snapshot).
 </details>
