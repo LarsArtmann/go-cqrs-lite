@@ -35,6 +35,16 @@ mysqlengine row, readmodels.md matview section). New reports land here
 unarchived; the next docs-health pass harvests their forward-looking
 sections into TODO_LIST/ROADMAP, then archives them.
 
+**2026-09-08 23:12 (Pareto execution):** the SUPERB plan's Wave 0 shipped —
+60 tags pushed (54-module release train + iroh trio + stack/sqlite v4.3.1 +
+first proxy-visible example tags), 59 GitHub Releases, 63-module pin-sweep,
+release.yml un-red — and the first composed local `#verify` GREEN of the
+09-06→09-08 surface. Wave 1 landed P08/P09/P10/P11-core/P12 (SARIF
+determinism, matview pins, DSN auth_token leak fix, `--typed-info` +
+F090(b), IsQualifierFor sweep) and P13/P15/P16 (AGENTS indexed-split 92→28
+KB, GOWORK table, recipes §2.30-2.31). See
+[`2026-09-08_23-12_release-train-composed-green.md`](2026-09-08_23-12_release-train-composed-green.md).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves
