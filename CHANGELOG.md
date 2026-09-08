@@ -71,6 +71,18 @@ Cut via the detached-worktree release path during the SUPERB adoption wave.
   The smoke run of this tool is what surfaced the published
   `stack/sqlite/v4.3.0` pseudo-pin breakage.
 
+## [stack/sqlite/v4.3.1] — 2026-09-08
+
+### Fixed
+
+- **`stack/sqlite/v4.3.0` shipped an unresolvable pseudo-version pin** for
+  `stack/v4` (`v4.2.1-0.20260807213449-e72b2d7a16d0`): the pseudo-commit's
+  own `sqlopt` package referenced `storage.SQLiteSetSynchronous`, which does
+  not exist at the storage version that commit resolves — every fresh
+  consumer `go get` + build failed with `undefined: storage.SQLiteSetSynchronous`.
+  `v4.3.1` re-pins `stack/v4` to the published `v4.3.0` tag (verified with a
+  clean-directory consumer `go get` + build).
+
 ## [Unreleased]
 
 ### Fixed — cqrs-lint doctor JSON determinism + taskmanager V006 golden refresh — 2026-09-08
