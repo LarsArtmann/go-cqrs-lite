@@ -93,7 +93,7 @@ backing private method `streamByAggregate` → `readStream`
 | `check-changelog-symbols.sh` | PASS — 175 citations honest |
 | `cmd/doc-check` (1016 refs, 45 pkgs) | PASS |
 | `nix fmt` | 0 changed |
-| `check-duplication` | see report addendum |
+| `check-duplication` | PASS — 0 new clone groups (baseline 133) |
 
 ## Lessons
 
