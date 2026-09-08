@@ -2,6 +2,9 @@ package metaengine
 
 import "context"
 
+// Count returns the number of values matching the given filter options.
+// When the engine implements AggregateReader, COUNT(*) is pushed to SQL;
+// otherwise it falls back to Scan + len(rows).
 func (r *TypedReader[V]) Count(ctx context.Context, opts ...ScanOption) (int, error) {
 	filters := buildScanFilters(opts...)
 
@@ -124,6 +127,3 @@ func (r *TypedReader[V]) aggregatePushdown(
 
 	return result, nil
 }
-
-// buildScanFilters applies scan options and returns the expanded filter list
-// (ranges and IN specs expanded into FilterSpecs).

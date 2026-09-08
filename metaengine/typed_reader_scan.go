@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+// Scan returns all values matching the given filter/sort/limit options.
+// Uses raw scan when available for single-pass decode per row.
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
 	if err := r.store.IsPoisoned(r.collection); err != nil {
 		return nil, err
@@ -258,6 +260,8 @@ func buildClosureSort(cfg scanConfig) func(a, b any) int {
 
 // Exists checks whether a key is present in the collection.
 // Uses SetBackend.SetContains for Set ADTs, falls back to MapGet for Map ADTs.
+// buildScanFilters applies scan options and returns the expanded filter list
+// (ranges and IN specs expanded into FilterSpecs).
 func buildScanFilters(opts ...ScanOption) []FilterSpec {
 	cfg := scanConfig{limit: 100}
 	for _, opt := range opts {
@@ -280,8 +284,3 @@ func buildScanFilters(opts ...ScanOption) []FilterSpec {
 
 	return cfg.filters
 }
-
-// Distinct returns the unique values of a column across matching rows.
-// When the engine implements DistinctReader, the dedup is pushed into SQL
-// (SELECT DISTINCT) — zero rows loaded for dedup. Otherwise falls back to
-// Scan + Go-side dedup.

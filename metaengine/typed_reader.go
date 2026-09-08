@@ -122,8 +122,6 @@ func (r *TypedReader[V]) getUncached(ctx context.Context, key any) (readResult, 
 	return readResult{}, fmt.Errorf("%w: %s", errUnsupportedMapReads, eng.Profile().Name)
 }
 
-// Scan returns all values matching the given filter/sort/limit options.
-// Uses raw scan when available for single-pass decode per row.
 func (r *TypedReader[V]) Exists(ctx context.Context, key any) (bool, error) {
 	eng, ok := r.store.collectionEngine(r.collection)
 	if !ok {
@@ -161,7 +159,3 @@ func (r *TypedReader[V]) GetBatch(ctx context.Context, keys []any) ([]V, error) 
 
 	return result, nil
 }
-
-// Count returns the number of values matching the given filter options.
-// When the engine implements AggregateReader, COUNT(*) is pushed to SQL;
-// otherwise it falls back to Scan + len(rows).

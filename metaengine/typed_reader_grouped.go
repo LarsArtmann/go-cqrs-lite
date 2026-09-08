@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+// Distinct returns the unique values of a column across matching rows.
+// When the engine implements DistinctReader, the dedup is pushed into SQL
+// (SELECT DISTINCT) — zero rows loaded for dedup. Otherwise falls back to
+// Scan + Go-side dedup.
 func (r *TypedReader[V]) Distinct(
 	ctx context.Context,
 	column string,
@@ -326,5 +330,3 @@ func (r *TypedReader[V]) MultiGroupedAggregate(
 
 	return result, nil
 }
-
-// --- Scan options ---

@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+// ScanPage performs a scan and returns both the results and the next-page
+// cursor for keyset pagination. The cursor is derived from the sort field of
+// the last returned item. Pass it back via WithCursor(cursor.Value) on the
+// next call, or use WithCursorString(cursor.Encode()) for an HTTP-safe
+// opaque cursor string that round-trips through the PrefetchCache.
+//
+// When a PrefetchCache is attached, ScanPage auto-populates it: extra rows
+// beyond the limit are cached so the next page request is served from cache
+// instead of hitting the engine.
+//
+// Returns (items, nil cursor, nil) when there are no more pages.
 func (r *TypedReader[V]) ScanPage(ctx context.Context, opts ...ScanOption) ([]V, *Cursor, error) {
 	result, err := r.Scan(ctx, opts...)
 	if err != nil {
