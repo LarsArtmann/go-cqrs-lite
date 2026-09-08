@@ -170,6 +170,17 @@ func TestProbeHandle_FailureCounter(t *testing.T) {
 		t.Fatal("expected failures > 0, got 0")
 	}
 
+	// The probe goroutine increments the failure counter BEFORE calling the
+	// error handler (sequential in runProbeLoop). Observing Failures() > 0
+	// therefore does not imply the handler already ran — under load the probe
+	// goroutine can be descheduled between the two. Wait for the handler with
+	// the same deadline instead of asserting immediately (structural
+	// timing-proof cure; margin bumps do not fix this class).
+	handlerDeadline := time.Now().Add(2 * time.Second)
+	for handlerCalls.Load() == 0 && time.Now().Before(handlerDeadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+
 	if handlerCalls.Load() == 0 {
 		t.Fatal("expected error handler to be called, got 0 calls")
 	}
