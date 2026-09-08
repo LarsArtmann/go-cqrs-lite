@@ -47,5 +47,3 @@ require (
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ./sqliteengine
