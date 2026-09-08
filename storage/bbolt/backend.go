@@ -58,6 +58,13 @@ func Open(path string, logger *slog.Logger) (*Backend, error) {
 // OpenWith creates a new Backend with custom bbolt.Options.
 // Use this for fine-grained control over sync behavior, timeout, etc.
 // The Backend owns the *bbolt.DB — Close will close it.
+//
+// A read-only open (`ReadOnly: true`) is supported: bucket initialization is
+// skipped and read paths (Load, journal reads, KV gets) work; write methods
+// fail at call time with bbolt's read-only error. The caller owns the
+// Options — an explicit Options value without a Timeout blocks forever on a
+// held flock (bbolt's zero-value timeout means "wait indefinitely"); pass a
+// Timeout whenever a lock might be held elsewhere.
 func OpenWith(path string, opts *bolt.Options, logger *slog.Logger) (*Backend, error) {
 	if logger == nil {
 		logger = slog.New(slog.NewTextHandler(os.Stderr, nil))
@@ -120,9 +127,14 @@ func newBackend(database *bolt.DB, logger *slog.Logger, opts ...BackendOption) (
 	for _, opt := range opts {
 		opt(&cfg)
 	}
-	if err := createBuckets(database); err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "bbolt.create_buckets",
-			"create CQRS buckets")
+	// A read-only open cannot initialize buckets: any write transaction fails
+	// with bolt.ErrDatabaseReadOnly. Skip creation and let reads proceed;
+	// writes surface bbolt's read-only error at call time instead.
+	if !database.IsReadOnly() {
+		if err := createBuckets(database); err != nil {
+			return nil, errorfamily.WrapInfrastructure(err, "bbolt.create_buckets",
+				"create CQRS buckets")
+		}
 	}
 
 	events, err := NewStore(database, logger)

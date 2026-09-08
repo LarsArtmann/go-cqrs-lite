@@ -87,3 +87,100 @@ func ResolveQualifierTyped(gf *GoFile, ident *ast.Ident) (path string, resolved 
 
 	return pkgName.Imported().Path(), true
 }
+
+// IsQualifierFor reports whether the package qualifier of a selector
+// expression (e.g. `event` in `event.New(...)`) denotes a package whose
+// import path contains pathFragment. Typed resolution
+// (ResolveQualifierTyped) is authoritative: an aliased import
+// (`ev "…/event"`) matches, a shadowing local does not. The qualifier NAME
+// is compared literally only when type info is unavailable (syntax-only
+// loads), preserving pre-typed behavior there (T20-8).
+func IsQualifierFor(gf *GoFile, sel *ast.SelectorExpr, pathFragment string) bool {
+	if sel == nil {
+		return false
+	}
+
+	ident, ok := sel.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+
+	if path, resolved := ResolveQualifierTyped(gf, ident); resolved {
+		return strings.Contains(path, pathFragment)
+	}
+
+	segment := pathFragment
+	if i := strings.LastIndex(pathFragment, "/"); i >= 0 {
+		segment = pathFragment[i+1:]
+	}
+
+	return ident.Name == segment
+}
+
+// IsEventTypeParam reports whether a fold-function parameter type denotes a
+// go-cqrs-lite event. The typed path resolves the parameter's type through
+// the type checker, so local aliases (`type Evt = event.Event`) and defined
+// types (`type OrderEvt event.Event`) match while genuinely unrelated types
+// do not — closing the alias-fold-blindness class for C038/C040 (T20-8).
+// Falls back to the historical string heuristic when type info is
+// unavailable.
+func IsEventTypeParam(gf *GoFile, expr ast.Expr) bool {
+	e := expr
+	for {
+		star, ok := e.(*ast.StarExpr)
+		if !ok {
+			break
+		}
+		e = star.X
+	}
+
+	if gf != nil && gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
+		var ident *ast.Ident
+		switch t := e.(type) {
+		case *ast.Ident:
+			ident = t
+		case *ast.SelectorExpr:
+			ident = t.Sel
+		}
+
+		if ident != nil {
+			if obj, found := gf.Pkg.TypesInfo.Uses[ident]; found {
+				tn, isType := obj.(*types.TypeName)
+				return isType && typeFromEventPackage(tn.Type())
+			}
+		}
+	}
+
+	return looksLikeEventType(ExprString(expr))
+}
+
+// typeFromEventPackage walks a type's alias/defined-type chain looking for a
+// named type declared in the go-cqrs-lite event module. The walk is bounded:
+// every step must strip one structural layer or it stops.
+func typeFromEventPackage(t types.Type) bool {
+	for range 8 {
+		if t == nil {
+			return false
+		}
+
+		switch tt := t.(type) {
+		case *types.Pointer:
+			t = tt.Elem()
+		case *types.Named:
+			obj := tt.Obj()
+			if obj != nil && obj.Pkg() != nil &&
+				strings.Contains(obj.Pkg().Path(), "go-cqrs-lite/event") {
+				return true
+			}
+			t = tt.Underlying()
+		default:
+			if unaliased := types.Unalias(t); unaliased != t {
+				t = unaliased
+				continue
+			}
+			return false
+		}
+	}
+
+	return false
+}

@@ -25,7 +25,7 @@ func scanFile(ctx *AnalysisContext, gf *GoFile) {
 			trackVarAssignments(node, varAssigns)
 		case *ast.CallExpr:
 			scanCallExpr(ctx, gf, node)
-			capturePayloadTypeFromVar(ctx, node, varAssigns)
+			capturePayloadTypeFromVar(ctx, gf, node, varAssigns)
 		case *ast.TypeAssertExpr:
 			scanTypeAssertion(ctx, node)
 		}
@@ -138,19 +138,21 @@ func trackVarAssignments(stmt *ast.AssignStmt, varAssigns map[string]string) {
 // was assigned a composite literal earlier, register the actual type.
 func capturePayloadTypeFromVar(
 	ctx *AnalysisContext,
+	gf *GoFile,
 	call *ast.CallExpr,
 	varAssigns map[string]string,
 ) {
-	funcName, pkgName, ok := SelectorNameAndPkg(call)
+	sel, ok := SelectorFromExpr(call.Fun)
 	if !ok {
 		return
 	}
 
+	funcName := sel.Sel.Name
 	if funcName != "New" && funcName != "NewEvent" {
 		return
 	}
 
-	if pkgName != "event" {
+	if !IsQualifierFor(gf, sel, "go-cqrs-lite/event") {
 		return
 	}
 

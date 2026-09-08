@@ -146,8 +146,7 @@ func detectFoldFunc(
 		return nil
 	}
 
-	paramTypeStr := ExprString(params.List[1].Type)
-	if !looksLikeEventType(paramTypeStr) {
+	if !IsEventTypeParam(gf, params.List[1].Type) {
 		return nil
 	}
 
@@ -242,6 +241,7 @@ func typeCallText(e ast.Expr) string {
 // looksLikeEventType checks if a parameter type string represents an event type.
 // Accepts event.Event, event.ImmutableEvent, *event.Event, and the CQRS event type
 // variants. Rejects unrelated types that merely contain "Event" (EventBus, EventCounter).
+// Fallback only — callers should prefer IsEventTypeParam (typed, alias-aware).
 func looksLikeEventType(typeStr string) bool {
 	if strings.Contains(typeStr, "event.Event") ||
 		strings.Contains(typeStr, "Event") && strings.Contains(typeStr, "event") {

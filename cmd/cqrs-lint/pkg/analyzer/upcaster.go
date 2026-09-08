@@ -32,8 +32,7 @@ func IsInsideUpcasterClosure(gf *GoFile, call *ast.CallExpr) bool {
 			return true
 		}
 
-		pkgName := SelectorPackage(sel)
-		if pkgName != "schema" {
+		if !IsQualifierFor(gf, sel, "go-cqrs-lite/schema") {
 			return true
 		}
 
