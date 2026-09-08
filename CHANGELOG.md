@@ -73,6 +73,19 @@ Cut via the detached-worktree release path during the SUPERB adoption wave.
 
 ## [Unreleased]
 
+### Fixed — cqrs-lint doctor JSON determinism + taskmanager V006 golden refresh — 2026-09-08
+
+- **`doctor --format json` severity-override key order is now deterministic.**
+  `encoding/json/v2` emits map iteration order (unlike v1, which sorted), so
+  the `severityOverrides` object rendered in a random key order per run —
+  byte-nondeterministic output for consumer scripts and a flaking shape
+  golden (same class as the earlier T20-3/T21-3 map-order fixes). The map
+  now marshals with sorted keys.
+- **Taskmanager lint golden re-pinned** after the 2026-09-08 coordinated
+  release swept `example/taskmanager` go.mod pins: the V006 finding's
+  version-set enumeration changed and the golden (2026-09-02) no longer
+  matched. Regenerated; the V006 coupling is documented in AGENTS.md.
+
 ### Changed — error-family codes renamed to stream vocabulary (v5 batch, breaking for code-string observers) — 2026-09-08
 
 - **Every `aggregate_*` error-family code now uses the stream vocabulary**
