@@ -615,6 +615,27 @@ jobs:
           done
 
     timeout-minutes: 15
+  cqrs-upgrade-dogfood:
+    name: cqrs-upgrade dogfood (consumer dry-run)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      # Dogfood the upgrade tool against a real consumer after every change:
+      # dry-run never mutates go.mod, --strict fails when the example uses
+      # v5-removed APIs (examples are the copy-paste surface and must stay
+      # v5-clean), and the version resolution exercises the module proxy.
+      - name: Dry-run cqrs-upgrade against the getting-started consumer
+        run: |
+          nix-shell -p go --run '
+            cd cmd/cqrs-upgrade &&
+            go build -o /tmp/cqrs-upgrade . &&
+            /tmp/cqrs-upgrade --dry-run --strict ../../example/getting-started
+          '
+
+    timeout-minutes: 15
   postgres-integration:
     name: PostgreSQL Integration Tests
     runs-on: ubuntu-latest

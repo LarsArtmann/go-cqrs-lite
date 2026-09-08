@@ -3798,6 +3798,16 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added
 
+- **cqrs-upgrade growth**: `--strict` (non-zero exit when v5-removed API
+  usage is detected — a ready-made v5-readiness CI gate), `--json`
+  (deterministic machine-readable bump plan + deprecations per module),
+  `--to <version>` (clamps every bump target to at most that version;
+  never downgrades a pin that is already newer — status `held`), and
+  `--workspace` (runs the pipeline for every `go.mod` under the root,
+  skipping `vendor/`, `testdata/`, and `.git/`). `--dry-run` now also
+  prints the deprecation report (read-only preview covers the full
+  pipeline). Dogfooded by a new CI job that dry-runs the tool against
+  `example/getting-started` with `--strict`.
 - **Materialized-view safety tail (ADR-0135)**: the Doctor
   `--- Materialized views ---` section is now test-pinned (content shape,
   explicit `none` branch, the grouped-view upstream-defect WARN, and the
@@ -3832,6 +3842,17 @@ files. All fixed to unblock `verify-fast`:
 
 ### Fixed
 
+- **benchkit: a fully context-skipped run no longer reports success.** When
+  the caller's deadline (not a `Duration` measurement window) expired before
+  any phase ran, every phase "gracefully" skipped and `Run` returned
+  `(partial result, nil)` — observed under parallel-suite load as the
+  closed-store tests failing with "expected error from closed store, got
+  nil" after ~26s. `Run` now fails fast with a Transient
+  `benchmark context expired before any phase ran` error; Duration-bounded
+  runs keep the partial-result semantics. The timing tests' ceilings are
+  additionally load-scaled (`loadScaledCeiling` over the race factor), and
+  the system hardening tests align their outer ctx deadlines with the
+  already-load-scaled projection-wait budgets (the snapshot-load flake).
 - **`tursoengine.redactDSN` leaked `auth_token`/`AUTH_TOKEN` params.** The
   matcher required exact spellings (`authToken`, `token`); snake-case and
   upper-case token param names escaped redaction into error output. Any
