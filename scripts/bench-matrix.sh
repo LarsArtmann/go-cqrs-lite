@@ -14,7 +14,6 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-QUICK=""
 OUTPUT=""
 BENCHTIME="3x"
 COUNT="3"
@@ -22,7 +21,6 @@ COUNT="3"
 while [[ $# -gt 0 ]]; do
 	case "$1" in
 	--quick)
-		QUICK="1"
 		BENCHTIME="1x"
 		COUNT="1"
 		shift

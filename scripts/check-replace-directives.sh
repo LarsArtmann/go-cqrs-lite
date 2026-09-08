@@ -40,6 +40,7 @@ while IFS= read -r modfile; do
 		# Format: "module/path => ./relative/path" or "module/path => ../relative/path"
 		if echo "$line" | grep -qE '[^[:space:]]+[[:space:]]+=>[[:space:]]+\.\.?/'; then
 			modpath="$(echo "$line" | awk '{print $1}')"
+			# shellcheck disable=SC2001  # regex extraction past the => arrow
 			relpath="$(echo "$line" | sed 's/.*=>[[:space:]]*//')"
 
 			# Resolve the relative path from the module directory

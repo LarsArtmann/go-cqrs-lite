@@ -52,7 +52,8 @@ if [ "$RUN_EPHEMERAL" = true ]; then
 
 	# ephemeral-pg.sh handles the full lifecycle: start PG, run tests, stop PG.
 	# We pass test args through the "go" passthrough.
-	export PGDATA_CACHE=$(mktemp -d /tmp/cqrs-pg-prof-XXXXXX)
+	PGDATA_CACHE=$(mktemp -d /tmp/cqrs-pg-prof-XXXXXX)
+	export PGDATA_CACHE
 	bash "$SCRIPT_DIR/ephemeral-pg.sh" go test \
 		-tags "integration goexperiment.jsonv2" \
 		-run "$TEST_PATTERN" -count=1 -v \

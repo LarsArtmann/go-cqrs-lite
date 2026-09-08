@@ -38,14 +38,9 @@ while IFS= read -r -d '' gomod; do
 	rel_dir="${mod_dir#"$REPO_ROOT"/}"
 	[ "$rel_dir" = "$mod_dir" ] && rel_dir="."
 
-	# Collect required sibling module paths (from require lines, excluding replace targets)
-	mapfile -t required < <(
-		grep -E '^\s+github\.com/larsartmann/go-cqrs-lite/' "$gomod" |
-			grep -v '=>' |
-			grep -oP 'github\.com/larsartmann/go-cqrs-lite/[^\s/]+' |
-			sort -u || true
-	)
-	# Also catch multi-segment paths like .../storage/memory/v4, .../event/v4/eventtest
+	# Collect required sibling module paths (from require lines, excluding
+	# replace targets), including multi-segment paths like .../storage/memory/v4
+	# and .../event/v4/eventtest.
 	mapfile -t required_full < <(
 		grep -E '^\s+github\.com/larsartmann/go-cqrs-lite/' "$gomod" |
 			grep -v '=>' |

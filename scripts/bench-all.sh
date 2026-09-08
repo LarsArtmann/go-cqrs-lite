@@ -69,9 +69,9 @@ fi
 # Modules that have benchmark files (auto-discovered).
 # We search for func Benchmark in _test.go files.
 mapfile -t MODULES < <(
-	find . -name '*_test.go' -not -path './vendor/*' -not -path './.git/*' \
-		-exec grep -l 'func Benchmark' {} \; |
-		xargs -I{} dirname {} |
+	find . -name '*_test.go' -not -path './vendor/*' -not -path './.git/*' -print0 |
+		xargs -0 -r grep -l -- 'func Benchmark' |
+		xargs -r -n1 dirname |
 		sort -u
 )
 
@@ -142,7 +142,7 @@ for mod in "${MODULES[@]}"; do
 		-tags "goexperiment.jsonv2" \
 		-run='^$' \
 		-bench=. \
-		$BENCH_TIME_FLAG \
+		"$BENCH_TIME_FLAG" \
 		-benchmem \
 		-count="$BENCH_COUNT" \
 		-timeout "$TIMEOUT" \

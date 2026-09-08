@@ -16,7 +16,7 @@ cd "$(git rev-parse --show-toplevel)"
 # Extract all go-cqrs-lite module references with versions from go.mod files.
 # Format: module-path version
 refs=$(grep -rhE 'go-cqrs-lite/[^ ]+/v[0-9]+ v[0-9]+\.[0-9]+\.[0-9]+' \
-	*/go.mod go.mod 2>/dev/null |
+	./*/go.mod ./go.mod 2>/dev/null |
 	grep -oE 'go-cqrs-lite/[^ ]+/v[0-9]+ v[0-9]+\.[0-9]+\.[0-9]+' |
 	sort -u || true)
 

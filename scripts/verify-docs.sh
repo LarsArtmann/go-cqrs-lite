@@ -26,6 +26,7 @@ fi
 # ── P6-31: Module count in docs matches actual ─────────────────────────────
 echo "=== Module count check ==="
 actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l)
+echo "actual module count: $actual_count"
 stale_refs=$(grep -rnE '\b(28|48|49|52)\s*(go\.mod|modules)' \
 	--include='*.md' \
 	README.md AGENTS.md FEATURES.md CONTRIBUTING.md docs/README.md \

@@ -82,6 +82,7 @@ fi
 # `|| true` on the pipeline: a citation-free [Unreleased] (legitimate right
 # after a release cut) makes grep exit 1, and pipefail would abort the script
 # before the graceful no-refs handler below could run.
+# shellcheck disable=SC2016  # backtick regex is literal, not an expansion
 refs=$(printf '%s\n' "$section" |
 	grep -oE '`[^`]+`' |
 	grep -oE '\b[a-z][a-z0-9]*\.[A-Z][A-Za-z0-9]*' |

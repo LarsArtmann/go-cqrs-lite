@@ -56,6 +56,7 @@ failed=0
 for mod in "${TIMING_MODULES[@]}"; do
 	echo ""
 	echo "--- $mod (-run '$RUN_PATTERN' under load) ---"
+	# shellcheck disable=SC2086  # EXTRA_TEST_ARGS is a multi-word go-test passthrough by contract
 	if ! (cd "$mod" && GOWORK=off go test -tags "$TAGS" -run "$RUN_PATTERN" \
 		-count=1 -timeout=10m ${EXTRA_TEST_ARGS:-} ./... 2>&1 | tee "/tmp/load-sweep-${mod//\//-}.log"); then
 		echo "FAIL: $mod timing tests flaked under load (see /tmp/load-sweep-${mod//\//-}.log)"

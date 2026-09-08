@@ -17,7 +17,7 @@ repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || {
 	echo "check-doc-links.sh: must run inside the git repo" >&2
 	exit 1
 }
-cd "$repo_root"
+cd "$repo_root" || exit 1
 
 files=("$@")
 if [ "${#files[@]}" -eq 0 ]; then

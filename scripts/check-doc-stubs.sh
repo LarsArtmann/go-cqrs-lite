@@ -20,6 +20,7 @@ stubs=$(find . -name doc.go -not -path './vendor/*' -print0 |
 
 if [ -n "$stubs" ]; then
 	echo "FAIL: placeholder doc.go stubs found:"
+	# shellcheck disable=SC2001  # multiline indent, not a simple substitution
 	echo "$stubs" | sed 's/^/  /'
 	echo ""
 	echo "Each file above contains '// Package X provides ...' which is the"

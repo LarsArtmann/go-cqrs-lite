@@ -39,6 +39,7 @@ for ((i = 0; i < ${#MODULES[@]}; i += batch_size)); do
 		for m in "${batch[@]}"; do
 			paths+="./${m}/... "
 		done
+		# shellcheck disable=SC2086  # TAGS/EXTRA_ARGS/paths are multi-word passthroughs by design
 		if go test $TAGS -race -count=1 $EXTRA_ARGS $paths >"$result_file" 2>&1; then
 			echo "✅ Batch $batch_idx passed" >>"$result_file"
 		else

@@ -32,6 +32,7 @@ for dir in "$PROJECTS_DIR"/*/; do
 	version_count=$(echo "$versions" | wc -l)
 	if [ "$version_count" -gt 1 ]; then
 		echo "⚠️  $proj has MULTIPLE versions:"
+		# shellcheck disable=SC2001  # multiline indent, not a simple substitution
 		echo "$versions" | sed 's/^/    /'
 		mismatch_found=1
 	else
