@@ -70,7 +70,7 @@ func (s *SQLEventStore) LoadStream(
 	ctx context.Context,
 	ref id.StreamRef,
 ) (event.EventIterator, error) {
-	return s.streamByAggregate(ctx, ref, "ORDER BY version ASC", nil, "event.store.load_stream")
+	return s.readStream(ctx, ref, "ORDER BY version ASC", nil, "event.store.load_stream")
 }
 
 // LoadStreamFromVersion is the streaming equivalent of LoadFromVersion.
@@ -81,12 +81,12 @@ func (s *SQLEventStore) LoadStreamFromVersion(
 ) (event.EventIterator, error) {
 	where := fmt.Sprintf("AND version > %s ORDER BY version ASC", s.Dialect.Placeholder(3))
 
-	return s.streamByAggregate(
+	return s.readStream(
 		ctx, ref, where, []any{version.Int()}, "event.store.load_stream_from_version",
 	)
 }
 
-func (s *SQLEventStore) streamByAggregate(
+func (s *SQLEventStore) readStream(
 	ctx context.Context,
 	ref id.StreamRef,
 	where string,
@@ -94,7 +94,7 @@ func (s *SQLEventStore) streamByAggregate(
 	_ string,
 ) (event.EventIterator, error) {
 	if err := s.checkClosed(); err != nil {
-		return nil, errorfamily.WrapInfrastructure(err, "storage.stream_by_aggregate",
+		return nil, errorfamily.WrapInfrastructure(err, "storage.read_stream",
 			"read events for stream")
 	}
 

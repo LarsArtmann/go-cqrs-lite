@@ -2,7 +2,7 @@ module github.com/larsartmann/go-cqrs-lite/metadata/v4
 
 go 1.26.5
 
-require github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
+require github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 
 require golang.org/x/net v0.58.0 // indirect
 

@@ -39,6 +39,8 @@ github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 h1:7bhIS1IjF8waY3WbhBG53es1/fLl
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0/go.mod h1:JtyLB/TVaLDi5jydCst4x8ytMVvCqBFc9Nga4Yu4qi4=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 h1:SvhtPWYWTtV48+fgAaIDrJGTWgmNG/1RxZoQQmNTvN0=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0/go.mod h1:TB0o6rv8eIdLqV9ZxdIsRNTNQuALt/d5/MFtPZp5AjQ=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 h1:E8mf80o8NF0ljEwK8nOUd/Gs+/MgNAbPrL50YVjuTUQ=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0/go.mod h1:WeMpmN3U3uQVoGxXy7PrxRcKjfhOobotqFsFzPMStMk=
 github.com/larsartmann/go-error-family v0.10.0 h1:xGPT8WzPr9EJ+SHCasLtZ2mJ7drVxmfkyM6kjzHoAWo=
 github.com/larsartmann/go-error-family v0.10.0/go.mod h1:c5ZKAqG/2xJmF7ZjShNAenbxHzWqut90ARS0lPuyUaY=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=

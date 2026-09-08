@@ -79,6 +79,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0 h1:Vo6FwhFJo2a9tSvsfyu8FQhBY
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.8.0/go.mod h1:nbVEULesELBTU2oST5IKjjRxxfBviqqnG3wEqgInRiM=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 h1:7bhIS1IjF8waY3WbhBG53es1/fLlunWx3rbI2y4+ZFg=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0/go.mod h1:JtyLB/TVaLDi5jydCst4x8ytMVvCqBFc9Nga4Yu4qi4=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 h1:hzkUocB88KT2jv+qbDdxhMbpSKwFuvYQoF1+Tg2NmQA=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0/go.mod h1:M1X23EFSYHlThkbgXuryK8/WL/MZp4UgbNofYY9ztoE=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 h1:B76nf/qTJz6hQG5r0XuTqbIi1w8TZxeiQUocuUz7deE=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0/go.mod h1:YdsEho4wKC4t3+5SVwJaxwvH5OlnhyxMUP6gEDjjTOU=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 h1:SvhtPWYWTtV48+fgAaIDrJGTWgmNG/1RxZoQQmNTvN0=

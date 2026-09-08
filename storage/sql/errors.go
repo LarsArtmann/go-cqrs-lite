@@ -20,7 +20,7 @@ var ErrClosed = errorfamily.NewInfrastructure(
 
 // ErrStreamTypeMismatch is returned when an event's stream type doesn't match the expected type.
 var ErrStreamTypeMismatch = errorfamily.NewConflict(
-	"storage.aggregate_type_mismatch",
+	"storage.stream_type_mismatch",
 	"storage: event stream type mismatch",
 )
 
@@ -31,7 +31,7 @@ var ErrAggregateTypeMismatch = ErrStreamTypeMismatch
 
 // ErrStreamIDMismatch is returned when an event's stream ID doesn't match the expected ID.
 var ErrStreamIDMismatch = errorfamily.NewConflict(
-	"storage.aggregate_id_mismatch",
+	"storage.stream_id_mismatch",
 	"storage: event stream ID mismatch",
 )
 
