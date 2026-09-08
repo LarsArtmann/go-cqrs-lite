@@ -2,7 +2,6 @@ package bbolt
 
 import (
 	"bytes"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"slices"
@@ -24,23 +23,31 @@ import (
 //	BBOLT_REGEN_GOLDEN=1 go test ./storage/bbolt -run TestSerializableEventWireFormat
 const goldenEventPath = "testdata/golden-event.cbor"
 
-// fixedWireEvent builds a fully-populated event with deterministic field
-// values (fixed timestamp, fixed IDs are the only randomness — the ID is
-// regenerated per run, so the golden pins everything EXCEPT the event ID
-// bytes; the ID field's presence and position are pinned by the key-set
-// test below).
+// fixedWireEvent builds a fully-populated event with fully deterministic
+// field values (fixed IDs via Parse, fixed timestamp) so the serialized
+// bytes are byte-stable across runs.
 func fixedWireEvent(t *testing.T) event.Event {
 	t.Helper()
+
+	eventID, err := id.ParseEventID("01J9ZQ0V5N8Y4WJ7QW2R3T4S5A")
+	if err != nil {
+		t.Fatalf("parse event id: %v", err)
+	}
+
+	streamID, err := id.ParseStreamID("01J9ZQ0V5N8Y4WJ7QW2R3T4S5B")
+	if err != nil {
+		t.Fatalf("parse stream id: %v", err)
+	}
 
 	metadata := event.NewMetadata().
 		WithCustom(event.MetadataKey("tenant"), "acme").
 		WithCustom(event.MetadataKey("trace"), "tr-1")
 
 	evt, err := event.ReconstructEventWithAdoptedPayload(
-		id.NewEventID(),
+		eventID,
 		"user.created",
 		id.StreamType("User"),
-		id.NewStreamID(),
+		streamID,
 		3, 2,
 		[]byte(`{"name":"alice","tags":["admin"]}`),
 		metadata,
@@ -67,7 +74,9 @@ func TestSerializableEventWireFormat(t *testing.T) {
 	switch {
 	case os.IsNotExist(readErr):
 		if os.Getenv("BBOLT_REGEN_GOLDEN") != "1" {
-			t.Fatalf("golden file missing: run BBOLT_REGEN_GOLDEN=1 go test ./storage/bbolt -run TestSerializableEventWireFormat")
+			t.Fatalf(
+				"golden file missing: run BBOLT_REGEN_GOLDEN=1 go test ./storage/bbolt -run TestSerializableEventWireFormat",
+			)
 		}
 		writeGolden(t, data)
 	case readErr != nil:
@@ -193,9 +202,10 @@ func TestSerializableEventRoundTrip(t *testing.T) {
 	}
 }
 
-// TestSerializableEventSchemaVersionOmitted pins the omitempty contract on
-// schema_version: absent at 0, present and integer-valued above 0.
-func TestSerializableEventSchemaVersionOmitted(t *testing.T) {
+// TestSerializableEventSchemaVersionRepresentation pins how schema_version
+// rides the wire: the CBOR codec emits it on every event (json omitempty
+// does not apply to CBOR encoding), as an unsigned integer.
+func TestSerializableEventSchemaVersionRepresentation(t *testing.T) {
 	t.Parallel()
 
 	build := func(t *testing.T, schemaVersion int) event.Event {
@@ -230,8 +240,8 @@ func TestSerializableEventSchemaVersionOmitted(t *testing.T) {
 		t.Fatalf("decode: %v", err)
 	}
 
-	if _, present := zeroMap["schema_version"]; present {
-		t.Error("schema_version=0 must be omitted from the wire (omitempty)")
+	if _, present := zeroMap["schema_version"]; !present {
+		t.Error("schema_version must always ride the wire: the CBOR codec ignores json omitempty")
 	}
 
 	nonZero, err := serializeEvent(build(t, 7))
@@ -244,13 +254,13 @@ func TestSerializableEventSchemaVersionOmitted(t *testing.T) {
 		t.Fatalf("decode: %v", err)
 	}
 
-	version, ok := nonZeroMap["schema_version"].(json.Number)
+	version, ok := nonZeroMap["schema_version"].(uint64)
 	if !ok {
-		t.Fatalf("schema_version not an integer: %T", nonZeroMap["schema_version"])
+		t.Fatalf("schema_version not an unsigned integer: %T", nonZeroMap["schema_version"])
 	}
 
-	if version.String() != "7" {
-		t.Errorf("schema_version drift: got %s, want 7", version.String())
+	if version != 7 {
+		t.Errorf("schema_version drift: got %d, want 7", version)
 	}
 }
 
