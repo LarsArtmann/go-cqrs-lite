@@ -758,6 +758,8 @@ linters:
           - forbidigo
           - gochecknoglobals
           - gosec
+          - mnd
+          - noctx
           - staticcheck
           - varnamelen
           - wrapcheck

@@ -162,7 +162,7 @@ func specsForCase(c aggCase, full bool) []metaengine.MaterializedViewSpec {
 // (matview) at three collection sizes. Phase order per case: seed the
 // accelerated engine (pristine-process IVM writes), seed + bench the
 // baseline, close it, then bench the accelerated reads.
-func BenchmarkMatViewRead(b *testing.B) { //nolint:maintidx // bench matrix over engines x sizes; decomposition would hide the shape
+func BenchmarkMatViewRead(b *testing.B) { //nolint:maintidx // bench matrix, shape is the point
 	ctx := context.Background()
 
 	// The accelerated ("matview") side benches at 1k only: the upstream
