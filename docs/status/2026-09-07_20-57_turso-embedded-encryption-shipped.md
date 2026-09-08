@@ -1,5 +1,16 @@
 # Status Report — Turso Blog Research → Embedded Encryption Shipped
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** The feature shipped
+> and all its own gates were green. Resolved follow-ups struck below:
+> f19 (modules.md tursoengine row — added 2026-09-08), b2/f20 (libSQL→Turso
+> terminology sweep — done 2026-09-08), f1's doc half (WithEncryption
+> reachability note in README — done 2026-09-08), f36 (HARVEST — done
+> 2026-09-08 docs pass → TODO_LIST), f37 (annotate the 20:18 predecessor —
+> done 2026-09-08 docs pass). The open remainder (f2 strict-vs-lenient DSN
+> policy, f3 `file:` DSN live test, f4 second-ADT round-trip, upstream
+> issues, DriverConfig.Encryption ADR, sync decision, redaction audit) is
+> in TODO_LIST → "Metaengine — follow-ups" / v5 Unification.
+
 **Date:** 2026-09-07 20:57 CEST
 **Session scope:** Read the 5 Turso blog posts the user supplied (0.7.0 release, 3-part encryption series, Turso Sync launch), mapped them to `metaengine/tursoengine`, and executed the resulting work: fixed a latent DSN-flag bug, shipped first-class embedded encryption support, hardened redaction pins, updated all docs, and ran every applicable gate. This report covers ONLY this session. (Predecessor: `docs/status/2026-09-07_20-18_turso-byok-encryption-assessment.md`.)
 
@@ -50,8 +61,8 @@
    - Works: direct `tursoengine.New(..., WithEncryption(...))`.
    - Open: the `RegisterDriver` factory path (`init()` in `register.go`) forwards only `MaterializedViews` — `DriverConfig` has no encryption slot, so consumers composing via `metaengine` driver dispatch or `system` EngineConfig YAML CANNOT reach `WithEncryption`. **I implemented this scoping deliberately but forgot to DOCUMENT it** in README/FAQ — a consumer composing through `system` will look for the option, not find it, and get no pointer. Effort to fix: S (docs) + M (v5 `DriverConfig.Encryption`).
 2. **Turso terminology cleanup.**
-   - Works: AGENTS.md records the Turso-Database-vs-libSQL split; new code/docs use precise terms.
-   - Open: README title still says "Turso/libSQL-Backed Engine" and several body lines still say "libSQL" loosely; `register.go` package comment says "libSQL" in places. Effort: S.
+   - Works: ~~AGENTS.md records the Turso-Database-vs-libSQL split; new code/docs use precise terms.~~
+   - ~~Open: README title still says "Turso/libSQL-Backed Engine" and several body lines still say "libSQL" loosely; `register.go` package comment says "libSQL" in places. Effort: S.~~ done 2026-09-08 (docs-health pass: README title + 5 body mentions swept).
 3. **Encryption test coverage breadth.**
    - Works: MapBackend round-trips + reopen semantics on 3 ciphers, race-clean.
    - Open: only the Map ADT is exercised live (journal/counter/graph paths all ride the same encrypted page layer, but are unproven live); `file:`-prefixed DSNs (the blog's own syntax) never verified live — my probe tested plain paths only. Effort: S–M.
@@ -128,8 +139,8 @@ Nothing shipped is broken — every gate is green and all claims are test-backed
 | 16 | Verify-before-filing pass on #13–15 against latest turso-go main (not just v0.7.2)                                                                                                                      | Medium | M      | Quality       |
 | 17 | Tag tursoengine with `WithEncryption` + redaction fix; consumer pin sweep in the same wave (repo rule)                                                                                                  | High   | S      | Cleanup       |
 | 18 | `recipes.md` §turso encryption recipe (cipher table, hex-vs-base64, key-from-env, Cloud-BYOK boundary)                                                                                                  | Medium | M      | Documentation |
-| 19 | `modules.md` row for `metaengine/tursoengine` (module table lacks the engine's own row)                                                                                                                 | Low    | S      | Documentation |
-| 20 | libSQL→Turso-Database terminology sweep in tursoengine README title/body + `register.go` comments                                                                                                       | Low    | S      | Cleanup       |
+| ~~19~~ | ~~`modules.md` row for `metaengine/tursoengine` (module table lacks the engine's own row)~~ done 2026-09-08 (docs-health pass)                                                                                                  | Low    | S      | Documentation |
+| ~~20~~ | ~~libSQL→Turso-Database terminology sweep in tursoengine README title/body + `register.go` comments~~ done 2026-09-08 for README (register.go comments remain — folded into the propagation wave)                                                  | Low    | S      | Cleanup       |
 | 21 | Example snippet in `example/` (encrypted embedded engine, key from env) — examples are the consumer copy-paste surface                                                                                  | Medium | S      | Documentation |
 | 22 | Audit pg/mysql/bbolt/pebble engines for the same error-path DSN-secret leak class (passwords in `postgres://user:pass@…`)                                                                               | High   | M      | Quality       |
 | 23 | Extract a shared redaction helper if #22 finds 3+ drivers reimplementing it (per-module budget rules apply; possibly `storage/sql` or a Tier-0 home)                                                    | Medium | M      | Cleanup       |
@@ -145,8 +156,8 @@ Nothing shipped is broken — every gate is green and all claims are test-backed
 | 33 | Interplay doc: `encryption/` module (payload AEAD) + at-rest encryption = defense in depth; neither substitutes the other                                                                               | Medium | S      | Documentation |
 | 34 | Key-management doc: rotation via export/reimport (downtime!), per-tenant keys via per-database provisioning, secret-manager pattern — Turso Part 3 mapped to our stack                                  | Medium | M      | Documentation |
 | 35 | Consider `TURSO_ENCRYPTION_KEY`-style env-var fallback in tursoengine (opt-in, explicit; never a silent default)                                                                                        | Low    | S      | Feature       |
-| 36 | HARVEST this report: items 1–3, 9–11, 17–22 into TODO_LIST/ROADMAP per docs-health                                                                                                                      | High   | S      | Documentation |
-| 37 | Annotate the 20:18 predecessor report: matview bug (f5) FIXED this session, redaction pins (f12/13) DONE (docs-health ANNOTATE mode)                                                                    | Medium | S      | Documentation |
+| ~~36~~ | ~~HARVEST this report: items 1–3, 9–11, 17–22 into TODO_LIST/ROADMAP per docs-health~~ done 2026-09-08 docs pass                                                                                                                                                          | High   | S      | Documentation |
+| ~~37~~ | ~~Annotate the 20:18 predecessor report: matview bug (f5) FIXED this session, redaction pins (f12/13) DONE (docs-health ANNOTATE mode)~~ done 2026-09-08 docs pass                                                                    | Medium | S      | Documentation |
 | 38 | `check-duplication` run scoped to tursoengine (param-walk idiom appears twice — under threshold 3, but verify the tool agrees)                                                                          | Low    | S      | Quality       |
 | 39 | Bench: encryption overhead on OUR workload (Turso claims 0.5–2.8% mixed; one `benchkit`/`matview_bench` cell with `WithEncryption` on/off would make it ours)                                           | Low    | M      | Quality       |
 | 40 | Verify `WithEncryption` + `WithMaterializedViews` + `Priority` (DriverConfig path) don't fight over the DSN query namespace as more options land (namespace discipline doc)                             | Low    | S      | Documentation |

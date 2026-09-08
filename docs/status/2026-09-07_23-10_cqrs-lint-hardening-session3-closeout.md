@@ -1,5 +1,14 @@
 # cqrs-lint Hardening Session 3 — Closeout Report
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** NEXT-50 items
+> 1–3, 6–13, 24, 47, 50 were closed by the continuation session (see
+> `docs/status/archived/2026-09-08_05-31_cqrs-lint-hardening-continuation-closeout.md`
+> and CHANGELOG `[Unreleased]`). The open remainder (items 4–5 = F091
+> Tiers 2–3 + F090(b), 12 = ApplyLayout rule, 14–23 = fixture module,
+> stack/sqlite pin issue, completeness meta-tests, remaining family audits;
+> 28–34 blocked owner decisions) lives in TODO_LIST → cqrs-lint / Release.
+> Struck below where closed.
+
 **Date:** 2026-09-07 23:10 CEST
 **Scope:** the open cqrs-lint section of TODO_LIST (T13–T21 remainder,
 F089–F091, self-lint delta, go-finding upstream issues, load-robustness,
@@ -200,28 +209,36 @@ Nothing destructive or dishonest, but four real own-goals:
 
 **Finish what this session started**
 
-1. Reclassify S011 escalation under CHANGELOG "Changed" + link to Q3.
-2. Verify the two `//art-dupl:accept` placements live
-   (`nix run .#check-duplication` on a clean tree).
-3. Re-check `V007-DEMO.md` + `VALIDATION_REPORT.md` against the new V007
-   behavior (dot-imports, typed resolution).
+1. ~~Reclassify S011 escalation under CHANGELOG "Changed" + link to Q3.~~
+   done — continuation §a2 (2026-09-08)
+2. ~~Verify the two `//art-dupl:accept` placements live
+   (`nix run .#check-duplication` on a clean tree).~~ done — continuation
+   §a1 (both suppress; 3 new groups found and resolved)
+3. ~~Re-check `V007-DEMO.md` + `VALIDATION_REPORT.md` against the new V007
+   behavior (dot-imports, typed resolution).~~ done — continuation §a3
 4. F091 Tier 2: C008 payload-flow confirmation behind `--typed-info=auto`
    (design ready; strongest consumer value of the leftovers).
 5. F090(b): typed dot-import attribution on the Tier-1 machinery.
-6. Adopt `ResolveQualifierTyped` in the three alias-blind helpers
+6. ~~Adopt `ResolveQualifierTyped` in the three alias-blind helpers
    (`capturePayloadTypeFromVar`, `looksLikeEventType`,
    `IsInsideUpcasterClosure` — T20-8; `looksLikeEventType` alone kills the
-   aliased-fold-blindness class for C038/C040).
-7. T20-1: extend store detection to all shipped metaengine engines
-   (mysql/badger/dgraph/turso/bbolt/iroh) + per-engine table test.
-8. T20-3: first-wins guard in Pass-1 import scan (kills the
-   nondeterministic Store for multi-preset packages).
-9. T20-4: stop storing `ExprString` call-text in
-   `CommandTypesRegistered` — distinct unresolved-constructor record.
-10. T20-5: split `CommandInfo.Fields` into names vs embeds.
-11. T20-7: cache upcaster-closure ranges per file (O(file) per call today).
+   aliased-fold-blindness class for C038/C040).~~ done — continuation §a8
+7. ~~T20-1: extend store detection to all shipped metaengine engines
+   (mysql/badger/dgraph/turso/bbolt/iroh) + per-engine table test.~~ done —
+   continuation §a5
+8. ~~T20-3: first-wins guard in Pass-1 import scan (kills the
+   nondeterministic Store for multi-preset packages).~~ done — continuation
+   §a4 (sorted iteration is the actual determinism fix)
+9. ~~T20-4: stop storing `ExprString` call-text in
+   `CommandTypesRegistered` — distinct unresolved-constructor record.~~
+   done — continuation §a6
+10. ~~T20-5: split `CommandInfo.Fields` into names vs embeds.~~ done —
+    continuation §a7
+11. ~~T20-7: cache upcaster-closure ranges per file (O(file) per call today).~~
+    done — continuation §a9
 12. ApplyLayout rule implementation + fixtures (design done).
-13. Doctor JSON golden/snapshot test (the JSON surface has no golden).
+13. ~~Doctor JSON golden/snapshot test (the JSON surface has no golden).~~
+    done — continuation §a10 (caught 2 real surface bugs)
 14. Commit a replace-based end-to-end fixture module for typed-path rules
     (schema/v4-based; see e-7 for the stack/sqlite pin breakage).
 15. File the `stack/sqlite` published-pin breakage
@@ -237,13 +254,16 @@ Nothing destructive or dishonest, but four real own-goals:
 21. T13–T19 batch: D-family (19 rules, consistency).
 22. T13–T19 batch: B-family (31 rules, boilerplate).
 23. T13–T19 batch: A-family (34 rules, API) — largest; split into 2 waves.
-24. `RULES.md` vs treefmt: exclude generated markdown from the formatter or
+24. ~~`RULES.md` vs treefmt: exclude generated markdown from the formatter or
     make the generator emit padded tables (e-5); the freshness test should
-    never fight the formatter again.
+    never fight the formatter again.~~ done — continuation §a11, root cause
+    CORRECTED: dprint's markdown plugin (not treefmt, which has none);
+    `**/RULES.md` excluded in dprint.json
 25. Run `nix run .#verify` end-to-end on a quiet box (load ≤ 15) and bank
     the first repo-wide GREEN covering this session's work.
 26. Run `nix run .#check-duplication` + `.#check-coverage` +
     `.#check-file-size` after the S011/dup-annotation changes land.
+    (duplication done — continuation; coverage/file-size open in TODO_LIST)
 27. `cmd/cqrs-lint` release prep: this session added user-facing surface
     (preset, overrides, V007 behavior) — fold into the next tag wave with
     a CHANGELOG-led minor and the Q3 ruling.
@@ -291,15 +311,18 @@ merged — verify intended and document or align.
 (loader is sequential today).
 46. `findGoModDirs` skips `dist`/`build`/`testdata` but not `example`
 worktrees or `.worktree*` — confirm intended for monorepo scans.
-47. `TestX` (v007_test.go) — stray placeholder test name spotted during the
-audit; rename or delete.
+47. ~~`TestX` (v007_test.go) — stray placeholder test name spotted during the
+   audit; rename or delete.~~ NOT-A-BUG — continuation §a12: it is fixture
+   content INSIDE `TestV007_SkipsTestFiles` (a dot-import test file string);
+   the closeout claim was a misread
 48. benchkit/system load helpers: add a unit test with a synthesized
-loadavg (currently only the ambient path is exercised).
+   loadavg (currently only the ambient path is exercised).
 49. The self-lint still carries 1 active inline C025 suppression
-(init.go unknown-preset error) — the last `%w`-less fmt.Errorf in the
-main package; wrap a sentinel like the stale-suppressions one did.
-50. AGENTS.md: record the RULES.md-vs-treefmt root cause and the
-"meta-test the name/ID co-occurrence" lesson in the cqrs-lint gotchas.
+   (init.go unknown-preset error) — the last `%w`-less fmt.Errorf in the
+   main package; wrap a sentinel like the stale-suppressions one did.
+50. ~~AGENTS.md: record the RULES.md-vs-treefmt root cause and the
+   "meta-test the name/ID co-occurrence" lesson in the cqrs-lint gotchas.~~
+   done — continuation §a13 + AGENTS.md Tooling & Build
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

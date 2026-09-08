@@ -1,5 +1,17 @@
 # Status Report — Metaengine Correctness & Verification TODO Batch (9/11 items executed)
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** The batch was fully
+> closed by the continuation session — see the Addendum at the bottom (items
+> 1–10 shipped; item 11, the errorfamily rename, executed separately on
+> 2026-09-08, see
+> `docs/status/archived/2026-09-08_06-10_errorfamily-code-rename-aggregate-to-stream.md`
+> and CHANGELOG `[Unreleased]`). §f items 1–13 below are ~~struck~~ where the
+> addendum closed them; the open remainder (dgraph Q1 scope, CapabilityGaps
+> reach, ClaimMetrics, SearchQuery baseline fold, enginetest fakes note,
+> GOWORK decision table, iroh pin repair) was harvested into TODO_LIST.md →
+> "Metaengine — follow-ups" / "Release / Tagging" on 2026-09-08. §g answers
+> remain pending user input (Q1/Q2 recorded as TODO_LIST [BLOCKED] items).
+
 **Session date:** 2026-09-07, ended ~22:33 CEST
 **Scope executed:** The "Metaengine — correctness & verification follow-ups" backlog
 section from TODO_LIST.md (11 items) minus the deliberate v5 skip. Order of work:
@@ -290,36 +302,39 @@ b1) and the foreign `TODO_LIST.md` edit owned by a concurrent cqrs-lint session.
 
 ## f) Up to 50 things we should get done next (impact-ordered)
 
-1. **Finish planner polish**: consume `capabilityGaps` in the planQuery
+1. ~~**Finish planner polish**: consume `capabilityGaps` in the planQuery
    partition loop (documented gap ⇒ exclusion stays, diagnostic suppressed);
    name the missing backend interface in the over-declaration message
    (`metaengine.MapBackend` etc.); tie-break determinism test; partition
-   rule into planning docs (§f27/28/31/32).
-2. Regenerate the api-stability golden (`cmd/api-stability … --update`) +
-   `TestEvery*` meta-tests (new symbol rule).
-3. Full metaengine suite re-run after item 1 (the aggregate GREEN claim
-   currently covers a pre-planner-polish tree).
-4. Per-module golangci on every touched module: metaengine,
+   rule into planning docs (§f27/28/31/32).~~ done — addendum 2026-09-08
+2. ~~Regenerate the api-stability golden (`cmd/api-stability … --update`) +
+   `TestEvery*` meta-tests (new symbol rule).~~ done — addendum (6730 exports)
+3. ~~Full metaengine suite re-run after item 1 (the aggregate GREEN claim
+   currently covers a pre-planner-polish tree).~~ done — addendum gates
+4. ~~Per-module golangci on every touched module: metaengine,
    badgerengine, pebbleengine, sqliteengine, duckdbengine, dgraphengine,
-   pgengine, mysqlengine, scheduling/sqlstore, metaengine/bench.
-5. `nix run .#check-duplication` — validate the three new `art-dupl:accept`
+   pgengine, mysqlengine, scheduling/sqlstore, metaengine/bench.~~ done —
+   addendum (13 modules; 3 findings fixed)
+5. ~~`nix run .#check-duplication` — validate the three new `art-dupl:accept`
    dump-test groups actually suppress (iterative unmasking applies), plus
-   the SortPaginate reference-twin and harness edits.
-6. CHANGELOG `[Unreleased]` entries: ApplyBatch record-honoring (behavior
+   the SortPaginate reference-twin and harness edits.~~ done — addendum
+   (3 groups found AND resolved to zero; FromDB extraction)
+6. ~~CHANGELOG `[Unreleased]` entries: ApplyBatch record-honoring (behavior
    fix), CheckRouting liar-suggestion fix, ADTMap O1 recalibration,
    keycodec exports, WithEngineCapabilityGaps, capability-conditional
    restart harness; re-read the section immediately before editing
-   (shared ledger).
-7. TODO_LIST annotations for the 9 executed items (re-read before edit;
-   foreign cqrs-lint edit in flight).
-8. iroh item 10: GraphRemoveEdge sentinel pin; applyRemoteGraphRemove
+   (shared ledger).~~ done — addendum (175 citations honest)
+7. ~~TODO_LIST annotations for the 9 executed items (re-read before edit;
+   foreign cqrs-lint edit in flight).~~ done — addendum (10 done, item 11
+   deferred); entries deleted from TODO_LIST by the 2026-09-08 docs pass
+8. ~~iroh item 10: GraphRemoveEdge sentinel pin; applyRemoteGraphRemove
    record-but-skip test; int-endpoint convergence over loopback+quic;
    `-race -count=3` on loopback/quic convergence; extract `applyRemote`
-   from engine.go (334/350).
-9. `-race` runs on new lock code: record-context tests, RegisterQuery
+   from engine.go (334/350).~~ done — addendum (engine.go 334→281)
+9. ~~`-race` runs on new lock code: record-context tests, RegisterQuery
    invalidation (`-count=1 -race` × 3 separate runs per Ginkgo rule does
    not apply here — plain go test, use `-count=3 -race`), restart-safety
-   suites.
+   suites.~~ done — addendum race gates
 10. Live dgraph window: ephemeral-dgraph run of `TestRealProfile_ReadCostsPinned`,
     the dgraph CALIB dump, and `BenchmarkCalibration_DgraphSearchQuery`
     (converts skip-path GREEN into observed GREEN; bench numbers belong in
@@ -395,8 +410,9 @@ b1) and the foreign `TODO_LIST.md` edit owned by a concurrent cqrs-lint session.
 39. api_surface.txt is tracked as modified in the repo snapshot — confirm
     whether the daemon committed a stale copy and re-run the stability
     checker after item 2.
-40. Harvest this report's items into TODO_LIST via the docs-health HARVEST
-    mode after the foreign cqrs-lint edit lands.
+40. ~~Harvest this report's items into TODO_LIST via the docs-health HARVEST
+    mode after the foreign cqrs-lint edit lands.~~ done 2026-09-08 docs pass
+    (open remainder → TODO_LIST "Metaengine — follow-ups")
 41. Add the AllocsPerRun-parallelism trap + "read defaults before
     threshold tests" lessons to AGENTS.md gotchas (one paragraph each).
 42. Cross-check `overDeclarationDiagnostics` message text against the

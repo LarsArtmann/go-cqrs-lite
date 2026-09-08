@@ -76,7 +76,7 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 | Variable-depth traversal, adjacency, paths                     | N-hop queries                          | `graph.GraphProjection` (deprecated, v5)                                                             |
 | Event-folded aggregations, counters                            | Cost-planned queries                   | `metaengine` Store + `projectionadapter`                                                             |
 | Large map collections with known filters/sorts                 | Filter+sort scans                      | `metaengine` planned tables (`LayoutPlanApplier` + `BuildLayoutPlanFromType[R]`; recipes §2.27/2.28) |
-| Hot unfiltered rollups (SUM/COUNT/AVG/MIN/MAX, per-key groups) | Same aggregate queries, O(1)/O(groups) | Operator-declared Turso materialized views (tursoengine; recipes §2.29, ADR-0135)                    |
+| Hot unfiltered rollups (SUM/COUNT/AVG/MIN/MAX, per-key groups) | Same aggregate queries, O(1)/O(groups) | Operator-declared Turso materialized views (tursoengine; recipes §2.29, ADR-0135; **scalar views exact — grouped views carry an upstream correctness caveat**, see readmodels.md §Materialized-view acceleration) |
 
 #### Dead-letter handling: Which layer?
 

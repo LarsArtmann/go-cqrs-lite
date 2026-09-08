@@ -1,8 +1,8 @@
-# metaengine/tursoengine — Turso/libSQL-Backed Engine
+# metaengine/tursoengine — Turso Database Engine (embedded)
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4)
 
-Turso (libSQL)-backed [metaengine](../README.md) Engine. Pure Go (`turso`
+Turso Database-backed [metaengine](../README.md) Engine (Turso Database is the Rust SQLite rewrite — libSQL is the legacy C fork; this module embeds the former). Pure Go (`turso`
 driver, no CGo). A thin wrapper over `sqliteengine` that adds remote-deployment
 awareness: remote DSNs declare a same-datacenter network-RTT prior via
 calibration, so the cost-based planner routes with honest network latency
@@ -21,9 +21,14 @@ engine, err := tursoengine.New("libsql://myapp.turso.io?authToken=...")
 ```
 
 Empty DSN defaults to `:memory:`; plain file paths and `file:` DSNs work for
-embedded libSQL use.
+embedded Turso Database use.
 
 ## Encryption at Rest (embedded, experimental)
+
+> Reachability note: `WithEncryption` is a direct `tursoengine.New(...)`
+> option — the `metaengine.DriverConfig`/`system` YAML layer has no encryption
+> slot yet (a v5 `DriverConfig.Encryption` design is planned). Composing
+> through the driver registry cannot reach it today.
 
 The embedded Turso engine encrypts every page and the WAL with a native AEAD
 cipher (experimental upstream — not yet third-party audited; Turso Cloud BYOK
@@ -83,7 +88,7 @@ when composing through the system package. Verify registrations in
 `metaengine.ExplainableAggregate` (shows the view SQL that will run).
 
 The corresponding `sqlite` driver REJECTS specs at construction — materialized
-views require Turso/libSQL with the `views` experimental feature.
+views require the Turso Database engine with the `views` experimental feature.
 
 ## Capabilities
 
@@ -93,7 +98,7 @@ engine embeds a `sqliteEngine` over the turso driver connection.
 
 ## Notes
 
-- The connection is capped at `MaxOpenConns(1)` (libSQL replication semantics).
+- The connection is capped at `MaxOpenConns(1)` (Turso replication semantics).
 - Remote DSNs (`libsql://`, `https://`) contribute a live-RTT prior that
   `ProbeEngine` replaces with runtime measurements once the probe loop runs.
 - Health: `db.PingContext` round-trip to the remote server.

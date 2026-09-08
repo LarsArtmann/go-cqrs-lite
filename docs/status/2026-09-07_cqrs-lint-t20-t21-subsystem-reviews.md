@@ -1,5 +1,13 @@
 # cqrs-lint T20/T21 — Subsystem Line-by-Line Reviews
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Every recorded
+> finding below (T20-1/3/4/5/7/8) was fixed by the 2026-09-08 hardening
+> batch — see
+> `docs/status/archived/2026-09-08_05-31_cqrs-lint-hardening-continuation-closeout.md`
+> §a4–a9 and CHANGELOG `[Unreleased]` "cqrs-lint analyzer hardening".
+> T20-8's remaining Tier-2/3 surface (F091 Tiers 2–3, F090(b)) stays open in
+> TODO_LIST → cqrs-lint.
+
 **Date:** 2026-09-07 · **Scope:** T20 (scanner*.go, feature_detect*.go,
 loader.go, registry.go, module_catalog*.go, upcaster.go) + T21
 (doctor*.go, health.go, scorecard*.go, output*.go, explain.go).
@@ -19,7 +27,13 @@ accepted heuristics recorded below for the next hardening wave.
 
 ## Recorded findings (fix in a future wave)
 
-### T20-1 — store detection misses non-preset engines (gap, M)
+### ~~T20-1 — store detection misses non-preset engines (gap, M)~~
+
+~~DONE 2026-09-08~~ — `metaengineEngineFromImport` gained
+mysql/badger/dgraph/turso/bbolt mappings; new `StoreBadger`/`StoreDgraph`/
+`StoreIroh` kinds + a 12-row engine→store table test
+(`TestMetaengineEngineFromImport_CoversShippedEngines`). The original text
+follows.
 
 `feature_detect.go` `detectImports` maps store backends only from the
 v5-removed `stack/*` presets plus metaengine engines
@@ -31,7 +45,14 @@ scorecard see the wrong tier. Fix direction: extend
 shipped engine (the full list lives in `metaengine/*engine`). Needs a small
 table test per engine.
 
-### T20-3 — Pass-1 import scan is order-sensitive (nondeterminism, S)
+### ~~T20-3 — Pass-1 import scan is order-sensitive (nondeterminism, S)~~
+
+~~DONE 2026-09-08~~ — packages sorted by PkgPath, imports via
+`slices.Sorted(maps.Keys(...))`, single first-wins guard; pinned by a
+40-run stability test. **Design correction from the fix session:** a
+first-wins guard over map iteration is STILL random — sorted iteration is
+what makes it deterministic, the guard alone is not. The original text
+follows.
 
 `detectFeatureSignals` Pass 1 iterates `pkg.Imports` (a Go map). The
 `stack/*` branches overwrite `fp.Store` unconditionally (only the
@@ -40,7 +61,11 @@ different presets gets a nondeterministic Store across runs. Rare shape
 (a package importing two presets), but the fix is the same first-wins
 guard the storage branch already uses.
 
-### T20-4 — `handlerTypeFromCall` stores call text as registry keys (smell)
+### ~~T20-4 — `handlerTypeFromCall` stores call text as registry keys (smell)~~
+
+~~DONE 2026-09-08~~ — constructor calls now record into the exported
+`analyzer.ConstructorHandlers` set (`TestScanCallExpr_ConstructorHandlerRecordedSeparately`).
+The original text follows.
 
 Constructor-call handlers record `ExprString(call)` (e.g.
 `NewMyCommand(bus)`) as a `CommandTypesRegistered` key that can never match
@@ -48,18 +73,31 @@ a struct name. Lookups are unaffected; doctor/audit dumps and future
 iteration-based rules see garbage keys. Should be a distinct
 "unresolved constructor" record.
 
-### T20-5 — `CommandInfo.Fields` mixes field names and embed exprs (smell)
+### ~~T20-5 — `CommandInfo.Fields` mixes field names and embed exprs (smell)~~
+
+~~DONE 2026-09-08~~ — embedded type expressions land in the new `Embeds`
+slice; B004 counts `Fields+Embeds` (behavior unchanged). The original text
+follows.
 
 `scanStructFields` appends embedded-field expression text
 (`BasicCommand`) into the same `Fields` slice as real member names.
 Consumers must know which entries are names. Split into `Embeds`.
 
-### T20-7 — `IsInsideUpcasterClosure` is O(file) per query (perf, S)
+### ~~T20-7 — `IsInsideUpcasterClosure` is O(file) per query (perf, S)~~
+
+~~DONE 2026-09-08~~ — per-file closure ranges memoized in a package-level
+`sync.Map` (O(file) once per file). The original text follows.
 
 Full `ast.Inspect` of the file for every A014/C005 candidate call. Cache a
 per-file list of upcaster-closure ranges once (scan in the analyzer pass).
 
-### T20-8 — remaining alias-blind helpers (tracked by F091 Tiers 2–3)
+### ~~T20-8 — remaining alias-blind helpers (tracked by F091 Tiers 2–3)~~
+
+~~DONE 2026-09-08 for all three listed helpers~~ — `analyzer.IsQualifierFor` +
+`IsEventTypeParam` shipped and adopted in `capturePayloadTypeFromVar`, fold
+detection (`looksLikeEventType` demoted to fallback), and
+`IsInsideUpcasterClosure`. F091 Tiers 2–3 (C008/C035/C013 confirmation)
+remain open in TODO_LIST. The original text follows.
 
 `capturePayloadTypeFromVar`, `looksLikeEventType`, and
 `IsInsideUpcasterClosure` string-match the unaliased `event`/`schema`
