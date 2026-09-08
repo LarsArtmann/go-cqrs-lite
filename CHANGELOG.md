@@ -3798,6 +3798,14 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added
 
+- **Materialized-view safety tail (ADR-0135)**: the Doctor
+  `--- Materialized views ---` section is now test-pinned (content shape,
+  explicit `none` branch, the grouped-view upstream-defect WARN, and the
+  scalar-shape no-false-WARN guard); `matViewDDL` has an exact-DDL golden
+  across COUNT/SUM/MIN/AVG × scalar/grouped (plus a collection-quote escape
+  guard); and a multi-transaction grouped-SUM exactness pin documents the
+  tursogo IVM envelope (exact at small scale; the 2k+-row divergence class
+  stays characterized in the research doc and bench layer).
 - **`--typed-info` (auto | on | off)** — the F091 typed-confirmation tier is
   wired as a first-class CLI/config flag (`analysisContext.TypedInfoMode`,
   default `auto`: typed paths run whenever the package load produced type

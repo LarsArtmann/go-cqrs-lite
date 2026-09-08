@@ -520,3 +520,62 @@ func TestTursoMatView_DriverRegistryPath(t *testing.T) {
 
 	expectScalar(t, e, "orders", metaengine.MatViewCount, "", nil, 12)
 }
+
+// TestTursoMatView_GroupedSumTwoTxDivergencePin pins multi-transaction
+// exactness of grouped views at SMALL scale: rows for a group spread across
+// several transactions aggregate exactly on the current driver (verified
+// 2026-09-08). This is the scaled-down guard for the defect class
+// characterized 2026-09-07 (docs/research/2026-09-07_turso-go-*): at scale
+// (2k+ rows, hundreds of groups) grouped SUM views lost part of a group's
+// delta from the second transaction on — the bench layer covers that
+// envelope; this pin catches a regression that shows up even small. If it
+// starts failing, the driver's IVM regressed; if upstream semantics change,
+// update the Doctor WARN and AGENTS caveat in the same change.
+func TestTursoMatView_GroupedSumTwoTxDivergencePin(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	eng := mustEngineWithMatViews(
+		t,
+		"",
+		metaengine.MaterializedViewSpec{
+			Collection: "orders",
+			Fn:         metaengine.MatViewSum,
+			Column:     "amount",
+			GroupBy:    "customer",
+		},
+	)
+
+	mb, ok := eng.(metaengine.MapBackend)
+	if !ok {
+		t.Fatal("engine does not implement MapBackend")
+	}
+
+	g := gomega.NewWithT(t)
+	gr := eng.(metaengine.GroupedAggregateReader)
+
+	// Transaction 1: seed the group.
+	mustMapSet := func(key, customer string, amount float64) {
+		g.Expect(mb.MapSet(ctx, "orders", key, map[string]any{
+			"customer": customer, "amount": amount,
+		})).To(gomega.Succeed())
+	}
+
+	mustMapSet("o1", "alice", 100)
+	mustMapSet("o2", "alice", 50)
+
+	groups, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+	g.Expect(groups["alice"]).To(gomega.Equal(150.0), "single-transaction sum must be exact")
+
+	// Transaction 2+: extend the SAME group and add a NEW group.
+	mustMapSet("o3", "alice", 25)
+	mustMapSet("o4", "bob", 10)
+
+	groups, err = gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
+	g.Expect(groups["alice"]).To(gomega.Equal(175.0),
+		"second-transaction delta must be maintained (tursogo IVM defect class, see research doc)")
+	g.Expect(groups["bob"]).To(gomega.Equal(10.0))
+}
