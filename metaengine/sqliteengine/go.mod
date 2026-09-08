@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4
 go 1.26.7
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1

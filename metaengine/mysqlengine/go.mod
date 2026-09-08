@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/onsi/gomega v1.42.1
 )
 
