@@ -544,6 +544,21 @@ bottom is a do-not-re-litigate guard, not a backlog.
       `BenchmarkCatchUp_ReplayThroughput` (load-sensitive)? Pin or exclude so
       it can't flake the CI regression gate. — source: 07-42 §e4/§f2
       _(Effort: S)_
+- [ ] 🔥 **Benchkit full-suite flake hunt (unexplained since 2026-09-07)** —
+      `TestRun_ClosedStore`/`TestRun_ClosedStore_ErrorMessage` ("expected
+      error from closed store, got nil" after ~26s) and
+      `TestRun_Pebble`/`TestRun_Recovery_Pebble` ("checkpoint phase: context
+      deadline exceeded" at 90s) FAIL under the full workspace suite
+      (`#verify`/`#verify-fast`, `-race`, shared-host load 18-65) but PASS
+      isolated (40s, no -race). Observed first by the SUPERB session (its §d2
+      "unexplained, not explained") and reproduced by the 2026-09-08
+      docs-health verify runs. Same class:
+      `system.TestSystem_ResetProjection_RestartAndReplay` (snapshot-load
+      deadline under load; 0.4s isolated). Either scale the internal
+      deadlines like `loadScaledCeiling`/`loadScaledDeadline` (the proven
+      pattern) or find the real race in the closed-store error path. —
+      source: SUPERB §d2/§f11, docs-pass verify runs 2026-09-08
+      _(Effort: M)_
 - [ ] **Watermill catch-up tail:** restart-recovery property test (checkpoint
       behind a skew-suppressed event ⇒ replay re-delivers — pins the
       documented self-healing claim); broker-backed throughput variant via
