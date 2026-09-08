@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"slices"
 	"strings"
 	"testing"
 )
@@ -178,6 +179,44 @@ func setup(bus *Bus) {
 		if !strings.HasPrefix(key, "NewCreateUserHandler") {
 			t.Errorf("ConstructorHandlers key %q does not name the constructor", key)
 		}
+	}
+}
+
+// T20-5: embedded-field expressions used to land in CommandInfo.Fields mixed
+// with real member names; consumers had to guess which entries were names.
+// Names and embeds are now separate slices.
+func TestScanStructFields_SplitsNamesFromEmbeds(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/command"
+
+type CreateOrder struct {
+	command.BasicCommand
+	OrderID string
+	Amount  int
+}
+`,
+	})
+
+	cmd := ctx.Registry.CommandByName("CreateOrder")
+	if cmd == nil {
+		t.Fatal("CreateOrder not registered as a command")
+	}
+
+	wantFields := []string{"OrderID", "Amount"}
+	if !slices.Equal(cmd.Fields, wantFields) {
+		t.Errorf("Fields = %v, want %v", cmd.Fields, wantFields)
+	}
+
+	if len(cmd.Embeds) != 1 || !strings.Contains(cmd.Embeds[0], "BasicCommand") {
+		t.Errorf("Embeds = %v, want the BasicCommand embed", cmd.Embeds)
+	}
+
+	if !cmd.HasBasicCmd {
+		t.Error("HasBasicCmd should be true for a BasicCommand embed")
 	}
 }
 

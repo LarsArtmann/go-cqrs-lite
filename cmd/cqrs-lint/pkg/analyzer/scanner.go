@@ -92,7 +92,7 @@ func scanStructFields(st *ast.StructType, info *CommandInfo) {
 
 		if len(field.Names) == 0 {
 			if exprStr := ExprString(field.Type); exprStr != "" {
-				info.Fields = append(info.Fields, exprStr)
+				info.Embeds = append(info.Embeds, exprStr)
 				if strings.Contains(exprStr, "BasicCommand") {
 					info.HasBasicCmd = true
 				}

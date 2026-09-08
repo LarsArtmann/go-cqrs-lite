@@ -29,7 +29,8 @@ type CommandInfo struct {
 	ManualType       bool     // has manual Type() or StreamID() method
 	IDReturnsZero    bool     // ID() returns zero-value composite literal
 	TransportAdapter bool     // has a toDomain()/ToDomain() conversion method — never dispatched directly
-	Fields           []string // field names
+	Fields           []string // member field names (embedded type exprs live in Embeds)
+	Embeds           []string // embedded type expressions, e.g. "*command.BasicCommand"
 }
 
 // EventInfo describes an event type found in the analyzed code.

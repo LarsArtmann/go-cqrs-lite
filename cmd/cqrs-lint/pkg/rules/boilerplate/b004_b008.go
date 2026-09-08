@@ -24,7 +24,11 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, cmd := range ctx.Registry.Commands {
-				if len(cmd.Fields) < 3 {
+				// Embeds count toward the size heuristic (pre-split behavior:
+				// CommandInfo.Fields held both names and embed exprs — T20-5 kept
+				// the count semantics, only the access changed).
+				fieldCount := len(cmd.Fields) + len(cmd.Embeds)
+				if fieldCount < 3 {
 					continue
 				}
 
@@ -42,7 +46,7 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					fmt.Sprintf(
 						"Command %s has %d fields — consider using cqrs-gen to generate constructors",
 						cmd.Name,
-						len(cmd.Fields),
+						len(cmd.Fields)+len(cmd.Embeds),
 					),
 					finding.SeverityInfo,
 					finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),
