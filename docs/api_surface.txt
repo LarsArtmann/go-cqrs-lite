@@ -519,6 +519,7 @@ cmd/cqrs-lint/func ComputeHealthScore
 cmd/cqrs-lint/func ComputeHealthScoreWithCap
 cmd/cqrs-lint/func ComputeScorecard
 cmd/cqrs-lint/method Load
+cmd/cqrs-lint/method MarshalJSON
 cmd/cqrs-lint/pkg/analyzer/const CategoryCore
 cmd/cqrs-lint/pkg/analyzer/const CategoryDocumentation
 cmd/cqrs-lint/pkg/analyzer/const CategoryMessaging
