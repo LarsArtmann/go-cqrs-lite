@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-09-07T17:02:15.5382898Z",
+  "recordedAt": "2026-09-08T02:30:57.219380349Z",
   "entries": [
     {
       "hash": "026d8071a0834265",
@@ -19,14 +19,6 @@
         "metaengine/bboltengine/map_backends.go"
       ],
       "tokens": 9
-    },
-    {
-      "hash": "04398acdf1103c5b",
-      "files": [
-        "metaengine/pebbleengine/seq_seeding.go",
-        "metaengine/bboltengine/seq_seeding.go"
-      ],
-      "tokens": 16
     },
     {
       "hash": "044538ad6d07b40f",
@@ -302,6 +294,18 @@
       "tokens": 8
     },
     {
+      "hash": "3e2a79d7e9a98e14",
+      "files": [
+        "metaengine/bboltengine/calibration_constants_dump_test.go",
+        "metaengine/pgengine/calibration_constants_dump_test.go",
+        "metaengine/dgraphengine/calibration_pin_test.go",
+        "metaengine/badgerengine/calibration_constants_dump_test.go",
+        "metaengine/pebbleengine/calibration_constants_dump_test.go",
+        "metaengine/mysqlengine/calibration_constants_dump_test.go"
+      ],
+      "tokens": 30
+    },
+    {
       "hash": "400132d283670d88",
       "files": [
         "stack/postgres/preset.go",
@@ -396,6 +400,14 @@
         "metaengine/mysqlengine/pushdown.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "4b138fab69c1aac8",
+      "files": [
+        "metaengine/keycodec/keycodec.go",
+        "metaengine/bboltengine/seq_seeding.go"
+      ],
+      "tokens": 6
     },
     {
       "hash": "4d557511e001bac5",

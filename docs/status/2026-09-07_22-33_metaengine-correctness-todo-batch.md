@@ -449,3 +449,51 @@ runs and the nspawn-runner cross-check?
 ---
 
 _Prepared per session protocol. Awaiting instructions._
+
+---
+
+## Addendum — continuation session (2026-09-08 ~00:30 CEST): batch CLOSED
+
+All three open workstream items finished and gated:
+
+**Item 9 — planner polish (closed).** The partition loop now consults
+`planConfig.capabilityGaps`: a documented gap keeps the over-declaring
+engine excluded from honest routing but suppresses the diagnostic
+(disable-fix proven: `true ||` flip → 3 new tests fail). The diagnostic
+names the missing interface via `missingBackendName` (e.g.
+`metaengine.MapBackend`); existing `"over-declare ADT map"` substring pins
+kept. `TestPlan_EqualLatencyTieBreakIsDeterministic` pins stable-input-order
+tie-breaks (5 fresh plans + reversed-input flip). Rule documented in
+recipes §2.12; api golden regenerated (6730 exports).
+
+**Item 10 — iroh test coverage (closed).** GraphRemoveEdge sentinel added
+to the graphless-local test; `TestApplyRemoteGraphRemove_RecordsLWWWithoutBackend`
+pins record-but-skip (disable-fix proven: dropping the recordLWW call lets
+the stale add resurrect). Int-endpoint convergence tests added for BOTH
+loopback and quic; all three iroh modules green under `-race -count=3`;
+`applyRemote` extracted to `engine_apply.go` (engine.go 334→281 lines).
+**New gotcha:** loopback/quic module tests MUST run in workspace mode —
+`GOWORK=off` resolves published `irohengine/v4 v4.1.0` (pre-graph-op), which
+failed the new test environmentally, not semantically.
+
+**Final gates (all green).** Per-module golangci on 13 touched modules
+(metaengine family + iroh family + scheduling/sqlstore; 3 findings fixed:
+2× embeddedstructfieldcheck on honestMapMixin, 2× golines). The
+integration-tag sqlstore lint surfaces a PRE-EXISTING gocognit finding in
+`pg_integration_test.go:462` (Aug 30 commit, not this batch; official gate
+does not pass the integration tag — left alone). check-duplication: 3 new
+groups found and resolved — calibration-dump annotations moved to the
+region's first line (the func-level directive did NOT suppress, per the
+AGENTS placement rule), harness.go key-canonicalization annotated (the
+other member is the foreign cqrs-lint session's doctor.go), and
+`enginetest.RunRestartSafetyFromDBTest` extracted to kill the
+badger/duckdb/sqlite FromDB clone at the root. check-coverage within
+tolerance. CHANGELOG [Unreleased] entries added (symbol gate: 175
+citations honest). TODO_LIST batch annotated: 10 done, item 11
+(errorfamily rename) deferred to v5. Race gates: record-context lock tests
+`-race -count=3`, bbolt + duckdb restart-safety, all three iroh modules.
+
+**Answers to §g are still pending user input** (Q1 dgraph one-RPC flip
+scope, Q2 CapabilityGaps reach into Doctor, Q3 MariaDB :33061 retention);
+Q1/Q3 decisions as recorded in TODO_LIST annotations are scoped/in-flight
+respectively.

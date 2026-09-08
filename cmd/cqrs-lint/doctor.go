@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -387,11 +389,7 @@ func renderDoctorPerModuleProfiles(w io.Writer, actx *analyzer.AnalysisContext) 
 // formatSeverityOverrides renders a severity-override map as sorted
 // "ID→severity" pairs for deterministic doctor output.
 func formatSeverityOverrides(overrides map[string]string) string {
-	ids := make([]string, 0, len(overrides))
-	for id := range overrides {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
+	ids := slices.Sorted(maps.Keys(overrides))
 
 	parts := make([]string, 0, len(ids))
 	for _, id := range ids {
