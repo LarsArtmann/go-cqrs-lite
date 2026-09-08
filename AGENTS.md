@@ -56,6 +56,8 @@ cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.
 | Load sweep  | `nix run .#load-sweep` (timing tests `-run 'Latency\|Timer\|Deadline'` under CPU soakers — run before `#verify` after touching timing paths)    |
 | Verify CI   | `nix run .#verify-ci` (GOWORK=off per-module build+test — mirrors the CI matrix job)                                                            |
 | Lint config | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
+| CSP check   | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
+| EventCat    | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
 | Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
 | CI          | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
 

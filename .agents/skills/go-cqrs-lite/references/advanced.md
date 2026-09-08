@@ -731,3 +731,17 @@ See §"Operator-Driven Layout Planning" in
 [recipes.md](recipes.md) for copy-paste code, the full 16-cell decision matrix,
 and the audit-trail API. Design doc:
 [`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../../../../docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).
+
+## 7. Tooling Surface: doctor JSON + verification apps (v4.10.0 wave)
+
+**`cqrs-lint doctor --format json`** emits a machine-readable report
+(module-rule findings, engine coverage, severity overrides). Key order is
+DETERMINISTIC since the 2026-09-08 wave (`encoding/json/v2` emits map
+iteration order, unlike v1 which sorted — the severity-override map now
+marshals with sorted keys), so consumer scripts can diff outputs byte-for-byte.
+
+**Repo verification apps** (contributors; run via `nix run .#<app>`):
+
+- `#check-csp` — browser validation of the docserver CSP policy (nix chromium, no npm network).
+- `#check-eventcatalog` — render-validation of the EventCatalog export.
+- `CALIB_DUMP=1 go test ./metaengine/<engine> -run TestCalibrationConstantsDump` — prints the SHIPPED `Profile().ReadCosts` values live; `scripts/calibration-drift.sh` consumes them so the baseline doc can never drift from code.

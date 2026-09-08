@@ -1838,6 +1838,12 @@ filtered scan 779 µs vs meta_map 874 µs; CounterGet equal within noise
 
 ### 2.29 Materialized Views: Operator-Declared Aggregate Acceleration (tursoengine, ADR-0135)
 
+> Shipped in the 2026-09-08 release train: `system/v4.7.0` + `metaengine/v4.13.0`
+> + `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
+> `group_by` materialized views on tursogo ≤ v0.8.0-pre.8 are unsafe beyond a
+> single transaction's rows (upstream IVM defect — see the tursoengine module
+> notes); scalar views are the safe shape.
+
 Turso (libSQL) maintains materialized views incrementally inside every write
 transaction — no REFRESH step. Declare WHAT to accelerate as an operator
 (deployment-time concern, metaengine north star); the engine derives the DDL
@@ -1961,25 +1967,60 @@ domain := system.DomainConfig{
 Zero fold funcs (`OnEvolution` without the closure) selects the convention
 fold: the result struct mirrors the event payload field-by-field.
 
-### 2.24. Materialized Views — operator-declared aggregate accelerations (system ≥ v4.7.0)
+### 2.30 Pre-v5 Snapshot Bytes Still Decode (snapshot wire fallback)
 
-> Shipped in the 2026-09-08 release train: `system/v4.7.0` + `metaengine/v4.13.0`
-> + `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
-> `group_by` materialized views on tursogo ≤ v0.8.0-pre.8 are unsafe beyond a
-> single transaction's rows (upstream IVM defect); scalar views are the safe shape.
+The v4.x line renamed the snapshot wire keys to the stream vocabulary
+(`stream_id`/`stream_type`, previously `aggregate_id`/`aggregate_type`).
+Snapshots written by OLDER v4 binaries must keep loading after an upgrade —
+`snapshot.Snapshot` ships a decode-only legacy fallback for BOTH codecs:
 
-Operators declare aggregate accelerations per engine; unsupported engines fail
-construction loudly. Turbo/libSQL engines serve matching unfiltered aggregates
-from the maintained view (incremental view maintenance):
-
-```yaml
-engines:
-  primary:
-    driver: sqlite
-    dsn: events.db
-    materialized_views:
-      - collection: order_views
-        fn: COUNT              # COUNT | SUM | MIN | MAX | AVG
-        column: ""             # required for SUM/MIN/MAX/AVG; must be empty for COUNT
-        group_by: ""           # optional; empty = single-row scalar view (fastest)
+```go
+// New rows are written with stream_* keys; old rows decode via the legacy
+// shadow (JSON and CBOR both covered — fxamacker/cbor v2.9 falls back to the
+// json struct tag when no cbor tag exists, so one shadow serves both).
+var snap snapshot.Snapshot
+err := snap.UnmarshalJSON(oldBytes) // pre-rename rows: zero config needed
 ```
+
+Contract:
+
+- **Decode-only.** The fallback never WRITES legacy keys — new bytes are always
+  the new vocabulary. The shadows are scheduled for deletion at v6.
+- **JSON + CBOR.** Test legacy-row loads in both codecs (see
+  `snapshot/wire.go`); a rename that skips the fallback strands old snapshots
+  with zeroed identity.
+- The same trap class applies to ANY `json` struct tag rename on a CBOR-encoded
+  type: the json tag IS the CBOR map key when no `cbor` tag exists.
+
+### 2.31 Encrypted Payloads: Envelope v2 + Key Rotation (encryption)
+
+Two facts every encrypted-store consumer needs:
+
+**1. Envelope v2 is raw JSON (v1 was base64-wrapped).** PostgreSQL/MySQL reject
+a bare base64 string in JSON/JSONB columns ("invalid input syntax for type
+json") — that is why `encryption.EnvelopeVersionV2` exists. New writes are v2
+(the JSON object itself, storable in JSON columns on every dialect and as
+opaque bytes on KV engines); v1 rows remain READABLE, never written.
+
+**2. Key management + rotation is static-resolver based.** Generate, validate,
+and load keys with the helpers, then hand the decrypt-side set to a resolver:
+
+```go
+key, err := encryption.GenerateKey()            // or LoadKeyFromEnv / LoadKeyFromFile
+if err := encryption.ValidateKey(key); err != nil { /* key too short for the AEAD */ }
+
+enc, err := encryption.NewXChaCha20Poly1305(key) // EncrypterDecrypter (or NewAES256GCM)
+
+// Rotation read-side: old + new keys both decrypt; writes use the new key.
+old, _ := encryption.NewXChaCha20Poly1305(oldKey) // previous key(s)
+resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decrypter{
+    "v2-key": enc,
+    "v1-key": old,
+})
+```
+
+Rotating in practice: deploy with the resolver (old rows readable), rewrite
+rows at your own pace (re-encrypt with the new key), then drop the old entry.
+Keys never appear in errors or redacted DSNs — the `redactDSN` contract hides
+any `*key*`/`authToken`/`token` param on local AND remote DSNs.
+
