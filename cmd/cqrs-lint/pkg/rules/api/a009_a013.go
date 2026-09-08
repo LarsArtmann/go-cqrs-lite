@@ -70,7 +70,10 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				analyzer.StoreTurso,
 				analyzer.StoreNone,
 				analyzer.StoreDuckDB,
-				analyzer.StoreBolt:
+				analyzer.StoreBolt,
+				analyzer.StoreBadger,
+				analyzer.StoreDgraph,
+				analyzer.StoreIroh:
 				// Keep generic suggestion for these cases.
 			}
 

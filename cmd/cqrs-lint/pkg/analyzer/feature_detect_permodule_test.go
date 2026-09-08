@@ -197,3 +197,47 @@ func TestDetectFeatureSignals_MultiPresetStoreDeterministic(t *testing.T) {
 		t.Fatalf("multi-preset store = %s, want postgres (sorted first-wins)", first)
 	}
 }
+
+// T20-1: every shipped metaengine engine module must resolve to its short
+// engine name AND imply the matching store kind (T20-1). Fails on both drift
+// directions: a new engine module without a mapping here, and a mapping
+// without a store implication.
+func TestMetaengineEngineFromImport_CoversShippedEngines(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		importPath string
+		wantEngine string
+		wantStore  StoreKind
+	}{
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4", "sqlite", StoreSQLite},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4", "pebble", StorePebble},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4", "duckdb", StoreDuckDB},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4", "postgres", StorePostgres},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4", "mysql", StoreMySQL},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4", "badger", StoreBadger},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4", "dgraph", StoreDgraph},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4", "turso", StoreTurso},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4", "bbolt", StoreBolt},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4", "iroh", StoreIroh},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/v4", "memory", StoreUnknown},
+		{"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4", "", StoreUnknown},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.importPath, func(t *testing.T) {
+			t.Parallel()
+
+			engine := metaengineEngineFromImport(tc.importPath)
+			if engine != tc.wantEngine {
+				t.Fatalf("engine = %q, want %q", engine, tc.wantEngine)
+			}
+
+			fp := FeatureProfile{Store: StoreUnknown}
+			detectImports(tc.importPath, &fp, new(bool), new(bool), new(bool))
+			if fp.Store != tc.wantStore {
+				t.Fatalf("store from %s = %s, want %s", tc.importPath, fp.Store, tc.wantStore)
+			}
+		})
+	}
+}

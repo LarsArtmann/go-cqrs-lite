@@ -9,6 +9,9 @@ const (
 	StorePostgres StoreKind = "postgres"
 	StoreMySQL    StoreKind = "mysql"
 	StorePebble   StoreKind = "pebble"
+	StoreBadger   StoreKind = "badger"
+	StoreDgraph   StoreKind = "dgraph"
+	StoreIroh     StoreKind = "iroh"
 	StoreMemory   StoreKind = "memory"
 	StoreTurso    StoreKind = "turso"
 	StoreDuckDB   StoreKind = "duckdb"
@@ -25,7 +28,8 @@ func (s StoreKind) IsSQL() bool {
 	switch s {
 	case StoreSQLite, StorePostgres, StoreMySQL, StoreDuckDB, StoreCustom:
 		return true
-	case StoreUnknown, StorePebble, StoreMemory, StoreTurso, StoreBolt, StoreNone:
+	case StoreUnknown, StorePebble, StoreBadger, StoreIroh, StoreMemory,
+		StoreTurso, StoreDgraph, StoreBolt, StoreNone:
 		return false
 	}
 
@@ -37,9 +41,11 @@ func (s StoreKind) IsSQL() bool {
 // process. Distributed stores (Postgres, MySQL, Turso) run as a separate server.
 func (s StoreKind) IsEmbedded() bool {
 	switch s {
-	case StoreSQLite, StorePebble, StoreBolt, StoreMemory, StoreDuckDB:
+	case StoreSQLite, StorePebble, StoreBadger, StoreBolt, StoreMemory,
+		StoreIroh, StoreDuckDB:
 		return true
-	case StoreUnknown, StorePostgres, StoreMySQL, StoreTurso, StoreCustom, StoreNone:
+	case StoreUnknown, StorePostgres, StoreMySQL, StoreTurso, StoreDgraph,
+		StoreCustom, StoreNone:
 		return false
 	}
 
@@ -50,11 +56,13 @@ func (s StoreKind) IsEmbedded() bool {
 // enabling multi-instance deployment. Distributed stores require network I/O.
 func (s StoreKind) IsDistributed() bool {
 	switch s {
-	case StorePostgres, StoreMySQL, StoreTurso:
+	case StorePostgres, StoreMySQL, StoreTurso, StoreDgraph:
 		return true
 	case StoreUnknown,
 		StoreSQLite,
 		StorePebble,
+		StoreBadger,
+		StoreIroh,
 		StoreMemory,
 		StoreDuckDB,
 		StoreBolt,
@@ -66,12 +74,13 @@ func (s StoreKind) IsDistributed() bool {
 	return false
 }
 
-// AllStoreKinds returns every defined StoreKind value, sorted alphabetically.
-// Used by the explain command to derive valid config values programmatically
-// instead of maintaining a hand-written copy.
+// AllStoreKinds returns every defined StoreKind value (excluding the Unknown
+// sentinel). Used by the explain command to derive valid config values
+// programmatically instead of maintaining a hand-written copy.
 func AllStoreKinds() []StoreKind {
 	return []StoreKind{
 		StoreSQLite, StorePostgres, StoreMySQL, StorePebble,
+		StoreBadger, StoreDgraph, StoreIroh,
 		StoreMemory, StoreTurso, StoreDuckDB, StoreBolt, StoreCustom, StoreNone,
 	}
 }

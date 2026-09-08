@@ -251,13 +251,29 @@ func detectImports(
 				fp.Store = StoreDuckDB
 			case "postgres":
 				fp.Store = StorePostgres
+			case "mysql":
+				fp.Store = StoreMySQL
+			case "turso":
+				fp.Store = StoreTurso
+			case "bbolt":
+				fp.Store = StoreBolt
+			case "badger":
+				fp.Store = StoreBadger
+			case "dgraph":
+				fp.Store = StoreDgraph
+			case "iroh":
+				fp.Store = StoreIroh
 			}
 		}
 	}
 }
 
 // metaengineEngineFromImport maps an import path to a short engine name.
-// Returns "" for the core metaengine module (no specific engine).
+// Returns "" for non-engine subpackages (projectionadapter, keycodec, …);
+// "memory" for the core metaengine module (its built-in in-process engine).
+// The full shipped-engine list lives in metaengine/*engine — every engine
+// module MUST appear here and in the engine→StoreKind switch above (T20-1);
+// TestMetaengineEngineFromImport_CoversShippedEngines pins both.
 func metaengineEngineFromImport(path string) string {
 	switch {
 	case strings.Contains(path, "metaengine/pebbleengine"):
@@ -268,6 +284,16 @@ func metaengineEngineFromImport(path string) string {
 		return "postgres"
 	case strings.Contains(path, "metaengine/sqliteengine"):
 		return "sqlite"
+	case strings.Contains(path, "metaengine/mysqlengine"):
+		return "mysql"
+	case strings.Contains(path, "metaengine/badgerengine"):
+		return "badger"
+	case strings.Contains(path, "metaengine/dgraphengine"):
+		return "dgraph"
+	case strings.Contains(path, "metaengine/tursoengine"):
+		return "turso"
+	case strings.Contains(path, "metaengine/bboltengine"):
+		return "bbolt"
 	case strings.Contains(path, "metaengine/irohengine"):
 		return "iroh"
 	case strings.Contains(path, "metaengine") && !strings.Contains(path, "metaengine/"):

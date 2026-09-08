@@ -961,7 +961,8 @@ func TestAllStoreKindsCoversEveryConstant(t *testing.T) {
 
 	allConstants := []StoreKind{
 		StoreUnknown, StoreSQLite, StorePostgres, StoreMySQL,
-		StorePebble, StoreMemory, StoreTurso, StoreDuckDB,
+		StorePebble, StoreBadger, StoreDgraph, StoreIroh,
+		StoreMemory, StoreTurso, StoreDuckDB,
 		StoreBolt, StoreCustom, StoreNone,
 	}
 
