@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine verification batch: capability gaps through Plan, keycodec exports, FromDB restart harness — 2026-09-07
+
+- **`WithEngineCapabilityGaps`** (plan option): documents known ADT
+  over-declarations per engine (same semantics as `CapabilityAudit`'s gaps
+  argument). A documented gap keeps the over-declaring engine EXCLUDED from
+  honest routing — the backend does not exist and execution would
+  hard-error — but suppresses the per-plan over-declaration diagnostic, and
+  gaps persist across `Replan`. The over-declaration diagnostic now also
+  names the missing backend interface (e.g. `metaengine.MapBackend`) so the
+  fix points at the exact method surface; a tie at equal weighted latency
+  is broken deterministically (stable input order), pinned by test.
+- **`keycodec.SplitGroupAndSeq` / `keycodec.SeedSeqMax` / `keycodec.SeqTailLen`**:
+  the seq-key layout extraction for LSM-style backends — badger and pebble
+  seq seeding now share one implementation instead of forked parsers;
+  round-trip and tail-layout pinned by `keycodec` tests.
+- **`enginetest.RunRestartSafetyFromDBTest`**: shared caller-owned-DB
+  restart-safety harness (constructor path writes, raw-DB reopen appends,
+  version 3 / 3-value retention pinned). The badger, duckdb, and sqlite
+  `FromDB` restart tests adopt it, and `RunRestartSafetyTest`'s Map and
+  Multimap legs are now capability-conditional (skip with a log note) so
+  stream-log-only engines can run the suite.
+
+### Fixed — metaengine batch: ApplyBatch drops Record, stale type cache, routing honesty — 2026-09-07
+
+- **`ApplyBatch` now honors `EventInput.Record`** through the same
+  Record-aware apply path as `Apply` (previously the Record was silently
+  dropped and a synthetic record derived); an empty `Record.Type` falls
+  back to the event type.
+- **`RegisterQuery` invalidates the record-aware event-type cache** — a
+  query registered after the first Apply previously ran against a stale
+  cache that misclassified its events as synthetic records.
+- **`CheckRouting` never suggests re-routing onto an over-declaring
+  engine**: the suggestion loop applies the same structural-honesty filter
+  as the planner partition, so a lying engine with cheaper latency priors
+  can no longer produce a REPLAN suggestion whose Apply would hard-error.
+- **dgraph `ADTMap` point ops re-priced O(1)** (was O(log n)) — the
+  complexity decision is pinned in the engine profile; other O(log n) ADT
+  corrections are explicitly deferred pending calibration evidence.
+
 ### Added — cqrs-lint severity overrides, v5-ready preset, typed qualifier resolution — 2026-09-07
 
 - **`RulesConfig.SeverityOverrides`** (`rules.severity-overrides` in

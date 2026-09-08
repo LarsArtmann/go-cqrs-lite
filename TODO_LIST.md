@@ -212,24 +212,34 @@ and is **never** duplicated here. Historical session reports live under
 > single-sourced calibration constants, dgraph per-row recalibration,
 > duckdb/sqlite planned-table parity, iroh graph WriteOp convergence.
 
-- [ ] **`ApplyBatch` drops `EventInput.Record`** — it routes through `Apply`,
+- [x] **`ApplyBatch` drops `EventInput.Record`** — it routes through `Apply`,
       which synthesizes a Type-only Record; the field is dead on this path.
       Either honor it via `applyWithRecord` (preferred) or document it as
       replay-paths-only. — source: 07-43 §d1/§f1
       _(Effort: S)_
-- [ ] **`recordAwareEvents` cache has no invalidation hook** —
+      ✅ Done 2026-09-07 — ApplyBatch calls applyWithRecord (empty
+      Record.Type falls back to the event type); pinned by
+      TestApplyBatch_HonorsRecord + synthetic-record counting test.
+- [x] **`recordAwareEvents` cache has no invalidation hook** —
       runtime-registered queries (`RegisterQuery`) with new OnRecord folds are
       invisible to the advisory until restart; `Hooks.Logger` path untested. —
       source: 07-43 §b6/§f3, §f14
       _(Effort: S)_
-- [ ] **Observe-before-claim verification set:** Doctor planned-tables section
+      ✅ Done 2026-09-07 — RegisterQuery now invalidates the cache
+      (recordAwareEvents.Store(nil)); Hooks.Logger advisory path pinned by
+      TestSyntheticRecordAdvisory_LoggerPath.
+- [x] **Observe-before-claim verification set:** Doctor planned-tables section
       on sqlite+duckdb (row counts actually render); adttest
       `RunPlannedOpsMatrix` legs for sqlite/duckdb; e2e
       `BackfillPlannedCollection` on both; lying-only-engine Apply hard error
       correlated with the plan WARN; Replan/CheckRouting under the new
       partition logic. — source: 07-43 §b2/b3, §f9–13
       _(Effort: M)_
-- [ ] **MySQL/MariaDB claiming completion:** `TestClaimingMySQL_RenewLease`
+      ✅ Done 2026-09-07 — sqlite+duckdb Doctor row-count tests,
+      matrix/backfill legs, TestApply_LyingOnlyEngine hard-error
+      correlation, TestReplan_KeepsExcluding + direct-call
+      TestCheckRouting_NeverSuggests (default-deadband-proof pattern).
+- [x] **MySQL/MariaDB claiming completion:** `TestClaimingMySQL_RenewLease`
       (mirror the PG contract); construction-time server-version probe
       (`SELECT VERSION()`, reject <10.6 MariaDB / <8.0 MySQL) or keep the
       documented fail-at-first-Due contract (user decision — 07-43 §g1); wire
@@ -237,42 +247,76 @@ and is **never** duplicated here. Historical session reports live under
       `scheduling/sqlstore/README.md` claiming support matrix. — source:
       07-43 §f15–19
       _(Effort: M)_
-- [ ] **Dgraph calibration completion:** skip-guarded dgraph ReadCosts pins in
+      ✅ Done 2026-09-07 — RenewLease test verified live on MariaDB
+      :33061; DECISION: keep fail-at-first-Due (no version probe);
+      claiming leg wired into both vm-mysql nix runners; README support
+      matrix + version floors documented.
+- [x] **Dgraph calibration completion:** skip-guarded dgraph ReadCosts pins in
       `TestRealProfiles_ReadCostsPinned`; decide the `NsPerPointLookup`
       OLogN-vs-one-RPC model mismatch (07-43 §g2 — routing semantics);
       bench SearchQuery separately; DSN-guarded remote dump tests so the drift
       script covers live windows. — source: 07-43 §f20–26
       _(Effort: M)_
-- [ ] **Planner polish:** name the missing backend interface in the
+      ✅ Done 2026-09-07 — skip-guarded pins (350k/2.2k/2.7k/2.2k +
+      complexity); DECISION: ADTMap→O1 only, other OLogN ADTs deferred
+      with comment; BenchmarkCalibration_DgraphSearchQuery added;
+      CALIB_DUMP dump tests shipped per engine (drift script reads
+      shipped profiles).
+- [x] **Planner polish:** name the missing backend interface in the
       over-declaration diagnostic; thread `CapabilityGaps` through Plan so
       documented gaps suppress the new diagnostics; tie-break determinism
       test; document the capability-aware partition rule in planning docs. —
       source: 07-43 §f27–32
       _(Effort: M)_
-- [ ] **iroh test-coverage holes:** pin graphless `GraphRemoveEdge` sentinel;
+      ✅ Done 2026-09-07 — diagnostic names the missing interface
+      (e.g. metaengine.MapBackend); WithEngineCapabilityGaps threads
+      through Plan AND Replan (Store-carried, disable-fix proven);
+      TestPlan_EqualLatencyTieBreakIsDeterministic; rule documented in
+      recipes §2.12.
+- [x] **iroh test-coverage holes:** pin graphless `GraphRemoveEdge` sentinel;
       test `applyRemoteGraphRemove` record-but-skip path; non-string node
       endpoints over loopback+quic (normalizeAny divergence); loopback/quic
       convergence `-race -count=3`; extract `applyRemote` from engine.go
       proactively (334/350 lines — the next op kind busts the limit). —
       source: 07-04 §b2/b4, §f1–11
       _(Effort: M)_
-- [ ] **`metaengine.SortPaginate[T]`:** direct unit test (currently covered
+      ✅ Done 2026-09-07 — sentinel pinned; record-but-skip internal
+      test (disable-fix proven); int endpoints converge on BOTH loopback
+      and quic; all three iroh modules -race -count=3 green; applyRemote
+      extracted to engine_apply.go (engine.go 334→281). GOTCHA:
+      loopback/quic module tests MUST run in workspace mode — GOWORK=off
+      resolves published irohengine v4.1.0 which predates graph-op
+      replication and fails the new tests environmentally.
+- [x] **`metaengine.SortPaginate[T]`:** direct unit test (currently covered
       only via engine suites) + micro-benchmark pinning the zero-alloc
       closure contract. — source: 15-09 §f7/§f8
       _(Effort: S)_
-- [ ] **keycodec extraction:** badger's seq-seeding now mirrors pebble's
+      ✅ Done 2026-09-07 — 6 unit tests + alloc budget (truncation 0,
+      sort ≤3, upper-bound style) + inlined-reference equivalence test +
+      BenchmarkSortPaginate_1K.
+- [x] **keycodec extraction:** badger's seq-seeding now mirrors pebble's
       `seq_seeding.go` semantically — extract the parse/seed helpers
       (`SplitGroupAndSeq`, `SeedSeqMax`) into `keycodec` + round-trip test
       pinning the 20-digit+NUL key layouts. — source: 15-09 §e10/§f9/§f10
       _(Effort: S)_
-- [ ] **duckdbengine restart-safety adoption** — `RunRestartSafetyTest`
+      ✅ Done 2026-09-07 — SplitGroupAndSeq/SeedSeqMax/SeqTailLen(21)
+      in keycodec; badger + pebble call sites migrated (badger back under
+      the 350-line limit); round-trip/rejects/tail-layout tests added.
+- [x] **duckdbengine restart-safety adoption** — `RunRestartSafetyTest`
       harness applies mechanically (same shape as sqlite); was deferred while
       a concurrent session owned the module. Also confirm bboltengine
       coverage parity. — source: 15-09 §b1/§f11
       _(Effort: S)_
+      ✅ Done 2026-09-07 — duckdb cgo-tagged adoption (with
+      availability probe-skip) + bbolt parity confirmed; follow-on:
+      enginetest.RunRestartSafetyFromDBTest extracted and badger/duckdb/
+      sqlite FromDB tests consolidated onto it (killed the check-dupl
+      clone group at the root).
 - [ ] **`errorfamily` code rename `aggregate_*` → `stream_*`** (v5 item) —
       with a dashboards/consumers note. — source: session-4 retro §f30
       _(Effort: M, v5)_
+      ⏳ Deferred 2026-09-07 — deliberately skipped by the correctness
+      batch: breaking rename waits for the v5 train.
 
 ---
 
