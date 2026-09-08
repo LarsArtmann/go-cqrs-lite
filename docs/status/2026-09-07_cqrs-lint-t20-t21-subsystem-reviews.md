@@ -10,12 +10,12 @@ accepted heuristics recorded below for the next hardening wave.
 
 ## Fixed during this review
 
-| ID | File | Finding |
-| --- | --- | --- |
+| ID    | File                      | Finding                                                                                                                                                                             |
+| ----- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T21-1 | doctor.go, doctor_json.go | doctor preset/effective panels and the JSON report did not render `rules.severity-overrides` (F089 completeness). Added `formatSeverityOverrides` + `severityOverrides` JSON field. |
-| T20-2 | loader.go | `primaryModuleProfile` broke equal-depth module ties on map iteration order — nondeterministic primary profile. Added name tie-break. |
-| T21-3 | doctor.go | `renderDoctorPerModuleProfiles` sorted module dirs by length only — nondeterministic for equal lengths. Added name tie-break. |
-| T21-2 | doctor.go | `renderDoctorFeatureProfile.hasOverrides` ignored the `Monetary` feature pin. |
+| T20-2 | loader.go                 | `primaryModuleProfile` broke equal-depth module ties on map iteration order — nondeterministic primary profile. Added name tie-break.                                               |
+| T21-3 | doctor.go                 | `renderDoctorPerModuleProfiles` sorted module dirs by length only — nondeterministic for equal lengths. Added name tie-break.                                                       |
+| T21-2 | doctor.go                 | `renderDoctorFeatureProfile.hasOverrides` ignored the `Monetary` feature pin.                                                                                                       |
 
 ## Recorded findings (fix in a future wave)
 

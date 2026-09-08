@@ -160,7 +160,9 @@ func TestIsEventTypeParam_DefinedTypeOverEventMatches(t *testing.T) {
 	gf := synthesizedGoFile(map[*ast.Ident]types.Object{ident: orderObj})
 
 	if !IsEventTypeParam(gf, ident) {
-		t.Error("a consumer defined type over event.Event must be recognized (alias-fold-blindness fix)")
+		t.Error(
+			"a consumer defined type over event.Event must be recognized (alias-fold-blindness fix)",
+		)
 	}
 }
 

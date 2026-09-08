@@ -77,19 +77,28 @@ type encryptionConfig struct {
 // fixes, never key material.
 func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 	if isRemoteDSN(dsn) {
-		return "", errors.New("encryption applies to embedded databases only; remote Turso Cloud BYOK " +
-			"keys are per-connection and not configurable on this engine yet")
+		return "", errors.New(
+			"encryption applies to embedded databases only; remote Turso Cloud BYOK " +
+				"keys are per-connection and not configurable on this engine yet",
+		)
 	}
 
 	keyLen, known := cipherKeyLen(cfg.cipher)
 	if !known {
-		return "", fmt.Errorf("unknown encryption cipher %q (valid: aegis256, aegis128l, aegis128x2, aegis128x4, "+
-			"aegis256x2, aegis256x4, aes128gcm, aes256gcm)", string(cfg.cipher))
+		return "", fmt.Errorf(
+			"unknown encryption cipher %q (valid: aegis256, aegis128l, aegis128x2, aegis128x4, "+
+				"aegis256x2, aegis256x4, aes128gcm, aes256gcm)",
+			string(cfg.cipher),
+		)
 	}
 
 	key, err := hex.DecodeString(cfg.hexKey)
 	if err != nil {
-		return "", fmt.Errorf("encryption key must be hex-encoded (openssl rand -hex %d): %w", keyLen, err)
+		return "", fmt.Errorf(
+			"encryption key must be hex-encoded (openssl rand -hex %d): %w",
+			keyLen,
+			err,
+		)
 	}
 
 	if len(key) != keyLen {
@@ -107,7 +116,11 @@ func applyEncryption(dsn string, cfg *encryptionConfig) (string, error) {
 func withEncryptionParams(dsn string, cipher Cipher, hexKey string) (string, error) {
 	if _, query, hasQuery := strings.Cut(dsn, "?"); hasQuery {
 		for _, part := range strings.Split(query, "&") {
-			if key, _, _ := strings.Cut(part, "="); key == "encryption_cipher" || key == "encryption_hexkey" {
+			if key, _, _ := strings.Cut(
+				part,
+				"=",
+			); key == "encryption_cipher" ||
+				key == "encryption_hexkey" {
 				return "", fmt.Errorf("DSN already carries %q; remove it from the DSN or drop "+
 					"WithEncryption so exactly one key source remains", key)
 			}
@@ -116,5 +129,7 @@ func withEncryptionParams(dsn string, cipher Cipher, hexKey string) (string, err
 
 	merged := withExperimentalToken(dsn, "encryption")
 
-	return merged + "&encryption_cipher=" + url.QueryEscape(string(cipher)) + "&encryption_hexkey=" + hexKey, nil
+	return merged + "&encryption_cipher=" + url.QueryEscape(
+		string(cipher),
+	) + "&encryption_hexkey=" + hexKey, nil
 }

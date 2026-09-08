@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
@@ -141,6 +143,12 @@ func buildDoctorJSONReport(cfg *AppConfig, actx *analyzer.AnalysisContext) docto
 	for dir, profile := range actx.FeatureProfiles {
 		report.Modules = append(report.Modules, moduleProfileJSON{Module: dir, Profile: profile})
 	}
+
+	// Map iteration is unordered — sort by module dir so the JSON output is
+	// byte-stable across runs (same determinism class as T20-3/T21-3).
+	slices.SortFunc(report.Modules, func(a, b moduleProfileJSON) int {
+		return strings.Compare(a.Module, b.Module)
+	})
 
 	return report
 }

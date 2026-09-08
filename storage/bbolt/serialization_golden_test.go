@@ -167,7 +167,11 @@ func TestSerializableEventRoundTrip(t *testing.T) {
 	}
 
 	if decoded.Version().Int() != original.Version().Int() {
-		t.Errorf("version drift: got %d, want %d", decoded.Version().Int(), original.Version().Int())
+		t.Errorf(
+			"version drift: got %d, want %d",
+			decoded.Version().Int(),
+			original.Version().Int(),
+		)
 	}
 
 	if decoded.SchemaVersion().Int() != original.SchemaVersion().Int() {
@@ -275,5 +279,9 @@ func writeGolden(t *testing.T, data []byte) {
 		t.Fatalf("write golden: %v", err)
 	}
 
-	t.Logf("golden re-blessed at %s (%d bytes) — reference it in the CHANGELOG entry", goldenEventPath, len(data))
+	t.Logf(
+		"golden re-blessed at %s (%d bytes) — reference it in the CHANGELOG entry",
+		goldenEventPath,
+		len(data),
+	)
 }

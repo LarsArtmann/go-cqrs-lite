@@ -98,9 +98,16 @@ func TestApplyEncryption_Rejections(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := applyEncryption(tt.dsn, &encryptionConfig{cipher: tt.cipher, hexKey: tt.hexKey})
+			_, err := applyEncryption(
+				tt.dsn,
+				&encryptionConfig{cipher: tt.cipher, hexKey: tt.hexKey},
+			)
 			if err == nil {
-				t.Fatalf("applyEncryption(%q) succeeded, want error containing %q", tt.dsn, tt.wantErrText)
+				t.Fatalf(
+					"applyEncryption(%q) succeeded, want error containing %q",
+					tt.dsn,
+					tt.wantErrText,
+				)
 			}
 
 			if !strings.Contains(err.Error(), tt.wantErrText) {
@@ -115,7 +122,10 @@ func TestApplyEncryption_NeverQuotesKeyMaterial(t *testing.T) {
 
 	secret := strings.Repeat("de", 32)
 
-	_, err := applyEncryption(":memory:", &encryptionConfig{cipher: Cipher("bogus"), hexKey: secret})
+	_, err := applyEncryption(
+		":memory:",
+		&encryptionConfig{cipher: Cipher("bogus"), hexKey: secret},
+	)
 	if err == nil {
 		t.Fatal("expected error for bogus cipher")
 	}
@@ -125,7 +135,10 @@ func TestApplyEncryption_NeverQuotesKeyMaterial(t *testing.T) {
 	}
 
 	badLenKey := hex.EncodeToString([]byte("short"))
-	_, err = applyEncryption(":memory:", &encryptionConfig{cipher: CipherAEGIS256, hexKey: badLenKey})
+	_, err = applyEncryption(
+		":memory:",
+		&encryptionConfig{cipher: CipherAEGIS256, hexKey: badLenKey},
+	)
 	if err == nil {
 		t.Fatal("expected error for short key")
 	}

@@ -31,7 +31,7 @@ below is gate-scoped to what was actually run.
    feature pins — enforced by new policy test); init template renders the
    override block; `explain` presets/rules tables + resolution-order text;
    doctor text panels + `severityOverrides` JSON field; README preset table
-   + `rules` keys section (test-locked by `TestReadmePresetTableMatchesCode`).
+   - `rules` keys section (test-locked by `TestReadmePresetTableMatchesCode`).
 4. **F090(a) — V007 flags dot-imports** of any go-cqrs-lite module at the
    import position ("hides v5-removed-API usage — name the import");
    non-CQRS dot-imports silent; catalog description + regenerated RULES.md
@@ -49,14 +49,14 @@ below is gate-scoped to what was actually run.
    ±50% jitter — no visible regression; loader has carried `NeedTypes`
    since day one, so the design's load-cost concern was already paid).
    Recorded: `docs/benchmarks/2026-09-07_cqrs-lint-f091-tier1-typed-qualifier.md`.
-7. **T20 — line-by-line review of scanner*.go, feature_detect*.go,
+7. __T20 — line-by-line review of scanner_.go, feature_detect_.go,
    loader.go, registry.go, module_catalog*.go, upcaster.go** + 3 in-pass
    fixes: `primaryModuleProfile` deterministic tie-break; doctor
    per-module-panel sort tie-break; doctor `Monetary` override check.
-8. **T21 — review of doctor*.go, health.go, scorecard*, output*, explain**
-   + F089-completeness fix (doctor preset/effective panels + JSON now
-   render severity overrides via `formatSeverityOverrides`).
-   Report: `docs/status/2026-09-07_cqrs-lint-t20-t21-subsystem-reviews.md`.
+8. __T21 — review of doctor_.go, health.go, scorecard_, output*, explain**
+   - F089-completeness fix (doctor preset/effective panels + JSON now
+     render severity overrides via `formatSeverityOverrides`).
+     Report: `docs/status/2026-09-07_cqrs-lint-t20-t21-subsystem-reviews.md`.
 9. **S-family audit (first T13–T19 batch).** Found the
    `financialEscalatedRules` split-brain: comments carried pre-v4.9 rule
    names (signing-disabled, hmac-secret-too-short, insecure-random,
@@ -199,6 +199,7 @@ Nothing destructive or dishonest, but four real own-goals:
 ## f) NEXT 50 (prioritized, 1 = first)
 
 **Finish what this session started**
+
 1. Reclassify S011 escalation under CHANGELOG "Changed" + link to Q3.
 2. Verify the two `//art-dupl:accept` placements live
    (`nix run .#check-duplication` on a clean tree).
@@ -251,54 +252,54 @@ Nothing destructive or dishonest, but four real own-goals:
 28. Q3 ruling: severity tightening in a minor — now also governs S011.
 29. 350-line gate policy: full split vs baseline ratchet vs exemptions.
 30. Daemon Q2: accept check-formatters self-heal permanently or fix
-    BuildFlow upstream.
+BuildFlow upstream.
 31. F040: branch protection + required checks + daemon exception.
 32. Next v4 tag wave (many unpublished surfaces incl. this session's).
 33. GitHub Releases for outstanding tags (`scripts/create-github-releases.sh`
-    exists; only storage/v4.7.1 ever got one).
+exists; only storage/v4.7.1 ever got one).
 34. Indirect-dep consolidation sweep after the wave publishes.
 
 **Hygiene / smaller wins noticed this session**
 35. `resolveMinSeverity` doctor source-attribution: "config" is inferred
-    (`effectiveSev != "info"`), so an explicit `"info"` config shows as
-    "default" — cosmetic, worth a source flag.
+(`effectiveSev != "info"`), so an explicit `"info"` config shows as
+"default" — cosmetic, worth a source flag.
 36. `sortedBreakdown` (health.go) tie-break: same (deduction, severity)
-    pairs order nondeterministically — name tie-break, same class as the
-    two fixed this session.
+pairs order nondeterministically — name tie-break, same class as the
+two fixed this session.
 37. `pathDepth` counts `/` per byte loop — fine, but
-    `strings.Count(dir, string(os.PathSeparator))+1` is clearer.
+`strings.Count(dir, string(os.PathSeparator))+1` is clearer.
 38. `health-route literal scan` false-positives on help text mentioning
-    "/health" — conservative direction; consider restricting to handler
-    registration calls.
+"/health" — conservative direction; consider restricting to handler
+registration calls.
 39. `handlerTypeFromClosure` skips `context.Context` only by SelectorExpr
-    shape — a bare `ctx` alias param would be taken as the handler type;
-    one-line guard worth adding.
+shape — a bare `ctx` alias param would be taken as the handler type;
+one-line guard worth adding.
 40. `isOOAggregate` substring-matches identifiers — consider word-boundary
-    match to avoid `pendingEventsCount`-style FPs.
+match to avoid `pendingEventsCount`-style FPs.
 41. `scanConstDecl` only records the FIRST value of a ValueSpec
-    (`vs.Values[0]`) — iota-style multi-const groups silently partial.
+(`vs.Values[0]`) — iota-style multi-const groups silently partial.
 42. `capturePayloadType` returns after the first composite-lit from arg 4 —
-    an option literal before a variable payload misattributes; prefer
-    prioritizing index 4 then falling back.
+an option literal before a variable payload misattributes; prefer
+prioritizing index 4 then falling back.
 43. `trackVarAssignments` is file-global, not scope-aware — document the
-    shadowing FP class in the helper or scope it to function bodies.
+shadowing FP class in the helper or scope it to function bodies.
 44. `doctor --format json` doesn't run `applyConfigOverrides`, so the JSON
-    surface reports raw (pre-merge) config in places the text path shows
-    merged — verify intended and document or align.
+surface reports raw (pre-merge) config in places the text path shows
+merged — verify intended and document or align.
 45. The repo-root `cqrs-lint .` run at load 65 took 9.5–37s for ~82 modules
-    — if wall-time matters for CI, consider per-module parallel loads
-    (loader is sequential today).
+— if wall-time matters for CI, consider per-module parallel loads
+(loader is sequential today).
 46. `findGoModDirs` skips `dist`/`build`/`testdata` but not `example`
-    worktrees or `.worktree*` — confirm intended for monorepo scans.
+worktrees or `.worktree*` — confirm intended for monorepo scans.
 47. `TestX` (v007_test.go) — stray placeholder test name spotted during the
-    audit; rename or delete.
+audit; rename or delete.
 48. benchkit/system load helpers: add a unit test with a synthesized
-    loadavg (currently only the ambient path is exercised).
+loadavg (currently only the ambient path is exercised).
 49. The self-lint still carries 1 active inline C025 suppression
-    (init.go unknown-preset error) — the last `%w`-less fmt.Errorf in the
-    main package; wrap a sentinel like the stale-suppressions one did.
+(init.go unknown-preset error) — the last `%w`-less fmt.Errorf in the
+main package; wrap a sentinel like the stale-suppressions one did.
 50. AGENTS.md: record the RULES.md-vs-treefmt root cause and the
-    "meta-test the name/ID co-occurrence" lesson in the cqrs-lint gotchas.
+"meta-test the name/ID co-occurrence" lesson in the cqrs-lint gotchas.
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

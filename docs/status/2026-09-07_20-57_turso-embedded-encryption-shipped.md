@@ -108,58 +108,58 @@ Nothing shipped is broken — every gate is green and all claims are test-backed
 
 > Session-scoped brainstorm (HARVEST fuel — most beyond the top ~10 are ROADMAP material). Impact/Effort/Category per item.
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Document the DriverConfig/`system` reachability gap for `WithEncryption` in README + FAQ (one paragraph: direct `New()` only today) | High | S | Documentation |
-| 2 | Add defensive tursoengine check: reject DSN params that LOOK like encryption params (contain "encrypt", case-insensitive) but aren't exactly the driver's two — closes the silent-unencrypted typo edge | High | S | Quality |
-| 3 | Verify `file:`-prefixed DSNs live with `WithEncryption` (the blog's own syntax; parseDSN cuts at `?` but the Rust core must accept the scheme) | High | S | Quality |
-| 4 | Live round-trip test through a second ADT (Counter or journal append) under encryption — Map-only coverage today | Medium | S | Quality |
-| 5 | Live test: matview aggregation actually SERVES from views on an encrypted engine (coexistence test constructs but doesn't query a view) | Medium | S | Quality |
-| 6 | Add `TestApplyEncryption_CaseVariantParams` pin: `Encryption_HEXKEY=` is not the driver's param — assert current behavior and document it | Medium | S | Quality |
-| 7 | Key-zeroization note in README (Go strings are immutable; keys persist in memory until GC — matches Turso's own threat model notes) | Low | S | Documentation |
-| 8 | Decide + implement strict-vs-lenient DSN param policy for tursoengine (needs (g)3) | Medium | M | Feature |
-| 9 | Draft `metaengine.DriverConfig.Encryption` + `KeyProvider func(ctx) ([]byte, error)` (v5 ADR groundwork) | Medium | M | Feature |
-| 10 | Write the v5 ADR: encryption-at-rest configuration, operator-owned keys, engines fail loudly when unable to honor | Medium | L | Feature |
-| 11 | Decide sync/embedded-replica first-class support (only Go path to Cloud BYOK; needs (g)2 demand answer) | High | M | Feature |
-| 12 | Prototype sync support: `TursoSyncDatabaseConfig` → tursoengine option surface (`WithSync(remote, authToken, …)`), incl. `ReservedBytes` for encrypted remotes | Medium | L | Feature |
-| 13 | File upstream: `DriverContext`/`OpenConnector` for struct-level TursoDatabaseConfig (kills DSN stringification entirely) | Medium | S | Cleanup |
-| 14 | File upstream: pure-remote connections cannot present a BYOK encryption key | Medium | S | Cleanup |
-| 15 | File upstream: mistyped DSN encryption params are silently ignored → silently-unencrypted DBs | High | S | Cleanup |
-| 16 | Verify-before-filing pass on #13–15 against latest turso-go main (not just v0.7.2) | Medium | M | Quality |
-| 17 | Tag tursoengine with `WithEncryption` + redaction fix; consumer pin sweep in the same wave (repo rule) | High | S | Cleanup |
-| 18 | `recipes.md` §turso encryption recipe (cipher table, hex-vs-base64, key-from-env, Cloud-BYOK boundary) | Medium | M | Documentation |
-| 19 | `modules.md` row for `metaengine/tursoengine` (module table lacks the engine's own row) | Low | S | Documentation |
-| 20 | libSQL→Turso-Database terminology sweep in tursoengine README title/body + `register.go` comments | Low | S | Cleanup |
-| 21 | Example snippet in `example/` (encrypted embedded engine, key from env) — examples are the consumer copy-paste surface | Medium | S | Documentation |
-| 22 | Audit pg/mysql/bbolt/pebble engines for the same error-path DSN-secret leak class (passwords in `postgres://user:pass@…`) | High | M | Quality |
-| 23 | Extract a shared redaction helper if #22 finds 3+ drivers reimplementing it (per-module budget rules apply; possibly `storage/sql` or a Tier-0 home) | Medium | M | Cleanup |
-| 24 | Encryption + `storage/turso` connector interplay check (modules.md says the connector delegates to storage; does IT have an encryption story?) | Medium | M | Quality |
-| 25 | Add encryption matrix entry to `enginetest`/`adttest` harness docs (harness DSN plumbing must carry query params for engines that need them) | Low | M | Documentation |
-| 26 | Watch turso-go releases: `encryption` leaving the experimental list → bump pin, re-audit, re-tag | Low | S | Quality |
-| 27 | Track upstream "What's Coming Next" (native rekeying, in-place encrypt-existing, KDF passphrases, ATTACH with per-DB keys) → each changes our API once landed | Low | S | Documentation |
-| 28 | Cipher-size validation UX: on wrong-length key, error could suggest the matching `openssl rand -hex N` per CIPHER (already does) — pin with a test asserting the exact hint | Low | S | Quality |
-| 29 | Property test: `redactDSN` output never contains any value of a param whose name contains "key", for generated DSN shapes (remote/local/memory/malformed) | Low | M | Quality |
-| 30 | Confirm tursoengine redaction+encryption tests are exercised in CI's per-module matrix (`testModules` coupling meta-test should enforce — verify once) | Low | S | Quality |
-| 31 | Capture the two-model encryption decision table (local-experimental vs Cloud-BYOK-production) into `docs/DOMAIN_LANGUAGE.md` if encryption becomes a domain concept | Low | S | Documentation |
-| 32 | Explore `turso-go`'s exported `NewConnection(TursoConnection, extraIo)` as a TODAY escape hatch for struct-level config (would de-scope #13) | Medium | M | Feature |
-| 33 | Interplay doc: `encryption/` module (payload AEAD) + at-rest encryption = defense in depth; neither substitutes the other | Medium | S | Documentation |
-| 34 | Key-management doc: rotation via export/reimport (downtime!), per-tenant keys via per-database provisioning, secret-manager pattern — Turso Part 3 mapped to our stack | Medium | M | Documentation |
-| 35 | Consider `TURSO_ENCRYPTION_KEY`-style env-var fallback in tursoengine (opt-in, explicit; never a silent default) | Low | S | Feature |
-| 36 | HARVEST this report: items 1–3, 9–11, 17–22 into TODO_LIST/ROADMAP per docs-health | High | S | Documentation |
-| 37 | Annotate the 20:18 predecessor report: matview bug (f5) FIXED this session, redaction pins (f12/13) DONE (docs-health ANNOTATE mode) | Medium | S | Documentation |
-| 38 | `check-duplication` run scoped to tursoengine (param-walk idiom appears twice — under threshold 3, but verify the tool agrees) | Low | S | Quality |
-| 39 | Bench: encryption overhead on OUR workload (Turso claims 0.5–2.8% mixed; one `benchkit`/`matview_bench` cell with `WithEncryption` on/off would make it ours) | Low | M | Quality |
-| 40 | Verify `WithEncryption` + `WithMaterializedViews` + `Priority` (DriverConfig path) don't fight over the DSN query namespace as more options land (namespace discipline doc) | Low | S | Documentation |
-| 41 | Error-message audit: every `fmt.Errorf` in tursoengine that could carry a DSN goes through `redactDSN` (grep-audit; `withEncryptionParams` errors don't include DSNs — confirm none others do) | Medium | S | Quality |
-| 42 | Consider exposing `redactDSN` (or a `RedactDSN`) publicly for consumers logging DSNs in THEIR code — API-surface decision | Low | S | Feature |
-| 43 | Session-process: scoped lint/test from the first run when concurrent sessions are active (this session paid 1 wasted cycle) | Low | S | Quality |
-| 44 | Session-process: scoped formatter pass on new files before first lint (paid 3 cycles this session) | Low | S | Quality |
-| 45 | Session-process: re-check `git status` for foreign files immediately before each edit batch, not only at session start | Low | S | Quality |
-| 46 | Track the parallel session's IVM COMMIT-wall finding (~27k rows, AGENTS.md line 233) — if upstream-fixed, re-evaluate `seedInTxE` chunk guards + my matview tests' assumptions | Medium | S | Quality |
-| 47 | Decide whether `Cipher` should validate at OPTION-CONSTRUCTION time (fail fast in `WithEncryption`) vs at `New()` (current) — current allows option reuse; document the choice | Low | S | Quality |
-| 48 | Write the missing `modules.md`/README cross-link: tursoengine README ↔ faq entry ↔ CHANGELOG (single entry point per feature) | Low | S | Documentation |
-| 49 | Upstream-watch: Turso 0.8 — encrypted MVCC + pluggable storage (0.7 groundwork) may add local rekeying; re-assess rotation guidance then | Low | S | Documentation |
-| 50 | Re-verify this report's live-test claims after the next driver bump (tests are the pins, but the README prose cites upstream behavior that can drift) | Low | S | Documentation |
+| #  | Task                                                                                                                                                                                                    | Impact | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1  | Document the DriverConfig/`system` reachability gap for `WithEncryption` in README + FAQ (one paragraph: direct `New()` only today)                                                                     | High   | S      | Documentation |
+| 2  | Add defensive tursoengine check: reject DSN params that LOOK like encryption params (contain "encrypt", case-insensitive) but aren't exactly the driver's two — closes the silent-unencrypted typo edge | High   | S      | Quality       |
+| 3  | Verify `file:`-prefixed DSNs live with `WithEncryption` (the blog's own syntax; parseDSN cuts at `?` but the Rust core must accept the scheme)                                                          | High   | S      | Quality       |
+| 4  | Live round-trip test through a second ADT (Counter or journal append) under encryption — Map-only coverage today                                                                                        | Medium | S      | Quality       |
+| 5  | Live test: matview aggregation actually SERVES from views on an encrypted engine (coexistence test constructs but doesn't query a view)                                                                 | Medium | S      | Quality       |
+| 6  | Add `TestApplyEncryption_CaseVariantParams` pin: `Encryption_HEXKEY=` is not the driver's param — assert current behavior and document it                                                               | Medium | S      | Quality       |
+| 7  | Key-zeroization note in README (Go strings are immutable; keys persist in memory until GC — matches Turso's own threat model notes)                                                                     | Low    | S      | Documentation |
+| 8  | Decide + implement strict-vs-lenient DSN param policy for tursoengine (needs (g)3)                                                                                                                      | Medium | M      | Feature       |
+| 9  | Draft `metaengine.DriverConfig.Encryption` + `KeyProvider func(ctx) ([]byte, error)` (v5 ADR groundwork)                                                                                                | Medium | M      | Feature       |
+| 10 | Write the v5 ADR: encryption-at-rest configuration, operator-owned keys, engines fail loudly when unable to honor                                                                                       | Medium | L      | Feature       |
+| 11 | Decide sync/embedded-replica first-class support (only Go path to Cloud BYOK; needs (g)2 demand answer)                                                                                                 | High   | M      | Feature       |
+| 12 | Prototype sync support: `TursoSyncDatabaseConfig` → tursoengine option surface (`WithSync(remote, authToken, …)`), incl. `ReservedBytes` for encrypted remotes                                          | Medium | L      | Feature       |
+| 13 | File upstream: `DriverContext`/`OpenConnector` for struct-level TursoDatabaseConfig (kills DSN stringification entirely)                                                                                | Medium | S      | Cleanup       |
+| 14 | File upstream: pure-remote connections cannot present a BYOK encryption key                                                                                                                             | Medium | S      | Cleanup       |
+| 15 | File upstream: mistyped DSN encryption params are silently ignored → silently-unencrypted DBs                                                                                                           | High   | S      | Cleanup       |
+| 16 | Verify-before-filing pass on #13–15 against latest turso-go main (not just v0.7.2)                                                                                                                      | Medium | M      | Quality       |
+| 17 | Tag tursoengine with `WithEncryption` + redaction fix; consumer pin sweep in the same wave (repo rule)                                                                                                  | High   | S      | Cleanup       |
+| 18 | `recipes.md` §turso encryption recipe (cipher table, hex-vs-base64, key-from-env, Cloud-BYOK boundary)                                                                                                  | Medium | M      | Documentation |
+| 19 | `modules.md` row for `metaengine/tursoengine` (module table lacks the engine's own row)                                                                                                                 | Low    | S      | Documentation |
+| 20 | libSQL→Turso-Database terminology sweep in tursoengine README title/body + `register.go` comments                                                                                                       | Low    | S      | Cleanup       |
+| 21 | Example snippet in `example/` (encrypted embedded engine, key from env) — examples are the consumer copy-paste surface                                                                                  | Medium | S      | Documentation |
+| 22 | Audit pg/mysql/bbolt/pebble engines for the same error-path DSN-secret leak class (passwords in `postgres://user:pass@…`)                                                                               | High   | M      | Quality       |
+| 23 | Extract a shared redaction helper if #22 finds 3+ drivers reimplementing it (per-module budget rules apply; possibly `storage/sql` or a Tier-0 home)                                                    | Medium | M      | Cleanup       |
+| 24 | Encryption + `storage/turso` connector interplay check (modules.md says the connector delegates to storage; does IT have an encryption story?)                                                          | Medium | M      | Quality       |
+| 25 | Add encryption matrix entry to `enginetest`/`adttest` harness docs (harness DSN plumbing must carry query params for engines that need them)                                                            | Low    | M      | Documentation |
+| 26 | Watch turso-go releases: `encryption` leaving the experimental list → bump pin, re-audit, re-tag                                                                                                        | Low    | S      | Quality       |
+| 27 | Track upstream "What's Coming Next" (native rekeying, in-place encrypt-existing, KDF passphrases, ATTACH with per-DB keys) → each changes our API once landed                                           | Low    | S      | Documentation |
+| 28 | Cipher-size validation UX: on wrong-length key, error could suggest the matching `openssl rand -hex N` per CIPHER (already does) — pin with a test asserting the exact hint                             | Low    | S      | Quality       |
+| 29 | Property test: `redactDSN` output never contains any value of a param whose name contains "key", for generated DSN shapes (remote/local/memory/malformed)                                               | Low    | M      | Quality       |
+| 30 | Confirm tursoengine redaction+encryption tests are exercised in CI's per-module matrix (`testModules` coupling meta-test should enforce — verify once)                                                  | Low    | S      | Quality       |
+| 31 | Capture the two-model encryption decision table (local-experimental vs Cloud-BYOK-production) into `docs/DOMAIN_LANGUAGE.md` if encryption becomes a domain concept                                     | Low    | S      | Documentation |
+| 32 | Explore `turso-go`'s exported `NewConnection(TursoConnection, extraIo)` as a TODAY escape hatch for struct-level config (would de-scope #13)                                                            | Medium | M      | Feature       |
+| 33 | Interplay doc: `encryption/` module (payload AEAD) + at-rest encryption = defense in depth; neither substitutes the other                                                                               | Medium | S      | Documentation |
+| 34 | Key-management doc: rotation via export/reimport (downtime!), per-tenant keys via per-database provisioning, secret-manager pattern — Turso Part 3 mapped to our stack                                  | Medium | M      | Documentation |
+| 35 | Consider `TURSO_ENCRYPTION_KEY`-style env-var fallback in tursoengine (opt-in, explicit; never a silent default)                                                                                        | Low    | S      | Feature       |
+| 36 | HARVEST this report: items 1–3, 9–11, 17–22 into TODO_LIST/ROADMAP per docs-health                                                                                                                      | High   | S      | Documentation |
+| 37 | Annotate the 20:18 predecessor report: matview bug (f5) FIXED this session, redaction pins (f12/13) DONE (docs-health ANNOTATE mode)                                                                    | Medium | S      | Documentation |
+| 38 | `check-duplication` run scoped to tursoengine (param-walk idiom appears twice — under threshold 3, but verify the tool agrees)                                                                          | Low    | S      | Quality       |
+| 39 | Bench: encryption overhead on OUR workload (Turso claims 0.5–2.8% mixed; one `benchkit`/`matview_bench` cell with `WithEncryption` on/off would make it ours)                                           | Low    | M      | Quality       |
+| 40 | Verify `WithEncryption` + `WithMaterializedViews` + `Priority` (DriverConfig path) don't fight over the DSN query namespace as more options land (namespace discipline doc)                             | Low    | S      | Documentation |
+| 41 | Error-message audit: every `fmt.Errorf` in tursoengine that could carry a DSN goes through `redactDSN` (grep-audit; `withEncryptionParams` errors don't include DSNs — confirm none others do)          | Medium | S      | Quality       |
+| 42 | Consider exposing `redactDSN` (or a `RedactDSN`) publicly for consumers logging DSNs in THEIR code — API-surface decision                                                                               | Low    | S      | Feature       |
+| 43 | Session-process: scoped lint/test from the first run when concurrent sessions are active (this session paid 1 wasted cycle)                                                                             | Low    | S      | Quality       |
+| 44 | Session-process: scoped formatter pass on new files before first lint (paid 3 cycles this session)                                                                                                      | Low    | S      | Quality       |
+| 45 | Session-process: re-check `git status` for foreign files immediately before each edit batch, not only at session start                                                                                  | Low    | S      | Quality       |
+| 46 | Track the parallel session's IVM COMMIT-wall finding (~27k rows, AGENTS.md line 233) — if upstream-fixed, re-evaluate `seedInTxE` chunk guards + my matview tests' assumptions                          | Medium | S      | Quality       |
+| 47 | Decide whether `Cipher` should validate at OPTION-CONSTRUCTION time (fail fast in `WithEncryption`) vs at `New()` (current) — current allows option reuse; document the choice                          | Low    | S      | Quality       |
+| 48 | Write the missing `modules.md`/README cross-link: tursoengine README ↔ faq entry ↔ CHANGELOG (single entry point per feature)                                                                           | Low    | S      | Documentation |
+| 49 | Upstream-watch: Turso 0.8 — encrypted MVCC + pluggable storage (0.7 groundwork) may add local rekeying; re-assess rotation guidance then                                                                | Low    | S      | Documentation |
+| 50 | Re-verify this report's live-test claims after the next driver bump (tests are the pins, but the README prose cites upstream behavior that can drift)                                                   | Low    | S      | Documentation |
 
 ---
 

@@ -42,7 +42,7 @@ fix.
   reports 496,034 vs a true 1,308,429 while reads succeed; scalar SUM
   views stayed exact in all our tests).
 
-**Scope question:** your description says a *creating-connection* merge
+**Scope question:** your description says a _creating-connection_ merge
 "completes without I/O" and is unaffected. Our repro **creates the views in
 the same connection that writes** and still fails — but only once the delta
 state reaches ~27k rows, i.e. it looks like the creating-connection merge
@@ -132,4 +132,5 @@ Full commit-abort characterization (shape/view-count/scan-pressure
 sensitivity table):
 [go-cqrs-lite research draft](https://github.com/LarsArtmann/go-cqrs-lite/blob/1c9f3bf33c002060fd563c3853edb7fb1a4923e5/docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md)
 (SHA-pinned permalink).
+
 </details>

@@ -156,16 +156,16 @@ for a full interactive reference.
 
 ### Top-level keys
 
-| Key              | Type   | Default     | Description                                                    |
-| ---------------- | ------ | ----------- | -------------------------------------------------------------- |
+| Key              | Type   | Default     | Description                                                                                     |
+| ---------------- | ------ | ----------- | ----------------------------------------------------------------------------------------------- |
 | `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready` |
-| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical` |
-| `min-confidence` | string | `"low"`     | Minimum confidence shown: `low`, `medium`, `high`              |
-| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`             |
-| `exclude`        | string | `""`        | Comma-separated paths to exclude                               |
-| `features`       | object | `{}`        | Feature profile overrides (see below)                          |
-| `rules`          | object | `{}`        | Rule-specific overrides (see below)                            |
-| `health`         | object | `{}`        | Health-score tuning (see below)                                |
+| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                  |
+| `min-confidence` | string | `"low"`     | Minimum confidence shown: `low`, `medium`, `high`                                               |
+| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                              |
+| `exclude`        | string | `""`        | Comma-separated paths to exclude                                                                |
+| `features`       | object | `{}`        | Feature profile overrides (see below)                                                           |
+| `rules`          | object | `{}`        | Rule-specific overrides (see below)                                                             |
+| `health`         | object | `{}`        | Health-score tuning (see below)                                                                 |
 
 ### `features` keys
 
@@ -189,13 +189,13 @@ Each key overrides auto-detection. Set only the ones you want to pin.
 
 ### `rules` keys
 
-| Key                            | Type               | Description                                               |
-| ------------------------------ | ------------------ | --------------------------------------------------------- |
-| `disable`                      | string[]           | Rule IDs to suppress project-wide                         |
-| `severity-overrides`           | map[string]string  | Rule ID → severity rewrite (e.g. `{"V007": "error"}`)     |
-| `external-api-struct-prefixes` | string[]           | Struct prefixes mirroring external APIs (suppresses D002) |
-| `c008-ignore-fields`           | string[]           | Field names to exclude from C008 (case-insensitive)       |
-| `c008-ignore-structs`          | string[]           | Struct names to exclude entirely from C008                |
+| Key                            | Type              | Description                                               |
+| ------------------------------ | ----------------- | --------------------------------------------------------- |
+| `disable`                      | string[]          | Rule IDs to suppress project-wide                         |
+| `severity-overrides`           | map[string]string | Rule ID → severity rewrite (e.g. `{"V007": "error"}`)     |
+| `external-api-struct-prefixes` | string[]          | Struct prefixes mirroring external APIs (suppresses D002) |
+| `c008-ignore-fields`           | string[]          | Field names to exclude from C008 (case-insensitive)       |
+| `c008-ignore-structs`          | string[]          | Struct names to exclude entirely from C008                |
 
 Severity overrides resolve in a fixed order (later wins per rule ID):
 catalog → preset → parent config → local config → domain bias →

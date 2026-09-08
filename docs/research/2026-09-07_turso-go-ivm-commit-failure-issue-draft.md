@@ -30,12 +30,12 @@ Scalar (ungrouped) SUM views stayed exact in every test we ran.
 
 ## Environment
 
-| Item | Value |
-| --- | --- |
-| Driver | `turso.tech/database/tursogo` **v0.7.2** and **v0.8.0-pre.8** (official Go SDK for the embedded Turso database — SQLite-compatible ground-up rewrite; purego, no CGo; `database/sql`) |
-| Mode | Embedded local file databases (`<path>?experimental=views`), `SetMaxOpenConns(1)`, single writer |
-| Go | 1.26.x |
-| OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395 |
+| Item      | Value                                                                                                                                                                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Driver    | `turso.tech/database/tursogo` **v0.7.2** and **v0.8.0-pre.8** (official Go SDK for the embedded Turso database — SQLite-compatible ground-up rewrite; purego, no CGo; `database/sql`) |
+| Mode      | Embedded local file databases (`<path>?experimental=views`), `SetMaxOpenConns(1)`, single writer                                                                                      |
+| Go        | 1.26.x                                                                                                                                                                                |
+| OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395                                                                                                                                           |
 
 ## Defect A — grouped SUM deltas lost across transactions (silent wrong results)
 
@@ -53,12 +53,12 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS mv AS
 
 Rows: `key = order-%04d`, `value = {"customer":"c<i%316>","amount":<i%97>+0.5}`.
 
-| Rows (all committed, no failures) | Base SUM | View SUM(agg) | Delta |
-| --- | --- | --- | --- |
-| 1,000 (one transaction) | 47,495.00 | 47,495.00 | exact |
-| 1,100 (two transactions) | 71,580.00 | 71,454.50 | 125.50 |
-| 2,000 | 95,890.00 | 95,459.50 | 430.50 |
-| 26,000 | 1,260,814.00 | 1,260,383.50 | 430.50 (constant) |
+| Rows (all committed, no failures) | Base SUM     | View SUM(agg) | Delta             |
+| --------------------------------- | ------------ | ------------- | ----------------- |
+| 1,000 (one transaction)           | 47,495.00    | 47,495.00     | exact             |
+| 1,100 (two transactions)          | 71,580.00    | 71,454.50     | 125.50            |
+| 2,000                             | 95,890.00    | 95,459.50     | 430.50            |
+| 26,000                            | 1,260,814.00 | 1,260,383.50  | 430.50 (constant) |
 
 Per-group diff at 2,000 rows — exactly the groups whose rows span BOTH
 transactions are wrong, each missing roughly half its sum:

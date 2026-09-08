@@ -91,11 +91,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1788518923,
-        "narHash": "sha256-Xc5fc4X/+XXgPosm5dzR4KJnyUNgdkKzIq+tycNWP0k=",
+        "lastModified": 1788833829,
+        "narHash": "sha256-MaVDBSA29RkI2UKp16+CVOfiFyxDpUN4bN6fYTnT8bg=",
         "owner": "LarsArtmann",
         "repo": "go-finding",
-        "rev": "cda4cb592f82d2cf5d32527bfc0c084526040e74",
+        "rev": "307d811b7d01b8acc96a38c2387bd07555137ca1",
         "type": "github"
       },
       "original": {
@@ -108,11 +108,11 @@
     "go-ndjson": {
       "flake": false,
       "locked": {
-        "lastModified": 1788518881,
-        "narHash": "sha256-ZAL1XR3ZQEiC4+WYhv6AebPJJaR5o7wu7U3jMFlWqCg=",
+        "lastModified": 1788835701,
+        "narHash": "sha256-1G4Ea4qqwD+WAswF/nw49nqgfwf+kv1jOgEElIi7y1o=",
         "owner": "LarsArtmann",
         "repo": "go-ndjson",
-        "rev": "7afa20826a832f7cff5b0e4db905f9cec50cb589",
+        "rev": "1d5fc7f5f7d72e369b4c848b7f3880897e677ce9",
         "type": "github"
       },
       "original": {
@@ -125,11 +125,11 @@
     "go-nix-helpers": {
       "flake": false,
       "locked": {
-        "lastModified": 1788793272,
-        "narHash": "sha256-CnVAv/D+VoMM3dblYMQ/4lxgTAZ8f+CgqQuHLqqOwpA=",
+        "lastModified": 1788808705,
+        "narHash": "sha256-oo2UWBJaNRK7eLza52DB/Nd10PQlxyFoVNdXJEZZj7w=",
         "owner": "LarsArtmann",
         "repo": "go-nix-helpers",
-        "rev": "2a74b8b40c0f743a2c250d9231d31d67d1e6f38e",
+        "rev": "32cf9c428b5420bc88436b179307eac74495547a",
         "type": "github"
       },
       "original": {

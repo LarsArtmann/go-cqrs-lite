@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -44,7 +44,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	modernc.org/libc v1.75.7 // indirect

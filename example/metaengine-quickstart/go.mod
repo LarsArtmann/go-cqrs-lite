@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/ThreeDotsLabs/watermill v1.5.2 // indirect
+	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -30,21 +30,19 @@ require (
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/codec/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/flightrecorder/v4 v4.0.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
@@ -60,8 +58,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
@@ -71,7 +67,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect

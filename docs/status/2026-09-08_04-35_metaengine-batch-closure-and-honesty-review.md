@@ -38,7 +38,7 @@
 
 ## b) PARTIALLY DONE
 
-1. **verify-ci / CI-matrix surface is BROKEN by my new iroh tests — not fixed.** `nix run .#verify-ci` runs **GOWORK=off per-module build+test** (flake.nix confirmed) and loopback/quic are in `testModules` (enforced by `TestEveryGoModDirIsInTestModules`). Under GOWORK=off they resolve **published `irohengine/v4 v4.1.0`, which predates graph-op replication** (verified: v4.1.0's `RunConvergenceSuite` has no Graph subtests; my int-endpoint test failed against it with a 5s timeout). Workspace-mode runs (`#test`, `#test-race`, `#verify`) pass because go.work resolves the local sibling. So: local gates green, **the GOWORK=off CI matrix will go red on my 2 new tests** (loopback runtime failure confirmed; quic GOWORK=off *build* with the new test file is unverified). This is the single biggest open risk from the batch. Fix options: publish irohengine v4.2.0 (graph ops + capability conformance) and bump loopback/quic pins (proper fix, release-wave territory); or capability-probe skip-guard in the tests (fast but weaker).
+1. **verify-ci / CI-matrix surface is BROKEN by my new iroh tests — not fixed.** `nix run .#verify-ci` runs **GOWORK=off per-module build+test** (flake.nix confirmed) and loopback/quic are in `testModules` (enforced by `TestEveryGoModDirIsInTestModules`). Under GOWORK=off they resolve **published `irohengine/v4 v4.1.0`, which predates graph-op replication** (verified: v4.1.0's `RunConvergenceSuite` has no Graph subtests; my int-endpoint test failed against it with a 5s timeout). Workspace-mode runs (`#test`, `#test-race`, `#verify`) pass because go.work resolves the local sibling. So: local gates green, **the GOWORK=off CI matrix will go red on my 2 new tests** (loopback runtime failure confirmed; quic GOWORK=off _build_ with the new test file is unverified). This is the single biggest open risk from the batch. Fix options: publish irohengine v4.2.0 (graph ops + capability conformance) and bump loopback/quic pins (proper fix, release-wave territory); or capability-probe skip-guard in the tests (fast but weaker).
 2. **Aggregate `nix run .#verify` was never run this session.** All greens are per-module/per-gate. The AGENTS "stale GREEN" rule asks for `#verify`/`#verify-fast` before claiming session GREEN; I under-delivered on the aggregate and only found the verify-ci gap by reading flake.nix while writing this report.
 3. **`metaengine/bench` module never built/linted this continuation** despite being on the touched-module list (imports all engines; keycodec/enginetest changes could affect it). Not verified either way.
 4. **duckdbengine + sqliteengine full module suites** — only targeted (`-run Restart`, doctor, lint) runs this continuation, not the whole suites.
@@ -92,6 +92,7 @@ Honorable mention (yellow card): the first draft of the loopback test used three
 Prioritized; impact-first within each tier. Items 1–8 derive directly from this session; 9–30 carry forward the still-open items from the 2026-09-07 22:33 report §f (same workstream); 31–50 are new observations from this continuation.
 
 **Red — broken/risk (do first):**
+
 1. Resolve the GOWORK=off CI breakage for the 2 new iroh tests: publish irohengine v4.2.0 (graph WriteOp convergence + capability conformance) and bump loopback/quic go.mod pins, or capability-probe skip-guard the tests (decide via §g-style question: publish now vs guard now).
 2. Verify quic module `GOWORK=off go build ./...` with the new test file (cheap check; may already fail at compile).
 3. Identify the owner of the dirty `.art-dupl-baseline.json` re-pin (02:30Z) and either commit it with a rationale or revert it; re-affirm the annotations-over-repin policy.
@@ -114,7 +115,7 @@ Prioritized; impact-first within each tier. Items 1–8 derive directly from thi
 18. `RunPlannedOpsMatrix`: add duckdb/sqlite to the ephemeral CI runners if not already scheduled (legs exist; runner wiring to confirm).
 19. Consolidate `sameNeighbors`/`sameQuicNeighbors` test helpers (loopback/quic) into an irohengine-exported test helper if a third copy ever appears (two copies are under the dup threshold today).
 20. enginetest: document the "fakes must satisfy engineServesADTNatively" contract next to `RunCapabilityConformance`.
-21. Consider extracting `sortPaginateReference` twin behind a build tag or doc note explaining why the twin must not drift (it is intentional, but unannotated as to *who* keeps it honest).
+21. Consider extracting `sortPaginateReference` twin behind a build tag or doc note explaining why the twin must not drift (it is intentional, but unannotated as to _who_ keeps it honest).
 22. Check whether the iroh `README.md` claiming/replication matrix mentions the new int-endpoint guarantees (endpoint-type independence) — doc polish.
 23. Add the loopback transport's missing int normalization (or document endpoint stringification as the contract) — the test pins behavior; the transport doc should state it.
 24. irohengine demo/ directory: stale? (listed in ls, not touched this batch; confirm it still builds or remove).
@@ -159,4 +160,4 @@ Prioritized; impact-first within each tier. Items 1–8 derive directly from thi
 
 ---
 
-*Prepared per status-report protocol (md override flagged in the header). Waiting for instructions.*
+_Prepared per status-report protocol (md override flagged in the header). Waiting for instructions._

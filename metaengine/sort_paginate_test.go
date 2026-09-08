@@ -171,7 +171,10 @@ func TestSortPaginate_AllocBudget(t *testing.T) {
 		SortPaginate(sortPairs, spKey, spVal, spLess, nil, 0)
 	})
 	if sortAllocs > 3 {
-		t.Errorf("sort path allocates %.1f allocs, want <= 3 (sort.Slice closure + swapper)", sortAllocs)
+		t.Errorf(
+			"sort path allocates %.1f allocs, want <= 3 (sort.Slice closure + swapper)",
+			sortAllocs,
+		)
 	}
 
 	filterPairs := make([]spPair, size)

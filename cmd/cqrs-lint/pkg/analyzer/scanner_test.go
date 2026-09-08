@@ -176,7 +176,10 @@ func setup(bus *Bus) {
 	// The exact call text is go/printer-rendered (and may elide args), so pin
 	// the record's presence and identity prefix, not its full text.
 	if len(ctx.Registry.ConstructorHandlers) != 1 {
-		t.Fatalf("expected exactly 1 ConstructorHandlers record, got %v", ctx.Registry.ConstructorHandlers)
+		t.Fatalf(
+			"expected exactly 1 ConstructorHandlers record, got %v",
+			ctx.Registry.ConstructorHandlers,
+		)
 	}
 	for key := range ctx.Registry.ConstructorHandlers {
 		if !strings.HasPrefix(key, "NewCreateUserHandler") {

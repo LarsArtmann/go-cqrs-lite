@@ -32,7 +32,10 @@ func TestTursoEncryption_RoundTrip(t *testing.T) {
 
 			dsn := filepath.Join(t.TempDir(), "enc.db")
 
-			eng, err := tursoengine.New(dsn, tursoengine.WithEncryption(tt.cipher, hex.EncodeToString(key)))
+			eng, err := tursoengine.New(
+				dsn,
+				tursoengine.WithEncryption(tt.cipher, hex.EncodeToString(key)),
+			)
 			if err != nil {
 				t.Fatalf("open encrypted engine: %v", err)
 			}
@@ -43,7 +46,12 @@ func TestTursoEncryption_RoundTrip(t *testing.T) {
 				t.Fatal("engine does not implement MapBackend")
 			}
 
-			if err := mb.MapSet(t.Context(), "secrets", "k1", map[string]any{"v": "s3cret"}); err != nil {
+			if err := mb.MapSet(
+				t.Context(),
+				"secrets",
+				"k1",
+				map[string]any{"v": "s3cret"},
+			); err != nil {
 				_ = eng.Close()
 				t.Fatalf("MapSet: %v", err)
 			}
@@ -52,7 +60,10 @@ func TestTursoEncryption_RoundTrip(t *testing.T) {
 				t.Fatalf("Close: %v", err)
 			}
 
-			eng2, err := tursoengine.New(dsn, tursoengine.WithEncryption(tt.cipher, hex.EncodeToString(key)))
+			eng2, err := tursoengine.New(
+				dsn,
+				tursoengine.WithEncryption(tt.cipher, hex.EncodeToString(key)),
+			)
 			if err != nil {
 				t.Fatalf("reopen with correct key: %v", err)
 			}

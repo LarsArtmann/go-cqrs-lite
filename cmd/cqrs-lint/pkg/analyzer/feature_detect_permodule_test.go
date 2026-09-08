@@ -189,7 +189,12 @@ func TestDetectFeatureSignals_MultiPresetStoreDeterministic(t *testing.T) {
 	for range runs - 1 {
 		got := detectFeatureSignals(newPkgs(), nil, NewCQRSRegistry()).Store
 		if got != first {
-			t.Fatalf("store resolution nondeterministic across %d runs: %q then %q", runs, first, got)
+			t.Fatalf(
+				"store resolution nondeterministic across %d runs: %q then %q",
+				runs,
+				first,
+				got,
+			)
 		}
 	}
 

@@ -88,11 +88,11 @@ has lapsed (the timer went back to the pollable pool).
 
 Claiming store support matrix:
 
-| Constructor                          | Claim mechanism                          | Verified on                                            |
-| ------------------------------------ | ---------------------------------------- | ------------------------------------------------------ |
-| `NewClaimingPostgresStore[P](ctx, db, lease)` | `FOR UPDATE SKIP LOCKED` + `UPDATE ... RETURNING` | Postgres 16 (testcontainers)                    |
-| `NewClaimingSQLiteStore[P](ctx, db, lease)`   | Single `UPDATE ... RETURNING` (SQLite 3.35+) | modernc.org/sqlite                                |
-| `NewClaimingMySQLStore[P](ctx, db, lease)`    | `FOR UPDATE SKIP LOCKED` + `UPDATE` by IDs (two statements, one tx) | MariaDB 11.4 (live) |
+| Constructor                                   | Claim mechanism                                                     | Verified on                  |
+| --------------------------------------------- | ------------------------------------------------------------------- | ---------------------------- |
+| `NewClaimingPostgresStore[P](ctx, db, lease)` | `FOR UPDATE SKIP LOCKED` + `UPDATE ... RETURNING`                   | Postgres 16 (testcontainers) |
+| `NewClaimingSQLiteStore[P](ctx, db, lease)`   | Single `UPDATE ... RETURNING` (SQLite 3.35+)                        | modernc.org/sqlite           |
+| `NewClaimingMySQLStore[P](ctx, db, lease)`    | `FOR UPDATE SKIP LOCKED` + `UPDATE` by IDs (two statements, one tx) | MariaDB 11.4 (live)          |
 
 MySQL/MariaDB version floor: the claim transaction uses
 `FOR UPDATE SKIP LOCKED` — MySQL 8.0.1+ and MariaDB 10.6.0+ (InnoDB;

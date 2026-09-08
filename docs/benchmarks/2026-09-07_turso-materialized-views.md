@@ -71,9 +71,10 @@ updated by a second transaction** — exact within one transaction, then
 diverging (3 of 316 groups each ~half-wrong at 2k rows; view total 496,034
 vs true 1,308,429 at 27k rows while reads succeed). **The grouped
 benchmark numbers below measure SPEED, not currently-correct results at
->1k rows.** Scalar SUM views stayed exact in every test. Full
-characterization + repro:
-`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
+
+> 1k rows.** Scalar SUM views stayed exact in every test. Full
+> characterization + repro:
+> `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
 
 ## Known constraints (upstream turso-go v0.7.2)
 

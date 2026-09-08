@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1

@@ -494,7 +494,9 @@ func renderResolutionOrder(b *strings.Builder) {
 	b.WriteString("  Settings are resolved in this order (later overrides earlier):\n")
 	b.WriteString("\n")
 	b.WriteString("    1. Built-in defaults (from struct tags)\n")
-	b.WriteString("    2. Preset (if set: features, rule disables, severity overrides, severity floor)\n")
+	b.WriteString(
+		"    2. Preset (if set: features, rule disables, severity overrides, severity floor)\n",
+	)
 	b.WriteString("    3. Config file (.cqrs-lint.json: explicit overrides)\n")
 	b.WriteString("    4. Auto-detection (fills in what's not pinned)\n")
 	b.WriteString("    5. CLI flags (highest priority)\n")

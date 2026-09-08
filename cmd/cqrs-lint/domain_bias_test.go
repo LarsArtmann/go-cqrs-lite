@@ -174,6 +174,9 @@ func TestApplyDomainBias_EscalatesS011(t *testing.T) {
 	result := applyDomainBias(findings, analyzer.DomainFinancial)
 
 	if result[0].Severity != finding.SeverityError {
-		t.Errorf("S011 should be escalated to Error for financial domain, got %s", result[0].Severity)
+		t.Errorf(
+			"S011 should be escalated to Error for financial domain, got %s",
+			result[0].Severity,
+		)
 	}
 }

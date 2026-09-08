@@ -31,7 +31,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
@@ -56,7 +56,6 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect

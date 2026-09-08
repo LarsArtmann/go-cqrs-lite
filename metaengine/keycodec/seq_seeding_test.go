@@ -73,7 +73,14 @@ func TestSplitGroupAndSeq_RoundTrip(t *testing.T) {
 		}
 
 		if group != tc.wantGroup || seq != tc.wantSeq {
-			t.Errorf("%s: got (%q, %d), want (%q, %d)", tc.name, group, seq, tc.wantGroup, tc.wantSeq)
+			t.Errorf(
+				"%s: got (%q, %d), want (%q, %d)",
+				tc.name,
+				group,
+				seq,
+				tc.wantGroup,
+				tc.wantSeq,
+			)
 		}
 	}
 }

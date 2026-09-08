@@ -130,6 +130,10 @@ func TestGenerateInitConfigV5ReadyCarriesSeverityOverrides(t *testing.T) {
 	}
 
 	if got := cfg.Rules.SeverityOverrides["V007"]; got != "error" {
-		t.Errorf("generated v5-ready config must override V007 to error, got %q\nconfig:\n%s", got, content)
+		t.Errorf(
+			"generated v5-ready config must override V007 to error, got %q\nconfig:\n%s",
+			got,
+			content,
+		)
 	}
 }

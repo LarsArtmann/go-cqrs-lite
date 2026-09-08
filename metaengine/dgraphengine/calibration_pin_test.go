@@ -37,7 +37,9 @@ func TestRealProfile_ReadCostsPinned(t *testing.T) {
 			if got := eng.Profile().NsForRead(tt.pattern); got != tt.want {
 				t.Errorf(
 					"NsForRead(%s) = %.0f, want %.0f — recalibrated constant moved; refresh the pin with fresh medians",
-					tt.pattern, got, tt.want,
+					tt.pattern,
+					got,
+					tt.want,
 				)
 			}
 		})

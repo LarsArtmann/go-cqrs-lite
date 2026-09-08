@@ -205,7 +205,12 @@ func TestApplyBatch_HonorsRecord(t *testing.T) {
 		}
 	}
 
-	if doctor := store.Doctor(ctx); !strings.Contains(doctor, "all applies carried full Record context") {
+	if doctor := store.Doctor(
+		ctx,
+	); !strings.Contains(
+		doctor,
+		"all applies carried full Record context",
+	) {
 		t.Fatalf("Doctor should report full context only:\n%s", doctor)
 	}
 }
@@ -303,7 +308,11 @@ func TestSyntheticRecordAdvisory_LoggerPath(t *testing.T) {
 	WithHooks(store, Hooks{Logger: log.New(&buf, "", 0)})
 
 	for i := range 3 {
-		if err := store.Apply(ctx, "recordContextEvent", recordContextEvent{TaskID: "t1"}); err != nil {
+		if err := store.Apply(
+			ctx,
+			"recordContextEvent",
+			recordContextEvent{TaskID: "t1"},
+		); err != nil {
 			t.Fatalf("Apply %d: %v", i, err)
 		}
 	}

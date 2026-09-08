@@ -173,8 +173,8 @@ github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsI
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
-github.com/jackc/pgx/v5 v5.10.0 h1:VhSvgU2jSli8o3AqIEOTJr7rZwAEUVo4E4XhR94Zfr0=
-github.com/jackc/pgx/v5 v5.10.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
+github.com/jackc/pgx/v5 v5.11.0 h1:IzBBtyK9AHqf98cctWFifYSci2hgQR/cd56wB4p+ogg=
+github.com/jackc/pgx/v5 v5.11.0/go.mod h1:mal1tBGAFfLHvZzaYh77YS/eC6IX9OWbRV1QIIM0Jn4=
 github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
 github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
@@ -235,8 +235,8 @@ github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0 h1:ygWc2WU
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0/go.mod h1:CjTGl8v3DJfBaAit4G58Xn/utk7P5V2bkpCSoWU8kQ8=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 h1:eUZJxVRFbwtA1zzVLwzUc1aZN/ba94/C9ffXUL9ZI1A=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0/go.mod h1:4ZSRF9/8v54YqetN80wWfPD12m/drXleSwn9q97pZ0I=
-github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 h1:s9XLaYa8jLAK3uBl6giJKStiQA+1ag9VmjQEU4AKZbg=
-github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0/go.mod h1:KRlv3IxoiThNnX6vd7krsol84JJR3nZf9DWst8StbgM=
+github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 h1:wLYBXOZ2zQ/QevuKRlyK/c7/e3m5++3pLqJtFNacuaQ=
+github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0/go.mod h1:yEFsUXCsispbsqs46RDEu2cMgP5V/KB/AUG8uzOzKZw=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 h1:jabGE+EiBqh0NkzdT6ZkmblEjCmn9XOKaw/C3ZHuwKE=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0/go.mod h1:1AlfJV2w8oq2Tmjl8FInpH1caGQE3LyhxckeOrf0GEI=
 github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 h1:ZJHPBaXZUe7IxXtNiR2lUdjFZAPwQ/w2mrshvH2U9vs=

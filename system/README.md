@@ -190,8 +190,8 @@ instances:
     engine: primary
   - role: projections
     engine: projections
-acknowledge_warnings: []        # e.g. "durability-downgrade:events"
-manifest_path: ""               # pin projection-plan drift detection
+acknowledge_warnings: [] # e.g. "durability-downgrade:events"
+manifest_path: "" # pin projection-plan drift detection
 ```
 
 ## API

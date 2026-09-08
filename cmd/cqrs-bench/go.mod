@@ -89,7 +89,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.10.0 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
@@ -114,7 +114,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1 // indirect

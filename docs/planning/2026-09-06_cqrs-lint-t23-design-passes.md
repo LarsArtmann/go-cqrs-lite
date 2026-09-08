@@ -130,14 +130,14 @@ session-4 retro §f25 asked for a rule.
 
 **Detection options reviewed.**
 
-1. *Type-impl detection via go/packages.* The loader already ships
+1. _Type-impl detection via go/packages._ The loader already ships
    `NeedTypes|NeedTypesInfo` (verified 2026-09-07, see
    `docs/benchmarks/2026-09-07_cqrs-lint-f091-tier1-typed-qualifier.md`),
    so `types.Implements(recvType, planApplierIface)` is mechanically
    available. Blocked by one thing: naming the interface requires
    importing `metaengine/v4`, which the linter cannot do (dep budget,
    Layer rules).
-2. *Capability registry fed from api-stability's scan.* Zero new deps but
+2. _Capability registry fed from api-stability's scan._ Zero new deps but
    a second source of truth that drifts from the real interface (the
    split-brain the registry pattern exists to kill).
 3. **Selected: structural method-shape detection (no imports).** A type

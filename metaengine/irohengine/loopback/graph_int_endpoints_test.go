@@ -54,14 +54,22 @@ func TestGraphIntEndpointsConvergeOverTCP(t *testing.T) {
 
 func gAdd(t *testing.T, e graphIntDispatch, col string, from, to int) {
 	t.Helper()
-	if err := e.GraphAddEdge(context.Background(), col, metaengine.Edge{From: from, To: to}); err != nil {
+	if err := e.GraphAddEdge(
+		context.Background(),
+		col,
+		metaengine.Edge{From: from, To: to},
+	); err != nil {
 		t.Fatalf("GraphAddEdge %d→%d: %v", from, to, err)
 	}
 }
 
 func gRemove(t *testing.T, e graphIntDispatch, col string, from, to int) {
 	t.Helper()
-	if err := e.GraphRemoveEdge(context.Background(), col, metaengine.Edge{From: from, To: to}); err != nil {
+	if err := e.GraphRemoveEdge(
+		context.Background(),
+		col,
+		metaengine.Edge{From: from, To: to},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge %d→%d: %v", from, to, err)
 	}
 }

@@ -246,7 +246,10 @@ func TestCheckRouting_NeverSuggestsOverDeclaredEngine(t *testing.T) {
 	}
 
 	if diag != nil {
-		t.Fatalf("routing check suggested an alternative despite the liar being the only cheaper engine: %+v", diag)
+		t.Fatalf(
+			"routing check suggested an alternative despite the liar being the only cheaper engine: %+v",
+			diag,
+		)
 	}
 }
 
@@ -272,8 +275,11 @@ func TestPlan_DocumentedCapabilityGap_SuppressesDiagnostic(t *testing.T) {
 
 	assignment := store.Plan().Queries[0]
 	if assignment.EngineName != honest.Profile().Name {
-		t.Fatalf("routed to %q, want honest engine %q (a documented gap must not re-enable a lying engine)",
-			assignment.EngineName, honest.Profile().Name)
+		t.Fatalf(
+			"routed to %q, want honest engine %q (a documented gap must not re-enable a lying engine)",
+			assignment.EngineName,
+			honest.Profile().Name,
+		)
 	}
 
 	for _, d := range assignment.Diagnostics {
@@ -389,6 +395,10 @@ func TestPlan_EqualLatencyTieBreakIsDeterministic(t *testing.T) {
 	}
 
 	if got := store.Plan().Queries[0].EngineName; got != "beta" {
-		t.Fatalf("reversed input routed to %q, want %q (winner must follow input order)", got, "beta")
+		t.Fatalf(
+			"reversed input routed to %q, want %q (winner must follow input order)",
+			got,
+			"beta",
+		)
 	}
 }

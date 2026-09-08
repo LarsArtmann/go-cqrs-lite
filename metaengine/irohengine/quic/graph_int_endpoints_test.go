@@ -35,19 +35,31 @@ func TestGraphIntEndpointsConvergeOverQuic(t *testing.T) {
 	a := nodeA.(quicGraphIntDispatch)
 	b := nodeB.(quicGraphIntDispatch)
 
-	if err := a.GraphAddEdge(context.Background(), "hops", metaengine.Edge{From: 7, To: 8}); err != nil {
+	if err := a.GraphAddEdge(
+		context.Background(),
+		"hops",
+		metaengine.Edge{From: 7, To: 8},
+	); err != nil {
 		t.Fatalf("GraphAddEdge: %v", err)
 	}
 	waitQuicIntNeighbors(t, b, "hops", 7, 1, []string{"8"},
 		"edge with int endpoints must reach the peer")
 
-	if err := b.GraphAddEdge(context.Background(), "hops", metaengine.Edge{From: 8, To: 9}); err != nil {
+	if err := b.GraphAddEdge(
+		context.Background(),
+		"hops",
+		metaengine.Edge{From: 8, To: 9},
+	); err != nil {
 		t.Fatalf("GraphAddEdge: %v", err)
 	}
 	waitQuicIntNeighbors(t, a, "hops", 7, 2, []string{"8", "9"},
 		"depth-2 int-endpoint traversal must converge")
 
-	if err := a.GraphRemoveEdge(context.Background(), "hops", metaengine.Edge{From: 7, To: 8}); err != nil {
+	if err := a.GraphRemoveEdge(
+		context.Background(),
+		"hops",
+		metaengine.Edge{From: 7, To: 8},
+	); err != nil {
 		t.Fatalf("GraphRemoveEdge: %v", err)
 	}
 	waitQuicIntNeighbors(t, b, "hops", 7, 1, nil,
