@@ -82,12 +82,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   job is green again.
 - **`RULES.md` regenerated** — the committed copy had treefmt-padded
   tables that no longer matched the generator (freshness meta-test red).
-- **Financial escalation split-brain fixed** — `financialEscalatedRules`
-  still named pre-v4.9 rule names in comments, and `S011`
-  (pii-without-encryption) was missing from the escalation set (every other
-  security rule escalates for financial domains). S011 now escalates, the
-  comments match the catalog, and a completeness meta-test fails the suite
-  when a security rule is neither escalated nor explicitly exempted.
+- **Financial escalation comment drift fixed** — `financialEscalatedRules`
+  still named pre-v4.9 rule names in its comments (signing-disabled,
+  hmac-secret-too-short, insecure-random, missing-event-signing/encryption);
+  they now match the catalog, and a completeness meta-test fails the suite
+  when a security rule is neither escalated nor explicitly exempted. The
+  S011 escalation itself is a behavior change — see the "Changed" entry
+  below.
 - **doctor determinism**: the primary-module profile selection
   (`analyzer/loader.go`) and the per-module doctor panel broke ties on map
   iteration order — both now tie-break by path name; the feature-profile
@@ -97,6 +98,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   projection catch-up deadlines now scale with ambient load
   (load1/GOMAXPROCS, capped at 8x) instead of flaking on the shared host;
   the go-test per-package timeout remains the structural backstop.
+
+### Changed — cqrs-lint S011 escalates for financial domains — 2026-09-07
+
+- **`S011` (pii-without-encryption) joins the financial escalation set**:
+  projects with `domain: financial` (declared in config or auto-detected
+  from financial keywords) now get S011 at the escalated severity instead
+  of its catalog severity — NEW findings for existing code. This is a
+  severity tightening shipped in a minor, exactly the class the open Q3
+  release-policy question governs (TODO_LIST [BLOCKED] Q3; closeout
+  report 2026-09-07, question 1): whether opt-in-by-declaration is enough
+  or tightenings must ride a dedicated release. If Q3 rules against
+  mid-minor tightenings, revert this one escalation entry. Mitigation by
+  construction: only financial-domain consumers are affected; every other
+  security rule already escalated the same way.
 
 ### Added — Turso embedded encryption at rest (`WithEncryption`) — 2026-09-07
 
