@@ -5,19 +5,23 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+	"golang.org/x/mod/semver"
 )
 
 // bump describes one module version change.
 type bump struct {
-	Module     string
-	From, To   string
-	upToDate   bool
+	Module   string
+	From, To string
+	upToDate bool
+	held     bool
 	resolveErr error
 }
 
 // planUpgrades resolves the latest version for each pin and records the
-// change (or the reason nothing changes).
-func planUpgrades(pins []pin) []bump {
+// change (or the reason nothing changes). ceiling, when non-empty, clamps
+// every target to at most that version without ever downgrading a pin that
+// is already newer (status "held").
+func planUpgrades(pins []pin, ceiling string) []bump {
 	bumps := make([]bump, 0, len(pins))
 
 	for _, p := range pins {
@@ -28,7 +32,22 @@ func planUpgrades(pins []pin) []bump {
 			b.resolveErr = err
 		} else {
 			b.To = latest
-			b.upToDate = latest == "" || latest == p.Current
+
+			if ceiling != "" && semver.Compare(latest, ceiling) > 0 {
+				b.To = ceiling
+			}
+
+			switch {
+			case b.To == "":
+				b.upToDate = true
+			case semver.Compare(b.To, p.Current) < 0:
+				// Never downgrade: hold the current pin even though the
+				// ceiling (or the proxy) is below it.
+				b.To = p.Current
+				b.held = true
+			case b.To == p.Current:
+				b.upToDate = true
+			}
 		}
 
 		bumps = append(bumps, b)
@@ -111,6 +130,8 @@ func formatBumps(bumps []bump) string {
 		switch {
 		case b.resolveErr != nil:
 			status = "resolve-error"
+		case b.held:
+			status = "held"
 		case b.upToDate:
 			status = "up-to-date"
 		}

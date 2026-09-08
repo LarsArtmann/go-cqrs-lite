@@ -2,11 +2,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/mod/semver"
 )
 
 func main() {
@@ -18,27 +22,45 @@ func main() {
 
 // config holds the parsed CLI options.
 type config struct {
-	dir     string
-	dryRun  bool
-	noBuild bool
+	dir       string
+	dryRun    bool
+	noBuild   bool
+	strict    bool
+	jsonOut   bool
+	to        string
+	workspace bool
 }
 
 // parseFlags builds the config from args. dir defaults to the working
-// directory and must contain a go.mod.
+// directory and must contain a go.mod (or, with --workspace, be the root of a
+// multi-module tree).
 func parseFlags(args []string) (config, error) {
 	cfg := config{}
 
 	fs := flag.NewFlagSet("cqrs-upgrade", flag.ContinueOnError)
-	fs.BoolVar(&cfg.dryRun, "dry-run", false, "show planned bumps without changing go.mod")
+	fs.BoolVar(&cfg.dryRun, "dry-run", false,
+		"show planned bumps and the deprecation report without changing go.mod")
 	fs.BoolVar(
 		&cfg.noBuild,
 		"no-build",
 		false,
 		"skip the go mod tidy + build + vet verification after bumping",
 	)
+	fs.BoolVar(&cfg.strict, "strict", false,
+		"exit non-zero when v5-removed API usage is detected (v5-readiness gate)")
+	fs.BoolVar(&cfg.jsonOut, "json", false,
+		"machine-readable JSON output (bump plan + deprecations per module)")
+	fs.StringVar(&cfg.to, "to", "",
+		"clamp every bump target to at most this version (semver, e.g. v4.13.0); never downgrades")
+	fs.BoolVar(&cfg.workspace, "workspace", false,
+		"upgrade every module under dir (skips vendor/, testdata/, .git/)")
 
 	if err := fs.Parse(args); err != nil {
 		return cfg, err
+	}
+
+	if cfg.to != "" && !semver.IsValid(cfg.to) {
+		return cfg, fmt.Errorf("--to: %q is not a valid semver version", cfg.to)
 	}
 
 	cfg.dir = "."
@@ -57,53 +79,154 @@ func parseFlags(args []string) (config, error) {
 }
 
 // run executes the upgrade pipeline: collect pins → resolve latest →
-// (dry-run | edit + verify) → deprecation report.
+// (dry-run | edit + verify) → deprecation report. With --workspace the
+// pipeline runs for every go.mod under the root; with --strict a non-empty
+// deprecation report fails the run; with --json the whole result is emitted
+// as one machine-readable document.
 func run(_ context.Context, args []string) error {
 	cfg, err := parseFlags(args)
 	if err != nil {
 		return err
 	}
 
-	modPath := filepath.Join(cfg.dir, "go.mod")
+	dirs := []string{cfg.dir}
 
-	pins, err := collectPins(modPath)
-	if err != nil {
-		return err
-	}
-
-	if len(pins) == 0 {
-		fmt.Printf("no direct go-cqrs-lite pins found in %s\n", modPath)
-
-		return nil
-	}
-
-	bumps := planUpgrades(pins)
-	printBumps(bumps)
-
-	if cfg.dryRun {
-		fmt.Println("dry run: no changes written")
-
-		return nil
-	}
-
-	if err := editGoMod(modPath, bumps); err != nil {
-		return err
-	}
-
-	if !cfg.noBuild {
-		fmt.Println("verifying (tidy + build + vet, GOWORK=off) ...")
-		if err := verify(cfg.dir); err != nil {
-			return fmt.Errorf("%w\nverification failed — go.mod was already bumped; "+
-				"fix the code or pin back manually", err)
+	if cfg.workspace {
+		dirs, err = findGoMods(cfg.dir)
+		if err != nil {
+			return err
 		}
 	}
 
-	deprecationReport(os.Stdout, cfg.dir)
+	reports := make([]moduleReport, 0, len(dirs))
+
+	for _, dir := range dirs {
+		reports = append(reports, upgradeModule(cfg, dir))
+	}
+
+	if cfg.jsonOut {
+		return emitJSON(os.Stdout, reports)
+	}
+
+	for i, r := range reports {
+		if cfg.workspace {
+			fmt.Printf("== %s ==\n", r.Dir)
+		}
+
+		printReport(r)
+
+		if i < len(reports)-1 {
+			fmt.Println()
+		}
+	}
+
+	if cfg.dryRun {
+		fmt.Println("dry run: no changes written")
+	}
+
+	if hasStrictViolation(reports) {
+		return fmt.Errorf(
+			"--strict: v5-removed API usage detected in %d module(s) — see deprecation report",
+			countStrictViolations(reports),
+		)
+	}
 
 	return nil
+}
+
+// upgradeModule runs the full pipeline for one module directory and records
+// everything the human and JSON outputs need.
+func upgradeModule(cfg config, dir string) moduleReport {
+	rep := moduleReport{Dir: dir}
+
+	modPath := filepath.Join(dir, "go.mod")
+
+	pins, err := collectPins(modPath)
+	if err != nil {
+		rep.Error = err.Error()
+
+		return rep
+	}
+
+	if len(pins) == 0 {
+		rep.NoPins = true
+
+		return rep
+	}
+
+	rep.Bumps = planUpgrades(pins, cfg.to)
+
+	if !cfg.dryRun {
+		if err := editGoMod(modPath, rep.Bumps); err != nil {
+			rep.Error = err.Error()
+
+			return rep
+		}
+
+		if !cfg.noBuild {
+			if err := verify(dir); err != nil {
+				rep.Error = fmt.Sprintf(
+					"%v\nverification failed — go.mod was already bumped; "+
+						"fix the code or pin back manually", err,
+				)
+
+				return rep
+			}
+		}
+	}
+
+	rep.Deprecations = deprecationFindings(dir)
+
+	return rep
+}
+
+// printReport renders one module's human-readable output.
+func printReport(r moduleReport) {
+	switch {
+	case r.Error != "":
+		fmt.Printf("error: %s\n", r.Error)
+	case r.NoPins:
+		fmt.Printf("no direct go-cqrs-lite pins found in %s\n", filepath.Join(r.Dir, "go.mod"))
+	default:
+		printBumps(r.Bumps)
+		printDeprecations(os.Stdout, r.Deprecations)
+	}
 }
 
 // printBumps renders the plan table for both dry-run and apply runs.
 func printBumps(bumps []bump) {
 	fmt.Println(strings.ReplaceAll(formatBumps(bumps), "\t", "  "))
+}
+
+// hasStrictViolation reports whether any module has v5-removed API usage.
+func hasStrictViolation(reports []moduleReport) bool {
+	return countStrictViolations(reports) > 0
+}
+
+// countStrictViolations counts modules with at least one deprecation finding.
+func countStrictViolations(reports []moduleReport) int {
+	n := 0
+
+	for _, r := range reports {
+		if len(r.Deprecations) > 0 {
+			n++
+		}
+	}
+
+	return n
+}
+
+// emitJSON writes the full report as one deterministic JSON document.
+// Struct-field order (no maps) keeps the output byte-stable for CI diffs.
+func emitJSON(w io.Writer, reports []moduleReport) error {
+	wire := make([]moduleJSON, 0, len(reports))
+
+	for _, r := range reports {
+		wire = append(wire, r.toJSON())
+	}
+
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+
+	return enc.Encode(wire)
 }
