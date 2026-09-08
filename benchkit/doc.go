@@ -1,11 +1,14 @@
 // Package benchkit provides a factory-driven benchmarking suite for
-// [stack.Bundle] presets — the performance equivalent of
-// [stack/contracttest].
+// [stack.Bundle] presets and [system.System] deployments — the performance
+// equivalent of [stack/contracttest].
 //
 // A deployer provides a [Factory] (a function that returns a fresh
-// *stack.Bundle), and benchkit runs a suite of realistic write, read,
-// read-model, and projection workloads while collecting latency percentiles,
-// throughput, memory deltas, and storage footprint.
+// *stack.Bundle) or a [SystemFactory] (via [FactoryFromSystem]/[AdaptSystem],
+// which run the same suite against a *system.System deployment; unsupported
+// capability phases are skipped with recorded warnings), and benchkit runs a
+// suite of realistic write, read, read-model, and projection workloads while
+// collecting latency percentiles, throughput, memory deltas, and storage
+// footprint.
 //
 // # Quick start
 //

@@ -78,7 +78,8 @@
 | `cmd/doc-check`     | (go run)             | Doc verifier: scans Markdown for Go code references, checks symbols exist.                                                                                          |
 | `cmd/api-stability` | (go install)         | API surface checker: compares exports against `docs/api_surface.txt` golden file.                                                                                   |
 | `cmd/cqrs-bench`    | (go build)           | Benchmarking CLI: synthetic event workloads against memory/sqlite/pebble. `cqrs-bench run --backend sqlite --profile small`.                                        |
-| `benchkit`          | `benchkit/v4`        | Factory-driven benchmarking suite: `Run`/`Compare`, latency percentiles, throughput, memory. Mirrors contracttest pattern.                                          |
+| `cmd/cqrs-upgrade`  | (go install)         | Upgrade CLI for consumers: bumps every direct go-cqrs-lite pin to the latest tag, verifies with a GOWORK=off tidy+build+vet gate, and reports v5-removed-API usage (V007) in-process. `cqrs-upgrade --dry-run` prints the plan. |
+| `benchkit`          | `benchkit/v4`        | Factory-driven benchmarking suite: `Run`/`Compare`, latency percentiles, throughput, memory. `FactoryFromSystem`/`AdaptSystem` run the suite against `system` deployments. Mirrors contracttest pattern. |
 | `transport/grpc`    | `transport/grpc/v4`  | **DEPRECATED** (ADR-0127, removal at v5). `RegisterCommandService`, `RegisterQueryService`, `NewCommandClient`, `NewQueryClient`. Use `watermill/` brokers instead. |
 
 ### Reactive & Advanced Read Models (Layer 2–5)

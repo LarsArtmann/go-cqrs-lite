@@ -41,6 +41,36 @@ this commit.
   sibling `go.mod` pins updated in lockstep. See the chore waves since
   the previous per-module tags for the full per-module commit detail.
 
+## [otel/v4.4.0, cmd/cqrs-upgrade/v4.0.0] — 2026-09-07
+
+Cut via the detached-worktree release path during the SUPERB adoption wave.
+
+### Fixed — otel
+
+- **`Provider.Shutdown` now ForceFlushes tracer + meter providers before
+  shutting them down** — spans and metrics recorded shortly before shutdown
+  were silently lost. Ordering is pinned by a lifecycle-recording
+  span-processor test.
+
+### Added — otel
+
+- **`WithSpanProcessor`** SetupOption — custom span processors can be
+  registered with `otel.Setup` (previously only the default processor was
+  installed).
+
+### Added — cmd/cqrs-upgrade (new module)
+
+- **`cqrs-upgrade`** — the consumer upgrade CLI: parses a consumer `go.mod`
+  (direct go-cqrs-lite pins only), resolves each module's latest tag via the
+  module proxy, rewrites the pins offline, then verifies with a
+  `GOWORK=off` tidy+build+vet gate before reporting success. The
+  deprecation report runs the cqrs-lint V007 engine in-process (no
+  shell-out), listing v5-removed-API usage found in the upgraded module
+  set. `--dry-run` prints the plan without touching anything. First
+  release: `go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4@v4.0.0`.
+  The smoke run of this tool is what surfaced the published
+  `stack/sqlite/v4.3.0` pseudo-pin breakage.
+
 ## [Unreleased]
 
 ### Changed — error-family codes renamed to stream vocabulary (v5 batch, breaking for code-string observers) — 2026-09-08
@@ -125,6 +155,19 @@ this commit.
   that repeatedly broke the freshness meta-test came from dprint's markdown
   plugin (not treefmt); `**/RULES.md` is excluded in `dprint.json`, so the
   generator's output is now byte-stable.
+
+### Added — benchkit system harness: benchmark `system` deployments — 2026-09-07
+
+- **`benchkit.SystemFactory` / `FactoryFromSystem` / `AdaptSystem`** — the
+  factory-driven suite now runs against `*system.System` deployments, not
+  only `*stack.Bundle` presets: write/read/projection phases execute against
+  the system's adapters, the system lifetime is tied to the bundle close,
+  and capability phases the deployment cannot serve (bundle KV read models)
+  stay nil and SKIP with recorded warnings instead of failing or silently
+  passing. A metaengine-backed read-model phase remains the designed
+  follow-up (the adapter leaves bundle ReadModels nil today, honestly).
+  Shipped alongside the SUPERB adoption wave; unpublished until the next
+  benchkit tag.
 
 ### Added — metaengine verification batch: capability gaps through Plan, keycodec exports, FromDB restart harness — 2026-09-07
 

@@ -155,3 +155,6 @@ cmd/cqrs-bench/cqrs-bench
 # zero-filled buffer) whenever it runs with this repo as cwd; it was committed
 # by accident once (2b602b55e) and deleted (0a85573d2). Never track it.
 /t/
+
+# Build artifact: the cqrs-upgrade binary must never be committed (10MB)
+cmd/cqrs-upgrade/cqrs-upgrade
