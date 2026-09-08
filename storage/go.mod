@@ -5,7 +5,7 @@ go 1.26.6
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/jackc/pgx/v5 v5.10.0
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-codec v0.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0

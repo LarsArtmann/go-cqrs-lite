@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
@@ -32,6 +33,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-idempotency v0.3.0 // indirect
+	github.com/larsartmann/go-retry v0.5.0 // indirect
 )
 
 require (

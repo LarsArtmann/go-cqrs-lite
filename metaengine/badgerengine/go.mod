@@ -19,8 +19,8 @@ require (
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

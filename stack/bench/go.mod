@@ -22,6 +22,7 @@ require (
 )
 
 require (
+	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
@@ -36,6 +37,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-idempotency v0.3.0 // indirect
+	github.com/larsartmann/go-retry v0.5.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -79,7 +82,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.10.0 // indirect
+	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
