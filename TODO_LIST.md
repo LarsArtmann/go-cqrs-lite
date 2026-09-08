@@ -85,9 +85,9 @@ and is **never** duplicated here. Historical session reports live under
       shipped NeedTypes since day one — the design's load-cost concern was
       already paid): `docs/benchmarks/2026-09-07_cqrs-lint-f091-tier1-typed-qualifier.md`.
       REMAINING (Tiers 2–3): C008 usage-confirmation + C035/C013
-      payload-shape confirmation behind `--typed-info=auto`; adopt
-      ResolveQualifierTyped in `capturePayloadTypeFromVar` /
-      `looksLikeEventType` / `IsInsideUpcasterClosure` (T20-8).
+      payload-shape confirmation behind `--typed-info=auto`. The
+      three-helper adoption (T20-8) is DONE 2026-09-08 — see the
+      hardening-batch entry below.
 - [x] **Self-lint finding delta after the collector unification** — DONE
       2026-09-07: full self-lint run = ZERO findings; the delta was one STALE
       C025 suppression at `cmd/cqrs-lint/run.go` (left over from the
@@ -110,11 +110,45 @@ and is **never** duplicated here. Historical session reports live under
       8s/5s/15s scaled the same way). Full benchkit (152s) + system suites
       green under load 65. Both helpers are local copies (dep budgets) with
       `//art-dupl:accept`.
+- [x] **T20 follow-up hardening batch** — DONE 2026-09-08 (gates: full
+      cqrs-lint suite green, lint 0 issues, self-lint exit 0, api golden
+      6735 exports):
+      (1) store resolution deterministic — Pass 1 iterates packages and
+      imports in sorted order with a first-wins guard (T20-3; pinned by a
+      40-run stability test that fails on map-order code);
+      (2) every shipped metaengine engine maps to a StoreKind — new
+      `StoreBadger`/`StoreDgraph`/`StoreIroh` constants, engine→store
+      table test (T20-1);
+      (3) constructor-call handlers recorded in `analyzer.ConstructorHandlers`
+      instead of call-text keys in CommandTypesRegistered (T20-4);
+      (4) `CommandInfo.Embeds` split from Fields; B004 count semantics
+      preserved (T20-5);
+      (5) typed qualifier adoption shipped: `analyzer.IsQualifierFor` +
+      `analyzer.IsEventTypeParam` — alias-fold-blindness for C038/C040 is
+      dead; converted `capturePayloadTypeFromVar`, fold detection, and
+      `IsInsideUpcasterClosure` (T20-8);
+      (6) upcaster-closure ranges memoized per file — O(file) once per FILE,
+      not per candidate call (T20-7);
+      (7) doctor JSON fixed: `FeatureProfile` now carries json tags (the
+      surface emitted Go-style keys), `modules` sorted by dir (was map
+      order), shape golden locked (`TestDoctorJSONReport_Golden`,
+      regen with UPDATE_GOLDEN=1);
+      (8) RULES.md-vs-formatter ROOT CAUSE corrected: dprint's markdown
+      plugin (NOT treefmt — it has no md formatter) re-pads the generator's
+      tables; `**/RULES.md` excluded in dprint.json and the file
+      regenerated — freshness test is stable now;
+      (9) duplication gate: benchkit/system `//art-dupl:accept` placements
+      VERIFIED live; the one new doctor.go idiom clone eliminated via
+      slices.Sorted(maps.Keys); foreign post-baseline clone groups
+      (per-engine calibration dumps, restart-safety tests, committed
+      2026-09-08) absorbed by a baseline re-pin — 133 groups, gate green.
 - [ ] [BLOCKED] **Release-policy Q3: severity tightening in a minor.**
       S008/S009 now emit `error` (were `warning`); consumers using
       `--min-severity error` see new failures after ≥v4.9.0. Acceptable in a
       minor (documented in CHANGELOG), or gate behind a "Changed" section +
-      dedicated minor? User decision. Concretized by the envelope v2
+      dedicated minor? User decision. The S011 financial escalation is
+      classified under CHANGELOG "Changed" (2026-09-08) and is governed by
+      this ruling. Concretized by the envelope v2
       wire-format-in-minor question (08-26 §g3). — source: 02-40 §g3
 - [ ] [BLOCKED] **Daemon Q2: `.golangci.yml` exclusion from the auto-commit
       formatter.** ROOT-CAUSED 2026-09-06: BuildFlow's built-in golangci
