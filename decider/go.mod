@@ -4,13 +4,13 @@ go 1.26.6
 
 require (
 	github.com/larsartmann/go-codec v0.2.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
 	github.com/maypok86/otter/v2 v2.3.0

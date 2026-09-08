@@ -7,13 +7,13 @@ require (
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/larsartmann/go-codec v0.2.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/redis/go-redis/v9 v9.12.1
 	go.opentelemetry.io/otel v1.46.0
@@ -58,9 +58,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )

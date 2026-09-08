@@ -5,8 +5,8 @@ go 1.26.7
 require (
 	github.com/failsafe-go/failsafe-go v0.9.7
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
@@ -73,7 +73,6 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect

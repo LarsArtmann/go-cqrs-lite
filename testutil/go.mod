@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/testutil/v4
 go 1.26.6
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	pgregory.net/rapid v1.3.0
 )
@@ -19,7 +19,4 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
 )

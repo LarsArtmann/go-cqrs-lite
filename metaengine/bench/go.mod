@@ -6,14 +6,14 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/jackc/pgx/v5 v5.10.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.1.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
+	github.com/jackc/pgx/v5 v5.11.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	go.etcd.io/bbolt v1.5.0
 	modernc.org/sqlite v1.58.0
@@ -37,7 +37,6 @@ require (
 	github.com/duckdb/duckdb-go-bindings/lib/linux-arm64 v0.10505.0 // indirect
 	github.com/duckdb/duckdb-go-bindings/lib/windows-amd64 v0.10505.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.11.0 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
@@ -57,8 +56,6 @@ require (
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
-	github.com/moby/moby/api v1.56.0 // indirect
-	github.com/moby/moby/client v0.6.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.29 // indirect
@@ -69,12 +66,7 @@ require (
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.8 // indirect
-	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.71.0 // indirect
-	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
