@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.3
-	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0
 	github.com/onsi/gomega v1.42.1
 )
@@ -18,10 +18,7 @@ require (
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
-	modernc.org/libc v1.75.7 // indirect
-	modernc.org/sqlite v1.58.0 // indirect
+	modernc.org/memory v1.12.1 // indirect
 )
