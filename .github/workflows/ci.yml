@@ -607,7 +607,9 @@ jobs:
 
       - name: Verify core modules compile to WASM
         run: |
-          for mod in id codec dispatcher event command query decider; do
+          # codec was extracted to the external go-cqrs-lite/go-codec repo
+          # (ADR-0128); only in-repo core modules compile here.
+          for mod in id dispatcher event command query decider; do
             echo "==> WASM build: $mod"
             (cd "$mod" && GOOS=js GOARCH=wasm GOWORK=off go build ./...)
           done

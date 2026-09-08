@@ -290,7 +290,10 @@ func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed i
 func TestSystem_CustomCheckpointStore(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Load-scaled outer deadline: waitForProjectionProcessed polls up to
+	// loadScaledDeadline(15s); a fixed outer ctx shorter than that budget
+	// expires first under load and fails sys calls spuriously.
+	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(15*time.Second))
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}
@@ -418,7 +421,7 @@ func TestSystem_HealthCheck_FailedProjection(t *testing.T) {
 func TestSystem_ResetProjection_Positive(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(15*time.Second))
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}
@@ -477,7 +480,7 @@ func TestSystem_ResetProjection_Positive(t *testing.T) {
 func TestSystem_GracefulClose_SlowShutdown(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(15*time.Second))
 	defer cancel()
 
 	sys, err := system.New(ctx, taskDomainConfig(taskProjectionQuery("slow_shutdown"), nil),
@@ -631,7 +634,10 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	// timing) causes CPU contention that can make the projection-wait
 	// budget expire spuriously on busy machines.
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	// Load-scaled outer deadline matching waitForProjectionProcessed's
+	// loadScaledDeadline(15s) inner budget (the 2026-09-08 full-suite flake:
+	// inner scaled past the fixed 30s outer ctx).
+	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(30*time.Second))
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}

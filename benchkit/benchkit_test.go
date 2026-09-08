@@ -38,8 +38,12 @@ func mustRun(t *testing.T, config Config, factory Factory) *Result {
 	// The verify gate runs 42+ test packages in parallel. SQLite I/O becomes
 	// extremely slow under that contention, so the timeout must be generous.
 	// ProfileDev is 500 events — trivially fast in isolation (<1s) but can
-	// take 20s+ under full monorepo parallel load.
-	ctx, cancel := context.WithTimeout(context.Background(), soakTestScale(90*time.Second))
+	// take 20s+ under full monorepo parallel load. soakTestScale widens for
+	// the race detector; loadScaledCeiling additionally widens for ambient
+	// host load (the checkpoint-phase deadline flakes under load 18+ came
+	// from racing only the race factor).
+	ctx, cancel := context.WithTimeout(context.Background(),
+		loadScaledCeiling(soakTestScale(90*time.Second)))
 	defer cancel()
 
 	result, err := Run(ctx, config, factory)
@@ -410,7 +414,11 @@ func TestRun_ClosedStore(t *testing.T) {
 
 	dir := t.TempDir()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Load-scaled: under parallel-suite load the ctx can expire during setup
+	// before phase 1 touches the closed store; Run then fails fast with
+	// "benchmark context expired before any phase ran" instead of silently
+	// skipping every phase (the historical nil-error flake).
+	ctx, cancel := context.WithTimeout(context.Background(), loadScaledCeiling(10*time.Second))
 	defer cancel()
 
 	_, err := Run(ctx, Config{
@@ -429,6 +437,37 @@ func TestRun_ClosedStore(t *testing.T) {
 
 	if err == nil {
 		t.Fatal("expected error from closed store, got nil")
+	}
+}
+
+// TestRun_ExpiredContext_ReturnsError pins the not-started semantics: when
+// the caller's deadline (not a Duration window) expires before any phase
+// ran, Run must report an error — a fully context-skipped run must never
+// look successful. Regression pin for the 2026-09-07/08 full-suite flake
+// where a loaded host burned the whole test ctx in setup and every phase
+// "gracefully" skipped, yielding (partial result, nil).
+func TestRun_ExpiredContext_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+	time.Sleep(2 * time.Millisecond) // guarantee expiry before Run starts
+
+	result, err := Run(ctx, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+
+	if err == nil {
+		t.Fatal("expected error from expired context, got nil")
+	}
+
+	if result != nil {
+		t.Errorf("expected nil result on not-started run, got %+v", result)
+	}
+
+	if family := errorfamily.Classify(err); family != errorfamily.Transient {
+		t.Errorf("error family = %s, want Transient: %v", family, err)
 	}
 }
 
@@ -851,7 +890,7 @@ func TestRun_ClosedStore_ErrorMessage(t *testing.T) {
 
 	dir := t.TempDir()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), loadScaledCeiling(10*time.Second))
 	defer cancel()
 
 	_, err := Run(ctx, Config{

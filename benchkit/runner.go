@@ -145,6 +145,18 @@ func (r *runner) run(ctx context.Context) (*Result, error) {
 // runCtx is the (possibly deadline-limited) context for measured phases.
 // parentCtx is the unbounded context for the recovery phase.
 func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
+	// A caller deadline that expired before any phase ran means the benchmark
+	// never started. Skipping every phase "gracefully" would make a fully
+	// skipped run look successful — the closed-store tests observed exactly
+	// that under load: setup burned the whole context, each phase's skipPhase
+	// guard fired, and Run returned (partial result, nil). Duration-bounded
+	// runs (runCtx != parentCtx) keep the graceful-skip semantics because a
+	// partial measurement is a valid result there.
+	if runCtx == parentCtx && runCtx.Err() != nil {
+		return errorfamily.WrapTransient(runCtx.Err(), "benchkit.not_started",
+			"benchmark context expired before any phase ran")
+	}
+
 	steps := r.phaseSteps()
 
 	phaseNum := 0
