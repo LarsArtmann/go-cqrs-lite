@@ -748,6 +748,20 @@ linters:
           - gocyclo
           - cyclop
           - maintidx
+      # CLI tool (same class as cqrs-lint/cqrs-bench): prints to stdout by
+      # design, runs `go` subprocesses, and its flag-parsed config struct is
+      # populated field-by-field.
+      - path: cmd/cqrs-upgrade/
+        linters:
+          - contextcheck
+          - exhaustruct_v5
+          - forbidigo
+          - gochecknoglobals
+          - gosec
+          - staticcheck
+          - varnamelen
+          - wrapcheck
+          - wsl_v5
       - path: cmd/cqrs-bench/
         linters:
           - errcheck

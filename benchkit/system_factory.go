@@ -3,6 +3,7 @@
 // composition layer. Capabilities system does not expose (the bundle's
 // kv-backed ReadModels) stay nil — the runner skips those phases with
 // recorded warnings instead of silently mis-benchmarking.
+
 package benchkit
 
 import (
