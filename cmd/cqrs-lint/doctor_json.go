@@ -45,7 +45,9 @@ func (m sortedOverrideMap) MarshalJSON() ([]byte, error) {
 			sb.WriteByte(',')
 		}
 
-		fmt.Fprintf(&sb, "%q:%q", k, m[k])
+		if _, err := fmt.Fprintf(&sb, "%q:%q", k, m[k]); err != nil {
+			return nil, err
+		}
 	}
 	sb.WriteByte('}')
 
