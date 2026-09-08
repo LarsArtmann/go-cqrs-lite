@@ -115,7 +115,3 @@ require (
 )
 
 retract v4.7.0 // does not compile: sql/keyset.go:43 assigns undeclared err; use v4.7.1
-
-replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => ../encryption
-
-replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
