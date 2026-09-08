@@ -16,10 +16,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
-	github.com/stretchr/testify v1.12.1 // indirect
-	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
 )
 
 require (
