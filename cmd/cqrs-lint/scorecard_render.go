@@ -257,19 +257,21 @@ func renderScorecardMarkdown(result ScorecardResult) string {
 // info-level results; the adoption summary lives in run.properties so CI
 // scripts can extract coverage metrics without parsing human-readable output.
 func renderScorecardSARIF(result ScorecardResult) (string, error) {
-	props := map[string]any{
-		"coveragePercent": result.Summary.CoveragePercent,
-		"grade":           result.Summary.Grade,
-		"usedCount":       result.Summary.UsedCount,
-		"relevantTotal":   result.Summary.RelevantTotal,
-		"irrelevantCount": result.Summary.IrrelevantCount,
+	props := &sarifProperties{
+		CoveragePercent: result.Summary.CoveragePercent,
+		Grade:           result.Summary.Grade,
+		UsedCount:       result.Summary.UsedCount,
+		RelevantTotal:   result.Summary.RelevantTotal,
+		IrrelevantCount: result.Summary.IrrelevantCount,
 	}
 	if result.Metaengine != nil {
-		props["metaengineDetected"] = result.Metaengine.Detected
+		detected := result.Metaengine.Detected
+		props.MetaengineDetected = &detected
 		if len(result.Metaengine.Engines) > 0 {
-			props["metaengineEngines"] = result.Metaengine.Engines
+			props.MetaengineEngines = result.Metaengine.Engines
 		}
-		props["metaenginePushdownAdopted"] = result.Metaengine.PushdownAdopted
+		adopted := result.Metaengine.PushdownAdopted
+		props.MetaenginePushdownAdopted = &adopted
 	}
 
 	report := sarifReport{
@@ -400,9 +402,24 @@ type sarifResult struct {
 
 type sarifRun struct {
 	Tool             sarifTool              `json:"tool"`
-	Properties       map[string]any         `json:"properties,omitempty"`
+	Properties       *sarifProperties       `json:"properties,omitempty"`
 	LogicalLocations []sarifLogicalLocation `json:"logicalLocations,omitempty"`
 	Results          []sarifResult          `json:"results,omitempty"`
+}
+
+// sarifProperties is run.properties as a fixed-order struct, NOT a map:
+// encoding/json/v2 emits map keys in iteration order (v1 sorted), so a map
+// here made the SARIF byte-nondeterministic for CI consumers that diff
+// reports (same class as the doctor severityOverrides fix, 2026-09-08).
+type sarifProperties struct {
+	CoveragePercent           int      `json:"coveragePercent"`
+	Grade                     string   `json:"grade"`
+	UsedCount                 int      `json:"usedCount"`
+	RelevantTotal             int      `json:"relevantTotal"`
+	IrrelevantCount           int      `json:"irrelevantCount"`
+	MetaengineDetected        *bool    `json:"metaengineDetected,omitempty"`
+	MetaengineEngines         []string `json:"metaengineEngines,omitempty"`
+	MetaenginePushdownAdopted *bool    `json:"metaenginePushdownAdopted,omitempty"`
 }
 
 // sarifLogicalLocation describes a logical component of the analyzed codebase

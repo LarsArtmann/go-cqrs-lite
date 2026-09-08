@@ -346,17 +346,17 @@ func TestRenderSARIF_HasSummary(t *testing.T) {
 		t.Fatal("expected run.properties to be non-nil")
 	}
 
-	if props["coveragePercent"] != float64(50) {
-		t.Errorf("expected coveragePercent 50, got %v", props["coveragePercent"])
+	if props.CoveragePercent != 50 {
+		t.Errorf("expected coveragePercent 50, got %v", props.CoveragePercent)
 	}
-	if props["grade"] != "Fair" {
-		t.Errorf("expected grade Fair, got %v", props["grade"])
+	if props.Grade != "Fair" {
+		t.Errorf("expected grade Fair, got %v", props.Grade)
 	}
-	if props["usedCount"] != float64(5) {
-		t.Errorf("expected usedCount 5, got %v", props["usedCount"])
+	if props.UsedCount != 5 {
+		t.Errorf("expected usedCount 5, got %v", props.UsedCount)
 	}
-	if props["relevantTotal"] != float64(10) {
-		t.Errorf("expected relevantTotal 10, got %v", props["relevantTotal"])
+	if props.RelevantTotal != 10 {
+		t.Errorf("expected relevantTotal 10, got %v", props.RelevantTotal)
 	}
 }
 
@@ -516,21 +516,46 @@ func TestRenderSARIF_MetaengineProperties(t *testing.T) {
 	}
 
 	props := parsed.Runs[0].Properties
-	if props["metaengineDetected"] != true {
-		t.Errorf("expected metaengineDetected true, got %v", props["metaengineDetected"])
+	if props == nil || props.MetaengineDetected == nil || !*props.MetaengineDetected {
+		t.Fatalf("expected metaengineDetected true, got %+v", props)
 	}
-	if props["metaenginePushdownAdopted"] != true {
+	if props.MetaenginePushdownAdopted == nil || !*props.MetaenginePushdownAdopted {
 		t.Errorf(
-			"expected metaenginePushdownAdopted true, got %v",
-			props["metaenginePushdownAdopted"],
+			"expected metaenginePushdownAdopted true, got %+v",
+			props.MetaenginePushdownAdopted,
 		)
 	}
-	engines, ok := props["metaengineEngines"].([]any)
-	if !ok {
-		t.Fatalf("expected metaengineEngines to be a slice, got %T", props["metaengineEngines"])
+	if len(props.MetaengineEngines) != 2 {
+		t.Fatalf("expected 2 engines, got %d", len(props.MetaengineEngines))
 	}
-	if len(engines) != 2 {
-		t.Fatalf("expected 2 engines, got %d", len(engines))
+}
+
+// TestRenderSARIF_DeterministicOutput pins byte-determinism of the SARIF
+// report: encoding/json/v2 emits map keys in iteration order, so any map in
+// the wire structs makes CI consumers' report diffs spurious. properties is
+// a fixed-order struct; this test fails loudly if a map sneaks back in.
+func TestRenderSARIF_DeterministicOutput(t *testing.T) {
+	t.Parallel()
+
+	result := makeTestScorecard()
+	result.Metaengine = &ScorecardMetaengine{
+		Detected:        true,
+		Engines:         []string{"sqlite", "pebble", "bbolt"},
+		PushdownAdopted: true,
+	}
+
+	first, err := renderScorecardSARIF(result)
+	if err != nil {
+		t.Fatalf("renderScorecardSARIF error: %v", err)
+	}
+	for i := range 50 {
+		again, err := renderScorecardSARIF(result)
+		if err != nil {
+			t.Fatalf("render %d error: %v", i, err)
+		}
+		if again != first {
+			t.Fatalf("SARIF output not byte-deterministic (iteration %d differs)", i)
+		}
 	}
 }
 
@@ -551,7 +576,7 @@ func TestRenderSARIF_NoMetaengineProperties(t *testing.T) {
 	}
 
 	props := parsed.Runs[0].Properties
-	if _, exists := props["metaengineDetected"]; exists {
+	if props != nil && props.MetaengineDetected != nil {
 		t.Error("should not have metaengineDetected when Metaengine is nil")
 	}
 }
@@ -646,24 +671,19 @@ func TestScorecard_CrossFormat_MetaengineConsistency(t *testing.T) {
 		}
 
 		props := parsed.Runs[0].Properties
-		if props["metaengineDetected"] != true {
-			t.Errorf("expected metaengineDetected true, got %v", props["metaengineDetected"])
+		if props == nil || props.MetaengineDetected == nil || !*props.MetaengineDetected {
+			t.Errorf("expected metaengineDetected true, got %+v", props)
 		}
 
-		if props["metaenginePushdownAdopted"] != true {
+		if props.MetaenginePushdownAdopted == nil || !*props.MetaenginePushdownAdopted {
 			t.Errorf(
-				"expected metaenginePushdownAdopted true, got %v",
-				props["metaenginePushdownAdopted"],
+				"expected metaenginePushdownAdopted true, got %+v",
+				props.MetaenginePushdownAdopted,
 			)
 		}
 
-		engines, ok := props["metaengineEngines"].([]any)
-		if !ok {
-			t.Fatalf("expected metaengineEngines to be a slice, got %T", props["metaengineEngines"])
-		}
-
-		if len(engines) != 2 {
-			t.Fatalf("expected 2 engines, got %d", len(engines))
+		if len(props.MetaengineEngines) != 2 {
+			t.Fatalf("expected 2 engines, got %d", len(props.MetaengineEngines))
 		}
 	})
 }
