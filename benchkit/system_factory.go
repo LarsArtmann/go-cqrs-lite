@@ -1,4 +1,4 @@
-// System-backed benchmarking: adapt a system.System onto the bundle-shaped
+// System-backed benchmarking (package overview in doc.go): adapt a system onto the bundle-shaped
 // Factory so every existing benchkit phase runs against the strategic
 // composition layer. Capabilities system does not expose (the bundle's
 // kv-backed ReadModels) stay nil — the runner skips those phases with
