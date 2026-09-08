@@ -10,10 +10,10 @@ import (
 
 // bump describes one module version change.
 type bump struct {
-	Module   string
-	From, To string
-	upToDate bool
-	held     bool
+	Module     string
+	From, To   string
+	upToDate   bool
+	held       bool
 	resolveErr error
 }
 

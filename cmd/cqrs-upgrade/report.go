@@ -7,21 +7,45 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-
 	cqrsanalyzer "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	cqrsversion "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/version"
 )
 
 // moduleReport is the per-module result of one upgrade pipeline run. It
-// feeds both the human-readable output and the --json document; the JSON
-// field order below is the wire contract.
+// feeds the human output directly; --json marshals it through moduleJSON.
 type moduleReport struct {
+	Dir          string
+	NoPins       bool
+	Error        string
+	Bumps        []bump
+	Deprecations []findingJSON
+}
+
+// moduleJSON is the stable wire shape of moduleReport; the field order
+// below is the --json contract.
+type moduleJSON struct {
 	Dir          string        `json:"dir"`
 	NoPins       bool          `json:"noPins,omitempty"`
 	Error        string        `json:"error,omitempty"`
 	Bumps        []bumpJSON    `json:"bumps,omitempty"`
 	Deprecations []findingJSON `json:"deprecations,omitempty"`
+}
+
+// toJSON converts the report for the wire, including every bump with its
+// recomputed status.
+func (r moduleReport) toJSON() moduleJSON {
+	out := moduleJSON{
+		Dir:          r.Dir,
+		NoPins:       r.NoPins,
+		Error:        r.Error,
+		Deprecations: r.Deprecations,
+	}
+
+	for _, b := range r.Bumps {
+		out.Bumps = append(out.Bumps, b.toJSON())
+	}
+
+	return out
 }
 
 // bumpJSON is the stable wire shape of one planned version change.
@@ -78,7 +102,7 @@ func deprecationFindings(dir string) []findingJSON {
 	for _, f := range findings {
 		out = append(out, findingJSON{
 			Position: f.Position.String(),
-			Rule:     f.Rule,
+			Rule:     string(f.Rule),
 			Message:  strings.TrimSpace(f.Message),
 		})
 	}

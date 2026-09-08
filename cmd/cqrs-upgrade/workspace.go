@@ -10,9 +10,9 @@ import (
 // skippedDirNames are directory names whose subtrees never contain modules
 // worth upgrading: vendored copies, test fixtures, and VCS metadata.
 var skippedDirNames = map[string]bool{
-	"vendor":     true,
-	"testdata":   true,
-	".git":       true,
+	"vendor":       true,
+	"testdata":     true,
+	".git":         true,
 	"node_modules": true,
 }
 
