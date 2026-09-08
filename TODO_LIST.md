@@ -8,6 +8,12 @@ and its entry is deleted from this file. Historical session reports live under
 2026-08-29, 2026-09-06 ×2, and 2026-09-08). The Declined section at the
 bottom is a do-not-re-litigate guard, not a backlog.
 
+> **Prioritized execution plan (2026-09-08):**
+> [`docs/planning/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`](docs/planning/2026-09-08_17-45_SUPERB-pareto-execution-plan.md)
+> ranks this entire list into Pareto waves (W0 release train → W1 trust →
+> W2 efficiency → W3 v5 train) with 27 medium tasks and a ≤12-minute micro
+> breakdown. This file remains the living source of truth.
+
 ## Legend
 
 - `[ ]` = Open
@@ -380,6 +386,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
       2026-09-08 rename must not silently rot back; the RULES.md completeness
       meta-test is the pattern). — source: archived 07-48 §f4
       _(Effort: XS)_
+- [ ] 🔥 **json/v2 map-order determinism sweep** — `encoding/json/v2` emits
+      map iteration order (v1 sorted); the doctor JSON `severityOverrides`
+      surface was fixed 2026-09-08 (sorted-key marshaler) but the CLASS was
+      not swept: grep every JSON-marshaled `map[string]…` field on exported
+      surfaces (doctor/scorecard/SARIF/rules --json, catalog exporters) and
+      make each deterministic or test-pin the order. — source: docs-health
+      pass 2026-09-08 (e-6 of its status report)
+      _(Effort: S/M)_
 - [ ] **`example/metaengine-quickstart/README.md` does not exist** — author it
       from its four demo sections (docs/README.md links the directory; the
       copy-paste surface is missing its page). Consider a
