@@ -1,10 +1,12 @@
-# PR #8257 COMMENT DRAFT (concise — for review, not yet posted)
+# PR #8257 COMMENT (POSTED 2026-09-07)
 
-> **Status**: DRAFT. Post after approval via:
-> `gh pr comment 8257 --repo tursodatabase/turso --body-file <this-file.md>`
-> Full characterization lives in
-> `2026-09-07_turso-go-ivm-commit-failure-issue-draft.md` (linked from the
-> comment instead of pasted).
+> **Status**: POSTED at
+> https://github.com/tursodatabase/turso/pull/8257#issuecomment-5576078646
+> (posted under @LarsArtmann with the AI disclosure line up front).
+> Note: the permalink inside points at commit `1c9f3bf` because the
+> divergence-containing draft revision was local-only at posting time —
+> after the next push, the comment link can be edited to the newer SHA
+> (`18b2c495c`) with the full three-defect characterization.
 
 ---
 

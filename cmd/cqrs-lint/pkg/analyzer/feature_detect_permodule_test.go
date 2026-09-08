@@ -168,3 +168,32 @@ func TestBuildContext_SingleModuleUnchangedByPerModule(t *testing.T) {
 		t.Errorf("single-module fallback HasServer = false, want true")
 	}
 }
+
+// T20-3: a package importing two different stack presets used to resolve its
+// store in pkg.Imports map order — nondeterministic across runs. The scan now
+// iterates sorted with a first-wins guard, so the smallest import path
+// (stack/postgres) must win and every run must agree.
+func TestDetectFeatureSignals_MultiPresetStoreDeterministic(t *testing.T) {
+	t.Parallel()
+
+	newPkgs := func() []*packages.Package {
+		return []*packages.Package{pkgWithImports(
+			"example.com/consumer",
+			"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4",
+			"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4",
+		)}
+	}
+
+	const runs = 40
+	first := detectFeatureSignals(newPkgs(), nil, NewCQRSRegistry()).Store
+	for range runs - 1 {
+		got := detectFeatureSignals(newPkgs(), nil, NewCQRSRegistry()).Store
+		if got != first {
+			t.Fatalf("store resolution nondeterministic across %d runs: %q then %q", runs, first, got)
+		}
+	}
+
+	if first != StorePostgres {
+		t.Fatalf("multi-preset store = %s, want postgres (sorted first-wins)", first)
+	}
+}

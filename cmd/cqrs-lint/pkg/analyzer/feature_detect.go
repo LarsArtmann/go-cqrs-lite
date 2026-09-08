@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"maps"
 	"slices"
 	"strings"
 
@@ -69,15 +70,21 @@ func detectFeatureSignals(
 	hasHTTPFramework := false
 
 	// Pass 1: import-based detection (store, tracing, snapshot presence).
-	for _, pkg := range pkgs {
+	// Iterate in sorted order (packages and imports): pkg.Imports is a Go map,
+	// and first-wins store resolution below is only deterministic when the
+	// visit order is (T20-3).
+	sortedPkgs := slices.Clone(pkgs)
+	slices.SortFunc(sortedPkgs, func(a, b *packages.Package) int {
+		return strings.Compare(a.PkgPath, b.PkgPath)
+	})
+	for _, pkg := range sortedPkgs {
 		if len(pkg.Errors) > 0 {
 			continue
 		}
-		for _, imp := range pkg.Imports {
-			if imp == nil {
+		for _, path := range slices.Sorted(maps.Keys(pkg.Imports)) {
+			if pkg.Imports[path] == nil {
 				continue
 			}
-			path := imp.PkgPath
 			detectImports(path, &fp, &hasSQLiteImport, &hasOTelImport, &hasSnapshotImport)
 		}
 	}
@@ -167,25 +174,32 @@ func detectImports(
 	fp *FeatureProfile,
 	hasSQLiteImport, hasOTelImport, hasSnapshotImport *bool,
 ) {
-	if strings.Contains(path, "go-cqrs-lite/stack/sqlite") {
-		fp.Store = StoreSQLite
-	} else if strings.Contains(path, "go-cqrs-lite/stack/postgres") {
-		fp.Store = StorePostgres
-	} else if strings.Contains(path, "go-cqrs-lite/stack/mysql") {
-		fp.Store = StoreMySQL
-	} else if strings.Contains(path, "go-cqrs-lite/stack/pebble") {
-		fp.Store = StorePebble
-	} else if strings.Contains(path, "go-cqrs-lite/stack/memory") {
-		fp.Store = StoreMemory
-	} else if strings.Contains(path, "go-cqrs-lite/stack/turso") {
-		fp.Store = StoreTurso
-	} else if strings.Contains(path, "go-cqrs-lite/stack/duckdb") {
-		fp.Store = StoreDuckDB
-	} else if strings.Contains(path, "go-cqrs-lite/stack/bbolt") {
-		fp.Store = StoreBolt
-	} else if strings.Contains(path, "go-cqrs-lite/storage/") &&
-		fp.Store == StoreUnknown {
-		fp.Store = StoreCustom
+	// Stack presets are explicit deployment choices; first-wins (the caller
+	// iterates imports in sorted order) so a package importing two presets
+	// resolves deterministically instead of overwriting in map order (T20-3).
+	// StoreNone is unreachable mid-pass (assigned after all imports), kept in
+	// the guard for symmetry with the metaengine branch below.
+	if fp.Store == StoreUnknown || fp.Store == StoreNone {
+		switch {
+		case strings.Contains(path, "go-cqrs-lite/stack/sqlite"):
+			fp.Store = StoreSQLite
+		case strings.Contains(path, "go-cqrs-lite/stack/postgres"):
+			fp.Store = StorePostgres
+		case strings.Contains(path, "go-cqrs-lite/stack/mysql"):
+			fp.Store = StoreMySQL
+		case strings.Contains(path, "go-cqrs-lite/stack/pebble"):
+			fp.Store = StorePebble
+		case strings.Contains(path, "go-cqrs-lite/stack/memory"):
+			fp.Store = StoreMemory
+		case strings.Contains(path, "go-cqrs-lite/stack/turso"):
+			fp.Store = StoreTurso
+		case strings.Contains(path, "go-cqrs-lite/stack/duckdb"):
+			fp.Store = StoreDuckDB
+		case strings.Contains(path, "go-cqrs-lite/stack/bbolt"):
+			fp.Store = StoreBolt
+		case strings.Contains(path, "go-cqrs-lite/storage/"):
+			fp.Store = StoreCustom
+		}
 	}
 
 	if strings.Contains(path, "mattn/go-sqlite3") ||
