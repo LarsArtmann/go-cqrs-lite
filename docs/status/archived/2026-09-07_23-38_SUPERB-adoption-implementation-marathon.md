@@ -13,7 +13,7 @@
 > Foreign-repo items (appkit/FIR/cqrs-htmx/dependency-graph §f31-45) are
 > owned by those repos' TODO_LISTs (the marathon routed them there).
 
-**Date:** 2026-09-07 23:38 · **Scope:** this session only (SUPERB plan execution across 5 repos) · **Companion plan:** [`docs/planning/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md`](../planning/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md) (§8 has the per-task status table)
+**Date:** 2026-09-07 23:38 · **Scope:** this session only (SUPERB plan execution across 5 repos) · **Companion plan:** [`docs/planning/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md`](../../planning/archived/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md) (§8 has the per-task status table)
 
 ---
 

@@ -21,8 +21,19 @@ rebuilt TODO_LIST (817→452 lines). The evening pass harvested + inline-
 annotated all ten 2026-09-06 session reports (02:40→15:09) plus the cqrs-lint
 pareto plan (79 table rows struck), archived them (11 files), added the
 missing CHANGELOG `[Unreleased]` wave entries, and extended FEATURES/ROADMAP.
-New reports land here unarchived; the next docs-health pass harvests their
-forward-looking sections into TODO_LIST/ROADMAP, then archives them.
+
+**2026-09-08 pass:** harvested + inline-annotated all thirteen 2026-09-07/08
+status reports plus the SUPERB adoption plan + T01 migration note (15 files
+archived), rebuilt TODO_LIST (677→~570 lines, zero completed items), added
+the missing CHANGELOG entries for the tagged-but-undocumented `otel/v4.4.0` +
+`cmd/cqrs-upgrade/v4.0.0` + benchkit system harness, fixed FEATURES (stale
+"MySQL claiming rejected" row, missing cqrs-upgrade/matview/turso-encryption
+rows, cqrs-bench `/v4` path), README (8 presets incl. bbolt), ROADMAP
+([Unreleased] history refreshed through the 09-08 waves), and the skill
+references (modules.md cqrs-upgrade + tursoengine rows + a corrupted
+mysqlengine row, readmodels.md matview section). New reports land here
+unarchived; the next docs-health pass harvests their forward-looking
+sections into TODO_LIST/ROADMAP, then archives them.
 
 ## What this means
 
