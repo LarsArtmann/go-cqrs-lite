@@ -94,6 +94,7 @@ LAYER["example/taskmanager"]=7
 LAYER["example/getting-started"]=7
 LAYER["example/readme-quickstart"]=7
 LAYER["example/metaengine-quickstart"]=7
+LAYER["cmd/cqrs-lint/testdata/typedfixture"]=7
 LAYER["event/v4/eventtest"]=7
 LAYER["testutil/pgtestcontainer"]=5
 # testutil is test-only infrastructure used from _test.go files across layers.
@@ -262,13 +263,19 @@ DEP_BUDGET["cmd/cqrs-gen"]=2
 DEP_BUDGET["cmd/cqrs-lint"]=8
 # metaengine/v4 added for the `cqrs-bench layout` planning CLI.
 DEP_BUDGET["cmd/cqrs-bench"]=19
-DEP_BUDGET["cmd/cqrs-upgrade"]=2
+# cqrs-upgrade: cqrs-lint (in-process V007 engine), go-finding (rendering),
+# x/mod (semver parsing) — all three are the tool's job.
+DEP_BUDGET["cmd/cqrs-upgrade"]=3
 DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
 DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
 DEP_BUDGET["example/readme-quickstart"]=6
-DEP_BUDGET["example/metaengine-quickstart"]=5
+# metaengine-quickstart demos the full strategic surface: system + metaengine
+# + sqliteengine + projectionadapter + event/id/record — 7 first-party deps
+# is the honest count for a composition example.
+DEP_BUDGET["example/metaengine-quickstart"]=7
+DEP_BUDGET["cmd/cqrs-lint/testdata/typedfixture"]=1
 DEP_BUDGET["event/v4/eventtest"]=5
 DEP_BUDGET[record]=0
 DEP_BUDGET["testutil/pgtestcontainer"]=3
