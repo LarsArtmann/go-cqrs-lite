@@ -1,5 +1,14 @@
 # Status: errorfamily code rename `aggregate_*` → `stream_*` (v5 batch)
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Task complete —
+> see CHANGELOG `[Unreleased]` "error-family codes renamed to stream
+> vocabulary" for the shipped entry, and the companion self-review
+> `docs/status/archived/2026-09-08_07-48_self-review-errorfamily-code-rename.md`
+> (whose open follow-ups — pin-sweep standing step, aggregate-code tripwire,
+> sweep-census extensions — were harvested into TODO_LIST on 2026-09-08).
+> The "Explicitly NOT in scope" items below remain open in TODO_LIST → v5
+> Unification → "Rest of sweep §4".
+
 **Date:** 2026-09-08 06:10
 **Task:** TODO_LIST "errorfamily code rename `aggregate_*` → `stream_*`"
 (source: session-4 retro §f30; deferred 2026-09-07 by the correctness batch)

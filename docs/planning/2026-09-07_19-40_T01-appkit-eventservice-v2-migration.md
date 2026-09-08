@@ -1,5 +1,10 @@
 # T01 — go-appkit EventService v2 migration decision note
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Decision EXECUTED
+> same-day as go-appkit/cqrs v0.5.0 (see §8 row T01–T05 in
+> `docs/planning/archived/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md`).
+> Retained as the canonical v1→v2 mapping reference.
+
 **Date:** 2026-09-07 · **Status:** DECIDED (executed as go-appkit/cqrs v0.5.0) · **Input:** SUPERB plan T01
 
 Verified 2026-09-07 at source level: `Bundle()`/`SQLitePath` usage is fully contained in

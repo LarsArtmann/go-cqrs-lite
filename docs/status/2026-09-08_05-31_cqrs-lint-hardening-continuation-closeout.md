@@ -1,5 +1,14 @@
 # cqrs-lint Hardening Continuation — Closeout Report
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** This batch closed
+> session-3's items 1–3/6–13/24/47/50 (that report is annotated accordingly).
+> Harvest done: the open remainder (f1 `IsQualifierFor` sweep, f2 doctor-JSON
+> pre-merge ruling [BLOCKED], f3 ApplyLayout, f4/f5 F091 Tier 2 + F090(b),
+> f7 fixture module, f8 stack/sqlite v4.3.1, f9 completeness meta-tests,
+> f11 check-coverage, family audits, release/blocked items) lives in
+> TODO_LIST → cqrs-lint / Release / CI. f6 (amend the T20/T21 report's
+> T20-3 note) done inline by this pass. Struck below where closed.
+
 **Date:** 2026-09-08 05:31 CEST
 **Scope:** the continuation work queued by the session-3 closeout
 (`docs/status/2026-09-07_23-10_cqrs-lint-hardening-session3-closeout.md`):
@@ -291,8 +300,9 @@ Nothing destructive or dishonest, but a real list:
 4. Item 4: F091 Tier 2 — C008 payload-flow confirmation behind
    `--typed-info=auto`.
 5. Item 5: F090(b) — typed dot-import attribution on the Tier-1 machinery.
-6. Amend the T20/T21 review report's T20-3 note (sorted iteration is the
-   determinism, not the guard alone).
+6. ~~Amend the T20/T21 review report's T20-3 note (sorted iteration is the
+   determinism, not the guard alone).~~ done 2026-09-08 (docs-health pass
+   amended the archived T20/T21 report's T20-3 heading with the correction)
 7. Item 14: commit a replace-based end-to-end fixture module for
    typed-path rules (schema/v4-based).
 8. Item 15: file the `stack/sqlite` published-pin breakage
@@ -300,8 +310,10 @@ Nothing destructive or dishonest, but a real list:
    issue.
 9. Item 16: extend the completeness-meta-test pattern to
    `consumerOnlyRules` and preset disable lists.
-10. Confirm `**/RULES.md` survives the next daemon commit cycle (dprint
-    exclude should hold — verify once, then stop watching it).
+10. ~~Confirm `**/RULES.md` survives the next daemon commit cycle (dprint
+    exclude should hold — verify once, then stop watching it).~~ closed by
+    mechanism: `**/RULES.md` + `**/CHANGELOG.md` are dprint-excluded and the
+    freshness meta-test is the standing verifier (no manual watching needed)
 11. Run `nix run .#check-coverage` for this batch (item 26 remainder).
 12. Single-source the engine-name list: `metaengineEngineFromImport` and
     the engine→store switch duplicate the ten engine strings; the table

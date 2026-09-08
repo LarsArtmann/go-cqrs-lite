@@ -1,5 +1,13 @@
 # Status Report — Metaengine Correctness Batch Closure + Session Honesty Review
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Harvest done:
+> every open §f item now lives in TODO_LIST ("Metaengine — follow-ups",
+> "Release / Tagging", "CI / Infrastructure") — including the still-open RED
+> item §b1/§f1 (iroh GOWORK=off standalone pin break), which is TODO_LIST's
+> top release item. §g questions remain pending user input (Q1/Q2 recorded
+> as TODO_LIST [BLOCKED]; Q3 MariaDB retention — /tmp datadir is volatile,
+> treat as gone). Struck below where closed.
+
 **Date:** 2026-09-08 04:35 CEST
 **Scope of this report:** the metaengine correctness & verification TODO batch (11 items) across the 2026-09-07 evening session + the 2026-09-08 continuation (~00:00–03:30 CEST), plus a brutal self-review of exactly that work. No unrelated subsystems were researched.
 **Format note:** written as `.md` per explicit user instruction — the status-report skill's canonical format is styled HTML; this is a flagged one-off override, not a new default.
@@ -95,7 +103,7 @@ Prioritized; impact-first within each tier. Items 1–8 derive directly from thi
 
 1. Resolve the GOWORK=off CI breakage for the 2 new iroh tests: publish irohengine v4.2.0 (graph WriteOp convergence + capability conformance) and bump loopback/quic go.mod pins, or capability-probe skip-guard the tests (decide via §g-style question: publish now vs guard now).
 2. Verify quic module `GOWORK=off go build ./...` with the new test file (cheap check; may already fail at compile).
-3. Identify the owner of the dirty `.art-dupl-baseline.json` re-pin (02:30Z) and either commit it with a rationale or revert it; re-affirm the annotations-over-repin policy.
+3. ~~Identify the owner of the dirty `.art-dupl-baseline.json` re-pin (02:30Z) and either commit it with a rationale or revert it; re-affirm the annotations-over-repin policy.~~ resolved — the re-pin was the continuation session's foreign-group absorption (attributed via git log in the 05-31 cqrs-lint report §a1, 133 groups, gate green)
 4. Run `nix run .#verify` once on a quiet machine to convert the batch's per-module greens into the aggregate green (and catch any cross-module fall-out of the enginetest/keycodec changes).
 5. Build + lint `metaengine/bench` (touched-module list member, never verified this session).
 6. Run full duckdbengine + sqliteengine module suites once (only targeted tests ran this continuation).
@@ -130,8 +138,8 @@ Prioritized; impact-first within each tier. Items 1–8 derive directly from thi
 31. `namedEngines` helper panics instead of taking `*testing.T` — take `t` and `t.Fatalf` (style; gocognit didn't flag).
 32. `TestPlan_EqualLatencyTieBreakIsDeterministic`'s stable-vs-unstable blind spot (b7): either accept + document (current) or build an n≥12 shuffled-candidates harness where pdqsort instability is observable.
 33. CHANGELOG: decide policy for test/doc-only additions (currently omitted); if omitted-by-rule, write the rule into CONTRIBUTING.md.
-34. docs-health HARVEST: actually run it against this report's §f and the 22:33 §f (two backlogs now exist in timestamped files; TODO_LIST should own them).
-35. Retire the superseded addendum duplication: the 22:33 report's §f items now partially duplicated here — HARVEST should mark the older list annotated/moved.
+34. ~~docs-health HARVEST: actually run it against this report's §f and the 22:33 §f (two backlogs now exist in timestamped files; TODO_LIST should own them).~~ done 2026-09-08 docs pass
+35. ~~Retire the superseded addendum duplication: the 22:33 report's §f items now partially duplicated here — HARVEST should mark the older list annotated/moved.~~ done 2026-09-08 (22:33 annotated + archived with this pass)
 36. `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md` (foreign workstream): ready-to-file upstream draft — needs the verify-before-filing pass and actual filing; blocked on owner.
 37. Turso upstream: track the ~27k IVM commit wall + grouped-view SUM divergence upstream (two known bugs now drafted); add upstream-issue links back into AGENTS gotchas when filed.
 38. pebble `layout_planner.go`/`vector.go` gopls "requires go1.27" warnings: benign (toolchain noise) but 3 files trip them every session — a `//go:build` note or toolchain bump in that module would silence the ambient noise.
@@ -143,7 +151,7 @@ Prioritized; impact-first within each tier. Items 1–8 derive directly from thi
 42. `engine.go` (iroh) at 281 lines — next op kind lands comfortably, but note the next natural split (`engine_set.go`-style grouping) before it re-approaches 350.
 43. `keycodec.SeqTailLen` doc comment says 20-digit+NUL layout; the tests pin 21 — re-read both and make comment/test wording identical (they agree numerically; wording says "20-digit" in one place).
 44. Add `-count=3 -race` recurrence note for the iroh family to the AGENTS testing section (it passed; record the cadence so it stays a habit).
-45. Delete or archive `docs/status/2026-09-07_22-33_*` §f once HARVEST lands (avoid three living backlogs).
+45. ~~Delete or archive `docs/status/2026-09-07_22-33_*` §f once HARVEST lands (avoid three living backlogs).~~ done 2026-09-08 (this pass)
 46. `.golangci.yml` depguard: no new deps were added this session (verify stayed true — quick `check-arch` run would confirm).
 47. Run `nix run .#vulncheck` at the next tag wave (not due now; scheduled reminder).
 48. The `manualClock`/`newManualClock` pattern now exists in irohengine_test — consider promoting to a tiny exported testutil if a fourth transport module needs deterministic clocks.

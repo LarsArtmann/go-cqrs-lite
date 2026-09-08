@@ -1,5 +1,13 @@
 # Self-Review + Status: errorfamily code rename session
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Harvest done: the
+> open perimeter (f1 verify — run by the 09-08 docs pass on its own diff;
+> f2 pin-sweep standing step → TODO_LIST Release; f4 aggregate-code
+> tripwire → TODO_LIST Code Quality; f5 sibling grep + f6 pebble slog keys
+> → TODO_LIST v5 sweep-§4 item; f23 error-taxonomy check → TODO_LIST Docs;
+> f7-13 sweep batches → TODO_LIST v5; f19 iroh → TODO_LIST Release top
+> item). f24 (untrack the 10MB binary) done by the docs pass itself.
+
 **Date:** 2026-09-08 07:48
 **Session:** Executed TODO_LIST "errorfamily code rename `aggregate_*` → `stream_*`"
 (session-4 retro §f30, v5 item). Prior report:
@@ -151,7 +159,8 @@
     all; extend if the doc aspires to completeness.
 
 **Hygiene**
-24. Untrack `cmd/cqrs-upgrade/cqrs-upgrade` (10MB binary in git history).
+24. ~~Untrack `cmd/cqrs-upgrade/cqrs-upgrade` (10MB binary in git history).~~
+    done 2026-09-08 (docs-health pass: `git rm --cached` + .gitignore)
 25. CHANGELOG mapping-table column alignment cosmetic pass.
 
 ## g) QUESTIONS (cannot be answered from the repo)

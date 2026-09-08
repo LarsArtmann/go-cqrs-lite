@@ -1,5 +1,14 @@
 # Status Report — Docs-Health Evening Pass: Self-Review (What Was Forgotten, What Could Be Better)
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Superseded by the
+> 2026-09-08 pass (the fourth). Disposition of §f: items 9–13, 25, 26 struck
+> below (executed 2026-09-07/08 — see CHANGELOG `[Unreleased]`); the routed
+> remainder was re-harvested and lives in the current TODO_LIST; items that
+> only made sense for closing THAT pass (2, 3, 7) or belong to skill
+> maintenance (50) are consciously dropped here — the skill-local-notes
+> ask was satisfied by the AGENTS.md edit-discipline rules this repo already
+> carries.
+
 **Date:** 2026-09-06 16:04 CEST
 **Session window:** ~15:20 → 16:04 CEST (one continuous docs-health AUDIT pass)
 **Mandate:** "View ALL `**/2026-0*` files! Execute the docs-health SKILL!
@@ -282,16 +291,17 @@ propagated back into the skill.
    f4, still only spot-fixed). Impact M, Effort S, Documentation.
 
 **Routed execution — already in TODO_LIST with sources (9–28):**
-9. Metaengine observe-before-claim set (Doctor planned-tables on
-sqlite+duckdb; matrix legs; BackfillPlannedCollection e2e; lying-engine
-correlation). H/M, Quality.
-10. `ApplyBatch` honors `EventInput.Record` via `applyWithRecord` (or
-document the dead field). H/S, Bug.
-11. `recordAwareEvents` cache invalidation on RegisterQuery. M/S, Bug.
-12. MySQL claiming tail (RenewLease test, version probe decision, nix
-wiring, README matrix). M/M, Quality.
-13. Dgraph calibration completion (pins, point-lookup model decision,
-SearchQuery bench, DSN-guarded dumps). M/M, Quality.
+9. ~~Metaengine observe-before-claim set (Doctor planned-tables on
+   sqlite+duckdb; matrix legs; BackfillPlannedCollection e2e; lying-engine
+   correlation).~~ done 2026-09-07 (archived 22-33 §a6)
+10. ~~`ApplyBatch` honors `EventInput.Record` via `applyWithRecord` (or
+    document the dead field).~~ done 2026-09-07 (archived 22-33 §a1)
+11. ~~`recordAwareEvents` cache invalidation on RegisterQuery.~~ done
+    2026-09-07 (archived 22-33 §a2)
+12. ~~MySQL claiming tail (RenewLease test, version probe decision, nix
+    wiring, README matrix).~~ done 2026-09-07 (archived 22-33 §a7)
+13. ~~Dgraph calibration completion (pins, point-lookup model decision,
+    SearchQuery bench, DSN-guarded dumps).~~ done 2026-09-07 (archived 22-33 §a8)
 14. Skill-reference propagation wave (envelope v2 + rotation recipe, doctor
 JSON, check apps, claiming matrix, planned-table roster, CALIB_DUMP,
 pre-v5 snapshot decode recipe). H/M, Documentation.
@@ -312,14 +322,16 @@ scheduling/sqlstore lint findings. M/S, Quality.
 M/S-M, Tooling.
 23. exhaustruct_v5 canary + deprecated-linter-name golden. M/S, Tooling.
 24. templ tripwire script (FileName metadata cwd check). L/S, Tooling.
-25. `metaengine.SortPaginate[T]` unit test + zero-alloc pin; keycodec
-seq-seed extraction + layout round-trip pin. L/S, Quality.
-26. duckdbengine restart-safety adoption (unblocked now). M/S, Quality.
-27. iroh coverage holes (graphless remove pin, record-but-skip path,
-non-string endpoints, loopback/quic race ×3, applyRemote extraction).
-M/M, Quality.
-28. Structural load-robustness for benchkit + system/v4 flaky classes
-(vis-key pattern). H/M, Quality.
+25. ~~`metaengine.SortPaginate[T]` unit test + zero-alloc pin; keycodec
+   seq-seed extraction + layout round-trip pin.~~ done 2026-09-07 (archived
+   22-33 §a3/§a4)
+26. ~~duckdbengine restart-safety adoption (unblocked now).~~ done
+   2026-09-07 (archived 22-33 §a5)
+27. ~~iroh coverage holes (graphless remove pin, record-but-skip path,
+   non-string endpoints, loopback/quic race ×3, applyRemote extraction).~~
+   done 2026-09-08 (archived 22-33 addendum item 10)
+28. ~~Structural load-robustness for benchkit + system/v4 flaky classes
+   (vis-key pattern).~~ done 2026-09-07 (session-3 closeout §a10)
 
 **Release train (29–34):**
 29. Next v4 tag wave (incl. strip `storage/go.mod` replaces; badger

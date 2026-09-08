@@ -1,5 +1,14 @@
 # Status Report: Turso Materialized Views — Upstream Research, PR #8257 Comment, Silent-Divergence Discovery
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** The upstream work
+> (research, comment, divergence characterization, in-repo hardening)
+> shipped; the blocked handoffs (file the A+B issue, push + re-link the
+> comment, track releases) live in TODO_LIST → "Turso materialized views
+> (ADR-0135)". Struck below where closed: f38 (TODO reconcile — done by
+> this pass), f39 (archive the 19-25 report — done by this pass), f44
+> (check-arch entries — registered by the cqrs-upgrade session), f49
+> (SKILL.md matrix caveat — added by this pass).
+
 - **Date**: 2026-09-08 05:33 CEST
 - **Session part**: continuation of the 2026-09-07 matview session (feature
   shipped + benched there; see
@@ -220,10 +229,11 @@ table staleness trap.
 **Repo hygiene**
 36. Tag wave: bump pins, strip replaces (sqliteengine/tursoengine/system).
 37. cqrs-lint taskmanager golden refresh in the same wave (V006 coupling).
-38. TODO_LIST: add the items from the 2026-09-07 status report's §f that
-are still missing there (this report supersedes that list — reconcile).
-39. Archive the 2026-09-07 status report per docs-health conventions when
-the next docs pass runs.
+38. ~~TODO_LIST: add the items from the 2026-09-07 status report's §f that
+  are still missing there (this report supersedes that list — reconcile).~~
+  done 2026-09-08 docs pass (safety tail + v2 surface routed)
+39. ~~Archive the 2026-09-07 status report per docs-health conventions when
+  the next docs pass runs.~~ done 2026-09-08 (this pass)
 40. docs-site page for the operator option + the correctness warning.
 41. FAQ entry: "why is my grouped matview aggregate wrong?" → Doctor WARN +
 upstream issue link once filed.
@@ -231,9 +241,10 @@ upstream issue link once filed.
 view acceleration.
 43. Sweep the `.art-dupl-baseline.json` re-pin into a titled commit message
 if the daemon's heuristic commit bothers anyone (it's documented).
-44. Foreign session: `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries still
-missing (check-arch still red on their files) + their committed 10.7 MB
-binary — flag to that session's owner.
+44. ~~Foreign session: `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries still
+  missing (check-arch still red on their files) + their committed 10.7 MB
+  binary — flag to that session's owner.~~ done — the cqrs-upgrade session
+  registered all 4 meta-gates (SUPERB §a5); binary untracked 2026-09-08
 45. Confirm `#verify-ci` includes the new test files (it should; one check).
 46. Consider CI leg running the ivmrepro-tagged test against new tursogo
 pre-releases (early-warning for the fix landing).
@@ -241,10 +252,11 @@ pre-releases (early-warning for the fix landing).
 follow-ups.
 48. Re-pin the duplication baseline only via titled commits going forward
 (per the gotcha's spirit).
-49. Update SKILL.md read-model matrix row with the grouped-view caveat
-(currently only recipes carry it).
-50. Reconcile this report's §f with TODO_LIST so exactly one list is
-canonical (TODO_LIST wins; this report is point-in-time).
+49. ~~Update SKILL.md read-model matrix row with the grouped-view caveat
+  (currently only recipes carry it).~~ done 2026-09-08 (docs-health pass)
+50. ~~Reconcile this report's §f with TODO_LIST so exactly one list is
+  canonical (TODO_LIST wins; this report is point-in-time).~~ done
+  2026-09-08 docs pass
 
 ## g) QUESTIONS (cannot answer from the repo myself)
 

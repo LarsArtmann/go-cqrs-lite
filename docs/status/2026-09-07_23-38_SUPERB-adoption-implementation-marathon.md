@@ -1,5 +1,18 @@
 # Status: SUPERB Adoption Plan — Same-Day Implementation Marathon
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** The plan's §8
+> status table (in the archived plan,
+> `docs/planning/archived/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md`)
+> dispositions all 29 tasks. go-cqrs-lite follow-through closed by the docs
+> pass: f3 (root CHANGELOG entries for cqrs-upgrade/otel/benchkit — added),
+> f4 (modules.md cqrs-upgrade row — added), f6 (benchkit doc.go stale claim
+> — fixed), plus the 10MB `cmd/cqrs-upgrade` binary untracked (flagged in
+> §d10). Still open in TODO_LIST: f2
+> (`stack/sqlite/v4.3.1` patch tag), f14-17 (system/v4.7.0 + MV recipe
+> marker — folded into the tag-wave item), cqrs-upgrade growth (f18-23).
+> Foreign-repo items (appkit/FIR/cqrs-htmx/dependency-graph §f31-45) are
+> owned by those repos' TODO_LISTs (the marathon routed them there).
+
 **Date:** 2026-09-07 23:38 · **Scope:** this session only (SUPERB plan execution across 5 repos) · **Companion plan:** [`docs/planning/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md`](../planning/2026-09-07_17-25_SUPERB-full-adoption-system-onramp.md) (§8 has the per-task status table)
 
 ---
@@ -89,10 +102,10 @@ What follows is the honest ledger — including what I forgot, what I would redo
 
 1. Run `nix run .#verify` (full workspace gate) on go-cqrs-lite master as it stands.
 2. Fix `stack/sqlite v4.3.0`'s incompatible stack pin: cut `stack/sqlite/v4.3.1` re-pinned to `stack/v4 v4.3.0` (the break cqrs-upgrade found).
-3. Add the root CHANGELOG `[Unreleased]` entries for cqrs-upgrade, benchkit adapter, otel fix; run `check-changelog-symbols.sh`.
-4. Add `cmd/cqrs-upgrade` to the skill `modules.md` module map + doc-check.
+3. ~~Add the root CHANGELOG `[Unreleased]` entries for cqrs-upgrade, benchkit adapter, otel fix; run `check-changelog-symbols.sh`.~~ done 2026-09-08 (docs pass; gate green, 178 citations)
+4. ~~Add `cmd/cqrs-upgrade` to the skill `modules.md` module map + doc-check.~~ done 2026-09-08 (docs pass)
 5. Update appkit AGENTS.md (cqrs v0.5.0 wave, CI now exists, BuildFlow note) and FIR AGENTS.md (operator seam).
-6. Update benchkit doc.go/README for the system adapter (the "targets *stack.Bundle" claim is stale).
+6. ~~Update benchkit doc.go/README for the system adapter (the "targets *stack.Bundle" claim is stale).~~ done 2026-09-08 (docs pass — doc.go now leads with Bundle + System)
 7. Bump appkit `integration/` module to cqrs v0.5.0 so E2E tests the current surface.
 8. Run `check-workspace-sync` + `check-arch` (benchkit gained system/v4; verify budget/layer gates agree).
 9. actionlint both new CI workflows; run the appkit proxy-smoke job's commands locally once.

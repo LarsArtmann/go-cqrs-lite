@@ -1,5 +1,17 @@
 # Status Report: Turso Materialized Views as an Operator Option (ADR-0135)
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** The feature shipped
+> and its follow-through landed across the successor sessions (upstream
+> research + PR #8257 comment + Doctor grouped-spec WARN on 09-08 — see
+> `docs/status/archived/2026-09-08_05-33_turso-matview-upstream-research-and-pr-comment.md`).
+> b4/b6 (upstream bug characterized; ADR wording reconciled to the
+> probabilistic-honest version) closed there. Resolved f-items struck below
+> (19 posted-comment, 39 binary untracked, 40 layer entries, 41 TODO_LIST,
+> 48 modules.md coverage via the 09-08 pass). The open safety tail (Doctor
+> tests, matViewDDL golden, bench-regression extension, grouped guard
+> decision, tag wave, v2 surface) lives in TODO_LIST → "Turso materialized
+> views (ADR-0135)".
+
 - **Date**: 2026-09-07 19:25 CEST
 - **Session scope**: Leverage Turso `CREATE MATERIALIZED VIEW` (IVM) as a
   metaengine **operator option** + FULL benchmarks
@@ -83,19 +95,19 @@
 3. **Doctor observability** — implemented and wired, but has **zero
    dedicated tests** (no test asserts the rendered "Materialized views"
    section content; only indirect `TestDoctor*` suites passed).
-4. **Upstream issue** — repro + characterization ready (AGENTS.md), **not
-   filed** with tursodatabase/turso (repo-external action awaits decision).
-5. **Pin/replace hygiene** — tursoengine (+2 replaces) and system (+2
-   replaces) carry unpublished-symbol replaces per repo convention; pins NOT
-   bumped and replaces NOT stripped (tag-wave work), and this handover is
-   NOT recorded in TODO_LIST.md.
-6. **AGENTS.md gotcha precision** — the text's thresholds ("≥ ~5k
-   statements", "≥ ~6 views", "chunked ≤1k unaffected") are more confident
-   than the evidence: the failure is probabilistic; chunking is necessary
-   but NOT sufficient above ~30k cumulative view-maintained writes
-   (100k×1-view chunked failed at chunk ~31). ADR wording and bench-doc
-   wording disagree slightly in emphasis; should be reconciled to the
-   bench-doc (more honest) version.
+4. ~~**Upstream issue** — repro + characterization ready (AGENTS.md), **not
+   filed** with tursodatabase/turso (repo-external action awaits decision).~~
+   superseded 2026-09-08: COMMIT-abort half (defect C) reported via the PR
+   #8257 comment; the standalone defects-A+B issue remains BLOCKED on user
+   approval (TODO_LIST).
+5. ~~**Pin/replace hygiene** — … this handover is
+   NOT recorded in TODO_LIST.md.~~ done — TODO_LIST "Turso materialized
+   views" section (created 2026-09-08 by the 05-33 session; verified current
+   by the 09-08 docs pass).
+6. ~~**AGENTS.md gotcha precision** — … should be reconciled to the
+   bench-doc (more honest) version.~~ done — 2026-09-08: ADR-0135
+   consequences rewritten by the 05-33 session to the probabilistic
+   formulation (grouped unsafe > one transaction's rows).
 7. **Benchmark regression protection** — `scripts/benchmark-regression.sh`
    (CI gate) was NOT extended to the new bench; nothing prevents silent
    perf regressions of the serving path going forward.
@@ -235,7 +247,9 @@
     verifiable in-repo.
 
 **Upstream / ecosystem**
-19. File the turso-go issue (repro + envelope data) — pending user go-ahead.
+19. ~~File the turso-go issue (repro + envelope data) — pending user go-ahead.~~
+    superseded: COMMIT-abort half reported via PR #8257 comment (2026-09-08);
+    standalone A+B issue still BLOCKED on approval — TODO_LIST carries it
 20. Track turso-go releases; re-run the envelope probe on each new version;
 flip the bench skip-markers when fixed.
 21. Tag wave: bump sqliteengine/tursoengine/system pins, strip sibling
@@ -279,11 +293,16 @@ EXPLAIN proof workflow.
 38. Reference the bench doc from the tursoengine README table.
 
 **Hygiene / repo**
-39. Remove the accidentally committed `cmd/cqrs-upgrade/cqrs-upgrade`
-binary (10.7 MB) — foreign session's cleanup, flag to its owner.
-40. Foreign `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries in
-`scripts/check-module-layers.sh` (their session) to un-red check-arch.
-41. Update TODO_LIST.md with items 19-38 (report currently holds them).
+39. ~~Remove the accidentally committed `cmd/cqrs-upgrade/cqrs-upgrade`
+  binary (10.7 MB) — foreign session's cleanup, flag to its owner.~~ done
+  2026-09-08 (docs-health pass: `git rm --cached` + .gitignore)
+40. ~~Foreign `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries in
+  `scripts/check-module-layers.sh` (their session) to un-red check-arch.~~
+  done — the cqrs-upgrade session registered all 4 meta-gates (SUPERB §a5)
+41. ~~Update TODO_LIST.md with items 19-38 (report currently holds them).~~
+  done — critical subset 2026-09-08 (05-33 session); remainder routed by
+  the 09-08 docs pass (safety tail → TODO_LIST; v2 surface → TODO_LIST
+  single item; docs-site/FAQ → propagation wave)
 42. `docs/DOMAIN_LANGUAGE.md` entry: "materialized view acceleration",
 "IVM", "view-maintained write".
 43. Consider `soak_skip` env for the new bench in CI (`SOAK_SKIP_*`

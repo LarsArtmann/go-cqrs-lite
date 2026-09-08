@@ -1,5 +1,12 @@
 # SUPERB — Full-Adoption System On-Ramp
 
+> **RESOLVED + ARCHIVED (docs-health pass 2026-09-08).** Executed same-day
+> (2026-09-07) — §8 below dispositions all 29 tasks (DONE / PARTIAL / ROUTED
+> / GATED / VERIFIED NO-OP); the implementation ledger is
+> `docs/status/archived/2026-09-07_23-38_SUPERB-adoption-implementation-marathon.md`.
+> The PARTIAL remainders (T13, T18, T24, T25, T28) are owned by the
+> respective repos' TODO_LISTs per §3.1 routing.
+
 **Date:** 2026-09-07 17:25 · **Author:** session (adoption analysis) · **Status:** PLAN v2 (revised same day after critical self-review) · **No code changed**
 
 **Questions answered:**
