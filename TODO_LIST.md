@@ -15,6 +15,23 @@ and is **never** duplicated here. Historical session reports live under
 
 ---
 
+## Turso materialized views (ADR-0135) — upstream handoffs
+
+> Created 2026-09-07 (matview operator option shipped; three upstream
+> turso-go defects verified and documented — see
+> `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`
+> and the status report
+> `docs/status/2026-09-07_19-25_turso-materialized-views-operator-option.md`).
+
+- [BLOCKED] 🔥 **File the standalone upstream issue for the silent wrong-results bugs (defects A+B)** — grouped views diverge from the second transaction on and collapse at ~27k rows; draft is ready and fully verified in `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md` (everything below its first `---`). Blocked on user approval (external action). The COMMIT-abort half (defect C) is already reported: PR #8257 comment https://github.com/tursodatabase/turso/pull/8257#issuecomment-5576078646. _(Effort: XS once approved)_
+- [ ] 🔥 **Push the 3 unpushed commits, then edit the PR comment link to SHA `18b2c495c`** — the posted comment's permalink points at `1c9f3bf` (last pushed SHA); the newer draft revision contains the full three-defect characterization. Comments are editable. Pushing also publishes the divergence research. _(Effort: XS)_
+- [ ] **Track turso-go releases for the IVM fixes** — re-run the repro suite (`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`) on each new release; when green, remove the grouped-view warnings (Doctor WARN line, recipes §2.29 notice, AGENTS.md gotcha, bench doc warning) and un-skip the ≥10k matview bench cases. _(Effort: S per check)_
+- [ ] **Code guard follow-up: make grouped-spec safety mechanical** — today the danger is advisory-only (Doctor WARN + docs). Options: `MaterializedViewSpec` validation refusing `GroupBy` on turso-go ≤ v0.8.0-pre.8 (breaking for legitimate small deployments) vs a config flag (`AllowGroupedViews`) vs silent status. Decide + implement once the upstream timeline is known. _(Effort: S)_
+- [ ] **Add a regression test pinning the Doctor WARN line** for grouped specs (`metaengine/materialized_view_doctor.go`) — the warning was added 2026-09-07 without a dedicated test. _(Effort: XS)_
+- [ ] **Tag wave for the matview feature** — metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
+
+---
+
 ## cqrs-lint
 
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
