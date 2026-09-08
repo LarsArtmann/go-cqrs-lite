@@ -128,16 +128,23 @@ paths (see TODO_LIST §v5 "Delete deprecated tombstone metadata API"):
 **Stale error-code strings (family codes, not symbols — renaming them is a
 consumer-visible observability change; batch at v5 with a changelog note):**
 
-- `event.nil_aggregate_id`, `event.empty_aggregate_type`,
-  `event.aggregate_not_found`
-- `command.nil_aggregate_id`, `command.empty_aggregate_type`
-- `memory.aggregate_not_found`
-- `storage.parse_aggregate_id`, `storage.parse_aggregate_type`,
+- ~~`event.nil_aggregate_id`, `event.empty_aggregate_type`,
+  `event.aggregate_not_found`~~
+- ~~`command.nil_aggregate_id`, `command.empty_aggregate_type`~~
+- ~~`memory.aggregate_not_found`~~
+- ~~`storage.parse_aggregate_id`, `storage.parse_aggregate_type`,
   `storage.aggregate_type_mismatch`, `storage.aggregate_id_mismatch`,
-  `storage.stream_by_aggregate`, `storage.delete_by_aggregate`
-- `pebble.aggregate_type_mismatch`, `pebble.aggregate_id_mismatch`
+  `storage.stream_by_aggregate`, `storage.delete_by_aggregate`~~
+- ~~`pebble.aggregate_type_mismatch`, `pebble.aggregate_id_mismatch`~~
+  DONE 2026-09-08: all error-family codes renamed to the stream vocabulary
+  in ONE batch (rule 3), including the `watermill.parse_aggregate_id_failed`
+  and deprecated `transport/grpc` `parse_aggregate_id` codes the 2026-08-22
+  census had missed. Full old→new mapping + dashboards/consumers note in
+  CHANGELOG `[Unreleased]`. One deliberate deviation:
+  `storage.stream_by_aggregate` → `storage.read_stream` (backing method
+  `streamByAggregate` → `readStream`).
 - `listing.aggregate_projection` (projection name, not an error code —
-  consumer-visible in metaengine collections)
+  consumer-visible in metaengine collections; STILL OPEN)
 
 **Snapshot wire-tag v5 design note (C9, 2026-08-30):** the `snapshot`
 JSON/CBOR tags rename to `stream_id`/`stream_type` (and pebble's CBOR tags

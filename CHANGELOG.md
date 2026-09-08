@@ -43,6 +43,47 @@ this commit.
 
 ## [Unreleased]
 
+### Changed — error-family codes renamed to stream vocabulary (v5 batch, breaking for code-string observers) — 2026-09-08
+
+- **Every `aggregate_*` error-family code now uses the stream vocabulary**
+  (sweep item from `docs/planning/v5-deprecation-sweep.md` §4; completes the
+  ADR-0058 rename for observability surfaces). Sentinel symbols and
+  `errors.Is` matching are UNCHANGED: the deprecated `ErrAggregate*`
+  aliases already forward to the same `ErrStream*` errors, so only
+  consumers that string-match family codes are affected. One deliberate
+  deviation from the mechanical mapping: `storage.stream_by_aggregate`
+  became `storage.read_stream` (the mechanical `stream_by_stream` reads
+  badly; the backing private method is now `readStream`).
+- **Dashboards/consumers note**: family codes are observability strings —
+  log queries, alert rules, and dashboard filters keying on the old codes
+  must switch to the new ones when upgrading. The 6-family taxonomy itself
+  is unchanged. Full mapping:
+
+  | Old code                        | New code                      |
+  | ------------------------------- | ----------------------------- |
+  | `event.nil_aggregate_id`        | `event.nil_stream_id`         |
+  | `event.empty_aggregate_type`    | `event.empty_stream_type`     |
+  | `event.aggregate_not_found`     | `event.stream_not_found`      |
+  | `command.nil_aggregate_id`      | `command.nil_stream_id`       |
+  | `command.empty_aggregate_type`  | `command.empty_stream_type`   |
+  | `memory.aggregate_not_found`    | `memory.stream_not_found`     |
+  | `storage.parse_aggregate_id`    | `storage.parse_stream_id`     |
+  | `storage.parse_aggregate_type`  | `storage.parse_stream_type`   |
+  | `storage.aggregate_type_mismatch` | `storage.stream_type_mismatch` |
+  | `storage.aggregate_id_mismatch` | `storage.stream_id_mismatch`  |
+  | `storage.stream_by_aggregate`   | `storage.read_stream`         |
+  | `storage.delete_by_aggregate`   | `storage.delete_by_stream`    |
+  | `pebble.aggregate_type_mismatch` | `pebble.stream_type_mismatch` |
+  | `pebble.aggregate_id_mismatch`  | `pebble.stream_id_mismatch`   |
+  | `watermill.parse_aggregate_id_failed` | `watermill.parse_stream_id_failed` |
+  | `grpc.command.parse_aggregate_id` | `grpc.command.parse_stream_id` |
+  | `grpc.event_client.parse_aggregate_id` | `grpc.event_client.parse_stream_id` |
+
+- **Not renamed here** (separate v5 items, tracked in the sweep artifact):
+  watermill metadata keys (`aggregate_id`/`aggregate_type`), the
+  events/commands SQL table columns, and the `listing.aggregate_projection`
+  projection name.
+
 ### Fixed — cqrs-lint analyzer hardening: deterministic detection, engine coverage, doctor JSON — 2026-09-08
 
 - **Store detection is deterministic.** A package importing more than one

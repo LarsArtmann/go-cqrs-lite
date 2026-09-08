@@ -363,11 +363,19 @@ and is **never** duplicated here. Historical session reports live under
       enginetest.RunRestartSafetyFromDBTest extracted and badger/duckdb/
       sqlite FromDB tests consolidated onto it (killed the check-dupl
       clone group at the root).
-- [ ] **`errorfamily` code rename `aggregate_*` → `stream_*`** (v5 item) —
+- [x] **`errorfamily` code rename `aggregate_*` → `stream_*`** (v5 item) —
       with a dashboards/consumers note. — source: session-4 retro §f30
       _(Effort: M, v5)_
-      ⏳ Deferred 2026-09-07 — deliberately skipped by the correctness
-      batch: breaking rename waits for the v5 train.
+      ✅ Done 2026-09-08 — all 17 family codes renamed in one batch
+      (incl. `watermill.parse_aggregate_id_failed` + deprecated
+      transport/grpc codes missed by the 2026-08-22 census); full mapping +
+      dashboards/consumers note in CHANGELOG `[Unreleased]`; sweep artifact
+      §4 struck. Deviation: `storage.stream_by_aggregate` →
+      `storage.read_stream`. Follow-on repairs in the same wave: stale
+      `storage` go.mod pins (coordinated-release gap, standalone build was
+      red at HEAD) + 3 stale T18 snapshot-schema goldens re-blessed.
+      STILL OPEN separately: `listing.aggregate_projection` name, watermill
+      metadata keys, events/commands SQL columns (sweep §4).
 
 ---
 

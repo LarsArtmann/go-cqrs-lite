@@ -59,9 +59,13 @@ deleted modules have no in-repo consumers outside themselves.
   every `InitSchema` helper — existing databases upgrade on first boot, no
   manual step; data moves with the renamed columns (no backfill).
 - **Error-code strings** (`event.nil_aggregate_id`,
-  `storage.aggregate_not_found`, …) rename to the stream vocabulary in ONE
+  `event.aggregate_not_found`, …) renamed to the stream vocabulary in ONE
   batch. If you alert on family codes, update dashboards at the cut; the
   6-family taxonomy itself is unchanged.
+  DONE 2026-09-08: all `aggregate_*` family codes renamed (see the mapping
+  table in CHANGELOG `[Unreleased]`); deprecated `ErrAggregate*` symbol
+  aliases were already forwarding to the `ErrStream*` sentinels, so
+  `errors.Is` matching never depended on the code strings.
 
 ## 4. What does NOT change
 
