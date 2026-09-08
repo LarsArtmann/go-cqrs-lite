@@ -55,9 +55,9 @@ func isRemoteDSN(dsn string) bool {
 
 // redactDSN strips credentials from a DSN so connection errors never leak
 // secrets into logs. It removes URL userinfo (libsql://token@host) and any
-// query parameter carrying a credential: auth tokens (authToken, token,
-// apiKey) and encryption keys (e.g. encryption_hexkey — any param whose name
-// contains "key"). Query redaction applies to local DSNs too, because
+// query parameter carrying a credential: any param whose name contains
+// "token" (authToken, auth_token, AUTH_TOKEN) or "key" (e.g.
+// encryption_hexkey). Query redaction applies to local DSNs too, because
 // embedded-database encryption keys ride on file-path DSNs. Non-URL DSNs
 // (file paths, :memory:) pass through unchanged. Redaction is best-effort: an
 // unparseable URL is replaced with a fixed placeholder rather than risked in
@@ -83,9 +83,9 @@ func redactDSN(dsn string) string {
 	if u.RawQuery != "" {
 		q := u.Query()
 		for key := range q {
-			if strings.EqualFold(key, "authtoken") ||
-				strings.EqualFold(key, "token") ||
-				strings.Contains(strings.ToLower(key), "key") {
+			lower := strings.ToLower(key)
+			if strings.Contains(lower, "token") || // authToken, auth_token, AUTH_TOKEN spellings
+				strings.Contains(lower, "key") {
 				q.Set(key, "[redacted]")
 			}
 		}

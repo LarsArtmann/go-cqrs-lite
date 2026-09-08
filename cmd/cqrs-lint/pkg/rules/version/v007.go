@@ -69,7 +69,7 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 
 				checkDotImports(ctx, gf, &out)
-			checkDotImportedRemovedSymbols(ctx, gf, &out)
+				checkDotImportedRemovedSymbols(ctx, gf, &out)
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					sel, ok := n.(*ast.SelectorExpr)

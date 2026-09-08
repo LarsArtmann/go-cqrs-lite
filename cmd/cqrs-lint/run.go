@@ -198,7 +198,11 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	switch cfg.TypedInfo {
 	case "", "auto", "on", "off":
 	default:
-		fmt.Fprintf(os.Stderr, "warning: unknown --typed-info mode %q (want auto, on, off); using auto\n", cfg.TypedInfo)
+		fmt.Fprintf(
+			os.Stderr,
+			"warning: unknown --typed-info mode %q (want auto, on, off); using auto\n",
+			cfg.TypedInfo,
+		)
 		cfg.TypedInfo = "auto"
 	}
 

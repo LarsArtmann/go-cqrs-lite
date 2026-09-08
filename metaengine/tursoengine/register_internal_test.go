@@ -88,9 +88,56 @@ func TestRedactDSN_NeverLeaksSecrets(t *testing.T) {
 		"libsql://my-db.turso.io?apikey=" + secret,
 		"/data/secret.db?experimental=encryption&encryption_cipher=aes256gcm&encryption_hexkey=" + secret,
 		":memory:?encryption_hexkey=" + secret,
+		// Adversarial shapes (2026-09-08 audit): case variants, key-ish
+		// substrings, userinfo+query combos, other remote schemes, and
+		// URL-encoded secret payloads.
+		"libsql://my-db.turso.io?AUTH_TOKEN=" + secret,
+		"libsql://my-db.turso.io?authToken=" + secret + "&token=" + secret,
+		"libsql://" + secret + "@my-db.turso.io?authToken=" + secret,
+		"https://my-db.turso.io?authToken=" + secret,
+		"http://my-db.turso.io?authToken=" + secret,
+		"libsql://my-db.turso.io?hexkey=" + secret,
+		"libsql://my-db.turso.io?myAPIKEY=" + secret,
+		":memory:?encryption_hexkey=" + secret + "&experimental=encryption",
+		"/data/secret.db?encryption_hexkey=" + secret,
 	} {
 		if got := redactDSN(dsn); strings.Contains(got, secret) {
 			t.Errorf("redactDSN(%q) leaked secret: %q", dsn, got)
+		}
+	}
+}
+
+// TestRedactDSN_PreservesNonSecrets guards the other direction: redaction
+// must keep operator-relevant non-credential context (host, file path,
+// non-secret query params). A redactor that blanked the whole DSN would pass
+// NeverLeaks vacuously.
+func TestRedactDSN_PreservesNonSecrets(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct{ dsn, wantFragment string }{
+		{"libsql://my-db.turso.io?authToken=abc", "my-db.turso.io"},
+		{"/data/app.db?experimental=encryption&encryption_hexkey=cafe", "/data/app.db"},
+		{"/data/app.db?experimental=encryption&encryption_hexkey=cafe", "experimental=encryption"},
+	} {
+		if got := redactDSN(tt.dsn); !strings.Contains(got, tt.wantFragment) {
+			t.Errorf("redactDSN(%q) = %q, lost non-secret fragment %q", tt.dsn, got, tt.wantFragment)
+		}
+	}
+}
+
+// TestRedactDSN_MalformedRemoteNeverPanics: unparseable remote DSNs collapse
+// to the fixed placeholder instead of panicking or echoing raw input.
+func TestRedactDSN_MalformedRemoteNeverPanics(t *testing.T) {
+	t.Parallel()
+
+	secret := "ht!tp://[::1]:namedport%%"
+	for _, dsn := range []string{
+		"libsql://[invalid host with spaces?authToken=" + secret,
+		"https://" + secret,
+	} {
+		got := redactDSN(dsn)
+		if strings.Contains(got, secret) && got != "libsql://[redacted]" {
+			t.Errorf("redactDSN(%q) echoed raw input: %q", dsn, got)
 		}
 	}
 }

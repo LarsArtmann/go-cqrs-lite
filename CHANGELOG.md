@@ -3824,6 +3824,14 @@ files. All fixed to unblock `verify-fast`:
 
 ### Fixed
 
+- **`tursoengine.redactDSN` leaked `auth_token`/`AUTH_TOKEN` params.** The
+  matcher required exact spellings (`authToken`, `token`); snake-case and
+  upper-case token param names escaped redaction into error output. Any
+  param whose name contains `token` (case-insensitive) is now redacted —
+  same rule as the existing `key` containment. Pinned by adversarial
+  per-shape leak tests (userinfo+query combos, mixed case, URL-encoded
+  secrets, malformed remotes) plus a preserves-non-secrets guard so the
+  redactor cannot pass vacuously.
 - **SARIF scorecard output is byte-deterministic.** `run.properties` was a
   `map[string]any`; `encoding/json/v2` emits map keys in iteration order
   (v1 sorted), so CI consumers diffing SARIF reports got spurious diffs. It
