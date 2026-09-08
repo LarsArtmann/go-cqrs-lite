@@ -166,7 +166,10 @@ func setup(bus *Bus) {
 
 	for key := range ctx.Registry.CommandTypesRegistered {
 		if strings.Contains(key, "(") {
-			t.Errorf("CommandTypesRegistered has call-text key %q — constructor handlers belong in ConstructorHandlers", key)
+			t.Errorf(
+				"CommandTypesRegistered has call-text key %q — constructor handlers belong in ConstructorHandlers",
+				key,
+			)
 		}
 	}
 
