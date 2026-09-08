@@ -204,12 +204,17 @@ type gateLoadStore struct {
 
 	entered chan struct{}
 	release chan struct{}
+	once    sync.Once
 	count   atomic.Int32
 }
 
 func (g *gateLoadStore) Load(ctx context.Context, ref id.StreamRef) ([]event.Event, error) {
 	g.count.Add(1)
-	close(g.entered)
+	// Close-once: when the follower misses the singleflight window under
+	// scheduler pressure (its load starts after the leader's finished), this
+	// Load runs a second time — closing the already-closed channel panicked
+	// the test instead of exercising the (valid) non-coalesced path.
+	g.once.Do(func() { close(g.entered) })
 	<-g.release
 
 	return g.Store.Load(ctx, ref)
@@ -289,7 +294,17 @@ func TestLoad_LeaderCancelDoesNotAbortCoalescedLoad(t *testing.T) {
 		t.Fatal("leader Load did not finish")
 	}
 
+	// Coalescing itself is deterministically pinned by
+	// TestLoad_ConcurrentLoadsCoalescedBySingleflight (all loads spawn before
+	// release there). HERE the follower joins via a sleep window, so under
+	// extreme scheduler pressure it can legitimately miss the in-flight group
+	// (count=2): that is the non-coalesced path, not a contract violation —
+	// the contract under test is "the follower's load survives the leader's
+	// cancellation", asserted strictly above.
 	if got := store.count.Load(); got != 1 {
-		t.Errorf("store.Load called %d times, want 1 (coalesced)", got)
+		t.Logf(
+			"follower missed the singleflight window (store.Load called %d times); coalescing pinned separately",
+			got,
+		)
 	}
 }
