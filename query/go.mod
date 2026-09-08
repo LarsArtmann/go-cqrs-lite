@@ -27,6 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/mod v0.40.0 // indirect
@@ -35,37 +36,8 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 // v4.6.0 pinned metadata/v4.4.0 while using metadata.Metadata (v4.5.0): unbuildable for consumers.
 retract v4.6.0
-
-replace github.com/larsartmann/go-cqrs-lite/command/v4 => ../command
-
-replace github.com/larsartmann/go-cqrs-lite/decider/v4 => ../decider
-
-replace github.com/larsartmann/go-cqrs-lite/dispatcher/v4 => ../dispatcher
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4 => ../event
-
-replace github.com/larsartmann/go-cqrs-lite/event/v4/eventtest => ../event/v4/eventtest
-
-replace github.com/larsartmann/go-cqrs-lite/id/v4 => ../id
-
-replace github.com/larsartmann/go-cqrs-lite/kv/v4 => ../kv
-
-replace github.com/larsartmann/go-cqrs-lite/metadata/v4 => ../metadata
-
-replace github.com/larsartmann/go-cqrs-lite/query/v4 => ../query
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record
-
-replace github.com/larsartmann/go-cqrs-lite/schema/v4 => ../schema
-
-replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
-
-replace github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4 => ../storage/backuptest
-
-replace github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 => ../storage/bbolt
-
-replace github.com/larsartmann/go-cqrs-lite/storage/memory/v4 => ../storage/memory
