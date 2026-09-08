@@ -25,7 +25,7 @@ Most Go CQRS libraries are **frameworks** — they own your transport, your brok
 - **Event Sourcing is first-class** — immutable events, branded IDs, optimistic concurrency, time-travel queries, and schema evolution via upcasters. Not an afterthought bolted onto a CRUD layer.
 - **Library, not framework** — no transport, broker, or driver is forced on you. Use standard `net/http`, gRPC, Watermill, NATS — your choice. The `stack/` presets wire sensible defaults when you want zero-config.
 - **Pure-Go by default** — SQLite, Pebble, and bbolt engines need no C compiler. CGo is quarantined inside the single DuckDB module; everyone else never notices.
-- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (9 module deps — only 3 third-party) or the full `stack/sqlite` preset. Your dependency tree stays clean.
+- **Multi-module isolation** — each module has its own `go.mod` with minimal deps. Import `event` alone (10 module deps — only 3 third-party) or the full `stack/sqlite` preset. Your dependency tree stays clean.
 - **Production primitives, not stubs** — event signing (HMAC-SHA256, Ed25519, multisig), payload encryption (XChaCha20-Poly1305, AES-256-GCM, key rotation), OTel tracing and metrics, and a Prometheus bridge.
 - **Honest error taxonomy** — a 6-family classification (Rejection / Conflict / Transient / Infrastructure / Orchestration / Corruption) with sentinel errors and `%w` wrapping. No panics in production paths.
 - **Strong types throughout** — branded IDs make it impossible to mix up an `OrderID` with a `UserID`. The type system catches mistakes the compiler can express.
@@ -153,13 +153,14 @@ bundle, err := sqlite.New("app.db")
 defer bundle.Close()
 ```
 
-Seven presets cover every deployment shape (all deprecated in v5 — `system.System` becomes the one composition root, see the heads-up below):
+Eight presets cover every deployment shape (all deprecated in v5 — `system.System` becomes the one composition root, see the heads-up below):
 
 | Preset           | When to use                                       |
 | ---------------- | ------------------------------------------------- |
 | `stack/memory`   | Tests and local dev — everything in RAM           |
 | `stack/sqlite`   | Embedded single-file persistence                  |
 | `stack/pebble`   | High-throughput embedded KV (PebbleDB + CBOR)     |
+| `stack/bbolt`    | Embedded single-file B+tree KV (pure Go)          |
 | `stack/duckdb`   | Embedded columnar OLAP (analytical workloads)     |
 | `stack/postgres` | Distributed, with connection pooling + timeouts   |
 | `stack/mysql`    | MySQL/MariaDB with pure-Go driver                 |
