@@ -575,6 +575,12 @@ bottom is a do-not-re-litigate guard, not a backlog.
       cwd gotcha); consider scanning all templ dirs repo-wide. — source:
       15-09 §f25/§f26
       _(Effort: S)_
+- [ ] **AGENTS.md indexed-split** — ~92 KB linear gotchas file keeps growing
+      (+4 rows per active session); split into an indexed structure (e.g.
+      `AGENTS.md` index + `docs/agents/gotchas-*.md` sections) before the next
+      growth wave makes it unmanageable. Content is current — this is purely a
+      structure/size problem. — source: 15-09 §f39, evening-pass §f46
+      _(Effort: M, process)_
 - [ ] **error-taxonomy.md completeness check** — verify it covers the
       storage/pebble/watermill family codes at all; extend if the doc aspires
       to completeness (the 2026-09-08 rename made its stream-code table

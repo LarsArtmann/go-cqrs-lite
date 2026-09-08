@@ -569,6 +569,13 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
   Pebble/SQLite on write throughput and point-read latency. Note: ScyllaDB is
   source-available (not OSS, switched from AGPL v3 in 2025) — free tier caps at
   10 TB / 50 vCPUs; "Never Customer" clause.
+- Domain-aware fold helper (`ApplyDomain` + `EventDecoder`) — let fold logic
+  live where domain types are defined, not in the app package (SEC feedback,
+  July 2026 P2; `docs/feedback/archived/sec-consumer-feedback.md`).
+- Idempotency content-hash key mode — `Idempotency(ContentHashKey)` selector
+  for commands that are naturally idempotent (SEC feedback, July 2026 P2).
+- `event.Version` underflow protection — safe-arithmetic type or documented
+  never-decrement-zero contract (SEC feedback, July 2026 P3).
 
 > Items with design docs graduate to a Theme above, then to [TODO_LIST.md](TODO_LIST.md)
 > when actively worked.
