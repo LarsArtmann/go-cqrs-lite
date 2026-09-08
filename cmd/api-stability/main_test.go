@@ -37,14 +37,14 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 
 	// Directories that are intentionally excluded from the api-stability gate.
 	excluded := map[string]string{
-		".":                             "root workspace go.mod",
-		"cmd/api-stability":             "the api-stability tool itself (circular)",
+		".":                                   "root workspace go.mod",
+		"cmd/api-stability":                   "the api-stability tool itself (circular)",
 		"cmd/cqrs-lint/testdata/typedfixture": "cqrs-lint typed-path test fixture (replace-based consumer, not a product module)",
-		"integration":                   "workspace-only cross-module tests (published graph not self-contained)",
-		"example/getting-started":       "example application",
-		"example/metaengine-quickstart": "example application",
-		"example/readme-quickstart":     "example application",
-		"example/taskmanager":           "example application",
+		"integration":                         "workspace-only cross-module tests (published graph not self-contained)",
+		"example/getting-started":             "example application",
+		"example/metaengine-quickstart":       "example application",
+		"example/readme-quickstart":           "example application",
+		"example/taskmanager":                 "example application",
 	}
 
 	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
@@ -129,14 +129,14 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 	// Directories intentionally excluded (same set as the Nix check-modules app
 	// and TestEveryGoModDirIsInModulesList).
 	excluded := map[string]string{
-		".":                             "root workspace go.mod",
-		"cmd/api-stability":             "the api-stability tool itself (circular)",
+		".":                                   "root workspace go.mod",
+		"cmd/api-stability":                   "the api-stability tool itself (circular)",
 		"cmd/cqrs-lint/testdata/typedfixture": "cqrs-lint typed-path test fixture (replace-based consumer, not a product module)",
-		"integration":                   "workspace-only cross-module tests",
-		"example/getting-started":       "example application",
-		"example/metaengine-quickstart": "example application",
-		"example/readme-quickstart":     "example application",
-		"example/taskmanager":           "example application",
+		"integration":                         "workspace-only cross-module tests",
+		"example/getting-started":             "example application",
+		"example/metaengine-quickstart":       "example application",
+		"example/readme-quickstart":           "example application",
+		"example/taskmanager":                 "example application",
 	}
 
 	err = filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {

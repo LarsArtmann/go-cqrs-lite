@@ -9,6 +9,7 @@ import (
 // fakeMatViewEngine reports a fixed materialized-view set for Doctor tests.
 type fakeMatViewEngine struct {
 	Engine
+
 	infos []MaterializedViewInfo
 }
 
@@ -24,8 +25,16 @@ func TestMaterializedViewsDoctorSection_Content(t *testing.T) {
 
 	store := &Store{engines: []Engine{&fakeMatViewEngine{
 		infos: []MaterializedViewInfo{
-			{Spec: MaterializedViewSpec{Collection: "order_views", Fn: MatViewCount}, Name: "cqrs_mv_order_views_count", Rows: 42},
-			{Spec: MaterializedViewSpec{Collection: "order_views", Fn: MatViewSum, Column: "total"}, Name: "cqrs_mv_order_views_sum", Rows: 7},
+			{
+				Spec: MaterializedViewSpec{Collection: "order_views", Fn: MatViewCount},
+				Name: "cqrs_mv_order_views_count",
+				Rows: 42,
+			},
+			{
+				Spec: MaterializedViewSpec{Collection: "order_views", Fn: MatViewSum, Column: "total"},
+				Name: "cqrs_mv_order_views_sum",
+				Rows: 7,
+			},
 		},
 	}}}
 
@@ -95,7 +104,11 @@ func TestMaterializedViewsDoctorSection_NoGroupNoWarn(t *testing.T) {
 
 	store := &Store{engines: []Engine{&fakeMatViewEngine{
 		infos: []MaterializedViewInfo{
-			{Spec: MaterializedViewSpec{Collection: "orders", Fn: MatViewSum, Column: "total"}, Name: "cqrs_mv_orders", Rows: 1},
+			{
+				Spec: MaterializedViewSpec{Collection: "orders", Fn: MatViewSum, Column: "total"},
+				Name: "cqrs_mv_orders",
+				Rows: 1,
+			},
 		},
 	}}}
 

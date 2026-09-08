@@ -24,8 +24,8 @@ import (
 // pre-v5 bytes decode both spellings via the legacy shadows below.
 
 type snapshotWire struct {
-	StreamID   id.StreamID     `json:"stream_id"`
-	StreamType id.StreamType   `json:"stream_type"`
+	StreamID   id.StreamID     `json:"stream_id"`   //nolint:tagliatelle // snake_case is the v4 wire contract (golden-pinned wire bytes)
+	StreamType id.StreamType   `json:"stream_type"` //nolint:tagliatelle // snake_case is the v4 wire contract
 	Version    event.Version   `json:"version"`
 	State      []byte          `json:"state"`
 	Encoding   record.Encoding `json:"encoding,omitempty"`

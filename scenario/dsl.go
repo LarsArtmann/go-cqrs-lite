@@ -265,10 +265,10 @@ func GivenProjection(
 	events ...event.Event,
 ) *ProjectionScenario {
 	t.Helper()
-	scenario := &ProjectionScenario{
+	scenario := &ProjectionScenario{ //nolint:exhaustruct_v5 // errs populated below; asserted flips in Then*
 		proj: proj,
 		t:    t,
-	} //nolint:exhaustruct_v5 // errs populated below
+	}
 	t.Cleanup(func() {
 		if !scenario.asserted {
 			t.Errorf(
