@@ -280,6 +280,7 @@ Nothing destructive or dishonest, but a real list:
 ## f) NEXT 50 (prioritized, 1 = first)
 
 **Finish this batch's direct follow-ups**
+
 1. Adopt `IsQualifierFor` in the remaining `scanCallExpr` qualifier
    checks (`system`, `catalog`, `decider`, `event`) — same class as
    T20-8, machinery already shipped.
@@ -338,32 +339,32 @@ Nothing destructive or dishonest, but a real list:
 
 **Verification & release**
 36. `nix run .#verify` end-to-end on a quiet box, load ≤ 15 (#25) — bank
-    the first repo-wide GREEN covering sessions 3 + 4.
+the first repo-wide GREEN covering sessions 3 + 4.
 37. `nix run .#check-file-size` after the Q2 policy lands (#26 remainder).
 38. Release prep: fold the analyzer hardening + S011 Changed entry +
-    doctor-JSON key fix into the next cqrs-lint minor (#27).
+doctor-JSON key fix into the next cqrs-lint minor (#27).
 39. Post-tag: CHANGELOG callout that doctor JSON feature/profile keys
-    changed case (consumer scripts).
+changed case (consumer scripts).
 40. SKILL.md/references sweep: confirm no consumer doc quotes the old
-    Go-style doctor JSON keys.
+Go-style doctor JSON keys.
 41. After the daemon commits the two remaining dirty files
-    (.golangci.yml self-heal, CHANGELOG): `go build` sanity re-check.
+(.golangci.yml self-heal, CHANGELOG): `go build` sanity re-check.
 
 **Blocked (owner input required — do not start alone)**
 42. Q3 ruling — now governs S011 AND the doctor-JSON key rename riding
-    the same minor (#28).
+the same minor (#28).
 43. 350-line gate policy (#29).
 44. Daemon Q2 — gci re-add recurred a 4th time (#30).
 45. F040 branch protection (#31).
 46. Next v4 tag wave (#32) — the analyzer API additions
-    (StoreBadger/StoreDgraph/StoreIroh, ConstructorHandlers,
-    IsQualifierFor/IsEventTypeParam, Embeds) should ride it or wait for
-    Tier 2 (see questions).
+(StoreBadger/StoreDgraph/StoreIroh, ConstructorHandlers,
+IsQualifierFor/IsEventTypeParam, Embeds) should ride it or wait for
+Tier 2 (see questions).
 47. GitHub Releases for outstanding tags (#33).
 48. Indirect-dep consolidation after the wave (#34).
 49. go-finding #27/#28 upstream fixes, then delete any local workarounds.
 50. Revisit "load-aware helpers consolidation into testutil" if either
-    lean module touches testutil anyway (session-3 e-6, unchanged).
+lean module touches testutil anyway (session-3 e-6, unchanged).
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

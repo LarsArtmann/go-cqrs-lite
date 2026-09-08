@@ -38,7 +38,10 @@ func TestDoctorJSONReport_Golden(t *testing.T) {
 			Monetary:    analyzer.MonetaryUnknown,
 		},
 		FeatureProfiles: map[string]analyzer.FeatureProfile{
-			"/example/project":          {Store: analyzer.StoreSQLite, CommandFlow: analyzer.CommandFlowCommands},
+			"/example/project": {
+				Store:       analyzer.StoreSQLite,
+				CommandFlow: analyzer.CommandFlowCommands,
+			},
 			"/example/project/examples": {Store: analyzer.StoreMemory, HasServer: true},
 		},
 	}
@@ -72,6 +75,10 @@ func TestDoctorJSONReport_Golden(t *testing.T) {
 	}
 
 	if string(data) != string(want) {
-		t.Errorf("doctor JSON shape drifted from golden.\n--- want ---\n%s\n--- got ---\n%s", want, data)
+		t.Errorf(
+			"doctor JSON shape drifted from golden.\n--- want ---\n%s\n--- got ---\n%s",
+			want,
+			data,
+		)
 	}
 }

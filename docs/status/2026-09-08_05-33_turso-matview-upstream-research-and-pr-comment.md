@@ -160,6 +160,7 @@
 ## f) NEXT — up to 50 actionable items (priority order)
 
 **Upstream (this feature's blockers)**
+
 1. Get user approval and file the standalone issue for defects A+B (draft
    ready; everything below the first `---`).
 2. Push the 11 local commits (user action), then edit the PR #8257 comment
@@ -180,24 +181,24 @@
 **Our feature (safety + quality)**
 11. Pin the Doctor WARN line with a dedicated test (XS).
 12. Decide + implement the mechanical grouped-spec guard (validate/refuse
-    vs `AllowGroupedViews` flag vs status-only) once upstream timeline is
-    known.
+vs `AllowGroupedViews` flag vs status-only) once upstream timeline is
+known.
 13. Add `//go:build ivmrepro` executable repro under
-    `metaengine/tursoengine/` mirroring the posted code.
+`metaengine/tursoengine/` mirroring the posted code.
 14. Run `nix run .#verify` end-to-end (still never run this feature; only
-    per-module gates) — close the stale-GREEN gap flagged in the prior
-    report.
+per-module gates) — close the stale-GREEN gap flagged in the prior
+report.
 15. Run `nix run .#check-coverage`; record numbers for the new files.
 16. Golden test (go-snaps) for `matViewDDL` output.
 17. Property test: matview-served aggregate == base-table aggregate (would
-    have caught nothing at ≤200 rows — extend with a second-tx case that
-    WOULD catch defect A once upstream fixes it; guards the fix).
+have caught nothing at ≤200 rows — extend with a second-tx case that
+WOULD catch defect A once upstream fixes it; guards the fix).
 18. Add a regression test asserting the 2-tx divergence so the day upstream
-    ships a fix, our test flips and tells us.
+ships a fix, our test flips and tells us.
 19. Bench-regression gate extension for the matview serving path.
 20. COUNT_VIA_GROUPED bench case (derivation coverage).
 21. Re-run the write bench on an idle machine; replace the mixed-load table
-    in the bench doc with one clean run.
+in the bench doc with one clean run.
 22. `MaterializedViewsReporter` → `GetEngineStats` programmatic surface.
 23. Matview registrations in `system.Introspection()`.
 24. Spec `String()`/`LogValue` for debug ergonomics.
@@ -209,41 +210,41 @@
 30. Planned-table matviews (v2; ordered with ApplyLayout + backfill).
 31. Multi-aggregate/DISTINCT serving from views (v2).
 32. Routing integration: cost model learns matview-covered shapes are
-    O(1)/O(groups) so cross-engine routing prefers Turso for covered
-    aggregates.
+O(1)/O(groups) so cross-engine routing prefers Turso for covered
+aggregates.
 33. IVM write-amplification otel counter per view.
 34. cqrs-lint rules: matview-on-unsupported-driver; matview-plus-planned-
-    table staleness trap.
+table staleness trap.
 35. Example project for the YAML operator option end-to-end.
 
 **Repo hygiene**
 36. Tag wave: bump pins, strip replaces (sqliteengine/tursoengine/system).
 37. cqrs-lint taskmanager golden refresh in the same wave (V006 coupling).
 38. TODO_LIST: add the items from the 2026-09-07 status report's §f that
-    are still missing there (this report supersedes that list — reconcile).
+are still missing there (this report supersedes that list — reconcile).
 39. Archive the 2026-09-07 status report per docs-health conventions when
-    the next docs pass runs.
+the next docs pass runs.
 40. docs-site page for the operator option + the correctness warning.
 41. FAQ entry: "why is my grouped matview aggregate wrong?" → Doctor WARN +
-    upstream issue link once filed.
+upstream issue link once filed.
 42. DOMAIN_LANGUAGE.md entries: IVM, view-maintained write, materialized
-    view acceleration.
+view acceleration.
 43. Sweep the `.art-dupl-baseline.json` re-pin into a titled commit message
-    if the daemon's heuristic commit bothers anyone (it's documented).
+if the daemon's heuristic commit bothers anyone (it's documented).
 44. Foreign session: `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries still
-    missing (check-arch still red on their files) + their committed 10.7 MB
-    binary — flag to that session's owner.
+missing (check-arch still red on their files) + their committed 10.7 MB
+binary — flag to that session's owner.
 45. Confirm `#verify-ci` includes the new test files (it should; one check).
 46. Consider CI leg running the ivmrepro-tagged test against new tursogo
-    pre-releases (early-warning for the fix landing).
+pre-releases (early-warning for the fix landing).
 47. Load-sweep before next `#verify` if timing paths get touched by
-    follow-ups.
+follow-ups.
 48. Re-pin the duplication baseline only via titled commits going forward
-    (per the gotcha's spirit).
+(per the gotcha's spirit).
 49. Update SKILL.md read-model matrix row with the grouped-view caveat
-    (currently only recipes carry it).
+(currently only recipes carry it).
 50. Reconcile this report's §f with TODO_LIST so exactly one list is
-    canonical (TODO_LIST wins; this report is point-in-time).
+canonical (TODO_LIST wins; this report is point-in-time).
 
 ## g) QUESTIONS (cannot answer from the repo myself)
 
