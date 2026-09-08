@@ -1,7 +1,7 @@
 package badgerengine_test
 
 import (
-	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 

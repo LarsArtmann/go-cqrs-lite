@@ -3,8 +3,8 @@
 package duckdbengine_test
 
 import (
-	"context"
 	"database/sql"
+	"fmt"
 	"path/filepath"
 	"testing"
 

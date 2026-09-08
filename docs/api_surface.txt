@@ -2488,6 +2488,7 @@ metaengine/enginetest/func RunAutoCRUDSoak
 metaengine/enginetest/func RunConcurrentTxTest
 metaengine/enginetest/func RunPushdownTest
 metaengine/enginetest/func RunRecordStampTest
+metaengine/enginetest/func RunRestartSafetyFromDBTest
 metaengine/enginetest/func RunRestartSafetyTest
 metaengine/enginetest/func RunScanBackendTest
 metaengine/enginetest/func RunSeqSeekableStreamLogTest
