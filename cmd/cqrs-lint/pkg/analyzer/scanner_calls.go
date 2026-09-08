@@ -19,15 +19,20 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	// link the analyzer cannot otherwise trace.
 	scanGenericHandlerCall(ctx, call)
 
-	funcName, pkgName, ok := SelectorNameAndPkg(call)
+	sel, ok := SelectorFromExpr(call.Fun)
 	if !ok {
 		return
 	}
 
+	funcName := sel.Sel.Name
 	pos := ctx.Fset.Position(call.Pos())
 
+	// IsQualifierFor resolves the qualifier through type info when available:
+	// aliased imports (es "…/event/v4") match by import path instead of the
+	// local name, and shadowing locals stop matching. The string fallback
+	// preserves syntax-only-load behavior (T20-8 convention).
 	switch {
-	case funcName == "New" && pkgName == "event":
+	case funcName == "New" && IsQualifierFor(gf, sel, "go-cqrs-lite/event"):
 		if len(call.Args) > 0 {
 			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesEmitted[eventTypeStr] = EventEmission{
@@ -39,7 +44,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 
 		capturePayloadType(ctx, call)
 
-	case funcName == "NewEvent" && pkgName == "event":
+	case funcName == "NewEvent" && IsQualifierFor(gf, sel, "go-cqrs-lite/event"):
 		if len(call.Args) > 0 {
 			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesEmitted[eventTypeStr] = EventEmission{
@@ -76,7 +81,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			recordTypeConstArg(ctx, call, 1)
 		}
 
-	case funcName == "Register" && pkgName != "event":
+	case funcName == "Register" && !IsQualifierFor(gf, sel, "go-cqrs-lite/event"):
 		// Plain dispatcher.Register(typeConst, handler) — the string-type-based
 		// command registration API. The handler type is not visible in the call
 		// (it lives inside the handler body), so record the type-constant arg
@@ -86,7 +91,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		// feedback (E005 false positives on dispatcher.Register).
 		recordTypeConstArg(ctx, call, 0)
 
-	case funcName == "RegisterCommand" && pkgName == "system":
+	case funcName == "RegisterCommand" && IsQualifierFor(gf, sel, "go-cqrs-lite/system"):
 		// system.RegisterCommand[MyCmd, MyState](sys, name, handler) — the
 		// System composition root's typed command registration. The command
 		// type is the FIRST generic type argument; the closure handler's
@@ -97,7 +102,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			ctx.Registry.CommandTypesRegistered[name] = true
 		}
 
-	case funcName == "Event" && pkgName == "catalog":
+	case funcName == "Event" && IsQualifierFor(gf, sel, "go-cqrs-lite/catalog"):
 		if len(call.Args) > 0 {
 			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesInCatalog[eventTypeStr] = true
@@ -110,7 +115,7 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 	case funcName == "Subscribe":
 		scanProjectionSubscription(ctx, gf, call)
 
-	case funcName == "StrictApply" && pkgName == "decider":
+	case funcName == "StrictApply" && IsQualifierFor(gf, sel, "go-cqrs-lite/decider"):
 		// decider.StrictApply(foldFunc, knownTypes) — record the fold function
 		// name so B005 can suppress its "use decider.StrictApply" suggestion
 		// when the suggestion is already implemented. See browser-history

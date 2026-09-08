@@ -42,7 +42,7 @@ func NewD018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					if !isCatalogBuilder(call) {
+					if !isCatalogBuilder(gf, call) {
 						return true
 					}
 
@@ -247,7 +247,7 @@ func collectCatalogTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 				return true
 			}
 
-			if !isCatalogBuilder(call) {
+			if !isCatalogBuilder(gf, call) {
 				return true
 			}
 
@@ -305,18 +305,14 @@ func projectExportsSpecs(ctx *analyzer.AnalysisContext) bool {
 	return false
 }
 
-func isCatalogBuilder(call *ast.CallExpr) bool {
+func isCatalogBuilder(gf *analyzer.GoFile, call *ast.CallExpr) bool {
 	sel, ok := call.Fun.(*ast.SelectorExpr)
 	if !ok {
 		return false
 	}
 
-	pkg, ok := sel.X.(*ast.Ident)
-	if !ok {
-		return false
-	}
-
-	return pkg.Name == "catalog" && (sel.Sel.Name == "NewBuilder" || sel.Sel.Name == "Register")
+	return analyzer.IsQualifierFor(gf, sel, "go-cqrs-lite/catalog") &&
+		(sel.Sel.Name == "NewBuilder" || sel.Sel.Name == "Register")
 }
 
 func extractStringArg(call *ast.CallExpr, index int) string {

@@ -165,7 +165,7 @@ func projectUsesJSONEventCodec(ctx *analyzer.AnalysisContext) bool {
 					if !ok || sel.Sel.Name != "DefaultCodec" {
 						continue
 					}
-					if ident, ok := sel.X.(*ast.Ident); ok && ident.Name == "event" {
+					if analyzer.IsQualifierFor(gf, sel, "go-cqrs-lite/event") {
 						if slices.ContainsFunc(assign.Rhs, exprReferencesJSONCodec) {
 							found = true
 							return false
