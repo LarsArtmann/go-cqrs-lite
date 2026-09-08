@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [command/v4.9.0, decider/v4.6.0, dispatcher/v4.4.0, event/v4.10.0, event/v4/eventtest/v0.4.0, id/v4.6.0, kv/v4.3.0, metadata/v4.7.0, query/v4.8.0, record/v4.5.0, schema/v4.4.0, snapshot/v4.5.0, storage/backuptest/v4.2.0, storage/bbolt/v4.2.0, storage/memory/v4.5.0] — 2026-09-08
+
+Coordinated consumer-driven release (vision-review-agent's `visionreviewd`
+re-bump): all modules the daemon imports, re-pinned against each other at
+this commit.
+
+### Added — storage/bbolt
+
+- **Read-only opens are supported** (`OpenWith(path,
+  &bolt.Options{ReadOnly: true}, …)`): bucket initialization is skipped
+  when the database is opened read-only, read paths (Load, journal reads,
+  KV gets) work, and writes fail at call time with bbolt's read-only
+  error instead of construction always failing (issue #22). Documented
+  the flock trap: custom Options without a Timeout block forever on a
+  held journal.
+- **Golden wire-format test for the persisted event envelope**
+  (`storage/bbolt/testdata/golden-event.cbor`): pins the serialized
+  `serializableEvent` bytes, the exact envelope key set, round-trip
+  stability, and the always-present `schema_version` wire behavior.
+  Re-bless intentional format changes with
+  `BBOLT_REGEN_GOLDEN=1 go test ./storage/bbolt -run
+  TestSerializableEventWireFormat` and a CHANGELOG entry (issue #23).
+
+### Fixed — snapshot
+
+- **`Snapshot.UnmarshalJSON` compiles again under jsonv2**: the
+  json/v2 migration passed the 3-arg `json.Unmarshal` where the decode
+  helper expects `func([]byte, any) error`; adapted via closure. The
+  structure golden was re-blessed for the new-key wire output this
+  migration introduced.
+
+### Changed — coordinated dependency re-pin
+
+- All 15 released modules require each other at this release's versions;
+  sibling `go.mod` pins updated in lockstep. See the chore waves since
+  the previous per-module tags for the full per-module commit detail.
+
 ## [Unreleased]
 
 ### Fixed — cqrs-lint analyzer hardening: deterministic detection, engine coverage, doctor JSON — 2026-09-08
