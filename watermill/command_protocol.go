@@ -73,7 +73,7 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	streamID, err := id.ParseStreamID(md.Get(metaAggregateID))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
-			"watermill.parse_aggregate_id_failed", "parse stream_id")
+			"watermill.parse_stream_id_failed", "parse stream_id")
 	}
 
 	opts := parseCommandOptions(md)

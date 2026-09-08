@@ -34,7 +34,7 @@ func DeleteByStream(
 	if err != nil {
 		return errorfamily.WrapInfrastructure(
 			err,
-			"storage.delete_by_aggregate",
+			"storage.delete_by_stream",
 			fmt.Sprintf(
 				"delete %s from table %s for %s %s",
 				what,
