@@ -615,6 +615,36 @@ jobs:
           done
 
     timeout-minutes: 15
+  check-csp:
+    name: CSP Browser Check (docserver)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      # Runs the real embedded Scalar/AsyncAPI bundles under headless
+      # Chromium with CSP enabled; fails on any CSP refusal. Chromium comes
+      # from nixpkgs — no npm network access needed.
+      - name: Validate docserver CSP under headless Chromium
+        run: nix run .#check-csp
+
+    timeout-minutes: 15
+  lint-scripts:
+    name: actionlint + shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      - name: Lint GitHub Actions workflows (actionlint)
+        run: nix-shell -p actionlint --run 'actionlint'
+
+      - name: Lint shell scripts (shellcheck)
+        run: nix-shell -p shellcheck --run 'shellcheck scripts/*.sh'
+
+    timeout-minutes: 10
   cqrs-upgrade-dogfood:
     name: cqrs-upgrade dogfood (consumer dry-run)
     runs-on: ubuntu-latest

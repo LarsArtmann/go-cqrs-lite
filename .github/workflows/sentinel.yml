@@ -1,0 +1,57 @@
+name: Sentinel (nightly)
+
+# Days-since-green sentinel + slow validation checks that do not belong on
+# the per-push critical path. If these jobs never run, the green-recency
+# job below is the alarm: a repo whose CI cannot go green (billing,
+# credentials, flake buildup) must not silently look healthy.
+
+on:
+  schedule:
+    # 03:17 UTC nightly — off the hour to avoid GitHub's cron rush.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  green-recency:
+    name: Master CI green within 3 days
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when the last green master CI run is older than 3 days
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest_green="$(gh api \
+            'repos/${{ github.repository }}/actions/runs?branch=master&event=push&status=success&per_page=1' \
+            --jq '.workflow_runs[0].created_at')"
+          if [ -z "$latest_green" ] || [ "$latest_green" = "null" ]; then
+            echo "::error::No successful CI run found on master at all."
+            exit 1
+          fi
+          age_days=$(( ( $(date +%s) - $(date -d "$latest_green" +%s) ) / 86400 ))
+          echo "Last green master CI run: $latest_green ($age_days day(s) ago)"
+          if [ "$age_days" -ge 3 ]; then
+            echo "::error::Master CI has not been green for $age_days days (last: $latest_green). Triage failing legs or the runner/billing situation."
+            exit 1
+          fi
+
+    timeout-minutes: 5
+  eventcatalog-render:
+    name: EventCatalog render validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      # Render-validates the EventCatalog exporter output. npm install is
+      # network-bound and ~minutes slow, which is why it runs nightly rather
+      # than per push. Dependency pinning decision (committed package-lock)
+      # is tracked in TODO_LIST.
+      - name: Build the fixture catalog and fail on render errors
+        run: nix run .#check-eventcatalog
+
+    timeout-minutes: 20

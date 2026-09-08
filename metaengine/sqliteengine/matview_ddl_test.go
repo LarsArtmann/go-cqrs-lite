@@ -20,18 +20,18 @@ func TestMatViewDDL_Golden(t *testing.T) {
 		wantBody string
 	}{
 		{
-			name: "scalar count",
-			spec: metaengine.MaterializedViewSpec{Collection: "order_views", Fn: metaengine.MatViewCount},
+			name:     "scalar count",
+			spec:     metaengine.MaterializedViewSpec{Collection: "order_views", Fn: metaengine.MatViewCount},
 			wantBody: " AS SELECT COUNT(*) AS agg FROM meta_map WHERE collection = 'order_views'",
 		},
 		{
-			name: "scalar sum",
-			spec: metaengine.MaterializedViewSpec{Collection: "order_views", Fn: metaengine.MatViewSum, Column: "total"},
+			name:     "scalar sum",
+			spec:     metaengine.MaterializedViewSpec{Collection: "order_views", Fn: metaengine.MatViewSum, Column: "total"},
 			wantBody: " AS SELECT SUM(json_extract(value, '$.total')) AS agg FROM meta_map WHERE collection = 'order_views'",
 		},
 		{
-			name: "scalar min",
-			spec: metaengine.MaterializedViewSpec{Collection: "sensors", Fn: metaengine.MatViewMin, Column: "temp"},
+			name:     "scalar min",
+			spec:     metaengine.MaterializedViewSpec{Collection: "sensors", Fn: metaengine.MatViewMin, Column: "temp"},
 			wantBody: " AS SELECT MIN(json_extract(value, '$.temp')) AS agg FROM meta_map WHERE collection = 'sensors'",
 		},
 		{
