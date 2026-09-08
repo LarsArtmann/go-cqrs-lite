@@ -48,7 +48,9 @@ type snapshotWireLegacy struct {
 // invariant enforcement happens here — check the decoded value with
 // [Snapshot.Validate].
 func (s *Snapshot) UnmarshalJSON(data []byte) error {
-	return decodeSnapshotWire(data, json.Unmarshal, s)
+	return decodeSnapshotWire(data, func(d []byte, v any) error {
+		return json.Unmarshal(d, v)
+	}, s)
 }
 
 // UnmarshalCBOR is the CBOR twin of [Snapshot.UnmarshalJSON]: fxamacker/cbor
