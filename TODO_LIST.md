@@ -2,9 +2,11 @@
 
 **Scope:** Short- and mid-term actionable work only. Long-term vision lives in
 [ROADMAP.md](ROADMAP.md). Completed work lives in [CHANGELOG.md](CHANGELOG.md)
-and is **never** duplicated here. Historical session reports live under
+and is **never** duplicated here — when a task finishes it moves to CHANGELOG
+and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
-2026-08-29, 2026-09-06 morning, and 2026-09-06 afternoon).
+2026-08-29, 2026-09-06 ×2, and 2026-09-08). The Declined section at the
+bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Legend
 
@@ -20,14 +22,21 @@ and is **never** duplicated here. Historical session reports live under
 > Created 2026-09-07 (matview operator option shipped; three upstream
 > turso-go defects verified and documented — see
 > `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`
-> and the status report
-> `docs/status/2026-09-07_19-25_turso-materialized-views-operator-option.md`).
+> and the archived report
+> `docs/status/archived/2026-09-07_19-25_turso-materialized-views-operator-option.md`).
 
 - [BLOCKED] 🔥 **File the standalone upstream issue for the silent wrong-results bugs (defects A+B)** — grouped views diverge from the second transaction on and collapse at ~27k rows; draft is ready and fully verified in `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md` (everything below its first `---`). Blocked on user approval (external action). The COMMIT-abort half (defect C) is already reported: PR #8257 comment https://github.com/tursodatabase/turso/pull/8257#issuecomment-5576078646. _(Effort: XS once approved)_
 - [ ] 🔥 **Push the 3 unpushed commits, then edit the PR comment link to SHA `18b2c495c`** — the posted comment's permalink points at `1c9f3bf` (last pushed SHA); the newer draft revision contains the full three-defect characterization. Comments are editable. Pushing also publishes the divergence research. _(Effort: XS)_
-- [ ] **Track turso-go releases for the IVM fixes** — re-run the repro suite (`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`) on each new release; when green, remove the grouped-view warnings (Doctor WARN line, recipes §2.29 notice, AGENTS.md gotcha, bench doc warning) and un-skip the ≥10k matview bench cases. _(Effort: S per check)_
+- [ ] **Track turso-go releases for the IVM fixes** — re-run the repro suite (`docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`) on each new release; when green, remove the grouped-view warnings (Doctor WARN line, recipes §2.29 notice, AGENTS.md gotcha, bench doc warning) and un-skip the ≥10k matview bench cases. Also watch PR #8257 for maintainer response. _(Effort: S per check)_
 - [ ] **Code guard follow-up: make grouped-spec safety mechanical** — today the danger is advisory-only (Doctor WARN + docs). Options: `MaterializedViewSpec` validation refusing `GroupBy` on turso-go ≤ v0.8.0-pre.8 (breaking for legitimate small deployments) vs a config flag (`AllowGroupedViews`) vs silent status. Decide + implement once the upstream timeline is known. _(Effort: S)_
-- [ ] **Add a regression test pinning the Doctor WARN line** for grouped specs (`metaengine/materialized_view_doctor.go`) — the warning was added 2026-09-07 without a dedicated test. _(Effort: XS)_
+- [ ] **Matview safety test tail** — (a) regression test pinning the Doctor WARN line for grouped specs + the rendered "Materialized views" section incl. row counts and the "none" branch (`metaengine/materialized_view_doctor.go` has zero dedicated tests); (b) `matViewDDL` golden test (go-snaps) locking the SQL dialect per fn × scalar/grouped; (c) property test matview-served aggregate == base-table aggregate (with a second-tx case that would catch defect A the day upstream fixes it); (d) regression test asserting the 2-tx divergence so an upstream fix flips it loudly. — source: archived 19-25 §f2/§f6/§f16-17, 05-33 §f11/§f16-18
+      _(Effort: M)_
+- [ ] **Extend `scripts/benchmark-regression.sh` to the matview read bench (1k)** so the serving-path acceleration cannot silently rot. — source: archived 19-25 §f5, 05-33 §f19
+      _(Effort: S)_
+- [ ] **Matview v2 feature surface** — planned-table matviews (ordered with `ApplyLayout` + backfill), filtered-view spec variants, multi-aggregate/DISTINCT serving, `DropMaterializedView` off-boarding, per-view IVM write-amp otel counter, `system.Introspection()` surface, cqrs-lint rules (matview-on-unsupported-driver; matview-plus-planned-table staleness trap), `example/materialized-views/`. Route individually when a consumer asks. — source: archived 19-25 §f23-35, 05-33 §f29-35
+      _(Effort: M/L each)_
+- [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). — source: archived 19-25 §f29, 05-33 §f32
+      _(Effort: M)_
 - [ ] **Tag wave for the matview feature** — metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
 
 ---
@@ -36,112 +45,52 @@ and is **never** duplicated here. Historical session reports live under
 
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
-> T01–T12, T22–T24 and their fine tasks are resolved; this section carries the
-> living remainder.
+> T01–T12, T20–T24, F089, F090(a), F091 Tier 1 and the 2026-09-08 hardening
+> batch are DONE (CHANGELOG `[Unreleased]`); this section carries the living
+> remainder.
 
 - [ ] **T13–T19 — exhaustive rule audit batches.** RISK-BASED SAMPLE DONE
-      2026-09-06 (all C-family detectors read; C003 + C005 real bugs found and
-      fixed; top-volume findings sampled zero-false; severity/confidence and
-      V007 coverage mechanized by meta-tests). S-FAMILY BATCH DONE 2026-09-07
-      (see addendum in
-      `docs/status/2026-09-07_cqrs-lint-t20-t21-subsystem-reviews.md`:
-      financialEscalatedRules comment drift + missing S011 escalation fixed,
-      completeness meta-test added). REMAINING (explicitly low-yield, only
-      behind a green full gate): per-file checklist audits of A001–A034,
-      B001–B031, D001–D019, E001–E017, T/V/F families. — source:
-      archived/2026-09-06_02-40 §c
+      2026-09-06 (C-family) + S-FAMILY DONE 2026-09-07 (financialEscalatedRules
+      comment drift + missing S011 escalation fixed, completeness meta-test
+      added). REMAINING (explicitly low-yield, only behind a green full gate):
+      per-file checklist audits of A001–A034 (2 waves), B001–B031, D001–D019,
+      E001–E017, V/T/F families, plus the S001/rules.go line-by-line remainder.
+      — source: archived/2026-09-06_02-40 §c, 05-31 §f16-22
       _(Effort: M/L)_
-- [x] **T20–T21 — subsystem reviews.** DONE: feature_profile split (F073),
-      scorecard deprecated panel (F082), health-policy test (F083), sibling
-      link checks + docserver-CSS root cause (T24), and the line-by-line
-      reviews of scanner*/feature_detect*/loader/registry/module_catalog*/
-      upcaster (T20) and doctor/health/scorecard/output/explain CLI files
-      (T21) — report:
-      `docs/status/2026-09-07_cqrs-lint-t20-t21-subsystem-reviews.md`
-      (no correctness bugs; 4 fixed in-pass — doctor severity-overrides
-      rendering, 2 map-order nondeterminism bugs, Monetary override check;
-      T20-1 store-detection gap + accepted heuristics recorded there).
-      — source: archived/2026-09-06_02-40 §c + 06-58 §b3
-- [x] **F089 — `rules.severity-overrides` + `v5-ready` preset** — DONE
-      2026-09-07: `RulesConfig.SeverityOverrides` with catalog precedence
-      (catalog → preset → parent → config → domain bias → min-severity),
-      invalid severities dropped with a warning (never silently demoted to
-      info), unknown rule IDs warned post-merge; `v5-ready` preset = sugar
-      for `{"V007": "error"}`; init template, explain, doctor text+JSON,
-      README preset table (test-locked) all wired. Design:
-      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`.
-- [x] **F090(a) — dot-import flagging in V007** — DONE 2026-09-07: any
-      dot-import of a go-cqrs-lite module fires V007 at the import position
-      ("hides v5-removed-API usage — name the import"); non-CQRS dot-imports
-      stay silent; fixture tests pin fire + silence. F090(b) (type-based
-      attribution) is now implementable on the F091 Tier 1 machinery.
-- [x] **F091 Tier 1 — typed qualifier resolution** — DONE 2026-09-07:
-      `analyzer.ResolveQualifierTyped` (Uses[ident] → PkgName → import path)
-      with authoritative semantics — typed "not a package" is final, string
-      scan only on missing type info (broken-build survival). V007 adopted;
-      the shadow false-positive class is dead (verified end-to-end: old
-      binary double-fires a shadowed qualifier, new fires once). Wall-time
-      gate PASSED (medians old 14.7s vs new 12.4s at load 65; loader has
-      shipped NeedTypes since day one — the design's load-cost concern was
-      already paid): `docs/benchmarks/2026-09-07_cqrs-lint-f091-tier1-typed-qualifier.md`.
-      REMAINING (Tiers 2–3): C008 usage-confirmation + C035/C013
-      payload-shape confirmation behind `--typed-info=auto`. The
-      three-helper adoption (T20-8) is DONE 2026-09-08 — see the
-      hardening-batch entry below.
-- [x] **Self-lint finding delta after the collector unification** — DONE
-      2026-09-07: full self-lint run = ZERO findings; the delta was one STALE
-      C025 suppression at `cmd/cqrs-lint/run.go` (left over from the
-      `31b779b1b` refactor that added `%w` to the stale-suppressions error —
-      C025 correctly stopped firing). Directive removed; the CI
-      `cqrs-lint-self-lint` job was RED on master and is green again.
-      C038/C040: no findings on the repo corpus, nothing to triage.
-- [x] **go-finding upstream issues (verify-before-filing first):** DONE
-      2026-09-07 — both claims verified at source level
-      (`pipeline/fix_engine.go:59-92` zero-edits-success-shape;
-      `pipeline/fix_applier.go:140-167` RollbackAll(modified) spans earlier
-      files) and filed: [#27](https://github.com/LarsArtmann/go-finding/issues/27)
-      (zero edits indistinguishable from success),
-      [#28](https://github.com/LarsArtmann/go-finding/issues/28)
-      (resolveError rolls back all applied edits).
-- [x] **Structural load-robustness for the two known flaky test classes** —
-      DONE 2026-09-07: `benchkit.loadScaledCeiling` (3 hang ceilings scaled by
-      ambient load1/GOMAXPROCS, cap 8x, go-test timeout stays the structural
-      backstop) + `system_test.loadScaledDeadline` (catch-up poll deadlines
-      8s/5s/15s scaled the same way). Full benchkit (152s) + system suites
-      green under load 65. Both helpers are local copies (dep budgets) with
-      `//art-dupl:accept`.
-- [x] **T20 follow-up hardening batch** — DONE 2026-09-08 (gates: full
-      cqrs-lint suite green, lint 0 issues, self-lint exit 0, api golden
-      6735 exports):
-      (1) store resolution deterministic — Pass 1 iterates packages and
-      imports in sorted order with a first-wins guard (T20-3; pinned by a
-      40-run stability test that fails on map-order code);
-      (2) every shipped metaengine engine maps to a StoreKind — new
-      `StoreBadger`/`StoreDgraph`/`StoreIroh` constants, engine→store
-      table test (T20-1);
-      (3) constructor-call handlers recorded in `analyzer.ConstructorHandlers`
-      instead of call-text keys in CommandTypesRegistered (T20-4);
-      (4) `CommandInfo.Embeds` split from Fields; B004 count semantics
-      preserved (T20-5);
-      (5) typed qualifier adoption shipped: `analyzer.IsQualifierFor` +
-      `analyzer.IsEventTypeParam` — alias-fold-blindness for C038/C040 is
-      dead; converted `capturePayloadTypeFromVar`, fold detection, and
-      `IsInsideUpcasterClosure` (T20-8);
-      (6) upcaster-closure ranges memoized per file — O(file) once per FILE,
-      not per candidate call (T20-7);
-      (7) doctor JSON fixed: `FeatureProfile` now carries json tags (the
-      surface emitted Go-style keys), `modules` sorted by dir (was map
-      order), shape golden locked (`TestDoctorJSONReport_Golden`,
-      regen with UPDATE_GOLDEN=1);
-      (8) RULES.md-vs-formatter ROOT CAUSE corrected: dprint's markdown
-      plugin (NOT treefmt — it has no md formatter) re-pads the generator's
-      tables; `**/RULES.md` excluded in dprint.json and the file
-      regenerated — freshness test is stable now;
-      (9) duplication gate: benchkit/system `//art-dupl:accept` placements
-      VERIFIED live; the one new doctor.go idiom clone eliminated via
-      slices.Sorted(maps.Keys); foreign post-baseline clone groups
-      (per-engine calibration dumps, restart-safety tests, committed
-      2026-09-08) absorbed by a baseline re-pin — 133 groups, gate green.
+- [ ] 🔥 **F091 Tiers 2–3 + F090(b)** — C008 usage-confirmation and
+      C035/C013 payload-shape confirmation behind `--typed-info=auto`, and
+      type-based attribution of dot-imported removed symbols. All Tier-1
+      machinery shipped (`ResolveQualifierTyped`, `IsQualifierFor`,
+      `IsEventTypeParam`, per-file caches); implementation is what remains.
+      — source: 05-31 §b4
+      _(Effort: M)_
+- [ ] **ApplyLayout rule (design done, implement)** — structural method-shape
+      detection (`ApplyLayoutPlan` + `BuildLayoutPlan` co-occurring on the
+      receiver type); fires behind F091 Tier-2 `--typed-info=auto`, silent on
+      the name-only fallback. Design: appendix in
+      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`. — source:
+      session-4 retro §f25
+      _(Effort: M)_
+- [ ] **`IsQualifierFor` adoption sweep** — the remaining name-based qualifier
+      checks in `scanCallExpr` (`== "system"`, `== "catalog"`, `== "decider"`,
+      `== "event"`) are the same alias-blindness class T20-8 fixed; one
+      adoption pass beats three future findings. — source: 05-31 §f1/§e8
+      _(Effort: S)_
+- [ ] **Replace-based end-to-end fixture module for typed-path rules** —
+      committed fixture (schema/v4-based) so F091 Tier 2/3 and F090(b) are
+      testable in CI (this session's typed behavior was proven only via a
+      throwaway temp module). — source: 05-31 §f7
+      _(Effort: M)_
+- [ ] **Extend the completeness-meta-test pattern** to `consumerOnlyRules`
+      (filters.go) and preset disable lists (two of three name/ID co-occurrence
+      surfaces still unlocked; the S-family + V007 + RULES.md patterns are the
+      templates). — source: 23-10 §e3, 05-31 §f9
+      _(Effort: S)_
+- [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
+      `doctor --format json` report RAW config (today, golden-pinned) or
+      EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
+      Consumer-scripting contract decision; implementable in minutes either
+      way once ruled. — source: 05-31 §g2
 - [ ] [BLOCKED] **Release-policy Q3: severity tightening in a minor.**
       S008/S009 now emit `error` (were `warning`); consumers using
       `--min-severity error` see new failures after ≥v4.9.0. Acceptable in a
@@ -161,18 +110,6 @@ and is **never** duplicated here. Historical session reports live under
       has no branch protection at all; enabling it would block direct pushes
       and the daemon workflow. Owner decision on protection + which checks +
       exceptions. — source: 06-58 §g1
-- [ ] **cqrs-lint rule: ApplyLayout on engines that also implement
-      LayoutPlanApplier → prefer the plan path.** DESIGN PASS DONE
-      2026-09-07 (appendix in
-      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`): selected
-      structural method-shape detection (`ApplyLayoutPlan` +
-      `BuildLayoutPlan` co-occurring on the receiver type — no metaengine
-      import needed, no registry split-brain); fires behind F091 Tier-2
-      `--typed-info=auto`, silent on the name-only fallback. REMAINING:
-      implementation + fixtures (engine implementing both paths fires;
-      plan-only and ApplyLayout-only stay silent). — source: session-4 retro
-      §f25
-      _(Effort: M — implementation now unblocked)_
 - [ ] 🔥 **350-line limit: gate red repo-wide — split waves + gate-policy
       decision.** VERIFIED 2026-09-06: the gate IS wired (CI `file-size-gate`
       + `nix run .#check-file-size`) but ~54 non-test files exceed it, red
@@ -192,27 +129,45 @@ and is **never** duplicated here. Historical session reports live under
 ## Release / Tagging
 
 > The full 39-tag v4 wave (B1–B7) was cut, pushed, and verify-ci-green on
-> 2026-08-29. Master is pushed and in sync with origin as of 2026-09-06
-> evening (repo-gate GREEN not re-claimed by the docs-health pass — CI
-> billing is still broken, see below). Zero
-> local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
+> 2026-08-29. The SUPERB wave tagged `otel/v4.4.0` + `cmd/cqrs-upgrade/v4.0.0`
+> (2026-09-07) and a coordinated release re-tagged 15 modules (2026-09-08).
+> Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
+- [ ] 🔥 **Repair the iroh standalone pin break (verify-ci RED risk)** —
+      `metaengine/irohengine/loopback/go.mod` pins published `irohengine/v4
+      v4.1.0`, which predates graph-op replication; the 2026-09-08
+      int-endpoint convergence tests need HEAD. Workspace gates pass (go.work
+      resolves the local sibling) but GOWORK=off per-module builds
+      (`#verify-ci`, the CI matrix) resolve v4.1.0 and go red. Fix: tag
+      `irohengine/v4.2.0` (graph WriteOp convergence + capability conformance)
+      and bump loopback/quic pins (quic already carries `replace => ../`), or
+      capability-probe skip-guard the two tests (weaker). — source:
+      archived 04-35 §b1/§f1
+      _(Effort: S/M)_
+- [ ] **Cut `stack/sqlite/v4.3.1`** — published `v4.3.0` pins a broken stack
+      pseudo-version (`stack/v4 v4.2.1-0.20260807…` whose `sqlopt` needs
+      `storage.SQLiteSetSynchronous` — unresolvable standalone). Discovered by
+      the cqrs-upgrade smoke; in-tree go.mod already fixed, the TAG still
+      serves the broken pin to fresh consumers. — source: SUPERB §a6
+      _(Effort: XS)_
 - [ ] [BLOCKED] 🔥 **Next v4 tag wave** — substantial unpublished surfaces on
-      master as of 2026-09-06: `encryption` (key helpers + envelope v2),
-      `snapshot` (`NewRewritingTransformedStore` + wire tags), `storage`
+      master: `encryption` (key helpers + envelope v2), `snapshot`
+      (`NewRewritingTransformedStore` + wire tags), `storage`
       (`MigrateSnapshotColumnsToStream`, EventSchema re-exports, bytea fix),
       `cmd/cqrs-lint` (working `--fix`, C005, RULES.md, doctor JSON, scorecard
       panel, preset policy), `cmd/api-stability` (sub-package golden),
-      `catalog`, `metaengine` (planner capability partition, record context,
-      `SortPaginate[T]`, planned-table parity) + engines (irohengine OpGraph*
-      consts, mysqlengine, pgengine, sqliteengine, duckdbengine, dgraphengine
+      `catalog`, `benchkit` (system harness), `metaengine` (planner capability
+      partition, record context, `SortPaginate[T]`, planned-table parity,
+      matview family) + engines (irohengine v4.2.0 for the pin repair,
+      mysqlengine, pgengine, sqliteengine, duckdbengine, dgraphengine
       recalibration, badgerengine — now consumes new `metaengine.SortPaginate`,
       pin bump + replace-strip REQUIRED), `scheduling/sqlstore` (MySQL
-      claiming). **Strip `storage/go.mod`'s two local replaces in the same
-      wave.** Order constraints per CONTRIBUTING pre-tag checklist;
-      cut→push→next interleave (GOPRIVATE resolves siblings via VCS). —
-      source: 08-26 §c3, 15-09 §f47
+      claiming), `system` (v4.7.0: materialized views + the MV recipe's
+      UNRELEASED marker flips when tagged). **Strip `storage/go.mod`'s two
+      local replaces in the same wave.** Order constraints per CONTRIBUTING
+      pre-tag checklist; cut→push→next interleave (GOPRIVATE resolves siblings
+      via VCS). — source: 08-26 §c3, 15-09 §f47, SUPERB §f14-16
       _(Effort: M)_
 - [ ] **Create GitHub Releases** for the outstanding tags (only storage/v4.7.1
       ever got one). `gh` auth VERIFIED working; script exists
@@ -223,6 +178,12 @@ and is **never** duplicated here. Historical session reports live under
       `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}/v4` indirect deps
       in ~49 consumer go.mod files clean up after new tags publish. Track and
       verify. _(Effort: M)_
+- [ ] **Run `scripts/pin-sweep.sh --check` as a standing post-release step** —
+      proven 2026-09-08: a coordinated release that EXCLUDES a module can
+      still break that module standalone (`storage` went red; whack-a-mole
+      tidy was not a census). Also verify `storage/eventstore` pin health with
+      evidence. — source: archived 07-48 §b2/§f2
+      _(Effort: S)_
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
@@ -246,6 +207,12 @@ and is **never** duplicated here. Historical session reports live under
       remove the drift class. Decide const-vs-buildinfo before v5. — source:
       archived/2026-09-01_21-37 §c4
       _(Effort: S)_
+- [ ] **cqrs-upgrade growth** — `--json` output (CI), workspace/multi-module
+      mode (upgrade every go.mod under a repo root), in-process `go mod tidy`
+      via x/mod, `--to <version>` pin-target mode, `--strict` (non-zero exit
+      on V007 findings — v5-readiness CI gate). Add a self-upgrade CI
+      dogfood job. — source: SUPERB §f18-23
+      _(Effort: S/M each)_
 - [ ] **Badger data-loss exposure review** (user decision): the fixed
       restart-sequence bug means any badgerengine deployment that reopened a
       DB and appended overwrote early entries. Retrospective (bound the
@@ -255,127 +222,71 @@ and is **never** duplicated here. Historical session reports live under
 
 ---
 
-## Metaengine — correctness & verification follow-ups
+## Metaengine — follow-ups
 
-> Harvested from the 2026-09-06 correctness wave (archived/07-43) + iroh
-> phase-7 session (archived/07-04). The wave itself shipped: planner
-> capability partition, record-context advisory, MariaDB claiming,
-> single-sourced calibration constants, dgraph per-row recalibration,
-> duckdb/sqlite planned-table parity, iroh graph WriteOp convergence.
+> The 2026-09-07/08 correctness batch (ApplyBatch Record handling,
+> record-aware cache invalidation, Doctor observations, MySQL claiming, dgraph
+> calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
+> see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-- [x] **`ApplyBatch` drops `EventInput.Record`** — it routes through `Apply`,
-      which synthesizes a Type-only Record; the field is dead on this path.
-      Either honor it via `applyWithRecord` (preferred) or document it as
-      replay-paths-only. — source: 07-43 §d1/§f1
-      _(Effort: S)_
-      ✅ Done 2026-09-07 — ApplyBatch calls applyWithRecord (empty
-      Record.Type falls back to the event type); pinned by
-      TestApplyBatch_HonorsRecord + synthetic-record counting test.
-- [x] **`recordAwareEvents` cache has no invalidation hook** —
-      runtime-registered queries (`RegisterQuery`) with new OnRecord folds are
-      invisible to the advisory until restart; `Hooks.Logger` path untested. —
-      source: 07-43 §b6/§f3, §f14
-      _(Effort: S)_
-      ✅ Done 2026-09-07 — RegisterQuery now invalidates the cache
-      (recordAwareEvents.Store(nil)); Hooks.Logger advisory path pinned by
-      TestSyntheticRecordAdvisory_LoggerPath.
-- [x] **Observe-before-claim verification set:** Doctor planned-tables section
-      on sqlite+duckdb (row counts actually render); adttest
-      `RunPlannedOpsMatrix` legs for sqlite/duckdb; e2e
-      `BackfillPlannedCollection` on both; lying-only-engine Apply hard error
-      correlated with the plan WARN; Replan/CheckRouting under the new
-      partition logic. — source: 07-43 §b2/b3, §f9–13
+- [ ] **DSN secret-redaction audit for sibling engines** — pg/mysql engine
+      error paths can echo `postgres://user:pass@…` DSNs unredacted (the same
+      class as the turso leak fixed 2026-09-07); audit every `fmt.Errorf` that
+      could carry a DSN, extract a shared redaction helper if 3+ drivers
+      reimplement it. Also audit ALL tursoengine DSN-echo sites. — source:
+      archived 20-18 §f25-26, 20-57 §f22-23/§f41
       _(Effort: M)_
-      ✅ Done 2026-09-07 — sqlite+duckdb Doctor row-count tests,
-      matrix/backfill legs, TestApply_LyingOnlyEngine hard-error
-      correlation, TestReplan_KeepsExcluding + direct-call
-      TestCheckRouting_NeverSuggests (default-deadband-proof pattern).
-- [x] **MySQL/MariaDB claiming completion:** `TestClaimingMySQL_RenewLease`
-      (mirror the PG contract); construction-time server-version probe
-      (`SELECT VERSION()`, reject <10.6 MariaDB / <8.0 MySQL) or keep the
-      documented fail-at-first-Due contract (user decision — 07-43 §g1); wire
-      the integration tests into the nix ephemeral-mysql runners; update
-      `scheduling/sqlstore/README.md` claiming support matrix. — source:
-      07-43 §f15–19
-      _(Effort: M)_
-      ✅ Done 2026-09-07 — RenewLease test verified live on MariaDB
-      :33061; DECISION: keep fail-at-first-Due (no version probe);
-      claiming leg wired into both vm-mysql nix runners; README support
-      matrix + version floors documented.
-- [x] **Dgraph calibration completion:** skip-guarded dgraph ReadCosts pins in
-      `TestRealProfiles_ReadCostsPinned`; decide the `NsPerPointLookup`
-      OLogN-vs-one-RPC model mismatch (07-43 §g2 — routing semantics);
-      bench SearchQuery separately; DSN-guarded remote dump tests so the drift
-      script covers live windows. — source: 07-43 §f20–26
-      _(Effort: M)_
-      ✅ Done 2026-09-07 — skip-guarded pins (350k/2.2k/2.7k/2.2k +
-      complexity); DECISION: ADTMap→O1 only, other OLogN ADTs deferred
-      with comment; BenchmarkCalibration_DgraphSearchQuery added;
-      CALIB_DUMP dump tests shipped per engine (drift script reads
-      shipped profiles).
-- [x] **Planner polish:** name the missing backend interface in the
-      over-declaration diagnostic; thread `CapabilityGaps` through Plan so
-      documented gaps suppress the new diagnostics; tie-break determinism
-      test; document the capability-aware partition rule in planning docs. —
-      source: 07-43 §f27–32
-      _(Effort: M)_
-      ✅ Done 2026-09-07 — diagnostic names the missing interface
-      (e.g. metaengine.MapBackend); WithEngineCapabilityGaps threads
-      through Plan AND Replan (Store-carried, disable-fix proven);
-      TestPlan_EqualLatencyTieBreakIsDeterministic; rule documented in
-      recipes §2.12.
-- [x] **iroh test-coverage holes:** pin graphless `GraphRemoveEdge` sentinel;
-      test `applyRemoteGraphRemove` record-but-skip path; non-string node
-      endpoints over loopback+quic (normalizeAny divergence); loopback/quic
-      convergence `-race -count=3`; extract `applyRemote` from engine.go
-      proactively (334/350 lines — the next op kind busts the limit). —
-      source: 07-04 §b2/b4, §f1–11
-      _(Effort: M)_
-      ✅ Done 2026-09-07 — sentinel pinned; record-but-skip internal
-      test (disable-fix proven); int endpoints converge on BOTH loopback
-      and quic; all three iroh modules -race -count=3 green; applyRemote
-      extracted to engine_apply.go (engine.go 334→281). GOTCHA:
-      loopback/quic module tests MUST run in workspace mode — GOWORK=off
-      resolves published irohengine v4.1.0 which predates graph-op
-      replication and fails the new tests environmentally.
-- [x] **`metaengine.SortPaginate[T]`:** direct unit test (currently covered
-      only via engine suites) + micro-benchmark pinning the zero-alloc
-      closure contract. — source: 15-09 §f7/§f8
+- [ ] **Turso encryption test breadth + reachability docs** — (a) document the
+      DriverConfig/`system` reachability gap for `WithEncryption` in
+      tursoengine README + FAQ (direct `New()` only today); (b) live `file:`
+      DSN round-trip; (c) second-ADT round-trip (Counter or journal) under
+      encryption; (d) matview aggregation actually SERVING from a view on an
+      encrypted engine (coexistence test constructs but does not query); (e)
+      cipher-size hint exact-text pin. — source: archived 20-57 §b1/§b3/§f1-7
+      _(Effort: S/M)_
+- [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
+      silently ignores mistyped encryption params (`encryption_hexkkey=` opens
+      the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
+      params at construction) vs lenient (document + fix upstream). Lean:
+      strict ("make impossible states unrepresentable"), but it changes
+      behavior for existing DSNs — owner call. — source: 20-57 §g3
+- [ ] [BLOCKED] **Turso sync/embedded-replica first-class support decision** —
+      the ONLY Go path to Cloud BYOK (the `database/sql` driver has no remote
+      client). Real consumer need or out of scope? Gates an L-effort design.
+      — source: 20-18 §g1, 20-57 §f11-12
+- [ ] [BLOCKED] **Upstream turso-go issues (verify-before-filing first)** —
+      (a) missing `DriverContext`/`OpenConnector` (struct-level config without
+      DSN stringification); (b) pure-remote connections cannot present a BYOK
+      key; (c) mistyped DSN params silently ignored → silently-unencrypted
+      DBs. Verify each against latest main, then file. — source: 20-18 §c4,
+      20-57 §f13-16
+- [ ] [BLOCKED] **dgraph one-RPC scope (Q1)** — ADTMap flipped to O1
+      (2026-09-07); Set/Multimap/Log/StreamLog still OLogN with a comment
+      promising per-ADT reassessment. Authorize the one-wave flip or confirm
+      incremental. Needs per-ADT reassessment benches either way. — source:
+      archived 22-33 §g1, 04-35 §f9/§f15
+- [ ] [BLOCKED] **CapabilityGaps reach into Doctor (Q2)** — documented gaps
+      silence PLAN diagnostics today; should they also silence Doctor's
+      `--- Capability ---` violation lines (`CapabilityAudit` receives nil
+      gaps)? — source: archived 22-33 §g2, 04-35 §f17
+- [ ] **ClaimMetrics surfacing** — claim metrics hooks shipped 08-30 with zero
+      consumers; surface `ClaimMetrics` in Doctor or a status endpoint. —
+      source: archived 22-33 §f14
       _(Effort: S)_
-      ✅ Done 2026-09-07 — 6 unit tests + alloc budget (truncation 0,
-      sort ≤3, upper-bound style) + inlined-reference equivalence test +
-      BenchmarkSortPaginate_1K.
-- [x] **keycodec extraction:** badger's seq-seeding now mirrors pebble's
-      `seq_seeding.go` semantically — extract the parse/seed helpers
-      (`SplitGroupAndSeq`, `SeedSeqMax`) into `keycodec` + round-trip test
-      pinning the 20-digit+NUL key layouts. — source: 15-09 §e10/§f9/§f10
+- [ ] **Fold `BenchmarkCalibration_DgraphSearchQuery` results into the
+      calibration baseline doc** (`docs/benchmarks/calibration-2026-08-30.md`
+      protocol/recalibration sections; bench exists, doc not updated; also
+      record the ADTMap=O1 decision there). — source: archived 22-33 §f11
+      _(Effort: XS)_
+- [ ] **Demote catch-up Record-context completeness** — verify Demote's
+      catch-up path passes full records to record-aware folds (07-43 §f36).
+      — source: archived 22-33 §f26
       _(Effort: S)_
-      ✅ Done 2026-09-07 — SplitGroupAndSeq/SeedSeqMax/SeqTailLen(21)
-      in keycodec; badger + pebble call sites migrated (badger back under
-      the 350-line limit); round-trip/rejects/tail-layout tests added.
-- [x] **duckdbengine restart-safety adoption** — `RunRestartSafetyTest`
-      harness applies mechanically (same shape as sqlite); was deferred while
-      a concurrent session owned the module. Also confirm bboltengine
-      coverage parity. — source: 15-09 §b1/§f11
-      _(Effort: S)_
-      ✅ Done 2026-09-07 — duckdb cgo-tagged adoption (with
-      availability probe-skip) + bbolt parity confirmed; follow-on:
-      enginetest.RunRestartSafetyFromDBTest extracted and badger/duckdb/
-      sqlite FromDB tests consolidated onto it (killed the check-dupl
-      clone group at the root).
-- [x] **`errorfamily` code rename `aggregate_*` → `stream_*`** (v5 item) —
-      with a dashboards/consumers note. — source: session-4 retro §f30
-      _(Effort: M, v5)_
-      ✅ Done 2026-09-08 — all 17 family codes renamed in one batch
-      (incl. `watermill.parse_aggregate_id_failed` + deprecated
-      transport/grpc codes missed by the 2026-08-22 census); full mapping +
-      dashboards/consumers note in CHANGELOG `[Unreleased]`; sweep artifact
-      §4 struck. Deviation: `storage.stream_by_aggregate` →
-      `storage.read_stream`. Follow-on repairs in the same wave: stale
-      `storage` go.mod pins (coordinated-release gap, standalone build was
-      red at HEAD) + 3 stale T18 snapshot-schema goldens re-blessed.
-      STILL OPEN separately: `listing.aggregate_projection` name, watermill
-      metadata keys, events/commands SQL columns (sweep §4).
+- [ ] **enginetest fakes contract note** — document next to
+      `RunCapabilityConformance`: fake engines must satisfy
+      `engineServesADTNatively` for every declared ADT (the honestMapMixin /
+      nativeMapEngine precedent). — source: 04-35 §e5/§f20
+      _(Effort: XS)_
 
 ---
 
@@ -427,10 +338,18 @@ and is **never** duplicated here. Historical session reports live under
       _(Effort: M)_
 - [ ] **`check-coverage.sh` nix wrapper runs without the cache env** and
       reports 0.0% DRIFT vacuously — make the app export the env itself or
-      fail loudly. — source: archived/2026-08-30_06-34 §f
+      fail loudly. Also run it once for the 2026-09-07/08 waves (matview +
+      hardening batches were never coverage-checked). — source:
+      archived/2026-08-30_06-34 §f, 19-25 §f4, 05-31 §f11
       _(Effort: S)_
 - [ ] **actionlint CI step** (exists in devShell since T37) + extend
       shfmt-drift job with shellcheck for `scripts/`. — source: 15-09 §f28/§f29
+      _(Effort: S)_
+- [ ] **GOWORK-mode decision table in AGENTS.md** — which gate runs workspace
+      vs per-module; which modules resolve siblings via replace vs published
+      pins; how loopback/quic/VM/protocol-bench runs differ (the recurring
+      GOWORK foot-gun, most recently the iroh verify-ci break). — source:
+      04-35 §e7/§f8
       _(Effort: S)_
 
 ---
@@ -451,10 +370,18 @@ and is **never** duplicated here. Historical session reports live under
       _(Effort: S)_
 - [ ] **Pre-existing scheduling/sqlstore lint findings** — gosec G202 (SQL
       concat), sqlclosecheck ×2, staticcheck QF1003, wsl_v5 (proven
-      pre-session 2026-09-06). — source: 15-09 §c2/§f4
+      pre-session 2026-09-06), plus the gocognit 38>35 on
+      `pg_integration_test.go:462` (`TestClaimingPostgres_RenewVsClaimRace` —
+      extract a poll/round helper so the integration-tag lint surface is
+      clean). — source: 15-09 §c2/§f4, archived 22-33 addendum, 04-35 §f7
       _(Effort: S)_
+- [ ] **`aggregate_*` family-code tripwire test** — grep-style meta-test
+      failing CI if any `aggregate_*` error-family code reappears (the
+      2026-09-08 rename must not silently rot back; the RULES.md completeness
+      meta-test is the pattern). — source: archived 07-48 §f4
+      _(Effort: XS)_
 - [ ] **`example/metaengine-quickstart/README.md` does not exist** — author it
-      from its three demo files (docs/README.md links the directory; the
+      from its four demo sections (docs/README.md links the directory; the
       copy-paste surface is missing its page). Consider a
       `TestEveryExampleHasREADME` meta-test so the class is caught
       mechanically. — source: 07-42 §b2/§f28
@@ -482,7 +409,9 @@ and is **never** duplicated here. Historical session reports live under
 > Phases 1–7 done. Pre-cut deprecation markers shipped 2026-08-17; migration
 > guide at `docs/V5-MIGRATION-GUIDE.md`. Snapshot wire tags (T18) DONE
 > 2026-09-06 — dual-read fallbacks in snapshot/pebble, SQL columns migrated by
-> `MigrateSnapshotColumnsToStream` (auto-run by every InitSchema).
+> `MigrateSnapshotColumnsToStream` (auto-run by every InitSchema). Error-family
+> codes renamed to stream vocabulary 2026-09-08 (17 codes, 9 modules; E4 of the
+> extended review thereby RESOLVED).
 
 - [ ] **Delete `stack.Materialize`** — auto-projection replaces it. _(Effort: S)_
 - [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)** —
@@ -517,10 +446,23 @@ and is **never** duplicated here. Historical session reports live under
       `aggregate_id`/`aggregate_type` → `stream_*` with dual-read; events +
       commands table column renames + migrations (decide 5.0.0 vs later 5.x —
       08-41 §g1); benchkit `aggregates` output-key rename + re-golden;
-      error-code batch rename (~14 codes) with the dashboards note. Consider a
-      central wire-key table doc (JSON/CBOR/SQL × backend × fallback status)
-      rewriting sweep §4 as a table. — source: 08-41 §b1/§f1–11
+      bbolt `command_serialization` CBOR tags + golden. Extend the sweep
+      census with the newly-found pebble `slog` attribute keys
+      (`aggregate_type`/`aggregate_id` in helpers.go + snapshot.go) and grep
+      sibling consumer projects for old code strings in alert/dashboard
+      configs at the cut. Consider a central wire-key table doc
+      (JSON/CBOR/SQL × backend × fallback status) rewriting sweep §4 as a
+      table. — source: 08-41 §b1/§f1–11, archived 07-48 §f5-6/§f7-13
       _(Effort: M)_
+- [ ] **v5 ADR: encryption-at-rest configuration** — `metaengine.DriverConfig.Encryption`
+      + `KeyProvider func(ctx) ([]byte, error)` (vs raw `key []byte` — the
+      KeyProvider lean enables rotation/hot-reload and keeps keys out of
+      config structs; sets THE precedent for pg/mysql passwords too) +
+      `system/` DeploymentConfig key-reference slot (env/file/secret-manager
+      ref, never the key). Engines fail construction loudly when unable to
+      honor (precedent: `RejectDurabilityTier`, `MaterializedViews`). —
+      source: 20-18 §f15-17/§f21, 20-57 §f9-10
+      _(Effort: L)_
 - [ ] **v6 deletion markers:** snapshot wire fallback shims + pebble
       legacy-row support window get a ROADMAP-visible deadline marker (one
       release cycle after v5) so the deletion wave can grep for it. — source:
@@ -537,11 +479,11 @@ and is **never** duplicated here. Historical session reports live under
       E13 (SQLTimerStore phantom param), E15 (middleware signature
       unification). _(Effort: M)_
 - [ ] **More extended-review follow-ups** — E3 (bbolt command/query bare
-      `fmt.Errorf` → pebble error-family pattern), E4 (sentinel name↔code
-      mismatch: `storage/sql/errors.go:22`), E6 (`middleware.Option` vs
+      `fmt.Errorf` → pebble error-family pattern), E6 (`middleware.Option` vs
       `BundleOption` merge/bridge), E9 (turso Policy nil-write panics), E10
       (ShutdownDependency name validation), E14 (eventstore ownership
-      asymmetry). — source: `docs/reviews/2026-08-22_extended-data-model-review.md`
+      asymmetry). (E4 — sentinel name↔code mismatch — RESOLVED by the
+      2026-09-08 stream-code rename.) — source: `docs/reviews/2026-08-22_extended-data-model-review.md`
       _(Effort: M)_
 - [ ] **Post-landing sweep for the data-model series** — api-stability
       meta-tests, doc-check over skill refs, consumer-pin sweep for `record/v4`
@@ -561,20 +503,20 @@ and is **never** duplicated here. Historical session reports live under
 ## Core Data Model v4.x/v5 (2026-08-22 review + plan)
 
 > Source: [core data-model review](docs/reviews/2026-08-22_core-data-model-review.html)
->
-> - [execution plan](docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md).
->   Owner decision 2026-08-22 (Appendix B): string `record.StreamRef` SURVIVES
->   v5 with a validating constructor; the struct `record.Stream` proposal is
->   rejected. One open plan task: **T23** (upstream skill fixes:
->   docs/reviews↔brainstorming divergence; read-prior-reports +
->   copy-template steps in the review skills) — execute or decline at the next
->   skill-maintenance pass.
+> + [execution plan](docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md).
+> Owner decision 2026-08-22 (Appendix B): string `record.StreamRef` SURVIVES
+> v5 with a validating constructor; the struct `record.Stream` proposal is
+> rejected.
+
+- [ ] **T23 — upstream skill-maintenance pass** (the plan's one open task):
+      docs/reviews↔brainstorming divergence; read-prior-reports +
+      copy-template steps in the review skills. Execute or decline at the next
+      skill-maintenance window. _(Effort: S)_
 
 ---
 
 ## Docs / consumer-surface truth
 
-> Harvested 2026-09-06 (afternoon pass) from archived 07-42/08-26/08-41.
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
@@ -584,8 +526,9 @@ and is **never** duplicated here. Historical session reports live under
       support matrix (10.6+ works); planned-table capability roster (sqlite +
       duckdb now qualify); Doctor's record-context + planned-tables sections;
       `CALIB_DUMP=1` usage; consumer recipe for decoding pre-v5 snapshots
-      (JSON+CBOR fallback contract). — source: 07-43 §c4, 08-26 §b1,
-      08-41 §b6/§f24
+      (JSON+CBOR fallback contract). (modules.md cqrs-upgrade + tursoengine
+      rows and the readmodels.md matview section landed 2026-09-08.) —
+      source: 07-43 §c4, 08-26 §b1, 08-41 §b6/§f24
       _(Effort: M)_
 - [ ] **encryption module docs** — README + doc.go still don't mention the
       key-management helpers or the v2 envelope format; add the wire-format
@@ -632,10 +575,23 @@ and is **never** duplicated here. Historical session reports live under
       cwd gotcha); consider scanning all templ dirs repo-wide. — source:
       15-09 §f25/§f26
       _(Effort: S)_
+- [ ] **error-taxonomy.md completeness check** — verify it covers the
+      storage/pebble/watermill family codes at all; extend if the doc aspires
+      to completeness (the 2026-09-08 rename made its stream-code table
+      current). — source: archived 07-48 §f23
+      _(Effort: S)_
+- [ ] **DOMAIN_LANGUAGE.md entries** — "materialized view acceleration",
+      "IVM", "view-maintained write" (+ the two-model encryption table if
+      at-rest encryption becomes a domain concept). — source: archived 19-25
+      §f42, 20-57 §f31
+      _(Effort: XS)_
 
 ---
 
 ## Declined / Rejected (do not re-litigate)
+
+> Guard list, not a backlog: these were investigated and closed with rationale.
+> Re-open only with new evidence or an explicit owner decision.
 
 - **command.Bus / MemoryBus removal (v5 candidate)** — DECLINED 2026-08-29:
   the in-process bus is 47 lines, delivers the documented saga/example flows,

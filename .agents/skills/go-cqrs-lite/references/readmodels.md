@@ -5,6 +5,7 @@
 > - [SQL-backed views](#sql-backed-views-queryable-columns-server-side-filtering)
 > - [Canonical projection pattern: CatchUpSubscriber + Materialize](#canonical-projection-pattern-catchupsubscriber--materialize)
 > - [Choosing a projection tier: KV vs Relational vs Graph](#choosing-a-projection-tier-kv-vs-relational-vs-graph)
+> - [Materialized-view acceleration (metaengine, ADR-0135)](#materialized-view-acceleration-metaengine-adr-0135)
 
 _Extracted from the former recipes §2.3. This is the most-asked-about topic in event-sourced systems — building queryable read models from your event stream._
 
@@ -330,3 +331,41 @@ proj, _ := storage.NewRelationalProjection("messages", schema, db, sqlpkg.SQLite
 // proj implements projection.Projection → register with projectionhost or CatchUpSubscriber.
 // SQL-ONLY (SQLite/Postgres). For KV backends use stack.Materialize; for graph see advanced.md §6.13.
 ```
+
+#### Materialized-view acceleration (metaengine, ADR-0135)
+
+The metaengine path (the v5 direction) can serve aggregate queries from real
+SQL materialized views with incremental maintenance (IVM) instead of scanning
+and folding at read time — declared, not hand-written:
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
+)
+
+eng, _ := tursoengine.New("app.db",
+    tursoengine.WithMaterializedViews(
+        metaengine.MaterializedViewSpec{
+            Collection: "order_amounts",
+            Fn:         metaengine.MatViewSum, // = AggregateSum
+            Column:     "amount",              // empty for COUNT(*)
+        },
+    ),
+)
+// Aggregates over "order_amounts" now serve from the view (O(1)); Doctor
+// renders a "Materialized views" section with live row counts and
+// ExplainAggregateQuery shows the exact view SQL.
+```
+
+Works on `tursoengine` (auto-injects `experimental=views` into the DSN) and
+`sqliteengine` (where the driver supports it), plus the `system` operator
+surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
+§2.29.
+
+> **Upstream correctness caveat (tursogo ≤ v0.8.0-pre.8):** SCALAR views
+> (SUM/COUNT/MIN/MAX/AVG without `GroupBy`) are exact in every test; GROUPED
+> views return silently wrong sums beyond a single transaction's rows and
+> collapse at ~27k view-maintained rows. `Store.Doctor` emits a WARN for
+> grouped specs; treat scalar views as the recommended shape until upstream
+> fixes it. Details: `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
