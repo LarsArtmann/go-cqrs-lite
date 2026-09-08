@@ -38,11 +38,11 @@ var (
 		"event type is required",
 	)
 	ErrNilStreamID = errorfamily.NewRejection(
-		"event.nil_aggregate_id",
+		"event.nil_stream_id",
 		"stream ID is required",
 	)
 	ErrEmptyStreamType = errorfamily.NewRejection(
-		"event.empty_aggregate_type",
+		"event.empty_stream_type",
 		"stream type is required",
 	)
 	ErrVersionNotPositive = errorfamily.NewRejection(
@@ -56,7 +56,7 @@ var (
 	)
 	ErrVersionConflict = errorfamily.NewConflict("event.version_conflict", "version conflict")
 	ErrStreamNotFound  = errorfamily.NewRejection(
-		"event.aggregate_not_found",
+		"event.stream_not_found",
 		"stream not found",
 	)
 

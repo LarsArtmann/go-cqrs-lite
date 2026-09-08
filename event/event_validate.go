@@ -28,7 +28,7 @@ func validateEventParams(
 	if streamID.IsZero() {
 		return errorfamily.WrapRejection(
 			ErrNilStreamID,
-			"event.nil_aggregate_id",
+			"event.nil_stream_id",
 			"stream ID is required: for event type "+string(
 				eventType,
 			)+", stream type "+string(
@@ -40,7 +40,7 @@ func validateEventParams(
 	if streamType == "" {
 		return errorfamily.WrapRejection(
 			ErrEmptyStreamType,
-			"event.empty_aggregate_type",
+			"event.empty_stream_type",
 			"stream type is required: for stream "+streamID.String()+", event type "+string(
 				eventType,
 			)+", version "+version.String(),

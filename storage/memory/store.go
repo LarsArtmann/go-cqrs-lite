@@ -39,7 +39,7 @@ func NewMemoryStore() *MemoryStore {
 			NewDupErr: nil,
 			NewNotFound: func(op, streamKey string) error {
 				return errorfamily.WrapRejection(event.ErrStreamNotFound,
-					"memory.aggregate_not_found",
+					"memory.stream_not_found",
 					fmt.Sprintf("memory %s stream %s not found", op, streamKey))
 			},
 			TrackStreams: true,

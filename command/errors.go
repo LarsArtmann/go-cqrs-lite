@@ -24,7 +24,7 @@ var ErrEmptyCommandType = errorfamily.NewRejection(
 
 // ErrNilStreamID is returned by New when the stream ID is zero.
 var ErrNilStreamID = errorfamily.NewRejection(
-	"command.nil_aggregate_id",
+	"command.nil_stream_id",
 	"stream ID is required",
 )
 
@@ -39,7 +39,7 @@ var ErrTypeAssertion = errorfamily.NewRejection(
 
 // ErrEmptyStreamType is returned when a stream type is empty.
 var ErrEmptyStreamType = errorfamily.NewRejection(
-	"command.empty_aggregate_type",
+	"command.empty_stream_type",
 	"stream type is required",
 )
 
