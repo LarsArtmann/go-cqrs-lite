@@ -1961,11 +1961,12 @@ domain := system.DomainConfig{
 Zero fold funcs (`OnEvolution` without the closure) selects the convention
 fold: the result struct mirrors the event payload field-by-field.
 
-### 2.24. Materialized Views — operator-declared aggregate accelerations (UNRELEASED: ships in system > v4.6.0)
+### 2.24. Materialized Views — operator-declared aggregate accelerations (system ≥ v4.7.0)
 
-> These fields are on the workspace HEAD and are exercised by
-> `system/matview_config_test.go`, but are NOT in published system v4.6.0 —
-> pin this recipe to the next system tag wave.
+> Shipped in the 2026-09-08 release train: `system/v4.7.0` + `metaengine/v4.13.0`
+> + `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
+> `group_by` materialized views on tursogo ≤ v0.8.0-pre.8 are unsafe beyond a
+> single transaction's rows (upstream IVM defect); scalar views are the safe shape.
 
 Operators declare aggregate accelerations per engine; unsupported engines fail
 construction loudly. Turbo/libSQL engines serve matching unfiltered aggregates

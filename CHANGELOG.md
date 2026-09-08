@@ -83,7 +83,20 @@ Cut via the detached-worktree release path during the SUPERB adoption wave.
   `v4.3.1` re-pins `stack/v4` to the published `v4.3.0` tag (verified with a
   clean-directory consumer `go get` + build).
 
+## [metaengine/v4.13.0, system/v4.7.0, storage/v4.9.0, stack/v4.4.0, cmd/cqrs-lint/v4.10.0, benchkit/v4.5.0, scheduling/sqlstore/v4.0.0, tursoengine/v4.1.0 — 2026-09-08 release train (+44 more module tags)] — 2026-09-08
+
+Coordinated release of the full 2026-09-06 → 09-08 surface (58 modules):
+`event/v4.11.0`, `command/v4.10.0`, `scheduling/v4.4.0`, `scheduling/sqlstore/v4.0.0` (first), `deriver/v4.3.0`, `commandlifecycle/v4.1.0`, `commandlifecycle/projections/v4.1.0`, `signing/v4.3.0`, `encryption/v4.4.0`, `graph/v4.3.0`, `scenario/v4.3.0`, `listing/v4.4.0`, `metaengine/v4.13.0`, `metaengine/{badgerengine/v4.2.0, bboltengine/v4.2.0, dgraphengine/v4.2.0, duckdbengine/v4.2.0, mysqlengine/v4.2.0, pebbleengine/v4.3.0, pgengine/v4.3.0, sqliteengine/v4.3.0, tursoengine/v4.1.0, graphadapter/v4.1.0, irohengine/v4.2.0, irohengine/loopback/v4.0.2, irohengine/quic/v4.2.0}`, `storage/v4.9.0` (+ memory/pebble/turso), `middleware/v4.6.0`, `prometheus/v4.3.0`, `transport/{grpc/v4.3.0, http/v4.3.1}`, `watermill/v4.6.0`, `testutil/v4.3.0`, `stack/v4.4.0` (+ all 8 presets incl. `stack/sqlite/v4.3.1`), `system/v4.7.0`, `catalog/v4.3.0`, `benchkit/v4.5.0`, `cmd/{api-stability,v4.3.0, cqrs-gen/v4.3.0, cqrs-lint/v4.10.0, doc-check/v4.3.0}`, `integration/v4.2.0`, and the four examples on their first proxy-visible v0 tags (`example/getting-started/v0.1.0`, `example/readme-quickstart/v0.2.0`, `example/taskmanager/v0.1.0`, `example/metaengine-quickstart/v0.1.0` — the examples' module paths are suffix-less, so their earlier v4.x tags were proxy-invisible).
+
 ## [Unreleased]
+
+### Added
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
 
 ### Fixed — cqrs-lint doctor JSON determinism + taskmanager V006 golden refresh — 2026-09-08
 
