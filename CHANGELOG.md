@@ -6,6 +6,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — cqrs-lint analyzer hardening: deterministic detection, engine coverage, doctor JSON — 2026-09-08
+
+- **Store detection is deterministic.** A package importing more than one
+  store signal (two `stack/*` presets, or preset + raw `storage/`) resolved
+  its store in Go map iteration order — different answers across runs. The
+  import scan now visits packages and imports in sorted order with a
+  first-wins guard, pinned by a 40-run stability test that fails on
+  map-order code.
+- **Store detection covers every shipped metaengine engine.** Consumers on
+  mysql/badger/dgraph/turso/bbolt/iroh engines resolved to
+  `StoreNone`/`StoreUnknown`, so store-conditional rules and the scorecard
+  saw the wrong tier. New enum values `analyzer.StoreBadger`,
+  `analyzer.StoreDgraph`, `analyzer.StoreIroh` (embedded-KV / distributed /
+  embedded-P2P classification) plus an engine→store table test that fails
+  when an engine module ships without a mapping.
+- **Constructor-call handlers no longer poison type lookups.**
+  `RegisterTyped(d, NewMyCommand(bus))` recorded its CALL TEXT as a
+  `CommandTypesRegistered` key that no struct-name lookup could ever match.
+  These records live in the new `analyzer.ConstructorHandlers` set instead.
+- **`CommandInfo.Embeds` split from `Fields`** — embedded type expressions
+  no longer masquerade as member names; B004's size heuristic counts both,
+  so its behavior is unchanged.
+- **Alias-blindness closed for fold detection.** `analyzer.IsQualifierFor`
+  and `analyzer.IsEventTypeParam` resolve qualifiers and parameter types
+  through the type checker (typed answer authoritative, string scan only
+  when type info is missing): aliased imports match, shadowed qualifiers do
+  not, and consumer defined/alias types over `event.Event` are recognized —
+  `capturePayloadTypeFromVar`, fold-function detection (C038/C040), and
+  `IsInsideUpcasterClosure` (A014/C005 suppression) all adopted.
+- **Upcaster-closure detection memoized per file** — was a full AST walk per
+  candidate call (O(file)×queries); now O(file) once per file.
+- **doctor `--format json` surface fixed and golden-locked.** The
+  `features` and per-module `profile` objects emitted Go-style keys
+  (`"Store"`, `"HasServer"`) — they now emit camelCase like every other
+  field; `modules` is sorted by directory (was map order); a shape golden
+  (`TestDoctorJSONReport_Golden`, `UPDATE_GOLDEN=1` to regen) fails on any
+  field rename, omitempty change, or nesting drift.
+- **`RULES.md` regenerated and formatter-excluded** — the table re-padding
+  that repeatedly broke the freshness meta-test came from dprint's markdown
+  plugin (not treefmt); `**/RULES.md` is excluded in `dprint.json`, so the
+  generator's output is now byte-stable.
+
 ### Added — metaengine verification batch: capability gaps through Plan, keycodec exports, FromDB restart harness — 2026-09-07
 
 - **`WithEngineCapabilityGaps`** (plan option): documents known ADT
