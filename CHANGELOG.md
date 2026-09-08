@@ -3798,7 +3798,12 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added
 
-- Nothing yet.
+- **Completeness meta-tests for the linter's static tables**
+  (`TestConsumerOnlyRulesAreRealRules`, `TestPresetRuleIDsAreRealRules`,
+  `TestPresetHelpTextListsAllPresets`): every `consumerOnlyRules` /
+  preset-disable / severity-override ID must exist in `rules.AllRules()`, and
+  the `--preset` help text must list exactly `analyzer.ValidPresetNames()` —
+  dead IDs and forgotten presets now fail CI instead of drifting silently.
 
 ### Fixed
 
@@ -3810,6 +3815,13 @@ files. All fixed to unblock `verify-fast`:
   consumer-visible `json.Marshal` sites in `cqrs-lint` (doctor JSON, scorecard
   JSON, SARIF, diagnostics re-encode, doctor profile echo) now pass
   `json.Deterministic(true)` as belt-and-suspenders.
+- **Alias-blindness closed for the remaining call-scan sites.** The analyzer's
+  call scanner (`event.New`/`NewEvent`/`Register`/`system.RegisterCommand`/
+  `catalog.Event`/`decider.StrictApply`), D018/D019's catalog-builder
+  detection, and the performance JSON-codec heuristic now resolve package
+  qualifiers through type info via `analyzer.IsQualifierFor` — aliased imports
+  (`es "…/event/v4"`) are detected by import path, shadowing locals stop
+  matching, and syntax-only loads keep the historical string fallback.
 
 ## [command/v4.9.0, decider/v4.6.0, dispatcher/v4.4.0, event/v4.10.0, event/v4/eventtest/v0.4.0, id/v4.6.0, kv/v4.3.0, metadata/v4.7.0, query/v4.8.0, record/v4.5.0, schema/v4.4.0, snapshot/v4.5.0, storage/backuptest/v4.2.0, storage/bbolt/v4.2.0, storage/memory/v4.5.0] — 2026-09-08
 

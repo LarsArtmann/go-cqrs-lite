@@ -1,6 +1,8 @@
 package main
 
 import (
+	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -50,16 +52,22 @@ func TestPresetRuleIDsAreRealRules(t *testing.T) {
 func TestPresetHelpTextListsAllPresets(t *testing.T) {
 	t.Parallel()
 
-	help := initPresetFlags{}.Preset
+	field, ok := reflect.TypeOf(initPresetFlags{}).FieldByName("Preset")
+	if !ok {
+		t.Fatal("initPresetFlags has no Preset field")
+	}
+	help := field.Tag.Get("help")
 	const prefix = "Config preset: "
 	if !strings.HasPrefix(help, prefix) {
 		t.Fatalf("preset help text does not start with %q: %q", prefix, help)
 	}
 
 	listed := strings.Split(strings.TrimPrefix(help, prefix), ", ")
+	sorted := slices.Clone(listed)
+	slices.Sort(sorted)
 	want := analyzer.ValidPresetNames()
 
-	if strings.Join(listed, "\x00") != strings.Join(want, "\x00") {
+	if strings.Join(sorted, "\x00") != strings.Join(want, "\x00") {
 		t.Errorf("preset help text is out of sync with ValidPresetNames():\n  help:  %v\n  valid: %v", listed, want)
 	}
 }
