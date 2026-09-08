@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.4.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/redis/go-redis/v9 v9.12.1
@@ -59,7 +59,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

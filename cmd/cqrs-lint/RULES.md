@@ -5,18 +5,18 @@
 
 Detectors per category (severities: `error` blocks CI, `warning` reports, `info` is advisory):
 
-| Category                      | Rules | Section   |
-| ----------------------------- | ----- | --------- |
-| [Correctness](#correctness)   | 42    | C001–C042 |
-| [API](#api)                   | 32    | A001–A034 |
-| [Boilerplate](#boilerplate)   | 31    | B001–B031 |
-| [Performance](#performance)   | 9     | P001–P013 |
-| [Consistency](#consistency)   | 18    | D001–D019 |
-| [Architecture](#architecture) | 17    | E001–E017 |
-| [Security](#security)         | 10    | S001–S011 |
-| [Testing](#testing)           | 8     | T001–T008 |
-| [Version](#version)           | 7     | V001–V007 |
-| [Adoption](#adoption)         | 30    | F001–F030 |
+| Category | Rules | Section |
+|---|---|---|
+| [Correctness](#correctness) | 42 | C001–C042 |
+| [API](#api) | 32 | A001–A034 |
+| [Boilerplate](#boilerplate) | 31 | B001–B031 |
+| [Performance](#performance) | 9 | P001–P013 |
+| [Consistency](#consistency) | 18 | D001–D019 |
+| [Architecture](#architecture) | 17 | E001–E017 |
+| [Security](#security) | 10 | S001–S011 |
+| [Testing](#testing) | 8 | T001–T008 |
+| [Version](#version) | 7 | V001–V007 |
+| [Adoption](#adoption) | 30 | F001–F030 |
 
 ## Correctness
 
@@ -356,6 +356,7 @@ Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `correctness`
 
 Save called with expectedVersion=0 — optimistic concurrency bypassed for this write
 
+
 ## API
 
 <a id="a001"></a>
@@ -614,6 +615,7 @@ Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `api`
 
 metaengine.Execute returns an untyped result (any) — requires a runtime type assertion that can panic
 
+
 ## Boilerplate
 
 <a id="b001"></a>
@@ -864,6 +866,7 @@ Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `boilerplate`
 
 projectionhost.New without WithDeadLetterStore — poison events cause terminal failure
 
+
 ## Performance
 
 <a id="p001"></a>
@@ -937,6 +940,7 @@ SQLite store without WAL mode — prone to 'database is locked' errors under con
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `performance`
 
 SQLite store without busy_timeout — 'database is locked' errors under concurrent access
+
 
 ## Consistency
 
@@ -1084,6 +1088,7 @@ Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `consistency`
 
 Exported specs are stale: event types exist that are not in the catalog
 
+
 ## Architecture
 
 <a id="e001"></a>
@@ -1222,6 +1227,7 @@ Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `archit
 
 signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
 
+
 ## Security
 
 <a id="s001"></a>
@@ -1304,6 +1310,7 @@ Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `securi
 
 PII field in event payload without bus encryption middleware — data persisted in cleartext to event store
 
+
 ## Testing
 
 <a id="t001"></a>
@@ -1370,6 +1377,7 @@ Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `testing`
 
 Test file imports a production store instead of eventtest/memory fakes
 
+
 ## Version
 
 <a id="v001"></a>
@@ -1433,6 +1441,7 @@ References:
 - [ADR 0114](../../docs/adr/0114-tombstone-as-domain-event.md)
 - [ADR 0123](../../docs/adr/0123-v5-unification-single-composition-root.md)
 - [ADR 0126](../../docs/adr/0126-metadata-generic-store-transforms-wal-unification.md)
+
 
 ## Adoption
 
@@ -1675,3 +1684,4 @@ Project has OTel but no tracing middleware — handlers are not instrumented
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `adoption`
 
 Import of deprecated transport/* module — removed at v5; migrate to go-sse, watermill bridge, or cqrs-htmx (ADR-0127)
+

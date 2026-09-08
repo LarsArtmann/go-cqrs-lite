@@ -45,7 +45,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.12.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.4.0 // indirect
@@ -79,7 +79,6 @@ require (
 	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa // indirect
 	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	modernc.org/libc v1.75.7 // indirect

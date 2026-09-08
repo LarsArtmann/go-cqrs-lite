@@ -34,6 +34,8 @@ func TestDoctorJSONReport_Golden(t *testing.T) {
 			CommandFlow: analyzer.CommandFlowCommands,
 			Tracing:     analyzer.TracingOn,
 			Snapshot:    analyzer.SnapshotOff,
+			Domain:      analyzer.DomainUnknown,
+			Monetary:    analyzer.MonetaryUnknown,
 		},
 		FeatureProfiles: map[string]analyzer.FeatureProfile{
 			"/example/project":          {Store: analyzer.StoreSQLite, CommandFlow: analyzer.CommandFlowCommands},

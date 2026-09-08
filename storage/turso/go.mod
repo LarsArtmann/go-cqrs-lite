@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.3.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.2.1
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.1
@@ -65,7 +65,6 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/mod v0.40.0 // indirect
-	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	modernc.org/libc v1.75.7 // indirect

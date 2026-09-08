@@ -15,50 +15,50 @@ import (
 // import + constructor scans.
 type FeatureProfile struct {
 	// Store is the persistence backend the consumer wires up.
-	Store StoreKind
+	Store StoreKind `json:"store"`
 	// CommandFlow classifies how (or if) the consumer dispatches commands.
-	CommandFlow CommandFlowKind
+	CommandFlow CommandFlowKind `json:"commandFlow"`
 	// HasServer is true when a network listener (HTTP or gRPC) is present.
-	HasServer bool
+	HasServer bool `json:"hasServer"`
 	// HasSoftDelete is true when the domain emits tombstone-like events.
-	HasSoftDelete bool
+	HasSoftDelete bool `json:"hasSoftDelete"`
 	// Tracing indicates whether OpenTelemetry middleware is wired.
-	Tracing TracingKind
+	Tracing TracingKind `json:"tracing"`
 	// Snapshot indicates whether a snapshot store or strategy is configured.
-	Snapshot SnapshotKind
+	Snapshot SnapshotKind `json:"snapshot"`
 	// Domain classifies the business domain, enabling severity calibration.
 	// Financial domains escalate security and money-handling rules to error.
-	Domain DomainKind
+	Domain DomainKind `json:"domain"`
 	// HasAsyncBus is true when a distributed event bus (Watermill-backed)
 	// is wired. In-memory buses don't need dedup; distributed buses do.
-	HasAsyncBus bool
+	HasAsyncBus bool `json:"hasAsyncBus"`
 	// HasTransport is true when an external-delivery layer is wired: the
 	// watermill/ bridge (any broker backend), go-sse, cqrs-htmx, or a legacy
 	// deprecated transport/http / transport/grpc import. When true, adoption
 	// rules that suggest adopting a transport are suppressed — the project
 	// already has one.
-	HasTransport bool
+	HasTransport bool `json:"hasTransport"`
 	// ServerLocal is true when HasServer is detected but the server lacks
 	// production signals (no TLS, no graceful Shutdown, no health endpoint).
 	// This classifies CLI tools with embedded dashboards correctly, suppressing
 	// server-only rules (health checks, Prometheus, transport suggestions).
-	ServerLocal bool
+	ServerLocal bool `json:"serverLocal"`
 	// HasMetaengine is true when the project imports the metaengine module.
 	// Adoption rules (F022-F025) use this to gate pushdown suggestions.
-	HasMetaengine bool
+	HasMetaengine bool `json:"hasMetaengine"`
 	// MetaengineEngines lists the engine backends wired by the project
 	// (e.g. "sqlite", "pebble", "duckdb", "postgres", "memory").
 	// Detected from imports of metaengine/<engine>engine subpackages.
-	MetaengineEngines []string
+	MetaengineEngines []string `json:"metaengineEngines"`
 	// MetaenginePushdown is true when the project uses FilterOnField or
 	// SortOnField — indicating it has adopted declarative pushdown.
-	MetaenginePushdown bool
+	MetaenginePushdown bool `json:"metaenginePushdown"`
 	// Monetary declares whether the project handles monetary values.
 	// Unknown (the default) lets money rules infer the signal from source
 	// heuristics; "on"/"off" are explicit user declarations that override
 	// the inference — e.g. C008 downgrades to Info when "off" is declared
 	// for a project whose struct names merely look monetary.
-	Monetary MonetaryKind
+	Monetary MonetaryKind `json:"monetary"`
 }
 
 func (fp FeatureProfile) String() string {

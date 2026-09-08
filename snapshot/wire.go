@@ -1,7 +1,7 @@
 package snapshot
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"time"
 
 	"github.com/larsartmann/go-codec"

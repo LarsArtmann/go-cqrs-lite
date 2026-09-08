@@ -14,7 +14,7 @@ package storage_test
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	"encoding/json/v2"
 	"strings"
 	"testing"
 	"time"

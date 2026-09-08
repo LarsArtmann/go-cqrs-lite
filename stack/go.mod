@@ -39,7 +39,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect

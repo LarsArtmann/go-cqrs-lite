@@ -25,7 +25,7 @@ type RuleInfo struct {
 //nolint:gochecknoglobals // intentional memoized cache
 var allRulesCache = sync.OnceValue(func() []RuleInfo {
 	return slices.Concat(
-		correctnessRules(),
+		slices.Concat(correctnessRulesPart1(), correctnessRulesPart2()),
 		apiRules(),
 		boilerplateRules(),
 		consistencyRules(),
@@ -62,9 +62,4 @@ var ruleLookupCache = sync.OnceValue(func() map[string]RuleInfo {
 func LookupRule(id string) (RuleInfo, bool) {
 	r, ok := ruleLookupCache()[id]
 	return r, ok
-}
-
-// correctnessRules aggregates both halves of the correctness family table.
-func correctnessRules() []RuleInfo {
-	return slices.Concat(correctnessRulesPart1(), correctnessRulesPart2())
 }
