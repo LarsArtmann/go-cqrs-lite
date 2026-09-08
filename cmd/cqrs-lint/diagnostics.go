@@ -53,7 +53,7 @@ func loadRawRulesJSON() []byte {
 	}
 
 	if rules, ok := top["rules"]; ok {
-		if reencoded, err := json.Marshal(rules); err == nil {
+		if reencoded, err := json.Marshal(rules, json.Deterministic(true)); err == nil {
 			return reencoded
 		}
 	}

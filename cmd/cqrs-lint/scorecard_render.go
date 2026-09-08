@@ -167,7 +167,7 @@ func formatModuleList(modules []ScorecardModule) string {
 
 // renderScorecardJSON marshals the scorecard as canonical JSON.
 func renderScorecardJSON(result ScorecardResult) (string, error) {
-	data, err := json.Marshal(result)
+	data, err := json.Marshal(result, json.Deterministic(true))
 	if err != nil {
 		return "", fmt.Errorf("marshal scorecard JSON: %w", err)
 	}
@@ -344,7 +344,7 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 		})
 	}
 
-	data, err := json.Marshal(report)
+	data, err := json.Marshal(report, json.Deterministic(true))
 	if err != nil {
 		return "", fmt.Errorf("marshal scorecard SARIF: %w", err)
 	}

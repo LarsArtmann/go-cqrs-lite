@@ -25,6 +25,7 @@ func renderDoctorSuggestedConfig(w io.Writer, cfg *AppConfig, actx *analyzer.Ana
 
 	raw, err := json.Marshal(
 		map[string]analyzer.ConfigFeatures{"features": features},
+		json.Deterministic(true),
 		jsontext.WithIndentPrefix(""),
 		jsontext.WithIndent("  "),
 	)
@@ -58,6 +59,7 @@ func renderDoctorSuggestedConfig(w io.Writer, cfg *AppConfig, actx *analyzer.Ana
 	if len(cfg.Rules.ExternalAPIStructPrefixes) > 0 {
 		rulesRaw, err := json.Marshal(
 			map[string]analyzer.RulesConfig{"rules": cfg.Rules},
+			json.Deterministic(true),
 			jsontext.WithIndentPrefix(""),
 			jsontext.WithIndent("  "),
 		)

@@ -3802,7 +3802,14 @@ files. All fixed to unblock `verify-fast`:
 
 ### Fixed
 
-- Nothing yet.
+- **SARIF scorecard output is byte-deterministic.** `run.properties` was a
+  `map[string]any`; `encoding/json/v2` emits map keys in iteration order
+  (v1 sorted), so CI consumers diffing SARIF reports got spurious diffs. It
+  is now a fixed-order struct (`sarifProperties`), pinned by
+  `TestRenderSARIF_DeterministicOutput` (50-render byte-compare). All
+  consumer-visible `json.Marshal` sites in `cqrs-lint` (doctor JSON, scorecard
+  JSON, SARIF, diagnostics re-encode, doctor profile echo) now pass
+  `json.Deterministic(true)` as belt-and-suspenders.
 
 ## [command/v4.9.0, decider/v4.6.0, dispatcher/v4.4.0, event/v4.10.0, event/v4/eventtest/v0.4.0, id/v4.6.0, kv/v4.3.0, metadata/v4.7.0, query/v4.8.0, record/v4.5.0, schema/v4.4.0, snapshot/v4.5.0, storage/backuptest/v4.2.0, storage/bbolt/v4.2.0, storage/memory/v4.5.0] — 2026-09-08
 

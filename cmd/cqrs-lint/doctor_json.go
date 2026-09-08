@@ -125,7 +125,10 @@ func withAudit(
 }
 
 func printDoctorJSON(report doctorJSONReport) error {
-	data, err := json.Marshal(report, jsontext.WithIndent("  "))
+	// json.Deterministic: json/v2 emits map keys in iteration order (v1
+	// sorted); belt-and-suspenders alongside sortedOverrideMap so any future
+	// map field in the report cannot regress byte-determinism.
+	data, err := json.Marshal(report, json.Deterministic(true), jsontext.WithIndent("  "))
 	if err != nil {
 		return fmt.Errorf("marshal doctor report: %w", err)
 	}
