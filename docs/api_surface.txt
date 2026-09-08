@@ -551,9 +551,12 @@ cmd/cqrs-lint/pkg/analyzer/const PresetV5Ready
 cmd/cqrs-lint/pkg/analyzer/const SnapshotOff
 cmd/cqrs-lint/pkg/analyzer/const SnapshotOn
 cmd/cqrs-lint/pkg/analyzer/const SnapshotUnknown
+cmd/cqrs-lint/pkg/analyzer/const StoreBadger
 cmd/cqrs-lint/pkg/analyzer/const StoreBolt
 cmd/cqrs-lint/pkg/analyzer/const StoreCustom
+cmd/cqrs-lint/pkg/analyzer/const StoreDgraph
 cmd/cqrs-lint/pkg/analyzer/const StoreDuckDB
+cmd/cqrs-lint/pkg/analyzer/const StoreIroh
 cmd/cqrs-lint/pkg/analyzer/const StoreMemory
 cmd/cqrs-lint/pkg/analyzer/const StoreMySQL
 cmd/cqrs-lint/pkg/analyzer/const StoreNone

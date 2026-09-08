@@ -56,12 +56,19 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			ctx.Registry.CommandTypesRegistered[handlerType] = true
 		} else {
 			// Handler type could not be extracted from the call args directly.
-			// Try two fallback strategies:
-			//   1. If the handler arg is a method value (h.handleX), record the
+			// Try fallback strategies:
+			//   1. Constructor-call handler (NewMyCommand(bus)): recorded in
+			//      ConstructorHandlers — its text is a CALL expression, never a
+			//      type name, so it must not pollute CommandTypesRegistered
+			//      (T20-4).
+			//   2. If the handler arg is a method value (h.handleX), record the
 			//      method name for a post-pass that finds the FuncDecl and
 			//      extracts the param type. Covers SEC's typed handler methods.
-			//   2. Record the type-constant arg for const-value resolution.
+			//   3. Record the type-constant arg for const-value resolution.
 			//      Covers consumers whose const values are struct names.
+			if ctor := constructorHandlerText(call); ctor != "" {
+				ctx.Registry.ConstructorHandlers[ctor] = true
+			}
 			if methodName := methodNameFromHandlerArg(call); methodName != "" {
 				ctx.Registry.pendingHandlerMethods[methodName] = true
 			}
@@ -115,14 +122,13 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 }
 
 // handlerTypeFromCall extracts the handler type name from a RegisterTyped or
-// RegisterQuery call. It handles three registration patterns:
+// RegisterQuery call. It handles two registration patterns:
 //
 //  1. Composite literal:     RegisterTyped(d, MyCommand{})      → "MyCommand"
-//  2. Constructor call:      RegisterTyped(d, NewMyCommand())    → "NewMyCommand(...)"
-//  3. Closure handler:       RegisterTyped(d, type, func(ctx, c *MyCommand) error {...})
+//  2. Closure handler:       RegisterTyped(d, type, func(ctx, c *MyCommand) error {...})
 //
-// For closures, the handler type is extracted from the first non-context
-// parameter of the function literal's signature.
+// Constructor-call handlers (NewMyCommand(bus)) are NOT type names — they are
+// recorded separately via constructorHandlerText (T20-4).
 func handlerTypeFromCall(call *ast.CallExpr) string {
 	for _, arg := range call.Args {
 		switch a := arg.(type) {
@@ -132,8 +138,20 @@ func handlerTypeFromCall(call *ast.CallExpr) string {
 			}
 		case *ast.FuncLit:
 			return handlerTypeFromClosure(a)
-		case *ast.CallExpr:
-			return ExprString(a)
+		}
+	}
+
+	return ""
+}
+
+// constructorHandlerText returns the call text of the first constructor-call
+// handler argument (e.g. "NewMyCommand(bus)"), or "" when no handler arg is a
+// call expression. T20-4: these records live in Registry.ConstructorHandlers,
+// never in CommandTypesRegistered (keys there must be struct type names).
+func constructorHandlerText(call *ast.CallExpr) string {
+	for _, arg := range call.Args {
+		if _, ok := arg.(*ast.CallExpr); ok {
+			return ExprString(arg)
 		}
 	}
 

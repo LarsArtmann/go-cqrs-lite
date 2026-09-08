@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -143,6 +144,40 @@ func setup() {
 
 	if !ctx.Registry.CommandTypesRegistered["DeleteUserHandler"] {
 		t.Error("expected DeleteUserHandler in CommandTypesRegistered")
+	}
+}
+
+// T20-4: constructor-call handlers used to be recorded with their CALL TEXT
+// (e.g. "NewCreateUserHandler(bus)") as a CommandTypesRegistered key that no
+// type-name lookup could ever match. They are recorded in
+// ConstructorHandlers instead.
+func TestScanCallExpr_ConstructorHandlerRecordedSeparately(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"register.go": `package main
+
+func setup(bus *Bus) {
+	dispatcher.RegisterTyped(bus, NewCreateUserHandler(bus))
+}
+`,
+	})
+
+	for key := range ctx.Registry.CommandTypesRegistered {
+		if strings.Contains(key, "(") {
+			t.Errorf("CommandTypesRegistered has call-text key %q — constructor handlers belong in ConstructorHandlers", key)
+		}
+	}
+
+	// The exact call text is go/printer-rendered (and may elide args), so pin
+	// the record's presence and identity prefix, not its full text.
+	if len(ctx.Registry.ConstructorHandlers) != 1 {
+		t.Fatalf("expected exactly 1 ConstructorHandlers record, got %v", ctx.Registry.ConstructorHandlers)
+	}
+	for key := range ctx.Registry.ConstructorHandlers {
+		if !strings.HasPrefix(key, "NewCreateUserHandler") {
+			t.Errorf("ConstructorHandlers key %q does not name the constructor", key)
+		}
 	}
 }
 

@@ -14,7 +14,16 @@ type CQRSRegistry struct {
 	// EventTypesInCatalog tracks event types registered via catalog.Event.
 	EventTypesInCatalog map[string]bool
 	// CommandTypesRegistered tracks command types registered via RegisterTyped.
+	// Keys MUST be struct type names — constructor-call registrations are kept
+	// in ConstructorHandlers instead (T20-4).
 	CommandTypesRegistered map[string]bool
+	// ConstructorHandlers records the call text of RegisterTyped/RegisterQuery
+	// handlers passed as constructor calls (e.g. `NewMyCommand(bus)`). The
+	// concrete command type is not nameable from the call site alone; these
+	// are kept OUT of CommandTypesRegistered (whose keys must be type names
+	// that lookups can match) and surfaced separately for dumps and future
+	// constructor-aware rules (T20-4).
+	ConstructorHandlers map[string]bool
 	// EventPayloadTypes tracks struct type names used as payload args to event.New().
 	EventPayloadTypes map[string]bool
 
@@ -61,6 +70,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		EventTypesEmitted:      make(map[string]EventEmission),
 		EventTypesInCatalog:    make(map[string]bool),
 		CommandTypesRegistered: make(map[string]bool),
+		ConstructorHandlers:    make(map[string]bool),
 		EventPayloadTypes:      make(map[string]bool),
 		TypeConstValues:        make(map[string]string),
 		StrictApplyFolds:       make(map[string]bool),
