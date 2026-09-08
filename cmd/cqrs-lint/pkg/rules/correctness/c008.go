@@ -129,7 +129,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						isMoneyStructName(ts.Name.Name, moneyKeywords) ||
 						hasMoneyEmbed(st, moneyKeywords)
 					findings = append(findings, scanMoneyFields(
-						ctx, st, structMoney, projectMonetary,
+						ctx, ts.Name.Name, st, structMoney, projectMonetary,
 						strongMoneyFields, weakMoneyFields,
 					)...)
 
@@ -144,7 +144,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					findings = append(findings, scanMoneyFields(
-						ctx, st, pkgMoney, projectMonetary,
+						ctx, "", st, pkgMoney, projectMonetary,
 						strongMoneyFields, weakMoneyFields,
 					)...)
 
@@ -164,6 +164,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // a non-monetary project's "amount"/"balance" is probably not about money.
 func scanMoneyFields(
 	ctx *analyzer.AnalysisContext,
+	structName string,
 	st *ast.StructType,
 	structMoney bool,
 	projectMonetary bool,
@@ -180,6 +181,18 @@ func scanMoneyFields(
 		severity = finding.SeverityInfo
 		confidence = finding.ConfidenceLow
 	}
+
+	// F091 Tier 2 (C008 usage-confirmation): when the typed tier is active,
+	// a WEAK field name additionally requires positive evidence — the struct
+	// is a registered command payload, or it carries a strong-money sibling
+	// field. Name-only corroboration (a package that merely looks monetary)
+	// no longer suffices for value/total fields. Strong fields are
+	// unambiguous and never need the extra evidence. Without registry data
+	// (name-only fallback), the historical heuristic stands unchanged.
+	typedTier := ctx.TypedConfirmations()
+	registeredPayload := structName != "" && ctx.Registry != nil &&
+		ctx.Registry.CommandTypesRegistered[structName]
+	hasStrongSibling := structHasStrongMoneyField(st, strongMoneyFields)
 
 	for _, field := range st.Fields.List {
 		if !isFloat64(field.Type) {
@@ -215,6 +228,14 @@ func scanMoneyFields(
 
 			// Weak field names (value, total) require a money context.
 			if !strong && !structMoney {
+				continue
+			}
+
+			// F091 Tier 2: with the typed tier active, a weak field ALSO
+			// needs positive evidence (registered command payload or a
+			// strong-money sibling) — package-name vibes alone no longer
+			// confirm a weak field.
+			if !strong && typedTier && !registeredPayload && !hasStrongSibling {
 				continue
 			}
 
@@ -345,6 +366,26 @@ func isMoneyStructName(structName string, moneyKeywords []string) bool {
 	lower := strings.ToLower(structName)
 
 	return matchesAny(lower, moneyKeywords)
+}
+
+// structHasStrongMoneyField reports whether the struct carries at least one
+// field whose name is an unambiguous money term (amount, price, …). Used as
+// F091 Tier-2 evidence: a weak field (value, total) next to a strong sibling
+// is almost certainly money.
+func structHasStrongMoneyField(st *ast.StructType, strongMoneyFields []string) bool {
+	if st.Fields == nil {
+		return false
+	}
+
+	for _, field := range st.Fields.List {
+		for _, name := range field.Names {
+			if matchesAny(strings.ToLower(name.Name), strongMoneyFields) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // packageLooksMonetary reports whether the package path suggests a monetary
