@@ -3798,6 +3798,23 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added
 
+- **`--typed-info` (auto | on | off)** — the F091 typed-confirmation tier is
+  wired as a first-class CLI/config flag (`analysisContext.TypedInfoMode`,
+  default `auto`: typed paths run whenever the package load produced type
+  info; typos in the mode warn and fall back to auto).
+- **F090(b): dot-imported removed symbols are attributed via type info.**
+  Bare identifiers resolving into a dot-imported go-cqrs-lite module now fire
+  V007 with the exact position and the module attribution
+  (`VersionedStore (dot-imported from schema) is removed at v5 — …`); silent
+  on the name-only fallback. Pinned by a committed replace-based fixture
+  module (`cmd/cqrs-lint/testdata/typedfixture`) so the typed tier is
+  CI-testable without throwaway modules.
+- **C008 usage-confirmation (F091 Tier 2)**: with the typed tier active, a
+  weak money field (`value`, `total`) corroborated ONLY by ambient signals
+  (a money-looking package path / project vibe) additionally needs local
+  evidence — a money-named/embedded struct, a registered command payload, or
+  a strong-money sibling. The historical heuristic is unchanged for
+  syntax-only loads and `--typed-info=off`.
 - **Completeness meta-tests for the linter's static tables**
   (`TestConsumerOnlyRulesAreRealRules`, `TestPresetRuleIDsAreRealRules`,
   `TestPresetHelpTextListsAllPresets`): every `consumerOnlyRules` /

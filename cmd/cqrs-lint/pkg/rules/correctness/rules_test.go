@@ -925,3 +925,63 @@ func shutdown(ctx context.Context, srv *Server) {
 	findings := ruletest.RunDetector(t, correctness.NewC016Detector(ctx))
 	ruletest.AssertRule(t, findings, "C016", 0)
 }
+
+// --- C008 F091 Tier 2: typed usage-confirmation ---
+
+// TestC008_TypedTier_SuppressesAmbientOnlyWeakField pins the typed tier: a
+// weak field (Value) corroborated ONLY by a money-looking package path —
+// the struct itself carries no local money evidence — no longer fires when
+// typed confirmations are on. The historical heuristic would have fired it
+// (package vibes counted as corroboration).
+func TestC008_TypedTier_SuppressesAmbientOnlyWeakField(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"billing/config.go": `package billing
+
+type ReportMeta struct {
+	Value float64
+}
+`,
+	})
+	ctx.TypedInfoMode = "on"
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 0)
+}
+
+// TestC008_TypedTierOff_KeepsHistoricalHeuristic pins the fallback: with the
+// typed tier off, ambient package corroboration still fires the weak field —
+// the pre-F091 behavior is preserved for syntax-only loads and --typed-info=off.
+func TestC008_TypedTierOff_KeepsHistoricalHeuristic(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"billing/config.go": `package billing
+
+type ReportMeta struct {
+	Value float64
+}
+`,
+	})
+	ctx.TypedInfoMode = "off"
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 1)
+}
+
+// TestC008_TypedTier_StrongSiblingConfirmsWeakField: a weak field next to a
+// strong-money sibling is confirmed by local evidence regardless of the tier.
+// The package is money-named (ambient corroboration) but the struct itself is
+// not — only the strong sibling carries the weak field past the typed tier.
+func TestC008_TypedTier_StrongSiblingConfirmsWeakField(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"billing/stats.go": `package billing
+
+type Stats struct {
+	Total  float64
+	Amount float64
+}
+`,
+	})
+	ctx.TypedInfoMode = "on"
+
+	findings := ruletest.RunDetector(t, correctness.NewC008Detector(ctx))
+	ruletest.AssertRule(t, findings, "C008", 2)
+}

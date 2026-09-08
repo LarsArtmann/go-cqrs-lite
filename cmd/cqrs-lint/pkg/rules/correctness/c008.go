@@ -125,11 +125,11 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					structMoney := pkgMoney ||
-						isMoneyStructName(ts.Name.Name, moneyKeywords) ||
+					nameMoney := isMoneyStructName(ts.Name.Name, moneyKeywords) ||
 						hasMoneyEmbed(st, moneyKeywords)
+					structMoney := pkgMoney || nameMoney
 					findings = append(findings, scanMoneyFields(
-						ctx, ts.Name.Name, st, structMoney, projectMonetary,
+						ctx, ts.Name.Name, st, structMoney, nameMoney, projectMonetary,
 						strongMoneyFields, weakMoneyFields,
 					)...)
 
@@ -144,7 +144,7 @@ func NewC008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					findings = append(findings, scanMoneyFields(
-						ctx, "", st, pkgMoney, projectMonetary,
+						ctx, "", st, pkgMoney, false, projectMonetary,
 						strongMoneyFields, weakMoneyFields,
 					)...)
 
@@ -167,6 +167,7 @@ func scanMoneyFields(
 	structName string,
 	st *ast.StructType,
 	structMoney bool,
+	structLocalMoney bool,
 	projectMonetary bool,
 	strongMoneyFields, weakMoneyFields []string,
 ) []finding.Finding {
@@ -183,12 +184,13 @@ func scanMoneyFields(
 	}
 
 	// F091 Tier 2 (C008 usage-confirmation): when the typed tier is active,
-	// a WEAK field name additionally requires positive evidence — the struct
-	// is a registered command payload, or it carries a strong-money sibling
-	// field. Name-only corroboration (a package that merely looks monetary)
-	// no longer suffices for value/total fields. Strong fields are
-	// unambiguous and never need the extra evidence. Without registry data
-	// (name-only fallback), the historical heuristic stands unchanged.
+	// a WEAK field name corroborated ONLY by ambient signals (a money-looking
+	// package path / project vibe) additionally requires local positive
+	// evidence — the struct itself is money-named or money-embedded, the
+	// struct is a registered command payload, or it carries a strong-money
+	// sibling field. Strong fields are unambiguous and never need the extra
+	// evidence. Without registry/typed data (name-only fallback), the
+	// historical heuristic stands unchanged.
 	typedTier := ctx.TypedConfirmations()
 	registeredPayload := structName != "" && ctx.Registry != nil &&
 		ctx.Registry.CommandTypesRegistered[structName]
@@ -231,11 +233,10 @@ func scanMoneyFields(
 				continue
 			}
 
-			// F091 Tier 2: with the typed tier active, a weak field ALSO
-			// needs positive evidence (registered command payload or a
-			// strong-money sibling) — package-name vibes alone no longer
-			// confirm a weak field.
-			if !strong && typedTier && !registeredPayload && !hasStrongSibling {
+			// F091 Tier 2: with the typed tier active, a weak field corroborated
+			// only by ambient package/project vibes needs local evidence
+			// (money-named struct, registered payload, or strong sibling).
+			if !strong && typedTier && !structLocalMoney && !registeredPayload && !hasStrongSibling {
 				continue
 			}
 
