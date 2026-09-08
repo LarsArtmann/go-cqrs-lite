@@ -121,8 +121,36 @@ type AnalysisContext struct {
 	// Non-empty means the analysis is partial; callers should warn the user.
 	LoadErrors []PackageLoadError
 
+	// TypedInfoMode gates the F091 typed-confirmation tier ("auto", "on",
+	// "off"). Wired from AppConfig.TypedInfo in run(); the zero value behaves
+	// as "auto". Rules that need type information to attribute or confirm
+	// findings consult TypedConfirmations (and per-file TypesInfo) instead of
+	// re-deriving availability.
+	TypedInfoMode string
+
 	// lineCache caches file contents for SourceLine to avoid repeated disk reads.
 	lineCache sync.Map // filename → []string
+}
+
+// TypedConfirmations reports whether the F091 typed-confirmation tier may
+// run: "off" disables it outright; "on" forces it on; "auto" (and the zero
+// value) enable it only when the package load actually produced type
+// information. Per-file code must still check gf.Pkg.TypesInfo — this gate
+// only reflects project-level availability and operator intent.
+func (c *AnalysisContext) TypedConfirmations() bool {
+	switch c.TypedInfoMode {
+	case "off":
+		return false
+	case "on":
+		return true
+	default: // "auto" and the zero value
+		for _, gf := range c.GoFiles {
+			if gf.Pkg != nil && gf.Pkg.TypesInfo != nil {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 // PackageLoadError describes a package that failed to load during analysis.

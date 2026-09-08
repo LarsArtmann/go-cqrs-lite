@@ -69,6 +69,7 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 
 				checkDotImports(ctx, gf, &out)
+			checkDotImportedRemovedSymbols(ctx, gf, &out)
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					sel, ok := n.(*ast.SelectorExpr)
@@ -167,6 +168,96 @@ func v007DotImportFinding(
 		WithSuggestion(fmt.Sprintf(
 			"Replace the dot-import of %s with a named or default import so V007 can attribute removed-API usage",
 			path,
+		)).
+		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+		Build()
+
+	return f
+}
+
+// checkDotImportedRemovedSymbols is F090(b): with type information
+// available, bare identifiers that resolve into a dot-imported
+// go-cqrs-lite module are attributed to that module, so removed symbols
+// referenced WITHOUT a qualifier (the hole F090(a) warns about) still fire
+// with a precise position. Silent when typed confirmations are off or the
+// file has no type info: a bare identifier's origin cannot be attributed by
+// name alone, and a false attribution is worse than none.
+func checkDotImportedRemovedSymbols(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile, out *[]finding.Finding) {
+	if !ctx.TypedConfirmations() || gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
+		return
+	}
+
+	// import path → module fragment, for this file's cqrs dot-imports only.
+	dotted := make(map[string]string)
+	for _, imp := range gf.AST.Imports {
+		if imp == nil || imp.Name == nil || imp.Name.Name != "." || imp.Path == nil {
+			continue
+		}
+		path := strings.Trim(imp.Path.Value, `"`)
+		if module, ok := cqrsModuleOf(path); ok {
+			dotted[path] = module
+		}
+	}
+	if len(dotted) == 0 {
+		return
+	}
+
+	ast.Inspect(gf.AST, func(n ast.Node) bool {
+		ident, ok := n.(*ast.Ident)
+		if !ok {
+			return true
+		}
+
+		obj, ok := gf.Pkg.TypesInfo.Uses[ident]
+		if !ok || obj == nil || !obj.Exported() {
+			return true
+		}
+		pkg := obj.Pkg()
+		if pkg == nil {
+			return true // builtin or universe scope
+		}
+
+		module, ok := dotted[pkg.Path()]
+		if !ok {
+			return true // identifier belongs to another package/import
+		}
+
+		if m, removed := matchModule(module); removed {
+			*out = append(*out, v007BareIdentFinding(ctx, ident, module, ident.Name, m.replacement))
+			return true
+		}
+		if s, hit := matchSymbol(module, ident.Name); hit {
+			*out = append(*out, v007BareIdentFinding(ctx, ident, module, ident.Name, s.replacement))
+		}
+
+		return true
+	})
+}
+
+// v007BareIdentFinding builds the F090(b) finding for one dot-imported
+// removed-symbol reference.
+func v007BareIdentFinding(
+	ctx *analyzer.AnalysisContext,
+	ident *ast.Ident,
+	module, symbol, replacement string,
+) finding.Finding {
+	pos := ctx.Fset.Position(ident.Pos())
+
+	f, _ := finding.NewBuilder(
+		"V007",
+		"cqrs-lint",
+		fmt.Sprintf(
+			"%s (dot-imported from %s) is removed at v5 — replace with %s; name the import so V007 can attribute usage",
+			symbol, module, replacement,
+		),
+		finding.SeverityWarning,
+		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+	).
+		WithCategory(finding.CategoryBestPractice).
+		WithConfidence(finding.ConfidenceHigh).
+		WithSuggestion(fmt.Sprintf(
+			"Import %s by name and migrate off %s before the v5 cut",
+			module, symbol,
 		)).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()

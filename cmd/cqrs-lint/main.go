@@ -69,6 +69,13 @@ type AppConfig struct {
 	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility
 	// Health carries health-score tuning (e.g. the Info-deduction cap).
 	Health HealthConfig `json:"health,omitempty"` //nolint:modernize // config compatibility
+	// TypedInfo gates the F091 typed-confirmation tier: rules that need type
+	// information to attribute or confirm findings (F090(b) dot-import
+	// attribution, C008 usage confirmation) run their typed path only when
+	// this allows it. "auto" (default) enables them whenever the package
+	// load produced type info; "on" forces them on; "off" restores the
+	// pre-typed name-only behavior everywhere.
+	TypedInfo string `default:"auto" flag:"typed-info" help:"Typed confirmation tier: auto, on, off" json:"typed-info,omitempty"` //nolint:tagliatelle // CLI config key
 }
 
 // HealthConfig tunes the health-score computation. All fields default to zero,

@@ -39,6 +39,7 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 	excluded := map[string]string{
 		".":                             "root workspace go.mod",
 		"cmd/api-stability":             "the api-stability tool itself (circular)",
+		"cmd/cqrs-lint/testdata/typedfixture": "cqrs-lint typed-path test fixture (replace-based consumer, not a product module)",
 		"integration":                   "workspace-only cross-module tests (published graph not self-contained)",
 		"example/getting-started":       "example application",
 		"example/metaengine-quickstart": "example application",

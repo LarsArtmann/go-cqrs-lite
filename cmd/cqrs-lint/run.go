@@ -193,6 +193,16 @@ func applyConfigOverrides(cfg *AppConfig, actx *analyzer.AnalysisContext) {
 	// parent merge so inherited overrides are checked too).
 	validateSeverityOverrideRuleIDs(os.Stderr, cfg.Rules.SeverityOverrides)
 
+	// F091 typed-confirmation tier: reject typos loudly (a misspelled mode
+	// would silently behave as "auto"), then wire the mode through.
+	switch cfg.TypedInfo {
+	case "", "auto", "on", "off":
+	default:
+		fmt.Fprintf(os.Stderr, "warning: unknown --typed-info mode %q (want auto, on, off); using auto\n", cfg.TypedInfo)
+		cfg.TypedInfo = "auto"
+	}
+
+	actx.TypedInfoMode = cfg.TypedInfo
 	actx.RulesConfig = cfg.Rules
 }
 
