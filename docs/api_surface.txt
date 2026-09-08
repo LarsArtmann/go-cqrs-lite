@@ -640,6 +640,7 @@ cmd/cqrs-lint/pkg/analyzer/method SourceLine
 cmd/cqrs-lint/pkg/analyzer/method String
 cmd/cqrs-lint/pkg/analyzer/method String
 cmd/cqrs-lint/pkg/analyzer/method ToConfigFeatures
+cmd/cqrs-lint/pkg/analyzer/method TypedConfirmations
 cmd/cqrs-lint/pkg/analyzer/method Validate
 cmd/cqrs-lint/pkg/analyzer/struct AnalysisContext
 cmd/cqrs-lint/pkg/analyzer/struct CQRSRegistry

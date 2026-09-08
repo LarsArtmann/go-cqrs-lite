@@ -63,11 +63,10 @@ bottom is a do-not-re-litigate guard, not a backlog.
       E001–E017, V/T/F families, plus the S001/rules.go line-by-line remainder.
       — source: archived/2026-09-06_02-40 §c, 05-31 §f16-22
       _(Effort: M/L)_
-- [ ] 🔥 **F091 Tiers 2–3 + F090(b)** — C008 usage-confirmation and
-      C035/C013 payload-shape confirmation behind `--typed-info=auto`, and
-      type-based attribution of dot-imported removed symbols. All Tier-1
-      machinery shipped (`ResolveQualifierTyped`, `IsQualifierFor`,
-      `IsEventTypeParam`, per-file caches); implementation is what remains.
+- [ ] 🔥 **F091 Tiers 2–3 + F090(b)** — TIER-2 CORE + F090(b) DONE 2026-09-08
+      (`--typed-info` flag plumbed, F090(b) typed dot-import attribution with
+      committed fixture + tests, C008 usage-confirmation). REMAINING:
+      C035/C013 payload-shape confirmation under the same gate.
       — source: 05-31 §b4
       _(Effort: M)_
 - [ ] **ApplyLayout rule (design done, implement)** — structural method-shape
@@ -77,21 +76,18 @@ bottom is a do-not-re-litigate guard, not a backlog.
       `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`. — source:
       session-4 retro §f25
       _(Effort: M)_
-- [ ] **`IsQualifierFor` adoption sweep** — the remaining name-based qualifier
-      checks in `scanCallExpr` (`== "system"`, `== "catalog"`, `== "decider"`,
-      `== "event"`) are the same alias-blindness class T20-8 fixed; one
-      adoption pass beats three future findings. — source: 05-31 §f1/§e8
-      _(Effort: S)_
-- [ ] **Replace-based end-to-end fixture module for typed-path rules** —
-      committed fixture (schema/v4-based) so F091 Tier 2/3 and F090(b) are
-      testable in CI (this session's typed behavior was proven only via a
-      throwaway temp module). — source: 05-31 §f7
-      _(Effort: M)_
-- [ ] **Extend the completeness-meta-test pattern** to `consumerOnlyRules`
-      (filters.go) and preset disable lists (two of three name/ID co-occurrence
-      surfaces still unlocked; the S-family + V007 + RULES.md patterns are the
-      templates). — source: 23-10 §e3, 05-31 §f9
-      _(Effort: S)_
+- [x] **`IsQualifierFor` adoption sweep** — DONE 2026-09-08 (Pareto P12):
+      scanCallExpr + D018/D019 catalog-builder + performance JSON-codec
+      heuristic all resolve via `IsQualifierFor`; alias-blindness class dead.
+      — source: 05-31 §f1/§e8
+- [x] **Replace-based end-to-end fixture module for typed-path rules** — DONE
+      2026-09-08: `cmd/cqrs-lint/testdata/typedfixture` (schema/v4 via relative
+      replace, excluded from api-stability/testModules meta-tests) drives the
+      F090(b) tests in CI. — source: 05-31 §f7
+- [x] **Extend the completeness-meta-test pattern** — DONE 2026-09-08 (P12):
+      `consumerOnlyRules`, preset disable/override IDs, and the --preset help
+      text are all meta-tested (`filters_meta_test.go`). — source:
+      23-10 §e3, 05-31 §f9
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
@@ -235,13 +231,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-- [ ] **DSN secret-redaction audit for sibling engines** — pg/mysql engine
-      error paths can echo `postgres://user:pass@…` DSNs unredacted (the same
-      class as the turso leak fixed 2026-09-07); audit every `fmt.Errorf` that
-      could carry a DSN, extract a shared redaction helper if 3+ drivers
-      reimplement it. Also audit ALL tursoengine DSN-echo sites. — source:
-      archived 20-18 §f25-26, 20-57 §f22-23/§f41
-      _(Effort: M)_
+- [x] **DSN secret-redaction audit for sibling engines** — DONE 2026-09-08
+      (Pareto P10): pg/mysql audited (no DSN echo — plain `%w` wraps only);
+      turso's `redactDSN` matcher fixed (exact-spelling matching leaked
+      `auth_token`/`AUTH_TOKEN`; now containment on `token`/`key`) and pinned
+      by adversarial per-shape leak tests + a preserves-non-secrets guard.
+      Strict-vs-lenient typo'd-param rejection stays BLOCKED (owner ruling).
+      — source: archived 20-18 §f25-26, 20-57 §f22-23/§f41
 - [ ] **Turso encryption test breadth + reachability docs** — (a) document the
       DriverConfig/`system` reachability gap for `WithEncryption` in
       tursoengine README + FAQ (direct `New()` only today); (b) live `file:`
@@ -386,14 +382,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       2026-09-08 rename must not silently rot back; the RULES.md completeness
       meta-test is the pattern). — source: archived 07-48 §f4
       _(Effort: XS)_
-- [ ] 🔥 **json/v2 map-order determinism sweep** — `encoding/json/v2` emits
-      map iteration order (v1 sorted); the doctor JSON `severityOverrides`
-      surface was fixed 2026-09-08 (sorted-key marshaler) but the CLASS was
-      not swept: grep every JSON-marshaled `map[string]…` field on exported
-      surfaces (doctor/scorecard/SARIF/rules --json, catalog exporters) and
-      make each deterministic or test-pin the order. — source: docs-health
-      pass 2026-09-08 (e-6 of its status report)
-      _(Effort: S/M)_
+- [x] 🔥 **json/v2 map-order determinism sweep** — DONE 2026-09-08 (Pareto
+      P08): SARIF `run.properties` map → fixed-order struct + 50-render
+      byte-compare pin; every consumer-visible `json.Marshal` in cqrs-lint
+      passes `json.Deterministic(true)`; catalog/asyncapi already used
+      Deterministic. — source: docs-health pass 2026-09-08 (e-6)
 - [ ] **`example/metaengine-quickstart/README.md` does not exist** — author it
       from its four demo sections (docs/README.md links the directory; the
       copy-paste surface is missing its page). Consider a
@@ -604,12 +597,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       cwd gotcha); consider scanning all templ dirs repo-wide. — source:
       15-09 §f25/§f26
       _(Effort: S)_
-- [ ] **AGENTS.md indexed-split** — ~92 KB linear gotchas file keeps growing
-      (+4 rows per active session); split into an indexed structure (e.g.
-      `AGENTS.md` index + `docs/agents/gotchas-*.md` sections) before the next
-      growth wave makes it unmanageable. Content is current — this is purely a
-      structure/size problem. — source: 15-09 §f39, evening-pass §f46
-      _(Effort: M, process)_
+- [x] **AGENTS.md indexed-split** — DONE 2026-09-08 (Pareto P15+P16): 92 KB →
+      28 KB index + `docs/agents/gotchas-{tooling-build,module-management,
+      language-footguns,testing}.md` + `gowork-modes.md` (THE decision table)
+      + `module-map.md`; zero-content-loss verified by bullet/row counts.
+      — source: 15-09 §f39, evening-pass §f46
 - [ ] **error-taxonomy.md completeness check** — verify it covers the
       storage/pebble/watermill family codes at all; extend if the doc aspires
       to completeness (the 2026-09-08 rename made its stream-code table

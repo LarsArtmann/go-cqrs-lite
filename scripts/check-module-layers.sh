@@ -170,7 +170,10 @@ TEST_PACKAGES="github.com/onsi/gomega github.com/onsi/ginkgo/v2 pgregory.net/rap
 # assertions, race helpers, testcontainers), so an apparent upward dependency
 # is always test-only usage, never production coupling. Their own production
 # deps still count against their DEP_BUDGET.
-TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/pgtestcontainer"
+# cmd/cqrs-lint/testdata/typedfixture: the committed F091 typed-path fixture —
+# a consumer-shaped module that exists only to be linted by cqrs-lint's own
+# tests (replace-based schema dep; never built by the workspace).
+TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/pgtestcontainer cmd/cqrs-lint/testdata/typedfixture"
 
 # Dependency budgets: maximum direct PRODUCTION dependencies per module.
 # Budgets are intentionally tight — new deps require explicit review.
