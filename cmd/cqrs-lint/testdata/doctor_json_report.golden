@@ -15,8 +15,8 @@
     "V007"
   ],
   "severityOverrides": {
-    "V007": "error",
-    "S011": "error"
+    "S011": "error",
+    "V007": "error"
   },
   "features": {
     "store": "sqlite",

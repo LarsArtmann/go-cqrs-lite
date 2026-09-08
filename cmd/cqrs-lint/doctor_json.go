@@ -5,6 +5,7 @@ import (
 	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -25,6 +26,32 @@ func fileExists(path string) bool {
 // doctorJSONReport is the machine-readable `doctor --format json` surface:
 // the resolved configuration, the detected feature profile, and — with
 // --audit-suppressions / --fix — the suppression audit and fix outcome.
+// sortedOverrideMap renders a severity-override map with SORTED keys.
+// encoding/json/v2 emits map iteration order (unlike v1, which sorted),
+// so an unsorted map made `doctor --format json` byte-nondeterministic —
+// the shape golden flaked on exactly this. Same determinism class as the
+// T20-3/T21-3 map-order fixes.
+type sortedOverrideMap map[string]string
+
+// MarshalJSON implements json.Marshaler with deterministic key order.
+// Keys are validated rule IDs and values validated severities by the time
+// they reach the report (mergeSeverityOverrides normalizes), so %q escaping
+// is JSON-safe here.
+func (m sortedOverrideMap) MarshalJSON() ([]byte, error) {
+	var sb strings.Builder
+	sb.WriteByte('{')
+	for i, k := range slices.Sorted(maps.Keys(m)) {
+		if i > 0 {
+			sb.WriteByte(',')
+		}
+
+		fmt.Fprintf(&sb, "%q:%q", k, m[k])
+	}
+	sb.WriteByte('}')
+
+	return []byte(sb.String()), nil
+}
+
 type doctorJSONReport struct {
 	Path               string                  `json:"path"`
 	ConfigFile         string                  `json:"configFile,omitempty"`
@@ -38,7 +65,7 @@ type doctorJSONReport struct {
 	RulesDisabled      int                     `json:"rulesDisabled"`
 	DisabledFromPreset []string                `json:"disabledFromPreset,omitempty"`
 	DisabledFromConfig []string                `json:"disabledFromConfig,omitempty"`
-	SeverityOverrides  map[string]string       `json:"severityOverrides,omitempty"`
+	SeverityOverrides  sortedOverrideMap       `json:"severityOverrides,omitempty"`
 	Features           analyzer.FeatureProfile `json:"features"`
 	Modules            []moduleProfileJSON     `json:"modules,omitempty"`
 	Audit              *suppressionAuditJSON   `json:"audit,omitempty"`
@@ -136,9 +163,9 @@ func buildDoctorJSONReport(cfg *AppConfig, actx *analyzer.AnalysisContext) docto
 	report.RulesDisabled = len(cfg.Rules.Disable)
 	report.RulesActive = report.RulesTotal - report.RulesDisabled
 	splitDisabledRules(&report, presetDef.Rules.Disable, cfg.Rules.Disable)
-	report.SeverityOverrides = mergeSeverityOverrides(
+	report.SeverityOverrides = sortedOverrideMap(mergeSeverityOverrides(
 		presetDef.Rules.SeverityOverrides, cfg.Rules.SeverityOverrides,
-	)
+	))
 
 	for dir, profile := range actx.FeatureProfiles {
 		report.Modules = append(report.Modules, moduleProfileJSON{Module: dir, Profile: profile})
