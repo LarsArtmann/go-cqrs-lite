@@ -28,65 +28,19 @@ func TestBadgerRestartSafety_StreamAndJournal(t *testing.T) {
 func TestBadgerRestartSafety_FromDB(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	dir := filepath.Join(t.TempDir(), "badger")
+	enginetest.RunRestartSafetyFromDBTest(t,
+		func(dir string) (metaengine.Engine, error) {
+			return badgerengine.NewBadgerEngine(filepath.Join(dir, "badger"))
+		},
+		func(dir string) (metaengine.Engine, error) {
+			path := filepath.Join(dir, "badger")
 
-	// Phase 1: Open via NewBadgerEngine, write, close.
-	eng1, err := badgerengine.NewBadgerEngine(dir)
-	if err != nil {
-		t.Fatalf("first open: %v", err)
-	}
+			db, err := badger.Open(badger.DefaultOptions(path).WithLogger(nil))
+			if err != nil {
+				return nil, fmt.Errorf("raw badger open: %w", err)
+			}
 
-	slb1, ok := eng1.(metaengine.StreamLogBackend)
-	if !ok {
-		t.Fatal("engine must implement StreamLogBackend")
-	}
-
-	if err := slb1.StreamAppend(ctx, "events", "s1", []any{"a", "b"}); err != nil {
-		t.Fatalf("first StreamAppend: %v", err)
-	}
-
-	if err := eng1.Close(); err != nil {
-		t.Fatalf("first close: %v", err)
-	}
-
-	// Phase 2: Open raw DB, wrap via NewBadgerEngineFromDB, append more.
-	db, err := badger.Open(badger.DefaultOptions(dir).WithLogger(nil))
-	if err != nil {
-		t.Fatalf("raw badger open: %v", err)
-	}
-
-	eng2, err := badgerengine.NewBadgerEngineFromDB(db)
-	if err != nil {
-		t.Fatalf("FromDB open: %v", err)
-	}
-
-	defer func() { _ = eng2.Close() }()
-
-	slb2, ok := eng2.(metaengine.StreamLogBackend)
-	if !ok {
-		t.Fatal("reopened engine must implement StreamLogBackend")
-	}
-
-	if err := slb2.StreamAppend(ctx, "events", "s1", []any{"c"}); err != nil {
-		t.Fatalf("post-restart StreamAppend: %v", err)
-	}
-
-	ver, err := slb2.StreamVersion(ctx, "events", "s1")
-	if err != nil {
-		t.Fatalf("StreamVersion after restart: %v", err)
-	}
-
-	if ver != 3 {
-		t.Fatalf("FromDB restart: stream version = %d, want 3", ver)
-	}
-
-	values, err := slb2.StreamRead(ctx, "events", "s1")
-	if err != nil {
-		t.Fatalf("StreamRead after restart: %v", err)
-	}
-
-	if len(values) != 3 {
-		t.Fatalf("FromDB restart: stream should retain all 3 events, got %d", len(values))
-	}
+			return badgerengine.NewBadgerEngineFromDB(db)
+		},
+	)
 }

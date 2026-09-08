@@ -203,3 +203,81 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 		}
 	})
 }
+
+// RunRestartSafetyFromDBTest verifies seq seeding across a CALLER-OWNED-DB
+// reopen — the FromDB constructor path whose seeding behavior can diverge
+// from the DSN/path constructor. The scenario:
+//
+//  1. open(dir) constructs the engine (module-specific filename inside dir)
+//  2. Two stream values are appended, then the engine is closed
+//  3. reopenRaw(dir) reopens the RAW DB handle on the same file and wraps it
+//     via the engine's FromDB constructor
+//  4. A third value is appended; version must be 3 (not 1) and all three
+//     values must survive
+//
+// StreamLogBackend is required on both paths. Engines that need an
+// availability probe (e.g. CGo DuckDB) keep it in the caller before invoking
+// this harness.
+func RunRestartSafetyFromDBTest(
+	t *testing.T,
+	open, reopenRaw func(dir string) (metaengine.Engine, error),
+) {
+	t.Helper()
+
+	ctx := context.Background()
+	dir := t.TempDir()
+
+	// --- Phase 1: constructor path, write, close ---
+	eng1, err := open(dir)
+	if err != nil {
+		t.Fatalf("first open: %v", err)
+	}
+
+	slb1, ok := eng1.(metaengine.StreamLogBackend)
+	if !ok {
+		t.Fatal("engine must implement StreamLogBackend")
+	}
+
+	if err := slb1.StreamAppend(ctx, "events", "s1", []any{"a", "b"}); err != nil {
+		t.Fatalf("first StreamAppend: %v", err)
+	}
+
+	if err := eng1.Close(); err != nil {
+		t.Fatalf("first close: %v", err)
+	}
+
+	// --- Phase 2: caller-owned-DB reopen, append, verify ---
+	eng2, err := reopenRaw(dir)
+	if err != nil {
+		t.Fatalf("FromDB reopen: %v", err)
+	}
+
+	defer func() { _ = eng2.Close() }()
+
+	slb2, ok := eng2.(metaengine.StreamLogBackend)
+	if !ok {
+		t.Fatal("reopened engine must implement StreamLogBackend")
+	}
+
+	if err := slb2.StreamAppend(ctx, "events", "s1", []any{"c"}); err != nil {
+		t.Fatalf("post-restart StreamAppend: %v", err)
+	}
+
+	ver, err := slb2.StreamVersion(ctx, "events", "s1")
+	if err != nil {
+		t.Fatalf("StreamVersion after restart: %v", err)
+	}
+
+	if ver != 3 {
+		t.Fatalf("FromDB restart: stream version = %d, want 3", ver)
+	}
+
+	values, err := slb2.StreamRead(ctx, "events", "s1")
+	if err != nil {
+		t.Fatalf("StreamRead after restart: %v", err)
+	}
+
+	if len(values) != 3 {
+		t.Fatalf("FromDB restart: stream should retain all 3 events, got %d", len(values))
+	}
+}

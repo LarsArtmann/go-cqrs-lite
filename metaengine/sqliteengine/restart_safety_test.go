@@ -29,66 +29,17 @@ func TestSQLiteRestartSafety_StreamAndJournal(t *testing.T) {
 func TestSQLiteRestartSafety_FromDB(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	dir := filepath.Join(t.TempDir(), "sqlite.db")
+	enginetest.RunRestartSafetyFromDBTest(t,
+		func(dir string) (metaengine.Engine, error) {
+			return sqliteengine.NewSQLiteEngineFromDSN(filepath.Join(dir, "sqlite.db"))
+		},
+		func(dir string) (metaengine.Engine, error) {
+			db, err := sql.Open("sqlite", filepath.Join(dir, "sqlite.db"))
+			if err != nil {
+				return nil, fmt.Errorf("raw sqlite open: %w", err)
+			}
 
-	// Phase 1: Open via FromDSN, write, close.
-	eng1, err := sqliteengine.NewSQLiteEngineFromDSN(dir)
-	if err != nil {
-		t.Fatalf("first open: %v", err)
-	}
-
-	slb1, ok := eng1.(metaengine.StreamLogBackend)
-	if !ok {
-		t.Fatal("engine must implement StreamLogBackend")
-	}
-
-	if err := slb1.StreamAppend(ctx, "events", "s1", []any{"a", "b"}); err != nil {
-		t.Fatalf("first StreamAppend: %v", err)
-	}
-
-	if err := eng1.Close(); err != nil {
-		t.Fatalf("first close: %v", err)
-	}
-
-	// Phase 2: Open a raw *sql.DB on the same file, wrap via NewSQLiteEngine,
-	// append more.
-	db, err := sql.Open("sqlite", dir)
-	if err != nil {
-		t.Fatalf("raw sqlite open: %v", err)
-	}
-
-	eng2, err := sqliteengine.NewSQLiteEngine(db)
-	if err != nil {
-		t.Fatalf("FromDB open: %v", err)
-	}
-
-	defer func() { _ = eng2.Close() }()
-
-	slb2, ok := eng2.(metaengine.StreamLogBackend)
-	if !ok {
-		t.Fatal("reopened engine must implement StreamLogBackend")
-	}
-
-	if err := slb2.StreamAppend(ctx, "events", "s1", []any{"c"}); err != nil {
-		t.Fatalf("post-restart StreamAppend: %v", err)
-	}
-
-	ver, err := slb2.StreamVersion(ctx, "events", "s1")
-	if err != nil {
-		t.Fatalf("StreamVersion after restart: %v", err)
-	}
-
-	if ver != 3 {
-		t.Fatalf("FromDB restart: stream version = %d, want 3", ver)
-	}
-
-	values, err := slb2.StreamRead(ctx, "events", "s1")
-	if err != nil {
-		t.Fatalf("StreamRead after restart: %v", err)
-	}
-
-	if len(values) != 3 {
-		t.Fatalf("FromDB restart: stream should retain all 3 events, got %d", len(values))
-	}
+			return sqliteengine.NewSQLiteEngine(db)
+		},
+	)
 }

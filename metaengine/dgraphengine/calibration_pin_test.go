@@ -63,6 +63,7 @@ func TestCalibrationConstantsDump(t *testing.T) {
 	}
 
 	eng := mustNewDgraphEngine(t)
+	//art-dupl:accept per-engine dump of own profile constants (dep-isolated modules)
 	rc := eng.Profile().ReadCosts
 
 	t.Logf("CALIB|point_lookup|%.0f|1", rc.NsPerPointLookup)

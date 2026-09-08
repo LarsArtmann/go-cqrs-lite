@@ -926,6 +926,7 @@ func mustJSON(v any) string {
 }
 
 func canonicalizeStringMap(val map[string]any) string {
+	//art-dupl:accept sorted-map-key canonicalization idiom shared with cmd/cqrs-lint
 	keys := make([]string, 0, len(val))
 	for k := range val {
 		keys = append(keys, k)
