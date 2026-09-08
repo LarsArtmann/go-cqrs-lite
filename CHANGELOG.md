@@ -4,99 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [command/v4.9.0, decider/v4.6.0, dispatcher/v4.4.0, event/v4.10.0, event/v4/eventtest/v0.4.0, id/v4.6.0, kv/v4.3.0, metadata/v4.7.0, query/v4.8.0, record/v4.5.0, schema/v4.4.0, snapshot/v4.5.0, storage/backuptest/v4.2.0, storage/bbolt/v4.2.0, storage/memory/v4.5.0] — 2026-09-08
-
-Coordinated consumer-driven release (vision-review-agent's `visionreviewd`
-re-bump): all modules the daemon imports, re-pinned against each other at
-this commit.
-
-### Added — storage/bbolt
-
-- **Read-only opens are supported** (`OpenWith(path,
-  &bolt.Options{ReadOnly: true}, …)`): bucket initialization is skipped
-  when the database is opened read-only, read paths (Load, journal reads,
-  KV gets) work, and writes fail at call time with bbolt's read-only
-  error instead of construction always failing (issue #22). Documented
-  the flock trap: custom Options without a Timeout block forever on a
-  held journal.
-- **Golden wire-format test for the persisted event envelope**
-  (`storage/bbolt/testdata/golden-event.cbor`): pins the serialized
-  `serializableEvent` bytes, the exact envelope key set, round-trip
-  stability, and the always-present `schema_version` wire behavior.
-  Re-bless intentional format changes with
-  `BBOLT_REGEN_GOLDEN=1 go test ./storage/bbolt -run
-  TestSerializableEventWireFormat` and a CHANGELOG entry (issue #23).
-
-### Fixed — snapshot
-
-- **`Snapshot.UnmarshalJSON` compiles again under jsonv2**: the
-  json/v2 migration passed the 3-arg `json.Unmarshal` where the decode
-  helper expects `func([]byte, any) error`; adapted via closure. The
-  structure golden was re-blessed for the new-key wire output this
-  migration introduced.
-
-### Changed — coordinated dependency re-pin
-
-- All 15 released modules require each other at this release's versions;
-  sibling `go.mod` pins updated in lockstep. See the chore waves since
-  the previous per-module tags for the full per-module commit detail.
-
-## [otel/v4.4.0, cmd/cqrs-upgrade/v4.0.0] — 2026-09-07
-
-Cut via the detached-worktree release path during the SUPERB adoption wave.
-
-### Fixed — otel
-
-- **`Provider.Shutdown` now ForceFlushes tracer + meter providers before
-  shutting them down** — spans and metrics recorded shortly before shutdown
-  were silently lost. Ordering is pinned by a lifecycle-recording
-  span-processor test.
-
-### Added — otel
-
-- **`WithSpanProcessor`** SetupOption — custom span processors can be
-  registered with `otel.Setup` (previously only the default processor was
-  installed).
-
-### Added — cmd/cqrs-upgrade (new module)
-
-- **`cqrs-upgrade`** — the consumer upgrade CLI: parses a consumer `go.mod`
-  (direct go-cqrs-lite pins only), resolves each module's latest tag via the
-  module proxy, rewrites the pins offline, then verifies with a
-  `GOWORK=off` tidy+build+vet gate before reporting success. The
-  deprecation report runs the cqrs-lint V007 engine in-process (no
-  shell-out), listing v5-removed-API usage found in the upgraded module
-  set. `--dry-run` prints the plan without touching anything. First
-  release: `go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4@v4.0.0`.
-  The smoke run of this tool is what surfaced the published
-  `stack/sqlite/v4.3.0` pseudo-pin breakage.
-
-## [stack/sqlite/v4.3.1] — 2026-09-08
-
-### Fixed
-
-- **`stack/sqlite/v4.3.0` shipped an unresolvable pseudo-version pin** for
-  `stack/v4` (`v4.2.1-0.20260807213449-e72b2d7a16d0`): the pseudo-commit's
-  own `sqlopt` package referenced `storage.SQLiteSetSynchronous`, which does
-  not exist at the storage version that commit resolves — every fresh
-  consumer `go get` + build failed with `undefined: storage.SQLiteSetSynchronous`.
-  `v4.3.1` re-pins `stack/v4` to the published `v4.3.0` tag (verified with a
-  clean-directory consumer `go get` + build).
-
 ## [metaengine/v4.13.0, system/v4.7.0, storage/v4.9.0, stack/v4.4.0, cmd/cqrs-lint/v4.10.0, benchkit/v4.5.0, scheduling/sqlstore/v4.0.0, tursoengine/v4.1.0 — 2026-09-08 release train (+44 more module tags)] — 2026-09-08
 
 Coordinated release of the full 2026-09-06 → 09-08 surface (58 modules):
 `event/v4.11.0`, `command/v4.10.0`, `scheduling/v4.4.0`, `scheduling/sqlstore/v4.0.0` (first), `deriver/v4.3.0`, `commandlifecycle/v4.1.0`, `commandlifecycle/projections/v4.1.0`, `signing/v4.3.0`, `encryption/v4.4.0`, `graph/v4.3.0`, `scenario/v4.3.0`, `listing/v4.4.0`, `metaengine/v4.13.0`, `metaengine/{badgerengine/v4.2.0, bboltengine/v4.2.0, dgraphengine/v4.2.0, duckdbengine/v4.2.0, mysqlengine/v4.2.0, pebbleengine/v4.3.0, pgengine/v4.3.0, sqliteengine/v4.3.0, tursoengine/v4.1.0, graphadapter/v4.1.0, irohengine/v4.2.0, irohengine/loopback/v4.0.2, irohengine/quic/v4.2.0}`, `storage/v4.9.0` (+ memory/pebble/turso), `middleware/v4.6.0`, `prometheus/v4.3.0`, `transport/{grpc/v4.3.0, http/v4.3.1}`, `watermill/v4.6.0`, `testutil/v4.3.0`, `stack/v4.4.0` (+ all 8 presets incl. `stack/sqlite/v4.3.1`), `system/v4.7.0`, `catalog/v4.3.0`, `benchkit/v4.5.0`, `cmd/{api-stability,v4.3.0, cqrs-gen/v4.3.0, cqrs-lint/v4.10.0, doc-check/v4.3.0}`, `integration/v4.2.0`, and the four examples on their first proxy-visible v0 tags (`example/getting-started/v0.1.0`, `example/readme-quickstart/v0.2.0`, `example/taskmanager/v0.1.0`, `example/metaengine-quickstart/v0.1.0` — the examples' module paths are suffix-less, so their earlier v4.x tags were proxy-invisible).
-
-## [Unreleased]
-
-### Added
-
-- Nothing yet.
-
-### Fixed
-
-- Nothing yet.
 
 ### Fixed — cqrs-lint doctor JSON determinism + taskmanager V006 golden refresh — 2026-09-08
 
@@ -3881,6 +3792,96 @@ files. All fixed to unblock `verify-fast`:
   `mustNewPebbleEngine(t)` / `newPebbleEngineOrSkip(t)` helpers.
 
 ---
+
+
+## [Unreleased]
+
+### Added
+
+- Nothing yet.
+
+### Fixed
+
+- Nothing yet.
+
+## [command/v4.9.0, decider/v4.6.0, dispatcher/v4.4.0, event/v4.10.0, event/v4/eventtest/v0.4.0, id/v4.6.0, kv/v4.3.0, metadata/v4.7.0, query/v4.8.0, record/v4.5.0, schema/v4.4.0, snapshot/v4.5.0, storage/backuptest/v4.2.0, storage/bbolt/v4.2.0, storage/memory/v4.5.0] — 2026-09-08
+
+Coordinated consumer-driven release (vision-review-agent's `visionreviewd`
+re-bump): all modules the daemon imports, re-pinned against each other at
+this commit.
+
+### Added — storage/bbolt
+
+- **Read-only opens are supported** (`OpenWith(path,
+  &bolt.Options{ReadOnly: true}, …)`): bucket initialization is skipped
+  when the database is opened read-only, read paths (Load, journal reads,
+  KV gets) work, and writes fail at call time with bbolt's read-only
+  error instead of construction always failing (issue #22). Documented
+  the flock trap: custom Options without a Timeout block forever on a
+  held journal.
+- **Golden wire-format test for the persisted event envelope**
+  (`storage/bbolt/testdata/golden-event.cbor`): pins the serialized
+  `serializableEvent` bytes, the exact envelope key set, round-trip
+  stability, and the always-present `schema_version` wire behavior.
+  Re-bless intentional format changes with
+  `BBOLT_REGEN_GOLDEN=1 go test ./storage/bbolt -run
+  TestSerializableEventWireFormat` and a CHANGELOG entry (issue #23).
+
+### Fixed — snapshot
+
+- **`Snapshot.UnmarshalJSON` compiles again under jsonv2**: the
+  json/v2 migration passed the 3-arg `json.Unmarshal` where the decode
+  helper expects `func([]byte, any) error`; adapted via closure. The
+  structure golden was re-blessed for the new-key wire output this
+  migration introduced.
+
+### Changed — coordinated dependency re-pin
+
+- All 15 released modules require each other at this release's versions;
+  sibling `go.mod` pins updated in lockstep. See the chore waves since
+  the previous per-module tags for the full per-module commit detail.
+
+## [otel/v4.4.0, cmd/cqrs-upgrade/v4.0.0] — 2026-09-07
+
+Cut via the detached-worktree release path during the SUPERB adoption wave.
+
+### Fixed — otel
+
+- **`Provider.Shutdown` now ForceFlushes tracer + meter providers before
+  shutting them down** — spans and metrics recorded shortly before shutdown
+  were silently lost. Ordering is pinned by a lifecycle-recording
+  span-processor test.
+
+### Added — otel
+
+- **`WithSpanProcessor`** SetupOption — custom span processors can be
+  registered with `otel.Setup` (previously only the default processor was
+  installed).
+
+### Added — cmd/cqrs-upgrade (new module)
+
+- **`cqrs-upgrade`** — the consumer upgrade CLI: parses a consumer `go.mod`
+  (direct go-cqrs-lite pins only), resolves each module's latest tag via the
+  module proxy, rewrites the pins offline, then verifies with a
+  `GOWORK=off` tidy+build+vet gate before reporting success. The
+  deprecation report runs the cqrs-lint V007 engine in-process (no
+  shell-out), listing v5-removed-API usage found in the upgraded module
+  set. `--dry-run` prints the plan without touching anything. First
+  release: `go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4@v4.0.0`.
+  The smoke run of this tool is what surfaced the published
+  `stack/sqlite/v4.3.0` pseudo-pin breakage.
+
+## [stack/sqlite/v4.3.1] — 2026-09-08
+
+### Fixed
+
+- **`stack/sqlite/v4.3.0` shipped an unresolvable pseudo-version pin** for
+  `stack/v4` (`v4.2.1-0.20260807213449-e72b2d7a16d0`): the pseudo-commit's
+  own `sqlopt` package referenced `storage.SQLiteSetSynchronous`, which does
+  not exist at the storage version that commit resolves — every fresh
+  consumer `go get` + build failed with `undefined: storage.SQLiteSetSynchronous`.
+  `v4.3.1` re-pins `stack/v4` to the published `v4.3.0` tag (verified with a
+  clean-directory consumer `go get` + build).
 
 ## [cmd/cqrs-lint/v4.9.0] — 2026-09-06
 
