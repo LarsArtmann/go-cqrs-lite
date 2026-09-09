@@ -40,7 +40,11 @@ func CommandToMessage(cmd command.Command) *message.Message {
 	md := msg.Metadata
 	md.Set(metaCommandID, cmdID.String())
 	md.Set(metaCommandType, string(cmd.Type()))
-	md.Set(metaAggregateID, cmd.StreamID().String())
+	md.Set(metaStreamID, cmd.StreamID().String())
+
+	// Dual-write window (v6: drop): pre-rename readers key on the legacy
+	// aggregate spelling.
+	md.Set(metaLegacyAggregateID, cmd.StreamID().String())
 
 	if mp, ok := cmd.(command.MetadataCarrier); ok {
 		m := mp.Metadata()
@@ -70,7 +74,13 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 		)
 	}
 
-	streamID, err := id.ParseStreamID(md.Get(metaAggregateID))
+	// Dual-read window (v6: drop the legacy fallback).
+	streamIDStr := md.Get(metaStreamID)
+	if streamIDStr == "" {
+		streamIDStr = md.Get(metaLegacyAggregateID)
+	}
+
+	streamID, err := id.ParseStreamID(streamIDStr)
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_stream_id_failed", "parse stream_id")

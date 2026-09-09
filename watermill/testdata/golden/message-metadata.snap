@@ -14,6 +14,8 @@
   "payload_encoding": "json",
   "schema_version": "2",
   "source": "test-service",
+  "stream_id": "01HK1540X0841Y0A6BSX1VKR95",
+  "stream_type": "Order",
   "user_agent": "test-agent/1.0",
   "user_id": "01HK1540X0841Y0A6BSX1VKR99",
   "version": "1"

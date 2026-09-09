@@ -99,8 +99,8 @@ func (s *SnapshotStore) Save(
 		if s.logger != nil {
 			s.logger.Debug(
 				"ignoring older snapshot",
-				slog.String("aggregate_type", string(snap.StreamType)),
-				slog.String("aggregate_id", snap.StreamID.String()),
+				slog.String("stream_type", string(snap.StreamType)),
+				slog.String("stream_id", snap.StreamID.String()),
 				slog.Int("existing_version", existing.Version),
 				slog.Int("rejected_version", snap.Version.Int()),
 			)

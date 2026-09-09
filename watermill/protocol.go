@@ -17,20 +17,20 @@ import (
 
 // Metadata keys for event field mapping.
 const (
-	metaEventID       = "event_id"
-	metaEventType     = "event_type"
-	metaStreamID      = "stream_id"
-	metaStreamType    = "stream_type"
-	metaVersion       = "version"
-	metaSchemaVersion = "schema_version"
-	metaOccurredAt    = "occurred_at"
-	metaCorrelationID = "correlation_id"
-	metaCausationID   = "causation_id"
-	metaUserID        = "user_id"
-	metaRequestID     = "request_id"
-	metaSource        = "source"
-	metaIPAddress     = "ip_address"
-	metaUserAgent     = "user_agent"
+	metaEventID         = "event_id"
+	metaEventType       = "event_type"
+	metaStreamID        = "stream_id"
+	metaStreamType      = "stream_type"
+	metaVersion         = "version"
+	metaSchemaVersion   = "schema_version"
+	metaOccurredAt      = "occurred_at"
+	metaCorrelationID   = "correlation_id"
+	metaCausationID     = "causation_id"
+	metaUserID          = "user_id"
+	metaRequestID       = "request_id"
+	metaSource          = "source"
+	metaIPAddress       = "ip_address"
+	metaUserAgent       = "user_agent"
 	metaPayloadEncoding = "payload_encoding"
 	metaCustomPrefix    = "custom."
 
@@ -118,13 +118,25 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		eventType = event.Type(v)
 	}
 
-	streamID, err := id.ParseStreamID(md.Get(metaStreamID))
+	// Dual-read window (v6: drop the legacy fallback): messages written
+	// before the rename carry only the aggregate spellings.
+	streamIDStr := md.Get(metaStreamID)
+	if streamIDStr == "" {
+		streamIDStr = md.Get(metaLegacyAggregateID)
+	}
+
+	streamID, err := id.ParseStreamID(streamIDStr)
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_stream_id_failed", "parse stream_id")
 	}
 
-	streamType := id.StreamType(md.Get(metaStreamType))
+	streamTypeStr := md.Get(metaStreamType)
+	if streamTypeStr == "" {
+		streamTypeStr = md.Get(metaLegacyAggregateType)
+	}
+
+	streamType := id.StreamType(streamTypeStr)
 	if streamType == "" {
 		return nil, errorfamily.NewRejection("watermill.missing_metadata",
 			"missing "+metaStreamType+" metadata")
