@@ -27,7 +27,9 @@ type DiskSizer interface {
 
 // SchemaVersion is the version of the Result JSON schema. Increment when
 // the Result struct's JSON shape changes in a backward-incompatible way.
-const SchemaVersion = "1.0.0"
+// v2.0.0 renamed the workload keys `aggregates`/`eventsPerAggregate` to
+// `streams`/`eventsPerStream` (stream vocabulary, v5 sweep §4).
+const SchemaVersion = "2.0.0"
 
 // Environment captures machine and runtime metadata for reproducibility.
 // Every result records the exact context it was produced in so that

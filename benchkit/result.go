@@ -18,8 +18,8 @@ type Result struct {
 	Workers int `json:"workers"`
 
 	// Workload
-	Streams         int `json:"aggregates"`
-	EventsPerStream int `json:"eventsPerAggregate"`
+	Streams         int `json:"streams"`
+	EventsPerStream int `json:"eventsPerStream"`
 	TotalEvents     int `json:"totalEvents"`
 	PayloadBytes    int `json:"payloadBytesPerEvent"`
 
