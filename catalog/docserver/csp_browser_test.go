@@ -153,7 +153,7 @@ func newFetchLog() *fetchLog {
 	return &fetchLog{m: make(map[string]int)}
 }
 
-//art-dupl:accept trivial mutex-guard idiom shared with metaengine's idempotencyTracker; different domain types (URL→status map vs dedup ring), no shared logic
+// art-dupl:accept trivial mutex-guard idiom shared with metaengine's idempotencyTracker; different domain types (URL→status map vs dedup ring), no shared logic
 func (f *fetchLog) record(path string, status int) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

@@ -83,4 +83,6 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 )
 
+// v4.8.0 was cut with a broken version const (syntax error in the tagged
+// source); v4.8.1 supersedes it. Retracted so fresh consumers stop resolving it.
 retract v4.8.0

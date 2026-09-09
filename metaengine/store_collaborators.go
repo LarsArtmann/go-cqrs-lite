@@ -61,7 +61,7 @@ func newIdempotencyTracker(capacity int) *idempotencyTracker {
 
 // CheckAndRecord returns true if the eventID was already seen (duplicate).
 // If not seen, it records the eventID and returns false.
-//art-dupl:accept trivial mutex-guard idiom shared with docserver's fetchLog test helper; different domain types (dedup ring vs URL→status map), no shared logic
+// art-dupl:accept trivial mutex-guard idiom shared with docserver's fetchLog test helper; different domain types (dedup ring vs URL→status map), no shared logic
 func (t *idempotencyTracker) CheckAndRecord(eventID string) bool {
 	if t.ring != nil {
 		t.mu.Lock()
