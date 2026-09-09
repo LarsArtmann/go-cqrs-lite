@@ -18,7 +18,7 @@ import (
 func createSnapshotsWithColumns(t *testing.T, db *sql.DB, identityCols string) {
 	t.Helper()
 
-	ddl := "CREATE TABLE snapshots (" + identityCols + `
+	ddl := "CREATE TABLE snapshots (" + identityCols + "," + `
 		version    INTEGER NOT NULL,
 		state      BLOB NOT NULL,
 		created_at TEXT NOT NULL DEFAULT (datetime('now')))`

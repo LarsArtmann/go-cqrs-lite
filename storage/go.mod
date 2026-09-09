@@ -5,6 +5,7 @@ go 1.26.6
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/gkampitakis/go-snaps v0.5.23
+	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-codec v0.2.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
@@ -23,6 +24,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.44.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
