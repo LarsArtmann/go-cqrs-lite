@@ -59,6 +59,14 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 			sqlpkg.TableSnapshots, rename[0], rename[1],
 		)
 		if _, err := db.ExecContext(ctx, stmt); err != nil {
+			// Concurrent InitSchema: another runner may have completed the
+			// rename between this call's probe and ALTER. Re-probe before
+			// failing — a fully-migrated table means success, not an error.
+			if recheck, rerr := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots); rerr == nil &&
+				!slices.Contains(recheck, "aggregate_type") && !slices.Contains(recheck, "aggregate_id") {
+				return nil
+			}
+
 			return errorfamily.WrapInfrastructure(
 				err,
 				"storage.snapshot_column_rename",
