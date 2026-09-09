@@ -43,7 +43,7 @@ func (SQLiteDialect) ParseTime(src any) (time.Time, error) {
 func (SQLiteDialect) ExcludedRef(col string) string { return "excluded." + col }
 
 func (SQLiteDialect) OnConflictDoNothing(_ string) string {
-	return "ON CONFLICT DO NOTHING"
+	return onConflictDoNothing
 }
 
 func (SQLiteDialect) OnConflictDoUpdate(conflictCols []string, setExprs []string) string {

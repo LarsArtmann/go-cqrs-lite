@@ -8,6 +8,10 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
+// onConflictDoNothing is the shared insert-or-ignore clause returned by the
+// PostgreSQL, SQLite, and DuckDB dialects (MySQL uses ON DUPLICATE KEY).
+const onConflictDoNothing = "ON CONFLICT DO NOTHING"
+
 // Dialect abstracts SQL differences between database backends (PostgreSQL, SQLite,
 // MySQL, DuckDB). Each store method delegates placeholder formatting, time handling,
 // and upsert clause generation to a Dialect, eliminating the duplicated per-backend

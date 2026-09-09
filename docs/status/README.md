@@ -45,6 +45,15 @@ F090(b), IsQualifierFor sweep) and P13/P15/P16 (AGENTS indexed-split 92→28
 KB, GOWORK table, recipes §2.30-2.31). See
 [`2026-09-08_23-12_release-train-composed-green.md`](2026-09-08_23-12_release-train-composed-green.md).
 
+**2026-09-09 01:54 (Pareto continuation):** Wave 1/2 remainder — CI re-triage
+(WASM-leg codec fix, dogfood/check-csp/lint-scripts jobs, nightly sentinel),
+P07 benchkit skipped-run root-cause fix + load scaling, P14 cqrs-upgrade
+growth (`--strict`/`--json`/`--to`/`--workspace`), P17 shellcheck zero +
+pre-commit cheap gates, P18 coverage gate green, and the P19 first split
+wave (storage/sql dialects, cqrs-lint helpers, metaengine typed_reader
+1127→6 files). See
+[`2026-09-09_01-54_pareto-w1-w2-continuation.md`](2026-09-09_01-54_pareto-w1-w2-continuation.md).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves

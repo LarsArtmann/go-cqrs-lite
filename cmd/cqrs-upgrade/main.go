@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -11,6 +12,13 @@ import (
 	"strings"
 
 	"golang.org/x/mod/semver"
+)
+
+var (
+	// errInvalidToFlag fires when --to is not valid semver.
+	errInvalidToFlag = errors.New("--to is not a valid semver version")
+	// errStrictViolations fires when --strict finds v5-removed API usage.
+	errStrictViolations = errors.New("--strict: v5-removed API usage detected")
 )
 
 func main() {
@@ -60,7 +68,7 @@ func parseFlags(args []string) (config, error) {
 	}
 
 	if cfg.to != "" && !semver.IsValid(cfg.to) {
-		return cfg, fmt.Errorf("--to: %q is not a valid semver version", cfg.to)
+		return cfg, fmt.Errorf("%w: %q", errInvalidToFlag, cfg.to)
 	}
 
 	cfg.dir = "."
@@ -125,10 +133,8 @@ func run(_ context.Context, args []string) error {
 	}
 
 	if hasStrictViolation(reports) {
-		return fmt.Errorf(
-			"--strict: v5-removed API usage detected in %d module(s) — see deprecation report",
-			countStrictViolations(reports),
-		)
+		return fmt.Errorf("%w in %d module(s) — see deprecation report",
+			errStrictViolations, countStrictViolations(reports))
 	}
 
 	return nil

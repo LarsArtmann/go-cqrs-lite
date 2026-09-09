@@ -37,7 +37,7 @@ func (DuckDBDialect) ParseTime(src any) (time.Time, error) {
 func (DuckDBDialect) ExcludedRef(col string) string { return "excluded." + col }
 
 func (DuckDBDialect) OnConflictDoNothing(_ string) string {
-	return "ON CONFLICT DO NOTHING"
+	return onConflictDoNothing
 }
 
 func (DuckDBDialect) OnConflictDoUpdate(conflictCols []string, setExprs []string) string {
