@@ -12,15 +12,15 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 status=0
 
 while IFS= read -r -d '' gen; do
-  if grep -nE 'FileName: `[^`]*[/\\][^`]*`' "$gen"; then
-    echo "ERROR: $(basename "$gen") was generated from the wrong cwd — FileName carries a path." >&2
-    echo "       Regenerate with: (cd catalog/docserver && templ generate)" >&2
-    status=1
-  fi
+	if grep -nE 'FileName: `[^`]*[/\\][^`]*`' "$gen"; then
+		echo "ERROR: $(basename "$gen") was generated from the wrong cwd — FileName carries a path." >&2
+		echo "       Regenerate with: (cd catalog/docserver && templ generate)" >&2
+		status=1
+	fi
 done < <(find "$repo_root" -name '*_templ.go' -not -path '*/vendor/*' -print0)
 
 if [ "$status" -eq 0 ]; then
-  echo "✓ all _templ.go FileName values are cwd-clean (bare filenames)"
+	echo "✓ all _templ.go FileName values are cwd-clean (bare filenames)"
 fi
 
 exit "$status"

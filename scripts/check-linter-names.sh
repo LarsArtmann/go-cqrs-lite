@@ -10,12 +10,12 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 config="$repo_root/.golangci.yml"
 
 # All linter names this golangci-lint version knows (enabled + disabled).
-mapfile -t supported < <(golangci-lint linters --json 2>/dev/null \
-  | jq -r '(.Enabled + .Disabled)[].name' | sort -u)
+mapfile -t supported < <(golangci-lint linters --json 2>/dev/null |
+	jq -r '(.Enabled + .Disabled)[].name' | sort -u)
 
 declare -A supported_set=()
 for name in "${supported[@]}"; do
-  supported_set["$name"]=1
+	supported_set["$name"]=1
 done
 
 # Names referenced by the config, extracted in one pass:
@@ -40,16 +40,16 @@ mapfile -t referenced < <(awk '
 status=0
 declare -A seen=()
 for name in "${referenced[@]}"; do
-  [ -n "${seen[$name]:-}" ] && continue
-  seen["$name"]=1
-  if [ -z "${supported_set[$name]:-}" ]; then
-    echo "ERROR: .golangci.yml references linter \"$name\" unknown to golangci-lint $(golangci-lint version --short 2>/dev/null || echo '?') — renamed? removed?" >&2
-    status=1
-  fi
+	[ -n "${seen[$name]:-}" ] && continue
+	seen["$name"]=1
+	if [ -z "${supported_set[$name]:-}" ]; then
+		echo "ERROR: .golangci.yml references linter \"$name\" unknown to golangci-lint $(golangci-lint version --short 2>/dev/null || echo '?') — renamed? removed?" >&2
+		status=1
+	fi
 done
 
 if [ "$status" -eq 0 ]; then
-  echo "✓ every linter named in .golangci.yml is known (${#seen[@]} checked)"
+	echo "✓ every linter named in .golangci.yml is known (${#seen[@]} checked)"
 fi
 
 exit "$status"
