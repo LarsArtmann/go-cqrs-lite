@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"slices"
+	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
@@ -39,11 +40,7 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 	}
 
 	if slices.Contains(columns, "stream_type") || slices.Contains(columns, "stream_id") {
-		return errorfamily.NewCorruption(
-			"storage.snapshot_column_mixed",
-			"snapshots table carries both aggregate and stream columns; "+
-				"manual reconciliation required",
-		)
+		return rejectMixedSnapshotColumns(ctx, db, d)
 	}
 
 	for _, rename := range [][2]string{
@@ -94,6 +91,57 @@ func probeTableColumns(
 	_, isMySQL := d.(sqlpkg.MySQLDialect)
 
 	return probeInformationSchemaColumns(ctx, db, d, table, isMySQL)
+}
+
+// rejectMixedSnapshotColumns handles a probe that found BOTH spellings of
+// the stream identity. Two causes produce that state and they need opposite
+// responses: a CONCURRENT InitSchema runner is between its two ALTERs (the
+// aggregate columns are about to disappear — wait briefly and re-probe), or
+// someone half-migrated by hand / a migration crashed mid-way (the state is
+// stable — fail loudly). A short wait-out window distinguishes them: the
+// concurrent case resolves in milliseconds; the stable mixed state survives
+// the window and is rejected as Corruption.
+func rejectMixedSnapshotColumns(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) error {
+	const (
+		waitTotal = 2 * time.Second
+		tick      = 50 * time.Millisecond
+	)
+
+	deadline := time.Now().Add(waitTotal)
+
+	for {
+		columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
+		if err != nil {
+			return errorfamily.WrapInfrastructure(
+				err,
+				"storage.snapshot_column_probe",
+				"re-probe snapshots table columns for the v5 stream rename",
+			)
+		}
+
+		if !slices.Contains(columns, "aggregate_type") && !slices.Contains(columns, "aggregate_id") {
+			return nil // the concurrent runner finished the rename
+		}
+
+		if time.Now().After(deadline) {
+			return errorfamily.NewCorruption(
+				"storage.snapshot_column_mixed",
+				"snapshots table carries both aggregate and stream columns; "+
+					"manual reconciliation required",
+			)
+		}
+
+		select {
+		case <-ctx.Done():
+			return errorfamily.NewCorruption(
+				"storage.snapshot_column_mixed",
+				"snapshots table carries both aggregate and stream columns "+
+					"(context cancelled while waiting out a concurrent migration); "+
+					"manual reconciliation required",
+			)
+		case <-time.After(tick):
+		}
+	}
 }
 
 func probeSQLiteColumns(ctx context.Context, db *sql.DB, table string) ([]string, error) {
