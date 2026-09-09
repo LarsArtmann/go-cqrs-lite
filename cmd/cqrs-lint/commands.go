@@ -148,8 +148,8 @@ func versionString() string {
 	}
 
 	if len(parts) == 0 {
-		return "cqrs-lint " + version
+		return "cqrs-lint " + resolvedVersion()
 	}
 
-	return fmt.Sprintf("cqrs-lint %s (%s)", version, strings.Join(parts, ", "))
+	return fmt.Sprintf("cqrs-lint %s (%s)", resolvedVersion(), strings.Join(parts, ", "))
 }

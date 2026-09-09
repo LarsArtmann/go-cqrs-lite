@@ -3827,6 +3827,17 @@ files. All fixed to unblock `verify-fast`:
   cwd; `TestNoRenamedAggregateFamilyCodeReappears` (api-stability) fails if
   any of the 17 renamed `aggregate_*` error-family codes reappears in Go
   source.
+- **Release tooling:** `tag-release.sh --smoke <module> <version>` is the
+  documented post-cut step — after pushing a tag it retries until
+  proxy.golang.org serves the version (live-verified), so dependent modules
+  never tidy against a tag the proxy has not absorbed; cqrs-lint reports
+  its version from the embedded Go build info when built via
+  `go install module@version` (the hand-maintained const stays as the
+  local-build fallback and gate-enforced source of truth), removing the
+  stranded-tag-chain drift class for installed binaries; and
+  `cmd/cqrs-lint/go.mod` now carries `retract v4.8.0` — the poisoned
+  (syntax-error) tag stops resolving for fresh consumers at the next
+  cqrs-lint tag.
 - **doc-check `--json` + no-import-alias ambiguity surfacing:** `--json`
   emits a deterministic machine-readable summary (per-finding broken refs,
   warnings, ambiguities) for CI annotations; references that resolve

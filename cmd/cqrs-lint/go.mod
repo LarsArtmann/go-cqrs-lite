@@ -82,3 +82,5 @@ require (
 	golang.org/x/term v0.45.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 )
+
+retract v4.8.0

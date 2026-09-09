@@ -35,11 +35,65 @@ cd "$(git rev-parse --show-toplevel)"
 
 usage() {
 	echo "Usage: $0 <module-path> <version> <description> [--dry-run]"
+	echo "       $0 --smoke <module-path> <version>"
 	echo "Examples:"
 	echo "  $0 event v4.0.1 \"Fix event payload marshaling\""
 	echo "  $0 cmd/cqrs-lint v0.1.0 \"First release\""
 	echo "  $0 metaengine v4.0.0 \"First release\" --dry-run"
+	echo "  $0 --smoke cmd/cqrs-lint v4.10.0   # AFTER pushing the tag"
 }
+
+# --- Post-cut proxy smoke-check (--smoke): proves proxy.golang.org serves
+# the freshly pushed tag. The proxy fetches a tag on first request after the
+# push (can lag seconds to ~a minute); this retries `go list -m module@tag`
+# until the version resolves, so dependent modules never tidy against a tag
+# the proxy has not absorbed (the tag-interleaving mechanic, AGENTS §Module
+# Management). For cmd/* binaries, follow up with a clean-dir
+# `go install <module>@<tag>` + run — that is what caught the poisoned
+# cqrs-lint v4.8.0 (issue #20 class).
+proxy_smoke_check() {
+	local mod="$1"
+	local ver="$2"
+	local full_tag="${mod}/${ver}"
+
+	local module_path
+	module_path="$(grep '^module ' "${mod}/go.mod" | awk '{print $2}')"
+	if [ -z "$module_path" ]; then
+		echo "ERROR: cannot read module path from ${mod}/go.mod"
+		exit 1
+	fi
+
+	if ! git ls-remote --exit-code origin "refs/tags/${full_tag}" >/dev/null 2>&1; then
+		echo "ERROR: tag ${full_tag} is not pushed to origin — push first:"
+		echo "  git push origin ${full_tag}"
+		exit 1
+	fi
+
+	echo "Waiting for proxy.golang.org to serve ${module_path}@${ver} ..."
+	local attempt
+	for attempt in $(seq 1 12); do
+		if env GOFLAGS='' GOPRIVATE='' GONOSUMDB='*' GONOSUMCHECK='*' \
+			go list -m "${module_path}@${ver}" >/dev/null 2>&1; then
+			echo "✓ proxy serves ${module_path}@${ver} (attempt ${attempt})"
+			return 0
+		fi
+		sleep 10
+	done
+
+	echo "ERROR: proxy.golang.org still does not serve ${module_path}@${ver}"
+	echo "after 12 attempts (~2 min). Check https://proxy.golang.org/ and the"
+	echo "tag's ancestry; do NOT build dependent tags until this resolves."
+	exit 1
+}
+
+if [ "${1:-}" = "--smoke" ]; then
+	if [ $# -ne 3 ]; then
+		usage
+		exit 1
+	fi
+	proxy_smoke_check "$2" "$3"
+	exit 0
+fi
 
 # --- Parse args: peel off --dry-run / -h, keep positionals ---
 dry_run=false
@@ -332,6 +386,8 @@ undo_temp_commit
 echo "Original ${gomod} restored (working tree clean)."
 echo ""
 echo "To push: git push origin ${tag}"
+echo "After pushing, verify the proxy serves it:"
+echo "  $0 --smoke ${module} ${version}"
 echo "Note: the tag points to a temporary commit that strips local replace"
 echo "      directives. The temporary commit was undone locally; the original"
 echo "      go.mod is restored."
