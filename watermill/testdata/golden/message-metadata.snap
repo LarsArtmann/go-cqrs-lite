@@ -4,6 +4,8 @@
   "actor_id": "service:order-api",
   "aggregate_id": "01HK1540X0841Y0A6BSX1VKR95",
   "aggregate_type": "Order",
+  "causation_command_id": "000000000054EV2SHJ0YKJN0P4",
+  "causation_command_type": "place-order",
   "causation_id": "01HK1540X0841Y0A6BSX1VKR98",
   "correlation_id": "01HK1540X0841Y0A6BSX1VKR97",
   "custom.custom.trace": "abc123",

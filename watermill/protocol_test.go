@@ -129,6 +129,179 @@ func TestEventToMessage_ActorRoundtrip(t *testing.T) {
 	}
 }
 
+func TestEventToMessage_TypedCausationRoundtrip(t *testing.T) {
+	t.Parallel()
+
+	cmdID := id.NewCommandID()
+
+	original, err := event.NewEvent(
+		"user.created", id.NewStreamID(), "User", 1,
+		[]byte(`{"name":"Alice"}`),
+		event.WithCorrelationID(id.NewCorrelationID()),
+		event.WithCausationID(id.NewCausationID()),
+		event.WithCausation("create_user", cmdID),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	msg := wm.EventToMessage(original)
+	assertMetadata(t, msg.Metadata, "causation_command_type", "create_user")
+	assertMetadata(t, msg.Metadata, "causation_command_id", cmdID.String())
+
+	reconstructed, err := wm.MessageToEvent("user.created", msg)
+	if err != nil {
+		t.Fatalf("MessageToEvent: %v", err)
+	}
+
+	got := reconstructed.Metadata().Causation
+	if got == nil {
+		t.Fatal("typed causation lost on round-trip")
+	}
+	if got.CommandType != "create_user" {
+		t.Errorf("causation command type = %q, want %q", got.CommandType, "create_user")
+	}
+	if !got.CommandID.Equal(cmdID) {
+		t.Errorf("causation command id = %q, want %q", got.CommandID, cmdID)
+	}
+	if reconstructed.Metadata().CorrelationID.IsZero() {
+		t.Error("correlation_id lost on round-trip")
+	}
+	if reconstructed.Metadata().CausationID.IsZero() {
+		t.Error("causation_id lost on round-trip")
+	}
+}
+
+func TestEventToMessage_NoCausationOmitsKeys(t *testing.T) {
+	t.Parallel()
+
+	original, err := event.NewEvent(
+		"user.created", id.NewStreamID(), "User", 1,
+		[]byte(`{"name":"Alice"}`),
+	)
+	if err != nil {
+		t.Fatalf("create event: %v", err)
+	}
+
+	msg := wm.EventToMessage(original)
+	if got := msg.Metadata.Get("causation_command_type"); got != "" {
+		t.Errorf("causation_command_type = %q, want empty", got)
+	}
+	if got := msg.Metadata.Get("causation_command_id"); got != "" {
+		t.Errorf("causation_command_id = %q, want empty", got)
+	}
+
+	reconstructed, err := wm.MessageToEvent("user.created", msg)
+	if err != nil {
+		t.Fatalf("MessageToEvent: %v", err)
+	}
+	if reconstructed.Metadata().Causation != nil {
+		t.Errorf("causation = %+v, want nil", reconstructed.Metadata().Causation)
+	}
+}
+
+func TestMessageToEvent_CausationFromLegacyCustomMirrors(t *testing.T) {
+	t.Parallel()
+
+	cmdID := id.NewCommandID()
+	msg := message.NewMessage("legacy", []byte(`{}`))
+	msg.Metadata.Set("event_type", "user.created")
+	msg.Metadata.Set("stream_id", id.NewStreamID().String())
+	msg.Metadata.Set("stream_type", "User")
+	msg.Metadata.Set("version", "1")
+	msg.Metadata.Set("custom.command.type", "create_user")
+	msg.Metadata.Set("custom.command.id", cmdID.String())
+
+	reconstructed, err := wm.MessageToEvent("user.created", msg)
+	if err != nil {
+		t.Fatalf("MessageToEvent: %v", err)
+	}
+
+	got := reconstructed.Metadata().Causation
+	if got == nil {
+		t.Fatal("typed causation not promoted from custom mirrors")
+	}
+	if got.CommandType != "create_user" {
+		t.Errorf("causation command type = %q, want %q", got.CommandType, "create_user")
+	}
+	if !got.CommandID.Equal(cmdID) {
+		t.Errorf("causation command id = %q, want %q", got.CommandID, cmdID)
+	}
+	if reconstructed.Metadata().Custom["command.type"] != "create_user" {
+		t.Errorf("custom.command.type = %q, want %q",
+			reconstructed.Metadata().Custom["command.type"], "create_user")
+	}
+}
+
+func TestMessageToEvent_TypedCausationKeysWinOverCustom(t *testing.T) {
+	t.Parallel()
+
+	wireID := id.NewCommandID()
+	staleID := id.NewCommandID()
+	msg := message.NewMessage("mixed", []byte(`{}`))
+	msg.Metadata.Set("event_type", "user.created")
+	msg.Metadata.Set("stream_id", id.NewStreamID().String())
+	msg.Metadata.Set("stream_type", "User")
+	msg.Metadata.Set("version", "1")
+	msg.Metadata.Set("causation_command_type", "create_user")
+	msg.Metadata.Set("causation_command_id", wireID.String())
+	msg.Metadata.Set("custom.command.type", "stale_type")
+	msg.Metadata.Set("custom.command.id", staleID.String())
+
+	reconstructed, err := wm.MessageToEvent("user.created", msg)
+	if err != nil {
+		t.Fatalf("MessageToEvent: %v", err)
+	}
+
+	got := reconstructed.Metadata().Causation
+	if got == nil {
+		t.Fatal("typed causation missing")
+	}
+	if got.CommandType != "create_user" || !got.CommandID.Equal(wireID) {
+		t.Errorf("causation = %+v, want type %q id %q (dedicated keys must win)",
+			got, "create_user", wireID)
+	}
+}
+
+func TestMessageToEvent_PartialTypedCausationIsRejected(t *testing.T) {
+	t.Parallel()
+
+	msg := message.NewMessage("partial", []byte(`{}`))
+	msg.Metadata.Set("event_type", "user.created")
+	msg.Metadata.Set("stream_id", id.NewStreamID().String())
+	msg.Metadata.Set("stream_type", "User")
+	msg.Metadata.Set("version", "1")
+	msg.Metadata.Set("causation_command_type", "create_user")
+
+	reconstructed, err := wm.MessageToEvent("user.created", msg)
+	if err == nil {
+		t.Fatal("expected error for partial typed causation")
+	}
+	if reconstructed == nil {
+		t.Fatal("event should still be reconstructed alongside the corruption error")
+	}
+	if reconstructed.Metadata().Causation != nil {
+		t.Errorf("causation = %+v, want nil for partial pair", reconstructed.Metadata().Causation)
+	}
+}
+
+func TestMessageToEvent_InvalidCausationCommandIDIsRejected(t *testing.T) {
+	t.Parallel()
+
+	msg := message.NewMessage("bad-id", []byte(`{}`))
+	msg.Metadata.Set("event_type", "user.created")
+	msg.Metadata.Set("stream_id", id.NewStreamID().String())
+	msg.Metadata.Set("stream_type", "User")
+	msg.Metadata.Set("version", "1")
+	msg.Metadata.Set("causation_command_type", "create_user")
+	msg.Metadata.Set("causation_command_id", "not-a-ulid")
+
+	_, err := wm.MessageToEvent("user.created", msg)
+	if err == nil {
+		t.Fatal("expected error for unparseable causation_command_id")
+	}
+}
+
 func TestPublisherAdapter_BadMetadata(t *testing.T) {
 	t.Parallel()
 

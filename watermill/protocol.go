@@ -34,6 +34,13 @@ const (
 	metaPayloadEncoding = "payload_encoding"
 	metaCustomPrefix    = "custom."
 
+	// Typed command causation (event.Metadata.Causation, ADR-0031). Written
+	// as a pair and required as a pair on read; messages from producers
+	// predating these keys carry causation only as the custom.command.*
+	// mirrors, which the read side promotes (see parseCausation).
+	metaCausationCommandType = "causation_command_type"
+	metaCausationCommandID   = "causation_command_id"
+
 	// Tombstone status fields (event.TombstoneStatus).
 	metaTombstoneStatus = "tombstone_status"
 	metaTombstoneReason = "tombstone_reason"
@@ -85,6 +92,7 @@ func eventToMessage(evt event.Event) *message.Message {
 
 	m := evt.Metadata()
 	writeTracing(md, m.Tracing)
+	writeCausation(md, m.Causation)
 
 	if m.Source != "" {
 		md.Set(metaSource, string(m.Source))
@@ -311,6 +319,12 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 		}
 	}
 
+	causation, causErr := parseCausation(md, m.Custom)
+	if causErr != nil {
+		errs = append(errs, causErr)
+	}
+	m.Causation = causation
+
 	return m, errors.Join(errs...)
 }
 
@@ -337,6 +351,74 @@ func parseIDField[T any](
 	}
 
 	set(parsed)
+}
+
+// writeCausation writes the typed command causation (ADR-0031) so it
+// survives bus hops. Fields are skipped individually when zero so the read
+// side never receives a half-written pair.
+func writeCausation(md message.Metadata, c *event.Causation) {
+	if c == nil {
+		return
+	}
+
+	if c.CommandType != "" {
+		md.Set(metaCausationCommandType, c.CommandType)
+	}
+	if !c.CommandID.IsZero() {
+		md.Set(metaCausationCommandID, c.CommandID.String())
+	}
+}
+
+// parseCausation reconstructs the typed command causation (ADR-0031) from
+// message metadata. The dedicated causation_command_* keys win; when both
+// are absent, the v2-pattern Custom mirrors (command.type / command.id —
+// the only representation that crossed the wire before the dedicated keys
+// existed) are promoted. Returns (nil, nil) when no causation is present.
+func parseCausation(
+	md message.Metadata,
+	custom map[event.MetadataKey]string,
+) (*event.Causation, error) {
+	cmdType := md.Get(metaCausationCommandType)
+	cmdIDStr := md.Get(metaCausationCommandID)
+
+	switch {
+	case cmdType == "" && cmdIDStr == "":
+		c, ok := causationFromCustom(custom)
+		if !ok {
+			return nil, nil
+		}
+
+		return &c, nil
+	case cmdType == "" || cmdIDStr == "":
+		return nil, errorfamily.NewRejection("watermill.missing_metadata",
+			fmt.Sprintf("partial typed causation: set both %s and %s",
+				metaCausationCommandType, metaCausationCommandID))
+	}
+
+	cmdID, err := id.ParseCommandID(cmdIDStr)
+	if err != nil {
+		return nil, errorfamily.WrapRejection(err, "watermill.parse_id_field_failed", metaCausationCommandID)
+	}
+
+	return &event.Causation{CommandType: cmdType, CommandID: cmdID}, nil
+}
+
+// causationFromCustom restores typed causation from the command.type /
+// command.id Custom mirrors. Partial or unparseable mirrors yield (zero,
+// false); the custom entries stay as-is for consumers of the legacy pattern.
+func causationFromCustom(custom map[event.MetadataKey]string) (event.Causation, bool) {
+	cmdType := custom[event.MetadataKeyCommandType]
+	cmdIDStr := custom[event.MetadataKeyCommandID]
+	if cmdType == "" || cmdIDStr == "" {
+		return event.Causation{}, false
+	}
+
+	cmdID, err := id.ParseCommandID(cmdIDStr)
+	if err != nil {
+		return event.Causation{}, false
+	}
+
+	return event.Causation{CommandType: cmdType, CommandID: cmdID}, true
 }
 
 func parseInt(s, field string) (int, error) {

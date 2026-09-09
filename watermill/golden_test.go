@@ -61,6 +61,10 @@ func TestGolden_MessageMetadata(t *testing.T) {
 			IPAddress: "10.0.0.1",
 			UserAgent: "test-agent/1.0",
 			Custom:    map[event.MetadataKey]string{"custom.trace": "abc123"},
+			Causation: &event.Causation{
+				CommandType: "place-order",
+				CommandID:   id.DeriveCommandID("golden", "order.created"),
+			},
 		}),
 	)
 	if err != nil {
