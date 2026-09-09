@@ -31,21 +31,11 @@ type FixResult struct {
 func RemoveStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 	var res FixResult
 
-	byFile := make(map[string][]SuppressionAuditEntry)
-	for _, e := range entries {
-		if e.Status == AuditStale {
-			byFile[e.File] = append(byFile[e.File], e)
-		}
-	}
-
-	for file, fileEntries := range byFile {
+	for file, fileEntries := range staleByFile(entries) {
 		removeStaleLinesInFile(file, fileEntries, &res)
 	}
 
-	sortAuditEntries(res.Removed)
-	dedupeByLine(&res.Removed)
-	sortAuditEntries(res.Skipped)
-	sort.Strings(res.Files)
+	finalizeFixResult(&res)
 
 	return res
 }
@@ -58,6 +48,18 @@ func RemoveStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 func PlanStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 	var res FixResult
 
+	for file, fileEntries := range staleByFile(entries) {
+		planStaleLinesInFile(file, fileEntries, &res)
+	}
+
+	finalizeFixResult(&res)
+
+	return res
+}
+
+// staleByFile groups the stale entries by file; non-stale entries are
+// ignored. Shared by the remove and plan fix pipelines.
+func staleByFile(entries []SuppressionAuditEntry) map[string][]SuppressionAuditEntry {
 	byFile := make(map[string][]SuppressionAuditEntry)
 	for _, e := range entries {
 		if e.Status == AuditStale {
@@ -65,16 +67,16 @@ func PlanStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 		}
 	}
 
-	for file, fileEntries := range byFile {
-		planStaleLinesInFile(file, fileEntries, &res)
-	}
+	return byFile
+}
 
+// finalizeFixResult applies the deterministic output ordering shared by the
+// remove and plan fix pipelines.
+func finalizeFixResult(res *FixResult) {
 	sortAuditEntries(res.Removed)
 	dedupeByLine(&res.Removed)
 	sortAuditEntries(res.Skipped)
 	sort.Strings(res.Files)
-
-	return res
 }
 
 // planStaleLinesInFile classifies each stale entry of one file without

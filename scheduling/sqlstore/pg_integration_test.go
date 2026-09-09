@@ -519,23 +519,7 @@ func TestClaimingPostgres_RenewVsClaimRace(t *testing.T) {
 
 		go func() {
 			defer wg.Done()
-
-			for range 10 {
-				timers, err := store.Due(ctx, time.Now().UTC())
-				if err != nil {
-					t.Errorf("poller %d Due: %v", poller, err)
-
-					return
-				}
-
-				for _, timer := range timers {
-					if timer.ID == holder[0].ID {
-						t.Errorf("timer stolen from live lease by poller %d", poller)
-					}
-				}
-
-				time.Sleep(20 * time.Millisecond)
-			}
+			pollAssertingLeaseHeld(t, store, ctx, holder[0].ID, poller)
 		}()
 	}
 
@@ -552,30 +536,73 @@ func TestClaimingPostgres_RenewVsClaimRace(t *testing.T) {
 	// claimers converge on the timer again — at least one claim succeeds.
 	time.Sleep(400 * time.Millisecond)
 
-	var reclaims int
+	var reclaims atomic.Int32
 
-	for poller := range 2 {
+	for reclaimer := range 2 {
 		wg.Add(1)
 
 		go func() {
 			defer wg.Done()
 
-			timers, err := store.Due(ctx, time.Now().UTC())
-			if err != nil {
-				t.Errorf("reclaimer %d Due: %v", poller, err)
-
-				return
-			}
-
-			if len(timers) > 0 {
-				reclaims++
+			if reclaimOnce(t, store, ctx, reclaimer) {
+				reclaims.Add(1)
 			}
 		}()
 	}
 
 	wg.Wait()
 
-	if reclaims == 0 {
+	if reclaims.Load() == 0 {
 		t.Error("no reclaimer claimed the timer after the lease lapsed")
 	}
+}
+
+// pollAssertingLeaseHeld runs one phase-1 poller: ten Due polls, each
+// failing the test if the still-renewed timer ever becomes visible to a
+// competitor.
+func pollAssertingLeaseHeld(
+	t *testing.T,
+	store *sqlstore.ClaimingTimerStore[struct{}],
+	ctx context.Context,
+	timerID scheduling.TimerID,
+	poller int,
+) {
+	t.Helper()
+
+	for range 10 {
+		timers, err := store.Due(ctx, time.Now().UTC())
+		if err != nil {
+			t.Errorf("poller %d Due: %v", poller, err)
+
+			return
+		}
+
+		for _, timer := range timers {
+			if timer.ID == timerID {
+				t.Errorf("timer stolen from live lease by poller %d", poller)
+			}
+		}
+
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// reclaimOnce performs one phase-2 claim attempt after the lease lapsed and
+// reports whether any timer was claimed.
+func reclaimOnce(
+	t *testing.T,
+	store *sqlstore.ClaimingTimerStore[struct{}],
+	ctx context.Context,
+	reclaimer int,
+) bool {
+	t.Helper()
+
+	timers, err := store.Due(ctx, time.Now().UTC())
+	if err != nil {
+		t.Errorf("reclaimer %d Due: %v", reclaimer, err)
+
+		return false
+	}
+
+	return len(timers) > 0
 }
