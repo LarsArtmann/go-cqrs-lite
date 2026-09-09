@@ -3798,6 +3798,20 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added
 
+- **P014 `applylayout-bypasses-plan-path` (cqrs-lint, typed-info tier):**
+  flags `ApplyLayout(...)` calls whose receiver type also implements the
+  plan path (`ApplyLayoutPlan` — the `metaengine.LayoutPlanApplier` shape):
+  the legacy call bypasses type-derived layout planning (no pushdown or
+  aggregate cost inference). Structural method-shape detection, no
+  metaengine import; fires only when type info resolved the receiver
+  (silent on syntax-only loads and `--typed-info=off`). One deliberate
+  correction to the T23 design addendum: the detection pair is the
+  `ApplyLayout` call + `ApplyLayoutPlan` on the same type — `BuildLayoutPlan`
+  is a package-level function in metaengine, never an engine method, so the
+  addendum's literal pair could never match a real engine. Pinned by
+  typed-fixture tests (both-paths fires exactly once with receiver
+  attribution; legacy-only stays silent; plan-only has nothing to call) plus
+  a syntax-only negative.
 - **cqrs-upgrade growth**: `--strict` (non-zero exit when v5-removed API
   usage is detected — a ready-made v5-readiness CI gate), `--json`
   (deterministic machine-readable bump plan + deprecations per module),

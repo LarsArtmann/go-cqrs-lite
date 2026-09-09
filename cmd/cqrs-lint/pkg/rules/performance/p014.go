@@ -133,9 +133,8 @@ func planPathReceiver(gf *analyzer.GoFile, call *ast.CallExpr) (string, bool) {
 		return "", false
 	}
 
-	methods := types.NewMethodSet(types.NewPointer(named))
-	for i := range methods.Len() {
-		if strings.EqualFold(methods.At(i).Obj().Name(), "ApplyLayoutPlan") {
+	for method := range types.NewMethodSet(types.NewPointer(named)).Methods() {
+		if strings.EqualFold(method.Obj().Name(), "ApplyLayoutPlan") {
 			return named.Obj().Name(), true
 		}
 	}
