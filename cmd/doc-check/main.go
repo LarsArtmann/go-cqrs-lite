@@ -20,6 +20,7 @@ package main
 
 import (
 	"context"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"log"
@@ -65,8 +66,13 @@ func main() {
 	rootCmd := cli.RootCommand()
 	rootCmd.Use = "doc-check [files...]"
 	rootCmd.Args = fileArgs
+
+	jsonOut := false
+	rootCmd.Flags().BoolVar(&jsonOut, "json", false,
+		"emit a machine-readable JSON summary (CI annotations) to stdout")
+
 	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
-		return run(args)
+		return run(args, jsonOut)
 	}
 
 	cli.ExecuteAndExit(context.Background())
@@ -94,7 +100,7 @@ func fileArgs(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func run(files []string) error {
+func run(files []string, jsonOut bool) error {
 	if len(files) == 0 {
 		// Auto-discover from the repo root so the tool works regardless of CWD
 		// (cmd/doc-check is its own module, so it's often run from inside cmd/doc-check/).
@@ -137,10 +143,20 @@ func run(files []string) error {
 	// repo-wide package-name index; same-named packages cannot cross-resolve.
 	res := newResolver(repoRoot)
 
-	broken, totalRefs, warnings := verifyBlocks(allBlocks, allImports, res)
+	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(allBlocks, allImports, res)
 
-	if broken > 0 {
-		return fmt.Errorf("%w: %d broken reference(s) found", errBrokenReferences, broken)
+	for _, a := range ambiguities {
+		log.Printf("  ⚠ ambiguous: %s", a)
+	}
+
+	if jsonOut {
+		if err := emitJSON(len(files), totalRefs, brokenRefs, warnings, ambiguities, res); err != nil {
+			return fmt.Errorf("emit json: %w", err)
+		}
+	}
+
+	if len(brokenRefs) > 0 {
+		return fmt.Errorf("%w: %d broken reference(s) found", errBrokenReferences, len(brokenRefs))
 	}
 
 	// 0-warning tripwire: doc-check warnings (unreadable dirs, empty package
@@ -172,6 +188,58 @@ func run(files []string) error {
 		"✓ All %d references valid across %d package(s).",
 		totalRefs, len(res.clauses),
 	)
+
+	return nil
+}
+
+// jsonSummary is the --json wire shape: deterministic field order, arrays
+// instead of counts, so CI consumers can annotate per finding.
+type jsonSummary struct {
+	Valid       bool        `json:"valid"`
+	Files       int         `json:"files"`
+	References  int         `json:"references"`
+	Packages    int         `json:"packages"`
+	Broken      []brokenRef `json:"broken"`
+	Warnings    []string    `json:"warnings"`
+	Ambiguities []string    `json:"ambiguities"`
+}
+
+// emitJSON prints the machine-readable summary to stdout. Human logs stay on
+// stderr, so the JSON is the only stdout content.
+func emitJSON(
+	files, totalRefs int,
+	brokenRefs []brokenRef,
+	warnings, ambiguities []string,
+	res *resolver,
+) error {
+	summary := jsonSummary{
+		Valid:       len(brokenRefs) == 0 && len(warnings) == 0,
+		Files:       files,
+		References:  totalRefs,
+		Packages:    len(res.clauses),
+		Broken:      brokenRefs,
+		Warnings:    warnings,
+		Ambiguities: ambiguities,
+	}
+
+	if summary.Broken == nil {
+		summary.Broken = []brokenRef{}
+	}
+
+	if summary.Warnings == nil {
+		summary.Warnings = []string{}
+	}
+
+	if summary.Ambiguities == nil {
+		summary.Ambiguities = []string{}
+	}
+
+	encoded, err := json.Marshal(summary, json.Deterministic(true))
+	if err != nil {
+		return fmt.Errorf("marshal summary: %w", err)
+	}
+
+	fmt.Println(string(encoded))
 
 	return nil
 }

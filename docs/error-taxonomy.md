@@ -170,6 +170,49 @@ All bundle misconfiguration sentinels are **Rejection**.
 | ------------------ | --------- | ------------------------ |
 | `ErrNilDispatcher` | Rejection | `deriver.nil_dispatcher` |
 
+### storage (SQL facade)
+
+| Error      | Family         | Code             |
+| ---------- | -------------- | ---------------- |
+| `ErrNilDB` | Infrastructure | `storage.nil_db` |
+
+Operational wrap codes (not sentinels): row-scan/reconstruct failures are
+**Corruption** (`storage.scan_*`, `storage.reconstruct_*`,
+`storage.parse_stream_*`); DDL/execution failures are **Infrastructure**
+(`storage.exec_ddl`, `storage.set_synchronous`); timer helpers are
+**Infrastructure** (`storage.schedule_timer`, `storage.due_timers`).
+
+### storage/pebble
+
+| Error                   | Family    | Code                          |
+| ----------------------- | --------- | ----------------------------- |
+| `ErrNilDatabase`        | Rejection | `pebble.nil_database`         |
+| `ErrStreamTypeMismatch` | Conflict  | `pebble.stream_type_mismatch` |
+| `ErrStreamIDMismatch`   | Conflict  | `pebble.stream_id_mismatch`   |
+| `ErrVersionMismatch`    | Conflict  | `pebble.version_mismatch`     |
+
+The deprecated `ErrAggregateTypeMismatch`/`ErrAggregateIDMismatch` aliases
+forward to the Stream sentinels (removed at v5). Operational wrap codes
+split the same way: corruption detection is **Corruption**
+(`pebble.corrupt_event`, `pebble.command_corrupt`, serialization failures);
+iterator/batch/IO failures are **Infrastructure** (`pebble.commit_batch`,
+`pebble.create_iterator`); concurrency checks are **Conflict**
+(`pebble.concurrency_check`, `pebble.check_version`).
+
+### watermill
+
+| Error                | Family         | Code                               |
+| -------------------- | -------------- | ---------------------------------- |
+| `ErrMissingMetadata` | Rejection      | `watermill.missing_metadata`       |
+| Replay consumer nack | Orchestration  | `watermill.catchup.replay_nacked`  |
+| Metadata parse fails | Corruption     | `watermill.parse_*`                |
+| Bus publish fails    | Infrastructure | `watermill.event_bus_publish`, `watermill.command_bus_publish` |
+
+Note the nack semantics: `watermill.catchup.replay_nacked` fires ONLY on a
+real consumer Nack — a `Close()` or ctx cancellation during the ack wait
+shuts the replay down silently instead of reporting a nack that never
+happened.
+
 ## Default Classification
 
 Errors that are not constructed via the taxonomy constructors (plain `errors.New`,

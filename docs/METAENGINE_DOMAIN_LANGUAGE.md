@@ -253,6 +253,19 @@ The planner can recommend whether a projection should be **materialized** (persi
 | **MaterializeCost**   | Cost of maintaining a materialized projection                              | `metaengine.MaterializeCost(stats)`              |
 | **ShouldMaterialize** | Returns true when materialization cost < replay cost                       | `metaengine.ShouldMaterialize(stats)` — advisory |
 
+### Materialized-View Maintenance (engine-side views)
+
+Engine-maintained SQL views over base tables — distinct from the planner's
+materialize-vs-replay decision above: this is the ENGINE accelerating reads,
+not the planner choosing a strategy. Characterized on tursogo
+(ADR-0135 + `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`).
+
+| Term                                | Definition                                                                                                                              | Context                                                                                                                       |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Materialized View Acceleration**  | An engine-side precomputed view (SQL materialized view) so filtered/aggregated reads avoid full table scans                              | `MaterializedViewSpec` (tursoengine) — COUNT/SUM/MIN/AVG over scalar or grouped shapes; DDL pinned by golden                   |
+| **IVM**                             | Incremental View Maintenance: each write updates only the affected view groups instead of recomputing the whole view                     | The maintenance strategy behind MaterializedViewSpec; scalar-SUM views stay exact, GROUPED views diverge on tursogo ≤ v0.8.0  |
+| **View-Maintained Write**           | A write that flows through a materialized view's incremental maintenance path                                                             | Budgeted: tursogo aborts view-maintaining COMMITs at ~27k cumulative rows per process (upstream wall) — bulk loads must rotate |
+
 ### Temporal Reads (As-Of)
 
 | Term                 | Definition                                                            | Context                                                 |

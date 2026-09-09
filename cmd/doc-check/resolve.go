@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/parser"
 	"go/token"
 	"io/fs"
@@ -55,21 +56,31 @@ func (r *resolver) warm(imp string) []string {
 // neither a block import nor a repo package alias is treated as external and
 // skipped (documented limitation, matches the historical behavior).
 func (r *resolver) resolve(b block, ref ref) bool {
+	ok, _ := r.resolveVia(b, ref)
+
+	return ok
+}
+
+// resolveVia is resolve with provenance: the second result reports whether
+// the reference was verified through the repo-wide alias union (no block
+// import scoped it) — the case where an ambiguous package name silently
+// unions exports across modules.
+func (r *resolver) resolveVia(b block, ref ref) (ok, viaUnion bool) {
 	if paths := r.blockPaths(b, ref.pkg); len(paths) > 0 {
 		for _, p := range paths {
 			if r.exports[p][ref.symbol] {
-				return true
+				return true, false
 			}
 		}
 
-		return false
+		return false, false
 	}
 
 	if alias := r.aliasExports(ref.pkg); alias != nil {
-		return alias[ref.symbol]
+		return alias[ref.symbol], true
 	}
 
-	return true
+	return true, false
 }
 
 // blockPaths returns the block's import paths whose package name matches the
@@ -173,30 +184,57 @@ func (r *resolver) indexPackageDir(dir string) {
 	}
 }
 
+// brokenRef is one failed reference, kept as data so --json can emit CI
+// annotations and the human path can log the same fact.
+type brokenRef struct {
+	File   string `json:"file"`
+	Line   int    `json:"line"`
+	Pkg    string `json:"pkg"`
+	Symbol string `json:"symbol"`
+}
+
 // verifyBlocks checks every reference block-scoped and returns the broken
-// count, the total, and any parse warnings for the zero-warning gate.
-func verifyBlocks(blocks []block, allImports []string, res *resolver) (int, int, []string) {
-	warnings := make([]string, 0, len(allImports))
+// references, the total, any parse warnings for the zero-warning gate, and
+// no-import references that resolved through an ambiguous multi-package
+// alias union.
+func verifyBlocks(
+	blocks []block, allImports []string, res *resolver,
+) (brokenRefs []brokenRef, total int, warnings, ambiguities []string) {
+	warnings = make([]string, 0, len(allImports))
 
 	for _, imp := range dedupe(allImports) {
 		warnings = append(warnings, res.warm(imp)...)
 	}
 
-	broken, total := 0, 0
+	seenAmbiguous := make(map[string]bool)
 
 	for _, b := range blocks {
 		for _, ref := range b.refs {
 			total++
 
-			if !res.resolve(b, ref) {
+			ok, viaUnion := res.resolveVia(b, ref)
+			if !ok {
 				log.Printf("  ✗ %s:%d: %s.%s not found", ref.file, ref.line, ref.pkg, ref.symbol)
 
-				broken++
+				brokenRefs = append(brokenRefs, brokenRef{
+					File: ref.file, Line: ref.line, Pkg: ref.pkg, Symbol: ref.symbol,
+				})
+
+				continue
+			}
+
+			if viaUnion && len(res.aliasDirs[ref.pkg]) > 1 && !seenAmbiguous[ref.pkg] {
+				seenAmbiguous[ref.pkg] = true
+				ambiguities = append(ambiguities, fmt.Sprintf(
+					"alias %q maps to %d repo packages (%s) — %s:%d verified via union; "+
+						"import the package in the block to scope the reference",
+					ref.pkg, len(res.aliasDirs[ref.pkg]), strings.Join(res.aliasDirs[ref.pkg], ", "),
+					ref.file, ref.line))
 			}
 		}
 	}
 
-	return broken, total, warnings
+	return brokenRefs, total, warnings, ambiguities
 }
 
 // dedupe preserves first-seen order.
