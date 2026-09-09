@@ -3891,6 +3891,19 @@ files. All fixed to unblock `verify-fast`:
 
 ### Fixed
 
+- **`MigrateSnapshotColumnsToStream` is safe under concurrent InitSchema.**
+  Two processes migrating the same legacy snapshots table at boot could
+  race: the loser's ALTER failed after the winner had already renamed the
+  columns, surfacing as a bogus Infrastructure error. A failed rename now
+  re-probes first — a fully-migrated table means success. Pinned by an
+  8-runner concurrent-init test, plus new guards: mixed-state tables (both
+  column spellings, including the half-migrated crash state between the two
+  ALTERs) are rejected loudly as `storage.snapshot_column_mixed` Corruption,
+  and legacy-subset schemas rename exactly what exists. The migration is now
+  live-verified on MariaDB 11.4 (`-tags integration`, PID-safe table
+  rebuild) and DuckDB (information_schema probe + RENAME COLUMN sequence),
+  and the V5-MIGRATION-GUIDE gained per-tier before/after examples, the
+  envelope-v2 consumer note, and operator verification snippets.
 - **watermill CatchUpSubscriber no longer reports a consumer Nack when the
   subscriber was Closed.** `replayPhase` mapped EVERY non-ack termination of
   `awaitAck` to the `watermill.catchup.replay_nacked` Orchestration error —

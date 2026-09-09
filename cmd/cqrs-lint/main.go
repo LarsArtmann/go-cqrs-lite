@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 	"github.com/larsartmann/go-finding"
@@ -20,6 +22,21 @@ import (
 // while this constant still read 4.6.0 (the stranded-tag-chain class of
 // drift); bumping the constant repairs the source-of-truth.
 const version = "4.10.0"
+
+// resolvedVersion prefers the version the toolchain embedded at build time
+// (debug.ReadBuildInfo: `go install …@v4.10.0` records the true tag) over
+// the hand-maintained const — go-install binaries report the real version
+// even if the const drifts. Local `go build` (Main.Version == "(devel)")
+// and the flake build (ldflags-free) keep the const.
+func resolvedVersion() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if v := info.Main.Version; v != "" && v != "(devel)" {
+			return strings.TrimPrefix(v, "v")
+		}
+	}
+
+	return version
+}
 
 // commitHash and buildDate are injected via -ldflags at build time (Nix flake,
 // CI). When empty (local `go build`), the version output omits them.
