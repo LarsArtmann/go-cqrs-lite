@@ -54,6 +54,17 @@ wave (storage/sql dialects, cqrs-lint helpers, metaengine typed_reader
 1127→6 files). See
 [`2026-09-09_01-54_pareto-w1-w2-continuation.md`](2026-09-09_01-54_pareto-w1-w2-continuation.md).
 
+**2026-09-09 04:10 (Pareto W2/W3 execution):** P19 tail through the feasible
+P27 chunks all landed — P014 ApplyLayout rule (detection pair corrected from
+the T23 addendum), encryption docs+goldens+symmetry, repo hygiene (incl. a
+real test data-race fix and the watermill Close≠Nack fix), docs-truth batch,
+the v5 wire-key renames with dual-read/dual-write windows + WIRE-FORMAT-KEYS,
+migration concurrency hardening (two verify-caught flaws) live-verified on
+MariaDB+DuckDB, and release tooling (--smoke, retract v4.8.0, buildinfo
+version). Final exclusive `#verify` GREEN after 4 rounds; master synced
+(`458eeaac`). Includes the honest fuckup ledger and the next-50 list. See
+[`2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md`](2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves
