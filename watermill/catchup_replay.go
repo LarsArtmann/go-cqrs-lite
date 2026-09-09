@@ -82,12 +82,17 @@ func (s *CatchUpSubscriber) replayPhase(ctx context.Context, sub *catchUpSubscri
 				// Checkpoint advances only on Ack: a crash or Nack between
 				// handoff and processing replays this event on restart
 				// (at-least-once).
-				if !s.awaitAck(ctx, msg, sub.topic, "replay") {
+				switch s.awaitAck(ctx, msg, sub.topic, "replay") {
+				case ackAcked:
+					sub.replayWatermark = evt.ID().String()
+				case ackNacked:
 					return errorfamily.NewOrchestration("watermill.catchup.replay_nacked",
 						"consumer nacked replay event; stopping catch-up for "+sub.topic)
+				default:
+					// Interrupted by ctx cancellation or Close — NOT a
+					// consumer nack; report the shutdown, not a nack.
+					return ctx.Err()
 				}
-
-				sub.replayWatermark = evt.ID().String()
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-s.closeCh:

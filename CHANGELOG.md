@@ -3867,6 +3867,14 @@ files. All fixed to unblock `verify-fast`:
 
 ### Fixed
 
+- **watermill CatchUpSubscriber no longer reports a consumer Nack when the
+  subscriber was Closed.** `replayPhase` mapped EVERY non-ack termination of
+  `awaitAck` to the `watermill.catchup.replay_nacked` Orchestration error —
+  including ctx cancellation and `Close()`, where no nack happened.
+  `awaitAck` now returns a three-way outcome (acked / nacked / interrupted);
+  only a real Nack reports `replay_nacked`, cancellation returns `ctx.Err()`,
+  and Close shuts the replay down silently (matching the outer select's
+  close semantics).
 - **benchkit: a fully context-skipped run no longer reports success.** When
   the caller's deadline (not a `Duration` measurement window) expired before
   any phase ran, every phase "gracefully" skipped and `Run` returned

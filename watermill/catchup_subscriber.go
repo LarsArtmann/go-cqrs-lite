@@ -227,7 +227,7 @@ func (s *CatchUpSubscriber) drainLive(
 
 			select {
 			case sub.output <- msg:
-				if !s.awaitAck(ctx, msg, sub.topic, "live") {
+				if s.awaitAck(ctx, msg, sub.topic, "live") != ackAcked {
 					return
 				}
 			case <-ctx.Done():
@@ -239,15 +239,27 @@ func (s *CatchUpSubscriber) drainLive(
 	}
 }
 
-// awaitAck blocks until the consumer Acks or Nacks msg. On Ack it advances
-// the checkpoint (best-effort); on Nack it reports false so the caller stops
+// ackOutcome is why awaitAck returned: the consumer acked or nacked, or the
+// wait was interrupted (context cancelled / subscriber closed) — the
+// interrupted case is NOT a consumer signal and must not be reported as one.
+type ackOutcome int
+
+const (
+	ackAcked ackOutcome = iota
+	ackNacked
+	ackInterrupted
+)
+
+// awaitAck blocks until the consumer Acks or Nacks msg, or the wait is
+// interrupted by ctx cancellation / Close. On Ack it advances the checkpoint
+// (best-effort); on Nack it warns and reports ackNacked so the caller stops
 // the stream — the checkpoint stays behind the nacked event, so a restart
 // re-delivers it (at-least-once).
 func (s *CatchUpSubscriber) awaitAck(
 	ctx context.Context,
 	msg *message.Message,
 	topic, phase string,
-) bool {
+) ackOutcome {
 	select {
 	case <-msg.Acked():
 		eventID := msg.Metadata.Get(metaEventID)
@@ -260,17 +272,17 @@ func (s *CatchUpSubscriber) awaitAck(
 			}
 		}
 
-		return true
+		return ackAcked
 	case <-msg.Nacked():
 		s.logger.Warn("catch-up: consumer nacked message; stopping subscription",
 			"topic", topic, "phase", phase,
 			"event_id", msg.Metadata.Get(metaEventID))
 
-		return false
+		return ackNacked
 	case <-ctx.Done():
-		return false
+		return ackInterrupted
 	case <-s.closeCh:
-		return false
+		return ackInterrupted
 	}
 }
 
