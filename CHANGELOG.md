@@ -3877,6 +3877,20 @@ files. All fixed to unblock `verify-fast`:
   (`es "…/event/v4"`) are detected by import path, shadowing locals stop
   matching, and syntax-only loads keep the historical string fallback.
 
+### Changed
+
+- **First 350-line split wave (contract-honesty program):** three oversized
+  files were split into per-family files as pure same-package moves — no
+  symbol moved packages, so the api-stability golden is unchanged and nothing
+  is consumer-visible. `storage/sql/dialect.go` (590 lines) is now the
+  `Dialect` interface plus `dialect_postgres.go`/`dialect_mysql.go`/
+  `dialect_sqlite.go`/`dialect_duckdb.go`;
+  `cmd/cqrs-lint/pkg/rules/architecture/helpers.go` (628) split into shared
+  finding-emission helpers, composite-literal helpers, and project-level
+  helpers; `metaengine/typed_reader.go` (1127 — the largest file in the repo)
+  split around `TypedReader` into reader core, scan, aggregates, grouped
+  aggregates, scan options, and cursor files.
+
 ## [command/v4.9.0, decider/v4.6.0, dispatcher/v4.4.0, event/v4.10.0, event/v4/eventtest/v0.4.0, id/v4.6.0, kv/v4.3.0, metadata/v4.7.0, query/v4.8.0, record/v4.5.0, schema/v4.4.0, snapshot/v4.5.0, storage/backuptest/v4.2.0, storage/bbolt/v4.2.0, storage/memory/v4.5.0] — 2026-09-08
 
 Coordinated consumer-driven release (vision-review-agent's `visionreviewd`
