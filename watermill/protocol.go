@@ -17,24 +17,33 @@ import (
 
 // Metadata keys for event field mapping.
 const (
-	metaEventID         = "event_id"
-	metaEventType       = "event_type"
-	metaAggregateID     = "aggregate_id"
-	metaAggregateType   = "aggregate_type"
-	metaVersion         = "version"
-	metaSchemaVersion   = "schema_version"
-	metaOccurredAt      = "occurred_at"
-	metaCorrelationID   = "correlation_id"
-	metaCausationID     = "causation_id"
-	metaUserID          = "user_id"
-	metaRequestID       = "request_id"
-	metaSource          = "source"
-	metaIPAddress       = "ip_address"
-	metaUserAgent       = "user_agent"
-	metaTombstoneStatus = "tombstone_status"
-	metaTombstoneReason = "tombstone_reason"
+	metaEventID       = "event_id"
+	metaEventType     = "event_type"
+	metaStreamID      = "stream_id"
+	metaStreamType    = "stream_type"
+	metaVersion       = "version"
+	metaSchemaVersion = "schema_version"
+	metaOccurredAt    = "occurred_at"
+	metaCorrelationID = "correlation_id"
+	metaCausationID   = "causation_id"
+	metaUserID        = "user_id"
+	metaRequestID     = "request_id"
+	metaSource        = "source"
+	metaIPAddress     = "ip_address"
+	metaUserAgent     = "user_agent"
 	metaPayloadEncoding = "payload_encoding"
 	metaCustomPrefix    = "custom."
+
+	// Tombstone status fields (event.TombstoneStatus).
+	metaTombstoneStatus = "tombstone_status"
+	metaTombstoneReason = "tombstone_reason"
+
+	// Legacy spellings of the stream identity keys, written before the
+	// stream vocabulary rename (v5 sweep §4). Dual-read window: writers emit
+	// BOTH spellings so pre-rename readers keep working during rolling
+	// upgrades; readers prefer stream_* and fall back. Drop both sides at v6.
+	metaLegacyAggregateID   = "aggregate_id"
+	metaLegacyAggregateType = "aggregate_type"
 )
 
 // EventToMessage maps a go-cqrs-lite event to a Watermill message.
@@ -56,8 +65,13 @@ func eventToMessage(evt event.Event) *message.Message {
 
 	md.Set(metaEventID, evt.ID().String())
 	md.Set(metaEventType, string(evt.Type()))
-	md.Set(metaAggregateID, evt.StreamID().String())
-	md.Set(metaAggregateType, string(evt.StreamType()))
+	md.Set(metaStreamID, evt.StreamID().String())
+	md.Set(metaStreamType, string(evt.StreamType()))
+
+	// Dual-write window (v6: drop): pre-rename readers key on the legacy
+	// aggregate spellings.
+	md.Set(metaLegacyAggregateID, evt.StreamID().String())
+	md.Set(metaLegacyAggregateType, string(evt.StreamType()))
 	md.Set(metaVersion, strconv.Itoa(evt.Version().Int()))
 	md.Set(metaSchemaVersion, strconv.Itoa(evt.SchemaVersion().Int()))
 	md.Set(metaOccurredAt, evt.OccurredAt().Format(time.RFC3339Nano))
@@ -104,16 +118,16 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		eventType = event.Type(v)
 	}
 
-	streamID, err := id.ParseStreamID(md.Get(metaAggregateID))
+	streamID, err := id.ParseStreamID(md.Get(metaStreamID))
 	if err != nil {
 		return nil, errorfamily.WrapRejection(err,
 			"watermill.parse_stream_id_failed", "parse stream_id")
 	}
 
-	streamType := id.StreamType(md.Get(metaAggregateType))
+	streamType := id.StreamType(md.Get(metaStreamType))
 	if streamType == "" {
 		return nil, errorfamily.NewRejection("watermill.missing_metadata",
-			"missing "+metaAggregateType+" metadata")
+			"missing "+metaStreamType+" metadata")
 	}
 
 	version, err := parseInt(md.Get(metaVersion), metaVersion)

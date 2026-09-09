@@ -116,14 +116,14 @@ func TestSerializableEventEnvelopeKeys(t *testing.T) {
 	slices.Sort(keys)
 
 	want := []string{
-		"aggregate_id",
-		"aggregate_type",
 		"encoding",
 		"id",
 		"metadata",
 		"occurred_at",
 		"payload",
 		"schema_version",
+		"stream_id",
+		"stream_type",
 		"type",
 		"version",
 	}
