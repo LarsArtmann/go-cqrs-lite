@@ -125,6 +125,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		performance.NewP011Detector(ctx),
 		performance.NewP012Detector(ctx),
 		performance.NewP013Detector(ctx),
+		performance.NewP014Detector(ctx),
 		// Version
 		version.NewV001Detector(ctx),
 		version.NewV002Detector(ctx),

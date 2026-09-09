@@ -879,6 +879,7 @@ cmd/cqrs-lint/pkg/rules/performance/func NewP010Detector
 cmd/cqrs-lint/pkg/rules/performance/func NewP011Detector
 cmd/cqrs-lint/pkg/rules/performance/func NewP012Detector
 cmd/cqrs-lint/pkg/rules/performance/func NewP013Detector
+cmd/cqrs-lint/pkg/rules/performance/func NewP014Detector
 cmd/cqrs-lint/pkg/rules/resilience/func NewB029Detector
 cmd/cqrs-lint/pkg/rules/resilience/func NewB030Detector
 cmd/cqrs-lint/pkg/rules/resilience/func NewB031Detector

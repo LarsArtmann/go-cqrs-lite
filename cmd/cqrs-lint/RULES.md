@@ -10,7 +10,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Correctness](#correctness) | 42 | C001–C042 |
 | [API](#api) | 32 | A001–A034 |
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
-| [Performance](#performance) | 9 | P001–P013 |
+| [Performance](#performance) | 10 | P001–P014 |
 | [Consistency](#consistency) | 18 | D001–D019 |
 | [Architecture](#architecture) | 17 | E001–E017 |
 | [Security](#security) | 10 | S001–S011 |
@@ -940,6 +940,14 @@ SQLite store without WAL mode — prone to 'database is locked' errors under con
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `performance`
 
 SQLite store without busy_timeout — 'database is locked' errors under concurrent access
+
+<a id="p014"></a>
+
+#### P014 — `applylayout-bypasses-plan-path`
+
+Severity: `info` · Confidence: `medium` · Auto-fix: no · Category: `performance`
+
+ApplyLayout on an engine that also implements ApplyLayoutPlan — bypasses type-derived layout planning; build a LayoutPlan from the read-model type instead (typed-info tier only)
 
 
 ## Consistency

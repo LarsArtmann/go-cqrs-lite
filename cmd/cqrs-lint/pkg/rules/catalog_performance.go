@@ -84,5 +84,14 @@ func performanceRules() []RuleInfo {
 			Description: "SQLite store without busy_timeout — 'database is locked' errors under concurrent access",
 			AutoFix:     false,
 		},
+		{
+			ID:          "P014",
+			Name:        "applylayout-bypasses-plan-path",
+			Category:    "performance",
+			Severity:    "info",
+			Confidence:  "medium",
+			Description: "ApplyLayout on an engine that also implements ApplyLayoutPlan — bypasses type-derived layout planning; build a LayoutPlan from the read-model type instead (typed-info tier only)",
+			AutoFix:     false,
+		},
 	}
 }
