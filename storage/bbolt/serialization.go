@@ -74,6 +74,8 @@ func deserializeEvent(data []byte) (event.Event, error) {
 		return nil, err
 	}
 
+	adoptLegacyStreamKeys(data, &s.StreamID, &s.StreamType)
+
 	// s.Payload is a fresh decode with no other owner — adopt it (no clone).
 	evt, err := event.ReconstructEventWithAdoptedPayload(
 		s.ID, event.Type(s.Type), id.StreamType(s.StreamType), s.StreamID,
@@ -93,12 +95,37 @@ func deserializeEvent(data []byte) (event.Event, error) {
 type serializableEvent struct {
 	ID            id.EventID     `json:"id"`
 	Type          string         `json:"type"`
-	StreamID      id.StreamID    `json:"aggregate_id"`
-	StreamType    string         `json:"aggregate_type"`
+	StreamID      id.StreamID    `json:"stream_id"`
+	StreamType    string         `json:"stream_type"`
 	Version       int            `json:"version"`
 	SchemaVersion int            `json:"schema_version,omitempty"`
 	Payload       []byte         `json:"payload"`
 	OccurredAt    int64          `json:"occurred_at"`
 	Metadata      event.Metadata `json:"metadata"`
 	Encoding      string         `json:"encoding,omitempty"`
+}
+
+// streamKeysLegacy is the decode-only fallback for rows written before the
+// stream_id/stream_type wire rename (v5 sweep §4): only the identity keys
+// differ, so only they are declared here. Deleted at v6.
+type streamKeysLegacy struct {
+	StreamID   id.StreamID `json:"aggregate_id"`
+	StreamType string      `json:"aggregate_type"`
+}
+
+// adoptLegacyStreamKeys fills the identity fields from the pre-rename keys
+// when the primary decode left them zero (the row predates the rename).
+// Best-effort: rows that carry neither spelling fail identity validation
+// downstream exactly as before.
+func adoptLegacyStreamKeys(data []byte, streamID *id.StreamID, streamType *string) {
+	if !streamID.IsZero() || *streamType != "" {
+		return
+	}
+
+	var legacy streamKeysLegacy
+	if err := unmarshalCBOROrJSON(data, &legacy,
+		"bbolt.legacy_stream_keys", "decode legacy stream keys"); err == nil &&
+		!legacy.StreamID.IsZero() {
+		*streamID, *streamType = legacy.StreamID, legacy.StreamType
+	}
 }

@@ -12,8 +12,8 @@ import (
 type serializableCommand struct {
 	ID         id.CommandID     `json:"id"`
 	Type       string           `json:"type"`
-	StreamID   id.StreamID      `json:"aggregate_id"`
-	StreamType string           `json:"aggregate_type"`
+	StreamID   id.StreamID      `json:"stream_id"`
+	StreamType string           `json:"stream_type"`
 	ReceivedAt int64            `json:"received_at"`
 	Payload    []byte           `json:"payload"`
 	Metadata   command.Metadata `json:"metadata"`
@@ -47,6 +47,8 @@ func unmarshalCommand(data []byte) (*command.PersistedCommand, error) {
 		"failed to unmarshal command"); err != nil {
 		return nil, err
 	}
+
+	adoptLegacyStreamKeys(data, &sc.StreamID, &sc.StreamType)
 
 	ref := id.StreamRef{Type: id.StreamType(sc.StreamType), ID: sc.StreamID}
 

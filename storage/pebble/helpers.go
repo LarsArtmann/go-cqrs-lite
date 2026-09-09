@@ -64,8 +64,8 @@ func (a *EventStore) logEventOperation(
 
 	a.logger.Debug(
 		msg,
-		slog.String("aggregate_type", string(ref.Type)),
-		slog.String("aggregate_id", ref.ID.String()),
+		slog.String("stream_type", string(ref.Type)),
+		slog.String("stream_id", ref.ID.String()),
 		slog.Int("count", count),
 	)
 }
