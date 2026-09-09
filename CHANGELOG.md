@@ -3798,6 +3798,17 @@ files. All fixed to unblock `verify-fast`:
 
 ### Added
 
+- **encryption: key-management + envelope docs, wire goldens, and a v1↔v2
+  decode-symmetry property.** README now documents the previously
+  undocumented key lifecycle surfaces — `GenerateKey`/`GenerateKeyBase64`,
+  HKDF `DeriveKey` multi-tenant derivation, `StaticKeyResolver` rotation
+  selection, `WrapCiphertext` self-describing binary envelopes — plus the
+  v1↔v2 envelope wire formats (why v2 is raw JSON for JSON/JSONB columns,
+  and how readers auto-detect both generations). The wire format is pinned
+  by reviewed byte-exact goldens (field names/order, base64url `ct`
+  encoding, omitempty behavior, both generations' shapes) and a rapid
+  property test: for arbitrary envelopes, `UnmarshalEnvelope` recovers the
+  identical value from either generation's wire form.
 - **P014 `applylayout-bypasses-plan-path` (cqrs-lint, typed-info tier):**
   flags `ApplyLayout(...)` calls whose receiver type also implements the
   plan path (`ApplyLayoutPlan` — the `metaengine.LayoutPlanApplier` shape):

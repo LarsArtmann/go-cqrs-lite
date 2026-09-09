@@ -134,6 +134,89 @@ plaintext, _ := decrypter.Decrypt(ct)
 
 The key ID is stored alongside the ciphertext in event metadata. DecryptMiddleware removes all encryption metadata (ciphertext, algorithm, key ID) after decryption.
 
+## Key Management Helpers
+
+The module ships focused helpers for the three common key lifecycles. For
+master-key custody prefer your cloud KMS or Vault — these helpers cover
+generation, derivation, and rotation selection, not storage of secrets.
+
+### Generation
+
+```go
+key, err := encryption.GenerateKey()          // 32 random bytes (crypto/rand)
+keyB64, err := encryption.GenerateKeyBase64() // same, base64-encoded for env vars/secrets managers
+```
+
+### Derivation (multi-tenant per-tenant keys)
+
+`DeriveKey` derives domain-separated subkeys from one master key via
+HKDF-SHA256 — each tenant gets a unique key without storing per-tenant
+material:
+
+```go
+tenantKey, err := encryption.DeriveKey(masterKey, "tenant:acme-corp", 32)
+enc, err := encryption.NewXChaCha20Poly1305(tenantKey)
+```
+
+The `info` string is domain separation: the same master key with different
+`info` values yields unrelated keys.
+
+### Rotation (key ID → decrypter selection)
+
+`StaticKeyResolver` implements `KeyResolver` for the startup-known key set —
+pair it with `ExtractKeyID` on the consumer side:
+
+```go
+resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decrypter{
+    "key-v1": decV1, // old key: decrypt-only, for pre-rotation rows
+    "key-v2": decV2, // current key
+})
+```
+
+The resolver copies the map and reports the available key IDs in its
+not-found error, so a missing key is diagnosable from logs alone.
+
+### Self-Describing Ciphertext (binary envelope)
+
+`WrapCiphertext`/`UnwrapCiphertext` prefix raw ciphertext with version and
+algorithm bytes (`[version:1][algorithm:1][ciphertext:N]`) so a stored blob
+decrypts without external metadata:
+
+```go
+wrapped, err := encryption.WrapCiphertext(rawCiphertext, encryption.XChaCha20Poly1305)
+alg, raw, err := encryption.UnwrapCiphertext(wrapped) // alg == encryption.XChaCha20Poly1305
+```
+
+## Envelope Wire Formats (v1 ↔ v2)
+
+`Envelope` + `MarshalEnvelope`/`UnmarshalEnvelope` wrap ciphertext with
+versioning metadata as JSON for SQL columns:
+
+```json
+{"v":"v2","ct":"3q2-7wBC","alg":"xchacha20-poly1305","kid":"key-v1"}
+```
+
+| Field      | Key  | Notes                                              |
+| ---------- | ---- | -------------------------------------------------- |
+| Version    | `v`  | `"v1"` or `"v2"`; empty on write defaults to `v2`  |
+| Ciphertext | `ct` | URL-safe base64 (nonce is prepended inside)        |
+| Algorithm  | `alg`| omitted when empty                                 |
+| KeyID      | `kid`| omitted when empty                                 |
+
+- **v2 (current, always written)**: the JSON object itself. PostgreSQL and
+  MySQL snapshot-state columns are JSON/JSONB and reject the v1 form with
+  "invalid input syntax for type json" — v2 stores everywhere, including
+  opaque KV engines.
+- **v1 (legacy, still readable)**: the same JSON base64url-wrapped as one
+  opaque string. `UnmarshalEnvelope` auto-detects the shape (`{` prefix →
+  raw JSON; otherwise base64-decode), so readers need no version branch.
+
+The wire format is pinned by reviewed goldens
+(`envelope_wire_golden_test.go`) and a v1↔v2 decode-symmetry property test
+(`envelope_symmetry_test.go`): whichever generation wrote a row, the current
+reader recovers the identical envelope. Any format change must ship as a new
+envelope version, never an edit of v2 bytes.
+
 ## Performance
 
 Benchmarks on 1KB payloads (AMD Ryzen):
@@ -147,7 +230,7 @@ XChaCha20Poly1305_Decrypt      ~600ns/op    2 allocs/op
 
 ## Security Considerations
 
-- **Key management**: This module handles encryption, not key management. Use your cloud provider's KMS or HashiCorp Vault.
+- **Key management**: Master-key custody belongs in your cloud provider's KMS or HashiCorp Vault; see [Key Management Helpers](#key-management-helpers) for the in-module generation/derivation/rotation surfaces.
 - **AES-GCM nonce space**: 12-byte random nonces have a birthday bound at ~2^48 per key. Rotate keys well before this limit. XChaCha20's 24-byte nonce eliminates this concern.
 - **Key rotation**: Design your system for key rotation. Store the key ID alongside encrypted events.
 
