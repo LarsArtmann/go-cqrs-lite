@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed — watermill event wire protocol drops typed command causation (#21) — 2026-09-09
+
+- **`EventToMessage` now writes the typed command causation (ADR-0031) to
+  message metadata, and `MessageToEvent` reconstructs it.** The event wire
+  protocol parsed `correlation_id`, `causation_id`, `user_id`, `request_id`,
+  and `actor_id` on the inbound side, but the outbound mapping never emitted
+  them (fixed for the scalar IDs by the v4.6.0 `writeTracing` sweep), and the
+  typed `Metadata.Causation` struct had no wire representation at all — so
+  anything crossing a watermill hop silently lost command causation. Events
+  with typed causation now carry `causation_command_type` +
+  `causation_command_id`; the read side prefers these dedicated keys and
+  falls back to promoting the v2-pattern `custom.command.type` /
+  `custom.command.id` mirrors, so in-flight messages from producers predating
+  the keys restore typed causation with no producer change. Partial key
+  pairs and unparseable command IDs surface as corrupt-metadata rejections.
+  The message-metadata golden pins the new keys.
+
 ## [metaengine/v4.13.0, system/v4.7.0, storage/v4.9.0, stack/v4.4.0, cmd/cqrs-lint/v4.10.0, benchkit/v4.5.0, scheduling/sqlstore/v4.0.0, tursoengine/v4.1.0 — 2026-09-08 release train (+44 more module tags)] — 2026-09-08
 
 Coordinated release of the full 2026-09-06 → 09-08 surface (58 modules):
