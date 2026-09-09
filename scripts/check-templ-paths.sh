@@ -12,6 +12,7 @@ repo_root="$(cd "$(dirname "$0")/.." && pwd)"
 status=0
 
 while IFS= read -r -d '' gen; do
+	# shellcheck disable=SC2016  # backticks are a regex, not command substitution
 	if grep -nE 'FileName: `[^`]*[/\\][^`]*`' "$gen"; then
 		echo "ERROR: $(basename "$gen") was generated from the wrong cwd — FileName carries a path." >&2
 		echo "       Regenerate with: (cd catalog/docserver && templ generate)" >&2

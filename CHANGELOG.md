@@ -3809,6 +3809,30 @@ files. All fixed to unblock `verify-fast`:
   encoding, omitempty behavior, both generations' shapes) and a rapid
   property test: for arbitrary envelopes, `UnmarshalEnvelope` recovers the
   identical value from either generation's wire form.
+- **Docs-truth batch:** `error-taxonomy.md` now covers the storage (SQL
+  facade), storage/pebble, and watermill family codes (sentinels + wrap-code
+  families, including the Close≠Nack semantics note);
+  `METAENGINE_DOMAIN_LANGUAGE.md` gains the materialized-view maintenance
+  section (Materialized View Acceleration, IVM, View-Maintained Write, with
+  the tursogo divergence/27k-wall caveats); `example/metaengine-quickstart`
+  has a README (pinned mechanically by the new
+  `TestEveryExampleHasREADME`); both taskmanager and metaengine-quickstart
+  audited v5-clean via `cqrs-upgrade --dry-run --strict` (0 findings).
+- **New tripwires:** `scripts/check-linter-names.sh` (wired into
+  `#check-lint-config`) fails when `.golangci.yml` names a linter the
+  installed golangci-lint does not know — schema verify catches drift, but
+  a renamed linter silently no-ops (the gci incident class);
+  `scripts/check-templ-paths.sh` (wired into `#check-templ`) fails when a
+  `_templ.go` FileName carries a path, i.e. it was generated from the wrong
+  cwd; `TestNoRenamedAggregateFamilyCodeReappears` (api-stability) fails if
+  any of the 17 renamed `aggregate_*` error-family codes reappears in Go
+  source.
+- **doc-check `--json` + no-import-alias ambiguity surfacing:** `--json`
+  emits a deterministic machine-readable summary (per-finding broken refs,
+  warnings, ambiguities) for CI annotations; references that resolve
+  through the repo-wide alias union when the alias maps to MULTIPLE
+  same-named packages are now reported instead of silently unioned
+  (currently zero; log-only, the zero-warning gate is unchanged).
 - **P014 `applylayout-bypasses-plan-path` (cqrs-lint, typed-info tier):**
   flags `ApplyLayout(...)` calls whose receiver type also implements the
   plan path (`ApplyLayoutPlan` — the `metaengine.LayoutPlanApplier` shape):

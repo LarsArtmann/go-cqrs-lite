@@ -239,7 +239,7 @@ func emitJSON(
 		return fmt.Errorf("marshal summary: %w", err)
 	}
 
-	fmt.Println(string(encoded))
+	fmt.Fprintln(os.Stdout, string(encoded))
 
 	return nil
 }

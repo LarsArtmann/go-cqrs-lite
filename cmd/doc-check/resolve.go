@@ -65,7 +65,7 @@ func (r *resolver) resolve(b block, ref ref) bool {
 // the reference was verified through the repo-wide alias union (no block
 // import scoped it) — the case where an ambiguous package name silently
 // unions exports across modules.
-func (r *resolver) resolveVia(b block, ref ref) (ok, viaUnion bool) {
+func (r *resolver) resolveVia(b block, ref ref) (bool, bool) {
 	if paths := r.blockPaths(b, ref.pkg); len(paths) > 0 {
 		for _, p := range paths {
 			if r.exports[p][ref.symbol] {
@@ -199,14 +199,20 @@ type brokenRef struct {
 // alias union.
 func verifyBlocks(
 	blocks []block, allImports []string, res *resolver,
-) (brokenRefs []brokenRef, total int, warnings, ambiguities []string) {
-	warnings = make([]string, 0, len(allImports))
+) ([]brokenRef, int, []string, []string) {
+	var brokenRefs []brokenRef
+
+	var ambiguities []string
+
+	warnings := make([]string, 0, len(allImports))
 
 	for _, imp := range dedupe(allImports) {
 		warnings = append(warnings, res.warm(imp)...)
 	}
 
 	seenAmbiguous := make(map[string]bool)
+
+	total := 0
 
 	for _, b := range blocks {
 		for _, ref := range b.refs {

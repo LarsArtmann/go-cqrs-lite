@@ -902,7 +902,7 @@
             # check-formatters pins formatters.enable so a config reformat
             # cannot silently resurrect gci (the treefmt-vs-golangci fight).
             check-lint-config =
-              mkApp "check-lint-config" [ pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep ]
+              mkApp "check-lint-config" [ pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.jq ]
                 ''
                   echo "==> golangci-lint config verify"
                   ${pkgs.golangci-lint}/bin/golangci-lint config verify --config "$PWD/.golangci.yml"
@@ -910,15 +910,20 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
                   echo "==> formatters.enable pin (treefmt owns grouping)"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-formatters.sh"
+                  echo "==> linter names known to golangci (rename tripwire)"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-linter-names.sh"
                 '';
 
             # check-templ: templ codegen-drift gate — fails when a *_templ.go
             # no longer matches its .templ source. The nixpkgs templ version
             # is the pin recorded in the treefmt excludes (v0.3.1020).
-            check-templ = mkApp "check-templ" [ pkgs.templ goPkg pkgs.bash ] ''
+            check-templ = mkApp "check-templ" [ pkgs.templ goPkg pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
               echo "==> templ codegen drift (catalog/docserver)"
               cd catalog/docserver
               ${pkgs.templ}/bin/templ generate -check -log-level error
+              cd "$OLDPWD"
+              echo "==> templ FileName cwd tripwire"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-templ-paths.sh"
             '';
 
             # check-bench-gate: fixture tests for the benchmark regression
