@@ -1,8 +1,8 @@
 # Module Map (internal)
 
-> Extracted from AGENTS.md (2026-09-08 indexed-split). The consumer-facing lookup lives in .agents/skills/go-cqrs-lite/references/modules.md; this table adds internal-only notes. Edit HERE.
+> Extracted from AGENTS.md (2026-09-08 indexed-split). The consumer-facing lookup lives in ../../.agents/skills/go-cqrs-lite/references/modules.md; this table adds internal-only notes. Edit HERE.
 
-Compact reference — see [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md) for the full consumer-facing lookup.
+Compact reference — see [`references/modules.md`](../../.agents/skills/go-cqrs-lite/references/modules.md) for the full consumer-facing lookup.
 
 | Module                                                         | Role                                                                                                                                          | Notes                                             |
 | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |

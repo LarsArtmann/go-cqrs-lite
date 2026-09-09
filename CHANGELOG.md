@@ -3936,6 +3936,25 @@ files. All fixed to unblock `verify-fast`:
 
 ### Changed
 
+- **v5 sweep §4 wire keys — stream vocabulary everywhere (dual-read
+  windows, v6 deletion markers):** bbolt event/command CBOR and pebble
+  command CBOR now write `stream_id`/`stream_type` (was
+  `aggregate_id`/`aggregate_type`), with decode-only legacy fallbacks so
+  pre-rename journals stay readable; watermill event/command metadata keys
+  rename the same way behind a DUAL-write window (fresh messages carry both
+  spellings so pre-rename readers in rolling upgrades keep working; readers
+  prefer `stream_*` and fall back); pebble slog keys renamed
+  (`stream_type`/`stream_id`). The bbolt event wire golden was re-blessed
+  (envelope keys + bytes) and every fallback is pinned by legacy-row tests.
+  All fallbacks carry v6 deletion markers. The full status table — including
+  the SQL events/commands columns (still `aggregate_*`, expand-contract
+  migration recommended for a v5.x minor, not the v5.0 cut) — lives in
+  `docs/WIRE-FORMAT-KEYS.md`.
+- **benchkit result JSON schema v2.0.0:** the workload keys
+  `aggregates`/`eventsPerAggregate` are renamed to `streams`/
+  `eventsPerStream` (stream vocabulary, v5 sweep §4). Benchmark output
+  consumers (dashboards, the regression gate's artifact reader) must switch
+  to the new keys.
 - **First 350-line split wave (contract-honesty program):** three oversized
   files were split into per-family files as pure same-package moves — no
   symbol moved packages, so the api-stability golden is unchanged and nothing
