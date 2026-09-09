@@ -319,11 +319,9 @@ func buildMetadata(md message.Metadata) (event.Metadata, error) {
 		}
 	}
 
-	causation, causErr := parseCausation(md, m.Custom)
-	if causErr != nil {
+	if causErr := parseCausation(md, m.Custom, &m.Causation); causErr != nil {
 		errs = append(errs, causErr)
 	}
-	m.Causation = causation
 
 	return m, errors.Join(errs...)
 }
@@ -370,37 +368,40 @@ func writeCausation(md message.Metadata, c *event.Causation) {
 }
 
 // parseCausation reconstructs the typed command causation (ADR-0031) from
-// message metadata. The dedicated causation_command_* keys win; when both
-// are absent, the v2-pattern Custom mirrors (command.type / command.id —
-// the only representation that crossed the wire before the dedicated keys
-// existed) are promoted. Returns (nil, nil) when no causation is present.
+// message metadata into dst. The dedicated causation_command_* keys win;
+// when both are absent, the v2-pattern Custom mirrors (command.type /
+// command.id — the only representation that crossed the wire before the
+// dedicated keys existed) are promoted. dst is left nil when no causation
+// is present.
 func parseCausation(
 	md message.Metadata,
 	custom map[event.MetadataKey]string,
-) (*event.Causation, error) {
+	dst **event.Causation,
+) error {
 	cmdType := md.Get(metaCausationCommandType)
 	cmdIDStr := md.Get(metaCausationCommandID)
 
 	switch {
 	case cmdType == "" && cmdIDStr == "":
-		c, ok := causationFromCustom(custom)
-		if !ok {
-			return nil, nil
+		if c, ok := causationFromCustom(custom); ok {
+			*dst = &c
 		}
 
-		return &c, nil
+		return nil
 	case cmdType == "" || cmdIDStr == "":
-		return nil, errorfamily.NewRejection("watermill.missing_metadata",
+		return errorfamily.NewRejection("watermill.missing_metadata",
 			fmt.Sprintf("partial typed causation: set both %s and %s",
 				metaCausationCommandType, metaCausationCommandID))
 	}
 
 	cmdID, err := id.ParseCommandID(cmdIDStr)
 	if err != nil {
-		return nil, errorfamily.WrapRejection(err, "watermill.parse_id_field_failed", metaCausationCommandID)
+		return errorfamily.WrapRejection(err, "watermill.parse_id_field_failed", metaCausationCommandID)
 	}
 
-	return &event.Causation{CommandType: cmdType, CommandID: cmdID}, nil
+	*dst = &event.Causation{CommandType: cmdType, CommandID: cmdID}
+
+	return nil
 }
 
 // causationFromCustom restores typed causation from the command.type /
