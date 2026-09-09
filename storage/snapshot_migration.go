@@ -56,11 +56,10 @@ func MigrateSnapshotColumnsToStream(ctx context.Context, db *sql.DB, d sqlpkg.Di
 			sqlpkg.TableSnapshots, rename[0], rename[1],
 		)
 		if _, err := db.ExecContext(ctx, stmt); err != nil {
-			// Concurrent InitSchema: another runner may have completed the
-			// rename between this call's probe and ALTER. Re-probe before
-			// failing — a fully-migrated table means success, not an error.
-			if recheck, rerr := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots); rerr == nil &&
-				!slices.Contains(recheck, "aggregate_type") && !slices.Contains(recheck, "aggregate_id") {
+			// Concurrent InitSchema: another runner may be mid-rename (this
+			// ALTER lost the race, or ran between its two ALTERs). Wait out
+			// the same settle window — a fully-migrated table means success.
+			if snapshotRenameSettled(ctx, db, d) {
 				return nil
 			}
 
@@ -98,47 +97,47 @@ func probeTableColumns(
 // responses: a CONCURRENT InitSchema runner is between its two ALTERs (the
 // aggregate columns are about to disappear — wait briefly and re-probe), or
 // someone half-migrated by hand / a migration crashed mid-way (the state is
-// stable — fail loudly). A short wait-out window distinguishes them: the
+// stable — fail loudly). The settle window distinguishes them: the
 // concurrent case resolves in milliseconds; the stable mixed state survives
 // the window and is rejected as Corruption.
 func rejectMixedSnapshotColumns(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) error {
+	if snapshotRenameSettled(ctx, db, d) {
+		return nil
+	}
+
+	return errorfamily.NewCorruption(
+		"storage.snapshot_column_mixed",
+		"snapshots table carries both aggregate and stream columns; "+
+			"manual reconciliation required",
+	)
+}
+
+// snapshotRenameSettled polls until the snapshots table carries no
+// aggregate columns (a concurrent runner finished) or a short window
+// elapses. True means fully migrated; False means the mixed state is
+// stable. Context cancellation ends the poll early (treated as unsettled).
+func snapshotRenameSettled(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) bool {
 	const (
 		waitTotal = 2 * time.Second
-		tick      = 50 * time.Millisecond
+		tick      = 25 * time.Millisecond
 	)
 
 	deadline := time.Now().Add(waitTotal)
 
 	for {
 		columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
-		if err != nil {
-			return errorfamily.WrapInfrastructure(
-				err,
-				"storage.snapshot_column_probe",
-				"re-probe snapshots table columns for the v5 stream rename",
-			)
+		if err == nil &&
+			!slices.Contains(columns, "aggregate_type") && !slices.Contains(columns, "aggregate_id") {
+			return true
 		}
 
-		if !slices.Contains(columns, "aggregate_type") && !slices.Contains(columns, "aggregate_id") {
-			return nil // the concurrent runner finished the rename
-		}
-
-		if time.Now().After(deadline) {
-			return errorfamily.NewCorruption(
-				"storage.snapshot_column_mixed",
-				"snapshots table carries both aggregate and stream columns; "+
-					"manual reconciliation required",
-			)
+		if time.Now().After(deadline) || ctx.Err() != nil {
+			return false
 		}
 
 		select {
 		case <-ctx.Done():
-			return errorfamily.NewCorruption(
-				"storage.snapshot_column_mixed",
-				"snapshots table carries both aggregate and stream columns "+
-					"(context cancelled while waiting out a concurrent migration); "+
-					"manual reconciliation required",
-			)
+			return false
 		case <-time.After(tick):
 		}
 	}
