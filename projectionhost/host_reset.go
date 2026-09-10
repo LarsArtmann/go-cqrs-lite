@@ -25,7 +25,8 @@ type Resettable interface {
 type ResetOption func(*resetConfig)
 
 type resetConfig struct {
-	purgeDLQ bool
+	purgeDLQ       bool
+	keepStaleState bool
 }
 
 // WithPurgeDeadLetters instructs Reset to also purge dead-letter entries for
@@ -38,6 +39,24 @@ func WithPurgeDeadLetters() ResetOption {
 	return func(c *resetConfig) { c.purgeDLQ = true }
 }
 
+// WithKeepStaleState acknowledges that a Reset of a projection which does NOT
+// implement [Resettable] clears only its checkpoint, leaving any existing
+// read-model state in place for the replay to be applied on top of. Passing
+// this option silences the warning that Reset otherwise logs for such a
+// partial reset.
+//
+// Use it when the projection's handler is idempotent (re-applying events over
+// stale rows is a no-op) or when the read-model state is cleared out-of-band.
+// Without it — and without a [Resettable] implementation — Reset logs a warning
+// so a partial revert is never silent. In v5 this warning becomes a hard error
+// (rides the ADR-0123 composition-root wave); WithKeepStaleState is the
+// permanent opt-out that keeps the checkpoint-only reset working.
+//
+//	host.Reset(ctx, "users", projectionhost.WithKeepStaleState())
+func WithKeepStaleState() ResetOption {
+	return func(c *resetConfig) { c.keepStaleState = true }
+}
+
 // Reset drops the checkpoint for the named projection and, if the projection
 // implements [Resettable], calls its Reset method to clear read-model state.
 // After Reset, the next Start replays all events from the beginning of the
@@ -47,10 +66,15 @@ func WithPurgeDeadLetters() ResetOption {
 // Pass [WithPurgeDeadLetters] to also clear dead-letter entries for the
 // projection from the configured DeadLetterStore.
 //
+// If the projection does NOT implement [Resettable], Reset clears only the
+// checkpoint and logs a warning that stale read-model state remains (a partial
+// revert). Pass [WithKeepStaleState] to acknowledge that intent and silence the
+// warning. In v5 the warning becomes a hard error.
+//
 // Reset returns an error if the projection name is not registered or the host
 // is currently running (Stop first). It is safe to call Reset multiple times.
 func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) error {
-	cfg := resetConfig{purgeDLQ: false}
+	cfg := resetConfig{purgeDLQ: false, keepStaleState: false}
 	for _, opt := range opts {
 		opt(&cfg)
 	}
@@ -97,6 +121,11 @@ func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) erro
 			return errorfamily.WrapInfrastructure(err, "projectionhost.reset_projection",
 				fmt.Sprintf("reset projection %q", name))
 		}
+	} else if !cfg.keepStaleState {
+		h.opts.logger.Warn("projectionhost: Reset cleared the checkpoint but the projection does not implement Resettable, so stale read-model state remains and the replay will re-apply events on top of it",
+			"projection", name,
+			"remedy", "implement projectionhost.Resettable to clear the read-model state, or pass projectionhost.WithKeepStaleState() to acknowledge the checkpoint-only reset and silence this warning",
+		)
 	}
 
 	w.setCheckpoint("")
