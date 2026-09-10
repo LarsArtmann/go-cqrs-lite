@@ -114,7 +114,7 @@ func setupChangelogCommand(cli *cmdguard.CLI[AppConfig]) error {
 			out, err := exec.CommandContext(
 				ctx,
 				"git", "log", "--oneline",
-				"cmd/cqrs-lint/v"+version+"..HEAD",
+				"cmd/cqrs-lint/v"+resolvedVersion()+"..HEAD",
 			).Output()
 			if err != nil {
 				// Fall back to last 20 commits if tag doesn't exist yet.

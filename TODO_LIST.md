@@ -243,37 +243,74 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
-- [ ] **cqrs-bench deprecation stub** — the dead suffix-less `cmd/cqrs-bench`
-      path silently serves `v0.1.0` via `@latest`; ship the deprecation-stub
-      treatment `cmd/cqrs-lint/v0.2.1` got. — source: archived/2026-09-01_21-37
-      §c1
+- [x] **cqrs-bench deprecation stub** — DONE 2026-09-11: one-off stub commit
+      on a detached worktree (never merged), tagged `cmd/cqrs-bench/v0.1.1`
+      — same treatment as `cmd/cqrs-lint/v0.2.1`: suffix-less go.mod, zero
+      requires, loud failure pointing at the `/v4` install command. Verified
+      it builds standalone and exits 1. Push `cmd/cqrs-bench/v0.1.1` to make
+      it proxy-effective, then `tag-release.sh --smoke cmd/cqrs-bench
+      v0.1.1` is meaningless (stub has no proxy version to serve beyond
+      @latest) — just `go install …cmd/cqrs-bench@latest` once pushed and
+      confirm the stub runs. — source: archived/2026-09-01_21-37 §c1
       _(Effort: XS)_
-- [ ] **`retract cmd/cqrs-lint/v4.8.0`** — the poisoned (syntax-error) tag
-      remains fetchable; v4.8.1 supersedes it but a retract stops fresh
-      consumers from resolving it. — source: archived/2026-09-01_21-37 §c6
+- [x] **`retract cmd/cqrs-lint/v4.8.0`** — DONE 2026-09-11: the directive
+      was sitting unreleased on master (a retract only exists for consumers
+      once a TAG carries it); cut `cmd/cqrs-lint/v4.10.1` from a detached
+      worktree via `tag-release.sh` (const bumped to 4.10.1 inside the tag,
+      standalone build verified, `retract v4.8.0` confirmed in the tagged
+      go.mod). Push the tag to make it proxy-effective, then `--smoke`.
+      — source: archived/2026-09-01_21-37 §c6
       _(Effort: XS)_
-- [ ] **tag-release.sh hardening:** zero tests exist; add a proxy smoke-check
-      ("clean-dir install @latest + run") as a documented post-cut step;
-      one-shot all-modules path-vs-tag audit (the issue-#20 class). Consider
-      `pin-sweep --no-build` inside the pre-flight. — source:
-      archived/2026-09-01_21-37 §c2/c3/c5, 15-09 §f44
+- [x] **tag-release.sh hardening** — DONE 2026-09-11: (a) `--smoke` now
+      follows the proxy check with a clean-dir `go install module@version`
+      + `--help` run for main-package modules (hard gate on install, warning
+      on odd help-exit codes) — the probe class that catches a poisoned
+      tag; (b) new `--audit` replays the path-vs-tag guard over every tag
+      of every module — one-shot run found 24 historical violations (1078
+      tags checked), all in known-dead paths (cmd/cqrs-lint v4.2.0–v4.7.0,
+      cmd/cqrs-bench v4.2.0, example/* v3/v4, eventtest v0.x); (c)
+      pre-flight runs non-mutating `pin-sweep --check` (advisory — a full
+      sweep would mutate 80+ unrelated go.mods, the opposite of this
+      script's single-module scoping; the standalone build gate stays the
+      hard stop); (d) guard logic extracted into `path_matches_major`,
+      shared by release flow and audit; (e) `scripts/test-tag-release.sh`
+      pins it all with 10 fixture-repo smoke tests (audit FAIL/OK, guard
+      rejection, pre-push --smoke error). — source: archived/2026-09-01_21-37
+      §c2/c3/c5, 15-09 §f44
       _(Effort: S/M)_
-- [ ] **Version-reporting unification** — cqrs-lint hand-maintains a version
-      string const (tag-release.sh bumps it); adopting debug/buildinfo would
-      remove the drift class. Decide const-vs-buildinfo before v5. — source:
-      archived/2026-09-01_21-37 §c4
+- [x] **Version-reporting unification** — DECIDED 2026-09-11: buildinfo
+      primary, const deleted. `resolvedVersion()` now reports the
+      toolchain-embedded version (`go install …@vX.Y.Z` → the real tag),
+      falls back to `dev-<sha>[-dirty]` from stamped VCS revision for
+      in-repo builds, then `dev` (Nix/ldflags builds append the injected
+      commit/date). Removes BOTH drift classes: the stranded const (v4.7.0)
+      and the tagger sed that poisoned v4.8.0 — tag-release.sh's bump
+      block is gone (cuts no longer mutate source), TestVersionMatchesLatestTag
+      retired, bump-cqrs-lint.sh reduced to tidy + vendorHash. On master —
+      rides the NEXT cqrs-lint tag (v4.10.1 was deliberately cut from the
+      pre-refactor HEAD so the retract could ship immediately). — source: archived/2026-09-01_21-37 §c4
       _(Effort: S)_
-- [ ] **cqrs-upgrade growth** — `--json` output (CI), workspace/multi-module
-      mode (upgrade every go.mod under a repo root), in-process `go mod tidy`
-      via x/mod, `--to <version>` pin-target mode, `--strict` (non-zero exit
-      on V007 findings — v5-readiness CI gate). Add a self-upgrade CI
-      dogfood job. — source: SUPERB §f18-23
+- [x] **cqrs-upgrade growth** — DONE (staged across sessions): `--json`,
+      `--workspace`, `--to`, `--strict`, and x/mod-based in-process go.mod
+      editing all shipped earlier (see CHANGELOG 2026-09-07); the last
+      piece — the self-upgrade CI dogfood job — landed 2026-09-11 as a
+      nightly `sentinel.yml` job running `cqrs-upgrade --workspace
+      --dry-run --strict` over this repo (v5-readiness gate: repo itself
+      is v5-clean; the tool exercises its full pipeline against 84 real
+      modules). — source: SUPERB §f18-23
       _(Effort: S/M each)_
-- [ ] **Badger data-loss exposure review** (user decision): the fixed
-      restart-sequence bug means any badgerengine deployment that reopened a
-      DB and appended overwrote early entries. Retrospective (bound the
-      window, audit consumers) — or confirm badgerengine is pre-adoption and
-      skip. — source: 15-09 §g1
+- [x] **Badger data-loss exposure review** — RESOLVED 2026-09-11, not
+      pre-adoption: badgerengine published v4.0.0–v4.2.0. Window bounded:
+      v4.0.0–v4.1.0 seeded ONLY the log counter on restart (v4.1.0's
+      comment already claimed all four — a lying comment), so reopen+
+      append overwrote early stream/journal entries; v4.2.0 (2026-09-08)
+      shipped full seeding. Consumer audit: zero repo-internal data-path
+      consumers (analyzer catalogs only); external adoption unlikely
+      (five weeks old, niche backend) but unprovable. Action: v4.0.0–
+      v4.1.0 retracted with reason comment; `metaengine/badgerengine/
+      v4.2.1` tagged (code identical to v4.2.0) to publish the retract;
+      full retrospective in the ADR-0118 incident addendum. Push the tag
+      to make it proxy-effective. — source: 15-09 §g1
       _(Effort: S)_
 
 ---
@@ -418,23 +455,37 @@ bottom is a do-not-re-litigate guard, not a backlog.
       multi-session program pending the policy decision. Decide
       harness-dir exemptions (adttest/enginetest are exported test harnesses)
       first. _(Effort: XL, multi-session)_
-- [ ] **Attribute + resolve the 5 pending clone groups** (check-duplication,
-      verified foreign at 15-09, owners landed since): cqrs-lint
-      `pkg/suppression/fix.go` sortAuditEntries prologue ×2; the
-      duckdb/pg/sqlite `planned_parity` sort.Slice trio; the csp_browser_test
-      ↔ store_collaborators mutex-idiom pair. — source: 15-09 §b2/§f3
+- [x] **Attribute + resolve the 5 pending clone groups** (check-duplication,
+      verified foreign at 15-09, owners landed since): DONE 2026-09-09 —
+      cqrs-lint `fix.go` ×2 killed at the root by extracting the shared
+      `staleByFile`/`finalizeFixResult` helpers (commit cec9248da);
+      `planned_parity` trio and csp_browser_test ↔ store_collaborators pair
+      attributed `//art-dupl:accept` with domain rationale (dep-isolated
+      cross-engine pattern; unrelated mutex-guard idioms). Gate re-verified
+      green 2026-09-11: 0 new clone groups (baseline 54). — source: 15-09
+      §b2/§f3
       _(Effort: S)_
-- [ ] **Pre-existing scheduling/sqlstore lint findings** — gosec G202 (SQL
-      concat), sqlclosecheck ×2, staticcheck QF1003, wsl_v5 (proven
-      pre-session 2026-09-06), plus the gocognit 38>35 on
-      `pg_integration_test.go:462` (`TestClaimingPostgres_RenewVsClaimRace` —
-      extract a poll/round helper so the integration-tag lint surface is
-      clean). — source: 15-09 §c2/§f4, archived 22-33 addendum, 04-35 §f7
+- [x] **Pre-existing scheduling/sqlstore lint findings** — DONE, surface
+      re-verified clean 2026-09-11: gocognit fixed by extracting the
+      `pollAssertingLeaseHeld`/`reclaimOnce` helpers from
+      `TestClaimingPostgres_RenewVsClaimRace`; gosec G202 attributed
+      `//nolint:gosec // placeholders only, ids bound` (claiming_mysql.go);
+      lint with the integration tag AND canonical `#lint-module` both 0
+      issues (gocognit/gosec/sqlclosecheck/staticcheck/wsl_v5 explicitly
+      enabled). On-sight repair: `scheduling/sqlstore/go.sum` was missing the
+      pgx v5.11.0 go.mod hash — GOWORK=off integration-tag lint/build failed
+      standalone until added. — source: 15-09 §c2/§f4, archived 22-33
+      addendum, 04-35 §f7
       _(Effort: S)_
-- [ ] **`aggregate_*` family-code tripwire test** — grep-style meta-test
-      failing CI if any `aggregate_*` error-family code reappears (the
-      2026-09-08 rename must not silently rot back; the RULES.md completeness
-      meta-test is the pattern). — source: archived 07-48 §f4
+- [x] **`aggregate_*` family-code tripwire test** — DONE 2026-09-09, landed
+      as `cmd/api-stability/aggregate_code_tripwire_test.go`: exact-string
+      table of all 17 renamed codes, walks every repo `.go` file (skips own
+      table), fails with file:line pointers. Mutation-verified 2026-09-11:
+      planting `event.aggregate_not_found` turns the test red, removal
+      restores green; runs in CI via the cmd/api-stability `-race` test leg.
+      Deliberately exact-string (not a broad `aggregate_` grep) so
+      `listing.aggregate_projection` and SQL column names don't false-fire.
+      — source: archived 07-48 §f4
       _(Effort: XS)_
 - [x] 🔥 **json/v2 map-order determinism sweep** — DONE 2026-09-08 (Pareto
       P08): SARIF `run.properties` map → fixed-order struct + 50-render

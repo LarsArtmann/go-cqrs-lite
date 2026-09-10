@@ -896,6 +896,18 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
             '';
 
+            # check-upgrade-dogfood: the self-upgrade CI dogfood (nightly
+            # sentinel, not per-push — the workspace-wide run resolves every
+            # sibling pin from the module proxy, ~5 min network-bound).
+            # Double duty: (1) v5-readiness gate — --strict fails on ANY
+            # v5-removed API usage in the repo's own 84 modules; (2) the
+            # upgrade tool exercises its full pipeline (walk, pin collection,
+            # proxy resolution, V007 scan) against real modules every night.
+            # --dry-run so the run can never mutate go.mods.
+            check-upgrade-dogfood = mkApp "check-upgrade-dogfood" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash -c 'set -euo pipefail; go run ./cmd/cqrs-upgrade --workspace --dry-run --strict .'
+            '';
+
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
             # bumps; check-depguard keeps the allow-list honest against go.mod;

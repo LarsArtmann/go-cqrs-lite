@@ -54,7 +54,7 @@ func outputFindings(
 	cfg *AppConfig,
 	loadErrorCount int,
 ) error {
-	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: version})
+	report := finding.NewReport(finding.ToolInfo{Name: "cqrs-lint", Version: resolvedVersion()})
 	report.AddFindings(findings)
 
 	switch strings.ToLower(cfg.Format) {

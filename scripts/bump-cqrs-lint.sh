@@ -1,35 +1,38 @@
 #!/usr/bin/env bash
-# bump-cqrs-lint.sh — sync cqrs-lint version, vendorHash, and go.mod after a version bump.
+# bump-cqrs-lint.sh — sync cqrs-lint go.mod and the Nix vendorHash after a
+# dependency change, and verify the Nix build.
 #
-# Usage: scripts/bump-cqrs-lint.sh <new-version>
-# Example: scripts/bump-cqrs-lint.sh 4.4.0
+# Usage: scripts/bump-cqrs-lint.sh [new-version]
+# Example: scripts/bump-cqrs-lint.sh 4.11.0
+#
+# The version argument is informational only: since the hand-maintained
+# version constant was removed (resolvedVersion() reads the version from
+# debug.ReadBuildInfo), there is NO source file to bump — the reported
+# version comes from the git tag itself at `go install …@vX.Y.Z`.
 #
 # This script:
-# 1. Updates the version constant in cmd/cqrs-lint/main.go
-# 2. Runs `go mod tidy` in the cqrs-lint module (GOWORK=off)
-# 3. Attempts `nix build .#cqrs-lint` and extracts the correct vendorHash on mismatch
-# 4. Verifies the build succeeds
+# 1. Runs `go mod tidy` in the cqrs-lint module (GOWORK=off)
+# 2. Attempts `nix build .#cqrs-lint` and extracts the correct vendorHash on mismatch
+# 3. Verifies the build succeeds
 #
-# It does NOT tag or push — do that manually per CONTRIBUTING.md.
+# It does NOT tag or push — do that with scripts/tag-release.sh.
 
 set -euo pipefail
 
-VERSION="${1:?Usage: $0 <new-version>}"
+VERSION="${1:-}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LINT_DIR="$REPO_ROOT/cmd/cqrs-lint"
 
-if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+if [[ -n "$VERSION" && ! "$VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	echo "ERROR: version must be semver (X.Y.Z), got: $VERSION" >&2
 	exit 1
 fi
 
-echo "==> Bumping cqrs-lint to v$VERSION"
+VERSION="${VERSION#v}"
 
-# 1. Update version constant
-sed -i "s/^const version = .*/const version = \"$VERSION\"/" "$LINT_DIR/main.go"
-echo "  Updated version constant in main.go"
+echo "==> Syncing cqrs-lint go.mod + Nix vendorHash${VERSION:+ (targeting v$VERSION)}"
 
-# 2. go mod tidy
+# 1. go mod tidy
 echo "==> Running go mod tidy (GOWORK=off)..."
 (cd "$LINT_DIR" && GOWORK=off go mod tidy)
 
@@ -55,5 +58,6 @@ fi
 echo ""
 echo "==> Done! Next steps:"
 echo "  1. nix run .#verify"
-echo "  2. git tag -a cmd/cqrs-lint/v$VERSION -m \"cqrs-lint v$VERSION\""
-echo "  3. git push origin cmd/cqrs-lint/v$VERSION"
+echo "  2. ./scripts/tag-release.sh cmd/cqrs-lint v${VERSION:-<version>} \"<description>\""
+echo "  3. git push origin cmd/cqrs-lint/v${VERSION:-<version>}"
+echo "  4. ./scripts/tag-release.sh --smoke cmd/cqrs-lint v${VERSION:-<version>}"

@@ -55,3 +55,22 @@ jobs:
         run: nix run .#check-eventcatalog
 
     timeout-minutes: 20
+
+  upgrade-dogfood:
+    name: cqrs-upgrade dogfood (v5-readiness)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+
+      # The tool upgrades its own repo, dry-run + strict: --strict fails on
+      # ANY v5-removed API usage across the 84 workspace modules (the
+      # v5-readiness gate), and the run exercises cqrs-upgrade's full
+      # pipeline (workspace walk, pin collection, proxy resolution, V007
+      # scan) nightly. Network-bound proxy resolution (~5 min) is why this
+      # is a sentinel job, not a per-push CI leg.
+      - name: Upgrade-own-repo dry run must be clean
+        run: nix run .#check-upgrade-dogfood
+
+    timeout-minutes: 20

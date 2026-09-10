@@ -69,6 +69,8 @@ Calibrated constants in `engine.go`:
 
 Sequence counters (log, multimap, journal, stream) are seeded from existing data on restart
 to prevent key collisions, matching the Pebble engine's restart-safety guarantee.
+This guarantee is TRUE as of v4.2.0; v4.0.0–v4.1.0 seeded only the log prefix —
+see the incident addendum below.
 
 ## Alternatives Considered
 
@@ -88,3 +90,43 @@ for server deployments.
 - **Positive:** Consumers have a second pure-Go embedded LSM option alongside Pebble.
 - **Positive:** Full adttest parity verified (all 8 core ADTs pass cross-engine matrix).
 - **Negative:** Additional dependency surface (`dgraph-io/badger/v4` and its transitive deps).
+
+## Incident Addendum: Restart-Seeding Gap (2026-09-11)
+
+**Bug.** Badgerengine v4.0.0–v4.1.0 re-seeded ONLY the log (`l`) prefix on
+restart; the stream (`sl`), journal (`jl`), and multimap (`mm`) counters
+restarted at zero. Any deployment that reopened a PERSISTENT database and
+appended overwrote its earliest stream/journal entries — silent data loss
+(reads then returned stale records as "latest"). In-memory engines
+(PersistenceVolatile) are unaffected: there is no restart to survive.
+
+**Detection.** The restart-safety test harness appended across a
+close/reopen cycle and compared entries (later deduplicated into the shared
+enginetest harness). The original log-only seeding slipped through review
+because the code comment — and this ADR's Persistence section — already
+CLAIMED full four-prefix seeding. Both the comment and the ADR line were
+aspirational, not descriptive: a lying comment is worse than none, because
+reviewers trust it.
+
+**Fix timeline.**
+
+| Date       | Event                                                                   |
+| ---------- | ----------------------------------------------------------------------- |
+| 2026-08-06 | Module introduced; log-only seeding                                     |
+| 2026-08-18 | v4.1.0 tagged — still log-only (comment claimed all four)               |
+| 2026-09-06 | `seedPrefixSeqs` seeds all four prefixes (mirrors pebbleengine)         |
+| 2026-09-08 | v4.2.0 tagged — first fully-safe release                                |
+| 2026-09-11 | v4.0.0–v4.1.0 retracted; v4.2.1 tagged to publish the retract           |
+
+**Exposure and consumers.** Affected: consumers pinning v4.0.0–v4.1.0 who
+reopened a persistent DB and appended. No repo-internal data-path consumers
+exist (only the analyzer's module catalog and api-stability listings name the
+module); external adoption is unknown but unlikely — the module was five
+weeks old at fix time and Badger is the niche backend of the engine set.
+Fresh `go get …@latest` consumers were never exposed (v4.2.0 superseded the
+buggy line before any retract existed); the retract stops stale pins from
+propagating and documents the hazard on pkg.go.dev.
+
+**Lesson.** A guarantee written in a comment is not a guarantee implemented
+in a test. Restart-safety claims now require a close/reopen cycle in the
+harness before the comment may say "seeded".

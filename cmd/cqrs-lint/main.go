@@ -17,25 +17,44 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
-// version must match the latest cmd/cqrs-lint/v* tag; the
-// TestVersionMatchesLatestTag gate enforces this. The v4.7.0 tag was cut
-// while this constant still read 4.6.0 (the stranded-tag-chain class of
-// drift); bumping the constant repairs the source-of-truth.
-const version = "4.10.0"
-
-// resolvedVersion prefers the version the toolchain embedded at build time
-// (debug.ReadBuildInfo: `go install …@v4.10.0` records the true tag) over
-// the hand-maintained const — go-install binaries report the real version
-// even if the const drifts. Local `go build` (Main.Version == "(devel)")
-// and the flake build (ldflags-free) keep the const.
+// resolvedVersion reports the build's version with NO hand-maintained
+// constant, removing the const-drift class (v4.7.0 shipped while the const
+// read 4.6.0; the v4.8.0 tagger's sed shipped an unquoted const — a syntax
+// error). Precedence: `go install …@v4.x.y` records the true tag in
+// Main.Version; in-repo builds carry vcs.revision ("dev-<sha>[-dirty]");
+// Nix/ldflags builds see neither and fall back to "dev" — versionLine then
+// appends the injected commitHash/buildDate.
 func resolvedVersion() string {
 	if info, ok := debug.ReadBuildInfo(); ok {
 		if v := info.Main.Version; v != "" && v != "(devel)" {
 			return strings.TrimPrefix(v, "v")
 		}
+
+		if rev, ok := buildInfoSetting(info, "vcs.revision"); ok {
+			if len(rev) > 12 {
+				rev = rev[:12]
+			}
+
+			if mod, _ := buildInfoSetting(info, "vcs.modified"); mod == "true" {
+				rev += "-dirty"
+			}
+
+			return "dev-" + rev
+		}
 	}
 
-	return version
+	return "dev"
+}
+
+// buildInfoSetting returns the named stamp from the build-info settings.
+func buildInfoSetting(info *debug.BuildInfo, key string) (string, bool) {
+	for _, s := range info.Settings {
+		if s.Key == key {
+			return s.Value, s.Value != ""
+		}
+	}
+
+	return "", false
 }
 
 // commitHash and buildDate are injected via -ldflags at build time (Nix flake,

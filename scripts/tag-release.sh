@@ -36,21 +36,53 @@ cd "$(git rev-parse --show-toplevel)"
 usage() {
 	echo "Usage: $0 <module-path> <version> <description> [--dry-run]"
 	echo "       $0 --smoke <module-path> <version>"
+	echo "       $0 --audit"
 	echo "Examples:"
 	echo "  $0 event v4.0.1 \"Fix event payload marshaling\""
 	echo "  $0 cmd/cqrs-lint v0.1.0 \"First release\""
 	echo "  $0 metaengine v4.0.0 \"First release\" --dry-run"
 	echo "  $0 --smoke cmd/cqrs-lint v4.10.0   # AFTER pushing the tag"
+	echo "  $0 --audit                         # all-modules path-vs-tag audit"
+}
+
+# path_matches_major reports whether a module path is consistent with a tag
+# version's major number: v0/v1 tags require a module path WITHOUT any /vN
+# suffix; v2+ tags require the path to end in the matching /vN. Mismatched
+# tags are INVISIBLE to the module proxy (the issue-#20 class), so the
+# per-release guard below and `--audit` route through this one implementation.
+path_matches_major() {
+	local module_path="$1"
+	local version="$2"
+	local tag_major="${version#v}"
+	tag_major="${tag_major%%.*}"
+
+	local path_major=""
+	case "$module_path" in
+	*/v[0-9]*)
+		path_major="${module_path##*/v}"
+		;;
+	esac
+
+	case "$tag_major" in
+	0 | 1)
+		[ -z "$path_major" ]
+		;;
+	*)
+		[ "$path_major" = "$tag_major" ]
+		;;
+	esac
 }
 
 # --- Post-cut proxy smoke-check (--smoke): proves proxy.golang.org serves
-# the freshly pushed tag. The proxy fetches a tag on first request after the
-# push (can lag seconds to ~a minute); this retries `go list -m module@tag`
-# until the version resolves, so dependent modules never tidy against a tag
-# the proxy has not absorbed (the tag-interleaving mechanic, AGENTS §Module
-# Management). For cmd/* binaries, follow up with a clean-dir
-# `go install <module>@<tag>` + run — that is what caught the poisoned
-# cqrs-lint v4.8.0 (issue #20 class).
+# the freshly pushed tag AND that the tag actually builds. The proxy fetches
+# a tag on first request after the push (can lag seconds to ~a minute); the
+# retry loop keeps `go list -m module@tag` going until the version resolves,
+# so dependent modules never tidy against a tag the proxy has not absorbed
+# (the tag-interleaving mechanic, AGENTS §Module Management). For modules
+# whose root package is `main`, the check continues with a clean-dir
+# `go install <module>@<tag>` + run — `go list` proves the proxy SERVES the
+# version, not that it COMPILES, and the install probe is what catches the
+# poisoned cqrs-lint v4.8.0 class (issue #20).
 proxy_smoke_check() {
 	local mod="$1"
 	local ver="$2"
@@ -86,13 +118,137 @@ proxy_smoke_check() {
 	exit 1
 }
 
+# smoke_install_and_run installs module@ver from the PROXY into a clean
+# GOBIN and runs it with --help. The install is a hard gate: a tag that
+# fails standalone compilation ships broken to every consumer (the poisoned
+# cqrs-lint v4.8.0 shipped `const version = 4.8.0`, unquoted — invisible to
+# the tagger's pre-bump build, caught only by exactly this probe). A
+# non-zero --help exit is a WARNING, not a failure: probe exit semantics
+# are tool-specific (subcommand CLIs may reject the bare flag).
+smoke_install_and_run() {
+	local mod="$1"
+	local ver="$2"
+
+	if ! grep -qs '^package main$' "${mod}"/*.go; then
+		echo "ℹ ${mod} has no root main package; install+run probe skipped"
+		return 0
+	fi
+
+	local module_path
+	module_path="$(awk '/^module /{print $2; exit}' "${mod}/go.mod")"
+
+	local bin_name="${module_path%/v[0-9]*}"
+	bin_name="${bin_name##*/}"
+	local tmpbin
+	tmpbin="$(mktemp -d)"
+
+	echo "Clean-dir install probe: go install ${module_path}@${ver} ..."
+	if ! env GOFLAGS='' GOPRIVATE='' GOBIN="$tmpbin" go install "${module_path}@${ver}"; then
+		echo "ERROR: clean-dir install of ${module_path}@${ver} failed — the tag"
+		echo "does not compile standalone. Do NOT advertise this release; fix and"
+		echo "re-tag (this is the poisoned v4.8.0 failure class)."
+		rm -rf "$tmpbin"
+		return 1
+	fi
+
+	local rc=0
+	"$tmpbin/${bin_name}" --help >/dev/null 2>&1 || rc=$?
+	if [ "$rc" -eq 0 ]; then
+		echo "✓ installed ${bin_name} runs (--help exited 0)"
+	else
+		echo "WARNING: installed ${bin_name} --help exited ${rc}. Install succeeded;"
+		echo "eyeball a manual run before advertising the release."
+	fi
+
+	rm -rf "$tmpbin"
+	return 0
+}
+
+# --- One-shot all-modules path-vs-tag audit (--audit) ---
+#
+# The issue-#20 class, repo-wide: a tag whose module path (as declared in
+# the go.mod AT that tag) does not match the tag's major version can never
+# be served by the module proxy — `@latest` silently resolves to an older,
+# pre-suffix version instead (cmd/cqrs-lint shipped v4.2.0-v4.7.0 this way).
+# This replays the same guard the per-release flow enforces over EVERY tag
+# of EVERY module, so a whole history of invisible tags surfaces at once.
+audit_all_tags() {
+	local violations=0
+	local checked=0
+	local skipped=0
+	local gomod dir tag_glob tag version path_at_tag
+
+	while IFS= read -r gomod; do
+		dir="${gomod#./}"
+		dir="${dir%/go.mod}"
+
+		# The root module (go.mod at ./go.mod) has BARE tags ("v4.0.0"); every
+		# nested module's tags carry the "<dir>/" prefix.
+		if [ -z "$dir" ]; then
+			tag_glob='v*'
+		else
+			tag_glob="${dir}/*"
+		fi
+
+		while IFS= read -r tag; do
+			[ -z "$tag" ] && continue
+			# The "<dir>/*" glob also matches DEEPER nested tags (storage/*
+			# matches storage/memory/v4.5.0); a module owns only tags of the
+			# exact form "<dir>/<version>" — deeper ones belong to nested
+			# modules and are audited under their own go.mod.
+			case "${tag#"$dir"/}" in
+			*/*) continue ;;
+			esac
+			version="${tag##*/}"
+			# `|| true` INSIDE the substitution: with pipefail, a missing
+			# file makes git show exit 128 and would otherwise abort via
+			# set -e; putting the guard before awk (a || true | awk) would
+			# instead short-circuit awk on SUCCESS and leak the raw go.mod.
+			path_at_tag="$(git show "${tag}:${gomod}" 2>/dev/null | awk '/^module /{print $2; exit}' || true)"
+			if [ -z "$path_at_tag" ]; then
+				echo "SKIP  ${tag} (no go.mod at ${gomod} in the tagged tree)"
+				skipped=$((skipped + 1))
+				continue
+			fi
+
+			checked=$((checked + 1))
+			if path_matches_major "$path_at_tag" "$version"; then
+				continue
+			fi
+			echo "FAIL  ${tag} → module path ${path_at_tag} cannot serve ${version}"
+			violations=$((violations + 1))
+		done < <(git tag -l "$tag_glob")
+	done < <(find . -name go.mod -not -path './vendor/*' -not -path './.git/*')
+
+	echo ""
+	echo "Audit: ${checked} tag(s) checked, ${violations} violation(s), ${skipped} skipped."
+	if [ "$violations" -gt 0 ]; then
+		echo "FAIL tags were never servable by the module proxy; @latest on the"
+		echo "affected paths resolves to an older version instead. If the path is"
+		echo "dead (superseded by a /vN path), ship a deprecation stub tag (see"
+		echo "cmd/cqrs-lint/v0.2.1 and cmd/cqrs-bench/v0.1.1)."
+		return 1
+	fi
+	return 0
+}
+
 if [ "${1:-}" = "--smoke" ]; then
 	if [ $# -ne 3 ]; then
 		usage
 		exit 1
 	fi
 	proxy_smoke_check "$2" "$3"
+	smoke_install_and_run "$2" "$3"
 	exit 0
+fi
+
+if [ "${1:-}" = "--audit" ]; then
+	if [ $# -ne 1 ]; then
+		usage
+		exit 1
+	fi
+	audit_all_tags
+	exit $?
 fi
 
 # --- Parse args: peel off --dry-run / -h, keep positionals ---
@@ -137,35 +293,22 @@ fi
 # module path is INVISIBLE to the proxy: @latest silently resolves to the
 # newest pre-suffix version instead (cmd/cqrs-lint shipped v4.2.0-v4.7.0
 # this way; `go install ...@latest` served v0.2.0 for years). v0/v1 tags
-# require the opposite: no /vN suffix at all.
+# require the opposite: no /vN suffix at all. The decision logic lives in
+# path_matches_major (shared with --audit); only the messaging is local.
 module_path="$(awk '/^module /{print $2; exit}' "$gomod")"
-tag_major="${version#v}"
-tag_major="${tag_major%%.*}"
-path_major=""
-case "$module_path" in
-*/v[0-9]*)
-	path_major="${module_path##*/v}"
-	;;
-esac
-guard_ok=false
-case "$tag_major" in
-0 | 1)
-	# v0/v1 tags require a module path WITHOUT any /vN suffix.
-	[ -z "$path_major" ] && guard_ok=true
-	;;
-*)
-	# v2+ tags require the module path to end in the matching /vN.
-	[ "$path_major" = "$tag_major" ] && guard_ok=true
-	;;
-esac
-if ! $guard_ok; then
+if ! path_matches_major "$module_path" "$version"; then
+	tag_major="${version#v}"
+	tag_major="${tag_major%%.*}"
 	echo "ERROR: tag ${tag} is inconsistent with the module path in ${gomod}:"
 	echo "    module ${module_path}"
-	if [ -z "$tag_major" ] || [ "$tag_major" = "0" ] || [ "$tag_major" = "1" ]; then
+	case "$tag_major" in
+	0 | 1)
 		echo "v${tag_major} tags require a module path WITHOUT a /vN suffix."
-	else
+		;;
+	*)
 		echo "v${tag_major} tags require the module path to end in /v${tag_major}."
-	fi
+		;;
+	esac
 	echo "The proxy cannot serve mismatched tags, so this release would be"
 	echo "invisible to 'go install'/'go get' @latest resolution. Fix the"
 	echo "module path (or pick the matching major version), then re-run."
@@ -183,6 +326,21 @@ if ! git diff-index --quiet HEAD --; then
 	echo "ERROR: working tree has uncommitted changes. Commit first."
 	git status --short
 	exit 1
+fi
+
+# --- Advisory pre-flight: stale sibling pins (pin-sweep --check) ---
+#
+# A full pin sweep (even with --no-build) MUTATES every stale go.mod in the
+# repo — the wrong thing to run implicitly inside a single-module cut, which
+# this script deliberately scopes to one go.mod. The non-mutating inverse
+# runs instead: --check reports pins older than the latest local tag. It is
+# advisory, never fatal here (unrelated stale pins must not block a cut);
+# the standalone build gate below is the hard stop for the failure mode
+# that actually breaks consumers of THIS tag.
+echo "Pre-flight: checking for stale sibling pins (advisory)..."
+if ! bash "$(dirname "$0")/pin-sweep.sh" --check; then
+	echo "NOTE: stale pins are non-fatal for this cut; run scripts/pin-sweep.sh"
+	echo "      before the next dependent tag wave that needs them."
 fi
 
 # --- Restore helpers ---
@@ -286,32 +444,10 @@ if grep -q "00010101000000" "$gomod"; then
 	exit 1
 fi
 
-# --- Keep cmd/cqrs-lint's version constant in lockstep with its tag ---
-#
-# The lint CLI prints this constant as its version. Tagging cmd/cqrs-lint
-# without bumping the constant ships a binary that reports the PREVIOUS
-# version (drifted to 4.6.0 while v4.7.0 was live). This runs BEFORE the
-# standalone build check so a mangled bump fails the gate instead of
-# shipping: v4.8.0 shipped `const version = 4.8.0` (unquoted, a syntax
-# error) because embedded quotes in the old grep/sed closed the shell
-# string. Fixed-string grep and escaped quoting plus the post-bump
-# assertion below guard that; the build gate is the last line of defense.
-if [ "$module" = "cmd/cqrs-lint" ]; then
-	const_file="cmd/cqrs-lint/main.go"
-	const_version="${version#v}"
-	if grep -qF "const version = \"${const_version}\"" "$const_file"; then
-		echo "cmd/cqrs-lint version constant already ${const_version}"
-	else
-		sed -i "s|const version = \"[0-9][0-9.]*\"|const version = \"${const_version}\"|" "$const_file"
-		if ! grep -qF "const version = \"${const_version}\"" "$const_file"; then
-			echo "ERROR: version-constant bump to ${const_version} did not land in ${const_file}."
-			restore_working_tree
-			exit 1
-		fi
-		git add "$const_file"
-		echo "Bumped ${const_file} version constant to ${const_version}"
-	fi
-fi
+# (The old cmd/cqrs-lint version-constant bump block is gone: resolvedVersion()
+# now reports the toolchain-embedded version (debug.ReadBuildInfo), so a cut
+# no longer needs to mutate any source file — and the sed that poisoned
+# v4.8.0 with an unquoted const cannot happen again.)
 
 # --- Verify the stripped module actually COMPILES standalone ---
 #

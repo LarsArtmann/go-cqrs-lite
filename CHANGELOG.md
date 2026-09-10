@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — release tooling: retracts, dead-path stubs, tag-release audit + binary smoke probe — 2026-09-11
+
+- **The issue-#20 tooling class is closed out end to end.** The poisoned
+  `cmd/cqrs-lint/v4.8.0` tag is now retracted for real: the directive that
+  sat unreleased on master ships inside the new `cmd/cqrs-lint/v4.10.1`
+  patch tag (a retract only exists for consumers once a tag carries it).
+  The dead suffix-less `cmd/cqrs-bench` path — which silently served the
+  ancient v0.1.0 binary via `@latest` — got the same deprecation-stub
+  treatment `cmd/cqrs-lint/v0.2.1` received: one-off stub commit tagged as
+  `cmd/cqrs-bench/v0.1.1`, never merged, fails loudly with the correct
+  `/v4` install command. `scripts/tag-release.sh` gains `--audit` (replays
+  the path-vs-tag guard over every tag of every module — the one-shot
+  issue-#20 audit; current history: 1078 tags checked, 24 known-historical
+  violations, all in dead or example paths) and `--smoke` now follows the
+  proxy check with a clean-dir `go install module@version` + run for
+  main-package modules — the probe class that catches a poisoned tag
+  before it is advertised. A non-mutating `pin-sweep --check` advisory
+  runs in the release pre-flight. All of it is pinned by the new
+  `scripts/test-tag-release.sh` (10 fixture-repo smoke tests, no network).
+
+### Fixed — badgerengine: v4.0.0–v4.1.0 retracted (restart-seeding data loss) — 2026-09-11
+
+- **`metaengine/badgerengine` v4.0.0–v4.1.0 are retracted and superseded by
+  the new v4.2.1 patch tag (code identical to v4.2.0).** Those versions
+  re-seeded only the log counter on restart, so a deployment that reopened
+  a persistent database and appended overwrote its earliest stream/journal
+  entries. v4.2.0 already shipped the full four-prefix fix; the retract
+  documents the hazard on pkg.go.dev and keeps stale pins from
+  propagating. Exposure window, consumer audit, and the
+  comment-claimed-a-guarantee-the-code-didn't-have lesson are recorded in
+  the ADR-0118 incident addendum.
+
+### Changed — cmd/cqrs-lint: version reported from build info, hand-maintained constant removed — 2026-09-11
+
+- **The tool now reports the version the toolchain embedded at build time,
+  and the drift-prone hand-maintained constant is gone.** A binary
+  installed with `go install …@vX.Y.Z` prints the real tag; in-repo builds
+  print `dev-<sha>` from the stamped VCS revision (with `-dirty` when
+  applicable); Nix/ldflags builds fall back to `dev` plus the injected
+  commit/date. This removes both drift failure classes in one move: the
+  stranded-constant drift (v4.7.0 shipped while the constant read 4.6.0)
+  and the tagger's sed bump that poisoned v4.8.0 with an unquoted constant
+  — tag-release.sh no longer mutates any source file during a cut. On
+  master for the next cmd/cqrs-lint release (v4.10.1 was cut from the
+  pre-refactor HEAD so the retract could ship immediately); scripts/bump-cqrs-lint.sh
+  keeps only its tidy + vendorHash duties.
+
 ### Added — scenario: observational-equivalence assertions + rapid property — 2026-09-10
 
 - **`scenario.AssertObservationalEquivalence` turns the ADR-0136

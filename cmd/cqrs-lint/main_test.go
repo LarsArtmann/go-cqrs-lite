@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"os/exec"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -166,19 +166,40 @@ func TestOutputFindingsEmpty(t *testing.T) {
 	}
 }
 
-func TestVersionConstant(t *testing.T) {
-	if version == "" {
-		t.Error("version constant should not be empty")
+func TestVersionResolved(t *testing.T) {
+	v := resolvedVersion()
+	if v == "" {
+		t.Error("resolvedVersion() should not be empty")
 	}
-	if !strings.Contains(version, ".") {
-		t.Error("version should contain a dot (semver)")
+
+	if strings.ContainsAny(v, " \t\n") {
+		t.Errorf("resolvedVersion() = %q, want no whitespace", v)
+	}
+}
+
+func TestBuildInfoSetting(t *testing.T) {
+	info := &debug.BuildInfo{Settings: []debug.BuildSetting{
+		{Key: "vcs.revision", Value: "abcdef1234567890abcdef1234567890abcdef12"},
+		{Key: "-ldflags", Value: "-X main.commitHash=abc1234"},
+	}}
+
+	if _, ok := buildInfoSetting(info, "vcs.modified"); ok {
+		t.Error("missing key should not be found")
+	}
+
+	if _, ok := buildInfoSetting(info, "vcs.revision"); !ok {
+		t.Error("vcs.revision should be found")
 	}
 }
 
 func TestVersionFormat(t *testing.T) {
 	s := versionString()
-	if !strings.HasPrefix(s, "cqrs-lint "+version) {
-		t.Errorf("versionString() = %q, want prefix %q", s, "cqrs-lint "+version)
+	if !strings.HasPrefix(s, "cqrs-lint ") {
+		t.Errorf("versionString() = %q, want prefix %q", s, "cqrs-lint ")
+	}
+
+	if !strings.Contains(s, resolvedVersion()) {
+		t.Errorf("versionString() = %q, want to contain %q", s, resolvedVersion())
 	}
 }
 
@@ -556,34 +577,7 @@ func TestFormatSuppressedFindings(t *testing.T) {
 	}
 }
 
-// TestVersionMatchesLatestTag verifies the version constant matches the latest
-// cmd/cqrs-lint/v* git tag. This catches the v0.2.2-vs-v4.2.0 mismatch class
-// of bug where the constant drifts from the release track.
-func TestVersionMatchesLatestTag(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping git-dependent test in short mode")
-	}
-
-	out, err := exec.Command("git", "tag", "-l", "cmd/cqrs-lint/v*", "--sort=-v:refname").Output()
-	if err != nil {
-		t.Skipf("git tag failed (not a git repo?): %v", err)
-	}
-
-	tags := strings.Fields(strings.TrimSpace(string(out)))
-	if len(tags) == 0 {
-		t.Skip("no cmd/cqrs-lint/v* tags found")
-	}
-
-	latest := tags[0]
-	// Extract semver from tag: cmd/cqrs-lint/v4.3.0 → 4.3.0
-	tagVersion := strings.TrimPrefix(latest, "cmd/cqrs-lint/v")
-
-	if version != tagVersion {
-		t.Errorf(
-			"version constant %q does not match latest tag %q (semver: %s)",
-			version,
-			latest,
-			tagVersion,
-		)
-	}
-}
+// TestVersionMatchesLatestTag was removed with the hand-maintained version
+// constant: resolvedVersion() now reports the toolchain-embedded version
+// (`go install …@v4.x.y` → Main.Version), so const-vs-tag drift cannot reach
+// users and there is nothing left to pin against the latest tag.

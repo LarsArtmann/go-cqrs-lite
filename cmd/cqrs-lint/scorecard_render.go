@@ -281,7 +281,7 @@ func renderScorecardSARIF(result ScorecardResult) (string, error) {
 			Tool: sarifTool{
 				Driver: sarifDriver{
 					Name:           "cqrs-lint-scorecard",
-					Version:        version,
+					Version:        resolvedVersion(),
 					InformationURI: "https://github.com/larsartmann/go-cqrs-lite/tree/main/cmd/cqrs-lint",
 					Rules: []sarifRule{
 						{

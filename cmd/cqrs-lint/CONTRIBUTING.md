@@ -200,13 +200,14 @@ cmd/cqrs-lint/
 
 ## Release Process
 
-Releasing cqrs-lint requires coordinating the Go version constant, the Nix
-vendorHash, the Go module checksums, and the git tag. Follow this checklist:
+Releasing cqrs-lint requires coordinating the Nix vendorHash, the Go module
+checksums, and the git tag. Follow this checklist:
 
-### 1. Bump the version constant
+### 1. No version constant to bump
 
-Edit `main.go` and set `const version` to the new semver (e.g., `"4.4.0"`).
-The version must match the next `cmd/cqrs-lint/vX.Y.Z` tag.
+The version is derived from build info: `go install …@vX.Y.Z` embeds the tag
+itself (`resolvedVersion()` in `main.go` reads `debug.ReadBuildInfo`). Cut
+the tag and the binary reports it — no source edit, no drift.
 
 ### 2. Sync Go module dependencies
 
@@ -233,8 +234,9 @@ nix run .#verify  # build + vet + test + race + lint + doc-check
 ### 5. Tag and verify
 
 ```bash
-git tag -a cmd/cqrs-lint/v4.4.0 -m "cqrs-lint v4.4.0"
+./scripts/tag-release.sh cmd/cqrs-lint v4.4.0 "Release description"
 git push origin cmd/cqrs-lint/v4.4.0
+./scripts/tag-release.sh --smoke cmd/cqrs-lint v4.4.0  # proxy + clean-dir install + run
 ```
 
 ### 6. Verify consumers can resolve
