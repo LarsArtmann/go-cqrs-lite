@@ -1023,6 +1023,60 @@ func TestHost_Reset_CallsResettableProjection(t *testing.T) {
 	}
 }
 
+func TestHost_Reset_NonResettable_WarnsByDefault(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	handler := testutil.NewCapturingSlogHandler(slog.LevelDebug)
+	logger := slog.New(handler)
+
+	proj := &countingProjection{name: "warn-proj"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithLogger(logger))
+	_ = host.Register(proj)
+
+	if err := host.Reset(context.Background(), "warn-proj"); err != nil {
+		t.Fatalf("Reset: %v", err)
+	}
+
+	if !hasWarnContaining(handler, "does not implement Resettable") {
+		t.Fatal("expected a warning about the non-Resettable partial reset, got none")
+	}
+}
+
+func TestHost_Reset_NonResettable_WithKeepStaleState_SilencesWarning(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	handler := testutil.NewCapturingSlogHandler(slog.LevelDebug)
+	logger := slog.New(handler)
+
+	proj := &countingProjection{name: "keep-proj"}
+	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithLogger(logger))
+	_ = host.Register(proj)
+
+	if err := host.Reset(context.Background(), "keep-proj", projectionhost.WithKeepStaleState()); err != nil {
+		t.Fatalf("Reset with WithKeepStaleState: %v", err)
+	}
+
+	if hasWarnContaining(handler, "does not implement Resettable") {
+		t.Fatal("WithKeepStaleState should silence the partial-reset warning, but it was logged")
+	}
+}
+
+func hasWarnContaining(h *testutil.CapturingSlogHandler, substr string) bool {
+	for _, r := range h.Records() {
+		if r.Level == slog.LevelWarn && strings.Contains(r.Message, substr) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func TestHost_Reset_UnknownProjection_ReturnsError(t *testing.T) {
 	t.Parallel()
 

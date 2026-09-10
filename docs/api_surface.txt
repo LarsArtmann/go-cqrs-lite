@@ -4198,6 +4198,7 @@ projectionhost/func WithCheckpointEvery
 projectionhost/func WithCheckpointInterval
 projectionhost/func WithDeadLetterStore
 projectionhost/func WithFlightRecorder
+projectionhost/func WithKeepStaleState
 projectionhost/func WithLogger
 projectionhost/func WithMaxRestarts
 projectionhost/func WithMetrics
