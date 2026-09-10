@@ -143,17 +143,6 @@ The authoritative module index with README links lives in the **[project README]
 | [0098](adr/0098-metaengine-persistence-enum.md)                   | Metaengine persistence enum (DDIA Ch1 reliability axis) | Accepted                 |
 | [0099](adr/0099-backend-selection-hybrid.md)                      | Backend selection: hybrid registry + config             | Accepted                 |
 | [0099a](adr/0099a-readcosts-per-operation-cost-model.md)          | Per-read-pattern cost model (ReadCosts)                 | Accepted                 |
-| [0100](adr/0100-redesign-scope-parallel.md)                        | Redesign Scope — Parallel (New Alongside Old) | Accepted |
-| [0101](adr/0101-backend-abstraction-n-instance.md)                 | Backend Abstraction — N-Instance Metaengine | Accepted |
-| [0102](adr/0102-admin-interface-introspection-only.md)             | Admin Web Interface — Introspection API Only | Accepted |
-| [0103](adr/0103-scream-store-tiered.md)                            | Scream Store — Tiered Enforcement | Accepted |
-| [0104](adr/0104-system-scope-layered-full.md)                      | System Scope — Layered-Full (Owns All Infrastructure) | Accepted |
-| [0105](adr/0105-config-format-koanf.md)                            | Config Format — Go Struct + YAML + Env via koanf | Accepted |
-| [0106](adr/0106-migration-path-gradual.md)                         | Migration Path — Gradual (New system/ Module) | Accepted |
-| [0107](adr/0107-bus-multi-bus.md)                                  | Bus — Operator-Configured, Multi-Bus Support | Accepted |
-| [0108](adr/0108-decider-routing-declarative.md)                    | Decider Routing — Declarative Command→Event→Stream | Accepted |
-| [0109](adr/0109-config-separation.md)                              | Config Separation — DomainConfig + DeploymentConfig | Accepted |
-| [0110](adr/0110-snapshot-storage-backend.md)                       | Snapshot Storage — New SnapshotBackend Interface | Accepted |
 | [0111](adr/0111-record-type-extraction.md)                         | Extract Record Type as Shared Base | Accepted |
 | [0112](adr/0112-es-native-metaengine.md)                           | ES-Native Metaengine | Accepted |
 | [0113](adr/0113-delete-graphbackend.md)                            | Delete GraphBackend — graph.GraphDriver Implements Engine | Accepted |
