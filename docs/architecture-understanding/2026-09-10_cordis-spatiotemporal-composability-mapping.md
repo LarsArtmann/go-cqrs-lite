@@ -73,6 +73,37 @@ Mostly platform trades, not defects:
 2. **Name `EventTypes()` what it is**: docs/comments calling it the projection's *coeffect specification* would connect `projectionhost`, metaengine routing, and `Watcher` under one mental model — likely improving future planner-level design discussions.
 3. **`go mod tidy` the five `cmd/*` modules** to drop the phantom `samber/do` requires.
 
-## 7. Bottom line
+## 7. The metaengine: where the paradigm runs at runtime
 
-The paper supplies the formal vocabulary this architecture already speaks: revertible effects = event sourcing + disposers; reactive coeffects = subscription specs + replan; the unified context = the journal mediated through the composition root. The go-modularize skill is the compile-time twin of the same two axes. The repo sits — unusually comfortably — at their intersection; the only true divergences (HMR, runtime re-activation) are Go-platform trades already compensated by versioning discipline and data-level evolution.
+The metaengine is the point of **strongest convergence** between this repo and the paper — the one place where the paradigm operates at *runtime* on *persistent state*, not just at compile time.
+
+### The vision statement is the context paradigm, verbatim
+
+> *"Developers declare ONLY Commands + Events + Queries and their relationships … while where data lives is up to operators at DEPLOYMENT time."* (AGENTS.md, north star)
+
+That is Cordis's spatial composability applied to **data placement**: the developer writes a coeffect specification (query shapes + relationships), the operator performs config reconciliation (which engines exist), and the cost-based planner is the **unified context** mediating between them. The paper's observational-equivalence clause has a direct analog: a query returns the same answer whichever engine serves it — routing is transparent to the developer.
+
+### The five primer concepts, mapped to metaengine (verified)
+
+| Cordis concept | Metaengine mechanism | Site |
+| --- | --- | --- |
+| Plugin / `Service` | An engine is literally **`Profile() + Closer`** — a capability declaration (coeffect side) fused with a disposer (temporal side) in one 3-line interface | `metaengine/engine.go:616-619` |
+| Loader / registry | Dep-isolated `metaengine/*engine` modules self-register via `init()` → `RegisterDriver` (database/sql pattern); conformance harnesses validate "plugins" (`adttest.RunMatrix`, `RunCapabilityConformance`) | `metaengine/registry.go:61` |
+| `ctx.<key>` + optional capabilities | `Store` + collections; planner discovers optional capability interfaces per engine — `MapUpdater`, `PushdownScan`, `StreamingScan`, `LayoutPlanner`, `RawValueReader`, `RawScanReader` — and degrades plans gracefully | `metaengine/engine.go:267-437` |
+| Reactive activation | `ProbeEngine` background loop → `LatencyTracker` (EWMA, 512-sample window, 30s staleness) → calibration precedence (compile-time priors → calibration → live measurement) → `CheckRouting` diagnostics → reroute, debounced by `WithRoutingHysteresis` / `WithRoutingMinDelta` | `metaengine/probe.go:209`, `store_routing.go:40`, `planner.go:106,119` |
+| Reversible registration (`ctx.effect()`) | **Two-phase layout migration**: `ReplanLayout` → `[]LayoutDiff{From, To, Reason, EstimatedRebuildEvents}` → gated by `RebuildThreshold` (≤100K events / ≤1GB = automatic; larger = operator `ConfirmRebuild`, ADR-0124 §11) | `metaengine/relayout.go:25,64,171` |
+
+### The two axes, metaengine-specifically
+
+- **Spatial (reactive coeffects):** "which engine serves which collection" is never hard-wired. Context changes — live latency drift — are *classified against* each engine's profile to re-route. This is genuine runtime reactivity, the thing the rest of the repo delegates to compile time.
+- **Temporal (revertible effects):** layouts are invertible *because projections are derived data*. Moving placement = drop the materialized view (effect undone) + rebuild from the immutable journal elsewhere. `RebuildThreshold` / `ConfirmRebuild` is "the runtime holds the inverse," made explicit and safety-gated — `LayoutDiff.EstimatedRebuildEvents` even *prices* the inverse before committing to it.
+
+### Where it deliberately diverges from Cordis
+
+Cordis's `inject` re-evaluates continuously and components hot-swap; the metaengine's reactivity is **routing-scoped, not engine-scoped** — engines open at composition time, and drift detection is advisory and heavily debounced. That is correct for the domain: flapping *plugin wiring* costs a reload; flapping *data placement* costs a rebuild. Hysteresis, min-delta floors, and operator confirmation are the data-grade versions of Cordis's reactivity.
+
+**One line:** the metaengine = the context paradigm where the context is *persistent data placement*, effects are *materialized layouts* (invertible via rebuild from the journal), and coeffects are *query/relationship declarations* classified against capability profiles with live-measured costs.
+
+## 8. Bottom line
+
+The paper supplies the formal vocabulary this architecture already speaks: revertible effects = event sourcing + disposers; reactive coeffects = subscription specs + replan; the unified context = the journal mediated through the composition root — and in the metaengine, the paradigm runs at runtime over data placement itself. The go-modularize skill is the compile-time twin of the same two axes. The repo sits — unusually comfortably — at their intersection; the only true divergences (HMR, runtime re-activation) are Go-platform trades already compensated by versioning discipline and data-level evolution.

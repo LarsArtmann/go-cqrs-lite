@@ -224,4 +224,7 @@ This is the guiding intent for every metaengine decision. When design choices co
 "Developers declare ONLY Commands + Events + Queries and their relationships. We should be able to build
 superb projections (materialized views) and developers never need to worry about anything else, while where
 data lives is up to operators at DEPLOYMENT time."
+```
+
+**Paradigm framing (2026-09-10):** the vision above is the "context paradigm" from Cordis (arXiv:2608.25512 — spatiotemporal composability). Developers write coeffect specifications (queries + relationships); operators reconcile config (engines); the planner mediates as the unified context. Engines are literally `Profile() + Closer` (capability declaration fused with a disposer); layouts are revertible via gated rebuild (`RebuildThreshold`/`ConfirmRebuild`). Full mapping — including how the whole repo and the go-modularize skill project the same two axes — lives in [`docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`](docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md).
 
