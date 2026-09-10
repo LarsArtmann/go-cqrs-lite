@@ -82,7 +82,11 @@ func (s *Store) routableLocked() []Engine {
 		name := eng.Profile().Name
 
 		if role, ok := s.engineRoles[name]; !ok || role.routable() {
-			out = append(out, eng)
+			// Quarantined engines keep their assignments but are never
+			// re-planned onto (ADR-0137).
+			if !s.engineQuarantinedLocked(name) {
+				out = append(out, eng)
+			}
 		}
 	}
 

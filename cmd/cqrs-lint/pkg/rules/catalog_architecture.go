@@ -157,5 +157,14 @@ func architectureRules() []RuleInfo {
 			AutoFix:     false,
 			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/cmd/cqrs-lint/RULES.md#e017",
 		},
+		{
+			ID:          "E018",
+			Name:        "projection-without-emitter",
+			Category:    "architecture",
+			Severity:    "warning",
+			Confidence:  "medium",
+			Description: "Projection handles an event type nothing emits or catalogs — typo class, mirror of E006",
+			AutoFix:     false,
+		},
 	}
 }

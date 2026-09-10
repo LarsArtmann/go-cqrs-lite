@@ -270,6 +270,7 @@ catalog/method Build
 catalog/method ConfigureChannel
 catalog/method ConfigureDomain
 catalog/method ConfigureService
+catalog/method DeriveProducersConsumers
 catalog/method Error
 catalog/method IsSend
 catalog/method IsZero
@@ -345,6 +346,7 @@ catalog/method String
 catalog/method String
 catalog/method String
 catalog/method Validate
+catalog/method ValidateCoeffects
 catalog/openapi/func NewExporter
 catalog/openapi/func WithBasePath
 catalog/openapi/func WithDescription
@@ -756,6 +758,7 @@ cmd/cqrs-lint/pkg/rules/architecture/func NewE014Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE015Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE016Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE017Detector
+cmd/cqrs-lint/pkg/rules/architecture/func NewE018Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB001Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB002Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB003Detector
@@ -2265,7 +2268,9 @@ metaengine/const ComplexityODegree
 metaengine/const ComplexityOLogN
 metaengine/const ComplexityON
 metaengine/const ComplexityONLogN
+metaengine/const DefaultEngineFailureThreshold
 metaengine/const DefaultIdempotencyCapacity
+metaengine/const DefaultReprobeInterval
 metaengine/const DefaultRoutingHysteresis
 metaengine/const DefaultRoutingMinDelta
 metaengine/const DefaultWriteAmplificationBudget
@@ -2276,6 +2281,8 @@ metaengine/const DiagLevelWarn
 metaengine/const DurabilityNormal
 metaengine/const DurabilityRelaxed
 metaengine/const DurabilityStrict
+metaengine/const EngineActive
+metaengine/const EngineQuarantined
 metaengine/const FilterEq
 metaengine/const FilterGe
 metaengine/const FilterGt
@@ -3170,6 +3177,7 @@ metaengine/method GroupedSum
 metaengine/method HasErrors
 metaengine/method HasWarnings
 metaengine/method HealthCheck
+metaengine/method HealthSnapshot
 metaengine/method Import
 metaengine/method InTransaction
 metaengine/method IncRead
@@ -3261,6 +3269,7 @@ metaengine/method QueryComplexity
 metaengine/method QueryConfig
 metaengine/method QueryEngine
 metaengine/method QueryEngine
+metaengine/method QueryEngine
 metaengine/method QueryFoldByEvent
 metaengine/method QueryFolds
 metaengine/method QueryInputTypeName
@@ -3270,6 +3279,7 @@ metaengine/method QueryName
 metaengine/method QueryReadPattern
 metaengine/method QueryResultType
 metaengine/method Range
+metaengine/method ReactivateEngine
 metaengine/method ReadNsPerOp
 metaengine/method Record
 metaengine/method Record
@@ -3303,6 +3313,7 @@ metaengine/method SetAdd
 metaengine/method SetCalibration
 metaengine/method SetCalibration
 metaengine/method SetContains
+metaengine/method SetEngineFailureThreshold
 metaengine/method SetPriority
 metaengine/method SetRTTTracker
 metaengine/method SetReadTracker
@@ -3315,6 +3326,7 @@ metaengine/method SortBy
 metaengine/method SpatialInsert
 metaengine/method SpatialRange
 metaengine/method StartAutoReplan
+metaengine/method StartAutoReprobe
 metaengine/method Stats
 metaengine/method Stats
 metaengine/method Stop
@@ -3825,6 +3837,7 @@ metaengine/struct DriverConfig
 metaengine/struct Edge
 metaengine/struct EdgeRemoval
 metaengine/struct Embedding
+metaengine/struct EngineHealth
 metaengine/struct EngineProfile
 metaengine/struct EngineStats
 metaengine/struct EventInput
@@ -3946,6 +3959,7 @@ metaengine/type DemoteOption
 metaengine/type Diagnostics
 metaengine/type DriverFactory
 metaengine/type DurabilityTier
+metaengine/type EngineHealthState
 metaengine/type FilterOp
 metaengine/type FoldKind
 metaengine/type ItemCount
@@ -4401,9 +4415,15 @@ record/type StreamRef
 record/type Type
 record/var ErrInvalidStreamRef
 record/var ErrUnknownEncoding
+scenario/func AssertObservationalEquivalence
 scenario/func Given
 scenario/func GivenProjection
 scenario/func GivenState
+scenario/func Interleaved
+scenario/interface ScenarioReporter
+scenario/method EventTypes
+scenario/method Handle
+scenario/method Name
 scenario/method Then
 scenario/method ThenError
 scenario/method ThenError
@@ -4413,6 +4433,7 @@ scenario/method ThenQueryResult
 scenario/method ThenState
 scenario/method When
 scenario/struct DeciderScenario
+scenario/struct EquivalenceProbe
 scenario/struct ProjectionScenario
 scenario/type DecideFunc
 scheduling/func MustParseTimerID

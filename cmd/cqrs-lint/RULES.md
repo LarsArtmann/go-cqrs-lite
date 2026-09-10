@@ -12,7 +12,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 10 | P001–P014 |
 | [Consistency](#consistency) | 18 | D001–D019 |
-| [Architecture](#architecture) | 17 | E001–E017 |
+| [Architecture](#architecture) | 18 | E001–E018 |
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
@@ -1234,6 +1234,14 @@ Server-mode project without HealthCheck — Kubernetes probes need it
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
 
 signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
+
+<a id="e018"></a>
+
+#### E018 — `projection-without-emitter`
+
+Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
+
+Projection handles an event type nothing emits or catalogs — typo class, mirror of E006
 
 
 ## Security

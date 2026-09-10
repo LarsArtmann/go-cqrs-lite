@@ -201,6 +201,15 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop // strai
 		)
 	}
 
+	if err := e.writeCoeffectSummary(cat); err != nil {
+		return errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"catalog.exporter.19",
+			"write coeffects.md: %v",
+			err,
+		)
+	}
+
 	return e.writeSchemasTxt(cat)
 }
 

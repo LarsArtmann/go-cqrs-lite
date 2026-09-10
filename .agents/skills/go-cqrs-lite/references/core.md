@@ -313,6 +313,30 @@ The actor wire format is `"kind:raw"` (kinds: `user`, `bot`, `system`, `service`
 `Tracing.ActorID` (JSON `actorId`, `omitzero`). `id.ActorID.Validate()` rejects a raw value
 without a kind. Full recipe: recipes §2.21.
 
+### 3.9 Declare the event universe — catch subscription typos at composition
+
+Deciders emit at runtime, so `system.New` cannot infer your event types — declare them
+(`DomainConfig.Events`) and the coeffect gate runs: a projection or fold subscribing to an
+undeclared type fails `New` with `system.ErrDanglingEventSubscription` (the `user.creted`
+typo class), and declared-but-unconsumed types surface as advisory diagnostics:
+
+```go
+sys, err := system.New(ctx, system.Deployment{
+    Domain: system.DomainConfig{
+        Events: []event.Type{"user.created", "user.deleted", "billing.invoice.paid"},
+        // DisableCoeffectValidation: true, // escape hatch
+        // ...
+    },
+})
+// err errors.Is ErrDanglingEventSubscription → typo in a subscription, fail-fast
+```
+
+Static + docs twins: `cqrs-lint` rule **E018** (projection handles a type nothing emits;
+`catalog.Event` declarations count as provided for imported events) and
+`catalog.Catalog.ValidateCoeffects` (the EventCatalog export writes a `coeffects.md`
+summary — producers, consumers, dangling rows). Leave `Events` empty to skip the gate
+entirely (default, v4-compatible).
+
 ---
 
 ## 4. Anti-Patterns to Avoid

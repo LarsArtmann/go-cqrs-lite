@@ -54,25 +54,50 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Operationalizes the Cordis learnings — revertible effects, reactive coeffects,
 > observational equivalence — as correctness + trust wins **without breaking a
 > v4 consumer**: every behavior change warns-first in v4.x, hard-errors at v5
-> (rides the ADR-0123 wave). Wave 0 (M-01..M-05: the `is n` non-bug verdict,
-> cmd-module `go mod tidy`, diagnostics triage, this harvest, mapping §9
-> cross-link) is **done** and lives in CHANGELOG, not here.
+> (rides the ADR-0123 wave).
+>
+> **ALL 27 tasks (M-01..M-27) DONE 2026-09-10** — shipped surface lives in
+> CHANGELOG `[Unreleased]`: Reset warn-guard + projectionadapter `Resettable`
+> + ADR-0136, the coeffect gate (`DomainConfig.Events` /
+> `ErrDanglingEventSubscription`), cqrs-lint E018, `ValidateCoeffects` +
+> `coeffects.md`, the arXiv grounding + figure recounts, ADR-0137 engine
+> deactivation (quarantine/reroute/reprobe + Doctor/Stats health), and the
+> equivalence tooling (`scenario.Interleaved` /
+> `AssertObservationalEquivalence` + rapid property). Vocabulary stays
+> internal-only until v5 (M-26 default held, verified leak-free). This
+> section now carries only the follow-ups those shipped features surfaced.
 
-- [ ] 🔥 **M-06 `Host.Reset` loud partial-revert guard** — today a non-`Resettable` projection silently drops only its checkpoint while stale state survives (`projectionhost/host_reset.go:14-19`). Add warn-by-default on non-`Resettable` + a `WithKeepStaleState` opt-out + tests. Warn in v4.x, hard error at v5. _(Effort: M)_
-- [ ] 🔥 **M-07 `metaengine/projectionadapter` implements `Resettable`** — makes one-call revert complete for the 80% auto-projection path (depends on M-06). _(Effort: S)_
-- [ ] **M-08 goleak `VerifyTestMain` in `system` tests** — teardown completeness as CI, not convention (repo has zero goleak usage today). _(Effort: S)_
-- [ ] 🔥 **M-09 ADR-0136 temporal-composability contract** — the invertibility ladder (replayable → compensable → must-be-an-event) + a user decision rule; link from mapping doc + AGENTS.md. _(Effort: S)_
-- [ ] **M-10 Revert & rebuild recipe** (Reset → replay-from-zero) in skill `readmodels.md`/`recipes.md` (depends M-06, M-07). _(Effort: S)_
-- [ ] 🔥 **M-11..M-13 coeffect validation gate in `system.New`** — dangling subscription (projection consumes an event type nothing produces) → hard error + disable option; unconsumed event type → warn; full gate tests reusing the `record.Type` alias. Typos fail at compose-time, not in prod. _(Effort: M)_
-- [ ] 🔥 **M-14 observational-equivalence scenario test** — projection A alone vs A+B interleaved must yield identical A state; turns the theorem into a regression gate. _(Effort: M)_
-- [ ] **M-15 cqrs-lint static rule** — projection `EventTypes()` vs registered producers; static catch before runtime (depends M-11 semantics). _(Effort: S)_
-- [ ] **M-16 catalog export carries the coeffect-validation summary** (render + gate) so ops sees the graph (depends M-11). _(Effort: S)_
-- [ ] **M-17..M-19 ground-truth pass** — open ADRs 0114/0123/0124/0126/0127 and verify the mapping report's claims; fetch the arXiv PDF for the calculus/equivalence grounding; recount the 82-module / 47-DeferClose figures. Corrections via **addendum only** (point-in-time policy). _(Effort: M)_
-- [ ] **M-20 release hygiene for M-06/M-07** — CHANGELOG `[Unreleased]` + api-stability golden regen + `#verify-fast` in the same edit as the API change. _(Effort: S)_
-- [ ] **M-21..M-23 health-driven engine deactivation** — ADR-0137 design spike, then errorfamily-storm → quarantine + reroute + auto-reprobe, surfaced in `Doctor`/`GetEngineStats` (M-22 is realistically multi-session). _(Effort: L/XL)_
-- [ ] **M-24/M-25 equivalence tooling** — rapid fuzz (A unchanged under randomized B interleavings) + a scenario-DSL `AssertUnchanged(projection)` helper so users write their own equivalence tests (depends M-14). _(Effort: S each)_
-- [BLOCKED] **M-26 public-vocabulary decision gate** — paradigm terms stay internal-only until v5 unless the user approves promoting them to SKILL.md cheat-sheet + DOMAIN_LANGUAGE. Blocked on user decision. _(Effort: S once decided)_
-- [ ] **M-27 diagram for the mapping report** — Mermaid/D2 render of the three-level dynamism mapping (optional HTML via html-report-kit). _(Effort: S)_
+- [ ] 🔥 **`sqliteengine.ResetEngine`** — implement `EngineResetter` on the
+      production-default engine: 8 `meta_*` tables + planned tables +
+      matviews + `multiSeq` state. Unblocks one-call revert on SQLite.
+      Deliberately deferred out of the execution (risk surface; decided
+      2026-09-10). _(Effort: M)_
+- [ ] **EngineResetter on remaining persistent engines** — pebble, bbolt,
+      badger, pg, mysql, turso, duckdb, dgraph, iroh (memory done; sqlite
+      prioritized above). _(Effort: M each)_
+- [ ] **Surface reset capability in `Doctor`/`GetEngineStats`** — operators
+      should see which engines can reset before calling `Store.Reset`
+      (ADR-0136 capability ladder). _(Effort: S)_
+- [ ] **Fold-write failover for quarantined engines** — ADR-0137 currently
+      reroutes reads only; writes to a quarantined engine's collections
+      error loudly until reactivation/replan. Consider shadow-replication
+      or write-reroute with catch-up. _(Effort: L)_
+- [ ] **cqrs-lint E018 fold-case coverage** — the static rule flags
+      projection subscriptions only; a fold case consuming a never-emitted
+      type is caught by the runtime gate (`DomainConfig.Events`) but not
+      statically (CollectFoldCaseStrings carries no position info). _(Effort: S)_
+- [ ] **goleak for `metaengine` + `projectionhost` suites** — M-08 covered
+      `system` only. _(Effort: S)_
+- [ ] **`[Unreleased]`-position tripwire in `verify-docs.sh`** — the
+      exactly-one check exists; add "must sit directly under the `#
+      Changelog` header block" so a daemon-absorbed orphan fails at the
+      next verify, not days later. _(Effort: XS)_
+- [ ] **Wire `#check-file-size` into verify (or fix violations)** — the app
+      exists but nothing runs it; `catalog/eventcatalog/exporter.go` is
+      already over the 350-line limit. _(Effort: XS to wire, S to split)_
+- [ ] **Release-train note** — the `metaengine/projectionadapter` sibling
+      replace + the `metaengine` pin bump ride the next tag wave
+      (`scripts/tag-release.sh` strips the replace; smoke at cut time).
 
 ---
 

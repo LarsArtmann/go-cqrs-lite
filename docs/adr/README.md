@@ -239,5 +239,6 @@ watermill/     — Watermill protocol adapter
 | [0134](0134-claim-token-ownership.md)                          | Claim-Token Ownership | 2026-08-30 | Proposed (stub) |
 | [0135](0135-materialized-views-operator-option.md)             | Materialized Views as an Operator Option (Turso IVM) | 2026-09-07 | Accepted |
 | [0136](0136-temporal-composability-contract.md)                | The Temporal Composability Contract (Invertibility Ladder) | 2026-09-10 | Accepted |
+| [0137](0137-health-driven-engine-deactivation.md)              | Health-Driven Engine Deactivation | 2026-09-10 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

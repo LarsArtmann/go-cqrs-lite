@@ -64,8 +64,8 @@ func TestPickLatest_SemverOrder(t *testing.T) {
 }
 
 func TestPlanUpgrades_StubbedResolver(t *testing.T) {
-	t.Parallel()
-
+	// NOT t.Parallel: swaps the package-global versionResolver, which races
+	// with TestPlanUpgrades_CeilingClampsWithoutDowngrade under -race.
 	orig := versionResolver
 
 	t.Cleanup(func() { versionResolver = orig })
@@ -179,8 +179,8 @@ func TestFormatBumps_Statuses(t *testing.T) {
 }
 
 func TestPlanUpgrades_CeilingClampsWithoutDowngrade(t *testing.T) {
-	t.Parallel()
-
+	// NOT t.Parallel: swaps the package-global versionResolver (see
+	// TestPlanUpgrades_StubbedResolver).
 	orig := versionResolver
 
 	t.Cleanup(func() { versionResolver = orig })

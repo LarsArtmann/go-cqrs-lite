@@ -2035,3 +2035,29 @@ warn guard, `projectionhost.WithKeepStaleState()`, the
 [`readmodels.md`](readmodels.md) §"Revert & rebuild: Reset → replay from
 zero (ADR-0136)".
 
+### 2.33 Survive a Dead Engine (health-driven deactivation, ADR-0137)
+
+A failing engine degrades the Store from "error storm" to "logged failover":
+consecutive Infrastructure/Transient failures quarantine it, reads reroute to
+the cheapest healthy engine, and a probe loop brings it back.
+
+```go
+store.SetEngineFailureThreshold(3)            // default; 1 = fail-fast
+stop := store.StartAutoReprobe(ctx, 10*time.Second) // reactivates engines whose Prober answers
+defer stop()
+
+for name, h := range store.HealthSnapshot() {
+    if h.State == metaengine.EngineQuarantined {
+        slog.Warn("engine down", "engine", name, "last_error", h.LastError)
+    }
+}
+// Engines without a Prober stay quarantined until the operator calls
+// store.ReactivateEngine(name) — explicit, never a timeout.
+```
+
+`Doctor(ctx)` renders an "--- Engine Health ---" section and
+`GetEngineStats(ctx)` carries a `Health` field per engine. Rejection-class
+errors never quarantine (client bugs fail loudly); with no healthy
+alternative the original engine error surfaces. Writes to a quarantined
+engine's collections fail loudly until reactivation or replan.
+

@@ -36,6 +36,11 @@ type EngineStats struct {
 	// window. Routing on a stale value falls back to the declared prior — this
 	// flag makes that fallback visible instead of silent.
 	Stale bool
+
+	// Health is the ADR-0137 deactivation state: consecutive classified
+	// failures, quarantine stamp, and the last classified error. Active with
+	// zero failures for engines that never failed.
+	Health EngineHealth
 }
 
 // GetEngineStats returns a live measurement report for every engine in the
@@ -47,10 +52,18 @@ type EngineStats struct {
 func (s *Store) GetEngineStats(_ context.Context) []EngineStats {
 	engines := s.enginesSnapshot()
 
+	health := s.HealthSnapshot()
+
 	out := make([]EngineStats, 0, len(engines))
 
 	for _, eng := range engines {
-		out = append(out, buildEngineStats(eng))
+		es := buildEngineStats(eng)
+		es.Health = health[eng.Profile().Name]
+		if es.Health.State == "" {
+			es.Health.State = EngineActive
+		}
+
+		out = append(out, es)
 	}
 
 	return out

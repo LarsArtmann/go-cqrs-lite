@@ -83,8 +83,19 @@ func (s *Store) executeQuery(
 		return nil, err
 	}
 
+	// Health-driven reroute (ADR-0137): when the assigned engine is
+	// quarantined, execute against the cheapest healthy capable engine
+	// instead. Callers hold s.mu read-locked here.
+	effective := s.effectiveQueryLocked(q)
+
 	start := time.Now()
-	result, err := s.executeQueryInner(ctx, q, input)
+	result, err := s.executeQueryInner(ctx, effective, input)
+
+	if err != nil {
+		s.recordEngineFailure(effective.QueryEngine(), err)
+	} else {
+		s.recordEngineSuccess(effective.QueryEngine())
+	}
 
 	if s.hooks != nil && s.hooks.OnExecute != nil {
 		elapsed := time.Since(start)

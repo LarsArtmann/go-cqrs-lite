@@ -118,3 +118,44 @@ This report is a point-in-time artifact; the observations in §6 were operationa
 - **Guardrail (unchanged):** every behavior change derived here is warn-first in v4.x and hard-errors only at v5, riding the existing ADR-0123 composition-root wave. HMR, service-locator `ctx.<key>`, and implementing the paper's formal calculus remain explicitly declined as paradigm-envy (§5).
 
 - **Codified contract (appended 2026-09-10, M-09):** [`docs/adr/0136-temporal-composability-contract.md`](../adr/0136-temporal-composability-contract.md) — §6.1 of this report became the normative **invertibility ladder** (replayable → compensable → must-be-an-event) with a user decision rule ("what is its inverse?"), citing the M-06 `Host.Reset` warn-guard and M-07 `EngineResetter`/`Store.Reset`/`Adapter.Reset` as its enforcement points and the engine-reset capability ladder (memory = full, persistent = follow-up).
+
+- **Ground-truth pass (appended 2026-09-10, M-17):** the five ADRs cited in the body were opened and checked against their sources. One correction: §6 cites "ADR-0124 §11" for the two-phase rebuild — ADR-0124 has no numbered sections; the semantics live in code and [`METAENGINE-LAYOUT-PLANNING-MODEL.md`](../planning/METAENGINE-LAYOUT-PLANNING-MODEL.md) (`LayoutDiff{From, To, Reason, EstimatedRebuildEvents}` and `DefaultRebuildThreshold` ≤100K events / ≤1GB = automatic, larger = operator `ConfirmRebuild`, verified at `metaengine/relayout.go:33,64,171`). The rest verified as characterized: ADR-0114 (tombstone + rebirth as domain events; implementation-status addendum honest about the reverted `DeleteTypes` fields), ADR-0123 (single composition root, status Proposed — the v5 wave "executing now" refers to the warn-first riders ADR-0126/0127 building on it), ADR-0126 (transform-canonical store wrapping; `event/store_middleware.go:64,123` capability assertions confirmed), ADR-0127 (transport deprecation, external delivery via watermill/ + go-sse).
+
+- **Primary-source grounding (appended 2026-09-10, M-18):** the arXiv PDF is archived at [`cordis-arxiv-2608.25512.pdf`](cordis-arxiv-2608.25512.pdf) — *"A Programming Paradigm for Spatiotemporal Composability"*, Yifan Shi, Wei Zhang, Tianyi Cui (Peking University + DeepSeek-AI). The formal definitions this report paraphrased, now verified against the source: **revertible effects** are functions `Γ → Γ × (Γ → Γ)` returning the modified context *and* an explicit inverse the runtime holds (§3.1); inverses compose in opposite order under the *twisted composition monoid* `(f₁,g₁)∘(f₂,g₂) := (f₁∘f₂, g₂∘g₁)` (Definition 1) inside the *effect context* `∂Γ := Γ × (Γ→Γ)` pairing current state with the accumulated inverse (Definition 2); the recovery guarantee is Theorem 7. **Reactive coeffects** (§3.2) model dependencies as a specification and classify each context change as activating, deactivating, or neutral — classification drives activation state; the *coeffect context* is the dependent partial function `Σ := (k:K) ⇀ 𝒱ₖ` (Definition 19). **Observational equivalence** (§3.3.2, Definitions 31–33 + Lemma 32) exists because recovery is an idealization — `free` does not restore the heap layout `malloc` had, and a generative name is not restored by discarding it — so equality is read up to `≃`: two values are indistinguishable (`≈ₐ`) when every *test* (finite word of forward maps and yielded inverses of the key's operations) is defined at both or neither with equal outcomes; `≃ₖ` is the coarsest operation-respecting equivalence; contexts relate when their coeffect projections relate on a key set. This is precisely the property M-14's scenario test asserts operationally: projection A's answers (its "tests") are unchanged under B's interleavings. The calculus itself is §4's unnamed "calculus of dynamic composition"; implementing it remains declined (§5).
+
+- **Figure recount (appended 2026-09-10, M-19):** §2's "82 `go.mod` files" is now **84** (two modules added since the mapping session); §2's "47 production sites" for `DeferClose` is now **72 production + 33 test call sites** across 45 files (the 47/17 figures counted files/sites at an earlier consolidation state). The living counts live in [`AGENTS.md`](../../AGENTS.md); this body stays as written per the point-in-time policy.
+
+- **Vocabulary decision executed (appended 2026-09-10, M-26):** the plan's default held — paradigm vocabulary (Cordis, spatiotemporal composability, revertible effects, reactive coeffects, context paradigm) stays **internal-only until v5**. Verified: none of those terms appear in SKILL.md, README.md, the skill references, or `docs/DOMAIN_LANGUAGE.md`. The one leaked-adjacent term, "coeffect", appears publicly only as the name of shipped API surface (`system.ErrDanglingEventSubscription` + the `coeffect.unconsumed_event` diagnostic, `catalog.ValidateCoeffects`, cqrs-lint E018's description) — consumers see the feature, not the paradigm story. Revisit at the v5 positioning gate (ADR-0123 train).
+
+- **Concept map (appended 2026-09-10, M-27):** the §2/§6 mapping, as one diagram:
+
+```mermaid
+flowchart LR
+    subgraph Cordis["Cordis (paper)"]
+        RE["Revertible effects<br/>Γ → Γ × (Γ→Γ)"]
+        RC["Reactive coeffects<br/>classify context changes"]
+        UC["Unified context<br/>effect + coeffect mediated"]
+        OE["Observational equivalence<br/>answers up to ≃"]
+    end
+    subgraph GCL["go-cqrs-lite (mechanisms)"]
+        ES["Event sourcing + journal<br/>replay IS the inverse"]
+        TOM["Tombstone/rebirth as events<br/>ADR-0114"]
+        RST["Reset ladder<br/>EngineResetter / Host.Reset<br/>ADR-0136"]
+        DER["deriver compensations<br/>external effects"]
+        GATE["system.New coeffect gate<br/>DomainConfig.Events"]
+        LINT["cqrs-lint E018<br/>catalog.ValidateCoeffects"]
+        DEACT["Engine deactivation<br/>ADR-0137 quarantine+reroute"]
+        REPLAN["CheckRouting / Replan<br/>live-latency replan"]
+        SCEN["scenario.AssertObservationalEquivalence<br/>+ rapid property"]
+    end
+    RE --> ES
+    RE --> TOM
+    RE --> RST
+    RE --> DER
+    RC --> GATE
+    RC --> LINT
+    RC --> DEACT
+    RC --> REPLAN
+    OE --> SCEN
+    UC -.declined: Go answers = versioned modules + redeploy + upcasts.-> GCL
+```

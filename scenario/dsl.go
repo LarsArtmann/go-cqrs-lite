@@ -253,25 +253,27 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 // ProjectionScenario tests that a projection handles events without error.
 type ProjectionScenario struct {
 	proj     projection.Projection
-	t        *testing.T
+	t        testing.TB
 	errs     []error
 	asserted bool
 }
 
 // GivenProjection creates a projection scenario and feeds it the given events.
+// The testing.TB parameter accepts *testing.T and property-based testing
+// runtimes (e.g. rapid.T) alike.
 func GivenProjection(
-	t *testing.T,
+	tb testing.TB,
 	proj projection.Projection,
 	events ...event.Event,
 ) *ProjectionScenario {
-	t.Helper()
+	tb.Helper()
 	scenario := &ProjectionScenario{ //nolint:exhaustruct_v5 // errs populated below; asserted flips in Then*
 		proj: proj,
-		t:    t,
+		t:    tb,
 	}
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		if !scenario.asserted {
-			t.Errorf(
+			tb.Errorf(
 				"scenario: no Then* assertion ran — this test passes vacuously and " +
 					"swallows every handler error; end the chain with " +
 					"ThenNoError, ThenError, or ThenQueryResult",

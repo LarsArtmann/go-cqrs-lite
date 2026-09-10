@@ -291,6 +291,9 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  all engines healthy\n")
 	}
 
+	b.WriteString("\n--- Engine Health (ADR-0137) ---\n")
+	b.WriteString(s.doctorEngineHealthSection())
+
 	b.WriteString("\n--- Collections ---\n")
 
 	stats, err := s.Stats(ctx)

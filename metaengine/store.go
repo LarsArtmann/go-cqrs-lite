@@ -44,6 +44,14 @@ type Store struct {
 	sharedCollections map[string]bool           // child types shared across collections (ADR-0124 boundaries)
 	capabilityGaps    map[string]CapabilityGaps // engine name → documented ADT gaps (persist across Replan)
 
+	// Health-driven deactivation (ADR-0137): per-engine failure tracking and
+	// quarantine. healthMu never nests inside s.mu acquisitions in the other
+	// direction (health methods never take s.mu), so s.mu → healthMu is the
+	// only legal ordering.
+	healthMu               sync.RWMutex
+	health                 map[string]*engineHealthRecord
+	engineFailureThreshold int
+
 	// Record-context hazard tracking: applies that arrived as a synthesized
 	// Type-only Record (Store.Apply) while OnRecord folds were registered for
 	// the event type. See record_context.go.

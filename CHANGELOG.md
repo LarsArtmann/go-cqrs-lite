@@ -6,6 +6,92 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — scenario: observational-equivalence assertions + rapid property — 2026-09-10
+
+- **`scenario.AssertObservationalEquivalence` turns the ADR-0136
+  observational-equivalence property into a one-call regression gate: run
+  events through a projection alone and through its interleaved composition
+  with others; every probe must return deeply equal answers.**
+  `scenario.Interleaved` composes projections (Handle in order, deduplicated
+  EventTypes union) — the "A + B interleaved" composition. Probes are
+  `scenario.EquivalenceProbe` pairs running one fixed query against each
+  run's store. Both take the new minimal `scenario.ScenarioReporter`
+  interface (Helper + Fatalf), so property-based runtimes that do not
+  implement the full testing.TB (rapid.T on newer Go) can drive them;
+  `GivenProjection` widened from `*testing.T` to `testing.TB`
+  (source-compatible). The scenario module's own suite now includes a
+  rapid-based property test: for every randomized task/audit interleaving,
+  the task projection's answers are unchanged — divergence is a
+  stream-isolation bug, never a flaky test.
+
+### Added — metaengine: health-driven engine deactivation (ADR-0137) — 2026-09-10
+
+- **A failing engine no longer turns its routed queries into an error storm:
+  consecutive errorfamily Infrastructure/Transient failures quarantine the
+  engine, execution reroutes to the cheapest healthy capable engine, and a
+  probe loop reactivates it when it answers.** Classification uses the
+  go-error-family taxonomy (Infrastructure/Transient count; Rejection,
+  Conflict, Corruption, and unclassified errors never quarantine) — client
+  bugs and corruption fail loudly instead of triggering failover. The
+  threshold defaults to 3
+  (`metaengine.SetEngineFailureThreshold`); quarantine is execution-scoped
+  (plan assignments and engine state untouched — recovery is a probe away,
+  not a rebuild). New surfaces: `metaengine.EngineHealth` +
+  `HealthSnapshot`, `ReactivateEngine`, `StartAutoReprobe` (probes
+  quarantined engines implementing `Prober`; others need explicit
+  reactivation — an engine we cannot probe is an engine we cannot vouch
+  for), a `Health` field on `GetEngineStats` results, and a
+  "--- Engine Health ---" section in `Doctor`. With no healthy alternative
+  the original error surfaces (fail loud, never silently wrong). Purely
+  additive: healthy systems see zero behavior change; a failing engine
+  previously errored, now it fails over.
+
+### Added — catalog: coeffect validation in the EventCatalog export — 2026-09-10
+
+- **`catalog.Catalog.ValidateCoeffects` flags events that services consume
+  but nothing produces — the documentation-side twin of the system gate and
+  cqrs-lint E018.** The derivation of producer/consumer relationships from
+  service sends/receives (previously internal to the EventCatalog exporter)
+  is now exported as `catalog.DeriveProducersConsumers`, so CI gates and
+  custom renderers reason about the same enriched graph the exporter
+  renders. Explicit `Producers` declarations are honored — events imported
+  from systems outside the catalog do not violate. Producer-without-consumer
+  events are NOT violations (advisory tier, mirroring the runtime gate).
+  The EventCatalog export additionally writes `coeffects.md` next to the
+  rendered site: one deduplicated row per event with producers, consumers,
+  and status (ok / unconsumed advisory / DANGLING) plus the dangling count —
+  ops sees the coeffect graph without opening the code. Opt-in and additive;
+  existing `Validate` behavior is unchanged.
+
+### Added — system: coeffect validation gate (dangling event subscriptions) — 2026-09-10
+
+- **`system.New` now validates the coeffect graph when the journal universe
+  is declared, failing fast on subscriptions to event types nothing can
+  produce.** Deciders emit at runtime, so the gate is opt-in: populate the
+  new `DomainConfig.Events` field with the declared event-type universe
+  (own emissions plus imported types) and `system.New` checks every
+  projection subscription and evolution fold against it. A subscription to
+  an undeclared type returns the new sentinel
+  `system.ErrDanglingEventSubscription` naming the type, its consumers, and
+  the remedy — the `user.creted` typo class now fails at composition
+  instead of silently receiving nothing in production. Declared-but-unconsumed
+  types surface as a `coeffect.unconsumed_event` advisory in the
+  `ScreamReport` plus an `slog.Warn` (dead-event visibility). Leave
+  `DomainConfig.Events` empty (or set `DomainConfig.DisableCoeffectValidation`)
+  to skip the gate entirely — zero v4 breakage. The static counterpart is
+  cqrs-lint's new E018 rule.
+
+### Added — cqrs-lint: E018 projection-without-emitter — 2026-09-10
+
+- **New architecture rule E018 flags projections that subscribe to an event
+  type no decider emits and the catalog does not declare — the mirror of
+  E006 and the classic typo class** (`Subscribe("user.creted", …)` silently
+  receives nothing forever). Warning severity, medium confidence. A
+  `catalog.Event` declaration counts as provided (external/imported events);
+  the rule stays silent when no emissions are detected at all, because the
+  scanner cannot distinguish a typo from an emission site it failed to parse.
+  The suggestion cross-references the runtime gate (`DomainConfig.Events`).
+
 ### Added — metaengine + projectionadapter: one-call read-model revert — 2026-09-10
 
 - **`metaengine` gains a reset primitive: `Store.Reset`,

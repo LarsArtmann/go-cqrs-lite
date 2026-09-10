@@ -211,7 +211,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**205 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (17), security (10), performance (10), version (7), testing (8), adoption (30).
+**206 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (18), security (10), performance (10), version (7), testing (8), adoption (30).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -345,6 +345,7 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | E005 | command-without-handler  | Warning  | Command type defined but never registered  |
 | E006 | event-without-projection | Info     | Event emitted but no projection handles it |
 | E007 | query-without-handler    | Info     | Query type defined but never registered    |
+| E018 | projection-without-emitter | Warning | Projection handles an event nothing emits or catalogs — typo class |
 
 ## Security Rules
 

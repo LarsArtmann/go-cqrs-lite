@@ -165,6 +165,7 @@ linters:
             - github.com/fxamacker/cbor
             - github.com/gkampitakis/go-snaps
             - pgregory.net/rapid
+            - go.uber.org/goleak
             - github.com/testcontainers/testcontainers-go
             - go/ast
             - go/format

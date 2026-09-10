@@ -169,6 +169,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0134](adr/0134-claim-token-ownership.md)                          | Claim-Token Ownership | Proposed (stub) |
 | [0135](adr/0135-materialized-views-operator-option.md)             | Materialized Views as an Operator Option (Turso IVM) | Accepted |
 | [0136](adr/0136-temporal-composability-contract.md)                | The Temporal Composability Contract (Invertibility Ladder) | Accepted |
+| [0137](adr/0137-health-driven-engine-deactivation.md)              | Health-Driven Engine Deactivation | Accepted |
 | [0100](adr/0100-redesign-scope-parallel.md)                       | Redesign scope: parallel (new alongside old)            | Accepted                 |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                | Backend abstraction: N-instance metaengine              | Accepted                 |
 | [0102](adr/0102-admin-interface-introspection-only.md)            | Admin web interface: introspection API only             | Accepted                 |

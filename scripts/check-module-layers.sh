@@ -162,6 +162,12 @@ EXCEPTIONS[projectionhost]="storage/memory otel"
 # matrix + concurrency-gap tests reference the real SQLite engine for parity)
 EXCEPTIONS[metaengine]="metaengine/sqliteengine"
 
+# scenario (L3) — metaengine/projectionadapter test-only: the
+# observational-equivalence tests (fixed sequence + rapid property) assert
+# the ADR-0136 property against the real 80%-path adapter, not a mock;
+# metaengine itself is same-layer (L3→L3, no exception needed).
+EXCEPTIONS[scenario]="metaengine/projectionadapter"
+
 # Test-only packages that don't count against production dep budgets.
 # These are test infrastructure (assertions, PBT, mocking) used across all modules.
 TEST_PACKAGES="github.com/onsi/gomega github.com/onsi/ginkgo/v2 pgregory.net/rapid"
