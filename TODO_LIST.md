@@ -47,6 +47,35 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Cordis spatiotemporal-composability follow-ups (2026-09-10)
+
+> Source: [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md)
+> (mapping report: `docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`).
+> Operationalizes the Cordis learnings — revertible effects, reactive coeffects,
+> observational equivalence — as correctness + trust wins **without breaking a
+> v4 consumer**: every behavior change warns-first in v4.x, hard-errors at v5
+> (rides the ADR-0123 wave). Wave 0 (M-01..M-05: the `is n` non-bug verdict,
+> cmd-module `go mod tidy`, diagnostics triage, this harvest, mapping §9
+> cross-link) is **done** and lives in CHANGELOG, not here.
+
+- [ ] 🔥 **M-06 `Host.Reset` loud partial-revert guard** — today a non-`Resettable` projection silently drops only its checkpoint while stale state survives (`projectionhost/host_reset.go:14-19`). Add warn-by-default on non-`Resettable` + a `WithKeepStaleState` opt-out + tests. Warn in v4.x, hard error at v5. _(Effort: M)_
+- [ ] 🔥 **M-07 `metaengine/projectionadapter` implements `Resettable`** — makes one-call revert complete for the 80% auto-projection path (depends on M-06). _(Effort: S)_
+- [ ] **M-08 goleak `VerifyTestMain` in `system` tests** — teardown completeness as CI, not convention (repo has zero goleak usage today). _(Effort: S)_
+- [ ] 🔥 **M-09 ADR-0136 temporal-composability contract** — the invertibility ladder (replayable → compensable → must-be-an-event) + a user decision rule; link from mapping doc + AGENTS.md. _(Effort: S)_
+- [ ] **M-10 Revert & rebuild recipe** (Reset → replay-from-zero) in skill `readmodels.md`/`recipes.md` (depends M-06, M-07). _(Effort: S)_
+- [ ] 🔥 **M-11..M-13 coeffect validation gate in `system.New`** — dangling subscription (projection consumes an event type nothing produces) → hard error + disable option; unconsumed event type → warn; full gate tests reusing the `record.Type` alias. Typos fail at compose-time, not in prod. _(Effort: M)_
+- [ ] 🔥 **M-14 observational-equivalence scenario test** — projection A alone vs A+B interleaved must yield identical A state; turns the theorem into a regression gate. _(Effort: M)_
+- [ ] **M-15 cqrs-lint static rule** — projection `EventTypes()` vs registered producers; static catch before runtime (depends M-11 semantics). _(Effort: S)_
+- [ ] **M-16 catalog export carries the coeffect-validation summary** (render + gate) so ops sees the graph (depends M-11). _(Effort: S)_
+- [ ] **M-17..M-19 ground-truth pass** — open ADRs 0114/0123/0124/0126/0127 and verify the mapping report's claims; fetch the arXiv PDF for the calculus/equivalence grounding; recount the 82-module / 47-DeferClose figures. Corrections via **addendum only** (point-in-time policy). _(Effort: M)_
+- [ ] **M-20 release hygiene for M-06/M-07** — CHANGELOG `[Unreleased]` + api-stability golden regen + `#verify-fast` in the same edit as the API change. _(Effort: S)_
+- [ ] **M-21..M-23 health-driven engine deactivation** — ADR-0137 design spike, then errorfamily-storm → quarantine + reroute + auto-reprobe, surfaced in `Doctor`/`GetEngineStats` (M-22 is realistically multi-session). _(Effort: L/XL)_
+- [ ] **M-24/M-25 equivalence tooling** — rapid fuzz (A unchanged under randomized B interleavings) + a scenario-DSL `AssertUnchanged(projection)` helper so users write their own equivalence tests (depends M-14). _(Effort: S each)_
+- [BLOCKED] **M-26 public-vocabulary decision gate** — paradigm terms stay internal-only until v5 unless the user approves promoting them to SKILL.md cheat-sheet + DOMAIN_LANGUAGE. Blocked on user decision. _(Effort: S once decided)_
+- [ ] **M-27 diagram for the mapping report** — Mermaid/D2 render of the three-level dynamism mapping (optional HTML via html-report-kit). _(Effort: S)_
+
+---
+
 ## cqrs-lint
 
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution

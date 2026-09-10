@@ -107,3 +107,12 @@ Cordis's `inject` re-evaluates continuously and components hot-swap; the metaeng
 ## 8. Bottom line
 
 The paper supplies the formal vocabulary this architecture already speaks: revertible effects = event sourcing + disposers; reactive coeffects = subscription specs + replan; the unified context = the journal mediated through the composition root — and in the metaengine, the paradigm runs at runtime over data placement itself. The go-modularize skill is the compile-time twin of the same two axes. The repo sits — unusually comfortably — at their intersection; the only true divergences (HMR, runtime re-activation) are Go-platform trades already compensated by versioning discipline and data-level evolution.
+
+## 9. Where this went next (cross-links, appended 2026-09-10)
+
+This report is a point-in-time artifact; the observations in §6 were operationalized without editing the body above. Follow the work here:
+
+- **Execution plan:** [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](../planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md) — ranks every §6/§7 implication into Pareto waves (W0 truth+durability → W1 temporal-correctness core → W2 paradigm operationalized → W3 final 20%), 27 medium tasks (M-01..M-27) + an 85-task ≤12-minute micro breakdown, with a mermaid execution graph and per-wave verification gates.
+- **Living backlog:** [`TODO_LIST.md`](../../TODO_LIST.md) §"Cordis spatiotemporal-composability follow-ups" — the durable, harvestable form of the remaining (Wave 1-3) work; completed items move to CHANGELOG per repo policy.
+- **Session status:** [`docs/status/2026-09-10_08-04_cordis-paradigm-mapping-session.md`](../status/2026-09-10_08-04_cordis-paradigm-mapping-session.md) — the a-g status snapshot that seeded the plan.
+- **Guardrail (unchanged):** every behavior change derived here is warn-first in v4.x and hard-errors only at v5, riding the existing ADR-0123 composition-root wave. HMR, service-locator `ctx.<key>`, and implementing the paper's formal calculus remain explicitly declined as paradigm-envy (§5).
