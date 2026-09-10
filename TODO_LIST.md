@@ -495,15 +495,16 @@ bottom is a do-not-re-litigate guard, not a backlog.
       byte-compare pin; every consumer-visible `json.Marshal` in cqrs-lint
       passes `json.Deterministic(true)`; catalog/asyncapi already used
       Deterministic. — source: docs-health pass 2026-09-08 (e-6)
-- [ ] **`example/metaengine-quickstart/README.md` does not exist** — author it
-      from its four demo sections (docs/README.md links the directory; the
-      copy-paste surface is missing its page). Consider a
-      `TestEveryExampleHasREADME` meta-test so the class is caught
-      mechanically. — source: 07-42 §b2/§f28
+- [x] **`example/metaengine-quickstart/README.md`** — DONE 2026-09-09
+      (6bb82f5b), re-verified 2026-09-11: README authored from the four demo
+      sections (maps/graph/vector/cqrs.yaml); class pinned mechanically by
+      `TestEveryExampleHasREADME` (cmd/api-stability, passes); example runs
+      all 4 sections green. — source: 07-42 §b2/§f28
       _(Effort: M)_
-- [ ] **Example v5-policy audit** — taskmanager + metaengine-quickstart not
-      yet verified free of v5-removed APIs (getting-started + readme-quickstart
-      verified 2026-09-06). — source: 07-42 §f8
+- [x] **Example v5-policy audit** — DONE 2026-09-09, re-verified 2026-09-11:
+      taskmanager + metaengine-quickstart audited via
+      `cqrs-upgrade -dry-run -strict -no-build` — no v5-removed API usage,
+      exit 0, all pins up-to-date (re-run confirms). — source: 07-42 §f8
       _(Effort: M)_
 - [ ] [BLOCKED] **macOS verification of ephemeral PG** —
       `scripts/ephemeral-pg.sh` claims cross-platform but was only

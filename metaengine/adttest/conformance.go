@@ -34,6 +34,17 @@ type KnownGaps = metaengine.CapabilityGaps
 // Informational notes (never failures): declared degraded but natively
 // implemented (upgrade candidate), and implemented StreamLogBackend without
 // declaring ADTStreamLog (structural routing).
+//
+// Contract for FAKE engines: build them honest from day one. A fake must
+// satisfy the planner's engineServesADTNatively rule for every ADT it
+// declares with native complexity — implement the ADT's backend interface,
+// or declare the ADT in DegradedADTs. An over-declaring fake passes
+// construction and even a shallow test run, but planQuery partitions
+// candidates through that same rule, so the lie silently changes routing
+// semantics and the test passes for the wrong reason. Precedents: the
+// live-latency fakes needed honestMapMixin, and the universal-ADT tests
+// needed nativeMapEngine, both because earlier fakes declared ADTMap without
+// implementing MapBackend.
 func RunCapabilityConformance(
 	t *testing.T,
 	engineName string,

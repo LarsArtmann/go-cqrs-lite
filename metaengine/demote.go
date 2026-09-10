@@ -305,7 +305,9 @@ func nonIdempotentQueriesLocked(s *Store, filter map[string]bool) []string {
 // replayToShadow synchronously replays filtered history into one shadow
 // engine, mirroring the replicator's apply semantics (per-fold locks, engine
 // transaction when supported). Unlike Backfill it does not touch primary
-// engines or the event log.
+// engines or the event log. Each event's recorded Record context is honored
+// (same contract as applyReplay): OnRecord folds on the shadow engine see the
+// original StreamID/Version instead of a synthesized Type-only record.
 func (s *Store) replayToShadow(
 	ctx context.Context,
 	rep *replicator,
@@ -313,9 +315,14 @@ func (s *Store) replayToShadow(
 	queryFilter map[string]bool,
 ) error {
 	for _, evt := range events {
+		rec := evt.Record
+		if rec.Type == "" {
+			rec = record.Record{Type: evt.Type}
+		}
+
 		job := repJob{
 			eventType: evt.Type,
-			rec:       record.Record{Type: evt.Type},
+			rec:       rec,
 			payload:   evt.Payload,
 		}
 

@@ -228,7 +228,7 @@ session-level `#verify-fast` — that miss is owned in §d.
 | 15 | CV consumer bump, operator-gated: 8 modules behind latest tags + vendorHash cascade (existing TODO) | High | M | Release |
 | 16 | actionlint CI step + shellcheck for `scripts/` (existing TODO) | Medium | S | Tooling |
 | 17 | `>350-line production files (~54)` split program — needs the gate-policy decision first (existing TODO) | High | XL | Quality |
-| 18 | Author `example/metaengine-quickstart/README.md` + `TestEveryExampleHasREADME` meta-test (existing TODO) | Medium | M | Documentation |
+| 18 | ~~Author `example/metaengine-quickstart/README.md` + `TestEveryExampleHasREADME` meta-test~~ VERIFIED 2026-09-11: both shipped 2026-09-09 (6bb82f5b); meta-test passes; example runs 4/4 sections green. TODO_LIST item closed. | — | — | — |
 | 19 | templ tripwire script: parse `_templ.go` FileName metadata, catch drift (existing TODO) | Medium | M | Tooling |
 | 20 | sqliteengine `EngineResetter` implementation (ADR-0136 follow-up; memory engine is the only one today) | High | L | Feature |
 | 21 | Fold-write failover for health-quarantined engines (ADR-0137 known gap: reads reroute, writes fail loudly) | High | L | Feature |
