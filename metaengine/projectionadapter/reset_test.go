@@ -51,7 +51,10 @@ func TestAdapter_Reset_ClearsMemoryBackedStore(t *testing.T) {
 
 	ctx := context.Background()
 
-	if err := adapter.Handle(ctx, makeEvent(t, "benchItem", benchItem{ID: "i1", Name: "Widget", Price: 5})); err != nil {
+	if err := adapter.Handle(
+		ctx,
+		makeEvent(t, "benchItem", benchItem{ID: "i1", Name: "Widget", Price: 5}),
+	); err != nil {
 		t.Fatalf("Handle: %v", err)
 	}
 
@@ -80,7 +83,10 @@ func TestAdapter_Reset_ClearsMemoryBackedStore(t *testing.T) {
 	}
 
 	if strings.Contains(logBuf.String(), "could not be bulk-cleared") {
-		t.Fatalf("memory engine is clearable; expected no partial-reset warning, got: %s", logBuf.String())
+		t.Fatalf(
+			"memory engine is clearable; expected no partial-reset warning, got: %s",
+			logBuf.String(),
+		)
 	}
 }
 

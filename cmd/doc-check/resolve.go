@@ -234,8 +234,12 @@ func verifyBlocks(
 				ambiguities = append(ambiguities, fmt.Sprintf(
 					"alias %q maps to %d repo packages (%s) — %s:%d verified via union; "+
 						"import the package in the block to scope the reference",
-					ref.pkg, len(res.aliasDirs[ref.pkg]), strings.Join(res.aliasDirs[ref.pkg], ", "),
-					ref.file, ref.line))
+					ref.pkg,
+					len(res.aliasDirs[ref.pkg]),
+					strings.Join(res.aliasDirs[ref.pkg], ", "),
+					ref.file,
+					ref.line,
+				))
 			}
 		}
 	}

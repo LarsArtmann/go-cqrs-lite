@@ -27,10 +27,14 @@ func (a *Adapter) Reset(ctx context.Context) error {
 	}
 
 	if result.Partial() {
-		a.logger.Warn("projectionadapter: Reset cleared the checkpoint and store state but some engines could not be bulk-cleared, so stale read-model state may remain for the replay",
-			"projection", a.name,
-			"result", result.String(),
-			"remedy", "use an engine that implements metaengine.EngineResetter (the in-memory engine does), or clear the persistent engine's tables out-of-band before replaying",
+		a.logger.Warn(
+			"projectionadapter: Reset cleared the checkpoint and store state but some engines could not be bulk-cleared, so stale read-model state may remain for the replay",
+			"projection",
+			a.name,
+			"result",
+			result.String(),
+			"remedy",
+			"use an engine that implements metaengine.EngineResetter (the in-memory engine does), or clear the persistent engine's tables out-of-band before replaying",
 		)
 	}
 

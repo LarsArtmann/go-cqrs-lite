@@ -236,7 +236,8 @@ func scanMoneyFields(
 			// F091 Tier 2: with the typed tier active, a weak field corroborated
 			// only by ambient package/project vibes needs local evidence
 			// (money-named struct, registered payload, or strong sibling).
-			if !strong && typedTier && !structLocalMoney && !registeredPayload && !hasStrongSibling {
+			if !strong && typedTier && !structLocalMoney && !registeredPayload &&
+				!hasStrongSibling {
 				continue
 			}
 

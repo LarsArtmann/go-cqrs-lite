@@ -72,10 +72,16 @@ func TestV007_F090b_AttributesDotImportedRemovedSymbol(t *testing.T) {
 		t.Errorf("expected exactly 1 F090(a) dot-import warning, got %d", dotImportWarning)
 	}
 	if bareAttribution != 1 {
-		t.Errorf("expected exactly 1 F090(b) bare-ident attribution for VersionedStore, got %d", bareAttribution)
+		t.Errorf(
+			"expected exactly 1 F090(b) bare-ident attribution for VersionedStore, got %d",
+			bareAttribution,
+		)
 	}
 	if falsePositive != 0 {
-		t.Errorf("surviving symbol UpcastSourceTransform must not fire, got %d findings", falsePositive)
+		t.Errorf(
+			"surviving symbol UpcastSourceTransform must not fire, got %d findings",
+			falsePositive,
+		)
 	}
 }
 

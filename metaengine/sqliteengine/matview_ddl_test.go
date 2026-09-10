@@ -55,7 +55,12 @@ func TestMatViewDDL_Golden(t *testing.T) {
 			if !strings.HasPrefix(got, "CREATE MATERIALIZED VIEW IF NOT EXISTS ") {
 				t.Errorf("missing IF NOT EXISTS preamble: %s", got)
 			}
-			if wantIdent := metaengine.QuoteIdent(tt.spec.ViewName()); !strings.Contains(got, wantIdent+" ") {
+			if wantIdent := metaengine.QuoteIdent(
+				tt.spec.ViewName(),
+			); !strings.Contains(
+				got,
+				wantIdent+" ",
+			) {
 				t.Errorf("view name %s not embedded: %s", wantIdent, got)
 			}
 			if !strings.HasSuffix(got, tt.wantBody) {

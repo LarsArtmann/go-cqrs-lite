@@ -150,7 +150,14 @@ func run(files []string, jsonOut bool) error {
 	}
 
 	if jsonOut {
-		if err := emitJSON(len(files), totalRefs, brokenRefs, warnings, ambiguities, res); err != nil {
+		if err := emitJSON(
+			len(files),
+			totalRefs,
+			brokenRefs,
+			warnings,
+			ambiguities,
+			res,
+		); err != nil {
 			return fmt.Errorf("emit json: %w", err)
 		}
 	}

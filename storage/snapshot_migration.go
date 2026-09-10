@@ -127,7 +127,10 @@ func snapshotRenameSettled(ctx context.Context, db *sql.DB, d sqlpkg.Dialect) bo
 	for {
 		columns, err := probeTableColumns(ctx, db, d, sqlpkg.TableSnapshots)
 		if err == nil &&
-			!slices.Contains(columns, "aggregate_type") && !slices.Contains(columns, "aggregate_id") {
+			!slices.Contains(
+				columns,
+				"aggregate_type",
+			) && !slices.Contains(columns, "aggregate_id") {
 			return true
 		}
 

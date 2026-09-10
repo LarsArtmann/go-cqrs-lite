@@ -1058,7 +1058,11 @@ func TestHost_Reset_NonResettable_WithKeepStaleState_SilencesWarning(t *testing.
 	host, _ := projectionhost.New(journal, cpStore, projectionhost.WithLogger(logger))
 	_ = host.Register(proj)
 
-	if err := host.Reset(context.Background(), "keep-proj", projectionhost.WithKeepStaleState()); err != nil {
+	if err := host.Reset(
+		context.Background(),
+		"keep-proj",
+		projectionhost.WithKeepStaleState(),
+	); err != nil {
 		t.Fatalf("Reset with WithKeepStaleState: %v", err)
 	}
 

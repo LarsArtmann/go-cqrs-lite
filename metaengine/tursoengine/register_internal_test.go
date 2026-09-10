@@ -120,7 +120,12 @@ func TestRedactDSN_PreservesNonSecrets(t *testing.T) {
 		{"/data/app.db?experimental=encryption&encryption_hexkey=cafe", "experimental=encryption"},
 	} {
 		if got := redactDSN(tt.dsn); !strings.Contains(got, tt.wantFragment) {
-			t.Errorf("redactDSN(%q) = %q, lost non-secret fragment %q", tt.dsn, got, tt.wantFragment)
+			t.Errorf(
+				"redactDSN(%q) = %q, lost non-secret fragment %q",
+				tt.dsn,
+				got,
+				tt.wantFragment,
+			)
 		}
 	}
 }

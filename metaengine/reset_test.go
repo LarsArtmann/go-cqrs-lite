@@ -41,7 +41,10 @@ func TestStore_Reset_ClearsMemoryEngineAndReplayState(t *testing.T) {
 	}
 
 	if store.idempotency.Len() != 3 {
-		t.Fatalf("expected idempotency window to track 3 event IDs, got %d", store.idempotency.Len())
+		t.Fatalf(
+			"expected idempotency window to track 3 event IDs, got %d",
+			store.idempotency.Len(),
+		)
 	}
 
 	result, err := store.Reset(ctx)

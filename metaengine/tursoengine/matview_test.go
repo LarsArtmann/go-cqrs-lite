@@ -565,7 +565,14 @@ func TestTursoMatView_GroupedSumTwoTxDivergencePin(t *testing.T) {
 	mustMapSet("o1", "alice", 100)
 	mustMapSet("o2", "alice", 50)
 
-	groups, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+	groups, err := gr.GroupedAggregate(
+		ctx,
+		"orders",
+		metaengine.MatViewSum,
+		"amount",
+		"customer",
+		nil,
+	)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	g.Expect(groups["alice"]).To(gomega.Equal(150.0), "single-transaction sum must be exact")
 
@@ -573,7 +580,14 @@ func TestTursoMatView_GroupedSumTwoTxDivergencePin(t *testing.T) {
 	mustMapSet("o3", "alice", 25)
 	mustMapSet("o4", "bob", 10)
 
-	groups, err = gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+	groups, err = gr.GroupedAggregate(
+		ctx,
+		"orders",
+		metaengine.MatViewSum,
+		"amount",
+		"customer",
+		nil,
+	)
 	g.Expect(err).To(gomega.Not(gomega.HaveOccurred()))
 	g.Expect(groups["alice"]).To(gomega.Equal(175.0),
 		"second-transaction delta must be maintained (tursogo IVM defect class, see research doc)")

@@ -396,7 +396,11 @@ func parseCausation(
 
 	cmdID, err := id.ParseCommandID(cmdIDStr)
 	if err != nil {
-		return errorfamily.WrapRejection(err, "watermill.parse_id_field_failed", metaCausationCommandID)
+		return errorfamily.WrapRejection(
+			err,
+			"watermill.parse_id_field_failed",
+			metaCausationCommandID,
+		)
 	}
 
 	*dst = &event.Causation{CommandType: cmdType, CommandID: cmdID}

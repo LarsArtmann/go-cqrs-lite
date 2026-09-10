@@ -182,7 +182,11 @@ func v007DotImportFinding(
 // with a precise position. Silent when typed confirmations are off or the
 // file has no type info: a bare identifier's origin cannot be attributed by
 // name alone, and a false attribution is worse than none.
-func checkDotImportedRemovedSymbols(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile, out *[]finding.Finding) {
+func checkDotImportedRemovedSymbols(
+	ctx *analyzer.AnalysisContext,
+	gf *analyzer.GoFile,
+	out *[]finding.Finding,
+) {
 	if !ctx.TypedConfirmations() || gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
 		return
 	}
@@ -248,7 +252,9 @@ func v007BareIdentFinding(
 		"cqrs-lint",
 		fmt.Sprintf(
 			"%s (dot-imported from %s) is removed at v5 — replace with %s; name the import so V007 can attribute usage",
-			symbol, module, replacement,
+			symbol,
+			module,
+			replacement,
 		),
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

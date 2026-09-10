@@ -31,7 +31,11 @@ func TestMaterializedViewsDoctorSection_Content(t *testing.T) {
 				Rows: 42,
 			},
 			{
-				Spec: MaterializedViewSpec{Collection: "order_views", Fn: MatViewSum, Column: "total"},
+				Spec: MaterializedViewSpec{
+					Collection: "order_views",
+					Fn:         MatViewSum,
+					Column:     "total",
+				},
 				Name: "cqrs_mv_order_views_sum",
 				Rows: 7,
 			},
@@ -112,7 +116,12 @@ func TestMaterializedViewsDoctorSection_NoGroupNoWarn(t *testing.T) {
 		},
 	}}}
 
-	if section := store.MaterializedViewsDoctorSection(context.Background()); strings.Contains(section, "WARN") {
+	if section := store.MaterializedViewsDoctorSection(
+		context.Background(),
+	); strings.Contains(
+		section,
+		"WARN",
+	) {
 		t.Errorf("scalar spec must not warn:\n%s", section)
 	}
 }

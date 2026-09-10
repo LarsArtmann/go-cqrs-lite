@@ -240,7 +240,11 @@ func TestFindGoMods_SkipsVendorAndTestdata(t *testing.T) {
 			t.Fatalf("mkdir %s: %v", path, err)
 		}
 
-		if err := os.WriteFile(path, []byte("module example.com/m\n\ngo 1.26\n"), 0o600); err != nil {
+		if err := os.WriteFile(
+			path,
+			[]byte("module example.com/m\n\ngo 1.26\n"),
+			0o600,
+		); err != nil {
 			t.Fatalf("write %s: %v", path, err)
 		}
 	}

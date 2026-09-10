@@ -68,6 +68,10 @@ func TestPresetHelpTextListsAllPresets(t *testing.T) {
 	want := analyzer.ValidPresetNames()
 
 	if strings.Join(sorted, "\x00") != strings.Join(want, "\x00") {
-		t.Errorf("preset help text is out of sync with ValidPresetNames():\n  help:  %v\n  valid: %v", listed, want)
+		t.Errorf(
+			"preset help text is out of sync with ValidPresetNames():\n  help:  %v\n  valid: %v",
+			listed,
+			want,
+		)
 	}
 }

@@ -90,7 +90,9 @@ func TestNoRenamedAggregateFamilyCodeReappears(t *testing.T) {
 	}
 
 	if len(hits) > 0 {
-		t.Errorf("renamed aggregate_* family codes reappeared (stream vocabulary is canonical):\n%s",
-			strings.Join(hits, "\n"))
+		t.Errorf(
+			"renamed aggregate_* family codes reappeared (stream vocabulary is canonical):\n%s",
+			strings.Join(hits, "\n"),
+		)
 	}
 }

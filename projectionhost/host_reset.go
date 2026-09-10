@@ -122,9 +122,12 @@ func (h *Host) Reset(ctx context.Context, name string, opts ...ResetOption) erro
 				fmt.Sprintf("reset projection %q", name))
 		}
 	} else if !cfg.keepStaleState {
-		h.opts.logger.Warn("projectionhost: Reset cleared the checkpoint but the projection does not implement Resettable, so stale read-model state remains and the replay will re-apply events on top of it",
-			"projection", name,
-			"remedy", "implement projectionhost.Resettable to clear the read-model state, or pass projectionhost.WithKeepStaleState() to acknowledge the checkpoint-only reset and silence this warning",
+		h.opts.logger.Warn(
+			"projectionhost: Reset cleared the checkpoint but the projection does not implement Resettable, so stale read-model state remains and the replay will re-apply events on top of it",
+			"projection",
+			name,
+			"remedy",
+			"implement projectionhost.Resettable to clear the read-model state, or pass projectionhost.WithKeepStaleState() to acknowledge the checkpoint-only reset and silence this warning",
 		)
 	}
 
