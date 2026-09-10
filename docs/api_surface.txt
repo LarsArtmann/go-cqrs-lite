@@ -2713,6 +2713,7 @@ metaengine/interface CounterBackend
 metaengine/interface DistinctReader
 metaengine/interface DurabilityReporter
 metaengine/interface Engine
+metaengine/interface EngineResetter
 metaengine/interface ExplainableAggregate
 metaengine/interface ExplainableScan
 metaengine/interface Fold
@@ -3079,6 +3080,8 @@ metaengine/method CheckAndRecord
 metaengine/method CheckRouting
 metaengine/method Clear
 metaengine/method Clear
+metaengine/method Clear
+metaengine/method Clear
 metaengine/method Close
 metaengine/method Close
 metaengine/method Close
@@ -3241,6 +3244,7 @@ metaengine/method Name
 metaengine/method Name
 metaengine/method NsForRead
 metaengine/method ObservedWorkloadStats
+metaengine/method Partial
 metaengine/method Persistence
 metaengine/method Plan
 metaengine/method PlanHistory
@@ -3283,6 +3287,8 @@ metaengine/method ReplicationStatus
 metaengine/method Report
 metaengine/method Report
 metaengine/method ReportSample
+metaengine/method Reset
+metaengine/method ResetEngine
 metaengine/method Resolve
 metaengine/method RunInTx
 metaengine/method Sample
@@ -3318,6 +3324,7 @@ metaengine/method StreamRead
 metaengine/method StreamReadAsOfVersion
 metaengine/method StreamReadFromVersion
 metaengine/method StreamVersion
+metaengine/method String
 metaengine/method String
 metaengine/method String
 metaengine/method String
@@ -3634,6 +3641,8 @@ metaengine/projectionadapter/func RegisterWithHost
 metaengine/projectionadapter/func RegisterWithHost
 metaengine/projectionadapter/func WithEventDecoder
 metaengine/projectionadapter/func WithEventDecoder
+metaengine/projectionadapter/func WithLogger
+metaengine/projectionadapter/func WithLogger
 metaengine/projectionadapter/method Decode
 metaengine/projectionadapter/method Decode
 metaengine/projectionadapter/method EventTypes
@@ -3644,6 +3653,8 @@ metaengine/projectionadapter/method Handle
 metaengine/projectionadapter/method Handle
 metaengine/projectionadapter/method Name
 metaengine/projectionadapter/method Name
+metaengine/projectionadapter/method Reset
+metaengine/projectionadapter/method Reset
 metaengine/projectionadapter/struct Adapter
 metaengine/projectionadapter/struct Adapter
 metaengine/projectionadapter/struct EventRegistration
@@ -3866,6 +3877,7 @@ metaengine/struct ReadCoalescer
 metaengine/struct ReadCosts
 metaengine/struct RebuildThreshold
 metaengine/struct ReplicationStatus
+metaengine/struct ResetResult
 metaengine/struct RulePipeline
 metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig

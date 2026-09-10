@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine + projectionadapter: one-call read-model revert — 2026-09-10
+
+- **`metaengine` gains a reset primitive: `Store.Reset`,
+  the `EngineResetter` capability interface, and `ResetResult`.** The Store
+  previously had no way to clear projection state: rebuilding a read model
+  meant constructing a fresh Store (and re-planning). `Store.Reset` clears
+  the in-memory replay aids (event log, idempotency ring, poison tracker)
+  and asks every engine that implements the optional
+  `EngineResetter` capability to clear itself. The returned `ResetResult`
+  reports which engines were cleared and which lack the capability
+  (`Partial()` is true when any engine could not be reset), so callers get
+  the structured truth instead of a silent partial revert. The memory
+  engine implements `EngineResetter`; persistent engines (SQLite, Pebble,
+  …) follow as budgeted follow-ups — until then they appear in
+  `UnclearableEngines`.
+- **`metaengine/projectionadapter`'s `Adapter` now implements
+  `projectionhost.Resettable` (`Adapter.Reset`), making one-call
+  `projectionhost.Host.Reset` → rebuild work end-to-end for the
+  metaengine-backed 80% path.** The adapter delegates to
+  `Store.Reset`; when the result is partial it logs a warning naming the
+  unclearable engines (via the new `projectionadapter.WithLogger` option,
+  defaulting to `slog.Default()`) and still returns `nil` — warn-first for
+  v4.x so no existing caller breaks; the partial case becomes a hard error
+  in v5 alongside the projectionhost hardening. The
+  `metaengine/projectionadapter` go.mod carries a sibling replace on
+  unpublished metaengine symbols; `scripts/tag-release.sh` strips it at cut
+  time.
+
 ### Changed — projectionhost: `Host.Reset` no longer silently leaves stale read-model state — 2026-09-10
 
 - **`Host.Reset` now logs a warning when the target projection does not
