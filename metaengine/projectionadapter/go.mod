@@ -49,4 +49,4 @@ require (
 
 // Sibling replace for unpublished metaengine symbols (Store.Reset, ResetResult,
 // EngineResetter); stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

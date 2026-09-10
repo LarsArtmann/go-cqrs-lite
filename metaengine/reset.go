@@ -78,7 +78,7 @@ func (s *Store) Reset(ctx context.Context) (ResetResult, error) {
 		s.poison.Clear()
 	}
 
-	result := ResetResult{}
+	var result ResetResult
 
 	for _, eng := range engines {
 		name := eng.Profile().Name
