@@ -25,7 +25,7 @@ func gateDomain(events []event.Type, disable bool) system.DomainConfig {
 		Projections: []system.ProjectionDeclaration{
 			system.Lookup[EvoView]("gate_lookup").Done(),
 		},
-		Events:                     events,
+		Events:                    events,
 		DisableCoeffectValidation: disable,
 	}
 }

@@ -6475,6 +6475,7 @@ system/type SortOrder
 system/var ErrAlreadyStarted
 system/var ErrCacheCapacityInvalid
 system/var ErrCommandTypeMismatch
+system/var ErrDanglingEventSubscription
 system/var ErrDeciderTypeMismatch
 system/var ErrDuplicateInstanceRole
 system/var ErrDurabilityConflict

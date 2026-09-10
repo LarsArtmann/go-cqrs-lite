@@ -37,7 +37,7 @@ func validateCoeffectGraph(
 		declaredSet[t] = struct{}{}
 	}
 
-	allConsumed := make(map[event.Type][]string, len(consumed)+8)
+	allConsumed := make(map[event.Type][]string, len(consumed))
 	maps.Copy(allConsumed, consumed)
 
 	for eventType := range evolutionConsumedTypes(evolutions) {

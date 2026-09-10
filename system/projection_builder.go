@@ -114,8 +114,8 @@ func buildProjections(
 			return nil, nil, nil, fmt.Errorf(
 				"system: unreachable: unknown ProjectionDeclaration %T", decl,
 			)
-			}
 		}
+	}
 
 	if len(allEntries) > 0 {
 		eventDecoder = buildEventDecoder(allEntries)
