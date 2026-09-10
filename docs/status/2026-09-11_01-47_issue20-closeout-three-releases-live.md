@@ -376,9 +376,9 @@ TODO_LIST.md; the rest are candidates for docs-health HARVEST routing
 | 35 | FAQ entry: "why does `go install …/cmd/cqrs-bench@latest` fail loudly?" (the stub) so users self-serve | Low | S | Documentation |
 | 36 | Audit other modules for the badger class: KV engines whose restart seeding claims outrun their tests (bbolt/pebble spot-check) | High | M | Bug |
 | 37 | restart-safety harness: extend to a shared enginetest close/reopen matrix test ALL engines run (badger lesson generalized) | High | L | Quality |
-| 38 | Check whether storage/go.mod's retract (v4.7.0) actually shipped in a tag (same inert-retract class; tag v4.7.1+ exists? verify) | High | S | Bug |
-| 39 | Same check for command/go.mod `retract v4.7.0` and query/go.mod `retract v4.6.0` | High | S | Bug |
-| 40 | If #38/#39 are inert: tag patches to publish them (mechanical, precedent v4.10.1) | High | S | Bug |
+| 38 | ~~Inert-retract check~~ VERIFIED 2026-09-11 01:50: command/v4.10.0, query/v4.8.0, and storage/v4.9.0 all carry their retract directives — none inert. No action. | — | — | — |
+| 39 | Audit `scripts/batch-release.sh` for consistency with the hardened tag-release.sh (may encode the pre-hardening flow: no guard/probe/audit) | High | M | Quality |
+| 40 | Verify the LIVE `/v4` bench path was unaffected by the stub — VERIFIED 2026-09-11 01:50: `go list -m …/cmd/cqrs-bench/v4@latest` → v4.3.0. Done. | — | — | — |
 | 41 | doc-check pass over the edited docs (ADR-0118, gotchas) — they're outside doc-check's file list, but link rot applies | Low | S | Documentation |
 | 42 | Add `docs/status/README.md` index entry for this report (the dir has a README manifest) | Low | S | Documentation |
 | 43 | Consider `tag-release.sh --audit --module <dir>` scoping flag for post-wave spot audits | Low | S | Feature |
@@ -406,11 +406,12 @@ TODO_LIST.md; the rest are candidates for docs-health HARVEST routing
    session; only you know whether example version lines are a support
    surface or throwaway teaching code.
 
-3. **Should patch tags for the possibly-inert retracts in `command/go.mod`
-   (v4.7.0), `query/go.mod` (v4.6.0), and `storage/go.mod` (v4.7.0) be cut
-   now in one wave** (same mechanical flow as v4.10.1), or do you want to
-   batch them into the next feature tag wave? I can verify inertness and
-   cut, but release cadence is your call.
+3. **Should I be authorized to push release tags autonomously when a
+   session's acceptance criteria are green** (as v4.10.1/v4.2.1/v0.1.1
+   were), or should every push stay a manual human step? Today the push
+   wait added ~an hour of latency to shipping retracts that consumers
+   needed; I defaulted to not pushing per the safety rules and won't
+   change that without your explicit policy.
 
 ---
 
@@ -430,6 +431,10 @@ metaengine/badgerengine/v4.2.1: PUSHED
 go list -m …/cmd/cqrs-lint/v4@latest        → v4.10.1   (v4.8.0 retracted)
 go list -m …/metaengine/badgerengine/v4@latest → v4.2.1 (v4.0.0–v4.1.0 retracted)
 go list -m …/cmd/cqrs-bench@latest          → v0.1.1    (stub; v0.1.0 superseded)
+go list -m …/cmd/cqrs-bench/v4@latest       → v4.3.0    (live path unaffected by stub)
+
+# Old retracts verified SHIPPED (not inert): command/v4.10.0, query/v4.8.0,
+storage/v4.9.0 all carry their retract directives in the tagged go.mod.
 
 # Local suites (pre-commit, env chain + -tags goexperiment.jsonv2)
 cmd/cqrs-lint:  ok … 27.0s   (full module suite, incl. new version tests)
