@@ -1,40 +1,12 @@
 # BuildFlow Configuration
 # See: https://github.com/larsartmann/buildflow
 
-# Build mode: full, fast, ci, dev, pre-commit
-build_mode: full
-
-# Parallel execution
-parallel: true
-max_concurrency: 4
-
-# File settings
-max_file_size: 350 # lines
-dupl_threshold: 30 # tokens
-
-# TODO pattern minimum severity: info, warning, error, critical
-# info = all patterns, warning = skip TODO/NOTE/OPTIMIZE, error = only FIXME/XXX/BUG, critical = BUG only
+# FIXME/XXX/BUG-class markers fail; TODO/NOTE/OPTIMIZE do not block commits.
 todo_min_severity: warning
 
-# Patterns to exclude from checks
 exclude:
-  - vendor
-  - .git
-  - node_modules
-  - .next
-  - dist
-  - "*.pb.go"
-  - "*.gen.go"
-  - "**/testdata/golden/**"
   - "**/docserver/static/**"
   - "**/eventcatalog-output/**"
   # transport/grpc is isolated from go.work (genproto conflict via cockroachdb/errors).
   # BuildFlow's golangci-lint can't typecheck it in-workspace. Tracked in TODO_LIST.md.
   - "transport/grpc"
-
-# Auto-fix settings
-auto_fix: false
-
-# Logging
-verbose: false
-log_level: info
