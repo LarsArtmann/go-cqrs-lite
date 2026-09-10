@@ -232,4 +232,12 @@ watermill/     — Watermill protocol adapter
 | [0128](0128-extract-codec-and-remove-shim-modules.md)             | Extract go-codec, Remove In-Repo Shims                        | 2026-08-14 | Implemented                                                                                                                   |
 | [0129](0129-dgraph-engine-transactional-deferred.md)              | Dgraph Engine: Transactional Deferred                         | 2026-08-16 | Accepted                                                                                                                      |
 
+| [0130](0130-durability-tier-mapping.md)                        | Durability-Tier Mapping (Engine × Tier → Mechanism) | 2026-08-29 | Accepted |
+| [0131](0131-ulid-epoch-entropy.md)                             | ULID Generation Uses Epoch-Sharded Entropy | 2026-08-29 | Accepted |
+| [0132](0132-lsm-calibration-basis.md)                          | LSM Storage Calibration Measures Post-Flush, Pre-Compact | 2026-08-29 | Accepted |
+| [0133](0133-readaggregate-cost-model-counterget.md)            | ReadAggregate Cost Prices the CounterGet Path | 2026-08-30 | Accepted |
+| [0134](0134-claim-token-ownership.md)                          | Claim-Token Ownership | 2026-08-30 | Proposed (stub) |
+| [0135](0135-materialized-views-operator-option.md)             | Materialized Views as an Operator Option (Turso IVM) | 2026-09-07 | Accepted |
+| [0136](0136-temporal-composability-contract.md)                | The Temporal Composability Contract (Invertibility Ladder) | 2026-09-10 | Accepted |
+
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

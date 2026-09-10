@@ -143,6 +143,43 @@ The authoritative module index with README links lives in the **[project README]
 | [0098](adr/0098-metaengine-persistence-enum.md)                   | Metaengine persistence enum (DDIA Ch1 reliability axis) | Accepted                 |
 | [0099](adr/0099-backend-selection-hybrid.md)                      | Backend selection: hybrid registry + config             | Accepted                 |
 | [0099a](adr/0099a-readcosts-per-operation-cost-model.md)          | Per-read-pattern cost model (ReadCosts)                 | Accepted                 |
+| [0100](adr/0100-redesign-scope-parallel.md)                        | Redesign Scope — Parallel (New Alongside Old) | Accepted |
+| [0101](adr/0101-backend-abstraction-n-instance.md)                 | Backend Abstraction — N-Instance Metaengine | Accepted |
+| [0102](adr/0102-admin-interface-introspection-only.md)             | Admin Web Interface — Introspection API Only | Accepted |
+| [0103](adr/0103-scream-store-tiered.md)                            | Scream Store — Tiered Enforcement | Accepted |
+| [0104](adr/0104-system-scope-layered-full.md)                      | System Scope — Layered-Full (Owns All Infrastructure) | Accepted |
+| [0105](adr/0105-config-format-koanf.md)                            | Config Format — Go Struct + YAML + Env via koanf | Accepted |
+| [0106](adr/0106-migration-path-gradual.md)                         | Migration Path — Gradual (New system/ Module) | Accepted |
+| [0107](adr/0107-bus-multi-bus.md)                                  | Bus — Operator-Configured, Multi-Bus Support | Accepted |
+| [0108](adr/0108-decider-routing-declarative.md)                    | Decider Routing — Declarative Command→Event→Stream | Accepted |
+| [0109](adr/0109-config-separation.md)                              | Config Separation — DomainConfig + DeploymentConfig | Accepted |
+| [0110](adr/0110-snapshot-storage-backend.md)                       | Snapshot Storage — New SnapshotBackend Interface | Accepted |
+| [0111](adr/0111-record-type-extraction.md)                         | Extract Record Type as Shared Base | Accepted |
+| [0112](adr/0112-es-native-metaengine.md)                           | ES-Native Metaengine | Accepted |
+| [0113](adr/0113-delete-graphbackend.md)                            | Delete GraphBackend — graph.GraphDriver Implements Engine | Accepted |
+| [0114](adr/0114-tombstone-as-domain-event.md)                      | Tombstones Are Domain Events, Not Mutable Metadata | Accepted |
+| [0115](adr/0115-sqlite-engine-extraction.md)                       | Move SQLite Engine to Separate Module | Accepted |
+| [0116](adr/0116-layered-auto-projection.md)                        | Layered Auto-Projection | Accepted (Layer 1 implemented) |
+| [0117](adr/0117-command-lifecycle-as-events.md)                    | Command Lifecycle as Event Streams | Accepted |
+| [0118](adr/0118-badger-engine.md)                                  | Badger Engine (Pure-Go LSM) | Accepted |
+| [0119](adr/0119-dgraph-engine.md)                                  | Dgraph Engine (Distributed Graph Database) | Proposed (design complete, implementation deferred) |
+| [0120](adr/0120-aggregate-pushdown-architecture.md)                | Aggregate Pushdown Architecture | Accepted |
+| [0121](adr/0121-apply-layout-plan-post-construction.md)            | ApplyLayoutPlan Post-Construction Registration | Accepted |
+| [0122](adr/0122-withclock-injectable-time.md)                      | WithClock — Injectable Time for CRDT Testing | Accepted |
+| [0123](adr/0123-v5-unification-single-composition-root.md)         | v5 Unification — Single Composition Root | Proposed |
+| [0124](adr/0124-operator-driven-layout-planning.md)                | Operator-Driven Layout Planning | Accepted |
+| [0125](adr/0125-developer-priority-is-layout-only.md)              | Developer Priority Is Layout-Only | Accepted |
+| [0126](adr/0126-metadata-generic-store-transforms-wal-unification.md) | Metadata Canonical Generic, Store Transforms, WAL Unification | Implemented |
+| [0127](adr/0127-deprecate-transport-modules.md)                    | Deprecate transport/* — watermill + go-sse Instead | Accepted |
+| [0128](adr/0128-extract-codec-and-remove-shim-modules.md)          | Extract go-codec, Remove In-Repo Shims | Implemented |
+| [0129](adr/0129-dgraph-engine-transactional-deferred.md)           | Dgraph Engine: Transactional Deferred | Accepted |
+| [0130](adr/0130-durability-tier-mapping.md)                        | Durability-Tier Mapping (Engine × Tier → Mechanism) | Accepted |
+| [0131](adr/0131-ulid-epoch-entropy.md)                             | ULID Generation Uses Epoch-Sharded Entropy | Accepted |
+| [0132](adr/0132-lsm-calibration-basis.md)                          | LSM Storage Calibration Measures Post-Flush, Pre-Compact | Accepted |
+| [0133](adr/0133-readaggregate-cost-model-counterget.md)            | ReadAggregate Cost Prices the CounterGet Path | Accepted |
+| [0134](adr/0134-claim-token-ownership.md)                          | Claim-Token Ownership | Proposed (stub) |
+| [0135](adr/0135-materialized-views-operator-option.md)             | Materialized Views as an Operator Option (Turso IVM) | Accepted |
+| [0136](adr/0136-temporal-composability-contract.md)                | The Temporal Composability Contract (Invertibility Ladder) | Accepted |
 | [0100](adr/0100-redesign-scope-parallel.md)                       | Redesign scope: parallel (new alongside old)            | Accepted                 |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                | Backend abstraction: N-instance metaengine              | Accepted                 |
 | [0102](adr/0102-admin-interface-introspection-only.md)            | Admin web interface: introspection API only             | Accepted                 |
