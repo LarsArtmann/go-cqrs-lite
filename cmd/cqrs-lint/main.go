@@ -21,7 +21,7 @@ import (
 // TestVersionMatchesLatestTag gate enforces this. The v4.7.0 tag was cut
 // while this constant still read 4.6.0 (the stranded-tag-chain class of
 // drift); bumping the constant repairs the source-of-truth.
-const version = "4.10.0"
+const version = "4.10.1"
 
 // resolvedVersion prefers the version the toolchain embedded at build time
 // (debug.ReadBuildInfo: `go install …@v4.10.0` records the true tag) over
