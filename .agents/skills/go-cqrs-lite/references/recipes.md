@@ -2024,3 +2024,14 @@ rows at your own pace (re-encrypt with the new key), then drop the old entry.
 Keys never appear in errors or redacted DSNs — the `redactDSN` contract hides
 any `*key*`/`authToken`/`token` param on local AND remote DSNs.
 
+### 2.32 Revert & Rebuild a Read Model (projectionhost Reset, ADR-0136)
+
+Read models are replayable by construction — the inverse of "project" is
+"clear + replay the journal". The one-call flow (`host.Stop()` →
+`host.Reset(ctx)` → `host.Start(ctx)`) — including the non-`Resettable`
+warn guard, `projectionhost.WithKeepStaleState()`, the
+`metaengine.Store.Reset` / `EngineResetter` capability ladder, and
+`ResetResult.Partial()` inspection — has its own recipe in
+[`readmodels.md`](readmodels.md) §"Revert & rebuild: Reset → replay from
+zero (ADR-0136)".
+

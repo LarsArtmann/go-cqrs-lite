@@ -4,6 +4,7 @@
 >
 > - [SQL-backed views](#sql-backed-views-queryable-columns-server-side-filtering)
 > - [Canonical projection pattern: CatchUpSubscriber + Materialize](#canonical-projection-pattern-catchupsubscriber--materialize)
+> - [Revert & rebuild: Reset → replay from zero (ADR-0136)](#revert--rebuild-reset--replay-from-zero-adr-0136)
 > - [Choosing a projection tier: KV vs Relational vs Graph](#choosing-a-projection-tier-kv-vs-relational-vs-graph)
 > - [Materialized-view acceleration (metaengine, ADR-0135)](#materialized-view-acceleration-metaengine-adr-0135)
 
@@ -290,6 +291,64 @@ CatchUpSubscriber's output channel from a single goroutine instead. The
 EventBus default uses `BlockPublishUntilSubscriberAck=true` for ordered live
 delivery and `Persistent=false` to avoid GoChannel's unordered persistent
 replay (the CatchUpSubscriber handles replay from the journal instead).
+
+#### Revert & rebuild: Reset → replay from zero (ADR-0136)
+
+A read model is derived data — the bottom rung of ADR-0136's invertibility
+ladder — so its inverse is mechanical: **drop the derived state, replay the
+journal**. `projectionhost.Host.Reset` makes that one call, and since v4.x
+it refuses to pretend it worked when it didn't:
+
+```go
+// 1. Drain workers (Reset requires a stopped host).
+host.Stop()
+
+// 2. Reset: clears every checkpoint AND asks each projection to clear itself.
+err := host.Reset(ctx)
+//    - projection implements projectionhost.Resettable → state cleared, silent success
+//    - non-Resettable → checkpoint cleared, state NOT cleared:
+//      Reset logs a WARN naming the projection (silent-partial-revert guard,
+//      v4.x; becomes a hard error at v5). Silence it ONLY when the handler is
+//      idempotent or you clear state out-of-band:
+err = host.Reset(ctx, projectionhost.WithKeepStaleState())
+
+// 3. Rebuild: Start replays the ENTIRE journal from zero onto clean state.
+host.Start(ctx)
+```
+
+**Make your projection revertible** — implement `projectionhost.Resettable`
+(`Reset(ctx) error`). Ready-made covers:
+
+| Your projection is… | Resettable implementation | Reset clears |
+| --- | --- | --- |
+| `metaengine` Store-backed | none needed — `projectionadapter.Adapter` already implements `Resettable` (delegates to `metaengine.Store.Reset`) | collections + replay aids (event log, idempotency ring, poison tracker) |
+| `SQLViewStore`-backed `Materialize` | wrap `store.DeleteAll(ctx)` in a 3-line `Reset` | the view table (`DELETE FROM`) |
+| hand-rolled in-memory | wrap your `clear()` in a `Reset` | your maps |
+
+**Engine capability ladder (metaengine):** `Store.Reset` clears every engine
+implementing the `EngineResetter` capability; the rest report through
+`ResetResult.UnclearableEngines` (and `Adapter.Reset` logs a WARN, still
+returning `nil` in v4.x):
+
+| Engine | `EngineResetter` |
+| --- | --- |
+| `metaengine.NewMemoryEngine` | full reset |
+| sqlite / pebble / pg / mysql / turso / … | follow-up — lands in `UnclearableEngines` |
+
+For direct metaengine use (no host), reset the Store itself and inspect the
+result — a partial reset is YOUR call to make, not the library's to hide:
+
+```go
+result, err := store.Reset(ctx)
+if err == nil && result.Partial() {
+    log.Warn("read model not fully cleared", "engines", result.UnclearableEngines)
+}
+```
+
+Scope guard: Reset/replay reverts **derived state only**. External effects
+need compensating events (`deriver` sagas), and domain facts are never
+reverted — only negated forward (tombstone, ADR-0114). Full ladder:
+ADR-0136.
 
 #### Choosing a projection tier: KV vs Relational vs Graph
 

@@ -38,6 +38,28 @@ type DomainConfig struct {
 	// Evolution by result type.
 	Evolutions []EvolutionSpec
 
+	// Events declares the complete set of event types that can appear in
+	// this system's journal: everything its commands can emit PLUS events
+	// written by external importers. When non-empty, New validates the
+	// coeffect graph at composition time:
+	//
+	//   - a projection or evolution consuming an UNDECLARED type is a hard
+	//     error ([ErrDanglingEventSubscription]) — nearly always a typo in
+	//     the coeffect specification, the kind that otherwise surfaces only
+	//     as a projection that silently never updates;
+	//   - a declared type that NOTHING consumes is logged as an advisory
+	//     (dead events are legitimate for audit-only journals).
+	//
+	// Leave empty to skip validation entirely (the v4 default — no existing
+	// consumer breaks). Skip selectively with DisableCoeffectValidation.
+	// RawQuery declarations are opaque to the gate; their event types are
+	// not validated.
+	Events []event.Type
+
+	// DisableCoeffectValidation turns off the DomainConfig.Events gate (both
+	// the dangling-subscription error and the unconsumed-event advisory).
+	DisableCoeffectValidation bool
+
 	// ProjectionDecoder decodes event payloads for the projection fold handlers.
 	// If nil, events are decoded as generic JSON (map[string]any).
 	//

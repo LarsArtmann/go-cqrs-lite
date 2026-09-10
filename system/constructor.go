@@ -51,15 +51,26 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 	// Process ProjectionDeclaration values (auto-projection) before planning.
 	autoEventDecoder := eventDecoderFn(nil)
 	processedProjections := []any(nil)
+	var consumedEventTypes map[event.Type][]string
 
 	if len(domain.Projections) > 0 {
 		var buildErr error
 
-		processedProjections, autoEventDecoder, buildErr = buildProjections(
+		processedProjections, autoEventDecoder, consumedEventTypes, buildErr = buildProjections(
 			domain.Evolutions, domain.Projections,
 		)
 		if buildErr != nil {
 			return nil, fmt.Errorf("system: build projections: %w", buildErr)
+		}
+	}
+
+	// Coeffect validation gate (ADR-0136 follow-up): fail composition when a
+	// declared event universe exists and something consumes outside it.
+	if len(domain.Events) > 0 && !domain.DisableCoeffectValidation {
+		if err := validateCoeffectGraph(
+			domain.Events, domain.Evolutions, consumedEventTypes, safetyReport,
+		); err != nil {
+			return nil, err
 		}
 	}
 

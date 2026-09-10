@@ -66,15 +66,17 @@ type eventDecoderFn func(evt event.Event) (any, error)
 // buildProjections processes ProjectionDeclaration values from
 // DomainConfig.Projections. It type-switches on the sealed interface to
 // separate auto-generated ProjectionSpec values from raw QueryDecl passthroughs.
+// It also returns the consumed event-type set (event type → consuming
+// projection names) for the coeffect validation gate.
 func buildProjections(
 	evolutions []EvolutionSpec,
 	decls []ProjectionDeclaration,
-) (queryDecls []any, eventDecoder eventDecoderFn, err error) {
+) (queryDecls []any, eventDecoder eventDecoderFn, consumed map[event.Type][]string, err error) {
 	evoIndex := make(map[reflect.Type]*evolutionSpec)
 	for _, e := range evolutions {
 		es, ok := e.(*evolutionSpec)
 		if !ok {
-			return nil, nil, fmt.Errorf(
+			return nil, nil, nil, fmt.Errorf(
 				"system: unreachable: unknown EvolutionSpec %T", e,
 			)
 		}
@@ -83,13 +85,14 @@ func buildProjections(
 	}
 
 	var allEntries []decoderTypeEntry
+	consumed = make(map[event.Type][]string)
 
 	for _, decl := range decls {
 		switch d := decl.(type) {
 		case ProjectionSpec:
 			queryDecl, entries, buildErr := d.build(evoIndex)
 			if buildErr != nil {
-				return nil, nil, buildErr
+				return nil, nil, nil, buildErr
 			}
 
 			queryDecls = append(queryDecls, queryDecl)
@@ -99,21 +102,26 @@ func buildProjections(
 					eventType:  e.eventType,
 					sampleType: reflect.TypeOf(e.sample),
 				})
+
+				consumed[event.Type(e.eventType)] = append(
+					consumed[event.Type(e.eventType)],
+					fmt.Sprintf("projection %q", d.name),
+				)
 			}
 		case rawQuerySpec:
 			queryDecls = append(queryDecls, d.decl)
 		default:
-			return nil, nil, fmt.Errorf(
+			return nil, nil, nil, fmt.Errorf(
 				"system: unreachable: unknown ProjectionDeclaration %T", decl,
 			)
+			}
 		}
-	}
 
 	if len(allEntries) > 0 {
 		eventDecoder = buildEventDecoder(allEntries)
 	}
 
-	return queryDecls, eventDecoder, nil
+	return queryDecls, eventDecoder, consumed, nil
 }
 
 // decoderTypeEntry pairs a wire event type with its reflect.Type.
