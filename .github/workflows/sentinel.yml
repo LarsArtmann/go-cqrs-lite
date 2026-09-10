@@ -43,9 +43,9 @@ jobs:
     name: EventCatalog render validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
       # Render-validates the EventCatalog exporter output. npm install is
       # network-bound and ~minutes slow, which is why it runs nightly rather
@@ -60,9 +60,9 @@ jobs:
     name: cqrs-upgrade dogfood (v5-readiness)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
       # The tool upgrades its own repo, dry-run + strict: --strict fails on
       # ANY v5-removed API usage across the 84 workspace modules (the
