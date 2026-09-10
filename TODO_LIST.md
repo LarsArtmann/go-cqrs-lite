@@ -459,8 +459,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       verified foreign at 15-09, owners landed since): DONE 2026-09-09 —
       cqrs-lint `fix.go` ×2 killed at the root by extracting the shared
       `staleByFile`/`finalizeFixResult` helpers (commit cec9248da);
-      `planned_parity` trio and csp_browser_test ↔ store_collaborators pair
-      attributed `//art-dupl:accept` with domain rationale (dep-isolated
+      the surviving duckdb+sqlite `planned_parity` sort clones (the reported
+      "pg" member dissolved — pgengine never had a planned_parity file; that
+      clone group vanished when the owner's work landed) and the
+      csp_browser_test ↔ store_collaborators pair were attributed
+      `//art-dupl:accept` with domain rationale (dep-isolated
       cross-engine pattern; unrelated mutex-guard idioms). Gate re-verified
       green 2026-09-11: 0 new clone groups (baseline 54). — source: 15-09
       §b2/§f3
