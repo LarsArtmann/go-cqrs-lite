@@ -43,19 +43,26 @@ type streamJournalEntry struct {
 
 func NewMemoryEngine() Engine {
 	return &memoryEngine{
-		data: &memData{
-			maps:          make(map[string]map[any]any),
-			sets:          make(map[string]map[any]struct{}),
-			counters:      make(map[string]map[string]int64),
-			multimaps:     make(map[string]map[any][]any),
-			logs:          make(map[string][]any),
-			streams:       make(map[string]map[string][]any),
-			streamJournal: make(map[string][]streamJournalEntry),
-		},
+		data:       newMemData(),
 		vectorIdx:  NewMemoryVectorIndex(),
 		searchIdx:  NewMemorySearchIndex(),
 		spatialIdx: NewMemorySpatialIndex(),
 		versions:   nil, // opt-in: use NewMemoryEngineWithVersioning for temporal queries
+	}
+}
+
+// newMemData returns an empty memData with every ADT collection map initialized
+// (graphs stay nil and are created lazily). Shared by NewMemoryEngine and
+// ResetEngine so a reset returns the engine to its exact post-construction state.
+func newMemData() *memData {
+	return &memData{
+		maps:          make(map[string]map[any]any),
+		sets:          make(map[string]map[any]struct{}),
+		counters:      make(map[string]map[string]int64),
+		multimaps:     make(map[string]map[any][]any),
+		logs:          make(map[string][]any),
+		streams:       make(map[string]map[string][]any),
+		streamJournal: make(map[string][]streamJournalEntry),
 	}
 }
 

@@ -36,6 +36,15 @@ func (p *poisonTracker) Check(collection string) error {
 	return p.m[collection]
 }
 
+// Clear removes all poison marks so a rebuilt collection is readable again.
+// Used by Store.Reset: a rebuild-from-zero must not inherit stale poison.
+func (p *poisonTracker) Clear() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.m = make(map[string]error)
+}
+
 // idempotencyTracker deduplicates event application by event ID.
 // Used by ApplyIdempotent for at-least-once delivery scenarios.
 //
@@ -98,6 +107,26 @@ func (t *idempotencyTracker) Len() int {
 	})
 
 	return count
+}
+
+// Clear empties the dedup window so a subsequent replay re-applies every event.
+// Used by Store.Reset: after a rebuild-from-zero the idempotency window must not
+// suppress the replayed events. The ring is rebuilt at its existing capacity;
+// the unbounded legacy map is drained in place.
+func (t *idempotencyTracker) Clear() {
+	if t.ring != nil {
+		t.mu.Lock()
+		defer t.mu.Unlock()
+
+		t.ring = dedup.NewRing(t.ring.Capacity())
+
+		return
+	}
+
+	t.seen.Range(func(k, _ any) bool {
+		t.seen.Delete(k)
+		return true
+	})
 }
 
 // workloadMeter tracks read/write counts and diagnostic counters for workload

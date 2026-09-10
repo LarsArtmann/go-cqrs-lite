@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — projectionhost: `Host.Reset` no longer silently leaves stale read-model state — 2026-09-10
+
+- **`Host.Reset` now logs a warning when the target projection does not
+  implement `projectionhost.Resettable`.** Previously such a reset cleared only
+  the checkpoint and returned `nil`, so the next `Start` replayed the journal on
+  top of whatever read-model state already existed — a silent partial revert that
+  only idempotent handlers happened to absorb. The warning names the projection
+  and states the remedy (implement `Resettable`, or acknowledge the
+  checkpoint-only intent explicitly). Pass the new
+  `projectionhost.WithKeepStaleState()` reset option to silence it when the
+  handler is idempotent or the read-model state is cleared out-of-band. This is
+  warn-first for v4.x: the warning becomes a hard error in v5 (it rides the
+  ADR-0123 composition-root wave), and `WithKeepStaleState` is the permanent
+  opt-out that keeps the checkpoint-only reset working. No existing v4 caller
+  breaks — Reset's signature and success behavior are unchanged.
+
 ### Fixed — watermill event wire protocol drops typed command causation (#21) — 2026-09-09
 
 - **`EventToMessage` now writes the typed command causation (ADR-0031) to
