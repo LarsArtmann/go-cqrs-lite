@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
+	"log/slog"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -49,6 +50,13 @@ func WithEventDecoder(dec EventDecoder) AdapterOption {
 	return func(a *Adapter) { a.eventDecoder = dec }
 }
 
+// WithLogger sets the structured logger used by [Adapter.Reset] to report a
+// partial reset (an engine that could not be bulk-cleared). Default:
+// slog.Default().
+func WithLogger(l *slog.Logger) AdapterOption {
+	return func(a *Adapter) { a.logger = l }
+}
+
 // Adapter wraps a [metaengine.Store] as a [projection.Projection], so a
 // metaengine Store can be registered with [projectionhost.Host] and process
 // events through the standard projection lifecycle (checkpoint, retry, DLQ).
@@ -66,6 +74,7 @@ type Adapter struct {
 	decoder      PayloadDecoder
 	eventDecoder EventDecoder
 	types        []event.Type
+	logger       *slog.Logger
 }
 
 // New creates a projection.Projection backed by a metaengine Store.
@@ -92,6 +101,7 @@ func New(
 		name:    name,
 		decoder: decoder,
 		types:   types,
+		logger:  slog.Default(),
 	}
 
 	for _, opt := range opts {

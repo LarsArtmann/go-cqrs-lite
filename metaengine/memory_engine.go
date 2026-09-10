@@ -82,6 +82,26 @@ func (m *memoryEngine) SetCalibration(costs CalibrationCosts) {
 	m.cal.SetCalibration(costs)
 }
 
+// ResetEngine implements [EngineResetter]: it drops ALL materialized state —
+// every ADT collection, the version chains (when versioning is enabled), and
+// the vector/search/spatial indexes — returning the engine to its empty
+// post-construction state so a journal replay rebuilds it from zero.
+func (m *memoryEngine) ResetEngine(_ context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.data = newMemData()
+	m.vectorIdx = NewMemoryVectorIndex()
+	m.searchIdx = NewMemorySearchIndex()
+	m.spatialIdx = NewMemorySpatialIndex()
+
+	if m.versions != nil {
+		m.versions = make(map[string]map[string]*versionChain)
+	}
+
+	return nil
+}
+
 func (m *memoryEngine) Profile() EngineProfile {
 	name := m.name
 	if name == "" {
