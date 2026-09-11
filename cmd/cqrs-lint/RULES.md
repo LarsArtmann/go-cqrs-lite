@@ -405,7 +405,7 @@ Manual bus.SubscribeAll without projectionhost
 
 Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `api`
 
-WrapEvent/UnwrapEvent adapter methods
+WrapEvent/UnwrapEvent (and ToEvent/FromEvent variants) adapter methods
 
 <a id="a007"></a>
 
