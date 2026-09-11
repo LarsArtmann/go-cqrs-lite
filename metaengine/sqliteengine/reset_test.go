@@ -160,7 +160,12 @@ func TestResetEngine_KeepsPlannedLayout(t *testing.T) {
 	}
 
 	mb := eng.(metaengine.MapBackend)
-	if err := mb.MapSet(ctx, "tasks", "t1", map[string]any{"status": "open", "priority": 1}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"tasks",
+		"t1",
+		map[string]any{"status": "open", "priority": 1},
+	); err != nil {
 		t.Fatalf("MapSet: %v", err)
 	}
 
@@ -170,7 +175,12 @@ func TestResetEngine_KeepsPlannedLayout(t *testing.T) {
 
 	// Layout survived: the planned table exists and is empty; a fresh write
 	// routes to it (meta_map stays untouched).
-	if err := mb.MapSet(ctx, "tasks", "t2", map[string]any{"status": "done", "priority": 2}); err != nil {
+	if err := mb.MapSet(
+		ctx,
+		"tasks",
+		"t2",
+		map[string]any{"status": "done", "priority": 2},
+	); err != nil {
 		t.Fatalf("MapSet after reset: %v", err)
 	}
 
@@ -179,7 +189,8 @@ func TestResetEngine_KeepsPlannedLayout(t *testing.T) {
 		baseRows    int
 	)
 
-	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM meta_planned_tasks").Scan(&plannedRows); err != nil {
+	if err := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM meta_planned_tasks").
+		Scan(&plannedRows); err != nil {
 		t.Fatalf("planned table must still exist after reset: %v", err)
 	}
 
@@ -187,7 +198,11 @@ func TestResetEngine_KeepsPlannedLayout(t *testing.T) {
 		"SELECT COUNT(*) FROM meta_map WHERE collection = 'tasks'").Scan(&baseRows)
 
 	if plannedRows != 1 || baseRows != 0 {
-		t.Fatalf("post-reset write must land in the planned table: planned=%d meta_map=%d", plannedRows, baseRows)
+		t.Fatalf(
+			"post-reset write must land in the planned table: planned=%d meta_map=%d",
+			plannedRows,
+			baseRows,
+		)
 	}
 
 	val, ok, err := mb.MapGet(ctx, "tasks", "t1")

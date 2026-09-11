@@ -66,7 +66,11 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if closest, dist := nearestMatch(fc.Value, emittedList); dist <= 2 && !handledSet[closest] {
+				if closest, dist := nearestMatch(
+					fc.Value,
+					emittedList,
+				); dist <= 2 &&
+					!handledSet[closest] {
 					// A near-miss emitter exists and nothing folds it — C038
 					// reports the mismatch from the emit side.
 					continue
@@ -77,7 +81,8 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					fmt.Sprintf(
 						"Fold case %q in %s is never emitted via event.New and the catalog does not declare it — "+
 							"dead code or a typo in the fold case string",
-						fc.Value, fc.FoldName,
+						fc.Value,
+						fc.FoldName,
 					),
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(fc.File), fc.Pos.Line, fc.Pos.Column),

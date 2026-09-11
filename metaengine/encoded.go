@@ -2,8 +2,8 @@ package metaengine
 
 import (
 	"context"
-	"encoding/json/v2"
 	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"reflect"
@@ -46,7 +46,9 @@ func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []by
 // folds receive only the decoded payload, as usual.
 func (s *Store) ApplyEncodedRecord(ctx context.Context, rec record.Record, payload []byte) error {
 	if rec.Type == "" {
-		return errors.New("metaengine.Store.ApplyEncodedRecord: Record.Type is empty — it must name the event type")
+		return errors.New(
+			"metaengine.Store.ApplyEncodedRecord: Record.Type is empty — it must name the event type",
+		)
 	}
 
 	return s.applyWithRecord(ctx, rec.Type, rec, rawJSON(payload))
@@ -72,7 +74,10 @@ func decodeRawFoldPayload(fold Fold, payload any) (any, error) {
 		return payload, nil
 	}
 
-	if t := derefType(fold.EventSample()); t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8 {
+	if t := derefType(
+		fold.EventSample(),
+	); t.Kind() == reflect.Slice &&
+		t.Elem().Kind() == reflect.Uint8 {
 		return []byte(raw), nil
 	}
 

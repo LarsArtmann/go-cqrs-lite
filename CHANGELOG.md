@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine: turso-go IVM defect repro suite + single-sourced verified-version citation — 2026-09-11
+
+- **Added the `-tags ivmrepro` one-command release check** for the three
+  upstream turso-go IVM defects blocking grouped materialized views
+  (ADR-0135): `TestIVMReproDefectA_GroupedDeltaLossAt2k` (the documented
+  430.50 delta), `TestIVMReproDefectB_GroupedViewCollapsesAtScale` (plus the
+  scalar-exactness-at-scale pin), and
+  `TestIVMReproDefectC_CommitAbortsAtRowWall` (24 fresh-file rounds with
+  post-abort clean-rollback and poisoned-file probes). The suite asserts the
+  defects PRESENT, so a failure is the loud flip signal; the procedure lives
+  in `docs/turso-go-ivm-fix-flip-runbook.md`. Checks a new turso-go release
+  in one command instead of ~45 minutes of repro reconstruction.
+- **Added `metaengine.TursoGoIVMVerifiedFrom` / `TursoGoIVMVerifiedThrough` /
+  `TursoGoIVMLastVerified`** — the canonical "verified through vX" citation
+  for the grouped-matview upstream caveat. The grouped-view Doctor WARN now
+  renders the constants instead of hard-coded strings, and the new
+  `check-turso-version` gate (`nix run .#check-turso-version`, wired into
+  `#verify`/`#verify-fast`) fails when any live doc/test citation names a
+  different version — killing the 9-site whack-a-mole on every
+  re-verification.
+- **Added the upstream-fix flip runbook**
+  (`docs/turso-go-ivm-fix-flip-runbook.md`) consolidating flip knowledge that
+  was spread across a test comment and prose: release check → guard enforce →
+  WARN removal → citation bump → bench un-skip → land.
+
 ### Fixed — metaengine: encoded-apply record-context gap closed, entry-point conformance sweep added — 2026-09-11
 
 - **`ApplyEncoded` is now a full pipeline citizen instead of a side door.**

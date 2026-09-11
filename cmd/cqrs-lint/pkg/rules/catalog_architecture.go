@@ -163,7 +163,7 @@ func architectureRules() []RuleInfo {
 			Category:    "architecture",
 			Severity:    "warning",
 			Confidence:  "medium",
-			Description: "Projection handles an event type nothing emits or catalogs — typo class, mirror of E006",
+			Description: "Projection handles an event type nothing emits or catalogs — typo class, mirror of E006; fold-side twin: C040",
 			AutoFix:     false,
 		},
 	}

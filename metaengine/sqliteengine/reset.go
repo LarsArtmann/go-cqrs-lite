@@ -50,14 +50,24 @@ func (e *sqliteEngine) ResetEngine(ctx context.Context) error {
 
 	for _, table := range resetBaseTables {
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+table); err != nil {
-			return rollbackReturning(tx, fmt.Errorf("sqliteengine.ResetEngine: clear %s: %w", table, err))
+			return rollbackReturning(
+				tx,
+				fmt.Errorf("sqliteengine.ResetEngine: clear %s: %w", table, err),
+			)
 		}
 	}
 
 	for col, plan := range e.plans {
-		if _, err := tx.ExecContext(ctx, "DELETE FROM "+metaengine.QuoteIdent(plan.Table)); err != nil {
+		if _, err := tx.ExecContext(
+			ctx,
+			"DELETE FROM "+metaengine.QuoteIdent(plan.Table),
+		); err != nil {
 			return rollbackReturning(tx, fmt.Errorf(
-				"sqliteengine.ResetEngine: clear planned table %s (collection %s): %w", plan.Table, col, err))
+				"sqliteengine.ResetEngine: clear planned table %s (collection %s): %w",
+				plan.Table,
+				col,
+				err,
+			))
 		}
 	}
 

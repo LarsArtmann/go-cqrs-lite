@@ -338,7 +338,7 @@ Unmanaged goroutine inside event/command handler — resource leak and ordering 
 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `correctness`
 
-Fold switch case handles an event type that is never emitted via event.New — dead code or a typo in the fold case string
+Fold switch case handles an event type never emitted and not in the catalog — dead code or a typo; provider parity with E018, fires beside a handled near-miss twin
 
 <a id="c041"></a>
 
@@ -1241,7 +1241,7 @@ signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
 
-Projection handles an event type nothing emits or catalogs — typo class, mirror of E006
+Projection handles an event type nothing emits or catalogs — typo class, mirror of E006; fold-side twin: C040
 
 
 ## Security

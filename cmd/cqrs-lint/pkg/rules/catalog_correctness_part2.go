@@ -170,7 +170,7 @@ func correctnessRulesPart2() []RuleInfo {
 			Category:    "correctness",
 			Severity:    "warning",
 			Confidence:  "medium",
-			Description: "Fold switch case handles an event type that is never emitted via event.New — dead code or a typo in the fold case string",
+			Description: "Fold switch case handles an event type never emitted and not in the catalog — dead code or a typo; provider parity with E018, fires beside a handled near-miss twin",
 			AutoFix:     false,
 		},
 		{

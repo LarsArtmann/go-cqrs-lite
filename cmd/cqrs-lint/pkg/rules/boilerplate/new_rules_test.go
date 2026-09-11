@@ -260,7 +260,10 @@ func withRetry(fn func() error) error {
 		}
 
 		if !strings.Contains(f.Message, "bitshift backoff") {
-			t.Errorf("B008 bitshift escalation: message %q does not mention bitshift backoff", f.Message)
+			t.Errorf(
+				"B008 bitshift escalation: message %q does not mention bitshift backoff",
+				f.Message,
+			)
 		}
 	}
 }

@@ -13,16 +13,16 @@ import (
 // gains a tag, this list AND the reset test must grow together (the test
 // walks every ADT, so a missed tag fails it).
 var resetTagPrefixes = [][]byte{
-	[]byte("m\x00"),    // map
-	[]byte("s\x00"),    // set
-	[]byte("c\x00"),    // counter
-	[]byte("mm\x00"),   // multimap
-	[]byte("l\x00"),    // log
-	[]byte("sl\x00"),   // stream log
-	[]byte("jl\x00"),   // journal index
-	[]byte("vec\x00"),  // vector embeddings
-	[]byte("vecm\x00"), // vector metadata
-	[]byte("edge\x00"), // graph forward adjacency
+	[]byte("m\x00"),     // map
+	[]byte("s\x00"),     // set
+	[]byte("c\x00"),     // counter
+	[]byte("mm\x00"),    // multimap
+	[]byte("l\x00"),     // log
+	[]byte("sl\x00"),    // stream log
+	[]byte("jl\x00"),    // journal index
+	[]byte("vec\x00"),   // vector embeddings
+	[]byte("vecm\x00"),  // vector metadata
+	[]byte("edge\x00"),  // graph forward adjacency
 	[]byte("edger\x00"), // graph reverse adjacency
 }
 

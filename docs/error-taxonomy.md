@@ -69,6 +69,14 @@ errorfamily.Classify(err) // => Conflict
 
 ## Error Families by Module
 
+> The `middleware`, `graph`, `storage/relational`, `projectionhost`, and
+> `transport/grpc` sections are mechanically drift-gated: every code below is
+> extracted from the module's `errorfamily.*` call sites by
+> `scripts/check-error-taxonomy.sh` (CI + `nix run .#verify`) and diffed
+> against this document in both directions — a code missing here, a stale
+> entry, or a wrong family label fails the build. Extend the gate by adding
+> modules to `GATED_MODULES` in the script.
+
 ### core/event
 
 | Error                     | Family    | Code                           |
@@ -102,31 +110,63 @@ errorfamily.Classify(err) // => Conflict
 
 ### middleware
 
-| Context            | Family         | Code                           |
-| ------------------ | -------------- | ------------------------------ |
-| Validation failure | Rejection      | `middleware.validation_failed` |
-| Retry exhausted    | Infrastructure | `middleware.retry_exhausted`   |
-| Panic recovery     | Corruption     | `middleware.panic_recovered`   |
-| Meter required     | Rejection      | `middleware.meter_required`    |
+Retry/backoff and circuit-breaker misconfiguration is **Rejection** (bad
+config); runtime exhaustion is **Infrastructure**; a recovered panic is
+**Corruption** (state after a panic is suspect). Note the two breaker codes:
+`middleware.circuit_open` (Transient — the breaker half-opens and retries)
+vs `middleware.circuit_breaker_open` (Infrastructure — breaker wrap).
+Dead-letter-store rows are Transient for reads (may succeed next poll) and
+Infrastructure for DDL/maintenance; malformed stored timestamps are
+**Corruption**.
+
+| Context                    | Family         | Code |
+| -------------------------- | -------------- | ---- |
+| Validation failure         | Rejection      | `middleware.validation_failed` |
+| Meter required             | Rejection      | `middleware.meter_required` |
+| Retry config invalid       | Rejection      | `middleware.invalid_initial_delay`, `middleware.invalid_max_attempts`, `middleware.invalid_multiplier` |
+| Breaker config invalid     | Rejection      | `middleware.cb_invalid_failure_threshold`, `middleware.cb_invalid_success_threshold`, `middleware.cb_invalid_timeout` |
+| Retry exhausted/canceled   | Infrastructure | `middleware.retry_exhausted`, `middleware.retry_canceled` |
+| Breaker open (retryable)  | Transient      | `middleware.circuit_open` |
+| Breaker open (wrap)       | Infrastructure | `middleware.circuit_breaker_open` |
+| OTel recorder init         | Infrastructure | `middleware.otel_recorder_init` |
+| Panic recovery             | Corruption     | `middleware.panic_recovered` |
+| Dead-letter malformed data | Corruption     | `middleware.deadletter_sql.parse_time`, `middleware.deadletter_sql.unexpected_string_type`, `middleware.deadletter_sql.unexpected_time_type`, `middleware.deadletter.unexpected_time_type` |
+| Dead-letter reads          | Transient      | `deadletter.count`, `deadletter.query`, `deadletter.rows_err` |
+| Dead-letter DDL/maintenance | Infrastructure | `deadletter.clear`, `deadletter.create_table`, `deadletter.migrate` |
 
 ### graph
 
-All graph sentinels (schema validation, sink enforcement, read API) are **Rejection**.
+All graph validation sentinels (schema, sink, node/edge refs, read API,
+query decode) are **Rejection**; only projection lifecycle failures are
+**Infrastructure**.
 
-| Error             | Family    | Code                            |
-| ----------------- | --------- | ------------------------------- |
-| `ErrPathNotFound` | Rejection | `graph.read.path_not_found`     |
-| Schema violations | Rejection | `graph.schema.*` (12 sentinels) |
-| Sink violations   | Rejection | `graph.sink.*` (5 sentinels)    |
+| Error                    | Family         | Code |
+| ------------------------ | -------------- | ---- |
+| `ErrPathNotFound`        | Rejection      | `graph.read.path_not_found` |
+| Schema violations        | Rejection      | `graph.schema.*` (16 sentinels) |
+| Sink violations          | Rejection      | `graph.sink.*` (5 sentinels) |
+| Node/Edge ref validation | Rejection      | `graph.noderef.*`, `graph.edgeref.*` |
+| Query decode             | Rejection      | `graph.edge_from`, `graph.edge_to`, `graph.shortest_path_from`, `graph.shortest_path_to` |
+| Projection constructor   | Rejection      | `graph.projection.driver_required`, `graph.projection.handler_required`, `graph.projection.name_required` |
+| Projection close         | Infrastructure | `graph.projection.close` |
 
 ### storage/relational
 
-All relational schema and sink sentinels are **Rejection**.
+Validation sentinels (schema, sink enforcement, nil-guard) are
+**Rejection** — both the dotted (`relational.schema.*`) and legacy
+underscore (`relational.schema_*`) spellings. Operational wraps split:
+row-scan/reconstruction is **Corruption**, DDL/queries/writes are
+**Transient** (the SQL tier treats per-statement failures as retryable —
+the caller decides via `errorfamily.IsRetryable`).
 
-| Error             | Family    | Code                                |
-| ----------------- | --------- | ----------------------------------- |
-| Schema violations | Rejection | `relational.schema.*` (8 sentinels) |
-| Sink violations   | Rejection | `relational.sink.*` (4 sentinels)   |
+| Error                     | Family    | Code |
+| ------------------------- | --------- | ---- |
+| Schema validation (dotted) | Rejection | `relational.schema.column_name_required`, `relational.schema.column_type_required`, `relational.schema.columns_required`, `relational.schema.duplicate_column`, `relational.schema.duplicate_table`, `relational.schema.index_no_name`, `relational.schema.no_tables`, `relational.schema.table_name_required`, `relational.schema.unique_no_name`, `relational.schema.unknown_index_column`, `relational.schema.unknown_pk_column`, `relational.schema.unknown_unique_column` |
+| Schema validation (legacy) | Rejection | `relational.schema_column_no_name`, `relational.schema_column_no_type`, `relational.schema_duplicate_column`, `relational.schema_duplicate_table`, `relational.schema_index_no_name`, `relational.schema_table`, `relational.schema_unknown_index_col`, `relational.schema_unknown_pk`, `relational.schema_unique_no_name`, `relational.schema_unknown_unique_col` |
+| Sink validation            | Rejection | `relational.sink.counter_in_key`, `relational.sink.empty_row`, `relational.sink.key_missing_pk`, `relational.sink.no_rows`, `relational.sink.unknown_column`, `relational.sink.unknown_table`, `relational.sink_counter_in_key`, `relational.sink_key_missing_pk`, `relational.sink_no_rows`, `relational.sink_unknown_column`, `relational.sink_unknown_table` |
+| Nil guards / operator      | Rejection | `relational.nil_db`, `relational.nil_dialect`, `relational.nil_handler`, `relational.no_name`, `relational.conditions`, `relational.query_no_columns`, `relational.unknown_column`, `relational.unknown_table`, `relational.unsupported_operator` |
+| Row scan / reconstruct     | Corruption | `relational.scan_row`, `relational.sink_query` |
+| DDL / query / write wraps  | Transient | `relational.count`, `relational.migrate`, `relational.query`, `relational.rows_err`, `relational.projection_begin_tx`, `relational.projection_commit`, `relational.projection_reset`, `relational.sink_delete`, `relational.sink_ensure`, `relational.sink_increment`, `relational.sink_update`, `relational.sink_upsert`, `relational.sink_upsert_cols`, `relational.sink_upsert_expr` |
 
 ### storage/view
 
@@ -150,19 +190,34 @@ All bundle misconfiguration sentinels are **Rejection**.
 
 ### projectionhost
 
-| Error                  | Family         | Code                              |
-| ---------------------- | -------------- | --------------------------------- |
-| Constructor violations | Rejection      | `projectionhost.*` (6 sentinels)  |
-| Shutdown timeout       | Infrastructure | `projectionhost.shutdown_timeout` |
+Constructor/config violations are **Rejection**; DLQ and reset operations
+are **Infrastructure** (they wrap store failures); reconstructing a stored
+dead letter is **Corruption**; staleness checks are **Transient** (may
+pass on the next tick).
+
+| Error                    | Family         | Code |
+| ------------------------ | -------------- | ---- |
+| Constructor violations   | Rejection      | `projectionhost.already_started`, `projectionhost.checkpoint_store_required`, `projectionhost.duplicate_name`, `projectionhost.empty_projection_name`, `projectionhost.journal_required`, `projectionhost.nil_db`, `projectionhost.no_dead_letter_store`, `projectionhost.register_after_start`, `projectionhost.reset_while_running`, `projectionhost.unknown_projection` |
+| Shutdown timeout         | Infrastructure | `projectionhost.shutdown_timeout` |
+| Checkpoint / worker ops  | Infrastructure | `projectionhost.reset_checkpoint`, `projectionhost.reset_projection`, `projectionhost.save_checkpoint_live`, `projectionhost.worker_failed` |
+| DLQ operations           | Infrastructure | `projectionhost.dlq_count`, `projectionhost.dlq_delete`, `projectionhost.dlq_list`, `projectionhost.dlq_list_paged`, `projectionhost.dlq_purge`, `projectionhost.dlq_purge_before`, `projectionhost.dlq_scan`, `projectionhost.dlq_schema`, `projectionhost.dlq_store`, `projectionhost.list_dead_letters`, `projectionhost.reset_dlq_purge` |
+| DLQ reconstruct          | Corruption     | `projectionhost.dlq_reconstruct` |
+| Staleness check          | Transient      | `projectionhost.stale` |
 
 ### transport/grpc
 
-| Error              | Family         | Code                      |
-| ------------------ | -------------- | ------------------------- |
-| Dispatch failure   | Infrastructure | `grpc.dispatch_failed`    |
-| Query failure      | Infrastructure | `grpc.query_failed`       |
-| Unmarshal result   | Corruption     | `grpc.unmarshal_result`   |
-| Missing command ID | Rejection      | `grpc.missing_command_id` |
+Transport wraps are **Infrastructure**; decoding a corrupt wire payload is
+**Corruption**; request validation is **Rejection**.
+
+| Error                    | Family         | Code |
+| ------------------------ | -------------- | ---- |
+| Dispatch failure         | Infrastructure | `grpc.dispatch_failed`, `grpc.dispatch` |
+| Query failure            | Infrastructure | `grpc.query_failed`, `grpc.ask` |
+| Event client streaming   | Infrastructure | `grpc.event_client.open_stream`, `grpc.event_client.receive` |
+| Event server streaming   | Infrastructure | `grpc.event_server.send`, `grpc.event_server.subscribe` |
+| Unmarshal/marshal result | Corruption     | `grpc.unmarshal_result`, `grpc.query.marshal_result`, `grpc.event_client.decode`, `grpc.event_client.reconstruct` |
+| Missing command ID       | Rejection      | `grpc.missing_command_id`, `grpc.dispatch_missing_id` |
+| Command/stream ID parse  | Rejection      | `grpc.command.create`, `grpc.command.parse_stream_id`, `grpc.event_client.parse_stream_id` |
 
 ### deriver
 

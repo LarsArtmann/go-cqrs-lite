@@ -29,12 +29,12 @@ type moduleReport struct {
 // array when clean) so consumers never rely on key-absence folklore to
 // tell "clean" from "old CLI" or a failed scan.
 type moduleJSON struct {
-	Dir                    string        `json:"dir"`
-	NoPins                 bool          `json:"noPins,omitempty"`
-	Error                  string        `json:"error,omitempty"`
-	Bumps                  []bumpJSON    `json:"bumps,omitempty"`
-	Deprecations           []findingJSON `json:"deprecations"`
-	DeprecationScanError   string        `json:"deprecationScanError,omitempty"`
+	Dir                  string        `json:"dir"`
+	NoPins               bool          `json:"noPins,omitempty"`
+	Error                string        `json:"error,omitempty"`
+	Bumps                []bumpJSON    `json:"bumps,omitempty"`
+	Deprecations         []findingJSON `json:"deprecations"`
+	DeprecationScanError string        `json:"deprecationScanError,omitempty"`
 }
 
 // toJSON converts the report for the wire, including every bump with its

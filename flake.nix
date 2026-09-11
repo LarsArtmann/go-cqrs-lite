@@ -884,9 +884,11 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-doc-stubs.sh"
             '';
 
-            check-turso-version = mkApp "check-turso-version" [ pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gnused ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/check-turso-version.sh"
-            '';
+            check-turso-version =
+              mkApp "check-turso-version" [ pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gnused ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-turso-version.sh"
+                '';
 
             check-arch = mkApp "check-arch" [ goPkg pkgs.bash pkgs.go-arch-lint pkgs.findutils pkgs.gnugrep ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
@@ -917,14 +919,17 @@
             # repos — the issue-#20 guards, the standalone-build gate, and
             # exact tree restore. These tests are how the tagger's
             # binary-pollution bug class stays fixed: run in CI, not ad hoc.
-            check-release-scripts = mkApp "check-release-scripts" [
-              pkgs.bash
-              pkgs.git
-              goPkg
-            ] ''
-              ${pkgs.bash}/bin/bash "$PWD/scripts/test-tag-release.sh"
-              ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
-            '';
+            check-release-scripts =
+              mkApp "check-release-scripts"
+                [
+                  pkgs.bash
+                  pkgs.git
+                  goPkg
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-tag-release.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
+                '';
 
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version

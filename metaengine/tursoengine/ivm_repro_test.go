@@ -91,7 +91,12 @@ func ivmOpenReproEngine(t *testing.T, name string) *ivmReproEngine {
 		filepath.Join(t.TempDir(), name),
 		tursoengine.WithMaterializedViews([]metaengine.MaterializedViewSpec{
 			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+			{
+				Collection: "orders",
+				Fn:         metaengine.MatViewSum,
+				Column:     "amount",
+				GroupBy:    "customer",
+			},
 		}),
 	)
 	if err != nil {
@@ -176,8 +181,13 @@ func TestIVMReproDefectA_GroupedDeltaLossAt2k(t *testing.T) {
 			want,
 		)
 	}
-	t.Logf("defect A present: view %.2f vs base %.2f over %d groups (delta %.2f; draft documents 430.50)",
-		got, want, groups, want-got)
+	t.Logf(
+		"defect A present: view %.2f vs base %.2f over %d groups (delta %.2f; draft documents 430.50)",
+		got,
+		want,
+		groups,
+		want-got,
+	)
 
 	if scalar := r.scalarSum(t); scalar != want {
 		t.Fatalf(
@@ -230,7 +240,10 @@ func TestIVMReproDefectB_GroupedViewCollapsesAtScale(t *testing.T) {
 
 		committed = start + ivmChunkSize
 		if milestones[committed] {
-			if got, _ := r.groupedSumTotal(t); got != ivmExpectedSum(committed) && firstDivergence == 0 {
+			if got, _ := r.groupedSumTotal(
+				t,
+			); got != ivmExpectedSum(committed) &&
+				firstDivergence == 0 {
 				firstDivergence = committed
 				t.Logf("first grouped divergence at %d rows", committed)
 			}
@@ -242,7 +255,8 @@ func TestIVMReproDefectB_GroupedViewCollapsesAtScale(t *testing.T) {
 	if commitAborted && committed < rows {
 		t.Logf(
 			"defect C wall onset moved earlier (%d < %d rows) — see TestIVMReproDefectC for the deterministic position",
-			committed, rows,
+			committed,
+			rows,
 		)
 	}
 
@@ -257,11 +271,21 @@ func TestIVMReproDefectB_GroupedViewCollapsesAtScale(t *testing.T) {
 	if loss := want - got; loss <= want/2 {
 		t.Fatalf(
 			"defect B signature changed: view diverged (first at %d rows) but did NOT collapse at %d rows (view %.2f vs base %.2f, %.1f%% loss) — investigate before any pin bump",
-			firstDivergence, committed, got, want, 100*loss/want,
+			firstDivergence,
+			committed,
+			got,
+			want,
+			100*loss/want,
 		)
 	}
-	t.Logf("defect B present: view %.2f vs base %.2f over %d groups at %d rows (first divergence at %d)",
-		got, want, groups, committed, firstDivergence)
+	t.Logf(
+		"defect B present: view %.2f vs base %.2f over %d groups at %d rows (first divergence at %d)",
+		got,
+		want,
+		groups,
+		committed,
+		firstDivergence,
+	)
 
 	if scalarExactThrough == 0 {
 		t.Fatalf(
@@ -306,13 +330,15 @@ func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 		if abortedAt == 0 {
 			t.Fatalf(
 				"round %d: no COMMIT abort through %d cumulative view-maintained rows — defect C did not reproduce; upstream may have fixed it; flip per docs/turso-go-ivm-fix-flip-runbook.md",
-				round, bound,
+				round,
+				bound,
 			)
 		}
 		if abortedAt <= ivmChunkSize {
 			t.Fatalf(
 				"round %d: COMMIT aborted at %d rows — before even one full chunk committed; the wall signature changed, investigate before any pin bump",
-				round, abortedAt,
+				round,
+				abortedAt,
 			)
 		}
 		abortRows = append(abortRows, abortedAt)
@@ -321,14 +347,42 @@ func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 		// not persist. Reading through the SAME engine only proves the
 		// zombie-transaction visibility artifact — close and reopen the file
 		// fresh first.
-		_ = r.eng.Close()
-		reopened := ivmOpenReproEngine(t, fmt.Sprintf("defectC_round%02d.db", round))
-		if _, found, getErr := reopened.mb.MapGet(ctx, "orders", ivmKey(abortedAt-ivmChunkSize)); getErr != nil {
+		path := filepath.Join(t.TempDir(), fmt.Sprintf("defectC_round%02d.db", round))
+		if err := r.eng.Close(); err != nil {
+			t.Fatalf("round %d: close pre-reopen: %v", round, err)
+		}
+		reopenedEng, err := tursoengine.New(
+			path,
+			tursoengine.WithMaterializedViews([]metaengine.MaterializedViewSpec{
+				{
+					Collection: "orders",
+					Fn:         metaengine.MatViewSum,
+					Column:     "amount",
+					GroupBy:    "customer",
+				},
+			}),
+		)
+		if err != nil {
+			t.Fatalf("round %d: post-abort reopen of %s failed: %v", round, path, err)
+		}
+		reopened := &ivmReproEngine{
+			eng: reopenedEng,
+			mb:  reopenedEng.(metaengine.MapBackend),
+			txn: reopenedEng.(metaengine.Transactional),
+		}
+		t.Cleanup(func() { _ = reopenedEng.Close() })
+
+		if _, found, getErr := reopened.mb.MapGet(
+			ctx,
+			"orders",
+			ivmKey(abortedAt-ivmChunkSize),
+		); getErr != nil {
 			t.Fatalf("round %d: post-abort base read: %v", round, getErr)
 		} else if found {
 			t.Fatalf(
 				"round %d: COMMIT failed at %d rows but the aborted chunk's first row PERSISTED (visible after fresh reopen) — clean-rollback contract broken; NEW upstream defect, do not pin-bump",
-				round, abortedAt,
+				round,
+				abortedAt,
 			)
 		}
 
@@ -342,6 +396,9 @@ func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 
 	t.Logf(
 		"defect C present in %d/%d rounds; abort rows span %d..%d (draft: deterministic at chunk 27000)",
-		len(abortRows), rounds, abortRows[0], abortRows[len(abortRows)-1],
+		len(abortRows),
+		rounds,
+		abortRows[0],
+		abortRows[len(abortRows)-1],
 	)
 }
