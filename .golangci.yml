@@ -161,7 +161,7 @@ linters:
       min-complexity: 35
     goconst:
       ignore-tests: true
-      min-length: 4
+      min-len: 4
       min-occurrences: 5
     gocritic:
       disabled-checks:
