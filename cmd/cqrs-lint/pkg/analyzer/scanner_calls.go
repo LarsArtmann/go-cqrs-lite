@@ -222,6 +222,16 @@ func capturePayloadType(ctx *AnalysisContext, call *ast.CallExpr) {
 				ctx.Registry.EventPayloadTypes[id.Name] = true
 				return
 			}
+		case *ast.UnaryExpr:
+			// &T{...} — pointer composite literal, the dominant payload form
+			// (events are appended by pointer). Without this case the
+			// registry missed exactly the payloads real code emits.
+			if lit, ok := a.X.(*ast.CompositeLit); ok {
+				if id, ok := lit.Type.(*ast.Ident); ok {
+					ctx.Registry.EventPayloadTypes[id.Name] = true
+					return
+				}
+			}
 		case *ast.Ident:
 			ctx.Registry.EventPayloadTypes[a.Name] = true
 			return

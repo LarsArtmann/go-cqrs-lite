@@ -112,7 +112,7 @@ else
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$TEST_TIMEOUT" \
-				go test -tags "integration goexperiment.jsonv2" ./... \
+				go test -tags "integration goexperiment.jsonv2" -shuffle=on ./... \
 				-count=1 -v "${EXTRA_ARGS[@]}" 2>&1
 		) || FAILED=1
 	done

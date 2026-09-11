@@ -24,6 +24,12 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
+			typedTier := ctx.TypedConfirmations()
+			var ev *typedEvidence
+			if typedTier {
+				ev = buildTypedEvidence(ctx)
+			}
+
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
@@ -47,7 +53,8 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						structName := typeSpec.Name.Name
-						if !looksLikeReadModel(structName, gf.Path) {
+						kind := classifyC035Candidate(structName, gf.Path)
+						if kind == c035NotCandidate {
 							continue
 						}
 
@@ -61,6 +68,14 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						if !fileImportsSync(gf.AST) && structHasAllJSONTags(structType) {
+							continue
+						}
+
+						// F091 Tier 3: a weak candidate (generic handler/store/cache
+						// suffix or file-location match) corroborated by nothing but the
+						// name additionally needs evidence the map is live state — some
+						// selector references the field in the analyzed files.
+						if kind == c035WeakCandidate && typedTier && !ev.mapFieldUsed(mapFields) {
 							continue
 						}
 
@@ -92,27 +107,6 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// looksLikeReadModel returns true if the struct name or file path suggests
-// it is a read model, projection, or event handler that processes events
-// concurrently.
-func looksLikeReadModel(structName, filePath string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{
-		"VIEW", "READMODEL", "READMODELSTATE", "PROJECTION",
-		"HANDLER", "PROJECTOR", "STORE", "CACHE",
-	} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	base := lintutil.BaseFileName(filePath)
-
-	return base == "views" || base == "projection" || base == "readmodel" ||
-		base == "handler" || base == "handlers"
 }
 
 // findMapFields returns the names of map-type fields in a struct.

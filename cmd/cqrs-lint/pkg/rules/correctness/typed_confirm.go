@@ -80,28 +80,10 @@ func collectTypeMethods(file *ast.File, into map[string]bool) {
 			continue
 		}
 
-		if name := receiverTypeName(fn); name != "" {
+		if name := receiverTypeName(fn.Recv.List[0].Type); name != "" {
 			into[name] = true
 		}
 	}
-}
-
-// receiverTypeName extracts the named type from a method receiver (T or *T).
-func receiverTypeName(fn *ast.FuncDecl) string {
-	if len(fn.Recv.List) == 0 {
-		return ""
-	}
-
-	switch t := fn.Recv.List[0].Type.(type) {
-	case *ast.StarExpr:
-		if id, ok := t.X.(*ast.Ident); ok {
-			return id.Name
-		}
-	case *ast.Ident:
-		return t.Name
-	}
-
-	return ""
 }
 
 // returnsString reports whether the function declares a single string result.

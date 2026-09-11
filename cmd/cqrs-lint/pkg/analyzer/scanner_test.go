@@ -60,6 +60,31 @@ func emit() {
 	}
 }
 
+func TestCapturePayloadType_PointerCompositeLiteral(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+type UserCreated struct {
+	Name string
+}
+
+func emit() error {
+	_, err := event.New("user.created", id, "User", 1, &UserCreated{Name: "Alice"})
+	return err
+}
+`,
+	})
+
+	if !ctx.Registry.EventPayloadTypes["UserCreated"] {
+		t.Errorf(
+			"expected &UserCreated{} payload to register UserCreated, got: %v",
+			ctx.Registry.EventPayloadTypes,
+		)
+	}
+}
+
 func TestScanCallExpr_EventTypesEmitted(t *testing.T) {
 	t.Parallel()
 

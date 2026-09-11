@@ -29,6 +29,12 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			var findings []finding.Finding
 
+			typedTier := ctx.TypedConfirmations()
+			var ev *typedEvidence
+			if typedTier {
+				ev = buildTypedEvidence(ctx)
+			}
+
 			for _, gf := range ctx.GoFiles {
 				if gf.IsTest {
 					continue
@@ -52,17 +58,7 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						structName := typeSpec.Name.Name
-						if lintutil.LooksLikeEventPayload(structName, gf.Path) {
-							checkStructFields(ctx, gf, structName, structType.Fields, &findings)
-						} else if looksLikeProjectionView(structName, gf.Path) {
-							checkProjectionTimeFields(
-								ctx,
-								gf,
-								structName,
-								structType.Fields,
-								&findings,
-							)
-						}
+						checkC013Struct(ctx, typedTier, ev, gf, structName, structType, &findings)
 					}
 				}
 			}
@@ -70,6 +66,38 @@ func NewC013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// checkC013Struct runs the payload/view field checks for one classified
+// struct, gating file-name-only candidates behind the F091 Tier-3 typed
+// confirmation: an ambient payload candidate needs payload evidence (a real
+// event.New payload flow or a Type() string method); an ambient view candidate
+// needs a serialization point (any json tag). Strong name-suffix candidates
+// and the typed-off fallback run the historical heuristic unchanged.
+func checkC013Struct(
+	ctx *analyzer.AnalysisContext,
+	typedTier bool,
+	ev *typedEvidence,
+	gf *analyzer.GoFile,
+	structName string,
+	st *ast.StructType,
+	findings *[]finding.Finding,
+) {
+	switch classifyC013Candidate(structName, gf.Path) {
+	case c013PayloadByName:
+		checkStructFields(ctx, gf, structName, st.Fields, findings)
+	case c013PayloadByFile:
+		if !typedTier || ev.payloadConfirmed(structName) {
+			checkStructFields(ctx, gf, structName, st.Fields, findings)
+		}
+	case c013ViewByName:
+		checkProjectionTimeFields(ctx, gf, structName, st.Fields, findings)
+	case c013ViewByFile:
+		if !typedTier || viewSerialized(st) {
+			checkProjectionTimeFields(ctx, gf, structName, st.Fields, findings)
+		}
+	default:
+	}
 }
 
 // checkStructFields checks all fields in a struct for time.Time usage,
@@ -172,22 +200,6 @@ func suggestReplacement(fieldName string) string {
 		"or event.WallTime for local times (schedules, reminders). " +
 		"For calendar dates (birth dates, employment dates), use event.Date. " +
 		"See docs/TIMEZONE_HANDLING.md for guidance."
-}
-
-// looksLikeProjectionView returns true if the struct name or file path
-// suggests it is a projection/read-model view struct.
-func looksLikeProjectionView(structName, filePath string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{"VIEW", "READMODEL", "READMODELSTATE", "PROJECTION"} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	base := lintutil.BaseFileName(filePath)
-
-	return base == "views" || base == "projection" || base == "readmodel"
 }
 
 // checkProjectionTimeFields checks for time.Time fields in projection view
