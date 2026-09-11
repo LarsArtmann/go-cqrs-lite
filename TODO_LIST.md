@@ -636,90 +636,141 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
-- [ ] **Skill-reference propagation wave** (`references/*.md`): envelope v2 +
-      rotation write-back recipe (recipes.md §2.7 extension); `doctor
-      --format json` + `check-csp`/`check-eventcatalog` apps; MySQL claiming
-      support matrix (10.6+ works); planned-table capability roster (sqlite +
-      duckdb now qualify); Doctor's record-context + planned-tables sections;
-      `CALIB_DUMP=1` usage; consumer recipe for decoding pre-v5 snapshots
-      (JSON+CBOR fallback contract). (modules.md cqrs-upgrade + tursoengine
-      rows and the readmodels.md matview section landed 2026-09-08.) —
-      source: 07-43 §c4, 08-26 §b1, 08-41 §b6/§f24
+- [x] **Skill-reference propagation wave** — DONE 2026-09-11: rotation
+      write-back recipe landed (recipes.md §2.31: RotatingSnapshotStateCodec
+      lazy path + manual rewrite path; §2.7 cross-references it); MySQL
+      claiming matrix FIXED (§2.26 was stale — NewClaimingMySQLStore works on
+      MySQL 8.0+/MariaDB 10.6+ via SKIP LOCKED, verified in
+      scheduling/sqlstore/claiming_mysql.go); planned-table capability roster
+      added (§2.27: pg/mysql/sqlite/duckdb all implement
+      Apply/Evolve/PlannedTables, backfill pg+mysql only); doctor
+      record-context + planned-tables sections, `--format json`, check-csp/
+      check-eventcatalog, CALIB_DUMP, and the pre-v5 snapshot decode recipe
+      (§2.30) were already propagated (verified present). doc-check green.
+      — source: 07-43 §c4, 08-26 §b1, 08-41 §b6/§f24
       _(Effort: M)_
-- [ ] **encryption module docs** — README + doc.go still don't mention the
-      key-management helpers or the v2 envelope format; add the wire-format
-      golden (encrypt→Marshal output as a reviewed artifact) + v1↔v2 decode
-      symmetry property test. — source: 08-26 §b9/§f11–13
+- [x] **encryption module docs** — DONE 2026-09-11 (mostly already shipped):
+      wire-format goldens existed (`envelope_wire_golden_test.go` ×3) and the
+      v1↔v2 decode-symmetry property test existed
+      (`envelope_symmetry_test.go`); README gained the Loading & Validation
+      section (LoadKeyFromEnv/LoadKeyFromFile/ValidateKey/Encode/DecodeKeyBase64
+      + error-surface contract), doc.go gained Key Management Helpers,
+      Envelope Format (v2), and Snapshot-State Key Rotation Write-Back
+      sections. Module build + golden/symmetry tests green.
+      — source: 08-26 §b9/§f11–13
       _(Effort: S)_
-- [ ] **`awaitAck`/`replayPhase` lying log line** — on `Close()`, the log
-      says `ERROR ... "consumer nacked replay event"` though the consumer
-      never nacked. Distinguish Close from Nack. — source: 07-42 §c2
+- [x] **`awaitAck`/`replayPhase` lying log line** — DONE (stale item, fix
+      already shipped): `awaitAck` returns a distinct `ackInterrupted` outcome
+      for ctx-cancel/Close (catchup_subscriber.go:282-285) and replayPhase
+      reports the shutdown, not a nack (catchup_replay.go:91-94, "NOT a
+      consumer nack"); pinned by TestCatchUpSubscriber_CloseWhileBlockedOnAck.
+      — source: 07-42 §c2
       _(Effort: XS)_
-- [ ] **Benchmark auto-discovery check** — does
-      `scripts/benchmark-regression.sh` auto-discover
-      `BenchmarkCatchUp_ReplayThroughput` (load-sensitive)? Pin or exclude so
-      it can't flake the CI regression gate. — source: 07-42 §e4/§f2
+- [x] **Benchmark auto-discovery check** — DONE 2026-09-11 (answer: no
+      auto-discovery): the gate set is an explicit allowlist
+      (`BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$`,
+      `$`-anchored), so the load-sensitive watermill
+      `BenchmarkCatchUp_ReplayThroughput` never runs in the gate; a comment
+      in benchmark-regression.sh now documents the deliberate no-auto-discovery
+      decision so it isn't "widened" later.
+      — source: 07-42 §e4/§f2
       _(Effort: S)_
-- [ ] 🔥 **Benchkit full-suite flake hunt (unexplained since 2026-09-07)** —
-      `TestRun_ClosedStore`/`TestRun_ClosedStore_ErrorMessage` ("expected
-      error from closed store, got nil" after ~26s) and
-      `TestRun_Pebble`/`TestRun_Recovery_Pebble` ("checkpoint phase: context
-      deadline exceeded" at 90s) FAIL under the full workspace suite
-      (`#verify`/`#verify-fast`, `-race`, shared-host load 18-65) but PASS
-      isolated (40s, no -race). Observed first by the SUPERB session (its §d2
-      "unexplained, not explained") and reproduced by the 2026-09-08
-      docs-health verify runs. Same class:
-      `system.TestSystem_ResetProjection_RestartAndReplay` (snapshot-load
-      deadline under load; 0.4s isolated). Either scale the internal
-      deadlines like `loadScaledCeiling`/`loadScaledDeadline` (the proven
-      pattern) or find the real race in the closed-store error path. —
-      source: SUPERB §d2/§f11, docs-pass verify runs 2026-09-08
+- [x] 🔥 **Benchkit full-suite flake hunt** — DONE 2026-09-11, root cause
+      found + residual closed: the big window was setup burning the caller ctx
+      before any phase (fixed upstream by the `benchkit.not_started` entry
+      guard + load-scaled budgets in mustRun); the remaining TOCTOU — ctx
+      expiring after the guard with zero work done, every phase silently
+      skipping, Run returning `(partial, nil)` — is now closed: runPhases
+      fails loudly with `benchkit.expired` when a caller-bound (non-Duration)
+      ctx expires with `TotalEvents == 0` (Duration-bounded runs keep
+      graceful-partial semantics). system_test outer deadline raised 30s →
+      90s×load-factor (two 15s inner budgets + close/reopen need headroom).
+      Verified: ClosedStore/ExpiredContext + ResetProjection_RestartAndReplay
+      green under 64-way CPU-soak load 36-52 with -race.
+      — source: SUPERB §d2/§f11, docs-pass verify runs 2026-09-08
       _(Effort: M)_
-- [ ] **Watermill catch-up tail:** restart-recovery property test (checkpoint
-      behind a skew-suppressed event ⇒ replay re-delivers — pins the
-      documented self-healing claim); broker-backed throughput variant via
-      `ephemeral-redis.sh`; make `CloseWhileBlockedOnFullBuffer` deterministic
-      (blocking-journal hook instead of the 100ms sleep). — source: 07-42
-      §f11/§f17/§f18
+- [x] **Watermill catch-up tail:** DONE 2026-09-11. (1) Restart-recovery
+      property test landed: TestCatchUpSubscriber_RestartRecoversSkewSuppressedEvent
+      mints a zero-timestamp-ULID event appended AFTER the watermark, proves
+      live suppression, then proves the restart re-delivers it (journal-order
+      ReadFrom) — pins the documented self-healing claim exactly.
+      (2) Broker-backed throughput variant landed:
+      TestRedisStream_CatchUpReplayThroughput (real Redis Streams live side,
+      1000 events, order+handoff pinned, throughput logged — 318k events/sec
+      locally; run via `nix run .#integration-redis`). (3)
+      CloseWhileBlockedOnFullBuffer RETIRED as unreachable fiction: replay
+      forwards are serialized with awaitAck, so the 256-slot output buffer can
+      never fill; replaced by TestCatchUpSubscriber_CloseWhileReplayParkedInJournal
+      (gating journal, deterministic park inside ReadFrom, no sleep).
+      — source: 07-42 §f11/§f17/§f18
       _(Effort: M)_
-- [ ] **README/AGENTS quick-reference rows** for `check-csp` +
-      `check-eventcatalog` (flake apps exist, not referenced in the quick-ref
-      tables). — source: 08-26 §c2
+- [x] **README/AGENTS quick-reference rows** — DONE (stale item): AGENTS.md
+      quick-reference already had both rows (`#check-csp`,
+      `#check-eventcatalog`); README is the consumer sales page and has no
+      internal flake-app table by design; the tooling surface is documented
+      for contributors in references/advanced.md §7.
+      — source: 08-26 §c2
       _(Effort: XS)_
-- [ ] **Social preview image + homepage URL** — GitHub settings-UI fields
-      (CLI can't set them); needs a generated asset + owner paste. — source:
-      07-42 §b1
+- [x] **Social preview image + homepage URL** — DONE 2026-09-11 (automatable
+      parts): homepage set to https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite
+      via `gh repo edit` (the item's "CLI can't set them" was stale for the
+      homepage); branded 1280×640 asset generated at
+      `docs/assets/social-preview.{svg,png}`. The social-preview UPLOAD is
+      UI-only (the undocumented API endpoint returns 404): owner pastes
+      docs/assets/social-preview.png at repo Settings → Social preview.
+      — source: 07-42 §b1
       _(Effort: S, manual)_
-- [ ] **doc-check tail:** `--json` output for CI annotations; warn (don't
-      silently union) when a no-import alias maps to multiple repo packages;
-      scoped `#doc-check` flake app. Release posture decision for the stricter
-      block-scoped resolver (ship as-is vs `--legacy-union` transition flag —
-      15-09 §g3). — source: 15-09 §f13–16
+- [x] **doc-check tail:** DONE 2026-09-11 — `--json` (deterministic wire
+      shape incl. `ambiguities` array) and the no-import-alias-maps-to-
+      multiple-packages warning were already shipped (main.go jsonSummary,
+      resolve.go verifyBlocks); the scoped `#doc-check` flake app landed
+      (same corpus as the #verify leg). Release posture DECIDED: ship the
+      strict block-scoped resolver as-is at the next cmd/doc-check tag — no
+      `--legacy-union` flag (internal-grade tool, stricter = fewer false
+      passes, transition flag would be permanent maintenance for a tiny
+      audience).
+      — source: 15-09 §f13–16
       _(Effort: S/M)_
-- [ ] **exhaustruct_v5 canary test** — prove each `ignore-patterns` entry
-      still matches under v5 full-type-name semantics; plus a
-      deprecated-linter-name golden for `.golangci.yml` (config verify catches
-      schema, not deprecations). — source: 15-09 §c3/§f5/§f30
+- [x] **exhaustruct_v5 canary test** — DONE 2026-09-11:
+      `scripts/test-exhaustruct-canary.sh` (wired into `#check-lint-config`)
+      proves every ignore-pattern entry is present and its target type still
+      exists (stack in-repo, bbolt via module cache), then behaviorally: a
+      hermetic fixture with os/exec.Cmd ignored + an un-ignored control
+      struct is flagged ONLY on the control with patterns and BOTH without —
+      proving v5 full-name pattern matching under the installed golangci-lint
+      (2.13.2). The deprecated-linter-name golden already existed
+      (`scripts/check-linter-names.sh`, 109 names checked, green).
+      — source: 15-09 §c3/§f5/§f30
       _(Effort: S)_
-- [ ] **templ tripwire script** — parse `_templ.go` FileName metadata and
-      fail if paths aren't `catalog/docserver/`-relative (automates the
-      cwd gotcha); consider scanning all templ dirs repo-wide. — source:
-      15-09 §f25/§f26
+- [x] **templ tripwire script** — DONE (stale item):
+      `scripts/check-templ-paths.sh` already existed and is wired as
+      `#check-templ` (codegen drift + FileName cwd tripwire) and inside both
+      #verify chains; repo-wide `_templ.go` scan via find; ran green
+      (FileName values all cwd-clean).
+      — source: 15-09 §f25/§f26
       _(Effort: S)_
 - [x] **AGENTS.md indexed-split** — DONE 2026-09-08 (Pareto P15+P16): 92 KB →
       28 KB index + `docs/agents/gotchas-{tooling-build,module-management,
       language-footguns,testing}.md` + `gowork-modes.md` (THE decision table)
       + `module-map.md`; zero-content-loss verified by bullet/row counts.
       — source: 15-09 §f39, evening-pass §f46
-- [ ] **error-taxonomy.md completeness check** — verify it covers the
-      storage/pebble/watermill family codes at all; extend if the doc aspires
-      to completeness (the 2026-09-08 rename made its stream-code table
-      current). — source: archived 07-48 §f23
+- [x] **error-taxonomy.md completeness check** — DONE 2026-09-11: pebble
+      verified accurate (4 sentinels + family split all match source); the
+      watermill table had a LIE ("Metadata parse fails → Corruption" — every
+      `watermill.parse_*` site is Rejection, verified per-site) now corrected,
+      plus added the missing rows: malformed-metadata Corruption
+      (corrupt_metadata, create/convert_event_failed), catch-up
+      checkpoint/replay Infrastructure, and subscribe/publish/lifecycle
+      Infrastructure codes.
+      — source: archived 07-48 §f23
       _(Effort: S)_
-- [ ] **DOMAIN_LANGUAGE.md entries** — "materialized view acceleration",
-      "IVM", "view-maintained write" (+ the two-model encryption table if
-      at-rest encryption becomes a domain concept). — source: archived 19-25
-      §f42, 20-57 §f31
+- [x] **DOMAIN_LANGUAGE.md entries** — DONE 2026-09-11: added
+      Materialized-View Acceleration, IVM, and View-Maintained Write rows to
+      the Metaengine table (ADR-0135-grounded), plus the two-model encryption
+      entry (At-Rest Encryption vs payload AEAD, tursoengine
+      `WithEncryption`, Cloud-BYOK boundary) in Security — at-rest encryption
+      IS a domain concept since the 2026-09-07 turso wave.
+      — source: archived 19-25 §f42, 20-57 §f31
       _(Effort: XS)_
 
 ---

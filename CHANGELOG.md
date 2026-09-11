@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — benchkit: a run whose caller context expires with zero work now fails loudly — 2026-09-11
+
+- **`benchkit.Run` no longer reports success for a run that did nothing.**
+  When a caller-bound (non-`Duration`) context expires after the
+  not-started guard but before any phase completes work — the residual
+  window behind the historical "expected error from closed store, got
+  nil" full-suite flakes — every phase was silently skipped and `Run`
+  returned a partial result with a nil error. `runPhases` now returns a
+  Transient `benchkit.expired` error when the caller context is expired
+  and `TotalEvents == 0`; `Duration`-bounded runs keep their graceful
+  partial-measurement semantics (timing out mid-window is how a Duration
+  benchmark ends). The load-scaled outer deadline of
+  `system.TestSystem_ResetProjection_RestartAndReplay` was also raised
+  from 30s to 90s×load-factor: its two sequential 15s projection-wait
+  budgets plus a close/reopen cycle previously consumed the whole budget
+  at load factor 1. Verified under 64-way CPU-soak load (36–52) with
+  `-race`: closed-store, expired-context, and reset-projection tests all
+  green.
+
 ### Changed — metaengine: grouped-matview Doctor WARN re-verified through turso-go v0.8.0-pre.10 — 2026-09-11
 
 - The Doctor WARN on grouped materialized views now cites the full
