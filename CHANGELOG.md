@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — tooling: file-size gate becomes a baseline+ratchet (enforceable again) — 2026-09-11
+
+- **The 350-line convention is mechanically enforced for the first time since
+  ≈2026-08-08.** The gate existed (CI `file-size-gate` + `nix run
+  .#check-file-size`) but was permanently red across 58 historical offenders,
+  and red non-required jobs never block direct pushes — a decorative gate.
+  It is now `scripts/check-file-size.sh` + `scripts/file-size-baseline.txt`
+  (58 baselined offenders, top: adttest/harness 953, metaengine/store 945):
+  NEW offenders over 350 lines fail, GROWTH of a baselined file fails,
+  shrinking is always allowed (`--update-baseline` regenerates on structural
+  shifts). Mutation-proven both ways (a planted 361-line file is caught; a
+  forced 945→950 growth of store.go is caught). The same ratchet pattern as
+  art-dupl baselines and `tag-release.sh --audit --baseline`; owner
+  ratification of the ratchet-vs-split-waves policy is tracked in TODO_LIST.
+
+### Fixed — tooling: coverage gate no longer reports vacuous 0.0% drift — 2026-09-11
+
+- **`check-coverage.sh` self-heals its cache environment and fails loudly on
+  empty coverage data.** The nix wrapper ran without the repo's mandatory
+  GOCACHE/GOMODCACHE/GOPATH/GOTMPDIR chain, so coverage parsing came back
+  empty and the drift check compared 0.0% against 0.0% — vacuously green
+  while looking like a real gate. The script now exports the env itself when
+  unset, and an empty coverage extraction is a hard `::error:: … NO DATA`
+  failure instead of a silent pass. First honest run in weeks: all 11 gated
+  modules within ±2.0% drift (metaengine 84.7% after the reset/failover
+  waves).
+
 ### Added — metaengine: fold-write failover with engine catch-up (ADR-0137 completion) — 2026-09-11
 
 - **Folds now fail over around a quarantined engine, and a healed engine
