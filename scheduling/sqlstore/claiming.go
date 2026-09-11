@@ -120,9 +120,13 @@ func newClaimingStore[P any](
 	}
 
 	c := &ClaimingTimerStore[P]{
-		SQLTimerStore: base,
-		lease:         lease,
-		metrics:       ClaimMetrics{Claimed: nil, Renewed: nil, RenewRejected: nil},
+		SQLTimerStore:  base,
+		lease:          lease,
+		metrics:        ClaimMetrics{Claimed: nil, Renewed: nil, RenewRejected: nil},
+		claimedBatches: atomic.Int64{},
+		claimedTimers:  atomic.Int64{},
+		renewed:        atomic.Int64{},
+		renewRejected:  atomic.Int64{},
 	}
 
 	for _, opt := range opts {

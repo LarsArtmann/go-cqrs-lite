@@ -240,7 +240,8 @@ func NewA022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkg, ok := sel.X.(*ast.Ident)
-					if !ok || !lintutil.QualifierTargetsModule(gf, pkg, "go.opentelemetry.io/otel") {
+					if !ok ||
+						!lintutil.QualifierTargetsModule(gf, pkg, "go.opentelemetry.io/otel") {
 						return true
 					}
 

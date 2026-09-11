@@ -45,7 +45,8 @@ func NewA030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkgIdent, ok := sel.X.(*ast.Ident)
-					if !ok || !lintutil.QualifierTargetsModule(gf, pkgIdent, "go-cqrs-lite/decider") {
+					if !ok ||
+						!lintutil.QualifierTargetsModule(gf, pkgIdent, "go-cqrs-lite/decider") {
 						return true
 					}
 

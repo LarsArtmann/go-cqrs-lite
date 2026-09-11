@@ -64,10 +64,13 @@ func TestD011_AliasedImportStillFires(t *testing.T) {
 	t.Parallel()
 
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"main.go": ruletest.AliasedImportSource("cqrs", "github.com/larsartmann/go-cqrs-lite/event/v4",
+		"main.go": ruletest.AliasedImportSource(
+			"cqrs",
+			"github.com/larsartmann/go-cqrs-lite/event/v4",
 			`func emit() {
 	_, _ = cqrs.NewEvent("user.toggled", "id1", "User", 1, nil)
-}`),
+}`,
+		),
 	})
 	findings := ruletest.RunDetector(t, consistency.NewD011Detector(ctx))
 	ruletest.AssertRule(t, findings, "D011", 1)

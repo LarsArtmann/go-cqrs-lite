@@ -54,16 +54,16 @@ func WithClaimMetrics[P any](m ClaimMetrics) ClaimOption[P] {
 // keeps its own counts.
 type ClaimMetricsSnapshot struct {
 	// ClaimedBatches counts committed Due polls, including empty ones.
-	ClaimedBatches int64 `json:"claimed_batches"`
+	ClaimedBatches int64 `json:"claimedBatches"`
 
 	// ClaimedTimers counts timers claimed across all polls.
-	ClaimedTimers int64 `json:"claimed_timers"`
+	ClaimedTimers int64 `json:"claimedTimers"`
 
 	// Renewed counts successful RenewLease extensions.
 	Renewed int64 `json:"renewed"`
 
 	// RenewRejected counts renewals rejected with ErrLeaseNotHeld.
-	RenewRejected int64 `json:"renew_rejected"`
+	RenewRejected int64 `json:"renewRejected"`
 }
 
 // Metrics returns a snapshot of the built-in claim counters. It is always
