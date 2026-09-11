@@ -2925,6 +2925,8 @@ metaengine/irohengine/method Profile
 metaengine/irohengine/method Profile
 metaengine/irohengine/method Publish
 metaengine/irohengine/method Publish
+metaengine/irohengine/method ResetEngine
+metaengine/irohengine/method ResetEngine
 metaengine/irohengine/method SearchInsert
 metaengine/irohengine/method SearchInsert
 metaengine/irohengine/method SearchQuery
@@ -3100,6 +3102,7 @@ metaengine/method ApplyIdempotent
 metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Backfill
+metaengine/method CatchUpEngine
 metaengine/method Check
 metaengine/method CheckAndRecord
 metaengine/method CheckRouting
@@ -4008,6 +4011,7 @@ metaengine/type StoreHooks
 metaengine/type TrackerOption
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrBackfillUnsupported
+metaengine/var ErrCatchUpUnsupported
 metaengine/var ErrDuplicateEvent
 metaengine/var ErrExecuteTypeMismatch
 metaengine/var ErrKeyTypeMismatch

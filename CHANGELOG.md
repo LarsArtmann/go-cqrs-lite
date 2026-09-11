@@ -6,6 +6,88 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine: fold-write failover with engine catch-up (ADR-0137 completion) — 2026-09-11
+
+- **Folds now fail over around a quarantined engine, and a healed engine
+  comes back REBUILT, not merely reactivated.** ADR-0137 previously rerouted
+  reads only: writes to a quarantined engine's collections errored loudly
+  until reactivation. `dispatchFolds` now reroutes a quarantined engine's
+  folds to the cheapest healthy engine that natively serves the query's ADT —
+  the same capability-aware partition rule as the read reroute, execution-
+  scoped, plan untouched — so the write path keeps ingesting during an
+  outage. The new `metaengine.Store.CatchUpEngine` is the recovery half:
+  while the engine is still quarantined (reads AND folds rerouted away, so
+  the replay is the only writer and nothing can double-apply) it resets the
+  engine via `EngineResetter` and replays the attached EventLog into exactly
+  that engine's queries, lifting the quarantine only after a clean rebuild —
+  the ADR-0136 reset+replay primitive applied to one engine. Any failure
+  leaves the engine quarantined for the next attempt.
+  `StartAutoReprobe` now prefers catch-up (falling back to a plain
+  reactivation with a warning when the engine lacks `EngineResetter` or no
+  EventLog is attached — the new `ErrCatchUpUnsupported` sentinel), and
+  `ReactivateEngine` documents that an immediate lift serves stale
+  read-model state when write failover occurred.
+
+### Added — metaengine engines: EngineResetter everywhere + reset observability — 2026-09-11
+
+- **Every first-party engine now implements `EngineResetter`, making
+  `Store.Reset` a true one-call revert on every backend.** The
+  production-default SQLite engine clears all 8 `meta_*` tables, every
+  planned-table row (layouts survive — Reset reverts to the post-Plan
+  state), and drops-and-recreates materialized views (verified against
+  turso-go: libSQL drops them with plain `DROP VIEW`, and recreating against
+  the emptied `meta_map` is the only exactly-empty path for grouped views
+  whose IVM DELETE-propagation carries upstream defects); the cached
+  multimap sequence counters restart from the emptied table while
+  AUTOINCREMENT journal positions deliberately keep advancing so a consumer
+  holding a pre-reset resumption token never skips replayed entries.
+  Turso inherits the capability by delegation. Postgres (verified against a
+  live testcontainer), MySQL, and DuckDB clear their engine-owned base plus
+  planned tables in one transaction (DELETE, never TRUNCATE — MySQL TRUNCATE
+  implicitly commits and could leave a half-reset behind). Pebble deletes
+  exactly the engine-owned keycodec tag ranges in one atomic batch (foreign
+  keys in a caller-supplied DB survive); bbolt drops and recreates its
+  single `cqrs_meta` bucket; Badger drops the tag prefixes; Dgraph deletes
+  the nodes carrying the engine's `dgraph.type` stamps in one Raft-proposed
+  upsert (UnixNano sequences are monotonic across resets by construction);
+  the iroh replication wrapper resets through its local engine and keeps the
+  LWW timestamp map as tombstone barriers so stale in-flight peer writes
+  cannot re-land on the replayed state (a replicated reset is node-local by
+  CRDT necessity — a cluster-wide revert resets every node under quiesce).
+  Aggregate queries served from an emptied materialized view now return 0
+  instead of erroring, matching the base path's `DecodeFloat(nil)`
+  convention.
+- **Operators can now see reset capability BEFORE calling `Store.Reset`**:
+  `GetEngineStats` reports `EngineStats.CanReset` per engine and Doctor
+  gains a `--- Reset ---` section naming which engines are reset-capable and
+  which would leave a partial reset, with the remedy line.
+
+### Changed — cqrs-lint: C040 gains E018 provider parity and closes the handled-typo-twin hole — 2026-09-11
+
+- **A fold case consuming a type nothing emits is now caught statically with
+  the same provider contract as E018 and the runtime coeffect gate.** C040
+  previously matched only raw local emissions: a fold case for an event
+  imported from another service (declared via `catalog.Event`) was flagged
+  as dead code, and a typo'd case (`user.creted`) sitting beside its
+  corrected twin (`user.created`) hid forever — C038 sees the emission as
+  handled and stays silent, and C040's near-miss suppression deferred to it.
+  C040 now counts catalog declarations as provided (parity with E018 and
+  `system.DomainConfig.Events`) and fires beside a near-miss when the
+  corrected twin is itself handled, closing the last static gap in the
+  three-tier coeffect lockstep. RULES.md regenerated from the catalog.
+
+### Added — tooling: goleak gates for metaengine + projectionhost, [Unreleased]-position tripwire — 2026-09-11
+
+- **`metaengine` and `projectionhost` test suites now fail on leaked
+  goroutines** (`goleak.VerifyTestMain`), extending the Cordis M-08 gate
+  beyond `system`: a reset or shutdown that leaves a replan loop, watcher,
+  or worker running surfaces at suite teardown with its creation stack
+  (ginkgo's own interrupt handler is ignored as a framework artifact).
+- **`verify-docs.sh` now pins the `[Unreleased]` heading position**: it must
+  be the first `##` section directly under the `# Changelog` header block,
+  so a daemon-absorbed orphan inserted mid-file fails at the next verify
+  instead of passing the exactly-one count check days later.
+
 ### Fixed — example/taskmanager: private go-must dependency no longer breaks every workspace-wide go command — 2026-09-11
 
 - **Any machine without credentials could not run a single workspace-mode

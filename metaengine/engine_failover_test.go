@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // quarantinePrimary drives the classified failure storm that quarantines the
@@ -167,15 +165,16 @@ func TestEngineHealth_ReprobeCatchesUpBeforeReactivation(t *testing.T) {
 	}
 }
 
-// The fallback: when catch-up is structurally impossible (no EventLog), a
-// healed engine still reactivates (pre-failover behavior) — loudly.
+// The fallback: when catch-up is structurally impossible (no EventLog),
+// CatchUpEngine reports ErrCatchUpUnsupported and a healed engine still
+// reactivates the plain way (pre-failover behavior) — loudly.
 func TestEngineHealth_ReprobeFallsBackWithoutEventLog(t *testing.T) {
 	t.Parallel()
 
 	store, primary, spare := healthTestStore(t)
 	ctx := context.Background()
+	_ = store // its engines are reused below without the EventLog
 
-	// healthTestStore attaches an EventLog; rebuild without it.
 	bare, err := Plan([]Engine{primary, spare}, roleItemQuery())
 	if err != nil {
 		t.Fatal(err)
@@ -185,6 +184,14 @@ func TestEngineHealth_ReprobeFallsBackWithoutEventLog(t *testing.T) {
 
 	quarantinePrimary(t, bare, primary)
 
+	if err := bare.CatchUpEngine(ctx, "primary"); err == nil || !errors.Is(err, ErrCatchUpUnsupported) {
+		t.Fatalf("CatchUpEngine without EventLog = %v, want ErrCatchUpUnsupported", err)
+	}
+
+	if h := bare.HealthSnapshot()["primary"]; h.State != EngineQuarantined {
+		t.Fatal("a failed catch-up must leave the engine quarantined")
+	}
+
 	primary.armed.Store(false)
 	primary.healed.Store(true)
 
@@ -193,10 +200,4 @@ func TestEngineHealth_ReprobeFallsBackWithoutEventLog(t *testing.T) {
 	if h := bare.HealthSnapshot()["primary"]; h.State != EngineActive {
 		t.Fatalf("primary state after fallback reprobe = %q, want active", h.State)
 	}
-
-	if err := bare.CatchUpEngine(ctx, "primary"); err == nil || !errors.Is(err, ErrCatchUpUnsupported) {
-		t.Fatalf("CatchUpEngine without EventLog = %v, want ErrCatchUpUnsupported", err)
-	}
 }
-
-var _ = errorfamily.Newf // keep the import stable for future classified-error assertions
