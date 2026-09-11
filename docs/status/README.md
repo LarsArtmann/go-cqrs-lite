@@ -43,7 +43,7 @@ release.yml un-red — and the first composed local `#verify` GREEN of the
 determinism, matview pins, DSN auth_token leak fix, `--typed-info` +
 F090(b), IsQualifierFor sweep) and P13/P15/P16 (AGENTS indexed-split 92→28
 KB, GOWORK table, recipes §2.30-2.31). See
-[`2026-09-08_23-12_release-train-composed-green.md`](2026-09-08_23-12_release-train-composed-green.md).
+[`2026-09-08_23-12_release-train-composed-green.md`](archived/2026-09-08_23-12_release-train-composed-green.md).
 
 **2026-09-09 01:54 (Pareto continuation):** Wave 1/2 remainder — CI re-triage
 (WASM-leg codec fix, dogfood/check-csp/lint-scripts jobs, nightly sentinel),
@@ -52,7 +52,7 @@ growth (`--strict`/`--json`/`--to`/`--workspace`), P17 shellcheck zero +
 pre-commit cheap gates, P18 coverage gate green, and the P19 first split
 wave (storage/sql dialects, cqrs-lint helpers, metaengine typed_reader
 1127→6 files). See
-[`2026-09-09_01-54_pareto-w1-w2-continuation.md`](2026-09-09_01-54_pareto-w1-w2-continuation.md).
+[`2026-09-09_01-54_pareto-w1-w2-continuation.md`](archived/2026-09-09_01-54_pareto-w1-w2-continuation.md).
 
 **2026-09-09 04:10 (Pareto W2/W3 execution):** P19 tail through the feasible
 P27 chunks all landed — P014 ApplyLayout rule (detection pair corrected from
@@ -63,7 +63,36 @@ migration concurrency hardening (two verify-caught flaws) live-verified on
 MariaDB+DuckDB, and release tooling (--smoke, retract v4.8.0, buildinfo
 version). Final exclusive `#verify` GREEN after 4 rounds; master synced
 (`458eeaac`). Includes the honest fuckup ledger and the next-50 list. See
-[`2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md`](2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md).
+[`2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md`](archived/2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md).
+
+**2026-09-09..11 sessions (16 reports, archived):** the Pareto tail (cqrs-upgrade
+growth + nightly dogfood, watermill issue-#21 typed causation, issue-#20
+closeout: `cmd/cqrs-bench/v0.1.1` stub + `cmd/cqrs-lint/v4.10.1` retract-carrier
++ `metaengine/badgerengine/v4.2.1` data-loss retracts + tag-release `--audit`/
+`--smoke`), the Cordis 27-task execution (ADR-0136 reset ladder, coeffect gate,
+E018, ADR-0137 engine deactivation, equivalence tooling — all shipped
+2026-09-10), and the 2026-09-11 batch day (dgraph `-shuffle=on` rollout +
+contention fix, turso matview pre.10 re-verification + bench-gate extension,
+M27.16 micro-batch incl. the Demote record-context bug fix + ClaimMetrics
+surfacing, cqrs-lint F091 Tier-3 + T13–T19 audits, go.sum sweep + CI triage).
+See each report under [`archived/`](archived/).
+
+**2026-09-11 pass (5th docs-health audit):** harvested the unharvested
+forward items of all 21 active status reports into TODO_LIST (~20 new routed
+items: encoded-apply conformance sweep, watermill v4.7.0 tag-wave manifest
+entry, calibration provenance, `check-retracts-shipped.sh`, integration-tag
+lint gate, error-taxonomy drift gate, and more), deleted 42 completed `[x]`
+TODO rows per the file's own header policy + the docs-health skill (evidence
+lives in CHANGELOG `[Unreleased]` + these archived reports), closed the stale
+GOWORK-decision-table TODO (table shipped 2026-09-08 as P15/P16), fixed
+FEATURES (6 missing rows: EngineResetter/ADR-0137 health, coeffect gate,
+ClaimMetricsSnapshot, watermill typed causation, scenario equivalence, E018
+rule count 204→206), fixed ROADMAP (84 `go.mod` count, Open Question 11),
+annotated + archived 21 status reports + 3 planning docs (cordis plan, pareto
+plan, t23 design passes — all inline-struck with resolution markers), repointed
+5 inbound references, and DECIDED the four-passes-carried exemption rule:
+generated HTML dashboards and raw bench `.txt` outputs are inventoried by
+title, never annotated. `docs/status/` again holds zero unarchived reports.
 
 ## What this means
 

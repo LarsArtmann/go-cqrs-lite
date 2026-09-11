@@ -50,7 +50,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Cordis spatiotemporal-composability follow-ups (2026-09-10)
 
-> Source: [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md)
+> Source: [`docs/planning/archived/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](docs/planning/archived/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md) (executed in full 2026-09-10; archived by the 2026-09-11 docs-health pass)
 > (mapping report: `docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`).
 > Operationalizes the Cordis learnings — revertible effects, reactive coeffects,
 > observational equivalence — as correctness + trust wins **without breaking a

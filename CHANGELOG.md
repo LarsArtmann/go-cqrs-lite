@@ -1078,7 +1078,7 @@ declared-replicated ADT whose writes silently diverged).
 - Shuffle (`-shuffle=on`, 3 runs) and race (`-race -count=3`) evaluations
   over the suppression, fix, and full linter suite: clean, no order
   dependence, no data races.
-- Design passes recorded (`docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`):
+- Design passes recorded (`docs/planning/archived/2026-09-06_cqrs-lint-t23-design-passes.md` — path updated 2026-09-11 after archival; entry content unchanged):
   a `v5-ready` preset with per-rule severity overrides, dot-import
   detection for V007, and a three-tier typed-info integration to replace
   curated name-heuristic tables with usage evidence.

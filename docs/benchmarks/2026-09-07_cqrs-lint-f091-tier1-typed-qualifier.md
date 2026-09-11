@@ -7,7 +7,7 @@
 
 ## Context the design doc lacked
 
-`docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md` gated Tier 1 on
+`docs/planning/archived/2026-09-06_cqrs-lint-t23-design-passes.md` gated Tier 1 on
 "measure first: `NeedTypes` roughly doubles load cost". Empirical finding:
 the loader has shipped `NeedTypes|NeedTypesInfo` **since day one**
 (`457b039a0`, 2026-07-16 — verified via `git log -S NeedTypes`). The load-cost

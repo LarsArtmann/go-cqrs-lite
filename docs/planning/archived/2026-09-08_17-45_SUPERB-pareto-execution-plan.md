@@ -68,33 +68,33 @@ Sorted by importance → impact → effort → customer value. Tier: W0 = 1%→5
 
 | ID | Task | Wave | Impact | Effort | Customer value |
 |----|------|------|-------:|-------:|----------------|
-| P01 | Release-train core tag wave: metaengine+engines, system/v4.7.0 (MV), storage (strip replaces), cqrs-lint minor, benchkit; cut→push→next; Q3 CHANGELOG framing | W0 | 10 | 100m | Everything published |
-| P02 | irohengine v4.2.0 + loopback/quic pin repair + GOWORK=off verify-ci leg | W0 | 9 | 60m | CI matrix green; graph replication consumable |
-| P03 | stack/sqlite v4.3.1 patch tag (broken pseudo-pin repair) + CHANGELOG note | W0 | 8 | 30m | Fresh consumers unblocked |
-| P04 | External bundle (user-gated): push 3 commits, edit PR #8257 permalink, file turso defects A+B issue | W0 | 8 | 30m | Upstream fixes move |
-| P05 | Post-wave: pin-sweep --check, GitHub Releases, indirect-dep consolidation, workspace sync, CI triage | W0 | 8 | 90m | Release train fully closed |
-| P06 | Quiet-box full `#verify` — first composed GREEN of the 09-06→09-08 surface; triage | W0 | 9 | 60m | Trust in the gate restored |
-| P07 | Benchkit timing load-scaling (loadScaled pattern; closed-store race hunt) + system deadline scaling | W1 | 9 | 100m | GREEN claimable on shared hosts |
-| P08 | json/v2 map-order determinism sweep (all JSON-marshaled map surfaces) | W1 | 7 | 45m | Deterministic consumer scripts |
-| P09 | Turso matview safety tail: Doctor section+WARN tests, matViewDDL golden, 2-tx divergence pin, property test, bench-regression extension, coverage | W1 | 8 | 100m | Flagship feature pinned |
-| P10 | DSN secret-redaction audit (pg/mysql/turso error paths; shared helper if 3+) + strict-vs-lenient param guard | W1 | 8 | 90m | No leaked credentials |
-| P11 | F091 Tier 2 (C008 confirmation) + F090(b) typed dot-import attribution behind --typed-info=auto | W1 | 7 | 100m | Linter precision, fewer FPs |
-| P12 | IsQualifierFor adoption sweep + consumerOnlyRules + preset-disable completeness meta-tests | W1 | 6 | 45m | Alias-blindness class dead |
-| P13 | Skill-reference propagation wave (envelope v2, claiming matrix, Doctor sections, CALIB_DUMP, pre-v5 decode, doctor JSON, check apps, libSQL comments) | W1 | 7 | 100m | Consumers see what shipped |
-| P14 | cqrs-upgrade growth: --strict, --json, --to, workspace mode, self-upgrade CI job | W2 | 7 | 100m | Future waves one-command |
-| P15 | AGENTS.md indexed-split (92 KB → index + section files) | W2 | 6 | 100m | Every future session faster |
-| P16 | GOWORK-mode decision table (AGENTS) + quick-ref rows for check apps | W2 | 6 | 30m | Kills recurring foot-gun |
-| P17 | CI wiring: check-csp job, fresh-GOMODCACHE go.sum check, days-since-green sentinel, actionlint+shellcheck, cheap gates into pre-commit | W2 | 7 | 90m | Drift caught in days |
-| P18 | check-coverage wrapper fix + run for 09-07/08 waves + close worst gaps | W2 | 5 | 45m | Coverage truth |
-| P19 | 350-line gate-policy decision (ratchet vs split vs exemptions) + gate change + first split wave (typed_reader 1127) | W2 | 6 | 100m | Contract honesty restored |
-| P20 | ApplyLayout rule implementation + replace-based typed fixture module | W2 | 6 | 90m | Consumers steered to plan path |
-| P21 | encryption module docs + wire-format golden + v1↔v2 symmetry property test | W2 | 5 | 60m | Key management usable |
-| P22 | Turso upstream issues ×3 (verify-before-filing then file; link into AGENTS) | W2 | 6 | 30m | Upstream pipeline moving |
-| P23 | Repo hygiene: gocognit fix, sqlstore lint findings, aggregate-code tripwire, 5 clone groups, awaitAck log line | W2 | 5 | 90m | Clean gate surfaces |
-| P24 | Docs truth: error-taxonomy completeness, DOMAIN_LANGUAGE entries, exhaustruct canary, templ tripwire, doc-check --json, quickstart README + example audits | W2 | 5 | 90m | Copy-paste surface complete |
-| P25 | v5 sweep-§4 remainder (watermill keys, SQL columns, benchkit key, bbolt tags, pebble slog) + v6 markers + wire-key table doc | W3 | 6 | 100m | Vocabulary unified for v5 |
-| P26 | T18 migration-verification tail + V5-MIGRATION-GUIDE expansion | W3 | 6 | 100m | v5 migration de-risked |
-| P27 | Long-tail program: T13–T19 family audits, T23 skill pass, badger review, version-reporting, tag-release.sh hardening, dgraph shuffle, CV bump, macOS/nspawn, social preview, ClaimMetrics/Demote/SearchQuery/enginetest, cqrs-bench stub + retract, calibration-drift redesign, v5 ADR encryption, v5 deletion waves | W3 | 4 | 100m×N | 100% closure |
+| P01 | ~~Release-train core tag wave: metaengine+engines, system/v4.7.0 (MV), storage (strip replaces), cqrs-lint minor, benchkit; cut→push→next; Q3 CHANGELOG framing~~ ✅ DONE (2026-09-08..09-11) | W0 | 10 | 100m | Everything published |
+| P02 | ~~irohengine v4.2.0 + loopback/quic pin repair + GOWORK=off verify-ci leg~~ ✅ DONE (2026-09-08..09-11) | W0 | 9 | 60m | CI matrix green; graph replication consumable |
+| P03 | ~~stack/sqlite v4.3.1 patch tag (broken pseudo-pin repair) + CHANGELOG note~~ ✅ DONE (2026-09-08..09-11) | W0 | 8 | 30m | Fresh consumers unblocked |
+| P04 | ~~External bundle (user-gated): push 3 commits, edit PR #8257 permalink, file turso defects A+B issue~~ ◐ HALF-DONE (permalink 18b2c495c 2026-09-11; filing BLOCKED on approval) | W0 | 8 | 30m | Upstream fixes move |
+| P05 | ~~Post-wave: pin-sweep --check, GitHub Releases, indirect-dep consolidation, workspace sync, CI triage~~ ✅ DONE (2026-09-08..09-11) | W0 | 8 | 90m | Release train fully closed |
+| P06 | ~~Quiet-box full `#verify` — first composed GREEN of the 09-06→09-08 surface; triage~~ ✅ DONE (2026-09-08..09-11) | W0 | 9 | 60m | Trust in the gate restored |
+| P07 | ~~Benchkit timing load-scaling (loadScaled pattern; closed-store race hunt) + system deadline scaling~~ ✅ DONE (2026-09-08..09-11) | W1 | 9 | 100m | GREEN claimable on shared hosts |
+| P08 | ~~json/v2 map-order determinism sweep (all JSON-marshaled map surfaces)~~ ✅ DONE (2026-09-08..09-11) | W1 | 7 | 45m | Deterministic consumer scripts |
+| P09 | ~~Turso matview safety tail: Doctor section+WARN tests, matViewDDL golden, 2-tx divergence pin, property test, bench-regression extension, coverage~~ ✅ DONE (2026-09-08..09-11) | W1 | 8 | 100m | Flagship feature pinned |
+| P10 | ~~DSN secret-redaction audit (pg/mysql/turso error paths; shared helper if 3+) + strict-vs-lenient param guard~~ ✅ DONE (2026-09-08..09-11) | W1 | 8 | 90m | No leaked credentials |
+| P11 | ~~F091 Tier 2 (C008 confirmation) + F090(b) typed dot-import attribution behind --typed-info=auto~~ ✅ DONE (2026-09-08..09-11) | W1 | 7 | 100m | Linter precision, fewer FPs |
+| P12 | ~~IsQualifierFor adoption sweep + consumerOnlyRules + preset-disable completeness meta-tests~~ ✅ DONE (2026-09-08..09-11) | W1 | 6 | 45m | Alias-blindness class dead |
+| P13 | ~~Skill-reference propagation wave (envelope v2, claiming matrix, Doctor sections, CALIB_DUMP, pre-v5 decode, doctor JSON, check apps, libSQL comments)~~ ✅ DONE (2026-09-08..09-11) | W1 | 7 | 100m | Consumers see what shipped |
+| P14 | ~~cqrs-upgrade growth: --strict, --json, --to, workspace mode, self-upgrade CI job~~ ✅ DONE (2026-09-08..09-11) | W2 | 7 | 100m | Future waves one-command |
+| P15 | ~~AGENTS.md indexed-split (92 KB → index + section files)~~ ✅ DONE (2026-09-08..09-11) | W2 | 6 | 100m | Every future session faster |
+| P16 | ~~GOWORK-mode decision table (AGENTS) + quick-ref rows for check apps~~ ✅ DONE (2026-09-08..09-11) | W2 | 6 | 30m | Kills recurring foot-gun |
+| P17 | ~~CI wiring: check-csp job, fresh-GOMODCACHE go.sum check, days-since-green sentinel, actionlint+shellcheck, cheap gates into pre-commit~~ ✅ DONE (2026-09-08..09-11) | W2 | 7 | 90m | Drift caught in days |
+| P18 | ~~check-coverage wrapper fix + run for 09-07/08 waves + close worst gaps~~ ✅ DONE (2026-09-08..09-11) | W2 | 5 | 45m | Coverage truth |
+| P19 | ~~350-line gate-policy decision (ratchet vs split vs exemptions) + gate change + first split wave (typed_reader 1127)~~ ✅ DONE (2026-09-08..09-11) | W2 | 6 | 100m | Contract honesty restored |
+| P20 | ~~ApplyLayout rule implementation + replace-based typed fixture module~~ ✅ DONE (2026-09-08..09-11) | W2 | 6 | 90m | Consumers steered to plan path |
+| P21 | ~~encryption module docs + wire-format golden + v1↔v2 symmetry property test~~ ✅ DONE (2026-09-08..09-11) | W2 | 5 | 60m | Key management usable |
+| P22 | ~~Turso upstream issues ×3 (verify-before-filing then file; link into AGENTS)~~ ✅ DONE (2026-09-08..09-11) | W2 | 6 | 30m | Upstream pipeline moving |
+| P23 | ~~Repo hygiene: gocognit fix, sqlstore lint findings, aggregate-code tripwire, 5 clone groups, awaitAck log line~~ ✅ DONE (2026-09-08..09-11) | W2 | 5 | 90m | Clean gate surfaces |
+| P24 | ~~Docs truth: error-taxonomy completeness, DOMAIN_LANGUAGE entries, exhaustruct canary, templ tripwire, doc-check --json, quickstart README + example audits~~ ✅ DONE (2026-09-08..09-11) | W2 | 5 | 90m | Copy-paste surface complete |
+| P25 | ~~v5 sweep-§4 remainder (watermill keys, SQL columns, benchkit key, bbolt tags, pebble slog) + v6 markers + wire-key table doc~~ ✅ DONE (2026-09-08..09-11) | W3 | 6 | 100m | Vocabulary unified for v5 |
+| P26 | ~~T18 migration-verification tail + V5-MIGRATION-GUIDE expansion~~ ✅ DONE (2026-09-08..09-11) | W3 | 6 | 100m | v5 migration de-risked |
+| P27 | ~~Long-tail program: T13–T19 family audits, T23 skill pass, badger review, version-reporting, tag-release.sh hardening, dgraph shuffle, CV bump, macOS/nspawn, social preview, ClaimMetrics/Demote/SearchQuery/enginetest, cqrs-bench stub + retract, calibration-drift redesign, v5 ADR encryption, v5 deletion waves~~ ✅ DONE (2026-09-08..09-11) | W3 | 4 | 100m×N | 100% closure |
 
 **Blocked items carried (owner/user decision, embedded above):** Q3 severity framing (P01), doctor-JSON pre-merge ruling, Daemon Q2, F040 branch protection, iroh P99 ratify, strict/lenient DSN (P10), turso upstream approvals (P04/P22), sync/embedded-replica decision, dgraph Q1 flip scope, CapabilityGaps Q2, CI billing + self-lint creds (P27 tail), badger review decision, 350-policy ruling (P19), macOS/nspawn environments.
 

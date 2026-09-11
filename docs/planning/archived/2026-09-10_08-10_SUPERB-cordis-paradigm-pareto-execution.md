@@ -22,31 +22,31 @@
 
 Truth + durability. Without these, everything else sits on unverified ground or evaporates:
 
-1. **Resolve the `projection %q is n` anomaly** — if real, users see malformed error messages (M-01)
-2. **`go mod tidy` ×5 cmd modules** — kill phantom `samber/do` requires (M-02)
-3. **Triage the 17+2 pre-existing diagnostics with real builds** — decide real-vs-LSP-noise with `nix run .#build` / `GOWORK=off` builds, not the LSP (M-03)
-4. **Persist the backlog** — TODO_LIST harvest + §9 cross-link in the mapping doc (M-04, M-05)
+~~1. **Resolve the `projection %q is n` anomaly** — if real, users see malformed error messages (M-01)~~ ✅ DONE 2026-09-10
+~~2. **`go mod tidy` ×5 cmd modules** — kill phantom `samber/do` requires (M-02)~~ ✅ DONE 2026-09-10
+~~3. **Triage the 17+2 pre-existing diagnostics with real builds** — decide real-vs-LSP-noise with `nix run .#build` / `GOWORK=off` builds, not the LSP (M-03)~~ ✅ DONE 2026-09-10
+~~4. **Persist the backlog** — TODO_LIST harvest + §9 cross-link in the mapping doc (M-04, M-05)~~ ✅ DONE 2026-09-10
 
 ### The 4% that delivers 64%  (+~4 h)
 
 Temporal-composability correctness core:
 
-5. **Loud partial-revert guard** on `Host.Reset` (warn-default + `WithKeepStaleState` opt-out) (M-06)
-6. **`projectionadapter` implements `Resettable`** — one-call revert complete for the 80% path (M-07)
-7. **goleak in `system` tests** — teardown completeness as CI, not convention (M-08)
-8. **Temporal-contract ADR** — the invertibility ladder + user decision rule (M-09)
-9. **Revert & rebuild recipe** in skill references (M-10)
+~~5. **Loud partial-revert guard** on `Host.Reset` (warn-default + `WithKeepStaleState` opt-out) (M-06)~~ ✅ DONE 2026-09-10
+~~6. **`projectionadapter` implements `Resettable`** — one-call revert complete for the 80% path (M-07)~~ ✅ DONE 2026-09-10
+~~7. **goleak in `system` tests** — teardown completeness as CI, not convention (M-08)~~ ✅ DONE 2026-09-10
+~~8. **Temporal-contract ADR** — the invertibility ladder + user decision rule (M-09)~~ ✅ DONE 2026-09-10
+~~9. **Revert & rebuild recipe** in skill references (M-10)~~ ✅ DONE 2026-09-10
 
 ### The 20% that delivers 80%  (+~6 h)
 
 The paradigm operationalized end-to-end:
 
 10. **Coeffect validation gate** in `system.New` — dangling subscription = error, unconsumed event = warn (M-11–M-13)
-11. **Observational-equivalence test** via scenario DSL (M-14)
-12. **cqrs-lint static rule** for event-type typos (M-15)
-13. **Catalog exposes the validation** (render + gate) (M-16)
+~~11. **Observational-equivalence test** via scenario DSL (M-14)~~ ✅ DONE 2026-09-10
+~~12. **cqrs-lint static rule** for event-type typos (M-15)~~ ✅ DONE 2026-09-10
+~~13. **Catalog exposes the validation** (render + gate) (M-16)~~ ✅ DONE 2026-09-10
 14. **Ground-truth pass** — open the 5 cited ADRs, fetch the arXiv PDF, recount the 82/47 figures (M-17–M-19)
-15. **Release hygiene for M-06/07** — CHANGELOG + api-stability golden (M-20)
+~~15. **Release hygiene for M-06/07** — CHANGELOG + api-stability golden (M-20)~~ ✅ DONE 2026-09-10
 
 ### The other 80% (of effort) for the final 20% (of result) — Waves 3
 
@@ -64,48 +64,48 @@ Sorted by tier → impact → effort. **Imp** = impact (H/M/L), **CV** = custome
 
 | ID | Task | Imp | Effort | CV | Depends |
 |---|---|---|---|---|---|
-| M-01 | Investigate `projection %q is n` strings in projectionhost; fix if bug, document if artifact | H | 45min | Users get real error messages | — |
-| M-02 | `go mod tidy` ×5 `cmd/*` modules; verify zero `samber/do` remains; GOWORK=off builds | M | 30min | Honest dependency surface | — |
-| M-03 | Triage 17 stdversion + 2 tidy warnings via real builds; fix-or-ticket each | H | 45min | Build trust, kill noise | — |
-| M-04 | HARVEST this plan into `TODO_LIST.md` (new section, existing style) | H | 30min | Backlog durability | plan exists |
-| M-05 | Append §9 cross-link (plan + backlog) to the mapping doc; doc-check | M | 30min | Discoverability | — |
+| M-01 | ~~Investigate `projection %q is n` strings in projectionhost; fix if bug, document if artifact~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 45min | Users get real error messages | — |
+| M-02 | ~~`go mod tidy` ×5 `cmd/*` modules; verify zero `samber/do` remains; GOWORK=off builds~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Honest dependency surface | — |
+| M-03 | ~~Triage 17 stdversion + 2 tidy warnings via real builds; fix-or-ticket each~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 45min | Build trust, kill noise | — |
+| M-04 | ~~HARVEST this plan into `TODO_LIST.md` (new section, existing style)~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 30min | Backlog durability | plan exists |
+| M-05 | ~~Append §9 cross-link (plan + backlog) to the mapping doc; doc-check~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Discoverability | — |
 
 ### Wave 1 — 4% → 64% (temporal correctness core)
 
 | ID | Task | Imp | Effort | CV | Depends |
 |---|---|---|---|---|---|
-| M-06 | `Host.Reset`: warn-by-default on non-`Resettable` + `WithKeepStaleState` opt-out + tests | H | 70min | No more silent partial reverts | M-01 |
-| M-07 | `metaengine/projectionadapter` implements `Resettable` + test | H | 45min | One-call revert works for 80% path | M-06 |
-| M-08 | goleak `VerifyTestMain` in `system` tests | M | 30min | Teardown bugs caught in CI | — |
-| M-09 | ADR-0136 temporal contract (invertibility ladder: replayable → compensable → must-be-an-event) | H | 40min | Users can reason about reverts | — |
-| M-10 | Revert & rebuild recipe (Reset → replay-from-zero) in skill `readmodels.md`/`recipes.md` | M | 30min | Copy-paste revert for users | M-06, M-07 |
+| M-06 | ~~`Host.Reset`: warn-by-default on non-`Resettable` + `WithKeepStaleState` opt-out + tests~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 70min | No more silent partial reverts | M-01 |
+| M-07 | ~~`metaengine/projectionadapter` implements `Resettable` + test~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 45min | One-call revert works for 80% path | M-06 |
+| M-08 | ~~goleak `VerifyTestMain` in `system` tests~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Teardown bugs caught in CI | — |
+| M-09 | ~~ADR-0136 temporal contract (invertibility ladder: replayable → compensable → must-be-an-event)~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 40min | Users can reason about reverts | — |
+| M-10 | ~~Revert & rebuild recipe (Reset → replay-from-zero) in skill `readmodels.md`/`recipes.md`~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Copy-paste revert for users | M-06, M-07 |
 
 ### Wave 2 — 20% → 80% (paradigm operationalized)
 
 | ID | Task | Imp | Effort | CV | Depends |
 |---|---|---|---|---|---|
-| M-11 | `system.New` coeffect gate: dangling subscription → hard error + disable option | H | 50min | Typos fail at compose, not in prod | — |
-| M-12 | Unconsumed-events warning wired into `New` | M | 30min | Dead-event visibility | M-11 |
-| M-13 | Tests for the gate (dangling / unconsumed / disabled; reuse `record.Type` alias) | H | 45min | Gate itself trusted | M-11, M-12 |
-| M-14 | Observational-equivalence scenario test: projection A alone vs A+B interleaved | H | 50min | Theorem becomes regression gate | — |
-| M-15 | cqrs-lint rule: projection `EventTypes()` vs registered producers | M | 45min | Static catch before runtime | M-11 semantics |
-| M-16 | Catalog export carries validation summary (render + gate) | M | 30min | Ops sees the coeffect graph | M-11 |
-| M-17 | Open ADRs 0114/0123/0124/0126/0127; verify report claims; addendum corrections | M | 40min | Docs stop lying | — |
-| M-18 | Fetch arXiv PDF; extract calculus + equivalence; grounding addendum | M | 30min | Mapping rests on primary source | — |
-| M-19 | Recount 82 modules / 47 DeferClose sites; correct via addendum | L | 30min | Figures honest | — |
-| M-20 | CHANGELOG + api-stability golden regen + `#verify-fast` for M-06/M-07 API surface | H | 35min | Release procedure held | M-06, M-07 |
+| M-11 | ~~`system.New` coeffect gate: dangling subscription → hard error + disable option~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 50min | Typos fail at compose, not in prod | — |
+| M-12 | ~~Unconsumed-events warning wired into `New`~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Dead-event visibility | M-11 |
+| M-13 | ~~Tests for the gate (dangling / unconsumed / disabled; reuse `record.Type` alias)~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 45min | Gate itself trusted | M-11, M-12 |
+| M-14 | ~~Observational-equivalence scenario test: projection A alone vs A+B interleaved~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 50min | Theorem becomes regression gate | — |
+| M-15 | ~~cqrs-lint rule: projection `EventTypes()` vs registered producers~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 45min | Static catch before runtime | M-11 semantics |
+| M-16 | ~~Catalog export carries validation summary (render + gate)~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Ops sees the coeffect graph | M-11 |
+| M-17 | ~~Open ADRs 0114/0123/0124/0126/0127; verify report claims; addendum corrections~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 40min | Docs stop lying | — |
+| M-18 | ~~Fetch arXiv PDF; extract calculus + equivalence; grounding addendum~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Mapping rests on primary source | — |
+| M-19 | ~~Recount 82 modules / 47 DeferClose sites; correct via addendum~~ ✅ DONE (2026-09-10, Waves 0-3) | L | 30min | Figures honest | — |
+| M-20 | ~~CHANGELOG + api-stability golden regen + `#verify-fast` for M-06/M-07 API surface~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 35min | Release procedure held | M-06, M-07 |
 
 ### Wave 3 — other 80% → final 20%
 
 | ID | Task | Imp | Effort | CV | Depends |
 |---|---|---|---|---|---|
-| M-21 | Design spike + ADR-0137: health-driven engine deactivation | H | 30min | Multi-engine operator story | — |
-| M-22 | Implement deactivation: errorfamily storm → quarantine + reroute + auto-reprobe + tests | H | 100min+ (multi-session) | Survives engine loss | M-21 |
-| M-23 | Health state in `Doctor` / `GetEngineStats` + tests | M | 30min | Operator observability | M-22 |
-| M-24 | rapid fuzz: A unchanged under randomized B interleavings | M | 30min | Stronger equivalence guarantee | M-14 |
-| M-25 | scenario DSL helper `AssertUnchanged(projection)` + docs | M | 30min | Users write equivalence tests | M-14 |
-| M-26 | Vocabulary positioning decision; if approved → SKILL.md cheat-sheet + DOMAIN_LANGUAGE | M | 40min | Story clarity (gated) | user decision |
-| M-27 | Mermaid/D2 diagram for the mapping report; optional HTML render | L | 30min | Comprehensibility | — |
+| M-21 | ~~Design spike + ADR-0137: health-driven engine deactivation~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 30min | Multi-engine operator story | — |
+| M-22 | ~~Implement deactivation: errorfamily storm → quarantine + reroute + auto-reprobe + tests~~ ✅ DONE (2026-09-10, Waves 0-3) | H | 100min+ (multi-session) | Survives engine loss | M-21 |
+| M-23 | ~~Health state in `Doctor` / `GetEngineStats` + tests~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Operator observability | M-22 |
+| M-24 | ~~rapid fuzz: A unchanged under randomized B interleavings~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Stronger equivalence guarantee | M-14 |
+| M-25 | ~~scenario DSL helper `AssertUnchanged(projection)` + docs~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 30min | Users write equivalence tests | M-14 |
+| M-26 | ~~Vocabulary positioning decision; if approved → SKILL.md cheat-sheet + DOMAIN_LANGUAGE~~ ✅ DONE (2026-09-10, Waves 0-3) | M | 40min | Story clarity (gated) | user decision |
+| M-27 | ~~Mermaid/D2 diagram for the mapping report; optional HTML render~~ ✅ DONE (2026-09-10, Waves 0-3) | L | 30min | Comprehensibility | — |
 
 **Totals:** Wave 0 ≈ 3h · Wave 1 ≈ 4.5h · Wave 2 ≈ 6.5h · Wave 3 ≈ 4h+ → the 20% (W0–W2) ≈ **14h** for 80% of the value.
 

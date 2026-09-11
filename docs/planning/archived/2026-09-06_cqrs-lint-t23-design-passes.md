@@ -4,7 +4,7 @@
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
 
-**Date:** 2026-09-06 · **Status:** DESIGN (not implemented unless noted)
+**Date:** 2026-09-06 · ~~**Status:** DESIGN (not implemented unless noted)~~ **Status:** IMPLEMENTED IN FULL (F089/F090(a+b)/F091 Tiers 1-3 + P014; see banner below)
 Decision gates ⛔Q2 resolved to plan defaults (V007 stays `warning`); these
 designs show the opt-in mechanisms consumers can use instead of forcing the
 default.
