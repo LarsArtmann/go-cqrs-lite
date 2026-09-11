@@ -125,7 +125,7 @@ func correctnessRulesPart2() []RuleInfo {
 			Category:    "correctness",
 			Severity:    "warning",
 			Confidence:  "medium",
-			Description: "Map field without sync.Mutex/sync.RWMutex in read model/handler — data race risk in concurrent handlers",
+			Description: "Map field without sync.Mutex/sync.RWMutex in read model/handler — data race risk in concurrent handlers (weak name/file candidates need live map-field evidence under --typed-info)",
 			AutoFix:     false,
 		},
 		{

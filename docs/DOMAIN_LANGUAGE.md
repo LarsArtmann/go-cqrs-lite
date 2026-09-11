@@ -239,6 +239,9 @@ A **cost-based storage planner** (CBO) for event-sourced projections. The metaen
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Capability Probe** | Runtime check whether the connected server supports a feature; failure demotes to a fallback path, never errors                     | `mysqlengine` CTE probe (`WITH RECURSIVE` trial query → iterative BFS fallback); latency `Prober` for live RTT (`sqliteengine.SetProber`) |
 | **Degraded ADT**     | An ADT served by an engine without native support via brute-force fallback — works, but slow; planner emits a `DEGRADED` diagnostic | `metaengine.rule_degraded_adt` → `DiagLevelDegraded` (e.g. graph via `MultimapBackend` O(N) traversal instead of native graph)            |
+| **Materialized-View Acceleration** | Query-serving from precomputed view tables maintained incrementally on each write, instead of scanning the base map; operator-opt-in per engine (ADR-0135) | `tursoengine.WithMaterializedViews(specs)` / `metaengine.MaterializedViewSpec` — scalar views exact; grouped views carry an upstream tursogo caveat |
+| **IVM**                | Incremental View Maintenance: each write updates only the affected view groups rather than recomputing the whole view                                              | The maintenance strategy behind `MaterializedViewSpec` — full vocabulary in [METAENGINE_DOMAIN_LANGUAGE.md](METAENGINE_DOMAIN_LANGUAGE.md) |
+| **View-Maintained Write** | A write into a store with active materialized views; pays per-view IVM maintenance cost, so write throughput scales down with view count                         | ADR-0135 tradeoff — bounded by the upstream ~27k cumulative view-maintained-rows ceiling per process                        |
 
 ---
 
@@ -262,6 +265,7 @@ A **cost-based storage planner** (CBO) for event-sourced projections. The metaen
 | ------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **Signing**        | Tamper-proof event streams via HMAC-SHA256 or Ed25519 signatures        | `signing.NewHMAC(key)`, `signing.NewEd25519(privKey)` — `SignMiddleware`/`VerifyMiddleware` |
 | **Encryption**     | Confidential event payloads via XChaCha20-Poly1305 or AES-256-GCM       | `encryption.NewXChaCha20Poly1305(key)` — `EncryptMiddleware`/`DecryptMiddleware`            |
+| **At-Rest Encryption** | Engine-level whole-database encryption — distinct from payload AEAD; defense in depth, neither substitutes the other                                  | `tursoengine.WithEncryption(cipher, hexKey)` — embedded/local-experimental today; Cloud-BYOK needs the sync engine (pure-remote BYOK unreachable from Go) |
 | **Codec**          | Payload serialization abstraction (JSON, CBOR, Raw)                     | `codec.JSONCodec{}`, `codec.CBORCodec{}`, `codec.CBORCompactCodec{}`, `codec.RawCodec{}`    |
 | **Encoding stamp** | Each event records its codec (`Encoding()`) for self-describing streams | `event.DecodePayloadAuto[T]` dispatches by stamp — mixed JSON+CBOR streams decode correctly |
 

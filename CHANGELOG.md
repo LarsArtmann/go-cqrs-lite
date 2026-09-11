@@ -318,6 +318,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   evidence — a money-named/embedded struct, a registered command payload, or
   a strong-money sibling. The historical heuristic is unchanged for
   syntax-only loads and `--typed-info=off`.
+- **C013/C035 payload-shape confirmation (F091 Tier 3)**: the same typed gate
+  now covers the remaining name-heuristic rules. C013 fires on candidates
+  selected only by file location (`events.go`, `payloads.go`, `views.go`) only
+  when structural evidence confirms the guess — an `event.New`/`NewEvent`
+  payload flow (registry) or a payload-conventional `Type() string` method for
+  payload candidates, any `json` tag (serialization point) for view
+  candidates. C035 applies the identical pattern to weak read-model candidates
+  (generic handler/projector/store/cache suffixes and file-location matches):
+  they need a live selector reference to the map field in the analyzed files;
+  explicit read-model names (`View`/`ReadModel`/`Projection` suffixes) fire
+  unchanged, as does the historical heuristic on syntax-only loads and
+  `--typed-info=off`. The name/file vocabularies behind the split live in
+  shared `lintutil` primitives (`HasEventPayloadNameSuffix`,
+  `IsPayloadFileName`, `HasReadModelNameSuffix`, `IsReadModelFileName`).
+- **cqrs-lint payload capture sees pointer composite literals**: the scanner
+  registered `event.New(..., T{...})` but missed the dominant `&T{...}` form,
+  so the F091 evidence registry under-recorded real emissions. Pointer
+  composite-literal payloads are now recorded (pinned by a scanner test),
+  which also strengthens the C008 registered-payload confirmation channel.
 - **Completeness meta-tests for the linter's static tables**
   (`TestConsumerOnlyRulesAreRealRules`, `TestPresetRuleIDsAreRealRules`,
   `TestPresetHelpTextListsAllPresets`): every `consumerOnlyRules` /

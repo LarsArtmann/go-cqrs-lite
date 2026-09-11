@@ -122,7 +122,7 @@ withTx ignores body error — failures silently lost
 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `correctness`
 
-time.Time field in event payload loses timezone via CBOR epoch encoding
+time.Time field in event payload loses timezone via CBOR epoch encoding (file-location-only candidates need payload-shape evidence under --typed-info)
 
 <a id="c014"></a>
 
@@ -298,7 +298,7 @@ go func() without ctx — goroutine outlives parent handler, resource leak on sh
 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `correctness`
 
-Map field without sync.Mutex/sync.RWMutex in read model/handler — data race risk in concurrent handlers
+Map field without sync.Mutex/sync.RWMutex in read model/handler — data race risk in concurrent handlers (weak name/file candidates need live map-field evidence under --typed-info)
 
 <a id="c036"></a>
 

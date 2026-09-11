@@ -195,6 +195,6 @@ else
 		# shellcheck disable=SC2086  # TEST_ARGS/TEST_ARGS2 are multi-word go-test passthroughs by contract
 		CGO_ENABLED=1 GOWORK=off \
 			timeout -k 15 "$TEST_TIMEOUT" \
-			go test -tags "goexperiment.jsonv2" ${TEST_ARGS:-} . -count=1 -v -timeout="${TEST_TIMEOUT}s" ${TEST_ARGS2:-} 2>&1
+			go test -tags "goexperiment.jsonv2" -shuffle=on ${TEST_ARGS:-} . -count=1 -v -timeout="${TEST_TIMEOUT}s" ${TEST_ARGS2:-} 2>&1
 	)
 fi

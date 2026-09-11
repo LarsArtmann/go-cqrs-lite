@@ -105,9 +105,9 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
-> T01–T12, T20–T24, F089, F090(a), F091 Tier 1 and the 2026-09-08 hardening
-> batch are DONE (CHANGELOG `[Unreleased]`); this section carries the living
-> remainder.
+> T01–T12, T20–T24, F089, F090(a+b), F091 Tiers 1–3 (incl. P014 ApplyLayout)
+> and the 2026-09-08 hardening batch are DONE (CHANGELOG `[Unreleased]`); this
+> section carries the living remainder.
 
 - [ ] **T13–T19 — exhaustive rule audit batches.** RISK-BASED SAMPLE DONE
       2026-09-06 (C-family) + S-FAMILY DONE 2026-09-07 (financialEscalatedRules
@@ -117,19 +117,16 @@ bottom is a do-not-re-litigate guard, not a backlog.
       E001–E017, V/T/F families, plus the S001/rules.go line-by-line remainder.
       — source: archived/2026-09-06_02-40 §c, 05-31 §f16-22
       _(Effort: M/L)_
-- [ ] 🔥 **F091 Tiers 2–3 + F090(b)** — TIER-2 CORE + F090(b) DONE 2026-09-08
-      (`--typed-info` flag plumbed, F090(b) typed dot-import attribution with
-      committed fixture + tests, C008 usage-confirmation). REMAINING:
-      C035/C013 payload-shape confirmation under the same gate.
+- [x] 🔥 **F091 Tiers 2–3 + F090(b)** — ALL DONE: Tier-2 core + F090(b)
+      2026-09-08 (`--typed-info` flag, typed dot-import attribution, C008
+      usage-confirmation); Tier-3 remainder 2026-09-11 (C035/C013
+      payload-shape confirmation under the same gate + the `&T{}` payload
+      capture fix that makes the evidence channel see real emissions).
       — source: 05-31 §b4
-      _(Effort: M)_
-- [ ] **ApplyLayout rule (design done, implement)** — structural method-shape
-      detection (`ApplyLayoutPlan` + `BuildLayoutPlan` co-occurring on the
-      receiver type); fires behind F091 Tier-2 `--typed-info=auto`, silent on
-      the name-only fallback. Design: appendix in
-      `docs/planning/2026-09-06_cqrs-lint-t23-design-passes.md`. — source:
-      session-4 retro §f25
-      _(Effort: M)_
+- [x] **ApplyLayout rule** — DONE 2026-09-09 as P014
+      `applylayout-bypasses-plan-path` (detection pair corrected to the
+      `ApplyLayout` call + `ApplyLayoutPlan` method shape; see CHANGELOG
+      `[Unreleased]`). — source: session-4 retro §f25
 - [x] **`IsQualifierFor` adoption sweep** — DONE 2026-09-08 (Pareto P12):
       scanCallExpr + D018/D019 catalog-builder + performance JSON-codec
       heuristic all resolve via `IsQualifierFor`; alias-blindness class dead.

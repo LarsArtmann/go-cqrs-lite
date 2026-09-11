@@ -119,7 +119,7 @@ func correctnessRulesPart1() []RuleInfo {
 			Category:    "correctness",
 			Severity:    "warning",
 			Confidence:  "medium",
-			Description: "time.Time field in event payload loses timezone via CBOR epoch encoding",
+			Description: "time.Time field in event payload loses timezone via CBOR epoch encoding (file-location-only candidates need payload-shape evidence under --typed-info)",
 			AutoFix:     false,
 			DocURL:      "https://github.com/larsartmann/go-cqrs-lite/blob/main/docs/TIMEZONE_HANDLING.md",
 		},
