@@ -299,4 +299,3 @@ func v007Finding(
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
 }
-

@@ -600,6 +600,24 @@ bottom is a do-not-re-litigate guard, not a backlog.
       stack verified green per-module meanwhile (build/vet/test/lint). —
       source: 02-16 §c4/§f13
       _(Effort: M)_
+- [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
+      30.** Classified 2026-09-11 (run 34548534824): (a) FIXED same-day —
+      the Module-matrix go.sum class (missing `/go.mod` hashes after the
+      v4.5/v4.6 pin wave: badgerengine, mysqlengine, projectionhost,
+      stack/bench, stack/postgres, testutil/pgtestcontainer, plus
+      idempotency/sqlstore found live on the mysql-vm leg); detection +
+      repair recipe in gotchas-module-management.md. (b) REMAINING, undiagnosed:
+      FlakeHub auth errors in job logs despite `use-flakehub: false`
+      (possibly fatal in the ephemeral dgraph/pg/redis integration jobs,
+      which are green locally), shellcheck SC2086 in
+      `scripts/test-tag-release.sh` (`git $notag` is INTENTIONALLY unquoted
+      — quoting changes semantics; needs a disable directive or
+      restructure), Minimum Coverage, verify-fast, go.work sync check, Nix
+      Flake Check, CGo build, Security Scan. (c) KNOWN/accepted: File Size
+      Check (the split-waves policy item above). NOTE: failures predate
+      2026-09-11 (they exist on commit 82d5218fc, before that day's
+      sessions). — source: run 34548534824, `gh run list`
+      _(Effort: M-L, multi-session)_
 
 ---
 

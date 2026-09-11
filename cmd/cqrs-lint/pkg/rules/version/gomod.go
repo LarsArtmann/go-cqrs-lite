@@ -110,7 +110,7 @@ func semverCompare(a, b string) int {
 		return strings.Compare(a, b)
 	}
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if as[i] != bs[i] {
 			if as[i] < bs[i] {
 				return -1

@@ -177,25 +177,11 @@ func classifyC035Candidate(structName, filePath string) c035CandidateStrength {
 	switch {
 	case lintutil.HasReadModelNameSuffix(structName):
 		return c035StrongCandidate
-	case hasWeakReadModelSuffix(structName), isReadModelishFileName(filePath):
+	case lintutil.HasWeakReadModelNameSuffix(structName), isReadModelishFileName(filePath):
 		return c035WeakCandidate
 	default:
 		return c035NotCandidate
 	}
-}
-
-// hasWeakReadModelSuffix reports generic suffixes (HANDLER, PROJECTOR, STORE,
-// CACHE) that appear far outside read models — they need typed evidence.
-func hasWeakReadModelSuffix(structName string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{"HANDLER", "PROJECTOR", "STORE", "CACHE"} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // isReadModelishFileName extends the shared read-model file vocabulary with

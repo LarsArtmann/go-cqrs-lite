@@ -12,15 +12,7 @@ import "strings"
 // event-payload suffix (EVENT, PAYLOAD, EVENTDATA). This is the STRONG C013
 // candidate signal: it never needs typed confirmation.
 func HasEventPayloadNameSuffix(structName string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{"EVENT", "PAYLOAD", "EVENTDATA"} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	return false
+	return hasAnySuffix(structName, []string{"EVENT", "PAYLOAD", "EVENTDATA"})
 }
 
 // IsPayloadFileName reports whether the file base name (events, payloads)
@@ -37,9 +29,22 @@ func IsPayloadFileName(filePath string) bool {
 // read-model suffix (VIEW, READMODEL, READMODELSTATE, PROJECTION). The strong
 // candidate signal for the C013 view branch and C035.
 func HasReadModelNameSuffix(structName string) bool {
-	upper := strings.ToUpper(structName)
+	return hasAnySuffix(structName, []string{"VIEW", "READMODEL", "READMODELSTATE", "PROJECTION"})
+}
 
-	for _, suffix := range []string{"VIEW", "READMODEL", "READMODELSTATE", "PROJECTION"} {
+// HasWeakReadModelNameSuffix reports generic suffixes (HANDLER, PROJECTOR,
+// STORE, CACHE) that appear far outside read models. C035 treats them as
+// ambient signals needing typed evidence.
+func HasWeakReadModelNameSuffix(structName string) bool {
+	return hasAnySuffix(structName, []string{"HANDLER", "PROJECTOR", "STORE", "CACHE"})
+}
+
+// hasAnySuffix is the single suffix-matching loop behind the name
+// heuristics — one shape, many vocabularies.
+func hasAnySuffix(name string, suffixes []string) bool {
+	upper := strings.ToUpper(name)
+
+	for _, suffix := range suffixes {
 		if strings.HasSuffix(upper, suffix) {
 			return true
 		}

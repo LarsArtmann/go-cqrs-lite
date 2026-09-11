@@ -10,47 +10,40 @@ import (
 
 // --- C013 view branch: file-only candidates need a serialization point ---
 
-// TestC013_TypedTier_ViewFileCandidateNeedsJSONTag: a struct in views.go
+// TestC013_TypedTier_ViewFileCandidateJSONTagGate: a struct in views.go
 // without a view suffix fires only when the struct carries a json tag (the
-// serialization reflection point that marks it as a served view).
-func TestC013_TypedTier_ViewFileCandidateNeedsJSONTag(t *testing.T) {
+// serialization reflection point that marks it as a served view);
+// --typed-info=off keeps the historical heuristic.
+func TestC013_TypedTier_ViewFileCandidateJSONTagGate(t *testing.T) {
 	t.Parallel()
 
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"views.go": `package views
+	tests := []struct {
+		name      string
+		typedMode string
+		withTag   bool
+		want      int
+	}{
+		{name: "SilentWithoutJSONTag", typedMode: "on", want: 0},
+		{name: "JSONTagConfirms", typedMode: "on", withTag: true, want: 1},
+		{name: "TypedOffKeepsHistoricalHeuristic", typedMode: "off", want: 1},
+	}
 
-import "time"
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tag := ""
+			if tt.withTag {
+				tag = " `json:\"openedAt\"`"
+			}
 
-type AccountSummary struct {
-	OpenedAt time.Time
-}
-`,
-	})
-	ctx.TypedInfoMode = "on"
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				"views.go": "package views\n\nimport \"time\"\n\ntype AccountSummary struct {\n\tOpenedAt time.Time" + tag + "\n}\n",
+			})
+			ctx.TypedInfoMode = tt.typedMode
 
-	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
-	ruletest.AssertRule(t, findings, "C013", 0)
-}
-
-// TestC013_TypedTier_ViewFileCandidateJSONTagConfirms: the json tag supplies
-// the evidence and the finding fires with the view-specific message.
-func TestC013_TypedTier_ViewFileCandidateJSONTagConfirms(t *testing.T) {
-	t.Parallel()
-
-	ctx := analyzer.BuildContextFromSource(t, map[string]string{
-		"views.go": `package views
-
-import "time"
-
-type AccountSummary struct {
-	OpenedAt time.Time ` + "`json:\"openedAt\"`" + `
-}
-`,
-	})
-	ctx.TypedInfoMode = "on"
-
-	findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
-	ruletest.AssertRule(t, findings, "C013", 1)
+			findings := ruletest.RunDetector(t, correctness.NewC013Detector(ctx))
+			ruletest.AssertRule(t, findings, "C013", tt.want)
+		})
+	}
 }
 
 // TestC013_TypedOff_ViewFileCandidateKeepsHistoricalHeuristic pins the

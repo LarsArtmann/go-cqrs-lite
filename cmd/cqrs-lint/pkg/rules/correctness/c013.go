@@ -96,7 +96,7 @@ func checkC013Struct(
 		if !typedTier || viewSerialized(st) {
 			checkProjectionTimeFields(ctx, gf, structName, st.Fields, findings)
 		}
-	default:
+	case c013NotCandidate:
 	}
 }
 
