@@ -887,6 +887,55 @@ jobs:
 
     timeout-minutes: 10
 
+  # Error-policy gate — same self-activating mechanism as go-codec's
+  # error-audit job (erraudit is a private module, so CI needs an
+  # ERRAUDIT_PAT secret with read access to github.com/larsartmann/erraudit).
+  # ACTIVATION PRECONDITION (do not skip): this monorepo is NOT at zero
+  # findings yet — baseline 2026-09-11: 253 findings across 22 of 35 modules
+  # under `erraudit lint ./... --enforce-go-error-family --type-aware`
+  # (storage 53, graph 46, event 25, encryption 14, command 13, decider 12,
+  # kv 11, stack/snapshot/benchkit 9 each, signing 8, query/middleware/
+  # catalog 7 each, schema 6, metaengine 4, id/dispatcher 3 each,
+  # watermill/projectionhost/deriver/scheduling 1-2 each). Zero them first —
+  # see TODO_LIST.md — or the gate goes red the moment the secret lands.
+  error-audit:
+    name: Error Audit (erraudit)
+    runs-on: ubuntu-latest
+    env:
+      HAS_ERRAUDIT_PAT: ${{ secrets.ERRAUDIT_PAT != '' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - name: Install erraudit
+        if: env.HAS_ERRAUDIT_PAT == 'true'
+        env:
+          GOPRIVATE: github.com/larsartmann/*
+          GOEXPERIMENT: jsonv2
+          GOWORK: "off"
+        run: |
+          git config --global url."https://x-access-token:${{ secrets.ERRAUDIT_PAT }}@github.com/".insteadOf "https://github.com/"
+          go install github.com/larsartmann/erraudit/cmd/erraudit@v0.4.0
+      - name: "Skipped: ERRAUDIT_PAT secret not set"
+        if: env.HAS_ERRAUDIT_PAT != 'true'
+        run: |
+          echo "erraudit is a private module (no proxy artifact). Add an ERRAUDIT_PAT secret (read: github.com/larsartmann/erraudit) to enable this gate."
+          echo "BEFORE activating: zero the per-module findings baseline (2026-09-11: 253 findings, 22 modules — see TODO_LIST.md), or the gate fails immediately."
+      - name: Enforce go-error-family error policy (per module)
+        if: env.HAS_ERRAUDIT_PAT == 'true'
+        run: |
+          set -euo pipefail
+          modules=$(find . -name go.mod -not -path './vendor/*' | sed 's|/go.mod||' | sed 's|^\./||' | sort)
+          status=0
+          for m in $modules; do
+            if ! (cd "$m" && erraudit lint ./... --enforce-go-error-family --type-aware); then
+              echo "::error module=$m::error-policy findings — run 'erraudit lint ./... --enforce-go-error-family --type-aware' in $m" >&2
+              status=1
+            fi
+          done
+          exit "$status"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

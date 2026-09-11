@@ -399,6 +399,21 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
+- [ ] **Zero the erraudit error-policy baseline** (precondition for the
+      `error-audit` CI gate added 2026-09-11) — the job is wired
+      (`.github/workflows/ci.yml`, same self-activating `ERRAUDIT_PAT`
+      mechanism as go-codec) but stays dormant until (a) a secret exists and
+      (b) these findings are zero. Baseline 2026-09-11: **253 findings across
+      22 of 35 modules** under `erraudit lint ./... --enforce-go-error-family
+      --type-aware` per module: storage 53, graph 46, event 25, encryption 14,
+      command 13, decider 12, kv 11, stack/snapshot/benchkit 9 each, signing
+      8, query/middleware/catalog 7 each, schema 6, metaengine 4,
+      id/dispatcher 3 each, watermill/projectionhost/deriver/scheduling 1-2
+      each. Recount with
+      `for m in */; do [ -f "$m/go.mod" ] && (cd "$m" && GOEXPERIMENT=jsonv2 erraudit lint ./... --enforce-go-error-family --type-aware --format csv 2>/dev/null | tail -n +2 | grep -c . | xargs -I{} echo "$m {}"); done`.
+      Do per-module batches (storage first — largest). _(Effort: L, 22
+      modules; go-codec's ADR-0001 + docs/error-codes.md are the reference
+      pattern)_
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
