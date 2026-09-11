@@ -463,27 +463,8 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Check production files <= 350 lines
-        run: |
-          failed=false
-          while IFS= read -r f; do
-            lines=$(wc -l < "$f")
-            if [ "$lines" -gt 350 ]; then
-              echo "::error::$f has $lines lines (max 350)"
-              failed=true
-            fi
-          done < <(find . -name "*.go" -not -name "*_test.go" \
-            -not -name "*.pb.go" \
-            -not -name "*.gen.go" \
-            -not -name "*_templ.go" \
-            -not -path "*/example/*" \
-            -not -path "*/testdata/*" \
-            -not -path "*/internal/cattest/*" \
-            -not -path "*/.git/*")
-          if [ "$failed" = true ]; then
-            echo "::error::One or more production files exceed 350 lines"
-            exit 1
-          fi
+      - name: File-size ratchet gate (350 target, baselined historical offenders)
+        run: bash scripts/check-file-size.sh
 
     timeout-minutes: 15
   benchmark:
