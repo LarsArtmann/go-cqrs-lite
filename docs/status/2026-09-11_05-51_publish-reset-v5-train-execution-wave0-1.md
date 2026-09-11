@@ -1,5 +1,7 @@
 # Status Report: Publish/Reset/v5-Train Plan Execution — Wave 0/1 (Parallel-Session Split)
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** §f items 29/31/32/34/50 are struck inline with evidence. The remaining open §f rows stay UNSTRUCK and live in `TODO_LIST.md` / the SUPERB plan (S02–S30 lane items: verify-ci probe, S09, S08 mutation proof, MySQL/Dgraph live runs, S26.x, S28.x, gates, v5 train — all cited there). This snapshot is ARCHIVED; the living lane is the SUPERB plan + `TODO_LIST.md`.
+
 > **When:** 2026-09-11 04:59–05:51 CEST (~52 min) · **Input:** user mandate "GET SHIT DONE! The WHOLE TODO LIST!" against [`docs/planning/2026-09-11_04-41_SUPERB-publish-reset-v5-train-plan.md`](../planning/2026-09-11_04-41_SUPERB-publish-reset-v5-train-plan.md) (S01–S30).
 > **Context:** a SECOND agent session is executing the SAME plan in this repo concurrently (files appearing minutes before my edits, same conventions). I re-partitioned into a disjoint lane mid-session. All numbers below verified against `git log`/`git status` at 05:51.
 
@@ -105,12 +107,12 @@ The other 6 (memory pre-existing; sqlite/pg/iroh/turso) landed from the parallel
 28. S15: calibration provenance line format + quiet-window count=5 SearchQuery re-run + dgraph constants re-anchor in ONE window + titled baseline re-pin (needs quiet box).
 
 **Docs/consumer truth (29–34):**
-29. S01-final: TODO truth pass — delete the rows both sessions made stale (S16.2 matcher pins pre-existed; S13 gate pre-existed; S23/S24/S25/S18/S19.1 done), harvest citations, re-check the 3 audit rulings.
+29. ~~S01-final: TODO truth pass — delete the rows both sessions made stale (S16.2 matcher pins pre-existed; S13 gate pre-existed; S23/S24/S25/S18/S19.1 done), harvest citations, re-check the 3 audit rulings.~~ done (TODO truth pass done in 6th pass (10 stale rows deleted, citations kept, 0 checked / 90 open); the 3 audit rulings remain OPEN with the user (§g))
 30. Extend error-taxonomy gate: stack, storage/view, event, command, query modules.
-31. FEATURES.md rows for: EngineResetter ladder completion, WithContentionObserver, file: DSN fix, ratchet gate.
-32. Update AGENTS.md: the S24 ladder no longer "documented follow-ups"; file-size gate now ratchet (contract #1 wording); dgraphengine budget note.
+31. ~~FEATURES.md rows for: EngineResetter ladder completion, WithContentionObserver, file: DSN fix, ratchet gate.~~ done (FEATURES rows done in 6th pass (reset ladder row, WithContentionObserver, file: DSN); ratchet row consciously NOT added to FEATURES — contributor tooling lives in CHANGELOG only)
+32. ~~Update AGENTS.md: the S24 ladder no longer "documented follow-ups"; file-size gate now ratchet (contract #1 wording); dgraphengine budget note.~~ done (AGENTS #1 ratchet wording + #22 ladder wording done in 6th pass; dgraphengine budget note consciously stays in this report + module-map (not AGENTS material))
 33. Skill references: SKILL.md/references reset recipe now covers ALL engines (currently says memory-only); recipes.md contention-observer entry.
-34. ROADMAP: release-history row refresh; Open Question 10 (skip-vs-fail) now answered — strike it.
+34. ~~ROADMAP: release-history row refresh; Open Question 10 (skip-vs-fail) now answered — strike it.~~ done (ROADMAP release-history bullet added + OQ 10 struck (ANSWERED 2026-09-11), 6th pass)
 
 **Program tail (35–42):**
 35. S29: loose cqrs-lint heuristic gates, one rule per PR ×~20 (V/T/E/A/F substrings, B018, A015–A019, F006/F009/F010, V002/V003/V006 scope).
@@ -130,7 +132,7 @@ The other 6 (memory pre-existing; sqlite/pg/iroh/turso) landed from the parallel
 47. Ratify the 350-line ratchet (or order full split waves / harness exemptions — adttest/enginetest are exported harnesses).
 48. Fix commit-message drift for the observer (optional follow-up commit with correct wording; history rewrite NOT worth it).
 49. Confirm the parallel session's S10 conformance table covers the live-replicator path my dgraph reset interacts with (cross-check encoded.go changes).
-50. Re-run `bash scripts/check-doc-links.sh` + doc-check after the README/CHANGELOG/skill edits land together.
+50. ~~Re-run `bash scripts/check-doc-links.sh` + doc-check after the README/CHANGELOG/skill edits land together.~~ done (rerun GREEN 6th pass — check-doc-links 668 targets / 0 broken; doc-check 1049 refs valid)
 
 ## g) What I CANNOT figure out myself — need your answer
 

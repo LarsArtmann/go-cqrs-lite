@@ -1,5 +1,7 @@
 # Status Report — cqrs-lint audit cheap-fix + test-gap tail executed
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** §f rows 24/30/32/33 are struck inline (file-size ratchet shipped; `RULES.md` regenerated — 206 rules recounted; the reset ladder completed by the 05-40/05-51 sessions; §f harvested into TODO_LIST/ROADMAP with citations). Remaining open §f rows live in `TODO_LIST.md` / `ROADMAP.md` (notably the golden-profile harness idea). This snapshot is ARCHIVED; the living backlog is `TODO_LIST.md`.
+
 > **Point-in-time snapshot:** 2026-09-11 05:12 CEST. Session scope: execute the
 > TODO_LIST entry "cqrs-lint audit cheap-fix + test-gap tail" (source:
 > 03-44 §b5-7) end-to-end, then self-review. No research beyond this session's

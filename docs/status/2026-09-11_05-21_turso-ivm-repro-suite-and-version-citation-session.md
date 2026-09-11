@@ -1,5 +1,7 @@
 # Status Report: Turso IVM Repro Suite + Version-Citation Single-Sourcing Session
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** NO §f rows struck — the open ones stay open and live in the living docs (striking would falsely signal shipped). Routed: §e4/§f13 canonical-fact gate pattern → ROADMAP.md raw ideas; the turso tail (upstream filing BLOCKED on approval, defect-A sharpening, grouped-spec guard) → TODO_LIST.md citing this report; the session's shipped surface (ivmrepro suite, `check-turso-version.sh`, flip runbook) is in CHANGELOG `[Unreleased]`. This snapshot is ARCHIVED; the living backlog is `TODO_LIST.md`.
+
 > **Timestamp:** 2026-09-11 05:21 CEST
 > **Session scope:** Execute the actionable items in TODO_LIST "Turso materialized
 > views (ADR-0135) — upstream handoffs": the `-tags ivmrepro` repro suite (item 6)
