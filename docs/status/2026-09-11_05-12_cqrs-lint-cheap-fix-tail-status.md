@@ -183,16 +183,16 @@ after the fact.
 | 21 | V003/V002/V006 root-go.mod-only scope documented or widened; `isPseudoVersion` doc vs reality (03-44 #17)                                                                    | Low    | S        | Docs             |
 | 22 | Split `boilerplate/b022_b025.go` (495 lines) — B025 funcIndex machinery into own file (03-44 #3)                                                                             | Low    | S        | Cleanup          |
 | 23 | Split `api/a020_a021_a022_a023.go` (~357 lines) (03-44 #4)                                                                                                                   | Low    | XS       | Cleanup          |
-| 24 | Wire `#check-file-size` into verify or start the ~52-file split waves — awaiting owner policy decision (03-44 §c #33)                                                        | Medium | —        | Decision         |
+| ~~24~~ | ~~Wire `#check-file-size` into verify or start the ~52-file split waves — awaiting owner policy decision (03-44 §c #33)~~ done — #check-file-size now baseline+ratchet, wired into CI + flake app, 2026-09-11 | ~~Medium~~ | ~~—~~ | ~~Decision~~ |
 | 25 | Golden-profile harness for typed gates (auto-regen + review flow per rule) (03-44 #49) — would have de-risked items 1/4/9 above                                              | High   | L        | Feature          |
 | 26 | Extract a shared value-classifier (URL/placeholder/DSN) into lintutil BEFORE a second rule needs it — prevents the S001 split brain                                          | Low    | S        | Cleanup          |
 | 27 | S001 follow-up: decide whether credential-bearing DSNs (`postgres://user:pass@…`) deserve their own rule now that S001 allowlists `://` (see question g2)                    | Medium | M        | Decision+Feature |
 | 28 | scheduling/sqlstore pre-existing lint findings (exhaustruct_v5 + tagliatelle) — carried from 03-44 #2, still open                                                            | Medium | S        | Cleanup          |
 | 29 | CHANGELOG taxonomy: this session put D016 detection-parity under "Fixed"; consider a repo convention for "detection surface changed" entries (consumers diffing output care) | Low    | XS       | Docs             |
-| 30 | Confirm the concurrent session's C040/C041 catalog wording is final and RULES.md is synced post-landing (see question g1)                                                    | Medium | XS       | Quality          |
+| ~~30~~ | ~~Confirm the concurrent session's C040/C041 catalog wording is final and RULES.md is synced post-landing (see question g1)~~ done — RULES.md regenerated from catalog, TestRULESMD_Fresh green, 2026-09-11 | ~~Medium~~ | ~~XS~~ | ~~Quality~~ |
 | 31 | iroh standalone pin repair (loopback pins v4.1.0; verify-ci RED risk) — standing, unchanged (03-44 #26)                                                                      | High   | M        | Bug              |
-| 32 | sqliteengine.ResetEngine + persistent-engine EngineResetter wave (ADR-0136; 03-44 #27–29)                                                                                    | High   | L        | Feature          |
-| 33 | cqrs-lint golden-profile HARVEST: route items 1–25 above into TODO_LIST.md, the rest to ROADMAP (docs-health HARVEST pass)                                                   | Medium | S        | Docs             |
+| ~~32~~ | ~~sqliteengine.ResetEngine + persistent-engine EngineResetter wave (ADR-0136; 03-44 #27–29)~~ done — ladder complete all engines 2026-09-11 | ~~High~~ | ~~L~~ | ~~Feature~~ |
+| ~~33~~ | ~~cqrs-lint golden-profile HARVEST: route items 1–25 above into TODO_LIST.md, the rest to ROADMAP (docs-health HARVEST pass)~~ done — 6th docs-health pass harvested this section f) into TODO_LIST/ROADMAP, 2026-09-11 | ~~Medium~~ | ~~S~~ | ~~Docs~~ |
 
 ---
 

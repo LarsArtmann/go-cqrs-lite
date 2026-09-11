@@ -1,6 +1,18 @@
 # Status Report — Docs-Health 5th Audit: Full Pass (Harvest + Annotate + Archive + Living-Docs Rebuild)
 
 **Date:** 2026-09-11 04:35 CEST
+
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11 ~06:00):** §f
+> rows struck inline = verified shipped by the 2026-09-11 execution waves
+> (two parallel sessions; see CHANGELOG `[Unreleased]`). Open §f rows are
+> harvested into TODO_LIST.md (S08 go.sum probe, S09 integration-lint,
+> CI-triage, tag-wave items) or ROADMAP (Open Questions / Raw Ideas — the
+> banner-noted brainstorm fuel is NOW written into Raw Ideas). §b1 raw-ideas
+> write-back: DONE this pass. §c1 cec9248da work record: TODO_LIST (Docs
+> section). §c3 archived/ sharding: still carried (S30 decision bundle).
+> §c4 #verify-fast: not re-checked this pass. The three §g rulings remain
+> user-gated (S30; the repo precedent — harvest, annotate, archive — was
+> followed again by this pass). ARCHIVED.
 **Mandate:** "View ALL `**/2026-0*` files! Execute the docs-health SKILL PROPERLY! TODO_LIST/CHANGELOG/AGENTS/README/ROADMAP/FEATURES must be all SUPERB! Archive FULLY done and UPDATED (inline strikethrough) .md files!" — then the follow-up: self-review (what forgotten / what better / what to improve) + this full a)–g) report.
 **Scope:** docs-health AUDIT (BUILD + HARVEST + VERIFY + ANNOTATE + ARCHIVE) over the 46 non-archived `2026-0*` snapshot files (25 markdown targets + reference/evidence docs) + the six living docs. Zero production code touched; two on-sight doc fixes fell out of the self-review (ROADMAP history row, banner typo).
 **Tree at report time:** clean — the daemon absorbed everything (`4fd9629eb` + successors).
@@ -78,46 +90,46 @@ _Brainstorm, not commitment — items 1–12 are this pass's direct findings; 13
 | 6  | Formalize the per-report drop-ledger convention (one line in the docs-health workflow or CONTRIBUTING)                                                               | XS                   |
 | 7  | Add "refresh ROADMAP Release History row" to the docs-health pass checklist (kills the d1 class)                                                                     | XS                   |
 | 8  | Proofread sweep over all 25 new archive banners (the AVD/AVG class — one known, fixed; others unknown)                                                               | XS                   |
-| 9  | 🔥 `sqliteengine.ResetEngine` (TODO Cordis section; production-default engine, ADR-0136)                                                                             | M                    |
-| 10 | 🔥 Audit `metaengine/encoded.go:49` record context + build the entry-point fold-dispatch conformance sweep (proven bug class)                                        | M                    |
+| ~~9~~  | ~~🔥 `sqliteengine.ResetEngine` (TODO Cordis section; production-default engine, ADR-0136)~~ done — sqliteengine.ResetEngine shipped 2026-09-11 | ~~M~~ |
+| ~~10~~ | ~~🔥 Audit `metaengine/encoded.go:49` record context + build the entry-point fold-dispatch conformance sweep (proven bug class)~~ done — root-cause fix + ApplyEncodedRecord + 13-entry-point sweep, 2026-09-11 | ~~M~~ |
 | 11 | Tag `watermill/v4.7.0` (issue-#21 causation fix is untagged; go-localsync blocked) — rides the next tag wave                                                         | S                    |
 | 12 | 🔥 CI triage: master red across ~15+ jobs (FlakeHub decision, shellcheck `$notag`, Minimum Coverage, verify-fast, go.work sync, Nix Flake Check, CGo, Security Scan) | M-L                  |
 | 13 | Tag `cmd/cqrs-lint` v4.10.2 shipping the buildinfo version reporting                                                                                                 | S                    |
-| 14 | `check-retracts-shipped.sh` (the inert-retract class)                                                                                                                | S                    |
-| 15 | `tag-release.sh --audit --baseline` (gate NEW violations in CI; 24 known-dead-path ones baselined)                                                                   | S/M                  |
+| ~~14~~ | ~~`check-retracts-shipped.sh` (the inert-retract class)~~ done — check-retracts-shipped.sh shipped 2026-09-11 | ~~S~~ |
+| ~~15~~ | ~~`tag-release.sh --audit --baseline` (gate NEW violations in CI; 24 known-dead-path ones baselined)~~ done — --audit --baseline shipped 2026-09-11 | ~~S/M~~ |
 | 16 | Integration-tag lint as a first-class gate (`lint-module` tag arg + CI leg for modules with `*_integration_test.go`)                                                 | S/M                  |
 | 17 | `#verify-ci` per-module `go mod download` no-diff assertion (missing go.sum hash class)                                                                              | M                    |
-| 18 | ClaimMetrics documentation + pin tail (README, FEATURES ✓ done, JSON marshal pin, PG/MySQL integration test)                                                         | S                    |
+| ~~18~~ | ~~ClaimMetrics documentation + pin tail (README, FEATURES ✓ done, JSON marshal pin, PG/MySQL integration test)~~ done — README section + JSON/live pins, 2026-09-11 | ~~S~~ |
 | 19 | Calibration provenance protocol + quiet-window SearchQuery re-run + titled benchmark-baseline re-pin                                                                 | M                    |
-| 20 | `ivm_repro_test.go` behind `-tags ivmrepro` (three-defect one-command release check)                                                                                 | S/M                  |
-| 21 | Single-source the turso-go "verified through vX" citation (9 sites today) + the canonical upstream-fix flip runbook                                                  | S                    |
+| ~~20~~ | ~~`ivm_repro_test.go` behind `-tags ivmrepro` (three-defect one-command release check)~~ done — ivm_repro_test.go behind -tags ivmrepro, 2026-09-11 | ~~S/M~~ |
+| ~~21~~ | ~~Single-source the turso-go "verified through vX" citation (9 sites today) + the canonical upstream-fix flip runbook~~ done — canonical constants + check-turso-version gate + flip runbook, 2026-09-11 | ~~S~~ |
 | 22 | Sharpen defect-A characterization before filing upstream (bisect onset, scalar-at-scale pin, pre.10 anomaly)                                                         | M                    |
-| 23 | cqrs-upgrade hardening (flags-after-positional guard, `--json` deprecations array, mechanized example v5 scan)                                                       | S                    |
-| 24 | V007 split brain: decider pair-forms missing from V007 tables + golden drift guard                                                                                   | S                    |
-| 25 | error-taxonomy: verify ALL module tables + build the drift gate (the watermill lie class)                                                                            | S                    |
-| 26 | Watermill shutdown-noise log (suppress on context.Canceled during Close)                                                                                             | XS                   |
+| ~~23~~ | ~~cqrs-upgrade hardening (flags-after-positional guard, `--json` deprecations array, mechanized example v5 scan)~~ done — flags guard + --json deprecations + example v5 scan, 2026-09-11 | ~~S~~ |
+| ~~24~~ | ~~V007 split brain: decider pair-forms missing from V007 tables + golden drift guard~~ done — existing golden verified + policy documented in v007.go, 2026-09-11 | ~~S~~ |
+| ~~25~~ | ~~error-taxonomy: verify ALL module tables + build the drift gate (the watermill lie class)~~ done — drift gate shipped, 5 modules gated 161 codes, 2026-09-11; extension routed to TODO_LIST | ~~S~~ |
+| ~~26~~ | ~~Watermill shutdown-noise log (suppress on context.Canceled during Close)~~ done — Debug-level shutdown logs + pin test, 2026-09-11 | ~~XS~~ |
 | 27 | Live-verify MySQL shuffle rollout + `-race` the dgraph retry code                                                                                                    | S                    |
-| 28 | `dgraph.type` shared-conflict-domain docs + `isContentionError` unit pin                                                                                             | S                    |
-| 29 | Contention-retry observability (otel counter; dep-budget review first)                                                                                               | S                    |
-| 30 | Skip-vs-fail policy for live conformance construction (ROADMAP OQ 10)                                                                                                | S                    |
+| ~~28~~ | ~~`dgraph.type` shared-conflict-domain docs + `isContentionError` unit pin~~ done — gotchas + dgraphengine README + TestIsContentionError pin, 2026-09-11 | ~~S~~ |
+| ~~29~~ | ~~Contention-retry observability (otel counter; dep-budget review first)~~ done — WithContentionObserver shipped (observer, dep-budget inverted), 2026-09-11 | ~~S~~ |
+| ~~30~~ | ~~Skip-vs-fail policy for live conformance construction (ROADMAP OQ 10)~~ done — honest-loud policy implemented in dgraphengine, 2026-09-11 | ~~S~~ |
 | 31 | Shuffle evals for `test-integration.sh` / `test-all-backends.sh` (gated OQ 9)                                                                                        | S                    |
 | 32 | `aggregate_*` tripwire permanent mutation fixture                                                                                                                    | S                    |
 | 33 | Per-finding lint attribution + one canonical golangci binary for ad-hoc surfaces                                                                                     | S                    |
 | 34 | 🔥 350-line gate policy decision (full split vs ratchet vs exemptions) then the split waves                                                                          | decision + L         |
 | 35 | Dead-path module/tag decisions (ROADMAP OQ 11)                                                                                                                       | decision             |
 | 36 | GitHub Releases for the outstanding tags (`create-github-releases.sh`)                                                                                               | S                    |
-| 37 | Watch the first nightly `upgrade-dogfood` sentinel CI run                                                                                                            | XS                   |
-| 38 | `check-coverage.sh` wrapper env fix + run it for the 09-07..11 waves                                                                                                 | S                    |
+| ~~37~~ | ~~Watch the first nightly `upgrade-dogfood` sentinel CI run~~ done — first run observed, failed, root-caused (private go-must), fixed, 2026-09-11 | ~~XS~~ |
+| ~~38~~ | ~~`check-coverage.sh` wrapper env fix + run it for the 09-07..11 waves~~ done — self-heal env + loud NO-DATA failure; all 11 modules within 2.0%, 2026-09-11 | ~~S~~ |
 | 39 | actionlint on `benchmarks.yml` (the unvalidated matview gate set) + CI step                                                                                          | S                    |
-| 40 | `example/metaengine-quickstart` smoke test (only test-less example)                                                                                                  | XS                   |
-| 41 | goleak for `metaengine` + `projectionhost` suites (M-08 covered `system` only)                                                                                       | S                    |
-| 42 | `[Unreleased]`-position tripwire in `verify-docs.sh`                                                                                                                 | XS                   |
-| 43 | E018 fold-case coverage (needs scanner position info)                                                                                                                | S                    |
-| 44 | Fold-write failover for quarantined engines (ADR-0137 follow-up)                                                                                                     | L                    |
-| 45 | EngineResetter on the remaining persistent engines (ladder after sqlite)                                                                                             | M each               |
-| 46 | Surface reset capability in `Doctor`/`GetEngineStats`                                                                                                                | S                    |
-| 47 | `batch-release.sh` consistency audit vs the hardened tag-release.sh                                                                                                  | M                    |
-| 48 | Daily scrub: no other session's TODO claims re-verified this pass — run the repo-wide stale-TODO sweep against open `[ ]` rows older than 7 days                     | M                    |
+| ~~40~~ | ~~`example/metaengine-quickstart` smoke test (only test-less example)~~ done — TestQuickstart_AllDemoSectionsGreen, 2026-09-11 | ~~XS~~ |
+| ~~41~~ | ~~goleak for `metaengine` + `projectionhost` suites (M-08 covered `system` only)~~ done — goleak VerifyTestMain in both modules, 2026-09-11 | ~~S~~ |
+| ~~42~~ | ~~`[Unreleased]`-position tripwire in `verify-docs.sh`~~ done — verify-docs.sh tripwire, positive+negative verified, 2026-09-11 | ~~XS~~ |
+| ~~43~~ | ~~E018 fold-case coverage (needs scanner position info)~~ done — C040 catalog parity closes the fold-case hole, 2026-09-11 | ~~S~~ |
+| ~~44~~ | ~~Fold-write failover for quarantined engines (ADR-0137 follow-up)~~ done — fold reroute + Store.CatchUpEngine, 2026-09-11 | ~~L~~ |
+| ~~45~~ | ~~EngineResetter on the remaining persistent engines (ladder after sqlite)~~ done — ladder complete: all 12 engines, 2026-09-11 | ~~M each~~ |
+| ~~46~~ | ~~Surface reset capability in `Doctor`/`GetEngineStats`~~ done — EngineStats.CanReset + Doctor --- Reset --- section, 2026-09-11 | ~~S~~ |
+| ~~47~~ | ~~`batch-release.sh` consistency audit vs the hardened tag-release.sh~~ done — 5 gaps fixed + fixture suites wired into CI, 2026-09-11 | ~~M~~ |
+| ~~48~~ | ~~Daily scrub: no other session's TODO claims re-verified this pass — run the repo-wide stale-TODO sweep against open `[ ]` rows older than 7 days~~ done — 6th docs-health pass TODO truth pass, 2026-09-11 | ~~M~~ |
 | 49 | `nix run .#verify` full, exclusive, on a quiet box (last composed GREEN 09-09; three days of waves since)                                                            | M                    |
 | 50 | Post-push CI watch: dgraph + redis shuffled jobs (~10 runs) for order-induced flakes; log any failing seed                                                           | XS                   |
 

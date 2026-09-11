@@ -268,8 +268,9 @@ iterator/batch/IO failures are **Infrastructure** (`pebble.commit_batch`,
 
 Note the nack semantics: `watermill.catchup.replay_nacked` fires ONLY on a
 real consumer Nack — a `Close()` or ctx cancellation during the ack wait
-shuts the replay down silently instead of reporting a nack that never
-happened.
+stops the replay with a Debug "stopped by shutdown" log (since 2026-09-11;
+previously silent) instead of reporting a nack that never happened. Real
+failures (nack, journal read, checkpoint load) stay at ERROR.
 
 ## Default Classification
 
