@@ -380,39 +380,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Code Quality
 
-- [ ] **Watermill shutdown-noise log** — a deliberate `Close` that interrupts
-      `awaitAck` makes `runSubscription` log `ERROR "catch-up replay failed:
-      context canceled"` on every shutdown: truthful but noisy; suppress (or
-      downgrade) on `context.Canceled` during Close. — source: 02-47 §c1/§f3
-      _(Effort: XS)_
-- [ ] **error-taxonomy: verify ALL module tables + build the drift gate** — the
-      watermill table lied for weeks ("parse fails → Corruption"; actually
-      Rejection); only pebble/watermill are depth-verified. Sweep
-      middleware/graph/relational/projectionhost/transport tables against
-      source, then add a generated gate (extract `errorfamily.*` codes per
-      module, diff vs doc — the `check-linter-names.sh` pattern). — source:
-      02-47 §b4/§e3/§f4/§f5
-      _(Effort: S)_
-- [ ] **cqrs-upgrade hardening batch** — (a) fail/warn when flags are placed
-      after the positional dir (silent `fs.Parse` semantics turned a "strict
-      gate" into a plain report on 2026-09-11); (b) `--json` always emits the
-      `deprecations` array (empty-key-absent relies on `omitempty` folklore);
-      (c) mechanize example v5-cleanliness: strict `cqrs-upgrade` scan of the
-      4 example modules per PR (or a meta-test against the V007 tables) so the
-      manual-audit TODO class stops regenerating. — source: 02-06 §c1/§e1–3/§f1–4
-      _(Effort: S)_
-- [ ] **V007 split brain: decider pair-form deprecations are absent from the
-      V007 tables** — source godoc says "Deprecated: removed in v5" but the
-      scan tables don't list them; add entries or an explicit policy note, and
-      add a golden test that every `Deprecated: removed in v5` marker has a
-      table entry or allowlist (mechanical drift guard). — source: 02-06
-      §f11–13
-      _(Effort: S)_
-- [ ] **`example/metaengine-quickstart` smoke test** — the only example with
-      zero test files; "runs all 4 demo sections green" rests on manual runs
-      (last 2026-09-11). — source: 02-05 V2, 02-06 §b2/§f6
-      _(Effort: XS)_
-
 - [ ] **>350-line production files (~54, 2026-09-06 count)** — see the
       cqrs-lint section for the verified picture, gate-policy options, and the
       already-split offenders; the code-file split waves are a standalone

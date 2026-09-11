@@ -4,9 +4,25 @@ import (
 	"context"
 	"testing"
 
-	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
+
+type resetTask struct {
+	ID     string
+	Status string
+}
+
+func resetTaskQuery() metaengine.QueryDecl[resetTask, resetTask] {
+	return metaengine.Query[resetTask, resetTask](
+		"pg_reset_tasks",
+		metaengine.OnRecordTyped(
+			"task_created",
+			resetTask{},
+			func(_ record.Record, e resetTask) (string, resetTask) { return e.ID, e },
+		),
+	)
+}
 
 // ResetEngine must clear every engine-owned table and keep layouts: after a
 // reset, reads see an empty engine and Store.Reset reports postgres cleared
@@ -65,7 +81,7 @@ func TestStore_Reset_ClearsPostgresEngine(t *testing.T) {
 
 	eng := mustNewPgEngine(t)
 
-	store, err := metaengine.Plan([]metaengine.Engine{eng}, pgFindTaskQuery())
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, resetTaskQuery())
 	if err != nil {
 		t.Fatalf("Plan: %v", err)
 	}

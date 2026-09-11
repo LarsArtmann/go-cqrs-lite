@@ -132,7 +132,7 @@ Conventions, soak env vars, integration playbooks, race thresholds, flake cures:
 
 Split by topic; edit the topic file, never inline here:
 
-- [`gotchas-tooling-build.md`](docs/agents/gotchas-tooling-build.md) — nix fmt/lint gates, exit-code traps, #verify exclusivity, background jobs, LSP noise, QEMU, storage-engine visibility quirks, cache env chain, workspace rules, system/v4 follow-ups.
+- [`gotchas-tooling-build.md`](docs/agents/gotchas-tooling-build.md) — nix fmt/lint gates, exit-code traps, #verify exclusivity, background jobs, LSP noise, QEMU, storage-engine visibility quirks, turso-go IVM defects (zombie-tx readback, version-citation gate, ivmrepro release check), cache env chain, workspace rules, system/v4 follow-ups.
 - [`gotchas-module-management.md`](docs/agents/gotchas-module-management.md) — testModules coupling, api golden rules, tag-wave four hard mechanics, pin sweeps, sibling replaces, release process.
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.

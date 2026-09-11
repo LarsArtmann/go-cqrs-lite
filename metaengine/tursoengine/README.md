@@ -90,6 +90,13 @@ when composing through the system package. Verify registrations in
 The corresponding `sqlite` driver REJECTS specs at construction — materialized
 views require the Turso Database engine with the `views` experimental feature.
 
+> **Grouped-view caveat (upstream turso-go defect):** grouped views silently
+> lose cross-transaction deltas at scale on driver versions through
+> `metaengine.TursoGoIVMVerifiedThrough` — scalar views are exact. The
+> `Store.Doctor` WARN flags it at runtime; `ivm_repro_test.go` in this module
+> (`-tags ivmrepro`) is the one-command check for new driver releases, and
+> `docs/turso-go-ivm-fix-flip-runbook.md` is the lift-the-caveat procedure.
+
 ## Capabilities
 
 Inherits the full `sqliteengine` capability set (Map, Set, Counter, Scan,
