@@ -12,14 +12,16 @@ import (
 // its materialized collections. After Reset, the next Start replays the journal
 // from zero and rebuilds the read model cleanly.
 //
-// Engines that implement metaengine.EngineResetter (the in-memory engine today)
-// are fully cleared. Engines that do not (persistent engines such as SQLite are
-// documented follow-ups) cannot be bulk-cleared; Reset logs a warning naming
-// them and still returns nil, because the checkpoint-only reset remains useful
-// and a hard failure would break existing v4 callers. Inspect the warning — or
-// call metaengine.Store.Reset directly for the structured ResetResult — when a
-// full revert matters. In v5 a partial reset becomes a hard error (it rides the
-// ADR-0123 composition-root wave).
+// Engines that implement metaengine.EngineResetter are fully cleared —
+// every first-party engine does (memory, SQLite/Turso, Pebble, bbolt,
+// Badger, Postgres, MySQL, DuckDB, Dgraph, and the iroh wrapper via its
+// local engine). Engines that do not (custom engines) cannot be
+// bulk-cleared; Reset logs a warning naming them and still returns nil,
+// because the checkpoint-only reset remains useful and a hard failure
+// would break existing v4 callers. Inspect the warning — or call
+// metaengine.Store.Reset directly for the structured ResetResult — when a
+// full revert matters. In v5 a partial reset becomes a hard error (it rides
+// the ADR-0123 composition-root wave).
 func (a *Adapter) Reset(ctx context.Context) error {
 	result, err := a.store.Reset(ctx)
 	if err != nil {
@@ -34,7 +36,7 @@ func (a *Adapter) Reset(ctx context.Context) error {
 			"result",
 			result.String(),
 			"remedy",
-			"use an engine that implements metaengine.EngineResetter (the in-memory engine does), or clear the persistent engine's tables out-of-band before replaying",
+			"the engine does not implement metaengine.EngineResetter — implement the capability or clear its data out-of-band before replaying",
 		)
 	}
 

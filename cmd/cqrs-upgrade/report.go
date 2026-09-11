@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -10,6 +11,9 @@ import (
 	cqrsanalyzer "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	cqrsversion "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/version"
 )
+
+// errPackageLoad marks a failed package load during the deprecation scan.
+var errPackageLoad = errors.New("package load failed")
 
 // moduleReport is the per-module result of one upgrade pipeline run. It
 // feeds the human output directly; --json marshals it through moduleJSON.
@@ -118,8 +122,7 @@ func deprecationFindings(dir string) ([]findingJSON, error) {
 			detail = first.Errors[0]
 		}
 
-		return nil, fmt.Errorf(
-			"package load failed for %s: %s", first.Module, detail)
+		return nil, fmt.Errorf("%w: %s: %s", errPackageLoad, first.Module, detail)
 	}
 
 	findings, detErr := cqrsversion.NewV007Detector(ctx).Detect(context.Background())

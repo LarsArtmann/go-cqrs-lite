@@ -14,8 +14,10 @@ import (
 //
 // Engines that do NOT implement EngineResetter cannot be bulk-cleared;
 // [Store.Reset] reports them in [ResetResult.UnclearableEngines] so a partial
-// reset is never silent. The in-memory engine implements it today; persistent
-// engines (SQLite, Pebble, …) are documented follow-ups.
+// reset is never silent. Every first-party engine implements it — memory,
+// SQLite/Turso, Pebble, bbolt, Badger, Postgres, MySQL, DuckDB, Dgraph, and
+// the iroh replication wrapper (via its local engine); custom engines opt in
+// by implementing this interface.
 type EngineResetter interface {
 	ResetEngine(ctx context.Context) error
 }

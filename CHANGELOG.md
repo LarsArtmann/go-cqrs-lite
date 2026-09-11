@@ -6,6 +6,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — example/taskmanager: private go-must dependency no longer breaks every workspace-wide go command — 2026-09-11
+
+- **Any machine without credentials could not run a single workspace-mode
+  go command in this repo.** `example/taskmanager` (a `go.work` member)
+  imported `github.com/larsartmann/go-must`, a PRIVATE repository the
+  module proxy cannot serve past v0.1.0 (its cache froze when the repo
+  went private; v0.1.1/v0.1.2 can never be served). Workspace mode unions
+  the requirements of ALL member modules, so `go build ./...`, `go run
+  ./cmd/cqrs-upgrade`, and the CI matrix's workspace builds had to load
+  go-must@v0.1.2 — the proxy 404s it, the direct-VCS fallback prompts for
+  credentials on CI, and the command dies with "could not read Username
+  for 'https://github.com'". This failed the first real CI run of the
+  nightly `upgrade-dogfood` sentinel (observed 2026-09-11, workflow
+  dispatch 34556835441) and was the module-load blocker behind the
+  `Nix Flake Check` CI leg. The fix inlines the two helpers taskmanager
+  actually uses (`Must`, `Check`) into `example/taskmanager/must.go` and
+  drops the require. Verified with the CI-fidelity repro: clean module
+  cache + proxy-only GOPROXY + no credentials, `go list -m all` over the
+  whole workspace now exits 0 with zero auth prompts; taskmanager builds
+  and tests green with GOWORK=off. RULE: a workspace member must never
+  require a private module — the workspace union turns one example's
+  dependency into a repo-wide build blocker.
+
+### Added — release tooling: batch-release.sh hardened to the tag-release.sh bar + fixture test suites in CI — 2026-09-11
+
+- **`scripts/batch-release.sh` encoded the pre-hardening release flow and
+  could create the exact tag classes tag-release.sh's 2026-09-11
+  hardening closed.** The audit found five gaps, all fixed: (1) no
+  path-vs-tag guard — a v2 tag over a suffix-less module path is
+  invisible to the module proxy (the issue-#20 class); the guard now
+  runs per triple before anything is touched, with a malformed-triple
+  error replacing the old confusing "<version>/go.mod not found". (2)
+  The replace-strip regex only matched go-cqrs-lite LHS paths, leaving
+  sibling-repo LOCAL replaces (go-finding, go-must) in published
+  go.mods; stripping now uses tag-release.sh's target-shape rule (only
+  `.`/`/`-prefixed targets) and scopes to the TAGGED modules' go.mods
+  only — sibling go.mods are irrelevant to each tag's consumers. (3) No
+  standalone compile gate — a go.mod pinning an older sibling than the
+  code needs shipped broken to every consumer (command/v4.7.0 class);
+  every tagged module now must compile GOWORK=off against its stripped
+  go.mod before any tag is created. (4) The restore path was broken
+  twice: `git checkout -- .` restored the STRIPPED go.mods from the
+  stale index, silently re-dirtying the tree (AGENTS banned command),
+  and `HEAD~1` breaks when the auto-commit daemon commits between the
+  temp commit and the reset — now `git reset --soft <original_head>` +
+  `git restore --staged --worktree`, mirroring tag-release.sh. (5) No
+  post-push smoke guidance — the summary now prints per-tag
+  `tag-release.sh --smoke` commands and `--audit` delegates to
+  tag-release.sh (single implementation). Bonus fix found by the new
+  test suite: `go build ./...` writes main-package binaries into the
+  module directory, dirtying the tree after a successful cut — both
+  scripts now build with `-o` into a throwaway dir (library-only
+  modules fall back to the plain build). Coverage: new
+  `scripts/test-batch-release.sh` (21 checks: guards, audit delegation,
+  successful multi-module cut with exact tree restore, build-failure
+  abort, duplicate-tag rejection) and a success-path Test 6 for
+  `test-tag-release.sh` (the gap that let the binary-pollution bug
+  hide). Both suites are wired as `nix run .#check-release-scripts` and
+  a CI leg; pre-existing shellcheck failures in
+  `test-tag-release.sh`/`test-exhaustruct-canary.sh` fixed (the
+  `shellcheck scripts/*.sh` CI leg can go green).
+
 ### Added — error-taxonomy drift gate: doc tables now mechanically verified — 2026-09-11
 
 - **`nix run .#check-error-taxonomy`** (CI + `#verify`; source:

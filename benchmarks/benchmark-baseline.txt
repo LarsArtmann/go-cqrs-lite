@@ -1,3 +1,10 @@
+# benchmark baseline — re-pinned 2026-09-11 ~02:40 CEST (UNTITLED at save time; retroactively labeled 2026-09-11)
+# Provenance gap: this refresh was saved during a load-ramp on the shared host with no uptime sample
+# recorded (the failure mode that produced the 2026-09-11 provenance protocol — see
+# docs/benchmarks/calibration-2026-08-30.md §Protocol items 6-8 and scripts/calibration-gate.sh).
+# Supersede via: scripts/calibration-gate.sh (must PASS) then
+#   ./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt
+# (which now writes this header automatically). Parser ignores '#' lines.
 goos: linux
 goarch: amd64
 pkg: github.com/larsartmann/go-cqrs-lite/stack/bench/v4
