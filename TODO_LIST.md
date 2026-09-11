@@ -90,9 +90,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       exactly-one check exists; add "must sit directly under the `#
       Changelog` header block" so a daemon-absorbed orphan fails at the
       next verify, not days later. _(Effort: XS)_
-- [ ] **Wire `#check-file-size` into verify (or fix violations)** — the app
-      exists but nothing runs it; `catalog/eventcatalog/exporter.go` is
-      already over the 350-line limit. _(Effort: XS to wire, S to split)_
 - [ ] **Release-train note** — the `metaengine/projectionadapter` sibling
       replace + the `metaengine` pin bump ride the next tag wave
       (`scripts/tag-release.sh` strips the replace; smoke at cut time).
@@ -179,17 +176,24 @@ bottom is a do-not-re-litigate guard, not a backlog.
       and the daemon workflow. Owner decision on protection + which checks +
       exceptions. — source: 06-58 §g1
 - [ ] 🔥 **350-line limit: gate red repo-wide — split waves + gate-policy
-      decision.** VERIFIED 2026-09-06: the gate IS wired (CI `file-size-gate`
-      + `nix run .#check-file-size`) but ~54 non-test files exceed it, red
+      decision.** VERIFIED 2026-09-06, recounted 2026-09-11: 58 non-test
+      files exceed the limit. The gate IS wired (CI `file-size-gate`
+      + `nix run .#check-file-size`), red
       since ≈2026-08-08 — unnoticed because red non-required jobs don't block
       direct pushes (F040). DONE: the two worst table-catalog offenders split
       into 12 per-family files (largest 294); feature_profile split (594→3
-      files). REMAINING: owner picks the policy — full split vs baseline
-      ratchet (no file grows, no new offender) vs table-catalog/harness
-      exemptions — then the code-file split waves (typed_reader 1127, adttest
-      952, enginetest 935, store 898, execute 767, engines 724/722/694/650,
+      files); 2026-09-11: `storage/view/store.go` 358→276+`mapper.go` 83 and
+      `stack/bundle.go` 363→253+`lifecycle.go` 117 (behavior-preserving
+      same-package splits, build/vet/test green). Wiring the gate into
+      `#verify` stays MOOT until the waves land — it would hold every verify
+      run permanently red. REMAINING: owner picks the policy — full split vs
+      baseline ratchet (no file grows, no new offender) vs
+      table-catalog/harness exemptions — then the code-file split waves
+      (typed_reader 1127, adttest/harness 953, metaengine/store 935,
+      enginetest 935, execute 778, engines 725/722/663,
       architecture/helpers 627, suppression/parser 540, explain 516, …). —
-      source: 06-56 §a9/§d1
+      source: 06-56 §a9/§d1, recounted 2026-09-11 (`nix run
+      .#check-file-size`)
       _(Effort: L, multi-session)_
 
 ---
@@ -533,6 +537,69 @@ bottom is a do-not-re-litigate guard, not a backlog.
       the ephemeral-pg/dgraph/redis + vm-mysql/nspawn invocations.
       Post-fix: green on seeds 42/7/1234 + the default invocation.
       _(Effort: S)_
+- [ ] **Contention-retry observability** — `retryOnContention` retries
+      SILENTLY (correct for tests, hides production Alpha contention
+      storms). Add an otel counter (e.g. `cqrs.dgraph.contention_retry`)
+      via the `otel/` re-export module; NOTE: adding otel/ to dgraphengine's
+      go.mod needs a `check-arch` dep-budget review first. — source: 02-16
+      §e2/§f1
+      _(Effort: S)_
+- [ ] **Skip-vs-fail policy for live conformance engine construction** —
+      `newDgraphEngineOrSkip` turns ANY construction failure into a SKIP
+      (how 4 ADT subtests silently vanished pre-fix). Distinguish
+      server-unavailable (skip) from contention-after-retry-exhaustion
+      (fail loudly). Pick the policy (ROADMAP OQ #10), then implement. —
+      source: 02-16 §e3/§f9/§f21
+      _(Effort: S)_
+- [ ] **Shuffle eval + adoption for `scripts/test-integration.sh` /
+      `test-all-backends.sh`** — the two composite runners execute the same
+      suites UNshuffled (documented parity gap in gotchas-testing.md).
+      Gated on ROADMAP OQ #9 (are the composite scripts staying?). — source:
+      02-16 §b3/§f4/§f5
+      _(Effort: S)_
+- [ ] **Backport contention-retry review to turso/badger engines** —
+      dgraph got the execution-layer retry; check whether turso/badger have
+      an analogous transient-abort class worth the same treatment. — source:
+      02-16 §f19
+      _(Effort: M)_
+- [ ] **Test `ensureEdgeSchema`'s in-tx Alter path** — Alter retries even
+      inside RunInTx (txnScoped=false) are pinned only by inspection; add
+      the unit pin next to `transaction_retry_test.go`. — source: 02-16 §f35
+      _(Effort: S)_
+- [ ] **Review `doWrite` response-returning callers** — `doMutate` was
+      narrowed to error-only (response never consumed); check whether any
+      `doWrite` caller consumes the response, and narrow the rest for
+      symmetry. — source: 02-16 §f34
+      _(Effort: XS)_
+- [ ] **Modernize dgraphengine test-modernize hints** — 13× `b.Loop()` in
+      `bench_test.go` + `atomic.Uint64` in `helper_test.go` (gopls hints;
+      lint-clean today, 10-minute sweep). — source: 02-16 §e8/§f16
+      _(Effort: S)_
+- [ ] **`go mod tidy` in `integration/`** — gopls flags unused
+      `google.golang.org/genproto/googleapis/rpc` (integration/go.mod:131).
+      Mind parallel-session in-flight edits before sweeping. — source: 02-16
+      §f24
+      _(Effort: XS)_
+- [ ] **Unify ephemeral-script passthrough conventions** — ephemeral-pg.sh
+      uses positional EXTRA_ARGS, ephemeral-dgraph.sh uses
+      TEST_ARGS/TEST_ARGS2, redis/nats use raw passthrough; three
+      conventions for the same job complicate evaluations. — source: 02-16
+      §e5/§f25
+      _(Effort: M)_
+- [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
+      seed that fails; rare orderings WILL eventually appear in CI (that is
+      the point of shuffling). — source: 02-16 §e7/§f10
+      _(Effort: XS)_
+- [ ] **Record shuffle seeds to a log for post-hoc replay** — ephemeral
+      scripts echo the seed; persist it to a file so a failed CI seed can be
+      replayed exactly (`-shuffle=N`). — source: 02-16 §f23
+      _(Effort: XS)_
+- [ ] [BLOCKED] **Full `nix run .#verify` gate for the contention fix** —
+      blocked while a parallel session's files sit dirty in the tree
+      (#verify exclusivity + `nix fmt` fail-on-change); dgraphengine and
+      stack verified green per-module meanwhile (build/vet/test/lint). —
+      source: 02-16 §c4/§f13
+      _(Effort: M)_
 
 ---
 

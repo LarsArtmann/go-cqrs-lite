@@ -523,6 +523,10 @@ can try it while v1 paths still work. v5 is the clean cut.
 - Automatic migration generator for schema evolution
 - Property-based integration testing with state machine verification
 - Performance regression dashboard (historical benchmark tracking)
+- Deterministic mock reproducing dgraph shuffle seed 42's abort ordering
+  (contention regression test without a live server)
+- enginetest harness contract: every engine declares its contention model
+  (retry policy), so transient-abort handling is audited per engine
 - Neo4j/Memgraph graph driver (`graph/neo4j/`) — consumer-pulled sibling module
 - SSE fan-out transform memoization — `CBORToJSONTransform` runs once per client
   (208µs for 100 clients, 3400 allocs/op). Memoization keyed by event ID could
@@ -620,6 +624,21 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
    `Dialect() string` ("mysql"/"mariadb"). Keep as stable public API, or
    demote to internal and expose via `Profile()` metadata (avoids a
    stringly-typed API surface before the v5 freeze)?
+8. **Contention-retry knobs: internal forever or exported?** (2026-09-11):
+   dgraphengine's retry schedule (6 attempts, 15–240ms backoff + jitter) is
+   fixed internal behavior. Keep internal forever, or expose per-engine
+   options (`WithContentionRetry(...)`) in the v5 API train? Exporting now
+   means api-stability golden work. — source: 02-16 §g1
+9. **`test-integration.sh` / `test-all-backends.sh` fate** (2026-09-11):
+   are the composite runners staying long-term (operator-facing
+   one-command entry points → give them their own shuffle evals, TODO_LIST
+   Testing section) or legacy on the way out (leave unshuffled, like the
+   stack presets)? — source: 02-16 §g2
+10. **Skip-vs-fail for live conformance construction** (2026-09-11): when
+    an engine cannot be built after retry exhaustion — availability-first
+    SKIP (CI green, coverage silently drops) or honesty-first FAIL (CI
+    noise when Alpha is starved)? Shapes every live-engine suite, not just
+    dgraph. — source: 02-16 §g3
 
 ---
 
