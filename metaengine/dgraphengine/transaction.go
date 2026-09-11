@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand/v2"
+	"strings"
+	"time"
 
 	"github.com/dgraph-io/dgo/v240"
 	"github.com/dgraph-io/dgo/v240/protos/api"
@@ -77,29 +80,121 @@ func (e *dgraphEngine) inTx() bool {
 // transaction — CommitNow must be cleared (it would end the whole txn) and
 // the commit is deferred to RunInTx.
 func (e *dgraphEngine) doWrite(ctx context.Context, req *api.Request) (*api.Response, error) {
-	if tx := e.activeTxn.Load(); tx != nil {
-		req.CommitNow = false
+	var resp *api.Response
 
-		return tx.Do(ctx, req)
-	}
+	err := e.retryOnContention(ctx, true, func() error {
+		var err error
 
-	req.CommitNow = true
+		if tx := e.activeTxn.Load(); tx != nil {
+			req.CommitNow = false
 
-	return e.client.NewTxn().Do(ctx, req)
+			resp, err = tx.Do(ctx, req)
+
+			return err
+		}
+
+		req.CommitNow = true
+
+		resp, err = e.client.NewTxn().Do(ctx, req)
+
+		return err
+	})
+
+	return resp, err
 }
 
 // doMutate executes one standalone-shaped mutation under the same rules as
 // doWrite.
 func (e *dgraphEngine) doMutate(ctx context.Context, mut *api.Mutation) (*api.Response, error) {
-	if tx := e.activeTxn.Load(); tx != nil {
-		mut.CommitNow = false
+	var resp *api.Response
 
-		return tx.Mutate(ctx, mut)
+	err := e.retryOnContention(ctx, true, func() error {
+		var err error
+
+		if tx := e.activeTxn.Load(); tx != nil {
+			mut.CommitNow = false
+
+			resp, err = tx.Mutate(ctx, mut)
+
+			return err
+		}
+
+		mut.CommitNow = true
+
+		resp, err = e.client.NewTxn().Mutate(ctx, mut)
+
+		return err
+	})
+
+	return resp, err
+}
+
+// Dgraph contention retry schedule. Bulk writers (corpus builds, projection
+// catch-up) sustain contention for seconds, so the schedule is 6 attempts
+// with exponential backoff plus jitter (15ms base doubling, capped at 240ms).
+const (
+	contentionAttempts = 6
+	contentionBase     = 15 * time.Millisecond
+	contentionCap      = 240 * time.Millisecond
+)
+
+// retryOnContention runs fn, retrying while Dgraph reports a transient
+// contention error: a transaction abort ("Transaction has been aborted.
+// Please retry") from a concurrent committer, or an Alter rejected while
+// transactions are pending ("Pending transactions found"). Retrying the
+// whole operation is Dgraph's documented resolution — aborted work never
+// committed, and schema applies are idempotent.
+//
+// txnScoped marks transaction operations: inside RunInTx an aborted txn
+// cannot be retried in place — the whole transaction must roll back and
+// the CALLER retries — so the first error surfaces immediately. Alter
+// callers pass false (schema applies are always retriable).
+func (e *dgraphEngine) retryOnContention(
+	ctx context.Context,
+	txnScoped bool,
+	fn func() error,
+) error {
+	var lastErr error
+
+	for attempt := range contentionAttempts {
+		err := fn()
+		if err == nil {
+			return nil
+		}
+
+		lastErr = err
+
+		if txnScoped && e.inTx() {
+			return err
+		}
+
+		if !isContentionError(err) {
+			return err
+		}
+
+		delay := min(contentionBase<<attempt, contentionCap) + rand.N(contentionBase)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(delay):
+		}
 	}
 
-	mut.CommitNow = true
+	return lastErr
+}
 
-	return e.client.NewTxn().Mutate(ctx, mut)
+// isContentionError reports whether err is Dgraph's transient contention
+// class: an aborted read-write transaction or an Alter rejected because
+// transactions are still pending.
+func isContentionError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	msg := err.Error()
+
+	return strings.Contains(msg, "aborted") ||
+		strings.Contains(msg, "Pending transactions found")
 }
 
 // readTx returns the transaction a read op must use: the active RunInTx

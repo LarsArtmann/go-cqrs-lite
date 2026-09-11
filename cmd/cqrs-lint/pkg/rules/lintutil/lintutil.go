@@ -306,17 +306,7 @@ func BaseFileName(filePath string) string {
 // struct is an event payload. Shared by C013 (correctness) and the F-series
 // adoption rules to avoid duplicating the heuristic across packages.
 func LooksLikeEventPayload(structName, filePath string) bool {
-	upper := strings.ToUpper(structName)
-
-	for _, suffix := range []string{"EVENT", "PAYLOAD", "EVENTDATA"} {
-		if strings.HasSuffix(upper, suffix) {
-			return true
-		}
-	}
-
-	base := BaseFileName(filePath)
-
-	return base == "events" || base == "payloads"
+	return HasEventPayloadNameSuffix(structName) || IsPayloadFileName(filePath)
 }
 
 // IsEventPayloadName reports whether the struct name follows the CQRS event

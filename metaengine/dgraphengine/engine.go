@@ -126,7 +126,11 @@ func (e *dgraphEngine) init() error {
 		cqrs.stream_log_value: string .
 	`
 
-	return e.client.Alter(context.Background(), &api.Operation{Schema: schema})
+	ctx := context.Background()
+
+	return e.retryOnContention(ctx, false, func() error {
+		return e.client.Alter(ctx, &api.Operation{Schema: schema})
+	})
 }
 
 // Profile returns the cost profile for this Dgraph engine.
@@ -266,7 +270,10 @@ func (e *dgraphEngine) ensureEdgeSchema(ctx context.Context, collection string) 
 	}
 
 	schema := pred + ": [uid] @reverse ."
-	if err := e.client.Alter(ctx, &api.Operation{Schema: schema}); err != nil {
+
+	if err := e.retryOnContention(ctx, false, func() error {
+		return e.client.Alter(ctx, &api.Operation{Schema: schema})
+	}); err != nil {
 		return fmt.Errorf("dgraphengine.ensureEdgeSchema: %w", err)
 	}
 

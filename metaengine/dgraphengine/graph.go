@@ -4,9 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"fmt"
-	"math/rand/v2"
-	"strings"
-	"time"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
 
@@ -19,53 +16,8 @@ import (
 // degradation. Edges are stored as uid→uid predicates with @reverse for
 // bidirectional traversal. GraphAddEdge adds both directions (matching the
 // memory engine's symmetric adjacency semantics).
-
-// doWithAbortRetry runs a mutation with retry on transaction abort. The
-// read-then-write upsert pattern (query + @if mutation) aborts when a
-// concurrent transaction commits first ("Transaction has been aborted.
-// Please retry") — retrying the whole request is Dgraph's documented
-// resolution and keeps parallel graph operations reliable. Bulk writers
-// (corpus builds, projection catch-up) sustain contention for seconds, so
-// the schedule is 6 attempts with exponential backoff plus jitter
-// (15ms base doubling, capped at 240ms).
-func (e *dgraphEngine) doWithAbortRetry(
-	ctx context.Context,
-	req *api.Request,
-) error {
-	const attempts = 6
-	const baseDelay = 15 * time.Millisecond
-	const maxDelay = 240 * time.Millisecond
-
-	var lastErr error
-
-	for attempt := range attempts {
-		_, err := e.doWrite(ctx, req)
-		if err == nil {
-			return nil
-		}
-
-		lastErr = err
-		// Inside RunInTx an aborted txn cannot be retried in place — the
-		// whole transaction must roll back and the CALLER retries. Surface
-		// the abort error immediately.
-		if e.inTx() {
-			return err
-		}
-
-		if !strings.Contains(err.Error(), "aborted") {
-			return err
-		}
-
-		delay := min(baseDelay<<attempt, maxDelay) + rand.N(baseDelay)
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(delay):
-		}
-	}
-
-	return lastErr
-}
+// Writes route through doWrite, whose retryOnContention covers the
+// read-then-write upsert aborts this engine used to special-case.
 
 func (e *dgraphEngine) GraphAddEdge(
 	ctx context.Context,
@@ -107,7 +59,7 @@ func (e *dgraphEngine) GraphAddEdge(
 		{SetJson: toJSON, Cond: "@if(eq(len(to_node), 0))"},
 	}
 
-	if err := e.doWithAbortRetry(ctx, req); err != nil {
+	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.GraphAddEdge: upsert nodes: %w", err)
 	}
 
@@ -121,7 +73,7 @@ func (e *dgraphEngine) GraphAddEdge(
 		{SetNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
-	if err := e.doWithAbortRetry(ctx, req2); err != nil {
+	if _, err := e.doWrite(ctx, req2); err != nil {
 		return fmt.Errorf("dgraphengine.GraphAddEdge: add edges: %w", err)
 	}
 
@@ -154,7 +106,7 @@ func (e *dgraphEngine) GraphRemoveEdge(
 		{DelNquads: fmt.Appendf(nil, "uid(to_node) <%s> uid(from_node) .", pred)},
 	}
 
-	if err := e.doWithAbortRetry(ctx, req); err != nil {
+	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.GraphRemoveEdge: %w", err)
 	}
 

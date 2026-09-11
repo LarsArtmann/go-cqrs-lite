@@ -4484,12 +4484,16 @@ scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method MarkFired
 scheduling/sqlstore/method MarkFired
+scheduling/sqlstore/method Metrics
+scheduling/sqlstore/method Metrics
 scheduling/sqlstore/method RenewLease
 scheduling/sqlstore/method RenewLease
 scheduling/sqlstore/method Schedule
 scheduling/sqlstore/method Schedule
 scheduling/sqlstore/struct ClaimMetrics
 scheduling/sqlstore/struct ClaimMetrics
+scheduling/sqlstore/struct ClaimMetricsSnapshot
+scheduling/sqlstore/struct ClaimMetricsSnapshot
 scheduling/sqlstore/struct ClaimingTimerStore
 scheduling/sqlstore/struct ClaimingTimerStore
 scheduling/sqlstore/struct SQLTimerStore

@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — scheduling/sqlstore: built-in claim-metrics snapshot surfaced on the store — 2026-09-11
+
+- **`ClaimingTimerStore` now maintains claim activity itself and exposes it
+  via the new `Metrics` method** (returns the JSON-ready
+  `scheduling/sqlstore.ClaimMetricsSnapshot`: claimed batches, claimed
+  timers, renewals, rejections). The 2026-08-30 `WithClaimMetrics` hooks had
+  zero consumers because nothing surfaced the numbers; a Doctor-style report
+  or `/status` endpoint can now read claim liveness without wiring anything.
+  Hooks stay unchanged for consumers exporting to external systems, and
+  empty polls count as batches — the poller's heartbeat signal.
+
+### Fixed — metaengine: Demote mirror catch-up feeds record-aware folds the full recorded context — 2026-09-11
+
+- **`DemoteEngine`'s mirror catch-up replayed history through a synthesized
+  Type-only record, dropping the StreamID/Version the EventLog had
+  recorded** — OnRecord folds on the demoted engine rebuilt state with empty
+  per-instance context, while Backfill, Verify, and the re-routed catch-up
+  replay all honored the recorded context. The mirror replay now passes the
+  recorded record through (synthesizing only for legacy log entries), pinned
+  by `TestDemoteEngine_RecordContextReplay` covering both catch-up legs.
+
 ### Fixed — release tooling: retracts, dead-path stubs, tag-release audit + binary smoke probe — 2026-09-11
 
 - **The issue-#20 tooling class is closed out end to end.** The poisoned
