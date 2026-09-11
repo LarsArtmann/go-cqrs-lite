@@ -11,6 +11,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"github.com/samber/lo"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // TestHost_OTelSpans_VerifyNamesAndAttributes verifies that the managed host
@@ -115,5 +118,8 @@ func TestHost_OTelSpans_VerifyNamesAndAttributes(t *testing.T) {
 }
 
 func spanAttrMap(attrs []attribute.KeyValue) map[string]string {
-	return lo.SliceToMap(attrs, func(kv attribute.KeyValue) (string, string) { return string(kv.Key), kv.Value.AsString() })
+	return lo.SliceToMap(
+		attrs,
+		func(kv attribute.KeyValue) (string, string) { return string(kv.Key), kv.Value.AsString() },
+	)
 }

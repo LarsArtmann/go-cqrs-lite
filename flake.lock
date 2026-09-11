@@ -91,11 +91,11 @@
     "go-finding": {
       "flake": false,
       "locked": {
-        "lastModified": 1789028105,
-        "narHash": "sha256-e9xLXl5WalEs3Q4R9uy2jsfPg/HaX29yqDAjGt4Er0M=",
+        "lastModified": 1789104659,
+        "narHash": "sha256-EBsxj4TlATjmdUYiWmcVZkJtOff+whSZ/pGJHqgGIF4=",
         "owner": "LarsArtmann",
         "repo": "go-finding",
-        "rev": "62d8cbfa0ccc412ce9ba31f196c874124adb11ad",
+        "rev": "9e2f19977b7c5d784979bcecfadbd2ecdde8b787",
         "type": "github"
       },
       "original": {
@@ -210,11 +210,11 @@
     "samber-do-auditlog": {
       "flake": false,
       "locked": {
-        "lastModified": 1789022857,
-        "narHash": "sha256-7O4R9HeY3/pch+gRikHD96ExHMWwsVPfZzH7ljVbA5A=",
+        "lastModified": 1789115047,
+        "narHash": "sha256-nZvjsDXTSNg4nvJVrTqfrFUtOyMggEq1JkXjJPO/AF0=",
         "owner": "LarsArtmann",
         "repo": "samber-do-auditlog",
-        "rev": "f529d0ef5bc8e5e9af08122e06add528fdd5539a",
+        "rev": "f61a683d75f6c1e53368f03c64d8b17791c5ab24",
         "type": "github"
       },
       "original": {

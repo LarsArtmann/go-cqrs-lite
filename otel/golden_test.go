@@ -1,6 +1,7 @@
 package otel_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"path/filepath"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 
 	"github.com/samber/lo"
 )
@@ -53,7 +56,10 @@ func TestGolden_QueryAttrs(t *testing.T) {
 }
 
 func attrsToMap(attrs []attribute.KeyValue) map[string]string {
-	return lo.SliceToMap(attrs, func(a attribute.KeyValue) (string, string) { return string(a.Key), a.Value.AsString() })
+	return lo.SliceToMap(
+		attrs,
+		func(a attribute.KeyValue) (string, string) { return string(a.Key), a.Value.AsString() },
+	)
 }
 
 type fixedID string

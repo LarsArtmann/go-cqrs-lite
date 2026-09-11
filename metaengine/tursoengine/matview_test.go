@@ -9,8 +9,10 @@ import (
 
 	"github.com/onsi/gomega"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/samber/lo"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 type orderRow struct {
@@ -36,7 +38,11 @@ func orderRows(n, customers int) []orderRow {
 }
 
 func sumAmounts(rows []orderRow) float64 {
-	return lo.Reduce(rows, func(total float64, r orderRow, _ int) float64 { return total + r.Amount }, 0.0)
+	return lo.Reduce(
+		rows,
+		func(total float64, r orderRow, _ int) float64 { return total + r.Amount },
+		0.0,
+	)
 }
 
 func seedOrders(ctx context.Context, tb testing.TB, eng metaengine.Engine, rows []orderRow) {

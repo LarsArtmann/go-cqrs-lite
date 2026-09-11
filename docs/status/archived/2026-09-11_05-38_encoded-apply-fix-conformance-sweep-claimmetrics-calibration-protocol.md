@@ -247,7 +247,7 @@ Metaengine / metaengineering:
 14. Sweep consumers for ApplyEncoded usage outside metaengine (grep said
     none in-repo; example/taskmanager may now get replay coverage for
     free if it ever adopts it — pin the adapter example in example/).
-15. ~~`check-duplication` run once the tree is daemon-clean (pure move~~ done (gate run in 6th pass (2026-09-11) — RED with 5 NEW clone groups from metaengine/*engine/reset*.go (unrelated to the pure move); annotate-vs-re-pin decision pending owner)
+15. ~~`check-duplication` run once the tree is daemon-clean (pure move~~ done (gate run in 6th pass (2026-09-11) — RED with 5 NEW clone groups from metaengine/_engine/reset_.go (unrelated to the pure move); annotate-vs-re-pin decision pending owner)
     ~~expected to be clean; the gate hasn't seen it).~~
 16. Full `nix run .#verify` in a quiet window to stamp the batch
     end-to-end (race subsets only so far).

@@ -12,9 +12,16 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/samber/lo"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/decider/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 func setupSpanTreeTest(
@@ -165,7 +172,10 @@ func buildParentMap(spans []tracetest.SpanStub) map[string]string {
 	result := make(map[string]string, len(spans))
 
 	byID := make(map[trace.SpanID]string, len(spans))
-	byID = lo.SliceToMap(spans, func(s tracetest.SpanStub) (trace.SpanID, string) { return s.SpanContext.SpanID(), s.Name })
+	byID = lo.SliceToMap(
+		spans,
+		func(s tracetest.SpanStub) (trace.SpanID, string) { return s.SpanContext.SpanID(), s.Name },
+	)
 
 	for _, s := range spans {
 		if s.Parent.SpanID().IsValid() {
