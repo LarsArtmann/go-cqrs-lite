@@ -33,14 +33,22 @@ func TestEngineHealth_FoldWriteFailover(t *testing.T) {
 	store, primary, spare := healthTestStore(t)
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i1", Name: "pre"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i1", Name: "pre"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
 	quarantinePrimary(t, store, primary)
 
 	// A fold during quarantine must succeed and land on the failover engine.
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i2", Name: "during"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i2", Name: "during"},
+	); err != nil {
 		t.Fatalf("apply during quarantine should fail over, got: %v", err)
 	}
 
@@ -71,13 +79,21 @@ func TestEngineHealth_CatchUpEngineRebuildsAndReactivates(t *testing.T) {
 	store, primary, spare := healthTestStore(t)
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i1", Name: "pre"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i1", Name: "pre"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
 	quarantinePrimary(t, store, primary)
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i2", Name: "during"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i2", Name: "during"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -135,13 +151,21 @@ func TestEngineHealth_ReprobeCatchesUpBeforeReactivation(t *testing.T) {
 	store, primary, _ := healthTestStore(t)
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i1", Name: "pre"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i1", Name: "pre"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
 	quarantinePrimary(t, store, primary)
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i2", Name: "during"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i2", Name: "during"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -184,7 +208,11 @@ func TestEngineHealth_ReprobeFallsBackWithoutEventLog(t *testing.T) {
 
 	quarantinePrimary(t, bare, primary)
 
-	if err := bare.CatchUpEngine(ctx, "primary"); err == nil || !errors.Is(err, ErrCatchUpUnsupported) {
+	if err := bare.CatchUpEngine(
+		ctx,
+		"primary",
+	); err == nil ||
+		!errors.Is(err, ErrCatchUpUnsupported) {
 		t.Fatalf("CatchUpEngine without EventLog = %v, want ErrCatchUpUnsupported", err)
 	}
 

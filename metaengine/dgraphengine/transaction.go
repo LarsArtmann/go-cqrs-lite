@@ -169,6 +169,8 @@ func (e *dgraphEngine) retryOnContention(
 			return err
 		}
 
+		e.countContentionRetry(ctx)
+
 		delay := min(contentionBase<<attempt, contentionCap) + rand.N(contentionBase)
 		select {
 		case <-ctx.Done():

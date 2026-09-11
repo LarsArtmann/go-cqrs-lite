@@ -26,8 +26,11 @@ import (
 
 	"github.com/dgraph-io/dgo/v240"
 	"github.com/dgraph-io/dgo/v240/protos/api"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -54,11 +57,14 @@ const DG_NsPerWrite = 2_500_000.0
 type dgraphEngine struct {
 	metaengine.Calibration
 
-	client         *dgo.Dgraph
-	mu             sync.Mutex
-	done           bool
-	schemaMu       sync.Mutex
-	appliedSchemas map[string]bool
+	client *dgo.Dgraph
+	mu     sync.Mutex
+	done   bool
+	// contentionRetry counts contention retries (cqrs.dgraph.contention_retry
+	// via the global meter provider); nil = metrics disabled.
+	contentionRetry cqrsotel.Int64Counter
+	schemaMu        sync.Mutex
+	appliedSchemas  map[string]bool
 
 	// txMu serializes RunInTx; activeTxn holds the shared transaction that
 	// every read/write op joins while it runs (see transaction.go).
@@ -78,7 +84,10 @@ func New(addr string) (metaengine.Engine, error) {
 		return nil, fmt.Errorf("dgraphengine.New: connect: %w", err)
 	}
 
-	eng := &dgraphEngine{client: client}
+	eng := &dgraphEngine{
+		client:          client,
+		contentionRetry: newContentionRetryCounter(),
+	}
 
 	if err := eng.init(); err != nil {
 		client.Close()
@@ -90,7 +99,10 @@ func New(addr string) (metaengine.Engine, error) {
 
 // NewFromClient wraps an existing dgo.Dgraph client.
 func NewFromClient(client *dgo.Dgraph) (metaengine.Engine, error) {
-	eng := &dgraphEngine{client: client}
+	eng := &dgraphEngine{
+		client:          client,
+		contentionRetry: newContentionRetryCounter(),
+	}
 
 	if err := eng.init(); err != nil {
 		return nil, err

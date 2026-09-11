@@ -61,37 +61,20 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > deactivation (quarantine/reroute/reprobe + Doctor/Stats health), and the
 > equivalence tooling (`scenario.Interleaved` /
 > `AssertObservationalEquivalence` + rapid property). Vocabulary stays
-> internal-only until v5 (M-26 default held, verified leak-free). This
-> section now carries only the follow-ups those shipped features surfaced.
+> internal-only until v5 (M-26 default held, verified leak-free). The
+> 2026-09-11 follow-up wave closed the rest in-tree (CHANGELOG
+> `[Unreleased]`): `EngineResetter` on every engine (sqlite 🔥 + pg, mysql,
+> duckdb, pebble, bbolt, badger, dgraph, iroh; turso by delegation), reset
+> capability surfaced in Doctor/`GetEngineStats` (`CanReset`), C040 fold-case
+> coverage with E018 provider parity, goleak for `metaengine` +
+> `projectionhost`, the `[Unreleased]`-position tripwire in `verify-docs.sh`,
+> and fold-write failover with `CatchUpEngine` (ADR-0137 completion —
+> writes reroute like reads; reprobe rebuilds before reactivating).
 
-- [ ] 🔥 **`sqliteengine.ResetEngine`** — implement `EngineResetter` on the
-      production-default engine: 8 `meta_*` tables + planned tables +
-      matviews + `multiSeq` state. Unblocks one-call revert on SQLite.
-      Deliberately deferred out of the execution (risk surface; decided
-      2026-09-10). _(Effort: M)_
-- [ ] **EngineResetter on remaining persistent engines** — pebble, bbolt,
-      badger, pg, mysql, turso, duckdb, dgraph, iroh (memory done; sqlite
-      prioritized above). _(Effort: M each)_
-- [ ] **Surface reset capability in `Doctor`/`GetEngineStats`** — operators
-      should see which engines can reset before calling `Store.Reset`
-      (ADR-0136 capability ladder). _(Effort: S)_
-- [ ] **Fold-write failover for quarantined engines** — ADR-0137 currently
-      reroutes reads only; writes to a quarantined engine's collections
-      error loudly until reactivation/replan. Consider shadow-replication
-      or write-reroute with catch-up. _(Effort: L)_
-- [ ] **cqrs-lint E018 fold-case coverage** — the static rule flags
-      projection subscriptions only; a fold case consuming a never-emitted
-      type is caught by the runtime gate (`DomainConfig.Events`) but not
-      statically (CollectFoldCaseStrings carries no position info). _(Effort: S)_
-- [ ] **goleak for `metaengine` + `projectionhost` suites** — M-08 covered
-      `system` only. _(Effort: S)_
-- [ ] **`[Unreleased]`-position tripwire in `verify-docs.sh`** — the
-      exactly-one check exists; add "must sit directly under the `#
-      Changelog` header block" so a daemon-absorbed orphan fails at the
-      next verify, not days later. _(Effort: XS)_
-- [ ] **Release-train note** — the `metaengine/projectionadapter` sibling
-      replace + the `metaengine` pin bump ride the next tag wave
-      (`scripts/tag-release.sh` strips the replace; smoke at cut time).
+- [ ] **Release-train note** — the `metaengine/projectionadapter` and
+      `metaengine/irohengine` sibling replaces (unpublished `EngineResetter`
+      symbols) + the `metaengine` pin bumps ride the next tag wave
+      (`scripts/tag-release.sh` strips the replaces; smoke at cut time).
 
 ---
 

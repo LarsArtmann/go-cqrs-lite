@@ -79,10 +79,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added — tooling: goleak gates for metaengine + projectionhost, [Unreleased]-position tripwire — 2026-09-11
 
 - **`metaengine` and `projectionhost` test suites now fail on leaked
-  goroutines** (`goleak.VerifyTestMain`), extending the Cordis M-08 gate
-  beyond `system`: a reset or shutdown that leaves a replan loop, watcher,
-  or worker running surfaces at suite teardown with its creation stack
-  (ginkgo's own interrupt handler is ignored as a framework artifact).
+  goroutines** (uber-go/goleak's `VerifyTestMain`), extending the Cordis M-08
+  gate beyond `system`: a reset or shutdown that leaves a replan loop,
+  watcher, or worker running surfaces at suite teardown with its creation
+  stack (ginkgo's own interrupt handler is ignored as a framework artifact).
 - **`verify-docs.sh` now pins the `[Unreleased]` heading position**: it must
   be the first `##` section directly under the `# Changelog` header block,
   so a daemon-absorbed orphan inserted mid-file fails at the next verify
