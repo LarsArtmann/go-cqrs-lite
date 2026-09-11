@@ -3,6 +3,7 @@ package dgraphengine_test
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -33,12 +34,43 @@ func dgraphAddr() string {
 	return "localhost:9080"
 }
 
+// dgraphSkipClass reports whether err is the server-not-reachable class
+// (OQ #10 skip-vs-fail policy): a Dgraph server that is not running, not yet
+// listening, or unreachable makes live coverage impossible without a defect,
+// so the test skips. EVERYTHING ELSE — contention exhausted after retries,
+// auth failures, unexpected server errors — fails loudly: those are exactly
+// the classes that once silently deleted four ADT subtests from the suite
+// (2026-09-11, gotchas-testing.md).
+func dgraphSkipClass(err error) bool {
+	msg := strings.ToLower(err.Error())
+
+	for _, marker := range []string{
+		"connection refused",
+		"error while dialing",
+		"no such host",
+		"connection timed out",
+		"name resolver",
+		"transport is closing",
+		"code = unavailable", // gRPC connectivity, not a Dgraph error
+	} {
+		if strings.Contains(msg, marker) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func mustNewDgraphEngine(tb testing.TB) metaengine.Engine {
 	tb.Helper()
 
 	eng, err := dgraphengine.New(dgraphAddr())
 	if err != nil {
-		tb.Skipf("Dgraph not available: %v", err)
+		if dgraphSkipClass(err) {
+			tb.Skipf("Dgraph not available: %v", err)
+		}
+
+		tb.Fatalf("dgraph engine construction failed (not a skip-class error): %v", err)
 	}
 
 	tb.Cleanup(func() { _ = eng.Close() })
@@ -51,7 +83,11 @@ func newDgraphEngineOrSkip(tb testing.TB) metaengine.Engine {
 
 	eng, err := dgraphengine.New(dgraphAddr())
 	if err != nil {
-		tb.Skipf("Dgraph not available: %v", err)
+		if dgraphSkipClass(err) {
+			tb.Skipf("Dgraph not available: %v", err)
+		}
+
+		tb.Fatalf("dgraph engine construction failed (not a skip-class error): %v", err)
 	}
 
 	return eng

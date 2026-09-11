@@ -14,7 +14,7 @@ silently lose cross-transaction deltas on turso-go (defect A), collapse past
 Scalar views are exact. Full characterization:
 `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
 
-## 1. Check a new turso-go release (recurring, ~5 min)
+## 1. Check a new turso-go release (recurring, ~2 min)
 
 ```bash
 cd metaengine/tursoengine

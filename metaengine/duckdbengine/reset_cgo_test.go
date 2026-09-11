@@ -43,7 +43,11 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("StreamAppend: %v", err)
 	}
 
-	if err := eng.(duckGraphAdder).GraphAddEdge(ctx, "graph", metaengine.Edge{From: "a", To: "b"}); err != nil {
+	if err := eng.(duckGraphAdder).GraphAddEdge(
+		ctx,
+		"graph",
+		metaengine.Edge{From: "a", To: "b"},
+	); err != nil {
 		t.Fatalf("GraphAddEdge: %v", err)
 	}
 
@@ -156,6 +160,10 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 	}
 
 	if after[0].Seq <= lastSeq {
-		t.Fatalf("journal seq must stay monotonic across reset: before=%d after=%d", lastSeq, after[0].Seq)
+		t.Fatalf(
+			"journal seq must stay monotonic across reset: before=%d after=%d",
+			lastSeq,
+			after[0].Seq,
+		)
 	}
 }

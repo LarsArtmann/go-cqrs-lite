@@ -55,7 +55,10 @@ func (e *mysqlEngine) ResetEngine(ctx context.Context) error {
 		// Table names are engine-owned and unreserved; no quoting needed
 		// (MySQL backticks are only required for the reserved `key` column).
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+table); err != nil {
-			return rollbackReturning(tx, fmt.Errorf("mysqlengine.ResetEngine: clear %s: %w", table, err))
+			return rollbackReturning(
+				tx,
+				fmt.Errorf("mysqlengine.ResetEngine: clear %s: %w", table, err),
+			)
 		}
 	}
 

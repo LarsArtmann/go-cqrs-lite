@@ -9,7 +9,7 @@
 // defect — do not ship a pin bump on a red suite; flip the caveat first (the
 // exact order is docs/turso-go-ivm-fix-flip-runbook.md).
 //
-// Run (against the go.mod-pinned driver, ~5 min):
+// Run (against the go.mod-pinned driver, ~2 min for the full 24-round suite):
 //
 //	cd metaengine/tursoengine && GOWORK=off go test \
 //	  -tags "goexperiment.jsonv2 ivmrepro" -run TestIVMRepro -count=1 -timeout 30m .

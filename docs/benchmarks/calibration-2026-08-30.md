@@ -143,6 +143,14 @@ run), count=3, benchtime=20x, discard-cold medians; ambient load ~5 at start
 13_741_630 outlier is the load signature; spread stayed ±6%, the normal
 ms-scale gRPC band).
 
+> **Provenance gap (2026-09-11, closed protocol-wise):** this entry is the
+> reason §Protocol items 6-7 exist — it shipped with a secondhand
+> engine-version citation and no mechanical load guard. The run predated
+> `scripts/calibration-gate.sh`; future baseline entries must record the
+> gate's PROVENANCE lines (store path + binary version output + uptime
+> samples) verbatim. A quiet-window count=5 re-run that supersedes the table
+> below (if medians move >5%) is queued behind the load gate.
+
 | docs   | SearchQuery (ns/op, discard-cold median) | allocs/op | B/op        |
 | ------ | ---------------------------------------- | --------- | ----------- |
 | 100    | ~838_390                                 | ~249      | ~23_600     |
@@ -192,6 +200,26 @@ keep their prior until each gets the same one-RPC-vs-ops reassessment
    baseline update + the `TestRealProfiles_ReadCostsPinned` update
    (metaengine/bench/routing_regression_test.go).
 5. check-changelog-symbols gates any `pkg.Symbol` cited in CHANGELOG.
+6. **Load gate (mechanical, since 2026-09-11):** baseline-producing runs
+   must PASS `scripts/calibration-gate.sh` first (1-min load < 5 by
+   default; `--max-load N` for a justified ceiling; CI is exempt — shared
+   runner load is not this host's). `scripts/calibration-drift.sh` runs
+   the gate itself (ceiling 8, `CALIB_MAX_LOAD` override) and aborts
+   loudly on breach. Prose ("don't calibrate during storms") is no longer
+   the mechanism — the 2026-09-11 SearchQuery run ramped into a compile
+   storm with nothing mechanical to stop it.
+7. **Provenance line (since 2026-09-11):** every baseline entry below its
+   raw numbers must carry the gate's PROVENANCE output verbatim —
+   `PROVENANCE <utc-time> loadavg="1 5 15"` plus, for live-DSN engines,
+   `PROVENANCE binary=<name> path="<nix store path>" version="<output>"`.
+   Secondhand version citations (copied from earlier entries) are banned;
+   if the binary is already gone, say so explicitly instead of citing.
+8. **Benchmark-baseline re-pins are titled:** `benchmark-regression.sh
+   --save` writes a `# re-pinned <utc-time>` + uptime header into
+   `benchmarks/benchmark-baseline.txt` (parser ignores `#` lines). Local
+   re-pins require a calibration-gate PASS first; CI saves are exempt.
+   Baseline-producing runs prefer count=5 (median-of-4 after
+   discard-cold); count=3 (median-of-2) is the floor, flagged as thin.
 
 ## Cross-checks
 

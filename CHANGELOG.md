@@ -6,6 +6,74 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — error-taxonomy drift gate: doc tables now mechanically verified — 2026-09-11
+
+- **`nix run .#check-error-taxonomy`** (CI + `#verify`; source:
+  `scripts/check-error-taxonomy.sh`) extracts every `errorfamily.*` code the
+  gated modules actually construct and diffs it against the
+  `docs/error-taxonomy.md` module tables in BOTH directions — a code missing
+  from the doc, a stale doc entry, or a wrong family label fails the build.
+  This kills the hand-maintained-table rot class (the watermill table claimed
+  "parse fails → Corruption" for weeks; the source constructs Rejection).
+- **The five previously unverified module tables are now sweep-verified** —
+  middleware, graph, storage/relational, projectionhost, transport/grpc —
+  161 codes total. Corrections: graph schema sentinel count 12 → 16,
+  relational schema "8" → the full dotted+legacy-underscore inventory with
+  the operational wrap families (Transient DDL/query/writes, Corruption
+  scan/reconstruct) that "all sentinels are Rejection" glossed over,
+  projectionhost "6 sentinels" → 10 plus the complete DLQ/reset/stale
+  inventory, middleware gained the breaker/retry-config/dead-letter rows,
+  grpc gained the event-client/server streaming rows. Extend the gate by
+  adding a line to `GATED_MODULES` in the script.
+
+### Fixed — watermill: shutdown no longer logs catch-up replay as ERROR — 2026-09-11
+
+- A deliberate `Close()` (or caller ctx cancellation) interrupting a replay
+  parked in the ack wait logged `ERROR "catch-up replay failed: context
+  canceled"` on every shutdown — truthful but noisy. Shutdown interruption
+  now logs at Debug ("catch-up replay stopped by shutdown"; same for the
+  live-subscribe race), while real failures (consumer nack, journal read,
+  checkpoint load) stay at ERROR. Pinned by
+  `TestCatchUpSubscriber_CloseDoesNotLogReplayFailure` (probe-verified to
+  fail on the pre-fix behavior).
+
+### Fixed — cqrs-upgrade: strict-gate hardening + honest --json wire shape — 2026-09-11
+
+- **Flags after the positional dir now fail loudly** (`cqrs-upgrade .
+  --strict` used to silently drop `--strict` — stdlib flag parsing stops at
+  the first positional — turning the v5-readiness gate into a plain report).
+- **`--json` always emits the `deprecations` array** (`[]` when clean, never
+  key-absent or `null`), and a failed deprecation scan surfaces as
+  `deprecationScanError` instead of masquerading as clean. Under `--strict`
+  a failed scan fails the gate ("v5-readiness unproven") — a gate that
+  silently passes when its scanner breaks is not a gate.
+- **`TestExamples_AreV5Clean` mechanizes the example v5-cleanliness audit**:
+  the four example apps are strict-scanned on every test run, ending the
+  manual-audit TODO class. The test scans throwaway consumer COPIES of the
+  examples — in-repo example module paths are prefix-classified as library
+  self-lint by the analyzer, which silently skips V007, so scanning the
+  originals in place always reports clean (the probe that proved this
+  produced a false green; the 2026-09-11 manual audit's "green" was itself
+  unverified until now).
+
+### Added — example/metaengine-quickstart: smoke test for all 4 demo sections — 2026-09-11
+
+- `TestQuickstart_AllDemoSectionsGreen` runs the Map/Graph/Vector/config
+  demo sections (previously: zero test files; "all green" rested on manual
+  runs). Each demo already fails loudly on wrong query results, so
+  `err == nil` is the green contract.
+
+### Changed — cqrs-lint: V007 method-level removal policy documented — 2026-09-11
+
+- The V007 detector doc now carries the explicit policy note for
+  method-level v5 removals (decider pair-forms, `EnsureCustom`): they are
+  intentionally tracked in the drift method allowlist rather than the
+  runtime tables because V007 matches package-qualified selectors only —
+  a method table entry could never fire. The bidirectional drift meta-tests
+  (`TestV007_TablesCoverAllV5DeprecationMarkers` et al.) were re-verified
+  by probe: a fresh `Deprecated: … v5` marker without a table/allowlist
+  entry fails the suite.
+
 ### Added — scheduling/sqlstore: claim-metrics documentation + pin tail — 2026-09-11
 
 - The `Metrics()`/`ClaimMetricsSnapshot` surface (shipped earlier today)

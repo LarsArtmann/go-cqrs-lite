@@ -136,6 +136,10 @@ medians() {
 current_file=$(mktemp)
 trap 'rm -f "$current_file"' EXIT
 
+# Captured at start so a --save header records load AT BENCH TIME, not at
+# save time (benchmarks may run for many minutes before --save fires).
+UPTIME_AT_START=$(uptime 2>/dev/null || echo 'uptime unknown')
+
 # Snapshot the baseline BEFORE --save can overwrite it — otherwise a
 # save+compare run compares current against itself and always passes.
 had_baseline=false
@@ -205,8 +209,18 @@ fi
 # after an intentional perf change must overwrite even a "regressed" baseline.
 if [[ -n "$SAVE" ]]; then
 	mkdir -p "$(dirname "$SAVE")"
-	cp "$current_file" "$SAVE"
-	echo "==> Current results saved to $SAVE"
+	# Titled re-pin (2026-09-11 protocol): a baseline without provenance is
+	# unreviewable — the 02:40 refresh landed during a load-ramp and nothing
+	# in the file said so. Header lines start with '#' and are ignored by the
+	# medians parser. Local re-baselines must follow a
+	# scripts/calibration-gate.sh PASS first; CI saves are exempt.
+	{
+		echo "# benchmark baseline — re-pinned $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+		echo "# ${UPTIME_AT_START:-$(uptime 2>/dev/null || echo 'uptime unknown')}"
+		echo "# gate: scripts/calibration-gate.sh must PASS before a local re-pin; CI saves are exempt"
+		cat "$current_file"
+	} >"$SAVE"
+	echo "==> Current results saved to $SAVE (with provenance header)"
 fi
 
 if [[ $compare_status -ne 0 ]]; then

@@ -113,6 +113,23 @@ check "vanished/new benchmark names never fail the gate" 0 $?
 "$GATE" --baseline "$tmp/base7" --current "$tmp/cur8" >/dev/null 2>&1
 check "go test noise lines do not break parsing" 0 $?
 
+# --- 9. --save writes a titled provenance header the parser still ignores ---
+# (2026-09-11 protocol: the 02:40 baseline refresh landed during a load-ramp
+# with nothing in the file saying so — re-pins must be titled.)
+"$GATE" --baseline "$tmp/base7" --current "$tmp/cur8" --save "$tmp/save-titled" >/dev/null 2>&1
+check "titled save run passes" 0 $?
+if grep -q '^# benchmark baseline — re-pinned' "$tmp/save-titled" &&
+	grep -q '^# .*load average' "$tmp/save-titled" &&
+	grep -q '100 ns/op' "$tmp/save-titled"; then
+	echo "PASS: --save wrote the provenance header plus raw results"
+else
+	echo "FAIL: --save header missing or results lost"
+	failures=$((failures + 1))
+fi
+# The header must not break a subsequent comparison against the saved file.
+"$GATE" --baseline "$tmp/save-titled" --current "$tmp/cur8" >/dev/null 2>&1
+check "header-prefixed baseline still parses" 0 $?
+
 echo ""
 if [[ $failures -gt 0 ]]; then
 	echo "FAIL: $failures fixture test(s) failed"

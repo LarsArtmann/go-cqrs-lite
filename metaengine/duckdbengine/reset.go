@@ -50,7 +50,10 @@ func (e *duckdbEngine) ResetEngine(ctx context.Context) error {
 
 	for _, table := range tables {
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+metaengine.QuoteIdent(table)); err != nil {
-			return rollbackReturning(tx, fmt.Errorf("duckdbengine.ResetEngine: clear %s: %w", table, err))
+			return rollbackReturning(
+				tx,
+				fmt.Errorf("duckdbengine.ResetEngine: clear %s: %w", table, err),
+			)
 		}
 	}
 

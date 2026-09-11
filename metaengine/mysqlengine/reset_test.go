@@ -94,6 +94,10 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 	}
 
 	if after[0].Seq <= lastSeq {
-		t.Fatalf("journal seq must stay monotonic across reset: before=%d after=%d", lastSeq, after[0].Seq)
+		t.Fatalf(
+			"journal seq must stay monotonic across reset: before=%d after=%d",
+			lastSeq,
+			after[0].Seq,
+		)
 	}
 }

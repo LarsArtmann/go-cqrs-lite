@@ -2416,6 +2416,8 @@ metaengine/dgraphengine/method Probe
 metaengine/dgraphengine/method Probe
 metaengine/dgraphengine/method Profile
 metaengine/dgraphengine/method Profile
+metaengine/dgraphengine/method ResetEngine
+metaengine/dgraphengine/method ResetEngine
 metaengine/dgraphengine/method RunInTx
 metaengine/dgraphengine/method RunInTx
 metaengine/dgraphengine/method SearchInsert
@@ -2498,6 +2500,8 @@ metaengine/duckdbengine/method Profile
 metaengine/duckdbengine/method Profile
 metaengine/duckdbengine/method PushdownMapScan
 metaengine/duckdbengine/method PushdownMapScan
+metaengine/duckdbengine/method ResetEngine
+metaengine/duckdbengine/method ResetEngine
 metaengine/duckdbengine/method RunInTx
 metaengine/duckdbengine/method RunInTx
 metaengine/duckdbengine/method StreamAppend
@@ -3457,6 +3461,8 @@ metaengine/mysqlengine/method Profile
 metaengine/mysqlengine/method Profile
 metaengine/mysqlengine/method PushdownMapScan
 metaengine/mysqlengine/method PushdownMapScan
+metaengine/mysqlengine/method ResetEngine
+metaengine/mysqlengine/method ResetEngine
 metaengine/mysqlengine/method RunInTx
 metaengine/mysqlengine/method RunInTx
 metaengine/mysqlengine/method StreamAppend
@@ -3633,6 +3639,8 @@ metaengine/pgengine/method Profile
 metaengine/pgengine/method Profile
 metaengine/pgengine/method PushdownMapScan
 metaengine/pgengine/method PushdownMapScan
+metaengine/pgengine/method ResetEngine
+metaengine/pgengine/method ResetEngine
 metaengine/pgengine/method RunInTx
 metaengine/pgengine/method RunInTx
 metaengine/pgengine/method StreamAppend

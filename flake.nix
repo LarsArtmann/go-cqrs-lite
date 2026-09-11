@@ -935,8 +935,7 @@
             # module tables and the errorfamily call sites that actually mint
             # the codes (the watermill-table-lied incident class, 02-47 §e3).
             check-error-taxonomy =
-              mkApp "check-error-taxonomy"
-                [ pkgs.bash pkgs.ripgrep pkgs.gawk pkgs.coreutils pkgs.gnused ]
+              mkApp "check-error-taxonomy" [ pkgs.bash pkgs.ripgrep pkgs.gawk pkgs.coreutils pkgs.gnused ]
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-error-taxonomy.sh"
                 '';

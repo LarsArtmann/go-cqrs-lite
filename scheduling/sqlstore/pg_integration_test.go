@@ -485,7 +485,11 @@ func TestClaimingPostgres_MetricsSnapshot(t *testing.T) {
 		t.Fatalf("empty Due: %v", err)
 	}
 
-	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-pg"), time.Minute); err != nil {
+	if err := store.RenewLease(
+		ctx,
+		scheduling.MustParseTimerID("metrics-pg"),
+		time.Minute,
+	); err != nil {
 		t.Fatalf("RenewLease: %v", err)
 	}
 
@@ -493,7 +497,11 @@ func TestClaimingPostgres_MetricsSnapshot(t *testing.T) {
 		t.Fatalf("MarkFired: %v", err)
 	}
 
-	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-pg"), time.Minute); err == nil {
+	if err := store.RenewLease(
+		ctx,
+		scheduling.MustParseTimerID("metrics-pg"),
+		time.Minute,
+	); err == nil {
 		t.Fatal("RenewLease on fired timer must fail")
 	}
 

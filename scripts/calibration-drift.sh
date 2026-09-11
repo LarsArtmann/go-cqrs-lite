@@ -29,6 +29,16 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Load gate (protocol §6, added 2026-09-11): drift medians are load-sensitive
+# on the shared host — a compile storm skews them past the warn threshold for
+# reasons that are not drift. Abort before benching; ceiling defaults wider
+# than baseline runs (8 vs 5) because drift compares at 25%, and CI is exempt
+# (shared-runner load is not this host's load). Override: CALIB_MAX_LOAD=N.
+if ! bash "$REPO_ROOT/scripts/calibration-gate.sh" --max-load "${CALIB_MAX_LOAD:-8}"; then
+	echo "::error::calibration-drift aborted by the load gate — re-run in a quiet window" >&2
+	exit 2
+fi
+
 declare -A CALIB # key: "<module>|<label>" → "<expected_ns_per_unit>|<units_per_op>"
 
 # dump_constants runs the module's dump test and indexes CALIB|<label> lines
