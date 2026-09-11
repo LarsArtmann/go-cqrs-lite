@@ -30,6 +30,8 @@ func TestC013_TypedTier_ViewFileCandidateJSONTagGate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tag := ""
 			if tt.withTag {
 				tag = " `json:\"openedAt\"`"

@@ -27,10 +27,10 @@ type TimestampsCreated struct {
 `
 
 	tests := []struct {
-		name       string
-		source     string
-		typedMode  string
-		want       int
+		name      string
+		source    string
+		typedMode string
+		want      int
 	}{
 		{
 			name:      "TypeMethodConfirms",
@@ -65,6 +65,8 @@ func emit() error {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := analyzer.BuildContextFromSource(t, map[string]string{
 				"events.go": tt.source,
 			})

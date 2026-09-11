@@ -11,9 +11,13 @@ import (
 	gomega "github.com/onsi/gomega"
 )
 
-var errAborted = errors.New("Transaction has been aborted. Please retry") //nolint:staticcheck // ST1005: verbatim Dgraph message text is the match target
+// Verbatim Dgraph server messages: the capitalization IS the match target.
+//
+//nolint:staticcheck
+var errAborted = errors.New("Transaction has been aborted. Please retry")
 
-var errPendingTxns = errors.New("Pending transactions found. Please retry operation") //nolint:staticcheck // ST1005: verbatim Dgraph message text is the match target
+//nolint:staticcheck
+var errPendingTxns = errors.New("Pending transactions found. Please retry operation")
 
 // TestIsContentionError pins the transient-contention matcher: Dgraph aborts
 // and pending-transaction Alter rejections are retriable (including when
