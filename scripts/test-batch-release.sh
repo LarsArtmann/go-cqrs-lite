@@ -138,11 +138,13 @@ check "--audit names dead/v2.0.0" bash -c "printf '%s' \"\$0\" | grep -q 'FAIL  
 
 echo "━━━ Test 3: successful batch release + exact tree restore ━━━"
 fixture_repo "$TMPROOT/t3"
-out="$(cd "$TMPROOT/t3" && bash "$SCRIPT" "good v2.0.2 Batch cut test" 2>&1)" && rc=0 || rc=$?
+out="$(cd "$TMPROOT/t3" && bash "$SCRIPT" "good v2.0.2 Batch cut test" "libx v2.0.1 Library cut" 2>&1)" && rc=0 || rc=$?
 check "release exits 0" test "$rc" -eq 0
-check "tag created" bash -c "git -C \"\$0\" tag -l good/v2.0.2 | grep -q ." "$TMPROOT/t3"
+check "tag created (main module)" bash -c "git -C \"\$0\" tag -l good/v2.0.2 | grep -q ." "$TMPROOT/t3"
+check "tag created (library module)" bash -c "git -C \"\$0\" tag -l libx/v2.0.1 | grep -q ." "$TMPROOT/t3"
 check "tag is annotated" bash -c "test \"\$(git -C \"\$0\" cat-file -t good/v2.0.2)\" = tag" "$TMPROOT/t3"
 check "tree fully restored" bash -c "git -C \"\$0\" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t3"
+check "no build artifacts left behind" bash -c "test ! -e \"\$0/good/good\" && test ! -e \"\$0/libx/libx\"" "$TMPROOT/t3"
 check "worktree go.mod keeps the local replace" bash -c "grep -q 'replace github.com/example/fixture/dead => ../dead' \"\$0/good/go.mod\"" "$TMPROOT/t3"
 check "tagged go.mod has the replace stripped" bash -c "! git -C \"\$0\" show good/v2.0.2:good/go.mod | grep -q 'replace github.com/example/fixture/dead'" "$TMPROOT/t3"
 check "smoke hint printed" bash -c "printf '%s' \"\$0\" | grep -q -- '--smoke good v2.0.2'" "$out"

@@ -338,7 +338,7 @@ Unmanaged goroutine inside event/command handler — resource leak and ordering 
 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `correctness`
 
-Fold switch case handles an event type that is never emitted via event.New and not declared in the catalog — dead code or a typo in the fold case string. Provider parity with E018 and the runtime coeffect gate (catalog.Event counts as provided); fires beside a near-miss when the corrected twin is also handled (the case C038 cannot see)
+Fold switch case handles an event type that is never emitted via event.New — dead code or a typo in the fold case string
 
 <a id="c041"></a>
 
@@ -1241,7 +1241,7 @@ signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
 
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
 
-Projection handles an event type nothing emits or catalogs — typo class, mirror of E006. Fold-side twin: C040 applies the same provider contract to fold switch cases
+Projection handles an event type nothing emits or catalogs — typo class, mirror of E006
 
 
 ## Security

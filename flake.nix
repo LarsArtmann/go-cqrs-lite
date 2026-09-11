@@ -884,6 +884,10 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-doc-stubs.sh"
             '';
 
+            check-turso-version = mkApp "check-turso-version" [ pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gnused ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-turso-version.sh"
+            '';
+
             check-arch = mkApp "check-arch" [ goPkg pkgs.bash pkgs.go-arch-lint pkgs.findutils pkgs.gnugrep ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-arch.sh"
             '';
@@ -1501,6 +1505,7 @@
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
                   echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \

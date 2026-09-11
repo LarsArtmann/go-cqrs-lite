@@ -45,7 +45,7 @@ else
 fi
 
 gomodcache="$(go env GOMODCACHE 2>/dev/null || true)"
-bbolt_src="$(ls -d "${gomodcache:-/nonexistent}"/go.etcd.io/bbolt@*/ 2>/dev/null | sort -V | tail -1 || true)"
+bbolt_src="$(find "${gomodcache:-/nonexistent}/go.etcd.io" -maxdepth 1 -type d -name 'bbolt@*' 2>/dev/null | sort -V | tail -1 || true)"
 if [ -n "$bbolt_src" ] && grep -rq "^type Options struct" "$bbolt_src"; then
 	echo "  target exists: go.etcd.io/bbolt.Options ($(basename "$bbolt_src") in module cache)"
 else

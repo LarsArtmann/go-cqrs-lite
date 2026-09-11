@@ -222,9 +222,7 @@ func upgradeModule(cfg config, dir string) moduleReport {
 
 	findings, scanErr := deprecationFindings(dir)
 	rep.Deprecations = findings
-	if scanErr != nil {
-		rep.ScanErr = scanErr.Error()
-	}
+	rep.ScanErr = scanErr
 
 	return rep
 }

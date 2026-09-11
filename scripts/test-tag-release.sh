@@ -65,15 +65,13 @@ EOF
 	git -C "$root" init -q
 	git -C "$root" config user.email t@example.com
 	git -C "$root" config user.name t
-	# The maintainer's global config signs annotated tags (tag.gpgSign /
-	# tag.forceSignAnnotated); fixtures must stay hermetic, so strip both.
-	local notag="-c tag.gpgSign=false -c tag.forceSignAnnotated=false"
+	local notag=(-c tag.gpgSign=false -c tag.forceSignAnnotated=false)
 	git -C "$root" add -A
 	git -C "$root" commit -qm init
-	git $notag -C "$root" tag dead/v0.1.0
-	git $notag -C "$root" tag dead/v2.0.0
-	git $notag -C "$root" tag good/v2.0.0
-	git $notag -C "$root" tag good/v2.1.0
+	git "${notag[@]}" -C "$root" tag dead/v0.1.0
+	git "${notag[@]}" -C "$root" tag dead/v2.0.0
+	git "${notag[@]}" -C "$root" tag good/v2.0.0
+	git "${notag[@]}" -C "$root" tag good/v2.1.0
 }
 
 TMPROOT="$(mktemp -d)"
@@ -117,6 +115,29 @@ echo "━━━ Test 5: --smoke rejects a non-main module cleanly ━━━"
 # instead: wrong arg count for --smoke exits 2/1 without proxy access.
 out="$(cd "$TMPROOT/t4" && bash "$SCRIPT" --smoke dead 2>&1)" && rc=0 || rc=$?
 check "--smoke with missing version exits nonzero" test "$rc" -ne 0
+
+echo "━━━ Test 6: release flow tags, strips local replaces at the tag, restores tree ━━━"
+fixture_repo "$TMPROOT/t6"
+# Hermetic: the release script's internal `git tag -a` must not inherit a
+# global sign-everything config (GPG key may not even exist here).
+git -C "$TMPROOT/t6" config tag.gpgSign false
+git -C "$TMPROOT/t6" config tag.forceSignAnnotated false
+# good/ is /v2-suffixed; give its go.mod a local replace the release must
+# strip at the tag but restore in the worktree.
+cat >>"$TMPROOT/t6/good/go.mod" <<'EOF'
+
+replace github.com/example/fixture/dead => ../dead
+EOF
+git -C "$TMPROOT/t6" add -A
+git -C "$TMPROOT/t6" commit -qm add-replace
+out="$(cd "$TMPROOT/t6" && bash "$SCRIPT" good v2.0.2 "single cut" 2>&1)" && rc=0 || rc=$?
+check "release exits 0" test "$rc" -eq 0
+check "tag created" bash -c "git -C \"\$0\" tag -l good/v2.0.2 | grep -q ." "$TMPROOT/t6"
+check "tag is annotated" bash -c "test \"\$(git -C \"\$0\" cat-file -t good/v2.0.2)\" = tag" "$TMPROOT/t6"
+check "tree fully restored" bash -c "git -C \"\$0\" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t6"
+check "no build artifact left behind" bash -c "test ! -e \"\$0/good/good\"" "$TMPROOT/t6"
+check "worktree go.mod keeps the local replace" bash -c "grep -q 'replace github.com/example/fixture/dead => ../dead' \"\$0/good/go.mod\"" "$TMPROOT/t6"
+check "tagged go.mod has the replace stripped" bash -c "! git -C \"\$0\" show good/v2.0.2:good/go.mod | grep -q 'replace github.com/example/fixture/dead'" "$TMPROOT/t6"
 
 if [ "$FAILED" -eq 0 ]; then
 	echo ""
