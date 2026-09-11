@@ -381,6 +381,35 @@ func QualifierResolvesTo(file *ast.File, qualifier, expectedPathSuffix string) b
 	return strings.Contains(path, expectedPathSuffix)
 }
 
+// QualifierTargetsModule reports whether a selector qualifier refers to the
+// module whose import path contains pathFragment — the alias-safe successor
+// of the bare `pkgIdent.Name != "event"` comparisons (the A014 bug class).
+// Resolution order: the type checker when available (exact, shadow-proof),
+// then the file's import table (alias-aware), then the segment-name fallback
+// so partial results survive broken or import-less loads.
+func QualifierTargetsModule(gf *analyzer.GoFile, ident *ast.Ident, pathFragment string) bool {
+	if gf == nil || ident == nil {
+		return false
+	}
+
+	if path, resolved := analyzer.ResolveQualifierTyped(gf, ident); resolved {
+		return strings.Contains(path, pathFragment)
+	}
+
+	if gf.AST != nil {
+		if path, ok := QualifierToImportPath(gf.AST, ident.Name); ok {
+			return strings.Contains(path, pathFragment)
+		}
+	}
+
+	segment := pathFragment
+	if i := strings.LastIndex(pathFragment, "/"); i >= 0 {
+		segment = pathFragment[i+1:]
+	}
+
+	return ident.Name == segment
+}
+
 // lastSegment returns the likely package name from an import path.
 // Go convention: the package name matches the last path segment, EXCEPT for
 // major-version suffixes (/v2, /v3, ...) which are stripped. For example,

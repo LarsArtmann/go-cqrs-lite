@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // projectImportsModule returns true if any non-test file in the project imports
@@ -59,7 +60,16 @@ func projectCallsPkgFunction(ctx *analyzer.AnalysisContext, pkgName, fnName stri
 				return true
 			}
 
-			if sel.Sel.Name == fnName && analyzer.SelectorPackage(sel) == pkgName {
+			if sel.Sel.Name != fnName {
+				return true
+			}
+
+			// Alias-aware: resolve the qualifier through the type checker /
+			// import table, falling back to the segment name (the A014 bug
+			// class: a bare SelectorPackage comparison misses aliased
+			// imports and false-fires on same-named locals).
+			if pkgIdent, ok := sel.X.(*ast.Ident); ok &&
+				lintutil.QualifierTargetsModule(gf, pkgIdent, "go-cqrs-lite/"+pkgName) {
 				found = true
 				return false
 			}
