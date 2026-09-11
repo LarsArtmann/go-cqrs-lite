@@ -402,6 +402,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   so the F091 evidence registry under-recorded real emissions. Pointer
   composite-literal payloads are now recorded (pinned by a scanner test),
   which also strengthens the C008 registered-payload confirmation channel.
+- **T13–T19 exhaustive rule-audit program completed (V, T, E, D, B, A, F
+  families + S001 line-by-line), 2026-09-11.** The per-family checklist
+  audits found and fixed real detector defects: V006 ordered version pins
+  lexicographically (v4.10.0 sorted below v4.9.0 — wrong anchor line and
+  downgrade suggestion); V007 discarded `Build()` errors and could emit
+  empty findings; E017's `.Stop()`/`.Shutdown(` suppression matched call
+  syntax that the AST renderer never produces, so legitimate graceful
+  shutdowns still fired (fixed by selector-name matching — taskmanager's
+  real server-Shutdown call on SIGTERM no longer false-fires); D001 anchored its finding
+  on randomized map order; D005 parsed this repo's own `module go-cqrs-lite`
+  directive as the dependency version; A013 missed the canonical
+  `*command.BasicCommand` embed (the qualified pointer form every example
+  uses — taskmanager now correctly reports 10); S001 never inspected
+  package-level var/const, composite-literal fields, or map-key assignments
+  (the most common hardcoded-secret placements). The alias-blindness class
+  (A014's historical bug) is now dead repo-wide: A002, A003, A022, A024,
+  A027, A030, and D011 resolve qualifiers through
+  `lintutil.QualifierTargetsModule` (type checker → import table → segment
+  fallback) instead of literal package-name comparisons. B021 gained B005's
+  method-fold `StrictApply` suppression parity, T004 lost a dead disjunct,
+  and nine doc comments that described behavior the code no longer has were
+  corrected. `taskmanager_golden.txt` and `taskmanagerGoldenProfile` are
+  updated for the intended A013/E017 changes.
 - **Completeness meta-tests for the linter's static tables**
   (`TestConsumerOnlyRulesAreRealRules`, `TestPresetRuleIDsAreRealRules`,
   `TestPresetHelpTextListsAllPresets`): every `consumerOnlyRules` /

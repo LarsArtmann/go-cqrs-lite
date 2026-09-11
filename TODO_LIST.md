@@ -107,14 +107,31 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > and the 2026-09-08 hardening batch are DONE (CHANGELOG `[Unreleased]`); this
 > section carries the living remainder.
 
-- [ ] **T13–T19 — exhaustive rule audit batches.** RISK-BASED SAMPLE DONE
-      2026-09-06 (C-family) + S-FAMILY DONE 2026-09-07 (financialEscalatedRules
-      comment drift + missing S011 escalation fixed, completeness meta-test
-      added). REMAINING (explicitly low-yield, only behind a green full gate):
-      per-file checklist audits of A001–A034 (2 waves), B001–B031, D001–D019,
-      E001–E017, V/T/F families, plus the S001/rules.go line-by-line remainder.
-      — source: archived/2026-09-06_02-40 §c, 05-31 §f16-22
-      _(Effort: M/L)_
+- [x] **T13–T19 — exhaustive rule audit batches.** DONE 2026-09-11:
+      every family audited per-rule (A001–A034 in 2 waves, B001–B031,
+      D001–D019, E001–E018, V/T/F families, S001/rules.go line-by-line;
+      C-family sampled 2026-09-06, S002–S011 2026-09-07). Real defects fixed
+      (V006 semver sort, E017 dead suppression, D001/D005, S001 coverage,
+      A013 embed FN, alias-blindness across A002/A003/A022/A024/A027/A030/
+      D011 via `lintutil.QualifierTargetsModule`, B021 parity, T004 dead
+      disjunct, 9 comment drifts) — see CHANGELOG `[Unreleased]` and the
+      deferred follow-ups below. — source: archived/2026-09-06_02-40 §c,
+      05-31 §f16-22
+- [ ] **cqrs-lint audit follow-ups: loose heuristic gates (deliberately
+      deferred 2026-09-11).** Documented, low-severity FP/FN vectors that
+      each need their own false-positive analysis + golden churn; confidence
+      levels already mitigate. Candidates: import-scope substring gates
+      (V001 `/v3` `/v4`, V004/V005 `eventtest`, T001 `/decider`, T002/T005
+      `/projection`, T003/T004 `catalog`/`snaps`, T007 `/event`, E016
+      `Bundle`, A008 `/event/` exclusion); B018 `containsBus` lowercase-only
+      and its "identical error-handling structure" claim; A015 name-collision
+      write-matching at error severity; A016/A013 project-wide suppressions;
+      A017 unqualified `NewRepository` matching + `NewTypedRepository`
+      asymmetry; A019 vendor-path heuristic; F006 payload-class wiring under
+      the strong/weak split; F009/F010 pattern tokens; F018/F020
+      mixed-confidence unpinned; V002/V003/V006 root-go.mod-only scope;
+      b022_b025.go (495) and a020_a021_a022_a023.go (~357) over the 350-line
+      convention — bundle with the file-size-gate policy decision.
 - [x] 🔥 **F091 Tiers 2–3 + F090(b)** — ALL DONE: Tier-2 core + F090(b)
       2026-09-08 (`--typed-info` flag, typed dot-import attribution, C008
       usage-confirmation); Tier-3 remainder 2026-09-11 (C035/C013

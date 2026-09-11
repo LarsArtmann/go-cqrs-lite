@@ -58,6 +58,27 @@ store, err := metaengine.Plan([]metaengine.Engine{eng},
 Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
 gRPC client.
 
+## Concurrency & contention
+
+Every SetJson mutation writes Dgraph's `dgraph.type` predicate, so ALL
+parallel writers against one Alpha are conflict partners — concurrent
+committers abort each other's transactions, and a schema Alter is rejected
+with "Pending transactions found" while transactions are in flight. The
+engine absorbs this class instead of leaking it:
+
+- **Standalone ops** retry via `retryOnContention` (6 attempts, exponential
+  backoff 15ms→240ms plus jitter). Retriable errors are transaction aborts
+  and pending-transaction Alter rejections; anything else surfaces
+  immediately. Construction-time schema applies (`New`, `ensureEdgeSchema`)
+  retry the same way — they are idempotent.
+- **`RunInTx`** serializes transactions (one active transaction per engine,
+  nesting rejected). Ops inside a transaction are NOT retried in place: an
+  abort surfaces to the caller, who re-runs the whole transaction — partial
+  side effects are discarded atomically.
+
+The matcher and retry schedule are pinned by `transaction_retry_test.go`
+(`TestIsContentionError`, `TestRetryOnContention_*`).
+
 ## Testing
 
 Tests require a running Dgraph instance. Set `DGRAPH_ADDR` (default:
