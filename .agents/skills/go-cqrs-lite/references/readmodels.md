@@ -332,8 +332,8 @@ returning `nil` in v4.x):
 
 | Engine | `EngineResetter` |
 | --- | --- |
-| `metaengine.NewMemoryEngine` | full reset |
-| sqlite / pebble / pg / mysql / turso / … | follow-up — lands in `UnclearableEngines` |
+| every first-party engine (memory, sqlite/turso, pebble, bbolt, badger, pg, mysql, duckdb, dgraph, iroh via its local engine) | full reset since 2026-09-11 |
+| custom engines | implement the capability or land in `UnclearableEngines` |
 
 For direct metaengine use (no host), reset the Store itself and inspect the
 result — a partial reset is YOUR call to make, not the library's to hide:

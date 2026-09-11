@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"go.opentelemetry.io/otel/metric"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // fakeInt64Counter records Add calls for assertions.
@@ -14,12 +14,14 @@ type fakeInt64Counter struct {
 	adds  []int64
 }
 
-func (f *fakeInt64Counter) Add(_ context.Context, incr int64, _ ...metric.AddOption) {
+func (f *fakeInt64Counter) Add(_ context.Context, incr int64, _ ...cqrsotel.AddOption) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
 	f.adds = append(f.adds, incr)
 }
+
+
 
 // TestContentionRetryCounter_CountsEachRetry pins the observability contract:
 // every CONTENTION retry bumps cqrs.dgraph.contention_retry exactly once.

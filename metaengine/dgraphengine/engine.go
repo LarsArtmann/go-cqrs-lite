@@ -62,7 +62,7 @@ type dgraphEngine struct {
 	done   bool
 	// contentionRetry counts contention retries (cqrs.dgraph.contention_retry
 	// via the global meter provider); nil = metrics disabled.
-	contentionRetry cqrsotel.Int64Counter
+	contentionRetry contentionCounter
 	schemaMu        sync.Mutex
 	appliedSchemas  map[string]bool
 
