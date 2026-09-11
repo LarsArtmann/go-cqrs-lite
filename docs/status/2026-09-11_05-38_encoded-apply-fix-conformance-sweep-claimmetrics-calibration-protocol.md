@@ -1,5 +1,7 @@
 # Status Report — Encoded-apply fix + conformance sweep + ClaimMetrics tail + calibration protocol — 2026-09-11 05:38 CEST
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** §f items 15/34/35 are struck inline (done, evidence cited); 18 is Won't-implement (precedent). All other open §f items were harvested into `TODO_LIST.md` (rows citing `05-38 §f…`) — notably f1/f9 (calibration gate v2), f5 (recipes snippet), f11 (Doctor counters), f2 (legacy-log pin), f3/f4/f10 (conformance tail). This snapshot is ARCHIVED; the living backlog is `TODO_LIST.md`.
+>
 > **Scope:** ONLY this session (~04:45–05:38 CEST): execution of the three
 > "Metaengine — follow-ups" TODO_LIST items routed from the archived 03-50
 > report. Point-in-time snapshot; open work lives in
@@ -245,13 +247,13 @@ Metaengine / metaengineering:
 14. Sweep consumers for ApplyEncoded usage outside metaengine (grep said
     none in-repo; example/taskmanager may now get replay coverage for
     free if it ever adopts it — pin the adapter example in example/).
-15. `check-duplication` run once the tree is daemon-clean (pure move
-    expected to be clean; the gate hasn't seen it).
+15. ~~`check-duplication` run once the tree is daemon-clean (pure move~~ done (gate run in 6th pass (2026-09-11) — RED with 5 NEW clone groups from metaengine/*engine/reset*.go (unrelated to the pure move); annotate-vs-re-pin decision pending owner)
+    ~~expected to be clean; the gate hasn't seen it).~~
 16. Full `nix run .#verify` in a quiet window to stamp the batch
     end-to-end (race subsets only so far).
 17. `check-arch` + `check-coverage` + `vulncheck` for the batch.
-18. annotation pass: 03-50 report still cites `metaengine/encoded.go:49`
-    (now fixed) — docs-health ANNOTATE so future passes don't re-audit.
+18. ~~annotation pass: 03-50 report still cites `metaengine/encoded.go:49`~~ **Won't implement — fix shipped same day; the 03-50 report is already ARCHIVED and the V3 T42 precedent declines annotating archived reports.**
+    ~~(now fixed) — docs-health ANNOTATE so future passes don't re-audit.~~
 
 Scheduling/sqlstore adjacency (carried from 03-50, untouched this session):
 
@@ -284,10 +286,10 @@ Tooling / process:
 
 33. CHANGELOG contention: a session-protocol note (or a merge queue) for
     the three-concurrent-sessions reality; mtime-race retries are waste.
-34. Pre-edit "re-View if mtime moved" discipline for daemon-owned files —
-    add to docs/agents/gotchas-tooling-build.md.
-35. HARVEST this report's §f into TODO_LIST/ROADMAP per docs-health
-    routing rigor, then archive-close the loop.
+34. ~~Pre-edit "re-View if mtime moved" discipline for daemon-owned files —~~ done (gotcha added to docs/agents/gotchas-tooling-build.md (re-View/mtime bullet), docs-health 6th pass)
+    ~~add to docs/agents/gotchas-tooling-build.md.~~
+35. ~~HARVEST this report's §f into TODO_LIST/ROADMAP per docs-health~~ done (harvested into TODO_LIST.md/ROADMAP.md + archived by docs-health 6th pass (2026-09-11))
+    ~~routing rigor, then archive-close the loop.~~
 
 ## g) Questions I cannot figure out myself
 

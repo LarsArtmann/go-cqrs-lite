@@ -1,5 +1,7 @@
 # Status Report — Cordis Follow-up Wave: EngineResetter Everywhere + Fold-Write Failover
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** §f items 5/7/11/17/20/21/26/33/34/35/36/37/38/45/46/48/50 are struck inline with evidence (shipped, verified, or captured in ROADMAP/TODO_LIST with citations). Open §f rows stay UNSTRUCK — the live ones are harvested into `TODO_LIST.md` (notably f1 CatchUpEngine snapshot race 🔥, f3 quiet-window #verify, f4 projectionhost vet, f16 release train, f31/f32 🔥) and the rest live there citing `05-40 §f…`. This snapshot is ARCHIVED; the living backlog is `TODO_LIST.md`.
+>
 > **Point-in-time snapshot** — 2026-09-11 05:40 CEST. Scope: THIS session's
 > execution of the Cordis spatiotemporal-composability follow-ups
 > (TODO_LIST section, 8 items) plus what I observed around it. Written in
@@ -176,56 +178,56 @@
 2. `-race` run over metaengine (dispatch core refactor).
 3. Full `nix run .#verify` once the concurrent session's tree is quiet.
 4. `go vet -tags integration ./...` in projectionhost (TestMain clash check).
-5. DuckDB reset suite executed (CGo build) — never ran this session.
+5. ~~DuckDB reset suite executed (CGo build) — never ran this session.~~ done (executed GREEN by the 05-51 session (engines ladder table: duckdb green, cgo tag))
 6. MySQL reset suite via `nix run .#integration-mysql-vm`.
-7. Dgraph reset suite via `nix run .#integration-dgraph`.
+7. ~~Dgraph reset suite via `nix run .#integration-dgraph`.~~ done (executed live-green by the 05-51 session (ephemeral Dgraph))
 8. End-to-end `scripts/verify-docs.sh` run (build + all checks).
 9. Catch-up state in Doctor/GetEngineStats (running/failed/last event id).
 10. Per-engine catch-up high-water marks (tail replay instead of full journal).
-11. AGENTS #22 wording fix (multiSeq restart vs journal monotonicity).
+11. ~~AGENTS #22 wording fix (multiSeq restart vs journal monotonicity).~~ done (AGENTS.md contract #22 rewritten with the sequence-split wording, 6th pass)
 12. routedQuery comment: mention fold-reroute reuse.
 13. Fold-reroute test with a Transactional engine (memory isn't; RunInTx + reroute path untested).
 14. Reroute-cost caching in dispatchFoldsCoreLocked if bench-justified.
 15. Grep `references/modules.md` for stale reset-capability prose (doc-check checks symbols, not prose truth).
 16. Release train: strip the two sibling replaces, bump pins, tag wave, smoke (`scripts/tag-release.sh`).
-17. Review/absorb the concurrent session's dgraphengine metrics work (unverified by me).
+17. ~~Review/absorb the concurrent session's dgraphengine metrics work (unverified by me).~~ done (WithContentionObserver shipped in metaengine/dgraphengine/metrics.go; absorbed + documented by 05-51 §a)
 
 **Standing TODO_LIST items observed while editing it (not re-researched):**
 18. Turso: file the upstream silent-wrong-results issue (BLOCKED on user approval).
 19. Turso: make grouped-spec safety mechanical (guard/flag decision).
-20. Turso: single-source the "verified through vX" citation (9-site whack-a-mole).
-21. Turso: `ivm_repro_test.go` full three-defect suite behind `-tags ivmrepro`.
+20. ~~Turso: single-source the "verified through vX" citation (9-site whack-a-mole).~~ done (scripts/check-turso-version.sh single-source citation gate shipped)
+21. ~~Turso: `ivm_repro_test.go` full three-defect suite behind `-tags ivmrepro`.~~ done (metaengine/tursoengine/ivm_repro_test.go exists behind //go:build ivmrepro)
 22. Turso: sharpen defect-A characterization before filing.
 23. Matview v2 surface (planned-table matviews, DropMaterializedView off-boarding, per-view otel counter, …).
 24. Routing integration: teach the cost model matview-covered shapes are O(1).
 25. cqrs-lint: loose-heuristic-gate follow-ups (deferred 2026-09-11 batch).
-26. cqrs-lint: audit cheap-fix + test-gap tail (doc.go drift, dead branches, boundary tests).
+26. ~~cqrs-lint: audit cheap-fix + test-gap tail (doc.go drift, dead branches, boundary tests).~~ done (executed by the 05-12 session (docs/status/2026-09-11_05-12_cqrs-lint-cheap-fix-tail-status.md))
 27. Doctor-JSON pre-merge semantics ruling (BLOCKED, user decision).
 28. Release-policy Q3: severity tightening in a minor (BLOCKED, user decision).
 29. Daemon Q2: `.golangci.yml` formatter exclusion (BLOCKED, user decision).
 30. F040: branch protection / required checks (BLOCKED, owner decision).
 31. 🔥 350-line limit: 58 offending files — split waves + gate-policy decision.
 32. 🔥 iroh standalone pin break (`irohengine/v4.2.0` tag or capability-probe skip-guard).
-33. Cut `stack/sqlite/v4.3.1` (broken published pseudo-version pin).
+33. ~~Cut `stack/sqlite/v4.3.1` (broken published pseudo-version pin).~~ done (tag stack/sqlite/v4.3.1 EXISTS (git tag))
 
 **Larger improvement threads (from this session's observations):**
-34. Quarantine-aware replan: after a long quarantine, replan onto the failover engine instead of falling back on reactivation (cost-model honesty).
-35. CatchUpEngine option: replay into a NEW engine (zero-downtime engine swap riding the same primitive).
-36. ResetResult reporting from CatchUpEngine (today it discards the reset outcome detail).
-37. EventLog growth bounds/rotation policy for long-lived catch-up-enabled stores (full-journal replay cost).
-38. A "claims ledger" convention for parallel agent sessions (claim-before-write on TODO items).
+34. ~~Quarantine-aware replan: after a long quarantine, replan onto the failover engine instead of falling back on reactivation (cost-model honesty).~~ done (captured in ROADMAP.md raw ideas (quarantine-aware replan))
+35. ~~CatchUpEngine option: replay into a NEW engine (zero-downtime engine swap riding the same primitive).~~ done (captured in ROADMAP.md raw ideas (replay-into-NEW-engine))
+36. ~~ResetResult reporting from CatchUpEngine (today it discards the reset outcome detail).~~ done (routed to TODO_LIST catch-up observability row (ResetResult return))
+37. ~~EventLog growth bounds/rotation policy for long-lived catch-up-enabled stores (full-journal replay cost).~~ done (captured in ROADMAP.md raw ideas (EventLog bounds))
+38. ~~A "claims ledger" convention for parallel agent sessions (claim-before-write on TODO items).~~ done (captured in ROADMAP.md raw ideas (claims-ledger))
 39. Bench: fold-dispatch hot-path p50/p99 before/after the reroute branch (should be identical when nothing is quarantined — prove it).
 40. Test: CatchUpEngine failure mid-replay leaves ZERO partial data visible via rerouted reads (spare copy is complete; engine still quarantined).
 41. Test: two engines quarantined simultaneously (reroute target selection under multiple failures).
 42. Doc: ADR-0137 implementation-status addendum for write failover + catch-up (the ADR text predates it).
 43. Skill: add CatchUpEngine to recipes §2.33 code sample (prose updated, code sample doesn't show it).
 44. Doc: `docs/agents/gotchas-testing.md` — note the ginkgo+goleak ignore pattern for future suites.
-45. Consider `Store.Reset` docs pointing at CatchUpEngine for the one-engine case (discovery).
-46. CHANGELOG: verify the concurrent session logged ITS engine entries; if not, fold into mine before the release train.
+45. ~~Consider `Store.Reset` docs pointing at CatchUpEngine for the one-engine case (discovery).~~ done (routed to TODO_LIST catch-up row (Reset docs point at CatchUpEngine))
+46. ~~CHANGELOG: verify the concurrent session logged ITS engine entries; if not, fold into mine before the release train.~~ done (CHANGELOG 'EngineResetter everywhere + reset observability' section (2026-09-11) covers the engines)
 47. Check `.art-dupl-baseline.json` implications: five near-identical `reset.go`/`rollbackReturning` copies across dep-isolated engine modules — confirm each carries `//art-dupl:accept` or the gate handles it at next `#check-duplication`.
-48. api-stability golden: confirm the concurrent session's engine methods are ALL in it (mine verified; theirs assumed).
+48. ~~api-stability golden: confirm the concurrent session's engine methods are ALL in it (mine verified; theirs assumed).~~ done (api golden verified — 19 ResetEngine hits in docs/api_surface.txt)
 49. `nix run .#check-arch` after the go.mod changes (iroh replace + goleak deps are test-only, but prove the budget stays green).
-50. Self-check: rerun `cmd/doc-check` + `check-changelog-symbols` after the daemon absorbs EVERYTHING (moving-tree risk).
+50. ~~Self-check: rerun `cmd/doc-check` + `check-changelog-symbols` after the daemon absorbs EVERYTHING (moving-tree risk).~~ done (rerun GREEN in 6th pass — check-changelog-symbols exit 0 (26 citations), doc-check 1049 refs valid)
 
 ## g) Questions I cannot answer myself
 
