@@ -64,7 +64,7 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				for v := range versions {
 					sortedVersions = append(sortedVersions, v)
 				}
-				slices.Sort(sortedVersions)
+				slices.SortFunc(sortedVersions, semverLess)
 
 				// Report on the first (lowest) version line — that's what needs updating.
 				lowestVersion := sortedVersions[0]

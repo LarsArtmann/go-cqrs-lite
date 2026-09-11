@@ -98,6 +98,52 @@ func majorMinorVersion(v string) (major, minor int, ok bool) {
 	return major, minor, true
 }
 
+// semverLess orders Go version strings numerically component-wise
+// (v4.9.0 < v4.10.0). Non-numeric or partial versions fall back to a
+// lexicographic comparison so nothing panics on odd input. Prerelease
+// suffixes ("v4.1.0-rc.1") compare below the plain release.
+func semverLess(a, b string) bool {
+	as, aok := splitSemver(a)
+	bs, bok := splitSemver(b)
+	if !aok || !bok {
+		return a < b
+	}
+
+	for i := 0; i < 3; i++ {
+		if as[i] != bs[i] {
+			return as[i] < bs[i]
+		}
+	}
+
+	return a < b
+}
+
+// splitSemver parses "vMAJOR.MINOR.PATCH[-pre]" into numeric components.
+func splitSemver(v string) ([3]int, bool) {
+	var out [3]int
+
+	v = strings.TrimPrefix(v, "v")
+	if idx := strings.Index(v, "-"); idx >= 0 {
+		v = v[:idx]
+	}
+
+	parts := strings.Split(v, ".")
+	if len(parts) == 0 || len(parts) > 3 {
+		return out, false
+	}
+
+	for i, p := range parts {
+		n, err := atoi(p)
+		if err != nil {
+			return out, false
+		}
+
+		out[i] = n
+	}
+
+	return out, true
+}
+
 // atoi is a stdlib-free integer parser for small non-negative numbers.
 func atoi(s string) (int, error) {
 	if s == "" {

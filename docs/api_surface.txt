@@ -863,10 +863,14 @@ cmd/cqrs-lint/pkg/rules/lintutil/func CollectPkgLevelVarCalls
 cmd/cqrs-lint/pkg/rules/lintutil/func ExprCallSelector
 cmd/cqrs-lint/pkg/rules/lintutil/func FileImportsCQRS
 cmd/cqrs-lint/pkg/rules/lintutil/func FirstFilePos
+cmd/cqrs-lint/pkg/rules/lintutil/func HasEventPayloadNameSuffix
+cmd/cqrs-lint/pkg/rules/lintutil/func HasReadModelNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasWrapVerb
 cmd/cqrs-lint/pkg/rules/lintutil/func IsEventPayloadName
 cmd/cqrs-lint/pkg/rules/lintutil/func IsFmtErrorf
 cmd/cqrs-lint/pkg/rules/lintutil/func IsNonCQRSRegisterPackage
+cmd/cqrs-lint/pkg/rules/lintutil/func IsPayloadFileName
+cmd/cqrs-lint/pkg/rules/lintutil/func IsReadModelFileName
 cmd/cqrs-lint/pkg/rules/lintutil/func LooksLikeEventPayload
 cmd/cqrs-lint/pkg/rules/lintutil/func ModuleImportsPath
 cmd/cqrs-lint/pkg/rules/lintutil/func QualifierResolvesTo
