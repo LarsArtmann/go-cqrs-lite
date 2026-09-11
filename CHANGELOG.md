@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — dgraphengine: concurrent writers no longer fail on transaction contention — 2026-09-11
+
+- **Every Dgraph write and schema apply now retries transient contention
+  instead of surfacing it.** A shuffled (`-shuffle=on`) run of the
+  dgraphengine integration suite exposed two gaps that the canonical test
+  order had masked: plain mutations (multimap, log, stream-log appends)
+  aborted on concurrent committers with no retry — until now only the
+  graph upsert paths had the documented retry — and schema Alters were
+  rejected outright while other transactions were pending, which both
+  failed engine construction and silently skipped ADT conformance
+  subtests. The retry schedule (6 attempts, exponential backoff with
+  jitter) and the inside-a-transaction rule (surface immediately; the
+  caller re-runs the whole transaction) are unchanged for existing
+  graph callers; the capability is consolidated at the execution layer
+  so every backend operation benefits. Consumers running parallel
+  writers against one Dgraph Alpha (projection catch-up, bulk corpus
+  builds) see fewer spurious aborts. Verified green over shuffle seeds
+  42, 7, and 1234 plus the default invocation.
+
+### Changed — test infrastructure: `-shuffle=on` rolled into the ephemeral integration app invocations — 2026-09-11
+
+- The dgraph shuffle evaluation (above) completed the verdict table, so
+  the ephemeral-pg, ephemeral-dgraph, ephemeral-redis, and the VM/nspawn
+  MySQL integration app invocations now run their suites with randomized
+  test order by default. The redis watermill broker suite passed its own
+  two-seed shuffled evaluation before adoption. The auto-detecting
+  composite runner (`scripts/test-integration.sh`) is intentionally not
+  yet shuffled — it needs its own evaluation first.
+
 ### Added — scheduling/sqlstore: built-in claim-metrics snapshot surfaced on the store — 2026-09-11
 
 - **`ClaimingTimerStore` now maintains claim activity itself and exposes it
