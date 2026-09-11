@@ -9,14 +9,14 @@
 
 **S24 EngineResetter ladder — 6 of 12 engines, all mine, all green:**
 
-| Engine | Reset mechanism | Tests | Verified |
-| --- | --- | --- | --- |
-| badger | `DropPrefix` scoped to the 11 keycodec tag prefixes (foreign keys in caller-owned DBs survive) | ClearsEveryADT + KeepsForeignKeys + SeqMonotonic | `go test` green |
-| pebble | one atomic `Batch.DeleteRange` over 13 prefixes (11 keycodec + `i`/`o` layout indexes); layouts survive | + LayoutSurvivesAndRebuilds + KeepsForeignKeys + SeqMonotonic | green |
-| bbolt | drop+recreate single `cqrs_meta` bucket in one write tx | + KeepsForeignBuckets + SeqMonotonic | green |
-| duckdb | DELETE base+planned tables in one tx; `seq_stream_log` keeps advancing | + KeepsPlannedLayout + SeqMonotonic (cgo tag) | green |
-| mysql | DELETE (never TRUNCATE — implicit-commit half-reset class) base+planned in one tx | skip-guarded (`MYSQL_TEST_DSN`) + SeqMonotonic | compile+vet green; **live run still pending** |
-| dgraph | explicit-predicate upsert per `dgraph.type` + schema-driven `cqrs.edge.*` predicate drops | ClearsEveryADT + Idempotent + EnsureEdgeSchema-in-tx | **live green** on ephemeral Dgraph |
+| Engine | Reset mechanism                                                                                         | Tests                                                         | Verified                                      |
+| ------ | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| badger | `DropPrefix` scoped to the 11 keycodec tag prefixes (foreign keys in caller-owned DBs survive)          | ClearsEveryADT + KeepsForeignKeys + SeqMonotonic              | `go test` green                               |
+| pebble | one atomic `Batch.DeleteRange` over 13 prefixes (11 keycodec + `i`/`o` layout indexes); layouts survive | + LayoutSurvivesAndRebuilds + KeepsForeignKeys + SeqMonotonic | green                                         |
+| bbolt  | drop+recreate single `cqrs_meta` bucket in one write tx                                                 | + KeepsForeignBuckets + SeqMonotonic                          | green                                         |
+| duckdb | DELETE base+planned tables in one tx; `seq_stream_log` keeps advancing                                  | + KeepsPlannedLayout + SeqMonotonic (cgo tag)                 | green                                         |
+| mysql  | DELETE (never TRUNCATE — implicit-commit half-reset class) base+planned in one tx                       | skip-guarded (`MYSQL_TEST_DSN`) + SeqMonotonic                | compile+vet green; **live run still pending** |
+| dgraph | explicit-predicate upsert per `dgraph.type` + schema-driven `cqrs.edge.*` predicate drops               | ClearsEveryADT + Idempotent + EnsureEdgeSchema-in-tx          | **live green** on ephemeral Dgraph            |
 
 The other 6 (memory pre-existing; sqlite/pg/iroh/turso) landed from the parallel session — the ladder is COMPLETE 12/12.
 
@@ -70,6 +70,7 @@ The other 6 (memory pre-existing; sqlite/pg/iroh/turso) landed from the parallel
 ## f) THE NEXT 50 THINGS (ranked, executable next)
 
 **Finish the in-flight lane (1–8):**
+
 1. Wire the verify-ci go.sum probe CORRECTLY (edit tool, exact context; then `nix eval` + one-module dry run).
 2. Add `TestEveryModuleSumComplete` meta-test (cmd/api-stability, `-short`-skipped): per-module `GOWORK=off go mod download all` + `git diff --exit-code go.sum`.
 3. S09: `lint-module` optional build-tag arg + CI leg for `*_integration_test.go` modules.
@@ -139,4 +140,4 @@ The other 6 (memory pre-existing; sqlite/pg/iroh/turso) landed from the parallel
 
 ---
 
-*Report written at 2026-09-11 05:51 CEST. Next action per user mandate: continue execution (S08 re-wire → S09 → S26 → S28 → live batch → quiet-window #verify), or stop and await rulings above.*
+_Report written at 2026-09-11 05:51 CEST. Next action per user mandate: continue execution (S08 re-wire → S09 → S26 → S28 → live batch → quiet-window #verify), or stop and await rulings above._

@@ -68,14 +68,15 @@ version). Final exclusive `#verify` GREEN after 4 rounds; master synced
 **2026-09-09..11 sessions (16 reports, archived):** the Pareto tail (cqrs-upgrade
 growth + nightly dogfood, watermill issue-#21 typed causation, issue-#20
 closeout: `cmd/cqrs-bench/v0.1.1` stub + `cmd/cqrs-lint/v4.10.1` retract-carrier
-+ `metaengine/badgerengine/v4.2.1` data-loss retracts + tag-release `--audit`/
-`--smoke`), the Cordis 27-task execution (ADR-0136 reset ladder, coeffect gate,
-E018, ADR-0137 engine deactivation, equivalence tooling — all shipped
-2026-09-10), and the 2026-09-11 batch day (dgraph `-shuffle=on` rollout +
-contention fix, turso matview pre.10 re-verification + bench-gate extension,
-M27.16 micro-batch incl. the Demote record-context bug fix + ClaimMetrics
-surfacing, cqrs-lint F091 Tier-3 + T13–T19 audits, go.sum sweep + CI triage).
-See each report under [`archived/`](archived/).
+
+- `metaengine/badgerengine/v4.2.1` data-loss retracts + tag-release `--audit`/
+  `--smoke`), the Cordis 27-task execution (ADR-0136 reset ladder, coeffect gate,
+  E018, ADR-0137 engine deactivation, equivalence tooling — all shipped
+  2026-09-10), and the 2026-09-11 batch day (dgraph `-shuffle=on` rollout +
+  contention fix, turso matview pre.10 re-verification + bench-gate extension,
+  M27.16 micro-batch incl. the Demote record-context bug fix + ClaimMetrics
+  surfacing, cqrs-lint F091 Tier-3 + T13–T19 audits, go.sum sweep + CI triage).
+  See each report under [`archived/`](archived/).
 
 **2026-09-11 pass (5th docs-health audit):** harvested the unharvested
 forward items of all 21 active status reports into TODO_LIST (~20 new routed

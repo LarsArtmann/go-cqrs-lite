@@ -171,6 +171,7 @@
 ## f) NEXT — up to 50 things (session-derived, then standing TODO_LIST)
 
 **From this session (highest priority first):**
+
 1. Fix the CatchUpEngine snapshot race (loop-until-stable / write-lock finalize) + concurrent stress test.
 2. `-race` run over metaengine (dispatch core refactor).
 3. Full `nix run .#verify` once the concurrent session's tree is quiet.

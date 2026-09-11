@@ -73,4 +73,3 @@ Compact reference — see [`references/modules.md`](../../.agents/skills/go-cqrs
 | `cmd/cqrs-upgrade/`                                            | Consumer upgrade CLI: pin bumps to latest tags + in-process V007 report (v4.0.0 tagged)                                                       |                                                   |
 | `cmd/api-stability/`                                           | API surface checker (golden file)                                                                                                             |                                                   |
 | `cmd/doc-check/`                                               | Doc checker: verifies Go import paths in markdown                                                                                             |                                                   |
-

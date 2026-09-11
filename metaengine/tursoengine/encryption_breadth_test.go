@@ -79,7 +79,11 @@ func TestTursoEncryption_SecondADTRoundTrip(t *testing.T) {
 	}
 
 	cb := eng.(metaengine.CounterBackend)
-	if err := cb.CounterIncrement(t.Context(), "counts", metaengine.Delta{"created": 3, "done": 2}); err != nil {
+	if err := cb.CounterIncrement(
+		t.Context(),
+		"counts",
+		metaengine.Delta{"created": 3, "done": 2},
+	); err != nil {
 		_ = eng.Close()
 		t.Fatalf("CounterIncrement: %v", err)
 	}
@@ -113,7 +117,11 @@ func TestTursoEncryption_SecondADTRoundTrip(t *testing.T) {
 
 	stream, err := eng2.(metaengine.StreamLogBackend).StreamRead(t.Context(), "journal", "s1")
 	if err != nil || len(stream) != 2 {
-		t.Fatalf("journal must survive close/reopen under encryption (len=%d err=%v)", len(stream), err)
+		t.Fatalf(
+			"journal must survive close/reopen under encryption (len=%d err=%v)",
+			len(stream),
+			err,
+		)
 	}
 }
 
@@ -144,7 +152,12 @@ func TestTursoEncryption_MatViewServesAggregate(t *testing.T) {
 
 	mb := eng.(metaengine.MapBackend)
 	for i := range 3 {
-		if err := mb.MapSet(t.Context(), "orders", string(rune('a'+i)), map[string]any{"amount": i + 1}); err != nil {
+		if err := mb.MapSet(
+			t.Context(),
+			"orders",
+			string(rune('a'+i)),
+			map[string]any{"amount": i + 1},
+		); err != nil {
 			t.Fatalf("MapSet %d: %v", i, err)
 		}
 	}
@@ -166,14 +179,23 @@ func TestTursoEncryption_KeySizeHintExactText(t *testing.T) {
 	t.Parallel()
 
 	// 16 raw bytes offered to a 32-byte cipher.
-	_, err := tursoengine.New(t.TempDir()+"/hint.db",
-		tursoengine.WithEncryption(tursoengine.CipherAEGIS256, hex.EncodeToString(make([]byte, 16))))
+	_, err := tursoengine.New(
+		t.TempDir()+"/hint.db",
+		tursoengine.WithEncryption(
+			tursoengine.CipherAEGIS256,
+			hex.EncodeToString(make([]byte, 16)),
+		),
+	)
 	if err == nil {
 		t.Fatal("undersized key must be rejected")
 	}
 
 	want := "encryption key is 16 bytes, want 32 for aegis256 (openssl rand -hex 32)"
 	if !strings.Contains(err.Error(), want) {
-		t.Fatalf("size hint must carry the exact remedy text\nwant substring: %s\ngot: %v", want, err)
+		t.Fatalf(
+			"size hint must carry the exact remedy text\nwant substring: %s\ngot: %v",
+			want,
+			err,
+		)
 	}
 }

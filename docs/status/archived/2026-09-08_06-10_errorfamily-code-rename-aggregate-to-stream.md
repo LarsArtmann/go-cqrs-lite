@@ -27,24 +27,24 @@ same wave (stale `storage` go.mod pins; stale T18 snapshot goldens).
 
 ## What was renamed (17 codes, 9 modules)
 
-| Old code | New code |
-| --- | --- |
-| `event.nil_aggregate_id` | `event.nil_stream_id` |
-| `event.empty_aggregate_type` | `event.empty_stream_type` |
-| `event.aggregate_not_found` | `event.stream_not_found` |
-| `command.nil_aggregate_id` | `command.nil_stream_id` |
-| `command.empty_aggregate_type` | `command.empty_stream_type` |
-| `memory.aggregate_not_found` | `memory.stream_not_found` |
-| `storage.parse_aggregate_id` | `storage.parse_stream_id` |
-| `storage.parse_aggregate_type` | `storage.parse_stream_type` |
-| `storage.aggregate_type_mismatch` | `storage.stream_type_mismatch` |
-| `storage.aggregate_id_mismatch` | `storage.stream_id_mismatch` |
-| `storage.stream_by_aggregate` | `storage.read_stream` |
-| `storage.delete_by_aggregate` | `storage.delete_by_stream` |
-| `pebble.aggregate_type_mismatch` | `pebble.stream_type_mismatch` |
-| `pebble.aggregate_id_mismatch` | `pebble.stream_id_mismatch` |
-| `watermill.parse_aggregate_id_failed` | `watermill.parse_stream_id_failed` |
-| `grpc.command.parse_aggregate_id` | `grpc.command.parse_stream_id` |
+| Old code                               | New code                            |
+| -------------------------------------- | ----------------------------------- |
+| `event.nil_aggregate_id`               | `event.nil_stream_id`               |
+| `event.empty_aggregate_type`           | `event.empty_stream_type`           |
+| `event.aggregate_not_found`            | `event.stream_not_found`            |
+| `command.nil_aggregate_id`             | `command.nil_stream_id`             |
+| `command.empty_aggregate_type`         | `command.empty_stream_type`         |
+| `memory.aggregate_not_found`           | `memory.stream_not_found`           |
+| `storage.parse_aggregate_id`           | `storage.parse_stream_id`           |
+| `storage.parse_aggregate_type`         | `storage.parse_stream_type`         |
+| `storage.aggregate_type_mismatch`      | `storage.stream_type_mismatch`      |
+| `storage.aggregate_id_mismatch`        | `storage.stream_id_mismatch`        |
+| `storage.stream_by_aggregate`          | `storage.read_stream`               |
+| `storage.delete_by_aggregate`          | `storage.delete_by_stream`          |
+| `pebble.aggregate_type_mismatch`       | `pebble.stream_type_mismatch`       |
+| `pebble.aggregate_id_mismatch`         | `pebble.stream_id_mismatch`         |
+| `watermill.parse_aggregate_id_failed`  | `watermill.parse_stream_id_failed`  |
+| `grpc.command.parse_aggregate_id`      | `grpc.command.parse_stream_id`      |
 | `grpc.event_client.parse_aggregate_id` | `grpc.event_client.parse_stream_id` |
 
 The 2026-08-22 sweep-doc census had missed the watermill + transport/grpc
@@ -91,18 +91,18 @@ backing private method `streamByAggregate` → `readStream`
 
 ## Gates (per-task discipline)
 
-| Gate | Result |
-| --- | --- |
-| GOWORK=off build, 9 touched modules | PASS |
-| GOWORK=off tests: event, command, storage, memory, pebble, sql, eventstore, watermill, grpc | PASS (-count=1) |
-| Consumer modules decider + scenario | PASS |
-| Workspace `go build ./...` | PASS |
-| Per-module golangci-lint (9 modules) | PASS (after gci self-heal) |
-| api-stability golden | PASS — 6735 exports, no drift |
-| `check-changelog-symbols.sh` | PASS — 175 citations honest |
-| `cmd/doc-check` (1016 refs, 45 pkgs) | PASS |
-| `nix fmt` | 0 changed |
-| `check-duplication` | PASS — 0 new clone groups (baseline 133) |
+| Gate                                                                                        | Result                                   |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| GOWORK=off build, 9 touched modules                                                         | PASS                                     |
+| GOWORK=off tests: event, command, storage, memory, pebble, sql, eventstore, watermill, grpc | PASS (-count=1)                          |
+| Consumer modules decider + scenario                                                         | PASS                                     |
+| Workspace `go build ./...`                                                                  | PASS                                     |
+| Per-module golangci-lint (9 modules)                                                        | PASS (after gci self-heal)               |
+| api-stability golden                                                                        | PASS — 6735 exports, no drift            |
+| `check-changelog-symbols.sh`                                                                | PASS — 175 citations honest              |
+| `cmd/doc-check` (1016 refs, 45 pkgs)                                                        | PASS                                     |
+| `nix fmt`                                                                                   | 0 changed                                |
+| `check-duplication`                                                                         | PASS — 0 new clone groups (baseline 133) |
 
 ## Lessons
 

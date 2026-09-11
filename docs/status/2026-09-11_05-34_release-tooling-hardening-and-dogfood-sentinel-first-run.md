@@ -7,17 +7,18 @@
 
 ## 0. TL;DR
 
-| Item | Verdict |
-| --- | --- |
-| Audit `scripts/batch-release.sh` against hardened `tag-release.sh` | **DONE** (5 gaps found, all fixed + tested + CI-wired) |
-| Watch the first nightly `upgrade-dogfood` sentinel run | **DONE** — observed, it FAILED, root-caused, fixed locally, **not yet CI-validated** (no push) |
-| Bonus root-cause fix | example/taskmanager's private `go-must` dependency blocked ALL workspace-mode go commands on CI — removed |
+| Item                                                               | Verdict                                                                                                   |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Audit `scripts/batch-release.sh` against hardened `tag-release.sh` | **DONE** (5 gaps found, all fixed + tested + CI-wired)                                                    |
+| Watch the first nightly `upgrade-dogfood` sentinel run             | **DONE** — observed, it FAILED, root-caused, fixed locally, **not yet CI-validated** (no push)            |
+| Bonus root-cause fix                                               | example/taskmanager's private `go-must` dependency blocked ALL workspace-mode go commands on CI — removed |
 
 ---
 
 ## a) FULLY DONE
 
 ### A1. batch-release.sh audited and hardened to the tag-release.sh bar
+
 `scripts/batch-release.sh` did encode the pre-hardening flow. Five gaps, all fixed:
 
 1. **No path-vs-tag guard** — could create proxy-invisible tags (the issue-#20 class: cmd/cqrs-lint v4.2.0–v4.7.0 shipped this way). Now: `path_matches_major` guard per triple runs before anything is touched; `--audit` delegates to `tag-release.sh --audit` (one implementation, no logic fork).
@@ -27,29 +28,35 @@
 5. **No smoke/audit path** — post-run output now prints per-tag `tag-release.sh --smoke <module> <version>` commands and the `--audit` passthrough.
 
 Plus:
+
 - **Malformed-triple guard** — unquoted args previously died with a confusing `ERROR: v2.0.1/go.mod not found`; now a clear "malformed triple, quote as one string" error.
 - **Tag-creation failure is fatal with cleanup** (old loop deleted the bad tag but still reported "Created N tags" success).
 
 ### A2. Latent binary-pollution bug found and fixed in BOTH release scripts
+
 `go build ./...` writes main-package binaries into the module directory, silently dirtying the tree after a successful cut. `tag-release.sh:462` had the same bug (untested — its suite had no success-path test). Both scripts now build with `-o` into a throwaway dir; library-only modules fall back to the plain build (`-o` refuses "no main packages to build" — verified it does NOT compile in that case, so the fallback is mandatory, not cosmetic). Error ordering verified: a broken library module still aborts the gate via the fallback build.
 
 ### A3. Test suites written, extended, and wired into CI
+
 - New `scripts/test-batch-release.sh` — 21 checks across 6 scenarios: path-guard rejection, malformed triple, `--audit` delegation, successful two-module batch (main + library) with **exact tree restore** + replace-stripped-at-tag + replace-kept-in-worktree + no-artifacts assertions, standalone-build abort, duplicate-tag rejection.
 - `scripts/test-tag-release.sh` — added the missing **success-path Test 6** (the gap that let the binary bug hide) and fixed the 4 pre-existing `shellcheck SC2086` findings (`git $notag` → array form).
 - Wired as flake app `nix run .#check-release-scripts` (flake.nix) + a CI leg in `ci.yml`'s `lint-scripts` job (actionlint rc=0, `nix flake check` passes).
 - `scripts/test-exhaustruct-canary.sh` SC2012 fixed (`ls -d` → `find`), script re-run green.
 
 ### A4. First real CI run of upgrade-dogfood observed (the unobserved run)
+
 - Sep 9 + Sep 10 nightly runs: both failed at `green-recency` (correct alarm — master CI red 158 days); `upgrade-dogfood` job was ABSENT from both (added to sentinel.yml in e37642adf at 23:38 UTC Sep 10, after both schedules).
 - Dispatched the first execution: [run 34556835441](https://github.com/LarsArtmann/go-cqrs-lite/actions/runs/34556835441) — `upgrade-dogfood` **FAILED in ~20s** (nowhere near the 20-min timeout).
 
 ### A5. Root cause found and fixed: private go-must blocked every workspace-wide go command
+
 - `example/taskmanager` (a `go.work` member) required `github.com/larsartmann/go-must` — a **private** repo. proxy.golang.org serves only v0.1.0 (cache froze when the repo went private; v0.1.1/v0.1.2 can never be served). Workspace mode unions all members' requires, so `go build ./...`, `go run ./cmd/cqrs-upgrade`, CI's `nix flake check`, and the sentinel all had to load go-must@v0.1.2 → proxy 404 → direct-VCS fallback → auth prompt → exit 128 on CI.
 - Local passes invisibly (module cache has the version + devShell HTTPS→SSH git auth) — exactly why "passes locally, fails in CI".
 - Fix: inlined the two helpers taskmanager uses (`Must`, `Check`) into `example/taskmanager/must.go`; dropped the require + go.sum entries; no call-site changes otherwise.
 - **CI-fidelity verification**: clean `GOMODCACHE`, proxy-only `GOPROXY` (no `,direct`), no GOPRIVATE, no credentials → `go list -m all` over the whole workspace exits 0 (proves every module in the current union graph is proxy-servable). taskmanager builds and tests green under `GOWORK=off`. Local `nix run .#check-upgrade-dogfood` green.
 
 ### A6. Documentation updated
+
 - CHANGELOG.md `[Unreleased]`: two full entries (private-dep fix; release-tooling hardening).
 - TODO_LIST.md: both completed items removed (per file convention).
 - AGENTS.md Quick Reference: new `Rel. tests` row.
@@ -105,6 +112,7 @@ Not fucked up, worth stating: I did NOT touch the other session's in-flight file
 ## f) UP TO 50 THINGS TO DO NEXT (prioritized, roughly Pareto-ordered)
 
 **Validate + lock in this session's work (1–6):**
+
 1. Push master → confirm `Nix Flake Check` + `verify-fast` legs flip green (go-must class gone).
 2. Watch tonight's 03:17 UTC sentinel: `upgrade-dogfood` must pass in real CI (network topology + GOPROXY + 20-min timeout now actually exercised).
 3. Re-dispatch sentinel after push instead of waiting for the schedule (same job definition).
@@ -180,4 +188,4 @@ Not fucked up, worth stating: I did NOT touch the other session's in-flight file
 
 ---
 
-*Report ends. Waiting for instructions.*
+_Report ends. Waiting for instructions._

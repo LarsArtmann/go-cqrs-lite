@@ -3,14 +3,13 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** All six improvements it derived shipped via the 27-task Cordis plan (`docs/planning/archived/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`); the `projection %q is n` anomaly (§d2, its top open item) was resolved as M-01 in Wave 0.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 > **When:** 2026-09-10 08:04 · **Scope:** this session only (analysis + docs; zero production code touched)
 > **Session arc:** read Cordis paper + DeepSeek Harness primer → mapped the spatiotemporal-composability paradigm onto go-modularize + go-cqrs-lite → wrote/extended the mapping doc → derived a verified improvement backlog (chat only)
 > **Files created/modified:** `docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md` (new, 8 sections), `AGENTS.md` (paradigm note + fence fix)
 
-| Done | Partial | Not started | Fucked up |
-|---|---|---|---|
-| 9 | 5 | 6 | 4 (minor, none destructive) |
+| Done | Partial | Not started | Fucked up                   |
+| ---- | ------- | ----------- | --------------------------- |
+| 9    | 5       | 6           | 4 (minor, none destructive) |
 
 ---
 
@@ -20,9 +19,9 @@
 2. **Skills loaded before task execution:** `go-modularize` SKILL.md (full) + phases.md (partial — see b1), `go-cqrs-lite` SKILL.md (full).
 3. **Mapping report written:** `docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md` — three-level thesis (runtime / compile-time / data-level dynamism), concept tables with ~20 file:line citations, gaps, Pareto implications.
 4. **Verification discipline:** every cited mechanism spot-checked with `rg` before writing (Closer/DeferClose, RegisterDriver, CheckRouting/ReplanLayout, ProbeEngine/LatencyTracker, Engine interface, capability interfaces, DecorateStore, Dispatcher.Use, Watcher, Projection.EventTypes, host type-set, System.Close/GracefulClose/ShutdownDependency).
-5. **Negative finding surfaced:** `samber/do` requires in 5 `cmd/*` go.mod files with zero `.go` importers — stale, explicitly *not* claimed as DI usage.
+5. **Negative finding surfaced:** `samber/do` requires in 5 `cmd/*` go.mod files with zero `.go` importers — stale, explicitly _not_ claimed as DI usage.
 6. **§7 metaengine extension** ("where the paradigm runs at runtime") + §8 bottom line renumber + extension.
-7. **AGENTS.md:** paradigm-framing note added directly under the north-star vision statement (closed a pre-existing dangling ` ```text ` fence at EOF while there).
+7. **AGENTS.md:** paradigm-framing note added directly under the north-star vision statement (closed a pre-existing dangling `` ```text `` fence at EOF while there).
 8. **Gate green:** `cmd/doc-check` after the AGENTS.md edit — 1029 references valid across 46 packages, zero warnings (zero-warning policy held).
 9. **Improvement analysis with gap verification:** `Host.Reset`/`Resettable` semantics read (incl. the documented silent-partial-reset trap), absence of coeffect cross-validation confirmed, zero goleak usage confirmed, `scenario` DSL `Given`/`GivenProjection` surface confirmed.
 
@@ -62,9 +61,10 @@
 
 ## f) Up to 50 things to get done next
 
-*Top ~10 are commitable work; beyond that this is a brainstorm — ROADMAP/TODO_LIST fuel, not a promise list (per status-report skill).*
+_Top ~10 are commitable work; beyond that this is a brainstorm — ROADMAP/TODO_LIST fuel, not a promise list (per status-report skill)._
 
 **P1 — minutes to hours, this week**
+
 1. Investigate the `projection %q is n` error strings in projectionhost (bug or artifact?) — then fix or forget with evidence.
 2. `go mod tidy` ×5 `cmd/*` modules (drop phantom `samber/do`).
 3. Loud partial-revert guard: `Host.Reset` errors by default on non-`Resettable` projections; explicit `WithKeepStaleState()` opt-out.
@@ -128,4 +128,4 @@
 
 ---
 
-*Report format: `.md` per explicit user instruction — overrides the status-report skill's HTML default (flagged here per skill policy). Not committed manually: the repo's auto-commit daemon absorbs working-tree changes by design.*
+_Report format: `.md` per explicit user instruction — overrides the status-report skill's HTML default (flagged here per skill policy). Not committed manually: the repo's auto-commit daemon absorbs working-tree changes by design._

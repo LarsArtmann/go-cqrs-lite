@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §b honest gaps since closed: exhaustruct canary completed 2026-09-11 (`scripts/test-exhaustruct-canary.sh`); P22 halves — permalink done, filing still BLOCKED. Master was pushed (synced at `458eeaac`; today's tip is far ahead).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 > Session continuation of
 > [`2026-09-09_01-54_pareto-w1-w2-continuation.md`](2026-09-09_01-54_pareto-w1-w2-continuation.md).
 > Mandate: keep executing
@@ -182,7 +181,7 @@
      the winner was still mid-rename → unified both paths behind
      `snapshotRenameSettled` (poll until aggregates disappear or window
      elapses; unsettled ⇒ original error / Corruption).
-  Stress-verified `-count=10` plain and `-count=5 -race` after the final fix.
+     Stress-verified `-count=10` plain and `-count=5 -race` after the final fix.
 - **M26.1 live runs:** MariaDB 11.4 on :33061 — new
   `TestMigrateSnapshotColumnsToStream_MariaDB` (`-tags integration`,
   `MYSQL_TEST_DSN`; go-sql-driver added as a TEST-ONLY dep to storage;
@@ -228,15 +227,15 @@
 
 ## b) PARTIALLY DONE
 
-| Item | State | What's missing |
-| --- | --- | --- |
-| P24.3 exhaustruct ignore-pattern canary | Skipped half | Rationale: a pattern that stops matching produces LOUD exhaustruct findings on the next partial construction (self-detecting); the silent risk is only a dead entry. The deprecated-linter-name half shipped as check-linter-names.sh. Record the decline in TODO_LIST or build the canary if the rationale is rejected. |
-| P25.2 SQL events/commands column rename | Assessment only | Expand-contract design written (WIRE-FORMAT-KEYS); needs the 5.0-vs-5.x ruling + actual migration code. |
-| P27.17 cqrs-bench deprecation stub | Not possible on master | One-off branch + tag (the v0.2.1 treatment); awaits tag-wave authorization. |
-| doc-check `--json` | Shipped, one path untested | The no-references tripwire's exit code under `--json` (JSON prints, then error?) was reasoned but never executed. |
-| Baseline annotations | Placed, not live-proven | The two `//art-dupl:accept` annotations suppress on the NEXT baseline regen; current green relies on the re-pinned baseline (54 groups). |
-| Post-session gates | Not re-run after late changes | `#check-coverage`, `#check-arch` (new mysql test dep — policy says test-only is excluded, unverified), `check-workspace-sync.sh` (storage go.mod gained a require). All low-risk; all unverified. |
-| Memory/docs maintenance | Not done | AGENTS.md + skill references were not updated for: the two new tripwires, the baseline manual-commit protocol, the settle-window pattern, WIRE-FORMAT-KEYS.md's existence. CHANGELOG carried the session; the living docs didn't. |
+| Item                                    | State                         | What's missing                                                                                                                                                                                                                                                                                                           |
+| --------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| P24.3 exhaustruct ignore-pattern canary | Skipped half                  | Rationale: a pattern that stops matching produces LOUD exhaustruct findings on the next partial construction (self-detecting); the silent risk is only a dead entry. The deprecated-linter-name half shipped as check-linter-names.sh. Record the decline in TODO_LIST or build the canary if the rationale is rejected. |
+| P25.2 SQL events/commands column rename | Assessment only               | Expand-contract design written (WIRE-FORMAT-KEYS); needs the 5.0-vs-5.x ruling + actual migration code.                                                                                                                                                                                                                  |
+| P27.17 cqrs-bench deprecation stub      | Not possible on master        | One-off branch + tag (the v0.2.1 treatment); awaits tag-wave authorization.                                                                                                                                                                                                                                              |
+| doc-check `--json`                      | Shipped, one path untested    | The no-references tripwire's exit code under `--json` (JSON prints, then error?) was reasoned but never executed.                                                                                                                                                                                                        |
+| Baseline annotations                    | Placed, not live-proven       | The two `//art-dupl:accept` annotations suppress on the NEXT baseline regen; current green relies on the re-pinned baseline (54 groups).                                                                                                                                                                                 |
+| Post-session gates                      | Not re-run after late changes | `#check-coverage`, `#check-arch` (new mysql test dep — policy says test-only is excluded, unverified), `check-workspace-sync.sh` (storage go.mod gained a require). All low-risk; all unverified.                                                                                                                        |
+| Memory/docs maintenance                 | Not done                      | AGENTS.md + skill references were not updated for: the two new tripwires, the baseline manual-commit protocol, the settle-window pattern, WIRE-FORMAT-KEYS.md's existence. CHANGELOG carried the session; the living docs didn't.                                                                                        |
 
 ## c) NOT STARTED (this session; mostly user-gated or later-wave)
 
@@ -337,7 +336,7 @@
 15. cqrs-bench deprecation stub tag (rides the next wave).
 16. M25.2 expand-contract migration for SQL events/commands columns (v5.x).
 17. `listing.aggregate_projection` rename decision (consumer-visible
-     collection identity; still-open §4 row).
+    collection identity; still-open §4 row).
 18. v6 deletion inventory: TODO_LIST section listing every fallback shim from
     WIRE-FORMAT-KEYS (snapshot wire, bbolt/pebble shadows, watermill
     dual-write) so v6 cleanup is mechanical.
@@ -408,6 +407,6 @@
 
 ---
 
-*Verification state at write time: `nix run .#verify` GREEN (round 4,
+_Verification state at write time: `nix run .#verify` GREEN (round 4,
 2026-09-09 ~04:01); master == origin/master @ `458eeaac`; working tree clean
-(daemon absorbed everything).*
+(daemon absorbed everything)._

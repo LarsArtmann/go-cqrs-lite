@@ -7,8 +7,8 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-error-family v0.10.0
-	github.com/larsartmann/templ-components v1.13.2
-	github.com/larsartmann/templ-components/utils v1.13.2
+	github.com/larsartmann/templ-components v1.16.0
+	github.com/larsartmann/templ-components/utils v1.16.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 )
@@ -26,8 +26,8 @@ require (
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.13.2 // indirect
-	github.com/larsartmann/templ-components/icons v1.13.2 // indirect
+	github.com/larsartmann/templ-components/htmx v1.16.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.16.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect
@@ -43,7 +43,7 @@ require (
 	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect

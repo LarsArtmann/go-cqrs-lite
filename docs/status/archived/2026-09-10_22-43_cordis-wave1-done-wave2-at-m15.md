@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** M-15..M-27 completed by `2026-09-10_23-35_cordis-all-27-done.md` (same day).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 > **When:** 2026-09-10 22:43 · **Session:** resumed "READ, UNDERSTAND, RESEARCH, REFLECT / keep going until done" after the 09-16 status break
 > **Input:** [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](../planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md) (M-01..M-27)
 > **Prior state:** Wave 0 done; M-06 done; M-07 code done, release hygiene interrupted (see [`2026-09-10_09-16_cordis-wave0-wave1-execution.md`](2026-09-10_09-16_cordis-wave0-wave1-execution.md))
@@ -14,6 +13,7 @@
 ## a) FULLY DONE (this session, each with its verify gate)
 
 ### M-07 — release hygiene (the interrupted thread, closed)
+
 - **api golden regen:** 6739 → 6751 exports (+12 metaengine/projectionadapter reset symbols); `TestEvery` meta-test green.
 - **CHANGELOG:** `[Unreleased]` "Added — metaengine + projectionadapter: one-call read-model revert" entry (cites `EngineResetter`, `ResetResult`, `Adapter.Reset`, `WithLogger`, sibling-replace note); `check-changelog-symbols.sh` green (7 citations).
 - **Tests:** full `GOWORK=off` suites green for metaengine, metaengine/projectionadapter, projectionhost.
@@ -21,20 +21,24 @@
 - **`go work sync`** + `check-workspace-sync.sh` OK (the M-07 replace is synced).
 
 ### M-08 — goleak in system tests
+
 - `go.uber.org/goleak v1.3.0` promoted to direct test dep; `system/main_test.go` `TestMain` wrapped with `goleak.VerifyTestMain` (doc comment ties it to teardown-completeness-as-CI).
 - Full system suite green **with `-race`** — zero leaks on first run (no ignores needed).
 
 ### M-09 — ADR-0136 temporal composability contract
+
 - `docs/adr/0136-temporal-composability-contract.md`: invertibility ladder (**replayable → compensable → must-be-an-event**), the user decision rule ("what is its inverse?"), M-06/M-07 as enforcement points, engine-reset capability ladder (memory=full, persistent=follow-up), v4-warn/v5-hard stance, anti-patterns.
 - Linked from mapping doc §9 (append-only policy held), AGENTS.md internal contract **#22** added.
 - **Collateral fix:** `scripts/verify-docs.sh` ADR-index check glob `00*.md` only saw ADRs 0001–0099 → fixed to `0*.md`. Indexed **0100–0136 into docs/README.md** (+37 rows) and **0130–0136 into docs/adr/README.md** (+7 rows). Check now honest: 135 files = 135 indexed.
 - doc-check green (1029 refs).
 
 ### M-10 — revert & rebuild recipe
+
 - `readmodels.md` new section "Revert & rebuild: Reset → replay from zero (ADR-0136)" (+ TOC entry): Stop→Reset→Start flow, warn-guard semantics, `WithKeepStaleState`, Resettable covers table (projectionadapter free / SQLViewStore `DeleteAll` wrap / hand-rolled), engine capability table, direct `store.Reset` + `ResetResult.Partial()` inspection, scope guard (external effects → deriver; facts → tombstone).
 - `recipes.md` §2.32 cross-ref entry. doc-check green (**1038 refs**, +9).
 
 ### M-11/M-12/M-13 — coeffect validation gate in system.New
+
 - **Honest discovery:** deciders emit events only at runtime — the plan's "collect produced event types" premise had no static source. Gate built as **opt-in declaration** instead:
   - `DomainConfig.Events []event.Type` — declared journal universe (own emissions + external importers); empty = gate off (zero v4 breakage).
   - `DomainConfig.DisableCoeffectValidation bool` — escape hatch.
@@ -45,6 +49,7 @@
 - Full system suite green (goleak active), lint 0 issues, golden regen **6751 → 6752** (`system/var ErrDanglingEventSubscription`).
 
 ### M-14 — observational-equivalence scenario test
+
 - `scenario/observational_equivalence_test.go`: task (A) + audit (B) collections on ONE shared metaengine Store; `interleavedProjection` composite runs B's Handle after A's per event; asserts via DSL: baseline (A alone, `ThenNoError`) then A+B interleaved `ThenQueryResult(DeepEqual)` against the baseline value. This is the Cordis observational-equivalence theorem as a regression gate.
 - scenario go.mod gained **test-only** deps: metaengine v4.13.0, projectionadapter v4.4.1, record v4.5.0 (budget-exempt; all published tags verified before adding).
 - Suite green, lint 0 issues, workspace sync OK.
@@ -54,15 +59,18 @@
 ## b) PARTIALLY DONE
 
 ### M-15 — cqrs-lint event-type typo rule (research phase, ~15 min in)
+
 - Surveyed rule layout (correctness/c###, consistency/d###, architecture/e###).
-- **Key finding mid-analysis:** **E006 already exists** ("event emitted but no projection or fold handles it") — that is the *emitted→unhandled* direction. The plan's M-15 ("projection `EventTypes()` vs registered producers") is the **reverse** direction: a projection consuming a type **nobody emits** (the typo class). The registry (`ctx.Registry.EventTypesEmitted`, `Projections[].EventTypes`, `CollectFoldCaseStrings`) has everything needed. Interrupted here — rule not written.
+- **Key finding mid-analysis:** **E006 already exists** ("event emitted but no projection or fold handles it") — that is the _emitted→unhandled_ direction. The plan's M-15 ("projection `EventTypes()` vs registered producers") is the **reverse** direction: a projection consuming a type **nobody emits** (the typo class). The registry (`ctx.Registry.EventTypesEmitted`, `Projections[].EventTypes`, `CollectFoldCaseStrings`) has everything needed. Interrupted here — rule not written.
 
 ### M-20 — consolidated release hygiene (deliberately deferred, not started as a pass)
-- The plan itself makes M-20 the consolidated gate; this session already did golden (6752) + symbol gate + CHANGELOG entries incrementally. Still outstanding as a *final pass*: CHANGELOG entries for M-08..M-14 surface (goleak is test-only → no entry needed; scenario test-deps → likely no consumer-visible entry; **coeffect gate IS consumer-visible and needs its `[Unreleased]` entry — NOT yet written**), and a green `nix run .#verify-fast`.
+
+- The plan itself makes M-20 the consolidated gate; this session already did golden (6752) + symbol gate + CHANGELOG entries incrementally. Still outstanding as a _final pass_: CHANGELOG entries for M-08..M-14 surface (goleak is test-only → no entry needed; scenario test-deps → likely no consumer-visible entry; **coeffect gate IS consumer-visible and needs its `[Unreleased]` entry — NOT yet written**), and a green `nix run .#verify-fast`.
 
 ---
 
 ## c) NOT STARTED
+
 - **M-16** catalog validation summary · **M-17/18/19** ground-truth pass (ADR claims, arXiv PDF, 82/47 recount — note module count is now **84**, AGENTS.md still says 82, verify-docs only checks "core docs" so it passed) · Wave 3 in full: **M-21** ADR-0137 deactivation, **M-22** impl, **M-23** Doctor health, **M-24** rapid fuzz, **M-25** `AssertUnchanged` DSL helper, **M-26** vocabulary decision gate, **M-27** diagram.
 - Housekeeping: TODO_LIST M-06/M-07 entry deletion (its completed-work rule), EngineResetter follow-up entries, tag-wave note for the projectionadapter replace.
 
@@ -86,6 +94,7 @@
 ## f) NEXT — up to 50, in execution order
 
 **Finish Wave 2:**
+
 1. M-15: decide gap vs E006 (see question 1) → implement handled-but-not-emitted rule (correctness c### or consistency d### slot) + fixture tests + self-suite run
 2. M-15: register rule in `rules.AllRules()`, preset/help-text goldens (TestPresetHelpTextListsAllPresets will trip otherwise)
 3. M-15: severity positioning (typo = Warning?) + docs line in cqrs-lint README if rules are listed there

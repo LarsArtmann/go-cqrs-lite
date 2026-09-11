@@ -34,11 +34,11 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.3.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.52 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -58,5 +58,5 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 )

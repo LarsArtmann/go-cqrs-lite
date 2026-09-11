@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** The fix is live on master and now documented in FEATURES.md (typed causation row); the missing `watermill/v4.7.0` tag is routed into the TODO_LIST tag-wave manifest (go-localsync's workaround ends when it ships). §c5 transport-parity sweep: transport/http+grpc are deprecated (ADR-0127, deletion at v5) — the sweep is accepted-moot unless a consumer asks before the cut.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-09 19:35 CEST
 **Session scope:** Review + implement GitHub issue #21 (`watermill/v4` event wire protocol asymmetry) in `go-cqrs-lite`.
 **Tree state:** clean; all work absorbed by auto-commit daemon into `2f87c4107`, `130f5f2a1`, `c9a316660` (on `master`, not pushed).
@@ -22,11 +21,11 @@ The fix is implemented, tested, linted, race-checked, downstream-verified, chang
 
 ## 1. Root Cause & Fix (what the code does now)
 
-| Direction | Before | After |
-| --- | --- | --- |
-| Outbound (`eventToMessage`) | Typed `Metadata.Causation` never written | `writeCausation` writes `causation_command_type` + `causation_command_id`; per-field zero-skip so a half pair can never hit the wire |
-| Inbound (`buildMetadata`) | Typed Causation never reconstructed | `parseCausation`: dedicated keys win; if both absent, promotes v2-pattern `custom.command.type`/`custom.command.id` mirrors; partial pair → `watermill.missing_metadata` rejection; unparseable command ID → `watermill.parse_id_field_failed` rejection |
-| Legacy in-flight messages | Causation lost on read | `causationFromCustom` (lenient): pre-fix producers' custom mirrors restore the typed field with **no producer change**; unparseable legacy mirrors are silently skipped (never error — legacy data was always accepted) |
+| Direction                   | Before                                   | After                                                                                                                                                                                                                                                    |
+| --------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Outbound (`eventToMessage`) | Typed `Metadata.Causation` never written | `writeCausation` writes `causation_command_type` + `causation_command_id`; per-field zero-skip so a half pair can never hit the wire                                                                                                                     |
+| Inbound (`buildMetadata`)   | Typed Causation never reconstructed      | `parseCausation`: dedicated keys win; if both absent, promotes v2-pattern `custom.command.type`/`custom.command.id` mirrors; partial pair → `watermill.missing_metadata` rejection; unparseable command ID → `watermill.parse_id_field_failed` rejection |
+| Legacy in-flight messages   | Causation lost on read                   | `causationFromCustom` (lenient): pre-fix producers' custom mirrors restore the typed field with **no producer change**; unparseable legacy mirrors are silently skipped (never error — legacy data was always accepted)                                  |
 
 Key files:
 
@@ -47,21 +46,21 @@ Key files:
 
 ## a) FULLY DONE
 
-| Work | Verification |
-| --- | --- |
-| Verified issue claims against master (found v4.6.0 already fixed scalar half) | `git diff watermill/v4.5.1..v4.6.0..HEAD` archaeology |
-| Typed Causation wire write side (`writeCausation`) | tests + golden |
-| Typed Causation read side incl. precedence, partial-pair, invalid-ID rejection (`parseCausation`) | tests |
-| Legacy custom-mirror promotion (`causationFromCustom`) | tests |
-| 6 new protocol tests: round-trip, key-omission, legacy promotion, typed-wins-over-custom, partial rejection, invalid-ID rejection | `go test` green |
-| Golden wire-format pinned: `causation_command_*` keys in `message-metadata.snap`, regenerated via `-update` (confirmed fail→regen→pass) | snap diff reviewed |
-| Removed stale `watermill/testdata/golden/message-metadata.json` (pre-go-snaps leftover, basename-only usage verified, was missing `stream_*` keys) | `trash`, rg-verified no consumers |
-| `golangci-lint` clean incl. fixing the one `nilnil` finding (restructured to out-param) | `0 issues` |
-| `gofumpt` clean, `go vet` clean, module tests `-count=1`, `-race` green | all pass |
-| Downstream consumer tests: `stack`, `system`, `system/integration`, `benchkit` | all pass |
-| Confirmed `stack/bench` + `cmd/cqrs-bench` failures are **not** caused by this change (see §d) | evidence below |
-| CHANGELOG `[Unreleased] → Fixed (#21)` entry; `check-changelog-symbols.sh` gate passes | "citations are honest" |
-| Confirmed no skill-reference/README updates needed (none enumerate wire keys) and no exported-symbol changes (no api-golden regen) | rg evidence |
+| Work                                                                                                                                               | Verification                                          |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Verified issue claims against master (found v4.6.0 already fixed scalar half)                                                                      | `git diff watermill/v4.5.1..v4.6.0..HEAD` archaeology |
+| Typed Causation wire write side (`writeCausation`)                                                                                                 | tests + golden                                        |
+| Typed Causation read side incl. precedence, partial-pair, invalid-ID rejection (`parseCausation`)                                                  | tests                                                 |
+| Legacy custom-mirror promotion (`causationFromCustom`)                                                                                             | tests                                                 |
+| 6 new protocol tests: round-trip, key-omission, legacy promotion, typed-wins-over-custom, partial rejection, invalid-ID rejection                  | `go test` green                                       |
+| Golden wire-format pinned: `causation_command_*` keys in `message-metadata.snap`, regenerated via `-update` (confirmed fail→regen→pass)            | snap diff reviewed                                    |
+| Removed stale `watermill/testdata/golden/message-metadata.json` (pre-go-snaps leftover, basename-only usage verified, was missing `stream_*` keys) | `trash`, rg-verified no consumers                     |
+| `golangci-lint` clean incl. fixing the one `nilnil` finding (restructured to out-param)                                                            | `0 issues`                                            |
+| `gofumpt` clean, `go vet` clean, module tests `-count=1`, `-race` green                                                                            | all pass                                              |
+| Downstream consumer tests: `stack`, `system`, `system/integration`, `benchkit`                                                                     | all pass                                              |
+| Confirmed `stack/bench` + `cmd/cqrs-bench` failures are **not** caused by this change (see §d)                                                     | evidence below                                        |
+| CHANGELOG `[Unreleased] → Fixed (#21)` entry; `check-changelog-symbols.sh` gate passes                                                             | "citations are honest"                                |
+| Confirmed no skill-reference/README updates needed (none enumerate wire keys) and no exported-symbol changes (no api-golden regen)                 | rg evidence                                           |
 
 ## b) PARTIALLY DONE
 
@@ -100,6 +99,7 @@ Key files:
 ## f) NEXT 50 (prioritized, impact-first)
 
 **Ship it (1–6)**
+
 1. Tag + push `watermill/v4.7.0` (proxy-smoke via `tag-release.sh --smoke`).
 2. Comment on #21 with fix summary + commit hash; close the issue.
 3. Run full `nix run .#verify` once before the tag (exclusive window).
@@ -171,4 +171,4 @@ Key files:
 
 ---
 
-*Verification battery this session: watermill tests ×2 + `-race` + `vet` + `golangci-lint` (0 issues) + `gofumpt` + golden fail→regen→pass + downstream (stack, system, system/integration, benchkit) + changelog symbol gate. Commits: `2f87c4107` (impl+tests+golden), `130f5f2a1` (nilnil fix + stale fixture removal), `c9a316660` (CHANGELOG).*
+_Verification battery this session: watermill tests ×2 + `-race` + `vet` + `golangci-lint` (0 issues) + `gofumpt` + golden fail→regen→pass + downstream (stack, system, system/integration, benchkit) + changelog symbol gate. Commits: `2f87c4107` (impl+tests+golden), `130f5f2a1` (nilnil fix + stale fixture removal), `c9a316660` (CHANGELOG)._

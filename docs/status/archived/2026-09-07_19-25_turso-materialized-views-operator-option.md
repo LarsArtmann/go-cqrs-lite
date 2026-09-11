@@ -248,8 +248,8 @@
 
 **Upstream / ecosystem**
 19. ~~File the turso-go issue (repro + envelope data) — pending user go-ahead.~~
-    superseded: COMMIT-abort half reported via PR #8257 comment (2026-09-08);
-    standalone A+B issue still BLOCKED on approval — TODO_LIST carries it
+superseded: COMMIT-abort half reported via PR #8257 comment (2026-09-08);
+standalone A+B issue still BLOCKED on approval — TODO_LIST carries it
 20. Track turso-go releases; re-run the envelope probe on each new version;
 flip the bench skip-markers when fixed.
 21. Tag wave: bump sqliteengine/tursoengine/system pins, strip sibling
@@ -294,15 +294,15 @@ EXPLAIN proof workflow.
 
 **Hygiene / repo**
 39. ~~Remove the accidentally committed `cmd/cqrs-upgrade/cqrs-upgrade`
-  binary (10.7 MB) — foreign session's cleanup, flag to its owner.~~ done
-  2026-09-08 (docs-health pass: `git rm --cached` + .gitignore)
+binary (10.7 MB) — foreign session's cleanup, flag to its owner.~~ done
+2026-09-08 (docs-health pass: `git rm --cached` + .gitignore)
 40. ~~Foreign `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries in
-  `scripts/check-module-layers.sh` (their session) to un-red check-arch.~~
-  done — the cqrs-upgrade session registered all 4 meta-gates (SUPERB §a5)
+`scripts/check-module-layers.sh` (their session) to un-red check-arch.~~
+done — the cqrs-upgrade session registered all 4 meta-gates (SUPERB §a5)
 41. ~~Update TODO_LIST.md with items 19-38 (report currently holds them).~~
-  done — critical subset 2026-09-08 (05-33 session); remainder routed by
-  the 09-08 docs pass (safety tail → TODO_LIST; v2 surface → TODO_LIST
-  single item; docs-site/FAQ → propagation wave)
+done — critical subset 2026-09-08 (05-33 session); remainder routed by
+the 09-08 docs pass (safety tail → TODO_LIST; v2 surface → TODO_LIST
+single item; docs-site/FAQ → propagation wave)
 42. `docs/DOMAIN_LANGUAGE.md` entry: "materialized view acceleration",
 "IVM", "view-maintained write".
 43. Consider `soak_skip` env for the new bench in CI (`SOAK_SKIP_*`

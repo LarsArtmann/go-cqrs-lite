@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Point-in-time review — archived by the docs-health pass 2026-09-11.** The module since grew `--strict/--json/--to/--workspace` + the nightly dogfood job (2026-09-09/11). Open owner question (cmdguard-vs-stdlib policy, §g1) remains unanswered — revisit only if a second stdlib CLI appears; the hardening follow-ups (flags-after-positional guard, `--json` deprecations array) are routed to TODO_LIST (cqrs-upgrade hardening batch).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-09 04:48
 **Scope:** This session only — explain `cmd/cqrs-upgrade`, build it to temp, answer "why no cmdguard/fang?".
 **Session verdict:** Green with two self-inflicted misses (unverified artifact, noticed-but-unfixed diagnostics).
@@ -15,7 +14,7 @@
 1. **Explained cmd/cqrs-upgrade end-to-end.** Read all 8 source files (`main.go`, `pins.go`, `resolve.go`, `apply.go`, `report.go`, `workspace.go`, `exec.go`, `util.go`) + `go.mod`. Documented the pipeline (collect pins → resolve latest via `go list -m -versions` → plan/apply with never-downgrade + `--to` ceiling → GOWORK=off tidy/build/vet verify → V007 v5-deprecation report), all 6 flags, and the JSON wire contract.
 2. **Built the binary to temp.** `/tmp/cqrs-upgrade` (10.8 MB) with the mandated env chain (GOCACHE/GOMODCACHE/GOPATH/GOTMPDIR/TMPDIR), `GOWORK=off` per-module isolation, and `-tags "goexperiment.jsonv2"`. Compiled clean.
 3. **Answered the cmdguard/fang question with verified evidence, not vibes:**
-   - 5 of 6 `cmd/*` tools use `cmdguard/v4`; fang arrives *inside* cmdguard (hence `// indirect`).
+   - 5 of 6 `cmd/*` tools use `cmdguard/v4`; fang arrives _inside_ cmdguard (hence `// indirect`).
    - cqrs-upgrade is the lone stdlib-`flag` exception; dep-tree quantified (3 direct deps, 34-line go.sum ≈ 17 modules, vs cqrs-lint's 177-line go.sum).
    - Confirmed no ADR / doc records the decision; auto-commit daemon ate the rationale history (tool added 2026-09-07, commit 917c8bd75).
    - Confirmed even the cqrs-lint analyzer dependency does NOT transitively pull fang/cmdguard (0 hits in go.sum).
@@ -40,7 +39,7 @@
 
 Nothing catastrophic. Ranked worst moments:
 
-1. **Handing the user an untested binary** and telling *them* to run `--help` — that was my job. Two-second smoke test, skipped.
+1. **Handing the user an untested binary** and telling _them_ to run `--help` — that was my job. Two-second smoke test, skipped.
 2. **Suppressing known diagnostics** from the explain/build answers. The QF1012 + stale-direct-dep findings belonged in the build reply ("builds clean, but the module has X and Y waiting"), not buried until a status report demanded honesty.
 3. Minor: answered "17 modules in go.sum" from line-count arithmetic (34/2) without listing them — correct here, but unverified-by-inspection claims are how fiction starts.
 
@@ -54,6 +53,7 @@ Nothing catastrophic. Ranked worst moments:
 ## f) NEXT: up to 50 things (session-scoped, ranked)
 
 **Immediate hygiene (this module):**
+
 1. Run `cd cmd/cqrs-upgrade && GOWORK=off go test ./... -count=1` (with env chain + `GOEXPERIMENT=jsonv2`).
 2. `GOWORK=off go mod tidy` in the module — resolve the go-finding stale direct dep.
 3. Fix QF1012 in `apply.go:144` (`fmt.Fprintf`).
@@ -91,7 +91,7 @@ Nothing catastrophic. Ranked worst moments:
 27. docs/agents/module-map.md row mentions "v4.0.0 tagged" — check tag drift after next release.
 28. If cmdguard adoption happens repo-wide: bump dependency-budget review (check-arch allow-list) for the new transitive tree.
 
-*(Honest count: 28 — padding to 50 would be fiction.)*
+_(Honest count: 28 — padding to 50 would be fiction.)_
 
 ## g) QUESTIONS ONLY YOU CAN ANSWER
 
@@ -101,4 +101,4 @@ Nothing catastrophic. Ranked worst moments:
 
 ---
 
-*Reported from session memory + on-disk verification only. No unrelated research performed. Waiting for instructions.*
+_Reported from session memory + on-disk verification only. No unrelated research performed. Waiting for instructions._

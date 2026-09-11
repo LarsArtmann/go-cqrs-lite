@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed: integration-tag lint gate, verify-ci go.sum assertion, tripwire mutation fixture, lint attribution, and the orphaned-work annotation (this pass) → TODO_LIST; the stale GOWORK-decision-table TODO it flagged (§c3) was VERIFIED STALE and deleted (the table shipped 2026-09-08 as P15/P16, `docs/agents/gowork-modes.md`, linked from AGENTS.md).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-11 01:38 CEST
 **Session scope:** Execute + verify the 3-item paste batch (clone-group
 attribution, scheduling/sqlstore lint findings, `aggregate_*` tripwire),
@@ -99,13 +98,13 @@ session-level `#verify-fast` — that miss is owned in §d.
 ## b) PARTIALLY DONE
 
 1. **"Clean" mechanism not fully attributed per finding.** I verified the
-   *surface* is clean (0 issues, five linters explicitly enabled), and I
+   _surface_ is clean (0 issues, five linters explicitly enabled), and I
    know two mechanisms precisely (gocognit = code fix; G202 = nolint). But
    for sqlclosecheck ×2, QF1003, and wsl_v5 I did not determine whether each
    was code-fixed since 09-06 or merely silenced by the `_test.go`
    exclusion block in `.golangci.yml` (which excludes gosec and wsl_v5, and
    per-path rules exclude more). The item's goal ("lint surface clean") is
-   met; the item's *story* is incomplete. Remaining: a 15-minute per-finding
+   met; the item's _story_ is incomplete. Remaining: a 15-minute per-finding
    attribution pass against the 09-06 pre-session worktree. — Effort: S.
 2. **Integration-tag clean claim rests on the PATH binary, not the nix
    pin.** PATH golangci-lint is v2.13.2 built with go1.27.1; the nix-pinned
@@ -213,48 +212,48 @@ session-level `#verify-fast` — that miss is owned in §d.
 > open items re-confirmed from the reports/files read this session. Not yet
 > harvested — waiting for your go.
 
-| # | Task | Impact | Effort | Category |
-| --- | --- | --- | --- | --- |
-| 1 | Run session-level `#verify-fast` on the current tree (closes §b3) | Critical | S | Quality |
-| 2 | Per-finding attribution for sqlclosecheck ×2 / QF1003 / wsl_v5 (code-fix vs config-exclusion) — 09-06 pre-session worktree diff | High | S | Quality |
-| 3 | Add `testdata/` mutation fixture + scanner self-assert to the aggregate tripwire (permanent mutation proof) | High | S | Quality |
-| 4 | `lint-module` flake app: optional build-tag argument (`-- integration`) so ad-hoc surfaces use the pinned binary | High | S | Tooling |
-| 5 | CI leg: integration-tag lint for modules shipping `*_integration_test.go` (would have caught gocognit 10 days early) | High | M | Quality |
-| 6 | `#verify-ci`: per-module `go mod download` + no-diff assertion (catches missing go.sum hashes, today's pgx class) | High | M | Tooling |
-| 7 | docs-health HARVEST: route this §f list into TODO_LIST/ROADMAP | High | S | Documentation |
-| 8 | Reconstruct/annotate the missing status report for `cec9248da`'s orphaned work (tripwire + fix.go dedup + pg test helpers) | Medium | S | Documentation |
-| 9 | VERIFY + close the stale "GOWORK-mode decision table" TODO (docs/agents/gowork-modes.md already exists) | Medium | S | Documentation |
-| 10 | Pin-sweep as a standing post-release step (07-48 §e2; `storage` proved the class) | High | S | Release |
-| 11 | Pebble `slog` `aggregate_type`/`aggregate_id` keys → v5 sweep §4 census entry (07-48 §b4) | Medium | S | v5 sweep |
-| 12 | Consumer grep outside this repo for old `aggregate_*` code strings in dashboards/alerts (07-48 §c4) | Medium | M | v5 sweep |
-| 13 | "Days-since-green" metric/alert + nightly all-green sentinel (existing TODO) | High | S | Tooling |
-| 14 | Fix `check-coverage.sh` nix wrapper running without cache env → vacuous 0.0% drift (existing TODO) | High | S | Tooling |
-| 15 | CV consumer bump, operator-gated: 8 modules behind latest tags + vendorHash cascade (existing TODO) | High | M | Release |
-| 16 | actionlint CI step + shellcheck for `scripts/` (existing TODO) | Medium | S | Tooling |
-| 17 | `>350-line production files (~54)` split program — needs the gate-policy decision first (existing TODO) | High | XL | Quality |
-| 18 | ~~Author `example/metaengine-quickstart/README.md` + `TestEveryExampleHasREADME` meta-test~~ VERIFIED 2026-09-11: both shipped 2026-09-09 (6bb82f5b); meta-test passes; example runs 4/4 sections green. TODO_LIST item closed. | — | — | — |
-| 19 | templ tripwire script: parse `_templ.go` FileName metadata, catch drift (existing TODO) | Medium | M | Tooling |
-| 20 | sqliteengine `EngineResetter` implementation (ADR-0136 follow-up; memory engine is the only one today) | High | L | Feature |
-| 21 | Fold-write failover for health-quarantined engines (ADR-0137 known gap: reads reroute, writes fail loudly) | High | L | Feature |
-| 22 | Decide + land Q1: dgraph one-RPCheduler flip scope (22-33 §g, pending user) | Medium | S | Decision |
-| 23 | Decide + land Q3: MariaDB :33061 container retention (22-33 §g, pending user) | Low | S | Decision |
-| 24 | Tripwire generalization: table-driven rename-tripwire harness so the next big rename gets its guard for free | Medium | M | Quality |
-| 25 | Pipe-lies guard: document/adopt `$PIPESTATUS` rule for verification commands in memory + gowork-modes.md | Medium | S | Process |
-| 26 | `integration/go.mod` genproto tidy warning cleanup (pre-existing LSP) | Low | S | Cleanup |
-| 27 | `cmd/api-stability/pin_drift_test.go:148` unused parameter `root` (pre-existing LSP) | Low | S | Cleanup |
-| 28 | AGENTS.md note: ad-hoc `go mod download` may legitimately add go.sum hashes — commit them on sight, don't revert | Low | S | Documentation |
-| 29 | Daemon heuristic: skip auto-commit message flattening when the diff contains new test files (or require a pointer note) | Medium | M | Process |
-| 30 | Decide whether `_test.go` exclusions for gosec/wsl_v5 are policy or debt — if debt, re-enable for scheduling/sqlstore as pilot | Medium | S | Quality |
-| 31 | golangci-lint version pin note in gowork-modes.md (PATH vs nix binary) | Low | S | Documentation |
-| 32 | Extend `check-duplication` dirty-tree guard messaging to mention the annotation workflow (`//art-dupl:accept` before baseline re-pin) | Low | S | Tooling |
-| 33 | CHANGELOG entry for the go.sum repair class ("standalone integration-tag builds required go mod download") if releases cut from this state | Low | S | Documentation |
-| 34 | Sweep status reports for other "deferred, owners landed since" items whose TODO state may now be resolvable (15-09 §f1 pattern) | Medium | M | Documentation |
-| 35 | Add `claiming_mysql.go` IN-list builder comment cross-ref to the nolint rationale (the "placeholders only" claim) so future linter bumps don't remove it | Low | S | Quality |
-| 36 | Verify the tripwire also fires under `-race` (CI runs it with `-race`; my run was non-race) | Medium | S | Quality |
-| 37 | Add scheduling/sqlstore to the integration-tag lint leg's first rollout set (it motivated the leg) | Low | S | Quality |
-| 38 | Consider `errors.Is`-style golden for renamed codes: CHANGELOG mapping table ↔ tripwire table consistency meta-test (17 rows must match both) | Medium | S | Documentation |
-| 39 | Run `pin-sweep.sh --check` now (post-2026-09-08 coordinated release census never confirmed; 07-48 §c1) | High | S | Release |
-| 40 | Close the loop on §b2: one integration-tag lint run via the nix binary to retire the version-drift doubt | Medium | S | Quality |
+| #  | Task                                                                                                                                                                                                                            | Impact   | Effort | Category      |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Run session-level `#verify-fast` on the current tree (closes §b3)                                                                                                                                                               | Critical | S      | Quality       |
+| 2  | Per-finding attribution for sqlclosecheck ×2 / QF1003 / wsl_v5 (code-fix vs config-exclusion) — 09-06 pre-session worktree diff                                                                                                 | High     | S      | Quality       |
+| 3  | Add `testdata/` mutation fixture + scanner self-assert to the aggregate tripwire (permanent mutation proof)                                                                                                                     | High     | S      | Quality       |
+| 4  | `lint-module` flake app: optional build-tag argument (`-- integration`) so ad-hoc surfaces use the pinned binary                                                                                                                | High     | S      | Tooling       |
+| 5  | CI leg: integration-tag lint for modules shipping `*_integration_test.go` (would have caught gocognit 10 days early)                                                                                                            | High     | M      | Quality       |
+| 6  | `#verify-ci`: per-module `go mod download` + no-diff assertion (catches missing go.sum hashes, today's pgx class)                                                                                                               | High     | M      | Tooling       |
+| 7  | docs-health HARVEST: route this §f list into TODO_LIST/ROADMAP                                                                                                                                                                  | High     | S      | Documentation |
+| 8  | Reconstruct/annotate the missing status report for `cec9248da`'s orphaned work (tripwire + fix.go dedup + pg test helpers)                                                                                                      | Medium   | S      | Documentation |
+| 9  | VERIFY + close the stale "GOWORK-mode decision table" TODO (docs/agents/gowork-modes.md already exists)                                                                                                                         | Medium   | S      | Documentation |
+| 10 | Pin-sweep as a standing post-release step (07-48 §e2; `storage` proved the class)                                                                                                                                               | High     | S      | Release       |
+| 11 | Pebble `slog` `aggregate_type`/`aggregate_id` keys → v5 sweep §4 census entry (07-48 §b4)                                                                                                                                       | Medium   | S      | v5 sweep      |
+| 12 | Consumer grep outside this repo for old `aggregate_*` code strings in dashboards/alerts (07-48 §c4)                                                                                                                             | Medium   | M      | v5 sweep      |
+| 13 | "Days-since-green" metric/alert + nightly all-green sentinel (existing TODO)                                                                                                                                                    | High     | S      | Tooling       |
+| 14 | Fix `check-coverage.sh` nix wrapper running without cache env → vacuous 0.0% drift (existing TODO)                                                                                                                              | High     | S      | Tooling       |
+| 15 | CV consumer bump, operator-gated: 8 modules behind latest tags + vendorHash cascade (existing TODO)                                                                                                                             | High     | M      | Release       |
+| 16 | actionlint CI step + shellcheck for `scripts/` (existing TODO)                                                                                                                                                                  | Medium   | S      | Tooling       |
+| 17 | `>350-line production files (~54)` split program — needs the gate-policy decision first (existing TODO)                                                                                                                         | High     | XL     | Quality       |
+| 18 | ~~Author `example/metaengine-quickstart/README.md` + `TestEveryExampleHasREADME` meta-test~~ VERIFIED 2026-09-11: both shipped 2026-09-09 (6bb82f5b); meta-test passes; example runs 4/4 sections green. TODO_LIST item closed. | —        | —      | —             |
+| 19 | templ tripwire script: parse `_templ.go` FileName metadata, catch drift (existing TODO)                                                                                                                                         | Medium   | M      | Tooling       |
+| 20 | sqliteengine `EngineResetter` implementation (ADR-0136 follow-up; memory engine is the only one today)                                                                                                                          | High     | L      | Feature       |
+| 21 | Fold-write failover for health-quarantined engines (ADR-0137 known gap: reads reroute, writes fail loudly)                                                                                                                      | High     | L      | Feature       |
+| 22 | Decide + land Q1: dgraph one-RPCheduler flip scope (22-33 §g, pending user)                                                                                                                                                     | Medium   | S      | Decision      |
+| 23 | Decide + land Q3: MariaDB :33061 container retention (22-33 §g, pending user)                                                                                                                                                   | Low      | S      | Decision      |
+| 24 | Tripwire generalization: table-driven rename-tripwire harness so the next big rename gets its guard for free                                                                                                                    | Medium   | M      | Quality       |
+| 25 | Pipe-lies guard: document/adopt `$PIPESTATUS` rule for verification commands in memory + gowork-modes.md                                                                                                                        | Medium   | S      | Process       |
+| 26 | `integration/go.mod` genproto tidy warning cleanup (pre-existing LSP)                                                                                                                                                           | Low      | S      | Cleanup       |
+| 27 | `cmd/api-stability/pin_drift_test.go:148` unused parameter `root` (pre-existing LSP)                                                                                                                                            | Low      | S      | Cleanup       |
+| 28 | AGENTS.md note: ad-hoc `go mod download` may legitimately add go.sum hashes — commit them on sight, don't revert                                                                                                                | Low      | S      | Documentation |
+| 29 | Daemon heuristic: skip auto-commit message flattening when the diff contains new test files (or require a pointer note)                                                                                                         | Medium   | M      | Process       |
+| 30 | Decide whether `_test.go` exclusions for gosec/wsl_v5 are policy or debt — if debt, re-enable for scheduling/sqlstore as pilot                                                                                                  | Medium   | S      | Quality       |
+| 31 | golangci-lint version pin note in gowork-modes.md (PATH vs nix binary)                                                                                                                                                          | Low      | S      | Documentation |
+| 32 | Extend `check-duplication` dirty-tree guard messaging to mention the annotation workflow (`//art-dupl:accept` before baseline re-pin)                                                                                           | Low      | S      | Tooling       |
+| 33 | CHANGELOG entry for the go.sum repair class ("standalone integration-tag builds required go mod download") if releases cut from this state                                                                                      | Low      | S      | Documentation |
+| 34 | Sweep status reports for other "deferred, owners landed since" items whose TODO state may now be resolvable (15-09 §f1 pattern)                                                                                                 | Medium   | M      | Documentation |
+| 35 | Add `claiming_mysql.go` IN-list builder comment cross-ref to the nolint rationale (the "placeholders only" claim) so future linter bumps don't remove it                                                                        | Low      | S      | Quality       |
+| 36 | Verify the tripwire also fires under `-race` (CI runs it with `-race`; my run was non-race)                                                                                                                                     | Medium   | S      | Quality       |
+| 37 | Add scheduling/sqlstore to the integration-tag lint leg's first rollout set (it motivated the leg)                                                                                                                              | Low      | S      | Quality       |
+| 38 | Consider `errors.Is`-style golden for renamed codes: CHANGELOG mapping table ↔ tripwire table consistency meta-test (17 rows must match both)                                                                                   | Medium   | S      | Documentation |
+| 39 | Run `pin-sweep.sh --check` now (post-2026-09-08 coordinated release census never confirmed; 07-48 §c1)                                                                                                                          | High     | S      | Release       |
+| 40 | Close the loop on §b2: one integration-tag lint run via the nix binary to retire the version-drift doubt                                                                                                                        | Medium   | S      | Quality       |
 
 ## g) Questions I can NOT figure out myself
 

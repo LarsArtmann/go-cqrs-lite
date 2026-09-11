@@ -7,20 +7,20 @@
 ## Context
 
 A multi-engine `Store` routes each query to the cost-optimal engine at plan time.
-The live-latency model (ADR-0124 addenda) reacts to engines getting *slow* —
+The live-latency model (ADR-0124 addenda) reacts to engines getting _slow_ —
 probes and EWMA trackers feed `CheckRouting` replan suggestions — but nothing
-reacts to an engine going *dead*. A network-partitioned remote engine today
+reacts to an engine going _dead_. A network-partitioned remote engine today
 produces an error storm: every query assigned to it fails until an operator
 notices, calls `RemoveEngine` (destructive — it drops the engine's state
 role), or replans manually.
 
 Existing mechanisms do not fit:
 
-- **Poison tracker** (`IsPoisoned`) is per-*query* (a fold that keeps failing),
-  not per-*engine* — it cannot express "this backend is down".
+- **Poison tracker** (`IsPoisoned`) is per-_query_ (a fold that keeps failing),
+  not per-_engine_ — it cannot express "this backend is down".
 - **Circuit breaker middleware** (`middleware/circuit_breaker.go`) guards
   command dispatch, not the metaengine's internal read routing.
-- **Routing hysteresis** (`WithRoutingHysteresis`) is a *cost* deadband for
+- **Routing hysteresis** (`WithRoutingHysteresis`) is a _cost_ deadband for
   replan suggestions; a dead engine's cost does not change — its errors do.
 
 ## Decision
@@ -58,7 +58,7 @@ reactivation:
 ### Interaction with routing hysteresis
 
 Cost-based replanning keeps its deadband (hysteresis + min-delta) because
-flapping *data placement* costs a rebuild. Health-based quarantine is
+flapping _data placement_ costs a rebuild. Health-based quarantine is
 immediate (a dead engine has no useful deadband) and its recovery is
 deliberately conservative: reactivation requires a successful probe, not a
 timeout, so a flapping engine re-enters rotation only when it answers.

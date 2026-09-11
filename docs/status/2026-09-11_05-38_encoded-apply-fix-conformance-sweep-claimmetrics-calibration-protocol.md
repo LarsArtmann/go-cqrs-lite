@@ -12,19 +12,19 @@
 
 ## Stat cards
 
-| Metric | Value |
-| --- | --- |
-| TODO items attempted / fully closed | 3 / 2 (third = protocol done, re-runs gated) |
-| Real bugs found & fixed | 1 (encoded-apply side door — same class as the Demote gap) |
-| New public API | 1 export (`metaengine.ApplyEncodedRecord`; golden regenerated, meta-tests green) |
-| New tests | 16 (13-case conformance sweep, JSON tag pin, PG + MySQL Metrics integration, 2 script fixtures) |
-| Scripts | 1 new (`calibration-gate.sh`), 2 modified (drift gate wiring, titled `--save`), fixture suite extended |
-| Bite-proofs performed | 1 (old encoded behavior → sweep FAIL, restored → green) |
-| Suites green | metaengine full (×2, incl. post-fmt), scheduling/sqlstore full (×3), `-race` on touched paths |
-| Lint (scoped, both modules) | 0 findings on changed files (after 2 fix rounds: maintidx split, import order) |
-| Docs gates | doc-check 1049 refs ✓, changelog-symbols 23 citations ✓, doc-links 665 targets ✓ |
-| Host load during session | 9 → **493** → 20 → 30 (compile storms all session; quiet-window runs correctly refused) |
-| Lies caught in my own summary | 1 soft one (see §d4) |
+| Metric                              | Value                                                                                                  |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| TODO items attempted / fully closed | 3 / 2 (third = protocol done, re-runs gated)                                                           |
+| Real bugs found & fixed             | 1 (encoded-apply side door — same class as the Demote gap)                                             |
+| New public API                      | 1 export (`metaengine.ApplyEncodedRecord`; golden regenerated, meta-tests green)                       |
+| New tests                           | 16 (13-case conformance sweep, JSON tag pin, PG + MySQL Metrics integration, 2 script fixtures)        |
+| Scripts                             | 1 new (`calibration-gate.sh`), 2 modified (drift gate wiring, titled `--save`), fixture suite extended |
+| Bite-proofs performed               | 1 (old encoded behavior → sweep FAIL, restored → green)                                                |
+| Suites green                        | metaengine full (×2, incl. post-fmt), scheduling/sqlstore full (×3), `-race` on touched paths          |
+| Lint (scoped, both modules)         | 0 findings on changed files (after 2 fix rounds: maintidx split, import order)                         |
+| Docs gates                          | doc-check 1049 refs ✓, changelog-symbols 23 citations ✓, doc-links 665 targets ✓                       |
+| Host load during session            | 9 → **493** → 20 → 30 (compile storms all session; quiet-window runs correctly refused)                |
+| Lies caught in my own summary       | 1 soft one (see §d4)                                                                                   |
 
 ---
 
@@ -314,4 +314,4 @@ Tooling / process:
 
 ---
 
-*Generated 2026-09-11 05:38 CEST. Waiting for instructions.*
+_Generated 2026-09-11 05:38 CEST. Waiting for instructions._

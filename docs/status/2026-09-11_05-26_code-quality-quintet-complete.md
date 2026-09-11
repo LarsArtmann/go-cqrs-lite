@@ -53,7 +53,7 @@
   `deprecationScanError` field. A failed scan no longer masquerades as clean — and under
   `--strict` a failed scan **fails the gate** ("v5-readiness unproven") via `strictGateError`
   (scan failure checked before findings). Pinned by `TestEmitJSON_DeprecationsAlwaysPresent`
-  + `TestStrictGateError`.
+  - `TestStrictGateError`.
 - **(c) `TestExamples_AreV5Clean`** (cmd/cqrs-upgrade/examples_test.go): strict-scans all 4
   examples on every test run. **Session's biggest discovery:** in-repo example module paths
   are prefix-classified as library self-lint (`IsCQRSModulePath`), so V007 silently skips
@@ -70,10 +70,10 @@
 ### 4. V007 split brain (S) — RESOLVED (verified existing + closed the discoverability gap)
 
 - **The requested golden test already existed** (`TestV007_TablesCoverAllV5DeprecationMarkers`
-  + reverse staleness check + `minExpectedV5Markers=90` scanner-break guard +
-  `v5DriftMethodAllowlist` covering exactly the 7 decider pair-forms + EnsureCustom).
-  **Probe-verified:** a fresh `Deprecated: removed in v5` marker in listing/ failed the
-  suite with actionable guidance.
+  - reverse staleness check + `minExpectedV5Markers=90` scanner-break guard +
+    `v5DriftMethodAllowlist` covering exactly the 7 decider pair-forms + EnsureCustom).
+    **Probe-verified:** a fresh `Deprecated: removed in v5` marker in listing/ failed the
+    suite with actionable guidance.
 - **Gap that remained: discoverability** — the policy lived only in a _test.go comment.
   Added the explicit "Method-level v5 removals (policy)" section to the canonical
   `v007.go` detector doc (why table entries can't fire, where they're tracked, the
@@ -167,6 +167,7 @@
 ## f) NEXT — up to 50, impact-sorted
 
 **Unblock the red repo gates (owner/cohort decision first):**
+
 1. Decide taskmanager golden policy: update expectations for `must.go`'s 2 extra panics, or suppress C009 there, or revert must.go — concurrent session's intent governs.
 2. Resolve the 5 new clone groups in `metaengine/*engine/reset*.go` (`//art-dupl:accept` register.go-style, or baseline re-pin on a committed tree).
 3. Land/absorb `metaengine/failover.go` + dirty reset/health files (active concurrent work as of 05:26).
@@ -227,4 +228,4 @@
 
 ---
 
-*Verification state of MY diff at write time: watermill ✓ full suite+lint · cqrs-upgrade ✓ tests+vet+lint(0) · cqrs-lint ✓ (rules/version, analyzer, fix, api packages) · example/metaengine-quickstart ✓ both GOWORK modes · error-taxonomy gate ✓ · CHANGELOG gate ✓ · doc-check ✓ (1273 refs) · verify-docs ✓ · api-stability ✓ (6803, regenerated) · nix flake check ✓ · nix fmt ✓. Repo-wide NOT green due to concurrent-session items (d5).*
+_Verification state of MY diff at write time: watermill ✓ full suite+lint · cqrs-upgrade ✓ tests+vet+lint(0) · cqrs-lint ✓ (rules/version, analyzer, fix, api packages) · example/metaengine-quickstart ✓ both GOWORK modes · error-taxonomy gate ✓ · CHANGELOG gate ✓ · doc-check ✓ (1273 refs) · verify-docs ✓ · api-stability ✓ (6803, regenerated) · nix flake check ✓ · nix fmt ✓. Repo-wide NOT green due to concurrent-session items (d5)._

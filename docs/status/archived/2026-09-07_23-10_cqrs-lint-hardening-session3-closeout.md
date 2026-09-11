@@ -312,17 +312,17 @@ merged — verify intended and document or align.
 46. `findGoModDirs` skips `dist`/`build`/`testdata` but not `example`
 worktrees or `.worktree*` — confirm intended for monorepo scans.
 47. ~~`TestX` (v007_test.go) — stray placeholder test name spotted during the
-   audit; rename or delete.~~ NOT-A-BUG — continuation §a12: it is fixture
-   content INSIDE `TestV007_SkipsTestFiles` (a dot-import test file string);
-   the closeout claim was a misread
+audit; rename or delete.~~ NOT-A-BUG — continuation §a12: it is fixture
+content INSIDE `TestV007_SkipsTestFiles` (a dot-import test file string);
+the closeout claim was a misread
 48. benchkit/system load helpers: add a unit test with a synthesized
-   loadavg (currently only the ambient path is exercised).
+loadavg (currently only the ambient path is exercised).
 49. The self-lint still carries 1 active inline C025 suppression
-   (init.go unknown-preset error) — the last `%w`-less fmt.Errorf in the
-   main package; wrap a sentinel like the stale-suppressions one did.
+(init.go unknown-preset error) — the last `%w`-less fmt.Errorf in the
+main package; wrap a sentinel like the stale-suppressions one did.
 50. ~~AGENTS.md: record the RULES.md-vs-treefmt root cause and the
-   "meta-test the name/ID co-occurrence" lesson in the cqrs-lint gotchas.~~
-   done — continuation §a13 + AGENTS.md Tooling & Build
+"meta-test the name/ID co-occurrence" lesson in the cqrs-lint gotchas.~~
+done — continuation §a13 + AGENTS.md Tooling & Build
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

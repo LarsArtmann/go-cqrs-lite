@@ -52,9 +52,9 @@ traversal on a non-graph engine).
 
 ## Files
 
-| File                  | Section                  |
-| --------------------- | ------------------------ |
-| `main.go`             | Maps demo + entrypoint   |
-| `graph_demo.go`       | Graph demo               |
-| `vector_demo.go`      | Vector demo              |
-| `configfile_demo.go`  | Operator-config demo     |
+| File                 | Section                |
+| -------------------- | ---------------------- |
+| `main.go`            | Maps demo + entrypoint |
+| `graph_demo.go`      | Graph demo             |
+| `vector_demo.go`     | Vector demo            |
+| `configfile_demo.go` | Operator-config demo   |

@@ -15,7 +15,7 @@ no single statement a user can consult to answer: **"can I undo this, and how?"*
 Two enforcement gaps were found and fixed in the same session (M-06/M-07):
 
 - `projectionhost.Host.Reset` on a non-`Resettable` projection silently cleared
-  only the checkpoint — a *partial revert* that left stale read-model state.
+  only the checkpoint — a _partial revert_ that left stale read-model state.
 - The `metaengine` Store had **no reset primitive at all**; "rebuild" meant
   constructing a new Store.
 
@@ -27,7 +27,7 @@ instead of rediscovering it per module.
 ## Decision
 
 Every effect a go-cqrs-lite consumer can produce sits on a three-rung
-**invertibility ladder**. Rung is a property of the *effect*, not of the API
+**invertibility ladder**. Rung is a property of the _effect_, not of the API
 that triggered it.
 
 ### Rung 1 — Replayable (mechanically invertible)
@@ -80,11 +80,11 @@ reversion.
 Before writing an effect, ask **"what is its inverse?"** and route by the
 answer:
 
-| The effect is… | Rung | Do this |
-| --- | --- | --- |
-| Recomputable from events | 1 | Declare it a projection/read model; Reset + replay is the inverse. |
-| External but business-reversible | 2 | Model forward + compensation as events (`deriver` saga). |
-| A domain decision | 3 | Append it, and model retraction as a negating event (tombstone). |
+| The effect is…                   | Rung | Do this                                                            |
+| -------------------------------- | ---- | ------------------------------------------------------------------ |
+| Recomputable from events         | 1    | Declare it a projection/read model; Reset + replay is the inverse. |
+| External but business-reversible | 2    | Model forward + compensation as events (`deriver` saga).           |
+| A domain decision                | 3    | Append it, and model retraction as a negating event (tombstone).   |
 
 Anti-patterns the rule forbids: deleting a projection's rows by hand while
 leaving the checkpoint (silent partial revert — now warned); performing

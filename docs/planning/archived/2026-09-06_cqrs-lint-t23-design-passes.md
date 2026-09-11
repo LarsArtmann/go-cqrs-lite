@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **IMPLEMENTED IN FULL — archived by the docs-health pass 2026-09-11.** F089 severity-overrides + `v5-ready` preset, F090(a) dot-import flagging + F090(b) typed attribution, F091 Tiers 1-3 (typed qualifier resolution, C008 usage-confirmation, C035/C013 payload-shape confirmation + the `&T{}` capture fix), and the ApplyLayout addendum (shipped as P014, detection pair corrected in the rule docs) all shipped 2026-09-06..09-11 — see CHANGELOG `[Unreleased]`, the archived closeout `docs/status/archived/2026-09-11_03-10_cqrs-lint-f091-tier3-and-t13-t19-audit-closeout.md`, and the deferred follow-ups tracked in TODO_LIST (cqrs-lint section).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-06 · ~~**Status:** DESIGN (not implemented unless noted)~~ **Status:** IMPLEMENTED IN FULL (F089/F090(a+b)/F091 Tiers 1-3 + P014; see banner below)
 Decision gates ⛔Q2 resolved to plan defaults (V007 stays `warning`); these
 designs show the opt-in mechanisms consumers can use instead of forcing the

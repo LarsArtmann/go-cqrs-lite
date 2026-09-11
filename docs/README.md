@@ -43,144 +43,144 @@ The authoritative module index with README links lives in the **[project README]
 
 130+ ADRs documenting key architectural decisions (ADRs 0036 and 0041 were never assigned — gaps in numbering). Full text in [`adr/`](adr/); the [ADR index](adr/README.md) contains summaries.
 
-| ADR                                                               | Title                                                   | Status                   |
-| ----------------------------------------------------------------- | ------------------------------------------------------- | ------------------------ |
-| [0001](adr/0001-decider-over-aggregate.md)                        | Decider Pattern Over OO Aggregate                       | Accepted                 |
-| [0002](adr/0002-error-taxonomy.md)                                | Error Taxonomy with Six Families                        | Accepted                 |
-| [0003](adr/0003-multi-module-monorepo.md)                         | Multi-Module Monorepo Structure                         | Accepted                 |
-| [0004](adr/0004-saga-process-manager.md)                          | Saga / Process Manager Module                           | Accepted                 |
-| [0005](adr/0005-tombstone-soft-delete.md)                         | Tombstone Soft-Delete Pattern                           | Accepted                 |
-| [0006](adr/0006-sink-source-split.md)                             | Sink/Source Split for Event Store Interface             | Accepted                 |
-| [0007](adr/0007-gopls-workspace-workaround.md)                    | gopls Multi-Module Workspace Workaround                 | Accepted                 |
-| [0008](adr/0008-typed-handler-signature.md)                       | TypedHandler Dual Type Parameters                       | Accepted                 |
-| [0009](adr/0009-pebble-scope-event-store-only.md)                 | Pebble Module Scope                                     | Accepted                 |
-| [0010](adr/0010-remove-io-closer-from-interfaces.md)              | Remove io.Closer from Core Interfaces                   | Accepted                 |
-| [0011](adr/0011-unify-err-dispatcher-closed.md)                   | Unify ErrDispatcherClosed                               | Accepted                 |
-| [0012](adr/0012-split-catalog-modules.md)                         | Split Catalog into Sub-Modules                          | Accepted                 |
-| [0013](adr/0013-zero-copy-payload-for-decode.md)                  | Zero-Copy Payload Access                                | Accepted                 |
-| [0014](adr/0014-test-only-dependencies-in-go-mod.md)              | Test-Only Dependencies in go.mod                        | Accepted                 |
-| [0015](adr/0015-cbor-codec.md)                                    | CBOR Codec for Binary Payload Encoding                  | Accepted                 |
-| [0016](adr/0016-outbox-pattern.md)                                | Outbox Pattern for Reliable Event Publishing            | Declined — use Watermill |
-| [0017](adr/0017-schema-registry.md)                               | Schema Registry for Event Validation                    | Proposed                 |
-| [0018](adr/0018-distributed-checkpointing.md)                     | Distributed Checkpointing for Projections               | Proposed                 |
-| [0019](adr/0019-cbor-envelope-format.md)                          | CBOR Envelope Format for Pebble Stores                  | Accepted                 |
-| [0020](adr/0020-performance-optimization-patterns.md)             | Performance Optimization Patterns                       | Accepted                 |
-| [0021](adr/0021-store-close-semantics.md)                         | Store Close() Semantics — Shared DB Pattern             | Accepted                 |
-| [0022](adr/0022-kv-store-abstraction.md)                          | KV Store Abstraction Module                             | Accepted                 |
-| [0023](adr/0023-pebble-kv-adapter.md)                             | Pebble KV Store Adapter                                 | Accepted                 |
-| [0024](adr/0024-exported-id-markers.md)                           | Exported ID Marker Types                                | Accepted                 |
-| [0025](adr/0025-transport-adapter-strategy.md)                    | Transport Adapter Strategy                              | Accepted                 |
-| [0026](adr/0026-experimental-features.md)                         | Experimental Features Behind Build Tags                 | Accepted                 |
-| [0027](adr/0027-postgres-listen-notify-bus.md)                    | Postgres LISTEN/NOTIFY Event Bus                        | Accepted                 |
-| [0028](adr/0028-watermill-as-delivery-layer.md)                   | Watermill as the Delivery Layer                         | Accepted                 |
-| [0029](adr/0029-storage-consolidation.md)                         | Consolidate Storage Backends Under `storage/`           | Accepted                 |
-| [0030](adr/0030-dissolve-projection.md)                           | Dissolve `projection/` into CatchUp + Materialize       | Accepted                 |
-| [0031](adr/0031-metadata-split.md)                                | Typed Metadata Fields — Embed Tracing                   | Accepted                 |
-| [0032](adr/0032-merge-readmodel-into-kv.md)                       | Merge `readmodel/` into `kv/`                           | Accepted                 |
-| [0033](adr/0033-multi-db-split.md)                                | Multi-Database Split for Concern Isolation              | Accepted                 |
-| [0034](adr/0034-session-store-boundary.md)                        | Session Store Boundary                                  | Accepted                 |
-| [0035](adr/0035-branded-dsn-types.md)                             | Branded DSN Types (Considered and Rejected)             | Rejected                 |
-| [0037](adr/0037-projection-module-extraction.md)                  | Projection Interface Extraction from event/             | Accepted                 |
-| [0038](adr/0038-graph-projection-tier.md)                         | Graph Projection Tier (Writes Portable, Reads Native)   | Accepted                 |
-| [0039](adr/0039-graph-schema.md)                                  | Graph Schema — Boundary Typing for Graph Projections    | Accepted                 |
-| [0040](adr/0040-deriver-design.md)                                | Deriver Module Design                                   | Accepted                 |
-| [0042](adr/0042-pure-replay-dead-letters.md)                      | Pure Replay for Dead-Letter Queue                       | Accepted                 |
-| [0043](adr/0043-dlq-unification-options.md)                       | Dead-Letter Store Unification Options                   | Accepted                 |
-| [0044](adr/0044-blind-store-encoding-stamps.md)                   | Blind Store Encoding Stamps                             | Accepted                 |
-| [0045](adr/0045-eventtest-module-path-fix.md)                     | eventtest Module Path / Directory Alignment             | Accepted                 |
-| [0046](adr/0046-seven-tier-model.md)                              | Seven-Tier Dependency Model                             | Accepted                 |
-| [0047](adr/0047-cose-support.md)                                  | COSE Support for Signing, Encryption, and Codec         | Accepted                 |
-| [0048](adr/0048-deterministic-json-encoding.md)                   | Deterministic JSON Encoding in Security-Critical Paths  | Accepted                 |
-| [0049](adr/0049-dispatch-time-middleware.md)                      | Dispatch-Time Middleware Application                    | Accepted                 |
-| [0050](adr/0050-envelope-json-fallback-keep-forever.md)           | Envelope JSON Fallback — Keep Forever                   | Accepted                 |
-| [0051](adr/0051-cbor-as-default-codec.md)                         | CBOR as Default Codec for event.New()                   | Accepted                 |
-| [0052](adr/0052-transport-boundary-codec-strategy.md)             | Transport Boundary Codec Strategy                       | Accepted                 |
-| [0053](adr/0053-unified-codec-default-flip.md)                    | Unified Codec Default Flip (JSON → CBOR)                | Accepted                 |
-| [0054](adr/0054-json-v2-case-insensitive-decode.md)               | json/v2 Case-Insensitive Decode                         | Accepted                 |
-| [0055](adr/0055-cqrs-lint-loader-error-surfacing.md)              | cqrs-lint Loader Error Surfacing                        | Accepted                 |
-| [0056](adr/0056-timezone-safe-time-types.md)                      | Timezone-Safe Time Types for Event Payloads             | Accepted                 |
-| [0057](adr/0057-catalog-rest-openapi-operation-support.md)        | Catalog REST/OpenAPI Operation Support                  | Accepted                 |
-| [0058](adr/0058-rename-aggregate-to-stream.md)                    | Rename Aggregate* to Stream*                            | Accepted                 |
-| [0059](adr/0059-dlq-unification-proposal.md)                      | DLQ Unification Proposal                                | Proposed                 |
-| [0060](adr/0060-benchkit-design-decisions.md)                     | Benchkit Design Decisions                               | Accepted                 |
-| [0061](adr/0061-metaengine-sqlite-engine.md)                      | Metaengine SQLite Engine                                | Accepted                 |
-| [0062](adr/0062-metaengine-dependency-boundary.md)                | Metaengine Dependency Boundary (projectionadapter)      | Accepted                 |
-| [0063](adr/0063-metaengine-pushdown.md)                           | FilterOn/SortOn Pushdown Strategy                       | Accepted                 |
-| [0064](adr/0064-extract-retry-module.md)                          | Extract retry/ into Standalone go-retry Repository      | Proposed                 |
-| [0065](adr/0065-extract-idempotency-module.md)                    | Extract idempotency/ into go-idempotency Repository     | Proposed                 |
-| [0066](adr/0066-metaengine-reify-fallback.md)                     | Metaengine Cross-engine JSON Reification (ExecuteTyped) | Accepted                 |
-| [0067](adr/0067-metaengine-tx-mapupdate.md)                       | Metaengine Transaction-atomic MapUpdate (SQLite)        | Accepted                 |
-| [0068](adr/0068-metaengine-multimap-seq-seed.md)                  | Metaengine Multimap seq-seed (sync.Once MAX(seq))       | Accepted                 |
-| [0069](adr/0069-error-wrapping-helpers.md)                        | Error-Wrapping Helper Convention                        | Accepted                 |
-| [0070](adr/0070-transform-fallback-observability.md)              | Transform Fallback Observability (slog vs OTel)         | Accepted                 |
-| [0071](adr/0071-duckdb-cgo-introduction.md)                       | DuckDB CGo Introduction                                 | Accepted                 |
-| [0072](adr/0072-metaengine-pushdown.md)                           | Metaengine Pushdown (json_extract SQL pushdown)         | Accepted                 |
-| [0073](adr/0073-metaengine-layout-planning.md)                    | Metaengine Layout Planning (deployment-time DDL)        | Accepted                 |
-| [0074](adr/0074-pebble-engine.md)                                 | Pebble Metaengine (cost profile & slices.Backward)      | Accepted                 |
-| [0075](adr/0075-metaengine-adttest-extraction.md)                 | ADT Test Harness Extraction (cross-engine parity)       | Accepted                 |
-| [0076](adr/0076-pebble-raw-readers.md)                            | Pebble Raw Value Readers (single-pass JSON decode)      | Accepted                 |
-| [0077](adr/0077-metaengine-graph-reconciliation.md)               | Metaengine GraphBackend vs graph/ module reconciliation | Accepted                 |
-| [0078](adr/0078-metaengine-kv-coexistence.md)                     | Metaengine and kv.ViewStore coexistence                 | Accepted                 |
-| [0079](adr/0079-sse-consolidation.md)                             | SSE consolidation — two implementations, two layers     | Accepted                 |
-| [0080](adr/0080-dialect-interface-upsert-methods.md)              | Dialect interface expansion for cross-database upsert   | Accepted                 |
-| [0081](adr/0081-metaengine-runtime-casts.md)                      | Why Metaengine Uses Runtime Casts                       | Accepted                 |
-| [0082](adr/0082-metaengine-store-redesign-analysis.md)            | Metaengine Store Redesign Analysis (eliminate casts)    | Analysis                 |
-| [0083](adr/0083-metaengine-planner-rule-pipeline.md)              | Metaengine planner rule pipeline (composable PlanRule)  | Accepted                 |
-| [0084](adr/0084-metaengine-layered-architecture.md)               | Metaengine layered architecture (StorageLayout, costs)  | Accepted                 |
-| [0085](adr/0085-metaengine-new-adts.md)                           | Metaengine new ADTs (Vector, Search, Spatial)           | Accepted                 |
-| [0086](adr/0086-metaengine-duckdb-engine.md)                      | DuckDB metaengine engine (columnar OLAP, CGo)           | Accepted                 |
-| [0087](adr/0087-metaengine-postgres-engine.md)                    | Postgres metaengine engine (JSONB + B-tree)             | Accepted                 |
-| [0088](adr/0088-block-level-suppression.md)                       | Block-level suppression for cqrs-lint                   | Accepted                 |
-| [0089](adr/0089-flight-recorder.md)                               | Flight Recorder integration                             | Accepted                 |
-| [0090](adr/0090-benchkit-evidence-metrics.md)                     | Benchkit evidence-grade metrics                         | Accepted                 |
-| [0091](adr/0091-sse-consolidation-decision.md)                    | SSE consolidation decision                              | Accepted                 |
-| [0092](adr/0092-duckdb-columnar-native-storage.md)                | DuckDB columnar-native storage via LayoutPlanApplier    | Accepted                 |
-| [0093](adr/0093-metaengine-replication-model.md)                  | Metaengine replication model (DDIA Ch5)                 | Accepted                 |
-| [0094](adr/0094-metaengine-universal-adt-support.md)              | Metaengine universal ADT support (DegradedADTs)         | Accepted                 |
-| [0095](adr/0095-nix-based-integration-testing.md)                 | Nix-based integration testing                           | Accepted                 |
-| [0096](adr/0096-iroh-distributed-engine-bridge-evaluation.md)     | Iroh distributed engine bridge evaluation               | Research                 |
-| [0097](adr/0097-sse-three-repo-finding-and-go-sse-consumption.md) | SSE three-repo finding and go-sse consumption plan      | Accepted                 |
-| [0098](adr/0098-metaengine-persistence-enum.md)                   | Metaengine persistence enum (DDIA Ch1 reliability axis) | Accepted                 |
-| [0099](adr/0099-backend-selection-hybrid.md)                      | Backend selection: hybrid registry + config             | Accepted                 |
-| [0099a](adr/0099a-readcosts-per-operation-cost-model.md)          | Per-read-pattern cost model (ReadCosts)                 | Accepted                 |
-| [0111](adr/0111-record-type-extraction.md)                         | Extract Record Type as Shared Base | Accepted |
-| [0112](adr/0112-es-native-metaengine.md)                           | ES-Native Metaengine | Accepted |
-| [0113](adr/0113-delete-graphbackend.md)                            | Delete GraphBackend — graph.GraphDriver Implements Engine | Accepted |
-| [0114](adr/0114-tombstone-as-domain-event.md)                      | Tombstones Are Domain Events, Not Mutable Metadata | Accepted |
-| [0115](adr/0115-sqlite-engine-extraction.md)                       | Move SQLite Engine to Separate Module | Accepted |
-| [0116](adr/0116-layered-auto-projection.md)                        | Layered Auto-Projection | Accepted (Layer 1 implemented) |
-| [0117](adr/0117-command-lifecycle-as-events.md)                    | Command Lifecycle as Event Streams | Accepted |
-| [0118](adr/0118-badger-engine.md)                                  | Badger Engine (Pure-Go LSM) | Accepted |
-| [0119](adr/0119-dgraph-engine.md)                                  | Dgraph Engine (Distributed Graph Database) | Proposed (design complete, implementation deferred) |
-| [0120](adr/0120-aggregate-pushdown-architecture.md)                | Aggregate Pushdown Architecture | Accepted |
-| [0121](adr/0121-apply-layout-plan-post-construction.md)            | ApplyLayoutPlan Post-Construction Registration | Accepted |
-| [0122](adr/0122-withclock-injectable-time.md)                      | WithClock — Injectable Time for CRDT Testing | Accepted |
-| [0123](adr/0123-v5-unification-single-composition-root.md)         | v5 Unification — Single Composition Root | Proposed |
-| [0124](adr/0124-operator-driven-layout-planning.md)                | Operator-Driven Layout Planning | Accepted |
-| [0125](adr/0125-developer-priority-is-layout-only.md)              | Developer Priority Is Layout-Only | Accepted |
-| [0126](adr/0126-metadata-generic-store-transforms-wal-unification.md) | Metadata Canonical Generic, Store Transforms, WAL Unification | Implemented |
-| [0127](adr/0127-deprecate-transport-modules.md)                    | Deprecate transport/* — watermill + go-sse Instead | Accepted |
-| [0128](adr/0128-extract-codec-and-remove-shim-modules.md)          | Extract go-codec, Remove In-Repo Shims | Implemented |
-| [0129](adr/0129-dgraph-engine-transactional-deferred.md)           | Dgraph Engine: Transactional Deferred | Accepted |
-| [0130](adr/0130-durability-tier-mapping.md)                        | Durability-Tier Mapping (Engine × Tier → Mechanism) | Accepted |
-| [0131](adr/0131-ulid-epoch-entropy.md)                             | ULID Generation Uses Epoch-Sharded Entropy | Accepted |
-| [0132](adr/0132-lsm-calibration-basis.md)                          | LSM Storage Calibration Measures Post-Flush, Pre-Compact | Accepted |
-| [0133](adr/0133-readaggregate-cost-model-counterget.md)            | ReadAggregate Cost Prices the CounterGet Path | Accepted |
-| [0134](adr/0134-claim-token-ownership.md)                          | Claim-Token Ownership | Proposed (stub) |
-| [0135](adr/0135-materialized-views-operator-option.md)             | Materialized Views as an Operator Option (Turso IVM) | Accepted |
-| [0136](adr/0136-temporal-composability-contract.md)                | The Temporal Composability Contract (Invertibility Ladder) | Accepted |
-| [0137](adr/0137-health-driven-engine-deactivation.md)              | Health-Driven Engine Deactivation | Accepted |
-| [0100](adr/0100-redesign-scope-parallel.md)                       | Redesign scope: parallel (new alongside old)            | Accepted                 |
-| [0101](adr/0101-backend-abstraction-n-instance.md)                | Backend abstraction: N-instance metaengine              | Accepted                 |
-| [0102](adr/0102-admin-interface-introspection-only.md)            | Admin web interface: introspection API only             | Accepted                 |
-| [0103](adr/0103-scream-store-tiered.md)                           | Scream store: tiered enforcement                        | Accepted                 |
-| [0104](adr/0104-system-scope-layered-full.md)                     | System scope: layered-full (owns all infrastructure)    | Accepted                 |
-| [0105](adr/0105-config-format-koanf.md)                           | Config format: Go struct + YAML + env via koanf         | Accepted                 |
-| [0106](adr/0106-migration-path-gradual.md)                        | Migration path: gradual (new system/ module)            | Accepted                 |
-| [0107](adr/0107-bus-multi-bus.md)                                 | Bus: operator-configured, multi-bus support             | Accepted                 |
-| [0108](adr/0108-decider-routing-declarative.md)                   | Decider routing: declarative command→event→stream       | Accepted                 |
-| [0109](adr/0109-config-separation.md)                             | Config separation: DomainConfig + DeploymentConfig      | Accepted                 |
-| [0110](adr/0110-snapshot-storage-backend.md)                      | Snapshot storage: new SnapshotBackend interface         | Accepted                 |
+| ADR                                                                   | Title                                                         | Status                                              |
+| --------------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
+| [0001](adr/0001-decider-over-aggregate.md)                            | Decider Pattern Over OO Aggregate                             | Accepted                                            |
+| [0002](adr/0002-error-taxonomy.md)                                    | Error Taxonomy with Six Families                              | Accepted                                            |
+| [0003](adr/0003-multi-module-monorepo.md)                             | Multi-Module Monorepo Structure                               | Accepted                                            |
+| [0004](adr/0004-saga-process-manager.md)                              | Saga / Process Manager Module                                 | Accepted                                            |
+| [0005](adr/0005-tombstone-soft-delete.md)                             | Tombstone Soft-Delete Pattern                                 | Accepted                                            |
+| [0006](adr/0006-sink-source-split.md)                                 | Sink/Source Split for Event Store Interface                   | Accepted                                            |
+| [0007](adr/0007-gopls-workspace-workaround.md)                        | gopls Multi-Module Workspace Workaround                       | Accepted                                            |
+| [0008](adr/0008-typed-handler-signature.md)                           | TypedHandler Dual Type Parameters                             | Accepted                                            |
+| [0009](adr/0009-pebble-scope-event-store-only.md)                     | Pebble Module Scope                                           | Accepted                                            |
+| [0010](adr/0010-remove-io-closer-from-interfaces.md)                  | Remove io.Closer from Core Interfaces                         | Accepted                                            |
+| [0011](adr/0011-unify-err-dispatcher-closed.md)                       | Unify ErrDispatcherClosed                                     | Accepted                                            |
+| [0012](adr/0012-split-catalog-modules.md)                             | Split Catalog into Sub-Modules                                | Accepted                                            |
+| [0013](adr/0013-zero-copy-payload-for-decode.md)                      | Zero-Copy Payload Access                                      | Accepted                                            |
+| [0014](adr/0014-test-only-dependencies-in-go-mod.md)                  | Test-Only Dependencies in go.mod                              | Accepted                                            |
+| [0015](adr/0015-cbor-codec.md)                                        | CBOR Codec for Binary Payload Encoding                        | Accepted                                            |
+| [0016](adr/0016-outbox-pattern.md)                                    | Outbox Pattern for Reliable Event Publishing                  | Declined — use Watermill                            |
+| [0017](adr/0017-schema-registry.md)                                   | Schema Registry for Event Validation                          | Proposed                                            |
+| [0018](adr/0018-distributed-checkpointing.md)                         | Distributed Checkpointing for Projections                     | Proposed                                            |
+| [0019](adr/0019-cbor-envelope-format.md)                              | CBOR Envelope Format for Pebble Stores                        | Accepted                                            |
+| [0020](adr/0020-performance-optimization-patterns.md)                 | Performance Optimization Patterns                             | Accepted                                            |
+| [0021](adr/0021-store-close-semantics.md)                             | Store Close() Semantics — Shared DB Pattern                   | Accepted                                            |
+| [0022](adr/0022-kv-store-abstraction.md)                              | KV Store Abstraction Module                                   | Accepted                                            |
+| [0023](adr/0023-pebble-kv-adapter.md)                                 | Pebble KV Store Adapter                                       | Accepted                                            |
+| [0024](adr/0024-exported-id-markers.md)                               | Exported ID Marker Types                                      | Accepted                                            |
+| [0025](adr/0025-transport-adapter-strategy.md)                        | Transport Adapter Strategy                                    | Accepted                                            |
+| [0026](adr/0026-experimental-features.md)                             | Experimental Features Behind Build Tags                       | Accepted                                            |
+| [0027](adr/0027-postgres-listen-notify-bus.md)                        | Postgres LISTEN/NOTIFY Event Bus                              | Accepted                                            |
+| [0028](adr/0028-watermill-as-delivery-layer.md)                       | Watermill as the Delivery Layer                               | Accepted                                            |
+| [0029](adr/0029-storage-consolidation.md)                             | Consolidate Storage Backends Under `storage/`                 | Accepted                                            |
+| [0030](adr/0030-dissolve-projection.md)                               | Dissolve `projection/` into CatchUp + Materialize             | Accepted                                            |
+| [0031](adr/0031-metadata-split.md)                                    | Typed Metadata Fields — Embed Tracing                         | Accepted                                            |
+| [0032](adr/0032-merge-readmodel-into-kv.md)                           | Merge `readmodel/` into `kv/`                                 | Accepted                                            |
+| [0033](adr/0033-multi-db-split.md)                                    | Multi-Database Split for Concern Isolation                    | Accepted                                            |
+| [0034](adr/0034-session-store-boundary.md)                            | Session Store Boundary                                        | Accepted                                            |
+| [0035](adr/0035-branded-dsn-types.md)                                 | Branded DSN Types (Considered and Rejected)                   | Rejected                                            |
+| [0037](adr/0037-projection-module-extraction.md)                      | Projection Interface Extraction from event/                   | Accepted                                            |
+| [0038](adr/0038-graph-projection-tier.md)                             | Graph Projection Tier (Writes Portable, Reads Native)         | Accepted                                            |
+| [0039](adr/0039-graph-schema.md)                                      | Graph Schema — Boundary Typing for Graph Projections          | Accepted                                            |
+| [0040](adr/0040-deriver-design.md)                                    | Deriver Module Design                                         | Accepted                                            |
+| [0042](adr/0042-pure-replay-dead-letters.md)                          | Pure Replay for Dead-Letter Queue                             | Accepted                                            |
+| [0043](adr/0043-dlq-unification-options.md)                           | Dead-Letter Store Unification Options                         | Accepted                                            |
+| [0044](adr/0044-blind-store-encoding-stamps.md)                       | Blind Store Encoding Stamps                                   | Accepted                                            |
+| [0045](adr/0045-eventtest-module-path-fix.md)                         | eventtest Module Path / Directory Alignment                   | Accepted                                            |
+| [0046](adr/0046-seven-tier-model.md)                                  | Seven-Tier Dependency Model                                   | Accepted                                            |
+| [0047](adr/0047-cose-support.md)                                      | COSE Support for Signing, Encryption, and Codec               | Accepted                                            |
+| [0048](adr/0048-deterministic-json-encoding.md)                       | Deterministic JSON Encoding in Security-Critical Paths        | Accepted                                            |
+| [0049](adr/0049-dispatch-time-middleware.md)                          | Dispatch-Time Middleware Application                          | Accepted                                            |
+| [0050](adr/0050-envelope-json-fallback-keep-forever.md)               | Envelope JSON Fallback — Keep Forever                         | Accepted                                            |
+| [0051](adr/0051-cbor-as-default-codec.md)                             | CBOR as Default Codec for event.New()                         | Accepted                                            |
+| [0052](adr/0052-transport-boundary-codec-strategy.md)                 | Transport Boundary Codec Strategy                             | Accepted                                            |
+| [0053](adr/0053-unified-codec-default-flip.md)                        | Unified Codec Default Flip (JSON → CBOR)                      | Accepted                                            |
+| [0054](adr/0054-json-v2-case-insensitive-decode.md)                   | json/v2 Case-Insensitive Decode                               | Accepted                                            |
+| [0055](adr/0055-cqrs-lint-loader-error-surfacing.md)                  | cqrs-lint Loader Error Surfacing                              | Accepted                                            |
+| [0056](adr/0056-timezone-safe-time-types.md)                          | Timezone-Safe Time Types for Event Payloads                   | Accepted                                            |
+| [0057](adr/0057-catalog-rest-openapi-operation-support.md)            | Catalog REST/OpenAPI Operation Support                        | Accepted                                            |
+| [0058](adr/0058-rename-aggregate-to-stream.md)                        | Rename Aggregate* to Stream*                                  | Accepted                                            |
+| [0059](adr/0059-dlq-unification-proposal.md)                          | DLQ Unification Proposal                                      | Proposed                                            |
+| [0060](adr/0060-benchkit-design-decisions.md)                         | Benchkit Design Decisions                                     | Accepted                                            |
+| [0061](adr/0061-metaengine-sqlite-engine.md)                          | Metaengine SQLite Engine                                      | Accepted                                            |
+| [0062](adr/0062-metaengine-dependency-boundary.md)                    | Metaengine Dependency Boundary (projectionadapter)            | Accepted                                            |
+| [0063](adr/0063-metaengine-pushdown.md)                               | FilterOn/SortOn Pushdown Strategy                             | Accepted                                            |
+| [0064](adr/0064-extract-retry-module.md)                              | Extract retry/ into Standalone go-retry Repository            | Proposed                                            |
+| [0065](adr/0065-extract-idempotency-module.md)                        | Extract idempotency/ into go-idempotency Repository           | Proposed                                            |
+| [0066](adr/0066-metaengine-reify-fallback.md)                         | Metaengine Cross-engine JSON Reification (ExecuteTyped)       | Accepted                                            |
+| [0067](adr/0067-metaengine-tx-mapupdate.md)                           | Metaengine Transaction-atomic MapUpdate (SQLite)              | Accepted                                            |
+| [0068](adr/0068-metaengine-multimap-seq-seed.md)                      | Metaengine Multimap seq-seed (sync.Once MAX(seq))             | Accepted                                            |
+| [0069](adr/0069-error-wrapping-helpers.md)                            | Error-Wrapping Helper Convention                              | Accepted                                            |
+| [0070](adr/0070-transform-fallback-observability.md)                  | Transform Fallback Observability (slog vs OTel)               | Accepted                                            |
+| [0071](adr/0071-duckdb-cgo-introduction.md)                           | DuckDB CGo Introduction                                       | Accepted                                            |
+| [0072](adr/0072-metaengine-pushdown.md)                               | Metaengine Pushdown (json_extract SQL pushdown)               | Accepted                                            |
+| [0073](adr/0073-metaengine-layout-planning.md)                        | Metaengine Layout Planning (deployment-time DDL)              | Accepted                                            |
+| [0074](adr/0074-pebble-engine.md)                                     | Pebble Metaengine (cost profile & slices.Backward)            | Accepted                                            |
+| [0075](adr/0075-metaengine-adttest-extraction.md)                     | ADT Test Harness Extraction (cross-engine parity)             | Accepted                                            |
+| [0076](adr/0076-pebble-raw-readers.md)                                | Pebble Raw Value Readers (single-pass JSON decode)            | Accepted                                            |
+| [0077](adr/0077-metaengine-graph-reconciliation.md)                   | Metaengine GraphBackend vs graph/ module reconciliation       | Accepted                                            |
+| [0078](adr/0078-metaengine-kv-coexistence.md)                         | Metaengine and kv.ViewStore coexistence                       | Accepted                                            |
+| [0079](adr/0079-sse-consolidation.md)                                 | SSE consolidation — two implementations, two layers           | Accepted                                            |
+| [0080](adr/0080-dialect-interface-upsert-methods.md)                  | Dialect interface expansion for cross-database upsert         | Accepted                                            |
+| [0081](adr/0081-metaengine-runtime-casts.md)                          | Why Metaengine Uses Runtime Casts                             | Accepted                                            |
+| [0082](adr/0082-metaengine-store-redesign-analysis.md)                | Metaengine Store Redesign Analysis (eliminate casts)          | Analysis                                            |
+| [0083](adr/0083-metaengine-planner-rule-pipeline.md)                  | Metaengine planner rule pipeline (composable PlanRule)        | Accepted                                            |
+| [0084](adr/0084-metaengine-layered-architecture.md)                   | Metaengine layered architecture (StorageLayout, costs)        | Accepted                                            |
+| [0085](adr/0085-metaengine-new-adts.md)                               | Metaengine new ADTs (Vector, Search, Spatial)                 | Accepted                                            |
+| [0086](adr/0086-metaengine-duckdb-engine.md)                          | DuckDB metaengine engine (columnar OLAP, CGo)                 | Accepted                                            |
+| [0087](adr/0087-metaengine-postgres-engine.md)                        | Postgres metaengine engine (JSONB + B-tree)                   | Accepted                                            |
+| [0088](adr/0088-block-level-suppression.md)                           | Block-level suppression for cqrs-lint                         | Accepted                                            |
+| [0089](adr/0089-flight-recorder.md)                                   | Flight Recorder integration                                   | Accepted                                            |
+| [0090](adr/0090-benchkit-evidence-metrics.md)                         | Benchkit evidence-grade metrics                               | Accepted                                            |
+| [0091](adr/0091-sse-consolidation-decision.md)                        | SSE consolidation decision                                    | Accepted                                            |
+| [0092](adr/0092-duckdb-columnar-native-storage.md)                    | DuckDB columnar-native storage via LayoutPlanApplier          | Accepted                                            |
+| [0093](adr/0093-metaengine-replication-model.md)                      | Metaengine replication model (DDIA Ch5)                       | Accepted                                            |
+| [0094](adr/0094-metaengine-universal-adt-support.md)                  | Metaengine universal ADT support (DegradedADTs)               | Accepted                                            |
+| [0095](adr/0095-nix-based-integration-testing.md)                     | Nix-based integration testing                                 | Accepted                                            |
+| [0096](adr/0096-iroh-distributed-engine-bridge-evaluation.md)         | Iroh distributed engine bridge evaluation                     | Research                                            |
+| [0097](adr/0097-sse-three-repo-finding-and-go-sse-consumption.md)     | SSE three-repo finding and go-sse consumption plan            | Accepted                                            |
+| [0098](adr/0098-metaengine-persistence-enum.md)                       | Metaengine persistence enum (DDIA Ch1 reliability axis)       | Accepted                                            |
+| [0099](adr/0099-backend-selection-hybrid.md)                          | Backend selection: hybrid registry + config                   | Accepted                                            |
+| [0099a](adr/0099a-readcosts-per-operation-cost-model.md)              | Per-read-pattern cost model (ReadCosts)                       | Accepted                                            |
+| [0111](adr/0111-record-type-extraction.md)                            | Extract Record Type as Shared Base                            | Accepted                                            |
+| [0112](adr/0112-es-native-metaengine.md)                              | ES-Native Metaengine                                          | Accepted                                            |
+| [0113](adr/0113-delete-graphbackend.md)                               | Delete GraphBackend — graph.GraphDriver Implements Engine     | Accepted                                            |
+| [0114](adr/0114-tombstone-as-domain-event.md)                         | Tombstones Are Domain Events, Not Mutable Metadata            | Accepted                                            |
+| [0115](adr/0115-sqlite-engine-extraction.md)                          | Move SQLite Engine to Separate Module                         | Accepted                                            |
+| [0116](adr/0116-layered-auto-projection.md)                           | Layered Auto-Projection                                       | Accepted (Layer 1 implemented)                      |
+| [0117](adr/0117-command-lifecycle-as-events.md)                       | Command Lifecycle as Event Streams                            | Accepted                                            |
+| [0118](adr/0118-badger-engine.md)                                     | Badger Engine (Pure-Go LSM)                                   | Accepted                                            |
+| [0119](adr/0119-dgraph-engine.md)                                     | Dgraph Engine (Distributed Graph Database)                    | Proposed (design complete, implementation deferred) |
+| [0120](adr/0120-aggregate-pushdown-architecture.md)                   | Aggregate Pushdown Architecture                               | Accepted                                            |
+| [0121](adr/0121-apply-layout-plan-post-construction.md)               | ApplyLayoutPlan Post-Construction Registration                | Accepted                                            |
+| [0122](adr/0122-withclock-injectable-time.md)                         | WithClock — Injectable Time for CRDT Testing                  | Accepted                                            |
+| [0123](adr/0123-v5-unification-single-composition-root.md)            | v5 Unification — Single Composition Root                      | Proposed                                            |
+| [0124](adr/0124-operator-driven-layout-planning.md)                   | Operator-Driven Layout Planning                               | Accepted                                            |
+| [0125](adr/0125-developer-priority-is-layout-only.md)                 | Developer Priority Is Layout-Only                             | Accepted                                            |
+| [0126](adr/0126-metadata-generic-store-transforms-wal-unification.md) | Metadata Canonical Generic, Store Transforms, WAL Unification | Implemented                                         |
+| [0127](adr/0127-deprecate-transport-modules.md)                       | Deprecate transport/* — watermill + go-sse Instead            | Accepted                                            |
+| [0128](adr/0128-extract-codec-and-remove-shim-modules.md)             | Extract go-codec, Remove In-Repo Shims                        | Implemented                                         |
+| [0129](adr/0129-dgraph-engine-transactional-deferred.md)              | Dgraph Engine: Transactional Deferred                         | Accepted                                            |
+| [0130](adr/0130-durability-tier-mapping.md)                           | Durability-Tier Mapping (Engine × Tier → Mechanism)           | Accepted                                            |
+| [0131](adr/0131-ulid-epoch-entropy.md)                                | ULID Generation Uses Epoch-Sharded Entropy                    | Accepted                                            |
+| [0132](adr/0132-lsm-calibration-basis.md)                             | LSM Storage Calibration Measures Post-Flush, Pre-Compact      | Accepted                                            |
+| [0133](adr/0133-readaggregate-cost-model-counterget.md)               | ReadAggregate Cost Prices the CounterGet Path                 | Accepted                                            |
+| [0134](adr/0134-claim-token-ownership.md)                             | Claim-Token Ownership                                         | Proposed (stub)                                     |
+| [0135](adr/0135-materialized-views-operator-option.md)                | Materialized Views as an Operator Option (Turso IVM)          | Accepted                                            |
+| [0136](adr/0136-temporal-composability-contract.md)                   | The Temporal Composability Contract (Invertibility Ladder)    | Accepted                                            |
+| [0137](adr/0137-health-driven-engine-deactivation.md)                 | Health-Driven Engine Deactivation                             | Accepted                                            |
+| [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                  | Accepted                                            |
+| [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                    | Accepted                                            |
+| [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                   | Accepted                                            |
+| [0103](adr/0103-scream-store-tiered.md)                               | Scream store: tiered enforcement                              | Accepted                                            |
+| [0104](adr/0104-system-scope-layered-full.md)                         | System scope: layered-full (owns all infrastructure)          | Accepted                                            |
+| [0105](adr/0105-config-format-koanf.md)                               | Config format: Go struct + YAML + env via koanf               | Accepted                                            |
+| [0106](adr/0106-migration-path-gradual.md)                            | Migration path: gradual (new system/ module)                  | Accepted                                            |
+| [0107](adr/0107-bus-multi-bus.md)                                     | Bus: operator-configured, multi-bus support                   | Accepted                                            |
+| [0108](adr/0108-decider-routing-declarative.md)                       | Decider routing: declarative command→event→stream             | Accepted                                            |
+| [0109](adr/0109-config-separation.md)                                 | Config separation: DomainConfig + DeploymentConfig            | Accepted                                            |
+| [0110](adr/0110-snapshot-storage-backend.md)                          | Snapshot storage: new SnapshotBackend interface               | Accepted                                            |
 
 ## API Reference
 

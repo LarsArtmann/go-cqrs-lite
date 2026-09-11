@@ -206,15 +206,15 @@ alg, raw, err := encryption.UnwrapCiphertext(wrapped) // alg == encryption.XChaC
 versioning metadata as JSON for SQL columns:
 
 ```json
-{"v":"v2","ct":"3q2-7wBC","alg":"xchacha20-poly1305","kid":"key-v1"}
+{ "v": "v2", "ct": "3q2-7wBC", "alg": "xchacha20-poly1305", "kid": "key-v1" }
 ```
 
-| Field      | Key  | Notes                                              |
-| ---------- | ---- | -------------------------------------------------- |
-| Version    | `v`  | `"v1"` or `"v2"`; empty on write defaults to `v2`  |
-| Ciphertext | `ct` | URL-safe base64 (nonce is prepended inside)        |
-| Algorithm  | `alg`| omitted when empty                                 |
-| KeyID      | `kid`| omitted when empty                                 |
+| Field      | Key   | Notes                                             |
+| ---------- | ----- | ------------------------------------------------- |
+| Version    | `v`   | `"v1"` or `"v2"`; empty on write defaults to `v2` |
+| Ciphertext | `ct`  | URL-safe base64 (nonce is prepended inside)       |
+| Algorithm  | `alg` | omitted when empty                                |
+| KeyID      | `kid` | omitted when empty                                |
 
 - **v2 (current, always written)**: the JSON object itself. PostgreSQL and
   MySQL snapshot-state columns are JSON/JSONB and reject the v1 form with

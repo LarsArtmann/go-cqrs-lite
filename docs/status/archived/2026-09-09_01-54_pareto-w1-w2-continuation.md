@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** Its 'next' list was executed by `2026-09-09_04-10_pareto-w2-w3-execution-green-verify.md` (P19 tail, P20, P21, P23, P24, P25, P26, P27-feasible, exclusive `#verify` GREEN).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Scope:** continuation of `docs/planning/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`
 (W0 done prior; this session executed W1-remainder + W2 chunks). Working tree CLEAN
 (auto-commit daemon absorbed; local master `c23e1847e` is 7 commits AHEAD of origin `d2bb71fbe` — not yet pushed).

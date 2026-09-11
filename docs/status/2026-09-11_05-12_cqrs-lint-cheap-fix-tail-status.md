@@ -14,22 +14,22 @@
 Each item verified against the working tree at verification time; absorbed by
 the auto-commit daemon into the hashes cited.
 
-| # | Work | Evidence | Files |
-| --- | --- | --- | --- |
-| 1 | **F-series package-doc drift corrected** — "All F-series emit SeverityInfo / once per project" replaced with the true severity/scope model (F030 warns; scope rules emit per coaching scope) | suite green; comment-only | `cmd/cqrs-lint/pkg/rules/adoption/doc.go` |
-| 2 | **F001 dead branch removed** — `strings.Contains(lower, "deleted")` is subsumed by `"delete"`; doc comment aligned; zero behavior change | adoption package green | `adoption/f001.go` |
-| 3 | **F030 message de-hardcoded** — `firstImportPosIn` now returns the actual import path; the finding quotes what the consumer really imported instead of `fragment+"/v4"` | F030 tests green (4) | `adoption/f030.go` |
-| 4 | **scan_in.go stale helper reference fixed** — comment cited `importsPath`, which no longer exists; rewritten to name the real ctx-based delegates | comment-only | `adoption/scan_in.go` |
-| 5 | **S001 placeholder/URL-value allowlist implemented** — values containing a URL scheme or `<…>`/`${…}` placeholder no longer fire Critical; deliberately narrow (bare `$` still fires so bcrypt hashes are not skipped); rule doc updated | 9 S001 tests green incl. new FP guard + over-suppression guard | `security/rules.go` |
-| 6 | **B008 bitshift-escalation test** — pins the `<<`/`>>` retry-backoff branch: 1 finding, SeverityError, "bitshift backoff" message | `TestB008_BitshiftBackoffEscalatesToError` green | `boilerplate/new_rules_test.go` |
-| 7 | **B015 hasTestUtils suppression test** — test files + `eventtest` import in `ctx.Packages` → no finding; contrast positive stays | `TestB015_SuppressedWhenTestUtilsImported` green | `boilerplate/new_rules_test.go` |
-| 8 | **D016 exactly-20-fields boundary test** — table-driven: 20 fields silent, 21 fires | `TestD016_FieldLimitBoundary` green | `consistency/d016_test.go` |
-| 9 | **D016 EventPayloadTypes registry parity** — rule now accepts registry-registered payload structs like D014/D015 (this is a real FN gap closed, not just a test); registry-acceptance test added | `TestD016_RegistryPayloadTypeAccepted` green | `consistency/d016.go`, `d016_test.go` |
-| 10 | **F018/F020 mixed-confidence assertions** — mixed-usage tests now assert ConfidenceLow AND the "mixed metaengine usage" message; pure-usage tests assert ConfidenceMedium (the Low/Medium split is fully pinned) | 8 F018/F020 tests green | `adoption/f018_f021_test.go` |
-| 11 | **RULES.md regenerated** — resolved pre-existing freshness-test failure (C040/C041 catalog descriptions had drifted from RULES.md in the prior session); regenerated a second time after the concurrent session's catalog edits landed | `TestRULESMD_Fresh` PASS | `cmd/cqrs-lint/RULES.md` |
-| 12 | **CHANGELOG + TODO_LIST reconciliation** — new `[Unreleased]` Fixed section for the whole tail; TODO_LIST entry deleted per policy (done work moves to CHANGELOG); the deferred heuristic-gates entry pruned of the now-done "F018/F020 unpinned" clause | changelog-symbol gate: "citations are honest" (22 symbols verified) | `CHANGELOG.md`, `TODO_LIST.md` |
-| 13 | **Fixed on sight: `correctness/c040.go` mis-indentation** — a committed gofumpt violation (daemon commit ece0a43de) that blocked the module lint gate; one-line re-indent | golangci-lint: 0 issues | `correctness/c040.go` |
-| 14 | **Fixed on sight: metaengine duplication gate red** — baseline lacked the new `resetDoctorSection`/`capabilityDoctorSection` Doctor-preamble clone from the ADR-0136 work; annotated `//art-dupl:accept` per repo policy (annotate, don't re-pin) | `nix run .#check-duplication`: "No new clones detected (baseline: 54)" | `metaengine/reset_observability.go` |
+| #  | Work                                                                                                                                                                                                                                                     | Evidence                                                               | Files                                     |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------- |
+| 1  | **F-series package-doc drift corrected** — "All F-series emit SeverityInfo / once per project" replaced with the true severity/scope model (F030 warns; scope rules emit per coaching scope)                                                             | suite green; comment-only                                              | `cmd/cqrs-lint/pkg/rules/adoption/doc.go` |
+| 2  | **F001 dead branch removed** — `strings.Contains(lower, "deleted")` is subsumed by `"delete"`; doc comment aligned; zero behavior change                                                                                                                 | adoption package green                                                 | `adoption/f001.go`                        |
+| 3  | **F030 message de-hardcoded** — `firstImportPosIn` now returns the actual import path; the finding quotes what the consumer really imported instead of `fragment+"/v4"`                                                                                  | F030 tests green (4)                                                   | `adoption/f030.go`                        |
+| 4  | **scan_in.go stale helper reference fixed** — comment cited `importsPath`, which no longer exists; rewritten to name the real ctx-based delegates                                                                                                        | comment-only                                                           | `adoption/scan_in.go`                     |
+| 5  | **S001 placeholder/URL-value allowlist implemented** — values containing a URL scheme or `<…>`/`${…}` placeholder no longer fire Critical; deliberately narrow (bare `$` still fires so bcrypt hashes are not skipped); rule doc updated                 | 9 S001 tests green incl. new FP guard + over-suppression guard         | `security/rules.go`                       |
+| 6  | **B008 bitshift-escalation test** — pins the `<<`/`>>` retry-backoff branch: 1 finding, SeverityError, "bitshift backoff" message                                                                                                                        | `TestB008_BitshiftBackoffEscalatesToError` green                       | `boilerplate/new_rules_test.go`           |
+| 7  | **B015 hasTestUtils suppression test** — test files + `eventtest` import in `ctx.Packages` → no finding; contrast positive stays                                                                                                                         | `TestB015_SuppressedWhenTestUtilsImported` green                       | `boilerplate/new_rules_test.go`           |
+| 8  | **D016 exactly-20-fields boundary test** — table-driven: 20 fields silent, 21 fires                                                                                                                                                                      | `TestD016_FieldLimitBoundary` green                                    | `consistency/d016_test.go`                |
+| 9  | **D016 EventPayloadTypes registry parity** — rule now accepts registry-registered payload structs like D014/D015 (this is a real FN gap closed, not just a test); registry-acceptance test added                                                         | `TestD016_RegistryPayloadTypeAccepted` green                           | `consistency/d016.go`, `d016_test.go`     |
+| 10 | **F018/F020 mixed-confidence assertions** — mixed-usage tests now assert ConfidenceLow AND the "mixed metaengine usage" message; pure-usage tests assert ConfidenceMedium (the Low/Medium split is fully pinned)                                         | 8 F018/F020 tests green                                                | `adoption/f018_f021_test.go`              |
+| 11 | **RULES.md regenerated** — resolved pre-existing freshness-test failure (C040/C041 catalog descriptions had drifted from RULES.md in the prior session); regenerated a second time after the concurrent session's catalog edits landed                   | `TestRULESMD_Fresh` PASS                                               | `cmd/cqrs-lint/RULES.md`                  |
+| 12 | **CHANGELOG + TODO_LIST reconciliation** — new `[Unreleased]` Fixed section for the whole tail; TODO_LIST entry deleted per policy (done work moves to CHANGELOG); the deferred heuristic-gates entry pruned of the now-done "F018/F020 unpinned" clause | changelog-symbol gate: "citations are honest" (22 symbols verified)    | `CHANGELOG.md`, `TODO_LIST.md`            |
+| 13 | **Fixed on sight: `correctness/c040.go` mis-indentation** — a committed gofumpt violation (daemon commit ece0a43de) that blocked the module lint gate; one-line re-indent                                                                                | golangci-lint: 0 issues                                                | `correctness/c040.go`                     |
+| 14 | **Fixed on sight: metaengine duplication gate red** — baseline lacked the new `resetDoctorSection`/`capabilityDoctorSection` Doctor-preamble clone from the ADR-0136 work; annotated `//art-dupl:accept` per repo policy (annotate, don't re-pin)        | `nix run .#check-duplication`: "No new clones detected (baseline: 54)" | `metaengine/reset_observability.go`       |
 
 **Verification summary (this session):** full `cmd/cqrs-lint` suite green
 (`-count=1`, twice); `-race` green across all `pkg/rules/...` packages;
@@ -43,15 +43,15 @@ Daemon commits that absorbed this session's work: `b23681575`, `2ac9e49a7`,
 
 ## b) PARTIALLY DONE
 
-| # | Work | Done | Missing | Effort to finish |
-| --- | --- | --- | --- | --- |
-| 1 | S001 allowlist hardening | URL/placeholder FP guard shipped with synthetic guards both ways | **Zero real-world corpus validation** — no consumer probe / taskmanager scan re-run to prove no true positives were killed; the audit's "selector-LHS receiver context in the message" half (03-44 #101) is not implemented | S–M |
-| 2 | B008 severity pinning | Error-escalation branch pinned | The **Warning baseline** of the plain-retry case is still unpinned — a global severity flip to Error would pass the existing suite; contrast test not added | XS |
-| 3 | D016/D014/D015 registry parity | D016 code + test done | D014/D015 have the registry acceptance in code but **no registry-acceptance tests** — the parity I invoked is itself untested on their side | S |
-| 4 | Race verification | `-race` on all `pkg/rules/...` | Full module `-race` (`./...` incl. main/doctor/scorecard) not run; full-repo `-race` not attempted | S |
-| 5 | Single-command `nix run .#verify` green | All touched gates green individually | No single-command verify — a second session was actively committing/working in the tree the whole time (same exclusivity violation class the 03-44 report confessed); my verification is pinned to a moving tree, not one clean commit | blocked on idle box |
-| 6 | RULES.md freshness | Fresh at 05:12 against catalog-as-committed | Depends on the concurrent session's in-flight catalog wording being final; if they edit descriptions again, RULES.md goes stale again by construction | XS |
-| 7 | TODO_LIST reconciliation | Cheap-fix entry deleted; deferred entry pruned | My (f) list below is **not yet harvested** into TODO_LIST/ROADMAP (docs-health HARVEST pass pending) | S |
+| # | Work                                    | Done                                                             | Missing                                                                                                                                                                                                                                | Effort to finish    |
+| - | --------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| 1 | S001 allowlist hardening                | URL/placeholder FP guard shipped with synthetic guards both ways | **Zero real-world corpus validation** — no consumer probe / taskmanager scan re-run to prove no true positives were killed; the audit's "selector-LHS receiver context in the message" half (03-44 #101) is not implemented            | S–M                 |
+| 2 | B008 severity pinning                   | Error-escalation branch pinned                                   | The **Warning baseline** of the plain-retry case is still unpinned — a global severity flip to Error would pass the existing suite; contrast test not added                                                                            | XS                  |
+| 3 | D016/D014/D015 registry parity          | D016 code + test done                                            | D014/D015 have the registry acceptance in code but **no registry-acceptance tests** — the parity I invoked is itself untested on their side                                                                                            | S                   |
+| 4 | Race verification                       | `-race` on all `pkg/rules/...`                                   | Full module `-race` (`./...` incl. main/doctor/scorecard) not run; full-repo `-race` not attempted                                                                                                                                     | S                   |
+| 5 | Single-command `nix run .#verify` green | All touched gates green individually                             | No single-command verify — a second session was actively committing/working in the tree the whole time (same exclusivity violation class the 03-44 report confessed); my verification is pinned to a moving tree, not one clean commit | blocked on idle box |
+| 6 | RULES.md freshness                      | Fresh at 05:12 against catalog-as-committed                      | Depends on the concurrent session's in-flight catalog wording being final; if they edit descriptions again, RULES.md goes stale again by construction                                                                                  | XS                  |
+| 7 | TODO_LIST reconciliation                | Cheap-fix entry deleted; deferred entry pruned                   | My (f) list below is **not yet harvested** into TODO_LIST/ROADMAP (docs-health HARVEST pass pending)                                                                                                                                   | S                   |
 
 ---
 
@@ -158,41 +158,41 @@ after the fact.
 
 ## f) Top things to get done next (impact-sorted brainstorm, not a commitment list — HARVEST input)
 
-| # | Task | Impact | Effort | Category |
-| --- | --- | --- | --- | --- |
-| 1 | Validate S001 allowlist against real corpora (taskmanager scan + probe project) — prove no true positives killed | High | S | Quality |
-| 2 | Add D014/D015 registry-acceptance tests (parity I claimed exists is untested on their side) | Medium | S | Quality |
-| 3 | Pin B008 non-bitshift Warning baseline severity | Medium | XS | Quality |
-| 4 | S001: selector-LHS receiver context in the message (03-44 #101 second half) + golden impact check | Medium | S | Feature |
-| 5 | Full-module `-race` for cmd/cqrs-lint (`./...`) | Medium | S | Quality |
-| 6 | Single-command `nix run .#verify` green on an idle box (carried from 03-44 #1) | High | S (idle) | Quality |
-| 7 | B018 `containsBus` casing FN (`EventBus`/`Bus` missed) + finish header-comment correction (03-44 #10) | Medium | S | Bug |
-| 8 | A015 name-collision write-matching FP fix at error severity (03-44 #5) | High | M | Bug |
-| 9 | A017 qualifier resolution + `NewTypedRepository` coverage / A017↔A030 asymmetry (03-44 #6) | Medium | M | Bug |
-| 10 | A019 vendor-path heuristic (PkgPath never contains vendor/ in canonical mode) + dedup go.mod findings (03-44 #7) | Medium | S | Bug |
-| 11 | A018 `projectImportsCQRS` gate + message/catalog "Dispatch" drift (03-44 #8) | Medium | S | Bug |
-| 12 | A033 package-qualifier rendered into generic type-parameter slot (03-44 #9) | Medium | S | Bug |
-| 13 | Import-scope substring tightening, one rule per PR: V001, V004/V005, T001–T007, E016, A008 (03-44 #18) — each with FP analysis + golden regen | High | L total | Quality |
-| 14 | A016 project-wide idempotency suppression scoped per dispatcher/module (03-44 #19) | Medium | M | Quality |
-| 15 | E010/E012 narrow broad project-wide suppressions (03-44 #20) | Medium | M | Quality |
-| 16 | E003 missing does-not-fire negative test (03-44 #21) | Low | XS | Quality |
-| 17 | E011 command+decider gate-path test (current negative fixture lacks CQRS imports) (03-44 #22) | Low | S | Quality |
-| 18 | E001 nested Tier-0 package FN (exact-base lookup) (03-44 #23) | Low | S | Bug |
-| 19 | F006 policy decision under the strong/weak payload-class split (03-44 #24) | Medium | S | Decision+Bug |
-| 20 | F009/F010 `Cancel`/`Path`/`Neighbor` token documentation/tightening; F011 AST-fallback FP note (03-44 #25) | Low | S | Docs/Quality |
-| 21 | V003/V002/V006 root-go.mod-only scope documented or widened; `isPseudoVersion` doc vs reality (03-44 #17) | Low | S | Docs |
-| 22 | Split `boilerplate/b022_b025.go` (495 lines) — B025 funcIndex machinery into own file (03-44 #3) | Low | S | Cleanup |
-| 23 | Split `api/a020_a021_a022_a023.go` (~357 lines) (03-44 #4) | Low | XS | Cleanup |
-| 24 | Wire `#check-file-size` into verify or start the ~52-file split waves — awaiting owner policy decision (03-44 §c #33) | Medium | — | Decision |
-| 25 | Golden-profile harness for typed gates (auto-regen + review flow per rule) (03-44 #49) — would have de-risked items 1/4/9 above | High | L | Feature |
-| 26 | Extract a shared value-classifier (URL/placeholder/DSN) into lintutil BEFORE a second rule needs it — prevents the S001 split brain | Low | S | Cleanup |
-| 27 | S001 follow-up: decide whether credential-bearing DSNs (`postgres://user:pass@…`) deserve their own rule now that S001 allowlists `://` (see question g2) | Medium | M | Decision+Feature |
-| 28 | scheduling/sqlstore pre-existing lint findings (exhaustruct_v5 + tagliatelle) — carried from 03-44 #2, still open | Medium | S | Cleanup |
-| 29 | CHANGELOG taxonomy: this session put D016 detection-parity under "Fixed"; consider a repo convention for "detection surface changed" entries (consumers diffing output care) | Low | XS | Docs |
-| 30 | Confirm the concurrent session's C040/C041 catalog wording is final and RULES.md is synced post-landing (see question g1) | Medium | XS | Quality |
-| 31 | iroh standalone pin repair (loopback pins v4.1.0; verify-ci RED risk) — standing, unchanged (03-44 #26) | High | M | Bug |
-| 32 | sqliteengine.ResetEngine + persistent-engine EngineResetter wave (ADR-0136; 03-44 #27–29) | High | L | Feature |
-| 33 | cqrs-lint golden-profile HARVEST: route items 1–25 above into TODO_LIST.md, the rest to ROADMAP (docs-health HARVEST pass) | Medium | S | Docs |
+| #  | Task                                                                                                                                                                         | Impact | Effort   | Category         |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------- | ---------------- |
+| 1  | Validate S001 allowlist against real corpora (taskmanager scan + probe project) — prove no true positives killed                                                             | High   | S        | Quality          |
+| 2  | Add D014/D015 registry-acceptance tests (parity I claimed exists is untested on their side)                                                                                  | Medium | S        | Quality          |
+| 3  | Pin B008 non-bitshift Warning baseline severity                                                                                                                              | Medium | XS       | Quality          |
+| 4  | S001: selector-LHS receiver context in the message (03-44 #101 second half) + golden impact check                                                                            | Medium | S        | Feature          |
+| 5  | Full-module `-race` for cmd/cqrs-lint (`./...`)                                                                                                                              | Medium | S        | Quality          |
+| 6  | Single-command `nix run .#verify` green on an idle box (carried from 03-44 #1)                                                                                               | High   | S (idle) | Quality          |
+| 7  | B018 `containsBus` casing FN (`EventBus`/`Bus` missed) + finish header-comment correction (03-44 #10)                                                                        | Medium | S        | Bug              |
+| 8  | A015 name-collision write-matching FP fix at error severity (03-44 #5)                                                                                                       | High   | M        | Bug              |
+| 9  | A017 qualifier resolution + `NewTypedRepository` coverage / A017↔A030 asymmetry (03-44 #6)                                                                                   | Medium | M        | Bug              |
+| 10 | A019 vendor-path heuristic (PkgPath never contains vendor/ in canonical mode) + dedup go.mod findings (03-44 #7)                                                             | Medium | S        | Bug              |
+| 11 | A018 `projectImportsCQRS` gate + message/catalog "Dispatch" drift (03-44 #8)                                                                                                 | Medium | S        | Bug              |
+| 12 | A033 package-qualifier rendered into generic type-parameter slot (03-44 #9)                                                                                                  | Medium | S        | Bug              |
+| 13 | Import-scope substring tightening, one rule per PR: V001, V004/V005, T001–T007, E016, A008 (03-44 #18) — each with FP analysis + golden regen                                | High   | L total  | Quality          |
+| 14 | A016 project-wide idempotency suppression scoped per dispatcher/module (03-44 #19)                                                                                           | Medium | M        | Quality          |
+| 15 | E010/E012 narrow broad project-wide suppressions (03-44 #20)                                                                                                                 | Medium | M        | Quality          |
+| 16 | E003 missing does-not-fire negative test (03-44 #21)                                                                                                                         | Low    | XS       | Quality          |
+| 17 | E011 command+decider gate-path test (current negative fixture lacks CQRS imports) (03-44 #22)                                                                                | Low    | S        | Quality          |
+| 18 | E001 nested Tier-0 package FN (exact-base lookup) (03-44 #23)                                                                                                                | Low    | S        | Bug              |
+| 19 | F006 policy decision under the strong/weak payload-class split (03-44 #24)                                                                                                   | Medium | S        | Decision+Bug     |
+| 20 | F009/F010 `Cancel`/`Path`/`Neighbor` token documentation/tightening; F011 AST-fallback FP note (03-44 #25)                                                                   | Low    | S        | Docs/Quality     |
+| 21 | V003/V002/V006 root-go.mod-only scope documented or widened; `isPseudoVersion` doc vs reality (03-44 #17)                                                                    | Low    | S        | Docs             |
+| 22 | Split `boilerplate/b022_b025.go` (495 lines) — B025 funcIndex machinery into own file (03-44 #3)                                                                             | Low    | S        | Cleanup          |
+| 23 | Split `api/a020_a021_a022_a023.go` (~357 lines) (03-44 #4)                                                                                                                   | Low    | XS       | Cleanup          |
+| 24 | Wire `#check-file-size` into verify or start the ~52-file split waves — awaiting owner policy decision (03-44 §c #33)                                                        | Medium | —        | Decision         |
+| 25 | Golden-profile harness for typed gates (auto-regen + review flow per rule) (03-44 #49) — would have de-risked items 1/4/9 above                                              | High   | L        | Feature          |
+| 26 | Extract a shared value-classifier (URL/placeholder/DSN) into lintutil BEFORE a second rule needs it — prevents the S001 split brain                                          | Low    | S        | Cleanup          |
+| 27 | S001 follow-up: decide whether credential-bearing DSNs (`postgres://user:pass@…`) deserve their own rule now that S001 allowlists `://` (see question g2)                    | Medium | M        | Decision+Feature |
+| 28 | scheduling/sqlstore pre-existing lint findings (exhaustruct_v5 + tagliatelle) — carried from 03-44 #2, still open                                                            | Medium | S        | Cleanup          |
+| 29 | CHANGELOG taxonomy: this session put D016 detection-parity under "Fixed"; consider a repo convention for "detection surface changed" entries (consumers diffing output care) | Low    | XS       | Docs             |
+| 30 | Confirm the concurrent session's C040/C041 catalog wording is final and RULES.md is synced post-landing (see question g1)                                                    | Medium | XS       | Quality          |
+| 31 | iroh standalone pin repair (loopback pins v4.1.0; verify-ci RED risk) — standing, unchanged (03-44 #26)                                                                      | High   | M        | Bug              |
+| 32 | sqliteengine.ResetEngine + persistent-engine EngineResetter wave (ADR-0136; 03-44 #27–29)                                                                                    | High   | L        | Feature          |
+| 33 | cqrs-lint golden-profile HARVEST: route items 1–25 above into TODO_LIST.md, the rest to ROADMAP (docs-health HARVEST pass)                                                   | Medium | S        | Docs             |
 
 ---
 
@@ -220,5 +220,5 @@ after the fact.
 
 ---
 
-*Generated 2026-09-11 05:12 CEST. Point-in-time snapshot — annotate, don't
-rewrite. Section (f) is HARVEST input for TODO_LIST/ROADMAP.*
+_Generated 2026-09-11 05:12 CEST. Point-in-time snapshot — annotate, don't
+rewrite. Section (f) is HARVEST input for TODO_LIST/ROADMAP._

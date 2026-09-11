@@ -151,11 +151,11 @@ ms-scale gRPC band).
 > samples) verbatim. A quiet-window count=5 re-run that supersedes the table
 > below (if medians move >5%) is queued behind the load gate.
 
-| docs   | SearchQuery (ns/op, discard-cold median) | allocs/op | B/op        |
-| ------ | ---------------------------------------- | --------- | ----------- |
-| 100    | ~838_390                                 | ~249      | ~23_600     |
-| 1 000  | ~3_211_122                               | ~1 160    | ~128_300    |
-| 10 000 | ~13_052_295                              | ~10 200   | ~1_850_000  |
+| docs   | SearchQuery (ns/op, discard-cold median) | allocs/op | B/op       |
+| ------ | ---------------------------------------- | --------- | ---------- |
+| 100    | ~838_390                                 | ~249      | ~23_600    |
+| 1 000  | ~3_211_122                               | ~1 160    | ~128_300   |
+| 10 000 | ~13_052_295                              | ~10 200   | ~1_850_000 |
 
 Raw runs (execution order):
 

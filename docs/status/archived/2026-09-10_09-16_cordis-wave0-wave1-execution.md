@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** Continued by `2026-09-10_22-43` and completed by `2026-09-10_23-35` (all 27 M-tasks).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 > **When:** 2026-09-10 09:16 · **Session scope:** executing [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](../planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md) (user: "GET SHIT DONE! The WHOLE TODO LIST!")
 > **Predecessors:** mapping report 08-04 ([`docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`](../architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md)) → status report 08-04 ([`docs/status/2026-09-10_08-04_cordis-paradigm-mapping-session.md`](2026-09-10_08-04_cordis-paradigm-mapping-session.md)) → Pareto plan 08-10 (commit `6a0cea374`, pushed).
 > **Format note:** user demanded `.md` under `docs/status/`; the status-report skill's HTML default is overridden, same as the 08-04 report.
@@ -70,6 +69,7 @@
 ## f) NEXT — up to 50 things (ordered; ★ = new this session)
 
 Wave 1 completion:
+
 1. ★ Regenerate api-stability golden (metaengine + projectionadapter exports) + `TestEvery` — closes M-07 hygiene.
 2. ★ CHANGELOG `[Unreleased]` entries: metaengine `EngineResetter`/`ResetResult`/`Store.Reset`; projectionadapter `Adapter.Reset`/`WithLogger`; run `check-changelog-symbols.sh`.
 3. ★ Full GOWORK=off test runs: metaengine, projectionadapter, projectionhost (M-07/M-06 regression gates).
@@ -81,7 +81,7 @@ Wave 1 completion:
 9. M-09: link ADR-0136 from mapping doc §9 + AGENTS.md; doc-check.
 10. M-10: revert & rebuild recipe into skill `readmodels.md`/`recipes.md` (Reset → Stop → replay; `WithKeepStaleState`; `EngineResetter` capability table).
 11. ★ ADR-0136 addendum: document the engine-reset capability ladder (memory=full, persistent=follow-up) as the spatial half of the temporal contract.
-Wave 2:
+    Wave 2:
 12. M-11: `system.New` coeffect gate — dangling subscription (projection consumes a type nothing produces) → hard error + disable option.
 13. M-12: unconsumed event types → warn, wired into New.
 14. M-13: gate tests (dangling/unconsumed/disabled; alias-equality via `record.Type`).
@@ -96,7 +96,7 @@ Wave 2:
 23. ★ `metaengine/pebbleengine` + `bboltengine`: `ResetEngine` (truncate/delete-range the key space).
 24. ★ Remaining engines (`pg`, `mysql`, `duckdb`, `turso`, `dgraph`, `badger`, `iroh`): `ResetEngine` or documented non-support (Doctor line).
 25. ★ `Doctor`/`GetEngineStats`: surface per-engine reset capability ("resettable: yes/no") so operators see it before relying on Reset.
-Wave 3:
+    Wave 3:
 26. M-21: ADR-0137 design spike — health-driven engine deactivation (errorfamily storm → quarantine/reroute/auto-reprobe).
 27. M-22: implement deactivation + failing-engine tests (multi-session).
 28. M-23: health state in `Doctor`/`GetEngineStats` + tests.
@@ -104,7 +104,7 @@ Wave 3:
 30. M-25: scenario DSL `AssertUnchanged(projection)` helper + docs.
 31. M-26: vocabulary positioning decision (blocked on user; default internal-only).
 32. M-27: Mermaid/D2 diagram for the mapping report; optional HTML render.
-Housekeeping:
+    Housekeeping:
 33. ★ Finish reading go-modularize `references/phases.md` (lines 200+).
 34. ★ Update skill `references/modules.md` (projectionadapter row gains Reset/WithLogger; metaengine row gains Store.Reset) after M-07 hygiene.
 35. ★ `TODO_LIST.md`: mark M-06/M-07 done (delete entries per scope rule) once hygiene closes; add the EngineResetter follow-ups (items 22–25).
@@ -134,4 +134,4 @@ Housekeeping:
 
 **Bottom line:** Wave 0 shipped with two prior-session claims corrected (truth-before-durability working as designed). M-06 is the full release cycle, done. M-07's code and tests are green but its golden/CHANGELOG/test-suite/lint/verify-fast batch is open — that is the single unfinished thread. Waves 2–3 untouched. No consumer-visible breakage introduced anywhere (warn-first held).
 
-*Point-in-time report; corrections via addendum only.*
+_Point-in-time report; corrections via addendum only._

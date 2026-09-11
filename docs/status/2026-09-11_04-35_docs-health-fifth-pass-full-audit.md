@@ -66,60 +66,60 @@
 
 ## f) Up to 50 things we should get done next
 
-*Brainstorm, not commitment — items 1–12 are this pass's direct findings; 13+ are the highest-value routed TODO items for context (full detail lives in TODO_LIST.md).*
+_Brainstorm, not commitment — items 1–12 are this pass's direct findings; 13+ are the highest-value routed TODO items for context (full detail lives in TODO_LIST.md)._
 
-| # | Task | Effort |
-|---|------|--------|
-| 1 | Add the dropped brainstorm fuel (03-50 §f11-50, 02-16 §f17, 03-43 §f31/35, 01-47 §f21-23/45) into ROADMAP Raw Ideas or an explicit decline ledger | S |
-| 2 | Ratify or overrule the three policy calls in §g (archive rule, CHANGELOG path repoints, HTML/txt exemption) | 1 min each, decision |
-| 3 | Reconstruct the orphaned `cec9248da` work record (tripwire + fix.go dedup + pg helpers) as a short annotated report | S |
-| 4 | Recount the cqrs-lint rule total from the catalog meta-test; pin FEATURES/README to the mechanical number | XS |
-| 5 | Decide `archived/` yearly-sharding (~1500 files; carried since 09-08) | decision |
-| 6 | Formalize the per-report drop-ledger convention (one line in the docs-health workflow or CONTRIBUTING) | XS |
-| 7 | Add "refresh ROADMAP Release History row" to the docs-health pass checklist (kills the d1 class) | XS |
-| 8 | Proofread sweep over all 25 new archive banners (the AVD/AVG class — one known, fixed; others unknown) | XS |
-| 9 | 🔥 `sqliteengine.ResetEngine` (TODO Cordis section; production-default engine, ADR-0136) | M |
-| 10 | 🔥 Audit `metaengine/encoded.go:49` record context + build the entry-point fold-dispatch conformance sweep (proven bug class) | M |
-| 11 | Tag `watermill/v4.7.0` (issue-#21 causation fix is untagged; go-localsync blocked) — rides the next tag wave | S |
-| 12 | 🔥 CI triage: master red across ~15+ jobs (FlakeHub decision, shellcheck `$notag`, Minimum Coverage, verify-fast, go.work sync, Nix Flake Check, CGo, Security Scan) | M-L |
-| 13 | Tag `cmd/cqrs-lint` v4.10.2 shipping the buildinfo version reporting | S |
-| 14 | `check-retracts-shipped.sh` (the inert-retract class) | S |
-| 15 | `tag-release.sh --audit --baseline` (gate NEW violations in CI; 24 known-dead-path ones baselined) | S/M |
-| 16 | Integration-tag lint as a first-class gate (`lint-module` tag arg + CI leg for modules with `*_integration_test.go`) | S/M |
-| 17 | `#verify-ci` per-module `go mod download` no-diff assertion (missing go.sum hash class) | M |
-| 18 | ClaimMetrics documentation + pin tail (README, FEATURES ✓ done, JSON marshal pin, PG/MySQL integration test) | S |
-| 19 | Calibration provenance protocol + quiet-window SearchQuery re-run + titled benchmark-baseline re-pin | M |
-| 20 | `ivm_repro_test.go` behind `-tags ivmrepro` (three-defect one-command release check) | S/M |
-| 21 | Single-source the turso-go "verified through vX" citation (9 sites today) + the canonical upstream-fix flip runbook | S |
-| 22 | Sharpen defect-A characterization before filing upstream (bisect onset, scalar-at-scale pin, pre.10 anomaly) | M |
-| 23 | cqrs-upgrade hardening (flags-after-positional guard, `--json` deprecations array, mechanized example v5 scan) | S |
-| 24 | V007 split brain: decider pair-forms missing from V007 tables + golden drift guard | S |
-| 25 | error-taxonomy: verify ALL module tables + build the drift gate (the watermill lie class) | S |
-| 26 | Watermill shutdown-noise log (suppress on context.Canceled during Close) | XS |
-| 27 | Live-verify MySQL shuffle rollout + `-race` the dgraph retry code | S |
-| 28 | `dgraph.type` shared-conflict-domain docs + `isContentionError` unit pin | S |
-| 29 | Contention-retry observability (otel counter; dep-budget review first) | S |
-| 30 | Skip-vs-fail policy for live conformance construction (ROADMAP OQ 10) | S |
-| 31 | Shuffle evals for `test-integration.sh` / `test-all-backends.sh` (gated OQ 9) | S |
-| 32 | `aggregate_*` tripwire permanent mutation fixture | S |
-| 33 | Per-finding lint attribution + one canonical golangci binary for ad-hoc surfaces | S |
-| 34 | 🔥 350-line gate policy decision (full split vs ratchet vs exemptions) then the split waves | decision + L |
-| 35 | Dead-path module/tag decisions (ROADMAP OQ 11) | decision |
-| 36 | GitHub Releases for the outstanding tags (`create-github-releases.sh`) | S |
-| 37 | Watch the first nightly `upgrade-dogfood` sentinel CI run | XS |
-| 38 | `check-coverage.sh` wrapper env fix + run it for the 09-07..11 waves | S |
-| 39 | actionlint on `benchmarks.yml` (the unvalidated matview gate set) + CI step | S |
-| 40 | `example/metaengine-quickstart` smoke test (only test-less example) | XS |
-| 41 | goleak for `metaengine` + `projectionhost` suites (M-08 covered `system` only) | S |
-| 42 | `[Unreleased]`-position tripwire in `verify-docs.sh` | XS |
-| 43 | E018 fold-case coverage (needs scanner position info) | S |
-| 44 | Fold-write failover for quarantined engines (ADR-0137 follow-up) | L |
-| 45 | EngineResetter on the remaining persistent engines (ladder after sqlite) | M each |
-| 46 | Surface reset capability in `Doctor`/`GetEngineStats` | S |
-| 47 | `batch-release.sh` consistency audit vs the hardened tag-release.sh | M |
-| 48 | Daily scrub: no other session's TODO claims re-verified this pass — run the repo-wide stale-TODO sweep against open `[ ]` rows older than 7 days | M |
-| 49 | `nix run .#verify` full, exclusive, on a quiet box (last composed GREEN 09-09; three days of waves since) | M |
-| 50 | Post-push CI watch: dgraph + redis shuffled jobs (~10 runs) for order-induced flakes; log any failing seed | XS |
+| #  | Task                                                                                                                                                                 | Effort               |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| 1  | Add the dropped brainstorm fuel (03-50 §f11-50, 02-16 §f17, 03-43 §f31/35, 01-47 §f21-23/45) into ROADMAP Raw Ideas or an explicit decline ledger                    | S                    |
+| 2  | Ratify or overrule the three policy calls in §g (archive rule, CHANGELOG path repoints, HTML/txt exemption)                                                          | 1 min each, decision |
+| 3  | Reconstruct the orphaned `cec9248da` work record (tripwire + fix.go dedup + pg helpers) as a short annotated report                                                  | S                    |
+| 4  | Recount the cqrs-lint rule total from the catalog meta-test; pin FEATURES/README to the mechanical number                                                            | XS                   |
+| 5  | Decide `archived/` yearly-sharding (~1500 files; carried since 09-08)                                                                                                | decision             |
+| 6  | Formalize the per-report drop-ledger convention (one line in the docs-health workflow or CONTRIBUTING)                                                               | XS                   |
+| 7  | Add "refresh ROADMAP Release History row" to the docs-health pass checklist (kills the d1 class)                                                                     | XS                   |
+| 8  | Proofread sweep over all 25 new archive banners (the AVD/AVG class — one known, fixed; others unknown)                                                               | XS                   |
+| 9  | 🔥 `sqliteengine.ResetEngine` (TODO Cordis section; production-default engine, ADR-0136)                                                                             | M                    |
+| 10 | 🔥 Audit `metaengine/encoded.go:49` record context + build the entry-point fold-dispatch conformance sweep (proven bug class)                                        | M                    |
+| 11 | Tag `watermill/v4.7.0` (issue-#21 causation fix is untagged; go-localsync blocked) — rides the next tag wave                                                         | S                    |
+| 12 | 🔥 CI triage: master red across ~15+ jobs (FlakeHub decision, shellcheck `$notag`, Minimum Coverage, verify-fast, go.work sync, Nix Flake Check, CGo, Security Scan) | M-L                  |
+| 13 | Tag `cmd/cqrs-lint` v4.10.2 shipping the buildinfo version reporting                                                                                                 | S                    |
+| 14 | `check-retracts-shipped.sh` (the inert-retract class)                                                                                                                | S                    |
+| 15 | `tag-release.sh --audit --baseline` (gate NEW violations in CI; 24 known-dead-path ones baselined)                                                                   | S/M                  |
+| 16 | Integration-tag lint as a first-class gate (`lint-module` tag arg + CI leg for modules with `*_integration_test.go`)                                                 | S/M                  |
+| 17 | `#verify-ci` per-module `go mod download` no-diff assertion (missing go.sum hash class)                                                                              | M                    |
+| 18 | ClaimMetrics documentation + pin tail (README, FEATURES ✓ done, JSON marshal pin, PG/MySQL integration test)                                                         | S                    |
+| 19 | Calibration provenance protocol + quiet-window SearchQuery re-run + titled benchmark-baseline re-pin                                                                 | M                    |
+| 20 | `ivm_repro_test.go` behind `-tags ivmrepro` (three-defect one-command release check)                                                                                 | S/M                  |
+| 21 | Single-source the turso-go "verified through vX" citation (9 sites today) + the canonical upstream-fix flip runbook                                                  | S                    |
+| 22 | Sharpen defect-A characterization before filing upstream (bisect onset, scalar-at-scale pin, pre.10 anomaly)                                                         | M                    |
+| 23 | cqrs-upgrade hardening (flags-after-positional guard, `--json` deprecations array, mechanized example v5 scan)                                                       | S                    |
+| 24 | V007 split brain: decider pair-forms missing from V007 tables + golden drift guard                                                                                   | S                    |
+| 25 | error-taxonomy: verify ALL module tables + build the drift gate (the watermill lie class)                                                                            | S                    |
+| 26 | Watermill shutdown-noise log (suppress on context.Canceled during Close)                                                                                             | XS                   |
+| 27 | Live-verify MySQL shuffle rollout + `-race` the dgraph retry code                                                                                                    | S                    |
+| 28 | `dgraph.type` shared-conflict-domain docs + `isContentionError` unit pin                                                                                             | S                    |
+| 29 | Contention-retry observability (otel counter; dep-budget review first)                                                                                               | S                    |
+| 30 | Skip-vs-fail policy for live conformance construction (ROADMAP OQ 10)                                                                                                | S                    |
+| 31 | Shuffle evals for `test-integration.sh` / `test-all-backends.sh` (gated OQ 9)                                                                                        | S                    |
+| 32 | `aggregate_*` tripwire permanent mutation fixture                                                                                                                    | S                    |
+| 33 | Per-finding lint attribution + one canonical golangci binary for ad-hoc surfaces                                                                                     | S                    |
+| 34 | 🔥 350-line gate policy decision (full split vs ratchet vs exemptions) then the split waves                                                                          | decision + L         |
+| 35 | Dead-path module/tag decisions (ROADMAP OQ 11)                                                                                                                       | decision             |
+| 36 | GitHub Releases for the outstanding tags (`create-github-releases.sh`)                                                                                               | S                    |
+| 37 | Watch the first nightly `upgrade-dogfood` sentinel CI run                                                                                                            | XS                   |
+| 38 | `check-coverage.sh` wrapper env fix + run it for the 09-07..11 waves                                                                                                 | S                    |
+| 39 | actionlint on `benchmarks.yml` (the unvalidated matview gate set) + CI step                                                                                          | S                    |
+| 40 | `example/metaengine-quickstart` smoke test (only test-less example)                                                                                                  | XS                   |
+| 41 | goleak for `metaengine` + `projectionhost` suites (M-08 covered `system` only)                                                                                       | S                    |
+| 42 | `[Unreleased]`-position tripwire in `verify-docs.sh`                                                                                                                 | XS                   |
+| 43 | E018 fold-case coverage (needs scanner position info)                                                                                                                | S                    |
+| 44 | Fold-write failover for quarantined engines (ADR-0137 follow-up)                                                                                                     | L                    |
+| 45 | EngineResetter on the remaining persistent engines (ladder after sqlite)                                                                                             | M each               |
+| 46 | Surface reset capability in `Doctor`/`GetEngineStats`                                                                                                                | S                    |
+| 47 | `batch-release.sh` consistency audit vs the hardened tag-release.sh                                                                                                  | M                    |
+| 48 | Daily scrub: no other session's TODO claims re-verified this pass — run the repo-wide stale-TODO sweep against open `[ ]` rows older than 7 days                     | M                    |
+| 49 | `nix run .#verify` full, exclusive, on a quiet box (last composed GREEN 09-09; three days of waves since)                                                            | M                    |
+| 50 | Post-push CI watch: dgraph + redis shuffled jobs (~10 runs) for order-induced flakes; log any failing seed                                                           | XS                   |
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

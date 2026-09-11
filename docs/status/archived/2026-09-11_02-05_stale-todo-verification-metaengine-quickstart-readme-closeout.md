@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** The §b1 stale-TODO-sweep class it proved was EXECUTED repo-wide by this pass (42 completed `[x]` TODO_LIST rows swept per the file's own header policy + the docs-health skill). §b3 skill-vs-repo TODO convention: resolved in favor of the skill + file header (delete done items) — this pass is the precedent. §f items routed: quickstart smoke test → TODO_LIST.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Session window:** 2026-09-11 ~01:57–02:05 CEST (single task)
 **Task:** `TODO_LIST.md` item — "`example/metaengine-quickstart/README.md` does not
 exist — author it … Consider a `TestEveryExampleHasREADME` meta-test"
@@ -17,13 +16,13 @@ annotation of today's 01:38 report that had re-listed the stale TODO.
 
 ## Verification evidence (all gathered this session, not trusted from docs)
 
-| # | Claim | Independent check | Result |
-| --- | --- | --- | --- |
-| V1 | README exists, covers the four demo sections | Cross-checked all 4 sections against code: `AutoCRUDByConvention` maps (main.go:87), `UserFollowed`→`metaengine.Edge` fold (graph_demo.go:43), `DocEmbedded`→`metaengine.Embedding` (vector_demo.go:33), koanf/`cqrs.yaml` boot (configfile_demo.go:25) | ✅ 4/4 accurate |
-| V2 | Example works | `go run -tags "goexperiment.jsonv2" .` in the example dir | ✅ all 4 sections green (map CRUD + delete not-found; graph 1–2 hop reachability; k-NN distances; config-file boot) |
-| V3 | Meta-test exists and passes | `TestEveryExampleHasREADME` (cmd/api-stability/examples_readme_test.go:13), run twice | ✅ PASS both runs |
-| V4 | Examples v5-clean (adjacent TODO item, claimed in CHANGELOG) | Re-ran `cqrs-upgrade -dry-run -strict -no-build` on **both** `example/metaengine-quickstart` and `example/taskmanager` | ✅ "no v5-removed API usage detected", exit 0, all pins up-to-date |
-| V5 | CHANGELOG already documents both artifacts | CHANGELOG.md:221-224 (from the same `6bb82f5b` docs-truth batch) | ✅ consistent |
+| #  | Claim                                                        | Independent check                                                                                                                                                                                                                                       | Result                                                                                                              |
+| -- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| V1 | README exists, covers the four demo sections                 | Cross-checked all 4 sections against code: `AutoCRUDByConvention` maps (main.go:87), `UserFollowed`→`metaengine.Edge` fold (graph_demo.go:43), `DocEmbedded`→`metaengine.Embedding` (vector_demo.go:33), koanf/`cqrs.yaml` boot (configfile_demo.go:25) | ✅ 4/4 accurate                                                                                                     |
+| V2 | Example works                                                | `go run -tags "goexperiment.jsonv2" .` in the example dir                                                                                                                                                                                               | ✅ all 4 sections green (map CRUD + delete not-found; graph 1–2 hop reachability; k-NN distances; config-file boot) |
+| V3 | Meta-test exists and passes                                  | `TestEveryExampleHasREADME` (cmd/api-stability/examples_readme_test.go:13), run twice                                                                                                                                                                   | ✅ PASS both runs                                                                                                   |
+| V4 | Examples v5-clean (adjacent TODO item, claimed in CHANGELOG) | Re-ran `cqrs-upgrade -dry-run -strict -no-build` on **both** `example/metaengine-quickstart` and `example/taskmanager`                                                                                                                                  | ✅ "no v5-removed API usage detected", exit 0, all pins up-to-date                                                  |
+| V5 | CHANGELOG already documents both artifacts                   | CHANGELOG.md:221-224 (from the same `6bb82f5b` docs-truth batch)                                                                                                                                                                                        | ✅ consistent                                                                                                       |
 
 **Files changed by this session (2):**
 
@@ -45,7 +44,7 @@ annotation of today's 01:38 report that had re-listed the stale TODO.
    (re-authoring a shipped README) is the exact "status reports are
    point-in-time" lesson from memory, applied correctly.
 2. **Full claim-by-claim verification of the README** against the four demo
-   files (V1) — the README is not just present, it is *accurate*.
+   files (V1) — the README is not just present, it is _accurate_.
 3. **End-to-end example run** (V2) — copy-paste surface proven runnable, not
    just compiling.
 4. **Meta-test run** (V3) — the class tripwire works today.
@@ -63,7 +62,7 @@ annotation of today's 01:38 report that had re-listed the stale TODO.
 
 1. **The "stale-TODO sweep" class (07-42 §f34) is proven but not executed.**
    This session proved the class is real — a TODO open for 2 days whose work
-   shipped, *and* a same-day (01:38) report that re-harvested it without
+   shipped, _and_ a same-day (01:38) report that re-harvested it without
    verification. Only this one item was swept; the repo-wide sweep of "deferred
    items whose TODO state may now be resolvable" has not run.
 2. **Verification was targeted, not full-gate.** The meta-test was run
@@ -120,7 +119,7 @@ Nothing in this session's own work broke. Honest self-critique instead:
    I kept them per repo precedent and did not surface the conflict until this
    report (see Q2). Flagging at decision time would have been better.
 4. **Systemic (not this session's) fuckup, re-confirmed:** the 01:38 report —
-   written *today* — re-listed the README item as open without checking the
+   written _today_ — re-listed the README item as open without checking the
    code, 33 hours after the work shipped. Two consecutive sessions' doc
    processes (07-42 authored the stale TODO; 01:38 propagated it) missed that
    a grep would have closed. That is the Harvest-verification gap, now proven
@@ -149,7 +148,7 @@ Nothing in this session's own work broke. Honest self-critique instead:
    <target-dir>`) belongs in `docs/agents/gowork-modes.md` or the testing
    gotchas so the next session doesn't re-derive it.
 6. **Scope-plus-one habit.** When closing an item whose completion evidence
-   is a shared doc passage (CHANGELOG/commit), check that passage's *other*
+   is a shared doc passage (CHANGELOG/commit), check that passage's _other_
    claims for sibling TODOs — this session's bonus closure is the template.
 
 ## f) Up to 50 things to get done next (ranked by impact; provenance marked)
@@ -256,6 +255,6 @@ _(43 items; the remaining slots deliberately left empty rather than padded.)_
 
 ---
 
-*Point-in-time snapshot. Section (f) is HARVEST input for docs-health →
+_Point-in-time snapshot. Section (f) is HARVEST input for docs-health →
 TODO_LIST/ROADMAP once the user says go. HTML default overridden to `.md` per
-explicit user instruction for this report.*
+explicit user instruction for this report._

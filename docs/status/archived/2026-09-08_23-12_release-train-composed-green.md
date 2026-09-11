@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** W1/W2 remainder (P07, P14, P17, P19-21, P23-24) closed by `2026-09-09_01-54` + `2026-09-09_04-10` (archived alongside). P04 external bundle: permalink half DONE 2026-09-11; upstream filing + CI billing/FlakeHub creds stay BLOCKED (TODO_LIST).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-08 23:12 CEST · **Session:** Pareto plan execution (Waves 0–2 partial)
 **Input:** `docs/planning/2026-09-08_17-45_SUPERB-pareto-execution-plan.md` (executed top-down)
 **Result:** the 1%→51% release train shipped in full; local `#verify` composed GREEN (EXIT=0); 6 real defects found and fixed along the way.
@@ -20,6 +19,7 @@
 ## b) What Got Done (plan coverage)
 
 **Wave 0 — release train (COMPLETE):**
+
 - **P02** irohengine/v4.2.0 + loopback/v4.0.2 + quic/v4.2.0 (quic's local replace dropped as redundant; both standalone green).
 - **P03** stack/sqlite/v4.3.1: reproduced the fresh-consumer break exactly (`undefined: storage.SQLiteSetSynchronous` via the v4.3.0 pseudo-pin), tagged the fix, verified a clean-dir consumer `go get`+build.
 - **P01** the 58-module wave, cut→push→next with the four hard mechanics honored: the tag script's standalone-build gate aborted 6 engines needing new metaengine symbols → pins pre-bumped → re-tagged; 2 engine tags (bbolt/dgraph) were rescued from a missed push by the end-of-wave unpushed-tag audit.
@@ -27,14 +27,15 @@
 - **P06** six verify rounds → GREEN (see d).
 
 **Wave 1 — trust infrastructure (5 of 6 COMPLETE):**
+
 - **P08** json/v2 determinism: SARIF `run.properties` map → fixed-order struct + 50-render byte-compare pin; `json.Deterministic(true)` on all consumer-visible marshal sites; catalog already deterministic.
 - **P12** alias-blindness dead: scanCallExpr + D018/D019 + performance codec heuristic now use `IsQualifierFor`; 3 completeness meta-tests added — one caught a real preset-help-text drift on first run.
-- **P11 core** F091 Tier 2: `--typed-info` flag (auto/on/off, typo-warn); **F090(b)** typed attribution of dot-imported removed symbols; **C008 usage-confirmation** (ambient-only weak fields need local evidence); committed `testdata/typedfixture` (replace-based, excluded from api-stability/layers meta-tests) making the typed tier CI-testable. *Remaining: C035/C013 payload-shape confirmation.*
+- **P11 core** F091 Tier 2: `--typed-info` flag (auto/on/off, typo-warn); **F090(b)** typed attribution of dot-imported removed symbols; **C008 usage-confirmation** (ambient-only weak fields need local evidence); committed `testdata/typedfixture` (replace-based, excluded from api-stability/layers meta-tests) making the typed tier CI-testable. _Remaining: C035/C013 payload-shape confirmation._
 - **P09 essentials** matview safety: Doctor section pinned 4 ways (content/none/grouped-WARN/no-false-WARN), `matViewDDL` exact-DDL golden ×6 + escape guard, multi-tx grouped-SUM exactness pin (honest about the scale envelope).
-- **P10** DSN audit: **real leak found+fixed** (`auth_token`/`AUTH_TOKEN` escaped redaction); adversarial per-shape tests + preserves-non-secrets guard; pg/mysql audited clean (no DSN echo). *Strict-vs-lenient typo guard stays user-gated.*
-- *Not done: **P07** benchkit load-scaling (benchkit passed all final verify rounds, but the loadScaled pattern work remains).*
+- **P10** DSN audit: **real leak found+fixed** (`auth_token`/`AUTH_TOKEN` escaped redaction); adversarial per-shape tests + preserves-non-secrets guard; pg/mysql audited clean (no DSN echo). _Strict-vs-lenient typo guard stays user-gated._
+- _Not done: **P07** benchkit load-scaling (benchkit passed all final verify rounds, but the loadScaled pattern work remains)._
 
-**Wave 2 (partial):** **P15+P16** AGENTS indexed-split (92 KB → 28 KB index + `docs/agents/gotchas-{tooling-build,module-management,language-footguns,testing}.md` + `gowork-modes.md` decision table + `module-map.md`; zero content loss proven by bullet/row counts) + check-app quick-ref rows. **P18** covered by the coverage gate inside verify. *P14, P17 (blocked on CI billing for new nix jobs), P19–P24 remain.*
+**Wave 2 (partial):** **P15+P16** AGENTS indexed-split (92 KB → 28 KB index + `docs/agents/gotchas-{tooling-build,module-management,language-footguns,testing}.md` + `gowork-modes.md` decision table + `module-map.md`; zero content loss proven by bullet/row counts) + check-app quick-ref rows. **P18** covered by the coverage gate inside verify. _P14, P17 (blocked on CI billing for new nix jobs), P19–P24 remain._
 
 **Wave 3:** P25–P27 untouched.
 

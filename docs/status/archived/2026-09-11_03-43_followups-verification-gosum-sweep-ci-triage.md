@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed: `check-modsums`/go.sum meta-test → the verify-ci go.sum item; CI triage legs (FlakeHub decision, shellcheck `$notag`, Minimum Coverage, verify-fast, go.work sync, Nix Flake Check, CGo, Security Scan) live in the TODO CI-triage 🔥 item; §g1 FlakeHub intent, §g2 repair depth, §g3 cqrs-lint duplication-group ruling remain owner calls (the duplication groups were subsequently covered by the baseline per `03-10`).
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Session:** 2026-09-11, ~02:25–03:43 CEST · **Repo:** go-cqrs-lite · **Branch:** master
 **Scope discipline:** continuation of the 02:16 dgraph-shuffle report; this report covers
 ONLY this session's work (executing that report's own §f follow-ups) plus issues observed
@@ -27,15 +26,15 @@ conflict-domain knowledge is documented, and §f was harvested into TODO_LIST/RO
 The big open front: **CI master has ~15+ failing jobs and no green run in the last 30**;
 I classified the causes and fixed the go.sum class, the rest is triaged into a 🔥 TODO.
 
-| Category            | Count |
-| ------------------- | ----- |
-| a) FULLY DONE       | 13    |
-| b) PARTIALLY DONE   | 5     |
-| c) NOT STARTED      | 15    |
-| d) TOTALLY FUCKED UP| 4 mine + 3 attribution guards |
-| e) Improvements     | 10    |
-| f) Next actions     | 50    |
-| g) Questions        | 3     |
+| Category             | Count                         |
+| -------------------- | ----------------------------- |
+| a) FULLY DONE        | 13                            |
+| b) PARTIALLY DONE    | 5                             |
+| c) NOT STARTED       | 15                            |
+| d) TOTALLY FUCKED UP | 4 mine + 3 attribution guards |
+| e) Improvements      | 10                            |
+| f) Next actions      | 50                            |
+| g) Questions         | 3                             |
 
 ---
 
@@ -274,73 +273,73 @@ I classified the causes and fixed the go.sum class, the rest is triaged into a �
 
 **Direct follow-ups on this session's work**
 
-| #  | Action                                                                                                          | Effort |
-| -- | --------------------------------------------------------------------------------------------------------------- | ------ |
-| 1  | Verify the go.sum fixes turn the CI Module-matrix jobs green (next run; watch badgerengine/mysqlengine/pgtestcontainer) | XS |
-| 2  | Build `check-modsums` flake app (84-module integration-tagged vet loop) and wire into CI + #verify               | S      |
-| 3  | Fix remaining CI: decide FlakeHub (remove magic-nix-cache vs restore registration) per OQ/g1                     | S      |
-| 4  | Fix shellcheck on `scripts/test-tag-release.sh` via disable directive (quoting `$notag` changes semantics)       | XS     |
-| 5  | Diagnose Minimum Coverage / verify-fast / go.work sync / Nix Flake Check / CGo / Security Scan reds              | M      |
-| 6  | Diagnose ephemeral dgraph/pg/redis CI legs (green locally 6+ runs today — suspect FlakeHub-fatal step)           | S      |
-| 7  | Add slirp-reset classification (bounded retry) to `AtomicClaimUnderConcurrency`, or mark it CI-only              | S      |
-| 8  | Re-run `nix run .#verify` once the tree is clean (gate this session's Go changes end-to-end)                     | M      |
-| 9  | Re-run check-duplication after the cqrs-lint session lands; annotate or dedupe the 2 groups per g3              | XS     |
-| 10 | Add `TestEveryModulePassesStandaloneVet`-style meta-test (repo-level guard for the go.sum class)                 | S      |
+| #  | Action                                                                                                                  | Effort |
+| -- | ----------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1  | Verify the go.sum fixes turn the CI Module-matrix jobs green (next run; watch badgerengine/mysqlengine/pgtestcontainer) | XS     |
+| 2  | Build `check-modsums` flake app (84-module integration-tagged vet loop) and wire into CI + #verify                      | S      |
+| 3  | Fix remaining CI: decide FlakeHub (remove magic-nix-cache vs restore registration) per OQ/g1                            | S      |
+| 4  | Fix shellcheck on `scripts/test-tag-release.sh` via disable directive (quoting `$notag` changes semantics)              | XS     |
+| 5  | Diagnose Minimum Coverage / verify-fast / go.work sync / Nix Flake Check / CGo / Security Scan reds                     | M      |
+| 6  | Diagnose ephemeral dgraph/pg/redis CI legs (green locally 6+ runs today — suspect FlakeHub-fatal step)                  | S      |
+| 7  | Add slirp-reset classification (bounded retry) to `AtomicClaimUnderConcurrency`, or mark it CI-only                     | S      |
+| 8  | Re-run `nix run .#verify` once the tree is clean (gate this session's Go changes end-to-end)                            | M      |
+| 9  | Re-run check-duplication after the cqrs-lint session lands; annotate or dedupe the 2 groups per g3                      | XS     |
+| 10 | Add `TestEveryModulePassesStandaloneVet`-style meta-test (repo-level guard for the go.sum class)                        | S      |
 
 **Engine / suite quality (carry-overs, unchanged)**
 
-| #  | Action                                                                                                          | Effort |
-| -- | --------------------------------------------------------------------------------------------------------------- | ------ |
-| 11 | otel counter `cqrs.dgraph.contention_retry` (dep-budget review first)                                            | S      |
-| 12 | Skip-vs-fail policy implementation for `newDgraphEngineOrSkip` (OQ #10)                                          | S      |
-| 13 | Shuffle eval + adoption: `test-integration.sh` (gated OQ #9)                                                     | S      |
-| 14 | Shuffle eval + adoption: `test-all-backends.sh` (gated OQ #9)                                                    | S      |
-| 15 | Backport contention-retry review to turso/badger                                                                 | M      |
-| 16 | `ensureEdgeSchema` in-tx Alter unit pin                                                                          | S      |
-| 17 | `doWrite` response-narrowing review                                                                              | XS     |
-| 18 | Modernize dgraphengine bench_test (`b.Loop()`) + helper_test (`atomic.Uint64`)                                   | S      |
-| 19 | `go mod tidy` in `integration/` (unused genproto/rpc)                                                            | XS     |
-| 20 | Unify ephemeral-script passthrough conventions                                                                   | M      |
-| 21 | Persist shuffle seeds to a log for post-hoc replay                                                               | XS     |
-| 22 | Watch dgraph+redis CI ~10 shuffled runs; record failing seeds                                                    | XS     |
-| 23 | Decide contention-retry knobs: internal forever vs exported (OQ #8; decides golden work)                         | S      |
-| 24 | Bounded ctx for `init()`'s retry loop (v5 `New(ctx)` prerequisite)                                               | S      |
-| 25 | Regression test reproducing seed 42's ordering without a live server (deterministic mock)                        | L      |
-| 26 | enginetest contract: engines declare their contention model                                                      | L      |
-| 27 | Evaluate read-only Dgraph txns for retry needs (document if N/A)                                                 | S      |
-| 28 | Confirm no measurable p50 write-latency overhead from retry under low contention                                 | S      |
-| 29 | Debug-gated "contention retries: N" summary at test exit                                                         | S      |
-| 30 | Review `doWrite` error-wrap text parity with the deleted graph-only helper                                       | XS     |
+| #  | Action                                                                                    | Effort |
+| -- | ----------------------------------------------------------------------------------------- | ------ |
+| 11 | otel counter `cqrs.dgraph.contention_retry` (dep-budget review first)                     | S      |
+| 12 | Skip-vs-fail policy implementation for `newDgraphEngineOrSkip` (OQ #10)                   | S      |
+| 13 | Shuffle eval + adoption: `test-integration.sh` (gated OQ #9)                              | S      |
+| 14 | Shuffle eval + adoption: `test-all-backends.sh` (gated OQ #9)                             | S      |
+| 15 | Backport contention-retry review to turso/badger                                          | M      |
+| 16 | `ensureEdgeSchema` in-tx Alter unit pin                                                   | S      |
+| 17 | `doWrite` response-narrowing review                                                       | XS     |
+| 18 | Modernize dgraphengine bench_test (`b.Loop()`) + helper_test (`atomic.Uint64`)            | S      |
+| 19 | `go mod tidy` in `integration/` (unused genproto/rpc)                                     | XS     |
+| 20 | Unify ephemeral-script passthrough conventions                                            | M      |
+| 21 | Persist shuffle seeds to a log for post-hoc replay                                        | XS     |
+| 22 | Watch dgraph+redis CI ~10 shuffled runs; record failing seeds                             | XS     |
+| 23 | Decide contention-retry knobs: internal forever vs exported (OQ #8; decides golden work)  | S      |
+| 24 | Bounded ctx for `init()`'s retry loop (v5 `New(ctx)` prerequisite)                        | S      |
+| 25 | Regression test reproducing seed 42's ordering without a live server (deterministic mock) | L      |
+| 26 | enginetest contract: engines declare their contention model                               | L      |
+| 27 | Evaluate read-only Dgraph txns for retry needs (document if N/A)                          | S      |
+| 28 | Confirm no measurable p50 write-latency overhead from retry under low contention          | S      |
+| 29 | Debug-gated "contention retries: N" summary at test exit                                  | S      |
+| 30 | Review `doWrite` error-wrap text parity with the deleted graph-only helper                | XS     |
 
 **Docs / ledgers**
 
-| #  | Action                                                                                                          | Effort |
-| -- | --------------------------------------------------------------------------------------------------------------- | ------ |
-| 31 | Annotate the 02:16 status report: §b1/b2/b4 + §f2/3/6/7/8/12/26 now DONE (ANNOTATE mode, inline)                 | XS     |
-| 32 | Verify no archived doc still claims "dgraph not yet shuffle-evaluated" without annotation                        | XS     |
-| 33 | CONTRIBUTING.md testing section: one-liner that ephemeral invocations ship `-shuffle=on` since 2026-09-11        | XS     |
-| 34 | Document `ephemeral-nats.sh` no-default-suite design in the quick reference                                      | XS     |
-| 35 | Record the host-env slirp sensitivity in vm-mysql.sh header (CI-green/local-flaky)                               | XS     |
-| 36 | Sweep archived docs for `doWithAbortRetry` mentions; mark superseded                                             | XS     |
-| 37 | Add the go.sum incident to the calibration/benchmarks docs only if latency numbers are ever wanted (else skip)   | XS     |
+| #  | Action                                                                                                         | Effort |
+| -- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| 31 | Annotate the 02:16 status report: §b1/b2/b4 + §f2/3/6/7/8/12/26 now DONE (ANNOTATE mode, inline)               | XS     |
+| 32 | Verify no archived doc still claims "dgraph not yet shuffle-evaluated" without annotation                      | XS     |
+| 33 | CONTRIBUTING.md testing section: one-liner that ephemeral invocations ship `-shuffle=on` since 2026-09-11      | XS     |
+| 34 | Document `ephemeral-nats.sh` no-default-suite design in the quick reference                                    | XS     |
+| 35 | Record the host-env slirp sensitivity in vm-mysql.sh header (CI-green/local-flaky)                             | XS     |
+| 36 | Sweep archived docs for `doWithAbortRetry` mentions; mark superseded                                           | XS     |
+| 37 | Add the go.sum incident to the calibration/benchmarks docs only if latency numbers are ever wanted (else skip) | XS     |
 
 **Infrastructure / hygiene**
 
-| #  | Action                                                                                                          | Effort |
-| -- | --------------------------------------------------------------------------------------------------------------- | ------ |
+| #  | Action                                                                                                           | Effort |
+| -- | ---------------------------------------------------------------------------------------------------------------- | ------ |
 | 38 | Root-cause or moot remaining 58 file-size offenders (policy decision gates the waves)                            | L      |
 | 39 | F040: branch protection / required checks so 30-red-run stretches cannot recur unnoticed                         | M      |
 | 40 | Daemon hook: build-check before sweep (prevents red intermediate commits class)                                  | M      |
-| 41 | Modernize-sweep: silence remaining gopls modernize hints repo-wide (dgraphengine done last)                      | M       |
+| 41 | Modernize-sweep: silence remaining gopls modernize hints repo-wide (dgraphengine done last)                      | M      |
 | 42 | `scheduling/sqlstore` claiming files: re-run mysql claiming suite after parallel session lands them              | XS     |
 | 43 | Tag-wave note: projectionadapter sibling replace + metaengine pin bump ride next wave (existing item, verify)    | XS     |
-| 44 | Evaluate `-shuffle=on` for verify-ci per-module matrix legs (after go.sum class verified green)                  | S       |
-| 45 | Review TEST_TIMEOUT knob consistency (script 600s vs go -timeout vs timeout -k 15)                               | XS      |
-| 46 | Record integration-suite duration drift thresholds (64–98s observed for dgraph; 100s+ under -race)               | S       |
-| 47 | Confirm first green shuffled CI run for dgraph/redis explicitly; link it in the next report                      | XS      |
-| 48 | Consider `-shuffle=on` for load-sweep.sh / verify-parallel.sh invocations                                        | XS      |
-| 49 | Write the "shuffle program caught 2 real backend bugs" motivation line into the testing gotcha (§f50 prior)      | XS      |
-| 50 | Celebrate: two sessions in a row, live verification (shuffle eval, VM run) caught what static checks never would | XS      |
+| 44 | Evaluate `-shuffle=on` for verify-ci per-module matrix legs (after go.sum class verified green)                  | S      |
+| 45 | Review TEST_TIMEOUT knob consistency (script 600s vs go -timeout vs timeout -k 15)                               | XS     |
+| 46 | Record integration-suite duration drift thresholds (64–98s observed for dgraph; 100s+ under -race)               | S      |
+| 47 | Confirm first green shuffled CI run for dgraph/redis explicitly; link it in the next report                      | XS     |
+| 48 | Consider `-shuffle=on` for load-sweep.sh / verify-parallel.sh invocations                                        | XS     |
+| 49 | Write the "shuffle program caught 2 real backend bugs" motivation line into the testing gotcha (§f50 prior)      | XS     |
+| 50 | Celebrate: two sessions in a row, live verification (shuffle eval, VM run) caught what static checks never would | XS     |
 
 ---
 
@@ -373,22 +372,22 @@ I classified the causes and fixed the go.sum class, the rest is triaged into a �
 
 ## Verification receipts (commands + outcomes)
 
-| Check | Result |
-| ----- | ------ |
-| `scripts/check-changelog-symbols.sh` | ✓ 20 citations honest |
-| `nix run .#check-file-size` | 58 offenders (recount); store.go + bundle.go fixed |
-| storage/view split: build/vet/test (GOWORK=off, jsonv2) | ok, 0.062s |
-| stack split: build/vet/test | ok (contracttest/sqlopt included) |
-| `nix run .#integration-dgraph` with `TEST_ARGS="-race -timeout 15m" CGO_ENABLED=1` | PASS 100.5s, seed 1789…871, 0 races |
-| dgraphengine unit tests (`-run "TestIsContentionError\|TestRetryOnContention"`) | ok ×3 runs (0.75s) |
-| `nix run .#lint-module -- storage / stack / metaengine/dgraphengine` | 0 issues / 0 issues / 0 issues (after nolint+golines fix) |
-| `nix run .#integration-mysql-vm` (run 1) | RED: sqlstore module setup (go.sum) — legit catch |
-| `nix run .#integration-mysql-vm` (run 2, post-fix) | stack/mysql PASS; sqlstore 3/4 PASS; AtomicClaim local-env fail (CI-green) |
-| go.sum sweep (84 modules, integration-tagged vet) | 7 broken → tidied → 84/84 OK |
-| CI run 34548534824 job scan | 15+ failing; NixOS VM Tests all SUCCESS incl. mysql; no green in last 30 runs |
-| doc-check full corpus (×3) | ✓ 1273 references valid, 64 packages |
-| `nix run .#check-duplication` | 2 new groups — parallel session's cqrs-lint files; 0 from this session |
+| Check                                                                              | Result                                                                        |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `scripts/check-changelog-symbols.sh`                                               | ✓ 20 citations honest                                                         |
+| `nix run .#check-file-size`                                                        | 58 offenders (recount); store.go + bundle.go fixed                            |
+| storage/view split: build/vet/test (GOWORK=off, jsonv2)                            | ok, 0.062s                                                                    |
+| stack split: build/vet/test                                                        | ok (contracttest/sqlopt included)                                             |
+| `nix run .#integration-dgraph` with `TEST_ARGS="-race -timeout 15m" CGO_ENABLED=1` | PASS 100.5s, seed 1789…871, 0 races                                           |
+| dgraphengine unit tests (`-run "TestIsContentionError\|TestRetryOnContention"`)    | ok ×3 runs (0.75s)                                                            |
+| `nix run .#lint-module -- storage / stack / metaengine/dgraphengine`               | 0 issues / 0 issues / 0 issues (after nolint+golines fix)                     |
+| `nix run .#integration-mysql-vm` (run 1)                                           | RED: sqlstore module setup (go.sum) — legit catch                             |
+| `nix run .#integration-mysql-vm` (run 2, post-fix)                                 | stack/mysql PASS; sqlstore 3/4 PASS; AtomicClaim local-env fail (CI-green)    |
+| go.sum sweep (84 modules, integration-tagged vet)                                  | 7 broken → tidied → 84/84 OK                                                  |
+| CI run 34548534824 job scan                                                        | 15+ failing; NixOS VM Tests all SUCCESS incl. mysql; no green in last 30 runs |
+| doc-check full corpus (×3)                                                         | ✓ 1273 references valid, 64 packages                                          |
+| `nix run .#check-duplication`                                                      | 2 new groups — parallel session's cqrs-lint files; 0 from this session        |
 
-*Nothing hand-committed per the never-commit rule; the auto-commit daemon has absorbed
+_Nothing hand-committed per the never-commit rule; the auto-commit daemon has absorbed
 all session artifacts (HEAD `526453f69` at report time). One file pending absorption at
-write time: none — clean except the parallel session's five foreign dirty files.*
+write time: none — clean except the parallel session's five foreign dirty files._

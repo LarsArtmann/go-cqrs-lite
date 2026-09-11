@@ -119,6 +119,7 @@
 ## f) NEXT (grounded in this session's observations; ~25, not padded to 50)
 
 **Finish this task's perimeter**
+
 1. Run `nix run .#verify-fast` (then full `#verify`) over current HEAD.
 2. Run `scripts/pin-sweep.sh --check`; repair every module it flags.
 3. Verify the `storage/eventstore` go.mod question with evidence, not vibes.
@@ -131,36 +132,36 @@
 **Remaining sweep §4 vocabulary (separate v5 batches, rule 2/3 discipline)**
 7. `listing.aggregate_projection` projection name (+ storage-key migration).
 8. Watermill metadata keys `aggregate_id`/`aggregate_type` (needs dual-read
-   window for cross-version interop).
+window for cross-version interop).
 9. events/commands SQL table columns (migration wave, never with a code
-   rename in the same commit).
+rename in the same commit).
 10. bbolt `command_serialization` CBOR tags (+ its golden test).
 11. `transport/grpc` proto fields — moot if module deleted first (item 17).
 12. benchkit result JSON key `aggregates` (benchmark output contract bump).
 13. Decide + document stance for `metaengine.ReadAggregate` pattern value,
-    cqrs-lint `"aggregate"` metadata/group-by key, pebble slog keys:
-    rename-at-v5 or deliberately keep (each is consumer-visible).
+cqrs-lint `"aggregate"` metadata/group-by key, pebble slog keys:
+rename-at-v5 or deliberately keep (each is consumer-visible).
 
 **v5 train mechanics (from the sweep artifact's own rules)**
 14. §1: delete the 42 aggregate-vocabulary aliases, one commit per module.
 15. §2: stop populating Record-bridge legacy fields at the cut.
 16. §3: delete tombstone metadata API (ADR-0114 completion).
 17. §5: wholesale deletions (stack presets, storage/view, storage/relational,
-    transport/http+grpc, ADR-0126 shells) — waves A→B→C per migration guide.
+transport/http+grpc, ADR-0126 shells) — waves A→B→C per migration guide.
 18. Re-run §6 consumer scans at the cut (they are date-stamped).
 
 **Carried from TODO_LIST/09-07 report read this session**
 19. iroh test-coverage holes (batch item 10, Effort M).
 20. Skill reference updates (MySQL claiming row, Doctor sections,
-    CALIB_DUMP usage — 07-43 §c4/§f40).
+CALIB_DUMP usage — 07-43 §c4/§f40).
 21. GitHub Actions billing (BLOCKED, user action).
 22. cqrs-lint self-lint credentials (BLOCKED, user/creds).
 23. error-taxonomy.md: verify it covers storage/pebble/watermill families at
-    all; extend if the doc aspires to completeness.
+all; extend if the doc aspires to completeness.
 
 **Hygiene**
 24. ~~Untrack `cmd/cqrs-upgrade/cqrs-upgrade` (10MB binary in git history).~~
-    done 2026-09-08 (docs-health pass: `git rm --cached` + .gitignore)
+done 2026-09-08 (docs-health pass: `git rm --cached` + .gitignore)
 25. CHANGELOG mapping-table column alignment cosmetic pass.
 
 ## g) QUESTIONS (cannot be answered from the repo)

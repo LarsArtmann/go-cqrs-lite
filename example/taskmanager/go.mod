@@ -40,9 +40,9 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.5.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
@@ -83,6 +83,6 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 )

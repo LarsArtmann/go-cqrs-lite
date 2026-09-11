@@ -79,7 +79,11 @@ func TestNormalizeEmbeddedDSN(t *testing.T) {
 		{name: "plain path untouched", dsn: "/data/app.db", want: "/data/app.db"},
 		{name: "file scheme stripped", dsn: "file:/data/app.db", want: "/data/app.db"},
 		{name: "file// scheme stripped", dsn: "file:///data/app.db", want: "/data/app.db"},
-		{name: "file with query params passes through", dsn: "file:/data/app.db?mode=memory", want: "file:/data/app.db?mode=memory"},
+		{
+			name: "file with query params passes through",
+			dsn:  "file:/data/app.db?mode=memory",
+			want: "file:/data/app.db?mode=memory",
+		},
 		{name: "remote untouched", dsn: "libsql://db.turso.io", want: "libsql://db.turso.io"},
 		{name: "memory untouched", dsn: ":memory:", want: ":memory:"},
 	}

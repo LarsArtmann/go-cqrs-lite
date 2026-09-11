@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** Deferred follow-ups already tracked: loose heuristic gates + over-length b022_b025/a020 files (TODO cqrs-lint section); the §b5 cheap F-family fixes + §b6/7 test-gap backlog are now routed as one TODO item. §g1 (sqlstore lint) was fixed same-day by `03-50`; §g2 350-line policy and §g3 batching remain owner calls.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 > **Status:** DONE 2026-09-11. Full `#verify` gate is the final step of this
 > session (build + vet + test + race + lint + doc-check; cqrs-lint module
 > suite green before it, API golden regenerated twice in-session and
@@ -62,19 +61,19 @@ Per-rule checklist (impl + tests + catalog vs builder + RULES.md + comment
 drift + negative coverage) across V(7), T(8), E(18), D(18), B(31), A(32, 2
 waves), F(30), and the S001 line-by-line remainder. **Defects fixed:**
 
-| Defect | Fix |
-| --- | --- |
-| V006 lexicographic semver sort (v4.10.0 < v4.9.0) | `semverCompare` numeric ordering + multi-digit regression test |
-| V007 discarded `Build()` errors ×3, literal tool name | `lintutil.AppendBuild` guards, `toolName` const |
-| v007.go 399 lines (>350) | path/lookup helpers split into `v007_paths.go` |
-| E017 `.Stop()`/`.Shutdown(` suppression could never match (ExprString renders no parens) → real FPs | selector-name matching + 2 negative tests (taskmanager's true `Shutdown` no longer flagged) |
-| D001 finding anchor randomized by map iteration | deterministic (file, line) sort |
-| D005 parsed this repo's own `module go-cqrs-lite` as a version | `module`/non-`v` line skip |
-| D011, A002, A003, A022, A024, A027, A030 hardcoded package-qualifier names (A014 alias-blindness class) | new `lintutil.QualifierTargetsModule` (type checker → import table → segment fallback) |
-| A013 missed `*command.BasicCommand` (qualified pointer embed) | StarExpr→SelectorExpr accepted; taskmanager reports the 10 real embeds |
-| S001 missed package-level var/const, composite-literal fields, map-key assignment | three new coverage paths + `s001LHSName`; FP-gate negative test added |
-| B021 missing method-fold `StrictApply` suppression parity with B005 | `lastSegmentOfFoldName` fallback + injected-registry tests (fold scanner currently skips methods — noted) |
-| T004 dead `go-snaps` disjunct; 9 comment drifts | removed/corrected |
+| Defect                                                                                                  | Fix                                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| V006 lexicographic semver sort (v4.10.0 < v4.9.0)                                                       | `semverCompare` numeric ordering + multi-digit regression test                                            |
+| V007 discarded `Build()` errors ×3, literal tool name                                                   | `lintutil.AppendBuild` guards, `toolName` const                                                           |
+| v007.go 399 lines (>350)                                                                                | path/lookup helpers split into `v007_paths.go`                                                            |
+| E017 `.Stop()`/`.Shutdown(` suppression could never match (ExprString renders no parens) → real FPs     | selector-name matching + 2 negative tests (taskmanager's true `Shutdown` no longer flagged)               |
+| D001 finding anchor randomized by map iteration                                                         | deterministic (file, line) sort                                                                           |
+| D005 parsed this repo's own `module go-cqrs-lite` as a version                                          | `module`/non-`v` line skip                                                                                |
+| D011, A002, A003, A022, A024, A027, A030 hardcoded package-qualifier names (A014 alias-blindness class) | new `lintutil.QualifierTargetsModule` (type checker → import table → segment fallback)                    |
+| A013 missed `*command.BasicCommand` (qualified pointer embed)                                           | StarExpr→SelectorExpr accepted; taskmanager reports the 10 real embeds                                    |
+| S001 missed package-level var/const, composite-literal fields, map-key assignment                       | three new coverage paths + `s001LHSName`; FP-gate negative test added                                     |
+| B021 missing method-fold `StrictApply` suppression parity with B005                                     | `lastSegmentOfFoldName` fallback + injected-registry tests (fold scanner currently skips methods — noted) |
+| T004 dead `go-snaps` disjunct; 9 comment drifts                                                         | removed/corrected                                                                                         |
 
 Golden updates (both intended): `testdata/taskmanager_golden.txt` regenerated;
 `taskmanagerGoldenProfile` gains `"A013": 10`, drops `"E017": 1`.

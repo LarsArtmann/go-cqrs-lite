@@ -8,21 +8,21 @@ each row.
 
 ## Status table
 
-| Surface                              | Format | Current keys                                  | Legacy keys accepted                         | Legacy written?      | Fallback dies |
-| ------------------------------------ | ------ | --------------------------------------------- | -------------------------------------------- | -------------------- | ------------- |
-| `snapshot.Snapshot`                  | JSON   | `stream_id`, `stream_type`                    | `aggregateId`, `aggregateType` (decode-only) | no                   | v6            |
-| pebble snapshots                     | CBOR   | `stream_id`, `stream_type`                    | pre-rename rows decode with zeroed identity, rebuilt from the key | no | v6 |
-| bbolt events                         | CBOR   | `stream_id`, `stream_type`                    | `aggregate_id`, `aggregate_type` (decode-only) | no                | v6            |
-| bbolt commands                       | CBOR   | `stream_id`, `stream_type`                    | `aggregate_id`, `aggregate_type` (decode-only) | no                | v6            |
-| pebble commands                      | CBOR   | `stream_id`, `stream_type`                    | `aggregate_id`, `aggregate_type` (decode-only) | no                | v6            |
-| watermill event/command metadata     | KV     | `stream_id`, `stream_type`                    | `aggregate_id`, `aggregate_type` (dual-read) | **yes** (dual-write window) | v6 |
-| SQL `snapshots` columns              | SQL    | `stream_id`, `stream_type`                    | migrated by `MigrateSnapshotColumnsToStream` (auto-run at InitSchema) | n/a | n/a |
-| SQL `events`/`commands` columns      | SQL    | `aggregate_type`, `aggregate_id` — **still** | see assessment below                         | n/a                  | TBD (v5.x)    |
-| benchkit result JSON                 | JSON   | `streams`, `eventsPerStream` (schema `2.0.0`) | none — output contract, old keys gone       | n/a                  | n/a           |
-| error-family codes                   | string | stream vocabulary (`*.stream_*`, `read_stream`, …) | none — observability rename, batched 2026-09-08 | n/a | n/a |
-| transport/grpc proto fields          | proto  | `aggregate_id`, `aggregate_type` — module deleted wholesale at v5 (ADR-0127) | n/a | n/a | v5 |
-| pebble slog keys                     | log    | `stream_type`, `stream_id`                    | none                                         | n/a                  | n/a           |
-| `listing.aggregate_projection`       | string | projection name — consumer-visible in metaengine collections; still open (rename = collection identity change) | n/a | n/a | TBD |
+| Surface                          | Format | Current keys                                                                                                   | Legacy keys accepted                                                  | Legacy written?             | Fallback dies |
+| -------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------- | ------------- |
+| `snapshot.Snapshot`              | JSON   | `stream_id`, `stream_type`                                                                                     | `aggregateId`, `aggregateType` (decode-only)                          | no                          | v6            |
+| pebble snapshots                 | CBOR   | `stream_id`, `stream_type`                                                                                     | pre-rename rows decode with zeroed identity, rebuilt from the key     | no                          | v6            |
+| bbolt events                     | CBOR   | `stream_id`, `stream_type`                                                                                     | `aggregate_id`, `aggregate_type` (decode-only)                        | no                          | v6            |
+| bbolt commands                   | CBOR   | `stream_id`, `stream_type`                                                                                     | `aggregate_id`, `aggregate_type` (decode-only)                        | no                          | v6            |
+| pebble commands                  | CBOR   | `stream_id`, `stream_type`                                                                                     | `aggregate_id`, `aggregate_type` (decode-only)                        | no                          | v6            |
+| watermill event/command metadata | KV     | `stream_id`, `stream_type`                                                                                     | `aggregate_id`, `aggregate_type` (dual-read)                          | **yes** (dual-write window) | v6            |
+| SQL `snapshots` columns          | SQL    | `stream_id`, `stream_type`                                                                                     | migrated by `MigrateSnapshotColumnsToStream` (auto-run at InitSchema) | n/a                         | n/a           |
+| SQL `events`/`commands` columns  | SQL    | `aggregate_type`, `aggregate_id` — **still**                                                                   | see assessment below                                                  | n/a                         | TBD (v5.x)    |
+| benchkit result JSON             | JSON   | `streams`, `eventsPerStream` (schema `2.0.0`)                                                                  | none — output contract, old keys gone                                 | n/a                         | n/a           |
+| error-family codes               | string | stream vocabulary (`*.stream_*`, `read_stream`, …)                                                             | none — observability rename, batched 2026-09-08                       | n/a                         | n/a           |
+| transport/grpc proto fields      | proto  | `aggregate_id`, `aggregate_type` — module deleted wholesale at v5 (ADR-0127)                                   | n/a                                                                   | n/a                         | v5            |
+| pebble slog keys                 | log    | `stream_type`, `stream_id`                                                                                     | none                                                                  | n/a                         | n/a           |
+| `listing.aggregate_projection`   | string | projection name — consumer-visible in metaengine collections; still open (rename = collection identity change) | n/a                                                                   | n/a                         | TBD           |
 
 ## Pinning tests
 

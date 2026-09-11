@@ -30,12 +30,12 @@ Scalar (ungrouped) SUM views stayed exact in every test we ran.
 
 ## Environment
 
-| Item      | Value                                                                                                                                                                                 |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item      | Value                                                                                                                                                                                                     |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Driver    | `turso.tech/database/tursogo` **v0.7.2**, **v0.8.0-pre.8**, and **v0.8.0-pre.10** (official Go SDK for the embedded Turso database — SQLite-compatible ground-up rewrite; purego, no CGo; `database/sql`) |
-| Mode      | Embedded local file databases (`<path>?experimental=views`), `SetMaxOpenConns(1)`, single writer                                                                                      |
-| Go        | 1.26.x                                                                                                                                                                                |
-| OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395                                                                                                                                           |
+| Mode      | Embedded local file databases (`<path>?experimental=views`), `SetMaxOpenConns(1)`, single writer                                                                                                          |
+| Go        | 1.26.x                                                                                                                                                                                                    |
+| OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395                                                                                                                                                               |
 
 ## Defect A — grouped SUM deltas lost across transactions (silent wrong results)
 

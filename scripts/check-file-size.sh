@@ -43,7 +43,7 @@ if [ "${1:-}" = "--update-baseline" ]; then
 		echo "# Remove an entry when its file drops to <= ${LIMIT} lines."
 		echo "# Regenerate: bash scripts/check-file-size.sh --update-baseline"
 		find_go_files | while IFS= read -r f; do
-			lines=$(wc -l < "$f")
+			lines=$(wc -l <"$f")
 			if [ "$lines" -gt "$LIMIT" ]; then
 				printf '%s\t%s\n' "$lines" "$f"
 			fi
@@ -60,13 +60,13 @@ fi
 
 declare -A BASE
 while IFS=$'\t' read -r lines path; do
-	case "$lines" in ''|\#*) continue ;; esac
+	case "$lines" in '' | \#*) continue ;; esac
 	BASE["$path"]="$lines"
 done <"$BASELINE"
 
 failed=false
 while IFS= read -r f; do
-	lines=$(wc -l < "$f")
+	lines=$(wc -l <"$f")
 	if [ "$lines" -le "$LIMIT" ]; then
 		continue
 	fi

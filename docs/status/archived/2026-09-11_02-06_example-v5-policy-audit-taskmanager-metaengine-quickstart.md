@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed: cqrs-upgrade flags-after-positional guard + `--json` deprecations array + mechanized example v5-clean scan + V007 decider pair-form split brain + quickstart smoke test → TODO_LIST (cqrs-upgrade hardening batch + V007 item). §g1 provenance: the 09-09 audit record exists — `2026-09-11_02-05` verified both examples shipped 2026-09-09 (`6bb82f5b`); date stands. §g2 enforcement: routed as TODO option (c) (per-PR strict scan vs nightly sentinel). §g3 claim convention: still open, noted here.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-11 02:06 CEST
 **Session scope:** Single TODO_LIST item — `Example v5-policy audit` (source: 07-42 §f8). No other work assigned or performed. Per user directive, no unrelated research.
 **Verdict:** ✅ Audit complete. Both examples verified free of v5-removed APIs. All four examples now clean (getting-started + readme-quickstart: 2026-09-06).
@@ -14,7 +13,7 @@
 
 1. **The audit itself.** TODO item "Example v5-policy audit — taskmanager + metaengine-quickstart" is closed (parallel session annotated TODO_LIST.md:504-508 mid-session; my run independently confirms it with strictly broader evidence).
 2. **Scanner gate (corrected run).** `cqrs-upgrade --dry-run --strict --json <dir>` (flags BEFORE positional): exit 0 on both examples; JSON `deprecations` key absent = zero findings (`omitempty`, report.go:31); every go-cqrs-lite pin up-to-date (taskmanager: 17 modules; metaengine-quickstart: 7).
-3. **Independent V007 cross-check.** Direct grep of the FULL removal surface (`cmd/cqrs-lint/pkg/rules/version/v007_tables.go:17-323`, all 10 deprecated modules + ~60 deprecated symbols) over both example trees: **0 code usages**. Only hits are prose comments describing the *replaced* `Materialize.List` approach (taskmanager: metaengine.go:16, metaengine_test.go:17, integration_test.go:21, integration_test.go:211) — not API usage. These greps had no `--type` filter, so README code fences were covered too.
+3. **Independent V007 cross-check.** Direct grep of the FULL removal surface (`cmd/cqrs-lint/pkg/rules/version/v007_tables.go:17-323`, all 10 deprecated modules + ~60 deprecated symbols) over both example trees: **0 code usages**. Only hits are prose comments describing the _replaced_ `Materialize.List` approach (taskmanager: metaengine.go:16, metaengine_test.go:17, integration_test.go:21, integration_test.go:211) — not API usage. These greps had no `--type` filter, so README code fences were covered too.
 4. **Removed-module import grep.** `stack/{memory,sqlite,pebble,bbolt,duckdb,postgres,mysql,turso}`, `storage/relational`, `storage/view`: **0 hits**.
 5. **Deprecated decider pair-form sweep.** `Execute`/`Load`/`LoadAtVersion`/`LoadAtTime`/`WaitForVersion`/`ExecuteCommand`/typed `Load` (all marked "Deprecated: removed in v5" in decider/*.go): **0 example usages**. The lone `.Load(` hit (taskmanager/idempotency_test.go:54) is `event.Store.Load` — a core keeper API (event/store.go:70), not the pair-form.
 6. **Published-pin proof.** GOWORK=off build + vet + test per module: taskmanager full suite green; metaengine-quickstart build+vet clean (no test files exist). Neither example go.mod carries local `replace` directives, so the build proves compatibility against published tags, not workspace siblings.
@@ -22,9 +21,9 @@
 
 ## b) PARTIALLY DONE
 
-1. **My first scanner runs were methodologically broken (caught + corrected).** I passed flags AFTER the positional path (`go run . ../../example/taskmanager --dry-run --strict --json`). Go's `flag` package stops parsing at the first non-flag argument, so **all three flags were silently ignored** (main.go:66-77). Additionally my `$?` captured `tail`'s exit code, not the scanner's (pipeline masking — the exact trap AGENTS.md warns about). Mitigations that held anyway: the deprecation scan itself still ran and reported clean; no go.mod mutation occurred (all pins up-to-date → `editGoMod` was a no-op); and the conclusion is now backed by the corrected re-run (exit 0, strict active, JSON clean) plus the independent greps. The conclusion never changed; two of my initial *claims* ("strict", "exit 0") were not earned by the run that produced them.
+1. **My first scanner runs were methodologically broken (caught + corrected).** I passed flags AFTER the positional path (`go run . ../../example/taskmanager --dry-run --strict --json`). Go's `flag` package stops parsing at the first non-flag argument, so **all three flags were silently ignored** (main.go:66-77). Additionally my `$?` captured `tail`'s exit code, not the scanner's (pipeline masking — the exact trap AGENTS.md warns about). Mitigations that held anyway: the deprecation scan itself still ran and reported clean; no go.mod mutation occurred (all pins up-to-date → `editGoMod` was a no-op); and the conclusion is now backed by the corrected re-run (exit 0, strict active, JSON clean) plus the independent greps. The conclusion never changed; two of my initial _claims_ ("strict", "exit 0") were not earned by the run that produced them.
 2. **metaengine-quickstart has no tests.** "Runs all 4 demo sections green" rests on the parallel session's annotation; my verification is build+vet only. A smoke test would close this.
-3. **README pair-form sweep gap.** The pair-form grep ran with `--type go`, so README code fences were not swept for pair-form *method calls* (the symbol/module greps did cover READMEs). Residual risk: tiny but real.
+3. **README pair-form sweep gap.** The pair-form grep ran with `--type go`, so README code fences were not swept for pair-form _method calls_ (the symbol/module greps did cover READMEs). Residual risk: tiny but real.
 
 ## c) NOT STARTED
 
@@ -52,7 +51,7 @@
 4. Meta-test `TestEveryExampleAvoidsV5RemovedAPIs`: scan example `*.go` + README fences against the V007 tables (cmd/api-stability or cqrs-lint home).
 5. Repurpose the nightly sentinel evidence: make it post a v5-cleanliness summary (per-module findings count) instead of just exit codes.
 6. metaengine-quickstart: add a smoke test exercising the 4 demo sections (currently zero test files).
-7. Sweep all 4 example READMEs for deprecated pair-form *calls* (closes this session's `--type go` gap).
+7. Sweep all 4 example READMEs for deprecated pair-form _calls_ (closes this session's `--type go` gap).
 8. Document the flags-after-positional gotcha in `docs/agents/gotchas-tooling-build.md`.
 9. Add a concrete `set -o pipefail` / `PIPESTATUS` example to the gotchas (AGENTS.md warns about masking in prose; give the bash recipe).
 10. Record the verified scanner invocation (flags-first) in project gotchas/memory for future audits.
@@ -100,9 +99,9 @@
 ## g) Questions I cannot figure out myself (max 3)
 
 1. **Provenance of "DONE 2026-09-09".** The closed TODO item claims an original 2026-09-09 audit, but in-session I found no 2026-09-09 record for these two examples (07-42 is 2026-09-06 and covered getting-started + readme-quickstart only). Was there a 09-09 session/report I should cite, or should the date be corrected to 2026-09-11?
-2. **Enforcement policy.** Should example v5-cleanliness become a *blocking* per-PR CI gate, or stay advisory (nightly sentinel + periodic manual audit)? Blocking costs ~4 fast module scans per PR; advisory risks the TODO class regenerating.
+2. **Enforcement policy.** Should example v5-cleanliness become a _blocking_ per-PR CI gate, or stay advisory (nightly sentinel + periodic manual audit)? Blocking costs ~4 fast module scans per PR; advisory risks the TODO class regenerating.
 3. **Concurrent-agent convention.** A parallel session closed the exact item I was auditing and held uncommitted edits in files I needed to touch. Do you want a claim/lock convention for TODO items across concurrent agents, or is daemon-absorbed convergence acceptable?
 
 ---
 
-*Report per user instruction: Markdown at `docs/status/` (explicit user format override of the status-report skill's HTML default — flagged, not propagated back into the skill). Self-review folded into sections d/e per the same single-deliverable instruction. Not committing per critical rules; the auto-commit daemon will absorb this file.*
+_Report per user instruction: Markdown at `docs/status/` (explicit user format override of the status-report skill's HTML default — flagged, not propagated back into the skill). Self-review folded into sections d/e per the same single-deliverable instruction. Not committing per critical rules; the auto-commit daemon will absorb this file._

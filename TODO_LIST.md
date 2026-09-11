@@ -55,21 +55,22 @@ bottom is a do-not-re-litigate guard, not a backlog.
 >
 > **ALL 27 tasks (M-01..M-27) DONE 2026-09-10** — shipped surface lives in
 > CHANGELOG `[Unreleased]`: Reset warn-guard + projectionadapter `Resettable`
-> + ADR-0136, the coeffect gate (`DomainConfig.Events` /
-> `ErrDanglingEventSubscription`), cqrs-lint E018, `ValidateCoeffects` +
-> `coeffects.md`, the arXiv grounding + figure recounts, ADR-0137 engine
-> deactivation (quarantine/reroute/reprobe + Doctor/Stats health), and the
-> equivalence tooling (`scenario.Interleaved` /
-> `AssertObservationalEquivalence` + rapid property). Vocabulary stays
-> internal-only until v5 (M-26 default held, verified leak-free). The
-> 2026-09-11 follow-up wave closed the rest in-tree (CHANGELOG
-> `[Unreleased]`): `EngineResetter` on every engine (sqlite 🔥 + pg, mysql,
-> duckdb, pebble, bbolt, badger, dgraph, iroh; turso by delegation), reset
-> capability surfaced in Doctor/`GetEngineStats` (`CanReset`), C040 fold-case
-> coverage with E018 provider parity, goleak for `metaengine` +
-> `projectionhost`, the `[Unreleased]`-position tripwire in `verify-docs.sh`,
-> and fold-write failover with `CatchUpEngine` (ADR-0137 completion —
-> writes reroute like reads; reprobe rebuilds before reactivating).
+>
+> - ADR-0136, the coeffect gate (`DomainConfig.Events` /
+>   `ErrDanglingEventSubscription`), cqrs-lint E018, `ValidateCoeffects` +
+>   `coeffects.md`, the arXiv grounding + figure recounts, ADR-0137 engine
+>   deactivation (quarantine/reroute/reprobe + Doctor/Stats health), and the
+>   equivalence tooling (`scenario.Interleaved` /
+>   `AssertObservationalEquivalence` + rapid property). Vocabulary stays
+>   internal-only until v5 (M-26 default held, verified leak-free). The
+>   2026-09-11 follow-up wave closed the rest in-tree (CHANGELOG
+>   `[Unreleased]`): `EngineResetter` on every engine (sqlite 🔥 + pg, mysql,
+>   duckdb, pebble, bbolt, badger, dgraph, iroh; turso by delegation), reset
+>   capability surfaced in Doctor/`GetEngineStats` (`CanReset`), C040 fold-case
+>   coverage with E018 provider parity, goleak for `metaengine` +
+>   `projectionhost`, the `[Unreleased]`-position tripwire in `verify-docs.sh`,
+>   and fold-write failover with `CatchUpEngine` (ADR-0137 completion —
+>   writes reroute like reads; reprobe rebuilds before reactivating).
 
 - [ ] **Release-train note** — the `metaengine/projectionadapter` and
       `metaengine/irohengine` sibling replaces (unpublished `EngineResetter`
@@ -553,10 +554,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
 ## Core Data Model v4.x/v5 (2026-08-22 review + plan)
 
 > Source: [core data-model review](docs/reviews/2026-08-22_core-data-model-review.html)
-> + [execution plan](docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md).
-> Owner decision 2026-08-22 (Appendix B): string `record.StreamRef` SURVIVES
-> v5 with a validating constructor; the struct `record.Stream` proposal is
-> rejected.
+>
+> - [execution plan](docs/planning/archived/2026-08-22_03-52_core-data-model-v5-execution-plan.md).
+>   Owner decision 2026-08-22 (Appendix B): string `record.StreamRef` SURVIVES
+>   v5 with a validating constructor; the struct `record.Stream` proposal is
+>   rejected.
 
 - [ ] **T23 — upstream skill-maintenance pass** (the plan's one open task):
       docs/reviews↔brainstorming divergence; read-prior-reports +

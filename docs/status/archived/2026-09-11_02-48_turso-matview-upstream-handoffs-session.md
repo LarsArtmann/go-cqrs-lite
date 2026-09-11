@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed into TODO_LIST: `ivm_repro_test.go` (-tags ivmrepro), single-source version citation + flip runbook, defect-A characterization (bisect + scalar-at-scale + pre.10 anomaly), routing track (existing item), actionlint-on-benchmarks.yml (existing item extended), quiet-window re-baseline (calibration item). Deferred doc polish left unharvested per routing rigor: grouped COUNT/MIN/AVG golden coverage, docs-site page, FAQ entry, tursoengine README bench link (§f34/§45-47) — pick up with the next turso work.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-11 02:48 CEST
 **Scope of this report:** ONLY the 2026-09-11 session (~01:30–02:48 CEST) that executed
 the `TODO_LIST.md → "Turso materialized views (ADR-0135) — upstream handoffs"` section.
@@ -14,15 +13,15 @@ No unrelated research was done; observations are limited to what this session to
 
 **Stat cards (this session):**
 
-| Metric | Count |
-| --- | --- |
-| TODO items fully closed with evidence | 4 |
-| TODO items sharpened / re-gated (not closed) | 2 |
-| Items BLOCKED (user gate) | 1 (upstream issue filing — declined this session) |
-| Live version citations refreshed | 9 sites |
-| New tests | 2 (property + defect-envelope guard) |
-| Bugs found in our own tooling | 2 (stale TODO claims, `comm` locale bug) |
-| Verified against turso-go | v0.8.0-pre.10 (latest release) |
+| Metric                                       | Count                                             |
+| -------------------------------------------- | ------------------------------------------------- |
+| TODO items fully closed with evidence        | 4                                                 |
+| TODO items sharpened / re-gated (not closed) | 2                                                 |
+| Items BLOCKED (user gate)                    | 1 (upstream issue filing — declined this session) |
+| Live version citations refreshed             | 9 sites                                           |
+| New tests                                    | 2 (property + defect-envelope guard)              |
+| Bugs found in our own tooling                | 2 (stale TODO claims, `comm` locale bug)          |
+| Verified against turso-go                    | v0.8.0-pre.10 (latest release)                    |
 
 ---
 
@@ -195,12 +194,13 @@ No unrelated research was done; observations are limited to what this session to
 
 ## f) 50 things we should get done next
 
-*Per the status-report skill: this is a brainstorm, not a commitment list — most items
-beyond the first ~10 are ROADMAP fuel for docs-health HARVEST routing.*
+_Per the status-report skill: this is a brainstorm, not a commitment list — most items
+beyond the first ~10 are ROADMAP fuel for docs-health HARVEST routing._
 
 **Direct follow-ups from this session (highest impact, smallest effort):**
+
 1. File the standalone upstream issue (defects A+B) — draft is release-current as of
-   today; still needs user approval. *(BLOCKED on user)*
+   today; still needs user approval. _(BLOCKED on user)_
 2. Investigate the pre.10 anomaly (collapse at 26k, post-abort view self-heal) and
    correct the draft's determinism claims before filing anything.
 3. Build `ivm_repro_test.go` behind `-tags ivmrepro`: all three defects (A envelope,
@@ -221,28 +221,28 @@ beyond the first ~10 are ROADMAP fuel for docs-health HARVEST routing.*
 11. Quantify CI time delta of the new gate set + property test; tune
     `-rapid.checks`/benchtime if the regression job nears its 15-minute timeout.
 12. Watch PR #8257; if maintainers respond, link the refreshed pre.10 re-check from the
-    thread. *(recurring)*
-13. Re-run the repro on the next turso-go release (v0.8.0-pre.11+). *(recurring)*
+    thread. _(recurring)_
+13. Re-run the repro on the next turso-go release (v0.8.0-pre.11+). _(recurring)_
 14. Ask on #8257 whether A+B should be a separate issue (reduces filing friction when
-    approval lands). *(needs user approval for any comment)*
+    approval lands). _(needs user approval for any comment)_
 
 **Routing/cost-model track (the M-effort seam):**
 15. Add declarative aggregate shape to `QueryDecl` (e.g. `AggregateOn(fn, column,
     group)`) — the plan-time seam routing needs.
 16. Routing v1: scalar-covered aggregates cost as per-query O(1); grouped stays O(N)
-    until upstream fixes defect A.
+until upstream fixes defect A.
 17. Expose matview coverage in `ExplainPlan`/`Doctor` so operators see WHY routing
-    picked an engine.
+picked an engine.
 18. Regression-test: routing prefers the Turso engine for covered scalar aggregates at
-    volume (planner-level).
+volume (planner-level).
 19. `MaterializedViewsReporter` wired into `GetEngineStats` (programmatic access).
 
 **Code guard / operator safety track:**
 20. Pre-decide the code-guard default now (validation-refusal vs `AllowGroupedViews`
-    opt-in) so the wait for upstream doesn't gate implementation.
+opt-in) so the wait for upstream doesn't gate implementation.
 21. Per-view IVM write-amplification otel counter (operators must see the tax).
 22. Doctor: warn when a declared view has 0 reads served (needs the served counter
-    from 21).
+from 21).
 23. cqrs-lint rule: matview spec on unsupported driver.
 24. cqrs-lint rule: matview + planned-table on one collection (staleness trap).
 
@@ -271,15 +271,15 @@ beyond the first ~10 are ROADMAP fuel for docs-health HARVEST routing.*
 
 **Docs & hygiene:**
 44. `docs/DOMAIN_LANGUAGE.md`: "materialized view acceleration", "IVM",
-    "view-maintained write".
+"view-maintained write".
 45. docs-site page for the operator option (ADR-0135 + recipes §2.29).
 46. FAQ: "why is my aggregate still slow?" (Doctor section + EXPLAIN workflow).
 47. tursoengine README table link to the bench doc.
 48. Remote Turso deployment guide + live benchmark (needs credentials from user).
 49. Tag wave for the matview feature at the next release (pins + replace strip +
-    GOWORK=off matrix) — and a published-pin matview smoke test after each wave.
+GOWORK=off matrix) — and a published-pin matview smoke test after each wave.
 50. Re-pin `.art-dupl-baseline.json` if the new test file created clone groups (run
-    `nix run .#check-duplication`; today's session never ran it) in a TITLED commit.
+`nix run .#check-duplication`; today's session never ran it) in a TITLED commit.
 
 ## g) Questions I cannot figure out myself
 

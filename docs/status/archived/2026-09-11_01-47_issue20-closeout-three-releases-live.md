@@ -3,7 +3,6 @@
 > **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed into TODO_LIST: v4.10.2 buildinfo tag, `check-retracts-shipped.sh`, `--audit --baseline`, smoke-probes, batch-release.sh audit, dead-path decisions (now ROADMAP Open Question 11), nightly-dogfood watch. §g: external badger deployments unknown (owner), dead-path ruling → OQ 11, autonomous tag-push policy unanswered — nothing was pushed autonomously.
 > Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
 
-
 **Date:** 2026-09-11 01:47 CEST
 **Session scope:** The 6-item tooling/release TODO batch (cqrs-bench stub, retract v4.8.0, tag-release.sh hardening, version-reporting unification, cqrs-upgrade CI dogfood, badger data-loss review) — executed end-to-end, tagged, pushed, and proxy-verified.
 **HEAD at report time:** `e37642adf` "fix(release-tooling): close issue-#20 class end-to-end" (committed 01:38:34, tree clean).
@@ -83,10 +82,10 @@ Each item is verifiably complete with evidence.
    the retract could ship immediately).
 
 8. **cqrs-upgrade CI dogfood job wired.** `check-upgrade-dogfood` flake app
-   + nightly `sentinel.yml` job (`--workspace --dry-run --strict .`).
-   Evidence: local full run — 83 modules, exit 0, **0 v5-removed API
-   findings**, 4m21s network-bound. All the flag work (--json/--workspace/
-   --to/--strict/x-mod) had shipped earlier; this was the last open piece.
+   - nightly `sentinel.yml` job (`--workspace --dry-run --strict .`).
+     Evidence: local full run — 83 modules, exit 0, **0 v5-removed API
+     findings**, 4m21s network-bound. All the flag work (--json/--workspace/
+     --to/--strict/x-mod) had shipped earlier; this was the last open piece.
 
 9. **Docs made truthful in the same wave.** CHANGELOG (3 new [Unreleased]
    sections; honesty gate green — "18 pkg.Symbol citations verified"),
@@ -341,58 +340,58 @@ Brainstorm, ranked by impact. Items marked ✅-harvest are already in
 TODO_LIST.md; the rest are candidates for docs-health HARVEST routing
 (TODO_LIST vs ROADMAP per its rigor rules).
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Confirm CI green on `e37642adf` (first run with new tag-release/audit/sentinel) | Critical | S | Quality |
-| 2 | Watch the first nightly `upgrade-dogfood` sentinel run; fix env gaps if any | High | S | Quality |
-| 3 | Run `scripts/pin-sweep.sh --check` post-push; sweep stale pins against v4.10.1/v4.2.1 | High | S | Cleanup |
-| 4 | HARVEST this report's (f) into TODO_LIST/ROADMAP (docs-health) | High | S | Documentation |
-| 5 | Tag cmd/cqrs-lint v4.10.2 (or v4.11.0) shipping the buildinfo version reporting; verify installed binary prints the real tag | High | S | Feature |
-| 6 | Add `check-retracts-shipped.sh`: fail when a master go.mod retract is absent from the module's newest tag | High | S | Quality |
-| 7 | Add `--baseline` mode to `tag-release.sh --audit` (known 24 violations; gate NEW ones in CI) | High | M | Quality |
-| 8 | Create GitHub Releases for v0.1.1 / v4.10.1 / v4.2.1 via `create-github-releases.sh` | Medium | S | Cleanup |
-| 9 | Decide dead-path example modules (taskmanager/getting-started suffix-less go.mod): re-path to /v4, or delete, or document as v0-only | High | M | Cleanup |
-| 10 | Decide event/v4/eventtest invisible v0.x tags: document as dead in modules.md + pin-sweep note (already partially noted) | Medium | S | Documentation |
-| 11 | `scripts/smoke-probes.txt`: per-binary probe command for `--smoke` run check | Medium | S | Feature |
-| 12 | Strengthen test-tag-release.sh Test 5 (cover the no-main-package skip path with a fixture) | Medium | S | Quality |
-| 13 | Worktree cut wrapper `scripts/cut-tag-worktree.sh` (formalize the dance used three times today) | Medium | S | Feature |
-| 14 | Fix `bench-deadpath` oddity: `go install …cmd/cqrs-bench@latest` downloads root module `v1.7.1` — investigate why the stub's zip pulls the root | Low | S | Bug |
-| 15 | Wire or delete `check-file-size` (red on master: 10 files; decorative gates erode trust) — add baseline for violators then gate | High | M | Quality |
-| 16 | Shrink the 10 over-limit production files (suppression/parser.go 540, boilerplate/b022_b025.go 494, scorecard_render.go 444, …) | Medium | M/L | Cleanup |
-| 17 | Convention: guarantee-comments must cite the enforcing test; add to review checklist + consider a cqrs-lint rule | Medium | M | Quality |
-| 18 | cqrs-lint rule candidate: comment claims "X is seeded/validated" without a test reference (R&D) | Low | L | Feature |
-| 19 | Run `nix run .#verify` exclusively when tree is quiet (last full verify predates today's wave) | High | M | Quality |
-| 20 | Delete or repurpose `bump-cqrs-lint.sh`'s vestigial version argument (post-buildinfo) | Low | S | Cleanup |
-| 21 | Record today's audit run (1078/24/2) as a dated baseline doc next to the audit code | Medium | S | Documentation |
-| 22 | Add `--json` output to `tag-release.sh --audit` for machine consumption | Low | S | Feature |
-| 23 | Prune stale worktrees (`git worktree prune` for the 4 prunable entries from old sessions) | Low | S | Cleanup |
-| 24 | Consider retracting example/* v3/v4 invisible tags' *modules*… not possible — instead document in faq.md why old example tags 404 | Low | S | Documentation |
-| 25 | Add the `@latest` acceptance check as the documented final step in CONTRIBUTING release flow (already in tag-release output; mirror in cmd/cqrs-lint/CONTRIBUTING) | Medium | S | Documentation |
-| 26 | Verify pkg.go.dev displays the badger retract reason comment; screenshot/link in ADR-0118 addendum | Low | S | Documentation |
-| 27 | Fold "retract needs a tag" into the release checklist in CONTRIBUTING.md root (gotchas has it; checklist doesn't) | Medium | S | Documentation |
-| 28 | Run `nix run .#verify-ci` (GOWORK=off per-module matrix) after today's wave — catches pin breaks CI-per-module sees | High | L | Quality |
-| 29 | Grep repo for other master-only "pending release" directives: unfinished retracts, unbumped pins awaiting tags (`pin-sweep --check` covers pins; retracts now covered by #6) | Medium | S | Quality |
-| 30 | Add the three new tags to docs/agents/module-map.md internal notes (badger retraction note) | Low | S | Documentation |
-| 31 | benchmark-regression gate: run `./scripts/benchmark-regression.sh` after the wave (timing paths untouched, but cheap insurance) | Low | M | Quality |
-| 32 | Improve `emitJSON` in cqrs-upgrade: add `--strict` violation summary field at document level for CI dashboards | Low | S | Feature |
-| 33 | cqrs-upgrade: `--probe-command` flag generalizing the smoke-probe idea for consumers | Low | M | Feature |
-| 34 | Sentinel: alert when upgrade-dogfood reports >0 bumps available for 7+ days (signals repo pins rotting vs latest tags) | Medium | M | Feature |
-| 35 | FAQ entry: "why does `go install …/cmd/cqrs-bench@latest` fail loudly?" (the stub) so users self-serve | Low | S | Documentation |
-| 36 | Audit other modules for the badger class: KV engines whose restart seeding claims outrun their tests (bbolt/pebble spot-check) | High | M | Bug |
-| 37 | restart-safety harness: extend to a shared enginetest close/reopen matrix test ALL engines run (badger lesson generalized) | High | L | Quality |
-| 38 | ~~Inert-retract check~~ VERIFIED 2026-09-11 01:50: command/v4.10.0, query/v4.8.0, and storage/v4.9.0 all carry their retract directives — none inert. No action. | — | — | — |
-| 39 | Audit `scripts/batch-release.sh` for consistency with the hardened tag-release.sh (may encode the pre-hardening flow: no guard/probe/audit) | High | M | Quality |
-| 40 | Verify the LIVE `/v4` bench path was unaffected by the stub — VERIFIED 2026-09-11 01:50: `go list -m …/cmd/cqrs-bench/v4@latest` → v4.3.0. Done. | — | — | — |
-| 41 | doc-check pass over the edited docs (ADR-0118, gotchas) — they're outside doc-check's file list, but link rot applies | Low | S | Documentation |
-| 42 | Add `docs/status/README.md` index entry for this report (the dir has a README manifest) | Low | S | Documentation |
-| 43 | Consider `tag-release.sh --audit --module <dir>` scoping flag for post-wave spot audits | Low | S | Feature |
-| 44 | Telemetry nicety: audit summary line should include total tags seen vs checked (skipped breakdown by reason) | Low | S | Feature |
-| 45 | Move the "one-off stub commit" recipe into a reference doc (currently only in commit messages + gotchas) | Low | S | Documentation |
-| 46 | Re-run `nix run .#check-duplication` after the wave (tag-release.sh grew; shell dup gate may have opinions) | Medium | S | Quality |
-| 47 | shfmt/treefmt gate on CI for scripts/: confirm test-tag-release.sh passes the pre-commit shfmt (it passed nix fmt locally) | Low | S | Quality |
-| 48 | Add `TestResolvedVersionFromInstalled` style probe: a test that `go install`s the module from the proxy — nightly, not per-push (proxy-dependent) | Low | M | Quality |
-| 49 | ROADMAP candidate: generalize the retract-publish flow into `tag-release.sh --retract-only <module>` (patch tag with only go.mod delta) | Low | M | Feature |
-| 50 | Celebrate + archive: move superseded 2026-09-01/15 reports referencing these items to annotated-done per docs-health ANNOTATE | Low | S | Documentation |
+| #  | Task                                                                                                                                                                         | Impact   | Effort | Category      |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Confirm CI green on `e37642adf` (first run with new tag-release/audit/sentinel)                                                                                              | Critical | S      | Quality       |
+| 2  | Watch the first nightly `upgrade-dogfood` sentinel run; fix env gaps if any                                                                                                  | High     | S      | Quality       |
+| 3  | Run `scripts/pin-sweep.sh --check` post-push; sweep stale pins against v4.10.1/v4.2.1                                                                                        | High     | S      | Cleanup       |
+| 4  | HARVEST this report's (f) into TODO_LIST/ROADMAP (docs-health)                                                                                                               | High     | S      | Documentation |
+| 5  | Tag cmd/cqrs-lint v4.10.2 (or v4.11.0) shipping the buildinfo version reporting; verify installed binary prints the real tag                                                 | High     | S      | Feature       |
+| 6  | Add `check-retracts-shipped.sh`: fail when a master go.mod retract is absent from the module's newest tag                                                                    | High     | S      | Quality       |
+| 7  | Add `--baseline` mode to `tag-release.sh --audit` (known 24 violations; gate NEW ones in CI)                                                                                 | High     | M      | Quality       |
+| 8  | Create GitHub Releases for v0.1.1 / v4.10.1 / v4.2.1 via `create-github-releases.sh`                                                                                         | Medium   | S      | Cleanup       |
+| 9  | Decide dead-path example modules (taskmanager/getting-started suffix-less go.mod): re-path to /v4, or delete, or document as v0-only                                         | High     | M      | Cleanup       |
+| 10 | Decide event/v4/eventtest invisible v0.x tags: document as dead in modules.md + pin-sweep note (already partially noted)                                                     | Medium   | S      | Documentation |
+| 11 | `scripts/smoke-probes.txt`: per-binary probe command for `--smoke` run check                                                                                                 | Medium   | S      | Feature       |
+| 12 | Strengthen test-tag-release.sh Test 5 (cover the no-main-package skip path with a fixture)                                                                                   | Medium   | S      | Quality       |
+| 13 | Worktree cut wrapper `scripts/cut-tag-worktree.sh` (formalize the dance used three times today)                                                                              | Medium   | S      | Feature       |
+| 14 | Fix `bench-deadpath` oddity: `go install …cmd/cqrs-bench@latest` downloads root module `v1.7.1` — investigate why the stub's zip pulls the root                              | Low      | S      | Bug           |
+| 15 | Wire or delete `check-file-size` (red on master: 10 files; decorative gates erode trust) — add baseline for violators then gate                                              | High     | M      | Quality       |
+| 16 | Shrink the 10 over-limit production files (suppression/parser.go 540, boilerplate/b022_b025.go 494, scorecard_render.go 444, …)                                              | Medium   | M/L    | Cleanup       |
+| 17 | Convention: guarantee-comments must cite the enforcing test; add to review checklist + consider a cqrs-lint rule                                                             | Medium   | M      | Quality       |
+| 18 | cqrs-lint rule candidate: comment claims "X is seeded/validated" without a test reference (R&D)                                                                              | Low      | L      | Feature       |
+| 19 | Run `nix run .#verify` exclusively when tree is quiet (last full verify predates today's wave)                                                                               | High     | M      | Quality       |
+| 20 | Delete or repurpose `bump-cqrs-lint.sh`'s vestigial version argument (post-buildinfo)                                                                                        | Low      | S      | Cleanup       |
+| 21 | Record today's audit run (1078/24/2) as a dated baseline doc next to the audit code                                                                                          | Medium   | S      | Documentation |
+| 22 | Add `--json` output to `tag-release.sh --audit` for machine consumption                                                                                                      | Low      | S      | Feature       |
+| 23 | Prune stale worktrees (`git worktree prune` for the 4 prunable entries from old sessions)                                                                                    | Low      | S      | Cleanup       |
+| 24 | Consider retracting example/* v3/v4 invisible tags' _modules_… not possible — instead document in faq.md why old example tags 404                                            | Low      | S      | Documentation |
+| 25 | Add the `@latest` acceptance check as the documented final step in CONTRIBUTING release flow (already in tag-release output; mirror in cmd/cqrs-lint/CONTRIBUTING)           | Medium   | S      | Documentation |
+| 26 | Verify pkg.go.dev displays the badger retract reason comment; screenshot/link in ADR-0118 addendum                                                                           | Low      | S      | Documentation |
+| 27 | Fold "retract needs a tag" into the release checklist in CONTRIBUTING.md root (gotchas has it; checklist doesn't)                                                            | Medium   | S      | Documentation |
+| 28 | Run `nix run .#verify-ci` (GOWORK=off per-module matrix) after today's wave — catches pin breaks CI-per-module sees                                                          | High     | L      | Quality       |
+| 29 | Grep repo for other master-only "pending release" directives: unfinished retracts, unbumped pins awaiting tags (`pin-sweep --check` covers pins; retracts now covered by #6) | Medium   | S      | Quality       |
+| 30 | Add the three new tags to docs/agents/module-map.md internal notes (badger retraction note)                                                                                  | Low      | S      | Documentation |
+| 31 | benchmark-regression gate: run `./scripts/benchmark-regression.sh` after the wave (timing paths untouched, but cheap insurance)                                              | Low      | M      | Quality       |
+| 32 | Improve `emitJSON` in cqrs-upgrade: add `--strict` violation summary field at document level for CI dashboards                                                               | Low      | S      | Feature       |
+| 33 | cqrs-upgrade: `--probe-command` flag generalizing the smoke-probe idea for consumers                                                                                         | Low      | M      | Feature       |
+| 34 | Sentinel: alert when upgrade-dogfood reports >0 bumps available for 7+ days (signals repo pins rotting vs latest tags)                                                       | Medium   | M      | Feature       |
+| 35 | FAQ entry: "why does `go install …/cmd/cqrs-bench@latest` fail loudly?" (the stub) so users self-serve                                                                       | Low      | S      | Documentation |
+| 36 | Audit other modules for the badger class: KV engines whose restart seeding claims outrun their tests (bbolt/pebble spot-check)                                               | High     | M      | Bug           |
+| 37 | restart-safety harness: extend to a shared enginetest close/reopen matrix test ALL engines run (badger lesson generalized)                                                   | High     | L      | Quality       |
+| 38 | ~~Inert-retract check~~ VERIFIED 2026-09-11 01:50: command/v4.10.0, query/v4.8.0, and storage/v4.9.0 all carry their retract directives — none inert. No action.             | —        | —      | —             |
+| 39 | Audit `scripts/batch-release.sh` for consistency with the hardened tag-release.sh (may encode the pre-hardening flow: no guard/probe/audit)                                  | High     | M      | Quality       |
+| 40 | Verify the LIVE `/v4` bench path was unaffected by the stub — VERIFIED 2026-09-11 01:50: `go list -m …/cmd/cqrs-bench/v4@latest` → v4.3.0. Done.                             | —        | —      | —             |
+| 41 | doc-check pass over the edited docs (ADR-0118, gotchas) — they're outside doc-check's file list, but link rot applies                                                        | Low      | S      | Documentation |
+| 42 | Add `docs/status/README.md` index entry for this report (the dir has a README manifest)                                                                                      | Low      | S      | Documentation |
+| 43 | Consider `tag-release.sh --audit --module <dir>` scoping flag for post-wave spot audits                                                                                      | Low      | S      | Feature       |
+| 44 | Telemetry nicety: audit summary line should include total tags seen vs checked (skipped breakdown by reason)                                                                 | Low      | S      | Feature       |
+| 45 | Move the "one-off stub commit" recipe into a reference doc (currently only in commit messages + gotchas)                                                                     | Low      | S      | Documentation |
+| 46 | Re-run `nix run .#check-duplication` after the wave (tag-release.sh grew; shell dup gate may have opinions)                                                                  | Medium   | S      | Quality       |
+| 47 | shfmt/treefmt gate on CI for scripts/: confirm test-tag-release.sh passes the pre-commit shfmt (it passed nix fmt locally)                                                   | Low      | S      | Quality       |
+| 48 | Add `TestResolvedVersionFromInstalled` style probe: a test that `go install`s the module from the proxy — nightly, not per-push (proxy-dependent)                            | Low      | M      | Quality       |
+| 49 | ROADMAP candidate: generalize the retract-publish flow into `tag-release.sh --retract-only <module>` (patch tag with only go.mod delta)                                      | Low      | M      | Feature       |
+| 50 | Celebrate + archive: move superseded 2026-09-01/15 reports referencing these items to annotated-done per docs-health ANNOTATE                                                | Low      | S      | Documentation |
 
 ---
 
@@ -450,6 +449,6 @@ dogfood (local, pre-CI): 83 modules, exit 0, 0 findings, 4m21s
 nix fmt: 0 files changed (tree format-clean)
 ```
 
-*Point-in-time snapshot — will go stale. Section (f) awaits docs-health
+_Point-in-time snapshot — will go stale. Section (f) awaits docs-health
 HARVEST. Report not committed by hand (no-commit rule); the auto-commit
-daemon is expected to absorb it, as it did the working tree at 01:38:34.*
+daemon is expected to absorb it, as it did the working tree at 01:38:34._

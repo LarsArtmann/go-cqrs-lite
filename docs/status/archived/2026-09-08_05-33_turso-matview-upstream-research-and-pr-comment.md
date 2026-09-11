@@ -230,10 +230,10 @@ table staleness trap.
 36. Tag wave: bump pins, strip replaces (sqliteengine/tursoengine/system).
 37. cqrs-lint taskmanager golden refresh in the same wave (V006 coupling).
 38. ~~TODO_LIST: add the items from the 2026-09-07 status report's §f that
-  are still missing there (this report supersedes that list — reconcile).~~
-  done 2026-09-08 docs pass (safety tail + v2 surface routed)
+are still missing there (this report supersedes that list — reconcile).~~
+done 2026-09-08 docs pass (safety tail + v2 surface routed)
 39. ~~Archive the 2026-09-07 status report per docs-health conventions when
-  the next docs pass runs.~~ done 2026-09-08 (this pass)
+the next docs pass runs.~~ done 2026-09-08 (this pass)
 40. docs-site page for the operator option + the correctness warning.
 41. FAQ entry: "why is my grouped matview aggregate wrong?" → Doctor WARN +
 upstream issue link once filed.
@@ -242,9 +242,9 @@ view acceleration.
 43. Sweep the `.art-dupl-baseline.json` re-pin into a titled commit message
 if the daemon's heuristic commit bothers anyone (it's documented).
 44. ~~Foreign session: `cmd/cqrs-upgrade` LAYER/DEP_BUDGET entries still
-  missing (check-arch still red on their files) + their committed 10.7 MB
-  binary — flag to that session's owner.~~ done — the cqrs-upgrade session
-  registered all 4 meta-gates (SUPERB §a5); binary untracked 2026-09-08
+missing (check-arch still red on their files) + their committed 10.7 MB
+binary — flag to that session's owner.~~ done — the cqrs-upgrade session
+registered all 4 meta-gates (SUPERB §a5); binary untracked 2026-09-08
 45. Confirm `#verify-ci` includes the new test files (it should; one check).
 46. Consider CI leg running the ivmrepro-tagged test against new tursogo
 pre-releases (early-warning for the fix landing).
@@ -253,10 +253,10 @@ follow-ups.
 48. Re-pin the duplication baseline only via titled commits going forward
 (per the gotcha's spirit).
 49. ~~Update SKILL.md read-model matrix row with the grouped-view caveat
-  (currently only recipes carry it).~~ done 2026-09-08 (docs-health pass)
+(currently only recipes carry it).~~ done 2026-09-08 (docs-health pass)
 50. ~~Reconcile this report's §f with TODO_LIST so exactly one list is
-  canonical (TODO_LIST wins; this report is point-in-time).~~ done
-  2026-09-08 docs pass
+canonical (TODO_LIST wins; this report is point-in-time).~~ done
+2026-09-08 docs pass
 
 ## g) QUESTIONS (cannot answer from the repo myself)
 

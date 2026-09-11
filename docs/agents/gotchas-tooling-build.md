@@ -53,4 +53,3 @@
 - ACK keys are `rule:target` (e.g. `durability-downgrade:<role>`); guard emission with `isAcknowledged`.
 - `CachedEventStore` invalidates on write (`Save`/`AppendBatch` evict the stream key); wrap any new write path the same way.
 - cqrs-lint C025 in system/ is a false-positive batch (`WorkerState.LastError` is a string — no error operand to wrap). Don't "fix" into noise.
-

@@ -151,10 +151,16 @@ github.com/larsartmann/go-codec v0.2.0 h1:BjjkTaeauAB6HHV7epFdkCDf1zRTk2jehv+GkE
 github.com/larsartmann/go-codec v0.2.0/go.mod h1:XjmXTgIBNNrDsOTKYqBbuCGqpxF0cRjz/4sZNaxVWmU=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 h1:H9nquB6z3Wo09EVS92tKfSunSTNG9p2IKa32wVvOyeI=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0/go.mod h1:fUGZ+RYOdhyp22xBYx+avKGM5IBxWc1q+Sw50SBLpBs=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 h1:eqkM8sdWhx4DrtACRZRp12olMMSXDVYv5/J6mggF5Bw=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0/go.mod h1:10tJDBduGBisEPXsBZxg9QF+ilgbsPLxrZDBCczXX2g=
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.1 h1:xeehL0sSbzNFOmtGnrV6CWh2kZH8HecoV31qNfQLAiA=
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.1/go.mod h1:QRMVFQ+ZiMdDRDJjavkV+5JJ4ySjvtJTN/VFU6MFD90=
+github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 h1:E6hD99stHD3P1lVk1nGKH/MvlTQ4cgkip6msnfuRrbU=
+github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0/go.mod h1:Lw8NsZGK12fncim1spWBWRErp+Z+owBwku+oMUKP8co=
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.1 h1:u0vqkZ+CHwmeX8W78TN+mIit9isx35efNfBR+Xepmk0=
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.1/go.mod h1:vlbs6u992pylL87XwhyEGX8IXGAiMRVGCH30xk5Y5eE=
+github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 h1:sTdTv6+P8f8U97yqlleChjATNOcdRLWRBz7gIjdGRVE=
+github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0/go.mod h1:aXJVTEOO2DJ1fsO5HmgCO03ag9NlwHbdEjsufxzhTmM=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 h1:h7jZKjsKjTaJvuc/SboZWTIPB31E7oSlwxFiYlLGCKA=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0/go.mod h1:KkJir+qwFt62nSnOfEp+jbxm+TOt1uxibg7IJwoM0f4=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 h1:ZZp0SzyyVM1wEOB2UP7NoOCrmlu00fkeEWjtjEbnahk=
@@ -187,6 +193,7 @@ github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0 h1:HDB62grdKLFekBa7jPr
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0/go.mod h1:JLoBJa8FjN0+obfpvQK5vw94Gi6OmUebOh4qAbfgJ10=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.0 h1:RARMSNJgPur8kHZsQo9oWB3kEWr+5FBCS/JLR7OvbJE=
 github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.0/go.mod h1:5UNKG5JtSu7/VSDmvMe7/9H0J0KNGoU3rsoLrn16aes=
+github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.5.1 h1:VSqZ6a1a7dOqAoYLRJIIUaei27sh6cr8YcHNg7Yh74M=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 h1:wLYBXOZ2zQ/QevuKRlyK/c7/e3m5++3pLqJtFNacuaQ=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0/go.mod h1:yEFsUXCsispbsqs46RDEu2cMgP5V/KB/AUG8uzOzKZw=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 h1:jabGE+EiBqh0NkzdT6ZkmblEjCmn9XOKaw/C3ZHuwKE=
@@ -408,6 +415,8 @@ golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.22.0 h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=
 golang.org/x/sync v0.22.0/go.mod h1:9xrNwdLfx4jkKbNva9FpL6vEN7evnE43NNNJQ2LF3+0=
+golang.org/x/sync v0.23.0 h1:KameEIfc1IkluZyXWLn39Wd4tURc6GbCiISGiZm2bQk=
+golang.org/x/sync v0.23.0/go.mod h1:sUUOizhqBxiL6pEWpqNLUiaJn1ShEbZ6BBqskPbjZm0=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
@@ -417,6 +426,8 @@ golang.org/x/sys v0.0.0-20210616094352-59db8d763f22/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.1.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.47.0 h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=
 golang.org/x/sys v0.47.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
+golang.org/x/sys v0.48.0 h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=
+golang.org/x/sys v0.48.0/go.mod h1:hNLxWAXmnKAxqDtdwIYC4bM9oQPEecfsnNMuSxOs3og=
 golang.org/x/term v0.45.0 h1:NwWyBmoJCbfTHpxrWoZ9C6/VxOf7ic219I8xZZFdrf0=
 golang.org/x/term v0.45.0/go.mod h1:9aqxs0blBcrm/n0L9QW0aRVD+ktan8ssZromtqJC43w=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

@@ -11,3 +11,6 @@ catalog/docserver/static/*.js linguist-vendored
 catalog/docserver/static/*.css linguist-vendored
 # Enforce consistent line endings across all platforms
 * text=auto eol=lf
+# Binary files should not be diffed or merged
+*.png binary
+*.pdf binary

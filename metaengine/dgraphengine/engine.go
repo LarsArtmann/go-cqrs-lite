@@ -61,8 +61,8 @@ type dgraphEngine struct {
 	// contentionObserver (set via WithContentionObserver) receives one call
 	// per contention retry; nil = observability disabled.
 	contentionObserver func(attempt int)
-	schemaMu        sync.Mutex
-	appliedSchemas  map[string]bool
+	schemaMu           sync.Mutex
+	appliedSchemas     map[string]bool
 
 	// txMu serializes RunInTx; activeTxn holds the shared transaction that
 	// every read/write op joins while it runs (see transaction.go).

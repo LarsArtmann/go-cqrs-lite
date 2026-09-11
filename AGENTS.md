@@ -71,7 +71,8 @@ Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
 Full table (modules, internal notes): [`docs/agents/module-map.md`](docs/agents/module-map.md). Consumer-facing lookup: [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md).
 
-Tier one-liner: Tier 0 primitives (id, dispatcher, kv, dedup, record) → 1 core domain (event, command, query, scheduling, metadata) → 2 domain utilities (schema, snapshot, projection, idempotency, deriver, commandlifecycle) → 3 aggregation (decider, graph, scenario, projectionhost, listing, metaengine) → 4 infrastructure (storage/*, signing, encryption, otel, middleware, transports, watermill, engines) → 5 composition (stack, system) → 6 tooling & examples (catalog, benchkit, cmd/*, example/*, eventtest).
+Tier one-liner: Tier 0 primitives (id, dispatcher, kv, dedup, record) → 1 core domain (event, command, query, scheduling, metadata) → 2 domain utilities (schema, snapshot, projection, idempotency, deriver, commandlifecycle) → 3 aggregation (decider, graph, scenario, projectionhost, listing, metaengine) → 4 infrastructure (storage/_, signing, encryption, otel, middleware, transports, watermill, engines) → 5 composition (stack, system) → 6 tooling & examples (catalog, benchkit, cmd/_, example/*, eventtest).
+
 ## Internal Contracts
 
 Non-obvious conventions that apply when editing code inside this repo. Consumer-facing conventions are in [`references/core.md`](.agents/skills/go-cqrs-lite/references/core.md) §3.
@@ -233,4 +234,3 @@ data lives is up to operators at DEPLOYMENT time."
 ```
 
 **Paradigm framing (2026-09-10):** the vision above is the "context paradigm" from Cordis (arXiv:2608.25512 — spatiotemporal composability). Developers write coeffect specifications (queries + relationships); operators reconcile config (engines); the planner mediates as the unified context. Engines are literally `Profile() + Closer` (capability declaration fused with a disposer); layouts are revertible via gated rebuild (`RebuildThreshold`/`ConfirmRebuild`). Full mapping — including how the whole repo and the go-modularize skill project the same two axes — lives in [`docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`](docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md).
-

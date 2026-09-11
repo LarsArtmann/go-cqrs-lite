@@ -110,13 +110,13 @@ reviewers trust it.
 
 **Fix timeline.**
 
-| Date       | Event                                                                   |
-| ---------- | ----------------------------------------------------------------------- |
-| 2026-08-06 | Module introduced; log-only seeding                                     |
-| 2026-08-18 | v4.1.0 tagged — still log-only (comment claimed all four)               |
-| 2026-09-06 | `seedPrefixSeqs` seeds all four prefixes (mirrors pebbleengine)         |
-| 2026-09-08 | v4.2.0 tagged — first fully-safe release                                |
-| 2026-09-11 | v4.0.0–v4.1.0 retracted; v4.2.1 tagged to publish the retract           |
+| Date       | Event                                                           |
+| ---------- | --------------------------------------------------------------- |
+| 2026-08-06 | Module introduced; log-only seeding                             |
+| 2026-08-18 | v4.1.0 tagged — still log-only (comment claimed all four)       |
+| 2026-09-06 | `seedPrefixSeqs` seeds all four prefixes (mirrors pebbleengine) |
+| 2026-09-08 | v4.2.0 tagged — first fully-safe release                        |
+| 2026-09-11 | v4.0.0–v4.1.0 retracted; v4.2.1 tagged to publish the retract   |
 
 **Exposure and consumers.** Affected: consumers pinning v4.0.0–v4.1.0 who
 reopened a persistent DB and appended. No repo-internal data-path consumers
