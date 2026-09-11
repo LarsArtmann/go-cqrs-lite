@@ -35,10 +35,7 @@ func TestResetUpsertVariants(t *testing.T) {
 	ctx := context.Background()
 	col := fmt.Sprintf("dbg_%p", eng)
 
-	mb := eng.(interface {
-		MapSet(ctx context.Context, col string, key, value any) error
-		MapGet(ctx context.Context, col string, key any) (any, bool, error)
-	})
+	mb := eng // concrete type implements the backend methods directly
 
 	seed := func() {
 		if err := mb.MapSet(ctx, col, "t1", "v1"); err != nil {
