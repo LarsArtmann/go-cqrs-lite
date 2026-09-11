@@ -63,7 +63,7 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, fc := range foldCases {
 				if emittedSet[fc.Value] || ctx.Registry.IsEventInCatalog(fc.Value) {
-				continue
+					continue
 				}
 
 				if closest, dist := nearestMatch(fc.Value, emittedList); dist <= 2 && !handledSet[closest] {

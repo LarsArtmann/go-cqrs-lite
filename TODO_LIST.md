@@ -118,18 +118,10 @@ bottom is a do-not-re-litigate guard, not a backlog.
       write-matching at error severity; A016/A013 project-wide suppressions;
       A017 unqualified `NewRepository` matching + `NewTypedRepository`
       asymmetry; A019 vendor-path heuristic; F006 payload-class wiring under
-      the strong/weak split; F009/F010 pattern tokens; F018/F020
-      mixed-confidence unpinned; V002/V003/V006 root-go.mod-only scope;
-      b022_b025.go (495) and a020_a021_a022_a023.go (~357) over the 350-line
-      convention — bundle with the file-size-gate policy decision.
-- [ ] **cqrs-lint audit cheap-fix + test-gap tail** — fixes: `adoption/doc.go`
-      drift ("All F-series emit Info" is false), `f001.go` dead `deleted`
-      branch, `f030.go` hardcoded `/v4` message nit, `scan_in.go` stale helper
-      reference; tests: B008 bitshift-escalation, B015 `hasTestUtils`
-      suppression, D016 exactly-20-fields boundary, F018/F020
-      mixed-confidence emission, S001 placeholder/URL-value allowlist (FP
-      guard). — source: 03-44 §b5-7
-      _(Effort: S)_
+      the strong/weak split; F009/F010 pattern tokens; V002/V003/V006
+      root-go.mod-only scope; b022_b025.go (495) and
+      a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
+      with the file-size-gate policy decision.
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?

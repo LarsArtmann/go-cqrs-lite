@@ -6,6 +6,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — metaengine: encoded-apply record-context gap closed, entry-point conformance sweep added — 2026-09-11
+
+- **`ApplyEncoded` is now a full pipeline citizen instead of a side door.**
+  It previously dispatched folds directly with a synthesized Type-only
+  `Record` OUTSIDE `applyWithRecord`: no synthetic-apply advisory (the
+  Doctor's "--- Record context ---" section stayed silent about it), no
+  EventLog recording (Backfill/Verify/DemoteEngine catch-up silently
+  missed encoded applies), no metering, hooks, or shadow replication —
+  the same bug class the Demote mirror-leg gap proved real. Raw JSON
+  payloads now flow through `applyWithRecord` as `jsontext.Value` and
+  every dispatch path decodes them per fold in `applyFold` (the single
+  funnel shared by primary folds, shadows, and replays), so encoded
+  applies replay identically everywhere.
+- **Added `metaengine.ApplyEncodedRecord`** — ApplyEncoded with full
+  Record context (ADR-0112): OnRecord folds receive the real
+  StreamID/Version alongside the decoded payload, exactly like
+  `ApplyRecord`. `ApplyEncoded` keeps its signature and its documented
+  Type-only synthesis, now honestly counted by the advisory.
+- **Added the fold-dispatch record-context conformance sweep**
+  (`TestFoldDispatch_RecordContextConformance`: Apply, ApplyIdempotent,
+  ApplyBatch ×2, ApplyRecord, ApplyEncoded ×2, Backfill primary +
+  shadow legs, Verify, DemoteEngine mirror + re-routed legs, live
+  replicator) — one table asserting the record-context contract and
+  advisory counting for EVERY entry point, killing the spot-test
+  whack-a-mole. The pin is proven to bite (the old encoded behavior
+  fails the ApplyEncoded case).
+
+### Fixed — cqrs-lint: audit cheap-fix + test-gap tail closed — 2026-09-11
+
+- **S001 stops flagging URLs and placeholder templates.** A secret-named
+  field whose string value is a documentation link (`apiKeyDocsURL =
+  "https://…"`) or an unfilled template (`"<your-password-here>"`,
+  `"${API_KEY}"`) tripped the name heuristic without embedding a
+  credential and fired Critical. Values containing a URL scheme or an
+  angle-bracket/`${…}` placeholder are now allowlisted; the guard is
+  deliberately narrow — bare `$`-prefixed values still fire so hardcoded
+  bcrypt hashes are not skipped — and is pinned by an over-suppression
+  test alongside the false-positive guards.
+- **F030 reports the imported path as written** instead of hardcoding a
+  `/v4` suffix into the message, so the finding stays truthful for
+  version-suffix-less imports.
+- **F001 lost a dead branch** (the `"deleted"` substring disjunct is
+  subsumed by `"delete"`), and the F-series package doc no longer claims
+  "all Info / once per project" — F030 emits Warning and scope-per-module
+  rules emit per coaching scope.
+- **D016 now accepts the EventPayloadTypes registry** (parity with
+  D014/D015), so payload structs without the name suffix are size-checked
+  too; the exactly-20-fields boundary is pinned by test.
+- **Test gaps closed:** B008 bitshift→error escalation branch, B015
+  hasTestUtils suppression branch, F018/F020 mixed-usage Low-confidence
+  emission (plus pure-usage Medium contrast). Also regenerated RULES.md,
+  which had drifted from the C040/C041 catalog descriptions in the prior
+  session, and fixed a stale helper reference in the adoption file-slice
+  scanner docs.
+
 ### Fixed — benchkit: a run whose caller context expires with zero work now fails loudly — 2026-09-11
 
 - **`benchkit.Run` no longer reports success for a run that did nothing.**

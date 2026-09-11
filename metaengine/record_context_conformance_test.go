@@ -47,7 +47,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "Apply", want: syntheticView, advisory: 1,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				applyOK(t, store.Apply(context.Background(), "recordContextEvent", recordContextEvent{TaskID: "t1"}))
 				return store, conformView(t, store.engines[0])
 			},
@@ -55,7 +55,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "ApplyIdempotent", want: syntheticView, advisory: 1,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				applyOK(t, store.ApplyIdempotent(
 					context.Background(), "evt-1", "recordContextEvent", recordContextEvent{TaskID: "t1"},
 				))
@@ -65,7 +65,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "ApplyBatch synthetic", want: syntheticView, advisory: 1,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				applyOK(t, store.ApplyBatch(context.Background(), []EventInput{
 					{Type: "recordContextEvent", Payload: recordContextEvent{TaskID: "t1"}},
 				}))
@@ -75,7 +75,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "ApplyBatch record", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				applyOK(t, store.ApplyBatch(context.Background(), []EventInput{
 					{Type: "recordContextEvent", Payload: recordContextEvent{TaskID: "t1"}, Record: fullRecord},
 				}))
@@ -85,7 +85,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "ApplyRecord", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				applyOK(t, store.ApplyRecord(context.Background(), fullRecord, recordContextEvent{TaskID: "t1"}))
 				return store, conformView(t, store.engines[0])
 			},
@@ -93,7 +93,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "ApplyEncoded", want: syntheticView, advisory: 1,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				WithEventLog(store, NewEventLog())
 				applyOK(t, store.ApplyEncoded(context.Background(), "recordContextEvent", []byte(`{"TaskID":"t1"}`)))
 				view := conformView(t, store.engines[0])
@@ -116,7 +116,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "ApplyEncodedRecord", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				applyOK(t, store.ApplyEncodedRecord(context.Background(), fullRecord, []byte(`{"TaskID":"t1"}`)))
 				return store, conformView(t, store.engines[0])
 			},
@@ -124,7 +124,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "Backfill primary replay", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				WithEventLog(store, NewEventLog())
 				applyOK(t, store.ApplyRecord(context.Background(), fullRecord, recordContextEvent{TaskID: "t1"}))
 
@@ -140,7 +140,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "Backfill shadow replay (replayShadows)", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				WithEventLog(store, NewEventLog())
 				applyOK(t, store.ApplyRecord(context.Background(), fullRecord, recordContextEvent{TaskID: "t1"}))
 
@@ -154,7 +154,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "Verify fresh-store replay", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 				WithEventLog(store, NewEventLog())
 				applyOK(t, store.ApplyRecord(context.Background(), fullRecord, recordContextEvent{TaskID: "t1"}))
 
@@ -215,7 +215,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 		{
 			name: "Replicator live mirror", want: fullView, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
-				store := newRecordContextStore(t)
+				store := newConformanceStore(t)
 
 				shadow := renamed("conf_live_mirror")
 				applyOK(t, store.AddEngine(context.Background(), shadow, WithEngineRole(RoleBackup)))
@@ -258,6 +258,18 @@ func applyOK(t *testing.T, err error) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// newConformanceStore is newRecordContextStore with teardown registered: the
+// sweep's shadow/demote cases start replicator goroutines that must be halted
+// before the suite ends (the goleak gate in main_test.go).
+func newConformanceStore(t *testing.T) *Store {
+	t.Helper()
+
+	store := newRecordContextStore(t)
+	t.Cleanup(func() { _ = store.Close() })
+
+	return store
 }
 
 // conformView reads the record_context_tasks row the conformance sweep's fold

@@ -865,6 +865,7 @@ cmd/cqrs-lint/pkg/rules/lintutil/func FileImportsCQRS
 cmd/cqrs-lint/pkg/rules/lintutil/func FirstFilePos
 cmd/cqrs-lint/pkg/rules/lintutil/func HasEventPayloadNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasReadModelNameSuffix
+cmd/cqrs-lint/pkg/rules/lintutil/func HasWeakReadModelNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasWrapVerb
 cmd/cqrs-lint/pkg/rules/lintutil/func IsEventPayloadName
 cmd/cqrs-lint/pkg/rules/lintutil/func IsFmtErrorf
@@ -2351,6 +2352,9 @@ metaengine/const SampleRTT
 metaengine/const SampleRead
 metaengine/const TraceOpApply
 metaengine/const TraceOpQuery
+metaengine/const TursoGoIVMLastVerified
+metaengine/const TursoGoIVMVerifiedFrom
+metaengine/const TursoGoIVMVerifiedThrough
 metaengine/const WarnJoinAmplification
 metaengine/const WarnPriorityMismatch
 metaengine/const WarnWriteAmplification
@@ -3083,6 +3087,7 @@ metaengine/method ApplyBatch
 metaengine/method ApplyBatch
 metaengine/method ApplyCalibration
 metaengine/method ApplyEncoded
+metaengine/method ApplyEncodedRecord
 metaengine/method ApplyIdempotent
 metaengine/method ApplyRecord
 metaengine/method Avg
@@ -3784,6 +3789,8 @@ metaengine/sqliteengine/method Profile
 metaengine/sqliteengine/method Profile
 metaengine/sqliteengine/method PushdownMapScan
 metaengine/sqliteengine/method PushdownMapScan
+metaengine/sqliteengine/method ResetEngine
+metaengine/sqliteengine/method ResetEngine
 metaengine/sqliteengine/method RunInTx
 metaengine/sqliteengine/method RunInTx
 metaengine/sqliteengine/method ScanRawValues

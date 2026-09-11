@@ -912,6 +912,20 @@
               ${pkgs.bash}/bin/bash -c 'set -euo pipefail; go run ./cmd/cqrs-upgrade --workspace --dry-run --strict .'
             '';
 
+            # check-release-scripts: smoke tests for the release tooling
+            # (tag-release.sh + batch-release.sh) against throwaway fixture
+            # repos — the issue-#20 guards, the standalone-build gate, and
+            # exact tree restore. These tests are how the tagger's
+            # binary-pollution bug class stays fixed: run in CI, not ad hoc.
+            check-release-scripts = mkApp "check-release-scripts" [
+              pkgs.bash
+              pkgs.git
+              goPkg
+            ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/test-tag-release.sh"
+              ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
+            '';
+
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
             # bumps; check-depguard keeps the allow-list honest against go.mod;
@@ -1460,6 +1474,7 @@
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
                   echo "=== Check Docserver CSS ===" && nix run .#check-docserver-css && \
                   echo "=== Check Duplication ===" && nix run .#check-duplication && \
+                  echo "=== Check Turso Version Citations ===" && nix run .#check-turso-version && \
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \

@@ -62,8 +62,10 @@ func (e *sqliteEngine) ResetEngine(ctx context.Context) error {
 	}
 
 	for _, mv := range e.matViews {
+		// libSQL drops materialized views with plain DROP VIEW (verified
+		// against turso-go; DROP MATERIALIZED VIEW is a parse error there).
 		if _, err := tx.ExecContext(ctx,
-			"DROP MATERIALIZED VIEW IF EXISTS "+metaengine.QuoteIdent(mv.name)); err != nil {
+			"DROP VIEW IF EXISTS "+metaengine.QuoteIdent(mv.name)); err != nil {
 			return rollbackReturning(tx, fmt.Errorf(
 				"sqliteengine.ResetEngine: drop materialized view %s: %w", mv.name, err))
 		}

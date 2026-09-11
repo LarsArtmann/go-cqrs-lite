@@ -2,6 +2,8 @@ package sqliteengine
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -167,6 +169,10 @@ func (e *sqliteEngine) matViewGrouped(
 }
 
 // matViewScanScalar runs a single-row view query and decodes the aggregate.
+// A view with zero stored rows (an emptied or just-reset collection)
+// aggregates to 0, matching the base path's DecodeFloat(nil) convention —
+// SQL scalar aggregates over zero rows are NULL, which this library reads
+// as 0.
 func (e *sqliteEngine) matViewScanScalar(
 	ctx context.Context,
 	query, errContext string,
@@ -174,6 +180,10 @@ func (e *sqliteEngine) matViewScanScalar(
 	var raw any
 
 	if err := e.xd().QueryRowContext(ctx, query).Scan(&raw); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+
 		return 0, fmt.Errorf("%s: %w", errContext, err)
 	}
 

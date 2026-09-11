@@ -38,6 +38,21 @@ import (
 //
 // Skipped in library self-lint mode: the library legitimately references its
 // own deprecated surfaces while they exist (shims, tests, forwarders).
+//
+// # Method-level v5 removals (policy)
+//
+// Deprecated METHODS on receiver types that survive v5 — the decider
+// pair-form forwarders (Repository.Execute/Load/LoadAtVersion/LoadAtTime/
+// WaitForVersion, TypedRepository.ExecuteCommand/Load) and
+// metadata.Metadata.EnsureCustom — are intentionally NOT in these tables:
+// V007 matches package-qualified selectors only, and a method call's
+// receiver is a value, not a package, so a table entry could never fire.
+// They are tracked in v5DriftMethodAllowlist (v007_drift_scan_test.go)
+// instead, which the drift meta-tests hold against the repo's
+// `Deprecated:` …v5 markers in both directions. Consequence: --strict
+// cannot flag pair-form method usage in consumer code; the v5 compiler
+// break is the first signal there. Typed receiver resolution would close
+// that gap and is deliberately out of scope for V007.
 
 // adrForFragment maps a module fragment to the ADR documenting the removal.
 func adrForFragment(fragment string) string {

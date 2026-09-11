@@ -644,6 +644,13 @@ jobs:
       - name: Lint shell scripts (shellcheck)
         run: nix-shell -p shellcheck --run 'shellcheck scripts/*.sh'
 
+      # Smoke tests for the release tooling (tag-release.sh + batch-release.sh)
+      # against throwaway fixture repos: the issue-#20 path-vs-tag guards, the
+      # standalone-build gate, and exact tree restore. Fixture repos are
+      # hermetic (no network, no real tags), so this is fast.
+      - name: Test release scripts (fixture repos)
+        run: nix run .#check-release-scripts
+
     timeout-minutes: 10
   cqrs-upgrade-dogfood:
     name: cqrs-upgrade dogfood (consumer dry-run)
