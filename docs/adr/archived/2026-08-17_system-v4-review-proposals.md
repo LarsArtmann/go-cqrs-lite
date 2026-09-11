@@ -1,5 +1,7 @@
 # system/v4 Review — Routed Design Proposals
 
+> **RESOLVED (docs-health 6th pass verification, 2026-09-11):** ALL 8 proposal sections are resolved against the code — `ExecuteTypedByName` named dispatch, `PublisherFor`/`PublisherAt`, role wiring, reserved-config honesty, `system/durability.go`, crash-window docs, the 09-08 re-tag, and the dependency diet. Every proposal was either shipped or consciously closed; none remain open. ARCHIVED to `docs/adr/archived/`.
+
 **Date:** 2026-08-17
 **Source:** full code review `docs/reviews/2026-08-16_full-code-review-system.html`
 **Status:** proposals for Lars — none decided; each states the problem (code-verified), options, and a recommendation.

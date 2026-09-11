@@ -171,13 +171,9 @@ Both `MemoryStore` and `kvstore.Store` (Pebble) are **process-local**. Two insta
 
 The Pebble adapter's `SetIfAbsent` uses a `sync.Mutex` — atomic only within one process.
 
-No SQL-backed `idempotency.Store` exists despite:
+~~No SQL-backed `idempotency.Store` exists despite:~~
 
-- The interface doc mentioning `INSERT ON CONFLICT DO NOTHING` as the future SQL strategy
-- `storage/sql/duplicate.go` having `IsDuplicateKeyError` for PG/SQLite unique violations
-- The `idempotency.Store` interface supporting it
-
-The pieces exist, they're just not assembled. A ~100-line `idempotency/sqlstore/` implementation using `INSERT ON CONFLICT DO NOTHING` would close this gap for multi-process Postgres deployments (which the library already supports via `WithDistributedBus`).
+~~The pieces exist, they're just not assembled.~~ **CORRECTED 2026-09-11 (docs-health 6th pass):** `idempotency/sqlstore/` HAS SHIPPED — `store.go` implements the full `Store` contract (`Seen`, `Record`, atomic `CheckAndRecord` via `INSERT ON CONFLICT DO NOTHING`) with PG + MySQL integration suites, TTL validation, and race tests. This gap is closed.
 
 ### Gap 2: Response caching / replay — MISSING (by design)
 
@@ -392,4 +388,4 @@ I expanded the `DOMAIN_LANGUAGE.md` anti-patterns table from 5 to 16 entries and
 
 ### One actionable code gap discovered
 
-**No SQL-backed `idempotency.Store`** for multi-process Postgres deployments. The interface, `IsDuplicateKeyError`, and dialect abstraction all exist — it's a ~100-line assembly job using `INSERT ON CONFLICT DO NOTHING`.
+~~**No SQL-backed `idempotency.Store`** for multi-process Postgres deployments. The interface, `IsDuplicateKeyError`, and dialect abstraction all exist — it's a ~100-line assembly job using `INSERT ON CONFLICT DO NOTHING`.~~ **CORRECTED 2026-09-11:** shipped as `idempotency/sqlstore/` (PG + MySQL, atomic `CheckAndRecord`, TTL, race-tested).

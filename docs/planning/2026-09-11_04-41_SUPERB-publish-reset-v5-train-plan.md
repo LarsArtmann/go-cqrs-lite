@@ -4,6 +4,11 @@
 > **Goal:** publish the 3-day `[Unreleased]` window, restore gate+CI trust, close the proven correctness classes, and stage the v5 train — without breaking a single v4 consumer.
 > **Guardrail:** No Verschlimmbesserung. Every behavior change is warn-first in v4.x, hard at v5 (ADR-0123 train). Every task ends at a verify gate. BLOCKED/user-gated items are planned but never executed without the gate lifting.
 
+> **PROGRESS (docs-health 6th pass, 2026-09-11 ~08:15 CEST) — this plan is LIVE, not archived.**
+> ✅ Done (12): S05, S06, S10, S11, S13, S14, S17, S20, S21, S23, S24 (EngineResetter ladder — ALL 12 engines, CHANGELOG'd), S25 (fold-write failover + `Store.CatchUpEngine`).
+> ◐ Half (8): S01 (truth pass done; 3 audit rulings still open with the user) · S07 (`--audit`/`--smoke` shipped; `v4.10.2` tag, `check-retracts-shipped.sh`, `--baseline`, smoke-probes remain) · S12 · S15 (protocol done; quiet-window re-runs pending) · S16 (observer + skip-vs-fail done; MySQL live shuffle + `-race` pending) · S18 (ratchet green; ratification pending) · S19 · S22 (skip-vs-fail answered; shuffle evals pending).
+> Open (10): S02 (tag wave — user-gated; `watermill/v4.7.0` still absent), S03 (quiet-window `#verify`), S04 (CI triage), S08 (redo), S09, S26–S30. Executing sessions: 05-51 + the parallel 05:00–05:30 waves; open remainders live in `TODO_LIST.md`.
+
 ## 0. Planning-time truth pass (executed BEFORE this plan was written)
 
 Six TODO premises verified STALE against the repo and deleted in the same edit (evidence: `git tag -l`, `.github/workflows/`):
@@ -36,40 +41,40 @@ Also merged: "Fresh-GOMODCACHE go.sum check" + "verify-ci go mod download assert
 
 Consumers cannot see ANY of the 2026-09-09..11 work (Cordis reset/coeffect/deactivation, E018, watermill #21 causation fix, dgraph contention fix, ClaimMetrics, retracts tooling) until tags move; go-localsync runs a documented workaround waiting on `watermill/v4.7.0`. Meanwhile the local gate has not had a composed GREEN since 09-09 and CI master is 30+ runs red — every future claim inherits that doubt. And one correctness class (record-context on fold-dispatch paths) has already produced one real bug (Demote); the encoded-apply sibling is unaudited.
 
-1. **S01** — remaining stale-premise verification + TODO truth pass (30 min)
+1. ◐ **S01** — remaining stale-premise verification + TODO truth pass (30 min)
 2. **S02** — 🔥 the next v4 tag wave: cut → push → `@latest` acceptance → pin sweep → GitHub Releases (100 min + wave mechanics) _[gated: user authorization]_
 3. **S03** — quiet-box exclusive `nix run .#verify` composed GREEN (60 min)
 4. **S04** — 🔥 CI triage: drive every non-billing-red leg to green-or-explicitly-gated (100 min)
-5. **S05** — 🔥 encoded-apply record-context audit (`metaengine/encoded.go:49`) — the proven bug class (45 min)
+5. ✅ **S05** — 🔥 encoded-apply record-context audit (`metaengine/encoded.go:49`) — the proven bug class (45 min)
 
 ### The 4% that delivers 64% — CORRECTNESS + RELEASE HYGIENE (~7 h)
 
-6. **S06** — 🔥 `sqliteengine.ResetEngine` — one-call revert on the production-default engine (100 min)
-7. **S07** — release-hygiene bundle: tag `cmd/cqrs-lint` v4.10.2 (buildinfo) + `check-retracts-shipped.sh` + `--audit --baseline` + smoke-probes/Test-5 (100 min)
+6. ✅ **S06** — 🔥 `sqliteengine.ResetEngine` — one-call revert on the production-default engine (100 min)
+7. ◐ **S07** — release-hygiene bundle: tag `cmd/cqrs-lint` v4.10.2 (buildinfo) + `check-retracts-shipped.sh` + `--audit --baseline` + smoke-probes/Test-5 (100 min)
 8. **S08** — 🔥 kill the missing-go.sum-hash class in CI (`go mod download` no-diff + standalone-vet meta-test) (90 min)
 9. **S09** — integration-tag lint as a first-class gate (`lint-module` tag arg + CI leg) (60 min)
-10. **S10** — entry-point fold-dispatch conformance sweep (one table test, every dispatch path) (100 min)
-11. **S11** — XS batch: ClaimMetrics docs tail · watermill shutdown-noise · quickstart smoke · `doWrite` narrowing · `go mod tidy` integration/ (60 min)
-12. **S12** — docs-health follow-ups: ROADMAP raw-ideas write-back · banner proofread · cec9248da work record · freshness-sweep checklist · rule recount · drop-ledger convention (45 min)
+10. ✅ **S10** — entry-point fold-dispatch conformance sweep (one table test, every dispatch path) (100 min)
+11. ✅ **S11** — XS batch: ClaimMetrics docs tail · watermill shutdown-noise · quickstart smoke · `doWrite` narrowing · `go mod tidy` integration/ (60 min)
+12. ◐ **S12** — docs-health follow-ups: ROADMAP raw-ideas write-back · banner proofread · cec9248da work record · freshness-sweep checklist · rule recount · drop-ledger convention (45 min)
 
 ### The 20% that delivers 80% — QUALITY + OBSERVABILITY (~10 h)
 
-13. **S13** — error-taxonomy: verify ALL module tables + build the drift gate (75 min)
-14. **S14** — consumer-tool truth: cqrs-upgrade hardening (flags-after-positional, `--json` deprecations, example v5 scan) + V007 decider pair-form split brain + cqrs-lint cheap-fix/test-gap tail (100 min)
-15. **S15** — calibration provenance + quiet-window re-runs (SearchQuery count=5, dgraph re-anchor, titled baseline re-pin) + script-side load gate (100 min)
-16. **S16** — dgraph bundle: `dgraph.type` conflict-domain docs · `isContentionError` unit pin · MySQL live shuffle verify · `-race` the retry code · otel contention counter (dep review first) (100 min)
-17. **S17** — turso characterization: `ivm_repro_test.go` (`-tags ivmrepro`) · single-source version citation + flip runbook · defect-A onset bisect + scalar-at-scale pin (100 min)
-18. **S18** — 🔥 350-line policy decision (full split vs ratchet vs exemptions) + first code-file split waves (100 min ×N) _[gated: owner policy]_
-19. **S19** — tooling truth batch: check-coverage wrapper env fix + run · per-finding lint attribution · tripwire mutation fixture · pre-commit gates remainder (90 min)
-20. **S20** — Cordis tail: E018 fold-case coverage · goleak for metaengine+projectionhost · `[Unreleased]`-position tripwire (75 min)
-21. **S21** — reset capability surfaced in `Doctor`/`GetEngineStats` (45 min)
-22. **S22** — live-engine honesty: skip-vs-fail policy · composite-runner shuffle evals _[gated OQ 9]_ · seed log · ~10-run CI watch (75 min)
-23. **S23** — turso encryption breadth: README reachability docs · `file:` DSN round-trip · second ADT · matview-serves-on-encrypted · cipher-size pin (100 min)
+13. ✅ **S13** — error-taxonomy: verify ALL module tables + build the drift gate (75 min)
+14. ✅ **S14** — consumer-tool truth: cqrs-upgrade hardening (flags-after-positional, `--json` deprecations, example v5 scan) + V007 decider pair-form split brain + cqrs-lint cheap-fix/test-gap tail (100 min)
+15. ◐ **S15** — calibration provenance + quiet-window re-runs (SearchQuery count=5, dgraph re-anchor, titled baseline re-pin) + script-side load gate (100 min)
+16. ◐ **S16** — dgraph bundle: `dgraph.type` conflict-domain docs · `isContentionError` unit pin · MySQL live shuffle verify · `-race` the retry code · otel contention counter (dep review first) (100 min)
+17. ✅ **S17** — turso characterization: `ivm_repro_test.go` (`-tags ivmrepro`) · single-source version citation + flip runbook · defect-A onset bisect + scalar-at-scale pin (100 min)
+18. ◐ **S18** — 🔥 350-line policy decision (full split vs ratchet vs exemptions) + first code-file split waves (100 min ×N) _[gated: owner policy]_
+19. ◐ **S19** — tooling truth batch: check-coverage wrapper env fix + run · per-finding lint attribution · tripwire mutation fixture · pre-commit gates remainder (90 min)
+20. ✅ **S20** — Cordis tail: E018 fold-case coverage · goleak for metaengine+projectionhost · `[Unreleased]`-position tripwire (75 min)
+21. ✅ **S21** — reset capability surfaced in `Doctor`/`GetEngineStats` (45 min)
+22. ◐ **S22** — live-engine honesty: skip-vs-fail policy · composite-runner shuffle evals _[gated OQ 9]_ · seed log · ~10-run CI watch (75 min)
+23. ✅ **S23** — turso encryption breadth: README reachability docs · `file:` DSN round-trip · second ADT · matview-serves-on-encrypted · cipher-size pin (100 min)
 
 ### The other 20% → 100% — ENGINES LADDER + V5 TRAIN + PROGRAM TAIL (~20 h+)
 
-24. **S24** — EngineResetter ladder: pebble, bbolt, badger, pg, mysql, turso, duckdb, dgraph, iroh (100 min ×N, multi-session)
-25. **S25** — fold-write failover for quarantined engines (shadow-replication or write-reroute + catch-up; ADR first) (100 min ×N)
+24. ✅ **S24** — EngineResetter ladder: pebble, bbolt, badger, pg, mysql, turso, duckdb, dgraph, iroh (100 min ×N, multi-session)
+25. ✅ **S25** — fold-write failover for quarantined engines (shadow-replication or write-reroute + catch-up; ADR first) (100 min ×N)
 26. **S26** — v5 train phase A: sweep §4 remainder (watermill keys, SQL columns, benchkit key, bbolt tags, pebble slog) + v6 markers + T18 migration tail + V5-MIGRATION-GUIDE expansion (100 min ×N)
 27. **S27** — v5 train phase B: the deletions (Materialize, view/relational, GraphProjection, Bundle+presets, compat shells, BuildWhereClause, transports, tombstone API) + `NewStreamRef` validation + E-items + **cut v5.0.0** (100 min ×N) _[the cut itself is owner-gated]_
 28. **S28** — matview consumer-pull surface: routing integration (declarative aggregate shape, scalar-only first cut) + v2 features + grouped-spec code guard default (100 min ×N, routed per consumer ask)
