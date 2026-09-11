@@ -10,7 +10,7 @@ import (
 )
 
 // B018: Repeated bus.Subscribe boilerplate.
-// Detects 3+ bus.Subscribe calls with identical error-handling structure in
+// Detects 3+ bus.Subscribe calls in
 // the same file. This pattern is better extracted into a table-driven
 // registration loop.
 //

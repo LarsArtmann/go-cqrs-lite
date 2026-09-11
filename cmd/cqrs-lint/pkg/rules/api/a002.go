@@ -43,7 +43,8 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkgIdent, ok := sel.X.(*ast.Ident)
-					if !ok || pkgIdent.Name != "event" || sel.Sel.Name != "NewEvent" {
+					if !ok || sel.Sel.Name != "NewEvent" ||
+						!lintutil.QualifierTargetsModule(gf, pkgIdent, "go-cqrs-lite/event") {
 						return true
 					}
 
@@ -118,7 +119,7 @@ func isMarshalHelperCall(expr ast.Expr, helpers map[string]bool) bool {
 	return false
 }
 
-// collectMarshalPayloadHelperHelpers scans all non-test files for function
+// collectMarshalPayloadHelpers scans all non-test files for function
 // declarations that call json.Marshal and return the result. These are the
 // "marshalPayload" helper pattern found in github-local-sync and InboxClean.
 func collectMarshalPayloadHelpers(ctx *analyzer.AnalysisContext) map[string]bool {

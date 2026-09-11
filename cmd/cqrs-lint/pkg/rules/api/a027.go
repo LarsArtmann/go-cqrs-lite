@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // Detects event.WithCodec called 3+ times in the same file. The codec should
@@ -41,7 +42,7 @@ func NewA027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					}
 
 					pkg, ok := sel.X.(*ast.Ident)
-					if !ok || pkg.Name != "event" {
+					if !ok || !lintutil.QualifierTargetsModule(gf, pkg, "go-cqrs-lite/event") {
 						return true
 					}
 

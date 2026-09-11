@@ -3,7 +3,6 @@ package consistency
 import (
 	"context"
 	"go/ast"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -42,7 +41,7 @@ func NewD011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					// comparison is alias-blind (the A014 bug class) and
 					// false-fires on unrelated packages named event.
 					pkgIdent, ok := sel.X.(*ast.Ident)
-					if !ok || !isEventPackageRef(gf, pkgIdent) {
+					if !ok || !lintutil.QualifierTargetsModule(gf, pkgIdent, "go-cqrs-lite/event") {
 						return true
 					}
 
@@ -87,20 +86,4 @@ func NewD011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-// isEventPackageRef reports whether the qualifier refers to the go-cqrs-lite
-// event module: resolved through the type checker when available, then the
-// file's import table (alias-aware). An unresolvable qualifier (broken or
-// partial load) falls back to the segment name so partial results survive.
-func isEventPackageRef(gf *analyzer.GoFile, ident *ast.Ident) bool {
-	if path, resolved := analyzer.ResolveQualifierTyped(gf, ident); resolved {
-		return strings.Contains(path, "go-cqrs-lite/event")
-	}
-
-	if path, ok := lintutil.QualifierToImportPath(gf.AST, ident.Name); ok {
-		return strings.Contains(path, "go-cqrs-lite/event")
-	}
-
-	return ident.Name == "event"
 }

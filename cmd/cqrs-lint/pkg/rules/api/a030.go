@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // A030: Incomplete snapshot configuration.
@@ -43,8 +44,8 @@ func NewA030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					pkg := analyzer.SelectorPackage(sel)
-					if pkg != "decider" {
+					pkgIdent, ok := sel.X.(*ast.Ident)
+					if !ok || !lintutil.QualifierTargetsModule(gf, pkgIdent, "go-cqrs-lite/decider") {
 						return true
 					}
 

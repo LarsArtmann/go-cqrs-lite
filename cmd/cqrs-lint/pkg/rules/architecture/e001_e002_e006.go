@@ -12,7 +12,7 @@ import (
 )
 
 // E001: Layer violation.
-// Detects Tier 0 modules (id, codec, kv) importing Tier 3+ modules (decider, middleware).
+// Detects Tier 0 modules (id, kv, dedup, dispatcher) importing Tier 3+ modules (decider, middleware).
 //
 //nolint:ireturn // factory returns public interface
 func NewE001Detector(ctx *analyzer.AnalysisContext) finding.Detector {

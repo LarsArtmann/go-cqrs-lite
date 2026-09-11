@@ -53,7 +53,7 @@ func apiRules() []RuleInfo {
 			Category:    "api",
 			Severity:    "info",
 			Confidence:  "low",
-			Description: "WrapEvent/UnwrapEvent adapter methods",
+			Description: "WrapEvent/UnwrapEvent (and ToEvent/FromEvent variants) adapter methods",
 			AutoFix:     false,
 		},
 		{

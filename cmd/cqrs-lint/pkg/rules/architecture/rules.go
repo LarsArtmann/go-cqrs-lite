@@ -71,7 +71,7 @@ func NewE005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				if cmd.TransportAdapter {
 					continue
 				}
-				// Skip commands that are just embedding BasicCommand (they might be registered elsewhere).
+				// Skip unnamed commands (Name == "" carries no registration information).
 				if cmd.Name == "" {
 					continue
 				}

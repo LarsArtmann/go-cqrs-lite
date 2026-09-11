@@ -258,7 +258,20 @@ func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						for _, field := range st.Fields.List {
 							if se, ok := field.Type.(*ast.StarExpr); ok {
-								if id, ok := se.X.(*ast.Ident); ok && id.Name == "BasicCommand" {
+								// Accept both `*BasicCommand` (bare ident) and the
+								// canonical real-world embed `*command.BasicCommand`
+								// (selector) — the old ident-only check silently
+								// skipped the dominant qualified form.
+								basic := false
+
+								switch inner := se.X.(type) {
+								case *ast.Ident:
+									basic = inner.Name == "BasicCommand"
+								case *ast.SelectorExpr:
+									basic = inner.Sel.Name == "BasicCommand"
+								}
+
+								if basic {
 									pos := ctx.Fset.Position(ts.Pos())
 
 									f, err := finding.NewBuilder(

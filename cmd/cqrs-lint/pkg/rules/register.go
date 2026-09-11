@@ -153,7 +153,7 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 		consistency.NewD017Detector(ctx),
 		consistency.NewD018Detector(ctx),
 		consistency.NewD019Detector(ctx),
-		// Architecture (E001-E007 always apply — structural issues are real for any code)
+		// Architecture (E001-E007 and E018 always apply — structural issues are real for any code)
 		architecture.NewE001Detector(ctx),
 		architecture.NewE002Detector(ctx),
 		architecture.NewE003Detector(ctx),
