@@ -17,8 +17,10 @@
 #   --current FILE    pre-computed `go test -bench` output (skips running benchmarks)
 #   --save FILE       also write the raw current results to FILE (baseline refresh)
 #   --threshold PCT   allowed median regression in percent (default: 25)
-#   --bench REGEX     go test -bench pattern (default: the CI gate set)
-#   --dir PATH        package dir to benchmark in (default: stack/bench)
+#   --bench REGEX     go test -bench pattern (default: the CI gate set; overrides
+#                     the default gate sets with a single stack/bench run)
+#   --dir PATH        package dir to benchmark in (default: stack/bench; same
+#                     single-set override semantics as --bench)
 #   --count N         benchmark repetitions feeding the median (default: 5)
 #   --benchtime T     go test -benchtime value (default: 100x — short samples
 #                     of microsecond benchmarks skew badly under CPU steal from
@@ -35,15 +37,23 @@ BASELINE="benchmarks/benchmark-baseline.txt"
 CURRENT_INPUT=""
 SAVE=""
 THRESHOLD="25"
-# The gate set is an EXPLICIT allowlist, deliberately NOT auto-discovered:
+# The gate set is an EXPLICIT allowlist of "DIR::BENCH_REGEX" pairs,
+# deliberately NOT auto-discovered:
 # widening it (e.g. `.`) would pull in load-sensitive benchmarks like
 # watermill's BenchmarkCatchUp_ReplayThroughput and flake the CI regression
 # gate on shared runners. New gate benchmarks must be added here on purpose,
 # with load-aware budgets (loadScaledCeiling/soakTestScale) inside their own
 # package. `BenchmarkBenchkitSuite_Memory$` is anchored so the _Small variant
-# never matches implicitly.
-BENCH='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$'
-BENCH_DIR="stack/bench"
+# never matches implicitly. The matview entry guards the Turso materialized
+# view serving path at scale=1k (accelerated reads are O(1)/O(groups) in N,
+# so 1k IS the steady-state number; ≥10k is un-benched by upstream seeding
+# constraint, see the bench file).
+GATE_SETS=(
+	"stack/bench::BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$"
+	"metaengine/tursoengine::BenchmarkMatViewRead/agg=[A-Z]+/scale=1k"
+)
+BENCH_OVERRIDE=""
+DIR_OVERRIDE=""
 COUNT="5"
 BENCHTIME="100x"
 
@@ -66,11 +76,11 @@ while [[ $# -gt 0 ]]; do
 		shift 2
 		;;
 	--bench)
-		BENCH="$2"
+		BENCH_OVERRIDE="$2"
 		shift 2
 		;;
 	--dir)
-		BENCH_DIR="$2"
+		DIR_OVERRIDE="$2"
 		shift 2
 		;;
 	--count)
@@ -87,6 +97,14 @@ while [[ $# -gt 0 ]]; do
 		;;
 	esac
 done
+
+# --bench/--dir collapse the gate to a single legacy-style set (backwards
+# compatible with the pre-matview invocation shape).
+if [[ -n "$BENCH_OVERRIDE" || -n "$DIR_OVERRIDE" ]]; then
+	GATE_SETS=(
+		"${DIR_OVERRIDE:-stack/bench}::${BENCH_OVERRIDE:-BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$}"
+	)
+fi
 
 # medians FILE — prints "<name> <median_ns/op> <samples>" per benchmark.
 # Accepts raw `go test -bench` output; extra lines (PASS, ok, benchmarks
@@ -129,13 +147,17 @@ fi
 if [[ -n "$CURRENT_INPUT" ]]; then
 	cp "$CURRENT_INPUT" "$current_file"
 else
-	echo "==> Running gate benchmarks ($BENCH_DIR, count=$COUNT, benchtime=$BENCHTIME)"
-	(
-		cd "$BENCH_DIR"
-		GOTOOLCHAIN=auto GOEXPERIMENT=jsonv2 go test -tags goexperiment.jsonv2 \
-			-run='^$' -bench="$BENCH" -benchmem \
-			-benchtime="$BENCHTIME" -count="$COUNT" -timeout 10m 2>&1
-	) | tee "$current_file"
+	for set in "${GATE_SETS[@]}"; do
+		set_dir="${set%%::*}"
+		set_bench="${set#*::}"
+		echo "==> Running gate benchmarks ($set_dir, bench=$set_bench, count=$COUNT, benchtime=$BENCHTIME)"
+		(
+			cd "$set_dir"
+			GOTOOLCHAIN=auto GOEXPERIMENT=jsonv2 go test -tags goexperiment.jsonv2 \
+				-run='^$' -bench="$set_bench" -benchmem \
+				-benchtime="$BENCHTIME" -count="$COUNT" -timeout 10m 2>&1
+		) | tee -a "$current_file"
+	done
 fi
 
 compare_status=0

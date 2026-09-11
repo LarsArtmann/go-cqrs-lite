@@ -406,6 +406,9 @@ key3, _ := encryption.LoadKeyFromFile("key.b64")    // tolerates trailing newlin
 bad, _ := encryption.DecodeKeyBase64("short")       // wraps ErrInvalidKey: got N bytes
 ```
 
+Envelope v2 (the wire format, JSON-column-safe) and the snapshot rotation
+write-back codec have their own recipe: §2.31.
+
 ### 2.7b Decorating Stores — Encryption/Upcasting at the Store Layer (event)
 
 Middleware encrypts in transit; transforms encrypt or upcast at the store.
@@ -1729,18 +1732,25 @@ import "github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
 
 db, _ := sql.Open("pgx", dsn) // or a SQLite handle
 claiming, err := sqlstore.NewClaimingPostgresStore[MyPayload](ctx, db, sqlstore.DefaultClaimLease)
-// SQLite: sqlstore.NewClaimingSQLiteStore[P](ctx, db, time.Minute)
-// MySQL/MariaDB: sqlstore.NewClaimingMySQLStore[P] always fails ErrClaimingUnsupported
+// SQLite:          sqlstore.NewClaimingSQLiteStore[P](ctx, db, time.Minute)
+// MySQL/MariaDB:   sqlstore.NewClaimingMySQLStore[P](ctx, db, time.Minute) — MySQL 8.0+ or MariaDB 10.6+
 
 scheduler := scheduling.New(claiming, dispatch)
 scheduler.Start(ctx)
 ```
 
-- Postgres claims via a CTE with `FOR UPDATE SKIP LOCKED` +
-  `UPDATE..RETURNING`; SQLite via single-writer `UPDATE..RETURNING`; an
-  idempotent migration adds the `lease_until` column.
-- MySQL/MariaDB have no SKIP LOCKED: the constructor rejects loudly with
-  `ErrClaimingUnsupported` rather than silently double-firing.
+Claiming support matrix:
+
+| Backend                    | Claim primitive                                     | Works on                        |
+| -------------------------- | --------------------------------------------------- | ------------------------------- |
+| `NewClaimingPostgresStore` | CTE `FOR UPDATE SKIP LOCKED` + `UPDATE..RETURNING`  | all supported Postgres versions |
+| `NewClaimingSQLiteStore`   | single-writer `UPDATE..RETURNING`                   | all supported SQLite versions   |
+| `NewClaimingMySQLStore`    | `SELECT .. FOR UPDATE SKIP LOCKED` + lease `UPDATE` | MySQL 8.0+, MariaDB 10.6+       |
+
+An idempotent migration adds the `lease_until` column on every backend.
+Older MySQL/MariaDB servers (pre SKIP LOCKED) fail the claim query loudly at
+the first `Due`; unsupported dialects reject at construction with
+`ErrClaimingUnsupported` — never silently double-fire.
 - Lease sizing: set the lease comfortably ABOVE your worst-case
   dispatch-handler duration (the claim fence compares `lease_until` against
   now). Sizing it below makes another instance re-claim a timer whose
@@ -1748,7 +1758,18 @@ scheduler.Start(ctx)
 - Handlers that can outlive `DefaultClaimLease` need the renewal API
   (RenewLease, planned — see TODO_LIST) or a longer per-store lease.
 
-### 2.27 Planned Tables: LayoutPlanApplier (pgengine/mysqlengine)
+### 2.27 Planned Tables: LayoutPlanApplier (pgengine/mysqlengine/sqliteengine/duckdbengine)
+
+Capability roster (which engines implement the planned-table surface; the
+remaining engines — turso, pebble, bbolt, badger, dgraph — keep everything on
+`meta_map`):
+
+| Capability                                                 | pgengine | mysqlengine | sqliteengine | duckdbengine |
+| ---------------------------------------------------------- | -------- | ----------- | ------------ | ------------ |
+| `LayoutPlanApplier` (ApplyLayoutPlan)                      | ✓        | ✓           | ✓            | ✓            |
+| `LayoutPlanEvolver` (EvolveLayoutPlan)                     | ✓        | ✓           | ✓            | ✓            |
+| `PlannedTablesReporter` (Doctor "Planned tables" section)  | ✓        | ✓           | ✓            | ✓            |
+| `BackfillPlannedCollection` (opt-in backfill, §2.28)       | ✓        | ✓           | —            | —            |
 
 `ApplyLayoutPlan` materializes a per-collection extracted-column table and
 routes map reads/writes through it — native columns and native indexes
@@ -2020,8 +2041,18 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
 })
 ```
 
-Rotating in practice: deploy with the resolver (old rows readable), rewrite
-rows at your own pace (re-encrypt with the new key), then drop the old entry.
+Rotating in practice — two paths:
+
+**Lazy write-back (snapshots):** build the snapshot store's codec from
+`encryption.RotatingSnapshotStateCodec`: reads resolve retired-key envelopes
+through the resolver and every SAVE re-encrypts the state under the active
+key, so rotation converges as rows are touched — no rewrite campaign (PG
+proof: `storage/pg_integration_snapshot_encryption_test.go`).
+
+**Manual rewrite (event streams):** deploy with the resolver (old rows
+readable), rewrite rows at your own pace (re-encrypt with the new key), then
+drop the old entry.
+
 Keys never appear in errors or redacted DSNs — the `redactDSN` contract hides
 any `*key*`/`authToken`/`token` param on local AND remote DSNs.
 
