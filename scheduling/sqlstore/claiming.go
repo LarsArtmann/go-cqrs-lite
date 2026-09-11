@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -47,6 +48,13 @@ type ClaimingTimerStore[P any] struct {
 
 	lease   time.Duration
 	metrics ClaimMetrics
+
+	// Built-in observability counters behind Metrics — maintained
+	// unconditionally so a status surface never depends on hook wiring.
+	claimedBatches atomic.Int64
+	claimedTimers  atomic.Int64
+	renewed        atomic.Int64
+	renewRejected  atomic.Int64
 }
 
 // NewClaimingPostgresStore creates a Postgres-backed claiming timer store.
@@ -165,6 +173,9 @@ func (c *ClaimingTimerStore[P]) Due(
 		return nil, errorfamily.WrapInfrastructure(
 			err, "scheduling.sqlstore.claim_commit", "commit claim transaction")
 	}
+
+	c.claimedBatches.Add(1)
+	c.claimedTimers.Add(int64(len(timers)))
 
 	if c.metrics.Claimed != nil {
 		c.metrics.Claimed(len(timers))
@@ -350,12 +361,16 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 	}
 
 	if n == 0 {
+		c.renewRejected.Add(1)
+
 		if c.metrics.RenewRejected != nil {
 			c.metrics.RenewRejected()
 		}
 
 		return fmt.Errorf("sqlstore: renew %s: %w", id.String(), ErrLeaseNotHeld)
 	}
+
+	c.renewed.Add(1)
 
 	if c.metrics.Renewed != nil {
 		c.metrics.Renewed()
