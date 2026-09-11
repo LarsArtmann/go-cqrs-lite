@@ -26,7 +26,12 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if ctx.Registry.StrictApplyFolds[fold.FuncName] {
+				// StrictApplyFolds keys on the bare fold name; a method fold's
+				// FuncName is "(Recv).fold", so also check the last segment —
+				// otherwise adoption of decider.StrictApply never silences
+				// method folds (the latent gap B005 already fixed).
+				if ctx.Registry.StrictApplyFolds[fold.FuncName] ||
+					ctx.Registry.StrictApplyFolds[lastSegmentOfFoldName(fold.FuncName)] {
 					continue
 				}
 
