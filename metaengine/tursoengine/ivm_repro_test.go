@@ -194,44 +194,71 @@ func TestIVMReproDefectA_GroupedDeltaLossAt2k(t *testing.T) {
 // and collapse to less than half the base total, while the SCALAR view stays
 // exact at the same scale (the currently-safe shape — if scalars ever drift,
 // that is a new defect and flips this test loudly).
+//
+// View reads happen ONLY at the raw repro's milestones: every extra scan of
+// the grouped view shrinks defect C's write budget ("prior scan activity in
+// the process shrinks the wall" — docs/agents/gotchas-tooling-build.md), and
+// per-chunk checkpointing pulls the COMMIT abort down to ~24k rows, killing
+// the run before the documented 27k collapse point.
 func TestIVMReproDefectB_GroupedViewCollapsesAtScale(t *testing.T) {
 	ctx := context.Background()
 	rows := ivmEnvInt(t, "TURSO_IVM_REPRO_ROWS", 27000)
 	r := ivmOpenReproEngine(t, "defectB_collapse.db")
 
-	firstDivergence := 0
-	for start := 0; start < rows; start += ivmChunkSize {
-		if err := r.insertChunk(ctx, start, start+ivmChunkSize); err != nil {
-			t.Fatalf("chunk at %d: %v", start, err)
-		}
-
-		if got, _ := r.groupedSumTotal(t); got != ivmExpectedSum(start+ivmChunkSize) && firstDivergence == 0 {
-			firstDivergence = start + ivmChunkSize
-			t.Logf("first grouped divergence at %d rows", firstDivergence)
-		}
+	milestones := map[int]bool{
+		1000: true, 1100: true, 2000: true, 13000: true, 26000: true, rows: true,
 	}
 
-	want := ivmExpectedSum(rows)
+	firstDivergence := 0
+	committed := 0
+	commitAborted := false
+	for start := 0; start < rows; start += ivmChunkSize {
+		err := r.insertChunk(ctx, start, start+ivmChunkSize)
+		if err != nil {
+			commitAborted = true
+			t.Logf(
+				"COMMIT abort at %d cumulative rows — defect C firing inside defect B's run: %v",
+				start+ivmChunkSize, err,
+			)
+			break
+		}
+
+		committed = start + ivmChunkSize
+		if milestones[committed] {
+			if got, _ := r.groupedSumTotal(t); got != ivmExpectedSum(committed) && firstDivergence == 0 {
+				firstDivergence = committed
+				t.Logf("first grouped divergence at %d rows", committed)
+			}
+		}
+	}
+	if commitAborted && committed < rows {
+		t.Logf(
+			"defect C wall onset moved earlier (%d < %d rows) — see TestIVMReproDefectC for the deterministic position",
+			committed, rows,
+		)
+	}
+
+	want := ivmExpectedSum(committed)
 	got, groups := r.groupedSumTotal(t)
 	if firstDivergence == 0 {
 		t.Fatalf(
 			"defect B did not reproduce: grouped view stayed exact through %d rows — upstream may have fixed it; flip per docs/turso-go-ivm-fix-flip-runbook.md",
-			rows,
+			committed,
 		)
 	}
 	if loss := want - got; loss <= want/2 {
 		t.Fatalf(
 			"defect B signature changed: view diverged (first at %d rows) but did NOT collapse at %d rows (view %.2f vs base %.2f, %.1f%% loss) — investigate before any pin bump",
-			firstDivergence, rows, got, want, 100*loss/want,
+			firstDivergence, committed, got, want, 100*loss/want,
 		)
 	}
 	t.Logf("defect B present: view %.2f vs base %.2f over %d groups at %d rows (first divergence at %d)",
-		got, want, groups, rows, firstDivergence)
+		got, want, groups, committed, firstDivergence)
 
 	if scalar := r.scalarSum(t); scalar != want {
 		t.Fatalf(
 			"scalar SUM view no longer exact at %d rows (%.2f != %.2f) — NEW upstream regression beyond the characterized defects; investigate before any pin bump",
-			rows, scalar, want,
+			committed, scalar, want,
 		)
 	}
 }

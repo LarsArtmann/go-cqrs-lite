@@ -34,9 +34,12 @@ check() {
 #           a batch release must strip at the tag but restore in the tree
 #   broken/ module path WITH /v2 suffix whose code does not compile — the
 #           standalone-build gate must abort the release
+#   libx/   module path WITH /v2 suffix, NO main package — the -o build must
+#           fall back to the plain build instead of refusing "no main
+#           packages to build"
 fixture_repo() {
 	local root="$1"
-	mkdir -p "$root/dead" "$root/good" "$root/broken"
+	mkdir -p "$root/dead" "$root/good" "$root/broken" "$root/libx"
 
 	cat >"$root/go.mod" <<'EOF'
 module github.com/example/fixture
@@ -83,6 +86,18 @@ package main
 func main( {}
 EOF
 
+	cat >"$root/libx/go.mod" <<'EOF'
+module github.com/example/fixture/libx/v2
+
+go 1.26.0
+EOF
+
+	cat >"$root/libx/libx.go" <<'EOF'
+package libx
+
+func Hello() string { return "hi" }
+EOF
+
 	git -C "$root" init -q
 	# Hermetic fixture: the maintainer's global config may sign annotated
 	# tags (tag.gpgSign / tag.forceSignAnnotated); disable both for the
@@ -103,11 +118,17 @@ trap 'rm -rf "$TMPROOT"' EXIT
 
 echo "━━━ Test 1: batch release rejects a major-mismatched tag ━━━"
 fixture_repo "$TMPROOT/t1"
-out="$(cd "$TMPROOT/t1" && bash "$SCRIPT" dead v2.0.1 "x" 2>&1)" && rc=0 || rc=$?
+out="$(cd "$TMPROOT/t1" && bash "$SCRIPT" "dead v2.0.1 x" 2>&1)" && rc=0 || rc=$?
 check "release exits nonzero on mismatched path" test "$rc" -ne 0
 check "error explains the /vN requirement" bash -c "printf '%s' \"\$0\" | grep -q 'end in /v2'" "$out"
 check "no tag was created" bash -c "! git -C \"\$0\" tag -l dead/v2.0.1 | grep -q ." "$TMPROOT/t1"
 check "tree untouched" bash -c "git -C \"\$0\" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t1"
+
+echo "━━━ Test 1b: malformed (unquoted) triple fails with a clear error ━━━"
+fixture_repo "$TMPROOT/t1b"
+out="$(cd "$TMPROOT/t1b" && bash "$SCRIPT" dead v2.0.1 "x" 2>&1)" && rc=0 || rc=$?
+check "unquoted triple exits nonzero" test "$rc" -ne 0
+check "error names the quoted-triple form" bash -c "printf '%s' \"\$0\" | grep -q 'malformed triple'" "$out"
 
 echo "━━━ Test 2: --audit delegates and flags the proxy-invisible tag ━━━"
 fixture_repo "$TMPROOT/t2"

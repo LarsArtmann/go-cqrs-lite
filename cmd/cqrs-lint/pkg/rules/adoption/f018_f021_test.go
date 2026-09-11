@@ -1,7 +1,10 @@
 package adoption_test
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
@@ -28,6 +31,12 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF018Detector(ctx))
 	ruletest.AssertRule(t, findings, "F018", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) == "F018" && f.Confidence != finding.ConfidenceMedium {
+			t.Errorf("F018 pure usage: got confidence %s, want medium", f.Confidence)
+		}
+	}
 }
 
 func TestF018_NoFindingWithFilterOnField(t *testing.T) {
@@ -87,6 +96,20 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF018Detector(ctx))
 	ruletest.AssertRule(t, findings, "F018", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) != "F018" {
+			continue
+		}
+
+		if f.Confidence != finding.ConfidenceLow {
+			t.Errorf("F018 mixed usage: got confidence %s, want low", f.Confidence)
+		}
+
+		if !strings.Contains(f.Message, "mixed metaengine usage") {
+			t.Errorf("F018 mixed usage: message %q does not acknowledge mixed usage", f.Message)
+		}
+	}
 }
 
 // --- F019: Missing Volume hint ---
@@ -152,6 +175,12 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF020Detector(ctx))
 	ruletest.AssertRule(t, findings, "F020", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) == "F020" && f.Confidence != finding.ConfidenceMedium {
+			t.Errorf("F020 pure usage: got confidence %s, want medium", f.Confidence)
+		}
+	}
 }
 
 func TestF020_NoFindingWithSortOnField(t *testing.T) {
@@ -195,6 +224,20 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF020Detector(ctx))
 	ruletest.AssertRule(t, findings, "F020", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) != "F020" {
+			continue
+		}
+
+		if f.Confidence != finding.ConfidenceLow {
+			t.Errorf("F020 mixed usage: got confidence %s, want low", f.Confidence)
+		}
+
+		if !strings.Contains(f.Message, "mixed metaengine usage") {
+			t.Errorf("F020 mixed usage: message %q does not acknowledge mixed usage", f.Message)
+		}
+	}
 }
 
 // --- F021: Write amplification (5+ folds) ---

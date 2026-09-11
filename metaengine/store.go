@@ -412,7 +412,9 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 // Record optionally carries the full record context: when set, ApplyBatch and
 // the replay paths (Backfill, Verify, DemoteEngine catch-up) hand Record-aware
 // projections the original StreamID/Version/metadata instead of a synthesized
-// minimal record.
+// minimal record. Payload may also be the raw JSON bytes produced by
+// ApplyEncoded/ApplyEncodedRecord (stored as jsontext.Value in the EventLog);
+// every dispatch path decodes them per fold before invoke.
 type EventInput struct {
 	Type    string
 	Payload any
@@ -607,6 +609,14 @@ func (s *Store) applyFold(
 			err = poisonErr
 		}
 	}()
+
+	// Raw-JSON payloads (ApplyEncoded/ApplyEncodedRecord and their EventLog
+	// replays) decode into this fold's expected event type here — the single
+	// funnel every dispatch path (primary folds, shadows, replays) shares.
+	payload, decodeErr := decodeRawFoldPayload(fold, payload)
+	if decodeErr != nil {
+		return decodeErr
+	}
 
 	switch f := fold.(type) {
 	case *insertFold:

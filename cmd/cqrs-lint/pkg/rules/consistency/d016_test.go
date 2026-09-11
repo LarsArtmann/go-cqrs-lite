@@ -61,3 +61,57 @@ type Config struct {
 	findings := ruletest.RunDetector(t, consistency.NewD016Detector(ctx))
 	ruletest.AssertRule(t, findings, "D016", 0)
 }
+
+// TestD016_FieldLimitBoundary pins the exactly-20-fields boundary: the rule
+// fires only above the limit, so 20 fields stays silent and 21 fires.
+func TestD016_FieldLimitBoundary(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name      string
+		fields    int
+		wantCount int
+	}{
+		{name: "exactly at limit stays silent", fields: 20, wantCount: 0},
+		{name: "one over limit fires", fields: 21, wantCount: 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			src := "package main\n\ntype BigPayloadCreated struct {\n"
+			var fieldsSb strings.Builder
+			for range tc.fields {
+				fieldsSb.WriteString("\tField  string\n")
+			}
+			src += fieldsSb.String() + "}\n"
+
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{
+				"events.go": src,
+			})
+			findings := ruletest.RunDetector(t, consistency.NewD016Detector(ctx))
+			ruletest.AssertRule(t, findings, "D016", tc.wantCount)
+		})
+	}
+}
+
+// TestD016_RegistryPayloadTypeAccepted pins the EventPayloadTypes registry
+// acceptance path: a struct whose name carries no payload suffix but that
+// the scanner saw as an event.New payload is size-checked like D014/D015.
+func TestD016_RegistryPayloadTypeAccepted(t *testing.T) {
+	t.Parallel()
+
+	src := "package main\n\ntype AccountState struct {\n"
+	var fieldsSb strings.Builder
+	for range 25 {
+		fieldsSb.WriteString("\tField  string\n")
+	}
+	src += fieldsSb.String() + "}\n"
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": src,
+	})
+	ctx.Registry.EventPayloadTypes["AccountState"] = true
+
+	findings := ruletest.RunDetector(t, consistency.NewD016Detector(ctx))
+	ruletest.AssertRule(t, findings, "D016", 1)
+}

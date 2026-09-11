@@ -129,3 +129,60 @@ func TestStore_Reset_ReportsUnclearableEngines(t *testing.T) {
 		t.Fatalf("expected no cleared engines, got %v", result.ClearedEngines)
 	}
 }
+
+func TestGetEngineStats_ReportsResetCapability(t *testing.T) {
+	t.Parallel()
+
+	plain := &plainEngine{profile: EngineProfile{
+		Name: "plain-no-reset",
+		Supports: map[ADT]Complexity{
+			ADTMap: ComplexityO1,
+		},
+	}}
+
+	store, err := Plan([]Engine{NewMemoryEngine(), plain}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	byName := map[string]bool{}
+	for _, st := range store.GetEngineStats(context.Background()) {
+		byName[st.Name] = st.CanReset
+	}
+
+	if !byName["memory"] {
+		t.Fatal("memory engine must report CanReset=true")
+	}
+
+	if byName["plain-no-reset"] {
+		t.Fatal("engine without EngineResetter must report CanReset=false")
+	}
+}
+
+func TestDoctor_SurfacesResetCapability(t *testing.T) {
+	t.Parallel()
+
+	plain := &plainEngine{profile: EngineProfile{
+		Name: "plain-no-reset",
+		Supports: map[ADT]Complexity{
+			ADTMap: ComplexityO1,
+		},
+	}}
+
+	store, err := Plan([]Engine{NewMemoryEngine(), plain}, testTaskQuery())
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+
+	report := store.Doctor(context.Background())
+
+	for _, want := range []string{
+		"--- Reset ---",
+		"memory: reset-capable",
+		"plain-no-reset: NOT bulk-clearable",
+	} {
+		if !strings.Contains(report, want) {
+			t.Fatalf("Doctor report missing %q in Reset section:\n%s", want, report)
+		}
+	}
+}

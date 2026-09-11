@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -671,4 +673,38 @@ func TestSomething(t *testing.T) {}
 	})
 	findings := ruletest.RunDetector(t, boilerplate.NewB015Detector(ctx))
 	ruletest.AssertRule(t, findings, "B015", 1)
+}
+
+// TestB015_SuppressedWhenTestUtilsImported pins the hasTestUtils suppression
+// branch: test files plus a test-utility import (eventtest/testutil/…)
+// means the coaching suggestion is already implemented.
+func TestB015_SuppressedWhenTestUtilsImported(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+		"main_test.go": `package main
+
+import (
+	"testing"
+
+	eventtest "github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+)
+
+func TestSomething(t *testing.T) {
+	_ = eventtest.NewStore()
+}
+`,
+	})
+	ctx.Packages = []*packages.Package{
+		{
+			PkgPath: "example.com/app",
+			Imports: map[string]*packages.Package{
+				"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest": {
+					PkgPath: "github.com/larsartmann/go-cqrs-lite/event/v4/eventtest",
+				},
+			},
+		},
+	}
+
+	findings := ruletest.RunDetector(t, boilerplate.NewB015Detector(ctx))
+	ruletest.AssertRule(t, findings, "B015", 0)
 }

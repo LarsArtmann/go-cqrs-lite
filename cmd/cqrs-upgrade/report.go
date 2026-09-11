@@ -19,26 +19,42 @@ type moduleReport struct {
 	Error        string
 	Bumps        []bump
 	Deprecations []findingJSON
+	// ScanErr records a failed deprecation scan (load/detect failure). A
+	// failed scan is NOT the same as a clean one: v5-readiness is unknown.
+	ScanErr error
 }
 
 // moduleJSON is the stable wire shape of moduleReport; the field order
-// below is the --json contract.
+// below is the --json contract. `deprecations` is ALWAYS present (empty
+// array when clean) so consumers never rely on key-absence folklore to
+// tell "clean" from "old CLI" or a failed scan.
 type moduleJSON struct {
-	Dir          string        `json:"dir"`
-	NoPins       bool          `json:"noPins,omitempty"`
-	Error        string        `json:"error,omitempty"`
-	Bumps        []bumpJSON    `json:"bumps,omitempty"`
-	Deprecations []findingJSON `json:"deprecations,omitempty"`
+	Dir                    string        `json:"dir"`
+	NoPins                 bool          `json:"noPins,omitempty"`
+	Error                  string        `json:"error,omitempty"`
+	Bumps                  []bumpJSON    `json:"bumps,omitempty"`
+	Deprecations           []findingJSON `json:"deprecations"`
+	DeprecationScanError   string        `json:"deprecationScanError,omitempty"`
 }
 
 // toJSON converts the report for the wire, including every bump with its
 // recomputed status.
 func (r moduleReport) toJSON() moduleJSON {
+	deprecations := r.Deprecations
+	if deprecations == nil {
+		deprecations = []findingJSON{} // emit [], never null
+	}
+
 	out := moduleJSON{
-		Dir:          r.Dir,
-		NoPins:       r.NoPins,
-		Error:        r.Error,
-		Deprecations: r.Deprecations,
+		Dir:                  r.Dir,
+		NoPins:               r.NoPins,
+		Error:                r.Error,
+		Deprecations:         deprecations,
+		DeprecationScanError: "",
+	}
+
+	if r.ScanErr != nil {
+		out.DeprecationScanError = r.ScanErr.Error()
 	}
 
 	for _, b := range r.Bumps {
@@ -84,17 +100,31 @@ func (b bump) toJSON() bumpJSON {
 }
 
 // deprecationFindings runs the cqrs-lint V007 detector (v5-removed API
-// usage) in-process over dir. Best-effort: a load failure yields no findings
-// (the human output prints the reason), never an upgrade abort.
-func deprecationFindings(dir string) []findingJSON {
+// usage) in-process over dir. A load or detect failure returns an error —
+// callers must not confuse a failed scan with a clean one (a silent
+// false-green is exactly how a strict gate rots). The upgrade pipeline
+// records the error in the report instead of aborting; the strict gate
+// fails on it.
+func deprecationFindings(dir string) ([]findingJSON, error) {
 	ctx, err := cqrsanalyzer.BuildContext(dir)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("build context: %w", err)
+	}
+
+	if len(ctx.LoadErrors) > 0 {
+		first := ctx.LoadErrors[0]
+		detail := ""
+		if len(first.Errors) > 0 {
+			detail = first.Errors[0]
+		}
+
+		return nil, fmt.Errorf(
+			"package load failed for %s: %s", first.Module, detail)
 	}
 
 	findings, detErr := cqrsversion.NewV007Detector(ctx).Detect(context.Background())
 	if detErr != nil {
-		return nil
+		return nil, fmt.Errorf("detect: %w", detErr)
 	}
 
 	out := make([]findingJSON, 0, len(findings))
@@ -115,7 +145,7 @@ func deprecationFindings(dir string) []findingJSON {
 		return out[i].Rule < out[j].Rule
 	})
 
-	return out
+	return out, nil
 }
 
 // printDeprecations prints the v5-removal findings for one module.

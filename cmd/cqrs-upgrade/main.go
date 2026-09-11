@@ -19,6 +19,16 @@ var (
 	errInvalidToFlag = errors.New("--to is not a valid semver version")
 	// errStrictViolations fires when --strict finds v5-removed API usage.
 	errStrictViolations = errors.New("--strict: v5-removed API usage detected")
+	// errArgsAfterDir fires when arguments follow the positional module
+	// directory. Stdlib flag parsing stops at the first positional, so a
+	// flag written after the dir is silently ignored (2026-09-11:
+	// `cqrs-upgrade . --strict` ran as a plain report instead of the gate).
+	errArgsAfterDir = errors.New(
+		"unexpected arguments after the module directory (flags must precede it)")
+	// errStrictScanFailed fires when --strict cannot prove cleanliness: the
+	// deprecation scan itself failed, so v5-readiness is unproven. A gate
+	// that silently passes when its scanner breaks is not a gate.
+	errStrictScanFailed = errors.New("--strict: deprecation scan failed")
 )
 
 func main() {
@@ -69,6 +79,10 @@ func parseFlags(args []string) (config, error) {
 
 	if cfg.to != "" && !semver.IsValid(cfg.to) {
 		return cfg, fmt.Errorf("%w: %q", errInvalidToFlag, cfg.to)
+	}
+
+	if fs.NArg() > 1 {
+		return cfg, fmt.Errorf("%w: %s", errArgsAfterDir, strings.Join(fs.Args()[1:], " "))
 	}
 
 	cfg.dir = "."
@@ -132,12 +146,37 @@ func run(_ context.Context, args []string) error {
 		fmt.Println("dry run: no changes written")
 	}
 
+	return strictGateError(reports)
+}
+
+// strictGateError returns the --strict failure for a report set: a failed
+// deprecation scan fails first (an unscannable module is not proven clean),
+// then actual v5-removed API usage.
+func strictGateError(reports []moduleReport) error {
+	if n := countScanFailures(reports); n > 0 {
+		return fmt.Errorf("%w in %d module(s) — v5-readiness unproven, see report",
+			errStrictScanFailed, n)
+	}
+
 	if hasStrictViolation(reports) {
 		return fmt.Errorf("%w in %d module(s) — see deprecation report",
 			errStrictViolations, countStrictViolations(reports))
 	}
 
 	return nil
+}
+
+// countScanFailures counts modules whose deprecation scan failed.
+func countScanFailures(reports []moduleReport) int {
+	n := 0
+
+	for _, r := range reports {
+		if r.ScanErr != nil {
+			n++
+		}
+	}
+
+	return n
 }
 
 // upgradeModule runs the full pipeline for one module directory and records
@@ -181,7 +220,11 @@ func upgradeModule(cfg config, dir string) moduleReport {
 		}
 	}
 
-	rep.Deprecations = deprecationFindings(dir)
+	findings, scanErr := deprecationFindings(dir)
+	rep.Deprecations = findings
+	if scanErr != nil {
+		rep.ScanErr = scanErr.Error()
+	}
 
 	return rep
 }
@@ -195,7 +238,11 @@ func printReport(r moduleReport) {
 		fmt.Printf("no direct go-cqrs-lite pins found in %s\n", filepath.Join(r.Dir, "go.mod"))
 	default:
 		printBumps(r.Bumps)
-		printDeprecations(os.Stdout, r.Deprecations)
+		if r.ScanErr != nil {
+			fmt.Printf("deprecation report: scan failed — %v (v5-readiness unknown)\n", r.ScanErr)
+		} else {
+			printDeprecations(os.Stdout, r.Deprecations)
+		}
 	}
 }
 

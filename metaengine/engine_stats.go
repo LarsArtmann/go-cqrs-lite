@@ -37,6 +37,11 @@ type EngineStats struct {
 	// flag makes that fallback visible instead of silent.
 	Stale bool
 
+	// CanReset reports whether the engine implements [EngineResetter], so a
+	// [Store.Reset] can bulk-clear it (ADR-0136 capability ladder). Engines
+	// that cannot be cleared keep stale materialized state across a reset.
+	CanReset bool
+
 	// Health is the ADR-0137 deactivation state: consecutive classified
 	// failures, quarantine stamp, and the last classified error. Active with
 	// zero failures for engines that never failed.
@@ -69,6 +74,13 @@ func (s *Store) GetEngineStats(_ context.Context) []EngineStats {
 	return out
 }
 
+// canReset reports whether the engine can be bulk-cleared by [Store.Reset].
+func canReset(eng Engine) bool {
+	_, ok := eng.(EngineResetter)
+
+	return ok
+}
+
 // liveLatencyReporter is satisfied by *Calibration (and thus every engine that
 // embeds it). Kept as a named interface so custom engines can implement it too.
 type liveLatencyReporter interface {
@@ -79,8 +91,9 @@ func buildEngineStats(eng Engine) EngineStats {
 	profile := eng.Profile()
 
 	stats := EngineStats{
-		Name:    profile.Name,
-		Profile: profile,
+		Name:     profile.Name,
+		Profile:  profile,
+		CanReset: canReset(eng),
 	}
 
 	rttFresh := false

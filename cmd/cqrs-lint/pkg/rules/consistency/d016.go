@@ -17,6 +17,10 @@ import (
 // splitting into multiple smaller events or using a reference ID instead of
 // embedding the full entity state.
 //
+// Only fires on structs whose name matches the CQRS event payload naming
+// convention or that are in the EventPayloadTypes registry — the same
+// selection as D014/D015.
+//
 //nolint:ireturn // factory returns public interface
 func NewD016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -49,7 +53,8 @@ func NewD016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						structName := typeSpec.Name.Name
-						if !lintutil.IsEventPayloadName(structName) {
+						if !lintutil.IsEventPayloadName(structName) &&
+							!ctx.Registry.EventPayloadTypes[structName] {
 							continue
 						}
 

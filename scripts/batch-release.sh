@@ -126,6 +126,16 @@ for arg in "${ARGS[@]}"; do
 		exit 1
 	fi
 
+	case "$version" in
+	v[0-9]*) : ;;
+	*)
+		echo "ERROR: malformed triple \"${arg}\""
+		echo "Each argument must be ONE quoted string: \"<module> <version> <description>\""
+		echo "(e.g. \"event v4.0.3 Patch release\") — got version \"${version}\"."
+		exit 1
+		;;
+	esac
+
 	module_path="$(awk '/^module /{print $2; exit}' "$gomod")"
 	if ! path_matches_major "$module_path" "$version"; then
 		tag_major="${version#v}"
@@ -264,16 +274,34 @@ done
 for mod in "${modules[@]}"; do
 	echo "Verifying ${mod} builds standalone with stripped go.mod..."
 	build_err="$(mktemp)"
-	if ! (cd "$mod" && GOWORK=off go build -tags goexperiment.jsonv2 ./... 2>"$build_err"); then
+	build_out="$(mktemp -d)"
+	build_ok=1
+	# -o into a throwaway dir: `go build ./...` writes main-package binaries
+	# into the module directory, silently dirtying the tree after the tag.
+	# -o refuses to compile library-only modules ("no main packages to
+	# build"), so those fall back to the plain build, which typechecks and
+	# discards — writing nothing either way.
+	if (cd "$mod" && GOWORK=off go build -o "$build_out/" -tags goexperiment.jsonv2 ./... 2>"$build_err"); then
+		:
+	elif grep -q "no main packages to build" "$build_err"; then
+		if ! (cd "$mod" && GOWORK=off go build -tags goexperiment.jsonv2 ./... 2>"$build_err"); then
+			build_ok=0
+		fi
+	else
+		build_ok=0
+	fi
+	if [ "$build_ok" -eq 0 ]; then
 		echo "ERROR: ${mod} does not compile against its published requires."
 		echo "The go.mod pins a sibling older than the code needs. Bump the"
 		echo "require to the published tag providing the missing symbols, then"
 		echo "re-run. Build output:"
 		cat "$build_err"
 		rm -f "$build_err"
+		rm -rf "$build_out"
 		exit 1
 	fi
 	rm -f "$build_err"
+	rm -rf "$build_out"
 done
 
 # --- Temp commit carrying the stripped go.mods; all tags point at it ---
