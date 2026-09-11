@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — metaengine: grouped-matview Doctor WARN re-verified through turso-go v0.8.0-pre.10 — 2026-09-11
+
+- The Doctor WARN on grouped materialized views now cites the full
+  verified range (tursogo ≤ v0.8.0-pre.10, re-verified 2026-09-11 with the
+  identical 430.50 cross-transaction SUM delta at 2k rows; scalar views
+  exact). Upstream released v0.8.0-pre.9/pre.10 since the 2026-09-07
+  characterization without fixing the IVM defects; every live warning
+  (Doctor, recipes §2.29, readmodels caveat, AGENTS gotcha, bench doc,
+  ADR-0135, FEATURES) cites the current range. Two new tests in
+  `metaengine/tursoengine`: a rapid property test (served aggregates ==
+  base-table aggregates across random multi-transaction datasets) and a
+  defect-envelope guard that skips while the upstream defect is live and
+  flips loudly the day it is fixed (`TURSO_IVM_ENFORCE_FIX=1` enforces
+  now). The `scripts/benchmark-regression.sh` regression gate now also
+  covers the matview read bench at 1k (local + CI), so the serving-path
+  acceleration cannot silently rot.
+
 ### Fixed — dgraphengine: concurrent writers no longer fail on transaction contention — 2026-09-11
 
 - **Every Dgraph write and schema apply now retries transient contention

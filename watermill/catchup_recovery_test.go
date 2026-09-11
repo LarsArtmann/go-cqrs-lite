@@ -196,8 +196,11 @@ func TestCatchUpSubscriber_CloseWhileReplayParkedInJournal(t *testing.T) {
 
 	closePromptly(t, "Close while replay parked in journal read", catchUp.Close)
 
-	if got := drainUntilClosed(t, ch); got != 0 {
-		t.Errorf("expected no deliveries from an interrupted replay, got %d", got)
+	// The first batch may or may not have been forwarded before Close's ctx
+	// cancellation reached the journal read — 0 or 1 deliveries are both
+	// correct; more would mean the replay kept running past Close.
+	if got := drainUntilClosed(t, ch); got > 1 {
+		t.Errorf("replay delivered %d messages after Close; only the first batch is admissible", got)
 	}
 
 	if _, err := catchUp.Subscribe(context.Background(), "test.closepark"); err == nil {
