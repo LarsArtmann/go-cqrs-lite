@@ -131,6 +131,54 @@ scale with volume; it is bounded by the NetworkRTT prior. Shipped:
 totals — a 1K-row estimate was overstated ~200-400x). Point-lookup and
 aggregate fields were already correct and are unchanged.
 
+### Dgraph SearchQuery baseline (2026-09-11, closes the search-query fold)
+
+`BenchmarkCalibration_DgraphSearchQuery` (new in the 2026-09-06 wave but
+never folded here) benches SearchQuery — SERVER-side `anyofterms` over the
+term index — separately from the client-side filtered MapScan above; the two
+were conflated in earlier calibration runs. Ephemeral Dgraph 25.4.0,
+count=3, benchtime=20x, discard-cold medians; ambient load ~5 at measurement
+(a fresh host compile storm started minutes AFTER the run — spread stayed
+±6%, the normal ms-scale gRPC band).
+
+| docs   | SearchQuery (ns/op, discard-cold median) | allocs/op | B/op        |
+| ------ | ---------------------------------------- | --------- | ----------- |
+| 100    | ~838_390                                 | ~249      | ~23_600     |
+| 1 000  | ~3_211_122                               | ~1 160    | ~128_300    |
+| 10 000 | ~13_052_295                              | ~10 200   | ~1_850_000  |
+
+Raw runs (execution order):
+
+```
+rows=100    876124 / 802819 / 873960
+rows=1000   3550476 / 3244352 / 3177892
+rows=10000  12559372 / 12362960 / 13741630
+```
+
+Per-row slopes: 100→1K ≈ 2_636 ns/row (inflated by the amortizing RPC fixed
+cost); 1K→10K ≈ 1_093 ns/row. SearchQuery is the CHEAPER read at scale — the
+term index filters server-side, so only matching docs cross the wire (~2.5
+allocs, ~200 B per result row), versus MapScan's client-side predicate over
+every returned row (~2.2-2.7µs/row). Constants UNCHANGED: `NsPerScan=2_200`
+also prices ReadFullTextSearch today and sits mid-band (overstates ~2x at a
+10K result set, understates ~1.5x at 1K where the fixed cost still carries
+weight — both conservative-enough planner directions). A dedicated
+search-cost field is deferred until a consumer needs the precision;
+re-anchor by hand alongside pg/mysql/dgraph (no nightly drift coverage for
+live-DSN engines).
+
+### ADTMap complexity decision (2026-09-07, recorded here 2026-09-11)
+
+dgraph's `ADTMap` is declared `ComplexityO1` (TODO 07-43 §g2; pinned by
+`TestRealProfile_ReadCostsPinned` in metaengine/dgraphengine). Rationale:
+every point op (MapGet/MapSet/MapUpdate) is exactly ONE client-visible gRPC
+round trip — the O(log N) index work runs server-side INSIDE the measured
+350_000 ns point-lookup constant, so the previous OLogN declaration made the
+planner multiply that per-RPC constant by log2(volume), overstating a 1K-row
+point lookup ~10x. The remaining OLogN ADTs (Set/Multimap/Log/StreamLog)
+keep their prior until each gets the same one-RPC-vs-ops reassessment
+(TODO_LIST Q1, blocked on the one-wave-vs-incremental call).
+
 ## Protocol
 
 1. Run per module, `GOWORK=off`, tags `goexperiment.jsonv2` (add `cgo` for

@@ -87,12 +87,24 @@ decision.
 
 ## Verification trail
 
-- `cmd/cqrs-lint` full module suite: green (exit 0) after each wave.
+- `cmd/cqrs-lint` full module suite: green (exit 0), re-run after every wave;
+  `-race` on the module: green.
 - API golden regenerated (6781 → 6782 exports; new:
   `lintutil.QualifierTargetsModule`) + `TestEvery` meta-tests green.
 - `scripts/check-changelog-symbols.sh`: green after rewording a prose
   backtick that the gate read as a symbol citation.
-- Full `nix run .#verify`: final step of this session.
+- `#verify` phase-by-phase (2026-09-11, machine under load 27–85 from a
+  concurrent monitor365 session): verify-docs, check-modules, build, vet —
+  green; test — 122 packages ok, single flake `benchkit.TestCompare_ThreeBackends`
+  (60s cap blown under load; passes in 11.8s standalone, proven twice);
+  lint/check-arch/check-lint-config/check-docserver-css/check-duplication/
+  check-templ/check-bench-gate/check-coverage/check-api-stability/doc-check —
+  all green individually. Lint: `cmd/cqrs-lint` clean after fixing my three
+  findings (exhaustive switch, gofumpt, intrange); `scheduling/sqlstore`
+  (exhaustruct_v5/tagliatelle) remains red — pre-existing, untouched by this
+  session. A full single-command `#verify` green on this box requires the
+  concurrent load to end (its own flake notes say timing tests need an idle
+  machine).
 
 ## Incidents
 
@@ -100,6 +112,9 @@ decision.
   lintutil exports from the Tier-3 work had been added after the last regen).
   Regenerated + meta-tested; also freed a full tmpfs (/tmp 100%) that broke a
   test build mid-regen by trashing stale tool caches
-  (`/tmp/go-build*`, `/tmp/gomod-verify`).
-- A concurrent session touched `docs/DOMAIN_LANGUAGE.md` and status files;
-  no conflicts with this work.
+  (`/tmp/go-build*`, `/tmp/gomod-verify`). Later verify runs needed
+  `TMPDIR=/home/lars/tmp-verify` because the concurrent session kept /tmp at
+  98–100%.
+- A concurrent session touched `docs/DOMAIN_LANGUAGE.md`, status files, and
+  runs active monitor365 processes (17+ GB under /tmp/monitor365-client.*,
+  live — left untouched); no merge conflicts with this work.

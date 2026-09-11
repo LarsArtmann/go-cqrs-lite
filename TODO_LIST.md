@@ -378,24 +378,44 @@ bottom is a do-not-re-litigate guard, not a backlog.
       silence PLAN diagnostics today; should they also silence Doctor's
       `--- Capability ---` violation lines (`CapabilityAudit` receives nil
       gaps)? — source: archived 22-33 §g2, 04-35 §f17
-- [ ] **ClaimMetrics surfacing** — claim metrics hooks shipped 08-30 with zero
+- [x] ~~**ClaimMetrics surfacing** — claim metrics hooks shipped 08-30 with zero
       consumers; surface `ClaimMetrics` in Doctor or a status endpoint. —
-      source: archived 22-33 §f14
-      _(Effort: S)_
-- [ ] **Fold `BenchmarkCalibration_DgraphSearchQuery` results into the
+      source: archived 22-33 §f14~~ DONE 2026-09-11 — `ClaimingTimerStore`
+      now maintains the counters itself (atomics on every committed Due poll
+      and RenewLease, hooks unchanged) and exposes a JSON-ready
+      `Metrics()` snapshot (`ClaimMetricsSnapshot`: batches incl. empty
+      polls as heartbeat / timers / renewed / rejections) — a Doctor-style
+      report or `/status` endpoint reads claim liveness with zero wiring.
+      Pinned by `TestClaimingSQLite_MetricsSnapshot`; api golden regenerated.
+- [x] ~~**Fold `BenchmarkCalibration_DgraphSearchQuery` results into the
       calibration baseline doc** (`docs/benchmarks/calibration-2026-08-30.md`
       protocol/recalibration sections; bench exists, doc not updated; also
-      record the ADTMap=O1 decision there). — source: archived 22-33 §f11
-      _(Effort: XS)_
-- [ ] **Demote catch-up Record-context completeness** — verify Demote's
+      record the ADTMap=O1 decision there). — source: archived 22-33 §f11~~
+      DONE 2026-09-11 — live run on ephemeral Dgraph 25.4.0 (count=3,
+      benchtime=20x, load ~5): ~838µs/3.2ms/13.1ms at 100/1K/10K docs;
+      marginal slope ~1_093 ns/row at scale (server-side anyofterms is the
+      CHEAPER read vs client-filtered MapScan). Constants unchanged
+      (`NsPerScan=2_200` mid-band prices ReadFullTextSearch; dedicated
+      search-cost field deferred). Folded as "Dgraph SearchQuery baseline
+      (2026-09-11)" + "ADTMap complexity decision (2026-09-07)" sections in
+      the baseline doc.
+- [x] ~~**Demote catch-up Record-context completeness** — verify Demote's
       catch-up path passes full records to record-aware folds (07-43 §f36).
-      — source: archived 22-33 §f26
-      _(Effort: S)_
-- [ ] **enginetest fakes contract note** — document next to
+      — source: archived 22-33 §f26~~ DONE 2026-09-11 — verification found a
+      REAL gap: the re-routed leg (`applyReplay`) honored `EventInput.Record`
+      but the mirror leg (`replayToShadow`) always synthesized a Type-only
+      record, dropping StreamID/Version on the demoted engine. Fixed to pass
+      the recorded record through (synthesize only for legacy log entries);
+      pinned by `TestDemoteEngine_RecordContextReplay` (fails pre-fix with
+      partial context on the mirror leg).
+- [x] ~~**enginetest fakes contract note** — document next to
       `RunCapabilityConformance`: fake engines must satisfy
       `engineServesADTNatively` for every declared ADT (the honestMapMixin /
-      nativeMapEngine precedent). — source: 04-35 §e5/§f20
-      _(Effort: XS)_
+      nativeMapEngine precedent). — source: 04-35 §e5/§f20~~ DONE 2026-09-11
+      — "Contract for FAKE engines" paragraph added to the
+      `adttest.RunCapabilityConformance` doc (metaengine/adttest/conformance.go):
+      implement the declared ADT's backend interface or declare it in
+      DegradedADTs, with both precedents named.
 
 ---
 
