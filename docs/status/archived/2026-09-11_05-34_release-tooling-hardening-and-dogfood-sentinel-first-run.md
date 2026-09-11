@@ -159,7 +159,7 @@ Not fucked up, worth stating: I did NOT touch the other session's in-flight file
 
 **Docs (34–39):**
 34. ~~Harvest + archive this report per docs-health flow (annotate the 01-47 sources §f39/§b2/§f2 as resolved).~~ done (harvested + annotated + archived by docs-health 6th pass (2026-09-11))
-35. Update the docs/status/README.md index.
+35. ~~Update the docs/status/README.md index.~~ done (docs/status/README.md 6th-pass index entry added same day (docs-health 6th pass); row closed by self-review)
 36. recipes.md/core.md: no consumer-facing surface changed — confirm doc-check stays green after next edits (it is green now).
 37. ~~Record the `go build -o` + "no main packages" gotcha in gotchas-tooling-build.md (it burned real time).~~ done (gotcha recorded in docs/agents/gotchas-tooling-build.md line 20 (go build -o bullet), 6th pass)
 38. ~~Record the "LSP caches lie" instance (package-name split phantom errors after sed) if not already covered.~~ done (already covered — global ~/.config/crush/AGENTS.md 'LSP caches lie; builds don't' lesson (line 413))

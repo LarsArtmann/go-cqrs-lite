@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	. "github.com/onsi/gomega"
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
-	. "github.com/onsi/gomega"
-	bolt "go.etcd.io/bbolt"
 )
 
 // TestBboltRestartSafety_StreamAndJournal verifies that reopening a persistent

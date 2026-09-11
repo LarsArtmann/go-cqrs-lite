@@ -8,6 +8,7 @@
 > ✅ Done (12): S05, S06, S10, S11, S13, S14, S17, S20, S21, S23, S24 (EngineResetter ladder — ALL 12 engines, CHANGELOG'd), S25 (fold-write failover + `Store.CatchUpEngine`).
 > ◐ Half (8): S01 (truth pass done; 3 audit rulings still open with the user) · S07 (`--audit`/`--smoke` shipped; `v4.10.2` tag, `check-retracts-shipped.sh`, `--baseline`, smoke-probes remain) · S12 · S15 (protocol done; quiet-window re-runs pending) · S16 (observer + skip-vs-fail done; MySQL live shuffle + `-race` pending) · S18 (ratchet green; ratification pending) · S19 · S22 (skip-vs-fail answered; shuffle evals pending).
 > Open (10): S02 (tag wave — user-gated; `watermill/v4.7.0` still absent), S03 (quiet-window `#verify`), S04 (CI triage), S08 (redo), S09, S26–S30. Executing sessions: 05-51 + the parallel 05:00–05:30 waves; open remainders live in `TODO_LIST.md`.
+> Marker note: the ✅/◐ markers on the §1 Pareto list are the SINGLE SOURCE OF TRUTH — §2 (task table), §3 (micro breakdown), and §4 (execution graph) intentionally carry no per-row markers; read any S-item's status from §1.
 
 ## 0. Planning-time truth pass (executed BEFORE this plan was written)
 

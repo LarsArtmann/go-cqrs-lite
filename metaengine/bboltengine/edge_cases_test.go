@@ -6,8 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/onsi/gomega"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestBboltEdgeCases_EmptyFilterResults verifies that a MapScan with a filter

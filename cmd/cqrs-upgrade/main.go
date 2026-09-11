@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"encoding/json/v2"
 	"errors"
 	"flag"
@@ -10,8 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"encoding/json/jsontext"
 
 	"golang.org/x/mod/semver"
 )

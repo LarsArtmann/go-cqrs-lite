@@ -99,17 +99,14 @@ title, never annotated. `docs/status/` again holds zero unarchived reports.
 archived all eight batch-day reports (04:35→05:51: the 5th-audit report,
 cqrs-lint cheap-fix tail, turso IVM repro, code-quality quintet, release-tooling
 hardening, encoded-apply sweep, Cordis reset wave, publish/reset wave 0/1) —
-38 §f rows struck with verified evidence (every strike grep/tag/gate-proven;
+64 §f rows struck with verified evidence (every strike grep/tag/gate-proven;
 prepared verdicts for 05-34 §f19/§f20 and 05-40 §f07 were OVERTURNED by
 verification and left open), 8 RESOLVED-BY-ROUTING banners, open rows routed to
 TODO_LIST (~20 new rows, 10 stale rows deleted, 0 `[x]`/90 open) + ROADMAP
 (13 raw ideas, OQ 10 answered) + FEATURES/CHANGELOG/AGENTS rebuilds. Also
 archived `docs/adr/archived/2026-08-17_system-v4-review-proposals.md` (all 8
 proposals verified resolved; dir created) and the 2026-07-23 analytics feedback
-pair; the SUPERB plan stays LIVE with ✅12/◐8/open-10 wave markers. 64 §f rows
-struck total across the eight reports, every strike grep/tag/gate-proven
-(prepared verdicts for 05-34 §f19/§f20 and 05-40 §f07 were OVERTURNED by
-verification and left open). Known-open:
+pair; the SUPERB plan stays LIVE with ✅12/◐8/open-10 wave markers. Known-open:
 `#check-duplication` RED (5 new `reset*.go` clone groups — annotate-vs-re-pin
 decision pending). `docs/status/` holds only this pass's own
 [`2026-09-11_06-33_docs-health-sixth-pass-midflight.md`](2026-09-11_06-33_docs-health-sixth-pass-midflight.md).
