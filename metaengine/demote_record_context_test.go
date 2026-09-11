@@ -50,7 +50,11 @@ func TestDemoteEngine_RecordContextReplay(t *testing.T) {
 	}
 
 	for range 5 {
-		if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "x", Name: "n"}); err != nil {
+		if err := store.Apply(
+			ctx,
+			"roleItemCreated",
+			roleItemCreated{ID: "x", Name: "n"},
+		); err != nil {
 			t.Fatalf("Apply counter event: %v", err)
 		}
 	}

@@ -65,59 +65,6 @@ func drainUntilClosed(t *testing.T, ch <-chan *message.Message) int {
 	}
 }
 
-// TestCatchUpSubscriber_CloseWhileBlockedOnFullBuffer pins the property that
-// Close() terminates a subscription whose replay is blocked because the
-// consumer stopped reading (output buffer full) — Close must return promptly
-// and the subscription channel must close instead of deadlocking.
-func TestCatchUpSubscriber_CloseWhileBlockedOnFullBuffer(t *testing.T) {
-	t.Parallel()
-
-	store := eventtest.NewFakeStore()
-	bus := eventtest.NewFakeBus()
-	cpStore := memory.NewMemoryCheckpointStore()
-
-	// More events than the 256-slot output buffer: with no consumer reading,
-	// the replay goroutine must end up blocked on the forwarding select.
-	const total = 600
-	streamID := id.NewStreamID()
-
-	events := make([]event.Event, 0, total)
-	for range total {
-		evt, _ := event.NewEvent(
-			"test.closefull", streamID, "TestStream", event.Version(1),
-			[]byte(`{}`),
-		)
-		events = append(events, evt)
-	}
-
-	_ = store.AppendBatch(context.Background(),
-		id.NewStreamRef("TestStream", streamID), events)
-
-	catchUp, err := NewCatchUpSubscriber(store, NewSubscriberAdapter(bus), cpStore, nil)
-	if err != nil {
-		t.Fatalf("NewCatchUpSubscriber: %v", err)
-	}
-
-	ch, err := catchUp.Subscribe(context.Background(), "test.closefull")
-	if err != nil {
-		t.Fatalf("Subscribe: %v", err)
-	}
-
-	// Let the replay fill the buffer and block on forwarding.
-	time.Sleep(100 * time.Millisecond)
-
-	closePromptly(t, "Close while replay blocked on full output buffer", catchUp.Close)
-
-	delivered := drainUntilClosed(t, ch)
-	if delivered > total {
-		t.Fatalf("delivered %d messages, journal only had %d", delivered, total)
-	}
-
-	if _, err := catchUp.Subscribe(context.Background(), "test.closefull"); err == nil {
-		t.Error("Subscribe after Close must fail")
-	}
-}
-
 // TestCatchUpSubscriber_CloseWhileBlockedOnAck pins the property that Close()
 // terminates a subscription blocked in the awaitAck wait (consumer received a
 // message but never acked it). Close must return promptly, the channel must

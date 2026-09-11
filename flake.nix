@@ -914,7 +914,16 @@
             # check-formatters pins formatters.enable so a config reformat
             # cannot silently resurrect gci (the treefmt-vs-golangci fight).
             check-lint-config =
-              mkApp "check-lint-config" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.jq pkgs.coreutils ]
+              mkApp "check-lint-config"
+                [
+                  goPkg
+                  pkgs.golangci-lint
+                  pkgs.bash
+                  pkgs.findutils
+                  pkgs.gnugrep
+                  pkgs.jq
+                  pkgs.coreutils
+                ]
                 ''
                   echo "==> golangci-lint config verify"
                   ${pkgs.golangci-lint}/bin/golangci-lint config verify --config "$PWD/.golangci.yml"
@@ -1459,22 +1468,20 @@
             # corpus #verify checks inline). Zero-warning policy: exits
             # non-zero on ANY broken reference, parse warning, or alias
             # ambiguity.
-            doc-check =
-              mkApp "doc-check" [ goPkg pkgs.bash ]
-                ''
-                  cd cmd/doc-check
-                  GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . \
-                    ../../SKILL.md \
-                    ../../.agents/skills/go-cqrs-lite/references/*.md \
-                    ../../AGENTS.md \
-                    ../../README.md \
-                    ../../TODO_LIST.md \
-                    ../../ROADMAP.md \
-                    ../../FEATURES.md \
-                    ../../CONTRIBUTING.md \
-                    ../../docs/DOMAIN_LANGUAGE.md \
-                    ../../docs/METAENGINE_DOMAIN_LANGUAGE.md
-                '';
+            doc-check = mkApp "doc-check" [ goPkg pkgs.bash ] ''
+              cd cmd/doc-check
+              GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . \
+                ../../SKILL.md \
+                ../../.agents/skills/go-cqrs-lite/references/*.md \
+                ../../AGENTS.md \
+                ../../README.md \
+                ../../TODO_LIST.md \
+                ../../ROADMAP.md \
+                ../../FEATURES.md \
+                ../../CONTRIBUTING.md \
+                ../../docs/DOMAIN_LANGUAGE.md \
+                ../../docs/METAENGINE_DOMAIN_LANGUAGE.md
+            '';
 
             # verify-fast: same as verify but passes -short to skip soak tests
             # (benchkit 35s soak suite). Use for rapid iteration during development.

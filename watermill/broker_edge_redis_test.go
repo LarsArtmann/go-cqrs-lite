@@ -3,6 +3,7 @@ package watermill_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"sync"
 	"testing"
@@ -12,6 +13,12 @@ import (
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	cqrs "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // Broker-edge tests against a real Redis Streams broker — the edges the
@@ -247,5 +254,122 @@ func TestRedisStream_LargePayloadRoundtrip(t *testing.T) {
 
 	if !bytes.Equal(msg.Payload, payload) {
 		t.Fatalf("payload corrupted: got %d bytes, want %d", len(msg.Payload), len(payload))
+	}
+}
+
+// TestRedisStream_CatchUpReplayThroughput runs the CatchUpSubscriber replay
+// path with a REAL Redis Streams broker as the live side — the broker-backed
+// variant of BenchmarkCatchUp_ReplayThroughput (in-memory gochannel). It
+// pins count, ordering, and the replay→live handoff end-to-end, and LOGS the
+// observed throughput without asserting a ceiling (shared runners vary).
+// Requires REDIS_URL (nix run .#integration-redis).
+func TestRedisStream_CatchUpReplayThroughput(t *testing.T) {
+	client := newRedisEdgeClient(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	const (
+		topic       = "edge-catchup-throughput"
+		replayCount = 1000
+		liveCount   = 10
+	)
+
+	// Journal side: replayCount sequence-tagged events from the FakeStore.
+	store := eventtest.NewFakeStore()
+	streamID := id.NewStreamID()
+
+	events := make([]event.Event, 0, replayCount)
+	for i := range replayCount {
+		evt, evtErr := event.NewEvent(
+			topic, streamID, "TestStream", event.Version(i+1),
+			[]byte(fmt.Sprintf(`{"n":%d}`, i)),
+		)
+		if evtErr != nil {
+			t.Fatalf("NewEvent(%d): %v", i, evtErr)
+		}
+		events = append(events, evt)
+	}
+
+	if err := store.AppendBatch(ctx,
+		id.NewStreamRef("TestStream", streamID), events); err != nil {
+		t.Fatalf("AppendBatch: %v", err)
+	}
+
+	// Live side: a real Redis Streams subscription (the whole point — the
+	// in-memory gochannel bus cannot catch broker-edge behavior).
+	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
+		Client:        client,
+		ConsumerGroup: "edge-catchup-group",
+		Consumer:      "edge-catchup-c1",
+	}, watermill.NopLogger{})
+	if err != nil {
+		t.Fatalf("subscriber: %v", err)
+	}
+	t.Cleanup(func() { _ = sub.Close() })
+
+	catchUp, err := cqrs.NewCatchUpSubscriber(
+		store, cqrs.NewSubscriberAdapter(sub),
+		memory.NewMemoryCheckpointStore(), nil,
+	)
+	if err != nil {
+		t.Fatalf("NewCatchUpSubscriber: %v", err)
+	}
+	t.Cleanup(func() { _ = catchUp.Close() })
+
+	ch, err := catchUp.Subscribe(ctx, topic)
+	if err != nil {
+		t.Fatalf("Subscribe: %v", err)
+	}
+
+	deadline := time.After(60 * time.Second)
+
+	// Phase 1: consume+ack the whole replay in order, timing it.
+	start := time.Now()
+
+	for i := range replayCount {
+		var msg *message.Message
+
+		select {
+		case msg = <-ch:
+		case <-deadline:
+			t.Fatalf("timed out at replayed message %d", i)
+		}
+
+		if got := msg.Metadata.Get("event_id"); got != events[i].ID().String() {
+			t.Fatalf("replay order broken at %d: event_id=%s", i, got)
+		}
+		msg.Ack()
+	}
+	elapsed := time.Since(start)
+	t.Logf("replay throughput: %d events in %s (%.0f events/sec)",
+		replayCount, elapsed.Round(time.Millisecond), float64(replayCount)/elapsed.Seconds())
+
+	// Phase 2: live messages through the real broker, after replay drained —
+	// pins the replay→live handoff over Redis Streams.
+	pub, err := redisstream.NewPublisher(
+		redisstream.PublisherConfig{Client: client}, watermill.NopLogger{},
+	)
+	if err != nil {
+		t.Fatalf("publisher: %v", err)
+	}
+
+	for i := range liveCount {
+		payload := fmt.Appendf(nil, `{"live":%d}`, i)
+		if err := pub.Publish(topic, message.NewMessage(watermill.NewUUID(), payload)); err != nil {
+			t.Fatalf("publish live %d: %v", i, err)
+		}
+	}
+
+	for i := range liveCount {
+		var msg *message.Message
+
+		select {
+		case msg = <-ch:
+		case <-deadline:
+			t.Fatalf("timed out waiting for live message %d", i)
+		}
+
+		msg.Ack()
 	}
 }

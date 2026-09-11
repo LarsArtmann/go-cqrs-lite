@@ -81,9 +81,14 @@ func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
 			for i := 0; i < n; i++ {
 				idx := len(all)
 				all = append(all, row{
-					key:      fmt.Sprintf("k%04d", idx),
-					customer: fmt.Sprintf("c%d", rapid.IntRange(0, groups-1).Draw(rt, fmt.Sprintf("grp_%d_%d", txIdx, idx))),
-					amount:   float64(rapid.IntRange(0, 500).Draw(rt, fmt.Sprintf("amt_%d_%d", txIdx, idx))),
+					key: fmt.Sprintf("k%04d", idx),
+					customer: fmt.Sprintf(
+						"c%d",
+						rapid.IntRange(0, groups-1).Draw(rt, fmt.Sprintf("grp_%d_%d", txIdx, idx)),
+					),
+					amount: float64(
+						rapid.IntRange(0, 500).Draw(rt, fmt.Sprintf("amt_%d_%d", txIdx, idx)),
+					),
 				})
 				batch = append(batch, all[idx])
 			}
@@ -185,7 +190,9 @@ func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 	t.Parallel()
 
 	if os.Getenv("TURSO_IVM_ENFORCE_FIX") == "" {
-		t.Skip("upstream defect A live (tursogo <= v0.8.0-pre.10): grouped views lose cross-transaction deltas at scale; set TURSO_IVM_ENFORCE_FIX=1 to enforce the fixed behavior")
+		t.Skip(
+			"upstream defect A live (tursogo <= v0.8.0-pre.10): grouped views lose cross-transaction deltas at scale; set TURSO_IVM_ENFORCE_FIX=1 to enforce the fixed behavior",
+		)
 	}
 
 	ctx := context.Background()
@@ -199,7 +206,12 @@ func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 	eng, err := tursoengine.New(
 		filepath.Join(t.TempDir(), "defectA_envelope.db"),
 		tursoengine.WithMaterializedViews([]metaengine.MaterializedViewSpec{
-			{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+			{
+				Collection: "orders",
+				Fn:         metaengine.MatViewSum,
+				Column:     "amount",
+				GroupBy:    "customer",
+			},
 		}),
 	)
 	if err != nil {
@@ -218,7 +230,12 @@ func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 					"customer": fmt.Sprintf("c%d", i%groupModulus),
 					"amount":   float64(i%amountMod) + 0.5,
 				}
-				if err := mb.MapSet(ctx, "orders", fmt.Sprintf("order-%05d", i), value); err != nil {
+				if err := mb.MapSet(
+					ctx,
+					"orders",
+					fmt.Sprintf("order-%05d", i),
+					value,
+				); err != nil {
 					return err
 				}
 			}
@@ -255,11 +272,20 @@ func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 	}
 
 	if gotSum != expSum {
-		t.Fatalf("defect A no longer reproduces: grouped view total %.2f == base %.2f — upstream fixed the IVM delta loss; flip the guard (remove skip + WARN + docs caveats)", gotSum, expSum)
+		t.Fatalf(
+			"defect A no longer reproduces: grouped view total %.2f == base %.2f — upstream fixed the IVM delta loss; flip the guard (remove skip + WARN + docs caveats)",
+			gotSum,
+			expSum,
+		)
 	}
 	for grp, want := range expGroupSum {
 		if got := gotGroupSum[grp]; got != want {
-			t.Fatalf("defect A no longer reproduces: group %q served %.2f != base %.2f — upstream fixed the IVM delta loss; flip the guard (remove skip + WARN + docs caveats)", grp, got, want)
+			t.Fatalf(
+				"defect A no longer reproduces: group %q served %.2f != base %.2f — upstream fixed the IVM delta loss; flip the guard (remove skip + WARN + docs caveats)",
+				grp,
+				got,
+				want,
+			)
 		}
 	}
 }
