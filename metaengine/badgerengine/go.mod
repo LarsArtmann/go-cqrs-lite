@@ -43,8 +43,8 @@ replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
 // loss). v4.2.0 shipped full four-prefix seeding — see ADR-0118 incident
 // addendum.
 retract (
-	v4.0.0
-	v4.0.1
-	v4.0.2
 	v4.1.0
+	v4.0.2
+	v4.0.1
+	v4.0.0
 )
