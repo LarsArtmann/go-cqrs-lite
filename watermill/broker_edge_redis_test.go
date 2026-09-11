@@ -309,7 +309,7 @@ func TestRedisStream_CatchUpReplayThroughput(t *testing.T) {
 	t.Cleanup(func() { _ = sub.Close() })
 
 	catchUp, err := cqrs.NewCatchUpSubscriber(
-		store, cqrs.NewSubscriberAdapter(sub),
+		store, sub,
 		memory.NewMemoryCheckpointStore(), nil,
 	)
 	if err != nil {
