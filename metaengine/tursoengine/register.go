@@ -107,6 +107,8 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 		dsn = ":memory:"
 	}
 
+	dsn = normalizeEmbeddedDSN(dsn)
+
 	var cfg options
 
 	for _, opt := range opts {

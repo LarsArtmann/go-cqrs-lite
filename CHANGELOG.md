@@ -239,6 +239,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   pins (build tag `integration`) so the PG and MariaDB claim paths are
   proven to feed the same counter surface SQLite pins.
 
+### Fixed — tursoengine: `file:` DSNs now work as documented — 2026-09-11
+
+- **`tursoengine.New("file:/data/app.db", ...)` previously failed with an
+  opaque `I/O error (open): entity not found`** — the README documented the
+  SQLite-conventional `file:` scheme, but the turso driver expects plain
+  paths. Construction now normalizes a scheme-only `file:`/`file://` DSN to
+  its path; a `file:` DSN carrying query parameters (libsql-style
+  `?mode=memory`, semantics the turso driver does not have) passes through
+  UNCHANGED so the driver fails loudly instead of silently connecting to a
+  different database. Pinned by `TestNormalizeEmbeddedDSN` and the
+  `file:`-scheme encryption round-trip. Encryption breadth also grew:
+  counter + journal round-trips survive close/reopen under encryption, and a
+  materialized view on an encrypted engine now has a SERVING test (queries
+  the count aggregate, not just construct-and-write).
+
 ### Added — metaengine: turso-go IVM defect repro suite + single-sourced verified-version citation — 2026-09-11
 
 - **Added the `-tags ivmrepro` one-command release check** for the three

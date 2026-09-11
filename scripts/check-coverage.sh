@@ -15,6 +15,17 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
+# Self-heal the toolchain cache env (the nix wrapper runs this script bare;
+# without writable caches go test fails and coverage parses as EMPTY — the
+# vacuous 0.0%-DRIFT class this script once reported). Set-before-use only:
+# an explicitly exported environment always wins.
+: "${GOCACHE:=${HOME:-/home}/.cache/go-build}"
+: "${GOMODCACHE:=${HOME:-/home}/go/pkg/mod}"
+: "${GOPATH:=${HOME:-/home}/go}"
+: "${GOTMPDIR:=$(mktemp -d)}"
+: "${GOTOOLCHAIN:=auto}"
+export GOCACHE GOMODCACHE GOPATH GOTMPDIR GOTOOLCHAIN
+
 # Tolerance: coverage changes below this are noise (minor refactors). Anything
 # larger is real drift that should update AGENTS.md.
 TOLERANCE=2.0
@@ -59,11 +70,20 @@ compute_coverage() {
 	local mod="$1"
 	# Defensive: strip any spaces if someone reintroduces spaced display keys.
 	local path="${mod// /}"
+	local out pct
+	out="$(go test -tags "$TAGS" -cover "./$path/..." 2>&1 || true)"
 	# Take the primary package's coverage line (first "coverage:" occurrence).
-	go test -tags "$TAGS" -cover "./$path/..." 2>/dev/null |
+	pct="$(printf '%s\n' "$out" |
 		grep -oE 'coverage: [0-9]+\.[0-9]+%' |
 		head -1 |
-		grep -oE '[0-9]+\.[0-9]+'
+		grep -oE '[0-9]+\.[0-9]+')"
+	if [ -z "$pct" ]; then
+		# LOUD, never vacuous: an empty parse is a broken measurement, not 0%.
+		echo "::error::coverage computation produced NO DATA for '$mod' (go test failed or emitted no coverage line). Last lines:" >&2
+		printf '%s\n' "$out" | tail -5 >&2
+		exit 1
+	fi
+	printf '%s' "$pct"
 }
 
 if [ "${1:-}" = "--update" ]; then
