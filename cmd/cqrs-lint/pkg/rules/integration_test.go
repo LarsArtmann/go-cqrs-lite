@@ -61,6 +61,7 @@ func TestIntegration_Taskmanager(t *testing.T) {
 // Update with CQRS_LINT_UPDATE_GOLDEN=1 go test -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/.
 var taskmanagerGoldenProfile = map[string]int{
 	"A009": 1,
+	"A013": 10,
 	"A032": 3,
 	"B004": 1,
 	"B005": 1,
@@ -73,7 +74,6 @@ var taskmanagerGoldenProfile = map[string]int{
 	"C026": 2,
 	"D013": 1,
 	"E003": 1,
-	"E017": 1,
 	"S010": 1,
 	"V006": 1,
 }

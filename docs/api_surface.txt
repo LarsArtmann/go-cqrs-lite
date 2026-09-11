@@ -874,6 +874,7 @@ cmd/cqrs-lint/pkg/rules/lintutil/func IsReadModelFileName
 cmd/cqrs-lint/pkg/rules/lintutil/func LooksLikeEventPayload
 cmd/cqrs-lint/pkg/rules/lintutil/func ModuleImportsPath
 cmd/cqrs-lint/pkg/rules/lintutil/func QualifierResolvesTo
+cmd/cqrs-lint/pkg/rules/lintutil/func QualifierTargetsModule
 cmd/cqrs-lint/pkg/rules/lintutil/func QualifierToImportPath
 cmd/cqrs-lint/pkg/rules/lintutil/func SelectorMatches
 cmd/cqrs-lint/pkg/rules/lintutil/func SelectorPkgName
