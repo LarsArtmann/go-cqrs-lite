@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/onsi/gomega v1.42.1
+	github.com/samber/lo v1.53.0
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0
 	go.opentelemetry.io/otel/metric v1.46.0

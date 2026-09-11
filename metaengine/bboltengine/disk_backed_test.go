@@ -5,10 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	. "github.com/onsi/gomega"
 )
 
 // disk_backed_test.go verifies the on-disk mode of NewBboltEngine(path): data

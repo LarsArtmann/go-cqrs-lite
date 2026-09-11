@@ -104,5 +104,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0
 	github.com/larsartmann/go-error-family v0.10.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
+	github.com/samber/lo v1.53.0
 	go.uber.org/goleak v1.3.0
 )

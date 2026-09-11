@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"flag"
 	"fmt"
@@ -10,6 +10,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"encoding/json/jsontext"
 
 	"golang.org/x/mod/semver"
 )
@@ -276,8 +278,7 @@ func emitJSON(w io.Writer, reports []moduleReport) error {
 		wire = append(wire, r.toJSON())
 	}
 
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
+	enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 
-	return enc.Encode(wire)
+	return json.MarshalEncode(enc, wire)
 }
