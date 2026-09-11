@@ -35,6 +35,13 @@ BASELINE="benchmarks/benchmark-baseline.txt"
 CURRENT_INPUT=""
 SAVE=""
 THRESHOLD="25"
+# The gate set is an EXPLICIT allowlist, deliberately NOT auto-discovered:
+# widening it (e.g. `.`) would pull in load-sensitive benchmarks like
+# watermill's BenchmarkCatchUp_ReplayThroughput and flake the CI regression
+# gate on shared runners. New gate benchmarks must be added here on purpose,
+# with load-aware budgets (loadScaledCeiling/soakTestScale) inside their own
+# package. `BenchmarkBenchkitSuite_Memory$` is anchored so the _Small variant
+# never matches implicitly.
 BENCH='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$'
 BENCH_DIR="stack/bench"
 COUNT="5"

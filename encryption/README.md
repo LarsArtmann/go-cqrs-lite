@@ -147,6 +147,19 @@ key, err := encryption.GenerateKey()          // 32 random bytes (crypto/rand)
 keyB64, err := encryption.GenerateKeyBase64() // same, base64-encoded for env vars/secrets managers
 ```
 
+### Loading & Validation
+
+```go
+key, err := encryption.LoadKeyFromEnv("APP_ENCRYPTION_KEY") // base64 env value; ErrKeyNotSet when unset/empty
+key, err := encryption.LoadKeyFromFile("/run/secrets/enc.key") // tolerates a trailing newline (openssl rand -base64 32)
+err = encryption.ValidateKey(key)                              // 32-byte length check before constructing a cipher
+```
+
+`EncodeKeyBase64`/`DecodeKeyBase64` round-trip keys through config files and
+secret managers. Missing sources stay diagnosable: `LoadKeyFromEnv` wraps
+`ErrKeyNotSet`, file read failures keep `os.ErrNotExist` checkable via
+`errors.Is`, and malformed values wrap `ErrInvalidKey`.
+
 ### Derivation (multi-tenant per-tenant keys)
 
 `DeriveKey` derives domain-separated subkeys from one master key via

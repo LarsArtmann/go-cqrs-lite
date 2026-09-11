@@ -62,6 +62,6 @@ else
 	echo "==> Running watermill broker tests (default; pass a command to override)"
 	(
 		cd watermill
-		GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -v
+		GOWORK=off go test -tags "goexperiment.jsonv2" -shuffle=on ./... -count=1 -v
 	)
 fi

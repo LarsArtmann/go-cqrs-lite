@@ -510,9 +510,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) —
       userspace MariaDB coverage exists but not the full nspawn env. Now also
       covers the MySQL claiming integration tests. _(Effort: M)_
-- [ ] **Evaluate `-shuffle=on` for the dgraph suite specifically** (adopted
-      for pg/mysql/sqlite/duckdb; dgraph still needs its own evaluation, then
-      roll into the ephemeral-* app invocations). _(Effort: S)_
+- [x] **Evaluate `-shuffle=on` for the dgraph suite specifically** — DONE
+      2026-09-11: seed 42 exposed two real contention gaps (unguarded
+      mutation aborts + schema-Alter "Pending transactions" rejections
+      that silently skipped ADT subtests); fixed at the execution layer
+      (dgraphengine retry-on-contention), then ADOPTED and rolled into
+      the ephemeral-pg/dgraph/redis + vm-mysql/nspawn invocations.
+      Post-fix: green on seeds 42/7/1234 + the default invocation.
+      _(Effort: S)_
 
 ---
 

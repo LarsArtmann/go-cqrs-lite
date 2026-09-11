@@ -103,6 +103,30 @@
 // signing paths. Consider BLAKE2b only for internal checksums where
 // standard compliance is not required.
 //
+// # Key Management Helpers
+//
+// Keys are generated, transported, and validated with focused helpers:
+// GenerateKey/GenerateKeyBase64 (crypto/rand), LoadKeyFromEnv and
+// LoadKeyFromFile (base64 key sources for env vars and secret files),
+// ValidateKey (32-byte length check), and EncodeKeyBase64/DecodeKeyBase64.
+// Missing sources return diagnosable errors (ErrKeyNotSet, ErrInvalidKey,
+// os.ErrNotExist preserved through LoadKeyFromFile).
+//
+// # Envelope Format (v2)
+//
+// MarshalEnvelope/UnmarshalEnvelope wrap ciphertext in a self-describing
+// JSON envelope: {"v":"v2","ct":...,"alg":...,"kid":...}. New writes are
+// always v2 (EnvelopeVersionV2); v1 envelopes remain READABLE via
+// auto-detection but are never written. The envelope removes any dependency
+// on external metadata columns — one opaque string stores everything.
+//
+// # Snapshot-State Key Rotation Write-Back
+//
+// RotatingSnapshotStateCodec decrypts snapshot state written under a retired
+// key and re-encrypts it under the active key on the next save, so rotation
+// converges lazily without a rewrite campaign. SnapshotStateCodec is the
+// single-key non-rotating variant.
+//
 // Design principles:
 //   - Two algorithms behind the same Encrypter/Decrypter interface
 //   - No external crypto dependencies beyond Go stdlib + golang.org/x/crypto
