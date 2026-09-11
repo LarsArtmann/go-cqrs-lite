@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -288,10 +289,69 @@ func (s *Store) dispatchFoldsLocked(
 	payload any,
 	queryFilter map[string]bool,
 ) error {
+	return s.dispatchFoldsCoreLocked(ctx, eventType, rec, payload, queryFilter, nil)
+}
+
+// dispatchFoldsToEngine is the engine-scoped variant used by [CatchUpEngine]:
+// every matching fold whose PLANNED engine is the target executes on the
+// target — bypassing the quarantine write-reroute — and nothing else does.
+func (s *Store) dispatchFoldsToEngine(
+	ctx context.Context,
+	target Engine,
+	eventType string,
+	rec record.Record,
+	payload any,
+) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return s.dispatchFoldsCoreLocked(ctx, eventType, rec, payload, nil, target)
+}
+
+// dispatchFoldsCoreLocked groups matching folds by effective engine and
+// applies them atomically per engine. Write failover (ADR-0137): when a
+// query's planned engine is quarantined, its folds are rerouted to the
+// cheapest healthy engine that natively serves the query's ADT — the same
+// capability-aware partition rule as the read reroute, so a quarantined
+// engine's collections keep ingesting events (on a failover engine) instead
+// of failing every write until reactivation. When engineFilter is non-nil,
+// only folds planned on that engine dispatch, with no reroute (replay path).
+func (s *Store) dispatchFoldsCoreLocked(
+	ctx context.Context,
+	eventType string,
+	rec record.Record,
+	payload any,
+	queryFilter map[string]bool,
+	engineFilter Engine,
+) error {
 	byEngine := make(map[Engine][]foldTask)
 
 	for _, t := range filterTasks(s.tasksFor(eventType), queryFilter) {
-		byEngine[t.q.QueryEngine()] = append(byEngine[t.q.QueryEngine()], t)
+		target := t.q.QueryEngine()
+
+		switch {
+		case engineFilter != nil:
+			if target != engineFilter {
+				continue
+			}
+		case target != nil && s.engineQuarantined(target.Profile().Name):
+			if alt := s.bestHealthyEngineLocked(t.q); alt != nil {
+				slog.Warn(
+					"metaengine: rerouting fold around quarantined engine",
+					"query",
+					t.q.QueryName(),
+					"from",
+					target.Profile().Name,
+					"to",
+					alt.Profile().Name,
+				)
+
+				t = foldTask{q: routedQuery{queryMeta: t.q, eng: alt}, fold: t.fold}
+				target = alt
+			}
+		}
+
+		byEngine[target] = append(byEngine[target], t)
 	}
 
 	for _, eng := range s.engines {

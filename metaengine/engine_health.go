@@ -32,7 +32,8 @@ const (
 	// EngineActive is the normal state: the engine serves reads and writes.
 	EngineActive EngineHealthState = "active"
 	// EngineQuarantined means the engine failed past the threshold; reads
-	// reroute to the next-best capable engine until reactivation.
+	// and folds reroute to the next-best capable engine until reactivation
+	// (folds return via [Store.CatchUpEngine]'s rebuild, never silently).
 	EngineQuarantined EngineHealthState = "quarantined"
 )
 
@@ -179,6 +180,12 @@ func engineHealthOf(rec *engineHealthRecord) EngineHealth {
 
 // ReactivateEngine manually lifts a quarantine. Returns true when the engine
 // was quarantined. Engines without a Prober can only return this way.
+//
+// The lift is immediate: while the engine was quarantined its folds were
+// rerouted to a failover engine, so its own collections are stale — for a
+// consistent rebuild call [Store.CatchUpEngine] instead (it reactivates only
+// after replaying the EventLog into the engine). StartAutoReprobe already
+// prefers CatchUpEngine.
 func (s *Store) ReactivateEngine(name string) bool {
 	s.healthMu.Lock()
 	defer s.healthMu.Unlock()
@@ -380,7 +387,7 @@ func (s *Store) reprobeOnce(ctx context.Context) {
 		cancel()
 
 		if err == nil {
-			s.ReactivateEngine(c.name)
+			s.catchUpOrReactivate(ctx, c.name)
 		}
 	}
 }
