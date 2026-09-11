@@ -71,7 +71,7 @@ func TestMaterializedViewsDoctorSection_NoneBranch(t *testing.T) {
 }
 
 // TestMaterializedViewsDoctorSection_GroupedWarnPin pins the grouped-view
-// upstream-defect warning: tursogo <= v0.8.0-pre.8 maintains grouped
+// upstream-defect warning: tursogo <= v0.8.0-pre.10 maintains grouped
 // materialized views incorrectly once a second transaction updates a group
 // (verified 2026-09-07, see docs/research/2026-09-07_turso-go-*). This pin
 // flips loudly if the caveat text is edited — when upstream fixes the defect,

@@ -914,7 +914,7 @@
             # check-formatters pins formatters.enable so a config reformat
             # cannot silently resurrect gci (the treefmt-vs-golangci fight).
             check-lint-config =
-              mkApp "check-lint-config" [ pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.jq ]
+              mkApp "check-lint-config" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.jq pkgs.coreutils ]
                 ''
                   echo "==> golangci-lint config verify"
                   ${pkgs.golangci-lint}/bin/golangci-lint config verify --config "$PWD/.golangci.yml"
@@ -924,6 +924,8 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-formatters.sh"
                   echo "==> linter names known to golangci (rename tripwire)"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-linter-names.sh"
+                  echo "==> exhaustruct_v5 canary (ignore-pattern semantics)"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-exhaustruct-canary.sh"
                 '';
 
             # check-templ: templ codegen-drift gate — fails when a *_templ.go
@@ -1451,6 +1453,27 @@
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
+                '';
+
+            # doc-check: scoped standalone doc-reference gate (the same
+            # corpus #verify checks inline). Zero-warning policy: exits
+            # non-zero on ANY broken reference, parse warning, or alias
+            # ambiguity.
+            doc-check =
+              mkApp "doc-check" [ goPkg pkgs.bash ]
+                ''
+                  cd cmd/doc-check
+                  GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . \
+                    ../../SKILL.md \
+                    ../../.agents/skills/go-cqrs-lite/references/*.md \
+                    ../../AGENTS.md \
+                    ../../README.md \
+                    ../../TODO_LIST.md \
+                    ../../ROADMAP.md \
+                    ../../FEATURES.md \
+                    ../../CONTRIBUTING.md \
+                    ../../docs/DOMAIN_LANGUAGE.md \
+                    ../../docs/METAENGINE_DOMAIN_LANGUAGE.md
                 '';
 
             # verify-fast: same as verify but passes -short to skip soak tests

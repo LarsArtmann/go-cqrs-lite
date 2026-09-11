@@ -1840,7 +1840,7 @@ filtered scan 779 µs vs meta_map 874 µs; CounterGet equal within noise
 
 > Shipped in the 2026-09-08 release train: `system/v4.7.0` + `metaengine/v4.13.0`
 > + `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
-> `group_by` materialized views on tursogo ≤ v0.8.0-pre.8 are unsafe beyond a
+> `group_by` materialized views on tursogo ≤ v0.8.0-pre.10 are unsafe beyond a
 > single transaction's rows (upstream IVM defect — see the tursoengine module
 > notes); scalar views are the safe shape.
 
@@ -1876,8 +1876,9 @@ eng, err := tursoengine.New(dsn,
     }))
 ```
 
-**⚠ Upstream correctness limit (2026-09-07, tursogo v0.7.2 + v0.8.0-pre.8):
-grouped views return SILENTLY WRONG SUMs once a group is updated by a
+**⚠ Upstream correctness limit (2026-09-07, re-verified 2026-09-11 through
+tursogo v0.8.0-pre.10): grouped views return SILENTLY WRONG SUMs once a
+group is updated by a
 second transaction** (verified: diverges from 2 transactions on, collapses
 at ~27k rows; scalar views exact). Until upstream fixes this, declare
 SCALAR views only — grouped specs are unsafe beyond one transaction's rows.

@@ -422,7 +422,7 @@ Works on `tursoengine` (auto-injects `experimental=views` into the DSN) and
 surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 §2.29.
 
-> **Upstream correctness caveat (tursogo ≤ v0.8.0-pre.8):** SCALAR views
+> **Upstream correctness caveat (tursogo ≤ v0.8.0-pre.10):** SCALAR views
 > (SUM/COUNT/MIN/MAX/AVG without `GroupBy`) are exact in every test; GROUPED
 > views return silently wrong sums beyond a single transaction's rows and
 > collapse at ~27k view-maintained rows. `Store.Doctor` emits a WARN for

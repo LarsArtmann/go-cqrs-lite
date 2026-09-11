@@ -12,7 +12,7 @@
 ```
 Grouped materialized views return silently wrong SUMs once a group is
 updated by a second transaction; view state collapses at ~27k rows
-(experimental=views, v0.7.2 and v0.8.0-pre.8)
+(experimental=views, v0.7.2 through v0.8.0-pre.10)
 ```
 
 ## Summary
@@ -32,7 +32,7 @@ Scalar (ungrouped) SUM views stayed exact in every test we ran.
 
 | Item      | Value                                                                                                                                                                                 |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Driver    | `turso.tech/database/tursogo` **v0.7.2** and **v0.8.0-pre.8** (official Go SDK for the embedded Turso database — SQLite-compatible ground-up rewrite; purego, no CGo; `database/sql`) |
+| Driver    | `turso.tech/database/tursogo` **v0.7.2**, **v0.8.0-pre.8**, and **v0.8.0-pre.10** (official Go SDK for the embedded Turso database — SQLite-compatible ground-up rewrite; purego, no CGo; `database/sql`) |
 | Mode      | Embedded local file databases (`<path>?experimental=views`), `SetMaxOpenConns(1)`, single writer                                                                                      |
 | Go        | 1.26.x                                                                                                                                                                                |
 | OS / Arch | Linux x86_64 (NixOS), AMD Ryzen AI MAX+ 395                                                                                                                                           |
@@ -118,6 +118,12 @@ possible for a precomputed aggregate: consumers have no signal.
 - [x] Searched tursodatabase/turso issues/PRs — no exact duplicate found
       for silent cross-transaction group divergence (related: #8531,
       #6771, #8639, #8640 — different shapes).
-- [x] Reproduced on v0.8.0-pre.8 (latest release) — NOT fixed.
+- [x] Reproduced on v0.8.0-pre.10 (latest release as of 2026-09-11; v0.8.0-pre.9
+      skipped — superseded) — NOT fixed: defect A reproduces with the IDENTICAL
+      430.50 delta at the 2,000-row checkpoint; scalar view exact throughout;
+      defect C's COMMIT abort still fires at the 27k chunk
+      (`turso: error: Transaction error: cannot commit - no transaction is active`).
+      Re-check log: 2026-09-11, standalone repro (same schema/workload as
+      Defect A), single fresh process, NixOS x86_64.
 - [ ] Confirm repro on a second OS/arch if maintainers ask.
 - [ ] Paste verified outputs (captured above, machine-generated).
