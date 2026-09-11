@@ -2374,6 +2374,8 @@ metaengine/dgraphengine/func New
 metaengine/dgraphengine/func New
 metaengine/dgraphengine/func NewFromClient
 metaengine/dgraphengine/func NewFromClient
+metaengine/dgraphengine/func WithContentionObserver
+metaengine/dgraphengine/func WithContentionObserver
 metaengine/dgraphengine/method Close
 metaengine/dgraphengine/method Close
 metaengine/dgraphengine/method CounterGet
@@ -2436,6 +2438,8 @@ metaengine/dgraphengine/method StreamRead
 metaengine/dgraphengine/method StreamRead
 metaengine/dgraphengine/method StreamVersion
 metaengine/dgraphengine/method StreamVersion
+metaengine/dgraphengine/type Option
+metaengine/dgraphengine/type Option
 metaengine/duckdbengine/const DuckDBNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerOp
 metaengine/duckdbengine/const DuckDBNsPerRead

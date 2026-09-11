@@ -61,6 +61,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `GetEngineStats` reports `EngineStats.CanReset` per engine and Doctor
   gains a `--- Reset ---` section naming which engines are reset-capable and
   which would leave a partial reset, with the remedy line.
+- **Dgraph contention retries are now observable**:
+  `dgraphengine.WithContentionObserver` registers a callback fired once per
+  contention retry (1-based attempt). The engine deliberately carries no
+  metrics dependency (production-dep budget 3, enforced by `check-arch`);
+  wire OTel or any counter from the outside — see the dgraphengine README
+  recipe. Live-engine test construction also stops swallowing failure
+  classes: `newDgraphEngineOrSkip` skips ONLY on server-unreachable errors
+  and fails loudly on everything else (the OQ #10 skip-vs-fail policy),
+  ending the silent-coverage-loss class that once deleted four ADT subtests.
 
 ### Changed — cqrs-lint: C040 gains E018 provider parity and closes the handled-typo-twin hole — 2026-09-11
 

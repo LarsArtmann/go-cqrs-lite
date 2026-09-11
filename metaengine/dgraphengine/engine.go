@@ -30,8 +30,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -60,9 +58,9 @@ type dgraphEngine struct {
 	client *dgo.Dgraph
 	mu     sync.Mutex
 	done   bool
-	// contentionRetry counts contention retries (cqrs.dgraph.contention_retry
-	// via the global meter provider); nil = metrics disabled.
-	contentionRetry contentionCounter
+	// contentionObserver (set via WithContentionObserver) receives one call
+	// per contention retry; nil = observability disabled.
+	contentionObserver func(attempt int)
 	schemaMu        sync.Mutex
 	appliedSchemas  map[string]bool
 
@@ -75,7 +73,7 @@ type dgraphEngine struct {
 // New creates a Dgraph-backed metaengine Engine from a gRPC address.
 // The address should be in "host:port" format (e.g., "localhost:9080").
 // The connection uses insecure transport (no TLS).
-func New(addr string) (metaengine.Engine, error) {
+func New(addr string, opts ...Option) (metaengine.Engine, error) {
 	client, err := dgo.NewClient(addr,
 		dgo.WithGrpcOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		dgo.WithGrpcOption(grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(64*1024*1024))),
@@ -84,9 +82,10 @@ func New(addr string) (metaengine.Engine, error) {
 		return nil, fmt.Errorf("dgraphengine.New: connect: %w", err)
 	}
 
-	eng := &dgraphEngine{
-		client:          client,
-		contentionRetry: newContentionRetryCounter(),
+	eng := &dgraphEngine{client: client}
+
+	for _, opt := range opts {
+		opt(eng)
 	}
 
 	if err := eng.init(); err != nil {
@@ -98,10 +97,11 @@ func New(addr string) (metaengine.Engine, error) {
 }
 
 // NewFromClient wraps an existing dgo.Dgraph client.
-func NewFromClient(client *dgo.Dgraph) (metaengine.Engine, error) {
-	eng := &dgraphEngine{
-		client:          client,
-		contentionRetry: newContentionRetryCounter(),
+func NewFromClient(client *dgo.Dgraph, opts ...Option) (metaengine.Engine, error) {
+	eng := &dgraphEngine{client: client}
+
+	for _, opt := range opts {
+		opt(eng)
 	}
 
 	if err := eng.init(); err != nil {

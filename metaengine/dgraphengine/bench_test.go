@@ -21,10 +21,12 @@ func BenchmarkDgraph_MapSet(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		if err := mb.MapSet(ctx, "bench", i, i*2); err != nil {
 			b.Fatalf("MapSet %d: %v", i, err)
 		}
+		i++
 	}
 }
 
@@ -48,7 +50,8 @@ func BenchmarkDgraph_MapGet(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		_, found, err := mb.MapGet(ctx, "bench", i%1000)
 		if err != nil {
 			b.Fatalf("MapGet %d: %v", i, err)
@@ -57,6 +60,7 @@ func BenchmarkDgraph_MapGet(b *testing.B) {
 		if !found {
 			b.Fatalf("MapGet %d: key not found", i)
 		}
+		i++
 	}
 }
 
@@ -72,7 +76,8 @@ func BenchmarkDgraph_CounterIncrement(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		if err := cb.CounterIncrement(
 			ctx,
 			"bench",
@@ -80,6 +85,7 @@ func BenchmarkDgraph_CounterIncrement(b *testing.B) {
 		); err != nil {
 			b.Fatalf("CounterIncrement %d: %v", i, err)
 		}
+		i++
 	}
 }
 
@@ -106,7 +112,8 @@ func BenchmarkDgraph_CounterGet(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		counts, err := cb.CounterGet(ctx, "bench")
 		if err != nil {
 			b.Fatalf("CounterGet %d: %v", i, err)
@@ -115,6 +122,7 @@ func BenchmarkDgraph_CounterGet(b *testing.B) {
 		if len(counts) == 0 {
 			b.Fatalf("CounterGet %d: expected non-empty counters", i)
 		}
+		i++
 	}
 }
 
@@ -131,10 +139,12 @@ func BenchmarkDgraph_SetAdd(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		if err := sb.SetAdd(ctx, "bench", fmt.Sprintf("item-%d", i)); err != nil {
 			b.Fatalf("SetAdd %d: %v", i, err)
 		}
+		i++
 	}
 }
 
@@ -152,11 +162,13 @@ func BenchmarkDgraph_GraphAddEdge(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		if err := gb.GraphAddEdge(ctx, "bench-graph-add",
 			metaengine.Edge{From: i, To: i + 1}); err != nil {
 			b.Fatalf("GraphAddEdge %d: %v", i, err)
 		}
+		i++
 	}
 }
 
@@ -193,7 +205,8 @@ func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		node := i % numNodes
 		neighbors, err := gb.GraphNeighbors(ctx, "bench-graph-d1", node, 1)
 		if err != nil {
@@ -203,6 +216,7 @@ func BenchmarkDgraph_GraphNeighbors_Depth1(b *testing.B) {
 		if len(neighbors) == 0 {
 			b.Fatalf("GraphNeighbors depth1 %d: expected neighbors for node %d", i, node)
 		}
+		i++
 	}
 }
 
@@ -223,11 +237,13 @@ func BenchmarkDgraph_GraphNeighbors_Depth3(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		node := i % numNodes
 		if _, err := gb.GraphNeighbors(ctx, "bench-graph-d3", node, 3); err != nil {
 			b.Fatalf("GraphNeighbors depth3 %d: %v", i, err)
 		}
+		i++
 	}
 }
 
@@ -245,7 +261,8 @@ func BenchmarkDgraph_SearchInsert(b *testing.B) {
 	ctx := context.Background()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		doc := metaengine.IndexedText{
 			ID: fmt.Sprintf("doc-%d", i),
 			Content: fmt.Sprintf(
@@ -256,6 +273,7 @@ func BenchmarkDgraph_SearchInsert(b *testing.B) {
 		if err := sb.SearchInsert(ctx, "bench-search-ins", doc); err != nil {
 			b.Fatalf("SearchInsert %d: %v", i, err)
 		}
+		i++
 	}
 }
 
@@ -292,7 +310,8 @@ func BenchmarkDgraph_SearchQuery(b *testing.B) {
 	queries := []string{"golang", "performance", "graph", "database", "event"}
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		results, err := sb.SearchQuery(ctx, "bench-search-q", queries[i%len(queries)], 10)
 		if err != nil {
 			b.Fatalf("SearchQuery %d: %v", i, err)
@@ -301,5 +320,6 @@ func BenchmarkDgraph_SearchQuery(b *testing.B) {
 		if len(results) == 0 {
 			b.Fatalf("SearchQuery %d: expected results for %q", i, queries[i%len(queries)])
 		}
+		i++
 	}
 }

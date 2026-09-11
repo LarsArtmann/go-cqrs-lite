@@ -19,10 +19,10 @@ import (
 // every run idempotent without destructive drops.
 func uniqueCollection(tb testing.TB, base string) string {
 	tb.Helper()
-	return fmt.Sprintf("%s_%x_%d", base, os.Getpid(), atomic.AddUint64(&collSeq, 1))
+	return fmt.Sprintf("%s_%x_%d", base, os.Getpid(), collSeq.Add(1))
 }
 
-var collSeq uint64 //nolint:gochecknoglobals // test-only unique suffix source
+var collSeq atomic.Uint64 //nolint:gochecknoglobals // test-only unique suffix source
 
 // dgraphAddr returns the Dgraph gRPC address from DGRAPH_ADDR or defaults
 // to localhost:9080.

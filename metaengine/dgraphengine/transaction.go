@@ -169,7 +169,7 @@ func (e *dgraphEngine) retryOnContention(
 			return err
 		}
 
-		e.countContentionRetry(ctx)
+		e.countContentionRetry(attempt + 1)
 
 		delay := min(contentionBase<<attempt, contentionCap) + rand.N(contentionBase)
 		select {

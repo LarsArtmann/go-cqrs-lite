@@ -79,6 +79,33 @@ engine absorbs this class instead of leaking it:
 The matcher and retry schedule are pinned by `transaction_retry_test.go`
 (`TestIsContentionError`, `TestRetryOnContention_*`).
 
+### Observing contention retries
+
+Retries are silent by default (correct for tests, invisible in production).
+Wire any counter — OTel included — from the outside; the engine deliberately
+carries no metrics dependency (production-dep budget: 3, enforced by
+`check-arch`):
+
+```go
+eng, err := dgraphengine.New(addr,
+    dgraphengine.WithContentionObserver(func(attempt int) {
+        contentionRetries.Add(ctx, 1) // e.g. cqrs.dgraph.contention_retry
+    }))
+```
+
+The observer fires once per retry with the 1-based attempt number;
+non-contention failures never fire it.
+
+## Reset (ADR-0136)
+
+The engine implements `metaengine.EngineResetter`: `ResetEngine` deletes
+every engine-owned node (all nodes carrying an engine `dgraph.type`) and
+drops every dynamically-created `cqrs.edge.*` predicate, returning to the
+empty post-construction state for a full journal replay. Foreign data in a
+shared cluster is never touched. Journal sequences are UnixNano timestamps,
+so post-replay entries always sort after pre-reset ones — pre-reset
+resumption tokens stay valid.
+
 ## Testing
 
 Tests require a running Dgraph instance. Set `DGRAPH_ADDR` (default:

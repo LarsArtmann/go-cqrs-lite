@@ -2090,6 +2090,11 @@ for name, h := range store.HealthSnapshot() {
 `Doctor(ctx)` renders an "--- Engine Health ---" section and
 `GetEngineStats(ctx)` carries a `Health` field per engine. Rejection-class
 errors never quarantine (client bugs fail loudly); with no healthy
-alternative the original engine error surfaces. Writes to a quarantined
-engine's collections fail loudly until reactivation or replan.
+alternative the original engine error surfaces. Folds fail over with reads:
+a quarantined engine's collections keep ingesting on the cheapest healthy
+engine, and the reprobe path brings the healed engine back REBUILT —
+`CatchUpEngine(ctx, name)` resets it and replays the attached EventLog into
+exactly that engine (quarantine lifts only after a clean rebuild; failures
+stay quarantined for the next attempt; without an EventLog or
+`EngineResetter` it falls back to a plain, warned reactivation).
 
