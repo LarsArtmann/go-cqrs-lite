@@ -136,10 +136,12 @@ aggregate fields were already correct and are unchanged.
 `BenchmarkCalibration_DgraphSearchQuery` (new in the 2026-09-06 wave but
 never folded here) benches SearchQuery — SERVER-side `anyofterms` over the
 term index — separately from the client-side filtered MapScan above; the two
-were conflated in earlier calibration runs. Ephemeral Dgraph 25.4.0,
-count=3, benchtime=20x, discard-cold medians; ambient load ~5 at measurement
-(a fresh host compile storm started minutes AFTER the run — spread stayed
-±6%, the normal ms-scale gRPC band).
+were conflated in earlier calibration runs. Ephemeral Dgraph 25.4.0 (version
+per the 09-01/09-06 campaign records; binary identity not re-verified this
+run), count=3, benchtime=20x, discard-cold medians; ambient load ~5 at start
+(a fresh host compile storm was ramping up around the final 10K count — the
+13_741_630 outlier is the load signature; spread stayed ±6%, the normal
+ms-scale gRPC band).
 
 | docs   | SearchQuery (ns/op, discard-cold median) | allocs/op | B/op        |
 | ------ | ---------------------------------------- | --------- | ----------- |
