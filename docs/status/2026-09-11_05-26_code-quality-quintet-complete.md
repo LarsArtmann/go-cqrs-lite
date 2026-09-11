@@ -1,5 +1,7 @@
 # Status Report: Code-Quality Quintet — Complete, With Honest Scars
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** §f items 27/28/32/35/36/37 are struck inline (shipped or routed with evidence). All other open §f items were harvested into `TODO_LIST.md` / `ROADMAP.md` during the same pass — including f2 (the 5 new `reset*.go` clone groups, still gating `#check-duplication` RED). This snapshot is ARCHIVED; the living backlog is `TODO_LIST.md`.
+
 **Session:** 2026-09-11 ~04:40–05:30 CEST · **Scope:** the 5 TODO_LIST "Code Quality" items (watermill shutdown noise, error-taxonomy sweep + gate, cqrs-upgrade hardening, V007 split brain, quickstart smoke test) · **Report basis:** this session's run only, as instructed.
 
 ---
@@ -202,21 +204,21 @@
 24. middleware deadletter codes lack the `middleware.` prefix — v5 naming consistency sweep.
 25. Fix the 5 out-of-gate lint findings in example/metaengine-quickstart (errcheck ×2, godoclint ×2, mnd ×1) — demos, but cheap.
 26. Remove/ignore the compiled `example/metaengine-quickstart/metaengine-quickstart` binary sitting in the example dir.
-27. Watermill doc note "shuts the replay down silently" → now logs Debug; reword `docs/error-taxonomy.md` watermill paragraph.
+27. ~~Watermill doc note "shuts the replay down silently" → now logs Debug; reword `docs/error-taxonomy.md` watermill paragraph.~~ done (reworded in docs/error-taxonomy.md line 271 (Debug shutdown log semantics), 6th pass)
 
 **Docs/process:**
-28. docs-health HARVEST: route this report's (f) into TODO_LIST/ROADMAP (awaiting instructions per user).
+28. ~~docs-health HARVEST: route this report's (f) into TODO_LIST/ROADMAP (awaiting instructions per user).~~ done (harvested into TODO_LIST.md + ROADMAP.md in docs-health 6th pass)
 29. docs-health ANNOTATE the archived 02-06 report: its "examples scan green" claim was a false green (self-lint skip) — non-destructive correction appendix.
 30. Confirm `#verify-fast` exists and includes `#check-error-taxonomy`; add if missing.
 31. Add "probe-negative before calling a gate done" to AGENTS testing conventions + gotchas-testing.md.
-32. CHANGELOG follow-up entry for ResetEngine exports (belongs to the engine session; note the golden was pre-pinned here).
+32. ~~CHANGELOG follow-up entry for ResetEngine exports (belongs to the engine session; note the golden was pre-pinned here).~~ done (CHANGELOG 'EngineResetter everywhere + reset observability' section (2026-09-11) covers the reset exports)
 33. After the concurrent session lands: one full `nix run .#verify` (repo is NOT verifiable green right now due to d5).
 34. Consider CI step running `TestExamples_AreV5Clean` under workspace mode too (it currently runs in the per-module matrix).
 
 **Bigger follow-ons worth considering (ROADMAP fuel):**
-35. Typed-tier drift gates generally: error codes are now doc-gated; consider the same for OTel span names (`{component}.{action}` contract has no gate).
-36. cqrs-upgrade `--workspace` + `--strict` as a CI job on this repo itself (self-hosted dogfood of the v5-readiness gate).
-37. Gate the codec-defaults table in AGENTS.md against source (same script pattern, third consumer).
+35. ~~Typed-tier drift gates generally: error codes are now doc-gated; consider the same for OTel span names (`{component}.{action}` contract has no gate).~~ done (added to ROADMAP.md raw ideas in 6th pass (span-name gate))
+36. ~~cqrs-upgrade `--workspace` + `--strict` as a CI job on this repo itself (self-hosted dogfood of the v5-readiness gate).~~ done (added to ROADMAP.md raw ideas in 6th pass (cqrs-upgrade CI dogfood))
+37. ~~Gate the codec-defaults table in AGENTS.md against source (same script pattern, third consumer).~~ done (added to ROADMAP.md raw ideas in 6th pass (codec-defaults gate))
 
 (38–50 reserved: nothing further this session observed first-hand; the list above is exactly what I noticed — no padding.)
 

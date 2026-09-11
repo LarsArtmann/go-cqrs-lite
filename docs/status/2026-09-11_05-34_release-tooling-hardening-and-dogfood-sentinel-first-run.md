@@ -1,5 +1,7 @@
 # Status Report: Release-Tooling Hardening + First upgrade-dogfood Sentinel CI Run
 
+> **RESOLVED-BY ROUTING (docs-health 6th pass, 2026-09-11):** §f items 34/37/38 are struck inline (done or already-covered, evidence cited). Everything else open in §f was harvested into `TODO_LIST.md` / `ROADMAP.md` the same pass — notably f19 (`--baseline` mode: only `--audit` shipped; the baseline+ratchet PATTERN landed in `check-file-size.sh` instead) and f20 (smoke-probes.txt still absent — verified). The living backlog is `TODO_LIST.md`; this snapshot is ARCHIVED.
+
 **Session date:** 2026-09-11, ~04:00–05:30 CEST
 **Scope:** The two TODO_LIST items sourced from the docs-health fifth pass (01-47 §f39 and §b2/§f2). No other research was done; observations below come only from this session's own runs.
 
@@ -156,11 +158,11 @@ Not fucked up, worth stating: I did NOT touch the other session's in-flight file
 33. Consolidate indirect `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}` transitive refs after new tags publish (open TODO).
 
 **Docs (34–39):**
-34. Harvest + archive this report per docs-health flow (annotate the 01-47 sources §f39/§b2/§f2 as resolved).
+34. ~~Harvest + archive this report per docs-health flow (annotate the 01-47 sources §f39/§b2/§f2 as resolved).~~ done (harvested + annotated + archived by docs-health 6th pass (2026-09-11))
 35. Update the docs/status/README.md index.
 36. recipes.md/core.md: no consumer-facing surface changed — confirm doc-check stays green after next edits (it is green now).
-37. Record the `go build -o` + "no main packages" gotcha in gotchas-tooling-build.md (it burned real time).
-38. Record the "LSP caches lie" instance (package-name split phantom errors after sed) if not already covered.
+37. ~~Record the `go build -o` + "no main packages" gotcha in gotchas-tooling-build.md (it burned real time).~~ done (gotcha recorded in docs/agents/gotchas-tooling-build.md line 20 (go build -o bullet), 6th pass)
+38. ~~Record the "LSP caches lie" instance (package-name split phantom errors after sed) if not already covered.~~ done (already covered — global ~/.config/crush/AGENTS.md 'LSP caches lie; builds don't' lesson (line 413))
 39. ADR-light note (or gotcha) on workspace-union dependency semantics for future module authors.
 
 **Adjacent quality items noticed in passing (40–47):**
