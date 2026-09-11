@@ -1,5 +1,9 @@
 # Status: Cordis Pareto Execution CLOSED — all 27 tasks done, verify-fast GREEN
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §e next-steps: sqliteengine.ResetEngine + the EngineResetter ladder live as the TODO_LIST Cordis follow-ups (🔥 prioritized); §f Q1 (CHANGELOG test-only policy) remains unanswered — test-only/infra fixes stay unchangelogged per M-08 precedent; Q3 (release-train timing) rides the TODO tag-wave item.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **When:** 2026-09-11 00:04 · **Session:** "READ, UNDERSTAND, RESEARCH, REFLECT / keep going until done / brutal self-review + comprehensive status"
 > **Input:** [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](../planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md)
 > **Supersedes:** [`2026-09-10_23-35_cordis-all-27-done.md`](2026-09-10_23-35_cordis-all-27-done.md) — written mid-verify; it predates three gate fixes (see §d) and lacks the self-review. Content stands otherwise.

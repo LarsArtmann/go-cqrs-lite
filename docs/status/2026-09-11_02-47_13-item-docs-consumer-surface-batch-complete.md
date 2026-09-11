@@ -1,5 +1,9 @@
 # Status: 13-Item Docs/Consumer-Surface Batch — Complete (6 items were stale)
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §c/§f routed into TODO_LIST: runSubscription shutdown-noise log, error-taxonomy full verification + drift gate. §b3 doc-check ship-as-is posture stands as recorded (TODO_LIST doc-check closure). §f1 social-preview upload remains the owner's one manual step (asset ready at `docs/assets/social-preview.png`).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-11 02:47 CEST
 **Session scope:** execute the pasted TODO batch (docs/consumer-surface truth + testing/tooling tail), one item at a time, verified.
 **Tree state at writing:** all session work absorbed by the auto-commit daemon; only `docs/api_surface.txt` dirty (concurrent session's cqrs-lint lintutil additions — not mine, left alone).

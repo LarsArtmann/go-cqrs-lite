@@ -1,5 +1,9 @@
 # Status Report — dgraph `-shuffle=on` Evaluation, Contention Fix, and Rollout
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed into TODO_LIST: `-race` live run + MySQL VM live-verify (one item), `dgraph.type` conflict-domain docs + `isContentionError` unit pin (one item), otel contention counter, skip-vs-fail policy (ROADMAP OQ 10), composite-runner shuffle evals (gated OQ 9), CI watch + seed log (existing items). §b4 changelog-symbol gate: ran green the same day (`03-10` report). Red-intermediate commits (`8ca7eee33`, `d81a61746`) remain known daemon-class history.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Session:** 2026-09-11, ~01:30–02:20 CEST · **Repo:** go-cqrs-lite · **Branch:** master
 **Scope discipline:** This report covers ONLY this session's work (the TODO_LIST item
 "Evaluate `-shuffle=on` for the dgraph suite") plus issues observed while doing it.

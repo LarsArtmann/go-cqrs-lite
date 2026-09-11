@@ -1,5 +1,9 @@
 # Status Report — Cordis Paradigm Mapping Session
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** All six improvements it derived shipped via the 27-task Cordis plan (`docs/planning/archived/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`); the `projection %q is n` anomaly (§d2, its top open item) was resolved as M-01 in Wave 0.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **When:** 2026-09-10 08:04 · **Scope:** this session only (analysis + docs; zero production code touched)
 > **Session arc:** read Cordis paper + DeepSeek Harness primer → mapped the spatiotemporal-composability paradigm onto go-modularize + go-cqrs-lite → wrote/extended the mapping doc → derived a verified improvement backlog (chat only)
 > **Files created/modified:** `docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md` (new, 8 sections), `AGENTS.md` (paradigm note + fence fix)

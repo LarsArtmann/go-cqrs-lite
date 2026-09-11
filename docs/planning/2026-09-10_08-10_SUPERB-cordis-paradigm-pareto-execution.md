@@ -1,5 +1,9 @@
 # SUPERB Pareto Execution Plan — Cordis Paradigm Follow-Ups
 
+> **RESOLVED (docs-health pass 2026-09-11):** **EXECUTED IN FULL (2026-09-10, Waves 0-3) — archived by the docs-health pass 2026-09-11.** All 27 tasks (M-01..M-27) shipped and verified (verify-fast GREEN end-to-end, doc-check 1042 refs, api golden 6773): see `docs/status/archived/2026-09-10_23-35_cordis-all-27-done.md` + `2026-09-11_00-04_cordis-closed-verify-green.md`. Shipped surface lives in CHANGELOG `[Unreleased]`; the follow-ups the execution surfaced live in the TODO_LIST Cordis section. The micro-task tables below decompose the same 27 tasks (their resolution follows the parent row).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **When:** 2026-09-10 08:10 · **Input:** `docs/status/2026-09-10_08-04_cordis-paradigm-mapping-session.md` §f (50 items) + §g open questions
 > **Goal:** Operationalize the Cordis learnings (revertible effects, reactive coeffects, observational equivalence) as correctness + trust wins for go-cqrs-lite — **without breaking a single v4 consumer**.
 > **Guardrail:** No Verschlimmbesserung. Every behavior change is warn-first in v4.x, hard at v5 (rides the existing ADR-0123 wave). Every task ends at a verify gate (GOWORK=off module tests / doc-check / api-stability + CHANGELOG when API moves).

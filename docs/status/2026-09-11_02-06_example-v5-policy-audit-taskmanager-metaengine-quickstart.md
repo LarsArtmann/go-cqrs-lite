@@ -1,5 +1,9 @@
 # Status Report — Example v5-Policy Audit (taskmanager + metaengine-quickstart)
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed: cqrs-upgrade flags-after-positional guard + `--json` deprecations array + mechanized example v5-clean scan + V007 decider pair-form split brain + quickstart smoke test → TODO_LIST (cqrs-upgrade hardening batch + V007 item). §g1 provenance: the 09-09 audit record exists — `2026-09-11_02-05` verified both examples shipped 2026-09-09 (`6bb82f5b`); date stands. §g2 enforcement: routed as TODO option (c) (per-PR strict scan vs nightly sentinel). §g3 claim convention: still open, noted here.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-11 02:06 CEST
 **Session scope:** Single TODO_LIST item — `Example v5-policy audit` (source: 07-42 §f8). No other work assigned or performed. Per user directive, no unrelated research.
 **Verdict:** ✅ Audit complete. Both examples verified free of v5-removed APIs. All four examples now clean (getting-started + readme-quickstart: 2026-09-06).

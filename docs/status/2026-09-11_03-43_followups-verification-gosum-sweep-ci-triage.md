@@ -1,5 +1,9 @@
 # Status Report — Follow-up Verification, Repo-Wide go.sum Repair, and CI Triage
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed: `check-modsums`/go.sum meta-test → the verify-ci go.sum item; CI triage legs (FlakeHub decision, shellcheck `$notag`, Minimum Coverage, verify-fast, go.work sync, Nix Flake Check, CGo, Security Scan) live in the TODO CI-triage 🔥 item; §g1 FlakeHub intent, §g2 repair depth, §g3 cqrs-lint duplication-group ruling remain owner calls (the duplication groups were subsequently covered by the baseline per `03-10`).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Session:** 2026-09-11, ~02:25–03:43 CEST · **Repo:** go-cqrs-lite · **Branch:** master
 **Scope discipline:** continuation of the 02:16 dgraph-shuffle report; this report covers
 ONLY this session's work (executing that report's own §f follow-ups) plus issues observed

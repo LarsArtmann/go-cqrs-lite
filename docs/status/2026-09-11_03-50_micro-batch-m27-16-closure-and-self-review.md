@@ -1,5 +1,9 @@
 # Status Report — Micro-batch M27.16 closure + self-review — 2026-09-11 03:50 CEST
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f items 1-10 routed into TODO_LIST: encoded-apply audit + entry-point conformance sweep (🔥), ClaimMetrics docs/pin tail, calibration provenance + quiet-window re-run, FEATURES row (done by this pass), JSON marshal pin. §c2 Dgraph provenance, §b3 quiet-window count=5, and §e improvements (fold-dispatch table test, load gate, Doctor per-entry-point counters) are folded into the routed items. §f11-50 remain ROADMAP-grade brainstorm fuel.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > Point-in-time snapshot. Session scope: the four micro items around archived
 > 22-33/04-35 (ClaimMetrics surfacing, SearchQuery calibration fold, Demote
 > record-context verification, enginetest fakes contract note) — the M27.16

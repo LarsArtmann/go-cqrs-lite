@@ -122,6 +122,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
       mixed-confidence unpinned; V002/V003/V006 root-go.mod-only scope;
       b022_b025.go (495) and a020_a021_a022_a023.go (~357) over the 350-line
       convention — bundle with the file-size-gate policy decision.
+- [ ] **cqrs-lint audit cheap-fix + test-gap tail** — fixes: `adoption/doc.go`
+      drift ("All F-series emit Info" is false), `f001.go` dead `deleted`
+      branch, `f030.go` hardcoded `/v4` message nit, `scan_in.go` stale helper
+      reference; tests: B008 bitshift-escalation, B015 `hasTestUtils`
+      suppression, D016 exactly-20-fields boundary, F018/F020
+      mixed-confidence emission, S001 placeholder/URL-value allowlist (FP
+      guard). — source: 03-44 §b5-7
+      _(Effort: S)_
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
@@ -424,6 +432,19 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Code Quality
 
+- [ ] **Watermill shutdown-noise log** — a deliberate `Close` that interrupts
+      `awaitAck` makes `runSubscription` log `ERROR "catch-up replay failed:
+      context canceled"` on every shutdown: truthful but noisy; suppress (or
+      downgrade) on `context.Canceled` during Close. — source: 02-47 §c1/§f3
+      _(Effort: XS)_
+- [ ] **error-taxonomy: verify ALL module tables + build the drift gate** — the
+      watermill table lied for weeks ("parse fails → Corruption"; actually
+      Rejection); only pebble/watermill are depth-verified. Sweep
+      middleware/graph/relational/projectionhost/transport tables against
+      source, then add a generated gate (extract `errorfamily.*` codes per
+      module, diff vs doc — the `check-linter-names.sh` pattern). — source:
+      02-47 §b4/§e3/§f4/§f5
+      _(Effort: S)_
 - [ ] **cqrs-upgrade hardening batch** — (a) fail/warn when flags are placed
       after the positional dir (silent `fs.Parse` semantics turned a "strict
       gate" into a plain report on 2026-09-11); (b) `--json` always emits the

@@ -1,5 +1,9 @@
 # Status Report — Release Train Executed, Composed GREEN Certified
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** W1/W2 remainder (P07, P14, P17, P19-21, P23-24) closed by `2026-09-09_01-54` + `2026-09-09_04-10` (archived alongside). P04 external bundle: permalink half DONE 2026-09-11; upstream filing + CI billing/FlakeHub creds stay BLOCKED (TODO_LIST).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-08 23:12 CEST · **Session:** Pareto plan execution (Waves 0–2 partial)
 **Input:** `docs/planning/2026-09-08_17-45_SUPERB-pareto-execution-plan.md` (executed top-down)
 **Result:** the 1%→51% release train shipped in full; local `#verify` composed GREEN (EXIT=0); 6 real defects found and fixed along the way.

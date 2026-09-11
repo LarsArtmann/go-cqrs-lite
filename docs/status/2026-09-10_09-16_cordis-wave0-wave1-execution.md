@@ -1,5 +1,9 @@
 # Status Report — Cordis Plan Execution: Wave 0 complete, Wave 1 mid-flight
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** Continued by `2026-09-10_22-43` and completed by `2026-09-10_23-35` (all 27 M-tasks).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **When:** 2026-09-10 09:16 · **Session scope:** executing [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](../planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md) (user: "GET SHIT DONE! The WHOLE TODO LIST!")
 > **Predecessors:** mapping report 08-04 ([`docs/architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md`](../architecture-understanding/2026-09-10_cordis-spatiotemporal-composability-mapping.md)) → status report 08-04 ([`docs/status/2026-09-10_08-04_cordis-paradigm-mapping-session.md`](2026-09-10_08-04_cordis-paradigm-mapping-session.md)) → Pareto plan 08-10 (commit `6a0cea374`, pushed).
 > **Format note:** user demanded `.md` under `docs/status/`; the status-report skill's HTML default is overridden, same as the 08-04 report.

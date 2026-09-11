@@ -1,5 +1,9 @@
 # Status Report — Issue-#20 Closeout: Three Releases Live, Release Tooling Hardened
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed into TODO_LIST: v4.10.2 buildinfo tag, `check-retracts-shipped.sh`, `--audit --baseline`, smoke-probes, batch-release.sh audit, dead-path decisions (now ROADMAP Open Question 11), nightly-dogfood watch. §g: external badger deployments unknown (owner), dead-path ruling → OQ 11, autonomous tag-push policy unanswered — nothing was pushed autonomously.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-11 01:47 CEST
 **Session scope:** The 6-item tooling/release TODO batch (cqrs-bench stub, retract v4.8.0, tag-release.sh hardening, version-reporting unification, cqrs-upgrade CI dogfood, badger data-loss review) — executed end-to-end, tagged, pushed, and proxy-verified.
 **HEAD at report time:** `e37642adf` "fix(release-tooling): close issue-#20 class end-to-end" (committed 01:38:34, tree clean).

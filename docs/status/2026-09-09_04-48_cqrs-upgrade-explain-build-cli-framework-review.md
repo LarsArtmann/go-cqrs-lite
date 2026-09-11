@@ -1,5 +1,9 @@
 # Session Status: cqrs-upgrade Explain, Build & CLI-Framework Review
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Point-in-time review — archived by the docs-health pass 2026-09-11.** The module since grew `--strict/--json/--to/--workspace` + the nightly dogfood job (2026-09-09/11). Open owner question (cmdguard-vs-stdlib policy, §g1) remains unanswered — revisit only if a second stdlib CLI appears; the hardening follow-ups (flags-after-positional guard, `--json` deprecations array) are routed to TODO_LIST (cqrs-upgrade hardening batch).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-09 04:48
 **Scope:** This session only — explain `cmd/cqrs-upgrade`, build it to temp, answer "why no cmdguard/fang?".
 **Session verdict:** Green with two self-inflicted misses (unverified artifact, noticed-but-unfixed diagnostics).

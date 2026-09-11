@@ -1,5 +1,9 @@
 # Status: Cordis Pareto Execution — Wave 1 complete, Wave 2 at M-15
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** M-15..M-27 completed by `2026-09-10_23-35_cordis-all-27-done.md` (same day).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **When:** 2026-09-10 22:43 · **Session:** resumed "READ, UNDERSTAND, RESEARCH, REFLECT / keep going until done" after the 09-16 status break
 > **Input:** [`docs/planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md`](../planning/2026-09-10_08-10_SUPERB-cordis-paradigm-pareto-execution.md) (M-01..M-27)
 > **Prior state:** Wave 0 done; M-06 done; M-07 code done, release hygiene interrupted (see [`2026-09-10_09-16_cordis-wave0-wave1-execution.md`](2026-09-10_09-16_cordis-wave0-wave1-execution.md))

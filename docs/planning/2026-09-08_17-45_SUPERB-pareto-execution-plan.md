@@ -1,5 +1,9 @@
 # SUPERB — Pareto Execution Plan (post-docs-health, 2026-09-08)
 
+> **RESOLVED (docs-health pass 2026-09-11):** **EXECUTED (2026-09-08 → 09-11) — archived by the docs-health pass 2026-09-11.** W0 shipped same-day (60 tags, 59 Releases, composed `#verify` GREEN — `docs/status/archived/2026-09-08_23-12_release-train-composed-green.md`); W1+W2 closed 09-09 (`..._04-10_pareto-w2-w3-execution-green-verify.md`); W3's feasible chunks executed 09-09..09-11 and its long tail is absorbed into TODO_LIST sections (v5 train → v5 Unification; external bundle halves → Turso section; policy rulings → BLOCKED entries). P04's permalink half DONE 2026-09-11 (`1c9f3bf`→`18b2c495c`); the turso defects-A+B filing remains BLOCKED on user approval.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-08 17:45 CEST · **Author:** pareto-planning session · **Status:** PLAN (no code changed)
 **Input:** `TODO_LIST.md` as rebuilt by the 2026-09-08 docs-health pass (637 lines, ~60 open items + ~12 blocked/user items).
 **New task surfaced by this plan:** "json/v2 map-order determinism sweep" — added to TODO_LIST → Code Quality (the one defect class fixed but not swept).

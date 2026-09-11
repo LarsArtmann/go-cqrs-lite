@@ -1,5 +1,9 @@
 # Status: TODO-batch verification (clone groups, sqlstore lint, aggregate tripwire) + go.sum repair
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed: integration-tag lint gate, verify-ci go.sum assertion, tripwire mutation fixture, lint attribution, and the orphaned-work annotation (this pass) → TODO_LIST; the stale GOWORK-decision-table TODO it flagged (§c3) was VERIFIED STALE and deleted (the table shipped 2026-09-08 as P15/P16, `docs/agents/gowork-modes.md`, linked from AGENTS.md).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-11 01:38 CEST
 **Session scope:** Execute + verify the 3-item paste batch (clone-group
 attribution, scheduling/sqlstore lint findings, `aggregate_*` tripwire),

@@ -1,5 +1,9 @@
 # cqrs-lint: F091 Tier-3 completion + T13–T19 exhaustive rule-audit program
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** Deferred follow-ups already tracked: loose heuristic gates + over-length b022_b025/a020 files (TODO cqrs-lint section); the §b5 cheap F-family fixes + §b6/7 test-gap backlog are now routed as one TODO item. §g1 (sqlstore lint) was fixed same-day by `03-50`; §g2 350-line policy and §g3 batching remain owner calls.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **Status:** DONE 2026-09-11. Full `#verify` gate is the final step of this
 > session (build + vet + test + race + lint + doc-check; cqrs-lint module
 > suite green before it, API golden regenerated twice in-session and

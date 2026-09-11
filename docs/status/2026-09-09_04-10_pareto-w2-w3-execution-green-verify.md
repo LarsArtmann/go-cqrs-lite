@@ -1,5 +1,9 @@
 # Pareto W2/W3 Execution — P19 tail through P27, full verify GREEN (2026-09-09 04:10)
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §b honest gaps since closed: exhaustruct canary completed 2026-09-11 (`scripts/test-exhaustruct-canary.sh`); P22 halves — permalink done, filing still BLOCKED. Master was pushed (synced at `458eeaac`; today's tip is far ahead).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > Session continuation of
 > [`2026-09-09_01-54_pareto-w1-w2-continuation.md`](2026-09-09_01-54_pareto-w1-w2-continuation.md).
 > Mandate: keep executing

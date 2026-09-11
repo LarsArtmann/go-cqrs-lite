@@ -1,5 +1,9 @@
 # Status: stale-TODO verification — metaengine-quickstart README closeout
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** The §b1 stale-TODO-sweep class it proved was EXECUTED repo-wide by this pass (42 completed `[x]` TODO_LIST rows swept per the file's own header policy + the docs-health skill). §b3 skill-vs-repo TODO convention: resolved in favor of the skill + file header (delete done items) — this pass is the precedent. §f items routed: quickstart smoke test → TODO_LIST.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Session window:** 2026-09-11 ~01:57–02:05 CEST (single task)
 **Task:** `TODO_LIST.md` item — "`example/metaengine-quickstart/README.md` does not
 exist — author it … Consider a `TestEveryExampleHasREADME` meta-test"

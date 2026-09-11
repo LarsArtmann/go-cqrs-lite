@@ -1,5 +1,9 @@
 # Status Report — Docs-Health Full Pass (4th Audit): Annotate + Archive + Living-Docs Rebuild
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the 5th docs-health pass 2026-09-11.** The 4th pass's §f program largely executed since: benchkit load-scaling + root cause (P07), iroh/stack-sqlite tags, the 09-08 composed-GREEN release train, AGENTS indexed-split + GOWORK table, matview safety tail, DSN redaction, F091 Tiers 2-3, ClaimMetrics/Demote/SearchQuery/enginetest micro-batch — all in CHANGELOG `[Unreleased]`. Remaining open items are tracked in TODO_LIST (BLOCKED rulings, v5 train, calibration). The HTML/bench-txt 'view ALL' exemption carried for four passes is now DECIDED: generated evidence artifacts are inventoried by title, never annotated (recorded in `docs/status/README.md`).
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-08 17:09 CEST
 **Mandate:** "View ALL `**/2026-0*` files! Execute the docs-health SKILL! TODO_LIST/CHANGELOG/AGENTS/README/ROADMAP/FEATURES must be superb! Archive FULLY done and UPDATED (inline strikethrough) .md files!" + full a)–g) self-review.
 **Scope:** docs-health AUDIT (BUILD + HARVEST + VERIFY + ANNOTATE + ARCHIVE) over the 22 active `2026-0*` snapshot files + the six living docs + skill references. Two production-code fixes fell out of VERIFY (cqrs-lint doctor JSON determinism, goldens).

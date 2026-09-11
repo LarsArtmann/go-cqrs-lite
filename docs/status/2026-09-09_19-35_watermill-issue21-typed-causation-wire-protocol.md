@@ -1,5 +1,9 @@
 # Status Report — Issue #21: watermill event wire protocol drops typed command causation
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** The fix is live on master and now documented in FEATURES.md (typed causation row); the missing `watermill/v4.7.0` tag is routed into the TODO_LIST tag-wave manifest (go-localsync's workaround ends when it ships). §c5 transport-parity sweep: transport/http+grpc are deprecated (ADR-0127, deletion at v5) — the sweep is accepted-moot unless a consumer asks before the cut.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-09 19:35 CEST
 **Session scope:** Review + implement GitHub issue #21 (`watermill/v4` event wire protocol asymmetry) in `go-cqrs-lite`.
 **Tree state:** clean; all work absorbed by auto-commit daemon into `2f87c4107`, `130f5f2a1`, `c9a316660` (on `master`, not pushed).

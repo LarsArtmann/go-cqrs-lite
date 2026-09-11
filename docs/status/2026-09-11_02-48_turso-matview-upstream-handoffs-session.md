@@ -1,5 +1,9 @@
 # Status Report — Turso matview upstream-handoffs session
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** §f routed into TODO_LIST: `ivm_repro_test.go` (-tags ivmrepro), single-source version citation + flip runbook, defect-A characterization (bisect + scalar-at-scale + pre.10 anomaly), routing track (existing item), actionlint-on-benchmarks.yml (existing item extended), quiet-window re-baseline (calibration item). Deferred doc polish left unharvested per routing rigor: grouped COUNT/MIN/AVD golden coverage, docs-site page, FAQ entry, tursoengine README bench link (§f34/§45-47) — pick up with the next turso work.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 **Date:** 2026-09-11 02:48 CEST
 **Scope of this report:** ONLY the 2026-09-11 session (~01:30–02:48 CEST) that executed
 the `TODO_LIST.md → "Turso materialized views (ADR-0135) — upstream handoffs"` section.

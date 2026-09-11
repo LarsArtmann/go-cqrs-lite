@@ -1,5 +1,9 @@
 # cqrs-lint session closeout: F091 Tier-3, T13–T19 audit program — full status + self-critique
 
+> **RESOLVED (docs-health pass 2026-09-11):** **Superseded — archived by the docs-health pass 2026-09-11.** Self-critique companion to the 03-10 closeout. §f1 idle-box `#verify` and §f2 (sqlstore lint) were executed same-day by `03-50`; §b4 over-length files and §b8 heuristic-tightening are tracked in TODO (cqrs-lint section); §g1-3 remain owner calls.
+> Open work lives in [`TODO_LIST.md`](../../TODO_LIST.md); shipped surface in [CHANGELOG.md](../../CHANGELOG.md) `[Unreleased]`.
+
+
 > **Date:** 2026-09-11 03:44 CEST · **Scope of this report:** the session that
 > implemented F091 Tier 3 (C035/C013 payload-shape confirmation), executed the
 > T13–T19 exhaustive rule-audit program (V/T/E/D/B/A/F + S001), and fixed the
