@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	gomust "github.com/larsartmann/go-must"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -65,7 +64,7 @@ func dispatch(
 	switch cmdType {
 	case cmdCreateTask:
 		err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
-			BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
+			BasicCommand: Must(command.New(cmdCreateTask, taskID)),
 			Title:        title,
 			Priority:     priority,
 		})
@@ -73,19 +72,19 @@ func dispatch(
 
 	case cmdStartTask:
 		err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
-			BasicCommand: gomust.Must(command.New(cmdStartTask, taskID)),
+			BasicCommand: Must(command.New(cmdStartTask, taskID)),
 		})
 		mustNoErr(t, err, "start task")
 
 	case cmdCompleteTask:
 		err := srv.CmdDisp.Dispatch(ctx, CompleteTaskCmd{
-			BasicCommand: gomust.Must(command.New(cmdCompleteTask, taskID)),
+			BasicCommand: Must(command.New(cmdCompleteTask, taskID)),
 		})
 		mustNoErr(t, err, "complete task")
 
 	case cmdArchiveTask:
 		err := srv.CmdDisp.Dispatch(ctx, ArchiveTaskCmd{
-			BasicCommand: gomust.Must(command.New(cmdArchiveTask, taskID)),
+			BasicCommand: Must(command.New(cmdArchiveTask, taskID)),
 		})
 		mustNoErr(t, err, "archive task")
 	}

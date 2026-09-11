@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	gomust "github.com/larsartmann/go-must"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -29,7 +28,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	taskID := id.NewStreamID()
 
 	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
+		BasicCommand: Must(command.New(cmdCreateTask, taskID)),
 		Title:        "Integration Test",
 		Priority:     PriorityHigh,
 	}); err != nil {
@@ -50,7 +49,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 
 	// ── Start the task ────────────────────────────────────────────────
 	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdStartTask, taskID)),
+		BasicCommand: Must(command.New(cmdStartTask, taskID)),
 	}); err != nil {
 		t.Fatalf("start task: %v", err)
 	}
@@ -61,7 +60,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 
 	// ── Complete the task ─────────────────────────────────────────────
 	if err := srv.CmdDisp.Dispatch(ctx, CompleteTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCompleteTask, taskID)),
+		BasicCommand: Must(command.New(cmdCompleteTask, taskID)),
 	}); err != nil {
 		t.Fatalf("complete task: %v", err)
 	}
@@ -93,7 +92,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 	// which removes the view (metaengine.Remove). We verify the event
 	// was persisted with the correct type.
 	if err := srv.CmdDisp.Dispatch(ctx, DeleteTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdDeleteTask, taskID)),
+		BasicCommand: Must(command.New(cmdDeleteTask, taskID)),
 	}); err != nil {
 		t.Fatalf("delete task: %v", err)
 	}
@@ -218,7 +217,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	// Create two tasks.
 	task1 := id.NewStreamID()
 	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCreateTask, task1)),
+		BasicCommand: Must(command.New(cmdCreateTask, task1)),
 		Title:        "Metaengine Task 1", Priority: PriorityHigh,
 	}); err != nil {
 		t.Fatalf("create task1: %v", err)
@@ -226,7 +225,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 
 	task2 := id.NewStreamID()
 	if err := srv.CmdDisp.Dispatch(ctx, CreateTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCreateTask, task2)),
+		BasicCommand: Must(command.New(cmdCreateTask, task2)),
 		Title:        "Metaengine Task 2", Priority: PriorityMedium,
 	}); err != nil {
 		t.Fatalf("create task2: %v", err)
@@ -278,7 +277,7 @@ func TestIntegration_MetaEngineTaskReader(t *testing.T) {
 	waitForView(t, srv, task1, func(v *TaskView) bool { return v.AssigneeID == defaultAssignee })
 
 	if err := srv.CmdDisp.Dispatch(ctx, StartTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdStartTask, task1)),
+		BasicCommand: Must(command.New(cmdStartTask, task1)),
 	}); err != nil {
 		t.Fatalf("start task1: %v", err)
 	}

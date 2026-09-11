@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-idempotency"
-	gomust "github.com/larsartmann/go-must"
 	otel "go.opentelemetry.io/otel"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
@@ -108,7 +107,7 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 
 	domain := system.DomainConfig{
 		Commands: func(sys *system.System) {
-			gomust.Check(system.RegisterDecider(sys, string(streamType), TaskDecider,
+			Check(system.RegisterDecider(sys, string(streamType), TaskDecider,
 				system.WithSnapshotStrategy(snapStrategy)))
 			registerCommands(sys)
 		},
@@ -248,7 +247,7 @@ func (s *Server) SeedDemo(ctx context.Context) {
 	taskID := id.NewStreamID()
 
 	if err := s.CmdDisp.Dispatch(ctx, CreateTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
+		BasicCommand: Must(command.New(cmdCreateTask, taskID)),
 		Title:        "Try the API!",
 		Priority:     PriorityHigh,
 	}); err != nil {

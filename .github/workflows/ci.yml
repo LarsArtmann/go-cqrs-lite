@@ -74,6 +74,9 @@ jobs:
       - name: CHANGELOG honesty gate
         run: bash scripts/check-changelog-symbols.sh
 
+      - name: Error-taxonomy drift gate
+        run: bash scripts/check-error-taxonomy.sh
+
       - name: Heap-measurement contract
         run: bash scripts/check-heap-parallel.sh
 

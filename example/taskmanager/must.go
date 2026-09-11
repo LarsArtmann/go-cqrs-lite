@@ -5,7 +5,7 @@
 // workspace module breaks every workspace-wide go command on machines
 // without credentials (CI module loading exits 128 at the auth prompt).
 // An example must stay buildable for anonymous consumers.
-package taskmanager
+package main
 
 // Must panics if err is non-nil and returns v otherwise.
 func Must[T any](v T, err error) T {

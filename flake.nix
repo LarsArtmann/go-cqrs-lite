@@ -1454,7 +1454,7 @@
                 '';
 
             verify =
-              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
+              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.ripgrep pkgs.gawk pkgs.gcc ]
                 ''
                   export CGO_ENABLED=1
                   # The bbolt AutoCRUD soak measures 8-20m under load
@@ -1484,6 +1484,7 @@
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
+                  echo "=== Check Error Taxonomy ===" && ${pkgs.bash}/bin/bash scripts/check-error-taxonomy.sh && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
-	gomust "github.com/larsartmann/go-must"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -75,7 +74,7 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	taskID := id.NewStreamID()
 
 	if err := s.CmdDisp.Dispatch(r.Context(), CreateTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
+		BasicCommand: Must(command.New(cmdCreateTask, taskID)),
 		Title:        body.Title,
 		Description:  body.Description,
 		Priority:     body.Priority,
@@ -137,7 +136,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 				w,
 				r,
 				taskID,
-				DeleteTaskCmd{BasicCommand: gomust.Must(command.New(cmdDeleteTask, taskID))},
+				DeleteTaskCmd{BasicCommand: Must(command.New(cmdDeleteTask, taskID))},
 			)
 		}
 
@@ -164,7 +163,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 		}
 
 		s.dispatchSimple(w, r, taskID, AssignTaskCmd{
-			BasicCommand: gomust.Must(
+			BasicCommand: Must(
 				command.New(cmdAssignTask, taskID),
 			),
 			AssigneeID: body.AssigneeID,
@@ -175,7 +174,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			taskID,
-			StartTaskCmd{BasicCommand: gomust.Must(command.New(cmdStartTask, taskID))},
+			StartTaskCmd{BasicCommand: Must(command.New(cmdStartTask, taskID))},
 		)
 
 	case "complete":
@@ -183,7 +182,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			taskID,
-			CompleteTaskCmd{BasicCommand: gomust.Must(command.New(cmdCompleteTask, taskID))},
+			CompleteTaskCmd{BasicCommand: Must(command.New(cmdCompleteTask, taskID))},
 		)
 
 	case "archive":
@@ -191,7 +190,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 			w,
 			r,
 			taskID,
-			ArchiveTaskCmd{BasicCommand: gomust.Must(command.New(cmdArchiveTask, taskID))},
+			ArchiveTaskCmd{BasicCommand: Must(command.New(cmdArchiveTask, taskID))},
 		)
 
 	case "blockers":
@@ -213,7 +212,7 @@ func (s *Server) handleTaskSubresource(w http.ResponseWriter, r *http.Request) {
 			}
 
 			s.dispatchSimple(w, r, taskID, AddBlockerCmd{
-				BasicCommand: gomust.Must(command.New(cmdAddBlocker, taskID)), DependencyID: depID,
+				BasicCommand: Must(command.New(cmdAddBlocker, taskID)), DependencyID: depID,
 			})
 		}
 
@@ -254,7 +253,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 
 	if body.Title != "" {
 		if err := s.CmdDisp.Dispatch(r.Context(), UpdateTitleCmd{
-			BasicCommand: gomust.Must(command.New(cmdUpdateTitle, taskID)), Title: body.Title,
+			BasicCommand: Must(command.New(cmdUpdateTitle, taskID)), Title: body.Title,
 		}); err != nil {
 			writeCQRSError(w, err)
 
@@ -264,7 +263,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 
 	if body.Priority != "" {
 		if err := s.CmdDisp.Dispatch(r.Context(), ChangePriorityCmd{
-			BasicCommand: gomust.Must(command.New(cmdChangePrio, taskID)), Priority: body.Priority,
+			BasicCommand: Must(command.New(cmdChangePrio, taskID)), Priority: body.Priority,
 		}); err != nil {
 			writeCQRSError(w, err)
 
@@ -281,7 +280,7 @@ func (s *Server) handlePatchTask(w http.ResponseWriter, r *http.Request, taskID 
 		}
 
 		if err := s.CmdDisp.Dispatch(r.Context(), SetDueDateCmd{
-			BasicCommand: gomust.Must(command.New(cmdSetDueDate, taskID)), DueDate: &dueDate,
+			BasicCommand: Must(command.New(cmdSetDueDate, taskID)), DueDate: &dueDate,
 		}); err != nil {
 			writeCQRSError(w, err)
 

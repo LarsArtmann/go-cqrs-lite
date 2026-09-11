@@ -130,7 +130,7 @@ Infrastructure for DDL/maintenance; malformed stored timestamps are
 | Breaker open (wrap)       | Infrastructure | `middleware.circuit_breaker_open` |
 | OTel recorder init         | Infrastructure | `middleware.otel_recorder_init` |
 | Panic recovery             | Corruption     | `middleware.panic_recovered` |
-| Dead-letter malformed data | Corruption     | `middleware.deadletter_sql.parse_time`, `middleware.deadletter_sql.unexpected_string_type`, `middleware.deadletter_sql.unexpected_time_type`, `middleware.deadletter.unexpected_time_type` |
+| Dead-letter malformed data | Corruption     | `middleware.deadletter_sql.parse_time`, `middleware.deadletter_sql.unexpected_string_type`, `middleware.deadletter_sql.unexpected_time_type`, `middleware.deadletter.unexpected_time_type`, `deadletter.scan` |
 | Dead-letter reads          | Transient      | `deadletter.count`, `deadletter.query`, `deadletter.rows_err` |
 | Dead-letter DDL/maintenance | Infrastructure | `deadletter.clear`, `deadletter.create_table`, `deadletter.migrate` |
 

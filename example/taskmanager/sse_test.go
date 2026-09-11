@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	gomust "github.com/larsartmann/go-must"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -55,7 +54,7 @@ func TestIntegration_SSEStreamsTaskViewUpdates(t *testing.T) {
 	taskID := id.NewStreamID()
 
 	if err := srv.CmdDisp.Dispatch(context.Background(), CreateTaskCmd{
-		BasicCommand: gomust.Must(command.New(cmdCreateTask, taskID)),
+		BasicCommand: Must(command.New(cmdCreateTask, taskID)),
 		Title:        sseTestTitle,
 		Priority:     PriorityHigh,
 	}); err != nil {

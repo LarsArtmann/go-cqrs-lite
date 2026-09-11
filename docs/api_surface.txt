@@ -2159,6 +2159,8 @@ metaengine/badgerengine/method MultiGet
 metaengine/badgerengine/method MultiGet
 metaengine/badgerengine/method Profile
 metaengine/badgerengine/method Profile
+metaengine/badgerengine/method ResetEngine
+metaengine/badgerengine/method ResetEngine
 metaengine/badgerengine/method SetAdd
 metaengine/badgerengine/method SetAdd
 metaengine/badgerengine/method SetContains
@@ -2231,6 +2233,8 @@ metaengine/bboltengine/method MultiGet
 metaengine/bboltengine/method MultiGet
 metaengine/bboltengine/method Profile
 metaengine/bboltengine/method Profile
+metaengine/bboltengine/method ResetEngine
+metaengine/bboltengine/method ResetEngine
 metaengine/bboltengine/method SetAdd
 metaengine/bboltengine/method SetAdd
 metaengine/bboltengine/method SetContains
@@ -3521,6 +3525,8 @@ metaengine/pebbleengine/method MultiGet
 metaengine/pebbleengine/method MultiGet
 metaengine/pebbleengine/method Profile
 metaengine/pebbleengine/method Profile
+metaengine/pebbleengine/method ResetEngine
+metaengine/pebbleengine/method ResetEngine
 metaengine/pebbleengine/method ScanCount
 metaengine/pebbleengine/method ScanCount
 metaengine/pebbleengine/method ScanRawValues
