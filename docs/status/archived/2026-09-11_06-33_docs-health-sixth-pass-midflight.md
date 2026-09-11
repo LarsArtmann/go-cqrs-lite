@@ -1,5 +1,7 @@
 # Status Report — Docs-Health 6th Pass (Mid-Flight Interrupt): Living Docs Rebuilt, Annotation Sweep Half-Done
 
+> **SUPERSEDED (2026-09-11 ~14:10 CEST):** the pass COMPLETED after this mid-flight snapshot — §f rows 1–5 are struck inline with receipts; the completion report is [`2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md`](../status/2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md) (includes the full self-review). §f rows 6–50 and §g remain the open backlog (mirrored in TODO_LIST/ROADMAP); §g questions are re-asked there. ARCHIVED.
+
 > **When:** 2026-09-11 05:55–06:33 CEST (~38 min) · **Mandate:** "View ALL `**/2026-0*` files! Execute the docs-health SKILL! PROPERLY! FUCKING SUPERBLY!!! TODO_LIST/CHANGELOG/AGENTS/README/ROADMAP/FEATURES must be all SUPERB! Archive FULLY done and UPDATED (inline strikethrough) .md files!" — interrupted by this status request at ~06:31.
 > **Mode:** docs-health AUDIT (BUILD + HARVEST + VERIFY + ANNOTATE + ARCHIVE) over the 26 non-archived `2026-0*` markdown targets + the six living docs.
 > **Skill discipline held:** SKILL.md + 4 references loaded BEFORE acting; the skill's `annotate-rows.py` asset used with `--dry-run` first (the mandated 2026-08-18 lesson).

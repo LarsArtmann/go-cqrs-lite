@@ -108,8 +108,11 @@ archived `docs/adr/archived/2026-08-17_system-v4-review-proposals.md` (all 8
 proposals verified resolved; dir created) and the 2026-07-23 analytics feedback
 pair; the SUPERB plan stays LIVE with ✅12/◐8/open-10 wave markers. Known-open:
 `#check-duplication` RED (5 new `reset*.go` clone groups — annotate-vs-re-pin
-decision pending). `docs/status/` holds only this pass's own
-[`2026-09-11_06-33_docs-health-sixth-pass-midflight.md`](2026-09-11_06-33_docs-health-sixth-pass-midflight.md).
+decision pending). The pass's own reports: midflight
+[`06-33`](archived/2026-09-11_06-33_docs-health-sixth-pass-midflight.md)
+(archived, superseded) and the completion + self-review
+[`2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md`](2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md)
+(active).
 
 ## What this means
 
