@@ -1824,7 +1824,7 @@ exactness — backfill such payloads with a domain-specific copy.
 column as TEXT that should be DOUBLE), reconcile the physical schema:
 
 ```go
-evolver := eng.(metaengine.LayoutPlanEvolver) // pg + mysql
+evolver := eng.(metaengine.LayoutPlanEvolver) // pg, mysql, sqlite, duckdb (§2.27 roster)
 applied, err := evolver.EvolveLayoutPlan(ctx, grownPlan)
 // applied lists actions, e.g. ["add:qty", "retype:amount"]; empty = matched
 ```

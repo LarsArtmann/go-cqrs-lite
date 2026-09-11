@@ -3,6 +3,7 @@ package version_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -124,6 +125,24 @@ go 1.26.4
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.0.0 // indirect
+)
+`)
+	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
+	ruletest.AssertRule(t, findings, "V003", 0)
+}
+
+// TestV003_BoundaryLagTwoStaysSilent pins the lag threshold boundary: a
+// one-minor gap below the threshold must not fire (lag == 2 is tolerated;
+// lag == 3 fires in TestV003_DetectsLag).
+func TestV003_BoundaryLagTwoStaysSilent(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMod(t, `module example.com/app
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.1.0
 )
 `)
 	findings := ruletest.RunDetector(t, version.NewV003Detector(ctx))
@@ -283,4 +302,35 @@ require (
 `)
 	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
 	ruletest.AssertRule(t, findings, "V006", 0)
+}
+
+// TestV006_MultiDigitMinorAnchorsLowestVersion is the semver-ordering
+// regression: lexicographic sorting ranks v4.10.0 BELOW v4.9.0, which used to
+// anchor the finding on the wrong (newest) line and suggest the older
+// release. With numeric ordering the finding must anchor on v4.9.0 and
+// suggest v4.10.0.
+func TestV006_MultiDigitMinorAnchorsLowestVersion(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMod(t, `module example.com/app
+
+go 1.26.4
+
+require (
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.10.0
+)
+`)
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 1)
+
+	for _, f := range findings {
+		if !strings.Contains(f.Message, "event/v4 is on v4.9.0") {
+			t.Errorf("finding must anchor on the lowest version v4.9.0, got: %s", f.Message)
+		}
+
+		if !strings.Contains(f.Suggestion, "@v4.10.0") {
+			t.Errorf("upgrade suggestion must target v4.10.0, got: %s", f.Suggestion)
+		}
+	}
 }
