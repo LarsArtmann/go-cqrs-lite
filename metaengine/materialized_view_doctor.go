@@ -51,7 +51,9 @@ func (s *Store) MaterializedViewsDoctorSection(_ context.Context) string {
 			if info.Spec.GroupBy != "" {
 				fmt.Fprintf(
 					&b,
-					"    WARN: grouped views return silently wrong aggregates once a group is updated by a second transaction (turso-go <= v0.8.0-pre.10, verified 2026-09-07 and 2026-09-11); scalar views are the safe shape\n",
+					"    WARN: grouped views return silently wrong aggregates once a group is updated by a second transaction (turso-go <= %s, last verified %s); scalar views are the safe shape\n",
+					TursoGoIVMVerifiedThrough,
+					TursoGoIVMLastVerified,
 				)
 			}
 

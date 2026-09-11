@@ -10,9 +10,9 @@ import (
 
 // File-slice-scoped scan helpers.
 //
-// These mirror the ctx-based helpers (importsPath, projectHasCallAny, etc.)
-// but scan an explicit file slice instead of the whole workspace. The ctx
-// helpers delegate to these so all callers share one code path.
+// These are the base scanners over an explicit file slice. The ctx-based
+// helpers (projectHasCallAny, firstCallPos, firstFuncDeclPos, ...) delegate
+// to them so all callers share one code path.
 
 func importsPathIn(files []*analyzer.GoFile, suffixes ...string) bool {
 	for _, gf := range files {

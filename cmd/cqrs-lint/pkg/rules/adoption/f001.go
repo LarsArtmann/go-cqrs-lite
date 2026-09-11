@@ -47,11 +47,10 @@ func NewF001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // hasDeletionEventTypes reports whether the project emits any event type
-// containing "delete" or "deleted" (case-insensitive).
+// containing "delete" (case-insensitive).
 func hasDeletionEventTypes(ctx *analyzer.AnalysisContext) bool {
 	for eventType := range ctx.Registry.EventTypesEmitted {
-		lower := strings.ToLower(eventType)
-		if strings.Contains(lower, "delete") || strings.Contains(lower, "deleted") {
+		if strings.Contains(strings.ToLower(eventType), "delete") {
 			return true
 		}
 	}

@@ -5,8 +5,11 @@
 // existing code, adoption rules detect ABSENCE of beneficial patterns and
 // coach the user toward adopting them.
 //
-// All F-series rules emit SeverityInfo findings — they are suggestions, not
-// errors. Each fires at most once per project (project-level, not per-file).
+// F-series findings are advisory coaching, not errors: Info by default,
+// Warning when the coached-against module is scheduled for removal (F030 on
+// the deprecated transport/* modules). Most rules fire once per coaching
+// scope (the project, or per module under per-module analysis); F021
+// additionally reports each offending query.
 package adoption
 
 import "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"

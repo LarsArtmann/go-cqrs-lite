@@ -178,20 +178,21 @@ func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
 // grouped-view envelope: 2,000 rows over 316 groups written in TWO
 // transactions — the minimal repro shape for upstream defect A (grouped
 // views lose cross-transaction deltas; identical 430.50 delta verified on
-// v0.7.2 through v0.8.0-pre.10, re-checked 2026-09-11, see
+// v0.7.2 through metaengine.TursoGoIVMVerifiedThrough, re-checked
+// 2026-09-11, see
 // docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md).
 //
 // The guard SKIPS while the defect is live so CI stays green on a known
 // upstream bug. When upstream fixes it, the skip becomes the loud flip:
 // run with TURSO_IVM_ENFORCE_FIX=1 to assert exactness now, then remove the
-// skip gate, the Doctor WARN, and the docs caveats in the same change
-// (TODO_LIST "Track turso-go releases" checklist).
+// skip gate, the Doctor WARN, and the docs caveats in the same change —
+// the full flip procedure is docs/turso-go-ivm-fix-flip-runbook.md.
 func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 	t.Parallel()
 
 	if os.Getenv("TURSO_IVM_ENFORCE_FIX") == "" {
 		t.Skip(
-			"upstream defect A live (tursogo <= v0.8.0-pre.10): grouped views lose cross-transaction deltas at scale; set TURSO_IVM_ENFORCE_FIX=1 to enforce the fixed behavior",
+			"upstream defect A live (turso-go <= " + metaengine.TursoGoIVMVerifiedThrough + "): grouped views lose cross-transaction deltas at scale; set TURSO_IVM_ENFORCE_FIX=1 to enforce the fixed behavior",
 		)
 	}
 

@@ -2,6 +2,7 @@ package watermill
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"sync"
 	"time"
@@ -179,6 +180,15 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 	//cqrs-lint:ignore(C027) library code or intentional pattern
 	liveMsgs, err := s.live.Subscribe(ctx, sub.topic)
 	if err != nil {
+		// Same shutdown class as below: Close() cancels the subscription
+		// ctx, which can abort the live subscribe — not a failure.
+		if errors.Is(err, context.Canceled) {
+			s.logger.Debug("catch-up: live subscribe stopped by shutdown",
+				"topic", sub.topic, "error", err)
+
+			return
+		}
+
 		s.logger.Error("catch-up: subscribe live failed",
 			"topic", sub.topic, "error", err)
 
@@ -187,6 +197,17 @@ func (s *CatchUpSubscriber) runCatchUp(ctx context.Context, sub *catchUpSubscrip
 
 	// Phase 1: Replay from journal.
 	if err := s.replayPhase(ctx, sub); err != nil {
+		// A deliberate shutdown is not a failure: Close() cancels the
+		// subscription ctx (racing the closeCh signal in awaitAck), and a
+		// caller-canceled parent ctx lands here too. Either way the replay
+		// stops cleanly — log at Debug so routine shutdown stays noise-free.
+		if errors.Is(err, context.Canceled) {
+			s.logger.Debug("catch-up replay stopped by shutdown",
+				"topic", sub.topic, "error", err)
+
+			return
+		}
+
 		s.logger.Error("catch-up replay failed", "topic", sub.topic, "error", err)
 
 		return

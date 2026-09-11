@@ -71,11 +71,12 @@ func TestMaterializedViewsDoctorSection_NoneBranch(t *testing.T) {
 }
 
 // TestMaterializedViewsDoctorSection_GroupedWarnPin pins the grouped-view
-// upstream-defect warning: tursogo <= v0.8.0-pre.10 maintains grouped
-// materialized views incorrectly once a second transaction updates a group
-// (verified 2026-09-07, see docs/research/2026-09-07_turso-go-*). This pin
+// upstream-defect warning: turso-go through TursoGoIVMVerifiedThrough
+// maintains grouped materialized views incorrectly once a second transaction
+// updates a group (see docs/research/2026-09-07_turso-go-*). This pin
 // flips loudly if the caveat text is edited — when upstream fixes the defect,
-// update the WARN here AND the serving-side guards in the same change.
+// update the WARN here AND the serving-side guards in the same change (the
+// flip procedure is docs/turso-go-ivm-fix-flip-runbook.md).
 func TestMaterializedViewsDoctorSection_GroupedWarnPin(t *testing.T) {
 	t.Parallel()
 
@@ -94,6 +95,13 @@ func TestMaterializedViewsDoctorSection_GroupedWarnPin(t *testing.T) {
 	}
 	if !strings.Contains(section, "WARN: grouped views return silently wrong aggregates") {
 		t.Errorf("grouped-view WARN missing from Doctor section:\n%s", section)
+	}
+	if !strings.Contains(section, "turso-go <= "+TursoGoIVMVerifiedThrough) {
+		t.Errorf(
+			"WARN must cite the canonical verified-through constant %q:\n%s",
+			TursoGoIVMVerifiedThrough,
+			section,
+		)
 	}
 	if !strings.Contains(section, "scalar views are the safe shape") {
 		t.Errorf("WARN should steer operators to the scalar shape:\n%s", section)

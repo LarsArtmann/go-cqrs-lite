@@ -48,7 +48,7 @@ func NewF030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, sc := range coachingScopes(ctx) {
 				for _, dep := range deprecatedTransportImports {
-					pos, ok := firstImportPosIn(ctx.Fset, sc.files, dep.fragment)
+					pos, importPath, ok := firstImportPosIn(ctx.Fset, sc.files, dep.fragment)
 					if !ok {
 						continue
 					}
@@ -56,7 +56,7 @@ func NewF030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					out = append(out, singleWarningFinding(
 						ctx,
 						"F030",
-						"Import of deprecated module "+dep.fragment+"/v4 — the "+
+						"Import of deprecated module "+importPath+" — the "+
 							"transport/* modules are removed at v5 (ADR-0127)",
 						dep.replacement+
 							". See docs/adr/0127-deprecate-transport-modules.md "+
@@ -71,13 +71,13 @@ func NewF030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// firstImportPosIn returns the position of the first non-test import whose
-// path contains fragment.
+// firstImportPosIn returns the position and path of the first non-test
+// import whose path contains fragment.
 func firstImportPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
 	fragment string,
-) (token.Position, bool) {
+) (token.Position, string, bool) {
 	for _, gf := range files {
 		if gf.IsTest {
 			continue
@@ -88,11 +88,11 @@ func firstImportPosIn(
 				continue
 			}
 
-			if strings.Contains(strings.Trim(imp.Path.Value, `"`), fragment) {
-				return fset.Position(imp.Path.Pos()), true
+			if path := strings.Trim(imp.Path.Value, `"`); strings.Contains(path, fragment) {
+				return fset.Position(imp.Path.Pos()), path, true
 			}
 		}
 	}
 
-	return token.Position{}, false
+	return token.Position{}, "", false
 }

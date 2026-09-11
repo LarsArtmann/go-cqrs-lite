@@ -23,6 +23,19 @@ else
 	echo "OK: exactly 1 [Unreleased] section"
 fi
 
+# ── Cordis follow-up: [Unreleased] must be the FIRST section after the header
+# block ─────────────────────────────────────────────────────────────────────
+# A daemon-absorbed orphan (the [Unreleased] heading re-inserted mid-file while
+# a cut was in flight) still passes the exactly-one count; position pins it.
+echo "=== CHANGELOG [Unreleased] position ==="
+first_section=$(grep -nE '^## ' CHANGELOG.md | head -1 | cut -d: -f2-)
+if [ "$first_section" != "## [Unreleased]" ]; then
+	echo "FAIL: first '## ' section is '${first_section}' — [Unreleased] must sit directly under the '# Changelog' header block"
+	errors=$((errors + 1))
+else
+	echo "OK: [Unreleased] is the first section"
+fi
+
 # ── P6-31: Module count in docs matches actual ─────────────────────────────
 echo "=== Module count check ==="
 actual_count=$(find . -name go.mod -not -path './vendor/*' | wc -l)
