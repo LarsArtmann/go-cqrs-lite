@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-23
 **Reviewer:** Crush (AI Engineering Partner)
-**Proposal:** [2026-07-23_analytics-rollup-support.md](../new/2026-07-23_analytics-rollup-support.md)
+**Proposal:** [2026-07-23_analytics-rollup-support.md](2026-07-23_analytics-rollup-support.md)
 **Verdict:** Option B (`Increment` on `ProjectionSink`) — implemented, correctly layered. Option A (`RollupSpec`) — rejected. Prerequisite gap (`Resettable`) — fixed.
 
 ---

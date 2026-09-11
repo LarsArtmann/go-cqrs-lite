@@ -49,7 +49,7 @@
 
 ### system/v4 (composition root)
 
-- Full review done 2026-08-17 (5×P1 + actionable P2/P3, each with regression tests); design-level follow-ups live in TODO_LIST "system/v4 Full-Code-Review Follow-Ups" + `docs/adr/2026-08-17_system-v4-review-proposals.md`.
+- Full review done 2026-08-17 (5×P1 + actionable P2/P3, each with regression tests); design-level follow-ups live in TODO_LIST "system/v4 Full-Code-Review Follow-Ups" + `docs/adr/archived/2026-08-17_system-v4-review-proposals.md` (all 8 proposals resolved; archived by docs-health 6th pass).
 - `Get`s dispatch by name, `Count`s by input type — same input type across two `Get`s is fine; two `Count()` projections on one input type still collide.
 - Fan-out buses are positional — `MultiBus.Publishers()[0]` is always the local bus.
 - ACK keys are `rule:target` (e.g. `durability-downgrade:<role>`); guard emission with `isAcknowledged`.

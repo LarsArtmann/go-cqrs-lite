@@ -201,7 +201,7 @@
 23. Matview v2 surface (planned-table matviews, DropMaterializedView off-boarding, per-view otel counter, …).
 24. Routing integration: teach the cost model matview-covered shapes are O(1).
 25. cqrs-lint: loose-heuristic-gate follow-ups (deferred 2026-09-11 batch).
-26. ~~cqrs-lint: audit cheap-fix + test-gap tail (doc.go drift, dead branches, boundary tests).~~ done (executed by the 05-12 session (docs/status/2026-09-11_05-12_cqrs-lint-cheap-fix-tail-status.md))
+26. ~~cqrs-lint: audit cheap-fix + test-gap tail (doc.go drift, dead branches, boundary tests).~~ done (executed by the 05-12 session (docs/status/archived/2026-09-11_05-12_cqrs-lint-cheap-fix-tail-status.md))
 27. Doctor-JSON pre-merge semantics ruling (BLOCKED, user decision).
 28. Release-policy Q3: severity tightening in a minor (BLOCKED, user decision).
 29. Daemon Q2: `.golangci.yml` formatter exclusion (BLOCKED, user decision).

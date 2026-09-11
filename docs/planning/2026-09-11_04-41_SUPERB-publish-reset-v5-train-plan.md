@@ -1,6 +1,6 @@
 # SUPERB — Publish, Reset & v5 Train: Pareto Execution Plan v2 (post-5th-audit)
 
-> **When:** 2026-09-11 04:41 CEST · **Input:** the TODO_LIST rebuilt by the 5th docs-health audit (2026-09-11, [`docs/status/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md`](../status/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md)) + the 97 open checkboxes verified during planning.
+> **When:** 2026-09-11 04:41 CEST · **Input:** the TODO_LIST rebuilt by the 5th docs-health audit (2026-09-11, [`docs/status/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md`](../status/archived/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md)) + the 97 open checkboxes verified during planning.
 > **Goal:** publish the 3-day `[Unreleased]` window, restore gate+CI trust, close the proven correctness classes, and stage the v5 train — without breaking a single v4 consumer.
 > **Guardrail:** No Verschlimmbesserung. Every behavior change is warn-first in v4.x, hard at v5 (ADR-0123 train). Every task ends at a verify gate. BLOCKED/user-gated items are planned but never executed without the gate lifting.
 
