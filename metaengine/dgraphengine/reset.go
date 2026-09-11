@@ -69,12 +69,12 @@ func resetTypeQuery(types []string) string {
 }
 
 // resetDeleteNQuads drops ALL predicates of every bound node, which is how a
-// node dies in Dgraph.
+// node dies in Dgraph. N-Quads statements are newline-separated.
 func resetDeleteNQuads(types []string) string {
 	var b strings.Builder
 
 	for i := range types {
-		fmt.Fprintf(&b, "uid(v%d) * * . ", i)
+		fmt.Fprintf(&b, "uid(v%d) * * .\n", i)
 	}
 
 	return b.String()

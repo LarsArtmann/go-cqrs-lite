@@ -216,15 +216,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       semantics differ across CLIs); Test 5 covers the `--smoke` usage guard,
       not the no-main-package skip path. — source: 01-47 §b4/§b5/§f11/§f12
       _(Effort: S)_
-- [ ] **Audit `scripts/batch-release.sh` against the hardened tag-release.sh** —
-      it may encode the pre-hardening flow (no path-vs-tag guard, no smoke
-      probe, no audit). — source: 01-47 §f39
-      _(Effort: M)_
-- [ ] **Watch the first nightly `upgrade-dogfood` sentinel run** — the flake
-      app + sentinel.yml job pass locally (4m21s, 83 modules, 0 findings);
-      the first real CI run (network topology, GOPROXY, 20-min timeout) is
-      unobserved. — source: 01-47 §b2/§f2
-      _(Effort: XS)_
 - [ ] [BLOCKED] **Dead-path module/tag decisions (owner)** — (a)
       example/taskmanager + example/getting-started carry suffix-less module
       paths with permanently-invisible v3/v4 tags: re-path to /v4, delete, or
