@@ -634,10 +634,13 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	// timing) causes CPU contention that can make the projection-wait
 	// budget expire spuriously on busy machines.
 
-	// Load-scaled outer deadline matching waitForProjectionProcessed's
-	// loadScaledDeadline(15s) inner budget (the 2026-09-08 full-suite flake:
-	// inner scaled past the fixed 30s outer ctx).
-	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(30*time.Second))
+	// Load-scaled outer deadline with real headroom: TWO sequential
+	// waitForProjectionProcessed budgets (loadScaledDeadline(15s) each) plus
+	// a close/reopen cycle with snapshot load must all fit inside it. The
+	// 2026-09-08 fix (30s) matched one inner budget — but 15s+15s already
+	// consumes the whole thing at factor 1, leaving phase 2's replay-from-
+	// zero to starve under full-suite contention.
+	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(90*time.Second))
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}

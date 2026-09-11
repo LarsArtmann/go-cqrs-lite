@@ -208,6 +208,11 @@ jobs:
             -bench='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$' \
             -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m 2>&1 | tee ../current.txt
+          cd ../metaengine/tursoengine && \
+          GOEXPERIMENT=jsonv2 go test -tags "goexperiment.jsonv2" \
+            -bench='BenchmarkMatViewRead/agg=[A-Z]+/scale=1k' \
+            -run='^$' -benchmem -benchtime=10x -count=5 \
+            -timeout 10m 2>&1 | tee -a ../current.txt
 
       - name: Compare with baseline (fails on >25% median regression)
         run: |

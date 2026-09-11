@@ -181,6 +181,18 @@ func (r *runner) runPhases(runCtx, parentCtx context.Context) error {
 		}
 	}
 
+	// Symmetric with the not-started guard: a caller-bound (non-Duration)
+	// context that expired with ZERO completed work must fail loudly. The
+	// residual TOCTOU between the guard above and a phase's internal
+	// ctx check otherwise lets a fully-skipped run return (partial, nil) —
+	// the exact closed-store nil-error flake class. Duration-bounded runs
+	// keep the graceful-partial semantics: timing out mid-window is how a
+	// Duration benchmark ends.
+	if runCtx == parentCtx && runCtx.Err() != nil && r.result.TotalEvents == 0 {
+		return errorfamily.WrapTransient(runCtx.Err(), "benchkit.expired",
+			"benchmark context expired with no work completed")
+	}
+
 	r.durabilityPhase()
 
 	if r.config.Recovery {

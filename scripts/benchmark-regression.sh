@@ -165,10 +165,12 @@ if [[ "$had_baseline" == true ]]; then
 	cur_medians=$(medians "$current_file" | LC_ALL=C sort)
 
 	# Benchmarks that vanished or appeared are informational, never a failure.
-	comm -23 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
+	# LC_ALL=C on comm matches the sort above — the ambient UTF-8 locale
+	# orders "/" and "=" differently and comm misreports the input as unsorted.
+	LC_ALL=C comm -23 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
 		<(printf '%s\n' "$cur_medians" | awk '{print $1}') |
 		grep '^.' | sed 's/^/  removed from current: /' || true
-	comm -13 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
+	LC_ALL=C comm -13 <(printf '%s\n' "$base_medians" | awk '{print $1}') \
 		<(printf '%s\n' "$cur_medians" | awk '{print $1}') |
 		grep '^.' | sed 's/^/  new in current: /' || true
 
