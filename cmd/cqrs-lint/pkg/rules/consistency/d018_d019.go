@@ -185,7 +185,7 @@ func isEventPackageQualifier(pkg *packages.Package, ident *ast.Ident, quals map[
 }
 
 // collectEventNewTypes returns a set of event type strings from event.NewEvent
-// and event.WithType calls in non-test files.
+// calls in non-test files.
 func collectEventNewTypes(ctx *analyzer.AnalysisContext) map[string]bool {
 	result := make(map[string]bool)
 

@@ -85,8 +85,9 @@ func NewD016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// countFields counts the total number of fields in a struct, including
-// fields in anonymous nested structs.
+// countFields counts the fields declared directly in a struct. Embedded
+// (anonymous) fields count as one field each; nested struct types are NOT
+// recursed into — their fields belong to the nested type.
 func countFields(fields *ast.FieldList) int {
 	if fields == nil {
 		return 0

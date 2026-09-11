@@ -199,6 +199,71 @@ func main(bundle Bundle) {
 	ruletest.AssertRule(t, findings, "E017", 0)
 }
 
+// TestE017_NoFindingWhenShutdownMethodCalled pins the Shutdown suppression
+// branch: signal.Notify plus srv.Shutdown(ctx) is a graceful shutdown. The
+// suppression previously matched the literal substring ".Shutdown(" against a
+// rendering that never carries parentheses, so this case false-fired.
+func TestE017_NoFindingWhenShutdownMethodCalled(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+type server struct{}
+
+func (server) Shutdown(context.Context) error { return nil }
+
+func main() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM)
+	var srv server
+	_ = srv.Shutdown(context.Background())
+	<-ch
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE017Detector(ctx))
+	ruletest.AssertRule(t, findings, "E017", 0)
+}
+
+// TestE017_NoFindingWhenStopMethodCalled pins the Stop suppression branch:
+// signal.Notify plus host.Stop() counts as graceful handling.
+func TestE017_NoFindingWhenStopMethodCalled(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+type host struct{}
+
+func (host) Stop() {}
+
+func main() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTERM)
+	var h host
+	h.Stop()
+	<-ch
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, architecture.NewE017Detector(ctx))
+	ruletest.AssertRule(t, findings, "E017", 0)
+}
+
 func TestE017_NoFindingForNoSignalNotify(t *testing.T) {
 	t.Parallel()
 

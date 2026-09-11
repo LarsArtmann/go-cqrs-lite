@@ -173,11 +173,17 @@ func readGoModCQRSVersion(path string) string {
 
 	lines := strings.SplitSeq(string(data), "\n")
 	for line := range lines {
-		if !strings.Contains(line, "go-cqrs-lite") {
+		trimmed := strings.TrimSpace(line)
+
+		// The module directive of this very repo (or a fork) contains
+		// "go-cqrs-lite" without a version field — without this skip the
+		// module path itself was parsed as the "version", making every
+		// doc version reference read as stale.
+		if strings.HasPrefix(trimmed, "module ") || strings.Contains(line, "replace") {
 			continue
 		}
 
-		if strings.Contains(line, "replace") {
+		if !strings.Contains(line, "go-cqrs-lite") {
 			continue
 		}
 
@@ -195,6 +201,9 @@ func readGoModCQRSVersion(path string) string {
 		}
 
 		version := parts[len(parts)-1]
+		if !strings.HasPrefix(version, "v") {
+			continue
+		}
 
 		if !isIndirect {
 			return version

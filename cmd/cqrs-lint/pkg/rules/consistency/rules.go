@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go/ast"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -28,8 +29,11 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			hasDotNotation := false
 			hasNoDotNotation := false
-			firstFile := ""
-			firstLine := 0
+			type emissionPos struct {
+				file string
+				line int
+			}
+			var positions []emissionPos
 
 			for eventType, emission := range ctx.Registry.EventTypesEmitted {
 				if strings.Contains(eventType, ".") {
@@ -38,10 +42,27 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					hasNoDotNotation = true
 				}
 
-				if firstFile == "" && emission.File != "" {
-					firstFile = emission.File
-					firstLine = emission.Line
+				if emission.File != "" {
+					positions = append(positions, emissionPos{emission.File, emission.Line})
 				}
+			}
+
+			// Anchor deterministically: the map range above has randomized
+			// order, so pick the lexicographically smallest (file, line) —
+			// the same emission every run, keeping output reproducible.
+			slices.SortFunc(positions, func(a, b emissionPos) int {
+				if a.file != b.file {
+					return strings.Compare(a.file, b.file)
+				}
+
+				return a.line - b.line
+			})
+
+			firstFile := ""
+			firstLine := 0
+			if len(positions) > 0 {
+				firstFile = positions[0].file
+				firstLine = positions[0].line
 			}
 
 			if hasDotNotation && hasNoDotNotation {

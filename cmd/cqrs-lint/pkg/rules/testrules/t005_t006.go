@@ -47,9 +47,9 @@ func NewT005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 }
 
 // T006: Decider test without conflict-path test.
-// Detects projects that use scenario.Given for decider testing but only
-// assert happy paths (Then) without testing conflict/error paths (ThenError).
-// Testing both success and conflict paths catches edge-case regressions.
+// Detects projects that use scenario.Given in tests but only assert happy
+// paths (Then) without testing conflict/error paths (ThenError). Testing both
+// success and conflict paths catches edge-case regressions.
 //
 //nolint:ireturn // factory returns public interface
 func NewT006Detector(ctx *analyzer.AnalysisContext) finding.Detector {

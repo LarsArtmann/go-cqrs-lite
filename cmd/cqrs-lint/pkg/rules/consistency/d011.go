@@ -35,8 +35,11 @@ func NewD011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						return true
 					}
 
-					pkg, ok := sel.X.(*ast.Ident)
-					if !ok || pkg.Name != "event" {
+					// IsQualifierFor resolves the qualifier through the import table
+					// (alias-aware) and the type checker when available — a bare
+					// pkg.Name != "event" comparison is alias-blind (the A014 bug
+					// class) and false-fires on unrelated packages named event.
+					if !analyzer.IsQualifierFor(gf, sel, "go-cqrs-lite/event") {
 						return true
 					}
 

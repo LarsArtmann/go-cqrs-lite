@@ -61,7 +61,7 @@ func NewT004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			if anyFileImports(ctx, "snaps") || anyFileImports(ctx, "go-snaps") {
+			if anyFileImports(ctx, "snaps") {
 				return nil, nil
 			}
 
