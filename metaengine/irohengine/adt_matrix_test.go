@@ -3,11 +3,10 @@ package irohengine_test
 import (
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
+	"github.com/onsi/gomega"
 )
 
 func TestIrohADTMatrix(t *testing.T) {

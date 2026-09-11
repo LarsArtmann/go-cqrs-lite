@@ -36,8 +36,21 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Code guard follow-up: make grouped-spec safety mechanical** — today the danger is advisory-only (Doctor WARN + docs). Options: `MaterializedViewSpec` validation refusing `GroupBy` on turso-go ≤ v0.8.0-pre.10 (breaking for legitimate small deployments) vs a config flag (`AllowGroupedViews`) vs silent status. Decide + implement once the upstream timeline is known (still unknown: PR #8257 unanswered, defect re-verified live on pre.10 2026-09-11). The mechanical flip point now exists: `TestTursoMatView_GroupedSumDefectAEnvelopeGuard` + `TURSO_IVM_ENFORCE_FIX=1` asserts exactness at the 2k-row repro shape the day upstream fixes it. _(Effort: S)_
 - [ ] **Matview v2 feature surface** — planned-table matviews (ordered with `ApplyLayout` + backfill), filtered-view spec variants, multi-aggregate/DISTINCT serving, `DropMaterializedView` off-boarding, per-view IVM write-amp otel counter, `system.Introspection()` surface, cqrs-lint rules (matview-on-unsupported-driver; matview-plus-planned-table staleness trap), `example/materialized-views/`. Route individually when a consumer asks. — source: archived 19-25 §f23-35, 05-33 §f29-35
       _(Effort: M/L each)_
-- [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A (it would steer production aggregates at known-wrong results) — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32
+- [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). NEXT STEP (SUPERB S28): design one-pager for `AggregateOn(fn, column, group)` on `QueryDecl` — the declarative seam the planner can read — then routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
       _(Effort: M)_
+- [ ] **Turso follow-ups from the IVM session (2026-09-11):** (a)
+      `--self-test` mode for `scripts/check-turso-version.sh` (planted stale
+      citation in a temp fixture) so fault-injection never mutates a live
+      tracked file again; (b) run the `-tags ivmrepro` suite with `-race`
+      once (24-round engine lifecycle + double-`t.Cleanup` Close);
+      (c) clamp the suite's last chunk for non-multiple-of-1000
+      `TURSO_IVM_REPRO_ROWS` values; (d) add the one-command repro check to
+      `docs/release-checklist.md` (driver pin bumps always run it);
+      (e) fold the session's three findings into the frozen upstream draft
+      before filing (wall 25000-via-tursoengine vs 27000-raw is
+      workload-dependent; zombie-tx readback artifact; poisoning is
+      connection-state, not durable). — source: 05-21 §f2/§f4/§f7/§f8/§f12
+      _(Effort: S total)_
 - [ ] **Tag wave for the matview feature** — metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
       _(Effort: M)_
@@ -102,6 +115,46 @@ bottom is a do-not-re-litigate guard, not a backlog.
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
+- [ ] **cqrs-lint cheap-fix follow-up tail (2026-09-11 session §f):** (a)
+      validate the S001 URL/placeholder allowlist against real corpora
+      (taskmanager scan + a probe project — prove no true positives killed);
+      (b) D014/D015 registry-acceptance tests (the parity claimed for D016
+      is untested on their side); (c) pin B008's non-bitshift Warning
+      baseline (a global severity flip to Error would pass today's suite);
+      (d) S001 selector-LHS receiver context in the message (03-44 #101
+      second half) + golden impact check; (e) full-module `-race` for
+      cmd/cqrs-lint (`./...`, not just `pkg/rules/...`); (f) extract the
+      URL/placeholder value-classifier into lintutil BEFORE a second rule
+      needs it (S001 split-brain prevention). — source: 05-12 §f1-5/§f26
+      _(Effort: S each)_
+- [ ] **Extend the error-taxonomy drift gate beyond its 5 modules** —
+      gated+verified 2026-09-11: graph, storage/relational, projectionhost,
+      middleware, transport/grpc (161 codes / 141 claims). Remaining
+      sections: watermill, storage/pebble, core event/command/query,
+      storage/view, stack, deriver, storage-facade. One `GATED_MODULES` line
+      per module, each forcing that section's code inventory complete; add a
+      per-module pool-size floor (scanner-break tripwire) and replace
+      `rg … || true` with explicit extraction assertions while there. —
+      source: 05-26 §b1/§f11-17, 05-51 §f30
+      _(Effort: S/M)_
+- [ ] **cqrs-upgrade strict-gate residual holes** — (a) `--strict` must
+      FAIL when any module errored (rep.Error) — unscanned = unproven;
+      (b) run the deprecation scan even for NoPins modules (indirect-only
+      cqrs consumers currently escape); (c) make `bumps` always-present in
+      `--json` (symmetry with `deprecations`); (d) consider a
+      `schemaVersion` field for the `--json` wire; (e) E2E test of `run()`
+      against a fixture module (flags→report→strict exit codes). — source:
+      05-26 §e4/§f6-10
+      _(Effort: S)_
+- [ ] **Kill the self-lint false-green class at the root** — any path under
+      `github.com/larsartmann/go-cqrs-lite/**` gets V007/F030 silently
+      skipped (the prefix check); the consumer-copy workaround lives in a
+      test. Fix `IsLibrarySelfLint`/presets to treat `example/*` as
+      consumers, add an analyzed-assert (file count) wherever examples are
+      scanned (the 02-47 lesson), then simplify `TestExamples_AreV5Clean`.
+      V007 typed method detection (`types.Info.Selections`) is the bigger
+      sibling — decide before the v5 cut. — source: 05-26 §e2/§f18-20
+      _(Effort: M)_
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
@@ -126,26 +179,21 @@ bottom is a do-not-re-litigate guard, not a backlog.
       has no branch protection at all; enabling it would block direct pushes
       and the daemon workflow. Owner decision on protection + which checks +
       exceptions. — source: 06-58 §g1
-- [ ] 🔥 **350-line limit: gate red repo-wide — split waves + gate-policy
-      decision.** VERIFIED 2026-09-06, recounted 2026-09-11: 58 non-test
-      files exceed the limit. The gate IS wired (CI `file-size-gate`
-      + `nix run .#check-file-size`), red
-      since ≈2026-08-08 — unnoticed because red non-required jobs don't block
-      direct pushes (F040). DONE: the two worst table-catalog offenders split
-      into 12 per-family files (largest 294); feature_profile split (594→3
-      files); 2026-09-11: `storage/view/store.go` 358→276+`mapper.go` 83 and
-      `stack/bundle.go` 363→253+`lifecycle.go` 117 (behavior-preserving
-      same-package splits, build/vet/test green). Wiring the gate into
-      `#verify` stays MOOT until the waves land — it would hold every verify
-      run permanently red. REMAINING: owner picks the policy — full split vs
-      baseline ratchet (no file grows, no new offender) vs
-      table-catalog/harness exemptions — then the code-file split waves
+- [ ] 🔥 **350-line policy: ratify the shipped ratchet, then split waves.**
+      STATE 2026-09-11: the baseline+ratchet gate SHIPPED and is GREEN
+      (`scripts/check-file-size.sh` + `scripts/file-size-baseline.txt`, 58
+      historical offenders baselined; fails on NEW offenders and on
+      baselined-file GROWTH, allows shrinking; mutation-proven ×2; wired
+      into `nix run .#check-file-size` + the CI `file-size-gate` job).
+      REMAINING: (a) owner ratifies the ratchet as POLICY vs full split
+      waves vs harness exemptions (adttest/enginetest are exported test
+      harnesses — 953/935 lines); (b) then the code-file split waves
       (typed_reader 1127, adttest/harness 953, metaengine/store 935,
       enginetest 935, execute 778, engines 725/722/663,
-      architecture/helpers 627, suppression/parser 540, explain 516, …). —
-      source: 06-56 §a9/§d1, recounted 2026-09-11 (`nix run
-      .#check-file-size`)
-      _(Effort: L, multi-session)_
+      architecture/helpers 627, suppression/parser 540, explain 516,
+      b022_b025 495, a020 ~357 …). The gate stops being decorative either
+      way. — source: 06-56 §a9/§d1, 05-51 §a (ratchet shipped)
+      _(Effort: decision + L, multi-session)_
 
 ---
 
@@ -224,6 +272,32 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
+- [ ] **Private-dep mechanical guard + visibility audit** — go-must (private)
+      froze the proxy and broke every workspace-mode command until inlined.
+      (a) `scripts/check-private-deps.sh` (+ flake app + CI leg): every
+      `github.com/larsartmann/*` require in every go.mod must be
+      proxy-servable (`@v/<version>.info` fetch); (b) audit sibling helper
+      repo visibility (go-retry/go-codec/go-branded-id/go-sse/go-idempotency/
+      go-flightrecorder) and record public/private in module-map.md; (c)
+      owner policy: examples may only depend on public/proxy-servable
+      modules. — source: 05-34 §e1/§f7-9
+      _(Effort: S/M)_
+- [ ] **Release-tooling follow-ups (post-hardening):** `--smoke-all` batch
+      mode (push N tags → one command smoke-checks each); document the batch
+      inter-module limitation (same-batch siblings resolve to the latest
+      PUBLISHED tag); optional batch `--verify` full-pipeline dry-run;
+      CONTRIBUTING.md references `batch-release.sh` +
+      `nix run .#check-release-scripts` in the release process; extract
+      `path_matches_major` into a sourced lib (two-copy lockstep risk);
+      decide whether `check-release-scripts` also runs in `#verify` (~30s).
+      — source: 05-34 §e2/§e6/§f22-27
+      _(Effort: S)_
+- [ ] **taskmanager tail from the go-must fix** — unit tests for the inlined
+      `example/taskmanager/must.go` (a copy with zero tests); confirm what
+      taskmanager's `go test` actually executes in 0.080s (which env markers
+      skip); update module-map.md internal notes (no go-must anymore). —
+      source: 05-34 §b3/§f5/§f6/§f31
+      _(Effort: S)_
 
 ---
 
@@ -262,6 +336,64 @@ bottom is a do-not-re-litigate guard, not a backlog.
       silence PLAN diagnostics today; should they also silence Doctor's
       `--- Capability ---` violation lines (`CapabilityAudit` receives nil
       gaps)? — source: archived 22-33 §g2, 04-35 §f17
+- [ ] 🔥 **Close the `CatchUpEngine` snapshot race** — the ONE known
+      correctness hole in the ADR-0137 write-failover work: `CatchUpEngine`
+      replays a once-taken `Events()` snapshot; concurrent applies DURING
+      the replay window fold onto the failover engine only, so the
+      reactivated engine silently misses that window (sequential tests
+      cannot see it). Fix: loop reset+replay until the log length stops
+      growing between snapshot and reactivation, or hold `s.mu` write-locked
+      for the final stabilization pass; add a concurrent stress test (apply
+      loop racing CatchUpEngine; assert post-reactivation reads see every
+      event). Should land BEFORE the next tag wave. — source: 05-40 §d1/§e1/§f1
+      _(Effort: M)_
+- [ ] **Catch-up observability + tail replay** — surface catch-up state
+      (running/failed/last-caught-up event id) in `Doctor` + `GetEngineStats`
+      (today slog-only); per-engine catch-up high-water marks so a re-catch-up
+      replays only the tail instead of the full journal; return `ResetResult`
+      from `CatchUpEngine` (currently discarded); `Reset` docs should point
+      at `CatchUpEngine` for the one-engine case (discovery). — source:
+      05-40 §e5/§e6/§f9/§f10, §f35/§f36/§f45
+      _(Effort: M)_
+- [ ] **Doctor: per-entry-point synthetic-record feed counters** — the
+      conformance sweep makes the entry-point record contract visible in
+      TESTS; Doctor still cannot say WHICH entry point fed a synthetic
+      (Type-only) record at runtime. — source: 03-50 §f17, 05-38 §f11
+      _(Effort: M)_
+- [ ] **Legacy-log-entry synthesis pin** — `replayShadows`/`applyReplay`
+      synthesize a Type-only record ONLY for legacy `EventLog.Record()`
+      entries (`Record.Type == ""`); the legacy path is asserted nowhere
+      end-to-end — add one legacy case to the conformance sweep. — source:
+      03-50 §f23, 05-38 §c1/§f2
+      _(Effort: S)_
+- [ ] **Conformance-sweep + hot-path tail** — (a) extend the sweep with an
+      `ApplyIdempotent` dedup no-op second apply (advisory counts once, not
+      twice); (b) micro-bench the `applyFold` raw-payload type-assertion
+      overhead on the struct hot path (defend the encoded-apply fix with a
+      number); (c) run the new PG/MySQL ClaimMetrics integration tests
+      against live servers (`#integration-pg`, `#integration-mysql-nspawn`).
+      — source: 05-38 §b2/§f3/§f4/§f10
+      _(Effort: S/M)_
+- [ ] **recipes.md: `ApplyEncodedRecord` snippet** — the projection.Projection
+      adapter recipe for the encoded-record path; references are currently
+      silent on it (only modules.md has the row). — source: 05-38 §c4/§f5
+      _(Effort: XS)_
+- [ ] **Calibration gate v2: sustained quiet** — `calibration-gate.sh`
+      checks load1 only; a burst-draining host (load1=4, load5=30) passes
+      and is still noisy. Require load1 AND load5 under the ceiling; also
+      run `shellcheck` over it (never shellchecked). — source: 05-38 §e/§f1/§f9
+      _(Effort: XS)_
+- [ ] **scheduling/sqlstore hardening tail (carried from 03-50, untouched):**
+      race-stress test (concurrent `Due` pollers vs `Metrics()` reader);
+      counter-scope pin (`MarkFired`/`Schedule`/`Cancel` deliberately never
+      touch claim counters); property test (counters never exceed committed
+      polls); fuzz `decodeDueTimer` corrupt-payload path; worked
+      `Metrics()` → `/status` example; runnable otel wiring example for the
+      ClaimMetrics hooks; scheduler+claiming-store+Metrics e2e example;
+      `RenewLease` ownership/claim tokens (code comment defers today);
+      consider process-start timestamp on `ClaimMetricsSnapshot` for
+      cross-restart rates. — source: 03-50 §f18-27, 05-38 §f19-27
+      _(Effort: M, one rule per slice)_
 
 ---
 
@@ -291,12 +423,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       latest tags in the CV repo + nix `vendorHash` cascade + full CV
       verification. — source: archived/2026-09-04 §c2
       _(Effort: M)_
-- [ ] **`check-coverage.sh` nix wrapper runs without the cache env** and
-      reports 0.0% DRIFT vacuously — make the app export the env itself or
-      fail loudly. Also run it once for the 2026-09-07/08 waves (matview +
-      hardening batches were never coverage-checked). — source:
-      archived/2026-08-30_06-34 §f, 19-25 §f4, 05-31 §f11
-      _(Effort: S)_
 - [ ] **Integration-tag lint as a first-class gate** — the gocognit finding
       was invisible to the official gate for ~10 days (the `lint-module` app
       hardcodes only `goexperiment.jsonv2`): give `lint-module` an optional
@@ -367,23 +493,9 @@ bottom is a do-not-re-litigate guard, not a backlog.
       an analogous transient-abort class worth the same treatment. — source:
       02-16 §f19
       _(Effort: M)_
-- [ ] **Test `ensureEdgeSchema`'s in-tx Alter path** — Alter retries even
-      inside RunInTx (txnScoped=false) are pinned only by inspection; add
-      the unit pin next to `transaction_retry_test.go`. — source: 02-16 §f35
-      _(Effort: S)_
-- [ ] **Review `doWrite` response-returning callers** — `doMutate` was
-      narrowed to error-only (response never consumed); check whether any
-      `doWrite` caller consumes the response, and narrow the rest for
-      symmetry. — source: 02-16 §f34
-      _(Effort: XS)_
-- [ ] **Modernize dgraphengine test-modernize hints** — 13× `b.Loop()` in
-      `bench_test.go` + `atomic.Uint64` in `helper_test.go` (gopls hints;
-      lint-clean today, 10-minute sweep). — source: 02-16 §e8/§f16
-      _(Effort: S)_
 - [ ] **`go mod tidy` in `integration/`** — gopls flags unused
-      `google.golang.org/genproto/googleapis/rpc` (integration/go.mod:131).
-      Mind parallel-session in-flight edits before sweeping. — source: 02-16
-      §f24
+      `google.golang.org/genproto/googleapis/rpc` (integration/go.mod:131;
+      still flagged 2026-09-11). — source: 02-16 §f24
       _(Effort: XS)_
 - [ ] **Unify ephemeral-script passthrough conventions** — ephemeral-pg.sh
       uses positional EXTRA_ARGS, ephemeral-dgraph.sh uses
@@ -391,6 +503,17 @@ bottom is a do-not-re-litigate guard, not a backlog.
       conventions for the same job complicate evaluations. — source: 02-16
       §e5/§f25
       _(Effort: M)_
+- [ ] **Skip-vs-fail classifier spread** — dgraph's live helpers now skip
+      ONLY on server-unreachable and `t.Fatalf` otherwise (the honest-loud
+      OQ-10 policy); the pg/mysql test helpers deserve the same classifier
+      (same silent-skip class). — source: 05-51 §e6
+      _(Effort: S)_
+- [ ] **projectionhost integration-build compile check** — the goleak
+      `TestMain` carries `//go:build !integration`; the two-TestMain clash
+      risk is handled by the tag but never compile-checked WITH it. One
+      command: `go vet -tags integration ./...` in projectionhost. — source:
+      05-40 §b4/§f4
+      _(Effort: XS)_
 - [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
       seed that fails; rare orderings WILL eventually appear in CI (that is
       the point of shuffling). — source: 02-16 §e7/§f10
@@ -399,11 +522,15 @@ bottom is a do-not-re-litigate guard, not a backlog.
       scripts echo the seed; persist it to a file so a failed CI seed can be
       replayed exactly (`-shuffle=N`). — source: 02-16 §f23
       _(Effort: XS)_
-- [ ] [BLOCKED] **Full `nix run .#verify` gate for the contention fix** —
-      blocked while a parallel session's files sit dirty in the tree
-      (#verify exclusivity + `nix fmt` fail-on-change); dgraphengine and
-      stack verified green per-module meanwhile (build/vet/test/lint). —
-      source: 02-16 §c4/§f13
+- [ ] [BLOCKED] **Quiet-window exclusive `nix run .#verify` composed GREEN**
+      (supersedes the contention-fix verify item) — last composed GREEN was
+      2026-09-09; three days of waves (Cordis, publish/reset/v5-train, both
+      parallel sessions) are unverified as one chain, the dispatch-core
+      fold-reroute refactor has never seen `-race`, and `scripts/verify-docs.sh`
+      has never run end-to-end with its new tripwire. When the box is quiet:
+      run `#verify`, then `-race` over `metaengine`, then `verify-docs.sh`;
+      record date + commit + durations in TODO_LIST/plan (S03 acceptance).
+      — source: 02-16 §c4/§f13, 05-40 §f2/§f3/§f8, SUPERB S03
       _(Effort: M)_
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824): (a) FIXED same-day —
@@ -545,6 +672,21 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
+
+- [ ] **Reconstruct the orphaned `cec9248da` work record** — tripwire +
+      fix.go dedup + pg test helpers were daemon-absorbed with no authoring
+      report; a short annotated report (what/where/verified-how) closes the
+      provenance gap. — source: 04-35 §c1, 01-38 §f8
+      _(Effort: XS)_
+- [ ] **Skill references: reset recipe covers ALL engines** — SKILL.md +
+      references still describe `Store.Reset` as memory-only; the ladder is
+      12/12 now. Update the reset recipe + add the
+      `WithContentionObserver` entry to recipes.md. — source: 05-51 §f33
+      _(Effort: S)_
+- [ ] **`docs/status/README.md` index upkeep** — the 2026-09-11 batch-day
+      reports (8 files) need index entries before/after archiving; the index
+      is the only map of the ~1500-file archive. — source: 05-34 §f35
+      _(Effort: XS, recurring)_
 
 ---
 

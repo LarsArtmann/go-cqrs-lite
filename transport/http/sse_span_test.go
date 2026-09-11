@@ -9,10 +9,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/samber/lo"
 )
 
 func TestSSE_FanoutSpanCarriesEventAttrs(t *testing.T) {
@@ -76,10 +75,5 @@ func TestSSE_FanoutSpanCarriesEventAttrs(t *testing.T) {
 }
 
 func attrMap(attrs []attribute.KeyValue) map[string]string {
-	m := make(map[string]string, len(attrs))
-	for _, kv := range attrs {
-		m[string(kv.Key)] = kv.Value.AsString()
-	}
-
-	return m
+	return lo.SliceToMap(attrs, func(kv attribute.KeyValue) (string, string) { return string(kv.Key), kv.Value.AsString() })
 }

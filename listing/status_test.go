@@ -149,7 +149,6 @@ func TestStatusClassifier_ParityWithMetadataTombstones(t *testing.T) {
 
 			var err error
 
-			//nolint:exhaustive // undetermined is the empty-stream value
 			switch tc.want {
 			case listing.StatusTombstoned:
 				var marked *event.ImmutableEvent

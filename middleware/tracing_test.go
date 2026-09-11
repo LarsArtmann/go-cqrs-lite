@@ -11,8 +11,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/samber/lo"
 )
 
 func testTracerWithRecorder() (trace.Tracer, *tracetest.SpanRecorder) {
@@ -288,10 +288,5 @@ func assertSpanStatusError(t *testing.T, span sdktrace.ReadOnlySpan) {
 }
 
 func attributeMap(attrs []attribute.KeyValue) map[string]any {
-	m := make(map[string]any, len(attrs))
-	for _, attr := range attrs {
-		m[string(attr.Key)] = attr.Value.AsInterface()
-	}
-
-	return m
+	return lo.SliceToMap(attrs, func(attr attribute.KeyValue) (string, any) { return string(attr.Key), attr.Value.AsInterface() })
 }

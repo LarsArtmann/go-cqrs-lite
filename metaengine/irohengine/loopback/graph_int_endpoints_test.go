@@ -7,6 +7,7 @@ import (
 	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/samber/lo"
 )
 
 // graphIntDispatch is the local interface for graph ops used by the
@@ -114,9 +115,7 @@ func sameNeighbors(actual []any, expected []string) bool {
 	}
 
 	seen := make(map[string]bool, len(actual))
-	for _, v := range actual {
-		seen[fmt.Sprint(v)] = true
-	}
+	seen = lo.SliceToMap(actual, func(v any) (string, bool) { return fmt.Sprint(v), true })
 
 	for _, v := range expected {
 		if !seen[v] {
