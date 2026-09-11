@@ -6,10 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	bolt "go.etcd.io/bbolt"
-
 	bboltengine "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	bolt "go.etcd.io/bbolt"
 )
 
 // ResetEngine must clear EVERY ADT surface: all engine data lives in the

@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
@@ -23,6 +21,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/stack/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // compareWithDiskPaths runs the benchmark against each backend, setting

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-output/delimited"
 )
 
@@ -128,8 +127,6 @@ func sampleErrorFinding(t *testing.T) finding.Finding {
 
 const ansiEscape = "\x1b"
 
-func hasANSI(s string) bool { return strings.Contains(s, ansiEscape) }
-
 // TestFormatFindingsText_HonorsNoColor locks the NO_COLOR regression.
 // formatFindingsText now delegates to cm.ShouldColor(), which honors NO_COLOR.
 // The deleted hand-rolled shouldColor only checked os.ModeCharDevice and ignored
@@ -142,7 +139,7 @@ func TestFormatFindingsText_HonorsNoColor(t *testing.T) {
 	var buf bytes.Buffer
 	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
 
-	if hasANSI(buf.String()) {
+	if strings.Contains(buf.String(), ansiEscape) {
 		t.Errorf("NO_COLOR=1 must suppress ANSI in findings text, got: %q", buf.String())
 	}
 }
@@ -157,7 +154,7 @@ func TestFormatFindingsText_HonorsCIEnv(t *testing.T) {
 	var buf bytes.Buffer
 	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
 
-	if hasANSI(buf.String()) {
+	if strings.Contains(buf.String(), ansiEscape) {
 		t.Errorf("CI=true must suppress ANSI in findings text, got: %q", buf.String())
 	}
 }
@@ -175,7 +172,7 @@ func TestFormatFindingsText_HonorsForceColor(t *testing.T) {
 	var buf bytes.Buffer
 	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
 
-	if !hasANSI(buf.String()) {
+	if !strings.Contains(buf.String(), ansiEscape) {
 		t.Errorf("FORCE_COLOR=1 must produce ANSI in findings text, got plain: %q", buf.String())
 	}
 }

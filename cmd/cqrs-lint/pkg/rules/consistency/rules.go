@@ -9,7 +9,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
+	"cmp"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
@@ -55,7 +55,7 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					return strings.Compare(a.file, b.file)
 				}
 
-				return a.line - b.line
+				return cmp.Compare(a.line, b.line)
 			})
 
 			firstFile := ""
