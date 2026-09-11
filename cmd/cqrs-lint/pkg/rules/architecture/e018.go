@@ -18,6 +18,11 @@ import (
 // only sees string-literal calls, so an empty producer set cannot
 // distinguish a typo from an emission site it failed to parse.
 //
+// Fold cases are the C040 twin of this rule (same provider contract:
+// emitted OR catalog-declared), keeping the three coeffect tiers in
+// lockstep — runtime gate (system.DomainConfig.Events), static rules
+// (E018 projections / C040 folds), docs side (catalog.ValidateCoeffects).
+//
 //nolint:ireturn // factory returns public interface
 func NewE018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(

@@ -17,11 +17,17 @@ import (
 // direction). A dead fold case is either leftover from a removed/renamed
 // event, or the fold case string itself has a typo.
 //
-// Safety: C040 only fires when the fold case has NO near-miss in the emit
-// set. If a near-miss exists, C038 already catches the mismatch from the
-// emit side — reporting twice would be noise. C040 also suppresses entirely
-// when no emissions are detected (cross-module safety: the linter may only
-// see the fold side).
+// Provider parity with E018 and the runtime coeffect gate: a type declared
+// via catalog.Event counts as provided (events imported from another
+// service), so an imported fold case is NOT dead code.
+//
+// Safety: C040 only defers to C038 when a near-miss emitter exists AND that
+// near-miss type is not itself handled by a fold case. When the near-miss IS
+// handled (the fold carries both "user.created" and its typo "user.creted"),
+// C038 sees the emission as handled and stays silent — C040 fires there
+// instead, so a typo'd case cannot hide behind its corrected twin. C040 also
+// suppresses entirely when no emissions are detected (cross-module safety:
+// the linter may only see the fold side).
 //
 //nolint:ireturn // factory returns public interface
 func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -30,6 +36,11 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 		func(_ context.Context) ([]finding.Finding, error) {
 			emitted := ctx.Registry.EventTypesEmitted
 			if len(emitted) == 0 {
+				return nil, nil
+			}
+
+			foldCases := ctx.CollectFoldCasesWithPos()
+			if len(foldCases) == 0 {
 				return nil, nil
 			}
 
@@ -43,26 +54,28 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				emittedSet[t] = true
 			}
 
-			foldCases := ctx.CollectFoldCasesWithPos()
-			if len(foldCases) == 0 {
-				return nil, nil
+			handledSet := make(map[string]bool, len(foldCases))
+			for _, fc := range foldCases {
+				handledSet[fc.Value] = true
 			}
 
 			var findings []finding.Finding
 
 			for _, fc := range foldCases {
-				if emittedSet[fc.Value] {
-					continue
+				if emittedSet[fc.Value] || ctx.Registry.IsEventInCatalog(fc.Value) {
+				continue
 				}
 
-				if _, dist := nearestMatch(fc.Value, emittedList); dist <= 2 {
+				if closest, dist := nearestMatch(fc.Value, emittedList); dist <= 2 && !handledSet[closest] {
+					// A near-miss emitter exists and nothing folds it — C038
+					// reports the mismatch from the emit side.
 					continue
 				}
 
 				f, err := finding.NewBuilder(
 					"C040", toolName,
 					fmt.Sprintf(
-						"Fold case %q in %s is never emitted via event.New — "+
+						"Fold case %q in %s is never emitted via event.New and the catalog does not declare it — "+
 							"dead code or a typo in the fold case string",
 						fc.Value, fc.FoldName,
 					),
@@ -73,7 +86,8 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(fmt.Sprintf(
-						"Remove the case for %q or verify it is emitted in another module",
+						"Remove the case for %q, fix the typo, or catalog.Event it when imported from another service; "+
+							"system.New's coeffect gate (DomainConfig.Events) enforces the same contract at runtime",
 						fc.Value,
 					)).
 					WithSnippet(ctx.SourceLine(fc.File, fc.Pos.Line)).

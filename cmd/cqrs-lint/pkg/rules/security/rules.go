@@ -23,6 +23,10 @@ const toolName = lintutil.ToolName
 // "…"}) — the last two were silently skipped by the original AssignStmt-only
 // walk even though they are the most common placements.
 //
+// Values that are URLs or unfilled placeholder templates are allowlisted:
+// documentation links and env-var/insertion templates trip the name
+// heuristic without embedding a credential.
+//
 //nolint:ireturn // factory returns public interface
 func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	return finding.NamedDetectorFunc(
@@ -49,6 +53,10 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				val := strings.Trim(lit.Value, "\"`")
 				if len(val) < 8 {
+					return
+				}
+
+				if isURLOrPlaceholder(val) {
 					return
 				}
 
@@ -123,6 +131,24 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
+}
+
+// isURLOrPlaceholder reports whether a string literal value is a URL or an
+// unfilled placeholder template rather than a real credential. Documentation
+// links (apiKeyDocsURL = "https://…") and env-var/insertion templates
+// ("${API_KEY}", "<your-token>") trip the secret-name heuristic without
+// embedding a secret. Tradeoff: credential-bearing DSNs (postgres://…)
+// are also skipped, but those live under dsn/connectionString-style names,
+// not the secret keywords this rule matches on.
+func isURLOrPlaceholder(val string) bool {
+	if strings.Contains(val, "://") {
+		return true
+	}
+
+	trimmed := strings.TrimSpace(val)
+
+	return strings.HasPrefix(trimmed, "${") ||
+		(strings.HasPrefix(trimmed, "<") && strings.HasSuffix(trimmed, ">"))
 }
 
 // s001LHSName extracts the secret-name candidate from an assignment target:

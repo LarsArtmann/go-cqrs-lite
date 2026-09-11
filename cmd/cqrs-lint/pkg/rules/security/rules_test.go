@@ -111,3 +111,48 @@ func banner() {
 	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
 	ruletest.AssertRule(t, findings, "S001", 0)
 }
+
+// TestS001_AllowsURLsAndPlaceholders pins the URL/placeholder value
+// allowlist: doc links and env-var/insertion templates on secret-named
+// fields are not credentials.
+func TestS001_AllowsURLsAndPlaceholders(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+var apiKeyDocsURL = "https://docs.example.com/authentication/api-keys"
+
+const webhookTokenURL = "http://localhost:8080/webhooks/register"
+
+func templates() {
+	passwordPlaceholder := "<your-password-here>"
+	tokenTemplate := "${API_KEY}"
+	_, _ = passwordPlaceholder, tokenTemplate
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 0)
+}
+
+// TestS001_StillDetectsHashesAndSecrets guards the allowlist against
+// over-suppression: bcrypt hashes start with "$" and real secrets may
+// mention URLs in a suffix — both must still fire.
+func TestS001_StillDetectsHashesAndSecrets(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+var passwordHash = "$2b$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
+
+func keymaterial() {
+	token := "ghp_super-secret-key-1234567890"
+	_ = token
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 2)
+}

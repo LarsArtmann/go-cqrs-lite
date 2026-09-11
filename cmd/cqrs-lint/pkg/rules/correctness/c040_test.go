@@ -224,3 +224,67 @@ func foldUser(state State, evt event.Event) (State, error) {
 	findings := ruletest.RunDetector(t, correctness.NewC040Detector(ctx))
 	ruletest.AssertRule(t, findings, "C040", 0)
 }
+
+// A cataloged type counts as provided: an event imported from another
+// service is handled by a local fold without any local emission — not dead
+// code. Provider parity with E018 and the runtime coeffect gate.
+func TestC040_NoFindingWhenTypeIsCataloged(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func decideCreate() {
+	_ = event.New("user.created", streamID, "User", UserCreated{})
+}
+
+func foldUser(state State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case "billing.invoice.paid":
+	}
+	return state, nil
+}
+`,
+		"catalog.go": `package main
+
+func register() {
+	catalog.Event("billing.invoice.paid", "Invoice was settled")
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC040Detector(ctx))
+	ruletest.AssertRule(t, findings, "C040", 0)
+}
+
+// The handled-near-miss hole: the fold carries BOTH the correct case and its
+// typo. C038 sees the emission as handled and stays silent, and the plain
+// near-miss suppression would let the typo hide behind its corrected twin —
+// C040 fires on the typo'd case instead.
+func TestC040_FiresOnTypoCaseBesideHandledTwin(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+func decideCreate() {
+	_ = event.New("user.created", streamID, "User", UserCreated{})
+}
+
+func foldUser(state State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case "user.created":
+	case "user.creted":
+	}
+	return state, nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, correctness.NewC040Detector(ctx))
+	ruletest.AssertRule(t, findings, "C040", 1)
+
+	if !strings.Contains(findings[0].Message, `"user.creted"`) {
+		t.Fatalf("finding should cite the typo'd case, got: %s", findings[0].Message)
+	}
+}

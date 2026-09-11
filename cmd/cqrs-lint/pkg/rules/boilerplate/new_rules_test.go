@@ -1,7 +1,10 @@
 package boilerplate_test
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/boilerplate"
@@ -219,6 +222,45 @@ func process(items []int) {
 	})
 	findings := ruletest.RunDetector(t, boilerplate.NewB008Detector(ctx))
 	ruletest.AssertRule(t, findings, "B008", 0)
+}
+
+// TestB008_BitshiftBackoffEscalatesToError pins the escalation branch: a
+// retry loop that bitshifts a time.Duration produces garbage backoff values,
+// which is reported at error severity with a dedicated message.
+func TestB008_BitshiftBackoffEscalatesToError(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"retry.go": `package main
+
+import "time"
+
+func withRetry(fn func() error) error {
+	backoff := time.Second
+	for attempt := 0; attempt < 5; attempt++ {
+		if err := fn(); err == nil {
+			return nil
+		}
+		time.Sleep(backoff << attempt)
+	}
+	return nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB008Detector(ctx))
+	ruletest.AssertRule(t, findings, "B008", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) != "B008" {
+			continue
+		}
+
+		if f.Severity != finding.SeverityError {
+			t.Errorf("B008 bitshift escalation: got severity %s, want error", f.Severity)
+		}
+
+		if !strings.Contains(f.Message, "bitshift backoff") {
+			t.Errorf("B008 bitshift escalation: message %q does not mention bitshift backoff", f.Message)
+		}
+	}
 }
 
 // --- B009: Emit function boilerplate ---
