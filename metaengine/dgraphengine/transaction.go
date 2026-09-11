@@ -104,29 +104,26 @@ func (e *dgraphEngine) doWrite(ctx context.Context, req *api.Request) (*api.Resp
 }
 
 // doMutate executes one standalone-shaped mutation under the same rules as
-// doWrite.
-func (e *dgraphEngine) doMutate(ctx context.Context, mut *api.Mutation) (*api.Response, error) {
-	var resp *api.Response
-
-	err := e.retryOnContention(ctx, true, func() error {
+// doWrite. Callers never consume the mutation response, so only the error
+// is returned.
+func (e *dgraphEngine) doMutate(ctx context.Context, mut *api.Mutation) error {
+	return e.retryOnContention(ctx, true, func() error {
 		var err error
 
 		if tx := e.activeTxn.Load(); tx != nil {
 			mut.CommitNow = false
 
-			resp, err = tx.Mutate(ctx, mut)
+			_, err = tx.Mutate(ctx, mut)
 
 			return err
 		}
 
 		mut.CommitNow = true
 
-		resp, err = e.client.NewTxn().Mutate(ctx, mut)
+		_, err = e.client.NewTxn().Mutate(ctx, mut)
 
 		return err
 	})
-
-	return resp, err
 }
 
 // Dgraph contention retry schedule. Bulk writers (corpus builds, projection

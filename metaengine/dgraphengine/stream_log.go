@@ -50,7 +50,7 @@ func (e *dgraphEngine) StreamAppend(
 		return fmt.Errorf("dgraphengine.StreamAppend: marshal: %w", err)
 	}
 
-	if _, err := e.doMutate(ctx, &api.Mutation{
+	if err := e.doMutate(ctx, &api.Mutation{
 		SetJson: data,
 	}); err != nil {
 		return fmt.Errorf("dgraphengine.StreamAppend: %w", err)

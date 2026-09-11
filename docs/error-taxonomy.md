@@ -201,12 +201,15 @@ iterator/batch/IO failures are **Infrastructure** (`pebble.commit_batch`,
 
 ### watermill
 
-| Error                | Family         | Code                               |
-| -------------------- | -------------- | ---------------------------------- |
-| `ErrMissingMetadata` | Rejection      | `watermill.missing_metadata`       |
-| Replay consumer nack | Orchestration  | `watermill.catchup.replay_nacked`  |
-| Metadata parse fails | Corruption     | `watermill.parse_*`                |
-| Bus publish fails    | Infrastructure | `watermill.event_bus_publish`, `watermill.command_bus_publish` |
+| Error                       | Family         | Code                               |
+| --------------------------- | -------------- | ---------------------------------- |
+| `ErrMissingMetadata`        | Rejection      | `watermill.missing_metadata`       |
+| Replay consumer nack        | Orchestration  | `watermill.catchup.replay_nacked`  |
+| Metadata parse fails        | Rejection      | `watermill.parse_*`                |
+| Malformed metadata payloads | Corruption     | `watermill.corrupt_metadata`, `watermill.create_event_failed`, `watermill.convert_message_failed` |
+| Catch-up checkpoint/replay  | Infrastructure | `watermill.catchup.load_checkpoint`, `watermill.catchup.replay_read` |
+| Bus publish fails           | Infrastructure | `watermill.event_bus_publish`, `watermill.command_bus_publish` |
+| Subscribe/publish/lifecycle | Infrastructure | `watermill.subscribe_failed`, `watermill.publish_event_failed`, `watermill.publish_command_failed`, `watermill.catchup_subscriber_closed`, `watermill.topic_closed`, `watermill.topic_cancelled` |
 
 Note the nack semantics: `watermill.catchup.replay_nacked` fires ONLY on a
 real consumer Nack — a `Close()` or ctx cancellation during the ack wait

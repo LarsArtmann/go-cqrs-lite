@@ -36,7 +36,7 @@ func (e *dgraphEngine) MultiAdd(
 		"dgraph.type":              []string{"MultimapEntry"},
 	})
 
-	if _, err := e.doMutate(ctx, &api.Mutation{
+	if err := e.doMutate(ctx, &api.Mutation{
 		SetJson: data,
 	}); err != nil {
 		return fmt.Errorf("dgraphengine.MultiAdd: %w", err)
@@ -115,7 +115,7 @@ func (e *dgraphEngine) LogAppend(ctx context.Context, col string, value any) err
 		"dgraph.type":         []string{"LogEntry"},
 	})
 
-	if _, err := e.doMutate(ctx, &api.Mutation{
+	if err := e.doMutate(ctx, &api.Mutation{
 		SetJson: data,
 	}); err != nil {
 		return fmt.Errorf("dgraphengine.LogAppend: %w", err)
