@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — scheduling/sqlstore: claim-metrics documentation + pin tail — 2026-09-11
+
+- The `Metrics()`/`ClaimMetricsSnapshot` surface (shipped earlier today)
+  now has its full pin tail: the claiming README documents the built-in
+  counters (liveness-heartbeat semantics, process-local reset behavior,
+  the unchanged `WithClaimMetrics` hooks for exporter pipelines);
+  `TestClaimMetricsSnapshot_JSONTagsAreStable` pins the camelCase JSON
+  tags as public API; and `TestClaimingPostgres_MetricsSnapshot` +
+  `TestClaimingMySQL_MetricsSnapshot` extend the live-server integration
+  pins (build tag `integration`) so the PG and MariaDB claim paths are
+  proven to feed the same counter surface SQLite pins.
+
 ### Added — metaengine: turso-go IVM defect repro suite + single-sourced verified-version citation — 2026-09-11
 
 - **Added the `-tags ivmrepro` one-command release check** for the three

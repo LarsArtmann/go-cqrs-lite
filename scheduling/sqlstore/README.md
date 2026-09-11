@@ -111,6 +111,48 @@ Integration pins: `pg_integration_test.go` (Postgres) and
 `MYSQL_TEST_DSN`) cover two-claimer no-double-fire, lease expiry reclaim,
 and lease renewal on live servers.
 
+### Claim metrics (built-in counters + optional hooks)
+
+Every claiming store maintains claim counters itself and exposes them via
+`Metrics()` — a JSON-ready `ClaimMetricsSnapshot`:
+
+```go
+type ClaimMetricsSnapshot struct {
+	ClaimedBatches int64 `json:"claimedBatches"` // committed Due polls, incl. empty ones
+	ClaimedTimers  int64 `json:"claimedTimers"`  // timers claimed across all polls
+	Renewed        int64 `json:"renewed"`        // successful RenewLease extensions
+	RenewRejected  int64 `json:"renewRejected"`  // renewals rejected with ErrLeaseNotHeld
+}
+```
+
+No wiring required: a Doctor-style report or `/status` endpoint reads claim
+liveness straight off `store.Metrics()` — an empty-poll `ClaimedBatches`
+that keeps advancing is the poller's liveness heartbeat, while a flat
+`ClaimedBatches` means the poller is stuck or gone. The camelCase JSON tags
+are public API (pinned by `TestClaimMetricsSnapshot_JSONTagsAreStable`).
+
+Counters are process-local: they reset on restart and observe only THIS
+store instance — a second poller on the same timers table keeps its own
+counts. `Schedule`, `MarkFired`, and `Cancel` deliberately do NOT touch
+them (claim activity only).
+
+For metric PIPELINES (OpenTelemetry, Prometheus), the opt-in hooks remain:
+scheduling carries no OTel dependency, so wire your own exporter via
+`WithClaimMetrics` — the hooks see the same events the counters count:
+
+```go
+metrics := sqlstore.ClaimMetrics{
+	Claimed:       func(n int) { claimed.Add(ctx, int64(n)) },
+	Renewed:       func() { renewed.Add(ctx, 1) },
+	RenewRejected: func() { rejected.Add(ctx, 1) },
+}
+store, err := sqlstore.NewClaimingPostgresStore[Payload](ctx, db, lease,
+	sqlstore.WithClaimMetrics[Payload](metrics))
+```
+
+Hooks run synchronously in the polling goroutine while the store holds no
+lock; keep them cheap and never call back into the store.
+
 ## Related Modules
 
 - [**scheduling**](../README.md) — `TimerStore[P]` interface and `Scheduler`

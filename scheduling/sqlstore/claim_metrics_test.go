@@ -2,6 +2,7 @@ package sqlstore_test
 
 import (
 	"context"
+	"encoding/json/v2"
 	"testing"
 	"time"
 
@@ -179,5 +180,25 @@ func TestClaimingSQLite_MetricsSnapshot(t *testing.T) {
 	got = store.Metrics()
 	if got.Renewed != 1 || got.RenewRejected != 1 {
 		t.Fatalf("Metrics after renewals = %+v, want 1 renewed / 1 rejected", got)
+	}
+}
+
+// TestClaimMetricsSnapshot_JSONTagsAreStable pins the wire shape of the
+// snapshot: the camelCase tags are public API for any /status endpoint or
+// dashboard consuming the marshaled snapshot (field order follows the struct).
+func TestClaimMetricsSnapshot_JSONTagsAreStable(t *testing.T) {
+	data, err := json.Marshal(sqlstore.ClaimMetricsSnapshot{
+		ClaimedBatches: 2,
+		ClaimedTimers:  3,
+		Renewed:        1,
+		RenewRejected:  1,
+	})
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+
+	const want = `{"claimedBatches":2,"claimedTimers":3,"renewed":1,"renewRejected":1}`
+	if string(data) != want {
+		t.Fatalf("JSON = %s, want %s", data, want)
 	}
 }

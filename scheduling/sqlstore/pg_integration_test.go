@@ -454,6 +454,55 @@ func TestClaimingPostgres_RenewLease(t *testing.T) {
 	}
 }
 
+// TestClaimingPostgres_MetricsSnapshot pins the built-in claim counters
+// against live Postgres (the SQLite pin in claim_metrics_test.go covers the
+// shared counting logic; this proves the PG claim path feeds it too).
+func TestClaimingPostgres_MetricsSnapshot(t *testing.T) {
+	db := pgOpen(t)
+	defer func() { _ = db.Close() }()
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingPostgresStore[struct{}](ctx, db, time.Minute)
+	if err != nil {
+		t.Fatalf("NewClaimingPostgresStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	if err := store.Schedule(ctx, scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("metrics-pg"),
+		FireAt: now.Add(-time.Second),
+	}); err != nil {
+		t.Fatalf("Schedule: %v", err)
+	}
+
+	if _, err := store.Due(ctx, now); err != nil {
+		t.Fatalf("Due: %v", err)
+	}
+
+	if _, err := store.Due(ctx, now); err != nil {
+		t.Fatalf("empty Due: %v", err)
+	}
+
+	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-pg"), time.Minute); err != nil {
+		t.Fatalf("RenewLease: %v", err)
+	}
+
+	if err := store.MarkFired(ctx, scheduling.MustParseTimerID("metrics-pg")); err != nil {
+		t.Fatalf("MarkFired: %v", err)
+	}
+
+	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("metrics-pg"), time.Minute); err == nil {
+		t.Fatal("RenewLease on fired timer must fail")
+	}
+
+	if got := store.Metrics(); got.ClaimedBatches != 2 || got.ClaimedTimers != 1 ||
+		got.Renewed != 1 || got.RenewRejected != 1 {
+		t.Fatalf("Metrics = %+v, want 2 batches / 1 timer / 1 renewed / 1 rejected", got)
+	}
+}
+
 // TestClaimingPostgres_RenewVsClaimRace pins the concurrent renew-vs-claim
 // contract under -race on live Postgres: a holder renewing its lease while
 // other pollers claim must never let a second claimer take the timer while

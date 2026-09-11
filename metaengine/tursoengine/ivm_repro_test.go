@@ -301,11 +301,12 @@ func TestIVMReproDefectB_GroupedViewCollapsesAtScale(t *testing.T) {
 // been observed at 24k-27k — the position varies with in-process scan
 // activity, so it is LOGGED per round, not pinned). Each round uses a FRESH
 // database file; the draft established the wall at 24/24 rounds (default
-// here). Post-abort probes check the two documented follow-ons: the aborted
-// chunk's base rows must NOT persist once the file is reopened fresh (the
-// in-process zombie-transaction readback that DOES show them is the PR
-// #8257 mechanism, not persistence), and the file must reject further
-// view-maintaining writes.
+// here). Post-abort probes pin the three documented follow-ons: the zombie
+// transaction rejects same-engine writes, the aborted chunk's base rows do
+// NOT persist once the file is reopened fresh (the same-engine readback that
+// DOES show them is the PR #8257 visibility artifact, not persistence), and
+// the fresh reopen accepts writes again (poisoning is connection state, not
+// durable file state — rotating the process works).
 func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 	ctx := context.Background()
 	rows := ivmEnvInt(t, "TURSO_IVM_REPRO_ROWS", 27000)
@@ -343,10 +344,22 @@ func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 		}
 		abortRows = append(abortRows, abortedAt)
 
+		// Post-abort, the zombie transaction still owns the engine's single
+		// connection: follow-on view-maintaining writes are REJECTED (the
+		// operational reason bulk loads must rotate process/file).
+		if err := r.insertChunk(ctx, 0, 1); err == nil {
+			t.Fatalf(
+				"round %d: post-abort engine accepted a view-maintaining write — the zombie-transaction follow-on did not reproduce; investigate before any pin bump",
+				round,
+			)
+		}
+
 		// The aborted chunk (rows abortedAt-ivmChunkSize .. abortedAt-1) must
 		// not persist. Reading through the SAME engine only proves the
 		// zombie-transaction visibility artifact — close and reopen the file
-		// fresh first.
+		// fresh first. (Observed 2026-09-11: the poisoning is connection
+		// state, NOT durable file state — a fresh reopen accepts writes
+		// again, which is exactly why rotating the process works.)
 		path := filepath.Join(t.TempDir(), fmt.Sprintf("defectC_round%02d.db", round))
 		if err := r.eng.Close(); err != nil {
 			t.Fatalf("round %d: close pre-reopen: %v", round, err)
@@ -386,10 +399,11 @@ func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 			)
 		}
 
-		if err := reopened.insertChunk(ctx, 0, 1); err == nil {
+		if err := reopened.insertChunk(ctx, 0, 1); err != nil {
 			t.Fatalf(
-				"round %d: post-abort file accepted a view-maintaining write — the documented poisoned-file follow-on did not reproduce; investigate before any pin bump",
+				"round %d: fresh-reopen file still rejects view-maintaining writes (%v) — durable file poisoning, NEW upstream defect, do not pin-bump",
 				round,
+				err,
 			)
 		}
 	}

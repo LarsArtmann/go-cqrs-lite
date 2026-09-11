@@ -931,6 +931,16 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
                 '';
 
+            # check-error-taxonomy: drift gate between docs/error-taxonomy.md
+            # module tables and the errorfamily call sites that actually mint
+            # the codes (the watermill-table-lied incident class, 02-47 §e3).
+            check-error-taxonomy =
+              mkApp "check-error-taxonomy"
+                [ pkgs.bash pkgs.ripgrep pkgs.gawk pkgs.coreutils pkgs.gnused ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-error-taxonomy.sh"
+                '';
+
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
             # bumps; check-depguard keeps the allow-list honest against go.mod;
@@ -1454,7 +1464,7 @@
                 '';
 
             verify =
-              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.ripgrep pkgs.gawk pkgs.gcc ]
+              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''
                   export CGO_ENABLED=1
                   # The bbolt AutoCRUD soak measures 8-20m under load
@@ -1484,7 +1494,7 @@
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
-                  echo "=== Check Error Taxonomy ===" && ${pkgs.bash}/bin/bash scripts/check-error-taxonomy.sh && \
+                  echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';

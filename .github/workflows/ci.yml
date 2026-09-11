@@ -75,7 +75,7 @@ jobs:
         run: bash scripts/check-changelog-symbols.sh
 
       - name: Error-taxonomy drift gate
-        run: bash scripts/check-error-taxonomy.sh
+        run: nix run .#check-error-taxonomy
 
       - name: Heap-measurement contract
         run: bash scripts/check-heap-parallel.sh

@@ -237,3 +237,51 @@ func TestClaimingMySQL_RenewLease(t *testing.T) {
 		t.Fatal("renewing a missing timer must fail")
 	}
 }
+
+// TestClaimingMySQL_MetricsSnapshot pins the built-in claim counters against
+// live MariaDB (the two-statement claim path feeds the same counter surface
+// the SQLite pin covers).
+func TestClaimingMySQL_MetricsSnapshot(t *testing.T) {
+	db := mysqlClaimOpen(t)
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingMySQLStore[struct{}](ctx, db, time.Minute)
+	if err != nil {
+		t.Fatalf("NewClaimingMySQLStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	if err := store.Schedule(ctx, scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("mysql-metrics"),
+		FireAt: now.Add(-time.Second),
+	}); err != nil {
+		t.Fatalf("Schedule: %v", err)
+	}
+
+	if _, err := store.Due(ctx, now); err != nil {
+		t.Fatalf("Due: %v", err)
+	}
+
+	if _, err := store.Due(ctx, now); err != nil {
+		t.Fatalf("empty Due: %v", err)
+	}
+
+	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("mysql-metrics"), time.Minute); err != nil {
+		t.Fatalf("RenewLease: %v", err)
+	}
+
+	if err := store.MarkFired(ctx, scheduling.MustParseTimerID("mysql-metrics")); err != nil {
+		t.Fatalf("MarkFired: %v", err)
+	}
+
+	if err := store.RenewLease(ctx, scheduling.MustParseTimerID("mysql-metrics"), time.Minute); err == nil {
+		t.Fatal("RenewLease on fired timer must fail")
+	}
+
+	if got := store.Metrics(); got.ClaimedBatches != 2 || got.ClaimedTimers != 1 ||
+		got.Renewed != 1 || got.RenewRejected != 1 {
+		t.Fatalf("Metrics = %+v, want 2 batches / 1 timer / 1 renewed / 1 rejected", got)
+	}
+}
