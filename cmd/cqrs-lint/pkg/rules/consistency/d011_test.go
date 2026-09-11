@@ -84,7 +84,7 @@ func TestD011_ForeignEventPackageStaysSilent(t *testing.T) {
 import "example.com/otherepo/project/event"
 
 func emit() {
-	_ = event.Publish("user.toggled", "id1", "User", 1, nil)
+	_ = event.NewEvent("user.toggled", "id1", "User", 1, nil)
 }
 `,
 	})
