@@ -229,10 +229,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Metaengine — follow-ups
 
-- [x] 🔥 **Audit the encoded-apply record context + build the entry-point conformance sweep** — DONE 2026-09-11 (later session). Root-cause fix, not just an audit: `ApplyEncoded` now flows through `applyWithRecord` (metered, hooked, EventLog-recorded, advisory-counted, replicated) with the raw JSON carried as `jsontext.Value` and decoded per fold in `applyFold` — the single funnel every dispatch path shares, so encoded applies replay identically everywhere. New public `metaengine.ApplyEncodedRecord` carries full Record context on the encoded path; API golden regenerated (`cmd/api-stability --update`, meta-tests green). The sweep is `TestFoldDispatch_RecordContextConformance` (`metaengine/record_context_conformance_test.go`): one table over Apply, ApplyIdempotent, ApplyBatch ×2, ApplyRecord, ApplyEncoded ×2, Backfill primary + shadow legs, Verify, DemoteEngine mirror + re-routed legs, and the live replicator — record-context contract + advisory counting per entry point, proven to bite (old encoded behavior fails the ApplyEncoded case). Suite green incl. `-race` on touched paths; CHANGELOG `[Unreleased]` entry added. — source: 03-50 §c1/§f1/§f2, §e
-      _(Effort: M)_
-- [x] **ClaimMetrics documentation + pin tail** — DONE 2026-09-11 (later session). (a) `scheduling/sqlstore/README.md` gained a "Claim metrics" section (snapshot semantics, heartbeat reading, process-local reset, hook parity); (b) FEATURES.md row landed with the docs-health pass; (c) `TestClaimMetricsSnapshot_JSONTagsAreStable` pins the camelCase JSON wire shape; (d) not just considered — `TestClaimingPostgres_MetricsSnapshot` + `TestClaimingMySQL_MetricsSnapshot` (build tag `integration`) pin the live-server claim paths feeding the same counter surface. Suite green, integration-tagged files vet-clean. — source: 03-50 §c2/§f3/§f4/§f5/§f9
-      _(Effort: S)_
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PENDING — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe), but the quiet-window count=5 SearchQuery re-run and the titled re-pin of `benchmarks/benchmark-baseline.txt` did NOT run (a 493-load storm held all session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
 
@@ -241,14 +237,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-- [ ] **Turso encryption test breadth + reachability docs** — (a) document the
-      DriverConfig/`system` reachability gap for `WithEncryption` in
-      tursoengine README + FAQ (direct `New()` only today); (b) live `file:`
-      DSN round-trip; (c) second-ADT round-trip (Counter or journal) under
-      encryption; (d) matview aggregation actually SERVING from a view on an
-      encrypted engine (coexistence test constructs but does not query); (e)
-      cipher-size hint exact-text pin. — source: archived 20-57 §b1/§b3/§f1-7
-      _(Effort: S/M)_
 - [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
       silently ignores mistyped encryption params (`encryption_hexkkey=` opens
       the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
@@ -368,20 +356,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) —
       userspace MariaDB coverage exists but not the full nspawn env. Now also
       covers the MySQL claiming integration tests. _(Effort: M)_
-- [ ] **Contention-retry observability** — `retryOnContention` retries
-      SILENTLY (correct for tests, hides production Alpha contention
-      storms). Add an otel counter (e.g. `cqrs.dgraph.contention_retry`)
-      via the `otel/` re-export module; NOTE: adding otel/ to dgraphengine's
-      go.mod needs a `check-arch` dep-budget review first. — source: 02-16
-      §e2/§f1
-      _(Effort: S)_
-- [ ] **Skip-vs-fail policy for live conformance engine construction** —
-      `newDgraphEngineOrSkip` turns ANY construction failure into a SKIP
-      (how 4 ADT subtests silently vanished pre-fix). Distinguish
-      server-unavailable (skip) from contention-after-retry-exhaustion
-      (fail loudly). Pick the policy (ROADMAP OQ #10), then implement. —
-      source: 02-16 §e3/§f9/§f21
-      _(Effort: S)_
 - [ ] **Shuffle eval + adoption for `scripts/test-integration.sh` /
       `test-all-backends.sh`** — the two composite runners execute the same
       suites UNshuffled (documented parity gap in gotchas-testing.md).

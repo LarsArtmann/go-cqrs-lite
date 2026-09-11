@@ -425,6 +425,7 @@ github.com/antlr4-go/antlr/v4 v4.13.1/go.mod h1:GKmUxMtwp6ZgGwZSva4eWPC5mS6vUAmO
 github.com/apache/arrow/go/v15 v15.0.2/go.mod h1:DGXsR3ajT524njufqf95822i+KTh+yea1jass9YXgjA=
 github.com/apache/thrift v0.17.0/go.mod h1:OLxhMRJxomX+1I/KUw03qoV3mMz16BwaKI+d4fPBx7Q=
 github.com/atomicgo/cursor v0.0.1/go.mod h1:cBON2QmmrysudxNBFthvMtN32r3jxVRIvzkUiF/RuIk=
+github.com/aymanbagabas/go-osc52/v2 v2.0.1/go.mod h1:uYgXzlJ7ZpABp8OJ+exZzJJhRNQ2ASbcXHWsFqH8hp8=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/bahlo/generic-list-go v0.2.0 h1:5sz/EEAK+ls5wF+NeqDpk5+iNdMDXrh3z3nPnH1Wvgk=
@@ -443,8 +444,10 @@ github.com/census-instrumentation/opencensus-proto v0.4.1/go.mod h1:4T9NM4+4Vw91
 github.com/cespare/xxhash v1.1.0 h1:a6HrQnmkObjyL+Gs60czilIUGqrzKutQD6XZog3p+ko=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/charmbracelet/lipgloss v1.1.0/go.mod h1:/6Q8FR2o+kj8rz4Dq0zQc3vYf7X+B0binUUBwA0aL30=
 github.com/charmbracelet/ultraviolet v0.0.0-20260730003005-19049f296fa9/go.mod h1:psnCZIfwwxVs6v6DhUc6NJ8AQ3ejvs2ejKwoOMeVmUk=
 github.com/charmbracelet/ultraviolet v0.0.0-20260811164956-006e29f97886/go.mod h1:nAw0d9PhFp1qdzi2xhQU5YOu5sVpDIHWlaW2Uz/bCro=
+github.com/charmbracelet/x/cellbuf v0.0.13/go.mod h1:xe0nKWGd3eJgtqZRaN9RjMtK7xUYchjzPr7q6kcvCCs=
 github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f/go.mod h1:IfZAMTHB6XkZSeXUqriemErjAWCCzT0LwjKFYCZyw0I=
 github.com/charmbracelet/x/exp/slice v0.0.0-20260705004817-2cc9a8fe1146/go.mod h1:vqEfX6xzqW1pKKZUUiFOKg0OQ7bCh54Q2vR/tserrRA=
 github.com/charmbracelet/x/exp/slice v0.0.0-20260713092006-0d683c34c74b/go.mod h1:vqEfX6xzqW1pKKZUUiFOKg0OQ7bCh54Q2vR/tserrRA=
@@ -828,7 +831,6 @@ github.com/larsartmann/cmdguard/glamour v0.2.0/go.mod h1:KBtSNf5Kb9wL12X0biF2xHI
 github.com/larsartmann/cmdguard/spinner v0.2.0 h1:rFOOl20ct+RFQ1hlXbpq1SrIHsx1dfbWxwfuM3WkACE=
 github.com/larsartmann/cmdguard/spinner v0.2.0/go.mod h1:lfgTUFqiiFaNmtkdieMXbCw2VeC7wSibrjavZagxFp0=
 github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.1.0/go.mod h1:br2nxuwBLugcV1w47bOLjX3ei/4TFXVjfJL5r6uaRB0=
-github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.2.1/go.mod h1:HndX++FXV8xQmmN9GHZXb02IPLqYMecNzAkPvbgIULo=
 github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4 v4.1.0/go.mod h1:YAuSkgv9kvx3SYSHVuNKWtds97hadYMjU2LpmpJFn5g=
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.1.1/go.mod h1:4V33qjwL3R72tvRGPRM7AlBWMDHeB4JjA5wMG7uBZqU=
 github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.0.0-20260806160506-f6bcfb0bcb06/go.mod h1:9YKoAEHR0vW9RGpcYdBuGCGdx+xknagtYoQyjQt8smU=
@@ -841,12 +843,15 @@ github.com/larsartmann/go-sse v0.2.1/go.mod h1:jzjpWqwufPRLht+qk15EHwHG65mhZDdTV
 github.com/larsartmann/templ-components/charts/echarts v1.8.2/go.mod h1:3ngZgClH5J3x1FBUMEuUAO4JBrrLig0X+GZWKTc1GFA=
 github.com/larsartmann/templ-components/charts/echarts v1.11.0/go.mod h1:BV/gwsZk7pm3IOSeGkjKr6Ttqve3QffaHIE/USOnlNw=
 github.com/larsartmann/templ-components/charts/echarts v1.13.2/go.mod h1:1ZYGGQRHuxH/S5Rqes57mI4IC4De0vv+atS8WsdkLGY=
+github.com/larsartmann/templ-components/charts/echarts v1.16.0/go.mod h1:PJtGzwLTpgUr3znpOdZ71M2i1c2JR44N60hgDq68XMk=
 github.com/larsartmann/templ-components/datastar v1.8.2/go.mod h1:0VY3QU6FpWu1kN/EDdU+CaPDEwlLgC6X7VlHXspM2oA=
 github.com/larsartmann/templ-components/datastar v1.11.0/go.mod h1:M4nSh8qGKqD+iJQ8p9mTck67ksTHEeaGX7CMuYCtbmo=
 github.com/larsartmann/templ-components/datastar v1.13.2/go.mod h1:NboBxHnArZlQKaS7k1qqRBowNbQZWnuzC1z0tS9GMGw=
+github.com/larsartmann/templ-components/datastar v1.16.0/go.mod h1:HhDnrzb+ss54lT4euZ3iys++VBrLXWJKMUI4LdS7t5M=
 github.com/larsartmann/templ-components/errorpage v1.8.2/go.mod h1:ExVmotoNgWEtou/PBku44ucNnLQw+R0Uqk8QXUAfxdE=
 github.com/larsartmann/templ-components/errorpage v1.11.0/go.mod h1:bqU2IC/4X7BJTwAe9EgGJAvDRXXYIbegr7ir486RNs4=
 github.com/larsartmann/templ-components/errorpage v1.13.2/go.mod h1:4aQ0u6RIDzxskzfQjAWs+xGovQfmdERaffrlQNmR9IQ=
+github.com/larsartmann/templ-components/errorpage v1.16.0/go.mod h1:GhPKkb86Wc+hZN3G+BvpRi/lSUjho1e2PSBVtu910VE=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
 github.com/lithammer/fuzzysearch v1.1.8 h1:/HIuJnjHuXS8bKaiTMeeDlW2/AyIWk2brx1V8LFgLN4=
 github.com/lithammer/fuzzysearch v1.1.8/go.mod h1:IdqeyBClc3FFqSzYq/MXESsS4S0FsZ5ajtkr5xPLts4=
@@ -893,6 +898,7 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v1.0.2 h1:xBagoLtFs94CBntxluKeaWgTMpvLxC4ur3nMaC9Gz0M=
 github.com/modern-go/reflect2 v1.0.2/go.mod h1:yWuevngMOJpCy52FWWMvUC8ws7m/LJsjYzDa0/r8luk=
+github.com/muesli/termenv v0.16.0/go.mod h1:ZRfOIKPFDYQoDFF4Olj7/QJbW60Ol/kL1pU3VfY/Cnk=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f h1:KUppIJq7/+SVif2QVs3tOP0zanoHgBEVAwHxUSIzRqU=
 github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/natefinch/atomic v1.0.1 h1:ZPYKxkqQOx3KZ+RsbnP/YsgvxWQPGxjC0oBt2AhwV0A=
