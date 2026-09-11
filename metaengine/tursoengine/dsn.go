@@ -5,6 +5,36 @@ import (
 	"strings"
 )
 
+// normalizeEmbeddedDSN accepts the SQLite-conventional `file:` scheme for
+// embedded databases (README-documented) by stripping it down to the plain
+// path the turso driver expects: `file:/data/app.db` → `/data/app.db`
+// (`file://` host forms included). A `file:` DSN carrying QUERY PARAMETERS
+// (libsql-style `?mode=memory`) passes through UNCHANGED — the turso driver
+// has no such parameters, and silently dropping them would turn a
+// misconfigured DSN into a different database; the driver's own error is the
+// honest answer there. Remote DSNs pass through untouched.
+func normalizeEmbeddedDSN(dsn string) string {
+	if isRemoteDSN(dsn) {
+		return dsn
+	}
+
+	for _, prefix := range []string{"file://", "file:"} {
+		if !strings.HasPrefix(dsn, prefix) {
+			continue
+		}
+
+		rest := strings.TrimPrefix(dsn, prefix)
+
+		if strings.Contains(rest, "?") {
+			return dsn
+		}
+
+		return rest
+	}
+
+	return dsn
+}
+
 // withExperimentalToken merges an experimental-feature flag into the
 // "experimental" comma-separated DSN parameter of an embedded DSN, leaving
 // every other query parameter byte-identical. Remote DSNs pass through
