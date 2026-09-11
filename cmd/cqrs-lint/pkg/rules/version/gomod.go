@@ -98,24 +98,29 @@ func majorMinorVersion(v string) (major, minor int, ok bool) {
 	return major, minor, true
 }
 
-// semverLess orders Go version strings numerically component-wise
-// (v4.9.0 < v4.10.0). Non-numeric or partial versions fall back to a
-// lexicographic comparison so nothing panics on odd input. Prerelease
-// suffixes ("v4.1.0-rc.1") compare below the plain release.
-func semverLess(a, b string) bool {
+// semverCompare orders Go version strings numerically component-wise
+// (v4.9.0 < v4.10.0), returning -1/0/1 for slices.SortFunc. Non-numeric or
+// partial versions fall back to a lexicographic comparison so nothing panics
+// on odd input. Prerelease suffixes ("v4.1.0-rc.1") compare below the plain
+// release.
+func semverCompare(a, b string) int {
 	as, aok := splitSemver(a)
 	bs, bok := splitSemver(b)
 	if !aok || !bok {
-		return a < b
+		return strings.Compare(a, b)
 	}
 
 	for i := 0; i < 3; i++ {
 		if as[i] != bs[i] {
-			return as[i] < bs[i]
+			if as[i] < bs[i] {
+				return -1
+			}
+
+			return 1
 		}
 	}
 
-	return a < b
+	return strings.Compare(a, b)
 }
 
 // splitSemver parses "vMAJOR.MINOR.PATCH[-pre]" into numeric components.

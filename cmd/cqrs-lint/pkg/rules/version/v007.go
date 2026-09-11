@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // V007: v5-removed API usage.
@@ -102,15 +103,18 @@ func NewV007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					symbol := sel.Sel.Name
 
 					if entry, hit := matchModule(module); hit {
-						out = append(out, v007Finding(ctx, sel, ident.Name,
+						f, err := v007Finding(ctx, sel, ident.Name,
 							fmt.Sprintf("%s.%s (whole module)", module, symbol),
-							entry.replacement, adrForFragment(module)))
+							entry.replacement, adrForFragment(module))
+						lintutil.AppendBuild(&out, f, err)
+
 						return true
 					}
 
 					if entry, hit := matchSymbol(module, symbol); hit {
-						out = append(out, v007Finding(ctx, sel, ident.Name,
-							module+"."+symbol, entry.replacement, adrForFragment(module)))
+						f, err := v007Finding(ctx, sel, ident.Name,
+							module+"."+symbol, entry.replacement, adrForFragment(module))
+						lintutil.AppendBuild(&out, f, err)
 					}
 
 					return true
@@ -141,7 +145,8 @@ func checkDotImports(ctx *analyzer.AnalysisContext, gf *analyzer.GoFile, out *[]
 			continue
 		}
 
-		*out = append(*out, v007DotImportFinding(ctx, imp, module, path))
+		f, err := v007DotImportFinding(ctx, imp, module, path)
+		lintutil.AppendBuild(out, f, err)
 	}
 }
 
@@ -150,12 +155,12 @@ func v007DotImportFinding(
 	ctx *analyzer.AnalysisContext,
 	imp *ast.ImportSpec,
 	module, path string,
-) finding.Finding {
+) (finding.Finding, error) {
 	pos := ctx.Fset.Position(imp.Pos())
 
-	f, _ := finding.NewBuilder(
+	return finding.NewBuilder(
 		"V007",
-		"cqrs-lint",
+		toolName,
 		fmt.Sprintf(
 			"dot-import of go-cqrs-lite module %s hides v5-removed-API usage from this linter — name the import",
 			module,
@@ -171,8 +176,6 @@ func v007DotImportFinding(
 		)).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-
-	return f
 }
 
 // checkDotImportedRemovedSymbols is F090(b): with type information
@@ -227,11 +230,14 @@ func checkDotImportedRemovedSymbols(
 		}
 
 		if m, removed := matchModule(module); removed {
-			*out = append(*out, v007BareIdentFinding(ctx, ident, module, ident.Name, m.replacement))
+			f, err := v007BareIdentFinding(ctx, ident, module, ident.Name, m.replacement)
+			lintutil.AppendBuild(out, f, err)
+
 			return true
 		}
 		if s, hit := matchSymbol(module, ident.Name); hit {
-			*out = append(*out, v007BareIdentFinding(ctx, ident, module, ident.Name, s.replacement))
+			f, err := v007BareIdentFinding(ctx, ident, module, ident.Name, s.replacement)
+			lintutil.AppendBuild(out, f, err)
 		}
 
 		return true
@@ -244,12 +250,12 @@ func v007BareIdentFinding(
 	ctx *analyzer.AnalysisContext,
 	ident *ast.Ident,
 	module, symbol, replacement string,
-) finding.Finding {
+) (finding.Finding, error) {
 	pos := ctx.Fset.Position(ident.Pos())
 
-	f, _ := finding.NewBuilder(
+	return finding.NewBuilder(
 		"V007",
-		"cqrs-lint",
+		toolName,
 		fmt.Sprintf(
 			"%s (dot-imported from %s) is removed at v5 — replace with %s; name the import so V007 can attribute usage",
 			symbol,
@@ -267,8 +273,6 @@ func v007BareIdentFinding(
 		)).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-
-	return f
 }
 
 // v007Finding builds one V007 finding for the given selector position.
@@ -276,12 +280,12 @@ func v007Finding(
 	ctx *analyzer.AnalysisContext,
 	sel *ast.SelectorExpr,
 	qualifier, target, replacement, adr string,
-) finding.Finding {
+) (finding.Finding, error) {
 	pos := ctx.Fset.Position(sel.Pos())
 
-	f, _ := finding.NewBuilder(
+	return finding.NewBuilder(
 		"V007",
-		"cqrs-lint",
+		toolName,
 		fmt.Sprintf("%s is removed at v5 (%s) — replace with %s", target, adr, replacement),
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -294,105 +298,5 @@ func v007Finding(
 		)).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
-
-	return f
 }
 
-// matchModule looks up a wholly-removed module by fragment.
-func matchModule(module string) (deprecatedV5Module, bool) {
-	for _, m := range deprecatedV5Modules {
-		if m.fragment == module {
-			return m, true
-		}
-	}
-
-	return deprecatedV5Module{}, false
-}
-
-func matchSymbol(module, symbol string) (deprecatedV5Symbol, bool) {
-	for _, s := range deprecatedV5Symbols {
-		if s.fragment == module && s.symbol == symbol {
-			return s, true
-		}
-	}
-
-	return deprecatedV5Symbol{}, false
-}
-
-// resolveQualifier maps a package qualifier to its import path using the
-// file's import declarations (alias-aware). Blank and dot imports are
-// skipped: a dot-imported package has no qualifier, and matching one would
-// falsely attribute unrelated selectors.
-func resolveQualifier(file *ast.File, qualifier string) (string, bool) {
-	for _, imp := range file.Imports {
-		if imp == nil || imp.Path == nil {
-			continue
-		}
-
-		path := strings.Trim(imp.Path.Value, `"`)
-
-		if imp.Name == nil {
-			if defaultQualifier(path) == qualifier {
-				return path, true
-			}
-
-			continue
-		}
-
-		switch imp.Name.Name {
-		case "_", ".":
-			continue
-		case qualifier:
-			return path, true
-		}
-	}
-
-	return "", false
-}
-
-// cqrsModuleOf strips the go-cqrs-lite prefix and major-version suffix from
-// an import path, returning the module fragment (e.g. "stack/sqlite").
-// Non-go-cqrs-lite paths return ok=false.
-func cqrsModuleOf(importPath string) (string, bool) {
-	rest, ok := strings.CutPrefix(importPath, cqrsModulePrefix)
-	if !ok {
-		return "", false
-	}
-
-	return stripVersionSuffix(rest), true
-}
-
-// stripVersionSuffix removes every major-version segment ("/v2".."/v9")
-// from a module path. Both module-root imports ("stack/sqlite/v4") and
-// subpackages of versioned modules ("storage/v4/relational") must normalize
-// to the table fragment ("stack/sqlite", "storage/relational"): the version
-// segment sits mid-path whenever a module carries more than one package.
-func stripVersionSuffix(path string) string {
-	segs := strings.Split(path, "/")
-	kept := segs[:0]
-	for _, seg := range segs {
-		if len(seg) == 2 && seg[0] == 'v' && seg[1] >= '2' && seg[1] <= '9' {
-			continue
-		}
-
-		kept = append(kept, seg)
-	}
-
-	return strings.Join(kept, "/")
-}
-
-// defaultQualifier returns the package qualifier an unaliased import binds:
-// the last path segment, with a major-version suffix ("/v2".."/v9") stripped.
-func defaultQualifier(path string) string {
-	return lastPathSegment(stripVersionSuffix(path))
-}
-
-// lastPathSegment returns the final slash-separated segment of an import
-// path (the default package qualifier).
-func lastPathSegment(path string) string {
-	if idx := strings.LastIndex(path, "/"); idx >= 0 {
-		return path[idx+1:]
-	}
-
-	return path
-}

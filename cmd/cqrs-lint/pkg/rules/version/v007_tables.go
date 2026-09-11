@@ -2,7 +2,7 @@ package version
 
 // Data tables for V007 (v5-removed-api-usage). Kept separate from the
 // detector so the rule logic and the curated removal surface evolve
-// independently; both files stay under the 350-line limit.
+// independently; each file stays under the 350-line limit.
 
 // cqrsModulePrefix is the go-cqrs-lite module path prefix every consumer
 // import shares.

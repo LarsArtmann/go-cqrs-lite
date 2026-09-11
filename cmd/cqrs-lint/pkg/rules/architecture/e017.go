@@ -48,9 +48,17 @@ func NewE017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						hasSignalNotify = true
 					}
 
-					if strings.Contains(callStr, "GracefulClose") ||
-						strings.Contains(callStr, ".Stop()") ||
-						strings.Contains(callStr, ".Shutdown(") {
+					// ExprString renders a selector call WITHOUT parentheses
+					// ("srv.Shutdown"), so suppression must match names, not
+					// call syntax — the old ".Stop()"/".Shutdown(" substrings
+					// could never match and silently disabled the branches.
+					if sel, ok := call.Fun.(*ast.SelectorExpr); ok {
+						if sel.Sel.Name == "Stop" || sel.Sel.Name == "Shutdown" {
+							hasGracefulShutdown = true
+						}
+					}
+
+					if strings.Contains(callStr, "GracefulClose") {
 						hasGracefulShutdown = true
 					}
 
