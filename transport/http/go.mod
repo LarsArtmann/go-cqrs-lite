@@ -23,7 +23,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
@@ -53,5 +53,5 @@ require (
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
 )

@@ -23,8 +23,8 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

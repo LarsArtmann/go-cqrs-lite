@@ -13,7 +13,7 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
 )

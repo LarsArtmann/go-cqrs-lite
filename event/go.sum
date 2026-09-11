@@ -32,8 +32,8 @@ github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3Kf
 github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-codec v0.2.0 h1:BjjkTaeauAB6HHV7epFdkCDf1zRTk2jehv+GkERhyTY=
 github.com/larsartmann/go-codec v0.2.0/go.mod h1:XjmXTgIBNNrDsOTKYqBbuCGqpxF0cRjz/4sZNaxVWmU=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0 h1:H9nquB6z3Wo09EVS92tKfSunSTNG9p2IKa32wVvOyeI=
-github.com/larsartmann/go-cqrs-lite/command/v4 v4.9.0/go.mod h1:fUGZ+RYOdhyp22xBYx+avKGM5IBxWc1q+Sw50SBLpBs=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 h1:eqkM8sdWhx4DrtACRZRp12olMMSXDVYv5/J6mggF5Bw=
+github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0/go.mod h1:10tJDBduGBisEPXsBZxg9QF+ilgbsPLxrZDBCczXX2g=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 h1:Z2ip+Ee0XwPNl5D232q6juhp71uqGQIQHYs31FPEE38=
 github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0/go.mod h1:8uRRkMbtybkvxYVr1bLyxpX3QT7e6ZoBRzkv89ARSz4=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0 h1:PjI4Y+CPkg2mBG7InAi9y3+czCQsXyIdcjZiGQduq6M=

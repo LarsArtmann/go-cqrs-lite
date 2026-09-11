@@ -41,8 +41,8 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.0.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
@@ -54,7 +54,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect

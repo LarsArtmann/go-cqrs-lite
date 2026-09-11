@@ -74,7 +74,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

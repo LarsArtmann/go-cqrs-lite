@@ -28,7 +28,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
