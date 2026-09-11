@@ -185,23 +185,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
-- [ ] 🔥 **Repair the iroh standalone pin break (verify-ci RED risk)** —
-      `metaengine/irohengine/loopback/go.mod` pins published `irohengine/v4
-      v4.1.0`, which predates graph-op replication; the 2026-09-08
-      int-endpoint convergence tests need HEAD. Workspace gates pass (go.work
-      resolves the local sibling) but GOWORK=off per-module builds
-      (`#verify-ci`, the CI matrix) resolve v4.1.0 and go red. Fix: tag
-      `irohengine/v4.2.0` (graph WriteOp convergence + capability conformance)
-      and bump loopback/quic pins (quic already carries `replace => ../`), or
-      capability-probe skip-guard the two tests (weaker). — source:
-      archived 04-35 §b1/§f1
-      _(Effort: S/M)_
-- [ ] **Cut `stack/sqlite/v4.3.1`** — published `v4.3.0` pins a broken stack
-      pseudo-version (`stack/v4 v4.2.1-0.20260807…` whose `sqlopt` needs
-      `storage.SQLiteSetSynchronous` — unresolvable standalone). Discovered by
-      the cqrs-upgrade smoke; in-tree go.mod already fixed, the TAG still
-      serves the broken pin to fresh consumers. — source: SUPERB §a6
-      _(Effort: XS)_
 - [ ] [BLOCKED] 🔥 **Next v4 tag wave** — substantial unpublished surfaces on
       master: `encryption` (key helpers + envelope v2), `snapshot`
       (`NewRewritingTransformedStore` + wire tags), `storage`
@@ -338,26 +321,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       authoritative gate. _(Effort: S, user action)_
 - [ ] [BLOCKED] **cqrs-lint Self-Lint credentials** — go-finding fetch fails
       under GOWORK=off (`git ls-remote` exit 128). _(Effort: S, user/creds)_
-- [ ] **First post-push CI run triage** — the ~80-job per-module matrix first
-      executed 2026-09-06 (master pushed + green); expect new failure classes
-      (flaky tests, module-specific env) on later pushes. — source:
-      archived/2026-09-04 §c6
-      _(Effort: M)_
 - [ ] **Calibration-drift gate redesign** — compare against a persisted
       CI-baseline artifact instead of absolute constants; nightly >100% rows
       are shared-runner noise. Add TMPDIR-filesystem detection (refuse to run
       on CoW). — source: archived/2026-09-04 §b2/§f16/§f18
       _(Effort: M)_
-- [ ] **Fresh-GOMODCACHE go.sum check in CI** — the 8-module go.sum rot class
-      (integration gates fail from a cold module cache) should die in CI once,
-      not per future session; root-cause the holes (tidy-under-warm-cache
-      suspect). Pair with a GOWORK=off standalone build matrix sweep. —
-      source: 08-41 §b5/§e6, 08-26 §f4
-      _(Effort: M)_
-- [ ] **Wire `check-csp` into CI** (nix chromium, no npm network) and decide
-      `check-eventcatalog` placement (needs npm — nightly candidate; commit a
-      `package-lock.json` from the exporter first). — source: 08-26 §c1/§f7/§f8
-      _(Effort: S/M)_
 - [ ] **pin-sweep `--check` nag semantics** — the module-layers CI leg goes
       red on every push between a tag push and the follow-up sweep commit (by
       design). Keep blocking-on-every-push or move to tag-push/cron triggers?
@@ -367,11 +335,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Cheap CI gates into pre-commit** — module-layers, version-drift,
       workspace-sync, replace-directives are plain bash; wire staged-aware
       into the hook. — source: archived/2026-09-04 §e6
-      _(Effort: S)_
-- [ ] **"Days-since-green" metric/alert** — 6-week red droughts normalized
-      drift; a Gatus-style freshness check catches the class in days. Related:
-      nightly "all CI jobs green or annotated" sentinel. — source:
-      archived/2026-09-04 §e5, 06-56 §e1
       _(Effort: S)_
 - [ ] **CV consumer bump (operator-gated)** — 8 go-cqrs-lite modules behind
       latest tags in the CV repo + nix `vendorHash` cascade + full CV
@@ -389,11 +352,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
       build-tag argument and add a CI leg for modules shipping
       `*_integration_test.go`. — source: 01-38 §c1/§e2/§f4/§f5
       _(Effort: S/M)_
-- [ ] **`#verify-ci`: per-module `go mod download` + no-diff assertion** —
-      `pin-sweep --check` cannot see missing go.sum hashes (the pgx v5.11.0
-      `/go.mod` hash class, found live 2026-09-11); also consider a
+- [ ] 🔥 **Kill the missing-go.sum-hash class in CI** — `pin-sweep --check`
+      cannot see missing go.sum hashes (the pgx v5.11.0 `/go.mod` hash class,
+      found live 2026-09-11; the earlier 8-module cold-cache rot class is the
+      same family; root-cause hole: tidy-under-warm-cache). Fix:
+      `#verify-ci` gains a per-module `go mod download` + no-diff assertion
+      (or a `check-modsums` flake app), plus a
       `TestEveryModulePassesStandaloneVet`-style repo-level meta-test. —
-      source: 01-38 §c/§e3/§f6, 03-43 §f2/§f10
+      source: 01-38 §c/§e3/§f6, 03-43 §f2/§f10, 08-41 §b5/§e6, 08-26 §f4
       _(Effort: M)_
 - [ ] **Per-finding attribution for the sqlstore lint surface** — sqlclosecheck
       ×2 / QF1003 / wsl_v5: code-fixed since 09-06 or silenced by the
@@ -420,12 +386,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       the docs — gotchas-language-footguns.md + dgraphengine README);
       error-class matching is currently only live-tested. — source: 02-16
       §e4/§f7/§f8
-      _(Effort: S)_
-- [ ] **actionlint CI step** (exists in devShell since T37) + extend
-      shfmt-drift job with shellcheck for `scripts/`. URGENT instance: the
-      `benchmarks.yml` second gate set (matview, added 2026-09-11) was never
-      actionlint'd nor dry-run — first master push is the test. — source:
-      15-09 §f28/§f29, 02-48 §d8/§f7
       _(Effort: S)_
 
 ---
@@ -557,7 +517,9 @@ bottom is a do-not-re-litigate guard, not a backlog.
       Flake Check, CGo build, Security Scan. (c) KNOWN/accepted: File Size
       Check (the split-waves policy item above). NOTE: failures predate
       2026-09-11 (they exist on commit 82d5218fc, before that day's
-      sessions). — source: run 34548534824, `gh run list`
+      sessions). Also: dry-run the `benchmarks.yml` matview gate set's exact
+      CI invocation shape (the actionlint job covers syntax; the relative
+      `cd ../metaengine/tursoengine` hop is unproven). — source: run 34548534824, `gh run list`
       _(Effort: M-L, multi-session)_
 
 ---
