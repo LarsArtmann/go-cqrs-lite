@@ -269,10 +269,16 @@ func memoryProjectionDeployment() system.DeploymentConfig {
 // waitForProjectionProcessed polls the projection host until at least one
 // worker has processed >= minProcessed events with zero errors, or the
 // deadline expires.
+//
+// Base is 45s (raised from 15s, 2026-09-13): under full-suite contention the
+// replay-from-zero phase 2 of TestSystem_ResetProjection_RestartAndReplay
+// starved past 15s — load1/cores underestimates disk + cross-process
+// contention on high-core machines (factor floors at 1), so the raw budget
+// carries the headroom.
 func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed int) bool {
 	t.Helper()
 
-	deadline := loadScaledDeadline(15 * time.Second)
+	deadline := loadScaledDeadline(45 * time.Second)
 
 	for time.Now().Before(deadline) {
 		for _, s := range sys.ProjectionHost().Status() {
@@ -640,7 +646,11 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 	// 2026-09-08 fix (30s) matched one inner budget — but 15s+15s already
 	// consumes the whole thing at factor 1, leaving phase 2's replay-from-
 	// zero to starve under full-suite contention.
-	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(90*time.Second))
+	// Load-scaled outer deadline: must exceed BOTH waitForProjectionProcessed
+	// budgets (phase 1 + phase 2, 45s base each) — the 2026-09-08 fix already
+	// starved once when the outer ctx (30s) matched a single inner budget.
+	// 270s = 3x the combined inner budget at factor 1.
+	ctx, cancel := context.WithDeadline(context.Background(), loadScaledDeadline(270*time.Second))
 	defer cancel()
 
 	cpStore := &recordingCheckpointStore{}
