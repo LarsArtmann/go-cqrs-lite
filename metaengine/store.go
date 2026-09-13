@@ -52,6 +52,14 @@ type Store struct {
 	health                 map[string]*engineHealthRecord
 	engineFailureThreshold int
 
+	// catchUpMu serializes CatchUpEngine rebuilds: two concurrent rebuilds of
+	// the same quarantined engine (manual call racing the auto-reprobe loop)
+	// would both reset and replay, double-folding non-idempotent state.
+	// Ordering: catchUpMu → s.mu → l.mu and catchUpMu → l.mu → healthMu
+	// (the final stability gate in CatchUpEngine); it never nests the other
+	// way around.
+	catchUpMu sync.Mutex
+
 	// Record-context hazard tracking: applies that arrived as a synthesized
 	// Type-only Record (Store.Apply) while OnRecord folds were registered for
 	// the event type. See record_context.go.

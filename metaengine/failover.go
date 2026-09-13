@@ -18,6 +18,13 @@ var ErrCatchUpUnsupported = errors.New(
 	"metaengine: engine catch-up unsupported (no EngineResetter or no EventLog)",
 )
 
+// catchUpMaxPasses bounds the stabilize loop: each pass replays everything
+// that arrived during the previous one, so a write rate that persistently
+// outpaces replay never converges. Past the bound the engine stays
+// quarantined and the error tells the next StartAutoReprobe attempt to
+// retry.
+const catchUpMaxPasses = 64
+
 // CatchUpEngine rebuilds a QUARANTINED engine's materialized collections and
 // only then lifts the quarantine — the write-failover recovery half of
 // ADR-0137. While an engine is quarantined its folds are rerouted to a
@@ -31,19 +38,28 @@ var ErrCatchUpUnsupported = errors.New(
 //     implements it) — from empty, non-idempotent folds replay cleanly.
 //  2. Replay the attached EventLog into EXACTLY this engine's queries
 //     (healthy engines never see the replay, so nothing double-applies).
-//  3. Lift the quarantine ([Store.ReactivateEngine]) only after a clean
-//     rebuild; any failure leaves the engine quarantined for the next
-//     attempt.
+//     The log keeps growing while the rebuild runs (the failover engine's
+//     live writes still record into it), so replay drains suffixes in a
+//     stabilize loop until a pass observes no growth.
+//  3. Lift the quarantine ([Store.ReactivateEngine]) inside the same
+//     append-blocked critical section that proves the log stopped growing:
+//     with appends frozen, every event is either already replayed or is
+//     recorded only after reactivation, where the live path folds it into
+//     the now-active engine. No event can straddle the two.
 //
-// The engine must currently be quarantined: while it is, reads and folds
-// reroute away from it, so the replay is the only writer and no live apply
-// can interleave with the rebuild (no double-folding). Requires an EventLog
-// attached via [WithEventLog].
+// Any failure leaves the engine quarantined for the next attempt. The
+// engine must currently be quarantined: while it is, folds reroute away
+// from it, so the replay is the only writer to its collections until the
+// gate (no double-folding). Requires an EventLog attached via
+// [WithEventLog].
 //
 // [Store.StartAutoReprobe] runs this automatically when a quarantined
 // engine's probe succeeds, falling back to a plain reactivation (with a
 // warning) when catch-up is unsupported.
 func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
+	s.catchUpMu.Lock()
+	defer s.catchUpMu.Unlock()
+
 	s.mu.RLock()
 	var target Engine
 
@@ -76,34 +92,72 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
 		return fmt.Errorf("%w: attach one via WithEventLog", ErrCatchUpUnsupported)
 	}
 
-	events := s.eventLog.Events()
-
 	if err := resetter.ResetEngine(ctx); err != nil {
 		return fmt.Errorf("metaengine.CatchUpEngine(%s): reset: %w", name, err)
 	}
 
-	for _, evt := range events {
-		rec := evt.Record
-		if rec.Type == "" {
-			rec = record.Record{Type: evt.Type}
+	offset := 0
+	replayed := 0
+
+	for pass := 0; ; pass++ {
+		events := s.eventLog.eventsFrom(offset)
+
+		for _, evt := range events {
+			rec := evt.Record
+			if rec.Type == "" {
+				rec = record.Record{Type: evt.Type}
+			}
+
+			if err := s.dispatchFoldsToEngine(ctx, target, evt.Type, rec, evt.Payload); err != nil {
+				return fmt.Errorf(
+					"metaengine.CatchUpEngine(%s): replay event %q: %w (engine stays quarantined; the next StartAutoReprobe attempt retries)",
+					name,
+					evt.Type,
+					err,
+				)
+			}
 		}
 
-		if err := s.dispatchFoldsToEngine(ctx, target, evt.Type, rec, evt.Payload); err != nil {
+		offset += len(events)
+		replayed += len(events)
+
+		// Stability gate: with appends blocked, "no growth across the last
+		// pass" means the log held exactly the replayed prefix — and because
+		// reactivation happens inside the same critical section, any event
+		// recorded afterwards hits an active engine and folds live. Leaf
+		// calls only inside the gate (ReactivateEngine takes healthMu; see
+		// withAppendsBlocked for the ordering contract).
+		var reactivated bool
+
+		grew := s.eventLog.withAppendsBlocked(func() bool {
+			if s.eventLog.Len() != offset {
+				return true
+			}
+
+			reactivated = s.ReactivateEngine(name)
+
+			return false
+		})
+
+		if !grew {
+			if !reactivated {
+				return fmt.Errorf("metaengine.CatchUpEngine(%s): quarantine lifted during catch-up", name)
+			}
+
+			break
+		}
+
+		if pass >= catchUpMaxPasses {
 			return fmt.Errorf(
-				"metaengine.CatchUpEngine(%s): replay event %q: %w (engine stays quarantined; the next StartAutoReprobe attempt retries)",
+				"metaengine.CatchUpEngine(%s): event log kept growing across %d passes (writes outpace replay); engine stays quarantined for the next StartAutoReprobe attempt",
 				name,
-				evt.Type,
-				err,
+				pass+1,
 			)
 		}
 	}
 
-	if !s.ReactivateEngine(name) {
-		return fmt.Errorf("metaengine.CatchUpEngine(%s): quarantine lifted during catch-up", name)
-	}
-
 	slog.Info("metaengine: engine caught up and reactivated",
-		"engine", name, "replayed_events", len(events))
+		"engine", name, "replayed_events", replayed)
 
 	return nil
 }
