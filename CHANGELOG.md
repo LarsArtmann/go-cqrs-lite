@@ -6,6 +6,54 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — tooling: cqrs-upgrade strict gate closes the unscanned-module hole — 2026-09-13
+
+- **`--strict` now fails when any module errored in the pipeline** (pin
+  collection, go.mod edit, build verification). An errored module never
+  reached the deprecation scan, and unscanned is unproven — previously such
+  modules sailed through the gate in silence. Gate order is now: module
+  errors → failed scans → actual v5-removed API findings (each pinned by
+  `TestStrictGateError`). **`--json` now always emits `bumps`** (empty
+  array when pin-free), symmetric with `deprecations` — key-absence no
+  longer means anything (pinned by `TestEmitJSON_BumpsAlwaysPresent`).
+
+### Changed — tooling: calibration gate v2 + replayable shuffle seeds — 2026-09-13
+
+- **`scripts/calibration-gate.sh` requires sustained quiet, not a
+  load1 snapshot.** A burst-draining host (load1=4, load5=30) passed the
+  load1-only gate while still noisy; both load1 AND load5 must now be under
+  the ceiling (first shellcheck pass: clean; fail/warn-only paths exercised
+  live).
+- **Integration scripts now run `go test -shuffle=<explicit-seed>` and log
+  it**, so a failed CI ordering can be replayed exactly (`go test
+  -shuffle=<seed>`). New shared helper `scripts/lib/shuffle-seed.sh` mints
+  and records seeds (timestamp + module label → gitignored
+  `build/shuffle-seeds.log`); wired into ephemeral-dgraph/pg/redis and
+  vm-mysql/vm-mysql-nspawn (11 go-test sites, one seed per module).
+
+### Added — docs: encoded-apply recipe, v6 deletion-wave markers, provenance + index debt — 2026-09-13
+
+- **recipes.md gains the `projection.Projection` adapter recipe for the
+  encoded-record path** (`event.AsRecord` +
+  `metaengine.Store.ApplyEncodedRecord`), including the CBOR caveat and the
+  projectionadapter boundary; references were silent on it (doc-check:
+  1055 references green).
+- **ROADMAP carries a ROADMAP-visible v6 deletion-wave deadline marker**:
+  the snapshot wire-tag fallback, pebble `commandStreamKeysLegacy`, and the
+  pebble legacy-JSON fallbacks get a one-release-cycle-after-v5 deadline
+  table greppable alongside the in-code `deleted at v6` comments.
+- **The orphaned `cec9248da` work record is reconstructed** (what/where/
+  verified-how, all three pieces re-verified 2026-09-13: tripwire test
+  green, suppression package green, PG integration helpers compile with the
+  integration tag) and **`docs/status/README.md` indexes the eight
+  2026-09-11 batch-day reports** by file — the index is the only map of the
+  ~1150-file archive.
+- **`integration/` go.mod is tidied**; the gopls "unused
+  genproto/googleapis/rpc" flag is disproven — the line is graph-forced
+  (`middleware/v4@v4.6.0` requires it) and cannot be dropped while that pin
+  holds. `projectionhost` passes `go vet -tags integration ./...` (the
+  two-TestMain clash risk is compile-checked, not just tag-prevented).
+
 ### Changed — tooling: file-size gate becomes a baseline+ratchet (enforceable again) — 2026-09-11
 
 - **The 350-line convention is mechanically enforced for the first time since
