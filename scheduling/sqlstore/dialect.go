@@ -1,23 +1,29 @@
 package sqlstore
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
+)
 
 // ErrUnknownDialect is returned when an unsupported [Dialect] is passed to a
 // constructor.
 var ErrUnknownDialect = errors.New("sqlstore: unknown dialect")
 
-// Dialect selects SQL syntax for table creation and placeholders.
-// Intentional duplicate: see idempotency/sqlstore/store.go. Values MUST match.
-// art-dupl:accept intentional cross-module duplicate — separate go.mod, values MUST match
-type Dialect int
+// Dialect selects SQL syntax for table creation and placeholders. Alias of
+// [claiming.Dialect]: the claim core was extracted (2026-09-13) and the
+// values are shared by construction instead of duplicated.
+// idempotency/sqlstore still carries an intentional duplicate whose values
+// MUST match.
+type Dialect = claiming.Dialect
 
 const (
 	// DialectSQLite uses ? placeholders and stores timestamps as RFC3339 text.
-	DialectSQLite Dialect = iota
+	DialectSQLite = claiming.DialectSQLite
 	// DialectPostgres uses $N placeholders and native TIMESTAMP WITH TIME ZONE.
-	DialectPostgres
+	DialectPostgres = claiming.DialectPostgres
 	// DialectMySQL uses ? placeholders and native DATETIME(3).
-	DialectMySQL
+	DialectMySQL = claiming.DialectMySQL
 )
 
 // sqliteTimeFormat is a fixed-width RFC3339 variant that always emits 9

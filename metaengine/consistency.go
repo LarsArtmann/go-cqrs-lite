@@ -68,18 +68,25 @@ func (l *EventLog) eventsFrom(offset int) []EventInput {
 	return append([]EventInput(nil), l.events[offset:]...)
 }
 
-// withAppendsBlocked runs fn while event-log appends are blocked — the same
-// mutex Record/RecordEvent hold — and returns fn's result. A replay path uses
-// it to make a stability check atomic with a state transition that must not
-// be interleaved with a new append. fn must NOT acquire s.mu: the live apply
-// path holds s.mu while recording (s.mu → l.mu), so code holding l.mu may
-// only call leaf code (health transitions, metrics) or it inverts the order
-// and deadlocks.
-func (l *EventLog) withAppendsBlocked(fn func() bool) bool {
+// reactivateIfStable is the catch-up gate: holding the append lock, it
+// reports whether events arrived since offset (grew) and, when none did,
+// runs reactivate in the SAME critical section — so a quarantined engine is
+// trusted again at a point where every recorded event is either already
+// replayed or will be live-folded after reactivation. reactivate must call
+// leaf code only (health transitions, metrics): the live apply path holds
+// s.mu while recording (s.mu → l.mu), so acquiring s.mu here would invert
+// the order and deadlock.
+func (l *EventLog) reactivateIfStable(offset int, reactivate func()) (grew bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	return fn()
+	if len(l.events) != offset {
+		return true
+	}
+
+	reactivate()
+
+	return false
 }
 
 // WithEventLog attaches an event log to the Store.

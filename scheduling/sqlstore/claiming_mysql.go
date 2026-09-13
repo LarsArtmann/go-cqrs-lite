@@ -3,12 +3,11 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strings"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -30,11 +29,9 @@ func claimDueMySQL[P any](
 	tx *sql.Tx,
 	now, leaseUntil time.Time,
 ) ([]scheduling.Timer[P], error) {
-	rows, err := tx.QueryContext(ctx, `
-SELECT id, fire_at, payload FROM timers
-WHERE fire_at <= ? AND (lease_until IS NULL OR lease_until <= ?)
-ORDER BY fire_at ASC
-FOR UPDATE SKIP LOCKED`, c.formatTime(now), c.formatTime(now))
+	query, args := claiming.MySQLClaimSelect(timersSpec(), c.formatTime(now))
+
+	rows, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err, "scheduling.sqlstore.claim", "claim due timers")
@@ -59,69 +56,10 @@ FOR UPDATE SKIP LOCKED`, c.formatTime(now), c.formatTime(now))
 			ids[i] = timer.ID.String()
 		}
 
-		if err := stampLeaseMySQL(ctx, tx, c.formatTime(leaseUntil), ids); err != nil {
+		if err := claiming.StampLeaseMySQL(ctx, tx, timersSpec(), c.formatTime(leaseUntil), ids); err != nil {
 			return nil, err
 		}
 	}
 
 	return timers, joinErr
-}
-
-// stampLeaseMySQL stamps lease_until on the claimed rows inside the claim
-// transaction. Only claimed rows are updated: SKIP LOCKED excluded rows
-// already locked by others, and our own locks keep everyone else out until
-// commit, so exactly the claimed rows are stamped.
-func stampLeaseMySQL(
-	ctx context.Context,
-	tx *sql.Tx,
-	leaseUntil any,
-	ids []string,
-) error {
-	args := make([]any, 0, len(ids)+1)
-	args = append(args, leaseUntil)
-
-	for _, id := range ids {
-		args = append(args, id)
-	}
-
-	// Concatenation builds ONLY "?" placeholders; ids are bound args.
-	query := "UPDATE timers SET lease_until = ? WHERE id IN (" + //nolint:gosec // placeholders only, ids bound
-		strings.TrimSuffix(
-			strings.Repeat("?,", len(ids)),
-			",",
-		) + ")"
-
-	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
-		return errorfamily.WrapInfrastructure(
-			err, "scheduling.sqlstore.claim_stamp", "stamp claimed lease")
-	}
-
-	return nil
-}
-
-// ensureLeaseColumnMySQL adds the lease_until column when missing. MySQL
-// servers have no ADD COLUMN IF NOT EXISTS, so the column is probed via
-// information_schema first (works on both MySQL and MariaDB).
-func ensureLeaseColumnMySQL(ctx context.Context, db *sql.DB) error {
-	var count int
-
-	err := db.QueryRowContext(ctx, `
-SELECT COUNT(*) FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'timers' AND COLUMN_NAME = 'lease_until'`,
-	).Scan(&count)
-	if err != nil {
-		return fmt.Errorf("sqlstore: probe lease column: %w", err)
-	}
-
-	if count > 0 {
-		return nil
-	}
-
-	const stmt = `ALTER TABLE timers ADD COLUMN lease_until DATETIME(3) NULL`
-
-	if _, err := db.ExecContext(ctx, stmt); err != nil {
-		return fmt.Errorf("sqlstore: add lease column: %w", err)
-	}
-
-	return nil
 }

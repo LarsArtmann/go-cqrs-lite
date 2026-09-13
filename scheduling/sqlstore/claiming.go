@@ -10,6 +10,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -17,8 +18,8 @@ import (
 // name a duration. A claimed timer becomes claimable again only after the
 // lease expires, so the lease bounds how long a crashed dispatcher delays a
 // timer — and how long concurrent dispatchers are guaranteed not to
-// double-fire it.
-const DefaultClaimLease = time.Minute
+// double-fire it. Alias of [claiming.DefaultLease].
+const DefaultClaimLease = claiming.DefaultLease
 
 // ErrClaimingUnsupported is returned when a claiming store is requested for
 // a dialect that cannot honor the claim contract. MySQL/MariaDB 10.6+
@@ -111,7 +112,7 @@ func newClaimingStore[P any](
 		return nil, err
 	}
 
-	if err := ensureLeaseColumn(ctx, db, d); err != nil {
+	if err := claiming.EnsureLeaseColumn(ctx, db, d, timersSpec()); err != nil {
 		return nil, err
 	}
 
@@ -194,28 +195,30 @@ func (c *ClaimingTimerStore[P]) MarkFired(ctx context.Context, id scheduling.Tim
 	return c.SQLTimerStore.MarkFired(ctx, id)
 }
 
+// timersSpec is the timers-table shape the claim statements run against;
+// the claim SQL itself lives in the claiming module (extracted 2026-09-13).
+func timersSpec() claiming.Spec {
+	return claiming.Spec{
+		Table:       "timers",
+		IDColumn:    "id",
+		DueColumn:   "fire_at",
+		LeaseColumn: "lease_until",
+		OrderBy:     "fire_at ASC",
+		Returning:   []string{"id", "fire_at", "payload"},
+	}
+}
+
 func (c *ClaimingTimerStore[P]) claimStmt(now, leaseUntil time.Time) (string, []any) {
 	if c.dialect == DialectPostgres {
-		// SKIP LOCKED: concurrent claimers skip each other's locked rows, so
-		// each row is claimed by exactly one poller. The lease row predicate
-		// re-opens timers whose claim expired (crashed dispatcher).
-		return `WITH due AS (
-	SELECT id FROM timers
-	WHERE fire_at <= $1 AND (lease_until IS NULL OR lease_until <= $1)
-	ORDER BY fire_at ASC
-	FOR UPDATE SKIP LOCKED
-)
-UPDATE timers t SET lease_until = $2 FROM due WHERE t.id = due.id
-RETURNING t.id, t.fire_at, t.payload`,
-			[]any{c.formatTime(now), c.formatTime(leaseUntil)}
+		// SKIP LOCKED CTE claim, one statement: concurrent claimers skip
+		// each other's locked rows, and the lease predicate re-opens timers
+		// whose claim expired (crashed dispatcher).
+		return claiming.PostgresClaimStmt(timersSpec(), c.formatTime(now), c.formatTime(leaseUntil))
 	}
 
 	// SQLite: single writer, so a plain UPDATE..RETURNING inside the
 	// transaction is already atomic across claimers.
-	return `UPDATE timers SET lease_until = ?1
-WHERE fire_at <= ?2 AND (lease_until IS NULL OR lease_until <= ?2)
-RETURNING id, fire_at, payload`,
-		[]any{c.formatTime(leaseUntil), c.formatTime(now)}
+	return claiming.SQLiteClaimStmt(timersSpec(), c.formatTime(leaseUntil), c.formatTime(now))
 }
 
 func (c *ClaimingTimerStore[P]) scanClaimed(
@@ -260,42 +263,6 @@ func (c *ClaimingTimerStore[P]) scanClaimed(
 	return timers, errors.Join(corrupt...)
 }
 
-// ensureLeaseColumn adds lease_until to tables created before claiming
-// existed. Idempotent per dialect (Postgres IF NOT EXISTS; SQLite probed via
-// pragma_table_info).
-func ensureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect) error {
-	var stmt string
-
-	switch d {
-	case DialectPostgres:
-		stmt = `ALTER TABLE timers ADD COLUMN IF NOT EXISTS lease_until TIMESTAMP WITH TIME ZONE`
-	case DialectSQLite:
-		var count int
-
-		if err := db.QueryRowContext(ctx,
-			`SELECT COUNT(*) FROM pragma_table_info('timers') WHERE name = 'lease_until'`,
-		).Scan(&count); err != nil {
-			return fmt.Errorf("sqlstore: probe lease column: %w", err)
-		}
-
-		if count > 0 {
-			return nil
-		}
-
-		stmt = `ALTER TABLE timers ADD COLUMN lease_until TEXT`
-	case DialectMySQL:
-		return ensureLeaseColumnMySQL(ctx, db)
-	default:
-		return ErrClaimingUnsupported
-	}
-
-	if _, err := db.ExecContext(ctx, stmt); err != nil {
-		return fmt.Errorf("sqlstore: add lease column: %w", err)
-	}
-
-	return nil
-}
-
 // ErrLeaseNotHeld is returned by RenewLease when the caller no longer owns
 // the timer's claim: either the timer was fired/canceled (row gone) or the
 // lease expired and another poller may have re-claimed it. Classified as
@@ -332,25 +299,9 @@ func (c *ClaimingTimerStore[P]) RenewLease(
 	now := time.Now().UTC()
 	newUntil := now.Add(extension)
 
-	var query string
-
-	var args []any
-
-	switch c.dialect {
-	case DialectPostgres:
-		query = `UPDATE timers SET lease_until = $1 WHERE id = $2 AND lease_until > $3`
-		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
-	case DialectMySQL:
-		// MySQL has no ordinal ?N placeholders — plain ? only.
-		query = `UPDATE timers SET lease_until = ? WHERE id = ? AND lease_until > ?`
-		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
-	case DialectSQLite:
-		query = `UPDATE timers SET lease_until = ?1 WHERE id = ?2 AND lease_until > ?3`
-		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
-	default:
-		query = `UPDATE timers SET lease_until = ?1 WHERE id = ?2 AND lease_until > ?3`
-		args = []any{c.formatTime(newUntil), id.String(), c.formatTime(now)}
-	}
+	query, args := claiming.RenewStmt(
+		c.dialect, timersSpec(), c.formatTime(newUntil), id.String(), c.formatTime(now),
+	)
 
 	res, err := c.db.ExecContext(ctx, query, args...)
 	if err != nil {

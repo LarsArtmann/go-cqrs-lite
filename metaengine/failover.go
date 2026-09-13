@@ -126,17 +126,11 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
 		// reactivation happens inside the same critical section, any event
 		// recorded afterwards hits an active engine and folds live. Leaf
 		// calls only inside the gate (ReactivateEngine takes healthMu; see
-		// withAppendsBlocked for the ordering contract).
+		// reactivateIfStable for the ordering contract).
 		var reactivated bool
 
-		grew := s.eventLog.withAppendsBlocked(func() bool {
-			if s.eventLog.Len() != offset {
-				return true
-			}
-
+		grew := s.eventLog.reactivateIfStable(offset, func() {
 			reactivated = s.ReactivateEngine(name)
-
-			return false
 		})
 
 		if !grew {

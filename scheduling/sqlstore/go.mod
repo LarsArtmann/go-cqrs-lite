@@ -1,9 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/go-sql-driver/mysql v1.10.1
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0
@@ -80,3 +81,7 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+// Sibling replace for the not-yet-tagged claiming module (claim-core
+// extraction); stripped by scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
