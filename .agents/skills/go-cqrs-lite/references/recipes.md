@@ -27,6 +27,7 @@
 > - [§2.19 Command Lifecycle Tracking](#219-command-lifecycle-tracking-adr-0117)
 > - [§2.20 Engine Roles, Shadow Replication & Promote Cutover](#220-engine-roles-shadow-replication--promote-cutover-metaengine)
 > - [§2.21 Actor Propagation — "Who Did It" Audit Trail](#221-actor-propagation--who-did-it-audit-trail-id--command--middleware--event)
+> - [§2.21a Metadata Serialization in KV Engines (Contributor Note)](#221a-metadata-serialization-in-kv-engines-contributor-note)
 > - [§2.21b Metaengine + Stack Bundle Integration](#221b-metaengine--stack-bundle-integration-v4-bundle-path)
 > - [§2.22 MySQL/MariaDB JSON Dialect + Numeric-Safe Sorting](#222-mysqlmariadb-json-dialect--numeric-safe-sorting-mysqlengine)
 > - [§2.23 Hand-Rolled Catch-Up: Subscribe BEFORE You Drain](#223-hand-rolled-catch-up-subscribe-before-you-drain-projectionhost-toctou)
@@ -1221,7 +1222,7 @@ prefer `Tracing.ActorID` and fall back to legacy `Tracing.UserID` (rendered `"us
 **Golden/BDD** — assert the audit trail with `scenario.ThenEvents` (full event assertions
 incl. metadata) or `eventtest.AssertGolden`.
 
-## Metadata Serialization in KV Engines (Contributor Note)
+### 2.21a Metadata Serialization in KV Engines (Contributor Note)
 
 When adding a new KV-backed engine (pebble, bbolt, or a future 3rd engine), the
 `record.CommonMetadata` type contains `id.ActorID` which implements
@@ -1280,7 +1281,7 @@ Key points:
 - The consumer calls `metaengine.Plan()` themselves (typed generics can't flow through `any`)
 - `sqlite.WithStack()` is the passthrough for additional `stack.Option`s on any SQL preset
 
-### Filtered Scan with Metaengine (Map + FilterOnField + SQLite Pushdown)
+#### Filtered Scan with Metaengine (Map + FilterOnField + SQLite Pushdown)
 
 For read models that need filtered/sorted scans, declare a Map query with
 `FilterOnField` and `SortOnField`. The planner pushes these to SQLite's
@@ -1320,7 +1321,7 @@ active, _ := reader.Scan(ctx,
 item, found, _ := reader.Get(ctx, "item-123")
 ```
 
-### Bridging Stream IDs to Map Keys (TypeDecoder + EventWithID)
+#### Bridging Stream IDs to Map Keys (TypeDecoder + EventWithID)
 
 Map fold handlers need the entity ID as the key, but the event payload doesn't
 contain it — it lives in the event's StreamID. Use `projectionadapter.NewTypeDecoder`
@@ -1351,7 +1352,7 @@ adapter := projectionadapter.NewWithDecoder("items", store, decoder)
 //   projectionadapter.RegisterWithHost(host, "items", store, decoder)
 ```
 
-### Encoded Applies: projection.Projection → ApplyEncodedRecord (metaengine)
+#### Encoded Applies: projection.Projection → ApplyEncodedRecord (metaengine)
 
 `Store.ApplyEncoded(ctx, type, jsonBytes)` pushes an UNDECODED JSON payload
 through the full fold pipeline — metered, hook-observed, EventLog-recorded,
@@ -1396,7 +1397,7 @@ Caveats:
   wiring, TypeDecoder) done for you; the thin adapter above is for the
   encoded path it does not cover.
 
-### Multi-Engine Distribution (Counter to Memory, Map to SQLite)
+#### Multi-Engine Distribution (Counter to Memory, Map to SQLite)
 
 The planner inspects query shapes and assigns each to the cheapest supporting
 engine. Counters (O(1) reads) go to Memory; filtered Maps go to SQLite
@@ -1410,7 +1411,7 @@ store, _ := metaengine.Plan(
 )
 ```
 
-### Vector ADT — Semantic Search (k-NN)
+#### Vector ADT — Semantic Search (k-NN)
 
 Fold events carrying embeddings into a vector index, then query by similarity:
 
@@ -1442,7 +1443,7 @@ results, _ := metaengine.VectorExecuteTyped[SemanticSearchInput](ctx, store, Sem
 // results[0].ID = "d1", results[0].Distance = 0.0
 ```
 
-### Search ADT — Full-Text Search
+#### Search ADT — Full-Text Search
 
 Fold events carrying text into an inverted index, then query by relevance:
 
@@ -1474,7 +1475,7 @@ results, _ := metaengine.SearchExecuteTyped[FullTextSearchInput](ctx, store, Ful
 // results[0].ID = "d1", results[0].Score = TF-IDF relevance
 ```
 
-### Spatial ADT — Geo Proximity Search
+#### Spatial ADT — Geo Proximity Search
 
 Fold events carrying coordinates into a spatial index, then query by radius:
 
@@ -1510,7 +1511,7 @@ results, _ := metaengine.SpatialExecuteTyped[NearbySearchInput](ctx, store, Near
 // Uses haversine great-circle distance (meters)
 ```
 
-### Temporal Queries — Point-in-Time Reads
+#### Temporal Queries — Point-in-Time Reads
 
 The Memory engine implements `VersionedStorage` for as-of queries:
 
@@ -1527,7 +1528,7 @@ if err == metaengine.ErrNotFound {
 }
 ```
 
-### DuckDB Engine — Columnar Analytics
+#### DuckDB Engine — Columnar Analytics
 
 For analytical workloads (GROUP BY, aggregations on large datasets):
 
@@ -1549,7 +1550,7 @@ store, _ := metaengine.Plan(
 // Requires CGo (DuckDB C++ runtime, statically linked)
 ```
 
-### Postgres Engine — Production Durability
+#### Postgres Engine — Production Durability
 
 For production workloads needing ACID durability and concurrent readers:
 
@@ -1572,7 +1573,7 @@ store, _ := metaengine.Plan(
 // Pure Go (pgx/v5 driver, no CGo)
 ```
 
-### Operator-Driven Layout Planning (metaengine — ADR-0124)
+#### Operator-Driven Layout Planning (metaengine — ADR-0124)
 
 The developer declares queries; the **operator** tunes how projections are
 physically stored via four priority levers. The planner scores each layout

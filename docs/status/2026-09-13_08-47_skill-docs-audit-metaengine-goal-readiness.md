@@ -108,5 +108,23 @@
 
 ---
 
-**Gates at close:** doc-check ✓ (1,055 refs / 47 packages) · § cross-refs ✓ · TOC anchors ✓ · `nix fmt` ✓ · doc-assertions ✗ (not run) · `#verify` ✗ (not run).
+**Post-script correction (same day, 09:1x — annotate, don't rewrite):** the
+"advanced.md §6.19 ghost pointer to deleted recipe" finding was **wrong**. The
+"Operator-Driven Layout Planning" recipe EXISTS in recipes.md — it was an
+unnumbered section inside the metaengine block, and my verification grep missed
+it because it was **case-sensitive** ("Decision matrix" vs my lowercase
+"decision matrix" pattern). Lesson added to e): verify negatives with
+case-insensitive search before declaring a target deleted. Corrective action:
+the section is now the `#### Operator-Driven Layout Planning` subsection of
+§2.21b (numbered structure), and advanced.md §6.19 points at it explicitly.
+Also fixed after this report: advanced.md TOC missing §6.15–6.19, faq.md TOC
+missing the Turso-encryption question, two pre-existing broken TOC anchors
+(advanced §6.8, faq eventtest), and "137 ADRs" corrected to **136** (the
+canonical gate `scripts/verify-docs.sh` counts 136 — my `ls` included
+README.md; the gate's count wins).
+
+**Gates at close (updated same day):** doc-check ✓ (1,055+ refs / 47 packages) ·
+doc-assertions (`scripts/verify-docs.sh`) ✓ ALL PASS · § cross-refs ✓ (incl. AGENTS.md) ·
+links + TOC anchors ✓ (all 7 files, GitHub-exact slug rules) · `nix fmt` ✓ ·
+`#verify-fast` deferred (docs-only change; run before next release).
 **Working tree:** 6 skill .md files edited (all session-authored) + ~390 Go files from `nix fmt` + this report. No commits made (auto-commit daemon absorbs; harness forbids unprompted commits).

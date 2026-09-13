@@ -712,6 +712,39 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Skill-docs navigation hardening (2026-09-13)
+
+> Fall-out of the 2026-09-13 skill-docs audit (14+9 defects fixed live; the
+> validation logic below exists only as throwaway session scripts today).
+> — source:
+> [`docs/status/2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md`](docs/status/2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md) §e/§f
+
+- [ ] **Anchor + § cross-ref validation in CI** — the audit found 2 silently
+      broken TOC anchors (advanced §6.8, faq eventtest) and duplicate recipes
+      section numbers (2× §2.13/§2.22/§2.23) that doc-check cannot see; port
+      the session's GitHub-slugger + §-ref checker (Python, ~40 lines) into
+      `scripts/check-doc-links.sh` or `cmd/doc-check`. Keep the slug rules
+      GitHub-exact: underscores kept, punctuation stripped, inline-code
+      content KEPT. _(Effort: S)_
+- [ ] **doc-check arity spot-check** — both critical doc lies
+      (`system.New(ctx, system.Deployment{…})`, `(ctx, deployment,
+      domains...)`) passed symbol-level validation; parse fenced-Go call
+      shapes for exported constructors and compare against go/doc arity.
+      _(Effort: M)_
+- [ ] **Consolidate the v5-deprecation story** — told in 6+ places (SKILL.md,
+      core.md ×2, readmodels.md, faq.md, modules.md rows); one canonical
+      block + pointers kills the next drift at the source. _(Effort: S)_
+- [ ] **Discoverability: link `example/metaengine-quickstart`** from README.md
+      and the metaengine module README (currently only reachable via the
+      skill docs); it is the flagship "operator cqrs.yaml" goal demo and all
+      three example binaries verified runnable 2026-09-13. _(Effort: XS)_
+- [ ] **Decide `metaengine.Infer(samples…)` end-state** — docs steer to
+      `OnRecord`/`AutoInsert` for production and call Infer prototyping-only;
+      either deprecate at v5 (consistent with the steer) or promote it with a
+      docs story for why it stays. _(Effort: XS decision, S if deprecated)_
+
+---
+
 ## Declined / Rejected (do not re-litigate)
 
 > Guard list, not a backlog: these were investigated and closed with rationale.

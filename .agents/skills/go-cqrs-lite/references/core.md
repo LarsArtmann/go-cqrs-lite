@@ -38,8 +38,8 @@ Query   → Dispatcher → Handler → Read Model
 | Axis              | Question                                    | Modules                                                                              |
 | ----------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
 | **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                                  |
-| **Read model**    | How do I build queryable state from events? | `stack.Materialize`, `kv` (`TypedStore`, `Cache`), `listing`, `query`                |
-| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv`, `stack`        |
+| **Read model**    | How do I build queryable state from events? | `metaengine` Store + `projectionadapter` (v5 path); `stack.Materialize` + `kv` (deprecated, v5) |
+| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv` (stack presets deprecated, v5) |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` (delivery: `watermill/`, `go-sse`) |
 
 You do NOT need all of them. Start with the 60-second quickstart below, then use §1 to pick modules.
@@ -110,8 +110,12 @@ view, found, _ := reader.Get(ctx, counterID.String()) // Value: 5
 ```
 
 **The domain code never changes when the operator swaps engines** — memory → sqlite →
-postgres → pebble is one `EngineConfig` line plus the driver's blank import. The
-deprecated `stack.New` presets still compile until v5 but are NOT the recommended
+postgres → pebble is one `EngineConfig` line plus the driver's blank import. This is the
+library's north star: **developers declare Commands + Events + Queries and their
+relationships (folds, projections, coeffects); where data lives is an operator,
+deployment-time decision** (`DeploymentConfig`, engines, buses, durability, layout
+priorities — in Go or `cqrs.yaml`). The deprecated `stack.New` presets still compile
+until v5 but are NOT the recommended
 surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
 (health/DLQ/metrics managed for you), see the go-appkit `cqrs` EventService recipe in
 [recipes.md](recipes.md).
