@@ -965,7 +965,7 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 
 	for i := range 3 {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			_ = ServeSSE(w, r, watcher, WithSSETimeout(2*time.Second))
+			_ = ServeSSE(w, r, watcher, WithSSETimeout(15*time.Second))
 		}))
 		servers[i] = srv
 	}
@@ -978,6 +978,7 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 
 	// Connect 3 clients.
 	type sseResult struct {
+		mu     sync.Mutex
 		events []string
 		err    error
 	}
@@ -995,7 +996,9 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
+				results[idx].mu.Lock()
 				results[idx].err = err
+				results[idx].mu.Unlock()
 
 				return
 			}
@@ -1006,7 +1009,9 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 			for {
 				n, err := resp.Body.Read(buf)
 				if n > 0 {
+					results[idx].mu.Lock()
 					results[idx].events = append(results[idx].events, string(buf[:n]))
+					results[idx].mu.Unlock()
 				}
 
 				if err != nil {
@@ -1016,29 +1021,66 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 		}(i)
 	}
 
-	// Give clients time to connect.
-	time.Sleep(500 * time.Millisecond)
+	// ServeSSE flushes the response headers BEFORE watcher.Watch registers the
+	// subscription, and a client that connects after an apply legitimately
+	// misses it — so neither "received bytes" nor one priming event proves a
+	// live subscription. Prime in a loop until every client observed SOME
+	// prime (distinct ids absorb the connect race); the fan-out assertion
+	// below is then deterministic instead of two fixed 500 ms sleeps that
+	// flaked under -race + load.
+	countReceiving := func(marker string) int {
+		n := 0
 
-	// Apply an event that should reach all subscribers.
+		for i := range results {
+			results[i].mu.Lock()
+
+			for _, ev := range results[i].events {
+				if strings.Contains(ev, marker) {
+					n++
+
+					break
+				}
+			}
+
+			results[i].mu.Unlock()
+		}
+
+		return n
+	}
+
+	primeDeadline := time.Now().Add(10 * time.Second)
+	for prime := 0; countReceiving("fanout-prime") < len(servers); prime++ {
+		if time.Now().After(primeDeadline) {
+			t.Fatalf("priming: only %d/%d subscribers confirmed a live subscription", countReceiving("fanout-prime"), len(servers))
+		}
+
+		_ = store.Apply(ctx, "task_created", testTask{ID: testTaskID(fmt.Sprintf("fanout-prime-%d", prime)), Title: "Prime"})
+		time.Sleep(25 * time.Millisecond)
+	}
+
+	waitForAll := func(marker, phase string) {
+		t.Helper()
+
+		deadline := time.Now().Add(10 * time.Second)
+		for time.Now().Before(deadline) {
+			if countReceiving(marker) == len(servers) {
+				return
+			}
+
+			time.Sleep(25 * time.Millisecond)
+		}
+
+		t.Fatalf("%s: only %d/%d subscribers received %q within the deadline", phase, countReceiving(marker), len(servers), marker)
+	}
+
 	_ = store.Apply(ctx, "task_created", testTask{ID: "fanout-1", Title: "FanOut"})
-
-	// Give events time to propagate through watcher → SSE → HTTP.
-	time.Sleep(500 * time.Millisecond)
+	waitForAll("fanout-1", "fan-out")
 
 	cancel()
 	wg.Wait()
 
-	// At least one subscriber should have received data.
-	received := 0
-
-	for _, r := range results {
-		if len(r.events) > 0 {
-			received++
-		}
-	}
-
-	if received == 0 {
-		t.Error("expected at least one subscriber to receive events")
+	if got := countReceiving("fanout-1"); got != len(servers) {
+		t.Errorf("expected all %d subscribers to receive the fan-out event, got %d", len(servers), got)
 	}
 }
 
