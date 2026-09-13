@@ -56,13 +56,6 @@ func (r *observerRecorder) attach(store *Store) {
 	})
 }
 
-func (r *observerRecorder) snapshot() (quarantined, reactivated, probes, catchUps []string) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	return slicesClone(r.quarantined), slicesClone(r.reactivated), slicesClone(r.probes), slicesClone(r.catchUps)
-}
-
 func slicesClone(s []string) []string {
 	if s == nil {
 		return nil

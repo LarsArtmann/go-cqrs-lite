@@ -197,6 +197,14 @@ the domain knowledge of how events relate to query results. That `UserSuspended`
 
 ### Three Things the Developer Writes
 
+> **Corrected 2026-09-13 (API drift).** These examples predate the implementation. Three things
+> changed: (1) `On`/`OnTyped` are deprecated — `OnRecord` is canonical and the `record.Record`
+> first parameter is required (`record_fold.go:39`); (2) query execution is
+> `metaengine.ExecuteTyped[Q, R](ctx, store, input)` (`execute.go:681`), not
+> `store.Execute(ctx, input)`; (3) `:=` declarations were converted to `var` so the snippet is
+> valid at package level — the `Query` constructor is designed for package-level declarations
+> (`query.go:236-241`).
+
 ```go
 // ════════════ 1. EVENTS (pure domain types — already exist) ════════════
 
@@ -226,7 +234,7 @@ type FriendsOfResult  struct { IDs []UserID }
 
 // ════════════ 3. QUERIES (event → result relationship) ════════════
 
-findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
+var findUser = metaengine.Query[FindUser, FindUserResult]("find_user",
     metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{
             ID: e.ID, Name: e.Name, Email: e.Email,
@@ -242,16 +250,16 @@ findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
     metaengine.Volume(1_000_000), // optional cardinality hint
 )
 
-checkEmail := metaengine.Query[CheckEmail, CheckEmailResult]("check_email",
+var checkEmail = metaengine.Query[CheckEmail, CheckEmailResult]("check_email",
     metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) string {
         return e.Email // just the key — this is a Set
     }),
     metaengine.OnRecord(UserDeleted{}, metaengine.Remove[string]()),
 )
 
-listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
+var listByStatus = metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
     metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
-        return e.ID, FindUserResult{..., Status: "active", JoinedAt: e.At}
+        return e.ID, FindUserResult{ID: e.ID, Status: "active", JoinedAt: e.At}
     }),
     metaengine.OnRecord(UserSuspended{}, func(_ record.Record, e UserSuspended, prev FindUserResult) FindUserResult {
         prev.Status = "suspended"
@@ -264,7 +272,7 @@ listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_stat
     metaengine.SortOn(func(r FindUserResult) time.Time { return r.JoinedAt }),
 )
 
-countByStatus := metaengine.Query[CountByStatus, CountByStatusResult]("count_by_status",
+var countByStatus = metaengine.Query[CountByStatus, CountByStatusResult]("count_by_status",
     metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) metaengine.Delta {
         return metaengine.Delta{"active": +1}
     }),
@@ -276,7 +284,7 @@ countByStatus := metaengine.Query[CountByStatus, CountByStatusResult]("count_by_
     }),
 )
 
-friendsOf := metaengine.Query[FriendsOf, FriendsOfResult]("friends_of",
+var friendsOf = metaengine.Query[FriendsOf, FriendsOfResult]("friends_of",
     metaengine.OnRecord(Friendship{}, func(_ record.Record, e Friendship) metaengine.Edge {
         return metaengine.Edge{From: e.From, To: e.To}
     }),
@@ -288,15 +296,18 @@ friendsOf := metaengine.Query[FriendsOf, FriendsOfResult]("friends_of",
 ```go
 store, _ := metaengine.Plan(engines, findUser, checkEmail, listByStatus, countByStatus, friendsOf)
 
-user, _    := store.Execute(ctx, FindUser{ID: userID})           // → FindUserResult
-taken, _   := store.Execute(ctx, CheckEmail{Email: "a@b.com"})  // → CheckEmailResult
-page, _    := store.Execute(ctx, ListByStatus{Status: "active", Limit: 50}) // → ListByStatusResult
-counts, _  := store.Execute(ctx, CountByStatus{})                // → CountByStatusResult
-network, _ := store.Execute(ctx, FriendsOf{ID: userID, Depth: 2}) // → FriendsOfResult
+user, _    := metaengine.ExecuteTyped[FindUser, FindUserResult](ctx, store, FindUser{ID: userID})
+taken, _   := metaengine.ExecuteTyped[CheckEmail, CheckEmailResult](ctx, store, CheckEmail{Email: "a@b.com"})
+page, _    := metaengine.ExecuteTyped[ListByStatus, ListByStatusResult](ctx, store, ListByStatus{Status: "active", Limit: 50})
+counts, _  := metaengine.ExecuteTyped[CountByStatus, CountByStatusResult](ctx, store, CountByStatus{})
+network, _ := metaengine.ExecuteTyped[FriendsOf, FriendsOfResult](ctx, store, FriendsOf{ID: userID, Depth: 2})
 ```
 
-Each `Execute` dispatches to the engine the planner chose for that specific query. The
-developer doesn't know or care which engine serves which query.
+Each call dispatches to the engine the planner chose for that specific query. The developer
+doesn't know or care which engine serves which query. When several queries share one input type,
+`ExecuteTyped` resolves to the most recently registered query — use
+`metaengine.ExecuteTypedByName[Q, R](ctx, store, queryName, input)` (`execute.go:716`) to address
+one query by name.
 
 ---
 
@@ -862,3 +873,57 @@ have been replayed into the new Pebble projection?"
 the existing `projectionhost` checkpoint store. The planner reads the checkpoint to determine
 catch-up progress. When checkpoint == event log tail, the projection is "caught up" and ready
 for cutover.
+
+---
+
+## Implementation-Status Addendum (2026-09-13)
+
+> Added by the truth-reconciliation pass
+> ([plan](2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md)).
+> The design text above is preserved verbatim; every row below was verified against source in
+> September 2026. Status vocabulary: **DONE** = shipped as designed · **DIFFERENT** = shipped in
+> a different shape · **PARTIAL** = some shipped, some not · **NOT SHIPPED** = no implementation ·
+> **PHILOSOPHY** = design intent, not a code claim.
+
+| § | Section | Status | What actually shipped |
+|----|---------|--------|------------------------|
+| 1 | Graph-at-three-levels | PHILOSOPHY | Conceptual frame; still the north star, no code artifact of its own. |
+| 2 | Three messages | DONE | `record.Record` is the shared base (ADR-0111); decider fold and query fold are both pure over the event log. |
+| 3 | Event + Query sufficient | DONE | Planner derives the ADT from the fold return type (`fold_classify.go:10`) and the read pattern from input inference (`infer_filters.go`, `infer_sort.go`, `infer_composite.go`, `infer_named.go`). |
+| 4 | Developer API | DIFFERENT | `Query[Q,R]` and `OnRecord` folds (`record_fold.go:39`) are canonical; `On`/`OnTyped` are deprecated (removal v5). Execution is package-level `ExecuteTyped[Q,R](ctx, store, input)` (`execute.go:681`) — there is no `store.Execute(ctx, input)` method. Examples corrected inline. |
+| 5 | Fold return type = ADT | DIFFERENT | ADT enum has 8 values: map, set, counter, graph, log, stream_log, sorted_map, multimap (`types.go:6-15`). Beyond `Delta`/`Edge`/`Remove`/`Skip`, sentinel returns include `MultiEntry`, `Append`, `EdgeRemoval`, `Embedding`, `IndexedText`, `Point` (`types.go:50-95`). Physical structures are abstracted to 4 layouts: row, columnar, lsm, kv (`layout_type.go:9-26`). |
+| 6 | Query input type = read pattern | DIFFERENT | 11 read patterns shipped (`types.go:20-32`): point_lookup, membership, filtered_scan, aggregate, traversal, scan, multi_lookup, log_tail, vector_search, full_text_search, spatial_range. Inference includes field-name prefixes (Min/Max/Since/Until..., `infer_filters.go`), composite filters, named queries, and sort inference. |
+| 7 | Independent projections | DONE | One collection per query; no shared view object. The opt-in shared-child collection (ADR-0124) is layout-level normalization only and warns rather than coordinating (`rule_shared_collection.go:85-96`). |
+| 8 | Metadata first-class | DIFFERENT | Real metadata: `record.CommonMetadata` (`record/record.go:26-108`) — CorrelationID, Cause/Actor (typed; CausationID/ActorID deprecated), Created/Received/Stored `Stamp`s, SchemaVersion. There is no `rec.MetaData.Timestamp` and no `RangeFilter` API; ranges are `WithRange(column, low, high)` (`scan_options.go:40`) or `FilterOnField` (`query.go:180`). Example corrected inline. |
+| 9 | Auth upstream | PHILOSOPHY | Unchanged intent; metaengine has no auth surface. |
+| 10 | Commands/queries as event streams | PARTIAL | **Command log: SHIPPED, better than designed** — `commandlifecycle` (ADR-0117): 5 event types (`command.received/failed/retried/dead-lettered/completed`) on `Command/<id>` + `CommandLifecycle/<id>` streams, projections for DLQ/retry-count/failure-log/processing-time, plus `CommandJournal`/`SeekableCommandJournal` (`command/store.go:141-160`) and `system.WithCommandLifecycle` (`system/lifecycle.go:50`). **Query log: NOT SHIPPED** — in-process observability hooks only (`observability.go:86`). **Session log: NOT SHIPPED** — sessions remain external (`cqrs-htmx/identity-model`). |
+| 11 | Planner derivation | DONE | All 7 steps have source counterparts; mapping annotated inline. |
+| 12 | Concrete examples | DIFFERENT | No Neo4j engine; graph = Dgraph (`metaengine/dgraphengine/`) or SQL CTE fallback (`graph_fallback.go:14,36`). No YAML config format — engines are composed in Go at deployment. Bloom filters exist only as a Pebble-internal policy (10 bits/key), not an ADT. Real engine roster: in-process memory plus badger, bbolt, dgraph, duckdb, iroh, mysql, pebble, pg, sqlite, turso (each its own `metaengine/*engine` module). Examples annotated inline. |
+| 13 | What the developer never writes | DONE | DDL, column types, and indexes are derived (`layout.go:116` `DDL()`, `:169` `inferColumnType`, `:199` `BuildLayoutPlanFromType`; index inference in `infer_*.go`). Boundary: classic modules (`storage/relational`, `storage/view`, `graph`) still expose explicit schema/`IndexSpec` APIs for consumers not using auto-projection. |
+| 14 | Hot-reload | PARTIAL | Runtime APIs exist: `AddEngine` (`runtime_backend.go:55`), `RemoveEngine` (`:113`), `SwapEngine` (`advanced.go:69`), `Replan` (`store.go:88`), `ReplanLayout` (`relayout.go:64`), `CheckRouting` (`store_routing.go:59`), shadow roles Migration/Backup (`roles.go:11-21`). The dual-read + atomic-cutover orchestration drawn above is NOT shipped. |
+| 15 | Open decisions | SEE BELOW | D1 resolved; D2 ghost capability; D3 not shipped; D4 partial. Details below. |
+
+### §15 decision resolutions
+
+- **Decision 1 (field paths from typed accessors) — RESOLVED, hybrid.** `FilterOn`/`SortOn`
+  closures (`query.go:151,167`) plus declarative `FilterOnField`/`SortOnField` (`query.go:180,193`)
+  with inferred indexes (`infer_filters.go`, `infer_sort.go`). The closure body is not reflected
+  on; the declarative pair carries the field name explicitly.
+- **Decision 2 (streaming vs slicing) — GHOST CAPABILITY, decision open.** `StreamingScan`
+  (`engine.go:369-384`) is implemented by sqlite, pebble, bbolt, and badger, but has zero
+  production callers — `Store.Export` (`export_import.go:12`) does not use it. Options memo:
+  T16 of the reconciliation plan.
+- **Decision 3 (multi-projection queries) — NOT SHIPPED.** Reads are single-collection;
+  grouped/aggregate reads exist (`typed_reader_grouped.go`, `typed_reader_aggregates.go`) but no
+  cross-projection fan-out. Option A remains the design direction.
+- **Decision 4 (replay progress) — PARTIAL.** `CatchUpState`/`CatchUpEngine` track quarantine
+  rebuild progress (`catchup_state.go`, `failover.go:60`); projectionhost maintains subscriber
+  checkpoints. No checkpoint-driven cutover orchestrator.
+
+### Where current truth lives
+
+- [`metaengine/README.md`](../../metaengine/README.md) — module overview and API surface.
+- [`commandlifecycle/`](../../commandlifecycle/) — command-log implementation (ADR-0117).
+- Audits: [12:10 audit](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
+  [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
+  [T02 verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
