@@ -19,11 +19,29 @@
 #     `git checkout -- .` restored the STRIPPED go.mods from the stale
 #     index and silently re-dirtied the tree; HEAD~1 also broke when the
 #     auto-commit daemon committed between the temp commit and the reset.
-#   - After pushing, smoke-check every tag: scripts/tag-release.sh --smoke.
+#   - After pushing, smoke-check every tag: scripts/tag-release.sh --smoke,
+#     or one-shot for a whole wave: batch-release.sh --smoke-all <file>.
+#
+# SAME-BATCH SIBLING LIMITATION (documented decision): within one batch,
+# `go mod tidy -e` resolves a module's sibling requires to the sibling's
+# latest PUBLISHED tag — the tag being cut for that sibling in THIS batch
+# does not exist yet (no network round-trip can see an unpushed tag). A
+# batch therefore ships dependents pinned to the sibling's PREVIOUS version.
+# Cut in dependency order across SEPARATE invocations (lowest-level module
+# first, push, smoke, then dependents) when a dependent must pin the new
+# version; use one batch only when today's pins are already correct.
+#
+# A `--verify` full-pipeline dry-run (strip + tidy + build against the real
+# stripped go.mods, then restore) was CONSIDERED AND DECLINED 2026-09-13:
+# --dry-run already covers every non-mutating guard, and the mutating half
+# duplicates the real cut with the same restore machinery — more surface,
+# no new failure class caught. Revisit only if a batch ever fails mid-cut
+# in a way a pre-pass would have caught.
 #
 # Usage:
 #   ./scripts/batch-release.sh [--dry-run] "<module> <version> <description>" ...
 #   ./scripts/batch-release.sh --audit
+#   ./scripts/batch-release.sh --smoke-all <file>
 #
 # --dry-run prints the tags that WOULD be created (existence, tag collision,
 # path-vs-tag guard, sequence checks) without touching go.mod files, the
@@ -31,6 +49,13 @@
 #
 # --audit replays the path-vs-tag guard over EVERY tag of EVERY module
 # (delegates to tag-release.sh --audit — the single implementation).
+#
+# --smoke-all <file> post-push verification for a whole wave: <file> holds
+# one "<module> <version>" pair per line (# comments allowed); each line
+# runs tag-release.sh --smoke (proxy serves the tag + clean-dir install
+# probe). Stops at the first hard failure — dependent tags must not be
+# advertised while an earlier tag in the wave is not proxy-servable — and
+# exits nonzero if any line failed.
 #
 # Each argument is a space-separated triple: module-path, version, description.
 # Description may contain spaces if quoted as part of the triple.
@@ -47,39 +72,19 @@ cd "$(git rev-parse --show-toplevel)"
 usage() {
 	echo "Usage: $0 [--dry-run] \"<module> <version> <description>\" ..."
 	echo "       $0 --audit"
+	echo "       $0 --smoke-all <file-with-module-version-lines>"
 	echo "Example:"
 	echo "  $0 \"event v4.0.3 Patch release\" \"command v4.0.1 Patch release\""
 	echo "  $0 --dry-run \"event v4.0.3 Patch release\""
 	echo "  $0 --audit   # all-modules path-vs-tag audit (via tag-release.sh)"
 }
 
-# path_matches_major mirrors tag-release.sh's single implementation of the
-# issue-#20 guard: v0/v1 tags require a module path WITHOUT any /vN suffix;
-# v2+ tags require the path to end in the matching /vN. Keep the two copies
-# in lockstep — the guard is ~20 lines, and sourcing tag-release.sh would
-# execute its main flow.
-path_matches_major() {
-	local module_path="$1"
-	local version="$2"
-	local tag_major="${version#v}"
-	tag_major="${tag_major%%.*}"
-
-	local path_major=""
-	case "$module_path" in
-	*/v[0-9]*)
-		path_major="${module_path##*/v}"
-		;;
-	esac
-
-	case "$tag_major" in
-	0 | 1)
-		[ -z "$path_major" ]
-		;;
-	*)
-		[ "$path_major" = "$tag_major" ]
-		;;
-	esac
-}
+# path_matches_major, module_has_root_main and smoke_probe_args live in
+# scripts/lib/release_common.sh (single implementation shared with
+# tag-release.sh — the issue-#20 guard must never fork again).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/release_common.sh
+source "${SCRIPT_DIR}/lib/release_common.sh"
 
 if [ "${1:-}" = "--audit" ]; then
 	if [ $# -ne 1 ]; then
@@ -87,6 +92,54 @@ if [ "${1:-}" = "--audit" ]; then
 		exit 1
 	fi
 	exec bash "$(dirname "$0")/tag-release.sh" --audit
+fi
+
+if [ "${1:-}" = "--smoke-all" ]; then
+	if [ $# -ne 2 ]; then
+		usage
+		exit 1
+	fi
+
+	probes_file="$2"
+	if [ ! -f "$probes_file" ]; then
+		echo "ERROR: probes file ${probes_file} does not exist"
+		exit 1
+	fi
+
+	total=0
+	failed=0
+	while IFS= read -r line || [ -n "$line" ]; do
+		case "$line" in
+		\#* | "") continue ;;
+		esac
+		mod="$(printf '%s' "$line" | awk '{print $1}')"
+		ver="$(printf '%s' "$line" | awk '{print $2}')"
+		if [ -z "$mod" ] || [ -z "$ver" ]; then
+			echo "ERROR: malformed line in ${probes_file}: \"${line}\""
+			echo "Expected: \"<module> <version>\""
+			exit 1
+		fi
+		total=$((total + 1))
+		echo ""
+		echo "━━━ smoke ${mod} ${ver} ━━━"
+		if ! bash "${SCRIPT_DIR}/tag-release.sh" --smoke "$mod" "$ver"; then
+			echo "✗ ${mod} ${ver} FAILED — stopping: dependent tags in this wave"
+			echo "  must not be advertised while this tag is broken."
+			failed=$((failed + 1))
+			break
+		fi
+	done <"$probes_file"
+
+	if [ "$total" -eq 0 ]; then
+		echo 'ERROR: no "<module> <version>" lines in '"${probes_file}"
+		exit 1
+	fi
+	if [ "$failed" -gt 0 ]; then
+		exit 1
+	fi
+	echo ""
+	echo "✓ all ${total} tag(s) smoke-checked."
+	exit 0
 fi
 
 DRY_RUN=0

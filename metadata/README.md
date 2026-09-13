@@ -35,12 +35,15 @@ When embedded anonymously in a struct, `encoding/json` promotes these fields to 
 | `Tracing.IsZero()` | True when no tracing field has been set.        |
 | `Tracing.Merge(o)` | Overlays non-zero fields from `other` onto `t`. |
 
-### CustomData[K]
+### Metadata[K]
 
-A reusable base for metadata types that carry tracing identifiers and a typed custom map. `command.Metadata` and `query.Metadata` are ALIASES of `Metadata[MetadataKey]` (this module's generic metadata type), not standalone structs. `CustomData[K]` remains available for external consumers who want the same pattern.
+The canonical reusable base for metadata types that carry tracing identifiers
+and a typed custom map. `command.Metadata` and `query.Metadata` are ALIASES of
+`Metadata[MetadataKey]` (this module's generic metadata type), not standalone
+structs.
 
 ```go
-type CustomData[K ~string] struct {
+type Metadata[K ~string] struct {
     Tracing
     Custom map[K]string `json:"custom,omitempty"`
 }
@@ -50,10 +53,14 @@ The type parameter `K` is a named string type (the module's own `MetadataKey`), 
 
 | Method                          | Description                                        |
 | ------------------------------- | -------------------------------------------------- |
-| `CustomData[K].Clone()`         | Returns a copy with a cloned Custom map.           |
-| `CustomData[K].Merge(o)`        | Overlays tracing and custom entries from `other`.  |
-| `CustomData[K].WithCustom(k,v)` | Returns a copy with `k` set to `v` (non-mutating). |
-| `CustomData[K].EnsureCustom()`  | **Deprecated.** Use `WithCustom` instead.          |
+| `Metadata[K].Clone()`           | Returns a copy with a cloned Custom map.           |
+| `Metadata[K].Merge(o)`          | Overlays tracing and custom entries from `other`.  |
+| `Metadata[K].WithCustom(k,v)`   | Returns a copy with `k` set to `v` (non-mutating). |
+| `Metadata[K].EnsureCustom()`    | **Deprecated.** Use `WithCustom` instead.          |
+
+> `CustomData[K]` is a **deprecated type alias** of `Metadata[K]` kept for
+> backward compatibility — removed at v5 (ADR-0126). Use `Metadata[K]` in
+> new code.
 
 ### MergeCustomMaps[K]
 
@@ -66,9 +73,9 @@ import "github.com/larsartmann/go-cqrs-lite/metadata/v4"
 
 type MyKey string
 
-// Embed CustomData for the full Clone/Merge/WithCustom API:
+// Embed Metadata for the full Clone/Merge/WithCustom API:
 type MyMetadata struct {
-    metadata.CustomData[MyKey]
+    metadata.Metadata[MyKey]
     // additional module-specific fields...
 }
 

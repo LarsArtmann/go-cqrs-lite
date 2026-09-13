@@ -1,6 +1,12 @@
 # stack/bbolt
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4)
+
 One-call [stack.Bundle](../) preset backed by [bbolt](../../storage/bbolt/) (B+tree, pure Go).
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4
+```
 
 ## Quick Start
 

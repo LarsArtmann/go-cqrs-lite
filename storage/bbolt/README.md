@@ -1,6 +1,12 @@
 # storage/bbolt
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4)
+
 Embedded B+tree event store for go-cqrs-lite, backed by [bbolt](https://github.com/etcd-io/bbolt) (the etcd team's pure-Go key-value store).
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4
+```
 
 ## Why bbolt?
 

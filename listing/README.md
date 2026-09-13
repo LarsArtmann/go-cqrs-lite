@@ -13,11 +13,11 @@ go get github.com/larsartmann/go-cqrs-lite/listing/v4
 The `listing` module provides:
 
 - **Aggregate listing** with cursor-based pagination
-- **Tombstone detection** — tri-state status: Active, Tombstoned, Undetermined
-- **Rebirth support** — undo soft-deletes via rebirth events
+- **Status classification** — tri-state: Active, Tombstoned, Undetermined
+- **Domain-event-driven soft deletes** — deletion/restoration are domain events (ADR-0114), classified from the last event's type
 - **Projection-backed SQL reader** for production
 - **In-memory reader** for testing
-- **Bus middleware** for automatic tombstone/rebirth metadata marking
+- **`StatusClassifier`** — derive per-stream status from delete/rebirth event types, no middleware, no metadata mutation
 
 This module is **read-only**. It never writes events. It queries via `event.Journal` (cross-aggregate) or a projection table.
 
@@ -43,7 +43,13 @@ import (
 )
 
 store := memory.NewMemoryStore()
-reader := listing.NewInMemoryAggregateReader(store)
+
+// Classify status from domain event types (ADR-0114) — recommended.
+reader := listing.NewInMemoryAggregateReader(store,
+    listing.WithStatusClassifier(listing.NewStatusClassifier(
+        []event.Type{"user.deleted"},       // deletion events
+        []event.Type{"user.reactivated"},   // restoration events
+    )))
 
 page, err := listing.NewListBuilder(reader).
     OfType("User").
@@ -51,18 +57,30 @@ page, err := listing.NewListBuilder(reader).
     List(ctx)
 ```
 
-## Tombstone Middleware
+## Status Classification (ADR-0114)
 
-Auto-mark tombstone and rebirth events on publish:
+Deletion and restoration are domain events. A stream's status follows from
+its LAST event's type — a delete type means Tombstoned, a rebirth type means
+Active again. No metadata is mutated and no middleware is needed:
 
 ```go
-bus.UsePublish(listing.StatusMiddleware(
-    []event.Type{"user.deleted", "order.cancelled"},    // tombstone types
-    []event.Type{"user.reactivated", "order.restored"},  // rebirth types
-))
+classifier := listing.NewStatusClassifier(
+    []event.Type{"user.deleted", "order.cancelled"},     // deletion events
+    []event.Type{"user.reactivated", "order.restored"},  // restoration events
+)
+
+// In-memory reader:
+reader := listing.NewInMemoryAggregateReader(store,
+    listing.WithStatusClassifier(classifier))
+
+// Classify a single stream's last event directly:
+status := classifier.ClassifyLast(lastEvent) // StatusActive / StatusTombstoned
 ```
 
-Unmatched events pass through unchanged.
+> `listing.StatusMiddleware` (which stamped tombstone/rebirth METADATA on
+> publish via `event.MarkTombstone`) is **deprecated** — metadata marks
+> violate stream immutability and are removed in v5. Derive status from
+> event types as shown above.
 
 ## Listing with Status
 
@@ -112,26 +130,19 @@ if page1.HasMore {
 
 `PageSize` is clamped to `[1, 100]`. Zero defaults to 20.
 
-## Tombstone Status
+## Status
 
-The `event.TombstoneStatus` enum has three states:
+`listing.Status` is a tri-state enum (numeric values match the legacy
+`event.TombstoneStatus` wire values):
 
-| Status                  | Value | Meaning                                      |
-| ----------------------- | ----- | -------------------------------------------- |
-| `TombstoneActive`       | 0     | Aggregate is live                            |
-| `TombstoneTombstoned`   | 1     | Aggregate is soft-deleted                    |
-| `TombstoneUndetermined` | 2     | No metadata found (no middleware configured) |
+| Status              | Value | Meaning                                             |
+| ------------------- | ----- | --------------------------------------------------- |
+| `StatusActive`      | 0     | Stream is live                                      |
+| `StatusTombstoned`  | 1     | Last event is a deletion event                      |
+| `StatusUndetermined`| 2     | No classifier configured (status cannot be derived) |
 
-Detection uses the **last event** in the listing. Rebirth takes precedence.
-
-```go
-// Detect from event listing
-status := event.DetectTombstone(events)
-
-// Mark manually (usually done by middleware)
-marked, _ := event.MarkTombstone(evt)
-marked, _ := event.MarkRebirth(evt)
-```
+Classification uses the **last event** in the stream. Restoration takes
+precedence (newest event wins).
 
 ## AggregateReader Interface
 
@@ -148,7 +159,7 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 | Dependency                            | Purpose                          |
 | ------------------------------------- | -------------------------------- |
-| [event](../event/README.md)           | Event types, tombstone detection |
+| [event](../event/README.md)           | Event types (`event.Type`) for classifiers |
 | [id](../id/README.md)                 | AggregateID                      |
 | [memory](../storage/memory/README.md) | In-memory reader for testing     |
 
@@ -167,6 +178,6 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 - [**projection**](../projection/README.md) — Register `AggregateProjection` with the runner to populate the reader
 - [**storage**](../storage/README.md) — SQL-backed `AggregateReader` for PostgreSQL/SQLite
-- [**event**](../event/README.md) — Tombstone detection and event types
+- [**event**](../event/README.md) — Event types consumed by `StatusClassifier`
 - [**id**](../id/README.md) — `AggregateID` type
 - [**memory**](../storage/memory/README.md) — `InMemoryAggregateReader` for tests

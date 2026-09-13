@@ -1,6 +1,6 @@
 # metaengine/mysqlengine — MySQL/MariaDB-Backed Engine
 
-[![Go Reference](https://pkg.go.dev/banner.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4)
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4)
 
 MySQL- and MariaDB-backed [metaengine](../README.md) Engine (verified against
 MySQL 8.4 and MariaDB 11.8). Pure Go (`go-sql-driver/mysql`, no CGo). JSON
