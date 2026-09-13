@@ -1,6 +1,7 @@
 package security_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -189,4 +190,34 @@ func keymaterial() {
 	})
 	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
 	ruletest.AssertRule(t, findings, "S001", 2)
+}
+
+// TestS001_AllowlistKeepsRealCredentials validates the URL/placeholder
+// allowlist against a corpus of REAL credential shapes: every value below
+// is a live-secret form seen in the wild, and each must still be flagged —
+// proving the allowlist suppresses only placeholders/URLs, never true
+// positives (the 03-44 S001 corpus-validation item).
+func TestS001_AllowlistKeepsRealCredentials(t *testing.T) {
+	t.Parallel()
+
+	realCorpus := []string{
+		"sk-live-9f4ac1b2e8d74310aa52",
+		"ghp_R4nd0mHexStr1ng0fFortyCh",
+		"AKIAIOSFODNN7EXAMPLEKEY99",
+		"xoxb-123456789012-9876543210-AbCdEfGh123456",
+		"-----BEGIN RSA PRIVATE KEY-----MIIB",
+		"hunter2-do-not-ship-me",
+	}
+
+	for i, secret := range realCorpus {
+		name := fmt.Sprintf("credential_%d", i)
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			src := "package main\n\nvar apiKeyValue = \"" + secret + "\"\n"
+			ctx := analyzer.BuildContextFromSource(t, map[string]string{"secrets.go": src})
+			findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+			ruletest.AssertRule(t, findings, "S001", 1)
+		})
+	}
 }

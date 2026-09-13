@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — decider: command-aware execution with automatic causation stamping — 2026-09-13
+
+- **`decider.ExecuteCommandRef`** — the command-aware form of
+  `decider.Repository.ExecuteRef`: the decide function receives the driving
+  command (`decider.CommandDecideFunc[State, C]`), and every emitted event is
+  stamped with the command's causation (`event.Metadata.Causation` — the typed
+  form `event.AsRecord` resolves into `Record.CausationID` and
+  `Cause{Kind: CauseCommand}` — plus the v2 backward-compat `command.id` /
+  `command.type` custom keys). Closes the structural gap where commands drove
+  decisions invisibly: until now the decider pattern recorded WHICH events
+  happened, but not WHICH command caused them.
+- **`decider.CausedCommand`** — the minimal capability interface
+  (`ID() id.CommandID`) a command must satisfy; `*command.BasicCommand`,
+  `*command.PersistedCommand`, and consumer-defined structs satisfy it
+  structurally, with zero new decider dependencies. Commands exposing
+  `Type() record.Type` (both first-party forms do) additionally stamp the
+  command type.
+- Decisions that set their own causation keep it (no clobbering); zero-ID
+  commands execute unstamped, byte-identical to a plain `ExecuteRef` run.
+  It is a package-level function rather than a `Repository` method because
+  generic methods require Go 1.27.
+
 ### Fixed — metaengine: CatchUpEngine can no longer miss events written during the rebuild — 2026-09-13
 
 - **The stale-snapshot race is closed.** While an engine was quarantined,

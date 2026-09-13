@@ -886,6 +886,7 @@ cmd/cqrs-lint/pkg/rules/lintutil/func IsFmtErrorf
 cmd/cqrs-lint/pkg/rules/lintutil/func IsNonCQRSRegisterPackage
 cmd/cqrs-lint/pkg/rules/lintutil/func IsPayloadFileName
 cmd/cqrs-lint/pkg/rules/lintutil/func IsReadModelFileName
+cmd/cqrs-lint/pkg/rules/lintutil/func IsURLOrPlaceholder
 cmd/cqrs-lint/pkg/rules/lintutil/func LooksLikeEventPayload
 cmd/cqrs-lint/pkg/rules/lintutil/func ModuleImportsPath
 cmd/cqrs-lint/pkg/rules/lintutil/func QualifierResolvesTo
@@ -1110,6 +1111,7 @@ commandlifecycle/struct RetriedPayload
 commandlifecycle/type CommandKey
 commandlifecycle/type RecorderOption
 decider/const DefaultStateCacheCapacity
+decider/func ExecuteCommandRef
 decider/func NewRepository
 decider/func NewStateCache
 decider/func NewTypedRepository
@@ -1123,6 +1125,7 @@ decider/func WithSnapshotStore
 decider/func WithSnapshotStrategy
 decider/func WithStateCache
 decider/func WithWaitTimeout
+decider/interface CausedCommand
 decider/interface StateCache
 decider/method Execute
 decider/method ExecuteCommand
@@ -1145,6 +1148,7 @@ decider/struct Decider
 decider/struct Repository
 decider/struct TypedDecider
 decider/struct TypedRepository
+decider/type CommandDecideFunc
 decider/type DecideFunc
 decider/type RepositoryOption
 decider/type WaitOption

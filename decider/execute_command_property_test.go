@@ -65,9 +65,9 @@ func TestExecuteCommandRefCausationProperty(t *testing.T) {
 			t.Fatalf("execute: %v", err)
 		}
 
-		evts, loadErr := store.Load(ctx, ref)
-		if loadErr != nil {
-			t.Fatalf("load: %v", loadErr)
+		evts, readErr := store.ReadAll(ctx)
+		if readErr != nil {
+			t.Fatalf("read: %v", readErr)
 		}
 
 		if len(evts) != eventCount {
