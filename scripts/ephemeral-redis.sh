@@ -15,6 +15,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
+# shellcheck disable=SC1091  # dynamic path; syntax-checked separately
+source "${SCRIPT_DIR}/lib/shuffle-seed.sh"
 
 # Pick a free port if not overridden
 if [ -z "${REDIS_PORT:-}" ]; then
@@ -60,8 +62,10 @@ if [ $# -gt 0 ]; then
 	"$@"
 else
 	echo "==> Running watermill broker tests (default; pass a command to override)"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "watermill" "$SEED"
 	(
 		cd watermill
-		GOWORK=off go test -tags "goexperiment.jsonv2" -shuffle=on ./... -count=1 -v
+		GOWORK=off go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v
 	)
 fi

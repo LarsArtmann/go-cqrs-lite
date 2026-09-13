@@ -14,7 +14,7 @@ _Extracted from the former recipes §2.3. This is the most-asked-about topic in 
 > here — `stack.Materialize` (+ `storage.SQLViewStore`),
 > `storage.RelationalProjection`, and `graph.GraphProjection` — are
 > **deprecated and removed in v5**. New code should prefer the `metaengine`
-> Store + `projectionadapter` (see `recipes.md` §2.11) and the `system`
+> Store + `projectionadapter` (see `recipes.md` §2.10 + §2.21b) and the `system`
 > composition root. Everything below remains fully functional through v4.x;
 > `projectionhost` (Option A) is the projection runner that survives v5.
 

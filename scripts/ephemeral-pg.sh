@@ -97,6 +97,9 @@ echo "==> PostgreSQL ready: $POSTGRES_TEST_DSN"
 # sweep:  PG_MODULES="metaengine/pgengine" ./scripts/ephemeral-pg.sh go test ...
 PG_MODULES="${PG_MODULES:-storage stack/postgres metaengine/pgengine projectionhost scheduling/sqlstore idempotency/sqlstore benchkit}"
 
+# shellcheck disable=SC1091  # dynamic path; syntax-checked separately
+source "$(dirname "$0")/lib/shuffle-seed.sh"
+
 if [ $# -gt 0 ] && [ "$1" = "go" ]; then
 	shift
 	echo "==> Running: go $*"
@@ -108,11 +111,13 @@ else
 	for mod in $PG_MODULES; do
 		echo ""
 		echo "--- $mod (timeout ${TEST_TIMEOUT}s) ---"
+		SEED=$(new_shuffle_seed)
+		log_shuffle_seed "$mod" "$SEED"
 		(
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$TEST_TIMEOUT" \
-				go test -tags "integration goexperiment.jsonv2" -shuffle=on ./... \
+				go test -tags "integration goexperiment.jsonv2" -shuffle="$SEED" ./... \
 				-count=1 -v "${EXTRA_ARGS[@]}" 2>&1
 		) || FAILED=1
 	done

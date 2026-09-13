@@ -4,9 +4,10 @@ import (
 	"slices"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MultiSigMetadataKey is the custom metadata key used to store multi-party signatures.

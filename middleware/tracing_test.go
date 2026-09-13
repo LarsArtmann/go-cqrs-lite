@@ -4,13 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/samber/lo"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"

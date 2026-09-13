@@ -727,10 +727,11 @@ how projections are physically stored at deployment time via four priority
 levers. The planner scores Embed vs Normalize against the engine's cost profile
 and picks the lowest weighted cost.
 
-See §"Operator-Driven Layout Planning" in
-[recipes.md](recipes.md) for copy-paste code, the full 16-cell decision matrix,
-and the audit-trail API. Design doc:
-[`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../../../../docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md).
+See [recipes.md](recipes.md) §2.30 "Operator Priority Routing" for
+copy-paste code (the per-deployment priority levers and their YAML form).
+The layout decision matrix and audit-trail API live in the design doc:
+[`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../../../../docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md)
+and [ADR-0124](../../../../docs/adr/0124-operator-driven-layout-planning.md).
 
 ## 7. Tooling Surface: doctor JSON + verification apps (v4.10.0 wave)
 

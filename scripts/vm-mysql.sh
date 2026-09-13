@@ -20,6 +20,8 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
+# shellcheck disable=SC1091  # dynamic path; syntax-checked separately
+source "${SCRIPT_DIR}/lib/shuffle-seed.sh"
 
 HOST_PORT="${MYSQL_VM_PORT:-33070}"
 DRIVER_PID=""
@@ -94,39 +96,49 @@ if [ $# -gt 0 ]; then
 		go "$@"
 	else
 		echo "==> Running: go test $*"
-		go test -tags "goexperiment.jsonv2" -shuffle=on "$@" -count=1 -v
+		SEED=$(new_shuffle_seed)
+		log_shuffle_seed "mysql-manual" "$SEED"
+		go test -tags "goexperiment.jsonv2" -shuffle="$SEED" "$@" -count=1 -v
 	fi
 else
 	echo "==> Running all MySQL integration tests"
 	echo ""
 	echo "--- stack/mysql ---"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "stack/mysql" "$SEED"
 	(
 		cd stack/mysql
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "goexperiment.jsonv2" -shuffle=on ./... -count=1 -v 2>&1
+			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- idempotency/sqlstore ---"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "idempotency/sqlstore" "$SEED"
 	(
 		cd idempotency/sqlstore
 		# QEMU slirp port-forwarding resets bursts of simultaneous MySQL
 		# connections; 10 contenders still prove row-lock serialization.
 		CGO_ENABLED=1 GOWORK=off MYSQL_TEST_CONCURRENCY=10 \
-			go test -tags "integration goexperiment.jsonv2" -shuffle=on -run TestIntegration_MySQL ./... -count=1 -v 2>&1
+			go test -tags "integration goexperiment.jsonv2" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- metaengine/mysqlengine (capability conformance + ADT matrix) ---"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "metaengine/mysqlengine" "$SEED"
 	(
 		cd metaengine/mysqlengine
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "goexperiment.jsonv2" -shuffle=on ./... -count=1 -v 2>&1
+			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- scheduling/sqlstore (MySQL claiming via SKIP LOCKED) ---"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "scheduling/sqlstore" "$SEED"
 	(
 		cd scheduling/sqlstore
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "integration goexperiment.jsonv2" -shuffle=on -run TestClaimingMySQL ./... -count=1 -v 2>&1
+			go test -tags "integration goexperiment.jsonv2" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
 	)
 fi
 

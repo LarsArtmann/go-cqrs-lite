@@ -6,13 +6,12 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"go.opentelemetry.io/otel/trace"
-
-	"github.com/samber/lo"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"

@@ -2,8 +2,8 @@
 
 > **Contents** — jump to the recipe you need:
 >
-> - [§2.0 Bundle Presets](#20-bundle-presets--one-call-infrastructure-wiring) — one-call infrastructure wiring
-> - [§2.0b Framework lifecycle (go-appkit)](#20b-framework-style-lifecycle--go-appkit-cqrs-eventservice-external-module) — EventService on system.New
+> - [§2.0 Bundle Presets — one-call infrastructure wiring](#20-bundle-presets--one-call-infrastructure-wiring)
+> - [§2.0b Framework-style lifecycle — go-appkit `cqrs` EventService](#20b-framework-style-lifecycle--go-appkit-cqrs-eventservice-external-module)
 > - [§2.1 Minimal Event Sourcing](#21-minimal-event-sourcing-event--command--decider--id--memory)
 > - [§2.2 Production Persistence](#22-production-persistence-storage-or-pebble)
 > - §2.3 Read Models → moved to [`readmodels.md`](readmodels.md) (projections, SQL views, CatchUpSubscriber, projection-tier selection)
@@ -11,10 +11,37 @@
 > - [§2.5 Schema Evolution](#25-schema-evolution-schema)
 > - [§2.6 Tamper-Proof Event Streams](#26-tamper-proof-event-streams-signing)
 > - [§2.7 Encrypted Payloads](#27-encrypted-payloads-encryption)
+> - [§2.7b Decorating Stores — Encryption/Upcasting at the Store Layer](#27b-decorating-stores--encryptionupcasting-at-the-store-layer-event)
 > - [§2.8 Observability & Middleware](#28-observability--middleware-otel--middleware)
 > - [§2.9 Auto-Documentation](#29-auto-documentation-catalog)
-> - [§2.12 Capability Diagnostics](#212-capability-diagnostics--declared-vs-implemented-audit-metaengine)
+> - [§2.10 Cost-Based Storage Planning](#210-cost-based-storage-planning-metaengine)
+> - [§2.11 Live Latency Measurement — Dynamic RTT + Auto-Replan](#211-live-latency-measurement--dynamic-rtt--auto-replan-metaengine)
+> - [§2.12 Capability Diagnostics — declared-vs-implemented audit](#212-capability-diagnostics--declared-vs-implemented-audit-metaengine)
+> - [§2.13 SQL-Backed Idempotency](#213-sql-backed-idempotency-idempotencysqlstore)
+> - [§2.13b Retry with Backoff](#213b-retry-with-backoff-retry)
+> - [§2.14 Scaling Out — NATS Transport & Parquet Journal](#214-scaling-out--nats-transport--parquet-journal-design-docs)
+> - [§2.15 CBOR→JSON for Browser SSE Clients](#215-cborjson-for-browser-sse-clients-codec--transporthttp)
+> - [§2.16 Metaengine SSE Streaming with Reconnection](#216-metaengine-sse-streaming-with-reconnection-metaengine)
+> - [§2.17 Metaengine Cursor Pagination with PrefetchCache](#217-metaengine-cursor-pagination-with-prefetchcache-metaengine)
+> - [§2.18 Flight Recorder — Capture Trace on Slow/Error](#218-flight-recorder--capture-trace-on-slowerror-flightrecorder--middleware)
+> - [§2.19 Command Lifecycle Tracking](#219-command-lifecycle-tracking-adr-0117)
+> - [§2.20 Engine Roles, Shadow Replication & Promote Cutover](#220-engine-roles-shadow-replication--promote-cutover-metaengine)
 > - [§2.21 Actor Propagation — "Who Did It" Audit Trail](#221-actor-propagation--who-did-it-audit-trail-id--command--middleware--event)
+> - [§2.21b Metaengine + Stack Bundle Integration](#221b-metaengine--stack-bundle-integration-v4-bundle-path)
+> - [§2.22 MySQL/MariaDB JSON Dialect + Numeric-Safe Sorting](#222-mysqlmariadb-json-dialect--numeric-safe-sorting-mysqlengine)
+> - [§2.23 Hand-Rolled Catch-Up: Subscribe BEFORE You Drain](#223-hand-rolled-catch-up-subscribe-before-you-drain-projectionhost-toctou)
+> - [§2.24 Atomic Read-Modify-Write: Engine RunInTx](#224-atomic-read-modify-write-engine-runintx-metaenginetransactional)
+> - [§2.25 Vector Size Introspection: VectorCounter](#225-vector-size-introspection-vectorcounter-metaengine)
+> - [§2.26 Multi-Instance Timers: ClaimingTimerStore](#226-multi-instance-timers-claimingtimerstore-schedulingsqlstore)
+> - [§2.27 Planned Tables: LayoutPlanApplier](#227-planned-tables-layoutplanapplier-pgenginemysqlenginesqliteengineduckdbengine)
+> - [§2.28 Planned Tables: Pushdown, Evolution, Backfill, and the EXPLAIN Proof](#228-planned-tables-pushdown-evolution-backfill-and-the-explain-proof)
+> - [§2.29 Materialized Views: Operator-Declared Aggregate Acceleration](#229-materialized-views-operator-declared-aggregate-acceleration-tursoengine-adr-0135)
+> - [§2.30 Operator Priority Routing — global / perEngine / perQuery](#230-operator-priority-routing--global--perengine--perquery-system-verified-v460)
+> - [§2.31 Evolutions — declare folds for a result type](#231-evolutions--declare-folds-for-a-result-type-system-verified-v460)
+> - [§2.32 Pre-v5 Snapshot Bytes Still Decode](#232-pre-v5-snapshot-bytes-still-decode-snapshot-wire-fallback)
+> - [§2.33 Encrypted Payloads: Envelope v2 + Key Rotation](#233-encrypted-payloads-envelope-v2--key-rotation-encryption)
+> - [§2.34 Revert & Rebuild a Read Model](#234-revert--rebuild-a-read-model-projectionhost-reset-adr-0136)
+> - [§2.35 Survive a Dead Engine](#235-survive-a-dead-engine-health-driven-deactivation-adr-0137)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -407,7 +434,7 @@ bad, _ := encryption.DecodeKeyBase64("short")       // wraps ErrInvalidKey: got 
 ```
 
 Envelope v2 (the wire format, JSON-column-safe) and the snapshot rotation
-write-back codec have their own recipe: §2.31.
+write-back codec have their own recipe: §2.33.
 
 ### 2.7b Decorating Stores — Encryption/Upcasting at the Store Layer (event)
 
@@ -756,7 +783,7 @@ store, _ := sqlstore.NewSQLiteStore(ctx, db)
 cmds.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
 ```
 
-### 2.13 Retry with Backoff (retry)
+### 2.13b Retry with Backoff (retry)
 
 Zero-dependency retry with exponential backoff and jitter.
 
@@ -955,7 +982,7 @@ defer bundle.Close() // stops recorder automatically
 // Access for trigger wiring: bundle.FlightRecorder()
 ```
 
-### 2.19. Command Lifecycle Tracking (ADR-0117)
+### 2.19 Command Lifecycle Tracking (ADR-0117)
 
 Track the full lifecycle of commands — received, failed, retried,
 dead-lettered, completed — as event streams. Dead-letter queues, retry
@@ -1114,7 +1141,7 @@ store, _ := metaengine.Plan(engines, queries...,
 )
 ```
 
-### 2.21. Actor Propagation — "Who Did It" Audit Trail (id + command + middleware + event)
+### 2.21 Actor Propagation — "Who Did It" Audit Trail (id + command + middleware + event)
 
 Every event records **who** initiated it: `id.ActorID` (kind: `user`/`bot`/`system`/`service`)
 flows from command metadata through the handler context into event metadata. Wire format is
@@ -1208,7 +1235,7 @@ reference implementation). The `n` type implements both `MarshalJSON`/`Unmarshal
 and `MarshalCBOR`/`UnmarshalCBOR`, ensuring correct roundtrip regardless of the
 outer envelope codec.
 
-## Metaengine + Stack Bundle Integration
+### 2.21b Metaengine + Stack Bundle Integration (v4 bundle path)
 
 Wire a cost-based query planner into the Bundle lifecycle with one option.
 
@@ -1926,7 +1953,7 @@ only. Measured read speedups and write overhead:
 chunk transactions (≤ ~1k statements) — see the turso-go upstream constraint
 in AGENTS.md.
 
-### 2.22. Operator Priority Routing — global / perEngine / perQuery (system, verified v4.6.0)
+### 2.30 Operator Priority Routing — global / perEngine / perQuery (system, verified v4.6.0)
 
 The operator steers the metaengine layout planner per deployment (ADR-0124).
 Resolution order: perQuery → perEngine → global → Balanced. Developers never
@@ -1960,7 +1987,7 @@ priority:
     order_totals: ReadSpeed
 ```
 
-### 2.23. Evolutions — declare folds for a result type (system, verified v4.6.0)
+### 2.31 Evolutions — declare folds for a result type (system, verified v4.6.0)
 
 Evolutions are the developer-side fold declarations. Projections without their
 own samples inherit the matching Evolution's folds by result type:
@@ -1989,7 +2016,7 @@ domain := system.DomainConfig{
 Zero fold funcs (`OnEvolution` without the closure) selects the convention
 fold: the result struct mirrors the event payload field-by-field.
 
-### 2.30 Pre-v5 Snapshot Bytes Still Decode (snapshot wire fallback)
+### 2.32 Pre-v5 Snapshot Bytes Still Decode (snapshot wire fallback)
 
 The v4.x line renamed the snapshot wire keys to the stream vocabulary
 (`stream_id`/`stream_type`, previously `aggregate_id`/`aggregate_type`).
@@ -2014,7 +2041,7 @@ Contract:
 - The same trap class applies to ANY `json` struct tag rename on a CBOR-encoded
   type: the json tag IS the CBOR map key when no `cbor` tag exists.
 
-### 2.31 Encrypted Payloads: Envelope v2 + Key Rotation (encryption)
+### 2.33 Encrypted Payloads: Envelope v2 + Key Rotation (encryption)
 
 Two facts every encrypted-store consumer needs:
 
@@ -2056,7 +2083,7 @@ drop the old entry.
 Keys never appear in errors or redacted DSNs — the `redactDSN` contract hides
 any `*key*`/`authToken`/`token` param on local AND remote DSNs.
 
-### 2.32 Revert & Rebuild a Read Model (projectionhost Reset, ADR-0136)
+### 2.34 Revert & Rebuild a Read Model (projectionhost Reset, ADR-0136)
 
 Read models are replayable by construction — the inverse of "project" is
 "clear + replay the journal". The one-call flow (`host.Stop()` →
@@ -2067,7 +2094,7 @@ warn guard, `projectionhost.WithKeepStaleState()`, the
 [`readmodels.md`](readmodels.md) §"Revert & rebuild: Reset → replay from
 zero (ADR-0136)".
 
-### 2.33 Survive a Dead Engine (health-driven deactivation, ADR-0137)
+### 2.35 Survive a Dead Engine (health-driven deactivation, ADR-0137)
 
 A failing engine degrades the Store from "error storm" to "logged failover":
 consecutive Infrastructure/Transient failures quarantine it, reads reroute to

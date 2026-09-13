@@ -179,6 +179,9 @@ echo "$ALPHA_PID:$DGRAPH_DIR" >"$PID_FILE"
 echo "==> DGRAPH_ADDR=$DGRAPH_ADDR"
 echo "==> Logs in $DGRAPH_DIR"
 
+# shellcheck disable=SC1091  # dynamic path; syntax-checked separately
+source "$(dirname "$0")/lib/shuffle-seed.sh"
+
 # Run the requested command, or default to running dgraphengine tests.
 if [ $# -gt 0 ] && [ "$1" = "go" ]; then
 	shift
@@ -190,11 +193,13 @@ elif [ $# -gt 0 ]; then
 else
 	echo "==> Running dgraphengine integration tests"
 	TEST_TIMEOUT="${TEST_TIMEOUT:-600}"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "dgraphengine" "$SEED"
 	(
 		cd metaengine/dgraphengine
 		# shellcheck disable=SC2086  # TEST_ARGS/TEST_ARGS2 are multi-word go-test passthroughs by contract
 		CGO_ENABLED=1 GOWORK=off \
 			timeout -k 15 "$TEST_TIMEOUT" \
-			go test -tags "goexperiment.jsonv2" -shuffle=on ${TEST_ARGS:-} . -count=1 -v -timeout="${TEST_TIMEOUT}s" ${TEST_ARGS2:-} 2>&1
+			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ${TEST_ARGS:-} . -count=1 -v -timeout="${TEST_TIMEOUT}s" ${TEST_ARGS2:-} 2>&1
 	)
 fi

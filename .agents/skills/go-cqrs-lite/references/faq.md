@@ -187,7 +187,7 @@ viewStore, _ := storage.NewSQLiteViewStore[TodoView, TodoID](db, mapper)
 // Pass the SAME db to both — transactions span both if needed.
 ```
 
-Do NOT use `stack/sqlite.New()` for this case — it creates separate connections. See `references/recipes.md` §2.3 for the shared-database recipe.
+Do NOT use `stack/sqlite.New()` for this case — it creates separate connections. See [`readmodels.md`](readmodels.md) §SQL-backed views for the shared-database recipe.
 
 ### "When should I use snapshots?"
 

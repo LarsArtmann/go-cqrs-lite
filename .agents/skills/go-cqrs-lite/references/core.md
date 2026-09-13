@@ -159,7 +159,7 @@ surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
 | Test deciders/projections with Given/When/Then                        | `scenario`                                                                                     | advanced §6.10  |
 | Schedule delayed commands / durable deadlines                         | `scheduling`                                                                                   | advanced §6.11  |
 | Dead-letter failed dispatches (retry exhaustion)                      | `middleware` (DLQ)                                                                             | recipes §2.8    |
-| Cost-based query planner (7 ADTs, O(1) aggregates)                    | `metaengine` + `stack.WithMetaEngine`                                                          | recipes §2.10   |
+| Cost-based query planner (10 ADTs, O(1) aggregates)                    | `metaengine` (`Plan`/`Store`; via `system` for full lifecycle)                                  | recipes §2.10   |
 | Survivable read models across restart (volatile vs persistent engine) | `metaengine` (`EngineProfile.Persistence`, ADR-0098)                                           | modules §5      |
 | Derive commands reactively from events                                | `deriver`                                                                                      | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)                     | `graph`                                                                                        | advanced §6.13  |
@@ -167,7 +167,7 @@ surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
 | Stream events to browsers via SSE                                     | `go-sse` (or deprecated `transport/http` `SSEBroker` until v5)                                 | advanced §6.15  |
 | Replay events to reconnecting clients (catch-up)                      | `watermill` (`CatchUpSubscriber`) — or `go-sse` Last-Event-ID                                   | advanced §6.15  |
 | Pull-based event backfill (REST endpoint)                             | deprecated `transport/http` (`BackfillHandler`) until v5 — or `watermill` catch-up              | advanced §6.15  |
-| Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                | recipes §2.17   |
+| Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                | recipes §2.18   |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 
@@ -321,13 +321,14 @@ undeclared type fails `New` with `system.ErrDanglingEventSubscription` (the `use
 typo class), and declared-but-unconsumed types surface as advisory diagnostics:
 
 ```go
-sys, err := system.New(ctx, system.Deployment{
-    Domain: system.DomainConfig{
+sys, err := system.New(ctx,
+    system.DomainConfig{
         Events: []event.Type{"user.created", "user.deleted", "billing.invoice.paid"},
         // DisableCoeffectValidation: true, // escape hatch
         // ...
     },
-})
+    deployment, // DeploymentConfig — engines are an operator decision
+)
 // err errors.Is ErrDanglingEventSubscription → typo in a subscription, fail-fast
 ```
 
@@ -395,10 +396,12 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 
 ## 9. Examples in the Repo
 
-| Example             | Path                       | Demonstrates                                                              |
-| ------------------- | -------------------------- | ------------------------------------------------------------------------- |
-| **taskmanager**     | `example/taskmanager/`     | Flagship: full HTTP service, CQRS/ES, signing, SSE, snapshots, tombstones |
-| **getting-started** | `example/getting-started/` | Minimal: 80-line demo of the core loop (bundle → repo → projection)       |
+| Example                   | Path                              | Demonstrates                                                                                                 |
+| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **taskmanager**           | `example/taskmanager/`            | Flagship: full HTTP service, CQRS/ES, signing, SSE, snapshots, tombstones                                    |
+| **getting-started**       | `example/getting-started/`        | Single-file `system.New` composition root: event-sourced counter + metaengine read model                     |
+| **metaengine-quickstart** | `example/metaengine-quickstart/`  | The metaengine goal, runnable: convention folds (Maps), graph + vector ADTs, operator `cqrs.yaml` config     |
+| **readme-quickstart**     | `example/readme-quickstart/`      | Manual module wiring (event + decider + memory + watermill) — no composition root                            |
 
 ---
 
@@ -407,7 +410,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | Need                    | Source                                                                                                                                                                             |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Per-module API details  | Each module's `README.md` and `doc.go` (renders on pkg.go.dev)                                                                                                                     |
-| Architectural decisions | `docs/adr/` (43 ADRs)                                                                                                                                                              |
+| Architectural decisions | `docs/adr/` (137 ADRs)                                                                                           |
 | Storage deep-dive       | `docs/STORAGE_GUIDE.md`                                                                                                                                                            |
 | Error system            | `docs/error-taxonomy.md`                                                                                                                                                           |
 | Signing internals       | `docs/signing-architecture.md`                                                                                                                                                     |
@@ -415,7 +418,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | Migration guides        | `docs/MIGRATION.md`, `docs/MIGRATION_v1.md`                                                                                                                                        |
 | Feature inventory       | `FEATURES.md`                                                                                                                                                                      |
 | Contributor guide       | `AGENTS.md` (in repo)                                                                                                                                                              |
-| Consumer feedback       | `docs/feedback/` (7 files, 5 consumers)                                                                                                                                            |
+| Consumer feedback       | `docs/feedback/` (dated, archived consumer adoption reviews)                                                                                                                       |
 | HTTP/HTMX integration   | [`cqrs-htmx`](https://github.com/LarsArtmann/cqrs-htmx) — wires this library's dispatch into `net/http` with HTMX/SSE/WebSocket. Has its own Crush skill for HTTP-layer questions. |
 
 ---
