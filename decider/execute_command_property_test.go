@@ -56,7 +56,10 @@ func TestExecuteCommandRefCausationProperty(t *testing.T) {
 						continue
 					}
 
-					evts = append(evts, makeCounterEvent("CounterIncremented", ref.ID, v+event.Version(i)+1))
+					evts = append(
+						evts,
+						makeCounterEvent("CounterIncremented", ref.ID, v+event.Version(i)+1),
+					)
 				}
 
 				return evts, nil

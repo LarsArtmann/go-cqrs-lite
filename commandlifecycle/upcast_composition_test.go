@@ -12,8 +12,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	memorystore "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
+	memorystore "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
 )
 
 // failedPayloadV2 models a FUTURE evolution of commandlifecycle.FailedPayload:
@@ -152,7 +152,13 @@ func TestUpcastComposition_RecorderComposesOverUpcastStore(t *testing.T) {
 	g := NewWithT(t)
 	ctx := context.Background()
 	raw := memorystore.NewMemoryStore()
-	ref := id.NewStreamRef(commandlifecycle.StreamTypeCommandLifecycle, id.NewStreamID())
+
+	cmd, err := command.New("create_user", id.NewStreamID())
+	g.Expect(err).ToNot(HaveOccurred())
+
+	// The Recorder appends to the command's OWN lifecycle stream
+	// (CommandLifecycle/<cmd-id>) — simulate the legacy write there.
+	ref := commandlifecycle.LifecycleStreamRef(cmd)
 
 	writeLegacyFailedEvent(ctx, t, g, raw, ref)
 
@@ -162,10 +168,7 @@ func TestUpcastComposition_RecorderComposesOverUpcastStore(t *testing.T) {
 
 	// A Recorder over the decorated store seeds its version counter through
 	// the upcasted read path and appends at the correct next version.
-	recorder := commandlifecycle.NewRecorder(upcasted)
-
-	cmd, err := command.New("create_user", id.NewStreamID())
-	g.Expect(err).ToNot(HaveOccurred())
+	recorder := commandlifecycle.NewRecorder(upcasted, commandlifecycle.WithStrict())
 
 	g.Expect(recorder.RecordFailed(ctx, cmd, errors.New("again"), 2)).To(Succeed())
 

@@ -101,9 +101,9 @@ func TestClaimingSQLite_RaceStress_DueVsMetrics(t *testing.T) {
 		}()
 	}
 
-	wg.Wait()
-
 	close(stop)
+
+	wg.Wait()
 
 	close(errCh)
 
@@ -114,7 +114,12 @@ func TestClaimingSQLite_RaceStress_DueVsMetrics(t *testing.T) {
 	slices.Sort(claimedIDs)
 
 	if n := len(claimedIDs); n != totalTimers {
-		t.Errorf("claimed %d timers across %d pollers, want exactly %d (each timer claimed once)", n, pollers, totalTimers)
+		t.Errorf(
+			"claimed %d timers across %d pollers, want exactly %d (each timer claimed once)",
+			n,
+			pollers,
+			totalTimers,
+		)
 	}
 
 	for i := 1; i < len(claimedIDs); i++ {

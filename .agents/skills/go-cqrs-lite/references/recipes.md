@@ -1143,6 +1143,71 @@ pt, _ := metaengine.ExecuteTyped[projections.ProcessingTimeQuery, projections.Pr
 | `command.dead-lettered` | All retries exhausted          | DLQ            |
 | `command.completed`     | Command processed successfully | ProcessingTime |
 
+### 2.19b Schema Evolution for Command Lifecycle Streams (schema + commandlifecycle)
+
+Lifecycle payload structs evolve like any other. Old streams keep the old
+payload bytes; the new library code wants the new shape. The fix is pure
+COMPOSITION — wrap the raw store with
+[`event.DecorateStore`](../../../../../event/store_middleware.go) +
+[`schema.UpcastSourceTransform`](../../../../../schema/versioned_source.go):
+reads see the new shape, writes pass through untouched. Verified by
+`commandlifecycle/upcast_composition_test.go` (2026-09-13, plan D3).
+
+```go
+// 1. The evolved payload: ErrorCode added after old streams were persisted.
+type failedPayloadV2 struct {
+    CommandType string    `json:"commandType"`
+    Error       string    `json:"error"`
+    Attempt     int       `json:"attempt"`
+    FailedAt    time.Time `json:"failedAt"`
+    ErrorCode   string    `json:"errorCode"` // NEW
+}
+
+// 2. The upcaster: v1 → v2. Preserve identity, timestamp, and metadata —
+//    they carry the typed causation and the audit trail.
+upcaster := schema.NewUpcaster(
+    commandlifecycle.TypeFailed, 1,
+    func(evt event.Event) (event.Event, error) {
+        old, err := event.DecodePayloadAuto[commandlifecycle.FailedPayload](evt)
+        if err != nil {
+            return nil, err
+        }
+
+        return event.New(
+            evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
+            failedPayloadV2{
+                CommandType: old.CommandType,
+                Error:       old.Error,
+                Attempt:     old.Attempt,
+                FailedAt:    old.FailedAt,
+                ErrorCode:   "legacy_unknown",
+            },
+            event.WithEventID(evt.ID()),
+            event.WithOccurredAt(evt.OccurredAt()),
+            event.WithMetadata(evt.Metadata()),
+            event.WithSchemaVersion(2),
+        )
+    },
+)
+
+// 3. Compose: EVERY read (Recorder version seeding, projections, debugging)
+//    now sees the new shape; the raw bytes on disk stay untouched.
+upcasted := event.DecorateStore(raw, nil, schema.UpcastSourceTransform(upcaster))
+recorder := commandlifecycle.NewRecorder(upcasted)
+```
+
+Semantics (all pinned by the test):
+
+- **Read-path only** — the raw store keeps v1 bytes; `SchemaVersion()` reads 2
+  through the decorated store, 1 through the raw one.
+- **Write-path passthrough** — events the Recorder appends are stored exactly
+  as written (no accidental re-upcast loop).
+- **Current-version passthrough** — the upcaster matches
+  `(type, sourceVersion)`; events already at v2 are byte-identical, and
+  `UpcastSourceTransform()` with zero upcasters is a full passthrough.
+- The same composition upcasts ANY event stream — see §2.5 and §2.7b for the
+  store-layer variants.
+
 ### 2.20 Engine Roles, Shadow Replication & Promote Cutover (metaengine)
 
 ADR-0124 §7 + [`docs/planning/METAENGINE-LAYOUT-ROLES.md`](../../../../docs/planning/METAENGINE-LAYOUT-ROLES.md).

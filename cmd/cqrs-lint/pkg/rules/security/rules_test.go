@@ -142,7 +142,10 @@ func configure(cfg *Config) {
 		}
 
 		if !strings.Contains(f.Message, "cfg.Password") {
-			t.Errorf("S001 selector-LHS message %q must carry the receiver path \"cfg.Password\"", f.Message)
+			t.Errorf(
+				"S001 selector-LHS message %q must carry the receiver path \"cfg.Password\"",
+				f.Message,
+			)
 		}
 	}
 }

@@ -25,6 +25,9 @@
 > - [ProjectionSink.Increment went negative](#projectionsinkincrement-went-negative--shouldnt-it-clamp-to-zero)
 > - [KeysetPositionQuery empty string](#why-does-storagesqlkeysetpositionquery-return-an-empty-string-for-a-bad-table-name)
 > - [Planned-collection scan misses meta_map rows](#my-planned-collection-scan-doesnt-see-rows-that-exist-in-meta_map)
+> - [Events don't record the causing command](#why-dont-my-events-record-which-command-caused-them)
+> - [Command lost in the decide closure](#my-decide-function-captured-the-command-in-a-closure--is-that-wrong)
+> - [Evolving persisted command lifecycle payloads](#how-do-i-evolve-command-lifecycle-payloads-that-are-already-persisted)
 > - [Will the v5 cut break my imports?](#will-the-v5-cut-break-my-imports-what-is-going-away)
 > - [stack vs system — which composition layer?](#stack-vs-system--which-composition-layer-should-i-import)
 > - [Turso engine encryption at rest](#does-the-turso-engine-support-encryption-at-rest)
@@ -281,6 +284,66 @@ stays as a Deprecated wrapper until v5; every in-repo journal path
 The same `storage/sql.ValidateJournalIdentifiers` guard protects the
 `JournalReader` and cursor-timestamp interpolation paths, backed by
 adversarial injection tests and a persisted fuzz corpus.
+
+## Command-side pitfalls
+
+### "Why don't my events record which command caused them?"
+
+**Cause:** plain `decider.Repository.ExecuteRef`/`Execute` has no command
+parameter — the decide function is a bare closure, so nothing links the
+emitted events back to the command that produced them. The audit trail shows
+WHAT happened but not WHY.
+
+**Fix:** execute through `decider.ExecuteCommandRef`. It passes the command
+into the decide function AND stamps every emitted event with typed causation
+(`Metadata.Causation` → `Record.Cause{Kind: CauseCommand}`) plus the
+`command.id`/`command.type` compat keys:
+
+```go
+err := decider.ExecuteCommandRef(ctx, repo, ref, cmd,
+    func(state UserState, v event.Version, cmd *command.BasicCommand) ([]event.Event, error) {
+        // full command visibility here; causation stamped automatically
+    })
+```
+
+Any command with `ID() id.CommandID` works — no embedding. Recipe: recipes
+§2.1b; convention: core §3.8.
+
+### "My decide function captured the command in a closure — is that wrong?"
+
+**Cause:** it compiles and works, but the command identity never reaches the
+library, so (a) the causation stamp from the previous pitfall can't happen and
+(b) every decision function re-invents its own context plumbing.
+
+**Fix:** switch the closure to `decider.CommandDecideFunc[State, C]` — the
+command arrives as a parameter. Two lines change, nothing else:
+
+```go
+// Before: func(state State, v event.Version) ([]event.Event, error) { return decide(state, v, cmd) }
+// After:
+var decide decider.CommandDecideFunc[UserState, *CreateUser] =
+    func(state UserState, v event.Version, cmd *CreateUser) ([]event.Event, error) {
+        // ...
+    }
+```
+
+### "How do I evolve command lifecycle payloads that are already persisted?"
+
+**Cause:** lifecycle streams (`command.failed`, etc.) were written by older
+library versions; new code wants new payload fields.
+
+**Fix:** no migration tool needed — compose an upcaster onto the store:
+
+```go
+upcasted := event.DecorateStore(raw, nil, schema.UpcastSourceTransform(
+    schema.NewUpcaster(commandlifecycle.TypeFailed, 1, upcastFailedV1toV2),
+))
+recorder := commandlifecycle.NewRecorder(upcasted) // reads see v2, writes pass through
+```
+
+Reads see the evolved payload and `SchemaVersion()` bump; raw bytes and the
+write path stay untouched. Full recipe with the preservation rules: recipes
+§2.19b.
 
 ## Will the v5 cut break my imports? What is going away?
 

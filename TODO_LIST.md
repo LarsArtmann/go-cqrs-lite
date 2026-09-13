@@ -37,14 +37,26 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > (`docs/reviews/2026-09-13_*`). Additive-only v4.x; `decider` gains ZERO new deps
 > (local `CausedCommand` capability interface). Guardrails: decider.go is 377/350
 > baselined (new file required), api golden regen in same edit, CHANGELOG symbols gated.
+>
+> **Status 2026-09-13: W1–W3 EXECUTED** — `decider.ExecuteCommandRef` + `CausedCommand`
+> + `CommandDecideFunc` shipped with BDD/property/example coverage (note: Go 1.26
+> forbids generic methods, so it is a package-level function — recorded in the plan's
+> D1 amendment); `command.AsRecordPersisted` shipped with fidelity tests + v5
+> deprecation note on the thin bridge; D3 upcast composition CONFIRMED and pinned by
+> `commandlifecycle/upcast_composition_test.go`; recipes §2.1b/§2.19b, core §3.8 +
+> cheat-sheet rows, faq command-pitfalls section all landed; goldens regenerated.
 
-- [ ] 🔥 **W1: `decider.ExecuteCommandRef` + causation stamping** — DecideFunc variant that RECEIVES the command and stamps `metadata.Tracing.CausationID` + `record.Cause{CauseCommand}` on emitted events (new file `decider/execute_command.go`). Closes decider-depth Gaps 1+3 (command-blind DecideFunc, missing cmd→event lineage). _(Effort: M incl. BDD+property tests)_
-- [ ] 🔥 **W2: `command.AsRecordPersisted(*PersistedCommand)`** — bridge the PERSISTED form (payload+encoding+receivedAt+StreamType populated; today's BasicCommand bridge is payload-less with empty StreamType) so commands become first-class `record.Record`s for metaengine routing/folds; BasicCommand bridge gets a v5 deprecation doc-note only. Third lockstep twin → `//art-dupl:accept`. _(Effort: S)_
-- [ ] **W3: lifecycle upcast composition spike** — verify `commandlifecycle.NewRecorder(event.DecorateStore(raw, nil, schema.UpcastSourceTransform(u)))` upcasts old lifecycle payloads on replay; prove with an integration test; ship `recipes.md` §schema-evolution-for-commands. If falsified: file the design note, build nothing. _(Effort: S/M)_
-- [ ] **W3: command-pitfalls FAQ + docs parity** — faq.md command section (DecideFunc closure trap, causation-by-default, evolving persisted commands; currently 6 vs 51 event mentions); recipes/core cheat-sheet rows for W1/W2. _(Effort: S)_
-- [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). _(Effort: M)_
+- [x] 🔥 **W1: `decider.ExecuteCommandRef` + causation stamping** — DONE 2026-09-13. Package-level generic function (Go 1.26 generic-method limit), stamps typed `Metadata.Causation` + compat keys, respects decide-set causation, skips zero-ID commands; BDD suite + rapid property + runnable example.
+- [x] 🔥 **W2: `command.AsRecordPersisted(*PersistedCommand)`** — DONE 2026-09-13. Full-fidelity bridge (payload, StreamType, receive stamps); fidelity tests; v5 deprecation doc-note on `AsRecord(*BasicCommand)`; `//art-dupl:accept` twin annotation.
+- [x] **W3: lifecycle upcast composition spike** — DONE 2026-09-13, hypothesis CONFIRMED: `DecorateStore(raw, nil, UpcastSourceTransform(u))` around the Recorder gives read-path-only evolution, write-path passthrough, current-version passthrough; permanent test `commandlifecycle/upcast_composition_test.go`; recipe recipes §2.19b.
+- [x] **W3: command-pitfalls FAQ + docs parity** — DONE 2026-09-13. faq.md "Command-side pitfalls" section (causation-by-default, closure trap, evolving persisted lifecycle payloads); recipes §2.1b; core §3.8 note + cheat-sheet rows; doc-check 1123 refs zero-failure.
+- [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). _(Effort: M — in progress)_
 - [BLOCKED] **Release train (user approval)** — tag waves decider/command/commandlifecycle once W1–W4 land. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [BLOCKED] **ADR-0138: command sourcing draft (consumer demand)** — design doc only, builds on W2's bridge, reconciles ADR-0112's planned `CommandAwareFold`. _(Effort: M)_
+
+## Go 1.27 upgrade wave (proposed 2026-09-13)
+
+- [ ] 🔥 **Toolchain + go-directive wave to Go 1.27** — Go 1.27 (2026-08-19; 1.27.1 2026-09-01) graduated `encoding/json/v2` (v1 now backed by the v2 engine — the `-tags "goexperiment.jsonv2"` footgun dies repo-wide, clearing ~20 live gopls `stdversion` warnings) and legalized **generic methods** (method-level type params; interface methods still can't). Scope: bump all 85 `go.mod` `go` directives (language features are directive-gated), flake `goToolchain` pin to nixpkgs `go_1_27` (verify availability first), CI, AGENTS.md/docs command chains, then full `#verify` + integration suites + bench-regression sweep (v2 unmarshal is significantly faster — expect improvements), and a release train so consumers actually receive it. Consumer impact: `go` directive ≥ 1.27 forces toolchain download on older setups (`GOTOOLCHAIN=auto` mitigates). Sequel: revisit `decider.ExecuteCommandRef` as a true `Repository[State]` method (additive), plus the other option-func families. — evidence: go.dev/doc/go1.27 release notes, plan D1 amendment. _(Effort: L — own wave, do NOT fold into other plans)_
 
 ## Turso materialized views (ADR-0135) — upstream handoffs
 

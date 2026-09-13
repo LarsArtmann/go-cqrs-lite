@@ -50,15 +50,24 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 	}
 
 	if string(rec.Payload) != string(payload) {
-		t.Errorf("Payload: got %q, want persisted payload carried (thin BasicCommand bridge leaves it empty)", rec.Payload)
+		t.Errorf(
+			"Payload: got %q, want persisted payload carried (thin BasicCommand bridge leaves it empty)",
+			rec.Payload,
+		)
 	}
 
 	if rec.Encoding != record.EncodingUnknown {
-		t.Errorf("Encoding: got %v, want EncodingUnknown (ADR-0044 envelope self-describes)", rec.Encoding)
+		t.Errorf(
+			"Encoding: got %v, want EncodingUnknown (ADR-0044 envelope self-describes)",
+			rec.Encoding,
+		)
 	}
 
 	if rec.StreamType != "user" {
-		t.Errorf("StreamType: got %q, want persisted stream type carried (thin bridge leaves it empty)", rec.StreamType)
+		t.Errorf(
+			"StreamType: got %q, want persisted stream type carried (thin bridge leaves it empty)",
+			rec.StreamType,
+		)
 	}
 
 	if rec.StreamID != record.NewStreamRefOrZero("user", ref.ID.String()) {
@@ -74,28 +83,50 @@ func TestAsRecordPersisted_FullFidelity(t *testing.T) {
 	}
 
 	if !rec.MetaData.ClientCreatedAt.Equal(receivedAt) {
-		t.Errorf("ClientCreatedAt: got %v, want lockstep with Received until the v5 cut", rec.MetaData.ClientCreatedAt)
+		t.Errorf(
+			"ClientCreatedAt: got %v, want lockstep with Received until the v5 cut",
+			rec.MetaData.ClientCreatedAt,
+		)
 	}
 
 	if rec.MetaData.CorrelationID != tracing.CorrelationID.String() {
-		t.Errorf("CorrelationID: got %q, want %q", rec.MetaData.CorrelationID, tracing.CorrelationID.String())
+		t.Errorf(
+			"CorrelationID: got %q, want %q",
+			rec.MetaData.CorrelationID,
+			tracing.CorrelationID.String(),
+		)
 	}
 
 	if rec.MetaData.CausationID != tracing.CausationID.String() {
-		t.Errorf("CausationID: got %q, want %q", rec.MetaData.CausationID, tracing.CausationID.String())
+		t.Errorf(
+			"CausationID: got %q, want %q",
+			rec.MetaData.CausationID,
+			tracing.CausationID.String(),
+		)
 	}
 
 	wantCause := record.Cause{Kind: record.CauseUnknown, ID: tracing.CausationID.String()}
 	if rec.MetaData.Cause != wantCause {
-		t.Errorf("Cause: got %+v, want %+v (tracing chain is honestly CauseUnknown)", rec.MetaData.Cause, wantCause)
+		t.Errorf(
+			"Cause: got %+v, want %+v (tracing chain is honestly CauseUnknown)",
+			rec.MetaData.Cause,
+			wantCause,
+		)
 	}
 
 	if rec.MetaData.ActorID != tracing.UserID.String() {
-		t.Errorf("ActorID: got %q, want UserID fallback %q", rec.MetaData.ActorID, tracing.UserID.String())
+		t.Errorf(
+			"ActorID: got %q, want UserID fallback %q",
+			rec.MetaData.ActorID,
+			tracing.UserID.String(),
+		)
 	}
 
 	if rec.MetaData.Created.IsZero() != true {
-		t.Errorf("Created: got %v, want zero (persisted commands carry no client clock)", rec.MetaData.Created)
+		t.Errorf(
+			"Created: got %v, want zero (persisted commands carry no client clock)",
+			rec.MetaData.Created,
+		)
 	}
 
 	if rec.MetaData.SchemaVersion != 0 {
@@ -142,6 +173,10 @@ func TestAsRecordPersisted_ActorKindWins(t *testing.T) {
 	rec := command.AsRecordPersisted(cmd)
 
 	if rec.MetaData.ActorID != actor.PrefixedString() {
-		t.Errorf("ActorID: got %q, want kind-discriminated %q", rec.MetaData.ActorID, actor.PrefixedString())
+		t.Errorf(
+			"ActorID: got %q, want kind-discriminated %q",
+			rec.MetaData.ActorID,
+			actor.PrefixedString(),
+		)
 	}
 }

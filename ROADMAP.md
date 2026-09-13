@@ -130,7 +130,10 @@ Open remainder: iroh standalone-pin repair + the skill-ref propagation wave.
   snapshot namespace), `StreamLogBackend` (stream-keyed log ops). Both needed
   for full `system.Bundle` integration.
 - **ADR-0112: Command sourcing** — folding over command history (not just events).
-  Requires `CommandAwareFold` interface + command journal replay.
+  Requires `CommandAwareFold` interface + command journal replay. The concrete
+  bridge now exists: `command.AsRecordPersisted` (2026-09-13) gives persisted
+  commands full-fidelity `record.Record` form; gated items and demand evidence in
+  the [command-side depth plan](docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md).
 - ✅ **ADR-0113 Phases 3–4: Delete `GraphBackend` interface entirely** — DONE.
   `GraphBackend` removed from `metaengine/engine.go`, all engines route ADTGraph
   through `graphadapter`. `adttest.RunMatrix` updated.
