@@ -77,32 +77,46 @@ func TestExecuteCommandRefCausationProperty(t *testing.T) {
 			t.Fatalf("persisted %d events, want %d", len(evts), eventCount)
 		}
 
-		for i, evt := range evts {
-			md := evt.Metadata()
-
-			if i == preStampedIdx {
-				if md.Causation == nil || md.Causation.CommandType != "DecideSet" {
-					t.Fatalf("event %d: decide-set causation clobbered", i)
-				}
-
-				continue
-			}
-
-			if cmdID.IsZero() {
-				if md.Causation != nil {
-					t.Fatalf("event %d: stamped despite zero command ID", i)
-				}
-
-				continue
-			}
-
-			rec := event.AsRecord(evt)
-			if md.Causation == nil ||
-				md.Causation.CommandID != cmdID ||
-				rec.MetaData.Cause.Kind != record.CauseCommand ||
-				rec.MetaData.Cause.ID != cmdID.String() {
-				t.Fatalf("event %d: causation stamp missing or wrong", i)
-			}
-		}
+		verifyCausationStamps(t, evts, cmdID, preStampedIdx)
 	})
+}
+
+// verifyCausationStamps asserts the stamp outcome for every persisted event:
+// decide-set causation preserved, zero-ID commands unstamped, everything
+// else carrying the command's causation (typed form + record Cause).
+func verifyCausationStamps(
+	t *testing.T,
+	evts []event.Event,
+	cmdID id.CommandID,
+	preStampedIdx int,
+) {
+	t.Helper()
+
+	for i, evt := range evts {
+		md := evt.Metadata()
+
+		if i == preStampedIdx {
+			if md.Causation == nil || md.Causation.CommandType != "DecideSet" {
+				t.Fatalf("event %d: decide-set causation clobbered", i)
+			}
+
+			continue
+		}
+
+		if cmdID.IsZero() {
+			if md.Causation != nil {
+				t.Fatalf("event %d: stamped despite zero command ID", i)
+			}
+
+			continue
+		}
+
+		rec := event.AsRecord(evt)
+		if md.Causation == nil ||
+			md.Causation.CommandID != cmdID ||
+			rec.MetaData.Cause.Kind != record.CauseCommand ||
+			rec.MetaData.Cause.ID != cmdID.String() {
+			t.Fatalf("event %d: causation stamp missing or wrong", i)
+		}
+	}
 }
