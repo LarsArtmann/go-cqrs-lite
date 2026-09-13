@@ -17,8 +17,12 @@
 #   go test -shuffle="$SEED" ...
 #
 # Log: build/shuffle-seeds.log (gitignored; override: SHUFFLE_SEED_LOG).
+# The default is ABSOLUTE — anchored at this lib's location (scripts/lib/
+# → repo root two levels up) — so the entry lands in the same file no
+# matter where the sourcing script has cd'd by log time.
 
-SHUFFLE_SEED_LOG="${SHUFFLE_SEED_LOG:-build/shuffle-seeds.log}"
+_SHUFFLE_SEED_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+SHUFFLE_SEED_LOG="${SHUFFLE_SEED_LOG:-"$_SHUFFLE_SEED_LIB_DIR/../../build/shuffle-seeds.log"}"
 
 new_shuffle_seed() {
 	# 48-bit positive int from /dev/urandom: comfortably inside go's int64

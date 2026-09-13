@@ -26,6 +26,10 @@
 #                     export PGDATA_CACHE=/tmp/cqrs-pg-cache
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
 SOCKDIR=""
 CACHE_MODE=false
 
