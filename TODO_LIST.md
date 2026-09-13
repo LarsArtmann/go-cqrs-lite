@@ -529,25 +529,34 @@ bottom is a do-not-re-litigate guard, not a backlog.
       — source: 02-16 §c4/§f13, 05-40 §f2/§f3/§f8, SUPERB S03
       _(Effort: M)_
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
-      30.** Classified 2026-09-11 (run 34548534824): (a) FIXED same-day —
+      30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED
+      2026-09-13 (run 34747274058, full log triage): (a) FIXED same-day —
       the Module-matrix go.sum class (missing `/go.mod` hashes after the
-      v4.5/v4.6 pin wave: badgerengine, mysqlengine, projectionhost,
-      stack/bench, stack/postgres, testutil/pgtestcontainer, plus
-      idempotency/sqlstore found live on the mysql-vm leg); detection +
-      repair recipe in gotchas-module-management.md. (b) REMAINING, undiagnosed:
-      FlakeHub auth errors in job logs despite `use-flakehub: false`
-      (possibly fatal in the ephemeral dgraph/pg/redis integration jobs,
-      which are green locally), shellcheck SC2086 in
-      `scripts/test-tag-release.sh` (`git $notag` is INTENTIONALLY unquoted
-      — quoting changes semantics; needs a disable directive or
-      restructure), Minimum Coverage, verify-fast, go.work sync check, Nix
-      Flake Check, CGo build, Security Scan. (c) KNOWN/accepted: File Size
-      Check (the split-waves policy item above). NOTE: failures predate
-      2026-09-11 (they exist on commit 82d5218fc, before that day's
-      sessions). Also: dry-run the `benchmarks.yml` matview gate set's exact
-      CI invocation shape (the actionlint job covers syntax; the relative
-      `cd ../metaengine/tursoengine` hop is unproven). — source: run 34548534824, `gh run list`
-      _(Effort: M-L, multi-session)_
+      v4.5/v4.6 pin wave). (b) **ROOT-CAUSED 2026-09-13 — one dominant
+      infra cause:** the deprecated `magic-nix-cache-action` was THROTTLED
+      by the GitHub Actions Cache API ("ResourceExhausted: rate limit
+      exceeded" / "GitHub Actions Cache throttled Magic Nix Cache"), its
+      local substituter (127.0.0.1:37515) then returned HTTP 418, nix
+      disabled the substituter mid-job, and every nix-based job starved on
+      closure downloads: verify-fast, Dgraph Integration, CGo Build,
+      Security Scan (gosec via nix-shell), Minimum Coverage. NOT FlakeHub
+      auth — the Twirp rate-limit is the GH cache backend. **Fix needs an
+      owner/infra decision**: migrate to a maintained cache backend
+      (`DeterminateSystems/flakehub-cache-action` — needs the parked
+      FlakeHub account decision) or drop the action and accept cold builds
+      (timeout-minutes must rise). (c) FIXED LOCALLY 2026-09-13, next run
+      should clear — File Size Check (store.go 953→940: EventInput moved
+      out), Shell Format Drift + Nix Flake Check formatting leg
+      (nix fmt clean), api-stability (golden updated), cmd/cqrs-lint module
+      (taskmanager golden re-pinned — rule-output drift) + verify-fast's
+      TestTagContentMatchesChangelog (green against current CHANGELOG).
+      (d) STILL OPEN: shellcheck SC2086 in `scripts/test-tag-release.sh`
+      (`git $notag` is INTENTIONALLY unquoted — needs a disable directive),
+      go.work sync check job, benchmarks.yml matview-gate dry-run (relative
+      `cd ../metaengine/tursoengine` hop unproven). — source: run
+      34548534824, run 34747274058, `gh run list`
+      _(Effort: M-L, multi-session; the cache-backend migration is the
+      single highest-leverage repair)_
 
 ---
 
