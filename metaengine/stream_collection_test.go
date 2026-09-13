@@ -9,14 +9,19 @@ import (
 	"testing"
 )
 
-// streamingScanTestEngine wraps an Engine and adds the StreamingScan
-// capability. When cannedRows is non-nil it yields exactly those rows
-// (proving the streaming path was taken); otherwise it delegates to the
-// wrapped engine's ScanBackend so output stays faithful.
+// streamingScanTestEngine embeds the concrete memory engine (promoting all
+// of its backend interfaces) and adds the StreamingScan capability. When
+// cannedRows is non-nil it yields exactly those rows (proving the streaming
+// path was taken); otherwise it delegates to MapScan so output stays
+// faithful.
 type streamingScanTestEngine struct {
-	Engine
+	*memoryEngine
 	calls      atomic.Int32
 	cannedRows []any
+}
+
+func newStreamingScanTestEngine() *streamingScanTestEngine {
+	return &streamingScanTestEngine{memoryEngine: NewMemoryEngine().(*memoryEngine)} //nolint:forcetypeassert // concrete memory engine, internal test
 }
 
 func (e *streamingScanTestEngine) StreamScan(
@@ -38,14 +43,7 @@ func (e *streamingScanTestEngine) StreamScan(
 			return
 		}
 
-		sb, ok := e.Engine.(ScanBackend)
-		if !ok {
-			yield(nil, errNoScanBackend)
-
-			return
-		}
-
-		result, err := sb.MapScan(ctx, collection, nil, nil, nil, 0)
+		result, err := e.memoryEngine.MapScan(ctx, collection, nil, nil, nil, 0)
 		if err != nil {
 			yield(nil, err)
 
@@ -92,8 +90,8 @@ func TestStreamCollection_PrefersStreamingScan(t *testing.T) {
 	t.Parallel()
 
 	eng := &streamingScanTestEngine{
-		Engine:     NewMemoryEngine(),
-		cannedRows: []any{"CANARY"},
+		memoryEngine: NewMemoryEngine().(*memoryEngine), //nolint:forcetypeassert // concrete memory engine, internal test
+		cannedRows:   []any{"CANARY"},
 	}
 
 	store, err := Plan([]Engine{eng}, testTaskQuery())
@@ -135,10 +133,17 @@ func TestStreamCollection_PropagatesFnError(t *testing.T) {
 	t.Parallel()
 
 	store := newMemoryTestStore(t)
+	ctx := context.Background()
+
+	if err := store.ApplyBatch(ctx, []EventInput{
+		{Type: "task_created", Payload: testTask{ID: "t1", Title: "A", Status: "open"}},
+	}); err != nil {
+		t.Fatalf("ApplyBatch: %v", err)
+	}
 
 	sentinel := errors.New("stop streaming")
 
-	err := store.StreamCollection(context.Background(), "tasks", func(any) error {
+	err := store.StreamCollection(ctx, "tasks", func(any) error {
 		return sentinel
 	})
 	if !errors.Is(err, sentinel) {
@@ -152,7 +157,7 @@ func TestExport_UsesStreamingScanAndMatchesFallbackOutput(t *testing.T) {
 	ctx := context.Background()
 
 	plainStore := newMemoryTestStore(t)
-	eng := &streamingScanTestEngine{Engine: NewMemoryEngine()}
+	eng := newStreamingScanTestEngine()
 
 	streamStore, err := Plan([]Engine{eng}, testTaskQuery())
 	if err != nil {

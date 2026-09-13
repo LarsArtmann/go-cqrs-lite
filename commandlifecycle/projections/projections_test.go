@@ -25,6 +25,7 @@ func TestDeclarations_ConstructWithoutPanic(t *testing.T) {
 		{"RetryCount", func() any { return projections.RetryCount() }},
 		{"FailureLog", func() any { return projections.FailureLog() }},
 		{"ProcessingTime", func() any { return projections.ProcessingTime() }},
+		{"CommandsByActor", func() any { return projections.CommandsByActor() }},
 	}
 
 	for _, tt := range tests {
@@ -36,12 +37,12 @@ func TestDeclarations_ConstructWithoutPanic(t *testing.T) {
 	}
 }
 
-func TestAll_ReturnsFourDeclarations(t *testing.T) {
+func TestAll_ReturnsFiveDeclarations(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
 	all := projections.All()
-	g.Expect(all).To(HaveLen(4))
+	g.Expect(all).To(HaveLen(5))
 }
 
 func TestAll_ProjectionsPlanTogether(t *testing.T) {
@@ -213,4 +214,59 @@ func makeRecord(eventType string, cmdID id.CommandID) record.Record {
 			Cause:       record.Cause{Kind: record.CauseCommand, ID: cmdID.String()},
 		},
 	}
+}
+
+func makeRecordWithActor(eventType string, cmdID id.CommandID, actor record.Actor) record.Record {
+	rec := makeRecord(eventType, cmdID)
+	rec.MetaData.Actor = actor
+
+	return rec
+}
+
+func TestCommandsByActor_AppliesAndQueries(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		projections.CommandsByActor(),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	alice := record.Actor{Kind: record.ActorUser, Raw: "u-alice"}
+	bob := record.Actor{Kind: record.ActorUser, Raw: "u-bob"}
+
+	receivedAt := time.Date(2026, 9, 13, 12, 0, 0, 0, time.UTC)
+
+	testCases := []struct {
+		cmd   id.CommandID
+		actor record.Actor
+	}{
+		{id.NewCommandID(), alice},
+		{id.NewCommandID(), alice},
+		{id.NewCommandID(), bob},
+	}
+
+	for _, tc := range testCases {
+		g.Expect(store.ApplyRecord(
+			context.Background(),
+			makeRecordWithActor("command.received", tc.cmd, tc.actor),
+			commandlifecycle.ReceivedPayload{
+				CommandID:       commandlifecycle.CommandKey(tc.cmd.String()),
+				CommandType:     "create_user",
+				CommandStreamID: "User/1",
+				ReceivedAt:      receivedAt,
+			},
+		)).To(Succeed())
+	}
+
+	result, err := metaengine.ExecuteTyped[
+		projections.CommandsByActorQuery, projections.CommandsByActorResult,
+	](
+		context.Background(), store, projections.CommandsByActorQuery{Actor: alice.String()},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result.Commands).To(HaveLen(2))
+	g.Expect(result.Commands[0].CommandType).To(Equal("create_user"))
+	g.Expect(result.Commands[0].ReceivedAt).To(Equal(receivedAt))
 }

@@ -52,6 +52,7 @@ use (
 	./metaengine/tursoengine
 	./middleware
 	./otel
+	./otel/otlp
 	./projection
 	./projectionhost
 	./prometheus

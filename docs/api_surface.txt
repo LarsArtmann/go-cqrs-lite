@@ -1083,6 +1083,8 @@ commandlifecycle/method RecordRetried
 commandlifecycle/method ResetVersion
 commandlifecycle/projections/func All
 commandlifecycle/projections/func All
+commandlifecycle/projections/func CommandsByActor
+commandlifecycle/projections/func CommandsByActor
 commandlifecycle/projections/func DeadLetterQueue
 commandlifecycle/projections/func DeadLetterQueue
 commandlifecycle/projections/func FailureLog
@@ -1091,6 +1093,12 @@ commandlifecycle/projections/func ProcessingTime
 commandlifecycle/projections/func ProcessingTime
 commandlifecycle/projections/func RetryCount
 commandlifecycle/projections/func RetryCount
+commandlifecycle/projections/struct CommandRecordEntry
+commandlifecycle/projections/struct CommandRecordEntry
+commandlifecycle/projections/struct CommandsByActorQuery
+commandlifecycle/projections/struct CommandsByActorQuery
+commandlifecycle/projections/struct CommandsByActorResult
+commandlifecycle/projections/struct CommandsByActorResult
 commandlifecycle/projections/struct DeadLetterQuery
 commandlifecycle/projections/struct DeadLetterQuery
 commandlifecycle/projections/struct FailureLogQuery
@@ -3379,6 +3387,7 @@ metaengine/method Stats
 metaengine/method Stop
 metaengine/method StreamAppend
 metaengine/method StreamAppendExpected
+metaengine/method StreamCollection
 metaengine/method StreamRead
 metaengine/method StreamReadAsOfVersion
 metaengine/method StreamReadFromVersion
@@ -4252,6 +4261,10 @@ otel/func WithoutGlobalRegistration
 otel/method AsMeterProvider
 otel/method AsTracerProvider
 otel/method Shutdown
+otel/otlp/func SetupOTLP
+otel/otlp/func SetupOTLP
+otel/otlp/struct OTLPConfig
+otel/otlp/struct OTLPConfig
 otel/struct Provider
 otel/type AddOption
 otel/type EventOption

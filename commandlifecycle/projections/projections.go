@@ -4,11 +4,12 @@
 // These projections fold lifecycle events into query-optimized materialized
 // views. The planner auto-routes them to the best available engine.
 //
-// | Projection        | Source events           | ADT     | Query                         |
-// | ----------------- | ----------------------- | ------- | ----------------------------- |
-// | Dead-letter queue | command.dead-lettered   | Map     | "Which commands are DL?"      |
-// | Retry count       | command.retried         | Counter | "How many retries for cmd-X?" |
-// | Failure log       | command.failed          | Log     | "Show recent failures"        |
+// | Projection        | Source events           | ADT      | Query                          |
+// | ----------------- | ----------------------- | -------- | ------------------------------ |
+// | Dead-letter queue | command.dead-lettered   | Map      | "Which commands are DL?"       |
+// | Retry count       | command.retried         | Counter  | "How many retries for cmd-X?"  |
+// | Failure log       | command.failed          | Log      | "Show recent failures"         |
+// | Commands by actor | command.received        | Multimap | "What did actor X command?"    |
 //
 // # Usage
 //
@@ -165,6 +166,54 @@ func ProcessingTime() metaengine.QueryDecl[ProcessingTimeQuery, ProcessingTimeEn
 	)
 }
 
+// CommandsByActorQuery queries the commands received from one actor. Actor
+// is the "kind:raw" wire form (e.g. "user:01J...", "system:scheduler"); the
+// empty string selects commands recorded without actor attribution.
+type CommandsByActorQuery struct {
+	Actor string `json:"actor"`
+}
+
+// CommandRecordEntry is one received-command row in the per-actor view.
+type CommandRecordEntry struct {
+	CommandID   commandlifecycle.CommandKey `json:"commandId"`
+	CommandType string                      `json:"commandType"`
+	StreamID    string                      `json:"streamId"`
+	ReceivedAt  time.Time                   `json:"receivedAt"`
+}
+
+// CommandsByActorResult holds the commands received from the queried actor.
+type CommandsByActorResult struct {
+	Commands []CommandRecordEntry `json:"commands"`
+}
+
+// CommandsByActor returns a metaengine projection declaration that folds
+// command.received events into a Multimap keyed by actor (record metadata
+// Actor, "kind:raw"). Query it to answer "who did what": every received
+// command for one actor, including commands without outcomes (the DLQ and
+// retry projections cover outcome detail).
+//
+// ADT: Multimap (key = actor from record metadata, value = CommandRecordEntry).
+func CommandsByActor() metaengine.QueryDecl[CommandsByActorQuery, CommandsByActorResult] {
+	return metaengine.Query[CommandsByActorQuery, CommandsByActorResult](
+		"command_by_actor",
+		metaengine.OnRecordTyped(
+			string(commandlifecycle.TypeReceived),
+			commandlifecycle.ReceivedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
+			func(rec record.Record, p commandlifecycle.ReceivedPayload) metaengine.MultiEntry {
+				return metaengine.MultiEntry{
+					Key: rec.MetaData.Actor.String(),
+					Value: CommandRecordEntry{
+						CommandID:   p.CommandID,
+						CommandType: p.CommandType,
+						StreamID:    p.CommandStreamID,
+						ReceivedAt:  p.ReceivedAt,
+					},
+				}
+			},
+		),
+	)
+}
+
 // All returns all pre-built lifecycle projection declarations. Pass them to
 // metaengine.Plan or system.DomainConfig.Projections.
 func All() []any {
@@ -173,5 +222,6 @@ func All() []any {
 		RetryCount(),
 		FailureLog(),
 		ProcessingTime(),
+		CommandsByActor(),
 	}
 }

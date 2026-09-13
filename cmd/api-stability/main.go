@@ -74,6 +74,7 @@ var modules = []string{
 	"signing",
 	"encryption",
 	"otel",
+	"otel/otlp",
 	// Layer 5
 	"middleware",
 	"storage",

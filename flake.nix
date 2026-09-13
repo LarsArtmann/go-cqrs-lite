@@ -209,6 +209,7 @@
             "kv"
             "listing"
             "otel"
+            "otel/otlp"
             "testutil"
             "testutil/pgtestcontainer"
             "stack"
