@@ -39,7 +39,7 @@ import (
 
 **Before (pre-v1.0.0):** You needed `replace` directives because modules weren't tagged:
 
-```go
+```text
 // go.mod
 require github.com/larsartmann/go-cqrs-lite/core v1.6.0
 
@@ -48,7 +48,7 @@ replace github.com/larsartmann/go-cqrs-lite/core => ../core
 
 **After (v1.0.0):** All modules are tagged. Remove all `replace` directives:
 
-```go
+```text
 // go.mod
 require github.com/larsartmann/go-cqrs-lite/core v1.0.0
 // No replace directive needed

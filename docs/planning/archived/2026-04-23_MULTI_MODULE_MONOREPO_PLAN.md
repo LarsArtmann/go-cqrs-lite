@@ -157,7 +157,7 @@ go-cqrs-lite/
 
 ## go.work
 
-```go
+```text
 go 1.26
 
 use (

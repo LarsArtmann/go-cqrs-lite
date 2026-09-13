@@ -143,7 +143,7 @@ require (
 
 **1.2 Add to `go.work`**
 
-```go
+```text
 use (
     // ... existing ...
     ./projection
@@ -430,7 +430,7 @@ func WithConcurrency(n int) RunnerOption
 
 **7.1 Update `go.work`**
 
-```go
+```text
 use (
     // ... existing ...
     ./projection

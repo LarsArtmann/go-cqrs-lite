@@ -74,10 +74,10 @@ do.Provide(i, func(inj do.Injector) (*projectionRuntime, error) {
 
 This gives `injector.ShutdownWithContext(ctx)` a topological DAG — the database
 shuts down last because everything depends on it. Plus `HealthcheckerWithContext`
-aggregates health from every service into `/readyz`:
+aggregates health from every service into `/readyz` (503 with per-service
+detail when any service is unhealthy):
 
-```go
-// /readyz returns 503 with per-service detail when any service is unhealthy:
+```json
 {"status":"unhealthy","services":{"db":"ping failed","bot":"discord disconnected"}}
 ```
 

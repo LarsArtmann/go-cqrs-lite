@@ -267,6 +267,42 @@ func withRetry(fn func() error) error {
 	}
 }
 
+// TestB008_NonBitshiftStaysWarning pins the NON-escalation branch: a manual
+// retry loop without bitshift backoff is a best-practice nudge, not an
+// error. Without this pin, a global severity flip (warning → error) would
+// pass the suite and silently change every consumer's --min-severity result.
+func TestB008_NonBitshiftStaysWarning(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"retry.go": `package main
+
+import "time"
+
+func withRetry(fn func() error) error {
+	for attempt := 0; attempt < 3; attempt++ {
+		if err := fn(); err == nil {
+			return nil
+		}
+		time.Sleep(time.Second)
+	}
+	return nil
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, boilerplate.NewB008Detector(ctx))
+	ruletest.AssertRule(t, findings, "B008", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) != "B008" {
+			continue
+		}
+
+		if f.Severity != finding.SeverityWarning {
+			t.Errorf("B008 non-bitshift severity drift: got %s, want warning — "+
+				"only the bitshift-backoff branch may escalate to error", f.Severity)
+		}
+	}
+}
+
 // --- B009: Emit function boilerplate ---
 
 func TestB009_DetectsEmitFunction(t *testing.T) {

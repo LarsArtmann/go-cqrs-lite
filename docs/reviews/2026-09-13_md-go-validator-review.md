@@ -99,6 +99,14 @@ Top hotspots:
 1. **P1 — fix the 5 wrong-fence spots** (cheapest wins; content is valid for its real
    language): JSON → ```json, `go.mod`/`go.work` → ```text. After this, zero failures
    remain where the fence lies about the language.
+   **APPLIED 2026-09-13:** all 5 fences fixed (plus the sibling go.mod "Before" fence in
+   `docs/MIGRATION_v1.md` that only passed by tool accident — both go.mod blocks in that
+   file now use ```text for consistency). Files touched:
+   `docs/feedback/archived/2026-07-05_cross-consumer-integration-gaps.md` (JSON comment
+   moved into prose + ```json),
+   `docs/MIGRATION_v1.md`, `docs/planning/archived/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md`,
+   `docs/planning/archived/2026-04-30_SAMBER_RO_PROJECTION_INTEGRATION.md` (×2).
+   Re-run: **167 errors** (was 172); all 4 files now 0 errors / 31 blocks.
 2. **P2 — consumer-facing docs (9 errors, 7 files):** add `// skip-validate` as the first
    line inside the failing block (the tool's own advice) — keeps syntax highlighting while
    silencing intentional pseudo-code.
