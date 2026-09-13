@@ -42,6 +42,44 @@ GATED_MODULES=(
 # Optional 4th field, default 1.
 DEFAULT_FLOOR=1
 
+EXTRACT_PATTERN='errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?"([a-z0-9_.]+)"'
+
+# --self-test: run the extraction against the planted mutation fixture
+# (scripts/testdata/error-taxonomy-selftest/) and assert the scanner sees
+# what it must see — and nothing more. Makes the 2026-09-11 hand-planted
+# mutation proof a permanent CI fact instead of a dying session anecdote.
+if [ "${1:-}" = "--self-test" ]; then
+	fixture="$repo_root/scripts/testdata/error-taxonomy-selftest"
+	tmp="$(mktemp)"
+	trap 'rm -f "$tmp"' EXIT
+
+	rg -U --no-filename -o "$EXTRACT_PATTERN" "$fixture" -r '$2	$1' >"$tmp"
+	sort -u "$tmp" -o "$tmp"
+
+	fail=0
+	for want in \
+		$'selftest.simple\tRejection' \
+		$'selftest.multiline\tInfrastructure' \
+		$'selftest.wrap\tCorruption'; do
+		grep -qxF "$want" "$tmp" || {
+			echo "SELF-TEST FAIL: planted code not extracted: $want" >&2
+			fail=1
+		}
+	done
+
+	for banned in "limit" "never.extract" ".suffix" "selftest.suffix"; do
+		grep -q "^${banned}	" "$tmp" && {
+			echo "SELF-TEST FAIL: junk captured as a code: $banned" >&2
+			fail=1
+		}
+	done
+
+	if [ "$fail" -eq 0 ]; then
+		echo "✓ error-taxonomy self-test: scanner extraction matches the planted mutation fixture"
+	fi
+	exit "$fail"
+fi
+
 status=0
 tmp_pool="$(mktemp)"
 tmp_claims="$(mktemp)"
@@ -53,8 +91,7 @@ for entry in "${GATED_MODULES[@]}"; do
 	floor="${floor:-$DEFAULT_FLOOR}"
 
 	tmp_mod="$(mktemp)"
-	rg -U --no-filename -o \
-		'errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?"([a-z0-9_.]+)"' \
+	rg -U --no-filename -o "$EXTRACT_PATTERN" \
 		"$repo_root/$dir" \
 		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
 		-r '$2	$1' >"$tmp_mod" || true

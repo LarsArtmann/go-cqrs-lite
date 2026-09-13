@@ -6,6 +6,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — metaengine: CatchUpEngine can no longer miss events written during the rebuild — 2026-09-13
+
+- **The stale-snapshot race is closed.** While an engine was quarantined,
+  its `CatchUpEngine` rebuild snapshotted the EventLog once, replayed, and
+  reactivated — but the log keeps growing while quarantined (failover-routed
+  writes still record into it), so every event appended during the replay
+  window was permanently missing from the rebuilt engine. The rebuild now
+  drains the log in suffix passes until one pass observes no growth, and
+  reactivation happens inside the same append-blocked critical section
+  (`EventLog.reactivateIfStable`): every event is either replayed or folds
+  live into the now-active engine. No event can straddle the two.
+  Non-convergence (writes outpacing replay for 64 passes) fails loudly and
+  leaves the engine quarantined for the next reprobe attempt.
+- **Concurrent rebuilds are serialized** (`catchUpMu`): a manual
+  `CatchUpEngine` racing the auto-reprobe loop would both reset and replay,
+  double-folding non-idempotent state.
+- **Pinned by a true concurrency test** — 8 writers apply while the rebuild
+  runs (`TestEngineHealth_CatchUpUnderConcurrentApplies`); a non-idempotent
+  counter fold must land at exactly the applied count post-reactivation.
+  Sequential tests cannot see this hole.
+- `-race` verified over the full metaengine suite and projectionhost.
+
+### Added — metaengine: catch-up observability — 2026-09-13
+
+- **`Store.CatchUpSnapshot()` / `CatchUpState`** — per-engine rebuild state
+  (running / last error / events replayed / completion stamp), filled by
+  `CatchUpEngine` and surfaced through a new `CatchUp` field on
+  `EngineStats` and a "--- Catch-Up ---" Doctor section. A missing entry
+  means "never rebuilt" — the normal state of a healthy store.
+
+### Changed — errors: sentinels declared as the `error` interface (erraudit baseline zeroed) — 2026-09-13
+
+- **Every package-level error sentinel across the library is now declared
+  declared with an explicit
+  `error` interface type instead of inferring the concrete go-error-family
+  error struct type — the go-codec ADR-0001 recipe. This
+  zeroes the workspace erraudit baseline (253 findings across 22 modules on
+  2026-09-11 → 0 on 2026-09-13, `--enforce-go-error-family --type-aware`),
+  meeting the activation precondition of the dormant `error-audit` CI job
+  (needs the `ERRAUDIT_PAT` secret to arm).
+- **Consumer impact: none for `errors.Is`** (the supported matching form —
+  and now recognized by the sentinel guard instead of flagged as legacy).
+  Code that type-asserted a sentinel var as the concrete error struct directly
+  would need `errors.AsType` — the supported structured-field path.
+- Test sites migrated off `errors.As` to `errors.AsType` where structured
+  fields are read (metaengine, snapshot, storage).
+
+### Added — tooling: check-modsums gate + error-taxonomy gate expansion — 2026-09-13
+
+- **`nix run .#check-modsums`** (also wired into `#verify`): per-module
+  `go mod tidy -diff` — every go.mod/go.sum pair must be exactly what the
+  module graph requires. Kills the missing-go.sum-hash class (green under a
+  warm cache, red in cold-cache CI/consumer builds); first run caught and
+  fixed real drift in `cmd/cqrs-lint/testdata/typedfixture`.
+- **Error-taxonomy gate expanded 6 → 11 modules** (+watermill,
+  +storage/pebble, +core event/command/query) with per-module pool-size
+  floors (an extraction that yields near-zero codes now fails loudly instead
+  of silently diffing an empty pool) and a tightened extraction pattern that
+  no longer mis-captures quoted non-code arguments on multi-line call
+  sites. The doc's five stale sections were regenerated from source ground
+  truth (314 codes now match).
+
 ### Fixed — tooling: cqrs-upgrade strict gate closes the unscanned-module hole — 2026-09-13
 
 - **`--strict` now fails when any module errored in the pipeline** (pin

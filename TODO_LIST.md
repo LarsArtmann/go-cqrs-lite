@@ -678,37 +678,15 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > by the session's own self-review. — source:
 > [`docs/status/2026-09-13_08-52_quick-win-batch-self-review.md`](docs/status/2026-09-13_08-52_quick-win-batch-self-review.md) §b/§f
 
-- [ ] **ROADMAP v6 table: add the pebble serialization.go row** — the
-      deletion-wave table cites checkpoint.go + snapshot.go legacy-JSON
-      fallbacks but misses `storage/pebble/serialization.go:51` (events,
-      pre-CBOR). One line. _(Effort: XS)_
-- [ ] **Seed-log path hardening** — make `SHUFFLE_SEED_LOG` absolute
-      (`${SCRIPT_DIR}/../build/shuffle-seeds.log`) in all 5 wired scripts;
-      add the missing `cd "$REPO_ROOT"` to ephemeral-pg.sh so its log never
-      lands relative to the caller's CWD. _(Effort: XS)_
 - [ ] **calibration-gate.sh `--self-test` mode** — planted loadavg fixture
       (temp file, never a live tracked file); same class as the
       check-turso-version `--self-test` TODO. _(Effort: S)_
-- [ ] **Run the repo's own shellcheck/pre-commit script gate** over the 7
-      scripts touched 2026-09-13 (verified ad hoc via nixpkgs shellcheck
-      only). _(Effort: XS)_
-- [ ] **`go test -race` for cmd/cqrs-upgrade** — the 2026-09-13 changes are
-      test-pinned but un-raced. _(Effort: XS)_
-- [ ] **CI: upload `build/shuffle-seeds.log` as artifact** when the
-      dgraph/pg/redis integration jobs fail (stdout echo is the fallback
-      today). _(Effort: S)_
-- [ ] **module-map.md genproto note** — `integration/`'s
-      `genproto/googleapis/rpc` indirect is graph-forced by
-      `middleware/v4@v4.6.0`; kills the recurring gopls "unused" flag at the
-      source. _(Effort: XS)_
 - [ ] **Recipes snippet compile harness** — snippets are reference-verified
       (doc-check) but not compile-verified; extract fenced Go blocks into a
       generated compile test (start with recipes.md). _(Effort: S/M)_
 - [ ] **Calibration-gate failure-message golden** — the operator-facing
       FAIL text is UX; pin its shape so refactors can't silently degrade it.
       _(Effort: XS)_
-- [ ] **Automate the archive file count** in check-doc-links.sh — README's
-      "~1150-file archive" is a hand-counted moving target. _(Effort: XS)_
 
 ---
 
