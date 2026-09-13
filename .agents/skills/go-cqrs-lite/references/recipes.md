@@ -323,6 +323,84 @@ func main() {
 }
 ```
 
+### 2.1b Command-Aware Decisions — automatic causation stamping (decider)
+
+With plain `ExecuteRef`, the events record WHICH happened but not WHICH command
+caused them — the command vanishes from the audit trail.
+`decider.ExecuteCommandRef` is the command-aware form: the decide function
+receives the command, and every emitted event is stamped with that command's
+causation automatically.
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/larsartmann/go-cqrs-lite/command/v4"
+    "github.com/larsartmann/go-cqrs-lite/decider/v4"
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/id/v4"
+    "github.com/larsartmann/go-cqrs-lite/record/v4"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+)
+
+type UserState struct{ Name string }
+
+func main() {
+    ctx := context.Background()
+    store := memory.NewMemoryStore()
+    d := decider.Decider[UserState]{
+        Initial: UserState{},
+        Apply: func(s UserState, e event.Event) (UserState, error) {
+            if e.Type() == "user.created" {
+                s.Name = string(e.Payload())
+            }
+
+            return s, nil
+        },
+    }
+    repo, _ := decider.NewRepository[UserState](store, nil, d)
+
+    ref := id.NewStreamRef("User", id.NewStreamID())
+    cmd, _ := command.New("user.create", ref.ID)
+
+    err := decider.ExecuteCommandRef(ctx, repo, ref, cmd,
+        func(_ UserState, v event.Version, _ *command.BasicCommand) ([]event.Event, error) {
+            evt, evtErr := event.NewEvent("user.created", ref.ID, "User", v+1, []byte("Alice"))
+            if evtErr != nil {
+                return nil, evtErr
+            }
+
+            return []event.Event{evt}, nil
+        })
+    _ = err
+
+    // Every emitted event now carries the command's causation — audit-ready:
+    events, _ := store.Load(ctx, ref)
+    rec := event.AsRecord(events[0])
+    fmt.Println(rec.MetaData.Cause.Kind == record.CauseCommand) // true
+    fmt.Println(rec.MetaData.CausationID == cmd.ID().String())  // true
+}
+```
+
+Notes:
+
+- `decider.CausedCommand` is the only contract: anything with
+  `ID() id.CommandID` — `*command.BasicCommand`, `*command.PersistedCommand`,
+  or your own struct. Consumer command types need no embedding.
+- Commands exposing `Type() record.Type` (both first-party forms do) also
+  stamp the command type into `Metadata.Causation.CommandType` and the
+  `command.type` custom key.
+- Decisions that set their own causation (`event.WithCausation(...)`) keep it;
+  the stamp never clobbers.
+- Correlation/actor enrichment keeps flowing through `decider.WithEnricher`
+  (§2.21); a context causality enricher (§3.8) runs after the stamp and wins —
+  prefer one or the other, not both.
+- It is a package-level function rather than a `Repository` method because
+  generic methods require Go 1.27.
+
 ### 2.2 Production Persistence (storage or pebble)
 
 Replace `memory` with a real backend. Two choices:
