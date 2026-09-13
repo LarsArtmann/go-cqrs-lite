@@ -221,6 +221,24 @@ func conformReplayCases() []conformanceCase {
 			},
 		},
 		{
+			name: "Backfill legacy log entry", want: conformSyntheticVw, advisory: 0,
+			run: func(t *testing.T) (*Store, recordContextView) {
+				store := newConformanceStore(t)
+				log := NewEventLog()
+				WithEventLog(store, log)
+
+				// The legacy Record() carries NO record context (pre-ADR-0111
+				// call shape): a replay must serve the fold the same synthetic
+				// Type-only record — never silently invent StreamID/Version
+				// for a legacy entry. Advisory stays 0: per the sweep contract,
+				// replays never count it, only direct applies do.
+				log.Record("recordContextEvent", recordContextEvent{TaskID: "t1"})
+
+				applyOK(t, store.Backfill(context.Background()))
+				return store, conformView(t, store.engines[0])
+			},
+		},
+		{
 			name: "Backfill shadow replay (replayShadows)", want: conformFullVw, advisory: 0,
 			run: func(t *testing.T) (*Store, recordContextView) {
 				store := newConformanceStore(t)
@@ -374,6 +392,50 @@ func applyOK(t *testing.T, err error) {
 
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+// TestApplyIdempotent_DuplicateIsNoOp pins the dedup contract end-to-end on
+// the record-context surface (W2.10c): the second ApplyIdempotent with the
+// SAME eventID returns nil, folds NOTHING (the EventLog stays at one entry
+// and the projected row is untouched), and the synthetic-apply advisory does
+// not double-count. A dedup that re-folded would double-apply side effects
+// in record-aware projections while looking harmless at the API layer.
+func TestApplyIdempotent_DuplicateIsNoOp(t *testing.T) {
+	t.Parallel()
+
+	store := newConformanceStore(t)
+	log := NewEventLog()
+	WithEventLog(store, log)
+
+	ctx := context.Background()
+
+	applyOK(t, store.ApplyIdempotent(ctx, "evt-dup", "recordContextEvent", recordContextEvent{TaskID: "t1"}))
+
+	if got := conformView(t, store.engines[0]); got != conformSyntheticVw {
+		t.Fatalf("first apply view = %+v, want %+v", got, conformSyntheticVw)
+	}
+
+	if log.Len() != 1 {
+		t.Fatalf("EventLog length after first apply = %d, want 1", log.Len())
+	}
+
+	if applies := store.syntheticRecordApplies.Load(); applies != 1 {
+		t.Fatalf("advisory after first apply = %d, want 1", applies)
+	}
+
+	applyOK(t, store.ApplyIdempotent(ctx, "evt-dup", "recordContextEvent", recordContextEvent{TaskID: "t1"}))
+
+	if log.Len() != 1 {
+		t.Errorf("EventLog length after duplicate = %d, want 1 — the duplicate folded", log.Len())
+	}
+
+	if applies := store.syntheticRecordApplies.Load(); applies != 1 {
+		t.Errorf("advisory after duplicate = %d, want 1 — the duplicate counted", applies)
+	}
+
+	if got := conformView(t, store.engines[0]); got != conformSyntheticVw {
+		t.Errorf("view after duplicate = %+v, want unchanged %+v", got, conformSyntheticVw)
 	}
 }
 

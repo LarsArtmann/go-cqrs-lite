@@ -139,3 +139,54 @@ func TestClaimingSQLite_RaceStress_DueVsMetrics(t *testing.T) {
 		)
 	}
 }
+
+// TestClaimingSQLite_CounterScope pins the counter-scope contract (W2.10b):
+// the built-in counters observe CLAIM activity only — Schedule, Cancel and
+// MarkFired must leave them untouched, so a Doctor report reading Metrics
+// never mistakes lifecycle mutations for polls or renewals.
+func TestClaimingSQLite_CounterScope(t *testing.T) {
+	_, db := newSQLiteStore[struct{}](t)
+
+	ctx := context.Background()
+
+	store, err := sqlstore.NewClaimingSQLiteStore[struct{}](ctx, db, time.Minute)
+	if err != nil {
+		t.Fatalf("NewClaimingSQLiteStore: %v", err)
+	}
+
+	now := time.Now().UTC()
+
+	if err := store.Schedule(ctx, scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("scope-1"),
+		FireAt: now.Add(-time.Second),
+	}); err != nil {
+		t.Fatalf("Schedule: %v", err)
+	}
+
+	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
+		t.Fatalf("Metrics after Schedule = %+v, want zero", got)
+	}
+
+	if err := store.MarkFired(ctx, scheduling.MustParseTimerID("scope-1")); err != nil {
+		t.Fatalf("MarkFired: %v", err)
+	}
+
+	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
+		t.Fatalf("Metrics after MarkFired = %+v, want zero", got)
+	}
+
+	if err := store.Schedule(ctx, scheduling.Timer[struct{}]{
+		ID:     scheduling.MustParseTimerID("scope-2"),
+		FireAt: now.Add(time.Minute),
+	}); err != nil {
+		t.Fatalf("Schedule scope-2: %v", err)
+	}
+
+	if err := store.Cancel(ctx, scheduling.MustParseTimerID("scope-2")); err != nil {
+		t.Fatalf("Cancel: %v", err)
+	}
+
+	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
+		t.Fatalf("Metrics after Cancel = %+v, want zero", got)
+	}
+}
