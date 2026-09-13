@@ -318,6 +318,13 @@ type IS the declaration. The planner inspects it at startup.
 
 ### The Return Type → ADT → Structure Mapping
 
+> **2026-09-13 status — DIFFERENT (extended).** The shipped ADT enum has 8 values: `map`, `set`,
+> `counter`, `graph`, `log`, `stream_log`, `sorted_map`, `multimap` (`types.go:6-15`), and the
+> sentinel returns below extend beyond `Delta`/`Edge`/`Remove`/`Skip` with `MultiEntry`,
+> `Append`, `EdgeRemoval`, `Embedding`, `IndexedText`, and `Point` (`types.go:50-95`). The
+> "physical structures" comments describe engine-internal choices; the planner's own model is
+> the 4 abstract layouts `row`/`columnar`/`lsm`/`kv` (`layout_type.go:9-26`).
+
 ```go
 // ══ MAP ADT ══
 metaengine.OnRecord(Event{}, func(_ record.Record, e Event) (Key, Value) { ... })
@@ -327,7 +334,7 @@ metaengine.OnRecord(Event{}, func(_ record.Record, e Event) (Key, Value) { ... }
 // ══ SET ADT ══
 metaengine.OnRecord(Event{}, func(_ record.Record, e Event) Key { ... })
 // Returns just a key → planner infers Set<Key>
-// Physical structures: hash set (Memory), Bloom filter (Memory/Pebble), UNIQUE index (SQL)
+// Physical structures: hash set (Memory), bloom filter (Pebble-internal policy), UNIQUE index (SQL)
 
 // ══ COUNTER ADT ══
 metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta { ... })
@@ -337,7 +344,17 @@ metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta { .
 // ══ GRAPH ADT ══
 metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Edge { ... })
 // Returns Edge{From, To} → planner infers Graph
-// Physical structures: adjacency list (Memory), graph DB (Neo4j), recursive CTE (SQL)
+// Physical structures: adjacency list (Memory), graph DB (Dgraph), recursive CTE (SQL)
+
+// ══ MULTIMAP ADT ══
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.MultiEntry { ... })
+// Returns MultiEntry{Key, Value} → planner infers Multimap (one key → many values)
+
+// ══ LOG ADT ══
+metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Append { ... })
+// Returns Append{Value} → planner infers Log (ordered, append-only)
+// Also: EdgeRemoval (edge retraction on tombstone events), Embedding (vector_search),
+// IndexedText (full_text_search), Point (spatial_range) — see types.go:50-95
 
 // ══ REMOVE signal ══
 metaengine.OnRecord(Event{}, metaengine.Remove[Value]())
@@ -373,6 +390,14 @@ read-side access pattern. The planner inspects both.
 
 ### How the Input Shape Maps to Read Patterns
 
+> **2026-09-13 status — DIFFERENT (expanded).** The shipped read-pattern enum has 11 values
+> (`types.go:20-32`): `point_lookup`, `membership`, `filtered_scan`, `aggregate`, `traversal`,
+> `scan`, `multi_lookup`, `log_tail`, `vector_search`, `full_text_search`, `spatial_range`.
+> Inference is broader than input-shape matching alone: field-name prefixes
+> (`Min`/`Max`/`Since`/`Until`/`From`/`To`/`Start`/`End`/`Before`/`After` map to comparison
+> operators, `infer_filters.go`), composite filters (`infer_composite.go`), named queries
+> (`infer_named.go`), and sort inference (`infer_sort.go`).
+
 ```go
 // ══ POINT LOOKUP ══
 type FindUser struct { ID UserID }
@@ -395,15 +420,26 @@ type CountByStatus struct{}
 // ══ GRAPH TRAVERSAL ══
 type FriendsOf struct { ID UserID; Depth int }
 // Input has a node ID + depth → planner infers: traverse the Graph
+
+// ══ ALSO SHIPPED (added 2026-09-13) ══
+// scan (unbounded scan), multi_lookup (batch keys), log_tail (log subscription),
+// vector_search (Embedding folds), full_text_search (IndexedText folds),
+// spatial_range (Point folds) — see types.go:20-32
 ```
 
 ### Filter/Sort: Typed Accessors, Never Strings
 
-The old `FilterOn(func(r FindUserResult) string { return r.Status })` is the primary
-mechanism. The planner extracts the field path from the typed accessor closure. The query
-input can ALSO carry filter values (the `Status string` field in `ListByStatus`), which maps
-to the same indexed field. Both mechanisms are fully typed Go — no stringly-typed column names
-anywhere in the API.
+The old `FilterOn(func(r FindUserResult) string { return r.Status })` mechanism shipped as
+`FilterOn`/`SortOn` closures (`query.go:151,167`), joined by the declarative pair
+`FilterOnField[R](field, op)` / `SortOnField[R](field, desc)` (`query.go:180,193`) that carries
+the column name and operator explicitly for pushdown to SQL-aware engines (`json_extract`).
+Closure bodies are not reflected on: a closure-only filter is applied by calling the closure
+at read time and matching the query-input field by TYPE, never by name (`query.go:142-150`).
+Index/layout inference is driven separately from the query-input field names, including the
+prefix conventions above (`infer_filters.go`). The query input can also carry filter values
+(the `Status string` field in `ListByStatus`), which map onto the same inferred index. All
+mechanisms stay type-anchored to the result type `R`; only the explicit `FilterOnField` path
+names a column, and that name cannot point at a different result type.
 
 ---
 
@@ -449,6 +485,15 @@ When `UserCreated` arrives, ALL FIVE projections update independently — each i
 optimal shape, each potentially on a different engine, each with zero coordination with the
 others. This is possible because events are immutable and projections are disposable.
 
+> **Reconciliation note (2026-09-13).** §7 remains the shipped architecture. The opt-in
+> shared-child collection (ADR-0124, `rule_shared_collection.go`) is a layout-level
+> normalization for result types that embed a declared-shared child: it forces
+> `LayoutNormalize` within that query and warns when a shared type spans multiple collections
+> ("without a shared collection these copies drift independently"). It does not introduce a
+> shared projection or cross-query coordination. Diagram note: "Bloom filter" and "Neo4j" are
+> illustrative physical choices; shipped engines express the Set as a set index and the Graph
+> as Dgraph or SQL CTE (see §12 and the addendum).
+
 ### Consequence: No "Store" Object
 
 There is no `UserStore` with 6 methods. Each query is an independent handler. A consumer that
@@ -459,29 +504,38 @@ only needs `CheckEmail` depends only on the `CheckEmail` query — not on `FindU
 
 ## 8. Metadata Is First-Class
 
-Metadata travels WITH events today — `event.Metadata` has correlation ID, causation (command
-type + ID), tombstone, tracing, timestamp. The meta-engine treats metadata as **first-class
-query fields, not a side channel.**
+Metadata travels WITH events today — since ADR-0111 the shared base is `record.CommonMetadata`
+inside `record.Record` (`record/record.go:26-108`): correlation ID, typed `Cause`/`Actor`,
+`Created`/`Received`/`Stored` presence-explicit `Stamp`s, and `SchemaVersion`. The meta-engine
+treats metadata as **first-class query fields, not a side channel.**
 
 ```go
 type UserCreated struct { ID UserID; Email, Name string }
-// This event also carries: metadata.CorrelationID, metadata.Causation, metadata.Timestamp
+// This event also carries: rec.MetaData.CorrelationID, rec.MetaData.Cause / .Actor,
+// rec.MetaData.Created / .Received / .Stored (Stamps), rec.MetaData.SchemaVersion.
 
-// A query fold can use metadata just like payload fields:
-metaengine.Query[AuditTrail, AuditResult]("user_audit_trail",
+// A query fold can use metadata exactly like payload fields:
+var userAuditTrail = metaengine.Query[AuditTrail, AuditResult]("user_audit_trail",
     metaengine.OnRecord(UserCreated{}, func(rec record.Record, e UserCreated) (time.Time, AuditEntry) {
-        return rec.MetaData.Timestamp, AuditEntry{
-            Action: "created",
+        at := rec.MetaData.Received.Time() // Stamp.Time(); check Stamp.IsZero() when presence matters
+        return at, AuditEntry{
+            Action:        "created",
+            At:            at,
             CorrelationID: rec.MetaData.CorrelationID,
-            CausationID: rec.MetaData.CausationID,
         }
     }),
-    metaengine.RangeFilter("timestamp"),  // query by time range
+    // Sort/filter are declared on RESULT fields via typed accessors (or declarative field specs);
+    // read-time ranges are scan options: metaengine.WithRange("at", low, high) (scan_options.go:40).
+    metaengine.SortOn(func(r AuditEntry) time.Time { return r.At }),
 )
 ```
 
-The fold function optionally receives metadata as a second argument. The planner treats
-metadata fields identically to payload fields for index/structure decisions.
+With `OnRecord`, the fold receives the full `record.Record` as its first parameter — metadata is
+not a side channel and no second argument is needed (`record_fold.go:26-41`). Fields the fold
+copies out of `rec.MetaData` become ordinary result fields, and the planner indexes and filters
+them like any other field. **Corrected 2026-09-13:** the original example used
+`rec.MetaData.Timestamp` and `metaengine.RangeFilter("timestamp")`, neither of which exists;
+`CausationID` is also deprecated in favor of `Cause` (removal v5).
 
 This means queries like "who triggered this change" (causation), "show me everything in this
 transaction" (correlation), and "what was the state at time T" (timestamp) are **just queries
@@ -522,21 +576,42 @@ FOUR LOGS flow through the system:
 All three are the same shape (Log ADT). All three get the same treatment — they can be
 projected into queryable shapes using the same fold mechanism.
 
+> **2026-09-13 status — PARTIAL: 1 of the 3 new logs shipped.**
+>
+> **Command log — SHIPPED, better than designed (ADR-0117).** `commandlifecycle` records
+> `command.received`, `command.failed`, `command.retried`, `command.dead-lettered`, and
+> `command.completed` (`commandlifecycle/events.go:51-64`) on `Command/<id>` and
+> `CommandLifecycle/<id>` streams (`events.go:42-48`). Shipped projections: dead-letter queue,
+> retry count, failure log, processing time (`commandlifecycle/projections/projections.go:42-124`).
+> Durable journals: `CommandJournal` / `SeekableCommandJournal` (`command/store.go:141-160`).
+> Wiring: `system.WithCommandLifecycle(store)` (`system/lifecycle.go:50`).
+>
+> **Query log — NOT SHIPPED.** No `QueryExecuted` stream exists; the only query instrumentation
+> is in-process observability (metrics/traces via `observability.go`).
+>
+> **Session log — NOT SHIPPED.** No session events exist in this repo; sessions live in
+> `cqrs-htmx/identity-model` as ephemeral runtime objects (see the section below).
+>
+> **Framing note:** the list above has four entries — the domain event log is the pre-existing
+> truth; "all three" refers to the three new logs (command, query, session). Of those, one
+> shipped. The "full comprehensive audit" claim further down is therefore a target, not current
+> state. Open scope questions are tracked in the T17/T18 memos of the reconciliation plan.
+
 ### Example: Auditing Commands
 
 ```go
 type CommandsByUser struct { UserID UserID; Limit int }
 type CommandsByUserResult struct { Commands []CommandRecord; Next *metaengine.Cursor }
 
-commandsByUser := metaengine.Query[CommandsByUser, CommandsByUserResult]("commands_by_user",
+var commandsByUser = metaengine.Query[CommandsByUser, CommandsByUserResult]("commands_by_user",
     metaengine.OnRecord(CommandSucceeded{}, func(rec record.Record, c CommandSucceeded) (UserID, CommandRecord) {
         return extractUser(c.Payload), CommandRecord{
-            Type: c.Type, Timestamp: rec.MetaData.Timestamp, Payload: c.Payload,
+            Type: c.Type, Timestamp: rec.MetaData.Received.Time(), Payload: c.Payload,
         }
     }),
     metaengine.OnRecord(CommandRejected{}, func(rec record.Record, c CommandRejected) (UserID, CommandRecord) {
         return extractUser(c.Payload), CommandRecord{
-            Type: c.Type, Rejected: true, Reason: c.Reason, Timestamp: rec.MetaData.Timestamp,
+            Type: c.Type, Rejected: true, Reason: c.Reason, Timestamp: rec.MetaData.Received.Time(),
         }
     }),
 )
@@ -548,12 +623,12 @@ commandsByUser := metaengine.Query[CommandsByUser, CommandsByUserResult]("comman
 type WhatDidThisCommandCause struct { CommandID string }
 type WhatDidThisCommandCauseResult struct { Events []EventRecord; Commands []CommandRecord }
 
-causationChain := metaengine.Query[WhatDidThisCommandCause, WhatDidThisCommandCauseResult]("causation_chain",
+var causationChain = metaengine.Query[WhatDidThisCommandCause, WhatDidThisCommandCauseResult]("causation_chain",
     metaengine.OnRecord(CommandSucceeded{}, func(rec record.Record, c CommandSucceeded) metaengine.Edge {
         if rec.MetaData.CausationID != "" {
             return metaengine.Edge{From: rec.MetaData.CausationID, To: c.ID}
         }
-        return metaengine.Skip
+        return metaengine.Skip{}
     }),
     metaengine.OnRecord(UserCreated{}, func(rec record.Record, e UserCreated) metaengine.Edge {
         return metaengine.Edge{From: rec.MetaData.CausationID, To: e.ID}
@@ -581,10 +656,19 @@ This means a FULL COMPREHENSIVE audit log — "who did what, when, and what did 
 solved by default. The command log, query log, and session log ARE that comprehensive log,
 projected into queryable shapes automatically.
 
+> **2026-09-13 correction.** Only the command half shipped (as `commandlifecycle`, in a
+different shape — see the status box above). The query and session logs have no implementation,
+so "solved by default" is not current state. The `CommandsByUser` and `causation_chain`
+examples above are illustrative; they compile against no shipped `CommandSucceeded` type.
+
 ### Sessions as Event Streams
 
 Sessions are not special — they're another event stream. Event-streaming sessions enables
 analytics that ephemeral runtime sessions cannot provide:
+
+> **2026-09-13 status — NOT SHIPPED.** No session event types exist repo-wide. The section
+> below is a design argument; the identity-model project still treats sessions as ephemeral
+> runtime state (as the text itself acknowledges below).
 
 ```go
 type SessionStarted struct { ActorID ActorID; Token string; Origin string; At time.Time }
