@@ -16,6 +16,7 @@ import (
 // faithful.
 type streamingScanTestEngine struct {
 	*memoryEngine
+
 	calls      atomic.Int32
 	cannedRows []any
 }
@@ -45,7 +46,7 @@ func (e *streamingScanTestEngine) StreamScan(
 			return
 		}
 
-		result, err := e.memoryEngine.MapScan(ctx, collection, nil, nil, nil, 0)
+		result, err := e.MapScan(ctx, collection, nil, nil, nil, 0)
 		if err != nil {
 			yield(nil, err)
 
