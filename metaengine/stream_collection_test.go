@@ -188,8 +188,8 @@ func TestExport_UsesStreamingScanAndMatchesFallbackOutput(t *testing.T) {
 		t.Fatalf("stream Export: %v", err)
 	}
 
-	if eng.calls.Load() == 0 {
-		t.Fatal("expected Export to use StreamingScan")
+	if got := eng.calls.Load(); got != int32(len(streamStore.Collections())) {
+		t.Fatalf("expected one StreamScan call per collection (%d), got %d", len(streamStore.Collections()), got)
 	}
 
 	if plainBuf.String() != streamBuf.String() {
@@ -198,5 +198,69 @@ func TestExport_UsesStreamingScanAndMatchesFallbackOutput(t *testing.T) {
 			plainBuf.String(),
 			streamBuf.String(),
 		)
+	}
+}
+
+func TestStreamCollection_FnMayCallBackIntoStore(t *testing.T) {
+	t.Parallel()
+
+	store := newMemoryTestStore(t)
+	ctx := context.Background()
+
+	if err := store.ApplyBatch(ctx, []EventInput{
+		{Type: "task_created", Payload: testTask{ID: "t1", Title: "A", Status: "open"}},
+	}); err != nil {
+		t.Fatalf("ApplyBatch: %v", err)
+	}
+
+	var calls int
+
+	err := store.StreamCollection(ctx, "tasks", func(any) error {
+		calls++
+
+		// A store read inside fn must not deadlock: StreamCollection does not
+		// hold the store lock during iteration.
+		_, err := ExecuteTyped[testFindTask, testTask](ctx, store, testFindTask{ID: "t1"})
+
+		return err
+	})
+	if err != nil {
+		t.Fatalf("StreamCollection with store callback: %v", err)
+	}
+
+	if calls != 1 {
+		t.Fatalf("expected 1 fn call, got %d", calls)
+	}
+}
+
+func TestStreamCollection_EarlyStopOnFnError(t *testing.T) {
+	t.Parallel()
+
+	store := newMemoryTestStore(t)
+	ctx := context.Background()
+
+	if err := store.ApplyBatch(ctx, []EventInput{
+		{Type: "task_created", Payload: testTask{ID: "t1", Title: "A", Status: "open"}},
+		{Type: "task_created", Payload: testTask{ID: "t2", Title: "B", Status: "open"}},
+		{Type: "task_created", Payload: testTask{ID: "t3", Title: "C", Status: "open"}},
+	}); err != nil {
+		t.Fatalf("ApplyBatch: %v", err)
+	}
+
+	sentinel := errors.New("stop after first")
+
+	var calls int
+
+	err := store.StreamCollection(ctx, "tasks", func(any) error {
+		calls++
+
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("expected sentinel, got %v", err)
+	}
+
+	if calls != 1 {
+		t.Fatalf("expected iteration to stop after 1 fn call, got %d", calls)
 	}
 }

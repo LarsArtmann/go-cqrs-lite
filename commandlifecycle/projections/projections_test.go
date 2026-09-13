@@ -270,3 +270,78 @@ func TestCommandsByActor_AppliesAndQueries(t *testing.T) {
 	g.Expect(result.Commands[0].CommandType).To(Equal("create_user"))
 	g.Expect(result.Commands[0].ReceivedAt).To(Equal(receivedAt))
 }
+
+func TestCommandsByActor_UnattributedCommandsLandUnderEmptyKey(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		projections.CommandsByActor(),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmdID := id.NewCommandID()
+
+	g.Expect(store.ApplyRecord(
+		context.Background(),
+		makeRecord("command.received", cmdID),
+		commandlifecycle.ReceivedPayload{
+			CommandID:   commandlifecycle.CommandKey(cmdID.String()),
+			CommandType: "create_user",
+			ReceivedAt:  time.Date(2026, 9, 13, 12, 0, 0, 0, time.UTC),
+		},
+	)).To(Succeed())
+
+	result, err := metaengine.ExecuteTyped[
+		projections.CommandsByActorQuery, projections.CommandsByActorResult,
+	](
+		context.Background(), store, projections.CommandsByActorQuery{Actor: ""},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result.Commands).To(HaveLen(1))
+	g.Expect(result.Commands[0].CommandID).To(Equal(commandlifecycle.CommandKey(cmdID.String())))
+}
+
+func TestCommandsByActor_CompletedEventsDoNotAlterPerActorView(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		projections.CommandsByActor(),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	alice := record.Actor{Kind: record.ActorUser, Raw: "u-alice"}
+	cmdID := id.NewCommandID()
+
+	g.Expect(store.ApplyRecord(
+		context.Background(),
+		makeRecordWithActor("command.received", cmdID, alice),
+		commandlifecycle.ReceivedPayload{
+			CommandID:   commandlifecycle.CommandKey(cmdID.String()),
+			CommandType: "create_user",
+			ReceivedAt:  time.Date(2026, 9, 13, 12, 0, 0, 0, time.UTC),
+		},
+	)).To(Succeed())
+
+	g.Expect(store.ApplyRecord(
+		context.Background(),
+		makeRecordWithActor("command.completed", cmdID, alice),
+		commandlifecycle.CompletedPayload{
+			CommandID:   commandlifecycle.CommandKey(cmdID.String()),
+			CommandType: "create_user",
+			CompletedAt: time.Date(2026, 9, 13, 12, 0, 1, 0, time.UTC),
+		},
+	)).To(Succeed())
+
+	result, err := metaengine.ExecuteTyped[
+		projections.CommandsByActorQuery, projections.CommandsByActorResult,
+	](
+		context.Background(), store, projections.CommandsByActorQuery{Actor: alice.String()},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result.Commands).To(HaveLen(1))
+	g.Expect(result.Commands[0].CommandID).To(Equal(commandlifecycle.CommandKey(cmdID.String())))
+}

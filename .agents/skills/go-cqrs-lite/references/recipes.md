@@ -1107,7 +1107,7 @@ config := system.DomainConfig{
         middleware.CommandRetry(config),       // handles retries
         cl.AttemptMiddleware,                  // failed, retried (per attempt)
     },
-    Projections: cl.Projections,               // DLQ, RetryCount, FailureLog, ProcessingTime
+    Projections: cl.Projections,               // DLQ, RetryCount, FailureLog, ProcessingTime, CommandsByActor
 }
 ```
 
@@ -1143,6 +1143,7 @@ store, _ := metaengine.Plan(engines,
     projections.RetryCount(),
     projections.FailureLog(),
     projections.ProcessingTime(),
+    projections.CommandsByActor(),
 )
 
 // DLQ: "Is cmd-01J... dead-lettered?"
@@ -1160,11 +1161,17 @@ pt, _ := metaengine.ExecuteTyped[projections.ProcessingTimeQuery, projections.Pr
     ctx, store, projections.ProcessingTimeQuery{CommandID: "01J..."},
 )
 // pt.DurationMs is the delta between received and completed
+
+// Per actor: "What did user:01J... command?"
+byActor, _ := metaengine.ExecuteTyped[projections.CommandsByActorQuery, projections.CommandsByActorResult](
+    ctx, store, projections.CommandsByActorQuery{Actor: "user:01J..."},
+)
+// byActor.Commands lists each received command with type, stream, and time
 ```
 
 | Event type              | Emitted when                   | Projection     |
 | ----------------------- | ------------------------------ | -------------- |
-| `command.received`      | Server accepts command         | ProcessingTime |
+| `command.received`      | Server accepts command         | ProcessingTime, CommandsByActor |
 | `command.failed`        | Single attempt fails           | FailureLog     |
 | `command.retried`       | Before each retry              | RetryCount     |
 | `command.dead-lettered` | All retries exhausted          | DLQ            |
