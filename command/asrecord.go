@@ -43,6 +43,13 @@ import (
 //   - SchemaVersion ← 0 (commands have no schema version)
 //
 // A nil command returns a zero-valued Record.
+//
+// Deprecated: planned for removal at v5. This bridges the thin in-memory
+// form only — the Record it returns has no payload and an empty stream type.
+// For persisted commands use [AsRecordPersisted], which carries the payload,
+// the full stream identity, and the receive stamps. Behavior is unchanged
+// until the v5 cut (see the AsRecord asymmetry section of
+// docs/reviews/2026-09-13_event-command-duplication-hypothesis-review.md).
 func AsRecord(cmd *BasicCommand) record.Record {
 	//art-dupl:accept dep-isolated twin of query.AsRecord; lockstep Record population is by design
 	if cmd == nil {
