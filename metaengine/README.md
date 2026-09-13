@@ -476,6 +476,21 @@ tasks, err := metaengine.NewQueryBuilder(reader).
 Available scan options: `WithFilter`, `WithRange`, `WithIn`, `WithOr`,
 `WithSort`, `WithSortColumns`, `WithLimit`, `WithCursor`.
 
+## Streaming Collection Reads
+
+`Store.StreamCollection` iterates every row of a collection without
+materializing it, using the engine's `StreamingScan` capability when present
+(sqlite, pebble, bbolt, badger) and falling back to `ScanBackend.MapScan`:
+
+```go
+err := store.StreamCollection(ctx, "tasks", func(row any) error {
+    return process(row)
+})
+```
+
+`Store.Export` uses this path, so exporting a large collection streams
+row-by-row instead of loading the full result set into memory.
+
 ## Declarative Filter/Sort Pushdown (FilterOnField / SortOnField)
 
 `FilterOn` and `SortOn` use typed closures (in-Go evaluation). For SQL-aware

@@ -57,3 +57,13 @@ The 2026-07-23 design (§10) envisioned "a FULL COMPREHENSIVE audit log — who 
 - [ ] A — full audit scope (rejection event + per-actor; no payload capture)
 - [ ] B — per-actor projection only (recommended)
 - [ ] C — scope done as shipped
+
+---
+
+## Update 2026-09-13 (executed)
+
+Option B was implemented the same day: `projections.CommandsByActor` folds `command.received`
+into a Multimap keyed by the record's typed Actor (`"kind:raw"`), with `CommandsByActorQuery` /
+`CommandRecordEntry` / `CommandsByActorResult`, included in `projections.All()` and covered by a
+new test. Still deferred (recommendation unchanged): a distinct `command.rejected` event and any
+payload capture.

@@ -260,6 +260,7 @@
             "./example/getting-started/..."
             "./example/metaengine-quickstart/..."
             "./example/readme-quickstart/..."
+            "./example/scheduler-otel-status/..."
             "./example/taskmanager/..."
           ];
 

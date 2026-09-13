@@ -6,7 +6,7 @@
 > dedicated schema language.
 
 **Created:** 2026-07-23
-**Prerequisite reading:** [event-query-model.md](event-query-model.md)
+**Prerequisite reading:** [event-query-model.md](event-query-model.md) (reconciled against source 2026-09-13 — read its status banner and per-section addendum first)
 
 ---
 

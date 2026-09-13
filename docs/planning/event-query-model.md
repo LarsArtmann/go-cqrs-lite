@@ -11,7 +11,7 @@
 > - **Shipped:** `Query[Q,R]`, `OnRecord` folds, `Plan`, `ExecuteTyped`, per-query projections,
 >   cost-based planning, hot-reload APIs (`AddEngine`/`SwapEngine`/`Replan`), command-lifecycle log.
 > - **Not shipped:** query log and session log (§10), multi-projection reads (§15 D3),
->   dual-read cutover (§14), `StreamingScan` wiring (§15 D2).
+>   dual-read cutover (§14). (`StreamingScan` was wired 2026-09-13 — see §15 D2.)
 > - **Current truth:** [`metaengine/README.md`](../../metaengine/README.md) (API surface),
 >   [`commandlifecycle/`](../../commandlifecycle/) (the command log, shipped as ADR-0117).
 > - **Audit trail:** [12:10 audit](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
@@ -597,7 +597,8 @@ projected into queryable shapes using the same fold mechanism.
 > `command.received`, `command.failed`, `command.retried`, `command.dead-lettered`, and
 > `command.completed` (`commandlifecycle/events.go:51-64`) on `Command/<id>` and
 > `CommandLifecycle/<id>` streams (`events.go:42-48`). Shipped projections: dead-letter queue,
-> retry count, failure log, processing time (`commandlifecycle/projections/projections.go:42-124`).
+> retry count, failure log, processing time, and per-actor commands (`CommandsByActor`, added
+> 2026-09-13; `commandlifecycle/projections/projections.go`).
 > Durable journals: `CommandJournal` / `SeekableCommandJournal` (`command/store.go:141-160`).
 > Wiring: `system.WithCommandLifecycle(store)` (`system/lifecycle.go:50`).
 >
@@ -674,7 +675,9 @@ projected into queryable shapes automatically.
 > **2026-09-13 correction.** Only the command half shipped (as `commandlifecycle`, in a
 different shape — see the status box above). The query and session logs have no implementation,
 so "solved by default" is not current state. The `CommandsByUser` and `causation_chain`
-examples above are illustrative; they compile against no shipped `CommandSucceeded` type.
+examples above are illustrative; they compile against no shipped `CommandSucceeded` type. The
+per-actor idea shipped 2026-09-13 as `projections.CommandsByActor` (keyed by the record's typed
+Actor, not by payload extraction).
 
 ### Sessions as Event Streams
 
@@ -1004,11 +1007,11 @@ pagination. But what about bulk operations (export all, analytics scan)?
 
 The planner generates both. Streaming uses Go iterators (`iter.Seq2[Output, error]`).
 
-> **2026-09-13 status — GHOST CAPABILITY, decision open.** The `Execute` half shipped as
-> `ExecuteTyped` (`execute.go:681`). A streaming engine capability shipped too — `StreamingScan`
-> (`engine.go:369-384`), implemented by sqlite, pebble, bbolt, and badger — but it has ZERO
-> production callers: `Store.Export` (`export_import.go:12`) does not use it. The proposed
-> query-level `Stream(ctx, input, fn)` half was never built. Wire-or-cut decision: T16 memo.
+> **2026-09-13 status — WIRED (option A executed).** `Store.StreamCollection`
+> (`stream_collection.go`) streams via the `StreamingScan` capability (`engine.go:369-384`;
+> sqlite, pebble, bbolt, badger) and falls back to `ScanBackend.MapScan`; `Store.Export` streams
+> each collection row-by-row instead of materializing it. The query-level
+> `Stream(ctx, input, fn)` form remains future work.
 
 ### Decision 3: What About Queries That Need Data From Multiple Projections?
 
@@ -1066,12 +1069,12 @@ for cutover.
 | 7 | Independent projections | DONE | One collection per query; no shared view object. The opt-in shared-child collection (ADR-0124) is layout-level normalization only and warns rather than coordinating (`rule_shared_collection.go:85-96`). |
 | 8 | Metadata first-class | DIFFERENT | Real metadata: `record.CommonMetadata` (`record/record.go:26-108`) — CorrelationID, Cause/Actor (typed; CausationID/ActorID deprecated), Created/Received/Stored `Stamp`s, SchemaVersion. There is no `rec.MetaData.Timestamp` and no `RangeFilter` API; ranges are `WithRange(column, low, high)` (`scan_options.go:40`) or `FilterOnField` (`query.go:180`). Example corrected inline. |
 | 9 | Auth upstream | PHILOSOPHY | Unchanged intent; metaengine has no auth surface. |
-| 10 | Commands/queries as event streams | PARTIAL | **Command log: SHIPPED, better than designed** — `commandlifecycle` (ADR-0117): 5 event types (`command.received/failed/retried/dead-lettered/completed`) on `Command/<id>` + `CommandLifecycle/<id>` streams, projections for DLQ/retry-count/failure-log/processing-time, plus `CommandJournal`/`SeekableCommandJournal` (`command/store.go:141-160`) and `system.WithCommandLifecycle` (`system/lifecycle.go:50`). **Query log: NOT SHIPPED** — in-process observability hooks only (`observability.go:86`). **Session log: NOT SHIPPED** — sessions remain external (`cqrs-htmx/identity-model`). |
+| 10 | Commands/queries as event streams | PARTIAL | **Command log: SHIPPED, better than designed** — `commandlifecycle` (ADR-0117): 5 event types (`command.received/failed/retried/dead-lettered/completed`) on `Command/<id>` + `CommandLifecycle/<id>` streams, projections for DLQ/retry-count/failure-log/processing-time plus per-actor `CommandsByActor` (2026-09-13), plus `CommandJournal`/`SeekableCommandJournal` (`command/store.go:141-160`) and `system.WithCommandLifecycle` (`system/lifecycle.go:50`). **Query log: NOT SHIPPED** — in-process observability hooks only (`observability.go:86`). **Session log: NOT SHIPPED** — sessions remain external (`cqrs-htmx/identity-model`). |
 | 11 | Planner derivation | DONE | All 7 steps have source counterparts; mapping annotated inline. |
 | 12 | Concrete examples | DIFFERENT | No Neo4j engine; graph = Dgraph (`metaengine/dgraphengine/`; [ADR-0119](../adr/0119-dgraph-engine.md), [ADR-0129](../adr/0129-dgraph-engine-transactional-deferred.md)) or SQL CTE fallback (`graph_fallback.go:14,36`). No YAML config format — engines are composed in Go at deployment. Bloom filters exist only as a Pebble-internal policy (10 bits/key), not an ADT. Real engine roster: in-process memory plus badger, bbolt, dgraph, duckdb, iroh, mysql, pebble, pg, sqlite, turso (each its own `metaengine/*engine` module). Examples annotated inline. |
 | 13 | What the developer never writes | DONE | DDL, column types, and indexes are derived (`layout.go:116` `DDL()`, `:169` `inferColumnType`, `:199` `BuildLayoutPlanFromType`; index inference in `infer_*.go`). Boundary: classic modules (`storage/relational`, `storage/view`, `graph`) still expose explicit schema/`IndexSpec` APIs for consumers not using auto-projection. |
 | 14 | Hot-reload | PARTIAL | Runtime APIs exist: `AddEngine` (`runtime_backend.go:55`), `RemoveEngine` (`:113`), `SwapEngine` (`advanced.go:69`), `Replan` (`store.go:88`), `ReplanLayout` (`relayout.go:64`), `CheckRouting` (`store_routing.go:59`), shadow roles Migration/Backup (`roles.go:11-21`). The dual-read + atomic-cutover orchestration drawn above is NOT shipped. |
-| 15 | Open decisions | SEE BELOW | D1 resolved; D2 ghost capability; D3 not shipped; D4 partial. Details below. |
+| 15 | Open decisions | SEE BELOW | D1 resolved; D2 WIRED 2026-09-13 (`Store.StreamCollection` + streaming `Export`); D3 not shipped; D4 partial. Details below. |
 
 ### §15 decision resolutions
 
@@ -1079,10 +1082,10 @@ for cutover.
   closures (`query.go:151,167`) plus declarative `FilterOnField`/`SortOnField` (`query.go:180,193`)
   with inferred indexes (`infer_filters.go`, `infer_sort.go`). The closure body is not reflected
   on; the declarative pair carries the field name explicitly.
-- **Decision 2 (streaming vs slicing) — GHOST CAPABILITY, decision open.** `StreamingScan`
-  (`engine.go:369-384`) is implemented by sqlite, pebble, bbolt, and badger, but has zero
-  production callers — `Store.Export` (`export_import.go:12`) does not use it. Options memo:
-  T16 of the reconciliation plan.
+- **Decision 2 (streaming vs slicing) — WIRED 2026-09-13.** `Store.StreamCollection`
+  (`stream_collection.go`) uses `StreamingScan` (`engine.go:369-384`) when available and falls
+  back to `ScanBackend.MapScan`; `Store.Export` streams row-by-row. Query-level
+  `Stream(ctx, input, fn)` remains future work.
 - **Decision 3 (multi-projection queries) — NOT SHIPPED.** Reads are single-collection;
   grouped/aggregate reads exist (`typed_reader_grouped.go`, `typed_reader_aggregates.go`) but no
   cross-projection fan-out. Option A remains the design direction.
@@ -1109,8 +1112,8 @@ for cutover.
   (`materialized_view_versions.go`), engine reporting (`materialized_view_doctor.go`).
 - Replication metadata and lag accounting (`replication.go:16,44,60`) with a per-engine
   replicator (`replicator.go:61`); durability tiers validated per driver (`durability.go:50,79`).
-- Export/import of collections (`export_import.go:12,79`) — export does NOT use `StreamingScan`
-  today (§15 D2).
+- Export/import of collections (`export_import.go:12,79`) — export streams via
+  `Store.StreamCollection` + `StreamingScan` since 2026-09-13 (§15 D2).
 - Hot/cold demotion with preflight and shadow replay (`demote.go:65,198,311`); planned-collection
   backfill (`backfill.go:48`).
 - Batch atomicity: `Store.ApplyBatch` (`store.go:429`) plus the engine capability interface

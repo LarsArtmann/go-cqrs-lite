@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine: streaming collection reads power exports — 2026-09-13
+
+- **`Store.StreamCollection`** — iterates every row of a collection through
+  the engine's `StreamingScan` capability when present (sqlite, pebble,
+  bbolt, badger), falling back to `ScanBackend.MapScan` otherwise.
+  `Store.Export` now streams each collection row-by-row instead of loading
+  the full result set into memory, closing the OOM class for large exports
+  and giving the previously-unwired `StreamingScan` its first production
+  caller. Output is byte-identical to the previous export path.
+
+### Added — commandlifecycle: per-actor command projection — 2026-09-13
+
+- **`projections.CommandsByActor`** — the per-actor view the ADR-0117
+  lifecycle streams were missing: folds `command.received` events into a
+  Multimap keyed by the record's typed Actor (`"kind:raw"`), answering
+  "who did what" per actor. Exposed with `CommandsByActorQuery`,
+  `CommandRecordEntry`, and `CommandsByActorResult`, and included in
+  `projections.All()`.
+
 ### Added — command: persisted commands are now first-class records — 2026-09-13
 
 - **`command.AsRecordPersisted`** — the Record bridge for the PERSISTED

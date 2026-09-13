@@ -725,6 +725,28 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Event-Query-Model reconciliation follow-ups (2026-09-13)
+
+> The 2026-07-23 design doc was reconciled against source (status banner + per-section addendum
+> + coverage map); `StreamingScan` was wired (`Store.StreamCollection`) and the per-actor
+> lifecycle projection shipped the same day (see CHANGELOG). Carry-forward items below. Source:
+> [`plan`](docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md).
+
+- [ ] 🔥 **Distinct `command.rejected` event + errorfamily classification** — a business
+      rejection currently surfaces as `command.failed` with error text; audit cannot tell
+      "rejected by rule" from "broke". Needs a classification contract (which families count as
+      rejection) + recorder method + middleware wiring. Payload capture stays opt-in/out.
+      — source: [`T17 memo`](docs/planning/2026-09-13_T17-memo-command-log-audit-scope.md) _(Effort: M)_
+- [BLOCKED] **Session-log boundary decision** — memo recommends sessions stay external
+      (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
+      a concrete audit consumer. — source: [`T18 memo`](docs/planning/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
+- [ ] **Verify Set-membership pushdown for SQL engines** — the doc's "UNIQUE index" Set claim was
+      never source-verified (audit item 30). _(Effort: S)_
+- [ ] **Verify graph traversal depth semantics** — the doc's `FriendsOf{Depth}` vs the shipped
+      traversal implementation (audit item 31). _(Effort: S)_
+
+---
+
 ## Quick-win batch follow-ups (2026-09-13)
 
 > Tail of the 2026-09-13 ten-quick-win batch — small completeness gaps found

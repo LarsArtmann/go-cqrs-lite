@@ -98,3 +98,21 @@ All 7 steps have a real counterpart; the doc's abstractions map cleanly, though 
 | `StreamingScan` capability | `metaengine/engine.go:369-384` |
 
 **Engine roster (dirs):** badgerengine, bboltengine, dgraphengine, duckdbengine, irohengine, mysqlengine, pebbleengine, pgengine, sqliteengine, tursoengine + in-process memory (`memory_engine.go`). Confirm README framing at T08/T15.
+
+## T22 sibling sweep (2026-09-13)
+
+Rot-pattern grep over `docs/planning/*.md` (`supersedes|THE model|THE specification`) found:
+
+- `event-query-model.md` — the only doc WITHOUT a status banner; reconciled this session (fixed).
+- `keep-apps-off-db-layer.md` — its "Supersedes" line describes consolidating two sibling storage docs; that is a scope statement, not a stale truth claim. No action.
+- Older meta-engine design docs (`meta-engine-design.md`, `meta-engine-assumptions-and-query-planning.md`, `meta-engine-project-definition.md`) already carry `STATUS: ASPIRATIONAL` headers + 2026-08-06 v2 addenda — prior hygiene was good; no action.
+- `future-typespec-extension.md` — its prerequisite-reading pointer now flags the reconciliation banner (edited).
+
+Verdict: no additional sibling annotations required.
+
+## Execution outcome (same day)
+
+- T23 executed (option A from the T16 memo): `Store.StreamCollection` + streaming `Export`, 5 new tests, existing export tests green.
+- T24 executed (option B from the T17 memo): `projections.CommandsByActor` (Multimap keyed by typed Actor), tests updated, `projections.All()` now 5 entries.
+- API golden regenerated (6855 exports); api-stability meta-tests green; changelog-symbol gate green (48 citations).
+- Decisions still open: `command.rejected` event (T17 deferred half), session-log boundary (T18), query-level `Stream(ctx, input, fn)` (T16 follow-up).

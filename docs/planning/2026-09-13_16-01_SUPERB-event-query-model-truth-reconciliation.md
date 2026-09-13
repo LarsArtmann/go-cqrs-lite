@@ -389,11 +389,11 @@ Grouped by parent task. Every row is independently executable and verifiable.
 
 ## Decision gates (blocking T23/T24)
 
-| Gate | Question | Blocks | Fallback if unanswered |
-|------|----------|--------|------------------------|
-| G1 | Wire or cut `StreamingScan` (ghost capability)? | T23 | Cut at v5 stays default; memo T16 stands as proposal |
-| G2 | Command-log audit scope: per-actor projection / payload capture / distinct rejection event? | T24 | Ship memo T17 as recommendation; no code |
-| G3 | Sessions permanently external (identity-model) or future module? `queue/` relation? | T18 outcome (informational) | Document current boundary; no code |
+| Gate | Question | Blocks | Fallback if unanswered | Memo |
+|------|----------|--------|------------------------|------|
+| G1 | Wire or cut `StreamingScan` (ghost capability)? | T23 | Cut at v5 stays default; memo T16 stands as proposal | [`T16 memo`](2026-09-13_T16-memo-streamingscan-wire-or-cut.md) |
+| G2 | Command-log audit scope: per-actor projection / payload capture / distinct rejection event? | T24 | Ship memo T17 as recommendation; no code | [`T17 memo`](2026-09-13_T17-memo-command-log-audit-scope.md) |
+| G3 | Sessions permanently external (identity-model) or future module? `queue/` relation? | T18 outcome (informational) | Document current boundary; no code | [`T18 memo`](2026-09-13_T18-memo-session-log-boundary.md) |
 
 ---
 
@@ -418,4 +418,10 @@ Grouped by parent task. Every row is independently executable and verifiable.
 - AGENTS.md documents the planning-doc status convention; doc-check passes.
 - `git status` clean; commit(s) pushed.
 
-*Plan version: 1.0 · Awaiting approval / execution instructions.*
+---
+
+**Execution status 2026-09-13 (same day):** T01–T22, T25, T26 executed; T23/T24 implemented
+after the memos recommended options A (wire `StreamingScan` as `Store.StreamCollection`) and
+B (per-actor `CommandsByActor` projection) — see CHANGELOG. Decisions still open: the
+`command.rejected` event (T17 deferred half), session-log boundary (T18), query-level
+`Stream(ctx, input, fn)` (T16 follow-up). Plan version: 1.1.

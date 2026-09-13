@@ -51,3 +51,14 @@ Remove `StreamingScan` from `engine.go`, delete the 4 engine implementations and
 - [ ] A — wire it (recommended)
 - [ ] B — cut at v5
 - [ ] C — keep dormant
+
+---
+
+## Update 2026-09-13 (executed)
+
+Option A was implemented the same day: `Store.StreamCollection`
+(`metaengine/stream_collection.go`) streams via the `StreamingScan` capability and falls back to
+`ScanBackend.MapScan`; `Store.Export` now streams each collection row-by-row with byte-identical
+output (existing export tests pass). Five new tests cover capability preference, fallback,
+unknown collection, fn-error propagation, and export equality. The query-level
+`Stream(ctx, input, fn)` form remains future work.

@@ -134,10 +134,6 @@ func TestSetupOTLP_TrailingOptionsOverride(t *testing.T) {
 
 	counter.Add(ctx, 1)
 
-	if err := provider.Shutdown(ctx); err != nil {
-		t.Fatalf("Shutdown: %v", err)
-	}
-
 	var rm metricdata.ResourceMetrics
 	if err := manual.Collect(ctx, &rm); err != nil {
 		t.Fatal(err)
@@ -151,6 +147,11 @@ func TestSetupOTLP_TrailingOptionsOverride(t *testing.T) {
 
 	if !found {
 		t.Fatal("manual reader did not receive the counter — override lost")
+	}
+
+	// Shutdown AFTER collecting: it closes the manual reader too.
+	if err := provider.Shutdown(ctx); err != nil {
+		t.Fatalf("Shutdown: %v", err)
 	}
 
 	if got := stub.count("/v1/metrics"); got != 0 {

@@ -700,6 +700,22 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
     `event/v4/eventtest` has invisible v0.x tags. Re-path to /v4, delete, or
     document as frozen v0-era teaching code? Decides three audit-noise
     sources in `tag-release.sh --audit`. — source: 01-47 §g2
+12. **Query-level stream (`Stream(ctx, input, fn)`) for metaengine**
+    (2026-09-13): the engine capability and collection-level
+    `Store.StreamCollection` shipped (export now streams); the query-level
+    form (typed input + configured filters/sort, `iter.Seq2`) remains open.
+    Wire when an analytics/bulk-scan consumer needs it. — source:
+    `docs/planning/2026-09-13_T16-memo-streamingscan-wire-or-cut.md`
+13. **Command-rejection event scope** (2026-09-13): add `command.rejected`
+    with errorfamily classification (audit can then separate "rejected by
+    rule" from "broke"), or keep rejections inside `command.failed`? Is
+    opt-in payload capture ever wanted? — source:
+    `docs/planning/2026-09-13_T17-memo-command-log-audit-scope.md`
+14. **Session log: external forever or a future `sessionlifecycle` module?**
+    (2026-09-13): the T18 memo recommends staying external
+    (`cqrs-htmx/identity-model`) and keeping the planned `queue/` module
+    scoped to work items; revisit only on a concrete audit consumer. — source:
+    `docs/planning/2026-09-13_T18-memo-session-log-boundary.md`
 
 ---
 
