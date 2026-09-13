@@ -28,9 +28,15 @@ func startStreamSpan(
 		spanName,
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
-			append(cqrsotel.StreamAttrs(ref.Type, ref.ID), extraAttrs...)...,
+			append(dbSystemAttrs(cqrsotel.StreamAttrs(ref.Type, ref.ID)), extraAttrs...)...,
 		),
 	)
+}
+
+// dbSystemAttrs prepends the db.system semantic-convention attribute so
+// OTel-native APMs can group bbolt spans by backend.
+func dbSystemAttrs(attrs []cqrsotel.KeyValue) []cqrsotel.KeyValue {
+	return append([]cqrsotel.KeyValue{cqrsotel.DBSystem(bboltComponent)}, attrs...)
 }
 
 func startProjectionSpan(
@@ -43,20 +49,25 @@ func startProjectionSpan(
 		spanName,
 		cqrsotel.SpanKindClient,
 		cqrsotel.WithAttributes(
-			cqrsotel.AttrString(cqrsotel.AttrProjectionName, projectionName),
+			dbSystemAttrs([]cqrsotel.KeyValue{
+				cqrsotel.AttrString(cqrsotel.AttrProjectionName, projectionName),
+			})...,
 		),
 	)
 }
 
 func startReadSpan(ctx context.Context, name string) cqrsotel.Span {
-	_, span := cqrsotel.StartSpan(ctx, tracer(), name, cqrsotel.SpanKindClient)
+	_, span := cqrsotel.StartSpan(ctx, tracer(), name, cqrsotel.SpanKindClient,
+		cqrsotel.WithAttributes(cqrsotel.DBSystem(bboltComponent)))
 	return span
 }
 
 func startLimitSpan(ctx context.Context, spanName string, limit int) cqrsotel.Span {
 	_, span := cqrsotel.StartSpan(ctx, tracer(), spanName,
 		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("limit", limit)))
+		cqrsotel.WithAttributes(
+			cqrsotel.DBSystem(bboltComponent),
+			cqrsotel.AttrInt("limit", limit)))
 	return span
 }
 

@@ -76,3 +76,7 @@ require (
 	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
+
+// Sibling replace for the unpublished otel symbol (DBSystem); stripped by
+// scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../otel

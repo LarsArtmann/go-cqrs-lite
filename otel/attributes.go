@@ -72,6 +72,14 @@ func StreamAttrs(streamType, streamID fmt.Stringer) []attribute.KeyValue {
 	}
 }
 
+// DBSystem returns the OTel database semantic-convention attribute
+// `db.system` with the given backend identifier (e.g. "pebble", "bbolt").
+// Storage engines stamp it on their spans so OTel-native APMs can group and
+// correlate by backend without knowing go-cqrs-lite's span vocabulary.
+func DBSystem(system string) attribute.KeyValue {
+	return attribute.String("db.system", system)
+}
+
 // Deprecated: use AttrStreamType.
 const AttrAggregateType = AttrStreamType
 

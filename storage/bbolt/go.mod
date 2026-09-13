@@ -56,3 +56,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
+
+// Sibling replace for the unpublished otel symbol (DBSystem); stripped by
+// scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../../otel

@@ -83,7 +83,9 @@ func (s *QueryStore) SaveQuery(
 ) error {
 	_, span := cqrsotel.StartSpan(ctx, tracer(), "pebble.query.save",
 		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrString("query.type", string(q.Type()))))
+		cqrsotel.WithAttributes(
+			cqrsotel.DBSystem(pebbleComponent),
+			cqrsotel.AttrString("query.type", string(q.Type()))))
 	defer span.End()
 
 	key := s.queryKey(q.ID())
