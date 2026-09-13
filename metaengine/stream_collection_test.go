@@ -189,7 +189,11 @@ func TestExport_UsesStreamingScanAndMatchesFallbackOutput(t *testing.T) {
 	}
 
 	if got := eng.calls.Load(); got != int32(len(streamStore.Collections())) {
-		t.Fatalf("expected one StreamScan call per collection (%d), got %d", len(streamStore.Collections()), got)
+		t.Fatalf(
+			"expected one StreamScan call per collection (%d), got %d",
+			len(streamStore.Collections()),
+			got,
+		)
 	}
 
 	if plainBuf.String() != streamBuf.String() {
