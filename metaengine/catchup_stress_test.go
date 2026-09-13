@@ -92,30 +92,31 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
 	t.Cleanup(func() { slog.SetDefault(prevLogger) })
 
-	const writers = 8
+	const (
+		writers   = 8
+		perWriter = 500
+	)
 
 	var (
 		wg        sync.WaitGroup
-		stop      = make(chan struct{})
 		errs      = make(chan error, writers)
 		created   atomic.Int64
 		ticked    atomic.Int64
 		nextIndex atomic.Int64
 	)
 
+	// Bounded per-writer work: an unbounded spin storm starves the fold-lock
+	// holder under CPU oversubscription (mutex convoy) and can stall the
+	// rebuild for minutes. 8×500 appends against a rebuild that starts once
+	// the log holds 32 events guarantees the rebuild races a moving log AND
+	// terminates deterministically.
 	for range writers {
 		wg.Add(1)
 
 		go func() {
 			defer wg.Done()
 
-			for {
-				select {
-				case <-stop:
-					return
-				default:
-				}
-
+			for range perWriter {
 				i := nextIndex.Add(1)
 
 				if i%2 == 0 {
@@ -145,9 +146,9 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	}
 
 	// The rebuild runs INSIDE the write storm: wait until the log is
-	// demonstrably growing, then block in CatchUpEngine while writers keep
-	// appending — the stabilize loop's passes race fresh appends, and
-	// reactivation lands with writers still in flight.
+	// demonstrably growing (writers have thousands of events left), then
+	// block in CatchUpEngine — the stabilize loop's passes race fresh
+	// appends, and reactivation lands with writers still in flight.
 	for store.eventLog.Len() < 32 {
 		runtime.Gosched()
 	}
@@ -156,7 +157,6 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 		t.Fatalf("CatchUpEngine under concurrent applies: %v", err)
 	}
 
-	close(stop)
 	wg.Wait()
 	close(errs)
 
