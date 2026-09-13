@@ -421,17 +421,24 @@ bottom is a do-not-re-litigate guard, not a backlog.
       against live servers (`#integration-pg`, `#integration-mysql-nspawn`).
       — source: 05-38 §b2/§f3/§f4/§f10
       _(Effort: S/M)_
-- [ ] **scheduling/sqlstore hardening tail (carried from 03-50, untouched):**
+- [ ] **scheduling/sqlstore hardening tail (carried from 03-50):**
       race-stress test (concurrent `Due` pollers vs `Metrics()` reader);
       counter-scope pin (`MarkFired`/`Schedule`/`Cancel` deliberately never
       touch claim counters); property test (counters never exceed committed
-      polls); fuzz `decodeDueTimer` corrupt-payload path; worked
-      `Metrics()` → `/status` example; runnable otel wiring example for the
-      ClaimMetrics hooks; scheduler+claiming-store+Metrics e2e example;
-      `RenewLease` ownership/claim tokens (code comment defers today);
-      consider process-start timestamp on `ClaimMetricsSnapshot` for
-      cross-restart rates. — source: 03-50 §f18-27, 05-38 §f19-27
+      polls); fuzz `decodeDueTimer` corrupt-payload path;
+      `RenewLease` ownership/claim tokens (code comment defers today).
+      DONE 2026-09-13 (OTEL-OBSERVABILITY SUPERB): worked `Metrics()` →
+      `/status` example + runnable OTel wiring for the ClaimMetrics hooks +
+      process-start timestamp (`ClaimMetricsSnapshot.StartedAt`) — all in
+      `example/scheduler-otel-status`. — source: 03-50 §f18-27, 05-38 §f19-27
       _(Effort: M, one rule per slice)_
+- [ ] **storage/sql: dialect-aware `db.system` span attribute** — pebble and
+      bbolt spans carry the OTel semconv `db.system` (via `cqrsotel.DBSystem`)
+      since 2026-09-13; the SQL store needs its Dialect threaded into the
+      package-level span helpers (`storage/sql/otel.go`) to stamp
+      `sqlite`/`postgres`/`mysql`/`duckdb`. ~10 call sites.
+      — source: OTEL-OBSERVABILITY plan M7 remainder
+      _(Effort: S/M)_
 
 ---
 

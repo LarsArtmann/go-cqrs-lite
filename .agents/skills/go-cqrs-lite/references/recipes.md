@@ -612,6 +612,33 @@ qDispatcher.Use(bundle.Query()...)
 boundaries. With it, latency histograms use CQRS-optimized buckets
 (`[0.05, 0.1, ..., 10000]` ms).
 
+#### One-call OTLP export (otel/otlp.SetupOTLP)
+
+When the backend is an OTLP collector (or anything OTLP-adjacent: SigNoz,
+Jaeger, Grafana Alloy), `otel/otlp` wires both signals in one call — OTLP/HTTP,
+so no gRPC dependency enters the graph:
+
+```go
+import cqrsotlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"
+
+provider, _ := cqrsotlp.SetupOTLP(ctx, cqrsotlp.OTLPConfig{
+    Endpoint:    "localhost:4318", // host:port, no scheme
+    Insecure:    true,             // plain HTTP for local/sidecar collectors
+    Headers:     map[string]string{"x-scope-token": "..."},
+    ServiceName: "my-app",
+})
+defer func() { _ = provider.Shutdown(ctx) }()
+```
+
+Everything `cqrsotel.Setup` provides applies (CQRS views, propagation,
+flush-on-shutdown); trailing options override the OTLP wiring. gRPC users
+inject their own exporter via `cqrsotel.WithSpanExporter` instead.
+
+**Exemplars need no wiring:** the SDK's default trace-based exemplar filter
+is active, so histogram observations recorded under a sampled span carry
+trace/span IDs into the metric stream automatically. Override via the
+standard `OTEL_METRICS_EXEMPLAR_FILTER` env var.
+
 #### Command Idempotency (dedup on retry)
 
 ```go
@@ -2313,6 +2340,24 @@ engine, and the reprobe path brings the healed engine back REBUILT —
 exactly that engine (quarantine lifts only after a clean rebuild; failures
 stay quarantined for the next attempt; without an EventLog or
 `EngineResetter` it falls back to a plain, warned reactivation).
+
+**Health hooks + OTel counters:** every transition is also a typed hook —
+`WithHooks(store, Hooks{OnQuarantined, OnReactivated, OnProbe, OnCatchUp})`,
+fired outside the health mutex (observers must not call back into the
+Store) — and `metaengine/otelobserver` turns them into counters:
+
+```go
+import "github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4"
+
+obs, _ := otelobserver.Attach(store, meter) // merges with existing hooks
+// cqrs.metaengine.quarantine.total{engine}
+// cqrs.metaengine.reactivate.total{engine,reason=manual|catchup|probe-fallback}
+// cqrs.metaengine.probe.total{engine,outcome=ok|fail}
+// cqrs.metaengine.catchup.total{engine,outcome=ok|fail} + catchup.replayed{engine}
+```
+
+`Hooks.Merge` chains two hook sets (e.g. a metrics recorder plus the
+observer) so one `WithHooks` call never erases the other.
 
 **Rebuild-vs-writes safety (suffix-drain stabilize loop):** a rebuild runs
 while other goroutines keep folding into healthy engines, so the log can

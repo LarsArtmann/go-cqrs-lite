@@ -174,3 +174,19 @@ buffer — no provider-shutdown timing involved.
 - [**watermill**](../watermill/) — Broker bridges with producer spans
 
 > **Rule:** Import OTel via `otel/v4`, NOT `go.opentelemetry.io` directly. This keeps the SDK indirect in go.mod files.
+
+## Exemplars
+
+Exemplars are ON by default: the OTel SDK ships the trace-based exemplar
+filter, so every histogram observation recorded under a sampled span (e.g.
+`cqrs.operation.duration` from the middleware metrics recorder) carries the
+trace/span IDs into the metric stream — click a latency bucket in your APM,
+land on the trace. Pinned by `TestSetup_ExemplarsFlowFromSampledSpans`.
+Control it with the standard `OTEL_METRICS_EXEMPLAR_FILTER` env var
+(`always_on` / `always_off` / `trace_based`).
+
+## db.system
+
+`DBSystem(system)` stamps the OTel database semantic-convention attribute on
+storage-engine spans (`pebble`, `bbolt` today) so OTel-native APMs group
+spans by backend.

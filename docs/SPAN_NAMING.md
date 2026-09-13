@@ -84,6 +84,11 @@ All spans use the `cqrs.*` attribute namespace:
 | `cqrs.status`            | `success`, `error`          | Metrics spans            |
 | `cqrs.projection.name`   | `users`                     | Replay spans             |
 
+Storage-engine spans additionally carry the OTel database semantic
+convention `db.system` (via `cqrsotel.DBSystem`) — `pebble`, `bbolt` — so
+OTel-native APMs can group spans by backend. The SQL store's dialect-aware
+`db.system` is a tracked follow-up.
+
 ## Rules
 
 1. **Dot-separated, lowercase.** No camelCase, no underscores.

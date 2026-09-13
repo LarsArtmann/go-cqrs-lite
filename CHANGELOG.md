@@ -6,6 +6,56 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — metaengine: health-transition observability (ADR-0137) — 2026-09-13
+
+- **`Hooks.OnQuarantined` / `Hooks.OnReactivated` / `Hooks.OnProbe` / `Hooks.OnCatchUp`** —
+  typed hooks on the existing `metaengine.Hooks` surface for every engine
+  health transition: quarantine after consecutive classified failures,
+  quarantine lifts (`reason`: `manual` / `catchup` / `probe-fallback`),
+  auto-reprobe outcomes, and catch-up rebuild results (events replayed).
+  Hooks fire after the health mutex is released; the no-reentry contract is
+  pinned by tests (a callback calling `HealthSnapshot` cannot deadlock).
+- **`Hooks.Merge`** — chains two hook sets so observability layers compose
+  instead of clobbering each other (a metrics recorder plus a health
+  observer, for example); `Store.CurrentHooks` returns the live set for
+  merging.
+- **`metaengine/otelobserver` (new module)** — `otelobserver.Attach(store, meter)`
+  turns the health hooks into OTel counters:
+  `cqrs.metaengine.quarantine.total{engine}`,
+  `cqrs.metaengine.reactivate.total{engine,reason}`,
+  `cqrs.metaengine.probe.total{engine,outcome}`,
+  `cqrs.metaengine.catchup.total{engine,outcome}`, and
+  `cqrs.metaengine.catchup.replayed{engine}`. The metaengine core gains no
+  OTel dependency — the bridge module owns it.
+
+### Added — otel: one-call OTLP export + db.system semconv — 2026-09-13
+
+- **`otel/otlp` (new module)** — `otlp.SetupOTLP(ctx, otlp.OTLPConfig)`
+  builds OTLP/HTTP trace + metric exporters and hands them to `otel.Setup`
+  (CQRS views, propagation, flush-on-shutdown included; trailing options
+  override). HTTP transport only — no gRPC dependency enters the graph.
+- **`otel.DBSystem(system)`** — the `db.system` OTel semantic-convention
+  attribute; pebble and bbolt spans now carry it so OTel-native APMs can
+  group storage spans by backend (SQL dialect threading is a tracked
+  follow-up).
+- **Exemplars verified on by default** — the SDK's trace-based exemplar
+  filter flows trace/span IDs into histogram observations under sampled
+  spans; pinned by `TestSetup_ExemplarsFlowFromSampledSpans` (no API
+  change; `OTEL_METRICS_EXEMPLAR_FILTER` overrides).
+
+### Added — scheduling/sqlstore: claim-rate anchor + runnable OTel example — 2026-09-13
+
+- **`sqlstore.ClaimMetricsSnapshot.StartedAt`** — construction-stamped
+  process-start anchor on the built-in claim counters, making cross-restart
+  claim rates computable (counters reset on restart; the anchor says over
+  which window they accumulated). JSON shape pinned by
+  `TestClaimMetricsSnapshot_JSONTagsAreStable`.
+- **`example/scheduler-otel-status` (new example)** — the runnable recipe
+  the claim-metrics TODO asked for: `ClaimMetrics` hooks → OTel counters on
+  `/metrics` (OTel→Prometheus bridge), `Metrics()` snapshot + live
+  `claimedPerMinute` on `/status`. The module itself still carries no OTel
+  dependency — by design.
+
 ### Added — metaengine: streaming collection reads power exports — 2026-09-13
 
 - **`Store.StreamCollection`** — iterates every row of a collection through
