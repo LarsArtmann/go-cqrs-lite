@@ -389,11 +389,11 @@ Grouped by parent task. Every row is independently executable and verifiable.
 
 ## Decision gates (blocking T23/T24)
 
-| Gate | Question | Blocks | Fallback if unanswered | Memo |
-|------|----------|--------|------------------------|------|
-| G1 | Wire or cut `StreamingScan` (ghost capability)? | T23 | Cut at v5 stays default; memo T16 stands as proposal | [`T16 memo`](2026-09-13_T16-memo-streamingscan-wire-or-cut.md) |
-| G2 | Command-log audit scope: per-actor projection / payload capture / distinct rejection event? | T24 | Ship memo T17 as recommendation; no code | [`T17 memo`](2026-09-13_T17-memo-command-log-audit-scope.md) |
-| G3 | Sessions permanently external (identity-model) or future module? `queue/` relation? | T18 outcome (informational) | Document current boundary; no code | [`T18 memo`](2026-09-13_T18-memo-session-log-boundary.md) |
+| Gate | Question | Blocks | Fallback if unanswered | Memo | Outcome |
+|------|----------|--------|------------------------|------|---------|
+| G1 | Wire or cut `StreamingScan` (ghost capability)? | T23 | Cut at v5 stays default; memo T16 stands as proposal | [`T16 memo`](2026-09-13_T16-memo-streamingscan-wire-or-cut.md) | **EXECUTED 2026-09-13** — option A wired as `Store.StreamCollection` + streaming `Export` |
+| G2 | Command-log audit scope: per-actor projection / payload capture / distinct rejection event? | T24 | Ship memo T17 as recommendation; no code | [`T17 memo`](2026-09-13_T17-memo-command-log-audit-scope.md) | **HALF EXECUTED** — option B shipped (`CommandsByActor`); rejection event + payload capture remain open |
+| G3 | Sessions permanently external (identity-model) or future module? `queue/` relation? | T18 outcome (informational) | Document current boundary; no code | [`T18 memo`](2026-09-13_T18-memo-session-log-boundary.md) | **OPEN** — memo T18 recommendation stands |
 
 ---
 

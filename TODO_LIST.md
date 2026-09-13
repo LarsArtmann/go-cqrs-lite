@@ -60,7 +60,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 
-- [ ] 🔥 **Suspected replay-starvation race in system.Start's projection path under extreme parallel load** — during two full `#verify` runs (machine load 35–52 from concurrent builds), phase 2 (fresh `system.New` over the same SQLite journal, no checkpoint = replay-from-zero) showed `processed=0 errors=0` for 130s+ while the journal demonstrably held the event: the projection worker never folded anything, i.e. permanently missed the replay — the exact hazard signature of the subscribe-vs-drain ordering that `projectionhost` TOCTOU guard (recipes §2.23) was built to prevent. Passes 8+/8+ times module-isolated (even at load 35+) and full-module (`-count=1`, 0.39s); fails only inside the full-verify package storm; unrelated to the 2026-09-13 command-side changes (no causal import path). Mitigation applied: `waitForProjectionProcessed` base 15s→45s + outer ctx 90s→270s (proves it is a stall, not slowness — budgets burned with zero progress). Next: run the system suite with `-parallel` + synthetic CPU/IO soakers to reproduce deterministically, then trace `system.Start` → projectionhost subscribe/drain ordering; if the guard has a gap, fix at the projectionhost layer (ADR-0136 replay guarantee). _(Effort: M — needs a quiet or deliberately loaded machine)_
+- [ ] 🔥 **Suspected replay-starvation race in system.Start's projection path under extreme parallel load** — during two full `#verify` runs (machine load 35–52 from concurrent builds), phase 2 (fresh `system.New` over the same SQLite journal, no checkpoint = replay-from-zero) showed `processed=0 errors=0` for 130s+ while the journal demonstrably held the event: the projection worker never folded anything, i.e. permanently missed the replay — the exact hazard signature of the subscribe-vs-drain ordering that `projectionhost` TOCTOU guard (recipes §2.23) was built to prevent. Passes 8+/8+ times module-isolated (even at load 35+) and full-module (`-count=1`, 0.39s); fails only inside the full-verify package storm; unrelated to the 2026-09-13 command-side changes (no causal import path). Mitigation applied: `waitForProjectionProcessed` base 15s→45s + outer ctx 90s→270s (proves it is a stall, not slowness — budgets burned with zero progress). Next: run the system suite with `-parallel` + synthetic CPU/IO soakers to reproduce deterministically, then trace `system.Start` → projectionhost subscribe/drain ordering; if the guard has a gap, fix at the projectionhost layer (ADR-0136 replay guarantee). **Second witness (2026-09-13, evening):** `TestEngineHealth_CatchUpUnderConcurrentApplies` failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated (`GOWORK=off go test -tags goexperiment.jsonv2 -run TestEngineHealth_CatchUpUnderConcurrentApplies -count=5 .`) — same load-sensitivity class, unrelated to the reconciliation changes (no catch-up/failover code touched). _(Effort: M — needs a quiet or deliberately loaded machine)_
 
 ## Turso materialized views (ADR-0135) — upstream handoffs
 
@@ -242,6 +242,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > (2026-09-07) and a coordinated release re-tagged 15 modules (2026-09-08).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
+
+- [ ] **Reconciliation-wave untagged surfaces (2026-09-13)** — `metaengine`
+      (`Store.StreamCollection`), `commandlifecycle/projections`
+      (`CommandsByActor` + query/result types), plus the regenerated API golden.
+      Fold into the next tag wave when it is authorized; no release action
+      before that. — source:
+      [`docs/status/2026-09-13_18-35_…execution.md`](docs/status/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md)
+      _(Effort: XS note; M at tag time)_
 
 - [ ] [BLOCKED] 🔥 **Next v4 tag wave** — substantial unpublished surfaces on
       master: `encryption` (key helpers + envelope v2), `snapshot`
@@ -443,6 +451,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 ---
 
 ## CI / Infrastructure
+
+- [ ] 🔥 **File-size ratchet RED: `cmd/cqrs-lint/pkg/rules/lintutil/lintutil.go` 453 → 474** —
+      committed 2026-09-13 by the cqrs-lint session (auto-commit `ce69cbd15`); baselined files
+      may only shrink, so this blocks `#verify-fast` for every session. Owner action: shrink or
+      split the file, or take an explicit policy-reviewed `--update-baseline` decision (never a
+      silent baseline shift). Not touched by the reconciliation session (file ownership).
+      _(Effort: S)_
 
 - [ ] **Zero the erraudit error-policy baseline** (precondition for the
       `error-audit` CI gate added 2026-09-11) — the job is wired

@@ -49,7 +49,7 @@ The planning doc's **core abstraction shipped and works** (folds-are-the-ADT, pe
 
 | # | Item | Evidence of absence |
 |---|------|---------------------|
-| C1 | §10 **command log** (`CommandSucceeded`/`CommandRejected` as event streams) | Zero hits in `metaengine/*.go` |
+| C1 | §10 **command log** (`CommandSucceeded`/`CommandRejected` as event streams) | Zero hits in `metaengine/*.go` — **CORRECTED 2026-09-13: this claim is WRONG; see the appendix at the end of this file** |
 | C2 | §10 **query log** (`QueryExecuted`) | Zero hits |
 | C3 | §10 **session log** (`SessionStarted`/`SessionEnded`/`SessionRevoked`, sessions-as-event-streams) | Zero hits; external `cqrs-htmx/identity-model` referenced but out of scope here |
 | C4 | §12 **YAML engine config** (`engines: { sqlite: { driver, dsn } }`) | Engines are Go-constructed (`sqliteengine.NewSQLiteEngineFromDSN`); no config loader |
@@ -195,3 +195,11 @@ The doc assumes Bloom filters for `CheckEmail` at scale and Neo4j for `FriendsOf
 ---
 
 *Awaiting instructions.*
+
+---
+
+## Appendix — Corrections (2026-09-13, post-execution)
+
+- **C1 is WRONG as written.** The command log SHIPPED — not in `metaengine/*.go` (which is all the grep covered), but as `commandlifecycle` (ADR-0117): `command.received/failed/retried/dead-lettered/completed` on `Command/<id>` + `CommandLifecycle/<id>` streams, projections (DLQ, retry count, failure log, processing time, plus per-actor `CommandsByActor` since 2026-09-13), `CommandJournal`/`SeekableCommandJournal`, and `system.WithCommandLifecycle`. The grep was scoped to the wrong module — the miss was acknowledged in the [15:55 deep dive](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) and is annotated again here.
+- The rest of section (c) stands, with nuances now recorded in the reconciled doc's addendum (C4 no config loader; C5 Dgraph/CTE; C6 Pebble-internal bloom, not an ADT; C7 not shipped).
+- Execution outcome of the reconciliation: [18:35 status report](2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md); close-out plan: [`docs/planning/2026-09-13_18-41_SUPERB-reconciliation-close-out.md`](../planning/2026-09-13_18-41_SUPERB-reconciliation-close-out.md).

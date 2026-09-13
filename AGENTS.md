@@ -147,7 +147,7 @@ TL;DR rules (too hot to be one click away):
 1. **Never `rm`/`git reset`/`git checkout`/plain `mv`** — `trash`, `git switch`/`git restore`, `git mv`.
 2. **Cache env chain + `-tags "goexperiment.jsonv2"`** on every go command ([`gowork-modes.md`](docs/agents/gowork-modes.md)).
 3. **`#verify` runs exclusively** — never concurrent with integration suites or heavy builds.
-4. **Auto-commit daemon absorbs working-tree changes** — expect `chore: auto-commit` commits; wait for clean tree before tagging.
+4. **Auto-commit daemon absorbs working-tree changes** — expect `chore: auto-commit` commits; wait for clean tree before tagging. For plan-driven work, commit at each phase boundary immediately if you need authored history (the daemon will otherwise absorb mid-phase edits into `chore:` commits).
 5. **API-surface change ⇒ api golden regen in the same edit** (`cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update`).
 
 ## Procedures
@@ -193,6 +193,14 @@ moved past one, do NOT silently edit its design intent:
 5. `docs/planning/` is NOT in `cmd/doc-check`'s default scan set (gated only when passed explicitly). No snippet-compile gate is enforced for planning docs: snippets are illustrative, and md-go-validator flags them by design (see `docs/reviews/2026-09-13_md-go-validator-review.md`). The banner + addendum discipline is the gate.
 
 Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`).
+
+### Blast Radius Before Done
+
+Before calling a change done, find the consumers of every exported symbol you touched and run THEIR module tests:
+
+1. Search references (`lsp_references` or `rg "SymbolName" --type go -l`) across all modules — the repo is an 85-module workspace; consumers live outside your module.
+2. Treat aggregate/convenience exports as high-risk: `projections.All()` is consumed by `system.WithCommandLifecycle`, so growing it changes every consumer's wiring.
+3. Run each consumer module's `GOWORK=off go test -short` (plus lint for the changed modules) before the final report — a compile-only check is not a verification.
 
 ## Module Tiers
 
