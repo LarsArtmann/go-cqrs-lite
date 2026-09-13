@@ -141,14 +141,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
       `rg … || true` with explicit extraction assertions while there. —
       source: 05-26 §b1/§f11-17, 05-51 §f30
       _(Effort: S/M)_
-- [ ] **cqrs-upgrade strict-gate residual holes** — (a) `--strict` must
-      FAIL when any module errored (rep.Error) — unscanned = unproven;
-      (b) run the deprecation scan even for NoPins modules (indirect-only
-      cqrs consumers currently escape); (c) make `bumps` always-present in
-      `--json` (symmetry with `deprecations`); (d) consider a
-      `schemaVersion` field for the `--json` wire; (e) E2E test of `run()`
-      against a fixture module (flags→report→strict exit codes). — source:
-      05-26 §e4/§f6-10
+- [ ] **cqrs-upgrade strict-gate residual holes** — (a) run the
+      deprecation scan even for NoPins modules (indirect-only cqrs consumers
+      currently escape); (b) consider a `schemaVersion` field for the
+      `--json` wire; (c) E2E test of `run()` against a fixture module
+      (flags→report→strict exit codes). — source: 05-26 §e4/§f6-10
+      (DONE 2026-09-13: --strict now fails on module errors — unscanned =
+      unproven — and `bumps` is always-present in --json, symmetric with
+      `deprecations`; both pinned by tests.)
       _(Effort: S)_
 - [ ] **Kill the self-lint false-green class at the root** — any path under
       `github.com/larsartmann/go-cqrs-lite/**` gets V007/F030 silently
@@ -378,15 +378,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       against live servers (`#integration-pg`, `#integration-mysql-nspawn`).
       — source: 05-38 §b2/§f3/§f4/§f10
       _(Effort: S/M)_
-- [ ] **recipes.md: `ApplyEncodedRecord` snippet** — the projection.Projection
-      adapter recipe for the encoded-record path; references are currently
-      silent on it (only modules.md has the row). — source: 05-38 §c4/§f5
-      _(Effort: XS)_
-- [ ] **Calibration gate v2: sustained quiet** — `calibration-gate.sh`
-      checks load1 only; a burst-draining host (load1=4, load5=30) passes
-      and is still noisy. Require load1 AND load5 under the ceiling; also
-      run `shellcheck` over it (never shellchecked). — source: 05-38 §e/§f1/§f9
-      _(Effort: XS)_
 - [ ] **scheduling/sqlstore hardening tail (carried from 03-50, untouched):**
       race-stress test (concurrent `Due` pollers vs `Metrics()` reader);
       counter-scope pin (`MarkFired`/`Schedule`/`Cancel` deliberately never
@@ -512,10 +503,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       an analogous transient-abort class worth the same treatment. — source:
       02-16 §f19
       _(Effort: M)_
-- [ ] **`go mod tidy` in `integration/`** — gopls flags unused
-      `google.golang.org/genproto/googleapis/rpc` (integration/go.mod:131;
-      still flagged 2026-09-11). — source: 02-16 §f24
-      _(Effort: XS)_
 - [ ] **Unify ephemeral-script passthrough conventions** — ephemeral-pg.sh
       uses positional EXTRA_ARGS, ephemeral-dgraph.sh uses
       TEST_ARGS/TEST_ARGS2, redis/nats use raw passthrough; three
@@ -527,19 +514,9 @@ bottom is a do-not-re-litigate guard, not a backlog.
       OQ-10 policy); the pg/mysql test helpers deserve the same classifier
       (same silent-skip class). — source: 05-51 §e6
       _(Effort: S)_
-- [ ] **projectionhost integration-build compile check** — the goleak
-      `TestMain` carries `//go:build !integration`; the two-TestMain clash
-      risk is handled by the tag but never compile-checked WITH it. One
-      command: `go vet -tags integration ./...` in projectionhost. — source:
-      05-40 §b4/§f4
-      _(Effort: XS)_
 - [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
       seed that fails; rare orderings WILL eventually appear in CI (that is
       the point of shuffling). — source: 02-16 §e7/§f10
-      _(Effort: XS)_
-- [ ] **Record shuffle seeds to a log for post-hoc replay** — ephemeral
-      scripts echo the seed; persist it to a file so a failed CI seed can be
-      replayed exactly (`-shuffle=N`). — source: 02-16 §f23
       _(Effort: XS)_
 - [ ] [BLOCKED] **Quiet-window exclusive `nix run .#verify` composed GREEN**
       (supersedes the contention-fix verify item) — last composed GREEN was
@@ -634,11 +611,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       honor (precedent: `RejectDurabilityTier`, `MaterializedViews`). —
       source: 20-18 §f15-17/§f21, 20-57 §f9-10
       _(Effort: L)_
-- [ ] **v6 deletion markers:** snapshot wire fallback shims + pebble
-      legacy-row support window get a ROADMAP-visible deadline marker (one
-      release cycle after v5) so the deletion wave can grep for it. — source:
-      08-41 §f10/§f50
-      _(Effort: XS)_
 - [ ] **Migration-verification tail for T18:** live MySQL/MariaDB +
       DuckDB `MigrateSnapshotColumnsToStream` runs; mixed-state corruption
       test; mid-migration failure-path test; concurrent-init idempotency test;
@@ -692,20 +664,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
-- [ ] **Reconstruct the orphaned `cec9248da` work record** — tripwire +
-      fix.go dedup + pg test helpers were daemon-absorbed with no authoring
-      report; a short annotated report (what/where/verified-how) closes the
-      provenance gap. — source: 04-35 §c1, 01-38 §f8
-      _(Effort: XS)_
 - [ ] **Skill references: reset recipe covers ALL engines** — SKILL.md +
       references still describe `Store.Reset` as memory-only; the ladder is
       12/12 now. Update the reset recipe + add the
       `WithContentionObserver` entry to recipes.md. — source: 05-51 §f33
       _(Effort: S)_
-- [ ] **`docs/status/README.md` index upkeep** — the 2026-09-11 batch-day
-      reports (8 files) need index entries before/after archiving; the index
-      is the only map of the ~1500-file archive. — source: 05-34 §f35
-      _(Effort: XS, recurring)_
 
 ---
 
