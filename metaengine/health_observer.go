@@ -41,6 +41,19 @@ func (s *Store) emitCatchUp(engine string, replayed int, err error) {
 	}
 }
 
+// catchUpReplayedCount reads how many events the last CatchUpEngine attempt
+// replayed into the engine (partial on failure) — the OnCatchUp payload.
+func (s *Store) catchUpReplayedCount(name string) int {
+	s.healthMu.RLock()
+	defer s.healthMu.RUnlock()
+
+	if rec := s.catchUps[name]; rec != nil {
+		return rec.replayed
+	}
+
+	return 0
+}
+
 // doctorEngineHealthSection renders the ADR-0137 per-engine health lines for
 // the Doctor report: quarantine state, consecutive failures, and the last
 // classified error, sorted by engine name.

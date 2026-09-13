@@ -58,11 +58,11 @@ const catchUpMaxPasses = 64
 // engine's probe succeeds, falling back to a plain reactivation (with a
 // warning) when catch-up is unsupported.
 func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
-	replayed, err := s.catchUpEngine(ctx, name)
+	err := s.catchUpEngine(ctx, name)
 
 	// Hooks fire here, after the body released catchUpMu and every other
 	// lock — observers must never run under Store locks.
-	s.emitCatchUp(name, replayed, err)
+	s.emitCatchUp(name, s.catchUpReplayedCount(name), err)
 
 	if err == nil {
 		s.emitReactivated(name, "catchup")
@@ -74,7 +74,7 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
 // catchUpEngine is the [Store.CatchUpEngine] body. The public wrapper emits
 // the OnCatchUp/OnReactivated hooks after it returns, when no locks are held;
 // the body itself holds catchUpMu until it returns.
-func (s *Store) catchUpEngine(ctx context.Context, name string) (result error, replayed int) {
+func (s *Store) catchUpEngine(ctx context.Context, name string) (result error) {
 	s.catchUpMu.Lock()
 	defer s.catchUpMu.Unlock()
 
@@ -111,6 +111,7 @@ func (s *Store) catchUpEngine(ctx context.Context, name string) (result error, r
 	}
 
 	offset := 0
+	replayed := 0
 
 	// The rebuild is observable: mark it running, then settle the final
 	// state on the way out (error text, replayed count, completion stamp).
@@ -118,11 +119,11 @@ func (s *Store) catchUpEngine(ctx context.Context, name string) (result error, r
 
 	defer s.catchUpStateUpdate(name, func(rec *catchUpRecord) {
 		rec.running = false
+		rec.replayed = replayed
 
 		switch {
 		case result == nil:
 			rec.lastErr = ""
-			rec.replayed = replayed
 			rec.completed = time.Now()
 		case !errors.Is(result, ErrCatchUpUnsupported):
 			rec.lastErr = result.Error()
