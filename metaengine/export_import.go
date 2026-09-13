@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -27,8 +28,7 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 			return err //nolint:wrapcheck
 		}
 
-		eng, ok := s.collectionEngine(col.Name)
-		if !ok {
+		if _, ok := s.collectionEngine(col.Name); !ok {
 			if _, err := fmt.Fprint(w, "]"); err != nil {
 				return err //nolint:wrapcheck
 			}
@@ -36,28 +36,30 @@ func (s *Store) Export(ctx context.Context, w io.Writer) error {
 			continue
 		}
 
-		if sb, ok := eng.(ScanBackend); ok {
-			result, err := sb.MapScan(ctx, col.Name, nil, nil, nil, 0)
+		first := true
+
+		streamErr := s.StreamCollection(ctx, col.Name, func(row any) error {
+			if !first {
+				if _, err := fmt.Fprint(w, ","); err != nil {
+					return err //nolint:wrapcheck
+				}
+			}
+
+			first = false
+
+			data, err := json.Marshal(row)
 			if err != nil {
-				return fmt.Errorf("export %s: %w", col.Name, err)
+				return fmt.Errorf("marshal: %w", err)
 			}
 
-			for j, row := range result.Items {
-				if j > 0 {
-					if _, err := fmt.Fprint(w, ","); err != nil {
-						return err //nolint:wrapcheck
-					}
-				}
-
-				data, err := json.Marshal(row)
-				if err != nil {
-					return fmt.Errorf("export %s row %d: %w", col.Name, j, err)
-				}
-
-				if _, err := w.Write(data); err != nil {
-					return fmt.Errorf("export %s row %d: %w", col.Name, j, err)
-				}
+			if _, err := w.Write(data); err != nil {
+				return err //nolint:wrapcheck
 			}
+
+			return nil
+		})
+		if streamErr != nil && !errors.Is(streamErr, errNoScanBackend) {
+			return fmt.Errorf("export %s: %w", col.Name, streamErr)
 		}
 
 		if _, err := fmt.Fprint(w, "]"); err != nil {

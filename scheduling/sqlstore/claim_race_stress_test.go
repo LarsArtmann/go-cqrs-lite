@@ -144,6 +144,12 @@ func TestClaimingSQLite_RaceStress_DueVsMetrics(t *testing.T) {
 // the built-in counters observe CLAIM activity only — Schedule, Cancel and
 // MarkFired must leave them untouched, so a Doctor report reading Metrics
 // never mistakes lifecycle mutations for polls or renewals.
+func zeroAnchor(s sqlstore.ClaimMetricsSnapshot) sqlstore.ClaimMetricsSnapshot {
+	s.StartedAt = time.Time{} // rate anchor, not a claim counter
+
+	return s
+}
+
 func TestClaimingSQLite_CounterScope(t *testing.T) {
 	_, db := newSQLiteStore[struct{}](t)
 
@@ -163,7 +169,7 @@ func TestClaimingSQLite_CounterScope(t *testing.T) {
 		t.Fatalf("Schedule: %v", err)
 	}
 
-	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
+	if got := zeroAnchor(store.Metrics()); got != (sqlstore.ClaimMetricsSnapshot{}) {
 		t.Fatalf("Metrics after Schedule = %+v, want zero", got)
 	}
 
@@ -171,7 +177,7 @@ func TestClaimingSQLite_CounterScope(t *testing.T) {
 		t.Fatalf("MarkFired: %v", err)
 	}
 
-	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
+	if got := zeroAnchor(store.Metrics()); got != (sqlstore.ClaimMetricsSnapshot{}) {
 		t.Fatalf("Metrics after MarkFired = %+v, want zero", got)
 	}
 
@@ -186,7 +192,7 @@ func TestClaimingSQLite_CounterScope(t *testing.T) {
 		t.Fatalf("Cancel: %v", err)
 	}
 
-	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
+	if got := zeroAnchor(store.Metrics()); got != (sqlstore.ClaimMetricsSnapshot{}) {
 		t.Fatalf("Metrics after Cancel = %+v, want zero", got)
 	}
 }
