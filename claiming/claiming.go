@@ -56,7 +56,7 @@ const (
 // cannot honor the claim contract. MySQL/MariaDB 10.6+ (FOR UPDATE SKIP
 // LOCKED — verified live on MariaDB 11.4) IS supported; only unknown
 // dialects are rejected.
-var ErrUnsupported = errors.New(
+var ErrUnsupported error = errors.New(
 	"claiming: requires Postgres, SQLite, or MySQL/MariaDB 10.6+ (FOR UPDATE SKIP LOCKED)",
 )
 
@@ -64,7 +64,7 @@ var ErrUnsupported = errors.New(
 // owns the row's claim: the row completed or disappeared, or the lease
 // expired and another worker may have re-claimed it. Classified as
 // Orchestration — a distributed-coordination race, not a caller bug.
-var ErrLeaseNotHeld = errorfamily.NewOrchestration(
+var ErrLeaseNotHeld error = errorfamily.NewOrchestration(
 	"claiming.lease_not_held",
 	"no live claim for this row (completed, canceled, or lease expired)",
 )
