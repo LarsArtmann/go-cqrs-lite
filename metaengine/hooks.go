@@ -65,7 +65,9 @@ func (h Hooks) Merge(other Hooks) Hooks {
 	return out
 }
 
-func chainFold(a, b func(string, string, FoldKind, time.Duration, error)) func(string, string, FoldKind, time.Duration, error) {
+func chainFold(
+	a, b func(string, string, FoldKind, time.Duration, error),
+) func(string, string, FoldKind, time.Duration, error) {
 	switch {
 	case a == nil:
 		return b

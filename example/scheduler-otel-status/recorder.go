@@ -11,8 +11,12 @@ import (
 // the manual wiring scheduling/sqlstore deliberately leaves to consumers so
 // the module itself carries no OTel dependency. This file IS that recipe.
 func newClaimRecorder(meter cqrsotel.Meter) (sqlstore.ClaimMetrics, error) {
-	batches, err := meter.Int64Counter("cqrs.scheduler.claim.batches",
-		cqrsotel.CounterMetricWithDescription("Committed Due polls, empty ones included (poller heartbeat)"))
+	batches, err := meter.Int64Counter(
+		"cqrs.scheduler.claim.batches",
+		cqrsotel.CounterMetricWithDescription(
+			"Committed Due polls, empty ones included (poller heartbeat)",
+		),
+	)
 	if err != nil {
 		return sqlstore.ClaimMetrics{}, err //nolint:wrapcheck // demo passthrough
 	}

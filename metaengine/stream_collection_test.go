@@ -21,7 +21,9 @@ type streamingScanTestEngine struct {
 }
 
 func newStreamingScanTestEngine() *streamingScanTestEngine {
-	return &streamingScanTestEngine{memoryEngine: NewMemoryEngine().(*memoryEngine)} //nolint:forcetypeassert // concrete memory engine, internal test
+	return &streamingScanTestEngine{
+		memoryEngine: NewMemoryEngine().(*memoryEngine),
+	} //nolint:forcetypeassert // concrete memory engine, internal test
 }
 
 func (e *streamingScanTestEngine) StreamScan(
@@ -190,6 +192,10 @@ func TestExport_UsesStreamingScanAndMatchesFallbackOutput(t *testing.T) {
 	}
 
 	if plainBuf.String() != streamBuf.String() {
-		t.Fatalf("export output diverged:\nplain:  %s\nstream: %s", plainBuf.String(), streamBuf.String())
+		t.Fatalf(
+			"export output diverged:\nplain:  %s\nstream: %s",
+			plainBuf.String(),
+			streamBuf.String(),
+		)
 	}
 }

@@ -4228,6 +4228,7 @@ otel/func CorrelationIDFromContext
 otel/func CounterAddWithAttributes
 otel/func CounterMetricWithDescription
 otel/func CounterMetricWithUnit
+otel/func DBSystem
 otel/func EndWithError
 otel/func EventAttrs
 otel/func MetricWithAttributes

@@ -47,16 +47,26 @@ func New(meter cqrsotel.Meter) (*Observer, error) {
 		name string
 		desc string
 	}{
-		{&o.quarantines, "cqrs.metaengine.quarantine.total",
-			"Engines quarantined after consecutive classified failures"},
-		{&o.reactivations, "cqrs.metaengine.reactivate.total",
-			"Engine reactivations by reason (manual, catchup, probe-fallback)"},
-		{&o.probes, "cqrs.metaengine.probe.total",
-			"Health probes by outcome (ok, fail)"},
-		{&o.catchups, "cqrs.metaengine.catchup.total",
-			"Catch-up rebuild attempts by outcome (ok, fail)"},
-		{&o.catchupEvents, "cqrs.metaengine.catchup.replayed",
-			"Events replayed into engines during catch-up rebuilds"},
+		{
+			&o.quarantines, "cqrs.metaengine.quarantine.total",
+			"Engines quarantined after consecutive classified failures",
+		},
+		{
+			&o.reactivations, "cqrs.metaengine.reactivate.total",
+			"Engine reactivations by reason (manual, catchup, probe-fallback)",
+		},
+		{
+			&o.probes, "cqrs.metaengine.probe.total",
+			"Health probes by outcome (ok, fail)",
+		},
+		{
+			&o.catchups, "cqrs.metaengine.catchup.total",
+			"Catch-up rebuild attempts by outcome (ok, fail)",
+		},
+		{
+			&o.catchupEvents, "cqrs.metaengine.catchup.replayed",
+			"Events replayed into engines during catch-up rebuilds",
+		},
 	}
 
 	for _, inst := range instruments {

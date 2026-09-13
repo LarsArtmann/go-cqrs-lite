@@ -139,7 +139,13 @@ func TestHealthObserver_ReactivationReasons(t *testing.T) {
 
 	for i, want := range wantReactivated {
 		if rec.reactivated[i] != want {
-			t.Fatalf("OnReactivated[%d] = %q, want %q (all: %v)", i, rec.reactivated[i], want, rec.reactivated)
+			t.Fatalf(
+				"OnReactivated[%d] = %q, want %q (all: %v)",
+				i,
+				rec.reactivated[i],
+				want,
+				rec.reactivated,
+			)
 		}
 	}
 

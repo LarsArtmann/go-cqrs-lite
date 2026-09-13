@@ -18,9 +18,9 @@ package otlp
 import (
 	"context"
 
-	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	otlpmetrichttp "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	otlptracehttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
@@ -74,7 +74,8 @@ func SetupOTLP(
 		cqrsotel.WithService(cfg.ServiceName, cfg.ServiceVersion, cfg.InstanceID),
 	}
 
-	return cqrsotel.Setup(append(setupOpts, opts...)...) //nolint:wrapcheck // Setup's error surfaces unchanged
+	return cqrsotel.Setup(
+		append(setupOpts, opts...)...) //nolint:wrapcheck // Setup's error surfaces unchanged
 }
 
 func traceOptions(cfg OTLPConfig) []otlptracehttp.Option {

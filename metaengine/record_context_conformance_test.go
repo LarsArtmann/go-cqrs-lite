@@ -410,7 +410,15 @@ func TestApplyIdempotent_DuplicateIsNoOp(t *testing.T) {
 
 	ctx := context.Background()
 
-	applyOK(t, store.ApplyIdempotent(ctx, "evt-dup", "recordContextEvent", recordContextEvent{TaskID: "t1"}))
+	applyOK(
+		t,
+		store.ApplyIdempotent(
+			ctx,
+			"evt-dup",
+			"recordContextEvent",
+			recordContextEvent{TaskID: "t1"},
+		),
+	)
 
 	if got := conformView(t, store.engines[0]); got != conformSyntheticVw {
 		t.Fatalf("first apply view = %+v, want %+v", got, conformSyntheticVw)
@@ -424,7 +432,15 @@ func TestApplyIdempotent_DuplicateIsNoOp(t *testing.T) {
 		t.Fatalf("advisory after first apply = %d, want 1", applies)
 	}
 
-	applyOK(t, store.ApplyIdempotent(ctx, "evt-dup", "recordContextEvent", recordContextEvent{TaskID: "t1"}))
+	applyOK(
+		t,
+		store.ApplyIdempotent(
+			ctx,
+			"evt-dup",
+			"recordContextEvent",
+			recordContextEvent{TaskID: "t1"},
+		),
+	)
 
 	if log.Len() != 1 {
 		t.Errorf("EventLog length after duplicate = %d, want 1 — the duplicate folded", log.Len())

@@ -63,7 +63,7 @@ cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.
 | Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
 | CI          | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
 
-Multi-module Go workspace (`go.work`) with 85 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 88 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
@@ -203,8 +203,8 @@ Tier 0 — Primitives: id/, dispatcher/, kv/, dedup/, record/ (codec, retry, fli
 Tier 1 — Core Domain: event/, command/, query/, scheduling/, metadata/
 Tier 2 — Domain Utilities: schema/, snapshot/, projection/, idempotency/, deriver/, commandlifecycle/, idempotency/kvstore/, idempotency/sqlstore/
 Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, metaengine/, commandlifecycle/projections/
-Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, prometheus/, middleware/, transport/*, watermill/,
-                     testutil/, metaengine/*engine/, metaengine/projectionadapter/, metaengine/keycodec/, scheduling/sqlstore/, claiming/
+Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, otel/otlp/, prometheus/, middleware/, transport/*, watermill/,
+                     testutil/, metaengine/*engine/, metaengine/projectionadapter/, metaengine/otelobserver/, metaengine/keycodec/, scheduling/sqlstore/, claiming/
 Tier 5 — Composition: stack/, stack/*presets/, system/
 Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, cmd/*, example/*, event/v4/eventtest/
 ```

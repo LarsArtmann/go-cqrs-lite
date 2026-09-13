@@ -35,7 +35,9 @@ func TestSetup_ExemplarsFlowFromSampledSpans(t *testing.T) {
 	tracer := provider.AsTracerProvider().Tracer("cqrs/exemplar-test")
 	ctx, span := tracer.Start(ctx, "cqrs.test.operation")
 
-	hist, err := provider.AsMeterProvider().Meter("cqrs/test").Float64Histogram("cqrs.test.duration")
+	hist, err := provider.AsMeterProvider().
+		Meter("cqrs/test").
+		Float64Histogram("cqrs.test.duration")
 	if err != nil {
 		t.Fatal(err)
 	}

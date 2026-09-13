@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 
 	"go.opentelemetry.io/otel/attribute"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
@@ -40,7 +41,11 @@ func (e *flaky) MapGet(
 ) (any, bool, error) {
 	select {
 	case <-e.armed:
-		return nil, false, errorfamily.Newf(errorfamily.Infrastructure, "obs.1", "backend unreachable")
+		return nil, false, errorfamily.Newf(
+			errorfamily.Infrastructure,
+			"obs.1",
+			"backend unreachable",
+		)
 	default:
 	}
 
@@ -116,10 +121,14 @@ func observerTestStore(t *testing.T) (
 ) {
 	t.Helper()
 
-	primary = &flaky{Engine: metaengine.NewMemoryEngine(), name: "primary",
-		armed: make(chan struct{}), healed: make(chan struct{})}
-	spare = &flaky{Engine: metaengine.NewMemoryEngine(), name: "spare",
-		armed: make(chan struct{}), healed: make(chan struct{})}
+	primary = &flaky{
+		Engine: metaengine.NewMemoryEngine(), name: "primary",
+		armed: make(chan struct{}), healed: make(chan struct{}),
+	}
+	spare = &flaky{
+		Engine: metaengine.NewMemoryEngine(), name: "spare",
+		armed: make(chan struct{}), healed: make(chan struct{}),
+	}
 
 	query := metaengine.Query[findItem, item]("items",
 		metaengine.OnRecord(itemCreated{}, func(_ record.Record, e itemCreated) (string, item) {
@@ -149,7 +158,12 @@ func observerTestStore(t *testing.T) (
 // counterValue sums the data points of a counter whose attributes match
 // want (attr key → emitted value), failing when the metric was never
 // collected.
-func counterValue(t *testing.T, rm *metricdata.ResourceMetrics, name string, want map[string]string) int64 {
+func counterValue(
+	t *testing.T,
+	rm *metricdata.ResourceMetrics,
+	name string,
+	want map[string]string,
+) int64 {
 	t.Helper()
 
 	total, found := counterValueOrZero(rm, name, want)

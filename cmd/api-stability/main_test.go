@@ -44,6 +44,7 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 		"example/getting-started":             "example application",
 		"example/metaengine-quickstart":       "example application",
 		"example/readme-quickstart":           "example application",
+		"example/scheduler-otel-status":       "example application",
 		"example/taskmanager":                 "example application",
 	}
 
@@ -136,6 +137,7 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 		"example/getting-started":             "example application",
 		"example/metaengine-quickstart":       "example application",
 		"example/readme-quickstart":           "example application",
+		"example/scheduler-otel-status":       "example application",
 		"example/taskmanager":                 "example application",
 	}
 
