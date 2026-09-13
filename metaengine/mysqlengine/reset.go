@@ -34,6 +34,7 @@ var resetBaseTables = []string{
 //
 // Serialized against RunInTx via mu.
 func (e *mysqlEngine) ResetEngine(ctx context.Context) error {
+	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	e.mu.Lock()
 	defer e.mu.Unlock()
 

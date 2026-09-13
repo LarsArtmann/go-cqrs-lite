@@ -61,6 +61,7 @@ func (e *duckdbEngine) ResetEngine(ctx context.Context) error {
 		return fmt.Errorf("duckdbengine.ResetEngine: commit: %w", err)
 	}
 
+	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	return nil
 }
 

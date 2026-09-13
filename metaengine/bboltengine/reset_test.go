@@ -19,6 +19,7 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 	t.Parallel()
 
 	eng := mustNewBboltEngine(t)
+	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	ctx := context.Background()
 	resetter := eng.(metaengine.EngineResetter)
 
@@ -151,6 +152,7 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 	t.Parallel()
 
 	eng := mustNewBboltEngine(t)
+	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	ctx := context.Background()
 	sl := eng.(metaengine.StreamLogBackend)
 	seqLog := eng.(metaengine.SeqSeekableStreamLog)

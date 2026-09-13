@@ -100,6 +100,7 @@ func (e *sqliteEngine) ResetEngine(ctx context.Context) error {
 		return true
 	})
 
+	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	return nil
 }
 
