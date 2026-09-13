@@ -35,18 +35,24 @@ func TestParseFlags_RejectsArgsAfterDir(t *testing.T) {
 	}
 }
 
-// TestStrictGateError pins the gate ordering: a failed deprecation scan
-// fails FIRST (unscannable = not proven clean), then actual findings. A
-// clean set passes.
+// TestStrictGateError pins the gate ordering: an errored module fails FIRST
+// (its pipeline died before any scan — unscanned = unproven), then a failed
+// deprecation scan, then actual findings. A clean set passes.
 func TestStrictGateError(t *testing.T) {
 	t.Parallel()
 
-	scanFailed := moduleReport{Dir: "a", ScanErr: errors.New("package load failed")}
-	violating := moduleReport{Dir: "b", Deprecations: []findingJSON{{Position: "x.go:1:1"}}}
+	errored := moduleReport{Dir: "a", Error: "verify: build failed"}
+	scanFailed := moduleReport{Dir: "b", ScanErr: errors.New("package load failed")}
+	violating := moduleReport{Dir: "c", Deprecations: []findingJSON{{Position: "x.go:1:1"}}}
 
-	err := strictGateError([]moduleReport{scanFailed, violating})
+	err := strictGateError([]moduleReport{errored, scanFailed, violating})
+	if err == nil || !errors.Is(err, errStrictModuleFailed) {
+		t.Errorf("module error must fail the gate first, got %v", err)
+	}
+
+	err = strictGateError([]moduleReport{scanFailed, violating})
 	if err == nil || !errors.Is(err, errStrictScanFailed) {
-		t.Errorf("scan failure must fail the gate first, got %v", err)
+		t.Errorf("scan failure must fail the gate next, got %v", err)
 	}
 
 	err = strictGateError([]moduleReport{violating})
@@ -58,8 +64,8 @@ func TestStrictGateError(t *testing.T) {
 		t.Errorf("clean report set must pass, got %v", err)
 	}
 
-	msg := strictGateError([]moduleReport{scanFailed}).Error()
+	msg := strictGateError([]moduleReport{errored}).Error()
 	if !strings.Contains(msg, "unproven") {
-		t.Errorf("scan-failure message should say readiness is unproven: %s", msg)
+		t.Errorf("module-error message should say readiness is unproven: %s", msg)
 	}
 }

@@ -509,6 +509,20 @@ Phase 8: Delete v1 tiers + stack.Bundle → cut v5.0.0
 **v4.x bridge:** auto-projection ships alongside v1 tiers before v5. Consumers
 can try it while v1 paths still work. v5 is the clean cut.
 
+### v6 Deletion Wave — Marked Shims (deadline: one release cycle after v5)
+
+Compat shims that survive v5 temporarily so v4→v5 upgraders keep reading old
+data. Each carries a `deleted at v6` comment at the implementation site —
+the v6 deletion wave greps for that marker. **Delete them in the first minor
+wave one full release cycle after v5.0.0** (v5.0 consumers get at least one
+minor of dual-read support):
+
+| Shim                                                    | Where                                                  | Reads                                  |
+| ------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------- |
+| Snapshot wire-tag fallback (`decodeSnapshotWire` legacy path) | `snapshot/wire.go`, `snapshot/store.go`             | pre-T18 v4.x snapshot rows             |
+| Pebble `commandStreamKeysLegacy`                        | `storage/pebble/command_serialization.go`              | rows before the `stream_*` wire rename |
+| Pebble legacy JSON fallbacks (checkpoint, snapshot)     | `storage/pebble/checkpoint.go`, `storage/pebble/snapshot.go` | rows before the CBOR migration   |
+
 ---
 
 ## Raw Ideas (No Design Yet)

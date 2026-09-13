@@ -114,6 +114,24 @@ decision pending). The pass's own reports: midflight
 [`2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md`](2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md)
 (active).
 
+**2026-09-11 batch-day reports (8 files, all archived; per-file index added
+2026-09-13 — this README is the only map of the ~1150-file archive):**
+
+1. [`04-35 docs-health 5th pass — full audit`](archived/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md)
+2. [`05-12 cqrs-lint cheap-fix tail`](archived/2026-09-11_05-12_cqrs-lint-cheap-fix-tail-status.md)
+3. [`05-21 turso IVM repro suite + version citation`](archived/2026-09-11_05-21_turso-ivm-repro-suite-and-version-citation-session.md)
+4. [`05-26 code-quality quintet`](archived/2026-09-11_05-26_code-quality-quintet-complete.md)
+5. [`05-34 release-tooling hardening + dogfood sentinel`](archived/2026-09-11_05-34_release-tooling-hardening-and-dogfood-sentinel-first-run.md)
+6. [`05-38 encoded-apply fix + conformance sweep + ClaimMetrics + calibration protocol`](archived/2026-09-11_05-38_encoded-apply-fix-conformance-sweep-claimmetrics-calibration-protocol.md)
+7. [`05-40 Cordis follow-up wave — reset + failover`](archived/2026-09-11_05-40_cordis-followup-wave-reset-failover.md)
+8. [`05-51 publish/reset + v5-train execution wave 0/1`](archived/2026-09-11_05-51_publish-reset-v5-train-execution-wave0-1.md)
+
+**2026-09-13 (quick-win batch, partial index debt):** reconstructed the
+orphaned `cec9248da` work record (tripwire + fix.go dedup + PG claiming test
+race fix — re-verified, provenance gap closed):
+[`2026-09-13_08-42_reconstructed-cec9248da-work-record.md`](2026-09-13_08-42_reconstructed-cec9248da-work-record.md)
+(active; harvest at the next docs-health pass).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves

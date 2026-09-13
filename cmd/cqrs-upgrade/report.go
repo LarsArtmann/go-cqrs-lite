@@ -29,14 +29,14 @@ type moduleReport struct {
 }
 
 // moduleJSON is the stable wire shape of moduleReport; the field order
-// below is the --json contract. `deprecations` is ALWAYS present (empty
-// array when clean) so consumers never rely on key-absence folklore to
-// tell "clean" from "old CLI" or a failed scan.
+// below is the --json contract. `bumps` and `deprecations` are ALWAYS
+// present (empty arrays when clean) so consumers never rely on
+// key-absence folklore to tell "clean" from "old CLI" or a failed scan.
 type moduleJSON struct {
 	Dir                  string        `json:"dir"`
 	NoPins               bool          `json:"noPins,omitempty"`
 	Error                string        `json:"error,omitempty"`
-	Bumps                []bumpJSON    `json:"bumps,omitempty"`
+	Bumps                []bumpJSON    `json:"bumps"`
 	Deprecations         []findingJSON `json:"deprecations"`
 	DeprecationScanError string        `json:"deprecationScanError,omitempty"`
 }
@@ -53,6 +53,7 @@ func (r moduleReport) toJSON() moduleJSON {
 		Dir:                  r.Dir,
 		NoPins:               r.NoPins,
 		Error:                r.Error,
+		Bumps:                make([]bumpJSON, 0, len(r.Bumps)), // emit [], never null
 		Deprecations:         deprecations,
 		DeprecationScanError: "",
 	}

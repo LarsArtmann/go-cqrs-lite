@@ -30,6 +30,11 @@ var (
 	// deprecation scan itself failed, so v5-readiness is unproven. A gate
 	// that silently passes when its scanner breaks is not a gate.
 	errStrictScanFailed = errors.New("--strict: deprecation scan failed")
+	// errStrictModuleFailed fires when any module errored in the pipeline
+	// (pin collection, go.mod edit, or build verification). An errored module
+	// never reached the deprecation scan — unscanned is unproven, so --strict
+	// must fail instead of passing on the silence.
+	errStrictModuleFailed = errors.New("--strict: module error")
 )
 
 func main() {
@@ -66,7 +71,7 @@ func parseFlags(args []string) (config, error) {
 		"skip the go mod tidy + build + vet verification after bumping",
 	)
 	fs.BoolVar(&cfg.strict, "strict", false,
-		"exit non-zero when v5-removed API usage is detected (v5-readiness gate)")
+		"exit non-zero on v5-removed API usage, failed scans, or module errors (v5-readiness gate)")
 	fs.BoolVar(&cfg.jsonOut, "json", false,
 		"machine-readable JSON output (bump plan + deprecations per module)")
 	fs.StringVar(&cfg.to, "to", "",
@@ -150,10 +155,16 @@ func run(_ context.Context, args []string) error {
 	return strictGateError(reports)
 }
 
-// strictGateError returns the --strict failure for a report set: a failed
-// deprecation scan fails first (an unscannable module is not proven clean),
-// then actual v5-removed API usage.
+// strictGateError returns the --strict failure for a report set: an
+// errored module fails first (its pipeline died before any scan —
+// unscanned is unproven), then a failed deprecation scan, then actual
+// v5-removed API usage.
 func strictGateError(reports []moduleReport) error {
+	if n := countModuleErrors(reports); n > 0 {
+		return fmt.Errorf("%w in %d module(s) — unscanned = unproven, see report",
+			errStrictModuleFailed, n)
+	}
+
 	if n := countScanFailures(reports); n > 0 {
 		return fmt.Errorf("%w in %d module(s) — v5-readiness unproven, see report",
 			errStrictScanFailed, n)
@@ -165,6 +176,20 @@ func strictGateError(reports []moduleReport) error {
 	}
 
 	return nil
+}
+
+// countModuleErrors counts modules whose pipeline errored (rep.Error set:
+// pin collection, go.mod edit, or build verification failure).
+func countModuleErrors(reports []moduleReport) int {
+	n := 0
+
+	for _, r := range reports {
+		if r.Error != "" {
+			n++
+		}
+	}
+
+	return n
 }
 
 // countScanFailures counts modules whose deprecation scan failed.

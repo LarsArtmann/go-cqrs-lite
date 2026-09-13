@@ -1351,6 +1351,51 @@ adapter := projectionadapter.NewWithDecoder("items", store, decoder)
 //   projectionadapter.RegisterWithHost(host, "items", store, decoder)
 ```
 
+### Encoded Applies: projection.Projection → ApplyEncodedRecord (metaengine)
+
+`Store.ApplyEncoded(ctx, type, jsonBytes)` pushes an UNDECODED JSON payload
+through the full fold pipeline — metered, hook-observed, EventLog-recorded,
+shadow-replicated; each fold decodes into its own sample type. Use
+`ApplyEncodedRecord` to ALSO carry the full `record.Record` (StreamID,
+Version, Actor, Stamps) into `OnRecord` folds — plain `ApplyEncoded` can only
+synthesize a Type-only Record, so `OnRecord` folds would see empty
+StreamID/Version.
+
+The `projection.Projection` adapter for the encoded path:
+
+```go
+import (
+    "context"
+
+    "github.com/larsartmann/go-cqrs-lite/event/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+    "github.com/larsartmann/go-cqrs-lite/projection/v4"
+    "github.com/larsartmann/go-cqrs-lite/record/v4"
+)
+
+proj := projection.NewProjection(
+    "tasks",
+    func(ctx context.Context, evt event.Event) error {
+        rec := event.AsRecord(evt) // full Record: ID, StreamID, Version, Actor, Stamps
+        return store.ApplyEncodedRecord(ctx, rec, evt.Payload())
+    },
+    []event.Type{event.Type("task.created"), event.Type("task.deleted")},
+)
+```
+
+Caveats:
+
+- `ApplyEncodedRecord` takes **JSON bytes** (`Record.Type` must name the
+  event type — empty is rejected). For CBOR-encoded events (the `event.New`
+  default codec is CBOR), decode into a concrete type first and use
+  `Store.ApplyRecord(ctx, rec, decoded)`; with several event types in one
+  handler, dispatch on `evt.Type()` or give each type its own projection.
+- Non-Record-aware folds (`metaengine.On`) work unchanged — they ignore the
+  Record context.
+- Prefer `metaengine/projectionadapter` when you want the bridging (host
+  wiring, TypeDecoder) done for you; the thin adapter above is for the
+  encoded path it does not cover.
+
 ### Multi-Engine Distribution (Counter to Memory, Map to SQLite)
 
 The planner inspects query shapes and assigns each to the cheapest supporting
