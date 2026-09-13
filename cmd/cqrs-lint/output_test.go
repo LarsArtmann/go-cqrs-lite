@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-finding"
 	"github.com/larsartmann/go-output/delimited"
 )
 

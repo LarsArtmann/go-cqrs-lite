@@ -2,6 +2,7 @@
 package consistency
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"go/ast"
@@ -9,7 +10,7 @@ import (
 	"slices"
 	"strings"
 
-	"cmp"
+	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
