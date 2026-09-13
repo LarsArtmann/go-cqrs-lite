@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/middleware/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/middleware/v4)
 
-Pre-built middleware for command, event, and query handlers. **27 middleware factories** covering 9 concerns across all 3 message types.
+Pre-built middleware for command, event, and query handlers. **38 typed middleware factories** (Command/Event/Query variants) plus generic builders and dead-letter stores — covering logging, trace-logging, recovery, retry, validation, metrics, tracing, circuit breaking, idempotency, flight recording, and actor context.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/middleware/v4
@@ -30,14 +30,16 @@ go get github.com/larsartmann/go-cqrs-lite/middleware/v4
 
 ### Validation
 
-- `CommandValidation()` — validates commands before handling
-- `QueryValidation()` — validates queries before dispatch
+- `CommandValidation(validate)` — validates commands before handling
+- `EventValidation(validate)` — validates events before handling
+- `QueryValidation(validate)` — validates queries before dispatch
 
 ### Metrics
 
-- `CommandMetrics(recorder)` — records dispatch count, duration, errors
-- `EventMetrics(recorder)` — records publish/handle metrics
-- `QueryMetrics(recorder)` — records query metrics
+- `CommandOTelMetrics(histogram)` / `EventOTelMetrics(histogram)` / `QueryOTelMetrics(histogram)` — OTel histogram per dispatch/handle
+- `CommandOTelMetricsWithCounter(...)` / `Event...` / `Query...` — histogram + counter combo
+- `CommandTypedMetrics(recorder)` / `Event...` / `Query...` — custom `TypedMetricsRecorder`
+- `NewOTelBundle(...)` — wires tracer + metrics recorder in one call
 
 ### Tracing (OpenTelemetry)
 
@@ -58,10 +60,31 @@ go get github.com/larsartmann/go-cqrs-lite/middleware/v4
 - `EventIdempotency(store, ttl, keyExtractor)` — deduplicates events by ID (webhooks, cross-system delivery)
 - `QueryIdempotency(store, ttl, keyExtractor)` — deduplicates queries by custom key (requires non-nil keyExtractor)
 
-### Event Signing
+### Flight Recording
 
-- `EventSignMiddleware(signer)` — signs events on publish
-- `EventVerifyMiddleware(verifier)` — verifies signatures on handle
+- `CommandFlightRecorder(...)` / `EventFlightRecorder(...)` / `QueryFlightRecorder(...)` — ring-buffer capture of message + error for post-incident debugging
+
+### Trace Logging
+
+- `CommandTraceLogging(logger)` / `EventTraceLogging(logger)` / `QueryTraceLogging(logger)` — trace-context-aware logging
+
+### Actor Context
+
+- `CommandActorContext()` — stamps the acting `id.ActorID` from context onto the command
+
+### Dead-Letter Stores
+
+- `NewMemoryDeadLetterStore()` — in-memory DLQ (dev/test)
+- `NewSQLDeadLetterStore(db, dialect)` — persistent DLQ
+
+## In Sibling Modules
+
+Signing and encryption middleware live in their own modules (not here):
+
+- `signing.SignMiddleware(signer)` — signs events on publish
+- `signing.VerifyMiddleware(verifier)` — verifies signatures on handle
+- `signing.RequireSignatureMiddleware(verifier)` — rejects unsigned events
+- `encryption.EncryptMiddleware(encrypter)` / `encryption.DecryptMiddleware(decrypter)` — payload crypto on publish/handle
 
 ## Usage
 
@@ -78,6 +101,6 @@ cmds.Use(middleware.CommandRetry(3, 100*time.Millisecond))
 - [**event**](../event/README.md) — `event.Bus.Use()` / `UsePublish()` applies event middleware
 - [**query**](../query/README.md) — `query.Dispatcher.Use()` applies query middleware
 - [**go-idempotency**](https://github.com/larsartmann/go-idempotency) — `Store`, `MemoryStore`, `KVStore`, `ErrDuplicate` (used by idempotency middleware)
-- [**signing**](../signing/README.md) — `EventSignMiddleware` / `EventVerifyMiddleware` live here
-- [**encryption**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live here
+- [**signing**](../signing/README.md) — `SignMiddleware` / `VerifyMiddleware` / `RequireSignatureMiddleware` live there
+- [**encryption**](../encryption/README.md) — `EncryptMiddleware` / `DecryptMiddleware` live there
 - [**otel**](../otel/README.md) — Tracing middleware uses OTel tracers from this module

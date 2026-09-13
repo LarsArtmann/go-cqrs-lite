@@ -499,6 +499,29 @@ would be tagged, then restores the working tree without committing):
 ./scripts/tag-release.sh metaengine v4.0.0 "First release" --dry-run
 ```
 
+#### Batch tagging: `scripts/batch-release.sh`
+
+For multi-module waves, `scripts/batch-release.sh` applies the same guards
+(path-vs-tag, standalone build, tree restore) to many modules in one pass:
+
+```bash
+./scripts/batch-release.sh --dry-run "event v4.0.3 Patch release" "command v4.0.1 Patch release"
+./scripts/batch-release.sh "event v4.0.3 Patch release" "command v4.0.1 Patch release"
+```
+
+After pushing, smoke-check the whole wave in one command with
+`--smoke-all <file>` (`<file>`: one `<module> <version>` pair per line;
+stops at the first failure). SAME-BATCH LIMITATION: within one batch, a
+module's `go mod tidy` resolves sibling requires to the sibling's latest
+PUBLISHED tag — the sibling's tag from THIS batch does not exist yet. Cut
+in dependency order across separate invocations (cut → push → next cut)
+when a dependent must pin the new version; use one batch only when today's
+pins are already correct.
+
+The release tooling is smoke-tested against throwaway fixture repos by
+`nix run .#check-release-scripts` (also a CI leg) — run it after touching
+`scripts/tag-release.sh`, `scripts/batch-release.sh`, or the retracts gate.
+
 #### Pre-tag checklist (multi-module wave)
 
 Run through this before a tag wave — each item exists because a wave tripped
@@ -556,6 +579,9 @@ wrong content, poisoned by a bad replace):
    different module than the one the tag now points at.
 4. Record the retraction in the root CHANGELOG under the fix-forward
    version.
+5. `nix run .#check-release-scripts` runs `check-retracts-shipped.sh`, which
+   fails while a master `retract` is not yet carried by the module's newest
+   tag — an unshipped retract is invisible to every consumer.
 
 #### Manual tagging (fallback)
 

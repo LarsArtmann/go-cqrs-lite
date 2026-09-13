@@ -69,6 +69,7 @@ cat >>"$TMPROOT/t2/lib/go.mod" <<'EOF'
 retract v1.0.0 // poisoned build
 EOF
 git -C "$TMPROOT/t2" add -A
+git -C "$TMPROOT/t2" -c user.email=t@example.com -c user.name=t commit -qm ship-retract
 git -C "$TMPROOT/t2" -c tag.gpgSign=false -c tag.forceSignAnnotated=false tag lib/v1.0.1
 if (cd "$TMPROOT/t2" && bash "$GATE" >/dev/null 2>&1); then
 	echo "  ✓ PASS: gate passes once a release ships the retract"

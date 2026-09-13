@@ -24,15 +24,21 @@ repo, err := decider.NewRepository(store, bus, d,
 )
 if err != nil { log.Fatal(err) }
 
+ref := id.NewStreamRef("Counter", aggID)
+
 // Execute: load → fold → decide → save → publish
-err = repo.Execute(ctx, aggID, "Counter", increment(aggID, 5))
+err = repo.ExecuteRef(ctx, ref, increment(aggID, 5))
 
 // Load (replay from store or snapshot)
-state, version, err := repo.Load(ctx, aggID, "Counter")
+state, version, err := repo.LoadRef(ctx, ref)
 
 // Time travel
-state, ver, _ := repo.LoadAtVersion(ctx, aggID, "Counter", 3)
+state, ver, _ := repo.LoadAtVersionRef(ctx, ref, 3)
 ```
+
+> The pair forms (`Execute`/`Load`/`LoadAtVersion` taking `streamID,
+> streamType` separately) are **deprecated** forwarders — removed in v5.
+> Build an `id.StreamRef` via `id.NewStreamRef(streamType, streamID)` instead.
 
 ## API
 
@@ -45,12 +51,14 @@ state, ver, _ := repo.LoadAtVersion(ctx, aggID, "Counter", 3)
 
 ### Repository[State]
 
-| Method                                  | Description                                              |
-| --------------------------------------- | -------------------------------------------------------- |
-| `NewRepository(store, bus, d, opts...)` | Creates a repository.                                    |
-| `Execute(ctx, aggID, aggType, decide)`  | Load → fold → decide → save → publish.                   |
-| `Load(ctx, aggID, aggType)`             | Returns `(state, version, error)` from replaying events. |
-| `LoadAtVersion(ctx, aggID, aggType, v)` | Time travel: state at a specific version.                |
+| Method                                       | Description                                              |
+| -------------------------------------------- | -------------------------------------------------------- |
+| `NewRepository(store, bus, d, opts...)`      | Creates a repository.                                    |
+| `ExecuteRef(ctx, ref, decide)`               | Load → fold → decide → save → publish.                   |
+| `LoadRef(ctx, ref)`                          | Returns `(state, version, error)` from replaying events. |
+| `LoadAtVersionRef(ctx, ref, v)`              | Time travel: state at a specific version.                |
+| `LoadAtTimeRef(ctx, ref, t)`                 | Time travel: state as of a timestamp.                    |
+| `WaitForVersionRef(ctx, ref, v)`             | Block until the stream reaches a version.                |
 
 ### Options
 
@@ -73,7 +81,7 @@ d := decider.TypedDecider[CounterState, IncrementCmd]{
     Apply:   foldCounter,
 }
 repo, _ := decider.NewTypedRepository(store, bus, d)
-err := repo.ExecuteCommand(ctx, aggID, "Counter", IncrementCmd{Amount: 5})
+err := repo.ExecuteCommandRef(ctx, id.NewStreamRef("Counter", aggID), IncrementCmd{Amount: 5})
 ```
 
 ## Design

@@ -69,18 +69,18 @@ type Bus interface {
 
 | Type              | Purpose                                                                             |
 | ----------------- | ----------------------------------------------------------------------------------- |
-| `Event`           | Immutable interface: Type, AggregateID, Version, Payload, Metadata                  |
+| `Event`           | `*ImmutableEvent` (concrete alias): Type, StreamID, Version, Payload, Metadata      |
 | `Version`         | Strong-typed event version with Add/Sub/Cmp arithmetic                              |
-| `Type`            | Event type string                                                                   |
-| `AggregateType`   | Aggregate type string                                                               |
+| `Type`            | Event type string (alias of `record.Type`)                                          |
+| `StreamType`      | Aggregate/stream type string (`AggregateType` is a compat alias)                    |
 | `SchemaVersion`   | Event schema version for upcasting                                                  |
 | `Metadata`        | CorrelationID, CausationID, UserID, RequestID, Source, IPAddress, UserAgent, Custom |
 | `Checkpoint`      | EventID + ProcessedAt for projection checkpointing                                  |
-| `TombstoneStatus` | Active / Tombstoned / Undetermined for soft-delete                                  |
+| `TombstoneStatus` | **Deprecated** (ADR-0114): express deletion as a domain event instead               |
 
-## 19 Functional Options
+## 21 Functional Options
 
-`WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext`
+`WithEventID`, `WithOccurredAt`, `WithMetadata`, `WithCorrelationID`, `WithCausationID`, `WithUserID`, `WithActor`, `WithRequestID`, `WithSource`, `WithIPAddress`, `WithUserAgent`, `WithCustom`, `WithSchemaVersion`, `WithCausation`, `WithEncoding`, `WithCodec`, `WithClock`, `WithClientID`, `WithClientOccurredAt`, `WithDeadline`, `FromContext`
 
 ## Error Classification
 
@@ -117,7 +117,7 @@ return errorfamily.NewCorruption("store.invalid_event", "checksum mismatch")
 | ----------------- | ------------------------------------------ |
 | `oklog/ulid/v2`   | Binary-sortable, time-ordered identifiers  |
 | `go-branded-id`   | Generic branded ID type backing `id.Of[T]` |
-| `go-error-family` | Error classification taxonomy (5 families) |
+| `go-error-family` | Error classification taxonomy (6 families) |
 | `samber/ro`       | Reactive event streams (bus subscriptions) |
 
 ## Timezone-Safe Time Types

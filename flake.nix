@@ -930,6 +930,7 @@
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-tag-release.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-check-retracts-shipped.sh"
                 '';
 
             # check-error-taxonomy: drift gate between docs/error-taxonomy.md

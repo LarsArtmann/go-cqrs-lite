@@ -14,9 +14,12 @@ go get github.com/larsartmann/go-cqrs-lite/id/v4
 import "github.com/larsartmann/go-cqrs-lite/id/v4"
 
 // Built-in types
-aggID := id.NewAggregateID()
+streamID := id.NewStreamID()
 evtID := id.NewEventID()
 corrID := id.NewCorrelationID()
+
+// StreamRef bundles stream type + ID for store operations
+ref := id.NewStreamRef("User", streamID)
 
 // Custom branded type
 type OrderMarker struct{}
@@ -29,7 +32,7 @@ parsed, err := id.Parse[OrderID](orderID.String())
 
 | Type            | Marker              | Purpose                        |
 | --------------- | ------------------- | ------------------------------ |
-| `AggregateID`   | `AggregateMarker`   | Identifies an aggregate stream |
+| `StreamID`      | `StreamMarker`      | Identifies an event stream     |
 | `EventID`       | `EventMarker`       | Uniquely identifies an event   |
 | `CorrelationID` | `CorrelationMarker` | Links events across a request  |
 | `CausationID`   | `CausationMarker`   | Links an event to its cause    |
@@ -38,7 +41,11 @@ parsed, err := id.Parse[OrderID](orderID.String())
 | `UserID`        | `UserMarker`        | Authenticated user             |
 | `ClientID`      | `ClientMarker`      | API client / consumer          |
 
-All 8 markers are exported for `BrandNamer` integration. Custom types use `id.Of[struct{}]`.
+`StreamID` is string-backed (`id.Of[StreamMarker, string]`) so caller-chosen
+semantic keys survive intact; ULID backing (`id.NewStreamID()`) is for
+system-minted IDs. `AggregateID` is a **deprecated alias** of `StreamID`.
+`ActorID` (ADR-0111) is a distinct struct type for actor attribution
+(`NewUserActor`, `NewBotActor`, `NewSystemActor`, `NewServiceActor`).
 
 ## API
 
@@ -48,7 +55,7 @@ All 8 markers are exported for `BrandNamer` integration. Custom types use `id.Of
 | `Parse[T](s)`               | Parse a string into a branded ID.                        |
 | `DeriveCommandID(...)`      | Deterministically derive a command ID (for idempotency). |
 | `NewStreamID()`             | Shortcut for `New[StreamID]()`.                          |
-| `NewAggregateRef(type, id)` | Create an aggregate reference for store operations.      |
+| `NewStreamRef(type, id)`    | Create a stream reference for store operations.          |
 
 ## Serialization
 

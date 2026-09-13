@@ -31,7 +31,7 @@ command.RegisterTyped[CreateUserCmd](cmds, "user.create",
 | Type                     | Purpose                                                     |
 | ------------------------ | ----------------------------------------------------------- |
 | `Dispatcher`             | Command dispatcher with handler registry + middleware chain |
-| `Command`                | Interface: Type(), AggregateID(), IdempotencyKey()          |
+| `Command`                | Interface: Type(), StreamID(), ID()                         |
 | `BasicCommand`           | Embed in command structs for interface satisfaction         |
 | `TypedHandler[T]`        | Type-safe handler receiving T, not Command                  |
 | `Middleware`             | func(Handler) Handler — wraps handlers in a chain           |
@@ -45,9 +45,13 @@ command.RegisterTyped[CreateUserCmd](cmds, "user.create",
 Commands can be persisted for audit trails and replay debugging — the command-side equivalent of event sourcing:
 
 ```go
-// Create a persisted command record
+import "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+
+// Create a persisted command record (correlation tracing rides in Metadata.Tracing)
 pc, err := command.NewPersistedCommand("user.create", ref, payload,
-    command.WithCorrelationID(corrID))
+    command.WithCommandMetadata(command.Metadata{
+        Tracing: metadata.Tracing{CorrelationID: corrID},
+    }))
 
 // Persist via a CommandStore (Sink + Source)
 store := memory.NewMemoryCommandStore()
