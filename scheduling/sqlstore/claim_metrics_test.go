@@ -129,8 +129,16 @@ func TestClaimingSQLite_MetricsSnapshot(t *testing.T) {
 		t.Fatalf("NewClaimingSQLiteStore: %v", err)
 	}
 
-	if got := store.Metrics(); got != (sqlstore.ClaimMetricsSnapshot{}) {
-		t.Fatalf("fresh store Metrics = %+v, want zero", got)
+	if started := store.Metrics().StartedAt; started.IsZero() {
+		t.Fatal("fresh store Metrics().StartedAt is zero, want construction time")
+	} else if time.Since(started) > time.Minute {
+		t.Fatalf("StartedAt %v is stale (not stamped at construction)", started)
+	}
+
+	fresh := store.Metrics()
+	fresh.StartedAt = time.Time{} // rate anchor, asserted above
+	if fresh != (sqlstore.ClaimMetricsSnapshot{}) {
+		t.Fatalf("fresh store Metrics = %+v, want zero counters", fresh)
 	}
 
 	now := time.Now().UTC()
@@ -197,7 +205,7 @@ func TestClaimMetricsSnapshot_JSONTagsAreStable(t *testing.T) {
 		t.Fatalf("Marshal: %v", err)
 	}
 
-	const want = `{"claimedBatches":2,"claimedTimers":3,"renewed":1,"renewRejected":1}`
+	const want = `{"claimedBatches":2,"claimedTimers":3,"renewed":1,"renewRejected":1,"startedAt":"0001-01-01T00:00:00Z"}`
 	if string(data) != want {
 		t.Fatalf("JSON = %s, want %s", data, want)
 	}

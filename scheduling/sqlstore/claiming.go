@@ -133,6 +133,7 @@ func newClaimingStore[P any](
 		claimedTimers:  atomic.Int64{},
 		renewed:        atomic.Int64{},
 		renewRejected:  atomic.Int64{},
+		startedAt:      time.Now(),
 	}
 
 	for _, opt := range opts {

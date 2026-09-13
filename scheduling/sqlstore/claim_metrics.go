@@ -1,5 +1,7 @@
 package sqlstore
 
+import "time"
+
 // ClaimMetrics is the opt-in, zero-dependency observability surface for
 // [ClaimingTimerStore]. scheduling deliberately carries no OpenTelemetry
 // dependency (lean-budget module), so callers who want counters wire their
