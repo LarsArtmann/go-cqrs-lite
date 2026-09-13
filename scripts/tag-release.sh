@@ -107,17 +107,20 @@ proxy_smoke_check() {
 }
 
 # smoke_install_and_run installs module@ver from the PROXY into a clean
-# GOBIN and runs it with --help. The install is a hard gate: a tag that
-# fails standalone compilation ships broken to every consumer (the poisoned
-# cqrs-lint v4.8.0 shipped `const version = 4.8.0`, unquoted — invisible to
-# the tagger's pre-bump build, caught only by exactly this probe). A
-# non-zero --help exit is a WARNING, not a failure: probe exit semantics
-# are tool-specific (subcommand CLIs may reject the bare flag).
+## GOBIN and runs it with its probe invocation. The install is a hard gate: a
+## tag that fails standalone compilation ships broken to every consumer (the
+## poisoned cqrs-lint v4.8.0 shipped `const version = 4.8.0`, unquoted —
+## invisible to the tagger's pre-bump build, caught only by exactly this
+## probe). The probe invocation comes from scripts/smoke-probes.txt when the
+## module has an entry there (then it must exit 0 — that is the entry's
+## whole point), and falls back to bare --help otherwise, where a nonzero
+## exit stays a WARNING: probe exit semantics are tool-specific (subcommand
+## CLIs may reject the bare flag).
 smoke_install_and_run() {
 	local mod="$1"
 	local ver="$2"
 
-	if ! grep -qs '^package main$' "${mod}"/*.go; then
+	if ! module_has_root_main "$mod"; then
 		echo "ℹ ${mod} has no root main package; install+run probe skipped"
 		return 0
 	fi
@@ -140,12 +143,29 @@ smoke_install_and_run() {
 	fi
 
 	local rc=0
-	"$tmpbin/${bin_name}" --help >/dev/null 2>&1 || rc=$?
-	if [ "$rc" -eq 0 ]; then
-		echo "✓ installed ${bin_name} runs (--help exited 0)"
+	local probe_args
+	probe_args="$(smoke_probe_args "$mod")"
+
+	if [ -n "$probe_args" ]; then
+		# shellcheck disable=SC2086 # the probe line is an intentional word list
+		"$tmpbin/${bin_name}" $probe_args >/dev/null 2>&1 || rc=$?
+		if [ "$rc" -eq 0 ]; then
+			echo "✓ installed ${bin_name} runs (probe '${probe_args}' exited 0)"
+		else
+			echo "ERROR: explicit probe '${probe_args}' exited ${rc}. A"
+			echo "smoke-probes.txt entry must exit 0 — it exists to assert this"
+			echo "tool's real invocation. Do NOT advertise this release."
+			rm -rf "$tmpbin"
+			return 1
+		fi
 	else
-		echo "WARNING: installed ${bin_name} --help exited ${rc}. Install succeeded;"
-		echo "eyeball a manual run before advertising the release."
+		"$tmpbin/${bin_name}" --help >/dev/null 2>&1 || rc=$?
+		if [ "$rc" -eq 0 ]; then
+			echo "✓ installed ${bin_name} runs (--help exited 0)"
+		else
+			echo "WARNING: installed ${bin_name} --help exited ${rc}. Install succeeded;"
+			echo "eyeball a manual run before advertising the release."
+		fi
 	fi
 
 	rm -rf "$tmpbin"
@@ -161,10 +181,36 @@ smoke_install_and_run() {
 # This replays the same guard the per-release flow enforces over EVERY tag
 # of EVERY module, so a whole history of invisible tags surfaces at once.
 audit_all_tags() {
+	local baseline_file=""
+	local write_baseline=0
+
+	# Options after --audit (the caller peeled "--audit" off).
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		--baseline)
+			baseline_file="${2:-}"
+			if [ -z "$baseline_file" ]; then
+				echo "ERROR: --baseline needs a file path"
+				return 2
+			fi
+			shift
+			;;
+		--write-baseline)
+			write_baseline=1
+			;;
+		*)
+			echo "ERROR: unknown --audit option: $1"
+			return 2
+			;;
+		esac
+		shift
+	done
+
 	local violations=0
 	local checked=0
 	local skipped=0
 	local gomod dir tag_glob tag version path_at_tag
+	local violation_tags=()
 
 	while IFS= read -r gomod; do
 		dir="${gomod#./}"
@@ -205,16 +251,72 @@ audit_all_tags() {
 			fi
 			echo "FAIL  ${tag} → module path ${path_at_tag} cannot serve ${version}"
 			violations=$((violations + 1))
+			violation_tags+=("${tag}")
 		done < <(git tag -l "$tag_glob")
 	done < <(find . -name go.mod -not -path './vendor/*' -not -path './.git/*')
 
 	echo ""
 	echo "Audit: ${checked} tag(s) checked, ${violations} violation(s), ${skipped} skipped."
+
+	if [ "$write_baseline" -eq 1 ]; then
+		{
+			echo "# tag-release.sh --audit baseline: known dead-path violations."
+			echo "# Regenerate ONLY after consciously judging the whole current set"
+			echo "# known-dead: tag-release.sh --audit --baseline <this file> --write-baseline"
+			printf '%s\n' "${violation_tags[@]}"
+		} >"$baseline_file"
+		echo "Wrote ${#violation_tags[@]} baseline entr(y/ies) to ${baseline_file}."
+		return 0
+	fi
+
+	if [ -n "$baseline_file" ]; then
+		if [ ! -f "$baseline_file" ]; then
+			echo "ERROR: baseline file ${baseline_file} does not exist."
+			return 2
+		fi
+
+		local new_violations=0
+		local stale_entries=0
+		local known_tag vt found
+		for vt in "${violation_tags[@]}"; do
+			if ! grep -qxF "$vt" "$baseline_file"; then
+				echo "NEW VIOLATION: ${vt}"
+				new_violations=$((new_violations + 1))
+			fi
+			done
+		while IFS= read -r known_tag; do
+			case "$known_tag" in
+			\#* | "") continue ;;
+			esac
+			found=0
+			for vt in "${violation_tags[@]}"; do
+				if [ "$known_tag" = "$vt" ]; then
+					found=1
+					break
+				fi
+				done
+			if [ "$found" -eq 0 ]; then
+				echo "NOTE: baseline entry no longer violating — drop it: ${known_tag}"
+				stale_entries=$((stale_entries + 1))
+			fi
+		done <"$baseline_file"
+		echo ""
+		echo "Baseline audit: ${violations} violation(s) total, ${new_violations} NEW, ${stale_entries} fixed."
+		if [ "$new_violations" -gt 0 ]; then
+			echo "NEW violations are not in ${baseline_file}; they gate CI. Fix the"
+				echo "tag (deprecation stub, see cmd/cqrs-lint/v0.2.1) or, only after an"
+				echo "explicit ruling that the violation is known-dead, re-pin the baseline."
+				return 1
+			fi
+			return 0
+	fi
+
 	if [ "$violations" -gt 0 ]; then
 		echo "FAIL tags were never servable by the module proxy; @latest on the"
 		echo "affected paths resolves to an older version instead. If the path is"
 		echo "dead (superseded by a /vN path), ship a deprecation stub tag (see"
-		echo "cmd/cqrs-lint/v0.2.1 and cmd/cqrs-bench/v0.1.1)."
+		echo "cmd/cqrs-lint/v0.2.1 and cmd/cqrs-bench/v0.1.1). For CI, gate on NEW"
+		echo "violations only: --audit --baseline scripts/audit-tag-baseline.txt."
 		return 1
 	fi
 	return 0
@@ -231,11 +333,8 @@ if [ "${1:-}" = "--smoke" ]; then
 fi
 
 if [ "${1:-}" = "--audit" ]; then
-	if [ $# -ne 1 ]; then
-		usage
-		exit 1
-	fi
-	audit_all_tags
+	shift
+	audit_all_tags "$@"
 	exit $?
 fi
 

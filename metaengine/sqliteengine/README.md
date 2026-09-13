@@ -4,9 +4,9 @@
 
 SQLite-backed [metaengine](../README.md) Engine. Pure Go (`modernc.org/sqlite`,
 no CGo). The widest-capability disk engine: pushdown scans, layout planning,
-raw-value reads, and streaming scans on a single embedded file. This is the
-engine `metaengine.PlanFromMemory`-style embedded deployments default to, and
-the base the `tursoengine` wraps for remote libSQL.
+raw-value reads, and streaming scans on a single embedded file — the default
+choice for embedded deployments that need persistence, and the base the
+`tursoengine` wraps for remote libSQL.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4

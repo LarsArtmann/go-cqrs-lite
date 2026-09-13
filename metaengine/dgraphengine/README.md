@@ -1,12 +1,16 @@
-# dgraphengine
+# metaengine/dgraphengine — Dgraph-Backed Engine
 
-Dgraph-backed [metaengine](../) Engine for go-cqrs-lite.
+[![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4)
+
+Dgraph-backed [metaengine](../README.md) Engine. Native graph traversal and
+full-text search: **GraphBackend** and **SearchBackend** are first-class
+citizens — no degradation, no emulation. Pure Go (dgo gRPC client, no CGo).
+
+```bash
+go get github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4
+```
 
 ## Why Dgraph?
-
-Dgraph is a distributed graph database with native graph traversal and
-full-text search. This engine makes **GraphBackend** and **SearchBackend**
-first-class citizens — no degradation, no emulation.
 
 | ADT       | Complexity      | Degraded? | Notes                        |
 | --------- | --------------- | --------- | ---------------------------- |

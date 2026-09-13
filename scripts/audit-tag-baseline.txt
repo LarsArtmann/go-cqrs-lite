@@ -1,0 +1,27 @@
+# tag-release.sh --audit baseline: known dead-path violations.
+# Regenerate ONLY after consciously judging the whole current set
+# known-dead: tag-release.sh --audit --baseline <this file> --write-baseline
+example/taskmanager/v3.6.0
+example/taskmanager/v3.7.0
+example/taskmanager/v3.7.1
+example/taskmanager/v4.0.0
+example/taskmanager/v4.0.1
+example/taskmanager/v4.1.0
+example/getting-started/v3.6.0
+example/getting-started/v3.7.0
+example/getting-started/v3.7.1
+example/getting-started/v4.0.0
+example/getting-started/v4.0.1
+example/getting-started/v4.1.0
+cmd/cqrs-lint/v4.2.0
+cmd/cqrs-lint/v4.3.0
+cmd/cqrs-lint/v4.4.0
+cmd/cqrs-lint/v4.5.0
+cmd/cqrs-lint/v4.6.0
+cmd/cqrs-lint/v4.7.0
+cmd/cqrs-bench/v4.2.0
+event/v4/eventtest/v0.1.0
+event/v4/eventtest/v0.2.0
+event/v4/eventtest/v0.2.1
+event/v4/eventtest/v0.3.0
+event/v4/eventtest/v0.4.0
