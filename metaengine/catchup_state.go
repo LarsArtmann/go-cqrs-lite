@@ -105,3 +105,20 @@ func (s *Store) doctorCatchUpSection() string {
 
 	return b.String()
 }
+
+// writeDoctorCatchUpSection appends the Catch-Up section (header + lines) to
+// the Doctor report; a no-op while no engine was ever rebuilt.
+func (s *Store) writeDoctorCatchUpSection(b *strings.Builder) {
+	b.WriteString(s.doctorCatchUpSectionFull())
+}
+
+// doctorCatchUpSectionFull renders the whole section including its header,
+// empty while there is nothing to report.
+func (s *Store) doctorCatchUpSectionFull() string {
+	section := s.doctorCatchUpSection()
+	if section == "" {
+		return ""
+	}
+
+	return "\n--- Catch-Up ---\n" + section
+}

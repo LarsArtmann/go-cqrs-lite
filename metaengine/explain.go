@@ -291,13 +291,8 @@ func (s *Store) Doctor(ctx context.Context) string {
 		b.WriteString("  all engines healthy\n")
 	}
 
-	b.WriteString("\n--- Engine Health (ADR-0137) ---\n")
-	b.WriteString(s.doctorEngineHealthSection())
-
-	if catchUp := s.doctorCatchUpSection(); catchUp != "" {
-		b.WriteString("\n--- Catch-Up ---\n")
-		b.WriteString(catchUp)
-	}
+	b.WriteString("\n--- Engine Health (ADR-0137) ---\n" + s.doctorEngineHealthSection())
+	s.writeDoctorCatchUpSection(&b)
 
 	b.WriteString("\n--- Collections ---\n")
 
