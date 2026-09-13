@@ -24,6 +24,10 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Durable Work Queue module (proposed 2026-09-13)
+
+- [ ] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — the claim core already exists in `scheduling/sqlstore/claiming.go` (lease_until + SKIP LOCKED PG / single-writer SQLite / MySQL, expiry reclaim, `RenewLease`, `ClaimMetrics`), the read side in metaengine planned tables, the journal in `event`/`watermill`; what's missing is the task-store assembly: lifecycle (pending→running→completed/dead), attempts+backoff+DLQ at store level, priorities(+aging) in claim order, DAG dep gating, owner-bearing claims, dedup'd enqueue, same-tx journal option. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstream the semantics, don't reinvent); conformance = one mirrored suite across dialects. Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/2026-09-13_durable-work-queue-module.md`](docs/planning/2026-09-13_durable-work-queue-module.md) _(Effort: P0 S extract claim core, P1 M lifecycle+DLQ, then S each)_
+
 ## Turso materialized views (ADR-0135) — upstream handoffs
 
 > Created 2026-09-07 (matview operator option shipped; three upstream
