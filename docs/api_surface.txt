@@ -3146,6 +3146,7 @@ metaengine/method Count
 metaengine/method Count
 metaengine/method CounterGet
 metaengine/method CounterIncrement
+metaengine/method CurrentHooks
 metaengine/method Cursor
 metaengine/method DDL
 metaengine/method DemoteEngine
@@ -3279,6 +3280,7 @@ metaengine/method MapUpdate
 metaengine/method MarshalJSON
 metaengine/method MaterializedViewsDoctorSection
 metaengine/method Max
+metaengine/method Merge
 metaengine/method Milliseconds
 metaengine/method Min
 metaengine/method MultiAdd
@@ -3500,6 +3502,14 @@ metaengine/mysqlengine/method StreamRead
 metaengine/mysqlengine/method StreamRead
 metaengine/mysqlengine/method StreamVersion
 metaengine/mysqlengine/method StreamVersion
+metaengine/otelobserver/func Attach
+metaengine/otelobserver/func Attach
+metaengine/otelobserver/func New
+metaengine/otelobserver/func New
+metaengine/otelobserver/method Hooks
+metaengine/otelobserver/method Hooks
+metaengine/otelobserver/struct Observer
+metaengine/otelobserver/struct Observer
 metaengine/pebbleengine/const PebbleNsPerOp
 metaengine/pebbleengine/const PebbleNsPerOp
 metaengine/pebbleengine/const PebbleNsPerRead

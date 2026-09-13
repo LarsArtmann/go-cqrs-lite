@@ -147,52 +147,27 @@ func observerTestStore(t *testing.T) (
 }
 
 // counterValue sums the data points of a counter whose attributes match
-// want (attr key → emitted value).
+// want (attr key → emitted value), failing when the metric was never
+// collected.
 func counterValue(t *testing.T, rm *metricdata.ResourceMetrics, name string, want map[string]string) int64 {
 	t.Helper()
 
-	for _, sm := range rm.ScopeMetrics {
-		for _, m := range sm.Metrics {
-			if m.Name != name {
-				continue
-			}
-
-			data, ok := m.Data.(metricdata.Sum[int64])
-			if !ok {
-				t.Fatalf("%s is %T, want a sum", name, m.Data)
-			}
-
-			var total int64
-
-			for _, dp := range data.DataPoints {
-				matches := true
-
-				for k, v := range want {
-					got, ok := dp.Attributes.Value(attribute.Key(k))
-					if !ok || got.Emit() != v {
-						matches = false
-
-						break
-					}
-				}
-
-				if matches {
-					total += dp.Value
-				}
-			}
-
-			return total
-		}
+	total, found := counterValueOrZero(rm, name, want)
+	if !found {
+		t.Fatalf("metric %q not collected", name)
 	}
 
-	t.Fatalf("metric %q not collected", name)
-
-	return 0
+	return total
 }
 
-// counterValueOrZero is counterValue for polling loops: absent metrics
-// read as zero instead of failing the test.
-func counterValueOrZero(rm *metricdata.ResourceMetrics, name string, want map[string]string) int64 {
+// counterValueOrZero reads the summed value of a counter's matching data
+// points; absent metrics read as (0, false) instead of failing — for
+// polling loops.
+func counterValueOrZero(
+	rm *metricdata.ResourceMetrics,
+	name string,
+	want map[string]string,
+) (int64, bool) {
 	for _, sm := range rm.ScopeMetrics {
 		for _, m := range sm.Metrics {
 			if m.Name != name {
@@ -223,11 +198,11 @@ func counterValueOrZero(rm *metricdata.ResourceMetrics, name string, want map[st
 				}
 			}
 
-			return total
+			return total, true
 		}
 	}
 
-	return 0
+	return 0, false
 }
 
 func collect(t *testing.T, reader *sdkmetric.ManualReader) metricdata.ResourceMetrics {
@@ -349,7 +324,7 @@ func TestObserver_ProbeOutcomesFromAutoReprobe(t *testing.T) {
 
 	for {
 		rm := collect(t, reader)
-		if got := counterValueOrZero(&rm, "cqrs.metaengine.probe.total",
+		if got, _ := counterValueOrZero(&rm, "cqrs.metaengine.probe.total",
 			map[string]string{"engine": "primary", "outcome": "fail"}); got > 0 {
 			break
 		}

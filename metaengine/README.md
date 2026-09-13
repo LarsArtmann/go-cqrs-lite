@@ -30,11 +30,13 @@ type FindUser struct { ID UserID }
 type FindUserResult struct { ID UserID; Name string; JoinedAt time.Time }
 
 // 3. Query declaration — folds define how events update this query's projection
+//    OnRecord is the canonical constructor (On/OnTyped are deprecated, removal v5);
+//    the handler receives the full record.Record (import ".../record/v4") first.
 findUser := metaengine.Query[FindUser, FindUserResult]("find_user",
-    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) {
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) {
         return e.ID, FindUserResult{ID: e.ID, Name: e.Name, JoinedAt: e.At}
     }),
-    metaengine.On(UserDeleted{}, metaengine.Remove[FindUserResult]()),
+    metaengine.OnRecord(UserDeleted{}, metaengine.Remove[FindUserResult]()),
 )
 
 // 4. Plan — the optimizer assigns engines to queries
@@ -104,6 +106,9 @@ store, _ := metaengine.Plan([]metaengine.Engine{eng}, findUser)
 adapter := projectionadapter.NewWithDecoder("users", store, dec)
 host.Register(adapter)
 ```
+
+> Note: `OnTyped` is deprecated in favor of `OnRecord`/`OnRecordTyped` (removal v5). Existing
+> code keeps working until v5; new folds should use the record-first constructors.
 
 ## Record-Aware Folds
 
@@ -188,6 +193,7 @@ The fold function's return type IS the declaration:
 | `func(e) K`          | `Key`          | Set        | Membership test        |
 | `func(e) Delta`      | `Delta`        | Counter    | Aggregate counts       |
 | `func(e) Edge`       | `Edge`         | Graph      | Traversal              |
+| `func(e) EdgeRemoval`| `EdgeRemoval`  | Graph      | Retract an edge        |
 | `func(e) MultiEntry` | `MultiEntry`   | Multimap   | One key, many values   |
 | `func(e) Append`     | `Append`       | Log        | Append-only timeline   |
 | `func(e, prev V) V`  | `Value`        | Map update | Read-modify-write      |
@@ -198,7 +204,7 @@ The fold function's return type IS the declaration:
 
 ```go
 listByStatus := metaengine.Query[ListByStatus, ListByStatusResult]("list_by_status",
-    metaengine.On(UserCreated{}, func(e UserCreated) (UserID, FindUserResult) { ... }),
+    metaengine.OnRecord(UserCreated{}, func(_ record.Record, e UserCreated) (UserID, FindUserResult) { ... }),
     metaengine.FilterOn(func(r FindUserResult) string { return r.Status }),
     metaengine.SortOn(func(r FindUserResult) time.Time { return r.JoinedAt }),
 )
@@ -626,6 +632,33 @@ err := store.SwapEngine("memory", "sqlite", sqliteEng)
 // All queries previously on "memory" now route to "sqlite"
 ```
 
+## Projection Roles and Shadow Engines
+
+Every engine carries a projection role (ADR-0124 §7). `AddEngine` defaults to `RoleActive`;
+pass `WithEngineRole` to assign another:
+
+| Role | Serves reads | Receives writes | Use |
+| ---- | ------------ | --------------- | --- |
+| `RoleActive` (default) | yes | synchronously via the fold pipeline | normal serving engine |
+| `RoleDualUse` | yes | synchronously | second engine serving different query shapes |
+| `RoleMigration` | no (shadow) | async replication of ALL collections | cutover target |
+| `RoleBackup` | no (shadow) | async replication | warm standby |
+
+Shadow engines are excluded from routing (`routableLocked`, `roles.go:75-94`) and are promoted
+atomically with `PromoteEngine`: it drains the replication backlog, flips the role, and re-plans
+with trigger `engine-promoted` (`roles.go:146-157`). `ReplicationStatus(name)` reports
+queued/applied counts and staleness (`roles.go:96-135`); promoting a stale engine fails until it
+is recovered (remove, fix, re-add, backfill).
+
+```go
+err := store.AddEngine(ctx, sqliteEng,
+    metaengine.WithEngineRole(metaengine.RoleMigration),
+)
+// ...call store.Backfill(ctx) to replay events, then watch replication catch up...
+status, _ := store.ReplicationStatus(sqliteEng.Profile().Name)
+err = store.PromoteEngine(ctx, sqliteEng.Profile().Name) // atomic cutover to serving reads
+```
+
 ## QueryBuilder (Fluent API)
 
 `QueryBuilder` provides a fluent builder on top of `TypedReader`:
@@ -678,7 +711,8 @@ Built-in helpers:
 ### Sealed Fold Interface
 
 Fold is a sealed interface — concrete types (`insertFold`, `updateFold`, etc.)
-are unexported, so only `On`/`OnTyped` can create them. This eliminates the
+are unexported, so only the fold constructors (`OnRecord`/`OnRecordTyped`; the
+deprecated `On`/`OnTyped` still work until v5) can create them. This eliminates the
 nil-panic class entirely: each fold carries exactly one typed handler closure,
 not 11 `any`-typed handler fields with a string discriminator. The hot apply
 path dispatches via a type switch with zero per-event `reflect.ValueOf` calls —
@@ -705,6 +739,14 @@ The planner validates at `Plan()` time to catch typos early.
 
 `PlanResult` carries `Version` and `ComputedAt` for drift detection without
 a full re-plan.
+
+## Design References
+
+- [ADR-0113](../docs/adr/0113-delete-graphbackend.md) — GraphBackend deleted; `graph.GraphDriver` implements `metaengine.Engine`
+- [ADR-0117](../docs/adr/0117-command-lifecycle-as-events.md) — command lifecycle as event streams (`commandlifecycle`)
+- [ADR-0123](../docs/adr/0123-v5-unification-single-composition-root.md) — v5 unification (deprecations removed, single composition root)
+- [ADR-0124](../docs/adr/0124-operator-driven-layout-planning.md) — operator-driven layout planning, projection roles, shared collections
+- [ADR-0137](../docs/adr/0137-health-driven-engine-deactivation.md) — health-driven engine quarantine and catch-up recovery
 
 ## Related Modules
 
