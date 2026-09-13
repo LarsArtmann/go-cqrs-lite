@@ -704,8 +704,16 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 
 - **Framework opinions** — the library will never mandate a transport, message
   broker, or SQL driver. Consumers compose their own stack.
-- **Splitting the `event/` module** — 27 importers, real cohesion. Explicitly
-  decided in v4. Do not split.
+- **Splitting the `event/` module** — re-reviewed 2026-09-13: 41 modules
+  direct-require it (27 at the 2026-06-29 decision; 66 dirs incl. tests) and
+  the seam has zero composability payoff — not one importer uses the
+  Store/Journal/Bus/Checkpoint ports without also using `event.Event` (the
+  ports are typed over `[]Event`). Core/ports co-change little (39 vs 11
+  commits since the decision, only 4 both), so the file layout already
+  separates them; a module boundary would decouple nothing while every
+  consumer still imports both sides. Slimming happens extract-DOWNWARD
+  instead (record/ ADR-0111, go-codec ADR-0128 — alias, never break the
+  path). Do not split.
 - **ORM features** — no query builder, no ORM-style relations, no lazy loading.
   Auto-projection (v5, ADR-0123) infers everything from struct shapes. If the
   auto-projection gets it wrong, override with an explicit `OnRecord` fold.
