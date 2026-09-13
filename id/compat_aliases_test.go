@@ -1,6 +1,7 @@
 package id_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -74,7 +75,7 @@ func TestBackwardCompatAliases(t *testing.T) {
 	}
 
 	// ErrEmptyAggregateType is the same sentinel as ErrEmptyStreamType.
-	if id.ErrEmptyAggregateType != id.ErrEmptyStreamType {
+	if !errors.Is(id.ErrEmptyAggregateType, id.ErrEmptyStreamType) {
 		t.Error("ErrEmptyAggregateType is not ErrEmptyStreamType")
 	}
 }

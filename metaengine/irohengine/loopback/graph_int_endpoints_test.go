@@ -115,8 +115,7 @@ func sameNeighbors(actual []any, expected []string) bool {
 		return false
 	}
 
-	seen := make(map[string]bool, len(actual))
-	seen = lo.SliceToMap(actual, func(v any) (string, bool) { return fmt.Sprint(v), true })
+	seen := lo.SliceToMap(actual, func(v any) (string, bool) { return fmt.Sprint(v), true })
 
 	for _, v := range expected {
 		if !seen[v] {

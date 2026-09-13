@@ -170,8 +170,7 @@ func readOnlySpanNames(spans []tracetest.SpanStub) []string {
 func buildParentMap(spans []tracetest.SpanStub) map[string]string {
 	result := make(map[string]string, len(spans))
 
-	byID := make(map[trace.SpanID]string, len(spans))
-	byID = lo.SliceToMap(
+	byID := lo.SliceToMap(
 		spans,
 		func(s tracetest.SpanStub) (trace.SpanID, string) { return s.SpanContext.SpanID(), s.Name },
 	)

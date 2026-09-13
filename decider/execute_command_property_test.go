@@ -81,17 +81,21 @@ func TestExecuteCommandRefCausationProperty(t *testing.T) {
 	})
 }
 
+// fatalfable is the minimal reporting surface shared by *testing.T and
+// *rapid.T (the verification helper runs inside both plain and rapid tests).
+type fatalfable interface {
+	Fatalf(format string, args ...any)
+}
+
 // verifyCausationStamps asserts the stamp outcome for every persisted event:
 // decide-set causation preserved, zero-ID commands unstamped, everything
 // else carrying the command's causation (typed form + record Cause).
 func verifyCausationStamps(
-	t *testing.T,
+	t fatalfable,
 	evts []event.Event,
 	cmdID id.CommandID,
 	preStampedIdx int,
 ) {
-	t.Helper()
-
 	for i, evt := range evts {
 		md := evt.Metadata()
 
