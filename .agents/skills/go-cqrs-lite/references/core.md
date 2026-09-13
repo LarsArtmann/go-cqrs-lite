@@ -519,9 +519,9 @@ All Go import paths and qualified symbols in these docs are verified by
 `cmd/doc-check` — run it after editing any reference file:
 
 ```bash
-cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../AGENTS.md ../../references/*.md
+cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
 ```
 
-This skill uses progressive disclosure: `SKILL.md` is a thin index (≤1000 chars),
-`core.md` holds the decision material loaded on every trigger, and the other
-reference files are loaded on demand.
+This skill uses progressive disclosure: `SKILL.md` is a thin index (≈10 KB:
+intro, routing matrices, benchmarking), `core.md` holds the decision material
+loaded on every trigger, and the other reference files are loaded on demand.
