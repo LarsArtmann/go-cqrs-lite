@@ -5,9 +5,10 @@ import (
 	"slices"
 	"testing"
 
+	bolt "go.etcd.io/bbolt"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
-	bolt "go.etcd.io/bbolt"
 )
 
 // TestVectorSearch_LegacyJSONPayloadReadable pins the upgrade contract: rows

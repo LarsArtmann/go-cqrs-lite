@@ -3,9 +3,10 @@ package multisig
 import (
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // NewMultiSigner creates a signer for a named actor using the provided Signer.

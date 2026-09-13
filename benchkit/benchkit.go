@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 

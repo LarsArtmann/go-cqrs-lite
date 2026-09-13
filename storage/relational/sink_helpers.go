@@ -6,9 +6,10 @@ import (
 	"strings"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func partitionColumns(all, subset []string) []string {

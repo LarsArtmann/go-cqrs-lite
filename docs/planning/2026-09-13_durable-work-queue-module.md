@@ -18,13 +18,13 @@ already here, unassembled.
 
 ## What already exists here (verified first-hand 2026-09-13)
 
-| Capability | Where | Notes |
-| --- | --- | --- |
-| Atomic claim w/ lease + expiry reclaim | `scheduling/sqlstore/claiming.go` (`ClaimingTimerStore`) | PG `FOR UPDATE SKIP LOCKED` CTE→UPDATE→RETURNING; SQLite single-writer UPDATE..RETURNING; MySQL/MariaDB 10.6+ SKIP LOCKED; `RenewLease`; `ClaimMetrics`; idempotent lease-column migration. THE hard part, already 3-dialect |
-| Per-key atomic RMW | `metaengine` `MapUpdater` (pgengine: `SELECT … FOR UPDATE` in-tx) | claim-adjacent; no multi-key conditional claim |
-| Filtered/sorted/keyset listing | `metaengine` planned tables (`FilterSpec`/`SortSpec`/`PushdownMapScan`, json_extract pushdown) | read side for dashboards; single collection, no cross-collection anti-joins |
-| Journal + cursors | `event.Store`/`SeekableJournal`, `storage`, `watermill.CatchUpSubscriber`, `CheckpointStore` | ≈ go-taskqueue's facts + watermarks |
-| Deadline scheduling | `scheduling` (`Timer[P]`, fire-once) | claims exist HERE but rows are DELETED on fire — timer semantics, not task semantics |
+| Capability                             | Where                                                                                          | Notes                                                                                                                                                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Atomic claim w/ lease + expiry reclaim | `scheduling/sqlstore/claiming.go` (`ClaimingTimerStore`)                                       | PG `FOR UPDATE SKIP LOCKED` CTE→UPDATE→RETURNING; SQLite single-writer UPDATE..RETURNING; MySQL/MariaDB 10.6+ SKIP LOCKED; `RenewLease`; `ClaimMetrics`; idempotent lease-column migration. THE hard part, already 3-dialect |
+| Per-key atomic RMW                     | `metaengine` `MapUpdater` (pgengine: `SELECT … FOR UPDATE` in-tx)                              | claim-adjacent; no multi-key conditional claim                                                                                                                                                                               |
+| Filtered/sorted/keyset listing         | `metaengine` planned tables (`FilterSpec`/`SortSpec`/`PushdownMapScan`, json_extract pushdown) | read side for dashboards; single collection, no cross-collection anti-joins                                                                                                                                                  |
+| Journal + cursors                      | `event.Store`/`SeekableJournal`, `storage`, `watermill.CatchUpSubscriber`, `CheckpointStore`   | ≈ go-taskqueue's facts + watermarks                                                                                                                                                                                          |
+| Deadline scheduling                    | `scheduling` (`Timer[P]`, fire-once)                                                           | claims exist HERE but rows are DELETED on fire — timer semantics, not task semantics                                                                                                                                         |
 
 ## The gap (what nobody assembles today)
 

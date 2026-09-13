@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	projectionhost "github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // --- T19 fix: Reset clears the checkpoint BEFORE the read model ---

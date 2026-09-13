@@ -7,8 +7,9 @@ import (
 	"slices"
 	"time"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // MigrateSnapshotColumnsToStream renames the pre-v5 snapshots-table columns

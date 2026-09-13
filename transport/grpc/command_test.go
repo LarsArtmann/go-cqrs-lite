@@ -6,11 +6,12 @@ import (
 	"net"
 	"testing"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func listen(t *testing.T) net.Listener {

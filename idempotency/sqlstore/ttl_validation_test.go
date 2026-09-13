@@ -7,8 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	"github.com/larsartmann/go-idempotency"
+
+	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 )
 
 // TestSQLiteStore_NonPositiveTTLRejected verifies that Record and CheckAndRecord

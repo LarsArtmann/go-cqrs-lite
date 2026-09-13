@@ -7,10 +7,11 @@ import (
 	"log/slog"
 	"time"
 
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-	bolt "go.etcd.io/bbolt"
 )
 
 // CommandStore persists commands in a bbolt database. It implements

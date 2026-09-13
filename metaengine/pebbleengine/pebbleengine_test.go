@@ -5,8 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	. "github.com/onsi/gomega"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // pebbleengine_test.go validates the Pebble engine's basic operations and

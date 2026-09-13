@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
-	"pgregory.net/rapid"
 )
 
 // Property tests for snapshot.TypedStore[State] — Save/Load round-trip fidelity.

@@ -4,15 +4,16 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	cqrsgrpc "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4"
 )
 
 func TestCommandDispatch_ServerSpanCarriesAttrs(t *testing.T) {

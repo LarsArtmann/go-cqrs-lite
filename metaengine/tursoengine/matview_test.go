@@ -7,10 +7,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/onsi/gomega"
 	"github.com/samber/lo"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 type orderRow struct {

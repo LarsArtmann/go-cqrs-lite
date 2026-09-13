@@ -5,9 +5,10 @@ import (
 	"go/ast"
 	"strconv"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
-	"github.com/larsartmann/go-finding"
 )
 
 // Detects event.WithCodec called 3+ times in the same file. The codec should
