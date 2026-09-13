@@ -550,10 +550,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       (nix fmt clean), api-stability (golden updated), cmd/cqrs-lint module
       (taskmanager golden re-pinned — rule-output drift) + verify-fast's
       TestTagContentMatchesChangelog (green against current CHANGELOG).
-      (d) STILL OPEN: shellcheck SC2086 in `scripts/test-tag-release.sh`
-      (`git $notag` is INTENTIONALLY unquoted — needs a disable directive),
-      go.work sync check job, benchmarks.yml matview-gate dry-run (relative
-      `cd ../metaengine/tursoengine` hop unproven). — source: run
+      (d) STILL OPEN: go.work sync check
+      job, benchmarks.yml matview-gate dry-run (relative
+      `cd ../metaengine/tursoengine` hop unproven). The test-tag-release.sh
+      SC2086 item was already stale — the script uses the array form
+      `git "${notag[@]}"` and shellcheck is clean (verified 2026-09-13). — source: run
       34548534824, run 34747274058, `gh run list`
       _(Effort: M-L, multi-session; the cache-backend migration is the
       single highest-leverage repair)_
