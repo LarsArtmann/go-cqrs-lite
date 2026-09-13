@@ -288,6 +288,7 @@ DEP_BUDGET["cmd/doc-check"]=2
 DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
 DEP_BUDGET["example/readme-quickstart"]=6
+DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system + metaengine
 # + sqliteengine + projectionadapter + event/id/record — 7 first-party deps
 # is the honest count for a composition example.
