@@ -221,6 +221,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"cmd/cqrs-lint":                  "tooling",
 		"cmd/cqrs-upgrade":               "tooling (code-migration assistant)",
 		"cmd/doc-check":                  "tooling",
+		"claiming":                       "low-level claim-SQL core (infrastructure, consumed via scheduling/sqlstore)",
 		"commandlifecycle/projections":   "sub-package (covered by commandlifecycle)",
 		"dispatcher":                     "internal infrastructure (generic dispatcher used by command/query)",
 		"event/v4/eventtest":             "test helper sub-package",
