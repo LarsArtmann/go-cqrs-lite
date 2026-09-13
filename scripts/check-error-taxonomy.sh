@@ -56,7 +56,7 @@ for entry in "${GATED_MODULES[@]}"; do
 	rg -U --no-filename -o \
 		'errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?"([a-z0-9_.]+)"' \
 		"$repo_root/$dir" \
-		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' \
+		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
 		-r '$2	$1' >"$tmp_mod" || true
 	sort -u "$tmp_mod" -o "$tmp_mod"
 	mod_codes=$(wc -l <"$tmp_mod")

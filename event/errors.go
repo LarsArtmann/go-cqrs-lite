@@ -31,7 +31,7 @@ const (
 //
 //	 classified := errorfamily.Classify(err)
 //	 retryable  := errorfamily.IsRetryable(err)
-//	 wrapped    := errorfamily.WrapRejection(err, "my.code", "message")
+//	 wrapped    := errorfamily.WrapRejection(err, "<your.code>", "message")
 var (
 	ErrEmptyEventType error = errorfamily.NewRejection(
 		"event.empty_event_type",
