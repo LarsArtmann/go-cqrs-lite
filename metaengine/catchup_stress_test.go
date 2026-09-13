@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"sync"
 	"sync/atomic"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -204,4 +205,82 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	if _, ok, _ := primary.MapGet(ctx, "role_items", "seed"); !ok {
 		t.Fatal("primary must hold the pre-quarantine seed after rebuild")
 	}
+}
+
+// Catch-up state must be observable: after a successful rebuild the engine's
+// CatchUpState records the replayed count and completion, and the Doctor
+// report carries a Catch-Up section. Before any rebuild the snapshot is
+// empty (absent = never attempted), keeping healthy stores' reports quiet.
+func TestEngineHealth_CatchUpStateObservable(t *testing.T) {
+	t.Parallel()
+
+	store, primary, spare := catchupStressStore(t)
+	ctx := context.Background()
+
+	if snap := store.CatchUpSnapshot(); len(snap) != 0 {
+		t.Fatalf("CatchUpSnapshot before any rebuild = %v, want empty", snap)
+	}
+
+	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i1", Name: "n1"}); err != nil {
+		t.Fatal(err)
+	}
+
+	quarantinePrimary(t, store, primary)
+
+	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i2", Name: "n2"}); err != nil {
+		t.Fatal(err)
+	}
+
+	primary.armed.Store(false)
+
+	if err := store.CatchUpEngine(ctx, "primary"); err != nil {
+		t.Fatalf("CatchUpEngine: %v", err)
+	}
+
+	st, ok := store.CatchUpSnapshot()["primary"]
+	if !ok {
+		t.Fatal("CatchUpSnapshot must contain primary after a rebuild")
+	}
+
+	if st.Running {
+		t.Error("CatchUpState.Running = true after completion")
+	}
+
+	if st.LastError != "" {
+		t.Errorf("CatchUpState.LastError = %q, want empty after success", st.LastError)
+	}
+
+	// The log held the seed plus the quarantined-period event.
+	if st.Replayed != 2 {
+		t.Errorf("CatchUpState.Replayed = %d, want 2", st.Replayed)
+	}
+
+	if st.CompletedAt.IsZero() {
+		t.Error("CatchUpState.CompletedAt must be stamped after success")
+	}
+
+	stats := store.GetEngineStats(ctx)
+	var found bool
+
+	for _, es := range stats {
+		if es.Name == "primary" {
+			found = true
+
+			if es.CatchUp != st {
+				t.Errorf("GetEngineStats CatchUp = %+v, want %+v", es.CatchUp, st)
+			}
+		}
+	}
+
+	if !found {
+		t.Fatal("GetEngineStats must report the primary engine")
+	}
+
+	doctor := store.Doctor(ctx)
+	if !strings.Contains(doctor, "--- Catch-Up ---") ||
+		!strings.Contains(doctor, "caught up (replayed 2 events") {
+		t.Errorf("Doctor must contain the catch-up section, got:\n%s", doctor)
+	}
+
+	_ = spare
 }

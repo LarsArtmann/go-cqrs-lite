@@ -51,6 +51,7 @@ type Store struct {
 	healthMu               sync.RWMutex
 	health                 map[string]*engineHealthRecord
 	engineFailureThreshold int
+	catchUps               map[string]*catchUpRecord // per-engine CatchUpEngine bookkeeping (healthMu-guarded)
 
 	// catchUpMu serializes CatchUpEngine rebuilds: two concurrent rebuilds of
 	// the same quarantined engine (manual call racing the auto-reprobe loop)

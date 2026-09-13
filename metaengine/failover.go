@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -56,7 +57,7 @@ const catchUpMaxPasses = 64
 // [Store.StartAutoReprobe] runs this automatically when a quarantined
 // engine's probe succeeds, falling back to a plain reactivation (with a
 // warning) when catch-up is unsupported.
-func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
+func (s *Store) CatchUpEngine(ctx context.Context, name string) (result error) {
 	s.catchUpMu.Lock()
 	defer s.catchUpMu.Unlock()
 
@@ -92,12 +93,29 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
 		return fmt.Errorf("%w: attach one via WithEventLog", ErrCatchUpUnsupported)
 	}
 
+	offset := 0
+	replayed := 0
+
+	// The rebuild is observable: mark it running, then settle the final
+	// state on the way out (error text, replayed count, completion stamp).
+	s.catchUpStateUpdate(name, func(rec *catchUpRecord) { rec.running = true })
+
+	defer s.catchUpStateUpdate(name, func(rec *catchUpRecord) {
+		rec.running = false
+
+		switch {
+		case result == nil:
+			rec.lastErr = ""
+			rec.replayed = replayed
+			rec.completed = time.Now()
+		case !errors.Is(result, ErrCatchUpUnsupported):
+			rec.lastErr = result.Error()
+		}
+	})
+
 	if err := resetter.ResetEngine(ctx); err != nil {
 		return fmt.Errorf("metaengine.CatchUpEngine(%s): reset: %w", name, err)
 	}
-
-	offset := 0
-	replayed := 0
 
 	for pass := 0; ; pass++ {
 		events := s.eventLog.eventsFrom(offset)

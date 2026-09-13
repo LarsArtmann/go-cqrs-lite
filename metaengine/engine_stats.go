@@ -46,6 +46,12 @@ type EngineStats struct {
 	// failures, quarantine stamp, and the last classified error. Active with
 	// zero failures for engines that never failed.
 	Health EngineHealth
+
+	// CatchUp is the ADR-0137 rebuild state from [Store.CatchUpEngine]:
+	// running / last error / events replayed / completion stamp. Zero value
+	// when the engine was never rebuilt (the normal state of a healthy
+	// store).
+	CatchUp CatchUpState
 }
 
 // GetEngineStats returns a live measurement report for every engine in the
@@ -58,6 +64,7 @@ func (s *Store) GetEngineStats(_ context.Context) []EngineStats {
 	engines := s.enginesSnapshot()
 
 	health := s.HealthSnapshot()
+	catchUps := s.CatchUpSnapshot()
 
 	out := make([]EngineStats, 0, len(engines))
 
@@ -67,6 +74,8 @@ func (s *Store) GetEngineStats(_ context.Context) []EngineStats {
 		if es.Health.State == "" {
 			es.Health.State = EngineActive
 		}
+
+		es.CatchUp = catchUps[eng.Profile().Name]
 
 		out = append(out, es)
 	}

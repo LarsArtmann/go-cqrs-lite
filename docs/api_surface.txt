@@ -3121,6 +3121,7 @@ metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Backfill
 metaengine/method CatchUpEngine
+metaengine/method CatchUpSnapshot
 metaengine/method Check
 metaengine/method CheckAndRecord
 metaengine/method CheckRouting
@@ -3873,6 +3874,7 @@ metaengine/struct BenchmarkSummary
 metaengine/struct Calibration
 metaengine/struct CalibrationCosts
 metaengine/struct CapabilityAuditResult
+metaengine/struct CatchUpState
 metaengine/struct CollectionInfo
 metaengine/struct CollectionStats
 metaengine/struct CostAccuracyReporter
