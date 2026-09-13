@@ -60,7 +60,9 @@ func (r ResetResult) String() string {
 //
 // This is the metaengine primitive behind projectionhost's Resettable contract:
 // projectionadapter.Adapter.Reset delegates here so a Host.Reset performs a
-// one-call revert of a metaengine-backed projection.
+// one-call revert of a metaengine-backed projection. To rebuild ONE engine
+// (e.g. after ADR-0137 quarantine), use [Store.CatchUpEngine] instead — it
+// resets just that engine and replays the EventLog into it.
 func (s *Store) Reset(ctx context.Context) (ResetResult, error) {
 	s.mu.RLock()
 	engines := slices.Clone(s.engines)

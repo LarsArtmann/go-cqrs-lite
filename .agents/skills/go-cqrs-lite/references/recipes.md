@@ -2171,3 +2171,20 @@ exactly that engine (quarantine lifts only after a clean rebuild; failures
 stay quarantined for the next attempt; without an EventLog or
 `EngineResetter` it falls back to a plain, warned reactivation).
 
+**Rebuild-vs-writes safety (suffix-drain stabilize loop):** a rebuild runs
+while other goroutines keep folding into healthy engines, so the log can
+grow DURING replay. `CatchUpEngine` therefore re-drains the suffix until a
+pass observes no growth (bounded at 64 passes), and reactivation happens
+inside an append-blocked critical section — replay remains the only writer
+onto the recovered engine, so no apply is ever folded against a stale
+snapshot. Concurrent rebuilds of the same engine serialize (second caller
+waits, then reuses the finished result); a "catch-up already running" error
+is never returned to callers.
+
+**Observability:** `Store.CatchUpSnapshot()` returns a
+`map[string]CatchUpState` (`Running`, `LastError`, `Replayed`,
+`CompletedAt`) per engine; `EngineStats.CatchUp` carries the same state and
+`Doctor(ctx)` renders a "--- Catch-Up ---" section — an operator sees
+whether a rebuild is in flight, failed (and why), or completed without
+inferring it from quarantine state alone.
+

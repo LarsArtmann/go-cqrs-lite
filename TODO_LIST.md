@@ -369,14 +369,23 @@ bottom is a do-not-re-litigate guard, not a backlog.
       loop racing CatchUpEngine; assert post-reactivation reads see every
       event). Should land BEFORE the next tag wave. — source: 05-40 §d1/§e1/§f1
       _(Effort: M)_
-- [ ] **Catch-up observability + tail replay** — surface catch-up state
-      (running/failed/last-caught-up event id) in `Doctor` + `GetEngineStats`
-      (today slog-only); per-engine catch-up high-water marks so a re-catch-up
-      replays only the tail instead of the full journal; return `ResetResult`
-      from `CatchUpEngine` (currently discarded); `Reset` docs should point
-      at `CatchUpEngine` for the one-engine case (discovery). — source:
-      05-40 §e5/§e6/§f9/§f10, §f35/§f36/§f45
-      _(Effort: M)_
+- [x] **Catch-up observability + tail replay** — SHIPPED 2026-09-13:
+      `CatchUpState`/`Store.CatchUpSnapshot`/`EngineStats.CatchUp`/Doctor
+      "--- Catch-Up ---" section cover the observability half; `Reset` doc
+      comment now points at `CatchUpEngine` for the one-engine case.
+      DECIDED against per-engine high-water marks (tail-only re-catch-up):
+      full rebuild is idempotent by construction (engine is Reset first),
+      while tail-only replay must assume engine state matches a persisted
+      watermark — the exact stale-state class the 2026-09-13 catch-up race
+      fix closed; watermark bookkeeping would also need ADR-0136 reset
+      semantics ("reset the watermark too") and crash-recovery analysis.
+      Revisit only if `Replayed`/`CompletedAt` observability shows rebuild
+      latency hurting failover SLOs. DECIDED against an additive
+      `CatchUpEngineWithResult`: the result is already observable via
+      `CatchUpSnapshot`; the breaking `ResetResult` return waits for v5
+      where signature changes are free. — source: 05-40 §e5/§e6/§f9/§f10,
+      §f35/§f36/§f45; decisions 2026-09-13
+      _(Effort: M — done)_
 - [ ] **Doctor: per-entry-point synthetic-record feed counters** — the
       conformance sweep makes the entry-point record contract visible in
       TESTS; Doctor still cannot say WHICH entry point fed a synthetic
