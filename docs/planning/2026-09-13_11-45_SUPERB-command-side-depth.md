@@ -80,6 +80,14 @@ func (r *Repository[State]) ExecuteCommandRef[C CausedCommand](
   precedence, and a CommandID→CausationID conversion would be a string round-trip.
   Stamping is skipped when the command ID is zero. The `CausationOptions` fallback
   helper is NOT needed.
+- **SHAPE AMENDMENT (T02 discovery):** Go 1.26 does not allow generic methods (a method
+  declaring its own type parameters — legal only from Go 1.27), so the D1 sketch
+  `func (r *Repository[State]) ExecuteCommandRef[C CausedCommand](…)` is not compilable
+  on this toolchain. Resolution: package-level generic function
+  `decider.ExecuteCommandRef[State, C](ctx, repo, ref, cmd, decide)` — the same shape the
+  repo already uses for generic option funcs; full type inference, no new types, no
+  assertion friction. `decider.go` untouched (G2). Revisit a method-form wrapper in the
+  Go 1.27 upgrade wave (filed TODO_LIST 2026-09-13).
 - Precedent: capability interfaces (`command.MetadataCarrier`) — same ADR-0111(g)-safe move.
 
 ### D2 — `command.AsRecordPersisted(*PersistedCommand) record.Record`

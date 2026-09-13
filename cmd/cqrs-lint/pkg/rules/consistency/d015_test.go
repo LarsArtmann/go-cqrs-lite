@@ -64,3 +64,25 @@ func TestD015_NoFindingOnEmptyContext(t *testing.T) {
 	findings := ruletest.RunDetector(t, consistency.NewD015Detector(ctx))
 	ruletest.AssertRule(t, findings, "D015", 0)
 }
+
+// TestD015_RegistryPayloadTypeAccepted pins the EventPayloadTypes registry
+// acceptance path (parity with D016's registry test): a struct whose name
+// carries no payload suffix but that the scanner saw as an event.New payload
+// is pointer-checked like a conventional payload struct.
+func TestD015_RegistryPayloadTypeAccepted(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+type AccountState struct {
+	Balance *float64
+	Owner   *string
+}
+`,
+	})
+	ctx.Registry.EventPayloadTypes["AccountState"] = true
+
+	findings := ruletest.RunDetector(t, consistency.NewD015Detector(ctx))
+	ruletest.AssertRule(t, findings, "D015", 2)
+}

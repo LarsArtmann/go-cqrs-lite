@@ -154,3 +154,30 @@ func TestLastSegment_StripsTwoDigitMajorVersions(t *testing.T) {
 		}
 	}
 }
+
+func TestIsURLOrPlaceholder(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name string
+		val  string
+		want bool
+	}{
+		{name: "https URL", val: "https://docs.example.com/keys", want: true},
+		{name: "scheme URL", val: "postgres://user:pw@localhost/db", want: true},
+		{name: "env template", val: "${API_KEY}", want: true},
+		{name: "angle placeholder", val: "<your-token>", want: true},
+		{name: "angle placeholder padded", val: "  <your-api-key>  ", want: true},
+		{name: "real credential", val: "sk-live-abc123def456", want: false},
+		{name: "empty string", val: "", want: false},
+		{name: "bare angle brackets only", val: "<>", want: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := lintutil.IsURLOrPlaceholder(tc.val); got != tc.want {
+				t.Errorf("IsURLOrPlaceholder(%q) = %v, want %v", tc.val, got, tc.want)
+			}
+		})
+	}
+}
