@@ -45,6 +45,7 @@
 13. [What the Developer Writes vs. What They Never Write](#13-what-the-developer-writes-vs-what-they-never-write)
 14. [Hot-Reload: Zero-Downtime Engine Changes](#14-hot-reload-zero-downtime-engine-changes)
 15. [Open Design Decisions](#15-open-design-decisions)
+16. [Implementation-Status Addendum (2026-09-13)](#implementation-status-addendum-2026-09-13)
 
 ---
 
@@ -1010,7 +1011,7 @@ The planner generates both. Streaming uses Go iterators (`iter.Seq2[Output, erro
 ### Decision 3: What About Queries That Need Data From Multiple Projections?
 
 Example: "Active users who have >5 friends" needs Status from FindUser (Pebble) + friend
-count from FriendsOf (Neo4j).
+count from FriendsOf (Dgraph).
 
 **Option A (recommended):** Declare a new query with a fold that combines both. This creates
 a third projection that maintains both status and friend count. No cross-engine read at query
@@ -1094,3 +1095,54 @@ for cutover.
 - Audits: [12:10 audit](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
   [T02 verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
+
+### Features beyond this document (coverage map)
+
+> Shipped capabilities the design text above does not describe. Verified 2026-09-13, one
+> `file:line` per feature. Not exhaustive — this is the delta a reader would otherwise miss.
+
+**Data layer and lifecycle**
+
+- Materialized views: `MaterializedViewSpec` (`materialized_view.go:24`), versioning
+  (`materialized_view_versions.go`), engine reporting (`materialized_view_doctor.go`).
+- Replication metadata and lag accounting (`replication.go:16,44,60`) with a per-engine
+  replicator (`replicator.go:61`); durability tiers validated per driver (`durability.go:50,79`).
+- Export/import of collections (`export_import.go:12,79`) — export does NOT use `StreamingScan`
+  today (§15 D2).
+- Hot/cold demotion with preflight and shadow replay (`demote.go:65,198,311`); planned-collection
+  backfill (`backfill.go:48`).
+- Batch atomicity: `Store.ApplyBatch` (`store.go:429`) plus the engine capability interface
+  `Transactional.RunInTx` (`transaction.go:15`).
+- Engine reset for replay-safe rebuilds (`reset.go:66`).
+
+**Query and read extras**
+
+- Vector search: `Embedding` folds, in-memory index (`vector_search.go:162`), binary embeddings
+  (`vector_binary.go`), execute path (`vector_search_execute.go`).
+- Spatial range: `Point` folds plus in-memory spatial index with haversine distance
+  (`spatial.go:56,99`).
+- Aggregations: `AggregateReader`/`GroupedAggregateReader` (`aggregations.go:20,65`), grouped
+  pushdown (`typed_reader_grouped.go:85,94`), aggregate reads (`typed_reader_aggregates.go`).
+- Cursors and keyset pagination (`cursor.go:30,45`, `sort_paginate.go`), unbounded scans
+  (`typed_reader_scan.go:10`).
+- Time travel on the memory engine: `MapGetAsOf`/`MapExistsAsOf` (`memory_versioned.go:66,93`).
+
+**Transport and streaming**
+
+- SSE serving of typed watchers (`sse.go:104`, `dx.go:65`) with replay-from-cursor
+  (`sse_replay.go:29,75`, `WithSSEReplayLimit`).
+- Trace replay tooling: `ReadTrace`/`ReplayTrace` plus store sink
+  (`trace_player.go:39,78,102`).
+
+**Operations and plan control**
+
+- Live latency: `ProbeEngine` background probing (`probe.go:222`), `LatencyTracker`
+  (`latency.go:97`), calibration precedence, hysteresis/min-delta routing options.
+- Health-driven quarantine and catch-up recovery (`engine_health.go`, `failover.go:60`,
+  `catchup_state.go`).
+- Priority overrides (`priority.go:173`), plan audit history (`plan_audit.go:49,57`), plan diff
+  (`plan_diff.go:47`), EXPLAIN/Doctor diagnostics (`explain.go:283`, `inspect.go:12,36`).
+- Capability auditing per engine (`capability_audit.go:74,188`), per-query fold locks
+  (`fold_locks.go:17`), consistency event log for tests (`consistency.go:17`).
+- Projection roles Active/DualUse/Migration/Backup (`roles.go:11-21`) with shadow routing
+  semantics.
