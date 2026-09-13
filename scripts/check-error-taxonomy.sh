@@ -28,6 +28,7 @@ GATED_MODULES=(
 	"storage/relational|storage/relational|relational."
 	"projectionhost|projectionhost|projectionhost."
 	"transport/grpc|transport/grpc|grpc."
+	"claiming|claiming|claiming."
 )
 
 status=0

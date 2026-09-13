@@ -31,6 +31,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `build/shuffle-seeds.log`); wired into ephemeral-dgraph/pg/redis and
   vm-mysql/vm-mysql-nspawn (11 go-test sites, one seed per module).
 
+### Added — `claiming/`: dialect-correct lease-claim SQL core (durable-queue P0) — 2026-09-13
+
+- **New `claiming` module** — the lease-based row-claiming SQL core
+  extracted from `scheduling/sqlstore` (queue-plan P0): a consuming store
+  names its table shape as a `claiming.Spec` and the package builds the
+  dialect-correct statements — `claiming.PostgresClaimStmt` (CTE `FOR
+  UPDATE SKIP LOCKED` + `UPDATE..RETURNING`), `claiming.SQLiteClaimStmt`
+  (single-writer `UPDATE..RETURNING`),
+  `claiming.MySQLClaimSelect`+`claiming.StampLeaseMySQL` (two-statement
+  claim for MySQL/MariaDB 10.6+), `claiming.RenewStmt`, and
+  `claiming.EnsureLeaseColumn` (idempotent lease-column migration). The
+  lease predicate re-opens rows whose claim expired (`claiming.DefaultLease`
+  bounds crash delay); renewal after expiry fails `claiming.ErrLeaseNotHeld`
+  (Orchestration). The package owns no store — timers consume it today, the
+  planned `queue/` module next.
+- **`scheduling/sqlstore` now delegates its claim SQL to `claiming`** —
+  statement output is byte-identical (pinned by
+  `claiming`'s byte-exact suite + the timer store's behavioral suite:
+  fencing, expiry reclaim, renewal). `scheduling/sqlstore.Dialect` and
+  `DefaultClaimLease` are now aliases of the `claiming` definitions, so the
+  published values hold by construction instead of by
+  values-MUST-match duplication. Public API, `ClaimMetrics`, and error
+  identity (`ErrClaimingUnsupported`, `ErrLeaseNotHeld`) are unchanged.
+
 ### Added — docs: encoded-apply recipe, v6 deletion-wave markers, provenance + index debt — 2026-09-13
 
 - **recipes.md gains the `projection.Projection` adapter recipe for the

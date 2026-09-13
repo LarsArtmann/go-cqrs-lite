@@ -69,8 +69,9 @@ errorfamily.Classify(err) // => Conflict
 
 ## Error Families by Module
 
-> The `middleware`, `graph`, `storage/relational`, `projectionhost`, and
-> `transport/grpc` sections are mechanically drift-gated: every code below is
+> The `middleware`, `graph`, `storage/relational`, `projectionhost`,
+> `transport/grpc`, and `claiming` sections are mechanically drift-gated:
+> every code below is
 > extracted from the module's `errorfamily.*` call sites by
 > `scripts/check-error-taxonomy.sh` (CI + `nix run .#verify`) and diffed
 > against this document in both directions — a code missing here, a stale
@@ -218,6 +219,16 @@ Transport wraps are **Infrastructure**; decoding a corrupt wire payload is
 | Unmarshal/marshal result | Corruption     | `grpc.unmarshal_result`, `grpc.query.marshal_result`, `grpc.event_client.decode`, `grpc.event_client.reconstruct` |
 | Missing command ID       | Rejection      | `grpc.missing_command_id`, `grpc.dispatch_missing_id`                                                             |
 | Command/stream ID parse  | Rejection      | `grpc.command.create`, `grpc.command.parse_stream_id`, `grpc.event_client.parse_stream_id`                        |
+
+### claiming
+
+Lease-stamp failure is **Infrastructure**; losing a claim race is
+**Orchestration** — a distributed-coordination race, not a caller bug.
+
+| Error               | Family         | Code                    |
+| ------------------- | -------------- | ----------------------- |
+| Lease stamp failure | Infrastructure | `claiming.stamp_lease`  |
+| `ErrLeaseNotHeld`   | Orchestration  | `claiming.lease_not_held` |
 
 ### deriver
 

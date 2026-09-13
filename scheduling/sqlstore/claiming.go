@@ -218,7 +218,7 @@ func (c *ClaimingTimerStore[P]) claimStmt(now, leaseUntil time.Time) (string, []
 
 	// SQLite: single writer, so a plain UPDATE..RETURNING inside the
 	// transaction is already atomic across claimers.
-	return claiming.SQLiteClaimStmt(timersSpec(), c.formatTime(leaseUntil), c.formatTime(now))
+	return claiming.SQLiteClaimStmt(timersSpec(), c.formatTime(now), c.formatTime(leaseUntil))
 }
 
 func (c *ClaimingTimerStore[P]) scanClaimed(
