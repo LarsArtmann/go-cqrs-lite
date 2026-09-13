@@ -3,7 +3,6 @@ package metaengine
 import (
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"runtime"
 	"strings"
@@ -90,7 +89,7 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	// of them serialize the storm on stderr syscalls and turn the race
 	// window into a slog benchmark. Discard logs for the duration.
 	prevLogger := slog.Default()
-	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
+	slog.SetDefault(slog.New(slog.DiscardHandler))
 	t.Cleanup(func() { slog.SetDefault(prevLogger) })
 
 	const (

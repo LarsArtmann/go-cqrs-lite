@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json/v2"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -103,5 +102,5 @@ func TestReadmeQuickStart(t *testing.T) {
 	if len(events) != 1 {
 		t.Fatalf("want 1 event, got %d", len(events))
 	}
-	fmt.Printf("created task with %d event(s)\n", len(events))
+	t.Logf("created task with %d event(s)", len(events))
 }
