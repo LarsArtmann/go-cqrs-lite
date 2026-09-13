@@ -123,11 +123,14 @@ func stampCommandCausation(events []event.Event, cmdType string, cmdID id.Comman
 // backward-compat custom keys. The command.type key is only added when a
 // type is known — an empty custom entry is noise, not information.
 func causationOptions(cmdType string, cmdID id.CommandID) []event.Option {
-	opts := make([]event.Option, 0, 3)
+	const maxCausationOpts = 3
+
+	opts := make([]event.Option, 0, maxCausationOpts)
 	opts = append(opts,
 		event.WithCausation(cmdType, cmdID),
 		event.WithCustom(event.MetadataKeyCommandID, cmdID.String()),
 	)
+
 	if cmdType != "" {
 		opts = append(opts, event.WithCustom(event.MetadataKeyCommandType, cmdType))
 	}

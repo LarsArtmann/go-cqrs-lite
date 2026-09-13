@@ -97,7 +97,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 		Expect(evts).To(HaveLen(2))
 		for _, evt := range evts {
 			rec := event.AsRecord(evt)
-			Expect(string(rec.MetaData.CausationID)).To(Equal(cmd.ID().String()))
+			Expect(rec.MetaData.CausationID).To(Equal(cmd.ID().String()))
 			Expect(rec.MetaData.Cause.Kind).To(Equal(record.CauseCommand))
 			Expect(rec.MetaData.Cause.ID).To(Equal(cmd.ID().String()))
 
