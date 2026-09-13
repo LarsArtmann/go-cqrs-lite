@@ -57,6 +57,7 @@ var modules = []string{
 	"metaengine/duckdbengine",
 	"metaengine/pgengine",
 	"metaengine/mysqlengine",
+	"metaengine/otelobserver",
 	"metaengine/irohengine",
 	"metaengine/irohengine/loopback",
 	"metaengine/irohengine/quic",

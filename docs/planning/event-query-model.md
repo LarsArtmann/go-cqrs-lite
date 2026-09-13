@@ -50,6 +50,9 @@
 
 ## 1. The Graph-At-Three-Levels
 
+> **Scope note (2026-09-13) — PHILOSOPHY.** This section is the project's north star; it makes
+> no API claims and needs no reconciliation. The three levels remain conceptually accurate.
+
 Data is a graph. It exists at three levels, plus the dimension of time.
 
 ```
@@ -91,6 +94,10 @@ re-sliced at any time.
 ---
 
 ## 2. The Three Messages: Command, Event, Query
+
+> **Scope note (2026-09-13) — PHILOSOPHY / DONE.** Messaging model; no API examples. The
+> decider/query-fold symmetry is the shipped architecture (shared `record.Record` base,
+> ADR-0111).
 
 Three temporal roles, one graph:
 
@@ -159,6 +166,10 @@ to use — same principle as all other folds.
 ---
 
 ## 3. Why Event + Query Is Sufficient
+
+> **Scope note (2026-09-13) — DONE (model).** The derivation claims are verified in §5, §6,
+> and §11; "nothing else is needed" is v1 scope, not a prohibition (typed accessors and
+> latency budgets exist as optional extras).
 
 ### The Claim
 
@@ -545,6 +556,9 @@ with filter/access patterns on metadata fields.** No special machinery.
 
 ## 9. Auth Is Upstream's Concern
 
+> **Scope note (2026-09-13) — PHILOSOPHY.** No auth surface exists in the meta-engine;
+> unchanged design intent.
+
 Auth is not the meta-engine's problem. The meta-engine stores identity projections like any
 other data — it doesn't know or care that a field is an auth scope. Authentication (who are
 you?), command authorization (can you do this?), and enforcement (RBAC/ABAC) all live upstream
@@ -722,37 +736,37 @@ Step 2: Classify each query's read pattern
 
 Step 3: Assign each query to the cheapest engine
   FindUser → Pebble (O(1) hash) [or SQLite O(logN) if Pebble not available]
-  CheckEmail → Bloom filter at scale, hash set if small
+  CheckEmail → set projection; Pebble-internal bloom policy at scale
   CountByStatus → SQLite rollup table (O(1))
   ListByStatus → SQLite table + composite index (tenant, status, joined_at)
-  FriendsOf → Neo4j if available, else SQLite CTE (degraded)
+  FriendsOf → Dgraph if available, else SQLite CTE (degraded)
 
 Step 4: Plan physical structures per engine
   Pebble: users_by_id keyspace (FindUser)
-  Bloom: emails set (CheckEmail) [if scale justifies]
+  Pebble: emails set (CheckEmail)
   SQLite: users table + idx_status + idx_joined (ListByStatus), user_status_counts rollup (CountByStatus)
-  Neo4j: User nodes + FRIENDS_WITH edges (FriendsOf)
+  Dgraph: User nodes + FRIENDS_WITH edges (FriendsOf)
 
 Step 5: Generate projection handlers (event → engine writes)
   UserCreated →
     Pebble.Set(userID, record)         [FindUser]
-    Bloom.Add(email)                   [CheckEmail]
+    Set.Add(email)                     [CheckEmail]
     SQLite.Upsert(users, record)       [ListByStatus]
     SQLite.Increment(status_counts, "active", +1)  [CountByStatus]
   (FriendsOf handler ignores UserCreated — only listens to Friendship events)
 
 Step 6: Generate typed read handlers
   FindUser(ctx, FindUser{ID}) → Pebble.Get(ID) → FindUserResult
-  CheckEmail(ctx, CheckEmail{Email}) → Bloom.Test(Email) → CheckEmailResult{Taken}
+  CheckEmail(ctx, CheckEmail{Email}) → Set.Test(Email) → CheckEmailResult{Taken}
   CountByStatus(ctx, CountByStatus{}) → SQLite.Scan(status_counts) → CountByStatusResult
   ListByStatus(ctx, ListByStatus{Status:"active"}) → SQLite.Query(...) → ListByStatusResult
-  FriendsOf(ctx, FriendsOf{ID, Depth}) → Neo4j.Traverse(ID, Depth) → FriendsOfResult
+  FriendsOf(ctx, FriendsOf{ID, Depth}) → Dgraph.Traverse(ID, Depth) → FriendsOfResult
 
 Step 7: Validate + warn
   - Every query has an assigned engine ✓
   - Check for degraded patterns (Graph on SQL CTE → warn)
   - Check write amplification (5 projections per UserCreated → warn if >3)
-  - Check memory constraints (Bloom filter size vs available RAM)
+  - Check memory constraints against available RAM
 
 OUTPUT:
   - Projection plan (which engine, which structure, which indexes)
@@ -761,9 +775,28 @@ OUTPUT:
   - Startup diagnostics (warnings, degradation, costs)
 ```
 
+> **2026-09-13 verification — DONE (all 7 steps have source counterparts).** Step 1 →
+> `fold_classify.go:10` (`classifyADT`) · Step 2 → `infer_filters.go`, `infer_sort.go`,
+> `infer_composite.go`, `infer_named.go` · Step 3 → `cost.go:70` (`estimateCost`) with
+> `rules.go:54` (`defaultRules`) · Step 4 → `layout.go:49` (`BuildLayoutPlan`), `:116` (`DDL()`) ·
+> Step 5 → `auto_fold.go` plus the applyFold pipeline (`store.go:573-922`) · Step 6 →
+> `typed_reader*.go`, `execute.go:681` (`ExecuteTyped`) · Step 7 → `rules.go`, `plan_audit.go`,
+> `explain.go:283` (`Doctor`). The derivation model shipped; only concrete engine/structure
+> names in the walkthrough were illustrative (corrected above: Dgraph, no Bloom ADT).
+
 ---
 
 ## 12. Concrete Examples
+
+> **2026-09-13 corrections.** (1) There is no YAML engine-config format in the shipped library —
+> engines are Go values composed with `metaengine.Plan([]metaengine.Engine{...})` or the
+> `PlanFromMemory` convenience; operators still pick engines at deployment, as designed.
+> (2) There is no Neo4j engine; the shipped graph engine is Dgraph
+> (`dgraphengine.New(addr)`) with a SQL recursive-CTE fallback (`graph_fallback.go:14,36`).
+> (3) Bloom filters are a Pebble-internal policy (10 bits/key), not a projection shape or ADT.
+> (4) Real engine roster: in-process memory plus badger, bbolt, dgraph, duckdb, iroh, mysql,
+> pebble, pg, sqlite, turso (each its own `metaengine/*engine` module). The YAML blocks below
+> are illustrative pseudo-config, kept for intent.
 
 ### Example 1: Single SQLite (Development)
 
@@ -772,6 +805,13 @@ engines:
   sqlite:
     driver: sqlite
     dsn: /data/app.db
+```
+
+The shipped form (Go composition):
+
+```go
+eng, _ := sqliteengine.NewSQLiteEngineFromDSN("/data/app.db")
+store, _ := metaengine.Plan([]metaengine.Engine{eng}, findUser, checkEmail, listByStatus, countByStatus, friendsOf)
 ```
 
 ```
@@ -784,10 +824,10 @@ Planner plan for all 5 queries:
   FriendsOf:      SQLite junction table + recursive CTE       O(N)    ⚠ DEGRADED
 
 ⚠ FriendsOf: using SQL recursive CTE for graph traversal. O(N) per query.
-  Add Neo4j or a graph engine for deep traversal at scale.
+  Add Dgraph (dgraphengine.New) or another graph engine for deep traversal at scale.
 ```
 
-### Example 2: SQLite + Pebble + Neo4j (Production)
+### Example 2: SQLite + Pebble + Dgraph (Production)
 
 ```yaml
 engines:
@@ -797,9 +837,9 @@ engines:
   pebble:
     driver: pebble
     dsn: /data/kv
-  neo4j:
-    driver: neo4j
-    dsn: bolt://graph:7687
+  dgraph:
+    driver: dgraph
+    dsn: dgraph:9080
 ```
 
 ```
@@ -809,7 +849,7 @@ Planner plan for all 5 queries:
   CheckEmail:     Pebble hash set emails                      O(1)    ✓ OPTIMAL
   ListByStatus:   SQLite table users + idx_status             O(logN) ✓ OPTIMAL
   CountByStatus:  SQLite rollup table status_counts           O(1)    ✓ OPTIMAL
-  FriendsOf:      Neo4j User nodes + FRIENDS_WITH edges       O(d)    ✓ OPTIMAL
+  FriendsOf:      Dgraph User nodes + FRIENDS_WITH edges      O(d)    ✓ OPTIMAL
 
 ALL queries at optimal complexity. Zero degradation.
 Three engines. Five projections. One event stream. Zero projection code by the developer.
@@ -820,6 +860,12 @@ Three engines. Five projections. One event stream. Zero projection code by the d
 ```yaml
 engines:
   memory: {}
+```
+
+The shipped form:
+
+```go
+store, _ := metaengine.PlanFromMemory(findUser, checkEmail, listByStatus, countByStatus, friendsOf)
 ```
 
 ```
@@ -883,6 +929,13 @@ remove engines WITHOUT restarting the application.
 9. ZERO DOWNTIME
 ```
 
+> **2026-09-13 status — PARTIAL.** The runtime APIs shipped: `AddEngine`/`RemoveEngine`
+> (`runtime_backend.go:55,113`), `SwapEngine` (`advanced.go:69`), `Replan` (`store.go:88`),
+> `ReplanLayout` (`relayout.go:64`), `CheckRouting` (`store_routing.go:59`), plus shadow roles
+> (`RoleMigration`/`RoleBackup`, `roles.go:11-21`) for cutover-by-role. Steps 5-8 as drawn
+> (background replay into a new projection, dual-read cutover, teardown) are NOT shipped as an
+> orchestrator; `CatchUpEngine` covers replay for quarantine recovery only (`failover.go:60`).
+
 ### What This Requires
 
 - The planner must be **re-plannable** (not one-shot at startup)
@@ -890,17 +943,24 @@ remove engines WITHOUT restarting the application.
 - The projection host must support **background replay** while serving live reads
 - The plan must be a **live runtime object**, not a startup artifact
 
+> **2026-09-13 scorecard:** re-plannable ✓ (`Store.Replan`), live plan object ✓ (`PlanAudit`
+> history, `SerializablePlan`), background replay ~ (engine catch-up only), live cutover ✗.
+
 ### Symmetric Removal
 
 ```
-1. Operator removes the Neo4j engine (cost savings)
+1. Operator removes the graph engine (cost savings)
 2. Planner re-plans FriendsOf: now served by SQLite recursive CTE (degraded)
 3. Planner creates new SQLite junction table projection for FriendsOf
 4. Background replay from event log
-5. When caught up: cutover to SQLite, disconnect Neo4j
-6. ⚠ WARNING: "FriendsOf now using SQL CTE (O(N)). Was O(d) on Neo4j.
+5. When caught up: cutover to SQLite, disconnect the graph engine
+6. ⚠ WARNING: "FriendsOf now using SQL CTE (O(N)). Was O(d) on the graph engine.
      Query latency will increase at scale. Consider re-adding a graph engine."
 ```
+
+> **2026-09-13 note:** same partial status as the flow above; the degraded-pattern warning
+> exists via rules (`rule_degraded_adt.go`) and re-plan diagnostics. "Neo4j" in the original
+> text was never a shipped engine — read "Dgraph or another graph engine".
 
 ---
 
@@ -923,6 +983,12 @@ accessor functions)
 reflection or codegen, and the `Field()` method returns a `metaengine.Field` type that carries
 the field name and type for the planner.
 
+> **2026-09-13 resolution — hybrid shipped, not Option B.** No `metaengine.Field` type and no
+> codegen. `FilterOn`/`SortOn` closures filter and sort at read time by TYPE-matching the query
+> input (`query.go:142-150`); the declarative pair `FilterOnField`/`SortOnField`
+> (`query.go:180,193`) carries explicit field names for pushdown; index inference reads the
+> query-input field names and prefixes (`infer_filters.go`, `infer_sort.go`).
+
 ### Decision 2: Streaming vs. Slicing for Large Results
 
 `ListByStatus` might return 1M users. The query input has `Limit` and `After` (cursor) for
@@ -934,6 +1000,12 @@ pagination. But what about bulk operations (export all, analytics scan)?
 - `Stream(ctx, input, fn func(output) error)` for unbounded results (full scans, exports)
 
 The planner generates both. Streaming uses Go iterators (`iter.Seq2[Output, error]`).
+
+> **2026-09-13 status — GHOST CAPABILITY, decision open.** The `Execute` half shipped as
+> `ExecuteTyped` (`execute.go:681`). A streaming engine capability shipped too — `StreamingScan`
+> (`engine.go:369-384`), implemented by sqlite, pebble, bbolt, and badger — but it has ZERO
+> production callers: `Store.Export` (`export_import.go:12`) does not use it. The proposed
+> query-level `Stream(ctx, input, fn)` half was never built. Wire-or-cut decision: T16 memo.
 
 ### Decision 3: What About Queries That Need Data From Multiple Projections?
 
@@ -948,6 +1020,11 @@ time. Write amplification: this projection listens to both UserCreated AND Frien
 Correct but potentially slow. If engines are local, this is fine. If remote, the planner
 warns and suggests Option A.
 
+> **2026-09-13 status — NOT SHIPPED.** Reads are single-collection; grouped/aggregate reads
+> exist (`typed_reader_grouped.go`, `typed_reader_aggregates.go`) but no cross-projection
+> fan-out. Option A remains the design direction if multi-projection queries are pursued;
+> no decision has been made.
+
 ### Decision 4: How Does Hot-Reload Track Replay Progress?
 
 During background replay (hot-reload step 5), the system needs to track: "how many events
@@ -957,6 +1034,12 @@ have been replayed into the new Pebble projection?"
 the existing `projectionhost` checkpoint store. The planner reads the checkpoint to determine
 catch-up progress. When checkpoint == event log tail, the projection is "caught up" and ready
 for cutover.
+
+> **2026-09-13 status — PARTIAL (different mechanism).** Replay progress is tracked for
+> quarantine catch-up: `CatchUpState.Replayed`/`CompletedAt` (`catchup_state.go:11-29`), driven
+> by `CatchUpEngine` (`failover.go:60`), surfaced in `EngineStats` and the Doctor report.
+> projectionhost separately maintains subscriber checkpoints. Checkpoint-driven CUTOVER
+> orchestration does not exist.
 
 ---
 

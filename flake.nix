@@ -238,6 +238,7 @@
             "metaengine/duckdbengine"
             "metaengine/graphadapter"
             "metaengine/pebbleengine"
+            "metaengine/otelobserver"
             "metaengine/projectionadapter"
             "metaengine/sqliteengine"
             "metaengine/tursoengine"

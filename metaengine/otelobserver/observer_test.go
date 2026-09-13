@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"go.opentelemetry.io/otel/attribute"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
@@ -43,7 +44,13 @@ func (e *flaky) MapGet(
 	default:
 	}
 
-	return e.Engine.MapGet(ctx, collection, key)
+	mb, ok := e.Engine.(metaengine.MapBackend)
+	if !ok {
+		tErr := errorfamily.Newf(errorfamily.Infrastructure, "obs.3", "engine lacks MapBackend")
+		return nil, false, tErr
+	}
+
+	return mb.MapGet(ctx, collection, key)
 }
 
 func (e *flaky) Probe(context.Context) (time.Duration, error) {
@@ -64,6 +71,32 @@ func (e *flaky) ResetEngine(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// delegate wraps the engine's optional capability so the wrapper satisfies
+// metaengine's capability audits (they type-assert the outermost engine).
+func (e *flaky) delegate() (metaengine.MapBackend, bool) {
+	mb, ok := e.Engine.(metaengine.MapBackend)
+
+	return mb, ok
+}
+
+func (e *flaky) MapSet(ctx context.Context, collection string, key any, value any) error {
+	mb, ok := e.delegate()
+	if !ok {
+		return errorfamily.Newf(errorfamily.Infrastructure, "obs.4", "engine lacks MapBackend")
+	}
+
+	return mb.MapSet(ctx, collection, key, value)
+}
+
+func (e *flaky) MapDelete(ctx context.Context, collection string, key any) error {
+	mb, ok := e.delegate()
+	if !ok {
+		return errorfamily.Newf(errorfamily.Infrastructure, "obs.4", "engine lacks MapBackend")
+	}
+
+	return mb.MapDelete(ctx, collection, key)
 }
 
 type itemCreated struct {
@@ -135,7 +168,8 @@ func counterValue(t *testing.T, rm *metricdata.ResourceMetrics, name string, wan
 				matches := true
 
 				for k, v := range want {
-					if dp.Attributes.Value(k).Emit() != v {
+					got, ok := dp.Attributes.Value(attribute.Key(k))
+					if !ok || got.Emit() != v {
 						matches = false
 
 						break
@@ -152,6 +186,46 @@ func counterValue(t *testing.T, rm *metricdata.ResourceMetrics, name string, wan
 	}
 
 	t.Fatalf("metric %q not collected", name)
+
+	return 0
+}
+
+// counterValueOrZero is counterValue for polling loops: absent metrics
+// read as zero instead of failing the test.
+func counterValueOrZero(rm *metricdata.ResourceMetrics, name string, want map[string]string) int64 {
+	for _, sm := range rm.ScopeMetrics {
+		for _, m := range sm.Metrics {
+			if m.Name != name {
+				continue
+			}
+
+			data, ok := m.Data.(metricdata.Sum[int64])
+			if !ok {
+				continue
+			}
+
+			var total int64
+
+			for _, dp := range data.DataPoints {
+				matches := true
+
+				for k, v := range want {
+					got, ok := dp.Attributes.Value(attribute.Key(k))
+					if !ok || got.Emit() != v {
+						matches = false
+
+						break
+					}
+				}
+
+				if matches {
+					total += dp.Value
+				}
+			}
+
+			return total
+		}
+	}
 
 	return 0
 }
@@ -275,7 +349,7 @@ func TestObserver_ProbeOutcomesFromAutoReprobe(t *testing.T) {
 
 	for {
 		rm := collect(t, reader)
-		if got := counterValue(t, &rm, "cqrs.metaengine.probe.total",
+		if got := counterValueOrZero(&rm, "cqrs.metaengine.probe.total",
 			map[string]string{"engine": "primary", "outcome": "fail"}); got > 0 {
 			break
 		}

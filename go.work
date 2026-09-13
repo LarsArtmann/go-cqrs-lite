@@ -46,6 +46,7 @@ use (
 	./metaengine/mysqlengine
 	./metaengine/pebbleengine
 	./metaengine/pgengine
+	./metaengine/otelobserver
 	./metaengine/projectionadapter
 	./metaengine/sqliteengine
 	./metaengine/tursoengine
