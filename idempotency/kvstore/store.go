@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-idempotency"
-
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // KVBackend is the contract a KV store must satisfy to back an idempotency
@@ -126,7 +125,7 @@ func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duratio
 
 	// Key exists — check if it's expired.
 	existing, err := s.backend.Get(ctx, []byte(key))
-	if err != nil { //nolint:nestif // retry-on-race logic
+	if err != nil {
 		if errors.Is(err, kv.ErrNotFound) {
 			// Raced: another goroutine deleted it between SetIfAbsent and Get.
 			// Retry once.

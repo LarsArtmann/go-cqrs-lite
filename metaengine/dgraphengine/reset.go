@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/dgraph-io/dgo/v240/protos/api"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -132,7 +131,7 @@ func (e *dgraphEngine) dropEdgePredicates(ctx context.Context) error {
 		} `json:"schema"`
 	}
 
-	if err := json.Unmarshal(resp.Json, &parsed); err != nil {
+	if err := json.Unmarshal(resp.GetJson(), &parsed); err != nil {
 		return fmt.Errorf("decode schema response: %w", err)
 	}
 

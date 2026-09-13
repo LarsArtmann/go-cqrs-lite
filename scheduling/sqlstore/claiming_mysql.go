@@ -7,9 +7,8 @@ import (
 	"strings"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // claimDueMySQL is the MySQL/MariaDB claim path: one

@@ -5,15 +5,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
-
-	"github.com/samber/lo"
-
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 )
 
 // TestHost_OTelSpans_VerifyNamesAndAttributes verifies that the managed host

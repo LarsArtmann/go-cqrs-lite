@@ -5,9 +5,8 @@ import (
 	"strconv"
 	"sync"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 type upcasterRegistry struct {

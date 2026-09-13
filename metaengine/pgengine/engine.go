@@ -43,7 +43,6 @@ import (
 	"sync/atomic"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

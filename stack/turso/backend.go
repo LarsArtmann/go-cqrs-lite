@@ -5,11 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // openLocalBackend opens the database, configures the pool, applies the schema,

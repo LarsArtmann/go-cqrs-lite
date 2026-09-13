@@ -27,7 +27,6 @@ import (
 	"sync/atomic"
 
 	_ "github.com/go-sql-driver/mysql" // register the MySQL database/sql driver
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

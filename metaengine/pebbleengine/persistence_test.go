@@ -5,9 +5,8 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble"
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
+	. "github.com/onsi/gomega"
 )
 
 func TestPebblePersistence_InMemoryIsVolatile(t *testing.T) {

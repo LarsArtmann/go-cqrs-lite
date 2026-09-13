@@ -3,11 +3,10 @@ package bbolt
 import (
 	"context"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 )
 
 // ReadAll retrieves all events across all streams, ordered by OccurredAt.
