@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — command: persisted commands are now first-class records — 2026-09-13
+
+- **`command.AsRecordPersisted`** — the Record bridge for the PERSISTED
+  command form, mirroring `query.AsRecord`: it carries the payload, the full
+  stream identity (`StreamType` populated — the thin
+  `command.AsRecord(*BasicCommand)` bridge leaves it empty), and the
+  `ReceivedAt` receive stamps. This completes the Record adapter set across
+  all three entity types (event / command / query) and gives a future
+  ADR-0112 command-sourcing layer a concrete bridge to build on.
+- `command.AsRecord(*BasicCommand)` is unchanged but now carries a v5
+  deprecation note pointing at `AsRecordPersisted` (removal at v5, no
+  behavior change until then).
+
 ### Added — decider: command-aware execution with automatic causation stamping — 2026-09-13
 
 - **`decider.ExecuteCommandRef`** — the command-aware form of

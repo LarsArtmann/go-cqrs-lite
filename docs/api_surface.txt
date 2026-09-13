@@ -971,6 +971,7 @@ command/commandtest/interface StoreSuite
 command/commandtest/type StoreFactory
 command/commandtest/type StoreFactory
 command/func AsRecord
+command/func AsRecordPersisted
 command/func New
 command/func NewAggregateRef
 command/func NewDispatcher
