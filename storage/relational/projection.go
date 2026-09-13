@@ -180,19 +180,19 @@ func (p *RelationalProjection) Reset(ctx context.Context) error {
 }
 
 var (
-	errRelationalNoName = errorfamily.NewRejection(
+	errRelationalNoName error = errorfamily.NewRejection(
 		"relational.no_name",
 		"relational projection: name is required",
 	)
-	errRelationalNilDB = errorfamily.NewRejection(
+	errRelationalNilDB error = errorfamily.NewRejection(
 		"relational.nil_db",
 		"relational projection: db must not be nil",
 	)
-	errRelationalNilDialect = errorfamily.NewRejection(
+	errRelationalNilDialect error = errorfamily.NewRejection(
 		"relational.nil_dialect",
 		"relational projection: dialect must not be nil",
 	)
-	errRelationalNilHandler = errorfamily.NewRejection(
+	errRelationalNilHandler error = errorfamily.NewRejection(
 		"relational.nil_handler",
 		"relational projection: handler must not be nil",
 	)
