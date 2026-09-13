@@ -189,6 +189,7 @@
             "record"
             "scenario"
             "scheduling"
+            "claiming"
             "scheduling/sqlstore"
             "storage/memory"
             "storage/pebble"

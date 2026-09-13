@@ -4,6 +4,7 @@ use (
 	.
 	./benchkit
 	./catalog
+	./claiming
 	./cmd/api-stability
 	./cmd/cqrs-bench
 	./cmd/cqrs-gen

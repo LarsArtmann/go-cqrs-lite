@@ -29,6 +29,9 @@ LAYER[decider]=3
 LAYER[graph]=3
 LAYER[scenario]=3
 LAYER[projectionhost]=3
+# claiming: dialect-correct claim-SQL core (no store) consumed by
+# scheduling/sqlstore (L5) and the planned queue module.
+LAYER[claiming]=4
 LAYER[signing]=4
 LAYER[encryption]=4
 LAYER[otel]=4
@@ -205,6 +208,9 @@ DEP_BUDGET[decider]=10
 DEP_BUDGET[graph]=3
 DEP_BUDGET[scenario]=3
 DEP_BUDGET[projectionhost]=9
+# claiming: 1 = go-error-family only (the modernc.org/sqlite require is
+# test-only, round-trip claim test).
+DEP_BUDGET[claiming]=1
 DEP_BUDGET[signing]=5
 DEP_BUDGET[encryption]=5
 DEP_BUDGET[otel]=7

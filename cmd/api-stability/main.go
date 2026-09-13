@@ -68,6 +68,7 @@ var modules = []string{
 	"metaengine/bboltengine",
 	"metaengine/dgraphengine",
 	// Layer 4
+	"claiming",
 	"storage/memory",
 	"signing",
 	"encryption",

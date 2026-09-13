@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -158,7 +159,7 @@ func TestSpecKnobs(t *testing.T) {
 		"UPDATE tasks t SET lease_until = $2",
 		"RETURNING t.id, t.payload",
 	} {
-		if !contains(pg, want) {
+		if !strings.Contains(pg, want) {
 			t.Errorf("Postgres stmt missing %q:\n%s", want, pg)
 		}
 	}
@@ -174,35 +175,20 @@ func TestSpecKnobs(t *testing.T) {
 		"AND (status = 'pending')",
 		"RETURNING id, payload",
 	} {
-		if !contains(lite, want) {
+		if !strings.Contains(lite, want) {
 			t.Errorf("SQLite stmt missing %q:\n%s", want, lite)
 		}
 	}
 
-	if contains(lite, "ORDER BY") {
+	if strings.Contains(lite, "ORDER BY") {
 		t.Errorf("SQLite stmt must not order (UPDATE..RETURNING cannot):\n%s", lite)
 	}
 
 	my, _ := claiming.MySQLClaimSelect(s, "now")
 
-	if !contains(my, "ORDER BY priority DESC, next_visible_at ASC") {
+	if !strings.Contains(my, "ORDER BY priority DESC, next_visible_at ASC") {
 		t.Errorf("MySQL select missing custom order:\n%s", my)
 	}
-}
-
-func contains(haystack, needle string) bool {
-	return len(haystack) >= len(needle) && (haystack == needle ||
-		len(needle) == 0 || indexOf(haystack, needle) >= 0)
-}
-
-func indexOf(haystack, needle string) int {
-	for i := 0; i+len(needle) <= len(haystack); i++ {
-		if haystack[i:i+len(needle)] == needle {
-			return i
-		}
-	}
-
-	return -1
 }
 
 // TestSQLiteClaimRoundTrip proves the claim semantics end-to-end on a real
@@ -303,8 +289,10 @@ id TEXT PRIMARY KEY, fire_at TEXT NOT NULL, payload BLOB NOT NULL)`); err != nil
 		t.Fatalf("first claim: got %v, want [due]", got)
 	}
 
-	// The fresh lease fences: a second claim inside the window sees nothing.
-	if got := claim(past.Add(2*time.Minute), past.Add(3*time.Minute)); len(got) != 0 {
+	// The fresh lease fences: a second claim strictly inside the window sees
+	// nothing. (A claim AT the expiry instant re-opens the row: the predicate
+	// is lease_until <= now, so equality means expired.)
+	if got := claim(past.Add(90*time.Second), past.Add(3*time.Minute)); len(got) != 0 {
 		t.Fatalf("second claim inside lease: got %v, want none", got)
 	}
 
@@ -313,9 +301,10 @@ id TEXT PRIMARY KEY, fire_at TEXT NOT NULL, payload BLOB NOT NULL)`); err != nil
 		t.Fatalf("claim after lease expiry: got %v, want [due]", got)
 	}
 
-	// The future row never became claimable.
-	if got := claim(past.Add(time.Hour), past.Add(time.Hour+time.Minute)); len(got) != 1 {
-		t.Fatalf("future row must stay unclaimable: got %v", got)
+	// Neither row is claimable now: the fresh lease from the reclaim above
+	// fences "due", and "future" never became due.
+	if got := claim(past.Add(time.Hour), past.Add(time.Hour+time.Minute)); len(got) != 0 {
+		t.Fatalf("leased and future rows must stay unclaimable: got %v, want none", got)
 	}
 }
 
