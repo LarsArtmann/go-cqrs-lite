@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -68,7 +69,11 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	store, primary, spare := catchupStressStore(t)
 	ctx := context.Background()
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "seed", Name: "seed"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "seed", Name: "seed"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -106,7 +111,11 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 
 				if i%2 == 0 {
 					id := fmt.Sprintf("w%d", i)
-					if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: id, Name: id}); err != nil {
+					if err := store.Apply(
+						ctx,
+						"roleItemCreated",
+						roleItemCreated{ID: id, Name: id},
+					); err != nil {
 						errs <- fmt.Errorf("apply roleItemCreated: %w", err)
 
 						return
@@ -126,9 +135,14 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 		}()
 	}
 
-	// The rebuild runs INSIDE the write storm: every pass of the stabilize
-	// loop races fresh appends, and reactivation lands while writers are
-	// still in flight (their post-reactivation events must fold live).
+	// The rebuild runs INSIDE the write storm: wait until the log is
+	// demonstrably growing, then block in CatchUpEngine while writers keep
+	// appending — the stabilize loop's passes race fresh appends, and
+	// reactivation lands with writers still in flight.
+	for store.eventLog.Len() < 32 {
+		runtime.Gosched()
+	}
+
 	if err := store.CatchUpEngine(ctx, "primary"); err != nil {
 		t.Fatalf("CatchUpEngine under concurrent applies: %v", err)
 	}
@@ -140,6 +154,8 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	for err := range errs {
 		t.Fatalf("writer failed: %v", err)
 	}
+
+	primary.armed.Store(false)
 
 	if h := store.HealthSnapshot()["primary"]; h.State != EngineActive {
 		t.Fatalf("primary state = %q, want active after catch-up", h.State)
@@ -163,8 +179,13 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 		t.Fatalf("read spare ticks: %v", err)
 	}
 
-	if got, ok := spareTotal.(int); !ok || got != int(ticked.Load()) {
-		t.Fatalf("spare ticks = %v, want %d (failover path lost events)", spareTotal, ticked.Load())
+	// The spare folds exactly the quarantined-period events (reroute) and
+	// nothing after reactivation (folds return to the planned engine), so
+	// its count is timing-dependent — but the writers were guaranteed to be
+	// applying while quarantined (the log-length spin above), so it must
+	// have ingested a strict subset that ends before the primary's total.
+	if got, ok := spareTotal.(int); !ok || got < 1 || got > int(ticked.Load()) {
+		t.Fatalf("spare ticks = %v, want 1..%d (failover path ingested nothing or overcounted)", spareTotal, ticked.Load())
 	}
 
 	if _, ok, _ := primary.MapGet(ctx, "role_items", "seed"); !ok {

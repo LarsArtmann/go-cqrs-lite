@@ -37,40 +37,39 @@ func ensurePostgresLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
 }
 
 func ensureSQLiteLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
-	var count int
-
-	err := db.QueryRowContext(ctx,
+	return addLeaseColumnIfMissing(ctx, db,
 		"SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?",
-		s.Table, s.LeaseColumn,
-	).Scan(&count)
-	if err != nil {
-		return fmt.Errorf("claiming: probe lease column: %w", err)
-	}
-
-	if count > 0 {
-		return nil
-	}
-
-	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN " + s.LeaseColumn + " TEXT" //nolint:gosec // identifiers are store-author constants
-
-	if _, err := db.ExecContext(ctx, stmt); err != nil {
-		return fmt.Errorf("claiming: add lease column: %w", err)
-	}
-
-	return nil
+		[]any{s.Table, s.LeaseColumn},
+		"ALTER TABLE "+s.Table+" ADD COLUMN "+s.LeaseColumn+" TEXT", //nolint:gosec // identifiers are store-author constants
+	)
 }
 
 // ensureMySQLLeaseColumn adds the lease column when missing. MySQL servers
 // have no ADD COLUMN IF NOT EXISTS, so the column is probed via
 // information_schema first (works on both MySQL and MariaDB).
 func ensureMySQLLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
-	var count int
-
-	err := db.QueryRowContext(ctx, `
+	return addLeaseColumnIfMissing(ctx, db, `
 SELECT COUNT(*) FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
-		s.Table, s.LeaseColumn,
-	).Scan(&count)
+		[]any{s.Table, s.LeaseColumn},
+		"ALTER TABLE "+s.Table+" ADD COLUMN "+s.LeaseColumn+" DATETIME(3) NULL", //nolint:gosec // identifiers are store-author constants
+	)
+}
+
+// addLeaseColumnIfMissing is the shared probe-then-ALTER shape behind the
+// SQLite and MySQL migrations (neither has ADD COLUMN IF NOT EXISTS): the
+// probe counts an existing column, and the ALTER runs only when it is
+// missing.
+func addLeaseColumnIfMissing(
+	ctx context.Context,
+	db *sql.DB,
+	probe string,
+	probeArgs []any,
+	alter string,
+) error {
+	var count int
+
+	err := db.QueryRowContext(ctx, probe, probeArgs...).Scan(&count)
 	if err != nil {
 		return fmt.Errorf("claiming: probe lease column: %w", err)
 	}
@@ -79,9 +78,7 @@ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
 		return nil
 	}
 
-	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN " + s.LeaseColumn + " DATETIME(3) NULL" //nolint:gosec // identifiers are store-author constants
-
-	if _, err := db.ExecContext(ctx, stmt); err != nil {
+	if _, err := db.ExecContext(ctx, alter); err != nil {
 		return fmt.Errorf("claiming: add lease column: %w", err)
 	}
 

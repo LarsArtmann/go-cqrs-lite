@@ -251,7 +251,11 @@ id TEXT PRIMARY KEY, fire_at TEXT NOT NULL, payload BLOB NOT NULL)`); err != nil
 
 		defer func() { _ = tx.Rollback() }()
 
-		query, args := claiming.SQLiteClaimStmt(spec, now.Format(time.RFC3339Nano), until.Format(time.RFC3339Nano))
+		query, args := claiming.SQLiteClaimStmt(
+			spec,
+			now.Format(time.RFC3339Nano),
+			until.Format(time.RFC3339Nano),
+		)
 
 		rows, err := tx.QueryContext(ctx, query, args...)
 		if err != nil {
@@ -285,7 +289,11 @@ id TEXT PRIMARY KEY, fire_at TEXT NOT NULL, payload BLOB NOT NULL)`); err != nil
 		return ids
 	}
 
-	if got := claim(past.Add(time.Minute), past.Add(2*time.Minute)); len(got) != 1 || got[0] != "due" {
+	if got := claim(
+		past.Add(time.Minute),
+		past.Add(2*time.Minute),
+	); len(got) != 1 ||
+		got[0] != "due" {
 		t.Fatalf("first claim: got %v, want [due]", got)
 	}
 
@@ -297,7 +305,11 @@ id TEXT PRIMARY KEY, fire_at TEXT NOT NULL, payload BLOB NOT NULL)`); err != nil
 	}
 
 	// After the lease expires the row re-opens (crash reclaim).
-	if got := claim(past.Add(time.Hour), past.Add(time.Hour+time.Minute)); len(got) != 1 || got[0] != "due" {
+	if got := claim(
+		past.Add(time.Hour),
+		past.Add(time.Hour+time.Minute),
+	); len(got) != 1 ||
+		got[0] != "due" {
 		t.Fatalf("claim after lease expiry: got %v, want [due]", got)
 	}
 

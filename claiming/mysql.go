@@ -30,7 +30,10 @@ func StampLeaseMySQL(ctx context.Context, tx *sql.Tx, s Spec, leaseUntil any, id
 
 	// Concatenation builds ONLY "?" placeholders; ids are bound args.
 	query := "UPDATE " + s.Table + " SET " + s.LeaseColumn + " = ? WHERE " + s.IDColumn + //nolint:gosec // placeholders only, ids bound
-		" IN (" + strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",") + ")"
+		" IN (" + strings.TrimSuffix(
+		strings.Repeat("?,", len(ids)),
+		",",
+	) + ")"
 
 	if _, err := tx.ExecContext(ctx, query, args...); err != nil {
 		return errorfamily.WrapInfrastructure(

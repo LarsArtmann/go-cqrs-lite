@@ -56,7 +56,13 @@ func claimDueMySQL[P any](
 			ids[i] = timer.ID.String()
 		}
 
-		if err := claiming.StampLeaseMySQL(ctx, tx, timersSpec(), c.formatTime(leaseUntil), ids); err != nil {
+		if err := claiming.StampLeaseMySQL(
+			ctx,
+			tx,
+			timersSpec(),
+			c.formatTime(leaseUntil),
+			ids,
+		); err != nil {
 			return nil, err
 		}
 	}

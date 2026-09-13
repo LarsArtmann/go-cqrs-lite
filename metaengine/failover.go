@@ -135,7 +135,10 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
 
 		if !grew {
 			if !reactivated {
-				return fmt.Errorf("metaengine.CatchUpEngine(%s): quarantine lifted during catch-up", name)
+				return fmt.Errorf(
+					"metaengine.CatchUpEngine(%s): quarantine lifted during catch-up",
+					name,
+				)
 			}
 
 			break

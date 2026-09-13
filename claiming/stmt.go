@@ -12,8 +12,12 @@ package claiming
 func PostgresClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 	due := "SELECT " + s.IDColumn + " FROM " + s.Table + //nolint:gosec // identifiers are store-author constants, values bind
 		"\nWHERE " + s.DueColumn + " <= $1 AND (" + s.LeaseColumn +
-		" IS NULL OR " + s.LeaseColumn + " <= $1)" + andSuffix(s) +
-		"\nORDER BY " + orderExpr(s) +
+		" IS NULL OR " + s.LeaseColumn + " <= $1)" + andSuffix(
+		s,
+	) +
+		"\nORDER BY " + orderExpr(
+		s,
+	) +
 		"\nFOR UPDATE SKIP LOCKED"
 
 	query := "WITH due AS (\n" + due + "\n)\n" +
@@ -35,8 +39,12 @@ func PostgresClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 func SQLiteClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 	query := "UPDATE " + s.Table + " SET " + s.LeaseColumn + " = ?1" + //nolint:gosec // identifiers are store-author constants, values bind
 		"\nWHERE " + s.DueColumn + " <= ?2 AND (" + s.LeaseColumn +
-		" IS NULL OR " + s.LeaseColumn + " <= ?2)" + andSuffix(s) +
-		"\nRETURNING " + columns(s.Returning)
+		" IS NULL OR " + s.LeaseColumn + " <= ?2)" + andSuffix(
+		s,
+	) +
+		"\nRETURNING " + columns(
+		s.Returning,
+	)
 
 	return query, []any{leaseUntil, now}
 }
@@ -51,10 +59,16 @@ func SQLiteClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 // SKIP LOCKED requires MySQL 8.0+ or MariaDB 10.6+; older servers fail
 // this query loudly at the first claim — never silently.
 func MySQLClaimSelect(s Spec, now any) (string, []any) {
-	query := "SELECT " + columns(s.Returning) + " FROM " + s.Table + //nolint:gosec // identifiers are store-author constants, values bind
+	query := "SELECT " + columns(
+		s.Returning,
+	) + " FROM " + s.Table + //nolint:gosec // identifiers are store-author constants, values bind
 		"\nWHERE " + s.DueColumn + " <= ? AND (" + s.LeaseColumn +
-		" IS NULL OR " + s.LeaseColumn + " <= ?)" + andSuffix(s) +
-		"\nORDER BY " + orderExpr(s) +
+		" IS NULL OR " + s.LeaseColumn + " <= ?)" + andSuffix(
+		s,
+	) +
+		"\nORDER BY " + orderExpr(
+		s,
+	) +
 		"\nFOR UPDATE SKIP LOCKED"
 
 	return query, []any{now, now}
