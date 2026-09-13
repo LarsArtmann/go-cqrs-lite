@@ -8,7 +8,7 @@
 
 ## Session premise — and the first surprise
 
-The handoff described `claiming/` as *untracked work-in-progress*. Reality at session start: **the module had been deleted from the working tree** — auto-committed at 08:52 (`cbd011503`), then deleted and auto-committed again at 08:55 (`d9045b976`), with no documented rationale anywhere. No branch contained a newer version; the only version ever to exist was the buggy WIP. Since the tree was clean (recovery = purely additive), TODO_LIST and the queue planning doc still actively called for exactly this work, and the user's instruction was explicit, I recovered all 7 files from `cbd011503` and completed them.
+The handoff described `claiming/` as _untracked work-in-progress_. Reality at session start: **the module had been deleted from the working tree** — auto-committed at 08:52 (`cbd011503`), then deleted and auto-committed again at 08:55 (`d9045b976`), with no documented rationale anywhere. No branch contained a newer version; the only version ever to exist was the buggy WIP. Since the tree was clean (recovery = purely additive), TODO_LIST and the queue planning doc still actively called for exactly this work, and the user's instruction was explicit, I recovered all 7 files from `cbd011503` and completed them.
 
 **Lesson:** handoffs on this repo age in minutes. Re-verify the premise before anything else. (I did — this was the session's most important decision.)
 
@@ -49,11 +49,11 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 
 ## b) PARTIALLY DONE
 
-1. **Composed `verify-fast`: never witnessed a full green run.** Every phase covering my work passed, but the run as a whole died three times on the *parallel session's* live churn (system reset/replay flake under load; then `event/errors.go` mid-edit syntax error; finally `metaengine/catchup_state.go` referencing a not-yet-existing `s.checkUps` field at the vet phase). Needs one clean re-run once metaengine quiesces.
+1. **Composed `verify-fast`: never witnessed a full green run.** Every phase covering my work passed, but the run as a whole died three times on the _parallel session's_ live churn (system reset/replay flake under load; then `event/errors.go` mid-edit syntax error; finally `metaengine/catchup_state.go` referencing a not-yet-existing `s.checkUps` field at the vet phase). Needs one clean re-run once metaengine quiesces.
 2. **Repo-wide `#lint`: red, and not by me.** gci was re-added to `.golangci.yml` formatters (by the parallel session, config churn visible in git log) and disagrees with treefmt's 3-group import layout **repo-wide** — 433 findings including files untouched for weeks. My files match the treefmt convention (`nix fmt` gate enforces it); the two formatters are irreconcilable at file level until the config gains gci `custom-sections` with the local prefix (or gci is removed again).
 3. **MySQL claim delegation: byte-pinned, not live-verified.** Statement bytes are pinned by claiming's byte-exact tests and the wiring is compile-checked, but no live MariaDB run this session (`#integration-mysql-vm` not executed — heavy, needs QEMU).
 4. **PG claim delegation: unit-verified only.** The pgtestcontainer suite in sqlstore didn't spin containers in my runs (suite finished in ~3–5 s); the PG statement is proven byte-identical, not live-executed.
-5. **api-stability golden after final code shape: reasoned, not re-proven.** The post-lint refactors (RenewStmt switch↔if-chain↔switch, migrate.go extraction) changed no exported symbols, so the golden should be byte-stable — but I did not re-run `--update` after the last edits to *prove* the empty diff.
+5. **api-stability golden after final code shape: reasoned, not re-proven.** The post-lint refactors (RenewStmt switch↔if-chain↔switch, migrate.go extraction) changed no exported symbols, so the golden should be byte-stable — but I did not re-run `--update` after the last edits to _prove_ the empty diff.
 6. **`go test -race` on claiming/sqlstore: not run** (part of full `#verify`, which the parallel churn kept killing).
 
 ---
@@ -72,14 +72,14 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 
 ## d) TOTALLY FUCKED UP (honest)
 
-1. **I shipped a real double-fire bug for ~90 seconds.** When delegating, I passed `(leaseUntil, now)` to `SQLiteClaimStmt(s, now, leaseUntil)` — mirroring the *old internal arg-slice order* instead of reading the new builder's signature. The builder reorders internally for `?1/?2`, so the lease got stamped with `now` (instantly expired) → rows immediately re-claimable → double-processing. sqlstore's behavioral tests caught it on the first run ("second claimer got 2 timers while leases fresh"). **Root cause: transcribing old call shapes instead of reading the new signature.** This is exactly the bug class the byte-exact pins can't catch — only behavioral tests can.
-2. **I repeatedly piped test output through `grep | tail` and got burned** — masked exit codes, a "no output" confusion on the metaengine run, a false `dupl-exit:` empty. This is a *documented* repo gotcha (pipeline masking). I violated it 2–3 times before switching to raw logs captured to files. Inexcusable; the rule exists in writing.
+1. **I shipped a real double-fire bug for ~90 seconds.** When delegating, I passed `(leaseUntil, now)` to `SQLiteClaimStmt(s, now, leaseUntil)` — mirroring the _old internal arg-slice order_ instead of reading the new builder's signature. The builder reorders internally for `?1/?2`, so the lease got stamped with `now` (instantly expired) → rows immediately re-claimable → double-processing. sqlstore's behavioral tests caught it on the first run ("second claimer got 2 timers while leases fresh"). **Root cause: transcribing old call shapes instead of reading the new signature.** This is exactly the bug class the byte-exact pins can't catch — only behavioral tests can.
+2. **I repeatedly piped test output through `grep | tail` and got burned** — masked exit codes, a "no output" confusion on the metaengine run, a false `dupl-exit:` empty. This is a _documented_ repo gotcha (pipeline masking). I violated it 2–3 times before switching to raw logs captured to files. Inexcusable; the rule exists in writing.
 3. **False-confidence moment on the cqrs-lint meta-test:** I guessed the test name, got `ok … 0.004s [no tests to run]`, and briefly treated it as fixed. The output itself saved me. Rule: a passing test run must show it matched >0 tests.
 4. **Whitespace churn on edits:** 2 edit-tool failures from transcribing comment text/diff context from memory rather than from the file (test-file comment; go.mod tail). Recovered each time by re-reading, but each was a wasted round trip that the workflow rules explicitly warn about.
 5. **Never restarted the LSP** after adding claiming to the workspace — stale gopls diagnostics (BrokenImport, long-fixed andSuffix errors) polluted every single tool response all session. `lsp_restart` exists. I ignored the noise instead of eliminating it.
 6. **Assumed golden stability instead of proving it** after the final refactors (see b.5). Cheap to verify, not done.
 
-**Did I lie to you?** Not intentionally; two claims in my final summary deserve precision: "lint clean except systemic gci" is true *at module level for the two modules I focused on* — repo-wide lint is red; and "everything committed" is the daemon's doing, not a reviewed commit series.
+**Did I lie to you?** Not intentionally; two claims in my final summary deserve precision: "lint clean except systemic gci" is true _at module level for the two modules I focused on_ — repo-wide lint is red; and "everything committed" is the daemon's doing, not a reviewed commit series.
 
 ---
 
@@ -92,13 +92,14 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 5. **Restart the LSP when the workspace shape changes** (new module in go.work).
 6. **Parallel sessions need a gate protocol:** my composed-gate attempts burned ~15 minutes racing another session's mid-flight edits (event syntax error, catchup_state.go). Either a shared gate lock, or the discipline to snapshot "my-slice green + interference documented" and re-run the composed gate once the other session quiesces.
 7. **Docs/config split brain exists right now:** AGENTS (gotchas) says gci was removed from formatters; `.golangci.yml` has it back with 433 findings. Whichever way the reconciliation goes, the doc and the config must land together.
-8. **The handoff's step 7 ("git add claiming/ — it will otherwise be lost") almost came true in the worst way** — the module was deleted *after* being committed, and only git history saved it. The real fix is what finally happened: finish the work so the module has tests, wiring, and a changelog entry that would make silent deletion loud.
+8. **The handoff's step 7 ("git add claiming/ — it will otherwise be lost") almost came true in the worst way** — the module was deleted _after_ being committed, and only git history saved it. The real fix is what finally happened: finish the work so the module has tests, wiring, and a changelog entry that would make silent deletion loud.
 
 ---
 
 ## f) Up to 50 things to do next
 
-*My slice (release + proof):*
+_My slice (release + proof):_
+
 1. Re-run `nix run .#verify` (or verify-fast) once the metaengine session quiesces; record the first full green.
 2. Re-run api-stability `--update`; confirm empty diff (proves b.5).
 3. `go test -race` on claiming + scheduling/sqlstore.
@@ -110,7 +111,7 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 9. `nix run .#vulncheck` for claiming's dep tree.
 10. `nix run .#check-coverage` — watch claiming's baseline (PG/MySQL paths untestable in unit tests).
 
-*claiming module hardening (small, high-value):*
+_claiming module hardening (small, high-value):_
 11. Validate Specs at builder entry (empty Table/IDColumn/… → `ErrInvalidSpec`); today a malformed Spec emits broken SQL silently.
 12. Cheap guard: reject `Spec.And` containing `$`/`?` (documented prohibition, currently unenforced).
 13. Pre-rendered statement cache (Spec+dialect → stmt string; only args vary) — `Due()` currently re-concatenates SQL every poll (parity with before, but a free win).
@@ -118,14 +119,14 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 15. Example test for SQLite client-side ordered-claim ranking (documented workaround, no example).
 16. claiming README.md (check sibling-module convention).
 
-*Docs truth:*
+_Docs truth:_
 17. FEATURES.md `ClaimingTimerStore` feature row (Scheduling section) still narrates the SQL as sqlstore-owned — add "delegates to claiming/".
 18. Update idempotency/sqlstore's Dialect duplicate comment to name claiming as the canonical definition.
 19. Reconcile gci config (custom-sections with local prefix, or remove gci) and fix the AGENTS gci-removal gotcha note in the same change.
 20. Decide on an ADR for the claiming extraction (precedent: ADR-0065/0128).
 21. After config reconciliation, re-run focused lint on claiming/sqlstore — expect zero.
 
-*Queue plan (the actual point of P0):*
+_Queue plan (the actual point of P0):_
 22. queue/ P1: task lifecycle (pending→running→completed/dead) + attempts/backoff/DLQ + dedup'd enqueue (SQLite+PG).
 23. queue/ P1: mirrored conformance suite across dialects.
 24. queue/ P2: priorities + aging in claim order; MySQL dialect.
@@ -135,19 +136,19 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 28. Owner-bearing claims / claim tokens (RenewLease ownership note in sqlstore).
 29. example/taskmanager upgrade to real queue consumer.
 
-*Meta / tooling:*
+_Meta / tooling:_
 30. New-module wiring completeness meta-test (6 touchpoints, one check).
 31. go-taskqueue consumer pin evaluation after queue lands.
 32. cqrs-lint taskmanager version golden refresh at the tag wave.
 
-*Parallel session's outstanding items (observed, not mine):*
+_Parallel session's outstanding items (observed, not mine):_
 33. Finish/fix `metaengine/catchup_state.go` (breaks workspace vet as of 11:00).
 34. Annotate or baseline-regen the 4 new art-dupl groups in `metaengine/*engine/reset*.go` (baseline regen needs a committed-clean baseline).
 35. The `TestSystem_ResetProjection_RestartAndReplay` + metaengine root failures under parallel load — flake-class or real; passes standalone; needs a quiet-machine rerun to classify.
 36. Verify the staged-`.go` syntax pre-commit gate is installed in whatever flow produced the broken `event/errors.go` commit (the exact class it exists for).
 37. Re-run `nix run .#lint` after 17/33 land; expect only real findings.
 
-*Smaller observations from this session:*
+_Smaller observations from this session:_
 38. Root-level `t/` and `result/` directories (taskd buffer, venv-looking tree) — confirm they are intentional/ignored, not junk accumulating at repo root.
 39. Consider a `queue/` planning-doc pointer from claiming's package doc (currently only the reverse).
 40. Document the claiming↔idempotency/sqlstore "intentional duplicate Dialect" relationship in one place (claiming.go mentions it; module-map could).
@@ -172,4 +173,4 @@ The handoff described `claiming/` as *untracked work-in-progress*. Reality at se
 
 ---
 
-*Point-in-time snapshot; expect the parallel-session items (33–37, 19/21) to change underneath this file. Next session should re-verify before acting on them.*
+_Point-in-time snapshot; expect the parallel-session items (33–37, 19/21) to change underneath this file. Next session should re-verify before acting on them._

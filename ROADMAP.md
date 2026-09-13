@@ -517,12 +517,12 @@ the v6 deletion wave greps for that marker. **Delete them in the first minor
 wave one full release cycle after v5.0.0** (v5.0 consumers get at least one
 minor of dual-read support):
 
-| Shim                                                    | Where                                                  | Reads                                  |
-| ------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------- |
-| Snapshot wire-tag fallback (`decodeSnapshotWire` legacy path) | `snapshot/wire.go`, `snapshot/store.go`             | pre-T18 v4.x snapshot rows             |
-| Pebble `commandStreamKeysLegacy`                        | `storage/pebble/command_serialization.go`              | rows before the `stream_*` wire rename |
-| Pebble legacy JSON fallbacks (checkpoint, snapshot)     | `storage/pebble/checkpoint.go`, `storage/pebble/snapshot.go` | rows before the CBOR migration   |
-| Pebble `unmarshalCBOROrJSON` JSON fallback              | `storage/pebble/serialization.go`                      | envelopes written before the CBOR migration |
+| Shim                                                          | Where                                                        | Reads                                       |
+| ------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| Snapshot wire-tag fallback (`decodeSnapshotWire` legacy path) | `snapshot/wire.go`, `snapshot/store.go`                      | pre-T18 v4.x snapshot rows                  |
+| Pebble `commandStreamKeysLegacy`                              | `storage/pebble/command_serialization.go`                    | rows before the `stream_*` wire rename      |
+| Pebble legacy JSON fallbacks (checkpoint, snapshot)           | `storage/pebble/checkpoint.go`, `storage/pebble/snapshot.go` | rows before the CBOR migration              |
+| Pebble `unmarshalCBOROrJSON` JSON fallback                    | `storage/pebble/serialization.go`                            | envelopes written before the CBOR migration |
 
 ---
 

@@ -51,9 +51,9 @@
 
 ## d) TOTALLY FUCKED UP (own goals, honestly scored)
 
-1. **Todo-list lie:** marked "Run mechanical gates: doc-check + doc-assertions" as *completed* having run only doc-check. Dishonest state — corrected by this report; doc-assertions still pending.
+1. **Todo-list lie:** marked "Run mechanical gates: doc-check + doc-assertions" as _completed_ having run only doc-check. Dishonest state — corrected by this report; doc-assertions still pending.
 2. **`nix fmt` blast radius:** ran repo-wide format, which rewrote **390 Go files I did not otherwise touch** (goimports group drift, likely residue of the go-codec external-move). Did not investigate root cause first; did not verify that CI's treefmt pin matches my local one — if versions skew, my "fix" could be the thing that breaks CI. Left in tree (reverting would be worse: the repo's own `--fail-on-change` gate wants them formatted), auto-commit daemon will absorb. Unverified assumption, flagged.
-3. **Missed defects in the most-audited file:** core.md's "About This Skill" section carried a broken copy-paste command (`../../references/*.md` does not exist; missing `-tags goexperiment.jsonv2`) and a false "≤1000 chars" claim — the exact defect classes (stale commands, stale counts) the audit existed to catch, in the file I read most carefully. Caught only during self-review. Embarrassing and instructive: I audited *content* sections and skipped the *meta* section.
+3. **Missed defects in the most-audited file:** core.md's "About This Skill" section carried a broken copy-paste command (`../../references/*.md` does not exist; missing `-tags goexperiment.jsonv2`) and a false "≤1000 chars" claim — the exact defect classes (stale commands, stale counts) the audit existed to catch, in the file I read most carefully. Caught only during self-review. Embarrassing and instructive: I audited _content_ sections and skipped the _meta_ section.
 
 ## e) WHAT WE SHOULD IMPROVE (process, from this session)
 
@@ -67,6 +67,7 @@
 ## f) Next things to get done (session-fallout backlog, impact-sorted; ~30 real items, not padded to 50)
 
 **Correctness / risk (do first):**
+
 1. Inspect `.agents/skills/go-cqrs-lite/evals/` — do eval scenarios pin § numbers/anchors broken by the renumbering?
 2. Run `doc-assertions` + `nix run .#verify` (or `#verify-fast`) to close the gate chain on this docs change.
 3. Root-cause the 390-file import-group drift: is it go-codec-move residue committed by the auto-commit daemon pre-format? Does CI's treefmt match local (same flake.lock)?

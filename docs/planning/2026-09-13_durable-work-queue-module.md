@@ -60,9 +60,9 @@ change (go-taskqueue ADR-0001's load-bearing invariant).
 
 1. **P0 (S):** extract the claim core from `scheduling/sqlstore` into a
    shared internal; timers + queue both consume.
-   *(DONE 2026-09-13 — landed as the public `claiming/` module; the timer
+   _(DONE 2026-09-13 — landed as the public `claiming/` module; the timer
    store delegates and its behavioral + byte-exact suites prove the emitted
-   SQL unchanged.)*
+   SQL unchanged.)_
 2. **P1 (M):** task lifecycle + attempts/backoff/DLQ + dedup'd enqueue;
    conformance suite; SQLite + PG.
 3. **P2 (S):** priorities + aging in claim order; MySQL dialect.

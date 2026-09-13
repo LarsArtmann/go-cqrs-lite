@@ -30,7 +30,7 @@ new_shuffle_seed() {
 	local seed
 	seed=$(od -An -N6 -tu8 /dev/urandom 2>/dev/null | tr -d ' \n')
 	if [ -z "$seed" ] || [ "$seed" = "0" ]; then
-		seed=$(( $(date +%s) * 1000 + 10#$((RANDOM % 1000)) ))
+		seed=$(($(date +%s) * 1000 + 10#$((RANDOM % 1000))))
 	fi
 	echo "$seed"
 }

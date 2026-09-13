@@ -112,7 +112,7 @@ files I had marked "audited".
 1. Diagnose the pre-existing master CI failure (runs 06:30/06:47/07:00) —
    cache-throttle flake vs real test failure; re-run if infra.
 2. Confirm CI green on this session's commits once the daemon pushes (fmt gate
-   + docs + ~400 formatted files all ride together).
+   - docs + ~400 formatted files all ride together).
 3. Run `nix run .#verify-fast` before the next release-adjacent merge.
 4. Port anchor + § cross-ref validation into `scripts/check-doc-links.sh`
    (file-links-only today; slug rules + false-positive filtering documented in

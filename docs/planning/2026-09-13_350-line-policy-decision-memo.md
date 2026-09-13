@@ -11,13 +11,13 @@ table; they are not mutually exclusive.
 
 ## Evidence
 
-| Fact | Number | Source |
-| --- | --- | --- |
-| Baselined offenders | 58 files | `scripts/file-size-baseline.txt` |
-| Largest offenders | ~950 lines (store.go, others) | baseline file |
-| Baseline violations since ratchet | 0 (gate holds; 1 growth attempt caught and paid down 2026-09-13) | gate log |
-| Harness/test monsters cited in reviews | `adttest` 953 / `enginetest` 935 lines | 2026-09-11 audit |
-| Consumers of the policy | every module; CI leg | ci.yml |
+| Fact                                   | Number                                                           | Source                           |
+| -------------------------------------- | ---------------------------------------------------------------- | -------------------------------- |
+| Baselined offenders                    | 58 files                                                         | `scripts/file-size-baseline.txt` |
+| Largest offenders                      | ~950 lines (store.go, others)                                    | baseline file                    |
+| Baseline violations since ratchet      | 0 (gate holds; 1 growth attempt caught and paid down 2026-09-13) | gate log                         |
+| Harness/test monsters cited in reviews | `adttest` 953 / `enginetest` 935 lines                           | 2026-09-11 audit                 |
+| Consumers of the policy                | every module; CI leg                                             | ci.yml                           |
 
 ## Options
 
