@@ -263,8 +263,16 @@ func findRepoRoot() string {
 }
 
 // findRepoRootFromPath walks up from the given directory to the nearest .git marker.
+// The start path is made absolute first: walking up a relative path lexically
+// ("../cqrs-gen" -> ".." -> ".") re-anchors each hop to the process CWD and can
+// stop one or more levels short of the real root, silently verifying documents
+// against a wrong (or empty) package index.
 func findRepoRootFromPath(start string) string {
 	dir := start
+
+	if abs, err := filepath.Abs(start); err == nil {
+		dir = abs
+	}
 
 	for {
 		if info, err := os.Stat(filepath.Join(dir, ".git")); err == nil && info.IsDir() {
