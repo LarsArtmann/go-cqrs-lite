@@ -31,6 +31,30 @@ type Hooks struct {
 	// collection name, read pattern, duration, and any error (nil on success).
 	OnExecute func(collection string, pattern ReadPattern, d time.Duration, _ error)
 
+	// OnQuarantined is called when an engine crosses the failure threshold
+	// and is quarantined (ADR-0137), with the consecutive-failure count and
+	// the last classified error. Fires once per transition — further
+	// failures on an already-quarantined engine do not re-fire.
+	OnQuarantined func(engine string, failures int, lastErr string)
+
+	// OnReactivated is called when a quarantined engine is trusted again.
+	// reason is "manual" (ReactivateEngine), "catchup" (CatchUpEngine
+	// rebuilt the engine from the EventLog before lifting the quarantine),
+	// or "probe-fallback" (the reprobe loop reactivated an engine whose
+	// probe answered but catch-up is unsupported — its read models may be
+	// stale until rebuilt out-of-band).
+	OnReactivated func(engine string, reason string)
+
+	// OnProbe is called after every auto-reprobe health probe
+	// (StartAutoReprobe) with the probe outcome — nil error means the
+	// engine answered and recovery starts.
+	OnProbe func(engine string, err error)
+
+	// OnCatchUp is called when a CatchUpEngine rebuild finishes, with the
+	// number of events replayed into the engine and the outcome (nil error
+	// means the engine was rebuilt and reactivated atomically).
+	OnCatchUp func(engine string, replayed int, err error)
+
 	// SlowQueryThreshold, when > 0, causes OnExecute to be invoked only
 	// for queries exceeding this threshold. When 0, all queries invoke it.
 	SlowQueryThreshold time.Duration

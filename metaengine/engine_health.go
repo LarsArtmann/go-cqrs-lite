@@ -2,11 +2,7 @@ package metaengine
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
-	"maps"
-	"slices"
-	"strings"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -77,7 +73,8 @@ func (s *Store) effectiveFailureThreshold() int {
 
 // recordEngineFailure classifies err and, when it is an Infrastructure or
 // Transient failure (the "backend unavailable/overloaded" families), counts
-// it against the engine. Reaching the threshold quarantines the engine.
+// it against the engine. Reaching the threshold quarantines the engine and
+// emits the OnQuarantined hook after the health mutex is released.
 // Rejection, Conflict, Corruption, and unclassified errors never count —
 // client mistakes and data corruption must fail loudly, not trigger failover.
 func (s *Store) recordEngineFailure(eng Engine, err error) {
@@ -93,8 +90,13 @@ func (s *Store) recordEngineFailure(eng Engine, err error) {
 
 	name := eng.Profile().Name
 
+	var (
+		quarantined bool
+		failures    int
+		lastErr     string
+	)
+
 	s.healthMu.Lock()
-	defer s.healthMu.Unlock()
 
 	if s.health == nil {
 		s.health = make(map[string]*engineHealthRecord)
@@ -115,6 +117,19 @@ func (s *Store) recordEngineFailure(eng Engine, err error) {
 
 		slog.Warn("metaengine: engine quarantined after consecutive failures",
 			"engine", name, "failures", rec.fails, "last_error", rec.lastErr)
+
+		quarantined = true
+	}
+
+	failures = rec.fails
+	lastErr = rec.lastErr
+
+	s.healthMu.Unlock()
+
+	// Emitted after the health mutex is released: observers must never run
+	// under it (see health_observer.go for the re-entrancy contract).
+	if quarantined {
+		s.emitQuarantined(name, failures, lastErr)
 	}
 }
 
@@ -187,6 +202,19 @@ func engineHealthOf(rec *engineHealthRecord) EngineHealth {
 // after replaying the EventLog into the engine). StartAutoReprobe already
 // prefers CatchUpEngine.
 func (s *Store) ReactivateEngine(name string) bool {
+	if !s.reactivateEngine(name) {
+		return false
+	}
+
+	s.emitReactivated(name, "manual")
+
+	return true
+}
+
+// reactivateEngine lifts the quarantine without emitting hooks — internal
+// callers that report their own transition reason (CatchUpEngine,
+// catchUpOrReactivate) use this and emit with their precise label.
+func (s *Store) reactivateEngine(name string) bool {
 	s.healthMu.Lock()
 	defer s.healthMu.Unlock()
 
@@ -203,44 +231,6 @@ func (s *Store) ReactivateEngine(name string) bool {
 	slog.Info("metaengine: engine reactivated", "engine", name)
 
 	return true
-}
-
-// doctorEngineHealthSection renders the ADR-0137 per-engine health lines for
-// the Doctor report: quarantine state, consecutive failures, and the last
-// classified error, sorted by engine name.
-func (s *Store) doctorEngineHealthSection() string {
-	health := s.HealthSnapshot()
-	if len(health) == 0 {
-		return "  no failures recorded\n"
-	}
-
-	names := slices.Sorted(maps.Keys(health))
-
-	var b strings.Builder
-
-	for _, name := range names {
-		h := health[name]
-
-		switch {
-		case h.State == EngineQuarantined:
-			fmt.Fprintf(&b, "  %s: QUARANTINED (failures=%d, since=%s, last=%q)\n",
-				name, h.ConsecutiveFailures, h.QuarantinedAt.Format(time.RFC3339), h.LastError)
-
-		case h.ConsecutiveFailures > 0:
-			fmt.Fprintf(
-				&b,
-				"  %s: active (failures=%d, last=%q)\n",
-				name,
-				h.ConsecutiveFailures,
-				h.LastError,
-			)
-
-		default:
-			fmt.Fprintf(&b, "  %s: active\n", name)
-		}
-	}
-
-	return b.String()
 }
 
 // routedQuery overrides one query's engine for an execution-scoped reroute
@@ -385,6 +375,8 @@ func (s *Store) reprobeOnce(ctx context.Context) {
 
 		_, err := prober.Probe(probeCtx)
 		cancel()
+
+		s.emitProbe(c.name, err)
 
 		if err == nil {
 			s.catchUpOrReactivate(ctx, c.name)

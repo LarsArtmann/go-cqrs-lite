@@ -57,7 +57,24 @@ const catchUpMaxPasses = 64
 // [Store.StartAutoReprobe] runs this automatically when a quarantined
 // engine's probe succeeds, falling back to a plain reactivation (with a
 // warning) when catch-up is unsupported.
-func (s *Store) CatchUpEngine(ctx context.Context, name string) (result error) {
+func (s *Store) CatchUpEngine(ctx context.Context, name string) error {
+	replayed, err := s.catchUpEngine(ctx, name)
+
+	// Hooks fire here, after the body released catchUpMu and every other
+	// lock — observers must never run under Store locks.
+	s.emitCatchUp(name, replayed, err)
+
+	if err == nil {
+		s.emitReactivated(name, "catchup")
+	}
+
+	return err
+}
+
+// catchUpEngine is the [Store.CatchUpEngine] body. The public wrapper emits
+// the OnCatchUp/OnReactivated hooks after it returns, when no locks are held;
+// the body itself holds catchUpMu until it returns.
+func (s *Store) catchUpEngine(ctx context.Context, name string) (result error, replayed int) {
 	s.catchUpMu.Lock()
 	defer s.catchUpMu.Unlock()
 
@@ -94,7 +111,6 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) (result error) {
 	}
 
 	offset := 0
-	replayed := 0
 
 	// The rebuild is observable: mark it running, then settle the final
 	// state on the way out (error text, replayed count, completion stamp).
@@ -148,7 +164,7 @@ func (s *Store) CatchUpEngine(ctx context.Context, name string) (result error) {
 		var reactivated bool
 
 		grew := s.eventLog.reactivateIfStable(offset, func() {
-			reactivated = s.ReactivateEngine(name)
+			reactivated = s.reactivateEngine(name)
 		})
 
 		if !grew {
@@ -188,7 +204,9 @@ func (s *Store) catchUpOrReactivate(ctx context.Context, name string) {
 	case err == nil:
 		return
 	case errors.Is(err, ErrCatchUpUnsupported):
-		s.ReactivateEngine(name)
+		if s.reactivateEngine(name) {
+			s.emitReactivated(name, "probe-fallback")
+		}
 
 		slog.Warn(
 			"metaengine: engine answered its probe but catch-up is unsupported; reactivated without rebuild — its read models may be stale until rebuilt out-of-band",
