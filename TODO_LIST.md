@@ -28,6 +28,24 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 - [ ] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — the claim core is EXTRACTED into `claiming/` (P0 done 2026-09-13: `Spec` + SKIP LOCKED PG / single-writer SQLite / MySQL two-statement claims, expiry reclaim, `RenewStmt`, `EnsureLeaseColumn`; `scheduling/sqlstore` delegates byte-identically and keeps `RenewLease` + `ClaimMetrics`), the read side in metaengine planned tables, the journal in `event`/`watermill`; what's missing is the task-store assembly: lifecycle (pending→running→completed/dead), attempts+backoff+DLQ at store level, priorities(+aging) in claim order, DAG dep gating, owner-bearing claims, dedup'd enqueue, same-tx journal option. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstream the semantics, don't reinvent); conformance = one mirrored suite across dialects. Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/2026-09-13_durable-work-queue-module.md`](docs/planning/2026-09-13_durable-work-queue-module.md) _(P0 done; Effort: P1 M lifecycle+DLQ, then S each)_
 
+## Command-side domain depth (2026-09-13 plan)
+
+> Prioritized execution plan:
+> [`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md)
+> — Pareto waves (W1 decider causation → W2 first-class command records → W3 lifecycle
+> upcasting + docs parity → W4 gates/filing), derived from the three 2026-09-13 reviews
+> (`docs/reviews/2026-09-13_*`). Additive-only v4.x; `decider` gains ZERO new deps
+> (local `CausedCommand` capability interface). Guardrails: decider.go is 377/350
+> baselined (new file required), api golden regen in same edit, CHANGELOG symbols gated.
+
+- [ ] 🔥 **W1: `decider.ExecuteCommandRef` + causation stamping** — DecideFunc variant that RECEIVES the command and stamps `metadata.Tracing.CausationID` + `record.Cause{CauseCommand}` on emitted events (new file `decider/execute_command.go`). Closes decider-depth Gaps 1+3 (command-blind DecideFunc, missing cmd→event lineage). _(Effort: M incl. BDD+property tests)_
+- [ ] 🔥 **W2: `command.AsRecordPersisted(*PersistedCommand)`** — bridge the PERSISTED form (payload+encoding+receivedAt+StreamType populated; today's BasicCommand bridge is payload-less with empty StreamType) so commands become first-class `record.Record`s for metaengine routing/folds; BasicCommand bridge gets a v5 deprecation doc-note only. Third lockstep twin → `//art-dupl:accept`. _(Effort: S)_
+- [ ] **W3: lifecycle upcast composition spike** — verify `commandlifecycle.NewRecorder(event.DecorateStore(raw, nil, schema.UpcastSourceTransform(u)))` upcasts old lifecycle payloads on replay; prove with an integration test; ship `recipes.md` §schema-evolution-for-commands. If falsified: file the design note, build nothing. _(Effort: S/M)_
+- [ ] **W3: command-pitfalls FAQ + docs parity** — faq.md command section (DecideFunc closure trap, causation-by-default, evolving persisted commands; currently 6 vs 51 event mentions); recipes/core cheat-sheet rows for W1/W2. _(Effort: S)_
+- [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). _(Effort: M)_
+- [BLOCKED] **Release train (user approval)** — tag waves decider/command/commandlifecycle once W1–W4 land. _(Effort: M — see AGENTS.md tag-wave procedure)_
+- [BLOCKED] **ADR-0138: command sourcing draft (consumer demand)** — design doc only, builds on W2's bridge, reconciles ADR-0112's planned `CommandAwareFold`. _(Effort: M)_
+
 ## Turso materialized views (ADR-0135) — upstream handoffs
 
 > Created 2026-09-07 (matview operator option shipped; three upstream

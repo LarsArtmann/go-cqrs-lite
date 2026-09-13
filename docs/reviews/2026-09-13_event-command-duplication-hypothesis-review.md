@@ -72,9 +72,11 @@ command-side depth gap (see companion review): because command records are hollo
 `commandlifecycle/` had to wrap commands in its OWN event payloads (ADR-0117), and
 ADR-0112 (command sourcing — folding over command history) has nothing to fold.
 
-**Fix direction (not yet implemented):** `command.AsRecord` should take (or offer a
-variant for) `*PersistedCommand` — mirroring the query bridge. Non-breaking (additive
+**Fix direction:** `command.AsRecord` should take (or offer a variant for)
+`*PersistedCommand` — mirroring the query bridge. Non-breaking (additive
 variant or signature change at v5). This also feeds the v5 port-unification list.
+**Planned:** W2 of
+[`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](../planning/2026-09-13_11-45_SUPERB-command-side-depth.md).
 
 ## 4. The Go-level answer to "did we pick the wrong abstraction?"
 

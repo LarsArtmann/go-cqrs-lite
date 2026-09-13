@@ -74,4 +74,6 @@ cmd→event lineage — the audit spine of event-sourced systems — is not firs
    where it hurts most (DLQ projection rebuilds).
 3. **ADR-0112 command sourcing** — the big one; wait for real consumer demand.
 
-None of this is started; items 1–2 are TODO_LIST candidates.
+None of this is started; items 1–2 are planned in
+[`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](../planning/2026-09-13_11-45_SUPERB-command-side-depth.md)
+(filed in TODO_LIST §Command-side domain depth).
