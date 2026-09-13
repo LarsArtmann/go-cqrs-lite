@@ -83,7 +83,7 @@ usage() {
 # scripts/lib/release_common.sh (single implementation shared with
 # tag-release.sh — the issue-#20 guard must never fork again).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/release_common.sh
+# shellcheck disable=SC1091 # sourced release lib lives beside this script
 source "${SCRIPT_DIR}/lib/release_common.sh"
 
 if [ "${1:-}" = "--audit" ]; then

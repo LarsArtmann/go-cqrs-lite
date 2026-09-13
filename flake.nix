@@ -933,6 +933,19 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-check-retracts-shipped.sh"
                 '';
 
+            # check-tag-audit: fail on NEW path-vs-tag violations (proxy-
+            # invisible tags, the issue-#20 class); known dead-path history
+            # is baselined. CI leg in the lint-scripts job (fetch-depth 0).
+            check-tag-audit =
+              mkApp "check-tag-audit"
+                [
+                  pkgs.bash
+                  pkgs.git
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/tag-release.sh" --audit --baseline "$PWD/scripts/audit-tag-baseline.txt"
+                '';
+
             # check-error-taxonomy: drift gate between docs/error-taxonomy.md
             # module tables and the errorfamily call sites that actually mint
             # the codes (the watermill-table-lied incident class, 02-47 §e3).

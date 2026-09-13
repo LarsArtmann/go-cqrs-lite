@@ -1051,10 +1051,18 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 	primeDeadline := time.Now().Add(10 * time.Second)
 	for prime := 0; countReceiving("fanout-prime") < len(servers); prime++ {
 		if time.Now().After(primeDeadline) {
-			t.Fatalf("priming: only %d/%d subscribers confirmed a live subscription", countReceiving("fanout-prime"), len(servers))
+			t.Fatalf(
+				"priming: only %d/%d subscribers confirmed a live subscription",
+				countReceiving("fanout-prime"),
+				len(servers),
+			)
 		}
 
-		_ = store.Apply(ctx, "task_created", testTask{ID: testTaskID(fmt.Sprintf("fanout-prime-%d", prime)), Title: "Prime"})
+		_ = store.Apply(
+			ctx,
+			"task_created",
+			testTask{ID: testTaskID(fmt.Sprintf("fanout-prime-%d", prime)), Title: "Prime"},
+		)
 		time.Sleep(25 * time.Millisecond)
 	}
 
@@ -1070,7 +1078,13 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 			time.Sleep(25 * time.Millisecond)
 		}
 
-		t.Fatalf("%s: only %d/%d subscribers received %q within the deadline", phase, countReceiving(marker), len(servers), marker)
+		t.Fatalf(
+			"%s: only %d/%d subscribers received %q within the deadline",
+			phase,
+			countReceiving(marker),
+			len(servers),
+			marker,
+		)
 	}
 
 	_ = store.Apply(ctx, "task_created", testTask{ID: "fanout-1", Title: "FanOut"})
@@ -1080,7 +1094,11 @@ func TestSSE_MultiSubscriberFanOut(t *testing.T) {
 	wg.Wait()
 
 	if got := countReceiving("fanout-1"); got != len(servers) {
-		t.Errorf("expected all %d subscribers to receive the fan-out event, got %d", len(servers), got)
+		t.Errorf(
+			"expected all %d subscribers to receive the fan-out event, got %d",
+			len(servers),
+			got,
+		)
 	}
 }
 

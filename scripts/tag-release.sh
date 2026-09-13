@@ -40,7 +40,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/release_common.sh
+# shellcheck disable=SC1091 # sourced release lib lives beside this script
 source "${SCRIPT_DIR}/lib/release_common.sh"
 
 cd "$(git rev-parse --show-toplevel)"

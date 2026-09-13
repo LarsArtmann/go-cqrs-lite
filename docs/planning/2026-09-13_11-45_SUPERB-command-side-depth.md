@@ -64,11 +64,22 @@ func (r *Repository[State]) ExecuteCommandRef[C CausedCommand](
   `record.Cause{Kind: record.CauseCommand, ID: cmd.ID().String()}` (the typed cause kind
   already exists — `record/cause.go` — this is its first producer-side consumer).
 - Correlation: carried through the existing `ContextEnricher` path — document, don't duplicate.
-- **Open mechanism question (resolved by T01):** whether post-hoc stamping of already-built
-  immutable events is possible via an existing option/merge helper (`WithCausationID` /
-  metadata merge / `reconstruct`), or whether decider rebuilds events with the extra option.
-  Fallback design: expose `decider.CausationOptions(cmd) []event.Option` for use inside
-  `decide` via `event.New` — still additive, still zero-dep, slightly less automatic.
+- **Mechanism (RESOLVED by T01, 2026-09-13):** post-hoc stamping via the existing
+  `event.Option` application — the exact mechanism `Repository.applyEnricher`
+  (`decider/enricher.go`) already uses on the same events at the same lifecycle point
+  (after decide returns, before Save; events are not yet shared, so the immutability
+  contract holds). Stamp set mirrors `event.CommandCausalityEnricher` output:
+  `event.WithCausation(cmdType, cmdID)` (typed `Metadata.Causation` → `event.AsRecord`
+  precedence rule 1 derives `CausationID` + `Cause{CauseCommand}` automatically — no
+  record-layer work), plus `WithCustom(MetadataKeyCommandID, …)` always and
+  `WithCustom(MetadataKeyCommandType, …)` when the type is known. The command type comes
+  from an OPTIONAL structural capability check `interface{ Type() record.Type }`
+  (satisfied by `*command.BasicCommand`/`*command.PersistedCommand` because
+  `command.Type = record.Type` is an alias; zero new deps — decider already imports
+  record). `Tracing.CausationID` stays zero: the typed Causation wins `AsRecord`
+  precedence, and a CommandID→CausationID conversion would be a string round-trip.
+  Stamping is skipped when the command ID is zero. The `CausationOptions` fallback
+  helper is NOT needed.
 - Precedent: capability interfaces (`command.MetadataCarrier`) — same ADR-0111(g)-safe move.
 
 ### D2 — `command.AsRecordPersisted(*PersistedCommand) record.Record`

@@ -619,6 +619,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0 # the tag audit below needs the full tag set
 
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
@@ -634,6 +636,12 @@ jobs:
       # hermetic (no network, no real tags), so this is fast.
       - name: Test release scripts (fixture repos)
         run: nix run .#check-release-scripts
+
+      # Tag-audit CI leg: fails on NEW path-vs-tag violations (proxy-invisible
+      # tags) only — known dead-path history is baselined in
+      # scripts/audit-tag-baseline.txt. Needs the full tag set (fetch-depth 0).
+      - name: Audit tags vs module paths (baseline gate)
+        run: nix run .#check-tag-audit
 
     timeout-minutes: 10
   cqrs-upgrade-dogfood:

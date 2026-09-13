@@ -113,7 +113,7 @@ check "--smoke exits nonzero pre-push" test "$rc" -ne 0
 check "--smoke tells you to push" bash -c "printf '%s' \"\$0\" | grep -q 'push first'" "$out"
 
 echo "━━━ Test 5: release_common.sh unit tests (sourced lib) ━━━"
-# shellcheck source=lib/release_common.sh
+# shellcheck disable=SC1091 # sourced release lib lives beside this script
 source "$(cd "$(dirname "$0")" && pwd)/lib/release_common.sh"
 
 check "v4 tag + /v4 path matches" path_matches_major "x/v4" "v4.1.0"

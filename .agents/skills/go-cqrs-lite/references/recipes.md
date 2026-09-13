@@ -245,7 +245,7 @@ if err != nil {
 }
 defer func() { _ = es.Shutdown(ctx) }() // drains in-flight commands, stops projections, closes engines
 
-// Typed C/Q facade (wraps system.Register*/Dispatch):
+// Typed C/Q facade (wraps the system registration helpers and dispatch):
 _ = appkitcqrs.RegisterDecider(es, "Task", TaskDecider)
 _ = appkitcqrs.RegisterCommand[*command.BasicCommand, TaskState](es, "task.create", handler)
 _ = appkitcqrs.RegisterQuery[TaskQuery, TaskView](es, "task.view", viewHandler)

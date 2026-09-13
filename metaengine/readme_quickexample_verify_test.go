@@ -48,7 +48,11 @@ func TestReadmeQuickExample(t *testing.T) {
 	}
 	defer store.Close()
 
-	if err := store.Apply(ctx, "UserCreated", UserCreated{ID: "u1", Name: "Alice", At: time.Now()}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"UserCreated",
+		UserCreated{ID: "u1", Name: "Alice", At: time.Now()},
+	); err != nil {
 		t.Fatal(err)
 	}
 
