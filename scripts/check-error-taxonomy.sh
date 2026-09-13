@@ -54,7 +54,7 @@ for entry in "${GATED_MODULES[@]}"; do
 
 	tmp_mod="$(mktemp)"
 	rg -U --no-filename -o \
-		'errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\([^"]*"([a-z0-9_.]+)"' \
+		'errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\(\s*(?:[^,"]*,\s*)?"([a-z0-9_.]+)"' \
 		"$repo_root/$dir" \
 		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' \
 		-r '$2	$1' >"$tmp_mod" || true

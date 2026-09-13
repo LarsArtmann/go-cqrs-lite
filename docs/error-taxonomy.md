@@ -80,34 +80,88 @@ errorfamily.Classify(err) // => Conflict
 
 ### core/event
 
-| Error                     | Family    | Code                           |
-| ------------------------- | --------- | ------------------------------ |
-| `ErrEmptyEventType`       | Rejection | `event.empty_event_type`       |
-| `ErrNilStreamID`          | Rejection | `event.nil_stream_id`          |
-| `ErrEmptyStreamType`      | Rejection | `event.empty_stream_type`      |
-| `ErrVersionNotPositive`   | Rejection | `event.version_not_positive`   |
-| `ErrNilPayload`           | Rejection | `event.nil_payload`            |
-| `ErrMismatchedEventCount` | Rejection | `event.mismatched_event_count` |
-| `ErrVersionConflict`      | Conflict  | `event.version_conflict`       |
-| `ErrStreamNotFound`       | Rejection | `event.stream_not_found`       |
+| Error | Family | Code |
+| ----- | ------ | ---- |
+| — | Corruption | `event.build_failed` |
+| — | Infrastructure | `event.bus_closed` |
+| — | Rejection | `event.date_cbor_decode` |
+| — | Rejection | `event.date_parse` |
+| — | Corruption | `event.decode_custom_bytes` |
+| — | Corruption | `event.decode_payload_auto_no_codec` |
+| — | Corruption | `event.decode_payload_failed` |
+| — | Rejection | `event.empty_event_type` |
+| — | Rejection | `event.empty_source` |
+| — | Rejection | `event.empty_stream_type` |
+| — | Rejection | `event.event_not_found` |
+| — | Rejection | `event.inner_store_not_backwards` |
+| — | Rejection | `event.inner_store_not_journal` |
+| — | Rejection | `event.inner_store_not_multi_sink` |
+| — | Rejection | `event.inner_store_not_seekable` |
+| — | Rejection | `event.inner_store_not_streaming` |
+| — | Rejection | `event.instant_cbor_decode` |
+| — | Rejection | `event.instant_parse` |
+| — | Rejection | `event.invalid_date` |
+| — | Rejection | `event.invalid_hour` |
+| — | Rejection | `event.invalid_ip_address` |
+| — | Rejection | `event.invalid_minute` |
+| — | Rejection | `event.invalid_schema_version` |
+| — | Corruption | `event.marshal_payload_failed` |
+| — | Rejection | `event.mismatched_event_count` |
+| — | Infrastructure | `event.nil_bus` |
+| — | Rejection | `event.nil_event` |
+| — | Rejection | `event.nil_payload` |
+| — | Rejection | `event.nil_stream_id` |
+| — | Rejection | `event.schema_version_underflow` |
+| — | Infrastructure | `event.store_closed` |
+| — | Rejection | `event.stream_not_found` |
+| — | Conflict | `event.version_conflict` |
+| — | Rejection | `event.version_not_positive` |
+| — | Rejection | `event.version_underflow` |
+| — | Rejection | `event.walltime_cbor_decode` |
+| — | Rejection | `event.walltime_invalid_tz` |
+| — | Rejection | `eventtest.failing_handler` |
+| — | Rejection | `eventtest.failing_publisher` |
+| — | Rejection | `my.code` |
 
 ### core/command
 
-| Error                 | Family         | Code                         |
-| --------------------- | -------------- | ---------------------------- |
-| `ErrHandlerNotFound`  | Rejection      | `command.handler_not_found`  |
-| `ErrDispatcherClosed` | Infrastructure | `command.dispatcher_closed`  |
-| `ErrEmptyCommandType` | Rejection      | `command.empty_command_type` |
-| `ErrNilStreamID`      | Rejection      | `command.nil_stream_id`      |
-| `ErrTypeAssertion`    | Corruption     | `command.type_assertion`     |
+| Error | Family | Code |
+| ----- | ------ | ---- |
+| — | Infrastructure | `command.dispatcher_closed` |
+| — | Conflict | `command.duplicate` |
+| — | Rejection | `command.empty_command_type` |
+| — | Rejection | `command.empty_stream_type` |
+| — | Rejection | `command.handler_not_found` |
+| — | Rejection | `command.memory_bus.subscribe` |
+| — | Rejection | `command.nil_handler` |
+| — | Rejection | `command.nil_stream_id` |
+| — | Rejection | `command.nil_subscribe_all` |
+| — | Rejection | `command.not_found` |
+| — | Rejection | `command.parse_stream_type` |
+| — | Infrastructure | `command.store_closed` |
+| — | Rejection | `command.type_assertion` |
+| — | Corruption | `command.typed_store.decode` |
+| — | Corruption | `command.typed_store.encode` |
+| — | Corruption | `command.typed_store.encode_batch` |
+| — | Infrastructure | `command.typed_store.load` |
 
 ### core/query
 
-| Error                  | Family         | Code                      |
-| ---------------------- | -------------- | ------------------------- |
-| `ErrQueryNotSupported` | Rejection      | `query.not_supported`     |
-| `ErrDispatcherClosed`  | Infrastructure | `query.dispatcher_closed` |
-| `ErrEmptyQueryType`    | Rejection      | `query.empty_query_type`  |
+| Error | Family | Code |
+| ----- | ------ | ---- |
+| — | Infrastructure | `query.dispatcher_closed` |
+| — | Conflict | `query.duplicate` |
+| — | Rejection | `query.empty_query_type` |
+| — | Rejection | `query.handler_not_found` |
+| — | Rejection | `query.invalid_page` |
+| — | Rejection | `query.invalid_page_size` |
+| — | Rejection | `query.not_found` |
+| — | Infrastructure | `query.store_closed` |
+| — | Rejection | `query.type_assertion` |
+| — | Corruption | `query.type_mismatch` |
+| — | Corruption | `query.typed_store.decode` |
+| — | Corruption | `query.typed_store.encode` |
+| — | Infrastructure | `query.typed_store.load` |
 
 ### middleware
 
@@ -250,38 +304,96 @@ Operational wrap codes (not sentinels): row-scan/reconstruct failures are
 
 ### storage/pebble
 
-| Error                   | Family    | Code                          |
-| ----------------------- | --------- | ----------------------------- |
-| `ErrNilDatabase`        | Rejection | `pebble.nil_database`         |
-| `ErrStreamTypeMismatch` | Conflict  | `pebble.stream_type_mismatch` |
-| `ErrStreamIDMismatch`   | Conflict  | `pebble.stream_id_mismatch`   |
-| `ErrVersionMismatch`    | Conflict  | `pebble.version_mismatch`     |
-
-The deprecated `ErrAggregateTypeMismatch`/`ErrAggregateIDMismatch` aliases
-forward to the Stream sentinels (removed at v5). Operational wrap codes
-split the same way: corruption detection is **Corruption**
-(`pebble.corrupt_event`, `pebble.command_corrupt`, serialization failures);
-iterator/batch/IO failures are **Infrastructure** (`pebble.commit_batch`,
-`pebble.create_iterator`); concurrency checks are **Conflict**
-(`pebble.concurrency_check`, `pebble.check_version`).
+| Error | Family | Code |
+| ----- | ------ | ---- |
+| — | Infrastructure | `pebble.adapter.get` |
+| — | Infrastructure | `pebble.adapter.has` |
+| — | Infrastructure | `pebble.adapter.new_iterator` |
+| — | Infrastructure | `pebble.adapter.set_if_absent_get` |
+| — | Infrastructure | `pebble.adapter.set_if_absent_set` |
+| — | Infrastructure | `pebble.add_to_batch` |
+| — | Infrastructure | `pebble.batch_dup_check` |
+| — | Conflict | `pebble.batch_existing_dup` |
+| — | Conflict | `pebble.batch_internal_dup` |
+| — | Infrastructure | `pebble.command_batch_commit` |
+| — | Infrastructure | `pebble.command_commit` |
+| — | Corruption | `pebble.command_corrupt` |
+| — | Infrastructure | `pebble.command_iter` |
+| — | Infrastructure | `pebble.command_iter_error` |
+| — | Infrastructure | `pebble.command_journal_key` |
+| — | Infrastructure | `pebble.command_stream_key` |
+| — | Infrastructure | `pebble.commit_batch` |
+| — | Infrastructure | `pebble.concurrency_check` |
+| — | Corruption | `pebble.corrupt_event` |
+| — | Infrastructure | `pebble.create_iterator` |
+| — | Infrastructure | `pebble.delete_snapshot` |
+| — | Corruption | `pebble.deserialize_checkpoint` |
+| — | Corruption | `pebble.deserialize_snapshot` |
+| — | Conflict | `pebble.duplicate_command` |
+| — | Infrastructure | `pebble.duplicate_command_check` |
+| — | Conflict | `pebble.duplicate_query` |
+| — | Infrastructure | `pebble.duplicate_query_check` |
+| — | Rejection | `pebble.empty_projection_name` |
+| — | Infrastructure | `pebble.event_load_filtered` |
+| — | Corruption | `pebble.invalid_key_format` |
+| — | Infrastructure | `pebble.iterator_error` |
+| — | Rejection | `pebble.nil_database` |
+| — | Infrastructure | `pebble.open_backend` |
+| — | Infrastructure | `pebble.parse_version` |
+| — | Corruption | `pebble.query_corrupt` |
+| — | Infrastructure | `pebble.query_iter` |
+| — | Infrastructure | `pebble.query_iter_error` |
+| — | Infrastructure | `pebble.query_write` |
+| — | Infrastructure | `pebble.read_checkpoint` |
+| — | Infrastructure | `pebble.read_snapshot` |
+| — | Corruption | `pebble.reconstruct_command` |
+| — | Corruption | `pebble.reconstruct_event` |
+| — | Corruption | `pebble.reconstruct_query` |
+| — | Infrastructure | `pebble.scan_journal` |
+| — | Corruption | `pebble.serialize_checkpoint` |
+| — | Corruption | `pebble.serialize_command` |
+| — | Corruption | `pebble.serialize_command_batch` |
+| — | Corruption | `pebble.serialize_event` |
+| — | Corruption | `pebble.serialize_query` |
+| — | Corruption | `pebble.serialize_snapshot` |
+| — | Infrastructure | `pebble.stream_create_iterator` |
+| — | Conflict | `pebble.stream_id_mismatch` |
+| — | Conflict | `pebble.stream_type_mismatch` |
+| — | Corruption | `pebble.validate_event` |
+| — | Conflict | `pebble.version_conflict` |
+| — | Conflict | `pebble.version_mismatch` |
+| — | Infrastructure | `pebble.write_checkpoint` |
+| — | Infrastructure | `pebble.write_snapshot` |
 
 ### watermill
 
-| Error                       | Family         | Code                                                                                                                                                                                             |
-| --------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ErrMissingMetadata`        | Rejection      | `watermill.missing_metadata`                                                                                                                                                                     |
-| Replay consumer nack        | Orchestration  | `watermill.catchup.replay_nacked`                                                                                                                                                                |
-| Metadata parse fails        | Rejection      | `watermill.parse_*`                                                                                                                                                                              |
-| Malformed metadata payloads | Corruption     | `watermill.corrupt_metadata`, `watermill.create_event_failed`, `watermill.convert_message_failed`                                                                                                |
-| Catch-up checkpoint/replay  | Infrastructure | `watermill.catchup.load_checkpoint`, `watermill.catchup.replay_read`                                                                                                                             |
-| Bus publish fails           | Infrastructure | `watermill.event_bus_publish`, `watermill.command_bus_publish`                                                                                                                                   |
-| Subscribe/publish/lifecycle | Infrastructure | `watermill.subscribe_failed`, `watermill.publish_event_failed`, `watermill.publish_command_failed`, `watermill.catchup_subscriber_closed`, `watermill.topic_closed`, `watermill.topic_cancelled` |
-
-Note the nack semantics: `watermill.catchup.replay_nacked` fires ONLY on a
-real consumer Nack — a `Close()` or ctx cancellation during the ack wait
-stops the replay with a Debug "stopped by shutdown" log (since 2026-09-11;
-previously silent) instead of reporting a nack that never happened. Real
-failures (nack, journal read, checkpoint load) stay at ERROR.
+| Error | Family | Code |
+| ----- | ------ | ---- |
+| — | Infrastructure | `watermill.catchup.load_checkpoint` |
+| — | Orchestration | `watermill.catchup.replay_nacked` |
+| — | Infrastructure | `watermill.catchup.replay_read` |
+| — | Infrastructure | `watermill.catchup_subscriber_closed` |
+| — | Infrastructure | `watermill.command_bus_publish` |
+| — | Corruption | `watermill.convert_message_failed` |
+| — | Corruption | `watermill.corrupt_metadata` |
+| — | Rejection | `watermill.create_catchup_subscriber` |
+| — | Corruption | `watermill.create_command_failed` |
+| — | Corruption | `watermill.create_event_failed` |
+| — | Infrastructure | `watermill.event_bus_publish` |
+| — | Rejection | `watermill.missing_metadata` |
+| — | Rejection | `watermill.parse_event_id_failed` |
+| — | Rejection | `watermill.parse_failed` |
+| — | Rejection | `watermill.parse_id_field_failed` |
+| — | Rejection | `watermill.parse_occurred_at_failed` |
+| — | Rejection | `watermill.parse_schema_version_failed` |
+| — | Rejection | `watermill.parse_stream_id_failed` |
+| — | Rejection | `watermill.parse_tombstone_status` |
+| — | Rejection | `watermill.parse_version_failed` |
+| — | Infrastructure | `watermill.publish_command_failed` |
+| — | Infrastructure | `watermill.publish_event_failed` |
+| — | Infrastructure | `watermill.subscribe_failed` |
+| — | Infrastructure | `watermill.topic_cancelled` |
+| — | Infrastructure | `watermill.topic_closed` |
 
 ## Default Classification
 
