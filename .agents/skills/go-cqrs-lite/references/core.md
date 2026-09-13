@@ -302,6 +302,22 @@ ctx = event.WithCommandCausality(ctx, "user.create", cmdID)
 cmdType, cmdID, ok := event.CommandCausalityFromContext(ctx)
 ```
 
+When a command drives the decision, prefer `decider.ExecuteCommandRef` — the
+decide function receives the command and every emitted event is stamped with
+its causation automatically (typed `Metadata.Causation` + the `command.id` /
+`command.type` compat keys; `event.AsRecord` resolves both into `CausationID`
+and `Cause{Kind: CauseCommand}`):
+
+```go
+err := decider.ExecuteCommandRef(ctx, repo, ref, cmd,
+    func(state State, v event.Version, cmd *command.BasicCommand) ([]event.Event, error) {
+        // decide with full command visibility
+    })
+```
+
+Any command with `ID() id.CommandID` works (`decider.CausedCommand`); events
+that already carry a causation keep theirs. Recipe: recipes §2.1b.
+
 Record **who** initiated the change (audit trail) — the actor counterpart to causality:
 
 ```go
@@ -453,6 +469,8 @@ bus.UsePublish(middleware...)
 d := decider.Decider[State]{Initial: initState, Apply: applyFunc}
 repo, _ := decider.NewRepository[State](store, bus, d)
 repo.Execute(ctx, aggID, "User", decideFunc)      // load → fold → decide → save → publish
+repo.ExecuteRef(ctx, ref, decideFunc)             // ref form (one identity convention)
+decider.ExecuteCommandRef(ctx, repo, ref, cmd, decideFunc) // command-aware; stamps causation
 state, ver, _ := repo.Load(ctx, aggID, "User")
 
 // Commands
