@@ -8,7 +8,7 @@ import (
 )
 
 // errNilTypedValue is returned by [TypedStore.Set] when val is nil.
-var errNilTypedValue = errorfamily.NewRejection(
+var errNilTypedValue error = errorfamily.NewRejection(
 	"kv.nil_value",
 	"kv: TypedStore.Set called with a nil value",
 )

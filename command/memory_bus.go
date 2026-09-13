@@ -32,8 +32,8 @@ func NewMemoryBus() *MemoryBus {
 }
 
 var (
-	errNilBusHandler      = errorfamily.NewRejection("command.nil_handler", "command: nil handler")
-	errNilBusSubscribeAll = errorfamily.NewRejection(
+	errNilBusHandler      error = errorfamily.NewRejection("command.nil_handler", "command: nil handler")
+	errNilBusSubscribeAll error = errorfamily.NewRejection(
 		"command.nil_subscribe_all",
 		"command: subscribe-all: nil handler",
 	)

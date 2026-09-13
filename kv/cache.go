@@ -13,8 +13,8 @@ const defaultCacheCapacity = 1000
 
 // Sentinel errors for Cache construction.
 var (
-	ErrNilTypedStore   = errorfamily.NewRejection("kv.cache.nil_store", "kv: store must not be nil")
-	ErrInvalidCacheCap = errorfamily.NewRejection(
+	ErrNilTypedStore   error = errorfamily.NewRejection("kv.cache.nil_store", "kv: store must not be nil")
+	ErrInvalidCacheCap error = errorfamily.NewRejection(
 		"kv.cache.invalid_capacity",
 		"kv: capacity must be positive",
 	)

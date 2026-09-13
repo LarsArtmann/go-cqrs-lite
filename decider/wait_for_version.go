@@ -14,7 +14,7 @@ import (
 
 // ErrWaitTimeout is returned by [Repository.WaitForVersion] when the target
 // version does not become visible within the configured timeout.
-var ErrWaitTimeout = errorfamily.NewTransient(
+var ErrWaitTimeout error = errorfamily.NewTransient(
 	"decider.wait_timeout",
 	"timed out waiting for version to become visible",
 )

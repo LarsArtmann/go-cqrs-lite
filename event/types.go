@@ -117,7 +117,7 @@ func (v Version) IsZero() bool { return v == 0 }
 func (v Version) Increment() Version { return v + 1 }
 
 // ErrVersionUnderflow is returned when a Version operation would result in a negative value.
-var ErrVersionUnderflow = errorfamily.NewRejection(
+var ErrVersionUnderflow error = errorfamily.NewRejection(
 	"event.version_underflow",
 	"event: version underflow",
 )
@@ -193,7 +193,7 @@ func ParseSchemaVersion(v int) (SchemaVersion, error) {
 }
 
 // ErrSchemaVersionUnderflow is returned when a SchemaVersion operation would result in a non-positive value.
-var ErrSchemaVersionUnderflow = errorfamily.NewRejection(
+var ErrSchemaVersionUnderflow error = errorfamily.NewRejection(
 	"event.schema_version_underflow",
 	"event: schema version underflow",
 )

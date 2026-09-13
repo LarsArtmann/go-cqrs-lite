@@ -30,7 +30,7 @@ import (
 
 // ErrStrictApplyUnknownType is returned by StrictApply when an event type is
 // not in the knownTypes list.
-var ErrStrictApplyUnknownType = errorfamily.NewCorruption(
+var ErrStrictApplyUnknownType error = errorfamily.NewCorruption(
 	"decider.strict_apply_unknown_type",
 	"strict-apply: unknown event type",
 )

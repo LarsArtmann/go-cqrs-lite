@@ -7,42 +7,42 @@ import (
 )
 
 var (
-	ErrInvalidKey = errorfamily.NewRejection(
+	ErrInvalidKey error = errorfamily.NewRejection(
 		"encryption.invalid_key",
 		"encryption key is empty or invalid",
 	)
 
-	ErrKeyNotSet = errorfamily.NewRejection(
+	ErrKeyNotSet error = errorfamily.NewRejection(
 		"encryption.key_not_set",
 		"encryption key source is empty or unset",
 	)
 
-	ErrDecryptionFailed = errorfamily.NewRejection(
+	ErrDecryptionFailed error = errorfamily.NewRejection(
 		"encryption.decryption_failed",
 		"decryption failed, ciphertext may be corrupt or wrong key",
 	)
 
-	ErrNilCiphertext = errorfamily.NewRejection(
+	ErrNilCiphertext error = errorfamily.NewRejection(
 		"encryption.nil_ciphertext",
 		"ciphertext is nil or empty",
 	)
 
-	ErrNilEvent = errorfamily.NewRejection(
+	ErrNilEvent error = errorfamily.NewRejection(
 		"encryption.nil_event",
 		"event is nil",
 	)
 
-	ErrNilEncrypter = errorfamily.NewRejection(
+	ErrNilEncrypter error = errorfamily.NewRejection(
 		"encryption.nil_encrypter",
 		"COSE encrypter is nil",
 	)
 
-	ErrNilDecrypter = errorfamily.NewRejection(
+	ErrNilDecrypter error = errorfamily.NewRejection(
 		"encryption.nil_decrypter",
 		"COSE decrypter is nil",
 	)
 
-	ErrCOSEAlgorithmMismatch = errorfamily.NewRejection(
+	ErrCOSEAlgorithmMismatch error = errorfamily.NewRejection(
 		"encryption.cose_algorithm_mismatch",
 		"COSE algorithm does not match decrypter",
 	)
@@ -59,17 +59,17 @@ var (
 	// Deprecated: See ErrInnerStoreNotJournal. Removed at v5 (ADR-0126).
 	ErrInnerStoreNotBackwards = event.ErrInnerStoreNotBackwards
 
-	ErrUnknownAlgorithm = errorfamily.NewRejection(
+	ErrUnknownAlgorithm error = errorfamily.NewRejection(
 		"encryption.unknown_algorithm",
 		"unknown encryption algorithm",
 	)
 
-	ErrUnknownAlgorithmID = errorfamily.NewRejection(
+	ErrUnknownAlgorithmID error = errorfamily.NewRejection(
 		"encryption.unknown_algorithm_id",
 		"unknown algorithm ID in versioned ciphertext",
 	)
 
-	ErrUnknownKeyID = errorfamily.NewRejection(
+	ErrUnknownKeyID error = errorfamily.NewRejection(
 		"encryption.unknown_key_id",
 		"unknown key ID",
 	)
