@@ -713,7 +713,8 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
   separates them; a module boundary would decouple nothing while every
   consumer still imports both sides. Slimming happens extract-DOWNWARD
   instead (record/ ADR-0111, go-codec ADR-0128 — alias, never break the
-  path). Do not split.
+  path). Do not split. Full evidence:
+  [`docs/reviews/2026-09-13_event-module-split-re-review.md`](docs/reviews/2026-09-13_event-module-split-re-review.md).
 - **ORM features** — no query builder, no ORM-style relations, no lazy loading.
   Auto-projection (v5, ADR-0123) infers everything from struct shapes. If the
   auto-projection gets it wrong, override with an explicit `OnRecord` fold.
