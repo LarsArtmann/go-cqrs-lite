@@ -15,11 +15,13 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
+	_ "modernc.org/sqlite" // driver registration for the demo database
 )
 
 func main() {
@@ -64,10 +66,21 @@ func run() error {
 	mux.Handle("/metrics", prov.Handler())
 	mux.HandleFunc("/status", statusHandler(store))
 
-	log.Println("scheduler-otel-status listening on :8080 (GET /status, GET /metrics)")
+	addr := addr()
+	log.Printf("scheduler-otel-status listening on %s (GET /status, GET /metrics)", addr)
 
 	//nolint:wrapcheck // top-level server error
-	return http.ListenAndServe(":8080", mux)
+	return http.ListenAndServe(addr, mux)
+}
+
+// addr prefers ADDR (e.g. ":8181") so the demo can coexist with whatever
+// already owns :8080 on a busy machine.
+func addr() string {
+	if a := os.Getenv("ADDR"); a != "" {
+		return a
+	}
+
+	return ":8080"
 }
 
 // statusSnapshot pairs the store's claim counters with a live claim rate

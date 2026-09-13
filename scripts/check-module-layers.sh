@@ -99,6 +99,7 @@ LAYER["cmd/doc-check"]=7
 LAYER["example/taskmanager"]=7
 LAYER["example/getting-started"]=7
 LAYER["example/readme-quickstart"]=7
+LAYER["example/scheduler-otel-status"]=7
 LAYER["example/metaengine-quickstart"]=7
 LAYER["cmd/cqrs-lint/testdata/typedfixture"]=7
 LAYER["event/v4/eventtest"]=7
