@@ -12,7 +12,10 @@ var (
 	ErrNilJournal error = errorfamily.NewRejection("schema.nil_journal", "journal is required")
 
 	// ErrNilUpcaster is returned when an upcaster with a nil function is called.
-	ErrNilUpcaster error = errorfamily.NewRejection("schema.nil_upcaster", "upcaster function is nil")
+	ErrNilUpcaster error = errorfamily.NewRejection(
+		"schema.nil_upcaster",
+		"upcaster function is nil",
+	)
 
 	// ErrInvalidUpcastResult is returned when an upcaster returns nil or the
 	// input event itself. Upcasters must return a NEW ImmutableEvent

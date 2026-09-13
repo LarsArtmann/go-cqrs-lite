@@ -26,7 +26,7 @@ func EnsureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect, s Spec) error
 }
 
 func ensurePostgresLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
-	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN IF NOT EXISTS " +
+	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN IF NOT EXISTS " + //nolint:gosec // identifiers are store-author constants
 		s.LeaseColumn + " TIMESTAMP WITH TIME ZONE"
 
 	if _, err := db.ExecContext(ctx, stmt); err != nil {

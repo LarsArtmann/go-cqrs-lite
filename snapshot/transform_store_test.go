@@ -81,8 +81,10 @@ func TestNewTransformedStore_RejectsNilInputs(t *testing.T) {
 			t.Parallel()
 
 			_, err := snapshot.NewTransformedStore(tc.inner, tc.protect, tc.restore)
-			var famErr *errorfamily.Error
-			if !errors.As(err, &famErr) || famErr.ErrorFamily() != errorfamily.Rejection {
+			if famErr, ok := errors.AsType[*errorfamily.Error](
+				err,
+			); !ok ||
+				famErr.ErrorFamily() != errorfamily.Rejection {
 				t.Fatalf("err = %v, want Rejection-family error", err)
 			}
 		})
@@ -171,8 +173,10 @@ func TestTransformedStore_RestoreFailureIsCorruption(t *testing.T) {
 	}
 
 	_, err = store.Load(context.Background(), transformTestRef(t))
-	var famErr *errorfamily.Error
-	if !errors.As(err, &famErr) || famErr.ErrorFamily() != errorfamily.Corruption {
+	if famErr, ok := errors.AsType[*errorfamily.Error](
+		err,
+	); !ok ||
+		famErr.ErrorFamily() != errorfamily.Corruption {
 		t.Fatalf("err = %v, want Corruption-family error", err)
 	}
 }
@@ -188,8 +192,10 @@ func TestTransformedStore_ProtectFailureIsInfrastructure(t *testing.T) {
 	}
 
 	err = store.Save(context.Background(), testSnapshot(t))
-	var famErr *errorfamily.Error
-	if !errors.As(err, &famErr) || famErr.ErrorFamily() != errorfamily.Infrastructure {
+	if famErr, ok := errors.AsType[*errorfamily.Error](
+		err,
+	); !ok ||
+		famErr.ErrorFamily() != errorfamily.Infrastructure {
 		t.Fatalf("err = %v, want Infrastructure-family error", err)
 	}
 }
@@ -200,8 +206,10 @@ func TestTransformedStore_LoadNotFoundStaysInfrastructure(t *testing.T) {
 	store, _ := newTransformedForTest(t)
 
 	_, err := store.Load(context.Background(), transformTestRef(t))
-	var famErr *errorfamily.Error
-	if !errors.As(err, &famErr) || famErr.ErrorFamily() != errorfamily.Infrastructure {
+	if famErr, ok := errors.AsType[*errorfamily.Error](
+		err,
+	); !ok ||
+		famErr.ErrorFamily() != errorfamily.Infrastructure {
 		t.Fatalf("err = %v, want Infrastructure-family error", err)
 	}
 }

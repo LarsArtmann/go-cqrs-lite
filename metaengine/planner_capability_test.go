@@ -182,8 +182,8 @@ func TestApply_LyingOnlyEngine_HardErrorCorrelatesWithPlanWarn(t *testing.T) {
 		t.Fatalf("Apply error must wrap *ApplyError, got %T: %v", applyErr, applyErr)
 	}
 
-	if !strings.Contains(applyErr.Error(), "liar") {
-		t.Fatalf("Apply error must name the engine, got: %v", applyErr)
+	if !strings.Contains(applyErrStruct.Error(), "liar") {
+		t.Fatalf("Apply error must name the engine, got: %v", applyErrStruct)
 	}
 }
 

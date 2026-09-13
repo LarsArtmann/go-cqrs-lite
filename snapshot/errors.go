@@ -9,7 +9,10 @@ var (
 		"snapshot.invalid",
 		"invalid snapshot",
 	)
-	ErrSnapshotNotFound    error = errorfamily.NewRejection("snapshot.not_found", "snapshot not found")
+	ErrSnapshotNotFound error = errorfamily.NewRejection(
+		"snapshot.not_found",
+		"snapshot not found",
+	)
 	ErrSnapshotStoreClosed error = errorfamily.NewInfrastructure(
 		"snapshot.store_closed",
 		"snapshot store is closed",

@@ -416,19 +416,6 @@ func (s *Store) Apply(ctx context.Context, eventType string, payload any) error 
 	return s.applyWithRecord(ctx, eventType, record.Record{Type: eventType}, payload)
 }
 
-// EventInput pairs an event type with its payload for batch application.
-// Record optionally carries the full record context: when set, ApplyBatch and
-// the replay paths (Backfill, Verify, DemoteEngine catch-up) hand Record-aware
-// projections the original StreamID/Version/metadata instead of a synthesized
-// minimal record. Payload may also be the raw JSON bytes produced by
-// ApplyEncoded/ApplyEncodedRecord (stored as jsontext.Value in the EventLog);
-// every dispatch path decodes them per fold before invoke.
-type EventInput struct {
-	Type    string
-	Payload any
-	Record  record.Record
-}
-
 // ApplyBatch processes multiple events through all queries in one call.
 // Events are applied sequentially; on the first error, remaining events are
 // skipped and the error is returned. This is the primary API for replay

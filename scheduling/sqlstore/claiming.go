@@ -113,7 +113,7 @@ func newClaimingStore[P any](
 	}
 
 	if err := claiming.EnsureLeaseColumn(ctx, db, d, timersSpec()); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sqlstore: ensure lease column: %w", err)
 	}
 
 	if lease <= 0 {

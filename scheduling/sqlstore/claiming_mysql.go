@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -63,7 +64,7 @@ func claimDueMySQL[P any](
 			c.formatTime(leaseUntil),
 			ids,
 		); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("claim due timers: %w", err)
 		}
 	}
 
