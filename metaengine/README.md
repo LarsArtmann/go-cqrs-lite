@@ -42,7 +42,7 @@ store, _ := metaengine.Plan([]metaengine.Engine{metaengine.NewMemoryEngine()}, f
 defer store.Close()
 
 // 5. Apply events + execute queries
-store.Apply("UserCreated", UserCreated{ID: "u1", Name: "Alice", At: time.Now()})
+store.Apply(ctx, "UserCreated", UserCreated{ID: "u1", Name: "Alice", At: time.Now()})
 
 result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
     context.Background(), store, FindUser{ID: "u1"})
@@ -285,7 +285,7 @@ store, _ := metaengine.Plan(engines,
 ## JSON Event Payloads
 
 ```go
-store.ApplyEncoded(string(evt.Type()), evt.Payload())
+store.ApplyEncoded(ctx, string(evt.Type()), evt.Payload())
 ```
 
 ## Projection Adapter
@@ -293,8 +293,8 @@ store.ApplyEncoded(string(evt.Type()), evt.Payload())
 ```go
 type projectionAdapter struct{ store *metaengine.Store }
 
-func (p *projectionAdapter) Handle(_ context.Context, evt event.Event) error {
-    return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
+func (p *projectionAdapter) Handle(ctx context.Context, evt event.Event) error {
+    return p.store.ApplyEncoded(ctx, string(evt.Type()), evt.Payload())
 }
 ```
 
@@ -363,24 +363,24 @@ Three engines (SQLite, Pebble, DuckDB) are volatile OR persistent depending on
 constructor arguments. The engine sets the field dynamically at construction
 time:
 
-| Constructor                 | Persistence | Why                                                            |
+| Constructor                  | Persistence | Why                                                            |
 | --------------------------- | ----------- | -------------------------------------------------------------- |
 | `NewMemoryEngine()`         | Volatile    | Pure RAM                                                       |
 | `NewSQLiteEngine(db)`       | Persistent  | File or `:memory:` (profile)                                   |
 | `NewPebbleEngine("")`       | Volatile    | `vfs.NewMem()`                                                 |
 | `NewPebbleEngine("/db")`    | Persistent  | LSM on disk                                                    |
 | `NewPebbleEngineFromDB(db)` | Persistent  | Caller owns DB; seeds seq counters (returns `(Engine, error)`) |
-| `duckdb.New("")`            | Volatile    | `:memory:`                                                     |
-| `duckdb.New("file.db")`     | Persistent  | Disk file                                                      |
-| `duckdb.NewFromDB`          | Persistent  | Caller owns a DB                                               |
+| `duckdbengine.New("")`      | Volatile    | `:memory:`                                                     |
+| `duckdbengine.New("file.db")`| Persistent | Disk file                                                      |
+| `duckdbengine.NewFromDB`    | Persistent  | Caller owns a DB                                               |
 | `pgengine.New(dsn)`         | Persistent  | Remote server                                                  |
 
 > **Pebble seq seeding**: When a persistent Pebble engine is constructed
 > (`NewPebbleEngine("/db")` or `NewPebbleEngineFromDB(db)`), all internal
 > sequence counters (stream, journal, log, multimap) are seeded from existing
 > data via an O(N) scan. This prevents key collisions after restart. The scan
-> runs once at construction. `NewPebbleEngineFromDB` returns `(Engine, error)`
-> because seeding can fail.
+> runs once at construction. Both constructors return `(Engine, error)`
+> because construction and seeding can fail.
 
 ### Planner Durability Rule
 
@@ -431,7 +431,7 @@ it via `encoding/json/v2`, and routes it to all matching fold handlers:
 ```go
 // In a projection.Projection.Handle implementation:
 func (p *myProjection) Handle(ctx context.Context, evt event.Event) error {
-    return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
+    return p.store.ApplyEncoded(ctx, string(evt.Type()), evt.Payload())
 }
 ```
 
@@ -636,7 +636,7 @@ qb := metaengine.NewQueryBuilder[TaskView](reader)
 
 results, _ := qb.
     Where("status", metaengine.FilterEq, "active").
-    OrderBy("priority", true).
+    SortBy("priority", true).
     Limit(50).
     Execute(ctx)
 ```

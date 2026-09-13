@@ -29,14 +29,26 @@
 # --dry-run: strip + tidy + verify, print what WOULD be tagged, then exit
 # without creating any commit or tag. Use to preview a release safely. The
 # working tree is restored to its original state on exit.
+#
+# --audit [--baseline <file>] [--write-baseline]: replay the path-vs-tag
+# guard over EVERY tag of EVERY module. Plain --audit fails on ANY violation;
+# with --baseline, violations listed in the file (one tag per line) are
+# known-dead history and only NEW violations fail — that is the CI-safe form.
+# --write-baseline (with --baseline) regenerates the file from the current
+# violations; use it only after consciously deciding the whole current set
+# is known-dead, never to silence a surprise.
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/release_common.sh
+source "${SCRIPT_DIR}/lib/release_common.sh"
 
 cd "$(git rev-parse --show-toplevel)"
 
 usage() {
 	echo "Usage: $0 <module-path> <version> <description> [--dry-run]"
 	echo "       $0 --smoke <module-path> <version>"
-	echo "       $0 --audit"
+	echo "       $0 --audit [--baseline <file>] [--write-baseline]"
 	echo "Examples:"
 	echo "  $0 event v4.0.1 \"Fix event payload marshaling\""
 	echo "  $0 cmd/cqrs-lint v0.1.0 \"First release\""
@@ -45,33 +57,9 @@ usage() {
 	echo "  $0 --audit                         # all-modules path-vs-tag audit"
 }
 
-# path_matches_major reports whether a module path is consistent with a tag
-# version's major number: v0/v1 tags require a module path WITHOUT any /vN
-# suffix; v2+ tags require the path to end in the matching /vN. Mismatched
-# tags are INVISIBLE to the module proxy (the issue-#20 class), so the
-# per-release guard below and `--audit` route through this one implementation.
-path_matches_major() {
-	local module_path="$1"
-	local version="$2"
-	local tag_major="${version#v}"
-	tag_major="${tag_major%%.*}"
-
-	local path_major=""
-	case "$module_path" in
-	*/v[0-9]*)
-		path_major="${module_path##*/v}"
-		;;
-	esac
-
-	case "$tag_major" in
-	0 | 1)
-		[ -z "$path_major" ]
-		;;
-	*)
-		[ "$path_major" = "$tag_major" ]
-		;;
-	esac
-}
+# path_matches_major, module_has_root_main and smoke_probe_args live in
+# scripts/lib/release_common.sh (one implementation shared with
+# batch-release.sh — the issue-#20 guard must never fork again).
 
 # --- Post-cut proxy smoke-check (--smoke): proves proxy.golang.org serves
 # the freshly pushed tag AND that the tag actually builds. The proxy fetches

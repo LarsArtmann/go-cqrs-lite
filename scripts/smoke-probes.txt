@@ -1,0 +1,12 @@
+# smoke-probes.txt — explicit install-probe invocations for the release
+# smoke checks (tag-release.sh --smoke, batch-release.sh --smoke-all).
+#
+# The DEFAULT probe runs the installed binary with --help and treats a
+# nonzero exit as a WARNING (probe exit semantics are tool-specific; a
+# subcommand CLI may reject the bare flag). An entry here REPLACES the
+# default for that module and the probe must exit 0 — a failing explicit
+# probe is a hard error, because the entry exists precisely to assert this
+# tool's real invocation works. The install itself is always the hard gate.
+#
+# Format:  <module-path> <args...>
+cmd/cqrs-lint version
