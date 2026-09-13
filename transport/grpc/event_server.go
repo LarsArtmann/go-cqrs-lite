@@ -4,11 +4,10 @@ import (
 	"context"
 	"sync"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	"google.golang.org/grpc"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
+	errorfamily "github.com/larsartmann/go-error-family"
+	"google.golang.org/grpc"
 )
 
 // EventSubscriber is the server-side interface that the gRPC event service

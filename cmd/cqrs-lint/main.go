@@ -11,10 +11,9 @@ import (
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
 	"github.com/spf13/cobra"
-
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // resolvedVersion reports the build's version with NO hand-maintained
@@ -99,7 +98,7 @@ type AppConfig struct {
 	Features analyzer.ConfigFeatures `json:"features,omitempty"` //nolint:modernize // config compatibility
 	// Preset is a named set of feature-flag defaults (sugar over Features).
 	// Explicit Features flags always override preset values.
-	Preset analyzer.ConfigPreset `default:"" json:"preset,omitempty"`
+	Preset analyzer.ConfigPreset `json:"preset,omitempty" default:""`
 	// Rules carries rule-specific overrides (e.g. external-API struct prefixes
 	// for D002). See analyzer.RulesConfig docs for each field.
 	Rules analyzer.RulesConfig `json:"rules,omitempty"` //nolint:modernize // config compatibility
@@ -111,7 +110,7 @@ type AppConfig struct {
 	// this allows it. "auto" (default) enables them whenever the package
 	// load produced type info; "on" forces them on; "off" restores the
 	// pre-typed name-only behavior everywhere.
-	TypedInfo string `default:"auto" flag:"typed-info" help:"Typed confirmation tier: auto, on, off" json:"typed-info,omitempty"` //nolint:tagliatelle // CLI config key
+	TypedInfo string `json:"typed-info,omitempty" default:"auto" flag:"typed-info" help:"Typed confirmation tier: auto, on, off"` //nolint:tagliatelle // CLI config key
 }
 
 // HealthConfig tunes the health-score computation. All fields default to zero,

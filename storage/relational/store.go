@@ -7,10 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // RelationalStore provides dialect-agnostic read access to the tables of a

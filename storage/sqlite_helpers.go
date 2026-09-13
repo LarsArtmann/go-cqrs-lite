@@ -9,9 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EnsureSQLiteDSNBusyTimeout appends _pragma=busy_timeout(ms) to the DSN so

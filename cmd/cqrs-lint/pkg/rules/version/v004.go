@@ -4,9 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // V004: Vendored copy of go-cqrs-lite in a third_party directory.

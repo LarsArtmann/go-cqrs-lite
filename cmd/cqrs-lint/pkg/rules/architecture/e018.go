@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // E018: Projection handles an event type that nothing emits.

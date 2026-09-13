@@ -6,11 +6,10 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-codec"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func (s *SQLEventStore) scanEvents(rows *sql.Rows, capacityHint int) ([]event.Event, error) {

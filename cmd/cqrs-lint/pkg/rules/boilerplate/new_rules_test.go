@@ -4,13 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"golang.org/x/tools/go/packages"
-
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/boilerplate"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
+	"github.com/larsartmann/go-finding"
+	"golang.org/x/tools/go/packages"
 )
 
 // --- B002: Manual repository wiring ---
