@@ -232,8 +232,9 @@ via config.
 | `metaengine.RegisteredDrivers()`     | List registered engine driver names.                     |
 
 Built-in drivers: `memory` (always available). Additional drivers
-(`sqlite`, `pebble`, `badger`, `duckdb`, `postgres`, `dgraph`) self-register
-when their package is imported via a blank import:
+(`sqlite`, `turso`, `postgres`, `mysql`, `pebble`, `bbolt`, `badger`,
+`duckdb`, `dgraph`) self-register when their package is imported via a
+blank import:
 
 ```go
 import _ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"

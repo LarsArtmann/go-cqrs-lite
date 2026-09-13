@@ -17,7 +17,12 @@ go get github.com/larsartmann/go-cqrs-lite/benchkit/v4
 ## Quick start
 
 ```go
-import "github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+import (
+    "github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+)
 
 result, err := benchkit.Run(ctx, benchkit.Config{
     Profile:     benchkit.ProfileDev,
@@ -33,6 +38,13 @@ benchkit.PrintReport(os.Stdout, result)
 ## Cross-backend comparison
 
 ```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/pebble/v4"
+    "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+)
+
 results, err := benchkit.Compare(ctx, config, map[string]benchkit.Factory{
     "memory": func() (*stack.Bundle, error) { return memory.New() },
     "sqlite": func() (*stack.Bundle, error) { return sqlite.New(":memory:") },
@@ -145,6 +157,8 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 Use `benchkit.RunSuite` to run benchmarks via Go's standard `testing.B`:
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+
 func BenchmarkBenchkitSuite_Memory(b *testing.B) {
     benchkit.RunSuite(b, benchkit.Config{
         Profile: benchkit.ProfileDev,

@@ -141,6 +141,8 @@ scheduling carries no OTel dependency, so wire your own exporter via
 `WithClaimMetrics` — the hooks see the same events the counters count:
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
+
 metrics := sqlstore.ClaimMetrics{
 	Claimed:       func(n int) { claimed.Add(ctx, int64(n)) },
 	Renewed:       func() { renewed.Add(ctx, 1) },

@@ -39,6 +39,11 @@ user, err := query.DispatchTyped[*GetUserResult](ctx, queries, q)
 Queries can be persisted for audit ("who queried what data and when?") — the query-side equivalent of event sourcing:
 
 ```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/query/v4"
+    "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+)
+
 // Create a persisted query record (correlation tracing rides in Metadata.Tracing)
 pq, err := query.NewPersistedQuery("user.get", payload,
     query.WithQueryMetadata(query.Metadata{
