@@ -6,9 +6,9 @@ import (
 	"io"
 	"log/slog"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
-	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -221,13 +221,21 @@ func TestEngineHealth_CatchUpStateObservable(t *testing.T) {
 		t.Fatalf("CatchUpSnapshot before any rebuild = %v, want empty", snap)
 	}
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i1", Name: "n1"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i1", Name: "n1"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
 	quarantinePrimary(t, store, primary)
 
-	if err := store.Apply(ctx, "roleItemCreated", roleItemCreated{ID: "i2", Name: "n2"}); err != nil {
+	if err := store.Apply(
+		ctx,
+		"roleItemCreated",
+		roleItemCreated{ID: "i2", Name: "n2"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
