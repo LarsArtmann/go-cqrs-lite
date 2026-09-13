@@ -178,6 +178,13 @@ var deprecatedV5Symbols = []deprecatedV5Symbol{ //nolint:gochecknoglobals // sta
 	},
 	{fragment: "event", symbol: "ParseType", replacement: "record.ParseType(s, ErrEmptyEventType)"},
 	{fragment: "query", symbol: "ParseType", replacement: "record.ParseType(s, ErrEmptyQueryType)"},
+	// 2026-09-13: thin BasicCommand bridge superseded by the full-fidelity
+	// persisted-command bridge (command-side depth plan, D2).
+	{
+		fragment:    "command",
+		symbol:      "AsRecord",
+		replacement: "command.AsRecordPersisted (payload, stream type, receive stamps)",
+	},
 	// v5: manual snapshot helper replaced by encoding-aware construction.
 	{
 		fragment:    "snapshot",
