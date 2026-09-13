@@ -1,6 +1,7 @@
 package security_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
@@ -110,6 +111,39 @@ func banner() {
 	})
 	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
 	ruletest.AssertRule(t, findings, "S001", 0)
+}
+
+// TestS001_SelectorLHSMessageCarriesReceiver pins the receiver-context fix
+// (03-44 #101 second half): for `cfg.Password = …` the message must name the
+// full target ("cfg.Password"), not the bare field — the receiver is what a
+// reader must locate to fix the finding.
+func TestS001_SelectorLHSMessageCarriesReceiver(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"config.go": `package main
+
+type Config struct {
+	Password string
+}
+
+func configure(cfg *Config) {
+	cfg.Password = "super-secret-password-123"
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, security.NewS001Detector(ctx))
+	ruletest.AssertRule(t, findings, "S001", 1)
+
+	for _, f := range findings {
+		if string(f.Rule) != "S001" {
+			continue
+		}
+
+		if !strings.Contains(f.Message, "cfg.Password") {
+			t.Errorf("S001 selector-LHS message %q must carry the receiver path \"cfg.Password\"", f.Message)
+		}
+	}
 }
 
 // TestS001_AllowsURLsAndPlaceholders pins the URL/placeholder value

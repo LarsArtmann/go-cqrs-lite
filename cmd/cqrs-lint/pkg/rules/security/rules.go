@@ -45,7 +45,7 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				"private_key",
 			}
 
-			check := func(pos token.Pos, fieldName string, expr ast.Expr) {
+			check := func(pos token.Pos, fieldName, display string, expr ast.Expr) {
 				lit, ok := expr.(*ast.BasicLit)
 				if !ok || lit.Kind != token.STRING {
 					return
@@ -71,7 +71,7 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					f, err := finding.NewBuilder(
 						"S001", toolName,
-						fmt.Sprintf("Potential hardcoded secret in field %q — use environment variables or a secret manager", lower),
+						fmt.Sprintf("Potential hardcoded secret in field %q — use environment variables or a secret manager", display),
 						finding.SeverityCritical,
 						finding.Pos(finding.FilePath(p.Filename), p.Line, p.Column),
 					).
@@ -101,7 +101,7 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								break
 							}
 
-							check(node.Pos(), s001LHSName(lhs), node.Rhs[i])
+							check(node.Pos(), s001LHSName(lhs), s001LHSDisplay(lhs), node.Rhs[i])
 						}
 					case *ast.GenDecl:
 						for _, spec := range node.Specs {
@@ -115,12 +115,12 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 									break
 								}
 
-								check(node.Pos(), name.Name, vs.Values[i])
+								check(node.Pos(), name.Name, name.Name, vs.Values[i])
 							}
 						}
 					case *ast.KeyValueExpr:
 						if key, ok := node.Key.(*ast.Ident); ok {
-							check(node.Pos(), key.Name, node.Value)
+							check(node.Pos(), key.Name, key.Name, node.Value)
 						}
 					}
 
@@ -149,4 +149,25 @@ func s001LHSName(lhs ast.Expr) string {
 	}
 
 	return ""
+}
+
+// s001LHSDisplay renders the assignment target for finding MESSAGES: the
+// full selector path ("cfg.Password", not just "Password") so the report
+// names the receiver a reader must fix. Falls back to the bare name when
+// the receiver is not a simple identifier.
+func s001LHSDisplay(lhs ast.Expr) string {
+	switch t := lhs.(type) {
+	case *ast.SelectorExpr:
+		if recv, ok := t.X.(*ast.Ident); ok {
+			return recv.Name + "." + t.Sel.Name
+		}
+	case *ast.IndexExpr:
+		if recv, ok := t.X.(*ast.Ident); ok {
+			if key, ok := t.Index.(*ast.BasicLit); ok {
+				return recv.Name + "[" + strings.Trim(key.Value, "\"`") + "]"
+			}
+		}
+	}
+
+	return s001LHSName(lhs)
 }

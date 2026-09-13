@@ -74,9 +74,9 @@ var _ = Describe("ExecuteCommandRef", func() {
 		ref = id.NewStreamRef("Counter", id.NewStreamID())
 	})
 
-	loadedEvents := func() []event.Event {
-		evts, loadErr := store.Load(ctx, ref)
-		Expect(loadErr).ToNot(HaveOccurred())
+	persistedEvents := func() []event.Event {
+		evts, readErr := store.ReadAll(ctx)
+		Expect(readErr).ToNot(HaveOccurred())
 
 		return evts
 	}
@@ -93,7 +93,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 			})
 		Expect(err).ToNot(HaveOccurred())
 
-		evts := loadedEvents()
+		evts := persistedEvents()
 		Expect(evts).To(HaveLen(2))
 		for _, evt := range evts {
 			rec := event.AsRecord(evt)
@@ -119,7 +119,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 			})
 		Expect(err).ToNot(HaveOccurred())
 
-		evts := loadedEvents()
+		evts := persistedEvents()
 		Expect(evts).To(HaveLen(1))
 
 		md := evts[0].Metadata()
@@ -147,7 +147,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 			})
 		Expect(err).ToNot(HaveOccurred())
 
-		evts := loadedEvents()
+		evts := persistedEvents()
 		Expect(evts).To(HaveLen(2))
 		Expect(evts[0].Metadata().Causation.CommandID).To(Equal(otherID))
 		Expect(evts[1].Metadata().Causation.CommandID).To(Equal(cmd.ID()))
@@ -170,7 +170,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 			})
 		Expect(err).ToNot(HaveOccurred())
 
-		evts := loadedEvents()
+		evts := persistedEvents()
 		Expect(evts).To(HaveLen(1))
 
 		md := evts[0].Metadata()
@@ -186,7 +186,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 				return nil, nil
 			})
 		Expect(err).ToNot(HaveOccurred())
-		Expect(loadedEvents()).To(BeEmpty())
+		Expect(persistedEvents()).To(BeEmpty())
 		Expect(bus.Published).To(BeEmpty())
 	})
 
@@ -198,7 +198,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 				return nil, errCmdRejected
 			})
 		Expect(err).To(MatchError(errCmdRejected))
-		Expect(loadedEvents()).To(BeEmpty())
+		Expect(persistedEvents()).To(BeEmpty())
 		Expect(bus.Published).To(BeEmpty())
 	})
 
@@ -211,7 +211,7 @@ var _ = Describe("ExecuteCommandRef", func() {
 			})
 		Expect(err).ToNot(HaveOccurred())
 
-		evts := loadedEvents()
+		evts := persistedEvents()
 		Expect(evts).To(HaveLen(1))
 
 		md := evts[0].Metadata()
