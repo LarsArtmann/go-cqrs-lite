@@ -14,23 +14,64 @@
 # docs/status reports) are intentionally NOT gated.
 #
 # Exit 0 = all live citations match, exit 1 = drift found.
+#
+# --self-test: mutation-proves the scanner against a synthetic tree (a clean
+# citation passes, a planted stale citation is caught) without touching the
+# repo's real files.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
-
-echo "=== Turso Version Citation Check ==="
-
-CANON=$(sed -n 's/^[[:space:]]*TursoGoIVMVerifiedThrough[[:space:]]*= *"\(.*\)"/\1/p' metaengine/materialized_view_versions.go | head -1)
-if [ -z "$CANON" ]; then
-	echo "FAIL: cannot read TursoGoIVMVerifiedThrough from metaengine/materialized_view_versions.go"
-	exit 1
-fi
 
 RANGE_PAT='(<=|≤|through) v[0-9]+\.[0-9]+\.[0-9]+(-pre\.[0-9]+)?'
 
-# Live citation sites: docs and code an operator or release check reads TODAY.
+read_canonical() {
+	local root="$1"
+	sed -n 's/^[[:space:]]*TursoGoIVMVerifiedThrough[[:space:]]*= *"\(.*\)"/\1/p' \
+		"$root/metaengine/materialized_view_versions.go" | head -1
+}
+
+# scan_citations <root> <live-file...>: echoes FAIL lines for every citation
+# that drifts from the root's canonical constant; returns 1 when any drift.
+scan_citations() {
+	local root="$1"
+	shift
+
+	local canon
+	canon="$(read_canonical "$root")"
+	if [ -z "$canon" ]; then
+		echo "FAIL: cannot read TursoGoIVMVerifiedThrough from $root/metaengine/materialized_view_versions.go"
+		return 1
+	fi
+
+	local status=0
+	local f
+	for f in "$@"; do
+		if [ ! -f "$root/$f" ]; then
+			echo "FAIL: live-citation file missing: $f (update scripts/check-turso-version.sh)"
+			status=1
+			continue
+		fi
+
+		local hit line content m cited
+		while IFS= read -r hit; do
+			[ -n "$hit" ] || continue
+			line=${hit%%:*}
+			content=${hit#*:}
+			while IFS= read -r m; do
+				[ -n "$m" ] || continue
+				cited=${m##* }
+				if [ "$cited" != "$canon" ]; then
+					echo "FAIL: $f:$line cites '$cited' but canonical TursoGoIVMVerifiedThrough is '$canon'"
+					status=1
+				fi
+			done < <(printf '%s\n' "$content" | grep -oE "$RANGE_PAT" || true)
+		done < <(grep -nE "$RANGE_PAT" "$root/$f" || true)
+	done
+
+	return "$status"
+}
+
 LIVE_FILES=(
 	metaengine/materialized_view_doctor_test.go
 	metaengine/tursoengine/matview_property_test.go
@@ -46,30 +87,50 @@ LIVE_FILES=(
 	.agents/skills/go-cqrs-lite/references/recipes.md
 )
 
-status=0
-for f in "${LIVE_FILES[@]}"; do
-	if [ ! -f "$f" ]; then
-		echo "FAIL: live-citation file missing: $f (update scripts/check-turso-version.sh)"
-		status=1
-		continue
+self_test() {
+	local tmp
+	tmp="$(mktemp -d)"
+	trap 'rm -rf "$tmp"' RETURN
+
+	mkdir -p "$tmp/metaengine" "$tmp/docs"
+	printf 'package metaengine\n\nconst TursoGoIVMVerifiedThrough = "v0.7.2-pre.10"\n' \
+		>"$tmp/metaengine/materialized_view_versions.go"
+	printf 'The caveat holds through v0.7.2-pre.10.\n' >"$tmp/docs/clean.md"
+	printf 'Older doc says the caveat holds through v0.7.2-pre.8.\n' >"$tmp/docs/stale.md"
+
+	if scan_citations "$tmp" docs/clean.md >/dev/null 2>&1; then
+		echo "  ✓ PASS: clean citation accepted"
+	else
+		echo "  ✗ FAIL: clean citation was rejected"
+		return 1
 	fi
 
-	while IFS= read -r hit; do
-		[ -n "$hit" ] || continue
-		line=${hit%%:*}
-		content=${hit#*:}
-		while IFS= read -r m; do
-			[ -n "$m" ] || continue
-			cited=${m##* }
-			if [ "$cited" != "$CANON" ]; then
-				echo "FAIL: $f:$line cites '$cited' but canonical TursoGoIVMVerifiedThrough is '$CANON'"
-				status=1
-			fi
-		done < <(printf '%s\n' "$content" | grep -oE "$RANGE_PAT" || true)
-	done < <(grep -nE "$RANGE_PAT" "$f" || true)
-done
+	local out
+	out="$(scan_citations "$tmp" docs/stale.md 2>&1)" && true
+	if printf '%s' "$out" | grep -q "v0.7.2-pre.8"; then
+		echo "  ✓ PASS: planted stale citation caught"
+	else
+		echo "  ✗ FAIL: stale citation NOT caught (out: $out)"
+		return 1
+	fi
 
-if [ "$status" -ne 0 ]; then
+	return 0
+}
+
+if [ "${1:-}" = "--self-test" ]; then
+	if self_test; then
+		echo "check-turso-version self-test passed."
+		exit 0
+	fi
+	echo "check-turso-version self-test FAILED."
+	exit 1
+fi
+
+cd "$ROOT"
+
+echo "=== Turso Version Citation Check ==="
+
+if ! scan_citations "$ROOT" "${LIVE_FILES[@]}"; then
 	echo ""
 	echo "Fix: re-verify live (metaengine/tursoengine suite behind -tags ivmrepro), then"
 	echo "bump TursoGoIVMVerifiedThrough in metaengine/materialized_view_versions.go and"
@@ -77,5 +138,5 @@ if [ "$status" -ne 0 ]; then
 	exit 1
 fi
 
-echo "All live turso-go IVM citations match TursoGoIVMVerifiedThrough=$CANON."
+echo "All live turso-go IVM citations match TursoGoIVMVerifiedThrough=$(read_canonical "$ROOT")."
 exit 0

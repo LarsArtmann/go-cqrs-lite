@@ -228,17 +228,22 @@ func TestIVMReproDefectB_GroupedViewCollapsesAtScale(t *testing.T) {
 	commitAborted := false
 	scalarExactThrough := 0
 	for start := 0; start < rows; start += ivmChunkSize {
-		err := r.insertChunk(ctx, start, start+ivmChunkSize)
+		// Clamp the last chunk: TURSO_IVM_REPRO_ROWS need not be a multiple
+		// of ivmChunkSize, and an unclamped tail would insert BEYOND the
+		// requested row count (27500 → a phantom 28000-row baseline) and
+		// mismatch ivmExpectedSum.
+		end := min(start+ivmChunkSize, rows)
+		err := r.insertChunk(ctx, start, end)
 		if err != nil {
 			commitAborted = true
 			t.Logf(
 				"COMMIT abort at %d cumulative rows — defect C firing inside defect B's run: %v",
-				start+ivmChunkSize, err,
+				end, err,
 			)
 			break
 		}
 
-		committed = start + ivmChunkSize
+		committed = end
 		if milestones[committed] {
 			if got, _ := r.groupedSumTotal(
 				t,

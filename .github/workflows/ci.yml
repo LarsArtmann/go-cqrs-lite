@@ -643,6 +643,12 @@ jobs:
       - name: Audit tags vs module paths (baseline gate)
         run: nix run .#check-tag-audit
 
+      # No go.mod may require a proxy-invisible (private/unaudited) sibling
+      # repo: the class that breaks anonymous consumers and credential-less
+      # CI module loading (the go-must/taskmanager class).
+      - name: Check for private dependencies
+        run: nix run .#check-private-deps
+
     timeout-minutes: 10
   cqrs-upgrade-dogfood:
     name: cqrs-upgrade dogfood (consumer dry-run)
