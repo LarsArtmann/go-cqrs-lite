@@ -9,13 +9,19 @@
 > - [§6.5 Turso Offline-First](#65-turso-offline-first)
 > - [§6.6 Pebble as KV Store](#66-pebble-as-kv-store)
 > - [§6.7 Code Generation (cqrs-gen)](#67-code-generation-cqrs-gen)
-> - [§6.8 gRPC Transport](#68-grpc-transport-remote-commandquery-dispatch)
+> - [§6.8 gRPC Transport](#68-grpc-transport-remote-commandquery-dispatch--deprecated)
 > - [§6.9 Managed Projection Host](#69-managed-projection-host-crash-restart--checkpoint--dlq)
 > - [§6.10 Scenario-Testing DSL](#610-scenario-testing-dsl-givenwhenthen)
 > - [§6.11 Scheduled Commands / Durable Deadlines](#611-scheduled-commands--durable-deadlines)
 > - [§6.12 Reactive Command Derivation (deriver)](#612-reactive-command-derivation-deriver)
 > - [§6.13 Graph Projections](#613-graph-projections-graph)
 > - [§6.14 Prometheus Metrics Export](#614-prometheus-metrics-export-prometheus)
+> - [§6.15 SSE Streaming vs CatchUpSubscriber](#615-sse-streaming-vs-catchupsubscriber--which-replay-path)
+> - [§6.16 Metaengine SSE & Cursor Pagination](#616-metaengine-sse-streaming--cursor-pagination-metaengine)
+> - [§6.16b Failure Modes — read first](#616b-failure-modes--read-first)
+> - [§6.17 Flight Recorder](#617-flight-recorder--execution-trace-capture-flightrecorder)
+> - [§6.18 Command Lifecycle as Event Streams](#618-command-lifecycle-as-event-streams-commandlifecycle--adr-0117)
+> - [§6.19 Operator-Driven Layout Planning](#619-operator-driven-layout-planning-metaengine--adr-0124)
 
 ### 6.1 Tombstone Soft-Delete & Rebirth
 
@@ -617,6 +623,8 @@ The `PrefetchCache` is thread-safe and normalizes cache keys through
 hit the same cache entry.
 
 ---
+
+### 6.16b Failure Modes — read first
 
 These are the failure modes we see most often. Read them before reaching for an advanced pattern.
 

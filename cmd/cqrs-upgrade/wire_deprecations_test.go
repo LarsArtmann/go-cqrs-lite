@@ -63,7 +63,10 @@ func TestEmitJSON_BumpsAlwaysPresent(t *testing.T) {
 
 	reports := []moduleReport{
 		{Dir: "/tmp/no-pins", NoPins: true},
-		{Dir: "/tmp/with-bumps", Bumps: []bump{{Module: "example.com/a", From: "v1.0.0", To: "v1.1.0"}}},
+		{
+			Dir:   "/tmp/with-bumps",
+			Bumps: []bump{{Module: "example.com/a", From: "v1.0.0", To: "v1.1.0"}},
+		},
 	}
 
 	var out strings.Builder

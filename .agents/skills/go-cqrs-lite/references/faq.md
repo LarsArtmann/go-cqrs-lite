@@ -16,7 +16,7 @@
 > - [event.New vs event.NewEvent payloads](#eventnew-rejects-nil-payload-but-eventnewevent-accepts-byte)
 > - [WithEnricher type inference](#withenricher-cant-infer-the-type-parameter)
 > - [go-error-family vs event constructors](#go-error-family-vs-eventv4-error-constructors--which-should-i-use)
-> - [eventtest.FakeBus in production?](#iseventtestfakebus-production-safe)
+> - [eventtest.FakeBus in production?](#is-eventtestfakebus-production-safe)
 > - [Sharing one \*sql.DB](#can-i-share-one-sqldb-for-events-and-read-models)
 > - [When to use snapshots](#when-should-i-use-snapshots)
 > - [Storage package restructure](#storage-package-restructure--where-did-types-move)
@@ -27,6 +27,7 @@
 > - [Planned-collection scan misses meta_map rows](#my-planned-collection-scan-doesnt-see-rows-that-exist-in-meta_map)
 > - [Will the v5 cut break my imports?](#will-the-v5-cut-break-my-imports-what-is-going-away)
 > - [stack vs system — which composition layer?](#stack-vs-system--which-composition-layer-should-i-import)
+> - [Turso engine encryption at rest](#does-the-turso-engine-support-encryption-at-rest)
 
 ### "My event payload won't decode"
 

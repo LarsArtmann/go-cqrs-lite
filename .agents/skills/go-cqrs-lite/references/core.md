@@ -410,7 +410,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | Need                    | Source                                                                                                                                                                             |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Per-module API details  | Each module's `README.md` and `doc.go` (renders on pkg.go.dev)                                                                                                                     |
-| Architectural decisions | `docs/adr/` (137 ADRs)                                                                                           |
+| Architectural decisions | `docs/adr/` (136 ADRs)                                                                                           |
 | Storage deep-dive       | `docs/STORAGE_GUIDE.md`                                                                                                                                                            |
 | Error system            | `docs/error-taxonomy.md`                                                                                                                                                           |
 | Signing internals       | `docs/signing-architecture.md`                                                                                                                                                     |
