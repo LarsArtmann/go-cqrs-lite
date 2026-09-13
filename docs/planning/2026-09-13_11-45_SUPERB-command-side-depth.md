@@ -108,6 +108,16 @@ upcasts lifecycle event payloads on load — making "command schema evolution" a
 composition recipe rather than new code. T07 verifies; if false, T10 files the real
 design item instead (no speculative building).
 
+**VERDICT (T07, 2026-09-13): CONFIRMED.** Pinned by the permanent test
+`commandlifecycle/upcast_composition_test.go`: (a) loads through the decorated store
+see the evolved payload + bumped `SchemaVersion` while the raw bytes stay untouched;
+(b) identity, timestamp, and metadata (typed causation) survive the upcast; (c) the
+write path is passthrough — Recorder appends are stored byte-for-byte as written;
+(d) Recorder version seeding composes over the upcasted read path (strict mode);
+(e) events already at the current version and zero-upcaster configs are
+byte-identical passthrough. Recipe shipped as recipes §2.19b; the schema dep is
+test-only in commandlifecycle (same-layer, auto-excluded from the dep budget).
+
 ### D4 — Docs parity is part of the deliverable
 
 `faq.md` command mentions sit at 6 vs 51 for events; recipes ~2:1. The plan ships
