@@ -80,4 +80,14 @@ for f in "${files[@]}"; do
 done
 
 echo "checked $checked relative link targets across ${#files[@]} files; $broken broken"
+
+# Archive hygiene (advisory): docs/status/ is a point-in-time report feed.
+# When too many live reports pile up outside archived/, indexing rots and
+# readers can't tell current state from stale snapshots. Remind, don't fail.
+status_live=0
+while IFS= read -r f; do status_live=$((status_live + 1)); done < <(find docs/status -maxdepth 1 -name '*.md' ! -name 'README.md' 2>/dev/null)
+if [ "$status_live" -gt 10 ]; then
+	echo "NOTE: docs/status/ holds $status_live live reports (>10) — move finished snapshots to docs/status/archived/ and index the rest in docs/status/README.md"
+fi
+
 [ "$broken" -eq 0 ]

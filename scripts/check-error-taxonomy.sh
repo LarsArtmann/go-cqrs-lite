@@ -29,7 +29,18 @@ GATED_MODULES=(
 	"projectionhost|projectionhost|projectionhost."
 	"transport/grpc|transport/grpc|grpc."
 	"claiming|claiming|claiming."
+	"watermill|watermill|watermill."
+	"storage/pebble|storage/pebble|pebble."
+	"core/event|event|event."
+	"core/command|command|command."
+	"core/query|query|query."
 )
+
+# Per-module pool-size floor: a gated module whose extraction yields fewer
+# than this many distinct codes means the extraction pattern broke (or the
+# module vanished) — fail loudly instead of silently diffing an empty pool.
+# Optional 4th field, default 1.
+DEFAULT_FLOOR=1
 
 status=0
 tmp_pool="$(mktemp)"
@@ -38,12 +49,25 @@ trap 'rm -f "$tmp_pool" "$tmp_claims"' EXIT
 
 # ── Source ground truth: code<TAB>family, one per line ──────────────────
 for entry in "${GATED_MODULES[@]}"; do
-	IFS='|' read -r _section dir _prefixes <<<"$entry"
+	IFS='|' read -r _section dir _prefixes floor <<<"$entry"
+	floor="${floor:-$DEFAULT_FLOOR}"
+
+	tmp_mod="$(mktemp)"
 	rg -U --no-filename -o \
 		'errorfamily\.(?:New|Wrap)(Rejection|Conflict|Transient|Infrastructure|Corruption|Orchestration)\([^"]*"([a-z0-9_.]+)"' \
 		"$repo_root/$dir" \
 		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' \
-		-r '$2	$1' >>"$tmp_pool" || true
+		-r '$2	$1' >"$tmp_mod" || true
+	sort -u "$tmp_mod" -o "$tmp_mod"
+	mod_codes=$(wc -l <"$tmp_mod")
+
+	if [ "$mod_codes" -lt "$floor" ]; then
+		echo "ERROR: [$dir] extraction yielded $mod_codes codes (floor $floor) — the rg pattern or the module path is broken" >&2
+		status=1
+	fi
+
+	cat "$tmp_mod" >>"$tmp_pool"
+	rm -f "$tmp_mod"
 done
 sort -u "$tmp_pool" -o "$tmp_pool"
 total_codes=$(wc -l <"$tmp_pool")

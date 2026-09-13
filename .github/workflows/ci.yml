@@ -863,6 +863,15 @@ jobs:
       - name: Run PG integration tests via ephemeral PostgreSQL
         run: nix run .#integration-pg -- -short
 
+      # Shuffle seeds make failed orderings replayable — never lose them.
+      - name: Upload shuffle seeds
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: shuffle-seeds-pg
+          path: build/shuffle-seeds.log
+          if-no-files-found: ignore
+
     timeout-minutes: 10
 
   # Redis Streams broker tests — ephemeral nixpkgs redis, no Docker/VM.
@@ -885,19 +894,24 @@ jobs:
       - name: Run watermill broker tests via ephemeral Redis
         run: nix run .#integration-redis
 
+      - name: Upload shuffle seeds
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: shuffle-seeds-redis
+          path: build/shuffle-seeds.log
+          if-no-files-found: ignore
+
     timeout-minutes: 10
 
   # Error-policy gate — same self-activating mechanism as go-codec's
   # error-audit job (erraudit is a private module, so CI needs an
   # ERRAUDIT_PAT secret with read access to github.com/larsartmann/erraudit).
-  # ACTIVATION PRECONDITION (do not skip): this monorepo is NOT at zero
-  # findings yet — baseline 2026-09-11: 253 findings across 22 of 35 modules
-  # under `erraudit lint ./... --enforce-go-error-family --type-aware`
-  # (storage 53, graph 46, event 25, encryption 14, command 13, decider 12,
-  # kv 11, stack/snapshot/benchkit 9 each, signing 8, query/middleware/
-  # catalog 7 each, schema 6, metaengine 4, id/dispatcher 3 each,
-  # watermill/projectionhost/deriver/scheduling 1-2 each). Zero them first —
-  # see TODO_LIST.md — or the gate goes red the moment the secret lands.
+  # ACTIVATION PRECONDITION (met 2026-09-13): the 2026-09-11 baseline of 253
+  # findings across 22 modules was driven to ZERO (all modules re-counted
+  # empty under `erraudit lint ./... --enforce-go-error-family --type-aware`,
+  # except claiming/ which was mid-extraction by a parallel session — zero it
+  # before landing that module). The gate is safe to activate now.
   error-audit:
     name: Error Audit (erraudit)
     runs-on: ubuntu-latest
@@ -921,7 +935,7 @@ jobs:
         if: env.HAS_ERRAUDIT_PAT != 'true'
         run: |
           echo "erraudit is a private module (no proxy artifact). Add an ERRAUDIT_PAT secret (read: github.com/larsartmann/erraudit) to enable this gate."
-          echo "BEFORE activating: zero the per-module findings baseline (2026-09-11: 253 findings, 22 modules — see TODO_LIST.md), or the gate fails immediately."
+          echo "Baseline precondition MET 2026-09-13 (findings zeroed; see TODO_LIST.md)."
       - name: Enforce go-error-family error policy (per module)
         if: env.HAS_ERRAUDIT_PAT == 'true'
         run: |
