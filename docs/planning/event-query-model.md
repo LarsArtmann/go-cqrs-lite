@@ -1,5 +1,23 @@
 # The Event-Query Model: The Core Abstraction
 
+> **Status update — 2026-09-13: reconciled against source. This is a historical design record, not API reference.**
+>
+> The core abstraction below **shipped** (typed queries, folds-as-the-ADT, per-query projections,
+> cost-based planning) — but the document was written 2026-07-23, before the first implementation,
+> and several sections carry API examples that no longer match the code. Nothing in the original
+> design text below has been deleted; corrections and per-section verdicts live in the
+> [Implementation-Status Addendum](#implementation-status-addendum-2026-09-13) at the end.
+>
+> - **Shipped:** `Query[Q,R]`, `OnRecord` folds, `Plan`, `ExecuteTyped`, per-query projections,
+>   cost-based planning, hot-reload APIs (`AddEngine`/`SwapEngine`/`Replan`), command-lifecycle log.
+> - **Not shipped:** query log and session log (§10), multi-projection reads (§15 D3),
+>   dual-read cutover (§14), `StreamingScan` wiring (§15 D2).
+> - **Current truth:** [`metaengine/README.md`](../../metaengine/README.md) (API surface),
+>   [`commandlifecycle/`](../../commandlifecycle/) (the command log, shipped as ADR-0117).
+> - **Audit trail:** [12:10 audit](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
+>   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
+>   [T02 source-verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
+
 > **Two primitives drive everything.** Events (the source of truth across time) and Queries
 > (the read intent). Commands propose events. Metadata travels with all three. Sessions are
 > event streams too. Everything else — data structures, engines, indexes, projections, cost
