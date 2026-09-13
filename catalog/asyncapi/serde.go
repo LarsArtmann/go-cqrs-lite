@@ -5,7 +5,6 @@ import (
 	"encoding/json/v2"
 
 	"github.com/go-faster/yaml"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"

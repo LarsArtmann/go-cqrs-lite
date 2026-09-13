@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // openSecondaryDB opens and configures a secondary DuckDB database (for events,
