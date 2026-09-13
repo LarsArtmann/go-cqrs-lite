@@ -135,12 +135,12 @@ func RegisterTypeWithValidator[T any](
 	}
 }
 
-var ErrTypeAssertion = errorfamily.NewCorruption(
+var ErrTypeAssertion error = errorfamily.NewCorruption(
 	"schema.type_assertion_failed",
 	"type assertion failed during validation",
 )
 
-var ErrUnregisteredType = errorfamily.NewRejection(
+var ErrUnregisteredType error = errorfamily.NewRejection(
 	"schema.unregistered_type",
 	"no schema registered for event type",
 )

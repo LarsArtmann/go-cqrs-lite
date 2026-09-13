@@ -177,8 +177,8 @@ func TestApply_LyingOnlyEngine_HardErrorCorrelatesWithPlanWarn(t *testing.T) {
 		t.Fatal("Apply on a lying-only-engine store must hard-error, got nil")
 	}
 
-	var applyErrStruct *ApplyError
-	if !errors.As(applyErr, &applyErrStruct) {
+	applyErrStruct, ok := errors.AsType[*ApplyError](applyErr)
+	if !ok {
 		t.Fatalf("Apply error must wrap *ApplyError, got %T: %v", applyErr, applyErr)
 	}
 

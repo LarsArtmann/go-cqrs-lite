@@ -1113,7 +1113,7 @@ func TestErrorClassification(t *testing.T) {
 	}
 }
 
-var errTestFactory = errTest("factory failed")
+var errTestFactory error = errTest("factory failed")
 
 type errTest string
 

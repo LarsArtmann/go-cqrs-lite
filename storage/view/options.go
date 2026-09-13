@@ -5,7 +5,10 @@ import (
 )
 
 // errNilViewValue is returned when Set is called with a nil value.
-var errNilViewValue error = errorfamily.NewRejection("storage.view.nil_value", "storage: nil view value")
+var errNilViewValue error = errorfamily.NewRejection(
+	"storage.view.nil_value",
+	"storage: nil view value",
+)
 
 // Validation errors for ViewMapper. All Rejection: a misconfigured mapper is a
 // non-retryable programmer error, not a Transient fault.

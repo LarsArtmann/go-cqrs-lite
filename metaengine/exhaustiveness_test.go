@@ -148,8 +148,8 @@ func TestApplyFoldWrapsErrorWithApplyError(t *testing.T) {
 		t.Fatal("expected error from fold with mismatched payload type")
 	}
 
-	var applyErr *ApplyError
-	if !errors.As(err, &applyErr) {
+	applyErr, ok := errors.AsType[*ApplyError](err)
+	if !ok {
 		t.Fatalf("expected error to be *ApplyError, got %T: %v", err, err)
 	}
 

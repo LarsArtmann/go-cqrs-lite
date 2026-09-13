@@ -16,7 +16,7 @@ func (s StreamType) String() string { return string(s) }
 func (s StreamType) IsZero() bool { return s == "" }
 
 // ErrEmptyStreamType is returned when a stream type is required but empty.
-var ErrEmptyStreamType = errorfamily.NewRejection(
+var ErrEmptyStreamType error = errorfamily.NewRejection(
 	"id.empty_stream_type",
 	"stream type is required",
 )

@@ -26,7 +26,7 @@ func EnsureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect, s Spec) error
 }
 
 func ensurePostgresLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
-	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN IF NOT EXISTS " + //nolint:gosec // identifiers are store-author constants
+	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN IF NOT EXISTS " +
 		s.LeaseColumn + " TIMESTAMP WITH TIME ZONE"
 
 	if _, err := db.ExecContext(ctx, stmt); err != nil {
@@ -37,23 +37,24 @@ func ensurePostgresLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
 }
 
 func ensureSQLiteLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
-	return addLeaseColumnIfMissing(ctx, db,
-		"SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?",
-		[]any{s.Table, s.LeaseColumn},
-		"ALTER TABLE "+s.Table+" ADD COLUMN "+s.LeaseColumn+" TEXT", //nolint:gosec // identifiers are store-author constants
-	)
+	const probe = "SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?"
+
+	alter := "ALTER TABLE " + s.Table + " ADD COLUMN " + s.LeaseColumn + " TEXT"
+
+	return addLeaseColumnIfMissing(ctx, db, probe, []any{s.Table, s.LeaseColumn}, alter)
 }
 
 // ensureMySQLLeaseColumn adds the lease column when missing. MySQL servers
 // have no ADD COLUMN IF NOT EXISTS, so the column is probed via
 // information_schema first (works on both MySQL and MariaDB).
 func ensureMySQLLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
-	return addLeaseColumnIfMissing(ctx, db, `
+	const probe = `
 SELECT COUNT(*) FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`,
-		[]any{s.Table, s.LeaseColumn},
-		"ALTER TABLE "+s.Table+" ADD COLUMN "+s.LeaseColumn+" DATETIME(3) NULL", //nolint:gosec // identifiers are store-author constants
-	)
+WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?`
+
+	alter := "ALTER TABLE " + s.Table + " ADD COLUMN " + s.LeaseColumn + " DATETIME(3) NULL"
+
+	return addLeaseColumnIfMissing(ctx, db, probe, []any{s.Table, s.LeaseColumn}, alter)
 }
 
 // addLeaseColumnIfMissing is the shared probe-then-ALTER shape behind the

@@ -80,7 +80,7 @@ func TestStrictApply_PassesThroughErrors(t *testing.T) {
 	}
 }
 
-var errTestApply = errApplySentinelError("test apply error")
+var errTestApply error = errApplySentinelError("test apply error")
 
 type errApplySentinelError string
 

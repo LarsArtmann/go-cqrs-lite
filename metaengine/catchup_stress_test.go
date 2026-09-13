@@ -194,7 +194,11 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	// applying while quarantined (the log-length spin above), so it must
 	// have ingested a strict subset that ends before the primary's total.
 	if got, ok := spareTotal.(int); !ok || got < 1 || got > int(ticked.Load()) {
-		t.Fatalf("spare ticks = %v, want 1..%d (failover path ingested nothing or overcounted)", spareTotal, ticked.Load())
+		t.Fatalf(
+			"spare ticks = %v, want 1..%d (failover path ingested nothing or overcounted)",
+			spareTotal,
+			ticked.Load(),
+		)
 	}
 
 	if _, ok, _ := primary.MapGet(ctx, "role_items", "seed"); !ok {

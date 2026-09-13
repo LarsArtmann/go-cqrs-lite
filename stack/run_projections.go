@@ -113,7 +113,7 @@ func shouldHandle(proj cqrsprojection.Projection, evt cqrsevent.Event) bool {
 }
 
 // ErrMissingProjection is returned when RunProjections is called with no projections.
-var ErrMissingProjection = missingError("no projections provided")
+var ErrMissingProjection error = missingError("no projections provided")
 
 type missingError string
 

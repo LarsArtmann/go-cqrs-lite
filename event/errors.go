@@ -49,27 +49,36 @@ var (
 		"event.version_not_positive",
 		"version must be positive",
 	)
-	ErrNilPayload error = errorfamily.NewRejection("event.nil_payload", "payload is required")
+	ErrNilPayload error = errorfamily.NewRejection(
+		"event.nil_payload",
+		"payload is required",
+	)
 	ErrMismatchedEventCount error = errorfamily.NewRejection(
 		"event.mismatched_event_count",
 		"event types and payloads count must match",
 	)
 	ErrVersionConflict error = errorfamily.NewConflict("event.version_conflict", "version conflict")
-	ErrStreamNotFound error = errorfamily.NewRejection(
+	ErrStreamNotFound  error = errorfamily.NewRejection(
 		"event.stream_not_found",
 		"stream not found",
 	)
 
 	// Deprecated: use ErrNilStreamID.
-	ErrNilAggregateID error = ErrNilStreamID	// Deprecated: use ErrEmptyStreamType.
-	ErrEmptyAggregateType error = ErrEmptyStreamType	// Deprecated: use ErrStreamNotFound.
-	ErrAggregateNotFound error = ErrStreamNotFound	ErrEventNotFound error = errorfamily.NewRejection("event.event_not_found", "event not found")
+	ErrNilAggregateID error = ErrNilStreamID
+	// Deprecated: use ErrEmptyStreamType.
+	ErrEmptyAggregateType error = ErrEmptyStreamType
+	// Deprecated: use ErrStreamNotFound.
+	ErrAggregateNotFound error = ErrStreamNotFound
+	ErrEventNotFound     error = errorfamily.NewRejection(
+		"event.event_not_found",
+		"event not found",
+	)
 	ErrStoreClosed error = errorfamily.NewInfrastructure(
 		"event.store_closed",
 		"event store is closed",
 	)
 	ErrBusClosed error = errorfamily.NewInfrastructure("event.bus_closed", "event bus is closed")
-	ErrNilBus error = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
+	ErrNilBus    error = errorfamily.NewInfrastructure("event.nil_bus", "nil bus")
 
 	// Optional-capability errors returned by DecorateStore when the inner
 	// store does not implement the asserted optional interface.

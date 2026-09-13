@@ -71,7 +71,10 @@ func TestKeysetPositionQueryChecked_RejectsInjection(t *testing.T) {
 				t.Errorf("error path must not return a partial query, got:\n%s", query)
 			}
 
-			if famErr, ok := errors.AsType[*errorfamily.Error](err); !ok || famErr.ErrorFamily() != errorfamily.Infrastructure {
+			if famErr, ok := errors.AsType[*errorfamily.Error](
+				err,
+			); !ok ||
+				famErr.ErrorFamily() != errorfamily.Infrastructure {
 				t.Errorf("want Infrastructure-classified error, got %T: %v", err, err)
 			}
 		})

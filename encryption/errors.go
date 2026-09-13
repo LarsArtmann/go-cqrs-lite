@@ -51,13 +51,13 @@ var (
 	// reports unsupported inner-store capabilities via the event package's
 	// own sentinels. These aliases remain so existing errors.Is checks keep
 	// matching. Removed at v5 (ADR-0126).
-	ErrInnerStoreNotJournal = event.ErrInnerStoreNotJournal
+	ErrInnerStoreNotJournal error = event.ErrInnerStoreNotJournal
 
 	// Deprecated: See ErrInnerStoreNotJournal. Removed at v5 (ADR-0126).
-	ErrInnerStoreNotSeekable = event.ErrInnerStoreNotSeekable
+	ErrInnerStoreNotSeekable error = event.ErrInnerStoreNotSeekable
 
 	// Deprecated: See ErrInnerStoreNotJournal. Removed at v5 (ADR-0126).
-	ErrInnerStoreNotBackwards = event.ErrInnerStoreNotBackwards
+	ErrInnerStoreNotBackwards error = event.ErrInnerStoreNotBackwards
 
 	ErrUnknownAlgorithm error = errorfamily.NewRejection(
 		"encryption.unknown_algorithm",

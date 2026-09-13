@@ -24,7 +24,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/caseutil"
 )
 
-var ErrCatalogValidation = errorfamily.NewRejection(
+var ErrCatalogValidation error = errorfamily.NewRejection(
 	"catalog.simple.validation_failed",
 	"simple: catalog validation failed",
 )

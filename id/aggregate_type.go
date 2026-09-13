@@ -4,7 +4,7 @@ package id
 type AggregateType = StreamType
 
 // Deprecated: use ErrEmptyStreamType.
-var ErrEmptyAggregateType = ErrEmptyStreamType
+var ErrEmptyAggregateType error = ErrEmptyStreamType
 
 // Deprecated: use ParseStreamType.
 func ParseAggregateType(s string) (StreamType, error) { return ParseStreamType(s) }

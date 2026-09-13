@@ -18,7 +18,7 @@ import (
 // extracted value contradicts the column type is rejected by the storage
 // engine when the row is written (pinned per engine, e.g.
 // TestPgPlannedTable_MisTypedExtractFailsLoudly).
-var ErrPlannedColumnTypeMismatch = errorfamily.NewRejection(
+var ErrPlannedColumnTypeMismatch error = errorfamily.NewRejection(
 	"metaengine.planned_column_type_mismatch",
 	"value type contradicts the planned column type",
 )

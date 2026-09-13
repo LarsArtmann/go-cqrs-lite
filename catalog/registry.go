@@ -7,7 +7,7 @@ import (
 )
 
 // ErrDomainNotFound is returned when a domain ID does not exist in the registry.
-var ErrDomainNotFound = errorfamily.NewRejection("catalog.domain_not_found", "domain not found")
+var ErrDomainNotFound error = errorfamily.NewRejection("catalog.domain_not_found", "domain not found")
 
 // Registry is a thread-safe catalog builder that accumulates services,
 // domains, channels, data stores, flows, teams, and users before

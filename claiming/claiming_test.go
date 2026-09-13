@@ -264,23 +264,27 @@ id TEXT PRIMARY KEY, fire_at TEXT NOT NULL, payload BLOB NOT NULL)`); err != nil
 
 		var ids []string
 
-		for rows.Next() {
-			var id, fireAt string
+		// rows must close BEFORE the commit, so the deferred close lives in
+		// its own scope rather than on the helper itself.
+		func() {
+			defer func() { _ = rows.Close() }()
 
-			var payload []byte
+			for rows.Next() {
+				var id, fireAt string
 
-			if err := rows.Scan(&id, &fireAt, &payload); err != nil {
-				t.Fatalf("scan: %v", err)
+				var payload []byte
+
+				if err := rows.Scan(&id, &fireAt, &payload); err != nil {
+					t.Fatalf("scan: %v", err)
+				}
+
+				ids = append(ids, id)
 			}
 
-			ids = append(ids, id)
-		}
-
-		if err := rows.Err(); err != nil {
-			t.Fatalf("rows: %v", err)
-		}
-
-		_ = rows.Close()
+			if err := rows.Err(); err != nil {
+				t.Fatalf("rows: %v", err)
+			}
+		}()
 
 		if err := tx.Commit(); err != nil {
 			t.Fatalf("commit: %v", err)

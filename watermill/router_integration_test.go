@@ -128,7 +128,7 @@ func TestRouterIntegration_CorrelationIDAndRetry(t *testing.T) {
 	}
 }
 
-var errTransient = &transientError{}
+var errTransient error = &transientError{}
 
 type transientError struct{}
 

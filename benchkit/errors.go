@@ -11,52 +11,52 @@ import errorfamily "github.com/larsartmann/go-error-family"
 var (
 	// ErrInvalidConfig is returned when Config validation fails
 	// (e.g. Streams=0, EventsPerStream=0).
-	ErrInvalidConfig = errorfamily.NewRejection(
+	ErrInvalidConfig error = errorfamily.NewRejection(
 		"benchkit.invalid_config",
 		"benchmark configuration is invalid",
 	)
 
 	// ErrFactoryFailed is returned when the Factory function returns an error.
-	ErrFactoryFailed = errorfamily.NewInfrastructure(
+	ErrFactoryFailed error = errorfamily.NewInfrastructure(
 		"benchkit.factory_failed",
 		"backend factory failed",
 	)
 
 	// ErrNilBundle is returned when the Factory returns a nil *stack.Bundle.
-	ErrNilBundle = errorfamily.NewInfrastructure(
+	ErrNilBundle error = errorfamily.NewInfrastructure(
 		"benchkit.nil_bundle",
 		"factory returned nil bundle",
 	)
 
 	// ErrNilSystem is returned by AdaptSystem for a nil *system.System.
-	ErrNilSystem = errorfamily.NewInfrastructure(
+	ErrNilSystem error = errorfamily.NewInfrastructure(
 		"benchkit.nil_system",
 		"adapted nil system",
 	)
 
 	// ErrSystemEventStoreMissing is returned when a system.System has no
 	// event store wired (no source-of-truth instance).
-	ErrSystemEventStoreMissing = errorfamily.NewInfrastructure(
+	ErrSystemEventStoreMissing error = errorfamily.NewInfrastructure(
 		"benchkit.system_event_store_missing",
 		"system has no event store",
 	)
 
 	// ErrIncompleteBundle is returned when the Bundle is missing required
 	// capabilities (EventSink or EventSource).
-	ErrIncompleteBundle = errorfamily.NewInfrastructure(
+	ErrIncompleteBundle error = errorfamily.NewInfrastructure(
 		"benchkit.incomplete_bundle",
 		"bundle is missing required event sink or source",
 	)
 
 	// ErrWarmupFailed is returned when the warmup phase encounters an error.
-	ErrWarmupFailed = errorfamily.NewTransient(
+	ErrWarmupFailed error = errorfamily.NewTransient(
 		"benchkit.warmup_failed",
 		"warmup phase failed",
 	)
 
 	// ErrStrictSkip is returned when Config.Strict is true and one or more
 	// phases were skipped (either by config flags or missing bundle components).
-	ErrStrictSkip = errorfamily.NewRejection(
+	ErrStrictSkip error = errorfamily.NewRejection(
 		"benchkit.strict_skip",
 		"strict mode: one or more phases were skipped",
 	)

@@ -5,19 +5,19 @@ import (
 )
 
 var (
-	ErrEmptyServiceID = errorfamily.NewRejection(
+	ErrEmptyServiceID error = errorfamily.NewRejection(
 		"catalog.empty_service_id",
 		"service ID cannot be empty",
 	)
-	ErrEmptyDomainID = errorfamily.NewRejection(
+	ErrEmptyDomainID error = errorfamily.NewRejection(
 		"catalog.empty_domain_id",
 		"domain ID cannot be empty",
 	)
-	ErrEmptyMessageID = errorfamily.NewRejection(
+	ErrEmptyMessageID error = errorfamily.NewRejection(
 		"catalog.empty_message_id",
 		"message ID cannot be empty",
 	)
-	ErrEmptyChannelID = errorfamily.NewRejection(
+	ErrEmptyChannelID error = errorfamily.NewRejection(
 		"catalog.empty_channel_id",
 		"channel ID cannot be empty",
 	)

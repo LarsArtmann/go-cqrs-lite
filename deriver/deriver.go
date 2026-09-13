@@ -13,14 +13,14 @@ import (
 )
 
 // ErrNilDispatcher is returned when AsHandler is called with a nil dispatcher.
-var ErrNilDispatcher = errorfamily.NewRejection(
+var ErrNilDispatcher error = errorfamily.NewRejection(
 	"deriver.nil_dispatcher",
 	"deriver: dispatcher must not be nil",
 )
 
 // ErrDepthExceeded is returned when [Deriver.AsHandler] is configured with
 // [WithMaxDepth] and a synchronous derivation chain exceeds the bound.
-var ErrDepthExceeded = errorfamily.NewOrchestration(
+var ErrDepthExceeded error = errorfamily.NewOrchestration(
 	"deriver.depth_exceeded",
 	"deriver: synchronous derivation depth exceeded",
 )

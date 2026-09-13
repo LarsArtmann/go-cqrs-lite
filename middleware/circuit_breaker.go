@@ -166,7 +166,7 @@ func QueryCircuitBreaker(config CircuitBreakerConfig, opts ...Option) query.Midd
 	return AsQuery(NewCircuitBreaker(QueryAdapter, config, opts...))
 }
 
-var ErrCircuitBreakerOpen = errorfamily.NewInfrastructure(
+var ErrCircuitBreakerOpen error = errorfamily.NewInfrastructure(
 	"middleware.circuit_breaker_open",
 	"circuit breaker open",
 )

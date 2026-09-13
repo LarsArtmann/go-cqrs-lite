@@ -5,20 +5,20 @@ import (
 )
 
 var (
-	ErrInvalidSnapshot = errorfamily.NewRejection(
+	ErrInvalidSnapshot error = errorfamily.NewRejection(
 		"snapshot.invalid",
 		"invalid snapshot",
 	)
-	ErrSnapshotNotFound    = errorfamily.NewRejection("snapshot.not_found", "snapshot not found")
-	ErrSnapshotStoreClosed = errorfamily.NewInfrastructure(
+	ErrSnapshotNotFound    error = errorfamily.NewRejection("snapshot.not_found", "snapshot not found")
+	ErrSnapshotStoreClosed error = errorfamily.NewInfrastructure(
 		"snapshot.store_closed",
 		"snapshot store is closed",
 	)
-	ErrInvalidInterval = errorfamily.NewRejection(
+	ErrInvalidInterval error = errorfamily.NewRejection(
 		"snapshot.invalid_interval",
 		"snapshot interval must be positive",
 	)
-	ErrInvalidThreshold = errorfamily.NewRejection(
+	ErrInvalidThreshold error = errorfamily.NewRejection(
 		"snapshot.invalid_threshold",
 		"read pressure threshold must be positive",
 	)

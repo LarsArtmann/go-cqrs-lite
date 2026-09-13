@@ -26,7 +26,7 @@ type KeyScanBackend interface {
 // ErrBackfillUnsupported is returned by BackfillPlannedCollection when the
 // engine does not implement KeyScanBackend (the capability only makes sense
 // for engines with a physical meta_map table).
-var ErrBackfillUnsupported = errorfamily.NewRejection(
+var ErrBackfillUnsupported error = errorfamily.NewRejection(
 	"metaengine.backfill_unsupported",
 	"engine does not implement KeyScanBackend; planned-table backfill requires a SQL meta_map store",
 )

@@ -12,7 +12,7 @@ import (
 // [Host.CheckProjectionStaleness] when the projection lag exceeds the
 // configured threshold. It is classified as Transient: a stale projection
 // will catch up once the worker drains its backlog.
-var ErrProjectionStale = errorfamily.NewTransient(
+var ErrProjectionStale error = errorfamily.NewTransient(
 	"projectionhost.stale",
 	"projection lag exceeds staleness threshold",
 )
@@ -26,7 +26,7 @@ var ErrProjectionStale = errorfamily.NewTransient(
 //
 // Behavior change (2026-08-30): the failed-worker branch previously returned
 // [ErrProjectionStale]; match this sentinel instead.
-var ErrWorkerFailed = errorfamily.NewInfrastructure(
+var ErrWorkerFailed error = errorfamily.NewInfrastructure(
 	"projectionhost.worker_failed",
 	"worker(s) exhausted their restart budget and stopped consuming",
 )

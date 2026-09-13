@@ -1,5 +1,7 @@
 package claiming
 
+import "strings"
+
 // PostgresClaimStmt builds the single-statement Postgres claim. A CTE
 // fences every due row FOR UPDATE SKIP LOCKED — concurrent claimers skip
 // each other's locked rows, so each row is claimed by exactly one worker —
@@ -10,7 +12,7 @@ package claiming
 // now and leaseUntil are the dialect-formatted claim bounds (any values
 // the caller's time encoding produces); they bind as $1 and $2.
 func PostgresClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
-	due := "SELECT " + s.IDColumn + " FROM " + s.Table + //nolint:gosec // identifiers are store-author constants, values bind
+	due := "SELECT " + s.IDColumn + " FROM " + s.Table +
 		"\nWHERE " + s.DueColumn + " <= $1 AND (" + s.LeaseColumn +
 		" IS NULL OR " + s.LeaseColumn + " <= $1)" + andSuffix(
 		s,
@@ -37,7 +39,7 @@ func PostgresClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 // now and leaseUntil bind as ?2 and ?1 respectively, matching the
 // statement's placeholder numbering.
 func SQLiteClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
-	query := "UPDATE " + s.Table + " SET " + s.LeaseColumn + " = ?1" + //nolint:gosec // identifiers are store-author constants, values bind
+	query := "UPDATE " + s.Table + " SET " + s.LeaseColumn + " = ?1" +
 		"\nWHERE " + s.DueColumn + " <= ?2 AND (" + s.LeaseColumn +
 		" IS NULL OR " + s.LeaseColumn + " <= ?2)" + andSuffix(
 		s,
@@ -61,7 +63,7 @@ func SQLiteClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 func MySQLClaimSelect(s Spec, now any) (string, []any) {
 	query := "SELECT " + columns(
 		s.Returning,
-	) + " FROM " + s.Table + //nolint:gosec // identifiers are store-author constants, values bind
+	) + " FROM " + s.Table +
 		"\nWHERE " + s.DueColumn + " <= ? AND (" + s.LeaseColumn +
 		" IS NULL OR " + s.LeaseColumn + " <= ?)" + andSuffix(
 		s,
@@ -84,13 +86,18 @@ func RenewStmt(d Dialect, s Spec, newUntil, id, now any) (string, []any) {
 
 	switch d {
 	case DialectPostgres:
-		query = "UPDATE " + s.Table + " SET " + s.LeaseColumn + //nolint:gosec // identifiers are store-author constants, values bind
+		query = "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.LeaseColumn + " > $3"
 	case DialectMySQL:
 		// MySQL has no ordinal ?N placeholders — plain ? only.
 		query = "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = ? WHERE " + s.IDColumn + " = ? AND " + s.LeaseColumn + " > ?"
-	default: // SQLite
+	case DialectSQLite:
+		query = "UPDATE " + s.Table + " SET " + s.LeaseColumn +
+			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.LeaseColumn + " > ?3"
+	default:
+		// Unknown dialects degrade to the SQLite-compatible ordinal form —
+		// renewal stays best-effort and the values still bind safely.
 		query = "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.LeaseColumn + " > ?3"
 	}
@@ -100,32 +107,17 @@ func RenewStmt(d Dialect, s Spec, newUntil, id, now any) (string, []any) {
 
 // columns joins unqualified column names for SELECT/RETURNING lists.
 func columns(cols []string) string {
-	out := ""
-
-	for i, col := range cols {
-		if i > 0 {
-			out += ", "
-		}
-
-		out += col
-	}
-
-	return out
+	return strings.Join(cols, ", ")
 }
 
 // qualified joins table-qualified column names ("t.id, t.fire_at") for the
 // Postgres UPDATE..RETURNING list, which resolves against the aliased
 // target table.
 func qualified(cols []string) string {
-	out := ""
-
+	prefixed := make([]string, len(cols))
 	for i, col := range cols {
-		if i > 0 {
-			out += ", "
-		}
-
-		out += "t." + col
+		prefixed[i] = "t." + col
 	}
 
-	return out
+	return strings.Join(prefixed, ", ")
 }

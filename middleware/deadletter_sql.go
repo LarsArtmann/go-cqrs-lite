@@ -12,7 +12,7 @@ const (
 	dialectPostgres = "postgres"
 )
 
-var ErrUnexpectedTimeType = errorfamily.NewCorruption(
+var ErrUnexpectedTimeType error = errorfamily.NewCorruption(
 	"middleware.deadletter.unexpected_time_type",
 	"unexpected time type",
 )

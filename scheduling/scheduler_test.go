@@ -180,7 +180,7 @@ func TestScheduler_RetriesFailedDispatch(t *testing.T) {
 	cancel()
 }
 
-var errFail = errStrError("fail")
+var errFail error = errStrError("fail")
 
 type errStrError string
 

@@ -16,7 +16,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
-var ErrNilSchema = errorfamily.NewRejection("catalog.nil_schema", "schema is nil")
+var ErrNilSchema error = errorfamily.NewRejection("catalog.nil_schema", "schema is nil")
 
 func FromType[T any]() *Schema {
 	var zero T
