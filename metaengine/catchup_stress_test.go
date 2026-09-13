@@ -3,6 +3,8 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -82,6 +84,13 @@ func TestEngineHealth_CatchUpUnderConcurrentApplies(t *testing.T) {
 	}
 
 	quarantinePrimary(t, store, primary)
+
+	// Every quarantined-period apply logs a reroute WARN; tens of thousands
+	// of them serialize the storm on stderr syscalls and turn the race
+	// window into a slog benchmark. Discard logs for the duration.
+	prevLogger := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
+	t.Cleanup(func() { slog.SetDefault(prevLogger) })
 
 	const writers = 8
 
