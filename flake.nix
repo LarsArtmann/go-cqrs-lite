@@ -1265,6 +1265,13 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-modsums.sh"
             '';
 
+            # check-private-deps: no go.mod requires a proxy-invisible
+            # (private/unaudited) larsartmann repo — the class that breaks
+            # anonymous consumers and credential-less CI module loading.
+            check-private-deps = mkApp "check-private-deps" [ pkgs.bash pkgs.findutils pkgs.gnugrep ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-private-deps.sh"
+            '';
+
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
