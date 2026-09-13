@@ -1243,6 +1243,14 @@
               '
             '';
 
+            # check-modsums: per-module `go mod tidy -diff` gate — every
+            # go.mod/go.sum pair must be exactly what the module graph
+            # requires. Kills the missing-go.sum-hash class (builds green
+            # under a warm cache, red in cold-cache CI/consumer builds).
+            check-modsums = mkApp "check-modsums" [ goPkg pkgs.bash pkgs.findutils ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-modsums.sh"
+            '';
+
             clean = mkApp "clean" [ goPkg pkgs.trash-cli ] ''
               ${pkgs.trash-cli}/bin/trash-put coverage.out 2>/dev/null || true
               ${goPkg}/bin/go clean -testcache
@@ -1465,6 +1473,7 @@
                   echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=12m && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
+                  echo "=== Check Modsums ===" && nix run .#check-modsums && \
                   # check-lint-config is the superset of check-depguard: config
                   # verify + depguard allow-list + formatters.enable pin.
                   echo "=== Check Lint Config ===" && nix run .#check-lint-config && \
