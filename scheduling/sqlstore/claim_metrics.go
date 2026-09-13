@@ -64,6 +64,11 @@ type ClaimMetricsSnapshot struct {
 
 	// RenewRejected counts renewals rejected with ErrLeaseNotHeld.
 	RenewRejected int64 `json:"renewRejected"`
+
+	// StartedAt is when this store instance was constructed — the anchor
+	// for cross-restart rates (counters reset on restart, StartedAt says
+	// over which window they accumulated). Zero-value safe to marshal.
+	StartedAt time.Time `json:"startedAt"`
 }
 
 // Metrics returns a snapshot of the built-in claim counters. It is always
@@ -77,5 +82,6 @@ func (c *ClaimingTimerStore[P]) Metrics() ClaimMetricsSnapshot {
 		ClaimedTimers:  c.claimedTimers.Load(),
 		Renewed:        c.renewed.Load(),
 		RenewRejected:  c.renewRejected.Load(),
+		StartedAt:      c.startedAt,
 	}
 }

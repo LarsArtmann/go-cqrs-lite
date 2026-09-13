@@ -56,6 +56,11 @@ type ClaimingTimerStore[P any] struct {
 	claimedTimers  atomic.Int64
 	renewed        atomic.Int64
 	renewRejected  atomic.Int64
+
+	// startedAt anchors cross-restart rate calculations (claims per minute
+	// since process start) — counters reset on restart, so without the anchor
+	// the denominator of any rate is unknowable.
+	startedAt time.Time
 }
 
 // NewClaimingPostgresStore creates a Postgres-backed claiming timer store.

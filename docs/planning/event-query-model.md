@@ -793,7 +793,9 @@ OUTPUT:
 > engines are Go values composed with `metaengine.Plan([]metaengine.Engine{...})` or the
 > `PlanFromMemory` convenience; operators still pick engines at deployment, as designed.
 > (2) There is no Neo4j engine; the shipped graph engine is Dgraph
-> (`dgraphengine.New(addr)`) with a SQL recursive-CTE fallback (`graph_fallback.go:14,36`).
+> (`dgraphengine.New(addr)`) with a SQL recursive-CTE fallback (`graph_fallback.go:14,36`) —
+> decided in [ADR-0119](../adr/0119-dgraph-engine.md), transactional support deferred per
+> [ADR-0129](../adr/0129-dgraph-engine-transactional-deferred.md).
 > (3) Bloom filters are a Pebble-internal policy (10 bits/key), not a projection shape or ADT.
 > (4) Real engine roster: in-process memory plus badger, bbolt, dgraph, duckdb, iroh, mysql,
 > pebble, pg, sqlite, turso (each its own `metaengine/*engine` module). The YAML blocks below
@@ -1066,7 +1068,7 @@ for cutover.
 | 9 | Auth upstream | PHILOSOPHY | Unchanged intent; metaengine has no auth surface. |
 | 10 | Commands/queries as event streams | PARTIAL | **Command log: SHIPPED, better than designed** — `commandlifecycle` (ADR-0117): 5 event types (`command.received/failed/retried/dead-lettered/completed`) on `Command/<id>` + `CommandLifecycle/<id>` streams, projections for DLQ/retry-count/failure-log/processing-time, plus `CommandJournal`/`SeekableCommandJournal` (`command/store.go:141-160`) and `system.WithCommandLifecycle` (`system/lifecycle.go:50`). **Query log: NOT SHIPPED** — in-process observability hooks only (`observability.go:86`). **Session log: NOT SHIPPED** — sessions remain external (`cqrs-htmx/identity-model`). |
 | 11 | Planner derivation | DONE | All 7 steps have source counterparts; mapping annotated inline. |
-| 12 | Concrete examples | DIFFERENT | No Neo4j engine; graph = Dgraph (`metaengine/dgraphengine/`) or SQL CTE fallback (`graph_fallback.go:14,36`). No YAML config format — engines are composed in Go at deployment. Bloom filters exist only as a Pebble-internal policy (10 bits/key), not an ADT. Real engine roster: in-process memory plus badger, bbolt, dgraph, duckdb, iroh, mysql, pebble, pg, sqlite, turso (each its own `metaengine/*engine` module). Examples annotated inline. |
+| 12 | Concrete examples | DIFFERENT | No Neo4j engine; graph = Dgraph (`metaengine/dgraphengine/`; [ADR-0119](../adr/0119-dgraph-engine.md), [ADR-0129](../adr/0129-dgraph-engine-transactional-deferred.md)) or SQL CTE fallback (`graph_fallback.go:14,36`). No YAML config format — engines are composed in Go at deployment. Bloom filters exist only as a Pebble-internal policy (10 bits/key), not an ADT. Real engine roster: in-process memory plus badger, bbolt, dgraph, duckdb, iroh, mysql, pebble, pg, sqlite, turso (each its own `metaengine/*engine` module). Examples annotated inline. |
 | 13 | What the developer never writes | DONE | DDL, column types, and indexes are derived (`layout.go:116` `DDL()`, `:169` `inferColumnType`, `:199` `BuildLayoutPlanFromType`; index inference in `infer_*.go`). Boundary: classic modules (`storage/relational`, `storage/view`, `graph`) still expose explicit schema/`IndexSpec` APIs for consumers not using auto-projection. |
 | 14 | Hot-reload | PARTIAL | Runtime APIs exist: `AddEngine` (`runtime_backend.go:55`), `RemoveEngine` (`:113`), `SwapEngine` (`advanced.go:69`), `Replan` (`store.go:88`), `ReplanLayout` (`relayout.go:64`), `CheckRouting` (`store_routing.go:59`), shadow roles Migration/Backup (`roles.go:11-21`). The dual-read + atomic-cutover orchestration drawn above is NOT shipped. |
 | 15 | Open decisions | SEE BELOW | D1 resolved; D2 ghost capability; D3 not shipped; D4 partial. Details below. |

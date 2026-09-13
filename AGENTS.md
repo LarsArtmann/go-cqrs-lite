@@ -181,6 +181,19 @@ nix run .#check-duplication  # no-new-clones gate
 nix run .#check-error-taxonomy  # errorfamily codes vs docs/error-taxonomy.md drift gate
 ```
 
+### Reconcile a Planning Doc (don't rewrite it)
+
+Planning docs under `docs/planning/` are dated records, not living API references. When code has
+moved past one, do NOT silently edit its design intent:
+
+1. Add a dated status banner under the title: what shipped, what did not, where current truth lives.
+2. Add a per-section addendum (DONE / DIFFERENT / PARTIAL / NOT SHIPPED / PHILOSOPHY); every row cites `file:line` evidence or explicitly says "unverified".
+3. Correct inline examples only where the API moved; mark each correction with a dated note.
+4. Never delete original design text; a reader must be able to see what was intended.
+5. `docs/planning/` is NOT in `cmd/doc-check`'s default scan set (gated only when passed explicitly). No snippet-compile gate is enforced for planning docs: snippets are illustrative, and md-go-validator flags them by design (see `docs/reviews/2026-09-13_md-go-validator-review.md`). The banner + addendum discipline is the gate.
+
+Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`).
+
 ## Module Tiers
 
 Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules across 7 tiers).
