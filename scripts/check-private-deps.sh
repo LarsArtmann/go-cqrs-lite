@@ -77,8 +77,6 @@ if [ "${1:-}" = "--audit" ]; then
 fi
 
 while IFS= read -r gomod; do
-	dir="${gomod#./}"
-
 	while IFS= read -r repo; do
 		repo="${repo%% *}"
 		[ -z "$repo" ] && continue

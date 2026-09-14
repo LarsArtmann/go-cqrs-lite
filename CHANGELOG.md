@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — release tooling: retracts gate, baseline tag audit, private-dep gate — 2026-09-13
+
+- **`scripts/check-retracts-shipped.sh`** — fails while a master `retract`
+  is not yet carried by the module's newest tag (an unshipped retract is
+  invisible to every consumer; the cqrs-lint v4.8.0 class). Acceptance
+  tests in `scripts/test-check-retracts-shipped.sh`.
+- **`tag-release.sh --audit --baseline <file>`** — gates on NEW path-vs-tag
+  violations (proxy-invisible tags) only; the 24 known dead-path violations
+  are baselined in `scripts/audit-tag-baseline.txt` and enforced as a CI leg
+  (`nix run .#check-tag-audit`, fetch-depth 0).
+- **`batch-release.sh --smoke-all <file>`** — one command proxy+install
+  smoke-checks a whole pushed wave, stopping at the first failure; explicit
+  per-module probe invocations live in `scripts/smoke-probes.txt`
+  (`cmd/cqrs-lint version` must exit 0).
+- **`scripts/lib/release_common.sh`** — single shared implementation of
+  `path_matches_major` (plus `module_has_root_main`/`smoke_probe_args`);
+  the two-script lockstep risk is gone.
+- **`scripts/check-private-deps.sh`** (`nix run .#check-private-deps`, CI
+  leg) — no go.mod may require a known-private or unaudited larsartmann
+  repo; live `--audit` verified all 14 sibling repos public (388 requires).
+- `CONTRIBUTING.md` documents batch tagging, the same-batch sibling
+  limitation (dependents pin the PREVIOUS published tag), and the retracts
+  gate; the full release-script suite runs via
+  `nix run .#check-release-scripts`.
+
+### Added — tests: race-stress, conformance, and linter hardening — 2026-09-13
+
+- **scheduling/sqlstore:** race-stress test (4 concurrent `Due` pollers vs
+  a `Metrics()` reader; exact-once claim invariant; counters must agree
+  with observed claims) and the counter-scope pin (`Schedule`/`Cancel`/
+  `MarkFired` never move claim counters); module green under `-race`.
+- **metaengine:** `ApplyIdempotent` duplicate-apply is pinned as a full
+  no-op (fold once, advisory once, EventLog unchanged) and a legacy
+  `EventLog.Record()` entry is pinned to replay as the synthetic Type-only
+  record with the advisory untouched — both in the record-context
+  conformance sweep.
+- **cmd/cqrs-lint:** D014/D015 registry-acceptance tests (parity with
+  D016); B008's non-bitshift Warning severity pinned; S001 selector-LHS
+  messages now carry the receiver path (`cfg.Password`); the URL/placeholder
+  value classifier moved to `lintutil.IsURLOrPlaceholder` (single source) —
+  real-credential corpus validated (no true positives killed). Full module
+  suite green under `-race` (also caught and fixed a stale C009 golden
+  after taskmanager gained two legitimate panic sites).
+
 ### Added — metaengine: health-transition observability (ADR-0137) — 2026-09-13
 
 - **`Hooks.OnQuarantined` / `Hooks.OnReactivated` / `Hooks.OnProbe` / `Hooks.OnCatchUp`** —

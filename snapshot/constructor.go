@@ -4,10 +4,11 @@ import (
 	"slices"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // NewSnapshot constructs a [Snapshot] that satisfies every invariant,

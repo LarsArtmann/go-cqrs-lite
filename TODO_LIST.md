@@ -686,14 +686,18 @@ bottom is a do-not-re-litigate guard, not a backlog.
       (JSON/CBOR/SQL × backend × fallback status) rewriting sweep §4 as a
       table. — source: 08-41 §b1/§f1–11, archived 07-48 §f5-6/§f7-13
       _(Effort: M)_
-- [ ] **v5 ADR: encryption-at-rest configuration** — `metaengine.DriverConfig.Encryption`
-      + `KeyProvider func(ctx) ([]byte, error)` (vs raw `key []byte` — the
-      KeyProvider lean enables rotation/hot-reload and keeps keys out of
+- [ ] **v5 ADR: encryption-at-rest configuration** — SKELETON SHIPPED
+      2026-09-13 as [ADR-0139](docs/adr/0139-v5-encryption-at-rest-configuration.md):
+      `DriverConfig.Encryption` + `KeyProvider func(ctx) ([]byte, error)` (vs raw
+      `key []byte` — the KeyProvider lean enables rotation/hot-reload and keeps keys out of
       config structs; sets THE precedent for pg/mysql passwords too) +
       `system/` DeploymentConfig key-reference slot (env/file/secret-manager
       ref, never the key). Engines fail construction loudly when unable to
-      honor (precedent: `RejectDurabilityTier`, `MaterializedViews`). —
-      source: 20-18 §f15-17/§f21, 20-57 §f9-10
+      honor (precedent: `RejectDurabilityTier`, `MaterializedViews`).
+      REMAINING for the ADR: owner ruling on the 4 open questions
+      (provider call semantics, reference validation timing, read-model
+      scope, plaintext→encrypted migration), then implementation.
+      — source: 20-18 §f15-17/§f21, 20-57 §f9-10
       _(Effort: L)_
 - [ ] **Migration-verification tail for T18:** live MySQL/MariaDB +
       DuckDB `MigrateSnapshotColumnsToStream` runs; mixed-state corruption
