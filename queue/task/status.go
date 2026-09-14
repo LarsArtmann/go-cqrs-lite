@@ -1,4 +1,4 @@
-package queue
+package task
 
 // Status is the task lifecycle state. Transitions are validated by
 // CanTransitionTo; the conformance suite pins the full legal/illegal

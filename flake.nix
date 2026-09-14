@@ -186,6 +186,7 @@
             "metadata"
             "projection"
             "projectionhost"
+            "queue"
             "record"
             "scenario"
             "scheduling"

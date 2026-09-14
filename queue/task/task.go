@@ -1,4 +1,7 @@
-package queue
+// Package task defines the core Task record and its lifecycle, exactly as
+// in the donor (go-taskqueue internal/task): the Status state machine, ID
+// minting, and the enqueue template with its defaults.
+package task
 
 import (
 	"crypto/rand"

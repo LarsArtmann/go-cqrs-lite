@@ -1,6 +1,10 @@
 package queue
 
-import "time"
+import (
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
+)
 
 // Claim is the lease capability returned by ClaimDue: the claimed task
 // plus the lease deadline the holder must renew (Heartbeat) or finish
@@ -13,10 +17,10 @@ import "time"
 // calls, theft-detecting) is the planned ADR-0134 upgrade; the struct is
 // the seam so engines can add it without changing call sites.
 type Claim[T any] struct {
-	Task       Task[T]
+	Task       task.Task[T]
 	LeaseUntil time.Time
 }
 
 // ID returns the claimed task's ID — the handle every finalize call
 // (Complete, Fail, Heartbeat, Requeue, CancelOwned) takes.
-func (c Claim[T]) ID() ID { return c.Task.ID }
+func (c Claim[T]) ID() task.ID { return c.Task.ID }
