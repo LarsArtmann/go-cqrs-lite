@@ -127,3 +127,28 @@ possible for a precomputed aggregate: consumers have no signal.
       Defect A), single fresh process, NixOS x86_64.
 - [ ] Confirm repro on a second OS/arch if maintainers ask.
 - [ ] Paste verified outputs (captured above, machine-generated).
+
+## Characterization findings (2026-09-11 → 2026-09-13 addendum)
+
+Three findings from the scripted three-defect repro suite
+(`metaengine/tursoengine/ivm_repro_test.go`, `-tags ivmrepro`) that sharpen
+the numbers above; fold them into the final filed body:
+
+1. **The collapse onset is NOT a clean 27k.** Across repeated runs the
+   grouped-view collapse first appears anywhere in the 24k–27k band
+   (observed 26k in one run, 24k–25k wall onset through tursoengine), and
+   the exact row is sensitive to concurrent scan activity — the
+   "deterministic at 27000" phrasing in the body should read "onset between
+   ~24k and 27k rows, varying with concurrent read load" when filed.
+2. **Post-abort views absorb the aborted transaction's deltas.** After a
+   defect-C COMMIT failure, a subsequent view-maintaining transaction makes
+   the view state include rows from the transaction that FAILED to commit —
+   the view is wrong relative to BOTH the pre-abort and post-abort base
+   table, not merely stale.
+3. **Scalar exactness held through 27k under `-race`** (re-confirmed
+   2026-09-13 with the race detector enabled; no new scalar divergence and
+   no flake in the three-defect signatures — the repro itself is
+   race-stable, which makes the filed numbers trustworthy).
+
+Anything below this addendum was frozen as of 2026-09-07; the addendum and
+the pre-filing checklist are the only living sections.
