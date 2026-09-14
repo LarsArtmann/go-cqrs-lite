@@ -41,6 +41,20 @@
    nix run .#vulncheck
    ```
 
+6. **Turso-go IVM re-verification (only when the turso-go driver pin
+   moved):** re-run the live repro suite, then bump the canonical constant
+   and every live citation in the SAME change:
+
+   ```bash
+   cd metaengine/tursoengine && GOWORK=off GOEXPERIMENT=jsonv2 \
+     go test -tags ivmrepro -count=1 -timeout 570s .
+   ```
+
+   The suite FAILS if upstream fixed a documented defect (that is the flip
+   signal). After a fix, follow `docs/turso-go-ivm-fix-flip-runbook.md`;
+   the citation gate is `bash scripts/check-turso-version.sh`
+   (`--self-test` mutation-proves it). See ADR-0135.
+
 ## Tagging
 
 1. **Verify all modules are tagged.** 67 of 68 modules should have tags reachable
