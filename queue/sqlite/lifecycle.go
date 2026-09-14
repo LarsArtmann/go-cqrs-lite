@@ -72,7 +72,7 @@ func readAttempts(ctx context.Context, tx *sql.Tx, id task.ID) (int, int, error)
 		`SELECT attempts, max_attempts FROM tasks WHERE id = ?`, id.String()).
 		Scan(&attempts, &maxAttempts)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, 0, task.ErrNotFound
+		return 0, 0, queue.ErrNotFound
 	}
 
 	if err != nil {
@@ -164,7 +164,7 @@ func (s *Store[T]) FailPermanent(
 
 		err := tx.QueryRowContext(ctx, `SELECT attempts FROM tasks WHERE id = ?`, id.String()).Scan(&attempts)
 		if errors.Is(err, sql.ErrNoRows) {
-			return task.ErrNotFound
+			return queue.ErrNotFound
 		}
 
 		if err != nil {
@@ -216,7 +216,7 @@ func (s *Store[T]) Heartbeat(ctx context.Context, id task.ID, owner string, exte
 	}
 
 	if n, _ := res.RowsAffected(); n == 0 {
-		return task.ErrLeaseNotHeld
+		return queue.ErrLeaseNotHeld
 	}
 
 	return nil
@@ -229,7 +229,7 @@ func (s *Store[T]) leaseErr(ctx context.Context, q taskQuerier, id task.ID) erro
 
 	err := q.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st)
 	if errors.Is(err, sql.ErrNoRows) {
-		return task.ErrNotFound
+		return queue.ErrNotFound
 	}
 
 	if err != nil {

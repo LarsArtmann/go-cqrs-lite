@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
-	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 	_ "modernc.org/sqlite" // pure-Go SQLite driver (CGo-free)
 )
 

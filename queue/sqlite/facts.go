@@ -16,16 +16,22 @@ const factColumns = `seq, time, task_id, type, owner, attempt, error, detail`
 
 // appendFact records one fact inside the caller's transaction — the
 // in-tx pairing that keeps the journal a consistent history of the
-// queue. Time is assigned when zero.
+// queue. Time is assigned when zero; a nil detail binds as empty bytes
+// (the column is NOT NULL — absent evidence is "", never NULL).
 func (s *Store[T]) appendFact(ctx context.Context, tx *sql.Tx, f facts.Fact) error {
 	if f.Time.IsZero() {
 		f.Time = time.Now()
 	}
 
+	detail := f.Detail
+	if detail == nil {
+		detail = []byte{}
+	}
+
 	_, err := tx.ExecContext(ctx,
 		`INSERT INTO facts (time, task_id, type, owner, attempt, error, detail)
 		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		f.Time.UnixMilli(), f.TaskID, string(f.Type), f.Owner, f.Attempt, f.Error, f.Detail)
+		f.Time.UnixMilli(), f.TaskID, string(f.Type), f.Owner, f.Attempt, f.Error, detail)
 
 	return err
 }

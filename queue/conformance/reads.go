@@ -90,26 +90,27 @@ func (s *suite) pinParkedAndBands(t *testing.T) {
 
 	parked := e.enqueue(t, task.New[Payload]{
 		Type:      "sh",
+		Project:   "bands",
 		NotBefore: time.Now().Add(time.Hour),
 	})
-	e.enqueue(t, task.New[Payload]{Type: "sh"})
+	e.enqueue(t, task.New[Payload]{Type: "sh", Project: "bands"})
 
-	got := listAll(t, e, queue.Filter{Parked: ptr(true)})
+	got := listAll(t, e, queue.Filter{Project: ptr("bands"), Parked: ptr(true)})
 	if len(got) != 1 || got[0].ID != parked.ID {
 		t.Fatalf("parked filter = %d, want exactly the future-dated task", len(got))
 	}
 
-	hot := e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 140})
-	e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 20})
+	hot := e.enqueue(t, task.New[Payload]{Type: "sh", Project: "pri", Priority: 140})
+	e.enqueue(t, task.New[Payload]{Type: "sh", Project: "pri", Priority: 20})
 
-	got = listAll(t, e, queue.Filter{PriorityMin: ptr(100)})
+	got = listAll(t, e, queue.Filter{Project: ptr("pri"), PriorityMin: ptr(100)})
 	if len(got) != 1 || got[0].ID != hot.ID {
 		t.Fatalf("priority-min filter = %d, want the 140 task", len(got))
 	}
 
-	got = listAll(t, e, queue.Filter{PriorityMax: ptr(30)})
-	if len(got) != 2 {
-		t.Fatalf("priority-max filter = %d, want the two <=30 tasks", len(got))
+	got = listAll(t, e, queue.Filter{Project: ptr("pri"), PriorityMax: ptr(30)})
+	if len(got) != 1 {
+		t.Fatalf("priority-max filter = %d, want the one <=30 task", len(got))
 	}
 }
 

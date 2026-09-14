@@ -31,7 +31,7 @@ func (s *Store[T]) loadTaskTx(ctx context.Context, q taskQuerier, id string) (ta
 	t, err := s.scanTaskRow(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return task.Task[T]{}, task.ErrNotFound
+			return task.Task[T]{}, queue.ErrNotFound
 		}
 
 		return task.Task[T]{}, err

@@ -47,14 +47,14 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 		if err := tx.QueryRowContext(ctx,
 			`SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				return task.ErrNotFound
+				return queue.ErrNotFound
 			}
 
 			return err
 		}
 
 		if st != "running" {
-			return fmt.Errorf("%w: %s -> cancel-requested (only running tasks)", task.ErrInvalidTransition, st)
+			return fmt.Errorf("%w: %s -> cancel-requested (only running tasks)", queue.ErrInvalidTransition, st)
 		}
 
 		requested, err := cancelRequestedTx(ctx, tx, id.String())
@@ -252,7 +252,7 @@ func (s *Store[T]) UpdatePendingPriority(
 		err := tx.QueryRowContext(ctx, `SELECT status, priority FROM tasks WHERE id = ?`, id.String()).
 			Scan(&status, &oldPriority)
 		if errors.Is(err, sql.ErrNoRows) {
-			return task.ErrNotFound
+			return queue.ErrNotFound
 		}
 
 		if err != nil {
@@ -260,7 +260,7 @@ func (s *Store[T]) UpdatePendingPriority(
 		}
 
 		if status != "pending" {
-			return fmt.Errorf("%w: %s priority change", task.ErrInvalidTransition, status)
+			return fmt.Errorf("%w: %s priority change", queue.ErrInvalidTransition, status)
 		}
 
 		if oldPriority == newPriority {
@@ -284,7 +284,7 @@ func (s *Store[T]) updatePriorityRow(
 	}
 
 	if n, _ := res.RowsAffected(); n == 0 {
-		return fmt.Errorf("%w: pending priority change", task.ErrInvalidTransition)
+		return fmt.Errorf("%w: pending priority change", queue.ErrInvalidTransition)
 	}
 
 	return s.appendFact(ctx, tx, facts.Fact{
@@ -301,13 +301,13 @@ func statusOrNotFound(ctx context.Context, tx *sql.Tx, id task.ID, want string) 
 
 	if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return task.ErrNotFound
+			return queue.ErrNotFound
 		}
 
 		return err
 	}
 
-	return fmt.Errorf("%w: %s -> %s", task.ErrInvalidTransition, st, want)
+	return fmt.Errorf("%w: %s -> %s", queue.ErrInvalidTransition, st, want)
 }
 
 const cancelRequestedSQL = `SELECT EXISTS(
