@@ -58,6 +58,7 @@ use (
 	./projectionhost
 	./queue
 	./queue/sqlite
+	./queue/postgres
 	./prometheus
 	./query
 	./record

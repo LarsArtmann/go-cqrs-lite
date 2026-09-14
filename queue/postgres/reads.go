@@ -1,0 +1,229 @@
+package postgres
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/larsartmann/go-cqrs-lite/queue/v4"
+	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
+)
+
+// taskColumns is the canonical tasks-table read list.
+const taskColumns = `id, project, type, payload, deps, priority, attempts, max_attempts,
+                     not_before, status, lease_owner, lease_expires, last_error,
+                     created_at, updated_at, completed_at`
+
+// Get returns the current task record.
+func (s *Store[T]) Get(ctx context.Context, id task.ID) (task.Task[T], error) {
+	t, err := s.scanTask(s.pool.QueryRow(ctx, `SELECT `+taskColumns+` FROM tasks WHERE id = $1`, id.String()))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return task.Task[T]{}, queue.ErrNotFound
+	}
+
+	return t, err
+}
+
+// loadTaskTx loads one task through a tx.
+func (s *Store[T]) loadTaskTx(ctx context.Context, tx pgx.Tx, id string) (task.Task[T], error) {
+	return s.scanTask(tx.QueryRow(ctx, `SELECT `+taskColumns+` FROM tasks WHERE id = $1`, id))
+}
+
+// rowScanner is the shared Scan surface of pgx.Row and pgx.Rows.
+type rowScanner interface {
+	Scan(dest ...any) error
+}
+
+// scanTask decodes one tasks row through the codec (deps rehydrate from
+// the deps JSON column, like the SQLite engine).
+func (s *Store[T]) scanTask(row rowScanner) (task.Task[T], error) {
+	var (
+		t            task.Task[T]
+		id           string
+		depsJSON     string
+		payload      string
+		leaseExpires *int64
+		completedAt  *int64
+		notBefore    int64
+		createdAt    int64
+		updatedAt    int64
+	)
+
+	if err := row.Scan(&id, &t.Project, &t.Type, &payload, &depsJSON, &t.Priority,
+		&t.Attempts, &t.MaxAttempts, &notBefore, &t.Status, &t.LeaseOwner,
+		&leaseExpires, &t.LastError, &createdAt, &updatedAt, &completedAt); err != nil {
+		return task.Task[T]{}, err
+	}
+
+	t.ID = task.ID(id)
+	t.NotBefore = time.UnixMilli(notBefore)
+	t.CreatedAt = time.UnixMilli(createdAt)
+	t.UpdatedAt = time.UnixMilli(updatedAt)
+
+	if err := json.Unmarshal([]byte(depsJSON), &t.Deps); err != nil && depsJSON != "" && depsJSON != "[]" {
+		return task.Task[T]{}, fmt.Errorf("queue/postgres: decode deps: %w", err)
+	}
+
+	if leaseExpires != nil {
+		le := time.UnixMilli(*leaseExpires)
+		t.LeaseExpires = &le
+	}
+
+	if completedAt != nil {
+		ca := time.UnixMilli(*completedAt)
+		t.CompletedAt = &ca
+	}
+
+	decoded, err := s.codec.Decode([]byte(payload))
+	if err != nil {
+		return task.Task[T]{}, fmt.Errorf("queue/postgres: decode payload for %s: %w", id, err)
+	}
+
+	t.Payload = decoded
+
+	return t, nil
+}
+
+// listWhere builds the shared WHERE clause for List and CountTasks.
+func listWhere(f queue.Filter) (string, []any) {
+	where := []string{"1=1"}
+	args := []any{}
+
+	if f.Project != nil {
+		where = append(where, fmt.Sprintf("project = $%d", len(args)+1))
+		args = append(args, *f.Project)
+	}
+
+	if f.Status != nil {
+		where = append(where, fmt.Sprintf("status = $%d", len(args)+1))
+		args = append(args, string(*f.Status))
+	}
+
+	if f.Type != nil {
+		where = append(where, fmt.Sprintf("type = $%d", len(args)+1))
+		args = append(args, *f.Type)
+	}
+
+	if f.Since != nil {
+		where = append(where, fmt.Sprintf("created_at >= $%d", len(args)+1))
+		args = append(args, f.Since.UnixMilli())
+	}
+
+	if f.Parked != nil && *f.Parked {
+		where = append(where, fmt.Sprintf("status = 'pending' AND not_before > $%d", len(args)+1))
+		args = append(args, time.Now().UnixMilli())
+	}
+
+	if f.PriorityMin != nil {
+		where = append(where, fmt.Sprintf("priority >= $%d", len(args)+1))
+		args = append(args, *f.PriorityMin)
+	}
+
+	if f.PriorityMax != nil {
+		where = append(where, fmt.Sprintf("priority <= $%d", len(args)+1))
+		args = append(args, *f.PriorityMax)
+	}
+
+	if f.Query != "" {
+		like := "%" + escapeLike(strings.ToLower(f.Query)) + "%"
+		next := len(args)
+
+		where = append(where, fmt.Sprintf(`(id ILIKE $%d OR type ILIKE $%d OR
+			project ILIKE $%d OR payload ILIKE $%d OR
+			lease_owner ILIKE $%d OR last_error ILIKE $%d)`,
+			next+1, next+2, next+3, next+4, next+5, next+6))
+
+		for range 6 {
+			args = append(args, like)
+		}
+	}
+
+	return strings.Join(where, " AND "), args
+}
+
+// List returns tasks matching the filter, ordered by stored priority
+// descending then creation age ascending.
+func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], error) {
+	where, args := listWhere(f)
+
+	q := `SELECT ` + taskColumns + ` FROM tasks WHERE ` + where + `
+	      ORDER BY priority DESC, created_at ASC`
+
+	if f.Limit > 0 {
+		q += fmt.Sprintf(` LIMIT %d`, f.Limit)
+	}
+
+	if f.Offset > 0 {
+		q += fmt.Sprintf(` OFFSET %d`, f.Offset)
+	}
+
+	rows, err := s.pool.Query(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []task.Task[T]
+
+	for rows.Next() {
+		t, err := s.scanTask(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, t)
+	}
+
+	return out, rows.Err()
+}
+
+// CountTasks counts the tasks matching the filter.
+func (s *Store[T]) CountTasks(ctx context.Context, f queue.Filter) (int, error) {
+	where, args := listWhere(f)
+
+	var n int
+
+	err := s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM tasks WHERE `+where, args...).Scan(&n)
+
+	return n, err
+}
+
+// StatusCounts counts tasks per status in one GROUP BY.
+func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error) {
+	rows, err := s.pool.Query(ctx, `SELECT status, COUNT(*) FROM tasks GROUP BY status`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make(map[task.Status]int)
+
+	for rows.Next() {
+		var (
+			st task.Status
+			n  int
+		)
+
+		if err := rows.Scan(&st, &n); err != nil {
+			return nil, err
+		}
+
+		out[st] = n
+	}
+
+	return out, rows.Err()
+}
+
+// escapeLike escapes LIKE wildcards so a query containing %, _ or \
+// matches literally.
+func escapeLike(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, "%", `\%`)
+	s = strings.ReplaceAll(s, "_", `\_`)
+
+	return s
+}

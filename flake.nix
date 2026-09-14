@@ -188,6 +188,7 @@
             "projectionhost"
             "queue"
             "queue/sqlite"
+            "queue/postgres"
             "record"
             "scenario"
             "scheduling"

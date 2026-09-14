@@ -50,6 +50,7 @@ var modules = []string{
 	"projectionhost",
 	"queue",
 	"queue/sqlite",
+	"queue/postgres",
 	"scheduling",
 	"scheduling/sqlstore",
 	"metadata",

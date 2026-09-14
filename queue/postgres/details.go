@@ -1,0 +1,86 @@
+package postgres
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
+// cancelRequestedTx reports whether a cooperative cancel request is
+// pending (in-transaction).
+func cancelRequestedTx(ctx context.Context, tx pgx.Tx, id string) (bool, error) {
+	var requested bool
+
+	err := tx.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM facts WHERE task_id = $1 AND type = 'task.cancel-requested')`,
+		id).Scan(&requested)
+
+	return requested, err
+}
+
+// cancelRequestedReasonTx reads the reason a task's latest cancel
+// request carried ("" when none). Best-effort: an unparsable detail
+// yields "", never an error.
+func cancelRequestedReasonTx(ctx context.Context, tx pgx.Tx, id string) (string, error) {
+	var detail string
+
+	err := tx.QueryRow(ctx, `
+		SELECT detail FROM facts
+		WHERE task_id = $1 AND type = 'task.cancel-requested'
+		ORDER BY seq DESC LIMIT 1`, id).Scan(&detail)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	var d struct {
+		Reason string `json:"reason"`
+	}
+
+	if json.Unmarshal([]byte(detail), &d) != nil {
+		return "", nil
+	}
+
+	return d.Reason, nil
+}
+
+// cancelReasonDetail builds the detail for a Cancel/CancelRunning fact:
+// nil without a reason, {"reason": ...} with one.
+func cancelReasonDetail(reason string) []byte {
+	if reason == "" {
+		return nil
+	}
+
+	return mustJSON(map[string]string{"reason": reason})
+}
+
+// dismissReasonDetail builds the cancelled detail for a DLQ dismiss:
+// the reason plus who ruled.
+func dismissReasonDetail(reason string, by string) []byte {
+	detail := map[string]string{"dismissed_by": by}
+	if reason != "" {
+		detail["reason"] = reason
+	}
+
+	return mustJSON(detail)
+}
+
+// cooperativeCancelDetail builds the cancelled detail for a cooperative
+// finalize: the marker, the finalize context and the reason.
+func cooperativeCancelDetail(reason string, after string) []byte {
+	detail := map[string]string{"cooperative": "true"}
+	if after != "" {
+		detail["after"] = after
+	}
+
+	if reason != "" {
+		detail["reason"] = reason
+	}
+
+	return mustJSON(detail)
+}

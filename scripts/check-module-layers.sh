@@ -37,6 +37,7 @@ LAYER[claiming]=4
 # contract like decider, and dep-light (errorfamily only).
 LAYER[queue]=3
 LAYER["queue/sqlite"]=5
+LAYER["queue/postgres"]=5
 LAYER[signing]=4
 LAYER[encryption]=4
 LAYER[otel]=4
@@ -223,6 +224,8 @@ DEP_BUDGET[claiming]=1
 DEP_BUDGET[queue]=1
 # queue/sqlite: 2 = queue contract + modernc sqlite driver.
 DEP_BUDGET["queue/sqlite"]=2
+# queue/postgres: 2 = queue contract + pgx (pgtestcontainer is test-only).
+DEP_BUDGET["queue/postgres"]=2
 DEP_BUDGET[signing]=5
 DEP_BUDGET[encryption]=5
 DEP_BUDGET[otel]=7

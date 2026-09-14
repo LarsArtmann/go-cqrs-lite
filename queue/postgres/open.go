@@ -12,7 +12,7 @@ import (
 
 // Store is the networked queue.Store over a PostgreSQL pool.
 type Store[T any] struct {
-	pool *pgxpool.Pool
+	pool  *pgxpool.Pool
 	codec queue.Codec[T]
 	// ownsPool is true only for pools the store opened itself (Open). A
 	// pool handed in via OpenWithPool stays caller-owned: Close must not
