@@ -134,21 +134,25 @@ Three findings from the scripted three-defect repro suite
 (`metaengine/tursoengine/ivm_repro_test.go`, `-tags ivmrepro`) that sharpen
 the numbers above; fold them into the final filed body:
 
-1. **The collapse onset is NOT a clean 27k.** Across repeated runs the
-   grouped-view collapse first appears anywhere in the 24k–27k band
-   (observed 26k in one run, 24k–25k wall onset through tursoengine), and
-   the exact row is sensitive to concurrent scan activity — the
-   "deterministic at 27000" phrasing in the body should read "onset between
-   ~24k and 27k rows, varying with concurrent read load" when filed.
-2. **Post-abort views absorb the aborted transaction's deltas.** After a
-   defect-C COMMIT failure, a subsequent view-maintaining transaction makes
-   the view state include rows from the transaction that FAILED to commit —
+1. **The collapse/wall onset is workload-dependent, not a clean constant.**
+   Wall onset through tursoengine was observed at ~25,000 rows vs 27,000 in
+   the raw standalone repro — the difference tracks the surrounding
+   workload (concurrent scan activity), so the body's "~27k rows" phrasing
+   should read "onset between ~24k and 27k rows depending on concurrent
+   load" when filed.
+2. **Zombie-transaction readback artifact:** after a defect-C COMMIT
+   failure, the failed transaction's deltas are nonetheless reflected in
+   subsequent view reads (the aborted tx's effects surface post-abort) —
    the view is wrong relative to BOTH the pre-abort and post-abort base
    table, not merely stale.
-3. **Scalar exactness held through 27k under `-race`** (re-confirmed
-   2026-09-13 with the race detector enabled; no new scalar divergence and
-   no flake in the three-defect signatures — the repro itself is
-   race-stable, which makes the filed numbers trustworthy).
+3. **Poisoning is connection-state, not durable:** the post-abort
+   "every transaction rejects" state is a property of the poisoned
+   connection, not the database file — a fresh connection to the same file
+   works. This bounds the blast radius and should be stated in the issue so
+   maintainers don't chase file corruption.
+
+Suite re-verified 2026-09-13 under `-race` (80.7s, green — the repro is
+race-stable, which makes the filed numbers trustworthy).
 
 Anything below this addendum was frozen as of 2026-09-07; the addendum and
 the pre-filing checklist are the only living sections.

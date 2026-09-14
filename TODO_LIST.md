@@ -77,19 +77,15 @@ bottom is a do-not-re-litigate guard, not a backlog.
       _(Effort: M/L each)_
 - [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). NEXT STEP (SUPERB S28): design one-pager for `AggregateOn(fn, column, group)` on `QueryDecl` — the declarative seam the planner can read — then routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
       _(Effort: M)_
-- [ ] **Turso follow-ups from the IVM session (2026-09-11):** (a)
-      `--self-test` mode for `scripts/check-turso-version.sh` (planted stale
-      citation in a temp fixture) so fault-injection never mutates a live
-      tracked file again; (b) run the `-tags ivmrepro` suite with `-race`
-      once (24-round engine lifecycle + double-`t.Cleanup` Close);
-      (c) clamp the suite's last chunk for non-multiple-of-1000
-      `TURSO_IVM_REPRO_ROWS` values; (d) add the one-command repro check to
-      `docs/release-checklist.md` (driver pin bumps always run it);
-      (e) fold the session's three findings into the frozen upstream draft
-      before filing (wall 25000-via-tursoengine vs 27000-raw is
-      workload-dependent; zombie-tx readback artifact; poisoning is
-      connection-state, not durable). — source: 05-21 §f2/§f4/§f7/§f8/§f12
-      _(Effort: S total)_
+- [x] **Turso follow-ups from the IVM session (2026-09-11)** — DONE
+      2026-09-13: (a) `check-turso-version.sh --self-test` (clean pass +
+      planted stale citation caught, temp fixture); (b) `-tags ivmrepro`
+      suite run with `-race` once (80.7s, green); (c) last chunk clamped to
+      `TURSO_IVM_REPRO_ROWS` (no phantom tail rows); (d) one-command repro
+      added to `docs/release-checklist.md` §6; (e) all three findings folded
+      into the frozen upstream draft as a dated addendum. — source: 05-21
+      §f2/§f4/§f7/§f8/§f12
+      _(Effort: S total — done)_
 - [ ] **Tag wave for the matview feature** — metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
       _(Effort: M)_
@@ -154,18 +150,19 @@ bottom is a do-not-re-litigate guard, not a backlog.
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [ ] **cqrs-lint cheap-fix follow-up tail (2026-09-11 session §f):** (a)
-      validate the S001 URL/placeholder allowlist against real corpora
-      (taskmanager scan + a probe project — prove no true positives killed);
-      (b) D014/D015 registry-acceptance tests (the parity claimed for D016
-      is untested on their side); (c) pin B008's non-bitshift Warning
-      baseline (a global severity flip to Error would pass today's suite);
-      (d) S001 selector-LHS receiver context in the message (03-44 #101
-      second half) + golden impact check; (e) full-module `-race` for
-      cmd/cqrs-lint (`./...`, not just `pkg/rules/...`); (f) extract the
-      URL/placeholder value-classifier into lintutil BEFORE a second rule
-      needs it (S001 split-brain prevention). — source: 05-12 §f1-5/§f26
-      _(Effort: S each)_
+- [x] **cqrs-lint cheap-fix follow-up tail (2026-09-11 session §f)** — DONE
+      2026-09-13: (a) S001 allowlist corpus-validated both directions
+      (`TestS001_AllowlistKeepsRealCredentials`: 6 real credential shapes
+      still flagged; URLs/placeholders stay suppressed) + the existing
+      taskmanager integration scan; (b) D014/D015 registry-acceptance tests
+      shipped (parity with D016); (c) `TestB008_NonBitshiftStaysWarning`
+      pins the non-escalation branch; (d) S001 selector-LHS messages now
+      carry the receiver (`cfg.Password`) via `s001LHSDisplay`, no golden
+      drift; (e) full-module `-race` green (18/18 packages — and it caught a
+      REAL stale C009 golden: taskmanager grew 2 signing-key panics, honest
+      re-pin 2→4); (f) `lintutil.IsURLOrPlaceholder` extracted with direct
+      unit tests; S001 delegates. — source: 05-12 §f1-5/§f26
+      _(Effort: S each — done)_
 - [ ] **Extend the error-taxonomy drift gate beyond its 5 modules** —
       gated+verified 2026-09-11: graph, storage/relational, projectionhost,
       middleware, transport/grpc (161 codes / 141 claims). Remaining
@@ -319,32 +316,38 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
-- [ ] **Private-dep mechanical guard + visibility audit** — go-must (private)
-      froze the proxy and broke every workspace-mode command until inlined.
-      (a) `scripts/check-private-deps.sh` (+ flake app + CI leg): every
-      `github.com/larsartmann/*` require in every go.mod must be
-      proxy-servable (`@v/<version>.info` fetch); (b) audit sibling helper
-      repo visibility (go-retry/go-codec/go-branded-id/go-sse/go-idempotency/
-      go-flightrecorder) and record public/private in module-map.md; (c)
-      owner policy: examples may only depend on public/proxy-servable
-      modules. — source: 05-34 §e1/§f7-9
-      _(Effort: S/M)_
-- [ ] **Release-tooling follow-ups (post-hardening):** `--smoke-all` batch
-      mode (push N tags → one command smoke-checks each); document the batch
-      inter-module limitation (same-batch siblings resolve to the latest
-      PUBLISHED tag); optional batch `--verify` full-pipeline dry-run;
-      CONTRIBUTING.md references `batch-release.sh` +
-      `nix run .#check-release-scripts` in the release process; extract
-      `path_matches_major` into a sourced lib (two-copy lockstep risk);
-      decide whether `check-release-scripts` also runs in `#verify` (~30s).
-      — source: 05-34 §e2/§e6/§f22-27
-      _(Effort: S)_
-- [ ] **taskmanager tail from the go-must fix** — unit tests for the inlined
-      `example/taskmanager/must.go` (a copy with zero tests); confirm what
-      taskmanager's `go test` actually executes in 0.080s (which env markers
-      skip); update module-map.md internal notes (no go-must anymore). —
-      source: 05-34 §b3/§f5/§f6/§f31
-      _(Effort: S)_
+- [x] **Private-dep mechanical guard + visibility audit** — DONE 2026-09-13:
+      `scripts/check-private-deps.sh` (+ `nix run .#check-private-deps` + CI
+      leg in lint-scripts) enforces: known-private blocklist (go-must),
+      audited-public allowlist for every larsartmann require, examples
+      public-only; `--audit` re-runs the live `gh` visibility sweep
+      (2026-09-13 result: ALL 14 sibling repos PUBLIC — cmdguard,
+      go-atomic-write, go-branded-id, go-codec, go-error-family, go-finding,
+      go-flightrecorder, go-idempotency, go-ndjson, go-output, go-retry,
+      go-sse, samber-do-auditlog, templ-components; 388 requires checked,
+      0 violations; mutation-tested). Owner policy (c) stays open as policy,
+      but the mechanical gate now enforces it. — source: 05-34 §e1/§f7-9
+      _(Effort: S/M — done)_
+- [x] **Release-tooling follow-ups (post-hardening)** — DONE 2026-09-13:
+      `--smoke-all` (batch-release.sh, stop-on-first-failure); same-batch
+      sibling limitation documented in the script header; `--verify`
+      full-pipeline dry-run DECIDED AGAINST (documented in the header);
+      CONTRIBUTING.md gained the batch-tagging section + retracts-gate ref;
+      `path_matches_major` (plus `module_has_root_main`/`smoke_probe_args`)
+      extracted to `scripts/lib/release_common.sh` (single implementation);
+      BONUS: `check-retracts-shipped.sh` + acceptance tests,
+      `tag-release --audit --baseline` + `scripts/audit-tag-baseline.txt`
+      (24 known violations) + `check-tag-audit` CI leg,
+      `scripts/smoke-probes.txt` explicit probes. All in
+      `nix run .#check-release-scripts`. `check-release-scripts` in `#verify`
+      NOT done (decide separately, ~30s cost). — source: 05-34 §e2/§e6/§f22-27
+      _(Effort: S — done)_
+- [x] **taskmanager tail from the go-must fix** — DONE 2026-09-13:
+      `must_test.go` covers Must/Check happy+panic paths; census answered —
+      the 0.08s run is 12 REAL in-memory tests, nothing skipped, no env
+      markers; module-map.md example/* row records both facts. — source:
+      05-34 §b3/§f5/§f6/§f31
+      _(Effort: S — done)_
 
 ---
 
@@ -416,26 +419,31 @@ bottom is a do-not-re-litigate guard, not a backlog.
       TESTS; Doctor still cannot say WHICH entry point fed a synthetic
       (Type-only) record at runtime. — source: 03-50 §f17, 05-38 §f11
       _(Effort: M)_
-- [ ] **Legacy-log-entry synthesis pin** — `replayShadows`/`applyReplay`
-      synthesize a Type-only record ONLY for legacy `EventLog.Record()`
-      entries (`Record.Type == ""`); the legacy path is asserted nowhere
-      end-to-end — add one legacy case to the conformance sweep. — source:
+- [x] **Legacy-log-entry synthesis pin** — DONE 2026-09-13: "Backfill legacy
+      log entry" case added to the conformance sweep — a legacy
+      `EventLog.Record()` entry replays to the synthetic Type-only view with
+      the advisory at 0 (replays never count it). — source:
       03-50 §f23, 05-38 §c1/§f2
-      _(Effort: S)_
-- [ ] **Conformance-sweep + hot-path tail** — (a) extend the sweep with an
-      `ApplyIdempotent` dedup no-op second apply (advisory counts once, not
-      twice); (b) micro-bench the `applyFold` raw-payload type-assertion
-      overhead on the struct hot path (defend the encoded-apply fix with a
-      number); (c) run the new PG/MySQL ClaimMetrics integration tests
-      against live servers (`#integration-pg`, `#integration-mysql-nspawn`).
+      _(Effort: S — done)_
+- [ ] **Conformance-sweep + hot-path tail** — (a) DONE 2026-09-13: dedup
+      no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`: fold runs
+      once, advisory counts once) PLUS the legacy `EventLog.Record()`
+      synthesis case in the sweep table; remaining: (b) micro-bench the
+      `applyFold` raw-payload type-assertion overhead on the struct hot path
+      (defend the encoded-apply fix with a number); (c) run the new PG/MySQL
+      ClaimMetrics integration tests against live servers
+      (`#integration-pg`, `#integration-mysql-nspawn`).
       — source: 05-38 §b2/§f3/§f4/§f10
       _(Effort: S/M)_
 - [ ] **scheduling/sqlstore hardening tail (carried from 03-50):**
-      race-stress test (concurrent `Due` pollers vs `Metrics()` reader);
-      counter-scope pin (`MarkFired`/`Schedule`/`Cancel` deliberately never
-      touch claim counters); property test (counters never exceed committed
-      polls); fuzz `decodeDueTimer` corrupt-payload path;
-      `RenewLease` ownership/claim tokens (code comment defers today).
+      race-stress test DONE 2026-09-13 (`claim_race_stress_test.go`:
+      4 pollers × 25 polls vs a Metrics reader, exact-once claim invariant,
+      counters agree with observed claims; module green under `-race`);
+      counter-scope pin DONE (`TestClaimingSQLite_CounterScope`:
+      Schedule/Cancel/MarkFired never move counters). Remaining: property
+      test (counters never exceed committed polls); fuzz `decodeDueTimer`
+      corrupt-payload path; `RenewLease` ownership/claim tokens (code
+      comment defers today).
       DONE 2026-09-13 (OTEL-OBSERVABILITY SUPERB): worked `Metrics()` →
       `/status` example + runnable OTel wiring for the ClaimMetrics hooks +
       process-start timestamp (`ClaimMetricsSnapshot.StartedAt`) — all in
