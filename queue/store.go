@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/queue/v4/journal"
+	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
 
@@ -26,7 +26,7 @@ import (
 //     Requeue, CancelOwned).
 type Store[T any] interface {
 	// Enqueue persists a new task (ID and defaults assigned here) and
-	// records the journal.Enqueued fact. When task.New.DedupKey is set
+	// records the facts.Enqueued fact. When task.New.DedupKey is set
 	// and a task with that key already exists — in ANY status — the
 	// stored task is returned unchanged: no duplicate row, no duplicate
 	// fact. An empty Type is refused with ErrEmptyType.
@@ -37,20 +37,20 @@ type Store[T any] interface {
 	// reclaim), with every dependency completed, ordered by effective
 	// priority (stored priority + bounded age bonus, see
 	// PriorityAgingDaysPerPoint) then age. Sets Running + lease and
-	// records the journal.Claimed fact (a reclaim first records
-	// journal.Released for the previous owner). Returns ErrNoTaskDue when
+	// records the facts.Claimed fact (a reclaim first records
+	// facts.Released for the previous owner). Returns ErrNoTaskDue when
 	// nothing is claimable.
 	ClaimDue(ctx context.Context, owner string, lease time.Duration) (Claim[T], error)
 
 	// Complete marks a Running task Completed (lease must be held) and
-	// records the journal.Completed fact, carrying the result when
+	// records the facts.Completed fact, carrying the result when
 	// non-empty.
 	Complete(ctx context.Context, id task.ID, owner string, result []byte) error
 
 	// Fail records a failed attempt. When attempts remain, the task
 	// returns to Pending with NotBefore = now + backoff; otherwise it is
-	// dead-lettered. Facts: journal.Failed (attempt number, error,
-	// evidence in Detail) plus journal.DeadLettered with class
+	// dead-lettered. Facts: facts.Failed (attempt number, error,
+	// evidence in Detail) plus facts.DeadLettered with class
 	// "exhausted" on the final attempt.
 	Fail(
 		ctx context.Context,
@@ -63,14 +63,14 @@ type Store[T any] interface {
 
 	// FailPermanent dead-letters a Running task immediately, regardless
 	// of the attempt budget: the error class makes retrying pointless.
-	// The attempt is still counted. Facts: journal.Failed (carrying
-	// evidence) + journal.DeadLettered with class "permanent".
+	// The attempt is still counted. Facts: facts.Failed (carrying
+	// evidence) + facts.DeadLettered with class "permanent".
 	FailPermanent(ctx context.Context, id task.ID, owner string, errText string, evidence []byte) error
 
 	// Requeue returns a claimed task to Pending WITHOUT counting an
 	// attempt; it becomes claimable again after delay. For preflight
 	// refusals: the environment was not ready, not the task. Fact:
-	// journal.Requeued carrying journal.RequeueEvidence.
+	// facts.Requeued carrying facts.RequeueEvidence.
 	Requeue(ctx context.Context, id task.ID, owner string, errText string, delay time.Duration) error
 
 	// Heartbeat extends the lease of a Running task held by owner. An
@@ -80,11 +80,11 @@ type Store[T any] interface {
 	Heartbeat(ctx context.Context, id task.ID, owner string, extend time.Duration) error
 
 	// Cancel withdraws a Pending task. A non-empty reason is stored in
-	// the journal.Cancelled fact's Detail ("reason" key).
+	// the facts.Cancelled fact's Detail ("reason" key).
 	Cancel(ctx context.Context, id task.ID, reason string) error
 
 	// CancelRunning records a cooperative cancel request for a Running
-	// task: the journal.CancelRequested fact is the flag. The executing
+	// task: the facts.CancelRequested fact is the flag. The executing
 	// worker observes it (CancelRequested), stops the execution, and
 	// finalizes with CancelOwned; an expired lease finalizes it at
 	// reclaim. A non-empty reason rides the request fact's Detail and is
@@ -101,7 +101,7 @@ type Store[T any] interface {
 	// execution.
 	CancelOwned(ctx context.Context, id task.ID, owner string) error
 
-	// MarkOrphaned appends a journal.Orphaned fact for every Running task
+	// MarkOrphaned appends a facts.Orphaned fact for every Running task
 	// whose lease expired before the cutoff and that has no Orphaned
 	// fact yet (idempotent). It changes no state — orphans stay Running
 	// until a reclaim — it records WHY the task is stranded so the
@@ -114,13 +114,13 @@ type Store[T any] interface {
 	RescueDead(ctx context.Context, id task.ID, maxAttempts int) error
 
 	// DismissDead cancels a Dead task with a recorded reason (DLQ
-	// dismiss): the journal.Cancelled fact's Detail carries the reason
+	// dismiss): the facts.Cancelled fact's Detail carries the reason
 	// and who dismissed it. Dead is terminal otherwise; facts are never
 	// deleted.
 	DismissDead(ctx context.Context, id task.ID, reason string, by string) error
 
 	// UpdatePendingPriority changes a PENDING task's priority and records
-	// the journal.Reprioritized fact (old/new, source, reason) in the
+	// the facts.Reprioritized fact (old/new, source, reason) in the
 	// SAME transaction. Running/terminal tasks are refused with
 	// ErrInvalidTransition — priority is enqueue-time truth for anything
 	// already claimed or finished. A same-value update is a no-op: no
@@ -148,11 +148,11 @@ type Store[T any] interface {
 	// Facts exposes the journal: facts with Seq strictly greater than
 	// after, in Seq order. limit bounds the result when > 0; 0 means
 	// unbounded (bulk exports).
-	Facts(ctx context.Context, after int64, limit int) ([]journal.Fact, error)
+	Facts(ctx context.Context, after int64, limit int) ([]facts.Fact, error)
 
 	// FactsForTask returns one task's facts in Seq order, bounded to the
 	// most recent limit when > 0 (0 = unbounded).
-	FactsForTask(ctx context.Context, id task.ID, limit int) ([]journal.Fact, error)
+	FactsForTask(ctx context.Context, id task.ID, limit int) ([]facts.Fact, error)
 
 	// HeadSeq returns the current highest fact Seq (0 when the journal is
 	// empty): the O(1) watermark for tailers, bridges and resume points.

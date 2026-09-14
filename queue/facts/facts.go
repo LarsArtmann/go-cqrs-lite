@@ -1,8 +1,9 @@
-// Package journal defines the append-only fact log that records everything
+// Package facts defines the append-only fact log that records everything
 // that ever happened to tasks, exactly as in the donor (go-taskqueue
 // internal/journal). All derived views (queue, DLQ, stats) are projections
-// over these facts.
-package journal
+// over these facts (the package name is the domain noun; the donor calls
+// its module internal/journal).
+package facts
 
 import "time"
 

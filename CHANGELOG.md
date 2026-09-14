@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `ID` minting, and the `Status` state machine
   (`Pending`/`Running`/`Completed`/`Dead`/`Cancelled` with
   `CanTransitionTo` pinning the legal transition matrix).
-- **`queue/journal` subpackage** — `Fact`/`FactType` (one type per
+- **`queue/facts` subpackage** — `Fact`/`FactType` (one type per
   lifecycle event, donor-identical `task.*` wire names) plus the
   structured evidence payloads (`RequeueEvidence`, `ReprioritizeEvidence`).
 - **`queue.Claim[T]`** — the lease capability returned by `ClaimDue`
