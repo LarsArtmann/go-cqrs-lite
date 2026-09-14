@@ -44,7 +44,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   conformance sweep.
 - **cmd/cqrs-lint:** D014/D015 registry-acceptance tests (parity with
   D016); B008's non-bitshift Warning severity pinned; S001 selector-LHS
-  messages now carry the receiver path (`cfg.Password`); the URL/placeholder
+  messages now carry the receiver path, not just the field name; the URL/placeholder
   value classifier moved to `lintutil.IsURLOrPlaceholder` (single source) —
   real-credential corpus validated (no true positives killed). Full module
   suite green under `-race` (also caught and fixed a stale C009 golden

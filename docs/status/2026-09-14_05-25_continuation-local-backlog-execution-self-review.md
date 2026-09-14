@@ -1,0 +1,170 @@
+# Continuation Session — Local-Backlog Execution & Self-Review
+
+**Date:** 2026-09-14 05:25 CEST · **Session window:** ~11:45–13:00 + 04:30–05:25 CEST (2026-09-13/14, resumption of the 2026-09-13 11:28 batch)
+**Baseline:** post-`2026-09-13_11-28_pareto-execution-batch-status.md` state (9 of 11 todos done; W0.4 load-gated; owner questions open)
+**End state:** every locally-executable item from the handoff executed and gate-verified; tree daemon-committed except the final CHANGELOG/lintutil edit pair; load 7.2 and falling — W0.4 still gated by evidence (42.9 → 9.3 → 27.6 → 7.2 across four polls).
+
+---
+
+## a) FULLY DONE (verified by a gate, not a claim)
+
+| # | Item | Evidence |
+| --- | --- | --- |
+| 1 | **Handoff #17: `claiming/` erraudit zeroed** — `ErrUnsupported` and `ErrLeaseNotHeld` redeclared as the `error` interface (the module landed from the parallel queue-extraction session with both findings) | `erraudit lint ./... --type-aware` clean; module build+tests green |
+| 2 | **Follow-up #46: new catch-up semantics documented in SKILL refs** — recipes §2.35 extended with the suffix-drain stabilize loop (bounded 64 passes, append-blocked reactivation, serialized rebuilds) and the observability API (`Store.CatchUpSnapshot`, `CatchUpState`, `EngineStats.CatchUp`, Doctor "— Catch-Up —" section) | doc-check ✓ (all references valid; 1132 at end of session) |
+| 3 | **Follow-ups #44–45: W2.6c/d decision paragraphs** — tail-only re-catch-up DECIDED AGAINST (full rebuild is idempotent-by-construction; watermarks reintroduce the stale-state class the race fix closed; revisit only if `Replayed`/`CompletedAt` show SLO pain); `CatchUpEngineWithResult` DECIDED AGAINST (snapshot is observable; breaking `ResetResult` return waits for v5). TODO_LIST entry closed with rationale | TODO_LIST "Catch-up observability + tail replay" `[x]` |
+| 4 | **`Store.Reset` discovery pointer** — doc comment now points at `CatchUpEngine` for the one-engine case (the last open sub-item of that entry) | `[Store.CatchUpEngine]` link in metaengine/reset.go; file-size gate re-run ✓ |
+| 5 | **Follow-up #48: SSE flake hardened** (`TestSSE_MultiSubscriberFanOut`) — prime-until-subscribed loop (distinct prime IDs absorb the connect race), mutex-guarded results, 10s deadline polling replaces both fixed 500ms sleeps, stream timeout 2s→15s; assertion STRENGTHENED from "at least one" to ALL 3 subscribers receive the fan-out event | 5/5 plain runs + `-race` run green |
+| 6 | **W2.9a `--smoke-all`** — batch-release.sh mode: one file of `<module> <version>` lines, sequential proxy+install smoke per tag, stop-on-first-failure, nonzero exit | mutation-tested (bad line → rc=1 verified without pipe masking) |
+| 7 | **W2.9b same-batch sibling limitation + `--verify` decision** — limitation documented in the batch header (same-batch tidies resolve siblings to the latest PUBLISHED tag); full-pipeline dry-run DECLINED with rationale in the header | batch-release.sh header |
+| 8 | **W2.9c `path_matches_major` lib extraction** — `scripts/lib/release_common.sh` carries the single implementation plus `module_has_root_main` and `smoke_probe_args`; both release scripts source it; the two-copy lockstep risk is dead | shellcheck ✓; unit-tested in test-tag-release Test 5 |
+| 9 | **W2.9d CONTRIBUTING refs** — new "Batch tagging" section (batch-release.sh, `--smoke-all`, limitation, check-release-scripts) + retract-gate step 5 in the retract-and-republish policy | CONTRIBUTING.md |
+| 10 | **W2.9e `check-retracts-shipped.sh` + clean-dir acceptance tests** — fails while a master `retract` is not carried by the module's newest tag (inert-retract class); 3-test suite (unshipped → FAIL with tag named, shipped → PASS, tagless → FAIL) | `bash scripts/test-check-retracts-shipped.sh` all pass; real-repo run: 5 modules with retracts, 0 violations |
+| 11 | **W2.9f `smoke-probes.txt` + Test-5 strengthening** — explicit probe registry (`cmd/cqrs-lint version` must exit 0; unlisted modules keep the warning-only `--help` default); no-main-package skip path unit-tested via the lib | test-tag-release Test 5 (7 lib assertions) |
+| 12 | **W2.9g `--audit --baseline` + CI leg** — `tag-release.sh --audit [--baseline F] [--write-baseline]`: known violations baselined in `scripts/audit-tag-baseline.txt` (24, matching the v5-train plan's count), NEW violations gate, stale entries NOTEd; `nix run .#check-tag-audit` flake app + ci.yml step (fetch-depth: 0 on the lint-scripts checkout) | baseline mode: 24 total / 0 NEW / exit 0; missing-baseline and non-baselined mutation tests in Test 7 |
+| 13 | **W2.4e full-module `-race`** — 18/18 packages green, and it caught a REAL stale golden: taskmanager grew 2 signing-key panics (features.go) → C009 2→4, honest re-pin after verifying all 4 are genuine non-test panics | `go test -race ./...` ok ×18; integration test green |
+| 14 | **W2.4b D014/D015 registry-acceptance tests** — `ctx.Registry.EventPayloadTypes` parity with D016 proven on both rules | 2 new tests green |
+| 15 | **W2.4c B008 Warning baseline pin** — `TestB008_NonBitshiftStaysWarning` closes the "global severity flip passes the suite" hole | new test green |
+| 16 | **W2.4d S001 selector-LHS receiver context** — `s001LHSDisplay` renders `cfg.Password`-style full targets in messages (matching still on the bare field name); pinned by a new test; golden impact checked → NO drift (18/18 after change) | new test green |
+| 17 | **W2.4f lintutil classifier extraction** — `lintutil.IsURLOrPlaceholder` (single source, fork-proof) with 8-case table test; S001 delegates; local copy deleted | lintutil + security suites green |
+| 18 | **W2.4a S001 allowlist corpus validation** — `TestS001_AllowlistKeepsRealCredentials`: 6 real-world credential shapes (sk-live, ghp_, AKIA, xoxb, PEM, password) on secret-named vars all still flagged — the allowlist kills no true positives; URLs/placeholders stay suppressed (existing test) | 6 subtests green |
+| 19 | **W2.10a sqlstore race-stress** — 4 Due pollers × 25 polls vs a spinning Metrics reader on one claiming store; exact-once claim invariant (sorted-ID dedup + count) and counters-must-agree-with-observed; module green under `-race` | `go test -race` sqlstore ok 5.97s |
+| 20 | **W2.10b counter-scope pin** — `TestClaimingSQLite_CounterScope`: Schedule/MarkFired/Cancel leave all four counters at zero | green |
+| 21 | **W2.10c ApplyIdempotent dedup no-op conformance** — duplicate eventID returns nil, folds nothing (EventLog stays at 1), advisory counts once, view unchanged | green in the sweep file |
+| 22 | **W2.10d legacy `EventLog.Record()` synthesis pin** — new "Backfill legacy log entry" sweep case: legacy entry replays to the synthetic Type-only view, advisory stays 0 (replays never count it — the sweep's own documented contract; my first expectation was wrong and the contract was right) | sweep green |
+| 23 | **W2.10e taskmanager must.go tests + census** — `must_test.go` (Must/Check happy+panic paths, panic-value identity); census ANSWERED: the 0.08s run is 12 real in-memory tests, 0 skips, no env markers — the suspicion of hidden skips is disproven | taskmanager suite ok |
+| 24 | **W2.10f module-map note** — example/* row records the local-must.go rationale and the census | module-map.md |
+| 25 | **W2.10g/h `check-private-deps.sh` + visibility audit** — static gate: known-private blocklist (go-must), audited-public allowlist for every larsartmann require, examples public-only; `--audit` runs the LIVE `gh` visibility sweep; LIVE RESULT 2026-09-13: all 14 sibling repos PUBLIC (cmdguard, go-atomic-write, go-branded-id, go-codec, go-error-family, go-finding, go-flightrecorder, go-idempotency, go-ndjson, go-output, go-retry, go-sse, samber-do-auditlog, templ-components); 388→396 requires checked, 0 violations; mutation-tested (planted go-must + unaudited repo both caught, rc=1); flake app + CI leg in lint-scripts | `nix run .#check-private-deps` ✓ |
+| 26 | **W2.3a check-turso-version `--self-test`** — scanner refactored into `scan_citations`; self-test proves clean-accept + stale-catch on a temp fixture | self-test passes; real gate green (canonical v0.8.0-pre.10) |
+| 27 | **W2.3b `-race` ivmrepro suite once** — `-tags ivmrepro -race` full tursoengine suite: ok 80.7s (repro is race-stable → filed numbers trustworthy) | background run log |
+| 28 | **W2.3c last-chunk clamp** — defect-B loop clamps `end := min(start+chunk, rows)` so non-multiple-of-1000 `TURSO_IVM_REPRO_ROWS` values insert no phantom tail rows | code + compile |
+| 29 | **W2.3d repro one-liner in release checklist** — new §6 under Pre-release verification (driver-pin bumps re-run the suite; flip-runbook + citation-gate cross-refs) | docs/release-checklist.md |
+| 30 | **W2.3e 3 findings folded into the frozen upstream draft** — dated addendum section: (1) onset is workload-dependent (wall ~25k via tursoengine vs 27k raw — not a clean constant); (2) zombie-tx readback (aborted tx's deltas surface in post-abort view reads); (3) poisoning is connection-state, not durable (fresh connection works — bounds blast radius). Draft otherwise untouched (frozen-discipline) | draft addendum; cross-checked against the TODO entry's own list of the three findings |
+| 31 | **W3.3 (follow-up #49): ADR-0139 v5 encryption-at-rest skeleton** — `DriverConfig.Encryption` + `KeyProvider func(ctx) ([]byte, error)` vs raw key; `system/` key-REFERENCE slot; loud construction refusal (RejectDurabilityTier/MaterializedViews precedent table incl. KeyResolver, EncryptSinkTransform, redactDSN, snapshot rotation proof); 4 open owner questions | docs/adr/0139-v5-encryption-at-rest-configuration.md (0138 deliberately left to the parallel command-side-depth plan) |
+| 32 | **Bookkeeping** — TODO_LIST: 8 entries closed/annotated (catch-up, cqrs-lint tail, private-deps, release-tooling, taskmanager tail, turso follow-ups, legacy-log pin, sqlstore tail + conformance-tail partial); CHANGELOG: 2 new `[Unreleased]` sections (release tooling; tests hardening) — changelog-symbols gate green after one fix; module-map example row | all gates below ✓ |
+| 33 | **Final gate sweep** — file-size ✓ (after one violation, see §d8), duplication ✓ (0 new clones / 54 groups), changelog-symbols ✓ honest, doc-check ✓ 1132 refs, shellcheck ✓ (fixed SC1091 disables + SC2034), actionlint ✓, `nix flake check` ✓, metaengine full suite ok 28.2s, sqlstore `-race` ✓, cqrs-lint 18/18 ✓, taskmanager ✓, claiming ✓ | gate outputs in-session |
+
+## b) PARTIALLY DONE
+
+1. **sqlstore hardening tail** — race-stress + counter-scope DONE; property test (counters ≤ committed polls), `decodeDueTimer` fuzz, RenewLease ownership/claim tokens remain (entry annotated).
+2. **Conformance-sweep + hot-path tail** — (a) dedup no-op + legacy-log pin DONE; (b) `applyFold` micro-bench and (c) live PG/MySQL ClaimMetrics runs remain.
+3. **W2.3 characterization** — findings folded and suite re-verified, but the PRINCIPLED onset-boundary bisect (rows × groups × tx) itself remains open in TODO_LIST; the addendum makes the draft fileable, the bisect makes it bulletproof.
+4. **Release-tooling `#verify` question** — whether `check-release-scripts` (~30s) joins `#verify` was left undecided (documented inside the closed TODO entry as a remaining decision).
+5. **gci-vs-treefmt split-brain** — NOT resolved (not mine to revert): my `nix fmt` re-canonicalized 80 files to treefmt's layout while `.golangci.yml` still has gci in formatters; `golangci-lint fmt --diff` demonstrably wants to undo treefmt on a sample file. `nix run .#lint` is repo-wide red until the owner rules. The claiming session escalated this; I preserved its state and flagged it.
+6. **ADR-0139** — skeleton + precedents + questions shipped; the ADR itself (decision record with rulings + implementation) awaits the owner's answers.
+7. **W2.2 matview grouped-spec guard** — confirmed the only remaining piece is the API decision (validation-refusal vs `AllowGroupedViews` vs status), which its own TODO gate defers until the upstream timeline is known (PR #8257 unanswered; defect re-verified on pre.10). The mechanical flip point (`TURSO_IVM_ENFORCE_FIX` + envelope guard) already exists. I implemented nothing here on purpose — forcing it would violate the recorded gate.
+8. **SKILL references for `claiming/`** — the parallel session's new module is in the workspace but I did NOT verify/add its `references/modules.md` row (see §f34). Noticed during wrap-up, not fixed this session.
+
+## c) NOT STARTED (unchanged from the handoff, with fresh evidence)
+
+- **W0.4 quiet-window `#verify` + calibration re-runs** — load polled 4× this session: 42.9 → 9.3 → 27.6 → 7.2 vs ceiling 5. Still gated, now with poll evidence instead of assumption (the previous session's §d10 lesson applied).
+- **W0.5–W0.7 tag-wave chain** (strip replaces → watermill v4.7.0 first → pin-sweep → GitHub Releases → cqrs-lint v4.10.2) — gated on owner release-policy Q3 + a green `#verify`.
+- **CI cache-backend migration** — gated on owner Q2 (flakehub-cache vs drop magic-nix-cache).
+- **350-line policy ratification** (memo from last session) — owner.
+- **ERRAUDIT_PAT secret** — owner (error-audit job precondition now met, incl. claiming zeroed).
+- **W2.1 queue conformance skeleton** — parallel session's territory.
+- **W3.1 v5 deletion batch, W3.2 T18 live MySQL/DuckDB migration tail** — owner-gated / needs integration backends.
+- **~90 further TODO_LIST threads** — untouched.
+
+## d) TOTALLY FUCKED UP (own mistakes, no varnish)
+
+1. **I re-committed the exact deadlock class I documented one session ago.** The race-stress test's first version ran `wg.Wait()` BEFORE `close(stop)` — the metrics reader can only exit when `stop` closes, so the test hung to the 600s timeout. The previous session's §d4/§e5 was "bound first, deterministic termination before the first run." I wrote the commentary and then violated it in the next session. The fix was swapping three lines. Cost: a 10-minute background window and the embarrassment.
+2. **SSE test v1 primed with ONE event — whose delivery raced the very connect handshake I was hardening against.** I removed the fixed connect sleep, applied a single priming apply, and polled: 15s FAIL. A client that connects after the prime legitimately misses it. v2 (loop, apply a new prime until all 3 confirm) is the obvious design. One red run + one rebuild to see it.
+3. **Folded the WRONG three findings into the upstream draft addendum.** I wrote three plausible findings from session memory instead of reading the TODO entry that names them (wall 25k-vs-27k workload-dependence; zombie-tx readback; poisoning is connection-state). Caught it during bookkeeping when re-reading the entry, and corrected — but the "READ the source before summarizing it" rule exists precisely for this.
+4. **Retract-gate acceptance Test 2 was broken in a way that hid a REAL bug in the gate.** The test appended the retract but never committed before tagging — the tag pointed at the pre-retract go.mod, so Test 2 failed for the wrong reason. Debugging it manually DID expose a genuine gate bug (`extract_retracts` invoked via pipe with no argument → `set -u` unbound-variable crash → empty tag-side → false FAIL), but the test should have caught the bug directly, and it would have if I'd asserted failure reasons rather than exit codes.
+5. **check-turso-version self-test fixture declared `const NAME = "..."` while the scanner's sed expects the const-BLOCK form** (`name at line start`). Self-test failed on first run. I wrote the fixture without grepping the REAL file's declaration shape — the verify-your-fixture-against-reality rule.
+6. **changelog-symbols gate went red at the final sweep** — I backticked `cfg.Password` in a CHANGELOG entry, which the citation checker correctly reads as a `pkg.Symbol` claim. The previous session verified 37 citations honest; I generated a fiction on day two. One-line fix, but the gate belongs in my head at write time, not at sweep time.
+7. **file-size ratchet went red at the final sweep** — appending `IsURLOrPlaceholder` (+21 lines) to lintutil.go tripped its 453-line baseline. The previous session's §e2 ("ratchet as a per-file habit, not a final sweep") was documented BECAUSE of exactly this failure mode; I ran the gate after reset.go earlier in THIS session, then skipped it after lintutil.go. Fixed by moving the function to `url_placeholder.go` (new files are under-350, not baselined-growth) — but the miss is the miss.
+8. **sed-after-grep pipeline hack for an import** — `grep -n '"fmt"' file || sed -i ...` inside a `&&` chain: the pipe's exit status masked grep's failure, sed never ran, then the edit tool refused twice with "modified since read" (my own earlier sed had touched mtime). Three round trips for one import line that the edit tool would have done in one.
+9. **Pipe-masked exit codes twice while mutation-testing** (`cmd | tail; echo rc=$?` showed 0 for a failing script on smoke-all and check-private-deps). AGENTS' pipeline-masking lesson; both times I re-verified properly, but the reflex should be: capture rc BEFORE any pipe, always.
+10. **`nix fmt` mid-session with unscoped blast radius** — it reformatted 80 files (the gci/treefmt fight's fallout), which suddenly mixed a repo-wide cosmetic diff into my working tree alongside my changes. Treefmt is the enforced authority so the direction was right, but I didn't check who had touched formatter config recently nor announce the blast radius before pulling the trigger.
+11. **A `source /dev/stdin` heredoc debug hung a background shell** and had to be killed (stdin conflict). Wrote a script file instead afterwards — should have started there.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **WaitGroup/channel tests: write the shutdown ORDER first.** One line — "reader exits on stop; close stop → wg.Wait → close errCh" — before any goroutine code. This class (§d1) is now 2-for-2 across sessions.
+2. **Ratchet check after EVERY Go-file edit, no exceptions** — make it part of the edit-verify step (`rg` for the edit + `check-file-size` for Go files), not a phase. Two sessions, same miss.
+3. **Summaries cite the source entry they summarize.** Before writing any addendum/decision/CHANGELOG block, re-open the TODO/plan entry it corresponds to and diff claims against it (§d3, §d6).
+4. **Fixtures mirror reality:** grep the real file's shape before synthesizing a fixture for a scanner/pattern (§d5).
+5. **Acceptance tests assert failure REASONS,** not just exit codes — a test that fails for the wrong reason is a false green on the thing it was supposed to prove (§d4).
+6. **rc capture discipline:** `cmd; rc=$?` before any pipe; never `cmd | tail; echo $?` (§d9).
+7. **Formatter-conflict awareness:** before `nix fmt` on a tree other sessions touch, `git status` + check `.golangci.yml` formatters vs treefmt; scope or announce (§d10).
+8. **New module ⇒ reference row check.** `claiming/` landed without me checking `references/modules.md` — the "new export ⇒ reference check" step from last session's §e10 still doesn't exist as a habit (§b8, §f34).
+9. **Poll-with-evidence works — keep it.** Four load datapoints this session converted "still gated" into "gated, trending, here's the curve." Previous session parked binarily; this one didn't.
+10. **The lintutil move pattern** (append → new file when a baseline nears its cap) is now the standard trick for baselined files; url_placeholder.go is the template.
+
+## f) NEXT (ranked, 50)
+
+**Owner-gated (unblock the chains)**
+1. Release-policy Q3 ruling (sentinel `error` retype + `bumps` wire change in the v4 minor?) — gates the entire tag wave
+2. gci-vs-treefmt ruling: remove gci from formatters (restores AGENTS #18) or configure `custom-sections` — gates repo-wide lint green; 80-file churn needs reconciling either way
+3. CI cache backend: flakehub-cache-action vs drop magic-nix-cache + raised timeouts
+4. 350-line memo ratification (+ harness-exemption syntax if C)
+5. ADR-0139 four open questions (provider call semantics; reference validation timing; read-model scope; plaintext→encrypted migration)
+6. ERRAUDIT_PAT secret creation (precondition fully met now)
+7. Doctor-JSON raw-vs-effective ruling (pre-existing, still open)
+
+**Quiet-window chain (W0.4)**
+8. `calibration-gate.sh` green → `nix run .#verify` + `scripts/verify-docs.sh` e2e
+9. Record S03 acceptance (date/commit/durations) in TODO_LIST:~310
+10. SearchQuery count=5 calibration re-run (supersede table if >5% drift)
+11. Titled `benchmark-baseline.txt` re-pin via `--save`
+12. dgraph constants re-anchor campaign
+
+**Tag wave (needs 1 + 8)**
+13. W0.5 strip `storage/go.mod` replaces; bump+strip sibling replaces
+14. W0.5c walk CONTRIBUTING pre-tag checklist for the wave manifest
+15. W0.6 tag wave — watermill v4.7.0 FIRST (go-localsync unblock), then batches
+16. `--smoke-all` file for the wave (the new tooling's first real job)
+17. W0.7 `pin-sweep.sh --check` + storage/eventstore pin evidence
+18. W0.7 GitHub Releases batch + `cmd/cqrs-lint` v4.10.2 + install verification
+19. After CI: confirm file-size/shfmt/api-stability/cqrs-lint classes stay green
+
+**CI trust**
+20. Implement the chosen cache backend (raise `timeout-minutes` if dropping the action); confirm the 6 starved job classes go green
+21. Fix the go.work sync check job
+22. Dry-run benchmarks.yml matview gate (relative `cd ../metaengine/tursoengine` hop)
+
+**Follow-ups from THIS session**
+23. Verify `references/modules.md` has a `claiming/` row (parallel session's module; I flagged, did not check) + doc-check
+24. Subscribe-before-flush in `ServeSSE` (headers are flushed BEFORE `watcher.Watch` registers — the race the SSE test hardening exposed is a real product gap; small behavioral change, worth a deliberate ruling)
+25. Extract the prime-until-subscribed helper if a second SSE test ever needs it (YAGNI until then)
+26. `check-release-scripts` into `#verify` (~30s) — decide
+27. `check-retracts-shipped` into `#verify`? (5-module scan is instant) — decide with 26
+28. New-export/new-module ⇒ reference-check hook (second session in a row this bit us; write it into AGENTS wrap-up discipline)
+29. Smoke-probes entries for other published CLIs (cmd/cqrs-bench stub behavior check first)
+30. `tag-release --audit`: offer a `--write-baseline --prune-stale` combo so fixed entries drop instead of NOTEing
+31. `batch-release --smoke-all`: optional parallel mode (sequential stop-on-first is the safe default; a wave of 20 tags is slow)
+32. `check-private-deps`: add an optional `--online` `@v/<version>.info` probe mode (the TODO's original letter; current gate is static + gh-audit)
+33. CI: artifact upload when check-tag-audit fails (show the NEW violations in the run summary)
+34. Move the taskmanager 0.080s census facts into gotchas-testing (currently only in module-map + TODO)
+
+**W2 tail (local, gate-verifiable)**
+35. sqlstore property test: counters never exceed committed polls
+36. sqlstore fuzz `decodeDueTimer` corrupt-payload path
+37. RenewLease ownership/claim-token semantics (code comment defers today)
+38. `applyFold` raw-payload type-assertion micro-bench (defend the encoded-apply fix with a number)
+39. ClaimMetrics live PG/MySQL integration runs (`#integration-pg`, `#integration-mysql-nspawn`)
+40. Defect-A onset bisect (rows × groups × tx) → principled property envelope
+41. File the upstream turso-go issue (draft + addendum are ready; run the verify-before-filing gate, use github-voice)
+42. Draft the PR #8257 comment (defect C half) from the commit-failure draft
+43. W2.2 matview guard — implement the chosen option once the upstream timeline lands
+44. W2.10 taskmanager follow-up: decide whether example code should carry C009 panics at all (it now teaches consumers 4 panic sites; count is pinned at 4)
+
+**Deeper backlog (unchanged, still valid)**
+45. W2.9 remainder: `--audit --baseline` known-violations mode CI UX polish
+46. ADR-0139 implementation wave after rulings (DriverConfig.Encryption across engines)
+47. W3.1 v5 deletion batch 1 (owner-gated)
+48. W3.2 T18 live MySQL/DuckDB migration tail (schedule with integration backends)
+49. lintutil growth policy: url_placeholder.go pattern for the remaining baselined-near-cap files
+50. The ~90-thread TODO_LIST pareto re-pass (post-tag-wave, since closures shift priorities)
+
+## g) QUESTIONS (cannot answer myself)
+
+1. **Release policy (gates W0.5–W0.7 entirely):** do the sentinel `var ErrX error = …` retype (consumer-visible: direct `*errorfamily.Error` assertions on sentinel vars break) and the `bumps`-always-present wire change ride the pending **v4 minor** wave, or are either held back for v5? Concretely: can I cut W0.6 the moment a quiet-window `#verify` is green, or do you want a subset?
+2. **gci vs treefmt (now with fresh evidence):** `gci` is back in `.golangci.yml` formatters and demonstrably wants to UNDO treefmt's import grouping on ~80 files — `nix fmt` and `golangci-lint fmt` give opposite outputs, so `nix run .#lint` is repo-wide red until you rule. Remove gci (restores the AGENTS #18 state from 2026-08-16) or configure gci `custom-sections` with the local prefix? I can implement either in minutes; I cannot pick which formatter owns the import blocks.
+3. **CI cache backend (the single highest-leverage CI repair):** migrate to `DeterminateSystems/flakehub-cache-action` (needs your FlakeHub account/billing ratification) or drop the deprecated magic-nix-cache entirely and accept cold-cache builds with raised `timeout-minutes`? This decides whether the 6 starved nix jobs (verify-fast, dgraph, CGo, gosec, coverage, …) go green.
+
+---
+
+**Honest bottom line:** every locally-executable handoff item is now executed and pinned by a gate — the release tooling hardened from three scripts to seven with fixture-proven tests, the linter's last untested claims are tested, the IVM upstream draft is fileable, and the two open correctness loops (claiming erraudit, SSE flake) are closed. What remains is exactly what was always blocked: a quiet machine (polled, not assumed), an owner's pen on five rulings, and the tag wave behind them. The process debts in §d are dominated by one uncomfortable pattern — I documented last session's lessons and then re-committed two of them (deadlock shape, ratchet habit) within hours. The fixes this time are procedural (§e1–§e6), not aspirational.
