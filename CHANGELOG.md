@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — `queue/postgres`: the second engine, suite-green (durable-queue P1, part 3) — 2026-09-14
+
+- **Dedup seam decision (plan T10)** — `docs/planning/2026-09-14_queue-dedup-seam-decision.md`:
+  the dedup seam IS the `task.New.DedupKey` contract (partial unique
+  index in both engines, conformance-pinned for forever-suppression);
+  a go-idempotency-backed adapter is rejected — TTL-bounded command
+  dedup is the wrong lifetime for entity convergence, and the two
+  layers already compose at dispatch (middleware + idempotency stores).
+
+- **`queue/postgres` module** — the networked twin of the SQLite
+  engine: identical semantics over PostgreSQL, claims fenced by the
+  candidate SELECT's `FOR UPDATE SKIP LOCKED` (competing workers lock
+  disjoint rows instead of queueing behind one connection), attempt
+  reads locked `FOR UPDATE`. `postgres.Open[T]` (pool the store owns)
+  and `postgres.OpenWithPool[T]` (caller-owned pool, NOT torn down by
+  `Close` — the tq ownership lesson upstreamed), `postgres.WithCodec[T]`.
+  Storage mapping mirrors the SQLite engine exactly (unix-milli BIGINT
+  timestamps, deps table, partial unique dedup index).
+- **The engine passes the shared `queue/conformance` suite** via
+  `testutil/pgtestcontainer` (`-tags integration`), including `-race`
+  over the fencing stress (2026-09-14) — the mirrored-suite proof on
+  the second dialect.
+
 ### Added — `queue/`: the durable work-queue CONTRACT (durable-queue P1, part 1) — 2026-09-14
 
 - **New `queue` module** — the task-queue CONTRACT module: lease-based
@@ -43,6 +66,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   once in the contract so engines cannot drift. Engines (queue/sqlite,
   queue/postgres, queue/mysql) build on `claiming/` and are held to the
   shared `queue/conformance` suite.
+
+### Added — `queue/conformance` + `queue/sqlite`: the shared suite and the first engine (durable-queue P1, part 2 — M2) — 2026-09-14
+
+- **`queue/conformance` package** — the ONE shared suite every engine
+  runs (`conformance.Run(t, Harness{NewStore, Backdate})`): the
+  upstreamed form of the donor's mirrored backend suites. Pins the full
+  lifecycle matrix, enqueue→claim→complete roundtrips with fact trails,
+  lease guards, heartbeats, the cooperative-cancel family (including the
+  reclaim finalize of a requested cancel), fencing under 8 concurrent
+  claimers over 24 tasks, expiry reclaim with `Released` forensics,
+  priority/delay/dependency/aging claim order (aging pinned through the
+  harness's white-box `Backdate` hook, including the cap), the retry
+  ladder with verbatim failure evidence, DLQ rescue/dismiss, requeue
+  without attempt burn, dedup-keyed enqueue convergence (terminal keys
+  suppress forever), journal seq/tail/cursor semantics, watermark
+  monotonicity, and the filter/list/count/status read surface.
+- **`queue/sqlite` module** — the first engine, transcribed from the
+  donor's production store: `sqlite.Open[T]` (single serialized writer
+  `MaxOpenConns(1)` + WAL + busy_timeout + foreign keys),
+  `sqlite.OpenDB[T]` for caller-owned pools, `sqlite.WithCodec[T]` to
+  pin the payload wire format (default `queue.JSONCodec[T]`). Schema,
+  claim, retry, cancel, DLQ and journal SQL are the donor's statements;
+  the claim stays the two-step select-then-conditional-UPDATE whose
+  `RowsAffected` re-check is the fence (engine-owned SQL in the
+  `claiming/` SHAPE — the queue's predicate is strictly richer than a
+  `claiming.Spec`, and growing Spec is the speculative-knob path the
+  extraction forbade).
+- **The engine passes the suite** — `go test ./...` green, including
+  `-race -count=2` over the 24-task fencing stress (2026-09-14): the
+  dogfood-parity proof on the donor's production dialect.
 
 ### Added — release tooling: retracts gate, baseline tag audit, private-dep gate — 2026-09-13
 

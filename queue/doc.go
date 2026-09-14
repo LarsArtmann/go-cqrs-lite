@@ -21,6 +21,9 @@
 //
 // Deliberate omissions vs the donor (lean v1 contract; all additive later):
 // severity/dashboard sort orders, per-project count rollups, the AI
-// priority-score cache, journal archiving, and operator watermark
-// overrides. The donor keeps those at its app layer.
+// priority-score cache, journal archiving, operator watermark
+// overrides, and the donor app's priority BANDS (P1–P4 markers with
+// backlog clamping) — bands are application policy over the stored
+// int; the contract keeps priorities unbounded and provenance rides
+// the Reprioritized fact. The donor keeps those at its app layer.
 package queue
