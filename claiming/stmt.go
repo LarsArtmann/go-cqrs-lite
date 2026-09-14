@@ -14,9 +14,7 @@ import "strings"
 func PostgresClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 	due := "SELECT " + s.IDColumn + " FROM " + s.Table +
 		"\nWHERE " + s.DueColumn + " <= $1 AND (" + s.LeaseColumn +
-		" IS NULL OR " + s.LeaseColumn + " <= $1)" + andSuffix(
-		s,
-	) +
+		" IS NULL OR " + s.LeaseColumn + " <= $1)" +
 		"\nORDER BY " + orderExpr(
 		s,
 	) +
@@ -41,9 +39,7 @@ func PostgresClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 func SQLiteClaimStmt(s Spec, now, leaseUntil any) (string, []any) {
 	query := "UPDATE " + s.Table + " SET " + s.LeaseColumn + " = ?1" +
 		"\nWHERE " + s.DueColumn + " <= ?2 AND (" + s.LeaseColumn +
-		" IS NULL OR " + s.LeaseColumn + " <= ?2)" + andSuffix(
-		s,
-	) +
+		" IS NULL OR " + s.LeaseColumn + " <= ?2)" +
 		"\nRETURNING " + columns(
 		s.Returning,
 	)
@@ -65,9 +61,7 @@ func MySQLClaimSelect(s Spec, now any) (string, []any) {
 		s.Returning,
 	) + " FROM " + s.Table +
 		"\nWHERE " + s.DueColumn + " <= ? AND (" + s.LeaseColumn +
-		" IS NULL OR " + s.LeaseColumn + " <= ?)" + andSuffix(
-		s,
-	) +
+		" IS NULL OR " + s.LeaseColumn + " <= ?)" +
 		"\nORDER BY " + orderExpr(
 		s,
 	) +

@@ -147,14 +147,12 @@ func TestSpecKnobs(t *testing.T) {
 		LeaseColumn: "lease_until",
 		Returning:   []string{"id", "payload"},
 		OrderBy:     "priority DESC, next_visible_at ASC",
-		And:         "status = 'pending'",
 	}
 
 	pg, pgArgs := claiming.PostgresClaimStmt(s, "now", "until")
 
 	for _, want := range []string{
 		"SELECT id FROM tasks",
-		"AND (status = 'pending')",
 		"ORDER BY priority DESC, next_visible_at ASC",
 		"UPDATE tasks t SET lease_until = $2",
 		"RETURNING t.id, t.payload",
@@ -172,7 +170,6 @@ func TestSpecKnobs(t *testing.T) {
 
 	for _, want := range []string{
 		"UPDATE tasks SET lease_until = ?1",
-		"AND (status = 'pending')",
 		"RETURNING id, payload",
 	} {
 		if !strings.Contains(lite, want) {

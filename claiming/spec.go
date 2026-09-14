@@ -36,22 +36,6 @@ type Spec struct {
 	// advisory. Stores that need ordered claims on SQLite must rank
 	// client-side after the claim or extend the builder deliberately.
 	OrderBy string
-
-	// And optionally narrows claimability with one constant predicate
-	// ("status = 'pending'"); the builders emit it as "AND (…)" verbatim.
-	// It MUST NOT contain bind placeholders — the builders cannot renumber
-	// them across the dialects' placeholder styles ($N vs ?N vs ?).
-	And string
-}
-
-// andSuffix renders the [Spec.And] fragment as an SQL " AND (…)" suffix,
-// or "" when unset.
-func andSuffix(s Spec) string {
-	if s.And == "" {
-		return ""
-	}
-
-	return " AND (" + s.And + ")"
 }
 
 // orderExpr picks the claim order: the named [Spec.OrderBy] or the due
