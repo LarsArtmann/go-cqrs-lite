@@ -24,6 +24,7 @@ require (
 )
 
 require (
+	github.com/containerd/log v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
@@ -32,6 +33,14 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-retry v0.6.0 // indirect
+	github.com/moby/sys/userns v0.2.1 // indirect
+	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
+	github.com/onsi/gomega v1.43.0 // indirect
+	github.com/redis/go-redis/v9 v9.22.0 // indirect
+	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 )
 
 require (

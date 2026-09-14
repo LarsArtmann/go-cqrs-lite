@@ -23,6 +23,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
+	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
@@ -30,6 +31,8 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 )
 
 require (
