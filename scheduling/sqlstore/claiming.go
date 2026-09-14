@@ -211,7 +211,6 @@ func timersSpec() claiming.Spec {
 		LeaseColumn: "lease_until",
 		OrderBy:     "fire_at ASC",
 		Returning:   []string{"id", "fire_at", "payload"},
-		And:         "", // timers have no claimability narrowing beyond due+lease
 	}
 }
 
