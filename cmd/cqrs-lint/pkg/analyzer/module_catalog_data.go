@@ -225,6 +225,12 @@ func buildDefaultCatalog() []ModuleEntry {
 			Suggestion:  "Durable deadline timers for time-based business rules",
 		},
 		{
+			Key: "queue", DisplayName: "Queue", Category: CategoryWorkflow,
+			ImportHints: []string{"go-cqrs-lite/queue"},
+			Description: "Durable work queue (lease claims, retries, DLQ, DAG deps, priorities)",
+			Suggestion:  "Durable work queue for background task processing",
+		},
+		{
 			Key: "snapshot", DisplayName: "Snapshot", Category: CategoryWorkflow,
 			ImportHints: []string{"go-cqrs-lite/snapshot"},
 			Description: "Snapshot strategy for hot streams (EveryNEvents, ReadPressure)",

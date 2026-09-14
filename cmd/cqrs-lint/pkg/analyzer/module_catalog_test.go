@@ -252,6 +252,8 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"metaengine/tursoengine":         "sub-engine (covered by metaengine)",
 		"otel/otlp":                      "sub-package (covered by otel)",
 		"projection":                     "interface-only module (consumers use projectionhost)",
+		"queue/postgres":                 "sub-engine (covered by queue)",
+		"queue/sqlite":                   "sub-engine (covered by queue)",
 		"record":                         "shared record primitive (Tier 0, consumed by event/command/metaengine)",
 		"scheduling/sqlstore":            "sub-package (covered by scheduling)",
 		"stack":                          "root stack types (consumers import stack/<backend> presets)",

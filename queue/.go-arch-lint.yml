@@ -12,6 +12,8 @@ allow:
 excludeFiles:
   - "^.*_test\\.go$"
   - "^.*testdata/.*$"
+  - "^postgres/.*$" # separate module
+  - "^sqlite/.*$" # separate module
 
 components:
   core: { in: . }
@@ -26,10 +28,10 @@ deps:
       - facts
   task:
     anyProjectDeps: false
-    anyVendorDeps: false
+    anyVendorDeps: true
   facts:
     anyProjectDeps: false
-    anyVendorDeps: false
+    anyVendorDeps: true
   conformance:
     mayDependOn:
       - core
