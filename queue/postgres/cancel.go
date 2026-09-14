@@ -1,31 +1,31 @@
-package sqlite
+package postgres
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
 
-// Cancel withdraws a Pending task. A non-empty reason is stored in the
-// task.cancelled fact detail ("reason" key).
+// Cancel withdraws a Pending task; the reason rides the cancelled
+// fact's detail.
 func (s *Store[T]) Cancel(ctx context.Context, id task.ID, reason string) error {
 	now := time.Now()
 
-	return s.withTx(ctx, func(tx *sql.Tx) error {
-		res, err := tx.ExecContext(ctx, `
-			UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL
-			WHERE id = ? AND status = 'pending'`, now.UnixMilli(), id.String())
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx, `
+			UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL
+			WHERE id = $2 AND status = 'pending'`, now.UnixMilli(), id.String())
 		if err != nil {
 			return err
 		}
 
-		if n, _ := res.RowsAffected(); n == 0 {
+		if tag.RowsAffected() == 0 {
 			return statusOrNotFound(ctx, tx, id, "cancelled")
 		}
 
@@ -35,17 +35,15 @@ func (s *Store[T]) Cancel(ctx context.Context, id task.ID, reason string) error 
 	})
 }
 
-// CancelRunning records a cooperative cancel request for a Running
-// task. The task.cancel-requested fact IS the flag — no task-row column
-// mirrors it (facts-first). Idempotent: a second request appends
-// nothing.
+// CancelRunning records a cooperative cancel request; the fact IS the
+// flag. Idempotent: a second request appends nothing.
 func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string) error {
-	return s.withTx(ctx, func(tx *sql.Tx) error {
+	return s.withTx(ctx, func(tx pgx.Tx) error {
 		var st string
 
-		if err := tx.QueryRowContext(ctx,
-			`SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
+		if err := tx.QueryRow(ctx,
+			`SELECT status FROM tasks WHERE id = $1`, id.String()).Scan(&st); err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
 				return queue.ErrNotFound
 			}
 
@@ -76,28 +74,28 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 func (s *Store[T]) CancelRequested(ctx context.Context, id task.ID) (bool, error) {
 	var requested bool
 
-	err := s.db.QueryRowContext(ctx, cancelRequestedSQL, id.String()).Scan(&requested)
+	err := s.pool.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM facts WHERE task_id = $1 AND type = 'task.cancel-requested')`,
+		id.String()).Scan(&requested)
 
 	return requested, err
 }
 
-// CancelOwned finalizes a cooperative cancel: Running → Cancelled,
-// written by the lease-holding worker after it stopped the execution.
-// The operator's reason (from the cancel-requested fact) is carried onto
-// the cancelled fact.
+// CancelOwned finalizes a cooperative cancel: Running → Cancelled by
+// the lease-holding worker, carrying the request's reason.
 func (s *Store[T]) CancelOwned(ctx context.Context, id task.ID, owner string) error {
 	now := time.Now()
 
-	return s.withTx(ctx, func(tx *sql.Tx) error {
-		res, err := tx.ExecContext(ctx, `
-			UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL
-			WHERE id = ? AND status = 'running' AND lease_owner = ?`,
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx, `
+			UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL
+			WHERE id = $2 AND status = 'running' AND lease_owner = $3`,
 			now.UnixMilli(), id.String(), owner)
 		if err != nil {
 			return err
 		}
 
-		if n, _ := res.RowsAffected(); n == 0 {
+		if tag.RowsAffected() == 0 {
 			return queue.ErrLeaseNotHeld
 		}
 
@@ -113,19 +111,19 @@ func (s *Store[T]) CancelOwned(ctx context.Context, id task.ID, owner string) er
 	})
 }
 
-// MarkOrphaned appends one task.orphaned fact per stranded Running task
+// MarkOrphaned appends one orphaned fact per stranded Running task
 // (lease expired before the cutoff, no orphaned fact yet). Observation
-// only: the task stays Running until a reclaim. Idempotent per task.
+// only; idempotent per task.
 func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, error) {
 	marked := 0
 
-	err := s.withTx(ctx, func(tx *sql.Tx) error {
-		rows, err := tx.QueryContext(ctx, `
-			SELECT t.id, COALESCE(t.lease_owner, ''), t.lease_expires
+	err := s.withTx(ctx, func(tx pgx.Tx) error {
+		rows, err := tx.Query(ctx, `
+			SELECT t.id, t.lease_owner, t.lease_expires
 			FROM tasks t
 			WHERE t.status = 'running'
 			  AND t.lease_expires IS NOT NULL
-			  AND t.lease_expires < ?
+			  AND t.lease_expires < $1
 			  AND NOT EXISTS (
 			    SELECT 1 FROM facts f
 			    WHERE f.task_id = t.id AND f.type = 'task.orphaned')`,
@@ -133,13 +131,7 @@ func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, err
 		if err != nil {
 			return err
 		}
-		defer func() { _ = rows.Close() }()
-
-		type orphan struct {
-			id      string
-			owner   string
-			expires int64
-		}
+		defer rows.Close()
 
 		var found []orphan
 
@@ -157,22 +149,7 @@ func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, err
 			return err
 		}
 
-		for _, o := range found {
-			detail := mustJSON(map[string]any{
-				"owner":          o.owner,
-				"leaseExpiredAt": time.UnixMilli(o.expires).UTC().Format(time.RFC3339),
-			})
-
-			if err := s.appendFact(ctx, tx, facts.Fact{
-				TaskID: o.id, Type: facts.Orphaned, Owner: o.owner, Detail: detail,
-			}); err != nil {
-				return err
-			}
-
-			marked++
-		}
-
-		return nil
+		return s.appendOrphanFacts(ctx, tx, found, &marked)
 	})
 	if err != nil {
 		return 0, err
@@ -181,8 +158,35 @@ func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, err
 	return marked, nil
 }
 
-// RescueDead re-queues a Dead task with a fresh attempt budget (DLQ
-// rescue); the enqueued fact carries the rescue marker.
+// orphan is one stranded Running task observed by MarkOrphaned.
+type orphan struct {
+	id      string
+	owner   string
+	expires int64
+}
+
+// appendOrphanFacts writes the observed orphans.
+func (s *Store[T]) appendOrphanFacts(ctx context.Context, tx pgx.Tx, found []orphan, marked *int) error {
+	for _, o := range found {
+		detail := mustJSON(map[string]any{
+			"owner":          o.owner,
+			"leaseExpiredAt": time.UnixMilli(o.expires).UTC().Format(time.RFC3339),
+		})
+
+		if err := s.appendFact(ctx, tx, facts.Fact{
+			TaskID: o.id, Type: facts.Orphaned, Owner: o.owner, Detail: detail,
+		}); err != nil {
+			return err
+		}
+
+		*marked++
+	}
+
+	return nil
+}
+
+// RescueDead re-queues a Dead task with a fresh attempt budget; the
+// enqueued fact carries the rescue marker.
 func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) error {
 	if maxAttempts <= 0 {
 		maxAttempts = task.DefaultMaxAttempts
@@ -190,17 +194,17 @@ func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) 
 
 	now := time.Now()
 
-	return s.withTx(ctx, func(tx *sql.Tx) error {
-		res, err := tx.ExecContext(ctx, `
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx, `
 			UPDATE tasks
-			SET status = 'pending', attempts = 0, max_attempts = ?, not_before = 0,
-			    updated_at = ?, lease_owner = '', lease_expires = NULL, last_error = ''
-			WHERE id = ? AND status = 'dead'`, maxAttempts, now.UnixMilli(), id.String())
+			SET status = 'pending', attempts = 0, max_attempts = $1, not_before = 0,
+			    updated_at = $2, lease_owner = '', lease_expires = NULL, last_error = ''
+			WHERE id = $3 AND status = 'dead'`, maxAttempts, now.UnixMilli(), id.String())
 		if err != nil {
 			return err
 		}
 
-		if n, _ := res.RowsAffected(); n == 0 {
+		if tag.RowsAffected() == 0 {
 			return statusOrNotFound(ctx, tx, id, "pending")
 		}
 
@@ -211,21 +215,21 @@ func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) 
 	})
 }
 
-// DismissDead cancels a Dead task with a recorded reason (DLQ dismiss):
-// the cancelled fact's detail carries the reason and who dismissed it.
+// DismissDead cancels a Dead task with a recorded reason and by (DLQ
+// dismiss).
 func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, by string) error {
 	now := time.Now()
 
-	return s.withTx(ctx, func(tx *sql.Tx) error {
-		res, err := tx.ExecContext(ctx, `
+	return s.withTx(ctx, func(tx pgx.Tx) error {
+		tag, err := tx.Exec(ctx, `
 			UPDATE tasks
-			SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL
-			WHERE id = ? AND status = 'dead'`, now.UnixMilli(), id.String())
+			SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL
+			WHERE id = $2 AND status = 'dead'`, now.UnixMilli(), id.String())
 		if err != nil {
 			return err
 		}
 
-		if n, _ := res.RowsAffected(); n == 0 {
+		if tag.RowsAffected() == 0 {
 			return statusOrNotFound(ctx, tx, id, "cancelled")
 		}
 
@@ -235,22 +239,22 @@ func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, b
 	})
 }
 
-// UpdatePendingPriority changes a PENDING task's priority; the
-// reprioritized fact (old/new, source, reason) lands in the SAME
-// transaction, and a same-value update appends nothing.
+// UpdatePendingPriority changes a PENDING task's priority with its
+// reprioritized fact in the same transaction; same-value updates append
+// nothing.
 func (s *Store[T]) UpdatePendingPriority(
 	ctx context.Context, id task.ID, newPriority int, source string, reason string,
 ) error {
 	now := time.Now()
 
-	return s.withTx(ctx, func(tx *sql.Tx) error {
+	return s.withTx(ctx, func(tx pgx.Tx) error {
 		var status string
 
 		var oldPriority int
 
-		err := tx.QueryRowContext(ctx, `SELECT status, priority FROM tasks WHERE id = ?`, id.String()).
+		err := tx.QueryRow(ctx, `SELECT status, priority FROM tasks WHERE id = $1`, id.String()).
 			Scan(&status, &oldPriority)
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return queue.ErrNotFound
 		}
 
@@ -272,17 +276,17 @@ func (s *Store[T]) UpdatePendingPriority(
 
 // updatePriorityRow writes the guarded UPDATE plus its fact.
 func (s *Store[T]) updatePriorityRow(
-	ctx context.Context, tx *sql.Tx, id task.ID, oldPriority, newPriority int,
+	ctx context.Context, tx pgx.Tx, id task.ID, oldPriority, newPriority int,
 	source, reason string, now time.Time,
 ) error {
-	res, err := tx.ExecContext(ctx, `
-		UPDATE tasks SET priority = ?, updated_at = ?
-		WHERE id = ? AND status = 'pending'`, newPriority, now.UnixMilli(), id.String())
+	tag, err := tx.Exec(ctx, `
+		UPDATE tasks SET priority = $1, updated_at = $2
+		WHERE id = $3 AND status = 'pending'`, newPriority, now.UnixMilli(), id.String())
 	if err != nil {
 		return err
 	}
 
-	if n, _ := res.RowsAffected(); n == 0 {
+	if tag.RowsAffected() == 0 {
 		return fmt.Errorf("%w: pending priority change", queue.ErrInvalidTransition)
 	}
 
@@ -295,11 +299,11 @@ func (s *Store[T]) updatePriorityRow(
 }
 
 // statusOrNotFound maps a zero-rows guarded update to the right error.
-func statusOrNotFound(ctx context.Context, tx *sql.Tx, id task.ID, want string) error {
+func statusOrNotFound(ctx context.Context, tx pgx.Tx, id task.ID, want string) error {
 	var st string
 
-	if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+	if err := tx.QueryRow(ctx, `SELECT status FROM tasks WHERE id = $1`, id.String()).Scan(&st); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return queue.ErrNotFound
 		}
 
