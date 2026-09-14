@@ -6,12 +6,11 @@ import (
 	"sync"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	sse "github.com/larsartmann/go-sse"
-
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	sse "github.com/larsartmann/go-sse"
 )
 
 // SSEClientID identifies a connected SSE client.
