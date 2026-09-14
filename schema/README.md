@@ -47,14 +47,14 @@ always sees the latest schema version, regardless of what version was stored.
 
 ## API
 
-| Symbol                                        | Description                                                                        |
-| --------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `NewUpcaster(eventType, fromVer, fn)`         | Creates an upcaster for a specific event type and source version.                  |
-| `UpcastSourceTransform(upcasters...)`         | `event.SourceTransform` applying upcasters on load — compose via `event.DecorateStore`/`event.DecorateJournal`. |
-| `Validator`                                   | Validates event payloads against registered types.                                 |
-| `RegisterType[T]()`                           | Register a Go type for schema validation (ADR-0017).                               |
-| `NewVersionedStore(store, upcasters...)`      | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateStore`.|
-| `NewVersionedSeekableJournal(j, upcasters...)`| **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateJournal`.|
+| Symbol                                         | Description                                                                                                     |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `NewUpcaster(eventType, fromVer, fn)`          | Creates an upcaster for a specific event type and source version.                                               |
+| `UpcastSourceTransform(upcasters...)`          | `event.SourceTransform` applying upcasters on load — compose via `event.DecorateStore`/`event.DecorateJournal`. |
+| `Validator`                                    | Validates event payloads against registered types.                                                              |
+| `RegisterType[T]()`                            | Register a Go type for schema validation (ADR-0017).                                                            |
+| `NewVersionedStore(store, upcasters...)`       | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateStore`.                            |
+| `NewVersionedSeekableJournal(j, upcasters...)` | **Deprecated** (removed v5): pre-transform shell; forwards to `event.DecorateJournal`.                          |
 
 ## Design
 

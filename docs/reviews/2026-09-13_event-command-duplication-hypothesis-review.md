@@ -22,14 +22,14 @@
 
 The repo's doctrine is "generic cores, injected policies" (ADR-0126). Verified per item:
 
-| Parallel surface | What actually lives there |
-| --- | --- |
-| `dispatcher.go` ×2 (command/query) | Both embed Tier-0 `dispatcher.Dispatcher[H, M]` — thin facades over one generic core |
+| Parallel surface                                                          | What actually lives there                                                                                                                                                                           |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dispatcher.go` ×2 (command/query)                                        | Both embed Tier-0 `dispatcher.Dispatcher[H, M]` — thin facades over one generic core                                                                                                                |
 | `middleware.CommandIdempotency` / `EventIdempotency` / `QueryIdempotency` | One generic `NewIdempotency(adapter, store, ttl, key)` core + three ~15-line adapters differing only in key strategy (command/event have minted IDs; query requires an extractor and panics on nil) |
-| Per-kind storage (`storage/memory`, `storage/sql`) | Generic `LogStore[T, ID]` (ADR-0126) and `Inserter[T]`; `storage/memory/command_store.go` embeds `*LogStore[*command.PersistedCommand, id.CommandID]` |
-| `Metadata` ×3 | Aliases of one generic `metadata.Metadata[K]` (ADR-0031) |
-| Codec envelopes | One ADR-0044 envelope (`WrapEncode`/`UnwrapDecode`) shared by all blind stores |
-| `asrecord.go` ×3 | Necessary per-kind bridges to `record.Record`; the command/query twins carry `//art-dupl:accept "dep-isolated twin; lockstep Record population is by design"` |
+| Per-kind storage (`storage/memory`, `storage/sql`)                        | Generic `LogStore[T, ID]` (ADR-0126) and `Inserter[T]`; `storage/memory/command_store.go` embeds `*LogStore[*command.PersistedCommand, id.CommandID]`                                               |
+| `Metadata` ×3                                                             | Aliases of one generic `metadata.Metadata[K]` (ADR-0031)                                                                                                                                            |
+| Codec envelopes                                                           | One ADR-0044 envelope (`WrapEncode`/`UnwrapDecode`) shared by all blind stores                                                                                                                      |
+| `asrecord.go` ×3                                                          | Necessary per-kind bridges to `record.Record`; the command/query twins carry `//art-dupl:accept "dep-isolated twin; lockstep Record population is by design"`                                       |
 
 ## 2. Why the port TYPES are not copies
 

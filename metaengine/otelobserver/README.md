@@ -16,13 +16,13 @@ obs, err := otelobserver.Attach(store, cqrsotel.NewMeter("cqrs"))
 
 ## Instruments
 
-| Instrument                          | Attributes                | Meaning                                    |
-| ----------------------------------- | ------------------------- | ------------------------------------------ |
-| `cqrs.metaengine.quarantine.total`  | `engine`                  | Engine quarantined after N classified failures |
-| `cqrs.metaengine.reactivate.total`  | `engine`, `reason`        | Quarantine lifted: `manual` / `catchup` / `probe-fallback` |
-| `cqrs.metaengine.probe.total`       | `engine`, `outcome`       | Health probe result: `ok` / `fail`         |
-| `cqrs.metaengine.catchup.total`     | `engine`, `outcome`       | Catch-up rebuild attempt: `ok` / `fail`    |
-| `cqrs.metaengine.catchup.replayed`  | `engine`                  | Events replayed into a rebuilding engine   |
+| Instrument                         | Attributes          | Meaning                                                    |
+| ---------------------------------- | ------------------- | ---------------------------------------------------------- |
+| `cqrs.metaengine.quarantine.total` | `engine`            | Engine quarantined after N classified failures             |
+| `cqrs.metaengine.reactivate.total` | `engine`, `reason`  | Quarantine lifted: `manual` / `catchup` / `probe-fallback` |
+| `cqrs.metaengine.probe.total`      | `engine`, `outcome` | Health probe result: `ok` / `fail`                         |
+| `cqrs.metaengine.catchup.total`    | `engine`, `outcome` | Catch-up rebuild attempt: `ok` / `fail`                    |
+| `cqrs.metaengine.catchup.replayed` | `engine`            | Events replayed into a rebuilding engine                   |
 
 All instruments are prefixed `cqrs.` so `cqrsotel.NewCQRSViews()` applies
 where relevant.

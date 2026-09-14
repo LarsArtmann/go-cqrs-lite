@@ -22,11 +22,11 @@ StreamScan(ctx, collection string, filters []FilterSpec, sort *SortSpec) iter.Se
 
 ## Options
 
-| # | Option | Effort | Risk | Outcome |
-| - | ------ | ------ | ---- | ------- |
-| A | **Wire it** — add `Store.Stream`, use it in `Export`, tests | ~3-4h | Low (additive API; fallback preserves behavior) | Decision 2 honored; memory-safe exports; capability no longer a ghost |
-| B | **Cut at v5** — delete `StreamingScan` + 4 engine impls | ~1h + engine churn | Medium (removes tested code; abandons Decision 2) | Smaller surface; export stays O(all-rows-in-RAM) |
-| C | **Keep dormant** — document as capability, no caller | ~15min doc | Low now, debt later | Ghost persists; every future reader asks why it exists |
+| # | Option                                                      | Effort             | Risk                                              | Outcome                                                               |
+| - | ----------------------------------------------------------- | ------------------ | ------------------------------------------------- | --------------------------------------------------------------------- |
+| A | **Wire it** — add `Store.Stream`, use it in `Export`, tests | ~3-4h              | Low (additive API; fallback preserves behavior)   | Decision 2 honored; memory-safe exports; capability no longer a ghost |
+| B | **Cut at v5** — delete `StreamingScan` + 4 engine impls     | ~1h + engine churn | Medium (removes tested code; abandons Decision 2) | Smaller surface; export stays O(all-rows-in-RAM)                      |
+| C | **Keep dormant** — document as capability, no caller        | ~15min doc         | Low now, debt later                               | Ghost persists; every future reader asks why it exists                |
 
 ## Recommendation: **A — Wire it**
 

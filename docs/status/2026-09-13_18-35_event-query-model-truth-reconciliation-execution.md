@@ -11,15 +11,15 @@
 
 ## Verdict in one table
 
-| Category | Count | Headline |
-| -------- | ----- | -------- |
-| Plan tasks executed (T01-T26) | 26/26 | All touched; 24 fully, 2 scope-reduced by design |
-| Code changes shipped | 4 files + golden | `Store.StreamCollection`, streaming `Export`, `CommandsByActor`, tests |
-| Doc changes shipped | 14 files | reconciled doc, 3 memos, AGENTS.md convention, TODO/ROADMAP/CHANGELOG, README, skill refs |
-| Gates run green | 6 | build+vet, root suite (212 ginkgo), doc-check, changelog-symbols, duplication, targeted tests |
-| Gates red (external) | 1 | file-size ratchet on another session's `lintutil.go` growth |
-| Verification gaps left | 5 | lint, system module, engine modules, real-engine export test, md-go-validator re-run |
-| Open decisions | 3 | rejection event, session boundary, query-level stream |
+| Category                      | Count            | Headline                                                                                      |
+| ----------------------------- | ---------------- | --------------------------------------------------------------------------------------------- |
+| Plan tasks executed (T01-T26) | 26/26            | All touched; 24 fully, 2 scope-reduced by design                                              |
+| Code changes shipped          | 4 files + golden | `Store.StreamCollection`, streaming `Export`, `CommandsByActor`, tests                        |
+| Doc changes shipped           | 14 files         | reconciled doc, 3 memos, AGENTS.md convention, TODO/ROADMAP/CHANGELOG, README, skill refs     |
+| Gates run green               | 6                | build+vet, root suite (212 ginkgo), doc-check, changelog-symbols, duplication, targeted tests |
+| Gates red (external)          | 1                | file-size ratchet on another session's `lintutil.go` growth                                   |
+| Verification gaps left        | 5                | lint, system module, engine modules, real-engine export test, md-go-validator re-run          |
+| Open decisions                | 3                | rejection event, session boundary, query-level stream                                         |
 
 ---
 
@@ -121,58 +121,58 @@
 
 Sorted roughly by impact; effort: XS <30min, S <2h, M <1d, L >1d.
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Run `system` module tests (`cd system && GOWORK=off go test -tags … ./...`) — verify the 5th projection didn't break `WithCommandLifecycle` | Critical | XS |
-| 2 | Run `golangci-lint` on `metaengine` + `commandlifecycle/projections`; remove the redundant test `//nolint:forcetypeassert` if nolintlint flags it | Critical | S |
-| 3 | Run engine-module suites (`pebbleengine`, `sqliteengine`, `bboltengine`, `badgerengine`) — they implement `StreamingScan`, untouched but now consumed | High | S |
-| 4 | Add a real-engine `Export` streaming test (sqlite or pebble) — synthetic wrapper is not sufficient proof | High | S |
-| 5 | Resolve the `lintutil.go` file-size red (owner session: shrink, split, or baseline shift per policy) | High | S |
-| 6 | Decide `projections.All()` policy: auto-include `CommandsByActor` (current) vs opt-in; document either way | High | XS |
-| 7 | Update `recipes.md:1110` projection comment + add a `CommandsByActor` recipe snippet and cheat-sheet row | High | S |
-| 8 | Re-run `md-go-validator` on `event-query-model.md`; confirm the `:182` finding cleared; record delta | Medium | S |
-| 9 | Run `nix run .#verify-fast` end-to-end once #5 is green | High | S |
-| 10 | Run `#check-arch` + `#check-error-taxonomy` as cheap sanity (no deps touched, but cheap) | Low | XS |
-| 11 | Investigate the catch-up stress flake under load (extend existing contention-stall TODO with this second witness) | High | M |
-| 12 | Verify `#check-duplication`'s "0 groups" behavior; document in gotchas if it's scope-dependent | Medium | S |
-| 13 | Query-level `Stream(ctx, input, fn)` design one-pager (memo T16 follow-up, ROADMAP Q12) | Medium | M |
-| 14 | Design `command.rejected` event + errorfamily classification contract (TODO item) | Medium | M |
-| 15 | Payload-capture recorder option (size-bounded, opt-in) design | Low | M |
-| 16 | Add empty-actor semantics test for `CommandsByActor` (key "" today) — pin or normalize | Medium | XS |
-| 17 | Add fn-reentrancy test for `StreamCollection` (documented safe: no lock held during iteration) | Medium | XS |
-| 18 | Streaming export mention in persistence/backup recipes (`recipes.md` persistence section) | Medium | XS |
-| 19 | Add `StreamCollection` to the skill cheat sheet (core.md) if modules.md alone is insufficient | Low | XS |
-| 20 | Run `system.WithCommandLifecycle` doc-check after recipes edits | Low | XS |
-| 21 | Verify Set-membership pushdown for SQL engines (audit item 30) | Medium | S |
-| 22 | Verify graph traversal depth semantics (audit item 31) | Medium | S |
-| 23 | ANNOTATE the 12:10 report's C1 correction inline (docs-health mode) | Medium | S |
-| 24 | Consider `CommandsByActor` pagination (`Limit` field) mirroring the `CommandsByUser` sketch | Low | M |
-| 25 | Add `RecordExecute`-style observability for `StreamCollection` (meter exists; spans? none) | Low | S |
-| 26 | Include `CommandsByActor` in any dashboard/introspection surface (Doctor? system introspection?) if useful | Low | S |
-| 27 | Re-check `docs/planning` gate policy: should reconciled docs be added to doc-check scan set via an explicit list? | Medium | S |
-| 28 | Add the blast-radius step to AGENTS.md procedures (edit one symbol → test all consumer modules) | High | XS |
-| 29 | Tag the metaengine + commandlifecycle/projections changes when the next release wave runs (untagged work accumulating) | High | M |
-| 30 | CHANGELOG: consider promoting the `All()` behavior change to a "Changed" note if policy keeps auto-include | Medium | XS |
-| 31 | Sweep `docs/status/archived/*` for "event-query-model = truth" references needing a pointer | Low | S |
-| 32 | Re-run `/load-sweep` before next `#verify` if timing paths were touched (they were not — skip unless bored) | Low | — |
-| 33 | Add `StreamCollection` error sentinels to the error taxonomy doc if the gate wants them (currently unexported) | Low | XS |
-| 34 | Consider exporting `ErrNoScanBackend`/`ErrCollectionNotFound` if consumers need to branch (currently unexported; Export uses `errors.Is` internally) | Medium | XS |
-| 35 | Add example usage to `example/` for streaming export (consumer-facing demo) | Medium | S |
-| 36 | Review `CommandsByActor` query name convention (`command_by_actor` vs collection naming) | Low | XS |
-| 37 | Decide whether `CommandsByActor` should also fold completed/failed to enrich the per-actor entry (currently received-only) | Medium | S |
-| 38 | Backfill note: `CommandsByActor` projections only see events applied after deployment — document replay/backfill recipe (EventLog + Backfill) | Medium | XS |
-| 39 | Re-run `api-stability` + `TestEvery` after any further symbol changes (they were green) | — | XS |
-| 40 | Investigate whether `TestExport_UsesStreamingScanAndMatchesFallbackOutput` should also assert call count ≥1 per collection | Low | XS |
-| 41 | Clean up the two dirty other-session files before the next release cut (`scripts/check-module-layers.sh`, `example/scheduler-otel-status/*`) | Medium | S |
-| 42 | Note daemon-commit behavior in AGENTS.md for plan-execution sessions (explicit phase commits immediately) | Medium | XS |
-| 43 | Consider a "reconciliation" status marker for planning docs in `docs/planning/README.md` (index-level navigation) | Low | S |
-| 44 | Add `event-query-model.md`'s reconciled status to the docs index if one exists | Low | XS |
-| 45 | Re-verify `commandsByUser` illustrative snippet's remaining `CommandRejected` references are clearly marked (they are, but re-read after any edits) | Low | XS |
-| 46 | Track decision answers (G1 done/G2 half/G3 open) in the plan's decision gates table (update status column) | Medium | XS |
-| 47 | Evaluate whether `Store.StreamCollection` deserves a typed variant (`StreamTyped[V]`) for consumer ergonomics | Low | M |
-| 48 | Add `StreamCollection` to the `Persistence (Survivability)` README section cross-reference (it lives under Streaming section today) | Low | XS |
-| 49 | Run `nix fmt` before any further doc/Go edits to catch formatting drift | Low | XS |
-| 50 | Keep watching `system` projection tests under load once #1 passes (the flake family touches this area) | Medium | S |
+| #  | Task                                                                                                                                                  | Impact   | Effort |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 1  | Run `system` module tests (`cd system && GOWORK=off go test -tags … ./...`) — verify the 5th projection didn't break `WithCommandLifecycle`           | Critical | XS     |
+| 2  | Run `golangci-lint` on `metaengine` + `commandlifecycle/projections`; remove the redundant test `//nolint:forcetypeassert` if nolintlint flags it     | Critical | S      |
+| 3  | Run engine-module suites (`pebbleengine`, `sqliteengine`, `bboltengine`, `badgerengine`) — they implement `StreamingScan`, untouched but now consumed | High     | S      |
+| 4  | Add a real-engine `Export` streaming test (sqlite or pebble) — synthetic wrapper is not sufficient proof                                              | High     | S      |
+| 5  | Resolve the `lintutil.go` file-size red (owner session: shrink, split, or baseline shift per policy)                                                  | High     | S      |
+| 6  | Decide `projections.All()` policy: auto-include `CommandsByActor` (current) vs opt-in; document either way                                            | High     | XS     |
+| 7  | Update `recipes.md:1110` projection comment + add a `CommandsByActor` recipe snippet and cheat-sheet row                                              | High     | S      |
+| 8  | Re-run `md-go-validator` on `event-query-model.md`; confirm the `:182` finding cleared; record delta                                                  | Medium   | S      |
+| 9  | Run `nix run .#verify-fast` end-to-end once #5 is green                                                                                               | High     | S      |
+| 10 | Run `#check-arch` + `#check-error-taxonomy` as cheap sanity (no deps touched, but cheap)                                                              | Low      | XS     |
+| 11 | Investigate the catch-up stress flake under load (extend existing contention-stall TODO with this second witness)                                     | High     | M      |
+| 12 | Verify `#check-duplication`'s "0 groups" behavior; document in gotchas if it's scope-dependent                                                        | Medium   | S      |
+| 13 | Query-level `Stream(ctx, input, fn)` design one-pager (memo T16 follow-up, ROADMAP Q12)                                                               | Medium   | M      |
+| 14 | Design `command.rejected` event + errorfamily classification contract (TODO item)                                                                     | Medium   | M      |
+| 15 | Payload-capture recorder option (size-bounded, opt-in) design                                                                                         | Low      | M      |
+| 16 | Add empty-actor semantics test for `CommandsByActor` (key "" today) — pin or normalize                                                                | Medium   | XS     |
+| 17 | Add fn-reentrancy test for `StreamCollection` (documented safe: no lock held during iteration)                                                        | Medium   | XS     |
+| 18 | Streaming export mention in persistence/backup recipes (`recipes.md` persistence section)                                                             | Medium   | XS     |
+| 19 | Add `StreamCollection` to the skill cheat sheet (core.md) if modules.md alone is insufficient                                                         | Low      | XS     |
+| 20 | Run `system.WithCommandLifecycle` doc-check after recipes edits                                                                                       | Low      | XS     |
+| 21 | Verify Set-membership pushdown for SQL engines (audit item 30)                                                                                        | Medium   | S      |
+| 22 | Verify graph traversal depth semantics (audit item 31)                                                                                                | Medium   | S      |
+| 23 | ANNOTATE the 12:10 report's C1 correction inline (docs-health mode)                                                                                   | Medium   | S      |
+| 24 | Consider `CommandsByActor` pagination (`Limit` field) mirroring the `CommandsByUser` sketch                                                           | Low      | M      |
+| 25 | Add `RecordExecute`-style observability for `StreamCollection` (meter exists; spans? none)                                                            | Low      | S      |
+| 26 | Include `CommandsByActor` in any dashboard/introspection surface (Doctor? system introspection?) if useful                                            | Low      | S      |
+| 27 | Re-check `docs/planning` gate policy: should reconciled docs be added to doc-check scan set via an explicit list?                                     | Medium   | S      |
+| 28 | Add the blast-radius step to AGENTS.md procedures (edit one symbol → test all consumer modules)                                                       | High     | XS     |
+| 29 | Tag the metaengine + commandlifecycle/projections changes when the next release wave runs (untagged work accumulating)                                | High     | M      |
+| 30 | CHANGELOG: consider promoting the `All()` behavior change to a "Changed" note if policy keeps auto-include                                            | Medium   | XS     |
+| 31 | Sweep `docs/status/archived/*` for "event-query-model = truth" references needing a pointer                                                           | Low      | S      |
+| 32 | Re-run `/load-sweep` before next `#verify` if timing paths were touched (they were not — skip unless bored)                                           | Low      | —      |
+| 33 | Add `StreamCollection` error sentinels to the error taxonomy doc if the gate wants them (currently unexported)                                        | Low      | XS     |
+| 34 | Consider exporting `ErrNoScanBackend`/`ErrCollectionNotFound` if consumers need to branch (currently unexported; Export uses `errors.Is` internally)  | Medium   | XS     |
+| 35 | Add example usage to `example/` for streaming export (consumer-facing demo)                                                                           | Medium   | S      |
+| 36 | Review `CommandsByActor` query name convention (`command_by_actor` vs collection naming)                                                              | Low      | XS     |
+| 37 | Decide whether `CommandsByActor` should also fold completed/failed to enrich the per-actor entry (currently received-only)                            | Medium   | S      |
+| 38 | Backfill note: `CommandsByActor` projections only see events applied after deployment — document replay/backfill recipe (EventLog + Backfill)         | Medium   | XS     |
+| 39 | Re-run `api-stability` + `TestEvery` after any further symbol changes (they were green)                                                               | —        | XS     |
+| 40 | Investigate whether `TestExport_UsesStreamingScanAndMatchesFallbackOutput` should also assert call count ≥1 per collection                            | Low      | XS     |
+| 41 | Clean up the two dirty other-session files before the next release cut (`scripts/check-module-layers.sh`, `example/scheduler-otel-status/*`)          | Medium   | S      |
+| 42 | Note daemon-commit behavior in AGENTS.md for plan-execution sessions (explicit phase commits immediately)                                             | Medium   | XS     |
+| 43 | Consider a "reconciliation" status marker for planning docs in `docs/planning/README.md` (index-level navigation)                                     | Low      | S      |
+| 44 | Add `event-query-model.md`'s reconciled status to the docs index if one exists                                                                        | Low      | XS     |
+| 45 | Re-verify `commandsByUser` illustrative snippet's remaining `CommandRejected` references are clearly marked (they are, but re-read after any edits)   | Low      | XS     |
+| 46 | Track decision answers (G1 done/G2 half/G3 open) in the plan's decision gates table (update status column)                                            | Medium   | XS     |
+| 47 | Evaluate whether `Store.StreamCollection` deserves a typed variant (`StreamTyped[V]`) for consumer ergonomics                                         | Low      | M      |
+| 48 | Add `StreamCollection` to the `Persistence (Survivability)` README section cross-reference (it lives under Streaming section today)                   | Low      | XS     |
+| 49 | Run `nix fmt` before any further doc/Go edits to catch formatting drift                                                                               | Low      | XS     |
+| 50 | Keep watching `system` projection tests under load once #1 passes (the flake family touches this area)                                                | Medium   | S      |
 
 ---
 
@@ -188,18 +188,18 @@ Sorted roughly by impact; effort: XS <30min, S <2h, M <1d, L >1d.
 
 **Gates actually run (with result):**
 
-| Gate | Command | Result |
-| ---- | ------- | ------ |
-| metaengine build | `GOWORK=off go build ./...` | PASS |
-| metaengine vet (root) | `GOWORK=off go vet .` | PASS |
-| metaengine root suite | `GOWORK=off go test -short .` | 212/212 ginkgo PASS; 1 load-flake in a concurrency test (passes 5/5 isolated) |
-| T23 tests | `go test -run 'TestStreamCollection\|TestExport'` | PASS (5 new + 4 existing) |
-| commandlifecycle | `go test -short ./...` (parent + projections) | PASS |
-| doc-check | explicit file list incl. AGENTS.md | exit 0 (1123 refs) |
-| changelog-symbols | `scripts/check-changelog-symbols.sh` | 50 citations honest |
-| duplication | `nix run .#check-duplication` | 0 new clone groups (0 total reported) |
-| api-stability | `--update` + `TestEvery` | golden 6855 exports; meta-tests PASS |
-| file-size | `nix run .#check-file-size` | **FAIL — external `lintutil.go` growth** |
+| Gate                  | Command                                           | Result                                                                        |
+| --------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------- |
+| metaengine build      | `GOWORK=off go build ./...`                       | PASS                                                                          |
+| metaengine vet (root) | `GOWORK=off go vet .`                             | PASS                                                                          |
+| metaengine root suite | `GOWORK=off go test -short .`                     | 212/212 ginkgo PASS; 1 load-flake in a concurrency test (passes 5/5 isolated) |
+| T23 tests             | `go test -run 'TestStreamCollection\|TestExport'` | PASS (5 new + 4 existing)                                                     |
+| commandlifecycle      | `go test -short ./...` (parent + projections)     | PASS                                                                          |
+| doc-check             | explicit file list incl. AGENTS.md                | exit 0 (1123 refs)                                                            |
+| changelog-symbols     | `scripts/check-changelog-symbols.sh`              | 50 citations honest                                                           |
+| duplication           | `nix run .#check-duplication`                     | 0 new clone groups (0 total reported)                                         |
+| api-stability         | `--update` + `TestEvery`                          | golden 6855 exports; meta-tests PASS                                          |
+| file-size             | `nix run .#check-file-size`                       | **FAIL — external `lintutil.go` growth**                                      |
 
 **Files authored/modified this session (code):** `metaengine/stream_collection.go` (new, 78), `metaengine/stream_collection_test.go` (new, 195), `metaengine/export_import.go`, `commandlifecycle/projections/projections.go` (227), `commandlifecycle/projections/projections_test.go` (272), `docs/api_surface.txt`.
 

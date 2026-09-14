@@ -23,12 +23,12 @@ This re-review replaces it with a structural argument.
 
 ## Fresh measurements (2026-09-13)
 
-| Measurement                                | 2026-06-29 (decision) | 2026-09-13 (re-review)         |
-| ------------------------------------------ | --------------------- | ------------------------------- |
-| Modules directly requiring `event/v4`      | 27                    | **41**                          |
-| Dirs importing the package (incl. tests)  | —                     | **66**                          |
-| Exported symbols in `event/`               | —                     | 232                             |
-| Non-test LOC                               | —                     | ~3,700                          |
+| Measurement                              | 2026-06-29 (decision) | 2026-09-13 (re-review) |
+| ---------------------------------------- | --------------------- | ---------------------- |
+| Modules directly requiring `event/v4`    | 27                    | **41**                 |
+| Dirs importing the package (incl. tests) | —                     | **66**                 |
+| Exported symbols in `event/`             | —                     | 232                    |
+| Non-test LOC                             | —                     | ~3,700                 |
 
 Cohesion by import volume went **up**, not down, since the decision.
 
@@ -51,10 +51,10 @@ too. Per the direction-neutrality framework this is the "seam earns nothing" fai
 
 The remaining clusters are even weaker candidates:
 
-| Cluster                          | External users                       | Split outcome                        |
-| -------------------------------- | ------------------------------------ | ------------------------------------ |
+| Cluster                                  | External users                   | Split outcome                            |
+| ---------------------------------------- | -------------------------------- | ---------------------------------------- |
 | Time types (`Date`/`Instant`/`WallTime`) | 2 files, both in `cmd/cqrs-lint` | 2-importer module; worse than status quo |
-| `TombstoneMark`                  | 1 file (`watermill/protocol.go`)     | 1-importer module; no payoff         |
+| `TombstoneMark`                          | 1 file (`watermill/protocol.go`) | 1-importer module; no payoff             |
 
 ### 2. Co-change does not indicate a missing boundary
 

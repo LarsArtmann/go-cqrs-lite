@@ -108,11 +108,11 @@
     "go-ndjson": {
       "flake": false,
       "locked": {
-        "lastModified": 1789008699,
-        "narHash": "sha256-90jtYCK9BbozCh2kOoBMqBJWx2YqKLM8cqYC/FaCD4M=",
+        "lastModified": 1789277719,
+        "narHash": "sha256-J4YF1Y5aRGzZm8qBHDqv9YdFNl/4RAa3ttA7eDfkfdQ=",
         "owner": "LarsArtmann",
         "repo": "go-ndjson",
-        "rev": "6644ae6c84cad15c684ee555e5f889102cb12b4c",
+        "rev": "f2825aadd299bf56b584f1827e5438fffc5634cf",
         "type": "github"
       },
       "original": {
@@ -142,11 +142,11 @@
     "go-output": {
       "flake": false,
       "locked": {
-        "lastModified": 1789003809,
-        "narHash": "sha256-Wn07HkjF/GIr9X7N307fMAwr5/Yk6sf/k+0mlJk8uk8=",
+        "lastModified": 1789277827,
+        "narHash": "sha256-caIXlDK56yrEgk+hkoRK4B75msT0Z7vih93vjaJtDvo=",
         "owner": "LarsArtmann",
         "repo": "go-output",
-        "rev": "3b404d2d9efb303ab4201a747dadb121a7c4e9e0",
+        "rev": "e523042a7a99b1227eff6236a32174022ee22978",
         "type": "github"
       },
       "original": {
@@ -159,11 +159,11 @@
     "gogenfilter": {
       "flake": false,
       "locked": {
-        "lastModified": 1789033542,
-        "narHash": "sha256-9co8LygZMvP38/3XKAeGvp2J+EOJXvlYZXhSJDUrHiE=",
+        "lastModified": 1789278792,
+        "narHash": "sha256-n1KSFs8AlcY9L4mw4WVthjJ3L7YLF3Wbok7A+SqGLmU=",
         "owner": "LarsArtmann",
         "repo": "gogenfilter",
-        "rev": "b79a9d25db68b174eeb672d72d716f4a49528387",
+        "rev": "2027c0ccb4192b8c2c3bfaee5ead152a6dab2ec3",
         "type": "github"
       },
       "original": {

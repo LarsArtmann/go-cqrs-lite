@@ -9,26 +9,31 @@
 ## a) FULLY DONE
 
 ### Plan Wave 1 — decider causation (1% → 51%)
+
 1. **T01 mechanism spike** — post-hoc stamping via existing `event.Option` application confirmed (same mechanism as `Repository.applyEnricher`, `decider/enricher.go`); decision + Go 1.26 constraint recorded in plan §D1. Key discovery: **generic methods are illegal in Go 1.26**, so the plan's sketched method form is uncompilable → shipped as package-level generic function `decider.ExecuteCommandRef[State, C]` (repo-consistent with its option funcs). Amendment recorded in plan.
 2. **T02 `decider/execute_command.go`** (new file, `decider.go` untouched per G2) — `CausedCommand` (`ID() id.CommandID`), `CommandDecideFunc[State, C]`, `ExecuteCommandRef` delegating to `ExecuteRef`; stamps typed `Metadata.Causation` + `command.id`/`command.type` compat keys; optional `Type() record.Type` capability (satisfied by both first-party command types via the alias); respects decide-set causation; zero-ID commands unstamped. **Zero new decider deps** (G6 — `nix run .#check-arch` PASS).
 3. **T03 tests** — ginkgo BDD suite (7 specs: stamp coverage, no-Type degradation, decide-set preserved, enricher coexistence, zero-events, decide-error, zero-ID) + rapid property test (arbitrary counts/IDs/pre-stamped collisions) + runnable `ExampleExecuteCommandRef`. All green; `-race` green.
 4. **T04 docs + goldens** — api golden regenerated same-edit (+`decider.ExecuteCommandRef`, `+decider.CausedCommand`, `+decider.CommandDecideFunc`); `TestEvery` green; CHANGELOG `[Unreleased]` Added sections (G4: `check-changelog-symbols.sh` — 48 citations verified honest); recipes §2.1b; core.md §3.8 convention + §11 cheat-sheet rows; doc-check **1123 references valid, exit 0**.
 
 ### Plan Wave 2 — first-class command records
+
 5. **T05 `command.AsRecordPersisted`** — full-fidelity bridge (payload, StreamType populated, `Received`/`ClientCreatedAt` stamps, tracing) mirroring `query.AsRecord`; 4 fidelity tests; `//art-dupl:accept` twin annotation → **`#check-duplication`: 0 new clone groups**.
 6. **T06** — v5 deprecation doc-note on `command.AsRecord(*BasicCommand)`; **cqrs-lint V007 drift table entry added** (the deprecation marker is machine-gated — caught by verify, fixed same-session); golden +1 symbol; CHANGELOG section.
 
 ### Plan Wave 3 — lifecycle evolution + docs parity
+
 7. **T07 D3 CONFIRMED** — `event.DecorateStore(raw, nil, schema.UpcastSourceTransform(u))` around the Recorder = read-path-only schema evolution, write-path passthrough, current-version passthrough, Recorder version-seeding composes (strict mode). Pinned permanently in `commandlifecycle/upcast_composition_test.go` (3 tests). Schema dep is test-only → zero budget impact (auto-detected by `check-module-layers.sh`).
 8. **T08 recipes §2.19b** (schema-evolution-for-commands, from the confirmed outcome) + faq cross-refs.
 9. **T09 faq.md "Command-side pitfalls"** — 3 entries (missing causation → new API, closure trap, evolving persisted lifecycle payloads) + TOC. doc-check green after both waves.
 
 ### Plan Wave 4 — filing + gates (partial, see b)
+
 10. **T10** — TODO_LIST: W1–W3 marked done with evidence; **Go 1.27 upgrade wave filed** (release notes verified via go.dev: generic methods + jsonv2 graduation, 1.27.0 Aug 19 / 1.27.1 Sep 1); ROADMAP ADR-0112 entry now cites the D2 bridge; both 2026-09-13 review docs plan-linked (pre-existing).
 11. **T11** — per-module `GOWORK=off` tests green in decider, command, commandlifecycle, schema; `nix fmt` clean (CI formatting leg).
 12. **Verify-phase gates proven individually**: build/vet ✓, tests of all touched modules ✓ (incl. `-race` on decider/command/commandlifecycle/schema/system), `#check-arch` ✓, `#check-duplication` ✓ (0 new), `#check-modsums` ✓ (85 modules), changelog-symbols ✓, doc-check ✓, golden+`TestEvery` ✓, my files pass the file-size ratchet ✓.
 
 ### Out-of-plan but session-caused fixes
+
 13. **gci regression root-caused and reverted** — auto-commit `4a9855ed2` (2026-09-11 06:16) re-added `- gci` to `.golangci.yml` formatters, re-breaking the exact fight AGENTS.md #18 documents (08-16 removal). 400 phantom findings on pristine files. Removed → 400 → 25 findings.
 14. **wrapcheck config aligned with the documented error idiom** — added the six `errorfamily.New*(` constructor sigs to `ignore-sigs` (AGENTS.md Error Handling blesses these as returned-bare-by-design). −6 findings.
 15. **9 mechanical findings fixed** (mine 4: mnd magic-3 → named const, wsl blank line, unconvert `string()`, gocognit 43→ extracted `verifyCausationStamps` helper; pre-existing 5: errorlint sentinel compare → `errors.Is`, ineffassign ×3 (dead `make` before `lo.SliceToMap`), sloglint → `slog.DiscardHandler`, forbidigo `fmt.Printf` → `t.Logf`).
@@ -83,6 +88,7 @@
 ## f) UP TO 50 THINGS TO DO NEXT (prioritized, grouped)
 
 **Immediate — finish this plan's tail (P0):**
+
 1. Re-run `#check-duplication`, `#check-arch`, `#check-modsums`, changelog-symbols after the daemon's latest absorbs (tree moved under us).
 2. Re-apply the clobbered `DeferClose(batch)` errcheck fix in `metaengine/pebbleengine/reset.go:51` (coordinate with the OTEL agent first).
 3. Re-run doc-check (TODO_LIST/ROADMAP changed since last run).
@@ -155,6 +161,7 @@
 ---
 
 ### Evidence appendix (key artifacts)
+
 - New/changed production files: `decider/execute_command.go` · `command/asrecord.go` (+`AsRecordPersisted`, v5 note) · `cmd/cqrs-lint/pkg/rules/version/v007_tables.go` (AsRecord entry) · `.golangci.yml` (gci removal, wrapcheck sigs) · `system/system_hardening_test.go` (45s/270s budgets) · lint mechanical fixes: `id/compat_aliases_test.go`, `integration/otel_span_tree_test.go`, `metaengine/irohengine/{loopback,quic}/graph_int_endpoints_test.go`, `metaengine/catchup_stress_test.go`, `system/readme_quickstart_verify_test.go`, `metaengine/pebbleengine/reset.go` (clobbered by concurrent agent — re-apply pending).
 - New test files: `decider/execute_command_bdd_test.go`, `decider/execute_command_property_test.go`, `command/asrecord_persisted_test.go`, `commandlifecycle/upcast_composition_test.go`, `decider/example_test.go` (+Example).
 - New docs: recipes §2.1b + §2.19b, core §3.8 + cheat-sheet rows, faq "Command-side pitfalls", CHANGELOG 2 Added sections, ROADMAP ADR-0112 note, TODO_LIST status + 3 filed items (Go 1.27 wave, system-stall investigation, [this report's sibling] lint debt).

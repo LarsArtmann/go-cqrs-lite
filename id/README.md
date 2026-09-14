@@ -30,16 +30,16 @@ parsed, err := id.Parse[OrderID](orderID.String())
 
 ## Built-in Types
 
-| Type            | Marker              | Purpose                        |
-| --------------- | ------------------- | ------------------------------ |
-| `StreamID`      | `StreamMarker`      | Identifies an event stream     |
-| `EventID`       | `EventMarker`       | Uniquely identifies an event   |
-| `CorrelationID` | `CorrelationMarker` | Links events across a request  |
-| `CausationID`   | `CausationMarker`   | Links an event to its cause    |
-| `CommandID`     | `CommandMarker`     | Uniquely identifies a command  |
-| `RequestID`     | `RequestMarker`     | HTTP request correlation       |
-| `UserID`        | `UserMarker`        | Authenticated user             |
-| `ClientID`      | `ClientMarker`      | API client / consumer          |
+| Type            | Marker              | Purpose                       |
+| --------------- | ------------------- | ----------------------------- |
+| `StreamID`      | `StreamMarker`      | Identifies an event stream    |
+| `EventID`       | `EventMarker`       | Uniquely identifies an event  |
+| `CorrelationID` | `CorrelationMarker` | Links events across a request |
+| `CausationID`   | `CausationMarker`   | Links an event to its cause   |
+| `CommandID`     | `CommandMarker`     | Uniquely identifies a command |
+| `RequestID`     | `RequestMarker`     | HTTP request correlation      |
+| `UserID`        | `UserMarker`        | Authenticated user            |
+| `ClientID`      | `ClientMarker`      | API client / consumer         |
 
 `StreamID` is string-backed (`id.Of[StreamMarker, string]`) so caller-chosen
 semantic keys survive intact; ULID backing (`id.NewStreamID()`) is for
@@ -49,13 +49,13 @@ system-minted IDs. `AggregateID` is a **deprecated alias** of `StreamID`.
 
 ## API
 
-| Function                    | Description                                              |
-| --------------------------- | -------------------------------------------------------- |
-| `New[T]()`                  | Generate a new random branded ID.                        |
-| `Parse[T](s)`               | Parse a string into a branded ID.                        |
-| `DeriveCommandID(...)`      | Deterministically derive a command ID (for idempotency). |
-| `NewStreamID()`             | Shortcut for `New[StreamID]()`.                          |
-| `NewStreamRef(type, id)`    | Create a stream reference for store operations.          |
+| Function                 | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `New[T]()`               | Generate a new random branded ID.                        |
+| `Parse[T](s)`            | Parse a string into a branded ID.                        |
+| `DeriveCommandID(...)`   | Deterministically derive a command ID (for idempotency). |
+| `NewStreamID()`          | Shortcut for `New[StreamID]()`.                          |
+| `NewStreamRef(type, id)` | Create a stream reference for store operations.          |
 
 ## Serialization
 

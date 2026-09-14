@@ -283,7 +283,7 @@ audit_all_tags() {
 				echo "NEW VIOLATION: ${vt}"
 				new_violations=$((new_violations + 1))
 			fi
-			done
+		done
 		while IFS= read -r known_tag; do
 			case "$known_tag" in
 			\#* | "") continue ;;
@@ -294,7 +294,7 @@ audit_all_tags() {
 					found=1
 					break
 				fi
-				done
+			done
 			if [ "$found" -eq 0 ]; then
 				echo "NOTE: baseline entry no longer violating — drop it: ${known_tag}"
 				stale_entries=$((stale_entries + 1))
@@ -304,11 +304,11 @@ audit_all_tags() {
 		echo "Baseline audit: ${violations} violation(s) total, ${new_violations} NEW, ${stale_entries} fixed."
 		if [ "$new_violations" -gt 0 ]; then
 			echo "NEW violations are not in ${baseline_file}; they gate CI. Fix the"
-				echo "tag (deprecation stub, see cmd/cqrs-lint/v0.2.1) or, only after an"
-				echo "explicit ruling that the violation is known-dead, re-pin the baseline."
-				return 1
-			fi
-			return 0
+			echo "tag (deprecation stub, see cmd/cqrs-lint/v0.2.1) or, only after an"
+			echo "explicit ruling that the violation is known-dead, re-pin the baseline."
+			return 1
+		fi
+		return 0
 	fi
 
 	if [ "$violations" -gt 0 ]; then

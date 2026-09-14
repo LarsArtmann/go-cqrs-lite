@@ -15,14 +15,14 @@
 
 ## 1. The steelman: where the command side IS solid
 
-| Capability | Evidence |
-| --- | --- |
-| Type parity | `command/` mirrors `event/` structurally: 89 exported symbols — `Dispatcher`, `Bus`, `MemoryBus`, `Store` (Sink/Source ISP split), `CommandJournal`, `TypedCommandStore[P]`, `Middleware`, `MetadataCarrier` capability |
-| Lifecycle | `commandlifecycle/` (ADR-0117): received/failed/retried/completed/deadlettered as **replayable event streams** + `Recorder` + `system.WithCommandLifecycle` one-call setup — more sophisticated than most CQRS libraries' DLQs |
-| Idempotency | `idempotency/` + `idempotency/sqlstore` + `idempotency/kvstore` + `middleware.CommandIdempotency` |
-| Testing | `command/commandtest` store suite |
-| Docs/tooling | catalog covers commands (`catalog/build.go`); `system.RegisterCommand` / `UseCommandMiddleware` / `CommandStore` / `CommandDispatcher` |
-| Activity | Authored commits since 2026-06-15: command 173 vs event 248 vs query 150 — comparable, not abandoned |
+| Capability   | Evidence                                                                                                                                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Type parity  | `command/` mirrors `event/` structurally: 89 exported symbols — `Dispatcher`, `Bus`, `MemoryBus`, `Store` (Sink/Source ISP split), `CommandJournal`, `TypedCommandStore[P]`, `Middleware`, `MetadataCarrier` capability        |
+| Lifecycle    | `commandlifecycle/` (ADR-0117): received/failed/retried/completed/deadlettered as **replayable event streams** + `Recorder` + `system.WithCommandLifecycle` one-call setup — more sophisticated than most CQRS libraries' DLQs |
+| Idempotency  | `idempotency/` + `idempotency/sqlstore` + `idempotency/kvstore` + `middleware.CommandIdempotency`                                                                                                                              |
+| Testing      | `command/commandtest` store suite                                                                                                                                                                                              |
+| Docs/tooling | catalog covers commands (`catalog/build.go`); `system.RegisterCommand` / `UseCommandMiddleware` / `CommandStore` / `CommandDispatcher`                                                                                         |
+| Activity     | Authored commits since 2026-06-15: command 173 vs event 248 vs query 150 — comparable, not abandoned                                                                                                                           |
 
 ## 2. Where the feeling is justified: three domain-side gaps
 

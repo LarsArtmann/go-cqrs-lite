@@ -16,16 +16,16 @@
 
 ## Summary Table
 
-| # | Doc §10/§12/§15 claim | Verdict | Reality in one line |
-|---|----------------------|---------|---------------------|
-| 1 | Command log as event stream | **SHIPPED (renamed + reshaped)** | `commandlifecycle` (ADR-0117) + command journals |
-| 2 | Query log as event stream | NOT shipped | In-process observability hooks only |
-| 3 | Session log as event stream | NOT shipped | Zero adjacent machinery; external `identity-model` owns sessions |
-| 4 | §15 Decision 2: `Stream(ctx, input, fn)` | **GHOST-SHIPPED** | Engine capability on 4 engines, zero production callers |
-| 5 | §15 Decision 3: cross-projection queries | NOT shipped | Single-collection aggregates only |
-| 6 | §12 YAML engine config | NOT shipped | Philosophy honored via Go composition roots |
-| 7 | §12 Neo4j engine | NOT implemented, designed-for | `GraphDriver` + `graphtest` extension point exists |
-| 8 | §5/§7/§12 Bloom filters | EXISTS, invisible | Pebble-internal filter policy, not an ADT backend |
+| # | Doc §10/§12/§15 claim                    | Verdict                          | Reality in one line                                              |
+| - | ---------------------------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| 1 | Command log as event stream              | **SHIPPED (renamed + reshaped)** | `commandlifecycle` (ADR-0117) + command journals                 |
+| 2 | Query log as event stream                | NOT shipped                      | In-process observability hooks only                              |
+| 3 | Session log as event stream              | NOT shipped                      | Zero adjacent machinery; external `identity-model` owns sessions |
+| 4 | §15 Decision 2: `Stream(ctx, input, fn)` | **GHOST-SHIPPED**                | Engine capability on 4 engines, zero production callers          |
+| 5 | §15 Decision 3: cross-projection queries | NOT shipped                      | Single-collection aggregates only                                |
+| 6 | §12 YAML engine config                   | NOT shipped                      | Philosophy honored via Go composition roots                      |
+| 7 | §12 Neo4j engine                         | NOT implemented, designed-for    | `GraphDriver` + `graphtest` extension point exists               |
+| 8 | §5/§7/§12 Bloom filters                  | EXISTS, invisible                | Pebble-internal filter policy, not an ADT backend                |
 
 ---
 
@@ -62,18 +62,18 @@ from outcomes** — arguably cleaner than the doc's single-log sketch.
   - `DeadLetterQueue()` — Map ADT query on `command.dead-lettered` (projections.go:68)
   - `RetryCount()` — Delta (Counter ADT) on `command.retried` (projections.go:86)
   - `FailureLog()` — Append (Log ADT) on `command.failed` (projections.go:104)
-  All built with `metaengine.OnRecordTyped` + `record.Record` context, keyed by
-  `rec.MetaData.Cause.ID` (the command ID).
+    All built with `metaengine.OnRecordTyped` + `record.Record` context, keyed by
+    `rec.MetaData.Cause.ID` (the command ID).
 
 ### Verdict vs doc
 
-| Doc §10 element | Status |
-|---|---|
-| Commands are append-only logs | Shipped (intent streams + journals) |
-| Append first, project lazily | Shipped (event streams + metaengine projections) |
-| Full-payload audit records | Shipped at intent-stream level (`Command/<id>`); lifecycle payloads deliberately omit payload (no duplication) |
-| Per-user audit projection (`CommandsByUser`) | Possible (actor propagates onto lifecycle events) but **no pre-built projection** |
-| "Four logs" framing (command/query/session) | 1 of 3 realized |
+| Doc §10 element                              | Status                                                                                                         |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Commands are append-only logs                | Shipped (intent streams + journals)                                                                            |
+| Append first, project lazily                 | Shipped (event streams + metaengine projections)                                                               |
+| Full-payload audit records                   | Shipped at intent-stream level (`Command/<id>`); lifecycle payloads deliberately omit payload (no duplication) |
+| Per-user audit projection (`CommandsByUser`) | Possible (actor propagates onto lifecycle events) but **no pre-built projection**                              |
+| "Four logs" framing (command/query/session)  | 1 of 3 realized                                                                                                |
 
 ### Gaps
 
@@ -120,6 +120,7 @@ Verified absent:
   sessions as ephemeral runtime objects; that is still the state of the world.
 
 Related-but-different modules that could be confused with sessions:
+
 - `claiming/` (extracted 2026-09-13 from `scheduling/sqlstore`) — lease-claim SQL
   for distributed timers, not user sessions.
 - `scheduling/` — durable timers ("cancel order after 30 min"), not sessions.
@@ -194,9 +195,9 @@ Reality:
 
 ## 7. Neo4j engine (§12) — NOT implemented, explicitly designed-for
 
-- `graph/graph.go:29`: *"A Neo4j or [other] driver: implement `GraphDriver`
+- `graph/graph.go:29`: _"A Neo4j or [other] driver: implement `GraphDriver`
   against their target database; the contract test suite in `graphtest`
-  [validates it]"* — the plug-in path is documented and test-supported.
+  [validates it]"_ — the plug-in path is documented and test-supported.
 - Shipped graph drivers: `MemoryDriver` (tests), Dgraph (`dgraphengine`, DQL over
   gRPC). SQL recursive-CTE fallback lives in metaengine (`graph_fallback.go`).
 - `graphadapter` bridges `GraphDriver` → `metaengine.Engine` (ADR-0113 deleted the
@@ -263,25 +264,25 @@ Reality:
 
 ## Evidence index (file:line)
 
-| Claim | Location |
-|---|---|
-| Lifecycle stream model | `commandlifecycle/events.go:10-22` |
-| 5 lifecycle event types | `commandlifecycle/events.go:51-65` |
-| Lifecycle payload shapes (no command payload) | `commandlifecycle/events.go:71-146` |
-| Recorder + actor/correlation propagation | `commandlifecycle/recorder.go:79,99-109,201-203` |
-| Middleware pair wiring | `commandlifecycle/middleware.go:68-92`, `system/lifecycle.go` |
-| DLQ/RetryCount/FailureLog projections | `commandlifecycle/projections/projections.go:68,86,104` |
-| CommandJournal / SeekableCommandJournal | `command/store.go:130-160` |
-| StreamingScan interface | `metaengine/engine.go:369-384` |
-| StreamingScan implementors (4 engines) | `metaengine/sqliteengine/engine.go`, `metaengine/pebbleengine/stream_scan.go`, `metaengine/bboltengine/stream_log.go`, `metaengine/badgerengine/stream_log.go` |
-| StreamingScan zero production callers | repo-wide `\.StreamScan\(` grep: only `pebbleengine/stream_scan_test.go` |
-| Export does not stream | `metaengine/export_import.go:12` |
-| Single-collection aggregation | `metaengine/typed_reader_grouped.go`; single-engine routing `metaengine/execute.go:182` |
-| Query observability (not a log) | `metaengine/observability.go:86`, `metaengine/stats.go` |
-| Pebble bloom policy | `storage/pebble/options.go`, `stack/pebble/preset.go`, contrast `stack/bbolt/preset.go` |
-| Neo4j extension point | `graph/graph.go:22-33,112-130` |
-| Hot-reload runtime APIs | `metaengine/runtime_backend.go:55,113`, `metaengine/advanced.go:69`, `metaengine/store.go:88`, `metaengine/relayout.go:64`, `metaengine/roles.go` |
-| stack presets deprecated v5 | ADR-0123 (skill core.md routing matrices) |
-| No YAML config | repo-wide yaml grep: test-only deps + `catalog/asyncapi` export roundtrip |
+| Claim                                         | Location                                                                                                                                                       |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lifecycle stream model                        | `commandlifecycle/events.go:10-22`                                                                                                                             |
+| 5 lifecycle event types                       | `commandlifecycle/events.go:51-65`                                                                                                                             |
+| Lifecycle payload shapes (no command payload) | `commandlifecycle/events.go:71-146`                                                                                                                            |
+| Recorder + actor/correlation propagation      | `commandlifecycle/recorder.go:79,99-109,201-203`                                                                                                               |
+| Middleware pair wiring                        | `commandlifecycle/middleware.go:68-92`, `system/lifecycle.go`                                                                                                  |
+| DLQ/RetryCount/FailureLog projections         | `commandlifecycle/projections/projections.go:68,86,104`                                                                                                        |
+| CommandJournal / SeekableCommandJournal       | `command/store.go:130-160`                                                                                                                                     |
+| StreamingScan interface                       | `metaengine/engine.go:369-384`                                                                                                                                 |
+| StreamingScan implementors (4 engines)        | `metaengine/sqliteengine/engine.go`, `metaengine/pebbleengine/stream_scan.go`, `metaengine/bboltengine/stream_log.go`, `metaengine/badgerengine/stream_log.go` |
+| StreamingScan zero production callers         | repo-wide `\.StreamScan\(` grep: only `pebbleengine/stream_scan_test.go`                                                                                       |
+| Export does not stream                        | `metaengine/export_import.go:12`                                                                                                                               |
+| Single-collection aggregation                 | `metaengine/typed_reader_grouped.go`; single-engine routing `metaengine/execute.go:182`                                                                        |
+| Query observability (not a log)               | `metaengine/observability.go:86`, `metaengine/stats.go`                                                                                                        |
+| Pebble bloom policy                           | `storage/pebble/options.go`, `stack/pebble/preset.go`, contrast `stack/bbolt/preset.go`                                                                        |
+| Neo4j extension point                         | `graph/graph.go:22-33,112-130`                                                                                                                                 |
+| Hot-reload runtime APIs                       | `metaengine/runtime_backend.go:55,113`, `metaengine/advanced.go:69`, `metaengine/store.go:88`, `metaengine/relayout.go:64`, `metaengine/roles.go`              |
+| stack presets deprecated v5                   | ADR-0123 (skill core.md routing matrices)                                                                                                                      |
+| No YAML config                                | repo-wide yaml grep: test-only deps + `catalog/asyncapi` export roundtrip                                                                                      |
 
-*Awaiting instructions.*
+_Awaiting instructions._

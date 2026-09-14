@@ -78,7 +78,10 @@ aggregates health from every service into `/readyz` (503 with per-service
 detail when any service is unhealthy):
 
 ```json
-{"status":"unhealthy","services":{"db":"ping failed","bot":"discord disconnected"}}
+{
+  "status": "unhealthy",
+  "services": { "db": "ping failed", "bot": "discord disconnected" }
+}
 ```
 
 `Bundle` has no equivalent. `DebugStructured()` reports which capabilities are

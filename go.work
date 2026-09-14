@@ -45,9 +45,9 @@ use (
 	./metaengine/irohengine/loopback
 	./metaengine/irohengine/quic
 	./metaengine/mysqlengine
+	./metaengine/otelobserver
 	./metaengine/pebbleengine
 	./metaengine/pgengine
-	./metaengine/otelobserver
 	./metaengine/projectionadapter
 	./metaengine/sqliteengine
 	./metaengine/tursoengine

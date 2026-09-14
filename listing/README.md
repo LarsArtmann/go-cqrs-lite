@@ -135,11 +135,11 @@ if page1.HasMore {
 `listing.Status` is a tri-state enum (numeric values match the legacy
 `event.TombstoneStatus` wire values):
 
-| Status              | Value | Meaning                                             |
-| ------------------- | ----- | --------------------------------------------------- |
-| `StatusActive`      | 0     | Stream is live                                      |
-| `StatusTombstoned`  | 1     | Last event is a deletion event                      |
-| `StatusUndetermined`| 2     | No classifier configured (status cannot be derived) |
+| Status               | Value | Meaning                                             |
+| -------------------- | ----- | --------------------------------------------------- |
+| `StatusActive`       | 0     | Stream is live                                      |
+| `StatusTombstoned`   | 1     | Last event is a deletion event                      |
+| `StatusUndetermined` | 2     | No classifier configured (status cannot be derived) |
 
 Classification uses the **last event** in the stream. Restoration takes
 precedence (newest event wins).
@@ -157,11 +157,11 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 ## Dependencies
 
-| Dependency                            | Purpose                          |
-| ------------------------------------- | -------------------------------- |
+| Dependency                            | Purpose                                    |
+| ------------------------------------- | ------------------------------------------ |
 | [event](../event/README.md)           | Event types (`event.Type`) for classifiers |
-| [id](../id/README.md)                 | AggregateID                      |
-| [memory](../storage/memory/README.md) | In-memory reader for testing     |
+| [id](../id/README.md)                 | AggregateID                                |
+| [memory](../storage/memory/README.md) | In-memory reader for testing               |
 
 ## Test Coverage
 

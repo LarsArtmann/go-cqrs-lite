@@ -51,12 +51,12 @@ type Metadata[K ~string] struct {
 
 The type parameter `K` is a named string type (the module's own `MetadataKey`), so each module's custom keys are type-safe and cannot be accidentally mixed.
 
-| Method                          | Description                                        |
-| ------------------------------- | -------------------------------------------------- |
-| `Metadata[K].Clone()`           | Returns a copy with a cloned Custom map.           |
-| `Metadata[K].Merge(o)`          | Overlays tracing and custom entries from `other`.  |
-| `Metadata[K].WithCustom(k,v)`   | Returns a copy with `k` set to `v` (non-mutating). |
-| `Metadata[K].EnsureCustom()`    | **Deprecated.** Use `WithCustom` instead.          |
+| Method                        | Description                                        |
+| ----------------------------- | -------------------------------------------------- |
+| `Metadata[K].Clone()`         | Returns a copy with a cloned Custom map.           |
+| `Metadata[K].Merge(o)`        | Overlays tracing and custom entries from `other`.  |
+| `Metadata[K].WithCustom(k,v)` | Returns a copy with `k` set to `v` (non-mutating). |
+| `Metadata[K].EnsureCustom()`  | **Deprecated.** Use `WithCustom` instead.          |
 
 > `CustomData[K]` is a **deprecated type alias** of `Metadata[K]` kept for
 > backward compatibility — removed at v5 (ADR-0126). Use `Metadata[K]` in

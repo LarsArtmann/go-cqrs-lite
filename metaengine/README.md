@@ -187,18 +187,18 @@ store.ApplyRecord(ctx, rec, decoded)
 The developer never declares "I need a Map" or "I need a Counter."
 The fold function's return type IS the declaration:
 
-| Handler Signature    | Return Type    | ADT        | Example                |
-| -------------------- | -------------- | ---------- | ---------------------- |
-| `func(e) (K, V)`     | `(Key, Value)` | Map        | Point lookup by key    |
-| `func(e) K`          | `Key`          | Set        | Membership test        |
-| `func(e) Delta`      | `Delta`        | Counter    | Aggregate counts       |
-| `func(e) Edge`       | `Edge`         | Graph      | Traversal              |
-| `func(e) EdgeRemoval`| `EdgeRemoval`  | Graph      | Retract an edge        |
-| `func(e) MultiEntry` | `MultiEntry`   | Multimap   | One key, many values   |
-| `func(e) Append`     | `Append`       | Log        | Append-only timeline   |
-| `func(e, prev V) V`  | `Value`        | Map update | Read-modify-write      |
-| `Remove[V]()`        | Sentinel       | Delete     | Remove from projection |
-| `func(e) Skip`       | `Skip`         | No-op      | Event doesn't apply    |
+| Handler Signature     | Return Type    | ADT        | Example                |
+| --------------------- | -------------- | ---------- | ---------------------- |
+| `func(e) (K, V)`      | `(Key, Value)` | Map        | Point lookup by key    |
+| `func(e) K`           | `Key`          | Set        | Membership test        |
+| `func(e) Delta`       | `Delta`        | Counter    | Aggregate counts       |
+| `func(e) Edge`        | `Edge`         | Graph      | Traversal              |
+| `func(e) EdgeRemoval` | `EdgeRemoval`  | Graph      | Retract an edge        |
+| `func(e) MultiEntry`  | `MultiEntry`   | Multimap   | One key, many values   |
+| `func(e) Append`      | `Append`       | Log        | Append-only timeline   |
+| `func(e, prev V) V`   | `Value`        | Map update | Read-modify-write      |
+| `Remove[V]()`         | Sentinel       | Delete     | Remove from projection |
+| `func(e) Skip`        | `Skip`         | No-op      | Event doesn't apply    |
 
 ## Typed Filter/Sort — No Strings
 
@@ -369,17 +369,17 @@ Three engines (SQLite, Pebble, DuckDB) are volatile OR persistent depending on
 constructor arguments. The engine sets the field dynamically at construction
 time:
 
-| Constructor                  | Persistence | Why                                                            |
-| --------------------------- | ----------- | -------------------------------------------------------------- |
-| `NewMemoryEngine()`         | Volatile    | Pure RAM                                                       |
-| `NewSQLiteEngine(db)`       | Persistent  | File or `:memory:` (profile)                                   |
-| `NewPebbleEngine("")`       | Volatile    | `vfs.NewMem()`                                                 |
-| `NewPebbleEngine("/db")`    | Persistent  | LSM on disk                                                    |
-| `NewPebbleEngineFromDB(db)` | Persistent  | Caller owns DB; seeds seq counters (returns `(Engine, error)`) |
-| `duckdbengine.New("")`      | Volatile    | `:memory:`                                                     |
-| `duckdbengine.New("file.db")`| Persistent | Disk file                                                      |
-| `duckdbengine.NewFromDB`    | Persistent  | Caller owns a DB                                               |
-| `pgengine.New(dsn)`         | Persistent  | Remote server                                                  |
+| Constructor                   | Persistence | Why                                                            |
+| ----------------------------- | ----------- | -------------------------------------------------------------- |
+| `NewMemoryEngine()`           | Volatile    | Pure RAM                                                       |
+| `NewSQLiteEngine(db)`         | Persistent  | File or `:memory:` (profile)                                   |
+| `NewPebbleEngine("")`         | Volatile    | `vfs.NewMem()`                                                 |
+| `NewPebbleEngine("/db")`      | Persistent  | LSM on disk                                                    |
+| `NewPebbleEngineFromDB(db)`   | Persistent  | Caller owns DB; seeds seq counters (returns `(Engine, error)`) |
+| `duckdbengine.New("")`        | Volatile    | `:memory:`                                                     |
+| `duckdbengine.New("file.db")` | Persistent  | Disk file                                                      |
+| `duckdbengine.NewFromDB`      | Persistent  | Caller owns a DB                                               |
+| `pgengine.New(dsn)`           | Persistent  | Remote server                                                  |
 
 > **Pebble seq seeding**: When a persistent Pebble engine is constructed
 > (`NewPebbleEngine("/db")` or `NewPebbleEngineFromDB(db)`), all internal
@@ -652,12 +652,12 @@ err := store.SwapEngine("memory", "sqlite", sqliteEng)
 Every engine carries a projection role (ADR-0124 §7). `AddEngine` defaults to `RoleActive`;
 pass `WithEngineRole` to assign another:
 
-| Role | Serves reads | Receives writes | Use |
-| ---- | ------------ | --------------- | --- |
-| `RoleActive` (default) | yes | synchronously via the fold pipeline | normal serving engine |
-| `RoleDualUse` | yes | synchronously | second engine serving different query shapes |
-| `RoleMigration` | no (shadow) | async replication of ALL collections | cutover target |
-| `RoleBackup` | no (shadow) | async replication | warm standby |
+| Role                   | Serves reads | Receives writes                      | Use                                          |
+| ---------------------- | ------------ | ------------------------------------ | -------------------------------------------- |
+| `RoleActive` (default) | yes          | synchronously via the fold pipeline  | normal serving engine                        |
+| `RoleDualUse`          | yes          | synchronously                        | second engine serving different query shapes |
+| `RoleMigration`        | no (shadow)  | async replication of ALL collections | cutover target                               |
+| `RoleBackup`           | no (shadow)  | async replication                    | warm standby                                 |
 
 Shadow engines are excluded from routing (`routableLocked`, `roles.go:75-94`) and are promoted
 atomically with `PromoteEngine`: it drains the replication backlog, flips the role, and re-plans

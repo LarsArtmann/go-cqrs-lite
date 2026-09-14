@@ -201,7 +201,7 @@ claim-checks (not a line-by-line deep read).
 34. Sweep READMEs for stale version pins generally (grep "v4\.[0-9]").
 35. Decide rule: do example/* READMEs need badges/go-get (currently mixed)?
 36. doc-check README itself: document the new absolutized repoRoot behavior
-    + relative-path safety.
+    - relative-path safety.
 37. Consider promoting the quick-start drift-guard pattern to
     `cmd/api-stability`-style meta-test ("every README Quick Start
     compiles") — long-term.
@@ -228,4 +228,5 @@ claim-checks (not a line-by-line deep read).
    stack, decider)?
 
 ---
-*Point-in-time report. Re-verify claims before acting on them.*
+
+_Point-in-time report. Re-verify claims before acting on them._

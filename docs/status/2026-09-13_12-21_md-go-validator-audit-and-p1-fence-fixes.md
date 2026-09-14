@@ -28,6 +28,7 @@
    ```text. Post-fix: all 4 files 0 errors / 31 blocks; full re-run **172 → 167 errors**.
    The 6th fence (`MIGRATION_v1.md:42` "Before" go.mod block) was same-file, same-class,
    and only passed by tool accident — made consistent, disclosed in the report.
+   ```
 6. **Report kept honest:** P1 recommendation annotated "APPLIED 2026-09-13" with fresh
    post-fix numbers instead of silently rewriting the audit snapshot.
 
@@ -46,7 +47,7 @@
    been routed into `TODO_LIST.md` (docs-health HARVEST not run).
 5. **The "11 skipped blocks" mechanism is inferred, not verified.** The report states they
    come from built-in heuristics (zero `// skip-validate` in repo — that part is grep-verified);
-   *why* those 11 blocks skip was never confirmed against tool behavior.
+   _why_ those 11 blocks skip was never confirmed against tool behavior.
 
 ## c) NOT STARTED
 
@@ -82,7 +83,7 @@
 
 Not fucked up, but worth owning: the P1 fix touched 6 fences when the user said 5. The
 6th was defensible (same class, spurious pass, disclosed) — but strictly speaking I
-expanded approved scope by one edit and should have asked or flagged it *before* the edit,
+expanded approved scope by one edit and should have asked or flagged it _before_ the edit,
 not in the report after.
 
 ## e) WHAT WE SHOULD IMPROVE
@@ -99,68 +100,68 @@ not in the report after.
    (`file-size-baseline.txt`, `.art-dupl-baseline.json`) is baseline+gate; a report without
    a wired gate rots into history in weeks.
 6. **Annotation over fence-demotion for pseudo-code** — ```text loses Go highlighting;
-   `// skip-validate` keeps it. The 5 P1 fixes were the right tool for *wrong-language*
+   `// skip-validate` keeps it. The 5 P1 fixes were the right tool for _wrong-language_
    content, but P2/P3 should prefer the directive.
 7. **Point-in-time numbers should carry a "as of" hash in the appendix** — the 172-item
    appendix will drift as docs change; entry-level "(fixed)" markers keep it truthful.
 
 ## f) Up to 50 things to get done next
 
-*Brainstorm ranked by impact/effort within this session's scope (validator + doc quality) —
-most items below #15 are ROADMAP fuel, not commitments.*
+_Brainstorm ranked by impact/effort within this session's scope (validator + doc quality) —
+most items below #15 are ROADMAP fuel, not commitments._
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Generate baseline file for the 167 remaining errors (`--baseline` → `scripts/md-go-baseline.txt`) | High | S |
-| 2 | Add flake app `check-md-go` wired to the baseline, mirror `check-file-size` | High | M |
-| 3 | Verify/package `md-go-validator` for CI (flake input or nixpkgs pin) | High | M |
-| 4 | `md-go-validator --init` → committed `.md-go-validator.yaml` | High | S |
-| 5 | Copy `/tmp/mdgov.json` into `docs/reviews/` and fix the report's Raw-output links | M | S |
-| 6 | P2: skip-validate the 9 consumer-facing blocks (7 files) | High | S |
-| 7 | P3: skip-validate ~55 active-doc blocks | M | M |
-| 8 | P4: decide archived-errors policy (baseline-forever vs shrinking ratchet) | M | S |
-| 9 | Verify the 11-skip mechanism; document it | M | S |
-| 10 | Mark 5 appendix entries "(fixed 2026-09-13)" in the review report | S | S |
-| 11 | HARVEST section (f) into `TODO_LIST.md` via docs-health | M | S |
-| 12 | Document fence-tag convention (go.mod/go.work → ```text) in gotchas docs | M | S |
-| 13 | Add `--fail-on-skipped` policy decision to the gate config | S | S |
-| 14 | Scripted skip-validate insertion (jq-generated edits) instead of hand-editing 60+ blocks | M | M |
-| 15 | Re-run full audit after P2/P3 to confirm 0 unbaselined errors | M | S |
-| 16 | Fix Unicode `…` in `V5-MIGRATION-GUIDE.md:50` (replace + annotate) | S | S |
-| 17 | Replace `←` arrows in go fences (cqrs-htmx feedback doc) | S | S |
-| 18 | Annotate ADR-0081:59 Go-1.27 method-type-params sketch as forward-looking | S | S |
-| 19 | Decide `event/README.md:38` interface sketch: pseudo (skip) vs real Go | S | S |
-| 20 | Annotate `metaengine/README.md:237,649` + `COOKBOOK.md:91` with reasons | S | S |
-| 21 | Annotate `system/README.md:324`, `transport/grpc/README.md:50`, `scenario/README.md:27` | S | S |
-| 22 | Annotate `cmd/cqrs-lint/CONTRIBUTING.md:28,144` | S | S |
-| 23 | Bulk-annotate `docs/design/v5-consumer-api.md` (14 blocks) | M | M |
-| 24 | Annotate `docs/turso-indexing-guidance.md` (2 mixed recipe blocks) | S | S |
-| 25 | Sweep all fence tags repo-wide: list tag usage vs content class (find more lies) | M | M |
-| 26 | Diff the two validator JSON runs to explain the −1 block delta exactly | S | S |
-| 27 | Define baseline re-pin rules (dirty-tree guard like art-dupl) | M | S |
-| 28 | Add md-go-validator mention to `docs/release-checklist.md` (if gate adopted) | S | S |
-| 29 | Decide artifact-retention policy for validator JSON runs | S | S |
-| 30 | Add "(as of commit X)" stamp to appendix header | S | S |
-| 31 | Consider promoting key README pseudo-recipes to real Go in `example/` + links | M | L |
-| 32 | Add md-go-validator to `docs/agents/gotchas-tooling-build.md` | S | S |
-| 33 | Check whether `.md-go-validator.yaml` needs vendor/node_modules excludes | S | S |
-| 34 | Cross-link status report ↔ review report (both directions) | S | S |
-| 35 | Monthly re-audit cadence note in docs-health conventions | S | S |
-| 36 | If tool is Lars's own repo: pin version in flake + document upgrade path | M | M |
-| 37 | Evaluate `--exclude` defaults vs repo layout (benchmarks/, node_modules?) | S | S |
-| 38 | Add fence-tag guidance (JSON → ```json) to contributing docs | S | S |
-| 39 | Confirm `.agents/skills/…/references/*.md` stay clean on every run (they do today) | S | S |
-| 40 | Re-verify concurrent-session md edits didn't add new failures (daemon churn) | M | S |
-| 41 | Decide whether `check-md-go` joins `#verify` or `#verify-fast` | S | S |
-| 42 | Add baseline drift check to `check-lint-config`-style meta-tests | S | M |
-| 43 | Normalize "SKIPPED" visibility: add `-v` grep recipe to gotchas | S | S |
-| 44 | Consider upstreaming the fence-tag convention to the tool's docs | S | S |
-| 45 | Add a "docs validate" section to onboarding (AGENTS.md quick reference) | S | S |
-| 46 | Sweep archived dirs for fences the tool *misses* (valid-parse accidents like MIGRATION_v1:42) | M | M |
-| 47 | Reconcile report taxonomy sub-counts (fence-tag mistakes listed inside two buckets) | S | S |
-| 48 | Tag the 11 auto-skipped blocks' locations for the record | S | S |
-| 49 | Add md-go-validator exit-code semantics to gotchas-tooling-build (exit 1 = failures) | S | S |
-| 50 | Re-visit P0 question: should the gate block releases (`#verify`) or only CI? | S | S |
+| #  | Task                                                                                              | Impact | Effort |
+| -- | ------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | Generate baseline file for the 167 remaining errors (`--baseline` → `scripts/md-go-baseline.txt`) | High   | S      |
+| 2  | Add flake app `check-md-go` wired to the baseline, mirror `check-file-size`                       | High   | M      |
+| 3  | Verify/package `md-go-validator` for CI (flake input or nixpkgs pin)                              | High   | M      |
+| 4  | `md-go-validator --init` → committed `.md-go-validator.yaml`                                      | High   | S      |
+| 5  | Copy `/tmp/mdgov.json` into `docs/reviews/` and fix the report's Raw-output links                 | M      | S      |
+| 6  | P2: skip-validate the 9 consumer-facing blocks (7 files)                                          | High   | S      |
+| 7  | P3: skip-validate ~55 active-doc blocks                                                           | M      | M      |
+| 8  | P4: decide archived-errors policy (baseline-forever vs shrinking ratchet)                         | M      | S      |
+| 9  | Verify the 11-skip mechanism; document it                                                         | M      | S      |
+| 10 | Mark 5 appendix entries "(fixed 2026-09-13)" in the review report                                 | S      | S      |
+| 11 | HARVEST section (f) into `TODO_LIST.md` via docs-health                                           | M      | S      |
+| 12 | Document fence-tag convention (go.mod/go.work → ```text) in gotchas docs                          | M      | S      |
+| 13 | Add `--fail-on-skipped` policy decision to the gate config                                        | S      | S      |
+| 14 | Scripted skip-validate insertion (jq-generated edits) instead of hand-editing 60+ blocks          | M      | M      |
+| 15 | Re-run full audit after P2/P3 to confirm 0 unbaselined errors                                     | M      | S      |
+| 16 | Fix Unicode `…` in `V5-MIGRATION-GUIDE.md:50` (replace + annotate)                                | S      | S      |
+| 17 | Replace `←` arrows in go fences (cqrs-htmx feedback doc)                                          | S      | S      |
+| 18 | Annotate ADR-0081:59 Go-1.27 method-type-params sketch as forward-looking                         | S      | S      |
+| 19 | Decide `event/README.md:38` interface sketch: pseudo (skip) vs real Go                            | S      | S      |
+| 20 | Annotate `metaengine/README.md:237,649` + `COOKBOOK.md:91` with reasons                           | S      | S      |
+| 21 | Annotate `system/README.md:324`, `transport/grpc/README.md:50`, `scenario/README.md:27`           | S      | S      |
+| 22 | Annotate `cmd/cqrs-lint/CONTRIBUTING.md:28,144`                                                   | S      | S      |
+| 23 | Bulk-annotate `docs/design/v5-consumer-api.md` (14 blocks)                                        | M      | M      |
+| 24 | Annotate `docs/turso-indexing-guidance.md` (2 mixed recipe blocks)                                | S      | S      |
+| 25 | Sweep all fence tags repo-wide: list tag usage vs content class (find more lies)                  | M      | M      |
+| 26 | Diff the two validator JSON runs to explain the −1 block delta exactly                            | S      | S      |
+| 27 | Define baseline re-pin rules (dirty-tree guard like art-dupl)                                     | M      | S      |
+| 28 | Add md-go-validator mention to `docs/release-checklist.md` (if gate adopted)                      | S      | S      |
+| 29 | Decide artifact-retention policy for validator JSON runs                                          | S      | S      |
+| 30 | Add "(as of commit X)" stamp to appendix header                                                   | S      | S      |
+| 31 | Consider promoting key README pseudo-recipes to real Go in `example/` + links                     | M      | L      |
+| 32 | Add md-go-validator to `docs/agents/gotchas-tooling-build.md`                                     | S      | S      |
+| 33 | Check whether `.md-go-validator.yaml` needs vendor/node_modules excludes                          | S      | S      |
+| 34 | Cross-link status report ↔ review report (both directions)                                        | S      | S      |
+| 35 | Monthly re-audit cadence note in docs-health conventions                                          | S      | S      |
+| 36 | If tool is Lars's own repo: pin version in flake + document upgrade path                          | M      | M      |
+| 37 | Evaluate `--exclude` defaults vs repo layout (benchmarks/, node_modules?)                         | S      | S      |
+| 38 | Add fence-tag guidance (JSON → ```json) to contributing docs                                      | S      | S      |
+| 39 | Confirm `.agents/skills/…/references/*.md` stay clean on every run (they do today)                | S      | S      |
+| 40 | Re-verify concurrent-session md edits didn't add new failures (daemon churn)                      | M      | S      |
+| 41 | Decide whether `check-md-go` joins `#verify` or `#verify-fast`                                    | S      | S      |
+| 42 | Add baseline drift check to `check-lint-config`-style meta-tests                                  | S      | M      |
+| 43 | Normalize "SKIPPED" visibility: add `-v` grep recipe to gotchas                                   | S      | S      |
+| 44 | Consider upstreaming the fence-tag convention to the tool's docs                                  | S      | S      |
+| 45 | Add a "docs validate" section to onboarding (AGENTS.md quick reference)                           | S      | S      |
+| 46 | Sweep archived dirs for fences the tool _misses_ (valid-parse accidents like MIGRATION_v1:42)     | M      | M      |
+| 47 | Reconcile report taxonomy sub-counts (fence-tag mistakes listed inside two buckets)               | S      | S      |
+| 48 | Tag the 11 auto-skipped blocks' locations for the record                                          | S      | S      |
+| 49 | Add md-go-validator exit-code semantics to gotchas-tooling-build (exit 1 = failures)              | S      | S      |
+| 50 | Re-visit P0 question: should the gate block releases (`#verify`) or only CI?                      | S      | S      |
 
 ## g) Questions I cannot figure out myself
 
@@ -175,6 +176,6 @@ most items below #15 are ROADMAP fuel, not commitments.*
 
 ---
 
-*Point-in-time snapshot — numbers reflect the session's two full validator runs
+_Point-in-time snapshot — numbers reflect the session's two full validator runs
 (pre-fix 172 / post-fix 167). Concurrent sessions were active throughout; their work
-(`decider/execute_command.go`, cqrs-lint test edits, module READMEs) is out of scope here.*
+(`decider/execute_command.go`, cqrs-lint test edits, module READMEs) is out of scope here._

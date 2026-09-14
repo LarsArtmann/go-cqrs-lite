@@ -39,12 +39,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > baselined (new file required), api golden regen in same edit, CHANGELOG symbols gated.
 >
 > **Status 2026-09-13: W1–W3 EXECUTED** — `decider.ExecuteCommandRef` + `CausedCommand`
-> + `CommandDecideFunc` shipped with BDD/property/example coverage (note: Go 1.26
-> forbids generic methods, so it is a package-level function — recorded in the plan's
-> D1 amendment); `command.AsRecordPersisted` shipped with fidelity tests + v5
-> deprecation note on the thin bridge; D3 upcast composition CONFIRMED and pinned by
-> `commandlifecycle/upcast_composition_test.go`; recipes §2.1b/§2.19b, core §3.8 +
-> cheat-sheet rows, faq command-pitfalls section all landed; goldens regenerated.
+>
+> - `CommandDecideFunc` shipped with BDD/property/example coverage (note: Go 1.26
+>   forbids generic methods, so it is a package-level function — recorded in the plan's
+>   D1 amendment); `command.AsRecordPersisted` shipped with fidelity tests + v5
+>   deprecation note on the thin bridge; D3 upcast composition CONFIRMED and pinned by
+>   `commandlifecycle/upcast_composition_test.go`; recipes §2.1b/§2.19b, core §3.8 +
+>   cheat-sheet rows, faq command-pitfalls section all landed; goldens regenerated.
 
 - [x] 🔥 **W1: `decider.ExecuteCommandRef` + causation stamping** — DONE 2026-09-13. Package-level generic function (Go 1.26 generic-method limit), stamps typed `Metadata.Causation` + compat keys, respects decide-set causation, skips zero-ID commands; BDD suite + rapid property + runnable example.
 - [x] 🔥 **W2: `command.AsRecordPersisted(*PersistedCommand)`** — DONE 2026-09-13. Full-fidelity bridge (payload, StreamType, receive stamps); fidelity tests; v5 deprecation doc-note on `AsRecord(*BasicCommand)`; `//art-dupl:accept` twin annotation.
@@ -750,9 +751,10 @@ bottom is a do-not-re-litigate guard, not a backlog.
 ## Event-Query-Model reconciliation follow-ups (2026-09-13)
 
 > The 2026-07-23 design doc was reconciled against source (status banner + per-section addendum
-> + coverage map); `StreamingScan` was wired (`Store.StreamCollection`) and the per-actor
-> lifecycle projection shipped the same day (see CHANGELOG). Carry-forward items below. Source:
-> [`plan`](docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md).
+>
+> - coverage map); `StreamingScan` was wired (`Store.StreamCollection`) and the per-actor
+>   lifecycle projection shipped the same day (see CHANGELOG). Carry-forward items below. Source:
+>   [`plan`](docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md).
 
 - [ ] 🔥 **Distinct `command.rejected` event + errorfamily classification** — a business
       rejection currently surfaces as `command.failed` with error text; audit cannot tell
@@ -760,8 +762,8 @@ bottom is a do-not-re-litigate guard, not a backlog.
       rejection) + recorder method + middleware wiring. Payload capture stays opt-in/out.
       — source: [`T17 memo`](docs/planning/2026-09-13_T17-memo-command-log-audit-scope.md) _(Effort: M)_
 - [BLOCKED] **Session-log boundary decision** — memo recommends sessions stay external
-      (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
-      a concrete audit consumer. — source: [`T18 memo`](docs/planning/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
+  (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
+  a concrete audit consumer. — source: [`T18 memo`](docs/planning/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
 - [ ] **Verify Set-membership pushdown for SQL engines** — the doc's "UNIQUE index" Set claim was
       never source-verified (audit item 30). _(Effort: S)_
 - [ ] **Verify graph traversal depth semantics** — the doc's `FriendsOf{Depth}` vs the shipped

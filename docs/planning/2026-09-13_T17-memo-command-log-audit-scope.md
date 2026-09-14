@@ -13,30 +13,30 @@ The 2026-07-23 design (§10) envisioned "a FULL COMPREHENSIVE audit log — who 
 
 ### Shipped today (better than designed in shape, narrower in scope)
 
-| Piece | Where |
-| ----- | ----- |
-| 5 event types: `command.received/failed/retried/dead-lettered/completed` | `commandlifecycle/events.go:51-64` |
-| Two streams: `Command/<id>` (journal) + `CommandLifecycle/<id>` (lifecycle) | `commandlifecycle/events.go:42-48`, `command/store.go:141-160` |
-| Projections: dead-letter queue, retry count, failure log, processing time | `commandlifecycle/projections/projections.go:42-124` |
-| Middleware + recorder + `system.WithCommandLifecycle` wiring | `commandlifecycle/middleware.go`, `recorder.go:99-158`, `system/lifecycle.go:50` |
-| Causation link to the command (`WithCausation(cmd.Type(), cmd.ID())`) | `commandlifecycle/recorder.go:180` |
+| Piece                                                                       | Where                                                                            |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 5 event types: `command.received/failed/retried/dead-lettered/completed`    | `commandlifecycle/events.go:51-64`                                               |
+| Two streams: `Command/<id>` (journal) + `CommandLifecycle/<id>` (lifecycle) | `commandlifecycle/events.go:42-48`, `command/store.go:141-160`                   |
+| Projections: dead-letter queue, retry count, failure log, processing time   | `commandlifecycle/projections/projections.go:42-124`                             |
+| Middleware + recorder + `system.WithCommandLifecycle` wiring                | `commandlifecycle/middleware.go`, `recorder.go:99-158`, `system/lifecycle.go:50` |
+| Causation link to the command (`WithCausation(cmd.Type(), cmd.ID())`)       | `commandlifecycle/recorder.go:180`                                               |
 
 ### Gaps vs. the doc's vision
 
-| Gap | Reality | Severity |
-| --- | ------- | -------- |
-| **Per-actor projection** (`CommandsByUser`) | Does not exist. Actor attribution exists in event metadata (`record.CommonMetadata.Actor`), but no projection groups commands by actor. | Medium — the doc's headline use case ("who did what") is half-answered (what, when; not who). |
-| **Payload capture** | Lifecycle payloads capture type/ID/error/attempt/timestamps, never the command payload (`ReceivedPayload`, `events.go:72-139`). The doc's `CommandRecord.Payload` does not exist. | Medium by design — capturing every payload has PII/storage cost. |
-| **Distinct rejection event** | No `command.rejected`. A business rejection surfaces as `command.failed` with the error text (`FailedPayload.Error`, `events.go:87-100`); errorfamily classification exists but is not stamped on the event. | Medium — "rejected by business rule" vs "broke" are different audit answers. |
-| **`FailedPayload` has no `CommandID` field** | `Received`/`Completed` carry `CommandID`; failed/retried/dead-lettered rely on the stream ref. Not wrong (streams are keyed by command), but projections must key off the stream, not the payload. | Low — fix opportunistically if payloads are touched. |
+| Gap                                          | Reality                                                                                                                                                                                                      | Severity                                                                                      |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| **Per-actor projection** (`CommandsByUser`)  | Does not exist. Actor attribution exists in event metadata (`record.CommonMetadata.Actor`), but no projection groups commands by actor.                                                                      | Medium — the doc's headline use case ("who did what") is half-answered (what, when; not who). |
+| **Payload capture**                          | Lifecycle payloads capture type/ID/error/attempt/timestamps, never the command payload (`ReceivedPayload`, `events.go:72-139`). The doc's `CommandRecord.Payload` does not exist.                            | Medium by design — capturing every payload has PII/storage cost.                              |
+| **Distinct rejection event**                 | No `command.rejected`. A business rejection surfaces as `command.failed` with the error text (`FailedPayload.Error`, `events.go:87-100`); errorfamily classification exists but is not stamped on the event. | Medium — "rejected by business rule" vs "broke" are different audit answers.                  |
+| **`FailedPayload` has no `CommandID` field** | `Received`/`Completed` carry `CommandID`; failed/retried/dead-lettered rely on the stream ref. Not wrong (streams are keyed by command), but projections must key off the stream, not the payload.           | Low — fix opportunistically if payloads are touched.                                          |
 
 ## Options
 
-| # | Option | Scope | Effort |
-| - | ------ | ----- | ------ |
-| A | **Complete the audit scope** — add `CommandsByActor` projection; add `command.rejected` + recorder/middleware classification via errorfamily; leave payload capture out | projection + event + middleware | ~3-4h |
-| B | **Minimal extension** — add only the `CommandsByActor` projection; rejections stay inside `command.failed` | projection | ~2h |
-| C | **Declare scope done** — DLQ/retry/failure-log is the finished surface; per-actor and rejection are out of scope | docs only | ~15min |
+| # | Option                                                                                                                                                                  | Scope                           | Effort |
+| - | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------ |
+| A | **Complete the audit scope** — add `CommandsByActor` projection; add `command.rejected` + recorder/middleware classification via errorfamily; leave payload capture out | projection + event + middleware | ~3-4h  |
+| B | **Minimal extension** — add only the `CommandsByActor` projection; rejections stay inside `command.failed`                                                              | projection                      | ~2h    |
+| C | **Declare scope done** — DLQ/retry/failure-log is the finished surface; per-actor and rejection are out of scope                                                        | docs only                       | ~15min |
 
 ## Recommendation: **B now, A if audit demand is real**
 

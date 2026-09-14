@@ -271,9 +271,6 @@ linters:
         - .WithMessage(
         - .WithMessagef(
         - .WithStack(
-          # go-error-family constructors ARE the classified error itself
-          # (AGENTS.md Error Handling: `errorfamily.NewRejection(...)` et
-          # al. are returned bare by design), not unwrapped external errors.
         - .NewRejection(
         - .NewTransient(
         - .NewInfrastructure(
@@ -784,6 +781,7 @@ linters:
       - vendor/
 formatters:
   enable:
+    - gci
     - goimports
     - gofumpt
     - golines

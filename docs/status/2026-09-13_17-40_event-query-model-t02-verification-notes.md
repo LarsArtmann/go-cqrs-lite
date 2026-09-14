@@ -51,15 +51,15 @@ Annotation for T09: Decision 4's checkpoint idea shipped in two forms, neither b
 
 ## T02.5 — §11 planner steps 1-7 → real source counterparts
 
-| Step | Claim | Source counterpart (verified) |
-|---|---|---|
-| 1 | Classify write-side ADT | `metaengine/fold_classify.go:10` `classifyADT` |
-| 2 | Classify read pattern | `metaengine/infer_filters.go`, `infer_sort.go`, `infer_composite.go`, `infer_named.go` |
-| 3 | Assign cheapest engine | `metaengine/cost.go:70` `estimateCost`, `rules.go:54` `defaultRules` |
-| 4 | Plan physical structures | `metaengine/layout.go:49` `BuildLayoutPlan`, `:116` `DDL()` |
-| 5 | Generate projection handlers | `metaengine/auto_fold.go` (field mapping), fold pipeline (`store.go:573-922` applyFold family) |
-| 6 | Generate typed read handlers | `metaengine/typed_reader*.go`, `execute.go:681` `ExecuteTyped` |
-| 7 | Validate + warn | `metaengine/rules.go`, `plan_audit.go`, `explain.go:283` `Doctor` |
+| Step | Claim                        | Source counterpart (verified)                                                                  |
+| ---- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1    | Classify write-side ADT      | `metaengine/fold_classify.go:10` `classifyADT`                                                 |
+| 2    | Classify read pattern        | `metaengine/infer_filters.go`, `infer_sort.go`, `infer_composite.go`, `infer_named.go`         |
+| 3    | Assign cheapest engine       | `metaengine/cost.go:70` `estimateCost`, `rules.go:54` `defaultRules`                           |
+| 4    | Plan physical structures     | `metaengine/layout.go:49` `BuildLayoutPlan`, `:116` `DDL()`                                    |
+| 5    | Generate projection handlers | `metaengine/auto_fold.go` (field mapping), fold pipeline (`store.go:573-922` applyFold family) |
+| 6    | Generate typed read handlers | `metaengine/typed_reader*.go`, `execute.go:681` `ExecuteTyped`                                 |
+| 7    | Validate + warn              | `metaengine/rules.go`, `plan_audit.go`, `explain.go:283` `Doctor`                              |
 
 All 7 steps have a real counterpart; the doc's abstractions map cleanly, though step 4/5 details differ (see T02.6).
 
@@ -69,33 +69,33 @@ All 7 steps have a real counterpart; the doc's abstractions map cleanly, though 
 
 ## Exact signatures for corrected snippets (T05-T08)
 
-| API | Location |
-|---|---|
-| `ExecuteTyped[Q any, R any](ctx, store, input) (R, error)` | `metaengine/execute.go:681` |
-| `ExecuteTypedByName[Q, R](ctx, store, queryName, input)` | `metaengine/execute.go:716` |
-| `Store.Execute(input any) (any, error)` — NO ctx | `metaengine/execute.go:11` |
-| `Store.ExecuteCtx(ctx, input) (any, error)` | `metaengine/execute.go:36` |
-| `Store.ExecuteQueryByName(ctx, queryName, input)` | `metaengine/execute.go:62` |
-| `FilterOn[R,T](accessor func(r R) T)` | `metaengine/query.go:151` |
-| `SortOn[R,T](accessor func(r R) T)` | `metaengine/query.go:167` |
-| `FilterOnField[R](field string, op FilterOp)` | `metaengine/query.go:180` |
-| `SortOnField[R](field string, desc bool)` | `metaengine/query.go:193` |
-| `WithRange(column string, low, high any)` | `metaengine/scan_options.go:40` |
-| `Volume(n int64)` / `WithLatencyBudget(ms int64)` | `metaengine/query.go:27` / `:32` |
-| `OnRecord[E](sample E, handler any)` / `OnRecordTyped[E]` | `metaengine/record_fold.go:39` / `:44` |
-| ADT enum (8 values) | `metaengine/types.go:6-15` |
-| ReadPattern enum (11 values) | `metaengine/types.go:20-32` |
-| Sentinels `Delta`/`Edge`/`EdgeRemoval`/`MultiEntry`/`Append`/`Skip`/`Cursor` | `metaengine/types.go:34-95` |
-| `CommonMetadata` real fields (CorrelationID, Cause, Actor, Created/Received/Stored Stamps, SchemaVersion) | `record/record.go:26-108` |
-| `Record` real fields (ID, Type, Payload, Encoding, StreamID, StreamType, Version, MetaData) | `record/record.go:114-150` |
-| `Stamp` (presence-explicit timestamp) | `record/stamp.go:17-25` |
-| commandlifecycle event types (received/failed/retried/dead-lettered/completed) | `commandlifecycle/events.go:51-64` |
-| commandlifecycle projections (DeadLetter/RetryCount/FailureLog/ProcessingTime) | `commandlifecycle/projections/projections.go:42-124` |
-| `system.WithCommandLifecycle` | `system/lifecycle.go:50` |
-| `CommandJournal` / `SeekableCommandJournal` | `command/store.go:141` / `:150` |
-| Projection roles (Active/DualUse/Migration/Backup) | `metaengine/roles.go:11-21` |
-| `AddEngine`/`RemoveEngine`/`SwapEngine`/`Replan`/`ReplanLayout`/`CheckRouting`/`CatchUpEngine` | `runtime_backend.go:55`/`:113`, `advanced.go:69`, `store.go:88`, `relayout.go:64`, `store_routing.go:59`, `failover.go:60` |
-| `StreamingScan` capability | `metaengine/engine.go:369-384` |
+| API                                                                                                       | Location                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `ExecuteTyped[Q any, R any](ctx, store, input) (R, error)`                                                | `metaengine/execute.go:681`                                                                                                |
+| `ExecuteTypedByName[Q, R](ctx, store, queryName, input)`                                                  | `metaengine/execute.go:716`                                                                                                |
+| `Store.Execute(input any) (any, error)` — NO ctx                                                          | `metaengine/execute.go:11`                                                                                                 |
+| `Store.ExecuteCtx(ctx, input) (any, error)`                                                               | `metaengine/execute.go:36`                                                                                                 |
+| `Store.ExecuteQueryByName(ctx, queryName, input)`                                                         | `metaengine/execute.go:62`                                                                                                 |
+| `FilterOn[R,T](accessor func(r R) T)`                                                                     | `metaengine/query.go:151`                                                                                                  |
+| `SortOn[R,T](accessor func(r R) T)`                                                                       | `metaengine/query.go:167`                                                                                                  |
+| `FilterOnField[R](field string, op FilterOp)`                                                             | `metaengine/query.go:180`                                                                                                  |
+| `SortOnField[R](field string, desc bool)`                                                                 | `metaengine/query.go:193`                                                                                                  |
+| `WithRange(column string, low, high any)`                                                                 | `metaengine/scan_options.go:40`                                                                                            |
+| `Volume(n int64)` / `WithLatencyBudget(ms int64)`                                                         | `metaengine/query.go:27` / `:32`                                                                                           |
+| `OnRecord[E](sample E, handler any)` / `OnRecordTyped[E]`                                                 | `metaengine/record_fold.go:39` / `:44`                                                                                     |
+| ADT enum (8 values)                                                                                       | `metaengine/types.go:6-15`                                                                                                 |
+| ReadPattern enum (11 values)                                                                              | `metaengine/types.go:20-32`                                                                                                |
+| Sentinels `Delta`/`Edge`/`EdgeRemoval`/`MultiEntry`/`Append`/`Skip`/`Cursor`                              | `metaengine/types.go:34-95`                                                                                                |
+| `CommonMetadata` real fields (CorrelationID, Cause, Actor, Created/Received/Stored Stamps, SchemaVersion) | `record/record.go:26-108`                                                                                                  |
+| `Record` real fields (ID, Type, Payload, Encoding, StreamID, StreamType, Version, MetaData)               | `record/record.go:114-150`                                                                                                 |
+| `Stamp` (presence-explicit timestamp)                                                                     | `record/stamp.go:17-25`                                                                                                    |
+| commandlifecycle event types (received/failed/retried/dead-lettered/completed)                            | `commandlifecycle/events.go:51-64`                                                                                         |
+| commandlifecycle projections (DeadLetter/RetryCount/FailureLog/ProcessingTime)                            | `commandlifecycle/projections/projections.go:42-124`                                                                       |
+| `system.WithCommandLifecycle`                                                                             | `system/lifecycle.go:50`                                                                                                   |
+| `CommandJournal` / `SeekableCommandJournal`                                                               | `command/store.go:141` / `:150`                                                                                            |
+| Projection roles (Active/DualUse/Migration/Backup)                                                        | `metaengine/roles.go:11-21`                                                                                                |
+| `AddEngine`/`RemoveEngine`/`SwapEngine`/`Replan`/`ReplanLayout`/`CheckRouting`/`CatchUpEngine`            | `runtime_backend.go:55`/`:113`, `advanced.go:69`, `store.go:88`, `relayout.go:64`, `store_routing.go:59`, `failover.go:60` |
+| `StreamingScan` capability                                                                                | `metaengine/engine.go:369-384`                                                                                             |
 
 **Engine roster (dirs):** badgerengine, bboltengine, dgraphengine, duckdbengine, irohengine, mysqlengine, pebbleengine, pgengine, sqliteengine, tursoengine + in-process memory (`memory_engine.go`). Confirm README framing at T08/T15.
 

@@ -11,15 +11,15 @@
 
 ## Verdict in one table
 
-| Category | Count | Headline |
-| -------- | ----- | -------- |
-| Close-out tasks (M1-M17) | 17/17 touched | 14 fully done, 2 partial (external/documented), 1 blocked (verify-fast) |
-| New tests landed | 5 | Real-engine export, reentrancy, early-stop, call-count, 2 actor-semantics |
-| Gates green | 9 | system, 4× engines, lint projections, arch, error-taxonomy, treefmt, duplication, doc-check refs |
-| Gates red | 1 | file-size ratchet on another session's `lintutil.go` (unchanged; handoff noted) |
-| Lint findings | 3 → 1 | 2 own findings fixed; 1 external (`hooks.go` godoclint) |
-| Authored commits | 2 | `d75dc6ccc` (plan), `bc3b137b4` (semantics+format); rest daemon-absorbed |
-| Gated decisions | 3 | All() policy, rejection/payload, session/query-stream — untouched by design |
+| Category                 | Count         | Headline                                                                                         |
+| ------------------------ | ------------- | ------------------------------------------------------------------------------------------------ |
+| Close-out tasks (M1-M17) | 17/17 touched | 14 fully done, 2 partial (external/documented), 1 blocked (verify-fast)                          |
+| New tests landed         | 5             | Real-engine export, reentrancy, early-stop, call-count, 2 actor-semantics                        |
+| Gates green              | 9             | system, 4× engines, lint projections, arch, error-taxonomy, treefmt, duplication, doc-check refs |
+| Gates red                | 1             | file-size ratchet on another session's `lintutil.go` (unchanged; handoff noted)                  |
+| Lint findings            | 3 → 1         | 2 own findings fixed; 1 external (`hooks.go` godoclint)                                          |
+| Authored commits         | 2             | `d75dc6ccc` (plan), `bc3b137b4` (semantics+format); rest daemon-absorbed                         |
+| Gated decisions          | 3             | All() policy, rejection/payload, session/query-stream — untouched by design                      |
 
 ---
 
@@ -110,43 +110,43 @@
 
 Sorted by impact; effort: XS <30min, S <2h, M <1d, L >1d.
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Resolve the `lintutil.go` file-size red (owner session: shrink/split, or explicit policy-reviewed baseline decision) — unblocks every session's `#verify-fast` | Critical | S |
-| 2 | Run `nix run .#verify-fast` once #1 is green; triage any fallout | Critical | M |
-| 3 | Belt-and-braces: full metaengine root suite + post-format lint re-run for metaengine and projections | High | S |
-| 4 | Decide Q2: keep `CommandsByActor` in `All()` (auto-wire) or make it opt-in; document either way | High | XS |
-| 5 | Decide Q3 batch: rejection event, payload capture, session lifecycle, query-level `Stream` | High | XS |
-| 6 | Add the canonical edit loop (format → lint → test) to AGENTS.md "Change an Exported Symbol" / new procedure | High | XS |
-| 7 | Add `nix fmt -- <files>` + `checks.<sys>.format` invocations to `gotchas-tooling-build.md` | Medium | XS |
-| 8 | Split `projections_test.go` (347/350) before the next test addition | Medium | S |
-| 9 | Update the close-out plan's per-task statuses (executed/blocked) as a closing stamp | Medium | XS |
-| 10 | Run `docs-health` ANNOTATE on the 15:55 deep-dive (outcome links; 12:10 already done) | Medium | S |
-| 11 | HARVEST this report's (f) into TODO_LIST/ROADMAP | High | S |
-| 12 | Read art-dupl docs; confirm "0 new clones" semantics; note in gotchas if wording is ambiguous | Medium | XS |
-| 13 | Investigate the catch-up flake with a deliberate load harness (two witnesses now) | High | M |
-| 14 | Add a second consumer-module test witness for the `system` path under `-race` (cheap) | Medium | S |
-| 15 | Add `StreamCollection` observability spans/metrics (meter exists; traces don't) | Low | S |
-| 16 | Decide sentinel export: are `errNoScanBackend`/`errCollectionNotFound` consumer-visible? Export or document | Medium | XS |
-| 17 | Evaluate `StreamTyped[V]` ergonomic wrapper over `StreamCollection` | Low | M |
-| 18 | Decide `CommandsByActor` enrichment: include completed/failed outcomes in the per-actor entry? | Medium | M |
-| 19 | Add `CommandsByActor` pagination (`Limit`/cursor) mirroring the per-actor sketch | Low | M |
-| 20 | Document backfill/replay for the new projection (EventLog + Backfill recipe) | Medium | S |
-| 21 | Add cheat-sheet rows (`core.md`) for `StreamCollection` + `CommandsByActor` | Medium | XS |
-| 22 | Add a streaming-export example under `example/` | Medium | S |
-| 23 | Layout: `layout_type.go` merge? (No — out of scope; keep) | Low | — |
-| 24 | Re-run `#check-coverage` to confirm the new tests did not skew module coverage gates | Medium | S |
-| 25 | Confirm `verify-ci` (GOWORK=off per-module matrix) includes the new sqlite test naturally | Medium | XS |
-| 26 | Prepare the tag-wave note details (symbols + versions) for `metaengine` and `commandlifecycle/projections` | High | S |
-| 27 | Review whether `StreamCollection` should appear in `Persistence (Survivability)` README section too | Low | XS |
-| 28 | Add a lint re-run for `hooks.go` finding to the owning session's handoff (or TODO) | Medium | XS |
-| 29 | Consider CI wiring for planning-doc snippet validation as a non-blocking report (decision recorded earlier as exempt) | Low | M |
-| 30 | Keep watching load-flake class: add third witness if it recurs, with timestamp/load capture | Medium | XS |
-| 31 | Re-run `nix fmt` repo-wide after other sessions settle (avoid stepping on their edits) | Low | XS |
-| 32 | Add "near-limit file" rule (330+ lines → split next edit) to AGENTS.md | Medium | XS |
-| 33 | Verify the 12:10 appendix link paths resolve (doc-check does not gate status docs) | Low | XS |
-| 34 | Consider a single close-out checklist doc (build/vet/lint/format/test/dup/api/verify) for contributors | Medium | S |
-| 35 | Re-examine plan-template: status columns should be filled at execution end as part of the template | Low | XS |
+| #  | Task                                                                                                                                                           | Impact   | Effort |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 1  | Resolve the `lintutil.go` file-size red (owner session: shrink/split, or explicit policy-reviewed baseline decision) — unblocks every session's `#verify-fast` | Critical | S      |
+| 2  | Run `nix run .#verify-fast` once #1 is green; triage any fallout                                                                                               | Critical | M      |
+| 3  | Belt-and-braces: full metaengine root suite + post-format lint re-run for metaengine and projections                                                           | High     | S      |
+| 4  | Decide Q2: keep `CommandsByActor` in `All()` (auto-wire) or make it opt-in; document either way                                                                | High     | XS     |
+| 5  | Decide Q3 batch: rejection event, payload capture, session lifecycle, query-level `Stream`                                                                     | High     | XS     |
+| 6  | Add the canonical edit loop (format → lint → test) to AGENTS.md "Change an Exported Symbol" / new procedure                                                    | High     | XS     |
+| 7  | Add `nix fmt -- <files>` + `checks.<sys>.format` invocations to `gotchas-tooling-build.md`                                                                     | Medium   | XS     |
+| 8  | Split `projections_test.go` (347/350) before the next test addition                                                                                            | Medium   | S      |
+| 9  | Update the close-out plan's per-task statuses (executed/blocked) as a closing stamp                                                                            | Medium   | XS     |
+| 10 | Run `docs-health` ANNOTATE on the 15:55 deep-dive (outcome links; 12:10 already done)                                                                          | Medium   | S      |
+| 11 | HARVEST this report's (f) into TODO_LIST/ROADMAP                                                                                                               | High     | S      |
+| 12 | Read art-dupl docs; confirm "0 new clones" semantics; note in gotchas if wording is ambiguous                                                                  | Medium   | XS     |
+| 13 | Investigate the catch-up flake with a deliberate load harness (two witnesses now)                                                                              | High     | M      |
+| 14 | Add a second consumer-module test witness for the `system` path under `-race` (cheap)                                                                          | Medium   | S      |
+| 15 | Add `StreamCollection` observability spans/metrics (meter exists; traces don't)                                                                                | Low      | S      |
+| 16 | Decide sentinel export: are `errNoScanBackend`/`errCollectionNotFound` consumer-visible? Export or document                                                    | Medium   | XS     |
+| 17 | Evaluate `StreamTyped[V]` ergonomic wrapper over `StreamCollection`                                                                                            | Low      | M      |
+| 18 | Decide `CommandsByActor` enrichment: include completed/failed outcomes in the per-actor entry?                                                                 | Medium   | M      |
+| 19 | Add `CommandsByActor` pagination (`Limit`/cursor) mirroring the per-actor sketch                                                                               | Low      | M      |
+| 20 | Document backfill/replay for the new projection (EventLog + Backfill recipe)                                                                                   | Medium   | S      |
+| 21 | Add cheat-sheet rows (`core.md`) for `StreamCollection` + `CommandsByActor`                                                                                    | Medium   | XS     |
+| 22 | Add a streaming-export example under `example/`                                                                                                                | Medium   | S      |
+| 23 | Layout: `layout_type.go` merge? (No — out of scope; keep)                                                                                                      | Low      | —      |
+| 24 | Re-run `#check-coverage` to confirm the new tests did not skew module coverage gates                                                                           | Medium   | S      |
+| 25 | Confirm `verify-ci` (GOWORK=off per-module matrix) includes the new sqlite test naturally                                                                      | Medium   | XS     |
+| 26 | Prepare the tag-wave note details (symbols + versions) for `metaengine` and `commandlifecycle/projections`                                                     | High     | S      |
+| 27 | Review whether `StreamCollection` should appear in `Persistence (Survivability)` README section too                                                            | Low      | XS     |
+| 28 | Add a lint re-run for `hooks.go` finding to the owning session's handoff (or TODO)                                                                             | Medium   | XS     |
+| 29 | Consider CI wiring for planning-doc snippet validation as a non-blocking report (decision recorded earlier as exempt)                                          | Low      | M      |
+| 30 | Keep watching load-flake class: add third witness if it recurs, with timestamp/load capture                                                                    | Medium   | XS     |
+| 31 | Re-run `nix fmt` repo-wide after other sessions settle (avoid stepping on their edits)                                                                         | Low      | XS     |
+| 32 | Add "near-limit file" rule (330+ lines → split next edit) to AGENTS.md                                                                                         | Medium   | XS     |
+| 33 | Verify the 12:10 appendix link paths resolve (doc-check does not gate status docs)                                                                             | Low      | XS     |
+| 34 | Consider a single close-out checklist doc (build/vet/lint/format/test/dup/api/verify) for contributors                                                         | Medium   | S      |
+| 35 | Re-examine plan-template: status columns should be filled at execution end as part of the template                                                             | Low      | XS     |
 
 ---
 
@@ -162,19 +162,19 @@ Sorted by impact; effort: XS <30min, S <2h, M <1d, L >1d.
 
 **Gates run this round (result):**
 
-| Gate | Command | Result |
-| ---- | ------- | ------ |
-| system suite | `GOWORK=off go test -short ./...` | ✅ ok 2.740s |
-| lint metaengine | `golangci-lint run --build-tags goexperiment.jsonv2` | ⚠ 1 issue (external `hooks.go`), 2 own fixed |
-| lint projections | same | ✅ 0 issues |
-| engine suites | pebble/sqlite/bbolt/badger `-short` | ✅ 4/4 |
-| new tests | stream/export + actor semantics | ✅ all PASS |
-| md-go-validator | `md-go-validator docs/planning/event-query-model.md -v` | ✅ Valid 11, Errors 0 |
-| check-arch | `nix run .#check-arch` | ✅ all passed |
-| error-taxonomy | `nix run .#check-error-taxonomy` | ✅ 314 codes / 11 modules |
-| format gate | `nix build .#checks.<sys>.format` | ✅ 0 changed after fix |
-| duplication (post-tests) | `nix run .#check-duplication` | ✅ 0 new groups |
-| file-size (post-round) | `nix run .#check-file-size` | ❌ external `lintutil.go` only |
+| Gate                     | Command                                                 | Result                                       |
+| ------------------------ | ------------------------------------------------------- | -------------------------------------------- |
+| system suite             | `GOWORK=off go test -short ./...`                       | ✅ ok 2.740s                                 |
+| lint metaengine          | `golangci-lint run --build-tags goexperiment.jsonv2`    | ⚠ 1 issue (external `hooks.go`), 2 own fixed |
+| lint projections         | same                                                    | ✅ 0 issues                                  |
+| engine suites            | pebble/sqlite/bbolt/badger `-short`                     | ✅ 4/4                                       |
+| new tests                | stream/export + actor semantics                         | ✅ all PASS                                  |
+| md-go-validator          | `md-go-validator docs/planning/event-query-model.md -v` | ✅ Valid 11, Errors 0                        |
+| check-arch               | `nix run .#check-arch`                                  | ✅ all passed                                |
+| error-taxonomy           | `nix run .#check-error-taxonomy`                        | ✅ 314 codes / 11 modules                    |
+| format gate              | `nix build .#checks.<sys>.format`                       | ✅ 0 changed after fix                       |
+| duplication (post-tests) | `nix run .#check-duplication`                           | ✅ 0 new groups                              |
+| file-size (post-round)   | `nix run .#check-file-size`                             | ❌ external `lintutil.go` only               |
 
 **Files authored/modified this round:** `docs/planning/2026-09-13_18-41_SUPERB-reconciliation-close-out.md` (new, 303 lines), `metaengine/stream_collection_test.go` (195→270), `metaengine/sqliteengine/export_stream_test.go` (new, 96), `commandlifecycle/projections/projections_test.go` (272→347), `.agents/skills/go-cqrs-lite/references/recipes.md`, `docs/status/2026-09-13_12-10_…audit.md` (annotation), `docs/planning/2026-09-13_16-01_…reconciliation.md` (outcomes), `TODO_LIST.md` (×3), `AGENTS.md` (×2).
 

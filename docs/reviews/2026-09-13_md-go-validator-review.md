@@ -21,32 +21,32 @@ correctly strict; the remedy is annotations and fence tags, not rewrites.
 
 ## Headline numbers
 
-| Metric               | Value                            |
-| -------------------- | -------------------------------- |
-| Markdown files       | 1,829                            |
-| Go blocks validated  | 1,632                            |
-| Valid                | 1,449 (88.8%)                    |
-| Auto-skipped (tool)  | 11                               |
-| **Errors**           | **172 (10.5%)**                  |
-| Files with errors    | 100                              |
+| Metric                          | Value                          |
+| ------------------------------- | ------------------------------ |
+| Markdown files                  | 1,829                          |
+| Go blocks validated             | 1,632                          |
+| Valid                           | 1,449 (88.8%)                  |
+| Auto-skipped (tool)             | 11                             |
+| **Errors**                      | **172 (10.5%)**                |
+| Files with errors               | 100                            |
 | `// skip-validate` uses in repo | 0 (convention not yet adopted) |
 
 All 172 errors are `go` syntax errors. No other language class reported failures.
 
 ## Failure taxonomy
 
-| Class | Count | Typical shape |
-| ----- | ----- | ------------- |
-| Ellipsis placeholder `...` as a real operand/argument | 40 | `grpc.NewClient(addr, ...)`, `Engines: ...` |
-| Illustrative fragment / API sketch | 101 | case bodies, bare struct fields, signature sketches (`LoadToVersion(ctx, ..., maxVersion)`), suppression-comment demos, arrow annotations |
-| Mixed package-level decls + statements | 20 | `import (...)` + statements + funcs in one "usage" block (README/COOKBOOK recipe style) |
-| Truncated excerpt (EOF / unterminated raw string) | 11 | one-line signature quotes, cut-off DQL fragment |
+| Class                                                 | Count | Typical shape                                                                                                                             |
+| ----------------------------------------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Ellipsis placeholder `...` as a real operand/argument | 40    | `grpc.NewClient(addr, ...)`, `Engines: ...`                                                                                               |
+| Illustrative fragment / API sketch                    | 101   | case bodies, bare struct fields, signature sketches (`LoadToVersion(ctx, ..., maxVersion)`), suppression-comment demos, arrow annotations |
+| Mixed package-level decls + statements                | 20    | `import (...)` + statements + funcs in one "usage" block (README/COOKBOOK recipe style)                                                   |
+| Truncated excerpt (EOF / unterminated raw string)     | 11    | one-line signature quotes, cut-off DQL fragment                                                                                           |
 
 Notable members of the fragment class that deserve special handling:
 
 - **Wrong fence language (content is valid, just not Go) — 5 spots:**
-  JSON shown in a ```go fence (`docs/feedback/archived/2026-07-05_cross-consumer-integration-gaps.md:79`);
-  `go.mod` in ```go (`docs/MIGRATION_v1.md:51`);
+  JSON shown in a ``go fence (`docs/feedback/archived/2026-07-05_cross-consumer-integration-gaps.md:79`);
+  `go.mod` in``go (`docs/MIGRATION_v1.md:51`);
   `go.work` in ```go (`docs/planning/archived/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md:160`,
   `docs/planning/archived/2026-04-30_SAMBER_RO_PROJECTION_INTEGRATION.md:146,433`).
 - **Special tokens:** Unicode ellipsis `…` as an ILLEGAL Go token
@@ -59,24 +59,24 @@ Notable members of the fragment class that deserve special handling:
 
 ## Where the failures live
 
-| Bucket | Errors | Files |
-| ------ | ------ | ----- |
-| Consumer-facing module docs (READMEs, CONTRIBUTING) | 9 | 7 (`cmd/cqrs-lint/CONTRIBUTING.md` 2, `metaengine/README.md` 2, + 1 each: event, metaengine/COOKBOOK, scenario, system, transport/grpc) |
-| Top-level guides (design/, migration/, MIGRATION_v1, V5-MIGRATION-GUIDE, turso-indexing-guidance, projection-tiers, art-dupl report) | 21 | 7 |
-| ADRs (0081, 0082, 0122) | 4 | 3 |
-| Active planning docs (incl. today's `2026-09-13_11-45_SUPERB-command-side-depth.md`) | 22 | 13 |
-| Active research (domain-linter-research, command-event-causality) | 8 | 2 |
-| **Archived / historical** (status/, feedback/, planning/archived, research/archive, quality/archive, brainstorming/, modularization/) | **108** | 68 |
+| Bucket                                                                                                                                | Errors  | Files                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Consumer-facing module docs (READMEs, CONTRIBUTING)                                                                                   | 9       | 7 (`cmd/cqrs-lint/CONTRIBUTING.md` 2, `metaengine/README.md` 2, + 1 each: event, metaengine/COOKBOOK, scenario, system, transport/grpc) |
+| Top-level guides (design/, migration/, MIGRATION_v1, V5-MIGRATION-GUIDE, turso-indexing-guidance, projection-tiers, art-dupl report)  | 21      | 7                                                                                                                                       |
+| ADRs (0081, 0082, 0122)                                                                                                               | 4       | 3                                                                                                                                       |
+| Active planning docs (incl. today's `2026-09-13_11-45_SUPERB-command-side-depth.md`)                                                  | 22      | 13                                                                                                                                      |
+| Active research (domain-linter-research, command-event-causality)                                                                     | 8       | 2                                                                                                                                       |
+| **Archived / historical** (status/, feedback/, planning/archived, research/archive, quality/archive, brainstorming/, modularization/) | **108** | 68                                                                                                                                      |
 
 Top hotspots:
 
-| File | Errors |
-| ---- | ------ |
-| `docs/design/v5-consumer-api.md` | 14 (fluent pseudo-API: `.On(...)`, `...`, fragment chains) |
-| `docs/research/domain-linter-research.md` | 6 |
-| `docs/research/archive/2026-05-20_TIME_TRAVEL_CAPABILITIES_REPORT.md` | 6 (method-signature sketches) |
-| `docs/feedback/archived/2026-07-17_sec_cqrs-lint-feedback.md` | 6 |
-| `docs/research/archive/2026-05-20_TIME_TRAVEL_INDUSTRY_SURVEY.md` | 5 |
+| File                                                                  | Errors                                                     |
+| --------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `docs/design/v5-consumer-api.md`                                      | 14 (fluent pseudo-API: `.On(...)`, `...`, fragment chains) |
+| `docs/research/domain-linter-research.md`                             | 6                                                          |
+| `docs/research/archive/2026-05-20_TIME_TRAVEL_CAPABILITIES_REPORT.md` | 6 (method-signature sketches)                              |
+| `docs/feedback/archived/2026-07-17_sec_cqrs-lint-feedback.md`         | 6                                                          |
+| `docs/research/archive/2026-05-20_TIME_TRAVEL_INDUSTRY_SURVEY.md`     | 5                                                          |
 
 ## Sanity checks performed (is anything actually broken?)
 
@@ -97,13 +97,13 @@ Top hotspots:
 ## Recommendations (Pareto order)
 
 1. **P1 — fix the 5 wrong-fence spots** (cheapest wins; content is valid for its real
-   language): JSON → ```json, `go.mod`/`go.work` → ```text. After this, zero failures
+   language): JSON → ``json, `go.mod`/`go.work` →``text. After this, zero failures
    remain where the fence lies about the language.
    **APPLIED 2026-09-13:** all 5 fences fixed (plus the sibling go.mod "Before" fence in
    `docs/MIGRATION_v1.md` that only passed by tool accident — both go.mod blocks in that
-   file now use ```text for consistency). Files touched:
+   file now use ``text for consistency). Files touched:
    `docs/feedback/archived/2026-07-05_cross-consumer-integration-gaps.md` (JSON comment
-   moved into prose + ```json),
+   moved into prose +``json),
    `docs/MIGRATION_v1.md`, `docs/planning/archived/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md`,
    `docs/planning/archived/2026-04-30_SAMBER_RO_PROJECTION_INTEGRATION.md` (×2).
    Re-run: **167 errors** (was 172); all 4 files now 0 errors / 31 blocks.
@@ -114,7 +114,7 @@ Top hotspots:
    treatment, only where the fragment is load-bearing for the prose.
 4. **P4 — archived/historical (108 errors):** do NOT edit history. Use the tool's
    `--baseline` (file:line list, exactly like `scripts/file-size-baseline.txt` and
-   `.art-dupl-baseline.json`) so only *new* failures fail.
+   `.art-dupl-baseline.json`) so only _new_ failures fail.
 5. **Wire it into CI:** no `.md-go-validator.yaml` and no baseline exist yet
    (`md-go-validator --init` creates the former). Add a flake app `check-md-go` running
    `md-go-validator . --baseline scripts/md-go-baseline.txt -q`, mirroring
@@ -126,7 +126,6 @@ Top hotspots:
 ## Appendix: full failure inventory (172)
 
 Generated from `/tmp/mdgov.json` (format: `file:line (block N) — position: message`).
-
 
 - `cmd/cqrs-lint/CONTRIBUTING.md:28` (block 1) — 5:19: Go syntax error: expected 1 expression
 - `cmd/cqrs-lint/CONTRIBUTING.md:144` (block 5) — 10:7: Go syntax error: expected '(', found isLocalOnly

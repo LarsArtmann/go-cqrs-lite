@@ -51,14 +51,14 @@ state, ver, _ := repo.LoadAtVersionRef(ctx, ref, 3)
 
 ### Repository[State]
 
-| Method                                       | Description                                              |
-| -------------------------------------------- | -------------------------------------------------------- |
-| `NewRepository(store, bus, d, opts...)`      | Creates a repository.                                    |
-| `ExecuteRef(ctx, ref, decide)`               | Load → fold → decide → save → publish.                   |
-| `LoadRef(ctx, ref)`                          | Returns `(state, version, error)` from replaying events. |
-| `LoadAtVersionRef(ctx, ref, v)`              | Time travel: state at a specific version.                |
-| `LoadAtTimeRef(ctx, ref, t)`                 | Time travel: state as of a timestamp.                    |
-| `WaitForVersionRef(ctx, ref, v)`             | Block until the stream reaches a version.                |
+| Method                                  | Description                                              |
+| --------------------------------------- | -------------------------------------------------------- |
+| `NewRepository(store, bus, d, opts...)` | Creates a repository.                                    |
+| `ExecuteRef(ctx, ref, decide)`          | Load → fold → decide → save → publish.                   |
+| `LoadRef(ctx, ref)`                     | Returns `(state, version, error)` from replaying events. |
+| `LoadAtVersionRef(ctx, ref, v)`         | Time travel: state at a specific version.                |
+| `LoadAtTimeRef(ctx, ref, t)`            | Time travel: state as of a timestamp.                    |
+| `WaitForVersionRef(ctx, ref, v)`        | Block until the stream reaches a version.                |
 
 ### Options
 

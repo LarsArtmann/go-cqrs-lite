@@ -6,18 +6,18 @@
 
 ## a) FULLY DONE ✅
 
-| # | Deliverable | Evidence |
-|---|-------------|----------|
-| M1 | **metaengine health hooks** — `Hooks.OnQuarantined/OnReactivated/OnProbe/OnCatchUp` (ADR-0137 transitions as typed callbacks), emitted **outside the health mutex**; re-entrancy proven by test (callback → `HealthSnapshot()` cannot deadlock); `Hooks.Merge` + `Store.CurrentHooks` for composable hook sets | `metaengine/health_observer.go`, `metaengine/hooks.go`, `metaengine/health_observer_test.go`, `metaengine/hooks_test.go` — full module suite green incl. `-race` (35.7s); `engine_health.go` SHRANK 393→385 lines (ratchet-safe) |
-| M2+M3 | **`metaengine/otelobserver` (new module)** — `Attach(store, meter)` merges into existing hooks and records `cqrs.metaengine.{quarantine,reactivate,probe,catchup}.total{engine,reason,outcome}` + `catchup.replayed{engine}` | End-to-end external test with manual metric reader drives a real flaky-engine quarantine → catch-up → reprobe lifecycle and asserts every counter; module green with `-race` |
-| M4 | **`ClaimMetricsSnapshot.StartedAt`** — process-start anchor for cross-restart claim rates; JSON wire shape re-pinned | `scheduling/sqlstore/claim_metrics.go`; module suite green. Recorder deliberately NOT in-module (documented lean-budget design) — moved to the example |
-| M5 | **`otel/otlp` (new module)** — `SetupOTLP(ctx, OTLPConfig)`: one-call OTLP/HTTP trace+metric export layered on `otel.Setup`; no gRPC dep; trailing options override | Tests: httptest collector receives `/v1/traces` + `/v1/metrics` with auth headers; reader-override test proves trailing options win. Green with `-race` |
-| M6 | **`example/scheduler-otel-status` (new runnable example)** — ClaimMetrics hooks → OTel counters on `/metrics` (Prom bridge), snapshot + live `claimedPerMinute` on `/status` | **Smoke-verified live**: status JSON + `cqrs_scheduler_claim_*_total` scraped from a running server. (Fun fact: :8080 was occupied by a local SigNoz — the observability wave was blocked BY an observability platform; example now honors `ADDR`) |
-| M7 | **`otel.DBSystem`** — `db.system` OTel semconv on all pebble + bbolt span helpers | Both modules green; sibling replaces added (documented unpublished-symbol pattern) |
-| M8 | **Exemplars verified ON by default** — SDK 1.46 ships `TraceBasedFilter`; my review claim "exemplars off" was WRONG. Proof test pins exemplars carrying trace/span IDs | `otel/exemplar_test.go` green; no API change needed |
-| M9 | **Docs** — recipes.md §2.8 (OTLP+exemplars) + §2.35 (health hooks + otelobserver), modules.md rows, SPAN_NAMING.md db.system note, 3 new READMEs, otel/README exemplars section | `doc-check`: 1127 references valid, exit 0 |
-| M10 | **Meta docs** — CHANGELOG `[Unreleased]` (3 sections, 56 symbol citations verified), FEATURES.md (3 new feature tables + module rows), TODO_LIST.md (closed the claim-metrics example items, opened SQL db.system follow-up), module-map, AGENTS.md (88 go.mod, tier tree) | `check-changelog-symbols`: 56/56 verified, 0 fiction |
-| Gates (partial) | `nix fmt` clean · api golden regen'd (6856 exports) · all api-stability meta-tests green · `check-arch` green · layer smoke tests green · **`verify-ci` FULLY GREEN** (GOWORK=off per-module build+test across the whole matrix, incl. system) | see M11 for the one gate that isn't |
+| #               | Deliverable                                                                                                                                                                                                                                                                                                    | Evidence                                                                                                                                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1              | **metaengine health hooks** — `Hooks.OnQuarantined/OnReactivated/OnProbe/OnCatchUp` (ADR-0137 transitions as typed callbacks), emitted **outside the health mutex**; re-entrancy proven by test (callback → `HealthSnapshot()` cannot deadlock); `Hooks.Merge` + `Store.CurrentHooks` for composable hook sets | `metaengine/health_observer.go`, `metaengine/hooks.go`, `metaengine/health_observer_test.go`, `metaengine/hooks_test.go` — full module suite green incl. `-race` (35.7s); `engine_health.go` SHRANK 393→385 lines (ratchet-safe)                   |
+| M2+M3           | **`metaengine/otelobserver` (new module)** — `Attach(store, meter)` merges into existing hooks and records `cqrs.metaengine.{quarantine,reactivate,probe,catchup}.total{engine,reason,outcome}` + `catchup.replayed{engine}`                                                                                   | End-to-end external test with manual metric reader drives a real flaky-engine quarantine → catch-up → reprobe lifecycle and asserts every counter; module green with `-race`                                                                       |
+| M4              | **`ClaimMetricsSnapshot.StartedAt`** — process-start anchor for cross-restart claim rates; JSON wire shape re-pinned                                                                                                                                                                                           | `scheduling/sqlstore/claim_metrics.go`; module suite green. Recorder deliberately NOT in-module (documented lean-budget design) — moved to the example                                                                                             |
+| M5              | **`otel/otlp` (new module)** — `SetupOTLP(ctx, OTLPConfig)`: one-call OTLP/HTTP trace+metric export layered on `otel.Setup`; no gRPC dep; trailing options override                                                                                                                                            | Tests: httptest collector receives `/v1/traces` + `/v1/metrics` with auth headers; reader-override test proves trailing options win. Green with `-race`                                                                                            |
+| M6              | **`example/scheduler-otel-status` (new runnable example)** — ClaimMetrics hooks → OTel counters on `/metrics` (Prom bridge), snapshot + live `claimedPerMinute` on `/status`                                                                                                                                   | **Smoke-verified live**: status JSON + `cqrs_scheduler_claim_*_total` scraped from a running server. (Fun fact: :8080 was occupied by a local SigNoz — the observability wave was blocked BY an observability platform; example now honors `ADDR`) |
+| M7              | **`otel.DBSystem`** — `db.system` OTel semconv on all pebble + bbolt span helpers                                                                                                                                                                                                                              | Both modules green; sibling replaces added (documented unpublished-symbol pattern)                                                                                                                                                                 |
+| M8              | **Exemplars verified ON by default** — SDK 1.46 ships `TraceBasedFilter`; my review claim "exemplars off" was WRONG. Proof test pins exemplars carrying trace/span IDs                                                                                                                                         | `otel/exemplar_test.go` green; no API change needed                                                                                                                                                                                                |
+| M9              | **Docs** — recipes.md §2.8 (OTLP+exemplars) + §2.35 (health hooks + otelobserver), modules.md rows, SPAN_NAMING.md db.system note, 3 new READMEs, otel/README exemplars section                                                                                                                                | `doc-check`: 1127 references valid, exit 0                                                                                                                                                                                                         |
+| M10             | **Meta docs** — CHANGELOG `[Unreleased]` (3 sections, 56 symbol citations verified), FEATURES.md (3 new feature tables + module rows), TODO_LIST.md (closed the claim-metrics example items, opened SQL db.system follow-up), module-map, AGENTS.md (88 go.mod, tier tree)                                     | `check-changelog-symbols`: 56/56 verified, 0 fiction                                                                                                                                                                                               |
+| Gates (partial) | `nix fmt` clean · api golden regen'd (6856 exports) · all api-stability meta-tests green · `check-arch` green · layer smoke tests green · **`verify-ci` FULLY GREEN** (GOWORK=off per-module build+test across the whole matrix, incl. system)                                                                 | see M11 for the one gate that isn't                                                                                                                                                                                                                |
 
 ## b) PARTIALLY DONE ⚠️
 
@@ -89,33 +89,33 @@
 
 ## f) TOP #25 NEXT (by impact)
 
-| # | Task | Impact | Effort |
-|---|------|--------|--------|
-| 1 | Relieve `/tmp` (clear gexec/go-build artifacts or point TMPDIR at `/`) and re-run `#verify` to green | Unblocks the only red gate | XS/S |
-| 2 | `git push` master (user go/no-go) | Ships the wave | XS |
-| 3 | Cut the v4 tag wave (6 modules above) via `tag-release.sh` flow | Consumers get the features | M |
-| 4 | Tag `claiming/v4.0.0` (unblocks example/sqlstore consumers) | Removes replace friction | S |
-| 5 | storage/sql dialect-aware `db.system` spans | Semconv completeness | S/M |
-| 6 | Migrate `WithMetrics`/`WithTracing` onto `Hooks.Merge` (stop clobbering) | Composability correctness | S |
-| 7 | otelobserver: expose gauge-style "currently quarantined" (up-down counter) derived from hooks | Operator dashboards love gauges | S |
-| 8 | Add `metaengine` health hooks to `system.New` wiring docs/recipes (operator quickstart) | Adoption | S |
-| 9 | `example/scheduler-otel-status`: add a smoke test hitting /status + /metrics via httptest | Example stays runnable | S |
-| 10 | cqrs-lint rule F030+: suggest `otelobserver.Attach` when metaengine + otel are both imported | Adoption coaching | M |
-| 11 | Aggregated module-add meta-test (single source of the 8 wiring points) | Dev-velocity, kills fix-cycles | M |
-| 12 | Scheduling hardening tail: race-stress + counter-scope pin tests | Reliability | S |
-| 13 | `decodeDueTimer` fuzz | Robustness | S |
-| 14 | RenewLease ownership/claim tokens | Correctness | M |
-| 15 | Matview v2 per-view IVM write-amp otel counter | Operator insight | M |
-| 16 | Turso grouped-view upstream issue (blocked on user approval — pre-existing) | Upstream fix | XS once approved |
-| 17 | `system`/`stack` layers: consider span coverage at composition layer (currently 0 spans) | Trace completeness | M (decide first) |
-| 18 | otel/otlp: add gRPC variant module (`otel/otlpgrpc`)? only if asked — dep-heavy | Convenience | M |
-| 19 | Doc: AGENTS "Add a New Module" procedure update (8 steps) | Docs truth | XS |
-| 20 | api golden: add meta-test that CHANGELOG-cited symbols exist (currently only script) | Gate parity | XS |
-| 21 | pebble/bbolt: drop sibling replaces after otel/v4.5.0 tag lands | Hygiene | XS |
-| 22 | `Hooks` doc: cross-link SPAN_NAMING.md from otelobserver README | Discoverability | XS |
-| 23 | Coverage drift check after wave (`#check-coverage`) | Gate | S |
-| 24 | `#vulncheck` per-module standalone build (new modules enter the graph) | Release gate | S |
-| 25 | Bench-regression gate (`benchmark-regression.sh`) — hooks added to hot-adjacent paths (execute records failures; measure) | Perf proof | S |
+| #  | Task                                                                                                                      | Impact                          | Effort           |
+| -- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---------------- |
+| 1  | Relieve `/tmp` (clear gexec/go-build artifacts or point TMPDIR at `/`) and re-run `#verify` to green                      | Unblocks the only red gate      | XS/S             |
+| 2  | `git push` master (user go/no-go)                                                                                         | Ships the wave                  | XS               |
+| 3  | Cut the v4 tag wave (6 modules above) via `tag-release.sh` flow                                                           | Consumers get the features      | M                |
+| 4  | Tag `claiming/v4.0.0` (unblocks example/sqlstore consumers)                                                               | Removes replace friction        | S                |
+| 5  | storage/sql dialect-aware `db.system` spans                                                                               | Semconv completeness            | S/M              |
+| 6  | Migrate `WithMetrics`/`WithTracing` onto `Hooks.Merge` (stop clobbering)                                                  | Composability correctness       | S                |
+| 7  | otelobserver: expose gauge-style "currently quarantined" (up-down counter) derived from hooks                             | Operator dashboards love gauges | S                |
+| 8  | Add `metaengine` health hooks to `system.New` wiring docs/recipes (operator quickstart)                                   | Adoption                        | S                |
+| 9  | `example/scheduler-otel-status`: add a smoke test hitting /status + /metrics via httptest                                 | Example stays runnable          | S                |
+| 10 | cqrs-lint rule F030+: suggest `otelobserver.Attach` when metaengine + otel are both imported                              | Adoption coaching               | M                |
+| 11 | Aggregated module-add meta-test (single source of the 8 wiring points)                                                    | Dev-velocity, kills fix-cycles  | M                |
+| 12 | Scheduling hardening tail: race-stress + counter-scope pin tests                                                          | Reliability                     | S                |
+| 13 | `decodeDueTimer` fuzz                                                                                                     | Robustness                      | S                |
+| 14 | RenewLease ownership/claim tokens                                                                                         | Correctness                     | M                |
+| 15 | Matview v2 per-view IVM write-amp otel counter                                                                            | Operator insight                | M                |
+| 16 | Turso grouped-view upstream issue (blocked on user approval — pre-existing)                                               | Upstream fix                    | XS once approved |
+| 17 | `system`/`stack` layers: consider span coverage at composition layer (currently 0 spans)                                  | Trace completeness              | M (decide first) |
+| 18 | otel/otlp: add gRPC variant module (`otel/otlpgrpc`)? only if asked — dep-heavy                                           | Convenience                     | M                |
+| 19 | Doc: AGENTS "Add a New Module" procedure update (8 steps)                                                                 | Docs truth                      | XS               |
+| 20 | api golden: add meta-test that CHANGELOG-cited symbols exist (currently only script)                                      | Gate parity                     | XS               |
+| 21 | pebble/bbolt: drop sibling replaces after otel/v4.5.0 tag lands                                                           | Hygiene                         | XS               |
+| 22 | `Hooks` doc: cross-link SPAN_NAMING.md from otelobserver README                                                           | Discoverability                 | XS               |
+| 23 | Coverage drift check after wave (`#check-coverage`)                                                                       | Gate                            | S                |
+| 24 | `#vulncheck` per-module standalone build (new modules enter the graph)                                                    | Release gate                    | S                |
+| 25 | Bench-regression gate (`benchmark-regression.sh`) — hooks added to hot-adjacent paths (execute records failures; measure) | Perf proof                      | S                |
 
 ## g) MY TOP QUESTION 🤔
 

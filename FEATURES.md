@@ -1144,28 +1144,28 @@ Deleted — trivial `net/http/pprof` re-export. Use `import _ "net/http/pprof"` 
 | W3C propagation    | `NewTextMapPropagator()` — W3C trace context + baggage propagator                                                                                                                   | ✅     |
 | Logging helpers    | `ComponentLogger`, `ContextLogger` — structured logging with trace correlation                                                                                                      | ✅     |
 | Standard constants | `AttrMessageKind`, `AttrCommandType`, `AttrEventType`, `AttrQueryType`, `AttrStreamType`, `AttrStreamID`, `AttrStreamVersion`, `AttrEventCount`, `AttrProjectionName`, `AttrStatus` | ✅     |
-| db.system semconv  | `DBSystem(system)` — OTel database semantic-convention attribute; stamped by pebble + bbolt spans (SQL dialect threading tracked in TODO_LIST)                                              | ✅     |
-| Exemplars           | On by default (SDK trace-based filter): histogram observations under sampled spans carry trace/span IDs; `OTEL_METRICS_EXEMPLAR_FILTER` overrides                                            | ✅     |
+| db.system semconv  | `DBSystem(system)` — OTel database semantic-convention attribute; stamped by pebble + bbolt spans (SQL dialect threading tracked in TODO_LIST)                                      | ✅     |
+| Exemplars          | On by default (SDK trace-based filter): histogram observations under sampled spans carry trace/span IDs; `OTEL_METRICS_EXEMPLAR_FILTER` overrides                                   | ✅     |
 
 ## OTLP One-Call Export ✅
 
 > `import otlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"`
 
-| Feature            | Detail                                                                                      | Status |
-| ------------------ | ------------------------------------------------------------------------------------------- | ------ |
-| One-call OTLP      | `SetupOTLP(ctx, OTLPConfig)` — OTLP/HTTP trace+metric exporters over `otel.Setup`            | ✅     |
-| Config             | `OTLPConfig{Endpoint, Insecure, Headers, ServiceName, ServiceVersion, InstanceID}`          | ✅     |
-| No gRPC dep        | HTTP transport only; gRPC users inject exporters via `WithSpanExporter`                      | ✅     |
+| Feature       | Detail                                                                             | Status |
+| ------------- | ---------------------------------------------------------------------------------- | ------ |
+| One-call OTLP | `SetupOTLP(ctx, OTLPConfig)` — OTLP/HTTP trace+metric exporters over `otel.Setup`  | ✅     |
+| Config        | `OTLPConfig{Endpoint, Insecure, Headers, ServiceName, ServiceVersion, InstanceID}` | ✅     |
+| No gRPC dep   | HTTP transport only; gRPC users inject exporters via `WithSpanExporter`            | ✅     |
 
 ## Metaengine Health Observer ✅
 
 > `import "github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4"`
 
-| Feature            | Detail                                                                                      | Status |
-| ------------------ | ------------------------------------------------------------------------------------------- | ------ |
-| Health hooks       | `metaengine.Hooks`: `OnQuarantined`, `OnReactivated`, `OnProbe`, `OnCatchUp` (out-of-lock)    | ✅     |
-| Hook composition   | `Hooks.Merge` + `Store.CurrentHooks` — hook sets chain instead of clobbering                  | ✅     |
-| OTel counters      | `Attach(store, meter)` / `New(meter)` + `Observer.Hooks()` → `cqrs.metaengine.*` counters     | ✅     |
+| Feature          | Detail                                                                                     | Status |
+| ---------------- | ------------------------------------------------------------------------------------------ | ------ |
+| Health hooks     | `metaengine.Hooks`: `OnQuarantined`, `OnReactivated`, `OnProbe`, `OnCatchUp` (out-of-lock) | ✅     |
+| Hook composition | `Hooks.Merge` + `Store.CurrentHooks` — hook sets chain instead of clobbering               | ✅     |
+| OTel counters    | `Attach(store, meter)` / `New(meter)` + `Observer.Hooks()` → `cqrs.metaengine.*` counters  | ✅     |
 
 ---
 
@@ -1405,8 +1405,8 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `watermill`                      | `…/watermill/v4`                      | ✅ Production                                                                                                                                                                             |
 | `listing`                        | `…/listing/v4`                        | ✅ Production                                                                                                                                                                             |
 | `otel`                           | `…/otel/v4`                           | ✅ Production                                                                                                                                                                             |
-| `otel/otlp`                      | `…/otel/otlp/v4`                      | ✅ Production — one-call OTLP/HTTP export (`SetupOTLP`)                                                                                                                                  |
-| `metaengine/otelobserver`        | `…/metaengine/otelobserver/v4`        | ✅ Production — ADR-0137 health transitions as OTel counters (`Attach`)                                                                                                                  |
+| `otel/otlp`                      | `…/otel/otlp/v4`                      | ✅ Production — one-call OTLP/HTTP export (`SetupOTLP`)                                                                                                                                   |
+| `metaengine/otelobserver`        | `…/metaengine/otelobserver/v4`        | ✅ Production — ADR-0137 health transitions as OTel counters (`Attach`)                                                                                                                   |
 | `storage/pebble`                 | `…/storage/pebble/v4`                 | ✅ Production                                                                                                                                                                             |
 | `storage/bbolt`                  | `…/storage/bbolt/v4`                  | ✅ Production (B+tree, single-writer, full store stack. Durability tiers)                                                                                                                 |
 | `storage/turso`                  | `…/storage/turso/v4`                  | ✅ Production                                                                                                                                                                             |
