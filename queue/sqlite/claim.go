@@ -77,7 +77,10 @@ func (s *Store[T]) ClaimDue(ctx context.Context, owner string, lease time.Durati
 		return queue.Claim[T]{}, queue.ErrNoTaskDue
 	}
 
-	return queue.Claim[T]{Task: claimed, LeaseUntil: now.Add(lease)}, nil
+	// Truncate to the stored millisecond so the surfaced deadline is
+	// exactly the persisted one (sub-ms clock precision would otherwise
+	// make LeaseUntil and Task.LeaseExpires disagree on equality).
+	return queue.Claim[T]{Task: claimed, LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli())}, nil
 }
 
 // selectCandidate runs the candidate query and maps no-rows to

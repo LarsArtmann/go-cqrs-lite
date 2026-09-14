@@ -230,7 +230,9 @@ func (s *suite) pinAging(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := e.store.Complete(t.Context(), newer.ID, "w1", nil); err != nil {
+	// Leave nothing behind: newer stays pending — cancel it (completing
+	// an unclaimed task is a lease error, not cleanup).
+	if err := e.store.Cancel(t.Context(), newer.ID, "aging cleanup"); err != nil {
 		t.Fatal(err)
 	}
 

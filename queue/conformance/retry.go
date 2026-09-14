@@ -29,18 +29,16 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
+	_ = e.claim(t, "w1")
 
-	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom", time.Hour, nil); err != nil {
+	// Zero backoff: the task re-enters the ready set immediately.
+	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom", 0, nil); err != nil {
 		t.Fatalf("fail: %v", err)
 	}
 
 	got, _ := e.store.Get(t.Context(), tk.ID)
 	if got.Status != task.Pending || got.Attempts != 1 {
 		t.Fatalf("after fail 1: status=%s attempts=%d, want pending/1", got.Status, got.Attempts)
-	}
-
-	if got.NotBefore.Before(time.Now()) {
-		t.Fatalf("NotBefore = %v, want now+backoff (parked)", got.NotBefore)
 	}
 
 	if got.LastError != "boom" {
@@ -52,20 +50,24 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 		t.Fatalf("failed fact = %+v, want attempt 1 carrying the error", f)
 	}
 
-	// Zero backoff makes the task immediately claimable again; the
-	// second failure of three still requeues.
+	// The re-claim sees the counted attempt.
 	c := e.claim(t, "w1")
 	if c.Task.ID != tk.ID || c.Task.Attempts != 1 {
 		t.Fatalf("re-claim = %s attempts=%d, want the same task at 1", c.Task.ID, c.Task.Attempts)
 	}
 
-	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom2", 0, nil); err != nil {
+	// A real backoff parks the task until NotBefore.
+	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom2", time.Hour, nil); err != nil {
 		t.Fatal(err)
 	}
 
 	got, _ = e.store.Get(t.Context(), tk.ID)
 	if got.Status != task.Pending || got.Attempts != 2 {
 		t.Fatalf("after fail 2: status=%s attempts=%d, want pending/2", got.Status, got.Attempts)
+	}
+
+	if !got.NotBefore.After(time.Now()) {
+		t.Fatalf("NotBefore = %v, want now+backoff (parked)", got.NotBefore)
 	}
 }
 
@@ -177,7 +179,7 @@ func (s *suite) pinRequeue(t *testing.T) {
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
 	_ = e.claim(t, "w1")
 
-	if err := e.store.Requeue(t.Context(), tk.ID, "w1", "env not ready", time.Minute); err != nil {
+	if err := e.store.Requeue(t.Context(), tk.ID, "w1", "env not ready", 50*time.Millisecond); err != nil {
 		t.Fatalf("requeue: %v", err)
 	}
 
@@ -199,7 +201,10 @@ func (s *suite) pinRequeue(t *testing.T) {
 		t.Fatalf("requeue evidence missing: %s", f.Detail)
 	}
 
-	// Requeue is lease-checked like every finalize.
+	// Claimable again once the delay lapses; the re-claim is
+	// lease-checked like every finalize.
+	time.Sleep(100 * time.Millisecond)
+
 	c := e.claim(t, "w1")
 	mustError(t, "requeue stale owner", e.store.Requeue(t.Context(), c.Task.ID, "someone-else", "x", 0), queue.ErrLeaseNotHeld)
 }

@@ -187,6 +187,7 @@
             "projection"
             "projectionhost"
             "queue"
+            "queue/sqlite"
             "record"
             "scenario"
             "scheduling"

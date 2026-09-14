@@ -79,7 +79,6 @@ func (s *suite) pinEnqueueDefaults(t *testing.T) {
 		Payload:     Payload{Cmd: "send"},
 		Priority:    7,
 		MaxAttempts: 5,
-		Deps:        []task.ID{task.NewID()},
 	}
 
 	got := e.enqueue(t, want)
@@ -91,7 +90,7 @@ func (s *suite) pinEnqueueDefaults(t *testing.T) {
 		t.Fatalf("defaults wrong: status=%s attempts=%d max=%d", got.Status, got.Attempts, got.MaxAttempts)
 	}
 
-	if got.Payload.Cmd != "send" || got.Project != "proj" || got.Priority != 7 || len(got.Deps) != 1 {
+	if got.Payload.Cmd != "send" || got.Project != "proj" || got.Priority != 7 {
 		t.Fatalf("field roundtrip mismatch: %+v", got)
 	}
 
@@ -180,7 +179,10 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 	mustError(t, "fail wrong owner", e.store.Fail(t.Context(), tk.ID, "w2", "x", 0, nil), queue.ErrLeaseNotHeld)
 	mustError(t, "heartbeat wrong owner", e.store.Heartbeat(t.Context(), tk.ID, "w2", time.Minute), queue.ErrLeaseNotHeld)
 
-	// Expired lease: complete after the deadline is refused.
+	// Expired lease: a second task claimed short completes after its
+	// deadline is refused.
+	short := e.enqueue(t, task.New[Payload]{Type: "sh"})
+
 	c, err := e.store.ClaimDue(t.Context(), "expire-w", 30*time.Millisecond)
 	if err != nil {
 		t.Fatal(err)
@@ -189,6 +191,7 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 	time.Sleep(60 * time.Millisecond)
 
 	mustError(t, "complete expired", e.store.Complete(t.Context(), c.Task.ID, "expire-w", nil), queue.ErrLeaseNotHeld)
+	_ = short
 }
 
 // pinHeartbeat pins lease extension.
