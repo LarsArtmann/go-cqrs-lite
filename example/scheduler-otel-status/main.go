@@ -11,7 +11,7 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"log"
 	"net/http"
@@ -103,7 +103,7 @@ func statusHandler(store *sqlstore.ClaimingTimerStore[struct{}]) http.HandlerFun
 
 		w.Header().Set("Content-Type", "application/json")
 
-		if err := json.NewEncoder(w).Encode(statusSnapshot{
+		if err := json.MarshalWrite(w, statusSnapshot{
 			ClaimMetricsSnapshot: snap,
 			ClaimedPerMinute:     rate,
 		}); err != nil {

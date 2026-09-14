@@ -3,10 +3,9 @@ package snapshot
 import (
 	"context"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StateTransforms protects and restores serialized snapshot state. Protect

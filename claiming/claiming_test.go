@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
-
 	_ "modernc.org/sqlite"
 )
 
