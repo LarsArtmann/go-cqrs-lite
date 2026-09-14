@@ -30,8 +30,12 @@ LAYER[graph]=3
 LAYER[scenario]=3
 LAYER[projectionhost]=3
 # claiming: dialect-correct claim-SQL core (no store) consumed by
-# scheduling/sqlstore (L5) and the planned queue module.
+# scheduling/sqlstore (L5) and the queue engines (queue/sqlite etc., L5).
 LAYER[claiming]=4
+# queue: the durable work-queue CONTRACT (task/journal/queue packages,
+# no engine). Engines implement it over claiming; semantically a domain
+# contract like decider, and dep-light (errorfamily only).
+LAYER[queue]=3
 LAYER[signing]=4
 LAYER[encryption]=4
 LAYER[otel]=4
@@ -214,6 +218,8 @@ DEP_BUDGET[projectionhost]=9
 # claiming: 1 = go-error-family only (the modernc.org/sqlite require is
 # test-only, round-trip claim test).
 DEP_BUDGET[claiming]=1
+# queue: 1 = go-error-family only (sentinel classification).
+DEP_BUDGET[queue]=1
 DEP_BUDGET[signing]=5
 DEP_BUDGET[encryption]=5
 DEP_BUDGET[otel]=7

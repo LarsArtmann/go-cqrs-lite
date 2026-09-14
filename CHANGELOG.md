@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — `queue/`: the durable work-queue CONTRACT (durable-queue P1, part 1) — 2026-09-14
+
+- **New `queue` module** — the task-queue CONTRACT module: lease-based
+  claims with crash reclaim, a retry ladder with dead-lettering,
+  priorities with bounded aging, DAG dependency gating, dedup-keyed
+  idempotent enqueue, cooperative cancels, and an append-only fact
+  journal written in the SAME transaction as every state change (the
+  journal-first lineage).
+- **`queue.Store[T]`** — the persistence boundary engines implement:
+  `Enqueue` (dedup-keyed), `ClaimDue` (deps-gated, priority+aging
+  ordered, `ErrNoTaskDue`), `Complete`/`Fail`/`FailPermanent` (attempt
+  budget → DLQ with "exhausted"/"permanent" classes)/`Requeue` (no
+  attempt burn)/`Heartbeat`, the cooperative-cancel family
+  (`CancelRunning`/`CancelRequested`/`CancelOwned`), DLQ ops
+  (`RescueDead`/`DismissDead`), `UpdatePendingPriority` (pending-only,
+  idempotent), reads (`Get`/`List`/`CountTasks`/`StatusCounts`) and the
+  journal surface (`Facts`/`FactsForTask`/`HeadSeq`, consumer
+  watermarks).
+- **`queue/task` subpackage** — `Task[T]`, `New[T]` template with
+  `Normalize` (`DefaultMaxAttempts` = 3), time-sortable crypto-random
+  `ID` minting, and the `Status` state machine
+  (`Pending`/`Running`/`Completed`/`Dead`/`Cancelled` with
+  `CanTransitionTo` pinning the legal transition matrix).
+- **`queue/journal` subpackage** — `Fact`/`FactType` (one type per
+  lifecycle event, donor-identical `task.*` wire names) plus the
+  structured evidence payloads (`RequeueEvidence`, `ReprioritizeEvidence`).
+- **`queue.Claim[T]`** — the lease capability returned by `ClaimDue`
+  (task + lease deadline; token-ready seam for ADR-0134 claim tokens).
+- **`queue.Codec[T]`/`JSONCodec[T]`** — the payload serialization seam
+  engines take (default encoding/json; applications can pin CBOR etc.).
+- **Semantics are transcribed, not designed**: the spec donor is
+  go-taskqueue's internal queue stores (five weeks of production dogfood
+  under a live agent pool); the aging constants
+  (`PriorityAgingDaysPerPoint` = 3, `PriorityAgingMaxBonus` = 10) live
+  once in the contract so engines cannot drift. Engines (queue/sqlite,
+  queue/postgres, queue/mysql) build on `claiming/` and are held to the
+  shared `queue/conformance` suite.
+
 ### Added — release tooling: retracts gate, baseline tag audit, private-dep gate — 2026-09-13
 
 - **`scripts/check-retracts-shipped.sh`** — fails while a master `retract`

@@ -454,8 +454,9 @@ p, _ := event.DecodePayload[T](evt, codec.CBORCodec{})  // explicit codec
 ref := id.NewStreamRef("User", aggID)
 
 // Store (Sink/Source split)
+var journal event.Journal = store                    // cross-stream: ReadAll
 store.Save(ctx, ref, events, expectedVersion)    // optimistic concurrency
-events, _ := store.Load(ctx, ref)
+events, _ = store.Load(ctx, ref)
 events, _ := store.LoadFromVersion(ctx, ref, v)
 allEvents, _ := journal.ReadAll(ctx)              // cross-stream
 
