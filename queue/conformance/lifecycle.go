@@ -201,6 +201,11 @@ func (s *suite) pinHeartbeat(t *testing.T) {
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	c := e.claim(t, "w1")
 
+	// Leases are stamped ms-truncated; a heartbeat in the SAME millisecond
+	// with an equal duration rewrites an identical deadline. Sleep past the
+	// boundary so strict extension is deterministic.
+	time.Sleep(2 * time.Millisecond)
+
 	if err := e.store.Heartbeat(t.Context(), tk.ID, "w1", time.Minute); err != nil {
 		t.Fatalf("heartbeat: %v", err)
 	}

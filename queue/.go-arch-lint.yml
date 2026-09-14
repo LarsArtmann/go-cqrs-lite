@@ -1,0 +1,37 @@
+# go-arch-lint configuration for the queue module (intra-module rules)
+#
+# Run via: scripts/check-arch.sh (from the queue/ directory)
+# Enforces package-level dependency rules WITHIN the queue module.
+# Cross-module rules are enforced by scripts/check-module-layers.sh.
+
+version: 3
+
+allow:
+  depOnAnyVendor: true
+
+excludeFiles:
+  - "^.*_test\\.go$"
+  - "^.*testdata/.*$"
+
+components:
+  core: { in: . }
+  task: { in: task }
+  facts: { in: facts }
+  conformance: { in: conformance }
+
+deps:
+  core:
+    mayDependOn:
+      - task
+      - facts
+  task:
+    anyProjectDeps: false
+    anyVendorDeps: false
+  facts:
+    anyProjectDeps: false
+    anyVendorDeps: false
+  conformance:
+    mayDependOn:
+      - core
+      - task
+      - facts
