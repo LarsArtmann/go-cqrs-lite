@@ -47,8 +47,14 @@ func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], er
 		UpdatedAt:   now,
 	}
 
-	if err := s.insertTask(ctx, tk, n.DedupKey); err != nil {
+	suppressed := false
+
+	if err := s.insertTask(ctx, &tk, n.DedupKey, &suppressed); err != nil {
 		return task.Task[T]{}, fmt.Errorf("queue/sqlite: enqueue: %w", err)
+	}
+
+	if suppressed {
+		return s.Get(ctx, tk.ID)
 	}
 
 	return tk, nil
@@ -56,14 +62,15 @@ func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], er
 
 // insertTask writes the task row, its deps rows and the enqueued fact in
 // one transaction, re-checking the dedup key inside it (the unique
-// partial index is the final arbiter under concurrency).
-func (s *Store[T]) insertTask(ctx context.Context, tk task.Task[T], dedupKey string) error {
-	depsJSON, err := json.Marshal(tk.Deps)
+// partial index is the final arbiter under concurrency). On suppression
+// it sets suppressed and leaves t.ID pointing at the stored task.
+func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey string, suppressed *bool) error {
+	depsJSON, err := json.Marshal(t.Deps)
 	if err != nil {
 		return fmt.Errorf("marshal deps: %w", err)
 	}
 
-	payload, err := s.encodePayload(tk.Payload)
+	payload, err := s.encodePayload(t.Payload)
 	if err != nil {
 		return err
 	}
@@ -76,9 +83,10 @@ func (s *Store[T]) insertTask(ctx context.Context, tk task.Task[T], dedupKey str
 
 			err := tx.QueryRowContext(ctx, `SELECT id FROM tasks WHERE dedup_key = ?`, dedupKey).Scan(&existingID)
 			if err == nil {
-				tk.ID = task.ID(existingID)
+				t.ID = task.ID(existingID)
+				*suppressed = true
 
-				return errSuppressed{existing: existingID}
+				return nil
 			}
 
 			if !errors.Is(err, sql.ErrNoRows) {
@@ -86,43 +94,37 @@ func (s *Store[T]) insertTask(ctx context.Context, tk task.Task[T], dedupKey str
 			}
 		}
 
-		if err := s.insertTaskRow(ctx, tx, tk, string(depsJSON), payload, dedupKey); err != nil {
+		if err := s.insertTaskRow(ctx, tx, *t, string(depsJSON), payload, dedupKey); err != nil {
 			return err
 		}
 
-		for _, d := range tk.Deps {
+		for _, d := range t.Deps {
 			if _, err := tx.ExecContext(ctx, `INSERT INTO deps (task_id, dep_id) VALUES (?, ?)`,
-				tk.ID.String(), d.String()); err != nil {
+				t.ID.String(), d.String()); err != nil {
 				return err
 			}
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: tk.ID.String(), Type: facts.Enqueued, Attempt: 0,
-			Detail: mustJSON(map[string]any{"project": tk.Project, "type": tk.Type}),
+			TaskID: t.ID.String(), Type: facts.Enqueued, Attempt: 0,
+			Detail: mustJSON(map[string]any{"project": t.Project, "type": t.Type}),
 		})
 	})
 }
 
 // insertTaskRow runs the tasks-table INSERT.
 func (s *Store[T]) insertTaskRow(
-	ctx context.Context, tx *sql.Tx, tk task.Task[T], depsJSON string, payload []byte, dedupKey string,
+	ctx context.Context, tx *sql.Tx, t task.Task[T], depsJSON string, payload []byte, dedupKey string,
 ) error {
 	_, err := tx.ExecContext(ctx,
 		`INSERT INTO tasks (id, project, type, payload, deps, priority, attempts, max_attempts,
 		                    not_before, status, created_at, updated_at, dedup_key)
 		 VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending', ?, ?, ?)`,
-		tk.ID.String(), tk.Project, tk.Type, payload, depsJSON, tk.Priority,
-		tk.MaxAttempts, ms(tk.NotBefore), tk.CreatedAt.UnixMilli(), tk.UpdatedAt.UnixMilli(), dedupKey)
+		t.ID.String(), t.Project, t.Type, payload, depsJSON, t.Priority,
+		t.MaxAttempts, ms(t.NotBefore), t.CreatedAt.UnixMilli(), t.UpdatedAt.UnixMilli(), dedupKey)
 
 	return err
 }
-
-// errSuppressed marks a dedup-suppressed insert: the tx commits (the
-// re-check read must stand) and the caller re-reads the stored task.
-type errSuppressed struct{ existing string }
-
-func (errSuppressed) Error() string { return "queue/sqlite: dedup suppressed" }
 
 // getTaskByDedupKey returns the stored task for a dedup key, if any.
 func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task[T], bool, error) {
@@ -137,10 +139,10 @@ func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task
 		return task.Task[T]{}, false, err
 	}
 
-	tk, err := s.Get(ctx, task.ID(id))
+	t, err := s.Get(ctx, task.ID(id))
 	if err != nil {
 		return task.Task[T]{}, false, err
 	}
 
-	return tk, true, nil
+	return t, true, nil
 }
