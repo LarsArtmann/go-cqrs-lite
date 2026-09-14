@@ -1,0 +1,339 @@
+package conformance
+
+import (
+	"errors"
+	"testing"
+	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/queue/v4"
+	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
+	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
+)
+
+// runLifecycle pins the task lifecycle: the state machine, the
+// enqueue→claim→complete roundtrip, heartbeats, and the cooperative
+// cancel family.
+func (s *suite) runLifecycle(t *testing.T) {
+	t.Run("transition matrix is the contract's", s.pinTransitionMatrix)
+	t.Run("enqueue assigns identity and defaults", s.pinEnqueueDefaults)
+	t.Run("enqueue to claim to complete roundtrip", s.pinRoundtrip)
+	t.Run("empty type is refused", s.pinEmptyType)
+	t.Run("unknown id is not found", s.pinNotFound)
+	t.Run("lease guards finalize calls", s.pinLeaseGuards)
+	t.Run("heartbeat extends the lease", s.pinHeartbeat)
+	t.Run("cancel withdraws a pending task with reason", s.pinCancel)
+	t.Run("status guards refuse wrong-source transitions", s.pinStatusGuards)
+	t.Run("cooperative cancel family", s.pinCooperativeCancel)
+	t.Run("reclaim finalizes a requested cancel", s.pinReclaimFinalizesCancel)
+}
+
+// pinTransitionMatrix pins the pure state machine table itself.
+func (s *suite) pinTransitionMatrix(t *testing.T) {
+	legal := map[task.Status][]task.Status{
+		task.Pending:   {task.Running, task.Cancelled},
+		task.Running:   {task.Pending, task.Completed, task.Dead, task.Cancelled},
+		task.Completed: {},
+		task.Dead:      {task.Pending, task.Cancelled},
+		task.Cancelled: {},
+	}
+
+	for _, from := range task.AllStatuses() {
+		for _, to := range task.AllStatuses() {
+			want := false
+
+			for _, ok := range legal[from] {
+				if ok == to {
+					want = true
+					break
+				}
+			}
+
+			if got := task.CanTransitionTo(from, to); got != want {
+				t.Fatalf("CanTransitionTo(%s, %s) = %v, want %v", from, to, got, want)
+			}
+		}
+	}
+
+	for _, st := range task.AllStatuses() {
+		if want := st == task.Completed || st == task.Dead || st == task.Cancelled; task.Terminal(st) != want {
+			t.Fatalf("Terminal(%s) mismatch", st)
+		}
+
+		if !st.Valid() {
+			t.Fatalf("AllStatuses contains invalid %s", st)
+		}
+	}
+
+	if (task.Status)("bogus").Valid() {
+		t.Fatal("unknown status reports Valid")
+	}
+}
+
+// pinEnqueueDefaults pins ID/defaults assignment and field round-trip.
+func (s *suite) pinEnqueueDefaults(t *testing.T) {
+	e := s.openEnv(t)
+
+	want := task.New[Payload]{
+		Project:     "proj",
+		Type:        "email",
+		Payload:     Payload{Cmd: "send"},
+		Priority:    7,
+		MaxAttempts: 5,
+		Deps:        []task.ID{task.NewID()},
+	}
+
+	got := e.enqueue(t, want)
+	if got.ID == "" {
+		t.Fatal("store assigned no ID")
+	}
+
+	if got.Status != task.Pending || got.Attempts != 0 || got.MaxAttempts != 5 {
+		t.Fatalf("defaults wrong: status=%s attempts=%d max=%d", got.Status, got.Attempts, got.MaxAttempts)
+	}
+
+	if got.Payload.Cmd != "send" || got.Project != "proj" || got.Priority != 7 || len(got.Deps) != 1 {
+		t.Fatalf("field roundtrip mismatch: %+v", got)
+	}
+
+	if got.CreatedAt.IsZero() || got.UpdatedAt.IsZero() {
+		t.Fatal("timestamps not assigned")
+	}
+
+	// Zero MaxAttempts normalizes to the contract default.
+	norm := e.enqueue(t, task.New[Payload]{Type: "t"})
+	if norm.MaxAttempts != task.DefaultMaxAttempts {
+		t.Fatalf("MaxAttempts = %d, want default %d", norm.MaxAttempts, task.DefaultMaxAttempts)
+	}
+}
+
+// pinRoundtrip pins the happy path: pending → claim → running → complete,
+// with the facts landing in the same transactions.
+func (s *suite) pinRoundtrip(t *testing.T) {
+	e := s.openEnv(t)
+
+	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	c := e.claim(t, "w1")
+
+	if c.Task.ID != tk.ID || c.Task.Status != task.Running || c.Task.LeaseOwner != "w1" {
+		t.Fatalf("claim state wrong: %+v", c.Task)
+	}
+
+	if c.LeaseUntil.IsZero() || c.Task.LeaseExpires == nil || !c.Task.LeaseExpires.Equal(c.LeaseUntil) {
+		t.Fatal("claim lease deadline not surfaced")
+	}
+
+	_, err := e.store.ClaimDue(t.Context(), "w2", time.Minute)
+	if !errors.Is(err, queue.ErrNoTaskDue) {
+		t.Fatalf("second claim: error = %v, want ErrNoTaskDue", err)
+	}
+
+	if err := e.store.Complete(t.Context(), tk.ID, "w1", []byte(`{"ok":true}`)); err != nil {
+		t.Fatalf("complete: %v", err)
+	}
+
+	got, err := e.store.Get(t.Context(), tk.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got.Status != task.Completed || got.CompletedAt == nil || got.LeaseOwner != "" {
+		t.Fatalf("completed state wrong: %+v", got)
+	}
+
+	want := []facts.FactType{facts.Enqueued, facts.Claimed, facts.Completed}
+	if got := factTypes(t, e, tk.ID); !equalFactTypes(got, want) {
+		t.Fatalf("fact trail = %v, want %v", got, want)
+	}
+}
+
+// pinEmptyType pins the ErrEmptyType refusal.
+func (s *suite) pinEmptyType(t *testing.T) {
+	e := s.openEnv(t)
+
+	_, err := e.store.Enqueue(t.Context(), task.New[Payload]{})
+	mustError(t, "enqueue empty type", err, queue.ErrEmptyType)
+}
+
+// pinNotFound pins ErrNotFound on unknown IDs.
+func (s *suite) pinNotFound(t *testing.T) {
+	e := s.openEnv(t)
+
+	id := task.NewID()
+
+	_, err := e.store.Get(t.Context(), id)
+	mustError(t, "get unknown", err, queue.ErrNotFound)
+
+	if err := e.store.Complete(t.Context(), id, "w", nil); err == nil {
+		t.Fatal("complete unknown: expected error, got nil")
+	}
+}
+
+// pinLeaseGuards pins that finalize calls are lease-checked: wrong owner
+// and expired leases get ErrLeaseNotHeld.
+func (s *suite) pinLeaseGuards(t *testing.T) {
+	e := s.openEnv(t)
+
+	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	_ = e.claim(t, "w1")
+
+	mustError(t, "complete wrong owner", e.store.Complete(t.Context(), tk.ID, "w2", nil), queue.ErrLeaseNotHeld)
+	mustError(t, "fail wrong owner", e.store.Fail(t.Context(), tk.ID, "w2", "x", 0, nil), queue.ErrLeaseNotHeld)
+	mustError(t, "heartbeat wrong owner", e.store.Heartbeat(t.Context(), tk.ID, "w2", time.Minute), queue.ErrLeaseNotHeld)
+
+	// Expired lease: complete after the deadline is refused.
+	c, err := e.store.ClaimDue(t.Context(), "expire-w", 30*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(60 * time.Millisecond)
+
+	mustError(t, "complete expired", e.store.Complete(t.Context(), c.Task.ID, "expire-w", nil), queue.ErrLeaseNotHeld)
+}
+
+// pinHeartbeat pins lease extension.
+func (s *suite) pinHeartbeat(t *testing.T) {
+	e := s.openEnv(t)
+
+	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	c := e.claim(t, "w1")
+
+	if err := e.store.Heartbeat(t.Context(), tk.ID, "w1", time.Minute); err != nil {
+		t.Fatalf("heartbeat: %v", err)
+	}
+
+	got, _ := e.store.Get(t.Context(), tk.ID)
+	if got.LeaseExpires == nil || !got.LeaseExpires.After(c.LeaseUntil) {
+		t.Fatalf("lease not extended: %v <= %v", got.LeaseExpires, c.LeaseUntil)
+	}
+}
+
+// pinCancel pins Cancel on pending with the reason riding the fact.
+func (s *suite) pinCancel(t *testing.T) {
+	e := s.openEnv(t)
+
+	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	if err := e.store.Cancel(t.Context(), tk.ID, "superseded"); err != nil {
+		t.Fatalf("cancel: %v", err)
+	}
+
+	got, _ := e.store.Get(t.Context(), tk.ID)
+	if got.Status != task.Cancelled {
+		t.Fatalf("status = %s, want cancelled", got.Status)
+	}
+
+	last := lastFact(t, e, tk.ID)
+	if last.Type != facts.Cancelled {
+		t.Fatalf("fact = %s, want cancelled", last.Type)
+	}
+
+	if !contains(last.Detail, "superseded") {
+		t.Fatalf("cancel reason not on fact detail: %s", last.Detail)
+	}
+
+	// Cancel is terminal: repeating it is an invalid transition now.
+	mustError(t, "cancel cancelled", e.store.Cancel(t.Context(), tk.ID, "again"), queue.ErrInvalidTransition)
+}
+
+// pinStatusGuards pins ErrInvalidTransition on wrong-source mutations.
+func (s *suite) pinStatusGuards(t *testing.T) {
+	e := s.openEnv(t)
+
+	running := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	_ = e.claim(t, "w1")
+
+	mustError(t, "cancel running", e.store.Cancel(t.Context(), running.ID, "x"), queue.ErrInvalidTransition)
+	mustError(t, "repri running", e.store.UpdatePendingPriority(t.Context(), running.ID, 9, "s", "r"), queue.ErrInvalidTransition)
+
+	done := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	_ = e.claim(t, "w1")
+
+	if err := e.store.Complete(t.Context(), done.ID, "w1", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	mustError(t, "cancel completed", e.store.Cancel(t.Context(), done.ID, "x"), queue.ErrInvalidTransition)
+	mustError(t, "rescue completed", e.store.RescueDead(t.Context(), done.ID, 3), queue.ErrInvalidTransition)
+	mustError(t, "dismiss completed", e.store.DismissDead(t.Context(), done.ID, "r", "op"), queue.ErrInvalidTransition)
+}
+
+// pinCooperativeCancel pins the request-flag/finalize pair and its
+// idempotency.
+func (s *suite) pinCooperativeCancel(t *testing.T) {
+	e := s.openEnv(t)
+
+	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	_ = e.claim(t, "w1")
+
+	if err := e.store.CancelRunning(t.Context(), tk.ID, "stop it"); err != nil {
+		t.Fatalf("cancel-running: %v", err)
+	}
+
+	if err := e.store.CancelRunning(t.Context(), tk.ID, "again"); err != nil {
+		t.Fatalf("idempotent re-request: %v", err)
+	}
+
+	if got := countFacts(t, e, tk.ID, facts.CancelRequested); got != 1 {
+		t.Fatalf("cancel-requested facts = %d, want 1 (idempotent)", got)
+	}
+
+	requested, err := e.store.CancelRequested(t.Context(), tk.ID)
+	if err != nil || !requested {
+		t.Fatalf("CancelRequested = %v, %v", requested, err)
+	}
+
+	// Only running tasks can carry a request.
+	pending := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	mustError(t, "cancel-running pending", e.store.CancelRunning(t.Context(), pending.ID, "x"), queue.ErrInvalidTransition)
+
+	if err := e.store.CancelOwned(t.Context(), tk.ID, "w1"); err != nil {
+		t.Fatalf("cancel-owned: %v", err)
+	}
+
+	got, _ := e.store.Get(t.Context(), tk.ID)
+	if got.Status != task.Cancelled {
+		t.Fatalf("status = %s, want cancelled", got.Status)
+	}
+
+	last := lastFact(t, e, tk.ID)
+	if last.Type != facts.Cancelled || !contains(last.Detail, "stop it") {
+		t.Fatalf("final fact = %s %s, want cooperative cancelled with reason", last.Type, last.Detail)
+	}
+
+	mustError(t, "cancel-owned after finalize", e.store.CancelOwned(t.Context(), tk.ID, "w1"), queue.ErrLeaseNotHeld)
+}
+
+// pinReclaimFinalizesCancel pins the donor's crash path: a worker whose
+// task got a cancel request never finalizes, the reclaim does it — the
+// task is never re-executed after its cancel was requested.
+func (s *suite) pinReclaimFinalizesCancel(t *testing.T) {
+	e := s.openEnv(t)
+
+	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+
+	_, err := e.store.ClaimDue(t.Context(), "dead-w", 30*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := e.store.CancelRunning(t.Context(), tk.ID, "stale"); err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(60 * time.Millisecond)
+
+	// The reclaim finalizes the cancel instead of re-executing: this
+	// claim must never hand THIS task out running again.
+	if c, err := e.store.ClaimDue(t.Context(), "w2", time.Minute); err == nil && c.Task.ID == tk.ID {
+		t.Fatal("reclaimed a cancel-requested task for execution")
+	}
+
+	got, _ := e.store.Get(t.Context(), tk.ID)
+	if got.Status != task.Cancelled {
+		t.Fatalf("status = %s, want cancelled (reclaim finalized it)", got.Status)
+	}
+
+	if last := lastFact(t, e, tk.ID); last.Type != facts.Cancelled {
+		t.Fatalf("fact = %s, want cancelled", last.Type)
+	}
+}
