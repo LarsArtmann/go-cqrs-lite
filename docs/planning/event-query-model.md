@@ -348,6 +348,19 @@ metaengine.OnRecord(Event{}, func(_ record.Record, e Event) Key { ... })
 // Returns just a key → planner infers Set<Key>
 // Physical structures: hash set (Memory), bloom filter (Pebble-internal policy), UNIQUE index (SQL)
 
+> **[VERIFIED 2026-09-15 — audit item 30]** Set-membership pushdown on SQL engines:
+> TRUE for SQLite, and SQLite is the only SQL engine with the Set ADT.
+> `Engine.SetContains` (`metaengine/engine.go:453`) is implemented by exactly two
+> engines: Memory (Go map hash set, `memory_backends.go:24`) and SQLite
+> (`sqliteengine/backends.go:25` → `SELECT 1 FROM meta_set WHERE collection = ?
+> AND key = ?`, `sqliteengine/engine.go:131`) — a direct index lookup. The
+> "UNIQUE index" wording is substantively right but not literal: `meta_set`
+> declares `PRIMARY KEY (collection, key)` (`sqliteengine/engine.go:93-96`),
+> which SQLite materializes as an automatic unique index; no explicit
+> `CREATE UNIQUE INDEX` is emitted. pg, MySQL, Turso, and DuckDB do not
+> implement `SetAdd`/`SetContains` at all, so the planner cannot route Set
+> queries there. The Bloom mention stays Pebble-internal only (audit item 14).
+
 // ══ COUNTER ADT ══
 metaengine.OnRecord(Event{}, func(_ record.Record, e Event) metaengine.Delta { ... })
 // Returns Delta{key: ±n} → planner infers Counter
