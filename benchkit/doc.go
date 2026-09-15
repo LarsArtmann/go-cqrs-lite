@@ -119,14 +119,53 @@
 //   - RepeatStdDev / RepeatCoV / RepeatIsReliable — statistical reliability
 //     of repeat-run results. CoV < 10% means results are trustworthy for
 //     cross-backend comparison. When RepeatIsReliable=false, increase Repeat.
+//     These cover WRITE THROUGHPUT only; MetricVariation extends the same
+//     dispersion analysis to every measured metric.
 //
-//   - Environment.CPUModel / Environment.TotalRAMBytes — machine metadata
-//     for honest cross-machine comparisons. Different CPUs and RAM amounts
-//     produce dramatically different latency numbers.
+//   - MetricVariation — per-metric cross-run dispersion (mean, population
+//     StdDev, CoV, per-run Samples) for every measured metric, populated by
+//     [RunRepeated] when Config.Repeat > 1. A metric whose CoV exceeds
+//     [VariationThreshold] moved too much between runs for its median to be
+//     decision-grade; [NoisyMetricNames] lists them worst-first.
+//
+//   - Environment.CPUModel / Environment.TotalRAMBytes / Environment.LoadAvg1 —
+//     machine metadata for honest cross-machine comparisons. Different CPUs
+//     and RAM amounts produce dramatically different latency numbers.
+//     LoadAvg1 samples the 1-minute load average at run start: above NumCPU
+//     the run records a warning, because its latencies then include scheduler
+//     wait rather than pure backend cost.
 //
 // Every Result includes Environment metadata (GoVersion, NumCPU, GOMAXPROCS,
 // GOOS, GOARCH) and the actual Workers count so comparisons across machines
 // and configurations are honest.
+//
+// # Percentile semantics
+//
+// LatencyStats percentiles come from [LatencyCollector]: P50–P99 are
+// nearest-rank estimates over a bounded reservoir sample, so they stay O(1)
+// memory for arbitrarily large runs. Two statistics are exact even after the
+// reservoir saturates: Mean (accumulated running sum) and P100 — the collector
+// tracks the true maximum on every Record, so a single multi-second stall in a
+// 10M-event run appears in the tail report instead of being evicted from the
+// reservoir. Treat P100 as "worst observed", not as a stable percentile: it is
+// dominated by the single worst scheduling hiccup.
+//
+// # Repeats and statistical rigor
+//
+// A single run answers "roughly how fast". Drawing conclusions — regression
+// gates, backend choices, optimization wins — needs dispersion data:
+//
+//	repeated, err := benchkit.RunRepeated(ctx, config, factory)
+//	if err != nil { ... }
+//	if !repeated.Reliable() {
+//		log.Warnf("noisy metrics, re-run before comparing: %v", repeated.NoisyMetrics())
+//	}
+//	benchkit.WriteBenchstatRepeated(os.Stdout, repeated)
+//
+// RunRepeated returns every run plus the median (annotated with Repeat* and
+// MetricVariation). WriteBenchstatRepeated emits one benchstat sample per run,
+// which is the sample count benchstat needs to report a confidence interval:
+// a single-sample file can only be compared as point estimates.
 //
 // # Soak testing
 //

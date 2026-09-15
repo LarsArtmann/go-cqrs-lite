@@ -309,6 +309,49 @@ func TestCLI_Repeat(t *testing.T) {
 	if !strings.Contains(output, "median of 3 runs") {
 		t.Errorf("expected 'median of 3 runs' in output:\n%s", output)
 	}
+
+	if !strings.Contains(output, "Variation:") {
+		t.Errorf("expected per-metric 'Variation:' section in repeated run output:\n%s", output)
+	}
+}
+
+func TestCLI_RepeatBenchstatMultiSample(t *testing.T) {
+	t.Parallel()
+
+	bin := buildBinary(t)
+
+	out, err := exec.Command(
+		bin, "run",
+		"--backend", "memory",
+		"--profile", "dev",
+		"--repeat", "3",
+		"--payload-size", "64",
+		"--format", "benchstat",
+		"--quiet",
+	).CombinedOutput()
+	if err != nil {
+		t.Fatalf("run --repeat --format benchstat failed: %v\n%s", err, out)
+	}
+
+	counts := make(map[string]int)
+
+	for line := range strings.SplitSeq(string(out), "\n") {
+		if !strings.HasPrefix(line, "Benchmark") {
+			continue
+		}
+
+		counts[strings.Fields(line)[0]]++
+	}
+
+	if len(counts) == 0 {
+		t.Fatalf("no benchstat lines in output:\n%s", out)
+	}
+
+	for name, count := range counts {
+		if count != 3 {
+			t.Errorf("metric %s emitted %d samples, want one per repeat run (3)", name, count)
+		}
+	}
 }
 
 func TestCLI_PayloadSizesFlagConsumed(t *testing.T) {
