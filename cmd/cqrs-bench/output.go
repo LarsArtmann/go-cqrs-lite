@@ -8,9 +8,14 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
-func writeResult(format, output string, config benchkit.Config, result *benchkit.Result) {
+func writeResult(
+	format, output string,
+	config benchkit.Config,
+	result *benchkit.Result,
+	repeated *benchkit.RepeatedResult,
+) {
 	withOutput(output, func(w *os.File) {
-		renderRunResult(w, resolveFormat(format), config, result)
+		renderRunResult(w, resolveFormat(format), config, result, repeated)
 	})
 }
 

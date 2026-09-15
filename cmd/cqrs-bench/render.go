@@ -343,7 +343,13 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 
 // ── run result rendering ──
 
-func renderRunResult(w io.Writer, format string, config benchkit.Config, result *benchkit.Result) {
+func renderRunResult(
+	w io.Writer,
+	format string,
+	config benchkit.Config,
+	result *benchkit.Result,
+	repeated *benchkit.RepeatedResult,
+) {
 	switch format {
 	case formatTable:
 		data := buildRunSummaryTable(result)
@@ -363,7 +369,13 @@ func renderRunResult(w io.Writer, format string, config benchkit.Config, result 
 			fatalf("write JSON: %v", err)
 		}
 	case formatBenchstat:
-		benchkit.WriteBenchstat(w, result)
+		// With repeats, emit one line per run: benchstat needs n>1 samples
+		// per benchmark before it reports a confidence interval.
+		if repeated != nil && len(repeated.Runs) > 1 {
+			benchkit.WriteBenchstatRepeated(w, repeated)
+		} else {
+			benchkit.WriteBenchstat(w, result)
+		}
 	case formatManifest:
 		if err := benchkit.WriteManifest(w, config, result); err != nil {
 			fatalf("write manifest: %v", err)
@@ -446,14 +458,7 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 		t.AddRow([]string{"Disk", fmtBytes(uint64(r.Disk.DatabaseBytes))})
 	}
 
-	if r.RepeatCount > 1 {
-		t.AddRow(
-			[]string{
-				"Repeat",
-				fmt.Sprintf("median of %d (CoV %.1f%%)", r.RepeatCount, r.RepeatCoV*100),
-			},
-		)
-	}
+	addVariationRows(t, r)
 
 	if r.IntegrityErrors > 0 {
 		t.AddRow([]string{"Integrity Errors", strconv.Itoa(r.IntegrityErrors)})

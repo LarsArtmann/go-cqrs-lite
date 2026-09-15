@@ -131,14 +131,12 @@ func printRepeat(w io.Writer, r *Result) {
 		reliability = "NOISY — increase Repeat for trustworthy comparison"
 	}
 
-	fmt.Fprintf(
-		w,
-		"Repeat:  median of %d runs | CoV=%.1f%% | %s\n",
-		r.RepeatCount, r.RepeatCoV*100, reliability,
-	)
+	fmt.Fprintf(w, "Repeat:  median of %d runs | CoV=%.1f%% | %s\n",
+		r.RepeatCount, r.RepeatCoV*100, reliability)
 	fmt.Fprintf(w, "         min: %s/s, max: %s/s, stddev: %s/s\n\n",
 		formatFloat(r.RepeatMin), formatFloat(r.RepeatMax),
 		formatFloat(r.RepeatStdDev))
+	printMetricVariation(w, r)
 }
 
 func printReadPerformance(w io.Writer, r *Result) {

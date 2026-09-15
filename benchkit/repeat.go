@@ -115,15 +115,7 @@ func (rr *RepeatedResult) NoisyMetrics() []string {
 		return nil
 	}
 
-	var noisy []MetricVariation
-
-	for _, v := range rr.Median.MetricVariation {
-		if !v.Reliable {
-			noisy = append(noisy, v)
-		}
-	}
-
-	sort.SliceStable(noisy, func(i, j int) bool { return noisy[i].CoV > noisy[j].CoV })
+	noisy := noisyVariations(rr.Median.MetricVariation)
 
 	names := make([]string, len(noisy))
 	for i, v := range noisy {

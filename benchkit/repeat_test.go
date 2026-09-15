@@ -216,8 +216,8 @@ func TestWriteBenchstatRepeated_OneLinePerRun(t *testing.T) {
 	counts := make(map[string]int)
 	for _, line := range lines {
 		parts := strings.Fields(line)
-		if len(parts) != 5 {
-			t.Fatalf("line %q does not match 'BenchmarkX-N_m\t1\tvalue unit'", line)
+		if len(parts) != 4 {
+			t.Fatalf("line %q does not match 'BenchmarkX-N_m\t1\t<value> <unit>'", line)
 		}
 
 		if parts[1] != "1" {
