@@ -18,6 +18,16 @@
 #   scripts/calibration-gate.sh --provenance dgraph    # + provenance lines for
 #                                                      # each named binary
 #   CALIB_GATE_REQUIRED=0 scripts/calibration-gate.sh  # warn-only override
+#   scripts/calibration-gate.sh --self-test            # fault-injection suite:
+#                                                      # planted loadavg fixtures
+#                                                      # in a temp dir (never a
+#                                                      # live file) + a golden
+#                                                      # pin of the FAIL-message
+#                                                      # shape (scripts/testdata/)
+#
+# CALIB_GATE_LOADAVG_FILE points the load probe at a fixture instead of
+# /proc/loadavg. Internal hook for --self-test only — do not set in normal
+# use.
 #
 # CI (CI=true, e.g. the benchmarks.yml drift job) never aborts: shared
 # runner load is not the calibration host's load; the gate exists to
@@ -43,8 +53,16 @@ while [[ $# -gt 0 ]]; do
 		done
 		;;
 	-h | --help)
-		sed -n '2,22p' "$0"
+		sed -n '2,36p' "$0"
 		exit 0
+		;;
+	--self-test)
+		if self_test; then
+			echo "calibration-gate self-test passed."
+			exit 0
+		fi
+		echo "calibration-gate self-test FAILED."
+		exit 1
 		;;
 	*)
 		echo "calibration-gate: unknown flag: $1 (see --help)" >&2
@@ -53,12 +71,16 @@ while [[ $# -gt 0 ]]; do
 	esac
 done
 
-load1() { cut -d' ' -f1 /proc/loadavg; }
-load5() { cut -d' ' -f2 /proc/loadavg; }
+# Fault-injection hook for --self-test: point the load probe at a fixture
+# file instead of the live /proc/loadavg. Internal — do not set in normal use.
+LOADAVG_FILE="${CALIB_GATE_LOADAVG_FILE:-/proc/loadavg}"
+
+load1() { cut -d' ' -f1 "$LOADAVG_FILE"; }
+load5() { cut -d' ' -f2 "$LOADAVG_FILE"; }
 
 LOAD1=$(load1)
 LOAD5=$(load5)
-LOADAVG=$(cat /proc/loadavg 2>/dev/null || echo "unknown")
+LOADAVG=$(cat "$LOADAVG_FILE" 2>/dev/null || echo "unknown")
 UPTIME=$(uptime 2>/dev/null || echo "unknown")
 WHEN=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
