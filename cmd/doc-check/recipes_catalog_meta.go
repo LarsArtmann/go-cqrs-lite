@@ -26,7 +26,7 @@ var recipeCatalogB = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
 			`"github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"`,
 		},
-		preamble: "ctx := context.Background()\nvar query any\n",
+		preamble: "var query any\n",
 	},
 	"### 2.12 Capability Diagnostics — declared-vs-implemented audit (metaengine) #1": {
 		imports: []string{
@@ -62,7 +62,8 @@ var recipeCatalogB = map[string]recipeSpec{
 			`"errors"`,
 			`"time"`,
 		},
-		preamble: "flakyOperation := func(ctx context.Context) error { return nil }\n",
+		preamble: "ctx := context.Background()\n" +
+			"flakyOperation := func(ctx context.Context) error { return nil }\n",
 	},
 	"### 2.15 CBOR→JSON for Browser SSE Clients (codec + transport/http) #1": {
 		imports: []string{
@@ -117,7 +118,7 @@ var recipeCatalogB = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
 		},
 		preamble: "var eventStore event.Store\nvar config middleware.RetryConfig\n",
-		trailers: "_ = config",
+		trailers: "_ = config\n_ = cfg",
 	},
 	"### 2.19 Command Lifecycle Tracking (ADR-0117) #2": {
 		imports: []string{
@@ -198,13 +199,17 @@ var recipeCatalogB = map[string]recipeSpec{
 			`"context"`,
 			`"time"`,
 		},
-		preamble: "type CancelOrderCmd struct{ OrderID string }\n" +
-			"var timerStore scheduling.TimerStore[CancelOrderCmd]\nvar due time.Time\n" +
+		preamble: "type CancelOrderPayload struct {\n\tStreamID id.StreamID\n\tOrderID  string\n}\n" +
+			"type CancelOrderCmd struct {\n\t*command.BasicCommand\n\n\tOrderID string\n}\n" +
+			"var timerStore scheduling.TimerStore[CancelOrderPayload]\nvar due time.Time\n" +
+			"var streamID id.StreamID\n" +
+			"actor := id.NewServiceActor(\"order-api\")\n" +
 			"ctx := context.Background()\ncmds := command.NewDispatcher()\n",
 		trailers: "_ = scheduler",
 	},
 	"### 2.21 Actor Propagation — \"Who Did It\" Audit Trail (id + command + middleware + event) #4": {
 		imports:  []string{`"github.com/larsartmann/go-cqrs-lite/id/v4"`},
+		preamble: "actor := id.NewUserActor(id.NewUserID())\n",
 		trailers: "_ = parsed\n_ = err",
 	},
 	"### 2.21b Metaengine + Stack Bundle Integration (v4 bundle path) #1": {
@@ -217,8 +222,7 @@ var recipeCatalogB = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"`,
 			`"context"`,
 		},
-		preamble: "type StatusCounts struct{}\n" +
-			"type TaskCreated struct {\n\tID     string\n\tStatus string\n}\n" +
+		preamble: "type TaskCreated struct {\n\tID     string\n\tStatus string\n}\n" +
 			"type TaskCompleted struct{ ID string }\n" +
 			"var dsn string\nctx := context.Background()\n" +
 			"var payloadDecoder projectionadapter.PayloadDecoder\nvar host *projectionhost.Host\n",
@@ -233,11 +237,15 @@ var recipeCatalogB = map[string]recipeSpec{
 		preamble: "type createdEvt struct {\n\tID       string\n\tPriority int\n}\n" +
 			"type deletedEvt struct{ ID string }\n" +
 			"var sqliteEng metaengine.Engine\nctx := context.Background()\n",
-		trailers: "_ = store\n_ = reader\n_ = active\n_ = item",
+		trailers: "_ = store\n_ = reader\n_ = active\n_ = item\n_ = found",
 	},
 	"#### Bridging Stream IDs to Map Keys (TypeDecoder + EventWithID) #1": {
-		imports:  []string{`"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"`},
-		preamble: "var store *metaengine.Store\n",
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4"`,
+		},
+		preamble: "type CreatedPayload struct{}\ntype UpdatedPayload struct{}\n" +
+			"var store *metaengine.Store\n",
 		trailers: "_ = decoder\n_ = adapter",
 	},
 	"#### Encoded Applies: projection.Projection → ApplyEncodedRecord (metaengine) #1": {

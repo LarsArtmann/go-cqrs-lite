@@ -132,7 +132,7 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-codec"`,
 			`cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"`,
 		},
-		preamble: "var key []byte\nvar oldDecrypter encryption.Decrypter\n" +
+		preamble: "var oldDecrypter encryption.Decrypter\n" +
 			"var newDecrypter encryption.Decrypter\nvar bus *cqrswatermill.EventBus\n",
 		trailers: "_ = encryptedCodec\n_ = resolver\n_ = b64\n_ = key2\n_ = key3\n_ = bad",
 	},
@@ -182,6 +182,7 @@ var recipeCatalogA = map[string]recipeSpec{
 		imports: []string{
 			`"github.com/larsartmann/go-idempotency"`,
 			`"github.com/larsartmann/go-cqrs-lite/middleware/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
 			`"time"`,
 		},
 		preamble: "var cmdDispatcher *command.Dispatcher\n",
@@ -205,7 +206,7 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/catalog/v4/openapi"`,
 		},
 		preamble: "type CreateUser struct{ Name string }\ntype UserCreated struct{ Name string }\n",
-		trailers: "_ = cat\n_ = asyncYAML\n_ = openAPIDoc\n_ = d2Text",
+		trailers: "_ = cat\n_ = asyncYAML\n_ = openAPIYAML\n_ = d2Text",
 	},
 	"### 2.9 Auto-Documentation (catalog) #2": {
 		imports: []string{

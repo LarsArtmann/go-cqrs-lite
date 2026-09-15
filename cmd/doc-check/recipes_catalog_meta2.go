@@ -19,12 +19,11 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/scheduling/v4"`,
 			`"database/sql"`,
 			`"context"`,
-			`"time"`,
 		},
 		preamble: "type MyPayload struct{ OrderID string }\nvar dsn string\n" +
 			"ctx := context.Background()\n" +
 			"var dispatch scheduling.DispatchFunc[MyPayload]\n",
-		trailers: "_ = scheduler",
+		trailers: "_ = scheduler\n_ = err",
 	},
 	"### 2.27 Planned Tables: LayoutPlanApplier (pgengine/mysqlengine/sqliteengine/duckdbengine) #1": {
 		skip: "ellipsis statement body (`{ ... }`) — illustrative error handling, not compilable Go",

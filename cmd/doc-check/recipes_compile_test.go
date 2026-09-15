@@ -224,7 +224,11 @@ func TestRecipesCompile(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "go.work"), []byte(workspaceFor(t, root, dir)), 0o644); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, "go.work"),
+		[]byte(workspaceFor(t, root, dir)),
+		0o644,
+	); err != nil {
 		t.Fatalf("write go.work: %v", err)
 	}
 
