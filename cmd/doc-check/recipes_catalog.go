@@ -4,9 +4,9 @@ package main
 //
 // Every fenced Go block in recipes.md must have exactly one entry, keyed by
 // "heading #ordinal". Compiled entries declare the scaffold (imports +
-// preamble declarations for free variables + trailers to blank unused
-// locals) a generated package needs to type-check; skipped entries carry
-// the reason the block is illustrative rather than compilable.
+// package-level preamble for free variables + trailers blanking unused
+// locals) a generated package needs to type-check; skipped entries carry the
+// reason the block is illustrative rather than compilable.
 
 // todoPreamble scaffolds the TodoView/TodoID pair used by §2.0 snippets.
 const todoPreamble = `type TodoView struct {
@@ -19,7 +19,7 @@ type TodoID string
 func (id TodoID) String() string { return string(id) }
 `
 
-const recipeSkipSeparateScopes = "multiple `b, _ :=` redeclarations in one scope: the fence is a set of separate copy-paste snippets, not one program"
+const skipSeparateScopes = "multiple `b, _ :=` redeclarations in one scope: the fence is a set of separate copy-paste snippets, not one program"
 
 var recipeCatalogA = map[string]recipeSpec{
 	"### 2.0 Bundle Presets — one-call infrastructure wiring #1": {
@@ -38,7 +38,7 @@ var recipeCatalogA = map[string]recipeSpec{
 		},
 		trailers: "_ = b\n_ = err",
 	},
-	"#### Production options (SQLite / Turso) #1": {skip: recipeSkipSeparateScopes},
+	"#### Production options (SQLite / Turso) #1": {skip: skipSeparateScopes},
 	"#### Postgres preset #1": {
 		imports:  []string{`"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"`},
 		trailers: "_ = b",
@@ -94,7 +94,7 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"`,
 			`"log/slog"`,
 		},
-		preamble: "var logger *slog.Logger\n",
+		preamble: "var dir string\nvar logger *slog.Logger\n",
 		trailers: "_ = eventStore\n_ = snapStore\n_ = cpStore",
 	},
 	"### 2.4 Snapshots for Performance (snapshot) #1": {
@@ -105,7 +105,7 @@ var recipeCatalogA = map[string]recipeSpec{
 		},
 		preamble: "type UserState struct{ Name string }\n" +
 			"var store event.Store\nvar bus event.Publisher\n" +
-			"var d decider.Decider[UserState]\nvar snapStore snapshot.Store\n",
+			"var d decider.Decider[UserState]\nvar snapStore snapshot.SnapshotStore\n",
 		trailers: "_ = repo",
 	},
 	"### 2.5 Schema Evolution (schema) #1": {
@@ -124,17 +124,16 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/signing/v4"`,
 			`cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"`,
 		},
-		preamble: "var secret []byte\nbus := cqrswatermill.NewEventBus()\n",
+		preamble: "var secret []byte\nvar bus *cqrswatermill.EventBus\n",
 	},
 	"### 2.7 Encrypted Payloads (encryption) #1": {
 		imports: []string{
 			`"github.com/larsartmann/go-cqrs-lite/encryption/v4"`,
-			`"github.com/larsartmann/go-cqrs-lite/middleware/v4"`,
 			`"github.com/larsartmann/go-codec"`,
 			`cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"`,
 		},
-		preamble: "var oldDecrypter encryption.Decrypter\nvar newDecrypter encryption.Decrypter\n" +
-			"bus := cqrswatermill.NewEventBus()\n",
+		preamble: "var key []byte\nvar oldDecrypter encryption.Decrypter\n" +
+			"var newDecrypter encryption.Decrypter\nvar bus *cqrswatermill.EventBus\n",
 		trailers: "_ = encryptedCodec\n_ = resolver\n_ = b64\n_ = key2\n_ = key3\n_ = bad",
 	},
 	"### 2.7b Decorating Stores — Encryption/Upcasting at the Store Layer (event) #1": {
@@ -144,8 +143,8 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/schema/v4"`,
 		},
 		preamble: "var eventStore event.Store\nvar encrypter encryption.Encrypter\n" +
-			"var decrypter encryption.Decrypter\nvar upcaster *schema.Upcaster\n" +
-			"var upcaster1 *schema.Upcaster\nvar upcaster2 *schema.Upcaster\n",
+			"var decrypter encryption.Decrypter\nvar upcaster schema.Upcaster\n" +
+			"var upcaster1 schema.Upcaster\nvar upcaster2 schema.Upcaster\n",
 		trailers: "_ = encryptedStore\n_ = versioned\n_ = stacked",
 	},
 	"### 2.8 Observability & Middleware (otel + middleware) #1": {
@@ -156,7 +155,7 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
 			`"time"`,
 		},
-		preamble: "bus := cqrswatermill.NewEventBus()\ncmdDispatcher := command.NewDispatcher()\n",
+		preamble: "var bus *cqrswatermill.EventBus\nvar cmdDispatcher *command.Dispatcher\n",
 	},
 	"#### Tracing + Prometheus metrics (otel.Setup + prometheus.Setup) #1": {
 		imports: []string{
@@ -169,24 +168,23 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/query/v4"`,
 			`"context"`,
 		},
-		preamble: "ctx := context.Background()\nbus := cqrswatermill.NewEventBus()\n" +
-			"cmdDispatcher := command.NewDispatcher()\nqDispatcher := query.NewDispatcher()\n",
+		preamble: "var ctx context.Context\nvar bus *cqrswatermill.EventBus\n" +
+			"var cmdDispatcher *command.Dispatcher\nvar qDispatcher *query.Dispatcher\n",
 	},
 	"#### One-call OTLP export (otel/otlp.SetupOTLP) #1": {
 		imports: []string{
 			`cqrsotlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"`,
 			`"context"`,
 		},
-		preamble: "ctx := context.Background()\n",
+		preamble: "var ctx context.Context\n",
 	},
 	"#### Command Idempotency (dedup on retry) #1": {
 		imports: []string{
 			`"github.com/larsartmann/go-idempotency"`,
 			`"github.com/larsartmann/go-cqrs-lite/middleware/v4"`,
-			`"github.com/larsartmann/go-cqrs-lite/command/v4"`,
 			`"time"`,
 		},
-		preamble: "cmds := command.NewDispatcher()\n",
+		preamble: "var cmdDispatcher *command.Dispatcher\n",
 	},
 	"#### Query Middleware (symmetric with command middleware) #1": {
 		imports: []string{
@@ -196,7 +194,7 @@ var recipeCatalogA = map[string]recipeSpec{
 			`"log/slog"`,
 			`"time"`,
 		},
-		preamble: "qDisp := query.NewDispatcher()\n",
+		preamble: "var qDisp *query.Dispatcher\n",
 	},
 	"### 2.9 Auto-Documentation (catalog) #1": {
 		imports: []string{
