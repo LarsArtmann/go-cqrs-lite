@@ -168,7 +168,6 @@ When your events and read models share a single SQLite/Postgres database, skip t
 import (
     "database/sql"
     "github.com/larsartmann/go-cqrs-lite/storage/v4"
-    cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 
 // One shared *sql.DB for everything
@@ -288,7 +287,11 @@ import (
 )
 
 type UserState struct{ Name string }
-type CreateUser struct{ Name string }
+type CreateUser struct {
+    *command.BasicCommand
+
+    Name string
+}
 type UserCreated struct{ Name string }
 
 func main() {
@@ -310,13 +313,14 @@ func main() {
     aggID := id.NewStreamID()
     command.RegisterTyped(cmds, "user.create",
         func(ctx context.Context, cmd *CreateUser) error {
-            return repo.Execute(ctx, aggID, "User", func(s UserState, v event.Version) ([]event.Event, error) {
-                return event.NewEvents(aggID, "User", v,
+            return repo.Execute(ctx, cmd.StreamID(), "User", func(s UserState, v event.Version) ([]event.Event, error) {
+                return event.NewEvents(cmd.StreamID(), "User", v,
                     []event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
             })
         })
 
-    _ = cmds.Dispatch(ctx, &CreateUser{Name: "Alice"})
+    basic, _ := command.New("user.create", aggID)
+    _ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
 
     state, _, _ := repo.Load(ctx, aggID, "User")
     fmt.Printf("User: %s\n", state.Name) // User: Alice
@@ -426,7 +430,7 @@ cpStore, _  := backend.CheckpointStore()     // *SQLCheckpointStore (lazy)
 ```go
 import "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 
-backend, _ := pebble.Open(dir, &pebble.Options{}, logger)
+backend, _ := pebble.Open(dir, nil, logger) // opts nil = defaults (storage/pebble ships its own option type)
 defer backend.Close() // closes DB AND all stores
 
 eventStore  := backend.EventStore()
@@ -445,8 +449,8 @@ import "github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 
 strategy, _ := snapshot.EveryNEvents(100)                                 // returns (SnapshotStrategy, error)
 repo, _ := decider.NewRepository[UserState](store, bus, d,
-    decider.WithSnapshotStore(snapStore),                               // SQL/Pebble/memory
-    decider.WithSnapshotStrategy(strategy),                             // snapshot every 100 events
+    decider.WithSnapshotStore[UserState](snapStore),                    // SQL/Pebble/memory
+    decider.WithSnapshotStrategy[UserState](strategy),                  // snapshot every 100 events
 )
 // repo.Load now reads the latest snapshot + replays only post-snapshot events
 ```
@@ -491,6 +495,13 @@ Confidential event payloads encrypted at rest.
 ```go
 import "github.com/larsartmann/go-cqrs-lite/encryption/v4"
 
+// Key lifecycle helpers (no more hand-rolled crypto/rand + base64)
+key, _ := encryption.GenerateKey()                  // 32 bytes from crypto/rand
+b64, _ := encryption.GenerateKeyBase64()            // ready for env/config
+key2, _ := encryption.LoadKeyFromEnv("APP_KEY")     // wraps ErrKeyNotSet if unset
+key3, _ := encryption.LoadKeyFromFile("key.b64")    // tolerates trailing newline
+bad, _ := encryption.DecodeKeyBase64("short")       // wraps ErrInvalidKey: got N bytes
+
 enc, _ := encryption.NewXChaCha20Poly1305(key)   // or NewAES256GCM(key)
 bus.UsePublish(encryption.EncryptMiddleware(enc, encryption.WithMiddlewareKeyID("key-v1")))
 bus.Use(encryption.DecryptMiddleware(enc))
@@ -503,13 +514,6 @@ resolver := encryption.NewStaticKeyResolver(map[encryption.KeyID]encryption.Decr
     "key-v1": oldDecrypter,
     "key-v2": newDecrypter,
 })
-
-// Key lifecycle helpers (no more hand-rolled crypto/rand + base64)
-key, _ := encryption.GenerateKey()                  // 32 bytes from crypto/rand
-b64, _ := encryption.GenerateKeyBase64()            // ready for env/config
-key2, _ := encryption.LoadKeyFromEnv("APP_KEY")     // wraps ErrKeyNotSet if unset
-key3, _ := encryption.LoadKeyFromFile("key.b64")    // tolerates trailing newline
-bad, _ := encryption.DecodeKeyBase64("short")       // wraps ErrInvalidKey: got N bytes
 ```
 
 Envelope v2 (the wire format, JSON-column-safe) and the snapshot rotation
@@ -711,8 +715,8 @@ reg.AddEvent("user-svc", catalog.Message{
 
 cat := reg.Build()
 
-asyncYAML, _ := asyncapi.Exporter{}.Export(cat).MarshalYAML()
-openAPIDoc, _ := openapi.NewExporter("My API", "1.0.0").Export(cat)
+asyncYAML, _ := asyncapi.NewExporter("My API", "1.0.0").Export(cat).MarshalYAML()
+openAPIYAML, _ := openapi.NewExporter("My API", "1.0.0").Export(cat).MarshalYAML()
 _ = eventcatalog.NewExporter("./eventcatalog").Export(cat) // MDX files, deduped top-level commands|events|queries/
 d2Text := d2.NewExporter("My API", "1.0.0").Export(cat)
 ```
@@ -891,7 +895,7 @@ cmds.Use(middleware.CommandIdempotency(store, 10*time.Minute, nil))
 
 ### 2.13b Retry with Backoff (retry)
 
-Zero-dependency retry with exponential backoff and jitter.
+Zero-dependency retry with exponential backoff.
 
 ```go
 import (
@@ -903,10 +907,9 @@ config := retry.Config{
     InitialDelay: 100 * time.Millisecond,
     MaxDelay:     10 * time.Second,
     Multiplier:   2.0,
-    Jitter:       0.1,
 }
 
-err := retry.Do(ctx, config, func(ctx context.Context) error {
+err := retry.Do(ctx, config, func(ctx context.Context, attempt int) error {
     return flakyOperation(ctx)
 })
 if errors.Is(err, retry.ErrExhausted) {
@@ -1101,7 +1104,7 @@ import "github.com/larsartmann/go-cqrs-lite/system/v4"
 
 cl := system.WithCommandLifecycle(eventStore)
 
-config := system.DomainConfig{
+cfg := system.DomainConfig{
     Middleware: []command.Middleware{
         cl.OuterMiddleware,                    // received, completed, dead-lettered
         middleware.CommandRetry(config),       // handles retries
@@ -1315,9 +1318,9 @@ query result carrying it (embedding would duplicate the shared child), with a
 WARN when the type spans multiple collections:
 
 ```go
-store, _ := metaengine.Plan(engines, queries...,
-    metaengine.WithSharedCollection("sharedAttachment"), // Go type name
-)
+opts := append(queries, metaengine.WithSharedCollection("sharedAttachment")) // Go type name
+
+store, _ := metaengine.Plan(engines, opts...)
 ```
 
 ### 2.21 Actor Propagation — "Who Did It" Audit Trail (id + command + middleware + event)
@@ -1357,25 +1360,27 @@ actor, ok := event.ActorFromContext(ctx)
 ```
 
 **Scheduling** — timer-driven commands should attribute to the originating actor, not to "nobody".
-`Timer[P].Actor` (plain string, `"kind:raw"` wire format — scheduling is a zero-dep module)
-carries the scheduling actor durably through any TimerStore; the DispatchFunc lifts it onto the
-command, defaulting to the scheduler when the timer did not record one:
+`Timer[P].Actor` is a typed `id.ActorID` (`"kind:raw"` on the wire; the zero value means
+"unspecified") and carries the scheduling actor durably through any TimerStore; the DispatchFunc
+lifts it onto the command, defaulting to the scheduler when the timer did not record one:
 
 ```go
-_ = timerStore.Schedule(ctx, scheduling.Timer[CancelOrderCmd]{
-    ID: "order-cancel-123", FireAt: due,
-    Payload: CancelOrderCmd{OrderID: "123"},
-    Actor:   actor.PrefixedString(), // e.g. "user:01ARZ..." — who asked for the timeout
+_ = timerStore.Schedule(ctx, scheduling.Timer[CancelOrderPayload]{
+    ID:      scheduling.MustParseTimerID("order-cancel-123"),
+    FireAt:  due,
+    Payload: CancelOrderPayload{StreamID: streamID, OrderID: "123"},
+    Actor:   actor, // typed id.ActorID — who asked for the timeout
 })
 
-scheduler := scheduling.New[CancelOrderCmd](timerStore,
-    func(ctx context.Context, t scheduling.Timer[CancelOrderCmd]) error {
-        actor := id.NewSystemActor("scheduler")
-        if parsed, err := id.ParseActorID(t.Actor); err == nil && !parsed.IsZero() {
-            actor = parsed
+scheduler := scheduling.New[CancelOrderPayload](timerStore,
+    func(ctx context.Context, t scheduling.Timer[CancelOrderPayload]) error {
+        who := t.Actor
+        if who.IsZero() {
+            who = id.NewSystemActor("scheduler")
         }
-        ctx = event.WithActorContext(ctx, actor)
-        return cmds.Dispatch(ctx, &CancelOrderCmd{OrderID: t.Payload.OrderID})
+        ctx = event.WithActorContext(ctx, who)
+        basic, _ := command.New("order.cancel", t.Payload.StreamID, command.WithActor(who))
+        return cmds.Dispatch(ctx, &CancelOrderCmd{BasicCommand: basic, OrderID: t.Payload.OrderID})
     })
 ```
 
@@ -1549,7 +1554,6 @@ import (
     "github.com/larsartmann/go-cqrs-lite/event/v4"
     "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
     "github.com/larsartmann/go-cqrs-lite/projection/v4"
-    "github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 proj := projection.NewProjection(
