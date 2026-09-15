@@ -1,10 +1,7 @@
 package benchkit
 
 import (
-	"os"
 	"runtime"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -25,24 +22,12 @@ func loadScaledCeiling(base time.Duration) time.Duration {
 	return base * time.Duration(ambientLoadFactor())
 }
 
-// ambientLoadFactor reads /proc/loadavg (Linux) and returns
-// max(1, load1/GOMAXPROCS), capped at 8. Non-Linux hosts and unreadable
-// files yield 1 (fixed ceilings, prior behavior).
+// ambientLoadFactor returns max(1, load1/GOMAXPROCS), capped at 8, using the
+// same /proc/loadavg reader as Environment.LoadAvg1 (detectLoadAvg1).
+// Non-Linux hosts and unreadable files yield 0 → factor 1 (fixed ceilings,
+// prior behavior).
 func ambientLoadFactor() float64 {
-	data, err := os.ReadFile("/proc/loadavg")
-	if err != nil {
-		return 1
-	}
-
-	fields := strings.Fields(string(data))
-	if len(fields) == 0 {
-		return 1
-	}
-
-	load1, err := strconv.ParseFloat(fields[0], 64)
-	if err != nil {
-		return 1
-	}
+	load1 := detectLoadAvg1()
 
 	cores := float64(runtime.GOMAXPROCS(0))
 	if cores < 1 {
