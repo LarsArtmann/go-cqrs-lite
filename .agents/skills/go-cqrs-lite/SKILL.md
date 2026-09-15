@@ -33,6 +33,20 @@ go build -o cqrs-bench ./cmd/cqrs-bench/
 ./cqrs-bench run --backend pebble --profile medium --codec cbor  # CBOR vs JSON
 ```
 
+**Statistical rigor (before comparing anything):** single runs are point
+estimates. Use `--repeat N`: the report then shows a `Variation:` section
+flagging every metric whose cross-run CoV exceeded 10% (`NOISY` = not
+decision-grade at that sample count), and `--format benchstat --repeat N`
+emits one sample per run per metric — the sample count `benchstat` needs to
+report confidence intervals (`benchstat old.txt new.txt`). `P100`/`Max` is
+the exact worst observed latency (not a reservoir estimate), and a run that
+started on an oversubscribed machine records a load-average warning.
+
+```bash
+./cqrs-bench run --backend sqlite --profile small --repeat 10 --format benchstat > new.txt
+./cqrs-bench run --backend sqlite --profile small --repeat 5            # median + Variation section
+```
+
 | Use `cqrs-bench` when...                        | Use `go test -bench` (stack/bench) when...  |
 | ----------------------------------------------- | ------------------------------------------- |
 | Comparing backends (memory vs sqlite vs pebble) | Micro-benchmarks inside your own test suite |

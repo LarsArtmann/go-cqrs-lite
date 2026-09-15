@@ -1,4 +1,5 @@
 benchkit/const SchemaVersion
+benchkit/const VariationThreshold
 benchkit/func AdaptSystem
 benchkit/func BatchSizeSweep
 benchkit/func Compare
@@ -13,6 +14,7 @@ benchkit/func NewGenerator
 benchkit/func NewLatencyCollector
 benchkit/func NewManifest
 benchkit/func NewMixedGenerator
+benchkit/func NoisyMetricNames
 benchkit/func PhaseNames
 benchkit/func PrintComparison
 benchkit/func PrintMarkdown
@@ -21,6 +23,7 @@ benchkit/func PrintSoakReport
 benchkit/func PrintSweep
 benchkit/func ProfileByName
 benchkit/func Run
+benchkit/func RunRepeated
 benchkit/func RunSoak
 benchkit/func RunSuite
 benchkit/func ScalingSweep
@@ -31,6 +34,7 @@ benchkit/func Truncate
 benchkit/func VerifyJSONFields
 benchkit/func WorkerSweep
 benchkit/func WriteBenchstat
+benchkit/func WriteBenchstatRepeated
 benchkit/func WriteComparisonJSON
 benchkit/func WriteJSON
 benchkit/func WriteManifest
@@ -40,8 +44,10 @@ benchkit/interface DiskSizer
 benchkit/method Close
 benchkit/method MarshalJSON
 benchkit/method MeanSize
+benchkit/method NoisyMetrics
 benchkit/method Payload
 benchkit/method Record
+benchkit/method Reliable
 benchkit/method SizeDistribution
 benchkit/method Stats
 benchkit/method TotalEvents
@@ -58,8 +64,10 @@ benchkit/struct Environment
 benchkit/struct Generator
 benchkit/struct LatencyCollector
 benchkit/struct LatencyStats
+benchkit/struct MetricVariation
 benchkit/struct MixedResult
 benchkit/struct Profile
+benchkit/struct RepeatedResult
 benchkit/struct ResourceStats
 benchkit/struct Result
 benchkit/struct SoakConfig

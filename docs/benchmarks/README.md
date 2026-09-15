@@ -1,5 +1,18 @@
 # Benchmark Results
 
+> **Status (2026-09-15): HISTORICAL RECORD.** The numbers below were captured
+> 2026-06-03 and are kept as the optimization-history baseline. Do NOT treat
+> them as current: re-measure with today's tooling instead:
+>
+> - Current numbers: `nix run .#bench` (full sweep) or `cmd/cqrs-bench`
+>   (`cqrs-bench run --backend sqlite --profile small --repeat 5`).
+> - CI regression gate: `scripts/benchmark-regression.sh` (median-based, 25%).
+> - Statistical rigor: run with `--repeat N` and check the `Variation:` section
+>   — a metric flagged `NOISY` (cross-run CoV ≥ 10%) is not decision-grade;
+>   `--repeat N --format benchstat` emits one sample per run per metric for
+>   `benchstat old.txt new.txt` confidence intervals. `P100`/`Max` is the exact
+>   worst observed latency, not a percentile estimate.
+
 Hardware: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (32 cores, 96GB RAM), Go 1.26.3, linux/amd64.
 
 Date: 2026-06-03.

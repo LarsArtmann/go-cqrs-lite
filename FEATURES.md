@@ -426,6 +426,10 @@ pattern: same workload, any backend, structured metrics report.
 | Postgres backend        | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`                            | 🧪     |
 | kv projection handler   | Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback                      | 🧪     |
 | Statistical reliability | `RepeatStdDev`/`RepeatCoV`/`RepeatMean`/`RepeatIsReliable` — cross-run variance (ADR-0090)                     | 🧪     |
+| Multi-run API           | `RunRepeated`/`RepeatedResult` — every run + median; `Reliable()`, `NoisyMetrics()` verdicts                  | 🧪     |
+| Per-metric variation    | `Result.MetricVariation` + `VariationThreshold`/`NoisyMetricNames` — CoV for ~all metrics, not just throughput | 🧪     |
+| Exact max latency       | `LatencyStats.P100` tracks the true maximum; reservoir sampling can no longer hide tail spikes                 | 🧪     |
+| Load provenance         | `Environment.LoadAvg1` + oversubscription warning — noisy runs are self-describing                             | 🧪     |
 | GC pause metrics        | `GCMaxPause` — maximum GC pause during benchmark run                                                           | 🧪     |
 | Allocation metrics      | `AllocsPerOp`, `BytesPerOp` — derived per-operation allocation tracking                                        | 🧪     |
 | Data integrity          | `IntegrityErrors` — verifies event round-trip after benchmark run                                              | 🧪     |
@@ -475,6 +479,7 @@ and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
 | List      | `--list-phases` — list all benchmark phase names                                                                                                                                                                                         | 🔧     |
 | Quiet     | `--quiet` — suppress detailed output, show summary only                                                                                                                                                                                  | 🔧     |
 | Profiling | `--cpuprofile file` and `--memprofile file` — pprof output                                                                                                                                                                               | 🔧     |
+| Multi-sample benchstat | `--repeat N --format benchstat` — one sample per run per metric, so `benchstat old.txt new.txt` reports confidence intervals; text/table show a per-metric `Variation` section flagging CoV ≥ 10% | 🔧     |
 | `layout`  | Pre-deployment "what-if" layout exploration: 4×4 matrix (KV/LSM/Row/Columnar × Balanced/ReadSpeed/WriteSpeed/StorageSpace), `--priority`, `--verbose` cost breakdowns, `--format json`. No running engines needed — pure static analysis | 🔧     |
 
 ---
