@@ -112,11 +112,11 @@ self_check() {
 	[[ "$got" == "$want" ]] || ok=0
 	grep -qF -- "$pattern" <<<"$out" || ok=0
 	if [[ "$ok" != 1 ]]; then
-		echo "  ✗ FAIL: $1 (rc=$got, want=$want; missing '$pattern') got:"
-		echo "$out" | sed 's/^/      /'
+		echo "  ✗ FAIL: $name (rc=$got, want=$want; missing '$pattern') got:"
+		echo "      ${out//$'\n'/$'\n'      }"
 		return 1
 	fi
-	echo "  ✓ PASS: $1"
+	echo "  ✓ PASS: $name"
 }
 
 self_test_gate() {
