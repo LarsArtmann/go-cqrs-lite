@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — benchmark statistical rigor: per-metric dispersion, exact max latency, real benchstat samples — 2026-09-15
+
+- **`benchkit.RunRepeated` + `benchkit.RepeatedResult`** — multi-run
+  benchmarks now return EVERY run plus the median run, not just the median.
+  `Run` keeps its signature (returns the annotated median); the new API is
+  additive. `RepeatedResult.Reliable()` reports whether every measured metric
+  stayed stable across runs; `RepeatedResult.NoisyMetrics()` lists the noisy
+  ones worst-first.
+- **`benchkit.MetricVariation` + `benchkit.Result.MetricVariation`** — the
+  Repeat* reliability fields covered write throughput only, which made the
+  printed "CoV" claim more than it measured. Every measured metric (~30 per
+  run) now carries mean/StdDev/CoV/per-run samples; a `Variation:` section in
+  the text report and a `Variation` row in the table flag metrics whose CoV
+  exceeds `benchkit.VariationThreshold` (10%). Metrics recorded by fewer than
+  two runs are dropped rather than reported as fake-stable CoV 0.
+- **`benchkit.WriteBenchstatRepeated`** — `--format benchstat` with
+  `--repeat N` now emits one sample per run per metric. Previously the
+  benchstat writer emitted exactly ONE line per metric (the median) regardless
+  of repeat count, so `benchstat old.txt new.txt` could never report a
+  confidence interval. Also fixed mislabeled units: run totals (`heap_bytes`,
+  `alloc_count`, GC pauses) no longer carry `/op` suffixes that invited bogus
+  per-op comparisons, and `write_max_ns`/`load_max_ns` are now exported.
+- **`benchkit.LatencyCollector` P100 exactness** — the collector now tracks
+  the true maximum on every Record; `LatencyStats.P100` is the exact worst
+  observed latency instead of the largest value that happened to survive
+  reservoir sampling (a multi-second stall in a >10K-sample run was evicted
+  from the 10K reservoir and invisible in the tail report). Mean stays exact
+  via running sum; P50-P99 remain documented reservoir estimates.
+- **`benchkit.Environment.LoadAvg1`** — results record the 1-minute load
+  average at run start, and a run started on an oversubscribed machine (load
+  > CPU count) records a warning naming the pollution, so a noisy measurement
+  is self-describing instead of masquerading as a regression (aligns with the
+  calibration-provenance protocol in docs/benchmarks/calibration-2026-08-30.md).
+
 ### Added — recipes.md snippet compile harness + calibration-gate self-test/golden — 2026-09-15
 
 - **`cmd/doc-check` recipes compile harness** — every fenced Go block in

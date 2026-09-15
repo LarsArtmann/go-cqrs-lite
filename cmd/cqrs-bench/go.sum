@@ -219,8 +219,6 @@ github.com/larsartmann/go-branded-id v0.5.1 h1:4Cyv41AkbtQuf66TuNfWugjqHYA48I3Kf
 github.com/larsartmann/go-branded-id v0.5.1/go.mod h1:ElTJY6HNf3ziPytNA5mpW32bxjfsZ/C8ILn4nPQdbmI=
 github.com/larsartmann/go-codec v0.2.0 h1:BjjkTaeauAB6HHV7epFdkCDf1zRTk2jehv+GkERhyTY=
 github.com/larsartmann/go-codec v0.2.0/go.mod h1:XjmXTgIBNNrDsOTKYqBbuCGqpxF0cRjz/4sZNaxVWmU=
-github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.5.0 h1:ShURIJXv/C6pnsEi8craKQP3Mguk3NYde72R85WdGJY=
-github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.5.0/go.mod h1:Qfdafj1VTNvjGbBfGTqUYILkujqJAV7xA5A8bTmNeS0=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 h1:eqkM8sdWhx4DrtACRZRp12olMMSXDVYv5/J6mggF5Bw=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0/go.mod h1:10tJDBduGBisEPXsBZxg9QF+ilgbsPLxrZDBCczXX2g=
 github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 h1:E6hD99stHD3P1lVk1nGKH/MvlTQ4cgkip6msnfuRrbU=
@@ -309,8 +307,8 @@ github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 h1:9EMWA6VbvCGSizEtW/JmUsa
 github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0/go.mod h1:aDDotCssLR0Hrz2viHeq3McyJGk852jGsoWqARhTU7w=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0 h1:Abi0/M5RP4B/Bp2Lpa4UsCRZPIBx5pgmKv1Z1u6gVRQ=
 github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0/go.mod h1:SLWggu4ZI4YZ6HUOTvqUAHOoz55ahHoQMXeej0h7lew=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0 h1:UDjeWuUmScwWpAsu7XFz68TaCKtawbL5DZ7w3nQ7lhY=
-github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.1.0/go.mod h1:U2GpwCi1+/yAx7fPbp+bTRDZ4RKT4LaV0QWS62Iksuk=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0 h1:1ZKpkmnjO2DvIzXmY2p16UpTw0n41lKQXFX11f7g0v8=
+github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0/go.mod h1:wGnG9Vofzj4kv8lvMbICwvitSA6pL2v1WR0XGf8LZ0M=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.2.0 h1:LmQR1mIoPWWIk0ujiBIY3aB1iV4zn5FEzXgUERyTR7U=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.2.0/go.mod h1:vKgRV8tUz5fnKT5nUk7zKUYwkaRazrDEwtCUoNKNqGU=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 h1:23uWKoJAf1qsyqgaEKMLwcZc1+PveTXMJHM264KwILg=
