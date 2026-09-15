@@ -58,7 +58,7 @@ cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.
 | Lint config | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
 | ErrTax      | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
 | Rel. tests  | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
-| Recipe gate | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 77/77 classified, coverage ratchet)   |
+| Recipe gate | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 77/77 classified, coverage ratchet)  |
 | CSP check   | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
 | EventCat    | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
 | Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
