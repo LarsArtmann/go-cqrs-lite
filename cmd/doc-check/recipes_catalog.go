@@ -40,7 +40,7 @@ var recipeCatalogA = map[string]recipeSpec{
 	},
 	"#### Production options (SQLite / Turso) #1": {skip: recipeSkipSeparateScopes},
 	"#### Postgres preset #1": {
-		imports: []string{`"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"`},
+		imports:  []string{`"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"`},
 		trailers: "_ = b",
 	},
 	"#### Postgres preset #2": {

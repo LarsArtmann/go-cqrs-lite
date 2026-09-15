@@ -758,6 +758,20 @@ Step 3: Assign each query to the cheapest engine
   ListByStatus → SQLite table + composite index (tenant, status, joined_at)
   FriendsOf → Dgraph if available, else SQLite CTE (degraded)
 
+> **[VERIFIED 2026-09-15 — audit item 31]** Graph traversal depth semantics: the
+> `{ID, Depth}` query shape above ships as `Engine.GraphNeighbors(ctx, collection,
+> node, depth)` on all four graph engines, with consistent semantics (all nodes
+> within ≤depth hops, deduplicated, origin excluded):
+> - Memory: BFS frontier loop `for d := 0; d < depth` (`metaengine/memory_graph.go:43`, BFS loop :64).
+> - Postgres: recursive CTE with the depth parameter; `depth <= 0` returns empty
+>   (`pgengine/graph.go:57-94`).
+> - SQLite: `WITH RECURSIVE walk(node, depth)` (`sqliteengine/graph.go:40`) with a
+>   construction-time `WITH RECURSIVE` capability probe and fallback
+>   (`sqliteengine/graph.go:49-51`) — the "degraded" path here is the non-CTE
+>   fallback, not lost functionality.
+> - Dgraph: native `GraphNeighbors` (depth-1 and depth-3 measured, `dgraphengine/engine.go:43-44`).
+> The example query in §1 (`FriendsOf{ID: userID, Depth: 2}`) maps 1:1 onto this API.
+
 Step 4: Plan physical structures per engine
   Pebble: users_by_id keyspace (FindUser)
   Pebble: emails set (CheckEmail)
