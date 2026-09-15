@@ -1,6 +1,7 @@
 package main
 
-// Recipe catalog, part B: recipes.md §2.10–§2.35 (blocks 26–77).
+// Recipe catalog, part B: recipes.md §2.10–§2.22 (blocks 26–58; the §2.23+
+// tail lives in recipes_catalog_meta2.go).
 
 const taskViewPreamble = "type TaskView struct{ ID, Title string }\n"
 
