@@ -33,11 +33,136 @@ func WriteManifest(w io.Writer, config Config, result *Result) error {
 	return writeJSONAny(w, NewManifest(config, result))
 }
 
+// metric is one benchstat-compatible measurement extracted from a [Result]:
+// the name suffix appended to the benchmark name, the value, and the benchstat
+// unit token.
+type metric struct {
+	suffix string
+	unit   string
+	value  float64
+}
+
+// resultMetrics extracts the benchstat-compatible metric set from a Result in a
+// stable phase-grouped order. Zero-valued metrics — phases that were skipped or
+// that the backend does not support — are omitted, so a report never claims a
+// measurement the run did not make.
+//
+// Units are benchstat tokens: "ns/op" and "ops/s" describe per-operation costs
+// and rates, while plain "ns", "B" and "allocs" describe run totals whose
+// per-operation siblings carry the "/op" suffix. Labelling a run total as
+// "<unit>/op" made benchstat-comparable reports look like per-op costs and
+// invited bogus before/after comparisons.
+func resultMetrics(r *Result) []metric {
+	all := []metric{
+		{"write_throughput", "ops/s", r.WriteThroughput},
+		{"rawsink_throughput", "ops/s", r.RawSinkThroughput},
+		{"write_p50_ns", "ns/op", float64(r.WriteLatency.P50.Nanoseconds())},
+		{"write_p99_ns", "ns/op", float64(r.WriteLatency.P99.Nanoseconds())},
+		{"write_max_ns", "ns", float64(r.WriteLatency.P100.Nanoseconds())},
+		{"load_p50_ns", "ns/op", float64(r.LoadLatency.P50.Nanoseconds())},
+		{"load_p99_ns", "ns/op", float64(r.LoadLatency.P99.Nanoseconds())},
+		{"load_max_ns", "ns", float64(r.LoadLatency.P100.Nanoseconds())},
+		{"rawsink_p50_ns", "ns/op", float64(r.RawSinkLatency.P50.Nanoseconds())},
+		{"rawsink_p99_ns", "ns/op", float64(r.RawSinkLatency.P99.Nanoseconds())},
+		{"journey_p50_ns", "ns/op", float64(r.JourneyLatency.P50.Nanoseconds())},
+		{"journey_p99_ns", "ns/op", float64(r.JourneyLatency.P99.Nanoseconds())},
+		{
+			"journey_projection_p99_ns",
+			"ns/op",
+			float64(r.JourneyProjectionLatency.P99.Nanoseconds()),
+		},
+		{"journey_query_p99_ns", "ns/op", float64(r.JourneyQueryLatency.P99.Nanoseconds())},
+		{"query_hit_p50_ns", "ns/op", float64(r.QueryHitLatency.P50.Nanoseconds())},
+		{"query_hit_p99_ns", "ns/op", float64(r.QueryHitLatency.P99.Nanoseconds())},
+		{"query_miss_p99_ns", "ns/op", float64(r.QueryMissLatency.P99.Nanoseconds())},
+		{"query_paginated_p99_ns", "ns/op", float64(r.QueryPaginatedLatency.P99.Nanoseconds())},
+		{"snapshot_cold_p50_ns", "ns/op", float64(r.SnapshotColdLatency.P50.Nanoseconds())},
+		{"snapshot_cold_p99_ns", "ns/op", float64(r.SnapshotColdLatency.P99.Nanoseconds())},
+		{"snapshot_load_p99_ns", "ns/op", float64(r.SnapshotLoadLatency.P99.Nanoseconds())},
+		{"cache_miss_p99_ns", "ns/op", float64(r.CacheMissLatency.P99.Nanoseconds())},
+		{"cache_hit_p99_ns", "ns/op", float64(r.CacheHitLatency.P99.Nanoseconds())},
+		{"cold_read_p50_ns", "ns/op", float64(r.ColdReadLatency.P50.Nanoseconds())},
+		{"cold_read_p99_ns", "ns/op", float64(r.ColdReadLatency.P99.Nanoseconds())},
+		{"gc_max_pause_ns", "ns", float64(r.GCMaxPause.Nanoseconds())},
+		{"gc_total_pause_ns", "ns", float64(r.GCTotalPause.Nanoseconds())},
+		{"alloc_count", "allocs", float64(r.AllocCount)},
+		{"allocs_per_op", "allocs/op", r.AllocsPerOp},
+		{"bytes_per_op", "B/op", r.BytesPerOp},
+		{"gc_percent", "percent", r.GCPercent},
+		{"tail_ratio", "ratio", r.TailRatio},
+		{"metaengine_scan_p99_ns", "ns/op", float64(r.MetaEngineScanLatency.P99.Nanoseconds())},
+		{
+			"metaengine_point_read_p99_ns",
+			"ns/op",
+			float64(r.MetaEnginePointReadLatency.P99.Nanoseconds()),
+		},
+		{"metaengine_apply_concurrent", "ops/s", r.MetaEngineApplyConcurrent},
+		{
+			"metaengine_sqlite_scan_p99_ns",
+			"ns/op",
+			float64(r.MetaEngineSQLiteScanLatency.P99.Nanoseconds()),
+		},
+		{
+			"metaengine_sqlite_point_read_p99_ns",
+			"ns/op",
+			float64(r.MetaEngineSQLitePointReadLatency.P99.Nanoseconds()),
+		},
+		{"metaengine_sqlite_apply_throughput", "ops/s", r.MetaEngineSQLiteApplyThroughput},
+		{"write_tail_ratio", "ratio", r.WriteTailRatio},
+		{"write_amplification", "ratio", r.Disk.WriteAmplification},
+		{"heap_bytes", "B", float64(r.Memory.After)},
+	}
+
+	out := make([]metric, 0, len(all))
+
+	for _, m := range all {
+		if m.value == 0 {
+			continue
+		}
+
+		out = append(out, m)
+	}
+
+	return out
+}
+
+// metricValues indexes a Result's metrics by suffix, so a multi-run writer can
+// line up the same metric across runs.
+func metricValues(r *Result) map[string]float64 {
+	values := make(map[string]float64, 40)
+
+	for _, m := range resultMetrics(r) {
+		values[m.suffix] = m.value
+	}
+
+	return values
+}
+
+// benchstatName builds the benchmark identifier benchstat groups by:
+// Benchmark<Backend>_<Profile>-<GOMAXPROCS>.
+func benchstatName(r *Result) string {
+	gomaxprocs := r.Environment.GOMAXPROCS
+	if gomaxprocs == 0 {
+		gomaxprocs = 1
+	}
+
+	return fmt.Sprintf(
+		"Benchmark%s_%s-%d",
+		sanitizeBenchName(r.Backend),
+		sanitizeBenchName(r.Profile),
+		gomaxprocs,
+	)
+}
+
 // WriteBenchstat emits results in a benchstat-compatible text format.
 // Each metric becomes a separate line with the standard Go benchmark
 // naming convention: BenchmarkName-N <value> <unit>.
 //
-// The output can be piped to `benchstat` for statistical comparison:
+// A single run yields exactly one sample per metric, which is enough for
+// benchstat to compare point estimates but not enough for it to report a
+// confidence interval. For statistically meaningful comparisons, run with
+// repeats and use [WriteBenchstatRepeated] (the cqrs-bench `--repeat N`
+// path), or compare a baseline captured from an earlier revision:
 //
 //	cqrs-bench run --backend memory --format benchstat > old.txt
 //	# ... make changes ...
@@ -48,87 +173,49 @@ func WriteBenchstat(w io.Writer, r *Result) {
 		return
 	}
 
-	gomaxprocs := r.Environment.GOMAXPROCS
-	if gomaxprocs == 0 {
-		gomaxprocs = 1
+	writeBenchstatLines(w, benchstatName(r), r, []*Result{r})
+}
+
+// WriteBenchstatRepeated emits one benchstat sample per repeat run for every
+// metric the median run recorded. benchstat needs n>1 samples per benchmark to
+// compute a mean, a confidence interval, and a p-value, so a `--repeat N` run
+// through this writer is what turns `benchstat old.txt new.txt` from a point
+// comparison into a statistical one.
+//
+// Runs that did not record a metric contribute no sample to it (rather than a
+// misleading zero), so a phase that only fired in some runs shrinks that
+// metric's sample count instead of inflating its spread.
+func WriteBenchstatRepeated(w io.Writer, rr *RepeatedResult) {
+	if rr == nil || rr.Median == nil {
+		return
 	}
 
-	name := fmt.Sprintf(
-		"Benchmark%s_%s-%d",
-		sanitizeBenchName(r.Backend),
-		sanitizeBenchName(r.Profile),
-		gomaxprocs,
-	)
+	if len(rr.Runs) <= 1 {
+		WriteBenchstat(w, rr.Median)
 
-	lines := []struct {
-		suffix string
-		//cqrs-lint:ignore(C008) library code or intentional pattern
-		value float64
-		unit  string
-	}{
-		{"write_throughput", r.WriteThroughput, "ops/s"},
-		{"rawsink_throughput", r.RawSinkThroughput, "ops/s"},
-		{"write_p50_ns", float64(r.WriteLatency.P50.Nanoseconds()), "ns/op"},
-		{"write_p99_ns", float64(r.WriteLatency.P99.Nanoseconds()), "ns/op"},
-		{"load_p50_ns", float64(r.LoadLatency.P50.Nanoseconds()), "ns/op"},
-		{"load_p99_ns", float64(r.LoadLatency.P99.Nanoseconds()), "ns/op"},
-		{"rawsink_p50_ns", float64(r.RawSinkLatency.P50.Nanoseconds()), "ns/op"},
-		{"rawsink_p99_ns", float64(r.RawSinkLatency.P99.Nanoseconds()), "ns/op"},
-		{"journey_p50_ns", float64(r.JourneyLatency.P50.Nanoseconds()), "ns/op"},
-		{"journey_p99_ns", float64(r.JourneyLatency.P99.Nanoseconds()), "ns/op"},
-		{
-			"journey_projection_p99_ns",
-			float64(r.JourneyProjectionLatency.P99.Nanoseconds()),
-			"ns/op",
-		},
-		{"journey_query_p99_ns", float64(r.JourneyQueryLatency.P99.Nanoseconds()), "ns/op"},
-		{"query_hit_p50_ns", float64(r.QueryHitLatency.P50.Nanoseconds()), "ns/op"},
-		{"query_hit_p99_ns", float64(r.QueryHitLatency.P99.Nanoseconds()), "ns/op"},
-		{"query_miss_p99_ns", float64(r.QueryMissLatency.P99.Nanoseconds()), "ns/op"},
-		{"query_paginated_p99_ns", float64(r.QueryPaginatedLatency.P99.Nanoseconds()), "ns/op"},
-		{"snapshot_cold_p50_ns", float64(r.SnapshotColdLatency.P50.Nanoseconds()), "ns/op"},
-		{"snapshot_cold_p99_ns", float64(r.SnapshotColdLatency.P99.Nanoseconds()), "ns/op"},
-		{"snapshot_load_p99_ns", float64(r.SnapshotLoadLatency.P99.Nanoseconds()), "ns/op"},
-		{"cache_miss_p99_ns", float64(r.CacheMissLatency.P99.Nanoseconds()), "ns/op"},
-		{"cache_hit_p99_ns", float64(r.CacheHitLatency.P99.Nanoseconds()), "ns/op"},
-		{"cold_read_p50_ns", float64(r.ColdReadLatency.P50.Nanoseconds()), "ns/op"},
-		{"cold_read_p99_ns", float64(r.ColdReadLatency.P99.Nanoseconds()), "ns/op"},
-		{"gc_max_pause_ns", float64(r.GCMaxPause.Nanoseconds()), "ns/op"},
-		{"gc_total_pause_ns", float64(r.GCTotalPause.Nanoseconds()), "ns/op"},
-		{"alloc_count", float64(r.AllocCount), "allocs/op"},
-		{"allocs_per_op", r.AllocsPerOp, "allocs/op"},
-		{"bytes_per_op", r.BytesPerOp, "B/op"},
-		{"gc_percent", r.GCPercent, "percent"},
-		{"tail_ratio", r.TailRatio, "ratio"},
-		{"metaengine_scan_p99_ns", float64(r.MetaEngineScanLatency.P99.Nanoseconds()), "ns/op"},
-		{
-			"metaengine_point_read_p99_ns",
-			float64(r.MetaEnginePointReadLatency.P99.Nanoseconds()),
-			"ns/op",
-		},
-		{"metaengine_apply_concurrent", r.MetaEngineApplyConcurrent, "ops/s"},
-		{
-			"metaengine_sqlite_scan_p99_ns",
-			float64(r.MetaEngineSQLiteScanLatency.P99.Nanoseconds()),
-			"ns/op",
-		},
-		{
-			"metaengine_sqlite_point_read_p99_ns",
-			float64(r.MetaEngineSQLitePointReadLatency.P99.Nanoseconds()),
-			"ns/op",
-		},
-		{"metaengine_sqlite_apply_throughput", r.MetaEngineSQLiteApplyThroughput, "ops/s"},
-		{"write_tail_ratio", r.WriteTailRatio, "ratio"},
-		{"write_amplification", r.Disk.WriteAmplification, "ratio"},
-		{"heap_bytes", float64(r.Memory.After), "B/op"},
+		return
 	}
 
-	for _, l := range lines {
-		if l.value == 0 {
-			continue
+	writeBenchstatLines(w, benchstatName(rr.Median), rr.Median, rr.Runs)
+}
+
+// writeBenchstatLines writes reference's metrics for every run, one line per
+// run, so a metric recorded in all N runs contributes N samples to benchstat.
+func writeBenchstatLines(w io.Writer, name string, reference *Result, runs []*Result) {
+	values := make([]map[string]float64, len(runs))
+	for i, run := range runs {
+		values[i] = metricValues(run)
+	}
+
+	for _, ref := range resultMetrics(reference) {
+		for _, runValues := range values {
+			value, ok := runValues[ref.suffix]
+			if !ok {
+				continue
+			}
+
+			fmt.Fprintf(w, "%s_%s\t1\t%.0f %s\n", name, ref.suffix, value, ref.unit)
 		}
-
-		fmt.Fprintf(w, "%s_%s\t1\t%.0f %s\n", name, l.suffix, l.value, l.unit)
 	}
 }
 

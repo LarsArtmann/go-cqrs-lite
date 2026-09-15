@@ -2,9 +2,6 @@ package benchkit
 
 import (
 	"context"
-	"fmt"
-	"math"
-	"sort"
 	"time"
 )
 
@@ -21,88 +18,26 @@ import (
 // the same path — meaning later repeats inherit earlier runs' data. To ensure
 // isolation with persistent backends, provide a factory that creates a unique
 // path per call (e.g., using a temp dir with a unique suffix).
-// The returned Result holds the median run's full metrics, annotated
-// with min/max throughput across all N runs plus statistical reliability
-// metrics (StdDev, CoV, IsReliable).
+// The returned Result holds the median run's full metrics, annotated with
+// min/max throughput across all N runs plus cross-run dispersion for every
+// measured metric (Result.MetricVariation). Callers that need the individual
+// runs — for example to emit per-run benchstat samples — should call
+// [RunRepeated] instead.
 func Run(ctx context.Context, config Config, factory Factory) (*Result, error) {
+	if config.Repeat > 1 {
+		repeated, err := RunRepeated(ctx, config, factory)
+		if err != nil {
+			return nil, err
+		}
+
+		return repeated.Median, nil
+	}
+
 	if err := config.validate(); err != nil {
 		return nil, err
 	}
 
-	if config.Repeat > 1 {
-		return runRepeated(ctx, config, factory)
-	}
-
 	return newRunner(config, factory).run(ctx)
-}
-
-// runRepeated executes the benchmark N times, returning the median result
-// annotated with min/max throughput spread and statistical reliability metrics.
-func runRepeated(ctx context.Context, config Config, factory Factory) (*Result, error) {
-	single := config
-	single.Repeat = 0
-
-	results := make([]*Result, 0, config.Repeat)
-
-	for i := range config.Repeat {
-		r, err := newRunner(single, factory).run(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("repeat run %d/%d: %w", i+1, config.Repeat, err)
-		}
-
-		results = append(results, r)
-	}
-
-	// Sort results by throughput so the median index actually corresponds to
-	// the median throughput, not insertion order. The previous code sorted a
-	// separate samples slice but picked from the unsorted results array.
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].WriteThroughput < results[j].WriteThroughput
-	})
-
-	medianIdx := len(results) / 2
-	median := results[medianIdx]
-
-	samples := make([]float64, len(results))
-	for i, r := range results {
-		samples[i] = r.WriteThroughput
-	}
-
-	// Compute statistical reliability: mean, stddev, coefficient of variation.
-	// CoV is the key metric: CoV < 0.10 means results are trustworthy.
-	var sum float64
-
-	for _, s := range samples {
-		sum += s
-	}
-
-	mean := sum / float64(len(samples))
-
-	var sqDiffSum float64
-
-	for _, s := range samples {
-		diff := s - mean
-		sqDiffSum += diff * diff
-	}
-
-	stdDev := math.Sqrt(sqDiffSum / float64(len(samples)))
-
-	var cov float64
-
-	if mean > 0 {
-		cov = stdDev / mean
-	}
-
-	median.RepeatCount = config.Repeat
-	median.RepeatMin = samples[0]
-	median.RepeatMax = samples[len(samples)-1]
-	median.RepeatSamples = samples
-	median.RepeatMean = mean
-	median.RepeatStdDev = stdDev
-	median.RepeatCoV = cov
-	median.RepeatIsReliable = cov < 0.10
-
-	return median, nil
 }
 
 // Compare executes the same benchmark against multiple backends and returns

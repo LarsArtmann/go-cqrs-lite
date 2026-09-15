@@ -181,6 +181,13 @@ type Result struct {
 	// trust the median for cross-backend comparison — increase Repeat.
 	RepeatIsReliable bool `json:"repeatIsReliable,omitempty"`
 
+	// MetricVariation holds cross-run dispersion for EVERY measured metric,
+	// not just throughput. Empty for a single run. A metric whose CoV exceeds
+	// benchkit.VariationThreshold moved too much between runs for its median to
+	// be decision-grade; noisy ones should be re-measured before a regression
+	// or improvement is claimed from them.
+	MetricVariation []MetricVariation `json:"metricVariation,omitempty"`
+
 	// GC pause metrics — garbage collection behavior during the benchmark.
 	// GC pauses are the dominant cause of P99 latency spikes. These metrics
 	// reveal whether tail latency is caused by the backend or by Go's GC.
