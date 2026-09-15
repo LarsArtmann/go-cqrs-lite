@@ -125,8 +125,7 @@ func (s *SQLEventStore) ReadStream(ctx context.Context) (event.EventIterator, er
 			"stream all events")
 	}
 
-	_, span := cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), "event.store.read_stream",
-		cqrsotel.SpanKindClient)
+	_, span := sqlpkg.StartDialectSpan(ctx, "event.store.read_stream", s.Dialect)
 	defer span.End()
 
 	rows, err := s.DB.QueryContext(ctx, sqlpkg.AllEventsQuery)

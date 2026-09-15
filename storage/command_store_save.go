@@ -23,12 +23,11 @@ func (s *SQLCommandStore) Save(
 		return err
 	}
 
-	ctx, span := cqrsotel.StartSpan(
+	ctx, span := sqlpkg.StartDialectSpan(
 		ctx,
-		sqlpkg.Tracer(),
 		"command.store.save",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.StreamAttrs(ref.Type, ref.ID)...),
+		s.Dialect,
+		cqrsotel.StreamAttrs(ref.Type, ref.ID),
 	)
 	defer span.End()
 
@@ -58,15 +57,12 @@ func (s *SQLCommandStore) AppendBatch(
 		return nil
 	}
 
-	ctx, span := cqrsotel.StartSpan(
+	ctx, span := sqlpkg.StartDialectSpan(
 		ctx,
-		sqlpkg.Tracer(),
 		"command.store.append_batch",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(append(
-			cqrsotel.StreamAttrs(ref.Type, ref.ID),
-			cqrsotel.AttrInt("command.count", len(cmds)),
-		)...),
+		s.Dialect,
+		cqrsotel.StreamAttrs(ref.Type, ref.ID),
+		cqrsotel.AttrInt("command.count", len(cmds)),
 	)
 	defer span.End()
 

@@ -83,8 +83,8 @@ func (s *SQLCheckpointStore) startSpan(
 	ctx context.Context,
 	name, projectionName string,
 ) (context.Context, cqrsotel.Span) {
-	return cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), name, cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrString(cqrsotel.AttrProjectionName, projectionName)))
+	return sqlpkg.StartDialectSpan(ctx, name, s.Dialect,
+		cqrsotel.AttrString(cqrsotel.AttrProjectionName, projectionName))
 }
 
 var (

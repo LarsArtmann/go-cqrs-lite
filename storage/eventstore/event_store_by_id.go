@@ -28,10 +28,11 @@ func (s *SQLEventStore) LoadByEventID(
 		return nil, err
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx, sqlpkg.Tracer(), "event.store.load_by_event_id",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrString("cqrs.event.id", eventID.String())),
+	ctx, span := sqlpkg.StartDialectSpan(
+		ctx,
+		"event.store.load_by_event_id",
+		s.Dialect,
+		cqrsotel.AttrString("cqrs.event.id", eventID.String()),
 	)
 	defer span.End()
 

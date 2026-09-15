@@ -98,3 +98,36 @@ func DecodeVectorAuto(data []byte) ([]float32, error) {
 
 	return DecodeVectorJSON(data) //nolint:wrapcheck // error already names the function
 }
+
+// EncodeVectorF32 serializes values as bare little-endian float32s with no
+// header — the F32_BLOB wire format understood natively by libSQL's
+// vector_distance_* functions. SQL-backed brute-force engines (sqliteengine
+// and its tursoengine delegation, mysqlengine) store this format so a
+// libSQL-capable driver can score rows in SQL without re-encoding.
+func EncodeVectorF32(values []float32) []byte {
+	data := make([]byte, 4*len(values))
+	for i, v := range values {
+		binary.LittleEndian.PutUint32(data[4*i:], math.Float32bits(v))
+	}
+
+	return data
+}
+
+// DecodeVectorF32 decodes the bare little-endian float32 payload produced by
+// EncodeVectorF32. The dimension is implied by the payload length, so any
+// length that is not a multiple of 4 is torn or foreign bytes.
+func DecodeVectorF32(data []byte) ([]float32, error) {
+	if len(data)%4 != 0 {
+		return nil, fmt.Errorf(
+			"metaengine.DecodeVectorF32: payload length %d is not a multiple of 4",
+			len(data),
+		)
+	}
+
+	values := make([]float32, len(data)/4)
+	for i := range values {
+		values[i] = math.Float32frombits(binary.LittleEndian.Uint32(data[4*i:]))
+	}
+
+	return values, nil
+}

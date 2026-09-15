@@ -215,8 +215,7 @@ func (s *SQLTimerStore[P]) startSpan(
 		attrs = append(attrs, cqrsotel.AttrString("cqrs.timer.id", timerID))
 	}
 
-	return cqrsotel.StartSpan(ctx, sqlpkg.Tracer(), name, cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(attrs...))
+	return sqlpkg.StartDialectSpan(ctx, name, s.Dialect, attrs...)
 }
 
 var _ scheduling.TimerStore[any] = (*SQLTimerStore[any])(nil)

@@ -25,12 +25,7 @@ func ResolveCursorTimestamp(
 	dialect Dialect,
 	table, timestampColumn, id string,
 ) (any, bool, error) {
-	ctx, span := cqrsotel.StartSpan(
-		ctx,
-		Tracer(),
-		"sql.resolve_cursor_timestamp",
-		cqrsotel.SpanKindClient,
-	)
+	ctx, span := StartDialectSpan(ctx, "sql.resolve_cursor_timestamp", dialect)
 	defer span.End()
 
 	if err := ValidateJournalIdentifiers(table, timestampColumn); err != nil {

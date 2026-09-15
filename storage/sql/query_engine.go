@@ -57,11 +57,7 @@ func LoadWithSpan[T any](
 		)
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx, Tracer(), p.SpanName,
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(p.Attrs...),
-	)
+	ctx, span := StartDialectSpan(ctx, p.SpanName, d, p.Attrs...)
 	defer span.End()
 
 	results, err := QueryRows(ctx, db, d, cfg, p, aggType, aggID)

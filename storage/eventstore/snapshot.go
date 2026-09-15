@@ -50,15 +50,12 @@ func SnapshotSchema() string { return sqlpkg.PostgresDialect{}.SnapshotSchema() 
 func SQLiteSnapshotSchema() string { return sqlpkg.SQLiteDialect{}.SnapshotSchema() }
 
 func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) error {
-	ctx, span := cqrsotel.StartSpan(
+	ctx, span := sqlpkg.StartDialectSpan(
 		ctx,
-		sqlpkg.Tracer(),
 		"snapshot.save",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(
-			append(cqrsotel.StreamAttrs(snap.StreamType, snap.StreamID),
-				cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, snap.Version.Int()))...,
-		),
+		s.Dialect,
+		cqrsotel.StreamAttrs(snap.StreamType, snap.StreamID),
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, snap.Version.Int()),
 	)
 	defer span.End()
 	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
@@ -95,7 +92,7 @@ func (s *SQLSnapshotStore) Load(
 	ctx context.Context,
 	ref id.StreamRef,
 ) (*snapshot.Snapshot, error) {
-	ctx, span := sqlpkg.StartStreamSpan(ctx, "snapshot.load", ref)
+	ctx, span := sqlpkg.StartStreamSpanWithDialect(ctx, "snapshot.load", s.Dialect, ref)
 	defer span.End()
 	snap, err := s.querySnapshot(ctx, ref)
 	if err != nil {
@@ -111,13 +108,12 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 	ref id.StreamRef,
 	version event.Version,
 ) (*snapshot.Snapshot, error) {
-	ctx, span := cqrsotel.StartSpan(
+	ctx, span := sqlpkg.StartDialectSpan(
 		ctx,
-		sqlpkg.Tracer(),
 		"snapshot.load_at_version",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(append(cqrsotel.StreamAttrs(ref.Type, ref.ID),
-			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()))...),
+		s.Dialect,
+		cqrsotel.StreamAttrs(ref.Type, ref.ID),
+		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()),
 	)
 	defer span.End()
 	snap, err := s.querySnapshotAtVersion(ctx, ref, version)

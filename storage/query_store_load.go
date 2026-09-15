@@ -22,12 +22,7 @@ func (s *SQLQueryStore) LoadQueries(
 		return nil, err
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx,
-		sqlpkg.Tracer(),
-		"query.store.load_queries",
-		cqrsotel.SpanKindClient,
-	)
+	ctx, span := sqlpkg.StartDialectSpan(ctx, "query.store.load_queries", s.Dialect)
 	defer span.End()
 
 	p1 := s.Dialect.Placeholder(1)

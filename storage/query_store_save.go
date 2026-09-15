@@ -22,12 +22,11 @@ func (s *SQLQueryStore) SaveQuery(
 		return err
 	}
 
-	ctx, span := cqrsotel.StartSpan(
+	ctx, span := sqlpkg.StartDialectSpan(
 		ctx,
-		sqlpkg.Tracer(),
 		"query.store.save",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrString("query.type", string(q.Type()))),
+		s.Dialect,
+		cqrsotel.AttrString("query.type", string(q.Type())),
 	)
 	defer span.End()
 

@@ -72,7 +72,7 @@ func (r *JournalReader[T]) ReadAll(ctx context.Context) ([]T, error) {
 		return nil, err
 	}
 
-	ctx, span := cqrsotel.StartSpan(ctx, Tracer(), r.SpanNameAll, cqrsotel.SpanKindClient)
+	ctx, span := StartDialectSpan(ctx, r.SpanNameAll, r.Dialect)
 	defer span.End()
 
 	if err := ValidateJournalIdentifiers(r.Table, r.TimestampColumn); err != nil {
@@ -129,12 +129,11 @@ func (r *JournalReader[T]) ReadFrom(ctx context.Context, afterID string, limit i
 			"read from %s store (limit=%d, after=%s)", r.EntityNoun, limit, afterID)
 	}
 
-	ctx, span := cqrsotel.StartSpan(
+	ctx, span := StartDialectSpan(
 		ctx,
-		Tracer(),
 		r.SpanNameFrom,
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(cqrsotel.AttrInt("cqrs.journal.limit", limit)),
+		r.Dialect,
+		cqrsotel.AttrInt("cqrs.journal.limit", limit),
 	)
 	defer span.End()
 

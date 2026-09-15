@@ -76,9 +76,10 @@ func (s *SQLEventStore) Save(
 		return nil
 	}
 
-	ctx, span := sqlpkg.StartSaveSpan(
+	ctx, span := sqlpkg.StartSaveSpanWithDialect(
 		ctx,
 		"event.store.save",
+		s.Dialect,
 		ref,
 		expectedVersion,
 		len(events),
@@ -134,13 +135,12 @@ func (s *SQLEventStore) AppendBatch(
 		return nil
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx, sqlpkg.Tracer(), "event.store.append_batch",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(append(
-			cqrsotel.StreamAttrs(ref.Type, ref.ID),
-			cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
-		)...),
+	ctx, span := sqlpkg.StartDialectSpan(
+		ctx,
+		"event.store.append_batch",
+		s.Dialect,
+		cqrsotel.StreamAttrs(ref.Type, ref.ID),
+		cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
 	)
 	defer span.End()
 
@@ -190,13 +190,12 @@ func (s *SQLEventStore) SaveMultiBatch(
 		return nil
 	}
 
-	ctx, span := cqrsotel.StartSpan(
-		ctx, sqlpkg.Tracer(), "event.store.save_multi_batch",
-		cqrsotel.SpanKindClient,
-		cqrsotel.WithAttributes(
-			cqrsotel.AttrInt(cqrsotel.AttrStreamCount, len(entries)),
-			cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalEvents),
-		),
+	ctx, span := sqlpkg.StartDialectSpan(
+		ctx,
+		"event.store.save_multi_batch",
+		s.Dialect,
+		cqrsotel.AttrInt(cqrsotel.AttrStreamCount, len(entries)),
+		cqrsotel.AttrInt(cqrsotel.AttrEventCount, totalEvents),
 	)
 	defer span.End()
 

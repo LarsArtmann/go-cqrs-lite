@@ -202,3 +202,29 @@ func TestDecodeVectorAuto_CrossFormatEquivalence(t *testing.T) {
 		t.Fatal("JSON and binary payloads decode to different vectors")
 	}
 }
+
+func TestVectorF32RoundTrip(t *testing.T) {
+	values := []float32{1.0, -0.5, 3.25, 0}
+
+	data := EncodeVectorF32(values)
+	if len(data) != 4*len(values) {
+		t.Fatalf("payload length %d, want %d", len(data), 4*len(values))
+	}
+
+	decoded, err := DecodeVectorF32(data)
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+
+	for i := range values {
+		if decoded[i] != values[i] {
+			t.Fatalf("decoded[%d] = %v, want %v", i, decoded[i], values[i])
+		}
+	}
+}
+
+func TestDecodeVectorF32RejectsTornPayload(t *testing.T) {
+	if _, err := DecodeVectorF32([]byte{1, 2, 3}); err == nil {
+		t.Fatal("expected error for length not divisible by 4")
+	}
+}
