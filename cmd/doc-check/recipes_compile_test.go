@@ -159,6 +159,9 @@ func generateRecipeSource(b RecipeBlock, spec recipeSpec) []byte {
 	if d := strings.TrimSpace(strings.Join(decls, "\n")); d != "" {
 		sb.WriteString(d + "\n\n")
 	}
+	if p := strings.TrimSpace(spec.preamble); p != "" {
+		sb.WriteString(p + "\n\n")
+	}
 	if spec.errFunc {
 		sb.WriteString("func run() error {\n")
 		writeBody(&sb, spec, stmts)
@@ -172,12 +175,6 @@ func generateRecipeSource(b RecipeBlock, spec recipeSpec) []byte {
 }
 
 func writeBody(sb *strings.Builder, spec recipeSpec, stmts []string) {
-	if spec.preamble != "" {
-		sb.WriteString(spec.preamble)
-		if !strings.HasSuffix(spec.preamble, "\n") {
-			sb.WriteString("\n")
-		}
-	}
 	sb.WriteString(strings.Join(stmts, "\n"))
 	if spec.trailers != "" {
 		sb.WriteString("\n" + spec.trailers)
