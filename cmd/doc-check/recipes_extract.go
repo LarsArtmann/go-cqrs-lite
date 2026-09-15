@@ -57,23 +57,27 @@ func extractGoBlocks(md string) []RecipeBlock {
 	return blocks
 }
 
-// splitTypeDecls hoists at-col-0 `type` declarations out of a snippet so the
-// remaining statements can live inside a function body (Go forbids type
-// declarations mid-function in older consumers' mental models — and
-// practically, a func body may not contain package-level type syntax).
+// splitTypeDecls hoists at-col-0 `type` and `func` declarations out of a
+// snippet so the remaining statements can live inside a function body (a
+// func body may not contain package-level type or func syntax).
 func splitTypeDecls(code string) (decls []string, stmts []string) {
-	inType := false
+	inDecl := false
 	for _, ln := range strings.Split(code, "\n") {
 		switch {
-		case inType:
+		case inDecl:
 			decls = append(decls, ln)
 			if ln == "}" {
-				inType = false
+				inDecl = false
 			}
 		case strings.HasPrefix(ln, "type "):
 			decls = append(decls, ln)
 			if !strings.HasSuffix(strings.TrimSpace(ln), "}") {
-				inType = true
+				inDecl = true
+			}
+		case strings.HasPrefix(ln, "func "):
+			decls = append(decls, ln)
+			if !strings.HasSuffix(strings.TrimSpace(ln), "}") {
+				inDecl = true
 			}
 		default:
 			stmts = append(stmts, ln)

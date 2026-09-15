@@ -149,7 +149,7 @@ func generateRecipeSource(b RecipeBlock, spec recipeSpec) []byte {
 		return []byte(b.Code)
 	}
 	body, imports := extractBodyImports(b.Code, spec.imports)
-	decls, stmts := splitTypeDecls(body)
+	decls, stmts := splitTypeDecls(spec.preamble + "\n" + body)
 	var sb strings.Builder
 	sb.WriteString("package main\n\nimport (\n")
 	for _, imp := range imports {
@@ -158,9 +158,6 @@ func generateRecipeSource(b RecipeBlock, spec recipeSpec) []byte {
 	sb.WriteString(")\n\n")
 	if d := strings.TrimSpace(strings.Join(decls, "\n")); d != "" {
 		sb.WriteString(d + "\n\n")
-	}
-	if p := strings.TrimSpace(spec.preamble); p != "" {
-		sb.WriteString(p + "\n\n")
 	}
 	if spec.errFunc {
 		sb.WriteString("func run() error {\n")
