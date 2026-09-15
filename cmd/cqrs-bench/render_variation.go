@@ -17,8 +17,10 @@ func addVariationRows(t *output.Table, r *benchkit.Result) {
 		return
 	}
 
-	t.AddRow([]string{"Repeat",
-		fmt.Sprintf("median of %d (CoV %.1f%%)", r.RepeatCount, r.RepeatCoV*100)})
+	t.AddRow([]string{
+		"Repeat",
+		fmt.Sprintf("median of %d (CoV %.1f%%)", r.RepeatCount, r.RepeatCoV*100),
+	})
 
 	if len(r.MetricVariation) == 0 {
 		return

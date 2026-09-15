@@ -185,18 +185,18 @@ func WriteBenchstat(w io.Writer, r *Result) {
 // Runs that did not record a metric contribute no sample to it (rather than a
 // misleading zero), so a phase that only fired in some runs shrinks that
 // metric's sample count instead of inflating its spread.
-func WriteBenchstatRepeated(w io.Writer, rr *RepeatedResult) {
-	if rr == nil || rr.Median == nil {
+func WriteBenchstatRepeated(w io.Writer, repeated *RepeatedResult) {
+	if repeated == nil || repeated.Median == nil {
 		return
 	}
 
-	if len(rr.Runs) <= 1 {
-		WriteBenchstat(w, rr.Median)
+	if len(repeated.Runs) <= 1 {
+		WriteBenchstat(w, repeated.Median)
 
 		return
 	}
 
-	writeBenchstatLines(w, benchstatName(rr.Median), rr.Median, rr.Runs)
+	writeBenchstatLines(w, benchstatName(repeated.Median), repeated.Median, repeated.Runs)
 }
 
 // writeBenchstatLines writes reference's metrics for every run, one line per

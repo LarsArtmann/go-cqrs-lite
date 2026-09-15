@@ -30,7 +30,8 @@ func (r *runner) warnIfOversubscribed() {
 	if env.LoadAvg1 > float64(env.NumCPU) {
 		r.warn(fmt.Sprintf(
 			"machine oversubscribed at run start: 1-min load average %.1f exceeds %d CPUs, so latencies include scheduler wait",
-			env.LoadAvg1, env.NumCPU,
+			env.LoadAvg1,
+			env.NumCPU,
 		))
 	}
 }
