@@ -69,16 +69,9 @@ func splitTypeDecls(code string) (decls []string, stmts []string) {
 			if ln == "}" {
 				inDecl = false
 			}
-		case strings.HasPrefix(ln, "type "):
+		case strings.HasPrefix(ln, "type ") || strings.HasPrefix(ln, "func "):
 			decls = append(decls, ln)
-			if !strings.HasSuffix(strings.TrimSpace(ln), "}") {
-				inDecl = true
-			}
-		case strings.HasPrefix(ln, "func "):
-			decls = append(decls, ln)
-			if !strings.HasSuffix(strings.TrimSpace(ln), "}") {
-				inDecl = true
-			}
+			inDecl = strings.HasSuffix(strings.TrimSpace(ln), "{")
 		default:
 			stmts = append(stmts, ln)
 		}
