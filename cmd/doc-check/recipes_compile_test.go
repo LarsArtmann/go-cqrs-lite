@@ -41,7 +41,7 @@ func loadRecipeBlocks(t *testing.T) []RecipeBlock {
 }
 
 func allRecipeSpecs() []map[string]recipeSpec {
-	return []map[string]recipeSpec{recipeCatalogA, recipeCatalogB}
+	return []map[string]recipeSpec{recipeCatalogA, recipeCatalogB, recipeCatalogB2}
 }
 
 func lookupSpec(key string) (recipeSpec, bool) {
