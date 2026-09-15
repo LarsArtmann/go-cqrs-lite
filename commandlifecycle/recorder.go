@@ -37,6 +37,10 @@ type Recorder struct {
 
 	versionCapacity int
 
+	// rejectionFamilies is the classification contract for command.rejected;
+	// see classification.go.
+	rejectionFamilies []errorfamily.Family
+
 	mu sync.Mutex
 	// versions caches the next stream version per lifecycle stream. Bounded:
 	// evicting an entry only costs a re-seed Load from the store.
@@ -78,13 +82,14 @@ func WithVersionCacheCapacity(capacity int) RecorderOption {
 // existing event log and survive process restarts.
 func NewRecorder(store event.Store, opts ...RecorderOption) *Recorder {
 	r := &Recorder{
-		store:           store,
-		logger:          slog.Default(),
-		strict:          false,
-		clock:           time.Now,
-		versions:        nil, // seeded below, after opts set the capacity
-		versionCapacity: defaultCacheCapacity,
-		mu:              sync.Mutex{},
+		store:             store,
+		logger:            slog.Default(),
+		strict:            false,
+		clock:             time.Now,
+		versions:          nil, // seeded below, after opts set the capacity
+		versionCapacity:   defaultCacheCapacity,
+		rejectionFamilies: DefaultRejectionFamilies(),
+		mu:                sync.Mutex{},
 	}
 	for _, opt := range opts {
 		opt(r)
@@ -113,10 +118,34 @@ func (r *Recorder) RecordFailed(
 	attempt int,
 ) error {
 	return r.emit(ctx, cmd, TypeFailed, FailedPayload{
+		CommandID:   CommandKey(cmd.ID().String()),
 		CommandType: cmd.Type().String(),
 		Error:       errorMessage(err),
 		Attempt:     attempt,
 		FailedAt:    r.now(),
+	})
+}
+
+// RecordRejected emits a command.rejected event for an error classified into
+// a rejection family ([Recorder.IsRejection]). The payload stamps the family
+// and error code so audit consumers can tell "rejected by rule" from "broke"
+// without re-classifying error text. Pair with [Recorder.IsRejection] in
+// custom middleware; the shipped lifecycle middleware classifies and calls
+// this automatically.
+func (r *Recorder) RecordRejected(
+	ctx context.Context,
+	cmd command.Command,
+	err error,
+	attempt int,
+) error {
+	return r.emit(ctx, cmd, TypeRejected, RejectedPayload{
+		CommandID:   CommandKey(cmd.ID().String()),
+		CommandType: cmd.Type().String(),
+		Error:       errorMessage(err),
+		Family:      errorfamily.Classify(err).String(),
+		ErrorCode:   errorfamily.Code(err),
+		Attempt:     attempt,
+		RejectedAt:  r.now(),
 	})
 }
 

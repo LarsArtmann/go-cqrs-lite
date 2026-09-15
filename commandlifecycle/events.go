@@ -54,6 +54,14 @@ const (
 	// retryable error.
 	TypeFailed event.Type = event.Type("command.failed")
 
+	// TypeRejected is emitted when a processing attempt fails with a business
+	// rejection — an error classified into a rejection family (default:
+	// [errorfamily.Rejection] and [errorfamily.Conflict], configurable via
+	// [WithRejectionFamilies]). A rejected command changed no state, will not
+	// be retried, and is not dead-lettered: the audit stream distinguishes
+	// "rejected by rule" (command.rejected) from "broke" (command.failed).
+	TypeRejected event.Type = event.Type("command.rejected")
+
 	// TypeRetried is emitted before each retry attempt (after the first).
 	TypeRetried event.Type = event.Type("command.retried")
 
@@ -86,6 +94,10 @@ type ReceivedPayload struct {
 
 // FailedPayload is the payload for command.failed events.
 type FailedPayload struct {
+	// CommandID is the unique identifier of the command. Empty on payloads
+	// recorded before v4.4 (projections key off the stream ref instead).
+	CommandID CommandKey `json:"commandId,omitempty"`
+
 	// CommandType is the type of the command that failed.
 	CommandType string `json:"commandType"`
 
@@ -97,6 +109,36 @@ type FailedPayload struct {
 
 	// FailedAt is when the attempt failed.
 	FailedAt time.Time `json:"failedAt"`
+}
+
+// RejectedPayload is the payload for command.rejected events. It carries the
+// errorfamily classification stamped at rejection time, so audit consumers
+// can tell "rejected by business rule" (family rejection/conflict) from
+// "broke" (command.failed) without re-classifying error text.
+type RejectedPayload struct {
+	// CommandID is the unique identifier of the command.
+	CommandID CommandKey `json:"commandId"`
+
+	// CommandType is the type of the command that was rejected.
+	CommandType string `json:"commandType"`
+
+	// Error is the rejection error message.
+	Error string `json:"error"`
+
+	// Family is the errorfamily classification ("rejection", "conflict", …).
+	Family string `json:"family"`
+
+	// ErrorCode is the machine-readable error code, if the error chain
+	// declares one (errorfamily.Code). Empty when uncoded.
+	ErrorCode string `json:"errorCode,omitempty"`
+
+	// Attempt is the 1-indexed attempt number that was rejected. Always 1
+	// for default wiring: rejections are non-retryable, so there is no
+	// subsequent attempt.
+	Attempt int `json:"attempt"`
+
+	// RejectedAt is when the command was rejected.
+	RejectedAt time.Time `json:"rejectedAt"`
 }
 
 // RetriedPayload is the payload for command.retried events.
