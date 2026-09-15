@@ -6,7 +6,7 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 )
 
 require (
@@ -40,7 +40,7 @@ require (
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect

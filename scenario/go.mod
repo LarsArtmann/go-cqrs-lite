@@ -22,10 +22,15 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
+	github.com/onsi/gomega v1.43.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
 )

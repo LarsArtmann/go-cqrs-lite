@@ -66,6 +66,7 @@ require (
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/containerd/log v0.2.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -76,13 +77,21 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
+	github.com/moby/sys/userns v0.2.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
+	github.com/onsi/gomega v1.43.0 // indirect
+	github.com/redis/go-redis/v9 v9.22.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0 // indirect
 	go.opentelemetry.io/otel/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260911204522-f61a6ca850bd // indirect
 )
