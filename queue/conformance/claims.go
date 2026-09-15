@@ -103,7 +103,14 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 	}
 
 	// Before expiry, the lease fences everyone.
-	if _, err := e.store.ClaimDue(t.Context(), "w2", time.Minute); !errors.Is(err, queue.ErrNoTaskDue) {
+	if _, err := e.store.ClaimDue(
+		t.Context(),
+		"w2",
+		time.Minute,
+	); !errors.Is(
+		err,
+		queue.ErrNoTaskDue,
+	) {
 		t.Fatalf("pre-expiry claim: error = %v, want ErrNoTaskDue", err)
 	}
 
@@ -172,7 +179,10 @@ func (s *suite) pinDelayGating(t *testing.T) {
 	}
 
 	// Backdate the delay into the past via a short one and real time.
-	parked := e.enqueue(t, task.New[Payload]{Type: "sh", NotBefore: time.Now().Add(50 * time.Millisecond)})
+	parked := e.enqueue(
+		t,
+		task.New[Payload]{Type: "sh", NotBefore: time.Now().Add(50 * time.Millisecond)},
+	)
 	time.Sleep(120 * time.Millisecond)
 
 	c = e.claim(t, "w1")
@@ -223,7 +233,12 @@ func (s *suite) pinAging(t *testing.T) {
 
 	c := e.claim(t, "w1")
 	if c.Task.ID != older.ID {
-		t.Fatalf("aging did not flip order: claimed %s, want older %s over newer %s", c.Task.ID, older.ID, newer.ID)
+		t.Fatalf(
+			"aging did not flip order: claimed %s, want older %s over newer %s",
+			c.Task.ID,
+			older.ID,
+			newer.ID,
+		)
 	}
 
 	if err := e.store.Complete(t.Context(), older.ID, "w1", nil); err != nil {

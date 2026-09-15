@@ -65,13 +65,25 @@ type Store[T any] interface {
 	// of the attempt budget: the error class makes retrying pointless.
 	// The attempt is still counted. Facts: facts.Failed (carrying
 	// evidence) + facts.DeadLettered with class "permanent".
-	FailPermanent(ctx context.Context, id task.ID, owner string, errText string, evidence []byte) error
+	FailPermanent(
+		ctx context.Context,
+		id task.ID,
+		owner string,
+		errText string,
+		evidence []byte,
+	) error
 
 	// Requeue returns a claimed task to Pending WITHOUT counting an
 	// attempt; it becomes claimable again after delay. For preflight
 	// refusals: the environment was not ready, not the task. Fact:
 	// facts.Requeued carrying facts.RequeueEvidence.
-	Requeue(ctx context.Context, id task.ID, owner string, errText string, delay time.Duration) error
+	Requeue(
+		ctx context.Context,
+		id task.ID,
+		owner string,
+		errText string,
+		delay time.Duration,
+	) error
 
 	// Heartbeat extends the lease of a Running task held by owner. An
 	// expired or foreign lease affects zero rows and returns
@@ -126,7 +138,13 @@ type Store[T any] interface {
 	// already claimed or finished. A same-value update is a no-op: no
 	// error, no fact (idempotency: reruns and racing re-prioritizers
 	// never spam the journal).
-	UpdatePendingPriority(ctx context.Context, id task.ID, newPriority int, source string, reason string) error
+	UpdatePendingPriority(
+		ctx context.Context,
+		id task.ID,
+		newPriority int,
+		source string,
+		reason string,
+	) error
 
 	// Get returns the current task record.
 	Get(ctx context.Context, id task.ID) (task.Task[T], error)

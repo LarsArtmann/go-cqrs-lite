@@ -53,7 +53,11 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 		}
 
 		if st != "running" {
-			return fmt.Errorf("%w: %s -> cancel-requested (only running tasks)", queue.ErrInvalidTransition, st)
+			return fmt.Errorf(
+				"%w: %s -> cancel-requested (only running tasks)",
+				queue.ErrInvalidTransition,
+				st,
+			)
 		}
 
 		requested, err := cancelRequestedTx(ctx, tx, id.String())
@@ -298,7 +302,8 @@ func (s *Store[T]) updatePriorityRow(
 func statusOrNotFound(ctx context.Context, tx *sql.Tx, id task.ID, want string) error {
 	var st string
 
-	if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st); err != nil {
+	if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id = ?`, id.String()).
+		Scan(&st); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return queue.ErrNotFound
 		}

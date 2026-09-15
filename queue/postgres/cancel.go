@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -51,7 +52,11 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 		}
 
 		if st != "running" {
-			return fmt.Errorf("%w: %s -> cancel-requested (only running tasks)", queue.ErrInvalidTransition, st)
+			return fmt.Errorf(
+				"%w: %s -> cancel-requested (only running tasks)",
+				queue.ErrInvalidTransition,
+				st,
+			)
 		}
 
 		requested, err := cancelRequestedTx(ctx, tx, id.String())
@@ -166,7 +171,12 @@ type orphan struct {
 }
 
 // appendOrphanFacts writes the observed orphans.
-func (s *Store[T]) appendOrphanFacts(ctx context.Context, tx pgx.Tx, found []orphan, marked *int) error {
+func (s *Store[T]) appendOrphanFacts(
+	ctx context.Context,
+	tx pgx.Tx,
+	found []orphan,
+	marked *int,
+) error {
 	for _, o := range found {
 		detail := mustJSON(map[string]any{
 			"owner":          o.owner,
@@ -302,7 +312,8 @@ func (s *Store[T]) updatePriorityRow(
 func statusOrNotFound(ctx context.Context, tx pgx.Tx, id task.ID, want string) error {
 	var st string
 
-	if err := tx.QueryRow(ctx, `SELECT status FROM tasks WHERE id = $1`, id.String()).Scan(&st); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT status FROM tasks WHERE id = $1`, id.String()).
+		Scan(&st); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return queue.ErrNotFound
 		}

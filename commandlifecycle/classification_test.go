@@ -39,10 +39,26 @@ func TestRecorder_IsRejection(t *testing.T) {
 		want   bool
 	}{
 		{name: "nil is never a rejection", err: nil, want: false},
-		{name: "rejection family", err: errorfamily.NewRejection("USER_EXISTS", "user exists"), want: true},
-		{name: "conflict family", err: errorfamily.NewConflict("VERSION_MISMATCH", "stale version"), want: true},
-		{name: "transient is a failure", err: errorfamily.NewTransient("DB_TIMEOUT", "timeout"), want: false},
-		{name: "corruption is a failure", err: errorfamily.NewCorruption("BAD_PAYLOAD", "bad payload"), want: false},
+		{
+			name: "rejection family",
+			err:  errorfamily.NewRejection("USER_EXISTS", "user exists"),
+			want: true,
+		},
+		{
+			name: "conflict family",
+			err:  errorfamily.NewConflict("VERSION_MISMATCH", "stale version"),
+			want: true,
+		},
+		{
+			name: "transient is a failure",
+			err:  errorfamily.NewTransient("DB_TIMEOUT", "timeout"),
+			want: false,
+		},
+		{
+			name: "corruption is a failure",
+			err:  errorfamily.NewCorruption("BAD_PAYLOAD", "bad payload"),
+			want: false,
+		},
 		{name: "unclassified defaults to transient", err: errors.New("boom"), want: false},
 		{
 			name:   "custom contract widens to transient",

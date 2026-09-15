@@ -64,7 +64,12 @@ func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], er
 // one transaction, re-checking the dedup key inside it (the unique
 // partial index is the final arbiter under concurrency). On suppression
 // it sets suppressed and leaves t.ID pointing at the stored task.
-func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey string, suppressed *bool) error {
+func (s *Store[T]) insertTask(
+	ctx context.Context,
+	t *task.Task[T],
+	dedupKey string,
+	suppressed *bool,
+) error {
 	depsJSON, err := json.Marshal(t.Deps)
 	if err != nil {
 		return fmt.Errorf("marshal deps: %w", err)
@@ -81,7 +86,8 @@ func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey str
 			// have inserted the same key between our lookup and this write.
 			var existingID string
 
-			err := tx.QueryRowContext(ctx, `SELECT id FROM tasks WHERE dedup_key = ?`, dedupKey).Scan(&existingID)
+			err := tx.QueryRowContext(ctx, `SELECT id FROM tasks WHERE dedup_key = ?`, dedupKey).
+				Scan(&existingID)
 			if err == nil {
 				t.ID = task.ID(existingID)
 				*suppressed = true
@@ -114,7 +120,12 @@ func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey str
 
 // insertTaskRow runs the tasks-table INSERT.
 func (s *Store[T]) insertTaskRow(
-	ctx context.Context, tx *sql.Tx, t task.Task[T], depsJSON string, payload []byte, dedupKey string,
+	ctx context.Context,
+	tx *sql.Tx,
+	t task.Task[T],
+	depsJSON string,
+	payload []byte,
+	dedupKey string,
 ) error {
 	_, err := tx.ExecContext(ctx,
 		`INSERT INTO tasks (id, project, type, payload, deps, priority, attempts, max_attempts,

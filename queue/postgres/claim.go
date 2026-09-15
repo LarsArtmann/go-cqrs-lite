@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -38,7 +39,11 @@ const claimUpdateSQL = `
 	    OR (status = 'running' AND lease_expires IS NOT NULL AND lease_expires <= $3))`
 
 // ClaimDue atomically claims one due task for owner.
-func (s *Store[T]) ClaimDue(ctx context.Context, owner string, lease time.Duration) (queue.Claim[T], error) {
+func (s *Store[T]) ClaimDue(
+	ctx context.Context,
+	owner string,
+	lease time.Duration,
+) (queue.Claim[T], error) {
 	now := time.Now()
 
 	var claimed task.Task[T]
@@ -76,11 +81,18 @@ func (s *Store[T]) ClaimDue(ctx context.Context, owner string, lease time.Durati
 
 	// Truncate to the stored millisecond so the surfaced deadline is
 	// exactly the persisted one.
-	return queue.Claim[T]{Task: claimed, LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli())}, nil
+	return queue.Claim[T]{
+		Task:       claimed,
+		LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli()),
+	}, nil
 }
 
 // selectCandidate runs the locking candidate query.
-func selectCandidate(ctx context.Context, tx pgx.Tx, now time.Time) (string, string, string, error) {
+func selectCandidate(
+	ctx context.Context,
+	tx pgx.Tx,
+	now time.Time,
+) (string, string, string, error) {
 	row := tx.QueryRow(ctx, candidateSQL,
 		now.UnixMilli(), now.UnixMilli(),
 		float64(queue.PriorityAgingDaysPerPoint), float64(queue.PriorityAgingMaxBonus))
@@ -109,7 +121,11 @@ func (s *Store[T]) finalizeReclaim(
 		return false, err
 	}
 
-	if err := s.appendFact(ctx, tx, facts.Fact{TaskID: id, Type: facts.Released, Owner: prevOwner}); err != nil {
+	if err := s.appendFact(
+		ctx,
+		tx,
+		facts.Fact{TaskID: id, Type: facts.Released, Owner: prevOwner},
+	); err != nil {
 		return false, err
 	}
 
@@ -141,7 +157,12 @@ func (s *Store[T]) finalizeReclaim(
 
 // stampLease takes the lease and appends the Claimed fact.
 func (s *Store[T]) stampLease(
-	ctx context.Context, tx pgx.Tx, id, owner string, now time.Time, lease time.Duration, out *task.Task[T],
+	ctx context.Context,
+	tx pgx.Tx,
+	id, owner string,
+	now time.Time,
+	lease time.Duration,
+	out *task.Task[T],
 ) error {
 	tag, err := tx.Exec(ctx, claimUpdateSQL,
 		owner, now.Add(lease).UnixMilli(), now.UnixMilli(), id)
@@ -153,7 +174,11 @@ func (s *Store[T]) stampLease(
 		return queue.ErrNoTaskDue // lost the race; caller retries
 	}
 
-	if err := s.appendFact(ctx, tx, facts.Fact{TaskID: id, Type: facts.Claimed, Owner: owner}); err != nil {
+	if err := s.appendFact(
+		ctx,
+		tx,
+		facts.Fact{TaskID: id, Type: facts.Claimed, Owner: owner},
+	); err != nil {
 		return err
 	}
 

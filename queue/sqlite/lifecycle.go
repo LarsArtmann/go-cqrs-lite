@@ -162,7 +162,8 @@ func (s *Store[T]) FailPermanent(
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		var attempts int
 
-		err := tx.QueryRowContext(ctx, `SELECT attempts FROM tasks WHERE id = ?`, id.String()).Scan(&attempts)
+		err := tx.QueryRowContext(ctx, `SELECT attempts FROM tasks WHERE id = ?`, id.String()).
+			Scan(&attempts)
 		if errors.Is(err, sql.ErrNoRows) {
 			return queue.ErrNotFound
 		}
@@ -178,7 +179,13 @@ func (s *Store[T]) FailPermanent(
 // Requeue returns a claimed task to Pending without counting an
 // attempt: the executor refused to start (preflight), so the task itself
 // is fine and the environment is expected to become ready later.
-func (s *Store[T]) Requeue(ctx context.Context, id task.ID, owner string, errText string, delay time.Duration) error {
+func (s *Store[T]) Requeue(
+	ctx context.Context,
+	id task.ID,
+	owner string,
+	errText string,
+	delay time.Duration,
+) error {
 	return s.withTx(ctx, func(tx *sql.Tx) error {
 		now := time.Now()
 
@@ -204,7 +211,12 @@ func (s *Store[T]) Requeue(ctx context.Context, id task.ID, owner string, errTex
 }
 
 // Heartbeat extends the lease of a Running task held by owner.
-func (s *Store[T]) Heartbeat(ctx context.Context, id task.ID, owner string, extend time.Duration) error {
+func (s *Store[T]) Heartbeat(
+	ctx context.Context,
+	id task.ID,
+	owner string,
+	extend time.Duration,
+) error {
 	now := time.Now()
 
 	res, err := s.db.ExecContext(ctx, `

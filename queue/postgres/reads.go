@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
@@ -20,7 +21,9 @@ const taskColumns = `id, project, type, payload, deps, priority, attempts, max_a
 
 // Get returns the current task record.
 func (s *Store[T]) Get(ctx context.Context, id task.ID) (task.Task[T], error) {
-	t, err := s.scanTask(s.pool.QueryRow(ctx, `SELECT `+taskColumns+` FROM tasks WHERE id = $1`, id.String()))
+	t, err := s.scanTask(
+		s.pool.QueryRow(ctx, `SELECT `+taskColumns+` FROM tasks WHERE id = $1`, id.String()),
+	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return task.Task[T]{}, queue.ErrNotFound
 	}
@@ -64,7 +67,11 @@ func (s *Store[T]) scanTask(row rowScanner) (task.Task[T], error) {
 	t.CreatedAt = time.UnixMilli(createdAt)
 	t.UpdatedAt = time.UnixMilli(updatedAt)
 
-	if err := json.Unmarshal([]byte(depsJSON), &t.Deps); err != nil && depsJSON != "" && depsJSON != "[]" {
+	if err := json.Unmarshal(
+		[]byte(depsJSON),
+		&t.Deps,
+	); err != nil && depsJSON != "" &&
+		depsJSON != "[]" {
 		return task.Task[T]{}, fmt.Errorf("queue/postgres: decode deps: %w", err)
 	}
 

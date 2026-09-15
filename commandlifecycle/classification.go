@@ -1,6 +1,8 @@
 package commandlifecycle
 
 import (
+	"slices"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -36,12 +38,5 @@ func (r *Recorder) IsRejection(err error) bool {
 		return false
 	}
 
-	family := errorfamily.Classify(err)
-	for _, rejection := range r.rejectionFamilies {
-		if family == rejection {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(r.rejectionFamilies, errorfamily.Classify(err))
 }

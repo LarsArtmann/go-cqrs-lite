@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 )
 
@@ -38,7 +39,12 @@ func WithCodec[T any](c queue.Codec[T]) StoreOption[T] {
 // Open connects to dsn (e.g. "postgres://user:pass@host:5432/db"),
 // applies the schema, and returns a ready store. maxConns bounds the
 // pool (0 = pgx default).
-func Open[T any](ctx context.Context, dsn string, maxConns int32, opts ...StoreOption[T]) (*Store[T], error) {
+func Open[T any](
+	ctx context.Context,
+	dsn string,
+	maxConns int32,
+	opts ...StoreOption[T],
+) (*Store[T], error) {
 	cfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("queue/postgres: parse dsn: %w", err)
@@ -69,7 +75,11 @@ func Open[T any](ctx context.Context, dsn string, maxConns int32, opts ...StoreO
 // the schema on it. The caller keeps pool ownership: Store.Close does
 // NOT close a caller-owned pool — shut it down yourself once the whole
 // application is done with it.
-func OpenWithPool[T any](ctx context.Context, pool *pgxpool.Pool, opts ...StoreOption[T]) (*Store[T], error) {
+func OpenWithPool[T any](
+	ctx context.Context,
+	pool *pgxpool.Pool,
+	opts ...StoreOption[T],
+) (*Store[T], error) {
 	if pool == nil {
 		return nil, errors.New("queue/postgres: nil pool")
 	}
@@ -78,7 +88,11 @@ func OpenWithPool[T any](ctx context.Context, pool *pgxpool.Pool, opts ...StoreO
 }
 
 // wrapPool applies the schema and options to a pool.
-func wrapPool[T any](ctx context.Context, pool *pgxpool.Pool, opts ...StoreOption[T]) (*Store[T], error) {
+func wrapPool[T any](
+	ctx context.Context,
+	pool *pgxpool.Pool,
+	opts ...StoreOption[T],
+) (*Store[T], error) {
 	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
 	for _, opt := range opts {
 		opt(&options)

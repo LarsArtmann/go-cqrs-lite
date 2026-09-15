@@ -141,9 +141,13 @@ func TestStandaloneOuter_RejectionEmitsRejectedNotDeadLetter(t *testing.T) {
 	recorder := commandlifecycle.NewRecorder(store)
 	cmd := newTestCommand(t)
 
-	handler := commandlifecycle.Middleware(recorder)(func(_ context.Context, _ command.Command) error {
-		return errorfamily.NewRejection("FORBIDDEN", "actor lacks permission")
-	})
+	handler := commandlifecycle.Middleware(
+		recorder,
+	)(
+		func(_ context.Context, _ command.Command) error {
+			return errorfamily.NewRejection("FORBIDDEN", "actor lacks permission")
+		},
+	)
 
 	g.Expect(handler(context.Background(), cmd)).To(HaveOccurred())
 
@@ -159,9 +163,13 @@ func TestStandaloneAttempt_RejectionCarriesAttempt(t *testing.T) {
 	recorder := commandlifecycle.NewRecorder(store)
 	cmd := newTestCommand(t)
 
-	handler := commandlifecycle.AttemptMiddleware(recorder)(func(_ context.Context, _ command.Command) error {
-		return errorfamily.NewRejection("QUOTA_EXCEEDED", "daily quota used")
-	})
+	handler := commandlifecycle.AttemptMiddleware(
+		recorder,
+	)(
+		func(_ context.Context, _ command.Command) error {
+			return errorfamily.NewRejection("QUOTA_EXCEEDED", "daily quota used")
+		},
+	)
 
 	g.Expect(handler(context.Background(), cmd)).To(HaveOccurred())
 

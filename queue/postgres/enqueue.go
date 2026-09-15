@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -60,7 +61,12 @@ func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], er
 
 // insertTask writes the task row, its deps rows and the enqueued fact in
 // one transaction, re-checking the dedup key inside it.
-func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey string, suppressed *bool) error {
+func (s *Store[T]) insertTask(
+	ctx context.Context,
+	t *task.Task[T],
+	dedupKey string,
+	suppressed *bool,
+) error {
 	depsJSON, err := json.Marshal(t.Deps)
 	if err != nil {
 		return fmt.Errorf("marshal deps: %w", err)
@@ -75,7 +81,8 @@ func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey str
 		if dedupKey != "" {
 			var existingID string
 
-			err := tx.QueryRow(ctx, `SELECT id FROM tasks WHERE dedup_key = $1`, dedupKey).Scan(&existingID)
+			err := tx.QueryRow(ctx, `SELECT id FROM tasks WHERE dedup_key = $1`, dedupKey).
+				Scan(&existingID)
 			if err == nil {
 				t.ID = task.ID(existingID)
 				*suppressed = true
@@ -94,14 +101,30 @@ func (s *Store[T]) insertTask(ctx context.Context, t *task.Task[T], dedupKey str
 
 // insertRows runs the tasks/deps INSERTs plus the enqueued fact.
 func (s *Store[T]) insertRows(
-	ctx context.Context, tx pgx.Tx, t task.Task[T], depsJSON string, payload string, dedupKey string,
+	ctx context.Context,
+	tx pgx.Tx,
+	t task.Task[T],
+	depsJSON string,
+	payload string,
+	dedupKey string,
 ) error {
-	if _, err := tx.Exec(ctx,
+	if _, err := tx.Exec(
+		ctx,
 		`INSERT INTO tasks (id, project, type, payload, deps, priority, attempts, max_attempts,
 		                    not_before, status, created_at, updated_at, dedup_key)
 		 VALUES ($1, $2, $3, $4, $5, $6, 0, $7, $8, 'pending', $9, $10, $11)`,
-		t.ID.String(), t.Project, t.Type, payload, depsJSON, t.Priority,
-		t.MaxAttempts, ms(t.NotBefore), t.CreatedAt.UnixMilli(), t.UpdatedAt.UnixMilli(), dedupKey); err != nil {
+		t.ID.String(),
+		t.Project,
+		t.Type,
+		payload,
+		depsJSON,
+		t.Priority,
+		t.MaxAttempts,
+		ms(t.NotBefore),
+		t.CreatedAt.UnixMilli(),
+		t.UpdatedAt.UnixMilli(),
+		dedupKey,
+	); err != nil {
 		return err
 	}
 

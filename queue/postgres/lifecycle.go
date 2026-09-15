@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -174,7 +175,13 @@ func (s *Store[T]) FailPermanent(
 
 // Requeue returns a claimed task to Pending without counting an
 // attempt (preflight refusal).
-func (s *Store[T]) Requeue(ctx context.Context, id task.ID, owner string, errText string, delay time.Duration) error {
+func (s *Store[T]) Requeue(
+	ctx context.Context,
+	id task.ID,
+	owner string,
+	errText string,
+	delay time.Duration,
+) error {
 	return s.withTx(ctx, func(tx pgx.Tx) error {
 		now := time.Now()
 
@@ -200,7 +207,12 @@ func (s *Store[T]) Requeue(ctx context.Context, id task.ID, owner string, errTex
 }
 
 // Heartbeat extends the lease of a Running task held by owner.
-func (s *Store[T]) Heartbeat(ctx context.Context, id task.ID, owner string, extend time.Duration) error {
+func (s *Store[T]) Heartbeat(
+	ctx context.Context,
+	id task.ID,
+	owner string,
+	extend time.Duration,
+) error {
 	now := time.Now()
 
 	tag, err := s.pool.Exec(ctx, `

@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	_ "modernc.org/sqlite" // pure-Go SQLite driver (CGo-free)
+
+	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 )
 
 // Store is the embedded, durable queue.Store over one SQLite file.
@@ -38,7 +39,10 @@ func Open[T any](path string, opts ...StoreOption[T]) (*Store[T], error) {
 		opt(&options)
 	}
 
-	dsn := fmt.Sprintf("file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)", path)
+	dsn := fmt.Sprintf(
+		"file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)",
+		path,
+	)
 
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
@@ -86,8 +90,10 @@ func (s *Store[T]) migrate(ctx context.Context) error {
 	}
 
 	var dedupCol int
-	if err := s.db.QueryRowContext(ctx,
-		`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name = 'dedup_key'`).Scan(&dedupCol); err != nil {
+	if err := s.db.QueryRowContext(
+		ctx,
+		`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name = 'dedup_key'`,
+	).Scan(&dedupCol); err != nil {
 		return fmt.Errorf("queue/sqlite: migrate: check dedup_key: %w", err)
 	}
 
@@ -100,8 +106,10 @@ func (s *Store[T]) migrate(ctx context.Context) error {
 
 	// Only tasks that opt into deduplication participate, so arbitrary
 	// tasks without a key never collide.
-	if _, err := s.db.ExecContext(ctx,
-		`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_dedup ON tasks(dedup_key) WHERE dedup_key != ''`); err != nil {
+	if _, err := s.db.ExecContext(
+		ctx,
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_tasks_dedup ON tasks(dedup_key) WHERE dedup_key != ''`,
+	); err != nil {
 		return fmt.Errorf("queue/sqlite: migrate: dedup index: %w", err)
 	}
 

@@ -99,7 +99,14 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 	}
 
 	types := factTypes(t, e, tk.ID)
-	want := []facts.FactType{facts.Enqueued, facts.Claimed, facts.Failed, facts.Claimed, facts.Failed, facts.DeadLettered}
+	want := []facts.FactType{
+		facts.Enqueued,
+		facts.Claimed,
+		facts.Failed,
+		facts.Claimed,
+		facts.Failed,
+		facts.DeadLettered,
+	}
 	if !equalFactTypes(types, want) {
 		t.Fatalf("fact trail = %v, want %v", types, want)
 	}
@@ -151,7 +158,9 @@ func (s *suite) pinEvidence(t *testing.T) {
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	_ = e.claim(t, "w1")
 
-	evidence := []byte(`{"stage":"verify","exit_code":1,"tail":"` + strings.Repeat("x", 2048) + `"}`)
+	evidence := []byte(
+		`{"stage":"verify","exit_code":1,"tail":"` + strings.Repeat("x", 2048) + `"}`,
+	)
 	if err := e.store.Fail(t.Context(), tk.ID, "w1", "verify failed", 0, evidence); err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +171,11 @@ func (s *suite) pinEvidence(t *testing.T) {
 		}
 
 		if !bytes.Equal(f.Detail, evidence) {
-			t.Fatalf("evidence not verbatim on the fact: got %d bytes, want %d", len(f.Detail), len(evidence))
+			t.Fatalf(
+				"evidence not verbatim on the fact: got %d bytes, want %d",
+				len(f.Detail),
+				len(evidence),
+			)
 		}
 
 		return
@@ -179,13 +192,23 @@ func (s *suite) pinRequeue(t *testing.T) {
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
 	_ = e.claim(t, "w1")
 
-	if err := e.store.Requeue(t.Context(), tk.ID, "w1", "env not ready", 50*time.Millisecond); err != nil {
+	if err := e.store.Requeue(
+		t.Context(),
+		tk.ID,
+		"w1",
+		"env not ready",
+		50*time.Millisecond,
+	); err != nil {
 		t.Fatalf("requeue: %v", err)
 	}
 
 	got, _ := e.store.Get(t.Context(), tk.ID)
 	if got.Status != task.Pending || got.Attempts != 0 {
-		t.Fatalf("after requeue: status=%s attempts=%d, want pending/0 (no burn)", got.Status, got.Attempts)
+		t.Fatalf(
+			"after requeue: status=%s attempts=%d, want pending/0 (no burn)",
+			got.Status,
+			got.Attempts,
+		)
 	}
 
 	if got.NotBefore.Before(time.Now()) {
@@ -197,7 +220,8 @@ func (s *suite) pinRequeue(t *testing.T) {
 		t.Fatalf("fact = %s, want requeued", f.Type)
 	}
 
-	if !bytes.Contains(f.Detail, []byte("env not ready")) || !bytes.Contains(f.Detail, []byte("retry_in_ms")) {
+	if !bytes.Contains(f.Detail, []byte("env not ready")) ||
+		!bytes.Contains(f.Detail, []byte("retry_in_ms")) {
 		t.Fatalf("requeue evidence missing: %s", f.Detail)
 	}
 
@@ -206,7 +230,12 @@ func (s *suite) pinRequeue(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	c := e.claim(t, "w1")
-	mustError(t, "requeue stale owner", e.store.Requeue(t.Context(), c.Task.ID, "someone-else", "x", 0), queue.ErrLeaseNotHeld)
+	mustError(
+		t,
+		"requeue stale owner",
+		e.store.Requeue(t.Context(), c.Task.ID, "someone-else", "x", 0),
+		queue.ErrLeaseNotHeld,
+	)
 }
 
 // pinRescue pins RescueDead: fresh budget, claimable again, Enqueued
@@ -222,7 +251,12 @@ func (s *suite) pinRescue(t *testing.T) {
 
 	got, _ := e.store.Get(t.Context(), tk.ID)
 	if got.Status != task.Pending || got.Attempts != 0 || got.MaxAttempts != 2 {
-		t.Fatalf("after rescue: status=%s attempts=%d max=%d, want pending/0/2", got.Status, got.Attempts, got.MaxAttempts)
+		t.Fatalf(
+			"after rescue: status=%s attempts=%d max=%d, want pending/0/2",
+			got.Status,
+			got.Attempts,
+			got.MaxAttempts,
+		)
 	}
 
 	if got.LastError != "" {
@@ -278,7 +312,8 @@ func (s *suite) pinDismiss(t *testing.T) {
 		t.Fatalf("fact = %s, want cancelled", last.Type)
 	}
 
-	if !bytes.Contains(last.Detail, []byte("unfixable")) || !bytes.Contains(last.Detail, []byte("operator")) {
+	if !bytes.Contains(last.Detail, []byte("unfixable")) ||
+		!bytes.Contains(last.Detail, []byte("operator")) {
 		t.Fatalf("dismiss detail = %s, want reason and by", last.Detail)
 	}
 }

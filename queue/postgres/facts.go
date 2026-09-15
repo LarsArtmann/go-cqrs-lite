@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
@@ -135,7 +136,16 @@ func scanFacts(rows pgx.Rows) ([]facts.Fact, error) {
 			detail string
 		)
 
-		if err := rows.Scan(&f.Seq, &msTime, &f.TaskID, &f.Type, &f.Owner, &f.Attempt, &f.Error, &detail); err != nil {
+		if err := rows.Scan(
+			&f.Seq,
+			&msTime,
+			&f.TaskID,
+			&f.Type,
+			&f.Owner,
+			&f.Attempt,
+			&f.Error,
+			&detail,
+		); err != nil {
 			return nil, err
 		}
 

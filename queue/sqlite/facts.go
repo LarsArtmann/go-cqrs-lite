@@ -146,7 +146,16 @@ func scanFacts(rows *sql.Rows) ([]facts.Fact, error) {
 			detail []byte
 		)
 
-		if err := rows.Scan(&f.Seq, &msTime, &f.TaskID, &f.Type, &f.Owner, &f.Attempt, &f.Error, &detail); err != nil {
+		if err := rows.Scan(
+			&f.Seq,
+			&msTime,
+			&f.TaskID,
+			&f.Type,
+			&f.Owner,
+			&f.Attempt,
+			&f.Error,
+			&detail,
+		); err != nil {
 			return nil, err
 		}
 

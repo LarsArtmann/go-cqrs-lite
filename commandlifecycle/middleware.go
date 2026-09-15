@@ -37,15 +37,6 @@ func (t *attemptTracker) next(cmdID string) int {
 	return v + 1
 }
 
-func (t *attemptTracker) get(cmdID string) int {
-	t.mu.Lock() //art-dupl:accept tiny accessor guards; extracting a generic helper hides intent
-	defer t.mu.Unlock()
-
-	v, _ := t.attempts.get(cmdID)
-
-	return v
-}
-
 func (t *attemptTracker) clear(cmdID string) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -129,6 +120,7 @@ func outerMiddleware(recorder *Recorder, tracker *attemptTracker) command.Middle
 			if err != nil {
 				attempts := 1
 				alreadyRejected := false
+
 				if tracker != nil {
 					attempts, alreadyRejected = tracker.take(cmd.ID().String())
 				}

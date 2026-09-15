@@ -37,7 +37,11 @@ const claimUpdateSQL = `
 	    OR (status = 'running' AND lease_expires IS NOT NULL AND lease_expires <= ?))`
 
 // ClaimDue atomically claims one due task for owner.
-func (s *Store[T]) ClaimDue(ctx context.Context, owner string, lease time.Duration) (queue.Claim[T], error) {
+func (s *Store[T]) ClaimDue(
+	ctx context.Context,
+	owner string,
+	lease time.Duration,
+) (queue.Claim[T], error) {
 	now := time.Now()
 
 	var claimed task.Task[T]
@@ -80,12 +84,19 @@ func (s *Store[T]) ClaimDue(ctx context.Context, owner string, lease time.Durati
 	// Truncate to the stored millisecond so the surfaced deadline is
 	// exactly the persisted one (sub-ms clock precision would otherwise
 	// make LeaseUntil and Task.LeaseExpires disagree on equality).
-	return queue.Claim[T]{Task: claimed, LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli())}, nil
+	return queue.Claim[T]{
+		Task:       claimed,
+		LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli()),
+	}, nil
 }
 
 // selectCandidate runs the candidate query and maps no-rows to
 // ErrNoTaskDue.
-func selectCandidate(ctx context.Context, tx *sql.Tx, now time.Time) (string, string, string, error) {
+func selectCandidate(
+	ctx context.Context,
+	tx *sql.Tx,
+	now time.Time,
+) (string, string, string, error) {
 	row := tx.QueryRowContext(ctx, candidateSQL,
 		now.UnixMilli(), now.UnixMilli(), now.UnixMilli(),
 		float64(queue.PriorityAgingDaysPerPoint), float64(queue.PriorityAgingMaxBonus))
@@ -115,7 +126,11 @@ func (s *Store[T]) finalizeReclaim(
 		return false, err
 	}
 
-	if err := s.appendFact(ctx, tx, facts.Fact{TaskID: id, Type: facts.Released, Owner: prevOwner}); err != nil {
+	if err := s.appendFact(
+		ctx,
+		tx,
+		facts.Fact{TaskID: id, Type: facts.Released, Owner: prevOwner},
+	); err != nil {
 		return false, err
 	}
 
@@ -140,7 +155,12 @@ func (s *Store[T]) finalizeReclaim(
 
 // cancelRunningRow flips one running row to cancelled (the reclaim
 // finalize path).
-func (s *Store[T]) cancelRunningRow(ctx context.Context, tx *sql.Tx, id string, now time.Time) error {
+func (s *Store[T]) cancelRunningRow(
+	ctx context.Context,
+	tx *sql.Tx,
+	id string,
+	now time.Time,
+) error {
 	res, err := tx.ExecContext(ctx, `
 		UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL
 		WHERE id = ? AND status = 'running'`, now.UnixMilli(), id)
@@ -158,7 +178,12 @@ func (s *Store[T]) cancelRunningRow(ctx context.Context, tx *sql.Tx, id string, 
 // stampLease takes the lease and appends the Claimed fact; on success it
 // loads the claimed row into out.
 func (s *Store[T]) stampLease(
-	ctx context.Context, tx *sql.Tx, id, owner string, now time.Time, lease time.Duration, out *task.Task[T],
+	ctx context.Context,
+	tx *sql.Tx,
+	id, owner string,
+	now time.Time,
+	lease time.Duration,
+	out *task.Task[T],
 ) error {
 	res, err := tx.ExecContext(ctx, claimUpdateSQL,
 		owner, now.Add(lease).UnixMilli(), now.UnixMilli(), id, now.UnixMilli(), now.UnixMilli())
@@ -175,7 +200,11 @@ func (s *Store[T]) stampLease(
 		return queue.ErrNoTaskDue // lost the race (multi-process); caller retries
 	}
 
-	if err := s.appendFact(ctx, tx, facts.Fact{TaskID: id, Type: facts.Claimed, Owner: owner}); err != nil {
+	if err := s.appendFact(
+		ctx,
+		tx,
+		facts.Fact{TaskID: id, Type: facts.Claimed, Owner: owner},
+	); err != nil {
 		return err
 	}
 
