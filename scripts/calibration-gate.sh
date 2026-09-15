@@ -37,6 +37,7 @@
 set -uo pipefail
 
 MAX_LOAD="5"
+SELFTEST_MODE=0
 PROVENANCE_BINS=()
 
 while [[ $# -gt 0 ]]; do
@@ -57,12 +58,8 @@ while [[ $# -gt 0 ]]; do
 		exit 0
 		;;
 	--self-test)
-		if self_test; then
-			echo "calibration-gate self-test passed."
-			exit 0
-		fi
-		echo "calibration-gate self-test FAILED."
-		exit 1
+		SELFTEST_MODE=1
+		shift
 		;;
 	*)
 		echo "calibration-gate: unknown flag: $1 (see --help)" >&2
@@ -92,6 +89,138 @@ over_ceiling() {
 	fi
 	return 1
 }
+
+# --- --self-test: fault-injection suite over temp loadavg fixtures ---
+
+SELFTEST_SELF=""
+SELFTEST_DIR=""
+
+self_run() {
+	# $1 = fixture loadavg line; remaining args = gate flags. Echoes the
+	# gate's combined output; the caller owns the exit code.
+	local content="$1"
+	shift
+	printf '%s\n' "$content" >"$SELFTEST_DIR/loadavg"
+	CALIB_GATE_LOADAVG_FILE="$SELFTEST_DIR/loadavg" \
+		bash "$SELFTEST_SELF" "$@" 2>&1
+}
+
+self_check() {
+	# $1 name, $2 want-rc, $3 got-rc, $4 output, $5 required substring.
+	local name="$1" want="$2" got="$3" out="$4" pattern="$5"
+	local ok=1
+	[[ "$got" == "$want" ]] || ok=0
+	grep -qF -- "$pattern" <<<"$out" || ok=0
+	if [[ "$ok" != 1 ]]; then
+		echo "  ✗ FAIL: $1 (rc=$got, want=$want; missing '$pattern') got:"
+		echo "$out" | sed 's/^/      /'
+		return 1
+	fi
+	echo "  ✓ PASS: $1"
+}
+
+self_test_gate() {
+	local out rc fails=0
+
+	rc=0
+	out=$(self_run "0.42 0.51 0.10 2/1234 5678" --max-load 5) || rc=$?
+	self_check "quiet host passes" 0 "$rc" "$out" \
+		"PASS — load1=0.42, load5=0.51 < 5" || fails=$((fails + 1))
+
+	rc=0
+	out=$(self_run "7.20 1.80 1.00 2/1234 5678") || rc=$?
+	self_check "load1 over ceiling fails" 1 "$rc" "$out" \
+		"LOAD GATE FAILED — load1=7.20" || fails=$((fails + 1))
+
+	rc=0
+	out=$(self_run "0.42 9.90 4.00 2/1234 5678") || rc=$?
+	self_check "burst-draining host fails (load5, v2 rule)" 1 "$rc" "$out" \
+		"LOAD GATE FAILED — load5=9.90" || fails=$((fails + 1))
+
+	export CALIB_GATE_REQUIRED=0
+	rc=0
+	out=$(self_run "0.42 9.90 4.00 2/1234 5678") || rc=$?
+	unset CALIB_GATE_REQUIRED
+	self_check "warn-only override stays green" 0 "$rc" "$out" \
+		"WARN-ONLY override" || fails=$((fails + 1))
+
+	export CI=true
+	rc=0
+	out=$(self_run "7.20 9.90 4.00 2/1234 5678") || rc=$?
+	unset CI
+	self_check "CI never aborts" 0 "$rc" "$out" \
+		"informational only" || fails=$((fails + 1))
+
+	return "$fails"
+}
+
+self_test_provenance() {
+	local out rc
+
+	mkdir -p "$SELFTEST_DIR/bin"
+	printf '#!/bin/sh\necho "calgate-stub 1.2.3"\n' \
+		>"$SELFTEST_DIR/bin/calgate-stub"
+	chmod +x "$SELFTEST_DIR/bin/calgate-stub"
+	printf '0.42 0.51 0.10 2/1234 5678\n' >"$SELFTEST_DIR/loadavg"
+
+	rc=0
+	out=$(CALIB_GATE_LOADAVG_FILE="$SELFTEST_DIR/loadavg" \
+		PATH="$SELFTEST_DIR/bin:$PATH" \
+		bash "$SELFTEST_SELF" --provenance calgate-stub 2>&1) || rc=$?
+	self_check "provenance probes a stub binary" 0 "$rc" "$out" \
+		'PROVENANCE binary=calgate-stub' || return 1
+	self_check "provenance records the version output" 0 "$rc" "$out" \
+		'version="calgate-stub 1.2.3"'
+}
+
+self_test_golden() {
+	local golden rc err
+
+	golden="$(dirname "$SELFTEST_SELF")/testdata/calibration-gate-fail-message.golden"
+	if [[ ! -f "$golden" ]]; then
+		echo "  ✗ FAIL: golden missing: $golden"
+		return 1
+	fi
+
+	printf '0.42 9.90 4.00 2/1234 5678\n' >"$SELFTEST_DIR/loadavg"
+	rc=0
+	err=$(CALIB_GATE_LOADAVG_FILE="$SELFTEST_DIR/loadavg" \
+		bash "$SELFTEST_SELF" 2>&1 1>/dev/null) || rc=$?
+	if [[ "$rc" != 1 ]]; then
+		echo "  ✗ FAIL: golden run expected rc=1, got $rc"
+		return 1
+	fi
+
+	local normalized
+	normalized=$(printf '%s\n' "$err" | sed -E '/^  \(load1=/! s/^  .*/  <UPTIME>/')
+	if ! diff -u "$golden" <(printf '%s\n' "$normalized"); then
+		echo "  ✗ FAIL: FAIL-message shape drifted from the golden"
+		return 1
+	fi
+	echo "  ✓ PASS: FAIL-message shape matches the golden"
+}
+
+self_test() {
+	SELFTEST_SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+	SELFTEST_DIR="$(mktemp -d)"
+	trap 'rm -rf "$SELFTEST_DIR"' RETURN
+
+	local fails=0
+	self_test_gate || fails=$((fails + 1))
+	self_test_provenance || fails=$((fails + 1))
+	self_test_golden || fails=$((fails + 1))
+
+	return "$fails"
+}
+
+if [[ "$SELFTEST_MODE" == "1" ]]; then
+	if self_test; then
+		echo "calibration-gate self-test passed."
+		exit 0
+	fi
+	echo "calibration-gate self-test FAILED."
+	exit 1
+fi
 
 if [[ "${CI:-}" == "true" ]]; then
 	echo "calibration-gate: CI environment — load gate is informational only (load1=${LOAD1}, load5=${LOAD5})"

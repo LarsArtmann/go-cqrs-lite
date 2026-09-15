@@ -25,6 +25,7 @@ func TestDeclarations_ConstructWithoutPanic(t *testing.T) {
 		{"RetryCount", func() any { return projections.RetryCount() }},
 		{"FailureLog", func() any { return projections.FailureLog() }},
 		{"ProcessingTime", func() any { return projections.ProcessingTime() }},
+		{"RejectionLog", func() any { return projections.RejectionLog() }},
 		{"CommandsByActor", func() any { return projections.CommandsByActor() }},
 	}
 
@@ -37,12 +38,12 @@ func TestDeclarations_ConstructWithoutPanic(t *testing.T) {
 	}
 }
 
-func TestAll_ReturnsFiveDeclarations(t *testing.T) {
+func TestAll_ReturnsSixDeclarations(t *testing.T) {
 	t.Parallel()
 	g := NewWithT(t)
 
 	all := projections.All()
-	g.Expect(all).To(HaveLen(5))
+	g.Expect(all).To(HaveLen(6))
 }
 
 func TestAll_ProjectionsPlanTogether(t *testing.T) {
@@ -156,6 +157,43 @@ func TestFailureLog_AppliesAndAppends(t *testing.T) {
 	g.Expect(result[0].Error).To(Equal("timeout"))
 	g.Expect(result[0].Attempt).To(Equal(1))
 	g.Expect(result[2].Attempt).To(Equal(3))
+}
+
+func TestRejectionLog_AppliesAndAppends(t *testing.T) {
+	t.Parallel()
+	g := NewWithT(t)
+
+	store, err := metaengine.Plan(
+		[]metaengine.Engine{metaengine.NewMemoryEngine()},
+		projections.RejectionLog(),
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	cmdID := id.NewCommandID()
+
+	g.Expect(store.ApplyRecord(
+		context.Background(),
+		makeRecord("command.rejected", cmdID),
+		commandlifecycle.RejectedPayload{
+			CommandID:   commandlifecycle.CommandKey(cmdID.String()),
+			CommandType: "create_user",
+			Error:       "insufficient funds",
+			Family:      "rejection",
+			ErrorCode:   "INSUFFICIENT_FUNDS",
+			Attempt:     1,
+		},
+	)).To(Succeed())
+
+	result, err := metaengine.ExecuteTyped[projections.RejectionLogQuery, []commandlifecycle.RejectedPayload](
+		context.Background(),
+		store,
+		projections.RejectionLogQuery{Limit: 10},
+	)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(result).To(HaveLen(1))
+	g.Expect(result[0].Error).To(Equal("insufficient funds"))
+	g.Expect(result[0].Family).To(Equal("rejection"))
+	g.Expect(result[0].ErrorCode).To(Equal("INSUFFICIENT_FUNDS"))
 }
 
 func TestProcessingTime_AppliesAndComputesDuration(t *testing.T) {

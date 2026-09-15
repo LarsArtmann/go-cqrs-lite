@@ -9,6 +9,7 @@
 // | Dead-letter queue | command.dead-lettered   | Map      | "Which commands are DL?"       |
 // | Retry count       | command.retried         | Counter  | "How many retries for cmd-X?"  |
 // | Failure log       | command.failed          | Log      | "Show recent failures"         |
+// | Rejection log     | command.rejected        | Log      | "Show recent rejections"       |
 // | Commands by actor | command.received        | Multimap | "What did actor X command?"    |
 //
 // # Usage
@@ -17,6 +18,7 @@
 //	    projections.DeadLetterQueue(),
 //	    projections.RetryCount(),
 //	    projections.FailureLog(),
+//	    projections.RejectionLog(),
 //	)
 //
 //	// The projection host feeds lifecycle events to the store:
@@ -99,7 +101,9 @@ func RetryCount() metaengine.QueryDecl[RetryCountQuery, map[string]int64] {
 
 // FailureLog returns a metaengine projection declaration that folds
 // command.failed events into a Log. Query it to see recent failures in
-// chronological order.
+// chronological order. Business rejections are NOT in this log — they flow
+// to [RejectionLog] instead (the lifecycle middleware partitions by
+// errorfamily classification).
 //
 // ADT: Log (append FailedPayload per failed event).
 func FailureLog() metaengine.QueryDecl[FailureLogQuery, []commandlifecycle.FailedPayload] {
@@ -109,6 +113,32 @@ func FailureLog() metaengine.QueryDecl[FailureLogQuery, []commandlifecycle.Faile
 			string(commandlifecycle.TypeFailed),
 			commandlifecycle.FailedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
 			func(_ record.Record, payload commandlifecycle.FailedPayload) metaengine.Append {
+				return metaengine.Append{Value: payload}
+			},
+		),
+	)
+}
+
+// RejectionLogQuery queries recent command rejections.
+type RejectionLogQuery struct {
+	Limit int `json:"limit,omitempty"`
+}
+
+// RejectionLog returns a metaengine projection declaration that folds
+// command.rejected events into a Log. Each entry stamps the errorfamily
+// classification (family + error code) recorded at rejection time, so audit
+// consumers can answer "rejected by which rule" without re-classifying error
+// text. Query it to see recent business rejections in chronological order;
+// genuine breakage lands in [FailureLog] and the dead-letter queue instead.
+//
+// ADT: Log (append RejectedPayload per rejected event).
+func RejectionLog() metaengine.QueryDecl[RejectionLogQuery, []commandlifecycle.RejectedPayload] {
+	return metaengine.Query[RejectionLogQuery, []commandlifecycle.RejectedPayload](
+		"command_rejection_log",
+		metaengine.OnRecordTyped(
+			string(commandlifecycle.TypeRejected),
+			commandlifecycle.RejectedPayload{}, //nolint:exhaustruct_v5 // type inference hint for OnRecordTyped
+			func(_ record.Record, payload commandlifecycle.RejectedPayload) metaengine.Append {
 				return metaengine.Append{Value: payload}
 			},
 		),
@@ -221,6 +251,7 @@ func All() []any {
 		DeadLetterQueue(),
 		RetryCount(),
 		FailureLog(),
+		RejectionLog(),
 		ProcessingTime(),
 		CommandsByActor(),
 	}

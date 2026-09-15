@@ -24,7 +24,8 @@ type CommandLifecycleResult struct {
 	AttemptMiddleware command.Middleware
 
 	// Projections are the pre-built lifecycle projection declarations (DLQ,
-	// retry count, failure log, processing time) ready for DomainConfig.Projections.
+	// retry count, failure log, rejection log, processing time, commands by
+	// actor) ready for DomainConfig.Projections.
 	Projections []ProjectionDeclaration
 }
 

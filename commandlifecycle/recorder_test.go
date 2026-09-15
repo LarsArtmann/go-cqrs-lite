@@ -68,6 +68,7 @@ func TestEventTypeConstants(t *testing.T) {
 
 	g.Expect(string(commandlifecycle.TypeReceived)).To(Equal("command.received"))
 	g.Expect(string(commandlifecycle.TypeFailed)).To(Equal("command.failed"))
+	g.Expect(string(commandlifecycle.TypeRejected)).To(Equal("command.rejected"))
 	g.Expect(string(commandlifecycle.TypeRetried)).To(Equal("command.retried"))
 	g.Expect(string(commandlifecycle.TypeDeadLettered)).To(Equal("command.dead-lettered"))
 	g.Expect(string(commandlifecycle.TypeCompleted)).To(Equal("command.completed"))

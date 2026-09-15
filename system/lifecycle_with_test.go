@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystore "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
@@ -25,7 +26,7 @@ func TestWithCommandLifecycle_ReturnsAllComponents(t *testing.T) {
 	g.Expect(cl.Recorder).NotTo(BeNil())
 	g.Expect(cl.OuterMiddleware).NotTo(BeNil())
 	g.Expect(cl.AttemptMiddleware).NotTo(BeNil())
-	g.Expect(cl.Projections).To(HaveLen(4))
+	g.Expect(cl.Projections).To(HaveLen(len(projections.All())))
 }
 
 func TestWithCommandLifecycle_MiddlewareEmitsEvents(t *testing.T) {

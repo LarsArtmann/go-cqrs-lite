@@ -1,0 +1,8 @@
+calibration-gate: LOAD GATE FAILED — load5=9.90 >= ceiling 5
+  (load1=0.42, load5=9.90).
+  <UPTIME>
+Benching now would produce load-skewed numbers (the 2026-09-11 SearchQuery
+failure mode). load5 over ceiling = a burst is still draining; wait for a
+quiet window and re-run, or set an explicit, justified ceiling: --max-load N.
+To inspect without gating:
+CALIB_GATE_REQUIRED=0 scripts/calibration-gate.sh.
