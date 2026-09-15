@@ -3,6 +3,7 @@ package sqlstore_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -266,6 +267,161 @@ func TestProperty_ConcurrentScheduleAndMarkFired(t *testing.T) {
 		_, err := store.Due(ctx, base.Add(1*time.Hour))
 		if err != nil {
 			rt.Fatalf("Due after concurrent ops: %v", err)
+		}
+	})
+}
+
+// newClaimingPropStore creates an in-memory SQLite-backed CLAIMING timer
+// store for property tests, sharing the property-test database lifecycle.
+func newClaimingPropStore[P any](
+	tb testing.TB,
+	opts ...sqlstore.ClaimOption[P],
+) *sqlstore.ClaimingTimerStore[P] {
+	tb.Helper()
+
+	n := propDBCounter.Add(1)
+	dsn := fmt.Sprintf(
+		"file:proptimerclaim%d?mode=memory&cache=shared&_pragma=busy_timeout(5000)",
+		n,
+	)
+
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		tb.Fatalf("open sqlite: %v", err)
+	}
+
+	tb.Cleanup(func() { _ = db.Close() })
+
+	store, err := sqlstore.NewClaimingSQLiteStore[P](context.Background(), db, 0, opts...)
+	if err != nil {
+		tb.Fatalf("NewClaimingSQLiteStore: %v", err)
+	}
+
+	return store
+}
+
+// TestProperty_ClaimCountersTrackCommittedPolls pins the ClaimMetrics
+// accounting invariants over a random Schedule/poll/renew sequence:
+// ClaimedBatches counts exactly the COMMITTED Due polls (a failed poll must
+// not count), ClaimedTimers equals the hook-observed claim total and never
+// exceeds the number of scheduled timers (a timer claims at most once inside
+// its lease window), and every RenewLease attempt lands in exactly one of
+// Renewed/RenewRejected — both counters agreeing with the hooks.
+func TestProperty_ClaimCountersTrackCommittedPolls(t *testing.T) {
+	t.Parallel()
+
+	rapid.Check(t, func(rt *rapid.T) {
+		ctx := context.Background()
+
+		var (
+			hookBatches   int64
+			hookClaimed   int64
+			hookRenewed   int64
+			hookRejected  int64
+			renewAttempts int64
+		)
+
+		store := newClaimingPropStore[testPayload](t, sqlstore.WithClaimMetrics[testPayload](
+			sqlstore.ClaimMetrics{
+				Claimed:       func(n int) { hookBatches++; hookClaimed += int64(n) },
+				Renewed:       func() { hookRenewed++ },
+				RenewRejected: func() { hookRejected++ },
+			},
+		))
+
+		base := time.Now().UTC()
+		scheduled := rapid.IntRange(1, 40).Draw(rt, "scheduled")
+
+		for i := range scheduled {
+			offset := time.Duration(
+				rapid.IntRange(-3600, 3600).Draw(rt, "fire_offset"),
+			) * time.Second
+			if err := store.Schedule(ctx, scheduling.Timer[testPayload]{
+				ID:      scheduling.MustParseTimerID(fmt.Sprintf("counter-%d", i)),
+				FireAt:  base.Add(offset),
+				Payload: testPayload{Action: "counter", Amount: i},
+			}); err != nil {
+				rt.Fatalf("Schedule %d: %v", i, err)
+			}
+		}
+
+		var claimedIDs []scheduling.TimerID
+
+		polls := rapid.IntRange(1, 8).Draw(rt, "polls")
+		for p := range polls {
+			due, err := store.Due(ctx, base.Add(time.Duration(p)*time.Second))
+			if err != nil {
+				rt.Fatalf("poll %d: %v", p, err)
+			}
+
+			for _, tm := range due {
+				claimedIDs = append(claimedIDs, tm.ID)
+			}
+		}
+
+		for i, id := range claimedIDs {
+			if rapid.Bool().Draw(rt, fmt.Sprintf("renew_%d", i)) {
+				renewAttempts++
+
+				if err := store.RenewLease(ctx, id, time.Hour); err != nil {
+					rt.Fatalf("RenewLease on a live claim %s: %v", id, err)
+				}
+			}
+		}
+
+		// Renewals for timers this store never claimed always land in the
+		// rejected bucket.
+		for i := range rapid.IntRange(0, 3).Draw(rt, "ghost_renews") {
+			renewAttempts++
+
+			err := store.RenewLease(
+				ctx,
+				scheduling.MustParseTimerID(fmt.Sprintf("ghost-%d", i)),
+				time.Hour,
+			)
+			if !errors.Is(err, sqlstore.ErrLeaseNotHeld) {
+				rt.Fatalf("RenewLease for unclaimed timer: %v, want ErrLeaseNotHeld", err)
+			}
+		}
+
+		m := store.Metrics()
+
+		if m.ClaimedBatches != hookBatches || m.ClaimedBatches > int64(polls) {
+			rt.Fatalf(
+				"ClaimedBatches = %d (hooks saw %d) for %d committed polls — counter drift or overcount",
+				m.ClaimedBatches,
+				hookBatches,
+				polls,
+			)
+		}
+
+		if m.ClaimedTimers != hookClaimed {
+			rt.Fatalf(
+				"ClaimedTimers = %d, hooks saw %d — built-in and hook counters disagree",
+				m.ClaimedTimers, hookClaimed,
+			)
+		}
+
+		if m.ClaimedTimers > int64(scheduled) {
+			rt.Fatalf(
+				"ClaimedTimers = %d exceeds %d scheduled timers — a timer was claimed more than once",
+				m.ClaimedTimers,
+				scheduled,
+			)
+		}
+
+		if m.Renewed != hookRenewed || m.RenewRejected != hookRejected {
+			rt.Fatalf(
+				"renew counters = (%d, %d), hooks saw (%d, %d) — counter drift",
+				m.Renewed, m.RenewRejected, hookRenewed, hookRejected,
+			)
+		}
+
+		if m.Renewed+m.RenewRejected != renewAttempts {
+			rt.Fatalf(
+				"renew outcomes = %d for %d attempts — an attempt was counted twice or lost",
+				m.Renewed+m.RenewRejected, renewAttempts,
+			)
 		}
 	})
 }

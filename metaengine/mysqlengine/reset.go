@@ -17,6 +17,7 @@ var resetBaseTables = []string{
 	"meta_counter",
 	"meta_stream_log",
 	"meta_graph_edges",
+	"meta_vector",
 }
 
 // ResetEngine implements [metaengine.EngineResetter]: it clears every

@@ -803,3 +803,78 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		t.Fatalf("walk failed: %v", err)
 	}
 }
+
+// TestEveryModuleGoSumIsTidy runs `go mod tidy -diff` (GOWORK=off, no-write)
+// in every module directory and fails on any go.mod/go.sum drift. This pins
+// the missing-go.sum-hash class as a repo-level fact: a go.mod edited without
+// its go.sum update builds fine under a warm module cache but breaks every
+// cold-cache consumer or CI leg (the pgx v5.11.0 `/go.mod` hash class, found
+// live 2026-09-11). `nix run .#check-modsums` runs the same gate as a flake
+// app; this test extends coverage to plain per-module `go test` runs.
+//
+// Skipped under -short (the sweep costs minutes on a cold module cache);
+// the fast loops keep the check via `nix run .#verify` (check-modsums leg).
+func TestEveryModuleGoSumIsTidy(t *testing.T) {
+	if testing.Short() {
+		t.Skip("modsum sweep skipped in -short; run nix run .#check-modsums for the fast path")
+	}
+
+	projectRoot := filepath.Join(".", "..", "..")
+
+	// Same exclusion set as TestEveryGoModDirIsInModulesList.
+	excluded := map[string]string{
+		".":                                   "root workspace go.mod",
+		"cmd/api-stability":                   "the api-stability tool itself (circular)",
+		"cmd/cqrs-lint/testdata/typedfixture": "cqrs-lint typed-path test fixture (replace-based consumer, not a product module)",
+		"integration":                         "workspace-only cross-module tests (published graph not self-contained)",
+		"example/getting-started":             "example application",
+		"example/metaengine-quickstart":       "example application",
+		"example/readme-quickstart":           "example application",
+		"example/scheduler-otel-status":       "example application",
+		"example/taskmanager":                 "example application",
+	}
+
+	goworkOff := append(os.Environ(), "GOWORK=off")
+
+	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return nil
+		}
+		name := info.Name()
+		if name == ".git" || name == "vendor" ||
+			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
+			return filepath.SkipDir
+		}
+		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(projectRoot, path)
+		if err != nil {
+			return err
+		}
+		if reason, ok := excluded[rel]; ok {
+			t.Logf("excluding %s (%s)", rel, reason)
+
+			return nil
+		}
+
+		cmd := exec.Command("go", "mod", "tidy", "-diff")
+		cmd.Dir = filepath.Join(projectRoot, rel)
+		cmd.Env = goworkOff
+		if out, cmdErr := cmd.CombinedOutput(); cmdErr != nil {
+			t.Errorf("module %s: go.mod/go.sum not tidy (cold-cache builds will fail); "+
+				"run GOWORK=off go mod tidy in that module and commit both files. Output:\n%s",
+				rel, out)
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk failed: %v", err)
+	}
+}

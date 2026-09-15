@@ -87,10 +87,11 @@ func StartSaveSpanWithDialect(
 	eventCount int,
 ) (context.Context, cqrsotel.Span) {
 	return StartDialectSpan(ctx, spanName, d,
-		cqrsotel.StreamAttrs(ref.Type, ref.ID),
-		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()),
-		cqrsotel.AttrInt(cqrsotel.AttrEventCount, eventCount),
-	)
+		append(
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, expectedVersion.Int()),
+			cqrsotel.AttrInt(cqrsotel.AttrEventCount, eventCount),
+		)...)
 }
 
 // StartStreamSpan creates a span for a stream operation with stream attributes.

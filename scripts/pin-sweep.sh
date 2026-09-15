@@ -10,12 +10,18 @@
 #
 # Usage:
 #   bash scripts/pin-sweep.sh --check      # report-only; exit 1 on stale pins (CI leg)
+#   bash scripts/pin-sweep.sh --dry-run    # preview the sweep: report planned bumps, change nothing
 #   bash scripts/pin-sweep.sh --no-build   # sweep without per-module compile checks
 #   bash scripts/pin-sweep.sh              # full sweep (default)
 #
+# --remote (with --check or --dry-run): compare against `git ls-remote --tags origin`
+# instead of local tags — catches the "tag pushed but not fetched locally" blind spot,
+# where --check stays green while every consumer pin is already stale upstream.
+#
 # Notes:
-# - "Latest" = highest LOCAL git tag `<dir>/v4.*` (sort -V). Push tags before
-#   cutting dependent tags: GOPRIVATE consumers resolve via VCS, not local refs.
+# - "Latest" = highest LOCAL git tag `<dir>/v4.*` (sort -V) unless --remote is given.
+#   Push tags before cutting dependent tags: GOPRIVATE consumers resolve via VCS, not
+#   local refs.
 # - event/v4/eventtest is skipped: its v4.x tags are dead (module path lacks
 #   the /vN suffix, so the module proxy rejects them — 2026-08-28 finding).
 # - Per-module verification compiles test files without running tests
@@ -29,17 +35,24 @@ cd "$(git rev-parse --show-toplevel)"
 MODE=sweep
 
 NO_BUILD=0
+REMOTE=0
 
 for arg in "$@"; do
 	case "$arg" in
 	--check)
 		MODE=check
 		;;
+	--dry-run)
+		MODE=dryrun
+		;;
 	--no-build)
 		NO_BUILD=1
 		;;
+	--remote)
+		REMOTE=1
+		;;
 	*)
-		echo "usage: pin-sweep.sh [--check] [--no-build]" >&2
+		echo "usage: pin-sweep.sh [--check] [--dry-run] [--no-build] [--remote]" >&2
 		exit 2
 		;;
 	esac
@@ -47,8 +60,32 @@ done
 
 GO_TAGS="goexperiment.jsonv2"
 
+# latest_tag prints the highest version tag for a module dir. Source: local
+# refs by default, `git ls-remote --tags origin` when REMOTE=1 (fetched ONCE
+# into a cache file — one network round trip per run, not per module).
+latest_tag() {
+	local moddir="$1"
+
+	if [ "$REMOTE" -eq 1 ]; then
+		if [ -z "${REMOTE_TAGS_FETCHED:-}" ]; then
+			REMOTE_TAGS_FILE=$(mktemp)
+			git ls-remote --tags origin >"$REMOTE_TAGS_FILE"
+			REMOTE_TAGS_FETCHED=1
+		fi
+
+		grep -E "refs/tags/${moddir}/v4\.[0-9]+\.[0-9]+$" "$REMOTE_TAGS_FILE" |
+			sed 's|.*refs/tags/||' |
+			sort -V |
+			tail -1
+
+		return 0
+	fi
+
+	git tag -l "${moddir}/v4.*" | sort -V | tail -1
+}
+
 # collect_stale emits "<dir>\t<dep>\t<ver>\t<latest>" for every sibling pin
-# older than the latest local tag.
+# older than the latest tag (local refs, or origin with --remote).
 collect_stale() {
 	find . -name go.mod -not -path './vendor/*' -not -path './.git/*' | while read -r gomod; do
 		dir="${gomod#./}"
@@ -69,7 +106,7 @@ collect_stale() {
 				moddir="${dep#github.com/larsartmann/go-cqrs-lite/}"
 				moddir="${moddir%/*}"
 
-				latest=$(git tag -l "${moddir}/v4.*" | sort -V | tail -1)
+				latest=$(latest_tag "$moddir")
 
 				[ -z "$latest" ] && continue
 
@@ -129,7 +166,27 @@ if [ "$MODE" = check ]; then
 		exit 1
 	fi
 
-	echo "All sibling pins are at their latest tags."
+	echo "All sibling pins are at their latest tags (source: local refs)."
+
+	if [ "$REMOTE" -eq 1 ]; then
+		echo "All sibling pins are at their latest origin tags."
+	fi
+
+	exit 0
+fi
+
+if [ "$MODE" = dryrun ]; then
+	if [ "$stale_count" -eq 0 ]; then
+		echo "Dry-run: nothing to sweep, all pins current."
+		exit 0
+	fi
+
+	echo "==> dry-run: would bump $stale_count stale pin(s)"
+	printf '%s\n' "$stale" | while IFS=$'\t' read -r dir dep ver latest; do
+		echo "  $dir: $dep $ver → $latest"
+	done
+	echo "==> dry-run: would standalone-verify each changed module, then refresh cqrs-lint goldens"
+	echo "Dry-run complete: no changes made."
 
 	exit 0
 fi

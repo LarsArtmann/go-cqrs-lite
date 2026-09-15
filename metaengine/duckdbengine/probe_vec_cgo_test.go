@@ -50,8 +50,10 @@ func TestProbeDuckDBArrayFunctions(t *testing.T) {
 		"[1.0,0.0]").Scan(&id, &dist)
 	t.Logf("topk-param err=%v id=%v dist=%v", err, id, dist)
 
-	err = db.QueryRowContext(ctx,
+	err = db.QueryRowContext(
+		ctx,
 		`SELECT id, 1 - array_cosine_similarity(v, ?::FLOAT[2]) AS d FROM probe_vec ORDER BY d LIMIT 1`,
-		"[1.0,0.0]").Scan(&id, &dist)
+		"[1.0,0.0]",
+	).Scan(&id, &dist)
 	t.Logf("cosine-param err=%v id=%v dist=%v", err, id, dist)
 }

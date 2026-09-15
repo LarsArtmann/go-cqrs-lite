@@ -34,6 +34,15 @@ const vectorInsertSQL = `INSERT INTO meta_vector (collection, id, vec, metadata)
 		vec = excluded.vec,
 		metadata = excluded.metadata`
 
+// vectorTableDDL appends the meta_vector table to the engine's base schema.
+// The PRIMARY KEY (collection, id) index also serves collection-prefix scans,
+// so no separate collection index is needed.
+const vectorTableDDL = `
+CREATE TABLE IF NOT EXISTS meta_vector (
+	collection TEXT NOT NULL, id TEXT NOT NULL, vec BLOB NOT NULL, metadata TEXT,
+	PRIMARY KEY (collection, id)
+);`
+
 // libSQLProbeSQL detects libSQL vector functions at construction: modernc
 // fails here ("no such function"), turso (embedded or remote libSQL) succeeds.
 const libSQLProbeSQL = `SELECT vector_distance_cos(vector32('[1]'), vector32('[1]'))`
@@ -46,13 +55,15 @@ func probeVectorSQL(db *sql.DB) bool {
 
 // libSQLDistanceExpr maps a metric to a libSQL SQL expression over the stored
 // vec column and a vector32(?) placeholder, preserving VectorDistance
-// semantics (dot is negated so ascending order is nearest-first).
+// semantics: vector_distance_dot already returns the NEGATED dot product
+// (identical vectors → -1), so all three expressions sort ascending =
+// nearest-first.
 func libSQLDistanceExpr(metric string) string {
 	switch metric {
 	case "cosine":
 		return "vector_distance_cos(vec, vector32(?))"
 	case "dot":
-		return "(-vector_distance_dot(vec, vector32(?)))"
+		return "vector_distance_dot(vec, vector32(?))"
 	default: // "euclidean", "", unknown → euclidean (matches computeDistance)
 		return "vector_distance_l2(vec, vector32(?))"
 	}

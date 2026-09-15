@@ -457,6 +457,60 @@ jobs:
           echo "go.work is synced"
 
     timeout-minutes: 15
+  # Kills the missing-go.sum-hash class (pgx v5.11.0 `/go.mod` hash, found
+  # live 2026-09-11): a go.mod edited without its go.sum update builds fine
+  # under a warm module cache but breaks every cold-cache consumer or CI leg.
+  # `go mod tidy -diff` asserts completeness without writing anything. The
+  # repo-level meta-test (TestEveryModuleGoSumIsTidy) covers plain go test
+  # runs; this job pins it as an independent CI fact. Plain setup-go (not the
+  # nix stack) so the gate survives nix cache throttling.
+  modsums:
+    name: Module go.mod/go.sum Tidy (cold-cache safety)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      - name: Assert every module is tidy (go mod tidy -diff, no-write)
+        run: bash scripts/check-modsums.sh
+
+    timeout-minutes: 20
+  # Findings hidden behind the `integration` build tag are invisible to the
+  # default lint gate (the gocognit finding survived ~10 days that way, since
+  # lint-module hardcoded only goexperiment.jsonv2). This leg lints every
+  # module that ships *_integration_test.go WITH the tag, so tagged files are
+  # type-checked and linted like everything else. Resolves each hit to its
+  # module root (some tagged files live in nested packages).
+  integration-tag-lint:
+    name: "Lint integration-tagged files (build tag: integration)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+
+      - uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d
+        with:
+          use-flakehub: false
+
+      - name: Lint every integration-test-shipping module with the tag
+        run: |
+          set -euo pipefail
+          while IFS= read -r f; do
+            root="$(dirname "$f")"
+            while [ "$root" != "." ] && [ ! -f "$root/go.mod" ]; do
+              root="$(dirname "$root")"
+            done
+            echo "$root"
+          done < <(find . -name '*_integration_test.go' -not -path './vendor/*' -not -path './.git/*') |
+            sort -u |
+            while IFS= read -r mod; do
+              echo "==> Linting $mod (tags: goexperiment.jsonv2 integration)"
+              nix run .#lint-module -- "$mod" integration
+            done
+
+    timeout-minutes: 25
   file-size-gate:
     name: File Size Check (max 350 lines)
     runs-on: ubuntu-latest

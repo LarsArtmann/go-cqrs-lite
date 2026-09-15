@@ -38,6 +38,32 @@ var renamedAggregateCodes = []string{
 	"grpc.event_client.parse_aggregate_id",
 }
 
+// scanGoFileForRenamedCodes reports every renamed-code hit in one .go file as
+// "rel:LINE reintroduces CODE" strings. Shared by the repo-wide walk
+// (TestNoRenamedAggregateFamilyCodeReappears) and the permanent mutation
+// fixture self-assert (TestAggregateTripwireScannerBites), so the two cannot
+// drift apart.
+func scanGoFileForRenamedCodes(projectRoot, path string) ([]string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var hits []string
+
+	lines := strings.Split(string(data), "\n")
+	for i, line := range lines {
+		for _, code := range renamedAggregateCodes {
+			if strings.Contains(line, code) {
+				rel, _ := filepath.Rel(projectRoot, path)
+				hits = append(hits, rel+":"+strconv.Itoa(i+1)+" reintroduces "+code)
+			}
+		}
+	}
+
+	return hits, nil
+}
+
 func TestNoRenamedAggregateFamilyCodeReappears(t *testing.T) {
 	t.Parallel()
 
@@ -68,20 +94,11 @@ func TestNoRenamedAggregateFamilyCodeReappears(t *testing.T) {
 			return nil
 		}
 
-		data, readErr := os.ReadFile(path)
-		if readErr != nil {
-			return readErr
+		fileHits, scanErr := scanGoFileForRenamedCodes(projectRoot, path)
+		if scanErr != nil {
+			return scanErr
 		}
-
-		lines := strings.Split(string(data), "\n")
-		for i, line := range lines {
-			for _, code := range renamedAggregateCodes {
-				if strings.Contains(line, code) {
-					rel, _ := filepath.Rel(projectRoot, path)
-					hits = append(hits, rel+":"+strconv.Itoa(i+1)+" reintroduces "+code)
-				}
-			}
-		}
+		hits = append(hits, fileHits...)
 
 		return nil
 	})
@@ -94,5 +111,58 @@ func TestNoRenamedAggregateFamilyCodeReappears(t *testing.T) {
 			"renamed aggregate_* family codes reappeared (stream vocabulary is canonical):\n%s",
 			strings.Join(hits, "\n"),
 		)
+	}
+}
+
+// TestAggregateTripwireScannerBites is the permanent version of the
+// 2026-09-11 hand-planted mutation proof (which died with its status
+// report): the scanner must fire on a planted reintroduction fixture and
+// must NOT fire on the legitimate-identifier negative control, proving the
+// exact-string table still bites without a broad-substring false positive.
+// The fixture lives under testdata/, which the repo-wide walk skips, so it
+// only bites through this self-assert.
+func TestAggregateTripwireScannerBites(t *testing.T) {
+	t.Parallel()
+
+	projectRoot := filepath.Join(".", "..", "..")
+	fixture := filepath.Join(
+		projectRoot,
+		"cmd",
+		"api-stability",
+		"testdata",
+		"aggregatetripwire",
+		"planted.go",
+	)
+
+	hits, err := scanGoFileForRenamedCodes(projectRoot, fixture)
+	if err != nil {
+		t.Fatalf("scan fixture: %v", err)
+	}
+
+	gotCodes := make(map[string]bool, len(hits))
+	for _, h := range hits {
+		for _, code := range renamedAggregateCodes {
+			if strings.Contains(h, " reintroduces "+code) {
+				gotCodes[code] = true
+			}
+		}
+	}
+
+	for _, planted := range []string{"event.aggregate_not_found", "storage.parse_aggregate_id"} {
+		if !gotCodes[planted] {
+			t.Errorf("tripwire scanner did NOT fire on planted %s in the fixture — "+
+				"the exact-string table no longer bites (hits: %v)", planted, hits)
+		}
+	}
+
+	if len(hits) != 2 {
+		t.Errorf("scanner produced %d hits on the fixture, want exactly 2 (planted pair only): %v",
+			len(hits), hits)
+	}
+
+	for _, h := range hits {
+		if strings.Contains(h, "listing.aggregate_projection") {
+			t.Errorf("scanner false-fired on the legitimate-identifier negative control: %s", h)
+		}
 	}
 }

@@ -124,7 +124,7 @@ func (e *duckdbEngine) init() error {
 			from_node VARCHAR NOT NULL,
 			to_node VARCHAR NOT NULL,
 			PRIMARY KEY (collection, from_node, to_node)
-		)`,
+		)` + vectorTableDDL,
 	}
 
 	for _, ddl := range ddls {

@@ -135,6 +135,10 @@ func (e *dgraphEngine) init() error {
 		cqrs.stream_log_stream: string @index(exact) .
 		cqrs.stream_log_seq: int @index(int) .
 		cqrs.stream_log_value: string .
+		cqrs.vector_collection: string @index(exact) @upsert .
+		cqrs.vector_id: string @index(exact) @upsert .
+		cqrs.vector_values: float32vector .
+		cqrs.vector_metadata: string .
 	`
 
 	ctx := context.Background()
@@ -195,9 +199,11 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 			metaengine.ADTLog:       metaengine.ComplexityOLogN,
 			metaengine.ADTStreamLog: metaengine.ComplexityOLogN,
+			metaengine.ADTVector:    metaengine.ComplexityON, // Go-side brute-force scan
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSortedMap: true,
+			metaengine.ADTVector:    true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutKV,

@@ -33,6 +33,9 @@ var resetTypePredicates = map[string][]string{
 	},
 	"GraphNode": {"cqrs.node_collection", "cqrs.node_id"},
 	"SearchDoc": {"cqrs.search_collection", "cqrs.search_id", "cqrs.search_content"},
+	"VectorEmbedding": {
+		"cqrs.vector_collection", "cqrs.vector_id", "cqrs.vector_values", "cqrs.vector_metadata",
+	},
 }
 
 // resetTypeOrder gives the var-binding order a stable iteration sequence.
@@ -45,6 +48,7 @@ var resetTypeOrder = []string{
 	"StreamLogEntry",
 	"GraphNode",
 	"SearchDoc",
+	"VectorEmbedding",
 }
 
 // ResetEngine implements [metaengine.EngineResetter]: it deletes every

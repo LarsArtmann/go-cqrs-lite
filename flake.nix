@@ -939,6 +939,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-tag-release.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-check-retracts-shipped.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-pin-sweep.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                 '';
 
@@ -1089,16 +1090,21 @@
 
             # lint-module: per-task lint gate for ONE module —
             #   nix run .#lint-module -- metaengine/pgengine
+            #   nix run .#lint-module -- scheduling/sqlstore integration
+            # (optional 2nd arg: extra build tags, e.g. `integration`, so
+            # *_integration_test.go files are type-checked and linted too —
+            # the official gate used to miss findings hidden behind the tag).
             # Runs the same GOWORK=off golangci-lint invocation the AGENTS
             # per-task gate rule prescribes, without the manual env dance.
             lint-module = mkApp "lint-module" [ goPkg pkgs.golangci-lint pkgs.bash ] ''
               mod="''${1:-}"
+              extraTags="''${2:-}"
               if [ -z "$mod" ] || [ ! -f "$mod/go.mod" ]; then
-                echo "usage: nix run .#lint-module -- <module-dir-with-go.mod>"
+                echo "usage: nix run .#lint-module -- <module-dir-with-go.mod> [extra-build-tags]"
                 exit 1
               fi
               cd "$mod"
-              exec ${pkgs.golangci-lint}/bin/golangci-lint run                 --build-tags goexperiment.jsonv2 ./...
+              exec ${pkgs.golangci-lint}/bin/golangci-lint run                 --build-tags "goexperiment.jsonv2 ''${extraTags}" ./...
             '';
 
             # load-sweep: run timing-assertion tests under deliberate CPU load
@@ -1246,11 +1252,16 @@
               ${pkgs.bash}/bin/bash scripts/pre-commit.sh
             '';
 
-            install-hooks = mkApp "install-hooks" [ pkgs.bash ] ''
-              mkdir -p .git/hooks
-              cp scripts/pre-commit.sh .git/hooks/pre-commit
-              chmod +x .git/hooks/pre-commit
-              echo "Installed .git/hooks/pre-commit"
+            # install-hooks honors core.hooksPath (set to .githooks on this
+            # machine): writing .git/hooks/pre-commit installs a hook git
+            # silently ignores, which is how ALL pre-commit gating died
+            # without anyone noticing (found 2026-09-15).
+            install-hooks = mkApp "install-hooks" [ pkgs.bash pkgs.git ] ''
+              hooksdir="$(git config core.hooksPath || echo .git/hooks)"
+              mkdir -p "$hooksdir"
+              cp scripts/pre-commit.sh "$hooksdir/pre-commit"
+              chmod +x "$hooksdir/pre-commit"
+              echo "Installed $hooksdir/pre-commit (core.hooksPath honored)"
             '';
 
             ci = mkApp "ci" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils ] ''

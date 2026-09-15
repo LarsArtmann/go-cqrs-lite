@@ -25,11 +25,58 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`scripts/testdata/calibration-gate-fail-message.golden`** — pins the
   operator-facing FAIL message byte-exact (uptime line normalized);
   mutation-tested.
+
+### Added — vector search on every metaengine engine (graceful degradation, never failure) — 2026-09-15
+
+- **`VectorBackend` + `VectorFilterBackend` + `VectorCounter` now ship on
+  EVERY engine**, closing the last ADTVector coverage gaps so a single-engine
+  deployment of any flavor serves vector queries instead of failing at plan
+  time (`ErrUnsupportedADT`) or execute time. SQLite/Turso and MySQL/Dgraph
+  previously declared ADTVector degraded without a fallback; DuckDB routed
+  vector queries to a runtime error. All engines share
+  `metaengine.VectorDistance` semantics (cosine = 1-cosSim, dot = negated,
+  ascending = nearest) so `adttest.RunMatrix` parity holds, and every engine
+  clears `meta_vector` in `EngineResetter` (ADR-0136 ladder).
+- **`sqliteengine` (+ `tursoengine` by delegation)** — `meta_vector` table
+  storing bare little-endian float32 BLOBs; a construction-time probe picks
+  the execution path: modernc pure-Go scans and scores in Go, libSQL drivers
+  (turso, embedded or remote) push k-NN into SQL via `vector32()` +
+  `vector_distance_cos/l2/dot` (empirically verified: `vector_distance_dot`
+  already returns the negated dot product — byte-identical to
+  `metaengine.VectorDistance` semantics).
+- **`duckdbengine`** — full SQL pushdown via DuckDB core array functions
+  (`array_distance`, `array_cosine_distance`, `array_negative_inner_product`;
+  fixed-`FLOAT[n]` casts formatted from the query dimension). Fixes the
+  declared-degraded-without-fallback lie; VSS HNSW remains a ROADMAP item.
+- **`mysqlengine`** — brute-force Go scan over `meta_vector` (LONGBLOB +
+  JSON metadata); MariaDB `VECTOR` pushdown is a ROADMAP item (MySQL proper
+  has no OSS vector support outside HeatWave).
+- **`dgraphengine`** — `float32vector` predicates (`cqrs.vector_values`,
+  Dgraph v24+; pinned nixpkgs Dgraph is 25.4.0) with the MapSet-style
+  conditional upsert including a delete mutation that clears stale metadata;
+  scan + Go-side scoring. Native `similar_to` ANN stays a ROADMAP item
+  (schema-time metric coupling, uid-only results).
+- **`metaengine.EncodeVectorF32` / `metaengine.DecodeVectorF32`** — the raw
+  little-endian float32 wire format (libSQL `F32_BLOB`-compatible, no header)
+  used by the SQL-backed vector engines.
+
+### Added — `storage`: dialect-aware `db.system` span attributes across the SQL stores — 2026-09-15
+
+- **Every SQL-backed store now stamps the OTel semconv `db.system` on its
+  spans** (`sqlite` / `postgresql` / `mysql` / `duckdb`), closing the gap
+  left when pebble and bbolt gained the attribute on 2026-09-13. The Dialect
+  is threaded into the package-level span helpers (`sql.StartDialectSpan`,
+  `sql.StartStreamSpanWithDialect`, `sql.StartSaveSpanWithDialect`) and all
+  ~18 span starts across `storage/v4` (`sql`, `eventstore`, command/query/
+  timer stores) now use them; custom dialects pass through unstamped rather
+  than guessing. The old `StartStreamSpan`/`StartSaveSpan` remain as
+  deprecated forwarders for external consumers.
+
 ### Added — `commandlifecycle`: distinct `command.rejected` event with errorfamily classification (T17 option A) — 2026-09-15
 
 - **Business rejections are now their own lifecycle event.** A command
-  failing with a rejection-family error (`errorfamily.Rejection`,
-  `errorfamily.Conflict` — "no state changed; caller must act") emits
+  failing with a rejection-family error (the go-error-family `Rejection` or
+  `Conflict` family — "no state changed; caller must act") emits
   `command.rejected` instead of `command.failed`, and is NOT dead-lettered
   (rejected commands never retry and never land in the DLQ, so the DLQ stays
   ops-only). The audit answer "rejected by rule" vs "broke" is now the event
@@ -38,8 +85,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (Rejection + Conflict), overridable per recorder with
   `commandlifecycle.WithRejectionFamilies` (an empty list disables
   rejections entirely); `commandlifecycle.Recorder.IsRejection` exposes the
-  predicate. The default pairs with retry middleware, whose
-  `errorfamily.IsRetryable` default never retries rejection families.
+  predicate. The default pairs with retry middleware, whose retry-default
+  never retries rejection families (go-error-family `IsRetryable`).
 - **Recorder + middleware wiring** — `commandlifecycle.Recorder.RecordRejected`
   stamps the classified family and error code at rejection time;
   `RejectedPayload` carries `{commandId, commandType, error, family,
@@ -324,6 +371,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   used; Encoded-Applies imported `record` it never used.
 - **`stack/options.go` `WithFlightRecorder` doc comment** — showed the same
   non-compiling `sqlite.WithStack` wiring the recipes doc had copied.
+
 ### Fixed — metaengine: CatchUpEngine can no longer miss events written during the rebuild — 2026-09-13
 
 - **The stale-snapshot race is closed.** While an engine was quarantined,

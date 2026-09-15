@@ -27,7 +27,7 @@ func (s *SQLCommandStore) Save(
 		ctx,
 		"command.store.save",
 		s.Dialect,
-		cqrsotel.StreamAttrs(ref.Type, ref.ID),
+		cqrsotel.StreamAttrs(ref.Type, ref.ID)...,
 	)
 	defer span.End()
 
@@ -61,8 +61,10 @@ func (s *SQLCommandStore) AppendBatch(
 		ctx,
 		"command.store.append_batch",
 		s.Dialect,
-		cqrsotel.StreamAttrs(ref.Type, ref.ID),
-		cqrsotel.AttrInt("command.count", len(cmds)),
+		append(
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt("command.count", len(cmds)),
+		)...,
 	)
 	defer span.End()
 

@@ -121,11 +121,19 @@ Open remainder: iroh standalone-pin repair + the skill-ref propagation wave.
 
 **Remaining (long-term, ROADMAP):**
 
-- **Vector/Search/Spatial engine backends** — currently Memory-only (brute-force).
-  DuckDB VSS extension (vector similarity), Postgres tsvector (full-text search),
-  PostGIS (spatial). Each is a separate engine module with its own deps.
-  Dgraph also has native vector + geo support (`DgraphVectorBackend`,
-  `DgraphSpatialBackend` — separate from the existing Memory brute-force path).
+- **Native ANN vector indexes per engine** — brute-force `VectorBackend` now
+  ships on EVERY engine (memory, sqlite/turso, pebble, bbolt, badger, pg,
+  mysql, duckdb, dgraph — 2026-09-15; graceful degradation, never failure).
+  The remaining vector work is native ANN acceleration per engine: DuckDB
+  VSS extension (`CREATE INDEX ... USING HNSW`, experimental — RAM-resident
+  index, full re-serialization at checkpoint), Dgraph `@index(hnsw(metric))`
+  + `similar_to` (schema-time metric coupling; returns uids without
+  distances — Go-side rescoring needed), sqlite-vec `vec0` virtual tables
+  (loadable C extension — NOT loadable via the pure-Go modernc.org/sqlite
+  driver; verified against v1.58.0), MariaDB 11.7+ native `VECTOR` columns +
+  `VEC_DISTANCE_*` (MySQL proper has nothing outside HeatWave), Postgres
+  pgvector. Full-text search (tsvector) and spatial (PostGIS) engine backends
+  remain Memory/Dgraph-only.
 - **Dgraph backend expansion** — `SnapshotBackend` (versioned predicates or
   snapshot namespace), `StreamLogBackend` (stream-keyed log ops). Both needed
   for full `system.Bundle` integration.

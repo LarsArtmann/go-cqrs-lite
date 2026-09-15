@@ -54,8 +54,10 @@ func (s *SQLSnapshotStore) Save(ctx context.Context, snap snapshot.Snapshot) err
 		ctx,
 		"snapshot.save",
 		s.Dialect,
-		cqrsotel.StreamAttrs(snap.StreamType, snap.StreamID),
-		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, snap.Version.Int()),
+		append(
+			cqrsotel.StreamAttrs(snap.StreamType, snap.StreamID),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, snap.Version.Int()),
+		)...,
 	)
 	defer span.End()
 	p1, p2, p3, p4, p5 := s.Dialect.Placeholder(1), s.Dialect.Placeholder(2),
@@ -112,8 +114,10 @@ func (s *SQLSnapshotStore) LoadAtVersion(
 		ctx,
 		"snapshot.load_at_version",
 		s.Dialect,
-		cqrsotel.StreamAttrs(ref.Type, ref.ID),
-		cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()),
+		append(
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt(cqrsotel.AttrStreamVersion, version.Int()),
+		)...,
 	)
 	defer span.End()
 	snap, err := s.querySnapshotAtVersion(ctx, ref, version)

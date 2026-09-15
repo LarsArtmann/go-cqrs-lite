@@ -139,8 +139,10 @@ func (s *SQLEventStore) AppendBatch(
 		ctx,
 		"event.store.append_batch",
 		s.Dialect,
-		cqrsotel.StreamAttrs(ref.Type, ref.ID),
-		cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
+		append(
+			cqrsotel.StreamAttrs(ref.Type, ref.ID),
+			cqrsotel.AttrInt(cqrsotel.AttrEventCount, len(events)),
+		)...,
 	)
 	defer span.End()
 

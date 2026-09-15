@@ -568,7 +568,9 @@ interfaces for optimized read paths:
 | `MapUpdater`          | `MapUpdate`                      | Atomic read-modify-write                           |
 | `Transactional`       | `RunInTx`                        | Cross-collection transactional writes              |
 | `HealthChecker`       | `HealthCheck`                    | Liveness/readiness probe (K8s-style)               |
+| `VectorBackend`       | `VectorInsert`/`VectorSearch`    | k-NN similarity search (every engine; SQL pushdown or Go brute-force) |
 | `VectorFilterBackend` | `VectorSearchFiltered`           | Metadata-filtered vector search (AND semantics)    |
+| `VectorCounter`       | `VectorCount`/`VectorCollections` | Size introspection without payload transfer (Doctor `--- Vectors ---`) |
 | Graph edge removal    | `HasGraphEdgeRemoval(eng)`       | `GraphRemoveEdge` — required for EdgeRemoval folds |
 | Undirected graph      | `HasUndirectedGraphSupport(eng)` | Traversal follows edges in BOTH directions         |
 

@@ -24,17 +24,16 @@ type sqliteEngine struct {
 	metaengine.Calibration
 
 	db *sql.DB
-	// ownsDB marks that this engine opened its own *sql.DB (driver-factory
-	// path via NewSQLiteEngineFromDSN): Close then also closes the database.
-	// Engines wrapping a caller-supplied pool leave it false — the caller
-	// keeps ownership.
+	// ownsDB: engine opened its own *sql.DB (NewSQLiteEngineFromDSN), so
+	// Close also closes the database; caller-supplied pools leave it false.
 	ownsDB            bool
 	synchronousPragma string
 	queries           sqliteQuerySet
 	cache             *stmtCache
-	// graphCTE enables the single-query recursive-CTE traversal when the
-	// driver/server supports WITH RECURSIVE (probed at construction).
+	// graphCTE: single-query recursive-CTE traversal when WITH RECURSIVE is available (probed).
 	graphCTE bool
+	// vectorSQL: libSQL SQL-side k-NN available (probed: turso yes, modernc no).
+	vectorSQL bool
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	multiSeq sync.Map // collection→*multiSeqCounter
 	plans    map[string]metaengine.LayoutPlan
@@ -123,7 +122,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 	CREATE TABLE IF NOT EXISTS meta_snapshot (
 		collection TEXT NOT NULL, stream_id TEXT NOT NULL, version INTEGER NOT NULL, data BLOB NOT NULL,
 		PRIMARY KEY (collection, stream_id)
-	);`,
+	);` + vectorTableDDL,
 		mapSet:           `INSERT OR REPLACE INTO meta_map (collection, key, value) VALUES (?, ?, ?)`,
 		mapGet:           `SELECT value FROM meta_map WHERE collection = ? AND key = ?`,
 		mapDelete:        `DELETE FROM meta_map WHERE collection = ? AND key = ?`,
@@ -158,10 +157,11 @@ func defaultSQLiteQueries() sqliteQuerySet {
 // the *sql.DB. Tables are created automatically if they don't exist.
 func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine, error) {
 	eng := &sqliteEngine{
-		db:       database,
-		queries:  defaultSQLiteQueries(),
-		cache:    newStmtCache(database),
-		graphCTE: probeRecursiveCTE(database),
+		db:        database,
+		queries:   defaultSQLiteQueries(),
+		cache:     newStmtCache(database),
+		graphCTE:  probeRecursiveCTE(database),
+		vectorSQL: probeVectorSQL(database),
 	}
 
 	for _, opt := range opts {

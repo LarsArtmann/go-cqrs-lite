@@ -124,6 +124,14 @@ func (e *mysqlEngine) init() error {
 		// traversal); CREATE TABLE IF NOT EXISTS will not add it. MySQL has no
 		// CREATE INDEX IF NOT EXISTS, so tolerate the duplicate-key error.
 		`CREATE INDEX idx_graph_edges_to ON meta_graph_edges (collection, to_node)`,
+		`CREATE TABLE IF NOT EXISTS meta_vector (
+			collection VARCHAR(255) NOT NULL,
+			id VARCHAR(255) NOT NULL,
+			vec LONGBLOB NOT NULL,
+			metadata JSON,
+			PRIMARY KEY (collection, id),
+			INDEX idx_vector_collection (collection)
+		)`,
 	}
 
 	for _, ddl := range ddls {
@@ -176,11 +184,13 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTGraph:     metaengine.ComplexityODegree, // native WITH RECURSIVE on meta_graph_edges
 			metaengine.ADTLog:       metaengine.ComplexityON,
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
+			metaengine.ADTVector:    metaengine.ComplexityON, // Go-side brute-force scan
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSet:      true,
 			metaengine.ADTLog:      true,
 			metaengine.ADTMultimap: true,
+			metaengine.ADTVector:   true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutRow,
