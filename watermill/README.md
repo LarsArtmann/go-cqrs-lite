@@ -96,10 +96,16 @@ bash scripts/ephemeral-redis.sh sh -c 'cd watermill && go test -tags "goexperime
 the plugin's publisher/subscriber and pass them to `WithBackend`/
 `WithCommandBackend`.
 
-**NATS JetStream**: no maintained Watermill plugin exists today
-(`watermill-nats` is NATS Streaming — deprecated technology built against a
-Watermill release candidate). Revisit once a JetStream subscriber adapter
-exists; `scripts/ephemeral-nats.sh` is ready for it.
+**NATS JetStream**: supported by the maintained official plugin
+[`watermill-nats/v2`](https://watermill.io/pubsubs/nats/) — `pkg/jetstream`
+is stable since v2.1.0 (2024-08) on `nats.go`'s JetStream package; `pkg/nats`
+with `JetStream` enabled is the recommended production surface. Exactly-once
+delivery is available via `TrackMsgID` + synchronous acks. (Corrected
+2026-09-15: the previous "no maintained plugin" claim predated the v2
+JetStream implementation; plugin is at v2.2.0, 2026-05.) Wire it exactly like
+Redis above — construct the plugin's publisher/subscriber and pass them to
+`WithBackend`/`WithCommandBackend`; `scripts/ephemeral-nats.sh` can host the
+roundtrip test.
 
 ## Ordering
 
