@@ -46,7 +46,7 @@ var recipeCatalogA = map[string]recipeSpec{
 	"#### Postgres preset #2": {
 		imports: []string{
 			`"github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"`,
-			`"github.com/larsartmann/go-cqrs-lite/stack/sqlopt/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"`,
 		},
 		trailers: "_ = b",
 	},

@@ -134,10 +134,48 @@ func writeBody(sb *strings.Builder, spec recipeSpec, stmts []string) {
 	sb.WriteString("\n")
 }
 
+// workspaceFor renders a workspace file for the snippet module: the repo's
+// go.work with every use path absolutized, plus the snippet dir itself (the
+// go command requires the working directory to be inside the workspace).
+func workspaceFor(t *testing.T, root, dir string) string {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join(root, "go.work"))
+	if err != nil {
+		t.Fatalf("read go.work: %v", err)
+	}
+	var sb strings.Builder
+	inUse := false
+	for _, ln := range strings.Split(string(raw), "\n") {
+		tl := strings.TrimSpace(ln)
+		switch {
+		case tl == "use (":
+			inUse = true
+			sb.WriteString(ln + "\n")
+		case inUse && tl == ")":
+			inUse = false
+			sb.WriteString("\t" + dir + "\n")
+			sb.WriteString(ln + "\n")
+		case inUse && tl != "" && !strings.HasPrefix(tl, "//"):
+			rel := strings.TrimSpace(tl)
+			abs := rel
+			if !filepath.IsAbs(abs) {
+				abs = filepath.Join(root, rel)
+			}
+			sb.WriteString("\t" + abs + "\n")
+		default:
+			sb.WriteString(ln + "\n")
+		}
+	}
+	if inUse { // defensive: unterminated use block in the repo file
+		t.Fatal("repo go.work has an unterminated use block")
+	}
+	return sb.String()
+}
+
 // TestRecipesCompile compiles every non-skipped recipes.md block as its own
-// package against the workspace (GOWORK=repo/go.work). This is the gate that
-// turns "reference-verified" snippets into compile-verified ones: when an
-// API drifts, the doc snippet stops building and this test names it.
+// package against the workspace. This is the gate that turns
+// "reference-verified" snippets into compile-verified ones: when an API
+// drifts, the doc snippet stops building and this test names it.
 func TestRecipesCompile(t *testing.T) {
 	if _, err := exec.LookPath("go"); err != nil {
 		t.Fatalf("go toolchain not on PATH: %v", err)
@@ -150,6 +188,9 @@ func TestRecipesCompile(t *testing.T) {
 	gomod := "module recipescompile\n\ngo 1.26.7\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "go.work"), []byte(workspaceFor(t, root, dir)), 0o644); err != nil {
+		t.Fatalf("write go.work: %v", err)
 	}
 
 	compiled := 0
@@ -176,7 +217,7 @@ func TestRecipesCompile(t *testing.T) {
 	cmd := exec.Command("go", "build", "./...")
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(),
-		"GOWORK="+filepath.Join(root, "go.work"),
+		"GOWORK="+filepath.Join(dir, "go.work"),
 		"GOEXPERIMENT=jsonv2",
 		"CGO_ENABLED=0",
 	)
