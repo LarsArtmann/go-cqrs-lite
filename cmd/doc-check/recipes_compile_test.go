@@ -93,15 +93,66 @@ func firstLine(s string) string {
 	return ""
 }
 
+// extractBodyImports pulls `import (...)` groups and single `import "x"`
+// lines out of a snippet body, merging their paths into the scaffold's
+// import set (scaffold entries win on path conflicts). Returns the body
+// without import statements plus the merged import lines.
+func extractBodyImports(code string, imports []string) (string, []string) {
+	have := make(map[string]bool, len(imports))
+	for _, imp := range imports {
+		if path := importPath(imp); path != "" {
+			have[path] = true
+		}
+	}
+	var body, extra []string
+	inGroup := false
+	for _, ln := range strings.Split(code, "\n") {
+		tl := strings.TrimSpace(ln)
+		switch {
+		case !inGroup && strings.HasPrefix(tl, "import ("):
+			inGroup = true
+		case inGroup && tl == ")":
+			inGroup = false
+		case inGroup:
+			extra = append(extra, tl)
+		case !inGroup && strings.HasPrefix(tl, "import "):
+			extra = append(extra, strings.TrimSpace(strings.TrimPrefix(tl, "import ")))
+		default:
+			body = append(body, ln)
+		}
+	}
+	for _, imp := range extra {
+		if path := importPath(imp); path != "" && !have[path] {
+			have[path] = true
+			imports = append(imports, imp)
+		}
+	}
+	return strings.Join(body, "\n"), imports
+}
+
+// importPath extracts the quoted path from one import line (with or without
+// an alias); "" if the line carries none.
+func importPath(line string) string {
+	i := strings.IndexByte(line, '"')
+	if i < 0 {
+		return ""
+	}
+	if j := strings.LastIndexByte(line, '"'); j > i {
+		return line[i+1 : j]
+	}
+	return ""
+}
+
 // generateRecipeSource renders one block into a compilable package file.
 func generateRecipeSource(b RecipeBlock, spec recipeSpec) []byte {
 	if spec.wholeProgram || isWholeProgram(b.Code) {
 		return []byte(b.Code)
 	}
-	decls, stmts := splitTypeDecls(b.Code)
+	body, imports := extractBodyImports(b.Code, spec.imports)
+	decls, stmts := splitTypeDecls(body)
 	var sb strings.Builder
 	sb.WriteString("package main\n\nimport (\n")
-	for _, imp := range spec.imports {
+	for _, imp := range imports {
 		sb.WriteString("\t" + imp + "\n")
 	}
 	sb.WriteString(")\n\n")

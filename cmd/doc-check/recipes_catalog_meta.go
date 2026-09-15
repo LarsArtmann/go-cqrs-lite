@@ -220,7 +220,7 @@ var recipeCatalogB = map[string]recipeSpec{
 			"type TaskCreated struct {\n\tID     string\n\tStatus string\n}\n" +
 			"type TaskCompleted struct{ ID string }\n" +
 			"var dsn string\nctx := context.Background()\n" +
-			"var payloadDecoder projectionadapter.TypeDecoder\nvar host *projectionhost.Host\n",
+			"var payloadDecoder projectionadapter.PayloadDecoder\nvar host *projectionhost.Host\n",
 		trailers: "_ = counts\n_ = adapter",
 	},
 	"#### Filtered Scan with Metaengine (Map + FilterOnField + SQLite Pushdown) #1": {
