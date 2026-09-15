@@ -2,9 +2,10 @@
 // streams (ADR-0117).
 //
 // Commands are immutable intents with no status field. Their lifecycle —
-// received, failed, retried, dead-lettered, completed — is tracked via events
-// appended to a per-command lifecycle stream. Dead-letter queues, retry
-// counts, and failure logs emerge as projections over these event streams.
+// received, rejected, failed, retried, dead-lettered, completed — is tracked
+// via events appended to a per-command lifecycle stream. Dead-letter queues,
+// retry counts, failure logs, and rejection logs emerge as projections over
+// these event streams.
 //
 // # Stream Model
 //
@@ -22,9 +23,9 @@
 //
 //	outer, attempt := commandlifecycle.New(recorder)
 //	dispatcher.Use(
-//	    outer,                              // emits received, completed, dead-lettered
+//	    outer,                              // emits received, completed, dead-lettered, rejected
 //	    middleware.CommandRetry(config),    // handles retries
-//	    attempt,                            // emits failed, retried (per attempt)
+//	    attempt,                            // emits failed, rejected, retried (per attempt)
 //	)
 //
 // For querying (DLQ, retry counts, failure logs), use the pre-built
@@ -55,11 +56,13 @@ const (
 	TypeFailed event.Type = event.Type("command.failed")
 
 	// TypeRejected is emitted when a processing attempt fails with a business
-	// rejection — an error classified into a rejection family (default:
-	// [errorfamily.Rejection] and [errorfamily.Conflict], configurable via
-	// [WithRejectionFamilies]). A rejected command changed no state, will not
-	// be retried, and is not dead-lettered: the audit stream distinguishes
-	// "rejected by rule" (command.rejected) from "broke" (command.failed).
+	// rejection: an error whose errorfamily classification is in the
+	// recorder's rejection families (default: Rejection and Conflict, see
+	// WithRejectionFamilies). A rejected command changed no state, will not
+	// be retried (errorfamily.IsRetryable is false for rejection families),
+	// and is not dead-lettered — the audit trail can therefore distinguish
+	// "rejected by business rule" (command.rejected) from "broke"
+	// (command.failed) by event type alone.
 	TypeRejected event.Type = event.Type("command.rejected")
 
 	// TypeRetried is emitted before each retry attempt (after the first).
