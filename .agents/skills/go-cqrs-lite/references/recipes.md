@@ -1169,13 +1169,14 @@ byActor, _ := metaengine.ExecuteTyped[projections.CommandsByActorQuery, projecti
 // byActor.Commands lists each received command with type, stream, and time
 ```
 
-| Event type              | Emitted when                   | Projection     |
-| ----------------------- | ------------------------------ | -------------- |
-| `command.received`      | Server accepts command         | ProcessingTime, CommandsByActor |
-| `command.failed`        | Single attempt fails           | FailureLog     |
-| `command.retried`       | Before each retry              | RetryCount     |
-| `command.dead-lettered` | All retries exhausted          | DLQ            |
-| `command.completed`     | Command processed successfully | ProcessingTime |
+| Event type              | Emitted when                          | Projection     |
+| ----------------------- | ------------------------------------- | -------------- |
+| `command.received`      | Server accepts command                | ProcessingTime, CommandsByActor |
+| `command.rejected`      | Rejection-family error (never retried, never DLQed) | RejectionLog |
+| `command.failed`        | Single attempt fails (non-rejection)  | FailureLog     |
+| `command.retried`       | Before each retry                     | RetryCount     |
+| `command.dead-lettered` | All retries exhausted (non-rejection) | DLQ            |
+| `command.completed`     | Command processed successfully        | ProcessingTime |
 
 ### 2.19b Schema Evolution for Command Lifecycle Streams (schema + commandlifecycle)
 

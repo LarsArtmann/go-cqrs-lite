@@ -67,3 +67,28 @@ into a Multimap keyed by the record's typed Actor (`"kind:raw"`), with `Commands
 `CommandRecordEntry` / `CommandsByActorResult`, included in `projections.All()` and covered by a
 new test. Still deferred (recommendation unchanged): a distinct `command.rejected` event and any
 payload capture.
+
+## Update 2026-09-15 (executed: option A rejection half)
+
+The distinct rejection event shipped (the remaining deferred piece is payload capture, still
+opt-out by design — PII/storage, per the memo):
+
+- **Classification contract**: `commandlifecycle.DefaultRejectionFamilies` = {Rejection,
+  Conflict} ("no state changed; caller must act"), overridable via
+  `WithRejectionFamilies` (empty list disables). Unclassified errors classify as Transient
+  (errorfamily fail-open) and therefore stay failures. The default pairs with retry
+  middleware (`IsRetryable` = Transient-only), so rejected commands are never re-attempted.
+- **Event + recorder**: `TypeRejected` ("command.rejected") with `RejectedPayload` stamping
+  the classified family + error code at rejection time; `Recorder.RecordRejected` +
+  `Recorder.IsRejection`.
+- **Middleware semantics (the deliberate change the memo warned about)**: rejection-classified
+  errors emit `command.rejected` INSTEAD of `command.failed` per attempt, and the outer
+  middleware suppresses `command.dead-lettered` for rejections — the DLQ becomes ops-only
+  (rejections are never retried, so dead-lettering them is noise). Non-rejection flows are
+  byte-identical to before. `FailureLog` is therefore failures-only by construction;
+  new `projections.RejectionLog` (in `projections.All()`) folds rejected events.
+- **Opportunistic gap closed**: `FailedPayload.CommandID` added (additive JSON field).
+- **Evidence**: `commandlifecycle/classification.go`, `events.go`, `middleware.go`,
+  `projections/projections.go`; table+integration tests in `classification_test.go`,
+  `middleware_classification_test.go`, `projections_test.go`; system wiring count test
+  updated to track `projections.All()`.

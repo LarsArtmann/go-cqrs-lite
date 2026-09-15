@@ -675,9 +675,9 @@ See [ADR-0089](../../../../docs/adr/0089-flight-recorder.md) for design rational
 ### 6.18 Command Lifecycle as Event Streams (commandlifecycle — ADR-0117)
 
 Track the full lifecycle of every command as durable event streams. Instead of
-ephemeral logs, commands emit lifecycle events (`received`, `failed`, `retried`,
+ephemeral logs, commands emit lifecycle events (`received`, `rejected`, `failed`, `retried`,
 `dead-lettered`, `completed`) that feed pre-built projections: dead-letter
-queue, retry counts, failure log, and processing-time metrics.
+queue, retry counts, failure log, rejection log, and processing-time metrics.
 
 **Why event streams instead of a side table?** Lifecycle data lives in the same
 EventStore as domain events — same durability, same replay semantics, same
@@ -694,16 +694,24 @@ recorder := commandlifecycle.NewRecorder(eventStore)
 outer, attempt := commandlifecycle.New(recorder)
 
 dispatcher.Use(
-    outer,                           // wraps everything: received, completed, dead-lettered
+    outer,                           // wraps everything: received, completed, dead-lettered, rejected
     middleware.CommandRetry(config), // retry logic in the middle
-    attempt,                         // per-attempt: failed, retried
+    attempt,                         // per-attempt: failed, rejected, retried
 )
 ```
 
 - **Outer middleware** fires `command.received` before dispatch and
-  `command.completed` / `command.dead-lettered` after.
-- **Attempt middleware** fires `command.failed` and `command.retried` around
+  `command.completed` / `command.dead-lettered` / `command.rejected` after.
+- **Attempt middleware** fires `command.failed` (or `command.rejected` for
+  rejection-family errors — see below) and `command.retried` around
   each retry attempt.
+
+**Rejections vs failures**: an error classified into a rejection family
+(default: `errorfamily` Rejection and Conflict — "no state changed; caller
+must act") emits `command.rejected` instead of `command.failed` and is NOT
+dead-lettered: rejected commands never retry and never land in the DLQ. The
+contract is overridable with `commandlifecycle.WithRejectionFamilies(...)`;
+`RejectedPayload` stamps the family and error code for audit.
 
 **Query the projections** (via metaengine — see §2.19 in recipes.md for the
 full API):
@@ -720,9 +728,10 @@ result, _ := metaengine.ExecuteTyped[projections.DeadLetterQuery, projections.De
 | Lifecycle event | Emitted when | Projection |
 |-----------------|-------------|------------|
 | `command.received` | Server accepts command | ProcessingTime |
-| `command.failed` | Single attempt fails | FailureLog |
+| `command.rejected` | Rejection-family error (never retried, never DLQed) | RejectionLog |
+| `command.failed` | Single attempt fails (non-rejection) | FailureLog |
 | `command.retried` | Before each retry | RetryCount |
-| `command.dead-lettered` | All retries exhausted | DLQ |
+| `command.dead-lettered` | All retries exhausted (non-rejection) | DLQ |
 | `command.completed` | Command processed successfully | ProcessingTime |
 
 Use `commandlifecycle.WithStrict()` when lifecycle tracking must not silently
