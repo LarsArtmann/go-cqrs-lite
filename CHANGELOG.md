@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — `commandlifecycle`: distinct `command.rejected` event with errorfamily classification (T17 option A) — 2026-09-15
+
+- **Business rejections are now their own lifecycle event.** A command
+  failing with a rejection-family error (`errorfamily.Rejection`,
+  `errorfamily.Conflict` — "no state changed; caller must act") emits
+  `command.rejected` instead of `command.failed`, and is NOT dead-lettered
+  (rejected commands never retry and never land in the DLQ, so the DLQ stays
+  ops-only). The audit answer "rejected by rule" vs "broke" is now the event
+  type itself, not error-text heuristics.
+- **Classification contract** — `commandlifecycle.DefaultRejectionFamilies`
+  (Rejection + Conflict), overridable per recorder with
+  `commandlifecycle.WithRejectionFamilies` (an empty list disables
+  rejections entirely); `commandlifecycle.Recorder.IsRejection` exposes the
+  predicate. The default pairs with retry middleware, whose
+  `errorfamily.IsRetryable` default never retries rejection families.
+- **Recorder + middleware wiring** — `commandlifecycle.Recorder.RecordRejected`
+  stamps the classified family and error code at rejection time;
+  `RejectedPayload` carries `{commandId, commandType, error, family,
+  errorCode, attempt, rejectedAt}`. Both lifecycle middleware classify:
+  the attempt middleware emits rejected per attempt; the outer middleware
+  dead-letters only non-rejections (and emits rejected itself when used
+  standalone).
+- **`commandlifecycle/projections.RejectionLog`** — Log projection folding
+  `command.rejected` (with `RejectionLogQuery`), included in
+  `projections.All()`; `FailureLog` becomes failures-only by construction.
+- **`commandlifecycle.FailedPayload` gains `commandId`** (additive JSON
+  field, T17's opportunistic gap): failed/rejected payloads now carry the
+  command ID like received/completed. Payload capture stays out by default
+  (PII/storage), per the memo.
+
 ### Added — `queue/postgres`: the second engine, suite-green (durable-queue P1, part 3) — 2026-09-14
 
 - **Dedup seam decision (plan T10)** — `docs/planning/2026-09-14_queue-dedup-seam-decision.md`:

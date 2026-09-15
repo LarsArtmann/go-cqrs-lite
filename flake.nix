@@ -924,8 +924,10 @@
             # check-release-scripts: smoke tests for the release tooling
             # (tag-release.sh + batch-release.sh) against throwaway fixture
             # repos — the issue-#20 guards, the standalone-build gate, and
-            # exact tree restore. These tests are how the tagger's
-            # binary-pollution bug class stays fixed: run in CI, not ad hoc.
+            # exact tree restore — plus the calibration-gate fault-injection
+            # self-test (planted loadavg fixtures, FAIL-message golden).
+            # These tests are how the tagger's binary-pollution bug class
+            # stays fixed: run in CI, not ad hoc.
             check-release-scripts =
               mkApp "check-release-scripts"
                 [
@@ -937,6 +939,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-tag-release.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-check-retracts-shipped.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                 '';
 
             # check-tag-audit: fail on NEW path-vs-tag violations (proxy-
