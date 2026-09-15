@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — recipes.md snippet compile harness + calibration-gate self-test/golden — 2026-09-15
+
+- **`cmd/doc-check` recipes compile harness** — every fenced Go block in
+  `.agents/skills/go-cqrs-lite/references/recipes.md` is now compile-verified,
+  not just reference-verified: fenced blocks are extracted by heading+ordinal,
+  wrapped in a generated package (merged imports, hoisted declarations, unused-
+  local trailers) inside a temp module bound to a mirrored workspace, and built
+  with one `go build ./...`. `TestRecipesCatalogCoversFile` is the anti-rot
+  ratchet: all 77 blocks must be classified (69 compile-scaffolded, 8
+  documented skips) — a new or reworded fence fails the suite until cataloged.
+- **`scripts/calibration-gate.sh --self-test`** — 8-check fault-injection
+  suite using the new `CALIB_GATE_LOADAVG_FILE` env hook (planted temp
+  fixtures, never live files); covers quiet-host PASS shape, load1-over,
+  burst-drain load5-over, warn-only override, CI-never-aborts, provenance
+  probes, and golden match. Wired as the 4th leg of `nix run
+  .#check-release-scripts` (CI `lint-scripts`).
+- **`scripts/testdata/calibration-gate-fail-message.golden`** — pins the
+  operator-facing FAIL message byte-exact (uptime line normalized);
+  mutation-tested.
 ### Added — `commandlifecycle`: distinct `command.rejected` event with errorfamily classification (T17 option A) — 2026-09-15
 
 - **Business rejections are now their own lifecycle event.** A command
@@ -275,6 +294,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   It is a package-level function rather than a `Repository` method because
   generic methods require Go 1.27.
 
+### Fixed — recipes.md doc lies caught by the new compile harness — 2026-09-15
+
+- **`metaengine.Plan` variadic-spread fence** (`§2.20 #2`) — mixing a
+  non-spread argument with `queries...` does not compile in Go (a slice
+  spread must bind the whole variadic slot); the fence now appends the option
+  to the args slice before spreading.
+- **`scheduling.Timer.Actor` fences** (`§2.21 #3`) — the field is a typed
+  `id.ActorID` (ADR-0111e), not a plain string: `ID` needs
+  `scheduling.MustParseTimerID`, the stale `ParseActorID` round-trip is
+  replaced by an `IsZero()` fallback, and the fired command is minted with
+  `command.New(..., command.WithActor(...))` via the `*command.BasicCommand`
+  embedding pattern.
+- **`§2.1` minimal-ES fence** — bare payload structs do not satisfy
+  `command.Command`; now shows the `*command.BasicCommand` embedding pattern
+  (same as the getting-started docs).
+- **`retry.Config` fence** (`§2.13b`) — the struct has no `Jitter` field and
+  `retry.AttemptFunc` is `func(ctx, attempt int) error`.
+- **catalog exporter fences** (`§2.9`) — `asyncapi.Exporter{}.Export` (pointer
+  method on a non-addressable literal) and the one-valued `openapi…Export`
+  replaced by `NewExporter(...).Export(cat).MarshalYAML()` chains.
+- **`decider.WithSnapshotStore/WithSnapshotStrategy` fences** (`§2.4`) —
+  explicit `[UserState]` type parameters are required.
+- **`storage/pebble.Open` fence** (`§2.2`) — takes nil options (the package
+  ships its own option type, not cockroachdb's).
+- **`§2.7` encryption fence** — key-generation helpers moved above their use
+  (`key` was referenced before declaration).
+- **unused-import fences** — Shared-DB snippet imported pebble it never
+  used; Encoded-Applies imported `record` it never used.
+- **`stack/options.go` `WithFlightRecorder` doc comment** — showed the same
+  non-compiling `sqlite.WithStack` wiring the recipes doc had copied.
 ### Fixed — metaengine: CatchUpEngine can no longer miss events written during the rebuild — 2026-09-13
 
 - **The stale-snapshot race is closed.** While an engine was quarantined,

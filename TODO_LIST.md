@@ -789,15 +789,26 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > by the session's own self-review. — source:
 > [`docs/status/2026-09-13_08-52_quick-win-batch-self-review.md`](docs/status/2026-09-13_08-52_quick-win-batch-self-review.md) §b/§f
 
-- [ ] **calibration-gate.sh `--self-test` mode** — planted loadavg fixture
+- [x] **calibration-gate.sh `--self-test` mode** — planted loadavg fixture
       (temp file, never a live tracked file); same class as the
       check-turso-version `--self-test` TODO. _(Effort: S)_
-- [ ] **Recipes snippet compile harness** — snippets are reference-verified
+      2026-09-15: DONE — 8-check fault-injection suite (`CALIB_GATE_LOADAVG_FILE`
+      env hook), wired as 4th leg of `nix run .#check-release-scripts` (CI
+      `lint-scripts`); shellcheck clean.
+- [x] **Recipes snippet compile harness** — snippets are reference-verified
       (doc-check) but not compile-verified; extract fenced Go blocks into a
       generated compile test (start with recipes.md). _(Effort: S/M)_
-- [ ] **Calibration-gate failure-message golden** — the operator-facing
+      2026-09-15: DONE for recipes.md — `cmd/doc-check` recipes harness:
+      77/77 blocks classified (69 compile-scaffolded, 8 documented skips),
+      full-coverage ratchet prevents new/rotting fences; caught 9 real doc
+      lies (Plan variadic-spread, retry.Config Jitter, catalog exporter
+      chains, typed Timer.Actor, BasicCommand embedding, …) — all fixed.
+- [x] **Calibration-gate failure-message golden** — the operator-facing
       FAIL text is UX; pin its shape so refactors can't silently degrade it.
       _(Effort: XS)_
+      2026-09-15: DONE — `scripts/testdata/calibration-gate-fail-message.golden`
+      (uptime line normalized); mutation-tested (corrupt → self-test fails →
+      restore → green).
 
 ---
 

@@ -58,6 +58,7 @@ cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.
 | Lint config | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
 | ErrTax      | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
 | Rel. tests  | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
+| Recipe gate | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 77/77 classified, coverage ratchet)   |
 | CSP check   | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
 | EventCat    | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
 | Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
@@ -132,6 +133,21 @@ One-call CBOR for both events AND read models: `bundle, _ := sqlite.New(dsn, sta
 ## Testing
 
 Conventions, soak env vars, integration playbooks, race thresholds, flake cures: [`docs/agents/gotchas-testing.md`](docs/agents/gotchas-testing.md).
+
+**Recipes compile harness** (cmd/doc-check, `TestRecipes*`): every fenced Go block in
+`.agents/skills/go-cqrs-lite/references/recipes.md` must be classified in the `recipes_catalog*.go`
+maps — either a compiled scaffold (imports + preamble + trailers, built in a temp module against a
+mirrored workspace) or a documented skip. Adding/rewording a fence without a catalog entry fails
+`TestRecipesCatalogCoversFile`. When the compiler flags a generated snippet, fix the DOC (it is
+usually a real doc lie) — do not paper over it with a skip; first cold run ≈ 100 s (proxy fetch +
+CGO-flag cache split), warm ≈ 5–15 s.
+
+**Gate-script self-tests**: scripts that gate CI carry their own `--self-test` (see
+`calibration-gate.sh`: fault injection via `CALIB_GATE_LOADAVG_FILE` pointing the load probe at a
+planted temp fixture — never a live tracked file; subprocess re-invocation; golden diff for
+operator-facing message shapes in `scripts/testdata/`). Run via `nix run .#check-release-scripts`.
+New goldens must be mutation-tested (corrupt → self-test fails → restore → green) before they
+count as pins.
 
 ## Gotchas & Non-Obvious Behaviors (index)
 

@@ -132,6 +132,17 @@ race fix — re-verified, provenance gap closed):
 [`2026-09-13_08-42_reconstructed-cec9248da-work-record.md`](2026-09-13_08-42_reconstructed-cec9248da-work-record.md)
 (active; harvest at the next docs-health pass).
 
+**2026-09-15 (quick-win tail batch — calibration-gate self-test + golden,
+recipes compile harness):** shipped the three "quick-win batch follow-ups
+(2026-09-13)" items: `calibration-gate.sh --self-test` (8-check
+fault-injection suite, `CALIB_GATE_LOADAVG_FILE` fixture hook), the
+`scripts/testdata/calibration-gate-fail-message.golden` pin
+(mutation-tested), and the `cmd/doc-check` recipes.md snippet compile
+harness (77/77 blocks classified, coverage ratchet; caught 9 real doc lies
+— all fixed in recipes.md + `stack/options.go`). Full a)–g) breakdown:
+[`2026-09-15_15-21_quick-win-tail-gates-self-review.md`](2026-09-15_15-21_quick-win-tail-gates-self-review.md)
+(active; harvest at the next docs-health pass).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves
