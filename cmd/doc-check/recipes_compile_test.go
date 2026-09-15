@@ -236,6 +236,12 @@ func TestRecipesCompile(t *testing.T) {
 		t.Fatalf("repo root: %v", err)
 	}
 	dir := t.TempDir()
+	if keep := os.Getenv("RECIPES_COMPILE_KEEP"); keep != "" {
+		dir = keep
+		_ = os.MkdirAll(dir, 0o755)
+		t.Setenv("RECIPES_COMPILE_DIR", dir)
+		t.Logf("keeping snippet module at %s", dir)
+	}
 	gomod := "module recipescompile\n\ngo 1.26.7\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)

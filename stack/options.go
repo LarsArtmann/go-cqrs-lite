@@ -249,7 +249,7 @@ func WithMetaEngine(store *metaengine.Store) Option {
 //
 //	recorder, _ := flightrecorder.New(flightrecorder.WithFile("crash.trace"))
 //	recorder.Start()
-//	bundle, _ := sqlite.New(dsn, stack.WithFlightRecorder(recorder))
+//	bundle, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithFlightRecorder(recorder)))
 //	defer bundle.Close() // stops the recorder
 func WithFlightRecorder(recorder *flightrecorder.Recorder) Option {
 	return func(b *Bundle) {

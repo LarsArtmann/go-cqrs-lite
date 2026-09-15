@@ -555,17 +555,17 @@ import (
     "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
-tracer := otel.GetTracerProvider().Tracer("my-app")
+tracer := otel.NewTracer("my-app")
 bus.Use(middleware.EventTracing(tracer))
 bus.UsePublish(middleware.EventPublishTracing(tracer))
 
-meter := otel.GetMeterProvider().Meter("my-app")
+meter := otel.NewMeter("my-app")
 recorder, _ := middleware.NewOTelMetricsRecorder(meter)
 cmdDispatcher.Use(middleware.CommandTypedMetrics(recorder))
 
 // Other middleware: Logging, Retry, Recovery, Validation, CircuitBreaker
 cmdDispatcher.Use(middleware.CommandRecovery())
-cmdDispatcher.Use(middleware.CommandRetry(3, time.Second))
+cmdDispatcher.Use(middleware.CommandRetry(middleware.RetryConfig{MaxAttempts: 3, InitialDelay: time.Second}))
 ```
 
 > **Rule:** Import OTel via `otel/` re-exports, NOT `go.opentelemetry.io` directly.
@@ -665,15 +665,15 @@ as command middleware. Apply it to your query dispatcher for production-grade re
 // Query middleware chain (same pattern as command middleware)
 qDisp.Use(middleware.QueryRecovery())           // panic → error, don't crash the process
 qDisp.Use(middleware.QueryLogging(slog.Default())) // structured query logging
-qDisp.Use(middleware.QueryRetry(3, time.Second))   // retry transient failures
+qDisp.Use(middleware.QueryRetry(middleware.RetryConfig{MaxAttempts: 3, InitialDelay: time.Second})) // retry transient failures
 
 // OTel metrics for queries
-meter := otel.GetMeterProvider().Meter("my-app")
+meter := otel.NewMeter("my-app")
 recorder, _ := middleware.NewOTelMetricsRecorder(meter)
 qDisp.Use(middleware.QueryTypedMetrics(recorder))
 
 // OTel tracing for queries
-tracer := otel.GetTracerProvider().Tracer("my-app")
+tracer := otel.NewTracer("my-app")
 qDisp.Use(middleware.QueryTracing(tracer))
 ```
 
@@ -1083,7 +1083,7 @@ qryDisp.Use(middleware.QueryFlightRecorder(recorder,
 **Stack bundle integration** (lifecycle management + discovery):
 
 ```go
-bundle, _ := sqlite.New(dsn, stack.WithFlightRecorder(recorder))
+bundle, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithFlightRecorder(recorder)))
 defer bundle.Close() // stops recorder automatically
 // Access for trigger wiring: bundle.FlightRecorder()
 ```
@@ -1342,7 +1342,7 @@ cmds.Use(middleware.CommandActorContext())
 
 // 3. Enricher stamps it onto every event the decider saves
 repo, _ := decider.NewRepository[State](store, bus, d,
-    decider.WithEnricher(event.ActorEnricher))
+    decider.WithEnricher[State](event.ActorEnricher))
 
 // After dispatch, the audit trail is on the stored event:
 // evt.Metadata().ActorID.PrefixedString() == "user:01ARZ..."
