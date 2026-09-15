@@ -19,7 +19,7 @@ go run .
    BFS fallback elsewhere).
 3. **Vector** — document embeddings with k-NN semantic search: `DocEmbedded`
    folds into `metaengine.Embedding` records; the query routes to the
-   engine's vector ADT (brute-force on Memory/SQLite, ANN indexes elsewhere).
+   engine's vector ADT (brute-force scan; the demo routes to the Memory engine).
 4. **Operator config** (`runConfigFileDemo`) — the deployment-time story:
    load engine choices from a `cqrs.yaml` (koanf) and boot a `system`
    deployment from it. The developer's domain code stays in Go
