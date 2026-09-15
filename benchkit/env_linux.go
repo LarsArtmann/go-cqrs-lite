@@ -4,6 +4,7 @@ package benchkit
 
 import (
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -56,4 +57,27 @@ func detectTotalRAM() uint64 {
 	}
 
 	return 0
+}
+
+// detectLoadAvg1 reads the 1-minute system load average from /proc/loadavg.
+// Returns 0 when unavailable. A load average above the CPU count means more
+// runnable work existed than cores, so measured latencies include scheduler
+// wait rather than pure backend cost.
+func detectLoadAvg1() float64 {
+	data, err := os.ReadFile("/proc/loadavg")
+	if err != nil {
+		return 0
+	}
+
+	fields := strings.Fields(string(data))
+	if len(fields) == 0 {
+		return 0
+	}
+
+	load, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return 0
+	}
+
+	return load
 }

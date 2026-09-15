@@ -50,6 +50,14 @@ type Environment struct {
 	// TotalRAMBytes is the total system RAM in bytes. Empty/zero when
 	// unavailable. RAM affects page-cache behavior and thus read latency.
 	TotalRAMBytes uint64 `json:"totalRamBytes,omitempty"`
+
+	// LoadAvg1 is the 1-minute system load average sampled at the START of the
+	// run. Zero when unavailable (non-Linux platforms). A load above NumCPU
+	// means the machine was oversubscribed while measuring, so latencies carry
+	// scheduler wait on top of backend cost — the Result records a warning when
+	// that happens, so a noisy run is self-describing instead of silently
+	// producing numbers that look like a regression.
+	LoadAvg1 float64 `json:"loadAvg1,omitempty"`
 }
 
 // Config defines a benchmark run.
