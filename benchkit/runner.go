@@ -403,26 +403,8 @@ func (r *runner) setup(ctx context.Context) error {
 	r.result.Profile = profile.Name
 	r.result.Timestamp = time.Now()
 	r.result.SchemaVersion = SchemaVersion
-	r.result.Environment = Environment{
-		GoVersion:     runtime.Version(),
-		NumCPU:        runtime.NumCPU(),
-		GOMAXPROCS:    runtime.GOMAXPROCS(0),
-		GOOS:          runtime.GOOS,
-		GOARCH:        runtime.GOARCH,
-		CPUModel:      detectCPUModel(),
-		TotalRAMBytes: detectTotalRAM(),
-		LoadAvg1:      detectLoadAvg1(),
-	}
-
-	// An oversubscribed machine makes latency numbers include scheduler wait.
-	// Recording the load average alone is not enough — a reader scanning a
-	// report has to notice it. The warning names the measurement pollution.
-	if load := r.result.Environment.LoadAvg1; load > float64(r.result.Environment.NumCPU) {
-		r.warn(fmt.Sprintf(
-			"machine oversubscribed at run start: 1-min load average %.1f exceeds %d CPUs — latencies include scheduler wait",
-			load, r.result.Environment.NumCPU,
-		))
-	}
+	r.result.Environment = captureEnvironment()
+	r.warnIfOversubscribed()
 	r.result.Workers = r.concurrency
 	r.result.Streams = profile.Streams
 	r.result.EventsPerStream = profile.EventsPerStream
