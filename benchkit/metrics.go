@@ -19,12 +19,18 @@ const defaultReservoirSize = 10_000
 // For large workloads, Algorithm R reservoir sampling keeps a fixed-size
 // uniform sample so percentile estimates remain accurate with O(1) memory.
 //
+// Two statistics are exact even after the reservoir saturates: the mean
+// (accumulated as a running sum) and the maximum (tracked on every Record).
+// The remaining percentiles are estimates computed over the retained sample,
+// and a tail spike that never entered the reservoir cannot inflate them.
+//
 // LatencyCollector is safe for concurrent use.
 type LatencyCollector struct {
 	mu      sync.Mutex
 	samples []time.Duration
 	count   int64
 	sumNs   int64 // running sum for mean (nanoseconds)
+	max     time.Duration
 	maxLen  int
 	rng     *rand.Rand
 }
@@ -52,6 +58,10 @@ func (lc *LatencyCollector) Record(d time.Duration) {
 	lc.count++
 	lc.sumNs += int64(d)
 
+	if d > lc.max {
+		lc.max = d
+	}
+
 	if len(lc.samples) < lc.maxLen {
 		lc.samples = append(lc.samples, d)
 
@@ -66,10 +76,15 @@ func (lc *LatencyCollector) Record(d time.Duration) {
 
 // Stats computes percentile statistics from the collected samples.
 // Returns a zero-valued [LatencyStats] if no samples were recorded.
+//
+// P100 is the exact maximum observed, not the largest value that happened to
+// survive reservoir sampling — a single multi-second stall during a 10M-event
+// run must show up in the tail report, not be averaged away by the reservoir.
 func (lc *LatencyCollector) Stats() LatencyStats {
 	lc.mu.Lock()
 	count := lc.count
 	sumNs := lc.sumNs
+	maxLatency := lc.max
 	samples := make([]time.Duration, len(lc.samples))
 	copy(samples, lc.samples)
 	lc.mu.Unlock()
@@ -87,7 +102,7 @@ func (lc *LatencyCollector) Stats() LatencyStats {
 		P90:   percentile(samples, 90),
 		P95:   percentile(samples, 95),
 		P99:   percentile(samples, 99),
-		P100:  samples[len(samples)-1],
+		P100:  maxLatency,
 		Mean:  time.Duration(sumNs / count),
 	}
 }

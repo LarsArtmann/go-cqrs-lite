@@ -78,9 +78,10 @@ func TestLatencyCollector_ReservoirSampling(t *testing.T) {
 		t.Errorf("stored samples = %d, want <= %d", sampleCount, maxLen)
 	}
 
-	// P100 should be <= 10000ns (may not be exactly 10000 due to reservoir)
-	if stats.P100 > 10_000*time.Nanosecond {
-		t.Errorf("P100 = %v, want <= 10000ns", stats.P100)
+	// P100 is the exact maximum, tracked on every Record — not the largest
+	// value that happened to survive reservoir sampling.
+	if stats.P100 != 10_000*time.Nanosecond {
+		t.Errorf("P100 = %v, want exactly 10000ns", stats.P100)
 	}
 
 	// Mean should be approximately 5000ns
@@ -113,6 +114,48 @@ func TestLatencyCollector_Concurrent(t *testing.T) {
 
 	if stats.Count != 1000 {
 		t.Errorf("Count = %d, want 1000", stats.Count)
+	}
+}
+
+// TestLatencyCollector_TailSpikeSurvivesReservoir guards the exact-maximum
+// contract: a stall recorded early in a long run must appear in P100 even
+// though Algorithm R almost certainly evicts it from the retained sample.
+// With maxLen=1 over 1M records the spike survives the reservoir with
+// probability 1e-6, so the old "P100 = samples[len-1]" implementation would
+// report 1µs here essentially always.
+func TestLatencyCollector_TailSpikeSurvivesReservoir(t *testing.T) {
+	t.Parallel()
+
+	const (
+		spike = 5 * time.Second
+		base  = time.Microsecond
+		total = 1_000_000
+	)
+
+	lc := NewLatencyCollector(1)
+
+	for i := range total {
+		if i == 1 {
+			lc.Record(spike)
+
+			continue
+		}
+
+		lc.Record(base)
+	}
+
+	stats := lc.Stats()
+
+	if stats.Count != total {
+		t.Fatalf("Count = %d, want %d", stats.Count, total)
+	}
+
+	if stats.P100 != spike {
+		t.Errorf("P100 = %v, want the exact maximum %v", stats.P100, spike)
+	}
+
+	if stats.P99 != base {
+		t.Errorf("P99 = %v, want %v (tail percentiles stay reservoir estimates)", stats.P99, base)
 	}
 }
 
