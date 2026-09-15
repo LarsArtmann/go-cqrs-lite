@@ -115,7 +115,14 @@ func (rr *RepeatedResult) NoisyMetrics() []string {
 		return nil
 	}
 
-	noisy := noisyVariations(rr.Median.MetricVariation)
+	return NoisyMetricNames(rr.Median.MetricVariation)
+}
+
+// NoisyMetricNames maps a MetricVariation slice down to the names of the
+// metrics whose CoV exceeded [VariationThreshold], worst first. Empty when
+// every metric was stable.
+func NoisyMetricNames(variations []MetricVariation) []string {
+	noisy := noisyVariations(variations)
 
 	names := make([]string, len(noisy))
 	for i, v := range noisy {

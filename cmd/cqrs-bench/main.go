@@ -202,12 +202,26 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 		return nil
 	}
 
-	result, err := benchkit.Run(runCtx, config, factory)
+	var result *benchkit.Result
+
+	var repeated *benchkit.RepeatedResult
+
+	var err error
+
+	if flags.Repeat > 1 {
+		repeated, err = benchkit.RunRepeated(runCtx, config, factory)
+		if repeated != nil {
+			result = repeated.Median
+		}
+	} else {
+		result, err = benchkit.Run(runCtx, config, factory)
+	}
+
 	if err != nil {
 		fatalf("benchmark failed: %v", err)
 	}
 
-	writeResult(flags.Format, flags.Output, config, result)
+	writeResult(flags.Format, flags.Output, config, result, repeated)
 
 	return nil
 }
