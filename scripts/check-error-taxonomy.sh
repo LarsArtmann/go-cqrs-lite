@@ -37,7 +37,10 @@ GATED_MODULES=(
 	"storage/view|storage/view|storage.view.|10"
 	"stack|stack|stack. bbolt_preset. duckdb. duckdb_preset. memory. mysql. mysql_preset. pebble_preset. postgres. postgres_preset. sqlite. sqlite_preset. turso. turso_preset.|50"
 	"deriver|deriver|deriver.|2"
-	"storage (SQL facade)|storage|storage. backend. listing.|30||1"
+	"storage (SQL facade)|storage|storage. backend. listing.|30|1"
+	"storage (SQL facade)|storage/sql|storage. sql.|24"
+	"storage (SQL facade)|storage/eventstore|storage.|22"
+	"storage (SQL facade)|storage/readmodel|storage. kv_sql.|6"
 )
 
 # Per-module pool-size floor: a gated module whose extraction yields fewer

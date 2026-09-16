@@ -323,6 +323,17 @@ Corruption, INSERT failure → Infrastructure); the marshal site now mints
 | Row/payload decode failures  | Corruption     | `storage.parse_*`, `storage.reconstruct_*`, `storage.scan_timer`, `storage.snapshot_column_mixed`, `storage.unmarshal_timer_payload`, `storage.schedule_timer_marshal` |
 | Execution / DDL / timer ops  | Infrastructure | `storage.due_timers`, `storage.enable_foreign_keys`, `storage.exec_ddl`, `storage.iterate_timers`, `storage.open_duckdb`, `storage.open_sqlite`, `storage.open_sqlite_in_memory`, `storage.query_queries`, `storage.scan_command`, `storage.scan_query`, `storage.set_synchronous`, `storage.set_synchronous_commit`, `storage.snapshot_column_probe`, `storage.snapshot_column_rename`, `storage.schedule_timer` |
 | Duplicate detection          | Conflict       | `storage.duplicate_command`, `storage.duplicate_query`                                                               |
+| Store lifecycle sentinel     | Infrastructure | `storage.closed`                                                                                                     |
+| Identifier validation        | Infrastructure | `sql.invalid_identifier`                                                                                             |
+| Filter validation            | Rejection      | `storage.sql.invalid_column`, `storage.sql.invalid_operator`                                                         |
+| Version / type conflicts     | Conflict       | `storage.stream_type_mismatch`, `storage.stream_id_mismatch`, `storage.version_mismatch`                             |
+| Timestamp/metadata decode    | Corruption     | `storage.unsupported_timestamp`, `storage.unexpected_time_type`, `storage.marshal_metadata`                          |
+| Event-log ops                | Infrastructure | `storage.begin_tx`, `storage.batch_insert_events`, `storage.check_version`, `storage.delete_by_stream`, `storage.insert_event`, `storage.insert_events`, `storage.iterate_rows`, `storage.load_checkpoint`, `storage.save_checkpoint`, `storage.load_snapshot`, `storage.load_snapshot_version`, `storage.save_snapshot`, `storage.scan_snapshot`, `storage.query_from_position`, `storage.resolve_cursor_timestamp`, `storage.read_stream`, `storage.query_by_event_id`, `storage.scan_by_event_id`, `storage.scan_event`, `storage.stream_query`, `storage.stream_query_from`, `storage.stream_from_start`, `storage.stream_read_all`, `storage.stream_iterate` |
+| Event-log parse failures     | Corruption     | `storage.parse_occurred_at`, `storage.parse_snapshot_created_at`                                                     |
+| Not-found sentinels          | Rejection      | `storage.event_not_found`, `storage.snapshot_not_found`                                                              |
+| KV read-model ops            | Infrastructure | `kv_sql.begin_batch`, `kv_sql.create_handle`                                                                         |
+| KV read-model queries        | Transient      | `kv_sql.get`, `kv_sql.has`, `kv_sql.iterator`                                                                        |
+| KV scan                      | Corruption     | `kv_sql.scan`                                                                                                        |
 
 ### storage/pebble
 
