@@ -240,5 +240,7 @@ watermill/     — Watermill protocol adapter
 | [0135](0135-materialized-views-operator-option.md) | Materialized Views as an Operator Option (Turso IVM) | 2026-09-07 | Accepted |
 | [0136](0136-temporal-composability-contract.md) | The Temporal Composability Contract (Invertibility Ladder) | 2026-09-10 | Accepted |
 | [0137](0137-health-driven-engine-deactivation.md) | Health-Driven Engine Deactivation | 2026-09-10 | Accepted |
+| [0139](0139-v5-encryption-at-rest-configuration.md) | v5 Encryption-at-Rest Configuration | 2026-09-13 | Accepted |
+| [0140](0140-vector-distance-semantics-contract.md) | Vector Distance-Semantics Contract (One Ranking, Every Engine) | 2026-09-16 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
