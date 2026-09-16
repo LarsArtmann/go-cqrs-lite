@@ -160,27 +160,27 @@ func (s *suite) pinStatusCounts(t *testing.T) {
 func (s *suite) pinUpdatePriority(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 10})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 10})
 
 	// Same value: no error, no fact.
-	if err := e.store.UpdatePendingPriority(t.Context(), tk.ID, 10, "src", "same"); err != nil {
+	if err := e.store.UpdatePendingPriority(t.Context(), subject.ID, 10, "src", "same"); err != nil {
 		t.Fatal(err)
 	}
 
-	if got := countFacts(t, e, tk.ID, facts.Reprioritized); got != 0 {
+	if got := countFacts(t, e, subject.ID, facts.Reprioritized); got != 0 {
 		t.Fatalf("same-value update appended %d facts, want 0", got)
 	}
 
-	if err := e.store.UpdatePendingPriority(t.Context(), tk.ID, 70, "marker", "P1"); err != nil {
+	if err := e.store.UpdatePendingPriority(t.Context(), subject.ID, 70, "marker", "P1"); err != nil {
 		t.Fatal(err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Priority != 70 {
 		t.Fatalf("priority = %d, want 70", got.Priority)
 	}
 
-	f := lastFact(t, e, tk.ID)
+	f := lastFact(t, e, subject.ID)
 	if f.Type != facts.Reprioritized {
 		t.Fatalf("fact = %s, want reprioritized", f.Type)
 	}
@@ -207,8 +207,8 @@ func listAll(t *testing.T, e *env, f queue.Filter) []task.Task[Payload] {
 // idsOf extracts the ID slice.
 func idsOf(tasks []task.Task[Payload]) []task.ID {
 	out := make([]task.ID, len(tasks))
-	for i, tk := range tasks {
-		out[i] = tk.ID
+	for i, subject := range tasks {
+		out[i] = subject.ID
 	}
 
 	return out

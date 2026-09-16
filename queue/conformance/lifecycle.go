@@ -113,10 +113,10 @@ func (s *suite) pinRoundtrip(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	c := e.claim(t, "w1")
 
-	if c.Task.ID != tk.ID || c.Task.Status != task.Running || c.Task.LeaseOwner != "w1" {
+	if c.Task.ID != subject.ID || c.Task.Status != task.Running || c.Task.LeaseOwner != "w1" {
 		t.Fatalf("claim state wrong: %+v", c.Task)
 	}
 
@@ -130,11 +130,11 @@ func (s *suite) pinRoundtrip(t *testing.T) {
 		t.Fatalf("second claim: error = %v, want ErrNoTaskDue", err)
 	}
 
-	if err := e.store.Complete(t.Context(), tk.ID, "w1", []byte(`{"ok":true}`)); err != nil {
+	if err := e.store.Complete(t.Context(), subject.ID, "w1", []byte(`{"ok":true}`)); err != nil {
 		t.Fatalf("complete: %v", err)
 	}
 
-	got, err := e.store.Get(t.Context(), tk.ID)
+	got, err := e.store.Get(t.Context(), subject.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +144,7 @@ func (s *suite) pinRoundtrip(t *testing.T) {
 	}
 
 	want := []facts.FactType{facts.Enqueued, facts.Claimed, facts.Completed}
-	if got := factTypes(t, e, tk.ID); !equalFactTypes(got, want) {
+	if got := factTypes(t, e, subject.ID); !equalFactTypes(got, want) {
 		t.Fatalf("fact trail = %v, want %v", got, want)
 	}
 }
@@ -177,25 +177,25 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	_ = e.claim(t, "w1")
 
 	mustError(
 		t,
 		"complete wrong owner",
-		e.store.Complete(t.Context(), tk.ID, "w2", nil),
+		e.store.Complete(t.Context(), subject.ID, "w2", nil),
 		queue.ErrLeaseNotHeld,
 	)
 	mustError(
 		t,
 		"fail wrong owner",
-		e.store.Fail(t.Context(), tk.ID, "w2", "x", 0, nil),
+		e.store.Fail(t.Context(), subject.ID, "w2", "x", 0, nil),
 		queue.ErrLeaseNotHeld,
 	)
 	mustError(
 		t,
 		"heartbeat wrong owner",
-		e.store.Heartbeat(t.Context(), tk.ID, "w2", time.Minute),
+		e.store.Heartbeat(t.Context(), subject.ID, "w2", time.Minute),
 		queue.ErrLeaseNotHeld,
 	)
 
@@ -225,7 +225,7 @@ func (s *suite) pinHeartbeat(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	c := e.claim(t, "w1")
 
 	// Leases are stamped ms-truncated; a heartbeat in the SAME millisecond
@@ -233,11 +233,11 @@ func (s *suite) pinHeartbeat(t *testing.T) {
 	// boundary so strict extension is deterministic.
 	time.Sleep(2 * time.Millisecond)
 
-	if err := e.store.Heartbeat(t.Context(), tk.ID, "w1", time.Minute); err != nil {
+	if err := e.store.Heartbeat(t.Context(), subject.ID, "w1", time.Minute); err != nil {
 		t.Fatalf("heartbeat: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.LeaseExpires == nil || !got.LeaseExpires.After(c.LeaseUntil) {
 		t.Fatalf("lease not extended: %v <= %v", got.LeaseExpires, c.LeaseUntil)
 	}
@@ -247,17 +247,17 @@ func (s *suite) pinHeartbeat(t *testing.T) {
 func (s *suite) pinCancel(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	if err := e.store.Cancel(t.Context(), tk.ID, "superseded"); err != nil {
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	if err := e.store.Cancel(t.Context(), subject.ID, "superseded"); err != nil {
 		t.Fatalf("cancel: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Cancelled {
 		t.Fatalf("status = %s, want cancelled", got.Status)
 	}
 
-	last := lastFact(t, e, tk.ID)
+	last := lastFact(t, e, subject.ID)
 	if last.Type != facts.Cancelled {
 		t.Fatalf("fact = %s, want cancelled", last.Type)
 	}
@@ -270,7 +270,7 @@ func (s *suite) pinCancel(t *testing.T) {
 	mustError(
 		t,
 		"cancel cancelled",
-		e.store.Cancel(t.Context(), tk.ID, "again"),
+		e.store.Cancel(t.Context(), subject.ID, "again"),
 		queue.ErrInvalidTransition,
 	)
 }

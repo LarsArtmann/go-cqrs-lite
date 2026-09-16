@@ -33,8 +33,8 @@ func (s *suite) pinFencing(t *testing.T) {
 
 	ids := make(map[task.ID]bool, tasks)
 	for range tasks {
-		tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
-		ids[tk.ID] = true
+		subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
+		ids[subject.ID] = true
 	}
 
 	const workers = 8
@@ -93,7 +93,8 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
+
 	_, err := e.store.ClaimDue(t.Context(), "crashed", 40*time.Millisecond)
 	if err != nil {
 		t.Fatal(err)
@@ -114,22 +115,23 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 	time.Sleep(80 * time.Millisecond)
 
 	c := e.claim(t, "w2")
-	if c.Task.ID != tk.ID {
-		t.Fatalf("reclaim claimed %s, want %s", c.Task.ID, tk.ID)
+	if c.Task.ID != subject.ID {
+		t.Fatalf("reclaim claimed %s, want %s", c.Task.ID, subject.ID)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Running || got.LeaseOwner != "w2" || got.Attempts != 0 {
 		t.Fatalf("reclaimed state wrong: %+v", got)
 	}
 
-	types := factTypes(t, e, tk.ID)
+	types := factTypes(t, e, subject.ID)
+
 	want := []facts.FactType{facts.Enqueued, facts.Claimed, facts.Released, facts.Claimed}
 	if !equalFactTypes(types, want) {
 		t.Fatalf("fact trail = %v, want %v (released then re-claimed)", types, want)
 	}
 
-	for _, f := range factsFor(t, e, tk.ID) {
+	for _, f := range factsFor(t, e, subject.ID) {
 		if f.Type == facts.Released && f.Owner != "crashed" {
 			t.Fatalf("released fact owner = %q, want the previous holder", f.Owner)
 		}
@@ -266,19 +268,19 @@ func (s *suite) pinAging(t *testing.T) {
 func (s *suite) pinStoredPriorityStable(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 42})
-	s.h.Backdate(t, e.store, tk.ID, 60*24*time.Hour)
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 42})
+	s.h.Backdate(t, e.store, subject.ID, 60*24*time.Hour)
 
 	c := e.claim(t, "w1")
 	if c.Task.Priority != 42 {
 		t.Fatalf("claimed priority = %d, want stored 42 (aging must not mutate)", c.Task.Priority)
 	}
 
-	if err := e.store.Heartbeat(t.Context(), tk.ID, "w1", time.Minute); err != nil {
+	if err := e.store.Heartbeat(t.Context(), subject.ID, "w1", time.Minute); err != nil {
 		t.Fatal(err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Priority != 42 {
 		t.Fatalf("stored priority = %d after heartbeat, want 42", got.Priority)
 	}

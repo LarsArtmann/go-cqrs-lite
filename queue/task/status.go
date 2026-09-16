@@ -48,6 +48,8 @@ func Terminal(s Status) bool {
 	switch s {
 	case Completed, Dead, Cancelled:
 		return true
+	case Pending, Running:
+		return false
 	default:
 		return false
 	}

@@ -83,9 +83,9 @@ func (s *suite) pinDedupTerminal(t *testing.T) {
 func (s *suite) pinNoKey(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := task.New[Payload]{Type: "sh", Payload: Payload{Cmd: "same"}}
-	one := e.enqueue(t, tk)
-	two := e.enqueue(t, tk)
+	subject := task.New[Payload]{Type: "sh", Payload: Payload{Cmd: "same"}}
+	one := e.enqueue(t, subject)
+	two := e.enqueue(t, subject)
 
 	if one.ID == two.ID {
 		t.Fatal("keyless double enqueue collapsed into one task")

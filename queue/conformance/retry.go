@@ -28,15 +28,15 @@ func (s *suite) runRetry(t *testing.T) {
 func (s *suite) pinBackoffLadder(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
 	_ = e.claim(t, "w1")
 
 	// Zero backoff: the task re-enters the ready set immediately.
-	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom", 0, nil); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil); err != nil {
 		t.Fatalf("fail: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Pending || got.Attempts != 1 {
 		t.Fatalf("after fail 1: status=%s attempts=%d, want pending/1", got.Status, got.Attempts)
 	}
@@ -45,23 +45,23 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 		t.Fatalf("LastError = %q, want the error text", got.LastError)
 	}
 
-	f := lastFact(t, e, tk.ID)
+	f := lastFact(t, e, subject.ID)
 	if f.Type != facts.Failed || f.Attempt != 1 || f.Error != "boom" {
 		t.Fatalf("failed fact = %+v, want attempt 1 carrying the error", f)
 	}
 
 	// The re-claim sees the counted attempt.
 	c := e.claim(t, "w1")
-	if c.Task.ID != tk.ID || c.Task.Attempts != 1 {
+	if c.Task.ID != subject.ID || c.Task.Attempts != 1 {
 		t.Fatalf("re-claim = %s attempts=%d, want the same task at 1", c.Task.ID, c.Task.Attempts)
 	}
 
 	// A real backoff parks the task until NotBefore.
-	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom2", time.Hour, nil); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom2", time.Hour, nil); err != nil {
 		t.Fatal(err)
 	}
 
-	got, _ = e.store.Get(t.Context(), tk.ID)
+	got, _ = e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Pending || got.Attempts != 2 {
 		t.Fatalf("after fail 2: status=%s attempts=%d, want pending/2", got.Status, got.Attempts)
 	}
@@ -76,20 +76,20 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 func (s *suite) pinDeadLetter(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 2})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 2})
 
 	for attempt := 1; attempt <= 2; attempt++ {
 		c := e.claim(t, "w1")
-		if c.Task.ID != tk.ID {
-			t.Fatalf("attempt %d claimed %s, want %s", attempt, c.Task.ID, tk.ID)
+		if c.Task.ID != subject.ID {
+			t.Fatalf("attempt %d claimed %s, want %s", attempt, c.Task.ID, subject.ID)
 		}
 
-		if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom", 0, nil); err != nil {
+		if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Dead || got.Attempts != 2 {
 		t.Fatalf("after budget: status=%s attempts=%d, want dead/2", got.Status, got.Attempts)
 	}
@@ -98,7 +98,7 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 		t.Fatalf("dead task still holds a lease: %+v", got)
 	}
 
-	types := factTypes(t, e, tk.ID)
+	types := factTypes(t, e, subject.ID)
 
 	want := []facts.FactType{
 		facts.Enqueued,
@@ -112,7 +112,7 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 		t.Fatalf("fact trail = %v, want %v", types, want)
 	}
 
-	last := lastFact(t, e, tk.ID)
+	last := lastFact(t, e, subject.ID)
 	if last.Type != facts.DeadLettered || !bytes.Contains(last.Detail, []byte("exhausted")) {
 		t.Fatalf("dead-lettered fact = %s %s, want class exhausted", last.Type, last.Detail)
 	}
@@ -129,14 +129,14 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 func (s *suite) pinPermanent(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 9})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 9})
 	_ = e.claim(t, "w1")
 
-	if err := e.store.FailPermanent(t.Context(), tk.ID, "w1", "bad payload", nil); err != nil {
+	if err := e.store.FailPermanent(t.Context(), subject.ID, "w1", "bad payload", nil); err != nil {
 		t.Fatalf("fail-permanent: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Dead {
 		t.Fatalf("status = %s, want dead", got.Status)
 	}
@@ -145,7 +145,7 @@ func (s *suite) pinPermanent(t *testing.T) {
 		t.Fatalf("attempts = %d, want the single counted attempt", got.Attempts)
 	}
 
-	last := lastFact(t, e, tk.ID)
+	last := lastFact(t, e, subject.ID)
 	if last.Type != facts.DeadLettered || !bytes.Contains(last.Detail, []byte("permanent")) {
 		t.Fatalf("fact = %s %s, want class permanent", last.Type, last.Detail)
 	}
@@ -157,17 +157,17 @@ func (s *suite) pinEvidence(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	_ = e.claim(t, "w1")
 
 	evidence := []byte(
 		`{"stage":"verify","exit_code":1,"tail":"` + strings.Repeat("x", 2048) + `"}`,
 	)
-	if err := e.store.Fail(t.Context(), tk.ID, "w1", "verify failed", 0, evidence); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, "w1", "verify failed", 0, evidence); err != nil {
 		t.Fatal(err)
 	}
 
-	for _, f := range factsFor(t, e, tk.ID) {
+	for _, f := range factsFor(t, e, subject.ID) {
 		if f.Type != facts.Failed {
 			continue
 		}
@@ -191,12 +191,12 @@ func (s *suite) pinEvidence(t *testing.T) {
 func (s *suite) pinRequeue(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
 	_ = e.claim(t, "w1")
 
 	if err := e.store.Requeue(
 		t.Context(),
-		tk.ID,
+		subject.ID,
 		"w1",
 		"env not ready",
 		50*time.Millisecond,
@@ -204,7 +204,7 @@ func (s *suite) pinRequeue(t *testing.T) {
 		t.Fatalf("requeue: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Pending || got.Attempts != 0 {
 		t.Fatalf(
 			"after requeue: status=%s attempts=%d, want pending/0 (no burn)",
@@ -217,7 +217,7 @@ func (s *suite) pinRequeue(t *testing.T) {
 		t.Fatalf("NotBefore = %v, want now+delay", got.NotBefore)
 	}
 
-	f := lastFact(t, e, tk.ID)
+	f := lastFact(t, e, subject.ID)
 	if f.Type != facts.Requeued {
 		t.Fatalf("fact = %s, want requeued", f.Type)
 	}
@@ -245,13 +245,13 @@ func (s *suite) pinRequeue(t *testing.T) {
 func (s *suite) pinRescue(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := deadTask(t, e)
+	dead := deadTask(t, e)
 
-	if err := e.store.RescueDead(t.Context(), tk.ID, 2); err != nil {
+	if err := e.store.RescueDead(t.Context(), dead.ID, 2); err != nil {
 		t.Fatalf("rescue: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), dead.ID)
 	if got.Status != task.Pending || got.Attempts != 0 || got.MaxAttempts != 2 {
 		t.Fatalf(
 			"after rescue: status=%s attempts=%d max=%d, want pending/0/2",
@@ -265,13 +265,13 @@ func (s *suite) pinRescue(t *testing.T) {
 		t.Fatalf("LastError = %q, want cleared", got.LastError)
 	}
 
-	last := lastFact(t, e, tk.ID)
+	last := lastFact(t, e, dead.ID)
 	if last.Type != facts.Enqueued || !bytes.Contains(last.Detail, []byte("rescue")) {
 		t.Fatalf("fact = %s %s, want enqueued with rescue marker", last.Type, last.Detail)
 	}
 
 	c := e.claim(t, "w1")
-	if c.Task.ID != tk.ID {
+	if c.Task.ID != dead.ID {
 		t.Fatalf("rescued task not claimable, got %s", c.Task.ID)
 	}
 }
@@ -280,17 +280,18 @@ func (s *suite) pinRescue(t *testing.T) {
 func deadTask(t *testing.T, e *env) task.Task[Payload] {
 	t.Helper()
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1})
+
 	c := e.claim(t, "w1")
-	if c.Task.ID != tk.ID {
-		t.Fatalf("claimed %s, want %s", c.Task.ID, tk.ID)
+	if c.Task.ID != subject.ID {
+		t.Fatalf("claimed %s, want %s", c.Task.ID, subject.ID)
 	}
 
-	if err := e.store.Fail(t.Context(), tk.ID, "w1", "boom", 0, nil); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil); err != nil {
 		t.Fatal(err)
 	}
 
-	return tk
+	return subject
 }
 
 // pinDismiss pins DismissDead: Dead → Cancelled with reason and by on
@@ -298,18 +299,18 @@ func deadTask(t *testing.T, e *env) task.Task[Payload] {
 func (s *suite) pinDismiss(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := deadTask(t, e)
+	dead := deadTask(t, e)
 
-	if err := e.store.DismissDead(t.Context(), tk.ID, "unfixable", "operator"); err != nil {
+	if err := e.store.DismissDead(t.Context(), dead.ID, "unfixable", "operator"); err != nil {
 		t.Fatalf("dismiss: %v", err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), dead.ID)
 	if got.Status != task.Cancelled {
 		t.Fatalf("status = %s, want cancelled", got.Status)
 	}
 
-	last := lastFact(t, e, tk.ID)
+	last := lastFact(t, e, dead.ID)
 	if last.Type != facts.Cancelled {
 		t.Fatalf("fact = %s, want cancelled", last.Type)
 	}

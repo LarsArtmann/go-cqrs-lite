@@ -27,14 +27,14 @@ func (s *suite) pinSeqOrder(t *testing.T) {
 		t.Fatalf("empty HeadSeq = %d, %v; want 0", head, err)
 	}
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	_ = e.claim(t, "w1")
 
-	if err := e.store.Complete(t.Context(), tk.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), subject.ID, "w1", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	all := factsFor(t, e, tk.ID)
+	all := factsFor(t, e, subject.ID)
 	if len(all) != 3 {
 		t.Fatalf("facts = %d, want 3", len(all))
 	}
@@ -66,16 +66,16 @@ func (s *suite) pinSeqOrder(t *testing.T) {
 func (s *suite) pinTailBound(t *testing.T) {
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1})
 	_ = e.claim(t, "w1")
-	_ = e.store.Fail(t.Context(), tk.ID, "w1", "boom", 0, nil) // failed + dead-lettered
+	_ = e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil) // failed + dead-lettered
 
-	all := factsFor(t, e, tk.ID)
+	all := factsFor(t, e, subject.ID)
 	if len(all) < 3 {
 		t.Fatalf("need at least 3 facts, have %d", len(all))
 	}
 
-	tail, err := e.store.FactsForTask(t.Context(), tk.ID, 2)
+	tail, err := e.store.FactsForTask(t.Context(), subject.ID, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,8 @@ func (s *suite) pinOrphaned(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
-	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
+
 	_, err := e.store.ClaimDue(t.Context(), "gone", 30*time.Millisecond)
 	if err != nil {
 		t.Fatal(err)
@@ -145,12 +146,12 @@ func (s *suite) pinOrphaned(t *testing.T) {
 		t.Fatalf("second MarkOrphaned = %d, %v; want 0 (idempotent)", again, err)
 	}
 
-	got, _ := e.store.Get(t.Context(), tk.ID)
+	got, _ := e.store.Get(t.Context(), subject.ID)
 	if got.Status != task.Running {
 		t.Fatalf("orphan observation changed state: %s", got.Status)
 	}
 
-	f := lastFact(t, e, tk.ID)
+	f := lastFact(t, e, subject.ID)
 	if f.Type != facts.Orphaned || f.Owner != "gone" {
 		t.Fatalf("orphaned fact = %+v, want owner gone", f)
 	}
