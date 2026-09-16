@@ -276,3 +276,15 @@ var (
 	_ metaengine.VectorFilterBackend = (*duckdbEngine)(nil)
 	_ metaengine.VectorCounter       = (*duckdbEngine)(nil)
 )
+
+// VectorSearchPath reports the engine-side SQL scoring path (implements
+// [metaengine.VectorPathReporter]). Edge case: an empty query vector has no
+// dimension to cast to, so that one query shape degrades to a Go-scored
+// scan; the label reflects the normal (dimensioned) path.
+func (e *duckdbEngine) VectorSearchPath() string {
+	return metaengine.VectorPathPushdown
+}
+
+var (
+	_ metaengine.VectorPathReporter = (*duckdbEngine)(nil)
+)

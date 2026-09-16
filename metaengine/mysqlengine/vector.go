@@ -207,3 +207,15 @@ var (
 	_ metaengine.VectorFilterBackend = (*mysqlEngine)(nil)
 	_ metaengine.VectorCounter       = (*mysqlEngine)(nil)
 )
+
+// VectorSearchPath reports the Go-scored scan path (implements
+// [metaengine.VectorPathReporter]): this engine has no native vector
+// distance function, so k-NN scans rows and scores via
+// metaengine.VectorDistance (ADR-0140).
+func (e *mysqlEngine) VectorSearchPath() string {
+	return metaengine.VectorPathScan
+}
+
+var (
+	_ metaengine.VectorPathReporter = (*mysqlEngine)(nil)
+)

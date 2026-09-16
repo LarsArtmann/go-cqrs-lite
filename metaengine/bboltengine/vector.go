@@ -141,3 +141,15 @@ func (e *bboltEngine) VectorSearchFiltered(
 
 	return metaengine.TopKNearest(results, k), nil
 }
+
+// VectorSearchPath reports the Go-scored scan path (implements
+// [metaengine.VectorPathReporter]): this engine has no native vector
+// distance function, so k-NN scans rows and scores via
+// metaengine.VectorDistance (ADR-0140).
+func (e *bboltEngine) VectorSearchPath() string {
+	return metaengine.VectorPathScan
+}
+
+var (
+	_ metaengine.VectorPathReporter = (*bboltEngine)(nil)
+)

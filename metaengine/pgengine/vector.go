@@ -220,3 +220,15 @@ func (e *pgEngine) VectorCollections(ctx context.Context) ([]string, error) {
 
 	return out, rows.Err()
 }
+
+// VectorSearchPath reports the Go-scored scan path (implements
+// [metaengine.VectorPathReporter]): this engine has no native vector
+// distance function, so k-NN scans rows and scores via
+// metaengine.VectorDistance (ADR-0140).
+func (e *pgEngine) VectorSearchPath() string {
+	return metaengine.VectorPathScan
+}
+
+var (
+	_ metaengine.VectorPathReporter = (*pgEngine)(nil)
+)

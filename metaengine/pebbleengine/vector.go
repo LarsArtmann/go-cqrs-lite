@@ -162,3 +162,15 @@ func (e *pebbleEngine) vectorMetadata(collection, id string) (map[string]any, er
 
 	return meta, nil
 }
+
+// VectorSearchPath reports the Go-scored scan path (implements
+// [metaengine.VectorPathReporter]): this engine has no native vector
+// distance function, so k-NN scans rows and scores via
+// metaengine.VectorDistance (ADR-0140).
+func (e *pebbleEngine) VectorSearchPath() string {
+	return metaengine.VectorPathScan
+}
+
+var (
+	_ metaengine.VectorPathReporter = (*pebbleEngine)(nil)
+)

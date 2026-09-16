@@ -177,3 +177,15 @@ func vectorMetadata(txn *badger.Txn, collection, id string) (map[string]any, err
 
 	return meta, nil
 }
+
+// VectorSearchPath reports the Go-scored scan path (implements
+// [metaengine.VectorPathReporter]): this engine has no native vector
+// distance function, so k-NN scans rows and scores via
+// metaengine.VectorDistance (ADR-0140).
+func (e *badgerEngine) VectorSearchPath() string {
+	return metaengine.VectorPathScan
+}
+
+var (
+	_ metaengine.VectorPathReporter = (*badgerEngine)(nil)
+)
