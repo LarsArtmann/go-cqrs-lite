@@ -191,9 +191,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   ascending = nearest) so `adttest.RunMatrix` parity holds, and every engine
   clears `meta_vector` in `EngineResetter` (ADR-0136 ladder).
 - **`sqliteengine` (+ `tursoengine` by delegation)** — `meta_vector` table
-  storing bare little-endian float32 BLOBs; a construction-time probe picks
-  the execution path: modernc pure-Go scans and scores in Go, libSQL drivers
-  (turso, embedded or remote) push k-NN into SQL via `vector32()` +
+  storing bare little-endian float32 BLOBs; a lazily-probed driver check
+  (first vector use, `sync.OnceValue`-cached — construction stays query-free)
+  picks the execution path: modernc pure-Go scans and scores in Go, libSQL
+  drivers (turso, embedded or remote) push k-NN into SQL via `vector32()` +
   `vector_distance_cos/l2/dot` (empirically verified: `vector_distance_dot`
   already returns the negated dot product — byte-identical to
   `metaengine.VectorDistance` semantics).
@@ -209,6 +210,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   conditional upsert including a delete mutation that clears stale metadata;
   scan + Go-side scoring. Native `similar_to` ANN stays a ROADMAP item
   (schema-time metric coupling, uid-only results).
+- **`irohengine`** — vector ops forward as local passthrough to the wrapped
+  engine (verified: `VectorBackend` insert + k-NN and `VectorFilterBackend`
+  filtered k-NN through the `Replicated` wrapper; `VectorCounter` stays
+  local-only per the capability-forwarding policy).
+- **`metaengine.VectorPathReporter`** (+ `VectorPathPushdown` /
+  `VectorPathScan`) — optional capability reporting HOW an engine executes
+  k-NN (engine-side SQL scoring vs Go-scored scan); `ExplainPlan` and Doctor
+  render a per-engine `k-NN path` line so the executed path is observable
+  (sqlite/turso report their probed path). Distance semantics and the
+  degrade-everywhere decision are now recorded in ADR-0140.
 - **`metaengine.EncodeVectorF32` / `metaengine.DecodeVectorF32`** — the raw
   little-endian float32 wire format (libSQL `F32_BLOB`-compatible, no header)
   used by the SQL-backed vector engines.
