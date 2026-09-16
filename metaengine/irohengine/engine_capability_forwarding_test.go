@@ -80,13 +80,12 @@ func TestReplicatedDoesNotExposeProbers(t *testing.T) {
 	g.Expect(isMeasurer).To(gomega.BeFalse())
 }
 
-// TestReplicatedVectorPassthrough verifies the VectorBackend local passthrough
-// end-to-end (the "every engine" CHANGELOG claim includes iroh): inserts and
-// k-NN searches through the wrapper execute against the local engine, and
-// VectorSearchPath forwards the local engine's reported path. Filtered k-NN
-// and VectorCounter are deliberately NOT promoted (engine_passthrough.go
-// forwarding policy — no wire kinds for those writes, no size introspection
-// through the wrapper).
+// TestReplicatedVectorPassthrough verifies the vector local passthroughs
+// end-to-end (the "every engine" CHANGELOG claim includes iroh): inserts,
+// k-NN searches, and filtered k-NN through the wrapper execute against the
+// local engine, and VectorSearchPath forwards the local engine's reported
+// path. VectorCounter is deliberately NOT promoted (engine_passthrough.go
+// forwarding policy — no size introspection through the wrapper).
 func TestReplicatedVectorPassthrough(t *testing.T) {
 	t.Parallel()
 	g := gomega.NewWithT(t)
@@ -98,9 +97,9 @@ func TestReplicatedVectorPassthrough(t *testing.T) {
 	g.Expect(isVB).To(gomega.BeTrue())
 
 	g.Expect(vb.VectorInsert(ctx, "docs",
-		metaengine.Embedding{ID: "a", Values: []float32{1, 0}})).To(gomega.Succeed())
+		metaengine.Embedding{ID: "a", Values: []float32{1, 0}, Metadata: map[string]any{"tenant": "x"}})).To(gomega.Succeed())
 	g.Expect(vb.VectorInsert(ctx, "docs",
-		metaengine.Embedding{ID: "b", Values: []float32{0, 1}})).To(gomega.Succeed())
+		metaengine.Embedding{ID: "b", Values: []float32{0, 1}, Metadata: map[string]any{"tenant": "y"}})).To(gomega.Succeed())
 
 	results, err := vb.VectorSearch(ctx, "docs", []float32{1, 0}, 2, "cosine")
 	g.Expect(err).To(gomega.Succeed())
@@ -112,9 +111,14 @@ func TestReplicatedVectorPassthrough(t *testing.T) {
 	g.Expect(vp.VectorSearchPath()).To(gomega.Equal(metaengine.VectorPathScan),
 		"memory local engine reports go-scan; the wrapper must forward it")
 
-	_, isFiltered := eng.(metaengine.VectorFilterBackend)
-	g.Expect(isFiltered).
-		To(gomega.BeFalse(), "VectorSearchFiltered must not be promoted: see engine_passthrough.go policy")
+	vf, isFiltered := eng.(metaengine.VectorFilterBackend)
+	g.Expect(isFiltered).To(gomega.BeTrue())
+
+	filtered, err := vf.VectorSearchFiltered(ctx, "docs", []float32{1, 0}, 1, "cosine",
+		[]metaengine.VectorFilter{{Field: "tenant", Op: metaengine.FilterEq, Value: "y"}})
+	g.Expect(err).To(gomega.Succeed())
+	g.Expect(filtered).To(gomega.HaveLen(1))
+	g.Expect(filtered[0].ID).To(gomega.Equal("b"), "pre-filter AND semantics must hold through the wrapper")
 
 	_, isCounter := eng.(metaengine.VectorCounter)
 	g.Expect(isCounter).

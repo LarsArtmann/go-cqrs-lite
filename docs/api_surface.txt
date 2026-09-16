@@ -2227,6 +2227,8 @@ metaengine/badgerengine/method VectorSearch
 metaengine/badgerengine/method VectorSearch
 metaengine/badgerengine/method VectorSearchFiltered
 metaengine/badgerengine/method VectorSearchFiltered
+metaengine/badgerengine/method VectorSearchPath
+metaengine/badgerengine/method VectorSearchPath
 metaengine/badgerengine/type Option
 metaengine/badgerengine/type Option
 metaengine/bboltengine/const BboltNsPerOp
@@ -2301,6 +2303,8 @@ metaengine/bboltengine/method VectorSearch
 metaengine/bboltengine/method VectorSearch
 metaengine/bboltengine/method VectorSearchFiltered
 metaengine/bboltengine/method VectorSearchFiltered
+metaengine/bboltengine/method VectorSearchPath
+metaengine/bboltengine/method VectorSearchPath
 metaengine/bboltengine/type Option
 metaengine/bboltengine/type Option
 metaengine/const ADTCounter
@@ -2405,6 +2409,8 @@ metaengine/const TraceOpQuery
 metaengine/const TursoGoIVMLastVerified
 metaengine/const TursoGoIVMVerifiedFrom
 metaengine/const TursoGoIVMVerifiedThrough
+metaengine/const VectorPathPushdown
+metaengine/const VectorPathScan
 metaengine/const WarnJoinAmplification
 metaengine/const WarnPriorityMismatch
 metaengine/const WarnWriteAmplification
@@ -2494,6 +2500,8 @@ metaengine/dgraphengine/method VectorSearch
 metaengine/dgraphengine/method VectorSearch
 metaengine/dgraphengine/method VectorSearchFiltered
 metaengine/dgraphengine/method VectorSearchFiltered
+metaengine/dgraphengine/method VectorSearchPath
+metaengine/dgraphengine/method VectorSearchPath
 metaengine/dgraphengine/type Option
 metaengine/dgraphengine/type Option
 metaengine/duckdbengine/const DuckDBNsPerOp
@@ -2582,6 +2590,8 @@ metaengine/duckdbengine/method VectorSearch
 metaengine/duckdbengine/method VectorSearch
 metaengine/duckdbengine/method VectorSearchFiltered
 metaengine/duckdbengine/method VectorSearchFiltered
+metaengine/duckdbengine/method VectorSearchPath
+metaengine/duckdbengine/method VectorSearchPath
 metaengine/enginetest/const RaceEnabled
 metaengine/enginetest/const RaceEnabled
 metaengine/enginetest/func RunAtomicAppenderTest
@@ -2854,6 +2864,7 @@ metaengine/interface Transactional
 metaengine/interface VectorBackend
 metaengine/interface VectorCounter
 metaengine/interface VectorFilterBackend
+metaengine/interface VectorPathReporter
 metaengine/interface VersionedStorage
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const FrameHeaderSize
@@ -3023,6 +3034,8 @@ metaengine/irohengine/method VectorSearch
 metaengine/irohengine/method VectorSearch
 metaengine/irohengine/method VectorSearchFiltered
 metaengine/irohengine/method VectorSearchFiltered
+metaengine/irohengine/method VectorSearchPath
+metaengine/irohengine/method VectorSearchPath
 metaengine/irohengine/quic/const DefaultDedupCapacity
 metaengine/irohengine/quic/const DefaultDedupCapacity
 metaengine/irohengine/quic/const DefaultDedupCapacity
@@ -3458,6 +3471,7 @@ metaengine/method VectorCount
 metaengine/method VectorInsert
 metaengine/method VectorSearch
 metaengine/method VectorSearchFiltered
+metaengine/method VectorSearchPath
 metaengine/method Verify
 metaengine/method VerifyFingerprint
 metaengine/method ViewName
@@ -3562,6 +3576,8 @@ metaengine/mysqlengine/method VectorSearch
 metaengine/mysqlengine/method VectorSearch
 metaengine/mysqlengine/method VectorSearchFiltered
 metaengine/mysqlengine/method VectorSearchFiltered
+metaengine/mysqlengine/method VectorSearchPath
+metaengine/mysqlengine/method VectorSearchPath
 metaengine/otelobserver/func Attach
 metaengine/otelobserver/func Attach
 metaengine/otelobserver/func New
@@ -3654,6 +3670,8 @@ metaengine/pebbleengine/method VectorSearch
 metaengine/pebbleengine/method VectorSearch
 metaengine/pebbleengine/method VectorSearchFiltered
 metaengine/pebbleengine/method VectorSearchFiltered
+metaengine/pebbleengine/method VectorSearchPath
+metaengine/pebbleengine/method VectorSearchPath
 metaengine/pebbleengine/type Option
 metaengine/pebbleengine/type Option
 metaengine/pgengine/const PG_NetworkRTT
@@ -3758,6 +3776,8 @@ metaengine/pgengine/method VectorSearch
 metaengine/pgengine/method VectorSearch
 metaengine/pgengine/method VectorSearchFiltered
 metaengine/pgengine/method VectorSearchFiltered
+metaengine/pgengine/method VectorSearchPath
+metaengine/pgengine/method VectorSearchPath
 metaengine/pgengine/type Option
 metaengine/pgengine/type Option
 metaengine/projectionadapter/func New
@@ -3944,6 +3964,8 @@ metaengine/sqliteengine/method VectorSearch
 metaengine/sqliteengine/method VectorSearch
 metaengine/sqliteengine/method VectorSearchFiltered
 metaengine/sqliteengine/method VectorSearchFiltered
+metaengine/sqliteengine/method VectorSearchPath
+metaengine/sqliteengine/method VectorSearchPath
 metaengine/sqliteengine/type EngineOption
 metaengine/sqliteengine/type EngineOption
 metaengine/sqliteengine/var ErrNoProber
