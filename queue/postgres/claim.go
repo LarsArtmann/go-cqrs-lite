@@ -98,9 +98,9 @@ func selectCandidate(
 		now.UnixMilli(), now.UnixMilli(),
 		float64(queue.PriorityAgingDaysPerPoint), float64(queue.PriorityAgingMaxBonus))
 
-	var id, st, prevOwner string
+	var id, status, prevOwner string
 
-	if err := row.Scan(&id, &st, &prevOwner); err != nil {
+	if err := row.Scan(&id, &status, &prevOwner); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return "", "", "", queue.ErrNoTaskDue
 		}
@@ -108,7 +108,7 @@ func selectCandidate(
 		return "", "", "", err
 	}
 
-	return id, st, prevOwner, nil
+	return id, status, prevOwner, nil
 }
 
 // finalizeReclaim handles an expired-lease candidate: a pending

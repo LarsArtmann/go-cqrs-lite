@@ -44,7 +44,7 @@ func cancelRequestedReasonTx(ctx context.Context, tx pgx.Tx, id string) (string,
 	}
 
 	if json.Unmarshal([]byte(detail), &d) != nil {
-		return "", nil
+		return "", nil //nolint:nilerr // documented best-effort: unparsable detail yields "", never an error
 	}
 
 	return d.Reason, nil
@@ -62,8 +62,8 @@ func cancelReasonDetail(reason string) []byte {
 
 // dismissReasonDetail builds the cancelled detail for a DLQ dismiss:
 // the reason plus who ruled.
-func dismissReasonDetail(reason string, by string) []byte {
-	detail := map[string]string{"dismissed_by": by}
+func dismissReasonDetail(reason string, dismissedBy string) []byte {
+	detail := map[string]string{"dismissed_by": dismissedBy}
 	if reason != "" {
 		detail["reason"] = reason
 	}

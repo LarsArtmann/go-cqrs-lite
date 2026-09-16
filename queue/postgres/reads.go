@@ -142,7 +142,7 @@ func listWhere(f queue.Filter) (string, []any) {
 
 		where = append(where, fmt.Sprintf(`(id ILIKE $%d OR type ILIKE $%d OR
 			project ILIKE $%d OR payload ILIKE $%d OR
-			lease_owner ILIKE $%d OR last_error ILIKE $%d)`,
+			lease_owner ILIKE $%d OR last_error ILIKE $%d)`, //nolint:mnd // six searchable columns, one bind each
 			next+1, next+2, next+3, next+4, next+5, next+6))
 
 		for range 6 {
@@ -175,6 +175,7 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	var out []task.Task[T]
@@ -210,21 +211,22 @@ func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error
 	if err != nil {
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	out := make(map[task.Status]int)
 
 	for rows.Next() {
 		var (
-			st task.Status
-			n  int
+			status task.Status
+			n      int
 		)
 
-		if err := rows.Scan(&st, &n); err != nil {
+		if err := rows.Scan(&status, &n); err != nil {
 			return nil, err
 		}
 
-		out[st] = n
+		out[status] = n
 	}
 
 	return out, rows.Err()

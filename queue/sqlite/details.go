@@ -62,8 +62,8 @@ func cancelReasonDetail(reason string) []byte {
 // dismissReasonDetail builds the cancelled detail for a DLQ dismiss: the
 // reason plus who ruled. The reason is the point of the dismissal — an
 // empty one still records the by.
-func dismissReasonDetail(reason string, by string) []byte {
-	detail := map[string]string{"dismissed_by": by}
+func dismissReasonDetail(reason string, dismissedBy string) []byte {
+	detail := map[string]string{"dismissed_by": dismissedBy}
 	if reason != "" {
 		detail["reason"] = reason
 	}

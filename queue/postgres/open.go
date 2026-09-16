@@ -72,6 +72,9 @@ func Open[T any](
 	return store, nil
 }
 
+// errNilPool rejects OpenWithPool on a nil pool.
+var errNilPool = errors.New("queue/postgres: nil pool")
+
 // OpenWithPool wraps a caller-owned pool into a ready store, applying
 // the schema on it. The caller keeps pool ownership: Store.Close does
 // NOT close a caller-owned pool — shut it down yourself once the whole
@@ -82,7 +85,7 @@ func OpenWithPool[T any](
 	opts ...StoreOption[T],
 ) (*Store[T], error) {
 	if pool == nil {
-		return nil, errors.New("queue/postgres: nil pool")
+		return nil, errNilPool
 	}
 
 	return wrapPool(ctx, pool, opts...)
@@ -103,7 +106,7 @@ func wrapPool[T any](
 		return nil, fmt.Errorf("queue/postgres: migrate: %w", err)
 	}
 
-	return &Store[T]{pool: pool, codec: options.codec}, nil
+	return &Store[T]{pool: pool, codec: options.codec, ownsPool: false}, nil
 }
 
 // Close releases the store's resources. A pool the store opened via
