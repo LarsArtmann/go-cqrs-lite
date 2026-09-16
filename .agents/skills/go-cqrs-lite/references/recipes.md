@@ -1187,8 +1187,8 @@ byActor, _ := metaengine.ExecuteTyped[projections.CommandsByActorQuery, projecti
 Lifecycle payload structs evolve like any other. Old streams keep the old
 payload bytes; the new library code wants the new shape. The fix is pure
 COMPOSITION — wrap the raw store with
-[`event.DecorateStore`](../../../../../event/store_middleware.go) +
-[`schema.UpcastSourceTransform`](../../../../../schema/versioned_source.go):
+[`event.DecorateStore`](../../../../event/store_middleware.go) +
+[`schema.UpcastSourceTransform`](../../../../schema/versioned_source.go):
 reads see the new shape, writes pass through untouched. Verified by
 `commandlifecycle/upcast_composition_test.go` (2026-09-13, plan D3).
 

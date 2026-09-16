@@ -80,7 +80,7 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 > `stack/*` presets are **deprecated and removed in v5** — new code should
 > prefer the `metaengine` Store + `projectionadapter` / `system` composition
 > root. The tiers remain fully functional through v4.x. Canonical v5-removal
-> list: [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
+> list: [FAQ — "Will the v5 cut break my imports?"](references/faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
 | Data shape                                                     | Query pattern                          | Recommended tier                                                                                                                                                                                                  |
 | -------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

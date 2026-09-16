@@ -54,7 +54,7 @@ Notable members of the fragment class that deserve special handling:
   (`docs/feedback/archived/2026-08-02_cqrs-htmx_cqrs-lint-feedback-round-2.md:167`).
 - **Forward-looking sketch the validator is right to reject today:** methods cannot have
   their own type parameters in current Go — `func (s *Store) Get[I, V any](...)` in
-  [`docs/adr/0081-metaengine-runtime-casts.md:59`](adr/0081-metaengine-runtime-casts.md)
+  [`docs/adr/0081-metaengine-runtime-casts.md:59`](../adr/0081-metaengine-runtime-casts.md)
   is a Go-1.27-era sketch, correctly flagged as not-valid-today.
 
 ## Where the failures live

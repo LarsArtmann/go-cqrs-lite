@@ -79,6 +79,12 @@ func (nc *navChecker) targetSlugs(target, dir string, self *docNav) (map[string]
 		return doc.slugs, true
 	}
 
+	// Short-name fallback ("faq.md" from SKILL.md, which lives one level up
+	// from references/) — same resolution the § doc-name prefix uses.
+	if doc := nc.loadDocName(target[:idx], dir); doc != nil {
+		return doc.slugs, true
+	}
+
 	return nil, false
 }
 
