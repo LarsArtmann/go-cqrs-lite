@@ -65,7 +65,7 @@ type Store struct {
 	// Type-only Record (Store.Apply) while OnRecord folds were registered for
 	// the event type. See record_context.go.
 	recordAwareEvents       atomic.Pointer[map[string]bool]
-	syntheticRecordApplies  atomic.Uint64
+	syntheticFeeds          syntheticFeedCounters
 	syntheticRecordAdvisory sync.Once
 }
 
@@ -414,7 +414,7 @@ func (s *Store) notifyLive(q queryMeta, collection string, key any, value any) {
 // context must be fed via ApplyRecord instead; Store counts such applies
 // and Doctor's "--- Record context ---" section reports them.
 func (s *Store) Apply(ctx context.Context, eventType string, payload any) error {
-	return s.applyWithRecord(ctx, eventType, record.Record{Type: eventType}, payload)
+	return s.applyWithRecord(ctx, feedApply, eventType, record.Record{Type: eventType}, payload)
 }
 
 // ApplyBatch processes multiple events through all queries in one call.
@@ -433,7 +433,7 @@ func (s *Store) ApplyBatch(ctx context.Context, events []EventInput) error {
 			rec.Type = evt.Type
 		}
 
-		if err := s.applyWithRecord(ctx, evt.Type, rec, evt.Payload); err != nil {
+		if err := s.applyWithRecord(ctx, feedApplyBatch, evt.Type, rec, evt.Payload); err != nil {
 			return fmt.Errorf("batch apply event %q: %w", evt.Type, err)
 		}
 	}
@@ -455,7 +455,7 @@ func (s *Store) ApplyRecord(
 	rec record.Record,
 	decodedPayload any,
 ) error {
-	return s.applyWithRecord(ctx, rec.Type, rec, decodedPayload)
+	return s.applyWithRecord(ctx, feedApplyRecord, rec.Type, rec, decodedPayload)
 }
 
 // applyWithRecord dispatches a payload through all matching folds, setting the
@@ -468,6 +468,7 @@ func (s *Store) ApplyRecord(
 // Cross-engine atomicity is NOT guaranteed (two-phase commit is not supported).
 func (s *Store) applyWithRecord(
 	ctx context.Context,
+	entry feedEntryPoint,
 	eventType string,
 	rec record.Record,
 	payload any,
@@ -495,7 +496,7 @@ func (s *Store) applyWithRecord(
 	}
 
 	if isSyntheticRecord(rec) {
-		s.noteSyntheticRecordApply(eventType)
+		s.noteSyntheticRecordApply(entry, eventType)
 	}
 
 	dispatchErr := s.dispatchFoldsLocked(ctx, eventType, rec, payload, nil)
@@ -531,14 +532,14 @@ func (s *Store) replicateLocked(eventType string, rec record.Record, payload any
 // consumers should wrap the Store with an external idempotency store.
 func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, payload any) error {
 	if eventID == "" {
-		return s.Apply(ctx, eventType, payload)
+		return s.applyWithRecord(ctx, feedApplyIdempotent, eventType, record.Record{Type: eventType}, payload)
 	}
 
 	if s.idempotency.CheckAndRecord(eventID) {
 		return nil // already applied
 	}
 
-	return s.Apply(ctx, eventType, payload)
+	return s.applyWithRecord(ctx, feedApplyIdempotent, eventType, record.Record{Type: eventType}, payload)
 }
 
 // InTransaction executes fn within a single database transaction across all

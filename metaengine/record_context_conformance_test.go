@@ -61,7 +61,7 @@ func TestFoldDispatch_RecordContextConformance(t *testing.T) {
 				t.Fatalf("fold observed %+v, want %+v", got, tc.want)
 			}
 
-			if applies := store.syntheticRecordApplies.Load(); applies != tc.advisory {
+			if applies := store.syntheticFeeds.total(); applies != tc.advisory {
 				t.Fatalf("synthetic-apply advisory = %d, want %d", applies, tc.advisory)
 			}
 		})

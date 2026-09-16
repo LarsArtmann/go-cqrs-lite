@@ -940,6 +940,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-batch-release.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-check-retracts-shipped.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-pin-sweep.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/test-calibration-drift.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                 '';
 

@@ -36,7 +36,7 @@ import (
 //	    return p.store.ApplyEncoded(string(evt.Type()), evt.Payload())
 //	}
 func (s *Store) ApplyEncoded(ctx context.Context, eventType string, payload []byte) error {
-	return s.applyWithRecord(ctx, eventType, record.Record{Type: eventType}, rawJSON(payload))
+	return s.applyWithRecord(ctx, feedApplyEncoded, eventType, record.Record{Type: eventType}, rawJSON(payload))
 }
 
 // ApplyEncodedRecord is ApplyEncoded with full Record context (ADR-0112):
@@ -51,7 +51,7 @@ func (s *Store) ApplyEncodedRecord(ctx context.Context, rec record.Record, paylo
 		)
 	}
 
-	return s.applyWithRecord(ctx, rec.Type, rec, rawJSON(payload))
+	return s.applyWithRecord(ctx, feedApplyEncodedRecord, rec.Type, rec, rawJSON(payload))
 }
 
 // rawJSON clones the caller's bytes into a jsontext.Value — the pipeline's

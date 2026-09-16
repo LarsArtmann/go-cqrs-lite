@@ -17,6 +17,73 @@ func isSyntheticRecord(rec record.Record) bool {
 	return rec.StreamID == "" && rec.Version == 0
 }
 
+// feedEntryPoint names the public Store method that fed an event into the
+// apply path. It exists so the Doctor's synthetic-Record breakdown can point
+// at the exact caller to fix instead of a single undifferentiated total.
+type feedEntryPoint string
+
+const (
+	feedApply              feedEntryPoint = "Apply"
+	feedApplyBatch         feedEntryPoint = "ApplyBatch"
+	feedApplyIdempotent    feedEntryPoint = "ApplyIdempotent"
+	feedApplyRecord        feedEntryPoint = "ApplyRecord"
+	feedApplyEncoded       feedEntryPoint = "ApplyEncoded"
+	feedApplyEncodedRecord feedEntryPoint = "ApplyEncodedRecord"
+)
+
+// syntheticFeedCounters breaks the synthetic-Record advisory count down by
+// the entry point that fed it. Replays (Backfill/Verify/Demote/replication)
+// never count — only direct applies do.
+type syntheticFeedCounters struct {
+	apply               atomic.Uint64
+	applyBatch          atomic.Uint64
+	applyIdempotent     atomic.Uint64
+	applyRecord         atomic.Uint64
+	applyEncoded        atomic.Uint64
+	applyEncodedRecord  atomic.Uint64
+}
+
+// total sums every bucket — the pre-breakdown aggregate count.
+func (c *syntheticFeedCounters) total() uint64 {
+	return c.apply.Load() + c.applyBatch.Load() + c.applyIdempotent.Load() +
+		c.applyRecord.Load() + c.applyEncoded.Load() + c.applyEncodedRecord.Load()
+}
+
+// bucket returns the counter for the given entry point.
+func (c *syntheticFeedCounters) bucket(entry feedEntryPoint) *atomic.Uint64 {
+	switch entry {
+	case feedApplyBatch:
+		return &c.applyBatch
+	case feedApplyIdempotent:
+		return &c.applyIdempotent
+	case feedApplyRecord:
+		return &c.applyRecord
+	case feedApplyEncoded:
+		return &c.applyEncoded
+	case feedApplyEncodedRecord:
+		return &c.applyEncodedRecord
+	default:
+		return &c.apply
+	}
+}
+
+// breakdown renders the non-zero buckets as "Name=count" pairs joined by
+// ", ", sorted by entry-point name for stable Doctor output.
+func (c *syntheticFeedCounters) breakdown() string {
+	parts := make([]string, 0, 6)
+
+	for _, entry := range []feedEntryPoint{
+		feedApply, feedApplyBatch, feedApplyIdempotent,
+		feedApplyRecord, feedApplyEncoded, feedApplyEncodedRecord,
+	} {
+		if n := c.bucket(entry).Load(); n > 0 {
+			parts = append(parts, fmt.Sprintf("%s=%d", entry, n))
+		}
+	}
+
+	return strings.Join(parts, ", ")
+}
+
 // recordAwareEventTypes returns the event types whose registered folds were
 // created via OnRecord/OnRecordTyped. The caller must hold s.mu (at least
 // RLock); the result is freshly computed — most callers want
@@ -57,15 +124,16 @@ func (s *Store) recordAwareEventTypesCached() map[string]bool {
 
 // noteSyntheticRecordApply records that an event reached the store as a
 // synthesized Type-only Record while record-aware folds are registered for
-// it. The first occurrence is logged (when a Logger is configured); every
-// occurrence is counted for the Doctor's "--- Record context ---" section.
+// it, attributed to the entry point that fed it. The first occurrence is
+// logged (when a Logger is configured); every occurrence is counted for the
+// Doctor's "--- Record context ---" section, broken down by entry point.
 // The caller must hold s.mu (at least RLock).
-func (s *Store) noteSyntheticRecordApply(eventType string) {
+func (s *Store) noteSyntheticRecordApply(entry feedEntryPoint, eventType string) {
 	if !s.recordAwareEventTypesCached()[eventType] {
 		return
 	}
 
-	s.syntheticRecordApplies.Add(1)
+	s.syntheticFeeds.bucket(entry).Add(1)
 
 	s.syntheticRecordAdvisory.Do(func() {
 		logSyntheticRecordAdvisory(s.hooks, eventType)
@@ -111,14 +179,15 @@ func (s *Store) recordContextDoctorSection() string {
 		strings.Join(slices.Sorted(maps.Keys(aware)), ", "),
 	)
 
-	if applies := s.syntheticRecordApplies.Load(); applies > 0 {
+	if applies := s.syntheticFeeds.total(); applies > 0 {
 		fmt.Fprintf(
 			&b,
-			"  %d apply event(s) arrived with a synthesized Type-only Record (Store.Apply) — "+
+			"  %d apply event(s) arrived with a synthesized Type-only Record — "+
 				"OnRecord handlers saw empty StreamID/Version. "+
 				"Use Store.ApplyRecord (or the projection adapter path) for full context.\n",
 			applies,
 		)
+		fmt.Fprintf(&b, "  by entry point: %s\n", s.syntheticFeeds.breakdown())
 	} else {
 		b.WriteString("  all applies carried full Record context\n")
 	}

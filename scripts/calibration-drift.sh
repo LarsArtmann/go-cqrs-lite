@@ -126,12 +126,14 @@ if [ -n "$BASELINE_FILE" ]; then
 		exit 2
 	fi
 
+	baseline_rows=0
 	while IFS='|' read -r bmod blabel bns; do
 		[ -z "$bmod" ] && continue
 		BASELINE["$bmod|$blabel"]="$bns"
+		baseline_rows=$((baseline_rows + 1))
 	done <"$BASELINE_FILE"
 
-	if [ "${#BASELINE[@]}" -eq 0 ]; then
+	if [ "$baseline_rows" -eq 0 ]; then
 		echo "::error::baseline artifact has no rows: $BASELINE_FILE" >&2
 		exit 2
 	fi
