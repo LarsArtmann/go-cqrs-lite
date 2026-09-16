@@ -17,8 +17,7 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// sqliteEngine implements all metaengine.ADT backends backed by a SQL
-// database: the first persistent engine, enabling data to survive restarts.
+// sqliteEngine implements all metaengine.ADT backends on a SQL database.
 type sqliteEngine struct {
 	metaengine.Calibration
 
@@ -48,8 +47,8 @@ type sqliteEngine struct {
 	matViewErr error
 }
 
-// sqliteQuerySet holds pre-built SQL strings for each operation.
-// Two variants handle placeholder differences (? vs $N).
+// sqliteQuerySet holds pre-built SQL strings per operation; two variants
+// handle placeholder differences (? vs $N).
 type sqliteQuerySet struct {
 	// Map
 	mapSet    string

@@ -1,11 +1,9 @@
 package version
 
 // Data tables for V007 (v5-removed-api-usage). Kept separate from the
-// detector so the rule logic and the curated removal surface evolve
-// independently; each file stays under the 350-line limit.
+// detector so rule logic and the curated removal surface evolve independently.
 
-// cqrsModulePrefix is the go-cqrs-lite module path prefix every consumer
-// import shares.
+// cqrsModulePrefix is the go-cqrs-lite module path prefix every consumer import shares.
 const cqrsModulePrefix = "github.com/larsartmann/go-cqrs-lite/"
 
 // deprecatedV5Module describes a module removed entirely at v5.
