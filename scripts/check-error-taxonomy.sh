@@ -34,6 +34,10 @@ GATED_MODULES=(
 	"core/event|event|event."
 	"core/command|command|command."
 	"core/query|query|query."
+	"storage/view|storage/view|storage.view.|10"
+	"stack|stack|stack. bbolt_preset. duckdb. duckdb_preset. memory. mysql. mysql_preset. pebble_preset. postgres. postgres_preset. sqlite. sqlite_preset. turso. turso_preset.|50"
+	"deriver|deriver|deriver.|2"
+	"storage (SQL facade)|storage|storage. backend. listing.|30||1"
 )
 
 # Per-module pool-size floor: a gated module whose extraction yields fewer
@@ -87,12 +91,16 @@ trap 'rm -f "$tmp_pool" "$tmp_claims"' EXIT
 
 # ── Source ground truth: code<TAB>family, one per line ──────────────────
 for entry in "${GATED_MODULES[@]}"; do
-	IFS='|' read -r _section dir _prefixes floor <<<"$entry"
+	IFS='|' read -r _section dir _prefixes floor _maxdepth <<<"$entry"
 	floor="${floor:-$DEFAULT_FLOOR}"
+
+	depth_args=()
+	[ -n "${_maxdepth:-}" ] && depth_args=(--max-depth "$_maxdepth")
 
 	tmp_mod="$(mktemp)"
 	rg -U --no-filename -o "$EXTRACT_PATTERN" \
 		"$repo_root/$dir" \
+		"${depth_args[@]}" \
 		--glob '*.go' --glob '!*_test.go' -g '!**/testdata/**' -g '!**/vendor/**' -g '!**/eventtest/**' \
 		-r '$2	$1' >"$tmp_mod" || true
 	sort -u "$tmp_mod" -o "$tmp_mod"
