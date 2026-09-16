@@ -31,7 +31,7 @@ func BenchmarkVectorSearch_LibSQLPushdown(b *testing.B) {
 	for i := range 1000 {
 		values := make([]float32, 64)
 		for d := range values {
-			values[d] = float32((i*7 + d*13) % 97) / 97
+			values[d] = float32((i*7+d*13)%97) / 97
 		}
 
 		if err := vb.VectorInsert(ctx, "bench",
@@ -53,5 +53,4 @@ func BenchmarkVectorSearch_LibSQLPushdown(b *testing.B) {
 			b.Fatalf("VectorSearch: %v", err)
 		}
 	}
-
 }

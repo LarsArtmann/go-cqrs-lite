@@ -18,7 +18,7 @@ func benchVectorCorpus(n, dim int) []metaengine.Embedding {
 	for i := range embs {
 		values := make([]float32, dim)
 		for d := range values {
-			values[d] = float32((i*7 + d*13) % 97) / 97
+			values[d] = float32((i*7+d*13)%97) / 97
 		}
 		embs[i] = metaengine.Embedding{ID: fmt.Sprintf("v%d", i), Values: values}
 	}

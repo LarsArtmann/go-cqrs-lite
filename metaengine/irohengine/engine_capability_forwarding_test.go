@@ -96,15 +96,30 @@ func TestReplicatedVectorPassthrough(t *testing.T) {
 	vb, isVB := eng.(metaengine.VectorBackend)
 	g.Expect(isVB).To(gomega.BeTrue())
 
-	g.Expect(vb.VectorInsert(ctx, "docs",
-		metaengine.Embedding{ID: "a", Values: []float32{1, 0}, Metadata: map[string]any{"tenant": "x"}})).To(gomega.Succeed())
-	g.Expect(vb.VectorInsert(ctx, "docs",
-		metaengine.Embedding{ID: "b", Values: []float32{0, 1}, Metadata: map[string]any{"tenant": "y"}})).To(gomega.Succeed())
+	g.Expect(vb.VectorInsert(
+		ctx,
+		"docs",
+		metaengine.Embedding{
+			ID:       "a",
+			Values:   []float32{1, 0},
+			Metadata: map[string]any{"tenant": "x"},
+		},
+	)).To(gomega.Succeed())
+	g.Expect(vb.VectorInsert(
+		ctx,
+		"docs",
+		metaengine.Embedding{
+			ID:       "b",
+			Values:   []float32{0, 1},
+			Metadata: map[string]any{"tenant": "y"},
+		},
+	)).To(gomega.Succeed())
 
 	results, err := vb.VectorSearch(ctx, "docs", []float32{1, 0}, 2, "cosine")
 	g.Expect(err).To(gomega.Succeed())
 	g.Expect(results).To(gomega.HaveLen(2))
-	g.Expect(results[0].ID).To(gomega.Equal("a"), "nearest-first ordering must hold through the wrapper")
+	g.Expect(results[0].ID).
+		To(gomega.Equal("a"), "nearest-first ordering must hold through the wrapper")
 
 	vp, isVP := eng.(metaengine.VectorPathReporter)
 	g.Expect(isVP).To(gomega.BeTrue())
@@ -118,7 +133,8 @@ func TestReplicatedVectorPassthrough(t *testing.T) {
 		[]metaengine.VectorFilter{{Field: "tenant", Op: metaengine.FilterEq, Value: "y"}})
 	g.Expect(err).To(gomega.Succeed())
 	g.Expect(filtered).To(gomega.HaveLen(1))
-	g.Expect(filtered[0].ID).To(gomega.Equal("b"), "pre-filter AND semantics must hold through the wrapper")
+	g.Expect(filtered[0].ID).
+		To(gomega.Equal("b"), "pre-filter AND semantics must hold through the wrapper")
 
 	_, isCounter := eng.(metaengine.VectorCounter)
 	g.Expect(isCounter).

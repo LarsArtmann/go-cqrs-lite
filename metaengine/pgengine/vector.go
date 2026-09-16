@@ -40,7 +40,11 @@ func (e *pgEngine) VectorInsert(
 		return fmt.Errorf("pgengine.VectorInsert: dimension probe: %w", err)
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("pgengine.VectorInsert: %w", err)
 	}
 
@@ -246,6 +250,4 @@ func (e *pgEngine) VectorSearchPath() string {
 	return metaengine.VectorPathScan
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*pgEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*pgEngine)(nil)

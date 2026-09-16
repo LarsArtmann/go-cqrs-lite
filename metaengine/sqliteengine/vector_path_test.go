@@ -46,7 +46,13 @@ func TestVectorSearchPath_ModerncScansInGo(t *testing.T) {
 		t.Fatalf("VectorInsert: %v", err)
 	}
 
-	results, err := eng.(metaengine.VectorBackend).VectorSearch(ctx, "docs", []float32{1, 0}, 1, "cosine")
+	results, err := eng.(metaengine.VectorBackend).VectorSearch(
+		ctx,
+		"docs",
+		[]float32{1, 0},
+		1,
+		"cosine",
+	)
 	if err != nil {
 		t.Fatalf("VectorSearch: %v", err)
 	}

@@ -58,7 +58,11 @@ func (e *dgraphEngine) VectorInsert(
 		return err //nolint:wrapcheck // wrapped by the probe helper
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("dgraphengine.VectorInsert: %w", err)
 	}
 
@@ -392,6 +396,4 @@ func (e *dgraphEngine) VectorSearchPath() string {
 	return metaengine.VectorPathScan
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*dgraphEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*dgraphEngine)(nil)

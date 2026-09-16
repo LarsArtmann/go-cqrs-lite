@@ -2,9 +2,9 @@ package mysqlengine
 
 import (
 	"context"
-	"errors"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -53,7 +53,11 @@ func (e *mysqlEngine) VectorInsert(
 		return fmt.Errorf("mysqlengine.VectorInsert: dimension probe: %w", err)
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("mysqlengine.VectorInsert: %w", err)
 	}
 
@@ -232,6 +236,4 @@ func (e *mysqlEngine) VectorSearchPath() string {
 	return metaengine.VectorPathScan
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*mysqlEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*mysqlEngine)(nil)

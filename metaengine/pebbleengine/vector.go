@@ -33,7 +33,11 @@ func (e *pebbleEngine) VectorInsert(
 		return err //nolint:wrapcheck // wrapped by the probe helper
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("pebbleengine.VectorInsert: %w", err)
 	}
 
@@ -180,9 +184,7 @@ func (e *pebbleEngine) VectorSearchPath() string {
 	return metaengine.VectorPathScan
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*pebbleEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*pebbleEngine)(nil)
 
 // firstVectorDimension reads the stored dimension of the collection's first
 // vector (0 when the collection is empty) for the insert-time dimension lock.

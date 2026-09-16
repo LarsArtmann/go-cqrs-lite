@@ -44,7 +44,11 @@ func (e *bboltEngine) VectorInsert(
 			return err //nolint:wrapcheck // already wrapped
 		}
 
-		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+		if err := metaengine.CheckVectorDimension(
+			collection,
+			established,
+			len(emb.Values),
+		); err != nil {
 			return err //nolint:wrapcheck // classified by metaengine
 		}
 
@@ -160,9 +164,7 @@ func (e *bboltEngine) VectorSearchPath() string {
 	return metaengine.VectorPathScan
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*bboltEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*bboltEngine)(nil)
 
 // firstVectorDimension reads the stored dimension of the collection's first
 // vector (0 when the collection is empty) for the insert-time dimension lock.

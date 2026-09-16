@@ -34,7 +34,11 @@ func (e *badgerEngine) VectorInsert(
 		return err //nolint:wrapcheck // wrapped by the probe helper
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("badgerengine.VectorInsert: %w", err)
 	}
 
@@ -195,9 +199,7 @@ func (e *badgerEngine) VectorSearchPath() string {
 	return metaengine.VectorPathScan
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*badgerEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*badgerEngine)(nil)
 
 // firstVectorDimension reads the stored dimension of the collection's first
 // vector (0 when the collection is empty) for the insert-time dimension lock.

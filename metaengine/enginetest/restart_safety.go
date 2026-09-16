@@ -229,7 +229,11 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 
 			// Post-restart inserts must pass the dimension lock — the
 			// established dimension is re-read from persisted rows.
-			if err := vb2.VectorInsert(ctx, "vecs", metaengine.Embedding{ID: "v3", Values: []float32{0, 0, 1}}); err != nil {
+			if err := vb2.VectorInsert(
+				ctx,
+				"vecs",
+				metaengine.Embedding{ID: "v3", Values: []float32{0, 0, 1}},
+			); err != nil {
 				t.Fatalf("post-restart VectorInsert: %v", err)
 			}
 		}

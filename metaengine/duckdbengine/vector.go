@@ -3,8 +3,8 @@ package duckdbengine
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -83,7 +83,11 @@ func (e *duckdbEngine) VectorInsert(
 		return fmt.Errorf("duckdbengine.VectorInsert: dimension probe: %w", err)
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("duckdbengine.VectorInsert: %w", err)
 	}
 
@@ -302,6 +306,4 @@ func (e *duckdbEngine) VectorSearchPath() string {
 	return metaengine.VectorPathPushdown
 }
 
-var (
-	_ metaengine.VectorPathReporter = (*duckdbEngine)(nil)
-)
+var _ metaengine.VectorPathReporter = (*duckdbEngine)(nil)

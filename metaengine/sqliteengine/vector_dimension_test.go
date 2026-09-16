@@ -6,8 +6,8 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 )
 
 func TestVectorDimensionGuard(t *testing.T) {

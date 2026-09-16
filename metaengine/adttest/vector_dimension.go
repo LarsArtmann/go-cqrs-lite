@@ -32,7 +32,11 @@ func AssertVectorDimensionGuard(t *testing.T, eng metaengine.Engine) {
 	col3d := "dim_guard_3d" + suffix
 	colEmpty := "dim_guard_empty" + suffix
 
-	if err := vb.VectorInsert(ctx, col, metaengine.Embedding{ID: "a", Values: []float32{1, 0}}); err != nil {
+	if err := vb.VectorInsert(
+		ctx,
+		col,
+		metaengine.Embedding{ID: "a", Values: []float32{1, 0}},
+	); err != nil {
 		t.Fatalf("establishing insert: %v", err)
 	}
 
@@ -46,11 +50,19 @@ func AssertVectorDimensionGuard(t *testing.T, eng metaengine.Engine) {
 		t.Fatalf("zero-dimension insert err = %v, want ErrVectorDimensionMismatch", err)
 	}
 
-	if err := vb.VectorInsert(ctx, col, metaengine.Embedding{ID: "a", Values: []float32{0, 1}}); err != nil {
+	if err := vb.VectorInsert(
+		ctx,
+		col,
+		metaengine.Embedding{ID: "a", Values: []float32{0, 1}},
+	); err != nil {
 		t.Fatalf("same-dimension upsert: %v", err)
 	}
 
-	if err := vb.VectorInsert(ctx, col3d, metaengine.Embedding{ID: "c", Values: []float32{1, 0, 0}}); err != nil {
+	if err := vb.VectorInsert(
+		ctx,
+		col3d,
+		metaengine.Embedding{ID: "c", Values: []float32{1, 0, 0}},
+	); err != nil {
 		t.Fatalf("other-collection insert: %v", err)
 	}
 }
