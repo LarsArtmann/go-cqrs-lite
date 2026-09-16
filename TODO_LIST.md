@@ -716,6 +716,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > FAQ entry); `ApplyBatch` atomicity stays tracked under v5 Unification
 > (ADR-0123 §10) — CV's 3.4 s → 109 ms pragma measurement is the perf
 > argument for it.
+>
+> **Execution sequencing for this section + the metaengine/system reliability
+> items lives in the Pareto plan
+> [`docs/planning/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md`](docs/planning/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md)**
+> (P0: tag wave + replay-starvation fix + ApplyBatch atomicity; P1: lease +
+> FilterContains + Forever + E9/E10 + matview guard; P2: v5 deletions + E-items +
+> AggregateOn seam; P3: proof + docs + v5.0.0 cut).
 
 - [ ] **Decide a first-class single-writer/lease story for engines** — CV's
       Phase-0 ADR conditions every library-store cutover on a CV-owned
@@ -744,7 +751,24 @@ bottom is a do-not-re-litigate guard, not a backlog.
       `DomainConfig.Events` + `ErrDanglingEventSubscription` sit unreleased on
       master while the newest real consumer (CV) enforces its event universe
       CV-side at system v4.7.0 (= latest tag). A release lets consumers
-      delete their bespoke gates. — source: reflection doc §4.3 _(Effort: S — routine tag-wave mechanics)_
+      delete their bespoke gates. — source: reflection doc §4.3; rides the
+      existing "Next v4 tag wave" row (P0 in the SUPERB plan) _(Effort: S — routine tag-wave mechanics)_
+- [ ] **Docs-truth tail (2026-09-16 plan-surfaced)** — readmodels.md
+      Scan-limit note (the review doc's §4.1 promised it; godoc + FAQ already
+      shipped); modules.md metaengine row mentions the Scan default;
+      CHANGELOG `[Unreleased]` entry for the Scan/WithLimit doc fix; resolve
+      the 3 pre-existing doc-check ambiguous-alias advisories
+      (core.md:448, recipes.md:119, faq.md:233); embed the overflow probe
+      source into the review doc (kill the `/tmp` citation).
+      — source: status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104 _(Effort: S)_
+- [ ] **benchkit cross-tier PARITY gate** — before any tier-vs-tier benchmark
+      number is trusted, assert cross-tier result identity (full snapshot,
+      stat counts, ranked IDs) — the template CV's four-tier benchmark
+      proved out. — source: reflection doc §5; SUPERB plan T27/M102 _(Effort: M)_
+- [ ] **Tuned-tier metaengine benchmark** — `BuildLayoutPlanFromType`
+      composite layouts vs hand-indexed SQL, BOTH sides tuned, so future
+      latency claims carry no defaults-vs-tuned asymmetry (CV's fairness
+      finding). — source: reflection doc §5; SUPERB plan T27/M101 _(Effort: M)_
 
 ---
 
