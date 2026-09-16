@@ -25,7 +25,11 @@ func mustNewPgEngine(t *testing.T) metaengine.Engine {
 
 	eng, err := pgengine.New(pgDSN(t))
 	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
+		if pgSkipClass(err) {
+			t.Skipf("Postgres not available: %v", err)
+		}
+
+		t.Fatalf("postgres engine construction failed (not a skip-class error): %v", err)
 	}
 
 	t.Cleanup(func() { _ = eng.Close() })
@@ -40,7 +44,11 @@ func newPgEngineOrSkip(t *testing.T) metaengine.Engine {
 
 	eng, err := pgengine.New(pgDSN(t))
 	if err != nil {
-		t.Skipf("Postgres not available: %v", err)
+		if pgSkipClass(err) {
+			t.Skipf("Postgres not available: %v", err)
+		}
+
+		t.Fatalf("postgres engine construction failed (not a skip-class error): %v", err)
 	}
 
 	return eng
