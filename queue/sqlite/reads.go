@@ -156,8 +156,8 @@ func listWhere(f queue.Filter) (string, []any) {
 func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], error) {
 	where, args := listWhere(f)
 
-	q := `SELECT ` + taskColumns + ` FROM tasks WHERE ` + where + `
-	      ORDER BY priority DESC, created_at ASC` //nolint:gosec // G202: where is builder-generated, every value is parameterized
+	q := `SELECT ` + taskColumns + ` FROM tasks WHERE ` + where + //nolint:gosec // G202: builder-generated where; every value is parameterized
+		` ORDER BY priority DESC, created_at ASC`
 
 	if f.Limit > 0 || f.Offset > 0 {
 		if f.Limit > 0 {

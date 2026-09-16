@@ -37,7 +37,8 @@ const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
 var (
 	errBrokenReferences = errors.New("broken documentation reference(s)")
 	errWarningsFound    = errors.New("doc-check warning(s) found")
-	errNoReferences     = errors.New("no Go references found")
+	errNoReferences      = errors.New("no Go references found")
+	errBrokenNav         = errors.New("broken doc navigation (anchors/§ cross-refs)")
 )
 
 type AppConfig struct {
@@ -145,6 +146,12 @@ func run(files []string, jsonOut bool) error {
 
 	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(allBlocks, allImports, res)
 
+	navIssues := checkFiles(files, repoRoot)
+
+	for _, iss := range navIssues {
+		log.Printf("  ✗ %s:%d: %s", iss.File, iss.Line, iss.Msg)
+	}
+
 	for _, a := range ambiguities {
 		log.Printf("  ⚠ ambiguous: %s", a)
 	}
@@ -156,6 +163,7 @@ func run(files []string, jsonOut bool) error {
 			brokenRefs,
 			warnings,
 			ambiguities,
+			navIssues,
 			res,
 		); err != nil {
 			return fmt.Errorf("emit json: %w", err)
@@ -164,6 +172,11 @@ func run(files []string, jsonOut bool) error {
 
 	if len(brokenRefs) > 0 {
 		return fmt.Errorf("%w: %d broken reference(s) found", errBrokenReferences, len(brokenRefs))
+	}
+
+	if len(navIssues) > 0 {
+		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
+			"%w: %d broken anchor(s)/§ cross-ref(s) found", errBrokenNav, len(navIssues))
 	}
 
 	// 0-warning tripwire: doc-check warnings (unreadable dirs, empty package
@@ -207,6 +220,7 @@ type jsonSummary struct {
 	References  int         `json:"references"`
 	Packages    int         `json:"packages"`
 	Broken      []brokenRef `json:"broken"`
+	NavIssues   []navIssue  `json:"nav_issues"`
 	Warnings    []string    `json:"warnings"`
 	Ambiguities []string    `json:"ambiguities"`
 }
@@ -217,20 +231,26 @@ func emitJSON(
 	files, totalRefs int,
 	brokenRefs []brokenRef,
 	warnings, ambiguities []string,
+	navIssues []navIssue,
 	res *resolver,
 ) error {
 	summary := jsonSummary{
-		Valid:       len(brokenRefs) == 0 && len(warnings) == 0,
+		Valid:       len(brokenRefs) == 0 && len(warnings) == 0 && len(navIssues) == 0,
 		Files:       files,
 		References:  totalRefs,
 		Packages:    len(res.clauses),
 		Broken:      brokenRefs,
+		NavIssues:   navIssues,
 		Warnings:    warnings,
 		Ambiguities: ambiguities,
 	}
 
 	if summary.Broken == nil {
 		summary.Broken = []brokenRef{}
+	}
+
+	if summary.NavIssues == nil {
+		summary.NavIssues = []navIssue{}
 	}
 
 	if summary.Warnings == nil {

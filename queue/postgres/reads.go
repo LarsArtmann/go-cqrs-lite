@@ -142,8 +142,8 @@ func listWhere(f queue.Filter) (string, []any) {
 
 		where = append(where, fmt.Sprintf(`(id ILIKE $%d OR type ILIKE $%d OR
 			project ILIKE $%d OR payload ILIKE $%d OR
-			lease_owner ILIKE $%d OR last_error ILIKE $%d)`, //nolint:mnd // six searchable columns, one bind each
-			next+1, next+2, next+3, next+4, next+5, next+6))
+			lease_owner ILIKE $%d OR last_error ILIKE $%d)`,
+			next+1, next+2, next+3, next+4, next+5, next+6)) //nolint:mnd // six searchable columns, one bind each
 
 		for range 6 {
 			args = append(args, like)

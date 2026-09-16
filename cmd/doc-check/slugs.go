@@ -84,7 +84,7 @@ func parseHeadings(md string) []heading {
 	)
 
 	for i, line := range strings.Split(md, "\n") {
-		if isFenceToggle(line, inFence) {
+		if isFenceToggle(line) {
 			inFence = !inFence
 
 			continue
