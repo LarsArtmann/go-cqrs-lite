@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	modernc.org/sqlite v1.58.0
 	pgregory.net/rapid v1.3.0
 )

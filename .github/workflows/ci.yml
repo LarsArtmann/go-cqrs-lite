@@ -427,14 +427,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-
-      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
-
-      - uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d
-        # FlakeHub Cache requires registration now; keep the GitHub Actions
-        # cache backend only (magic-nix-cache is deprecated upstream).
+        # Plain setup-go (not the nix stack) so the gate survives nix cache
+        # throttling and actually has a `go` binary on PATH — the nix
+        # installer alone never provided one, failing the job in seconds.
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          use-flakehub: false
+          go-version-file: go.mod
 
       - name: Verify go.work is synced
         run: |

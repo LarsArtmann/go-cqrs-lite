@@ -16,7 +16,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	go.etcd.io/bbolt v1.5.0
-	modernc.org/sqlite v1.58.0
+	modernc.org/sqlite v1.59.0
 )
 
 require (
