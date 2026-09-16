@@ -152,7 +152,9 @@ linters:
         - go.etcd.io/bbolt.Options
         - github.com/larsartmann/go-cqrs-lite/stack/v4.Capabilities
         - github.com/larsartmann/go-cqrs-lite/queue/v4/task.New
+        - github.com/larsartmann/go-cqrs-lite/queue/v4/task.Task
         - github.com/larsartmann/go-cqrs-lite/queue/v4.Filter
+        - github.com/larsartmann/go-cqrs-lite/queue/v4/facts.Fact
     funlen:
       lines: 200
       statements: 100
@@ -279,6 +281,25 @@ linters:
         - .NewCorruption(
         - .NewConflict(
         - .NewOrchestration(
+        # SQL driver surfaces: queue engines (and thin adapters) pass driver
+        # errors through raw by design; context is added by the calling layer.
+        - .Scan(
+        - (*database/sql.Rows).Err
+        - (*database/sql.DB).Query
+        - (*database/sql.DB).Exec
+        - (*database/sql.DB).Close
+        - (*database/sql.DB).BeginTx
+        - (*database/sql.Tx).Query
+        - (*database/sql.Tx).Exec
+        - (*database/sql.Tx).Commit
+        - Result).RowsAffected(
+        - (*github.com/jackc/pgx/v5/pgxpool.Pool).Query
+        - (*github.com/jackc/pgx/v5/pgxpool.Pool).Exec
+        - (*github.com/jackc/pgx/v5/pgxpool.Pool).Begin
+        - (github.com/jackc/pgx/v5.Tx).Query
+        - (github.com/jackc/pgx/v5.Tx).Exec
+        - (github.com/jackc/pgx/v5.Tx).Commit
+        - (github.com/jackc/pgx/v5.Rows).Err
   exclusions:
     generated: lax
     rules:

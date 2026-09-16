@@ -28,9 +28,9 @@ func filter() queue.Filter { return queue.Filter{} }
 func (s *suite) pinListFilters(t *testing.T) {
 	e := s.openEnv(t)
 
-	a := e.enqueue(t, task.New[Payload]{Project: "p1", Type: "email", Priority: 1})
-	b := e.enqueue(t, task.New[Payload]{Project: "p1", Type: "sh", Priority: 9})
-	c := e.enqueue(t, task.New[Payload]{Project: "p2", Type: "email", Priority: 5})
+	p1Email := e.enqueue(t, task.New[Payload]{Project: "p1", Type: "email", Priority: 1})
+	p1Shell := e.enqueue(t, task.New[Payload]{Project: "p1", Type: "sh", Priority: 9})
+	p2Email := e.enqueue(t, task.New[Payload]{Project: "p2", Type: "email", Priority: 5})
 
 	got := listAll(t, e, queue.Filter{})
 	if len(got) != 3 {
@@ -38,9 +38,9 @@ func (s *suite) pinListFilters(t *testing.T) {
 	}
 
 	// Default order: priority DESC, then age ASC.
-	if got[0].ID != b.ID || got[1].ID != c.ID || got[2].ID != a.ID {
+	if got[0].ID != p1Shell.ID || got[1].ID != p2Email.ID || got[2].ID != p1Email.ID {
 		t.Fatalf("default order = %s,%s,%s; want priority-desc %s,%s,%s",
-			got[0].ID, got[1].ID, got[2].ID, b.ID, c.ID, a.ID)
+			got[0].ID, got[1].ID, got[2].ID, p1Shell.ID, p2Email.ID, p1Email.ID)
 	}
 
 	proj := "p1"
