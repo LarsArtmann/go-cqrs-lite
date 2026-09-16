@@ -46,6 +46,7 @@ func (s *Store[T]) Facts(ctx context.Context, after int64, limit int) ([]facts.F
 
 	if limit > 0 {
 		query += ` LIMIT ?`
+
 		args = append(args, limit)
 	}
 
@@ -55,7 +56,8 @@ func (s *Store[T]) Facts(ctx context.Context, after int64, limit int) ([]facts.F
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() { _ = rows.Close() }()
 
 	return scanFacts(rows)
 }
@@ -70,6 +72,7 @@ func (s *Store[T]) FactsForTask(ctx context.Context, id task.ID, limit int) ([]f
 
 	if limit > 0 {
 		query += ` ORDER BY seq DESC LIMIT ?`
+
 		args = append(args, limit)
 	} else {
 		query += ` ORDER BY seq ASC`
@@ -81,7 +84,8 @@ func (s *Store[T]) FactsForTask(ctx context.Context, id task.ID, limit int) ([]f
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() { _ = rows.Close() }()
 
 	all, err := scanFacts(rows)
 	if err != nil {

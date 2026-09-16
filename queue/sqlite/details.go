@@ -43,7 +43,7 @@ func cancelRequestedReasonTx(ctx context.Context, tx *sql.Tx, id string) (string
 	}
 
 	if json.Unmarshal([]byte(detail), &d) != nil {
-		return "", nil
+		return "", nil //nolint:nilerr // documented best-effort: unparsable detail yields "", never an error
 	}
 
 	return d.Reason, nil

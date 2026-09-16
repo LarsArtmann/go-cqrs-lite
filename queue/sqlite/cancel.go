@@ -41,10 +41,10 @@ func (s *Store[T]) Cancel(ctx context.Context, id task.ID, reason string) error 
 // nothing.
 func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string) error {
 	return s.withTx(ctx, func(tx *sql.Tx) error {
-		var st string
+		var current string
 
 		if err := tx.QueryRowContext(ctx,
-			`SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&st); err != nil {
+			`SELECT status FROM tasks WHERE id = ?`, id.String()).Scan(&current); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return queue.ErrNotFound
 			}
@@ -52,11 +52,11 @@ func (s *Store[T]) CancelRunning(ctx context.Context, id task.ID, reason string)
 			return err
 		}
 
-		if st != "running" {
+		if current != "running" {
 			return fmt.Errorf(
 				"%w: %s -> cancel-requested (only running tasks)",
 				queue.ErrInvalidTransition,
-				st,
+				current,
 			)
 		}
 
@@ -217,7 +217,7 @@ func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) 
 
 // DismissDead cancels a Dead task with a recorded reason (DLQ dismiss):
 // the cancelled fact's detail carries the reason and who dismissed it.
-func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, by string) error {
+func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, dismissedBy string) error {
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {
@@ -234,7 +234,7 @@ func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, b
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Cancelled, Detail: dismissReasonDetail(reason, by),
+			TaskID: id.String(), Type: facts.Cancelled, Detail: dismissReasonDetail(reason, dismissedBy),
 		})
 	})
 }
@@ -300,10 +300,10 @@ func (s *Store[T]) updatePriorityRow(
 
 // statusOrNotFound maps a zero-rows guarded update to the right error.
 func statusOrNotFound(ctx context.Context, tx *sql.Tx, id task.ID, want string) error {
-	var st string
+	var current string
 
 	if err := tx.QueryRowContext(ctx, `SELECT status FROM tasks WHERE id = ?`, id.String()).
-		Scan(&st); err != nil {
+		Scan(&current); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return queue.ErrNotFound
 		}
@@ -311,5 +311,5 @@ func statusOrNotFound(ctx context.Context, tx *sql.Tx, id task.ID, want string) 
 		return err
 	}
 
-	return fmt.Errorf("%w: %s -> %s", queue.ErrInvalidTransition, st, want)
+	return fmt.Errorf("%w: %s -> %s", queue.ErrInvalidTransition, current, want)
 }

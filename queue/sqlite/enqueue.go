@@ -34,7 +34,7 @@ func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], er
 
 	now := time.Now()
 
-	tk := task.Task[T]{
+	created := task.Task[T]{
 		ID:          task.NewID(),
 		Project:     n.Project,
 		Type:        n.Type,
@@ -50,15 +50,15 @@ func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], er
 
 	suppressed := false
 
-	if err := s.insertTask(ctx, &tk, n.DedupKey, &suppressed); err != nil {
+	if err := s.insertTask(ctx, &created, n.DedupKey, &suppressed); err != nil {
 		return task.Task[T]{}, fmt.Errorf("queue/sqlite: enqueue: %w", err)
 	}
 
 	if suppressed {
-		return s.Get(ctx, tk.ID)
+		return s.Get(ctx, created.ID)
 	}
 
-	return tk, nil
+	return created, nil
 }
 
 // insertTask writes the task row, its deps rows and the enqueued fact in

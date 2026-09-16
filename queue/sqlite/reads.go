@@ -157,11 +157,12 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 	where, args := listWhere(f)
 
 	q := `SELECT ` + taskColumns + ` FROM tasks WHERE ` + where + `
-	      ORDER BY priority DESC, created_at ASC`
+	      ORDER BY priority DESC, created_at ASC` //nolint:gosec // G202: where is builder-generated, every value is parameterized
 
 	if f.Limit > 0 || f.Offset > 0 {
 		if f.Limit > 0 {
 			q += " LIMIT ?"
+
 			args = append(args, f.Limit)
 		} else {
 			q += " LIMIT -1"
@@ -169,6 +170,7 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 
 		if f.Offset > 0 {
 			q += " OFFSET ?"
+
 			args = append(args, f.Offset)
 		}
 	}
@@ -178,7 +180,8 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() { _ = rows.Close() }()
 
 	var out []task.Task[T]
 
@@ -213,21 +216,22 @@ func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+
+	defer func() { _ = rows.Close() }()
 
 	out := make(map[task.Status]int)
 
 	for rows.Next() {
 		var (
-			st task.Status
-			n  int
+			status task.Status
+			n      int
 		)
 
-		if err := rows.Scan(&st, &n); err != nil {
+		if err := rows.Scan(&status, &n); err != nil {
 			return nil, err
 		}
 
-		out[st] = n
+		out[status] = n
 	}
 
 	return out, rows.Err()

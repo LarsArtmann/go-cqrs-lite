@@ -139,7 +139,7 @@ func (s *Store[T]) withTx(ctx context.Context, fn func(tx *sql.Tx) error) error 
 // taskQuerier is the shared query surface of *sql.DB, *sql.Tx and
 // *sql.Conn for the load/scan helpers.
 type taskQuerier interface {
-	QueryRowContext(context.Context, string, ...any) *sql.Row
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
 // encodePayload serializes a payload through the store's codec.
