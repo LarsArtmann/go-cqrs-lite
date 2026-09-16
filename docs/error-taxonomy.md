@@ -225,23 +225,36 @@ the caller decides via `errorfamily.IsRetryable`).
 
 ### storage/view
 
-All view-store mapper validation sentinels are **Rejection**.
+All view-store mapper validation sentinels are **Rejection**; op failures
+are grouped by the failure class the source constructs
+(bidirectionally gated — the inventory below is complete).
 
-| Error             | Family    | Code                                  |
-| ----------------- | --------- | ------------------------------------- |
-| Mapper violations | Rejection | `storage.view.mapper.*` (7 sentinels) |
-| Nil view value    | Rejection | `storage.view.nil_value`              |
+| Error                       | Family         | Code                                                                                                                                                    |
+| --------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mapper violations           | Rejection      | `storage.view.mapper.*` (7 sentinels)                                                                                                                   |
+| Invalid values / inputs     | Rejection      | `storage.view.nil_value`, `storage.view.batch_nil`, `storage.view.conditions`, `storage.view.set_nil`, `storage.view.unknown_column`, `storage.view.unsupported_operator`, `storage.view.validate_mapper` |
+| Storage / DDL ops           | Infrastructure | `storage.view.create_index`, `storage.view.create_indexes`, `storage.view.create_table`, `storage.view.migrate`, `storage.view.new_handle`              |
+| Op execution (retryable)    | Transient      | `storage.view.batch_chunk`, `storage.view.count`, `storage.view.delete`, `storage.view.delete_all`, `storage.view.query`, `storage.view.scan`, `storage.view.scan_rows_err`, `storage.view.set` |
+| Row decode failures         | Corruption     | `storage.view.auto.scan_row`, `storage.view.get`, `storage.view.scan_row`                                                                               |
 
 ### stack
 
-All bundle misconfiguration sentinels are **Rejection**.
+Bundle misconfiguration sentinels are **Rejection**; backend/preset wiring
+and runtime ops are **Infrastructure**; decode failures are **Corruption**
+(bidirectionally gated — the inventory below is complete, incl. the
+per-backend preset modules under `stack/`).
 
-| Error                  | Family    | Code                        |
-| ---------------------- | --------- | --------------------------- |
-| `ErrEmpty`             | Rejection | `stack.bundle_empty`        |
-| `ErrMissingEventStore` | Rejection | `stack.missing_event_store` |
-| `ErrMissingReadModels` | Rejection | `stack.missing_read_models` |
-| `ErrMissingJournal`    | Rejection | `stack.missing_journal`     |
+| Error                        | Family         | Code                                                                                                             |
+| ---------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Bundle validation            | Rejection      | `stack.bundle_empty`, `stack.invalid_subscriber_type`, `stack.missing_*`, `stack.materialize.extract_key`          |
+| Backend `no_database` guards | Rejection      | `sqlite.no_database`, `postgres.no_database`, `mysql.no_database`, `turso.no_database`, `turso_preset.multi_db_incompatible` |
+| Preset wiring                | Infrastructure | `bbolt_preset.*`, `duckdb.*`, `duckdb_preset.*`, `mysql_preset.*`, `pebble_preset.*`, `postgres_preset.*`, `sqlite_preset.*`, `memory.wire_bundle` |
+| sqlite direct-open ops       | Infrastructure | `sqlite.create_secondary_backend`, `sqlite.enable_fk`, `sqlite.enable_wal`, `sqlite.init_schema`, `sqlite.open`, `sqlite.optimize` |
+| postgres direct-open ops     | Infrastructure | `postgres.create_secondary_backend`, `postgres.init_schema`, `postgres.open_secondary`                              |
+| turso direct-open ops        | Infrastructure | `turso.apply_durability`, `turso.create_backend`, `turso.create_secondary_backend`, `turso.create_view_backend`, `turso.enable_fk`, `turso.enable_wal`, `turso.init_schema`, `turso.kv_store`, `turso.open`, `turso.open_secondary`, `turso.open_view_db`, `turso.view_kv_store` |
+| turso preset direct ops      | Infrastructure | `turso_preset.create_backend`, `turso_preset.kv_store`, `turso_preset.open_event_db`, `turso_preset.open_local_backend`, `turso_preset.open_query_db`, `turso_preset.open_sync_db`, `turso_preset.schema_pragmas`, `turso_preset.view_options`, `turso_preset.wire_local_bundle`, `turso_preset.wire_sync_bundle` |
+| Runtime ops                  | Infrastructure | `stack.bundle.*`, `stack.run_projections.catchup`, `stack.run_projections.subscribe`                                |
+| Decode failures              | Corruption     | `stack.materialize.decode`, `stack.run_projections.decode`                                                          |
 
 ### projectionhost
 
@@ -286,21 +299,30 @@ Lease-stamp failure is **Infrastructure**; losing a claim race is
 
 ### deriver
 
-| Error              | Family    | Code                     |
-| ------------------ | --------- | ------------------------ |
-| `ErrNilDispatcher` | Rejection | `deriver.nil_dispatcher` |
+| Error                | Family        | Code                       |
+| -------------------- | ------------- | -------------------------- |
+| `ErrNilDispatcher`   | Rejection     | `deriver.nil_dispatcher`   |
+| Derivation too deep  | Orchestration | `deriver.depth_exceeded`   |
 
 ### storage (SQL facade)
 
-| Error      | Family         | Code             |
-| ---------- | -------------- | ---------------- |
-| `ErrNilDB` | Infrastructure | `storage.nil_db` |
+Bidirectionally gated over the storage ROOT files only (submodules have
+their own sections above). Previously the narrative here claimed
+`storage.scan_*` was Corruption — the source says `scan_timer` is
+Corruption but `scan_command`/`scan_query` are Infrastructure, and
+`storage.schedule_timer` was minted with TWO families (marshal failure →
+Corruption, INSERT failure → Infrastructure); the marshal site now mints
+`storage.schedule_timer_marshal` so one code = one family.
 
-Operational wrap codes (not sentinels): row-scan/reconstruct failures are
-**Corruption** (`storage.scan_*`, `storage.reconstruct_*`,
-`storage.parse_stream_*`); DDL/execution failures are **Infrastructure**
-(`storage.exec_ddl`, `storage.set_synchronous`); timer helpers are
-**Infrastructure** (`storage.schedule_timer`, `storage.due_timers`).
+| Error                        | Family         | Code                                                                                                             |
+| ---------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `ErrNilDB`                   | Infrastructure | `storage.nil_db`                                                                                                     |
+| Store accessors              | Infrastructure | `backend.*`                                                                                                          |
+| Listing ops                  | Infrastructure | `listing.create_table`, `listing.sql_list`, `listing.sql_parse_id`, `listing.sql_rows`, `listing.sql_scan`           |
+| Listing validation           | Rejection      | `listing.invalid_prefix`, `listing.invalid_table_prefix`, `listing.type_required`                                    |
+| Row/payload decode failures  | Corruption     | `storage.parse_*`, `storage.reconstruct_*`, `storage.scan_timer`, `storage.snapshot_column_mixed`, `storage.unmarshal_timer_payload`, `storage.schedule_timer_marshal` |
+| Execution / DDL / timer ops  | Infrastructure | `storage.due_timers`, `storage.enable_foreign_keys`, `storage.exec_ddl`, `storage.iterate_timers`, `storage.open_duckdb`, `storage.open_sqlite`, `storage.open_sqlite_in_memory`, `storage.query_queries`, `storage.scan_command`, `storage.scan_query`, `storage.set_synchronous`, `storage.set_synchronous_commit`, `storage.snapshot_column_probe`, `storage.snapshot_column_rename`, `storage.schedule_timer` |
+| Duplicate detection          | Conflict       | `storage.duplicate_command`, `storage.duplicate_query`                                                               |
 
 ### storage/pebble
 
