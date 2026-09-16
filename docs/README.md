@@ -171,6 +171,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0136](adr/0136-temporal-composability-contract.md)                   | The Temporal Composability Contract (Invertibility Ladder)    | Accepted                                            |
 | [0137](adr/0137-health-driven-engine-deactivation.md)                 | Health-Driven Engine Deactivation                             | Accepted                                            |
 | [0139](adr/0139-v5-encryption-at-rest-configuration.md)               | v5 Encryption-at-Rest Configuration                           | Draft                                               |
+| [0140](adr/0140-vector-distance-semantics-contract.md)               | Vector Distance Semantics Contract                             | Accepted                                            |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                  | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                    | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                   | Accepted                                            |

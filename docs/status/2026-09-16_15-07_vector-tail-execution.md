@@ -1,5 +1,27 @@
 # Status Report — Vector Verification Tail Execution — 2026-09-16 15:07 CEST
 
+
+> **RESOLVED (2026-09-16, same-day execution pass):** every §g next-step item
+> 1-14 executed. Key outcomes: DuckDB DDL concat fixed + full cgo suite green
+> (83s); bisection proved the break born-broken in `284d78ebe` (18:28 wave) —
+> the 18-32 "CGo suite green" claim was vacuous (no `-tags cgo`); benchmark doc
+> written with quiet-machine medians (libSQL 0.76ms / sqlite Go-scan 0.97ms /
+> DuckDB 1.22ms — the earlier 1.09/1.75 figures were load noise);
+> `#integration-dgraph` green 7× (incl. the previously-hanging seed replay)
+> after four real fixes: `dims`→`vecs` DQL root name (dimension guard never
+> fired), nil-map init in `ensureVectorSchema`, `errIndexingInProgress` retry +
+> gRPC deadline interceptor, serial reset tests (the RWMutex gate proposed in
+> §g deadlocked and was reverted — see the CHANGELOG 2026-09-16 Fixed section);
+> MariaDB leg green after the DECIMAL probe fix + serial reset tests; PG leg
+> green live; metaengine full suite green; lint clean on all touched modules
+> (repo-wide lint has ~50 pre-existing findings in queue-family + doc-check +
+> otel/otlp + api-stability files this session did not author — attribution
+> with the parallel session); file-size, duplication (6 accepted dialect-twin
+> groups incl. the gate-script `turso_preset` literal-claim fix), and
+> error-taxonomy gates all green. §g questions 1-3: 1 — attribution above;
+> 2 — VectorCounter stays local-only (no promotion); 3 — live legs done
+> locally (MariaDB userspace + ephemeral nix PG/Dgraph), no CI dependency.
+
 > Scope: this session only (started ~14:00). Task: execute the TODO_LIST
 > "Vector-search verification tail" (items a–h from the 2026-09-15 18:32
 > report) plus the Dgraph floor decision and ADR-0140. Tree state at report
