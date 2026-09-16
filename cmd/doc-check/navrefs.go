@@ -109,7 +109,11 @@ func (nc *navChecker) load(path string) *docNav {
 		return nil
 	}
 
-	doc := &docNav{headings: parseHeadings(string(data))}
+	doc := &docNav{
+		headings: parseHeadings(string(data)),
+		slugs:    map[string]int{},
+		numbers:  map[string]bool{},
+	}
 	doc.slugs = slugCounts(doc.headings)
 	doc.numbers = numberSet(doc.headings)
 

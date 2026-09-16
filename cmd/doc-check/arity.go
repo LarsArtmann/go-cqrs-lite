@@ -181,6 +181,7 @@ func hoistImports(src string) (string, string, int) {
 		switch {
 		case inImp:
 			imp = append(imp, line)
+
 			if strings.Contains(t, ")") {
 				inImp = false
 			}

@@ -49,7 +49,7 @@ var sectionNumberRe = regexp.MustCompile(`^\d+(?:\.\d+)*[a-z]*`)
 // sectionNumberPrefix returns the leading dotted section number of heading
 // text (with its lowercase suffix, if any), "" when there is none. The
 // number must end at a word boundary ("2.13b Retry" yes, "2nd" no).
-var sectionNumberPrefix = func(text string) string {
+func sectionNumberPrefix(text string) string {
 	m := sectionNumberRe.FindString(text)
 	if m == "" {
 		return ""
