@@ -44,48 +44,9 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 			t.Fatalf("first open: %v", err)
 		}
 
-		slb1, ok := eng1.(metaengine.StreamLogBackend)
-		if !ok {
-			t.Fatal("engine must implement StreamLogBackend")
-		}
+		restartSeedStreamMapMultimapVector(t, ctx, eng1)
 
-		mb1, hasMap := eng1.(metaengine.MapBackend)
-		mmb1, hasMultimap := eng1.(metaengine.MultimapBackend)
-
-		// Append 3 events to stream "s1".
-		if err := slb1.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
-			t.Fatalf("first StreamAppend: %v", err)
-		}
-
-		// Map ADT — verify journalSeq seeding doesn't collide.
-		if hasMap {
-			if err := mb1.MapSet(ctx, "kv", "key1", "val1"); err != nil {
-				t.Fatalf("MapSet: %v", err)
-			}
-		}
-
-		// Multimap ADT — verify mmSeq seeding doesn't collide.
-		if hasMultimap {
-			if err := mmb1.MultiAdd(ctx, "mm1", "entry1", "val1"); err != nil {
-				t.Fatalf("MultiAdd: %v", err)
-			}
-		}
-
-		// Vector ADT — verify embeddings (payload + metadata) persist across
-		// reopen, not just seq counters.
-		vb1, hasVector := eng1.(metaengine.VectorBackend)
-		if hasVector {
-			for _, emb := range []metaengine.Embedding{
-				{ID: "v1", Values: []float32{1, 0, 0}, Metadata: map[string]any{"tenant": "a"}},
-				{ID: "v2", Values: []float32{0, 1, 0}, Metadata: map[string]any{"tenant": "b"}},
-			} {
-				if err := vb1.VectorInsert(ctx, "vecs", emb); err != nil {
-					t.Fatalf("first VectorInsert %s: %v", emb.ID, err)
-				}
-			}
-		}
-
-		ver1, err := slb1.StreamVersion(ctx, "events", "s1")
+		ver1, err := eng1.(metaengine.StreamLogBackend).StreamVersion(ctx, "events", "s1")
 		if err != nil {
 			t.Fatalf("StreamVersion before close: %v", err)
 		}
@@ -94,7 +55,7 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 			t.Fatalf("stream version before close = %d, want 3", ver1)
 		}
 
-		journal1, err := slb1.JournalReadAll(ctx, "events")
+		journal1, err := eng1.(metaengine.StreamLogBackend).JournalReadAll(ctx, "events")
 		if err != nil {
 			t.Fatalf("JournalReadAll before close: %v", err)
 		}
@@ -115,129 +76,199 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 
 		defer func() { _ = eng2.Close() }()
 
-		slb2, ok := eng2.(metaengine.StreamLogBackend)
-		if !ok {
-			t.Fatal("reopened engine must implement StreamLogBackend")
-		}
-
-		mb2, hasMap := eng2.(metaengine.MapBackend)
-		mmb2, hasMultimap := eng2.(metaengine.MultimapBackend)
-
-		if !hasMap {
-			t.Log("engine does not implement MapBackend — skipping Map restart legs")
-		}
-
-		if !hasMultimap {
-			t.Log("engine does not implement MultimapBackend — skipping Multimap restart legs")
-		}
-
-		// Append 2 MORE events — without seq seeding these would overwrite seqs 1-2.
-		if err := slb2.StreamAppend(ctx, "events", "s1", []any{"e4", "e5"}); err != nil {
-			t.Fatalf("post-restart StreamAppend: %v", err)
-		}
-
-		// Verify stream has ALL 5 events (not 2 — which would mean overwrites).
-		values, err := slb2.StreamRead(ctx, "events", "s1")
-		if err != nil {
-			t.Fatalf("StreamRead after restart: %v", err)
-		}
-
-		if len(values) != 5 {
-			t.Fatalf("stream should retain all 5 events after restart, got %d", len(values))
-		}
-
-		// Verify version is 5 (not 2).
-		ver2, err := slb2.StreamVersion(ctx, "events", "s1")
-		if err != nil {
-			t.Fatalf("StreamVersion after restart: %v", err)
-		}
-
-		if ver2 != 5 {
-			t.Fatalf("stream version after restart = %d, want 5", ver2)
-		}
-
-		// Verify journal has ALL 5 entries in order.
-		journal2, err := slb2.JournalReadAll(ctx, "events")
-		if err != nil {
-			t.Fatalf("JournalReadAll after restart: %v", err)
-		}
-
-		if len(journal2) != 5 {
-			t.Fatalf("journal should retain all 5 entries after restart, got %d", len(journal2))
-		}
-
-		// Verify Map ADT data survived.
-		if hasMap {
-			mapVal, found, err := mb2.MapGet(ctx, "kv", "key1")
-			if err != nil {
-				t.Fatalf("MapGet after restart: %v", err)
-			}
-
-			if !found {
-				t.Fatal("Map key1 should exist after restart")
-			}
-
-			if mapVal != "val1" {
-				t.Fatalf("Map data should survive restart, got %v", mapVal)
-			}
-
-			// Verify new Map write doesn't overwrite existing.
-			if err := mb2.MapSet(ctx, "kv", "key2", "val2"); err != nil {
-				t.Fatalf("MapSet key2: %v", err)
-			}
-
-			mapVal2, found2, err := mb2.MapGet(ctx, "kv", "key2")
-			if err != nil {
-				t.Fatalf("MapGet key2: %v", err)
-			}
-
-			if !found2 {
-				t.Fatal("Map key2 should exist after write")
-			}
-
-			if mapVal2 != "val2" {
-				t.Fatalf("Map key2 = %v, want val2", mapVal2)
-			}
-		}
-
-		// Verify new Multimap entry doesn't collide with existing.
-		if hasMultimap {
-			if err := mmb2.MultiAdd(ctx, "mm1", "entry1", "val2"); err != nil {
-				t.Fatalf("MultiAdd after restart: %v", err)
-			}
-
-			mmVals, err := mmb2.MultiGet(ctx, "mm1", "entry1")
-			if err != nil {
-				t.Fatalf("MultiGet after restart: %v", err)
-			}
-
-			if len(mmVals) != 2 {
-				t.Fatalf("multimap should have 2 values after restart append, got %d", len(mmVals))
-			}
-		}
-
-		// Verify Vector ADT data survived with ordering intact.
-		if vb2, hasVector2 := eng2.(metaengine.VectorBackend); hasVector2 {
-			results, err := vb2.VectorSearch(ctx, "vecs", []float32{1, 0, 0}, 2, "cosine")
-			if err != nil {
-				t.Fatalf("VectorSearch after restart: %v", err)
-			}
-
-			if len(results) != 2 || results[0].ID != "v1" || results[1].ID != "v2" {
-				t.Fatalf("vectors should survive restart with ordering, got %+v", results)
-			}
-
-			// Post-restart inserts must pass the dimension lock — the
-			// established dimension is re-read from persisted rows.
-			if err := vb2.VectorInsert(
-				ctx,
-				"vecs",
-				metaengine.Embedding{ID: "v3", Values: []float32{0, 0, 1}},
-			); err != nil {
-				t.Fatalf("post-restart VectorInsert: %v", err)
-			}
-		}
+		restartVerifyAcrossReopen(t, ctx, eng2)
 	})
+}
+
+// restartSeedStreamMapMultimapVector writes the phase-1 seed data: 3 stream
+// events, one map entry, one multimap entry, two metadata-carrying
+// embeddings — each guarded by the engine's capability surface.
+func restartSeedStreamMapMultimapVector(
+	t *testing.T,
+	ctx context.Context,
+	eng metaengine.Engine,
+) {
+	t.Helper()
+
+	slb, ok := eng.(metaengine.StreamLogBackend)
+	if !ok {
+		t.Fatal("engine must implement StreamLogBackend")
+	}
+
+	// Append 3 events to stream "s1".
+	if err := slb.StreamAppend(ctx, "events", "s1", []any{"e1", "e2", "e3"}); err != nil {
+		t.Fatalf("first StreamAppend: %v", err)
+	}
+
+	// Map ADT — verify journalSeq seeding doesn't collide.
+	if mb, hasMap := eng.(metaengine.MapBackend); hasMap {
+		if err := mb.MapSet(ctx, "kv", "key1", "val1"); err != nil {
+			t.Fatalf("MapSet: %v", err)
+		}
+	}
+
+	// Multimap ADT — verify mmSeq seeding doesn't collide.
+	if mmb, hasMultimap := eng.(metaengine.MultimapBackend); hasMultimap {
+		if err := mmb.MultiAdd(ctx, "mm1", "entry1", "val1"); err != nil {
+			t.Fatalf("MultiAdd: %v", err)
+		}
+	}
+
+	// Vector ADT — verify embeddings (payload + metadata) persist across
+	// reopen, not just seq counters.
+	if vb, hasVector := eng.(metaengine.VectorBackend); hasVector {
+		for _, emb := range []metaengine.Embedding{
+			{ID: "v1", Values: []float32{1, 0, 0}, Metadata: map[string]any{"tenant": "a"}},
+			{ID: "v2", Values: []float32{0, 1, 0}, Metadata: map[string]any{"tenant": "b"}},
+		} {
+			if err := vb.VectorInsert(ctx, "vecs", emb); err != nil {
+				t.Fatalf("first VectorInsert %s: %v", emb.ID, err)
+			}
+		}
+	}
+}
+
+// restartVerifyAcrossReopen runs the phase-2 assertions on the reopened
+// engine: 2 more stream events (seq-seeding proof), all 5 entries retained,
+// then Map/Multimap/Vector persistence and the post-restart dimension lock.
+func restartVerifyAcrossReopen(
+	t *testing.T,
+	ctx context.Context,
+	eng metaengine.Engine,
+) {
+	t.Helper()
+
+	slb2, ok := eng.(metaengine.StreamLogBackend)
+	if !ok {
+		t.Fatal("reopened engine must implement StreamLogBackend")
+	}
+
+	// Append 2 MORE events — without seq seeding these would overwrite seqs 1-2.
+	if err := slb2.StreamAppend(ctx, "events", "s1", []any{"e4", "e5"}); err != nil {
+		t.Fatalf("post-restart StreamAppend: %v", err)
+	}
+
+	values, err := slb2.StreamRead(ctx, "events", "s1")
+	if err != nil {
+		t.Fatalf("StreamRead after restart: %v", err)
+	}
+
+	if len(values) != 5 {
+		t.Fatalf("stream should retain all 5 events after restart, got %d", len(values))
+	}
+
+	ver2, err := slb2.StreamVersion(ctx, "events", "s1")
+	if err != nil {
+		t.Fatalf("StreamVersion after restart: %v", err)
+	}
+
+	if ver2 != 5 {
+		t.Fatalf("stream version after restart = %d, want 5", ver2)
+	}
+
+	journal2, err := slb2.JournalReadAll(ctx, "events")
+	if err != nil {
+		t.Fatalf("JournalReadAll after restart: %v", err)
+	}
+
+	if len(journal2) != 5 {
+		t.Fatalf("journal should retain all 5 entries after restart, got %d", len(journal2))
+	}
+
+	restartVerifyMapMultimap(t, ctx, eng)
+	restartVerifyVector(t, ctx, eng)
+}
+
+// restartVerifyMapMultimap pins Map/Multimap persistence across reopen.
+func restartVerifyMapMultimap(
+	t *testing.T,
+	ctx context.Context,
+	eng metaengine.Engine,
+) {
+	t.Helper()
+
+	// Verify Map ADT data survived.
+	if mb2, hasMap := eng.(metaengine.MapBackend); hasMap {
+		mapVal, found, err := mb2.MapGet(ctx, "kv", "key1")
+		if err != nil {
+			t.Fatalf("MapGet after restart: %v", err)
+		}
+
+		if !found {
+			t.Fatal("Map key1 should exist after restart")
+		}
+
+		if mapVal != "val1" {
+			t.Fatalf("Map data should survive restart, got %v", mapVal)
+		}
+
+		// Verify new Map write doesn't overwrite existing.
+		if err := mb2.MapSet(ctx, "kv", "key2", "val2"); err != nil {
+			t.Fatalf("MapSet key2: %v", err)
+		}
+
+		mapVal2, found2, err := mb2.MapGet(ctx, "kv", "key2")
+		if err != nil {
+			t.Fatalf("MapGet key2: %v", err)
+		}
+
+		if !found2 {
+			t.Fatal("Map key2 should exist after write")
+		}
+
+		if mapVal2 != "val2" {
+			t.Fatalf("Map key2 = %v, want val2", mapVal2)
+		}
+	}
+
+	// Verify new Multimap entry doesn't collide with existing.
+	if mmb2, hasMultimap := eng.(metaengine.MultimapBackend); hasMultimap {
+		if err := mmb2.MultiAdd(ctx, "mm1", "entry1", "val2"); err != nil {
+			t.Fatalf("MultiAdd after restart: %v", err)
+		}
+
+		mmVals, err := mmb2.MultiGet(ctx, "mm1", "entry1")
+		if err != nil {
+			t.Fatalf("MultiGet after restart: %v", err)
+		}
+
+		if len(mmVals) != 2 {
+			t.Fatalf("multimap should have 2 values after restart append, got %d", len(mmVals))
+		}
+	}
+}
+
+// restartVerifyVector pins Vector persistence across reopen: k-NN ordering
+// survives, and post-restart inserts pass the dimension lock re-read from
+// persisted rows.
+func restartVerifyVector(
+	t *testing.T,
+	ctx context.Context,
+	eng metaengine.Engine,
+) {
+	t.Helper()
+
+	vb2, hasVector := eng.(metaengine.VectorBackend)
+	if !hasVector {
+		return
+	}
+
+	results, err := vb2.VectorSearch(ctx, "vecs", []float32{1, 0, 0}, 2, "cosine")
+	if err != nil {
+		t.Fatalf("VectorSearch after restart: %v", err)
+	}
+
+	if len(results) != 2 || results[0].ID != "v1" || results[1].ID != "v2" {
+		t.Fatalf("vectors should survive restart with ordering, got %+v", results)
+	}
+
+	if err := vb2.VectorInsert(
+		ctx,
+		"vecs",
+		metaengine.Embedding{ID: "v3", Values: []float32{0, 0, 1}},
+	); err != nil {
+		t.Fatalf("post-restart VectorInsert: %v", err)
+	}
 }
 
 // RunRestartSafetyFromDBTest verifies seq seeding across a CALLER-OWNED-DB
