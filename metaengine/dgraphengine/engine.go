@@ -23,6 +23,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/dgraph-io/dgo/v240"
 	"github.com/dgraph-io/dgo/v240/protos/api"
@@ -137,7 +138,12 @@ func (e *dgraphEngine) init() error {
 		cqrs.stream_log_value: string .
 	`
 
-	ctx := context.Background()
+	// Bounded construction: a wedged server-side Alter must fail New rather
+	// than block forever (an unbounded init once stalled a whole test suite
+	// via the shared-server reader lock; a consumer would hang identically).
+	// 30s covers the retry schedule (~4s worst) plus slow cold indexing.
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	return e.retryOnContention(ctx, false, func() error {
 		return e.client.Alter(ctx, &api.Operation{Schema: schema})
