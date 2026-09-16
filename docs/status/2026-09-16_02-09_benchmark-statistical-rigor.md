@@ -1,5 +1,7 @@
 # Status: Benchmark Statistical Rigor (benchkit + cqrs-bench) — 2026-09-16 02:09
 
+> **RESOLVED-BY-ROUTING (2026-09-16 docs-health pass):** §f rows 1, 2, 4 were closed the same day by the queue-green-recovery session ([`09-35`](2026-09-16_09-35_queue-green-recovery-config-incident.md) §a1/§a3/§a8); row 43 + the §b/§c/§f backlog were harvested into `TODO_LIST.md` (benchkit statistical-rigor section) by the pass. The benchkit SDK/CLI/CI tail lives in TODO_LIST, not here.
+
 > Session scope: "How could we improve our benchmarks and benchmark SDKs?" —
 > analysis + implementation + verification. This report covers only this
 > session's work and what it surfaced. Auto-commit daemon absorbed all edits
@@ -159,14 +161,14 @@ gates (not caused by this session) remain open and are the top CI blockers.
 
 **Blockers / debt (do first)**
 
-1. Resolve the 19 `queue/*` clone groups (annotate intentional dialect twins
+1. ~~Resolve the 19 `queue/*` clone groups (annotate intentional dialect twins
    with `//art-dupl:accept` or consolidate) and re-pin
-   `.art-dupl-baseline.json` — `#check-duplication` green again.
-2. Fix `benchkit/soak_test.go:249` gocyclo (split the round-trip test) — lint
-   green again.
+   `.art-dupl-baseline.json` — `#check-duplication` green again.~~ done 2026-09-16 — 42 `//art-dupl:accept` directives, gate GREEN (baseline 54 untouched); see 09-35 report §a1
+2. ~~Fix `benchkit/soak_test.go:249` gocyclo (split the round-trip test) — lint
+   green again.~~ done 2026-09-16 — split into 3 assert helpers; benchkit lint 0 issues (09-35 report §a3)
 3. Tag wave: cut benchkit (statistical-rigor APIs), bump cmd/cqrs-bench pin,
    strip its sibling replace (see gotchas-module-management.md entry).
-4. Refresh FEATURES.md coverage line (benchkit/CLI test-function counts).
+4. ~~Refresh FEATURES.md coverage line (benchkit/CLI test-function counts).~~ done 2026-09-16 — 88+12 → 151+43 (09-35 report §a8)
 5. Root `nix run .#verify` full pass post-queue-fix (was skipped this session:
    exclusivity + time; targeted gates all ran).
 
@@ -238,7 +240,7 @@ improvements (3 improvements >5%) — re-pin on a quiet window after
 calibration-gate PASS (protocol: titled header).
 42. Consider adding `P100` to benchstat gate metrics (tail regression
 detection) once enough samples exist.
-43. `docs/status/README.md`: index this report.
+43. ~~`docs/status/README.md`: index this report.~~ done (docs-health pass 2026-09-16)
 44. Sweep: benchkit has `infertypeargs` hints (pre-existing) — one-line fixes.
 
 ## g) Questions I cannot answer myself

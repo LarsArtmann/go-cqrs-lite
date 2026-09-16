@@ -1,5 +1,7 @@
 # Status Report — Vector Search on Every Engine — 2026-09-15 18:32 CEST
 
+> **STATUS (2026-09-16 docs-health pass):** §f26 harvest executed — the §b/§c verification gaps are now TODO_LIST "Vector-search verification tail"; the Dgraph v24-floor decision and the "Transaction has been aborted" flake are TODO_LIST rows. The ROADMAP MariaDB claim flagged in §d1 is now labeled UNVERIFIED inline. Composed `#verify` remains tracked by the standing [BLOCKED] quiet-window row.
+
 > Scope: this session only (started ~17:00). Task: research vector solutions for
 > SQLite, MySQL, **Turso**, DuckDB, Dgraph and implement them so vector queries
 > degrade gracefully instead of failing. Tree state at report time: clean
@@ -141,7 +143,7 @@
 23. Update `docs/agents/module-map.md` engine rows with vector one-liners.
 24. Quickstart demo variant exercising Turso SQL pushdown.
 25. `#check-coverage` + `#vulncheck` runs over the changed modules.
-26. TODO_LIST harvest of items 10–12 (canonical home per docs rules).
+26. ~~TODO_LIST harvest of items 10–12 (canonical home per docs rules).~~ done (docs-health pass 2026-09-16) — verification gaps → TODO_LIST "Vector-search verification tail"; Dgraph v24 floor + abort flake → TODO_LIST; ANN paths already in ROADMAP Raw Ideas
 27. metaengine full (non-short) suite run once, incl. soaks.
 28. Empty-query-vector behavior: document + test (currently routes to the
     filtered-scan path on DuckDB).

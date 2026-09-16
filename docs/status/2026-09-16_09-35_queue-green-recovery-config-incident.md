@@ -1,5 +1,7 @@
 # Status Report: Queue Green Recovery + Fifth Config Incident — 2026-09-16 09:35
 
+> **STATUS (2026-09-16 docs-health pass):** §f3 HARVEST executed by the pass (queue/benchkit/CI sections of TODO_LIST). §f rows 1–2 (verify green, queue/postgres live conformance) remain open in TODO_LIST. The §g config questions (wrapcheck scoping, sixth-incident culprit) stay user-gated — root-causing the corruption loop is now a 🔥 TODO_LIST CI row.
+
 **Scope of this report:** the 09:00–09:35 session ONLY (resumed from the
 `2026-09-16_02-09_benchmark-statistical-rigor.md` handoff). Per instruction,
 no new research beyond what this session observed.
@@ -200,9 +202,9 @@ mid-tidy at close).
 2. Run `queue/postgres` conformance integration leg (needs a PG instance:
    `nix run .#integration-pg`) — the postgres engine has NEVER had its
    conformance suite executed in-repo (only build+lint+vet this session).
-3. HARVEST this §f into TODO_LIST.md (docs-health) — including retiring
+3. ~~HARVEST this §f into TODO_LIST.md (docs-health) — including retiring
    items done this session that may still be listed (queue clones, soak
-   gocyclo, FEATURES line).
+   gocyclo, FEATURES line).~~ done (docs-health pass 2026-09-16) — P1 loose ends → TODO_LIST CI/Queue sections; P2 queue docs tail → TODO_LIST queue section; P3 benchkit → TODO_LIST benchkit section
 4. Root-cause the config corruption: find what re-adds gci / deletes the
    depguard block inside auto-commit waves (daemon logs? an agent's fmt
    flow?). Then kill it.

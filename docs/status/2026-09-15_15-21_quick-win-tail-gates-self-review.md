@@ -1,5 +1,7 @@
 # Status Report — quick-win tail batch: calibration-gate self-test + golden, recipes compile harness
 
+> **SUPERSEDED (2026-09-15 18:19):** this session's §f1–12 (catalog edits, 12 doc-lie fixes, `TestRecipesCompile` to zero, verification sweep, docs reconciliation) were EXECUTED by the completion session [`2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md`](2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md) — its §a table is the successor record. The three parent TODO items are ticked DONE 2026-09-15 in `TODO_LIST.md`. Remaining harness-hardening tails live in that report's §c/§f and are harvested into TODO_LIST (recipes-gate CI posture row).
+
 > **Point-in-time snapshot:** 2026-09-15 15:21 CEST. Session scope: execute the three
 > "quick-win batch follow-ups (2026-09-13)" TODO items — (1) calibration-gate.sh
 > `--self-test`, (2) recipes.md snippet compile harness, (3) calibration-gate

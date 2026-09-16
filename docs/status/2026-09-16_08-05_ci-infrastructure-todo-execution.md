@@ -1,5 +1,7 @@
 # Status Report — CI/Infrastructure TODO execution: all 14 items processed, 5 silent-infrastructure defects found and fixed
 
+> **STATUS (2026-09-16 docs-health pass):** §f2 (TestRecipesCompile) verified GREEN; §f16 (index) done. The §f tail (hook reconciliation, nightly gates, calibration CI wiring, pin-sweep policy) is harvested into TODO_LIST CI/Infrastructure. The two §g owner decisions (pin-sweep trigger policy, commit authorization) remain user-gated.
+
 > **Point-in-time snapshot:** 2026-09-16 08:05 CEST. Session scope: execute the entire
 > `## CI / Infrastructure` section of TODO_LIST.md (14 items) — fix, verify, and close
 > what is closable; verify stale claims before trusting them. A SECOND SESSION WAS
@@ -168,8 +170,7 @@
 
 1. **Split `metaengine/store.go` (945→954)** — ratchet is RED again RIGHT NOW from
    the concurrent session's growth; needs an owner decision on coordination first.
-2. **Fix the `TestRecipesCompile` `StatusCounts` duplicate (§2.21b)** — unblocks the
-   doc-check test leg inside `#verify`.
+2. ~~Fix the `TestRecipesCompile` `StatusCounts` duplicate (§2.21b)~~ — done: driven to zero by the 09-15 18-19 session; re-verified GREEN this pass (`go test -run TestRecipes` → ok 3.5s).
 3. **Queue session: fix queue/postgres wrapcheck ×37 + wsl_v5 ×2** surfaced by
    `integration-tag-lint` (their in-flight files).
 4. **Queue session: fix `scheduling/sqlstore/property_test.go:310` gocognit 39>35**.
@@ -197,7 +198,7 @@
 15. **Quiet-window composed `#verify` + `verify-docs.sh`** (pre-existing [BLOCKED]
     item; now also owes a post-session composed confirmation of this session's
     per-gate greens).
-16. **docs/status/README.md index entry** for this report.
+16. ~~**docs/status/README.md index entry** for this report.~~ done (docs-health pass 2026-09-16)
 17. **Verify `build/shuffle-seeds.log` gitignore status** (two new seeds written).
 18. **Confirm `claiming/` was inside the erraudit zero sweep** (go.mod presence
     check; re-run for that module explicitly).
