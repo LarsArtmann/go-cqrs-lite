@@ -62,6 +62,18 @@ store, err := metaengine.Plan([]metaengine.Engine{eng},
 Pure Go (no CGo): uses the [dgo v240](https://github.com/dgraph-io/dgo)
 gRPC client.
 
+## Version compatibility
+
+- **Engine + all non-vector ADTs**: Dgraph v21+ (Map/Set/Counter/Graph/Log/
+  StreamLog/Search predicates are plain typed predicates).
+- **Vector ADT (VectorBackend)**: **Dgraph v24+** — `cqrs.vector_values` is a
+  `float32vector` predicate, a type older servers reject. The vector schema
+  is applied LAZILY on first vector use, so a pre-v24 server still boots the
+  engine and serves every other ADT; the first vector operation fails with
+  an actionable `vector predicates require Dgraph v24+` error instead.
+  Native ANN (`similar_to` + hnsw index) is a tracked ROADMAP item and will
+  carry the same v24+ floor.
+
 ## Concurrency & contention
 
 Every SetJson mutation writes Dgraph's `dgraph.type` predicate, so ALL

@@ -296,6 +296,10 @@ func (e *dgraphEngine) vectorScan(
 // count — no payload transfer. Implements the count member of
 // [metaengine.VectorCounter].
 func (e *dgraphEngine) VectorCount(ctx context.Context, collection string) (int64, error) {
+	if err := e.ensureVectorSchema(ctx); err != nil {
+		return 0, err //nolint:wrapcheck // already actionable
+	}
+
 	var out struct {
 		Vecs []struct {
 			Count int64 `json:"count"`
@@ -320,6 +324,10 @@ func (e *dgraphEngine) VectorCount(ctx context.Context, collection string) (int6
 // VectorCollections lists the collections holding at least one embedding.
 // Implements the enumeration member of [metaengine.VectorCounter].
 func (e *dgraphEngine) VectorCollections(ctx context.Context) ([]string, error) {
+	if err := e.ensureVectorSchema(ctx); err != nil {
+		return nil, err //nolint:wrapcheck // already actionable
+	}
+
 	var out struct {
 		All []struct {
 			Collection string `json:"cqrs.vector_collection"`

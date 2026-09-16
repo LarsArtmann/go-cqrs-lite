@@ -223,6 +223,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`metaengine.EncodeVectorF32` / `metaengine.DecodeVectorF32`** — the raw
   little-endian float32 wire format (libSQL `F32_BLOB`-compatible, no header)
   used by the SQL-backed vector engines.
+- **Dimension lock on every engine (2026-09-16)** — first insert establishes a
+  collection's dimension; mismatching or zero-dimension inserts are rejected
+  with `metaengine.ErrVectorDimensionMismatch` (Rejection family) instead of
+  silently scoring truncated vectors. `metaengine.CheckVectorDimension` is
+  the shared checker; `adttest.AssertVectorDimensionGuard` pins the contract
+  per engine (sqlite/turso/duckdb/mysql/pg/dgraph/bbolt/pebble/badger/memory).
+- **`dgraphengine` lazy vector schema (2026-09-16)** — `float32vector`
+  predicates moved out of construction-time `init()` into first-use schema
+  application (mirrors `ensureEdgeSchema`), so Dgraph < v24 servers keep
+  booting and serving every other ADT; the first vector op fails with an
+  actionable "vector predicates require Dgraph v24+" error. README documents
+  the compatibility floor.
+- **Vector performance numbers (2026-09-16)** — 1000×64-dim corpus, k=10,
+  cosine, k-NN search medians over 3×2s runs: libSQL SQL pushdown (embedded
+  turso) ≈ 1.09 ms/op (8.4 KB, 343 allocs); sqlite modernc Go scan ≈ 1.75
+  ms/op (944 KB, 10 036 allocs) — pushdown is ~1.5× faster with ~112× fewer
+  bytes transferred; DuckDB engine-side pushdown measured separately (see
+  `docs/benchmarks/2026-09-16_vector-search-paths.md`). `BenchmarkVectorSearch_GoScan`
+  / `_LibSQLPushdown` / `_SQLPushdown` land next to the engines; the
+  benchmark-regression gate stays untouched (O(N) brute-force paths are
+  corpus-size-sensitive; wiring them into a 25%-threshold CI gate would
+  false-positive under noise).
 
 ### Added — `metaengine` Doctor: synthetic-Record advisory breaks down by entry point — 2026-09-15
 
