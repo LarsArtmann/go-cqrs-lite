@@ -382,59 +382,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       verification. — source: archived/2026-09-04 §c2
       _(Effort: M)_
 
----
-
-## Code Quality
-
-- [ ] **>350-line production files (~54, 2026-09-06 count)** — see the
-      cqrs-lint section for the verified picture, gate-policy options, and the
-      already-split offenders; the code-file split waves are a standalone
-      multi-session program pending the policy decision. Decide
-      harness-dir exemptions (adttest/enginetest are exported test harnesses)
-      first. _(Effort: XL, multi-session)_
-- [ ] [BLOCKED] **macOS verification of ephemeral PG** —
-      `scripts/ephemeral-pg.sh` claims cross-platform but was only
-      static-review-tested; a GitHub Actions macOS runner leg is the
-      verification route. _(Effort: M)_
-- [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) —
-      userspace MariaDB coverage exists but not the full nspawn env. Now also
-      covers the MySQL claiming integration tests. _(Effort: M)_
-- [ ] **Shuffle eval + adoption for `scripts/test-integration.sh` /
-      `test-all-backends.sh`** — the two composite runners execute the same
-      suites UNshuffled (documented parity gap in gotchas-testing.md).
-      Gated on ROADMAP OQ #9 (are the composite scripts staying?). — source:
-      02-16 §b3/§f4/§f5
-      _(Effort: S)_
-- [ ] **Backport contention-retry review to turso/badger engines** —
-      dgraph got the execution-layer retry; check whether turso/badger have
-      an analogous transient-abort class worth the same treatment. — source:
-      02-16 §f19
-      _(Effort: M)_
-- [ ] **Unify ephemeral-script passthrough conventions** — ephemeral-pg.sh
-      uses positional EXTRA_ARGS, ephemeral-dgraph.sh uses
-      TEST_ARGS/TEST_ARGS2, redis/nats use raw passthrough; three
-      conventions for the same job complicate evaluations. — source: 02-16
-      §e5/§f25
-      _(Effort: M)_
-- [ ] **Skip-vs-fail classifier spread** — dgraph's live helpers now skip
-      ONLY on server-unreachable and `t.Fatalf` otherwise (the honest-loud
-      OQ-10 policy); the pg/mysql test helpers deserve the same classifier
-      (same silent-skip class). — source: 05-51 §e6
-      _(Effort: S)_
-- [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
-      seed that fails; rare orderings WILL eventually appear in CI (that is
-      the point of shuffling). — source: 02-16 §e7/§f10
-      _(Effort: XS)_
-- [ ] [BLOCKED] **Quiet-window exclusive `nix run .#verify` composed GREEN**
-      (supersedes the contention-fix verify item) — last composed GREEN was
-      2026-09-09; three days of waves (Cordis, publish/reset/v5-train, both
-      parallel sessions) are unverified as one chain, the dispatch-core
-      fold-reroute refactor has never seen `-race`, and `scripts/verify-docs.sh`
-      has never run end-to-end with its new tripwire. When the box is quiet:
-      run `#verify`, then `-race` over `metaengine`, then `verify-docs.sh`;
-      record date + commit + durations in TODO_LIST/plan (S03 acceptance).
-      — source: 02-16 §c4/§f13, 05-40 §f2/§f3/§f8, SUPERB S03
-      _(Effort: M)_
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED
       2026-09-13 (run 34747274058, full log triage): (a) FIXED same-day —
@@ -510,6 +457,59 @@ bottom is a do-not-re-litigate guard, not a backlog.
       app. Also decide `#verify` gating on dev machines (warm ≈ 5-15 s,
       cold ≈ 104 s). — source: 18-19 §b1/§g1 _(Effort: XS decision + S)_
 
+---
+
+## Code Quality
+
+- [ ] **>350-line production files (~54, 2026-09-06 count)** — see the
+      cqrs-lint section for the verified picture, gate-policy options, and the
+      already-split offenders; the code-file split waves are a standalone
+      multi-session program pending the policy decision. Decide
+      harness-dir exemptions (adttest/enginetest are exported test harnesses)
+      first. _(Effort: XL, multi-session)_
+- [ ] [BLOCKED] **macOS verification of ephemeral PG** —
+      `scripts/ephemeral-pg.sh` claims cross-platform but was only
+      static-review-tested; a GitHub Actions macOS runner leg is the
+      verification route. _(Effort: M)_
+- [ ] [BLOCKED] **Run `nix run .#integration-mysql-nspawn`** (needs root) —
+      userspace MariaDB coverage exists but not the full nspawn env. Now also
+      covers the MySQL claiming integration tests. _(Effort: M)_
+- [ ] **Shuffle eval + adoption for `scripts/test-integration.sh` /
+      `test-all-backends.sh`** — the two composite runners execute the same
+      suites UNshuffled (documented parity gap in gotchas-testing.md).
+      Gated on ROADMAP OQ #9 (are the composite scripts staying?). — source:
+      02-16 §b3/§f4/§f5
+      _(Effort: S)_
+- [ ] **Backport contention-retry review to turso/badger engines** —
+      dgraph got the execution-layer retry; check whether turso/badger have
+      an analogous transient-abort class worth the same treatment. — source:
+      02-16 §f19
+      _(Effort: M)_
+- [ ] **Unify ephemeral-script passthrough conventions** — ephemeral-pg.sh
+      uses positional EXTRA_ARGS, ephemeral-dgraph.sh uses
+      TEST_ARGS/TEST_ARGS2, redis/nats use raw passthrough; three
+      conventions for the same job complicate evaluations. — source: 02-16
+      §e5/§f25
+      _(Effort: M)_
+- [ ] **Skip-vs-fail classifier spread** — dgraph's live helpers now skip
+      ONLY on server-unreachable and `t.Fatalf` otherwise (the honest-loud
+      OQ-10 policy); the pg/mysql test helpers deserve the same classifier
+      (same silent-skip class). — source: 05-51 §e6
+      _(Effort: S)_
+- [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
+      seed that fails; rare orderings WILL eventually appear in CI (that is
+      the point of shuffling). — source: 02-16 §e7/§f10
+      _(Effort: XS)_
+- [ ] [BLOCKED] **Quiet-window exclusive `nix run .#verify` composed GREEN**
+      (supersedes the contention-fix verify item) — last composed GREEN was
+      2026-09-09; three days of waves (Cordis, publish/reset/v5-train, both
+      parallel sessions) are unverified as one chain, the dispatch-core
+      fold-reroute refactor has never seen `-race`, and `scripts/verify-docs.sh`
+      has never run end-to-end with its new tripwire. When the box is quiet:
+      run `#verify`, then `-race` over `metaengine`, then `verify-docs.sh`;
+      record date + commit + durations in TODO_LIST/plan (S03 acceptance).
+      — source: 02-16 §c4/§f13, 05-40 §f2/§f3/§f8, SUPERB S03
+      _(Effort: M)_
 ---
 
 ## v5 Unification (Phase 8: Deletion + Cut)
