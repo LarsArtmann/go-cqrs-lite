@@ -5,6 +5,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"sync/atomic"
 
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
@@ -73,8 +74,8 @@ func (c *syntheticFeedCounters) breakdown() string {
 	parts := make([]string, 0, 6)
 
 	for _, entry := range []feedEntryPoint{
-		feedApply, feedApplyBatch, feedApplyIdempotent,
-		feedApplyRecord, feedApplyEncoded, feedApplyEncodedRecord,
+		feedApply, feedApplyBatch, feedApplyEncoded,
+		feedApplyEncodedRecord, feedApplyIdempotent, feedApplyRecord,
 	} {
 		if n := c.bucket(entry).Load(); n > 0 {
 			parts = append(parts, fmt.Sprintf("%s=%d", entry, n))

@@ -428,7 +428,7 @@ func TestApplyIdempotent_DuplicateIsNoOp(t *testing.T) {
 		t.Fatalf("EventLog length after first apply = %d, want 1", log.Len())
 	}
 
-	if applies := store.syntheticRecordApplies.Load(); applies != 1 {
+	if applies := store.syntheticFeeds.total(); applies != 1 {
 		t.Fatalf("advisory after first apply = %d, want 1", applies)
 	}
 
@@ -446,7 +446,7 @@ func TestApplyIdempotent_DuplicateIsNoOp(t *testing.T) {
 		t.Errorf("EventLog length after duplicate = %d, want 1 — the duplicate folded", log.Len())
 	}
 
-	if applies := store.syntheticRecordApplies.Load(); applies != 1 {
+	if applies := store.syntheticFeeds.total(); applies != 1 {
 		t.Errorf("advisory after duplicate = %d, want 1 — the duplicate counted", applies)
 	}
 

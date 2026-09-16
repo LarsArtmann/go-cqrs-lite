@@ -295,6 +295,30 @@ func TestRegisterQuery_InvalidatesRecordAwareCache(t *testing.T) {
 	}
 }
 
+// TestSyntheticRecordAdvisory_PerEntryPointBreakdown proves the Doctor
+// section attributes synthesized applies to the exact public entry point
+// that fed them, so an operator can see WHERE the Type-only applies come
+// from instead of a single undifferentiated total.
+func TestSyntheticRecordAdvisory_PerEntryPointBreakdown(t *testing.T) {
+	t.Parallel()
+
+	store := newRecordContextStore(t)
+	ctx := context.Background()
+
+	if err := store.ApplyEncoded(ctx, "recordContextEvent", []byte(`{"TaskID":"t1"}`)); err != nil {
+		t.Fatalf("ApplyEncoded: %v", err)
+	}
+
+	if err := store.ApplyIdempotent(ctx, "evt-1", "recordContextEvent", recordContextEvent{TaskID: "t2"}); err != nil {
+		t.Fatalf("ApplyIdempotent: %v", err)
+	}
+
+	doctor := store.Doctor(ctx)
+	if !strings.Contains(doctor, "by entry point: ApplyEncoded=1, ApplyIdempotent=1") {
+		t.Fatalf("Doctor missing per-entry-point breakdown:\n%s", doctor)
+	}
+}
+
 // TestSyntheticRecordAdvisory_LoggerPath pins the Hooks.Logger advisory: the
 // first synthetic apply logs once, subsequent applies stay silent.
 func TestSyntheticRecordAdvisory_LoggerPath(t *testing.T) {
