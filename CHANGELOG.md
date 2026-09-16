@@ -6,6 +6,70 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — CI kill-switches for the silent-infrastructure class — 2026-09-15
+
+- **`modsums` CI job + `TestEveryModuleGoSumIsTidy` meta-test** — the
+  missing-go.sum-hash class (pgx v5.11.0 `/go.mod` hash, found live
+  2026-09-11) is now pinned twice: a plain-setup-go CI leg running
+  `scripts/check-modsums.sh` (`go mod tidy -diff`, no-write) that survives
+  nix-cache throttling, and a repo-level meta-test in cmd/api-stability that
+  walks every module and fails on any go.mod/go.sum drift (skipped under
+  `-short`). The meta-test caught a real mid-edit drift on its first run.
+- **`integration-tag-lint` CI job** — every module shipping
+  `*_integration_test.go` (18 dirs, resolved to module roots) is now linted
+  WITH the `integration` build tag via the new optional second argument of
+  `lint-module` (`nix run .#lint-module -- <mod> integration`). Findings
+  hidden behind the tag were invisible to the official gate (the gocognit
+  class); the first run surfaced queue/postgres wrapcheck/wsl_v5 findings
+  immediately.
+- **Permanent `aggregate_*` tripwire mutation fixture** — the 2026-09-11
+  hand-planted mutation proof is now a CI fact: a `testdata/` fixture with
+  planted reintroduced codes plus `TestAggregateTripwireScannerBites`, which
+  asserts the exact-string scanner fires on the planted pair and NOT on the
+  legitimate-identifier negative control (mutation-verified both ways).
+- **Staged-aware pre-commit gates** — version-drift and replace-directives
+  (on staged go.mod) and module-layers (on staged flake.nix /
+  module-set changes) now run in the pre-commit hook; `install-hooks` was
+  fixed to honor `core.hooksPath` (it wrote to `.git/hooks/` while the live
+  path `.githooks/` did not exist — every pre-commit gate was silently dead).
+- **`pin-sweep --dry-run` / `--remote` + fixture harnesses** — sweep preview
+  without mutation; `--check --remote` compares `git ls-remote --tags origin`
+  instead of local refs, catching the tag-pushed-but-not-fetched blind spot;
+  `test-pin-sweep.sh` (4 checks) and `test-calibration-drift.sh` (5 checks)
+  run in `check-release-scripts`.
+- **`calibration-drift --baseline/--write-baseline` + CoW detection** — CI
+  can compare apples-to-apples against a persisted runner-class artifact
+  (`module|label|ns_per_unit`) instead of failing on shared-runner noise, and
+  the gate refuses CoW TMPDIR filesystems (btrfs/ZFS) unless
+  `CALIB_ALLOW_COW=1`.
+
+### Fixed — silent config mutations + two broken gates — 2026-09-15
+
+- **depguard allow-list restored after silent deletion** — auto-commit
+  `4a9855ed2` (09-11, 127 files) removed the whole `depguard:` settings block
+  from `.golangci.yml`; the third dependency-budget layer had been silently
+  down for four days because its gates had not run. Block restored from
+  `4a9855ed2~1` and re-verified against all 130 direct dependencies;
+  `check-lint-config` green.
+- **`gci` removed from formatters again (4th re-add)** — auto-commit
+  `7e711d32d` (09-14) re-added `gci` to `formatters.enable`, contradicting
+  treefmt's import-layout ownership (the 2026-08-16 decision): the canonical
+  lint gate went red repo-wide while `nix fmt` reported clean. Same
+  formatter-war class as the two earlier incidents; the self-heal only works
+  when `check-lint-config` actually runs — after any auto-commit wave
+  touching `.golangci.yml`, run it before trusting lint results.
+- **`calibration-drift.sh` constant lookup never matched** — the shipped-
+  constant map was written with key `<mod>|<label>` but read with a spaced
+  subscript (`$mod | $label`), so every row failed with "no shipped constant"
+  and the gate always exited 1. Fixed; the gate can now reach its comparisons.
+- **file-size ratchet unblocked** — the RED state was two NEW offenders
+  (auto-commit-era files), not the TODO's lintutil.go claim (already at its
+  baseline): `cmd/doc-check/recipes_catalog_meta.go` split at the §2.23
+  boundary (plus `recipeSpec` moved out of the `_test.go` file so
+  `go build ./...` compiles the module again) and
+  `queue/conformance/lifecycle.go` split at the cooperative-cancel family.
+  Ratchet green: no new offenders, no growth.
+
 ### Added — benchmark statistical rigor: per-metric dispersion, exact max latency, real benchstat samples — 2026-09-15
 
 - **`benchkit.RunRepeated` + `benchkit.RepeatedResult`** — multi-run
