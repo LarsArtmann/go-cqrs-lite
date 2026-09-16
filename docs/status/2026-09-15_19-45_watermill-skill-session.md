@@ -1,5 +1,7 @@
 # Status Report — Watermill Deep Research & Project Skill Session
 
+> **STATUS (docs-health pass 2026-09-16):** §f rows 2/3/4/7 (NATS leg, advanced.md, cross-link, CHANGELOG decision) and the evals row are harvested into TODO_LIST "Watermill sibling skill follow-through". The `benchkit/repeat_test.go` foreign file of §d2 was authored + landed by the statistical-rigor session (see [`02-09`](2026-09-16_02-09_benchmark-statistical-rigor.md)) — no longer foreign.
+
 > **Date:** 2026-09-15 19:45 CEST
 > **Scope:** This session only — the Watermill deep-research request (`watermill.io`, NATS page, ThreeDotsLabs/watermill) and the project-local skill it produced, plus this review pass. No other project work touched by me.
 > **Format note:** `.md` per explicit user instruction — overrides the status-report skill's HTML default (same as previous report; flagged, not propagated).

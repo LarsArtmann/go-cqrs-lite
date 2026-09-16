@@ -1,5 +1,7 @@
 # Status Report — Zenoh Deep-Research Session
 
+> **STATUS (2026-09-16 docs-health pass):** the harvest WAIT was lifted by the docs-health mandate — §f2 routed to ROADMAP Open Question #2 (go/no-go decision with the W1–W3 surface summary + report link). Nothing else in §f is actionable until that decision lands.
+
 > **Date:** 2026-09-15 19:27 CEST
 > **Scope:** This session only — the Zenoh (eclipse-zenoh/zenoh) deep research request and its deliverable, plus this review pass. No other project work was touched.
 > **Format note:** Written as `.md` per explicit user instruction — overrides the status-report skill's HTML default (flagged per skill policy; do not propagate).
@@ -61,7 +63,7 @@ Nothing data- or code-level broke (zero code changed). Two honesty-level failure
 | #  | Task                                                                                             | Impact   | Effort | Cat      |
 | -- | ------------------------------------------------------------------------------------------------ | -------- | ------ | -------- |
 | 1  | Decide zenoh go/no-go (question g1) — gates everything below                                     | Critical | S      | Decision |
-| 2  | HARVEST report §4 W1–W3 into TODO_LIST/ROADMAP (or explicitly decline)                           | High     | S      | Docs     |
+| ~~2~~  | ~~HARVEST report §4 W1–W3 into TODO_LIST/ROADMAP (or explicitly decline)~~ done (docs-health pass 2026-09-16) — routed to ROADMAP Open Question #2 "Zenoh go/no-go" (gates all W1–W3 surfaces)                           | ~~High~~     | ~~S~~      | ~~Docs~~     |
 | 3  | Append back-link to Cordis doc §9-style section → zenoh report                                   | Medium   | S      | Docs     |
 | 4  | W1 spike: init `watermill-zenoh` external repo skeleton (publisher/subscriber adapters)          | High     | M      | Feature  |
 | 5  | W1: zenoh key-expression ↔ event.Type mapping spec + doc                                         | High     | S      | Design   |

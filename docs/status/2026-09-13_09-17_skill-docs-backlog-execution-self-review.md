@@ -1,5 +1,7 @@
 # Status: Skill-Docs Backlog Execution — Self-Review Round 2
 
+> **STATUS (docs-health pass 2026-09-16):** §f4/§f5/§f8/§f9/§f10 SHIPPED 2026-09-16 (struck inline) — the anchor/§/arity validation this session prototyped as throwaway scripts is now a permanent `cmd/doc-check` gate. §f1/§f2 (master CI diagnosis) were root-caused 2026-09-13 (magic-nix-cache throttling; see TODO_LIST CI triage row). §f13's checklist suggestion landed as the 2026-09-16 doc-check gates.
+
 **Date:** 2026-09-13 09:17 CEST
 **Session scope (this round):** Execute the backlog from
 [`2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md`](2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md):
@@ -114,18 +116,18 @@ files I had marked "audited".
 2. Confirm CI green on this session's commits once the daemon pushes (fmt gate
    - docs + ~400 formatted files all ride together).
 3. Run `nix run .#verify-fast` before the next release-adjacent merge.
-4. Port anchor + § cross-ref validation into `scripts/check-doc-links.sh`
+4. ~~Port anchor + § cross-ref validation into `scripts/check-doc-links.sh`
    (file-links-only today; slug rules + false-positive filtering documented in
-   the TODO). _(Effort: S)_
-5. doc-check arity spot-check for fenced-Go call shapes (both round-1 criticals
-   passed symbol-level checks). _(Effort: M)_
+   the TODO). _(Effort: S)_~~ done 2026-09-16 — ported into `cmd/doc-check` instead (Go, unit-tested, zero-warning-gated; runs in CI via the doc-check leg)
+5. ~~doc-check arity spot-check for fenced-Go call shapes (both round-1 criticals
+   passed symbol-level checks). _(Effort: M)_~~ done 2026-09-16 — shipped in cmd/doc-check (go/ast arity comparison + precision filters)
 6. Generated TOCs: consider a script that emits the recipes TOC from headers
    (my session regen proves it's mechanical) — generated TOCs cannot drift.
 7. Re-run the skill trigger evals after the frontmatter change (evals exist;
    runner not yet located) — verify pass-rate kept/improved.
-8. Consolidate the v5-deprecation story (6+ tellings → 1 canonical + pointers).
-9. Link `example/metaengine-quickstart` from README + metaengine module README.
-10. Decide `metaengine.Infer` end-state (deprecate at v5 vs promote with story).
+8. ~~Consolidate the v5-deprecation story (6+ tellings → 1 canonical + pointers).~~ done 2026-09-16 — canonical in faq.md; others point at it
+9. ~~Link `example/metaengine-quickstart` from README + metaengine module README.~~ done 2026-09-16
+10. ~~Decide `metaengine.Infer` end-state (deprecate at v5 vs promote with story).~~ done 2026-09-16 — deprecated, removal at v5
 11. Coordinate with the parallel session's TODO batch (compile-harness overlap)
     — one owner, not two.
 12. CHANGELOG: decide whether consumer-visible doc/skill changes (trigger

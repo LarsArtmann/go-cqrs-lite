@@ -50,10 +50,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 >   `commandlifecycle/upcast_composition_test.go`; recipes §2.1b/§2.19b, core §3.8 +
 >   cheat-sheet rows, faq command-pitfalls section all landed; goldens regenerated.
 
-- [x] 🔥 **W1: `decider.ExecuteCommandRef` + causation stamping** — DONE 2026-09-13. Package-level generic function (Go 1.26 generic-method limit), stamps typed `Metadata.Causation` + compat keys, respects decide-set causation, skips zero-ID commands; BDD suite + rapid property + runnable example.
-- [x] 🔥 **W2: `command.AsRecordPersisted(*PersistedCommand)`** — DONE 2026-09-13. Full-fidelity bridge (payload, StreamType, receive stamps); fidelity tests; v5 deprecation doc-note on `AsRecord(*BasicCommand)`; `//art-dupl:accept` twin annotation.
-- [x] **W3: lifecycle upcast composition spike** — DONE 2026-09-13, hypothesis CONFIRMED: `DecorateStore(raw, nil, UpcastSourceTransform(u))` around the Recorder gives read-path-only evolution, write-path passthrough, current-version passthrough; permanent test `commandlifecycle/upcast_composition_test.go`; recipe recipes §2.19b.
-- [x] **W3: command-pitfalls FAQ + docs parity** — DONE 2026-09-13. faq.md "Command-side pitfalls" section (causation-by-default, closure trap, evolving persisted lifecycle payloads); recipes §2.1b; core §3.8 note + cheat-sheet rows; doc-check 1123 refs zero-failure.
 - [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). _(Effort: M — in progress)_
 - [BLOCKED] **Release train (user approval)** — tag waves decider/command/commandlifecycle once W1–W4 land. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [BLOCKED] **ADR-0138: command sourcing draft (consumer demand)** — design doc only, builds on W2's bridge, reconciles ADR-0112's planned `CommandAwareFold`. _(Effort: M)_
@@ -80,15 +76,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       _(Effort: M/L each)_
 - [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). NEXT STEP (SUPERB S28): design one-pager for `AggregateOn(fn, column, group)` on `QueryDecl` — the declarative seam the planner can read — then routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
       _(Effort: M)_
-- [x] **Turso follow-ups from the IVM session (2026-09-11)** — DONE
-      2026-09-13: (a) `check-turso-version.sh --self-test` (clean pass +
-      planted stale citation caught, temp fixture); (b) `-tags ivmrepro`
-      suite run with `-race` once (80.7s, green); (c) last chunk clamped to
-      `TURSO_IVM_REPRO_ROWS` (no phantom tail rows); (d) one-command repro
-      added to `docs/release-checklist.md` §6; (e) all three findings folded
-      into the frozen upstream draft as a dated addendum. — source: 05-21
-      §f2/§f4/§f7/§f8/§f12
-      _(Effort: S total — done)_
 - [ ] **Tag wave for the matview feature** — metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
       _(Effort: M)_
@@ -153,19 +140,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [x] **cqrs-lint cheap-fix follow-up tail (2026-09-11 session §f)** — DONE
-      2026-09-13: (a) S001 allowlist corpus-validated both directions
-      (`TestS001_AllowlistKeepsRealCredentials`: 6 real credential shapes
-      still flagged; URLs/placeholders stay suppressed) + the existing
-      taskmanager integration scan; (b) D014/D015 registry-acceptance tests
-      shipped (parity with D016); (c) `TestB008_NonBitshiftStaysWarning`
-      pins the non-escalation branch; (d) S001 selector-LHS messages now
-      carry the receiver (`cfg.Password`) via `s001LHSDisplay`, no golden
-      drift; (e) full-module `-race` green (18/18 packages — and it caught a
-      REAL stale C009 golden: taskmanager grew 2 signing-key panics, honest
-      re-pin 2→4); (f) `lintutil.IsURLOrPlaceholder` extracted with direct
-      unit tests; S001 delegates. — source: 05-12 §f1-5/§f26
-      _(Effort: S each — done)_
 - [ ] **Extend the error-taxonomy drift gate beyond its 5 modules** —
       gated+verified 2026-09-11: graph, storage/relational, projectionhost,
       middleware, transport/grpc (161 codes / 141 claims). Remaining
@@ -329,38 +303,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
-- [x] **Private-dep mechanical guard + visibility audit** — DONE 2026-09-13:
-      `scripts/check-private-deps.sh` (+ `nix run .#check-private-deps` + CI
-      leg in lint-scripts) enforces: known-private blocklist (go-must),
-      audited-public allowlist for every larsartmann require, examples
-      public-only; `--audit` re-runs the live `gh` visibility sweep
-      (2026-09-13 result: ALL 14 sibling repos PUBLIC — cmdguard,
-      go-atomic-write, go-branded-id, go-codec, go-error-family, go-finding,
-      go-flightrecorder, go-idempotency, go-ndjson, go-output, go-retry,
-      go-sse, samber-do-auditlog, templ-components; 388 requires checked,
-      0 violations; mutation-tested). Owner policy (c) stays open as policy,
-      but the mechanical gate now enforces it. — source: 05-34 §e1/§f7-9
-      _(Effort: S/M — done)_
-- [x] **Release-tooling follow-ups (post-hardening)** — DONE 2026-09-13:
-      `--smoke-all` (batch-release.sh, stop-on-first-failure); same-batch
-      sibling limitation documented in the script header; `--verify`
-      full-pipeline dry-run DECIDED AGAINST (documented in the header);
-      CONTRIBUTING.md gained the batch-tagging section + retracts-gate ref;
-      `path_matches_major` (plus `module_has_root_main`/`smoke_probe_args`)
-      extracted to `scripts/lib/release_common.sh` (single implementation);
-      BONUS: `check-retracts-shipped.sh` + acceptance tests,
-      `tag-release --audit --baseline` + `scripts/audit-tag-baseline.txt`
-      (24 known violations) + `check-tag-audit` CI leg,
-      `scripts/smoke-probes.txt` explicit probes. All in
-      `nix run .#check-release-scripts`. `check-release-scripts` in `#verify`
-      NOT done (decide separately, ~30s cost). — source: 05-34 §e2/§e6/§f22-27
-      _(Effort: S — done)_
-- [x] **taskmanager tail from the go-must fix** — DONE 2026-09-13:
-      `must_test.go` covers Must/Check happy+panic paths; census answered —
-      the 0.08s run is 12 REAL in-memory tests, nothing skipped, no env
-      markers; module-map.md example/* row records both facts. — source:
-      05-34 §b3/§f5/§f6/§f31
-      _(Effort: S — done)_
 
 ---
 
@@ -399,29 +341,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       silence PLAN diagnostics today; should they also silence Doctor's
       `--- Capability ---` violation lines (`CapabilityAudit` receives nil
       gaps)? — source: archived 22-33 §g2, 04-35 §f17
-- [x] **Catch-up observability + tail replay** — SHIPPED 2026-09-13:
-      `CatchUpState`/`Store.CatchUpSnapshot`/`EngineStats.CatchUp`/Doctor
-      "--- Catch-Up ---" section cover the observability half; `Reset` doc
-      comment now points at `CatchUpEngine` for the one-engine case.
-      DECIDED against per-engine high-water marks (tail-only re-catch-up):
-      full rebuild is idempotent by construction (engine is Reset first),
-      while tail-only replay must assume engine state matches a persisted
-      watermark — the exact stale-state class the 2026-09-13 catch-up race
-      fix closed; watermark bookkeeping would also need ADR-0136 reset
-      semantics ("reset the watermark too") and crash-recovery analysis.
-      Revisit only if `Replayed`/`CompletedAt` observability shows rebuild
-      latency hurting failover SLOs. DECIDED against an additive
-      `CatchUpEngineWithResult`: the result is already observable via
-      `CatchUpSnapshot`; the breaking `ResetResult` return waits for v5
-      where signature changes are free. — source: 05-40 §e5/§e6/§f9/§f10,
-      §f35/§f36/§f45; decisions 2026-09-13
-      _(Effort: M — done)_
-- [x] **Legacy-log-entry synthesis pin** — DONE 2026-09-13: "Backfill legacy
-      log entry" case added to the conformance sweep — a legacy
-      `EventLog.Record()` entry replays to the synthetic Type-only view with
-      the advisory at 0 (replays never count it). — source:
-      03-50 §f23, 05-38 §c1/§f2
-      _(Effort: S — done)_
 - [ ] **Conformance-sweep + hot-path tail — live-server runs remain** — (a) dedup
       no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`); (b) micro-bench
       DONE 2026-09-16 (struct hot path 1.9 ns / 0 allocs through the shared
@@ -444,35 +363,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
-- [x] 🔥 **File-size ratchet RED** — RESOLVED 2026-09-15. The lintutil.go claim was
-      STALE (file already back at its 453-line baseline); the live RED came from two
-      NEW offenders, both split: `cmd/doc-check/recipes_catalog_meta.go` 433→335 (+new
-      `recipes_catalog_meta2.go` 105; `recipeSpec` also moved out of the `_test.go`
-      file so the module builds non-test again) and `queue/conformance/lifecycle.go`
-      425→325 (+new `lifecycle_cancel.go` 110). `nix run .#check-file-size` GREEN.
-- [x] **Zero the erraudit error-policy baseline** — DONE, verified live 2026-09-15:
-      full per-module recount (`erraudit lint ./... --enforce-go-error-family
-      --type-aware --format csv`) = **0 findings across all modules** (the 09-13
-      CI-comment claim held; the 09-11 baseline of 253 was fully zeroed). The
-      `error-audit` CI job's activation precondition (b) is met; (a) the
-      `ERRAUDIT_PAT` secret remains a user action.
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
 - [ ] [BLOCKED] **cqrs-lint Self-Lint credentials** — go-finding fetch fails
       under GOWORK=off (`git ls-remote` exit 128). _(Effort: S, user/creds)_
-- [x] **Calibration-drift gate redesign** — DONE 2026-09-15. `calibration-drift.sh`
-      gained `--baseline FILE` / `--write-baseline FILE` (CI compares apples-to-apples
-      against a persisted `module|label|ns_per_unit` artifact from the same runner
-      class — the benchmarks.yml baseline-artifact pattern — instead of failing on
-      >100%-of-shipped-constant shared-runner noise) + TMPDIR filesystem detection
-      (refuses btrfs/ZFS unless `CALIB_ALLOW_COW=1`; test hook
-      `CALIB_FAKE_TMPFS_TYPE`). Also fixed a LATENT BUG: the constant lookup used a
-      spaced assoc key (`CALIB[$mod | $label]`) that never matched, so the gate always
-      exited 1 with "no shipped constant". Harness `test-calibration-drift.sh`
-      (5 checks, incl. CoW refusal) wired into `check-release-scripts`. Remaining
-      knob: wiring `--write-baseline`/`--baseline` into a nightly CI job that
-      uploads/downloads the artifact. — source: archived/2026-09-04 §b2/§f16/§f18
 - [ ] **pin-sweep `--check` nag semantics** — REMAINING: the trigger-policy DECISION
       only (keep blocking-on-every-push, or move to tag-push/cron?). Recommendation
       from 15-09 §g2 evidence: keep blocking-on-every-push (the nag is the sweep
@@ -482,74 +377,10 @@ bottom is a do-not-re-litigate guard, not a backlog.
       blind spot where plain `--check` stays green), and fixture harness
       `test-pin-sweep.sh` (4 tests incl. the remote blind spot) wired into
       `check-release-scripts`.
-- [x] **Cheap CI gates into pre-commit** — DONE 2026-09-15, plus the REAL bug found:
-      `core.hooksPath=.githooks` is set while `.githooks/` DID NOT EXIST — every
-      pre-commit gate was silently dead (git skips missing hooks), and
-      `nix run .#install-hooks` wrote to the ignored `.git/hooks/`. Fixed the app to
-      honor `core.hooksPath`, installed a live `.githooks/pre-commit`, and added the
-      three staged-aware gates (version-drift + replace-directives on go.mod;
-      module-layers on flake.nix/layer-script/module-add-delete — 0.01s/0.85s/7.9s).
 - [ ] **CV consumer bump (operator-gated)** — 8 go-cqrs-lite modules behind
       latest tags in the CV repo + nix `vendorHash` cascade + full CV
       verification. — source: archived/2026-09-04 §c2
       _(Effort: M)_
-- [x] **Integration-tag lint as a first-class gate** — DONE 2026-09-15.
-      `lint-module` takes an optional extra build-tag arg
-      (`nix run .#lint-module -- <mod> integration`); new CI leg
-      `integration-tag-lint` lints every module shipping `*_integration_test.go`
-      WITH the tag (18 dirs → module roots resolved). First run immediately proved
-      the point: queue/postgres findings hidden behind the tag surfaced (wrapcheck
-      ×37 / wsl_v5 ×2 — owned by the queue session's in-flight work).
-- [x] 🔥 **Kill the missing-go.sum-hash class in CI** — DONE 2026-09-15. The
-      `check-modsums` flake app (`go mod tidy -diff`, no-write) already existed and
-      was in `#verify`; added (1) the `modsums` CI job (plain setup-go, immune to
-      nix-cache throttling) and (2) the repo-level meta-test
-      `TestEveryModuleGoSumIsTidy` (cmd/api-stability; skipped under `-short`). The
-      meta-test caught live drift on its FIRST run (a go.mod edited before its
-      go.sum update — the exact class).
-- [x] **Per-finding attribution for the sqlstore lint surface** — DONE 2026-09-15.
-      Config for the sqlstore surface is UNCHANGED since the 09-06 pre-session commit
-      (`f505ca1ed`): sqlclosecheck/QF1003 have no sqlstore exclusion at either point
-      → those were CODE-FIXED (claiming.go/claiming_mysql.go refactors);
-      wsl_v5's `_test.go` exclusion predates 09-06 (pre-existing policy, unchanged).
-      Canonical binary: both gates use the nix pin (`${pkgs.golangci-lint}`);
-      documented the rule (gotchas-tooling-build.md: `nix run .#lint-module` IS the
-      ad-hoc canonical invocation). INVESTIGATION ALSO FOUND: `gci` had been
-      silently RE-ADDED to formatters (auto-commit `7e711d32d`, 09-14) making the
-      canonical lint gate red repo-wide while `nix fmt` was green — removed again
-      (4th re-add of the §18 war class), and the depguard allow-list block silently
-      DELETED (auto-commit `4a9855ed2`, 09-11, 127 files) — restored + re-verified
-      against all 130 direct deps; `check-lint-config` green again. Both survived
-      only because the gates that catch them had not run — new gotcha recorded:
-      after any auto-commit wave touching `.golangci.yml`, run
-      `nix run .#check-lint-config` before trusting lint results.
-- [x] **`aggregate_*` tripwire: permanent mutation fixture** — DONE 2026-09-15.
-      Fixture `cmd/api-stability/testdata/aggregatetripwire/planted.go` (planted
-      `event.aggregate_not_found` + `storage.parse_aggregate_id` + negative control
-      `listing.aggregate_projection`); new `TestAggregateTripwireScannerBites`
-      asserts the scanner fires exactly on the planted pair and NOT on the control;
-      shared the per-file scan logic with the repo-wide walk so they cannot drift.
-      Mutation-verified: corrupting the fixture → red; restored → green.
-- [x] **Live-verify the MySQL shuffle rollout + `-race` the dgraph retry code**
-      — DONE 2026-09-15 with one documented caveat. Dgraph: full dgraphengine suite
-      GREEN under `-race` (124 subtests, 0 races, 106.9s, seed 71958892287567) —
-      `retryOnContention` now has race-detector coverage. MySQL: the VM shuffle
-      rollout is verified LIVE (real seeds generated + logged + suites executed
-      shuffled: seed 12105120945791 for stack/mysql), but a fully GREEN shuffled VM
-      suite is still pending: both attempts died ~15s into the first suite with
-      transport-level `invalid connection`/`connection reset` on DIFFERENT modules
-      and DIFFERENT seeds (zero assertion failures) — the documented semi-dead-VM /
-      host-contention class (gotchas-tooling-build.md), reproduced while a
-      concurrent session's stalwart e2e VM + a my-run orphaned QEMU (killed,
-      `vm-state-machine` cleaned, port 33070 freed) competed for the box. Rerun in
-      the quiet window tracked by the [BLOCKED] `#verify` item.
-- [x] **Document the shared-`dgraph.type` conflict domain + unit-pin
-      `isContentionError`** — verified ALREADY DONE 2026-09-15 (stale TODO):
-      gotchas-language-footguns.md (SetJson/dgraph.type all-writers-conflict,
-      retryOnContention backoff, RunInTx caller-retry contract) + dgraphengine
-      README "Concurrency & contention" section + `TestIsContentionError`
-      (transaction_retry_test.go, 10 table cases: verbatim/wrapped/negative/
-      case-variants) — all present and green. — source: 02-16 §e4/§f7/§f8
 
 ---
 
@@ -662,6 +493,16 @@ bottom is a do-not-re-litigate guard, not a backlog.
       calibration artifact loop: nightly `calibration-drift --write-baseline`
       + upload, next-night `--baseline` + compare. — source: 08-05 §b3/§e4/§f6/§f11
       _(Effort: M)_
+- [ ] [BLOCKED] **Set the `ERRAUDIT_PAT` secret** (user action) — erraudit
+      findings verified zero across all modules 2026-09-15; the `error-audit`
+      CI job arms the moment the secret exists. — source: 08-05 §f12/§f19
+      _(Effort: S, user)_
+- [ ] **Green MySQL-VM shuffled suite in the quiet window** — two attempts
+      died ~15s in with transport-level resets on DIFFERENT modules/seeds
+      (zero assertion failures; the documented semi-dead-VM/host-contention
+      class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
+      box is quiet; closes the [x] rollout item's caveat fully.
+      — source: 08-05 §b1/§f5 _(Effort: M)_
 - [ ] **Pin the recipes-gate CI posture** — one grep decides: is
       `cmd/doc-check` in the CI per-module matrix (`testModules`)? If yes,
       `TestRecipesCompile` already runs on every push cold-cache and the
@@ -814,81 +655,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
-## Quick-win batch follow-ups (2026-09-13)
-
-> Tail of the 2026-09-13 ten-quick-win batch — small completeness gaps found
-> by the session's own self-review. — source:
-> [`docs/status/2026-09-13_08-52_quick-win-batch-self-review.md`](docs/status/2026-09-13_08-52_quick-win-batch-self-review.md) §b/§f
-
-- [x] **calibration-gate.sh `--self-test` mode** — planted loadavg fixture
-      (temp file, never a live tracked file); same class as the
-      check-turso-version `--self-test` TODO. _(Effort: S)_
-      2026-09-15: DONE — 8-check fault-injection suite (`CALIB_GATE_LOADAVG_FILE`
-      env hook), wired as 4th leg of `nix run .#check-release-scripts` (CI
-      `lint-scripts`); shellcheck clean.
-- [x] **Recipes snippet compile harness** — snippets are reference-verified
-      (doc-check) but not compile-verified; extract fenced Go blocks into a
-      generated compile test (start with recipes.md). _(Effort: S/M)_
-      2026-09-15: DONE for recipes.md — `cmd/doc-check` recipes harness:
-      77/77 blocks classified (69 compile-scaffolded, 8 documented skips),
-      full-coverage ratchet prevents new/rotting fences; caught 9 real doc
-      lies (Plan variadic-spread, retry.Config Jitter, catalog exporter
-      chains, typed Timer.Actor, BasicCommand embedding, …) — all fixed.
-- [x] **Calibration-gate failure-message golden** — the operator-facing
-      FAIL text is UX; pin its shape so refactors can't silently degrade it.
-      _(Effort: XS)_
-      2026-09-15: DONE — `scripts/testdata/calibration-gate-fail-message.golden`
-      (uptime line normalized); mutation-tested (corrupt → self-test fails →
-      restore → green).
-
----
-
-## Skill-docs navigation hardening (2026-09-13)
-
-> Fall-out of the 2026-09-13 skill-docs audit (14+9 defects fixed live; the
-> validation logic below exists only as throwaway session scripts today).
-> — source:
-> [`docs/status/2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md`](docs/status/2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md) §e/§f
-
-- [x] **Anchor + § cross-ref validation in CI** — DONE 2026-09-16. Ported
-      into `cmd/doc-check` (Go, unit-tested, zero-warning-gated; runs in CI via
-      the existing doc-check leg): GitHub-exact slugger (underscores kept,
-      punctuation stripped, inline-code content KEPT, heading links contribute
-      their text, `-1` dedup suffixes), TOC anchors checked in every scanned
-      file, § cross-refs validated over the skill-doc scope with precision
-      filters (ADR-relative, "former X §N", moved-bullets, unique-doc bare
-      fallback; ambiguous bare refs flagged). Duplicate section numbers fail
-      the gate. Immediately caught 2 real broken anchors outside the 09-13
-      audit scope (DOMAIN_LANGUAGE.md `#deriver`, METAENGINE_DOMAIN_LANGUAGE.md
-      TOC → stale slugger for heading-links), both fixed.
-- [x] **doc-check arity spot-check** — DONE 2026-09-16. `cmd/doc-check`
-      parses every parseable fenced-Go fence (whole program / top-level /
-      wrapped body / import-hoisted shapes) and compares package-qualified
-      exported calls against go/ast signatures (block-scoped import or unique
-      repo package only, so wrong-package hits are impossible). Precision
-      filters for the audit's false-positive classes: `// Wrong`-marker
-      examples, comment-only arg lists, doc-ellipsis placeholders, and a
-      per-fence `// doc-check:ignore-arity` opt-out. Live run flagged 3
-      suspected lies; all verified as intentional shapes → filters added and
-      pinned by unit tests (incl. the audit's original `system.New` lie shape).
-- [x] **Consolidate the v5-deprecation story** — DONE 2026-09-16. Canonical
-      list now lives in faq.md "Will the v5 cut break my imports?" (extended
-      with the fold-DSL and inference buckets); SKILL.md, core.md,
-      readmodels.md, recipes.md, advanced.md, and README.md keep only a short
-      notice + pointer to it, so the next deprecation is added in ONE place.
-- [x] **Discoverability: link `example/metaengine-quickstart`** — DONE
-      2026-09-16. Linked from README.md examples paragraph and
-      metaengine/README.md ("Runnable version" after the Quick Example).
-- [x] **Decide `metaengine.Infer(samples…)` end-state** — DONE 2026-09-16,
-      decision: **deprecated, removal at v5** (consistent with the docs'
-      own prototyping-only steer; port paths: explicit `OnRecord`/`AutoInsert`
-      or `AutoCRUDByConvention[R]`). `// Deprecated:` markers on `Infer` AND
-      `InferFromNamedEvents` (same surface, same fate — no split brain);
-      modules.md + FEATURES.md rows updated; CHANGELOG [Unreleased] Deprecated
-      entry added.
-
----
-
 ## benchkit statistical-rigor tail (2026-09-16)
 
 > The 02-09 session shipped P100 exactness, `RunRepeated`/`RepeatedResult`,
@@ -1029,5 +795,15 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - **Ack-window pipelining for CatchUpSubscriber** — deferred by design:
   ~160-280K ev/s ceiling with a documented 10× degradation trigger. — source:
   07-42 §c5
+- **Per-engine high-water marks for CatchUpSubscriber tail-only re-catch-up** —
+  DECIDED AGAINST 2026-09-13: full rebuild is idempotent by construction (engine
+  is Reset first), while tail-only replay must assume engine state matches a
+  persisted watermark — the exact stale-state class the catch-up race fix
+  closed; watermark bookkeeping also needs ADR-0136 reset semantics. Revisit
+  only if `Replayed`/`CompletedAt` observability shows rebuild latency hurting
+  failover SLOs.
+- **Additive `CatchUpEngineWithResult` API** — DECIDED AGAINST 2026-09-13: the
+  result is already observable via `CatchUpSnapshot`; the breaking `ResetResult`
+  return waits for v5 where signature changes are free.
 - **KeyProvider tier (env/file composite provider)** — deferred to ROADMAP;
   the bank-sync ask is closed by the shipped helpers. — source: 08-26 §f14

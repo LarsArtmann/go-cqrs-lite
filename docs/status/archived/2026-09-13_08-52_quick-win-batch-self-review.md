@@ -1,5 +1,7 @@
 # Status Report — 10-quick-win batch: executed, verified, self-reviewed
 
+> **RESOLVED-BY-ROUTING (2026-09-16 docs-health pass):** all three batch items are ticked DONE 2026-09-15 in `TODO_LIST.md` (calibration-gate `--self-test` + golden; recipes compile harness 77/77 classified) — executed by the [`15-21`](2026-09-15_15-21_quick-win-tail-gates-self-review.md) + [`18-19`](2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md) sessions, whose reports supersede this one's §b/§c/§f tails.
+
 > **Point-in-time snapshot:** 2026-09-13 08:52 CEST. Session scope: execute 10
 > non-blocked quick wins from TODO_LIST (integration tidy, projectionhost
 > integration-vet, calibration-gate v2, shuffle-seed persistence,

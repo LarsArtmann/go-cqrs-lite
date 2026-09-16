@@ -1,5 +1,7 @@
 # Status Report — Zenoh-vs-Watermill Clarification Turn
 
+> **STATUS (docs-health pass 2026-09-16):** §f2 executed — the three quarantined (f) lists are merged into TODO_LIST (watermill skill section) and ROADMAP (zenoh OQ #2). The 4-layer placement table (§b1) stays chat-only per its own scope note; persist it only if the zenoh W1 spike ever starts.
+
 > **Date:** 2026-09-15 19:57 CEST
 > **Scope:** This turn only — the conceptual question _"is Zenoh a watermill adaptor, a storage, or something totally different?"_ — answered from already-verified research; plus this review pass. No new research, no artifacts, no code.
 > **Format note:** `.md` per explicit user instruction (status-report skill HTML default overridden — third time; consistently flagged, never propagated).
@@ -41,7 +43,7 @@ Nothing this turn — smallest possible slice, and the claims discipline finally
 | #  | Task                                                                                                                                                | Impact   | Effort | Cat      |
 | -- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
 | 1  | Persist the 4-layer zenoh/watermill placement table as a dated addendum in the zenoh report (or watermill backends.md)                              | Low      | S      | Docs     |
-| 2  | Merge + harvest the three reports' (f) lists into TODO_LIST/ROADMAP (docs-health HARVEST) — dedupe NATS leg / evals / go-no-go                      | High     | S      | Docs     |
+| ~~2~~  | ~~Merge + harvest the three reports' (f) lists into TODO_LIST/ROADMAP (docs-health HARVEST) — dedupe NATS leg / evals / go-no-go~~ done (docs-health pass 2026-09-16) — zenoh → ROADMAP OQ #2; watermill items → TODO_LIST                      | ~~High~~     | ~~S~~      | ~~Docs~~     |
 | 3  | Run the watermill skill trigger evals (3 prompts drafted)                                                                                           | High     | M      | Quality  |
 | 4  | NATS JetStream roundtrip test leg (`watermill-nats/v2` + `ephemeral-nats.sh`)                                                                       | High     | M      | Feature  |
 | 5  | Zenoh go/no-go decision (gates the zenoh W1 plugin spike)                                                                                           | Critical | S      | Decision |

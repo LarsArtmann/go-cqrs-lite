@@ -129,8 +129,8 @@ decision pending). The pass's own reports: midflight
 **2026-09-13 (quick-win batch, partial index debt):** reconstructed the
 orphaned `cec9248da` work record (tripwire + fix.go dedup + PG claiming test
 race fix — re-verified, provenance gap closed):
-[`2026-09-13_08-42_reconstructed-cec9248da-work-record.md`](2026-09-13_08-42_reconstructed-cec9248da-work-record.md)
-(active; harvest at the next docs-health pass).
+[`archived/2026-09-13_08-42_reconstructed-cec9248da-work-record.md`](archived/2026-09-13_08-42_reconstructed-cec9248da-work-record.md)
+(archived 2026-09-16 — no forward-looking items were lost).
 
 **2026-09-15 (quick-win tail batch — calibration-gate self-test + golden,
 recipes compile harness):** shipped the three "quick-win batch follow-ups
@@ -140,8 +140,8 @@ fault-injection suite, `CALIB_GATE_LOADAVG_FILE` fixture hook), the
 (mutation-tested), and the `cmd/doc-check` recipes.md snippet compile
 harness (77/77 blocks classified, coverage ratchet; caught 9 real doc lies
 — all fixed in recipes.md + `stack/options.go`). Full a)–g) breakdown:
-[`2026-09-15_15-21_quick-win-tail-gates-self-review.md`](2026-09-15_15-21_quick-win-tail-gates-self-review.md)
-(active; harvest at the next docs-health pass).
+[`archived/2026-09-15_15-21_quick-win-tail-gates-self-review.md`](archived/2026-09-15_15-21_quick-win-tail-gates-self-review.md)
+(archived 2026-09-16 — superseded by the 18:19 completion pass).
 
 **2026-09-15 18:19 (tail-gate COMPLETION pass):** harness driven to zero
 failing packages (18 → 0; 12 doc fences fixed incl. the not-legal-Go
@@ -150,7 +150,32 @@ failing packages (18 → 0; 12 doc fences fixed incl. the not-legal-Go
 `rm .git/index.lock`, three `--no-verify` commits, stale-queue reuse.
 Full a)–g) breakdown:
 [`2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md`](2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md)
-(active; harvest at the next docs-health pass).
+(active; §f tails harvested 2026-09-16).
+
+**2026-09-16 (7th docs-health pass) — the 2026-09-13..16 wave processed:**
+harvested the forward-looking sections of the 2026-09-13..16 reports into
+TODO_LIST (queue-family status refresh + tag rows, benchkit statistical-rigor
+tail, vector-search verification tail, watermill sibling skill,
+md-go-validator CI integration, CI hook/nightly-gate/config-corruption rows)
+and ROADMAP (zenoh go/no-go = Open Question #2; `[Unreleased]` release
+history refreshed through 09-16; MariaDB vector claim labeled UNVERIFIED);
+closed the stale TODO rows the 09-13..16 sessions had shipped past
+(`command.rejected` T17, `db.system` dialect spans, CatchUpEngine race,
+Doctor entry-point counters, sqlstore hardening tails); verified the recipes
+compile gate live (`TestRecipesCompile` → ok). Eleven reports bannered
+RESOLVED-BY-ROUTING / STATUS with inline §f strikes; four archived
+(`08-42` work record, `08-52` quick-win batch, `15-21` quick-win tail,
+`19-57` zenoh clarification — all superseded or fully routed). Living-doc
+fixes: FEATURES lifecycle row (+`command.rejected`/`RejectionLog`) + queue
+matrix rows + benchkit 151-test count; modules.md 5→6 lifecycle event types;
+AGENTS.md 88→91 go.mod + queue family in Tier 4. Reports of this wave that
+stay active (open tails, now bannered): the four 09-16 reports (`02-09`
+benchkit rigor, `08-04` metaengine follow-ups, `08-05` CI infrastructure,
+`09-35` queue-green recovery), `18-32` vector search, `19-27` zenoh,
+`19-45` watermill skill, `15-22` rejection follow-ups, `18-19` completion,
+and the 09-13 audit wave (`08-47` skill-docs audit, `09-17` backlog,
+`12-21` md-go-validator) — see each file's dated banner for what shipped
+vs what remains.
 
 ## What this means
 

@@ -1,5 +1,7 @@
 # Status: Skill-Docs Audit — "SUPERB and Metaengine Goal Ready?"
 
+> **STATUS (docs-health pass 2026-09-16):** the productization quintet (§f17–19, §f22, §f24) SHIPPED 2026-09-16 — `cmd/doc-check` now runs the anchor/§-ref/call-arity gates this audit's e)3/e)4 asked for, the v5 story is consolidated, `Infer` is deprecated, and metaengine-quickstart is linked from README. Struck inline above; the remaining §f rows are audit-coverage polish (full reads of advanced/faq/recipes) that the mechanical gates now cover indirectly.
+
 **Date:** 2026-09-13 08:47 CEST
 **Session scope:** Audit + fix of the consumer-facing skill documentation (`.agents/skills/go-cqrs-lite/SKILL.md` + 6 `references/*.md`, ~4,470 lines) against (1) general SUPERB-ness and (2) the metaengine north-star vision ("developers declare only Commands + Events + Queries and their relationships; where data lives is up to operators at deployment time").
 **Format note:** user explicitly requested `.md` at `docs/status/` — overrides the status-report skill's HTML default. Self-review folded in per brutal-self-review skill questions.
@@ -88,18 +90,18 @@
 14. Number or relocate "## Metadata Serialization in KV Engines (Contributor Note)" (only unnumbered recipes.md section left out of the TOC).
 15. Add deprecation marker to core.md §0 axes table (`stack.Materialize` row reads as current in the first table a newcomer sees).
 16. TOC parity check for readmodels.md and advanced.md (small TOCs — same drift class as recipes.md, smaller blast radius).
-17. Teach `cmd/doc-check` to validate markdown anchors + § cross-refs (productize items from e)3).
-18. Teach `cmd/doc-check` a call-arity spot-check for fenced Go code (productize e)4).
-19. The v5 deprecation story is told in ≥6 places (SKILL.md, core.md ×2, readmodels.md, faq.md, modules.md rows) — consider one canonical block + pointers to kill future drift.
+17. ~~Teach `cmd/doc-check` to validate markdown anchors + § cross-refs (productize items from e)3).~~ done 2026-09-16 — shipped in cmd/doc-check (GitHub-exact slugger, TOC anchors, § cross-refs, duplicate-section gate); caught 2 real broken anchors on first run
+18. ~~Teach `cmd/doc-check` a call-arity spot-check for fenced Go code (productize e)4).~~ done 2026-09-16 — shipped (go/ast signature comparison + precision filters, pinned by unit tests)
+19. ~~The v5 deprecation story is told in ≥6 places (SKILL.md, core.md ×2, readmodels.md, faq.md, modules.md rows) — consider one canonical block + pointers to kill future drift.~~ done 2026-09-16 — canonical list in faq.md "Will the v5 cut break my imports?"; others keep a short notice + pointer
 
 **Metaengine-goal observations noticed en route (not researched, from AGENTS.md cross-reading):**
 20. ADR-0114 direction still partial: `stack.Materialize.OnTombstone/OnRebirth` metadata-triggered vs type-based; docs describe the target state — implementation follow-up exists (AGENTS contract #11).
 21. Turso grouped-view upstream caveat (tursogo ≤ 0.8.0-pre.10): docs warn correctly; upstream fix should be tracked and the caveat lifted when fixed.
-22. `Infer(samples…)` documented "not recommended for production" — if the skill docs steer away from it, consider whether it should graduate or be Deprecated at v5 (split-brain-ish surface).
+22. ~~`Infer(samples…)` documented "not recommended for production" — if the skill docs steer away from it, consider whether it should graduate or be Deprecated at v5 (split-brain-ish surface).~~ done 2026-09-16 — DECIDED: deprecated, removal at v5 (`Deprecated:` markers on `Infer` + `InferFromNamedEvents`; CHANGELOG entry)
 23. Coeffect three-tier lockstep (runtime gate ↔ E018 ↔ catalog) is a documented invariant — a contract test asserting the three agree would protect it mechanically.
-24. `example/metaengine-quickstart` is the goal flagship but wasn't in the docs until today — consider linking it from the README/metaengine module README too (outside skill scope; not verified).
+24. ~~`example/metaengine-quickstart` is the goal flagship but wasn't in the docs until today — consider linking it from the README/metaengine module README too (outside skill scope; not verified).~~ done 2026-09-16 — linked from README.md examples paragraph + metaengine/README.md
 25. `docs/feedback/` has 49 dated review files — a HARVEST pass over the most recent 3 for unactioned consumer asks (docs-health mode).
-26. Update this report's items 1–6 into TODO_LIST.md via docs-health HARVEST if the session ends here (status-report skill closing rule).
+26. ~~Update this report's items 1–6 into TODO_LIST.md via docs-health HARVEST if the session ends here (status-report skill closing rule).~~ done (docs-health pass 2026-09-16) — the five follow-ups above are DONE; the remaining §f polish is demand-gated in this report
 
 ## g) Questions I cannot answer myself (max 3)
 

@@ -1,5 +1,7 @@
 # Status: md-go-validator audit + P1 fence fixes
 
+> **STATUS (docs-health pass 2026-09-16):** §f11 executed — the P2–P4 tail (skip-validate blocks, baseline file, flake app, CI packaging) is now TODO_LIST "md-go-validator CI integration". P1 remains the only executed tier (unchanged verdict).
+
 > **Date:** 2026-09-13 12:21 CEST
 > **Kind:** Session-scoped status report (md-go-validator run, review report, P1 fixes)
 > **Repo state:** `master` @ 7be90bcd9 (auto-commit daemon absorbed all session work;
@@ -122,7 +124,7 @@ most items below #15 are ROADMAP fuel, not commitments._
 | 8  | P4: decide archived-errors policy (baseline-forever vs shrinking ratchet)                         | M      | S      |
 | 9  | Verify the 11-skip mechanism; document it                                                         | M      | S      |
 | 10 | Mark 5 appendix entries "(fixed 2026-09-13)" in the review report                                 | S      | S      |
-| 11 | HARVEST section (f) into `TODO_LIST.md` via docs-health                                           | M      | S      |
+| ~~11~~ | ~~HARVEST section (f) into `TODO_LIST.md` via docs-health~~ done (docs-health pass 2026-09-16) — P2–P4 + gate integration routed to TODO_LIST "md-go-validator CI integration"                                           | ~~M~~      | ~~S~~      |
 | 12 | Document fence-tag convention (go.mod/go.work → ```text) in gotchas docs                          | M      | S      |
 | 13 | Add `--fail-on-skipped` policy decision to the gate config                                        | S      | S      |
 | 14 | Scripted skip-validate insertion (jq-generated edits) instead of hand-editing 60+ blocks          | M      | M      |
