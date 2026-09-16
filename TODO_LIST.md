@@ -777,6 +777,37 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
+## Load-ordering test flakes (filed 2026-09-16)
+
+- [ ] **`system` hardening: `TestSystem_ResetProjection_RestartAndReplay`
+      starves under full-repo parallel load** — inside the composed
+      `#verify-fast` short suite (dozens of package binaries racing), the
+      phase-2 projection replay processed nothing for the full 45s
+      load-scaled deadline (processed=0 errors=0); 2/2 failures under the
+      composed run, green standalone, green in full-package runs (3×).
+      Test design leans on wall-clock progress under CPU oversubscription;
+      consider sequencing it against the projection-host budget (restart
+      budget burns before the test's reset) or gating via `#load-sweep`.
+      — observed while gating the vector verification tail _(Effort: M)_
+- [ ] **`queue/sqlite` conformance: `status_counts` leaks under load** —
+      `TestConformance/Reads/status_counts` fails with "invalid status
+      transition: running -> cancelled" only when the whole repo's short
+      suite runs in parallel; green standalone. Parallel subtests or leftover
+      rows in a shared on-disk fixture — same namespacing class as the PG
+      per-test DB lesson in gotchas-testing.md. Queue family is an active
+      parallel-session workstream — coordinate before editing.
+      — observed 2026-09-16 during `#verify-fast` _(Effort: S-M)_
+- [ ] **Repo-wide lint findings outside the vector-tail files** — ~50
+      gocyclo/godoclint/exhaustruct_v5/goconst findings in watermill,
+      catalog/eventcatalog, otel/otlp, stack/sqlite, scheduling/sqlstore,
+      integration, cmd/api-stability, cmd/doc-check (recipes catalog), plus
+      queue-family twins. All in files the 2026-09-16 vector-tail session did
+      not author; every module that session touched lints clean. Attribution
+      and the fix wave belong to the session that owns those files / the
+      lint-green workstream. _(Effort: M, sliceable per module)_
+
+---
+
 ## Vector-search verification tail (2026-09-15)
 
 > Vector ADT shipped on EVERY engine 2026-09-15 (brute-force + DuckDB/libSQL

@@ -21,6 +21,11 @@
 > error-taxonomy gates all green. §g questions 1-3: 1 — attribution above;
 > 2 — VectorCounter stays local-only (no promotion); 3 — live legs done
 > locally (MariaDB userspace + ephemeral nix PG/Dgraph), no CI dependency.
+> verify-fast: every phase green EXCEPT the composed short-suite, where two
+> PRE-EXISTING load-ordering flakes reproduce (system reset-replay starvation
+> 2/2; queue/sqlite status_counts) — both green standalone and in
+> full-package runs, both filed as TODO_LIST "Load-ordering test flakes"; the
+> composed run otherwise validated docs assertions, build, vet, and arch.
 
 > Scope: this session only (started ~14:00). Task: execute the TODO_LIST
 > "Vector-search verification tail" (items a–h from the 2026-09-15 18:32

@@ -251,6 +251,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`mysqlengine`: dimension probe returned DECIMAL on MariaDB** — `LENGTH/4`
   is decimal division there ("2.0000" fails int scan); the probe casts to
   SIGNED. Found by the first live MariaDB leg, not by CI.
+- **`check-error-taxonomy`: literal claims for last-listed prefixes were
+  silently unverifiable** — the claims loop read the module table with three
+  variables, so entries carrying a floor field absorbed `|<floor>` into the
+  prefix list, corrupting the final prefix (`turso_preset.`, `storage.view.`,
+  `listing.`); literal codes under those prefixes never matched their doc
+  claims. The loop now reads the floor into its own field; the gate exposed
+  `storage.commit_tx` (now documented) and validates 519 codes across 18
+  modules.
 - **Reset tests no longer run in parallel against shared servers** —
   `ResetEngine` is a total wipe (ADR-0136); in dgraphengine and mysqlengine
   the parallel reset tests silently deleted other tests' data mid-run
