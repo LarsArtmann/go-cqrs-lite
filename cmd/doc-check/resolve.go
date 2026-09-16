@@ -18,6 +18,7 @@ type resolver struct {
 	repoRoot    string
 	exports     map[string]map[string]bool
 	clauses     map[string]string
+	sigs        map[string]map[string]funcSig
 	aliasLoaded bool
 	aliasDirs   map[string][]string
 	aliasExps   map[string]map[string]bool
@@ -28,6 +29,7 @@ func newResolver(repoRoot string) *resolver {
 		repoRoot:    repoRoot,
 		exports:     make(map[string]map[string]bool),
 		clauses:     make(map[string]string),
+		sigs:        make(map[string]map[string]funcSig),
 		aliasLoaded: false,
 		aliasDirs:   make(map[string][]string),
 		aliasExps:   make(map[string]map[string]bool),
@@ -100,11 +102,7 @@ func (r *resolver) blockPaths(b block, alias string) []string {
 // aliasExports returns the union of exports across every repo package with
 // the given package name, or nil when no repo package has that name.
 func (r *resolver) aliasExports(alias string) map[string]bool {
-	if !r.aliasLoaded {
-		r.loadAliasDirs()
-
-		r.aliasLoaded = true
-	}
+	r.ensureAliasDirs()
 
 	if exp, ok := r.aliasExps[alias]; ok {
 		return exp

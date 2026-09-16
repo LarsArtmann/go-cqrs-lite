@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — lint-green `queue` family + fifth gci/depguard config recovery — 2026-09-16
+
+- **`queue`, `queue/conformance`, `queue/sqlite`, `queue/postgres` lint-green**
+  (241 findings total, first lint against the repo config) — dialect-twin
+  engines keep their mirrored shape via `//art-dupl:accept` (42 directives,
+  suppression-style per the metaengine engine precedent); `queue/conformance`
+  scenario code modernized (`slices.Contains`, `WaitGroup.Go`, `new(v)`,
+  `subject`/`status`/`dismissedBy` names); wrapcheck now ignores the
+  database/sql + pgx driver surfaces (thin adapters pass driver errors raw by
+  design, context is added by the calling layer); `queue.Terminal` switch is
+  exhaustive; `queue/postgres` nil-pool error is a package-level sentinel.
+  The 19-group `#check-duplication` red from the queue landing is green with
+  the baseline untouched.
+- **Fifth `.golangci.yml` config-reformat incident (auto-commit
+  `d54cd38a7`)** — `gci` re-added to `formatters.enable` AND the depguard
+  allow-list block deleted in the same commit; both restored the same day
+  (depguard spliced back from `284d78ebe`). Incident log updated in
+  `docs/agents/gotchas-tooling-build.md`.
+- **`queue/sqlite` go.mod tidy** — go-error-family pinned at v0.10.1
+  (queue/v4's requirement), the module now builds under `GOWORK=off`.
+- **`benchkit/soak_test.go` gocyclo 24 → under 20** — the JSON round-trip
+  test's field assertions extracted into `assertSoakResultRoundTrip`,
+  `assertSoakSampleRoundTrip`, `assertSoakSamplePhasesRoundTrip` (same
+  failure messages, same order).
+
 ### Added — CI kill-switches for the silent-infrastructure class — 2026-09-15
 
 - **`modsums` CI job + `TestEveryModuleGoSumIsTidy` meta-test** — the

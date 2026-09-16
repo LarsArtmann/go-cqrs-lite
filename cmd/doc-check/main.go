@@ -37,8 +37,9 @@ const repoImportPrefix = "github.com/larsartmann/go-cqrs-lite/"
 var (
 	errBrokenReferences = errors.New("broken documentation reference(s)")
 	errWarningsFound    = errors.New("doc-check warning(s) found")
-	errNoReferences      = errors.New("no Go references found")
-	errBrokenNav         = errors.New("broken doc navigation (anchors/§ cross-refs)")
+	errNoReferences     = errors.New("no Go references found")
+	errBrokenNav        = errors.New("broken doc navigation (anchors/§ cross-refs)")
+	errArityMismatch    = errors.New("doc call arity mismatch(es)")
 )
 
 type AppConfig struct {
@@ -148,7 +149,13 @@ func run(files []string, jsonOut bool) error {
 
 	navIssues := checkFiles(files, repoRoot)
 
+	arityIssues := checkArity(allBlocks, res)
+
 	for _, iss := range navIssues {
+		log.Printf("  ✗ %s:%d: %s", iss.File, iss.Line, iss.Msg)
+	}
+
+	for _, iss := range arityIssues {
 		log.Printf("  ✗ %s:%d: %s", iss.File, iss.Line, iss.Msg)
 	}
 
@@ -164,6 +171,7 @@ func run(files []string, jsonOut bool) error {
 			warnings,
 			ambiguities,
 			navIssues,
+			arityIssues,
 			res,
 		); err != nil {
 			return fmt.Errorf("emit json: %w", err)
@@ -177,6 +185,11 @@ func run(files []string, jsonOut bool) error {
 	if len(navIssues) > 0 {
 		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
 			"%w: %d broken anchor(s)/§ cross-ref(s) found", errBrokenNav, len(navIssues))
+	}
+
+	if len(arityIssues) > 0 {
+		return fmt.Errorf( //nolint:lll // CLI tool, no untrusted input
+			"%w: %d doc call(s) with wrong argument count", errArityMismatch, len(arityIssues))
 	}
 
 	// 0-warning tripwire: doc-check warnings (unreadable dirs, empty package
@@ -215,14 +228,15 @@ func run(files []string, jsonOut bool) error {
 // jsonSummary is the --json wire shape: deterministic field order, arrays
 // instead of counts, so CI consumers can annotate per finding.
 type jsonSummary struct {
-	Valid       bool        `json:"valid"`
-	Files       int         `json:"files"`
-	References  int         `json:"references"`
-	Packages    int         `json:"packages"`
-	Broken      []brokenRef `json:"broken"`
-	NavIssues   []navIssue  `json:"nav_issues"`
-	Warnings    []string    `json:"warnings"`
-	Ambiguities []string    `json:"ambiguities"`
+	Valid        bool        `json:"valid"`
+	Files        int         `json:"files"`
+	References   int         `json:"references"`
+	Packages     int         `json:"packages"`
+	Broken       []brokenRef `json:"broken"`
+	NavIssues    []navIssue  `json:"nav_issues"`
+	ArityIssues  []navIssue  `json:"arity_issues"`
+	Warnings     []string    `json:"warnings"`
+	Ambiguities  []string    `json:"ambiguities"`
 }
 
 // emitJSON prints the machine-readable summary to stdout. Human logs stay on
@@ -231,16 +245,18 @@ func emitJSON(
 	files, totalRefs int,
 	brokenRefs []brokenRef,
 	warnings, ambiguities []string,
-	navIssues []navIssue,
+	navIssues, arityIssues []navIssue,
 	res *resolver,
 ) error {
 	summary := jsonSummary{
-		Valid:       len(brokenRefs) == 0 && len(warnings) == 0 && len(navIssues) == 0,
+		Valid: len(brokenRefs) == 0 && len(warnings) == 0 &&
+			len(navIssues) == 0 && len(arityIssues) == 0,
 		Files:       files,
 		References:  totalRefs,
 		Packages:    len(res.clauses),
 		Broken:      brokenRefs,
 		NavIssues:   navIssues,
+		ArityIssues: arityIssues,
 		Warnings:    warnings,
 		Ambiguities: ambiguities,
 	}
@@ -251,6 +267,10 @@ func emitJSON(
 
 	if summary.NavIssues == nil {
 		summary.NavIssues = []navIssue{}
+	}
+
+	if summary.ArityIssues == nil {
+		summary.ArityIssues = []navIssue{}
 	}
 
 	if summary.Warnings == nil {
