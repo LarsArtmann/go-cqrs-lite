@@ -177,6 +177,21 @@ and the 09-13 audit wave (`08-47` skill-docs audit, `09-17` backlog,
 `12-21` md-go-validator) — see each file's dated banner for what shipped
 vs what remains.
 
+**2026-09-16 13:05 (navigation-hardening execution):** all five 09-13
+skill-docs TODO items shipped — anchor + § cross-ref validation and a call
+arity spot-check now live in `cmd/doc-check` (GitHub-exact slugger,
+duplicate-number gate, precision filters, unit-tested; CI-gated at
+skill scope), v5-deprecation story consolidated into the faq.md canonical
+list with 6 pointers, `example/metaengine-quickstart` linked from both
+READMEs, `metaengine.Infer`/`InferFromNamedEvents` deprecated for v5.
+Gate yield: 3 real anchor defects fixed. Honest d)-section: the new gate's
+silent-skip design hid a defect this session itself introduced (caught by
+the layered bash gate); `#verify` deferred a 3rd consecutive session.
+Full a)–g) breakdown:
+[`2026-09-16_13-05_skill-docs-navigation-hardening-execution.md`](2026-09-16_13-05_skill-docs-navigation-hardening-execution.md)
+(active; §f harvested candidates below — 45 items incl. the RED
+`check-file-size` store.go ratchet and the full-set doc-check CI leg).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves
