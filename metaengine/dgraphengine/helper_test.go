@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -61,8 +62,26 @@ func dgraphSkipClass(err error) bool {
 	return false
 }
 
-func mustNewDgraphEngine(tb testing.TB) metaengine.Engine {
+// liveServerMu serializes destructive resets against every other live test:
+// the suite shares ONE ephemeral Dgraph server, and ResetEngine is a TOTAL
+// wipe (every engine node's predicates are nulled), so a reset running while
+// parallel tests read or write silently deletes their data mid-test
+// (observed 2026-09-16: GraphRAG searches returned 0 hits and ADT graph
+// matrices saw empty results inside the TestResetEngine_Idempotent window).
+// Reader tests hold RLock via the engine helpers for their whole body; the
+// two parallel reset tests hold Lock via mustNewDgraphEngineExclusive. Go's
+// RWMutex blocks new RLocks once a writer waits, so in-flight tests drain
+// before the reset runs.
+var liveServerMu sync.RWMutex
+
+// newDgraphEngineWithLock is the shared construction path. The lock is
+// registered for release via tb.Cleanup BEFORE construction so Skip/Fatal
+// paths (which run cleanups via Goexit) still release it.
+func newDgraphEngineWithLock(tb testing.TB, lock, unlock func()) metaengine.Engine {
 	tb.Helper()
+
+	lock()
+	tb.Cleanup(unlock)
 
 	eng, err := dgraphengine.New(dgraphAddr())
 	if err != nil {
@@ -78,17 +97,25 @@ func mustNewDgraphEngine(tb testing.TB) metaengine.Engine {
 	return eng
 }
 
+func mustNewDgraphEngine(tb testing.TB) metaengine.Engine {
+	tb.Helper()
+
+	return newDgraphEngineWithLock(tb, liveServerMu.RLock, liveServerMu.RUnlock)
+}
+
 func newDgraphEngineOrSkip(tb testing.TB) metaengine.Engine {
 	tb.Helper()
 
-	eng, err := dgraphengine.New(dgraphAddr())
-	if err != nil {
-		if dgraphSkipClass(err) {
-			tb.Skipf("Dgraph not available: %v", err)
-		}
+	return newDgraphEngineWithLock(tb, liveServerMu.RLock, liveServerMu.RUnlock)
+}
 
-		tb.Fatalf("dgraph engine construction failed (not a skip-class error): %v", err)
-	}
+// mustNewDgraphEngineExclusive takes the server EXCLUSIVELY for the test's
+// whole body. Required for every test that calls ResetEngine: the wipe must
+// not race any parallel reader/writer, and its post-reset emptiness
+// assertions must not observe foreign data. Do NOT call this while also
+// holding the reader lock (same-goroutine RLock then Lock deadlocks).
+func mustNewDgraphEngineExclusive(tb testing.TB) metaengine.Engine {
+	tb.Helper()
 
-	return eng
+	return newDgraphEngineWithLock(tb, liveServerMu.Lock, liveServerMu.Unlock)
 }

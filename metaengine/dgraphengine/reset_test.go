@@ -21,7 +21,7 @@ type dgraphGraphReader interface {
 func TestResetEngine_ClearsEveryADT(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDgraphEngine(t)
+	eng := mustNewDgraphEngineExclusive(t)
 	ctx := context.Background()
 
 	col := uniqueCollection(t, "reset")
@@ -118,7 +118,7 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 func TestResetEngine_Idempotent(t *testing.T) {
 	t.Parallel()
 
-	eng := mustNewDgraphEngine(t)
+	eng := mustNewDgraphEngineExclusive(t)
 	ctx := context.Background()
 
 	col := uniqueCollection(t, "resetidem")
