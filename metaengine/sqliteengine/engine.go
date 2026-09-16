@@ -32,8 +32,10 @@ type sqliteEngine struct {
 	cache             *stmtCache
 	// graphCTE: single-query recursive-CTE traversal when WITH RECURSIVE is available (probed).
 	graphCTE bool
-	// vectorSQL: libSQL SQL-side k-NN available (probed: turso yes, modernc no).
-	vectorSQL bool
+	// vectorSQL: lazily-probed libSQL SQL-side k-NN availability (turso yes,
+	// modernc no). Probed on first vector use and cached — construction stays
+	// query-free for the (common) modernc deployments that never search.
+	vectorSQL func() bool
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	multiSeq sync.Map // collection→*multiSeqCounter
 	plans    map[string]metaengine.LayoutPlan
@@ -161,7 +163,7 @@ func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine,
 		queries:   defaultSQLiteQueries(),
 		cache:     newStmtCache(database),
 		graphCTE:  probeRecursiveCTE(database),
-		vectorSQL: probeVectorSQL(database),
+		vectorSQL: sync.OnceValue(func() bool { return probeVectorSQL(database) }),
 	}
 
 	for _, opt := range opts {
