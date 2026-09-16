@@ -85,14 +85,12 @@ func (e *sqliteEngine) VectorInsert(
 	err := e.xc().queryRow(ctx,
 		"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection).
 		Scan(&established)
-	switch {
-	case err == nil:
-		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
-			return fmt.Errorf("sqliteengine.VectorInsert: %w", err)
-		}
-	case errors.Is(err, sql.ErrNoRows): // empty collection: this insert establishes the dimension
-	default:
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("sqliteengine.VectorInsert: dimension probe: %w", err)
+	}
+
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+		return fmt.Errorf("sqliteengine.VectorInsert: %w", err)
 	}
 
 	var metaJSON any // nil marshals to SQL NULL

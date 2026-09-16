@@ -71,6 +71,20 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 			}
 		}
 
+		// Vector ADT — verify embeddings (payload + metadata) persist across
+		// reopen, not just seq counters.
+		vb1, hasVector := eng1.(metaengine.VectorBackend)
+		if hasVector {
+			for _, emb := range []metaengine.Embedding{
+				{ID: "v1", Values: []float32{1, 0, 0}, Metadata: map[string]any{"tenant": "a"}},
+				{ID: "v2", Values: []float32{0, 1, 0}, Metadata: map[string]any{"tenant": "b"}},
+			} {
+				if err := vb1.VectorInsert(ctx, "vecs", emb); err != nil {
+					t.Fatalf("first VectorInsert %s: %v", emb.ID, err)
+				}
+			}
+		}
+
 		ver1, err := slb1.StreamVersion(ctx, "events", "s1")
 		if err != nil {
 			t.Fatalf("StreamVersion before close: %v", err)
@@ -199,6 +213,24 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 
 			if len(mmVals) != 2 {
 				t.Fatalf("multimap should have 2 values after restart append, got %d", len(mmVals))
+			}
+		}
+
+		// Verify Vector ADT data survived with ordering intact.
+		if vb2, hasVector2 := eng2.(metaengine.VectorBackend); hasVector2 {
+			results, err := vb2.VectorSearch(ctx, "vecs", []float32{1, 0, 0}, 2, "cosine")
+			if err != nil {
+				t.Fatalf("VectorSearch after restart: %v", err)
+			}
+
+			if len(results) != 2 || results[0].ID != "v1" || results[1].ID != "v2" {
+				t.Fatalf("vectors should survive restart with ordering, got %+v", results)
+			}
+
+			// Post-restart inserts must pass the dimension lock — the
+			// established dimension is re-read from persisted rows.
+			if err := vb2.VectorInsert(ctx, "vecs", metaengine.Embedding{ID: "v3", Values: []float32{0, 0, 1}}); err != nil {
+				t.Fatalf("post-restart VectorInsert: %v", err)
 			}
 		}
 	})
