@@ -428,6 +428,17 @@ above at its use site, with the ADR reference and the sanctioned replacement
 in the suggestion. F030 covers the `transport/*` module imports. Run
 `cqrs-lint .` in CI and the v5 cut becomes a non-event.
 
+### "metaengine `Scan` only returns 100 rows — where are the rest?"
+
+`TypedReader.Scan`/`ScanPage` default to a limit of **100** when no
+`WithLimit` option is passed — a silent truncation, not an error. Pass
+`WithLimit(n)` for a page size, or `WithLimit(0)` for an unbounded scan
+(engines skip the SQL `LIMIT` clause entirely). Query-input structs with a
+`Limit` field follow the same rule: `Limit: 0` means "default to 100", so set
+an explicit large limit (or page through with `ScanPage` cursors) when you
+need everything. Verify against `Doctor`'s row counts when a collection
+looks suspiciously small.
+
 ### "Does the Turso engine support encryption at rest?"
 
 Yes for embedded databases, via `tursoengine.WithEncryption(cipher, hexKey)`

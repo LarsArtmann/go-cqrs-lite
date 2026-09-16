@@ -91,7 +91,9 @@ func WithOr(filters ...FilterSpec) ScanOption {
 	}
 }
 
-// WithLimit sets the maximum number of results.
+// WithLimit sets the maximum number of results. n <= 0 means unlimited
+// (no SQL LIMIT clause). Note that Scan and ScanPage default to a limit of
+// 100 when no WithLimit option is passed.
 func WithLimit(n int) ScanOption {
 	return func(c *scanConfig) { c.limit = n }
 }

@@ -5,8 +5,12 @@ import (
 	"fmt"
 )
 
-// Scan returns all values matching the given filter/sort/limit options.
+// Scan returns the values matching the given filter/sort/limit options.
 // Uses raw scan when available for single-pass decode per row.
+//
+// WARNING: without [WithLimit], Scan returns at most 100 rows — a silent
+// truncation for larger collections. Pass [WithLimit] with the page size you
+// want, or WithLimit(0) for an unbounded scan (no SQL LIMIT clause).
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
 	if err := r.store.IsPoisoned(r.collection); err != nil {
 		return nil, err

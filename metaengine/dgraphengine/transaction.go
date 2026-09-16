@@ -128,19 +128,23 @@ func (e *dgraphEngine) doMutate(ctx context.Context, mut *api.Mutation) error {
 
 // Dgraph contention retry schedule. Bulk writers (corpus builds, projection
 // catch-up) sustain contention for seconds, so the schedule is 6 attempts
-// with exponential backoff plus jitter (15ms base doubling, capped at 240ms).
+// with exponential backoff plus jitter (15ms base doubling, capped at 2s).
+// The cap also absorbs errIndexingInProgress passes: a schema Alter rejected
+// while Dgraph re-indexes stays retriable for ~4s before surfacing.
 const (
 	contentionAttempts = 6
 	contentionBase     = 15 * time.Millisecond
-	contentionCap      = 240 * time.Millisecond
+	contentionCap      = 2 * time.Second
 )
 
 // retryOnContention runs fn, retrying while Dgraph reports a transient
 // contention error: a transaction abort ("Transaction has been aborted.
-// Please retry") from a concurrent committer, or an Alter rejected while
-// transactions are pending ("Pending transactions found"). Retrying the
-// whole operation is Dgraph's documented resolution — aborted work never
-// committed, and schema applies are idempotent.
+// Please retry") from a concurrent committer, an Alter rejected while
+// transactions are pending ("Pending transactions found"), or an Alter
+// rejected while a background indexing pass is running
+// ("errIndexingInProgress. Please retry"). Retrying the whole operation is
+// Dgraph's documented resolution — aborted work never committed, and schema
+// applies are idempotent.
 //
 // txnScoped marks transaction operations: inside RunInTx an aborted txn
 // cannot be retried in place — the whole transaction must roll back and
@@ -183,8 +187,9 @@ func (e *dgraphEngine) retryOnContention(
 }
 
 // isContentionError reports whether err is Dgraph's transient contention
-// class: an aborted read-write transaction or an Alter rejected because
-// transactions are still pending.
+// class: an aborted read-write transaction, an Alter rejected because
+// transactions are still pending, or an Alter rejected because a background
+// indexing pass is in progress (all three say "Please retry").
 func isContentionError(err error) bool {
 	if err == nil {
 		return false
@@ -193,7 +198,8 @@ func isContentionError(err error) bool {
 	msg := err.Error()
 
 	return strings.Contains(msg, "aborted") ||
-		strings.Contains(msg, "Pending transactions found")
+		strings.Contains(msg, "Pending transactions found") ||
+		strings.Contains(msg, "errIndexingInProgress")
 }
 
 // readTx returns the transaction a read op must use: the active RunInTx

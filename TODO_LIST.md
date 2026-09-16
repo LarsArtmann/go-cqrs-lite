@@ -366,8 +366,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
-- [ ] [BLOCKED] **cqrs-lint Self-Lint credentials** — go-finding fetch fails
-      under GOWORK=off (`git ls-remote` exit 128). _(Effort: S, user/creds)_
+- [ ] **cqrs-lint Self-Lint credentials** — BLOCK LIKELY STALE (2026-09-16):
+      go-finding resolves via the public module proxy under GOWORK=off
+      (verified: `GOPROXY=https://proxy.golang.org go list -m
+      github.com/larsartmann/go-finding@latest` → v1.10.0; cqrs-lint's go.mod
+      pins v1.10.0, no replace directive, so no SSH/git remote is needed —
+      the old `git ls-remote` exit 128 hit the SSH path). Re-run the
+      self-lint CI leg; close if green. _(Effort: S, re-run required)_
 - [ ] **pin-sweep `--check` nag semantics** — REMAINING: the trigger-policy DECISION
       only (keep blocking-on-every-push, or move to tag-push/cron?). Recommendation
       from 15-09 §g2 evidence: keep blocking-on-every-push (the nag is the sweep
@@ -698,6 +703,48 @@ bottom is a do-not-re-litigate guard, not a backlog.
       with non-zero throughput warns); fresh backend-comparison capture
       (current `docs/benchmarks/2026-07-31` predates variation).
       _(Effort: M, sliceable)_
+
+---
+
+## CV consumer-verdict follow-ups (2026-09-16)
+
+> CV (real consumer, evented-funnel-core Phase 0 GO) ran a parity-gated
+> four-tier read-model benchmark against metaengine/storage/sqlstore and
+> Phase-0 seam spike over a real 6.2k-event store. All their API-fit claims
+> were re-verified against source: [`docs/reviews/2026-09-16_cv-verdicts-reflection.md`](docs/reviews/2026-09-16_cv-verdicts-reflection.md).
+> The `Scan` 100-row-default doc lie is FIXED in the same change (doc comment +
+> FAQ entry); `ApplyBatch` atomicity stays tracked under v5 Unification
+> (ADR-0123 §10) — CV's 3.4 s → 109 ms pragma measurement is the perf
+> argument for it.
+
+- [ ] **Decide a first-class single-writer/lease story for engines** — CV's
+      Phase-0 ADR conditions every library-store cutover on a CV-owned
+      `metaengine.RegisterDriver` decorator wrapping their `<dsn>.lease`
+      single-writer marker, because the library has NO engine/store-level
+      lock (verified: only `queue/` has lease semantics — task claims, a
+      different concept). Minimal shape: an engine open-mode/advisory lock
+      option at `system` construction. Decide before v5 freezes engine
+      construction surfaces. — source: reflection doc §4.2 _(Effort: M — design + ADR)_
+- [ ] **`FilterContains`/`FilterPrefix` FilterOp extension** — metaengine
+      FilterOp today is exactly eq/ne/lt/le/gt/ge/in (`enum_validation.go:71`);
+      substring search degrades to a client-side full scan (CV measured
+      2.3–28 ms vs 326 µs hand-rolled LIKE). Native engines map to
+      LIKE/prefix; closure fallback evaluates in Go. Fits the v5 FilterOp
+      window. — source: reflection doc §4.5 _(Effort: M)_
+- [ ] **go-idempotency `Forever` → adapter mapping (gated on upstream v0.4.0)** —
+      when go-idempotency ships the `Forever` sentinel, `idempotency/sqlstore`
+      + `idempotency/kvstore` must write `expires_at = math.MaxInt64` DIRECTLY,
+      never via `expiryFromTTL` (verified by execution: `now.Add(ttl).UnixNano()`
+      wraps negative past year 2262 → key dead on arrival — the unrecoverable
+      direction). Dedup the verbatim-copied `expiryFromTTL` (kvstore:46,
+      sqlstore:173) while touching both; add the overflow boundary test; pin
+      bump middleware/sqlstore/kvstore (all v0.3.0 today) via the
+      go-ecosystem-upgrade skill. — source: reflection doc §3.1/§4.7 _(Effort: M once upstream lands)_
+- [ ] **Tag `system` so the coeffect gate reaches consumers** —
+      `DomainConfig.Events` + `ErrDanglingEventSubscription` sit unreleased on
+      master while the newest real consumer (CV) enforces its event universe
+      CV-side at system v4.7.0 (= latest tag). A release lets consumers
+      delete their bespoke gates. — source: reflection doc §4.3 _(Effort: S — routine tag-wave mechanics)_
 
 ---
 
