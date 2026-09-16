@@ -28,8 +28,8 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 - [ ] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — the claim core is EXTRACTED into `claiming/` (P0 done 2026-09-13: `Spec` + SKIP LOCKED PG / single-writer SQLite / MySQL two-statement claims, expiry reclaim, `RenewStmt`, `EnsureLeaseColumn`; `scheduling/sqlstore` delegates byte-identically and keeps `RenewLease` + `ClaimMetrics`), the read side in metaengine planned tables, the journal in `event`/`watermill`; **M1–M3 DONE 2026-09-14/15**: lifecycle (pending→running→completed/dead), attempts+backoff+DLQ at store level, the `Store[T]` contract with journal reads + watermarks, the shared `queue/conformance` suite, and BOTH engines (`queue/sqlite` single-writer WAL, `queue/postgres` SKIP LOCKED) green incl. `-race`. Still missing: owner-bearing claims + claim-token ADR-0134 (T15), DAG dep-gating additions — enqueue validation/cycle rejection/unblock-bump (T14), `queue/mysql` engine (T17), FactSink-in-tx + watermark API completion (T16), dedup'd enqueue, priorities aging pin, same-tx journal option. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstream the semantics, don't reinvent). Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/2026-09-13_durable-work-queue-module.md`](docs/planning/2026-09-13_durable-work-queue-module.md) + queue-arc reports 14-14/14-46 _(Effort: P1 DONE; remainder M each)_
 - [ ] **Tag the claiming + queue modules** — `claiming/v4.0.0` (dry-run READY, blocked on clean tree at the time; needs sqlstore replace pin + standalone build gate + proxy probe), then `queue`/`queue/sqlite`/`queue/postgres` v4.0.0; also strips the `queue/{sqlite,postgres} => ../queue` sibling replaces. — source: queue-arc 14-14 §b2/§b3 _(Effort: S each once a wave is authorized — fold into the next tag wave)_
-- [ ] **Run `queue/postgres` conformance against live in-repo PG** — `nix run .#integration-pg`; the postgres engine's conformance suite has executed only via pgtestcontainer, never the repo's own ephemeral-PG leg; also exercises the `lifecycle_cancel.go` split end-to-end. — source: 2026-09-16 09-35 report §f2 _(Effort: S)_
-- [ ] **Queue family docs + config tail** — (a) tiny `queue/README` or SKILL reference section (consumers currently discover the family only via CHANGELOG); (b) document `task.New`/`queue.Filter`/`facts.Fact` partial-literal semantics where users read (the exhaustruct exemptions are design-justified — say so); (c) fix or delete the dead errcheck exclude-functions short forms (`(*sql.Rows).Close` → fully-qualified `(*database/sql.Rows).Close`) after probing which entries are load-bearing; (d) `queue/mysql` is named in the Store doc comment as a future engine — implement behind the conformance suite or strike the mention. — source: 2026-09-16 09-35 report §e4/§f6-9 _(Effort: S each)_
+- [x] **Run `queue/postgres` conformance against live in-repo PG** — DONE 2026-09-16: `PG_MODULES="queue/postgres" TEST_TIMEOUT=420 nix run .#integration-pg` full suite PASS on the repo's own ephemeral PG (first run on this leg), incl. the `lifecycle_cancel.go` split end-to-end. — source: 2026-09-16 09-35 report §f2; 2026-09-16 15-02 report §c _(Effort: S)_
+- [x] **Queue family docs + config tail** — DONE 2026-09-16, all four: (a) new `queue/README.md` (contract, module table, quickstarts; every claim source-verified before shipping); (b) `task.New`/`queue.Filter`/`facts.Fact` partial-literal semantics documented in that README (exhaustruct exemptions design-justified); (c) dead errcheck exclude-functions short forms replaced with fully-qualified `(*database/sql.DB|Rows|Stmt).Close` forms in `.golangci.yml` (probe found the short forms were dead); (d) `queue/mysql` doc mentions struck (`queue/store.go`, `queue/conformance/doc.go`) — the engine does not exist, so the mention lied. — source: 2026-09-16 09-35 report §e4/§f6-9 _(Effort: S each)_
 
 ## Command-side domain depth (2026-09-13 plan)
 
@@ -50,7 +50,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 >   `commandlifecycle/upcast_composition_test.go`; recipes §2.1b/§2.19b, core §3.8 +
 >   cheat-sheet rows, faq command-pitfalls section all landed; goldens regenerated.
 
-- [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). _(Effort: M — in progress)_
+- [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). STATE 2026-09-16: every leg green EXCEPT the composed `nix run .#verify` (quiet-window-gated; load never dropped below ~30) — per-module tests, api golden (7,092 exports), TestEvery, check-changelog-symbols (86 citations), doc-check (1,142 refs), check-arch, check-duplication all re-run green. _(Effort: M — in progress)_
 - [BLOCKED] **Release train (user approval)** — tag waves decider/command/commandlifecycle once W1–W4 land. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [BLOCKED] **ADR-0138: command sourcing draft (consumer demand)** — design doc only, builds on W2's bridge, reconciles ADR-0112's planned `CommandAwareFold`. _(Effort: M)_
 
@@ -404,9 +404,15 @@ bottom is a do-not-re-litigate guard, not a backlog.
       (nix fmt clean), api-stability (golden updated), cmd/cqrs-lint module
       (taskmanager golden re-pinned — rule-output drift) + verify-fast's
       TestTagContentMatchesChangelog (green against current CHANGELOG).
-      (d) STILL OPEN: go.work sync check
-      job, benchmarks.yml matview-gate dry-run (relative
-      `cd ../metaengine/tursoengine` hop unproven). The test-tag-release.sh
+      (d) FIXED LOCALLY 2026-09-16: the go.work sync check job now uses plain
+      `actions/setup-go@v5` with `go-version-file: go.mod` (it previously had
+      NO Go toolchain at all, and rode the throttled nix cache); the
+      benchmarks.yml matview-gate is restructured into per-backend subshells
+      with root-relative `tee current.txt` (the old single-`cd` form hopped
+      `../metaengine/tursoengine` from `stack/bench` — a nonexistent dir — and
+      teed into `stack/current.txt` while the compare step reads the root
+      copy; BOTH legs verified live with real bench runs). Awaiting the next
+      CI run for remote confirmation. The test-tag-release.sh
       SC2086 item was already stale — the script uses the array form
       `git "${notag[@]}"` and shellcheck is clean (verified 2026-09-13). — source: run
       34548534824, run 34747274058, `gh run list`
@@ -629,10 +635,12 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
-- [ ] **Skill references: reset recipe covers ALL engines** — SKILL.md +
-      references still describe `Store.Reset` as memory-only; the ladder is
-      12/12 now. Update the reset recipe + add the
-      `WithContentionObserver` entry to recipes.md. — source: 05-51 §f33
+- [x] **Skill references: reset recipe covers ALL engines** — DONE/STALE 2026-09-16:
+      `readmodels.md` reset section (lines 319-337) ALREADY documents the 12/12
+      `EngineResetter` ladder (no "memory-only" `Store.Reset` text exists
+      anywhere in the references); the `WithContentionObserver` half shipped as
+      recipes §2.36 "Watch Dgraph Contention Retries" with a compile-verified
+      scaffold (`TestRecipes` green). — source: 05-51 §f33; 2026-09-16 15-02 report
       _(Effort: S)_
 
 ---
