@@ -94,6 +94,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   little-endian float32 wire format (libSQL `F32_BLOB`-compatible, no header)
   used by the SQL-backed vector engines.
 
+### Added — `metaengine` Doctor: synthetic-Record advisory breaks down by entry point — 2026-09-15
+
+- The `--- Record context ---` Doctor section now attributes synthesized
+  Type-only applies to the exact public entry point that fed them
+  (`by entry point: ApplyEncoded=1, ApplyIdempotent=1, ...`) instead of a
+  single undifferentiated total, so the fix site is identifiable at runtime.
+  Replays still never count. Micro-benchmarked the hot path the shared
+  funnel adds: a struct payload pays ~1.9 ns / 0 allocs
+  (`docs/benchmarks/2026-09-15_applyfold-raw-payload-funnel.md`).
+
 ### Added — `storage`: dialect-aware `db.system` span attributes across the SQL stores — 2026-09-15
 
 - **Every SQL-backed store now stamps the OTel semconv `db.system` on its

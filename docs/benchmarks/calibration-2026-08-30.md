@@ -150,6 +150,13 @@ ms-scale gRPC band).
 > gate's PROVENANCE lines (store path + binary version output + uptime
 > samples) verbatim. A quiet-window count=5 re-run that supersedes the table
 > below (if medians move >5%) is queued behind the load gate.
+>
+> **2026-09-15 07:16 — gate refusal #2:** the queued count=5 re-run (and the
+> benchmark-baseline re-pin behind it) was attempted again and the load gate
+> correctly refused (load1=11.77, load5=10.91 ≥ ceiling 5; concurrent
+> sessions compiling). No numbers were recorded. Still PENDING — run when
+> the gate passes, then re-pin the baseline, then the dgraph constant
+> campaign.
 
 | docs   | SearchQuery (ns/op, discard-cold median) | allocs/op | B/op       |
 | ------ | ---------------------------------------- | --------- | ---------- |
