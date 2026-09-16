@@ -82,6 +82,7 @@ func (s *Store[T]) FactsForTask(ctx context.Context, id task.ID, limit int) ([]f
 
 	defer rows.Close()
 
+	//art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
 	all, err := scanFacts(rows)
 	if err != nil {
 		return nil, err

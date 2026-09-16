@@ -783,25 +783,35 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > pushdown; see FEATURES Metaengine section). Report:
 > [`docs/status/2026-09-15_18-32_vector-search-every-engine.md`](docs/status/2026-09-15_18-32_vector-search-every-engine.md)
 
-- [ ] **Verification gaps from the vector session** — (a) DONE 2026-09-16:
-      irohengine passthrough VERIFIED (`TestReplicatedVectorPassthrough` green:
-      insert + k-NN nearest-first, filtered pre-filter AND, path forwarding;
-      `VectorCounter` deliberately not promoted) and the CHANGELOG enumeration
-      already carries the iroh entry; (b) DONE 2026-09-16: `system` module tests
-      + `example/metaengine-quickstart` green (short mode, GOWORK=off);
-      remaining: (c) benchmark libSQL pushdown
-      vs Go scan + DuckDB pushdown, add numbers; (d) surface the executed
-      vector path (pushdown vs scan) in ExplainPlan/Doctor; (e) lazy-cache the
-      libSQL probe; (f) mixed-dimension insert guard/test per engine; (g)
-      vector persistence in the restart-safety harness; (h) metaengine full
-      non-short suite once (soaks skipped so far). — source: 18-32 §b/§c/§f1-16
-      _(Effort: M total, sliceable)_
-- [ ] **Dgraph version floor decision** — vector schema requires Dgraph ≥ v24
-      (`float32vector` + hnsw index). Feature-detect/lazy vector schema so old
-      servers keep booting, or document the hard v24+ floor in the dgraphengine
-      README? Also: the pre-existing "Transaction has been aborted" flake under
-      parallel load (failing on master CI since 09-15 13:22) — `retryOnContention`
-      gap or a distinct class. — source: 18-32 §f9-10/§g1 _(Effort: S decision + M investigate)_
+- [x] **Verification gaps from the vector session** — DONE 2026-09-16 (all of
+      (a)-(h)): (a) iroh passthrough verified; (b) system + quickstart green;
+      (c) benchmarks captured in
+      [`docs/benchmarks/2026-09-16_vector-search-paths.md`](docs/benchmarks/2026-09-16_vector-search-paths.md)
+      (libSQL 0.76ms / sqlite Go-scan 0.97ms / DuckDB pushdown 1.22ms,
+      quiet-machine medians; regression gate deliberately not wired);
+      (d) `VectorPathReporter` surfaces the path in ExplainPlan + Doctor;
+      (e) libSQL probe lazily cached via `sync.OnceValue`; (f) dimension lock
+      (`CheckVectorDimension` + `ErrVectorDimensionMismatch` +
+      `adttest.AssertVectorDimensionGuard`) green live on sqlite/turso/duckdb/
+      mysql/pg/dgraph/bbolt/pebble/badger — live legs surfaced and fixed a
+      broken dgraph probe (DQL root name) and MariaDB DECIMAL division;
+      (g) vector legs in the restart-safety harness; (h) metaengine full
+      non-short suite green (22.4s). DuckDB's committed construction bug
+      (missing statement separator before `meta_vector` DDL, born broken
+      2026-09-15 18:28) found and fixed; full cgo suite green. See the
+      2026-09-16 Fixed CHANGELOG section. — source: 18-32 §b/§c/§f1-16
+- [x] **Dgraph version floor decision** — DONE 2026-09-16: LAZY vector schema
+      (first vector use, mirrors `ensureEdgeSchema`); Dgraph < v24 servers keep
+      booting and serving every other ADT; first vector op fails with an
+      actionable "vector predicates require Dgraph v24+" error. README documents
+      the floor. Live-verified 7 consecutive green `#integration-dgraph` runs
+      (incl. replay of a previously-hanging shuffle seed). The shared-server
+      test flake class is RESOLVED beyond the original abort question: parallel
+      `ResetEngine` tests were wiping the shared ephemeral server mid-run
+      (reset tests now serial), construction Alters now retry
+      `errIndexingInProgress` and every gRPC call is deadline-bounded. Any
+      remaining "Transaction has been aborted" under extreme parallel load is
+      retried by `retryOnContention` (cap raised to 2s). — source: 18-32 §f9-10/§g1
 - [x] **ADR-0140 candidate: vector distance-semantics contract** — DONE 2026-09-16:
       shipped as [ADR-0140](docs/adr/0140-vector-distance-semantics-contract.md)
       (Status: Accepted): the distance table (cosine = `1-cosSim`, dot = NEGATED

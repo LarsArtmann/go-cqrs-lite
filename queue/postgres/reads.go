@@ -226,6 +226,7 @@ func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error
 
 	defer rows.Close()
 
+	//art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
 	out := make(map[task.Status]int)
 
 	for rows.Next() {

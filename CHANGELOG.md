@@ -221,6 +221,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   operator-facing FAIL message byte-exact (uptime line normalized);
   mutation-tested.
 
+### Fixed — vector verification tail: live-suite defects surfaced by real servers — 2026-09-16
+
+- **`duckdbengine`: engine construction failed at init since 2026-09-15** —
+  the `meta_graph_edges` DDL (ending in `)` with no statement separator) was
+  concatenated directly with the `meta_vector` table DDL, so `New`/`NewFromDSN`
+  returned `Parser Error: syntax error at or near "CREATE"` on every
+  construction. The vector table now executes as its own statement. Bisect:
+  introduced in the 2026-09-15 18:28 auto-commit wave; the same-day "full CGo
+  suite green" claim was vacuous (run without `-tags cgo`, so no cgo-tagged
+  test compiled). Full cgo suite is green as of this fix.
+- **`dgraphengine.VectorInsert`: dimension probe never saw stored vectors** —
+  the probe DQL root was named `dims(...)` while the decoder expects the
+  `vecs` JSON key, so `establishedVectorDimension` always returned 0 and the
+  dimension lock never rejected. Root renamed (and pinned by a comment).
+  `TestVectorDimensionGuard` now passes on live Dgraph.
+- **`dgraphengine`: lazy vector schema crashed on engines constructed before
+  any edge op** — `ensureVectorSchema` wrote `appliedSchemas` without the
+  nil-map init `ensureEdgeSchema` has; first vector use on a fresh engine
+  panicked. Same lazy init added.
+- **`dgraphengine`: schema Alters now retry `errIndexingInProgress`** —
+  construction and lazy schema applies raced Dgraph's background indexing
+  (transient per upstream "Please retry"), failing `New` nondeterministically
+  under the test-suite Alter storm; `isContentionError` classifies it and the
+  backoff cap rose to 2s. Construction also gained a 30s deadline, and every
+  gRPC call whose context lacks a deadline is bounded by a dial-time
+  interceptor (a wedged Alpha previously blocked `New` — and a whole shared
+  suite — forever).
+- **`mysqlengine`: dimension probe returned DECIMAL on MariaDB** — `LENGTH/4`
+  is decimal division there ("2.0000" fails int scan); the probe casts to
+  SIGNED. Found by the first live MariaDB leg, not by CI.
+- **Reset tests no longer run in parallel against shared servers** —
+  `ResetEngine` is a total wipe (ADR-0136); in dgraphengine and mysqlengine
+  the parallel reset tests silently deleted other tests' data mid-run
+  (nondeterministic empty-result failures). Reset tests are now serial —
+  `go test` guarantees non-parallel tests never overlap any other test, which
+  replaces an attempted RWMutex gate that deadlocked the dgraph suite.
+
 ### Added — vector search on every metaengine engine (graceful degradation, never failure) — 2026-09-15
 
 - **`VectorBackend` + `VectorFilterBackend` + `VectorCounter` now ship on

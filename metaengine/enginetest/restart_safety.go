@@ -81,8 +81,7 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 }
 
 // restartSeedStreamMapMultimapVector writes the phase-1 seed data: 3 stream
-// events, one map entry, one multimap entry, two metadata-carrying
-// embeddings — each guarded by the engine's capability surface.
+// events, one map entry, one multimap entry, two metadata-carrying embeddings.
 func restartSeedStreamMapMultimapVector(
 	t *testing.T,
 	ctx context.Context,

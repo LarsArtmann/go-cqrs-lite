@@ -2,6 +2,22 @@
 
 > **STATUS (2026-09-16 docs-health pass):** §f26 harvest executed — the §b/§c verification gaps are now TODO_LIST "Vector-search verification tail"; the Dgraph v24-floor decision and the "Transaction has been aborted" flake are TODO_LIST rows. The ROADMAP MariaDB claim flagged in §d1 is now labeled UNVERIFIED inline. Composed `#verify` remains tracked by the standing [BLOCKED] quiet-window row.
 
+> **CORRECTION (2026-09-16, verification-tail execution):** the §a "live Dgraph
+> 25.4.0 … all PASS" and "duckdbengine full CGo suite green" claims did not
+> survive re-verification. (1) The DuckDB cgo suite runs were VACUOUS — invoked
+> without `-tags cgo`, no cgo-tagged test file compiled; worse, DuckDB engine
+> CONSTRUCTION was born broken in `284d78ebe` (this wave, 18:28): the
+> `meta_graph_edges` DDL and the `meta_vector` DDL were concatenated without a
+> statement separator, so every `New` failed with `Parser Error: syntax error at
+> or near "CREATE"`. Fixed + full cgo suite green 2026-09-16. (2) The dgraph
+> dimension-lock probe shipped with a DQL root-name mismatch (`dims` vs the
+> `vecs` JSON key) so the guard never fired live — found by the first real
+> `#integration-dgraph` run 2026-09-16 and fixed; the same run also surfaced the
+> nil-map panic in `ensureVectorSchema`, the `errIndexingInProgress`
+> construction race (now retried), and the parallel-reset data-wipe class
+> (reset tests now serial). Details: CHANGELOG 2026-09-16 "Fixed — vector
+> verification tail".
+
 > Scope: this session only (started ~17:00). Task: research vector solutions for
 > SQLite, MySQL, **Turso**, DuckDB, Dgraph and implement them so vector queries
 > degrade gracefully instead of failing. Tree state at report time: clean

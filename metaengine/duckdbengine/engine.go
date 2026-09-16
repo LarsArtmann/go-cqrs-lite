@@ -27,17 +27,16 @@ import (
 // Re-run the benchmark on target hardware before trusting absolute estimates.
 const DuckDBNsPerOp = 15000.0
 
-// DuckDBNsPerRead is the calibrated per-read cost for scans and aggregations —
-// DuckDB's intended OLAP workload. Its vectorized execution engine makes
-// aggregations (GROUP BY, SUM) extremely fast, often 10-50x faster than
-// row-oriented SQLite on analytical workloads at scale.
+// DuckDBNsPerRead is the calibrated per-read cost for scans and aggregations
+// — DuckDB's intended OLAP workload: vectorized execution makes aggregations
+// (GROUP BY, SUM) extremely fast, often 10-50x faster than row-oriented
+// SQLite on analytical workloads.
 // Point-lookup benchmarks (BenchmarkDuckDB_MapGet, ~546K ns/op) measure
 // full column scans for a single key, which is NOT the intended use case.
 //
 // Measured (10K rows, AMD Ryzen dev machine):
-//   - BenchmarkCalibration_DuckDB_AggregateSum: ~111 ns/row (vectorized SUM)
-//   - BenchmarkCalibration_DuckDB_PushdownScan: ~425 ns/row (filtered scan + JSON decode)
-//   - BenchmarkCalibration_DuckDB_FullScan:     ~810 ns/row (full scan + JSON decode)
+//   - AggregateSum: ~111 ns/row (vectorized SUM); PushdownScan: ~425 ns/row
+//     (filtered scan + JSON decode); FullScan: ~810 ns/row (full scan + JSON decode)
 //
 // The constant (1.5x the full-scan measurement) is conservative for slower
 // hardware; it also leaves headroom for DuckDB's vectorized advantage to grow
