@@ -771,11 +771,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
       README? Also: the pre-existing "Transaction has been aborted" flake under
       parallel load (failing on master CI since 09-15 13:22) — `retryOnContention`
       gap or a distinct class. — source: 18-32 §f9-10/§g1 _(Effort: S decision + M investigate)_
-- [ ] **ADR-0140 candidate: vector distance-semantics contract** — cosine =
-      `1-cosSim`, dot = NEGATED dot, euclidean = L2; ascending = nearest;
-      degrade-everywhere decision. AGENTS.md contract #26 pins the semantics;
-      an ADR (or ADR-0085 addendum) gives them a decision record.
-      — source: 18-32 §f17 _(Effort: S)__
+- [x] **ADR-0140 candidate: vector distance-semantics contract** — DONE 2026-09-16:
+      shipped as [ADR-0140](docs/adr/0140-vector-distance-semantics-contract.md)
+      (Status: Accepted): the distance table (cosine = `1-cosSim`, dot = NEGATED
+      dot, euclidean = L2), ascending = nearest via `TopKNearest`,
+      `VectorDistance` as the single Go scorer, engine-native parity pinned by
+      adttest, zero-vector behavior, degrade-everywhere floor, and filtered
+      k-NN pre-filter semantics. AGENTS.md contract #26 cites it.
+      — source: 18-32 §f17 _(Effort: S)_
 
 ---
 
