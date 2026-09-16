@@ -28,7 +28,10 @@ const (
 //
 // The label describes the UNFILTERED VectorSearch path; metadata-filtered
 // searches always evaluate filters in Go and may scan even on pushdown
-// engines (the label does not change per query).
+// engines (the label does not change per query). Implementations return one
+// of the two constants, or "" when the engine cannot report a path for its
+// current wiring (e.g. a forwarding wrapper over a local engine that does
+// not implement this interface) — rendering skips engines that report "".
 type VectorPathReporter interface {
 	// VectorSearchPath returns one of VectorPathPushdown or VectorPathScan.
 	VectorSearchPath() string

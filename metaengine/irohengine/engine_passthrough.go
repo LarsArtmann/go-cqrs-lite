@@ -87,6 +87,17 @@ func (e *replicatedEngine) VectorSearch(
 	return nil, ErrVectorBackendNotImplemented
 }
 
+// VectorSearchPath forwards the local engine's probed execution path
+// (implements [metaengine.VectorPathReporter]). Returns "" when the local
+// engine cannot report, so observability rendering skips the line instead
+// of claiming a path the wiring cannot serve.
+func (e *replicatedEngine) VectorSearchPath() string {
+	if vp, ok := e.local.(metaengine.VectorPathReporter); ok {
+		return vp.VectorSearchPath()
+	}
+	return ""
+}
+
 // --- SearchBackend (local passthrough) ---
 
 func (e *replicatedEngine) SearchInsert(

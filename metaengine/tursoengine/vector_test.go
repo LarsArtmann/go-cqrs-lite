@@ -23,6 +23,12 @@ func TestVectorSearch_LibSQLPushdown(t *testing.T) {
 	ctx := context.Background()
 	col := t.Name()
 
+	if vp, ok := eng.(metaengine.VectorPathReporter); !ok {
+		t.Fatal("turso engine must implement metaengine.VectorPathReporter")
+	} else if got := vp.VectorSearchPath(); got != metaengine.VectorPathPushdown {
+		t.Fatalf("libSQL vector path = %q, want %q", got, metaengine.VectorPathPushdown)
+	}
+
 	vb := eng.(metaengine.VectorBackend)
 
 	embeddings := []metaengine.Embedding{

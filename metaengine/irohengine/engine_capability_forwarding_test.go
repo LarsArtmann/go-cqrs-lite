@@ -1,6 +1,7 @@
 package irohengine_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -77,4 +78,45 @@ func TestReplicatedDoesNotExposeProbers(t *testing.T) {
 
 	_, isMeasurer := eng.(metaengine.TransactMeasurer)
 	g.Expect(isMeasurer).To(gomega.BeFalse())
+}
+
+// TestReplicatedVectorPassthrough verifies the VectorBackend local passthrough
+// end-to-end (the "every engine" CHANGELOG claim includes iroh): inserts and
+// k-NN searches through the wrapper execute against the local engine, and
+// VectorSearchPath forwards the local engine's reported path. Filtered k-NN
+// and VectorCounter are deliberately NOT promoted (engine_passthrough.go
+// forwarding policy — no wire kinds for those writes, no size introspection
+// through the wrapper).
+func TestReplicatedVectorPassthrough(t *testing.T) {
+	t.Parallel()
+	g := gomega.NewWithT(t)
+
+	eng := newReplicatedForPolicyTest(t)
+	ctx := context.Background()
+
+	vb, isVB := eng.(metaengine.VectorBackend)
+	g.Expect(isVB).To(gomega.BeTrue())
+
+	g.Expect(vb.VectorInsert(ctx, "docs",
+		metaengine.Embedding{ID: "a", Values: []float32{1, 0}})).To(gomega.Succeed())
+	g.Expect(vb.VectorInsert(ctx, "docs",
+		metaengine.Embedding{ID: "b", Values: []float32{0, 1}})).To(gomega.Succeed())
+
+	results, err := vb.VectorSearch(ctx, "docs", []float32{1, 0}, 2, "cosine")
+	g.Expect(err).To(gomega.Succeed())
+	g.Expect(results).To(gomega.HaveLen(2))
+	g.Expect(results[0].ID).To(gomega.Equal("a"), "nearest-first ordering must hold through the wrapper")
+
+	vp, isVP := eng.(metaengine.VectorPathReporter)
+	g.Expect(isVP).To(gomega.BeTrue())
+	g.Expect(vp.VectorSearchPath()).To(gomega.Equal(metaengine.VectorPathScan),
+		"memory local engine reports go-scan; the wrapper must forward it")
+
+	_, isFiltered := eng.(metaengine.VectorFilterBackend)
+	g.Expect(isFiltered).
+		To(gomega.BeFalse(), "VectorSearchFiltered must not be promoted: see engine_passthrough.go policy")
+
+	_, isCounter := eng.(metaengine.VectorCounter)
+	g.Expect(isCounter).
+		To(gomega.BeFalse(), "VectorCounter must not be promoted: see engine_passthrough.go policy")
 }
