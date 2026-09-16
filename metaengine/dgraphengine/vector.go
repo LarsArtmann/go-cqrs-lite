@@ -148,9 +148,10 @@ func (e *dgraphEngine) ensureVectorSchema(ctx context.Context) error {
 }
 
 // vectorDimensionQuery reads the collection's first vector for the
-// insert-time dimension lock (metaengine.CheckVectorDimension).
-const vectorDimensionQuery = `query dims($col: string) {
-	dims(func: eq(cqrs.vector_collection, $col), first: 1) {
+// insert-time dimension lock (metaengine.CheckVectorDimension). The root
+// must stay named `vecs` — vectorRows decodes that JSON key.
+const vectorDimensionQuery = `query vecs($col: string) {
+	vecs(func: eq(cqrs.vector_collection, $col), first: 1) {
 		cqrs.vector_values
 	}
 }`
