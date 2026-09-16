@@ -17,9 +17,8 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
-// sqliteEngine implements all metaengine.ADT backends backed by a SQL database.
-// It is the first persistent engine for the metaengine, enabling data
-// to survive process restarts.
+// sqliteEngine implements all metaengine.ADT backends backed by a SQL
+// database: the first persistent engine, enabling data to survive restarts.
 type sqliteEngine struct {
 	metaengine.Calibration
 
@@ -33,8 +32,8 @@ type sqliteEngine struct {
 	// graphCTE: single-query recursive-CTE traversal when WITH RECURSIVE is available (probed).
 	graphCTE bool
 	// vectorSQL: lazily-probed libSQL SQL-side k-NN availability (turso yes,
-	// modernc no). Probed on first vector use and cached — construction stays
-	// query-free for the (common) modernc deployments that never search.
+	// modernc no); cached, so construction stays query-free for the common
+	// modernc deployments that never search.
 	vectorSQL func() bool
 	// seq counters for multimap and log (SQLite AUTOINCREMENT handles log).
 	multiSeq sync.Map // collection→*multiSeqCounter
@@ -43,7 +42,7 @@ type sqliteEngine struct {
 	activeTx atomic.Pointer[txExecutor]
 	probeFn  func(context.Context) (time.Duration, error)
 	// matViews holds operator-declared materialized view specs (Turso IVM
-	// acceleration); matViewErr captures a spec-validation failure to surface
+	// acceleration); matViewErr captures a spec-validation failure surfaced
 	// at construction.
 	matViews   []matView
 	matViewErr error

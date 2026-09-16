@@ -22,7 +22,7 @@ import (
 // DuckDB's worst case. This value models batch-amortized columnar writes.
 //
 // Measured (BenchmarkCalibration_DuckDB_BatchInsert, 1000-row multi-VALUES
-// INSERT, AMD Ryzen dev machine): ~8,950 ns/row. The constant adds a 1.7x
+// INSERT, AMD Ryzen dev machine): ~8,950 ns/row; the constant adds a 1.7x
 // conservative margin for slower hardware and larger payloads.
 // Re-run the benchmark on target hardware before trusting absolute estimates.
 const DuckDBNsPerOp = 15000.0
