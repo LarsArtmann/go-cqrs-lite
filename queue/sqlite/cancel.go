@@ -217,7 +217,12 @@ func (s *Store[T]) RescueDead(ctx context.Context, id task.ID, maxAttempts int) 
 
 // DismissDead cancels a Dead task with a recorded reason (DLQ dismiss):
 // the cancelled fact's detail carries the reason and who dismissed it.
-func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, dismissedBy string) error {
+func (s *Store[T]) DismissDead(
+	ctx context.Context,
+	id task.ID,
+	reason string,
+	dismissedBy string,
+) error {
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {
@@ -234,7 +239,9 @@ func (s *Store[T]) DismissDead(ctx context.Context, id task.ID, reason string, d
 		}
 
 		return s.appendFact(ctx, tx, facts.Fact{
-			TaskID: id.String(), Type: facts.Cancelled, Detail: dismissReasonDetail(reason, dismissedBy),
+			TaskID: id.String(),
+			Type:   facts.Cancelled,
+			Detail: dismissReasonDetail(reason, dismissedBy),
 		})
 	})
 }

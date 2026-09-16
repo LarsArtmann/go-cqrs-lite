@@ -228,15 +228,15 @@ func run(files []string, jsonOut bool) error {
 // jsonSummary is the --json wire shape: deterministic field order, arrays
 // instead of counts, so CI consumers can annotate per finding.
 type jsonSummary struct {
-	Valid        bool        `json:"valid"`
-	Files        int         `json:"files"`
-	References   int         `json:"references"`
-	Packages     int         `json:"packages"`
-	Broken       []brokenRef `json:"broken"`
-	NavIssues    []navIssue  `json:"nav_issues"`
-	ArityIssues  []navIssue  `json:"arity_issues"`
-	Warnings     []string    `json:"warnings"`
-	Ambiguities  []string    `json:"ambiguities"`
+	Valid       bool        `json:"valid"`
+	Files       int         `json:"files"`
+	References  int         `json:"references"`
+	Packages    int         `json:"packages"`
+	Broken      []brokenRef `json:"broken"`
+	NavIssues   []navIssue  `json:"nav_issues"`
+	ArityIssues []navIssue  `json:"arity_issues"`
+	Warnings    []string    `json:"warnings"`
+	Ambiguities []string    `json:"ambiguities"`
 }
 
 // emitJSON prints the machine-readable summary to stdout. Human logs stay on

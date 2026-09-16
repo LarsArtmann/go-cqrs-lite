@@ -14,13 +14,17 @@ func TestGithubSlug_GitHubExactVectors(t *testing.T) {
 	// slug rules: underscores kept, punctuation stripped, inline-code content
 	// kept, links contribute their text, spaces all become hyphens.
 	cases := []struct{ in, want string }{
-		{"2.30 Operator Priority Routing — global / perEngine / perQuery (system-verified v4.6.0)",
-			"230-operator-priority-routing--global--perengine--perquery-system-verified-v460"},
+		{
+			"2.30 Operator Priority Routing — global / perEngine / perQuery (system-verified v4.6.0)",
+			"230-operator-priority-routing--global--perengine--perquery-system-verified-v460",
+		},
 		{"0. Mental Model (read this first)", "0-mental-model-read-this-first"},
 		{"my_section stays", "my_section-stays"},
 		{"Call `Infer(samples...)` here", "call-infersamples-here"},
-		{"Shared Terms (defined in [Domain Language](DOMAIN_LANGUAGE.md))",
-			"shared-terms-defined-in-domain-language"},
+		{
+			"Shared Terms (defined in [Domain Language](DOMAIN_LANGUAGE.md))",
+			"shared-terms-defined-in-domain-language",
+		},
 		{"Fold DSL (Event to Projection Mapping)", "fold-dsl-event-to-projection-mapping"},
 		{"hyphens-stay_hyphens", "hyphens-stay_hyphens"},
 		{"", ""},
@@ -129,7 +133,9 @@ func TestCheckFiles_NavGrammar(t *testing.T) {
 		switch {
 		case strings.Contains(iss.Msg, "§2.1"):
 			t.Errorf("valid §2.1 (prefixed/pooled/moved forms) flagged: %+v", iss)
-		case strings.Contains(iss.Msg, "§2.2"), strings.Contains(iss.Msg, "§7"), strings.Contains(iss.Msg, "§3"):
+		case strings.Contains(iss.Msg, "§2.2"),
+			strings.Contains(iss.Msg, "§7"),
+			strings.Contains(iss.Msg, "§3"):
 			t.Errorf("valid/filtered § ref flagged: %+v", iss)
 		case strings.Contains(iss.File, "README"):
 			t.Errorf("out-of-scope § ref validated: %+v", iss)
@@ -164,7 +170,11 @@ func TestCheckFiles_CrossFileAnchorAndDedupSuffix(t *testing.T) {
 	target := filepath.Join(root, "target.md")
 	linking := filepath.Join(root, "links.md")
 
-	if err := os.WriteFile(target, []byte("# T\n\n## Only One\n\n## Only One\n"), 0o644); err != nil {
+	if err := os.WriteFile(
+		target,
+		[]byte("# T\n\n## Only One\n\n## Only One\n"),
+		0o644,
+	); err != nil {
 		t.Fatalf("write: %v", err)
 	}
 
@@ -187,7 +197,7 @@ func TestCheckFiles_InlineCodeAndFencesExcluded(t *testing.T) {
 
 	doc := filepath.Join(root, "doc.md")
 
-	body := "# D\n\nGeneric [T](x, y) stays.\n\n`§9.9` inside code is skipped.\n\n"+
+	body := "# D\n\nGeneric [T](x, y) stays.\n\n`§9.9` inside code is skipped.\n\n" +
 		"```markdown\n[broken](#nope-anchor)\n```\n"
 
 	if err := os.WriteFile(doc, []byte(body), 0o644); err != nil {

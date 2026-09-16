@@ -18,7 +18,8 @@ type navIssue struct {
 // secToken matches one § cross-reference: "§2.13", "§2.21b", "§2.27/2.28",
 // "§6.15–6.16" (slash or dash lists expand to one check per endpoint).
 var secToken = regexp.MustCompile(
-	`§[0-9][0-9a-zA-Z]*(?:\.[0-9]+)*[a-z]?(?:[ \t]*[/–—-][ \t]*§?[0-9][0-9a-zA-Z]*(?:\.[0-9]+)*[a-z]?)*`)
+	`§[0-9][0-9a-zA-Z]*(?:\.[0-9]+)*[a-z]?(?:[ \t]*[/–—-][ \t]*§?[0-9][0-9a-zA-Z]*(?:\.[0-9]+)*[a-z]?)*`,
+)
 
 var secNumber = regexp.MustCompile(`[0-9][0-9a-zA-Z]*(?:\.[0-9]+)*[a-z]?`)
 
@@ -110,7 +111,11 @@ func (nc *navChecker) load(path string) *docNav {
 		return nil
 	}
 
-	dn := &docNav{headings: parseHeadings(string(data)), slugs: map[string]int{}, numbers: map[string]bool{}}
+	dn := &docNav{
+		headings: parseHeadings(string(data)),
+		slugs:    map[string]int{},
+		numbers:  map[string]bool{},
+	}
 	dn.slugs = slugCounts(dn.headings)
 	dn.numbers = numberSet(dn.headings)
 
@@ -364,7 +369,11 @@ func (nc *navChecker) checkSecNumber(
 			return // unique across the checked docs: accept bare ref
 		case len(hits) > 1:
 			nc.issue(path, line, fmt.Sprintf(
-				"ambiguous %s: §%s exists in %d checked docs — name the doc", token, num, len(hits)))
+				"ambiguous %s: §%s exists in %d checked docs — name the doc",
+				token,
+				num,
+				len(hits),
+			))
 
 			return
 		}

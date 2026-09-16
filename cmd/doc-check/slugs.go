@@ -54,7 +54,8 @@ var sectionNumberPrefix = func(text string) string {
 			i++
 		}
 
-		if i < len(text) && text[i] == '.' && i+1 < len(text) && text[i+1] >= '0' && text[i+1] <= '9' {
+		if i < len(text) && text[i] == '.' && i+1 < len(text) && text[i+1] >= '0' &&
+			text[i+1] <= '9' {
 			i++ // consume the dot, keep scanning digits
 
 			continue
@@ -74,7 +75,8 @@ var sectionNumberPrefix = func(text string) string {
 		end++
 	}
 
-	if end < len(text) && text[end] != '.' && text[end] != ':' && text[end] != ' ' && text[end] != '\t' {
+	if end < len(text) && text[end] != '.' && text[end] != ':' && text[end] != ' ' &&
+		text[end] != '\t' {
 		return ""
 	}
 

@@ -96,7 +96,7 @@ func (r *resolver) ensureAliasDirs() {
 const docPlaceholder = "_docPlaceholder"
 
 var (
-	placeholderArg = regexp.MustCompile(`([(,{]\s*)(?:\.\.\.|…)(\s*[,)}])`)
+	placeholderArg  = regexp.MustCompile(`([(,{]\s*)(?:\.\.\.|…)(\s*[,)}])`)
 	unicodeEllipsis = regexp.MustCompile(`…`)
 )
 
@@ -219,7 +219,8 @@ func commentInside(call *ast.CallExpr, file *ast.File, fset *token.FileSet) bool
 		pos := fset.Position(group.Pos())
 		end := fset.Position(group.End())
 
-		if pos.Line >= fset.Position(call.Lparen).Line && end.Line <= fset.Position(call.Rparen).Line {
+		if pos.Line >= fset.Position(call.Lparen).Line &&
+			end.Line <= fset.Position(call.Rparen).Line {
 			return true
 		}
 	}
@@ -243,7 +244,12 @@ func parseDocSnippet(fset *token.FileSet, src string) (*ast.File, int) {
 	}
 
 	for _, s := range shapes {
-		file, err := parser.ParseFile(fset, "doc.go", s.src, parser.SkipObjectResolution|parser.ParseComments)
+		file, err := parser.ParseFile(
+			fset,
+			"doc.go",
+			s.src,
+			parser.SkipObjectResolution|parser.ParseComments,
+		)
 		if err == nil {
 			return file, s.off
 		}

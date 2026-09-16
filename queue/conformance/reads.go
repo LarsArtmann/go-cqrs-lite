@@ -163,7 +163,13 @@ func (s *suite) pinUpdatePriority(t *testing.T) {
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", Priority: 10})
 
 	// Same value: no error, no fact.
-	if err := e.store.UpdatePendingPriority(t.Context(), subject.ID, 10, "src", "same"); err != nil {
+	if err := e.store.UpdatePendingPriority(
+		t.Context(),
+		subject.ID,
+		10,
+		"src",
+		"same",
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -171,7 +177,13 @@ func (s *suite) pinUpdatePriority(t *testing.T) {
 		t.Fatalf("same-value update appended %d facts, want 0", got)
 	}
 
-	if err := e.store.UpdatePendingPriority(t.Context(), subject.ID, 70, "marker", "P1"); err != nil {
+	if err := e.store.UpdatePendingPriority(
+		t.Context(),
+		subject.ID,
+		70,
+		"marker",
+		"P1",
+	); err != nil {
 		t.Fatal(err)
 	}
 

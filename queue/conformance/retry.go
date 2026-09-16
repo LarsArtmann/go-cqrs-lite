@@ -163,7 +163,14 @@ func (s *suite) pinEvidence(t *testing.T) {
 	evidence := []byte(
 		`{"stage":"verify","exit_code":1,"tail":"` + strings.Repeat("x", 2048) + `"}`,
 	)
-	if err := e.store.Fail(t.Context(), subject.ID, "w1", "verify failed", 0, evidence); err != nil {
+	if err := e.store.Fail(
+		t.Context(),
+		subject.ID,
+		"w1",
+		"verify failed",
+		0,
+		evidence,
+	); err != nil {
 		t.Fatal(err)
 	}
 

@@ -17,7 +17,7 @@ func isFenceToggle(line string) bool {
 }
 
 // visibleLines splits markdown into visible lines: fenced blocks are skipped
-// entirely; inline code spans (`...`, ``...``) become runs of spaces so
+// entirely; inline code spans (`...`, “...“) become runs of spaces so
 // generic brackets like [T](x, y) cannot masquerade as links or § refs.
 func visibleLines(md string) []visibleLine {
 	var out []visibleLine
