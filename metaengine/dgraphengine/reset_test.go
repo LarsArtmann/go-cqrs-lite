@@ -18,10 +18,10 @@ type dgraphGraphReader interface {
 // ResetEngine must clear EVERY ADT surface: the upsert deletes all nodes
 // carrying an engine dgraph.type, so any ADT left holding data is a
 // missing-type bug, not a coverage gap. Live test — skips without a server.
+// NOT parallel: ResetEngine is a total wipe of the shared ephemeral server
+// and must never overlap any other live test (see helper_test.go).
 func TestResetEngine_ClearsEveryADT(t *testing.T) {
-	t.Parallel()
-
-	eng := mustNewDgraphEngineExclusive(t)
+	eng := mustNewDgraphEngine(t)
 	ctx := context.Background()
 
 	col := uniqueCollection(t, "reset")
@@ -115,10 +115,9 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 // sequence monotonicity holds by construction — dgraph journal seqs are
 // UnixNano timestamps, so post-reset entries always sort after pre-reset ones
 // without any counter state to preserve (see reset.go). Live test.
+// NOT parallel: see TestResetEngine_ClearsEveryADT.
 func TestResetEngine_Idempotent(t *testing.T) {
-	t.Parallel()
-
-	eng := mustNewDgraphEngineExclusive(t)
+	eng := mustNewDgraphEngine(t)
 	ctx := context.Background()
 
 	col := uniqueCollection(t, "resetidem")
