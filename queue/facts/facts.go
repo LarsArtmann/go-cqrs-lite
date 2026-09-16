@@ -73,14 +73,14 @@ type Fact struct {
 // becomes claimable again.
 type RequeueEvidence struct {
 	Reason  string `json:"reason"`
-	RetryIn int64  `json:"retry_in_ms"`
+	RetryIn int64  `json:"retry_in_ms"` //nolint:tagliatelle // donor wire format: snake_case is the persisted journal schema
 }
 
 // ReprioritizeEvidence is the structured Detail on Reprioritized facts:
 // what the priority was, what it became, which source decided, and why.
 type ReprioritizeEvidence struct {
-	OldPriority int    `json:"old_priority"`
-	NewPriority int    `json:"new_priority"`
+	OldPriority int    `json:"old_priority"` //nolint:tagliatelle // donor wire format: snake_case is the persisted journal schema
+	NewPriority int    `json:"new_priority"` //nolint:tagliatelle // donor wire format: snake_case is the persisted journal schema
 	Source      string `json:"source"`
 	Reason      string `json:"reason,omitempty"`
 }

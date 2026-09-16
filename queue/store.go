@@ -3,6 +3,7 @@ package queue
 import (
 	"context"
 	"encoding/json/v2"
+	"fmt"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
@@ -24,7 +25,7 @@ import (
 //     deadline; a second claimer can take the task only after the lease
 //     expires (crash reclaim) or the holder releases it (Complete, Fail,
 //     Requeue, CancelOwned).
-type Store[T any] interface {
+type Store[T any] interface { //nolint:interfacebloat // one persistence contract by design; splitting fractures the boundary
 	// Enqueue persists a new task (ID and defaults assigned here) and
 	// records the facts.Enqueued fact. When task.New.DedupKey is set
 	// and a task with that key already exists — in ANY status — the
@@ -241,7 +242,7 @@ func JSONCodec[T any]() Codec[T] {
 
 			var v T
 			if err := json.Unmarshal(b, &v); err != nil {
-				return zero, err
+				return zero, fmt.Errorf("queue: decode payload: %w", err)
 			}
 
 			return v, nil

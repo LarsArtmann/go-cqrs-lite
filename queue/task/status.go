@@ -29,7 +29,7 @@ func AllStatuses() []Status {
 }
 
 // transitions lists every legal from→to pair. Anything else is invalid.
-var transitions = map[Status]map[Status]bool{
+var transitions = map[Status]map[Status]bool{ //nolint:gochecknoglobals // immutable transition table, the lifecycle contract
 	Pending:   {Running: true, Cancelled: true},
 	Running:   {Pending: true, Completed: true, Dead: true, Cancelled: true},
 	Completed: {},
@@ -48,9 +48,9 @@ func Terminal(s Status) bool {
 	switch s {
 	case Completed, Dead, Cancelled:
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 // Valid reports whether s is a known status value.
