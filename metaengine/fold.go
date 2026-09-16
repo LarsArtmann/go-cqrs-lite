@@ -292,7 +292,7 @@ func Remove[V any]() removeSignal {
 //
 // Deprecated: Use OnRecord instead. OnRecord provides the same functionality
 // plus access to the full Record context (StreamID, Version, metadata).
-// On and OnTyped will be removed in the v5.0.0 release.
+// On and OnTyped will be removed in v5.
 func On[E any](sample E, handler any) Fold {
 	return onFold(EventTypeName(sample), sample, handler)
 }
