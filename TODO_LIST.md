@@ -648,10 +648,17 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [BLOCKED] **Session-log boundary decision** — memo recommends sessions stay external
   (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
   a concrete audit consumer. — source: [`T18 memo`](docs/planning/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
-- [ ] **Verify Set-membership pushdown for SQL engines** — the doc's "UNIQUE index" Set claim was
-      never source-verified (audit item 30). _(Effort: S)_
-- [ ] **Verify graph traversal depth semantics** — the doc's `FriendsOf{Depth}` vs the shipped
-      traversal implementation (audit item 31). _(Effort: S)_
+- [x] **Verify Set-membership pushdown for SQL engines** — DONE, double-verified (2026-09-15 doc
+      banner + independent re-check 2026-09-16): TRUE for SQLite, the only SQL engine with the Set
+      ADT; `metaengine/engine.go:453` SetContains = `SELECT 1 FROM meta_set WHERE collection = ?
+      AND key = ?` (sqliteengine/engine.go:130), uniqueness via the composite PRIMARY KEY
+      (sqliteengine/engine.go:92-95), not a separate UNIQUE index; pg/mysql declare ADTSet
+      degraded (no meta_set DDL). _(Effort: S)_
+- [x] **Verify graph traversal depth semantics** — DONE, double-verified (2026-09-15 doc banner +
+      independent re-check 2026-09-16): `FriendsOf{Depth}` ships as `Engine.GraphNeighbors` with
+      within-≤depth-hops semantics on all four graph engines (sqlite CTE sqliteengine/graph.go:40-47,
+      pgengine/graph.go:28-35, mysqlengine/graph.go:39-46, memory BFS memory_read.go:40-56), dedup,
+      start excluded, negative = unlimited. _(Effort: S)_
 
 ---
 
