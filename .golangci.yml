@@ -219,9 +219,9 @@ linters:
       exclude-functions:
         - (*os.File).Close
         - (io.Closer).Close
-        - (*sql.DB).Close
-        - (*sql.Rows).Close
-        - (*sql.Stmt).Close
+        - (*database/sql.DB).Close
+        - (*database/sql.Rows).Close
+        - (*database/sql.Stmt).Close
         - (net.Conn).Close
         - (*net.TCPConn).Close
         - (*net.UDPConn).Close

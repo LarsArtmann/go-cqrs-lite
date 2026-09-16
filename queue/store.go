@@ -11,7 +11,7 @@ import (
 )
 
 // Store is the persistence boundary for tasks and their facts. Engines
-// (queue/sqlite, queue/postgres, queue/mysql) implement this contract and
+// (queue/sqlite, queue/postgres) implement this contract and
 // are held to identical semantics by the shared conformance suite
 // (queue/conformance).
 //
