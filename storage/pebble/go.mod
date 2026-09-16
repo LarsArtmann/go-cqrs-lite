@@ -15,8 +15,10 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
 	github.com/larsartmann/go-error-family v0.10.1
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 )
+
+require github.com/onsi/ginkgo/v2 v2.32.2 // indirect
 
 require (
 	github.com/DataDog/zstd v1.5.7 // indirect
@@ -71,7 +73,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
-	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect

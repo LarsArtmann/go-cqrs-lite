@@ -13,7 +13,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
 	turso.tech/database/tursogo v0.7.2
@@ -21,8 +21,9 @@ require (
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/containerd/log v0.2.0 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -42,7 +43,10 @@ require (
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.52 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
+	github.com/moby/sys/userns v0.2.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
+	github.com/onsi/gomega v1.43.0 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
@@ -58,5 +62,10 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/tools v0.50.0 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 )

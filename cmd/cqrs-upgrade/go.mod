@@ -10,6 +10,8 @@ require (
 require (
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-finding v1.10.0 // indirect
+	github.com/onsi/ginkgo/v2 v2.32.2 // indirect
 	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.50.0 // indirect
 )

@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-output v0.38.0
 	github.com/larsartmann/go-output/delimited v0.38.0
 	github.com/larsartmann/go-output/markdown v0.38.0
@@ -32,6 +32,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
 )
 
 require (
@@ -69,7 +71,7 @@ require (
 	github.com/duckdb/duckdb-go/v2 v2.10505.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
 	github.com/go-faster/jx v1.2.0 // indirect
@@ -192,7 +194,7 @@ require (
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.58.0 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 	turso.tech/database/tursogo v0.7.2 // indirect
 )
 
