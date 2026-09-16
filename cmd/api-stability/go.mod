@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/cmd/api-stability/v4
 go 1.26.7
 
 require (
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/spf13/cobra v1.10.2
 )
 

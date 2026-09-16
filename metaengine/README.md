@@ -560,19 +560,19 @@ Engines implement whichever ADT backends they support (`MapBackend`,
 `LogBackend`). Additionally, engines can implement these optional capability
 interfaces for optimized read paths:
 
-| Interface             | Method                           | Benefit                                            |
-| --------------------- | -------------------------------- | -------------------------------------------------- |
-| `PushdownScan`        | `PushdownMapScan`                | SQL WHERE/ORDER BY/LIMIT pushdown                  |
-| `RawValueReader`      | `GetRawValue`                    | Single-pass JSON decode on Get                     |
-| `RawScanReader`       | `ScanRawValues`                  | Single-pass JSON decode per scan row               |
-| `MapUpdater`          | `MapUpdate`                      | Atomic read-modify-write                           |
-| `Transactional`       | `RunInTx`                        | Cross-collection transactional writes              |
-| `HealthChecker`       | `HealthCheck`                    | Liveness/readiness probe (K8s-style)               |
-| `VectorBackend`       | `VectorInsert`/`VectorSearch`    | k-NN similarity search (every engine; SQL pushdown or Go brute-force) |
-| `VectorFilterBackend` | `VectorSearchFiltered`           | Metadata-filtered vector search (AND semantics)    |
+| Interface             | Method                            | Benefit                                                                |
+| --------------------- | --------------------------------- | ---------------------------------------------------------------------- |
+| `PushdownScan`        | `PushdownMapScan`                 | SQL WHERE/ORDER BY/LIMIT pushdown                                      |
+| `RawValueReader`      | `GetRawValue`                     | Single-pass JSON decode on Get                                         |
+| `RawScanReader`       | `ScanRawValues`                   | Single-pass JSON decode per scan row                                   |
+| `MapUpdater`          | `MapUpdate`                       | Atomic read-modify-write                                               |
+| `Transactional`       | `RunInTx`                         | Cross-collection transactional writes                                  |
+| `HealthChecker`       | `HealthCheck`                     | Liveness/readiness probe (K8s-style)                                   |
+| `VectorBackend`       | `VectorInsert`/`VectorSearch`     | k-NN similarity search (every engine; SQL pushdown or Go brute-force)  |
+| `VectorFilterBackend` | `VectorSearchFiltered`            | Metadata-filtered vector search (AND semantics)                        |
 | `VectorCounter`       | `VectorCount`/`VectorCollections` | Size introspection without payload transfer (Doctor `--- Vectors ---`) |
-| Graph edge removal    | `HasGraphEdgeRemoval(eng)`       | `GraphRemoveEdge` — required for EdgeRemoval folds |
-| Undirected graph      | `HasUndirectedGraphSupport(eng)` | Traversal follows edges in BOTH directions         |
+| Graph edge removal    | `HasGraphEdgeRemoval(eng)`        | `GraphRemoveEdge` — required for EdgeRemoval folds                     |
+| Undirected graph      | `HasUndirectedGraphSupport(eng)`  | Traversal follows edges in BOTH directions                             |
 
 The SQLite engine implements all of these. The Memory engine implements
 `MapUpdater` but not the pushdown/raw interfaces (it returns decoded Go

@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.1020
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-faster/yaml v0.4.6
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/templ-components v1.17.0
 	github.com/larsartmann/templ-components/utils v1.17.0
 	github.com/onsi/ginkgo/v2 v2.32.0

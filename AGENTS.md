@@ -30,7 +30,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 | Advanced patterns (tombstone, watermill, gRPC, projection host, scheduling, graph, SSE, flight recorder, scenario DSL)        | [`references/advanced.md`](.agents/skills/go-cqrs-lite/references/advanced.md)     |
 | Per-module quick lookup                                                                                                       | [`references/modules.md`](.agents/skills/go-cqrs-lite/references/modules.md)       |
 | Common pitfalls, error messages, debugging                                                                                    | [`references/faq.md`](.agents/skills/go-cqrs-lite/references/faq.md)               |
-| Watermill powers/tradeoffs/limits, backend matrix, repo bridge internals                                                      | [`.agents/skills/watermill/SKILL.md`](.agents/skills/watermill/SKILL.md)          |
+| Watermill powers/tradeoffs/limits, backend matrix, repo bridge internals                                                      | [`.agents/skills/watermill/SKILL.md`](.agents/skills/watermill/SKILL.md)           |
 
 **Contributing to the skill:** edit the `.md` files under `.agents/skills/go-cqrs-lite/`, then verify:
 

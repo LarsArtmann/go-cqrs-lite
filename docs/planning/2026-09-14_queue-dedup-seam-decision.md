@@ -8,13 +8,13 @@ record the plan's T10.1 asked for, and the rejection rationale for T10.2/T10.3.
 
 ## The two dedup semantics are different animals
 
-| Property            | queue dedup (DedupKey)                        | go-idempotency keys                          |
-| ------------------- | --------------------------------------------- | -------------------------------------------- |
-| Question answered   | "does this WORK ITEM exist yet?"              | "was this COMMAND already executed?"         |
-| Lifetime            | FOREVER — terminal tasks still suppress       | TTL-bounded (sweep expires old keys)         |
-| Suppression shape   | returns the STORED task unchanged             | returns the stored RESULT of the command     |
-| Consistency domain  | the same tx as the task INSERT (one index)    | a separate store/table, separate round trip  |
-| Conformance pin     | T4.1–T4.3 (cancelled/dead keys suppress)      | expiry by design                             |
+| Property           | queue dedup (DedupKey)                     | go-idempotency keys                         |
+| ------------------ | ------------------------------------------ | ------------------------------------------- |
+| Question answered  | "does this WORK ITEM exist yet?"           | "was this COMMAND already executed?"        |
+| Lifetime           | FOREVER — terminal tasks still suppress    | TTL-bounded (sweep expires old keys)        |
+| Suppression shape  | returns the STORED task unchanged          | returns the stored RESULT of the command    |
+| Consistency domain | the same tx as the task INSERT (one index) | a separate store/table, separate round trip |
+| Conformance pin    | T4.1–T4.3 (cancelled/dead keys suppress)   | expiry by design                            |
 
 The forever-suppression pin is the load-bearing difference: a TTL-expired
 dedup key re-enqueues completed work — the exact convergence failure the

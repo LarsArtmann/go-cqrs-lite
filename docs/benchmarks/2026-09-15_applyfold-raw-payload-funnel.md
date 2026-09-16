@@ -11,11 +11,11 @@ shares. What does the struct hot path pay for it?
 
 ## Numbers (`metaengine/encoded_bench_test.go`)
 
-| Benchmark                        | ns/op   | B/op | allocs/op |
-| -------------------------------- | ------- | ---- | --------- |
-| `DecodeRawFoldPayloadStruct`     | 1.9     | 0    | 0         |
-| `ApplyFoldStructPayload` (total) | 377.5   | 80   | 3         |
-| `ApplyFoldEncodedPayload` (total)| 809.5   | 168  | 6         |
+| Benchmark                         | ns/op | B/op | allocs/op |
+| --------------------------------- | ----- | ---- | --------- |
+| `DecodeRawFoldPayloadStruct`      | 1.9   | 0    | 0         |
+| `ApplyFoldStructPayload` (total)  | 377.5 | 80   | 3         |
+| `ApplyFoldEncodedPayload` (total) | 809.5 | 168  | 6         |
 
 **Reading:** the struct hot path pays **~1.9 ns and zero allocations** — one
 failed `jsontext.Value` type assertion, then pass-through. The ~432 ns delta

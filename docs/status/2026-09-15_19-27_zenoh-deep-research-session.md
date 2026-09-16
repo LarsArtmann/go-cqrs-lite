@@ -9,24 +9,24 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-| --- | --- | --- |
-| 1 | Skill gate: `go-cqrs-lite` SKILL.md loaded before any task action | Loaded first tool call of session |
-| 2 | Zenoh current-state research pinned: v1.10.1 "Mucalinda" (2026-09-07), v1.5→v1.10 in ~14 months, EPL-2.0/Apache-2.0, Eclipse incubating | zenoh.io + `gh release list` (2026-09-15) |
-| 3 | Zenoh core-abstractions research: key expressions, selectors, queryables, consolidation modes (Auto/None/Monotonic/Latest), HLC timestamps, liveliness, storages/volumes, admin key space, regions (1.9), io_uring + timestamp instrumentation (1.10) | zenoh.io manual pages fetched & summarized in report §1 |
-| 4 | zenoh-go binding due diligence: official, CGo over zenoh-c (unstable-API build required), first release v1.9.0 2026-04-13, zero runtime Go deps, API surface enumerated (session/keyexpr/pub/sub/query/liveliness/matching/zenohext) | repo tree + go.mod + releases via `gh api` |
-| 5 | No existing watermill-zenoh plugin (integration gap confirmed) | GitHub repo search "zenoh watermill" → empty |
-| 6 | Repo grounding for the mapping: watermill `WithBackend` seam, ADR-0127 no-in-repo-transport doctrine, `event.Bus` exact-type-only subscription (`event/bus.go:27`, `watermill/event_bus.go:120`), `system.DeploymentConfig` (`config_types.go:127`), irohengine CGo-isolation precedent, Cordis paradigm doc | All read/grepped this session |
-| 7 | Research report written & delivered: concept mapping (§3), Pareto-ranked integration surfaces W1–W3 (§4), risks & non-goals (§4–5) | File at path above; chat summary delivered |
-| 8 | Post-hoc citation audit: every `file:line` / path cite in the report now verified against the tree (`metaengine/planner.go`, `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md`, `record/record.go:209` Split, all others grepped during writing) | Verified this pass — banner claim fully true |
+| # | Item                                                                                                                                                                                                                                                                                                         | Evidence                                                |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| 1 | Skill gate: `go-cqrs-lite` SKILL.md loaded before any task action                                                                                                                                                                                                                                            | Loaded first tool call of session                       |
+| 2 | Zenoh current-state research pinned: v1.10.1 "Mucalinda" (2026-09-07), v1.5→v1.10 in ~14 months, EPL-2.0/Apache-2.0, Eclipse incubating                                                                                                                                                                      | zenoh.io + `gh release list` (2026-09-15)               |
+| 3 | Zenoh core-abstractions research: key expressions, selectors, queryables, consolidation modes (Auto/None/Monotonic/Latest), HLC timestamps, liveliness, storages/volumes, admin key space, regions (1.9), io_uring + timestamp instrumentation (1.10)                                                        | zenoh.io manual pages fetched & summarized in report §1 |
+| 4 | zenoh-go binding due diligence: official, CGo over zenoh-c (unstable-API build required), first release v1.9.0 2026-04-13, zero runtime Go deps, API surface enumerated (session/keyexpr/pub/sub/query/liveliness/matching/zenohext)                                                                         | repo tree + go.mod + releases via `gh api`              |
+| 5 | No existing watermill-zenoh plugin (integration gap confirmed)                                                                                                                                                                                                                                               | GitHub repo search "zenoh watermill" → empty            |
+| 6 | Repo grounding for the mapping: watermill `WithBackend` seam, ADR-0127 no-in-repo-transport doctrine, `event.Bus` exact-type-only subscription (`event/bus.go:27`, `watermill/event_bus.go:120`), `system.DeploymentConfig` (`config_types.go:127`), irohengine CGo-isolation precedent, Cordis paradigm doc | All read/grepped this session                           |
+| 7 | Research report written & delivered: concept mapping (§3), Pareto-ranked integration surfaces W1–W3 (§4), risks & non-goals (§4–5)                                                                                                                                                                           | File at path above; chat summary delivered              |
+| 8 | Post-hoc citation audit: every `file:line` / path cite in the report now verified against the tree (`metaengine/planner.go`, `docs/planning/METAENGINE-LIVE-LATENCY-MODEL.md`, `record/record.go:209` Split, all others grepped during writing)                                                              | Verified this pass — banner claim fully true            |
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's missing | Effort |
-| --- | --- | --- | --- |
-| 1 | Zenoh research breadth | Not read: spec.zenoh.io (wire format), 1.9 Longwang blog full text (used migration guide only), Zenoh Report Feb 2026, security pages (TLS / user-password / access-control — report has NO security section), zenoh-pico assessment, fresh independent benchmarks (only 2023 NTU vendor-published numbers, correctly caveated) | M |
-| 2 | Report integration (anti-ghost hygiene) | File is a floating artifact: no TODO_LIST/ROADMAP harvest (blocked — user said WAIT), no back-link from Cordis doc §9 (link is one-way), zenoh-go packaging story (prebuilt binaries vs manual cmake) unverified | S |
-| 3 | `agentic_fetch` failure diagnosis | Failed twice (API error `json: cannot unmarshal string ...`); worked around with `fetch`; root cause never diagnosed or reported | S |
+| # | Item                                    | What's missing                                                                                                                                                                                                                                                                                                                  | Effort |
+| - | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1 | Zenoh research breadth                  | Not read: spec.zenoh.io (wire format), 1.9 Longwang blog full text (used migration guide only), Zenoh Report Feb 2026, security pages (TLS / user-password / access-control — report has NO security section), zenoh-pico assessment, fresh independent benchmarks (only 2023 NTU vendor-published numbers, correctly caveated) | M      |
+| 2 | Report integration (anti-ghost hygiene) | File is a floating artifact: no TODO_LIST/ROADMAP harvest (blocked — user said WAIT), no back-link from Cordis doc §9 (link is one-way), zenoh-go packaging story (prebuilt binaries vs manual cmake) unverified                                                                                                                | S      |
+| 3 | `agentic_fetch` failure diagnosis       | Failed twice (API error `json: cannot unmarshal string ...`); worked around with `fetch`; root cause never diagnosed or reported                                                                                                                                                                                                | S      |
 
 ## c) NOT STARTED
 
@@ -58,36 +58,36 @@ Nothing data- or code-level broke (zero code changed). Two honesty-level failure
 
 ## f) Next tasks (ranked, brainstorm-graded — feeds HARVEST only on user go-ahead)
 
-| # | Task | Impact | Effort | Cat |
-| --- | --- | --- | --- | --- |
-| 1 | Decide zenoh go/no-go (question g1) — gates everything below | Critical | S | Decision |
-| 2 | HARVEST report §4 W1–W3 into TODO_LIST/ROADMAP (or explicitly decline) | High | S | Docs |
-| 3 | Append back-link to Cordis doc §9-style section → zenoh report | Medium | S | Docs |
-| 4 | W1 spike: init `watermill-zenoh` external repo skeleton (publisher/subscriber adapters) | High | M | Feature |
-| 5 | W1: zenoh key-expression ↔ event.Type mapping spec + doc | High | S | Design |
-| 6 | W1: roundtrip test mirroring `TestRedisStreamRoundtrip` (events + commands) | High | M | Feature |
-| 7 | W1: ephemeral zenohd script (nixpkgs zenoh) for CI-style local broker | Medium | S | Infra |
-| 8 | W1: CGo/zenoh-c build + Nix packaging feasibility spike | High | M | Infra |
-| 9 | Research gap: read spec.zenoh.io consolidation + selector RFCs (semantics we'd depend on) | Medium | M | Research |
-| 10 | Research gap: zenoh security model (TLS, user-password, ACL pages) → report §5 addendum | Medium | S | Research |
-| 11 | Research gap: 1.9 Longwang release blog (regions rationale) | Low | S | Research |
-| 12 | Research gap: zenoh-go packaging (prebuilt libzenohc? releases artifacts?) | Medium | S | Research |
-| 13 | Research gap: independent/fresh zenoh benchmarks (post-1.0) | Low | M | Research |
-| 14 | W2: liveliness-token → ProbeEngine/health-hook spike | Medium | M | Feature |
-| 15 | W2: CommandBus-over-zenoh spike (edge dispatch) | Medium | M | Feature |
-| 16 | W2: otelobserver counters for liveliness transitions | Low | S | Feature |
-| 17 | W3.1: queryable-served read-model prototype w/ LATEST consolidation | Medium | L | Research |
-| 18 | W3.2: zenohengine CRDT wrapper design doc (vs irohengine: when each) | Medium | L | Research |
-| 19 | W3.3: timestamp-instrumentation → LatencyTracker feed design | Low | M | Research |
-| 20 | Verify zenoh regions ↔ EngineProfile.NetworkRTT story holds under multi-region test | Low | M | Research |
-| 21 | Diagnose/escalate `agentic_fetch` API failure (crush tool) | Low | S | Tooling |
-| 22 | Adopt "cite checklist" rule for research docs (banner honesty) | Medium | S | Process |
-| 23 | Template: verification-ladder section for external-tech research docs | Low | S | Process |
-| 24 | benchkit/env_*.go: inspect the unauthored working-tree diff, judge on merits | Medium | S | Hygiene |
-| 25 | Consider `cqrs-bench` backend hook for zenoh (only if W1 lands) | Low | L | Feature |
-| 26 | ROS2/MQTT-bridge plugin writeup: legacy-field-system bridge story for consumers | Low | S | Docs |
-| 27 | Zenoh-pico note: MCU reach claims for the report's scope table | Low | S | Research |
-| 28 | If W1 ships: skill/reference mention (advanced.md broker table) — external plugin, doctrine-safe | Medium | S | Docs |
+| #  | Task                                                                                             | Impact   | Effort | Cat      |
+| -- | ------------------------------------------------------------------------------------------------ | -------- | ------ | -------- |
+| 1  | Decide zenoh go/no-go (question g1) — gates everything below                                     | Critical | S      | Decision |
+| 2  | HARVEST report §4 W1–W3 into TODO_LIST/ROADMAP (or explicitly decline)                           | High     | S      | Docs     |
+| 3  | Append back-link to Cordis doc §9-style section → zenoh report                                   | Medium   | S      | Docs     |
+| 4  | W1 spike: init `watermill-zenoh` external repo skeleton (publisher/subscriber adapters)          | High     | M      | Feature  |
+| 5  | W1: zenoh key-expression ↔ event.Type mapping spec + doc                                         | High     | S      | Design   |
+| 6  | W1: roundtrip test mirroring `TestRedisStreamRoundtrip` (events + commands)                      | High     | M      | Feature  |
+| 7  | W1: ephemeral zenohd script (nixpkgs zenoh) for CI-style local broker                            | Medium   | S      | Infra    |
+| 8  | W1: CGo/zenoh-c build + Nix packaging feasibility spike                                          | High     | M      | Infra    |
+| 9  | Research gap: read spec.zenoh.io consolidation + selector RFCs (semantics we'd depend on)        | Medium   | M      | Research |
+| 10 | Research gap: zenoh security model (TLS, user-password, ACL pages) → report §5 addendum          | Medium   | S      | Research |
+| 11 | Research gap: 1.9 Longwang release blog (regions rationale)                                      | Low      | S      | Research |
+| 12 | Research gap: zenoh-go packaging (prebuilt libzenohc? releases artifacts?)                       | Medium   | S      | Research |
+| 13 | Research gap: independent/fresh zenoh benchmarks (post-1.0)                                      | Low      | M      | Research |
+| 14 | W2: liveliness-token → ProbeEngine/health-hook spike                                             | Medium   | M      | Feature  |
+| 15 | W2: CommandBus-over-zenoh spike (edge dispatch)                                                  | Medium   | M      | Feature  |
+| 16 | W2: otelobserver counters for liveliness transitions                                             | Low      | S      | Feature  |
+| 17 | W3.1: queryable-served read-model prototype w/ LATEST consolidation                              | Medium   | L      | Research |
+| 18 | W3.2: zenohengine CRDT wrapper design doc (vs irohengine: when each)                             | Medium   | L      | Research |
+| 19 | W3.3: timestamp-instrumentation → LatencyTracker feed design                                     | Low      | M      | Research |
+| 20 | Verify zenoh regions ↔ EngineProfile.NetworkRTT story holds under multi-region test              | Low      | M      | Research |
+| 21 | Diagnose/escalate `agentic_fetch` API failure (crush tool)                                       | Low      | S      | Tooling  |
+| 22 | Adopt "cite checklist" rule for research docs (banner honesty)                                   | Medium   | S      | Process  |
+| 23 | Template: verification-ladder section for external-tech research docs                            | Low      | S      | Process  |
+| 24 | benchkit/env_*.go: inspect the unauthored working-tree diff, judge on merits                     | Medium   | S      | Hygiene  |
+| 25 | Consider `cqrs-bench` backend hook for zenoh (only if W1 lands)                                  | Low      | L      | Feature  |
+| 26 | ROS2/MQTT-bridge plugin writeup: legacy-field-system bridge story for consumers                  | Low      | S      | Docs     |
+| 27 | Zenoh-pico note: MCU reach claims for the report's scope table                                   | Low      | S      | Research |
+| 28 | If W1 ships: skill/reference mention (advanced.md broker table) — external plugin, doctrine-safe | Medium   | S      | Docs     |
 
 ## g) Questions I cannot answer myself
 

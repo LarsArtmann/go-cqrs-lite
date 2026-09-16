@@ -1,22 +1,22 @@
 # Status Report — Zenoh-vs-Watermill Clarification Turn
 
 > **Date:** 2026-09-15 19:57 CEST
-> **Scope:** This turn only — the conceptual question *"is Zenoh a watermill adaptor, a storage, or something totally different?"* — answered from already-verified research; plus this review pass. No new research, no artifacts, no code.
+> **Scope:** This turn only — the conceptual question _"is Zenoh a watermill adaptor, a storage, or something totally different?"_ — answered from already-verified research; plus this review pass. No new research, no artifacts, no code.
 > **Format note:** `.md` per explicit user instruction (status-report skill HTML default overridden — third time; consistently flagged, never propagated).
 
 ---
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-| --- | --- | --- |
-| 1 | Answer delivered: **Zenoh is neither — it's a network fabric one layer below watermill's plugin ecosystem** (a broker-replacement like Redis/Kafka/NATS, but brokerless-capable), with a 4-layer placement table (bridge code / broker-fabric / event store / KV cache) | Chat answer, this turn |
+| # | Item                                                                                                                                                                                                                                                                                                                                                     | Evidence                                                                                 |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 1 | Answer delivered: **Zenoh is neither — it's a network fabric one layer below watermill's plugin ecosystem** (a broker-replacement like Redis/Kafka/NATS, but brokerless-capable), with a 4-layer placement table (bridge code / broker-fabric / event store / KV cache)                                                                                  | Chat answer, this turn                                                                   |
 | 2 | Every factual claim in the answer traced to prior in-chain verification: no zenoh↔watermill plugin exists (gh search, zenoh session), zenoh storages = latest-value KV without versioning/OCC/replay (storage-manager docs), adapter-would-slot-into-`WithBackend` (watermill README + `event_bus_options.go:26`), geo-query/liveliness/HLC (zenoh docs) | All verified earlier in this conversation chain — **zero new unverified claims shipped** |
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's missing |
-| --- | --- | --- |
+| # | Item                                                     | What's missing                                                                                                                                                |
+| - | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 | The crisp 4-layer mental-model table exists only in chat | Not persisted anywhere (candidate: small addendum to the zenoh report §4 or the watermill skill's backends.md "not verified here" section) — not done unasked |
 
 ## c) NOT STARTED
@@ -38,18 +38,18 @@ Nothing this turn — smallest possible slice, and the claims discipline finally
 
 ## f) Next tasks (ranked; only turn-specific + still-standing top items)
 
-| # | Task | Impact | Effort | Cat |
-| --- | --- | --- | --- | --- |
-| 1 | Persist the 4-layer zenoh/watermill placement table as a dated addendum in the zenoh report (or watermill backends.md) | Low | S | Docs |
-| 2 | Merge + harvest the three reports' (f) lists into TODO_LIST/ROADMAP (docs-health HARVEST) — dedupe NATS leg / evals / go-no-go | High | S | Docs |
-| 3 | Run the watermill skill trigger evals (3 prompts drafted) | High | M | Quality |
-| 4 | NATS JetStream roundtrip test leg (`watermill-nats/v2` + `ephemeral-nats.sh`) | High | M | Feature |
-| 5 | Zenoh go/no-go decision (gates the zenoh W1 plugin spike) | Critical | S | Decision |
-| 6 | Watermill-skill `references/advanced.md` (Delayed Messages, Requeuing, FanIn/FanOut, Metrics, Troubleshooting) | Medium | M | Docs |
-| 7 | Cross-link go-cqrs-lite skill ↔ watermill skill | Medium | S | Docs |
-| 8 | Codify claims-checklist rule (AGENTS.md/docs-agents line) | Medium | S | Process |
-| 9 | CHANGELOG decision for README NATS correction | Low | S | Docs |
-| 10 | Coordinate on the concurrent benchkit/cqrs-bench wave before touching anything adjacent (api_surface.txt, FEATURES.md are dirty with foreign edits) | Medium | S | Hygiene |
+| #  | Task                                                                                                                                                | Impact   | Effort | Cat      |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1  | Persist the 4-layer zenoh/watermill placement table as a dated addendum in the zenoh report (or watermill backends.md)                              | Low      | S      | Docs     |
+| 2  | Merge + harvest the three reports' (f) lists into TODO_LIST/ROADMAP (docs-health HARVEST) — dedupe NATS leg / evals / go-no-go                      | High     | S      | Docs     |
+| 3  | Run the watermill skill trigger evals (3 prompts drafted)                                                                                           | High     | M      | Quality  |
+| 4  | NATS JetStream roundtrip test leg (`watermill-nats/v2` + `ephemeral-nats.sh`)                                                                       | High     | M      | Feature  |
+| 5  | Zenoh go/no-go decision (gates the zenoh W1 plugin spike)                                                                                           | Critical | S      | Decision |
+| 6  | Watermill-skill `references/advanced.md` (Delayed Messages, Requeuing, FanIn/FanOut, Metrics, Troubleshooting)                                      | Medium   | M      | Docs     |
+| 7  | Cross-link go-cqrs-lite skill ↔ watermill skill                                                                                                     | Medium   | S      | Docs     |
+| 8  | Codify claims-checklist rule (AGENTS.md/docs-agents line)                                                                                           | Medium   | S      | Process  |
+| 9  | CHANGELOG decision for README NATS correction                                                                                                       | Low      | S      | Docs     |
+| 10 | Coordinate on the concurrent benchkit/cqrs-bench wave before touching anything adjacent (api_surface.txt, FEATURES.md are dirty with foreign edits) | Medium   | S      | Hygiene  |
 
 ## g) Questions I cannot answer myself
 

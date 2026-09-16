@@ -18,9 +18,9 @@ gates (not caused by this session) remain open and are the top CI blockers.
 1. **P100 exactness** — `LatencyCollector` tracks the true max on every
    `Record`; `LatencyStats.P100` is the exact worst observed latency instead
    of the largest value that survived reservoir sampling (a stall in a
-   >10K-sample run was previously evicted and invisible).
-   Regression test `TestLatencyCollector_TailSpikeSurvivesReservoir` proves
-   the old implementation fails. (benchkit/metrics.go, metrics_test.go)
+   > 10K-sample run was previously evicted and invisible).
+   > Regression test `TestLatencyCollector_TailSpikeSurvivesReservoir` proves
+   > the old implementation fails. (benchkit/metrics.go, metrics_test.go)
 2. **`RunRepeated` + `RepeatedResult`** — multi-run benchmarks now return
    EVERY run plus the median (annotated). `Reliable()` / `NoisyMetrics()`
    verdicts. `Run` keeps its signature (back-compat). (benchkit/repeat.go)
@@ -60,21 +60,21 @@ gates (not caused by this session) remain open and are the top CI blockers.
 
 ### Verification matrix (all green)
 
-| Gate | Result |
-| --- | --- |
-| benchkit full suite (workspace mode) | ok (53.5s) |
-| benchkit suite GOWORK=off (published pins) | ok (38.8s) — closed during this review |
-| benchkit race subset (new tests) | ok (51.7s) |
-| cmd/cqrs-bench suite GOWORK=off (with replace) | ok (33.2s) |
-| golangci-lint benchkit + cqrs-bench | 0 new issues |
-| file-size ratchet (`#check-file-size`) | PASS (render.go shrank 580→461) |
-| replace-directives gate | PASS |
-| changelog-symbols gate (86 citations) | PASS |
-| api-stability golden regen + `TestEvery` | PASS |
-| doc-check (SKILL + references + AGENTS) | exit 0, 1142 refs valid |
-| `nix fmt` idempotent | PASS |
-| benchmark regression gate (local baseline, median, 25%) | PASS — 0 regressions, 3 improvements, 13 stable |
-| duplication gate | my clone eliminated; gate still RED from pre-existing queue/* work (see d) |
+| Gate                                                    | Result                                                                     |
+| ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| benchkit full suite (workspace mode)                    | ok (53.5s)                                                                 |
+| benchkit suite GOWORK=off (published pins)              | ok (38.8s) — closed during this review                                     |
+| benchkit race subset (new tests)                        | ok (51.7s)                                                                 |
+| cmd/cqrs-bench suite GOWORK=off (with replace)          | ok (33.2s)                                                                 |
+| golangci-lint benchkit + cqrs-bench                     | 0 new issues                                                               |
+| file-size ratchet (`#check-file-size`)                  | PASS (render.go shrank 580→461)                                            |
+| replace-directives gate                                 | PASS                                                                       |
+| changelog-symbols gate (86 citations)                   | PASS                                                                       |
+| api-stability golden regen + `TestEvery`                | PASS                                                                       |
+| doc-check (SKILL + references + AGENTS)                 | exit 0, 1142 refs valid                                                    |
+| `nix fmt` idempotent                                    | PASS                                                                       |
+| benchmark regression gate (local baseline, median, 25%) | PASS — 0 regressions, 3 improvements, 13 stable                            |
+| duplication gate                                        | my clone eliminated; gate still RED from pre-existing queue/* work (see d) |
 
 ---
 
@@ -158,6 +158,7 @@ gates (not caused by this session) remain open and are the top CI blockers.
 ## f) NEXT — up to 50 tasks, priority order
 
 **Blockers / debt (do first)**
+
 1. Resolve the 19 `queue/*` clone groups (annotate intentional dialect twins
    with `//art-dupl:accept` or consolidate) and re-pin
    `.art-dupl-baseline.json` — `#check-duplication` green again.
@@ -173,7 +174,7 @@ gates (not caused by this session) remain open and are the top CI blockers.
 6. `compare` table: per-backend noisy-metric count column + Variation footer.
 7. Markdown compare output: variation summary section.
 8. Serialize per-run data: `--format manifest` gains `runs[]` (opt-in flag to
-   avoid size blowup).
+avoid size blowup).
 9. `RepeatedResult` JSON writer (mirror of WriteBenchstatRepeated).
 10. Track per-metric MIN (fast path) in LatencyCollector.
 11. Record `LoadAvg1` at run end too; report load drift.
@@ -181,20 +182,20 @@ gates (not caused by this session) remain open and are the top CI blockers.
 13. Soak × variation: cross-iteration CoV next to drift metrics.
 14. Reservoir size configurability per-phase (P99 fidelity at 10M+ events).
 15. Percentile interpolation option for small-n runs (nearest-rank P50 is
-   coarse below ~20 samples).
+coarse below ~20 samples).
 16. `tail_ratio` semantics for write_max_ns (true-max/P50 ratio).
 17. Export `resultMetrics()` names as a public constant list (stable benchstat
-    metric names for downstream tooling).
+metric names for downstream tooling).
 18. `RunSuite` (testing.B) variant that uses RunRepeated + b.ReportMetric per
-    metric CoV.
+metric CoV.
 19. Zero-value audit: a phase that records Count=0 but non-zero throughput
-    (or inverse) should warn.
+(or inverse) should warn.
 
 **CLI (cqrs-bench)**
 20. `benchstat-diff` subcommand: run two revisions (worktrees), emit benchstat
-    comparison table.
+comparison table.
 21. `--repeat` default guidance: warn when benchstat format used with repeat
-    < 6 (benchstat wants ≥6 samples for CIs).
+< 6 (benchstat wants ≥6 samples for CIs).
 22. `--format csv`: add variation columns (CoV per key metric).
 23. Sweep output: CoV column across the sweep's internal repeats.
 24. `--strict` should also fail on NOISY headline metrics (opt-in flag).
@@ -205,38 +206,38 @@ gates (not caused by this session) remain open and are the top CI blockers.
 
 **CI / gates**
 29. Nightly job: capture `--repeat 10 --format benchstat` artifacts and run
-    benchstat against previous nightly; post delta summary.
+benchstat against previous nightly; post delta summary.
 30. Regression gate: add a second gate set entry for a sqlite backend path
-    (currently memory + turso matview only).
+(currently memory + turso matview only).
 31. Add `LoadAvg1 > threshold` abort to benchmark-regression.sh (reuse
-    calibration-gate semantics) so local runs refuse to compare on loud
-    machines.
+calibration-gate semantics) so local runs refuse to compare on loud
+machines.
 32. `check-bench-gate`: assert gate set entries still exist as benchmarks
-    (guard against silent benchmark renames breaking the allowlist regex).
+(guard against silent benchmark renames breaking the allowlist regex).
 33. CI lint leg currently misses gocyclo in tests? (soak_test shipped red) —
-    investigate version skew between local and CI golangci-lint.
+investigate version skew between local and CI golangci-lint.
 
 **Docs / skill**
 34. recipes.md: add a "statistical rigor" recipe block (RunRepeated +
-    benchstat) — then classify it in recipes_catalog (compile harness).
+benchstat) — then classify it in recipes_catalog (compile harness).
 35. faq.md: "why is my P100 1000x P99" entry (exact-max semantics).
 36. readmodels.md/core.md: cross-link variation section where CoV mentioned.
 37. AGENTS.md benchkit one-liner: mention RunRepeated/MetricVariation.
 38. docs/benchmarks/: capture a fresh backend-comparison with repeats
-    (current one is 2026-07-31, pre-variation).
+(current one is 2026-07-31, pre-variation).
 
 **Queue module (from pre-existing red gate, not this session)**
 39. Audit queue/postgres vs queue/sqlite 19 clones: shared core extraction or
-   accept-annotations.
+accept-annotations.
 40. queue/conformance: consolidate the 4 `openEnv(t)` clone groups into a
-   helper.
+helper.
 
 **Hygiene**
 41. Baseline `benchmarks/benchmark-baseline.txt` is stale relative to today's
-    improvements (3 improvements >5%) — re-pin on a quiet window after
-    calibration-gate PASS (protocol: titled header).
+improvements (3 improvements >5%) — re-pin on a quiet window after
+calibration-gate PASS (protocol: titled header).
 42. Consider adding `P100` to benchstat gate metrics (tail regression
-    detection) once enough samples exist.
+detection) once enough samples exist.
 43. `docs/status/README.md`: index this report.
 44. Sweep: benchkit has `infertypeargs` hints (pre-existing) — one-line fixes.
 
@@ -244,8 +245,8 @@ gates (not caused by this session) remain open and are the top CI blockers.
 
 1. **Queue-module clones (task 1/39-40):** that module's 19 clone groups are
    from another session's auto-committed work. Do you want me to fix/annotate
-   + re-pin the baseline now (touching code I didn't write), or should the
-   owning session/backlog item handle it?
+   - re-pin the baseline now (touching code I didn't write), or should the
+     owning session/backlog item handle it?
 2. **Tag wave timing (task 3):** the cqrs-bench sibling replace and the
    untagged benchkit API are deliberate pre-release state. When do you want
    the next tag wave (I will not push tags without your go-ahead)?
@@ -255,9 +256,9 @@ gates (not caused by this session) remain open and are the top CI blockers.
 
 ---
 
-*Session artifacts: benchkit/{repeat,repeat_test,environment,report_variation}.go
+_Session artifacts: benchkit/{repeat,repeat_test,environment,report_variation}.go
 (new), metrics/artifacts/result/run/benchkit/runner/report/doc/env_linux/
 env_other/load_aware_test.go, cmd/cqrs-bench/{main,output,render,run_render,
 render_variation,main_test}.go + README + go.mod (replace), docs/api_surface.txt,
 docs/benchmarks/README.md, docs/agents/gotchas-module-management.md, SKILL.md,
-FEATURES.md, CHANGELOG.md, benchkit/README.md.*
+FEATURES.md, CHANGELOG.md, benchkit/README.md._

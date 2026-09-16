@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0
-	modernc.org/sqlite v1.58.0
+	modernc.org/sqlite v1.59.0
 )
 
 require (
@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect

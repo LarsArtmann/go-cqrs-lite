@@ -4,12 +4,12 @@ go 1.26.7
 
 require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-idempotency v0.3.0
 )
 
 require (
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/larsartmann/go-codec v0.2.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect

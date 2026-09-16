@@ -56,11 +56,11 @@ use (
 	./otel/otlp
 	./projection
 	./projectionhost
-	./queue
-	./queue/sqlite
-	./queue/postgres
 	./prometheus
 	./query
+	./queue
+	./queue/postgres
+	./queue/sqlite
 	./record
 	./scenario
 	./scheduling

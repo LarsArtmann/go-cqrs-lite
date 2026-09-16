@@ -9,25 +9,25 @@
 
 ## a) FULLY DONE
 
-| # | Item | Evidence |
-| --- | --- | --- |
-| 1 | Skill gates: `go-cqrs-lite` (prior turn) + `skill-creator` loaded before task actions | First tool calls of each turn |
-| 2 | Watermill current-state research: core v1.5.3 (2026-08-25, active, 9.9k stars, MIT), our pins (core v1.5.3, redisstream v1.4.5), plugin majors (nats /v2 @ v2.2.0, kafka /v3, amqp /v3, sql /v4) | watermill.io pages + `gh release list` / `gh api`, 2026-09-15 |
-| 3 | Core semantics researched: Message/Ack/Nack (idempotent, ctx-cancelled on ack), Router (parallel handlers, auto-ack, CloseTimeout), at-least-once contract, non-atomic multi-publish, middleware catalog, their `components/cqrs` (incl. EventGroupProcessor ordering trick), Forwarder outbox, SQL tx-publish + #311 caveat, per-backend characteristics (GoChannel/NATS/Kafka/AMQP/Redis/SQL) | 8 docs pages fetched & distilled |
-| 4 | **Doc lie found & fixed**: `watermill/README.md:99` claimed "no maintained NATS JetStream plugin exists" — false since v2.1.0 (2024-08). Corrected with dated note; `watermill-nats/v2` documented as supported | Edit applied; committed via daemon |
-| 5 | Project-local skill written: `.agents/skills/watermill/SKILL.md` (~230 lines: contract, powers, 12-row limits table, backend matrix, their-CQRS-vs-ours rule, canonical wiring) + `references/backends.md` (full matrix + per-backend gotchas + cheat sheet) + `references/internals.md` (module file map, `protocol.go` metadata wire contract, CatchUp mechanics, test infra) | Files written; doc-check-compliant fences |
-| 6 | `AGENTS.md` "Where to Find Things" row added → skill discoverable by future sessions | Edit applied after view; committed via daemon |
-| 7 | **Gate green**: `cmd/doc-check` over new files + full default superset → `exit=0`, 1154 refs valid, **zero warnings from my files** (4 union-verified alias warnings pre-exist in go-cqrs-lite references) | Ran directly, exit code checked |
-| 8 | Post-hoc claim audit (before this report): "MIT" license ✓ (`gh api .license.spdx_id`), `scripts/ephemeral-nats.sh` ✓ + `ephemeral-redis.sh` ✓ (both exist), `watermill.ProcessingModeMiddleware`/middleware wrappers/WithBackend signatures/protocol keys all grepped during writing | This pass — every shipped claim now session-verified |
+| # | Item                                                                                                                                                                                                                                                                                                                                                                                            | Evidence                                                      |
+| - | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1 | Skill gates: `go-cqrs-lite` (prior turn) + `skill-creator` loaded before task actions                                                                                                                                                                                                                                                                                                           | First tool calls of each turn                                 |
+| 2 | Watermill current-state research: core v1.5.3 (2026-08-25, active, 9.9k stars, MIT), our pins (core v1.5.3, redisstream v1.4.5), plugin majors (nats /v2 @ v2.2.0, kafka /v3, amqp /v3, sql /v4)                                                                                                                                                                                                | watermill.io pages + `gh release list` / `gh api`, 2026-09-15 |
+| 3 | Core semantics researched: Message/Ack/Nack (idempotent, ctx-cancelled on ack), Router (parallel handlers, auto-ack, CloseTimeout), at-least-once contract, non-atomic multi-publish, middleware catalog, their `components/cqrs` (incl. EventGroupProcessor ordering trick), Forwarder outbox, SQL tx-publish + #311 caveat, per-backend characteristics (GoChannel/NATS/Kafka/AMQP/Redis/SQL) | 8 docs pages fetched & distilled                              |
+| 4 | **Doc lie found & fixed**: `watermill/README.md:99` claimed "no maintained NATS JetStream plugin exists" — false since v2.1.0 (2024-08). Corrected with dated note; `watermill-nats/v2` documented as supported                                                                                                                                                                                 | Edit applied; committed via daemon                            |
+| 5 | Project-local skill written: `.agents/skills/watermill/SKILL.md` (~230 lines: contract, powers, 12-row limits table, backend matrix, their-CQRS-vs-ours rule, canonical wiring) + `references/backends.md` (full matrix + per-backend gotchas + cheat sheet) + `references/internals.md` (module file map, `protocol.go` metadata wire contract, CatchUp mechanics, test infra)                 | Files written; doc-check-compliant fences                     |
+| 6 | `AGENTS.md` "Where to Find Things" row added → skill discoverable by future sessions                                                                                                                                                                                                                                                                                                            | Edit applied after view; committed via daemon                 |
+| 7 | **Gate green**: `cmd/doc-check` over new files + full default superset → `exit=0`, 1154 refs valid, **zero warnings from my files** (4 union-verified alias warnings pre-exist in go-cqrs-lite references)                                                                                                                                                                                      | Ran directly, exit code checked                               |
+| 8 | Post-hoc claim audit (before this report): "MIT" license ✓ (`gh api .license.spdx_id`), `scripts/ephemeral-nats.sh` ✓ + `ephemeral-redis.sh` ✓ (both exist), `watermill.ProcessingModeMiddleware`/middleware wrappers/WithBackend signatures/protocol keys all grepped during writing                                                                                                           | This pass — every shipped claim now session-verified          |
 
 ## b) PARTIALLY DONE
 
-| # | Item | What's missing | Effort |
-| --- | --- | --- | --- |
-| 1 | Skill coverage breadth | Not covered anywhere in the skill: Delayed Messages, Requeuing After Error, FanIn/FanOut, Metrics page, Troubleshooting page; backends SQLite/Bolt/Firestore/GCP/AWS/HTTP/io marked "not verified here" in the matrix (honest but shallow) | M |
-| 2 | Skill validation (skill-creator loop) | 3 eval prompts drafted & offered; with/without-skill runs NOT executed — deferred to user decision | S–M |
-| 3 | Upstream plugin freshness | Verified our redisstream pin (v1.4.5) but not upstream watermill-redisstream's latest release; same for kafka/amqp/sql plugin latest | S |
-| 4 | Cross-linking | go-cqrs-lite root `SKILL.md` SSE matrix + `references/advanced.md` watermill sections don't yet point at the new skill (one-way discovery via AGENTS.md only) | S |
+| # | Item                                  | What's missing                                                                                                                                                                                                                             | Effort |
+| - | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 1 | Skill coverage breadth                | Not covered anywhere in the skill: Delayed Messages, Requeuing After Error, FanIn/FanOut, Metrics page, Troubleshooting page; backends SQLite/Bolt/Firestore/GCP/AWS/HTTP/io marked "not verified here" in the matrix (honest but shallow) | M      |
+| 2 | Skill validation (skill-creator loop) | 3 eval prompts drafted & offered; with/without-skill runs NOT executed — deferred to user decision                                                                                                                                         | S–M    |
+| 3 | Upstream plugin freshness             | Verified our redisstream pin (v1.4.5) but not upstream watermill-redisstream's latest release; same for kafka/amqp/sql plugin latest                                                                                                       | S      |
+| 4 | Cross-linking                         | go-cqrs-lite root `SKILL.md` SSE matrix + `references/advanced.md` watermill sections don't yet point at the new skill (one-way discovery via AGENTS.md only)                                                                              | S      |
 
 ## c) NOT STARTED
 
@@ -53,20 +53,20 @@ Nothing broke; gate green; no code touched. Two honesty/process failures:
 
 ## f) Next tasks (ranked; feeds HARVEST only on user go-ahead)
 
-| # | Task | Impact | Effort | Cat |
-| --- | --- | --- | --- | --- |
-| 1 | Run the 3 drafted skill-eval prompts (with/without skill) and iterate on the description | High | M | Quality |
-| 2 | NATS JetStream roundtrip test: `watermill-nats/v2` + `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip` | High | M | Feature |
-| 3 | Add watermill-skill `references/advanced.md`: Delayed Messages, Requeuing After Error, FanIn/FanOut, Metrics, Troubleshooting | Medium | M | Docs |
-| 4 | Cross-link: go-cqrs-lite `SKILL.md`/`advanced.md` watermill sections → `.agents/skills/watermill/` | Medium | S | Docs |
-| 5 | Verify upstream latests for watermill-redisstream/kafka/amqp/sql plugins; record in backends.md | Low | S | Research |
-| 6 | Deep-dive remaining backends (SQLite first — aligns with repo's SQLite-first storage story) and fill matrix cells | Medium | M | Research |
-| 7 | CHANGELOG decision for the README NATS correction (see g2) | Low | S | Docs |
-| 8 | Claims-checklist habit → consider a tiny `docs/agents/` note or AGENTS.md line so future sessions inherit it | Medium | S | Process |
-| 9 | Inspect `benchkit/repeat_test.go` (foreign untracked file) once its author surfaces — judge on merits, don't absorb blindly | Low | S | Hygiene |
-| 10 | If NATS leg lands: add `nix run .#integration-nats`-style CI job analog to `#integration-redis` | Medium | M | Infra |
-| 11 | Consider recipes.md §addition: Forwarder outbox recipe using repo EventPublisher + watermill-sql tx publisher | Medium | M | Docs |
-| 12 | Re-check treefmt/flake formatter coverage for `.md` (treefmt.toml absent; config may be inline in flake.nix — unverified) | Low | S | Hygiene |
+| #  | Task                                                                                                                          | Impact | Effort | Cat      |
+| -- | ----------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- |
+| 1  | Run the 3 drafted skill-eval prompts (with/without skill) and iterate on the description                                      | High   | M      | Quality  |
+| 2  | NATS JetStream roundtrip test: `watermill-nats/v2` + `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`        | High   | M      | Feature  |
+| 3  | Add watermill-skill `references/advanced.md`: Delayed Messages, Requeuing After Error, FanIn/FanOut, Metrics, Troubleshooting | Medium | M      | Docs     |
+| 4  | Cross-link: go-cqrs-lite `SKILL.md`/`advanced.md` watermill sections → `.agents/skills/watermill/`                            | Medium | S      | Docs     |
+| 5  | Verify upstream latests for watermill-redisstream/kafka/amqp/sql plugins; record in backends.md                               | Low    | S      | Research |
+| 6  | Deep-dive remaining backends (SQLite first — aligns with repo's SQLite-first storage story) and fill matrix cells             | Medium | M      | Research |
+| 7  | CHANGELOG decision for the README NATS correction (see g2)                                                                    | Low    | S      | Docs     |
+| 8  | Claims-checklist habit → consider a tiny `docs/agents/` note or AGENTS.md line so future sessions inherit it                  | Medium | S      | Process  |
+| 9  | Inspect `benchkit/repeat_test.go` (foreign untracked file) once its author surfaces — judge on merits, don't absorb blindly   | Low    | S      | Hygiene  |
+| 10 | If NATS leg lands: add `nix run .#integration-nats`-style CI job analog to `#integration-redis`                               | Medium | M      | Infra    |
+| 11 | Consider recipes.md §addition: Forwarder outbox recipe using repo EventPublisher + watermill-sql tx publisher                 | Medium | M      | Docs     |
+| 12 | Re-check treefmt/flake formatter coverage for `.md` (treefmt.toml absent; config may be inline in flake.nix — unverified)     | Low    | S      | Hygiene  |
 
 ## g) Questions I cannot answer myself
 

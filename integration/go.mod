@@ -29,7 +29,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
@@ -67,7 +67,7 @@ require (
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/failsafe-go/failsafe-go v0.9.7 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect

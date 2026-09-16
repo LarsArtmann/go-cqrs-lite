@@ -204,10 +204,11 @@ evaluation; T21 tq re-open ADR; T22 doc tail; T23 rulings batch.
    wait?
 
 ---
-*Evidence anchors: matrix run #1 full log
+
+_Evidence anchors: matrix run #1 full log
 `/tmp/verify-ci-2026-09-14-full.log` (3 failures, rest green);
 post-fix per-module gates green (cqrs-lint full module, api-stability
 targeted, queue/sqlite suite ok 3.5s); matrix run #2
 `/tmp/verify-ci-2026-09-14-rerun.log` IN FLIGHT at 14:46 with the new
 `Reads/status_counts` failure captured above; check-arch.sh green incl.
-queue; fixes uncommitted at report time (daemon will sweep — expected).*
+queue; fixes uncommitted at report time (daemon will sweep — expected)._

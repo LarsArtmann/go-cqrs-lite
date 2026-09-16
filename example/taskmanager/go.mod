@@ -21,7 +21,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-idempotency v0.3.0
 	go.opentelemetry.io/otel v1.46.0
 )
@@ -61,12 +61,12 @@ require (
 	modernc.org/libc v1.75.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.58.0 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 )
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect

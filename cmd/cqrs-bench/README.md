@@ -30,36 +30,36 @@ cqrs-bench compare --profile medium --backends mem,sq,peb --format markdown
 
 ### Flags
 
-| Flag             | Values                                                                     | Default  | Description                                        |
-| ---------------- | -------------------------------------------------------------------------- | -------- | -------------------------------------------------- |
-| `--backend`      | `memory`, `sqlite`, `sqlite-cgo`, `pebble`, `bbolt`, `turso`, `postgres`, `mysql` (aliases: `mem`, `sq`, `peb`) | `memory` | Backend to benchmark                               |
-| `--dsn`          | string                                                                     | temp     | Database DSN (sqlite/postgres/mysql)               |
-| `--dir`          | path                                                                       | temp     | Data directory (pebble)                            |
-| `--profile`      | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy`, `analytical` | `dev`    | Workload profile                                   |
-| `--codec`        | `json`, `cbor`                                                             | `json`   | Payload codec                                      |
-| `--format`       | `auto`, `table`, `text`, `json`, `csv`, `tsv`, `markdown`, `benchstat`, `manifest` | `auto`   | Output format (`auto`: table in TTY, text when piped) |
-| `--output`       | path                                                                       | stdout   | Output file                                        |
-| `--payload-size` | int                                                                        | `256`    | Payload size in bytes                              |
-| `--payload-sizes`| `64,256,4096`                                                              | —        | Mixed per-event payload sizes (uniform random)     |
-| `--warmup`       | int                                                                        | `0`      | Warmup iterations before timing                    |
-| `--repeat`       | int                                                                        | `0`      | Run N times: median + per-metric cross-run CoV      |
-| `--soak`         | duration (`5m`, `1h`)                                                      | `0`      | Soak mode: leak/degradation trends                 |
-| `--strict`       | bool                                                                       | `false`  | Fail on skipped phases (CI gate)                   |
-| `--progress`     | duration                                                                   | `0`      | Heartbeat per phase                                |
-| `--quiet`        | bool                                                                       | `false`  | Summary-only output                                |
-| `--cpuprofile`, `--memprofile` | path                                                        | —        | pprof output                                       |
+| Flag                           | Values                                                                                                          | Default  | Description                                           |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
+| `--backend`                    | `memory`, `sqlite`, `sqlite-cgo`, `pebble`, `bbolt`, `turso`, `postgres`, `mysql` (aliases: `mem`, `sq`, `peb`) | `memory` | Backend to benchmark                                  |
+| `--dsn`                        | string                                                                                                          | temp     | Database DSN (sqlite/postgres/mysql)                  |
+| `--dir`                        | path                                                                                                            | temp     | Data directory (pebble)                               |
+| `--profile`                    | `dev`, `small`, `medium`, `large`, `stress`, `write-heavy`, `read-heavy`, `analytical`                          | `dev`    | Workload profile                                      |
+| `--codec`                      | `json`, `cbor`                                                                                                  | `json`   | Payload codec                                         |
+| `--format`                     | `auto`, `table`, `text`, `json`, `csv`, `tsv`, `markdown`, `benchstat`, `manifest`                              | `auto`   | Output format (`auto`: table in TTY, text when piped) |
+| `--output`                     | path                                                                                                            | stdout   | Output file                                           |
+| `--payload-size`               | int                                                                                                             | `256`    | Payload size in bytes                                 |
+| `--payload-sizes`              | `64,256,4096`                                                                                                   | —        | Mixed per-event payload sizes (uniform random)        |
+| `--warmup`                     | int                                                                                                             | `0`      | Warmup iterations before timing                       |
+| `--repeat`                     | int                                                                                                             | `0`      | Run N times: median + per-metric cross-run CoV        |
+| `--soak`                       | duration (`5m`, `1h`)                                                                                           | `0`      | Soak mode: leak/degradation trends                    |
+| `--strict`                     | bool                                                                                                            | `false`  | Fail on skipped phases (CI gate)                      |
+| `--progress`                   | duration                                                                                                        | `0`      | Heartbeat per phase                                   |
+| `--quiet`                      | bool                                                                                                            | `false`  | Summary-only output                                   |
+| `--cpuprofile`, `--memprofile` | path                                                                                                            | —        | pprof output                                          |
 
 ## Workload Profiles
 
-| Profile       | Aggregates | Events/Agg | Total Events | Concurrency | ReadRatio | BatchSize | Description             |
-| ------------- | ---------- | ---------- | ------------ | ----------- | --------- | --------- | ----------------------- |
-| `dev`         | 100        | 5          | 500          | 1           | 0.2       | 1         | Quick smoke test        |
-| `small`       | 1,000      | 10         | 10K          | 4           | 0.3       | 1         | Small dataset           |
-| `medium`      | 10,000     | 50         | 500K         | 16          | 0.4       | 5         | Typical production load |
-| `large`       | 100,000    | 100        | 10M          | 32          | 0.5       | 10        | Large dataset           |
-| `stress`      | 10,000     | 500        | 5M           | 64          | 0.2       | 1         | Stress test             |
-| `write-heavy` | 10,000     | 100        | 1M           | 32          | 0.1       | 1         | Write-dominated         |
-| `read-heavy`  | 10,000     | 100        | 1M           | 32          | 0.8       | 1         | Read-dominated          |
+| Profile       | Aggregates | Events/Agg | Total Events | Concurrency | ReadRatio | BatchSize | Description                  |
+| ------------- | ---------- | ---------- | ------------ | ----------- | --------- | --------- | ---------------------------- |
+| `dev`         | 100        | 5          | 500          | 1           | 0.2       | 1         | Quick smoke test             |
+| `small`       | 1,000      | 10         | 10K          | 4           | 0.3       | 1         | Small dataset                |
+| `medium`      | 10,000     | 50         | 500K         | 16          | 0.4       | 5         | Typical production load      |
+| `large`       | 100,000    | 100        | 10M          | 32          | 0.5       | 10        | Large dataset                |
+| `stress`      | 10,000     | 500        | 5M           | 64          | 0.2       | 1         | Stress test                  |
+| `write-heavy` | 10,000     | 100        | 1M           | 32          | 0.1       | 1         | Write-dominated              |
+| `read-heavy`  | 10,000     | 100        | 1M           | 32          | 0.8       | 1         | Read-dominated               |
 | `analytical`  | 10,000     | 10         | 100K         | 16          | 0.9       | 1         | 90% reads + 5x journal scans |
 
 ## Statistical rigor (repeats and benchstat)

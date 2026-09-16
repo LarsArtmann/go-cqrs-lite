@@ -29,9 +29,9 @@ captured tail — not yet diagnosed (details in §d).
      `ErrLeaseNotHeld` (`queue.lease_not_held`). `priority.go`: aging
      constants (3d/pt, cap 10).
    - Full G3 ceremony: go.work, flake testModules, api-stability slice
-     + golden regen (7025 exports) + TestEvery, LAYER[queue]=3,
-     DEP_BUDGET=1, module-map row, references/modules.md row, CHANGELOG
-     part-1 entry, doc-check 1132 refs valid.
+     - golden regen (7025 exports) + TestEvery, LAYER[queue]=3,
+       DEP_BUDGET=1, module-map row, references/modules.md row, CHANGELOG
+       part-1 entry, doc-check 1132 refs valid.
 2. **T2–T4 — `queue/conformance` shared suite** (1,626 lines, 10 files,
    all under the 350-line gate): Harness{NewStore, Backdate} + Run;
    pins: transition matrix, roundtrips with fact trails, lease guards,
@@ -237,8 +237,9 @@ captured tail — not yet diagnosed (details in §d).
    donor-faithful blindness and only add cycle rejection?
 
 ---
-*Evidence anchors: suite green `queue/sqlite` (plain + `-race -count=2`,
+
+_Evidence anchors: suite green `queue/sqlite` (plain + `-race -count=2`,
 2026-09-14 ~13:20), `queue/postgres` (integration + `-race`, ~13:29);
 api golden 7025 exports + TestEvery ok; doc-check 1132 refs valid;
 layers + file-size + changelog-symbols + error-taxonomy gates green;
-verify-ci ❌ (contaminated run, §d7).*
+verify-ci ❌ (contaminated run, §d7)._

@@ -56,13 +56,13 @@ not in developer-facing code.
 
 ## Precedents already in the tree
 
-| Precedent | Where | What it proves |
-| --- | --- | --- |
-| `KeyResolver` by embedded key ID | `encryption/algorithm.go` | rotation-compatible decryption |
-| `EncryptSinkTransform` + `DecorateStore` | `encryption/store.go`, ADR-0126 | store-level encryption without hand-written wrappers |
-| Snapshot rotation convergence | `encryption/snapshot_state.go` + PG integration proof | re-encrypt-on-touch works without a rewrite campaign |
-| `RejectDurabilityTier` / `MaterializedViews` capability refusals | metaengine engines | loud construction-time refusal as the contract shape |
-| `redactDSN` contract | recipes §2.33 | secrets never appear in errors or rendered config |
+| Precedent                                                        | Where                                                 | What it proves                                       |
+| ---------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------- |
+| `KeyResolver` by embedded key ID                                 | `encryption/algorithm.go`                             | rotation-compatible decryption                       |
+| `EncryptSinkTransform` + `DecorateStore`                         | `encryption/store.go`, ADR-0126                       | store-level encryption without hand-written wrappers |
+| Snapshot rotation convergence                                    | `encryption/snapshot_state.go` + PG integration proof | re-encrypt-on-touch works without a rewrite campaign |
+| `RejectDurabilityTier` / `MaterializedViews` capability refusals | metaengine engines                                    | loud construction-time refusal as the contract shape |
+| `redactDSN` contract                                             | recipes §2.33                                         | secrets never appear in errors or rendered config    |
 
 ## Consequences
 
