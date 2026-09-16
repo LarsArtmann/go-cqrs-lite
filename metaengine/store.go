@@ -532,14 +532,26 @@ func (s *Store) replicateLocked(eventType string, rec record.Record, payload any
 // consumers should wrap the Store with an external idempotency store.
 func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, payload any) error {
 	if eventID == "" {
-		return s.applyWithRecord(ctx, feedApplyIdempotent, eventType, record.Record{Type: eventType}, payload)
+		return s.applyWithRecord(
+			ctx,
+			feedApplyIdempotent,
+			eventType,
+			record.Record{Type: eventType},
+			payload,
+		)
 	}
 
 	if s.idempotency.CheckAndRecord(eventID) {
 		return nil // already applied
 	}
 
-	return s.applyWithRecord(ctx, feedApplyIdempotent, eventType, record.Record{Type: eventType}, payload)
+	return s.applyWithRecord(
+		ctx,
+		feedApplyIdempotent,
+		eventType,
+		record.Record{Type: eventType},
+		payload,
+	)
 }
 
 // InTransaction executes fn within a single database transaction across all

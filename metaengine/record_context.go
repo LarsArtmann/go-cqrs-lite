@@ -36,12 +36,12 @@ const (
 // the entry point that fed it. Replays (Backfill/Verify/Demote/replication)
 // never count — only direct applies do.
 type syntheticFeedCounters struct {
-	apply               atomic.Uint64
-	applyBatch          atomic.Uint64
-	applyIdempotent     atomic.Uint64
-	applyRecord         atomic.Uint64
-	applyEncoded        atomic.Uint64
-	applyEncodedRecord  atomic.Uint64
+	apply              atomic.Uint64
+	applyBatch         atomic.Uint64
+	applyIdempotent    atomic.Uint64
+	applyRecord        atomic.Uint64
+	applyEncoded       atomic.Uint64
+	applyEncodedRecord atomic.Uint64
 }
 
 // total sums every bucket — the pre-breakdown aggregate count.

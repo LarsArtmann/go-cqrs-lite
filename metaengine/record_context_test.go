@@ -309,7 +309,12 @@ func TestSyntheticRecordAdvisory_PerEntryPointBreakdown(t *testing.T) {
 		t.Fatalf("ApplyEncoded: %v", err)
 	}
 
-	if err := store.ApplyIdempotent(ctx, "evt-1", "recordContextEvent", recordContextEvent{TaskID: "t2"}); err != nil {
+	if err := store.ApplyIdempotent(
+		ctx,
+		"evt-1",
+		"recordContextEvent",
+		recordContextEvent{TaskID: "t2"},
+	); err != nil {
 		t.Fatalf("ApplyIdempotent: %v", err)
 	}
 
