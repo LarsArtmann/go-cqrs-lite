@@ -48,7 +48,7 @@ func (e *pebbleEngine) ResetEngine(_ context.Context) error {
 	defer e.mu.Unlock()
 
 	batch := e.db.NewBatch()
-	defer batch.Close()
+	defer func() { _ = batch.Close() }()
 
 	for _, prefix := range resetTagPrefixes {
 		if err := batch.DeleteRange(prefix, nextKey(prefix), nil); err != nil {

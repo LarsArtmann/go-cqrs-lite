@@ -5,9 +5,7 @@ import "time"
 // CurrentHooks returns the Store's configured hooks (the zero value when
 // none are set). Combine with [Hooks.Merge] before replacing via
 // [WithHooks] so observability layers compose instead of clobbering each
-// other:
-
-//	obs, _ := otelobserver.Attach(store, meter) // merges internally
+// other (obs, _ := otelobserver.Attach(store, meter) merges internally).
 //
 // The same read contract as WithHooks applies: configure hooks at
 // construction, before concurrent use.
