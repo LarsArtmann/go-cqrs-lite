@@ -11,7 +11,7 @@ import (
 
 // mustNewDuckEngine creates an in-memory DuckDB engine, skipping the test when
 // DuckDB/CGo is unavailable. The engine is closed automatically via t.Cleanup.
-func mustNewDuckEngine(t *testing.T) metaengine.Engine {
+func mustNewDuckEngine(t testing.TB) metaengine.Engine {
 	t.Helper()
 
 	eng, err := duckdbengine.New("")
