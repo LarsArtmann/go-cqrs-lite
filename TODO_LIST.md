@@ -838,29 +838,42 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > — source:
 > [`docs/status/2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md`](docs/status/2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md) §e/§f
 
-- [ ] **Anchor + § cross-ref validation in CI** — the audit found 2 silently
-      broken TOC anchors (advanced §6.8, faq eventtest) and duplicate recipes
-      section numbers (2× §2.13/§2.22/§2.23) that doc-check cannot see; port
-      the session's GitHub-slugger + §-ref checker (Python, ~40 lines) into
-      `scripts/check-doc-links.sh` or `cmd/doc-check`. Keep the slug rules
-      GitHub-exact: underscores kept, punctuation stripped, inline-code
-      content KEPT. _(Effort: S)_
-- [ ] **doc-check arity spot-check** — both critical doc lies
-      (`system.New(ctx, system.Deployment{…})`, `(ctx, deployment,
-      domains...)`) passed symbol-level validation; parse fenced-Go call
-      shapes for exported constructors and compare against go/doc arity.
-      _(Effort: M)_
-- [ ] **Consolidate the v5-deprecation story** — told in 6+ places (SKILL.md,
-      core.md ×2, readmodels.md, faq.md, modules.md rows); one canonical
-      block + pointers kills the next drift at the source. _(Effort: S)_
-- [ ] **Discoverability: link `example/metaengine-quickstart`** from README.md
-      and the metaengine module README (currently only reachable via the
-      skill docs); it is the flagship "operator cqrs.yaml" goal demo and all
-      three example binaries verified runnable 2026-09-13. _(Effort: XS)_
-- [ ] **Decide `metaengine.Infer(samples…)` end-state** — docs steer to
-      `OnRecord`/`AutoInsert` for production and call Infer prototyping-only;
-      either deprecate at v5 (consistent with the steer) or promote it with a
-      docs story for why it stays. _(Effort: XS decision, S if deprecated)_
+- [x] **Anchor + § cross-ref validation in CI** — DONE 2026-09-16. Ported
+      into `cmd/doc-check` (Go, unit-tested, zero-warning-gated; runs in CI via
+      the existing doc-check leg): GitHub-exact slugger (underscores kept,
+      punctuation stripped, inline-code content KEPT, heading links contribute
+      their text, `-1` dedup suffixes), TOC anchors checked in every scanned
+      file, § cross-refs validated over the skill-doc scope with precision
+      filters (ADR-relative, "former X §N", moved-bullets, unique-doc bare
+      fallback; ambiguous bare refs flagged). Duplicate section numbers fail
+      the gate. Immediately caught 2 real broken anchors outside the 09-13
+      audit scope (DOMAIN_LANGUAGE.md `#deriver`, METAENGINE_DOMAIN_LANGUAGE.md
+      TOC → stale slugger for heading-links), both fixed.
+- [x] **doc-check arity spot-check** — DONE 2026-09-16. `cmd/doc-check`
+      parses every parseable fenced-Go fence (whole program / top-level /
+      wrapped body / import-hoisted shapes) and compares package-qualified
+      exported calls against go/ast signatures (block-scoped import or unique
+      repo package only, so wrong-package hits are impossible). Precision
+      filters for the audit's false-positive classes: `// Wrong`-marker
+      examples, comment-only arg lists, doc-ellipsis placeholders, and a
+      per-fence `// doc-check:ignore-arity` opt-out. Live run flagged 3
+      suspected lies; all verified as intentional shapes → filters added and
+      pinned by unit tests (incl. the audit's original `system.New` lie shape).
+- [x] **Consolidate the v5-deprecation story** — DONE 2026-09-16. Canonical
+      list now lives in faq.md "Will the v5 cut break my imports?" (extended
+      with the fold-DSL and inference buckets); SKILL.md, core.md,
+      readmodels.md, recipes.md, advanced.md, and README.md keep only a short
+      notice + pointer to it, so the next deprecation is added in ONE place.
+- [x] **Discoverability: link `example/metaengine-quickstart`** — DONE
+      2026-09-16. Linked from README.md examples paragraph and
+      metaengine/README.md ("Runnable version" after the Quick Example).
+- [x] **Decide `metaengine.Infer(samples…)` end-state** — DONE 2026-09-16,
+      decision: **deprecated, removal at v5** (consistent with the docs'
+      own prototyping-only steer; port paths: explicit `OnRecord`/`AutoInsert`
+      or `AutoCRUDByConvention[R]`). `// Deprecated:` markers on `Infer` AND
+      `InferFromNamedEvents` (same surface, same fate — no split brain);
+      modules.md + FEATURES.md rows updated; CHANGELOG [Unreleased] Deprecated
+      entry added.
 
 ---
 
