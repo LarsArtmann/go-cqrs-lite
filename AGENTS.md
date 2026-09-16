@@ -161,7 +161,7 @@ Split by topic; edit the topic file, never inline here:
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.
 - [`gowork-modes.md`](docs/agents/gowork-modes.md) — THE GOWORK decision table + mandatory env chain + jsonv2 tag.
-- [`module-map.md`](docs/agents/module-map.md) — full 82-module table with internal notes.
+- [`module-map.md`](docs/agents/module-map.md) — the internal module map (73 of 90 modules rowed; engines/tools/examples live in FEATURES' maturity matrix).
 
 TL;DR rules (too hot to be one click away):
 
@@ -219,13 +219,13 @@ Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `doc
 
 Before calling a change done, find the consumers of every exported symbol you touched and run THEIR module tests:
 
-1. Search references (`lsp_references` or `rg "SymbolName" --type go -l`) across all modules — the repo is an 85-module workspace; consumers live outside your module.
+1. Search references (`lsp_references` or `rg "SymbolName" --type go -l`) across all modules — the repo is a 90-module workspace; consumers live outside your module.
 2. Treat aggregate/convenience exports as high-risk: `projections.All()` is consumed by `system.WithCommandLifecycle`, so growing it changes every consumer's wiring.
 3. Run each consumer module's `GOWORK=off go test -short` (plus lint for the changed modules) before the final report — a compile-only check is not a verification.
 
 ## Module Tiers
 
-Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules across 7 tiers).
+Seven-tier model — see [ADR-0046](docs/adr/0046-seven-tier-model.md) and [SEVEN-TIER-MODEL.md](docs/architecture-understanding/SEVEN-TIER-MODEL.md) for full mapping (78 modules at authoring; 90 across 7 tiers as of 2026-09-16).
 
 ```
 Tier 0 — Primitives: id/, dispatcher/, kv/, dedup/, record/ (codec, retry, flightrecorder extracted → external repos, ADR-0128)
