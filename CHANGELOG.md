@@ -19,10 +19,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   packages only). Intentional doc shapes stay green: `// Wrong`-marked
   examples, comment-only arg lists, ellipsis placeholders, and a per-fence
   `// doc-check:ignore-arity` opt-out.
-- Immediate yield: 2 real broken anchors fixed (`docs/DOMAIN_LANGUAGE.md`
+- Immediate yield: 3 real anchor defects fixed (`docs/DOMAIN_LANGUAGE.md`
   `#deriver` dead link; `docs/METAENGINE_DOMAIN_LANGUAGE.md` TOC entry whose
   target heading contains a markdown link, which the slugger must render
-  before slugging).
+  before slugging; SKILL.md's `faq.md#…` pointers, unresolvable from the
+  skill root — the anchor resolver now falls back to the skill references
+  dir the same way § doc-name prefixes always have).
 
 ### Deprecated — planner-time fold inference (`metaengine.Infer` / `metaengine.InferFromNamedEvents`) — 2026-09-16
 

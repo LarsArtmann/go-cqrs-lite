@@ -110,7 +110,7 @@ Nothing shipped broken. Two self-caught near-misses, recorded for honesty:
 3. `go test -race ./...` in cmd/cqrs-upgrade.
 4. Run the repo's own shellcheck/pre-commit script gate over the 7 touched scripts.
 5. Make seed-log path absolute (`${SCRIPT_DIR}/../build/shuffle-seeds.log`) in all 5 scripts; add `cd "$REPO_ROOT"` to ephemeral-pg.sh.
-6. calibration-gate.sh `--self-test` mode (planted loadavg fixture; no live-file mutation).
+6. ~~calibration-gate.sh `--self-test` mode (planted loadavg fixture; no live-file mutation).~~ done 2026-09-15 — 8-check fault-injection suite shipped by the 15-21 session + `CALIB_GATE_LOADAVG_FILE` hook
 7. Adopt explicit seeds (+ logging) in test-integration.sh / test-all-backends.sh or fold them away per ROADMAP OQ #9.
 8. CI: upload `build/shuffle-seeds.log` as an artifact when integration jobs fail.
 9. cqrs-upgrade: run the deprecation scan for NoPins modules (strict-gate remainder (b)).

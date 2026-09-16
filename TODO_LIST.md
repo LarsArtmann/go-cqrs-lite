@@ -629,13 +629,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
-- [ ] **Align `check-doc-links.sh`'s anchor slugger with doc-check's** — the
-      script flags `faq.md#will-the-v5-cut-break-my-imports-what-is-going-away`
-      BROKEN while the link is GitHub-exact (the heading contains `?`;
-      doc-check's slugger — CI-truth — validates it, verified 2026-09-16).
-      Delegate anchor checks to doc-check or port its slug rules; the false
-      positive will otherwise keep getting "fixed" into a wrong slug.
-      _(Effort: S)_
 - [ ] **Skill references: reset recipe covers ALL engines** — SKILL.md +
       references still describe `Store.Reset` as memory-only; the ladder is
       12/12 now. Update the reset recipe + add the

@@ -124,20 +124,20 @@
 
 ## f) NEXT (most valuable first)
 
-1. Apply the 7 queued catalog-B edits (trailers `_ = found`/`_ = err`; drop dup
+1. ~~Apply the 7 queued catalog-B edits (trailers `_ = found`/`_ = err`; drop dup
    `StatusCounts`; drop unused `time`/`record` imports; add `command`/`metaengine`
-   imports; add `CreatedPayload`/`UpdatedPayload` preamble types; drop stray `ctx` in §2.11).
-2. Doc fix §2.9 catalog block: asyncapi/openapi Export shapes (researched, see b.1).
-3. Doc fix §2.13b retry block: drop `Jitter`, `AttemptFunc(ctx, attempt int)` signature.
-4. Doc fix block 10 (minimal ES): BasicCommand embedding per docs_compile_test.go:140.
-5. Doc fix block 14: explicit `WithSnapshotStore[UserState]`/`WithSnapshotStrategy[UserState]`.
-6. Doc fix block 17: move key-generation above `NewXChaCha20Poly1305(key)`.
-7. Doc fix block 13: `pebble.Open(dir, nil, logger)`.
-8. Doc fix block 37: `config :=` → `cfg :=` for the DomainConfig result.
-9. Doc fix block 46 timers: payload type + typed `Actor: actor` + `scheduling.TimerID(...)`
-   - `command.New(…, command.WithActor(t.Actor))` at fire time.
-10. Drive `TestRecipesCompile` to zero; keep the classification ratchet green.
-11. check-file-size on the three new files; split `recipes_catalog_meta.go` if over 350.
+   imports; add `CreatedPayload`/`UpdatedPayload` preamble types; drop stray `ctx` in §2.11).~~ done 2026-09-15 — applied by the 18-19 session (§a3), `TestRecipesCompile` → 0
+2. ~~Doc fix §2.9 catalog block: asyncapi/openapi Export shapes (researched, see b.1).~~ done 2026-09-15 — 18-19 §a2 fix (6)
+3. ~~Doc fix §2.13b retry block: drop `Jitter`, `AttemptFunc(ctx, attempt int)` signature.~~ done 2026-09-15 — 18-19 §a2 fix (7)
+4. ~~Doc fix block 10 (minimal ES): BasicCommand embedding per docs_compile_test.go:140.~~ done 2026-09-15 — 18-19 §a2 fix (2)
+5. ~~Doc fix block 14: explicit `WithSnapshotStore[UserState]`/`WithSnapshotStrategy[UserState]`.~~ done 2026-09-15 — 18-19 §a2 fix (4)
+6. ~~Doc fix block 17: move key-generation above `NewXChaCha20Poly1305(key)`.~~ done 2026-09-15 — 18-19 §a2 fix (5)
+7. ~~Doc fix block 13: `pebble.Open(dir, nil, logger)`.~~ done 2026-09-15 — 18-19 §a2 fix (3)
+8. ~~Doc fix block 37: `config :=` → `cfg :=` for the DomainConfig result.~~ done 2026-09-15 — 18-19 §a2 fix (8)
+9. ~~Doc fix block 46 timers: payload type + typed `Actor: actor` + `scheduling.TimerID(...)`
+   - `command.New(…, command.WithActor(t.Actor))` at fire time.~~ done 2026-09-15 — 18-19 §a2 fix (9, via `MustParseTimerID`)
+10. ~~Drive `TestRecipesCompile` to zero; keep the classification ratchet green.~~ done 2026-09-15 — 18→0 (18-19 §a1); re-verified GREEN 2026-09-16 docs-health pass
+11. ~~check-file-size on the three new files; split `recipes_catalog_meta.go` if over 350.~~ done 2026-09-16 — harness files ≤344 at 18-19 §a4; the meta file later grew and was split (recipes_catalog_meta2.go) by the 08-05 session
 12. Full doc-check module test suite + doc-check binary over the docs (zero-warning gate).
 13. `nix run .#check-release-scripts` end-to-end (includes the new self-test leg).
 14. Decide CI posture of `TestRecipesCompile` (cold cache + proxy fetches): in `#verify`
