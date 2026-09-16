@@ -236,11 +236,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   actionable "vector predicates require Dgraph v24+" error. README documents
   the compatibility floor.
 - **Vector performance numbers (2026-09-16)** — 1000×64-dim corpus, k=10,
-  cosine, k-NN search medians over 3×2s runs: libSQL SQL pushdown (embedded
-  turso) ≈ 1.09 ms/op (8.4 KB, 343 allocs); sqlite modernc Go scan ≈ 1.75
-  ms/op (944 KB, 10 036 allocs) — pushdown is ~1.5× faster with ~112× fewer
-  bytes transferred; DuckDB engine-side pushdown measured separately (see
-  `docs/benchmarks/2026-09-16_vector-search-paths.md`). `BenchmarkVectorSearch_GoScan`
+  cosine, k-NN search medians over 3×2s solo runs: libSQL SQL pushdown (embedded
+  turso) ≈ 0.76 ms/op (8.4 KB, 343 allocs); sqlite modernc Go scan ≈ 0.97
+  ms/op (944 KB, 10 036 allocs); DuckDB engine-side pushdown ≈ 1.22 ms/op
+  (4.1 KB, 127 allocs) — pushdown is ~1.3× faster with ~112× fewer bytes
+  transferred than the Go scan; full matrix and reading in
+  `docs/benchmarks/2026-09-16_vector-search-paths.md`. `BenchmarkVectorSearch_GoScan`
   / `_LibSQLPushdown` / `_SQLPushdown` land next to the engines; the
   benchmark-regression gate stays untouched (O(N) brute-force paths are
   corpus-size-sensitive; wiring them into a 25%-threshold CI gate would
