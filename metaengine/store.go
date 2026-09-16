@@ -531,26 +531,16 @@ func (s *Store) replicateLocked(eventType string, rec record.Record, payload any
 // The dedup is in-memory (process-local); for durable dedup across restarts,
 // consumers should wrap the Store with an external idempotency store.
 func (s *Store) ApplyIdempotent(ctx context.Context, eventID, eventType string, payload any) error {
-	if eventID == "" {
-		return s.applyWithRecord(
-			ctx,
-			feedApplyIdempotent,
-			eventType,
-			record.Record{Type: eventType},
-			payload,
-		)
-	}
-
-	if s.idempotency.CheckAndRecord(eventID) {
+	if eventID != "" && s.idempotency.CheckAndRecord(eventID) {
 		return nil // already applied
 	}
 
+	return s.applyIdempotentFeed(ctx, eventType, payload)
+}
+
+func (s *Store) applyIdempotentFeed(ctx context.Context, eventType string, payload any) error {
 	return s.applyWithRecord(
-		ctx,
-		feedApplyIdempotent,
-		eventType,
-		record.Record{Type: eventType},
-		payload,
+		ctx, feedApplyIdempotent, eventType, record.Record{Type: eventType}, payload,
 	)
 }
 
