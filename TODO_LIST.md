@@ -461,93 +461,112 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
-- [ ] 🔥 **File-size ratchet RED: `cmd/cqrs-lint/pkg/rules/lintutil/lintutil.go` 453 → 474** —
-      committed 2026-09-13 by the cqrs-lint session (auto-commit `ce69cbd15`); baselined files
-      may only shrink, so this blocks `#verify-fast` for every session. Owner action: shrink or
-      split the file, or take an explicit policy-reviewed `--update-baseline` decision (never a
-      silent baseline shift). Not touched by the reconciliation session (file ownership).
-      _(Effort: S)_
-
-- [ ] **Zero the erraudit error-policy baseline** (precondition for the
-      `error-audit` CI gate added 2026-09-11) — the job is wired
-      (`.github/workflows/ci.yml`, same self-activating `ERRAUDIT_PAT`
-      mechanism as go-codec) but stays dormant until (a) a secret exists and
-      (b) these findings are zero. Baseline 2026-09-11: **253 findings across
-      22 of 35 modules** under `erraudit lint ./... --enforce-go-error-family
-      --type-aware` per module: storage 53, graph 46, event 25, encryption 14,
-      command 13, decider 12, kv 11, stack/snapshot/benchkit 9 each, signing
-      8, query/middleware/catalog 7 each, schema 6, metaengine 4,
-      id/dispatcher 3 each, watermill/projectionhost/deriver/scheduling 1-2
-      each. Recount with
-      `for m in */; do [ -f "$m/go.mod" ] && (cd "$m" && GOEXPERIMENT=jsonv2 erraudit lint ./... --enforce-go-error-family --type-aware --format csv 2>/dev/null | tail -n +2 | grep -c . | xargs -I{} echo "$m {}"); done`.
-      Do per-module batches (storage first — largest). _(Effort: L, 22
-      modules; go-codec's ADR-0001 + docs/error-codes.md are the reference
-      pattern)_
+- [x] 🔥 **File-size ratchet RED** — RESOLVED 2026-09-15. The lintutil.go claim was
+      STALE (file already back at its 453-line baseline); the live RED came from two
+      NEW offenders, both split: `cmd/doc-check/recipes_catalog_meta.go` 433→335 (+new
+      `recipes_catalog_meta2.go` 105; `recipeSpec` also moved out of the `_test.go`
+      file so the module builds non-test again) and `queue/conformance/lifecycle.go`
+      425→325 (+new `lifecycle_cancel.go` 110). `nix run .#check-file-size` GREEN.
+- [x] **Zero the erraudit error-policy baseline** — DONE, verified live 2026-09-15:
+      full per-module recount (`erraudit lint ./... --enforce-go-error-family
+      --type-aware --format csv`) = **0 findings across all modules** (the 09-13
+      CI-comment claim held; the 09-11 baseline of 253 was fully zeroed). The
+      `error-audit` CI job's activation precondition (b) is met; (a) the
+      `ERRAUDIT_PAT` secret remains a user action.
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
 - [ ] [BLOCKED] **cqrs-lint Self-Lint credentials** — go-finding fetch fails
       under GOWORK=off (`git ls-remote` exit 128). _(Effort: S, user/creds)_
-- [ ] **Calibration-drift gate redesign** — compare against a persisted
-      CI-baseline artifact instead of absolute constants; nightly >100% rows
-      are shared-runner noise. Add TMPDIR-filesystem detection (refuse to run
-      on CoW). — source: archived/2026-09-04 §b2/§f16/§f18
-      _(Effort: M)_
-- [ ] **pin-sweep `--check` nag semantics** — the module-layers CI leg goes
-      red on every push between a tag push and the follow-up sweep commit (by
-      design). Keep blocking-on-every-push or move to tag-push/cron triggers?
-      (15-09 §g2). Extras: `--dry-run`, `--remote` sanity, unit harness. —
-      source: 15-09 §e9/§f18–22
-      _(Effort: S)_
-- [ ] **Cheap CI gates into pre-commit** — module-layers, version-drift,
-      workspace-sync, replace-directives are plain bash; wire staged-aware
-      into the hook. — source: archived/2026-09-04 §e6
-      _(Effort: S)_
+- [x] **Calibration-drift gate redesign** — DONE 2026-09-15. `calibration-drift.sh`
+      gained `--baseline FILE` / `--write-baseline FILE` (CI compares apples-to-apples
+      against a persisted `module|label|ns_per_unit` artifact from the same runner
+      class — the benchmarks.yml baseline-artifact pattern — instead of failing on
+      >100%-of-shipped-constant shared-runner noise) + TMPDIR filesystem detection
+      (refuses btrfs/ZFS unless `CALIB_ALLOW_COW=1`; test hook
+      `CALIB_FAKE_TMPFS_TYPE`). Also fixed a LATENT BUG: the constant lookup used a
+      spaced assoc key (`CALIB[$mod | $label]`) that never matched, so the gate always
+      exited 1 with "no shipped constant". Harness `test-calibration-drift.sh`
+      (5 checks, incl. CoW refusal) wired into `check-release-scripts`. Remaining
+      knob: wiring `--write-baseline`/`--baseline` into a nightly CI job that
+      uploads/downloads the artifact. — source: archived/2026-09-04 §b2/§f16/§f18
+- [ ] **pin-sweep `--check` nag semantics** — REMAINING: the trigger-policy DECISION
+      only (keep blocking-on-every-push, or move to tag-push/cron?). Recommendation
+      from 15-09 §g2 evidence: keep blocking-on-every-push (the nag is the sweep
+      enforcement) and let cron report-only. DONE 2026-09-15: the extras —
+      `--dry-run` (preview, mutates nothing), `--remote` (compares `git ls-remote
+      --tags origin` instead of local refs; catches the tag-pushed-but-not-fetched
+      blind spot where plain `--check` stays green), and fixture harness
+      `test-pin-sweep.sh` (4 tests incl. the remote blind spot) wired into
+      `check-release-scripts`.
+- [x] **Cheap CI gates into pre-commit** — DONE 2026-09-15, plus the REAL bug found:
+      `core.hooksPath=.githooks` is set while `.githooks/` DID NOT EXIST — every
+      pre-commit gate was silently dead (git skips missing hooks), and
+      `nix run .#install-hooks` wrote to the ignored `.git/hooks/`. Fixed the app to
+      honor `core.hooksPath`, installed a live `.githooks/pre-commit`, and added the
+      three staged-aware gates (version-drift + replace-directives on go.mod;
+      module-layers on flake.nix/layer-script/module-add-delete — 0.01s/0.85s/7.9s).
 - [ ] **CV consumer bump (operator-gated)** — 8 go-cqrs-lite modules behind
       latest tags in the CV repo + nix `vendorHash` cascade + full CV
       verification. — source: archived/2026-09-04 §c2
       _(Effort: M)_
-- [ ] **Integration-tag lint as a first-class gate** — the gocognit finding
-      was invisible to the official gate for ~10 days (the `lint-module` app
-      hardcodes only `goexperiment.jsonv2`): give `lint-module` an optional
-      build-tag argument and add a CI leg for modules shipping
-      `*_integration_test.go`. — source: 01-38 §c1/§e2/§f4/§f5
-      _(Effort: S/M)_
-- [ ] 🔥 **Kill the missing-go.sum-hash class in CI** — `pin-sweep --check`
-      cannot see missing go.sum hashes (the pgx v5.11.0 `/go.mod` hash class,
-      found live 2026-09-11; the earlier 8-module cold-cache rot class is the
-      same family; root-cause hole: tidy-under-warm-cache). Fix:
-      `#verify-ci` gains a per-module `go mod download` + no-diff assertion
-      (or a `check-modsums` flake app), plus a
-      `TestEveryModulePassesStandaloneVet`-style repo-level meta-test. —
-      source: 01-38 §c/§e3/§f6, 03-43 §f2/§f10, 08-41 §b5/§e6, 08-26 §f4
-      _(Effort: M)_
-- [ ] **Per-finding attribution for the sqlstore lint surface** — sqlclosecheck
-      ×2 / QF1003 / wsl_v5: code-fixed since 09-06 or silenced by the
-      `_test.go` exclusion block? 15-minute diff against the 09-06 pre-session
-      worktree closes the item's story. Also: one canonical golangci-lint
-      binary for ad-hoc runs (PATH v2.13.2 vs the nix pin). — source: 01-38
-      §b1/§b2/§e5
-      _(Effort: S)_
-- [ ] **`aggregate_*` tripwire: permanent mutation fixture** — the 2026-09-11
-      hand-planted mutation proof dies with its status report; a `testdata/`
-      fixture containing a planted code + scanner self-assert makes it a CI
-      fact. — source: 01-38 §e4/§f3
-      _(Effort: S)_
-- [ ] **Live-verify the MySQL shuffle rollout + `-race` the dgraph retry code**
-      — vm-mysql.sh / vm-mysql-nspawn.sh carry `-shuffle=on` syntax-only
-      (nspawn needs root; skip the ~131s VM run was a scope call); the new
-      `retryOnContention` backoff has no race-detector coverage yet (three
-      live seed runs + e2e ran without `-race`; the CI race leg skips without
-      a server). — source: 02-16 §b1/§b2/§f2/§f3
-      _(Effort: S)_
-- [ ] **Document the shared-`dgraph.type` conflict domain + unit-pin
-      `isContentionError`** — every SetJson mutation touches `dgraph.type`, so
-      ALL parallel writers conflict on one Alpha (hard-won, exists nowhere in
-      the docs — gotchas-language-footguns.md + dgraphengine README);
-      error-class matching is currently only live-tested. — source: 02-16
-      §e4/§f7/§f8
-      _(Effort: S)_
+- [x] **Integration-tag lint as a first-class gate** — DONE 2026-09-15.
+      `lint-module` takes an optional extra build-tag arg
+      (`nix run .#lint-module -- <mod> integration`); new CI leg
+      `integration-tag-lint` lints every module shipping `*_integration_test.go`
+      WITH the tag (18 dirs → module roots resolved). First run immediately proved
+      the point: queue/postgres findings hidden behind the tag surfaced (wrapcheck
+      ×37 / wsl_v5 ×2 — owned by the queue session's in-flight work).
+- [x] 🔥 **Kill the missing-go.sum-hash class in CI** — DONE 2026-09-15. The
+      `check-modsums` flake app (`go mod tidy -diff`, no-write) already existed and
+      was in `#verify`; added (1) the `modsums` CI job (plain setup-go, immune to
+      nix-cache throttling) and (2) the repo-level meta-test
+      `TestEveryModuleGoSumIsTidy` (cmd/api-stability; skipped under `-short`). The
+      meta-test caught live drift on its FIRST run (a go.mod edited before its
+      go.sum update — the exact class).
+- [x] **Per-finding attribution for the sqlstore lint surface** — DONE 2026-09-15.
+      Config for the sqlstore surface is UNCHANGED since the 09-06 pre-session commit
+      (`f505ca1ed`): sqlclosecheck/QF1003 have no sqlstore exclusion at either point
+      → those were CODE-FIXED (claiming.go/claiming_mysql.go refactors);
+      wsl_v5's `_test.go` exclusion predates 09-06 (pre-existing policy, unchanged).
+      Canonical binary: both gates use the nix pin (`${pkgs.golangci-lint}`);
+      documented the rule (gotchas-tooling-build.md: `nix run .#lint-module` IS the
+      ad-hoc canonical invocation). INVESTIGATION ALSO FOUND: `gci` had been
+      silently RE-ADDED to formatters (auto-commit `7e711d32d`, 09-14) making the
+      canonical lint gate red repo-wide while `nix fmt` was green — removed again
+      (4th re-add of the §18 war class), and the depguard allow-list block silently
+      DELETED (auto-commit `4a9855ed2`, 09-11, 127 files) — restored + re-verified
+      against all 130 direct deps; `check-lint-config` green again. Both survived
+      only because the gates that catch them had not run — new gotcha recorded:
+      after any auto-commit wave touching `.golangci.yml`, run
+      `nix run .#check-lint-config` before trusting lint results.
+- [x] **`aggregate_*` tripwire: permanent mutation fixture** — DONE 2026-09-15.
+      Fixture `cmd/api-stability/testdata/aggregatetripwire/planted.go` (planted
+      `event.aggregate_not_found` + `storage.parse_aggregate_id` + negative control
+      `listing.aggregate_projection`); new `TestAggregateTripwireScannerBites`
+      asserts the scanner fires exactly on the planted pair and NOT on the control;
+      shared the per-file scan logic with the repo-wide walk so they cannot drift.
+      Mutation-verified: corrupting the fixture → red; restored → green.
+- [x] **Live-verify the MySQL shuffle rollout + `-race` the dgraph retry code**
+      — DONE 2026-09-15 with one documented caveat. Dgraph: full dgraphengine suite
+      GREEN under `-race` (124 subtests, 0 races, 106.9s, seed 71958892287567) —
+      `retryOnContention` now has race-detector coverage. MySQL: the VM shuffle
+      rollout is verified LIVE (real seeds generated + logged + suites executed
+      shuffled: seed 12105120945791 for stack/mysql), but a fully GREEN shuffled VM
+      suite is still pending: both attempts died ~15s into the first suite with
+      transport-level `invalid connection`/`connection reset` on DIFFERENT modules
+      and DIFFERENT seeds (zero assertion failures) — the documented semi-dead-VM /
+      host-contention class (gotchas-tooling-build.md), reproduced while a
+      concurrent session's stalwart e2e VM + a my-run orphaned QEMU (killed,
+      `vm-state-machine` cleaned, port 33070 freed) competed for the box. Rerun in
+      the quiet window tracked by the [BLOCKED] `#verify` item.
+- [x] **Document the shared-`dgraph.type` conflict domain + unit-pin
+      `isContentionError`** — verified ALREADY DONE 2026-09-15 (stale TODO):
+      gotchas-language-footguns.md (SetJson/dgraph.type all-writers-conflict,
+      retryOnContention backoff, RunInTx caller-retry contract) + dgraphengine
+      README "Concurrency & contention" section + `TestIsContentionError`
+      (transaction_retry_test.go, 10 table cases: verbatim/wrapped/negative/
+      case-variants) — all present and green. — source: 02-16 §e4/§f7/§f8
 
 ---
 
