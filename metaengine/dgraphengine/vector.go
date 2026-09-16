@@ -127,6 +127,10 @@ func (e *dgraphEngine) ensureVectorSchema(ctx context.Context) error {
 	e.schemaMu.Lock()
 	defer e.schemaMu.Unlock()
 
+	if e.appliedSchemas == nil {
+		e.appliedSchemas = make(map[string]bool)
+	}
+
 	if e.appliedSchemas["vector"] {
 		return nil
 	}
