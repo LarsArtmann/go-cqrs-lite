@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 // funcSig is the call-shape of one package-level exported function.
@@ -134,6 +135,10 @@ func checkArity(blocks []block, res *resolver) []navIssue {
 }
 
 func checkBlockArity(b block, res *resolver) []navIssue {
+	if strings.Contains(b.src, arityIgnoreDirective) {
+		return nil // explicit per-block opt-out for intentional pseudo-code
+	}
+
 	src := normalizePlaceholders(b.src)
 
 	fset := token.NewFileSet()
@@ -142,6 +147,8 @@ func checkBlockArity(b block, res *resolver) []navIssue {
 	if file == nil {
 		return nil
 	}
+
+	srcLines := strings.Split(src, "\n")
 
 	var issues []navIssue
 
@@ -156,8 +163,14 @@ func checkBlockArity(b block, res *resolver) []navIssue {
 			return true
 		}
 
+		parsedLine := fset.Position(call.Pos()).Line
+
+		if aritySkip(srcLines, parsedLine-lineOffset, call, file, fset) {
+			return true
+		}
+
 		if msg, bad := arityMismatch(alias, symbol, sig, call); bad {
-			line := b.line + fset.Position(call.Pos()).Line - lineOffset - 1
+			line := b.line + parsedLine - lineOffset - 1
 			issues = append(issues, navIssue{File: b.file, Line: line, Msg: msg})
 		}
 
@@ -165,6 +178,53 @@ func checkBlockArity(b block, res *resolver) []navIssue {
 	})
 
 	return issues
+}
+
+// arityIgnoreDirective opts one fenced block out of the arity spot-check
+// (for deliberate pseudo-code). Place it anywhere in the block as a comment.
+const arityIgnoreDirective = "doc-check:ignore-arity"
+
+// antiPatternMarker marks deliberately wrong example calls ("// Wrong",
+// "// Deprecated: ...") — these are documentation BY design, not lies.
+var antiPatternMarker = regexp.MustCompile(
+	`(?i)^\s*//\s*(wrong|deprecated|anti-pattern|incorrect|never|don'?t|do not)\b`)
+
+// aritySkip reports whether a call is an intentional doc shape: an
+// anti-pattern example (marker comment on the same or previous line), or a
+// call whose argument list is comment-only ("f(/* publisher, ... */)") —
+// the comment STANDS FOR the arguments, so no arity is checkable.
+func aritySkip(
+	srcLines []string, srcLine int, call *ast.CallExpr, file *ast.File, fset *token.FileSet,
+) bool {
+	if len(call.Args) == 0 && commentInside(call, file, fset) {
+		return true
+	}
+
+	if srcLine-2 >= 0 && srcLine-2 < len(srcLines) &&
+		antiPatternMarker.MatchString(srcLines[srcLine-2]) {
+		return true
+	}
+
+	if srcLine-1 >= 0 && srcLine-1 < len(srcLines) &&
+		antiPatternMarker.MatchString(srcLines[srcLine-1]) {
+		return true
+	}
+
+	return false
+}
+
+// commentInside reports whether any comment sits between the call's parens.
+func commentInside(call *ast.CallExpr, file *ast.File, fset *token.FileSet) bool {
+	for _, group := range file.Comments {
+		pos := fset.Position(group.Pos())
+		end := fset.Position(group.End())
+
+		if pos.Line >= fset.Position(call.Lparen).Line && end.Line <= fset.Position(call.Rparen).Line {
+			return true
+		}
+	}
+
+	return false
 }
 
 // parseDocSnippet parses a doc fence as whole program, top-level unit, or
@@ -183,7 +243,7 @@ func parseDocSnippet(fset *token.FileSet, src string) (*ast.File, int) {
 	}
 
 	for _, s := range shapes {
-		file, err := parser.ParseFile(fset, "doc.go", s.src, parser.SkipObjectResolution)
+		file, err := parser.ParseFile(fset, "doc.go", s.src, parser.SkipObjectResolution|parser.ParseComments)
 		if err == nil {
 			return file, s.off
 		}
