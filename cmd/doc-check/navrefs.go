@@ -56,8 +56,12 @@ func newNavChecker(repoRoot string) *navChecker {
 func checkFiles(files []string, repoRoot string) []navIssue {
 	nc := newNavChecker(repoRoot)
 
-	// Preload the pool so bare § refs can fall back across documents.
+	// Preload the § pool: only skill-scope docs follow the § convention.
 	for _, f := range files {
+		if !secScoped(f, repoRoot) {
+			continue
+		}
+
 		if dn := nc.load(f); dn != nil {
 			nc.pool[nc.realPath(f)] = dn
 		}
@@ -68,6 +72,28 @@ func checkFiles(files []string, repoRoot string) []navIssue {
 	}
 
 	return nc.issues
+}
+
+// secScoped reports whether a file follows the skill-docs § cross-ref
+// convention (doc-check's default scan set). Project prose (README,
+// TODO_LIST, ROADMAP, ...) uses § too freely-formatted, so § refs there are
+// not validated; TOC anchors are universal and checked everywhere.
+func secScoped(path, repoRoot string) bool {
+	real := path
+
+	if abs, err := filepath.Abs(path); err == nil {
+		real = abs
+	}
+
+	if rel, err := filepath.Rel(repoRoot, real); err == nil {
+		if rel == "AGENTS.md" ||
+			rel == "docs/DOMAIN_LANGUAGE.md" ||
+			rel == "docs/METAENGINE_DOMAIN_LANGUAGE.md" {
+			return true
+		}
+	}
+
+	return strings.Contains(real, "/.agents/skills/")
 }
 
 // load parses one markdown file's navigation surface (nil when unreadable —
@@ -149,7 +175,10 @@ func (nc *navChecker) checkFile(path string) {
 		}
 
 		nc.checkAnchors(path, vl, dir, self)
-		nc.checkSecRefs(path, vl, dir, self)
+
+		if secScoped(path, nc.repoRoot) {
+			nc.checkSecRefs(path, vl, dir, self)
+		}
 	}
 }
 
@@ -174,7 +203,7 @@ func (nc *navChecker) checkAnchors(path string, vl visibleLine, dir string, self
 			continue
 		}
 
-		if base, n, ok := splitDedup(frag); ok && fileSlugs[base] >= n {
+		if base, n, ok := splitDedup(frag); ok && fileSlugs[base] > n {
 			continue // GitHub's duplicate-heading -1/-2 suffix
 		}
 

@@ -1,9 +1,15 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 )
+
+// headingLink strips markdown links/images from heading text — GitHub slugs
+// the RENDERED text, so [Domain Language](DOMAIN_LANGUAGE.md) contributes
+// "Domain Language" to the slug, not its URL.
+var headingLink = regexp.MustCompile(`!?\[([^\]]*)\]\([^)]*\)`)
 
 // heading is one ATX markdown heading with its computed GitHub anchor slug
 // and leading section number ("" when unnumbered).
@@ -24,7 +30,7 @@ type heading struct {
 func githubSlug(text string) string {
 	var b strings.Builder
 
-	for _, r := range strings.TrimSpace(text) {
+	for _, r := range strings.TrimSpace(headingLink.ReplaceAllString(text, "$1")) {
 		switch {
 		case unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_' || r == '-':
 			b.WriteRune(unicode.ToLower(r))

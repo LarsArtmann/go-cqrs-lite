@@ -448,12 +448,14 @@ pattern: same workload, any backend, structured metrics report.
 | Batch write phase       | `SkipBatchWrite` flag + batch write benchmark                                                                  | 🧪     |
 | Phase listing           | `--list-phases` subcommand + `PhaseNames()` export                                                             | 🧪     |
 
-**Coverage:** 88 benchkit + 12 CLI test functions (`-race`). Includes raw sink phase,
+**Coverage:** 151 benchkit + 43 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
 metadata, schema versioning, durability/recovery, replay, `benchtest.RunSuite`,
 analytical profile, Postgres backend, median selection tests, evidence-grade
 metrics (GC pause, write amplification, tail ratio, allocation tracking), soak
-test drift, metaengine benchmark (Memory + SQLite), and mixed workload phase.
+test drift, metaengine benchmark (Memory + SQLite), mixed workload phase, exact
+P100 latency, multi-run repeats with per-metric variation (`RunRepeated`,
+`MetricVariation`, `Reliable`), and multi-sample benchstat output.
 Run-to-run variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
 See [backend comparison](docs/benchmarks/2026-07-31_backend-comparison.md)
 and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
