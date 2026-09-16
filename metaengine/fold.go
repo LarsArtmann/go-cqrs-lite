@@ -305,7 +305,7 @@ func On[E any](sample E, handler any) Fold {
 //
 // Deprecated: Use OnRecordTyped instead. OnRecordTyped provides the same
 // functionality plus access to the full Record context. OnTyped will be
-// removed in the v5.0.0 release.
+// removed in v5.
 func OnTyped[E any](eventType string, sample E, handler any) Fold {
 	return onFold(eventType, sample, handler)
 }
