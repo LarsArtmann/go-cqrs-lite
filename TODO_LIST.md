@@ -5,7 +5,7 @@
 and is **never** duplicated here — when a task finishes it moves to CHANGELOG
 and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
-2026-08-29, 2026-09-06 ×2, 2026-09-08, and 2026-09-11). The Declined section at the
+2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, and 2026-09-16). The Declined section at the
 bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
@@ -629,6 +629,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
+- [ ] **Align `check-doc-links.sh`'s anchor slugger with doc-check's** — the
+      script flags `faq.md#will-the-v5-cut-break-my-imports-what-is-going-away`
+      BROKEN while the link is GitHub-exact (the heading contains `?`;
+      doc-check's slugger — CI-truth — validates it, verified 2026-09-16).
+      Delegate anchor checks to doc-check or port its slug rules; the false
+      positive will otherwise keep getting "fixed" into a wrong slug.
+      _(Effort: S)_
 - [ ] **Skill references: reset recipe covers ALL engines** — SKILL.md +
       references still describe `Store.Reset` as memory-only; the ladder is
       12/12 now. Update the reset recipe + add the
