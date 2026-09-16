@@ -22,6 +22,7 @@ type Store[T any] struct {
 }
 
 // Compile-time contract check; the conformance suite pins the semantics.
+//art-dupl:accept engine scaffolding twin of queue/sqlite open.go; dep-isolated modules, conformance pins semantics
 var _ queue.Store[int] = (*Store[int])(nil)
 
 // StoreOption configures optional Store behavior.

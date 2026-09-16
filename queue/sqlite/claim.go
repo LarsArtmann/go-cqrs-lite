@@ -73,6 +73,7 @@ func (s *Store[T]) ClaimDue(
 
 		return s.stampLease(ctx, tx, id, owner, now, lease, &claimed)
 	})
+	//art-dupl:accept dialect twin of queue/postgres ClaimDue tail; conformance pins lease semantics
 	if err != nil {
 		return queue.Claim[T]{}, err
 	}
@@ -121,6 +122,7 @@ func selectCandidate(
 func (s *Store[T]) finalizeReclaim(
 	ctx context.Context, tx *sql.Tx, id, prevOwner, owner string, now time.Time,
 ) (bool, error) {
+	//art-dupl:accept dialect twin of queue/postgres finalizeReclaim; conformance pins reclaim semantics
 	requested, err := cancelRequestedTx(ctx, tx, id)
 	if err != nil {
 		return false, err

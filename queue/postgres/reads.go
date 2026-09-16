@@ -92,6 +92,7 @@ func (s *Store[T]) scanTask(row rowScanner) (task.Task[T], error) {
 
 	t.Payload = decoded
 
+	//art-dupl:accept dialect twin of queue/sqlite Get decode tail; only the driver surface differs
 	return t, nil
 }
 
@@ -149,6 +150,7 @@ func listWhere(f queue.Filter) (string, []any) {
 		}
 	}
 
+	//art-dupl:accept dialect twin of queue/sqlite listWhere tail; $N vs ? placeholders only
 	return strings.Join(where, " AND "), args
 }
 
@@ -169,6 +171,7 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 	}
 
 	rows, err := s.pool.Query(ctx, q, args...)
+	//art-dupl:accept dialect twin of queue/sqlite List query prologue
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +188,7 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 		out = append(out, t)
 	}
 
+	//art-dupl:accept dialect twin of queue/sqlite List scan loop
 	return out, rows.Err()
 }
 
@@ -202,6 +206,7 @@ func (s *Store[T]) CountTasks(ctx context.Context, f queue.Filter) (int, error) 
 // StatusCounts counts tasks per status in one GROUP BY.
 func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error) {
 	rows, err := s.pool.Query(ctx, `SELECT status, COUNT(*) FROM tasks GROUP BY status`)
+	//art-dupl:accept dialect twin of queue/sqlite StatusCounts scan loop
 	if err != nil {
 		return nil, err
 	}

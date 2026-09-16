@@ -123,6 +123,7 @@ func (s *suite) pinAfterCursor(t *testing.T) {
 // pinOrphaned pins MarkOrphaned: observation only, idempotent, task
 // stays Running.
 func (s *suite) pinOrphaned(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})

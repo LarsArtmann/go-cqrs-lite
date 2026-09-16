@@ -116,6 +116,7 @@ func (s *suite) pinEnqueueDefaults(t *testing.T) {
 // pinRoundtrip pins the happy path: pending → claim → running → complete,
 // with the facts landing in the same transactions.
 func (s *suite) pinRoundtrip(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
@@ -179,6 +180,7 @@ func (s *suite) pinNotFound(t *testing.T) {
 // pinLeaseGuards pins that finalize calls are lease-checked: wrong owner
 // and expired leases get ErrLeaseNotHeld.
 func (s *suite) pinLeaseGuards(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
@@ -225,6 +227,7 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 
 // pinHeartbeat pins lease extension.
 func (s *suite) pinHeartbeat(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
@@ -279,6 +282,7 @@ func (s *suite) pinCancel(t *testing.T) {
 
 // pinStatusGuards pins ErrInvalidTransition on wrong-source mutations.
 func (s *suite) pinStatusGuards(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	running := e.enqueue(t, task.New[Payload]{Type: "sh"})

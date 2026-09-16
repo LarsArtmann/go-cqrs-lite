@@ -34,6 +34,7 @@ func cancelRequestedReasonTx(ctx context.Context, tx pgx.Tx, id string) (string,
 		return "", nil
 	}
 
+	//art-dupl:accept dialect twin of queue/sqlite cancelRequestedReasonTx; driver surface differs
 	if err != nil {
 		return "", err
 	}

@@ -153,6 +153,7 @@ func (s *suite) pinPermanent(t *testing.T) {
 // pinEvidence pins the forensics contract: evidence bytes ride the
 // Failed fact's Detail verbatim — big enough to be a real tail.
 func (s *suite) pinEvidence(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})

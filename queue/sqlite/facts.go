@@ -33,6 +33,7 @@ func (s *Store[T]) appendFact(ctx context.Context, tx *sql.Tx, f facts.Fact) err
 		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		f.Time.UnixMilli(), f.TaskID, string(f.Type), f.Owner, f.Attempt, f.Error, detail)
 
+	//art-dupl:accept dialect twin of queue/postgres journal prologue; conformance pins journal semantics
 	return err
 }
 
@@ -48,7 +49,9 @@ func (s *Store[T]) Facts(ctx context.Context, after int64, limit int) ([]facts.F
 		args = append(args, limit)
 	}
 
+	//art-dupl:accept rows-query prologue idiom (Facts/FactsForTask); not domain logic
 	rows, err := s.db.QueryContext(ctx, query, args...)
+	//art-dupl:accept dialect twin of queue/postgres Facts flow
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +75,9 @@ func (s *Store[T]) FactsForTask(ctx context.Context, id task.ID, limit int) ([]f
 		query += ` ORDER BY seq ASC`
 	}
 
+	//art-dupl:accept rows-query prologue idiom (Facts/FactsForTask); not domain logic
 	rows, err := s.db.QueryContext(ctx, query, args...)
+	//art-dupl:accept dialect twin of queue/postgres FactsForTask tail-read flow
 	if err != nil {
 		return nil, err
 	}
@@ -165,6 +170,7 @@ func scanFacts(rows *sql.Rows) ([]facts.Fact, error) {
 		out = append(out, f)
 	}
 
+	//art-dupl:accept dialect twin of queue/postgres scanFacts tail; conformance pins fact decoding
 	return out, rows.Err()
 }
 

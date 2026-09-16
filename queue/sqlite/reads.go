@@ -93,6 +93,7 @@ func (s *Store[T]) scanTaskRow(r scanner) (task.Task[T], error) {
 
 	t.Payload = decoded
 
+	//art-dupl:accept dialect twin of queue/postgres Get decode tail; only the driver surface differs
 	return t, nil
 }
 
@@ -146,6 +147,7 @@ func listWhere(f queue.Filter) (string, []any) {
 		args = append(args, like, like, like, like, like, like)
 	}
 
+	//art-dupl:accept dialect twin of queue/postgres listWhere tail; $N vs ? placeholders only
 	return strings.Join(where, " AND "), args
 }
 
@@ -172,6 +174,7 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 	}
 
 	rows, err := s.db.QueryContext(ctx, q, args...)
+	//art-dupl:accept dialect twin of queue/postgres List query prologue
 	if err != nil {
 		return nil, err
 	}
@@ -188,6 +191,7 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 		out = append(out, t)
 	}
 
+	//art-dupl:accept dialect twin of queue/postgres List scan loop
 	return out, rows.Err()
 }
 
@@ -205,6 +209,7 @@ func (s *Store[T]) CountTasks(ctx context.Context, f queue.Filter) (int, error) 
 // StatusCounts counts tasks per status in one GROUP BY.
 func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT status, COUNT(*) FROM tasks GROUP BY status`)
+	//art-dupl:accept dialect twin of queue/postgres StatusCounts scan loop
 	if err != nil {
 		return nil, err
 	}

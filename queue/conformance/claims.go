@@ -94,6 +94,7 @@ func claimer(w int) string {
 // the task, and the journal explains the owner change with a Released
 // fact for the previous holder.
 func (s *suite) pinExpiryReclaim(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})

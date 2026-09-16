@@ -18,6 +18,7 @@ import (
 // stored task is returned unchanged — no duplicate row, no duplicate
 // fact (idempotent enqueue).
 func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], error) {
+	//art-dupl:accept dialect twin of queue/postgres Enqueue flow; conformance pins idempotency
 	n = n.Normalize()
 	if n.Type == "" {
 		return task.Task[T]{}, queue.ErrEmptyType

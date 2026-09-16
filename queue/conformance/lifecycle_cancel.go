@@ -12,6 +12,7 @@ import (
 // pinCooperativeCancel pins the request-flag/finalize pair and its
 // idempotency.
 func (s *suite) pinCooperativeCancel(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})
@@ -73,6 +74,7 @@ func (s *suite) pinCooperativeCancel(t *testing.T) {
 // task got a cancel request never finalizes, the reclaim does it — the
 // task is never re-executed after its cancel was requested.
 func (s *suite) pinReclaimFinalizesCancel(t *testing.T) {
+	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	tk := e.enqueue(t, task.New[Payload]{Type: "sh"})

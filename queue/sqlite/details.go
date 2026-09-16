@@ -33,6 +33,7 @@ func cancelRequestedReasonTx(ctx context.Context, tx *sql.Tx, id string) (string
 		return "", nil
 	}
 
+	//art-dupl:accept dialect twin of queue/postgres cancelRequestedReasonTx; driver surface differs
 	if err != nil {
 		return "", err
 	}

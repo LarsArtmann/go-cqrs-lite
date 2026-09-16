@@ -17,6 +17,7 @@ import (
 // Enqueue persists a new task and records task.enqueued; dedup keys make
 // it idempotent (the partial unique index is the arbiter).
 func (s *Store[T]) Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], error) {
+	//art-dupl:accept dialect twin of queue/sqlite Enqueue flow; conformance pins idempotency
 	n = n.Normalize()
 	if n.Type == "" {
 		return task.Task[T]{}, queue.ErrEmptyType
