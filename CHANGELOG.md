@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Deprecated — planner-time fold inference (`metaengine.Infer` / `metaengine.InferFromNamedEvents`) — 2026-09-16
+
+- **`metaengine.Infer(samples...)` and `metaengine.InferFromNamedEvents(...)` are
+  deprecated, removal at v5.** The docs have always steered production models to
+  explicit `OnRecord`/`AutoInsert` folds (inference hides projection semantics
+  behind naming conventions and reflection); a prototyping-only surface should
+  not survive the v5 API cut. Both keep working unchanged through v4.x —
+  `AutoCRUDByConvention[R]` and explicit folds are the port paths (ADR-0116
+  Layer 1). Decision recorded from the 2026-09-13 skill-docs audit.
+
 ### Fixed — lint-green `queue` family + fifth gci/depguard config recovery — 2026-09-16
 
 - **`queue`, `queue/conformance`, `queue/sqlite`, `queue/postgres` lint-green**

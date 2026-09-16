@@ -12,7 +12,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.32.0
 	github.com/onsi/gomega v1.42.1
 	go.uber.org/goleak v1.3.0
-	modernc.org/sqlite v1.58.0
+	modernc.org/sqlite v1.59.0
 	pgregory.net/rapid v1.3.0
 )
 
