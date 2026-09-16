@@ -11,7 +11,14 @@
 # regression). Exit codes: 0 = within tolerance/warn, 1 = drift >= threshold
 # (hard fail), 2 = usage/environment error.
 #
-# Usage: scripts/calibration-drift.sh [--module DIR ...]
+# CI mode (--baseline FILE): compare against a persisted CI-baseline artifact
+# (`module|label|ns_per_unit` rows recorded on the same runner class) instead
+# of the absolute shipped constants — shared-runner noise routinely pushes
+# rows past 100% of the shipped constant without being drift, so CI compares
+# apples-to-apples with its own previous run (same pattern as benchmarks.yml's
+# baseline artifact). Regenerate the artifact with --write-baseline FILE.
+#
+# Usage: scripts/calibration-drift.sh [--baseline FILE | --write-baseline FILE] [MODULE ...]
 # Default modules: metaengine/{badger,bbolt,pebble,sqlite}engine (in-memory,
 # no DSN needed). count=3 per bench, run 1 discarded, median of the rest.
 set -euo pipefail
@@ -22,9 +29,34 @@ COUNT=3
 
 ALL_MODULES=(badgerengine bboltengine pebbleengine sqliteengine)
 
-MODULES=("$@")
+BASELINE_FILE=""
+WRITE_BASELINE_FILE=""
+
+MODULES=()
+while [ $# -gt 0 ]; do
+	case "$1" in
+	--baseline)
+		BASELINE_FILE="${2:?--baseline requires a file argument}"
+		shift 2
+		;;
+	--write-baseline)
+		WRITE_BASELINE_FILE="${2:?--write-baseline requires a file argument}"
+		shift 2
+		;;
+	*)
+		MODULES+=("$1")
+		shift
+		;;
+	esac
+done
+
 if [ "${#MODULES[@]}" -eq 0 ]; then
 	MODULES=("${ALL_MODULES[@]}")
+fi
+
+if [ -n "$BASELINE_FILE" ] && [ -n "$WRITE_BASELINE_FILE" ]; then
+	echo "::error::--baseline and --write-baseline are mutually exclusive" >&2
+	exit 2
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -38,6 +70,22 @@ if ! bash "$REPO_ROOT/scripts/calibration-gate.sh" --max-load "${CALIB_MAX_LOAD:
 	echo "::error::calibration-drift aborted by the load gate — re-run in a quiet window" >&2
 	exit 2
 fi
+
+# TMPDIR filesystem gate (2026-09-15): bbolt benches need tmpfs-backed temp
+# dirs — on CoW filesystems (btrfs/ZFS) the mmap+fsync workload times out
+# (2026-09-04 gotcha) and poisons the medians. Refuse loudly instead of
+# emitting bogus drift numbers. Override: CALIB_ALLOW_COW=1. Test hook:
+# CALIB_FAKE_TMPFS_TYPE forces the detected type (harness only).
+tmpfs_type="${CALIB_FAKE_TMPFS_TYPE:-$(stat -f -c %T "${TMPDIR:-/tmp}")}"
+case "$tmpfs_type" in
+btrfs | zfs)
+	if [ "${CALIB_ALLOW_COW:-0}" != "1" ]; then
+		echo "::error::TMPDIR (${TMPDIR:-/tmp}) is on $tmpfs_type (CoW) — calibration benches need tmpfs (export TMPDIR=/tmp) or CALIB_ALLOW_COW=1" >&2
+		exit 2
+	fi
+	echo "::warning::TMPDIR on $tmpfs_type (CoW) — proceeding via CALIB_ALLOW_COW=1" >&2
+	;;
+esac
 
 declare -A CALIB # key: "<module>|<label>" → "<expected_ns_per_unit>|<units_per_op>"
 
@@ -67,6 +115,31 @@ dump_constants() {
 for mod in "${MODULES[@]}"; do
 	dump_constants "$mod"
 done
+
+# CI-baseline artifact: rows `module|label|ns_per_unit`. In --baseline mode
+# these rows replace the shipped constants as the comparison target.
+declare -A BASELINE # key: "<module>|<label>" → ns_per_unit
+
+if [ -n "$BASELINE_FILE" ]; then
+	if [ ! -f "$BASELINE_FILE" ]; then
+		echo "::error::baseline artifact not found: $BASELINE_FILE" >&2
+		exit 2
+	fi
+
+	while IFS='|' read -r bmod blabel bns; do
+		[ -z "$bmod" ] && continue
+		BASELINE["$bmod|$blabel"]="$bns"
+	done <"$BASELINE_FILE"
+
+	if [ "${#BASELINE[@]}" -eq 0 ]; then
+		echo "::error::baseline artifact has no rows: $BASELINE_FILE" >&2
+		exit 2
+	fi
+fi
+
+if [ -n "$WRITE_BASELINE_FILE" ]; then
+	: >"$WRITE_BASELINE_FILE"
+fi
 
 # median of a numerically sorted list
 median() {
@@ -113,15 +186,27 @@ while IFS='|' read -r mod suffix label; do
 
 	$skip && continue
 
-	expected="${CALIB[$mod | $label]:-}"
-	if [ -z "$expected" ]; then
+	pair="${CALIB["$mod|$label"]:-}"
+	if [ -z "$pair" ]; then
 		echo "::error::no shipped constant for $mod $label"
 		FAILED=1
 		continue
 	fi
 
-	expected_ns="${expected%%|*}"
-	units="${expected##*|}"
+	expected_ns="${pair%%|*}"
+	units="${pair##*|}"
+
+	if [ -n "$BASELINE_FILE" ]; then
+		baseline_ns="${BASELINE["$mod|$label"]:-}"
+		if [ -z "$baseline_ns" ]; then
+			echo "::error::no baseline row for $mod $label — regenerate the artifact with --write-baseline"
+			FAILED=1
+			continue
+		fi
+		echo "=== $mod $label (baseline ${baseline_ns} ns/unit, shipped ~${expected_ns}) ==="
+	else
+		echo "=== $mod $label (shipped ~${expected_ns} ns/row) ==="
+	fi
 
 	dir="$REPO_ROOT/metaengine/$mod"
 	# Engine-name casing fixups (Badger/Bbolt/Pebble/SQLite bench prefixes).
@@ -138,7 +223,6 @@ while IFS='|' read -r mod suffix label; do
 		bench="${bench}Get\$"
 	fi
 
-	echo "=== $mod $label (shipped ~${expected_ns} ns/row) ==="
 	log="$(mktemp)"
 
 	if ! (cd "$dir" && GOWORK=off go test -tags "goexperiment.jsonv2" \
@@ -165,7 +249,24 @@ while IFS='|' read -r mod suffix label; do
 	printf '  fresh median: %s ns/op -> %s ns/unit | shipped %s | drift %s%%\n' \
 		"$med_ns" "$med_units" "$expected_ns" "$drift"
 
-	if ((abs_drift >= THRESHOLD_FAIL)); then
+	if [ -n "$WRITE_BASELINE_FILE" ]; then
+		printf '%s|%s|%s\n' "$mod" "$label" "$med_units" >>"$WRITE_BASELINE_FILE"
+		continue
+	fi
+
+	if [ -n "$BASELINE_FILE" ]; then
+		base_drift="$(awk -v m="$med_units" -v e="$baseline_ns" 'BEGIN { printf "%.1f", (m - e) * 100 / e }')"
+		base_abs="${base_drift%%.*}"
+		base_abs="${base_abs#-}"
+		printf '  baseline median: %s ns/unit | drift vs baseline %s%%\n' "$baseline_ns" "$base_drift"
+
+		if ((base_abs >= THRESHOLD_FAIL)); then
+			echo "::error::$mod $label drifted ${base_drift}% vs the CI baseline (>${THRESHOLD_FAIL}%): investigate this runner class"
+			FAILED=1
+		elif ((base_abs > THRESHOLD_WARN)); then
+			echo "::warning::$mod $label drifted ${base_drift}% vs the CI baseline (>${THRESHOLD_WARN}%)"
+		fi
+	elif ((abs_drift >= THRESHOLD_FAIL)); then
 		echo "::error::$mod $label drifted ${drift}% (>${THRESHOLD_FAIL}%): recalibrate or fix the regression"
 		FAILED=1
 	elif ((abs_drift > THRESHOLD_WARN)); then
