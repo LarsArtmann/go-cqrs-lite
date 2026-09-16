@@ -105,11 +105,23 @@ func (e *sqliteEngine) VectorSearch(
 	k int,
 	metric string,
 ) ([]metaengine.VectorResult, error) {
-	if e.vectorSQL {
+	if e.vectorSQL() {
 		return e.vectorSearchPushdown(ctx, collection, query, k, metric)
 	}
 
 	return e.vectorScan(ctx, collection, query, k, metric, nil)
+}
+
+// VectorSearchPath reports how VectorSearch executes: SQL pushdown on libSQL
+// drivers, Go-scored scan on modernc (implements [metaengine.VectorPathReporter]
+// so ExplainPlan/Doctor surface the probed path). Filtered searches always
+// scan regardless of the probe result.
+func (e *sqliteEngine) VectorSearchPath() string {
+	if e.vectorSQL() {
+		return metaengine.VectorPathPushdown
+	}
+
+	return metaengine.VectorPathScan
 }
 
 func (e *sqliteEngine) vectorSearchPushdown(
