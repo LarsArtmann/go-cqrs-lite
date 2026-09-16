@@ -285,7 +285,7 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 		t.Fatalf("json.Unmarshal: %v", err)
 	}
 
-	assertSoakResultRoundTrip(t, original, decoded)
+	assertSoakResultRoundTrip(t, *original, decoded)
 
 	for i := range original.Samples {
 		assertSoakSampleRoundTrip(t, i, original.Samples[i], decoded.Samples[i])
