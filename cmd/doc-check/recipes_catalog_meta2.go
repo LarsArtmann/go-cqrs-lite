@@ -101,4 +101,13 @@ var recipeCatalogB2 = map[string]recipeSpec{
 		preamble: "var store *metaengine.Store\nvar meter cqrsotel.Meter\n",
 		trailers: "_ = obs",
 	},
+	"### 2.36 Watch Dgraph Contention Retries (dgraphengine observer) #1": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4"`,
+			`"sync/atomic"`,
+		},
+		preamble: "var addr string\nvar contentionRetries atomic.Int64\n",
+		trailers: "_ = eng",
+		errFunc:  true,
+	},
 }

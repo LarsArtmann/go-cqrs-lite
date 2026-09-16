@@ -2389,3 +2389,27 @@ is never returned to callers.
 whether a rebuild is in flight, failed (and why), or completed without
 inferring it from quarantine state alone.
 
+
+### 2.36 Watch Dgraph Contention Retries (dgraphengine observer)
+
+`retryOnContention` retries transaction-aborted writes SILENTLY — correct
+default, blind spot in production: every parallel Dgraph writer conflicts on
+the shared `dgraph.type` predicate under load, and without visibility a
+contention storm looks like "slow but healthy". `WithContentionObserver`
+fires your callback once per retry (attempt starts at 1):
+
+```go
+eng, err := dgraphengine.New(addr,
+    dgraphengine.WithContentionObserver(func(attempt int) {
+        contentionRetries.Add(1) // wire OTel here: cqrs.dgraph.contention_retry
+    }))
+if err != nil {
+    return err
+}
+```
+
+The engine deliberately takes a callback, not a metrics library (production
+dep budget is 3, enforced by `check-arch`) — wire OTel, Prometheus, or a log
+line from the outside. Escalate to `metaengine`'s health machinery when
+retries pile up: quarantine/failover (§2.35) is driven by returned errors,
+which contention never produces until the backoff budget is exhausted.
