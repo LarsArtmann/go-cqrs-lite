@@ -88,6 +88,7 @@ func restartSeedStreamMapMultimapVector(
 	ctx context.Context,
 	eng metaengine.Engine,
 ) {
+	//art-dupl:accept seed/verify helpers intentionally share the StreamLog capability-guard shape
 	t.Helper()
 
 	slb, ok := eng.(metaengine.StreamLogBackend)

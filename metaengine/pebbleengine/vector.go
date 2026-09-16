@@ -28,6 +28,7 @@ func (e *pebbleEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	//art-dupl:accept dialect twin — dimension-lock insert body mirrors the sibling LSM engine (dep-isolated modules)
 	established, err := e.firstVectorDimension(collection)
 	if err != nil {
 		return err //nolint:wrapcheck // wrapped by the probe helper

@@ -124,6 +124,7 @@ const vectorSchema = `
 // ensureVectorSchema lazily applies the vector predicate schema on first
 // vector use (appliedSchemas makes the steady state one map lookup).
 func (e *dgraphEngine) ensureVectorSchema(ctx context.Context) error {
+	//art-dupl:accept mirrors ensureEdgeSchema — lazy lazy-Apply pattern is intentional per-collection schema plumbing
 	e.schemaMu.Lock()
 	defer e.schemaMu.Unlock()
 
