@@ -19,7 +19,7 @@ import (
 func checkArity(blocks []block, res *resolver) []navIssue {
 	res.ensureAliasDirs()
 
-	var issues []navIssue
+	issues := make([]navIssue, 0, len(blocks))
 
 	for _, b := range blocks {
 		issues = append(issues, checkBlockArity(b, res)...)
@@ -65,6 +65,7 @@ func checkBlockArity(b block, res *resolver) []navIssue {
 
 		if msg, bad := arityMismatch(alias, symbol, sig, call); bad {
 			line := b.line + parsedLine - lineOffset - 1
+
 			issues = append(issues, navIssue{File: b.file, Line: line, Msg: msg})
 		}
 
@@ -167,27 +168,27 @@ func parseDocSnippet(fset *token.FileSet, src string) (*ast.File, int) {
 
 // hoistImports splits leading import declarations from a snippet so
 // "import + statements" fences can parse as one synthetic file.
-func hoistImports(src string) (importsBlock, rest string, hoisted int) {
+func hoistImports(src string) (string, string, int) {
 	var (
 		imp   []string
 		body  []string
 		inImp bool
 	)
 
-	for _, ln := range strings.Split(src, "\n") {
-		t := strings.TrimSpace(ln)
+	for line := range strings.SplitSeq(src, "\n") {
+		t := strings.TrimSpace(line)
 
 		switch {
 		case inImp:
-			imp = append(imp, ln)
+			imp = append(imp, line)
 			if strings.Contains(t, ")") {
 				inImp = false
 			}
 		case strings.HasPrefix(t, "import"):
-			imp = append(imp, ln)
+			imp = append(imp, line)
 			inImp = strings.Contains(t, "(")
 		default:
-			body = append(body, ln)
+			body = append(body, line)
 		}
 	}
 

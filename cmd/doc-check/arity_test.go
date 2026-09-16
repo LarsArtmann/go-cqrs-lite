@@ -91,7 +91,7 @@ func TestCheckArity_MismatchShapes(t *testing.T) {
 	for _, tc := range cases {
 		blocks := []block{
 			{file: "doc.md", line: 7, src: tc.src},
-		} //nolint:exhaustruct_v5 // single-purpose fixture
+		}
 
 		issues := checkArity(blocks, res)
 
@@ -131,7 +131,7 @@ func TestCheckArity_MethodsAndAmbiguousPackagesSkipped(t *testing.T) {
 
 	blocks := []block{
 		{file: "doc.md", line: 1, src: src},
-	} //nolint:exhaustruct_v5 // single-purpose fixture
+	}
 
 	if issues := checkArity(blocks, res); len(issues) != 0 {
 		t.Fatalf("ambiguous/unqualified/method shapes must be skipped, got %+v", issues)

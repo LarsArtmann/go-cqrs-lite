@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -15,9 +16,9 @@ var (
 var movedBulletRe = regexp.MustCompile(`^\s*>?\s*[-*]\s*§[0-9].*moved to\b`)
 
 // checkAnchors validates every markdown link that carries a #fragment.
-func (nc *navChecker) checkAnchors(path string, vl visibleLine, dir string, self *docNav) {
-	for _, m := range linkTarget.FindAllStringSubmatchIndex(vl.text, -1) {
-		target := vl.text[m[2]:m[3]]
+func (nc *navChecker) checkAnchors(path string, vis visibleLine, dir string, self *docNav) {
+	for _, m := range linkTarget.FindAllStringSubmatchIndex(vis.text, -1) {
+		target := vis.text[m[2]:m[3]]
 
 		if !anchorWorthy(target) {
 			continue
@@ -37,7 +38,7 @@ func (nc *navChecker) checkAnchors(path string, vl visibleLine, dir string, self
 			continue // GitHub's duplicate-heading -1/-2 suffix
 		}
 
-		nc.issue(path, vl.num, fmt.Sprintf("broken anchor %q -> no heading slugs to it", target))
+		nc.issue(path, vis.num, fmt.Sprintf("broken anchor %q -> no heading slugs to it", target))
 	}
 }
 
@@ -74,8 +75,8 @@ func (nc *navChecker) targetSlugs(target, dir string, self *docNav) (map[string]
 	}
 
 	resolved := filepath.Join(dir, target[:idx])
-	if dn := nc.load(resolved); dn != nil {
-		return dn.slugs, true
+	if doc := nc.load(resolved); doc != nil {
+		return doc.slugs, true
 	}
 
 	return nil, false
@@ -89,13 +90,8 @@ func splitDedup(frag string) (string, int, bool) {
 		return "", 0, false
 	}
 
-	n := 0
-
-	for _, r := range m[2] {
-		n = n*10 + int(r-'0')
-	}
-
-	if n < 1 {
+	n, err := strconv.Atoi(m[2])
+	if err != nil || n < 1 {
 		return "", 0, false
 	}
 

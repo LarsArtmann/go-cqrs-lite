@@ -233,8 +233,8 @@ type jsonSummary struct {
 	References  int         `json:"references"`
 	Packages    int         `json:"packages"`
 	Broken      []brokenRef `json:"broken"`
-	NavIssues   []navIssue  `json:"nav_issues"`
-	ArityIssues []navIssue  `json:"arity_issues"`
+	NavIssues   []navIssue  `json:"navIssues"`
+	ArityIssues []navIssue  `json:"arityIssues"`
 	Warnings    []string    `json:"warnings"`
 	Ambiguities []string    `json:"ambiguities"`
 }

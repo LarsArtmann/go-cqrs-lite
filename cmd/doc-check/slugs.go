@@ -42,45 +42,29 @@ func githubSlug(text string) string {
 	return b.String()
 }
 
-// headingNumberRe picks the leading dotted section number of a heading text:
+// sectionNumberRe matches the leading dotted section number of a heading:
 // "2.13b Retry with Backoff" -> "2.13b", "2. Composition Recipes" -> "2".
-// A trailing "." or ":" separator is consumed; a following letter suffix
-// (2.21b) is part of the number.
+var sectionNumberRe = regexp.MustCompile(`^\d+(?:\.\d+)*[a-z]*`)
+
+// sectionNumberPrefix returns the leading dotted section number of heading
+// text (with its lowercase suffix, if any), "" when there is none. The
+// number must end at a word boundary ("2.13b Retry" yes, "2nd" no).
 var sectionNumberPrefix = func(text string) string {
-	i := 0
-
-	for i < len(text) && text[i] >= '0' && text[i] <= '9' {
-		for i < len(text) && text[i] >= '0' && text[i] <= '9' {
-			i++
-		}
-
-		if i < len(text) && text[i] == '.' && i+1 < len(text) && text[i+1] >= '0' &&
-			text[i+1] <= '9' {
-			i++ // consume the dot, keep scanning digits
-
-			continue
-		}
-
-		break
-	}
-
-	if i == 0 {
+	m := sectionNumberRe.FindString(text)
+	if m == "" {
 		return ""
 	}
 
-	// Letter suffix (2.21b), then the number must end at a word boundary.
-	end := i
+	if end := len(m); end < len(text) {
+		switch text[end] {
+		case '.', ':', ' ', '\t':
+			return m
+		}
 
-	for end < len(text) && text[end] >= 'a' && text[end] <= 'z' {
-		end++
-	}
-
-	if end < len(text) && text[end] != '.' && text[end] != ':' && text[end] != ' ' &&
-		text[end] != '\t' {
 		return ""
 	}
 
-	return text[:end]
+	return m
 }
 
 // parseHeadings extracts ATX headings outside fenced code blocks, in order.
@@ -120,7 +104,7 @@ func parseHeadingLine(line string, lineNo int) (heading, bool) {
 
 	if depth == 0 || depth > 6 || depth >= len(line) ||
 		(line[depth] != ' ' && line[depth] != '\t') {
-		return heading{}, false
+		return heading{}, false //nolint:exhaustruct_v5 // zero heading = not found
 	}
 
 	text := strings.TrimRight(strings.TrimLeft(line[depth:], " \t"), " \t")

@@ -48,12 +48,12 @@ type navChecker struct {
 }
 
 func newNavChecker(repoRoot string) *navChecker {
-	return &navChecker{repoRoot: repoRoot, pool: make(map[string]*docNav)}
+	return &navChecker{repoRoot: repoRoot, pool: make(map[string]*docNav), issues: nil}
 }
 
 // checkFiles validates every checked file and returns the issues found.
 func checkFiles(files []string, repoRoot string) []navIssue {
-	nc := newNavChecker(repoRoot)
+	checker := newNavChecker(repoRoot)
 
 	// Preload the § pool: only skill-scope docs follow the § convention.
 	for _, f := range files {
@@ -61,30 +61,30 @@ func checkFiles(files []string, repoRoot string) []navIssue {
 			continue
 		}
 
-		if dn := nc.load(f); dn != nil {
-			nc.pool[nc.realPath(f)] = dn
+		if doc := checker.load(f); doc != nil {
+			checker.pool[checker.realPath(f)] = doc
 		}
 	}
 
 	for _, f := range files {
-		nc.checkFile(f)
+		checker.checkFile(f)
 	}
 
-	return nc.issues
+	return checker.issues
 }
 
 // secScoped reports whether a file follows the skill-docs § cross-ref
-// convention (doc-check's default scan set). Project prose (README,
-// TODO_LIST, ROADMAP, ...) uses § too freely-formatted, so § refs there are
-// not validated; TOC anchors are universal and checked everywhere.
+// convention (doc-check's default scan set). Project planning docs (README,
+// ROADMAP, ...) use § too freely-formatted, so § refs there are not
+// validated; TOC anchors are universal and checked everywhere.
 func secScoped(path, repoRoot string) bool {
-	real := path
+	resolved := path
 
 	if abs, err := filepath.Abs(path); err == nil {
-		real = abs
+		resolved = abs
 	}
 
-	if rel, err := filepath.Rel(repoRoot, real); err == nil {
+	if rel, err := filepath.Rel(repoRoot, resolved); err == nil {
 		if rel == "AGENTS.md" ||
 			rel == "docs/DOMAIN_LANGUAGE.md" ||
 			rel == "docs/METAENGINE_DOMAIN_LANGUAGE.md" {
@@ -92,35 +92,32 @@ func secScoped(path, repoRoot string) bool {
 		}
 	}
 
-	return strings.Contains(real, "/.agents/skills/")
+	return strings.Contains(resolved, "/.agents/skills/")
 }
 
 // load parses one markdown file's navigation surface (nil when unreadable —
 // plain file existence is check-doc-links.sh's domain, not ours).
 func (nc *navChecker) load(path string) *docNav {
-	real := nc.realPath(path)
+	resolved := nc.realPath(path)
 
-	if dn, ok := nc.pool[real]; ok {
-		return dn
+	if doc, ok := nc.pool[resolved]; ok {
+		return doc
 	}
 
-	data, err := os.ReadFile(real)
+	data, err := os.ReadFile(resolved)
 	if err != nil {
 		return nil
 	}
 
-	dn := &docNav{
-		headings: parseHeadings(string(data)),
-		slugs:    map[string]int{},
-		numbers:  map[string]bool{},
-	}
-	dn.slugs = slugCounts(dn.headings)
-	dn.numbers = numberSet(dn.headings)
+	doc := &docNav{headings: parseHeadings(string(data))}
+	doc.slugs = slugCounts(doc.headings)
+	doc.numbers = numberSet(doc.headings)
 
-	nc.pool[real] = dn
+	nc.pool[resolved] = doc
 
 	seen := map[string]int{}
-	for _, h := range dn.headings {
+
+	for _, h := range doc.headings {
 		if h.number == "" {
 			continue
 		}
@@ -135,7 +132,7 @@ func (nc *navChecker) load(path string) *docNav {
 		seen[h.number] = h.line
 	}
 
-	return dn
+	return doc
 }
 
 // realPath resolves symlinks so relative targets resolve against the file's
@@ -145,8 +142,8 @@ func (nc *navChecker) realPath(path string) string {
 		path = abs
 	}
 
-	if real, err := filepath.EvalSymlinks(path); err == nil {
-		return real
+	if resolved, err := filepath.EvalSymlinks(path); err == nil {
+		return resolved
 	}
 
 	return path
@@ -164,39 +161,39 @@ func (nc *navChecker) checkFile(path string) {
 		return
 	}
 
-	real := nc.realPath(path)
-	dir := filepath.Dir(real)
+	resolved := nc.realPath(path)
+	dir := filepath.Dir(resolved)
 
-	data, err := os.ReadFile(real)
+	data, err := os.ReadFile(resolved)
 	if err != nil {
 		return
 	}
 
-	for _, vl := range visibleLines(string(data)) {
-		if movedBulletRe.MatchString(vl.text) {
+	for _, vis := range visibleLines(string(data)) {
+		if movedBulletRe.MatchString(vis.text) {
 			continue // TOC bullet pointing at a section that moved away
 		}
 
-		nc.checkAnchors(path, vl, dir, self)
+		nc.checkAnchors(path, vis, dir, self)
 
 		if secScoped(path, nc.repoRoot) {
-			nc.checkSecRefs(path, vl, dir, self)
+			nc.checkSecRefs(path, vis, dir, self)
 		}
 	}
 }
 
 // checkSecRefs validates every § cross-reference on one visible line.
-func (nc *navChecker) checkSecRefs(path string, vl visibleLine, dir string, self *docNav) {
-	for _, loc := range secToken.FindAllStringIndex(vl.text, -1) {
-		token := vl.text[loc[0]:loc[1]]
+func (nc *navChecker) checkSecRefs(path string, vis visibleLine, dir string, self *docNav) {
+	for _, loc := range secToken.FindAllStringIndex(vis.text, -1) {
+		token := vis.text[loc[0]:loc[1]]
 
-		target, ok := nc.secTarget(vl.text[:loc[0]], dir, path)
+		target, ok := nc.secTarget(vis.text[:loc[0]], dir, path)
 		if !ok {
 			continue
 		}
 
 		for _, num := range secNumbers(token) {
-			nc.checkSecNumber(path, vl.num, token, num, target, self)
+			nc.checkSecNumber(path, vis.num, token, num, target, self)
 		}
 	}
 }
@@ -295,11 +292,5 @@ func (nc *navChecker) checkSecNumber(
 
 // secNumbers splits one § token into its endpoint numbers.
 func secNumbers(token string) []string {
-	var nums []string
-
-	for _, m := range secNumber.FindAllString(token, -1) {
-		nums = append(nums, m)
-	}
-
-	return nums
+	return secNumber.FindAllString(token, -1)
 }
