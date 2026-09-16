@@ -76,12 +76,11 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 
 #### Read models: Which tier?
 
-> **v5 deprecation notice (ADR-0123):** `stack.Materialize`,
-> `storage.RelationalProjection`, `storage/view` (`SQLViewStore`),
-> `graph.GraphProjection`, and all `stack/*` presets are **deprecated and
-> removed in v5**. New code should prefer the `metaengine` Store +
-> `projectionadapter` / `system` composition root. The v4 tiers below remain
-> fully functional through v4.x.
+> **v5 deprecation notice (ADR-0123):** all v1 read-model tiers below and the
+> `stack/*` presets are **deprecated and removed in v5** — new code should
+> prefer the `metaengine` Store + `projectionadapter` / `system` composition
+> root. The tiers remain fully functional through v4.x. Canonical v5-removal
+> list: [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
 | Data shape                                                     | Query pattern                          | Recommended tier                                                                                                                                                                                                  |
 | -------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

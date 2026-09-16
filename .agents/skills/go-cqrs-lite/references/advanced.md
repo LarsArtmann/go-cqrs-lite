@@ -456,7 +456,8 @@ bus.SubscribeAll(composed.AsHandler(cmdDispatcher))
 > `Handler`, `WithSchema`, `NewGraphProjection`) is **deprecated and removed
 > in v5** — the replacement is `metaengine/graphadapter` over the
 > metaengine Graph ADT. `graph.GraphSink`/`GraphDriver` survive v5
-> (graphadapter is built on them).
+> (graphadapter is built on them). Canonical v5-removal list:
+> [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
 The third projection tier. Where `stack.Materialize` writes one document per
 key and `storage.RelationalProjection` writes across SQL tables, `graph`

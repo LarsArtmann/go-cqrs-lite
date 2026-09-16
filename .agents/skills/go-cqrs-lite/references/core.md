@@ -179,12 +179,11 @@ surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
 
 **Three tiers** — pick by read-access pattern, not by preference:
 
-> **v5 deprecation notice (ADR-0123):** all three v1 tiers below
-> (`stack.Materialize` + `SQLViewStore`, `storage.RelationalProjection`,
-> `graph.GraphProjection`) and the `stack/*` presets are **deprecated and
-> removed in v5** — new code should prefer the `metaengine` Store +
-> `projectionadapter` / `system` composition root. They remain fully
-> functional through v4.x.
+> **v5 deprecation notice (ADR-0123):** all three v1 tiers below and the
+> `stack/*` presets are **deprecated and removed in v5** — new code should
+> prefer the `metaengine` Store + `projectionadapter` / `system` composition
+> root. They remain fully functional through v4.x. Canonical v5-removal list:
+> [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
 | Tier            | Module                               | One event writes…       | Use when                                                                            | Do NOT use for                                           |
 | --------------- | ------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |

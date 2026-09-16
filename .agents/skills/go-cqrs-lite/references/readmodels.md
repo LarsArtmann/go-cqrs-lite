@@ -11,12 +11,12 @@
 _Extracted from the former recipes §2.3. This is the most-asked-about topic in event-sourced systems — building queryable read models from your event stream._
 
 > **v5 deprecation notice (ADR-0123):** the v1 read-model tiers documented
-> here — `stack.Materialize` (+ `storage.SQLViewStore`),
-> `storage.RelationalProjection`, and `graph.GraphProjection` — are
-> **deprecated and removed in v5**. New code should prefer the `metaengine`
-> Store + `projectionadapter` (see `recipes.md` §2.10 + §2.21b) and the `system`
-> composition root. Everything below remains fully functional through v4.x;
-> `projectionhost` (Option A) is the projection runner that survives v5.
+> here are **deprecated and removed in v5**. New code should prefer the
+> `metaengine` Store + `projectionadapter` (see `recipes.md` §2.10 + §2.21b)
+> and the `system` composition root. Everything below remains fully
+> functional through v4.x; `projectionhost` (Option A) is the projection
+> runner that survives v5. Canonical v5-removal list:
+> [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
 ### 2.3 Read Models (projection + query)
 

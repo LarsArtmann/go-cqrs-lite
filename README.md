@@ -174,6 +174,8 @@ Eight presets cover every deployment shape (all deprecated in v5 — `system.Sys
 > `system.System` becomes the single composition root and metaengine
 > auto-projection serves read models. Everything above works unchanged
 > through v4.x; new projects can already adopt `system/` + `metaengine`.
+> Canonical v5-removal list:
+> [FAQ — "Will the v5 cut break my imports?"](.agents/skills/go-cqrs-lite/references/faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
 See [`example/getting-started/`](example/getting-started/) for a single-file tour of the v5 composition path (`system.New` + metaengine folds, with a test that proves the one-line engine swap), [`example/metaengine-quickstart/`](example/metaengine-quickstart/) for the deployment-time story (declare folds and queries, then let the operator pick the engines in a `cqrs.yaml` — maps, graph, and vector demos included), and [`example/taskmanager/`](example/taskmanager/) for a complete HTTP service (CQRS/ES, projections, signing, SSE, snapshots).
 
