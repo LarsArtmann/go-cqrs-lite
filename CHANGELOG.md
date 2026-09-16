@@ -26,6 +26,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed — CI workflow defects + store.go file-size ratchet — 2026-09-16
 
+- **pg/mysql test helpers now fail loudly on non-connectivity errors** — the
+  OQ-10 skip-vs-fail classifier (dgraph precedent) spread to the pgengine
+  (3 construction helpers) and mysqlengine (4 sites incl. the internal-test
+  helper) suites: only server-unreachable errors skip; auth failures,
+  unknown-database, TLS, and schema errors now `t.Fatal` with a
+  "not a skip-class error" message instead of silently deleting live
+  coverage. `pgSkipClass`/`mysqlSkipClass` partition pinned by unit tests.
+
 - **`go-work-sync` CI job had no Go toolchain** — the job verified go.work/go.mod
   sync with nix-only steps and no `go` binary on PATH; now uses
   `actions/setup-go@v5` with `go-version-file: go.mod` (also escapes the

@@ -345,9 +345,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`); (b) micro-bench
       DONE 2026-09-16 (struct hot path 1.9 ns / 0 allocs through the shared
       funnel; `metaengine/encoded_bench_test.go` +
-      `docs/benchmarks/2026-09-15_applyfold-raw-payload-funnel.md`); (c) run the
-      PG/MySQL ClaimMetrics integration tests against live servers
-      (`#integration-pg`, `#integration-mysql-nspawn`) — the only remaining half.
+      `docs/benchmarks/2026-09-15_applyfold-raw-payload-funnel.md`); (c) PG half
+      DONE 2026-09-16: `PG_MODULES="scheduling/sqlstore storage" nix run
+      .#integration-pg` full suite PASS incl. `TestClaimingPostgres_MetricsSnapshot`
+      (+ TwoClaimersNoDoubleFire, RenewLease, RenewVsClaimRace) on the repo's own
+      ephemeral PG; the `#integration-mysql-nspawn` half remains (quiet-window).
       — source: 05-38 §b2; execution status 2026-09-16 08-04 report §a6
       _(Effort: M)_
 - [ ] **scheduling/sqlstore hardening tail — `RenewLease` ownership/claim
@@ -502,10 +504,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
       conventions for the same job complicate evaluations. — source: 02-16
       §e5/§f25
       _(Effort: M)_
-- [ ] **Skip-vs-fail classifier spread** — dgraph's live helpers now skip
-      ONLY on server-unreachable and `t.Fatalf` otherwise (the honest-loud
-      OQ-10 policy); the pg/mysql test helpers deserve the same classifier
-      (same silent-skip class). — source: 05-51 §e6
+- [x] **Skip-vs-fail classifier spread** — DONE 2026-09-16: `pgSkipClass` /
+      `mysqlSkipClass` (dgraph's `dgraphSkipClass` policy) now gate ALL
+      pgengine construction helpers (testcontainer ×2, copy ×1) and
+      mysqlengine sites (helper, layout ×2, planned-ops factory, internal
+      graph helper): server-unreachable skips, everything else `t.Fatalf`
+      "not a skip-class error". Partition pinned by unit tests in both
+      packages (+ internal twin). — source: 05-51 §e6
       _(Effort: S)_
 - [ ] **Watch dgraph + redis CI jobs (~10 shuffled runs)** — record any
       seed that fails; rare orderings WILL eventually appear in CI (that is
@@ -778,11 +783,13 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > pushdown; see FEATURES Metaengine section). Report:
 > [`docs/status/2026-09-15_18-32_vector-search-every-engine.md`](docs/status/2026-09-15_18-32_vector-search-every-engine.md)
 
-- [ ] **Verification gaps from the vector session** — (a) verify irohengine's
-      vector passthrough + add it to the CHANGELOG enumeration ("every
-      engine" is 9/10 verified); (b) run `system` module tests +
-      `example/metaengine-quickstart` (planner input changed via
-      `SQLiteEngineProfile` gaining ADTVector); (c) benchmark libSQL pushdown
+- [ ] **Verification gaps from the vector session** — (a) DONE 2026-09-16:
+      irohengine passthrough VERIFIED (`TestReplicatedVectorPassthrough` green:
+      insert + k-NN nearest-first, filtered pre-filter AND, path forwarding;
+      `VectorCounter` deliberately not promoted) and the CHANGELOG enumeration
+      already carries the iroh entry; (b) DONE 2026-09-16: `system` module tests
+      + `example/metaengine-quickstart` green (short mode, GOWORK=off);
+      remaining: (c) benchmark libSQL pushdown
       vs Go scan + DuckDB pushdown, add numbers; (d) surface the executed
       vector path (pushdown vs scan) in ExplainPlan/Doctor; (e) lazy-cache the
       libSQL probe; (f) mixed-dimension insert guard/test per engine; (g)

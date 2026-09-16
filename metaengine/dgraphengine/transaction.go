@@ -10,6 +10,7 @@ import (
 
 	"github.com/dgraph-io/dgo/v240"
 	"github.com/dgraph-io/dgo/v240/protos/api"
+	"google.golang.org/grpc"
 )
 
 // RunInTx executes fn within a single Dgraph transaction: every write op the
@@ -211,4 +212,31 @@ func (e *dgraphEngine) readTx() *dgo.Txn {
 	}
 
 	return e.client.NewReadOnlyTxn()
+}
+
+// defaultGRPCTimeout bounds every gRPC call whose caller passed a
+// deadline-less context. A wedged Alpha (handler accepts the call and never
+// returns) must surface as an error — an unbounded call blocks the caller
+// forever. Callers WITH a deadline are untouched. Dgraph's own guidance is
+// to set a deadline on every call.
+const defaultGRPCTimeout = 30 * time.Second
+
+// boundNoDeadline is the dial-time unary interceptor applying
+// defaultGRPCTimeout to deadline-less calls (wired in New).
+func boundNoDeadline(
+	ctx context.Context,
+	method string,
+	req, reply any,
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+
+		ctx, cancel = context.WithTimeout(ctx, defaultGRPCTimeout)
+		defer cancel()
+	}
+
+	return invoker(ctx, method, req, reply, cc, opts...)
 }

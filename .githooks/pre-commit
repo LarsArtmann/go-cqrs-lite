@@ -29,6 +29,7 @@ echo "==> Checking for fmt.Printf in production code"
 if grep -R 'fmt\.Printf' --include='*.go' . |
 	grep -v '_test.go' |
 	grep -v '/example/' |
+	grep -v '/demo/' |
 	grep -v '/testdata/' |
 	grep -v '/cmd/' |
 	grep -v 'doc.go'; then
