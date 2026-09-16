@@ -49,6 +49,10 @@ func (e *dgraphEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	if err := e.ensureVectorSchema(ctx); err != nil {
+		return err //nolint:wrapcheck // already actionable
+	}
+
 	established, err := e.establishedVectorDimension(ctx, collection)
 	if err != nil {
 		return err //nolint:wrapcheck // wrapped by the probe helper
@@ -95,6 +99,42 @@ func (e *dgraphEngine) VectorInsert(
 	if _, err := e.doWrite(ctx, req); err != nil {
 		return fmt.Errorf("dgraphengine.VectorInsert: %w", err)
 	}
+
+	return nil
+}
+
+// vectorSchema is the LAZY vector predicate schema. It is deliberately NOT
+// in init(): `float32vector` is rejected by Dgraph < v24, and a
+// construction-time Alter would break engine startup for every pre-v24
+// deployment — including ones that never use vectors. First vector use
+// applies the schema; old servers then fail at first vector use with an
+// actionable error instead of failing to boot (README documents the v24+
+// floor for vector ops).
+const vectorSchema = `
+		cqrs.vector_collection: string @index(exact) @upsert .
+		cqrs.vector_id: string @index(exact) @upsert .
+		cqrs.vector_values: float32vector .
+		cqrs.vector_metadata: string .
+	`
+
+// ensureVectorSchema lazily applies the vector predicate schema on first
+// vector use (appliedSchemas makes the steady state one map lookup).
+func (e *dgraphEngine) ensureVectorSchema(ctx context.Context) error {
+	e.schemaMu.Lock()
+	defer e.schemaMu.Unlock()
+
+	if e.appliedSchemas["vector"] {
+		return nil
+	}
+
+	if err := e.retryOnContention(ctx, false, func() error {
+		return e.client.Alter(ctx, &api.Operation{Schema: vectorSchema})
+	}); err != nil {
+		return fmt.Errorf("dgraphengine: vector predicates require Dgraph v24+ "+
+			"(float32vector type rejected): %w", err)
+	}
+
+	e.appliedSchemas["vector"] = true
 
 	return nil
 }
@@ -218,6 +258,10 @@ func (e *dgraphEngine) vectorScan(
 	metric string,
 	filters []metaengine.VectorFilter,
 ) ([]metaengine.VectorResult, error) {
+	if err := e.ensureVectorSchema(ctx); err != nil {
+		return nil, err //nolint:wrapcheck // already actionable
+	}
+
 	var out vectorRows
 
 	if err := vectorQuery(e, ctx, vectorScanQuery,

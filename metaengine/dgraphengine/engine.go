@@ -135,10 +135,6 @@ func (e *dgraphEngine) init() error {
 		cqrs.stream_log_stream: string @index(exact) .
 		cqrs.stream_log_seq: int @index(int) .
 		cqrs.stream_log_value: string .
-		cqrs.vector_collection: string @index(exact) @upsert .
-		cqrs.vector_id: string @index(exact) @upsert .
-		cqrs.vector_values: float32vector .
-		cqrs.vector_metadata: string .
 	`
 
 	ctx := context.Background()
