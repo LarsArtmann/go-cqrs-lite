@@ -73,7 +73,7 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 	if err != nil {
 		cqrsotel.RecordError(span, err)
 
-		return errorfamily.WrapCorruption(err, "storage.schedule_timer",
+		return errorfamily.WrapCorruption(err, "storage.schedule_timer_marshal",
 			"marshal timer payload for "+t.ID.String())
 	}
 
