@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — queue family README + recipes §2.36 + V007 v5-deprecation table extension — 2026-09-16
+
+- **`queue/README.md`** — first consumer-facing docs for the durable-work-queue
+  family: the `Store[T]` contract, module table (`queue`, `queue/sqlite`,
+  `queue/postgres`, `queue/conformance`, `claiming`), quickstarts, and the
+  partial-literal construction semantics of `task.New`/`queue.Filter`/
+  `facts.Fact` (the exhaustruct exemptions are design-justified zero-value
+  fields, not omissions). Every factual claim source-verified before shipping.
+- **recipes §2.36 "Watch Dgraph Contention Retries"** — recipe for
+  `dgraphengine.WithContentionObserver` (observe 409/abort retries on the
+  graph journal), with a compile-verified scaffold in the doc-check catalog.
+- **cqrs-lint V007 v5-deprecation table extended** — `metaengine.On`,
+  `metaengine.OnTyped`, `metaengine.Infer`, and `metaengine.InferFromNamedEvents`
+  added to the curated v5-removal symbol table (matching the 2026-09-16
+  deprecation of the planner-time fold-inference surface); two fold-gate doc
+  phrases reworded to the canonical "removed in v5" form the drift scanner
+  recognizes.
+
+### Fixed — CI workflow defects + store.go file-size ratchet — 2026-09-16
+
+- **`go-work-sync` CI job had no Go toolchain** — the job verified go.work/go.mod
+  sync with nix-only steps and no `go` binary on PATH; now uses
+  `actions/setup-go@v5` with `go-version-file: go.mod` (also escapes the
+  magic-nix-cache throttling that has been starving nix-based jobs).
+- **`benchmarks.yml` matview-gate ran against a nonexistent directory** — the
+  gate's single `cd ../metaengine/tursoengine` executed from `stack/bench`
+  (dir does not exist) and teed timings into `stack/current.txt` while the
+  compare step reads the root `current.txt`; restructured into per-backend
+  subshells with root-relative tees. Both legs verified live against real
+  bench runs (`BenchmarkMatViewRead` matches `SUM_GROUPED`/`SUM_VIA_GROUPED`).
+- **`metaengine/store.go` back under the file-size ratchet** — 954 → 944 lines
+  via a behavior-identical flatten of the idempotent-apply path (new unexported
+  feed helper); no API change, `Idempotent`/`Apply` suites green.
+
 ### Added — doc-check navigation + call-arity gates (2026-09-13 audit productization) — 2026-09-16
 
 - **`cmd/doc-check` now validates TOC anchors and § cross-refs.** GitHub-exact
