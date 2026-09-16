@@ -285,6 +285,16 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 		t.Fatalf("json.Unmarshal: %v", err)
 	}
 
+	assertSoakResultRoundTrip(t, original, decoded)
+
+	for i := range original.Samples {
+		assertSoakSampleRoundTrip(t, i, original.Samples[i], decoded.Samples[i])
+	}
+}
+
+func assertSoakResultRoundTrip(t *testing.T, original, decoded SoakResult) {
+	t.Helper()
+
 	if decoded.Backend != original.Backend {
 		t.Errorf("Backend: got %q, want %q", decoded.Backend, original.Backend)
 	}
@@ -297,31 +307,8 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 		t.Fatalf("len(Samples): got %d, want %d", len(decoded.Samples), len(original.Samples))
 	}
 
-	for i, want := range original.Samples {
-		got := decoded.Samples[i]
-		if got.Iteration != want.Iteration {
-			t.Errorf("sample %d Iteration: got %d, want %d", i, got.Iteration, want.Iteration)
-		}
-
-		if got.TotalEvents != want.TotalEvents {
-			t.Errorf("sample %d TotalEvents: got %d, want %d", i, got.TotalEvents, want.TotalEvents)
-		}
-
-		if got.Duration != want.Duration {
-			t.Errorf("sample %d Duration: got %s, want %s", i, got.Duration, want.Duration)
-		}
-
-		if got.WriteP99 != want.WriteP99 {
-			t.Errorf("sample %d WriteP99: got %s, want %s", i, got.WriteP99, want.WriteP99)
-		}
-	}
-
 	if decoded.HeapGrowthBytes != original.HeapGrowthBytes {
-		t.Errorf(
-			"HeapGrowthBytes: got %d, want %d",
-			decoded.HeapGrowthBytes,
-			original.HeapGrowthBytes,
-		)
+		t.Errorf("HeapGrowthBytes: got %d, want %d", decoded.HeapGrowthBytes, original.HeapGrowthBytes)
 	}
 
 	if decoded.ThroughputDriftPct != original.ThroughputDriftPct {
@@ -329,39 +316,61 @@ func TestWriteSoakJSON_RoundTrip(t *testing.T) {
 			decoded.ThroughputDriftPct, original.ThroughputDriftPct)
 	}
 
-	// Verify the new-phase P99 fields round-trip per-sample.
-	for i, want := range original.Samples {
-		got := decoded.Samples[i]
-		if got.JourneyP99 != want.JourneyP99 {
-			t.Errorf("sample %d JourneyP99: got %s, want %s", i, got.JourneyP99, want.JourneyP99)
-		}
-
-		if got.QueryHitP99 != want.QueryHitP99 {
-			t.Errorf("sample %d QueryHitP99: got %s, want %s", i, got.QueryHitP99, want.QueryHitP99)
-		}
-
-		if got.CacheHitP99 != want.CacheHitP99 {
-			t.Errorf("sample %d CacheHitP99: got %s, want %s", i, got.CacheHitP99, want.CacheHitP99)
-		}
-
-		if got.GCMaxPause != want.GCMaxPause {
-			t.Errorf("sample %d GCMaxPause: got %s, want %s", i, got.GCMaxPause, want.GCMaxPause)
-		}
-
-		if got.AllocBytes != want.AllocBytes {
-			t.Errorf("sample %d AllocBytes: got %d, want %d", i, got.AllocBytes, want.AllocBytes)
-		}
-	}
-
-	// Verify GC/alloc drift fields round-trip.
 	if decoded.GCMaxPauseDriftPct != original.GCMaxPauseDriftPct {
 		t.Errorf("GCMaxPauseDriftPct: got %f, want %f",
 			decoded.GCMaxPauseDriftPct, original.GCMaxPauseDriftPct)
 	}
 
 	if decoded.AllocGrowthPct != original.AllocGrowthPct {
-		t.Errorf("AllocGrowthPct: got %f, want %f",
-			decoded.AllocGrowthPct, original.AllocGrowthPct)
+		t.Errorf("AllocGrowthPct: got %f, want %f", decoded.AllocGrowthPct, original.AllocGrowthPct)
+	}
+}
+
+func assertSoakSampleRoundTrip(t *testing.T, i int, want, got SoakSample) {
+	t.Helper()
+
+	if got.Iteration != want.Iteration {
+		t.Errorf("sample %d Iteration: got %d, want %d", i, got.Iteration, want.Iteration)
+	}
+
+	if got.TotalEvents != want.TotalEvents {
+		t.Errorf("sample %d TotalEvents: got %d, want %d", i, got.TotalEvents, want.TotalEvents)
+	}
+
+	if got.Duration != want.Duration {
+		t.Errorf("sample %d Duration: got %s, want %s", i, got.Duration, want.Duration)
+	}
+
+	if got.WriteP99 != want.WriteP99 {
+		t.Errorf("sample %d WriteP99: got %s, want %s", i, got.WriteP99, want.WriteP99)
+	}
+
+	assertSoakSamplePhasesRoundTrip(t, i, want, got)
+}
+
+// assertSoakSamplePhasesRoundTrip verifies the new-phase P99 fields
+// round-trip per-sample.
+func assertSoakSamplePhasesRoundTrip(t *testing.T, i int, want, got SoakSample) {
+	t.Helper()
+
+	if got.JourneyP99 != want.JourneyP99 {
+		t.Errorf("sample %d JourneyP99: got %s, want %s", i, got.JourneyP99, want.JourneyP99)
+	}
+
+	if got.QueryHitP99 != want.QueryHitP99 {
+		t.Errorf("sample %d QueryHitP99: got %s, want %s", i, got.QueryHitP99, want.QueryHitP99)
+	}
+
+	if got.CacheHitP99 != want.CacheHitP99 {
+		t.Errorf("sample %d CacheHitP99: got %s, want %s", i, got.CacheHitP99, want.CacheHitP99)
+	}
+
+	if got.GCMaxPause != want.GCMaxPause {
+		t.Errorf("sample %d GCMaxPause: got %s, want %s", i, got.GCMaxPause, want.GCMaxPause)
+	}
+
+	if got.AllocBytes != want.AllocBytes {
+		t.Errorf("sample %d AllocBytes: got %d, want %d", i, got.AllocBytes, want.AllocBytes)
 	}
 }
 
