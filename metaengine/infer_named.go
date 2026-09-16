@@ -7,7 +7,7 @@ import (
 
 // namedInferenceRequest is a marker type that tells Query() to defer fold
 // generation to Plan() time using NamedSample values that pair wire event
-// type strings with Go struct samples. This is the production counterpart to
+// type strings with Go struct samples. It is the named-events counterpart of
 // [Infer] for event pipelines that use dot-separated event types.
 type namedInferenceRequest struct {
 	samples []NamedSample
@@ -18,13 +18,19 @@ type namedInferenceRequest struct {
 // with a Go struct sample (UserCreated{}) whose name must end in
 // Created/Updated/Deleted.
 //
-// This is the production counterpart to [Infer] for consumers using the event
-// pipeline with dot-separated event types. The planner classifies samples by
-// Go struct name suffix, generates folds via field-name matching, then
-// overrides the fold event types with the wire types.
+// This is the named-events counterpart of [Infer] for consumers using the
+// event pipeline with dot-separated event types. The planner classifies
+// samples by Go struct name suffix, generates folds via field-name matching,
+// then overrides the fold event types with the wire types.
 //
 // Same disclaimer as Infer applies: prefer explicit folds for production
 // domain models.
+//
+// Deprecated: InferFromNamedEvents will be removed in v5 alongside Infer —
+// planner-time fold inference hides projection semantics behind naming
+// conventions, and the docs already steer every production model to explicit
+// OnRecord/AutoInsert folds (ADR-0116 Layer 1). It keeps working unchanged
+// through v4.x for prototypes and demos.
 //
 // Example:
 //

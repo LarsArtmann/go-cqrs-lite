@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v4)
 
-CI tool that verifies Go import paths and qualified symbol references in Markdown docs actually exist in the codebase. Catches stale documentation before it ships.
+CI tool that verifies Go import paths, qualified symbol references, call arity, and navigation (TOC anchors, § cross-refs) in Markdown docs actually exist in the codebase. Catches stale documentation before it ships.
 
 ## Install
 
@@ -48,8 +48,34 @@ Exit code is non-zero if any broken references are found.
 | ---------------- | ---------------------------------------------- | ---------------------------- |
 | Import path      | `github.com/larsartmann/go-cqrs-lite/event/v4` | Yes — directory exists       |
 | Qualified symbol | `event.NewEvent`                               | Yes — exported symbol exists |
+| Call arity       | `system.New(ctx, cfg)` vs 3-param signature    | Yes — go/ast signature match |
+| TOC anchor       | `[§2.1](#21-minimal-es)`                       | Yes — GitHub-exact slug      |
+| § cross-ref      | `recipes §2.13`, bare `§3.8`                   | Yes — section number exists  |
 | Stdlib symbol    | `fmt.Println`                                  | No — skipped                 |
 | External symbol  | `otel.Tracer`                                  | No — skipped                 |
+
+### Arity spot-check details
+
+Every parseable `` ```go `` fence is compared call-shape-by-call-shape against the real
+signatures (package-level exported functions only; methods and ambiguous package names
+are skipped, so wrong-package hits are impossible by construction). Precision filters
+keep intentional doc shapes green:
+
+- `// Wrong` / `// Deprecated` / `// never` / `// don't` markers on or above the call —
+  deliberately wrong examples are documentation, not lies.
+- Comment-only argument lists (`f(/* ctx, cfg, opts */)`) — the comment stands for the args.
+- Doc ellipsis abbreviations (`f(ctx, ...)`, `Cfg{...}`, `…`) count as ONE placeholder arg.
+- Per-block opt-out: put `// doc-check:ignore-arity` anywhere in the fence.
+
+### Navigation (anchor + §) scope
+
+TOC anchors are checked in every scanned file with a GitHub-exact slugger (underscores
+kept, punctuation stripped, inline-code content kept, heading links contribute their
+text, `#slug-1` dedup suffixes honored). § cross-refs are a skill-docs convention and are
+validated for the default scan set only (`SKILL.md`, `AGENTS.md`, skill `references/`,
+the two DOMAIN_LANGUAGE docs). Known-good bare shapes: `ADR-NNNN §N` (ADR-relative),
+`the former X §N` and `→ moved to` TOC bullets (historical pointers), and bare `§N` when
+exactly one scanned doc has that section (ambiguous bare refs are flagged — name the doc).
 
 - Strips `/v4` suffix from import paths to resolve directory locations.
 - Walks up to `.git` to find the repo root (handles worktrees).

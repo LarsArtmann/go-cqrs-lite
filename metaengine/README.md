@@ -51,6 +51,10 @@ result, _ := metaengine.ExecuteTyped[FindUser, FindUserResult](
 // → FindUserResult{ID: "u1", Name: "Alice", ...}
 ```
 
+**Runnable version:** [`example/metaengine-quickstart/`](../example/metaengine-quickstart/) —
+maps, graph, and vector demos plus the operator story (engine choices loaded
+from a `cqrs.yaml` at deployment time). `go run .` inside the directory.
+
 ## Quick Setup (SQLite)
 
 For the most common setup — Memory + SQLite engines, plan, log:

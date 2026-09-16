@@ -140,19 +140,23 @@ func listWhere(f queue.Filter) (string, []any) {
 		like := "%" + escapeLike(strings.ToLower(f.Query)) + "%"
 		next := len(args)
 
-		where = append(where, fmt.Sprintf(
-			`(id ILIKE $%d OR type ILIKE $%d OR
-			project ILIKE $%d OR payload ILIKE $%d OR
-			lease_owner ILIKE $%d OR last_error ILIKE $%d)`,
-			next+1,
-			next+2,
-			next+3,
-			next+4,
-			next+5,
-			next+6,
-		)) //nolint:mnd // six searchable columns, one bind each
+		// Six searchable columns, one bind each: id, type, project,
+		// payload, lease_owner, last_error.
+		const likeColumns = 6
 
-		for range 6 {
+		binds := make([]string, likeColumns)
+		for i := range binds {
+			binds[i] = fmt.Sprintf("$%d", next+1+i)
+		}
+
+		where = append(where, fmt.Sprintf(
+			`(id ILIKE %s OR type ILIKE %s OR
+			project ILIKE %s OR payload ILIKE %s OR
+			lease_owner ILIKE %s OR last_error ILIKE %s)`,
+			binds[0], binds[1], binds[2], binds[3], binds[4], binds[5],
+		))
+
+		for range likeColumns {
 			args = append(args, like)
 		}
 	}

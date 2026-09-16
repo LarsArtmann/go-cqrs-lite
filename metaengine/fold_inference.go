@@ -54,6 +54,12 @@ type inferenceRequest struct {
 // The planner infers: insert fold (UserCreated → UserView by field name),
 // delete fold (UserDeleted.ID → remove), key field "ID" (from GetUser.ID),
 // and read pattern ReadPointLookup (GetUser has one input field).
+//
+// Deprecated: Infer will be removed in v5 — it hides projection semantics
+// behind naming conventions and reflection, and the docs already steer every
+// production model to explicit OnRecord/AutoInsert folds (ADR-0116 Layer 1).
+// It keeps working unchanged through v4.x for prototypes and demos; port
+// trivial CRUD views to AutoCRUDByConvention or explicit folds before v5.
 func Infer(samples ...any) inferenceRequest {
 	if len(samples) == 0 {
 		panic("metaengine.Infer: at least one event sample required")

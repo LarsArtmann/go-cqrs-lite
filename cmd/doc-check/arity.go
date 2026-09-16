@@ -229,8 +229,10 @@ func commentInside(call *ast.CallExpr, file *ast.File, fset *token.FileSet) bool
 }
 
 // parseDocSnippet parses a doc fence as whole program, top-level unit, or
-// wrapped function body — whichever shape the snippet is. The second result
-// is the number of synthetic lines prepended (for line mapping).
+// wrapped function body — whichever shape the snippet is. Import statements
+// mixed with statements are hoisted to a synthetic file head. The second
+// result is the synthetic-line offset for doc-line mapping (already net of
+// hoisted lines).
 func parseDocSnippet(fset *token.FileSet, src string) (*ast.File, int) {
 	wrapped := "package _doc\n\nfunc _docWrap() {\n" + src + "\n}"
 
@@ -241,6 +243,17 @@ func parseDocSnippet(fset *token.FileSet, src string) (*ast.File, int) {
 		{src, 0},
 		{"package _doc\n\n" + src, 2},
 		{wrapped, 3},
+	}
+
+	if imports, rest, hoisted := hoistImports(src); hoisted > 0 {
+		// package, blank, imports..., blank, func = hoisted+4 lines before
+		// rest; the hoisted lines fold back into the offset (4).
+		shapes = append(shapes, struct {
+			src string
+			off int
+		}{
+			"package _doc\n\n" + imports + "\n\nfunc _docWrap() {\n" + rest + "\n}", 4,
+		})
 	}
 
 	for _, s := range shapes {
@@ -256,6 +269,39 @@ func parseDocSnippet(fset *token.FileSet, src string) (*ast.File, int) {
 	}
 
 	return nil, 0
+}
+
+// hoistImports splits leading import declarations from a snippet so
+// "import + statements" fences can parse as one synthetic file.
+func hoistImports(src string) (importsBlock, rest string, hoisted int) {
+	var (
+		imp   []string
+		body  []string
+		inImp bool
+	)
+
+	for _, ln := range strings.Split(src, "\n") {
+		t := strings.TrimSpace(ln)
+
+		switch {
+		case inImp:
+			imp = append(imp, ln)
+			if strings.Contains(t, ")") {
+				inImp = false
+			}
+		case strings.HasPrefix(t, "import"):
+			imp = append(imp, ln)
+			inImp = strings.Contains(t, "(")
+		default:
+			body = append(body, ln)
+		}
+	}
+
+	if len(imp) == 0 {
+		return "", src, 0
+	}
+
+	return strings.Join(imp, "\n"), strings.Join(body, "\n"), len(imp)
 }
 
 // qualifiedFuncSig resolves a call's package-qualified exported function to
