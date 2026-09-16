@@ -26,7 +26,10 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
-- [ ] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — the claim core is EXTRACTED into `claiming/` (P0 done 2026-09-13: `Spec` + SKIP LOCKED PG / single-writer SQLite / MySQL two-statement claims, expiry reclaim, `RenewStmt`, `EnsureLeaseColumn`; `scheduling/sqlstore` delegates byte-identically and keeps `RenewLease` + `ClaimMetrics`), the read side in metaengine planned tables, the journal in `event`/`watermill`; what's missing is the task-store assembly: lifecycle (pending→running→completed/dead), attempts+backoff+DLQ at store level, priorities(+aging) in claim order, DAG dep gating, owner-bearing claims, dedup'd enqueue, same-tx journal option. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstream the semantics, don't reinvent); conformance = one mirrored suite across dialects. Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/2026-09-13_durable-work-queue-module.md`](docs/planning/2026-09-13_durable-work-queue-module.md) _(P0 done; Effort: P1 M lifecycle+DLQ, then S each)_
+- [ ] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — the claim core is EXTRACTED into `claiming/` (P0 done 2026-09-13: `Spec` + SKIP LOCKED PG / single-writer SQLite / MySQL two-statement claims, expiry reclaim, `RenewStmt`, `EnsureLeaseColumn`; `scheduling/sqlstore` delegates byte-identically and keeps `RenewLease` + `ClaimMetrics`), the read side in metaengine planned tables, the journal in `event`/`watermill`; **M1–M3 DONE 2026-09-14/15**: lifecycle (pending→running→completed/dead), attempts+backoff+DLQ at store level, the `Store[T]` contract with journal reads + watermarks, the shared `queue/conformance` suite, and BOTH engines (`queue/sqlite` single-writer WAL, `queue/postgres` SKIP LOCKED) green incl. `-race`. Still missing: owner-bearing claims + claim-token ADR-0134 (T15), DAG dep-gating additions — enqueue validation/cycle rejection/unblock-bump (T14), `queue/mysql` engine (T17), FactSink-in-tx + watermark API completion (T16), dedup'd enqueue, priorities aging pin, same-tx journal option. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstream the semantics, don't reinvent). Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/2026-09-13_durable-work-queue-module.md`](docs/planning/2026-09-13_durable-work-queue-module.md) + queue-arc reports 14-14/14-46 _(Effort: P1 DONE; remainder M each)_
+- [ ] **Tag the claiming + queue modules** — `claiming/v4.0.0` (dry-run READY, blocked on clean tree at the time; needs sqlstore replace pin + standalone build gate + proxy probe), then `queue`/`queue/sqlite`/`queue/postgres` v4.0.0; also strips the `queue/{sqlite,postgres} => ../queue` sibling replaces. — source: queue-arc 14-14 §b2/§b3 _(Effort: S each once a wave is authorized — fold into the next tag wave)_
+- [ ] **Run `queue/postgres` conformance against live in-repo PG** — `nix run .#integration-pg`; the postgres engine's conformance suite has executed only via pgtestcontainer, never the repo's own ephemeral-PG leg; also exercises the `lifecycle_cancel.go` split end-to-end. — source: 2026-09-16 09-35 report §f2 _(Effort: S)_
+- [ ] **Queue family docs + config tail** — (a) tiny `queue/README` or SKILL reference section (consumers currently discover the family only via CHANGELOG); (b) document `task.New`/`queue.Filter`/`facts.Fact` partial-literal semantics where users read (the exhaustruct exemptions are design-justified — say so); (c) fix or delete the dead errcheck exclude-functions short forms (`(*sql.Rows).Close` → fully-qualified `(*database/sql.Rows).Close`) after probing which entries are load-bearing; (d) `queue/mysql` is named in the Store doc comment as a future engine — implement behind the conformance suite or strike the mention. — source: 2026-09-16 09-35 report §e4/§f6-9 _(Effort: S each)_
 
 ## Command-side domain depth (2026-09-13 plan)
 
@@ -266,9 +269,19 @@ bottom is a do-not-re-litigate guard, not a backlog.
       promotion, landed 2026-09-09 and STILL UNTAGGED**; go-localsync runs
       its documented workaround until this tag exists), `system` (v4.7.0: materialized views + the MV recipe's
       UNRELEASED marker flips when tagged). **Strip `storage/go.mod`'s two
-      local replaces in the same wave.** Order constraints per CONTRIBUTING
+      local replaces in the same wave.** **NEW 2026-09-16 preconditions:** (1)
+      re-tag `otel/v4` carrying `DBSystem` BEFORE any storage/v4 tag — the
+      published storage would otherwise reference an unpublished symbol
+      (broken for consumers until otel re-tags); (2) the wave also strips the
+      newer sibling replaces: `cmd/cqrs-bench => ../../benchkit`
+      (statistical-rigor APIs: `RunRepeated`, `MetricVariation`,
+      `WriteBenchstatRepeated`), `queue/sqlite` + `queue/postgres => ../queue`,
+      `commandlifecycle/projections`, and bumps `metaengine`
+      (`Store.StreamCollection`) + `commandlifecycle/projections`
+      (`CommandsByActor`). Order constraints per CONTRIBUTING
       pre-tag checklist; cut→push→next interleave (GOPRIVATE resolves siblings
-      via VCS). — source: 08-26 §c3, 15-09 §f47, SUPERB §f14-16
+      via VCS). — source: 08-26 §c3, 15-09 §f47, SUPERB §f14-16; 08-04 §b5 +
+      02-09 §f3 + 09-35 §f18 (2026-09-16 additions)
       _(Effort: M)_
 - [ ] **Tag `cmd/cqrs-lint` v4.10.2 (ships the buildinfo version reporting)** —
       on master since 2026-09-11; v4.10.1 deliberately predates it. Verify the
@@ -386,17 +399,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
       silence PLAN diagnostics today; should they also silence Doctor's
       `--- Capability ---` violation lines (`CapabilityAudit` receives nil
       gaps)? — source: archived 22-33 §g2, 04-35 §f17
-- [ ] 🔥 **Close the `CatchUpEngine` snapshot race** — the ONE known
-      correctness hole in the ADR-0137 write-failover work: `CatchUpEngine`
-      replays a once-taken `Events()` snapshot; concurrent applies DURING
-      the replay window fold onto the failover engine only, so the
-      reactivated engine silently misses that window (sequential tests
-      cannot see it). Fix: loop reset+replay until the log length stops
-      growing between snapshot and reactivation, or hold `s.mu` write-locked
-      for the final stabilization pass; add a concurrent stress test (apply
-      loop racing CatchUpEngine; assert post-reactivation reads see every
-      event). Should land BEFORE the next tag wave. — source: 05-40 §d1/§e1/§f1
-      _(Effort: M)_
 - [x] **Catch-up observability + tail replay** — SHIPPED 2026-09-13:
       `CatchUpState`/`Store.CatchUpSnapshot`/`EngineStats.CatchUp`/Doctor
       "--- Catch-Up ---" section cover the observability half; `Reset` doc
@@ -414,48 +416,29 @@ bottom is a do-not-re-litigate guard, not a backlog.
       where signature changes are free. — source: 05-40 §e5/§e6/§f9/§f10,
       §f35/§f36/§f45; decisions 2026-09-13
       _(Effort: M — done)_
-- [ ] **Doctor: per-entry-point synthetic-record feed counters** — the
-      conformance sweep makes the entry-point record contract visible in
-      TESTS; Doctor still cannot say WHICH entry point fed a synthetic
-      (Type-only) record at runtime. — source: 03-50 §f17, 05-38 §f11
-      _(Effort: M)_
 - [x] **Legacy-log-entry synthesis pin** — DONE 2026-09-13: "Backfill legacy
       log entry" case added to the conformance sweep — a legacy
       `EventLog.Record()` entry replays to the synthetic Type-only view with
       the advisory at 0 (replays never count it). — source:
       03-50 §f23, 05-38 §c1/§f2
       _(Effort: S — done)_
-- [ ] **Conformance-sweep + hot-path tail** — (a) DONE 2026-09-13: dedup
-      no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`: fold runs
-      once, advisory counts once) PLUS the legacy `EventLog.Record()`
-      synthesis case in the sweep table; remaining: (b) micro-bench the
-      `applyFold` raw-payload type-assertion overhead on the struct hot path
-      (defend the encoded-apply fix with a number); (c) run the new PG/MySQL
-      ClaimMetrics integration tests against live servers
-      (`#integration-pg`, `#integration-mysql-nspawn`).
-      — source: 05-38 §b2/§f3/§f4/§f10
-      _(Effort: S/M)_
-- [ ] **scheduling/sqlstore hardening tail (carried from 03-50):**
-      race-stress test DONE 2026-09-13 (`claim_race_stress_test.go`:
-      4 pollers × 25 polls vs a Metrics reader, exact-once claim invariant,
-      counters agree with observed claims; module green under `-race`);
-      counter-scope pin DONE (`TestClaimingSQLite_CounterScope`:
-      Schedule/Cancel/MarkFired never move counters). Remaining: property
-      test (counters never exceed committed polls); fuzz `decodeDueTimer`
-      corrupt-payload path; `RenewLease` ownership/claim tokens (code
-      comment defers today).
-      DONE 2026-09-13 (OTEL-OBSERVABILITY SUPERB): worked `Metrics()` →
-      `/status` example + runnable OTel wiring for the ClaimMetrics hooks +
-      process-start timestamp (`ClaimMetricsSnapshot.StartedAt`) — all in
-      `example/scheduler-otel-status`. — source: 03-50 §f18-27, 05-38 §f19-27
+- [ ] **Conformance-sweep + hot-path tail — live-server runs remain** — (a) dedup
+      no-op case shipped (`TestApplyIdempotent_DuplicateIsNoOp`); (b) micro-bench
+      DONE 2026-09-16 (struct hot path 1.9 ns / 0 allocs through the shared
+      funnel; `metaengine/encoded_bench_test.go` +
+      `docs/benchmarks/2026-09-15_applyfold-raw-payload-funnel.md`); (c) run the
+      PG/MySQL ClaimMetrics integration tests against live servers
+      (`#integration-pg`, `#integration-mysql-nspawn`) — the only remaining half.
+      — source: 05-38 §b2; execution status 2026-09-16 08-04 report §a6
+      _(Effort: M)_
+- [ ] **scheduling/sqlstore hardening tail — `RenewLease` ownership/claim
+      tokens remain** (race-stress test, counter-scope pin, counter property
+      test, `FuzzDecodeDueTimer`, and the `example/scheduler-otel-status`
+      worked `Metrics()` + OTel example all shipped 2026-09-13..16);
+      `RenewLease` ownership/claim tokens are design-gated (code comment
+      defers today).
+      — source: 03-50 §f18-27; execution status 2026-09-16 08-04 report §a3-a4
       _(Effort: M, one rule per slice)_
-- [ ] **storage/sql: dialect-aware `db.system` span attribute** — pebble and
-      bbolt spans carry the OTel semconv `db.system` (via `cqrsotel.DBSystem`)
-      since 2026-09-13; the SQL store needs its Dialect threaded into the
-      package-level span helpers (`storage/sql/otel.go`) to stamp
-      `sqlite`/`postgres`/`mysql`/`duckdb`. ~10 call sites.
-      — source: OTEL-OBSERVABILITY plan M7 remainder
-      _(Effort: S/M)_
 
 ---
 
@@ -651,6 +634,40 @@ bottom is a do-not-re-litigate guard, not a backlog.
       34548534824, run 34747274058, `gh run list`
       _(Effort: M-L, multi-session; the cache-backend migration is the
       single highest-leverage repair)_
+- [ ] 🔥 **Root-cause the `.golangci.yml` config-corruption loop** — five
+      incidents now (latest `d54cd38a7`, 09-16): something inside auto-commit
+      waves keeps re-adding `gci` and deleting the depguard allow-list block;
+      recovery is manual each time (gci has a self-heal, depguard does NOT).
+      (a) identify the culprit (daemon logs? an agent's fmt flow?); (b) add a
+      depguard auto-restore to `check-lint-config` (pin the known-good block
+      or hash-pin config sections) so the sixth incident self-repairs. The
+      incident log + symptom fingerprint live in gotchas-tooling-build.md.
+      — source: 2026-09-16 09-35 report §e1/§e2/§f4-5 _(Effort: M)_
+- [ ] **Pre-commit hook hardening batch** — (a) reconcile the two hook
+      sources (`scripts/install-hooks.sh` BuildFlow heredoc → `.git/hooks/`
+      vs `scripts/pre-commit.sh` repo gates → `.githooks/pre-commit`): exactly
+      one canonical hook; (b) make fresh clones non-dead (`.githooks/` tracked
+      in-repo or bootstrapped in `nix develop` — today every new clone starts
+      with silently-dead pre-commit gating); (c) add `.golangci.yml` to the
+      staged triggers so `check-lint-config` runs when the config itself is
+      staged (catches the gci/depguard class at commit time); (d) consider
+      scoping the `.githooks` fmt gate to staged files so honest commits in
+      multi-writer trees don't need `--no-verify`. — source: 08-05 §b6/§f8-10;
+      18-19 §e3 _(Effort: S/M)_
+- [ ] **Nightly gate cron + calibration-baseline CI wiring** — the
+      "self-heal only works when the gate runs" meta-fix: a cheap scheduled
+      job running `check-lint-config` + `check-modsums` + the script
+      harnesses would have caught depguard-down-4-days and the
+      always-failing calibration gate day-of. Plus the one-workflow-away
+      calibration artifact loop: nightly `calibration-drift --write-baseline`
+      + upload, next-night `--baseline` + compare. — source: 08-05 §b3/§e4/§f6/§f11
+      _(Effort: M)_
+- [ ] **Pin the recipes-gate CI posture** — one grep decides: is
+      `cmd/doc-check` in the CI per-module matrix (`testModules`)? If yes,
+      `TestRecipesCompile` already runs on every push cold-cache and the
+      separate `check-recipes-compile` flake app is optional; if no, add the
+      app. Also decide `#verify` gating on dev machines (warm ≈ 5-15 s,
+      cold ≈ 104 s). — source: 18-19 §b1/§g1 _(Effort: XS decision + S)_
 
 ---
 
@@ -787,11 +804,6 @@ bottom is a do-not-re-litigate guard, not a backlog.
 >   lifecycle projection shipped the same day (see CHANGELOG). Carry-forward items below. Source:
 >   [`plan`](docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md).
 
-- [ ] 🔥 **Distinct `command.rejected` event + errorfamily classification** — a business
-      rejection currently surfaces as `command.failed` with error text; audit cannot tell
-      "rejected by rule" from "broke". Needs a classification contract (which families count as
-      rejection) + recorder method + middleware wiring. Payload capture stays opt-in/out.
-      — source: [`T17 memo`](docs/planning/2026-09-13_T17-memo-command-log-audit-scope.md) _(Effort: M)_
 - [BLOCKED] **Session-log boundary decision** — memo recommends sessions stay external
   (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
   a concrete audit consumer. — source: [`T18 memo`](docs/planning/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
@@ -874,6 +886,105 @@ bottom is a do-not-re-litigate guard, not a backlog.
       `InferFromNamedEvents` (same surface, same fate — no split brain);
       modules.md + FEATURES.md rows updated; CHANGELOG [Unreleased] Deprecated
       entry added.
+
+---
+
+## benchkit statistical-rigor tail (2026-09-16)
+
+> The 02-09 session shipped P100 exactness, `RunRepeated`/`RepeatedResult`,
+> per-metric `MetricVariation`, real benchstat samples, and load provenance —
+> all verified green. The 09-35 session closed the two blockers (queue clones,
+> soak gocyclo) and refreshed the FEATURES coverage line (151+43). What follows
+> is the consolidated remainder. — source:
+> [`docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md)
+> §b/§f, 09-35 §f P3
+
+- [ ] **`compare` + serialization tail** — per-backend noisy-metric count
+      column + Variation footer in the compare table; variation summary in
+      markdown compare output; per-run `runs[]` in `--format manifest`
+      (opt-in flag); `RepeatedResult` JSON writer. _(Effort: M)_
+- [ ] **Benchstat CI workflow decision (owner Q3)** — A/B-by-revision
+      benchstat (`benchstat-diff` subcommand or `scripts/bench-ab.sh`,
+      nightly `--repeat 10 --format benchstat` artifacts + delta summary)
+      vs per-metric CI gating (fail on noisy headline metrics via
+      `MetricVariation` CoV thresholds in `benchmark-regression.sh`). Both
+      ~day-sized; pick one. Second gate-set entry for a sqlite backend path
+      rides along either way. _(Effort: L, decision-gated)_
+- [ ] **SDK polish batch** — per-metric MIN tracking; `LoadAvg1` at run end +
+      drift report; configurable oversubscription threshold; soak × variation
+      cross-iteration CoV; percentile interpolation for small-n;
+      `resultMetrics()` names as public constants; zero-value audit (Count=0
+      with non-zero throughput warns); fresh backend-comparison capture
+      (current `docs/benchmarks/2026-07-31` predates variation).
+      _(Effort: M, sliceable)_
+
+---
+
+## Vector-search verification tail (2026-09-15)
+
+> Vector ADT shipped on EVERY engine 2026-09-15 (brute-force + DuckDB/libSQL
+> pushdown; see FEATURES Metaengine section). Report:
+> [`docs/status/2026-09-15_18-32_vector-search-every-engine.md`](docs/status/2026-09-15_18-32_vector-search-every-engine.md)
+
+- [ ] **Verification gaps from the vector session** — (a) verify irohengine's
+      vector passthrough + add it to the CHANGELOG enumeration ("every
+      engine" is 9/10 verified); (b) run `system` module tests +
+      `example/metaengine-quickstart` (planner input changed via
+      `SQLiteEngineProfile` gaining ADTVector); (c) benchmark libSQL pushdown
+      vs Go scan + DuckDB pushdown, add numbers; (d) surface the executed
+      vector path (pushdown vs scan) in ExplainPlan/Doctor; (e) lazy-cache the
+      libSQL probe; (f) mixed-dimension insert guard/test per engine; (g)
+      vector persistence in the restart-safety harness; (h) metaengine full
+      non-short suite once (soaks skipped so far). — source: 18-32 §b/§c/§f1-16
+      _(Effort: M total, sliceable)_
+- [ ] **Dgraph version floor decision** — vector schema requires Dgraph ≥ v24
+      (`float32vector` + hnsw index). Feature-detect/lazy vector schema so old
+      servers keep booting, or document the hard v24+ floor in the dgraphengine
+      README? Also: the pre-existing "Transaction has been aborted" flake under
+      parallel load (failing on master CI since 09-15 13:22) — `retryOnContention`
+      gap or a distinct class. — source: 18-32 §f9-10/§g1 _(Effort: S decision + M investigate)_
+- [ ] **ADR-0140 candidate: vector distance-semantics contract** — cosine =
+      `1-cosSim`, dot = NEGATED dot, euclidean = L2; ascending = nearest;
+      degrade-everywhere decision. AGENTS.md contract #26 pins the semantics;
+      an ADR (or ADR-0085 addendum) gives them a decision record.
+      — source: 18-32 §f17 _(Effort: S)__
+
+---
+
+## Watermill sibling skill follow-through (2026-09-15)
+
+> `.agents/skills/watermill/` shipped (broker powers/tradeoffs/limits). Report:
+> [`docs/status/2026-09-15_19-45_watermill-skill-session.md`](docs/status/2026-09-15_19-45_watermill-skill-session.md)
+
+- [ ] **NATS JetStream roundtrip test leg** — `watermill-nats/v2` +
+      `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`; if it
+      lands, an `.#integration-nats`-style flake app + CI leg analog to
+      `#integration-redis`. — source: 19-45 §c1/§f2/§f10 _(Effort: M)_
+- [ ] **Skill-quality tail** — run the 3 drafted trigger-eval prompts
+      (with/without skill); add `references/advanced.md` (Delayed Messages,
+      Requeuing After Error, FanIn/FanOut, Metrics, Troubleshooting);
+      cross-link go-cqrs-lite `SKILL.md`/`advanced.md` watermill sections →
+      the sibling skill (discovery is currently AGENTS.md-only); verify
+      upstream latests for the redisstream/kafka/amqp/sql plugins. Codify the
+      claims-checklist rule (verify inline factual assertions, not just
+      file:line cites) in docs/agents. — source: 19-45 §f1/§f3-5/§f8; 19-57 §f3/§f8
+      _(Effort: M total)_
+
+---
+
+## md-go-validator CI integration (from 2026-09-13 audit)
+
+> 167 md-go-validator errors remain (9 consumer-facing, 55 active docs, 108
+> archived); P1 (6 fence fixes) is done, P2–P4 are not. Report:
+> [`docs/status/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md`](docs/status/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md)
+
+- [ ] **Make the validator a real gate** — commit `--init` config + baseline
+      file (`scripts/md-go-baseline.txt`, mirror `check-file-size`); flake app
+      `check-md-go`; verify/package the tool for CI (today it only exists as a
+      host-level NixOS package); then P2 (`// skip-validate` the 9
+      consumer-facing blocks, 7 files) and P3 (~55 active-doc blocks); decide
+      the P4 archived-errors policy (baseline-forever vs shrinking ratchet).
+      — source: 12-21 §b2/§c1-6/§f1-4/§f6-8 _(Effort: M)_
 
 ---
 

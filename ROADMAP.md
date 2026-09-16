@@ -131,7 +131,9 @@ Open remainder: iroh standalone-pin repair + the skill-ref propagation wave.
     distances — Go-side rescoring needed), sqlite-vec `vec0` virtual tables
     (loadable C extension — NOT loadable via the pure-Go modernc.org/sqlite
     driver; verified against v1.58.0), MariaDB 11.7+ native `VECTOR` columns +
-    `VEC_DISTANCE_*` (MySQL proper has nothing outside HeatWave), Postgres
+    `VEC_DISTANCE_*` — **UNVERIFIED claim (flagged 2026-09-15): the MariaDB KB
+    is JS-walled and source paths 404'd; verify against server source before
+    relying on it** (MySQL proper has nothing outside HeatWave), Postgres
     pgvector. Full-text search (tsvector) and spatial (PostGIS) engine backends
     remain Memory/Dgraph-only.
 - **Dgraph backend expansion** — `SnapshotBackend` (versioned predicates or
@@ -654,6 +656,16 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
    session-7 surface is ≥1 minor untagged; see TODO_LIST Release section);
    (b) is severity-tightening (S008/S009 now `error` in v4.9.0) acceptable
    in a minor release, or gated behind a "Changed" + dedicated minor?
+2. **Zenoh go/no-go** (new 2026-09-16): Eclipse Zenoh v1.10.1 research
+   ([mapping report](docs/architecture-understanding/2026-09-15_zenoh-spatiotemporal-fabric-mapping.md))
+   frames it as a brokerless network fabric one layer below watermill's
+   plugin ecosystem — candidate surfaces: W1 external `watermill-zenoh`
+   plugin (go-sse sibling-repo pattern; CGo via zenoh-c + Nix packaging
+   burden), W2 edge command dispatch + liveliness→ADR-0137 probes, W3
+   queryable-served read models / CRDT `zenohengine` /
+   timestamp-instrumentation→planner. DECIDE: pursue W1 now, or file as
+   landscape research? Everything else hinges on this; see the report's
+   §4 Pareto + §5 risks.
 2. **SA1019 exclusion permanence**: keep the scoped
    `(middleware|idempotency)/.*_test\.go$` exclusion permanently, or migrate
    kvstore test matrices onto the go-idempotency contract suite before v5?

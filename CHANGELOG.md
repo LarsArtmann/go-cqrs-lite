@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — doc-check navigation + call-arity gates (2026-09-13 audit productization) — 2026-09-16
+
+- **`cmd/doc-check` now validates TOC anchors and § cross-refs.** GitHub-exact
+  slugger (underscores kept, punctuation stripped, inline-code content kept,
+  heading links contribute their text, `-1` dedup suffixes); duplicate section
+  numbers fail. § refs are validated over the skill-doc scope with filters for
+  deliberate shapes (`ADR-N §x`, "former X §N", moved-bullets, unique-doc bare
+  fallback). Scope + filters documented in `cmd/doc-check/README.md`.
+- **`cmd/doc-check` now spot-checks call arity in fenced Go** against real
+  go/ast signatures (package-level exported functions, uniquely-resolvable
+  packages only). Intentional doc shapes stay green: `// Wrong`-marked
+  examples, comment-only arg lists, ellipsis placeholders, and a per-fence
+  `// doc-check:ignore-arity` opt-out.
+- Immediate yield: 2 real broken anchors fixed (`docs/DOMAIN_LANGUAGE.md`
+  `#deriver` dead link; `docs/METAENGINE_DOMAIN_LANGUAGE.md` TOC entry whose
+  target heading contains a markdown link, which the slugger must render
+  before slugging).
+
 ### Deprecated — planner-time fold inference (`metaengine.Infer` / `metaengine.InferFromNamedEvents`) — 2026-09-16
 
 - **`metaengine.Infer(samples...)` and `metaengine.InferFromNamedEvents(...)` are
