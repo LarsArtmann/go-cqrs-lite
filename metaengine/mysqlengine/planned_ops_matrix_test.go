@@ -25,7 +25,11 @@ func TestMySQLPlannedOpsMatrix(t *testing.T) {
 
 				eng, err := mysqlengine.New(mysqlTestDSN())
 				if err != nil {
-					t.Skipf("MySQL not available: %v", err)
+					if mysqlSkipClass(err) {
+						t.Skipf("MySQL not available: %v", err)
+					}
+
+					t.Fatalf("mysql engine construction failed (not a skip-class error): %v", err)
 				}
 
 				return eng

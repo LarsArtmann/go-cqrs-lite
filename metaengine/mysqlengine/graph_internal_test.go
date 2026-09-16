@@ -21,7 +21,11 @@ func newInternalEngine(tb testing.TB) *mysqlEngine {
 
 	eng, err := New(dsn)
 	if err != nil {
-		tb.Skipf("MySQL not available: %v", err)
+		if mysqlSkipClass(err) {
+			tb.Skipf("MySQL not available: %v", err)
+		}
+
+		tb.Fatalf("mysql engine construction failed (not a skip-class error): %v", err)
 	}
 
 	e, ok := eng.(*mysqlEngine)

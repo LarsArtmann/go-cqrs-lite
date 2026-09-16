@@ -22,7 +22,11 @@ func mariadbVersion(t *testing.T) string {
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		t.Skipf("MySQL not available: %v", err)
+		if mysqlSkipClass(err) {
+			t.Skipf("MySQL not available: %v", err)
+		}
+
+		t.Fatalf("mysql open failed (not a skip-class error): %v", err)
 	}
 
 	t.Cleanup(func() { _ = db.Close() })
@@ -30,7 +34,11 @@ func mariadbVersion(t *testing.T) string {
 	var version string
 	if err := db.QueryRowContext(context.Background(), "SELECT VERSION()").
 		Scan(&version); err != nil {
-		t.Skipf("MySQL not reachable: %v", err)
+		if mysqlSkipClass(err) {
+			t.Skipf("MySQL not reachable: %v", err)
+		}
+
+		t.Fatalf("mysql version query failed (not a skip-class error): %v", err)
 	}
 
 	if !strings.Contains(strings.ToUpper(version), "MARIADB") {

@@ -26,7 +26,11 @@ func mustNewMySQLEngine(tb testing.TB) metaengine.Engine {
 
 	eng, err := mysqlengine.New(dsn)
 	if err != nil {
-		tb.Skipf("MySQL not available: %v", err)
+		if mysqlSkipClass(err) {
+			tb.Skipf("MySQL not available: %v", err)
+		}
+
+		tb.Fatalf("mysql engine construction failed (not a skip-class error): %v", err)
 	}
 
 	tb.Cleanup(func() { _ = eng.Close() })

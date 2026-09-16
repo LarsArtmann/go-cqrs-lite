@@ -14,7 +14,7 @@ import (
 // are exactly the classes that once silently deleted four ADT subtests from
 // the dgraph suite (2026-09-11, gotchas-testing.md).
 //
-//art-dupl:accept OQ-10 skip-vs-fail classifier mirrored per engine test package (dgraph precedent); a shared testutil home would drag the CQRS-aware test module into engine test binaries
+// art-dupl:accept OQ-10 skip-vs-fail classifier mirrored per engine test package (dgraph precedent); a shared testutil home would drag the CQRS-aware test module into engine test binaries
 func mysqlSkipClass(err error) bool {
 	if err == nil {
 		return false
