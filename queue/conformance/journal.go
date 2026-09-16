@@ -105,6 +105,7 @@ func (s *suite) pinAfterCursor(t *testing.T) {
 	}
 
 	after := all[1].Seq
+
 	rest, err := e.store.Facts(t.Context(), after, 0)
 	if err != nil {
 		t.Fatal(err)

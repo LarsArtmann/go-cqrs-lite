@@ -45,7 +45,7 @@ func (s *suite) pinListFilters(t *testing.T) {
 
 	proj := "p1"
 	typ := "email"
-	st := task.Pending
+	status := task.Pending
 
 	if got := listAll(t, e, queue.Filter{Project: &proj}); len(got) != 2 {
 		t.Fatalf("project filter = %d, want 2", len(got))
@@ -55,7 +55,7 @@ func (s *suite) pinListFilters(t *testing.T) {
 		t.Fatalf("type filter = %d, want 2", len(got))
 	}
 
-	if got := listAll(t, e, queue.Filter{Status: &st}); len(got) != 3 {
+	if got := listAll(t, e, queue.Filter{Status: &status}); len(got) != 3 {
 		t.Fatalf("status filter = %d, want 3", len(got))
 	}
 }
@@ -215,4 +215,4 @@ func idsOf(tasks []task.Task[Payload]) []task.ID {
 }
 
 // ptr returns a pointer to v — filter-field sugar.
-func ptr[T any](v T) *T { return &v }
+func ptr[T any](v T) *T { return new(v) }

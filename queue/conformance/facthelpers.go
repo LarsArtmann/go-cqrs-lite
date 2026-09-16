@@ -13,6 +13,7 @@ func factTypes(t *testing.T, e *env, id task.ID) []facts.FactType {
 	t.Helper()
 
 	all := factsFor(t, e, id)
+
 	out := make([]facts.FactType, len(all))
 	for i, f := range all {
 		out[i] = f.Type
@@ -50,6 +51,7 @@ func countFacts(t *testing.T, e *env, id task.ID, want facts.FactType) int {
 	t.Helper()
 
 	n := 0
+
 	for _, f := range factsFor(t, e, id) {
 		if f.Type == want {
 			n++

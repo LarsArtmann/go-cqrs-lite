@@ -44,11 +44,7 @@ func (s *suite) pinFencing(t *testing.T) {
 	var wg sync.WaitGroup
 
 	for w := range workers {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for {
 				c, err := e.store.ClaimDue(t.Context(), claimer(w), time.Minute)
 				if errors.Is(err, queue.ErrNoTaskDue) {
@@ -63,7 +59,7 @@ func (s *suite) pinFencing(t *testing.T) {
 
 				claimed <- c.Task.ID
 			}
-		}()
+		})
 	}
 
 	wg.Wait()

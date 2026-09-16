@@ -62,6 +62,7 @@ func (s *suite) pinDedupTerminal(t *testing.T) {
 	}
 
 	dead := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1, DedupKey: "k2"})
+
 	c := e.claim(t, "w1")
 	if c.Task.ID != dead.ID {
 		t.Fatalf("claimed %s, want %s", c.Task.ID, dead.ID)

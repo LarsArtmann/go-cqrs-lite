@@ -2,6 +2,7 @@ package conformance
 
 import (
 	"errors"
+	"slices"
 	"testing"
 	"time"
 
@@ -38,32 +39,25 @@ func (s *suite) pinTransitionMatrix(t *testing.T) {
 	}
 
 	for _, from := range task.AllStatuses() {
-		for _, to := range task.AllStatuses() {
-			want := false
+		for _, target := range task.AllStatuses() {
+			want := slices.Contains(legal[from], target)
 
-			for _, ok := range legal[from] {
-				if ok == to {
-					want = true
-					break
-				}
-			}
-
-			if got := task.CanTransitionTo(from, to); got != want {
-				t.Fatalf("CanTransitionTo(%s, %s) = %v, want %v", from, to, got, want)
+			if got := task.CanTransitionTo(from, target); got != want {
+				t.Fatalf("CanTransitionTo(%s, %s) = %v, want %v", from, target, got, want)
 			}
 		}
 	}
 
-	for _, st := range task.AllStatuses() {
-		if want := st == task.Completed || st == task.Dead ||
-			st == task.Cancelled; task.Terminal(
-			st,
+	for _, status := range task.AllStatuses() {
+		if want := status == task.Completed || status == task.Dead ||
+			status == task.Cancelled; task.Terminal(
+			status,
 		) != want {
-			t.Fatalf("Terminal(%s) mismatch", st)
+			t.Fatalf("Terminal(%s) mismatch", status)
 		}
 
-		if !st.Valid() {
-			t.Fatalf("AllStatuses contains invalid %s", st)
+		if !status.Valid() {
+			t.Fatalf("AllStatuses contains invalid %s", status)
 		}
 	}
 
@@ -222,6 +216,7 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 		e.store.Complete(t.Context(), c.Task.ID, "expire-w", nil),
 		queue.ErrLeaseNotHeld,
 	)
+
 	_ = short
 }
 

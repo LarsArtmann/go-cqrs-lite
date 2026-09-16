@@ -151,6 +151,8 @@ linters:
         - os/exec.Cmd
         - go.etcd.io/bbolt.Options
         - github.com/larsartmann/go-cqrs-lite/stack/v4.Capabilities
+        - github.com/larsartmann/go-cqrs-lite/queue/v4/task.New
+        - github.com/larsartmann/go-cqrs-lite/queue/v4.Filter
     funlen:
       lines: 200
       statements: 100
@@ -340,6 +342,9 @@ linters:
           - gosec
           - err113
           - goconst
+      - path: queue/conformance/
+        linters:
+          - mnd
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct_v5

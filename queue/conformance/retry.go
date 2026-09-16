@@ -99,6 +99,7 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 	}
 
 	types := factTypes(t, e, tk.ID)
+
 	want := []facts.FactType{
 		facts.Enqueued,
 		facts.Claimed,
