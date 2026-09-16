@@ -141,7 +141,7 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 - **Metaengine** (M17): Counter ADT Apply+ExecuteTyped + Map ADT Apply+Scan+PointRead+ConcurrentApply — measures planner overhead, collection scan cost, and write contention
 - **Recovery**: close+reopen+reload time and recovered events (when `Config.Recovery` is set)
 - **Throughput**: events/sec sustained during write phase
-- **Statistical reliability**: coefficient of variation (CoV), standard deviation, `RepeatIsReliable` flag (CoV < 10% = trustworthy). Use `Repeat > 1` to enable.
+- **Statistical reliability**: coefficient of variation (CoV), standard deviation, `RepeatIsReliable` flag (CoV < 10% = trustworthy). Use `Repeat > 1` to enable. `Result.MetricVariation` extends this to EVERY measured metric, not just throughput (see [Repeats and statistical rigor](#repeats-and-statistical-rigor)).
 - **GC pauses**: cycle count, max/mean/total pause duration — reveals whether tail latency is caused by the backend or by Go's GC
 - **Allocations**: total alloc count + bytes — correlates with GC pressure
 - **Derived rates**: AllocsPerOp, BytesPerOp, GCPercent (time spent in GC), TailRatio (P99/P50)
@@ -150,7 +150,7 @@ See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationa
 - **Memory**: peak heap allocation via runtime.MemStats
 - **Storage**: on-disk database size (when DiskPath configured)
 - **CPU**: process user+sys time via `syscall.Getrusage` (Unix), stub on non-Unix
-- **Environment**: Go version, OS/arch, CPU model (`/proc/cpuinfo` on Linux), GOMAXPROCS
+- **Environment**: Go version, OS/arch, CPU model (`/proc/cpuinfo` on Linux), GOMAXPROCS, total RAM, 1-minute load average at run start (`Environment.LoadAvg1`; a run started with load > CPU count records an oversubscription warning)
 
 ## Testing.B integration
 
@@ -258,6 +258,34 @@ thread scheduling). Set `Config.Repeat > 1` to run N iterations and report the
 median result with min/max throughput spread. The median result carries full
 metrics; `Result.RepeatCount`, `Result.RepeatMin`, `Result.RepeatMax`, and
 `Result.RepeatSamples` provide the distribution.
+
+### Repeats and statistical rigor
+
+`RunRepeated(ctx, config, factory)` returns a `RepeatedResult`: every run
+(`Runs`), the median (`Median`, annotated with the `Repeat*` fields), and
+per-metric cross-run dispersion via `Result.MetricVariation` — mean,
+population StdDev, CoV, and per-run samples for EVERY measured metric, not
+just throughput. A metric whose CoV exceeds `VariationThreshold` (10%) is
+flagged `Reliable=false`; `NoisyMetricNames` lists them worst-first and
+`RepeatedResult.Reliable()` reports the overall verdict.
+
+```go
+repeated, err := benchkit.RunRepeated(ctx, config, factory)
+if err != nil { /* ... */ }
+if !repeated.Reliable() {
+    log.Warnf("noisy metrics, re-run before comparing: %v", repeated.NoisyMetrics())
+}
+benchkit.WriteBenchstatRepeated(os.Stdout, repeated) // one sample per run per metric
+```
+
+`WriteBenchstatRepeated` emits one benchstat line per run per metric — the
+sample count `benchstat` needs before it will report a confidence interval.
+`WriteBenchstat` (single result) emits one line per metric and can only be
+compared as point estimates.
+
+Percentile semantics: P50-P99 are nearest-rank estimates over the bounded
+reservoir sample; `P100` is the exact worst observed latency (tracked on every
+`Record`), so a single stall cannot be evicted from the tail report.
 
 ### Mixed payload sizes
 
