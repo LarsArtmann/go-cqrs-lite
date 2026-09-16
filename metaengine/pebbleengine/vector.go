@@ -28,6 +28,15 @@ func (e *pebbleEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	established, err := e.firstVectorDimension(collection)
+	if err != nil {
+		return err //nolint:wrapcheck // wrapped by the probe helper
+	}
+
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+		return fmt.Errorf("pebbleengine.VectorInsert: %w", err)
+	}
+
 	if err := e.db.Set(
 		keycodec.VectorKey(collection, emb.ID),
 		metaengine.EncodeVectorBinary(emb.Values),
@@ -174,3 +183,24 @@ func (e *pebbleEngine) VectorSearchPath() string {
 var (
 	_ metaengine.VectorPathReporter = (*pebbleEngine)(nil)
 )
+
+// firstVectorDimension reads the stored dimension of the collection's first
+// vector (0 when the collection is empty) for the insert-time dimension lock.
+func (e *pebbleEngine) firstVectorDimension(collection string) (int, error) {
+	iter, err := e.newPrefixIter(keycodec.VectorPrefix(collection))
+	if err != nil {
+		return 0, fmt.Errorf("pebbleengine.VectorInsert: dimension probe: %w", err)
+	}
+	defer metaengine.DeferClose(iter)
+
+	if !iter.First() || !iter.Valid() {
+		return 0, nil
+	}
+
+	values, err := metaengine.DecodeVectorAuto(iter.Value())
+	if err != nil {
+		return 0, fmt.Errorf("pebbleengine.VectorInsert: dimension probe: %w", err)
+	}
+
+	return len(values), nil
+}

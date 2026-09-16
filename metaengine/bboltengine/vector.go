@@ -163,3 +163,21 @@ func (e *bboltEngine) VectorSearchPath() string {
 var (
 	_ metaengine.VectorPathReporter = (*bboltEngine)(nil)
 )
+
+// firstVectorDimension reads the stored dimension of the collection's first
+// vector (0 when the collection is empty) for the insert-time dimension lock.
+func firstVectorDimension(bucket *bolt.Bucket, collection string) (int, error) {
+	prefix := keycodec.VectorPrefix(collection)
+
+	k, v := bucket.Cursor().Seek(prefix)
+	if k == nil || !bytes.HasPrefix(k, prefix) {
+		return 0, nil
+	}
+
+	values, err := metaengine.DecodeVectorAuto(v)
+	if err != nil {
+		return 0, fmt.Errorf("dimension probe: %w", err)
+	}
+
+	return len(values), nil
+}

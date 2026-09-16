@@ -29,6 +29,15 @@ func (e *badgerEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	established, err := e.firstVectorDimension(collection)
+	if err != nil {
+		return err //nolint:wrapcheck // wrapped by the probe helper
+	}
+
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+		return fmt.Errorf("badgerengine.VectorInsert: %w", err)
+	}
+
 	k := keycodec.VectorKey(collection, emb.ID)
 	val := metaengine.EncodeVectorBinary(emb.Values)
 
@@ -189,3 +198,38 @@ func (e *badgerEngine) VectorSearchPath() string {
 var (
 	_ metaengine.VectorPathReporter = (*badgerEngine)(nil)
 )
+
+// firstVectorDimension reads the stored dimension of the collection's first
+// vector (0 when the collection is empty) for the insert-time dimension lock.
+func (e *badgerEngine) firstVectorDimension(collection string) (int, error) {
+	var established int
+
+	err := e.db.View(func(txn *badger.Txn) error {
+		iter := txn.NewIterator(badger.IteratorOptions{Prefix: keycodec.VectorPrefix(collection)})
+		defer iter.Close()
+
+		iter.Rewind()
+		if !iter.Valid() {
+			return nil
+		}
+
+		val, err := iter.Item().ValueCopy(nil)
+		if err != nil {
+			return fmt.Errorf("badgerengine.VectorInsert: dimension probe: %w", err)
+		}
+
+		values, err := metaengine.DecodeVectorAuto(val)
+		if err != nil {
+			return fmt.Errorf("badgerengine.VectorInsert: dimension probe: %w", err)
+		}
+
+		established = len(values)
+
+		return nil
+	})
+	if err != nil {
+		return 0, err //nolint:wrapcheck // wrapped at the probe site
+	}
+
+	return established, nil
+}

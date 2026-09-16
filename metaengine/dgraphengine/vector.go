@@ -49,6 +49,15 @@ func (e *dgraphEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	established, err := e.establishedVectorDimension(ctx, collection)
+	if err != nil {
+		return err //nolint:wrapcheck // wrapped by the probe helper
+	}
+
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+		return fmt.Errorf("dgraphengine.VectorInsert: %w", err)
+	}
+
 	valuesStr, err := formatVectorValues(emb.Values)
 	if err != nil {
 		return fmt.Errorf("dgraphengine.VectorInsert: %w", err)
@@ -88,6 +97,34 @@ func (e *dgraphEngine) VectorInsert(
 	}
 
 	return nil
+}
+
+// vectorDimensionQuery reads the collection's first vector for the
+// insert-time dimension lock (metaengine.CheckVectorDimension).
+const vectorDimensionQuery = `query dims($col: string) {
+	dims(func: eq(cqrs.vector_collection, $col), first: 1) {
+		cqrs.vector_values
+	}
+}`
+
+// establishedVectorDimension returns the stored dimension of the
+// collection's first vector (0 when the collection is empty).
+func (e *dgraphEngine) establishedVectorDimension(
+	ctx context.Context,
+	collection string,
+) (int, error) {
+	var out vectorRows
+
+	if err := vectorQuery(e, ctx, vectorDimensionQuery,
+		map[string]string{"$col": collection}, &out); err != nil {
+		return 0, fmt.Errorf("dgraphengine.VectorInsert: dimension probe: %w", err)
+	}
+
+	if len(out.Vecs) == 0 {
+		return 0, nil
+	}
+
+	return len(out.Vecs[0].Values), nil
 }
 
 // vectorUpsertRequest assembles the conditional upsert. clearMetadata adds a
