@@ -10,9 +10,14 @@ import (
 // ResetEngine must clear every ADT surface MySQL implements (map, counter,
 // stream log) plus the planned tables; layouts survive so a replay re-fills
 // the same tables. Runs only with MYSQL_TEST_DSN set (live server).
+//
+// NOT parallel: the engine shares the persistent cqrs_test database with
+// every other live test, and ResetEngine is a TOTAL wipe — a reset racing a
+// parallel reader silently deletes its data mid-test (2026-09-16: layout,
+// pushdown and stream-log tests failed nondeterministically inside the
+// reset window). Non-parallel tests never overlap any other test, which is
+// the exclusivity mechanism (no locks needed).
 func TestResetEngine_ClearsEveryADT(t *testing.T) {
-	t.Parallel()
-
 	eng := mustNewMySQLEngine(t)
 	ctx := context.Background()
 
@@ -57,9 +62,8 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 
 // Sequence numbers stay monotonic across a reset: a consumer holding a
 // pre-reset journal token (seq > N) must still see every replayed entry.
+// NOT parallel: see TestResetEngine_ClearsEveryADT.
 func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
-	t.Parallel()
-
 	eng := mustNewMySQLEngine(t)
 	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	ctx := context.Background()

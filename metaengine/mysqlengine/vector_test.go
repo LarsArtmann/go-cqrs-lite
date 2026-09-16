@@ -10,9 +10,9 @@ import (
 // TestMySQLVectorRoundtrip exercises the brute-force VectorBackend on a live
 // MySQL/MariaDB server: insert, k-NN ordering per metric, exact distance
 // parity with metaengine.VectorDistance, filtered k-NN, counter, and reset.
+// NOT parallel: it ends with a total ResetEngine over the shared persistent
+// database (see TestResetEngine_ClearsEveryADT).
 func TestMySQLVectorRoundtrip(t *testing.T) {
-	t.Parallel()
-
 	if mysqlTestDSN() == "" {
 		t.Skip("MYSQL_TEST_DSN not set — skipping MySQL integration test")
 	}
