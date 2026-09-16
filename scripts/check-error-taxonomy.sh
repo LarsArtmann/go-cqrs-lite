@@ -133,7 +133,10 @@ done <"$tmp_pool"
 sections_csv=""
 prefixes_csv=""
 for entry in "${GATED_MODULES[@]}"; do
-	IFS='|' read -r section _dir prefixes <<<"$entry"
+	# 4th var absorbs the floor (and 5th the max-depth) so prefixes never
+	# swallow them — a swallowed floor corrupts the LAST prefix ("x.|50"),
+	# silently unclaiming every literal code under it (2026-09-16).
+	IFS='|' read -r section _dir prefixes _claim_floor _claim_depth <<<"$entry"
 	sections_csv+="${sections_csv:+,}${section}"
 	prefixes_csv+="${prefixes_csv:+ }${prefixes}"
 done
