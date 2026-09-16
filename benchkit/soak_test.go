@@ -308,7 +308,11 @@ func assertSoakResultRoundTrip(t *testing.T, original, decoded SoakResult) {
 	}
 
 	if decoded.HeapGrowthBytes != original.HeapGrowthBytes {
-		t.Errorf("HeapGrowthBytes: got %d, want %d", decoded.HeapGrowthBytes, original.HeapGrowthBytes)
+		t.Errorf(
+			"HeapGrowthBytes: got %d, want %d",
+			decoded.HeapGrowthBytes,
+			original.HeapGrowthBytes,
+		)
 	}
 
 	if decoded.ThroughputDriftPct != original.ThroughputDriftPct {
