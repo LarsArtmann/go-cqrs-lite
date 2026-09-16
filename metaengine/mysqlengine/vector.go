@@ -2,6 +2,7 @@ package mysqlengine
 
 import (
 	"context"
+	"errors"
 	"database/sql"
 	"encoding/json/v2"
 	"fmt"
@@ -35,12 +36,29 @@ const vectorInsertSQL = `INSERT INTO meta_vector (collection, id, vec, metadata)
 
 // VectorInsert adds an embedding to the collection. Upsert semantics: an
 // existing (collection, id) row is fully replaced — upserting without
-// metadata clears the old set.
+// metadata clears the old set. Enforces the collection's dimension lock
+// (first insert establishes the dimension; mismatching inserts are rejected
+// with metaengine.ErrVectorDimensionMismatch).
 func (e *mysqlEngine) VectorInsert(
 	ctx context.Context,
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	var established int
+
+	err := e.conn().QueryRowContext(ctx,
+		"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection).
+		Scan(&established)
+	switch {
+	case err == nil:
+		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+			return fmt.Errorf("mysqlengine.VectorInsert: %w", err)
+		}
+	case errors.Is(err, sql.ErrNoRows): // empty collection: this insert establishes the dimension
+	default:
+		return fmt.Errorf("mysqlengine.VectorInsert: dimension probe: %w", err)
+	}
+
 	var metaJSON any // nil → SQL NULL
 	if emb.Metadata != nil {
 		data, err := json.Marshal(emb.Metadata)

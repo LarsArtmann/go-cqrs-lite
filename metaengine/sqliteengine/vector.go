@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -71,12 +72,29 @@ func libSQLDistanceExpr(metric string) string {
 
 // VectorInsert adds an embedding to the collection. Upsert semantics: an
 // existing (collection, id) row is fully replaced — upserting without
-// metadata clears the old set.
+// metadata clears the old set. Enforces the collection's dimension lock
+// (first insert establishes the dimension; mismatching inserts are rejected
+// with ErrVectorDimensionMismatch).
 func (e *sqliteEngine) VectorInsert(
 	ctx context.Context,
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	var established int
+
+	err := e.xc().queryRow(ctx,
+		"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection).
+		Scan(&established)
+	switch {
+	case err == nil:
+		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+			return fmt.Errorf("sqliteengine.VectorInsert: %w", err)
+		}
+	case errors.Is(err, sql.ErrNoRows): // empty collection: this insert establishes the dimension
+	default:
+		return fmt.Errorf("sqliteengine.VectorInsert: dimension probe: %w", err)
+	}
+
 	var metaJSON any // nil marshals to SQL NULL
 	if emb.Metadata != nil {
 		data, err := json.Marshal(emb.Metadata)

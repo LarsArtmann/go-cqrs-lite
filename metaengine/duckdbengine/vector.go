@@ -2,6 +2,8 @@ package duckdbengine
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"encoding/json/v2"
 	"fmt"
 
@@ -63,13 +65,30 @@ func duckdbDistanceExpr(metric string, dim int) string {
 
 // VectorInsert adds an embedding to the collection. Upsert semantics: an
 // existing (collection, id) row is fully replaced — upserting without
-// metadata clears the old set.
+// metadata clears the old set. Enforces the collection's dimension lock
+// (first insert establishes the dimension; mismatching inserts are rejected
+// with metaengine.ErrVectorDimensionMismatch).
 func (e *duckdbEngine) VectorInsert(
 	ctx context.Context,
 	collection string,
 	emb metaengine.Embedding,
 ) error {
 	//art-dupl:accept dep-isolated dialect twin (pgengine/sqliteengine vector.go)
+	var established int
+
+	err := e.conn().QueryRowContext(ctx,
+		"SELECT len(vec) FROM meta_vector WHERE collection = ? LIMIT 1", collection).
+		Scan(&established)
+	switch {
+	case err == nil:
+		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+			return fmt.Errorf("duckdbengine.VectorInsert: %w", err)
+		}
+	case errors.Is(err, sql.ErrNoRows): // empty collection: this insert establishes the dimension
+	default:
+		return fmt.Errorf("duckdbengine.VectorInsert: dimension probe: %w", err)
+	}
+
 	vecJSON, err := json.Marshal(emb.Values)
 	if err != nil {
 		return fmt.Errorf("duckdbengine.VectorInsert: marshal: %w", err)

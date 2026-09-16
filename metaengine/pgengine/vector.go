@@ -27,6 +27,23 @@ func (e *pgEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	// Dimension lock (metaengine.ErrVectorDimensionMismatch): the first
+	// insert establishes the collection's dimension.
+	var established int
+
+	err := e.conn().QueryRowContext(ctx,
+		`SELECT jsonb_array_length(vector) FROM meta_vector WHERE collection = $1 LIMIT 1`,
+		collection).Scan(&established)
+	switch {
+	case err == nil:
+		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+			return fmt.Errorf("pgengine.VectorInsert: %w", err)
+		}
+	case errors.Is(err, sql.ErrNoRows): // empty collection: this insert establishes the dimension
+	default:
+		return fmt.Errorf("pgengine.VectorInsert: dimension probe: %w", err)
+	}
+
 	vecJSON, err := json.Marshal(emb.Values)
 	if err != nil {
 		return fmt.Errorf("pgengine.VectorInsert: marshal: %w", err)

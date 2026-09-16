@@ -38,6 +38,16 @@ func (e *bboltEngine) VectorInsert(
 
 	return e.db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketName))
+
+		established, err := firstVectorDimension(bucket, collection)
+		if err != nil {
+			return err //nolint:wrapcheck // already wrapped
+		}
+
+		if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+			return err //nolint:wrapcheck // classified by metaengine
+		}
+
 		if err := bucket.Put(k, metaengine.EncodeVectorBinary(emb.Values)); err != nil {
 			return err //nolint:wrapcheck // bbolt error is self-describing
 		}
