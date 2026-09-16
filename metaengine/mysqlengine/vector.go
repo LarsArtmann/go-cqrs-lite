@@ -47,7 +47,9 @@ func (e *mysqlEngine) VectorInsert(
 	var established int
 
 	err := e.conn().QueryRowContext(ctx,
-		"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection).
+		// CAST ... AS SIGNED: MySQL/MariaDB "/" is DECIMAL division ("2.0000"
+		// scans as []uint8, not an int); both dialects cast to integer here.
+		"SELECT CAST(LENGTH(vec)/4 AS SIGNED) FROM meta_vector WHERE collection = ? LIMIT 1", collection).
 		Scan(&established)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return fmt.Errorf("mysqlengine.VectorInsert: dimension probe: %w", err)
