@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	"github.com/larsartmann/go-finding"
-
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/output"
+	output "github.com/larsartmann/go-output"
 )
 
 // printRelatedGroups renders the GroupID summary section after the flat
@@ -23,7 +22,10 @@ func printRelatedGroups(w io.Writer, findings []finding.Finding, cm output.Color
 
 	useColor := cm.ShouldColor()
 
-	header := fmt.Sprintf("Related findings (%d group(s) — findings share a root cause):", len(groups))
+	header := fmt.Sprintf(
+		"Related findings (%d group(s) — findings share a root cause):",
+		len(groups),
+	)
 	if useColor {
 		header = ansiBold + header + ansiReset
 	}

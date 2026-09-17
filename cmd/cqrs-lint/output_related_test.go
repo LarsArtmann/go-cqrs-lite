@@ -7,7 +7,11 @@ import (
 
 	"github.com/larsartmann/go-finding"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/output"
+	output "github.com/larsartmann/go-output"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/correctness"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
 )
 
 func groupedFixture() []finding.Finding {
@@ -101,24 +105,31 @@ func TestRelatedGroupsMarkdownGolden(t *testing.T) {
 	}
 }
 
-// TestC019StampsGroupID drives the real C019 detector over a two-Repository
-// fixture and asserts both findings carry the c019:<Type> group ID.
+// TestC019StampsGroupID drives the real C019 detector over a three-Repository
+// fixture (fires on the 2nd and 3rd call) and asserts both findings carry the
+// c019:<Type> group ID.
 func TestC019StampsGroupID(t *testing.T) {
 	t.Parallel()
 
-	src := `package main
+	actx := analyzer.BuildContextFromSource(t, map[string]string{
+		"setup.go": `package main
 
-import "example.com/x/decider"
-
-type Order struct{ N int }
-
-func setup() {
-	_ = decider.NewRepository[Order](nil)
-	_ = decider.NewRepository[Order](nil)
+func a() {
+	repo1 := decider.NewRepository[UserState](store1, bus1, d1)
+	_ = repo1
 }
-`
-	actx, cleanup := analyzer.BuildContextFromTempFiles(t, map[string]string{"main.go": src})
-	defer cleanup()
+
+func b() {
+	repo2 := decider.NewRepository[UserState](store2, bus2, d2)
+	_ = repo2
+}
+
+func c() {
+	repo3 := decider.NewRepository[UserState](store3, bus3, d3)
+	_ = repo3
+}
+`,
+	})
 
 	findings := ruletest.RunDetector(t, correctness.NewC019Detector(actx))
 	if len(findings) != 2 {
@@ -126,8 +137,8 @@ func setup() {
 	}
 
 	for _, f := range findings {
-		if f.GroupID != "c019:Order" {
-			t.Fatalf("expected group c019:Order, got %q", f.GroupID)
+		if f.GroupID != "c019:UserState" {
+			t.Fatalf("expected group c019:UserState, got %q", f.GroupID)
 		}
 	}
 }
