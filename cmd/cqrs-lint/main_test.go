@@ -90,7 +90,12 @@ func TestParseSeverity(t *testing.T) {
 	}
 }
 
-func TestParseConfidence(t *testing.T) {
+// TestParseConfidenceContract pins the go-finding.ParseConfidence semantics
+// cqrs-lint relies on after adopting it for --min-confidence: the five named
+// levels round-trip case-insensitively, "" defaults to low, decimals in
+// [0.0, 1.0] are accepted (the hand-rolled parser silently degraded them to
+// low), and unrecognized input is an ERROR instead of a silent default.
+func TestParseConfidenceContract(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -100,12 +105,30 @@ func TestParseConfidence(t *testing.T) {
 		{"high", finding.ConfidenceHigh},
 		{"medium", finding.ConfidenceMedium},
 		{"low", finding.ConfidenceLow},
-		{"unknown", finding.ConfidenceLow},
+		{"none", finding.ConfidenceNone},
+		{"full", finding.ConfidenceFull},
+		{"HIGH", finding.ConfidenceHigh},
+		{" Medium ", finding.ConfidenceMedium},
+		{"", finding.ConfidenceLow},
+		{"0.42", 0.42},
+		{"1", finding.ConfidenceFull},
+		{"0", finding.ConfidenceNone},
 	}
 
 	for _, tt := range tests {
-		if got := parseConfidence(tt.input); got != tt.want {
-			t.Errorf("parseConfidence(%q) = %v, want %v", tt.input, got, tt.want)
+		got, err := finding.ParseConfidence(tt.input)
+		if err != nil {
+			t.Errorf("ParseConfidence(%q): unexpected error %v", tt.input, err)
+			continue
+		}
+		if got != tt.want {
+			t.Errorf("ParseConfidence(%q) = %v, want %v", tt.input, got, tt.want)
+		}
+	}
+
+	for _, bogus := range []string{"bogus", "1.5", "-0.1", "h1gh"} {
+		if _, err := finding.ParseConfidence(bogus); err == nil {
+			t.Errorf("ParseConfidence(%q): expected error, got nil", bogus)
 		}
 	}
 }

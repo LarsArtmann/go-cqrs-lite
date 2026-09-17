@@ -165,13 +165,11 @@ func filterBySeverity(findings []finding.Finding, minSev string) []finding.Findi
 	return result
 }
 
-func filterByConfidence(findings []finding.Finding, minConf string) []finding.Finding {
-	minC := parseConfidence(minConf)
-
+func filterByConfidence(findings []finding.Finding, minConf finding.Confidence) []finding.Finding {
 	result := make([]finding.Finding, 0, len(findings))
 
 	for _, f := range findings {
-		if f.Confidence >= minC {
+		if f.Confidence >= minConf {
 			result = append(result, f)
 		}
 	}
