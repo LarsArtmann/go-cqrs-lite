@@ -123,7 +123,6 @@ func scanBuilderDeclsFrom(t *testing.T, root string) []builderDecl {
 
 	visit := func(path string) {
 		rel, err := filepath.Rel(root, path)
-		rel, err := filepath.Rel(".", path)
 		if err != nil {
 			return
 		}
@@ -202,7 +201,7 @@ func scanBuilderDeclsFrom(t *testing.T, root string) []builderDecl {
 		})
 	}
 
-	_ = filepath.WalkDir(".", func(path string, d os.DirEntry, err error) error {
+	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
