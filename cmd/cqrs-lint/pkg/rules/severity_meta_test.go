@@ -108,11 +108,21 @@ func exprLabel(e ast.Expr) string {
 func scanBuilderDecls(t *testing.T) []builderDecl {
 	t.Helper()
 
+	return scanBuilderDeclsFrom(t, ".")
+}
+
+// scanBuilderDeclsFrom is scanBuilderDecls parameterized by the tree root so
+// the mutant-discrimination test can point it at a synthetic rule file and
+// prove the scanner + catalog checks actually bite.
+func scanBuilderDeclsFrom(t *testing.T, root string) []builderDecl {
+	t.Helper()
+
 	var out []builderDecl
 	confByPos := map[string]string{}
 	fset := token.NewFileSet()
 
 	visit := func(path string) {
+		rel, err := filepath.Rel(root, path)
 		rel, err := filepath.Rel(".", path)
 		if err != nil {
 			return
