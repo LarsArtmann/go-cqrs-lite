@@ -1,5 +1,17 @@
 # SUPERB Plan: go-finding v1.10 Adoption in cqrs-lint (Pareto-Ranked)
 
+> **STATUS (2026-09-17): EXECUTED.** C1–C7, C9–C17 (C17 pilot: BuildFlow
+> blank-import recipe proven against dnsblockd), C18–C19 (verdict: no
+> go/analysis pilot — no type-fact target, see IMPROVEMENT_IDEAS §Extended),
+> C20 (codeable parts; M75/M76 remain user-gated on Actions billing), C21–C26
+> DONE. C10 verified clean (zero subtraction comparators). C11 cancelled with
+> C9's scope reduction (same-tool pairs never correlate). C9/C22/C24 shaped
+> differently than planned (no --correlate flag; RULES.md is generated so
+> docs live in README/flag help; LSP verdict GO on data, server deferred).
+> Evidence: commits `debd4839e`..`dfc3cc492` + CHANGELOG [Unreleased]
+> 2026-09-17 entry; upstream go-finding v1.11.0 cut (5 tags, preflight green,
+> proxy-verified) and ask filed as go-finding#32.
+
 **Created:** 2026-09-16 21:12 CEST
 **Scope:** Execute the benefit analysis from `docs/status/2026-09-16_21-05_go-finding-v1.10.0-benefit-analysis-cqrs-lint.md` — turn 8 verified-unadopted go-finding capabilities (50 candidate items) into an executable, impact-sorted plan for `cmd/cqrs-lint`.
 **Method:** `pareto-planning` skill — 1%/4%/20% tiers, comprehensive plan (30–100 min tasks), micro plan (≤12 min tasks), execution graph.

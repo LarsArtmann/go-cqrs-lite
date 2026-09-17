@@ -754,6 +754,28 @@ and [ADR-0124](../../../../docs/adr/0124-operator-driven-layout-planning.md).
 
 ## 7. Tooling Surface: doctor JSON + verification apps (v4.10.0 wave)
 
+**cqrs-lint BuildFlow tool** (v4.11.0, 2026-09-17): `pkg/toolspec` registers
+cqrs-lint into the go-finding toolsdk default registry on import — a BuildFlow
+host adds one blank import and discovers Detect (206 rules, working dir from
+`finding.WithWorkingDir`) + Repair (the `--fix` pipeline: safe structural
+C-series rewrites; BuildFlow re-measures by re-detecting). Recipe:
+cmd/cqrs-lint/README.md "BuildFlow Integration".
+
+**cqrs-lint `--fix` outcome report + confidence semantics** (v4.11.0):
+
+- `--fix` prints a stderr per-finding report (tally + sorted
+  status/location/rule lines, provider errors verbatim). Stderr-only —
+  JSON/SARIF stdout stays parseable. Outcomes dedupe to the first per
+  finding ID (post-fix re-detection repeats are pre-fix-AST artifacts).
+- `--min-confidence` accepts `none|low|medium|high|full` or a decimal
+  (e.g. `0.6`); the comparison is inclusive `>=` and unrecognized input is
+  a hard, actionable rejection (it used to silently act as `low`).
+- C019 stamps `c019:<StateType>` GroupIDs; text/markdown gain a "Related
+  findings" section when any finding is grouped.
+- Deliberate non-features: no `--correlate` (go-finding's Correlate skips
+  same-tool pairs — nothing to correlate in a single-tool linter) and no
+  LSP server yet (conversion proven; transport awaiting demand).
+
 **`cqrs-lint doctor --format json`** emits a machine-readable report
 (module-rule findings, engine coverage, severity overrides). Key order is
 DETERMINISTIC since the 2026-09-08 wave (`encoding/json/v2` emits map
