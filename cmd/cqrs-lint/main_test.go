@@ -92,6 +92,53 @@ func TestFilterByConfidenceDecimalFloor(t *testing.T) {
 	}
 }
 
+// TestConfidenceOrderingContract pins the ordering contract the >= filter
+// relies on: the named levels are strictly increasing (none < low < medium <
+// high < full), so a floor keeps everything at or above it — the boundary
+// finding itself always survives (inclusive comparison).
+func TestConfidenceOrderingContract(t *testing.T) {
+	t.Parallel()
+
+	levels := []finding.Confidence{
+		finding.ConfidenceNone,
+		finding.ConfidenceLow,
+		finding.ConfidenceMedium,
+		finding.ConfidenceHigh,
+		finding.ConfidenceFull,
+	}
+
+	for i := 1; i < len(levels); i++ {
+		if levels[i-1].Compare(levels[i]) >= 0 {
+			t.Fatalf(
+				"ordering broken: %v must sort strictly below %v",
+				levels[i-1], levels[i],
+			)
+		}
+	}
+
+	all := []finding.Finding{
+		{Confidence: finding.ConfidenceNone},
+		{Confidence: finding.ConfidenceLow},
+		{Confidence: finding.ConfidenceMedium},
+		{Confidence: finding.ConfidenceHigh},
+		{Confidence: finding.ConfidenceFull},
+	}
+
+	for _, floor := range levels {
+		result := filterByConfidence(all, floor)
+		if len(result) == 0 || result[0].Confidence != floor {
+			t.Fatalf(
+				"filter at floor %v must keep the boundary finding (inclusive >=), got %+v",
+				floor, result,
+			)
+		}
+
+		if got := len(result); got != 5-i{
+			t.Fatalf("floor %v: got %d findings, want %d", floor, got, 5-i)
+		}
+	}
+}
+
 func TestParseSeverity(t *testing.T) {
 	t.Parallel()
 
