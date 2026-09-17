@@ -126,5 +126,3 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../metaengine
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../metaengine/sqliteengine
-
-replace modernc.org/sqlite => modernc.org/sqlite v1.58.0
