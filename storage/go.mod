@@ -1,13 +1,13 @@
 module github.com/larsartmann/go-cqrs-lite/storage/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0

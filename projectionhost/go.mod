@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/projectionhost/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	go.opentelemetry.io/otel v1.46.0
@@ -91,7 +91,7 @@ require (
 )
 
 require (
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
