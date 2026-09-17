@@ -773,7 +773,47 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Tuned-tier metaengine benchmark** — `BuildLayoutPlanFromType`
       composite layouts vs hand-indexed SQL, BOTH sides tuned, so future
       latency claims carry no defaults-vs-tuned asymmetry (CV's fairness
-      finding). — source: reflection doc §5; SUPERB plan T27/M101 _(Effort: M)_
+      finding). — source: reflection doc §5; SUPERB plan T27/M101; Goal-closure plan G-T16 extends this to the fold-tier goal-parity shape _(Effort: M)_
+
+---
+
+## metaengine Goal-closure follow-ups (2026-09-17)
+
+> Source plan: [`docs/planning/2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md`](docs/planning/2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md)
+> (distance analysis: ~55–60% consumer-experienced). Executes AFTER/ALONGSIDE
+> the 2026-09-16 excellence plan (shared items cross-referenced there, never
+> duplicated). Success definition in plan §7.
+
+- [ ] 🔥 **DIRECTION RULING: what does the Goal's "declare ONLY" mean after the
+      `Infer` deprecation?** — evidence pack + 3-option decision memo
+      (reframe: Evolutions+Queries on the `system` surface IS the goal ·
+      revive: Layer-1 inference via compile-time codegen, visible+auditable ·
+      hybrid), owner ruling, ADR-0141, AGENTS.md Goal sentence amended to the
+      ruled meaning. The Goal is undefinable at 100% until this is ruled.
+      — G-T01/G-T02/G-T03 _(Effort: S memo + XS ruling; M if revive)_
+- [ ] **Auto-projection completion** — Evolution-fold-inheritance coverage
+      audit (which declaration shapes inherit vs hand-wire; close the top
+      gaps), tombstone auto-fold (ADR-0114 × ADR-0116: type-driven `Remove`
+      in auto-projection), planned-table auto-backfill option (kills the
+      registration-before-data developer worry; idempotent,
+      KeyScanBackend-gated, Doctor-visible). — G-T09..G-T12 _(Effort: M)_
+- [ ] **Capability smoothing: ADTSet on pg/mysql** (meta_set DDL +
+      SetContains parity) or, if the effort probe says no, plan-time
+      Doctor-loud degraded warnings on every affected query — "operators
+      pick any engine" must never break a declared query silently. — G-T13
+      _(Effort: S/M by probe)_
+- [ ] **Scan default v5 decision** — documented-100 (status quo, now loud in
+      godoc+FAQ) vs unbounded default at the v5 cut. Survey consumers,
+      decide, implement at the v5 branch. — G-T14 _(Effort: S decision + S impl)_
+- [ ] **`example/goal-shaped-app` + "The Goal in 5 minutes"** — one example
+      repo that declares types only (zero engine/schema/registration/limit
+      knowledge), swaps engines via operator config (sqlite→pg), Doctor
+      walkthrough in README; core.md section + compile-gated recipe. The
+      Goal's story surface. — G-T23 _(Effort: M)_
+- [ ] **FEATURES maturity flip for the closed surface (🧪→✅)** — earned by
+      the plan's gates (not declared): evidence links per row, CHANGELOG
+      Goal-story entry, release notes. Final stamp of Goal closure. — G-T25
+      _(Effort: S, gated on gates A–D)_
 
 ---
 
