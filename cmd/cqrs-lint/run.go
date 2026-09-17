@@ -88,7 +88,6 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		collectFindings(result),
 	)
 	printFixOutcomes(os.Stderr, cfg, fixOutcomes)
-	printCorrelations(os.Stderr, result.Correlations, collectFindings(result))
 
 	if err := outputFindings(ctx, active, cfg, len(actx.LoadErrors)); err != nil {
 		return fmt.Errorf("output: %w", err)
