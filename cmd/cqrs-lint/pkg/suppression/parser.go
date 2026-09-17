@@ -1,4 +1,19 @@
 // Package suppression provides inline-comment suppression for cqrs-lint findings.
+//
+// Alignment with go-finding's Suppression model (decision, 2026-09-17):
+// cqrs-lint stamps only SuppressionInSource with a valid Kind/Rule/Reason —
+// the other kinds map onto existing cqrs-lint mechanisms instead of
+// duplicating them:
+//
+//   - go-finding "in-review" (accepted false positive) ≈ cqrs-lint's inline
+//     ignore comment plus --show-suppressed for auditing.
+//   - go-finding "in-config" ≈ cqrs-lint's rules.disable config and
+//     --exclude-rules, which drop findings before suppression runs.
+//   - go-finding ExpiresAt (time-based expiry) is deliberately NOT parsed
+//     from ignore comments: staleness is handled structurally by
+//     DetectStaleSuppressions (a directive that no longer suppresses is
+//     reported) and --fail-on-stale-suppressions / doctor --audit-suppressions.
+//     Date-stamped comments rot silently; a stale-directive gate fails loudly.
 package suppression
 
 import (
