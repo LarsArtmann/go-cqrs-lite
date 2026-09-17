@@ -33,6 +33,11 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	applyConfigOverrides(cfg, actx)
 
+	minConfidence, err := finding.ParseConfidence(cfg.MinConfidence)
+	if err != nil {
+		return fmt.Errorf("invalid --min-confidence: %w", err)
+	}
+
 	// Scorecard mode: compute module adoption and exit early. Runs before
 	// handleLoadErrors because the scorecard only needs import paths (AST),
 	// not compiled types — it works even when the project has build errors.
@@ -64,7 +69,12 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		return err
 	}
 
-	active, unsuppressed, suppressed := filterFindings(cfg, actx, collectFindings(result))
+	active, unsuppressed, suppressed := filterFindings(
+		cfg,
+		actx,
+		collectFindings(result),
+		minConfidence,
+	)
 
 	printSummary(
 		cfg,
@@ -367,6 +377,7 @@ func filterFindings(
 	cfg *AppConfig,
 	actx *analyzer.AnalysisContext,
 	allFindings []finding.Finding,
+	minConfidence finding.Confidence,
 ) (active, unsuppressed, suppressed []finding.Finding) {
 	if cfg.Exclude != "" {
 		allFindings = filterByExcludedPaths(allFindings, strings.Split(cfg.Exclude, ","))
@@ -403,7 +414,7 @@ func filterFindings(
 	if cfg.FPSuspects {
 		active = filterFPSuspects(active)
 	} else {
-		active = filterByConfidence(active, cfg.MinConfidence)
+		active = filterByConfidence(active, minConfidence)
 	}
 
 	return active, unsuppressed, suppressed

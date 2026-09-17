@@ -48,24 +48,47 @@ func TestFilterByConfidence(t *testing.T) {
 	}
 
 	tests := []struct {
-		minConf   string
+		minConf   finding.Confidence
 		wantCount int
 	}{
-		{"low", 3},
-		{"medium", 2},
-		{"high", 1},
+		{finding.ConfidenceLow, 3},
+		{finding.ConfidenceMedium, 2},
+		{finding.ConfidenceHigh, 1},
 	}
 
 	for _, tt := range tests {
 		result := filterByConfidence(findings, tt.minConf)
 		if len(result) != tt.wantCount {
 			t.Errorf(
-				"filterByConfidence(%q): got %d, want %d",
+				"filterByConfidence(%v): got %d, want %d",
 				tt.minConf,
 				len(result),
 				tt.wantCount,
 			)
 		}
+	}
+}
+
+// TestFilterByConfidenceDecimalFloor: decimal --min-confidence values (newly
+// supported by the finding.ParseConfidence adoption) filter on the numeric
+// floor, not the named-level quantiles.
+func TestFilterByConfidenceDecimalFloor(t *testing.T) {
+	t.Parallel()
+
+	findings := []finding.Finding{
+		{Confidence: 0.9},
+		{Confidence: 0.5},
+		{Confidence: 0.25},
+	}
+
+	minConf, err := finding.ParseConfidence("0.6")
+	if err != nil {
+		t.Fatalf("parse 0.6: %v", err)
+	}
+
+	result := filterByConfidence(findings, minConf)
+	if len(result) != 1 || result[0].Confidence != 0.9 {
+		t.Fatalf("expected only the 0.9 finding above a 0.6 floor, got %+v", result)
 	}
 }
 

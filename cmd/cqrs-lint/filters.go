@@ -482,16 +482,3 @@ func parseSeverity(s string) finding.Severity {
 		return finding.SeverityInfo
 	}
 }
-
-func parseConfidence(s string) finding.Confidence {
-	switch strings.ToLower(s) {
-	case "high":
-		return finding.ConfidenceHigh
-	case "medium":
-		return finding.ConfidenceMedium
-	case "low":
-		return finding.ConfidenceLow
-	default:
-		return finding.ConfidenceLow
-	}
-}
