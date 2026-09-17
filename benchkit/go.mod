@@ -4,7 +4,7 @@ go 1.26.7
 
 require (
 	github.com/dustin/go-humanize v1.0.1
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	modernc.org/sqlite v1.58.0
 )
 
@@ -56,7 +56,7 @@ require (
 	github.com/ebitengine/purego v0.11.0 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

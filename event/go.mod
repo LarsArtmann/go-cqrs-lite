@@ -1,11 +1,11 @@
 module github.com/larsartmann/go-cqrs-lite/event/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.4
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0
@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/onsi/ginkgo/v2 v2.32.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	pgregory.net/rapid v1.3.0
 )
 

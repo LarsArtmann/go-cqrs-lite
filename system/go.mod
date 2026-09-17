@@ -7,7 +7,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.6
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0
@@ -29,7 +29,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
 	github.com/maypok86/otter/v2 v2.3.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	go.uber.org/goleak v1.3.0
 	modernc.org/sqlite v1.59.0
 )
@@ -50,7 +50,7 @@ require (
 	github.com/dgraph-io/ristretto/v2 v2.4.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/gkampitakis/go-snaps v0.5.23 // indirect

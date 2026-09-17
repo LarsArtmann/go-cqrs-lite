@@ -30,7 +30,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
-	github.com/larsartmann/go-codec v0.2.0 // indirect
+	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect

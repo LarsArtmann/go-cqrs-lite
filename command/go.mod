@@ -1,24 +1,24 @@
 module github.com/larsartmann/go-cqrs-lite/command/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
-	github.com/larsartmann/go-error-family v0.10.0
+	github.com/larsartmann/go-error-family v0.10.1
 	github.com/onsi/ginkgo/v2 v2.32.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	pgregory.net/rapid v1.3.0
 )
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.9.3 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect

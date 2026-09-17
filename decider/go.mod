@@ -1,9 +1,9 @@
 module github.com/larsartmann/go-cqrs-lite/decider/v4
 
-go 1.26.6
+go 1.26.7
 
 require (
-	github.com/larsartmann/go-codec v0.2.0
+	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
@@ -15,7 +15,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/ginkgo/v2 v2.32.0
-	github.com/onsi/gomega v1.42.1
+	github.com/onsi/gomega v1.43.0
 	golang.org/x/sync v0.23.0
 	pgregory.net/rapid v1.3.0
 )
