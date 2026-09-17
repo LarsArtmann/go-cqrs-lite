@@ -211,6 +211,15 @@ func formatFindingsText(w io.Writer, findings []finding.Finding, cm output.Color
 			_, _ = fmt.Fprintln(w, ruleStr)
 		}
 
+		if f.GroupID != "" {
+			groupStr := fmt.Sprintf("  group: %s", f.GroupID)
+			if useColor {
+				groupStr = ansiGray + groupStr + ansiReset
+			}
+
+			_, _ = fmt.Fprintln(w, groupStr)
+		}
+
 		if f.Suggestion != "" {
 			_, _ = fmt.Fprintf(w, "  %sSuggestion:%s %s\n",
 				val(useColor, ansiBold, ""), val(useColor, ansiReset, ""), f.Suggestion)

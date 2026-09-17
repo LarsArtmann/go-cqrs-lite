@@ -83,6 +83,10 @@ func outputFindings(
 			}
 		}
 
+		if section, ok := relatedGroupsMarkdown(findings); ok {
+			fmt.Print(section)
+		}
+
 	case "csv":
 		out, err := delimited.RenderCSV(findingsToTable(findings))
 		if err != nil {
@@ -134,6 +138,8 @@ func outputFindings(
 		default:
 			formatFindingsText(os.Stdout, findings, cm)
 		}
+
+		printRelatedGroups(os.Stdout, findings, cm)
 	}
 
 	return nil

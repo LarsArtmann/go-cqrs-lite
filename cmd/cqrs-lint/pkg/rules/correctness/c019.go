@@ -3,6 +3,7 @@ package correctness
 import (
 	"context"
 	"go/ast"
+	"slices"
 
 	"github.com/larsartmann/go-finding"
 
@@ -66,15 +67,23 @@ func NewC019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				})
 			}
 
-			// Group by type param.
+			// Group by type param. Keys are sorted so emission order is
+			// deterministic across runs (map range is not).
 			byType := make(map[string][]tokenPos)
 			for _, c := range calls {
 				byType[c.typeParam] = append(byType[c.typeParam], c.pos)
 			}
 
+			typeParams := make([]string, 0, len(byType))
+			for typeParam := range byType {
+				typeParams = append(typeParams, typeParam)
+			}
+			slices.Sort(typeParams)
+
 			var findings []finding.Finding
 
-			for typeParam, positions := range byType {
+			for _, typeParam := range typeParams {
+				positions := byType[typeParam]
 				if len(positions) <= 1 {
 					continue
 				}
@@ -94,6 +103,7 @@ func NewC019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						WithSuggestion("Create one Repository[" + typeParam +
 							"] and share it across handlers").
 						WithSnippet(ctx.SourceLine(p.file, p.line)).
+						WithGroupID(finding.GroupID("c019:" + typeParam)).
 						Build()
 					if err != nil {
 						continue
