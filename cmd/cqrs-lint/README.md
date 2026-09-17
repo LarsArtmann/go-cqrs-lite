@@ -687,6 +687,32 @@ func NewC006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 Register it in `pkg/rules/register.go`. Write tests using `analyzer.BuildContextFromSource`.
 
+## BuildFlow Integration
+
+cqrs-lint ships a go-finding toolsdk Spec (`pkg/toolspec`) that registers it
+into BuildFlow's tool registry on import. To consume it from a BuildFlow
+checkout:
+
+1. Require the module (v4.11.0 or later, first release carrying the Spec):
+
+   ```
+   go get github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@v4.11.0
+   ```
+
+2. Add one blank import to BuildFlow's `tools/providers/sdk_imports.go` — the
+   import IS the registration:
+
+   ```go
+   _ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
+   ```
+
+3. Run the loop in a consumer repo (`buildflow --build-mode=dev` includes it;
+   full mode reports findings and measures Repair by re-detecting — BuildFlow
+   does not trust self-reported fix counts).
+
+Detect runs all 206 rules with the working directory from the toolsdk context;
+Repair applies the same safe C-series structural rewrites as `--fix`.
+
 ## CI Integration
 
 ### GitHub Actions (SARIF upload)
