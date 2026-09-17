@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -34,9 +33,8 @@ func TestLSPRoundTripSpike(t *testing.T) {
 		t.Fatalf("LSP ranges are zero-based: start line = %d, want 41", diag.Range.Start.Line)
 	}
 
-	if !strings.Contains(string(diag.URI), "internal/wallet/fold.go") &&
-		!strings.Contains(diag.String(), "internal/wallet/fold.go") {
-		t.Fatalf("diagnostic does not reference the file: %+v", diag)
+	if diag.Code != "C003" {
+		t.Fatalf("diagnostic code should carry the rule ID, got %q", diag.Code)
 	}
 
 	back := finding.FromLSP(f.Position.File, diag)
