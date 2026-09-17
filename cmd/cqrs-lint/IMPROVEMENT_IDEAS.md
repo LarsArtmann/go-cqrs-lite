@@ -391,6 +391,36 @@
 
 ## Extended Ideas (134-179)
 
+### AST walker vs go/analysis — rule-split convention + 2026-09-17 triage verdict
+
+**Convention:** default to AST walkers (analyzer.Registry + scanners) — they are
+fast, zero new deps, and cover everything expressible with syntax + import
+qualification. Reach for go-finding's `analysis.AnalyzerDetector` (go/analysis
+bridge) ONLY when a rule needs *type facts* the walkers cannot have: interface
+satisfaction, method-set/receiver effects, constant-expression folding, or
+cross-package type identity through aliases.
+
+**Triage verdict (2026-09-17, tasks C18/C19 of the go-finding v1.10 adoption
+plan):** NO current candidate justifies the go/analysis dependency. The
+premise that type facts were "impossible" for AST walkers turned out not to
+bind: go-cqrs-lite's type model is deliberately structural/alias-based
+(`event.Event` is an alias of `*ImmutableEvent`, ADR-0111), so there is no
+behavioral interface whose satisfaction a rule would check — the canonical
+go/analysis use case has no target in this ecosystem. Re-audit of the open
+backlog (items 102-121 above, Extended Ideas 134+) found every idea either
+shipped, rejected, or implementable with the walker stack (config/feature
+detection, docs/observability/resilience series, SARIF metadata, config
+inheritance).
+
+**Revisit trigger:** adopt `analysis.AnalyzerDetector` when a proposed rule
+needs `types.Implements`/method-set facts — e.g. a future "state mutates
+through a non-pointer receiver in a fold" check, or any rule against a new
+behavioral marker interface introduced upstream. The bridge itself is proven
+go-finding-side; cqrs-lint adds only the dep (budget line) plus the analyzer
+at that point.
+
+### Deep pattern detection
+
 ### Deep pattern detection
 
 134. ~~**Detect custom retry loops more accurately** — DiscordSync's `appendWithRetry` (storage.go:207-241) has a bitshift backoff bug (`baseBackoff << time.Duration(attempt-1)` shifts Duration's nanosecond representation). The current B008 rule should catch this but may miss the bitshift variant.~~ **done** — B008 now detects bitshift operations in retry loops and escalates to error severity
