@@ -12,12 +12,20 @@ import (
 )
 
 // RunDetector executes a [finding.Detector] and fails the test on error.
+// Every emitted finding is validated (finding.ValidateAll) so structurally
+// invalid findings are killed at test time instead of leaking into consumer
+// runs where JSON/SARIF encoders and the fix pipeline choke on them.
 func RunDetector(t *testing.T, det finding.Detector) []finding.Finding {
 	t.Helper()
 
 	findings, err := det.Detect(context.Background())
 	if err != nil {
 		t.Fatalf("detector %s: %v", det.Name(), err)
+	}
+
+	for i, err := range finding.ValidateAll(findings) {
+		t.Errorf("detector %s produced invalid finding at index %d: %v", det.Name(), i, err)
+		t.Logf("  invalid finding: %+v", findings[i])
 	}
 
 	return findings
