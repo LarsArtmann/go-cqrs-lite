@@ -960,6 +960,7 @@ cmd/cqrs-lint/pkg/suppression/struct FixResult
 cmd/cqrs-lint/pkg/suppression/struct StaleSuppression
 cmd/cqrs-lint/pkg/suppression/struct SuppressionAuditEntry
 cmd/cqrs-lint/pkg/suppression/type AuditStatus
+cmd/cqrs-lint/pkg/toolspec/func Spec
 cmd/cqrs-lint/struct AppConfig
 cmd/cqrs-lint/struct HealthConfig
 cmd/cqrs-lint/struct HealthScore

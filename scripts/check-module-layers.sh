@@ -289,7 +289,10 @@ DEP_BUDGET["metaengine/irohengine"]=2
 DEP_BUDGET["metaengine/irohengine/loopback"]=4
 DEP_BUDGET["metaengine/irohengine/quic"]=5
 DEP_BUDGET["cmd/cqrs-gen"]=2
-DEP_BUDGET["cmd/cqrs-lint"]=8
+# 9th dep = go-finding/toolsdk (v1.11.0): the cqrs-lint toolsdk Spec
+# (pkg/toolspec) exposes cqrs-lint as a BuildFlow-discoverable tool;
+# same author, no new transitive burden beyond go-finding itself.
+DEP_BUDGET["cmd/cqrs-lint"]=9
 # metaengine/v4 added for the `cqrs-bench layout` planning CLI.
 DEP_BUDGET["cmd/cqrs-bench"]=19
 # cqrs-upgrade: cqrs-lint (in-process V007 engine), go-finding (rendering),

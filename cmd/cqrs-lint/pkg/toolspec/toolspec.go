@@ -25,8 +25,11 @@ import (
 // comes from the context (toolsdk convention), defaulting to ".".
 func Spec() toolsdk.Spec {
 	return toolsdk.Spec{
-		Name:        "cqrs-lint",
-		Description: fmt.Sprintf("CQRS + event-sourcing linter for Go (%d rules across 10 categories)", len(rules.AllRules())),
+		Name: "cqrs-lint",
+		Description: fmt.Sprintf(
+			"CQRS + event-sourcing linter for Go (%d rules across 10 categories)",
+			len(rules.AllRules()),
+		),
 		Trigger: toolsdk.Trigger{
 			Files:    []string{"**/*.go"},
 			Language: "go",
@@ -41,7 +44,10 @@ func Spec() toolsdk.Spec {
 			}
 
 			return toolsdk.RepairResult{
-				Description: fmt.Sprintf("applied %d safe fix(es) via the cqrs-lint fix pipeline", fixed),
+				Description: fmt.Sprintf(
+					"applied %d safe fix(es) via the cqrs-lint fix pipeline",
+					fixed,
+				),
 			}, nil
 		}),
 	}
