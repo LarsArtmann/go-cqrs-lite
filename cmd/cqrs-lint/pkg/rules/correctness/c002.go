@@ -27,13 +27,12 @@ func NewC002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"C002", toolName,
+				f, err := findingTemplate.Builder(
+					"C002",
 					fmt.Sprintf("Command %s ID() returns zero value — breaks idempotency and tracing", cmd.Name),
 					finding.SeverityCritical,
 					finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),
 				).
-					WithCategory(finding.CategoryCorrectness).
 					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Generate a unique CommandID per instance, or embed *command.BasicCommand which provides ID() automatically").

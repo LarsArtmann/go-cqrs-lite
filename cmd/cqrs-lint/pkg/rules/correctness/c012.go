@@ -50,9 +50,8 @@ func NewC012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
+					f, err := findingTemplate.Builder(
 						"C012",
-						toolName,
 						fmt.Sprintf(
 							"Function %s ignores error from body callback — failures silently lost",
 							fn.Name.Name,
@@ -60,7 +59,6 @@ func NewC012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityCritical,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion(fmt.Sprintf("Check the error from %s(tx) and return it if non-nil", bodyVar)).
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

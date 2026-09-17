@@ -143,9 +143,8 @@ func reportTimeField(
 	fieldName := getFieldNames(field)
 	suggestion := suggestReplacement(fieldName)
 
-	f, err := finding.NewBuilder(
+	f, err := findingTemplate.Builder(
 		"C013",
-		toolName,
 		fmt.Sprintf(
 			"Struct %s has %s of type time.Time — timezone info is lost via CBOR epoch encoding",
 			structName,
@@ -154,7 +153,6 @@ func reportTimeField(
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceMedium).
 		WithSuggestion(suggestion).
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
@@ -223,8 +221,8 @@ func checkProjectionTimeFields(
 			pos := ctx.Fset.Position(field.Pos())
 			fieldName := getFieldNames(field)
 
-			f, err := finding.NewBuilder(
-				"C013", toolName,
+			f, err := findingTemplate.Builder(
+				"C013",
 				fmt.Sprintf(
 					"Projection view %s has %s of type time.Time — timezone may be lost in SQL storage",
 					structName, fieldName,
@@ -232,7 +230,6 @@ func checkProjectionTimeFields(
 				finding.SeverityWarning,
 				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 			).
-				WithCategory(finding.CategoryCorrectness).
 				WithConfidence(finding.ConfidenceMedium).
 				WithSuggestion("Store timestamps as UTC ISO-8601 strings (timestamptz) or use event.Instant to preserve timezone info across SQL round-trips").
 				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

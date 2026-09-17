@@ -30,13 +30,12 @@ func NewC003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				// Also check for the if-statement variant of the same bug:
 				// if evt.Type() != "expected" { return state, nil }
 				if foldHasSilentIfStmt(ctx, fold) {
-					f, err := finding.NewBuilder(
-						"C003", toolName,
+					f, err := findingTemplate.Builder(
+						"C003",
 						fmt.Sprintf("Fold %s silently ignores unknown event types via if-statement", fold.FuncName),
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion("Return an error for unknown event types: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
 						WithSnippet(ctx.SourceLine(fold.File, fold.Pos.Line)).
@@ -64,13 +63,12 @@ func c003SwitchDefault(ctx *analyzer.AnalysisContext, fold analyzer.FoldInfo) []
 		pos = fold.DefaultNilPos
 	}
 
-	b := finding.NewBuilder(
-		"C003", toolName,
+	b := findingTemplate.Builder(
+		"C003",
 		fmt.Sprintf("Fold %s silently ignores unknown event types in default case", fold.FuncName),
 		finding.SeverityError,
 		finding.Pos(finding.FilePath(fold.File), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceHigh).
 		WithSuggestion("Return an error in the default case: return state, fmt.Errorf(\"fold: unknown event type: %s\", evt.Type())").
 		WithSnippet(ctx.SourceLine(fold.File, pos.Line))

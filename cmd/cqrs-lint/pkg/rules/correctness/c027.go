@@ -54,14 +54,13 @@ func NewC027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"C027", toolName,
+					f, err := findingTemplate.Builder(
+						"C027",
 						"bus."+method+"() alongside projectionhost — "+
 							"events may be processed twice (once by host, once by subscription)",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Register projections with projectionhost only, " +

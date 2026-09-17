@@ -115,13 +115,12 @@ func c006Finding(
 		msg = "Manual version arithmetic (+1) — use Version.Increment() instead"
 	}
 
-	b := finding.NewBuilder(
-		"C006", toolName,
+	b := findingTemplate.Builder(
+		"C006",
 		msg,
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceHigh).
 		WithFixStrategy(strategy).
 		WithSuggestion(fmt.Sprintf("Replace %s with %s", oldExpr, newExpr)).

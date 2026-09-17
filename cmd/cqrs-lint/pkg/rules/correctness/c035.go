@@ -84,8 +84,8 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						names := make([]string, len(mapFields))
 						copy(names, mapFields)
 
-						f, err := finding.NewBuilder(
-							"C035", toolName,
+						f, err := findingTemplate.Builder(
+							"C035",
 							fmt.Sprintf(
 								"Struct %s has map field(s) [%s] without sync.Mutex/sync.RWMutex — data race risk in concurrent handlers",
 								structName, strings.Join(names, ", "),
@@ -93,7 +93,6 @@ func NewC035Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Add a sync.RWMutex field and guard map access with Lock/Unlock, or use sync.Map for concurrent read-heavy workloads").

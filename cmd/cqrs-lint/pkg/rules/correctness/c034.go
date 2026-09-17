@@ -56,14 +56,12 @@ func NewC034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(goStmt.Pos())
 
-						f, err := finding.NewBuilder(
+						f, err := findingTemplate.Builder(
 							"C034",
-							toolName,
 							"go func() without ctx — goroutine outlives parent handler, risk of resource leak on shutdown",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Pass ctx to the goroutine: go process(ctx, ...)").

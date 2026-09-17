@@ -54,13 +54,12 @@ func NewC032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						if isContextCreation(call) {
 							pos := ctx.Fset.Position(call.Pos())
 
-							f, err := finding.NewBuilder(
-								"C032", toolName,
+							f, err := findingTemplate.Builder(
+								"C032",
 								"context.Background()/TODO() inside a handler that already receives ctx — breaks tracing and cancellation propagation",
 								finding.SeverityWarning,
 								finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 							).
-								WithCategory(finding.CategoryCorrectness).
 								WithConfidence(finding.ConfidenceHigh).
 								WithFixStrategy(finding.FixStrategySuggest).
 								WithSuggestion("Use the ctx parameter passed to this function instead of creating a new context").

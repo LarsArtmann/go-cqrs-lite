@@ -61,14 +61,13 @@ func NewC018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"C018", toolName,
+						f, err := findingTemplate.Builder(
+							"C018",
 							"memory.NewMemoryStore() used as journal fallback — "+
 								"projections replay from empty journal with no error",
 							finding.SeverityError,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Return an error when the store doesn't implement event.Journal, " +

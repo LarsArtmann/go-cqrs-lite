@@ -50,13 +50,12 @@ func NewC009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"C009", toolName,
+						f, err := findingTemplate.Builder(
+							"C009",
 							"panic() in production code — use error returns instead",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceHigh).
 							WithSuggestion("Return an error instead of panicking. Panics crash the process and bypass error handling middleware.").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

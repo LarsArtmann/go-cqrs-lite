@@ -57,14 +57,13 @@ func NewC022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(assign.Pos())
 
-						f, err := finding.NewBuilder(
-							"C022", toolName,
+						f, err := findingTemplate.Builder(
+							"C022",
 							"Context explicitly discarded (_ = ctx) — "+
 								"breaks cancellation, timeouts, and tracing",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Pass ctx to downstream calls or store it for later use").

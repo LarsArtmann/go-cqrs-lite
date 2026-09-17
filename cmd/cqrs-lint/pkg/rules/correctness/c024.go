@@ -140,14 +140,13 @@ func reportDualWrite(
 		methodName = sel.Sel.Name
 	}
 
-	f, err := finding.NewBuilder(
-		"C024", toolName,
+	f, err := findingTemplate.Builder(
+		"C024",
 		methodName+"() — dual-write without transaction: "+
 			"if DB write fails, in-memory and SQL state diverge",
 		finding.SeverityError,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceMedium).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion("Wrap both the in-memory mutation and the DB write in a " +

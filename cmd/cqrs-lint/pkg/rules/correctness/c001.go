@@ -67,9 +67,8 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					b := finding.NewBuilder(
+					b := findingTemplate.Builder(
 						"C001",
-						toolName,
 						fmt.Sprintf(
 							"Function %s calls BeginTx but never commits — data silently lost on success path",
 							fn.Name.Name,
@@ -77,7 +76,6 @@ func NewC001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityCritical,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSnippet(ctx.SourceLine(pos.Filename, pos.Line))
 

@@ -45,9 +45,8 @@ func NewC014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(sel.Pos())
 
-					f, err := finding.NewBuilder(
+					f, err := findingTemplate.Builder(
 						"C014",
-						toolName,
 						fmt.Sprintf(
 							"time.Local usage at %s — server-local timezone causes silent data corruption across timezones",
 							pos.String(),
@@ -55,7 +54,6 @@ func NewC014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithSuggestion(
 							"Use time.UTC instead of time.Local. " +

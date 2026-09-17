@@ -90,14 +90,13 @@ func NewC019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				// Fire on the second+ calls.
 				for _, p := range positions[1:] {
-					f, err := finding.NewBuilder(
-						"C019", toolName,
+					f, err := findingTemplate.Builder(
+						"C019",
 						"Multiple Repository instances for "+typeParam+
 							" — wastes singleflight/cache, share one instance",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(p.file), p.line, p.col),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Create one Repository[" + typeParam +

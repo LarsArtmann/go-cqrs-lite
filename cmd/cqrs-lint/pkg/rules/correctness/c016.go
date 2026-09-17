@@ -102,9 +102,8 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							return true
 						}
 
-						f, err := finding.NewBuilder(
+						f, err := findingTemplate.Builder(
 							"C016",
-							toolName,
 							fmt.Sprintf(
 								"context.%s() in handler %s at %s — discards caller context (cancellation, timeouts, tracing lost)",
 								sel.Sel.Name, fnDecl.Name.Name, pos.String(),
@@ -112,7 +111,6 @@ func NewC016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceHigh).
 							WithSuggestion("Use the context.Context parameter passed to the handler. If you need a detached context for a background task, extract it explicitly and document why the caller's context cannot be used.").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

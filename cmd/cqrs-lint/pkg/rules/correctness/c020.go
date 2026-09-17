@@ -97,13 +97,12 @@ func reportPanicsInFunc(
 
 		pos := ctx.Fset.Position(call.Pos())
 
-		f, err := finding.NewBuilder(
-			"C020", toolName,
+		f, err := findingTemplate.Builder(
+			"C020",
 			"panic() in event handler — will crash the bus/projection host",
 			finding.SeverityError,
 			finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 		).
-			WithCategory(finding.CategoryCorrectness).
 			WithConfidence(finding.ConfidenceHigh).
 			WithFixStrategy(finding.FixStrategySuggest).
 			WithSuggestion("Return an error or log+skip instead of panicking").

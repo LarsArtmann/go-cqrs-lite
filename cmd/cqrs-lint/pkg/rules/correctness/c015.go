@@ -212,14 +212,12 @@ func reportUncheckedClose(
 ) {
 	pos := ctx.Fset.Position(call.Pos())
 
-	f, err := finding.NewBuilder(
+	f, err := findingTemplate.Builder(
 		"C015",
-		toolName,
 		fmt.Sprintf("unchecked Close() at %s — error is discarded, resource leak risk", pos.String()),
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceMedium).
 		WithSuggestion("Handle the error: if err := x.Close(); err != nil { return ... }, or defer func() { _ = x.Close() }() if truly ignorable with a comment explaining why.").
 		WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

@@ -52,8 +52,8 @@ func NewC038Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 
 				if closest, dist := nearestMatch(eventType, foldCases); closest != "" && dist <= 2 {
-					f, err := finding.NewBuilder(
-						"C038", toolName,
+					f, err := findingTemplate.Builder(
+						"C038",
 						fmt.Sprintf(
 							"event type %q is emitted but no fold handles it — "+
 								"did you mean %q? (edit distance %d) — "+
@@ -63,7 +63,6 @@ func NewC038Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(emission.File), emission.Line, 1),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion(fmt.Sprintf("Change the event type string from %q to %q", eventType, closest)).

@@ -78,9 +78,8 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					pos := ctx.Fset.Position(call.Pos())
 					what := describeInMemStore(fnName)
 
-					f, err := finding.NewBuilder(
+					f, err := findingTemplate.Builder(
 						"C017",
-						toolName,
 						"In-memory "+what+" paired with persistent event store ("+string(
 							profile.Store,
 						)+
@@ -88,7 +87,6 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Use a persistent " + what +

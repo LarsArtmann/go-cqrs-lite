@@ -152,13 +152,12 @@ func emitC023(ctx *analyzer.AnalysisContext, assign *ast.AssignStmt, findings *[
 
 	pos := ctx.Fset.Position(assign.Pos())
 
-	f, err := finding.NewBuilder(
-		"C023", toolName,
+	f, err := findingTemplate.Builder(
+		"C023",
 		sel.Sel.Name+"() error ignored — pending events or resources may be lost",
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceMedium).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion("Check the error from " + sel.Sel.Name +

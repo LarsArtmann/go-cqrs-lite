@@ -83,15 +83,14 @@ func NewC028Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"C028", toolName,
+						f, err := findingTemplate.Builder(
+							"C028",
 							"Error from "+sel.Sel.Name+
 								"() discarded — CQRS operation failures indicate real problems "+
 								"(handler not found, version conflict, store failure)",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Check the error: if err := " + sel.Sel.Name +

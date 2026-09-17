@@ -151,15 +151,14 @@ func reportTTLMismatch(
 		constNames = append(constNames, name)
 	}
 
-	f, err := finding.NewBuilder(
-		"C026", toolName,
+	f, err := findingTemplate.Builder(
+		"C026",
 		"Idempotency TTL mismatch — literal TTL passed but a TTL constant ("+
 			strings.Join(constNames, ", ")+
 			") is defined and not used here",
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceHigh).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion("Use the defined TTL constant instead of a bare literal, " +

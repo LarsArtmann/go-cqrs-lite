@@ -95,8 +95,8 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"C036", toolName,
+					f, err := findingTemplate.Builder(
+						"C036",
 						fmt.Sprintf(
 							"%s uses %s backend but event store uses %s — backends cannot share a transaction, crash-recovery guarantees break",
 							what,
@@ -106,7 +106,6 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion(fmt.Sprintf(

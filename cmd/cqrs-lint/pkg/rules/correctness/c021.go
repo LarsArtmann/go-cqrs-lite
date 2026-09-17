@@ -127,13 +127,12 @@ func reportMutexDecode(
 ) {
 	pos := ctx.Fset.Position(call.Pos())
 
-	f, err := finding.NewBuilder(
-		"C021", toolName,
+	f, err := findingTemplate.Builder(
+		"C021",
 		"Payload decode while mutex is held — serializes all event processing",
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceHigh).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion("Decode outside the lock, then acquire the lock only for the map mutation").

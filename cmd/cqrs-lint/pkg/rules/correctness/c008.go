@@ -243,9 +243,8 @@ func scanMoneyFields(
 
 			pos := ctx.Fset.Position(name.Pos())
 
-			f, err := finding.NewBuilder(
+			f, err := findingTemplate.Builder(
 				"C008",
-				toolName,
 				fmt.Sprintf(
 					"Field %s is float64/float32 — use decimal or integer cents for money to avoid rounding errors",
 					name.Name,
@@ -253,7 +252,6 @@ func scanMoneyFields(
 				severity,
 				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 			).
-				WithCategory(finding.CategoryCorrectness).
 				WithConfidence(confidence).
 				WithSuggestion("Use shopspring/decimal or int64 cents instead of float64 for monetary values").
 				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

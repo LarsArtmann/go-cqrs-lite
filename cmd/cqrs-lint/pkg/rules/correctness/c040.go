@@ -76,8 +76,8 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"C040", toolName,
+				f, err := findingTemplate.Builder(
+					"C040",
 					fmt.Sprintf(
 						"Fold case %q in %s is never emitted via event.New and the catalog does not declare it — "+
 							"dead code or a typo in the fold case string",
@@ -87,7 +87,6 @@ func NewC040Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(fc.File), fc.Pos.Line, fc.Pos.Column),
 				).
-					WithCategory(finding.CategoryCorrectness).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(fmt.Sprintf(

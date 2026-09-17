@@ -54,14 +54,13 @@ func NewC029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"C029", toolName,
+					f, err := findingTemplate.Builder(
+						"C029",
 						"QueryIdempotency called with nil keyExtractor — "+
 							"this panics at runtime (queries have no default identity)",
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Provide a keyExtractor function, e.g. " +

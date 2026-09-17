@@ -60,13 +60,12 @@ func NewC033Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(ifStmt.Body.Pos())
 
-					f, err := finding.NewBuilder(
-						"C033", toolName,
+					f, err := findingTemplate.Builder(
+						"C033",
 						"Bare return err from CQRS call — wrap with context for debuggability",
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Wrap the error: `return fmt.Errorf(\"<operation>: %w\", err)`").

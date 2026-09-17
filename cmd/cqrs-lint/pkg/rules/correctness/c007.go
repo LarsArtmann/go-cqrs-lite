@@ -51,13 +51,12 @@ func NewC007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"C007", toolName,
+						f, err := findingTemplate.Builder(
+							"C007",
 							"time.Now() inside decider — non-deterministic, makes testing impossible",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceMedium).
 							WithSuggestion("Pass time as a parameter or inject a clock interface for deterministic testing").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

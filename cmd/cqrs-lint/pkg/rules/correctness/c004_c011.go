@@ -25,14 +25,12 @@ func NewC004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"C004",
-					toolName,
 					"Projection launches async work — checkpoint may be saved before completion, causing data loss on crash",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(proj.File), proj.Pos.Line, proj.Pos.Column),
 				).
-					WithCategory(finding.CategoryCorrectness).
 					WithConfidence(finding.ConfidenceMedium).
 					WithSuggestion("Make Handle synchronous, or use projectionhost with ordered delivery and retry").
 					WithSnippet(ctx.SourceLine(proj.File, proj.Pos.Line)).
@@ -96,13 +94,12 @@ func NewC011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"C011", toolName,
+						f, err := findingTemplate.Builder(
+							"C011",
 							"rand.* call inside decider — non-deterministic, breaks event sourcing replay",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryCorrectness).
 							WithConfidence(finding.ConfidenceLow).
 							WithSuggestion("Inject randomness via command parameters or a clock/seed interface").
 							WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).

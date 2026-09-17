@@ -45,14 +45,13 @@ func NewC030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(forStmt.Pos())
 
-					f, err := finding.NewBuilder(
-						"C030", toolName,
+					f, err := findingTemplate.Builder(
+						"C030",
 						"Infinite loop without context cancellation — "+
 							"goroutine cannot be stopped on shutdown",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Add `case <-ctx.Done(): return` in a select inside the loop").

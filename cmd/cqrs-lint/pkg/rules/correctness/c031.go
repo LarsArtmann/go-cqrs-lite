@@ -90,14 +90,12 @@ func scanHandlerBodyForSwallowedError(
 			if isSwallowingReturn(stmt, hasNamedReturns) {
 				pos := ctx.Fset.Position(stmt.Pos())
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"C031",
-					toolName,
 					"Error is checked but handler returns nil — the command/query appears successful when it actually failed",
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategoryCorrectness).
 					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Return the error: `return fmt.Errorf(\"handler: %w\", err)`").

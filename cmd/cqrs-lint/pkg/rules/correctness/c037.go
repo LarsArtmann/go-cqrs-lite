@@ -79,8 +79,8 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"C037", toolName,
+				f, err := findingTemplate.Builder(
+					"C037",
 					fmt.Sprintf(
 						"%s uses %s codec but repository uses %s — "+
 							"store cannot be decoded, loads as corrupt/zero state",
@@ -89,7 +89,6 @@ func NewC037Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(s.pos.Filename), s.pos.Line, s.pos.Column),
 				).
-					WithCategory(finding.CategoryCorrectness).
 					WithConfidence(finding.ConfidenceHigh).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(fmt.Sprintf(

@@ -49,14 +49,13 @@ func NewC041Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
-						"C041", toolName,
+					f, err := findingTemplate.Builder(
+						"C041",
 						"Save method does not reference "+versionParam+
 							" — optimistic concurrency control is not enforced",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Check " + versionParam +
@@ -131,14 +130,13 @@ func NewC042Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"C042", toolName,
+					f, err := findingTemplate.Builder(
+						"C042",
 						"Save called with expectedVersion=0 — "+
 							"optimistic concurrency is bypassed for this write",
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryCorrectness).
 						WithConfidence(finding.ConfidenceLow).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Load the current stream version before Save to " +

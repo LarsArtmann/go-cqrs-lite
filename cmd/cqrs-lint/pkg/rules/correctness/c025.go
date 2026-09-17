@@ -69,8 +69,8 @@ func reportBareErrorf(
 ) {
 	pos := ctx.Fset.Position(call.Pos())
 
-	f, err := finding.NewBuilder(
-		"C025", toolName,
+	f, err := findingTemplate.Builder(
+		"C025",
 		fmt.Sprintf(
 			"fmt.Errorf without %%w in CQRS code at %s — "+
 				"loses error classification, breaks the 6-family taxonomy",
@@ -79,7 +79,6 @@ func reportBareErrorf(
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryCorrectness).
 		WithConfidence(finding.ConfidenceMedium).
 		WithSuggestion("Use fmt.Errorf(\"...: %w\", err) to wrap, or " +
 			"errorfamily.WrapConflict/WrapTransient/etc. for classified errors").
