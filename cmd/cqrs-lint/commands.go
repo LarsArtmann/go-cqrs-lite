@@ -147,6 +147,10 @@ func versionString() string {
 		parts = append(parts, "built: "+buildDate)
 	}
 
+	if dep := moduleVersion("github.com/larsartmann/go-finding"); dep != "" {
+		parts = append(parts, "go-finding: "+dep)
+	}
+
 	if len(parts) == 0 {
 		return "cqrs-lint " + resolvedVersion()
 	}
