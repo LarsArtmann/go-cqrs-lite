@@ -91,7 +91,6 @@ use (
 	./transport/grpc
 	./transport/http
 	./watermill
-	/home/lars/projects/go-retry
 )
 
 // The genproto replace resolves an ambiguous-import conflict between
