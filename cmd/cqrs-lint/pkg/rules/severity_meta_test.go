@@ -142,16 +142,23 @@ func scanBuilderDecls(t *testing.T) []builderDecl {
 			switch sel.Sel.Name {
 			case "NewBuilder", "Builder":
 				// "Builder" is the finding.Template variant (Template stamps
-				// tool/category; arg positions are identical to NewBuilder).
+				// tool/category; the remaining arg layout matches NewBuilder
+				// minus the leading tool name, so severity sits at index 2
+				// instead of 3).
 				lit, ok := call.Args[0].(*ast.BasicLit)
 				if !ok {
 					return true
 				}
 
+				sevIdx := 3
+				if sel.Sel.Name == "Builder" {
+					sevIdx = 2
+				}
+
 				pos := rel + ":" + strconv.Itoa(fset.Position(call.Pos()).Line)
 				out = append(out, builderDecl{
 					rule: strings.Trim(lit.Value, `"`),
-					sev:  exprLabel(call.Args[3]),
+					sev:  exprLabel(call.Args[sevIdx]),
 					pos:  pos,
 				})
 			case "WithConfidence":
