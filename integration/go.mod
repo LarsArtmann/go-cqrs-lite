@@ -38,7 +38,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
-	modernc.org/sqlite v1.58.0
+	modernc.org/sqlite v1.59.0
 	pgregory.net/rapid v1.3.0
 )
 
@@ -89,7 +89,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.5.0 // indirect

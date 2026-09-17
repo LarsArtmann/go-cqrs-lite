@@ -73,8 +73,13 @@ require (
 	github.com/larsartmann/go-branded-id v0.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -83,6 +88,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
