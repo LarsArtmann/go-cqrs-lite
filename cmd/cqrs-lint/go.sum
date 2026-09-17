@@ -77,6 +77,8 @@ github.com/larsartmann/go-finding v1.11.0 h1:7FE+x19JvS1EG/un80+V5QgyzPRYHpMsU5H
 github.com/larsartmann/go-finding v1.11.0/go.mod h1:oCnnUf+B9OVHv9grXF5+UpWajhf3wyNVs8Ze71LSDmM=
 github.com/larsartmann/go-finding/pipeline v1.11.0 h1:GUExTTzg3wu+EGcH2FkMkrMg8TecbmLkUFAmYwkU9iI=
 github.com/larsartmann/go-finding/pipeline v1.11.0/go.mod h1:/bLjTlAX37QEuHvaqB6+EDdQEUAFe1E60/gpBACJRWw=
+github.com/larsartmann/go-finding/toolsdk v1.11.0 h1:CfS4nhhydHCeBYaK0VAwzyWfVEVEcS196VxNcVEf1aQ=
+github.com/larsartmann/go-finding/toolsdk v1.11.0/go.mod h1:LW0X5oOM+BA5+lvRrj4mSHR5B7G3N8QNFj9L4sy2DDw=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
 github.com/larsartmann/go-output v0.38.0 h1:Ng8TWCQndPvM3qyNqz2Y5sGdKqiAGsq5CL2xEA0IOxs=
