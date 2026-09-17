@@ -40,7 +40,7 @@ func (s *Store[T]) appendFact(ctx context.Context, tx *sql.Tx, f facts.Fact) err
 // Facts returns journal facts with Seq > after, ascending, bounded to
 // limit when > 0. The seq primary key makes the cursor scan O(limit)
 // regardless of journal size.
-//art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
+// art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
 func (s *Store[T]) Facts(ctx context.Context, after int64, limit int) ([]facts.Fact, error) {
 	query := `SELECT ` + factColumns + ` FROM facts WHERE seq > ? ORDER BY seq ASC`
 	args := []any{after}
@@ -67,7 +67,7 @@ func (s *Store[T]) Facts(ctx context.Context, after int64, limit int) ([]facts.F
 // most recent limit when > 0. The tail is read DESC LIMIT then flipped —
 // the plain ASC+LIMIT shape silently returns the FIRST n (the donor's
 // cross-store conformance catch).
-//art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
+// art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
 func (s *Store[T]) FactsForTask(ctx context.Context, id task.ID, limit int) ([]facts.Fact, error) {
 	query := `SELECT ` + factColumns + ` FROM facts WHERE task_id = ?`
 	args := []any{id.String()}

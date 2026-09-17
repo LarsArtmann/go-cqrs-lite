@@ -71,7 +71,9 @@ var outcomeStatusOrder = [...]pipeline.FixOutcomeStatus{
 // detectors run on a pre-fix AST snapshot, so once a fix has applied the
 // pipeline's re-detection re-fires the same finding and the provider refuses
 // on the already-fixed content — those repeats are artifacts, not outcomes.
-func collectFixOutcomes(outcomes *[]pipeline.FixOutcome) func(finding.Finding, pipeline.FixOutcomeStatus, error) {
+func collectFixOutcomes(
+	outcomes *[]pipeline.FixOutcome,
+) func(finding.Finding, pipeline.FixOutcomeStatus, error) {
 	seen := make(map[finding.ID]bool)
 
 	return func(f finding.Finding, status pipeline.FixOutcomeStatus, err error) {
@@ -92,7 +94,12 @@ func printFixOutcomes(w io.Writer, cfg *AppConfig, outcomes []pipeline.FixOutcom
 		return
 	}
 
-	fmt.Fprintf(w, "Fix report: %d fixable finding(s): %s\n", len(outcomes), formatOutcomeTally(outcomes))
+	fmt.Fprintf(
+		w,
+		"Fix report: %d fixable finding(s): %s\n",
+		len(outcomes),
+		formatOutcomeTally(outcomes),
+	)
 	for _, o := range sortFixOutcomes(outcomes) {
 		printFixOutcomeLine(w, o)
 	}
@@ -120,11 +127,26 @@ func formatOutcomeTally(outcomes []pipeline.FixOutcome) string {
 func printFixOutcomeLine(w io.Writer, o pipeline.FixOutcome) {
 	status := fmt.Sprintf("%-9s", o.Status)
 	if o.Err != nil {
-		fmt.Fprintf(w, "  %s %s:%d  %s: %v\n", status, o.Finding.Position.File, o.Finding.Position.Line, o.Finding.Rule, o.Err)
+		fmt.Fprintf(
+			w,
+			"  %s %s:%d  %s: %v\n",
+			status,
+			o.Finding.Position.File,
+			o.Finding.Position.Line,
+			o.Finding.Rule,
+			o.Err,
+		)
 		return
 	}
 
-	fmt.Fprintf(w, "  %s %s:%d  %s\n", status, o.Finding.Position.File, o.Finding.Position.Line, o.Finding.Rule)
+	fmt.Fprintf(
+		w,
+		"  %s %s:%d  %s\n",
+		status,
+		o.Finding.Position.File,
+		o.Finding.Position.Line,
+		o.Finding.Rule,
+	)
 }
 
 // sortFixOutcomes orders outcomes by file, line, rule, then ID so the report
@@ -132,7 +154,10 @@ func printFixOutcomeLine(w io.Writer, o pipeline.FixOutcome) {
 func sortFixOutcomes(outcomes []pipeline.FixOutcome) []pipeline.FixOutcome {
 	sorted := slices.Clone(outcomes)
 	slices.SortFunc(sorted, func(a, b pipeline.FixOutcome) int {
-		if c := strings.Compare(string(a.Finding.Position.File), string(b.Finding.Position.File)); c != 0 {
+		if c := strings.Compare(
+			string(a.Finding.Position.File),
+			string(b.Finding.Position.File),
+		); c != 0 {
 			return c
 		}
 		if c := cmp.Compare(a.Finding.Position.Line, b.Finding.Position.Line); c != 0 {

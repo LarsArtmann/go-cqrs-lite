@@ -210,7 +210,7 @@ func (s *Store[T]) CountTasks(ctx context.Context, f queue.Filter) (int, error) 
 }
 
 // StatusCounts counts tasks per status in one GROUP BY.
-//art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
+// art-dupl:accept dialect twin — queue postgres/sqlite stores are dep-isolated mirrors; conformance pins semantics
 func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error) {
 	rows, err := s.db.QueryContext(ctx, `SELECT status, COUNT(*) FROM tasks GROUP BY status`)
 	//art-dupl:accept dialect twin of queue/postgres StatusCounts scan loop

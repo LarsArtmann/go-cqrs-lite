@@ -18,17 +18,29 @@ import (
 func outcomeFixture() []pipeline.FixOutcome {
 	return []pipeline.FixOutcome{
 		{
-			Finding: finding.Finding{ID: "cqrs-lint:C010:b.go:7", Rule: "C010", Position: finding.Position{File: "b.go", Line: 7}},
-			Status:  pipeline.FixOutcomeConflict,
+			Finding: finding.Finding{
+				ID:       "cqrs-lint:C010:b.go:7",
+				Rule:     "C010",
+				Position: finding.Position{File: "b.go", Line: 7},
+			},
+			Status: pipeline.FixOutcomeConflict,
 		},
 		{
-			Finding: finding.Finding{ID: "cqrs-lint:C003:a.go:42", Rule: "C003", Position: finding.Position{File: "a.go", Line: 42}},
-			Status:  pipeline.FixOutcomeApplied,
+			Finding: finding.Finding{
+				ID:       "cqrs-lint:C003:a.go:42",
+				Rule:     "C003",
+				Position: finding.Position{File: "a.go", Line: 42},
+			},
+			Status: pipeline.FixOutcomeApplied,
 		},
 		{
-			Finding: finding.Finding{ID: "cqrs-lint:D006:c.go:1", Rule: "D006", Position: finding.Position{File: "c.go", Line: 1}},
-			Status:  pipeline.FixOutcomeFailed,
-			Err:     errors.New("provider boom"),
+			Finding: finding.Finding{
+				ID:       "cqrs-lint:D006:c.go:1",
+				Rule:     "D006",
+				Position: finding.Position{File: "c.go", Line: 1},
+			},
+			Status: pipeline.FixOutcomeFailed,
+			Err:    errors.New("provider boom"),
 		},
 	}
 }
