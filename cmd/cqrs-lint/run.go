@@ -13,7 +13,6 @@ import (
 	"github.com/larsartmann/go-finding/pipeline"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/fix"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression"
 )
@@ -60,7 +59,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 
 	detectors := selectDetectors(cfg, actx)
 
-	result, err := runPipeline(ctx, cfg, detectors)
+	result, fixOutcomes, err := runPipeline(ctx, cfg, detectors)
 	if err != nil {
 		return err
 	}
@@ -78,6 +77,7 @@ func run(ctx context.Context, cfg *AppConfig) error {
 		result,
 		collectFindings(result),
 	)
+	printFixOutcomes(os.Stderr, cfg, fixOutcomes)
 
 	if err := outputFindings(ctx, active, cfg, len(actx.LoadErrors)); err != nil {
 		return fmt.Errorf("output: %w", err)
@@ -357,40 +357,6 @@ func selectDetectors(cfg *AppConfig, actx *analyzer.AnalysisContext) []finding.D
 	}
 
 	return detectors
-}
-
-// runPipeline builds the pipeline configuration, creates the pipeline, and runs it.
-func runPipeline(
-	ctx context.Context,
-	cfg *AppConfig,
-	detectors []finding.Detector,
-) (*pipeline.PipelineResult, error) {
-	pipeConfig := pipeline.Config{
-		MaxIterations:       5,
-		ParallelDetectors:   true,
-		GracefulDegradation: true,
-		DryRun:              !cfg.Fix,
-		Timeout:             5 * time.Minute,
-		Processors: []pipeline.FindingTransformer{
-			suppression.NewSuppressionFilter(),
-		},
-	}
-
-	if cfg.Fix || cfg.DryRun {
-		pipeConfig.FixProviders = []pipeline.FixProvider{fix.NewCQRSFixProvider()}
-	}
-
-	pipe, err := pipeline.New(pipeConfig, cfg.Path, detectors...)
-	if err != nil {
-		return nil, fmt.Errorf("create pipeline: %w", err)
-	}
-
-	result, err := pipe.Run(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("pipeline run: %w", err)
-	}
-
-	return result, nil
 }
 
 // filterFindings applies path exclusion, suppression splitting, severity, and

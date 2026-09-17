@@ -52,7 +52,7 @@ func computeSuppressionAudit(
 
 	detectors := rules.RegisterAll(actx)
 
-	result, err := runPipeline(ctx, cfg, detectors)
+	result, _, err := runPipeline(ctx, cfg, detectors)
 	if err != nil {
 		return nil, fmt.Errorf("pipeline: %w", err)
 	}
