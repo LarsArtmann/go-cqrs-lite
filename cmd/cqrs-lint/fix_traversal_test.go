@@ -11,7 +11,6 @@ import (
 	"github.com/larsartmann/go-finding/pipeline"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/correctness"
 )
 
 // TestFixStaysInsideTargetTree pins the --fix path-traversal safety
@@ -71,8 +70,12 @@ func apply(state state, evt event.Event) (state, error) {
 
 	cfg := &AppConfig{Fix: true, Path: tree}
 	_, outcomes, err := runPipeline(context.Background(), cfg, []finding.Detector{detector})
-	if err != nil {
-		t.Fatalf("runPipeline: %v", err)
+	if err == nil {
+		t.Fatal("expected runPipeline to fail loudly on a traversal finding")
+	}
+
+	if !strings.Contains(err.Error(), "unsafe path") {
+		t.Fatalf("expected an explicit unsafe-path refusal, got: %v", err)
 	}
 
 	after, err := os.ReadFile(outside)
@@ -87,11 +90,6 @@ func apply(state state, evt event.Event) (state, error) {
 	for _, o := range outcomes {
 		if o.Status == pipeline.FixOutcomeApplied {
 			t.Fatalf("traversal finding reported as applied: %+v", o)
-		}
-
-		if strings.Contains(string(o.Finding.Position.File), "outside") &&
-			o.Status == pipeline.FixOutcomeApplied {
-			t.Fatal("unreachable")
 		}
 	}
 }

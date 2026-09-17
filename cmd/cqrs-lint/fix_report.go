@@ -21,6 +21,18 @@ import (
 // --fix can report what actually happened to every fixable finding (the
 // upstream go-finding issue #28 UX gap, item L1-36) instead of silently
 // rewriting files.
+//
+// Configuration rationale (pipeline-config scrutiny, adoption plan C23):
+//   - MaxIterations 5 == pipeline.DefaultMaxIterations; iteration data shows
+//     real runs converge in <= 2 (apply pass + verify pass), 5 is slack.
+//   - Timeout 5m under pipeline.DefaultTimeout 10m: linters must fail fast —
+//     a lint run outliving a build is a broken CI contract.
+//   - GracefulDegradation true: partial findings from a failing detector beat
+//     a silent full-stop; detector errors still surface via load-error
+//     warnings and the pipeline's own logging.
+//   - ConfigFile parity: .cqrs-lint.json governs RULE selection (disable,
+//     severity-overrides, prefixes); the pipeline internals above are
+//     deliberately NOT config-file surface — one knob surface per concern.
 func runPipeline(
 	ctx context.Context,
 	cfg *AppConfig,
