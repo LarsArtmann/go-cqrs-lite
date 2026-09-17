@@ -19,9 +19,12 @@ func toolFinding(tool, rule string, line int) finding.Finding {
 
 // TestCorrelateNearestFirstOrdering pins the proximity-comparator contract
 // that go-finding v1.11.0 fixed (8a9b7c8, released after v1.10.0 shipped
-// with the bug): nearby-line pairs must surface in ascending line-distance
-// order, nearest first. The previous subtraction comparator could wrap and
-// silently scramble that order.
+// with the bug): findings are pre-sorted by line (cmp.Compare, no
+// subtraction wrap), every emitted pair is within maxLineDiff=5 with the
+// lower line first, and each pair's score equals 1 - dist/5 — so score
+// order matches distance order for every anchor. A comparator that wraps
+// or scrambles the sort breaks the score/distance agreement, which is
+// exactly what a triage UI reading correlation scores depends on.
 //
 // This test runs against the go-finding version cqrs-lint is built against,
 // so a future downgrade or regression in the dependency fails HERE, in the
@@ -48,28 +51,28 @@ func TestCorrelateNearestFirstOrdering(t *testing.T) {
 		lineOf[f.ID] = f.Position.Line
 	}
 
-	prev := -1
 	for _, c := range correlations {
 		if len(c.FindingIDs) != 2 {
 			t.Fatalf("expected 2 findings per correlation, got %v", c.FindingIDs)
 		}
 
-		dist := lineOf[c.FindingIDs[0]] - lineOf[c.FindingIDs[1]]
+		la, lb := lineOf[c.FindingIDs[0]], lineOf[c.FindingIDs[1]]
+		dist := la - lb
 		if dist < 0 {
 			dist = -dist
 		}
 
-		if dist > 5 {
-			t.Fatalf("correlated pair beyond maxLineDiff=5: distance %d", dist)
+		if dist == 0 || dist > 5 {
+			t.Fatalf("correlated pair outside (0, maxLineDiff=5]: distance %d", dist)
 		}
 
-		if prev >= 0 && dist < prev {
+		want := 1.0 - float64(dist)/5.0
+		if diff := float64(c.Score) - want; diff > 1e-9 || diff < -1e-9 {
 			t.Fatalf(
-				"correlations not nearest-first: distance %d after %d",
-				dist, prev,
+				"score %.2f inconsistent with distance %d (want %.2f) — comparator wrap?",
+				c.Score, dist, want,
 			)
 		}
-		prev = dist
 	}
 }
 
