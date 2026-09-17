@@ -33,7 +33,7 @@ func Spec() toolsdk.Spec {
 		Trigger: toolsdk.Trigger{
 			Files:    []string{"**/*.go"},
 			Language: "go",
-			Requires: []string{"go.mod", "go.work"},
+			Requires: []string{"**/go.mod", "**/go.work"},
 		},
 		Inputs: []string{"**/*.go"},
 		Detect: finding.DetectorFunc(detect),
