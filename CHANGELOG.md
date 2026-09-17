@@ -6,6 +6,59 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — go-finding v1.10/v1.11 adoption in cqrs-lint — 2026-09-17
+
+- **`cmd/cqrs-lint/v4/pkg/toolspec`** — cqrs-lint registered into the
+  go-finding toolsdk default registry (database/sql import pattern) so
+  BuildFlow discovers it as a Detect+Repair tool with zero wiring:
+  full 206-rule detection via context-driven working directory, repair
+  through the same `CQRSFixProvider` pipeline `--fix` uses. Dep budget
+  8→9 (same author, no new transitive burden).
+- **Per-finding `--fix` outcome report** — the go-finding `OnFixOutcome` callback
+  wired in `runPipeline`; stderr summary (tally + sorted per-finding
+  lines with provider errors), deduped to the first outcome per finding
+  ID (post-fix re-detection repeats are artifacts of the pre-fix AST
+  snapshot). Stderr-only: JSON/SARIF stdout stays parseable.
+- **GroupID adoption** — C019 stamps `c019:<StateType>` on every
+  duplicate-Repository finding with deterministic state-type emission
+  order; text/markdown "Related findings" sections render grouped
+  findings via the go-finding `GroupFindingsSorted` report API; SARIF group property
+  round-trip + byte-identical JSON/SARIF determinism pinned at the
+  cqrs-lint boundary.
+- **`ValidateAll` (go-finding) wired into `ruletest.RunDetector`** — every rule-test
+  finding is now structurally validated at test time (all 95 rule test
+  files route through the helper; suites green, zero invalid findings).
+- **`ParseConfidence` (go-finding) adoption** — the hand-rolled
+  `--min-confidence` parser deleted: named levels + decimal floors
+  (e.g. `0.6`) work, unrecognized input is a hard actionable rejection
+  instead of a silent "low" fallback. Ordering contract pinned by
+  the ordering-contract test.
+- **Mutant discrimination test** — severity meta-test scanner
+  parameterized by root and proven to bite: a synthetic wrong-severity
+  rule is flagged, a correct twin passes clean.
+- **go-finding version surfaced in `cqrs-lint version`** (build-info
+  deps) + pin-sweep `--check` extended to cqrs-lint's external
+  go-finding pins (mutation-drilled) + weekly go-finding@master canary
+  workflow (dormant until Actions billing is fixed).
+
+### Changed — cqrs-lint Template migration + correlation contract pins — 2026-09-17
+
+- **Template factories across all ten rule packages** — 169 builder
+  sites build through per-package Template factories (category stamped
+  package-wide where uniform); the severity meta-test scanner learned
+  the Template Builder arg layout; verdicts unchanged (all 18 packages
+  green).
+- **go-finding bumped to v1.11.0** — correlation comparator underflow
+  fix (8a9b7c8) pinned consumer-side by Correlate score/distance
+  consistency tests. Deliberate scope cuts, documented in-repo:
+  no `--correlate` flag (upstream Correlate skips same-tool pairs, so
+  the flag could never emit anything for cqrs-lint) and no LSP server
+  (conversion layer proven by the LSP round-trip spike test; server is
+  transport work awaiting demand).
+- **Suppression-model alignment documented** — cqrs-lint stamps only
+  in-source; in-review/in-config/ExpiresAt map to existing mechanisms
+  (--show-suppressed, rules.disable, the staleness gates).
+
 ### Added — queue family README + recipes §2.36 + V007 v5-deprecation table extension — 2026-09-16
 
 - **`queue/README.md`** — first consumer-facing docs for the durable-work-queue
