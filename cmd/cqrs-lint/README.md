@@ -36,6 +36,8 @@ cqrs-lint --min-severity error --min-confidence high ./...
 # Apply auto-fixes (with dry-run preview first)
 cqrs-lint --fix --dry-run ./...
 cqrs-lint --fix ./...
+# --fix prints a per-finding report to stderr: what was applied, refused,
+# conflicted, or failed — e.g. "Fix report: 3 fixable finding(s): 2 applied, 1 refused"
 
 # List available rules
 cqrs-lint rules
@@ -443,7 +445,7 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | `--format`          | `-o`  | text    | Output format: text, json, sarif, markdown                         |
 | `--min-severity`    |       | info    | Minimum severity: info, warning, error, critical                   |
 | `--min-confidence`  |       | low     | Minimum confidence: none, low, medium, high, full, or decimal 0.0-1.0 (>= floor)  |
-| `--fix`             |       | false   | Apply auto-fixes                                                   |
+| `--fix`             |       | false   | Apply auto-fixes; prints a per-finding outcome report (applied/refused/conflict/invalid/failed) to stderr |
 | `--dry-run`         |       | false   | Show fixes without applying                                        |
 | `--fast`            |       | false   | Run only Critical correctness rules                                |
 | `--health-score`    |       | false   | Print the health score after findings                              |
