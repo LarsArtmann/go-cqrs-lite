@@ -57,16 +57,6 @@ func runPipeline(
 	return result, outcomes, nil
 }
 
-// outcomeStatusOrder is the display order of the fix-outcome tally.
-var outcomeStatusOrder = [...]pipeline.FixOutcomeStatus{
-	pipeline.FixOutcomeApplied,
-	pipeline.FixOutcomeNoChange,
-	pipeline.FixOutcomeRefused,
-	pipeline.FixOutcomeInvalid,
-	pipeline.FixOutcomeConflict,
-	pipeline.FixOutcomeFailed,
-}
-
 // collectFixOutcomes records the first outcome per finding ID. cqrs-lint
 // detectors run on a pre-fix AST snapshot, so once a fix has applied the
 // pipeline's re-detection re-fires the same finding and the provider refuses
@@ -105,15 +95,25 @@ func printFixOutcomes(w io.Writer, cfg *AppConfig, outcomes []pipeline.FixOutcom
 	}
 }
 
-// formatOutcomeTally renders the non-zero status counts in display order.
+// formatOutcomeTally renders the non-zero status counts in display order:
+// applied first, then the increasingly actionable failure classes.
 func formatOutcomeTally(outcomes []pipeline.FixOutcome) string {
-	counts := make(map[pipeline.FixOutcomeStatus]int, len(outcomeStatusOrder))
+	order := []pipeline.FixOutcomeStatus{
+		pipeline.FixOutcomeApplied,
+		pipeline.FixOutcomeNoChange,
+		pipeline.FixOutcomeRefused,
+		pipeline.FixOutcomeInvalid,
+		pipeline.FixOutcomeConflict,
+		pipeline.FixOutcomeFailed,
+	}
+
+	counts := make(map[pipeline.FixOutcomeStatus]int, len(order))
 	for _, o := range outcomes {
 		counts[o.Status]++
 	}
 
-	parts := make([]string, 0, len(outcomeStatusOrder))
-	for _, s := range outcomeStatusOrder {
+	parts := make([]string, 0, len(order))
+	for _, s := range order {
 		if counts[s] > 0 {
 			parts = append(parts, fmt.Sprintf("%d %s", counts[s], s))
 		}
