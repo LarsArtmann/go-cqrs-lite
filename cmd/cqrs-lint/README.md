@@ -160,7 +160,7 @@ for a full interactive reference.
 | ---------------- | ------ | ----------- | ----------------------------------------------------------------------------------------------- |
 | `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready` |
 | `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                  |
-| `min-confidence` | string | `"low"`     | Minimum confidence shown: `low`, `medium`, `high`                                               |
+| `min-confidence` | string | `"low"`     | Minimum confidence shown: `none`, `low`, `medium`, `high`, `full`, or decimal `0.0`–`1.0`; keeps findings >= the floor                                          |
 | `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                              |
 | `exclude`        | string | `""`        | Comma-separated paths to exclude                                                                |
 | `features`       | object | `{}`        | Feature profile overrides (see below)                                                           |
@@ -442,7 +442,7 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 | ------------------- | ----- | ------- | ------------------------------------------------------------------ |
 | `--format`          | `-o`  | text    | Output format: text, json, sarif, markdown                         |
 | `--min-severity`    |       | info    | Minimum severity: info, warning, error, critical                   |
-| `--min-confidence`  |       | low     | Minimum confidence: low, medium, high                              |
+| `--min-confidence`  |       | low     | Minimum confidence: none, low, medium, high, full, or decimal 0.0-1.0 (>= floor)  |
 | `--fix`             |       | false   | Apply auto-fixes                                                   |
 | `--dry-run`         |       | false   | Show fixes without applying                                        |
 | `--fast`            |       | false   | Run only Critical correctness rules                                |

@@ -75,7 +75,7 @@ type AppConfig struct {
 	Path                    string `default:"."     flag:"path"                       help:"Path to lint"`
 	Format                  string `default:"text"  flag:"format"                     help:"Output format: text, json, sarif, markdown, csv, tsv"                                    short:"o"`
 	MinSeverity             string `default:"info"  flag:"min-severity"               help:"Minimum severity"`
-	MinConfidence           string `default:"low"   flag:"min-confidence"             help:"Minimum confidence"`
+	MinConfidence           string `default:"low"   flag:"min-confidence"             help:"Minimum confidence: none|low|medium|high|full or decimal 0.0-1.0; keeps findings >= the floor"`
 	Fix                     bool   `default:"false" flag:"fix"                        help:"Apply auto-fixes"`
 	DryRun                  bool   `default:"false" flag:"dry-run"                    help:"Show fixes without applying"`
 	FastMode                bool   `default:"false" flag:"fast"                       help:"Critical correctness rules only"`

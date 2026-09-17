@@ -124,7 +124,7 @@ func TestConfidenceOrderingContract(t *testing.T) {
 		{Confidence: finding.ConfidenceFull},
 	}
 
-	for _, floor := range levels {
+	for idx, floor := range levels {
 		result := filterByConfidence(all, floor)
 		if len(result) == 0 || result[0].Confidence != floor {
 			t.Fatalf(
@@ -133,8 +133,8 @@ func TestConfidenceOrderingContract(t *testing.T) {
 			)
 		}
 
-		if got := len(result); got != 5-i{
-			t.Fatalf("floor %v: got %d findings, want %d", floor, got, 5-i)
+		if got, want := len(result), len(levels)-idx; got != want {
+			t.Fatalf("floor %v: got %d findings, want %d", floor, got, want)
 		}
 	}
 }
