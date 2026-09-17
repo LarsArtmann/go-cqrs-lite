@@ -69,8 +69,8 @@ func NewA032Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(field.Pos())
 
-						f, err := finding.NewBuilder(
-							"A032", toolName,
+						f, err := findingTemplate.Builder(
+							"A032",
 							"Field "+ts.Name.Name+"."+name+
 								" is string/int — use id.Of[T] branded ID for type safety",
 							finding.SeverityWarning,

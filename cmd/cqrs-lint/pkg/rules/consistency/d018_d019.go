@@ -57,8 +57,8 @@ func NewD018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"D018", toolName,
+					f, err := findingTemplate.Builder(
+						"D018",
 						"Catalog entry for "+typeName+" has no matching event.NewEvent — "+
 							"this event type may have been renamed or removed",
 						finding.SeverityInfo,
@@ -120,8 +120,8 @@ func NewD019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			f, err := finding.NewBuilder(
-				"D019", toolName,
+			f, err := findingTemplate.Builder(
+				"D019",
 				"Exported specs are stale: "+fmtMissing(missing)+
 					" exist as events but are not in the catalog",
 				finding.SeverityInfo,

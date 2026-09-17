@@ -73,9 +73,8 @@ func NewB009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
+					f, err := findingTemplate.Builder(
 						"B009",
-						toolName,
 						fmt.Sprintf(
 							"Function %s wraps event creation + publish — consider code generation with cqrs-gen",
 							fn.Name.Name,
@@ -154,9 +153,8 @@ func NewB010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := firstPos
 
-					f, err := finding.NewBuilder(
+					f, err := findingTemplate.Builder(
 						"B010",
-						toolName,
 						fmt.Sprintf(
 							"%d catalog.Event calls in %s — consider cqrs-gen to auto-generate from struct tags",
 							catalogCallCount,
@@ -241,8 +239,8 @@ func NewB012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
-						"B012", toolName,
+					f, err := findingTemplate.Builder(
+						"B012",
 						fmt.Sprintf("Function %s manually constructs events — event.New auto-marshals payloads", fn.Name.Name),
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

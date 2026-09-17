@@ -121,8 +121,8 @@ func NewE016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					return findings, nil
 				}
 
-				f, err := finding.NewBuilder(
-					"E016", toolName,
+				f, err := findingTemplate.Builder(
+					"E016",
 					"Server-mode project without HealthCheck — Kubernetes probes need stack.Bundle.HealthCheck()",
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(triggerPos.Filename), triggerPos.Line, triggerPos.Column),

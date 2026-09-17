@@ -59,14 +59,13 @@ func NewP007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(forStmt.Pos())
 
-					f, err := finding.NewBuilder(
-						"P007", toolName,
+					f, err := findingTemplate.Builder(
+						"P007",
 						"Manual retry loop with bitshift backoff — corrupts time.Duration "+
 							"(shifts nanosecond representation), use retry.Do",
 						finding.SeverityError,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryPerformance).
 						WithConfidence(finding.ConfidenceHigh).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Replace with retry.Do(ctx, retry.Config{Backoff: retry.Exponential(...)}, fn)").

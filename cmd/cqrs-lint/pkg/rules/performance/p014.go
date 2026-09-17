@@ -60,15 +60,14 @@ func NewP014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"P014", toolName,
+					f, err := findingTemplate.Builder(
+						"P014",
 						"ApplyLayout on "+typeName+
 							" bypasses the LayoutPlan path — derive a plan from the read-model "+
 							"type instead (see recipes §2.27)",
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryPerformance).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategyNone).
 						WithSuggestion(

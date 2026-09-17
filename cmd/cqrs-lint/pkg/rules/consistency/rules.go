@@ -76,8 +76,8 @@ func NewD001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					)
 				}
 
-				f, err := finding.NewBuilder(
-					"D001", toolName,
+				f, err := findingTemplate.Builder(
+					"D001",
 					"Inconsistent event type naming — some use dot notation (user.created), others don't (UserCreated)",
 					finding.SeverityInfo,
 					pos,
@@ -165,8 +165,8 @@ func NewD002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if hasCamel && hasSnake {
 						pos := ctx.Fset.Position(ts.Pos())
 
-						f, err := finding.NewBuilder(
-							"D002", toolName,
+						f, err := findingTemplate.Builder(
+							"D002",
 							fmt.Sprintf("Struct %s mixes camelCase and snake_case JSON tags — pick one convention", ts.Name.Name),
 							finding.SeverityInfo,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

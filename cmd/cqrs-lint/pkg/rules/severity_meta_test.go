@@ -140,7 +140,9 @@ func scanBuilderDecls(t *testing.T) []builderDecl {
 			}
 
 			switch sel.Sel.Name {
-			case "NewBuilder":
+			case "NewBuilder", "Builder":
+				// "Builder" is the finding.Template variant (Template stamps
+				// tool/category; arg positions are identical to NewBuilder).
 				lit, ok := call.Args[0].(*ast.BasicLit)
 				if !ok {
 					return true
@@ -166,7 +168,7 @@ func scanBuilderDecls(t *testing.T) []builderDecl {
 						break
 					}
 
-					if sel2.Sel.Name == "NewBuilder" {
+					if sel2.Sel.Name == "NewBuilder" || sel2.Sel.Name == "Builder" {
 						if _, ok := call2.Args[0].(*ast.BasicLit); ok {
 							pos2 := rel + ":" + strconv.Itoa(fset.Position(call2.Pos()).Line)
 							confByPos[pos2] = exprLabel(call.Args[0])

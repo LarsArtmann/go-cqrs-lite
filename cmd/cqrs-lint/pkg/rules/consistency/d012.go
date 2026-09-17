@@ -73,8 +73,8 @@ func NewD012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"D012", toolName,
+						f, err := findingTemplate.Builder(
+							"D012",
 							"Raw fmt/log print in CQRS handler — "+
 								"use structured logging (slog) for observability and log-level control",
 							finding.SeverityInfo,

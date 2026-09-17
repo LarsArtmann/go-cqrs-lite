@@ -62,8 +62,8 @@ func NewD011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"D011", toolName,
+					f, err := findingTemplate.Builder(
+						"D011",
 						"Event created with nil payload — cannot be decoded, provides no audit trail",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

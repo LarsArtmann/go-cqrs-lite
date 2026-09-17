@@ -146,8 +146,8 @@ func detectMissingMiddleware(
 			continue
 		}
 
-		f, err := finding.NewBuilder(
-			finding.RuleName(ruleID), toolName,
+		f, err := findingTemplate.Builder(
+			finding.RuleName(ruleID),
 			desc+" has no middleware (.Use) — panics in handlers crash the process",
 			finding.SeverityWarning,
 			finding.Pos(finding.FilePath(d.file), d.line, d.col),
@@ -224,8 +224,8 @@ func detectMissingBusRecovery(ctx *analyzer.AnalysisContext) ([]finding.Finding,
 	}
 
 	if hasBusCreation && !hasRecovery {
-		f, err := finding.NewBuilder(
-			"B024", toolName,
+		f, err := findingTemplate.Builder(
+			"B024",
 			"Event bus has no recovery middleware — panics in handlers crash the bus",
 			finding.SeverityWarning,
 			finding.Pos(finding.FilePath(busPos.file), busPos.line, busPos.col),

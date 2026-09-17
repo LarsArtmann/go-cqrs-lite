@@ -59,8 +59,8 @@ func NewB015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"B015", toolName,
+			f, err := findingTemplate.Builder(
+				"B015",
 				"Project has test files but no testutil/eventtest imports — manual test setup is error-prone",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),

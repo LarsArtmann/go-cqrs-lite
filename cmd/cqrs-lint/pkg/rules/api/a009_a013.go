@@ -77,9 +77,8 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				// Keep generic suggestion for these cases.
 			}
 
-			f, err := finding.NewBuilder(
+			f, err := findingTemplate.Builder(
 				"A009",
-				toolName,
 				"Project does not use a stack/ preset — manual wiring is error-prone and misses defaults",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
@@ -147,8 +146,8 @@ func NewA010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(ts.Pos())
 
-					f, err := finding.NewBuilder(
-						"A010", toolName,
+					f, err := findingTemplate.Builder(
+						"A010",
 						fmt.Sprintf("Custom error interface %s — consider using go-error-family taxonomy instead", name),
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -199,9 +198,8 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"A012",
-					toolName,
 					fmt.Sprintf(
 						"Fold %s does not check for tombstone events — deleted aggregates may resurrect",
 						fold.FuncName,
@@ -274,8 +272,8 @@ func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								if basic {
 									pos := ctx.Fset.Position(ts.Pos())
 
-									f, err := finding.NewBuilder(
-										"A013", toolName,
+									f, err := findingTemplate.Builder(
+										"A013",
 										fmt.Sprintf("Command %s embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation", cmd.Name),
 										finding.SeverityInfo,
 										finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

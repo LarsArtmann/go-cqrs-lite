@@ -70,8 +70,8 @@ func NewV005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 				seen[gf.Path] = true
 
-				f, err := finding.NewBuilder(
-					"V005", toolName,
+				f, err := findingTemplate.Builder(
+					"V005",
 					"Vendored eventtest package alongside go-cqrs-lite imports — "+
 						"version mismatch between eventtest and the stack, remove the "+
 						"vendored copy and update go-cqrs-lite to a version that ships "+

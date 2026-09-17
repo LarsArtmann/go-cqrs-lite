@@ -60,14 +60,13 @@ func NewP006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"P006", toolName,
+						f, err := findingTemplate.Builder(
+							"P006",
 							"time.Sleep with short interval inside a loop — "+
 								"busy-poll wastes CPU; consider a channel, callback, or sync.Cond",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryPerformance).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Replace polling with a channel signal or callback for zero-latency notification").

@@ -70,8 +70,8 @@ func NewB026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			// Report on the go.mod file — this is a project-level finding.
-			f, err := finding.NewBuilder(
-				"B026", toolName,
+			f, err := findingTemplate.Builder(
+				"B026",
 				"Project has 3+ event types but no catalog import — "+
 					"event documentation and OpenAPI/AsyncAPI generation unavailable",
 				finding.SeverityInfo,

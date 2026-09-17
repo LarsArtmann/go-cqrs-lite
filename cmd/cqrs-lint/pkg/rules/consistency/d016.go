@@ -65,8 +65,8 @@ func NewD016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(typeSpec.Pos())
 
-						f, err := finding.NewBuilder(
-							"D016", toolName,
+						f, err := findingTemplate.Builder(
+							"D016",
 							fmt.Sprintf(
 								"Event payload %s has %d fields (max %d) — consider splitting into smaller events or using reference IDs",
 								structName, count, maxFields,

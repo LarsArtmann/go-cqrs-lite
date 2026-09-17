@@ -35,8 +35,8 @@ func NewB021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"B021", toolName,
+				f, err := findingTemplate.Builder(
+					"B021",
 					"Fold function silently ignores unknown event types — "+
 						"use decider.StrictApply for compile-time safety",
 					finding.SeverityWarning,

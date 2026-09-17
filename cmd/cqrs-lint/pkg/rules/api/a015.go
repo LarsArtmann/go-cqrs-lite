@@ -34,8 +34,8 @@ func NewA015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"A015", toolName,
+				f, err := findingTemplate.Builder(
+					"A015",
 					fmt.Sprintf("Global mutable variable %s — may cause race conditions in concurrent handlers", name.origName),
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(name.file), name.line, name.col),

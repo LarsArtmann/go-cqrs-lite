@@ -44,8 +44,8 @@ func NewA006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						if fn.Name.Name == adapter {
 							pos := ctx.Fset.Position(fn.Pos())
 
-							f, err := finding.NewBuilder(
-								"A006", toolName,
+							f, err := findingTemplate.Builder(
+								"A006",
 								fmt.Sprintf("Adapter method %s — go-cqrs-lite events are concrete types, no wrapping needed", adapter),
 								finding.SeverityInfo,
 								finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

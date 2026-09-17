@@ -66,8 +66,8 @@ func NewB027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"B027", toolName,
+					f, err := findingTemplate.Builder(
+						"B027",
 						"Hardcoded stream-type string literal — "+
 							"use a constant (e.g. const StreamType = id.StreamType(\"User\")) for consistency",
 						finding.SeverityInfo,

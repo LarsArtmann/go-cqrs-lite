@@ -83,8 +83,8 @@ func NewB018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				// Report on the first subscribe call in the file.
 				s := subscribes[0]
 
-				f, err := finding.NewBuilder(
-					"B018", toolName,
+				f, err := findingTemplate.Builder(
+					"B018",
 					"3+ bus.Subscribe calls in the same file — "+
 						"extract into a table-driven registration loop",
 					finding.SeverityInfo,
@@ -198,8 +198,8 @@ func NewB019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(innerCall.Pos())
 
-						f, err := finding.NewBuilder(
-							"B019", toolName,
+						f, err := findingTemplate.Builder(
+							"B019",
 							"repo.Load inside SubscribeAll handler — O(N^2) replay, "+
 								"each Load re-reads all prior events",
 							finding.SeverityWarning,

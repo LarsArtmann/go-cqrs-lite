@@ -86,8 +86,8 @@ func singleFinding(
 	severity finding.Severity,
 	confidence finding.Confidence,
 ) []finding.Finding {
-	f, err := finding.NewBuilder(
-		finding.RuleName(ruleID), toolName,
+	f, err := findingTemplate.Builder(
+		finding.RuleName(ruleID),
 		message,
 		severity,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

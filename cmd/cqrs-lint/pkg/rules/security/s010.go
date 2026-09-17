@@ -83,9 +83,8 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if (busEncrypted || busSigned) && !storeWrapped {
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"S010",
-					toolName,
 					"Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext",
 					finding.SeverityError,
 					finding.Pos(
@@ -94,7 +93,6 @@ func NewS010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						triggerPos.Column,
 					),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion("Wrap the store with event.DecorateStore(store, " +

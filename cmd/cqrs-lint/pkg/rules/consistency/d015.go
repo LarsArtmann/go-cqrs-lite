@@ -64,8 +64,8 @@ func NewD015Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						pos := ctx.Fset.Position(field.Pos())
 						fieldName := field.Names[0].Name
 
-						f, err := finding.NewBuilder(
-							"D015", toolName,
+						f, err := findingTemplate.Builder(
+							"D015",
 							"Event payload field "+ts.Name.Name+"."+fieldName+
 								" is a pointer — nil-dereference panic risk on decode",
 							finding.SeverityInfo,

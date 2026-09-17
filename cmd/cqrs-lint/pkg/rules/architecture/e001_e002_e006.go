@@ -53,9 +53,8 @@ func NewE001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					)
 					for _, high := range highTierPrefixes {
 						if strings.HasPrefix(impPath, high) {
-							f, err := finding.NewBuilder(
+							f, err := findingTemplate.Builder(
 								"E001",
-								toolName,
 								fmt.Sprintf(
 									"Tier-0 module %q imports Tier-3+ module %q — dependency direction violation",
 									pkgBase,
@@ -119,8 +118,8 @@ func NewE002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 								seen[key] = true
 
-								f, err := finding.NewBuilder(
-									"E002", toolName,
+								f, err := findingTemplate.Builder(
+									"E002",
 									fmt.Sprintf("Circular dependency: %s ↔ %s", pkg.PkgPath, imp.PkgPath),
 									finding.SeverityError,
 									finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
@@ -182,8 +181,8 @@ func NewE006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					pos = finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1)
 				}
 
-				f, err := finding.NewBuilder(
-					"E006", toolName,
+				f, err := findingTemplate.Builder(
+					"E006",
 					fmt.Sprintf("Event type %q is emitted but no projection or fold handles it", evtType),
 					finding.SeverityInfo,
 					pos,

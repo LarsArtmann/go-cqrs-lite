@@ -51,8 +51,8 @@ func NewA003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"A003", toolName,
+					f, err := findingTemplate.Builder(
+						"A003",
 						"Explicit codec passed to DecodePayload — use DecodePayloadAuto[T] for automatic codec detection",
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

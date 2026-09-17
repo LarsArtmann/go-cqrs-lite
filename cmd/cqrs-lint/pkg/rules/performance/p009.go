@@ -81,8 +81,8 @@ func NewP009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						reason = fmt.Sprintf("%d fields — large payload", fieldCount)
 					}
 
-					f, err := finding.NewBuilder(
-						"P009", toolName,
+					f, err := findingTemplate.Builder(
+						"P009",
 						fmt.Sprintf(
 							"Event payload %s uses JSON codec — %s; CBOR is ~35%% smaller",
 							ts.Name.Name, reason,
@@ -90,7 +90,6 @@ func NewP009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryPerformance).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Use codec.CBORCodec{} via event.WithCodec or " +

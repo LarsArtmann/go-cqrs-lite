@@ -173,9 +173,8 @@ func v007DotImportFinding(
 ) (finding.Finding, error) {
 	pos := ctx.Fset.Position(imp.Pos())
 
-	return finding.NewBuilder(
+	return findingTemplate.Builder(
 		"V007",
-		toolName,
 		fmt.Sprintf(
 			"dot-import of go-cqrs-lite module %s hides v5-removed-API usage from this linter — name the import",
 			module,
@@ -268,9 +267,8 @@ func v007BareIdentFinding(
 ) (finding.Finding, error) {
 	pos := ctx.Fset.Position(ident.Pos())
 
-	return finding.NewBuilder(
+	return findingTemplate.Builder(
 		"V007",
-		toolName,
 		fmt.Sprintf(
 			"%s (dot-imported from %s) is removed at v5 — replace with %s; name the import so V007 can attribute usage",
 			symbol,
@@ -298,9 +296,8 @@ func v007Finding(
 ) (finding.Finding, error) {
 	pos := ctx.Fset.Position(sel.Pos())
 
-	return finding.NewBuilder(
+	return findingTemplate.Builder(
 		"V007",
-		toolName,
 		fmt.Sprintf("%s is removed at v5 (%s) — replace with %s", target, adr, replacement),
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

@@ -48,14 +48,13 @@ func NewP013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				pos := ctx.Fset.Position(site.call.Pos())
 
-				f, err := finding.NewBuilder(
-					"P013", toolName,
+				f, err := findingTemplate.Builder(
+					"P013",
 					"SQLite connection opened without busy_timeout — "+
 						"'database is locked' errors under concurrent access",
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategoryPerformance).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(

@@ -128,8 +128,8 @@ func NewA020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"A020", toolName,
+				f, err := findingTemplate.Builder(
+					"A020",
 					fmt.Sprintf(
 						"Custom event.Bus implementation %q — use watermill.NewEventBus() or the library's memory bus instead of reimplementing",
 						typeName,
@@ -180,8 +180,8 @@ func NewA021Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"A021", toolName,
+				f, err := findingTemplate.Builder(
+					"A021",
 					fmt.Sprintf(
 						"Custom event.Store implementation %q — use storage/memory.MemoryStore or a SQL/Pebble backend instead of reimplementing",
 						typeName,
@@ -251,8 +251,8 @@ func NewA022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"A022", toolName,
+					f, err := findingTemplate.Builder(
+						"A022",
 						fmt.Sprintf(
 							"Raw otel.%s() — use cqrsotel.New%s instead for CQRS-specific span names and views",
 							sel.Sel.Name,
@@ -311,8 +311,8 @@ func NewA023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"A023", toolName,
+				f, err := findingTemplate.Builder(
+					"A023",
 					fmt.Sprintf(
 						"Custom snapshot store %q — use storage/memory.NewMemorySnapshotStore() instead of reimplementing",
 						typeName,

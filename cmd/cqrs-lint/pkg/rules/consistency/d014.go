@@ -61,8 +61,8 @@ func NewD014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						pos := ctx.Fset.Position(field.Pos())
 						fieldName := field.Names[0].Name
 
-						f, err := finding.NewBuilder(
-							"D014", toolName,
+						f, err := findingTemplate.Builder(
+							"D014",
 							"Event payload field "+ts.Name.Name+"."+fieldName+
 								" lacks json tag — Go field name used in JSON encoding",
 							finding.SeverityInfo,

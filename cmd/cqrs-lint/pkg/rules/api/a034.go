@@ -66,8 +66,8 @@ func NewA034Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"A034", toolName,
+					f, err := findingTemplate.Builder(
+						"A034",
 						"metaengine.Execute returns an untyped result (any) — "+
 							"requires a runtime type assertion that can panic",
 						finding.SeverityWarning,

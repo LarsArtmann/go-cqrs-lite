@@ -70,9 +70,8 @@ func NewD003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
+			f, err := findingTemplate.Builder(
 				"D003",
-				toolName,
 				fmt.Sprintf(
 					"Project mixes %d logging libraries: %s — standardize on one",
 					len(libs),
@@ -129,9 +128,8 @@ func NewD005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"D005",
-					toolName,
 					fmt.Sprintf(
 						"%s references go-cqrs-lite %s but go.mod has %s",
 						docFile,

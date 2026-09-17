@@ -70,8 +70,8 @@ func NewP010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					pos := ctx.Fset.Position(call.Pos())
 					fieldCount := structFieldCount(st)
 
-					f, err := finding.NewBuilder(
-						"P010", toolName,
+					f, err := findingTemplate.Builder(
+						"P010",
 						fmt.Sprintf(
 							"Repository for %s (state has collection fields — "+
 								"unbounded growth) without WithSnapshotStrategy or WithStateCache — "+
@@ -81,7 +81,6 @@ func NewP010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryPerformance).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion(fmt.Sprintf(

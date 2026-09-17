@@ -56,14 +56,13 @@ func NewP011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						pos := ctx.Fset.Position(field.Pos())
 						fieldName := fieldName(field)
 
-						f, err := finding.NewBuilder(
-							"P011", toolName,
+						f, err := findingTemplate.Builder(
+							"P011",
 							"Read model "+ts.Name.Name+"."+fieldName+
 								" is a map without size limit — grows unboundedly as events accumulate, risk of OOM",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryPerformance).
 							WithConfidence(finding.ConfidenceMedium).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Use a bounded cache (kv.Cache, LRU, or map with max-size eviction)").

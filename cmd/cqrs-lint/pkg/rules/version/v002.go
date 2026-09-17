@@ -36,8 +36,8 @@ func NewV002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"V002", toolName,
+				f, err := findingTemplate.Builder(
+					"V002",
 					fmt.Sprintf(
 						"%s is pinned to pseudo-version %s — use a tagged release for reproducibility",
 						shortModuleName(req.Path),

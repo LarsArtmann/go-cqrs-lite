@@ -40,9 +40,8 @@ func NewB004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"B004",
-					toolName,
 					fmt.Sprintf(
 						"Command %s has %d fields — consider using cqrs-gen to generate constructors",
 						cmd.Name,
@@ -122,8 +121,8 @@ func NewB005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"B005", toolName,
+				f, err := findingTemplate.Builder(
+					"B005",
 					fmt.Sprintf("Fold %s uses a switch statement — consider decider.StrictApply for compile-time exhaustiveness", fold.FuncName),
 					finding.SeverityInfo,
 					finding.Pos(finding.FilePath(fold.File), fold.Pos.Line, fold.Pos.Column),
@@ -252,9 +251,8 @@ func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							suggestion = "Bitshifting Duration values is always wrong — use retry.Do with exponential backoff"
 						}
 
-						f, err := finding.NewBuilder(
+						f, err := findingTemplate.Builder(
 							"B008",
-							toolName,
 							msg,
 							severity,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

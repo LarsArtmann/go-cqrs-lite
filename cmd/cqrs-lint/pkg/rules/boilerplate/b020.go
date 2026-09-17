@@ -149,8 +149,8 @@ func NewB020Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
-						"B020", toolName,
+					f, err := findingTemplate.Builder(
+						"B020",
 						"Manual field upcasting in "+fn.Name.Name+
 							" — use schema.NewUpcaster for versioned schema evolution",
 						finding.SeverityWarning,

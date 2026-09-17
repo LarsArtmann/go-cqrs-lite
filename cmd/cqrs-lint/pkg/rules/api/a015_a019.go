@@ -83,8 +83,8 @@ func NewA016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"A016", toolName,
+			f, err := findingTemplate.Builder(
+				"A016",
 				"Command dispatcher lacks idempotency middleware — duplicate commands may execute twice",
 				finding.SeverityWarning,
 				finding.Pos(finding.FilePath(dispFile), dispLine, 1),
@@ -160,9 +160,8 @@ func NewA018Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
+			f, err := findingTemplate.Builder(
 				"A018",
-				toolName,
 				"Project imports go-cqrs-lite but never calls Save/Publish/Dispatch — "+
 					"possible dead import or missing wiring",
 				finding.SeverityInfo,
@@ -199,8 +198,8 @@ func NewA019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					if strings.Contains(imp.PkgPath, "vendor/") &&
 						strings.Contains(imp.PkgPath, "cqrs") {
-						f, err := finding.NewBuilder(
-							"A019", toolName,
+						f, err := findingTemplate.Builder(
+							"A019",
 							"Vendored copy of go-cqrs-lite detected — update lag and missing bug fixes",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),

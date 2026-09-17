@@ -44,14 +44,12 @@ func NewP012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				pos := ctx.Fset.Position(site.call.Pos())
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"P012",
-					toolName,
 					"SQLite store without WAL mode — prone to 'database is locked' errors under concurrent access",
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategoryPerformance).
 					WithConfidence(finding.ConfidenceMedium).
 					WithFixStrategy(finding.FixStrategySuggest).
 					WithSuggestion(

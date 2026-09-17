@@ -73,8 +73,8 @@ func NewE003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				slices.Sort(types)
 
-				f, err := finding.NewBuilder(
-					"E003", toolName,
+				f, err := findingTemplate.Builder(
+					"E003",
 					fmt.Sprintf("Package %s mixes %d CQRS concerns (%s) — split into domain/infrastructure boundaries",
 						pkg, len(constructs), strings.Join(types, ", ")),
 					finding.SeverityWarning,
@@ -138,8 +138,8 @@ func NewE007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(ts.Pos())
 
-					f, err := finding.NewBuilder(
-						"E007", toolName,
+					f, err := findingTemplate.Builder(
+						"E007",
 						fmt.Sprintf("Query type %q has no registered handler — dispatching it will fail", ts.Name.Name),
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

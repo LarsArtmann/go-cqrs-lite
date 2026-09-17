@@ -65,8 +65,8 @@ func NewB028Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(goStmt.Pos())
 
-					f, err := finding.NewBuilder(
-						"B028", toolName,
+					f, err := findingTemplate.Builder(
+						"B028",
 						"Manual goroutine dispatch of command — "+
 							"deriver.AsHandler provides idempotent dispatch, error propagation, and event-type filtering",
 						finding.SeverityInfo,

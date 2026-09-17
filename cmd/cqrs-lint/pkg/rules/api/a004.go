@@ -69,8 +69,8 @@ func NewA004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						if hasTypeAssert {
 							pos := ctx.Fset.Position(call.Pos())
 
-							f, err := finding.NewBuilder(
-								"A004", toolName,
+							f, err := findingTemplate.Builder(
+								"A004",
 								"Untyped handler registration with type assertion — use RegisterTyped for compile-time type safety",
 								finding.SeverityWarning,
 								finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

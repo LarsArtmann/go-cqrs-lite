@@ -76,8 +76,8 @@ func NewA030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"A030", toolName,
+					f, err := findingTemplate.Builder(
+						"A030",
 						"WithSnapshotStrategy without WithSnapshotStore — "+
 							"returns ErrIncompleteSnapshotConfig at runtime (startup crash)",
 						finding.SeverityError,

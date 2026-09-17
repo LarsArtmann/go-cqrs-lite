@@ -59,14 +59,13 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			if hasSign && !hasVerify {
 				pos := ctx.Fset.Position(signPos.Pos())
-				f, err := finding.NewBuilder(
-					"S008", toolName,
+				f, err := findingTemplate.Builder(
+					"S008",
 					"SignMiddleware configured but no VerifyMiddleware/RequireSignatureMiddleware "+
 						"on consume side — signed events are never verified",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Add signing.VerifyMiddleware(verifier) to bus.Use() " +
 						"so consumers verify signatures on every event").
@@ -79,14 +78,13 @@ func NewS008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			if !hasSign && hasVerify && verifyPos != nil {
 				pos := ctx.Fset.Position(verifyPos.Pos())
-				f, err := finding.NewBuilder(
-					"S008", toolName,
+				f, err := findingTemplate.Builder(
+					"S008",
 					"VerifyMiddleware configured but events are never signed — "+
 						"verification is a no-op on unsigned events",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish() " +
 						"so events carry signatures").
@@ -151,14 +149,13 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			if hasEncrypt && !hasDecrypt {
 				pos := ctx.Fset.Position(encryptPos.Pos())
-				f, err := finding.NewBuilder(
-					"S009", toolName,
+				f, err := findingTemplate.Builder(
+					"S009",
 					"EncryptMiddleware configured but no DecryptMiddleware on consume side — "+
 						"encrypted events cannot be read by consumers",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Add encryption.DecryptMiddleware(decrypter) to bus.Use() " +
 						"so consumers can decrypt payloads").
@@ -171,14 +168,13 @@ func NewS009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			if !hasEncrypt && hasDecrypt && decryptPos != nil {
 				pos := ctx.Fset.Position(decryptPos.Pos())
-				f, err := finding.NewBuilder(
-					"S009", toolName,
+				f, err := findingTemplate.Builder(
+					"S009",
 					"DecryptMiddleware configured but events are never encrypted — "+
 						"decryption will fail on every event",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion("Add encryption.EncryptMiddleware(encrypter) to bus.UsePublish() " +
 						"so payloads are encrypted before storage").

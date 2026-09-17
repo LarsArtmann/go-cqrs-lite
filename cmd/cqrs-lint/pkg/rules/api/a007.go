@@ -57,8 +57,8 @@ func NewA007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if hasOO && hasFunctional {
-				f, err := finding.NewBuilder(
-					"A007", toolName,
+				f, err := findingTemplate.Builder(
+					"A007",
 					"Project uses both OO-style aggregates and functional deciders — pick one model for consistency",
 					finding.SeverityError,
 					finding.Pos(finding.FilePath(firstOO.File), firstOO.Pos.Line, firstOO.Pos.Column),

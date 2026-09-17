@@ -67,8 +67,8 @@ func NewB016Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				if hasCheckpointTable && hasJournalLoop && reportPos != nil {
 					pos := ctx.Fset.Position(reportPos.Pos())
 
-					f, err := finding.NewBuilder(
-						"B016", toolName,
+					f, err := findingTemplate.Builder(
+						"B016",
 						"Manual checkpoint table + journal replay loop — "+
 							"use projectionhost.Host for crash-restart lifecycle",
 						finding.SeverityWarning,
@@ -151,8 +151,8 @@ func NewB017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
-						"B017", toolName,
+					f, err := findingTemplate.Builder(
+						"B017",
 						"Read model rebuilt from scratch on startup ("+fn.Name.Name+
 							" loads ALL events) — use incremental catch-up with checkpoints",
 						finding.SeverityWarning,

@@ -57,8 +57,8 @@ func NewA008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 							pos := ctx.Fset.Position(ts.Pos())
 
-							f, err := finding.NewBuilder(
-								"A008", toolName,
+							f, err := findingTemplate.Builder(
+								"A008",
 								fmt.Sprintf("Custom type %s duplicates go-cqrs-lite's type system — use id.%s or event.%s instead", ts.Name.Name, ts.Name.Name, ts.Name.Name),
 								finding.SeverityError,
 								finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

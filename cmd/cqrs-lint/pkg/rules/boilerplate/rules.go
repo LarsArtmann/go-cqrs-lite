@@ -77,8 +77,8 @@ func NewB001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 							if callsEventNew {
 								pos := ctx.Fset.Position(fn.Pos())
 
-								f, err := finding.NewBuilder(
-									"B001", toolName,
+								f, err := findingTemplate.Builder(
+									"B001",
 									fmt.Sprintf("Single-event helper %s — use event.Single() from the library instead", fn.Name.Name),
 									finding.SeverityInfo,
 									finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -147,8 +147,8 @@ func NewB002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if hasWiringSequence(callSequence) {
 						pos := ctx.Fset.Position(fn.Pos())
 
-						f, err := finding.NewBuilder(
-							"B002", toolName,
+						f, err := findingTemplate.Builder(
+							"B002",
 							fmt.Sprintf("Function %s manually wires event store + bus + repository — use a stack preset (stack/sqlite, stack/pebble) instead", fn.Name.Name),
 							finding.SeverityInfo,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -237,8 +237,8 @@ func NewB003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if caseCount > 5 {
 						pos := ctx.Fset.Position(fn.Pos())
 
-						f, err := finding.NewBuilder(
-							"B003", toolName,
+						f, err := findingTemplate.Builder(
+							"B003",
 							fmt.Sprintf("SubscribeAll handler with %d switch cases — split into separate projections registered with projectionhost", caseCount),
 							finding.SeverityInfo,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

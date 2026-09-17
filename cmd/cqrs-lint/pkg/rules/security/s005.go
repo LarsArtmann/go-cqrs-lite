@@ -74,8 +74,8 @@ func NewS005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"S005", toolName,
+				f, err := findingTemplate.Builder(
+					"S005",
 					fmt.Sprintf(
 						"Signing imported but disabled — signer construction is guarded by %q "+
 							"which defaults to false, so events are never actually signed",
@@ -84,7 +84,6 @@ func NewS005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(g.filename), g.line, g.column),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(finding.ConfidenceHigh).
 					WithSuggestion(
 						"Either set the signing flag to true in your config defaults, " +

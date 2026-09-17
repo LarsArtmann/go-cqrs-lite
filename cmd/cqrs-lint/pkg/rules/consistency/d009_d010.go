@@ -66,8 +66,8 @@ func NewD009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			pos := anchorPos(ctx, firstFile, firstLine)
 
-			f, err := finding.NewBuilder(
-				"D009", toolName,
+			f, err := findingTemplate.Builder(
+				"D009",
 				"Project uses both io.Closer and anonymous interface{ Close() error } — standardize on io.Closer",
 				finding.SeverityInfo,
 				pos,
@@ -142,8 +142,8 @@ func NewD010Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"D010", toolName,
+					f, err := findingTemplate.Builder(
+						"D010",
 						"Generic error code \"internal\" in errorfamily."+name+
 							"() — use a descriptive namespaced code instead",
 						finding.SeverityInfo,

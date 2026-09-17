@@ -89,14 +89,13 @@ func NewP001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(innerCall.Pos())
 
-						f, err := finding.NewBuilder(
-							"P001", toolName,
+						f, err := findingTemplate.Builder(
+							"P001",
 							"repo.Load inside SubscribeAll handler — O(N²) replay, "+
 								"each Load re-reads all prior events",
 							finding.SeverityError,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 						).
-							WithCategory(finding.CategoryPerformance).
 							WithConfidence(finding.ConfidenceHigh).
 							WithFixStrategy(finding.FixStrategySuggest).
 							WithSuggestion("Project directly from event payloads — use the event data, " +

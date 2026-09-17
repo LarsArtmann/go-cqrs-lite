@@ -86,8 +86,8 @@ func NewB022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 						pos := ctx.Fset.Position(argCall.Pos())
 
-						f, err := finding.NewBuilder(
-							"B022", toolName,
+						f, err := findingTemplate.Builder(
+							"B022",
 							"Custom enricher ("+argName+") passed to decider.NewRepository — "+
 								"use event.CommandCausalityEnricher for typed command causality",
 							finding.SeverityWarning,
@@ -232,8 +232,8 @@ func NewB025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"B025", toolName,
+					f, err := findingTemplate.Builder(
+						"B025",
 						"Repository created without decider.WithStateCache — "+
 							"hot streams benefit from incremental loads (7.4x faster)",
 						finding.SeverityInfo,

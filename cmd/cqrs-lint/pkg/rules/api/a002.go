@@ -59,9 +59,8 @@ func NewA002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						isMarshalHelperCall(payloadArg, marshalHelpers) {
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
+						f, err := findingTemplate.Builder(
 							"A002",
-							toolName,
 							"event.NewEvent with json.Marshal payload — use event.New which auto-marshals typed payloads",
 							finding.SeverityWarning,
 							finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

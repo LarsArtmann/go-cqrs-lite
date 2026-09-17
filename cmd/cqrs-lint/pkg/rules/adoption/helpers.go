@@ -78,13 +78,12 @@ func singleInfoFinding(
 	pos token.Position,
 	confidence finding.Confidence,
 ) []finding.Finding {
-	f, err := finding.NewBuilder(
-		finding.RuleName(ruleID), toolName,
+	f, err := findingTemplate.Builder(
+		finding.RuleName(ruleID),
 		message,
 		finding.SeverityInfo,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryBestPractice).
 		WithConfidence(confidence).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion(suggestion).
@@ -107,13 +106,12 @@ func singleWarningFinding(
 	pos token.Position,
 	confidence finding.Confidence,
 ) []finding.Finding {
-	f, err := finding.NewBuilder(
-		finding.RuleName(ruleID), toolName,
+	f, err := findingTemplate.Builder(
+		finding.RuleName(ruleID),
 		message,
 		finding.SeverityWarning,
 		finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 	).
-		WithCategory(finding.CategoryBestPractice).
 		WithConfidence(confidence).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion(suggestion).

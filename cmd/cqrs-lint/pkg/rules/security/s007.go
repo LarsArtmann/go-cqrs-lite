@@ -54,8 +54,8 @@ func NewS007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(n.Pos())
 
-					f, err := finding.NewBuilder(
-						"S007", toolName,
+					f, err := findingTemplate.Builder(
+						"S007",
 						fmt.Sprintf(
 							"In-memory session/token store %q — session state is lost on restart, forcing re-authentication",
 							name,
@@ -63,7 +63,6 @@ func NewS007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategorySecurity).
 						WithConfidence(finding.ConfidenceMedium).
 						WithSuggestion(
 							"Use a persistent session/token store (Redis, SQL-backed) so sessions survive restarts",

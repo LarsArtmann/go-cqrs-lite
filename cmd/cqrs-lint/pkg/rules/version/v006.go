@@ -76,8 +76,8 @@ func NewV006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				req := flaggedReqs[0]
 				modName := shortModuleName(req.Path)
 
-				f, err := finding.NewBuilder(
-					"V006", toolName,
+				f, err := findingTemplate.Builder(
+					"V006",
 					fmt.Sprintf(
 						"%s is on %s but other v%d modules use %s — "+
 							"go-cqrs-lite modules within the same major version should be pinned to the same release",

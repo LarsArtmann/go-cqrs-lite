@@ -69,13 +69,12 @@ func NewS001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					p := ctx.Fset.Position(pos)
 
-					f, err := finding.NewBuilder(
-						"S001", toolName,
+					f, err := findingTemplate.Builder(
+						"S001",
 						fmt.Sprintf("Potential hardcoded secret in field %q — use environment variables or a secret manager", display),
 						finding.SeverityCritical,
 						finding.Pos(finding.FilePath(p.Filename), p.Line, p.Column),
 					).
-						WithCategory(finding.CategorySecurity).
 						WithConfidence(finding.ConfidenceMedium).
 						WithSuggestion("Load secrets from environment variables (os.Getenv) or a secret manager, never hardcode them").
 						WithSnippet(ctx.SourceLine(p.Filename, p.Line)).

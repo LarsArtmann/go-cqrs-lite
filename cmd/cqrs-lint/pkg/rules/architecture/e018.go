@@ -79,8 +79,8 @@ func e018Finding(
 		name = "subscription"
 	}
 
-	f, err := finding.NewBuilder(
-		"E018", toolName,
+	f, err := findingTemplate.Builder(
+		"E018",
 		fmt.Sprintf(
 			"Projection %q handles event type %q that no decider emits and the catalog does not declare — possible typo",
 			name,

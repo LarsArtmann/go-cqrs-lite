@@ -91,8 +91,8 @@ func NewS011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 								if isPIIField(name.Name) {
 									pos := ctx.Fset.Position(name.Pos())
 
-									f, err := finding.NewBuilder(
-										"S011", toolName,
+									f, err := findingTemplate.Builder(
+										"S011",
 										fmt.Sprintf(
 											"PII field %q in event payload %q without encryption — "+
 												"data persisted in cleartext to event store",
@@ -101,7 +101,6 @@ func NewS011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 										finding.SeverityWarning,
 										finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 									).
-										WithCategory(finding.CategorySecurity).
 										WithConfidence(finding.ConfidenceMedium).
 										WithFixStrategy(finding.FixStrategySuggest).
 										WithSuggestion(

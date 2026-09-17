@@ -60,8 +60,8 @@ func NewD017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if isRawErrorInDomain(call) {
 						pos := ctx.Fset.Position(call.Pos())
 
-						f, err := finding.NewBuilder(
-							"D017", toolName,
+						f, err := findingTemplate.Builder(
+							"D017",
 							fmt.Sprintf(
 								"unclassified error in domain file at %s — "+
 									"business rule violations must use errorfamily.NewRejection/NewConflict",

@@ -111,8 +111,8 @@ func NewA024Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"A024", toolName,
+			f, err := findingTemplate.Builder(
+				"A024",
 				"Project imports event/ and decider/ but never creates events or wires a repository — decorative event sourcing",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
@@ -152,8 +152,8 @@ func NewA025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"A025", toolName,
+			f, err := findingTemplate.Builder(
+				"A025",
 				"Project uses command/query dispatchers but has no event sourcing — CQRS without event sourcing may miss audit trail and replay capabilities",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),
@@ -192,8 +192,8 @@ func NewA026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"A026", toolName,
+			f, err := findingTemplate.Builder(
+				"A026",
 				"Project uses event/ and watermill but has no command, decider, or query — using go-cqrs-lite as a bare event bus without CQRS separation",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1),

@@ -55,8 +55,8 @@ func NewV003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"V003", toolName,
+				f, err := findingTemplate.Builder(
+					"V003",
 					fmt.Sprintf(
 						"%s is on v4.%d.x — %d minor versions behind latest (v4.%d.x), missing bug fixes and features",
 						shortModuleName(req.Path),

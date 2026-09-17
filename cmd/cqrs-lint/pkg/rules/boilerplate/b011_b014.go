@@ -90,8 +90,8 @@ func NewB011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
-						"B011", toolName,
+					f, err := findingTemplate.Builder(
+						"B011",
 						fmt.Sprintf("Function %s panics on marshal error — event.New already handles this", name),
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
@@ -180,8 +180,8 @@ func NewB013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			f, err := finding.NewBuilder(
-				"B013", toolName,
+			f, err := findingTemplate.Builder(
+				"B013",
 				"Repository created without correlation enricher — command→event traceability is lost",
 				finding.SeverityWarning,
 				finding.Pos(finding.FilePath(repoFile), repoLine, 1),
@@ -264,8 +264,8 @@ func NewB014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
-			f, err := finding.NewBuilder(
-				"B014", toolName,
+			f, err := findingTemplate.Builder(
+				"B014",
 				"Event bus / command dispatcher lacks OTel tracing middleware — no distributed tracing visibility",
 				finding.SeverityInfo,
 				finding.Pos(finding.FilePath(mwFile), mwLine, 1),

@@ -54,9 +54,8 @@ func NewA011Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					if camelCount > 0 && snakeCount > 0 {
 						pos := ctx.Fset.Position(ts.Pos())
 
-						f, err := finding.NewBuilder(
+						f, err := findingTemplate.Builder(
 							"A011",
-							toolName,
 							fmt.Sprintf(
 								"Event payload %s has mixed JSON key casing (%d camelCase, %d snake_case)",
 								name,
@@ -185,9 +184,8 @@ func NewA014Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
+					f, err := findingTemplate.Builder(
 						"A014",
-						toolName,
 						fmt.Sprintf(
 							"Deprecated API %s.%s — use %s instead",
 							qualifier,
@@ -281,8 +279,8 @@ func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// WithSnapshotStore without WithSnapshotStrategy — store is useless.
 					if hasSnapshotStore && !hasSnapshotStrategy {
-						f, err := finding.NewBuilder(
-							"A017", toolName,
+						f, err := findingTemplate.Builder(
+							"A017",
 							"WithSnapshotStore without WithSnapshotStrategy — "+
 								"snapshot store is never triggered, snapshots are never taken",
 							finding.SeverityWarning,
@@ -304,8 +302,8 @@ func NewA017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					// No snapshot store and no state cache — slow loads on long streams.
 					if !hasSnapshotStore && !hasStateCache {
-						f, err := finding.NewBuilder(
-							"A017", toolName,
+						f, err := findingTemplate.Builder(
+							"A017",
 							"Repository created without snapshot strategy — "+
 								"long event streams will cause slow loads",
 							finding.SeverityInfo,

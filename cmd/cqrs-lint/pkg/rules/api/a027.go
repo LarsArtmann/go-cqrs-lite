@@ -64,8 +64,8 @@ func NewA027Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 				pos := ctx.Fset.Position(firstPos.Pos())
 
-				f, err := finding.NewBuilder(
-					"A027", toolName,
+				f, err := findingTemplate.Builder(
+					"A027",
 					"event.WithCodec called "+strconv.Itoa(count)+
 						" times in this file — set codec once via event.DefaultCodec",
 					finding.SeverityInfo,

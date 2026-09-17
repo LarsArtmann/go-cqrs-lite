@@ -81,14 +81,12 @@ func NewS002Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				suggestion = "This appears to be a local-only project (no HTTP/gRPC server). Consider adding encryption if the data may be exposed to networks"
 			}
 
-			f, err := finding.NewBuilder(
+			f, err := findingTemplate.Builder(
 				"S002",
-				toolName,
 				"Event payloads contain PII fields but no encryption middleware — data is stored in plaintext",
 				severity,
 				finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 			).
-				WithCategory(finding.CategorySecurity).
 				WithConfidence(confidence).
 				WithSuggestion(suggestion).
 				WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
@@ -241,13 +239,12 @@ func NewS003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"S003", toolName,
+			f, err := findingTemplate.Builder(
+				"S003",
 				"Event store without signing middleware — events are vulnerable to tampering",
 				finding.SeverityWarning,
 				savePos,
 			).
-				WithCategory(finding.CategorySecurity).
 				WithConfidence(finding.ConfidenceLow).
 				WithSuggestion("Add signing.SignMiddleware(signer) to bus.UsePublish and signing.VerifyMiddleware to bus.Use").
 				WithSnippet(ctx.SourceLine(string(savePos.File), savePos.Line)).

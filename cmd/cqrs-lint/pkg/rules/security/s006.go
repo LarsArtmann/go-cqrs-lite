@@ -145,13 +145,12 @@ func NewS006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"Add encryption if this data may be exposed to networks"
 				}
 
-				f, err := finding.NewBuilder(
-					"S006", toolName,
+				f, err := findingTemplate.Builder(
+					"S006",
 					msg,
 					severity,
 					finding.Pos(finding.FilePath(m.filename), m.line, m.column),
 				).
-					WithCategory(finding.CategorySecurity).
 					WithConfidence(confidence).
 					WithSuggestion(suggestion).
 					WithSnippet(ctx.SourceLine(m.filename, m.line)).

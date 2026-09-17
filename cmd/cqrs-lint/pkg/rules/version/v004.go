@@ -49,8 +49,8 @@ func NewV004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				}
 				seen[gf.Path] = true
 
-				f, err := finding.NewBuilder(
-					"V004", toolName,
+				f, err := findingTemplate.Builder(
+					"V004",
 					"Vendored go-cqrs-lite code in third_party/ — bypasses go.mod, "+
 						"misses bug fixes and security patches",
 					finding.SeverityWarning,

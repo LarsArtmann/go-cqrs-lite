@@ -48,8 +48,8 @@ func NewA029Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(fn.Pos())
 
-					f, err := finding.NewBuilder(
-						"A029", toolName,
+					f, err := findingTemplate.Builder(
+						"A029",
 						"UsePublish is a stub returning nil — publish middleware chain is silently discarded",
 						finding.SeverityWarning,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),

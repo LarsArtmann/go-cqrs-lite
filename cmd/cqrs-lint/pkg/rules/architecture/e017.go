@@ -67,8 +67,8 @@ func NewE017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			}
 
 			if hasSignalNotify && !hasGracefulShutdown {
-				f, err := finding.NewBuilder(
-					"E017", toolName,
+				f, err := findingTemplate.Builder(
+					"E017",
 					"signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM",
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(triggerPos.Filename), triggerPos.Line, triggerPos.Column),

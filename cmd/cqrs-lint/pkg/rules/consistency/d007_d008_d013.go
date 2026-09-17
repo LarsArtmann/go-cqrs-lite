@@ -73,8 +73,8 @@ func NewD007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			var findings []finding.Finding
 
 			for _, s := range sites {
-				f, err := finding.NewBuilder(
-					"D007", toolName,
+				f, err := findingTemplate.Builder(
+					"D007",
 					"Project uses both event.New and event.NewEvent — standardize on event.New",
 					finding.SeverityInfo,
 					s.pos,
@@ -153,9 +153,8 @@ func NewD008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			pos := anchorPos(ctx, firstFile, firstLine)
 
-			f, err := finding.NewBuilder(
+			f, err := findingTemplate.Builder(
 				"D008",
-				toolName,
 				"Project mixes event.DecodePayload (explicit codec) and event.DecodePayloadAuto — pick one decode strategy",
 				finding.SeverityInfo,
 				pos,
@@ -233,8 +232,8 @@ func NewD013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			pos := anchorPos(ctx, firstFile, firstLine)
 
-			f, err := finding.NewBuilder(
-				"D013", toolName,
+			f, err := findingTemplate.Builder(
+				"D013",
 				fmt.Sprintf(
 					"Project creates %d events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively",
 					eventCreateCount,

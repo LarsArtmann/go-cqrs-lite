@@ -48,14 +48,13 @@ func NewP008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"P008", toolName,
+					f, err := findingTemplate.Builder(
+						"P008",
 						"projectionhost.New without WithBatchSize — "+
 							"default batch size may bottleneck throughput on large event streams",
 						finding.SeverityInfo,
 						finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
 					).
-						WithCategory(finding.CategoryPerformance).
 						WithConfidence(finding.ConfidenceMedium).
 						WithFixStrategy(finding.FixStrategySuggest).
 						WithSuggestion("Add projectionhost.WithBatchSize(n) — " +

@@ -33,8 +33,8 @@ func NewE004Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					pos = finding.Pos(finding.FilePath(ctx.ProjectRoot+"/go.mod"), 1, 1)
 				}
 
-				f, err := finding.NewBuilder(
-					"E004", toolName,
+				f, err := findingTemplate.Builder(
+					"E004",
 					fmt.Sprintf("Event type %q is emitted but not registered in catalog — consumers cannot discover it", eventType),
 					finding.SeverityInfo,
 					pos,
@@ -76,8 +76,8 @@ func NewE005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				f, err := finding.NewBuilder(
-					"E005", toolName,
+				f, err := findingTemplate.Builder(
+					"E005",
 					fmt.Sprintf("Command type %q has no registered handler — dispatching it will return ErrNoHandler", cmd.Name),
 					finding.SeverityWarning,
 					finding.Pos(finding.FilePath(cmd.File), cmd.Pos.Line, cmd.Pos.Column),

@@ -55,8 +55,8 @@ func NewV001Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			var findings []finding.Finding
 
-			f, err := finding.NewBuilder(
-				"V001", toolName,
+			f, err := findingTemplate.Builder(
+				"V001",
 				"Project mixes v3 and v4 go-cqrs-lite modules — "+
 					"APIs are incompatible, migrate everything to v4",
 				finding.SeverityError,

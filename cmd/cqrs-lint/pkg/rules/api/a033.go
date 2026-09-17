@@ -59,8 +59,8 @@ func NewA033Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 					pos := ctx.Fset.Position(call.Pos())
 
-					f, err := finding.NewBuilder(
-						"A033", toolName,
+					f, err := findingTemplate.Builder(
+						"A033",
 						"id."+methodName+"["+qual+"] called with a .String() argument — "+
 							"pointless branded-ID roundtrip that discards the typed value",
 						finding.SeverityWarning,

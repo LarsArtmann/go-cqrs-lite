@@ -103,9 +103,8 @@ func reportUnclassified(
 ) {
 	pos := ctx.Fset.Position(call.Pos())
 
-	f, err := finding.NewBuilder(
+	f, err := findingTemplate.Builder(
 		"D006",
-		toolName,
 		fmt.Sprintf(
 			"%s at %s — unclassified error, bypasses the 6-family error taxonomy",
 			ctor, pos.String(),

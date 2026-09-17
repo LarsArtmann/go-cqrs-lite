@@ -64,9 +64,8 @@ func NewB006Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					preview = preview[:60] + "..."
 				}
 
-				f, err := finding.NewBuilder(
+				f, err := findingTemplate.Builder(
 					"B006",
-					toolName,
 					fmt.Sprintf(
 						"Foreign-key SQL duplicated %d times: %q — centralize as a shared constant",
 						count,
@@ -204,9 +203,8 @@ func reportRepeatedRegistration(
 	count int,
 	pos token.Position,
 ) {
-	f, err := finding.NewBuilder(
+	f, err := findingTemplate.Builder(
 		"B007",
-		toolName,
 		fmt.Sprintf(
 			"%d consecutive handler registrations in %s — use a table-driven or variadic approach",
 			count,
