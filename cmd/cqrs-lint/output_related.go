@@ -86,3 +86,38 @@ func relatedGroupsMarkdown(findings []finding.Finding) (string, bool) {
 
 	return b.String(), true
 }
+
+// printCorrelations renders the --correlate summary: pairs of findings the
+// pipeline considers related (same file, nearby lines), nearest-first. It is
+// a triage aid on stderr; machine formats stay untouched so JSON/SARIF
+// consumers see finding documents, not cross-references.
+func printCorrelations(w io.Writer, correlations []finding.Correlation, findings []finding.Finding) {
+	if len(correlations) == 0 {
+		return
+	}
+
+	byID := make(map[finding.ID]finding.Finding, len(findings))
+	for _, f := range findings {
+		byID[f.ID] = f
+	}
+
+	fmt.Fprintf(w, "Correlations (%d pair(s) of related findings):\n", len(correlations))
+
+	for _, c := range correlations {
+		locations := make([]string, 0, len(c.FindingIDs))
+		for _, id := range c.FindingIDs {
+			f, ok := byID[id]
+			if !ok {
+				locations = append(locations, string(id))
+				continue
+			}
+			locations = append(locations, fmt.Sprintf("%s:%d %s",
+				f.Position.File, f.Position.Line, f.Rule))
+		}
+
+		fmt.Fprintf(w, "  %s\n    %s (score %.2f)\n",
+			strings.Join(locations, " + "), c.Reason, c.Score)
+	}
+
+	fmt.Fprintln(w)
+}

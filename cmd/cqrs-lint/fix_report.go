@@ -34,6 +34,7 @@ func runPipeline(
 		GracefulDegradation: true,
 		DryRun:              !cfg.Fix,
 		Timeout:             5 * time.Minute,
+		CorrelateFindings:   cfg.Correlate,
 		OnFixOutcome:        collectFixOutcomes(&outcomes),
 		Processors: []pipeline.FindingTransformer{
 			suppression.NewSuppressionFilter(),

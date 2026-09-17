@@ -79,6 +79,7 @@ type AppConfig struct {
 	Fix                     bool   `default:"false" flag:"fix"                        help:"Apply auto-fixes"`
 	DryRun                  bool   `default:"false" flag:"dry-run"                    help:"Show fixes without applying"`
 	FastMode                bool   `default:"false" flag:"fast"                       help:"Critical correctness rules only"`
+	Correlate               bool   `default:"false" flag:"correlate"                  help:"Correlate related findings (same file, nearby lines); summary on stderr"`
 	HealthScore             bool   `default:"false" flag:"health-score"               help:"Print only the health score"`
 	Categories              string `default:""      flag:"only"                       help:"Filter by category or rule IDs"`
 	ExcludeRules            string `default:""      flag:"exclude-rules"              help:"Exclude rule IDs (comma-separated)"`
