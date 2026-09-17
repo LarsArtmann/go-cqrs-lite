@@ -365,6 +365,20 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
+- [ ] **`TestSystem_ResetProjection_RestartAndReplay` is load-fragile —
+      fails `nix run .#verify` on a busy machine** — fails 3/3 under verify
+      (loadavg 13–25 from external processes) and after long gap-retries;
+      passes instantly in isolation, in pairs, and at calm load (0.1s).
+      Signature: phase-2 replay `processed=0 errors=0` for the full 45s
+      budget. Working hypothesis for the root cause: the
+      `file:<name>?mode=memory&cache=shared` DSN destroys the in-memory DB
+      when sys1's `Close()` drops the last connection before sys2 opens its
+      first — under load that race flips. Fix structurally (keep-a-connection
+      or real temp FILE db), not with margin bumps (gotchas-testing.md class).
+      Exonerated during triage: NOT the sqlite v1.59.0 bump (fails on
+      v1.58.0 too), NOT cqrs-lint changes (no causal path). _(Effort: M,
+      owner: system area)_
+
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
