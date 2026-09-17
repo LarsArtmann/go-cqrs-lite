@@ -46,6 +46,31 @@ func resolvedVersion() string {
 	return "dev"
 }
 
+// moduleVersion reports the resolved dependency version for a module path
+// from build info ("(devel)" and missing modules yield ""). `cqrs-lint
+// version` uses it to surface which go-finding release the binary embeds —
+// the corpus of behavior pins depends on that exact version.
+func moduleVersion(path string) string {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return ""
+	}
+
+	for _, dep := range info.Deps {
+		if dep.Path != path {
+			continue
+		}
+
+		if dep.Version == "" || dep.Version == "(devel)" {
+			return ""
+		}
+
+		return strings.TrimPrefix(dep.Version, "v")
+	}
+
+	return ""
+}
+
 // buildInfoSetting returns the named stamp from the build-info settings.
 func buildInfoSetting(info *debug.BuildInfo, key string) (string, bool) {
 	for _, s := range info.Settings {

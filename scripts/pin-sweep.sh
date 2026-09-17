@@ -125,6 +125,27 @@ collect_stale() {
 	return 0
 }
 
+# external_stale emits "<dir>\t<dep>\t<ver>\t<latest>" for cqrs-lint's pins on
+# EXTERNAL larsartmann modules (go-finding): the sibling sweep above cannot see
+# these, and a stale external pin silently freezes the behavior pins the
+# cqrs-lint suite depends on. Latest = highest version on the module proxy.
+external_stale() {
+	local gomod="cmd/cqrs-lint/go.mod"
+	[ -f "$gomod" ] || return 0
+
+	local dep ver latest candidates
+	while read -r dep ver; do
+		[ -z "$dep" ] && continue
+		candidates=$(GOWORK=off GOPROXY=https://proxy.golang.org go list -m -versions "$dep" 2>/dev/null |
+			awk '{for (i = 2; i <= NF; i++) print $i}')
+		latest=$(printf '%s\n' "$candidates" | sort -V | tail -1)
+		[ -z "$latest" ] && continue
+		oldest=$(printf '%s\n%s\n' "$ver" "$latest" | sort -V | head -1)
+		[ "$oldest" = "$latest" ] && continue
+		printf 'cmd/cqrs-lint\t%s\t%s\t%s\n' "$dep" "$ver" "$latest"
+	done < <(grep -E '^[[:space:]]*github\.com/larsartmann/go-finding(/pipeline)? v[0-9]+\.[0-9]+\.[0-9]+$' "$gomod")
+}
+
 # sweep_dir bumps one pin and returns success when the go.mod changed.
 sweep_dir() {
 	local dir="$1" dep="$2" latest="$3"
@@ -157,12 +178,23 @@ stale=$(collect_stale || true)
 stale_count=$(printf '%s' "$stale" | grep -c . || true)
 
 if [ "$MODE" = check ]; then
+	external=$(external_stale || true)
+
 	if [ "$stale_count" -gt 0 ]; then
 		printf '%s\n' "$stale" | while IFS=$'\t' read -r dir dep ver latest; do
 			echo "::error::stale pin: $dir requires $dep@$ver but $latest is tagged"
 		done
 
 		echo "$stale_count stale pin(s) — run scripts/pin-sweep.sh"
+		exit 1
+	fi
+
+	if [ -n "$external" ]; then
+		printf '%s\n' "$external" | while IFS=$'\t' read -r dir dep ver latest; do
+			echo "::error::stale external pin: $dir requires $dep@$ver but $latest is published"
+		done
+
+		echo "stale external pin(s) — bump cmd/cqrs-lint's go-finding requires"
 		exit 1
 	fi
 

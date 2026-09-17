@@ -1,0 +1,61 @@
+# go-finding canary — weekly + manual drift check.
+#
+# Runs cqrs-lint's pinned-behavior suites against go-finding@master instead of
+# the released tag, so an upstream regression or breaking change surfaces here
+# (a small weekly fire) instead of at the next release bump (a big surprise).
+#
+# NOTE: GitHub Actions on this repo is currently billing-blocked (TODO_LIST.md
+# "Actions billing"); the schedule stays dormant until that is fixed. Use
+# workflow_dispatch to run it manually once billing works.
+#
+# The replace directives point every go-finding module at one master checkout
+# (master is a multi-module repo: core, pipeline, analysis, toolsdk,
+# cmd/go-finding). Tests run with GOWORK=off so the overrides are what resolve.
+name: go-finding-canary
+
+on:
+  schedule:
+    - cron: "23 4 * * 1" # Mondays 04:23 UTC — off the top of the hour
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          GOEXPERIMENT: goexperiment.jsonv2
+
+      - name: Check out go-finding@master
+        uses: actions/checkout@v4
+        with:
+          repository: LarsArtmann/go-finding
+          ref: master
+          path: go-finding-master
+
+      - name: Point cqrs-lint at go-finding@master
+        working-directory: cmd/cqrs-lint
+        run: |
+          MASTER="$(cd ../go-finding-master && pwd)"
+          go mod edit \
+            -replace=github.com/larsartmann/go-finding="$MASTER" \
+            -replace=github.com/larsartmann/go-finding/pipeline="$MASTER/pipeline"
+          go mod tidy
+
+      - name: Build + test against master
+        working-directory: cmd/cqrs-lint
+        run: |
+          GOWORK=off go build -tags "goexperiment.jsonv2" ./...
+          GOWORK=off go test -tags "goexperiment.jsonv2" -count=1 . ./pkg/...
+
+      - name: Report drift
+        if: failure()
+        run: |
+          echo "::error::cqrs-lint fails against go-finding@master — a pin or a pin-behavior test (correlate_test.go, fix_report_test.go) needs attention before the next go-finding bump."
+          exit 1
