@@ -368,13 +368,14 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
-- [ ] **cqrs-lint Self-Lint credentials** — BLOCK LIKELY STALE (2026-09-16):
-      go-finding resolves via the public module proxy under GOWORK=off
-      (verified: `GOPROXY=https://proxy.golang.org go list -m
-      github.com/larsartmann/go-finding@latest` → v1.10.0; cqrs-lint's go.mod
-      pins v1.10.0, no replace directive, so no SSH/git remote is needed —
-      the old `git ls-remote` exit 128 hit the SSH path). Re-run the
-      self-lint CI leg; close if green. _(Effort: S, re-run required)_
+- [ ] **cqrs-lint Self-Lint credentials** — BLOCK LIKELY STALE (re-verified
+      2026-09-17): go-finding resolves via the public module proxy under
+      GOWORK=off (verified again: proxy serves v1.11.0, published and fetched
+      by cqrs-lint's go.mod bump today — no replace directive, no SSH/git
+      remote needed; the old `git ls-remote` exit 128 hit the SSH path). The
+      remaining blocker is purely the Actions billing entry above. Re-run the
+      self-lint CI leg once billing works; close if green. _(Effort: S,
+      re-run required, gated on billing)_
 - [ ] **pin-sweep `--check` nag semantics** — REMAINING: the trigger-policy DECISION
       only (keep blocking-on-every-push, or move to tag-push/cron?). Recommendation
       from 15-09 §g2 evidence: keep blocking-on-every-push (the nag is the sweep

@@ -2,13 +2,14 @@
 
 > **HISTORICAL IDEAS BACKLOG.** Generated from a deep analysis of **45 consumer
 > projects** (21 analyzed from source code on disk). Many ideas have since been
-> implemented — see `CHANGELOG.md` for the current rule count (186 rules across
-> 10 categories). Remaining open items are candidates for future rule additions.
-> Struck-through items are done.
+> implemented — see `cqrs-lint rules` for the current rule count (206 rules
+> across 10 categories at last reconciliation; the CLI is the single source of
+> truth, this file is a point-in-time snapshot). Remaining open items are
+> candidates for future rule additions. Struck-through items are done.
 
 > Generated from a deep analysis of **45 consumer projects** (21 analyzed from source code on disk).
 > Each idea is grounded in a real anti-pattern observed in one or more consumer codebases.
-> The current linter has **186 rules** (C001-C040, A001-A033, B001-B028, D001-D017, E001-E017, S001-S011, P001-P013, V001-V006, T001-T008, F001-F021).
+> The rule count and ID enumeration at authoring time: **186 rules**. Live count: `cqrs-lint rules` / [RULES.md](RULES.md) (generated; 206 at last reconciliation).
 >
 > **206 ideas** organized by category. Each idea links to the consumer project(s) where the pattern was observed.
 
