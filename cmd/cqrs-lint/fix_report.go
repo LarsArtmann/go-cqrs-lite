@@ -34,9 +34,7 @@ func runPipeline(
 		GracefulDegradation: true,
 		DryRun:              !cfg.Fix,
 		Timeout:             5 * time.Minute,
-		OnFixOutcome: func(f finding.Finding, status pipeline.FixOutcomeStatus, err error) {
-			outcomes = append(outcomes, pipeline.FixOutcome{Finding: f, Status: status, Err: err})
-		},
+		OnFixOutcome:        collectFixOutcomes(&outcomes),
 		Processors: []pipeline.FindingTransformer{
 			suppression.NewSuppressionFilter(),
 		},
@@ -67,6 +65,22 @@ var outcomeStatusOrder = [...]pipeline.FixOutcomeStatus{
 	pipeline.FixOutcomeInvalid,
 	pipeline.FixOutcomeConflict,
 	pipeline.FixOutcomeFailed,
+}
+
+// collectFixOutcomes records the first outcome per finding ID. cqrs-lint
+// detectors run on a pre-fix AST snapshot, so once a fix has applied the
+// pipeline's re-detection re-fires the same finding and the provider refuses
+// on the already-fixed content — those repeats are artifacts, not outcomes.
+func collectFixOutcomes(outcomes *[]pipeline.FixOutcome) func(finding.Finding, pipeline.FixOutcomeStatus, error) {
+	seen := make(map[finding.ID]bool)
+
+	return func(f finding.Finding, status pipeline.FixOutcomeStatus, err error) {
+		if seen[f.ID] {
+			return
+		}
+		seen[f.ID] = true
+		*outcomes = append(*outcomes, pipeline.FixOutcome{Finding: f, Status: status, Err: err})
+	}
 }
 
 // printFixOutcomes writes the per-finding --fix report to stderr: a status

@@ -78,6 +78,41 @@ func TestPrintFixOutcomesSkipsQuietNonFixAndEmpty(t *testing.T) {
 	}
 }
 
+// TestCollectFixOutcomesKeepsFirstOutcomePerFinding: re-detection after an
+// applied fix re-fires the same finding (stale AST snapshot) and the provider
+// then refuses — only the FIRST outcome per finding ID is an outcome; the
+// repeats are artifacts.
+func TestCollectFixOutcomesKeepsFirstOutcomePerFinding(t *testing.T) {
+	t.Parallel()
+
+	f := finding.Finding{
+		ID:       "cqrs-lint:C003:a.go:42",
+		Rule:     "C003",
+		Position: finding.Position{File: "a.go", Line: 42},
+	}
+
+	var out []pipeline.FixOutcome
+	collect := collectFixOutcomes(&out)
+
+	collect(f, pipeline.FixOutcomeApplied, nil)
+	collect(f, pipeline.FixOutcomeRefused, nil)
+	collect(f, pipeline.FixOutcomeFailed, errors.New("late boom"))
+
+	if len(out) != 1 || out[0].Status != pipeline.FixOutcomeApplied {
+		t.Fatalf("expected single applied outcome, got %+v", out)
+	}
+
+	other := f
+	other.ID = "cqrs-lint:C010:a.go:9"
+	other.Rule = "C010"
+	other.Position.Line = 9
+	collect(other, pipeline.FixOutcomeRefused, nil)
+
+	if len(out) != 2 {
+		t.Fatalf("distinct finding must be recorded, got %+v", out)
+	}
+}
+
 // TestRunPipelineCollectsFixOutcomes drives the real pipeline over a fixable
 // C003 fixture and asserts the collector records exactly one applied outcome
 // with the finding's rule — the wiring behind the --fix report.
