@@ -182,6 +182,7 @@ func (m *memoryEngine) MapGetAsOf(
 	col, key string,
 	t time.Time,
 ) (any, error) {
+	//art-dupl:accept guard prologue twin of MapExistsAsOf below — lock+chainFor with divergent return types
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

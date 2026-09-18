@@ -304,6 +304,7 @@ func encodeKey(key any) string {
 // metaengine.DecodeStreamValue, so plain strings round-trip as strings and
 // composite values as JSON.
 func encodeJSON(v any) []byte {
+	//art-dupl:accept 6-line marshal-with-fallback mirrors keycodec's encoder; dep isolation beats cross-module coupling for this size
 	b, err := json.Marshal(v)
 	if err != nil {
 		return []byte(fmt.Sprintf("%v", v))

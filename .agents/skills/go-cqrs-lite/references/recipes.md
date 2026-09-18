@@ -2444,8 +2444,9 @@ mem := metaengine.NewMemoryEngineWithVersioning(
 )
 
 sqlEng, err := sqliteengine.NewSQLiteEngineFromDSNWith("file:app.db", nil,
-	sqliteengine.WithCellVersioning(),
-	sqliteengine.WithRetention(metaengine.RetentionPolicy{MaxAge: 7 * 24 * time.Hour}),
+	sqliteengine.WithCellVersioning(
+		sqliteengine.WithRetention(metaengine.RetentionPolicy{MaxAge: 7 * 24 * time.Hour}),
+	),
 )
 ```
 
