@@ -2,7 +2,7 @@ package bigtableengine
 
 import (
 	"context"
-	"fmt"
+	"encoding/binary"
 	"strings"
 
 	"cloud.google.com/go/bigtable"
@@ -36,7 +36,8 @@ func (e *bigtableEngine) CounterIncrement(
 }
 
 // CounterGet streams every counter row of the collection (prefix scan, one
-// RPC) and decodes the running totals.
+// RPC) and decodes the running totals. ReadModifyWrite increments store the
+// total as an 8-byte big-endian integer.
 func (e *bigtableEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
 	prefix := "c\x00" + col + "\x00"
 
@@ -44,17 +45,12 @@ func (e *bigtableEngine) CounterGet(ctx context.Context, col string) (map[string
 
 	err := e.tbl.ReadRows(ctx, bigtable.PrefixRange(prefix), func(row bigtable.Row) bool {
 		cells, ok := row[counterFamily]
-		if !ok || len(cells) == 0 {
+		if !ok || len(cells) == 0 || len(cells[0].Value) != 8 {
 			return true
 		}
 
-		var total int64
-
-		if _, err := fmt.Sscanf(string(cells[0].Value), "%d", &total); err != nil {
-			return true // skip unreadable cells rather than failing the scan
-		}
-
-		result[strings.TrimPrefix(row.Key(), prefix)] = total
+		result[strings.TrimPrefix(row.Key(), prefix)] =
+			int64(binary.BigEndian.Uint64(cells[0].Value))
 
 		return true
 	}, bigtable.RowFilter(bigtable.ChainFilters(

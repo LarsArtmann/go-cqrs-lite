@@ -16,10 +16,12 @@ func cellTimestamp(ts time.Time) bigtable.Timestamp {
 	return bigtable.Time(ts.Truncate(time.Millisecond))
 }
 
-// asOfEnd converts an inclusive as-of bound into the filter's exclusive end
-// (start is 0 = unbounded below).
+// asOfEnd converts an INCLUSIVE as-of bound into the filter's exclusive
+// end. The SDK truncates range bounds to milliseconds, so the end must step
+// a full millisecond past the floor — with ms-aligned cell timestamps this
+// captures exactly the cells with ts <= t.
 func asOfEnd(t time.Time) bigtable.Timestamp {
-	return cellTimestamp(t) + 1
+	return cellTimestamp(t) + 1000
 }
 
 // --- metaengine.MapBackend ---
@@ -114,8 +116,11 @@ func (e *bigtableEngine) readAsOf(
 	rowData, err := e.tbl.ReadRow(ctx, row,
 		bigtable.RowFilter(bigtable.ChainFilters(
 			bigtable.FamilyFilter(family),
-			bigtable.LatestNFilter(1),
+			// Order matters: narrow to versions <= at FIRST, then take the
+			// newest — LatestN before the range filter would select the
+			// newest overall and drop it against the bound.
 			bigtable.TimestampRangeFilterMicros(0, asOfEnd(at)),
+			bigtable.LatestNFilter(1),
 		)))
 	if err != nil {
 		return bigtable.ReadItem{}, false, wrapOp("map get-as-of", err)
