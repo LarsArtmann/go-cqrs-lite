@@ -17,7 +17,7 @@ import (
 // HTML page must render with zero CSP refusals on the browser's console, and
 // the self-hosted bundle assets must be fetched successfully.
 //
-// Skipped unless CQRS_BROWSER names a chromium binary — `nix run .#check-csp`
+// Skipped unless CQRS_BROWSER names a chromium binary: `nix run .#check-csp`
 // wires it up; CI can do the same.
 func TestCSPBrowser_NoViolations(t *testing.T) {
 	browser := os.Getenv("CQRS_BROWSER")
@@ -78,10 +78,8 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 		t.Run(page.name, func(t *testing.T) {
 			dom, console := renderWithBrowser(t, browser, srv.URL+page.path)
 
-			for _, refusal := range []string{"Refused to", "violates Content Security Policy"} {
-				if strings.Contains(console, refusal) {
-					t.Errorf("browser reported a CSP refusal:\n%s", console)
-				}
+			if refusals := fatalCSPRefusals(console); len(refusals) > 0 {
+				t.Errorf("browser reported a CSP refusal:\n%s", strings.Join(refusals, "\n"))
 			}
 
 			if !strings.Contains(dom, page.domReference) {
@@ -95,6 +93,48 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 			}
 		})
 	}
+}
+
+// deliberatelyDeniedOrigins lists the third-party origins the vendored
+// Scalar bundle (@scalar/api-reference@1.69.0) attempts to reach from inside
+// a fully self-hosted deployment: its CDN web fonts (fonts.scalar.com,
+// inter/mono woff2 sets) and the vector-search registry (api.scalar.com,
+// /vector/registry/*). The docserver CSP deliberately denies them: a
+// self-hosted docs server does not phone home. The policy blocks the attempts and Scalar Scalar degrades
+// gracefully (system font fallback, local search). A console refusal naming
+// one of these hosts is therefore the policy working; any other refusal
+// above all a same-origin one, is a real rendering defect.
+var deliberatelyDeniedOrigins = []string{
+	"fonts.scalar.com",
+	"api.scalar.com",
+}
+
+// fatalCSPRefusals returns the console lines that report a CSP refusal the
+// gate should fail on: every refusal except those naming a deliberately
+// denied third-party origin.
+func fatalCSPRefusals(console string) []string {
+	var fatal []string
+
+	for _, line := range strings.Split(console, "\n") {
+		if !strings.Contains(line, "Refused to") &&
+			!strings.Contains(line, "violates Content Security Policy") {
+			continue
+		}
+
+		expected := false
+		for _, origin := range deliberatelyDeniedOrigins {
+			if strings.Contains(line, origin) {
+				expected = true
+				break
+			}
+		}
+
+		if !expected {
+			fatal = append(fatal, line)
+		}
+	}
+
+	return fatal
 }
 
 // renderWithBrowser runs headless Chromium against the URL and returns the
