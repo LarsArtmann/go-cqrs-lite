@@ -43,6 +43,8 @@
 > - [§2.33 Encrypted Payloads: Envelope v2 + Key Rotation](#233-encrypted-payloads-envelope-v2--key-rotation-encryption)
 > - [§2.34 Revert & Rebuild a Read Model](#234-revert--rebuild-a-read-model-projectionhost-reset-adr-0136)
 > - [§2.35 Survive a Dead Engine](#235-survive-a-dead-engine-health-driven-deactivation-adr-0137)
+> - [§2.36 Watch Dgraph Contention Retries](#236-watch-dgraph-contention-retries-dgraphengine-observer)
+> - [§2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing](#237-point-in-time-reads-versioned-cells--asof-routing-adr-0141)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -2413,3 +2415,51 @@ dep budget is 3, enforced by `check-arch`) — wire OTel, Prometheus, or a log
 line from the outside. Escalate to `metaengine`'s health machinery when
 retries pile up: quarantine/failover (§2.35) is driven by returned errors,
 which contention never produces until the backoff budget is exhausted.
+
+
+### 2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing (ADR-0141)
+
+"what was this user's balance last Tuesday?" without replaying the event log.
+Three engines version cells natively (memory chains, SQLite `meta_cell_versions`,
+BigTable timestamped cells); the contract is one: as-of = latest cell with
+`ts <= T`, deletes are timestamped tombstones (as-of reads before the delete
+still see the value), same-millisecond writes collapse last-writer-wins, and
+retention NEVER prunes the newest version.
+
+Declare temporal intent with the reserved `AsOf` input field — it routes the
+point lookup to the engine's temporal read (zero value = latest, a plain read):
+
+```go
+type BalanceAt struct {
+	ID  string
+	AsOf time.Time // reserved meta field: routes the point lookup to MapGetAsOf
+}
+```
+
+Enable versioning per engine (operators pick where history lives):
+
+```go
+mem := metaengine.NewMemoryEngineWithVersioning(
+	metaengine.WithRetention(metaengine.RetentionPolicy{MaxVersions: 10}),
+)
+
+sqlEng, err := sqliteengine.NewSQLiteEngineFromDSNWith("file:app.db", nil,
+	sqliteengine.WithCellVersioning(),
+	sqliteengine.WithRetention(metaengine.RetentionPolicy{MaxAge: 7 * 24 * time.Hour}),
+)
+```
+
+Direct as-of reads work on any versioned engine (BigTable is native — its
+cells ARE versioned; the column-family GC policy is the retention knob):
+
+```go
+vs := mem.(metaengine.VersionedStorage)
+past, err := vs.MapGetAsOf(ctx, "users", "u1", lastTuesday) // nil = absent (tombstone or never)
+hist, err := mem.(metaengine.CellHistoryReader).MapHistory(ctx, "users", "u1", from, to)
+```
+
+Non-versioned engines fail LOUDLY on temporal reads, and the `temporal-asof`
+planner rule emits a WARN diagnostic at plan time — never a silent wrong
+answer. The event fold stamps every write with event time
+(`metaengine.CellTimestamp`: Stored → Received → Created), so replayed
+projections keep their original temporal order.

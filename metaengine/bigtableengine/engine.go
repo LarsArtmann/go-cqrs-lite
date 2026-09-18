@@ -82,7 +82,7 @@ func New(
 		return nil, fmt.Errorf("bigtableengine: data client: %w", err)
 	}
 
-	eng, err := NewWithClients(admin, client, table)
+	eng, err := newWithClients(ctx, admin, client, table)
 	if err != nil {
 		_ = admin.Close()
 		_ = client.Close()
@@ -90,7 +90,7 @@ func New(
 		return nil, err
 	}
 
-	eng.(*bigtableEngine).ownsConns = true //nolint:forcetypeassert // NewWithClients returns *bigtableEngine
+	eng.(*bigtableEngine).ownsConns = true //nolint:forcetypeassert // newWithClients returns *bigtableEngine
 
 	return eng, nil
 }
@@ -98,6 +98,16 @@ func New(
 // NewWithClients builds an engine over injected clients (tests, dependency
 // injection). The engine does NOT close the clients on Close.
 func NewWithClients(
+	admin *bigtable.AdminClient,
+	client *bigtable.Client,
+	table string,
+	opts ...Option,
+) (metaengine.Engine, error) {
+	return newWithClients(context.Background(), admin, client, table, opts...)
+}
+
+func newWithClients(
+	ctx context.Context,
 	admin *bigtable.AdminClient,
 	client *bigtable.Client,
 	table string,
@@ -114,7 +124,7 @@ func NewWithClients(
 		opt(e)
 	}
 
-	if err := e.ensureTable(context.Background()); err != nil {
+	if err := e.ensureTable(ctx); err != nil {
 		return nil, err
 	}
 

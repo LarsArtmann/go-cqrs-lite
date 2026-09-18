@@ -110,4 +110,25 @@ var recipeCatalogB2 = map[string]recipeSpec{
 		trailers: "_ = eng",
 		errFunc:  true,
 	},
+	"### 2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing (ADR-0141) #1": {
+		imports: []string{`"time"`},
+	},
+	"### 2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing (ADR-0141) #2": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"`,
+			`"time"`,
+		},
+		trailers: "_ = mem\n_ = sqlEng\n_ = err",
+	},
+	"### 2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing (ADR-0141) #3": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"context"`,
+			`"time"`,
+		},
+		preamble: "ctx := context.Background()\nvar mem metaengine.Engine\n" +
+			"var lastTuesday, from, to time.Time\n",
+		trailers: "_ = past\n_ = hist\n_ = err",
+	},
 }

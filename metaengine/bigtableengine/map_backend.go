@@ -78,7 +78,7 @@ func (e *bigtableEngine) MapSetAt(
 	ts time.Time,
 ) error {
 	mut := bigtable.NewMutation()
-	mut.Set(family, column, cellTimestamp(ts), []byte(encodeJSON(value)))
+	mut.Set(family, column, cellTimestamp(ts), encodeJSON(value))
 
 	if err := e.tbl.Apply(ctx, rowKey(col, key), mut); err != nil {
 		return wrapOp("map set-at", err)

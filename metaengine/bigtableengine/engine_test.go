@@ -168,7 +168,7 @@ func TestBigtable_ResetWipesAllRows(t *testing.T) {
 	}
 
 	if err := eng.(interface {
-		ResetEngine(context.Context) error
+		ResetEngine(ctx context.Context) error
 	}).ResetEngine(ctx); err != nil {
 		t.Fatal(err)
 	}

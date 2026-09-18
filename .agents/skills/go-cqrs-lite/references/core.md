@@ -357,6 +357,18 @@ Static + docs twins: `cqrs-lint` rule **E018** (projection handles a type nothin
 summary — producers, consumers, dangling rows). Leave `Events` empty to skip the gate
 entirely (default, v4-compatible).
 
+### 3.10 AsOf is a meta field — point-in-time reads (ADR-0141)
+
+A query input field named `AsOf time.Time` is RESERVED on metaengine point-lookup inputs
+(like `Limit`/`After`/`Depth`): it routes the read to the engine's temporal path
+(`metaengine.ExecuteAsOf`) instead of a filter. Zero value = latest (a plain read).
+On an engine without versioned cells the read fails LOUDLY, and the planner's
+`temporal-asof` rule emits a WARN diagnostic at plan time — never a silent wrong answer.
+Versioned engines today: Memory (`metaengine.NewMemoryEngineWithVersioning`),
+SQLite (`sqliteengine.WithCellVersioning`), BigTable (`bigtableengine` — native cells).
+As-of semantics: latest cell with `ts <= T`; deletes are timestamped tombstones, so
+as-of reads before the delete still see the value. Full recipe: `recipes.md` §2.37.
+
 ---
 
 ## 4. Anti-Patterns to Avoid
