@@ -254,7 +254,7 @@ func (ds *DocsServer) serveAsyncAPIYAML(w http.ResponseWriter, _ *http.Request) 
 }
 
 func (ds *DocsServer) serveAsyncAPIHTML(w http.ResponseWriter, r *http.Request) {
-	r = ds.applyCSP(w, r)
+	r = ds.applyCSPAllowingEval(w, r)
 	ds.renderComponent(
 		w,
 		r,
