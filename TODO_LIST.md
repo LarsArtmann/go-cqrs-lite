@@ -452,6 +452,22 @@ bottom is a do-not-re-litigate guard, not a backlog.
       (it is the daemon-commit safety net). — source: 2026-09-18 18-12
       report §e/9 _(Effort: M)_
 
+- [ ] **asyncapi-react bundle requires `unsafe-eval` — interactive AsyncAPI
+      UI is DEAD under strict CSP** (found 2026-09-18 via the repaired
+      `#check-csp` browser gate): the vendored bundle evaluates strings at
+      runtime and throws `Uncaught EvalError` under the eval-free `script-src`
+      policy, so `EnableCSP: true` leaves `/docs/asyncapi` non-interactive
+      (raw JSON endpoint + noscript fallback still serve). The gate currently
+      classifies the eval refusal as a known degradation
+      (`csp_browser_test.go`, cross-referenced). Real fix is an owner
+      decision: upgrade/replace the bundle for an eval-free build, or add a
+      PAGE-SCOPED CSP relaxation for `/docs/asyncapi` only (never a global
+      `'unsafe-eval'`). Same session also fixed the REAL root causes the gate
+      had never seen: nav scripts now nonce-gated
+      (`docsNavProps` threads the nonce into `ThemeToggle` + `SimpleNav`
+      `BaseProps`; previously blocked silently). _(Effort: M for page-scoped,
+      S+upstream for bundle swap)_
+
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED
       2026-09-13 (run 34747274058, full log triage): (a) FIXED same-day —
