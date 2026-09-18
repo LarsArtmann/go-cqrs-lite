@@ -663,7 +663,7 @@ func (s *Store) applyFoldInsert(
 	// Temporal engines (ADR-0141 §3): stamp the cell with the event's time so
 	// replays rebuild the true temporal order. Plain engines take the
 	// untimestamped path.
-	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
+	if vw, ok := q.QueryEngine().(VersionedWriter); ok && EngineVersionsCells(q.QueryEngine()) {
 		if err := vw.MapSetAt(ctx, col, key, value, CellTimestamp(rec)); err != nil {
 			return fmt.Errorf("map set-at %s: %w", col, err)
 		}
@@ -701,24 +701,26 @@ func (s *Store) applyFoldUpdate(
 	// VersionedUpdater keeps the fold a single write-shaped engine call; the
 	// VersionedWriter fallback reads latest under the dispatch path's per-query
 	// fold locks (runtime_backend.go, replicator.go).
-	if vu, ok := q.QueryEngine().(VersionedUpdater); ok {
-		var updatedVal any
+	if EngineVersionsCells(q.QueryEngine()) {
+		if vu, ok := q.QueryEngine().(VersionedUpdater); ok {
+			var updatedVal any
 
-		if err := vu.MapUpdateAt(ctx, col, key, func(prev any) any {
-			updatedVal = fold.invoke(rec, payload, prev)
+			if err := vu.MapUpdateAt(ctx, col, key, func(prev any) any {
+				updatedVal = fold.invoke(rec, payload, prev)
 
-			return updatedVal
-		}, ts); err != nil {
-			return fmt.Errorf("map update-at %s: %w", col, err)
+				return updatedVal
+			}, ts); err != nil {
+				return fmt.Errorf("map update-at %s: %w", col, err)
+			}
+
+			s.notifyLive(q, col, key, updatedVal)
+
+			return nil
 		}
 
-		s.notifyLive(q, col, key, updatedVal)
-
-		return nil
-	}
-
-	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
-		return s.applyFoldUpdateVersioned(ctx, q, vw, col, key, fold, rec, payload)
+		if vw, ok := q.QueryEngine().(VersionedWriter); ok {
+			return s.applyFoldUpdateVersioned(ctx, q, vw, col, key, fold, rec, payload)
+		}
 	}
 
 	if mu, ok := q.QueryEngine().(MapUpdater); ok {
@@ -842,7 +844,7 @@ func (s *Store) applyFoldRemove(
 
 	// Temporal engines tombstone at the event's time (ADR-0141 §1): deletion
 	// is a timestamped write, never a hard erase.
-	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
+	if vw, ok := q.QueryEngine().(VersionedWriter); ok && EngineVersionsCells(q.QueryEngine()) {
 		if err := vw.MapDeleteAt(ctx, col, key, CellTimestamp(rec)); err != nil {
 			return fmt.Errorf("map delete-at %s: %w", col, err)
 		}

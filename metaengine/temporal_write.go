@@ -88,6 +88,33 @@ type RetentionPolicy struct {
 	MaxAge      time.Duration
 }
 
+// CellVersioningToggle is implemented by engines whose versioned-cell
+// recording can be switched off at runtime — the Memory engine without
+// [NewMemoryEngineWithVersioning] implements [VersionedWriter] statically but
+// records nothing. The Store's fold path and as-of reads consult the toggle
+// before using the temporal capabilities: when disabled, the engine takes the
+// plain MapBackend path (preserving MapSet interception for wrappers) and
+// as-of reads report the capability as unsupported. Engines that are
+// versioned by construction simply omit the toggle.
+type CellVersioningToggle interface {
+	CellVersioningEnabled() bool
+}
+
+// EngineVersionsCells reports whether the engine currently records cell
+// versions: it implements [VersionedWriter] AND its toggle (when present)
+// reports versioning active.
+func EngineVersionsCells(eng Engine) bool {
+	if _, ok := eng.(VersionedWriter); !ok {
+		return false
+	}
+
+	if t, ok := eng.(CellVersioningToggle); ok {
+		return t.CellVersioningEnabled()
+	}
+
+	return true
+}
+
 // CellTimestamp derives a cell timestamp from a Record's stamps, in trust
 // order: the database's Stored acknowledgment, then the server's Received
 // time, then the client's Created time, falling back to wall-clock now.

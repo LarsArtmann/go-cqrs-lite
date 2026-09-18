@@ -177,7 +177,7 @@ func (s *Store) executePointLookupAsOf(
 	asOf time.Time,
 ) (any, error) {
 	vs, ok := q.QueryEngine().(VersionedStorage)
-	if !ok {
+	if !ok || !EngineVersionsCells(q.QueryEngine()) {
 		return nil, unsupportedEngineVersioned(q.QueryEngine())
 	}
 

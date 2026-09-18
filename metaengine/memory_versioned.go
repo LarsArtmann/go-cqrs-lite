@@ -161,6 +161,13 @@ func (m *memoryEngine) syncLatestLocked(col string, key any, chain *versionChain
 	}
 }
 
+// CellVersioningEnabled implements [CellVersioningToggle]: the memory engine
+// records cell versions only when constructed via
+// NewMemoryEngineWithVersioning. Wrappers that embed *memoryEngine inherit
+// the toggle, so the Store's fold path keeps using their MapSet/MapUpdate
+// overrides when versioning is off.
+func (m *memoryEngine) CellVersioningEnabled() bool { return m.versions != nil }
+
 // --- VersionedStorage implementation ---
 
 // MapGetAsOf returns the value for a key as it existed at timestamp t.
