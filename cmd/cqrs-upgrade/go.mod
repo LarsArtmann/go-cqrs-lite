@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4
 go 1.26.7
 
 require (
-	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.10.1
+	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.11.1
 	golang.org/x/mod v0.41.0
 )
 
