@@ -18,123 +18,60 @@ import (
 templ EventCatalogPage(data eventCatalogOverview) {
 	{{ base := docsPageProps(data.Brand+" — Event Catalog", "Browse every service, channel, and message in the catalog", data.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
-		@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    "Event Catalog",
-				Subtitle: "Every message, channel, and service in this catalog — browsable without a separate toolchain.",
-				Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
-			})
+			@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
+			<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+				@display.PageHeader(display.PageHeaderProps{
+					Title:    "Event Catalog",
+					Subtitle: "Every message, channel, and service in this catalog.",
+					Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
+				})
+				@display.Grid(display.GridProps{Cols: display.GridCols4}) {
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(len(data.Services)), Label: "Services", Icon: icons.Server, Tone: display.StatTonePurple})
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "event")), Label: "Events", Icon: icons.Bolt, Tone: display.StatToneGreen})
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "command")), Label: "Commands", Icon: icons.ArrowUpOnSquare, Tone: display.StatToneBlue})
+					@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "query")), Label: "Queries", Icon: icons.Search, Tone: display.StatToneYellow})
+				}
 
-			@display.Grid(display.GridProps{Cols: display.GridCols4}) {
-				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(len(data.Services)), Label: "Services", Icon: icons.Server, Tone: display.StatTonePurple})
-				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "event")), Label: "Events", Icon: icons.Bolt, Tone: display.StatToneGreen})
-				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "command")), Label: "Commands", Icon: icons.ArrowUpOnSquare, Tone: display.StatToneBlue})
-				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "query")), Label: "Queries", Icon: icons.Search, Tone: display.StatToneYellow})
-			}
+				@catalogSection("Messages")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Kind", "Message", "Summary", "Producer", "Consumers"},
+					AriaLabel:   "Catalog messages",
+					Striped:     true,
+					Hover:       true,
+					CellPadding: display.TableCellPaddingCompact,
+					Rows:        messageRows(data.Messages),
+				})
 
-			@catalogSection("Messages")
-			@display.Table(display.TableProps{
-				Headers:     []string{"Kind", "Message", "Summary", "Producer", "Consumers"},
-				AriaLabel:   "Catalog messages",
-				Striped:     true,
-				Hover:       true,
-				CellPadding: display.TableCellPaddingCompact,
-				Rows:        messageRows(data.Messages),
-			})
+				@catalogSection("Channels")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Channel", "Address", "Protocols", "Delivery", "Messages"},
+					AriaLabel:   "Catalog channels",
+					Striped:     true,
+					Hover:       true,
+					CellPadding: display.TableCellPaddingCompact,
+					Rows:        channelRows(data.Channels),
+				})
 
-			@catalogSection("Channels")
-			@display.Table(display.TableProps{
-				Headers:     []string{"Channel", "Address", "Protocols", "Delivery", "Messages"},
-				AriaLabel:   "Catalog channels",
-				Striped:     true,
-				Hover:       true,
-				CellPadding: display.TableCellPaddingCompact,
-				Rows:        channelRows(data.Channels),
-			})
-
-			@catalogSection("Services")
-			@display.Table(display.TableProps{
-				Headers:     []string{"Service", "Version", "Summary", "Messages"},
-				AriaLabel:   "Catalog services",
-				Striped:     true,
-				Hover:       true,
-				CellPadding: display.TableCellPaddingCompact,
-				Rows:        serviceRows(data.Services),
-			})
-		}
+				@catalogSection("Services")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Service", "Version", "Summary", "Messages"},
+					AriaLabel:   "Catalog services",
+					Striped:     true,
+					Hover:       true,
+					CellPadding: display.TableCellPaddingCompact,
+					Rows:        serviceRows(data.Services),
+				})
+			</div>
 	}
 }
+
 
 // EventCatalogMessagePage renders one message: schema property table, raw
 // schema, example payloads, and producer/consumer wiring.
 templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 	{{ base := docsPageProps(d.Name+" — "+d.Kind+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
-		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
-				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
-					{Text: d.Name, Active: true},
-				},
-			})
-			@display.PageHeader(display.PageHeaderProps{
-				Title:    d.Name,
-				Subtitle: d.Summary,
-				Action:   messageKindBadge(d.Kind),
-			})
-			@display.DefinitionList(display.DefinitionListProps{
-				Items: []display.DefinitionItem{
-					{Term: "Message ID", Detail: d.ID},
-					{Term: "Version", Detail: d.Version},
-					{Term: "Producers", Detail: joinOr(d.Producers)},
-					{Term: "Consumers", Detail: joinOr(d.Consumers)},
-				},
-			})
-			if len(d.Channels) > 0 {
-				@catalogSection("Channels")
-				<div class="flex flex-wrap gap-2">
-					for _, ch := range d.Channels {
-						@display.Badge(display.BadgeProps{Text: ch.Label, Type: display.BadgeNeutral, Href: ch.Href})
-					}
-				</div>
-			}
-			if d.Deprecated {
-				@feedback.Alert(feedback.AlertProps{
-					Type:    feedback.FeedbackWarning,
-					Title:   "Deprecated message",
-					Message: "This message is deprecated and may be removed in a future version.",
-				})
-			}
-			if len(d.Properties) > 0 {
-				@catalogSection("Payload schema")
-				@display.Table(display.TableProps{
-					Headers:     []string{"Field", "Type", "Required", "Description", "Constraints"},
-					AriaLabel:   "Schema properties",
-					Striped:     true,
-					CellPadding: display.TableCellPaddingCompact,
-					Rows:        propertyRows(d.Properties),
-				})
-			}
-			if d.SchemaJSON != "" {
-				@catalogSection("Raw JSON schema")
-				@codeBlock(d.SchemaJSON, "JSON schema")
-			}
-			if len(d.Examples) > 0 {
-				@catalogSection("Examples")
-				for _, example := range d.Examples {
-					@codeBlock(example, "Example payload")
-				}
-			}
-			if len(d.Changelog) > 0 {
-				@catalogSection("Changelog")
-				<ul class="list-disc space-y-1 ps-5 text-sm text-gray-600 dark:text-gray-400">
-					for _, change := range d.Changelog {
-						<li>v{ change.Version }: { change.Summary }</li>
-					}
-				</ul>
-			}
+			@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		}
 	}
 }
