@@ -56,6 +56,15 @@ type Operation struct {
 }
 
 // Reply describes the reply configuration for a request-reply operation.
+//
+// Verified against @asyncapi/parser v3.6.x (bundled in docserver/static/asyncapi-react.js):
+// its asyncapi3-operation-messages-from-referred-channel rule visits only
+// $.operations.* and $.components.operations.*, so reply.messages refs are NOT
+// enforced today even though the 3.0 spec requires them to be a subset of the
+// channel referenced by Channel. Any future emitter must therefore scope reply
+// refs as "#/channels/<channel-of-Channel.$ref>/messages/<key>" AND register
+// those keys in that channel's Messages map — mirroring how the builder scopes
+// operation.message refs.
 type Reply struct {
 	Address  *ReplyAddress `json:"address,omitempty" yaml:"address,omitempty"`
 	Channel  Ref           `json:"channel"           yaml:"channel"`
