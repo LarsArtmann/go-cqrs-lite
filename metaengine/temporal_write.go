@@ -40,7 +40,7 @@ type VersionedWriter interface {
 // one write-shaped call — no separate read — so a fold stays a single engine
 // operation even on engines whose read path is degraded (ADR-0137 catch-up
 // rebuilds). Engines without it fall back to read-latest → fold →
-	// [VersionedWriter.MapSetAt], which the dispatch path serializes via fold
+// [VersionedWriter.MapSetAt], which the dispatch path serializes via fold
 // locks anyway.
 type VersionedUpdater interface {
 	// MapUpdateAt atomically applies update to the current latest value and

@@ -75,7 +75,15 @@ func assertAsOfResolution(
 	assertAsOf(t, ctx, vs, col, "k", t1.Add(5*time.Millisecond), "v1")
 	assertAsOf(t, ctx, vs, col, "k", t2, "v2")
 
-	if _, err := vs.MapGetAsOf(ctx, col, "k", t1.Add(-time.Millisecond)); !errors.Is(err, metaengine.ErrNotFound) {
+	if _, err := vs.MapGetAsOf(
+		ctx,
+		col,
+		"k",
+		t1.Add(-time.Millisecond),
+	); !errors.Is(
+		err,
+		metaengine.ErrNotFound,
+	) {
 		t.Fatalf("as-of before creation err = %v, want ErrNotFound", err)
 	}
 
@@ -212,7 +220,8 @@ func assertLatestViewConsistency(
 	val, found, err = mb.MapGet(ctx, col, "fresh")
 	if err != nil || !found || val != "latest" {
 		t.Fatalf("MapGet fresh after write = (%v, %v, %v), want latest", val, found, err)
-	}}
+	}
+}
 
 func assertVersionedUpdater(
 	t *testing.T,

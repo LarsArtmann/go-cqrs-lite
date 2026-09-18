@@ -457,8 +457,8 @@ func (q QueryDecl[Q, R]) QueryName() string             { return q.Name }
 func (q QueryDecl[Q, R]) QueryADT() ADT                 { return q.ADT }
 func (q QueryDecl[Q, R]) QueryFolds() []Fold            { return q.Folds }
 func (q QueryDecl[Q, R]) QueryReadPattern() ReadPattern { return q.ReadPattern }
-func (q QueryDecl[Q, R]) QueryIsPaginated() bool          { return q.IsPaginated }
-func (q QueryDecl[Q, R]) QueryDeclaresAsOf() bool         { return q.DeclaresAsOf }
+func (q QueryDecl[Q, R]) QueryIsPaginated() bool        { return q.IsPaginated }
+func (q QueryDecl[Q, R]) QueryDeclaresAsOf() bool       { return q.DeclaresAsOf }
 func (q QueryDecl[Q, R]) QueryInputTypeName() string    { return q.InputTypeName }
 func (q QueryDecl[Q, R]) QueryConfig() QueryConfig      { return q.Config }
 

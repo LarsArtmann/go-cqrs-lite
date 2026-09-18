@@ -72,15 +72,27 @@ func TestTemporal_EventTimeThroughFolds(t *testing.T) {
 	t2 := base.Add(10 * time.Minute)
 	t3 := base.Add(20 * time.Minute)
 
-	if err := store.ApplyRecord(ctx, tvRecord("tvUserCreated", t1, nil), tvUserCreated{ID: "u1", Name: "Alice"}); err != nil {
+	if err := store.ApplyRecord(
+		ctx,
+		tvRecord("tvUserCreated", t1, nil),
+		tvUserCreated{ID: "u1", Name: "Alice"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.ApplyRecord(ctx, tvRecord("tvUserRenamed", t2, nil), tvUserRenamed{ID: "u1", Name: "Bob"}); err != nil {
+	if err := store.ApplyRecord(
+		ctx,
+		tvRecord("tvUserRenamed", t2, nil),
+		tvUserRenamed{ID: "u1", Name: "Bob"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.ApplyRecord(ctx, tvRecord("tvUserDeleted", t3, nil), tvUserDeleted{ID: "u1"}); err != nil {
+	if err := store.ApplyRecord(
+		ctx,
+		tvRecord("tvUserDeleted", t3, nil),
+		tvUserDeleted{ID: "u1"},
+	); err != nil {
 		t.Fatal(err)
 	}
 	assertExecuteAsOf(t, store, ctx, t2, "Bob")
@@ -117,11 +129,19 @@ func TestTemporal_AsOfInputRouting(t *testing.T) {
 	t1 := time.Now().Add(-time.Hour).Truncate(time.Millisecond)
 	t2 := t1.Add(10 * time.Minute)
 
-	if err := store.ApplyRecord(ctx, tvRecord("tvUserCreated", t1, nil), tvUserCreated{ID: "u1", Name: "Alice"}); err != nil {
+	if err := store.ApplyRecord(
+		ctx,
+		tvRecord("tvUserCreated", t1, nil),
+		tvUserCreated{ID: "u1", Name: "Alice"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := store.ApplyRecord(ctx, tvRecord("tvUserRenamed", t2, nil), tvUserRenamed{ID: "u1", Name: "Bob"}); err != nil {
+	if err := store.ApplyRecord(
+		ctx,
+		tvRecord("tvUserRenamed", t2, nil),
+		tvUserRenamed{ID: "u1", Name: "Bob"},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -171,7 +191,13 @@ func TestTemporal_Retention(t *testing.T) {
 	base := time.Now().Add(-time.Hour).Truncate(time.Millisecond)
 
 	for i, name := range []string{"v1", "v2", "v3"} {
-		if err := vw.MapSetAt(ctx, "ret", "k", name, base.Add(time.Duration(i)*time.Minute)); err != nil {
+		if err := vw.MapSetAt(
+			ctx,
+			"ret",
+			"k",
+			name,
+			base.Add(time.Duration(i)*time.Minute),
+		); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -180,7 +206,13 @@ func TestTemporal_Retention(t *testing.T) {
 		t.Fatalf("as-of pruned version err = %v, want ErrNotFound", err)
 	}
 
-	if val, err := vs.MapGetAsOf(ctx, "ret", "k", base.Add(time.Minute)); err != nil || val != "v2" {
+	if val, err := vs.MapGetAsOf(
+		ctx,
+		"ret",
+		"k",
+		base.Add(time.Minute),
+	); err != nil ||
+		val != "v2" {
 		t.Fatalf("as-of v2 = (%v, %v), want (v2, nil)", val, err)
 	}
 
@@ -198,11 +230,25 @@ func TestTemporal_Retention(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := vsA.MapGetAsOf(ctx, "ret", "k", base.Add(5*time.Minute)); !errors.Is(err, ErrNotFound) {
+	if _, err := vsA.MapGetAsOf(
+		ctx,
+		"ret",
+		"k",
+		base.Add(5*time.Minute),
+	); !errors.Is(
+		err,
+		ErrNotFound,
+	) {
 		t.Fatalf("MaxAge-pruned version err = %v, want ErrNotFound", err)
 	}
 
-	if val, err := vsA.MapGetAsOf(ctx, "ret", "k", base.Add(10*time.Minute)); err != nil || val != "new" {
+	if val, err := vsA.MapGetAsOf(
+		ctx,
+		"ret",
+		"k",
+		base.Add(10*time.Minute),
+	); err != nil ||
+		val != "new" {
 		t.Fatalf("as-of new = (%v, %v), want (new, nil)", val, err)
 	}
 }
@@ -256,7 +302,13 @@ func TestTemporal_History(t *testing.T) {
 	}
 }
 
-func assertExecuteAsOf(t *testing.T, store *Store, ctx context.Context, at time.Time, wantName string) {
+func assertExecuteAsOf(
+	t *testing.T,
+	store *Store,
+	ctx context.Context,
+	at time.Time,
+	wantName string,
+) {
 	t.Helper()
 
 	val, err := store.ExecuteAsOf(ctx, "tv_users", "u1", at)
