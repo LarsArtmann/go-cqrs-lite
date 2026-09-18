@@ -243,5 +243,6 @@ watermill/     — Watermill protocol adapter
 | [0137](0137-health-driven-engine-deactivation.md) | Health-Driven Engine Deactivation | 2026-09-10 | Accepted |
 | [0139](0139-v5-encryption-at-rest-configuration.md) | v5 Encryption-at-Rest Configuration | 2026-09-13 | Accepted |
 | [0140](0140-vector-distance-semantics-contract.md) | Vector Distance-Semantics Contract (One Ranking, Every Engine) | 2026-09-16 | Accepted |
+| [0141](0141-native-temporal-versioned-cells.md) | Native Temporal Versioned Cells (BigTable-Aligned) | 2026-09-18 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
