@@ -1,0 +1,344 @@
+package docserver
+
+import (
+	"strconv"
+
+	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
+	"github.com/larsartmann/templ-components/icons"
+	"github.com/larsartmann/templ-components/layout"
+)
+
+// Embedded event catalog pages: an EventCatalog-style, server-rendered
+// inventory of services, channels, and messages built from the catalog.
+
+// EventCatalogPage renders the event catalog landing page: stats, one table
+// of all messages, the channel list, and the service list.
+templ EventCatalogPage(data eventCatalogOverview) {
+	{{ base := catalogPageProps(data.Brand+" — Event Catalog", "Browse every service, channel, and message in the catalog", data.DocsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    "Event Catalog",
+				Subtitle: "Every message, channel, and service in this catalog — browsable without a separate toolchain.",
+				Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
+			})
+
+			@display.Grid(display.GridProps{Cols: display.GridCols4}) {
+				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(len(data.Services)), Label: "Services", Icon: icons.Server, Tone: display.StatTonePurple})
+				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "event")), Label: "Events", Icon: icons.Bolt, Tone: display.StatToneGreen})
+				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "command")), Label: "Commands", Icon: icons.ArrowUpOnSquare, Tone: display.StatToneBlue})
+				@display.StatCard(display.StatCardProps{Value: strconv.Itoa(countKind(data.Messages, "query")), Label: "Queries", Icon: icons.Search, Tone: display.StatToneYellow})
+			}
+
+			@catalogSection("Messages")
+			@display.Table(display.TableProps{
+				Headers:     []string{"Kind", "Message", "Summary", "Producer", "Consumers"},
+				AriaLabel:   "Catalog messages",
+				Striped:     true,
+				Hover:       true,
+				CellPadding: display.TableCellPaddingCompact,
+			}) {
+				for _, msg := range data.Messages {
+					@display.Table.Row(display.TableRow{
+						Cells: []display.TableCell{
+							@messageKindCell(msg.Kind),
+							{Content: messageLinkCell(msg.Name, msg.ID, msg.Href)},
+							{Text: msg.Summary},
+							{Text: msg.Producer},
+							{Text: msg.Consumers},
+						},
+					})
+				}
+			}
+
+			@catalogSection("Channels")
+			@display.Table(display.TableProps{
+				Headers:     []string{"Channel", "Address", "Protocols", "Delivery", "Messages"},
+				AriaLabel:   "Catalog channels",
+				Striped:     true,
+				Hover:       true,
+				CellPadding: display.TableCellPaddingCompact,
+			}) {
+				for _, ch := range data.Channels {
+					@display.Table.Row(display.TableRow{
+						Cells: []display.TableCell{
+							{Content: messageLinkCell(ch.Name, "", ch.Href)},
+							{Text: ch.Address},
+							{Text: ch.Protocols},
+							{Text: ch.Guarantee},
+							{Text: strconv.Itoa(ch.MessageCnt)},
+						},
+					})
+				}
+			}
+
+			@catalogSection("Services")
+			@display.Table(display.TableProps{
+				Headers:     []string{"Service", "Version", "Summary", "Messages"},
+				AriaLabel:   "Catalog services",
+				Striped:     true,
+				Hover:       true,
+				CellPadding: display.TableCellPaddingCompact,
+			}) {
+				for _, svc := range data.Services {
+					@display.Table.Row(display.TableRow{
+						Cells: []display.TableCell{
+							{Content: messageLinkCell(svc.Name, "", svc.Href)},
+							{Text: svc.Version},
+							{Text: svc.Summary},
+							{Text: strconv.Itoa(svc.Commands+svc.Events+svc.Queries)},
+						},
+					})
+				}
+			}
+		}
+	}
+}
+
+// EventCatalogMessagePage renders one message: schema property table, raw
+// schema, example payloads, and producer/consumer wiring.
+templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
+	{{ base := catalogPageProps(d.Name+" — "+d.Kind+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@display.Breadcrumbs(display.BreadcrumbsProps{
+				Links: []display.BreadcrumbLink{
+					{Label: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Label: d.Name},
+				},
+			})
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    d.Name,
+				Subtitle: d.Summary,
+				Action:   messageKindBadge(d.Kind),
+			})
+			@display.DefinitionList(display.DefinitionListProps{
+				Items: []display.DefinitionItem{
+					{Term: "Message ID", Detail: d.ID},
+					{Term: "Kind", Detail: d.Kind},
+					{Term: "Version", Detail: d.Version},
+					{Term: "Producers", Detail: joinOr(d.Producers)},
+					{Term: "Consumers", Detail: joinOr(d.Consumers)},
+				},
+			})
+			if len(d.Channels) > 0 {
+				@catalogSection("Channels")
+				<div class="flex flex-wrap gap-2">
+					for _, ch := range d.Channels {
+						@display.Badge(display.BadgeProps{Text: ch.Label, Type: display.BadgeNeutral, Href: ch.Href})
+					}
+				</div>
+			}
+			if d.Deprecated {
+				@feedback.Alert(feedback.AlertProps{
+					Type:    feedback.FeedbackWarning,
+					Title:   "Deprecated message",
+					Message: "This message is deprecated and may be removed in a future version.",
+				})
+			}
+			if len(d.Properties) > 0 {
+				@catalogSection("Payload schema")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Field", "Type", "Required", "Description", "Constraints"},
+					AriaLabel:   "Schema properties",
+					Striped:     true,
+					CellPadding: display.TableCellPaddingCompact,
+				}) {
+					for _, prop := range d.Properties {
+						@display.Table.Row(display.TableRow{
+							Cells: []display.TableCell{
+								{Text: prop.Name},
+								{Text: prop.Type},
+								{Content: requiredCell(prop.Required)},
+								{Text: prop.Description},
+								{Text: prop.Details},
+							},
+						})
+					}
+				}
+			}
+			if d.SchemaJSON != "" {
+				@catalogSection("Raw JSON schema")
+				@codeBlock(d.SchemaJSON, "JSON schema")
+			}
+			if len(d.Examples) > 0 {
+				@catalogSection("Examples")
+				for _, example := range d.Examples {
+					@codeBlock(example, "Example payload")
+				}
+			}
+			if len(d.Changelog) > 0 {
+				@catalogSection("Changelog")
+				<ul class="list-inside list-disc space-y-1 text-sm text-gray-600 dark:text-gray-400">
+					for _, change := range d.Changelog {
+						<li>v{ change.Version }: { change.Summary }</li>
+					}
+				</ul>
+			}
+		}
+	}
+}
+
+// EventCatalogChannelPage renders one channel: address, protocols, and the
+// messages carried by it.
+templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
+	{{ base := catalogPageProps(d.Name+" — Channel · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@display.Breadcrumbs(display.BreadcrumbsProps{
+				Links: []display.BreadcrumbLink{
+					{Label: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Label: d.Name},
+				},
+			})
+			@display.PageHeader(display.PageHeaderProps{Title: d.Name, Subtitle: d.Summary, Action: display.Badge(display.BadgeProps{Text: "channel", Type: display.BadgeNeutral, Pill: true})})
+			@display.DefinitionList(display.DefinitionListProps{
+				Items: []display.DefinitionItem{
+					{Term: "Channel ID", Detail: d.ID},
+					{Term: "Address", Detail: d.Address},
+					{Term: "Protocols", Detail: joinOr(d.Protocols)},
+					{Term: "Delivery guarantee", Detail: d.Guarantee},
+				},
+			})
+			@catalogSection("Messages on this channel")
+			if len(d.Messages) == 0 {
+				@display.SimpleEmptyState("No messages are bound to this channel.")
+			} else {
+				<div class="flex flex-wrap gap-2">
+					for _, msg := range d.Messages {
+						@display.Badge(display.BadgeProps{Text: msg.Label, Type: display.BadgePrimary, Href: msg.Href})
+					}
+				</div>
+			}
+		}
+	}
+}
+
+// EventCatalogServicePage renders one service: ownership, data stores, and
+// its commands, events, and queries.
+templ EventCatalogServicePage(d eventCatalogServiceDetail) {
+	{{ base := catalogPageProps(d.Name+" — Service · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@display.Breadcrumbs(display.BreadcrumbsProps{
+				Links: []display.BreadcrumbLink{
+					{Label: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Label: d.Name},
+				},
+			})
+			@display.PageHeader(display.PageHeaderProps{Title: d.Name, Subtitle: d.Summary, Action: display.Badge(display.BadgeProps{Text: "v" + d.Version, Type: display.BadgeInfo, Pill: true})})
+			@display.DefinitionList(display.DefinitionListProps{
+				Items: []display.DefinitionItem{
+					{Term: "Service ID", Detail: d.ID},
+					{Term: "Owners", Detail: joinOr(d.Owners)},
+					{Term: "Writes to", Detail: joinOr(d.WritesTo)},
+					{Term: "Reads from", Detail: joinOr(d.ReadsFrom)},
+					{Term: "Repository", Detail: d.Repository},
+				},
+			})
+			@messageRefSection("Commands", d.CommandRefs)
+			@messageRefSection("Events", d.EventRefs)
+			@messageRefSection("Queries", d.QueryRefs)
+		}
+	}
+}
+
+// messageRefSection renders a message group as badge links, skipping empty
+// groups entirely.
+templ messageRefSection(title string, refs []eventCatalogLink) {
+	if len(refs) > 0 {
+		@catalogSection(title)
+		<div class="flex flex-wrap gap-2">
+			for _, ref := range refs {
+				@display.Badge(display.BadgeProps{Text: ref.Label, Type: display.BadgePrimary, Href: ref.Href})
+			}
+		</div>
+	}
+}
+
+// eventCatalogNotFound renders a 404-style page for unknown catalog
+// resources.
+templ eventCatalogNotFound(brand, docsPath, kind, id string) {
+	{{ base := catalogPageProps("Not found — Event Catalog", "The requested catalog resource does not exist", docsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(brand, docsPath, docsPath+"/eventcatalog")
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@display.EmptyState(display.EmptyStateProps{
+				Title:       "Unknown " + kind,
+				Description: "No " + kind + " with identifier \"" + id + "\" exists in this catalog.",
+				Icon:        icons.Question,
+				ActionText:  "Back to the Event Catalog",
+				ActionHref:  eventCatalogHref(docsPath),
+			})
+		</div>
+	}
+}
+
+// catalogSection is the shared h2 spacing helper for event catalog pages.
+templ catalogSection(text string) {
+	<h2 class="mb-4 mt-12 text-lg font-semibold text-gray-900 dark:text-gray-100">{ text }</h2>
+}
+
+// catalogPageProps builds Base page props for event catalog pages.
+func catalogPageProps(title, description, docsPrefix, nonce string) layout.PageProps {
+	props := docsPageProps(title, description, docsPrefix, nonce)
+
+	return props
+}
+
+// messageKindBadge maps a message kind to a colored badge.
+func messageKindBadge(kind string) templ.Component {
+	lookup := map[string]display.BadgeType{
+		"event":   display.BadgeSuccess,
+		"command": display.BadgePrimary,
+		"query":   display.BadgeInfo,
+	}
+
+	return display.Badge(display.BadgeProps{Text: kind, Type: utils.Lookup(lookup, kind, display.BadgeNeutral), Pill: true})
+}
+
+// messageKindCell is the first table cell of a message row.
+templ messageKindCell(kind string) {
+	<td class="whitespace-nowrap px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+		@messageKindBadge(kind)
+	</td>
+}
+
+// messageLinkCell renders the labeled link cell for a catalog row.
+templ messageLinkCell(label, sub, href string) {
+	<td class="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+		<a href={ templ.SafeURL(href) } class="text-blue-600 hover:underline dark:text-blue-400">{ label }</a>
+		if sub != "" {
+			<span class="ml-2 font-mono text-xs text-gray-400 dark:text-gray-500">{ sub }</span>
+		}
+	</td>
+}
+
+// requiredCell renders the required yes/no table cell.
+templ requiredCell(required bool) {
+	<td class="whitespace-nowrap px-4 py-2 text-sm">
+		if required {
+			@display.Badge(display.BadgeProps{Text: "required", Type: display.BadgeWarning, Size: display.BadgeSizeSM})
+		} else {
+			<span class="text-gray-400 dark:text-gray-500">optional</span>
+		}
+	</td>
+}
+
+// codeBlock renders a pretty-printed JSON blob with copy affordance.
+templ codeBlock(content, ariaLabel string) {
+	@display.CopyButton(display.CopyButtonProps{
+		BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},
+		Text:      content,
+		Label:     "Copy",
+	})
+	<pre
+		aria-label={ ariaLabel }
+		class="mt-2 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
+	><code>{ content }</code></pre>
+}
