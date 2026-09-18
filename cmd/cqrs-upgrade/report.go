@@ -111,10 +111,20 @@ func (b bump) toJSON() bumpJSON {
 // records the error in the report instead of aborting; the strict gate
 // fails on it.
 func deprecationFindings(dir string) ([]findingJSON, error) {
+	findings, _, err := deprecationFindingsAnalyzed(dir)
+	return findings, err
+}
+
+// deprecationFindingsAnalyzed is deprecationFindings plus the number of Go
+// files the detector actually analyzed, so callers can assert the scan
+// measured something (a zero-file scan proves nothing — the 02-47 lesson).
+func deprecationFindingsAnalyzed(dir string) ([]findingJSON, int, error) {
 	ctx, err := cqrsanalyzer.BuildContext(dir)
 	if err != nil {
-		return nil, fmt.Errorf("build context: %w", err)
+		return nil, 0, fmt.Errorf("build context: %w", err)
 	}
+
+	analyzed := len(ctx.GoFiles)
 
 	if len(ctx.LoadErrors) > 0 {
 		first := ctx.LoadErrors[0]
@@ -123,12 +133,12 @@ func deprecationFindings(dir string) ([]findingJSON, error) {
 			detail = first.Errors[0]
 		}
 
-		return nil, fmt.Errorf("%w: %s: %s", errPackageLoad, first.Module, detail)
+		return nil, analyzed, fmt.Errorf("%w: %s: %s", errPackageLoad, first.Module, detail)
 	}
 
 	findings, detErr := cqrsversion.NewV007Detector(ctx).Detect(context.Background())
 	if detErr != nil {
-		return nil, fmt.Errorf("detect: %w", detErr)
+		return nil, analyzed, fmt.Errorf("detect: %w", detErr)
 	}
 
 	out := make([]findingJSON, 0, len(findings))
@@ -149,7 +159,7 @@ func deprecationFindings(dir string) ([]findingJSON, error) {
 		return out[i].Rule < out[j].Rule
 	})
 
-	return out, nil
+	return out, analyzed, nil
 }
 
 // printDeprecations prints the v5-removal findings for one module.
