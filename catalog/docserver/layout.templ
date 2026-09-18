@@ -3,6 +3,7 @@ package docserver
 import (
 	"github.com/larsartmann/templ-components/layout"
 	"github.com/larsartmann/templ-components/navigation"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // docsPageProps returns Base page props shared by all docserver pages: the
@@ -26,10 +27,14 @@ func docsPageProps(title, description, docsPrefix, nonce string) layout.PageProp
 }
 
 // docsNavProps builds the shared navigation links for documentation pages.
-func docsNavProps(brand, docsPrefix, currentPath string) navigation.SimpleNavProps {
+// The nonce (may be empty) is threaded into SimpleNav's BaseProps (its mobile
+// menu emits an inline script) and the theme toggle, so CSP-enabled
+// deployments can gate every inline script the nav emits.
+func docsNavProps(brand, docsPrefix, currentPath, nonce string) navigation.SimpleNavProps {
 	return navigation.SimpleNavProps{
-		BrandText: brand,
-		BrandHref: docsPrefix,
+		BaseProps:  utils.BaseProps{Nonce: nonce},
+		BrandText:   brand,
+		BrandHref:   docsPrefix,
 		Links: []navigation.NavLinkProps{
 			{Href: docsPrefix, Text: "Overview"},
 			{Href: docsPrefix + "/eventcatalog", Text: eventCatalogTitle},
@@ -37,7 +42,7 @@ func docsNavProps(brand, docsPrefix, currentPath string) navigation.SimpleNavPro
 			{Href: docsPrefix + "/asyncapi", Text: "AsyncAPI"},
 			{Href: docsPrefix + "/d2", Text: "Architecture"},
 		},
-		RightItems:  layout.ThemeToggle("Toggle theme", ""),
+		RightItems:  layout.ThemeToggle("Toggle theme", nonce),
 		CurrentPath: currentPath,
 		Sticky:      true,
 	}
@@ -45,7 +50,7 @@ func docsNavProps(brand, docsPrefix, currentPath string) navigation.SimpleNavPro
 
 // docsNav renders the shared top navigation for documentation pages.
 templ docsNav(brand, docsPrefix, currentPath string) {
-	@navigation.SimpleNav(docsNavProps(brand, docsPrefix, currentPath))
+	@navigation.SimpleNav(docsNavProps(brand, docsPrefix, currentPath, templ.GetNonce(ctx)))
 }
 
 // spaHeader is the slim top bar for full-height SPA pages (Scalar, AsyncAPI

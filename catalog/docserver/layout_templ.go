@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/larsartmann/templ-components/layout"
 	"github.com/larsartmann/templ-components/navigation"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // docsPageProps returns Base page props shared by all docserver pages: the
@@ -34,8 +35,12 @@ func docsPageProps(title, description, docsPrefix, nonce string) layout.PageProp
 }
 
 // docsNavProps builds the shared navigation links for documentation pages.
-func docsNavProps(brand, docsPrefix, currentPath string) navigation.SimpleNavProps {
+// The nonce (may be empty) is threaded into SimpleNav's BaseProps (its mobile
+// menu emits an inline script) and the theme toggle, so CSP-enabled
+// deployments can gate every inline script the nav emits.
+func docsNavProps(brand, docsPrefix, currentPath, nonce string) navigation.SimpleNavProps {
 	return navigation.SimpleNavProps{
+		BaseProps: utils.BaseProps{Nonce: nonce},
 		BrandText: brand,
 		BrandHref: docsPrefix,
 		Links: []navigation.NavLinkProps{
@@ -45,7 +50,7 @@ func docsNavProps(brand, docsPrefix, currentPath string) navigation.SimpleNavPro
 			{Href: docsPrefix + "/asyncapi", Text: "AsyncAPI"},
 			{Href: docsPrefix + "/d2", Text: "Architecture"},
 		},
-		RightItems:  layout.ThemeToggle("Toggle theme", ""),
+		RightItems:  layout.ThemeToggle("Toggle theme", nonce),
 		CurrentPath: currentPath,
 		Sticky:      true,
 	}
@@ -73,7 +78,7 @@ func docsNav(brand, docsPrefix, currentPath string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = navigation.SimpleNav(docsNavProps(brand, docsPrefix, currentPath)).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = navigation.SimpleNav(docsNavProps(brand, docsPrefix, currentPath, templ.GetNonce(ctx))).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -112,7 +117,7 @@ func spaHeader(brand, docsPrefix, pageTitle string) templ.Component {
 		var templ_7745c5c3_Var3 templ.SafeURL
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(docsPrefix))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 58, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/layout.templ`, Line: 63, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -125,7 +130,7 @@ func spaHeader(brand, docsPrefix, pageTitle string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(brand)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 61, Col: 88}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/layout.templ`, Line: 66, Col: 88}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -138,7 +143,7 @@ func spaHeader(brand, docsPrefix, pageTitle string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(pageTitle)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 61, Col: 105}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/layout.templ`, Line: 66, Col: 105}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -181,7 +186,7 @@ func sectionHeading(text string) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `layout.templ`, Line: 68, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `docserver/layout.templ`, Line: 73, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
