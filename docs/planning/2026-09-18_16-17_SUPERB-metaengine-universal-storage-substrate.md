@@ -73,7 +73,7 @@ TODO_LIST "Durable Work Queue module"), the v5 train, tag waves.
 
 | Item | Tasks | Why 51% |
 | --- | --- | --- |
-|T01 | **ADR-0142 + the four capability contracts** | T01, T02 | ~3h, zero production-code risk. Pins the decision (capability interfaces in v4.x, universal fold at v5, facades not rewrites), defines `DueClaimer` / `DedupStore` / `FactSink`, classifies each on the ADR-0136 ladder, and aligns with the three existing plans it extends. Without this, every downstream task re-litigates design; with it, everything else is mechanical execution. |
+| **ADR-0142 + the four capability contracts** | T01, T02 | ~3h, zero production-code risk. Pins the decision (capability interfaces in v4.x, universal fold at v5, facades not rewrites), defines `DueClaimer` / `DedupStore` / `FactSink`, classifies each on the ADR-0136 ladder, and aligns with the three existing plans it extends. Without this, every downstream task re-litigates design; with it, everything else is mechanical execution. |
 
 ### The 4% → 64% (+13%)
 
@@ -101,8 +101,8 @@ Sorted by importance/impact/effort/customer-value (tier order, then dependency o
 
 | ID | Task | Tier | Impact | Effort | Customer value | Deps |
 | --- | --- | --- | --- | --- | --- | --- |
-| T01 | **ADR-0142| **ADR-0142 "Universal Storage Substrate"**: decision record — 4 capability ADTs, v4.x capability-interface path, v5 universal fold, facade-not-rewrite guardrails, ADR-0136 ladder classification, alignment matrix vs ADR-0123/universal-ADT/durable-queue plans | 1% | 🔥🔥🔥 | M (90m) | Every future session stops re-litigating; the vision gets a contract | — |
-| T02 | **Capability contracts in `metaengine/`**: `DueClaimer` (ClaimDue/RenewLease/Release, due-ordered), `DedupStore` (CheckAndRecord/Seen/Sweep + TTL), `FactSink` tx option; assertion helpers; errorfamily codes; Supports entries | 1% | 🔥🔥🔥 | M (90m) | The keystone primitives; typed, classified, non-breaking | T01 | **ADR-0142|
+| T01 | **ADR-0142 "Universal Storage Substrate"**: decision record — 4 capability ADTs, v4.x capability-interface path, v5 universal fold, facade-not-rewrite guardrails, ADR-0136 ladder classification, alignment matrix vs ADR-0123/universal-ADT/durable-queue plans | 1% | 🔥🔥🔥 | M (90m) | Every future session stops re-litigating; the vision gets a contract | — |
+| T02 | **Capability contracts in `metaengine/`**: `DueClaimer` (ClaimDue/RenewLease/Release, due-ordered), `DedupStore` (CheckAndRecord/Seen/Sweep + TTL), `FactSink` tx option; assertion helpers; errorfamily codes; Supports entries | 1% | 🔥🔥🔥 | M (90m) | The keystone primitives; typed, classified, non-breaking | T01 |
 | T03 | **Conformance suites** (`adttest` pattern): DueClaimer (claim/fire-once/lease-expiry reclaim/double-claimer exclusivity/NotBefore gating/ordering) + DedupStore (CAS idempotency/TTL/Sweep), `-race` + restart patterns | 4% | 🔥🔥🔥 | M (100m) | One suite pins every engine to identical semantics — the repo's signature move | T02 |
 | T04 | **sqlite engine: DueClaimer + DedupStore** (delegate to `claiming/` single-writer SQL + idempotency SQL shapes) + conformance green | 4% | 🔥🔥 | M (100m) | First real engine; embedded/edge default | T02, T03 |
 | T05 | **postgres engine: DueClaimer + DedupStore** (CTE `FOR UPDATE SKIP LOCKED` via `claiming/`) + conformance green | 4% | 🔥🔥 | M (100m) | Server default; multi-instance claims | T02, T03 |
@@ -133,11 +133,11 @@ Sorted by importance/impact/effort/customer-value (tier order, then dependency o
 
 | ID | Micro-task | Est | Parent |
 | --- | --- | --- | --- |
-| T01a | Draft ADR-0142 context+decision: 4 capability ADTs, capability-interface path v4.x, universal fold v5 | 12m | T01 | **ADR-0142|
-| T01b | ADR: ADR-0136 ladder per ADT collection (timers/dedup replayable; task facts journal) | 10m | T01 | **ADR-0142|
-| T01c | ADR: alignment matrix vs ADR-0123 §3/§9, universal-ADT plan, durable-queue P0–P5 | 10m | T01 | **ADR-0142|
-| T01d | ADR: consequences, negatives (dep budgets, perf, framework-risk) + guardrails | 10m | T01 | **ADR-0142|
-| T01e | Verify every ADR claim against source (engine.go, queue/store.go, claiming/) + commit | 12m | T01 | **ADR-0142|
+| T01a | Draft ADR-0142 context+decision: 4 capability ADTs, capability-interface path v4.x, universal fold v5 | 12m | T01 |
+| T01b | ADR: ADR-0136 ladder per ADT collection (timers/dedup replayable; task facts journal) | 10m | T01 |
+| T01c | ADR: alignment matrix vs ADR-0123 §3/§9, universal-ADT plan, durable-queue P0–P5 | 10m | T01 |
+| T01d | ADR: consequences, negatives (dep budgets, perf, framework-risk) + guardrails | 10m | T01 |
+| T01e | Verify every ADR claim against source (engine.go, queue/store.go, claiming/) + commit | 12m | T01 |
 | T02a | `DueClaimer` interface: ClaimDue(owner, lease, limit)/RenewLease/Release, due-ordered contract doc | 12m | T02 |
 | T02b | `DedupStore` interface: CheckAndRecord(key, ttl)/Seen/Sweep + ErrAlreadySeen sentinel | 10m | T02 |
 | T02c | `FactSink` tx-option capability interface + assertion helper (VectorPathReporter pattern) | 10m | T02 |
@@ -225,9 +225,9 @@ P1: {title: "4% → 64% — Prove"}
 P2: {title: "20% → 80% — Absorb"}
 P3: {title: "other 20% → 100% — Harden, Unify, Ship"}
 
-P0.T01: "T01 | **ADR-0142ADR-0141" {shape: document}
+P0.T01: "T01 ADR-0142" {shape: document}
 P0.T02: "T02 capability contracts\nDueClaimer · DedupStore · FactSink"
-P0.T01 | **ADR-0142-> P0.T02
+P0.T01 -> P0.T02
 
 P1.T03: "T03 conformance suites"
 P1.T04: "T04 sqlite"
