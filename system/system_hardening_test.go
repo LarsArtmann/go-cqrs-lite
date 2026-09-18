@@ -733,9 +733,18 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 
 	// Wait for the projection to replay from the journal.
 	if !waitForProjectionProcessed(t, sys2, 1) {
+		if js, ok := sys2.EventStore().(event.SeekableJournal); ok {
+			journal, readErr := js.ReadFrom(ctx, id.EventID{}, 10)
+			if readErr != nil {
+				t.Logf("diagnostic: journal read error from sys2: %v", readErr)
+			} else {
+				t.Logf("diagnostic: journal holds %d event(s) from sys2's view", len(journal))
+			}
+		}
+
 		for _, s := range sys2.ProjectionHost().Status() {
-			t.Fatalf("projection %q after replay: processed=%d errors=%d",
-				s.Name, s.Processed, s.Errors)
+			t.Fatalf("projection %q after replay: status=%s processed=%d errors=%d restarts=%d checkpoint=%q lastError=%q",
+				s.Name, s.Status, s.Processed, s.Errors, s.Restarts, s.Checkpoint, s.LastError)
 		}
 	}
 
