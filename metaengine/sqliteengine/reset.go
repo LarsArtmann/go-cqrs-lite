@@ -22,6 +22,7 @@ var resetBaseTables = []string{
 	"meta_graph_edges",
 	"meta_snapshot",
 	"meta_vector",
+	"meta_cell_versions",
 }
 
 // ResetEngine implements [metaengine.EngineResetter]: it drops ALL

@@ -45,6 +45,11 @@ type sqliteEngine struct {
 	// at construction.
 	matViews   []matView
 	matViewErr error
+	// Cell versioning (ADR-0141): when true, map writes on non-planned
+	// collections also record timestamped versions in meta_cell_versions;
+	// versionRetention trims history per write when set.
+	versioning       bool
+	versionRetention *metaengine.RetentionPolicy
 }
 
 // sqliteQuerySet holds pre-built SQL strings per operation; two variants
@@ -122,7 +127,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 	CREATE TABLE IF NOT EXISTS meta_snapshot (
 		collection TEXT NOT NULL, stream_id TEXT NOT NULL, version INTEGER NOT NULL, data BLOB NOT NULL,
 		PRIMARY KEY (collection, stream_id)
-	);` + vectorTableDDL,
+	);` + vectorTableDDL + cellVersionsDDL,
 		mapSet:           `INSERT OR REPLACE INTO meta_map (collection, key, value) VALUES (?, ?, ?)`,
 		mapGet:           `SELECT value FROM meta_map WHERE collection = ? AND key = ?`,
 		mapDelete:        `DELETE FROM meta_map WHERE collection = ? AND key = ?`,
@@ -251,9 +256,19 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 		return e.mapSetPlanned(ctx, plan, key, value)
 	}
 
-	_, err := e.xc().exec(ctx, e.queries.mapSet, col, encodeKey(key), encodeValue(value))
+	keyStr := encodeKey(key)
 
-	return err
+	if _, err := e.xc().exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+		return err //nolint:wrapcheck // passthrough
+	}
+
+	if e.versioning {
+		if err := e.recordVersionRow(ctx, col, keyStr, value, time.Now()); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bool, error) {
@@ -284,9 +299,19 @@ func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error
 		return err //nolint:wrapcheck // passthrough
 	}
 
-	_, err := e.xc().exec(ctx, e.queries.mapDelete, col, encodeKey(key))
+	keyStr := encodeKey(key)
 
-	return err
+	if _, err := e.xc().exec(ctx, e.queries.mapDelete, col, keyStr); err != nil {
+		return err //nolint:wrapcheck // passthrough
+	}
+
+	if e.versioning {
+		if err := e.recordVersionRow(ctx, col, keyStr, nil, time.Now()); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // --- metaengine.MapUpdater ---
