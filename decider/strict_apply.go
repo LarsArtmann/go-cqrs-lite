@@ -3,9 +3,8 @@ package decider
 import (
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StrictApply wraps an Apply function to return an error when an event type

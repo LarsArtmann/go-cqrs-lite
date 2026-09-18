@@ -20,11 +20,13 @@ func itoa(n int) string {
 	if n == 0 {
 		return "0"
 	}
+
 	digits := ""
 	for n > 0 {
 		digits = string(rune('0'+n%10)) + digits
 		n /= 10
 	}
+
 	return digits
 }
 
@@ -32,10 +34,14 @@ func itoa(n int) string {
 // (```sql, ```yaml, ...) are ignored.
 func extractGoBlocks(md string) []RecipeBlock {
 	var blocks []RecipeBlock
+
 	heading := ""
 	ordinal := 0
+
 	var body []string
+
 	open := false
+
 	for i, line := range strings.Split(md, "\n") {
 		trimmed := strings.TrimSpace(line)
 		switch {
@@ -54,6 +60,7 @@ func extractGoBlocks(md string) []RecipeBlock {
 			body = append(body, line)
 		}
 	}
+
 	return blocks
 }
 
@@ -62,7 +69,8 @@ func extractGoBlocks(md string) []RecipeBlock {
 // func body may not contain package-level type or func syntax).
 func splitTypeDecls(code string) (decls []string, stmts []string) {
 	inDecl := false
-	for _, ln := range strings.Split(code, "\n") {
+
+	for ln := range strings.SplitSeq(code, "\n") {
 		switch {
 		case inDecl:
 			decls = append(decls, ln)
@@ -76,18 +84,21 @@ func splitTypeDecls(code string) (decls []string, stmts []string) {
 			stmts = append(stmts, ln)
 		}
 	}
+
 	return decls, stmts
 }
 
 // isWholeProgram reports whether a block carries its own package clause
 // (a complete, runnable example).
 func isWholeProgram(code string) bool {
-	for _, ln := range strings.Split(code, "\n") {
+	for ln := range strings.SplitSeq(code, "\n") {
 		t := strings.TrimSpace(ln)
 		if t == "" || strings.HasPrefix(t, "//") {
 			continue
 		}
+
 		return strings.HasPrefix(t, "package ")
 	}
+
 	return false
 }

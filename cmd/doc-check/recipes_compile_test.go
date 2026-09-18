@@ -21,6 +21,7 @@ func loadRecipeBlocks(t *testing.T) []RecipeBlock {
 	if err != nil {
 		t.Fatalf("read recipes.md: %v", err)
 	}
+
 	return extractGoBlocks(string(md))
 }
 
@@ -34,6 +35,7 @@ func lookupSpec(key string) (recipeSpec, bool) {
 			return spec, true
 		}
 	}
+
 	return recipeSpec{}, false
 }
 
@@ -52,6 +54,7 @@ func TestRecipesCatalogCoversFile(t *testing.T) {
 		if !ok {
 			t.Errorf("unclassified block %s (line %d):\n  heading: %q\n  first line: %q",
 				key, b.Line, b.Heading, firstLine(b.Code))
+
 			continue
 		}
 		if spec.skip == "" && !spec.wholeProgram && len(spec.imports) == 0 {
@@ -74,6 +77,7 @@ func firstLine(s string) string {
 			return t
 		}
 	}
+
 	return ""
 }
 
@@ -111,6 +115,7 @@ func extractBodyImports(code string, imports []string) (string, []string) {
 			imports = append(imports, imp)
 		}
 	}
+
 	return strings.Join(body, "\n"), imports
 }
 
@@ -124,6 +129,7 @@ func importPath(line string) string {
 	if j := strings.LastIndexByte(line, '"'); j > i {
 		return line[i+1 : j]
 	}
+
 	return ""
 }
 
@@ -152,6 +158,7 @@ func generateRecipeSource(b RecipeBlock, spec recipeSpec) []byte {
 		writeBody(&sb, spec, stmts)
 		sb.WriteString("}\n")
 	}
+
 	return []byte(sb.String())
 }
 
@@ -198,6 +205,7 @@ func workspaceFor(t *testing.T, root, dir string) string {
 	if inUse { // defensive: unterminated use block in the repo file
 		t.Fatal("repo go.work has an unterminated use block")
 	}
+
 	return sb.String()
 }
 

@@ -8,10 +8,9 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // AppendBatch implements event.Store.AppendBatch.

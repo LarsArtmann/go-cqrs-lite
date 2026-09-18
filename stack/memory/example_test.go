@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	stackmemory "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"

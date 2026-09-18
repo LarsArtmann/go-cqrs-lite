@@ -10,7 +10,6 @@ import (
 
 	cqrsotlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 )
@@ -100,7 +99,7 @@ func TestSetupOTLP_ExportsTracesAndMetrics(t *testing.T) {
 		t.Fatalf("collector saw %d metric exports, want >= 1", got)
 	}
 
-	if got := stub.header("/v1/traces").Get("x-scope-token"); got != "secret" {
+	if got := stub.header("/v1/traces").Get("X-Scope-Token"); got != "secret" {
 		t.Fatalf("trace export auth header = %q, want %q", got, "secret")
 	}
 }

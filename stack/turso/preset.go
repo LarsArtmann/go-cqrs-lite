@@ -3,12 +3,11 @@ package turso
 import (
 	"context"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	cqrsturso "github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Option configures the Turso preset.

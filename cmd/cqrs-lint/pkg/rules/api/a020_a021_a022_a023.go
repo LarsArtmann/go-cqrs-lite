@@ -6,10 +6,9 @@ import (
 	"go/ast"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
+	"github.com/larsartmann/go-finding"
 )
 
 // typeMethodMap maps a receiver type name to its method names and the
