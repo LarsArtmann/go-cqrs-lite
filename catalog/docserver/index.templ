@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/layout"
 )
 
@@ -41,39 +42,42 @@ templ IndexPage(data indexPageData) {
 	}
 }
 
-// statGrid renders the deduplicated catalog counters.
+// statGrid renders the deduplicated catalog counters with semantic icons.
 templ statGrid(data indexPageData) {
-	@display.Grid(display.GridProps{Cols: display.GridCols4}) {
-		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Services), Label: "Services"})
-		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Commands), Label: "Commands"})
-		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Events), Label: "Events"})
-		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Queries), Label: "Queries"})
+	@display.Grid(display.GridProps{Cols: display.GridCols3}) {
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Services), Label: "Services", Icon: icons.Server, Tone: display.StatTonePurple})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Commands), Label: "Commands", Icon: icons.ArrowUpOnSquare, Tone: display.StatToneBlue})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Events), Label: "Events", Icon: icons.Bolt, Tone: display.StatToneGreen})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Queries), Label: "Queries", Icon: icons.Search, Tone: display.StatToneYellow})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.Channels), Label: "Channels", Icon: icons.Signal, Tone: display.StatToneBlue})
+		@display.StatCard(display.StatCardProps{Value: strconv.Itoa(data.Stats.DataStores), Label: "Data stores", Icon: icons.CircleStack, Tone: display.StatTonePurple})
 	}
 }
 
-// specCard is one documentation artifact card: a primary link plus optional
-// raw artifact links.
+// specCard is one documentation artifact card: an icon tile, the artifact
+// description, a primary "Open" action, and optional raw artifact links.
 templ specCard(link specLink) {
-	{{ cardProps := display.CardProps{Title: link.Title, Subtitle: link.Subtitle} }}
+	{{ cardProps := display.CardProps{
+		Title:        link.Title,
+		HeaderAction: display.Button(display.ButtonProps{Text: "Open", Href: link.PageHref, Variant: display.ButtonPrimary, Size: display.ButtonSizeSM}),
+	} }}
 	@display.Card(cardProps) {
-		<a
-			href={ templ.SafeURL(link.PageHref) }
-			class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-		>Open { link.Title }</a>
-		if len(link.Raw) > 0 {
-			<p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-				Raw:
-				for i, raw := range link.Raw {
-					if i > 0 {
-						·
-					}
-					<a
-						href={ templ.SafeURL(raw.Href) }
-						class="font-medium text-blue-600 hover:underline dark:text-blue-400"
-					>{ raw.Label }</a>
+		<div class="flex items-start gap-3">
+			<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+				@icons.Icon(link.Icon, "h-5 w-5")
+			</div>
+			<div class="min-w-0 flex-1">
+				<p class="text-sm text-gray-600 dark:text-gray-400">{ link.Subtitle }</p>
+				if len(link.Raw) > 0 {
+					<div class="mt-3 flex flex-wrap items-center gap-2">
+						<span class="text-xs text-gray-500 dark:text-gray-400">Raw:</span>
+						for _, raw := range link.Raw {
+							@display.Badge(display.BadgeProps{Text: raw.Label, Type: display.BadgeNeutral, Size: display.BadgeSizeSM, Href: raw.Href})
+						}
+					</div>
 				}
-			</p>
-		}
+			</div>
+		</div>
 	}
 }
 

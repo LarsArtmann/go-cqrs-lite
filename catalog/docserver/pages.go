@@ -4,6 +4,7 @@ import (
 	"cmp"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // catalogStats aggregates deduplicated message counts for the docs index page.
@@ -38,6 +39,7 @@ type rawLink struct {
 type specLink struct {
 	Title    string
 	Subtitle string
+	Icon     icons.Name
 	PageHref string
 	Raw      []rawLink
 }
@@ -110,13 +112,13 @@ func indexSpecLinks(docsPath string) []specLink {
 		{
 			Title:    "Event Catalog",
 			Subtitle: "Browse services, channels, and every message with schema and examples",
-			Icon:     "book",
+			Icon:     icons.Book,
 			PageHref: docsPath + "/eventcatalog",
 		},
 		{
 			Title:    "OpenAPI reference",
 			Subtitle: "Interactive REST API documentation with a built-in test console (Scalar)",
-			Icon:     "code-bracket",
+			Icon:     icons.CodeBracket,
 			PageHref: docsPath + "/openapi",
 			Raw: []rawLink{
 				{Href: docsPath + "/openapi.json", Label: "JSON"},
@@ -126,7 +128,7 @@ func indexSpecLinks(docsPath string) []specLink {
 		{
 			Title:    "AsyncAPI reference",
 			Subtitle: "Interactive event documentation rendered from the AsyncAPI spec",
-			Icon:     "bolt",
+			Icon:     icons.Bolt,
 			PageHref: docsPath + "/asyncapi",
 			Raw: []rawLink{
 				{Href: docsPath + "/asyncapi.json", Label: "JSON"},
@@ -136,7 +138,7 @@ func indexSpecLinks(docsPath string) []specLink {
 		{
 			Title:    "Architecture diagram",
 			Subtitle: "D2 diagram generated from the catalog",
-			Icon:     "cube",
+			Icon:     icons.Cube,
 			PageHref: docsPath + "/d2",
 			Raw: []rawLink{
 				{Href: docsPath + "/d2.txt", Label: "D2 text"},
@@ -145,7 +147,7 @@ func indexSpecLinks(docsPath string) []specLink {
 		{
 			Title:    "Catalog JSON",
 			Subtitle: "The raw catalog snapshot this documentation is built from",
-			Icon:     "circle-stack",
+			Icon:     icons.CircleStack,
 			PageHref: docsPath + "/catalog.json",
 		},
 	}
