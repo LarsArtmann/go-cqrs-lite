@@ -4,16 +4,37 @@ import (
 	"github.com/larsartmann/templ-components/layout"
 )
 
+// scalarNonceMeta exposes the per-request CSP nonce to the Scalar bundle.
+// Scalar reads <meta property="csp-nonce"> and stamps the styles it injects
+// at runtime with the same nonce, keeping strict script-src deployments free
+// of refusals (style-src still needs 'unsafe-inline'; Scalar renders inline
+// style attributes that a nonce can never authorize).
+templ scalarNonceMeta(nonce string) {
+	if nonce != "" {
+		<meta property="csp-nonce" content={ nonce }/>
+	}
+}
+
 // ScalarPage wraps the embedded Scalar SPA with a slim chrome. Asset URLs
 // are anchored at docsPrefix so the page works under any mount point.
+//
+// The spec URL travels in a data-tc-spec-url attribute (NOT data-spec-url:
+// that spelling is Scalar's deprecated legacy auto-init API, and its mere
+// presence makes the bundle log a deprecation warning) and the bootstrap
+// script reads it back, so no dynamic value is interpolated into JS.
 templ ScalarPage(brand, docsPrefix, specURL string) {
 	{{
 		props := docsPageProps(brand+" — OpenAPI Reference", "Interactive OpenAPI reference rendered by Scalar", docsPrefix, templ.GetNonce(ctx))
 		props.BodyClass = "bg-white dark:bg-gray-950"
+		props.HeadContent = scalarNonceMeta(templ.GetNonce(ctx))
 	}}
 	@layout.Base(props) {
 		@spaHeader(brand, docsPrefix, "OpenAPI Reference")
-		<div id="app" class="h-[calc(100dvh-3.5rem)]" data-spec-url={ specURL }></div>
+		<div
+			id="app"
+			class="h-[calc(100dvh-3.5rem)]"
+			data-tc-spec-url={ specURL }
+		></div>
 		<noscript>
 			<p class="p-4 text-sm text-gray-700 dark:text-gray-300">
 				The Scalar API reference requires JavaScript. The raw OpenAPI spec is available at
@@ -22,11 +43,16 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 		</noscript>
 		<script nonce={ templ.GetNonce(ctx) } src={ templ.SafeURL(docsPrefix + "/static/scalar.js") }></script>
 		<script nonce={ templ.GetNonce(ctx) }>
-			Scalar.createApiReference('#app', {
-				spec: {
-					url: document.getElementById('app').dataset.specUrl,
-				},
-			});
+			(function () {
+				var mount = document.getElementById('app');
+				if (window.Scalar && typeof window.Scalar.createApiReference === 'function') {
+					window.Scalar.createApiReference('#app', {
+						url: mount.dataset.tcSpecUrl,
+					});
+				} else {
+					mount.textContent = 'Failed to load the Scalar bundle. The raw OpenAPI spec is still available at ' + mount.dataset.tcSpecUrl + '.';
+				}
+			})();
 		</script>
 	}
 }
@@ -38,6 +64,8 @@ templ asyncAPIExtraHead(docsPrefix string) {
 }
 
 // AsyncAPIPage wraps the embedded AsyncAPI React SPA with a slim chrome.
+// The embedded bundle (v3.x) parses AsyncAPI 2.x AND 3.x documents — the
+// generation target of catalog/v4's asyncapi exporter.
 templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 	{{
 		props := docsPageProps(brand+" — Event Reference", "Interactive AsyncAPI documentation rendered by AsyncAPI React", docsPrefix, templ.GetNonce(ctx))
@@ -55,20 +83,27 @@ templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 		</noscript>
 		<script nonce={ templ.GetNonce(ctx) } src={ templ.SafeURL(docsPrefix + "/static/asyncapi-react.js") }></script>
 		<script nonce={ templ.GetNonce(ctx) }>
-			AsyncApiStandalone.render({
-				schema: {
-					url: document.getElementById('asyncapi').dataset.specUrl,
-					options: { method: "GET" },
-				},
-				config: {
-					show: {
-						sidebar: true,
-						operations: true,
-						messages: true,
-						schemas: true,
-					},
-				},
-			}, document.getElementById('asyncapi'));
+			(function () {
+				var mount = document.getElementById('asyncapi');
+				if (window.AsyncApiStandalone && typeof window.AsyncApiStandalone.render === 'function') {
+					window.AsyncApiStandalone.render({
+						schema: {
+							url: mount.dataset.specUrl,
+							options: { method: "GET" },
+						},
+						config: {
+							show: {
+								sidebar: true,
+								operations: true,
+								messages: true,
+								schemas: true,
+							},
+						},
+					}, mount);
+				} else {
+					mount.textContent = 'Failed to load the AsyncAPI bundle. The raw AsyncAPI spec is still available at ' + mount.dataset.specUrl + '.';
+				}
+			})();
 		</script>
 	}
 }
