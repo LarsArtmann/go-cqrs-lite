@@ -21,7 +21,7 @@
       "title": "Create Order command Channel",
       "description": "Create a new order",
       "messages": {
-        "commands": {
+        "command.CreateOrder": {
           "$ref": "#/components/messages/command.CreateOrder"
         }
       }
@@ -31,7 +31,7 @@
       "title": "Order Created event Channel",
       "description": "Order was created",
       "messages": {
-        "events": {
+        "event.OrderCreated": {
           "$ref": "#/components/messages/event.OrderCreated"
         }
       }
@@ -41,7 +41,7 @@
       "title": "Get Order querie Channel",
       "description": "Get order by ID",
       "messages": {
-        "queries": {
+        "query.GetOrder": {
           "$ref": "#/components/messages/query.GetOrder"
         }
       }
@@ -57,7 +57,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/query.GetOrder"
+          "$ref": "#/channels/queries.GetOrder/messages/query.GetOrder"
         }
       ],
       "tags": [
@@ -78,7 +78,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/event.OrderCreated"
+          "$ref": "#/channels/events.OrderCreated/messages/event.OrderCreated"
         }
       ],
       "tags": [
@@ -99,7 +99,7 @@
       },
       "messages": [
         {
-          "$ref": "#/components/messages/command.CreateOrder"
+          "$ref": "#/channels/commands.CreateOrder/messages/command.CreateOrder"
         }
       ],
       "tags": [
@@ -200,21 +200,21 @@ channels:
         title: Create Order command Channel
         description: Create a new order
         messages:
-            commands:
+            command.CreateOrder:
                 $ref: '#/components/messages/command.CreateOrder'
     events.OrderCreated:
         address: order-svc.events.order.created
         title: Order Created event Channel
         description: Order was created
         messages:
-            events:
+            event.OrderCreated:
                 $ref: '#/components/messages/event.OrderCreated'
     queries.GetOrder:
         address: order-svc.queries.get.order
         title: Get Order querie Channel
         description: Get order by ID
         messages:
-            queries:
+            query.GetOrder:
                 $ref: '#/components/messages/query.GetOrder'
 operations:
     handleGetOrder:
@@ -224,7 +224,7 @@ operations:
         channel:
             $ref: '#/channels/queries.GetOrder'
         messages:
-            -   $ref: '#/components/messages/query.GetOrder'
+            -   $ref: '#/channels/queries.GetOrder/messages/query.GetOrder'
         tags:
             -   name: queries
             -   name: order-svc
@@ -235,7 +235,7 @@ operations:
         channel:
             $ref: '#/channels/events.OrderCreated'
         messages:
-            -   $ref: '#/components/messages/event.OrderCreated'
+            -   $ref: '#/channels/events.OrderCreated/messages/event.OrderCreated'
         tags:
             -   name: events
             -   name: order-svc
@@ -246,7 +246,7 @@ operations:
         channel:
             $ref: '#/channels/commands.CreateOrder'
         messages:
-            -   $ref: '#/components/messages/command.CreateOrder'
+            -   $ref: '#/channels/commands.CreateOrder/messages/command.CreateOrder'
         tags:
             -   name: commands
             -   name: order-svc

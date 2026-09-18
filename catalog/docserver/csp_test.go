@@ -49,7 +49,15 @@ func TestDocsServer_CSP_OptIn(t *testing.T) {
 
 		nonce := cspNonceFromHeader(t, policy)
 
-		if !strings.Contains(policy, "script-src 'self' 'nonce-"+nonce+"'") {
+		// The AsyncAPI UI page is the only page with 'unsafe-eval': its
+		// ajv schema compiler needs new Function (see csp.go). Every other
+		// page keeps scripts gated to self + nonce.
+		wantScriptSrc := "script-src 'self' 'nonce-" + nonce + "'"
+		if path == "/docs/asyncapi" {
+			wantScriptSrc = "script-src 'self' 'unsafe-eval' 'nonce-" + nonce + "'"
+		}
+
+		if !strings.Contains(policy, wantScriptSrc) {
 			t.Errorf("GET %s: policy must gate scripts to self + nonce, got %q", path, policy)
 		}
 

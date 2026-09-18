@@ -107,7 +107,7 @@ func addAgentOperation(doc *Document, agentID catalog.AgentID, msg catalog.Messa
 	ref := "#/components/messages/" + componentKey
 
 	ensureMessageComponent(doc, msg, componentKey)
-	ensureChannel(doc, agentID, msg, kind, channelKey, ref)
+	ensureChannel(doc, agentID, msg, kind, channelKey, componentKey, ref)
 
 	opName := action + "." + string(agentID) + "." + string(messageID)
 
@@ -116,7 +116,7 @@ func addAgentOperation(doc *Document, agentID catalog.AgentID, msg catalog.Messa
 		Summary:  string(msg.Summary),
 		Action:   action,
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
-		Messages: []Ref{{Ref: ref}},
+		Messages: []Ref{{Ref: "#/channels/" + channelKey + "/messages/" + componentKey}},
 		Tags:     buildTags(kind, catalog.ServiceID(agentID), msg),
 		Reply:    nil,
 	}
@@ -150,7 +150,7 @@ func ensureChannel(
 	ownerID catalog.AgentID,
 	msg catalog.Message,
 	kind messageKind,
-	channelKey, ref string,
+	channelKey, componentKey, ref string,
 ) {
 	if _, exists := doc.Channels[channelKey]; exists {
 		return
@@ -165,7 +165,7 @@ func ensureChannel(
 		),
 		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: string(msg.Summary),
-		Messages:    map[string]Ref{string(kind): {Ref: ref}},
+		Messages:    map[string]Ref{componentKey: {Ref: ref}},
 	}
 }
 
@@ -219,9 +219,10 @@ func (e *Exporter) addMessage(
 	channelKey := string(kind) + "." + string(messageID)
 	componentKey := string(msg.Kind) + "." + string(messageID)
 	ref := "#/components/messages/" + componentKey
+	opRef := "#/channels/" + channelKey + "/messages/" + componentKey
 
-	addChannel(doc, serviceID, msg, kind, channelKey, ref)
-	addOperation(doc, serviceID, msg, kind, cfg, channelKey, ref, messageID)
+	addChannel(doc, serviceID, msg, kind, channelKey, componentKey, ref)
+	addOperation(doc, serviceID, msg, kind, cfg, channelKey, opRef, messageID)
 
 	e.addMessageSchema(doc, msg)
 }
@@ -231,7 +232,7 @@ func addChannel(
 	serviceID catalog.ServiceID,
 	msg catalog.Message,
 	kind messageKind,
-	channelKey, ref string,
+	channelKey, componentKey, ref string,
 ) {
 	doc.Channels[channelKey] = Channel{
 		Address: fmt.Sprintf(
@@ -242,7 +243,7 @@ func addChannel(
 		),
 		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
 		Description: string(msg.Summary),
-		Messages:    map[string]Ref{string(kind): {Ref: ref}},
+		Messages:    map[string]Ref{componentKey: {Ref: ref}},
 	}
 }
 
