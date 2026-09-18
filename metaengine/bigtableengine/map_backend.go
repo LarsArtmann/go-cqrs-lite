@@ -118,7 +118,9 @@ func (e *bigtableEngine) readAsOf(
 		return bigtable.ReadItem{}, false, wrapOp("map get-as-of", err)
 	}
 
-	return latestCell(rowData)
+	cell, ok := latestCell(rowData)
+
+	return cell, ok, nil
 }
 
 func (e *bigtableEngine) MapGetAsOf(
