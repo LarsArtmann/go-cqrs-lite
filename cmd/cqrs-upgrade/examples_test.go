@@ -36,8 +36,7 @@ func TestExamples_AreV5Clean(t *testing.T) {
 
 			if analyzed == 0 {
 				t.Fatalf(
-					"V007 analyzed 0 Go files in %s — the scan proved nothing " +
-						"(false-green guard)",
+					"V007 analyzed 0 Go files in %s — the scan proved nothing (false-green guard)",
 					name,
 				)
 			}
