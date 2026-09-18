@@ -241,6 +241,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"metaengine/badgerengine":        "sub-engine (covered by metaengine)",
 		"metaengine/bboltengine":         "sub-engine (covered by metaengine)",
 		"metaengine/bench":               "benchmarking utility (covered by metaengine)",
+		"metaengine/bigtableengine":      "sub-engine (covered by metaengine)",
 		"metaengine/dgraphengine":        "sub-engine (covered by metaengine)",
 		"metaengine/duckdbengine":        "sub-engine (covered by metaengine)",
 		"metaengine/graphadapter":        "sub-package (covered by metaengine + graph)",

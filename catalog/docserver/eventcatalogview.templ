@@ -8,6 +8,7 @@ import (
 	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/layout"
 	"github.com/larsartmann/templ-components/navigation"
+	"github.com/larsartmann/templ-components/utils"
 )
 
 // Embedded event catalog pages: an EventCatalog-style, server-rendered
@@ -36,7 +37,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 			@catalogSection("Messages")
 			@display.Table(display.TableProps{
 				Headers:     []string{"Kind", "Message", "Summary", "Producer", "Consumers"},
-				AriaLabel:   "Catalog messages",
+					BaseProps:   utils.BaseProps{AriaLabel: "Catalog messages"},
 				Striped:     true,
 				Hover:       true,
 				CellPadding: display.TableCellPaddingCompact,
@@ -46,7 +47,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 			@catalogSection("Channels")
 			@display.Table(display.TableProps{
 				Headers:     []string{"Channel", "Address", "Protocols", "Delivery", "Messages"},
-				AriaLabel:   "Catalog channels",
+					BaseProps:   utils.BaseProps{AriaLabel: "Catalog channels"},
 				Striped:     true,
 				Hover:       true,
 				CellPadding: display.TableCellPaddingCompact,
@@ -56,7 +57,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 			@catalogSection("Services")
 			@display.Table(display.TableProps{
 				Headers:     []string{"Service", "Version", "Summary", "Messages"},
-				AriaLabel:   "Catalog services",
+					BaseProps:   utils.BaseProps{AriaLabel: "Catalog services"},
 				Striped:     true,
 				Hover:       true,
 				CellPadding: display.TableCellPaddingCompact,
@@ -111,7 +112,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 				@catalogSection("Payload schema")
 				@display.Table(display.TableProps{
 					Headers:     []string{"Field", "Type", "Required", "Description", "Constraints"},
-					AriaLabel:   "Schema properties",
+					BaseProps:   utils.BaseProps{AriaLabel: "Schema properties"},
 					Striped:     true,
 					CellPadding: display.TableCellPaddingCompact,
 					Rows:        propertyRows(d.Properties),

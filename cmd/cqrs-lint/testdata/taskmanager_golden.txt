@@ -30,4 +30,4 @@ C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (project
 D013 Project creates 11 events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
 E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
-V006 commandlifecycle/projections/v4 is on v4.1.0 but other v4 modules use v4.2.1, v4.3.0, v4.4.0, v4.4.1, v4.5.0, v4.6.0, v4.7.0, v4.8.0, v4.9.0, v4.10.0, v4.11.0, v4.13.0 — go-cqrs-lite modules within the same major version should be pinned to the same release
+V006 commandlifecycle/projections/v4 is on v4.1.0 but other v4 modules use v4.2.1, v4.3.0, v4.4.0, v4.4.1, v4.5.0, v4.5.1, v4.6.0, v4.7.0, v4.8.0, v4.9.0, v4.10.0, v4.11.0, v4.13.0 — go-cqrs-lite modules within the same major version should be pinned to the same release
