@@ -270,8 +270,8 @@ not the planner choosing a strategy. Characterized on tursogo
 
 | Term                 | Definition                                                            | Context                                                 |
 | -------------------- | --------------------------------------------------------------------- | ------------------------------------------------------- |
-| **VersionedStorage** | Engine capability for temporal point lookups: "value of K at time T?" | `metaengine.VersionedStorage` interface — Memory engine |
-| **AsOfSignal**       | Marker type in a query input that triggers temporal routing           | `metaengine.AsOfSignal` struct                          |
+| **VersionedStorage** | Engine capability for temporal point lookups: "value of K at time T?" — as-of = latest cell with `ts <= T` (ADR-0141) | `metaengine.VersionedStorage` interface — Memory, SQLite (`WithCellVersioning`), BigTable (native cells) |
+| **AsOfSignal** | Documentation-type marker; the ROUTING trigger is a plain `AsOf time.Time` field on a query input (meta field, zero = latest) | `metaengine.AsOfSignal` struct doc; routing in `metaengine.ExecuteAsOf` |
 
 ### Plan Operations
 

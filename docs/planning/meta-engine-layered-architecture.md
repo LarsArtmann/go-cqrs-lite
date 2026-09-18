@@ -5,6 +5,13 @@
 > unifying lens that connects the [taxonomy](../research/database-architecture-taxonomy.md),
 > the [design](meta-engine-design.md), and the [DataFusion lessons](archived/2026-07-31_datafusion-lessons-for-metaengine.md)
 > into one coherent decomposition.
+>
+> **RECONCILIATION (2026-09-18):** §3 of this proposal is now **SHIPPED** as
+> [ADR-0141](../adr/0141-native-temporal-versioned-cells.md) — native temporal
+> versioned cells on three engines (Memory, SQLite, BigTable) with AsOf input
+> routing and a `temporal-asof` planner rule. See the §3 addendum below for the
+> per-section DONE/PARTIAL breakdown. Sections 1, 2, 4–8 remain proposals;
+> current truth lives in the code and ADRs, not here.
 
 ---
 
@@ -309,6 +316,17 @@ Storage layer (this doc):          "Is the engine versioned?" → O(1) read or O
 
 Together they're complete. The logical plan carries the temporal intent; the storage-engine
 capability determines whether it's cheap or expensive.
+
+### §3 Implementation Status (addendum 2026-09-18 — original text above is unchanged)
+
+| Subsection | Status | Evidence |
+| ---------- | ------ | -------- |
+| The BigTable Insight | **DONE** | `metaengine/bigtableengine/` ships it: row `collection\x00key`, native `TimestampRangeFilterMicros` as-of reads (`map_backend.go:23` `asOfEnd`), history ranges, empty-value tombstones; retention is the column-family GC policy (`engine.go:60` `WithGCPolicy`) |
+| Planner picks strategy by capability | **DONE (storage half)** | `metaengine/rule_temporal_asof.go:19` — `temporal-asof` rule emits a WARN diagnostic when an AsOf query lands on a non-versioned engine; runtime gate is `metaengine.EngineVersionsCells` (`metaengine/temporal_write.go:106`). Event-log-replay fallback (middle row) NOT implemented — non-versioned engines fail loudly instead |
+| `RetentionPolicy` cost knob | **DONE** | `metaengine/temporal_write.go:86` — shipped structurally as designed (`MaxVersions` + `MaxAge`); memory chains trim in `metaengine/memory_versioned.go`, SQLite trims via SQL, BigTable delegates to GC policy |
+| Versioned folds from event metadata | **DONE** | `metaengine.CellTimestamp` (`metaengine/temporal_write.go:125`) = Stored → Received → Created → now; the Store fold path stamps every insert/update/remove with event time |
+| Retention vs query correctness (planner knows retention, refuses) | **PARTIAL** | Planner warns on non-versioned engines only; it does NOT know each engine's retention window, so a retention-pruned as-of read still returns "not found" rather than a refusal. Unmitigated gap, documented in ADR-0141 |
+| DataFusion `TemporalAnchor` (logical-layer replay strategies) | **NOT SHIPPED** | Logical-layer replay-strategy planning remains future work; only the storage-layer capability routing shipped |
 
 ---
 
