@@ -14,3 +14,5 @@ catalog/docserver/static/*.css linguist-vendored
 # Binary files should not be diffed or merged
 *.png binary
 *.pdf binary
+# Binary files should not be diffed or merged
+*.woff2 binary
