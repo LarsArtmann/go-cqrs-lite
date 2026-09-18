@@ -32,7 +32,7 @@ func NewExporter(outputDir string) *Exporter {
 }
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.
-func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo // straight-line pipeline
+func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo // linear pipeline
 	enriched := autoDeriveProducersConsumers(cat)
 
 	for _, svc := range enriched.Services {
