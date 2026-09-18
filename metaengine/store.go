@@ -695,11 +695,28 @@ func (s *Store) applyFoldUpdate(
 ) error {
 	key := fold.keyExtractor(payload)
 	col := q.QueryName()
+	ts := CellTimestamp(rec)
 
-	// Temporal engines (ADR-0141 §3): read-latest → fold → write-at-event-time.
-	// Safe without engine-side RMW because the dispatch path serializes folds
-	// per query (foldLocks, runtime_backend.go) and the replication applier
-	// shares those locks.
+	// Temporal engines (ADR-0141 §3): event-time-stamped updates. The atomic
+	// VersionedUpdater keeps the fold a single write-shaped engine call; the
+	// VersionedWriter fallback reads latest under the dispatch path's per-query
+	// fold locks (runtime_backend.go, replicator.go).
+	if vu, ok := q.QueryEngine().(VersionedUpdater); ok {
+		var updatedVal any
+
+		if err := vu.MapUpdateAt(ctx, col, key, func(prev any) any {
+			updatedVal = fold.invoke(rec, payload, prev)
+
+			return updatedVal
+		}, ts); err != nil {
+			return fmt.Errorf("map update-at %s: %w", col, err)
+		}
+
+		s.notifyLive(q, col, key, updatedVal)
+
+		return nil
+	}
+
 	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
 		return s.applyFoldUpdateVersioned(ctx, q, vw, col, key, fold, rec, payload)
 	}

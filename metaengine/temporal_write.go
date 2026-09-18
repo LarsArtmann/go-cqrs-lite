@@ -34,6 +34,27 @@ type VersionedWriter interface {
 	MapDeleteAt(ctx context.Context, collection string, key any, ts time.Time) error
 }
 
+// VersionedUpdater is the optional refinement of [VersionedWriter] for
+// engines that can perform a timestamped read-modify-write ATOMICALLY (under
+// one lock acquisition or transaction). The Store's update folds prefer it:
+// one write-shaped call — no separate read — so a fold stays a single engine
+// operation even on engines whose read path is degraded (ADR-0137 catch-up
+// rebuilds). Engines without it fall back to read-latest → fold →
+	// [VersionedWriter.MapSetAt], which the dispatch path serializes via fold
+// locks anyway.
+type VersionedUpdater interface {
+	// MapUpdateAt atomically applies update to the current latest value and
+	// records the result as the version at timestamp ts. The update function
+	// receives the previous value (nil when absent).
+	MapUpdateAt(
+		ctx context.Context,
+		collection string,
+		key any,
+		update func(prev any) any,
+		ts time.Time,
+	) error
+}
+
 // CellVersion is one surviving version of a cell, as returned by
 // [CellHistoryReader.MapHistory]. A nil Value marks a tombstone (the key was
 // deleted at Timestamp).

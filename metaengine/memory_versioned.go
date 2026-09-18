@@ -255,6 +255,33 @@ func (m *memoryEngine) MapDeleteAt(
 	return nil
 }
 
+// --- VersionedUpdater implementation ---
+
+// MapUpdateAt atomically applies update to the current latest value and
+// records the result as the version at ts (single lock acquisition).
+func (m *memoryEngine) MapUpdateAt(
+	_ context.Context,
+	col string,
+	key any,
+	update func(prev any) any,
+	ts time.Time,
+) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	store := m.getMapLocked(col)
+	newVal := update(store[key])
+	store[key] = newVal
+
+	if m.versions == nil { // opt-in versioning disabled: latest-only
+		return nil
+	}
+
+	m.recordVersionAt(col, fmt.Sprint(key), newVal, ts)
+
+	return nil
+}
+
 // --- CellHistoryReader implementation ---
 
 // MapHistory returns the surviving versions of (collection, key) within
@@ -280,5 +307,6 @@ func (m *memoryEngine) MapHistory(
 var (
 	_ VersionedStorage  = (*memoryEngine)(nil)
 	_ VersionedWriter   = (*memoryEngine)(nil)
+	_ VersionedUpdater  = (*memoryEngine)(nil)
 	_ CellHistoryReader = (*memoryEngine)(nil)
 )
