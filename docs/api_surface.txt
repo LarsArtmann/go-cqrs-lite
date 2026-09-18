@@ -2128,6 +2128,7 @@ metadata/method WithCustom
 metadata/struct Metadata
 metadata/struct Tracing
 metadata/type CustomData
+metaengine/adttest/func AssertTemporalConformance
 metaengine/adttest/func AssertVectorDimensionGuard
 metaengine/adttest/func AuditCapability
 metaengine/adttest/func CanonicalizeAny
@@ -2636,6 +2637,7 @@ metaengine/func BuildLayoutPlan
 metaengine/func BuildLayoutPlanFromType
 metaengine/func CalibrateEngine
 metaengine/func CapabilityAudit
+metaengine/func CellTimestamp
 metaengine/func CheckVectorDimension
 metaengine/func Checksum
 metaengine/func CompareValues
@@ -2653,6 +2655,7 @@ metaengine/func DeserializePlan
 metaengine/func EncodeStreamValue
 metaengine/func EncodeVectorBinary
 metaengine/func EncodeVectorF32
+metaengine/func EngineVersionsCells
 metaengine/func EvalFilterOp
 metaengine/func EventTypeName
 metaengine/func ExecuteTyped
@@ -2778,6 +2781,7 @@ metaengine/func WithProbeWindow
 metaengine/func WithRange
 metaengine/func WithReadCoalescer
 metaengine/func WithReplication
+metaengine/func WithRetention
 metaengine/func WithRoutingHysteresis
 metaengine/func WithRoutingMinDelta
 metaengine/func WithSSEHeartbeat
@@ -2817,6 +2821,8 @@ metaengine/graphadapter/struct Adapter
 metaengine/interface AggregateReader
 metaengine/interface AtomicAppender
 metaengine/interface Calibratable
+metaengine/interface CellHistoryReader
+metaengine/interface CellVersioningToggle
 metaengine/interface Closer
 metaengine/interface CounterBackend
 metaengine/interface DistinctReader
@@ -2869,6 +2875,8 @@ metaengine/interface VectorCounter
 metaengine/interface VectorFilterBackend
 metaengine/interface VectorPathReporter
 metaengine/interface VersionedStorage
+metaengine/interface VersionedUpdater
+metaengine/interface VersionedWriter
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const OpCounterInc
@@ -3192,6 +3200,7 @@ metaengine/method Avg
 metaengine/method Backfill
 metaengine/method CatchUpEngine
 metaengine/method CatchUpSnapshot
+metaengine/method CellVersioningEnabled
 metaengine/method Check
 metaengine/method CheckAndRecord
 metaengine/method CheckRouting
@@ -3336,12 +3345,16 @@ metaengine/method LogAppend
 metaengine/method LogPlan
 metaengine/method LogTail
 metaengine/method MapDelete
+metaengine/method MapDeleteAt
 metaengine/method MapExistsAsOf
 metaengine/method MapGet
 metaengine/method MapGetAsOf
+metaengine/method MapHistory
 metaengine/method MapScan
 metaengine/method MapSet
+metaengine/method MapSetAt
 metaengine/method MapUpdate
+metaengine/method MapUpdateAt
 metaengine/method MarshalJSON
 metaengine/method MaterializedViewsDoctorSection
 metaengine/method Max
@@ -3379,6 +3392,7 @@ metaengine/method Query
 metaengine/method QueryADT
 metaengine/method QueryComplexity
 metaengine/method QueryConfig
+metaengine/method QueryDeclaresAsOf
 metaengine/method QueryEngine
 metaengine/method QueryEngine
 metaengine/method QueryEngine
@@ -3985,6 +3999,7 @@ metaengine/struct Calibration
 metaengine/struct CalibrationCosts
 metaengine/struct CapabilityAuditResult
 metaengine/struct CatchUpState
+metaengine/struct CellVersion
 metaengine/struct CollectionInfo
 metaengine/struct CollectionStats
 metaengine/struct CostAccuracyReporter
@@ -4050,6 +4065,7 @@ metaengine/struct ReadCosts
 metaengine/struct RebuildThreshold
 metaengine/struct ReplicationStatus
 metaengine/struct ResetResult
+metaengine/struct RetentionPolicy
 metaengine/struct RulePipeline
 metaengine/struct RuleTraceEntry
 metaengine/struct SSEConfig
@@ -4139,6 +4155,7 @@ metaengine/type ScanOption
 metaengine/type StorageLayout
 metaengine/type StoreHooks
 metaengine/type TrackerOption
+metaengine/type VersioningOption
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrBackfillUnsupported
 metaengine/var ErrCatchUpUnsupported
