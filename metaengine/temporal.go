@@ -81,3 +81,30 @@ func (s *Store) ExecuteAsOf(
 
 	return val, nil
 }
+
+// executePointLookupAsOf resolves a point lookup at a past point in time via
+// VersionedStorage (ADR-0141). Not-found at the requested time yields
+// (nil, nil), matching the latest-read contract. Engines without the
+// capability fail loudly rather than degrading to a latest-only read.
+func (s *Store) executePointLookupAsOf(
+	ctx context.Context,
+	q queryMeta,
+	key any,
+	asOf time.Time,
+) (any, error) {
+	vs, ok := q.QueryEngine().(VersionedStorage)
+	if !ok || !EngineVersionsCells(q.QueryEngine()) {
+		return nil, unsupportedEngineVersioned(q.QueryEngine())
+	}
+
+	val, err := vs.MapGetAsOf(ctx, q.QueryName(), fmt.Sprint(key), asOf)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, nil //nolint:nilnil // not-found at as-of time signalled as (nil, nil)
+		}
+
+		return nil, fmt.Errorf("map get-as-of %s: %w", q.QueryName(), err)
+	}
+
+	return val, nil
+}
