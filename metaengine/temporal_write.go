@@ -14,6 +14,10 @@ import (
 // natively implement both, and the Store's fold path prefers it so cell
 // timestamps carry EVENT time (via [CellTimestamp]), not write time.
 //
+// The key keeps its NATIVE type (mirroring MapBackend.MapSet) so latest-read
+// paths stay type-faithful; the temporal READ side ([VersionedStorage]) is
+// string-keyed — engines stringify internally for their version stores.
+//
 // Semantics (ADR-0141):
 //   - A nil/empty value is never written; deletion is [MapDeleteAt] (a
 //     timestamped tombstone), never a hard erase.
@@ -23,11 +27,11 @@ import (
 type VersionedWriter interface {
 	// MapSetAt writes value as the version of (collection, key) at timestamp
 	// ts, preserving earlier versions for as-of reads.
-	MapSetAt(ctx context.Context, collection, key string, value any, ts time.Time) error
+	MapSetAt(ctx context.Context, collection string, key any, value any, ts time.Time) error
 
 	// MapDeleteAt records a tombstone for (collection, key) at timestamp ts:
 	// as-of reads at t >= ts report the key as absent.
-	MapDeleteAt(ctx context.Context, collection, key string, ts time.Time) error
+	MapDeleteAt(ctx context.Context, collection string, key any, ts time.Time) error
 }
 
 // CellVersion is one surviving version of a cell, as returned by

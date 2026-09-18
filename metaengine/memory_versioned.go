@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"time"
 )
@@ -97,12 +98,12 @@ func (m *memoryEngine) recordVersionAt(col, key string, value any, ts time.Time)
 
 // applyVersionLocked records one timestamped version and syncs the latest
 // view: the main map always mirrors the chain's NEWEST entry, so out-of-order
-// writes cannot regress MapGet. A nil value is a tombstone. The key is the
-// chain's STRING form — the temporal path is string-keyed end-to-end, like
-// [VersionedStorage]; plain MapSet keeps native keys. Caller MUST hold
-// m.mu.Lock(). When versioning is disabled this degrades to a plain
-// set/delete (latest-only, zero history overhead).
-func (m *memoryEngine) applyVersionLocked(col, key string, value any, ts time.Time) {
+// writes cannot regress MapGet. A nil value is a tombstone. The chain is
+// keyed by the string form of key; the main map keeps the NATIVE key so
+// latest reads stay type-faithful. Caller MUST hold m.mu.Lock(). When
+// versioning is disabled this degrades to a plain set/delete (latest-only,
+// zero history overhead).
+func (m *memoryEngine) applyVersionLocked(col string, key any, value any, ts time.Time) {
 	if m.versions == nil {
 		store := m.getMapLocked(col)
 		if value == nil {
@@ -114,7 +115,7 @@ func (m *memoryEngine) applyVersionLocked(col, key string, value any, ts time.Ti
 		return
 	}
 
-	chain := m.chainLocked(col, key)
+	chain := m.chainLocked(col, fmt.Sprint(key))
 	chain.insertAt(versionedEntry{ts: ts, value: value})
 	m.trimRetentionLocked(chain, ts)
 	m.syncLatestLocked(col, key, chain)
@@ -149,7 +150,7 @@ func (m *memoryEngine) trimRetentionLocked(chain *versionChain, newest time.Time
 
 // syncLatestLocked mirrors the chain's newest entry into the main map so
 // MapGet/MapScan stay O(1) latest reads. Caller MUST hold m.mu.Lock().
-func (m *memoryEngine) syncLatestLocked(col, key string, chain *versionChain) {
+func (m *memoryEngine) syncLatestLocked(col string, key any, chain *versionChain) {
 	store := m.getMapLocked(col)
 
 	tail := chain.entries[len(chain.entries)-1]
@@ -225,7 +226,8 @@ func (m *memoryEngine) chainFor(col, key string) (*versionChain, bool) {
 // When versioning is disabled the write degrades to a plain latest-only set.
 func (m *memoryEngine) MapSetAt(
 	_ context.Context,
-	col, key string,
+	col string,
+	key any,
 	value any,
 	ts time.Time,
 ) error {
@@ -241,7 +243,8 @@ func (m *memoryEngine) MapSetAt(
 // versioning is disabled the call degrades to a plain latest-only delete.
 func (m *memoryEngine) MapDeleteAt(
 	_ context.Context,
-	col, key string,
+	col string,
+	key any,
 	ts time.Time,
 ) error {
 	m.mu.Lock()

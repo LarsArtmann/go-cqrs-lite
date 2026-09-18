@@ -664,7 +664,7 @@ func (s *Store) applyFoldInsert(
 	// replays rebuild the true temporal order. Plain engines take the
 	// untimestamped path.
 	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
-		if err := vw.MapSetAt(ctx, col, fmt.Sprint(key), value, CellTimestamp(rec)); err != nil {
+		if err := vw.MapSetAt(ctx, col, key, value, CellTimestamp(rec)); err != nil {
 			return fmt.Errorf("map set-at %s: %w", col, err)
 		}
 
@@ -758,8 +758,6 @@ func (s *Store) applyFoldUpdateVersioned(
 	rec record.Record,
 	payload any,
 ) error {
-	keyStr := fmt.Sprint(key)
-
 	prev, found, err := s.latestForVersioned(ctx, q, key)
 	if err != nil {
 		return err
@@ -772,7 +770,7 @@ func (s *Store) applyFoldUpdateVersioned(
 
 	updated := fold.invoke(rec, payload, prevVal)
 
-	if err := vw.MapSetAt(ctx, col, keyStr, updated, CellTimestamp(rec)); err != nil {
+	if err := vw.MapSetAt(ctx, col, key, updated, CellTimestamp(rec)); err != nil {
 		return fmt.Errorf("map set-at %s: %w", col, err)
 	}
 
@@ -828,7 +826,7 @@ func (s *Store) applyFoldRemove(
 	// Temporal engines tombstone at the event's time (ADR-0141 §1): deletion
 	// is a timestamped write, never a hard erase.
 	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
-		if err := vw.MapDeleteAt(ctx, col, fmt.Sprint(key), CellTimestamp(rec)); err != nil {
+		if err := vw.MapDeleteAt(ctx, col, key, CellTimestamp(rec)); err != nil {
 			return fmt.Errorf("map delete-at %s: %w", col, err)
 		}
 
