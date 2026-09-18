@@ -274,13 +274,14 @@ func extractCursorFromInput(input any) *Cursor {
 	return cursor
 }
 
-// nonMetaFields returns input fields that are NOT pagination metadata.
+// nonMetaFields returns input fields that are NOT pagination/as-of metadata.
 func nonMetaFields(input any) []reflectField {
 	metaNames := map[string]bool{
 		limitField:     true,
 		afterField:     true,
 		depthField:     true,
 		undirectedFlag: true,
+		asOfField:      true,
 	}
 
 	var result []reflectField

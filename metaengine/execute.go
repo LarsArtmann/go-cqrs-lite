@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"time"
@@ -122,11 +123,18 @@ func checkKeyTypeMatch(q queryMeta, key any) error {
 
 // executePointLookup handles the ReadPointLookup pattern: extract key from
 // input, validate type match, then try RawValueReader fast path or MapBackend.
+// A declared, non-zero AsOf field reroutes to the temporal path (ADR-0141 §4).
 func (s *Store) executePointLookup(ctx context.Context, q queryMeta, input any) (any, error) {
 	key := extractKeyValueByType(input, q.QueryKeyType())
 
 	if err := checkKeyTypeMatch(q, key); err != nil {
 		return nil, err
+	}
+
+	if q.QueryDeclaresAsOf() {
+		if asOf, ok := extractAsOfFromInput(input); ok {
+			return s.executePointLookupAsOf(ctx, q, key, asOf)
+		}
 	}
 
 	if rvr, ok := q.QueryEngine().(RawValueReader); ok {
@@ -156,6 +164,33 @@ func (s *Store) executePointLookup(ctx context.Context, q queryMeta, input any) 
 	}
 
 	return nil, unsupportedEngine(errUnsupportedMapReads, q.QueryEngine().Profile().Name)
+}
+
+// executePointLookupAsOf resolves a point lookup at a past point in time via
+// VersionedStorage (ADR-0141). Not-found at the requested time yields
+// (nil, nil), matching the latest-read contract. Engines without the
+// capability fail loudly rather than degrading to a latest-only read.
+func (s *Store) executePointLookupAsOf(
+	ctx context.Context,
+	q queryMeta,
+	key any,
+	asOf time.Time,
+) (any, error) {
+	vs, ok := q.QueryEngine().(VersionedStorage)
+	if !ok {
+		return nil, unsupportedEngineVersioned(q.QueryEngine())
+	}
+
+	val, err := vs.MapGetAsOf(ctx, q.QueryName(), fmt.Sprint(key), asOf)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, nil //nolint:nilnil // not-found at as-of time signalled as (nil, nil)
+		}
+
+		return nil, fmt.Errorf("map get-as-of %s: %w", q.QueryName(), err)
+	}
+
+	return val, nil
 }
 
 // executeMembership handles the ReadMembership pattern: extract key, validate,
@@ -583,7 +618,12 @@ func buildFilterPredicates(q queryMeta, input any) []filterPredicate {
 // matches targetType, and returns its value. Returns nil if not found or
 // ambiguous.
 func extractValueByType(input any, targetType reflect.Type) any {
-	metaNames := map[string]bool{limitField: true, afterField: true, depthField: true}
+	metaNames := map[string]bool{
+		limitField: true,
+		afterField: true,
+		depthField: true,
+		asOfField:  true,
+	}
 
 	return findValueByType(input, targetType, func(name string) bool { return metaNames[name] })
 }

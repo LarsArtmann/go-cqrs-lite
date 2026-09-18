@@ -25,18 +25,29 @@ type VersionedStorage interface {
 	MapExistsAsOf(ctx context.Context, collection, key string, t time.Time) (bool, error)
 }
 
-// AsOfSignal is a marker type passed as a query input to request a temporal
-// (as-of) read. When the planner detects an AsOf field in a query input,
-// it routes the query to an engine implementing VersionedStorage.
-//
-// Usage:
+// AsOfSignal documents the query-input convention for temporal reads. The
+// marker itself is retained for documentation and type-assertion purposes;
+// the ACTIVE mechanism (ADR-0141 §4) is the input struct convention:
+// declare an `AsOf time.Time` field on a point-lookup input —
 //
 //	type AccountBalance struct {
 //	    AccountID string
-//	    AsOf      time.Time  // presence of this field triggers temporal routing
+//	    AsOf      time.Time  // non-zero → temporal read via VersionedStorage
 //	}
+//
+// A non-zero value routes the read through the engine's VersionedStorage
+// capability; the zero value means "latest" (the normal path). The explicit
+// named form is [Store.ExecuteAsOf].
 type AsOfSignal struct {
 	Timestamp time.Time
+}
+
+// unsupportedEngineVersioned is the shared error for temporal reads landing
+// on an engine without the VersionedStorage capability. Failing loud beats
+// silently degrading to a latest-only read (ADR-0141 §5).
+func unsupportedEngineVersioned(eng Engine) error {
+	return fmt.Errorf("%w: engine %s does not support versioned reads",
+		ErrUnsupportedADT, eng.Profile().Name)
 }
 
 // ExecuteAsOf performs a temporal (as-of) point lookup on a collection.
@@ -60,8 +71,7 @@ func (s *Store) ExecuteAsOf(
 
 	vs, ok := q.QueryEngine().(VersionedStorage)
 	if !ok {
-		return nil, fmt.Errorf("%w: engine %s does not support versioned reads",
-			ErrUnsupportedADT, q.QueryEngine().Profile().Name)
+		return nil, unsupportedEngineVersioned(q.QueryEngine())
 	}
 
 	val, err := vs.MapGetAsOf(ctx, collection, key, t)

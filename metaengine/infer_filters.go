@@ -118,5 +118,5 @@ func autoInferFilters(
 // isMetaFieldName returns true for pagination/metadata field names that
 // should not become filter candidates.
 func isMetaFieldName(name string) bool {
-	return name == limitField || name == afterField || name == depthField
+	return name == limitField || name == afterField || name == depthField || name == asOfField
 }
