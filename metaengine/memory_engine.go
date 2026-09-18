@@ -68,31 +68,6 @@ func newMemData() *memData {
 	}
 }
 
-// VersioningOption tunes a versioned Memory engine at construction time.
-type VersioningOption func(*memoryEngine)
-
-// WithRetention sets the version-retention policy on a versioned Memory
-// engine (ADR-0141 §1): MaxVersions keeps the newest N versions per cell,
-// MaxAge prunes versions older than the cutoff. The zero policy keeps
-// everything — the memory cost grows with total write count.
-func WithRetention(policy RetentionPolicy) VersioningOption {
-	return func(m *memoryEngine) { m.retention = &policy }
-}
-
-// NewMemoryEngineWithVersioning creates a Memory engine that tracks version
-// chains for temporal (as-of) queries. Use this when you need MapGetAsOf /
-// MapExistsAsOf / MapSetAt / MapHistory. The version chain grows with every
-// write unless a RetentionPolicy trims it (WithRetention).
-func NewMemoryEngineWithVersioning(opts ...VersioningOption) Engine {
-	eng := NewMemoryEngine().(*memoryEngine)
-	eng.versions = make(map[string]map[string]*versionChain)
-
-	for _, opt := range opts {
-		opt(eng)
-	}
-
-	return eng
-}
 
 // SetCalibration implements Calibratable for runtime cost calibration.
 func (m *memoryEngine) SetCalibration(costs CalibrationCosts) {
@@ -369,3 +344,4 @@ func (m *memoryEngine) SpatialRange(
 ) ([]SpatialResult, error) {
 	return m.spatialIdx.Range(ctx, col, x, y, radius, limit)
 }
+

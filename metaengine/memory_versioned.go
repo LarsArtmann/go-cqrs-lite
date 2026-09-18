@@ -7,68 +7,6 @@ import (
 	"time"
 )
 
-// versionedEntry records a single value at a point in time.
-type versionedEntry struct {
-	ts    time.Time
-	value any // nil means the key was deleted at this timestamp (tombstone)
-}
-
-// versionChain stores the append-only history of a single key, ordered by
-// timestamp ascending. Writes may arrive out of order (replays, clock skew),
-// so entries are inserted at their sorted position; binary search finds the
-// latest entry <= t. A same-timestamp write lands AFTER existing entries —
-// last-writer-wins, mirroring BigTable cell dedup (ADR-0141 §1).
-type versionChain struct {
-	entries []versionedEntry
-}
-
-// asOf returns the value and existence at timestamp t. The value is the
-// latest entry with ts <= t. If that entry is a tombstone, the key was
-// deleted at that time and asOf reports (nil, false).
-func (vc *versionChain) asOf(t time.Time) (any, bool) {
-	idx := sort.Search(len(vc.entries), func(i int) bool {
-		return vc.entries[i].ts.After(t)
-	})
-
-	if idx == 0 {
-		return nil, false // no entries at or before t
-	}
-
-	entry := vc.entries[idx-1] // latest entry <= t
-
-	if entry.value == nil {
-		return nil, false // tombstoned before t
-	}
-
-	return entry.value, true
-}
-
-// history returns the surviving versions in [from, to], newest-first.
-func (vc *versionChain) history(from, to time.Time) []CellVersion {
-	idx := sort.Search(len(vc.entries), func(i int) bool {
-		return vc.entries[i].ts.After(to)
-	})
-
-	var out []CellVersion
-
-	for i := idx - 1; i >= 0 && !vc.entries[i].ts.Before(from); i-- {
-		out = append(out, CellVersion{Timestamp: vc.entries[i].ts, Value: vc.entries[i].value})
-	}
-
-	return out
-}
-
-// insertAt places entry at its sorted position, after any same-timestamp
-// entries (last-writer-wins).
-func (vc *versionChain) insertAt(entry versionedEntry) {
-	idx := sort.Search(len(vc.entries), func(i int) bool {
-		return vc.entries[i].ts.After(entry.ts)
-	})
-
-	vc.entries = append(vc.entries, versionedEntry{})
-	copy(vc.entries[idx+1:], vc.entries[idx:])
-	vc.entries[idx] = entry
-}
 
 // chainLocked returns the version chain for (col, key), creating it when
 // absent. Caller MUST hold m.mu.Lock().
@@ -323,3 +261,29 @@ var (
 	_ VersionedUpdater  = (*memoryEngine)(nil)
 	_ CellHistoryReader = (*memoryEngine)(nil)
 )
+
+// VersioningOption tunes a versioned Memory engine at construction time.
+type VersioningOption func(*memoryEngine)
+
+// WithRetention sets the version-retention policy on a versioned Memory
+// engine (ADR-0141 §1): MaxVersions keeps the newest N versions per cell,
+// MaxAge prunes versions older than the cutoff. The zero policy keeps
+// everything — the memory cost grows with total write count.
+func WithRetention(policy RetentionPolicy) VersioningOption {
+	return func(m *memoryEngine) { m.retention = &policy }
+}
+
+// NewMemoryEngineWithVersioning creates a Memory engine that tracks version
+// chains for temporal (as-of) queries. Use this when you need MapGetAsOf /
+// MapExistsAsOf / MapSetAt / MapHistory. The version chain grows with every
+// write unless a RetentionPolicy trims it (WithRetention).
+func NewMemoryEngineWithVersioning(opts ...VersioningOption) Engine {
+	eng := NewMemoryEngine().(*memoryEngine)
+	eng.versions = make(map[string]map[string]*versionChain)
+
+	for _, opt := range opts {
+		opt(eng)
+	}
+
+	return eng
+}
