@@ -16,8 +16,8 @@ nix develop
 nix run .#test
 nix run .#lint
 
-# 4. Install the pre-commit hook (scope detection: skips lint for doc-only commits)
-./scripts/install-hooks.sh
+# 4. Install the pre-commit hook (also auto-bootstrapped by `nix develop`)
+nix run .#install-hooks   # or: ./scripts/install-hooks.sh
 ```
 
 ## Development Setup
@@ -223,10 +223,13 @@ Examples:
 2. If you see changes you didn't author, investigate before touching them
 3. Commit early and often to minimize conflicts
 4. Use feature branches for long-running work: `git switch -c my-feature`
-5. The BuildFlow pre-commit hook runs golangci-lint + gitleaks + gofumpt.
-   Install it via `./scripts/install-hooks.sh` after cloning.
-   It skips lint for doc-only commits (`.md`, `.html`, `.d2`, `.svg`, `.txt`,
-   `.yaml`) and runs BuildFlow in `--staged-only` mode otherwise.
+5. The canonical pre-commit hook is `scripts/pre-commit.sh` (single source of
+   truth), installed to `core.hooksPath` (.githooks) by `nix run .#install-hooks`
+   or automatically by `nix develop`. It runs: staged-scoped `nix fmt`
+   (self-fixing), BuildFlow (report-only), a whole-workspace `go build`, the
+   fmt.Printf-in-production grep, the api-surface freshness check, and a staged
+   `.go` syntax gate; doc-only commits skip the code gates (`.md`, `.html`, `.d2`,
+   `.svg`, `.txt`, `.yaml`).
 
 ## Security & Architecture Checks
 

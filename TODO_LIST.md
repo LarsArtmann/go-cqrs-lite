@@ -432,6 +432,26 @@ bottom is a do-not-re-litigate guard, not a backlog.
       verification. — source: archived/2026-09-04 §c2
       _(Effort: M)_
 
+- [x] **irohengine `/demo/` fmt.Printf pre-commit blocker — RESOLVED
+      2026-09-18** by the canonical `scripts/pre-commit.sh` (TODO
+      "pre-commit hook hardening"): the fmt.Printf gate now excludes
+      `/demo/` paths alongside tests/examples/testdata/cmd. Verified
+      empirically: the exact hook pipeline over the full tree returns zero
+      violations with `metaengine/irohengine{,/quic}/demo/main.go` present
+      (those files still contain `fmt.Printf`, by design). The old
+      `--no-verify` workaround for docs-only commits touching them is dead.
+
+- [ ] **Pre-commit hook still owns three TREE-WIDE gates** (workspace
+      `go build ./...`, api-surface freshness, fmt.Printf grep) that can
+      block an honest commit on a CONCURRENT session's in-flight files —
+      the benign version observed 2026-09-18 (go.mod/go.work 1.27 stamp
+      war), the hostile version is a sibling's mid-edit file. All three
+      verified green 2026-09-18 ~18:50 (build OK, 7209 exports, zero
+      Printf hits). Design staged-scoped or per-module variants where
+      cheap; the workspace-build gate is the one worth keeping tree-wide
+      (it is the daemon-commit safety net). — source: 2026-09-18 18-12
+      report §e/9 _(Effort: M)_
+
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED
       2026-09-13 (run 34747274058, full log triage): (a) FIXED same-day —
