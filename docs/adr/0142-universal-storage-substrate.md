@@ -22,12 +22,12 @@ is half-true, and the half that is false is structural:
 - **Satellites bypass metaengine** — each carries its own SQL/schema and its
   own claim protocol:
 
-| Subsystem | Writes via | Missing engine capability |
-| --- | --- | --- |
-| Timers (`scheduling/sqlstore`) | own dialect SQL + `claiming/` leases | atomic claim/lease with due-ordering |
-| Tasks (`queue/sqlite`, `queue/postgres`) | own tables, facts-in-tx, claims | claim/lease + facts-in-same-tx |
+| Subsystem                                 | Writes via                                            | Missing engine capability            |
+| ----------------------------------------- | ----------------------------------------------------- | ------------------------------------ |
+| Timers (`scheduling/sqlstore`)            | own dialect SQL + `claiming/` leases                  | atomic claim/lease with due-ordering |
+| Tasks (`queue/sqlite`, `queue/postgres`)  | own tables, facts-in-tx, claims                       | claim/lease + facts-in-same-tx       |
 | Dedup (`idempotency/sqlstore`, `kvstore`) | own tables (`Seen`/`Record`/`CheckAndRecord`/`Sweep`) | dedup-with-expiry (TTL + CAS window) |
-| Projection checkpoints | in-memory map default (`system/checkpoint.go`) | none — trivially Map-shaped |
+| Projection checkpoints                    | in-memory map default (`system/checkpoint.go`)        | none — trivially Map-shaped          |
 
 Verified against `metaengine/engine.go` (60+ methods across 12 backend
 interfaces): the Engine surface has NO claim/lease primitive (`MapUpdate` is
@@ -47,11 +47,11 @@ absorbs the satellites.
 
 ### 1. Four missing capabilities, landing as three v4.x capability interfaces
 
-| Capability (concern) | v4.x interface (in `metaengine/`) | Semantics source of truth |
-| --- | --- | --- |
-| Claim/lease **and** time-ordered due claims | `DueClaimer` — `ClaimDue(collection, owner, lease, limit)` / `RenewLease` / `Release`, due-ordered | `queue.Store.ClaimDue` + `claiming/` SQL (both production-proven; scheduling/sqlstore ran this SQL across SQLite/PG/MySQL before extraction) |
-| Dedup-with-expiry | `DedupStore` — `CheckAndRecord(key, ttl)` / `Seen` / `Sweep`, returning `ErrAlreadySeen` on the CAS miss | `idempotency/sqlstore` (`CheckAndRecord` shape) |
-| Facts-in-same-tx | `FactSink` — tx-scoped append option so a state mutation and its journal fact commit atomically | `queue.Store` invariant #1 ("a state change without its fact did not happen") |
+| Capability (concern)                        | v4.x interface (in `metaengine/`)                                                                        | Semantics source of truth                                                                                                                    |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claim/lease **and** time-ordered due claims | `DueClaimer` — `ClaimDue(collection, owner, lease, limit)` / `RenewLease` / `Release`, due-ordered       | `queue.Store.ClaimDue` + `claiming/` SQL (both production-proven; scheduling/sqlstore ran this SQL across SQLite/PG/MySQL before extraction) |
+| Dedup-with-expiry                           | `DedupStore` — `CheckAndRecord(key, ttl)` / `Seen` / `Sweep`, returning `ErrAlreadySeen` on the CAS miss | `idempotency/sqlstore` (`CheckAndRecord` shape)                                                                                              |
+| Facts-in-same-tx                            | `FactSink` — tx-scoped append option so a state mutation and its journal fact commit atomically          | `queue.Store` invariant #1 ("a state change without its fact did not happen")                                                                |
 
 `DueClaimer` merges the claim/lease and time-ordered-due concerns because they
 are one operation in every real consumer: a due-claim IS a claim gated on a
@@ -92,23 +92,23 @@ explicit capability refusal note in `Supports`, never silence.
 
 ### 5. ADR-0136 ladder classification for the new collections
 
-| Collection | Rung | Reset semantics |
-| --- | --- | --- |
-| Timers | 1 — replayable | Derived from timeout-declaration + events; Reset clears, replay re-derives |
-| Dedup keys | 1 — replayable | Derived window over recent facts; Reset clears, replay rebuilds |
-| Task facts / journal | 3 — facts | Append-only; reset NEVER deletes — journal positions keep advancing (same split as engine journals, contract 22) |
-| Task state rows | 1+3 hybrid | State is replayable from facts; the fact stream is the journal |
+| Collection           | Rung           | Reset semantics                                                                                                  |
+| -------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Timers               | 1 — replayable | Derived from timeout-declaration + events; Reset clears, replay re-derives                                       |
+| Dedup keys           | 1 — replayable | Derived window over recent facts; Reset clears, replay rebuilds                                                  |
+| Task facts / journal | 3 — facts      | Append-only; reset NEVER deletes — journal positions keep advancing (same split as engine journals, contract 22) |
+| Task state rows      | 1+3 hybrid     | State is replayable from facts; the fact stream is the journal                                                   |
 
 ### 6. Alignment matrix
 
-| Prior artifact | Relationship |
-| --- | --- |
-| ADR-0123 §3 (driver registry in metaengine, engines self-register) | T09 registers queue engines as drivers — the first non-storage engine family to enter the registry world; validates §3 before v5 |
-| ADR-0123 §9 (every engine every ADT) | This ADR extends the ADT set the v5 fold must cover; capability interfaces are the v4.x on-ramp |
-| ADR-0123 §10 (batch boundary = event) | Once timers/dedup are collections on the same engine as the journal, append-event + schedule-timer + record-dedup becomes one tx — the outbox problem structurally dissolved; FactSink is the primitive |
-| `meta-engine-universal-adt-support.md` (declare everywhere, degrade honestly) | Adopted as rule 4; this ADR supplies the mechanism (DegradedADTs + SCREAM) it lacked |
-| Durable-queue plan P0–P5 | P0 (`claiming/`) is reused verbatim; P4/T16 facts-in-tx IS `FactSink` (the ADT becomes its reference); queue T14/T15/T17 remain queue-internal and gate only T09's queue-driver leg |
-| ADR-0140 (degrade-everywhere precedent) | Same pattern extended: capability + honest profile + conformance parity |
+| Prior artifact                                                                | Relationship                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ADR-0123 §3 (driver registry in metaengine, engines self-register)            | T09 registers queue engines as drivers — the first non-storage engine family to enter the registry world; validates §3 before v5                                                                        |
+| ADR-0123 §9 (every engine every ADT)                                          | This ADR extends the ADT set the v5 fold must cover; capability interfaces are the v4.x on-ramp                                                                                                         |
+| ADR-0123 §10 (batch boundary = event)                                         | Once timers/dedup are collections on the same engine as the journal, append-event + schedule-timer + record-dedup becomes one tx — the outbox problem structurally dissolved; FactSink is the primitive |
+| `meta-engine-universal-adt-support.md` (declare everywhere, degrade honestly) | Adopted as rule 4; this ADR supplies the mechanism (DegradedADTs + SCREAM) it lacked                                                                                                                    |
+| Durable-queue plan P0–P5                                                      | P0 (`claiming/`) is reused verbatim; P4/T16 facts-in-tx IS `FactSink` (the ADT becomes its reference); queue T14/T15/T17 remain queue-internal and gate only T09's queue-driver leg                     |
+| ADR-0140 (degrade-everywhere precedent)                                       | Same pattern extended: capability + honest profile + conformance parity                                                                                                                                 |
 
 ## Consequences
 

@@ -204,4 +204,4 @@ projectionadapter `ok`, system + bench build `ok`.
 
 ---
 
-*Report written 2026-09-18 14:07. Point-in-time snapshot — re-verify before acting.*
+_Report written 2026-09-18 14:07. Point-in-time snapshot — re-verify before acting._

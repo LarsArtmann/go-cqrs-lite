@@ -159,6 +159,6 @@ mechanical was unambiguous; no new scope was opened.
 
 ---
 
-*Point-in-time report. The working tree is clean; every claim above was verified by a
+_Point-in-time report. The working tree is clean; every claim above was verified by a
 command run in this session (gates via nix apps, suites via GOWORK=off per-module runs
-with the repo env chain).*
+with the repo env chain)._

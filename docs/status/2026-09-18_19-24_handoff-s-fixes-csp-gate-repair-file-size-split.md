@@ -102,4 +102,4 @@ items; the handoff left deferred S-fixes. Load stayed 16–111 all session
 - Daemon absorbed everything into `chore:` waves; no authored commits this
   session (no explicit authorization; content gate-verified instead).
 
-*All green claims verified by command runs in this session (logs: /tmp/csp-*.log, /tmp/csp-full.log, /tmp/csp-final2.log).*
+_All green claims verified by command runs in this session (logs: /tmp/csp-_.log, /tmp/csp-full.log, /tmp/csp-final2.log).*

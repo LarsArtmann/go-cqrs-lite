@@ -213,6 +213,6 @@
 
 ---
 
-*Point-in-time report written 2026-09-18 18:11. Every claim above traces to a
-command run this session (logs: /tmp/*.log) or a direct file/git observation.
+_Point-in-time report written 2026-09-18 18:11. Every claim above traces to a
+command run this session (logs: /tmp/_.log) or a direct file/git observation.
 The working tree is clean; waiting for instructions.*

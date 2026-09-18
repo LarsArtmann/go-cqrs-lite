@@ -32,9 +32,9 @@ each (no baseline bumps, no scope expansion, nothing only the owner can do).
    mapping + pin test rows (the T20-1 "every engine MUST appear" contract).
    Golden regen (7206) + TestEvery green.
 4. **advanced.md §6.20** (Point-in-Time Reads: Versioned Cells & AsOf Routing,
-   + TOC entry) and **readmodels.md** versioned-engine tier note — cross-referencing
-   style; full doc-check corpus green (1380 refs incl. TODO_LIST/ROADMAP);
-   TestRecipes green.
+   - TOC entry) and **readmodels.md** versioned-engine tier note — cross-referencing
+     style; full doc-check corpus green (1380 refs incl. TODO_LIST/ROADMAP);
+     TestRecipes green.
 5. **TODO_LIST.md harvest** (docs-health HARVEST) — new "Temporal versioned cells —
    ADR-0141 follow-ups" section: 13 bounded items (real-GCP calibration 🔥, property
    tests, restart soaks, MapUpdateAt decision, pebble/bbolt scope, cross-engine
@@ -104,6 +104,6 @@ Also: `nix run .#check-file-size` still red on `catalog/docserver/eventcatalogvi
 2. `check-file-size` on eventcatalogview.go once the docserver session commits
    (their file was still being edited at 16:28–16:35).
 3. Owner decisions still open from 16:03 §g (daemon policy — now with 4 strikes;
-  bigtable real-GCP gate; history reconstruction).
+   bigtable real-GCP gate; history reconstruction).
 
-*All green claims above verified by command runs in this session (logs: /tmp/*.log).*
+_All green claims above verified by command runs in this session (logs: /tmp/_.log).*

@@ -36,7 +36,8 @@ templ D2Page(brand, docsPrefix, diagram, svg string) {
 			@display.PageHeader(headerProps)
 			if svg != "" {
 				@display.Card(display.CardProps{Title: "Rendered diagram", Subtitle: "Rendered by the server-side D2 hook"}) {
-					<div class="d2-diagram overflow-x-auto rounded-lg bg-white p-4 dark:bg-gray-950">@templ.Raw(svg)</div>
+					<div class="d2-diagram overflow-x-auto rounded-lg bg-white p-4 dark:bg-gray-950">@templ.Raw(svg)
+</div>
 				}
 				@display.CollapsibleSection(display.CollapsibleSectionProps{
 					BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},

@@ -19,27 +19,27 @@
 
 ## a) FULLY DONE
 
-| # | What | Evidence |
-|---|------|----------|
-| A1 | **Bookkeeping wave** — ticked 10 TODO_LIST.md rows with fresh evidence (queue/postgres live-PG, queue docs tail, W4 state, CI(d) fixed-locally, reset-recipe STALE, ADR-0140, skip-vs-fail, error-taxonomy, self-lint, Go 1.27 availability); added 4 CHANGELOG `[Unreleased]` sections (queue README + §2.36 + V007 table; CI defects + store.go ratchet; pg/mysql classifier; error-code split; self-lint fix) | `check-changelog-symbols` green, 96 → 114 citations, all honest |
-| A2 | **ClaimMetrics live-PG leg** — `PG_MODULES="scheduling/sqlstore storage" TEST_TIMEOUT=420 nix run .#integration-pg` full suite PASS, incl. `TestClaimingPostgres_MetricsSnapshot`, TwoClaimersNoDoubleFire, RenewLease, RenewVsClaimRace | Suite verdict "✅ Integration tests passed"; `-tags integration` compile confirmed (scripts/ephemeral-pg.sh:124) so the ClaimMetrics tests genuinely ran |
-| A3 | **Skip-vs-fail classifier spread (OQ-10)** — `pgSkipClass`/`mysqlSkipClass` mirroring dgraph's `dgraphSkipClass` policy: server-unreachable skips, everything else `t.Fatalf("not a skip-class error")`. 7 sites rewired: pgengine (testcontainer ×2, copy ×1), mysqlengine (helper, layout ×2, planned-ops factory, internal graph helper) | Unit-pinned in 3 new test files (external, external, internal twin); pgengine suite exercised the new path against a REAL container; both modules green; vet green; `//art-dupl:accept` annotations preemptively placed per contract #14 |
-| A4 | **Error-taxonomy drift gate extended 11 → 18 module groups** — added storage/view (30 codes), stack incl. all 14 preset prefixes (80), deriver (2), and "storage (SQL facade)" as FOUR extraction entries over the storage module's same-module subpackages (root with new `--max-depth` entry-field support, storage/sql, storage/eventstore, storage/readmodel = 82 codes); per-module pool-size floors wired (10/50/2/30/24/22/6) | `bash scripts/check-error-taxonomy.sh` → "✓ 519 codes across 18 modules match docs (450 doc claims)"; `--self-test` green; storage module tests exit 0 (6 pkgs, no pipeline masking) |
-| A5 | **Real taxonomy drift found & fixed** — (i) doc claimed `storage.scan_*` = Corruption but `scan_command`/`scan_query` are Infrastructure in source (doc lie corrected); (ii) `storage.schedule_timer` was minted with TWO families (marshal → Corruption, INSERT → Infrastructure) → marshal site now mints `storage.schedule_timer_marshal` (storage/timer_store.go:76), one code = one family | Gate bidirectional green after doc rewrite; no test pinned the old code string (checked before splitting); CHANGELOG "Changed" section records the consumer-visible split |
-| A6 | **Self-lint false-green killed at the root** — `analyzer.IsExampleModulePath` (new export) + `IsLibrarySelfLint` rewired so `example/*` modules are classified as CONSUMERS; V007 + F-family coaching rules now run on examples in place; `TestExamples_AreV5Clean` simplified: the throwaway consumer-copy shim DELETED, scan runs against real dirs, analyzed-file-count assert fails loudly on a zero-file scan (02-47 lesson) | cqrs-lint full suite 19 pkgs exit 0; cqrs-upgrade exit 0; `TestEvery` green; api golden +1 (`analyzer.IsExampleModulePath`, regen in same edit per AGENTS rule); `lint-module` clean on all touched files (2 self-introduced gofumpt/nlreturn findings fixed same-session); taskmanager goldens re-pinned via the sanctioned `CQRS_LINT_UPDATE_GOLDEN=1` path (+E014/F004/F013/F021×2/F026/F028 — honest coaching findings, zero criticals, diff inspected line-by-line before accepting) |
-| A7 | **Go 1.27 availability gate (XS slice of the L wave)** — `nix eval nixpkgs#go_1_27.version` = **1.27.1** (flake default go = 1.26.7); finding recorded in the Go 1.27 TODO row | Row updated with dated confirmation |
-| A8 | **Parallel-work collision avoidance** — on resume, re-read on-disk TODO_LIST and discovered the 09-18 waves had closed depguard auto-restore, pre-commit hardening (a)-(d), nightly cron, recipes-gate posture, vector (c)-(h), ResetProjection; verified each artifact instead of redoing (restore-depguard.sh + golden + hook trigger present and wired at check-depguard.sh:45, .githooks/pre-commit:115-122; core.hooksPath=.githooks canonical) | Artifact checks + row reads; no duplicate work shipped |
-| A9 | **ADR-0140 + vector (a)(b) verified** — ADR-0140 file exists, Accepted, pins the full distance-semantics contract (AGENTS #26 cites it); `TestReplicatedVectorPassthrough` green (nearest-first, filtered AND, path forwarding, counter not promoted); system + quickstart green | Superseded mid-session: a parallel session closed (c)-(h) too; row now fully ticked with benchmarks + DuckDB construction-bug fix noted |
+| #  | What                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Evidence                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1 | **Bookkeeping wave** — ticked 10 TODO_LIST.md rows with fresh evidence (queue/postgres live-PG, queue docs tail, W4 state, CI(d) fixed-locally, reset-recipe STALE, ADR-0140, skip-vs-fail, error-taxonomy, self-lint, Go 1.27 availability); added 4 CHANGELOG `[Unreleased]` sections (queue README + §2.36 + V007 table; CI defects + store.go ratchet; pg/mysql classifier; error-code split; self-lint fix)                                     | `check-changelog-symbols` green, 96 → 114 citations, all honest                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| A2 | **ClaimMetrics live-PG leg** — `PG_MODULES="scheduling/sqlstore storage" TEST_TIMEOUT=420 nix run .#integration-pg` full suite PASS, incl. `TestClaimingPostgres_MetricsSnapshot`, TwoClaimersNoDoubleFire, RenewLease, RenewVsClaimRace                                                                                                                                                                                                             | Suite verdict "✅ Integration tests passed"; `-tags integration` compile confirmed (scripts/ephemeral-pg.sh:124) so the ClaimMetrics tests genuinely ran                                                                                                                                                                                                                                                                                                                                  |
+| A3 | **Skip-vs-fail classifier spread (OQ-10)** — `pgSkipClass`/`mysqlSkipClass` mirroring dgraph's `dgraphSkipClass` policy: server-unreachable skips, everything else `t.Fatalf("not a skip-class error")`. 7 sites rewired: pgengine (testcontainer ×2, copy ×1), mysqlengine (helper, layout ×2, planned-ops factory, internal graph helper)                                                                                                          | Unit-pinned in 3 new test files (external, external, internal twin); pgengine suite exercised the new path against a REAL container; both modules green; vet green; `//art-dupl:accept` annotations preemptively placed per contract #14                                                                                                                                                                                                                                                  |
+| A4 | **Error-taxonomy drift gate extended 11 → 18 module groups** — added storage/view (30 codes), stack incl. all 14 preset prefixes (80), deriver (2), and "storage (SQL facade)" as FOUR extraction entries over the storage module's same-module subpackages (root with new `--max-depth` entry-field support, storage/sql, storage/eventstore, storage/readmodel = 82 codes); per-module pool-size floors wired (10/50/2/30/24/22/6)                 | `bash scripts/check-error-taxonomy.sh` → "✓ 519 codes across 18 modules match docs (450 doc claims)"; `--self-test` green; storage module tests exit 0 (6 pkgs, no pipeline masking)                                                                                                                                                                                                                                                                                                      |
+| A5 | **Real taxonomy drift found & fixed** — (i) doc claimed `storage.scan_*` = Corruption but `scan_command`/`scan_query` are Infrastructure in source (doc lie corrected); (ii) `storage.schedule_timer` was minted with TWO families (marshal → Corruption, INSERT → Infrastructure) → marshal site now mints `storage.schedule_timer_marshal` (storage/timer_store.go:76), one code = one family                                                      | Gate bidirectional green after doc rewrite; no test pinned the old code string (checked before splitting); CHANGELOG "Changed" section records the consumer-visible split                                                                                                                                                                                                                                                                                                                 |
+| A6 | **Self-lint false-green killed at the root** — `analyzer.IsExampleModulePath` (new export) + `IsLibrarySelfLint` rewired so `example/*` modules are classified as CONSUMERS; V007 + F-family coaching rules now run on examples in place; `TestExamples_AreV5Clean` simplified: the throwaway consumer-copy shim DELETED, scan runs against real dirs, analyzed-file-count assert fails loudly on a zero-file scan (02-47 lesson)                    | cqrs-lint full suite 19 pkgs exit 0; cqrs-upgrade exit 0; `TestEvery` green; api golden +1 (`analyzer.IsExampleModulePath`, regen in same edit per AGENTS rule); `lint-module` clean on all touched files (2 self-introduced gofumpt/nlreturn findings fixed same-session); taskmanager goldens re-pinned via the sanctioned `CQRS_LINT_UPDATE_GOLDEN=1` path (+E014/F004/F013/F021×2/F026/F028 — honest coaching findings, zero criticals, diff inspected line-by-line before accepting) |
+| A7 | **Go 1.27 availability gate (XS slice of the L wave)** — `nix eval nixpkgs#go_1_27.version` = **1.27.1** (flake default go = 1.26.7); finding recorded in the Go 1.27 TODO row                                                                                                                                                                                                                                                                       | Row updated with dated confirmation                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| A8 | **Parallel-work collision avoidance** — on resume, re-read on-disk TODO_LIST and discovered the 09-18 waves had closed depguard auto-restore, pre-commit hardening (a)-(d), nightly cron, recipes-gate posture, vector (c)-(h), ResetProjection; verified each artifact instead of redoing (restore-depguard.sh + golden + hook trigger present and wired at check-depguard.sh:45, .githooks/pre-commit:115-122; core.hooksPath=.githooks canonical) | Artifact checks + row reads; no duplicate work shipped                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| A9 | **ADR-0140 + vector (a)(b) verified** — ADR-0140 file exists, Accepted, pins the full distance-semantics contract (AGENTS #26 cites it); `TestReplicatedVectorPassthrough` green (nearest-first, filtered AND, path forwarding, counter not promoted); system + quickstart green                                                                                                                                                                     | Superseded mid-session: a parallel session closed (c)-(h) too; row now fully ticked with benchmarks + DuckDB construction-bug fix noted                                                                                                                                                                                                                                                                                                                                                   |
 
 ## b) PARTIALLY DONE
 
-| # | What | Remaining half |
-|---|------|----------------|
-| B1 | **ClaimMetrics live-server runs** — PG half DONE (A2) | `#integration-mysql-nspawn` half (quiet-window + root; row 344 updated to say exactly this) |
-| B2 | **My P3 wave** — all five items CLOSED, but only ~half by me: error-taxonomy + skip-vs-fail + self-lint are mine; depguard auto-restore, pre-commit hardening, recipes-gate posture, nightly cron were closed by the 09-18 parallel sessions — I verified artifacts and ticked nothing twice | Nothing functional remains; the credit split is recorded here |
-| B3 | **Go 1.27 wave** — availability confirmed only | The L-sized wave itself: 85 go.mod directives, flake pin, CI, docs, release train (own wave, deliberately not started) |
-| B4 | **P4/P5 lane** — scoped as "future wave" by the prior session's plan; this session executed only the Go 1.27 availability slice | AggregateOn one-pager, NATS leg, watermill skill tail, md-go-validator gate, benchkit polish, turso/badger retry review, MySQL-VM replay, composed `#verify` (all quiet-window or M-sized) |
-| B5 | **15-02 report's 50 next steps** — bookkeeping, P2, P3 fully consumed this session | P4/P5 + owner-gated items roll into the list in section (f) |
+| #  | What                                                                                                                                                                                                                                                                                         | Remaining half                                                                                                                                                                             |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| B1 | **ClaimMetrics live-server runs** — PG half DONE (A2)                                                                                                                                                                                                                                        | `#integration-mysql-nspawn` half (quiet-window + root; row 344 updated to say exactly this)                                                                                                |
+| B2 | **My P3 wave** — all five items CLOSED, but only ~half by me: error-taxonomy + skip-vs-fail + self-lint are mine; depguard auto-restore, pre-commit hardening, recipes-gate posture, nightly cron were closed by the 09-18 parallel sessions — I verified artifacts and ticked nothing twice | Nothing functional remains; the credit split is recorded here                                                                                                                              |
+| B3 | **Go 1.27 wave** — availability confirmed only                                                                                                                                                                                                                                               | The L-sized wave itself: 85 go.mod directives, flake pin, CI, docs, release train (own wave, deliberately not started)                                                                     |
+| B4 | **P4/P5 lane** — scoped as "future wave" by the prior session's plan; this session executed only the Go 1.27 availability slice                                                                                                                                                              | AggregateOn one-pager, NATS leg, watermill skill tail, md-go-validator gate, benchkit polish, turso/badger retry review, MySQL-VM replay, composed `#verify` (all quiet-window or M-sized) |
+| B5 | **15-02 report's 50 next steps** — bookkeeping, P2, P3 fully consumed this session                                                                                                                                                                                                           | P4/P5 + owner-gated items roll into the list in section (f)                                                                                                                                |
 
 ## c) NOT STARTED (observed, deliberately out of this session's lane)
 
@@ -108,9 +108,9 @@
    re-planned the depguard/pre-commit/nightly items before discovering they
    were closed.
 5. **Self-introduced lint findings** — gofumpt (multiline string-concat style)
-   + nlreturn (blank line before return) in my own new code; caught by
-   `lint-module`, fixed same-session, but they should not have shipped in the
-   first write.
+   - nlreturn (blank line before return) in my own new code; caught by
+     `lint-module`, fixed same-session, but they should not have shipped in the
+     first write.
 6. **Minor command hygiene** — one `go vet` run from the repo root with
    `GOWORK=off` and cross-module patterns (meaningless invocation, redone
    per-module); one `rg -rn` misuse (`-r` is replace) that mangled output;
@@ -156,58 +156,58 @@
 
 ## f) 50 things to get done next (impact-ordered, brainstorm per skill note)
 
-| # | Task | Size/Blocker |
-|---|------|--------------|
-| 1 | Fix planned-table camelCase filter pushdown (canonical key mapping + round-trip parity test) — silent-empty P0 | M |
-| 2 | Port ctx-scoped tx to pgengine + `TestPgEngine_TxIsolationFromForeignContext` — P0 | M |
-| 3 | Port ctx-scoped tx to mysqlengine — P0 | M |
-| 4 | Port ctx-scoped tx to duckdbengine — P0 | M |
-| 5 | Composed quiet-window `nix run .#verify` + `-race` metaengine + verify-docs.sh (S03) | M, quiet-window |
-| 6 | Run `check-duplication` (verify my 3 classifier art-dupl:accept groups suppress live) | XS, this wave's debt |
-| 7 | Run `check-file-size` (types.go/analyzer files grew this wave) | XS, this wave's debt |
-| 8 | Add field-count validation to check-error-taxonomy.sh entries (kills the 6-field class) | XS |
-| 9 | Release train: tag decider/command/commandlifecycle once `#verify` lands | M, user-gated |
-| 10 | Tag claiming + queue/queue-sqlite/queue-postgres v4.0.0 (strip sibling replaces) | S, fold into tag wave |
-| 11 | Go 1.27 wave: 85 go.directives + flake go_1_27=1.27.1 + CI + docs + release train | L, own wave |
-| 12 | Post-1.27: decider.ExecuteCommandRef as true generic method + option-func families | M |
-| 13 | Queue: owner-bearing claims + claim-token ADR-0134 (T15) | M |
-| 14 | Queue: DAG dep-gating — enqueue validation/cycle rejection/unblock-bump (T14) | M |
-| 15 | Queue: FactSink-in-tx + watermark API completion (T16) | M |
-| 16 | Queue/mysql engine decision → implement behind conformance or strike (owner) | S decision + M |
-| 17 | AggregateOn(fn, column, group) QueryDecl one-pager (planner seam) | S doc |
-| 18 | Routing v1: scalar-covered matview shapes price O(1) (after #17) | M |
-| 19 | NATS JetStream roundtrip leg + `#integration-nats` flake app + CI leg | M |
-| 20 | Watermill skill: run 3 trigger-eval prompts | S |
-| 21 | Watermill skill: references/advanced.md (Delayed/Requeue/FanIn/Out/Metrics/Troubleshooting) | M |
-| 22 | Cross-link go-cqrs-lite SKILL/advanced watermill sections → sibling skill | S |
-| 23 | Verify upstream latests: redisstream/kafka/amqp/sql watermill plugins | S |
-| 24 | Codify claims-checklist rule (verify inline factual assertions) in docs/agents | S |
-| 25 | md-go-validator: commit config + baseline + flake app + CI packaging | M |
-| 26 | md-go-validator P2: `// skip-validate` the 9 consumer-facing blocks | S |
-| 27 | md-go-validator P3: ~55 active-doc blocks | M |
-| 28 | Decide md-go-validator P4 archived-errors policy (baseline vs ratchet) | XS decision |
-| 29 | benchkit compare/serialization tail (noisy-metric column, Variation footer, manifest runs[], RepeatedResult JSON) | M |
-| 30 | benchkit SDK polish batch (MIN tracking, LoadAvg1 drift, small-n interpolation, constants, zero-value audit, fresh capture) | M, sliceable |
-| 31 | Benchstat CI decision: A/B nightly vs per-metric CoV gating (owner) | L, decision-gated |
-| 32 | Wire sqlite vector paths into benchmark-regression gate set (deliberately skipped in (c) evidence) | S |
-| 33 | Turso/badger contention-retry backport review | M |
-| 34 | Dgraph v24 floor decision (feature-detect vs hard floor) + aborted-tx flake investigate | S decision + M |
-| 35 | Universal Storage Substrate: execute the 23-task owner-directive plan | XL, multi-session |
-| 36 | Confirm go-work-sync + matview-gate green on next real CI run | XS, needs CI |
-| 37 | Confirm cache-migration unblocks the 5 starved CI jobs | XS, needs CI |
-| 38 | First nightly-gates.yml run observation (lint-config self-heal visibility) | XS, needs CI |
-| 39 | GitHub Actions billing fix | S, user action |
-| 40 | Set `ERRAUDIT_PAT` secret | S, user action |
-| 41 | FlakeHub account decision (long-term cache backend) | S, user decision |
-| 42 | macOS ephemeral-PG verification leg | M, blocked infra |
-| 43 | MySQL-VM shuffled suite replay (both logged seeds) | M, quiet-window |
-| 44 | 350-line policy: owner ratification → split waves (typed_reader 1127, adttest 953, …) | XL, decision-gated |
-| 45 | cqrs-upgrade residual holes: NoPins deprecation scan, `schemaVersion` in --json, E2E fixture test | S |
-| 46 | V007 typed-method detection (`types.Info.Selections`) decision before v5 cut | M, decision |
-| 47 | Doctor-JSON raw-vs-effective ruling | XS, owner |
-| 48 | Session-log boundary decision (T18 memo) | XS, owner |
-| 49 | Shuffle eval for test-integration.sh / test-all-backends.sh (gated on OQ-9) | S |
-| 50 | CV consumer bump (8 modules behind + vendorHash cascade) | M, operator |
+| #  | Task                                                                                                                        | Size/Blocker          |
+| -- | --------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 1  | Fix planned-table camelCase filter pushdown (canonical key mapping + round-trip parity test) — silent-empty P0              | M                     |
+| 2  | Port ctx-scoped tx to pgengine + `TestPgEngine_TxIsolationFromForeignContext` — P0                                          | M                     |
+| 3  | Port ctx-scoped tx to mysqlengine — P0                                                                                      | M                     |
+| 4  | Port ctx-scoped tx to duckdbengine — P0                                                                                     | M                     |
+| 5  | Composed quiet-window `nix run .#verify` + `-race` metaengine + verify-docs.sh (S03)                                        | M, quiet-window       |
+| 6  | Run `check-duplication` (verify my 3 classifier art-dupl:accept groups suppress live)                                       | XS, this wave's debt  |
+| 7  | Run `check-file-size` (types.go/analyzer files grew this wave)                                                              | XS, this wave's debt  |
+| 8  | Add field-count validation to check-error-taxonomy.sh entries (kills the 6-field class)                                     | XS                    |
+| 9  | Release train: tag decider/command/commandlifecycle once `#verify` lands                                                    | M, user-gated         |
+| 10 | Tag claiming + queue/queue-sqlite/queue-postgres v4.0.0 (strip sibling replaces)                                            | S, fold into tag wave |
+| 11 | Go 1.27 wave: 85 go.directives + flake go_1_27=1.27.1 + CI + docs + release train                                           | L, own wave           |
+| 12 | Post-1.27: decider.ExecuteCommandRef as true generic method + option-func families                                          | M                     |
+| 13 | Queue: owner-bearing claims + claim-token ADR-0134 (T15)                                                                    | M                     |
+| 14 | Queue: DAG dep-gating — enqueue validation/cycle rejection/unblock-bump (T14)                                               | M                     |
+| 15 | Queue: FactSink-in-tx + watermark API completion (T16)                                                                      | M                     |
+| 16 | Queue/mysql engine decision → implement behind conformance or strike (owner)                                                | S decision + M        |
+| 17 | AggregateOn(fn, column, group) QueryDecl one-pager (planner seam)                                                           | S doc                 |
+| 18 | Routing v1: scalar-covered matview shapes price O(1) (after #17)                                                            | M                     |
+| 19 | NATS JetStream roundtrip leg + `#integration-nats` flake app + CI leg                                                       | M                     |
+| 20 | Watermill skill: run 3 trigger-eval prompts                                                                                 | S                     |
+| 21 | Watermill skill: references/advanced.md (Delayed/Requeue/FanIn/Out/Metrics/Troubleshooting)                                 | M                     |
+| 22 | Cross-link go-cqrs-lite SKILL/advanced watermill sections → sibling skill                                                   | S                     |
+| 23 | Verify upstream latests: redisstream/kafka/amqp/sql watermill plugins                                                       | S                     |
+| 24 | Codify claims-checklist rule (verify inline factual assertions) in docs/agents                                              | S                     |
+| 25 | md-go-validator: commit config + baseline + flake app + CI packaging                                                        | M                     |
+| 26 | md-go-validator P2: `// skip-validate` the 9 consumer-facing blocks                                                         | S                     |
+| 27 | md-go-validator P3: ~55 active-doc blocks                                                                                   | M                     |
+| 28 | Decide md-go-validator P4 archived-errors policy (baseline vs ratchet)                                                      | XS decision           |
+| 29 | benchkit compare/serialization tail (noisy-metric column, Variation footer, manifest runs[], RepeatedResult JSON)           | M                     |
+| 30 | benchkit SDK polish batch (MIN tracking, LoadAvg1 drift, small-n interpolation, constants, zero-value audit, fresh capture) | M, sliceable          |
+| 31 | Benchstat CI decision: A/B nightly vs per-metric CoV gating (owner)                                                         | L, decision-gated     |
+| 32 | Wire sqlite vector paths into benchmark-regression gate set (deliberately skipped in (c) evidence)                          | S                     |
+| 33 | Turso/badger contention-retry backport review                                                                               | M                     |
+| 34 | Dgraph v24 floor decision (feature-detect vs hard floor) + aborted-tx flake investigate                                     | S decision + M        |
+| 35 | Universal Storage Substrate: execute the 23-task owner-directive plan                                                       | XL, multi-session     |
+| 36 | Confirm go-work-sync + matview-gate green on next real CI run                                                               | XS, needs CI          |
+| 37 | Confirm cache-migration unblocks the 5 starved CI jobs                                                                      | XS, needs CI          |
+| 38 | First nightly-gates.yml run observation (lint-config self-heal visibility)                                                  | XS, needs CI          |
+| 39 | GitHub Actions billing fix                                                                                                  | S, user action        |
+| 40 | Set `ERRAUDIT_PAT` secret                                                                                                   | S, user action        |
+| 41 | FlakeHub account decision (long-term cache backend)                                                                         | S, user decision      |
+| 42 | macOS ephemeral-PG verification leg                                                                                         | M, blocked infra      |
+| 43 | MySQL-VM shuffled suite replay (both logged seeds)                                                                          | M, quiet-window       |
+| 44 | 350-line policy: owner ratification → split waves (typed_reader 1127, adttest 953, …)                                       | XL, decision-gated    |
+| 45 | cqrs-upgrade residual holes: NoPins deprecation scan, `schemaVersion` in --json, E2E fixture test                           | S                     |
+| 46 | V007 typed-method detection (`types.Info.Selections`) decision before v5 cut                                                | M, decision           |
+| 47 | Doctor-JSON raw-vs-effective ruling                                                                                         | XS, owner             |
+| 48 | Session-log boundary decision (T18 memo)                                                                                    | XS, owner             |
+| 49 | Shuffle eval for test-integration.sh / test-all-backends.sh (gated on OQ-9)                                                 | S                     |
+| 50 | CV consumer bump (8 modules behind + vendorHash cascade)                                                                    | M, operator           |
 
 ## g) Three questions I can NOT figure out myself
 
@@ -229,9 +229,9 @@
 
 ---
 
-*Session evidence keys: `PG_MODULES="scheduling/sqlstore storage" nix run
+_Session evidence keys: `PG_MODULES="scheduling/sqlstore storage" nix run
 .#integration-pg` (PASS); `bash scripts/check-error-taxonomy.sh` (18 modules /
 519 codes / 450 claims) + `--self-test`; cqrs-lint suite 19 pkgs exit 0;
 cqrs-upgrade exit 0; `TestEvery` green; api golden 7,209 → +1 export;
 `check-changelog-symbols` 114 citations honest; `nix eval nixpkgs#go_1_27.version`
-= 1.27.1.*
+= 1.27.1._

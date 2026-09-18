@@ -79,7 +79,11 @@ func (ds *DocsServer) applyCSPAllowingEval(w http.ResponseWriter, r *http.Reques
 	return ds.applyCSPWith(w, r, cspHeaderValueAllowingEval)
 }
 
-func (ds *DocsServer) applyCSPWith(w http.ResponseWriter, r *http.Request, policy func(string) string) *http.Request {
+func (ds *DocsServer) applyCSPWith(
+	w http.ResponseWriter,
+	r *http.Request,
+	policy func(string) string,
+) *http.Request {
 	nonce, ok := newNonce()
 	if !ok {
 		return r

@@ -45,7 +45,9 @@ func TestIsLibrarySelfLint_ExamplesAreConsumers(t *testing.T) {
 		ModulePath: "github.com/larsartmann/go-cqrs-lite/example/taskmanager",
 	}
 	if exampleCtx.IsLibrarySelfLint() {
-		t.Error("example module classified as self-lint — V007/F030 would silently skip it (the false-green class)")
+		t.Error(
+			"example module classified as self-lint — V007/F030 would silently skip it (the false-green class)",
+		)
 	}
 
 	libraryCtx := &AnalysisContext{

@@ -47,7 +47,7 @@ scheduler itself, no cron daemon — when to activate a matching unit (usually a
    while down fires once immediately (catch-up). Without it, downtime skips
    occurrences.
 5. **No payload, no retry:** a timer's only job is activating a unit. Failure
-   handling lives in the *service* (`Restart=`, `OnFailure=`) — the timer never
+   handling lives in the _service_ (`Restart=`, `OnFailure=`) — the timer never
    retries.
 6. **Single-scheduler assumption:** PID 1 is the only claimer on the host;
    atomic claiming is unnecessary by construction.
@@ -59,11 +59,11 @@ scheduler itself, no cron daemon — when to activate a matching unit (usually a
 
 ### Mapping to go-cqrs-lite `scheduling/`
 
-| systemd                          | go-cqrs-lite `scheduling/`                             |
-| -------------------------------- | ------------------------------------------------------ |
-| PID 1 = sole scheduler           | base `Scheduler` (or `ClaimingTimerStore` multi-inst.) |
-| stamp file + boot catch-up       | durable `TimerStore`; restart replays `Due(now)`       |
-| `AccuracySec` / jitter           | `WithPollInterval` + jitter constant                   |
+| systemd                                   | go-cqrs-lite `scheduling/`                                |
+| ----------------------------------------- | --------------------------------------------------------- |
+| PID 1 = sole scheduler                    | base `Scheduler` (or `ClaimingTimerStore` multi-inst.)    |
+| stamp file + boot catch-up                | durable `TimerStore`; restart replays `Due(now)`          |
+| `AccuracySec` / jitter                    | `WithPollInterval` + jitter constant                      |
 | timer fires once; `Restart=` owns failure | Scheduler dispatches once; retry/DLQ → `commandlifecycle` |
 
 ## 3. Feasibility mechanics
@@ -82,28 +82,28 @@ queryable due-queue. That distinction drives the entire assessment.
 
 ## 4. PRO
 
-| Win                              | Why it matters                                                                              |
-| -------------------------------- | ------------------------------------------------------------------------------------------- |
+| Win                                   | Why it matters                                                                                                                                         |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Durable timers with **zero database** | PID 1 owns the schedule; survives app crashes by construction. The only durable backend on a host with no SQL — edge/laptop/NixOS-service deployments. |
-| No poll loop                     | timerfd-armed by the kernel; kills the 1s `Due()` scan goroutine.                           |
-| `WakeSystem=true`                | fires from suspend — genuinely unique; no SQL store can do this.                            |
-| `Persistent=true` stamp          | missed-fire catch-up on reboot for free.                                                    |
-| Calendar recurrence              | `OnCalendar=` gives recurring schedules the fire-once `Timer` model lacks.                   |
-| Operator visibility              | `systemctl list-timers` — fits the "operators reconcile at deployment" paradigm.             |
-| Per-host dedup lock              | unit namespace collisions make double-`Schedule` structurally impossible on one host.        |
+| No poll loop                          | timerfd-armed by the kernel; kills the 1s `Due()` scan goroutine.                                                                                      |
+| `WakeSystem=true`                     | fires from suspend — genuinely unique; no SQL store can do this.                                                                                       |
+| `Persistent=true` stamp               | missed-fire catch-up on reboot for free.                                                                                                               |
+| Calendar recurrence                   | `OnCalendar=` gives recurring schedules the fire-once `Timer` model lacks.                                                                             |
+| Operator visibility                   | `systemctl list-timers` — fits the "operators reconcile at deployment" paradigm.                                                                       |
+| Per-host dedup lock                   | unit namespace collisions make double-`Schedule` structurally impossible on one host.                                                                  |
 
 ## 5. CONTRA
 
-| Problem                                                                 | Severity |
-| ----------------------------------------------------------------------- | -------- |
-| `Due(now)` **cannot be implemented** — no due-queue; a shadow table defeats the purpose | 🔴 contract-breaking |
-| Dispatch becomes **IPC re-entry** — the `DispatchFunc` closure is gone; needs helper binary + socket + auth; failure happens outside the library where `commandlifecycle` retry/rejection semantics cannot see it | 🔴 |
-| Transient units live in `/run` (**lost on reboot**); durable units mean writing `/etc/systemd/system` → **root or polkit**; app-scheduled timers become root-scheduled exec config = attack surface | 🔴 |
-| Payload `P` must ride env vars/credentials/paths — size + secrecy limits  | 🟠 |
-| Platform matrix: no systemd in Docker/K8s pods, nothing on macOS/Windows — fragments the "every backend everywhere" universality story | 🟠 |
-| Multi-host: PID 1 is per-host — no cross-instance claiming; the problem `claiming/` solved reappears at fleet scale | 🟠 |
-| `godbus` dependency + build tags + a booted-systemd VM/nspawn leg for CI (repo has the infra, but it is weight) | 🟡 |
-| ADR-0136: schedule state lives outside the engine world — Reset+replay means mutating unit files, awkward | 🟡 |
+| Problem                                                                                                                                                                                                           | Severity             |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| `Due(now)` **cannot be implemented** — no due-queue; a shadow table defeats the purpose                                                                                                                           | 🔴 contract-breaking |
+| Dispatch becomes **IPC re-entry** — the `DispatchFunc` closure is gone; needs helper binary + socket + auth; failure happens outside the library where `commandlifecycle` retry/rejection semantics cannot see it | 🔴                   |
+| Transient units live in `/run` (**lost on reboot**); durable units mean writing `/etc/systemd/system` → **root or polkit**; app-scheduled timers become root-scheduled exec config = attack surface               | 🔴                   |
+| Payload `P` must ride env vars/credentials/paths — size + secrecy limits                                                                                                                                          | 🟠                   |
+| Platform matrix: no systemd in Docker/K8s pods, nothing on macOS/Windows — fragments the "every backend everywhere" universality story                                                                            | 🟠                   |
+| Multi-host: PID 1 is per-host — no cross-instance claiming; the problem `claiming/` solved reappears at fleet scale                                                                                               | 🟠                   |
+| `godbus` dependency + build tags + a booted-systemd VM/nspawn leg for CI (repo has the infra, but it is weight)                                                                                                   | 🟡                   |
+| ADR-0136: schedule state lives outside the engine world — Reset+replay means mutating unit files, awkward                                                                                                         | 🟡                   |
 
 ## 6. Verdict
 

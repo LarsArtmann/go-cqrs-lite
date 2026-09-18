@@ -130,7 +130,10 @@ func TestDocsServer_OpenAPISpecRequestScopedServers(t *testing.T) {
 
 	servers, ok := decodeJSON(t, recorder)["servers"].([]any)
 	if !ok || len(servers) != 1 {
-		t.Fatalf("expected exactly one request-derived server, got %v", decodeJSON(t, recorder)["servers"])
+		t.Fatalf(
+			"expected exactly one request-derived server, got %v",
+			decodeJSON(t, recorder)["servers"],
+		)
 	}
 
 	server, ok := servers[0].(map[string]any)
@@ -155,7 +158,11 @@ func TestDocsServer_OpenAPISpecRequestScopedServers(t *testing.T) {
 	// Compare decoded values: encoding/json/v2 does not sort map keys, so a
 	// byte-wise comparison against the typed struct marshal is order-flaky.
 	if !reflect.DeepEqual(defaultDoc["servers"], baseDecoded) {
-		t.Errorf("empty Host must preserve exporter default servers %s, got %v", baseRaw, defaultDoc["servers"])
+		t.Errorf(
+			"empty Host must preserve exporter default servers %s, got %v",
+			baseRaw,
+			defaultDoc["servers"],
+		)
 	}
 }
 

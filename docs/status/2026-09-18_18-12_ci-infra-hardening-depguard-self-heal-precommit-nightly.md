@@ -126,8 +126,8 @@
    regex only deleted the `depguard:` header line (the 6-space `rules:` line
    didn't match the continuation alternation) — so round 1 tested a damage
    shape that never occurs, produced confusing results (silent pipefail death
-   + FICTION from the stale `$gostd` filter), and sent me debugging in circles.
-   Damage shape validated badly = test lied twice.
+   - FICTION from the stale `$gostd` filter), and sent me debugging in circles.
+     Damage shape validated badly = test lied twice.
 3. **restore-depguard.sh shipped with 3 bugs** (pipefail grep-death, `$gostd`
    asymmetry, unbound `spliced`) — I wrote the whole script THEN tested, when
    the repo's own convention (mutation-test before golden counts) should have
@@ -196,6 +196,7 @@
 ## f) NEXT 50 (ordered roughly by leverage; items from this session's evidence only)
 
 **Unblock / verify what shipped**
+
 1. Sync `go.work` to `go 1.27.1` (the concurrent wave's pending step) —
    unblocks the hook's workspace build gate for everyone.
 2. Re-run `bash scripts/pre-commit.sh` end-to-end to green after #1.
@@ -224,89 +225,89 @@
 
 **Corruption loop — root cause, not just heal**
 16. Get daemon (pma) config/logs: does it run full BuildFlow (whose
-    golangci-lint-auto-configure would rewrite `.golangci.yml`)? Exclude
-    `.golangci.yml` from its fmt waves.
+golangci-lint-auto-configure would rewrite `.golangci.yml`)? Exclude
+`.golangci.yml` from its fmt waves.
 17. If BuildFlow auto-configure is confirmed: check whether it can preserve
-    depguard/formatters blocks (config option), else file upstream
-    (verify-before-filing first).
+depguard/formatters blocks (config option), else file upstream
+(verify-before-filing first).
 18. Add a CI-side config-vs-golden diff check (belt+braces to the nightly's
-    24h latency).
+24h latency).
 19. Consider sha256-pinning the golden header comment (tamper evidence).
 20. Sixth+seventh incident post-mortem note: c55e21fa8 stays in history (no
-    rewrite); add a line to the gotchas incident log marking it as
-    session-caused (mine) for honest archaeology.
+rewrite); add a line to the gotchas incident log marking it as
+session-caused (mine) for honest archaeology.
 
 **Load-fragile test / Investigate item**
 21. Schedule a real full `nix run .#verify` in a quiet window (load<8) to
-    hunt the phase-2 stall with the new diagnostics armed.
+hunt the phase-2 stall with the new diagnostics armed.
 22. If it reproduces: read status/checkpoint/lastError + journal-count from
-    the failure output; fork journal-empty vs worker-idle.
+the failure output; fork journal-empty vs worker-idle.
 23. If worker-idle: trace system.Start → projectionhost drain/subscribe
-    ordering against the recipes §2.23 TOCTOU guard (ADR-0136 replay
-    guarantee); fix at projectionhost.
+ordering against the recipes §2.23 TOCTOU guard (ADR-0136 replay
+guarantee); fix at projectionhost.
 24. Consider a worker self-check: after live transition, if journal is
-    non-empty and processed==0, log loudly (converts silent stall into
-    signal).
+non-empty and processed==0, log loudly (converts silent stall into
+signal).
 25. Apply the same instrumentation to the second witness
-    (`TestEngineHealth_CatchUpUnderConcurrentApplies`).
+(`TestEngineHealth_CatchUpUnderConcurrentApplies`).
 26. Write the storm-repro protocol (soaker count, storm composition, budgets)
-    into docs/agents/gotchas-testing.md or a script so the next attempt is
-    repeatable.
+into docs/agents/gotchas-testing.md or a script so the next attempt is
+repeatable.
 27. Re-check `waitForProjectionProcessed` margins after the file-DSN
-    knowledge: 45s base may be reducible now (or keep — margins are cheap).
+knowledge: 45s base may be reducible now (or keep — margins are cheap).
 
 **Hook hardening, round 2**
 28. Scope the tree-wide fmt.Printf grep to staged files (multi-writer hazard
-    class, same as the old fmt gate).
+class, same as the old fmt gate).
 29. Consider scoped/workspace-tolerant semantics for the hook's `go build`
-    (retry-once, or staged-modules-only build) after the go.work incident.
+(retry-once, or staged-modules-only build) after the go.work incident.
 30. api-surface gate: verify its runtime under GOWORK=off is stable when other
-    sessions have half-staged modules (observed OK today; worth a note).
+sessions have half-staged modules (observed OK today; worth a note).
 31. Hook idempotency note: devShell bootstrap vs manual install racing on cp
-    (benign today; document).
+(benign today; document).
 32. Investigate `t/` at repo root (unknown directory seen during the session;
-    ask or assign an owner).
+ask or assign an owner).
 
 **Nightly / CI polish**
 33. Nightly: add a visible failure channel decision (where do nightly reds
-    surface? currently only the Actions tab nobody reads while billing is
-    broken).
+surface? currently only the Actions tab nobody reads while billing is
+broken).
 34. Nightly: verify calibration gate ceiling on 2-4 core GitHub runners
-    (default max-load 8 assumes headroom).
+(default max-load 8 assumes headroom).
 35. Nightly: document rolling actions/cache key accumulation (LRU eviction is
-    fine; write it down).
+fine; write it down).
 36. Confirm `git ls-remote --tags origin` works under Actions checkout
-    credentials (nightly pin-sweep leg) on first run.
+credentials (nightly pin-sweep leg) on first run.
 37. Reconcile the calibration nightly loop with `benchmark-regression.sh`'
-    gate (they measure different things; document the split so nobody
-    dedupes them wrongly).
+gate (they measure different things; document the split so nobody
+dedupes them wrongly).
 38. Consider copying the ci.yml cache-policy note into
-    gotchas-tooling-build.md (one canonical place per fact).
+gotchas-tooling-build.md (one canonical place per fact).
 39. Shellcheck the inline `run:` blocks of nightly-gates.yml (actionlint does
-    not).
+not).
 40. AGENTS.md TL;DR: one line next to check-lint-config mentioning the
-    depguard self-heal + golden (the gotchas entry is linked but the TL;DR is
-    the hot path).
+depguard self-heal + golden (the gotchas entry is linked but the TL;DR is
+the hot path).
 
 **Queue (existing items this session touched the context of)**
 41. Billing fix (user) → then items 12-14 above become executable.
 42. `ERRAUDIT_PAT` secret (user).
 43. CV consumer bump (operator) — note: the Go-1.27 wave landing will change
-    what "latest tags" means for that bump; sequence it after the wave.
+what "latest tags" means for that bump; sequence it after the wave.
 44. MySQL-VM shuffled-seed replay in the next quiet window.
 45. Go-1.27 wave (other session): after it lands, re-verify the hook's
-    `go build` gate + verify-fast locally.
+`go build` gate + verify-fast locally.
 46. Temporal/bigtable session's `docs/api_surface.txt` change is staged from
-    their side — do not sweep into my commits.
+their side — do not sweep into my commits.
 47. Re-run `nix run .#verify` in the next quiet window as the overall
-    post-wave gate (covers my system-test edit + scripts under race/lint).
+post-wave gate (covers my system-test edit + scripts under race/lint).
 48. Consider a tiny e2e test for install-hooks (fresh clone fixture, like
-    test-pin-sweep.sh's harness style).
+test-pin-sweep.sh's harness style).
 49. Decide whether `.githooks/pre-commit` should also be committed on every
-    source change (currently installed-copy drift is un-gated until item 15).
+source change (currently installed-copy drift is un-gated until item 15).
 50. Close the loop on this report's d1: add the "don't mutation-test live in
-    daemon repos" rule to the global CLAUDE/AGENTS tier-2 practices list
-    (it currently lives only in this repo's gotchas).
+daemon repos" rule to the global CLAUDE/AGENTS tier-2 practices list
+(it currently lives only in this repo's gotchas).
 
 ## g) QUESTIONS (3, not answerable from the repo)
 
@@ -327,9 +328,9 @@
 
 ---
 
-*Session artifacts: 8 commits absorbed by the auto-commit daemon (authored
+_Session artifacts: 8 commits absorbed by the auto-commit daemon (authored
 history intentionally not created; user has not requested commits), 1 new
 workflow, 1 new flake app, 3 new/rewritten scripts, 1 golden, 1 instrumented
 test, 6 TODO items closed, 1 gotchas entry extended. Known collateral: master
 carries `c55e21fa8` (damaged `.golangci.yml` intermediate, session-caused,
-superseded by the healthy working tree).*
+superseded by the healthy working tree)._

@@ -147,94 +147,94 @@
 3. [me] doc-check extended corpus (TODO_LIST/ROADMAP included).
 4. [me] Unit-test `fatalCSPRefusals` with fixture console lines.
 5. [me] Quiet-window watcher; run the verify cascade the moment load drops
-       (verify-fast → verify → verify-ci).
+   (verify-fast → verify → verify-ci).
 6. [me] Re-run `TestSystem_ResetProjection_RestartAndReplay` standalone at
-       quiet to close or re-confirm the filed flake.
+   quiet to close or re-confirm the filed flake.
 7. [owner] Direction Ruling: G-T01/G-T02 (Infer deprecation path) — gates
-       all G1 work.
+   all G1 work.
 8. [owner] P0 sequencing: hold system tag until starvation fix vs
-       ship-then-fast-follow (T02-T04).
+   ship-then-fast-follow (T02-T04).
 9. [owner] Full Execution Mode authorization (which plan starts first).
 10. [owner] asyncapi strict-CSP decision: eval-free bundle swap vs
-       page-scoped `'unsafe-eval'` vs leave degraded (security tradeoff).
+    page-scoped `'unsafe-eval'` vs leave degraded (security tradeoff).
 11. [me] Implement the chosen asyncapi fix + remove the gate's eval
-       expectation.
+    expectation.
 12. [me] Research Scalar config to disable fonts.scalar.com /
-       api.scalar.com attempts at the source (shrink the allowlist).
+    api.scalar.com attempts at the source (shrink the allowlist).
 13. [me/upstream] templ-components: read nonce from context automatically
-       (ThemeToggle/MobileMenu) — kills the bug class docserver hit.
+    (ThemeToggle/MobileMenu) — kills the bug class docserver hit.
 14. [me] Review sibling's live docserver edits (eventCatalogTitle etc.) once
-       their session commits; re-run docserver suite + CSP gate.
+    their session commits; re-run docserver suite + CSP gate.
 15. [me] Untested hook paths: fmt-repair re-stage branch; doc-only skip with
-       staged docs (18-12 §e/10).
+    staged docs (18-12 §e/10).
 16. [me] `restore-depguard.sh --self-test` wired into check-release-scripts
-       (18-12 §e/2).
+    (18-12 §e/2).
 17. [me] Record BuildFlow report-only decision in gotchas (18-12 §e/3;
-       CONTRIBUTING done, gotchas entry still missing).
+    CONTRIBUTING done, gotchas entry still missing).
 18. [me] Add gotcha: "opt-in gates must be flake-wired at birth" + pipe-mask
-       + vacuous-pass tells (this session's lessons).
+    - vacuous-pass tells (this session's lessons).
 19. [auto] Nightly-gates first run (blocked: billing) — then verify
-       actions/cache restore, ls-remote creds, calibration on 2-4 cores.
+    actions/cache restore, ls-remote creds, calibration on 2-4 cores.
 20. [owner] GitHub Actions billing fix (gates 19, 21, 22).
 21. [auto] cqrs-lint self-lint CI leg re-run once billing works.
 22. [owner] ERRAUDIT_PAT secret.
 23. [owner] CV consumer bump (8 modules + vendorHash cascade).
 24. [me] SUPERB ruling-free micro tasks (R-series sweep; at minimum re-list
-       which are blocked vs free).
+    which are blocked vs free).
 25. [me] Overflow probe → permanent in-repo regression test for
-       expiryFromTTL boundary (2262 wrap) in idempotency adapters.
+    expiryFromTTL boundary (2262 wrap) in idempotency adapters.
 26. [upstream] go-idempotency: Forever sentinel → adapters write MaxInt64
-       directly (the actual fix the probe pins).
+    directly (the actual fix the probe pins).
 27. [me] Dedup `expiryFromTTL` (kvstore/sqlstore byte-identical; ADR-0069
-       shared-helper pattern).
+    shared-helper pattern).
 28. [me] CV write-back items 31-33 (dedup answer, census, overflow).
 29. [me] MySQL-VM shuffled-seed replay at quiet.
 30. [me] Audit other silent-truncation surfaces (List/Fold/ScanPage defaults)
-       for the same doc-lie class Scan had.
+    for the same doc-lie class Scan had.
 31. [owner] Commit policy: bless per-phase authored commits in daemon repos
-       (18-12 §e/5; this session lost all authored history to `chore:` waves
-       again).
+    (18-12 §e/5; this session lost all authored history to `chore:` waves
+    again).
 32. [me] Daemon config: exclude `.golangci.yml` from fmt waves (needs daemon
-       access; kills corruption class at root).
+    access; kills corruption class at root).
 33. [me] Tree-wide hook gates → staged-scoped variants (TODO row; workspace
-       build stays tree-wide).
+    build stays tree-wide).
 34. [me] Phase-2 stall root-cause (subscribe-vs-drain) — instrumentation
-       armed, next organic occurrence names the fork.
+    armed, next organic occurrence names the fork.
 35. [me] Mermaid render gate: cheap mmdc pass over all docs/planning +
-       references graphs in CI (this session found one broken graph by
-       accident).
+    references graphs in CI (this session found one broken graph by
+    accident).
 36. [me] Scalar bundle version pin recorded where the allowlist lives
-       (comment says 1.69.0; a bump invalidates the allowlist silently —
-       consider asserting the version string in scalar.js at test time).
+    (comment says 1.69.0; a bump invalidates the allowlist silently —
+    consider asserting the version string in scalar.js at test time).
 37. [me] Verify daemon history does not carry the mangled-comment
-       intermediate (inspect the wave commits; if it does, note it — rewrite
-       forbidden).
+    intermediate (inspect the wave commits; if it does, note it — rewrite
+    forbidden).
 38. [me] Consider asserting fonts/api.scalar.com blocks HAPPEN (negative
-       contract) so the policy can't silently regress to permissive.
+    contract) so the policy can't silently regress to permissive.
 39. [me] `eventcatalogview_templ.go` (931, generated, baselined): split the
-       .templ source if the sibling's catalog UI keeps growing.
+    .templ source if the sibling's catalog UI keeps growing.
 40. [me] Pre-release sweep before next tag: vulncheck, check-arch,
-       check-coverage, error-taxonomy, load-sweep (AGENTS verify list).
+    check-coverage, error-taxonomy, load-sweep (AGENTS verify list).
 41. [me] api-stability `TestEvery` after the dust settles (7209 ran green;
-       re-run post-sibling-merge).
+    re-run post-sibling-merge).
 42. [me] Re-verify `#check-lint-config` after this session's yaml edit
-       (comment-only; still: gate it).
+    (comment-only; still: gate it).
 43. [me] Review TODO row wording for skimmer-overtrust (18-12 §d/9 lesson;
-       my asyncapi row says "DEAD" — accurate, keep).
+    my asyncapi row says "DEAD" — accurate, keep).
 44. [me] Skim sibling reports for NEW open items after their sessions end
-       (three ran during mine; their end-states may add work).
+    (three ran during mine; their end-states may add work).
 45. [me] Poll-then-run: verify-ci per-module matrix at quiet (mirrors CI).
 46. [owner] Whether the 2026-09-17 Goal/excellence plan priorities shift
-       given today's temporal-cells landing (bigtable engine shipped; plan
-       tasks may be stale).
+    given today's temporal-cells landing (bigtable engine shipped; plan
+    tasks may be stale).
 47. [me] Next session bootstrap: read 19:24 report + this review + 17:40/18-12
-       reports before touching anything.
+    reports before touching anything.
 48. [me] Keep `/tmp/cqrs-overflow-probe` out of future docs (pattern: embed
-       or delete; no /tmp citations).
+    or delete; no /tmp citations).
 49. [me] Add CSP gate to a cadence (nightly or verify) so it cannot silently
-       skip again.
+    skip again.
 50. [owner] Confirm no coordination protocol is needed for multi-session
-       days like today (9 concurrent sessions, one shared box, one daemon).
+    days like today (9 concurrent sessions, one shared box, one daemon).
 
 ## g) QUESTIONS ONLY THE OWNER CAN ANSWER
 
@@ -252,6 +252,6 @@
    all history? Today every fix landed as `chore: auto-commit`; reviewable
    history exists only inside the reports.
 
-*Point-in-time: 2026-09-18 19:50 CEST, master absorbed through 8ca90cf45;
+_Point-in-time: 2026-09-18 19:50 CEST, master absorbed through 8ca90cf45;
 tree carries only this report + TODO_LIST row as uncommitted (daemon will
-absorb).*
+absorb)._

@@ -42,13 +42,13 @@ The engine auto-registers as the `"bigtable"` driver (DSN
 MapBackend, CounterBackend (native `ReadModifyWrite` increments), plus the
 full temporal set, natively:
 
-| Capability (metaengine interface) | BigTable mechanism |
-| --------------------------------- | ------------------ |
-| `MapBackend` (`MapSet`/`MapGet`/`MapDelete`) | Latest-version cell read/write on row key `collection\x00key`, family `cqrs`, column `v` |
-| `VersionedWriter` (`MapSetAt`/`MapDeleteAt`) | `Mutation.Set` with explicit timestamp; deletes are empty-value cells (timestamped tombstones) |
-| `VersionedStorage` (`MapGetAsOf`/`MapExistsAsOf`) | `ChainFilters(Family → TimestampRange → LatestN(1))` — range first, then newest |
-| `CellHistoryReader` (`MapHistory`) | `TimestampRangeFilterMicros(from, to)`, newest-first |
-| `HealthChecker` / `EngineResetter` / `Calibratable` | One-row read / full-table row delete / prior overrides |
+| Capability (metaengine interface)                   | BigTable mechanism                                                                             |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `MapBackend` (`MapSet`/`MapGet`/`MapDelete`)        | Latest-version cell read/write on row key `collection\x00key`, family `cqrs`, column `v`       |
+| `VersionedWriter` (`MapSetAt`/`MapDeleteAt`)        | `Mutation.Set` with explicit timestamp; deletes are empty-value cells (timestamped tombstones) |
+| `VersionedStorage` (`MapGetAsOf`/`MapExistsAsOf`)   | `ChainFilters(Family → TimestampRange → LatestN(1))` — range first, then newest                |
+| `CellHistoryReader` (`MapHistory`)                  | `TimestampRangeFilterMicros(from, to)`, newest-first                                           |
+| `HealthChecker` / `EngineResetter` / `Calibratable` | One-row read / full-table row delete / prior overrides                                         |
 
 `MapUpdate` (read-modify-write) is intentionally NOT implemented: fold
 writes go through `MapSetAt`/`MapDeleteAt` under the store's fold locks, so
@@ -69,10 +69,10 @@ no client-side RMW is needed (ADR-0141 §"fold path").
 
 ## Cost Profile
 
-| ADT     | Complexity | Notes                                          |
-| ------- | ---------- | ---------------------------------------------- |
-| Map     | O(1)       | Key-addressed LSM point lookup                 |
-| Counter | O(1)       | Native `ReadModifyWrite` increment             |
+| ADT     | Complexity | Notes                              |
+| ------- | ---------- | ---------------------------------- |
+| Map     | O(1)       | Key-addressed LSM point lookup     |
+| Counter | O(1)       | Native `ReadModifyWrite` increment |
 
 ⚠ **Priors are UNCALIBRATED** (`BigtableNsPerOp`, `BigtableNetworkRTT = 3ms`):
 compile-time estimates for same-region RTT, replaced by live measurements
@@ -82,8 +82,8 @@ once `ProbeEngine` runs (see
 ## Design
 
 - **Dep-isolated module**: `cloud.google.com/go/bigtable` + `google.golang.org/api`
-  + `google.golang.org/grpc` live only here; consumers that don't import this
-  module never pull Google Cloud SDKs.
+  - `google.golang.org/grpc` live only here; consumers that don't import this
+    module never pull Google Cloud SDKs.
 - **Owns its connections** when built via `New` (Close closes both clients);
   `NewWithClients` injects clients for tests/DI and never closes them.
 - **Counters** are 8-byte big-endian int64 cells in family `cqrs_c`

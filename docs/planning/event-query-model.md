@@ -1158,11 +1158,11 @@ for cutover.
 - Cursors and keyset pagination (`cursor.go:30,45`, `sort_paginate.go`), unbounded scans
   (`typed_reader_scan.go:10`).
 - Time travel on the memory engine: `MapGetAsOf`/`MapExistsAsOf` (`memory_versioned.go:66,93`).
-  *(Dated note 2026-09-18: superseded by ADR-0141 — temporal versioned cells are now a
+  _(Dated note 2026-09-18: superseded by ADR-0141 — temporal versioned cells are now a
   three-engine capability (memory, sqlite via `meta_cell_versions`, BigTable native cells)
   with AsOf input-field routing to `ExecuteAsOf`, the `temporal-asof` planner rule, and
   `adttest.AssertTemporalConformance` pinning the contract. Truth: `metaengine/temporal_write.go`
-  and ADR-0141.)*
+  and ADR-0141.)_
 
 **Transport and streaming**
 
