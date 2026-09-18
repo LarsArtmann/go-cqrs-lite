@@ -7,6 +7,7 @@ import (
 	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/icons"
 	"github.com/larsartmann/templ-components/layout"
+	"github.com/larsartmann/templ-components/navigation"
 )
 
 // Embedded event catalog pages: an EventCatalog-style, server-rendered
@@ -15,7 +16,7 @@ import (
 // EventCatalogPage renders the event catalog landing page: stats, one table
 // of all messages, the channel list, and the service list.
 templ EventCatalogPage(data eventCatalogOverview) {
-	{{ base := catalogPageProps(data.Brand+" — Event Catalog", "Browse every service, channel, and message in the catalog", data.DocsPath, templ.GetNonce(ctx)) }}
+	{{ base := docsPageProps(data.Brand+" — Event Catalog", "Browse every service, channel, and message in the catalog", data.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
@@ -39,19 +40,8 @@ templ EventCatalogPage(data eventCatalogOverview) {
 				Striped:     true,
 				Hover:       true,
 				CellPadding: display.TableCellPaddingCompact,
-			}) {
-				for _, msg := range data.Messages {
-					@display.Table.Row(display.TableRow{
-						Cells: []display.TableCell{
-							@messageKindCell(msg.Kind),
-							{Content: messageLinkCell(msg.Name, msg.ID, msg.Href)},
-							{Text: msg.Summary},
-							{Text: msg.Producer},
-							{Text: msg.Consumers},
-						},
-					})
-				}
-			}
+				Rows:        messageRows(data.Messages),
+			})
 
 			@catalogSection("Channels")
 			@display.Table(display.TableProps{
@@ -60,19 +50,8 @@ templ EventCatalogPage(data eventCatalogOverview) {
 				Striped:     true,
 				Hover:       true,
 				CellPadding: display.TableCellPaddingCompact,
-			}) {
-				for _, ch := range data.Channels {
-					@display.Table.Row(display.TableRow{
-						Cells: []display.TableCell{
-							{Content: messageLinkCell(ch.Name, "", ch.Href)},
-							{Text: ch.Address},
-							{Text: ch.Protocols},
-							{Text: ch.Guarantee},
-							{Text: strconv.Itoa(ch.MessageCnt)},
-						},
-					})
-				}
-			}
+				Rows:        channelRows(data.Channels),
+			})
 
 			@catalogSection("Services")
 			@display.Table(display.TableProps{
@@ -81,18 +60,8 @@ templ EventCatalogPage(data eventCatalogOverview) {
 				Striped:     true,
 				Hover:       true,
 				CellPadding: display.TableCellPaddingCompact,
-			}) {
-				for _, svc := range data.Services {
-					@display.Table.Row(display.TableRow{
-						Cells: []display.TableCell{
-							{Content: messageLinkCell(svc.Name, "", svc.Href)},
-							{Text: svc.Version},
-							{Text: svc.Summary},
-							{Text: strconv.Itoa(svc.Commands+svc.Events+svc.Queries)},
-						},
-					})
-				}
-			}
+				Rows:        serviceRows(data.Services),
+			})
 		}
 	}
 }
@@ -100,14 +69,14 @@ templ EventCatalogPage(data eventCatalogOverview) {
 // EventCatalogMessagePage renders one message: schema property table, raw
 // schema, example payloads, and producer/consumer wiring.
 templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
-	{{ base := catalogPageProps(d.Name+" — "+d.Kind+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	{{ base := docsPageProps(d.Name+" — "+d.Kind+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@display.Breadcrumbs(display.BreadcrumbsProps{
-				Links: []display.BreadcrumbLink{
-					{Label: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
-					{Label: d.Name},
+			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
+				Items: []navigation.BreadcrumbItem{
+					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: d.Name, Active: true},
 				},
 			})
 			@display.PageHeader(display.PageHeaderProps{
@@ -118,7 +87,6 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 			@display.DefinitionList(display.DefinitionListProps{
 				Items: []display.DefinitionItem{
 					{Term: "Message ID", Detail: d.ID},
-					{Term: "Kind", Detail: d.Kind},
 					{Term: "Version", Detail: d.Version},
 					{Term: "Producers", Detail: joinOr(d.Producers)},
 					{Term: "Consumers", Detail: joinOr(d.Consumers)},
@@ -146,19 +114,8 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 					AriaLabel:   "Schema properties",
 					Striped:     true,
 					CellPadding: display.TableCellPaddingCompact,
-				}) {
-					for _, prop := range d.Properties {
-						@display.Table.Row(display.TableRow{
-							Cells: []display.TableCell{
-								{Text: prop.Name},
-								{Text: prop.Type},
-								{Content: requiredCell(prop.Required)},
-								{Text: prop.Description},
-								{Text: prop.Details},
-							},
-						})
-					}
-				}
+					Rows:        propertyRows(d.Properties),
+				})
 			}
 			if d.SchemaJSON != "" {
 				@catalogSection("Raw JSON schema")
@@ -172,7 +129,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 			}
 			if len(d.Changelog) > 0 {
 				@catalogSection("Changelog")
-				<ul class="list-inside list-disc space-y-1 text-sm text-gray-600 dark:text-gray-400">
+				<ul class="list-disc space-y-1 ps-5 text-sm text-gray-600 dark:text-gray-400">
 					for _, change := range d.Changelog {
 						<li>v{ change.Version }: { change.Summary }</li>
 					}
@@ -185,17 +142,21 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 // EventCatalogChannelPage renders one channel: address, protocols, and the
 // messages carried by it.
 templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
-	{{ base := catalogPageProps(d.Name+" — Channel · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	{{ base := docsPageProps(d.Name+" — Channel · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@display.Breadcrumbs(display.BreadcrumbsProps{
-				Links: []display.BreadcrumbLink{
-					{Label: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
-					{Label: d.Name},
+			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
+				Items: []navigation.BreadcrumbItem{
+					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: d.Name, Active: true},
 				},
 			})
-			@display.PageHeader(display.PageHeaderProps{Title: d.Name, Subtitle: d.Summary, Action: display.Badge(display.BadgeProps{Text: "channel", Type: display.BadgeNeutral, Pill: true})})
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    d.Name,
+				Subtitle: d.Summary,
+				Action:   display.Badge(display.BadgeProps{Text: "channel", Type: display.BadgeNeutral, Pill: true}),
+			})
 			@display.DefinitionList(display.DefinitionListProps{
 				Items: []display.DefinitionItem{
 					{Term: "Channel ID", Detail: d.ID},
@@ -221,17 +182,21 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 // EventCatalogServicePage renders one service: ownership, data stores, and
 // its commands, events, and queries.
 templ EventCatalogServicePage(d eventCatalogServiceDetail) {
-	{{ base := catalogPageProps(d.Name+" — Service · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	{{ base := docsPageProps(d.Name+" — Service · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-			@display.Breadcrumbs(display.BreadcrumbsProps{
-				Links: []display.BreadcrumbLink{
-					{Label: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
-					{Label: d.Name},
+			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
+				Items: []navigation.BreadcrumbItem{
+					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: d.Name, Active: true},
 				},
 			})
-			@display.PageHeader(display.PageHeaderProps{Title: d.Name, Subtitle: d.Summary, Action: display.Badge(display.BadgeProps{Text: "v" + d.Version, Type: display.BadgeInfo, Pill: true})})
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    d.Name,
+				Subtitle: d.Summary,
+				Action:   display.Badge(display.BadgeProps{Text: "v" + d.Version, Type: display.BadgeInfo, Pill: true}),
+			})
 			@display.DefinitionList(display.DefinitionListProps{
 				Items: []display.DefinitionItem{
 					{Term: "Service ID", Detail: d.ID},
@@ -264,7 +229,7 @@ templ messageRefSection(title string, refs []eventCatalogLink) {
 // eventCatalogNotFound renders a 404-style page for unknown catalog
 // resources.
 templ eventCatalogNotFound(brand, docsPath, kind, id string) {
-	{{ base := catalogPageProps("Not found — Event Catalog", "The requested catalog resource does not exist", docsPath, templ.GetNonce(ctx)) }}
+	{{ base := docsPageProps("Not found — Event Catalog", "The requested catalog resource does not exist", docsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(brand, docsPath, docsPath+"/eventcatalog")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
@@ -284,50 +249,21 @@ templ catalogSection(text string) {
 	<h2 class="mb-4 mt-12 text-lg font-semibold text-gray-900 dark:text-gray-100">{ text }</h2>
 }
 
-// catalogPageProps builds Base page props for event catalog pages.
-func catalogPageProps(title, description, docsPrefix, nonce string) layout.PageProps {
-	props := docsPageProps(title, description, docsPrefix, nonce)
-
-	return props
-}
-
 // messageKindBadge maps a message kind to a colored badge.
-func messageKindBadge(kind string) templ.Component {
-	lookup := map[string]display.BadgeType{
-		"event":   display.BadgeSuccess,
-		"command": display.BadgePrimary,
-		"query":   display.BadgeInfo,
-	}
-
-	return display.Badge(display.BadgeProps{Text: kind, Type: utils.Lookup(lookup, kind, display.BadgeNeutral), Pill: true})
+templ messageKindBadge(kind string) {
+	@display.Badge(display.BadgeProps{
+		Text: kind,
+		Type: utils.Lookup(messageKindBadgeTypes, kind, display.BadgeNeutral),
+		Pill: true,
+	})
 }
 
-// messageKindCell is the first table cell of a message row.
-templ messageKindCell(kind string) {
-	<td class="whitespace-nowrap px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-		@messageKindBadge(kind)
-	</td>
-}
-
-// messageLinkCell renders the labeled link cell for a catalog row.
+// messageLinkCell renders the labeled link content of a catalog row cell.
 templ messageLinkCell(label, sub, href string) {
-	<td class="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-		<a href={ templ.SafeURL(href) } class="text-blue-600 hover:underline dark:text-blue-400">{ label }</a>
-		if sub != "" {
-			<span class="ml-2 font-mono text-xs text-gray-400 dark:text-gray-500">{ sub }</span>
-		}
-	</td>
-}
-
-// requiredCell renders the required yes/no table cell.
-templ requiredCell(required bool) {
-	<td class="whitespace-nowrap px-4 py-2 text-sm">
-		if required {
-			@display.Badge(display.BadgeProps{Text: "required", Type: display.BadgeWarning, Size: display.BadgeSizeSM})
-		} else {
-			<span class="text-gray-400 dark:text-gray-500">optional</span>
-		}
-	</td>
+	<a href={ templ.SafeURL(href) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">{ label }</a>
+	if sub != "" {
+		<span class="font-mono text-xs text-gray-400 dark:text-gray-500">{ sub }</span>
+	}
 }
 
 // codeBlock renders a pretty-printed JSON blob with copy affordance.

@@ -108,8 +108,15 @@ func newIndexPageData(cfg Config, cat *catalog.Catalog) indexPageData {
 func indexSpecLinks(docsPath string) []specLink {
 	return []specLink{
 		{
+			Title:    "Event Catalog",
+			Subtitle: "Browse services, channels, and every message with schema and examples",
+			Icon:     "book",
+			PageHref: docsPath + "/eventcatalog",
+		},
+		{
 			Title:    "OpenAPI reference",
-			Subtitle: "Interactive REST API documentation (Scalar)",
+			Subtitle: "Interactive REST API documentation with a built-in test console (Scalar)",
+			Icon:     "code-bracket",
 			PageHref: docsPath + "/openapi",
 			Raw: []rawLink{
 				{Href: docsPath + "/openapi.json", Label: "JSON"},
@@ -118,7 +125,8 @@ func indexSpecLinks(docsPath string) []specLink {
 		},
 		{
 			Title:    "AsyncAPI reference",
-			Subtitle: "Interactive event documentation (AsyncAPI React)",
+			Subtitle: "Interactive event documentation rendered from the AsyncAPI spec",
+			Icon:     "bolt",
 			PageHref: docsPath + "/asyncapi",
 			Raw: []rawLink{
 				{Href: docsPath + "/asyncapi.json", Label: "JSON"},
@@ -127,7 +135,8 @@ func indexSpecLinks(docsPath string) []specLink {
 		},
 		{
 			Title:    "Architecture diagram",
-			Subtitle: "D2 diagram source generated from the catalog",
+			Subtitle: "D2 diagram generated from the catalog",
+			Icon:     "cube",
 			PageHref: docsPath + "/d2",
 			Raw: []rawLink{
 				{Href: docsPath + "/d2.txt", Label: "D2 text"},
@@ -136,6 +145,7 @@ func indexSpecLinks(docsPath string) []specLink {
 		{
 			Title:    "Catalog JSON",
 			Subtitle: "The raw catalog snapshot this documentation is built from",
+			Icon:     "circle-stack",
 			PageHref: docsPath + "/catalog.json",
 		},
 	}

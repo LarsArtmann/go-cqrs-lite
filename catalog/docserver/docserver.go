@@ -199,6 +199,10 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET "+prefix+"/asyncapi.json", ds.serveAsyncAPIJSON)
 	mux.HandleFunc("GET "+prefix+"/asyncapi.yaml", ds.serveAsyncAPIYAML)
 	mux.HandleFunc("GET "+prefix+"/catalog.json", ds.serveCatalogJSON)
+	mux.HandleFunc("GET "+prefix+"/eventcatalog", ds.serveEventCatalog)
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/messages/{id}", ds.serveEventCatalogMessage)
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/channels/{id}", ds.serveEventCatalogChannel)
+	mux.HandleFunc("GET "+prefix+"/eventcatalog/services/{id}", ds.serveEventCatalogService)
 	mux.HandleFunc("GET "+prefix+"/d2", ds.serveD2View)
 	mux.HandleFunc("GET "+prefix+"/d2.txt", ds.serveD2Text)
 
