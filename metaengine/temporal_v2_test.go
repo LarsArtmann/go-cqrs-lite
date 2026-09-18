@@ -319,7 +319,8 @@ func TestTemporal_PlannerWarnsNonVersioned(t *testing.T) {
 	warned := false
 
 	for _, d := range store.Plan().Diagnostics {
-		if d.Query == "tv_users" && d.Level == DiagLevelWarn && strings.Contains(d.Message, "does not record cell versions") {
+		if d.Query == "tv_users" && d.Level == DiagLevelWarn &&
+			strings.Contains(d.Message, "does not record cell versions") {
 			warned = true
 		}
 	}
@@ -336,7 +337,8 @@ func TestTemporal_PlannerWarnsNonVersioned(t *testing.T) {
 	defer DeferClose(versioned)
 
 	for _, d := range versioned.Plan().Diagnostics {
-		if d.Query == "tv_users" && d.Level == DiagLevelWarn && strings.Contains(d.Message, "cell versions") {
+		if d.Query == "tv_users" && d.Level == DiagLevelWarn &&
+			strings.Contains(d.Message, "cell versions") {
 			t.Fatalf("unexpected warning on versioned engine: %s", d.Message)
 		}
 	}
