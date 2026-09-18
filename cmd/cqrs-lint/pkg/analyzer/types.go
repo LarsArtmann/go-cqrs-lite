@@ -271,21 +271,39 @@ func IsCQRSModulePath(path string) bool {
 // library itself (not a consumer importing it). This is used to auto-suppress
 // consumer-coaching rules (A001/A008/A020/A021/A023/E005/E007) that are
 // meaningless when linting the library's own source — the library cannot
-// coach itself to "adopt" its own features.
+// coach itself to "adopt" its own features. The self-skip also covers the
+// v5-removed-API detectors (V007/F030-class resilience rules) for library
+// modules, which legitimately reference soon-to-be-removed surfaces through
+// backward-compat re-exports.
+//
+// The example apps under example/ are NOT self-lint even though their module
+// paths share the library prefix: they are curated CONSUMER demos, so the
+// detectors above must run on them (scanning them in place used to report a
+// silent false green — the 2026-09-11 probe).
 //
 // Detection checks the module path and package import paths. When any
-// analyzed package's import path starts with the go-cqrs-lite prefix, the
-// code is the library itself.
+// analyzed package's import path starts with the go-cqrs-lite prefix — and
+// is not an example module — the code is the library itself.
 func (ctx *AnalysisContext) IsLibrarySelfLint() bool {
-	if IsCQRSModulePath(ctx.ModulePath) {
+	if IsCQRSModulePath(ctx.ModulePath) && !IsExampleModulePath(ctx.ModulePath) {
 		return true
 	}
 
 	for _, gf := range ctx.GoFiles {
-		if gf.Pkg != nil && IsCQRSModulePath(gf.Pkg.PkgPath) {
-			return true
+		if gf.Pkg == nil || !IsCQRSModulePath(gf.Pkg.PkgPath) ||
+			IsExampleModulePath(gf.Pkg.PkgPath) {
+			continue
 		}
+
+		return true
 	}
 
 	return false
+}
+
+// IsExampleModulePath reports whether path is one of the example apps
+// (github.com/larsartmann/go-cqrs-lite/example/...). They share the library's
+// module prefix but are semantically consumers.
+func IsExampleModulePath(path string) bool {
+	return strings.HasPrefix(path, "github.com/larsartmann/go-cqrs-lite/example/")
 }
