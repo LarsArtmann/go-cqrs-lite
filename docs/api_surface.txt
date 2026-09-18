@@ -628,6 +628,7 @@ cmd/cqrs-lint/pkg/analyzer/func IsCQRSImport
 cmd/cqrs-lint/pkg/analyzer/func IsCQRSModulePath
 cmd/cqrs-lint/pkg/analyzer/func IsEventBusType
 cmd/cqrs-lint/pkg/analyzer/func IsEventTypeParam
+cmd/cqrs-lint/pkg/analyzer/func IsExampleModulePath
 cmd/cqrs-lint/pkg/analyzer/func IsInsideUpcasterClosure
 cmd/cqrs-lint/pkg/analyzer/func IsKnownPreset
 cmd/cqrs-lint/pkg/analyzer/func IsQualifierFor
