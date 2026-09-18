@@ -112,6 +112,7 @@ func (b bump) toJSON() bumpJSON {
 // fails on it.
 func deprecationFindings(dir string) ([]findingJSON, error) {
 	findings, _, err := deprecationFindingsAnalyzed(dir)
+
 	return findings, err
 }
 

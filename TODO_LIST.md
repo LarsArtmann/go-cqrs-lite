@@ -176,14 +176,18 @@ bottom is a do-not-re-litigate guard, not a backlog.
       unproven — and `bumps` is always-present in --json, symmetric with
       `deprecations`; both pinned by tests.)
       _(Effort: S)_
-- [ ] **Kill the self-lint false-green class at the root** — any path under
-      `github.com/larsartmann/go-cqrs-lite/**` gets V007/F030 silently
-      skipped (the prefix check); the consumer-copy workaround lives in a
-      test. Fix `IsLibrarySelfLint`/presets to treat `example/*` as
-      consumers, add an analyzed-assert (file count) wherever examples are
-      scanned (the 02-47 lesson), then simplify `TestExamples_AreV5Clean`.
-      V007 typed method detection (`types.Info.Selections`) is the bigger
-      sibling — decide before the v5 cut. — source: 05-26 §e2/§f18-20
+- [x] **Kill the self-lint false-green class at the root** — DONE 2026-09-18:
+      `analyzer.IsLibrarySelfLint` now treats `example/*` modules as consumers
+      (new `IsExampleModulePath` guard; api golden +1 export); V007 and the
+      F-family coaching rules run on examples in place. `TestExamples_AreV5Clean`
+      simplified — the throwaway consumer-copy shim is DELETED, the scan runs
+      against the real example dirs, and an analyzed-file-count assert (the
+      02-47 lesson) fails loudly on a zero-file scan. First honest taskmanager
+      profile: +E014/F004/F013/F021(×2)/F026/F028 coaching findings pinned in
+      both goldens (no criticals); full cqrs-lint (19 pkgs) + cqrs-upgrade
+      suites green; TestEvery green. The V007 typed-method-detection sibling
+      (`types.Info.Selections`) remains a v5-cut decision (v007.go comment).
+      — source: 05-26 §e2/§f18-20
       _(Effort: M)_
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or

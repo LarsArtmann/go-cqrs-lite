@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — cqrs-lint self-lint false-green killed at the root — 2026-09-18
+
+- **The example apps are now linted as consumers.** `IsLibrarySelfLint`
+  classified `example/*` as the library itself (shared module prefix), which
+  silently skipped the v5-removed-API detector (V007) and the F-family
+  coaching rules on every in-place example scan — scanning the examples
+  always reported clean, violation or not (the 2026-09-11 false-green
+  probe). Example modules are now classified as consumers
+  (`analyzer.IsExampleModulePath`); `TestExamples_AreV5Clean` scans in place
+  (the throwaway consumer-copy shim is deleted) and asserts the detector
+  analyzed more than zero files. First honest profile: the taskmanager
+  golden gains E014/F004/F013/F021(×2)/F026/F028 — real coaching findings on
+  the demo, no criticals. Library modules keep every self-lint suppression.
+
 ### Changed — storage timer-schedule error code split (one code = one family) — 2026-09-18
 
 - **`storage.schedule_timer` marshal failure now mints
