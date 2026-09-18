@@ -5,6 +5,7 @@ github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XL
 github.com/dgraph-io/dgo/v240 v240.2.0 h1:dX7CCx7OSPl38GQ7Pa6jUB1RN21tyNlYpjNFgOsqp7k=
 github.com/dgraph-io/dgo/v240 v240.2.0/go.mod h1:CyEuwJgQ8NoNjWbj2ZnvVFPixe5akCbWPR1O0fHpQ+U=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
+github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/go-logr/logr v1.4.4 h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=
 github.com/go-logr/logr v1.4.4/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=
@@ -20,6 +21,7 @@ github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3/go.mod h1:jl5iWTm0/hd
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/larsartmann/go-branded-id v0.6.0 h1:bqvJcozqtr8CP7/GWbWqHdYWt2YaIaWZdNvPSbqdZXU=
+github.com/larsartmann/go-branded-id v0.6.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 h1:ZZp0SzyyVM1wEOB2UP7NoOCrmlu00fkeEWjtjEbnahk=
 github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1/go.mod h1:SOk4O0UJPD3MZz/H1mctUdgLYGBhdFRB/1DmTa7HUQY=
 github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 h1:hzkUocB88KT2jv+qbDdxhMbpSKwFuvYQoF1+Tg2NmQA=
@@ -86,6 +88,7 @@ google.golang.org/grpc v1.83.2/go.mod h1:YPI1hK3kDked6iHvgX3tR0y+nX/qpMFKhPgFsok
 google.golang.org/protobuf v1.36.12 h1:pJOKDDOyeXErUroCihFAd5LQuwXBSpVnKGrj5o/fwxc=
 google.golang.org/protobuf v1.36.12/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 modernc.org/libc v1.76.0 h1:eaJHMv2zn5oXT6IPXPwxAMVpzmQzSDsCdKcNl1ZpaRg=
+modernc.org/libc v1.76.0/go.mod h1:2h0dedmVSE8qH2DrxzYDXbQaxLMl0XNg8Z7/HJRdk2M=
 modernc.org/mathutil v1.7.1 h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=
 modernc.org/mathutil v1.7.1/go.mod h1:4p5IwJITfppl0G4sUEDtCr4DthTaT47/N3aT6MhfgJg=
 modernc.org/memory v1.12.1 h1:nFMiWrpStgZczNl6XI9GnIk/rWhYIyHGUaR04pGbp9g=

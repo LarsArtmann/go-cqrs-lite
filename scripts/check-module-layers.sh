@@ -66,6 +66,7 @@ LAYER["metaengine/otelobserver"]=5
 LAYER["metaengine/bboltengine"]=5
 LAYER["metaengine/mysqlengine"]=5
 LAYER["metaengine/tursoengine"]=5
+LAYER["metaengine/bigtableengine"]=5
 # NOTE: metaengine/{adttest,enginetest,keycodec} are PACKAGES inside the
 # metaengine module (import path metaengine/v4/<name>), not separate modules —
 # they have no go.mod and therefore no LAYER entries.
@@ -279,6 +280,9 @@ DEP_BUDGET["otel/otlp"]=5
 DEP_BUDGET["metaengine/bboltengine"]=5
 DEP_BUDGET["metaengine/mysqlengine"]=5
 DEP_BUDGET["metaengine/tursoengine"]=5
+# 3 = cloud.google.com/go/bigtable + google.golang.org/api + grpc (the whole
+# point of the dep-isolated module; SDK surface stops at the module boundary).
+DEP_BUDGET["metaengine/bigtableengine"]=3
 DEP_BUDGET["transport/grpc"]=12
 DEP_BUDGET["idempotency/kvstore"]=7
 DEP_BUDGET["idempotency/sqlstore"]=5
