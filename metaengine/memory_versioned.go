@@ -9,40 +9,69 @@ import (
 // versionedEntry records a single value at a point in time.
 type versionedEntry struct {
 	ts    time.Time
-	value any // nil means the key was deleted at this timestamp
+	value any // nil means the key was deleted at this timestamp (tombstone)
 }
 
-// versionChain stores the append-only history of a single key. Entries are
-// ordered by timestamp (ascending) because time.Now() is monotonic within
-// a single process. Binary search finds the latest entry <= t.
+// versionChain stores the append-only history of a single key, ordered by
+// timestamp ascending. Writes may arrive out of order (replays, clock skew),
+// so entries are inserted at their sorted position; binary search finds the
+// latest entry <= t. A same-timestamp write lands AFTER existing entries —
+// last-writer-wins, mirroring BigTable cell dedup (ADR-0141 §1).
 type versionChain struct {
 	entries []versionedEntry
 }
 
 // asOf returns the value and existence at timestamp t. The value is the
-// latest entry with ts <= t. If that entry has value == nil, the key was
-// deleted at that time and asOf returns (nil, false).
+// latest entry with ts <= t. If that entry is a tombstone, the key was
+// deleted at that time and asOf reports (nil, false).
 func (vc *versionChain) asOf(t time.Time) (any, bool) {
 	idx := sort.Search(len(vc.entries), func(i int) bool {
 		return vc.entries[i].ts.After(t)
 	})
 
 	if idx == 0 {
-		return nil, false // no entries before t
+		return nil, false // no entries at or before t
 	}
 
 	entry := vc.entries[idx-1] // latest entry <= t
 
 	if entry.value == nil {
-		return nil, false // was deleted before t
+		return nil, false // tombstoned before t
 	}
 
 	return entry.value, true
 }
 
-// recordVersion appends a timestamped entry to the key's version chain.
-// Caller MUST hold m.mu.Lock().
-func (m *memoryEngine) recordVersion(col, key string, value any) {
+// history returns the surviving versions in [from, to], newest-first.
+func (vc *versionChain) history(from, to time.Time) []CellVersion {
+	idx := sort.Search(len(vc.entries), func(i int) bool {
+		return vc.entries[i].ts.After(to)
+	})
+
+	var out []CellVersion
+
+	for i := idx - 1; i >= 0 && !vc.entries[i].ts.Before(from); i-- {
+		out = append(out, CellVersion{Timestamp: vc.entries[i].ts, Value: vc.entries[i].value})
+	}
+
+	return out
+}
+
+// insertAt places entry at its sorted position, after any same-timestamp
+// entries (last-writer-wins).
+func (vc *versionChain) insertAt(entry versionedEntry) {
+	idx := sort.Search(len(vc.entries), func(i int) bool {
+		return vc.entries[i].ts.After(entry.ts)
+	})
+
+	vc.entries = append(vc.entries, versionedEntry{})
+	copy(vc.entries[idx+1:], vc.entries[idx:])
+	vc.entries[idx] = entry
+}
+
+// chainLocked returns the version chain for (col, key), creating it when
+// absent. Caller MUST hold m.mu.Lock().
+func (m *memoryEngine) chainLocked(col, key string) *versionChain {
 	if m.versions[col] == nil {
 		m.versions[col] = make(map[string]*versionChain)
 	}
@@ -53,10 +82,82 @@ func (m *memoryEngine) recordVersion(col, key string, value any) {
 		m.versions[col][key] = chain
 	}
 
-	chain.entries = append(chain.entries, versionedEntry{
-		ts:    time.Now(),
-		value: value,
-	})
+	return chain
+}
+
+// recordVersionAt records a timestamped entry on the key's chain (sorted
+// insert + retention trim), without touching the latest view — the caller
+// has already written the main map. Caller MUST hold m.mu.Lock() and MUST
+// have versioning enabled (m.versions != nil).
+func (m *memoryEngine) recordVersionAt(col, key string, value any, ts time.Time) {
+	chain := m.chainLocked(col, key)
+	chain.insertAt(versionedEntry{ts: ts, value: value})
+	m.trimRetentionLocked(chain, ts)
+}
+
+// applyVersionLocked records one timestamped version and syncs the latest
+// view: the main map always mirrors the chain's NEWEST entry, so out-of-order
+// writes cannot regress MapGet. A nil value is a tombstone. The key is the
+// chain's STRING form — the temporal path is string-keyed end-to-end, like
+// [VersionedStorage]; plain MapSet keeps native keys. Caller MUST hold
+// m.mu.Lock(). When versioning is disabled this degrades to a plain
+// set/delete (latest-only, zero history overhead).
+func (m *memoryEngine) applyVersionLocked(col, key string, value any, ts time.Time) {
+	if m.versions == nil {
+		store := m.getMapLocked(col)
+		if value == nil {
+			delete(store, key)
+		} else {
+			store[key] = value
+		}
+
+		return
+	}
+
+	chain := m.chainLocked(col, key)
+	chain.insertAt(versionedEntry{ts: ts, value: value})
+	m.trimRetentionLocked(chain, ts)
+	m.syncLatestLocked(col, key, chain)
+}
+
+// trimRetentionLocked prunes the chain per the configured RetentionPolicy
+// (MaxVersions / MaxAge), never removing the newest entry. Caller MUST hold
+// m.mu.Lock().
+func (m *memoryEngine) trimRetentionLocked(chain *versionChain, newest time.Time) {
+	if m.retention == nil {
+		return
+	}
+
+	if m.retention.MaxVersions > 0 && len(chain.entries) > m.retention.MaxVersions {
+		cutoff := len(chain.entries) - m.retention.MaxVersions
+		chain.entries = chain.entries[cutoff:]
+	}
+
+	if m.retention.MaxAge > 0 {
+		minTs := newest.Add(-m.retention.MaxAge)
+		idx := sort.Search(len(chain.entries), func(i int) bool {
+			return chain.entries[i].ts.After(minTs)
+		})
+
+		// Keep at least the newest entry even when it is itself older than
+		// the MaxAge window (a live cell never vanishes from latest reads).
+		if idx > 0 {
+			chain.entries = chain.entries[idx-1:]
+		}
+	}
+}
+
+// syncLatestLocked mirrors the chain's newest entry into the main map so
+// MapGet/MapScan stay O(1) latest reads. Caller MUST hold m.mu.Lock().
+func (m *memoryEngine) syncLatestLocked(col, key string, chain *versionChain) {
+	store := m.getMapLocked(col)
+
+	tail := chain.entries[len(chain.entries)-1]
+	if tail.value == nil {
+		delete(store, key)
+	} else {
+		store[key] = tail.value
+	}
 }
 
 // --- VersionedStorage implementation ---
@@ -71,12 +172,7 @@ func (m *memoryEngine) MapGetAsOf(
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	collections, ok := m.versions[col]
-	if !ok {
-		return nil, ErrNotFound
-	}
-
-	chain, ok := collections[key]
+	chain, ok := m.chainFor(col, key)
 	if !ok {
 		return nil, ErrNotFound
 	}
@@ -98,12 +194,7 @@ func (m *memoryEngine) MapExistsAsOf(
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	collections, ok := m.versions[col]
-	if !ok {
-		return false, nil
-	}
-
-	chain, ok := collections[key]
+	chain, ok := m.chainFor(col, key)
 	if !ok {
 		return false, nil
 	}
@@ -113,5 +204,78 @@ func (m *memoryEngine) MapExistsAsOf(
 	return exists, nil
 }
 
-// Compile-time assertion that memoryEngine implements VersionedStorage.
-var _ VersionedStorage = (*memoryEngine)(nil)
+func (m *memoryEngine) chainFor(col, key string) (*versionChain, bool) {
+	if m.versions == nil {
+		return nil, false
+	}
+
+	collections, ok := m.versions[col]
+	if !ok {
+		return nil, false
+	}
+
+	chain, ok := collections[key]
+
+	return chain, ok
+}
+
+// --- VersionedWriter implementation ---
+
+// MapSetAt writes value as the (collection, key) version at ts (ADR-0141 §1).
+// When versioning is disabled the write degrades to a plain latest-only set.
+func (m *memoryEngine) MapSetAt(
+	_ context.Context,
+	col, key string,
+	value any,
+	ts time.Time,
+) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.applyVersionLocked(col, key, value, ts)
+
+	return nil
+}
+
+// MapDeleteAt records a tombstone for (collection, key) at ts. When
+// versioning is disabled the call degrades to a plain latest-only delete.
+func (m *memoryEngine) MapDeleteAt(
+	_ context.Context,
+	col, key string,
+	ts time.Time,
+) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.applyVersionLocked(col, key, nil, ts)
+
+	return nil
+}
+
+// --- CellHistoryReader implementation ---
+
+// MapHistory returns the surviving versions of (collection, key) within
+// [from, to], newest-first, tombstones included (nil Value).
+func (m *memoryEngine) MapHistory(
+	_ context.Context,
+	col, key string,
+	from, to time.Time,
+) ([]CellVersion, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	chain, ok := m.chainFor(col, key)
+	if !ok {
+		return nil, nil
+	}
+
+	return chain.history(from, to), nil
+}
+
+// Compile-time assertions that memoryEngine implements the temporal
+// capability set (ADR-0141): reads, writes, and history.
+var (
+	_ VersionedStorage  = (*memoryEngine)(nil)
+	_ VersionedWriter   = (*memoryEngine)(nil)
+	_ CellHistoryReader = (*memoryEngine)(nil)
+)

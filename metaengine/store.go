@@ -2,6 +2,7 @@ package metaengine
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -659,6 +660,19 @@ func (s *Store) applyFoldInsert(
 	key, value := fold.invoke(rec, payload)
 	col := q.QueryName()
 
+	// Temporal engines (ADR-0141 §3): stamp the cell with the event's time so
+	// replays rebuild the true temporal order. Plain engines take the
+	// untimestamped path.
+	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
+		if err := vw.MapSetAt(ctx, col, fmt.Sprint(key), value, CellTimestamp(rec)); err != nil {
+			return fmt.Errorf("map set-at %s: %w", col, err)
+		}
+
+		s.notifyLive(q, col, key, value)
+
+		return nil
+	}
+
 	if mb, ok := q.QueryEngine().(MapBackend); ok {
 		if err := mb.MapSet(ctx, col, key, value); err != nil {
 			return fmt.Errorf("map set %s: %w", col, err)
@@ -681,6 +695,14 @@ func (s *Store) applyFoldUpdate(
 ) error {
 	key := fold.keyExtractor(payload)
 	col := q.QueryName()
+
+	// Temporal engines (ADR-0141 §3): read-latest → fold → write-at-event-time.
+	// Safe without engine-side RMW because the dispatch path serializes folds
+	// per query (foldLocks, runtime_backend.go) and the replication applier
+	// shares those locks.
+	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
+		return s.applyFoldUpdateVersioned(ctx, q, vw, col, key, fold, rec, payload)
+	}
 
 	if mu, ok := q.QueryEngine().(MapUpdater); ok {
 		var updatedVal any
@@ -723,15 +745,97 @@ func (s *Store) applyFoldUpdate(
 	return unsupportedEngine(errUnsupportedMapOps, q.QueryEngine().Profile().Name)
 }
 
+// applyFoldUpdateVersioned is the VersionedWriter branch of update folds:
+// resolve the current latest value, fold, and write the result stamped with
+// the event's time so as-of reads and replays stay temporally truthful.
+func (s *Store) applyFoldUpdateVersioned(
+	ctx context.Context,
+	q queryMeta,
+	vw VersionedWriter,
+	col string,
+	key any,
+	fold *updateFold,
+	rec record.Record,
+	payload any,
+) error {
+	keyStr := fmt.Sprint(key)
+
+	prev, found, err := s.latestForVersioned(ctx, q, key)
+	if err != nil {
+		return err
+	}
+
+	var prevVal any
+	if found {
+		prevVal = prev
+	}
+
+	updated := fold.invoke(rec, payload, prevVal)
+
+	if err := vw.MapSetAt(ctx, col, keyStr, updated, CellTimestamp(rec)); err != nil {
+		return fmt.Errorf("map set-at %s: %w", col, err)
+	}
+
+	s.notifyLive(q, col, key, updated)
+
+	return nil
+}
+
+// latestForVersioned resolves the current latest value for a key on a
+// VersionedWriter engine: the plain MapBackend read when available (the hot
+// path — temporal engines keep the latest cell), otherwise an as-of-now read
+// through VersionedStorage.
+func (s *Store) latestForVersioned(
+	ctx context.Context,
+	q queryMeta,
+	key any,
+) (any, bool, error) {
+	if mb, ok := q.QueryEngine().(MapBackend); ok {
+		prev, found, err := mb.MapGet(ctx, q.QueryName(), key)
+		if err != nil {
+			return nil, false, fmt.Errorf("map get %s: %w", q.QueryName(), err)
+		}
+
+		return prev, found, nil
+	}
+
+	if vs, ok := q.QueryEngine().(VersionedStorage); ok {
+		prev, err := vs.MapGetAsOf(ctx, q.QueryName(), fmt.Sprint(key), time.Now())
+		if err != nil {
+			if errors.Is(err, ErrNotFound) {
+				return nil, false, nil
+			}
+
+			return nil, false, fmt.Errorf("map get-as-of %s: %w", q.QueryName(), err)
+		}
+
+		return prev, true, nil
+	}
+
+	return nil, false, unsupportedEngine(errUnsupportedMapOps, q.QueryEngine().Profile().Name)
+}
+
 func (s *Store) applyFoldRemove(
 	ctx context.Context,
 	q queryMeta,
 	fold *removeFold,
-	_ record.Record,
+	rec record.Record,
 	payload any,
 ) error {
 	key := fold.keyExtractor(payload)
 	col := q.QueryName()
+
+	// Temporal engines tombstone at the event's time (ADR-0141 §1): deletion
+	// is a timestamped write, never a hard erase.
+	if vw, ok := q.QueryEngine().(VersionedWriter); ok {
+		if err := vw.MapDeleteAt(ctx, col, fmt.Sprint(key), CellTimestamp(rec)); err != nil {
+			return fmt.Errorf("map delete-at %s: %w", col, err)
+		}
+
+		s.notifyLive(q, col, key, nil)
+
+		return nil
+	}
 
 	if mb, ok := q.QueryEngine().(MapBackend); ok {
 		if err := mb.MapDelete(ctx, col, key); err != nil {

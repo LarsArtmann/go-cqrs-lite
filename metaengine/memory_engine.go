@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 )
 
 // memoryEngine implements all ADT backends for testing and development.
@@ -17,6 +18,7 @@ type memoryEngine struct {
 	searchIdx  *MemorySearchIndex
 	spatialIdx *MemorySpatialIndex
 	versions   map[string]map[string]*versionChain // collection → key → chain
+	retention  *RetentionPolicy                    // nil = keep all versions (ADR-0141)
 	cal        Calibration
 }
 
@@ -66,13 +68,28 @@ func newMemData() *memData {
 	}
 }
 
+// VersioningOption tunes a versioned Memory engine at construction time.
+type VersioningOption func(*memoryEngine)
+
+// WithRetention sets the version-retention policy on a versioned Memory
+// engine (ADR-0141 §1): MaxVersions keeps the newest N versions per cell,
+// MaxAge prunes versions older than the cutoff. The zero policy keeps
+// everything — the memory cost grows with total write count.
+func WithRetention(policy RetentionPolicy) VersioningOption {
+	return func(m *memoryEngine) { m.retention = &policy }
+}
+
 // NewMemoryEngineWithVersioning creates a Memory engine that tracks version
 // chains for temporal (as-of) queries. Use this when you need MapGetAsOf /
-// MapExistsAsOf. The version chain grows with every write, so this has a
-// memory cost proportional to total write count.
-func NewMemoryEngineWithVersioning() Engine {
+// MapExistsAsOf / MapSetAt / MapHistory. The version chain grows with every
+// write unless a RetentionPolicy trims it (WithRetention).
+func NewMemoryEngineWithVersioning(opts ...VersioningOption) Engine {
 	eng := NewMemoryEngine().(*memoryEngine)
 	eng.versions = make(map[string]map[string]*versionChain)
+
+	for _, opt := range opts {
+		opt(eng)
+	}
 
 	return eng
 }
@@ -156,7 +173,7 @@ func (m *memoryEngine) MapSet(_ context.Context, col string, key any, value any)
 	m.getMapLocked(col)[key] = value
 
 	if m.versions != nil { // opt-in versioning
-		m.recordVersion(col, fmt.Sprint(key), value)
+		m.recordVersionAt(col, fmt.Sprint(key), value, time.Now())
 	}
 
 	return nil
@@ -183,7 +200,7 @@ func (m *memoryEngine) MapDelete(_ context.Context, col string, key any) error {
 	delete(m.getMapLocked(col), key)
 
 	if m.versions != nil { // opt-in versioning
-		m.recordVersion(col, fmt.Sprint(key), nil)
+		m.recordVersionAt(col, fmt.Sprint(key), nil, time.Now())
 	}
 
 	return nil
@@ -208,7 +225,7 @@ func (m *memoryEngine) MapUpdate(
 	store[key] = newVal
 
 	if m.versions != nil { // opt-in versioning
-		m.recordVersion(col, fmt.Sprint(key), newVal)
+		m.recordVersionAt(col, fmt.Sprint(key), newVal, time.Now())
 	}
 
 	return nil
