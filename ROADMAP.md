@@ -572,6 +572,13 @@ minor of dual-read support):
   for replicated engines (supports Iroh integration, ADR-0096).
 - `CalibrateScanEngine` — runtime calibration for scan/aggregation costs (not
   just point lookups; `CalibrateEngine` only measures `MapGet`).
+- `SystemTimestamp` policy option (ADR-0141 tail) — strict event-time vs
+  write-time stamping for engines where the wall-clock fallback is
+  undesirable. — source: 2026-09-18 14:07 report §f32
+- Planner-aware reroute preference for versioned engines (ADR-0141 tail) —
+  engine-pool failover currently fails loud on temporal reads onto
+  non-versioned engines; a planner hint could prefer versioned targets
+  mid-flight. — source: 2026-09-18 14:07 report §f48
 - Per-module `.golangci.yml` split — golangci-lint v2 `config-dirs` would give
   each module ownership of its own exclusions. L effort, deferred until
   monolithic config becomes a maintenance problem.

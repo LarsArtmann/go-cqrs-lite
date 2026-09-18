@@ -263,6 +263,8 @@ func detectImports(
 				fp.Store = StoreDgraph
 			case "iroh":
 				fp.Store = StoreIroh
+			case "bigtable":
+				fp.Store = StoreBigTable
 			}
 		}
 	}
@@ -296,6 +298,8 @@ func metaengineEngineFromImport(path string) string {
 		return "bbolt"
 	case strings.Contains(path, "metaengine/irohengine"):
 		return "iroh"
+	case strings.Contains(path, "metaengine/bigtableengine"):
+		return "bigtable"
 	default:
 		return ""
 	}

@@ -376,19 +376,22 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
-- [ ] **`TestSystem_ResetProjection_RestartAndReplay` is load-fragile —
-      fails `nix run .#verify` on a busy machine** — fails 3/3 under verify
-      (loadavg 13–25 from external processes) and after long gap-retries;
-      passes instantly in isolation, in pairs, and at calm load (0.1s).
-      Signature: phase-2 replay `processed=0 errors=0` for the full 45s
-      budget. Working hypothesis for the root cause: the
-      `file:<name>?mode=memory&cache=shared` DSN destroys the in-memory DB
-      when sys1's `Close()` drops the last connection before sys2 opens its
-      first — under load that race flips. Fix structurally (keep-a-connection
-      or real temp FILE db), not with margin bumps (gotchas-testing.md class).
-      Exonerated during triage: NOT the sqlite v1.59.0 bump (fails on
-      v1.58.0 too), NOT cqrs-lint changes (no causal path). _(Effort: M,
-      owner: system area)_
+- [x] **`TestSystem_ResetProjection_RestartAndReplay` is load-fragile —
+      RESOLVED AS SPECIFIED 2026-09-18: the structural fix was already in** —
+      the shared-cache in-memory DSN hypothesis was stale: `5d66308c3`
+      (2026-08-16, before the 09-13 failure observations) had already switched
+      the test to a real temp-FILE DSN (`sqliteFileDSN`, `system/testdsn_test.go`),
+      so the 09-13+ stalls were never the DB-destruction class. Two escalated
+      storm repros on 2026-09-18 failed to reproduce: full system suite at
+      load 38.6 (plain) and `-race -count=2` (338 passes) at load 60-111 —
+      the stall needs the full-verify package storm (all-module + builds).
+      Diagnostics added to the phase-2 failure path (full worker state:
+      status/restarts/checkpoint/lastError + a direct `ReadFrom` against the
+      event store) so the NEXT verify occurrence either passes or names the
+      fork ("journal holds N events from sys2's view" vs worker idle). The
+      residual subscribe-vs-drain stall risk lives in the 🔥 Investigate
+      section above; budget margins deliberately NOT bumped further.
+      _(was Effort: M, owner: system area)_
 
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
@@ -401,10 +404,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
       remaining blocker is purely the Actions billing entry above. Re-run the
       self-lint CI leg once billing works; close if green. _(Effort: S,
       re-run required, gated on billing)_
-- [ ] **pin-sweep `--check` nag semantics** — REMAINING: the trigger-policy DECISION
-      only (keep blocking-on-every-push, or move to tag-push/cron?). Recommendation
-      from 15-09 §g2 evidence: keep blocking-on-every-push (the nag is the sweep
-      enforcement) and let cron report-only. DONE 2026-09-15: the extras —
+- [x] **pin-sweep `--check` nag semantics** — DECIDED 2026-09-18 per the
+      15-09 §g2 recommendation: KEEP blocking-on-every-push (the nag is the
+      sweep enforcement; `ci.yml` `pin-sweep.sh --check` unchanged) and let
+      the nightly cron run REPORT-ONLY (`--check --remote`, warning on
+      drift, in `nightly-gates.yml`). DONE 2026-09-15: the extras —
       `--dry-run` (preview, mutates nothing), `--remote` (compares `git ls-remote
       --tags origin` instead of local refs; catches the tag-pushed-but-not-fetched
       blind spot where plain `--check` stays green), and fixture harness
@@ -444,41 +448,63 @@ bottom is a do-not-re-litigate guard, not a backlog.
       with root-relative `tee current.txt` (the old single-`cd` form hopped
       `../metaengine/tursoengine` from `stack/bench` — a nonexistent dir — and
       teed into `stack/current.txt` while the compare step reads the root
-      copy; BOTH legs verified live with real bench runs). Awaiting the next
-      CI run for remote confirmation. The test-tag-release.sh
+      copy; BOTH legs verified live with real bench runs). **CACHE MIGRATION
+      EXECUTED LOCALLY 2026-09-18:** the owner/infra decision resolved to
+      option (b) — `magic-nix-cache-action` REMOVED from all 24 ci.yml jobs
+      (flakehub-cache-action was rejected: it needs the parked FlakeHub
+      account + auth token) with the policy documented in a ci.yml header
+      (start with nightly-gates.yml when the FlakeHub decision lands), and
+      timeout-minutes raised on the starved jobs (verify-fast 45, per-module
+      matrix 25, CGo 25, Dgraph 30). Remote confirmation still gated on the
+      billing fix. The test-tag-release.sh
       SC2086 item was already stale — the script uses the array form
       `git "${notag[@]}"` and shellcheck is clean (verified 2026-09-13). — source: run
       34548534824, run 34747274058, `gh run list`
       _(Effort: M-L, multi-session; the cache-backend migration is the
       single highest-leverage repair)_
-- [ ] 🔥 **Root-cause the `.golangci.yml` config-corruption loop** — five
-      incidents now (latest `d54cd38a7`, 09-16): something inside auto-commit
-      waves keeps re-adding `gci` and deleting the depguard allow-list block;
-      recovery is manual each time (gci has a self-heal, depguard does NOT).
-      (a) identify the culprit (daemon logs? an agent's fmt flow?); (b) add a
-      depguard auto-restore to `check-lint-config` (pin the known-good block
-      or hash-pin config sections) so the sixth incident self-repairs. The
-      incident log + symptom fingerprint live in gotchas-tooling-build.md.
-      — source: 2026-09-16 09-35 report §e1/§e2/§f4-5 _(Effort: M)_
-- [ ] **Pre-commit hook hardening batch** — (a) reconcile the two hook
-      sources (`scripts/install-hooks.sh` BuildFlow heredoc → `.git/hooks/`
-      vs `scripts/pre-commit.sh` repo gates → `.githooks/pre-commit`): exactly
-      one canonical hook; (b) make fresh clones non-dead (`.githooks/` tracked
-      in-repo or bootstrapped in `nix develop` — today every new clone starts
-      with silently-dead pre-commit gating); (c) add `.golangci.yml` to the
-      staged triggers so `check-lint-config` runs when the config itself is
-      staged (catches the gci/depguard class at commit time); (d) consider
-      scoping the `.githooks` fmt gate to staged files so honest commits in
-      multi-writer trees don't need `--no-verify`. — source: 08-05 §b6/§f8-10;
-      18-19 §e3 _(Effort: S/M)_
-- [ ] **Nightly gate cron + calibration-baseline CI wiring** — the
-      "self-heal only works when the gate runs" meta-fix: a cheap scheduled
-      job running `check-lint-config` + `check-modsums` + the script
-      harnesses would have caught depguard-down-4-days and the
-      always-failing calibration gate day-of. Plus the one-workflow-away
-      calibration artifact loop: nightly `calibration-drift --write-baseline`
-      + upload, next-night `--baseline` + compare. — source: 08-05 §b3/§e4/§f6/§f11
-      _(Effort: M)_
+- [x] 🔥 **Root-cause the `.golangci.yml` config-corruption loop** — CLOSED
+      2026-09-18 with both halves done. (a) CULPRIT: the auto-commit daemon's
+      fmt waves — every incident commit is `chore: auto-commit` (7e711d32d,
+      d54cd38a7, c56d219a6, and c55e21fa8 caught live mid-session committing a
+      header-only deletion); the inner tool is unconfirmed (BuildFlow
+      auto-configure is the prime suspect — see gotchas-tooling-build.md for
+      the full fingerprint). (b) SELF-HEAL SHIPPED: `scripts/restore-depguard.sh`
+      + pinned golden `scripts/depguard-block.golden.yml` restore the block
+      when it vanishes (restore-on-empty only; partial shrinkage fails loudly
+      for a human; legit growth auto-refreshes the golden), wired into
+      check-depguard → `check-lint-config`, plus a `.golangci.yml` staged
+      trigger in the pre-commit hook that re-stages the repair. gci already
+      self-healed via check-formatters.sh. Mutation-tested (corrupt → repair
+      → byte-verify; shrinkage → exit 1; growth → golden refresh). Sixth AND
+      seventh incidents (both 09-18) would now self-repair on the next gate
+      run. — source: 2026-09-16 09-35 report §e1/§e2/§f4-5 _(Effort: M — DONE)_
+- [x] **Pre-commit hook hardening batch** — ALL FOUR DONE 2026-09-18.
+      (a) ONE canonical hook: `scripts/pre-commit.sh` is the source of truth,
+      installed to `.githooks/pre-commit` (hooksPath) by `nix run
+      .#install-hooks`, which now SETS `core.hooksPath .githooks` itself; the
+      old BuildFlow heredoc writer is gone — BuildFlow is CHAINED inside the
+      canonical hook (when the binary is present), so `buildflow precommit
+      install` can no longer wipe the repo gates. The `/demo/` drift between
+      source and installed copy is gone (reinstalled from source).
+      (b) fresh clones boot: the `nix develop` shellHook installs the hook +
+      sets hooksPath on first entry. (c) `.golangci.yml` staged trigger runs
+      the self-heal pair and re-stages the repaired config. (d) the fmt gate
+      is now staged-SCOPED and self-fixing (`nix fmt -- <staged files>` +
+      re-stage) — honest commits in multi-writer trees no longer hit other
+      sessions' in-flight files, and doc-only commits skip the code gates.
+      — source: 08-05 §b6/§f8-10; 18-19 §e3 _(Effort: S/M — DONE)_
+- [x] **Nightly gate cron + calibration-baseline CI wiring** — SHIPPED
+      2026-09-18 as `.github/workflows/nightly-gates.yml` (cron 04:00 UTC +
+      workflow_dispatch): `check-lint-config` (fails loudly + prints the diff
+      when the self-heal had to repair, so the incident is visible within
+      24h), `check-modsums`, `check-release-scripts` (script harnesses),
+      report-only `pin-sweep --check --remote`, and the calibration artifact
+      loop (rolling `actions/cache` baseline: night N compares `--baseline`,
+      then refreshes via the new `nix run .#calibration-drift --
+      --write-baseline` flake app). Deliberately NO nix cache action (the
+      throttled dependency; see the CI triage item). REMAINING: first real
+      run needs the Actions billing fix — until then it arms silently like
+      the rest of CI. — source: 08-05 §b3/§e4/§f6/§f11 _(Effort: M — wiring DONE)_
 - [ ] [BLOCKED] **Set the `ERRAUDIT_PAT` secret** (user action) — erraudit
       findings verified zero across all modules 2026-09-15; the `error-audit`
       CI job arms the moment the secret exists. — source: 08-05 §f12/§f19
@@ -489,12 +515,16 @@ bottom is a do-not-re-litigate guard, not a backlog.
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
       box is quiet; closes the [x] rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
-- [ ] **Pin the recipes-gate CI posture** — one grep decides: is
-      `cmd/doc-check` in the CI per-module matrix (`testModules`)? If yes,
-      `TestRecipesCompile` already runs on every push cold-cache and the
-      separate `check-recipes-compile` flake app is optional; if no, add the
-      app. Also decide `#verify` gating on dev machines (warm ≈ 5-15 s,
-      cold ≈ 104 s). — source: 18-19 §b1/§g1 _(Effort: XS decision + S)_
+- [x] **Pin the recipes-gate CI posture** — DECIDED 2026-09-18, one grep as
+      promised: `cmd/doc-check` IS in `testModules` (flake.nix), and the CI
+      `discover-modules` matrix runs `GOWORK=off go test ./... -count=1 -race`
+      in EVERY go.mod module on every push — so `TestRecipesCompile` +
+      `TestRecipesCatalogCoversFile` already run per-push cold-cache; the
+      separate `check-recipes-compile` flake app would be duplication and is
+      NOT added. Dev machines get the same gate inside `#verify`'s doc-check
+      leg (warm ≈ 5-15 s; run `#verify` before tagging, per AGENTS.md). No
+      code change needed — the posture was already correct. — source: 18-19
+      §b1/§g1 _(Effort: XS decision + S — decision only)_
 
 ---
 
@@ -957,6 +987,64 @@ bottom is a do-not-re-litigate guard, not a backlog.
       — source: 12-21 §b2/§c1-6/§f1-4/§f6-8 _(Effort: M)_
 
 ---
+
+## Temporal versioned cells — ADR-0141 follow-ups (harvested 2026-09-18)
+
+> From the temporal deep-dive reports
+> ([14:07](docs/status/2026-09-18_14-07_temporal-versioned-cells-deep-dive.md) §f items 19–44,
+> [16:03](docs/status/2026-09-18_16-03_temporal-versioned-cells-completion-gates.md)).
+> Items 1–18 of the 14:07 list + docs/CHANGELOG/FEATURES/golden/lint work are DONE
+> (see those reports); the core API (`VersionedStorage`, `MapSetAt`/`MapGetAsOf`,
+> `temporal-asof` rule, memory/sqlite/bigtable engines) is green and documented
+> (recipes §2.37, advanced §6.20, readmodels versioned-engine note). Engine
+> enumeration in tooling (api-stability, cqrs-lint `StoreBigTable` +
+> `metaengineEngineFromImport`) landed 2026-09-18 evening session.
+
+- [ ] 🔥 **Real-GCP validation + prior calibration for `bigtableengine`** — the
+      module ships 🧪 (bttest-fake-validated only, no credentials on this
+      machine). Run the suite once against a real BigTable instance, then
+      calibrate `NsPerOp`/RTT priors (currently UNCALIBRATED-marked constants)
+      via `CALIB_DUMP=1` + `scripts/calibration-drift.sh`, then optionally add
+      `BenchmarkCalibration_Bigtable_*` stubs. Owner decision pending: is a
+      real-GCP smoke test tag-blocking for the next release? — source: 14:07 §f20/§g2,
+      `metaengine/bigtableengine/README.md` _(Effort: S each, gated on GCP access)_
+- [ ] **Property-based temporal tests for memory version chains** — rapid-based:
+      out-of-order stamps, same-ms LWW collapse, retention-never-prunes-newest,
+      tombstone-as-of visibility (engine-level, memory first). — source: 14:07 §f22,
+      `metaengine/version_chain.go` _(Effort: M)_
+- [ ] **sqlite versioned-cells restart soak** — prove `meta_cell_versions`
+      history survives process restart (re-open DSN, as-of reads still answer).
+      — source: 14:07 §f23, `metaengine/sqliteengine/` _(Effort: S)_
+- [ ] **bigtableengine restart-safety test** — two engines over one bttest
+      server; verify no cross-instance state bleed and clean re-reads. — source:
+      14:07 §f24 _(Effort: S)_
+- [ ] **Decide + document `MapUpdateAt` on bigtableengine** — optimistic
+      ReadRow+Apply is non-atomic; fold-lock serialization may make it
+      skippable. Decide, then document either the implementation or the
+      exclusion rationale in the README. — source: 14:07 §f25 _(Effort: S)_
+- [ ] **bigtableengine client-side MaxAge retention trim** — via the
+      `DeleteTimestampRange` option (GC policy covers MaxVersions natively), or
+      document GC-policy-only as the deliberate choice. — source: 14:07 §f26 _(Effort: S)_
+- [ ] **Pebble/bbolt versioned cells — scope decision for the next wave** —
+      both have natural prefix-range machinery for version chains; decide
+      whether they join the 3 versioned engines. — source: 14:07 §f31 _(Effort: M once scoped)_
+- [ ] **memory_versioned wall-clock path naming clarity** — `MapSet` on a
+      versioned engine still stamps wall-clock (documented); consider a clearer
+      name for the `recordVersionAt(now)` path so replay-vs-live writes are
+      obvious at the call site. — source: 14:07 §f40, `metaengine/memory_versioned.go:31` _(Effort: XS)_
+- [ ] **Cross-engine fuzz: `MapSetAt`/`MapGetAsOf` memory vs sqlite** — reuse
+      the existing `fuzz_test.go` pattern to pin contract equivalence across
+      the two emulating engines. — source: 14:07 §f41 _(Effort: M)_
+- [ ] **Temporal capability gap notes in Dgraph/PG/MySQL engine READMEs** —
+      one paragraph each: versioned cells not supported yet, temporal reads
+      fail loud + `temporal-asof` WARNs (link ADR-0141). — source: 14:07 §f42 _(Effort: XS)_
+- [ ] **projectionadapter-level temporal stamp test** — Store-level integration
+      exists; pin the CQRS path (event stamps survive `ApplyRecord` → folds on
+      versioned engines) at the adapter level. — source: 14:07 §f44,
+      `metaengine/projectionadapter/` _(Effort: S)_
+- [ ] **Soak env-var run for bigtableengine** — per
+      `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
+      `#verify`). — source: 14:07 §f33-34 _(Effort: S)_
 
 ## Declined / Rejected (do not re-litigate)
 

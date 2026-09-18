@@ -176,6 +176,67 @@ func TestTemporal_AsOfInputRouting(t *testing.T) {
 	}
 }
 
+// TestTemporal_AsOfViaExecuteTyped pins the system-facing entry: the typed
+// wrapper (ExecuteTyped → ExecuteCtx + result reconstruction) that system/
+// compositions and consumers use must preserve AsOf routing end-to-end —
+// the declared AsOf field survives the wrapper and the result comes back
+// typed, not as a raw any (blast-radius check for system.New consumers).
+func TestTemporal_AsOfViaExecuteTyped(t *testing.T) {
+	t.Parallel()
+
+	store, err := Plan([]Engine{NewMemoryEngineWithVersioning()}, tvQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer DeferClose(store)
+
+	ctx := context.Background()
+
+	t1 := time.Now().Add(-time.Hour).Truncate(time.Millisecond)
+	t2 := t1.Add(10 * time.Minute)
+
+	for _, rec := range []struct {
+		kind    string
+		at      time.Time
+		payload any
+	}{
+		{"tvUserCreated", t1, tvUserCreated{ID: "u1", Name: "Alice"}},
+		{"tvUserRenamed", t2, tvUserRenamed{ID: "u1", Name: "Bob"}},
+	} {
+		if err := store.ApplyRecord(
+			ctx,
+			tvRecord(rec.kind, rec.at, rec.payload),
+			rec.payload,
+		); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	past, err := ExecuteTyped[tvFindUser, tvUserView](ctx, store, tvFindUser{ID: "u1", AsOf: t1})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if past.Name != "Alice" {
+		t.Fatalf("ExecuteTyped as-of t1 name = %q, want Alice", past.Name)
+	}
+
+	latest, err := ExecuteTypedByName[tvFindUser, tvUserView](
+		ctx,
+		store,
+		"tv_users",
+		tvFindUser{ID: "u1"},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if latest.Name != "Bob" {
+		t.Fatalf("ExecuteTypedByName latest name = %q, want Bob", latest.Name)
+	}
+}
+
 // TestTemporal_Retention pins the retention knob: MaxVersions keeps the
 // newest N versions (as-of beyond the window → ErrNotFound, latest intact);
 // MaxAge prunes versions older than the cutoff relative to each write.

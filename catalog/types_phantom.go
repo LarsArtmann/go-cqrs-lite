@@ -72,6 +72,12 @@ func (d DeliveryGuarantee) String() string { return string(d) }
 
 func (d DeliveryGuarantee) IsZero() bool { return d == "" }
 
+// Canonical DeliveryGuarantee values (EventCatalog semantics).
+const (
+	DeliveryExactlyOnce DeliveryGuarantee = "exactly-once"
+	DeliveryAtLeastOnce DeliveryGuarantee = "at-least-once"
+)
+
 type Method string
 
 func (m Method) String() string { return string(m) }

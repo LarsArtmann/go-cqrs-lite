@@ -116,6 +116,8 @@ catalog/asyncapi/struct Tag
 catalog/asyncapi/type Option
 catalog/asyncapi/type URI
 catalog/const CommandMessage
+catalog/const DeliveryAtLeastOnce
+catalog/const DeliveryExactlyOnce
 catalog/const EventMessage
 catalog/const QueryMessage
 catalog/const Receives
@@ -139,6 +141,10 @@ catalog/d2/type Option
 catalog/docserver/func AsyncAPIPage
 catalog/docserver/func D2Handler
 catalog/docserver/func D2Page
+catalog/docserver/func EventCatalogChannelPage
+catalog/docserver/func EventCatalogMessagePage
+catalog/docserver/func EventCatalogPage
+catalog/docserver/func EventCatalogServicePage
 catalog/docserver/func GenerateEventCatalog
 catalog/docserver/func HealthCheckHandler
 catalog/docserver/func IndexPage
@@ -577,6 +583,7 @@ cmd/cqrs-lint/pkg/analyzer/const SnapshotOff
 cmd/cqrs-lint/pkg/analyzer/const SnapshotOn
 cmd/cqrs-lint/pkg/analyzer/const SnapshotUnknown
 cmd/cqrs-lint/pkg/analyzer/const StoreBadger
+cmd/cqrs-lint/pkg/analyzer/const StoreBigTable
 cmd/cqrs-lint/pkg/analyzer/const StoreBolt
 cmd/cqrs-lint/pkg/analyzer/const StoreCustom
 cmd/cqrs-lint/pkg/analyzer/const StoreDgraph

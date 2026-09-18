@@ -16,6 +16,7 @@ const (
 	StoreTurso    StoreKind = "turso"
 	StoreDuckDB   StoreKind = "duckdb"
 	StoreBolt     StoreKind = "bolt"
+	StoreBigTable StoreKind = "bigtable"
 	StoreCustom   StoreKind = "custom"
 	StoreNone     StoreKind = "none"
 )
@@ -29,7 +30,7 @@ func (s StoreKind) IsSQL() bool {
 	case StoreSQLite, StorePostgres, StoreMySQL, StoreDuckDB, StoreCustom:
 		return true
 	case StoreUnknown, StorePebble, StoreBadger, StoreIroh, StoreMemory,
-		StoreTurso, StoreDgraph, StoreBolt, StoreNone:
+		StoreTurso, StoreDgraph, StoreBolt, StoreBigTable, StoreNone:
 		return false
 	}
 
@@ -45,7 +46,7 @@ func (s StoreKind) IsEmbedded() bool {
 		StoreIroh, StoreDuckDB:
 		return true
 	case StoreUnknown, StorePostgres, StoreMySQL, StoreTurso, StoreDgraph,
-		StoreCustom, StoreNone:
+		StoreBigTable, StoreCustom, StoreNone:
 		return false
 	}
 
@@ -56,7 +57,7 @@ func (s StoreKind) IsEmbedded() bool {
 // enabling multi-instance deployment. Distributed stores require network I/O.
 func (s StoreKind) IsDistributed() bool {
 	switch s {
-	case StorePostgres, StoreMySQL, StoreTurso, StoreDgraph:
+	case StorePostgres, StoreMySQL, StoreTurso, StoreDgraph, StoreBigTable:
 		return true
 	case StoreUnknown,
 		StoreSQLite,
@@ -80,7 +81,7 @@ func (s StoreKind) IsDistributed() bool {
 func AllStoreKinds() []StoreKind {
 	return []StoreKind{
 		StoreSQLite, StorePostgres, StoreMySQL, StorePebble,
-		StoreBadger, StoreDgraph, StoreIroh,
+		StoreBadger, StoreDgraph, StoreIroh, StoreBigTable,
 		StoreMemory, StoreTurso, StoreDuckDB, StoreBolt, StoreCustom, StoreNone,
 	}
 }

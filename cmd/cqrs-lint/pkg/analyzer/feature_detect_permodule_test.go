@@ -225,6 +225,11 @@ func TestMetaengineEngineFromImport_CoversShippedEngines(t *testing.T) {
 		{"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4", "turso", StoreTurso},
 		{"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4", "bbolt", StoreBolt},
 		{"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4", "iroh", StoreIroh},
+		{
+			"github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4",
+			"bigtable",
+			StoreBigTable,
+		},
 		{"github.com/larsartmann/go-cqrs-lite/metaengine/v4", "", StoreUnknown},
 		{"github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4", "", StoreUnknown},
 	}
