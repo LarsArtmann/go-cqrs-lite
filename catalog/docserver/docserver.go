@@ -65,6 +65,14 @@ type Config struct {
 	// every docserver script tag already carries. Off by default so existing
 	// deployments see byte-identical responses until they opt in.
 	EnableCSP bool
+
+	// D2SVG optionally renders the D2 diagram source to SVG so the
+	// architecture page shows a real diagram instead of only the source.
+	// It is called with the generated D2 source and returns the SVG markup;
+	// a nil hook (or an error) makes the page fall back to the source view
+	// with copy/download affordances. Consumers typically shell out to the
+	// `d2` CLI and cache the result — the library stays dependency-free.
+	D2SVG func(d2Source string) (string, error)
 }
 
 // AsyncAPIServerConfig configures the AsyncAPI server entry.
@@ -201,12 +209,12 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	)
 }
 
-func (ds *DocsServer) serveOpenAPIJSON(w http.ResponseWriter, _ *http.Request) {
-	ds.serveJSON(w, ds.buildOpenAPI())
+func (ds *DocsServer) serveOpenAPIJSON(w http.ResponseWriter, r *http.Request) {
+	ds.serveJSON(w, ds.buildOpenAPIForRequest(r))
 }
 
-func (ds *DocsServer) serveOpenAPIYAML(w http.ResponseWriter, _ *http.Request) {
-	b, err := json.Marshal(ds.buildOpenAPI())
+func (ds *DocsServer) serveOpenAPIYAML(w http.ResponseWriter, r *http.Request) {
+	b, err := json.Marshal(ds.buildOpenAPIForRequest(r))
 	if err != nil {
 		http.Error(w, "failed to marshal OpenAPI spec", http.StatusInternalServerError)
 

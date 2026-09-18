@@ -2,23 +2,27 @@ package docserver
 
 import (
 	"github.com/larsartmann/templ-components/display"
+	"github.com/larsartmann/templ-components/feedback"
 	"github.com/larsartmann/templ-components/layout"
 	"github.com/larsartmann/templ-components/utils"
 )
 
-// D2Page renders the generated D2 architecture diagram source with copy and
-// download affordances.
-templ D2Page(brand, docsPrefix, diagram string) {
+// D2Page renders the generated architecture diagram. When a D2SVG hook is
+// configured (and rendering succeeds), the page shows the SVG diagram with
+// the source tucked into a collapsible section; otherwise it degrades to the
+// source view with copy/download affordances and a hint on how to enable
+// rendering.
+templ D2Page(brand, docsPrefix, diagram, svg string) {
 	{{
 		base := docsPageProps(brand+" — Architecture Diagram", "D2 architecture diagram generated from the catalog", docsPrefix, templ.GetNonce(ctx))
 		headerProps := display.PageHeaderProps{
 			Title:    "Architecture diagram",
-			Subtitle: "D2 source generated from the catalog. Paste it into any D2 renderer, e.g. the D2 playground.",
+			Subtitle: "D2 source generated from the catalog",
 		}
-		cardProps := display.CardProps{
+		sourceCardProps := display.CardProps{
 			Title:        "D2 source",
 			Subtitle:     "Text · UTF-8",
-			HeaderAction: display.Button(display.ButtonProps{Text: "Download .d2", Href: docsPrefix + "/d2.txt"}),
+			HeaderAction: display.Button(display.ButtonProps{Text: "Download .d2", Href: docsPrefix + "/d2.txt", Variant: display.ButtonSecondary, Size: display.ButtonSizeSM}),
 		}
 		copyProps := display.CopyButtonProps{
 			BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},
@@ -30,12 +34,34 @@ templ D2Page(brand, docsPrefix, diagram string) {
 		@docsNav(brand, docsPrefix, docsPrefix+"/d2")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 			@display.PageHeader(headerProps)
-			@display.Card(cardProps) {
-				@display.CopyButton(copyProps)
-				<pre
-					aria-label="D2 diagram source"
-					class="mt-4 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
-				><code>{ diagram }</code></pre>
+			if svg != "" {
+				@display.Card(display.CardProps{Title: "Rendered diagram", Subtitle: "Rendered by the server-side D2 hook"}) {
+					<div class="d2-diagram overflow-x-auto rounded-lg bg-white p-4 dark:bg-gray-950">@templ.Raw(svg)</div>
+				}
+				@display.CollapsibleSection(display.CollapsibleSectionProps{
+					BaseProps: utils.BaseProps{Nonce: templ.GetNonce(ctx)},
+					Title:     "D2 source",
+					Collapsed: true,
+				}) {
+					@display.CopyButton(copyProps)
+					<pre
+						aria-label="D2 diagram source"
+						class="mt-4 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
+					><code>{ diagram }</code></pre>
+				}
+			} else {
+				@feedback.Alert(feedback.AlertProps{
+					Type:    feedback.FeedbackInfo,
+					Title:   "Diagram rendering not configured",
+					Message: "This server has no D2 rendering hook, so only the diagram source is shown. Paste it into any D2 renderer, or configure DocsServer.Config.D2SVG to render the diagram here.",
+				})
+				@display.Card(sourceCardProps) {
+					@display.CopyButton(copyProps)
+					<pre
+						aria-label="D2 diagram source"
+						class="mt-4 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs leading-relaxed text-gray-100 dark:bg-black dark:text-gray-200"
+					><code>{ diagram }</code></pre>
+				}
 			}
 		</div>
 	}

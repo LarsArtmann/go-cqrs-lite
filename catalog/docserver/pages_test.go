@@ -213,7 +213,7 @@ func TestDocsServer_SPAPages_ReferenceAbsoluteAssets(t *testing.T) {
 		srv.OpenAPIUI()(recorder, newTestRequest("/docs/openapi"))
 		body := recorder.Body.String()
 
-		for _, expected := range []string{"/docs/static/scalar.js", `data-spec-url="/docs/openapi.json"`, "<noscript"} {
+		for _, expected := range []string{"/docs/static/scalar.js", `data-tc-spec-url="/docs/openapi.json"`, "<noscript"} {
 			if !strings.Contains(body, expected) {
 				t.Errorf("openapi page: expected %s in HTML", expected)
 			}

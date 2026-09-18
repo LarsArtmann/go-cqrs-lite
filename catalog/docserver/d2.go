@@ -63,7 +63,17 @@ func (ds *DocsServer) exportD2() string {
 
 func (ds *DocsServer) serveD2View(w http.ResponseWriter, r *http.Request) {
 	r = ds.applyCSP(w, r)
-	ds.renderComponent(w, r, D2Page(ds.config.ServiceName, ds.config.DocsPath, ds.exportD2()))
+
+	diagram := ds.exportD2()
+
+	var svg string
+	if ds.config.D2SVG != nil {
+		if rendered, err := ds.config.D2SVG(diagram); err == nil {
+			svg = rendered
+		}
+	}
+
+	ds.renderComponent(w, r, D2Page(ds.config.ServiceName, ds.config.DocsPath, diagram, svg))
 }
 
 func (ds *DocsServer) serveD2Text(w http.ResponseWriter, _ *http.Request) {
