@@ -427,3 +427,65 @@ func TestDocsServer_RegisterRoutes_StaticFiles(t *testing.T) {
 		}
 	}
 }
+
+// TestDocsServer_ScalarJSRewritesFontCDNURLs pins the self-hosted-fonts
+// contract: the served scalar.js must not point @font-face at Scalar's CDN
+// (requests would be denied by font-src 'self' and fall back to system
+// fonts), and the rewrite must follow the configured DocsPath prefix so
+// deployments mounted outside /docs keep working.
+func TestDocsServer_ScalarJSRewritesFontCDNURLs(t *testing.T) {
+	for _, prefix := range []string{"/docs", "/api/docs"} {
+		srv := NewDocsServer(testProvider, Config{
+			ServiceName: "Test Service",
+			Version:     "1.0.0",
+			DocsPath:    prefix,
+		})
+
+		mux := http.NewServeMux()
+		srv.RegisterRoutes(mux)
+
+		req := newTestRequest(prefix + "/static/scalar.js")
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, req)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("GET %s/static/scalar.js: expected 200, got %d", prefix, recorder.Code)
+
+			continue
+		}
+
+		body := recorder.Body.String()
+		if strings.Contains(body, scalarFontCDN) {
+			t.Errorf("GET %s/static/scalar.js: body still references Scalar's font CDN %s", prefix, scalarFontCDN)
+		}
+
+		want := prefix + "/static/fonts/inter-latin.woff2"
+		if !strings.Contains(body, want) {
+			t.Errorf("GET %s/static/scalar.js: body must reference vendored font %s", prefix, want)
+		}
+	}
+}
+
+// TestDocsServer_VendoredFontsAreServed proves the woff2 subsets shipped in
+// static/fonts are embedded and served by the generic static file server.
+func TestDocsServer_VendoredFontsAreServed(t *testing.T) {
+	srv := testServer(t)
+	mux := http.NewServeMux()
+	srv.RegisterRoutes(mux)
+
+	for _, name := range []string{"inter-latin.woff2", "inter-symbols.woff2", "mono-latin.woff2", "mono-vietnamese.woff2"} {
+		req := newTestRequest("/docs/static/fonts/" + name)
+		recorder := httptest.NewRecorder()
+		mux.ServeHTTP(recorder, req)
+
+		if recorder.Code != http.StatusOK {
+			t.Errorf("GET /docs/static/fonts/%s: expected 200, got %d", name, recorder.Code)
+
+			continue
+		}
+
+		if magic := recorder.Body.Bytes()[:4]; string(magic) != "wOF2" {
+			t.Errorf("GET /docs/static/fonts/%s: expected woff2 magic bytes, got %q", name, magic)
+		}
+	}
+}

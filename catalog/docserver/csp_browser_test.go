@@ -101,17 +101,18 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 }
 
 // deliberatelyDeniedOrigins lists the third-party origins the vendored
-// Scalar bundle (@scalar/api-reference@1.69.0) attempts to reach from inside
-// a fully self-hosted deployment: its CDN web fonts (fonts.scalar.com,
-// inter/mono woff2 sets) and the vector-search registry (api.scalar.com,
-// /vector/registry/*). The docserver CSP deliberately denies them: a
-// self-hosted docs server does not phone home. The policy blocks those
-// attempts and Scalar degrades gracefully (system font fallback, local
-// search). A console refusal naming one of these hosts is therefore the
-// policy working; any other refusal, above all a same-origin one, is a real
+// Scalar bundle (@scalar/api-reference@1.69.0) still attempts to reach from
+// inside a fully self-hosted deployment: the vector-search registry
+// (api.scalar.com, /vector/registry/*). The docserver CSP deliberately denies
+// it: a self-hosted docs server does not phone home. Scalar's fonts are NOT
+// on this list any more — scalar.js is served with its @font-face URLs
+// rewritten to the vendored woff2 subsets under /static/fonts, so a console
+// refusal naming fonts.scalar.com is a REAL regression (the rewrite broke).
+// The policy blocks that attempt and Scalar degrades gracefully (local
+// search). A console refusal naming this host is therefore the policy
+// working; any other refusal, above all a same-origin one, is a real
 // rendering defect.
 var deliberatelyDeniedOrigins = []string{
-	"fonts.scalar.com",
 	"api.scalar.com",
 }
 
@@ -141,15 +142,6 @@ func fatalCSPRefusals(console string) []string {
 				expected = true
 				break
 			}
-		}
-
-		// The vendored asyncapi-react bundle evaluates strings at runtime and
-		// crashes (Uncaught EvalError) under the eval-free script-src policy.
-		// Known degradation, filed for the bundle upgrade / page-scoped CSP
-		// decision (TODO_LIST "asyncapi-react bundle requires unsafe-eval");
-		// the raw AsyncAPI JSON endpoint and the noscript fallback still serve.
-		if strings.Contains(line, "'unsafe-eval' is not an allowed source") {
-			expected = true
 		}
 
 		if !expected {

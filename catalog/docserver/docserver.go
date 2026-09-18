@@ -24,11 +24,15 @@
 package docserver
 
 import (
+	"bytes"
 	"cmp"
 	"encoding/json/jsontext"
 	"encoding/json/v2"
+	"fmt"
+	"io"
 	"io/fs"
 	"net/http"
+	"sync"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
@@ -180,6 +184,45 @@ func (ds *DocsServer) StaticFS() http.FileSystem {
 	return staticFilesystem
 }
 
+// scalarFontCDN is the origin the Scalar bundle hardcodes for its Inter and
+// mono @font-face files. Fully self-hosted deployments rewrite it to
+// <DocsPath>/static/fonts (the vendored woff2 subsets), so no font request
+// leaves this server and the browser console stays free of denied origins.
+const scalarFontCDN = "https://fonts.scalar.com/"
+
+// scalarJSHandler serves the embedded scalar.js with its @font-face URLs
+// rewritten from Scalar's CDN to this server's vendored fonts. The rewrite is
+// deterministic, so the rewritten body is computed once per DocsPath.
+func (ds *DocsServer) scalarJSHandler(prefix string) http.HandlerFunc {
+	selfPath := prefix + "/static/fonts/"
+	rewritten := sync.OnceValues(func() ([]byte, error) {
+		f, err := staticFilesystem.Open("scalar.js")
+		if err != nil {
+			return nil, fmt.Errorf("open embedded scalar.js: %w", err)
+		}
+		defer f.Close()
+
+		raw, err := io.ReadAll(f)
+		if err != nil {
+			return nil, fmt.Errorf("read embedded scalar.js: %w", err)
+		}
+
+		return bytes.ReplaceAll(raw, []byte(scalarFontCDN), []byte(selfPath)), nil
+	})
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		body, err := rewritten()
+		if err != nil {
+			http.Error(w, "scalar.js asset unavailable", http.StatusInternalServerError)
+
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		_, _ = w.Write(body)
+	}
+}
+
 // RegisterRoutes registers all documentation routes on the given mux.
 // Uses the DocsPath prefix from config.
 func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
@@ -205,6 +248,11 @@ func (ds *DocsServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET "+prefix+"/eventcatalog/services/{id}", ds.serveEventCatalogService)
 	mux.HandleFunc("GET "+prefix+"/d2", ds.serveD2View)
 	mux.HandleFunc("GET "+prefix+"/d2.txt", ds.serveD2Text)
+
+	// Scalar's bundle hardcodes its @font-face URLs to Scalar's CDN; serve a
+	// rewritten copy so the fonts load from this server (font-src 'self')
+	// instead of being denied as third-party requests.
+	mux.Handle("GET "+prefix+"/static/scalar.js", ds.scalarJSHandler(prefix))
 
 	// Serve embedded static assets (Scalar JS, AsyncAPI React JS/CSS)
 	mux.Handle(
