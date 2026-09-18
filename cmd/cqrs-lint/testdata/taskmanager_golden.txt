@@ -29,5 +29,12 @@ C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (project
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 D013 Project creates 11 events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
 E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
+E014 Project uses projectionhost but has no projection drain/sync/flush call — the read model may be stale when the command handler returns
+F004 Server-mode project has no Prometheus metrics — runtime observability is unavailable
+F013 Manual HTTP handlers for dispatch but no delivery module is used — hand-rolled HTTP lacks broker fanout, SSE delivery, and trace-context propagation
+F021 metaengine query "task_counts_by_status" has 4 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
+F021 metaengine query "task_views" has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
+F026 metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually
+F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
 V006 commandlifecycle/projections/v4 is on v4.1.0 but other v4 modules use v4.2.1, v4.3.0, v4.4.0, v4.4.1, v4.5.0, v4.5.1, v4.6.0, v4.7.0, v4.8.0, v4.9.0, v4.10.0, v4.11.0, v4.13.0 — go-cqrs-lite modules within the same major version should be pinned to the same release
