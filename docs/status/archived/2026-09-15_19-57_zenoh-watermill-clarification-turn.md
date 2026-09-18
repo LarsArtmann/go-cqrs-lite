@@ -40,18 +40,18 @@ Nothing this turn — smallest possible slice, and the claims discipline finally
 
 ## f) Next tasks (ranked; only turn-specific + still-standing top items)
 
-| #  | Task                                                                                                                                                | Impact   | Effort | Cat      |
-| -- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
-| 1  | Persist the 4-layer zenoh/watermill placement table as a dated addendum in the zenoh report (or watermill backends.md)                              | Low      | S      | Docs     |
-| ~~2~~  | ~~Merge + harvest the three reports' (f) lists into TODO_LIST/ROADMAP (docs-health HARVEST) — dedupe NATS leg / evals / go-no-go~~ done (docs-health pass 2026-09-16) — zenoh → ROADMAP OQ #2; watermill items → TODO_LIST                      | ~~High~~     | ~~S~~      | ~~Docs~~     |
-| 3  | Run the watermill skill trigger evals (3 prompts drafted)                                                                                           | High     | M      | Quality  |
-| 4  | NATS JetStream roundtrip test leg (`watermill-nats/v2` + `ephemeral-nats.sh`)                                                                       | High     | M      | Feature  |
-| 5  | Zenoh go/no-go decision (gates the zenoh W1 plugin spike)                                                                                           | Critical | S      | Decision |
-| 6  | Watermill-skill `references/advanced.md` (Delayed Messages, Requeuing, FanIn/FanOut, Metrics, Troubleshooting)                                      | Medium   | M      | Docs     |
-| 7  | Cross-link go-cqrs-lite skill ↔ watermill skill                                                                                                     | Medium   | S      | Docs     |
-| 8  | Codify claims-checklist rule (AGENTS.md/docs-agents line)                                                                                           | Medium   | S      | Process  |
-| 9  | CHANGELOG decision for README NATS correction                                                                                                       | Low      | S      | Docs     |
-| 10 | Coordinate on the concurrent benchkit/cqrs-bench wave before touching anything adjacent (api_surface.txt, FEATURES.md are dirty with foreign edits) | Medium   | S      | Hygiene  |
+| #     | Task                                                                                                                                                                                                                       | Impact   | Effort | Cat      |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1     | Persist the 4-layer zenoh/watermill placement table as a dated addendum in the zenoh report (or watermill backends.md)                                                                                                     | Low      | S      | Docs     |
+| ~~2~~ | ~~Merge + harvest the three reports' (f) lists into TODO_LIST/ROADMAP (docs-health HARVEST) — dedupe NATS leg / evals / go-no-go~~ done (docs-health pass 2026-09-16) — zenoh → ROADMAP OQ #2; watermill items → TODO_LIST | ~~High~~ | ~~S~~  | ~~Docs~~ |
+| 3     | Run the watermill skill trigger evals (3 prompts drafted)                                                                                                                                                                  | High     | M      | Quality  |
+| 4     | NATS JetStream roundtrip test leg (`watermill-nats/v2` + `ephemeral-nats.sh`)                                                                                                                                              | High     | M      | Feature  |
+| 5     | Zenoh go/no-go decision (gates the zenoh W1 plugin spike)                                                                                                                                                                  | Critical | S      | Decision |
+| 6     | Watermill-skill `references/advanced.md` (Delayed Messages, Requeuing, FanIn/FanOut, Metrics, Troubleshooting)                                                                                                             | Medium   | M      | Docs     |
+| 7     | Cross-link go-cqrs-lite skill ↔ watermill skill                                                                                                                                                                            | Medium   | S      | Docs     |
+| 8     | Codify claims-checklist rule (AGENTS.md/docs-agents line)                                                                                                                                                                  | Medium   | S      | Process  |
+| 9     | CHANGELOG decision for README NATS correction                                                                                                                                                                              | Low      | S      | Docs     |
+| 10    | Coordinate on the concurrent benchkit/cqrs-bench wave before touching anything adjacent (api_surface.txt, FEATURES.md are dirty with foreign edits)                                                                        | Medium   | S      | Hygiene  |
 
 ## g) Questions I cannot answer myself
 

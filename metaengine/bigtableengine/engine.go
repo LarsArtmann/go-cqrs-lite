@@ -44,10 +44,10 @@ type bigtableEngine struct {
 	admin  *bigtable.AdminClient
 	client *bigtable.Client
 
-	table  string
-	gc     bigtable.GCPolicy
+	table     string
+	gc        bigtable.GCPolicy
 	ownsConns bool // constructed by New: Close closes client + admin
-	cal    metaengine.Calibration
+	cal       metaengine.Calibration
 }
 
 // Option tunes a Bigtable engine at construction time.
@@ -164,7 +164,7 @@ func hasFamilies(info *bigtable.TableInfo, want ...string) bool {
 // see METAENGINE-LIVE-LATENCY-MODEL.md). BigTable same-region RTT is a few
 // milliseconds; NsPerOp prices one round trip conservatively.
 const (
-	BigtableNsPerOp   = 2_000_000.0
+	BigtableNsPerOp    = 2_000_000.0
 	BigtableNetworkRTT = 3 * time.Millisecond
 )
 
@@ -177,9 +177,9 @@ func (e *bigtableEngine) Profile() metaengine.EngineProfile {
 		Persistence:     metaengine.PersistencePersistent, // remote replicated service
 		ReadCosts: metaengine.ReadCosts{
 			// One RPC round trip for a point lookup (uncalibrated prior).
-			NsPerPointLookup: 2_000_000,
-			NsPerAggregate:   2_000_000, // CounterGet = one prefix scan RPC
-			NsPerScan:        900,       // per-row within one streamed ReadRows
+			NsPerPointLookup:  2_000_000,
+			NsPerAggregate:    2_000_000, // CounterGet = one prefix scan RPC
+			NsPerScan:         900,       // per-row within one streamed ReadRows
 			NsPerFilteredScan: 900,
 		},
 		Supports: map[metaengine.ADT]metaengine.Complexity{
@@ -209,7 +209,11 @@ func (e *bigtableEngine) Close() error {
 // HealthCheck implements [metaengine.HealthChecker]: a one-row read proves
 // the data path answers.
 func (e *bigtableEngine) HealthCheck(ctx context.Context) error {
-	_, err := e.tbl.ReadRow(ctx, "__health__", bigtable.RowFilter(bigtable.CellsPerRowLimitFilter(1)))
+	_, err := e.tbl.ReadRow(
+		ctx,
+		"__health__",
+		bigtable.RowFilter(bigtable.CellsPerRowLimitFilter(1)),
+	)
 	if err != nil {
 		return fmt.Errorf("bigtableengine: health read: %w", err)
 	}
@@ -246,7 +250,11 @@ func (e *bigtableEngine) ResetEngine(ctx context.Context) error {
 	return nil
 }
 
-func (e *bigtableEngine) applyAll(ctx context.Context, keys []string, muts []*bigtable.Mutation) error {
+func (e *bigtableEngine) applyAll(
+	ctx context.Context,
+	keys []string,
+	muts []*bigtable.Mutation,
+) error {
 	errs, err := e.tbl.ApplyBulk(ctx, keys, muts)
 	if err != nil {
 		return err //nolint:wrapcheck // passthrough

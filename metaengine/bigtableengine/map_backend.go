@@ -60,7 +60,10 @@ func latestCell(row bigtable.Row) (bigtable.ReadItem, bool) {
 }
 
 func wrapOp(op string, err error) error {
-	return errors.Join(errors.New("bigtableengine: "+op), err) //nolint:err113,goerr113 // dynamic join
+	return errors.Join(
+		errors.New("bigtableengine: "+op),
+		err,
+	) //nolint:err113,goerr113 // dynamic join
 }
 
 // --- metaengine.VersionedWriter (native) ---
@@ -188,8 +191,8 @@ func (e *bigtableEngine) MapHistory(
 
 // Compile-time assertions: the full temporal capability set, natively.
 var (
-	_ metaengine.MapBackend       = (*bigtableEngine)(nil)
-	_ metaengine.VersionedStorage = (*bigtableEngine)(nil)
-	_ metaengine.VersionedWriter  = (*bigtableEngine)(nil)
+	_ metaengine.MapBackend        = (*bigtableEngine)(nil)
+	_ metaengine.VersionedStorage  = (*bigtableEngine)(nil)
+	_ metaengine.VersionedWriter   = (*bigtableEngine)(nil)
 	_ metaengine.CellHistoryReader = (*bigtableEngine)(nil)
 )

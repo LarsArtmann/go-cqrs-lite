@@ -7,8 +7,8 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-faster/yaml v0.4.6
 	github.com/larsartmann/go-error-family v0.10.1
-	github.com/larsartmann/templ-components v1.17.0
-	github.com/larsartmann/templ-components/utils v1.17.0
+	github.com/larsartmann/templ-components v1.18.0
+	github.com/larsartmann/templ-components/utils v1.18.0
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.43.0
 )
@@ -26,8 +26,8 @@ require (
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/larsartmann/templ-components/htmx v1.17.0 // indirect
-	github.com/larsartmann/templ-components/icons v1.17.0 // indirect
+	github.com/larsartmann/templ-components/htmx v1.18.0 // indirect
+	github.com/larsartmann/templ-components/icons v1.18.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/segmentio/asm v1.2.1 // indirect

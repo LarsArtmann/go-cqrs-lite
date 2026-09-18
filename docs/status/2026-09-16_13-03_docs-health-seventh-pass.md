@@ -69,6 +69,7 @@
 ## f) Up to 50 things we should get done next (impact-sorted; session-grounded; the canonical backlog already holds the standing items — no duplication)
 
 **From this pass's own tail:**
+
 1. **Census `module-map.md` vs the 90 modules** — 73 rows today; identify the ~17 missing (likely cmd/* + example/* + nested modules), add rows or document the deliberate compaction scope in the map header. My AGENTS line depends on this being true.
 2. **Census the FEATURES Module Maturity Matrix vs 90 modules** the same way (queue rows added; whole matrix not counted).
 3. **Per-file index for the 2026-09-13..16 wave** in `docs/status/README.md` (wave summary exists; the 09-11 batch got per-file entries — 15+ files here deserve the same).

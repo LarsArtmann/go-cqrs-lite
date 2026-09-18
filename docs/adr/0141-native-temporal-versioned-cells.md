@@ -13,7 +13,7 @@ Tier-4 spike with three gaps:
    after restart and unusable in production topologies.
 2. **Wall-clock stamps.** The memory engine stamps `time.Now()` at write time. During
    replay the projection host re-folds historical events; their original event time is
-   discarded, so versioned cells reflect *replay* order, not *event* order — the exact
+   discarded, so versioned cells reflect _replay_ order, not _event_ order — the exact
    hazard the layered-architecture doc §3 calls out.
 3. **Dead signal.** `AsOfSignal` documents planner routing that does not exist; the only
    as-of entry point is the manual `Store.ExecuteAsOf` call.
@@ -81,11 +81,11 @@ never silently returning latest-only.
 
 ### 6. Engine coverage
 
-| Engine | Mechanism | Notes |
-| --- | --- | --- |
-| memory | version chains (sorted insert), retention trim on write | wall-clock fallback when no stamp |
-| sqlite | `meta_cell_versions(collection, key, ts, value)` history table; PK collision = REPLACE | latest still served from the hot table |
-| bigtable (new module) | **native**: cell timestamps ARE the mechanism; GC via column-family `GCPolicy` | BigTable is millisecond-granularity — same-ms same-key writes collapse (documented, tested) |
+| Engine                | Mechanism                                                                              | Notes                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| memory                | version chains (sorted insert), retention trim on write                                | wall-clock fallback when no stamp                                                           |
+| sqlite                | `meta_cell_versions(collection, key, ts, value)` history table; PK collision = REPLACE | latest still served from the hot table                                                      |
+| bigtable (new module) | **native**: cell timestamps ARE the mechanism; GC via column-family `GCPolicy`         | BigTable is millisecond-granularity — same-ms same-key writes collapse (documented, tested) |
 
 ### 7. One conformance contract, every engine
 

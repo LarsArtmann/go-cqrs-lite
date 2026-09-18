@@ -38,6 +38,7 @@ use (
 	./metaengine/badgerengine
 	./metaengine/bboltengine
 	./metaengine/bench
+	./metaengine/bigtableengine
 	./metaengine/dgraphengine
 	./metaengine/duckdbengine
 	./metaengine/graphadapter

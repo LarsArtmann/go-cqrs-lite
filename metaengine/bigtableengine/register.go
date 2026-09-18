@@ -23,7 +23,12 @@ func init() {
 				return nil, err
 			}
 
-			return New(ctx, project, instance, table) //nolint:wrapcheck // factory errors flow to the caller verbatim
+			return New(
+				ctx,
+				project,
+				instance,
+				table,
+			) //nolint:wrapcheck // factory errors flow to the caller verbatim
 		},
 	)
 }

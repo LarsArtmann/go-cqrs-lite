@@ -158,16 +158,16 @@ for a full interactive reference.
 
 ### Top-level keys
 
-| Key              | Type   | Default     | Description                                                                                     |
-| ---------------- | ------ | ----------- | ----------------------------------------------------------------------------------------------- |
-| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready` |
-| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                  |
-| `min-confidence` | string | `"low"`     | Minimum confidence shown: `none`, `low`, `medium`, `high`, `full`, or decimal `0.0`–`1.0`; keeps findings >= the floor                                          |
-| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                              |
-| `exclude`        | string | `""`        | Comma-separated paths to exclude                                                                |
-| `features`       | object | `{}`        | Feature profile overrides (see below)                                                           |
-| `rules`          | object | `{}`        | Rule-specific overrides (see below)                                                             |
-| `health`         | object | `{}`        | Health-score tuning (see below)                                                                 |
+| Key              | Type   | Default     | Description                                                                                                            |
+| ---------------- | ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `preset`         | string | `""` (none) | Preset name: `local-cli`, `production`, `library`, `library-framework`, `read-only`, `v5-ready`                        |
+| `min-severity`   | string | `"info"`    | Minimum severity shown: `info`, `warning`, `error`, `critical`                                                         |
+| `min-confidence` | string | `"low"`     | Minimum confidence shown: `none`, `low`, `medium`, `high`, `full`, or decimal `0.0`–`1.0`; keeps findings >= the floor |
+| `format`         | string | `"text"`    | Output format: `text`, `json`, `sarif`, `markdown`                                                                     |
+| `exclude`        | string | `""`        | Comma-separated paths to exclude                                                                                       |
+| `features`       | object | `{}`        | Feature profile overrides (see below)                                                                                  |
+| `rules`          | object | `{}`        | Rule-specific overrides (see below)                                                                                    |
+| `health`         | object | `{}`        | Health-score tuning (see below)                                                                                        |
 
 ### `features` keys
 
@@ -440,25 +440,25 @@ Built with [cmdguard](https://github.com/larsartmann/cmdguard) for type-safe fla
 
 ### Flags
 
-| Flag                | Short | Default | Description                                                        |
-| ------------------- | ----- | ------- | ------------------------------------------------------------------ |
-| `--format`          | `-o`  | text    | Output format: text, json, sarif, markdown                         |
-| `--min-severity`    |       | info    | Minimum severity: info, warning, error, critical                   |
-| `--min-confidence`  |       | low     | Minimum confidence: none, low, medium, high, full, or decimal 0.0-1.0 (>= floor)  |
+| Flag                | Short | Default | Description                                                                                               |
+| ------------------- | ----- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `--format`          | `-o`  | text    | Output format: text, json, sarif, markdown                                                                |
+| `--min-severity`    |       | info    | Minimum severity: info, warning, error, critical                                                          |
+| `--min-confidence`  |       | low     | Minimum confidence: none, low, medium, high, full, or decimal 0.0-1.0 (>= floor)                          |
 | `--fix`             |       | false   | Apply auto-fixes; prints a per-finding outcome report (applied/refused/conflict/invalid/failed) to stderr |
-| `--dry-run`         |       | false   | Show fixes without applying                                        |
-| `--fast`            |       | false   | Run only Critical correctness rules                                |
-| `--health-score`    |       | false   | Print the health score after findings                              |
-| `--adoption`        |       | false   | Show F-series coaching but exclude them from health score          |
-| `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0 |
-| `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason             |
-| `--strict-load`     |       | false   | Exit non-zero if any packages failed to load                       |
-| `--only`            |       |         | Filter by category or rule IDs (comma-separated)                   |
-| `--exclude`         |       |         | Exclude paths (comma-separated)                                    |
-| `--color`           |       | auto    | Colored output: auto, always, never                                |
-| `--verbose`         |       | false   | Verbose output (module grouping, stats)                            |
-| `--quiet`           | `-q`  | false   | Suppress non-finding output                                        |
-| `--config`          | `-c`  |         | Path to config file                                                |
+| `--dry-run`         |       | false   | Show fixes without applying                                                                               |
+| `--fast`            |       | false   | Run only Critical correctness rules                                                                       |
+| `--health-score`    |       | false   | Print the health score after findings                                                                     |
+| `--adoption`        |       | false   | Show F-series coaching but exclude them from health score                                                 |
+| `--fp-suspects`     |       | false   | Show only low-confidence findings (likely FPs). Exit code always 0                                        |
+| `--show-suppressed` |       | false   | Show suppressed findings with their suppression reason                                                    |
+| `--strict-load`     |       | false   | Exit non-zero if any packages failed to load                                                              |
+| `--only`            |       |         | Filter by category or rule IDs (comma-separated)                                                          |
+| `--exclude`         |       |         | Exclude paths (comma-separated)                                                                           |
+| `--color`           |       | auto    | Colored output: auto, always, never                                                                       |
+| `--verbose`         |       | false   | Verbose output (module grouping, stats)                                                                   |
+| `--quiet`           | `-q`  | false   | Suppress non-finding output                                                                               |
+| `--config`          | `-c`  |         | Path to config file                                                                                       |
 
 ### Config File
 

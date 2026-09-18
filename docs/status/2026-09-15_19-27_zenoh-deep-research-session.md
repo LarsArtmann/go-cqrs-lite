@@ -60,36 +60,36 @@ Nothing data- or code-level broke (zero code changed). Two honesty-level failure
 
 ## f) Next tasks (ranked, brainstorm-graded — feeds HARVEST only on user go-ahead)
 
-| #  | Task                                                                                             | Impact   | Effort | Cat      |
-| -- | ------------------------------------------------------------------------------------------------ | -------- | ------ | -------- |
-| 1  | Decide zenoh go/no-go (question g1) — gates everything below                                     | Critical | S      | Decision |
-| ~~2~~  | ~~HARVEST report §4 W1–W3 into TODO_LIST/ROADMAP (or explicitly decline)~~ done (docs-health pass 2026-09-16) — routed to ROADMAP Open Question #2 "Zenoh go/no-go" (gates all W1–W3 surfaces)                           | ~~High~~     | ~~S~~      | ~~Docs~~     |
-| 3  | Append back-link to Cordis doc §9-style section → zenoh report                                   | Medium   | S      | Docs     |
-| 4  | W1 spike: init `watermill-zenoh` external repo skeleton (publisher/subscriber adapters)          | High     | M      | Feature  |
-| 5  | W1: zenoh key-expression ↔ event.Type mapping spec + doc                                         | High     | S      | Design   |
-| 6  | W1: roundtrip test mirroring `TestRedisStreamRoundtrip` (events + commands)                      | High     | M      | Feature  |
-| 7  | W1: ephemeral zenohd script (nixpkgs zenoh) for CI-style local broker                            | Medium   | S      | Infra    |
-| 8  | W1: CGo/zenoh-c build + Nix packaging feasibility spike                                          | High     | M      | Infra    |
-| 9  | Research gap: read spec.zenoh.io consolidation + selector RFCs (semantics we'd depend on)        | Medium   | M      | Research |
-| 10 | Research gap: zenoh security model (TLS, user-password, ACL pages) → report §5 addendum          | Medium   | S      | Research |
-| 11 | Research gap: 1.9 Longwang release blog (regions rationale)                                      | Low      | S      | Research |
-| 12 | Research gap: zenoh-go packaging (prebuilt libzenohc? releases artifacts?)                       | Medium   | S      | Research |
-| 13 | Research gap: independent/fresh zenoh benchmarks (post-1.0)                                      | Low      | M      | Research |
-| 14 | W2: liveliness-token → ProbeEngine/health-hook spike                                             | Medium   | M      | Feature  |
-| 15 | W2: CommandBus-over-zenoh spike (edge dispatch)                                                  | Medium   | M      | Feature  |
-| 16 | W2: otelobserver counters for liveliness transitions                                             | Low      | S      | Feature  |
-| 17 | W3.1: queryable-served read-model prototype w/ LATEST consolidation                              | Medium   | L      | Research |
-| 18 | W3.2: zenohengine CRDT wrapper design doc (vs irohengine: when each)                             | Medium   | L      | Research |
-| 19 | W3.3: timestamp-instrumentation → LatencyTracker feed design                                     | Low      | M      | Research |
-| 20 | Verify zenoh regions ↔ EngineProfile.NetworkRTT story holds under multi-region test              | Low      | M      | Research |
-| 21 | Diagnose/escalate `agentic_fetch` API failure (crush tool)                                       | Low      | S      | Tooling  |
-| 22 | Adopt "cite checklist" rule for research docs (banner honesty)                                   | Medium   | S      | Process  |
-| 23 | Template: verification-ladder section for external-tech research docs                            | Low      | S      | Process  |
-| 24 | benchkit/env_*.go: inspect the unauthored working-tree diff, judge on merits                     | Medium   | S      | Hygiene  |
-| 25 | Consider `cqrs-bench` backend hook for zenoh (only if W1 lands)                                  | Low      | L      | Feature  |
-| 26 | ROS2/MQTT-bridge plugin writeup: legacy-field-system bridge story for consumers                  | Low      | S      | Docs     |
-| 27 | Zenoh-pico note: MCU reach claims for the report's scope table                                   | Low      | S      | Research |
-| 28 | If W1 ships: skill/reference mention (advanced.md broker table) — external plugin, doctrine-safe | Medium   | S      | Docs     |
+| #     | Task                                                                                                                                                                                           | Impact   | Effort | Cat      |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | -------- |
+| 1     | Decide zenoh go/no-go (question g1) — gates everything below                                                                                                                                   | Critical | S      | Decision |
+| ~~2~~ | ~~HARVEST report §4 W1–W3 into TODO_LIST/ROADMAP (or explicitly decline)~~ done (docs-health pass 2026-09-16) — routed to ROADMAP Open Question #2 "Zenoh go/no-go" (gates all W1–W3 surfaces) | ~~High~~ | ~~S~~  | ~~Docs~~ |
+| 3     | Append back-link to Cordis doc §9-style section → zenoh report                                                                                                                                 | Medium   | S      | Docs     |
+| 4     | W1 spike: init `watermill-zenoh` external repo skeleton (publisher/subscriber adapters)                                                                                                        | High     | M      | Feature  |
+| 5     | W1: zenoh key-expression ↔ event.Type mapping spec + doc                                                                                                                                       | High     | S      | Design   |
+| 6     | W1: roundtrip test mirroring `TestRedisStreamRoundtrip` (events + commands)                                                                                                                    | High     | M      | Feature  |
+| 7     | W1: ephemeral zenohd script (nixpkgs zenoh) for CI-style local broker                                                                                                                          | Medium   | S      | Infra    |
+| 8     | W1: CGo/zenoh-c build + Nix packaging feasibility spike                                                                                                                                        | High     | M      | Infra    |
+| 9     | Research gap: read spec.zenoh.io consolidation + selector RFCs (semantics we'd depend on)                                                                                                      | Medium   | M      | Research |
+| 10    | Research gap: zenoh security model (TLS, user-password, ACL pages) → report §5 addendum                                                                                                        | Medium   | S      | Research |
+| 11    | Research gap: 1.9 Longwang release blog (regions rationale)                                                                                                                                    | Low      | S      | Research |
+| 12    | Research gap: zenoh-go packaging (prebuilt libzenohc? releases artifacts?)                                                                                                                     | Medium   | S      | Research |
+| 13    | Research gap: independent/fresh zenoh benchmarks (post-1.0)                                                                                                                                    | Low      | M      | Research |
+| 14    | W2: liveliness-token → ProbeEngine/health-hook spike                                                                                                                                           | Medium   | M      | Feature  |
+| 15    | W2: CommandBus-over-zenoh spike (edge dispatch)                                                                                                                                                | Medium   | M      | Feature  |
+| 16    | W2: otelobserver counters for liveliness transitions                                                                                                                                           | Low      | S      | Feature  |
+| 17    | W3.1: queryable-served read-model prototype w/ LATEST consolidation                                                                                                                            | Medium   | L      | Research |
+| 18    | W3.2: zenohengine CRDT wrapper design doc (vs irohengine: when each)                                                                                                                           | Medium   | L      | Research |
+| 19    | W3.3: timestamp-instrumentation → LatencyTracker feed design                                                                                                                                   | Low      | M      | Research |
+| 20    | Verify zenoh regions ↔ EngineProfile.NetworkRTT story holds under multi-region test                                                                                                            | Low      | M      | Research |
+| 21    | Diagnose/escalate `agentic_fetch` API failure (crush tool)                                                                                                                                     | Low      | S      | Tooling  |
+| 22    | Adopt "cite checklist" rule for research docs (banner honesty)                                                                                                                                 | Medium   | S      | Process  |
+| 23    | Template: verification-ladder section for external-tech research docs                                                                                                                          | Low      | S      | Process  |
+| 24    | benchkit/env_*.go: inspect the unauthored working-tree diff, judge on merits                                                                                                                   | Medium   | S      | Hygiene  |
+| 25    | Consider `cqrs-bench` backend hook for zenoh (only if W1 lands)                                                                                                                                | Low      | L      | Feature  |
+| 26    | ROS2/MQTT-bridge plugin writeup: legacy-field-system bridge story for consumers                                                                                                                | Low      | S      | Docs     |
+| 27    | Zenoh-pico note: MCU reach claims for the report's scope table                                                                                                                                 | Low      | S      | Research |
+| 28    | If W1 ships: skill/reference mention (advanced.md broker table) — external plugin, doctrine-safe                                                                                               | Medium   | S      | Docs     |
 
 ## g) Questions I cannot answer myself
 

@@ -17,24 +17,24 @@ Harnesses:
 
 ## Environment
 
-| Item    | Value                                                        |
-| ------- | ------------------------------------------------------------ |
-| Date    | 2026-09-16                                                   |
-| CPU     | AMD Ryzen AI MAX+ 395 (32 threads)                           |
-| RAM     | 124 GB                                                       |
-| Go      | 1.26.x, `-tags "goexperiment.jsonv2"` (+ `cgo` for DuckDB)   |
-| Load    | quiet machine, benchmarks run solo (no concurrent test suite) |
+| Item | Value                                                         |
+| ---- | ------------------------------------------------------------- |
+| Date | 2026-09-16                                                    |
+| CPU  | AMD Ryzen AI MAX+ 395 (32 threads)                            |
+| RAM  | 124 GB                                                        |
+| Go   | 1.26.x, `-tags "goexperiment.jsonv2"` (+ `cgo` for DuckDB)    |
+| Load | quiet machine, benchmarks run solo (no concurrent test suite) |
 
 Workload: 1000 vectors × 64 dims (`float32`), metadata present, k = 10,
 metric = cosine, single collection. 3 runs × 2 s each; medians below.
 
 ## Results (lower is better)
 
-| Engine                     | Path                                    | Median ns/op | B/op   | allocs/op |
-| -------------------------- | --------------------------------------- | ------------ | ------ | --------- |
-| turso (embedded libSQL)    | SQL pushdown (`vector_distance_cos`)    | **759 423**  | 8 404  | 343       |
-| sqlite (modernc, pure Go)  | Go scan (fetch all, score in Go)        | 967 391      | 944 122| 10 036    |
-| duckdb (CGo)               | SQL pushdown (`array_cosine_distance`)  | 1 217 911    | 4 114  | 127       |
+| Engine                    | Path                                   | Median ns/op | B/op    | allocs/op |
+| ------------------------- | -------------------------------------- | ------------ | ------- | --------- |
+| turso (embedded libSQL)   | SQL pushdown (`vector_distance_cos`)   | **759 423**  | 8 404   | 343       |
+| sqlite (modernc, pure Go) | Go scan (fetch all, score in Go)       | 967 391      | 944 122 | 10 036    |
+| duckdb (CGo)              | SQL pushdown (`array_cosine_distance`) | 1 217 911    | 4 114   | 127       |
 
 ## Raw output
 

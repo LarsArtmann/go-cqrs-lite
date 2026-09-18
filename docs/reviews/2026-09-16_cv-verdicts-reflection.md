@@ -29,17 +29,17 @@ outcome is **net positive for the library's core thesis and net negative for non
 
 ## 2. Claim-by-claim verification table
 
-| # | CV-side claim | Verdict | Evidence (this repo, current master) |
-|---|---------------|---------|--------------------------------------|
-| 1 | No lease/single-writer primitive for engines/stores; coexistence needs a CV-owned `RegisterDriver` decorator | **Confirmed** (word-level grep: only `queue/` has lease semantics — task claims, a different concept) | `metaengine/registry.go:61` `RegisterDriver` exists as the seam; no engine/store-level lock anywhere |
-| 2 | `DomainConfig.Events` universe declaration "does not exist at system/v4 v4.7.0" | **Confirmed AND sharpened**: `system/v4.7.0` is the LATEST released system tag; `Events` exists on master but is **unreleased** | `system/config_types.go:57` + `system/coeffect_gate.go`; `git tag --contains <intro-commit>` → no system tag |
-| 3 | metaengine `Scan` silently defaults to a 100-row limit | **Confirmed — and worse: the doc comment lies.** `Scan` says "returns all values matching…" while the default truncates at 100 | `metaengine/typed_reader_scan.go:15` (`scanConfig{limit: 100}`), same at `typed_reader_cursor.go:25`, `explain.go:42`; zero mention in skill `readmodels.md` |
-| 4 | `ApplyBatch` wraps no transaction (per-event commits; 3.4 s → 109 ms with `synchronous=NORMAL`) | **Confirmed at API level**; atomicity+batching already designed for v5 and spike-validated in-repo | `metaengine/store.go:429-442` (per-event `applyWithRecord` loop); `metaengine/spike_batch_atomicity_test.go` (3 approaches validated); ADR-0123 §10 (batch boundary = the event); `Store.InTransaction` exists for Transactional engines |
-| 5 | No LIKE/contains pushdown (`FilterOp` = eq/ne/lt/le/gt/ge/in) | **Confirmed** | `metaengine/enum_validation.go:71-75` — exactly those 7 ops; search degrades to client-side scan |
-| 6 | storage/v4 AutoMapper cannot scan TEXT back into `time.Time` under modernc.org/sqlite | **Structurally confirmed** (CV measured the failure): `time.Time` maps to TEXT and the raw `*time.Time` field is passed as scan dest with no format adapter | `storage/view/auto.go:34` (mapping table), `:147` (`fv.Addr().Interface()` dest), `:193-194`; package is v5-removed anyway (ADR-0123) |
-| 7 | SQLViewStore removed in v5 (ADR-0123) | **Confirmed** (known/intentional) | `storage/view_aliases.go` — every symbol `Deprecated: removed in v5 (ADR-0123)` |
-| 8 | `sqlstore`/`kvstore` cannot represent "forever"; `expiryFromTTL` gates `ttl <= 0 → ErrInvalidTTL`; helper duplicated verbatim; `expires_at NOT NULL` in all dialects | **Confirmed** | `idempotency/kvstore/store.go:46-52` and `idempotency/sqlstore/store.go:173-179` (byte-identical bodies); `sqlstore/store.go:55,69,83` (INTEGER/BIGINT NOT NULL ×3 dialects) |
-| 9 | (Implied) adapters pin go-idempotency v0.3.0 | **Confirmed** | `middleware/go.mod:16`, `idempotency/sqlstore/go.mod:9`, `idempotency/kvstore/go.mod:8` — all v0.3.0 |
+| # | CV-side claim                                                                                                                                                        | Verdict                                                                                                                                                     | Evidence (this repo, current master)                                                                                                                                                                                                     |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | No lease/single-writer primitive for engines/stores; coexistence needs a CV-owned `RegisterDriver` decorator                                                         | **Confirmed** (word-level grep: only `queue/` has lease semantics — task claims, a different concept)                                                       | `metaengine/registry.go:61` `RegisterDriver` exists as the seam; no engine/store-level lock anywhere                                                                                                                                     |
+| 2 | `DomainConfig.Events` universe declaration "does not exist at system/v4 v4.7.0"                                                                                      | **Confirmed AND sharpened**: `system/v4.7.0` is the LATEST released system tag; `Events` exists on master but is **unreleased**                             | `system/config_types.go:57` + `system/coeffect_gate.go`; `git tag --contains <intro-commit>` → no system tag                                                                                                                             |
+| 3 | metaengine `Scan` silently defaults to a 100-row limit                                                                                                               | **Confirmed — and worse: the doc comment lies.** `Scan` says "returns all values matching…" while the default truncates at 100                              | `metaengine/typed_reader_scan.go:15` (`scanConfig{limit: 100}`), same at `typed_reader_cursor.go:25`, `explain.go:42`; zero mention in skill `readmodels.md`                                                                             |
+| 4 | `ApplyBatch` wraps no transaction (per-event commits; 3.4 s → 109 ms with `synchronous=NORMAL`)                                                                      | **Confirmed at API level**; atomicity+batching already designed for v5 and spike-validated in-repo                                                          | `metaengine/store.go:429-442` (per-event `applyWithRecord` loop); `metaengine/spike_batch_atomicity_test.go` (3 approaches validated); ADR-0123 §10 (batch boundary = the event); `Store.InTransaction` exists for Transactional engines |
+| 5 | No LIKE/contains pushdown (`FilterOp` = eq/ne/lt/le/gt/ge/in)                                                                                                        | **Confirmed**                                                                                                                                               | `metaengine/enum_validation.go:71-75` — exactly those 7 ops; search degrades to client-side scan                                                                                                                                         |
+| 6 | storage/v4 AutoMapper cannot scan TEXT back into `time.Time` under modernc.org/sqlite                                                                                | **Structurally confirmed** (CV measured the failure): `time.Time` maps to TEXT and the raw `*time.Time` field is passed as scan dest with no format adapter | `storage/view/auto.go:34` (mapping table), `:147` (`fv.Addr().Interface()` dest), `:193-194`; package is v5-removed anyway (ADR-0123)                                                                                                    |
+| 7 | SQLViewStore removed in v5 (ADR-0123)                                                                                                                                | **Confirmed** (known/intentional)                                                                                                                           | `storage/view_aliases.go` — every symbol `Deprecated: removed in v5 (ADR-0123)`                                                                                                                                                          |
+| 8 | `sqlstore`/`kvstore` cannot represent "forever"; `expiryFromTTL` gates `ttl <= 0 → ErrInvalidTTL`; helper duplicated verbatim; `expires_at NOT NULL` in all dialects | **Confirmed**                                                                                                                                               | `idempotency/kvstore/store.go:46-52` and `idempotency/sqlstore/store.go:173-179` (byte-identical bodies); `sqlstore/store.go:55,69,83` (INTEGER/BIGINT NOT NULL ×3 dialects)                                                             |
+| 9 | (Implied) adapters pin go-idempotency v0.3.0                                                                                                                         | **Confirmed**                                                                                                                                               | `middleware/go.mod:16`, `idempotency/sqlstore/go.mod:9`, `idempotency/kvstore/go.mod:8` — all v0.3.0                                                                                                                                     |
 
 ## 3. New findings this session produced (beyond verifying CV's claims)
 
@@ -48,11 +48,11 @@ outcome is **net positive for the library's core thesis and net negative for non
 Probe (`/tmp/cqrs-overflow-probe/main.go`, stdlib only, replicating the adapters' exact
 expression `time.Now().Add(ttl).UnixNano()`):
 
-| TTL | Expiry year | `UnixNano()` | Stored as live? |
-|-----|-------------|--------------|-----------------|
-| 100 years (smart-configs' default) | 2126 | +4.94e18 | yes — safe |
-| 236 years | 2262 | **-9.21e18 (wrapped)** | **no — dead on arrival** |
-| `time.Duration(math.MaxInt64)` (~292y) | 2318 | -7.43e18 (wrapped) | no |
+| TTL                                    | Expiry year | `UnixNano()`           | Stored as live?          |
+| -------------------------------------- | ----------- | ---------------------- | ------------------------ |
+| 100 years (smart-configs' default)     | 2126        | +4.94e18               | yes — safe               |
+| 236 years                              | 2262        | **-9.21e18 (wrapped)** | **no — dead on arrival** |
+| `time.Duration(math.MaxInt64)` (~292y) | 2318        | -7.43e18 (wrapped)     | no                       |
 
 Mechanism, now verified rather than asserted: `time.Time.Add` itself survives past year
 2262 (internal seconds+nanos split), the wrap is in `.UnixNano()`. Any TTL pushing the
@@ -85,8 +85,8 @@ Direct `.go` importers across `~/projects` (excluding the library itself): **6 p
 — bank-sync (middleware + own sqlite idempotency store), cqrs-htmx, DiscordSync,
 file-and-image-renamer, Standup-Killer, Zlota44 (test-only); plus go-appkit/cqrs via
 go.mod (indirect). **CV is not among them** — CV uses its own `MemoryIdempotencyStore`
-and is the *prospective* consumer blocked by the TTL wall. So: the library has real
-reach (the "multiple repos" intuition holds), but the verified *forever-need* count is
+and is the _prospective_ consumer blocked by the TTL wall. So: the library has real
+reach (the "multiple repos" intuition holds), but the verified _forever-need_ count is
 still **one (CV)** — YAGNI-defensible until a second forever-need appears, per CV's own
 Q2 framing.
 
@@ -143,5 +143,5 @@ Q2 framing.
   evidence before landing. No action for this repo; the corrected verdict is what this
   document consumed.
 
-*Point-in-time verification: 2026-09-16, master @ 240368b57. No code was changed in this
-review; probe artifacts under `/tmp/cqrs-overflow-probe/` (regenerable in seconds).*
+_Point-in-time verification: 2026-09-16, master @ 240368b57. No code was changed in this
+review; probe artifacts under `/tmp/cqrs-overflow-probe/` (regenerable in seconds)._

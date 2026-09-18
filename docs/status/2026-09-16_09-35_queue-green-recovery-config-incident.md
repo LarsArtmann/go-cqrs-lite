@@ -92,9 +92,9 @@ mid-tidy at close).
    The full pass failed only on concurrent sessions' in-flight states:
    `cmd/doc-check/arity.go` (their broken WIP — they fixed it mid-session),
    DuckDB DDL parse (they fixed it mid-session), and `system/` (replay test
-   + go.mod mid-tidy at 09:34 — still theirs, still open). I did not race
-   them; a verify I ran would keep failing on their state through no fault
-   of the tree.
+   - go.mod mid-tidy at 09:34 — still theirs, still open). I did not race
+     them; a verify I ran would keep failing on their state through no fault
+     of the tree.
 2. **Previous session's three questions:** Q1 (queue clones) answered by
    action; **Q2 (tag wave timing) and Q3 (A/B benchstat vs per-metric CI
    gating) remain unanswered** (see §g).
@@ -143,8 +143,8 @@ mid-tidy at close).
 4. **nolint placed where the formatter would break it.** My first mnd
    suppression sat on the tail of a multiline Sprintf; golines reflowed the
    args onto their own lines and detached the directive (nolintlint "unused"
-   + 4 fresh mnd findings). I should anticipate treefmt in a repo whose
-   verify formats on every run. Fixed wrap-proof; cost one extra cycle.
+   - 4 fresh mnd findings). I should anticipate treefmt in a repo whose
+     verify formats on every run. Fixed wrap-proof; cost one extra cycle.
 5. **Learned nolint same-line-only semantics by trial** (two failed
    placements) instead of reading the docs once. Same class as §d3.
 6. **Mass rename via sed outside the edit tool** invalidated the edit
@@ -196,6 +196,7 @@ mid-tidy at close).
 ## f) Next tasks (up to 50; P1 = do first — §f is docs-health HARVEST fuel)
 
 **P1 — close out this session's loose ends**
+
 1. Re-run `nix run .#verify` to a green close once the concurrent `system/`
    session settles (go.mod tidy + replay test green) — the only blocker to
    "repo verify green".
@@ -213,63 +214,63 @@ mid-tidy at close).
 
 **P2 — queue family follow-through**
 6. Fix the errcheck exclude-functions short forms (fully-qualify
-   `(*database/sql.Rows).Close` et al.) or delete dead entries; re-lint to
-   confirm which entries are load-bearing.
+`(*database/sql.Rows).Close` et al.) or delete dead entries; re-lint to
+confirm which entries are load-bearing.
 7. Document `task.New` / `queue.Filter` / `facts.Fact` partial-literal
-   semantics in the queue package docs (the exhaustruct exemptions are
-   justified by design — say so where users read it).
+semantics in the queue package docs (the exhaustruct exemptions are
+justified by design — say so where users read it).
 8. Consider a tiny queue/README or SKILL.md reference section for the
-   queue family (consumers currently discover it only via CHANGELOG).
+queue family (consumers currently discover it only via CHANGELOG).
 9. `queue/mysql` is named in the Store doc comment as a future engine —
-   either implement behind the conformance suite or strike the mention.
+either implement behind the conformance suite or strike the mention.
 10. Add `queue` family to `references/modules.md` lookup (module map in
-    docs/agents/module-map.md likely lacks the 3 new modules — 91 go.mods
-    now vs "88" in older docs).
+docs/agents/module-map.md likely lacks the 3 new modules — 91 go.mods
+now vs "88" in older docs).
 
 **P3 — benchkit/cqrs-bench backlog (carried from 02-09 report §f)**
 11. A/B-by-revision benchstat workflow (Q3 candidate A).
 12. Per-metric CI gating (Q3 candidate B) — gate on `MetricVariation`
-    CoV thresholds in `benchmark-regression.sh`.
+CoV thresholds in `benchmark-regression.sh`.
 13. `compare` command with cross-run variation reporting.
 14. Per-run JSON artifacts (one file per repeat run, not just the median).
 15. CI wiring for `--repeat` runs (benchstat multi-sample in the nightly).
 16. Benchmark baseline refresh after this week's queue/benchkit churn.
 17. `nix run .#load-sweep` before the next `#verify` (benchkit timing paths
-    were touched last session, sweep never run).
+were touched last session, sweep never run).
 
 **P4 — repo hygiene**
 18. Tag wave (AFTER user approval): strip sibling replaces (cqrs-bench→
-    benchkit, queue/sqlite+postgres→queue), pre-bump pins, GOWORK=off build
-    matrix, `scripts/tag-release.sh`.
+benchkit, queue/sqlite+postgres→queue), pre-bump pins, GOWORK=off build
+matrix, `scripts/tag-release.sh`.
 19. Run the gotchas probe method against `linters.settings` exception
-    entries (exhaustruct patterns, wrapcheck sigs) — prune dead ones.
+entries (exhaustruct patterns, wrapcheck sigs) — prune dead ones.
 20. Daemon pre-commit build smoke (stop publishing red intermediates).
 21. TODO_LIST.md full staleness audit (multiple sessions have landed since
-    its last refresh).
+its last refresh).
 22. `docs/status/` older reports: annotate the 02-09 report with this
-    session's resolution of its top items (docs-health ANNOTATE).
+session's resolution of its top items (docs-health ANNOTATE).
 23. Check whether `system/` replay test failure (seen 09:18, foreign) got
-    fixed and captured by its owning session — if not, it belongs on this
-    list properly.
+fixed and captured by its owning session — if not, it belongs on this
+list properly.
 24. ADR-0139 is a DRAFT skeleton from another session — either its owner
-    progresses it or it gets marked parked (I only indexed it).
+progresses it or it gets marked parked (I only indexed it).
 25. CHANGELOG "Fixed — 2026-09-16" section will need its citations re-run
-    against the golden at tag time (check-changelog-symbols covers it).
+against the golden at tag time (check-changelog-symbols covers it).
 
 **P5 — larger, still unscoped (from prior reports; not researched this
 session, so verify before acting)**
 26. cmd/doc-check arity checker (the other session's WIP): once landed,
-    add it to the recipe-gate docs so recipe fences stay arity-honest.
+add it to the recipe-gate docs so recipe fences stay arity-honest.
 27. Vector-search contract tests (contract #26 says engine-native functions
-    verified 2026-09-15 — confirm the DuckDB DDL fix didn't regress the
-    fixed-`FLOAT[n]` casting).
+verified 2026-09-15 — confirm the DuckDB DDL fix didn't regress the
+fixed-`FLOAT[n]` casting).
 28. `#verify` exclusivity rule vs multi-session reality: document a
-    coordination protocol (who owns verify when two sessions are live).
+coordination protocol (who owns verify when two sessions are live).
 29. FEATURES.md: other coverage lines may be stale the same way 88+12 was
-    (spot-check the biggest modules' counts).
+(spot-check the biggest modules' counts).
 30. Incident-log automation: a tiny script that diffs `.golangci.yml`
-    against `HEAD~` after each daemon wave and reports semantic changes
-    (would have caught today's incident at 08:11 instead of 09:05).
+against `HEAD~` after each daemon wave and reports semantic changes
+(would have caught today's incident at 08:11 instead of 09:05).
 
 ## g) Questions I can NOT figure out myself (max 3)
 
@@ -291,5 +292,5 @@ session, so verify before acting)**
 
 ---
 
-*Point-in-time snapshot; goes stale immediately. §f is TODO_LIST HARVEST
-fuel, not a commitment list. Written 2026-09-16 09:35 CEST.*
+_Point-in-time snapshot; goes stale immediately. §f is TODO_LIST HARVEST
+fuel, not a commitment list. Written 2026-09-16 09:35 CEST._

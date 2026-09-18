@@ -13,9 +13,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	bigtableengine "github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
-	bigtableengine "github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4"
 )
 
 // newFakeEngine starts an in-process bttest fake and returns an engine
@@ -51,7 +51,11 @@ func newFakeEngine(t *testing.T) metaengine.Engine {
 		t.Fatalf("NewClient: %v", err)
 	}
 
-	eng, err := bigtableengine.NewWithClients(admin, client, fmt.Sprintf("t_%d", time.Now().UnixNano()))
+	eng, err := bigtableengine.NewWithClients(
+		admin,
+		client,
+		fmt.Sprintf("t_%d", time.Now().UnixNano()),
+	)
 	if err != nil {
 		t.Fatalf("NewWithClients: %v", err)
 	}
@@ -92,7 +96,13 @@ func TestBigtable_MillisecondGranularity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if val, err := vs.MapGetAsOf(ctx, "g", "k", ms.Add(time.Millisecond)); err != nil || val != "second" {
+	if val, err := vs.MapGetAsOf(
+		ctx,
+		"g",
+		"k",
+		ms.Add(time.Millisecond),
+	); err != nil ||
+		val != "second" {
 		t.Fatalf("same-ms as-of = (%v, %v), want (second, nil) — last write wins", val, err)
 	}
 
@@ -117,7 +127,11 @@ func TestBigtable_Counters(t *testing.T) {
 	cb := eng.(metaengine.CounterBackend)
 	ctx := context.Background()
 
-	if err := cb.CounterIncrement(ctx, "counts", metaengine.Delta{"open": 2, "done": 1}); err != nil {
+	if err := cb.CounterIncrement(
+		ctx,
+		"counts",
+		metaengine.Delta{"open": 2, "done": 1},
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -179,7 +193,10 @@ func TestBigtable_DriverRegistration(t *testing.T) {
 		t.Fatalf("bigtable driver not registered: %v", err)
 	}
 
-	if _, err := factory(context.Background(), metaengine.DriverConfig{DSN: "not-a-dsn"}); err == nil {
+	if _, err := factory(
+		context.Background(),
+		metaengine.DriverConfig{DSN: "not-a-dsn"},
+	); err == nil {
 		t.Fatal("malformed DSN must fail loudly")
 	}
 
@@ -216,11 +233,25 @@ func TestBigtable_TombstoneThenRebirth(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := vs.MapGetAsOf(ctx, "tb", "k", base.Add(15*time.Millisecond)); !errors.Is(err, metaengine.ErrNotFound) {
+	if _, err := vs.MapGetAsOf(
+		ctx,
+		"tb",
+		"k",
+		base.Add(15*time.Millisecond),
+	); !errors.Is(
+		err,
+		metaengine.ErrNotFound,
+	) {
 		t.Fatalf("as-of during tombstone err = %v, want ErrNotFound", err)
 	}
 
-	if val, err := vs.MapGetAsOf(ctx, "tb", "k", base.Add(25*time.Millisecond)); err != nil || val != "reborn" {
+	if val, err := vs.MapGetAsOf(
+		ctx,
+		"tb",
+		"k",
+		base.Add(25*time.Millisecond),
+	); err != nil ||
+		val != "reborn" {
 		t.Fatalf("as-of reborn = (%v, %v), want (reborn, nil)", val, err)
 	}
 }

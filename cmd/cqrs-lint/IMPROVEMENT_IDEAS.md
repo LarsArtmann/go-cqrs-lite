@@ -396,7 +396,7 @@
 **Convention:** default to AST walkers (analyzer.Registry + scanners) — they are
 fast, zero new deps, and cover everything expressible with syntax + import
 qualification. Reach for go-finding's `analysis.AnalyzerDetector` (go/analysis
-bridge) ONLY when a rule needs *type facts* the walkers cannot have: interface
+bridge) ONLY when a rule needs _type facts_ the walkers cannot have: interface
 satisfaction, method-set/receiver effects, constant-expression folding, or
 cross-package type identity through aliases.
 

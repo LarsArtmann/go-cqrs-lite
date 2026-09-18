@@ -44,11 +44,11 @@ Metric names are the strings `"cosine"`, `"dot"`, `"euclidean"` (`""` and any
 unknown metric default to euclidean, matching the ADT's graceful-degradation
 stance). For query vector `q` and stored vector `v`:
 
-| Metric      | `metaengine.VectorDistance(q, v, metric)` | Range    |
-| ----------- | ----------------------------------------- | -------- |
-| `cosine`    | `1 − cosSim(q, v)`                        | [0, 2]   |
-| `dot`       | `−(q · v)` (NEGATED dot)                  | (−∞, ∞)  |
-| `euclidean` | L2 norm of `q − v`                        | [0, ∞)   |
+| Metric      | `metaengine.VectorDistance(q, v, metric)` | Range   |
+| ----------- | ----------------------------------------- | ------- |
+| `cosine`    | `1 − cosSim(q, v)`                        | [0, 2]  |
+| `dot`       | `−(q · v)` (NEGATED dot)                  | (−∞, ∞) |
+| `euclidean` | L2 norm of `q − v`                        | [0, ∞)  |
 
 - **Ascending sort is always nearest-first.** `TopKNearest` is the shared
   sort + truncate; the negated dot is what makes that single rule hold for
