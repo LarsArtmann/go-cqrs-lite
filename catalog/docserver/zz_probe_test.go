@@ -17,8 +17,8 @@ func TestProbeScalarMountDOM(t *testing.T) {
 	ds.RegisterRoutes(mux)
 	srv := httptest.NewServer(mux)
 	defer srv.Close()
-	dom, console := renderWithBrowser(t, browser, srv.URL+"/docs/openapi")
-	if err := os.WriteFile("/tmp/scalar-dom.html", []byte(dom), 0o600); err != nil {
+	dom, console := renderWithBrowser(t, browser, srv.URL+"/docs/asyncapi")
+	if err := os.WriteFile("/tmp/asyncapi-dom.html", []byte(dom), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile("/tmp/scalar-console.log", []byte(console), 0o600); err != nil {
