@@ -179,7 +179,7 @@ func (e *sqliteEngine) matViewScanScalar(
 ) (float64, error) {
 	var raw any
 
-	if err := e.xd().QueryRowContext(ctx, query).Scan(&raw); err != nil {
+	if err := e.xd(ctx).QueryRowContext(ctx, query).Scan(&raw); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
 		}

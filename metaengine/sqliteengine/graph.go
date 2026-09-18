@@ -66,7 +66,7 @@ func (e *sqliteEngine) GraphAddEdge(
 	from := encodeKey(edge.From)
 	to := encodeKey(edge.To)
 
-	if _, err := e.xc().exec(ctx, e.queries.graphAddEdge, col, from, to); err != nil {
+	if _, err := e.xc(ctx).exec(ctx, e.queries.graphAddEdge, col, from, to); err != nil {
 		return fmt.Errorf("sqliteengine.GraphAddEdge: %w", err)
 	}
 
@@ -99,7 +99,7 @@ func (e *sqliteEngine) graphNeighborsCTE(
 	depth int,
 ) ([]any, error) {
 	start := encodeKey(node)
-	rows, err := e.xd().QueryContext(ctx, graphNeighborsCTE, col, start, col, depth, start)
+	rows, err := e.xd(ctx).QueryContext(ctx, graphNeighborsCTE, col, start, col, depth, start)
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GraphNeighbors: %w", err)
 	}
@@ -178,7 +178,7 @@ func (e *sqliteEngine) GraphRemoveEdge(
 ) error {
 	const q = `DELETE FROM meta_graph_edges WHERE collection = ? AND from_node = ? AND to_node = ?`
 
-	if _, err := e.xc().exec(ctx, q, col, encodeKey(edge.From), encodeKey(edge.To)); err != nil {
+	if _, err := e.xc(ctx).exec(ctx, q, col, encodeKey(edge.From), encodeKey(edge.To)); err != nil {
 		return fmt.Errorf("sqliteengine.GraphRemoveEdge: %w", err)
 	}
 
@@ -189,7 +189,7 @@ func (e *sqliteEngine) queryGraphNeighbors(
 	ctx context.Context,
 	col, node string,
 ) ([]string, error) {
-	rows, err := e.xc().query(ctx, graphNeighborsDirectSQL, col, node)
+	rows, err := e.xc(ctx).query(ctx, graphNeighborsDirectSQL, col, node)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (e *sqliteEngine) queryGraphReverseNeighbors(
 	ctx context.Context,
 	col, node string,
 ) ([]string, error) {
-	rows, err := e.xc().query(ctx, graphNeighborsReverseSQL, col, node)
+	rows, err := e.xc(ctx).query(ctx, graphNeighborsReverseSQL, col, node)
 	if err != nil {
 		return nil, err
 	}

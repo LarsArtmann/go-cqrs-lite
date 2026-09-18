@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -38,7 +37,6 @@ type sqliteEngine struct {
 	multiSeq sync.Map // collection→*multiSeqCounter
 	plans    map[string]metaengine.LayoutPlan
 	txMu     sync.Mutex
-	activeTx atomic.Pointer[txExecutor]
 	probeFn  func(context.Context) (time.Duration, error)
 	// matViews holds operator-declared materialized view specs (Turso IVM
 	// acceleration); matViewErr captures a spec-validation failure surfaced
@@ -258,7 +256,7 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 
 	keyStr := encodeKey(key)
 
-	if _, err := e.xc().exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+	if _, err := e.xc(ctx).exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
@@ -278,7 +276,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 	var valStr string
 
-	err := e.xc().queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+	err := e.xc(ctx).queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
@@ -292,7 +290,7 @@ func (e *sqliteEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error {
 	if plan, ok := e.plans[col]; ok {
-		_, err := e.xd().ExecContext(ctx,
+		_, err := e.xd(ctx).ExecContext(ctx,
 			fmt.Sprintf("DELETE FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 			encodeKey(key))
 
@@ -301,7 +299,7 @@ func (e *sqliteEngine) MapDelete(ctx context.Context, col string, key any) error
 
 	keyStr := encodeKey(key)
 
-	if _, err := e.xc().exec(ctx, e.queries.mapDelete, col, keyStr); err != nil {
+	if _, err := e.xc(ctx).exec(ctx, e.queries.mapDelete, col, keyStr); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
@@ -334,10 +332,10 @@ func (e *sqliteEngine) MapUpdate(
 	//
 	// When inside an outer transaction (RunInTx), reuse it instead of
 	// starting a nested BeginTx (SQLite does not support nested BEGIN).
-	if e.txExec() != nil {
+	if e.txExec(ctx) != nil {
 		return readModifyWriteCached(
 			ctx,
-			e.xc(),
+			e.xc(ctx),
 			e.queries.mapGet,
 			e.queries.mapSet,
 			col,
@@ -388,9 +386,9 @@ func (e *sqliteEngine) MapScan(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = e.xd().QueryContext(ctx, "SELECT value FROM "+metaengine.QuoteIdent(plan.Table))
+		rows, err = e.xd(ctx).QueryContext(ctx, "SELECT value FROM "+metaengine.QuoteIdent(plan.Table))
 	} else {
-		rows, err = e.xd().QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
+		rows, err = e.xd(ctx).QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	}
 
 	if err != nil {
@@ -532,7 +530,7 @@ func (e *sqliteEngine) PushdownMapScan(
 		args = append(args, limit+1)
 	}
 
-	rows, err := scanJSONValues(ctx, e.xd(), b.String(), args...)
+	rows, err := scanJSONValues(ctx, e.xd(ctx), b.String(), args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}
@@ -569,7 +567,7 @@ func (e *sqliteEngine) StreamScan(
 	return func(yield func(any, error) bool) {
 		query, args := e.buildStreamQuery(col, filters, sort)
 
-		rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+		rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 		if err != nil {
 			yield(nil, err)
 

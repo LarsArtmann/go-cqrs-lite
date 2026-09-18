@@ -14,7 +14,7 @@ import (
 // --- metaengine.SetBackend ---
 
 func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
-	_, err := e.xc().exec(ctx, e.queries.setAdd, col, encodeKey(key))
+	_, err := e.xc(ctx).exec(ctx, e.queries.setAdd, col, encodeKey(key))
 
 	return err
 }
@@ -22,7 +22,7 @@ func (e *sqliteEngine) SetAdd(ctx context.Context, col string, key any) error {
 func (e *sqliteEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
 	var one int
 
-	err := e.xc().queryRow(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
+	err := e.xc(ctx).queryRow(ctx, e.queries.setContains, col, encodeKey(key)).Scan(&one)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return false, nil
@@ -42,8 +42,8 @@ func (e *sqliteEngine) CounterIncrement(
 	deltas metaengine.Delta,
 ) error {
 	// When inside an outer transaction, reuse its executor.
-	if e.txExec() != nil {
-		xc := e.xc()
+	if e.txExec(ctx) != nil {
+		xc := e.xc(ctx)
 		for k, d := range deltas {
 			if _, err := xc.exec(ctx, e.queries.counterIncrement, col, k, d); err != nil {
 				return err
@@ -70,7 +70,7 @@ func (e *sqliteEngine) CounterIncrement(
 }
 
 func (e *sqliteEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.xd().QueryContext(ctx, e.queries.counterGet, col) //nolint:sqlclosecheck
+	rows, err := e.xd(ctx).QueryContext(ctx, e.queries.counterGet, col) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -115,7 +115,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 		return err
 	}
 
-	_, err = e.xc().exec(
+	_, err = e.xc(ctx).exec(
 		ctx,
 		e.queries.multiAdd,
 		col,
@@ -128,7 +128,7 @@ func (e *sqliteEngine) MultiAdd(ctx context.Context, col string, key any, value 
 }
 
 func (e *sqliteEngine) MultiGet(ctx context.Context, col string, key any) ([]any, error) {
-	return scanJSONValues(ctx, e.xd(), e.queries.multiGet, col, encodeKey(key))
+	return scanJSONValues(ctx, e.xd(ctx), e.queries.multiGet, col, encodeKey(key))
 }
 
 // multiSeqCounter is a lazily-initialized sequence counter for a multimap
@@ -157,7 +157,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 	c.once.Do(func() {
 		var maxSeq sql.NullInt64
 
-		queryErr := e.xd().QueryRowContext(ctx,
+		queryErr := e.xd(ctx).QueryRowContext(ctx,
 			"SELECT MAX(seq) FROM meta_multimap WHERE collection = ?", col).Scan(&maxSeq)
 		if queryErr != nil {
 			c.initErr = queryErr
@@ -180,7 +180,7 @@ func (e *sqliteEngine) nextMultiSeq(ctx context.Context, col string) (int64, err
 // --- metaengine.LogBackend ---
 
 func (e *sqliteEngine) LogAppend(ctx context.Context, col string, value any) error {
-	_, err := e.xc().exec(ctx, e.queries.logAppend, col, encodeValue(value))
+	_, err := e.xc(ctx).exec(ctx, e.queries.logAppend, col, encodeValue(value))
 
 	return err
 }
@@ -191,7 +191,7 @@ func (e *sqliteEngine) LogTail(ctx context.Context, col string, limit int) ([]an
 	}
 
 	// Query is DESC; reverse the result for chronological order.
-	fwd, err := scanJSONValues(ctx, e.xd(), e.queries.logTail, col, limit)
+	fwd, err := scanJSONValues(ctx, e.xd(ctx), e.queries.logTail, col, limit)
 	if err != nil {
 		return nil, err
 	}

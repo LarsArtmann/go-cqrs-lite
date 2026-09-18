@@ -18,11 +18,11 @@ func (e *sqliteEngine) GetRawValue(ctx context.Context, col string, key any) ([]
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		err = e.xc().queryRow(ctx,
+		err = e.xc(ctx).queryRow(ctx,
 			fmt.Sprintf("SELECT value FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 			encodeKey(key)).Scan(&valStr)
 	} else {
-		err = e.xc().queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
+		err = e.xc(ctx).queryRow(ctx, e.queries.mapGet, col, encodeKey(key)).Scan(&valStr)
 	}
 
 	if err != nil {
@@ -51,9 +51,9 @@ func (e *sqliteEngine) ScanRawValues(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = scanRawPlanned(ctx, e.xd(), plan, filters, sort, cursor, limit)
+		rows, err = scanRawPlanned(ctx, e.xd(ctx), plan, filters, sort, cursor, limit)
 	} else {
-		rows, err = scanRawStandard(ctx, e.xd(), col, filters, sort, cursor, limit)
+		rows, err = scanRawStandard(ctx, e.xd(ctx), col, filters, sort, cursor, limit)
 	}
 
 	if err != nil {

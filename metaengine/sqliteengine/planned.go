@@ -123,7 +123,7 @@ func (e *sqliteEngine) mapSetPlanned(
 	key any,
 	value any,
 ) error {
-	return execPlannedSet(ctx, e.xd(), plan, key, value)
+	return execPlannedSet(ctx, e.xd(ctx), plan, key, value)
 }
 
 // execPlannedSet writes a key-value pair to a planned table with extracted columns.
@@ -176,7 +176,7 @@ func (e *sqliteEngine) mapGetPlanned(
 ) (any, bool, error) {
 	var valStr string
 
-	err := e.xd().QueryRowContext(ctx,
+	err := e.xd(ctx).QueryRowContext(ctx,
 		fmt.Sprintf("SELECT value FROM %s WHERE key = ?", metaengine.QuoteIdent(plan.Table)),
 		encodeKey(key)).Scan(&valStr)
 	if err != nil {
@@ -200,8 +200,8 @@ func (e *sqliteEngine) mapUpdatePlanned(
 	update func(prev any) any,
 ) error {
 	// Inside outer tx: reuse it (SQLite doesn't support nested BEGIN).
-	if e.txExec() != nil {
-		xd := e.xd()
+	if e.txExec(ctx) != nil {
+		xd := e.xd(ctx)
 
 		var valStr string
 
@@ -287,7 +287,7 @@ func (e *sqliteEngine) pushdownMapScanPlanned(
 ) (metaengine.ScanResult, error) {
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 
-	rows, err := scanJSONValues(ctx, e.xd(), query, args...)
+	rows, err := scanJSONValues(ctx, e.xd(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}

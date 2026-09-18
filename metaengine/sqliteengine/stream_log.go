@@ -13,7 +13,7 @@ import (
 func (e *sqliteEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
 	for _, v := range values {
 		encoded := encodeStreamValue(v)
-		if _, err := e.xc().exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
+		if _, err := e.xc(ctx).exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
 			return err
 		}
 	}
@@ -28,7 +28,7 @@ func (e *sqliteEngine) StreamRead(ctx context.Context, col, sid string) ([]any, 
 func (e *sqliteEngine) StreamVersion(ctx context.Context, col, sid string) (int64, error) {
 	var count int64
 
-	err := e.xc().queryRow(ctx, e.queries.streamVersion, col, sid).Scan(&count)
+	err := e.xc(ctx).queryRow(ctx, e.queries.streamVersion, col, sid).Scan(&count)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, nil
@@ -101,7 +101,7 @@ func (e *sqliteEngine) StreamAppendExpected(
 	return e.RunInTx(ctx, func(ctx context.Context) error {
 		var current int64
 
-		err := e.xc().queryRow(ctx, e.queries.streamVersion, col, sid).Scan(&current)
+		err := e.xc(ctx).queryRow(ctx, e.queries.streamVersion, col, sid).Scan(&current)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return err //nolint:wrapcheck // passthrough
 		}
@@ -112,7 +112,7 @@ func (e *sqliteEngine) StreamAppendExpected(
 
 		for _, v := range values {
 			encoded := encodeStreamValue(v)
-			if _, err := e.xc().exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
+			if _, err := e.xc(ctx).exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
 				return err
 			}
 		}
@@ -181,7 +181,7 @@ func (e *sqliteEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}
@@ -213,7 +213,7 @@ func (e *sqliteEngine) scanStreamEntries(
 	query string,
 	args ...any,
 ) ([]metaengine.StreamLogEntry, error) {
-	rows, err := e.xd().QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough
 	}

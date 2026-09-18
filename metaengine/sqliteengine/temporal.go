@@ -70,7 +70,7 @@ func (e *sqliteEngine) recordVersionRow(
 		valStr = s
 	}
 
-	if _, err := e.xc().exec(
+	if _, err := e.xc(ctx).exec(
 		ctx, `INSERT OR REPLACE INTO meta_cell_versions (collection, key, ts, value) VALUES (?, ?, ?, ?)`,
 		col, key, ts.UnixNano(), valStr,
 	); err != nil {
@@ -92,7 +92,7 @@ func (e *sqliteEngine) trimVersionRetention(
 	}
 
 	if e.versionRetention.MaxVersions > 0 {
-		if _, err := e.xc().exec(ctx,
+		if _, err := e.xc(ctx).exec(ctx,
 			`DELETE FROM meta_cell_versions WHERE collection = ? AND key = ? AND ts NOT IN (
 				SELECT ts FROM meta_cell_versions WHERE collection = ? AND key = ? ORDER BY ts DESC LIMIT ?)`,
 			col, key, col, key, e.versionRetention.MaxVersions,
@@ -103,7 +103,7 @@ func (e *sqliteEngine) trimVersionRetention(
 
 	if e.versionRetention.MaxAge > 0 {
 		cutoff := newest.Add(-e.versionRetention.MaxAge).UnixNano()
-		if _, err := e.xc().exec(ctx,
+		if _, err := e.xc(ctx).exec(ctx,
 			`DELETE FROM meta_cell_versions
 			 WHERE collection = ? AND key = ? AND ts < ?
 			   AND ts < (SELECT MAX(ts) FROM meta_cell_versions WHERE collection = ? AND key = ?)`,
@@ -131,7 +131,7 @@ func (e *sqliteEngine) MapSetAt(
 
 	keyStr := encodeKey(key)
 
-	if _, err := e.xc().exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+	if _, err := e.xc(ctx).exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
 		return fmt.Errorf("map set-at latest: %w", err)
 	}
 
@@ -150,7 +150,7 @@ func (e *sqliteEngine) MapDeleteAt(
 
 	keyStr := encodeKey(key)
 
-	if _, err := e.xc().exec(ctx, e.queries.mapDelete, col, keyStr); err != nil {
+	if _, err := e.xc(ctx).exec(ctx, e.queries.mapDelete, col, keyStr); err != nil {
 		return fmt.Errorf("map delete-at latest: %w", err)
 	}
 
@@ -201,7 +201,7 @@ func (e *sqliteEngine) scanVersionRow(
 ) (any, bool, error) {
 	var valStr sql.NullString
 
-	err := e.xc().queryRow(ctx,
+	err := e.xc(ctx).queryRow(ctx,
 		`SELECT value FROM meta_cell_versions
 		 WHERE collection = ? AND key = ? AND ts <= ? ORDER BY ts DESC LIMIT 1`,
 		col, key, at.UnixNano(),
@@ -255,7 +255,7 @@ func (e *sqliteEngine) MapHistory(
 	col, key string,
 	from, to time.Time,
 ) ([]metaengine.CellVersion, error) {
-	rows, err := e.xd().QueryContext(ctx,
+	rows, err := e.xd(ctx).QueryContext(ctx,
 		`SELECT ts, value FROM meta_cell_versions
 		 WHERE collection = ? AND key = ? AND ts >= ? AND ts <= ? ORDER BY ts DESC`,
 		col, key, from.UnixNano(), to.UnixNano(),

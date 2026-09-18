@@ -162,11 +162,14 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), deadline)
 	defer cancel()
 
+	stop := make(chan struct{})
+	var writerWG sync.WaitGroup
+
 	for range writers {
-		wg.Add(1)
+		writerWG.Add(1)
 
 		go func() {
-			defer wg.Done()
+			defer writerWG.Done()
 
 			for i := range writes {
 				if err := ctx.Err(); err != nil {
@@ -184,13 +187,26 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 		}()
 	}
 
+	go func() {
+		writerWG.Wait()
+		close(stop)
+	}()
+
 	for range readers {
 		wg.Add(1)
 
 		go func() {
 			defer wg.Done()
 
-			for ctx.Err() == nil {
+			for {
+				select {
+				case <-stop:
+					return
+				case <-ctx.Done():
+					return
+				default:
+				}
+
 				vals, err := sb.StreamRead(ctx, readCol, sid)
 				if err != nil {
 					fail("reader StreamRead", err)

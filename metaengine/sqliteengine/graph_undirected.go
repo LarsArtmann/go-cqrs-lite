@@ -59,7 +59,7 @@ func (e *sqliteEngine) graphNeighborsUndirectedCTE(
 	depth int,
 ) ([]any, error) {
 	start := encodeKey(node)
-	rows, err := e.xd().QueryContext(ctx, graphNeighborsUndirectedCTE,
+	rows, err := e.xd(ctx).QueryContext(ctx, graphNeighborsUndirectedCTE,
 		col, start, col, start, col, depth, col, depth, start)
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GraphNeighborsUndirected: %w", err)

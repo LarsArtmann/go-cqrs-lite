@@ -17,24 +17,27 @@ type dbExecer interface {
 	query(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
-// xc returns the active statement executor for cached operations.
-// When inside RunInTx, returns the transaction's txStmtCache; otherwise
-// returns the engine's regular stmtCache. Every Map/Set/Counter/etc.
-// operation routes through xc() so writes and reads participate in the
-// active transaction.
-func (e *sqliteEngine) xc() dbExecer {
-	if tx := e.activeTx.Load(); tx != nil {
+// xc returns the statement executor for cached operations: the ambient
+// transaction's txStmtCache when ctx descends from RunInTx, otherwise the
+// engine's regular stmtCache. Transaction affinity flows through the
+// context — NEVER engine-global state — so a transaction is visible only
+// to the call tree that opened it. A concurrent caller with its own ctx
+// always talks to the base pool and can neither observe uncommitted
+// writes nor have its rows closed by a foreign tx commit.
+func (e *sqliteEngine) xc(ctx context.Context) dbExecer {
+	if tx := txFromCtx(ctx); tx != nil {
 		return tx.cache
 	}
 
 	return e.cache
 }
 
-// xd returns the active raw DB/Tx for direct SQL operations (dynamic
-// queries that cannot use prepared-statement caching, e.g. PushdownMapScan
-// with variable WHERE clauses). Both *sql.DB and *sql.Tx satisfy SQLExec.
-func (e *sqliteEngine) xd() metaengine.SQLExec {
-	if tx := e.activeTx.Load(); tx != nil {
+// xd returns the raw DB or ambient transaction for direct SQL operations
+// (dynamic queries that cannot use prepared-statement caching, e.g.
+// PushdownMapScan with variable WHERE clauses). Like xc, the transaction
+// is resolved from ctx; both *sql.DB and *sql.Tx satisfy SQLExec.
+func (e *sqliteEngine) xd(ctx context.Context) metaengine.SQLExec {
+	if tx := txFromCtx(ctx); tx != nil {
 		return tx.tx
 	}
 
@@ -67,10 +70,12 @@ type txExecutor struct {
 
 // RunInTx executes fn within a database transaction. If fn returns nil, the
 // transaction is committed; otherwise rolled back. Concurrent RunInTx calls
-// are serialized via txMu — only one transaction active at a time. Nested
-// RunInTx is rejected via a marker in the context passed to fn (propagate
-// fn's ctx into nested calls); a nested call that breaks ctx propagation
-// deadlocks on the serialization mutex instead — don't do that.
+// are serialized via txMu — only one transaction active at a time.
+//
+// The transaction is carried in fn's context: every engine operation that
+// receives a ctx descended from fn joins the transaction, everything else
+// talks to the base pool. Propagate fn's ctx into nested calls; a nested
+// RunInTx is rejected via the same context marker.
 func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) error) error {
 	//art-dupl:accept same ctx-marker nested-tx rejection as dgraphengine — separate go.mod
 	if ctx.Value(txMarker{}) != nil {
@@ -90,11 +95,7 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 		cache: &txStmtCache{tx: tx},
 	}
 
-	e.activeTx.Store(txC)
-
-	fnErr := fn(context.WithValue(ctx, txMarker{}, txActive{}))
-
-	e.activeTx.Store(nil)
+	fnErr := fn(context.WithValue(ctx, txMarker{}, txC))
 
 	if fnErr != nil {
 		_ = tx.Rollback()
@@ -105,17 +106,23 @@ func (e *sqliteEngine) RunInTx(ctx context.Context, fn func(context.Context) err
 	return tx.Commit() //nolint:wrapcheck
 }
 
-// txExec returns the active transaction's executor, or nil if no transaction
-// is active.
-func (e *sqliteEngine) txExec() *txExecutor {
-	return e.activeTx.Load()
+// txFromCtx returns the transaction executor carried by ctx, or nil when
+// ctx does not descend from a RunInTx callback.
+func txFromCtx(ctx context.Context) *txExecutor {
+	tx, _ := ctx.Value(txMarker{}).(*txExecutor)
+
+	return tx
 }
 
-// txMarker keys the context value that marks a RunInTx-managed context.
-type txMarker struct{}
+// txExec returns the transaction executor carried by ctx, or nil when no
+// transaction is ambient. It answers "am I inside a RunInTx callback?" for
+// call sites that need the executor itself, not just routing.
+func (e *sqliteEngine) txExec(ctx context.Context) *txExecutor {
+	return txFromCtx(ctx)
+}
 
-// txActive is the marker value stored under txMarker.
-type txActive struct{}
+// txMarker keys the context value carrying the active transaction executor.
+type txMarker struct{}
 
 // readModifyWriteCached performs a read-modify-write cycle using the cached
 // statement executor (xc). Used when an outer transaction is already active —

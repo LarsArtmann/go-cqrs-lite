@@ -82,7 +82,7 @@ func (e *sqliteEngine) VectorInsert(
 ) error {
 	var established int
 
-	err := e.xc().queryRow(ctx,
+	err := e.xc(ctx).queryRow(ctx,
 		"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection).
 		Scan(&established)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -107,7 +107,7 @@ func (e *sqliteEngine) VectorInsert(
 		metaJSON = string(data)
 	}
 
-	if _, err := e.xc().exec(
+	if _, err := e.xc(ctx).exec(
 		ctx, vectorInsertSQL, collection, emb.ID, metaengine.EncodeVectorF32(emb.Values), metaJSON,
 	); err != nil {
 		return fmt.Errorf("sqliteengine.VectorInsert: %w", err)
@@ -156,7 +156,7 @@ func (e *sqliteEngine) vectorSearchPushdown(
 		return nil, fmt.Errorf("sqliteengine.VectorSearch: marshal query: %w", err)
 	}
 
-	rows, err := e.xc().query(ctx,
+	rows, err := e.xc(ctx).query(ctx,
 		"SELECT id, "+libSQLDistanceExpr(metric)+" AS d FROM meta_vector "+
 			"WHERE collection = ? ORDER BY d LIMIT ?",
 		string(queryJSON), collection, k)
@@ -208,7 +208,7 @@ func (e *sqliteEngine) vectorScan(
 	metric string,
 	filters []metaengine.VectorFilter,
 ) ([]metaengine.VectorResult, error) {
-	rows, err := e.xc().query(ctx,
+	rows, err := e.xc(ctx).query(ctx,
 		"SELECT id, vec, metadata FROM meta_vector WHERE collection = ?", collection)
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.vectorScan: %w", err)
@@ -279,7 +279,7 @@ func scanScoredVector(
 func (e *sqliteEngine) VectorCount(ctx context.Context, collection string) (int64, error) {
 	var n int64
 
-	err := e.xc().queryRow(ctx,
+	err := e.xc(ctx).queryRow(ctx,
 		"SELECT COUNT(*) FROM meta_vector WHERE collection = ?", collection).Scan(&n)
 	if err != nil {
 		return 0, fmt.Errorf("sqliteengine.VectorCount: %w", err)
@@ -291,7 +291,7 @@ func (e *sqliteEngine) VectorCount(ctx context.Context, collection string) (int6
 // VectorCollections lists the collections holding at least one embedding.
 // Implements the enumeration member of [metaengine.VectorCounter].
 func (e *sqliteEngine) VectorCollections(ctx context.Context) ([]string, error) {
-	rows, err := e.xc().query(ctx, "SELECT DISTINCT collection FROM meta_vector")
+	rows, err := e.xc(ctx).query(ctx, "SELECT DISTINCT collection FROM meta_vector")
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.VectorCollections: %w", err)
 	}
