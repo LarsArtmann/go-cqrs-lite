@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — storage timer-schedule error code split (one code = one family) — 2026-09-18
+
+- **`storage.schedule_timer` marshal failure now mints
+  `storage.schedule_timer_marshal`** — the code was previously constructed
+  with two different families (payload-marshal failure → Corruption, INSERT
+  failure → Infrastructure), so one code resolved to two families depending
+  on the failure mode. The INSERT site keeps `storage.schedule_timer`
+  (Infrastructure); operators matching on the code see the split made
+  explicit. Found by the error-taxonomy drift gate during the storage-facade
+  gating wave (see the Added gate extension below / 2026-09-16 entry), which
+  also corrected the doc's `storage.scan_*` Corruption claim to match source
+  (`scan_command`/`scan_query` are Infrastructure).
+
 ### Added — native temporal versioned cells (ADR-0141) — 2026-09-18
 
 Point-in-time reads become a first-class engine capability with one

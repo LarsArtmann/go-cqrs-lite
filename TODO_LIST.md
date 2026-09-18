@@ -150,14 +150,21 @@ bottom is a do-not-re-litigate guard, not a backlog.
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [ ] **Extend the error-taxonomy drift gate beyond its 5 modules** —
-      gated+verified 2026-09-11: graph, storage/relational, projectionhost,
-      middleware, transport/grpc (161 codes / 141 claims). Remaining
-      sections: watermill, storage/pebble, core event/command/query,
-      storage/view, stack, deriver, storage-facade. One `GATED_MODULES` line
-      per module, each forcing that section's code inventory complete; add a
-      per-module pool-size floor (scanner-break tripwire) and replace
-      `rg … || true` with explicit extraction assertions while there. —
+- [x] **Extend the error-taxonomy drift gate beyond its 5 modules** — DONE 2026-09-16
+      (two waves): watermill, storage/pebble, core event/command/query landed
+      earlier; this wave added storage/view (30 codes), stack incl. all 14
+      preset prefixes (80), deriver (2), and storage (SQL facade) as FOUR
+      extraction entries over the storage module's same-module subpackages
+      root+sql+eventstore+readmodel (82 codes; `--max-depth 1` support added
+      to the entry schema for the root scan). 18 modules / 519 codes / 450
+      doc claims green + `--self-test` green. Real drift FOUND+fixed:
+      `storage.scan_command`/`scan_query` are Infrastructure (doc claimed
+      Corruption via `storage.scan_*`), and `storage.schedule_timer` was
+      minted with TWO families — the marshal site now mints
+      `storage.schedule_timer_marshal` (Corruption) so one code = one family;
+      per-module pool-size floors wired (view 10, stack 50, deriver 2,
+      facade 30/24/22/6); the floor check IS the explicit extraction
+      assertion (0 codes ⇒ floor trip). —
       source: 05-26 §b1/§f11-17, 05-51 §f30
       _(Effort: S/M)_
 - [ ] **cqrs-upgrade strict-gate residual holes** — (a) run the
