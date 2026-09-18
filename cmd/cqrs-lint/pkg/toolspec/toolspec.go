@@ -108,7 +108,7 @@ func repair(ctx context.Context, wd string) (int, error) {
 
 	fixed := 0
 	for _, iter := range result.Iterations {
-		fixed += int(iter.Applied)
+		fixed += iter.Applied
 	}
 
 	return fixed, nil

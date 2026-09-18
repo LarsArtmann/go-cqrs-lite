@@ -512,6 +512,15 @@ linters:
       - path: metaengine/(.*/)?register\.go$
         linters:
           - gochecknoinits
+      # cqrs-lint's per-package findingTemplate global and toolspec init are
+      # the same intentional database/sql-style registration pattern as the
+      # metaengine register.go files above.
+      - path: cmd/cqrs-lint/pkg/rules/.*/template\.go$
+        linters:
+          - gochecknoglobals
+      - path: cmd/cqrs-lint/pkg/toolspec/toolspec\.go$
+        linters:
+          - gochecknoinits
       - path: metaengine/mysqlengine/
         linters:
           - sqlclosecheck

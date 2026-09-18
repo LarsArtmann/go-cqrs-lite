@@ -73,8 +73,10 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				analyzer.StoreBolt,
 				analyzer.StoreBadger,
 				analyzer.StoreDgraph,
-				analyzer.StoreIroh:
-				// Keep generic suggestion for these cases.
+				analyzer.StoreIroh,
+				analyzer.StoreBigTable:
+				// Keep generic suggestion for these cases (no stack/ preset
+				// exists for them).
 			}
 
 			f, err := findingTemplate.Builder(
