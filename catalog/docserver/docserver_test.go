@@ -456,7 +456,11 @@ func TestDocsServer_ScalarJSRewritesFontCDNURLs(t *testing.T) {
 
 		body := recorder.Body.String()
 		if strings.Contains(body, scalarFontCDN) {
-			t.Errorf("GET %s/static/scalar.js: body still references Scalar's font CDN %s", prefix, scalarFontCDN)
+			t.Errorf(
+				"GET %s/static/scalar.js: body still references Scalar's font CDN %s",
+				prefix,
+				scalarFontCDN,
+			)
 		}
 
 		want := prefix + "/static/fonts/inter-latin.woff2"

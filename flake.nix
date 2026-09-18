@@ -87,10 +87,12 @@
 
       # Go toolchain for the whole flake. Was a go.dev-tarball pin at 1.26.6
       # while nixpkgs shipped 1.26.5 and the workspace floor was >= 1.26.6.
-      # nixpkgs' go_1_26 now ships 1.26.7 (>= every go.mod floor here), so the
-      # override is dropped — re-pin ONLY if a future floor outruns nixpkgs
-      # (GOTOOLCHAIN=local forbids sandbox toolchain downloads).
-      goToolchain = pkgs: pkgs.go_1_26;
+      # 2026-09-19: the documented re-pin condition fired — the go-finding
+      # v1.11 adoption pushed some module floors (e.g. go-finding/toolsdk)
+      # to >= 1.27.1, which nixpkgs' go_1_26 (1.26.7) cannot satisfy, so the
+      # toolchain moves to nixpkgs' go_1_27 (GOTOOLCHAIN=local forbids
+      # sandbox toolchain downloads).
+      goToolchain = pkgs: pkgs.go_1_27;
 
       mkCqrsLintSource =
         pkgs:

@@ -4,9 +4,10 @@ import (
 	"testing"
 
 	"github.com/go-faster/yaml"
+	"github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/asyncapi"
-	"github.com/onsi/gomega"
 )
 
 func TestDocumentYAMLRoundTrip(t *testing.T) {
