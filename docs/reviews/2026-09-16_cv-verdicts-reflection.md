@@ -45,8 +45,9 @@ outcome is **net positive for the library's core thesis and net negative for non
 
 ### 3.1 The `UnixNano()` overflow landmine is real and pins the Forever design (executed probe)
 
-Probe (`/tmp/cqrs-overflow-probe/main.go`, stdlib only, replicating the adapters' exact
-expression `time.Now().Add(ttl).UnixNano()`):
+Probe (stdlib only, replicating the adapters' exact expression
+`time.Now().Add(ttl).UnixNano()`; source embedded in §3.1b so this review is
+self-contained):
 
 | TTL                                    | Expiry year | `UnixNano()`           | Stored as live?          |
 | -------------------------------------- | ----------- | ---------------------- | ------------------------ |
@@ -56,7 +57,7 @@ expression `time.Now().Add(ttl).UnixNano()`):
 
 Mechanism, now verified rather than asserted: `time.Time.Add` itself survives past year
 2262 (internal seconds+nanos split), the wrap is in `.UnixNano()`. Any TTL pushing the
-absolute expiry beyond **2262-04-12 23:47:16 UTC** (MaxInt64 ns) stores a negative
+absolute expiry beyond **2262-04-11 23:47:16 UTC** (MaxInt64 ns) stores a negative
 `expires_at`; `WHERE expires_at < now` then treats the key as already expired and the
 sweep deletes it. Consequences:
 
@@ -68,6 +69,51 @@ sweep deletes it. Consequences:
   **mandatory, not stylistic**: routing Forever through `expiryFromTTL` as a duration
   would wrap negative and expire instantly. No schema migration needed either way
   (`WHERE expires_at < now` already treats MaxInt64 as never-expiring).
+
+### 3.1b Probe source and output (re-run 2026-09-18, go vet clean)
+
+```go
+// /tmp-regenerable; embed here so the review no longer depends on a /tmp path.
+package main
+
+import (
+	"fmt"
+	"math"
+	"time"
+)
+
+func main() {
+	now := time.Now()
+	cases := []struct {
+		name string
+		ttl  time.Duration
+	}{
+		{"100 years (smart-configs default)", 100 * 365 * 24 * time.Hour},
+		{"236 years", 236 * 365 * 24 * time.Hour},
+		{"time.Duration(math.MaxInt64) ~292y", time.Duration(math.MaxInt64)},
+	}
+	fmt.Printf("now (UTC) = %s\n", now.UTC().Format(time.RFC3339))
+	fmt.Printf("wrap threshold = %s\n\n", time.Unix(0, math.MaxInt64).UTC().Format("2006-01-02 15:04:05 MST"))
+	for _, c := range cases {
+		expiry := now.Add(c.ttl).UnixNano()
+		live := expiry > now.UnixNano() // mirrors WHERE expires_at > now
+		fmt.Printf("%-37s expiry year %-4d  UnixNano=%-22d live=%v\n",
+			c.name, now.Add(c.ttl).UTC().Year(), expiry, live)
+	}
+}
+```
+
+```text
+now (UTC) = 2026-09-18T16:46:14Z
+wrap threshold = 2262-04-11 23:47:16 UTC
+
+100 years (smart-configs default)     expiry year 2126  UnixNano=4943349974611977407    live=true
+236 years                             expiry year 2262  UnixNano=-9214498099097574209   live=false
+time.Duration(math.MaxInt64) ~292y    expiry year 2318  UnixNano=-7433622062242798402   live=false
+```
+
+(The 2026-09-16 original recorded the threshold as 2262-04-12; the re-run pins the exact
+value `time.Unix(0, math.MaxInt64)` produces: **2262-04-11** 23:47:16 UTC.)
 
 ### 3.2 CV's open item 32 answered: `dedup/` is NOT a forever store, no split brain
 
@@ -144,4 +190,5 @@ Q2 framing.
   document consumed.
 
 _Point-in-time verification: 2026-09-16, master @ 240368b57. No code was changed in this
-review; probe artifacts under `/tmp/cqrs-overflow-probe/` (regenerable in seconds)._
+review. Probe source and output embedded in §3.1b (re-verified 2026-09-18; the /tmp copy
+was regenerable and is no longer load-bearing)._

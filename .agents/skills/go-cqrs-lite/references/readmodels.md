@@ -422,6 +422,13 @@ Works on `tursoengine` (auto-injects `experimental=views` into the DSN) and
 surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 §2.29.
 
+> **`Scan` truncates at 100 rows by default:** `metaengine` typed reads
+> (`TypedReader.Scan`/`ScanPage`) apply a default limit of 100 when the input
+> sets no limit — a read model that "misses" rows is usually silently
+> truncated, not filtered. Pass `WithLimit(n)` for an explicit page size, or
+> `WithLimit(0)` for an unbounded scan. Pitfall details: `faq.md`
+> ("metaengine `Scan` only returns 100 rows — where are the rest?").
+
 > **Upstream correctness caveat (tursogo ≤ v0.8.0-pre.10):** SCALAR views
 > (SUM/COUNT/MIN/MAX/AVG without `GroupBy`) are exact in every test; GROUPED
 > views return silently wrong sums beyond a single transaction's rows and

@@ -131,6 +131,20 @@ the newest version.
   in-source; in-review/in-config/ExpiresAt map to existing mechanisms
   (--show-suppressed, rules.disable, the staleness gates).
 
+### Fixed — metaengine typed-scan docs told the wrong truth about limits — 2026-09-17
+
+- **`TypedReader.Scan`/`ScanPage` doc comments claimed to "return all
+  values"** — they silently apply a default limit of **100** when the input
+  sets no limit. The doc comments now state the default and the escape
+  hatch: `WithLimit(n)` sets an explicit page size, `WithLimit(0)` (any
+  n ≤ 0) is unbounded end-to-end (trim loop and SQL `LIMIT` omission both
+  verified). The same truncation applies to query inputs (`Limit: 0`
+  becomes 100). Pitfall documented in `faq.md` ("metaengine `Scan` only
+  returns 100 rows") and cross-referenced from `readmodels.md`
+  (materialized-view acceleration section). Found by the 2026-09-16 CV
+  consumer-verdict verification pass
+  (`docs/reviews/2026-09-16_cv-verdicts-reflection.md`, claim 2).
+
 ### Added — queue family README + recipes §2.36 + V007 v5-deprecation table extension — 2026-09-16
 
 - **`queue/README.md`** — first consumer-facing docs for the durable-work-queue
