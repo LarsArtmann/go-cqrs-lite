@@ -1,4 +1,4 @@
-go 1.26.7
+go 1.27.1
 
 use (
 	.
@@ -51,7 +51,6 @@ use (
 	./metaengine/pgengine
 	./metaengine/projectionadapter
 	./metaengine/sqliteengine
-	./metaengine/bigtableengine
 	./metaengine/tursoengine
 	./middleware
 	./otel

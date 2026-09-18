@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/scheduling/v4
 go 1.26.7
 
 require (
-	github.com/larsartmann/go-branded-id v0.5.1
+	github.com/larsartmann/go-branded-id v0.6.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0
 )
