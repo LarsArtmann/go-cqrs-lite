@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — self-hosted Scalar fonts — 2026-09-18
+
+- **The OpenAPI UI's web fonts load from this server, not Scalar's CDN.**
+  The vendored Scalar bundle hardcodes 14 Inter/mono woff2 `@font-face` URLs
+  to fonts.scalar.com, which the CSP (correctly) denied — every OpenAPI page
+  visit logged ~26 console refusals and silently fell back to system fonts.
+  The woff2 subsets are now vendored under `static/fonts/` (263,900 bytes,
+  byte-identical to the CDN binaries), and the served scalar.js has its font
+  URLs rewritten to `<DocsPath>/static/fonts/` at serve time, so custom
+  mount prefixes keep working. `fonts.scalar.com` is removed from the
+  browser gate's allowed-refusal list: a console refusal naming it now
+  fails the gate instead of being waved through.
+
 ### Fixed — docserver AsyncAPI view renders v3 documents — 2026-09-18
 
 - **The generated AsyncAPI document now validates.** Operations referenced

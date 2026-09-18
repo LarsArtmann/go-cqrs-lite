@@ -58,7 +58,7 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 		{
 			name:         "openapi-ui",
 			path:         "/docs/openapi",
-			mustFetch:    []string{"/docs/static/scalar.js"},
+			mustFetch:    []string{"/docs/static/scalar.js", "/docs/static/fonts/inter-latin.woff2"},
 			domReference: "data-v-app",
 		},
 		{

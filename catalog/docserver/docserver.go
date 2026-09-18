@@ -210,7 +210,7 @@ func (ds *DocsServer) scalarJSHandler(prefix string) http.HandlerFunc {
 		return bytes.ReplaceAll(raw, []byte(scalarFontCDN), []byte(selfPath)), nil
 	})
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, _ *http.Request) {
 		body, err := rewritten()
 		if err != nil {
 			http.Error(w, "scalar.js asset unavailable", http.StatusInternalServerError)
