@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -143,13 +144,18 @@ func TestDocsServer_OpenAPISpecRequestScopedServers(t *testing.T) {
 	handler(plainRecorder, plainReq)
 
 	defaultDoc := decodeJSON(t, plainRecorder)
-	baseDoc, err := json.Marshal(srv.buildOpenAPI().Servers)
+	baseRaw, err := json.Marshal(srv.buildOpenAPI().Servers)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if got, _ := json.Marshal(defaultDoc["servers"]); string(got) != string(baseDoc) {
-		t.Errorf("empty Host must preserve exporter default servers %s, got %s", baseDoc, got)
+	var baseDecoded any
+	if err := json.Unmarshal(baseRaw, &baseDecoded); err != nil {
+		t.Fatal(err)
+	}
+	// Compare decoded values: encoding/json/v2 does not sort map keys, so a
+	// byte-wise comparison against the typed struct marshal is order-flaky.
+	if !reflect.DeepEqual(defaultDoc["servers"], baseDecoded) {
+		t.Errorf("empty Host must preserve exporter default servers %s, got %v", baseRaw, defaultDoc["servers"])
 	}
 }
 
