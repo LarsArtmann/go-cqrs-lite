@@ -1,8 +1,8 @@
 package docserver
 
 import (
-	"encoding/json"
 	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"net/http"
 	"net/url"
 	"sort"
@@ -373,12 +373,11 @@ func prettySchema(s *schema.Schema) string {
 func prettyExamples(examples []jsontext.Value) []string {
 	out := make([]string, 0, len(examples))
 	for _, ex := range examples {
-		indented, err := ex.Indent("", "  ")
-		if err != nil {
+		if err := ex.Indent(jsontext.WithIndent("  ")); err != nil {
 			continue
 		}
 
-		out = append(out, string(indented))
+		out = append(out, string(ex))
 	}
 
 	return out

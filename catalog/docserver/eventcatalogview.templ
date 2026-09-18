@@ -62,7 +62,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 				CellPadding: display.TableCellPaddingCompact,
 				Rows:        serviceRows(data.Services),
 			})
-		}
+		</div>
 	}
 }
 
@@ -135,7 +135,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 					}
 				</ul>
 			}
-		}
+		</div>
 	}
 }
 
@@ -175,7 +175,7 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 					}
 				</div>
 			}
-		}
+		</div>
 	}
 }
 
@@ -209,7 +209,7 @@ templ EventCatalogServicePage(d eventCatalogServiceDetail) {
 			@messageRefSection("Commands", d.CommandRefs)
 			@messageRefSection("Events", d.EventRefs)
 			@messageRefSection("Queries", d.QueryRefs)
-		}
+		</div>
 	}
 }
 
