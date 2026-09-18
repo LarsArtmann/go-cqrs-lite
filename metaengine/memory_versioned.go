@@ -140,10 +140,15 @@ func (m *memoryEngine) trimRetentionLocked(chain *versionChain, newest time.Time
 			return chain.entries[i].ts.After(minTs)
 		})
 
-		// Keep at least the newest entry even when it is itself older than
-		// the MaxAge window (a live cell never vanishes from latest reads).
-		if idx > 0 {
-			chain.entries = chain.entries[idx-1:]
+		switch {
+		case idx == 0:
+			// Everything within the window: keep all.
+		case idx < len(chain.entries):
+			chain.entries = chain.entries[idx:]
+		default:
+			// Everything older than the window: keep only the newest entry
+			// (a live cell never vanishes from latest reads).
+			chain.entries = chain.entries[len(chain.entries)-1:]
 		}
 	}
 }
