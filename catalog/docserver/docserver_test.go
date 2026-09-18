@@ -112,6 +112,47 @@ func TestDocsServer_OpenAPISpecJSON(t *testing.T) {
 	}
 }
 
+// TestDocsServer_OpenAPISpecRequestScopedServers pins the Try-It console
+// contract: the served document names the REQUEST's host as the server, so
+// "Try it" calls hit the deployment host instead of resolving the exporter's
+// relative default against the document URL, and behind a reverse proxy the
+// forwarded scheme wins over the local one.
+func TestDocsServer_OpenAPISpecRequestScopedServers(t *testing.T) {
+	srv := testServer(t)
+	handler := srv.OpenAPISpec()
+
+	req := newTestRequest("/docs/openapi.json")
+	req.Host = "docs.example.test"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	recorder := httptest.NewRecorder()
+	handler(recorder, req)
+
+	servers, ok := decodeJSON(t, recorder)["servers"].([]any)
+	if !ok || len(servers) != 1 {
+		t.Fatalf("expected exactly one request-derived server, got %v", decodeJSON(t, recorder)["servers"])
+	}
+
+	server, ok := servers[0].(map[string]any)
+	if !ok || server["url"] != "https://docs.example.test" {
+		t.Errorf("expected server url https://docs.example.test, got %v", servers)
+	}
+
+	plainReq := newTestRequest("/docs/openapi.json")
+	plainReq.Host = ""
+	plainRecorder := httptest.NewRecorder()
+	handler(plainRecorder, plainReq)
+
+	defaultDoc := decodeJSON(t, plainRecorder)
+	baseDoc, err := json.Marshal(srv.buildOpenAPI().Servers)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got, _ := json.Marshal(defaultDoc["servers"]); string(got) != string(baseDoc) {
+		t.Errorf("empty Host must preserve exporter default servers %s, got %s", baseDoc, got)
+	}
+}
+
 func TestDocsServer_OpenAPISpecYAML(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.OpenAPISpecYAML()

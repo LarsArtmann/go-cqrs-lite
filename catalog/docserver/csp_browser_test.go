@@ -59,13 +59,13 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 			name:         "openapi-ui",
 			path:         "/docs/openapi",
 			mustFetch:    []string{"/docs/static/scalar.js"},
-			domReference: "openapi",
+			domReference: "data-v-app",
 		},
 		{
 			name:         "asyncapi-ui",
 			path:         "/docs/asyncapi",
 			mustFetch:    []string{"/docs/static/asyncapi-react.js"},
-			domReference: "asyncapi",
+			domReference: "aui-root",
 		},
 		{
 			name:         "eventcatalog",
