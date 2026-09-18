@@ -112,7 +112,8 @@ func (e *sqliteEngine) StreamAppendExpected(
 
 		for _, v := range values {
 			encoded := encodeStreamValue(v)
-			if _, err := e.xc(ctx).exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
+			if _, err := e.xc(ctx).
+				exec(ctx, e.queries.streamAppend, col, sid, encoded); err != nil {
 				return err
 			}
 		}

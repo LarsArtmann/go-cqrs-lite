@@ -23,8 +23,13 @@ import (
 func openWALEngine(t *testing.T) (metaengine.Engine, *sql.DB) {
 	t.Helper()
 
-	db, err := sql.Open("sqlite",
-		"file:"+filepath.Join(t.TempDir(), "tx_iso.db")+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(10000)")
+	db, err := sql.Open(
+		"sqlite",
+		"file:"+filepath.Join(
+			t.TempDir(),
+			"tx_iso.db",
+		)+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(10000)",
+	)
 	if err != nil {
 		t.Fatalf("sql.Open: %v", err)
 	}
@@ -215,7 +220,10 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 				}
 
 				if len(vals) != len(seed) {
-					fail("reader StreamRead", fmt.Errorf("got %d values, want %d", len(vals), len(seed)))
+					fail(
+						"reader StreamRead",
+						fmt.Errorf("got %d values, want %d", len(vals), len(seed)),
+					)
 
 					return
 				}

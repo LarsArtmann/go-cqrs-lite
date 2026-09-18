@@ -131,7 +131,8 @@ func (e *sqliteEngine) MapSetAt(
 
 	keyStr := encodeKey(key)
 
-	if _, err := e.xc(ctx).exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+	if _, err := e.xc(ctx).
+		exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
 		return fmt.Errorf("map set-at latest: %w", err)
 	}
 

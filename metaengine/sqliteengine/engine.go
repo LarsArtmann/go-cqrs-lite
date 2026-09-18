@@ -256,7 +256,8 @@ func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value an
 
 	keyStr := encodeKey(key)
 
-	if _, err := e.xc(ctx).exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
+	if _, err := e.xc(ctx).
+		exec(ctx, e.queries.mapSet, col, keyStr, encodeValue(value)); err != nil {
 		return err //nolint:wrapcheck // passthrough
 	}
 
@@ -386,9 +387,11 @@ func (e *sqliteEngine) MapScan(
 	var err error
 
 	if plan, ok := e.plans[col]; ok {
-		rows, err = e.xd(ctx).QueryContext(ctx, "SELECT value FROM "+metaengine.QuoteIdent(plan.Table))
+		rows, err = e.xd(ctx).
+			QueryContext(ctx, "SELECT value FROM "+metaengine.QuoteIdent(plan.Table))
 	} else {
-		rows, err = e.xd(ctx).QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
+		rows, err = e.xd(ctx).
+			QueryContext(ctx, `SELECT value FROM meta_map WHERE collection = ?`, col)
 	}
 
 	if err != nil {

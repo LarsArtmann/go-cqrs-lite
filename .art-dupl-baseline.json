@@ -1,16 +1,8 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-09-09T00:45:01.610179824Z",
+  "recordedAt": "2026-09-18T13:07:21.148211371Z",
   "entries": [
-    {
-      "hash": "026d8071a0834265",
-      "files": [
-        "metaengine/sqliteengine/stream_log.go",
-        "metaengine/sqliteengine/stream_log.go"
-      ],
-      "tokens": 6
-    },
     {
       "hash": "0307b332ed37e156",
       "files": [
@@ -21,10 +13,9 @@
         "cmd/cqrs-lint/pkg/rules/correctness/c040_test.go",
         "cmd/cqrs-lint/pkg/rules/correctness/c040_test.go",
         "cmd/cqrs-lint/pkg/rules/correctness/c040_test.go",
-        "cmd/cqrs-lint/pkg/rules/correctness/c040_test.go",
         "cmd/cqrs-lint/pkg/rules/correctness/c040_test.go"
       ],
-      "tokens": 36
+      "tokens": 32
     },
     {
       "hash": "042a25ea73339942",
@@ -67,8 +58,8 @@
       "files": [
         "cmd/api-stability/main.go",
         "cmd/doc-check/main.go",
-        "cmd/cqrs-lint/main.go",
-        "cmd/cqrs-gen/main.go"
+        "cmd/cqrs-gen/main.go",
+        "cmd/cqrs-lint/main.go"
       ],
       "tokens": 12
     },
@@ -104,6 +95,16 @@
         "metaengine/sqliteengine/graph_undirected.go"
       ],
       "tokens": 8
+    },
+    {
+      "hash": "2e0143d41e6fcebc",
+      "files": [
+        "queue/conformance/retry.go",
+        "queue/conformance/retry.go",
+        "queue/conformance/journal.go",
+        "queue/conformance/retry.go"
+      ],
+      "tokens": 12
     },
     {
       "hash": "38c9f4ad4a2f8633",
@@ -179,12 +180,12 @@
       "tokens": 6
     },
     {
-      "hash": "70bbb1cda72a1e15",
+      "hash": "6c648cd86c6d4395",
       "files": [
-        "metaengine/memory_versioned.go",
-        "metaengine/memory_versioned.go"
+        "metaengine/duckdbengine/vector.go",
+        "metaengine/sqliteengine/vector.go"
       ],
-      "tokens": 6
+      "tokens": 12
     },
     {
       "hash": "723214000a979c8d",
@@ -225,6 +226,14 @@
       "tokens": 10
     },
     {
+      "hash": "83d0d95171479ac5",
+      "files": [
+        "queue/postgres/claim.go",
+        "queue/sqlite/claim.go"
+      ],
+      "tokens": 10
+    },
+    {
       "hash": "83d89f6298e6e123",
       "files": [
         "metaengine/sqliteengine/planned_parity.go",
@@ -245,6 +254,22 @@
       "files": [
         "metaengine/fold.go",
         "metaengine/enginetest/enginetest.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "8a0376c5427208b0",
+      "files": [
+        "metaengine/mysqlengine/vector.go",
+        "metaengine/sqliteengine/vector.go"
+      ],
+      "tokens": 8
+    },
+    {
+      "hash": "8db0dcbe6a97ca1f",
+      "files": [
+        "claiming/migrate.go",
+        "claiming/migrate.go"
       ],
       "tokens": 6
     },
@@ -279,6 +304,18 @@
       "tokens": 48
     },
     {
+      "hash": "97a0113bd47df89d",
+      "files": [
+        "commandlifecycle/middleware_classification_test.go",
+        "commandlifecycle/middleware_classification_test.go",
+        "commandlifecycle/middleware_classification_test.go",
+        "commandlifecycle/recorder_test.go",
+        "commandlifecycle/retry_integration_test.go",
+        "commandlifecycle/recorder_test.go"
+      ],
+      "tokens": 36
+    },
+    {
       "hash": "99f0c34144d1f3b8",
       "files": [
         "command/commandtest/store_suite.go",
@@ -299,6 +336,14 @@
       "files": [
         "metaengine/bboltengine/map_backends.go",
         "metaengine/memory_engine.go"
+      ],
+      "tokens": 6
+    },
+    {
+      "hash": "a350aa7e81cadf71",
+      "files": [
+        "metaengine/sqliteengine/stream_log.go",
+        "metaengine/sqliteengine/stream_log.go"
       ],
       "tokens": 6
     },
@@ -357,6 +402,7 @@
         "system/query_constructors_test.go",
         "system/query_constructors_test.go",
         "system/evolutions_test.go",
+        "system/coeffect_gate_test.go",
         "system/runtime_test.go",
         "system/integration_shutdown_test.go",
         "system/runtime_test.go",
@@ -365,16 +411,19 @@
         "system/evolutions_options_test.go",
         "system/evolutions_test.go",
         "system/integration_shutdown_test.go",
+        "system/coeffect_gate_test.go",
         "system/system_hardening_test.go",
         "system/runtime_test.go",
         "system/integration/duckdb_test.go",
+        "system/coeffect_gate_test.go",
         "system/evolutions_test.go",
         "system/evolutions_options_test.go",
         "benchkit/warnings_test.go",
         "system/integration_lifecycle_test.go",
+        "system/coeffect_gate_test.go",
         "system/query_constructors_test.go"
       ],
-      "tokens": 57
+      "tokens": 69
     },
     {
       "hash": "ca1450a2103ab621",
@@ -473,6 +522,14 @@
         "stack/contracttest/multidb.go"
       ],
       "tokens": 6
+    },
+    {
+      "hash": "f2a3d548f9e0b656",
+      "files": [
+        "metaengine/pgengine/reset.go",
+        "metaengine/mysqlengine/reset.go"
+      ],
+      "tokens": 8
     },
     {
       "hash": "fc3e850f71cdf42a",

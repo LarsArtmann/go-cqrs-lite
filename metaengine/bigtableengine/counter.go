@@ -49,7 +49,9 @@ func (e *bigtableEngine) CounterGet(ctx context.Context, col string) (map[string
 			return true
 		}
 
-		result[strings.TrimPrefix(row.Key(), prefix)] = int64(binary.BigEndian.Uint64(cells[0].Value))
+		result[strings.TrimPrefix(row.Key(), prefix)] = int64(
+			binary.BigEndian.Uint64(cells[0].Value),
+		)
 
 		return true
 	}, bigtable.RowFilter(bigtable.ChainFilters(

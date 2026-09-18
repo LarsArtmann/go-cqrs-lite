@@ -368,7 +368,6 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryMeta, input any)
 	return nil, unsupportedEngine(errUnsupportedScanReads, q.QueryEngine().Profile().Name)
 }
 
-
 // canPushdown returns true when all declared filter/sort accessors carry
 // declarative specs (FilterSpec/SortSpec). If any accessor is closure-only
 // (FilterOn/SortOn), pushdown is impossible and the fallback path is used.
@@ -690,4 +689,3 @@ func coerceScalarResult[R any](raw any) (R, error) {
 
 	return result, nil
 }
-
