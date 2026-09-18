@@ -43,6 +43,7 @@ func cmpOr(a, b string) string {
 // countKind counts message rows of one kind for the overview stat cards.
 func countKind(rows []eventCatalogMessageRow, kind string) int {
 	count := 0
+
 	for _, row := range rows {
 		if row.Kind == kind {
 			count++

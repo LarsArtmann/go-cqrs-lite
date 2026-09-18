@@ -48,6 +48,7 @@ func requestBaseURL(r *http.Request) string {
 	}
 
 	scheme := "http"
+
 	switch {
 	case r.Header.Get("X-Forwarded-Proto") != "":
 		scheme = r.Header.Get("X-Forwarded-Proto")

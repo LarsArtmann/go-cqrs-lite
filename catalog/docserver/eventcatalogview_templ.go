@@ -67,7 +67,7 @@ func EventCatalogPage(data eventCatalogOverview) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = display.PageHeader(display.PageHeaderProps{
-				Title:    "Event Catalog",
+				Title:    eventCatalogTitle,
 				Subtitle: "Every message, channel, and service in this catalog — browsable without a separate toolchain.",
 				Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -225,7 +225,7 @@ func EventCatalogMessagePage(d eventCatalogMessageDetail) templ.Component {
 			}
 			templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
 					{Text: d.Name, Active: true},
 				},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -433,7 +433,7 @@ func EventCatalogChannelPage(d eventCatalogChannelDetail) templ.Component {
 			}
 			templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
 					{Text: d.Name, Active: true},
 				},
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -544,7 +544,7 @@ func EventCatalogServicePage(d eventCatalogServiceDetail) templ.Component {
 			}
 			templ_7745c5c3_Err = navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
 					{Text: d.Name, Active: true},
 				},
 			}).Render(ctx, templ_7745c5c3_Buffer)

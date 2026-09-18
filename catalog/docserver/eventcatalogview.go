@@ -93,6 +93,14 @@ type eventCatalogOverview struct {
 	Messages   []eventCatalogMessageRow
 }
 
+// unknownKindOrder sorts message kinds that are not one of the three known
+// kinds after every known kind in tables.
+const unknownKindOrder = 3
+
+// expectedMessageCount is the initial slice capacity hint when collecting
+// catalog messages; large catalogs avoid repeated growth reallocations.
+const expectedMessageCount = 64
+
 // messageKindOrder ranks message kinds for stable table ordering.
 func messageKindOrder(kind catalog.MessageKind) int {
 	switch kind {
@@ -198,7 +206,7 @@ func newEventCatalogOverview(cfg Config, cat *catalog.Catalog) eventCatalogOverv
 		serviceNamesByID[svc.ID] = cmpOr(string(svc.Name), string(svc.ID))
 	}
 
-	rows := make([]eventCatalogMessageRow, 0, 64)
+	rows := make([]eventCatalogMessageRow, 0, expectedMessageCount)
 	for _, msg := range collectMessages(cat) {
 		rows = append(rows, eventCatalogMessageRow{
 			Kind:      string(msg.Kind),

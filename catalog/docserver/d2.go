@@ -67,6 +67,7 @@ func (ds *DocsServer) serveD2View(w http.ResponseWriter, r *http.Request) {
 	diagram := ds.exportD2()
 
 	var svg string
+
 	if ds.config.D2SVG != nil {
 		if rendered, err := ds.config.D2SVG(diagram); err == nil {
 			svg = rendered

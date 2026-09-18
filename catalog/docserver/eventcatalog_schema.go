@@ -43,10 +43,14 @@ func propertyTypeLabel(p schema.Property) string {
 	return string(p.Type)
 }
 
+// propertyHintCount is the number of optional hint segments (enum, format,
+// default, nullable) a property can contribute to the detail line.
+const propertyHintCount = 4
+
 // propertyDetails concatenates enum values, format, default, and nullability
 // into a compact, human-readable hint line.
 func propertyDetails(p schema.Property) string {
-	parts := make([]string, 0, 4)
+	parts := make([]string, 0, propertyHintCount)
 	if len(p.Enum) > 0 {
 		parts = append(parts, "enum: "+strings.Join(p.Enum, " | "))
 	}
