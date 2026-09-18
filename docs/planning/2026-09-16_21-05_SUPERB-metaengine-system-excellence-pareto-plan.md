@@ -183,7 +183,7 @@ flowchart TD
     G1 --> T14 --> T15
     G1 --> T17
     G1 --> T18
-    T16 -.gated on upstream v0.4.0.-> G2
+    T16 -. "gated on upstream v0.4.0" .-> G2
     T11 --> G2
     T13 --> G2
     T15 --> G2

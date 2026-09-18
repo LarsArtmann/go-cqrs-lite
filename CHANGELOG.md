@@ -77,6 +77,21 @@ the newest version.
   pins as-of resolution, tombstones, out-of-order stamps, same-ts LWW,
   history ranges, and latest-view consistency for every versioned engine
   (memory, sqlite, bigtable).
+- **cqrs-lint recognizes the new engine** — `analyzer.StoreBigTable` store
+  kind (distributed: not SQL, not embedded), `bigtable` store detection,
+  and the `metaengine/bigtableengine` import mapping — every metaengine
+  engine must appear in both the store-kind table and the import mapping;
+  the engine module itself is module-catalog-excluded like every
+  `metaengine/*engine` sub-engine.
+
+### Added — catalog: canonical EventCatalog delivery-guarantee constants — 2026-09-18
+
+- **`catalog.DeliveryExactlyOnce` / `catalog.DeliveryAtLeastOnce`** —
+  canonical values for the existing `catalog.DeliveryGuarantee` string
+  type ("exactly-once"/"at-least-once", EventCatalog semantics).
+  Previously the values existed only as hand-rolled string literals at
+  call sites; the constants make the vocabulary importable (first
+  consumers: the docserver EventCatalog view tests).
 
 ### Added — go-finding v1.10/v1.11 adoption in cqrs-lint — 2026-09-17
 
