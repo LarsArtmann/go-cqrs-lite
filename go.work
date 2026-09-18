@@ -51,6 +51,7 @@ use (
 	./metaengine/pgengine
 	./metaengine/projectionadapter
 	./metaengine/sqliteengine
+	./metaengine/bigtableengine
 	./metaengine/tursoengine
 	./middleware
 	./otel

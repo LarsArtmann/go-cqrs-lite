@@ -245,6 +245,7 @@
             "metaengine/otelobserver"
             "metaengine/projectionadapter"
             "metaengine/sqliteengine"
+            "metaengine/bigtableengine"
             "metaengine/tursoengine"
             "metaengine/pgengine"
             "metaengine/irohengine"
