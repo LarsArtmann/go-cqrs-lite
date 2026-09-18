@@ -22,7 +22,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 		@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 			@display.PageHeader(display.PageHeaderProps{
-				Title:    "Event Catalog",
+				Title:    eventCatalogTitle,
 				Subtitle: "Every message, channel, and service in this catalog — browsable without a separate toolchain.",
 				Action:   display.Badge(display.BadgeProps{Text: "v" + data.Version, Type: display.BadgeInfo, Pill: true}),
 			})
@@ -76,7 +76,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
 					{Text: d.Name, Active: true},
 				},
 			})
@@ -149,7 +149,7 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
 					{Text: d.Name, Active: true},
 				},
 			})
@@ -189,7 +189,7 @@ templ EventCatalogServicePage(d eventCatalogServiceDetail) {
 		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
-					{Text: "Event Catalog", Href: eventCatalogHref(d.DocsPath)},
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
 					{Text: d.Name, Active: true},
 				},
 			})

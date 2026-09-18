@@ -100,10 +100,11 @@ func TestCSPBrowser_NoViolations(t *testing.T) {
 // a fully self-hosted deployment: its CDN web fonts (fonts.scalar.com,
 // inter/mono woff2 sets) and the vector-search registry (api.scalar.com,
 // /vector/registry/*). The docserver CSP deliberately denies them: a
-// self-hosted docs server does not phone home. The policy blocks the attempts and Scalar Scalar degrades
-// gracefully (system font fallback, local search). A console refusal naming
-// one of these hosts is therefore the policy working; any other refusal
-// above all a same-origin one, is a real rendering defect.
+// self-hosted docs server does not phone home. The policy blocks those
+// attempts and Scalar degrades gracefully (system font fallback, local
+// search). A console refusal naming one of these hosts is therefore the
+// policy working; any other refusal, above all a same-origin one, is a real
+// rendering defect.
 var deliberatelyDeniedOrigins = []string{
 	"fonts.scalar.com",
 	"api.scalar.com",
@@ -112,12 +113,20 @@ var deliberatelyDeniedOrigins = []string{
 // fatalCSPRefusals returns the console lines that report a CSP refusal the
 // gate should fail on: every refusal except those naming a deliberately
 // denied third-party origin.
+//
+// Chrome phrases refusals two ways ("Loading the font ... violates the
+// following Content Security Policy directive ..." and "Refused to connect
+// because it violates the document's Content Security Policy"), so a line
+// counts as a refusal when it contains "Refused to" OR both "violates" and
+// "Content Security Policy"; matching the exact joined phrase would
+// silently miss every "violates the following/document's" variant.
 func fatalCSPRefusals(console string) []string {
 	var fatal []string
 
 	for _, line := range strings.Split(console, "\n") {
-		if !strings.Contains(line, "Refused to") &&
-			!strings.Contains(line, "violates Content Security Policy") {
+		refusal := strings.Contains(line, "Refused to") ||
+			(strings.Contains(line, "violates") && strings.Contains(line, "Content Security Policy"))
+		if !refusal {
 			continue
 		}
 

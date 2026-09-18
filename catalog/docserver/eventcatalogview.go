@@ -103,7 +103,7 @@ func messageKindOrder(kind catalog.MessageKind) int {
 	case catalog.QueryMessage:
 		return 2
 	default:
-		return 3
+		return unknownKindOrder
 	}
 }
 
@@ -131,7 +131,7 @@ func serviceNames(cat *catalog.Catalog, ids []catalog.ServiceID) []string {
 // returns them in stable kind-then-name order.
 func collectMessages(cat *catalog.Catalog) []catalog.Message {
 	seen := map[catalog.MessageID]bool{}
-	messages := make([]catalog.Message, 0, 64)
+	messages := make([]catalog.Message, 0, expectedMessageCount)
 
 	for _, svc := range cat.Services {
 		for _, group := range [][]catalog.Message{svc.Commands, svc.Events, svc.Queries} {

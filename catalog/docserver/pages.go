@@ -8,6 +8,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
+// eventCatalogTitle is the display name of the Event Catalog surface; used by
+// the index card, the nav entry, and every catalog page breadcrumb.
+const eventCatalogTitle = "Event Catalog"
+
 // catalogStats aggregates deduplicated message counts for the docs index page.
 // Messages referenced by several services are counted once.
 type catalogStats struct {
@@ -111,7 +115,7 @@ func newIndexPageData(cfg Config, cat *catalog.Catalog) indexPageData {
 func indexSpecLinks(docsPath string) []specLink {
 	return []specLink{
 		{
-			Title:    "Event Catalog",
+			Title:    eventCatalogTitle,
 			Subtitle: "Browse services, channels, and every message with schema and examples",
 			Icon:     icons.Book,
 			PageHref: docsPath + "/eventcatalog",
