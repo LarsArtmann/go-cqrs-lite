@@ -59,6 +59,7 @@ func defaultRules(cfg planConfig) []PlanRule {
 		&replicationRule{},
 		&degradedADTRule{},
 		&mapUpdateReplicationRule{},
+		&temporalAsOfRule{},
 		&durabilityRule{},
 		&liveLatencyRule{},
 	}

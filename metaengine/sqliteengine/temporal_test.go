@@ -6,16 +6,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 func newVersionedSQLite(t *testing.T, opts ...sqliteengine.CellVersioningOption) metaengine.Engine {
 	t.Helper()
 
-	eng, err := sqliteengine.NewSQLiteEngineFromDSN(
+	eng, err := sqliteengine.NewSQLiteEngineFromDSNWith(
 		"file:"+t.TempDir()+"/versioned.db?mode=rwc",
+		nil,
 		sqliteengine.WithCellVersioning(opts...),
 	)
 	if err != nil {
@@ -63,7 +64,15 @@ func TestSQLiteVersioning_PlainWritesRecordHistory(t *testing.T) {
 		t.Fatalf("as-of mid = (%v, %v), want (one, nil)", val, err)
 	}
 
-	if val, err := vs.MapGetAsOf(ctx, "hist", "k", before); !errors.Is(err, metaengine.ErrNotFound) {
+	if val, err := vs.MapGetAsOf(
+		ctx,
+		"hist",
+		"k",
+		before,
+	); !errors.Is(
+		err,
+		metaengine.ErrNotFound,
+	) {
 		t.Fatalf("as-of before err = %v, want ErrNotFound (got %v)", err, val)
 	}
 
@@ -75,7 +84,15 @@ func TestSQLiteVersioning_PlainWritesRecordHistory(t *testing.T) {
 		t.Fatalf("latest after delete = (%v, %v, %v), want gone", val, found, err)
 	}
 
-	if _, err := vs.MapGetAsOf(ctx, "hist", "k", time.Now()); !errors.Is(err, metaengine.ErrNotFound) {
+	if _, err := vs.MapGetAsOf(
+		ctx,
+		"hist",
+		"k",
+		time.Now(),
+	); !errors.Is(
+		err,
+		metaengine.ErrNotFound,
+	) {
 		t.Fatalf("as-of after delete err = %v, want ErrNotFound", err)
 	}
 }
@@ -84,7 +101,10 @@ func TestSQLiteVersioning_PlainWritesRecordHistory(t *testing.T) {
 func TestSQLiteVersioning_Retention(t *testing.T) {
 	t.Parallel()
 
-	eng := newVersionedSQLite(t, sqliteengine.WithRetention(metaengine.RetentionPolicy{MaxVersions: 2}))
+	eng := newVersionedSQLite(
+		t,
+		sqliteengine.WithRetention(metaengine.RetentionPolicy{MaxVersions: 2}),
+	)
 
 	vw := eng.(metaengine.VersionedWriter)
 	vs := eng.(metaengine.VersionedStorage)
@@ -94,7 +114,13 @@ func TestSQLiteVersioning_Retention(t *testing.T) {
 	base := time.Now().Add(-time.Hour).Truncate(time.Millisecond)
 
 	for i, name := range []string{"v1", "v2", "v3"} {
-		if err := vw.MapSetAt(ctx, "ret", "k", name, base.Add(time.Duration(i)*time.Minute)); err != nil {
+		if err := vw.MapSetAt(
+			ctx,
+			"ret",
+			"k",
+			name,
+			base.Add(time.Duration(i)*time.Minute),
+		); err != nil {
 			t.Fatal(err)
 		}
 	}

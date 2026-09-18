@@ -49,7 +49,11 @@ CREATE TABLE IF NOT EXISTS meta_cell_versions (
 );`
 
 func errPlannedNotVersioned(col string) error {
-	return fmt.Errorf("%w: planned collection %q does not support versioned cells", metaengine.ErrUnsupportedADT, col)
+	return fmt.Errorf(
+		"%w: planned collection %q does not support versioned cells",
+		metaengine.ErrUnsupportedADT,
+		col,
+	)
 }
 
 // recordVersionRow inserts one version row (NULL value = tombstone) and trims
@@ -285,9 +289,9 @@ func (e *sqliteEngine) MapHistory(
 }
 
 var (
-	_ metaengine.VersionedStorage  = (*sqliteEngine)(nil)
-	_ metaengine.VersionedWriter   = (*sqliteEngine)(nil)
-	_ metaengine.VersionedUpdater  = (*sqliteEngine)(nil)
-	_ metaengine.CellHistoryReader = (*sqliteEngine)(nil)
+	_ metaengine.VersionedStorage     = (*sqliteEngine)(nil)
+	_ metaengine.VersionedWriter      = (*sqliteEngine)(nil)
+	_ metaengine.VersionedUpdater     = (*sqliteEngine)(nil)
+	_ metaengine.CellHistoryReader    = (*sqliteEngine)(nil)
 	_ metaengine.CellVersioningToggle = (*sqliteEngine)(nil)
 )

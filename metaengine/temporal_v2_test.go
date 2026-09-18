@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -299,6 +300,45 @@ func TestTemporal_History(t *testing.T) {
 
 	if len(slice) != 1 || slice[0].Value != "one" {
 		t.Fatalf("bounded history = %+v, want [one]", slice)
+	}
+}
+
+// TestTemporal_PlannerWarnsNonVersioned pins the temporal-asof plan rule: an
+// AsOf-declaring query planned on a non-versioned engine yields a WARN
+// diagnostic; a versioned engine yields none.
+func TestTemporal_PlannerWarnsNonVersioned(t *testing.T) {
+	t.Parallel()
+
+	store, err := Plan([]Engine{NewMemoryEngine()}, tvQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer DeferClose(store)
+
+	warned := false
+
+	for _, d := range store.Plan().Diagnostics {
+		if d.Query == "tv_users" && d.Level == DiagLevelWarn && strings.Contains(d.Message, "does not record cell versions") {
+			warned = true
+		}
+	}
+
+	if !warned {
+		t.Fatalf("expected temporal-asof warning, got %+v", store.Plan().Diagnostics)
+	}
+
+	versioned, err := Plan([]Engine{NewMemoryEngineWithVersioning()}, tvQuery())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer DeferClose(versioned)
+
+	for _, d := range versioned.Plan().Diagnostics {
+		if d.Query == "tv_users" && d.Level == DiagLevelWarn && strings.Contains(d.Message, "cell versions") {
+			t.Fatalf("unexpected warning on versioned engine: %s", d.Message)
+		}
 	}
 }
 
