@@ -38,6 +38,12 @@ if grep -Eq '^[[:space:]]+disable:' .golangci.yml && grep -Eq '^[[:space:]]+- de
 	exit 0
 fi
 
+# Self-heal the auto-commit corruption class (the block keeps getting deleted
+# wholesale — six incidents through 2026-09-18) before extracting: a missing
+# block is restored from the pinned golden, and golden freshness is enforced
+# (partial shrinkage still fails here — that needs a human decision).
+bash scripts/restore-depguard.sh
+
 ALLOW_FILE=$(mktemp)
 trap 'rm -f "$ALLOW_FILE"' EXIT
 

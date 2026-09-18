@@ -428,3 +428,14 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > collapse at ~27k view-maintained rows. `Store.Doctor` emits a WARN for
 > grouped specs; treat scalar views as the recommended shape until upstream
 > fixes it. Details: `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
+
+#### Point-in-time reads: pick a versioned engine (ADR-0141)
+
+When a read model must answer "what was this value at time T?" without
+replaying the event log, engine choice is the enabling decision: only
+**versioned engines** keep per-cell history (memory chains, `sqliteengine`
+`meta_cell_versions`, BigTable native timestamped cells). Declare temporal
+intent with the reserved `AsOf` input field (core.md §3.10); non-versioned
+engines fail loudly and the `temporal-asof` planner rule WARNs at plan time.
+Wiring and the cross-engine temporal contract: `recipes.md` §2.37 and
+`advanced.md` §6.20.

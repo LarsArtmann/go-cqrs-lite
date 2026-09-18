@@ -22,6 +22,7 @@
 > - [§6.17 Flight Recorder](#617-flight-recorder--execution-trace-capture-flightrecorder)
 > - [§6.18 Command Lifecycle as Event Streams](#618-command-lifecycle-as-event-streams-commandlifecycle--adr-0117)
 > - [§6.19 Operator-Driven Layout Planning](#619-operator-driven-layout-planning-metaengine--adr-0124)
+> - [§6.20 Point-in-Time Reads: Versioned Cells & AsOf Routing](#620-point-in-time-reads-versioned-cells--asof-routing-metaengine--adr-0141)
 
 ### 6.1 Tombstone Soft-Delete & Rebirth
 
@@ -751,6 +752,33 @@ API; §2.30 "Operator Priority Routing" for the per-deployment priority levers
 and their YAML form. Design doc:
 [`docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md`](../../../../docs/planning/METAENGINE-LAYOUT-PLANNING-MODEL.md)
 and [ADR-0124](../../../../docs/adr/0124-operator-driven-layout-planning.md).
+
+### 6.20 Point-in-Time Reads: Versioned Cells & AsOf Routing (metaengine — ADR-0141)
+
+"What was this value at time T?" — answered by the read model itself, without
+replaying the event log. Versioned cells keep per-key history in the engine
+(memory version chains, SQLite `meta_cell_versions`, BigTable native
+timestamped cells); the temporal contract is uniform across engines:
+
+- **as-of read** = the latest cell with `ts <= T`; zero-value `AsOf` = latest (a plain read)
+- **delete** = a timestamped tombstone cell (as-of reads before the delete still see the value)
+- **same-millisecond writes** collapse last-writer-wins; out-of-order arrival is legal
+- **retention never prunes the newest version** — trimming history can never change the present
+
+Declare temporal intent via the reserved `AsOf` input field on a query struct
+(see [core.md](core.md) §3.10); the `temporal-asof` planner rule routes the
+point lookup to the engine's temporal read and emits a WARN diagnostic at plan
+time when the target engine does not version cells. Non-versioned engines fail
+loudly on direct temporal reads (`VersionedStorage` / `CellHistoryReader`) —
+never a silent wrong answer. Event folds stamp every write with
+`metaengine.CellTimestamp` (Stored → Received → Created precedence), so
+replayed projections keep their original temporal order.
+
+Copy-paste wiring (per-engine versioning options, `MapGetAsOf`, `MapHistory`):
+[recipes.md](recipes.md) §2.37. Engine capability matrix incl. BigTable's
+GC-policy retention knob:
+[`metaengine/bigtableengine/README.md`](../../../../metaengine/bigtableengine/README.md).
+Design: [ADR-0141](../../../../docs/adr/0141-temporal-versioned-cells.md).
 
 ## 7. Tooling Surface: doctor JSON + verification apps (v4.10.0 wave)
 
