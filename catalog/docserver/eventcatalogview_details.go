@@ -45,7 +45,11 @@ type eventCatalogServiceDetail struct {
 	QueryRefs   []eventCatalogLink
 }
 
-func newEventCatalogChannelDetail(cfg Config, cat *catalog.Catalog, ch catalog.Channel) eventCatalogChannelDetail {
+func newEventCatalogChannelDetail(
+	cfg Config,
+	cat *catalog.Catalog,
+	ch catalog.Channel,
+) eventCatalogChannelDetail {
 	links := make([]eventCatalogLink, 0, len(ch.Messages))
 	for _, id := range ch.Messages {
 		label := string(id)
@@ -53,7 +57,10 @@ func newEventCatalogChannelDetail(cfg Config, cat *catalog.Catalog, ch catalog.C
 			label = string(msg.Name)
 		}
 
-		links = append(links, eventCatalogLink{Label: label, Href: eventCatalogMessageHref(cfg.DocsPath, id)})
+		links = append(
+			links,
+			eventCatalogLink{Label: label, Href: eventCatalogMessageHref(cfg.DocsPath, id)},
+		)
 	}
 
 	sort.Slice(links, func(i, j int) bool { return links[i].Label < links[j].Label })

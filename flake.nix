@@ -682,6 +682,17 @@
 
             shellHook = ''
               echo "go-cqrs-lite dev shell — $(go version)"
+              # Bootstrap pre-commit gating on fresh clones: point hooksPath at
+              # the tracked .githooks directory and install the canonical hook
+              # when missing. Without this, every new clone starts with
+              # silently-dead pre-commit gating (TODO hardening batch, 8b).
+              if [ -f scripts/pre-commit.sh ] && [ ! -x .githooks/pre-commit ]; then
+                git config core.hooksPath .githooks
+                mkdir -p .githooks
+                cp scripts/pre-commit.sh .githooks/pre-commit
+                chmod +x .githooks/pre-commit
+                echo "pre-commit hook installed (.githooks/pre-commit, hooksPath set)"
+              fi
               # Make the Crush skill globally available so AI assistants trigger it
               # from any consumer project, not just inside this repo. Idempotent & non-destructive.
               if [ -d "''${HOME:-}/.config/crush/skills" ]; then
@@ -966,6 +977,12 @@
                 ''
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-error-taxonomy.sh"
                 '';
+
+            # calibration-drift: live-latency calibration baseline write/compare
+            # (the nightly artifact loop; load-gated by calibration-gate.sh).
+            calibration-drift = mkApp "calibration-drift" [ goPkg pkgs.bash pkgs.git ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-drift.sh" "$@"
+            '';
 
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
@@ -1254,16 +1271,16 @@
               ${pkgs.bash}/bin/bash scripts/pre-commit.sh
             '';
 
-            # install-hooks honors core.hooksPath (set to .githooks on this
-            # machine): writing .git/hooks/pre-commit installs a hook git
-            # silently ignores, which is how ALL pre-commit gating died
-            # without anyone noticing (found 2026-09-15).
+            # install-hooks honors (and SETS) core.hooksPath — .githooks is the
+            # one canonical hook directory. Writing .git/hooks/pre-commit while
+            # hooksPath points elsewhere installs a hook git silently ignores,
+            # which is how ALL pre-commit gating died (found 2026-09-15).
             install-hooks = mkApp "install-hooks" [ pkgs.bash pkgs.git ] ''
-              hooksdir="$(git config core.hooksPath || echo .git/hooks)"
-              mkdir -p "$hooksdir"
-              cp scripts/pre-commit.sh "$hooksdir/pre-commit"
-              chmod +x "$hooksdir/pre-commit"
-              echo "Installed $hooksdir/pre-commit (core.hooksPath honored)"
+              git config core.hooksPath .githooks
+              mkdir -p .githooks
+              cp scripts/pre-commit.sh .githooks/pre-commit
+              chmod +x .githooks/pre-commit
+              echo "Installed .githooks/pre-commit (core.hooksPath set; BuildFlow chained inside)"
             '';
 
             ci = mkApp "ci" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils ] ''

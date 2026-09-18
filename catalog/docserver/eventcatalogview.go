@@ -10,9 +10,10 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/larsartmann/templ-components/display"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/schema"
-	"github.com/larsartmann/templ-components/display"
 )
 
 // This file builds the view models for the embedded event catalog
@@ -155,7 +156,11 @@ func collectMessages(cat *catalog.Catalog) []catalog.Message {
 	}
 
 	sort.Slice(messages, func(i, j int) bool {
-		if ki, kj := messageKindOrder(messages[i].Kind), messageKindOrder(messages[j].Kind); ki != kj {
+		if ki, kj := messageKindOrder(
+			messages[i].Kind,
+		), messageKindOrder(
+			messages[j].Kind,
+		); ki != kj {
 			return ki < kj
 		}
 
@@ -254,7 +259,11 @@ func newEventCatalogOverview(cfg Config, cat *catalog.Catalog) eventCatalogOverv
 
 // newEventCatalogMessageDetail builds the message detail view model. The
 // second return value is false when no message with the given key exists.
-func newEventCatalogMessageDetail(cfg Config, cat *catalog.Catalog, id string) (eventCatalogMessageDetail, bool) {
+func newEventCatalogMessageDetail(
+	cfg Config,
+	cat *catalog.Catalog,
+	id string,
+) (eventCatalogMessageDetail, bool) {
 	msg, ok := findMessage(cat, id)
 	if !ok {
 		return eventCatalogMessageDetail{}, false
@@ -287,7 +296,11 @@ func newEventCatalogMessageDetail(cfg Config, cat *catalog.Catalog, id string) (
 
 // channelLinks resolves channel IDs to labeled links toward the channel
 // detail pages. Unknown channels fall back to a plain label.
-func channelLinks(cat *catalog.Catalog, docsPath string, ids []catalog.ChannelID) []eventCatalogLink {
+func channelLinks(
+	cat *catalog.Catalog,
+	docsPath string,
+	ids []catalog.ChannelID,
+) []eventCatalogLink {
 	links := make([]eventCatalogLink, 0, len(ids))
 
 	for _, id := range ids {
@@ -296,7 +309,10 @@ func channelLinks(cat *catalog.Catalog, docsPath string, ids []catalog.ChannelID
 			label = string(ch.Name)
 		}
 
-		links = append(links, eventCatalogLink{Label: label, Href: eventCatalogChannelHref(docsPath, string(id))})
+		links = append(
+			links,
+			eventCatalogLink{Label: label, Href: eventCatalogChannelHref(docsPath, string(id))},
+		)
 	}
 
 	return links
@@ -543,7 +559,16 @@ func (ds *DocsServer) serveEventCatalogMessage(w http.ResponseWriter, r *http.Re
 
 	detail, ok := newEventCatalogMessageDetail(ds.config, ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(w, r, eventCatalogNotFound(ds.config.ServiceName, ds.config.DocsPath, "message", r.PathValue("id")))
+		ds.renderComponent(
+			w,
+			r,
+			eventCatalogNotFound(
+				ds.config.ServiceName,
+				ds.config.DocsPath,
+				"message",
+				r.PathValue("id"),
+			),
+		)
 
 		return
 	}
@@ -556,12 +581,25 @@ func (ds *DocsServer) serveEventCatalogChannel(w http.ResponseWriter, r *http.Re
 
 	ch, ok := findChannel(ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(w, r, eventCatalogNotFound(ds.config.ServiceName, ds.config.DocsPath, "channel", r.PathValue("id")))
+		ds.renderComponent(
+			w,
+			r,
+			eventCatalogNotFound(
+				ds.config.ServiceName,
+				ds.config.DocsPath,
+				"channel",
+				r.PathValue("id"),
+			),
+		)
 
 		return
 	}
 
-	ds.renderComponent(w, r, EventCatalogChannelPage(newEventCatalogChannelDetail(ds.config, ds.provider(), ch)))
+	ds.renderComponent(
+		w,
+		r,
+		EventCatalogChannelPage(newEventCatalogChannelDetail(ds.config, ds.provider(), ch)),
+	)
 }
 
 func (ds *DocsServer) serveEventCatalogService(w http.ResponseWriter, r *http.Request) {
@@ -569,7 +607,16 @@ func (ds *DocsServer) serveEventCatalogService(w http.ResponseWriter, r *http.Re
 
 	svc, ok := findService(ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(w, r, eventCatalogNotFound(ds.config.ServiceName, ds.config.DocsPath, "service", r.PathValue("id")))
+		ds.renderComponent(
+			w,
+			r,
+			eventCatalogNotFound(
+				ds.config.ServiceName,
+				ds.config.DocsPath,
+				"service",
+				r.PathValue("id"),
+			),
+		)
 
 		return
 	}

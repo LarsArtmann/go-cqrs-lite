@@ -68,7 +68,6 @@ func newMemData() *memData {
 	}
 }
 
-
 // SetCalibration implements Calibratable for runtime cost calibration.
 func (m *memoryEngine) SetCalibration(costs CalibrationCosts) {
 	m.cal.SetCalibration(costs)
@@ -344,4 +343,3 @@ func (m *memoryEngine) SpatialRange(
 ) ([]SpatialResult, error) {
 	return m.spatialIdx.Range(ctx, col, x, y, radius, limit)
 }
-

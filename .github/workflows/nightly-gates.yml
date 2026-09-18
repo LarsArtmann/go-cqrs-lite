@@ -1,0 +1,84 @@
+# Nightly self-heal gates + calibration-baseline loop.
+#
+# The "self-heal only works when the gate runs" meta-fix (TODO 08-05 §b3): the
+# depguard block stayed deleted for ~4 days twice purely because no gate ran
+# between auto-commit waves. This workflow runs the cheap config gates daily
+# so a corruption incident surfaces within 24h, and closes the one-workflow-
+# away calibration artifact loop (night N writes the baseline, night N+1
+# compares against it).
+#
+# Cache policy: deliberately NO magic-nix-cache-action — it is the throttled
+# dependency that red the entire CI matrix (2026-09-13 triage); scheduled jobs
+# benefit least from caching. When the FlakeHub account decision lands, add
+# flakehub-cache-action here first.
+name: Nightly Gates
+
+on:
+  schedule:
+    - cron: "0 4 * * *" # 04:00 UTC, daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  GOEXPERIMENT: jsonv2
+
+concurrency:
+  group: nightly-gates
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    name: Self-heal gates + calibration loop
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+
+      - name: Nightly date
+        id: date
+        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+      # Rolling baseline: today's key, restore-keys falls back to the most
+      # recent night's artifact (the N-1 baseline the compare step wants).
+      - name: Restore previous calibration baseline
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        with:
+          path: build/calibration-baseline.txt
+          key: calib-${{ steps.date.outputs.date }}
+          restore-keys: |
+            calib-
+
+      - name: Lint config self-heal (gci pin + depguard golden)
+        run: |
+          nix run .#check-lint-config
+
+          if ! git diff --exit-code -- .golangci.yml; then
+            echo "::error::lint-config self-heal REPAIRED .golangci.yml - the committed config was corrupted (gci/depguard class). Diff above must be applied to the repo."
+            git diff -- .golangci.yml
+            exit 1
+          fi
+
+      - name: Module sums (go.mod tidiness across all modules)
+        run: nix run .#check-modsums
+
+      - name: Release-script harnesses (incl. pin-sweep fixtures)
+        run: nix run .#check-release-scripts
+
+      # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
+      # stays on the per-push CI leg; the nightly only surfaces drift.
+      - name: Pin sweep (report-only)
+        run: |
+          if ! bash scripts/pin-sweep.sh --check --remote; then
+            echo "::warning::pin-sweep drift detected (report-only on nightly; blocking gate remains in ci.yml)"
+          fi
+
+      - name: Calibration drift compare (vs previous night)
+        if: hashFiles('build/calibration-baseline.txt') != ''
+        run: nix run .#calibration-drift -- --baseline build/calibration-baseline.txt
+
+      - name: Calibration baseline refresh (tonight's numbers)
+        run: nix run .#calibration-drift -- --write-baseline build/calibration-baseline.txt

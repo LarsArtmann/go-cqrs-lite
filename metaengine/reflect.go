@@ -274,7 +274,6 @@ func extractCursorFromInput(input any) *Cursor {
 	return cursor
 }
 
-
 // extractFirstDomainField returns the value of the first exported non-meta field.
 func extractFirstDomainField(input any) any {
 	fields := nonMetaFields(input)
@@ -331,4 +330,3 @@ func itemFieldByName(item any, name string) any {
 
 	return extractValueByName(item, name)
 }
-

@@ -743,8 +743,16 @@ func TestSystem_ResetProjection_RestartAndReplay(t *testing.T) {
 		}
 
 		for _, s := range sys2.ProjectionHost().Status() {
-			t.Fatalf("projection %q after replay: status=%s processed=%d errors=%d restarts=%d checkpoint=%q lastError=%q",
-				s.Name, s.Status, s.Processed, s.Errors, s.Restarts, s.Checkpoint, s.LastError)
+			t.Fatalf(
+				"projection %q after replay: status=%s processed=%d errors=%d restarts=%d checkpoint=%q lastError=%q",
+				s.Name,
+				s.Status,
+				s.Processed,
+				s.Errors,
+				s.Restarts,
+				s.Checkpoint,
+				s.LastError,
+			)
 		}
 	}
 

@@ -5,7 +5,6 @@ import (
 	"reflect"
 )
 
-
 // QueryDecl is a fully analyzed query declaration.
 // Each query owns its own folds, ADT, and projection — there is no shared
 // ReadModel. This follows the design doc principle: "each query has its own
@@ -330,4 +329,3 @@ func (q QueryDecl[Q, R]) String() string {
 	return fmt.Sprintf("%s: %s/%s%s%s%s",
 		q.Name, q.ADT, q.ReadPattern, filters, sortStr, pagination)
 }
-

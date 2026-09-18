@@ -3,8 +3,9 @@ package docserver
 import (
 	"cmp"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/templ-components/icons"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // catalogStats aggregates deduplicated message counts for the docs index page.

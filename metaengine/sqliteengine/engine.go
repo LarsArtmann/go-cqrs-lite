@@ -209,7 +209,6 @@ func (e *sqliteEngine) HealthCheck(ctx context.Context) error {
 	return e.db.PingContext(ctx)
 }
 
-
 // --- metaengine.MapBackend ---
 
 func (e *sqliteEngine) MapSet(ctx context.Context, col string, key any, value any) error {
@@ -509,7 +508,6 @@ func (e *sqliteEngine) PushdownMapScan(
 	return metaengine.ScanResult{Items: rows, HasMore: hasMore}, nil
 }
 
-
 // --- metaengine.StreamingScan ---
 
 // StreamScan returns an iterator over collection rows, applying filter and sort
@@ -642,4 +640,3 @@ var (
 	_ metaengine.TrackerHost       = (*sqliteEngine)(nil)
 	_ metaengine.Prober            = (*sqliteEngine)(nil)
 )
-

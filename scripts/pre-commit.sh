@@ -1,24 +1,84 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Pre-commit checks for go-cqrs-lite.
-# Install with: nix run .#install-hooks
+# Pre-commit checks for go-cqrs-lite, THE canonical hook chain.
+#
+# Reconciliation (2026-09-18, TODO "pre-commit hook hardening"): this script is
+# the single source of truth. It is installed to `$(git config core.hooksPath
+# || echo .git/hooks)/pre-commit` by `nix run .#install-hooks` (hooksPath is
+# .githooks on machines that ran `nix develop`). The old BuildFlow-heredoc
+# installer wrote .git/hooks/pre-commit directly, which core.hooksPath made
+# silently dead, BuildFlow is now CHAINED below instead of owning the file,
+# so `buildflow precommit install` can no longer wipe the repo gates.
+#
+# Install/update with: nix run .#install-hooks
+
+# Mandatory disk-backed cache env chain (docs/agents/gowork-modes.md), go
+# builds inside the hook otherwise land on default caches that ENOSPC-rot.
+export GOCACHE="${GOCACHE:-/home/lars/projects/.gocache-disk}"
+export GOMODCACHE="${GOMODCACHE:-/tmp/gomod-verify}"
+export GOPATH="${GOPATH:-/tmp/gopath-verify}"
+export GOTOOLCHAIN="${GOTOOLCHAIN:-auto}"
+export GOTMPDIR="${GOTMPDIR:-/home/lars/projects/.gotmp}"
+export TMPDIR="${TMPDIR:-/home/lars/projects/.gotmp}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-echo "==> Running nix fmt"
-nix fmt
+staged() {
+	git diff --cached --name-only --diff-filter=ACMR | grep -E "$1" || true
+}
 
-if ! git diff --quiet --exit-code; then
-	echo "ERROR: nix fmt changed files. Stage the formatted changes and commit again."
-	exit 1
+mapfile -t STAGED_LIST < <(git diff --cached --name-only --diff-filter=ACMR || true)
+STAGED_ALL="$(printf '%s\n' "${STAGED_LIST[@]}")"
+STAGED_NON_DOC=$(echo "$STAGED_ALL" | grep -vE '\.(md|html|d2|svg|txt|yaml|yml)$' || true)
+
+# ── Formatter: staged-scoped, self-fixing ───────────────────────────────────
+# Formats ONLY the staged files, then re-stages the results: honest commits in
+# multi-writer trees no longer fail on other sessions' in-flight files (the
+# old whole-tree `git diff --quiet` gate forced --no-verify in exactly that
+# scenario). No staged files (empty commit) skips the pass.
+if [ "${#STAGED_LIST[@]}" -gt 0 ]; then
+	echo "==> nix fmt (staged files only: ${#STAGED_LIST[@]} file(s))"
+	if ! nix fmt -- "${STAGED_LIST[@]}" >/dev/null; then
+		echo "ERROR: nix fmt failed on staged files. Fix formatter errors and retry."
+		exit 1
+	fi
+
+	REFORMATTED=$(git diff --name-only -- "${STAGED_LIST[@]}" || true)
+	if [ -n "$REFORMATTED" ]; then
+		echo "    formatter re-wrote: $(echo "$REFORMATTED" | tr '\n' ' ')"
+
+		mapfile -t REF_LIST <<<"$REFORMATTED"
+		git add -- "${REF_LIST[@]}"
+	fi
+fi
+
+if [ -z "$STAGED_NON_DOC" ]; then
+	echo "==> Doc-only commit: skipping code gates (BuildFlow, build, api-surface)"
+	echo "✅ Pre-commit checks passed"
+	exit 0
+fi
+
+# ── BuildFlow quality signal (chained, report-only) ─────────────────────────
+# Runs the fleet-standard detect→repair→verify loop in pre-commit mode when
+# the binary is available (nix develop). REPORT-ONLY by decision (2026-09-18):
+# its findings are tree-wide, not staged-scoped, and this repo carries
+# AGENTS.md-documented known false positives (gomod-check mixed-requires,
+# nix-checker flake-input oscillation, structure findings on pre-existing
+# artifacts), so blocking here forces --no-verify, the exact failure mode
+# this hardening batch removes. The repo gates below are the blocking layer;
+# CI plus `buildflow --fix` own the authoritative fleet pass.
+if command -v buildflow >/dev/null 2>&1; then
+	echo "==> BuildFlow pre-commit checks (max-time: 300s; report-only)"
+	buildflow --build-mode pre-commit --staged-only --max-time 300s ||
+		echo "WARNING: BuildFlow reported findings (see above). Address with 'buildflow --fix' when they are yours."
 fi
 
 echo "==> Building all modules (catches broken-code commits, incl. auto-commit daemon)"
 # Compile-check the whole workspace before allowing a commit. This is the gate
 # that prevents the auto-commit daemon (or a human) from shipping code that does
-# not build — the recurring "stale GREEN" / broken-daemon-commit class of failure.
+# not build, the recurring "stale GREEN" / broken-daemon-commit class of failure.
 if ! go build -tags "goexperiment.jsonv2" ./...; then
 	echo "ERROR: go build failed. Fix compile errors before committing."
 	exit 1
@@ -29,6 +89,7 @@ echo "==> Checking for fmt.Printf in production code"
 if grep -R 'fmt\.Printf' --include='*.go' . |
 	grep -v '_test.go' |
 	grep -v '/example/' |
+	grep -v '/demo/' |
 	grep -v '/testdata/' |
 	grep -v '/cmd/' |
 	grep -v 'doc.go'; then
@@ -45,11 +106,22 @@ fi
 echo "==> Syntax gate: staged .go files must parse and be gofmt-clean"
 bash scripts/check-staged-go.sh
 
-# ── Staged-aware cheap gates (seconds, not minutes) ─────────────────────────
-# Each gate runs only when the commit touches files it can actually judge.
-staged() {
-	git diff --cached --name-only --diff-filter=ACMR | grep -E "$1" || true
-}
+# ── Lint-config self-heal: fires when the config itself is staged ───────────
+# The auto-commit corruption class (gci re-added / depguard block deleted,
+# seven incidents through 2026-09-18) is repaired IN this hook and the repair
+# is re-staged, so a commit that carries the config always carries the
+# known-good shape.
+if [ -n "$(staged '^\.golangci\.yml$')" ]; then
+	echo "==> Lint-config self-heal (commit touches .golangci.yml)"
+	bash scripts/check-formatters.sh
+	bash scripts/restore-depguard.sh
+
+	REPAIRED=$(git diff --name-only -- .golangci.yml || true)
+	if [ -n "$REPAIRED" ]; then
+		echo "    self-heal repaired .golangci.yml, re-staging"
+		git add .golangci.yml
+	fi
+fi
 
 if [ -n "$(staged 'scripts/.*\.sh$')" ]; then
 	echo "==> shellcheck on scripts/ (commit touches scripts/)"

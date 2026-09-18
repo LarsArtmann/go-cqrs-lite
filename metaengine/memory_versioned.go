@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 // chainLocked returns the version chain for (col, key), creating it when
 // absent. Caller MUST hold m.mu.Lock().
 func (m *memoryEngine) chainLocked(col, key string) *versionChain {
