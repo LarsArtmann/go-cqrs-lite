@@ -183,6 +183,8 @@ linters:
             - github.com/go-sql-driver/mysql
             - github.com/duckdb/duckdb-go
             - github.com/dustin/go-humanize
+            - cloud.google.com/go/bigtable
+            - google.golang.org/api
             - google.golang.org/grpc
             - google.golang.org/protobuf
             - github.com/larsartmann/go-finding

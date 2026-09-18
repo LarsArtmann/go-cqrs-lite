@@ -32,7 +32,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-retry v0.7.1 // indirect
 )
 
 require (

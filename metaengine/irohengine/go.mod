@@ -8,7 +8,6 @@ require (
 )
 
 require (
-	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
@@ -18,7 +17,6 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
 )
 
 // Sibling replace for unpublished metaengine symbols (EngineResetter);
