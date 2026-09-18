@@ -6,6 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — native temporal versioned cells (ADR-0141) — 2026-09-18
+
+Point-in-time reads become a first-class engine capability with one
+contract across three engines: as-of = latest cell with `ts <= T`,
+tombstone = empty-value cell, same-millisecond writes collapse
+last-writer-wins, out-of-order stamps are legal, retention never prunes
+the newest version.
+
+- **Temporal capability interfaces (additive, v5 discipline)** —
+  `metaengine.VersionedWriter` (`MapSetAt`/`MapDeleteAt` with explicit
+  timestamps), `metaengine.VersionedUpdater` (atomic `MapUpdateAt` under
+  fold locks), `metaengine.CellHistoryReader` (`MapHistory` range reads),
+  `metaengine.CellVersion`/`metaengine.RetentionPolicy` value types, and
+  `metaengine.EngineVersionsCells` as the runtime capability gate.
+- **Event-time fold stamping** — the Store's event fold records every
+  insert/update/remove through `metaengine.CellTimestamp` (Stored →
+  Received → Created → now), so projections carry their event time, not
+  their replay wall-clock; re-folds are idempotent per timestamp.
+- **AsOf input routing** — queries with an `AsOf` input field route to
+  `metaengine.ExecuteAsOf` (planner `temporal-asof` rule warns when the
+  target engine lacks versioned cells); `metaengine.AsOfSignal`
+  documented as the input-field mechanism it always was.
+- **Memory engine versioning** — `metaengine.NewMemoryEngineWithVersioning`
+  with sorted version chains, LWW same-ts insert, and
+  `metaengine.WithRetention` (MaxVersions + MaxAge, keep-newest).
+- **SQLite versioned cells** — `sqliteengine.WithCellVersioning` +
+  `sqliteengine.WithRetention` persist every write into a
+  `meta_cell_versions` table (PK collection/key/ts, INSERT OR REPLACE,
+  retention trims); disabled by default; planned-table collections reject
+  temporal writes loudly.
+- **BigTable engine (flagship, ADR-0141-aligned)** — new dep-isolated
+  `metaengine/bigtableengine` module: `bigtableengine.New` stores every
+  map value as a native timestamped cell (as-of reads, history ranges,
+  and tombstones are BigTable primitives — `TimestampRangeFilterMicros`,
+  `LatestNFilter`, empty-value cells; retention is the column-family GC
+  policy; `bigtableengine.MapGetAsOf`/`bigtableengine.MapHistory`).
+  Native `ReadModifyWrite` counters, health check, full-wipe reset,
+  `"bigtable"` driver registration (DSN `project/instance/table`).
+  Validated against the in-process bttest fake only — see the module
+  README before production use.
+- **Cross-engine conformance** — `adttest.AssertTemporalConformance`
+  pins as-of resolution, tombstones, out-of-order stamps, same-ts LWW,
+  history ranges, and latest-view consistency for every versioned engine
+  (memory, sqlite, bigtable).
+
 ### Added — go-finding v1.10/v1.11 adoption in cqrs-lint — 2026-09-17
 
 - **`cmd/cqrs-lint/v4/pkg/toolspec`** — cqrs-lint registered into the
