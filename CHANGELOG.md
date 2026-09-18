@@ -6,76 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Added — self-hosted Scalar fonts — 2026-09-18
-
-- **The OpenAPI UI's web fonts load from this server, not Scalar's CDN.**
-  The vendored Scalar bundle hardcodes 14 Inter/mono woff2 `@font-face` URLs
-  to fonts.scalar.com, which the CSP (correctly) denied — every OpenAPI page
-  visit logged ~26 console refusals and silently fell back to system fonts.
-  The woff2 subsets are now vendored under `static/fonts/` (263,900 bytes,
-  byte-identical to the CDN binaries), and the served scalar.js has its font
-  URLs rewritten to `<DocsPath>/static/fonts/` at serve time, so custom
-  mount prefixes keep working. `fonts.scalar.com` is removed from the
-  browser gate's allowed-refusal list: a console refusal naming it now
-  fails the gate instead of being waved through.
-
-### Fixed — docserver AsyncAPI view renders v3 documents — 2026-09-18
-
-- **The generated AsyncAPI document now validates.** Operations referenced
-  messages as `#/components/messages/<key>`, but the AsyncAPI 3.0 rule the
-  parser enforces ("operation message does not belong to the specified
-  channel") requires operation message refs to resolve through the
-  operation's own channel. Channels now key their message map by component
-  key and operations reference `#/channels/<channel>/messages/<componentKey>`;
-  the channel map still `$ref`s the canonical component. The v3 React
-  component previously died on this with a document-validation error panel.
-- **The AsyncAPI UI page gets a scoped `script-src 'unsafe-eval'`.** That
-  bundle's ajv schema compiler instantiates validators via `new Function`,
-  which the nonce-gated CSP blocked — the component failed silently and the
-  page stayed blank. The relaxation applies only to `/docs/asyncapi` (public
-  catalog data, scripts still nonce- and same-origin-gated); every other
-  page keeps the strict policy.
-- The embedded bundle was replaced with
-  `@asyncapi/react-component@3.2.1` (parser understands both AsyncAPI 2.x
-  and 3.x; the previous embedded v1 bundle could only parse 2.x, so the
-  generated 3.0 document rendered nothing).
-
-### Fixed — Scalar OpenAPI UI boots and Try-It hits the right host — 2026-09-18
-
-- **The OpenAPI UI page now boots the current Scalar bundle** (`@scalar/api-reference@1.69.0`, self-hosted; 3.8 MB): the old embedded build no longer
-  exposed a global `Scalar`, so the page's bootstrap threw "Scalar is not
-  defined" and the view stayed blank. The page now explicitly calls
-  `Scalar.createApiReference`, reading its spec URL from a custom
-  `data-tc-spec-url` attribute (the deprecated `data-spec-url` scan is gone)
-  and a `meta[property=csp-nonce]` tag for runtime style injection.
-- **Try-It requests resolve against the serving host.** The OpenAPI
-  document previously shipped the exporter's relative `.` server default,
-  which browsers resolved against the document URL — Try-It called
-  `/api/docs/api/...`. The spec endpoint now derives the server from the
-  request (`X-Forwarded-Proto` honored behind reverse proxies, exporter
-  default preserved when no Host header exists).
-
-### Added — docserver Event Catalog UI, D2 rendering hook, index redesign — 2026-09-18
-
-- **`GET <docs>/eventcatalog` serves a native, server-rendered catalog
-  browser** (no external toolchain, always in sync with the running
-  catalog): overview with message/channel/service tables, plus detail pages
-  for every message (schema property table, raw schema, examples, producer/
-  consumer wiring, changelog and deprecation notices), channel, and
-  service. Replaces the MDX-file-only `GenerateEventCatalog` as the
-  browsable surface; nav gains an Event Catalog link.
-- **`Config.D2SVG func(d2Source string) (string, error)`** optionally
-  renders the architecture D2 source server-side (e.g. the `d2` CLI) and
-  the D2 page shows the SVG inline with a collapsible source section.
-  Unset or failing hooks degrade gracefully to the source-only view with a
-  notice — the library stays dependency-free; deployers opt in.
-- The docs landing page is redesigned: icon stat cards (services, commands,
-  events, queries, channels, data stores), per-artifact cards with icons and
-  Open/raw-link badges. The browser CSP gate covers the new Event Catalog
-  page and now asserts real UI mounts (`data-v-app` for Scalar's Vue app,
-  `aui-root` for AsyncAPI's component) instead of server-rendered
-  skeletons, so a blank embedded-UI page fails the gate instead of passing.
-
 ### Fixed — cqrs-lint self-lint false-green killed at the root — 2026-09-18
 
 - **The example apps are now linted as consumers.** `IsLibrarySelfLint`
@@ -1885,6 +1815,79 @@ the newest version.
   helpers; `metaengine/typed_reader.go` (1127 — the largest file in the repo)
   split around `TypedReader` into reader core, scan, aggregates, grouped
   aggregates, scan options, and cursor files.
+
+
+## [catalog/v4.4.0] - 2026-09-18
+
+### Added — self-hosted Scalar fonts — 2026-09-18
+
+- **The OpenAPI UI's web fonts load from this server, not Scalar's CDN.**
+  The vendored Scalar bundle hardcodes 14 Inter/mono woff2 `@font-face` URLs
+  to fonts.scalar.com, which the CSP (correctly) denied — every OpenAPI page
+  visit logged ~26 console refusals and silently fell back to system fonts.
+  The woff2 subsets are now vendored under `static/fonts/` (263,900 bytes,
+  byte-identical to the CDN binaries), and the served scalar.js has its font
+  URLs rewritten to `<DocsPath>/static/fonts/` at serve time, so custom
+  mount prefixes keep working. `fonts.scalar.com` is removed from the
+  browser gate's allowed-refusal list: a console refusal naming it now
+  fails the gate instead of being waved through.
+
+### Fixed — docserver AsyncAPI view renders v3 documents — 2026-09-18
+
+- **The generated AsyncAPI document now validates.** Operations referenced
+  messages as `#/components/messages/<key>`, but the AsyncAPI 3.0 rule the
+  parser enforces ("operation message does not belong to the specified
+  channel") requires operation message refs to resolve through the
+  operation's own channel. Channels now key their message map by component
+  key and operations reference `#/channels/<channel>/messages/<componentKey>`;
+  the channel map still `$ref`s the canonical component. The v3 React
+  component previously died on this with a document-validation error panel.
+- **The AsyncAPI UI page gets a scoped `script-src 'unsafe-eval'`.** That
+  bundle's ajv schema compiler instantiates validators via `new Function`,
+  which the nonce-gated CSP blocked — the component failed silently and the
+  page stayed blank. The relaxation applies only to `/docs/asyncapi` (public
+  catalog data, scripts still nonce- and same-origin-gated); every other
+  page keeps the strict policy.
+- The embedded bundle was replaced with
+  `@asyncapi/react-component@3.2.1` (parser understands both AsyncAPI 2.x
+  and 3.x; the previous embedded v1 bundle could only parse 2.x, so the
+  generated 3.0 document rendered nothing).
+
+### Fixed — Scalar OpenAPI UI boots and Try-It hits the right host — 2026-09-18
+
+- **The OpenAPI UI page now boots the current Scalar bundle** (`@scalar/api-reference@1.69.0`, self-hosted; 3.8 MB): the old embedded build no longer
+  exposed a global `Scalar`, so the page's bootstrap threw "Scalar is not
+  defined" and the view stayed blank. The page now explicitly calls
+  `Scalar.createApiReference`, reading its spec URL from a custom
+  `data-tc-spec-url` attribute (the deprecated `data-spec-url` scan is gone)
+  and a `meta[property=csp-nonce]` tag for runtime style injection.
+- **Try-It requests resolve against the serving host.** The OpenAPI
+  document previously shipped the exporter's relative `.` server default,
+  which browsers resolved against the document URL — Try-It called
+  `/api/docs/api/...`. The spec endpoint now derives the server from the
+  request (`X-Forwarded-Proto` honored behind reverse proxies, exporter
+  default preserved when no Host header exists).
+
+### Added — docserver Event Catalog UI, D2 rendering hook, index redesign — 2026-09-18
+
+- **`GET <docs>/eventcatalog` serves a native, server-rendered catalog
+  browser** (no external toolchain, always in sync with the running
+  catalog): overview with message/channel/service tables, plus detail pages
+  for every message (schema property table, raw schema, examples, producer/
+  consumer wiring, changelog and deprecation notices), channel, and
+  service. Replaces the MDX-file-only `GenerateEventCatalog` as the
+  browsable surface; nav gains an Event Catalog link.
+- **`Config.D2SVG func(d2Source string) (string, error)`** optionally
+  renders the architecture D2 source server-side (e.g. the `d2` CLI) and
+  the D2 page shows the SVG inline with a collapsible source section.
+  Unset or failing hooks degrade gracefully to the source-only view with a
+  notice — the library stays dependency-free; deployers opt in.
+- The docs landing page is redesigned: icon stat cards (services, commands,
+  events, queries, channels, data stores), per-artifact cards with icons and
+  Open/raw-link badges. The browser CSP gate covers the new Event Catalog
+  page and now asserts real UI mounts (`data-v-app` for Scalar's Vue app,
+  `aui-root` for AsyncAPI's component) instead of server-rendered
+  skeletons, so a blank embedded-UI page fails the gate instead of passing.
 
 ## [metaengine/v4.13.0, system/v4.7.0, storage/v4.9.0, stack/v4.4.0, cmd/cqrs-lint/v4.10.0, benchkit/v4.5.0, scheduling/sqlstore/v4.0.0, tursoengine/v4.1.0 — 2026-09-08 release train (+44 more module tags)] — 2026-09-08
 
