@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble"
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/enginetest"
-	. "github.com/onsi/gomega"
 )
 
 // TestPebbleRestartSafety_StreamAndJournal verifies that reopening a persistent

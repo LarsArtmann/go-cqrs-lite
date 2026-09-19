@@ -8,10 +8,11 @@ import (
 	"sync"
 	"testing"
 
-	cqrsotlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+
+	cqrsotlp "github.com/larsartmann/go-cqrs-lite/otel/otlp/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 // collectorStub is an OTLP/HTTP collector stand-in: it records the paths of

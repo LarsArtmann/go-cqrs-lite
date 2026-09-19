@@ -2363,6 +2363,8 @@ metaengine/bigtableengine/method SetCalibration
 metaengine/bigtableengine/type Option
 metaengine/bigtableengine/type Option
 metaengine/const ADTCounter
+metaengine/const ADTDedup
+metaengine/const ADTDueClaim
 metaengine/const ADTGraph
 metaengine/const ADTLog
 metaengine/const ADTMap
@@ -2383,6 +2385,8 @@ metaengine/const ComplexityODegree
 metaengine/const ComplexityOLogN
 metaengine/const ComplexityON
 metaengine/const ComplexityONLogN
+metaengine/const DefaultClaimLease
+metaengine/const DefaultClaimLimit
 metaengine/const DefaultEngineFailureThreshold
 metaengine/const DefaultIdempotencyCapacity
 metaengine/const DefaultReprobeInterval
@@ -2734,6 +2738,8 @@ metaengine/func NewCostAccuracyReporter
 metaengine/func NewEventLog
 metaengine/func NewLatencyTracker
 metaengine/func NewManifest
+metaengine/func NewMapDedupStore
+metaengine/func NewMapDueClaimer
 metaengine/func NewMemoryEngine
 metaengine/func NewMemoryEngineWithVersioning
 metaengine/func NewMemorySearchIndex
@@ -2789,6 +2795,8 @@ metaengine/func SortOnField
 metaengine/func SortPaginate
 metaengine/func SpatialExecuteTyped
 metaengine/func StoreTraceSink
+metaengine/func SupportsDedup
+metaengine/func SupportsDueClaims
 metaengine/func TopKNearest
 metaengine/func TraceStats
 metaengine/func ValidateDurabilityTier
@@ -2877,12 +2885,15 @@ metaengine/interface CellHistoryReader
 metaengine/interface CellVersioningToggle
 metaengine/interface Closer
 metaengine/interface CounterBackend
+metaengine/interface DedupStore
 metaengine/interface DistinctReader
+metaengine/interface DueClaimer
 metaengine/interface DurabilityReporter
 metaengine/interface Engine
 metaengine/interface EngineResetter
 metaengine/interface ExplainableAggregate
 metaengine/interface ExplainableScan
+metaengine/interface FactSink
 metaengine/interface Fold
 metaengine/interface GroupedAggregateReader
 metaengine/interface HealthChecker
@@ -3257,6 +3268,10 @@ metaengine/method CellVersioningEnabled
 metaengine/method Check
 metaengine/method CheckAndRecord
 metaengine/method CheckRouting
+metaengine/method ClaimDelete
+metaengine/method ClaimDeleteIfDue
+metaengine/method ClaimDue
+metaengine/method ClaimInsert
 metaengine/method Clear
 metaengine/method Clear
 metaengine/method Clear
@@ -3276,6 +3291,9 @@ metaengine/method CounterIncrement
 metaengine/method CurrentHooks
 metaengine/method Cursor
 metaengine/method DDL
+metaengine/method DedupCheckAndRecord
+metaengine/method DedupSeen
+metaengine/method DedupSweep
 metaengine/method DemoteEngine
 metaengine/method Distinct
 metaengine/method Do
@@ -3468,6 +3486,7 @@ metaengine/method RecordEvent
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
 metaengine/method RemoveEngine
+metaengine/method RenewLease
 metaengine/method Replan
 metaengine/method ReplanLayout
 metaengine/method Replay
@@ -4074,6 +4093,8 @@ metaengine/struct CalibrationCosts
 metaengine/struct CapabilityAuditResult
 metaengine/struct CatchUpState
 metaengine/struct CellVersion
+metaengine/struct ClaimDueRequest
+metaengine/struct ClaimFact
 metaengine/struct CollectionInfo
 metaengine/struct CollectionStats
 metaengine/struct CostAccuracyReporter
@@ -4082,6 +4103,7 @@ metaengine/struct CostReport
 metaengine/struct Cursor
 metaengine/struct Diagnostic
 metaengine/struct DriverConfig
+metaengine/struct DueClaim
 metaengine/struct Edge
 metaengine/struct EdgeRemoval
 metaengine/struct Embedding
@@ -4108,6 +4130,8 @@ metaengine/struct LayoutVersion
 metaengine/struct LayoutWarning
 metaengine/struct LiveLatency
 metaengine/struct Manifest
+metaengine/struct MapDedupStore
+metaengine/struct MapDueClaimer
 metaengine/struct MaterializedViewInfo
 metaengine/struct MaterializedViewSpec
 metaengine/struct MemorySearchIndex
@@ -4233,6 +4257,7 @@ metaengine/type VersioningOption
 metaengine/var ErrAmbiguousKey
 metaengine/var ErrBackfillUnsupported
 metaengine/var ErrCatchUpUnsupported
+metaengine/var ErrClaimLeaseNotHeld
 metaengine/var ErrDuplicateEvent
 metaengine/var ErrExecuteTypeMismatch
 metaengine/var ErrKeyTypeMismatch

@@ -9,12 +9,13 @@ import (
 
 	"cloud.google.com/go/bigtable"
 	"cloud.google.com/go/bigtable/bttest"
-	bigtableengine "github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4"
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 	"google.golang.org/api/option"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	bigtableengine "github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 )
 
 // newFakeEngine starts an in-process bttest fake and returns an engine

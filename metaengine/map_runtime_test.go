@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // mapRuntimeHosts returns engine factories exercising both stored-value
@@ -76,7 +76,10 @@ func TestMapDueClaimer_ClaimInsertIdempotent(t *testing.T) {
 			must(t, c.ClaimInsert(ctx, "timers", "t1", time.UnixMilli(100), []byte("first")))
 			must(t, c.ClaimInsert(ctx, "timers", "t1", time.UnixMilli(200), []byte("second")))
 
-			claims, err := c.ClaimDue(ctx, metaengine.ClaimDueRequest{Collection: "timers", Now: time.UnixMilli(1000)})
+			claims, err := c.ClaimDue(
+				ctx,
+				metaengine.ClaimDueRequest{Collection: "timers", Now: time.UnixMilli(1000)},
+			)
 			must(t, err)
 
 			if len(claims) != 1 || string(claims[0].Payload) != "first" {
@@ -106,7 +109,10 @@ func TestMapDueClaimer_NotBeforeAndOrdering(t *testing.T) {
 			must(t, c.ClaimInsert(ctx, "timers", "a-first", now.Add(-2*time.Second), []byte("1")))
 			must(t, c.ClaimInsert(ctx, "timers", "c-earlier", now.Add(-time.Hour), []byte("0")))
 
-			claims, err := c.ClaimDue(ctx, metaengine.ClaimDueRequest{Collection: "timers", Now: now})
+			claims, err := c.ClaimDue(
+				ctx,
+				metaengine.ClaimDueRequest{Collection: "timers", Now: now},
+			)
 			must(t, err)
 
 			want := []string{"c-earlier", "a-first", "b-second"}
@@ -116,7 +122,12 @@ func TestMapDueClaimer_NotBeforeAndOrdering(t *testing.T) {
 
 			for i, key := range want {
 				if claims[i].Key != key {
-					t.Fatalf("order[%d] = %s, want %s (DueAt asc, key tie-break)", i, claims[i].Key, key)
+					t.Fatalf(
+						"order[%d] = %s, want %s (DueAt asc, key tie-break)",
+						i,
+						claims[i].Key,
+						key,
+					)
 				}
 			}
 		})
@@ -155,7 +166,10 @@ func TestMapDueClaimer_ExclusivityAndReclaim(t *testing.T) {
 			}
 
 			reclaimed, err := c.ClaimDue(ctx, metaengine.ClaimDueRequest{
-				Collection: "tasks", Owner: "w2", Lease: time.Minute, Now: now.Add(61 * time.Second),
+				Collection: "tasks",
+				Owner:      "w2",
+				Lease:      time.Minute,
+				Now:        now.Add(61 * time.Second),
 			})
 			must(t, err)
 
@@ -212,7 +226,10 @@ func TestMapDueClaimer_DeleteIfDueEpochGuard(t *testing.T) {
 
 			must(t, c.ClaimInsert(ctx, "timers", "t", now.Add(-time.Minute), []byte("gen1")))
 
-			claims, err := c.ClaimDue(ctx, metaengine.ClaimDueRequest{Collection: "timers", Now: now})
+			claims, err := c.ClaimDue(
+				ctx,
+				metaengine.ClaimDueRequest{Collection: "timers", Now: now},
+			)
 			must(t, err)
 
 			if len(claims) != 1 {
@@ -268,7 +285,10 @@ func TestMapDueClaimer_ConcurrentClaimersDisjoint(t *testing.T) {
 			defer wg.Done()
 
 			claimed, err := c.ClaimDue(ctx, metaengine.ClaimDueRequest{
-				Collection: "tasks", Owner: keyN(worker), Lease: time.Minute, Now: time.UnixMilli(1000),
+				Collection: "tasks",
+				Owner:      keyN(worker),
+				Lease:      time.Minute,
+				Now:        time.UnixMilli(1000),
 			})
 			if err != nil {
 				t.Errorf("claim: %v", err)
@@ -316,7 +336,13 @@ func TestMapDedupStore_CheckAndRecordAndExpiry(t *testing.T) {
 				t.Fatal("first CheckAndRecord must report unseen")
 			}
 
-			seen, err = d.DedupCheckAndRecord(ctx, "dedup", "cmd-1", time.Minute, now.Add(time.Second))
+			seen, err = d.DedupCheckAndRecord(
+				ctx,
+				"dedup",
+				"cmd-1",
+				time.Minute,
+				now.Add(time.Second),
+			)
 			must(t, err)
 
 			if !seen {
@@ -371,8 +397,18 @@ func TestMapDedupStore_Sweep(t *testing.T) {
 			removed, err := d.DedupSweep(ctx, "dedup", now.Add(2*time.Minute))
 			must(t, err)
 
-			if removed != 6 {
-				t.Fatalf("sweep removed %d, want 6 (all windows lapsed)", removed)
+			if removed != 5 {
+				t.Fatalf(
+					"sweep removed %d, want 5 (the 1-minute windows; 'fresh' has an hour)",
+					removed,
+				)
+			}
+
+			seen, err := d.DedupSeen(ctx, "dedup", "fresh", now.Add(2*time.Minute))
+			must(t, err)
+
+			if !seen {
+				t.Fatal("sweep must not remove the still-live 'fresh' window")
 			}
 		})
 	}

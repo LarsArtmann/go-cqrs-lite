@@ -131,7 +131,12 @@ type DueClaimer interface {
 	// RenewLease extends the claim's lease by extend from now. Returns
 	// [ErrClaimLeaseNotHeld] when the claim is gone, expired, or owned by
 	// another owner.
-	RenewLease(ctx context.Context, collection, key, owner string, extend time.Duration, now time.Time) error
+	RenewLease(
+		ctx context.Context,
+		collection, key, owner string,
+		extend time.Duration,
+		now time.Time,
+	) error
 
 	// ClaimDelete removes an item unconditionally and idempotently (absent
 	// is success). Covers timer Cancel and queue Complete-style finalization

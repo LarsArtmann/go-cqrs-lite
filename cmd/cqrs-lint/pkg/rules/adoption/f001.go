@@ -4,8 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // F001 detects projects that have Delete* functions and emit events but do not

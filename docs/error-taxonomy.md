@@ -297,6 +297,19 @@ Lease-stamp failure is **Infrastructure**; losing a claim race is
 | Lease stamp failure | Infrastructure | `claiming.stamp_lease`    |
 | `ErrLeaseNotHeld`   | Orchestration  | `claiming.lease_not_held` |
 
+### metaengine
+
+Planner/layout refusals are **Rejection** (caller-declared shapes that
+contradict storage reality); losing a claim race is **Orchestration** — a
+distributed-coordination race, not a caller bug (ADR-0142 due-claims).
+
+| Error                         | Family        | Code                                 |
+| ----------------------------- | ------------- | ------------------------------------ |
+| Planned column type mismatch  | Rejection     | `metaengine.planned_column_type_mismatch` |
+| Backfill unsupported          | Rejection     | `metaengine.backfill_unsupported`    |
+| Vector dimension mismatch     | Rejection     | `metaengine.vector_dimension_mismatch` |
+| `ErrClaimLeaseNotHeld`        | Orchestration | `metaengine.claim_lease_not_held`    |
+
 ### deriver
 
 | Error               | Family        | Code                     |

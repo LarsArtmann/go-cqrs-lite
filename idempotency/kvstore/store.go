@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-idempotency"
+
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // KVBackend is the contract a KV store must satisfy to back an idempotency

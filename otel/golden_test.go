@@ -10,9 +10,10 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/samber/lo"
 	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 func TestGolden_AttributeConstants(t *testing.T) {

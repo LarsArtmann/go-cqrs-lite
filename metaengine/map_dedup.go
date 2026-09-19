@@ -25,17 +25,26 @@ type MapDedupStore struct {
 func NewMapDedupStore(eng Engine) (*MapDedupStore, error) {
 	maps, ok := eng.(MapBackend)
 	if !ok {
-		return nil, fmt.Errorf("metaengine.NewMapDedupStore: engine %s lacks MapBackend", eng.Profile().Name)
+		return nil, fmt.Errorf(
+			"metaengine.NewMapDedupStore: engine %s lacks MapBackend",
+			eng.Profile().Name,
+		)
 	}
 
 	rmw, ok := eng.(MapUpdater)
 	if !ok {
-		return nil, fmt.Errorf("metaengine.NewMapDedupStore: engine %s lacks MapUpdater", eng.Profile().Name)
+		return nil, fmt.Errorf(
+			"metaengine.NewMapDedupStore: engine %s lacks MapUpdater",
+			eng.Profile().Name,
+		)
 	}
 
 	scan, ok := eng.(ScanBackend)
 	if !ok {
-		return nil, fmt.Errorf("metaengine.NewMapDedupStore: engine %s lacks ScanBackend", eng.Profile().Name)
+		return nil, fmt.Errorf(
+			"metaengine.NewMapDedupStore: engine %s lacks ScanBackend",
+			eng.Profile().Name,
+		)
 	}
 
 	return &MapDedupStore{maps: maps, rmw: rmw, scan: scan}, nil
@@ -122,7 +131,11 @@ func (m *MapDedupStore) DedupSeen(
 
 // DedupSweep implements [DedupStore.DedupSweep]: delete every expired record,
 // return the count.
-func (m *MapDedupStore) DedupSweep(ctx context.Context, collection string, now time.Time) (int, error) {
+func (m *MapDedupStore) DedupSweep(
+	ctx context.Context,
+	collection string,
+	now time.Time,
+) (int, error) {
 	res, err := m.scan.MapScan(ctx, collection, func(item any) bool {
 		rec, ok := reifyDedup(item)
 

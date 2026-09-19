@@ -38,17 +38,26 @@ type MapDueClaimer struct {
 func NewMapDueClaimer(eng Engine) (*MapDueClaimer, error) {
 	maps, ok := eng.(MapBackend)
 	if !ok {
-		return nil, fmt.Errorf("metaengine.NewMapDueClaimer: engine %s lacks MapBackend", eng.Profile().Name)
+		return nil, fmt.Errorf(
+			"metaengine.NewMapDueClaimer: engine %s lacks MapBackend",
+			eng.Profile().Name,
+		)
 	}
 
 	rmw, ok := eng.(MapUpdater)
 	if !ok {
-		return nil, fmt.Errorf("metaengine.NewMapDueClaimer: engine %s lacks MapUpdater", eng.Profile().Name)
+		return nil, fmt.Errorf(
+			"metaengine.NewMapDueClaimer: engine %s lacks MapUpdater",
+			eng.Profile().Name,
+		)
 	}
 
 	scan, ok := eng.(ScanBackend)
 	if !ok {
-		return nil, fmt.Errorf("metaengine.NewMapDueClaimer: engine %s lacks ScanBackend", eng.Profile().Name)
+		return nil, fmt.Errorf(
+			"metaengine.NewMapDueClaimer: engine %s lacks ScanBackend",
+			eng.Profile().Name,
+		)
 	}
 
 	return &MapDueClaimer{maps: maps, rmw: rmw, scan: scan}, nil
@@ -147,7 +156,11 @@ func (m *MapDueClaimer) ClaimDue(ctx context.Context, req ClaimDueRequest) ([]Du
 			return cur
 		})
 		if err := upd; err != nil {
-			return claimed, fmt.Errorf("metaengine.MapDueClaimer.ClaimDue: stamp %q: %w", rec.Key, err)
+			return claimed, fmt.Errorf(
+				"metaengine.MapDueClaimer.ClaimDue: stamp %q: %w",
+				rec.Key,
+				err,
+			)
 		}
 
 		if won {
