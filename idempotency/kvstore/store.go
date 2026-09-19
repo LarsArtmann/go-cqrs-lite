@@ -14,6 +14,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
+// This store's TTL/CAS semantics are deliberately identical to
+// metaengine.DedupStore (ADR-0142): first recording wins the window, a
+// lapsed window is re-claimable, and concurrent CheckAndRecord calls for
+// one key see exactly one non-duplicate. kv.Store backends that ride a
+// metaengine KV engine therefore already ARE engine-backed dedup — no
+// facade needed; sqlstore has NewFromEngine for direct engine wiring.
+
 // KVBackend is the contract a KV store must satisfy to back an idempotency
 // Store. Every kv.Store implementation that also implements kv.ConditionalWriter
 // satisfies this (e.g., kv.MemStore).

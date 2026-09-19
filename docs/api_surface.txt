@@ -1984,9 +1984,11 @@ idempotency/kvstore/method Close
 idempotency/kvstore/method Record
 idempotency/kvstore/method Seen
 idempotency/kvstore/struct Store
+idempotency/sqlstore/const DefaultEngineCollection
 idempotency/sqlstore/const DialectMySQL
 idempotency/sqlstore/const DialectPostgres
 idempotency/sqlstore/const DialectSQLite
+idempotency/sqlstore/func NewFromEngine
 idempotency/sqlstore/func NewMySQLStore
 idempotency/sqlstore/func NewPostgresStore
 idempotency/sqlstore/func NewSQLiteStore

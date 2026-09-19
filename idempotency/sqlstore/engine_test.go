@@ -9,8 +9,8 @@ import (
 
 	idempotency "github.com/larsartmann/go-idempotency"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 func newEngineStore(t *testing.T) *sqlstore.Store {
@@ -45,7 +45,14 @@ func TestEngineFacade_APIParity(t *testing.T) {
 		t.Fatalf("first CheckAndRecord: %v", err)
 	}
 
-	if err := store.CheckAndRecord(ctx, "cmd-1", time.Minute); !errors.Is(err, idempotency.ErrDuplicate) {
+	if err := store.CheckAndRecord(
+		ctx,
+		"cmd-1",
+		time.Minute,
+	); !errors.Is(
+		err,
+		idempotency.ErrDuplicate,
+	) {
 		t.Fatalf("duplicate CheckAndRecord: want ErrDuplicate, got %v", err)
 	}
 
