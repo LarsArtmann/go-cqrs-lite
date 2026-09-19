@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-13 18:41 CEST
 **Type:** Pareto execution plan (follow-up to the reconciliation execution)
-**Basis:** [`docs/status/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md`](../status/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md)
+**Basis:** [`docs/status/archived/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md`](../status/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md)
 **Parent plan (executed):** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md)
 **Target:** close every non-gated gap the status report identified — verification, stale doc surfaces, missing semantics tests, process notes — without touching gated product decisions.
 

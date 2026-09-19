@@ -2,7 +2,7 @@
 
 - **Date:** 2026-09-16 21:05 CEST
 - **Mandate:** "metaengine + system must be SUPERB, reliable, 100% just fuvking the best and composable and smart!"
-- **Scope:** the `metaengine/` module family (core + engines + projectionadapter) and `system/` — every open TODO that touches them, harvested from `TODO_LIST.md` (all sections), the 2026-09-16 CV-verdicts reflection (`docs/reviews/2026-09-16_cv-verdicts-reflection.md`), and this session's status report (`docs/status/2026-09-16_21-02_cv-verdicts-reflection-verification.md`).
+- **Scope:** the `metaengine/` module family (core + engines + projectionadapter) and `system/` — every open TODO that touches them, harvested from `TODO_LIST.md` (all sections), the 2026-09-16 CV-verdicts reflection (`docs/reviews/2026-09-16_cv-verdicts-reflection.md`), and this session's status report (`docs/status/archived/2026-09-16_21-02_cv-verdicts-reflection-verification.md`).
 - **Method:** pareto-planning skill; user format overrides honored (`.md` + mermaid, 10–30 min medium tasks, ≤12 min micro tasks, commit+push authorized).
 - **Anti-Verschlimmbesserung contract:** every behavior change is warn-first in v4.x / hard at v5 (ADR-0136 precedent); API-surface change ⇒ api golden regen in the SAME edit; file-size/dup/dep gates green before done; `nix run .#verify` after each phase; no deletions before their replacements are tagged; blocked/owner-gated items are NEVER unilaterally executed.
 

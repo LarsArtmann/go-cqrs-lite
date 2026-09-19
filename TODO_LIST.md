@@ -252,7 +252,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
       (`CommandsByActor` + query/result types), plus the regenerated API golden.
       Fold into the next tag wave when it is authorized; no release action
       before that. — source:
-      [`docs/status/2026-09-13_18-35_…execution.md`](docs/status/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md)
+      [`docs/status/archived/2026-09-13_18-35_…execution.md`](docs/status/archived/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md)
       _(Effort: XS note; M at tag time)_
 
 - [ ] [BLOCKED] 🔥 **Next v4 tag wave** — substantial unpublished surfaces on
@@ -801,7 +801,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > all verified green. The 09-35 session closed the two blockers (queue clones,
 > soak gocyclo) and refreshed the FEATURES coverage line (151+43). What follows
 > is the consolidated remainder. — source:
-> [`docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md)
+> [`docs/status/archived/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/archived/2026-09-16_02-09_benchmark-statistical-rigor.md)
 > §b/§f, 09-35 §f P3
 
 - [x] **`compare` + serialization tail** — DONE 2026-09-19: compare table
@@ -1004,7 +1004,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 > Vector ADT shipped on EVERY engine 2026-09-15 (brute-force + DuckDB/libSQL
 > pushdown; see FEATURES Metaengine section). Report:
-> [`docs/status/2026-09-15_18-32_vector-search-every-engine.md`](docs/status/2026-09-15_18-32_vector-search-every-engine.md)
+> [`docs/status/archived/2026-09-15_18-32_vector-search-every-engine.md`](docs/status/archived/2026-09-15_18-32_vector-search-every-engine.md)
 
 - [x] **Verification gaps from the vector session** — DONE 2026-09-16 (all of
       (a)-(h)): (a) iroh passthrough verified; (b) system + quickstart green;
@@ -1049,7 +1049,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 ## Watermill sibling skill follow-through (2026-09-15)
 
 > `.agents/skills/watermill/` shipped (broker powers/tradeoffs/limits). Report:
-> [`docs/status/2026-09-15_19-45_watermill-skill-session.md`](docs/status/2026-09-15_19-45_watermill-skill-session.md)
+> [`docs/status/archived/2026-09-15_19-45_watermill-skill-session.md`](docs/status/archived/2026-09-15_19-45_watermill-skill-session.md)
 
 - [ ] **NATS JetStream roundtrip test leg** — `watermill-nats/v2` +
       `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`; if it
@@ -1071,7 +1071,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 > 167 md-go-validator errors remain (9 consumer-facing, 55 active docs, 108
 > archived); P1 (6 fence fixes) is done, P2–P4 are not. Report:
-> [`docs/status/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md`](docs/status/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md)
+> [`docs/status/archived/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md`](docs/status/archived/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md)
 
 - [ ] **Make the validator a real gate** — commit `--init` config + baseline
       file (`scripts/md-go-baseline.txt`, mirror `check-file-size`); flake app
@@ -1086,8 +1086,8 @@ bottom is a do-not-re-litigate guard, not a backlog.
 ## Temporal versioned cells — ADR-0141 follow-ups (harvested 2026-09-18)
 
 > From the temporal deep-dive reports
-> ([14:07](docs/status/2026-09-18_14-07_temporal-versioned-cells-deep-dive.md) §f items 19–44,
-> [16:03](docs/status/2026-09-18_16-03_temporal-versioned-cells-completion-gates.md)).
+> ([14:07](docs/status/archived/2026-09-18_14-07_temporal-versioned-cells-deep-dive.md) §f items 19–44,
+> [16:03](docs/status/archived/2026-09-18_16-03_temporal-versioned-cells-completion-gates.md)).
 > Items 1–18 of the 14:07 list + docs/CHANGELOG/FEATURES/golden/lint work are DONE
 > (see those reports); the core API (`VersionedStorage`, `MapSetAt`/`MapGetAsOf`,
 > `temporal-asof` rule, memory/sqlite/bigtable engines) is green and documented

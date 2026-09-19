@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-13 16:01 CEST
 **Type:** Pareto execution plan
-**Basis:** [`docs/status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md`](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) + [`docs/status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md`](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md)
+**Basis:** [`docs/status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md`](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) + [`docs/status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md`](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md)
 **Target:** [`docs/planning/event-query-model.md`](event-query-model.md) (2026-07-23) + its systemic causes
 
 ---

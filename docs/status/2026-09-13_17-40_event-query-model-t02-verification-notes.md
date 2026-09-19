@@ -1,6 +1,8 @@
 # T02 Verification Notes: event-query-model.md vs Source
 
 **Date:** 2026-09-13 17:40 CEST
+
+> **KEEP-LIVE EVIDENCE (2026-09-19 docs-health 8th pass):** this file is source-verification EVIDENCE cited by planning docs (`docs/planning/2026-09-13_16-01_*`, T16–T18 memos) — not open work; do not archive by mistake. Forward items are routed: TODO_LIST [BLOCKED] session-log boundary, ROADMAP OQ #13/#15.
 **Parent plan:** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](../planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md) (task T02)
 **Purpose:** source-verified answers for the 7 inferred claims that T01..T22 annotations depend on. Every claim below was read from source in this session; file:line citations are exact as of `93cc2be6c` + working tree.
 
@@ -115,4 +117,4 @@ Verdict: no additional sibling annotations required.
 - T23 executed (option A from the T16 memo): `Store.StreamCollection` + streaming `Export`, 5 new tests, existing export tests green.
 - T24 executed (option B from the T17 memo): `projections.CommandsByActor` (Multimap keyed by typed Actor), tests updated, `projections.All()` now 5 entries.
 - API golden regenerated (6855 exports); api-stability meta-tests green; changelog-symbol gate green (48 citations).
-- Decisions still open: `command.rejected` event (T17 deferred half), session-log boundary (T18), query-level `Stream(ctx, input, fn)` (T16 follow-up).
+- Decisions still open: ~~`command.rejected` event (T17 deferred half)~~ (SHIPPED 2026-09-15 — T17 option A, `DefaultRejectionFamilies` + `RejectionLog`), session-log boundary (T18 — routed: TODO_LIST [BLOCKED] + ROADMAP OQ #15), query-level `Stream(ctx, input, fn)` (T16 follow-up — routed: ROADMAP OQ #13).

@@ -13,7 +13,7 @@
 > proxy-verified) and ask filed as go-finding#32.
 
 **Created:** 2026-09-16 21:12 CEST
-**Scope:** Execute the benefit analysis from `docs/status/2026-09-16_21-05_go-finding-v1.10.0-benefit-analysis-cqrs-lint.md` — turn 8 verified-unadopted go-finding capabilities (50 candidate items) into an executable, impact-sorted plan for `cmd/cqrs-lint`.
+**Scope:** Execute the benefit analysis from `docs/status/archived/2026-09-16_21-05_go-finding-v1.10.0-benefit-analysis-cqrs-lint.md` — turn 8 verified-unadopted go-finding capabilities (50 candidate items) into an executable, impact-sorted plan for `cmd/cqrs-lint`.
 **Method:** `pareto-planning` skill — 1%/4%/20% tiers, comprehensive plan (30–100 min tasks), micro plan (≤12 min tasks), execution graph.
 
 ---
@@ -265,4 +265,4 @@ flowchart TD
 
 ---
 
-_Evidence base: `docs/status/2026-09-16_21-05_go-finding-v1.10.0-benefit-analysis-cqrs-lint.md` (all file:line citations verified 2026-09-16). Plans are point-in-time — re-verify claims before acting (status-report §50)._
+_Evidence base: `docs/status/archived/2026-09-16_21-05_go-finding-v1.10.0-benefit-analysis-cqrs-lint.md` (all file:line citations verified 2026-09-16). Plans are point-in-time — re-verify claims before acting (status-report §50)._

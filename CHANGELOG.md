@@ -316,7 +316,7 @@ compile-gated recipe.
 ### Added — benchkit statistical-rigor tail: compare/serialization, per-metric CI gating, SDK polish (2026-09-19)
 
 Closes the benchkit tail from
-[`docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md)
+[`docs/status/archived/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/archived/2026-09-16_02-09_benchmark-statistical-rigor.md)
 §b/§f. The Benchstat-CI decision (owner Q3) resolved to **per-metric CI
 gating** over A/B-by-revision benchstat: the median gate's known weakness is
 a loud machine, not a missing A/B workflow (benchstat samples already work;

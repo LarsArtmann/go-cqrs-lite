@@ -1,7 +1,7 @@
 # SUPERB Plan: Verify-Green Gate → Substrate Ship (Tag Wave) → CRM Correctness Ports
 
 **Date:** 2026-09-19 15:37 · **Author:** tail-execution session (continuation of the universal-storage-substrate arc)
-**Inputs:** `docs/status/2026-09-19_15-34_metaengine-substrate-tail-adr0143-jsonv2-sweep.md`, `TODO_LIST.md` (2026-09-19 state, incl. concurrent-session completions T18a/T22/T23), ADR-0142/0143.
+**Inputs:** `docs/status/archived/2026-09-19_15-34_metaengine-substrate-tail-adr0143-jsonv2-sweep.md`, `TODO_LIST.md` (2026-09-19 state, incl. concurrent-session completions T18a/T22/T23), ADR-0142/0143.
 
 ## Situation (why this plan exists)
 

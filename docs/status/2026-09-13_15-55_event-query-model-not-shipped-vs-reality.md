@@ -1,6 +1,8 @@
 # Research: Event-Query-Model "Not Shipped" Parts vs Current Reality
 
 **Date:** 2026-09-13 15:55 CEST
+
+> **KEEP-LIVE EVIDENCE (2026-09-19 docs-health 8th pass):** this file is source-verification EVIDENCE cited by planning docs (`docs/planning/2026-09-13_16-01_*`, T16–T18 memos) — not open work; do not archive by mistake. Forward items are routed: TODO_LIST [BLOCKED] session-log boundary, ROADMAP OQ #13/#15.
 **Scope:** Deep-dive verification of every "Not shipped (aspirational)" item from the audit of [`docs/planning/event-query-model.md`](../planning/event-query-model.md) (2026-07-23). Follow-up to [`2026-09-13_12-10_metaengine-event-query-model-doc-audit.md`](2026-09-13_12-10_metaengine-event-query-model-doc-audit.md).
 **Method:** Repo-wide source verification (grep + read), not just `metaengine/`-scoped. All claims carry file:line evidence as of this date.
 **Nature:** Read-only research. No code modified.
