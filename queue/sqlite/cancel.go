@@ -86,17 +86,22 @@ func (s *Store[T]) CancelRequested(ctx context.Context, id task.ID) (bool, error
 }
 
 // CancelOwned finalizes a cooperative cancel: Running → Cancelled,
-// written by the lease-holding worker after it stopped the execution.
-// The operator's reason (from the cancel-requested fact) is carried onto
-// the cancelled fact.
-func (s *Store[T]) CancelOwned(ctx context.Context, id task.ID, owner string) error {
+// written by the claim-holding worker (claim token required) after it
+// stopped the execution. The operator's reason (from the
+// cancel-requested fact) is carried onto the cancelled fact.
+func (s *Store[T]) CancelOwned(ctx context.Context, id task.ID, token string) error {
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {
+		owner, err := leaseHolder(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+
 		res, err := tx.ExecContext(ctx, `
-			UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL
-			WHERE id = ? AND status = 'running' AND lease_owner = ?`,
-			now.UnixMilli(), id.String(), owner)
+			UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
+			WHERE id = ? AND status = 'running' AND lease_token = ?`,
+			now.UnixMilli(), id.String(), token)
 		if err != nil {
 			return err
 		}

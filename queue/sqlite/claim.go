@@ -169,7 +169,7 @@ func (s *Store[T]) cancelRunningRow(
 	now time.Time,
 ) error {
 	res, err := tx.ExecContext(ctx, `
-		UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL
+		UPDATE tasks SET status = 'cancelled', updated_at = ?, lease_owner = '', lease_expires = NULL, lease_token = NULL
 		WHERE id = ? AND status = 'running'`, now.UnixMilli(), id)
 	if err != nil {
 		return err
