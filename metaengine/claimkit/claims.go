@@ -84,7 +84,10 @@ func (c *Claims) ClaimInsert(
 // ClaimDue implements [metaengine.DueClaimer.ClaimDue]: one atomic statement
 // on SQLite/Postgres; the SKIP LOCKED two-statement shape in one transaction
 // on MySQL.
-func (c *Claims) ClaimDue(ctx context.Context, req metaengine.ClaimDueRequest) ([]metaengine.DueClaim, error) {
+func (c *Claims) ClaimDue(
+	ctx context.Context,
+	req metaengine.ClaimDueRequest,
+) ([]metaengine.DueClaim, error) {
 	now := req.Now
 	if now.IsZero() {
 		now = time.Now()
@@ -197,9 +200,18 @@ func (c *Claims) RenewLease(
 
 // ClaimDelete implements [metaengine.DueClaimer.ClaimDelete].
 func (c *Claims) ClaimDelete(ctx context.Context, collection, key string) error {
-	if _, err := c.db.ExecContext(ctx,
-		"DELETE FROM meta_due_claims WHERE collection = "+ph(c.dialect, 1)+" AND key = "+ph(c.dialect, 2),
-		collection, key); err != nil {
+	if _, err := c.db.ExecContext(
+		ctx,
+		"DELETE FROM meta_due_claims WHERE collection = "+ph(
+			c.dialect,
+			1,
+		)+" AND key = "+ph(
+			c.dialect,
+			2,
+		),
+		collection,
+		key,
+	); err != nil {
 		return fmt.Errorf("claimkit.ClaimDelete: %w", err)
 	}
 
@@ -260,7 +272,10 @@ func scanClaimsWithIDs(rows *sql.Rows) ([]metaengine.DueClaim, []any, error) {
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, nil, fmt.Errorf("claim rows: %w", err) //nolint:wrapcheck // wrap context added by callers
+		return nil, nil, fmt.Errorf(
+			"claim rows: %w",
+			err,
+		) //nolint:wrapcheck // wrap context added by callers
 	}
 
 	// The claim STATEMENT selects due-ordered top-limit rows (ORDER BY inside

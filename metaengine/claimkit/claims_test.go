@@ -64,10 +64,16 @@ func TestClaimKit_SQLiteConformance(t *testing.T) {
 	t.Parallel()
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{
-		{Name: "claimkit-sqlite", Create: func(t *testing.T) metaengine.Engine { return newHost(t) }},
+		{
+			Name:   "claimkit-sqlite",
+			Create: func(t *testing.T) metaengine.Engine { return newHost(t) },
+		},
 	})
 	adttest.AssertDedupStore(t, []adttest.Factory{
-		{Name: "claimkit-sqlite", Create: func(t *testing.T) metaengine.Engine { return newHost(t) }},
+		{
+			Name:   "claimkit-sqlite",
+			Create: func(t *testing.T) metaengine.Engine { return newHost(t) },
+		},
 	})
 }
 
@@ -130,7 +136,10 @@ func TestClaimKit_FactSinkSameTransaction(t *testing.T) {
 	}
 
 	if n := countFacts("t2"); n != 2 {
-		t.Fatalf("t2 facts = %d, want 2 (claimed + completed once; stale delete recorded nothing)", n)
+		t.Fatalf(
+			"t2 facts = %d, want 2 (claimed + completed once; stale delete recorded nothing)",
+			n,
+		)
 	}
 }
 

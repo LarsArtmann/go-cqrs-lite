@@ -83,12 +83,18 @@ SELECT COUNT(*) FROM information_schema.STATISTICS
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`
 
 		for _, idx := range []struct{ table, name, ddl string }{
-			{"meta_due_claims", "idx_meta_due_claims_due",
-				"CREATE INDEX idx_meta_due_claims_due ON meta_due_claims(collection, due_at)"},
-			{"meta_claim_facts", "idx_meta_claim_facts_key",
-				"CREATE INDEX idx_meta_claim_facts_key ON meta_claim_facts(collection, key, seq)"},
-			{"meta_dedup", "idx_meta_dedup_expiry",
-				"CREATE INDEX idx_meta_dedup_expiry ON meta_dedup(collection, expires_at)"},
+			{
+				"meta_due_claims", "idx_meta_due_claims_due",
+				"CREATE INDEX idx_meta_due_claims_due ON meta_due_claims(collection, due_at)",
+			},
+			{
+				"meta_claim_facts", "idx_meta_claim_facts_key",
+				"CREATE INDEX idx_meta_claim_facts_key ON meta_claim_facts(collection, key, seq)",
+			},
+			{
+				"meta_dedup", "idx_meta_dedup_expiry",
+				"CREATE INDEX idx_meta_dedup_expiry ON meta_dedup(collection, expires_at)",
+			},
 		} {
 			var count int
 
@@ -228,7 +234,7 @@ VALUES ($1, $2, $3, $4) ON CONFLICT (collection, key) DO NOTHING`,
 			[]any{collection, key, dueAt, payload}
 	case claiming.DialectMySQL:
 		return "INSERT INTO meta_due_claims (collection, key, due_at, payload)\n" +
-			"VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE key = key",
+				"VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE key = key",
 			[]any{collection, key, dueAt, payload}
 	default: // SQLite ordinal form
 		return `INSERT INTO meta_due_claims (collection, key, due_at, payload)

@@ -63,7 +63,9 @@ func claimPredicates(s Spec, p ClaimParams, arg func(v any) string) string {
 	var b strings.Builder
 
 	b.WriteString(s.DueColumn + " <= " + arg(p.Now))
-	b.WriteString(" AND (" + s.LeaseColumn + " IS NULL OR " + s.LeaseColumn + " <= " + arg(p.Now) + ")")
+	b.WriteString(
+		" AND (" + s.LeaseColumn + " IS NULL OR " + s.LeaseColumn + " <= " + arg(p.Now) + ")",
+	)
 
 	return b.String()
 }
@@ -269,23 +271,23 @@ func RenewScopedStmt(d Dialect, s Spec, newUntil, id, owner, filter, now any) (s
 	switch d {
 	case DialectPostgres:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
-			" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
-			" = $3 AND " + s.FilterColumn + " = $4 AND " + s.LeaseColumn + " > $5",
+				" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
+				" = $3 AND " + s.FilterColumn + " = $4 AND " + s.LeaseColumn + " > $5",
 			[]any{newUntil, id, owner, filter, now}
 	case DialectMySQL:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
-			" = ? WHERE " + s.IDColumn + " = ? AND " + s.OwnerColumn +
-			" = ? AND " + s.FilterColumn + " = ? AND " + s.LeaseColumn + " > ?",
+				" = ? WHERE " + s.IDColumn + " = ? AND " + s.OwnerColumn +
+				" = ? AND " + s.FilterColumn + " = ? AND " + s.LeaseColumn + " > ?",
 			[]any{newUntil, id, owner, filter, now}
 	case DialectSQLite:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
-			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
-			" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
+				" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
+				" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
 			[]any{newUntil, id, owner, filter, now}
 	default:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
-			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
-			" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
+				" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
+				" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
 			[]any{newUntil, id, owner, filter, now}
 	}
 }
