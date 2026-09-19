@@ -66,7 +66,10 @@ func TestScheduler_RejectionIsNotRetried(t *testing.T) {
 			time.Sleep(120 * time.Millisecond)
 
 			if got := attempts.Load(); got == 0 || got > 3 {
-				t.Fatalf("permanent failure dispatched %d times in ~2 cycles, want 1-3 (family-blind would reach 5 in one)", got)
+				t.Fatalf(
+					"permanent failure dispatched %d times in ~2 cycles, want 1-3 (family-blind would reach 5 in one)",
+					got,
+				)
 			}
 		})
 	}

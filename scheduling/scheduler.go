@@ -205,7 +205,10 @@ func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) er
 		// partitioning): a Rejection or Conflict is a decision, not a
 		// transient fault — retrying it MaxRetries times every poll cycle
 		// forever is the family-blind retry wart this fixed.
-		if fam := errorfamily.Classify(err); fam == errorfamily.Rejection || fam == errorfamily.Conflict {
+		if fam := errorfamily.Classify(
+			err,
+		); fam == errorfamily.Rejection ||
+			fam == errorfamily.Conflict {
 			return err
 		}
 
