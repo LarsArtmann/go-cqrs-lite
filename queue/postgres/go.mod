@@ -4,6 +4,8 @@ go 1.26.7
 
 require (
 	github.com/jackc/pgx/v5 v5.11.0
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0
 )
@@ -32,7 +34,11 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
+	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
+	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -68,3 +74,7 @@ require (
 )
 
 replace github.com/larsartmann/go-cqrs-lite/queue/v4 => ../../queue
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming

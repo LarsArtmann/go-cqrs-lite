@@ -79,10 +79,10 @@ func newEngine(ctx context.Context, db *sql.DB, ownsDB bool) (*Engine, error) {
 // the planner must not route fold queries here.
 func (e *Engine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
-		Name:           "queue-postgres",
-		NsPerOp:        metaengine.PGReadNsPerOpDefault,
-		Persistence:    metaengine.PersistencePersistent,
-		Supports:       map[metaengine.ADT]metaengine.Complexity{
+		Name:        "queue-postgres",
+		NsPerOp:     5000, // calibrated prior: server round trip per op
+		Persistence: metaengine.PersistencePersistent,
+		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTDueClaim: metaengine.ComplexityOLogN,
 			metaengine.ADTDedup:    metaengine.ComplexityOLogN,
 		},
