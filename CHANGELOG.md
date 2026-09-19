@@ -299,6 +299,13 @@ closes themselves were always there). `.golangci.yml` lost the graduated
 `goexperiment.jsonv2` build tag and its `run.go` pin moved to 1.27.1.
 Operator traps documented in `docs/agents/gotchas-tooling-build.md`.
 
+The first full `#verify` of the cleared tree surfaced one load-flake in
+`integration`: `TestBundle_RunProjections_GraphProjection` polled for user
+nodes and then immediately asserted the follow edge, which projects one
+event later — under the race detector at load 150 the edge lagged the
+users. The test now polls the edge with its own 3s deadline (5/5 standalone
+race runs green after the fix; the flake never reproduced).
+
 ### Added — goal-shaped example app: "The Goal in 5 minutes" (2026-09-19)
 
 `example/goal-shaped-app` is the north star as a runnable consumer app.

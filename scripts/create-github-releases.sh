@@ -49,10 +49,10 @@ command -v gh >/dev/null 2>&1 || {
 }
 
 extract_section() {
-	tag="$1" # full tag, e.g. metaengine/badgerengine/v4.2.0
-	tail2="${tag#*/}" # badgerengine/v4.2.0 (last two path components)
+	tag="$1"                          # full tag, e.g. metaengine/badgerengine/v4.2.0
+	tail2="${tag#*/}"                 # badgerengine/v4.2.0 (last two path components)
 	[ "$tail2" = "$tag" ] && tail2="" # single-component tag: no shorthand form
-	awk -v tag="$tag" -v tail2="$tail2" '
+	awk -v tag="$tag" -v tail2="$tail2" -v ptr="$1" '
 		function section_matches(text) {
 			n = split(text, lines, "\n")
 			for (l = 1; l <= n; l++) {
@@ -64,11 +64,24 @@ extract_section() {
 			}
 			return 0
 		}
+		function emit_train_pointer() {
+			print ""
+			print "Full details: [CHANGELOG.md](https://github.com/LarsArtmann/go-cqrs-lite/blob/master/CHANGELOG.md) — the wave section at the top of the file covers every subsystem change in this release train."
+			exit
+		}
 		function flush() {
-			if (sec != "" && section_matches(sec)) {
-				printf "%s\n", sec
-				exit # top-down: the newest matching section wins
+			if (sec == "" || !section_matches(sec))
+				return
+			n = split(sec, out, "\n")
+			train = (out[1] ~ /release train/)
+			for (i = 1; i <= n; i++) {
+				if (train && out[i] ~ /^###/)
+					emit_train_pointer()
+				print out[i]
 			}
+			if (train)
+				emit_train_pointer()
+			exit # top-down: the newest matching section wins
 		}
 		/^## / {
 			flush()
