@@ -46,7 +46,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Durable Work Queue module (proposed 2026-09-13)
 
 - [x] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — DONE through M4 2026-09-19: P0 `claiming/` extraction (2026-09-13); M1–M3 contract + conformance suite + sqlite/postgres engines green `-race` (2026-09-14/15); **M4 (2026-09-19): T14 enqueue dep validation (`queue.ErrDanglingDep`, cycles unrepresentable by construction — store-minted IDs + existence check; no unblock-bump: claim-time gating + bounded aging cover it), T15 ADR-0134 claim tokens (`queue.Claim.Token` + `queue.NewClaimToken`, `lease_token` column + migrations both engines, finalize signatures take the token, theft = `ErrLeaseNotHeld`; ADR-0134 Accepted for queue/), T16 `queue.FactTx`/`FactSink` same-tx consumer fact appends + `Store.Watermarks` list, T17 `queue/mysql/v4` third engine (two-statement SKIP LOCKED, BIGINT-ms, InnoDB deadlock retry, nullable-unique dedup emulation) green on live MariaDB 11.4 incl. `-race -count=2` (gate: `MYSQL_TEST_DSN`)**. ALL THREE engines green on the shared suite incl. `-race`. Dedup'd enqueue + priorities/aging were already M1–M3. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstreamed, not reinvented). Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/archived/2026-09-13_durable-work-queue-module.md`](docs/planning/archived/2026-09-13_durable-work-queue-module.md) + queue-arc reports 14-14/14-46 + 2026-09-19 M4 report _(Effort: P1+M4 DONE)_
-- [ ] **Tag the claiming + queue modules** — `claiming/v4.0.0` (dry-run READY, blocked on clean tree at the time; needs sqlstore replace pin + standalone build gate + proxy probe), then `queue`/`queue/sqlite`/`queue/postgres`/`queue/mysql` v4.0.0; also strips the `queue/{sqlite,postgres,mysql} => ../queue` sibling replaces. NOTE 2026-09-19: the T15 token change altered `queue.Store` finalize signatures pre-release — tag the WHOLE family in one wave so the golden and the modules move together. — source: queue-arc 14-14 §b2/§b3 _(Effort: S each once a wave is authorized — fold into the next tag wave)_
+- ~~[ ] **Tag the claiming + queue modules**~~ done 2026-09-19 — whole family
+      tagged in the 92-tag train, one wave as required:
+      `claiming/v4.0.0`, `queue/v4.0.0`, `queue/{sqlite,postgres,mysql}/v4.0.0`
+      (tags carry zero local replaces; standalone + proxy verified
+      post-wave).<br>**Original:** `claiming/v4.0.0` (dry-run READY, blocked on clean
+      tree at the time; needs sqlstore replace pin + standalone build gate + proxy probe), then
+      `queue`/`queue/sqlite`/`queue/postgres`/`queue/mysql` v4.0.0; also strips
+      the `queue/{sqlite,postgres,mysql} => ../queue` sibling replaces. NOTE
+      2026-09-19: the T15 token change altered `queue.Store` finalize
+      signatures pre-release — tag the WHOLE family in one wave so the golden
+      and the modules move together. — source: queue-arc 14-14 §b2/§b3 _(Effort: S each once a wave is authorized — fold into the next tag wave)_
 - [x] **Run `queue/postgres` conformance against live in-repo PG** — DONE 2026-09-16: `PG_MODULES="queue/postgres" TEST_TIMEOUT=420 nix run .#integration-pg` full suite PASS on the repo's own ephemeral PG (first run on this leg), incl. the `lifecycle_cancel.go` split end-to-end. — source: 2026-09-16 09-35 report §f2; 2026-09-16 15-02 report §c _(Effort: S)_
 - [ ] **PapDashboard queue-adoption evaluation (queue T20)** — the second named
       consumer ("worker pools over durable queues" in production today); evaluate
