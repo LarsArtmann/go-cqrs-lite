@@ -138,6 +138,11 @@ type System struct {
 	// deployment-config name so shutdown ordering can reference engines by name.
 	engines []namedEngine
 
+	// ADR-0142 timers: schedulers registered via ManageTimers, started with
+	// the System and stopped on GracefulClose (timers.go).
+	timers      []TimerScheduler
+	timerCancel context.CancelFunc
+
 	// shutdownDeps declares ordering constraints for Close(). Each edge says
 	// "before must close before after". Resources not in any edge keep their
 	// creation order. Ported from [stack.Bundle].
@@ -300,6 +305,10 @@ func (s *System) Close() error {
 // Use this instead of [Close] when you need a shutdown deadline (e.g., a
 // Kubernetes SIGTERM grace period).
 func (s *System) GracefulClose(ctx context.Context) error {
+	// Phase 0: stop managed timers (scheduler dispatch must not race the
+	// drain/close phases).
+	s.stopTimers()
+
 	// Phase 1: drain in-flight work.
 	if err := s.drainAll(ctx); err != nil {
 		return fmt.Errorf("system: graceful drain: %w", err)

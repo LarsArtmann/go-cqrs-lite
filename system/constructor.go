@@ -348,6 +348,8 @@ func (s *System) Start(ctx context.Context) error {
 		}
 	}
 
+	s.startTimersLocked(ctx)
+
 	return nil
 }
 
