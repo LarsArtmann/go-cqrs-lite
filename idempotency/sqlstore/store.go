@@ -108,6 +108,10 @@ type Store struct {
 	db      *sql.DB
 	dialect Dialect
 	q       queries
+
+	// engine, when set (NewFromEngine), routes every method to a
+	// metaengine.DedupStore — the ADR-0142 facade mode. db/q stay zero.
+	engine engineFacadeOps
 }
 
 // NewSQLiteStore creates a SQLite-backed idempotency store and creates the
@@ -146,6 +150,10 @@ func NewMySQLStore(ctx context.Context, database *sql.DB) (*Store, error) {
 // Seen reports whether the key is currently recorded and not expired.
 // Expired entries are lazily deleted.
 func (s *Store) Seen(ctx context.Context, key string) (bool, error) {
+	if s.engine.dedup != nil {
+		return s.engine.seen(ctx, key)
+	}
+
 	var expiresAt int64
 
 	err := s.db.QueryRowContext(ctx, s.q.seen, key).Scan(&expiresAt)
@@ -184,6 +192,10 @@ func expiryFromTTL(ttl time.Duration) (int64, error) {
 // then Record on an expired-but-present row is also a no-op (INSERT ... ON
 // CONFLICT DO NOTHING), so the stale expiry is NOT refreshed.
 func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error {
+	if s.engine.dedup != nil {
+		return s.engine.record(ctx, key, ttl)
+	}
+
 	expiry, err := expiryFromTTL(ttl)
 	if err != nil {
 		return err
@@ -208,6 +220,10 @@ func (s *Store) Record(ctx context.Context, key string, ttl time.Duration) error
 // within the same statement, so concurrent callers are serialized at the row
 // level by the database engine.
 func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duration) error {
+	if s.engine.dedup != nil {
+		return s.engine.checkAndRecord(ctx, key, ttl)
+	}
+
 	newExpiry, err := expiryFromTTL(ttl)
 	if err != nil {
 		return err
@@ -239,6 +255,10 @@ func (s *Store) CheckAndRecord(ctx context.Context, key string, ttl time.Duratio
 // Sweep deletes all expired entries. Call periodically to bound table growth,
 // or rely on lazy deletion in [Store.Seen] and [Store.CheckAndRecord].
 func (s *Store) Sweep(ctx context.Context) (int64, error) {
+	if s.engine.dedup != nil {
+		return s.engine.sweep(ctx)
+	}
+
 	now := time.Now().UnixNano()
 
 	result, err := s.db.ExecContext(ctx, s.q.sweep, now)

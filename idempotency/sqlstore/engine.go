@@ -7,7 +7,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	"github.com/larsartmann/go-cqrs-lite/idempotency"
+	idempotency "github.com/larsartmann/go-idempotency"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -30,14 +30,14 @@ func NewFromEngine(dedup metaengine.DedupStore, collection string) (*Store, erro
 		collection = DefaultEngineCollection
 	}
 
-	return &Store{engine: dedup, collection: collection}, nil
+	return &Store{engine: engineFacadeOps{dedup: dedup, collection: collection}}, nil
 }
 
 // engineFacadeOps holds the engine-backed implementation for the SQL-shaped
 // Store (embedded via the Store's engine field; see store.go).
 type engineFacadeOps struct {
-	dedup       metaengine.DedupStore
-	collection  string
+	dedup      metaengine.DedupStore
+	collection string
 }
 
 func (e engineFacadeOps) seen(ctx context.Context, key string) (bool, error) {
@@ -52,11 +52,7 @@ func (e engineFacadeOps) seen(ctx context.Context, key string) (bool, error) {
 }
 
 func (e engineFacadeOps) record(ctx context.Context, key string, ttl time.Duration) error {
-	if _, err := e.checkAndRecord(ctx, key, ttl); err != nil {
-		return err
-	}
-
-	return nil
+	return e.checkAndRecord(ctx, key, ttl)
 }
 
 func (e engineFacadeOps) checkAndRecord(ctx context.Context, key string, ttl time.Duration) error {
