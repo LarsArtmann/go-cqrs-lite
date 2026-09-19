@@ -3,6 +3,7 @@ package benchkit
 import (
 	"context"
 	"fmt"
+	"io"
 	"math"
 	"slices"
 	"sort"
@@ -130,6 +131,37 @@ func NoisyMetricNames(variations []MetricVariation) []string {
 	}
 
 	return names
+}
+
+// NoisyMetricCount returns how many of the run's measured metrics exceeded
+// [VariationThreshold] across the repeats — the per-backend number a
+// comparison table shows next to the throughput CoV. Zero means either every
+// measured metric was stable or the run was single-shot (MetricVariation
+// empty); a count of zero alone is not a verdict of stability.
+func (r *Result) NoisyMetricCount() int {
+	count := 0
+
+	for _, v := range r.MetricVariation {
+		if !v.Reliable {
+			count++
+		}
+	}
+
+	return count
+}
+
+// WriteRepeatedJSON serializes the full multi-run output — median, every run,
+// and the per-metric dispersion — as indented JSON. It is the JSON mirror of
+// [WriteBenchstatRepeated]: benchstat consumes the text sample format, while
+// this writer serves tooling that wants the complete structured record
+// (arbitrary percentiles, per-run warnings, environment) without re-running.
+// A nil receiver writes nothing.
+func (rr *RepeatedResult) WriteRepeatedJSON(w io.Writer) error {
+	if rr == nil {
+		return nil
+	}
+
+	return writeJSONAny(w, rr)
 }
 
 // medianByWriteThroughput picks the run whose write throughput is the median

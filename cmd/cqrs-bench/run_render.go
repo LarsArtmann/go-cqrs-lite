@@ -20,6 +20,7 @@ func renderRunResult(
 	config benchkit.Config,
 	result *benchkit.Result,
 	repeated *benchkit.RepeatedResult,
+	includeRuns bool,
 ) {
 	switch format {
 	case formatTable:
@@ -48,7 +49,14 @@ func renderRunResult(
 			benchkit.WriteBenchstat(w, result)
 		}
 	case formatManifest:
-		if err := benchkit.WriteManifest(w, config, result); err != nil {
+		// --include-runs opts into serializing every repeat run: N repeats
+		// multiply the manifest N-fold, so the median-only default stays the
+		// machine-readable standard and raw per-run data is a deliberate ask.
+		if includeRuns && repeated != nil {
+			if err := benchkit.WriteManifestRepeated(w, config, repeated); err != nil {
+				fatalf("write manifest: %v", err)
+			}
+		} else if err := benchkit.WriteManifest(w, config, result); err != nil {
 			fatalf("write manifest: %v", err)
 		}
 	case formatCSV:

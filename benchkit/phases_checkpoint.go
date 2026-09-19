@@ -18,8 +18,8 @@ func (r *runner) checkpointPhase(ctx context.Context) error {
 	}
 
 	sampleCount := min(len(r.refs), maxCheckpointSamples)
-	saveColl := NewLatencyCollector(0)
-	loadColl := NewLatencyCollector(0)
+	saveColl := r.newCollector(0)
+	loadColl := r.newCollector(0)
 
 	for range sampleCount {
 		if err := ctx.Err(); err != nil {

@@ -100,6 +100,18 @@ type SoakResult struct {
 	// first sample to the last. Positive values signal an allocation leak.
 	AllocGrowthPct float64 `json:"allocGrowthPct,omitempty"`
 
+	// ThroughputCoV is the cross-iteration coefficient of variation of
+	// Throughput (benchkit's dispersion measure, applied to the soak loop).
+	// Drift compares only the first and last sample and can hide a bimodal
+	// soak — e.g. alternating fast/slow iterations drift ~0% while being
+	// garbage. CoV sees the spread across ALL iterations; a CoV above
+	// [VariationThreshold] means the drift numbers are not decision-grade.
+	ThroughputCoV float64 `json:"throughputCoV,omitempty"`
+
+	// WriteP99CoV is the cross-iteration CoV of WriteP99 latency. Same
+	// honesty rule as [SoakResult.ThroughputCoV], for the tail metric.
+	WriteP99CoV float64 `json:"writeP99CoV,omitempty"`
+
 	Config SoakConfig `json:"config"`
 }
 
@@ -207,6 +219,19 @@ func computeSoakTrends(r *SoakResult) {
 
 	first := r.Samples[0]
 	last := r.Samples[len(r.Samples)-1]
+
+	// Cross-iteration dispersion — the spread across ALL iterations, not just
+	// the first→last delta. Computed for every soak with enough samples.
+	throughput := make([]float64, 0, len(r.Samples))
+	writeP99 := make([]float64, 0, len(r.Samples))
+
+	for _, s := range r.Samples {
+		throughput = append(throughput, s.Throughput)
+		writeP99 = append(writeP99, float64(s.WriteP99))
+	}
+
+	_, _, r.ThroughputCoV = dispersion(throughput)
+	_, _, r.WriteP99CoV = dispersion(writeP99)
 
 	if last.HeapBytes >= first.HeapBytes {
 		r.HeapGrowthBytes = last.HeapBytes - first.HeapBytes

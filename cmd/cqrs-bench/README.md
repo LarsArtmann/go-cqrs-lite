@@ -43,6 +43,8 @@ cqrs-bench compare --profile medium --backends mem,sq,peb --format markdown
 | `--payload-sizes`              | `64,256,4096`                                                                                                   | —        | Mixed per-event payload sizes (uniform random)        |
 | `--warmup`                     | int                                                                                                             | `0`      | Warmup iterations before timing                       |
 | `--repeat`                     | int                                                                                                             | `0`      | Run N times: median + per-metric cross-run CoV        |
+| `--include-runs`               | bool                                                                                                            | `false`  | With `--format manifest`: serialize every repeat run (`runs[]`; file grows N-fold) |
+| `--interpolated-percentiles`   | bool                                                                                                            | `false`  | Interpolate P50-P99 between samples (smoother small-n percentiles; default nearest-rank) |
 | `--soak`                       | duration (`5m`, `1h`)                                                                                           | `0`      | Soak mode: leak/degradation trends                    |
 | `--strict`                     | bool                                                                                                            | `false`  | Fail on skipped phases (CI gate)                      |
 | `--progress`                   | duration                                                                                                        | `0`      | Heartbeat per phase                                   |
@@ -87,10 +89,22 @@ Reading the numbers:
   count: increase `--repeat`, use a larger profile, or bench on a quieter
   machine.
 - `P100`/`Max` is the exact worst observed latency, not a percentile estimate;
-  a single scheduler hiccup dominates it.
-- The run records `Environment.LoadAvg1` and emits a warning when the machine
-  was oversubscribed (load > CPU count), because such latencies include
-  scheduler wait.
+  a single scheduler hiccup dominates it. `Min` is the exact fastest —
+  `Mean/Min` approximates scheduler + contention overhead.
+- The run records `Environment.LoadAvg1` (start) and `LoadAvg1End` (finish)
+  and warns when the machine was (or became) oversubscribed (load > CPU
+  count), because such latencies include scheduler wait.
+- Small-n percentiles are coarse by default (nearest-rank: a 5-sample P99 is
+  the max). `--interpolated-percentiles` smooths P50-P99 by interpolating
+  between neighboring samples.
+- `--format manifest` writes config + environment + median result; add
+  `--include-runs` to embed every repeat run (`runs[]`) for later
+  re-analysis.
+
+CI gates use the same rigor: `scripts/benchmark-regression.sh` runs a load
+gate (refuses an oversubscribed machine), a per-metric noise gate (fails
+when a headline metric's CoV reaches the threshold), and the median
+regression compare — see the script header and `nix run .#check-bench-gate`.
 
 ## Output
 

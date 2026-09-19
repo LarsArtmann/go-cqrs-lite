@@ -29,7 +29,7 @@ func (r *runner) batchWritePhase(ctx context.Context) error {
 	}
 
 	sampleCount := min(maxBatchSamples, 20)
-	coll := NewLatencyCollector(0)
+	coll := r.newCollector(0)
 	totalEvents := 0
 	startAll := time.Now()
 

@@ -22,13 +22,13 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 	first := r.Samples[0]
 	last := r.Samples[len(r.Samples)-1]
 
-	fmt.Fprintf(w, "Throughput: %s/s → %s/s (%.1f%%)\n",
+	fmt.Fprintf(w, "Throughput: %s/s → %s/s (%.1f%% drift, CoV %.1f%%)\n",
 		formatFloat(first.Throughput), formatFloat(last.Throughput),
-		r.ThroughputDriftPct)
+		r.ThroughputDriftPct, r.ThroughputCoV*100)
 
-	fmt.Fprintf(w, "Write P99:  %s → %s (%+.1f%%)\n",
+	fmt.Fprintf(w, "Write P99:  %s → %s (%+.1f%% drift, CoV %.1f%%)\n",
 		roundDuration(first.WriteP99), roundDuration(last.WriteP99),
-		r.WriteP99DriftPct)
+		r.WriteP99DriftPct, r.WriteP99CoV*100)
 
 	if first.JourneyP99 > 0 && last.JourneyP99 > 0 {
 		fmt.Fprintf(w, "Journey P99:%s → %s (%+.1f%%)\n",

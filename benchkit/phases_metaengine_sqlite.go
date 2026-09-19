@@ -90,7 +90,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	}
 
 	// ── Scan: filtered collection read ──
-	scanColl := NewLatencyCollector(0)
+	scanColl := r.newCollector(0)
 	scanCount := min(sqliteSamples/4, 50)
 	scanCount = max(scanCount, 1)
 
@@ -117,7 +117,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	r.result.MetaEngineSQLiteScanLatency = scanColl.Stats()
 
 	// ── PointRead: single-item lookup ──
-	pointColl := NewLatencyCollector(0)
+	pointColl := r.newCollector(0)
 	pointCount := min(sqliteSamples/4, 50)
 	pointCount = max(pointCount, 1)
 
@@ -142,7 +142,7 @@ func (r *runner) metaEngineSQLiteWorkload(ctx context.Context) error {
 	r.result.MetaEngineSQLitePointReadLatency = pointColl.Stats()
 
 	// ── Apply throughput ──
-	applyColl := NewLatencyCollector(0)
+	applyColl := r.newCollector(0)
 	applyStart := time.Now()
 
 	throughputSamples := min(sqliteSamples, 200)

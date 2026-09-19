@@ -62,6 +62,8 @@ func renderComparison(w io.Writer, format string, results map[string]*benchkit.R
 		if summary := comparisonWinnerSummary(results); summary != "" {
 			fmt.Fprintf(w, "\n%s\n", summary)
 		}
+
+		benchkit.PrintComparisonVariation(w, results)
 	case formatMarkdown:
 		data := buildComparisonTable(results)
 
@@ -72,6 +74,8 @@ func renderComparison(w io.Writer, format string, results map[string]*benchkit.R
 
 		rendered = strings.TrimPrefix(rendered, "|")
 		fmt.Fprint(w, rendered)
+		fmt.Fprintln(w)
+		benchkit.PrintComparisonVariation(w, results)
 	case formatCSV:
 		data := buildComparisonTable(results)
 
@@ -93,7 +97,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 	headers := []string{
 		"Backend", "Write P50", "Write P99", "Load P50", "Load P99",
 		"Cold P50", "GC Max Pause", "Tail Ratio", "Allocs/Op",
-		"Write Amp", "CoV %", "RAM", "Heap", "Disk",
+		"Write Amp", "CoV %", "Noisy", "RAM", "Heap", "Disk",
 	}
 
 	t := output.NewTable(headers)
@@ -132,6 +136,7 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 			fmtAllocDash(r.AllocsPerOp),
 			fmtRatioDash(r.Disk.WriteAmplification),
 			fmtCoVDash(r.RepeatCoV),
+			fmtNoisyCount(r),
 			fmtBytes(r.Memory.Resident),
 			fmtBytes(r.Memory.After),
 			fmtBytes(uint64(r.Disk.DatabaseBytes)),
@@ -139,6 +144,18 @@ func buildComparisonTable(results map[string]*benchkit.Result) *output.Table {
 	}
 
 	return t
+}
+
+// fmtNoisyCount renders a backend's noisy-metric count (metrics whose
+// cross-run CoV exceeded the threshold). "-" when the run carries no
+// dispersion data: a single-run compare has no stability verdict to show,
+// and showing 0 would fake one.
+func fmtNoisyCount(r *benchkit.Result) string {
+	if len(r.MetricVariation) == 0 {
+		return "-"
+	}
+
+	return strconv.Itoa(r.NoisyMetricCount())
 }
 
 // comparisonWinnerSummary finds the best backend per key metric and returns

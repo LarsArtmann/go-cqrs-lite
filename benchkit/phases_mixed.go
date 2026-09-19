@@ -53,8 +53,8 @@ func (r *runner) mixedWorkloadPhase(ctx context.Context) error {
 		mixedRefs[i] = id.NewStreamRef(benchStreamType, sid)
 	}
 
-	writeColl := NewLatencyCollector(mixedStreams)
-	readColl := NewLatencyCollector(0) // unbounded — readers run until cancelled
+	writeColl := r.newCollector(mixedStreams)
+	readColl := r.newCollector(0) // unbounded — readers run until cancelled
 
 	var (
 		writeOps    atomic.Int64

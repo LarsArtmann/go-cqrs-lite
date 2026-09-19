@@ -29,9 +29,9 @@ func (r *runner) versionedReadPhase(ctx context.Context) error {
 	halfVersion := event.Version(profile.EventsPerStream / 2)
 	now := time.Now()
 
-	fromColl := NewLatencyCollector(0)
-	toColl := NewLatencyCollector(0)
-	tsColl := NewLatencyCollector(0)
+	fromColl := r.newCollector(0)
+	toColl := r.newCollector(0)
+	tsColl := r.newCollector(0)
 
 	for i := range sampleCount {
 		if err := ctx.Err(); err != nil {

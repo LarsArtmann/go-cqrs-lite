@@ -430,7 +430,14 @@ pattern: same workload, any backend, structured metrics report.
 | Multi-run API           | `RunRepeated`/`RepeatedResult` — every run + median; `Reliable()`, `NoisyMetrics()` verdicts                   | 🧪     |
 | Per-metric variation    | `Result.MetricVariation` + `VariationThreshold`/`NoisyMetricNames` — CoV for ~all metrics, not just throughput | 🧪     |
 | Exact max latency       | `LatencyStats.P100` tracks the true maximum; reservoir sampling can no longer hide tail spikes                 | 🧪     |
-| Load provenance         | `Environment.LoadAvg1` + oversubscription warning — noisy runs are self-describing                             | 🧪     |
+| Exact min latency       | `LatencyStats.Min` — the exact fastest op; `Mean/Min` approximates scheduler + contention overhead             | 🧪     |
+| Load provenance         | `Environment.LoadAvg1` (start) + `LoadAvg1End` (end) + oversubscription/drift warnings — noisy runs are self-describing; `Config.LoadWarnThreshold` tunes the line | 🧪     |
+| Small-n percentiles     | `Config.InterpolatedPercentiles` / `WithInterpolatedPercentiles` — linear interpolation when nearest-rank P99 collapses onto the max | 🧪     |
+| Metric-name contract    | `MetricNames()` — stable benchstat metric-name universe in report order for downstream tooling                 | 🧪     |
+| Comparison variation    | `Result.NoisyMetricCount` (table Noisy column) + `PrintComparisonVariation` footer — compare states which medians are decision-grade | 🧪     |
+| Per-run serialization   | `SuiteManifest.Runs` via `WriteManifestRepeated` (CLI `--include-runs`) + `RepeatedResult.WriteRepeatedJSON`   | 🧪     |
+| Soak dispersion         | `SoakResult.ThroughputCoV`/`WriteP99CoV` — cross-iteration spread next to endpoint drift (exposes bimodal soaks) | 🧪     |
+| Zero-value audit        | Phase throughput vs sample-count disagreement records a warning instead of publishing inconsistent metrics     | 🧪     |
 | GC pause metrics        | `GCMaxPause` — maximum GC pause during benchmark run                                                           | 🧪     |
 | Allocation metrics      | `AllocsPerOp`, `BytesPerOp` — derived per-operation allocation tracking                                        | 🧪     |
 | Data integrity          | `IntegrityErrors` — verifies event round-trip after benchmark run                                              | 🧪     |
@@ -449,7 +456,7 @@ pattern: same workload, any backend, structured metrics report.
 | Batch write phase       | `SkipBatchWrite` flag + batch write benchmark                                                                  | 🧪     |
 | Phase listing           | `--list-phases` subcommand + `PhaseNames()` export                                                             | 🧪     |
 
-**Coverage:** 151 benchkit + 43 CLI test functions (`-race`). Includes raw sink phase,
+**Coverage:** 164 benchkit + 44 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
 metadata, schema versioning, durability/recovery, replay, `benchtest.RunSuite`,
 analytical profile, Postgres backend, median selection tests, evidence-grade
@@ -458,7 +465,9 @@ test drift, metaengine benchmark (Memory + SQLite), mixed workload phase, exact
 P100 latency, multi-run repeats with per-metric variation (`RunRepeated`,
 `MetricVariation`, `Reliable`), and multi-sample benchstat output.
 Run-to-run variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
-See [backend comparison](docs/benchmarks/2026-07-31_backend-comparison.md)
+See [backend comparison](docs/benchmarks/2026-07-31_backend-comparison.md) (pre-variation,
+superseded as a format example by
+[the 2026-09-19 variation capture](docs/benchmarks/2026-09-19_backend-comparison-variation.md))
 and [evidence metrics ADR](docs/adr/0090-benchkit-evidence-metrics.md).
 
 ### cqrs-bench CLI 🔧
@@ -1478,7 +1487,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `queue/sqlite`                   | `…/queue/sqlite/v4`                   | 🧪 Experimental (single serialized writer + WAL; first engine green on the conformance suite incl. `-race`, 2026-09-14)                                                                                                                   |
 | `queue/postgres`                 | `…/queue/postgres/v4`                 | 🧪 Experimental (SKIP LOCKED claims over a caller-owned pgx pool; conformance-green via pgtestcontainer incl. `-race`)                                                                                                                    |
 | `queue/mysql`                    | `…/queue/mysql/v4`                    | 🧪 Experimental (two-statement SKIP LOCKED claims on MySQL 8+/MariaDB 10.6+, BIGINT-ms timestamps, internal deadlock retry; conformance-green vs live MariaDB 11.4 incl. `-race -count=2`; registers the `queue-mysql` metaengine driver) |
-| `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 151 tests, `--repeat N` + `RunRepeated`/`MetricVariation` statistical rigor available)                                                                                                                       |
+| `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 164 tests, `--repeat N` + `RunRepeated`/`MetricVariation` statistical rigor available)                                                                                                                       |
 | `cmd/cqrs-bench`                 | `…/cmd/cqrs-bench/v4`                 | 🔧 Tool (CLI benchmark runner; `go install` — the `/v4` suffix is stripped from the binary name)                                                                                                                                          |
 | `cmd/cqrs-upgrade`               | `…/cmd/cqrs-upgrade/v4`               | 🔧 Tool (consumer upgrade CLI: pin bumps to latest tags + in-process V007 deprecation report; v4.0.0 tagged 2026-09-07)                                                                                                                   |
 | `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (204-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version)                                                                                |

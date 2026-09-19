@@ -33,7 +33,11 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [x] 🔥 **T03–T08: conformance + sqlite/postgres/memory reference impls + `scheduling/engine` TimerStore facade + Scheduler wart fixes** (the 4% → 64%) — DONE 2026-09-19: claimkit ONE database/sql runtime (sqlite/pg/mysql/duckdb/turso native), Map runtimes (memory/pebble/bbolt/badger degraded), `scheduling/engine` facade with epoch-guarded MarkFired, family-aware scheduler retry; all conformance green incl. `-race`.
 - [x] 🔥 **T09–T17: full absorption** (the 20% → 80%) — DONE 2026-09-19: queue engines register as drivers (sqlite/postgres/mysql — family complete), idempotency `NewFromEngine` facades, `system` TimerEngine/ManageTimers/Timers + persistent checkpoints, ALL engines implement-or-refuse (`RefusedADTs` universality rule: dgraph/bigtable/iroh-wrapper refuse with reasons — never silence), FactSink-in-tx as claimkit capability with same-tx conformance, Doctor/capability-audit rendering + audit rule 4, reset ladder covers claimkit collections (journal positions keep advancing — pinned per engine). Docs rows (modules.md/FEATURES/module-map) shipped.
 - [x] **T17 remainder: SKILL recipes §2.x excerpt** — one engine-backed-timers/queue/dedup recipe block in recipes.md + recipes_catalog classification + doc-check green. DONE 2026-09-19: recipes.md §2.38 (3 compile-verified blocks, catalog 77→80, doc-check + TestRecipes green).
-- [ ] **T18–T23: harden + v5 cutover + ecosystem proof** — benchmarks/load-sweep gates; at the v5 gate: fold capabilities into universal `Engine`, delete the duplicate SQL stacks, release train; `example/taskmanager` on engine-backed queue; go-taskqueue semantic-diff probe (P5 input). _(Effort: L; v5-gated)_
+- [x] **T18a: claimkit micro-benches vs direct-SQL baseline** — DONE 2026-09-19: `metaengine/claimkit/bench_test.go` (claim steady-state, composite timer round-trip, dedup fresh/live-window; ClaimKit vs hand-composed direct SQL). Measured: the runtime is FASTER than the direct path on every pair (claim 63µs vs 82µs, dedup 11µs vs 19µs on the dev machine) — no abstraction tax. Four claimkit benches joined the `benchmark-regression.sh` gate set.
+- [x] **T22: `example/taskmanager` on engine-backed queue** — DONE 2026-09-19: the deriver's auto-assign cascade rides `queue/sqlite` (dedup-keyed enqueue, lease-fenced worker, backoff retries, dead-lettering) instead of a fire-and-forget goroutine; restart-durability + end-to-end tests green `-race`, live demo run verified. Sibling replaces in the example go.mod ride until the family tag wave.
+- [x] **T23: go-taskqueue semantic-diff probe** — DONE 2026-09-19: [`docs/research/2026-09-19_go-taskqueue-semantic-diff.md`](docs/research/2026-09-19_go-taskqueue-semantic-diff.md) — donor contract (read in full) vs library: core semantics 1:1, divergences are strengthenings (claim tokens, dep validation), genericity (typed payloads), or consumer-owned product surface. No silent drift; P5 input conclusion: upstreaming subtyped, not forked.
+- [ ] **T18b: load-sweep + benchmark baseline regen under Go 1.27** — `#load-sweep` on timing paths and a `benchmark-regression.sh --save` refresh (the committed baseline predates the 1.27 toolchain AND now needs the new claimkit entries). Quiet-window gated: only meaningful on a machine under ~10 load; the concurrent-session reality has kept load at 28-74 all day. _(Effort: S once the window opens)_
+- [ ] **T19–T21 (v5-gated): fold capabilities into universal `Engine`, delete the duplicate SQL stacks, release train** — blocked on the v5 train per ADR-0142 §decision; DO NOT execute in v4.x (growing core interfaces is breaking, contract 21g discipline). The tag waves for claiming + the queue family are the separately-tracked item below. _(Effort: L; v5-gated)_
 - [ ] **Go 1.27 follow-ups** — the 94-module `go 1.27.1` sweep completed the jsonv2 graduation (2026-09-19, un-broke every workspace-mode compile); the coordinated tag sweep (flake.nix/scripts/CI/workflows/Go-strings/docs → plain `go build`) landed 2026-09-19. Remaining: re-baseline load-sweep benchmarks under the 1.27 toolchain. _(Effort: S)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
@@ -799,24 +803,33 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > [`docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md)
 > §b/§f, 09-35 §f P3
 
-- [ ] **`compare` + serialization tail** — per-backend noisy-metric count
-      column + Variation footer in the compare table; variation summary in
-      markdown compare output; per-run `runs[]` in `--format manifest`
-      (opt-in flag); `RepeatedResult` JSON writer. _(Effort: M)_
-- [ ] **Benchstat CI workflow decision (owner Q3)** — A/B-by-revision
-      benchstat (`benchstat-diff` subcommand or `scripts/bench-ab.sh`,
-      nightly `--repeat 10 --format benchstat` artifacts + delta summary)
-      vs per-metric CI gating (fail on noisy headline metrics via
-      `MetricVariation` CoV thresholds in `benchmark-regression.sh`). Both
-      ~day-sized; pick one. Second gate-set entry for a sqlite backend path
-      rides along either way. _(Effort: L, decision-gated)_
-- [ ] **SDK polish batch** — per-metric MIN tracking; `LoadAvg1` at run end +
-      drift report; configurable oversubscription threshold; soak × variation
-      cross-iteration CoV; percentile interpolation for small-n;
-      `resultMetrics()` names as public constants; zero-value audit (Count=0
-      with non-zero throughput warns); fresh backend-comparison capture
-      (current `docs/benchmarks/2026-07-31` predates variation).
-      _(Effort: M, sliceable)_
+- [x] **`compare` + serialization tail** — DONE 2026-09-19: compare table
+      Noisy column (`Result.NoisyMetricCount`) + `Variation:` footer /
+      markdown variation summary (`PrintComparisonVariation`); manifest
+      `runs[]` behind `--include-runs` (`WriteManifestRepeated`);
+      `RepeatedResult.WriteRepeatedJSON`. CHANGELOG [Unreleased]
+      2026-09-19 benchkit section.
+- [x] **Benchstat CI workflow decision (owner Q3)** — RESOLVED 2026-09-19:
+      per-metric CI gating chosen over A/B-by-revision benchstat (the median
+      gate's weakness is a loud machine, not a missing A/B workflow —
+      benchstat samples already work). benchmark-regression.sh gained a
+      load gate (load1/load5 vs CPU count), a benchkit noise gate
+      (headline-metric CoV threshold via `cqrs-bench --repeat 5 --format
+      json`), 12 new fixture tests (mutation-tested), and the sqlite
+      gate-set entry (`BenchmarkBenchkitSuite_SQLite$`, also wired into
+      benchmarks.yml). The benchstat A/B shell remains a possible future
+      convenience, not a gate.
+- [x] **SDK polish batch** — DONE 2026-09-19: `LatencyStats.Min` exact
+      fast-path; `Environment.LoadAvg1End` + mid-run drift warning;
+      `Config.LoadWarnThreshold`; soak `ThroughputCoV`/`WriteP99CoV`;
+      `Config.InterpolatedPercentiles` (+ `--interpolated-percentiles`);
+      `MetricNames()` stable universe; zero-value audit warnings. Fresh
+      backend-comparison capture (with variation output):
+      [`docs/benchmarks/2026-09-19_backend-comparison-variation.md`](docs/benchmarks/2026-09-19_backend-comparison-variation.md)
+      — captured on an OVERSUBSCRIBED shared host (load ~35-40 on 32
+      CPUs); treat per-backend deltas as non-decision-grade and supersede
+      on a calibration-gate PASS window (the capture's Variation footer
+      shows exactly which metrics flagged NOISY).
 
 ---
 

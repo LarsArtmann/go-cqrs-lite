@@ -2,11 +2,14 @@ package benchkit
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 	"sync"
 )
 
 func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
+	r.recordLoadEnd()
+
 	r.result.Memory = ResourceStats{
 		Before: baseline.heapAlloc,
 		After:  peakMem,
@@ -95,6 +98,51 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 		r.result.WriteTailRatio = float64(r.result.WriteLatency.P99) /
 			float64(r.result.WriteLatency.P50)
 	}
+
+	r.auditZeroValues()
+}
+
+// auditZeroValues warns when a phase's throughput and its sample count
+// disagree. The pair is the most basic sanity check a report can make:
+// throughput without samples (or samples without throughput) means a phase's
+// accounting broke, and either number would be a lie dressed up as data.
+func (r *runner) auditZeroValues() {
+	auditPair := func(phase string, stats LatencyStats, throughput float64) {
+		switch {
+		case stats.Count == 0 && throughput > 0:
+			r.warn(fmt.Sprintf(
+				"%s reports throughput %.0f ops/s but recorded zero latency samples — inconsistent metrics, trust neither",
+				phase,
+				throughput,
+			))
+		case stats.Count > 0 && throughput == 0:
+			r.warn(fmt.Sprintf(
+				"%s recorded %d latency samples but zero throughput — check phase duration accounting",
+				phase,
+				stats.Count,
+			))
+		}
+	}
+
+	auditPair("write phase", r.result.WriteLatency, r.result.WriteThroughput)
+	auditPair("raw sink phase", r.result.RawSinkLatency, r.result.RawSinkThroughput)
+	auditPair("batch write phase", r.result.BatchWriteLatency, r.result.BatchWriteThroughput)
+	auditPair(
+		"metaengine apply",
+		r.result.MetaEngineApplyLatency,
+		r.result.MetaEngineApplyThroughput,
+	)
+}
+
+// newCollector builds a latency collector honoring the runner's Config
+// (currently the InterpolatedPercentiles small-n option). Every phase creates
+// its collectors through this so a config knob reaches all of them at once.
+func (r *runner) newCollector(maxLen int) *LatencyCollector {
+	if r.config.InterpolatedPercentiles {
+		return NewLatencyCollectorWithOptions(maxLen, WithInterpolatedPercentiles())
+	}
+
+	return NewLatencyCollector(maxLen)
 }
 
 // runConcurrent runs op for each index in [0, total) using at most

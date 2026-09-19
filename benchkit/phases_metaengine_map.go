@@ -86,7 +86,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 
 	// ── Scan: filtered collection read ──
 	reader := metaengine.NewReader[meBenchItem](store, "bench_items")
-	scanColl := NewLatencyCollector(0)
+	scanColl := r.newCollector(0)
 	scanCount := min(sampleCount/4, 200) // cap scan iterations
 	scanCount = max(scanCount, 1)
 
@@ -118,7 +118,7 @@ func (r *runner) metaEngineMapWorkload(ctx context.Context) error {
 	r.result.MetaEngineScanLatency = scanColl.Stats()
 
 	// ── PointRead: single-item lookup via TypedReader.Get ──
-	pointColl := NewLatencyCollector(0)
+	pointColl := r.newCollector(0)
 	pointCount := min(sampleCount/4, 200)
 	pointCount = max(pointCount, 1)
 

@@ -24,9 +24,9 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		DSNConfig:    sqlopt.DSNConfig{AutoMigrate: true},
-		PragmaConfig: sqlopt.PragmaConfig{WAL: true},
-		durability:   stack.DurabilityNormal,
+		AutoMigrate: true,
+		WAL:         true,
+		durability:  stack.DurabilityNormal,
 	}
 }
 

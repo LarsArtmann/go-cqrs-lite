@@ -1029,8 +1029,9 @@
 
             # check-bench-gate: fixture tests for the benchmark regression
             # gate — pins median computation, the save-after-compare
-            # ordering, and threshold behavior without running benchmarks.
-            check-bench-gate = mkApp "check-bench-gate" [ pkgs.bash ] ''
+            # ordering, threshold behavior, and the noise/load gates
+            # without running benchmarks.
+            check-bench-gate = mkApp "check-bench-gate" [ pkgs.bash pkgs.jq ] ''
               echo "==> benchmark regression gate fixture tests"
               ${pkgs.bash}/bin/bash "$PWD/scripts/test-benchmark-regression.sh"
             '';

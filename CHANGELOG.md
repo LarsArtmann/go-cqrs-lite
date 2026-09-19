@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — benchkit statistical-rigor tail: compare/serialization, per-metric CI gating, SDK polish (2026-09-19)
+
+Closes the benchkit tail from
+[`docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/2026-09-16_02-09_benchmark-statistical-rigor.md)
+§b/§f. The Benchstat-CI decision (owner Q3) resolved to **per-metric CI
+gating** over A/B-by-revision benchstat: the median gate's known weakness is
+a loud machine, not a missing A/B workflow (benchstat samples already work;
+the gate now asserts the run itself was quiet enough to trust).
+
+- **`compare` + serialization tail**: the comparison table gained a Noisy
+  column (per-backend count of metrics whose cross-run CoV exceeded the
+  threshold — `benchkit.Result.NoisyMetricCount`), the text comparison a
+  `Variation:` footer and the markdown comparison a variation summary
+  (`benchkit.PrintComparisonVariation`; single-run backends are
+  deliberately absent — the missing row IS the caveat). `--format manifest`
+  gained opt-in per-run serialization: `--include-runs` emits `runs[]` via
+  `benchkit.WriteManifestRepeated`/`benchkit.NewManifestRepeated`
+  (`benchkit.SuiteManifest.Runs`), and `benchkit.RepeatedResult.WriteRepeatedJSON`
+  is the JSON mirror of `benchkit.WriteBenchstatRepeated`.
+- **Per-metric CI gating** (the chosen Benchstat-CI option):
+  `scripts/benchmark-regression.sh` now runs a load gate first (load1/load5
+  vs the CPU count, calibration-gate semantics — an oversubscribed machine
+  refuses to benchmark at all), then a benchkit noise gate (one short
+  `cqrs-bench --repeat 5 --format json` run; a HEADLINE metric whose CoV
+  reaches `--noise-threshold` fails the gate, non-headline noise warns).
+  Fixture tests in `scripts/test-benchmark-regression.sh` (12 new cases,
+  mutation-tested) pin the behavior; `nix run .#check-bench-gate` gained a
+  jq dependency. The sqlite backend path rides along: `BenchmarkBenchkitSuite_SQLite$`
+  joined the gate set and the CI benchmarks.yml matrix, and the workflow
+  runs the noise gate before the median compare.
+- **SDK polish batch**: `benchkit.LatencyStats.Min` — the exact fastest
+  observed op (tracked per Record like P100; Mean/Min approximates
+  scheduler+contention overhead); `benchkit.Environment.LoadAvg1End` —
+  load sampled at run END with a drift warning when a quiet-start run went
+  oversubscribed mid-run; `benchkit.Config.LoadWarnThreshold` —
+  configurable oversubscription ratio (default 1.0 × CPUs); soak ×
+  variation — `benchkit.SoakResult.ThroughputCoV`/`WriteP99CoV` put
+  cross-iteration spread next to the first→last drift percentages;
+  `benchkit.Config.InterpolatedPercentiles` (+ `--interpolated-percentiles`,
+  `benchkit.WithInterpolatedPercentiles`,
+  `benchkit.NewLatencyCollectorWithOptions`) — linear interpolation for
+  small-n P50–P99 where nearest-rank P99 collapses onto the max (off by
+  default; reservoir semantics unchanged); `benchkit.MetricNames()` — the
+  stable benchstat metric-name universe in report order for downstream
+  tooling; zero-value audit — a phase reporting throughput without samples
+  (or inverse) now warns instead of publishing the lie.
+
 ### Added — substrate tail: benches, taskmanager on the queue, semantic-diff proof (plan T18a/T22/T23) — 2026-09-19
 
 - **claimkit micro-benchmarks vs the direct-SQL path** (ADR-0142 T18a):

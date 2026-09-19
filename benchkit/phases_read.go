@@ -21,13 +21,13 @@ func (r *runner) readPhase(ctx context.Context) error {
 		return nil //nolint:nilerr // ctx done; graceful skip
 	}
 
-	coll := NewLatencyCollector(0)
+	coll := r.newCollector(0)
 	profile := r.config.Profile
 
 	readPasses := readPassesFor(profile.ReadRatio)
 
 	for pass := 0; pass < readPasses && ctx.Err() == nil; pass++ {
-		passColl := NewLatencyCollector(0)
+		passColl := r.newCollector(0)
 
 		err := runConcurrent(
 			ctx, profile.Streams, r.concurrency,
@@ -118,7 +118,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 
 	profile := r.config.Profile
 	store := r.bundle.ReadModels
-	setColl := NewLatencyCollector(0)
+	setColl := r.newCollector(0)
 
 	payload, err := r.codec.Encode(r.gen.Payload())
 	if err != nil {
@@ -158,7 +158,7 @@ func (r *runner) readModelPhase(ctx context.Context) error {
 		return nil //nolint:nilerr // ctx done; skip Get phase
 	}
 
-	getColl := NewLatencyCollector(0)
+	getColl := r.newCollector(0)
 	err = runConcurrent(
 		ctx, profile.Streams, r.concurrency,
 		func(ctx context.Context, idx int) error {

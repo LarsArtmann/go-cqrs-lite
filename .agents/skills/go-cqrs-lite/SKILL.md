@@ -38,9 +38,14 @@ estimates. Use `--repeat N`: the report then shows a `Variation:` section
 flagging every metric whose cross-run CoV exceeded 10% (`NOISY` = not
 decision-grade at that sample count), and `--format benchstat --repeat N`
 emits one sample per run per metric — the sample count `benchstat` needs to
-report confidence intervals (`benchstat old.txt new.txt`). `P100`/`Max` is
-the exact worst observed latency (not a reservoir estimate), and a run that
-started on an oversubscribed machine records a load-average warning.
+report confidence intervals (`benchstat old.txt new.txt`). `P100`/`Max` and
+`Min` are the exact worst/best observed latencies (not reservoir estimates);
+load average is recorded at run start AND end, and an oversubscribed machine
+warns. `--format manifest --include-runs` serializes every repeat run;
+`--interpolated-percentiles` smooths small-n P50-P99. CI gates enforce the
+same discipline: `scripts/benchmark-regression.sh` aborts on an
+oversubscribed machine (load gate) and fails when a headline metric's CoV
+reaches the threshold (noise gate).
 
 ```bash
 ./cqrs-bench run --backend sqlite --profile small --repeat 10 --format benchstat > new.txt

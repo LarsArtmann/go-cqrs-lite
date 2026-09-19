@@ -166,6 +166,16 @@
 // MetricVariation). WriteBenchstatRepeated emits one benchstat sample per run,
 // which is the sample count benchstat needs to report a confidence interval:
 // a single-sample file can only be compared as point estimates.
+// RepeatedResult.WriteRepeatedJSON (or --format manifest --include-runs)
+// serializes the full per-run record instead.
+//
+// The latency bounds are exact at BOTH ends: P100 (worst) and Min (fastest)
+// are tracked per Record and survive reservoir eviction. P50-P99 default to
+// nearest-rank; Config.InterpolatedPercentiles switches them to linear
+// interpolation for small-n runs where nearest-rank P99 is just the maximum.
+// Load is sampled at start (Environment.LoadAvg1) and end (LoadAvg1End), so a
+// run the machine polluted mid-flight is self-describing; the
+// oversubscription line is Config.LoadWarnThreshold (default 1.0 x CPUs).
 //
 // # Soak testing
 //
@@ -183,7 +193,10 @@
 // The result reports HeapGrowthBytes, HeapLeakRate (bytes/iteration),
 // ThroughputDriftPct, WriteP99DriftPct, and per-phase P99 drift metrics
 // (JourneyP99DriftPct, QueryHitP99DriftPct, CacheHitP99DriftPct — zero when
-// the corresponding phase is skipped). GCMaxPauseDriftPct tracks GC pause
+// the corresponding phase is skipped). ThroughputCoV and WriteP99CoV add
+// cross-iteration dispersion next to the endpoint drift: a soak whose
+// iterations alternate fast/slow can drift ~0% while being garbage, and the
+// CoV is what exposes it. GCMaxPauseDriftPct tracks GC pause
 // degradation across iterations (positive = worsening GC behavior).
 // AllocGrowthPct tracks allocation growth (positive = allocation leak).
 // Use a small profile (ProfileDev) for fast iterations and more data points.

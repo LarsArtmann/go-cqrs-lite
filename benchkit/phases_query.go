@@ -51,7 +51,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 	defer disp.Close()
 
 	// ── Hit path ──
-	hitColl := NewLatencyCollector(0)
+	hitColl := r.newCollector(0)
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
@@ -82,7 +82,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 
 	// ── Miss path ──
 	missCount := min(dispatchCount, 100)
-	missColl := NewLatencyCollector(0)
+	missColl := r.newCollector(0)
 
 	for range missCount {
 		if ctx.Err() != nil {
@@ -101,7 +101,7 @@ func (r *runner) queryPhase(ctx context.Context) error {
 	r.result.QueryMissLatency = missColl.Stats()
 
 	// ── Paginated path ──
-	pageColl := NewLatencyCollector(0)
+	pageColl := r.newCollector(0)
 	pageSize := uint(20)
 
 	for page := uint(0); int(page)*int(pageSize) < dispatchCount; page++ {

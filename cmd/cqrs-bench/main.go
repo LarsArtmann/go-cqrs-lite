@@ -153,22 +153,23 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 	soak := flags.Soak.Duration()
 
 	config := benchkit.Config{
-		Profile:        profile,
-		PayloadSize:    flags.PayloadSize,
-		Codec:          codec,
-		Warmup:         flags.Warmup,
-		Repeat:         flags.Repeat,
-		Recovery:       flags.Recovery,
-		ReplayOnly:     flags.Replay,
-		SkipBatchWrite: flags.SkipBatchWrite,
-		SkipRawSink:    flags.SkipRawSink,
-		SkipJourney:    flags.SkipJourney,
-		SkipQuery:      flags.SkipQuery,
-		SkipSnapshot:   flags.SkipSnapshot,
-		SkipMixed:      flags.SkipMixed,
-		Strict:         flags.Strict,
-		Backend:        flags.Backend,
-		DiskPath:       diskPath,
+		Profile:                 profile,
+		PayloadSize:             flags.PayloadSize,
+		Codec:                   codec,
+		Warmup:                  flags.Warmup,
+		Repeat:                  flags.Repeat,
+		Recovery:                flags.Recovery,
+		ReplayOnly:              flags.Replay,
+		SkipBatchWrite:          flags.SkipBatchWrite,
+		SkipRawSink:             flags.SkipRawSink,
+		SkipJourney:             flags.SkipJourney,
+		SkipQuery:               flags.SkipQuery,
+		SkipSnapshot:            flags.SkipSnapshot,
+		SkipMixed:               flags.SkipMixed,
+		Strict:                  flags.Strict,
+		Backend:                 flags.Backend,
+		DiskPath:                diskPath,
+		InterpolatedPercentiles: flags.Interpolated,
 	}
 	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
 
@@ -221,7 +222,7 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 		fatalf("benchmark failed: %v", err)
 	}
 
-	writeResult(flags.Format, flags.Output, config, result, repeated)
+	writeResult(flags.Format, flags.Output, config, result, repeated, flags.IncludeRuns)
 
 	return nil
 }
@@ -248,15 +249,16 @@ func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) erro
 	}
 
 	config := benchkit.Config{
-		Profile:        profile,
-		PayloadSize:    flags.PayloadSize,
-		Codec:          codec,
-		Repeat:         flags.Repeat,
-		SkipBatchWrite: flags.SkipBatchWrite,
-		SkipRawSink:    flags.SkipRawSink,
-		SkipJourney:    flags.SkipJourney,
-		SkipQuery:      flags.SkipQuery,
-		SkipSnapshot:   flags.SkipSnapshot,
+		Profile:                 profile,
+		PayloadSize:             flags.PayloadSize,
+		Codec:                   codec,
+		Repeat:                  flags.Repeat,
+		SkipBatchWrite:          flags.SkipBatchWrite,
+		SkipRawSink:             flags.SkipRawSink,
+		SkipJourney:             flags.SkipJourney,
+		SkipQuery:               flags.SkipQuery,
+		SkipSnapshot:            flags.SkipSnapshot,
+		InterpolatedPercentiles: flags.Interpolated,
 	}
 	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
 

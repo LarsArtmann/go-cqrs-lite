@@ -131,7 +131,7 @@ func (r *runner) benchmarkColdLoad(
 		return nil, nil, err
 	}
 
-	coll := NewLatencyCollector(0)
+	coll := r.newCollector(0)
 	states := make([]CounterState, len(streamIDs))
 	versions := make([]event.Version, len(streamIDs))
 
@@ -190,7 +190,7 @@ func (r *runner) benchmarkSnapshotLoad(
 		return
 	}
 
-	coll := NewLatencyCollector(0)
+	coll := r.newCollector(0)
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
@@ -236,7 +236,7 @@ func (r *runner) benchmarkCache(
 	}
 
 	// Cache miss: first load of each stream (full replay, populates cache).
-	missColl := NewLatencyCollector(0)
+	missColl := r.newCollector(0)
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {
@@ -261,7 +261,7 @@ func (r *runner) benchmarkCache(
 	r.result.CacheMissLatency = missColl.Stats()
 
 	// Cache hit: second load (LoadFromVersion of 0 delta events).
-	hitColl := NewLatencyCollector(0)
+	hitColl := r.newCollector(0)
 
 	for i, sid := range streamIDs {
 		if ctx.Err() != nil {

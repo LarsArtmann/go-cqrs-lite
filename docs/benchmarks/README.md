@@ -12,6 +12,9 @@
 >   `--repeat N --format benchstat` emits one sample per run per metric for
 >   `benchstat old.txt new.txt` confidence intervals. `P100`/`Max` is the exact
 >   worst observed latency, not a percentile estimate.
+> - Format-fresh example (repeats + variation output, 2026-09-19 — captured on
+>   an oversubscribed host, so its deltas are deliberately NOT decision-grade):
+>   [`2026-09-19_backend-comparison-variation.md`](2026-09-19_backend-comparison-variation.md).
 
 Hardware: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S (32 cores, 96GB RAM), Go 1.26.3, linux/amd64.
 

@@ -156,12 +156,16 @@ func TestBuildComparisonTable(t *testing.T) {
 		t.Fatal("expected non-nil table")
 	}
 
-	if len(table.Headers) != 14 {
-		t.Errorf("expected 14 headers, got %d", len(table.Headers))
+	if len(table.Headers) != 15 {
+		t.Errorf("expected 15 headers, got %d", len(table.Headers))
 	}
 
 	if table.Headers[0] != "Backend" {
 		t.Errorf("first header should be 'Backend', got %q", table.Headers[0])
+	}
+
+	if table.Headers[11] != "Noisy" {
+		t.Errorf("header after 'CoV %%' should be 'Noisy', got %q", table.Headers[11])
 	}
 
 	if len(table.Rows) != 4 {
@@ -432,6 +436,25 @@ func TestFmtCoVDash(t *testing.T) {
 
 	if got := fmtCoVDash(0.05); got != "5.0%" {
 		t.Errorf("fmtCoVDash(0.05) = %q, want '5.0%%'", got)
+	}
+}
+
+func TestFmtNoisyCount(t *testing.T) {
+	t.Parallel()
+
+	if got := fmtNoisyCount(sampleResult("memory")); got != "-" {
+		t.Errorf("single-run fmtNoisyCount = %q, want '-' (no dispersion data)", got)
+	}
+
+	r := sampleResult("sqlite")
+	r.MetricVariation = []benchkit.MetricVariation{
+		{Name: "a", Reliable: true},
+		{Name: "b", Reliable: false},
+		{Name: "c", Reliable: false},
+	}
+
+	if got := fmtNoisyCount(r); got != "2" {
+		t.Errorf("fmtNoisyCount = %q, want '2'", got)
 	}
 }
 

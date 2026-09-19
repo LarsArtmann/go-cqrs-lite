@@ -80,23 +80,29 @@ func postgresClaimStmt(s Spec, p ClaimParams) (string, []any) {
 	n := 2
 
 	ownerSet := ""
+
 	if s.OwnerColumn != "" && p.Owner != nil {
 		n++
 		ownerSet = ", " + s.OwnerColumn + " = $" + itoa(n)
+
 		args = append(args, p.Owner)
 	}
 
 	filterAnd := ""
+
 	if s.FilterColumn != "" && p.Filter != nil {
 		n++
 		filterAnd = " AND " + s.FilterColumn + " = $" + itoa(n)
+
 		args = append(args, p.Filter)
 	}
 
 	limit := ""
+
 	if p.Limit > 0 {
 		n++
 		limit = " LIMIT $" + itoa(n)
+
 		args = append(args, p.Limit)
 	}
 
@@ -145,6 +151,7 @@ func numberedClaimStmt(s Spec, p ClaimParams, placeholder func(int) string) (str
 	if s.OwnerColumn != "" && p.Owner != nil {
 		n++
 		set += ", " + s.OwnerColumn + " = " + placeholder(n)
+
 		args = append(args, p.Owner)
 	}
 
@@ -159,6 +166,7 @@ func numberedClaimStmt(s Spec, p ClaimParams, placeholder func(int) string) (str
 	if s.FilterColumn != "" && p.Filter != nil {
 		n++
 		filterEq = " AND " + s.FilterColumn + " = " + placeholder(n)
+
 		args = append(args, p.Filter)
 	}
 
@@ -167,6 +175,7 @@ func numberedClaimStmt(s Spec, p ClaimParams, placeholder func(int) string) (str
 	if p.Limit > 0 {
 		n++
 		limit = " LIMIT " + placeholder(n)
+
 		args = append(args, p.Limit)
 	}
 
@@ -195,6 +204,7 @@ func mySQLClaimSelectFull(s Spec, p ClaimParams) (string, []any) {
 
 	if s.FilterColumn != "" && p.Filter != nil {
 		pred += " AND " + s.FilterColumn + " = ?"
+
 		args = append(args, p.Filter)
 	}
 
@@ -202,6 +212,7 @@ func mySQLClaimSelectFull(s Spec, p ClaimParams) (string, []any) {
 
 	if p.Limit > 0 {
 		limit = " LIMIT ?"
+
 		args = append(args, p.Limit)
 	}
 
@@ -225,15 +236,18 @@ func StampLeaseMySQLStmt(s Spec, ids []any, p ClaimParams) (string, []any) {
 	// Argument order MUST match placeholder order: SET columns first, then
 	// the IN (...) ids, then the filter — pinned by TestStampLeaseMySQLStmtArgsAlign.
 	set := s.LeaseColumn + " = ?"
+
 	args = append(args, p.LeaseUntil)
 
 	if s.OwnerColumn != "" && p.Owner != nil {
 		set += ", " + s.OwnerColumn + " = ?"
+
 		args = append(args, p.Owner)
 	}
 
 	for i, id := range ids {
 		placeholders[i] = "?"
+
 		args = append(args, id)
 	}
 
@@ -242,6 +256,7 @@ func StampLeaseMySQLStmt(s Spec, ids []any, p ClaimParams) (string, []any) {
 	idPred := s.IDColumn + " IN (" + strings.Join(placeholders, ", ") + ")"
 	if s.FilterColumn != "" && p.Filter != nil {
 		idPred += " AND " + s.FilterColumn + " = ?"
+
 		args = append(args, p.Filter)
 	}
 

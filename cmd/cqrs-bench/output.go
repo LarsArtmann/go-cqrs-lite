@@ -13,9 +13,10 @@ func writeResult(
 	config benchkit.Config,
 	result *benchkit.Result,
 	repeated *benchkit.RepeatedResult,
+	includeRuns bool,
 ) {
 	withOutput(output, func(w *os.File) {
-		renderRunResult(w, resolveFormat(format), config, result, repeated)
+		renderRunResult(w, resolveFormat(format), config, result, repeated, includeRuns)
 	})
 }
 

@@ -273,6 +273,12 @@ type LatencyStats struct {
 	P99   time.Duration `json:"p99"`
 	P100  time.Duration `json:"p100"`
 	Mean  time.Duration `json:"mean"`
+
+	// Min is the exact fastest observed operation (tracked per Record, not
+	// sampled, so reservoir eviction cannot lose it). The fast path is the
+	// scheduler-uncontended lower bound: Mean/Min approximates how much
+	// overhead scheduling and contention add on top of the backend itself.
+	Min time.Duration `json:"min"`
 }
 
 // ResourceStats holds resource usage snapshots.

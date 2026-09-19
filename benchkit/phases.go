@@ -73,7 +73,7 @@ func (r *runner) rawSinkPhase(ctx context.Context) error {
 	}
 
 	// Time only the Save calls.
-	coll := NewLatencyCollector(0)
+	coll := r.newCollector(0)
 
 	var totalEvents atomic.Int64
 
@@ -121,7 +121,7 @@ func (r *runner) rawSinkPhase(ctx context.Context) error {
 // writePhase writes events to all streams concurrently and collects
 // write latency percentiles plus overall throughput.
 func (r *runner) writePhase(ctx context.Context) error {
-	coll := NewLatencyCollector(0)
+	coll := r.newCollector(0)
 
 	var totalEvents atomic.Int64
 

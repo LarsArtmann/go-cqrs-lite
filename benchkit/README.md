@@ -281,11 +281,36 @@ benchkit.WriteBenchstatRepeated(os.Stdout, repeated) // one sample per run per m
 `WriteBenchstatRepeated` emits one benchstat line per run per metric — the
 sample count `benchstat` needs before it will report a confidence interval.
 `WriteBenchstat` (single result) emits one line per metric and can only be
-compared as point estimates.
+compared as point estimates. Raw per-run data also serializes on request:
+`RepeatedResult.WriteRepeatedJSON` writes the complete structured record
+(median + runs + dispersion), `WriteManifestRepeated` embeds it in a
+`SuiteManifest` as `Runs[]`, and `cqrs-bench run --format manifest
+--include-runs` opts in from the CLI (file grows N-fold — that is why it is
+opt-in).
 
 Percentile semantics: P50-P99 are nearest-rank estimates over the bounded
-reservoir sample; `P100` is the exact worst observed latency (tracked on every
-`Record`), so a single stall cannot be evicted from the tail report.
+reservoir sample; `P100` is the exact worst observed latency and `Min` the
+exact fastest (both tracked on every `Record`), so reservoir eviction can
+lose neither end of the run — and `Mean/Min` approximates how much scheduling
+and contention add on top of the backend. For small-n runs (dev profiles,
+smoke tests) the nearest-rank estimates are coarse — a 5-sample P99 IS the
+max. `Config.InterpolatedPercentiles: true` (CLI `--interpolated-percentiles`)
+switches P50-P99 to linear interpolation between neighboring samples; off by
+default so large runs keep exact reservoir semantics.
+
+Load provenance is recorded at BOTH ends: `Environment.LoadAvg1` (run start)
+and `Environment.LoadAvg1End` (run finish). A run that starts quiet but ends
+oversubscribed warns that its later phases are polluted. The oversubscription
+line itself is configurable via `Config.LoadWarnThreshold` (load-per-CPU
+ratio, default 1.0) for boxes that always run hot.
+
+Downstream tooling that needs the metric-name contract (benchstat
+post-processors, dashboards) uses `MetricNames()`: every benchstat-compatible
+name benchkit can emit, in stable phase-grouped report order. Comparison
+surfaces state dispersion honestly: `Result.NoisyMetricCount` feeds the
+compare table's Noisy column, `PrintComparisonVariation` writes the
+per-backend stability footer (single-run backends are omitted — the missing
+row IS the caveat).
 
 ### Mixed payload sizes
 
@@ -312,6 +337,11 @@ The `SoakResult` reports drift metrics across iterations:
   positive rate indicates a memory leak.
 - **ThroughputDriftPct** — percentage change in throughput from first to last
   iteration (negative = degradation).
+- **ThroughputCoV** / **WriteP99CoV** — cross-iteration dispersion across ALL
+  iterations. Drift compares only the endpoints and can hide a bimodal soak
+  (alternating fast/slow iterations drift ~0% while being garbage); a CoV
+  above the variation threshold means the drift numbers are not
+  decision-grade.
 - **WriteP99DriftPct** — percentage change in write P99 latency (positive =
   latency regression).
 - **JourneyP99DriftPct** / **QueryHitP99DriftPct** / **CacheHitP99DriftPct** —

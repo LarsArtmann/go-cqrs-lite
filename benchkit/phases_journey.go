@@ -59,9 +59,9 @@ func (r *runner) journeyPhase(ctx context.Context) error {
 	disp := newBenchQueryDispatcher(store, streamIDs)
 	defer disp.Close()
 
-	journeyColl := NewLatencyCollector(0)
-	projColl := NewLatencyCollector(0)
-	queryColl := NewLatencyCollector(0)
+	journeyColl := r.newCollector(0)
+	projColl := r.newCollector(0)
+	queryColl := r.newCollector(0)
 
 	var correctnessErrors int
 

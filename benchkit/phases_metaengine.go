@@ -113,7 +113,7 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 	statuses := []string{"open", "done", "cancelled"}
 
 	// Apply throughput (single-threaded)
-	applyColl := NewLatencyCollector(0)
+	applyColl := r.newCollector(0)
 	applyStart := time.Now()
 
 	for i := range sampleCount {
@@ -156,7 +156,7 @@ func (r *runner) metaEngineCounterWorkload(ctx context.Context) error {
 	}
 
 	// ExecuteTyped read latency
-	queryColl := NewLatencyCollector(0)
+	queryColl := r.newCollector(0)
 
 	for range sampleCount {
 		if ctx.Err() != nil {

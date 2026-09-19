@@ -58,6 +58,13 @@ type Environment struct {
 	// that happens, so a noisy run is self-describing instead of silently
 	// producing numbers that look like a regression.
 	LoadAvg1 float64 `json:"loadAvg1,omitempty"`
+
+	// LoadAvg1End is the same sample taken when the run FINISHED. Comparing
+	// it with LoadAvg1 shows load drift: a machine that was quiet at the
+	// start but loud at the end polluted the second half of the run, and a
+	// Result whose numbers doubled mid-run becomes explainable instead of
+	// mysterious. Zero when unavailable.
+	LoadAvg1End float64 `json:"loadAvg1End,omitempty"`
 }
 
 // Config defines a benchmark run.
@@ -205,6 +212,21 @@ type Config struct {
 	// memory backend. When Repeat > 1, Result.RepeatCount/Min/Max/Samples
 	// are populated on the median result.
 	Repeat int
+
+	// LoadWarnThreshold is the load-average-per-CPU ratio above which the
+	// machine counts as oversubscribed. Zero uses the default of 1.0 (the
+	// load equals the CPU count). Raise it on a box that always runs hot
+	// where the default warning is just noise; lower it to hold benchmarks
+	// to a stricter quiet-machine standard.
+	LoadWarnThreshold float64
+
+	// InterpolatedPercentiles switches P50-P99 from the default nearest-rank
+	// estimates to linear interpolation between neighboring samples
+	// (see [WithInterpolatedPercentiles]). Intended for small-n runs where
+	// nearest-rank is coarse — a 5-sample P50 is just the 3rd-smallest value
+	// and the P99 collapses onto the maximum. Off by default so large runs
+	// keep the exact reservoir semantics (and cross-run comparability).
+	InterpolatedPercentiles bool
 
 	// ProgressWriter, when non-nil, receives debounced progress updates
 	// during benchmark execution. Phase transitions are always reported;

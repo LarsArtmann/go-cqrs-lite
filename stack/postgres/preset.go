@@ -28,12 +28,10 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		DSNConfig: sqlopt.DSNConfig{
-			AutoMigrate: true,
-			EventDSN:    "",
-			QueryDSN:    "",
-			ViewDSN:     "",
-		},
+		AutoMigrate:      true,
+		EventDSN:         "",
+		QueryDSN:         "",
+		ViewDSN:          "",
 		durability:       stack.DurabilityNormal,
 		maxOpenConns:     0,
 		maxIdleConns:     0,

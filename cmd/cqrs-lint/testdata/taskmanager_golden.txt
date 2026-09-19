@@ -11,11 +11,11 @@ A013 Command StartTaskCmd embeds *BasicCommand (pointer) — value embedding is 
 A013 Command UpdateTitleCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
 A032 Field AssignTask.AssigneeID is string/int — use id.Of[T] branded ID for type safety
 A032 Field AssignTaskCmd.AssigneeID is string/int — use id.Of[T] branded ID for type safety
+A032 Field AssignmentJob.AssigneeID is string/int — use id.Of[T] branded ID for type safety
+A032 Field AssignmentJob.TaskID is string/int — use id.Of[T] branded ID for type safety
 A032 Field TaskState.AssigneeID is string/int — use id.Of[T] branded ID for type safety
 B004 Command CreateTaskCmd has 4 fields — consider using cqrs-gen to generate constructors
 B005 Fold applyTask uses a switch statement — consider decider.StrictApply for compile-time exhaustiveness
-B028 Manual goroutine dispatch of command — deriver.AsHandler provides idempotent dispatch, error propagation, and event-type filtering
-C004 Projection launches async work — checkpoint may be saved before completion, causing data loss on crash
 C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
@@ -25,16 +25,20 @@ C017 In-memory dead-letter store paired with persistent event store (sqlite) —
 C023 Shutdown() error ignored — pending events or resources may be lost
 C023 Shutdown() error ignored — pending events or resources may be lost
 C023 Stop() error ignored — pending events or resources may be lost
+C023 Stop() error ignored — pending events or resources may be lost
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 C026 Idempotency TTL mismatch — literal TTL passed but a TTL constant (projectionSettleMs) is defined and not used here
 D013 Project creates 11 events without event.WithSchemaVersion — schema evolution (upcasting) is impossible to add retroactively
 E003 Package github.com/larsartmann/go-cqrs-lite/example/taskmanager mixes 4 CQRS concerns (command, event, fold, projection) — split into domain/infrastructure boundaries
 E014 Project uses projectionhost but has no projection drain/sync/flush call — the read model may be stale when the command handler returns
 F004 Server-mode project has no Prometheus metrics — runtime observability is unavailable
+F009 Time-based patterns detected (timers, deadlines, expirations) but scheduling module is not used — hand-rolled timers are fragile and not crash-safe
 F013 Manual HTTP handlers for dispatch but no delivery module is used — hand-rolled HTTP lacks broker fanout, SSE delivery, and trace-context propagation
 F021 metaengine query "task_counts_by_status" has 4 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
 F021 metaengine query "task_views" has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
 F026 metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually
 F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext
-V006 commandlifecycle/projections/v4 is on v4.1.0 but other v4 modules use v4.2.1, v4.3.0, v4.4.0, v4.4.1, v4.5.0, v4.5.1, v4.6.0, v4.7.0, v4.8.0, v4.9.0, v4.10.0, v4.11.0, v4.13.0 — go-cqrs-lite modules within the same major version should be pinned to the same release
+V003 queue/sqlite/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
+V003 queue/v4 is on v4.0.x — 3 minor versions behind latest (v4.3.x), missing bug fixes and features
+V006 queue/v4 is on v4.0.0 but other v4 modules use v4.0.0-00010101000000-000000000000, v4.1.0, v4.2.1, v4.3.0, v4.4.0, v4.4.1, v4.5.0, v4.5.1, v4.6.0, v4.7.0, v4.8.0, v4.9.0, v4.10.0, v4.11.0, v4.13.0 — go-cqrs-lite modules within the same major version should be pinned to the same release

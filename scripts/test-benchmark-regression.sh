@@ -130,6 +130,74 @@ fi
 "$GATE" --baseline "$tmp/save-titled" --current "$tmp/cur8" >/dev/null 2>&1
 check "header-prefixed baseline still parses" 0 $?
 
+# --- 10-16. benchkit noise gate + load gate (2026-09-16 per-metric CI gating) ---
+# noise_json writes a cqrs-bench `--format json` result fixture; entries are
+# "name:cov" pairs (cov as a fraction, as MetricVariation serializes it).
+noise_json() { # noise_json FILE [name:cov]...
+	local file="$1"
+	shift
+
+	local entries="" e name cov
+	for e in "$@"; do
+		name="${e%%:*}"
+		cov="${e#*:}"
+		entries+="${entries:+,}{\"name\":\"$name\",\"unit\":\"ns/op\",\"cov\":$cov,\"reliable\":false}"
+	done
+
+	printf '{"backend":"sqlite","metricVariation":[%s]}' "$entries" >"$file"
+}
+
+noise_json "$tmp/nj-noisy-headline" "write_throughput:0.14" "load_p50_ns:0.03"
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-noisy-headline" >/dev/null 2>&1
+check "noisy HEADLINE metric fails the noise gate" 1 $?
+
+noise_json "$tmp/nj-noisy-tail" "gc_total_pause_ns:0.40" "write_throughput:0.02"
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-noisy-tail" >/dev/null 2>&1
+check "noisy non-headline metric only warns (gate passes)" 0 $?
+
+noise_json "$tmp/nj-stable" "write_throughput:0.02" "load_p50_ns:0.03"
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-stable" >/dev/null 2>&1
+check "all-stable metrics pass the noise gate" 0 $?
+
+printf 'this is not json' >"$tmp/nj-broken"
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-broken" >/dev/null 2>&1
+check "unparseable noise result fails loudly" 1 $?
+
+printf '{"backend":"sqlite"}' >"$tmp/nj-novariation"
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-novariation" >/dev/null 2>&1
+check "result without metricVariation (repeat < 2) fails" 1 $?
+
+noise_json "$tmp/nj-twelve" "write_throughput:0.12"
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-twelve" >/dev/null 2>&1
+check "CoV 12% is noisy at the default 10% threshold" 1 $?
+
+"$GATE" --baseline "$tmp/base1" --current "$tmp/cur1" --noise-current "$tmp/nj-twelve" \
+	--noise-threshold 15 >/dev/null 2>&1
+check "CoV 12% passes under a custom 15% threshold" 0 $?
+
+# Load gate (calibration-gate semantics, fixture-injectable probe): a loud
+# machine aborts BEFORE any benchmarking; --skip-load-gate overrides.
+LOUD_LOADAVG="$tmp/loadavg-loud"
+printf '99.0 88.0 1.00 2/1234 5678\n' >"$LOUD_LOADAVG"
+QUIET_LOADAVG="$tmp/loadavg-quiet"
+printf '0.50 0.40 1.00 2/1234 5678\n' >"$QUIET_LOADAVG"
+
+BENCH_GATE_LOADAVG_FILE="$LOUD_LOADAVG" "$GATE" --noise-only \
+	--noise-current "$tmp/nj-stable" >/dev/null 2>&1
+check "load gate aborts an oversubscribed machine (noise-only)" 1 $?
+
+BENCH_GATE_LOADAVG_FILE="$LOUD_LOADAVG" "$GATE" --noise-only \
+	--noise-current "$tmp/nj-stable" --skip-load-gate >/dev/null 2>&1
+check "--skip-load-gate overrides the loud machine abort" 0 $?
+
+BENCH_GATE_LOADAVG_FILE="$QUIET_LOADAVG" "$GATE" --noise-only \
+	--noise-current "$tmp/nj-stable" >/dev/null 2>&1
+check "quiet machine runs the noise gate through (noise-only)" 0 $?
+
+BENCH_GATE_LOADAVG_FILE="$LOUD_LOADAVG" "$GATE" --noise-only \
+	--noise-current "$tmp/nj-noisy-headline" --skip-load-gate >/dev/null 2>&1
+check "noise-only still fails on a noisy headline" 1 $?
+
 echo ""
 if [[ $failures -gt 0 ]]; then
 	echo "FAIL: $failures fixture test(s) failed"

@@ -201,6 +201,9 @@ jobs:
           name: benchmark-baseline
           path: baseline/
 
+      - name: Noise gate (benchkit per-metric CoV on headline metrics)
+        run: ./scripts/benchmark-regression.sh --noise-only
+
       - name: Run gate benchmarks
         run: |
           # Subshells keep each suite rooted in its own module while
@@ -212,6 +215,13 @@ jobs:
             -bench='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$' \
             -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m) 2>&1 | tee current.txt
+          # SQLite backend path (2026-09-16 decision: the second gate-set
+          # entry rides along with the per-metric noise gate).
+          (cd stack/bench && \
+          go test \
+            -bench='BenchmarkBenchkitSuite_SQLite$' \
+            -run='^$' -benchmem -benchtime=10x -count=5 \
+            -timeout 10m) 2>&1 | tee -a current.txt
           (cd metaengine/tursoengine && \
           go test \
             -bench='BenchmarkMatViewRead/agg=[A-Z]+/scale=1k' \

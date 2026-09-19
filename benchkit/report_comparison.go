@@ -4,6 +4,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -18,7 +19,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 	fmt.Fprintln(w, strings.Repeat("=", 140))
 
 	header := fmt.Sprintf(
-		"%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s %10s",
+		"%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %6s %10s %10s %10s",
 		"Backend",
 		"WriteP50",
 		"WriteP99",
@@ -30,6 +31,7 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 		"A/op",
 		"WrtAmp",
 		"CoV%",
+		"Noisy",
 		"RAM",
 		"Heap",
 		"Disk",
@@ -41,6 +43,10 @@ func PrintComparison(w io.Writer, results map[string]*Result) {
 		r := results[name]
 		printComparisonRow(w, name, r)
 	}
+
+	// Cross-run dispersion footer: a comparison built from repeated runs must
+	// state which backends' numbers are decision-grade, not just the median.
+	PrintComparisonVariation(w, results)
 
 	hasIntegrity := false
 
@@ -119,6 +125,11 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		covStr = fmt.Sprintf("%.1f%%", r.RepeatCoV*100)
 	}
 
+	noisyStr := "-"
+	if len(r.MetricVariation) > 0 {
+		noisyStr = strconv.Itoa(r.NoisyMetricCount())
+	}
+
 	wrtAmpStr := "-"
 	if r.Disk.WriteAmplification > 0 {
 		wrtAmpStr = fmt.Sprintf("%.1fx", r.Disk.WriteAmplification)
@@ -140,7 +151,7 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 	}
 
 	fmt.Fprintf(
-		w, "%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %10s %10s %10s\n",
+		w, "%-10s %10s %10s %10s %10s %10s %10s %6s %8s %8s %8s %6s %10s %10s %10s\n",
 		name,
 		roundDuration(r.WriteLatency.P50),
 		roundDuration(r.WriteLatency.P99),
@@ -152,6 +163,7 @@ func printComparisonRow(w io.Writer, name string, r *Result) {
 		allocStr,
 		wrtAmpStr,
 		covStr,
+		noisyStr,
 		formatBytes(r.Memory.Resident),
 		formatBytes(r.Memory.After),
 		formatBytes(uint64(r.Disk.DatabaseBytes)),
@@ -169,11 +181,11 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 
 	fmt.Fprintln(
 		w,
-		"| Backend | Write P50 | Write P99 | Load P50 | Load P99 | Cold P50 | GC Max | Write Amp | CoV | RAM | Heap | Disk | Integrity |",
+		"| Backend | Write P50 | Write P99 | Load P50 | Load P99 | Cold P50 | GC Max | Write Amp | CoV | Noisy | RAM | Heap | Disk | Integrity |",
 	)
 	fmt.Fprintln(
 		w,
-		"|---------|----------:|----------:|---------:|---------:|---------:|-------:|----------:|----:|----:|-----:|-----:|:---------:|",
+		"|---------|----------:|----------:|---------:|---------:|---------:|-------:|----------:|----:|------:|----:|-----:|-----:|:---------:|",
 	)
 
 	for _, name := range names {
@@ -187,6 +199,11 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 		cov := "-"
 		if r.RepeatCoV > 0 {
 			cov = fmt.Sprintf("%.1f%%", r.RepeatCoV*100)
+		}
+
+		noisy := "-"
+		if len(r.MetricVariation) > 0 {
+			noisy = strconv.Itoa(r.NoisyMetricCount())
 		}
 
 		wrtAmp := "-"
@@ -205,7 +222,7 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 		}
 
 		fmt.Fprintf(
-			w, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
+			w, "| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n",
 			name,
 			roundDuration(r.WriteLatency.P50),
 			roundDuration(r.WriteLatency.P99),
@@ -215,11 +232,45 @@ func PrintMarkdown(w io.Writer, results map[string]*Result) {
 			gcMax,
 			wrtAmp,
 			cov,
+			noisy,
 			formatBytes(r.Memory.Resident),
 			formatBytes(r.Memory.After),
 			formatBytes(uint64(r.Disk.DatabaseBytes)),
 			integrity,
 		)
+	}
+
+	// Variation summary: the honest-comparison rule applied to markdown —
+	// state which backends' medians rest on stable repeats and which metrics
+	// moved too much to trust. Single-run backends stay silent here; the
+	// missing row IS the caveat.
+	printed := false
+
+	for _, name := range names {
+		r := results[name]
+		if r == nil || len(r.MetricVariation) == 0 {
+			continue
+		}
+
+		if !printed {
+			fmt.Fprintf(w, "\n**Variation** (CoV >= %.0f%% = noisy, not decision-grade)\n",
+				VariationThreshold*100)
+
+			printed = true
+		}
+
+		noisyVars := noisyVariations(r.MetricVariation)
+
+		fmt.Fprintf(w, "\n- %s: %d/%d metrics stable", name,
+			len(r.MetricVariation)-len(noisyVars), len(r.MetricVariation))
+
+		for _, v := range noisyVars {
+			fmt.Fprintf(w, ", `%s` CoV %.1f%%", v.Name, v.CoV*100)
+		}
+	}
+
+	if printed {
+		fmt.Fprintln(w)
 	}
 
 	for _, name := range names {

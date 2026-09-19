@@ -7,32 +7,6 @@ import (
 	"strings"
 )
 
-// SuiteManifest records the complete context for a benchmark result:
-// the config that produced it, the environment it ran in, and the result.
-// This enables reproducibility: a manifest can be archived alongside a
-// release to document exactly what was measured and under what conditions.
-type SuiteManifest struct {
-	SchemaVersion string      `json:"schemaVersion"`
-	Config        Config      `json:"config"`
-	Environment   Environment `json:"environment"`
-	Result        *Result     `json:"result"`
-}
-
-// NewManifest creates a SuiteManifest from a Config and Result.
-func NewManifest(config Config, result *Result) SuiteManifest {
-	return SuiteManifest{
-		SchemaVersion: SchemaVersion,
-		Config:        config,
-		Environment:   result.Environment,
-		Result:        result,
-	}
-}
-
-// WriteManifest serializes a SuiteManifest as indented JSON.
-func WriteManifest(w io.Writer, config Config, result *Result) error {
-	return writeJSONAny(w, NewManifest(config, result))
-}
-
 // metric is one benchstat-compatible measurement extracted from a [Result]:
 // the name suffix appended to the benchmark name, the value, and the benchstat
 // unit token.
@@ -53,7 +27,44 @@ type metric struct {
 // "<unit>/op" made benchstat-comparable reports look like per-op costs and
 // invited bogus before/after comparisons.
 func resultMetrics(r *Result) []metric {
-	all := []metric{
+	all := allMetrics(r)
+
+	out := make([]metric, 0, len(all))
+
+	for _, m := range all {
+		if m.value == 0 {
+			continue
+		}
+
+		out = append(out, m)
+	}
+
+	return out
+}
+
+// MetricNames returns every benchstat-compatible metric name benchkit can
+// extract from a Result, in the stable phase-grouped report order — the
+// contract downstream tooling (benchstat post-processors, regression
+// dashboards, artifact analyzers) can key on without importing internals.
+// A name is in this list even for a run whose phase was skipped; pair it
+// with [Result.MetricVariation] or a benchstat file to see which names a
+// specific run actually measured. The returned slice is a fresh copy.
+func MetricNames() []string {
+	all := allMetrics(&Result{})
+
+	names := make([]string, 0, len(all))
+	for _, m := range all {
+		names = append(names, m.suffix)
+	}
+
+	return names
+}
+
+// allMetrics builds the FULL benchstat metric list for a Result — including
+// zero-valued entries — in the stable phase-grouped order. resultMetrics
+// filters the zeros; MetricNames exposes the name universe.
+func allMetrics(r *Result) []metric {
+	return []metric{
 		{"write_throughput", "ops/s", r.WriteThroughput},
 		{"rawsink_throughput", "ops/s", r.RawSinkThroughput},
 		{"write_p50_ns", "ns/op", float64(r.WriteLatency.P50.Nanoseconds())},
@@ -112,18 +123,6 @@ func resultMetrics(r *Result) []metric {
 		{"write_amplification", "ratio", r.Disk.WriteAmplification},
 		{"heap_bytes", "B", float64(r.Memory.After)},
 	}
-
-	out := make([]metric, 0, len(all))
-
-	for _, m := range all {
-		if m.value == 0 {
-			continue
-		}
-
-		out = append(out, m)
-	}
-
-	return out
 }
 
 // metricValues indexes a Result's metrics by suffix, so a multi-run writer can
