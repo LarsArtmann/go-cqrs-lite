@@ -1524,8 +1524,13 @@
                   # convergence suite and duckdb AutoCRUD pushed packages near
                   # the old bound under load + race (15s poll near-miss
                   # observed 2026-08-16); headroom is cheap, flakes are not.
-                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=10m && \
-                  echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=12m && \
+                  # -p caps parallel package builds (default 4): the composed
+                  # storm on the shared 24-28-user host starved even modest
+                  # packages at full parallelism under load 30+ (2026-09-19/20,
+                  # three burned verify attempts). Override upward in a quiet
+                  # window: VERIFY_TEST_P=$(nproc) nix run .#verify
+                  echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1 -timeout=10m -p "''${VERIFY_TEST_P:-4}" && \
+                  echo "=== Race ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -race -count=1 -timeout=12m -p "''${VERIFY_TEST_P:-4}" && \
                   echo "=== Lint ===" && nix run .#lint && \
                   echo "=== Check Arch ===" && nix run .#check-arch && \
                   echo "=== Check Modsums ===" && nix run .#check-modsums && \

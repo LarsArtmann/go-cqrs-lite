@@ -98,8 +98,6 @@ updated=0
 skipped=0
 
 for tag in "$@"; do
-	version="${tag##*/}" # event/v4.0.1 → v4.0.1 (kept for summary clarity)
-
 	body=$(extract_section "$tag")
 	if [ -z "$body" ]; then
 		echo "SKIP $tag: no matching section in $CHANGELOG"

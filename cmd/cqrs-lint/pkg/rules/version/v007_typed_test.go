@@ -41,7 +41,19 @@ func buildTypedFixtureContext(t *testing.T) *analyzer.AnalysisContext {
 		t.Fatalf("typed fixture loaded with errors: %v", ctx.LoadErrors)
 	}
 	if !ctx.TypedConfirmations() {
-		t.Fatal("typed fixture context should have typed confirmations available (auto mode)")
+		var loaded, withTypes int
+		for _, pkg := range ctx.Packages {
+			loaded++
+			if pkg.TypesInfo != nil {
+				withTypes++
+			}
+		}
+		t.Fatalf("typed fixture loaded without type info (auto mode): "+
+			"%d package(s) loaded, %d with TypesInfo, %d load error group(s) — "+
+			"the fixture's go.mod pins are probably unresolvable in this environment "+
+			"(release pin-sweeps bump testdata/typedfixture; reproduce with "+
+			"`cd testdata/typedfixture && GOWORK=off go mod tidy && GOWORK=off go build ./...`)",
+			loaded, withTypes, len(ctx.LoadErrors))
 	}
 
 	return ctx
