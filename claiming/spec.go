@@ -36,6 +36,19 @@ type Spec struct {
 	// advisory. Stores that need ordered claims on SQLite must rank
 	// client-side after the claim or extend the builder deliberately.
 	OrderBy string
+
+	// OwnerColumn optionally names a column stamped with the claiming
+	// worker's identity and re-checked on owner-fenced renewal
+	// ([RenewOwnedStmt]). Zero value (empty) keeps the legacy owner-less
+	// shape used by scheduling/sqlstore. Only the ClaimStmt family honors
+	// it.
+	OwnerColumn string
+
+	// FilterColumn optionally names a column that ClaimStmt-family
+	// statements constrain to ClaimParams.Filter (an equality predicate,
+	// e.g. a collection column). Zero value (empty) = no filter — the
+	// legacy whole-table shape.
+	FilterColumn string
 }
 
 // orderExpr picks the claim order: the named [Spec.OrderBy] or the due
