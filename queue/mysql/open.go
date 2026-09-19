@@ -71,6 +71,7 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 // close it). The DB must be a "mysql" driver connection to the database
 // holding the queue tables.
 func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
+	//art-dupl:accept engine scaffolding twin of queue/sqlite OpenDB; dep-isolated modules, conformance pins semantics
 	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
 	for _, opt := range opts {
 		opt(&options)
@@ -103,6 +104,7 @@ func (s *Store[T]) Close() error {
 		return nil
 	}
 
+	//art-dupl:accept engine scaffolding twin of queue/sqlite Close; only the pool handle differs
 	return s.db.Close()
 }
 

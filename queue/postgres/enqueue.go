@@ -187,6 +187,7 @@ func validateDeps(ctx context.Context, q interface {
 	}
 	defer rows.Close()
 
+	//art-dupl:accept dialect twin of queue/sqlite validateDeps missing-scan; dep-isolated modules
 	var missing []string
 
 	for rows.Next() {

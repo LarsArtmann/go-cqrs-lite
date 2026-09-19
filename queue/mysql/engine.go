@@ -17,6 +17,7 @@ import (
 // transaction domain. The queue's own task tables and their richer claim
 // semantics (priority+aging, dependency gating) remain engine-owned
 // (queue.Store[T]); this surface is the generic claim substrate.
+// art-dupl:accept engine scaffolding twin of queue/postgres; dep-isolated modules, claimkit carries the semantics
 type Engine struct {
 	db     *sql.DB
 	ownsDB bool
@@ -97,6 +98,7 @@ func (e *Engine) Profile() metaengine.EngineProfile {
 
 // PingContext verifies connectivity (driver-factory health probe).
 func (e *Engine) PingContext(ctx context.Context) error {
+	//art-dupl:accept engine scaffolding twin; one-line driver ping, only the pool handle differs
 	return e.db.PingContext(ctx) //nolint:wrapcheck // driver-provided ping error
 }
 

@@ -15,6 +15,7 @@ import (
 // Cancel withdraws a Pending task. A non-empty reason is stored in the
 // task.cancelled fact detail ("reason" key).
 func (s *Store[T]) Cancel(ctx context.Context, id task.ID, reason string) error {
+	//art-dupl:accept dialect twin — queue engines are dep-isolated mirrors; conformance pins cancel semantics
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {

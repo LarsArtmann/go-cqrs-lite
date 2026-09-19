@@ -69,6 +69,7 @@ func Open[T any](path string, opts ...StoreOption[T]) (*Store[T], error) {
 // close it beyond the pool the database/sql machinery owns). The DB must
 // carry the same single-writer discipline for the claim invariants.
 func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
+	//art-dupl:accept engine scaffolding twin of queue/mysql OpenDB; dep-isolated modules, conformance pins semantics
 	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
 	for _, opt := range opts {
 		opt(&options)
@@ -134,7 +135,10 @@ func (s *Store[T]) migrate(ctx context.Context) error {
 }
 
 // Close releases the database connection.
-func (s *Store[T]) Close() error { return s.db.Close() }
+func (s *Store[T]) Close() error {
+	//art-dupl:accept engine scaffolding twin; only the pool handle differs
+	return s.db.Close()
+}
 
 // withTx runs fn inside one transaction, rolling back on error.
 func (s *Store[T]) withTx(ctx context.Context, fn func(tx *sql.Tx) error) error {

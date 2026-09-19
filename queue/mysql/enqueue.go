@@ -149,6 +149,7 @@ func (s *Store[T]) insertTaskRow(
 
 // getTaskByDedupKey returns the stored task for a dedup key, if any.
 func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task[T], bool, error) {
+	//art-dupl:accept dialect twin of queue/sqlite getTaskByDedupKey; conformance pins dedup-key idempotency
 	var id string
 
 	err := s.db.QueryRowContext(ctx, `SELECT id FROM tasks WHERE dedup_key = ?`, key).Scan(&id)

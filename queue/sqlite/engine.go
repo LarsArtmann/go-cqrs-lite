@@ -94,6 +94,7 @@ func (e *Engine) Profile() metaengine.EngineProfile {
 
 // PingContext verifies connectivity (driver-factory health probe).
 func (e *Engine) PingContext(ctx context.Context) error {
+	//art-dupl:accept engine scaffolding twin; one-line driver ping, only the pool handle differs
 	return e.db.PingContext(ctx) //nolint:wrapcheck // driver-provided ping error
 }
 

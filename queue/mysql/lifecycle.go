@@ -14,6 +14,7 @@ import (
 // Complete marks a Running task Completed. The token predicate is the
 // fence: only the current claim holder can finish (ADR-0134).
 func (s *Store[T]) Complete(ctx context.Context, id task.ID, token string, result []byte) error {
+	//art-dupl:accept dialect twin — lifecycle family mirrors; conformance pins lifecycle semantics
 	now := time.Now()
 
 	return s.withTx(ctx, func(tx *sql.Tx) error {

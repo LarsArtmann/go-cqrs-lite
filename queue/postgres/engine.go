@@ -22,6 +22,7 @@ import (
 //
 // The engine keeps its own database/sql pool (pgx stdlib) — the queue's
 // pgxpool and this pool are two handles to one database.
+// art-dupl:accept engine scaffolding twin of queue/mysql; dep-isolated modules, claimkit carries the semantics
 type Engine struct {
 	db     *sql.DB
 	ownsDB bool
@@ -92,6 +93,7 @@ func (e *Engine) Profile() metaengine.EngineProfile {
 
 // PingContext verifies connectivity (driver-factory health probe).
 func (e *Engine) PingContext(ctx context.Context) error {
+	//art-dupl:accept engine scaffolding twin; one-line driver ping, only the pool handle differs
 	return e.db.PingContext(ctx) //nolint:wrapcheck // driver-provided ping error
 }
 

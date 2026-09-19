@@ -7,6 +7,7 @@ import (
 	"errors"
 )
 
+//art-dupl:accept dialect twin of queue/sqlite cancelRequestedSQL; identical wire shape
 const cancelRequestedSQL = `SELECT EXISTS(
 	SELECT 1 FROM facts WHERE task_id = ? AND type = 'task.cancel-requested')`
 

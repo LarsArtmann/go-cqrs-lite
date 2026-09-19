@@ -16,6 +16,7 @@ import (
 // priority first (stored priority + the bounded age bonus,
 // queue.PriorityAging*: scheduling, not state), oldest first — and every
 // dependency completed (deps not met => not selectable).
+// art-dupl:accept dialect twin of queue/postgres candidateSQL; placeholder spelling (? vs $N) only
 const candidateSQL = `
 	SELECT t.id, t.status, t.lease_owner FROM tasks t
 	WHERE ((t.status = 'pending' AND t.not_before <= ?)

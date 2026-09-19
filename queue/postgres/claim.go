@@ -17,6 +17,7 @@ import (
 // multi-machine replacement for SQLite's single serialized writer).
 // Semantics otherwise match the SQLite engine: status-aware due-ness,
 // dependency gating, effective-priority order.
+// art-dupl:accept dialect twin of queue/sqlite candidateSQL; placeholder spelling ($N vs ?) and SKIP LOCKED only
 const candidateSQL = `
 	SELECT t.id, t.status, t.lease_owner FROM tasks t
 	WHERE ((t.status = 'pending' AND t.not_before <= $1)
