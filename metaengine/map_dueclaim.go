@@ -84,12 +84,12 @@ func reifyClaim(raw any) (mapClaimRecord, bool) {
 // ClaimInsert implements [DueClaimer.ClaimInsert]: idempotent by key — an
 // existing live record wins, a tombstone (or absence) is replaced.
 func (m *MapDueClaimer) ClaimInsert(
-	_ context.Context,
+	ctx context.Context,
 	collection, key string,
 	dueAt time.Time,
 	payload []byte,
 ) error {
-	_, err := m.rmw.MapUpdate(collection, key, func(prev any) any {
+	err := m.rmw.MapUpdate(ctx, collection, key, func(prev any) any {
 		if rec, ok := reifyClaim(prev); ok && !rec.Deleted {
 			return prev
 		}
@@ -133,7 +133,7 @@ func (m *MapDueClaimer) ClaimDue(ctx context.Context, req ClaimDueRequest) ([]Du
 
 		won := false
 
-		upd := m.rmw.MapUpdate(req.Collection, rec.Key, func(prev any) any {
+		upd := m.rmw.MapUpdate(ctx, req.Collection, rec.Key, func(prev any) any {
 			cur, ok := reifyClaim(prev)
 			if !ok || cur.Deleted || !claimable(cur, now) {
 				return prev // lost the race or not due: leave untouched
@@ -170,14 +170,14 @@ func (m *MapDueClaimer) ClaimDue(ctx context.Context, req ClaimDueRequest) ([]Du
 // RenewLease implements [DueClaimer.RenewLease]: extend only while the claim
 // is live and owned by owner; otherwise [ErrClaimLeaseNotHeld].
 func (m *MapDueClaimer) RenewLease(
-	_ context.Context,
+	ctx context.Context,
 	collection, key, owner string,
 	extend time.Duration,
 	now time.Time,
 ) error {
 	held := false
 
-	err := m.rmw.MapUpdate(collection, key, func(prev any) any {
+	err := m.rmw.MapUpdate(ctx, collection, key, func(prev any) any {
 		cur, ok := reifyClaim(prev)
 		if ok && !cur.Deleted && cur.Owner == owner && cur.LeaseUntil.After(now) {
 			held = true
@@ -200,8 +200,8 @@ func (m *MapDueClaimer) RenewLease(
 }
 
 // ClaimDelete implements [DueClaimer.ClaimDelete]: unconditional, idempotent.
-func (m *MapDueClaimer) ClaimDelete(_ context.Context, collection, key string) error {
-	err := m.maps.MapDelete(collection, key) //nolint:wrapcheck // engine pass-through
+func (m *MapDueClaimer) ClaimDelete(ctx context.Context, collection, key string) error {
+	err := m.maps.MapDelete(ctx, collection, key) //nolint:wrapcheck // engine pass-through
 	if err != nil {
 		return fmt.Errorf("metaengine.MapDueClaimer.ClaimDelete: %w", err)
 	}
@@ -213,11 +213,11 @@ func (m *MapDueClaimer) ClaimDelete(_ context.Context, collection, key string) e
 // tombstoned only when its DueAt still matches — a re-scheduled generation
 // under the same key survives a stale finalizer (the MarkFired race fix).
 func (m *MapDueClaimer) ClaimDeleteIfDue(
-	_ context.Context,
+	ctx context.Context,
 	collection, key string,
 	dueAt time.Time,
 ) error {
-	err := m.rmw.MapUpdate(collection, key, func(prev any) any {
+	err := m.rmw.MapUpdate(ctx, collection, key, func(prev any) any {
 		cur, ok := reifyClaim(prev)
 		if !ok || cur.Deleted || !cur.DueAt.Equal(dueAt) {
 			return prev

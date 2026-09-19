@@ -66,14 +66,14 @@ func reifyDedup(raw any) (mapDedupRecord, bool) {
 // expired or absent key is (re-)recorded with a fresh window and reported
 // unseen.
 func (m *MapDedupStore) DedupCheckAndRecord(
-	_ context.Context,
+	ctx context.Context,
 	collection, key string,
 	ttl time.Duration,
 	now time.Time,
 ) (bool, error) {
 	seen := false
 
-	err := m.rmw.MapUpdate(collection, key, func(prev any) any {
+	err := m.rmw.MapUpdate(ctx, collection, key, func(prev any) any {
 		cur, ok := reifyDedup(prev)
 		if ok && cur.ExpiresAt.After(now) {
 			seen = true
@@ -93,11 +93,11 @@ func (m *MapDedupStore) DedupCheckAndRecord(
 // DedupSeen implements [DedupStore.DedupSeen]: a read with lazy expiry — a
 // lapsed record reads as unseen and is deleted opportunistically.
 func (m *MapDedupStore) DedupSeen(
-	_ context.Context,
+	ctx context.Context,
 	collection, key string,
 	now time.Time,
 ) (bool, error) {
-	raw, ok, err := m.maps.MapGet(collection, key)
+	raw, ok, err := m.maps.MapGet(ctx, collection, key)
 	if err != nil {
 		return false, fmt.Errorf("metaengine.MapDedupStore.DedupSeen: %w", err)
 	}
@@ -115,7 +115,7 @@ func (m *MapDedupStore) DedupSeen(
 		return true, nil
 	}
 
-	_ = m.maps.MapDelete(collection, key)
+	_ = m.maps.MapDelete(ctx, collection, key)
 
 	return false, nil
 }
@@ -140,7 +140,7 @@ func (m *MapDedupStore) DedupSweep(ctx context.Context, collection string, now t
 			continue
 		}
 
-		if err := m.maps.MapDelete(collection, rec.Key); err == nil {
+		if err := m.maps.MapDelete(ctx, collection, rec.Key); err == nil {
 			removed++
 		}
 	}
