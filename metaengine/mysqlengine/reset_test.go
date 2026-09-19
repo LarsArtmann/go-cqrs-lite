@@ -3,6 +3,7 @@ package mysqlengine_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -37,6 +38,17 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("StreamAppend: %v", err)
 	}
 
+	// ADR-0142 write-side collections ride the same reset contract.
+	claimer := eng.(metaengine.DueClaimer)
+	if err := claimer.ClaimInsert(ctx, "timers", "t1", time.Now().Add(-time.Second), []byte("fire")); err != nil {
+		t.Fatalf("ClaimInsert: %v", err)
+	}
+
+	dedup := eng.(metaengine.DedupStore)
+	if seen, err := dedup.DedupCheckAndRecord(ctx, "cmds", "c1", time.Minute, time.Now()); err != nil || seen {
+		t.Fatalf("DedupCheckAndRecord first (seen=%v err=%v)", seen, err)
+	}
+
 	if err := eng.(metaengine.EngineResetter).ResetEngine(ctx); err != nil {
 		t.Fatalf("ResetEngine: %v", err)
 	}
@@ -57,6 +69,18 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 	stream, err := sl.StreamRead(ctx, "events", "s1")
 	if err != nil || len(stream) != 0 {
 		t.Fatalf("stream log must be empty after reset (len=%d err=%v)", len(stream), err)
+	}
+
+	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
+		Collection: "timers", Owner: "w1", Lease: time.Minute,
+	})
+	if err != nil || len(claims) != 0 {
+		t.Fatalf("claims must be gone after reset (len=%d err=%v)", len(claims), err)
+	}
+
+	seen, err := dedup.DedupSeen(ctx, "cmds", "c1", time.Now())
+	if err != nil || seen {
+		t.Fatalf("dedup must be gone after reset (seen=%v err=%v)", seen, err)
 	}
 }
 

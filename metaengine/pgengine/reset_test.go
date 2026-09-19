@@ -3,6 +3,7 @@ package pgengine_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -49,6 +50,17 @@ func TestResetEngine_ClearsAllState(t *testing.T) {
 		t.Fatalf("StreamAppend: %v", err)
 	}
 
+	// ADR-0142 write-side collections ride the same reset contract.
+	claimer := eng.(metaengine.DueClaimer)
+	if err := claimer.ClaimInsert(ctx, "timers", "t1", time.Now().Add(-time.Second), []byte("fire")); err != nil {
+		t.Fatalf("ClaimInsert: %v", err)
+	}
+
+	dedup := eng.(metaengine.DedupStore)
+	if seen, err := dedup.DedupCheckAndRecord(ctx, "cmds", "c1", time.Minute, time.Now()); err != nil || seen {
+		t.Fatalf("DedupCheckAndRecord first (seen=%v err=%v)", seen, err)
+	}
+
 	if err := eng.(metaengine.EngineResetter).ResetEngine(ctx); err != nil {
 		t.Fatalf("ResetEngine: %v", err)
 	}
@@ -73,6 +85,18 @@ func TestResetEngine_ClearsAllState(t *testing.T) {
 
 	if len(stream) != 0 {
 		t.Fatalf("stream log must be empty after reset, got %d entries", len(stream))
+	}
+
+	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
+		Collection: "timers", Owner: "w1", Lease: time.Minute,
+	})
+	if err != nil || len(claims) != 0 {
+		t.Fatalf("claims must be gone after reset (len=%d err=%v)", len(claims), err)
+	}
+
+	seen, err := dedup.DedupSeen(ctx, "cmds", "c1", time.Now())
+	if err != nil || seen {
+		t.Fatalf("dedup must be gone after reset (seen=%v err=%v)", seen, err)
 	}
 }
 

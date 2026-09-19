@@ -5,6 +5,7 @@ package duckdbengine_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -41,6 +42,17 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 
 	if err := sl.StreamAppend(ctx, "events", "s1", []any{"e1", "e2"}); err != nil {
 		t.Fatalf("StreamAppend: %v", err)
+	}
+
+	// ADR-0142 write-side collections ride the same reset contract.
+	claimer := eng.(metaengine.DueClaimer)
+	if err := claimer.ClaimInsert(ctx, "timers", "t1", time.Now().Add(-time.Second), []byte("fire")); err != nil {
+		t.Fatalf("ClaimInsert: %v", err)
+	}
+
+	dedup := eng.(metaengine.DedupStore)
+	if seen, err := dedup.DedupCheckAndRecord(ctx, "cmds", "c1", time.Minute, time.Now()); err != nil || seen {
+		t.Fatalf("DedupCheckAndRecord first (seen=%v err=%v)", seen, err)
 	}
 
 	if err := eng.(duckGraphAdder).GraphAddEdge(
