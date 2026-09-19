@@ -71,19 +71,27 @@ func newEngine(ctx context.Context, db *sql.DB, ownsDB bool) (*Engine, error) {
 	return &Engine{db: db, ownsDB: ownsDB, Claims: claims, Dedup: dedup}, nil
 }
 
+// mysqlNsPerOp / mysqlNetworkRTT mirror the metaengine/mysqlengine priors
+// (same-datacenter round trip, calibratable by the live probe) without a
+// production dep on that module.
+const (
+	mysqlNsPerOp     = 12000.0
+	mysqlNetworkRTT  = 1 * 1000 * 1000 // 1ms
+)
+
 // Profile declares the engine's capabilities: native indexed claims and
 // dedup over SQL, and NOTHING else — task storage is not a projection ADT;
 // the planner must not route fold queries here.
 func (e *Engine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
 		Name:        "queue-mysql",
-		NsPerOp:     metaengine.MySQLNsPerOp,
+		NsPerOp:     mysqlNsPerOp,
 		Persistence: metaengine.PersistencePersistent,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTDueClaim: metaengine.ComplexityOLogN,
 			metaengine.ADTDedup:    metaengine.ComplexityOLogN,
 		},
-		NetworkRTT: metaengine.MySQL_NetworkRTT,
+		NetworkRTT: mysqlNetworkRTT,
 	}
 }
 

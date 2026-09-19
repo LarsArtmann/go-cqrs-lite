@@ -194,6 +194,15 @@ else
 		CGO_ENABLED=1 GOWORK=off \
 			go test -tags "integration goexperiment.jsonv2" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
 	)
+	echo ""
+	echo "--- queue/mysql (work-queue conformance + ADR-0142 engine surface) ---"
+	SEED=$(new_shuffle_seed)
+	log_shuffle_seed "queue/mysql" "$SEED"
+	(
+		cd queue/mysql
+		CGO_ENABLED=1 GOWORK=off \
+			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
+	)
 fi
 
 echo ""

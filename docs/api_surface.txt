@@ -4708,6 +4708,10 @@ queue/interface FactSink
 queue/interface FactTx
 queue/interface Store
 queue/method ID
+queue/mysql/func NewEngine
+queue/mysql/func NewEngine
+queue/mysql/func NewEngineFromDB
+queue/mysql/func NewEngineFromDB
 queue/mysql/func Open
 queue/mysql/func Open
 queue/mysql/func OpenDB
@@ -4726,6 +4730,8 @@ queue/mysql/method CancelRunning
 queue/mysql/method CancelRunning
 queue/mysql/method ClaimDue
 queue/mysql/method ClaimDue
+queue/mysql/method Close
+queue/mysql/method Close
 queue/mysql/method Close
 queue/mysql/method Close
 queue/mysql/method Complete
@@ -4754,6 +4760,10 @@ queue/mysql/method List
 queue/mysql/method List
 queue/mysql/method MarkOrphaned
 queue/mysql/method MarkOrphaned
+queue/mysql/method PingContext
+queue/mysql/method PingContext
+queue/mysql/method Profile
+queue/mysql/method Profile
 queue/mysql/method Requeue
 queue/mysql/method Requeue
 queue/mysql/method RescueDead
@@ -4770,6 +4780,8 @@ queue/mysql/method Watermarks
 queue/mysql/method Watermarks
 queue/mysql/method WithFacts
 queue/mysql/method WithFacts
+queue/mysql/struct Engine
+queue/mysql/struct Engine
 queue/mysql/struct Store
 queue/mysql/struct Store
 queue/mysql/type StoreOption
