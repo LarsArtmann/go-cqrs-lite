@@ -93,6 +93,8 @@ github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 h1:r8TEd1S2ptCmhRRrzPeyZS
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0/go.mod h1:lYMlD5qxyTJP/0t5+NBBG1jxA3au/IZ4mH2zpN9NYqM=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 h1:jfQ909TlBmGxT3DzH2iHCo+3w9C5kZhXB9pT1eDsu3w=
 github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0/go.mod h1:A8rKgOqgOsLzmEJAH7VrL8ggeAEQ/W0no27IYCul/zs=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0 h1:MgBqW6hW0FunHQEYt0qhb/90JL27Mbq1yZPsbao417A=
+github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0/go.mod h1:EFP44mG2Dp2SOneVcHPXDzdUYcl+q3rC4jhQ7VZ4K40=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 h1:+witfyGQ2LZI8VqbftV+zFFp3qVMLbbTtNiS8X41cpc=
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0/go.mod h1:aJAwsOhQl8bfjwKTZAWN1BIAmwhnHbK2klSIdb9/k58=
 github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 h1:j/OlTRmXEpfT6oc8YO6jbUcWWUk2gc1Y7C8RP9UtiEM=

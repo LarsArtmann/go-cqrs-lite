@@ -36,7 +36,3 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
-
-// Sibling replace for unpublished metaengine symbols (Store.Reset, ResetResult,
-// EngineResetter); stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

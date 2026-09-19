@@ -25,9 +25,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/queue/v4 => ../../queue
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming

@@ -28,6 +28,3 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260911204522-f61a6ca850bd // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
-
-// Sibling replace for unpublished metaengine symbols (EngineResetter); stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

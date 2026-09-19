@@ -35,9 +35,6 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 )
 
-// Sibling replace for unpublished metaengine symbols (DurabilityReporter and later); stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
-
 // v4.0.0-v4.1.0 re-seeded only the log prefix on restart: reopening a
 // persistent DB and appending overwrote early stream/journal entries (data
 // loss). v4.2.0 shipped full four-prefix seeding — see ADR-0118 incident

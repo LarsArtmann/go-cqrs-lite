@@ -12,7 +12,6 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
@@ -28,13 +27,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
 )
-
-// Sibling replaces for not-yet-tagged workspace modules; stripped by
-// scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/scheduling/v4 => ../../scheduling
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../../metaengine/sqliteengine
