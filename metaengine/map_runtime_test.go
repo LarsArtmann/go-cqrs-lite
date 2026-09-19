@@ -22,10 +22,12 @@ func mapRuntimeHosts(t *testing.T) map[string]metaengine.Engine {
 	hosts := map[string]metaengine.Engine{"memory": metaengine.NewMemoryEngine()}
 	t.Cleanup(func() { _ = hosts["memory"].Close() })
 
-	db, err := sql.Open("sqlite", ":memory:")
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
+
+	db.SetMaxOpenConns(1) // one shared in-memory database across the pool
 
 	t.Cleanup(func() { _ = db.Close() })
 
