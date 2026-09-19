@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-sse v0.6.0

@@ -7,8 +7,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0

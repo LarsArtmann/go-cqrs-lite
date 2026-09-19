@@ -9,18 +9,18 @@ require (
 	github.com/knadh/koanf/v2 v2.3.6
 	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.2.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
