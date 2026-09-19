@@ -145,7 +145,7 @@ func BuildContextWithTypes(
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedFiles,
-		Dir:        dir,
+		Dir: dir,
 	}
 
 	pkgs, err := packages.Load(cfg, "./...")

@@ -424,12 +424,10 @@ report := store.Doctor(ctx)
 See [ADR-0098](../docs/adr/0098-metaengine-persistence-enum.md) for the design
 rationale and rejected alternatives.
 
-## Build Tag (Portability)
+## Toolchain (Portability)
 
-This module is built with the `goexperiment.jsonv2` build tag (Go 1.26+), which
-enables `encoding/json/v2`. Consumers on stock Go 1.26 must build with
-`-tags goexperiment.jsonv2`; the tag graduates to default in Go 1.27+. CI and
-`nix run .#build` apply the tag automatically.
+This module imports `encoding/json/v2`: it requires Go 1.27+ (where the package
+graduated). No build tag or `GOEXPERIMENT` is needed.
 
 ## ApplyEncoded (Hot Path for Projections)
 

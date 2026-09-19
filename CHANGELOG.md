@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed — jsonv2 graduation sweep: no-op build tag + GOEXPERIMENT removed everywhere — 2026-09-19
+
+- Go 1.27 graduated `encoding/json/v2`, making `-tags "goexperiment.jsonv2"`
+  and `GOEXPERIMENT=jsonv2` no-ops. Removed from flake.nix (the central
+  `goTags` list is now empty — the mechanism stays for future experiments),
+  26 scripts/, 6 GitHub workflows, cqrs-lint's `packages.Load` BuildFlags,
+  api-stability/cqrs-bench test harnesses, the recipes compile harness, and
+  every living doc (AGENTS.md, gowork-modes.md, testing-guide, EXPERIMENTAL_
+  BUILD_TAGS.md, READMEs, Run-comments). Plain `go build`/`go test` is the
+  contract. Release workflow's `setup-go` pinned 1.26 → 1.27 (would have
+  failed against `go 1.27.1` modules). Historical docs (CHANGELOG, dated
+  reports/benchmarks) keep their era-accurate commands.
+- Fixed the two latent failures the first full `#verify` run surfaced:
+  `TestEngineProfilesSetReadCosts` roster now points at `profile.go` for
+  pg/duckdb/pebble (Profile() was extracted for the file-size ratchet — the
+  ReadCosts moved with it), and `TestMySQLEngineDueClaims`' factory now acts
+  on the subtest `t` instead of a captured parent `t` (a skip on the parent
+  mid-subtest panicked the harness).
+
 ### Added — FactSink suite everywhere + QEMU CAS cap + recipes §2.38 — 2026-09-19
 
 - **`adttest.AssertFactSink` wired into every remaining same-tx substrate**:

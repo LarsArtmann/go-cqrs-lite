@@ -14,9 +14,9 @@ func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	cfg := &packages.Config{
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedImports | packages.NeedFiles,
-		Fset:       fset,
-		Tests:      false,
-		Dir:        dir,
+		Fset:  fset,
+		Tests: false,
+		Dir:   dir,
 	}
 
 	pkgs, err := packages.Load(cfg, "./...")

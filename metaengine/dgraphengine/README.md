@@ -132,7 +132,7 @@ Tests require a running Dgraph instance. Set `DGRAPH_ADDR` (default:
 docker run -d -p 9080:9080 dgraph/dgraph:latest dgraph alpha
 
 # Run tests
-DGRAPH_ADDR=localhost:9080 go test -tags "goexperiment.jsonv2" ./...
+DGRAPH_ADDR=localhost:9080 go test ./...
 ```
 
 Cross-engine parity is verified via `adttest.RunMatrix` against the

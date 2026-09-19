@@ -777,9 +777,6 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 
 ## Experimental / Go-stdlib-blocked
 
-- **Remove `goexperiment.jsonv2` tag** — JSON v2 is fully adopted (~25 production
-  files). The tag remains only because Go 1.26 hasn't graduated json/v2 from
-  experimental. Remove when Go stabilizes it (expected Go 1.27+).
 - **Turso MVCC concurrent-write support** — blocked on upstream experimental MVCC.
 
 ---

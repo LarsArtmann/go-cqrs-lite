@@ -46,7 +46,7 @@
    and every live citation in the SAME change:
 
    ```bash
-   cd metaengine/tursoengine && GOWORK=off GOEXPERIMENT=jsonv2 \
+   cd metaengine/tursoengine && GOWORK=off \
      go test -tags ivmrepro -count=1 -timeout 570s .
    ```
 

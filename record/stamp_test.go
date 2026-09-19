@@ -75,7 +75,7 @@ func TestStamp_JSONRoundTrip(t *testing.T) {
 
 			assertStampRoundTrip(t, "v1", got, tc.stamp)
 
-			// encoding/json v2 (goexperiment.jsonv2)
+			// encoding/json v2
 			data2, err := jsonv2.Marshal(tc.stamp)
 			if err != nil {
 				t.Fatalf("v2 Marshal: %v", err)

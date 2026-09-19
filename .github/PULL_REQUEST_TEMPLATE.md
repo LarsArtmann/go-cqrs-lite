@@ -15,7 +15,7 @@
 <!-- Which gates did you run for THIS diff? -->
 
 - [ ] `nix run .#verify` (or `#verify-fast`) green
-- [ ] api-stability golden regenerated (if exported symbols changed): `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update`
+- [ ] api-stability golden regenerated (if exported symbols changed): `cd cmd/api-stability && GOWORK=off go run . --update`
 - [ ] doc-check green (if skill docs / AGENTS.md changed)
 - [ ] New tests cover the changed behavior
 

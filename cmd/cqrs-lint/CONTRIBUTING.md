@@ -121,8 +121,8 @@ rules for local CLIs), add its ID to the preset's `Rules.Disable` list.
 
 ```bash
 cd cmd/cqrs-lint
-GOWORK=off go build -tags "goexperiment.jsonv2" ./...
-GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1
+GOWORK=off go build ./...
+GOWORK=off go test ./... -count=1
 ```
 
 ## CI Constraints

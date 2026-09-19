@@ -19,7 +19,7 @@ Scalar views are exact. Full characterization:
 ```bash
 cd metaengine/tursoengine
 go mod edit -require=turso.tech/database/tursogo@vNEW && go mod tidy
-GOWORK=off go test -tags "goexperiment.jsonv2 ivmrepro" -run TestIVMRepro -count=1 -timeout 30m .
+GOWORK=off go test -tags "ivmrepro" -run TestIVMRepro -count=1 -timeout 30m .
 ```
 
 - All three `TestIVMRepro*` tests PASS → the defects are still live on
@@ -40,7 +40,7 @@ failure IS the flip signal):
 
 ```bash
 cd metaengine/tursoengine
-TURSO_IVM_ENFORCE_FIX=1 GOWORK=off go test -tags "goexperiment.jsonv2" \
+TURSO_IVM_ENFORCE_FIX=1 GOWORK=off go test \
   -run TestTursoMatView_GroupedSumDefectAEnvelopeGuard -count=1 .
 ```
 
@@ -86,7 +86,7 @@ the normal chunking once the COMMIT wall is gone — verify with a full
 
 ## 6. Land it
 
-- `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update`
+- `cd cmd/api-stability && GOWORK=off go run . --update`
   (the constants are exported API).
 - CHANGELOG `[Unreleased]` entry citing `metaengine.TursoGoIVMVerifiedThrough`
   (`scripts/check-changelog-symbols.sh` gates the symbol).

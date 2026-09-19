@@ -4,20 +4,19 @@
 
 ## Active Tags
 
-| Tag                   | Required For         | Description                                                                                                |
-| --------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `goexperiment.jsonv2` | ~25 production files | Enables `encoding/json/v2` (fully adopted). Required until Go graduates json/v2 from experimental (1.27+). |
+None. Go 1.27 graduated `encoding/json/v2`; the last active tag was retired in
+the coordinated 2026-09-19 sweep (see Removed Tags).
 
 ## Usage
 
 ```bash
-# Build with jsonv2 (required for all builds in Go 1.26)
-go build -tags goexperiment.jsonv2 ./...
+# Build (no tags needed on Go 1.27+)
+go build ./...
 
 # Test
-go test -tags goexperiment.jsonv2 ./...
+go test ./...
 
-# Or use the flake, which applies the tag automatically
+# Or use the flake
 nix run .#build
 nix run .#test
 ```
@@ -26,6 +25,7 @@ nix run .#test
 
 | Tag                                 | Why Removed                                                                      |
 | ----------------------------------- | -------------------------------------------------------------------------------- |
+| `goexperiment.jsonv2`               | Go 1.27 graduated `encoding/json/v2` (2026-09-19); the tag/`GOEXPERIMENT=jsonv2` were no-ops and were removed from scripts, flake.nix, CI, and docs. |
 | `goexperiment.arenas`               | Arena stub had zero consumers, no tests, no real GC benefit. Deleted 2026-07-11. |
 | `goexperiment.simd`                 | Gated zero files. Removed earlier.                                               |
 | `goexperiment.runtimesecret`        | Gated zero files. Removed earlier.                                               |
@@ -33,6 +33,7 @@ nix run .#test
 
 ## Stability Policy
 
-The `goexperiment.jsonv2` tag is required for the project to compile. It is not
-opt-in — all builds, tests, and CI pipelines apply it. When Go stabilizes json/v2
-(expected Go 1.27+), the tag can be removed with zero code changes.
+No experimental stdlib features are in use. If a future experiment is adopted,
+document it here, wire it through `flake.nix` (`goTags`) and CI, and record the
+removal criteria in this file — the jsonv2 lifecycle (experiment → adoption →
+graduation sweep) is the template.

@@ -33,13 +33,13 @@ Terminal 1 (coordinator):
 
 ```bash
 cd metaengine/irohengine/quic
-CGO_ENABLED=1 go run -tags "goexperiment.jsonv2" ./demo/ -mode coordinator -wait-nodes 1 -writes 5
+CGO_ENABLED=1 go run ./demo/ -mode coordinator -wait-nodes 1 -writes 5
 ```
 
 Terminal 2 (node, after copying the ticket from terminal 1):
 
 ```bash
-CGO_ENABLED=1 go run -tags "goexperiment.jsonv2" ./demo/ -mode node -ticket <ticket-from-terminal-1> -writes 5
+CGO_ENABLED=1 go run ./demo/ -mode node -ticket <ticket-from-terminal-1> -writes 5
 ```
 
 Both processes will show all 10 keys (5 from each side) with real QUIC measurements.

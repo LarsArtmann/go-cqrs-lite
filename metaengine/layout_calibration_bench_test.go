@@ -26,7 +26,7 @@ import (
 // of -count=10 runs. Single long runs (the pre-2026-08-16 protocol) are noise
 // on multi-tenant hardware.
 //
-// Run: GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
+// Run: GOWORK=off go test -run '^$' \
 //	-bench 'BenchmarkLayoutCalibration' -benchtime 1s -count 10 .
 
 // calibOrder simulates an aggregate root with embedded child items.

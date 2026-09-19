@@ -2,7 +2,7 @@
 
 Benchmark data for go-cqrs-lite modules. All numbers measured on AMD Ryzen AI MAX+ 395, 96 GB RAM, Go 1.26.x unless otherwise noted.
 
-> **Reproducing:** Run `nix run .#build && go test -tags "goexperiment.jsonv2" -bench=. -benchmem ./...` per module, or use `cqrs-bench` for end-to-end workload profiles (see below).
+> **Reproducing:** Run `nix run .#build && go test -bench=. -benchmem ./...` per module, or use `cqrs-bench` for end-to-end workload profiles (see below).
 
 ---
 

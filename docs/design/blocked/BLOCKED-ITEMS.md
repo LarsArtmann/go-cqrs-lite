@@ -10,13 +10,17 @@ These items are blocked by upstream dependencies and cannot be resolved within t
 
 **Result:** `transport/grpc` is now a first-class member of `go.work`; `go build ./...` and `go test ./...` across the workspace include it.
 
-## 2. JSON v2 Build Tag Removal
+## 2. JSON v2 Build Tag Removal — RESOLVED (2026-09-19)
 
-**Blocker:** Go stdlib `encoding/json/v2` is behind the `goexperiment.jsonv2` build tag in Go 1.26. It's experimental at the toolchain level.
+**Blocker (historical):** Go stdlib `encoding/json/v2` was behind the
+`goexperiment.jsonv2` build tag in Go 1.26. It was experimental at the
+toolchain level, and JSON v2 was fully adopted (~25 production files import
+`encoding/json/v2` directly) — the tag was required on every build/test.
 
-**Impact:** JSON v2 is **fully adopted** — ~25 production files import `encoding/json/v2` directly (`codec/json.go`, `event/types.go`, `schema/validator.go`, all `catalog/*`, `encryption/*`, `signing/*`, etc.). The `goexperiment.jsonv2` tag is required on every `go build`/`go test` invocation. The tag itself is the only remaining friction.
-
-**Resolution:** Remove the build tag when Go graduates json/v2 from experimental (expected Go 1.27+). No code changes needed — just drop the tag from `flake.nix` and `scripts/check-module-isolation.sh`.
+**Resolution:** Go 1.27 graduated `encoding/json/v2`; the 94-module
+`go 1.27.1` sweep completed the migration and the coordinated 2026-09-19 sweep
+removed the tag and `GOEXPERIMENT=jsonv2` from flake.nix, scripts, CI, and
+docs. Plain `go build`/`go test` is the contract.
 
 ## 3. Arena Allocation — Removed
 

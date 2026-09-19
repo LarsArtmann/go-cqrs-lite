@@ -26,7 +26,7 @@ nix run .#verify-fast
 nix run .#verify-parallel
 
 # Single module (workspace mode, required build tag)
-go test -tags "goexperiment.jsonv2" ./event/... -count=1
+go test ./event/... -count=1
 
 # Single module (per-module isolation, mirrors CI)
 cd event && GOWORK=off go test ./... -count=1
@@ -53,9 +53,9 @@ Three Docker-free approaches, powered by Nix. See [ADR-0095](adr/0095-nix-based-
 > **MariaDB limitation**: Ephemeral MySQL without a VM is impossible on NixOS —
 > `mariadb-install-db` fails (read-only Nix store plugin dir). VM is required.
 
-> **Build tag:** all tests require `-tags "goexperiment.jsonv2"` in workspace mode.
-> CI applies `GOEXPERIMENT=jsonv2` via the env, so the tag is implicit there.
-> In `GOWORK=off` per-module mode, pass `-tags "goexperiment.jsonv2"` explicitly.
+> **Build tag:** none since Go 1.27 graduated `encoding/json/v2` (2026-09-19
+> sweep removed the former `-tags "goexperiment.jsonv2"` everywhere). Plain
+> `go test` is the contract in workspace AND `GOWORK=off` per-module mode.
 
 ### Example output (ephemeral PG)
 

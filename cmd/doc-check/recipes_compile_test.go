@@ -228,7 +228,7 @@ func TestRecipesCompile(t *testing.T) {
 		t.Setenv("RECIPES_COMPILE_DIR", dir)
 		t.Logf("keeping snippet module at %s", dir)
 	}
-	gomod := "module recipescompile\n\ngo 1.26.7\n"
+	gomod := "module recipescompile\n\ngo 1.27.1\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
@@ -265,7 +265,6 @@ func TestRecipesCompile(t *testing.T) {
 	cmd.Dir = dir
 	cmd.Env = append(os.Environ(),
 		"GOWORK="+filepath.Join(dir, "go.work"),
-		"GOEXPERIMENT=jsonv2",
 		"CGO_ENABLED=0",
 	)
 	out, err := cmd.CombinedOutput()
