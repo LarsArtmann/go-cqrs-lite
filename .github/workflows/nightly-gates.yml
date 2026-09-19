@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
 
       - name: Nightly date
         id: date
@@ -43,7 +43,7 @@ jobs:
       # recent night's artifact (the N-1 baseline the compare step wants).
       # SHA verified 2026-09-18 via `git ls-remote --tags`: = actions/cache v4.2.0.
       - name: Restore previous calibration baseline
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: build/calibration-baseline.txt
           key: calib-${{ steps.date.outputs.date }}
