@@ -153,9 +153,11 @@ func (m *MapDedupStore) DedupSweep(
 			continue
 		}
 
-		if err := m.maps.MapDelete(ctx, collection, rec.Key); err == nil {
-			removed++
+		if err := m.maps.MapDelete(ctx, collection, rec.Key); err != nil {
+			return removed, fmt.Errorf("metaengine.MapDedupStore.DedupSweep: delete %q: %w", rec.Key, err)
 		}
+
+		removed++
 	}
 
 	return removed, nil

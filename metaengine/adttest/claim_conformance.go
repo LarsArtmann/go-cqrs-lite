@@ -114,7 +114,11 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				now := ms(1000)
 
 				mustClaimT(t, claimer.ClaimInsert(ctx, col, "k", now.Add(-time.Minute), nil))
-				claimDueT(t, claimer, col, now)
+
+				owned := claimDueT(t, claimer, col, now)
+				if len(owned) != 1 {
+					t.Fatalf("claim: %d, want 1", len(owned))
+				}
 
 				if err := claimer.RenewLease(ctx, col, "k", "w1", time.Minute, now.Add(30*time.Second)); err != nil {
 					t.Fatalf("owner renew: %v", err)
@@ -374,7 +378,7 @@ func claimDueT(t *testing.T, claimer metaengine.DueClaimer, col string, now time
 	t.Helper()
 
 	claims, err := claimer.ClaimDue(context.Background(), metaengine.ClaimDueRequest{
-		Collection: col, Now: now,
+		Collection: col, Owner: "w1", Now: now,
 	})
 	if err != nil {
 		t.Fatalf("ClaimDue %s: %v", col, err)
