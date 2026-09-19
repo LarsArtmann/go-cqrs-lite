@@ -59,39 +59,39 @@ Untouched known issue: `TestSystem_ResetProjection_RestartAndReplay` contention 
 
 ## f) Top next things (impact order)
 
-1. Finish T11 tail: `nix fmt`, api golden, full system suite, commit go.mod/go.sum leftovers
-2. T11c: `DomainConfig.Timers` declarative hook + coeffect note (or record a deliberate deferral)
-3. T12 checkpoints as Map collections + restart test (small, closes the last trivial satellite)
-4. T13 duckdb wiring (+ conformance; CGo leg)
-5. T13 mysql wiring + `#integration-mysql-nspawn` live proof for claimkit
-6. T13 turso wiring (libSQL = SQLite dialect path)
-7. T13 dgraph/iroh/bigtable capability-refusal notes in Supports
-8. T14 FactSink journal-never-disagrees adttest invariant
-9. T15 SCREAM/Doctor entries for ADTDueClaim/ADTDedup (incl. degraded WARN)
-10. T16 reset-ladder tests (claims cleared by EngineResetter; fact seq positions keep advancing)
-11. T17 recipes.md §2.x + recipes_catalog classification (compile gate)
-12. T17 modules.md rows: metaengine/claimkit, scheduling/engine, queue engines
-13. T17 FEATURES + module-map + FAQ v5 note
-14. T17 doc-check zero-warning run
-15. T18 claim/dedup micro-benches vs direct-SQL baseline
+~~1. Finish T11 tail: `nix fmt`, api golden, full system suite, commit go.mod/go.sum leftovers~~ done 2026-09-19 — 10:04 report (b96e1ea34)
+~~2. T11c: `DomainConfig.Timers` declarative hook + coeffect note (or record a deliberate deferral)~~ done 2026-09-19 — DomainConfig.Timers shipped
+~~3. T12 checkpoints as Map collections + restart test (small, closes the last trivial satellite)~~ done 2026-09-19 — 13859146d
+~~4. T13 duckdb wiring (+ conformance; CGo leg)~~ done 2026-09-19 — 10:04 report
+~~5. T13 mysql wiring + `#integration-mysql-nspawn` live proof for claimkit~~ done 2026-09-19 — 12:12 + M4 live proof
+~~6. T13 turso wiring (libSQL = SQLite dialect path)~~ done 2026-09-19 — dueclaim_test green
+~~7. T13 dgraph/iroh/bigtable capability-refusal notes in Supports~~ done 2026-09-19 — RefusedADTs universality rule
+~~8. T14 FactSink journal-never-disagrees adttest invariant~~ done 2026-09-19 — AssertFactSink conformance
+~~9. T15 SCREAM/Doctor entries for ADTDueClaim/ADTDedup (incl. degraded WARN)~~ done 2026-09-19 — verified complete (12:12 report)
+~~10. T16 reset-ladder tests (claims cleared by EngineResetter; fact seq positions keep advancing)~~ done 2026-09-19 — CHANGELOG reset-ladder entry
+~~11. T17 recipes.md §2.x + recipes_catalog classification (compile gate)~~ done 2026-09-19 — recipes §2.38 (catalog 77→80)
+~~12. T17 modules.md rows: metaengine/claimkit, scheduling/engine, queue engines~~ done 2026-09-19 — modules.md rows shipped
+~~13. T17 FEATURES + module-map + FAQ v5 note~~ done 2026-09-19 — 15:09 report
+~~14. T17 doc-check zero-warning run~~ done 2026-09-19 — doc-check zero-warning green
+~~15. T18 claim/dedup micro-benches vs direct-SQL baseline~~ done 2026-09-19 — T18a benches (15:09 report)
 16. T18 `#load-sweep` + bench-regression baseline
-17. CHANGELOG completion for T09–T11 (symbols gate)
-18. api-stability `TestEvery` meta-test run
-19. `nix run .#check-arch` — new dep edges: metaengine→claiming, queue/*→metaengine+claiming, idempotency/sqlstore→metaengine, system→scheduling/engine, scheduling→go-error-family
-20. `nix run .#check-duplication` (wiring files carry `//art-dupl:accept`; verify zero new groups)
-21. `nix run .#check-file-size` (sqliteengine/engine.go grew ~10 lines; cap 663)
+~~17. CHANGELOG completion for T09–T11 (symbols gate)~~ done 2026-09-19 — 132 citations, check-changelog-symbols green
+~~18. api-stability `TestEvery` meta-test run~~ done 2026-09-19 — TestEvery green
+~~19. `nix run .#check-arch` — new dep edges: metaengine→claiming, queue/*→metaengine+claiming, idempotency/sqlstore→metaengine, system→scheduling/engine, scheduling→go-error-family~~ done 2026-09-19 — budgets updated
+~~20. `nix run .#check-duplication` (wiring files carry `//art-dupl:accept`; verify zero new groups)~~ done 2026-09-19 — 0 new groups
+~~21. `nix run .#check-file-size` (sqliteengine/engine.go grew ~10 lines; cap 663)~~ done 2026-09-19 — gate green
 22. Composed `nix run .#verify` on a quiet machine
-23. Fix or coordinate the go.work/toolchain split (unblocks hooks + integration legs)
-24. `#integration-pg` for queue/postgres + pgengine + claimkit legs once (23) lands
-25. T22 example/taskmanager on engine-backed queue
-26. T23 go-taskqueue semantic-diff memo (P5 input)
+~~23. Fix or coordinate the go.work/toolchain split (unblocks hooks + integration legs)~~ done 2026-09-19 — 12:12 cutover
+~~24. `#integration-pg` for queue/postgres + pgengine + claimkit legs once (23) lands~~ done 2026-09-19 — 15:09 report green
+~~25. T22 example/taskmanager on engine-backed queue~~ done 2026-09-19 — 15:09 report
+~~26. T23 go-taskqueue semantic-diff memo (P5 input)~~ done 2026-09-19 — 15:09 report
 27. T19–T21 v5 fold: document the exact Engine-interface merge plan (prep only until the v5 train)
-28. TODO_LIST harvest: mark T01–T10 done, refresh the T09 external-dependency note (queue T14–T17 no longer gate the driver registration — only task-level ADT parity does)
+~~28. TODO_LIST harvest: mark T01–T10 done, refresh the T09 external-dependency note (queue T14–T17 no longer gate the driver registration — only task-level ADT parity does)~~ done 2026-09-19 — TODO_LIST [x] T01–T10
 29. scheduling/engine README (module has doc.go; README expected per sibling convention)
 30. Decide claim-metrics parity (g-2) and implement or document the refusal
-31. Update AGENTS.md module map + skill references/modules.md with the new modules
+~~31. Update AGENTS.md module map + skill references/modules.md with the new modules~~ done 2026-09-19 — AGENTS/skill updated
 32. Consider `DedupStore` on kvstore via engine (currently doc-only equivalence)
-33. Claimkit: add MySQL to the claimkit package tests (currently dialect-mapped in code, live-tested only via future queue/mysql work)
+~~33. Claimkit: add MySQL to the claimkit package tests (currently dialect-mapped in code, live-tested only via future queue/mysql work)~~ done 2026-09-19 — live MariaDB green
 
 ## g) Questions I cannot figure out myself
 

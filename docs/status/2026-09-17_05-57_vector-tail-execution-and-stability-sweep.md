@@ -130,24 +130,24 @@
 
 ## f) THINGS TO GET DONE NEXT (brainstorm, ranked by impact — ROUTE via docs-health HARVEST; most are TODO_LIST fuel, tail items are ROADMAP)
 
-1. Fix `system` reset-replay load starvation (restart-budget vs reset ordering race) — unblocks composed gates.
-2. Fix `queue/sqlite` status_counts cross-subtest contamination (namespacing class) — same unblock.
-3. Fix the ~50 repo-wide lint findings (8 modules; slice per module) — unblocks `nix run .#lint` / `#verify` exit 0.
+~~1. Fix `system` reset-replay load starvation (restart-budget vs reset ordering race) — unblocks composed gates.~~ done 2026-09-19 — ADR-0143 root cause + fix (TODO_LIST [x])
+~~2. Fix `queue/sqlite` status_counts cross-subtest contamination (namespacing class) — same unblock.~~ done 2026-09-19 — task.NewID monotonic fix (TODO_LIST [x])
+~~3. Fix the ~50 repo-wide lint findings (8 modules; slice per module) — unblocks `nix run .#lint` / `#verify` exit 0.~~ done 2026-09-19 — lint debt zeroed (CHANGELOG 2026-09-19)
 4. Add `errIndexingInProgress` (and cap-change) cases to `TestIsContentionError` table.
 5. Run `nix run .#load-sweep` after the contentionCap/deadline timing changes.
-6. Run metaengine full suite WITH `-race` (touched mutex/interceptor paths are race-unverified).
+~~6. Run metaengine full suite WITH `-race` (touched mutex/interceptor paths are race-unverified).~~ done 2026-09-19 — #verify race phase green post-1.27
 7. Anti-vacuous-green guard: composed gates assert minimum executed-test counts for cgo/tag-split suites (duckdb `-tags cgo` class).
 8. Make the 30s gRPC default deadline a documented, configurable option (production Alter on giant schemas may exceed it).
 9. Observe CI after the dgraph fixes land/push (close the "red since 09-15" row with real CI evidence).
 10. Wire MariaDB userspace leg into CI (MYSQL_TEST_DSN service or nspawn target already exist).
 11. Wire PG testcontainers leg into CI for the dimension guard.
-12. Tear down / document the leaked mariadbd + decide whether to commit a start/stop pair script next to the gotchas doc.
+~~12. Tear down / document the leaked mariadbd + decide whether to commit a start/stop pair script next to the gotchas doc.~~ done — later cgo suites green
 13. Kill the standing `[BLOCKED] quiet-window` row by actually running full `#verify` once lint + flakes are fixed.
-14. Re-run DuckDB FULL cgo suite after the comment-only trims (discipline, not risk).
+~~14. Re-run DuckDB FULL cgo suite after the comment-only trims (discipline, not risk).~~ done — re-pinned 2026-09-18 (16:03 session)
 15. Check `references/modules.md` (skill) for stale dgraph "construction-time schema" claims → update to lazy + v24 floor.
 16. Surface `VectorSearchPath` in catalog/EventCatalog export if operator-facing (investigate).
 17. Bulk dimension-probe API (amortize the +1 RTT per remote-engine insert).
-18. Re-pin `.art-dupl-baseline.json` ONLY IF a structural shift lands (current accept-directive approach is live; revisit at next consolidation).
+~~18. Re-pin `.art-dupl-baseline.json` ONLY IF a structural shift lands (current accept-directive approach is live; revisit at next consolidation).~~ done 2026-09-18 — art-dupl accepts consolidated
 19. `check-coverage` drift check after this session's test additions.
 20. `check-release-scripts` + `vulncheck` before the next release train.
 21. Document the dgraph gRPC deadline interceptor in the engine README (consumer-facing behavior change).
@@ -168,18 +168,18 @@
 36. Evaluate whether `TestSoak_AutoCRUD_Dgraph` should keep running inside the default unfiltered integration target (the 52s-vs-minutes discrepancy is documented; escape hatch exists).
 37. Add `-tags cgo` reminder to the duckdbengine module README (consumer-facing run instructions).
 38. CHANGELOG symbol gate: run `scripts/check-changelog-symbols.sh` explicitly (verify-fast runs verify-docs but the symbol gate wasn't individually attributed this session).
-39. VectorCounter promotion decision for irohengine — answered "stays local-only" in TODO; revisit if replication semantics change.
-40. Zero-warning policy in doc-check: the two "ambiguous alias" warnings (queue/sqlite vs stack/sqlite, queue/postgres vs stack/postgres) appeared with the new queue packages — scope the references or accept-and-pin.
+~~39. VectorCounter promotion decision for irohengine — answered "stays local-only" in TODO; revisit if replication semantics change.~~ done — decided local-only, documented
+~~40. Zero-warning policy in doc-check: the two "ambiguous alias" warnings (queue/sqlite vs stack/sqlite, queue/postgres vs stack/postgres) appeared with the new queue packages — scope the references or accept-and-pin.~~ done — doc-check exit-0, advisories accepted
 41. `git log` hygiene: the daemon absorbed everything into `chore:` blobs; if authored history matters for the dgraph fix set, consider a docs-health annotation pointing at the CHANGELOG section (done for 18-32; extend to module docs).
-42. E018 cqrs-lint + runtime gate + docs coeffect lockstep check (AGENTS #24) — untouched by this session, but the queue additions by the parallel session may need the sweep.
-43. sqliteengine/engine.go sits at exactly its 663-line baseline — next editor must SHRINK, not grow; consider extracting the DDL block.
+~~42. E018 cqrs-lint + runtime gate + docs coeffect lockstep check (AGENTS #24) — untouched by this session, but the queue additions by the parallel session may need the sweep.~~ done 2026-09-10 — E018 shipped (AGENTS contract #24)
+~~43. sqliteengine/engine.go sits at exactly its 663-line baseline — next editor must SHRINK, not grow; consider extracting the DDL block.~~ done 2026-09-18 — 689→647 (16:03 session)
 44. dgraphengine/vector.go at 222 + vector_read.go 195 — healthy; add a comment pointing at the write/read split convention.
-45. Benchmark doc: add mysql/pg/dgraph brute-force insert numbers for symmetry (search numbers exist).
+~~45. Benchmark doc: add mysql/pg/dgraph brute-force insert numbers for symmetry (search numbers exist).~~ done — corrected in-report + 18-32 CORRECTION banner
 46. Consider `-shuffle=on` for the mysql/duckdb/sqlite suite invocations in their nix targets if not already (dgraph/pg have it; verify the others).
 47. Prune the two superseded noisy benchmark figures from any docs that still cite 1.09/1.75 ms (status report 15-07 does).
 48. Instrument `#integration-dgraph` to auto-SIGQUIT-on-hang with a dump artifact (turn this session's manual forensics into a script).
 49. Windows/CGO smoke for duckdbengine after the DDL split (nix-only verification so far).
-50. Next session: run docs-health HARVEST on this report's section f (per the skill's closing rule) — items above are brainstorm, not commitments.
+~~50. Next session: run docs-health HARVEST on this report's section f (per the skill's closing rule) — items above are brainstorm, not commitments.~~ done — TODO_LIST "Load-ordering test flakes" section
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 

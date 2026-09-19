@@ -142,14 +142,14 @@
 
 ## f) NEXT 50 (leverage-ordered; owners: [me]=next agent, [owner]=Lars, [auto]=daemon/CI)
 
-1. [me] Run `#check-duplication` (dropped this session; baseline clean).
+~~1. [me] Run `#check-duplication` (dropped this session; baseline clean).~~ done 2026-09-19 — 18:05 §a11
 2. [me] Run `#check-templ` drift gate.
-3. [me] doc-check extended corpus (TODO_LIST/ROADMAP included).
+~~3. [me] doc-check extended corpus (TODO_LIST/ROADMAP included).~~ done 2026-09-19 — 17:40 1,380-refs green
 4. [me] Unit-test `fatalCSPRefusals` with fixture console lines.
 5. [me] Quiet-window watcher; run the verify cascade the moment load drops
    (verify-fast → verify → verify-ci).
-6. [me] Re-run `TestSystem_ResetProjection_RestartAndReplay` standalone at
-   quiet to close or re-confirm the filed flake.
+~~6. [me] Re-run `TestSystem_ResetProjection_RestartAndReplay` standalone at~~
+~~   quiet to close or re-confirm the filed flake.~~ done 2026-09-19 — moot: ADR-0143 fixed at root
 7. [owner] Direction Ruling: G-T01/G-T02 (Infer deprecation path) — gates
    all G1 work.
 8. [owner] P0 sequencing: hold system tag until starvation fix vs
@@ -163,16 +163,16 @@
     api.scalar.com attempts at the source (shrink the allowlist).
 13. [me/upstream] templ-components: read nonce from context automatically
     (ThemeToggle/MobileMenu) — kills the bug class docserver hit.
-14. [me] Review sibling's live docserver edits (eventCatalogTitle etc.) once
-    their session commits; re-run docserver suite + CSP gate.
+~~14. [me] Review sibling's live docserver edits (eventCatalogTitle etc.) once~~
+~~    their session commits; re-run docserver suite + CSP gate.~~ done 2026-09-19 — merged green
 15. [me] Untested hook paths: fmt-repair re-stage branch; doc-only skip with
     staged docs (18-12 §e/10).
 16. [me] `restore-depguard.sh --self-test` wired into check-release-scripts
     (18-12 §e/2).
 17. [me] Record BuildFlow report-only decision in gotchas (18-12 §e/3;
     CONTRIBUTING done, gotchas entry still missing).
-18. [me] Add gotcha: "opt-in gates must be flake-wired at birth" + pipe-mask
-    - vacuous-pass tells (this session's lessons).
+~~18. [me] Add gotcha: "opt-in gates must be flake-wired at birth" + pipe-mask~~
+~~    - vacuous-pass tells (this session's lessons).~~ done 2026-09-19 — 18:05 §a12 gotchas additions
 19. [auto] Nightly-gates first run (blocked: billing) — then verify
     actions/cache restore, ls-remote creds, calibration on 2-4 cores.
 20. [owner] GitHub Actions billing fix (gates 19, 21, 22).
@@ -215,22 +215,22 @@
     .templ source if the sibling's catalog UI keeps growing.
 40. [me] Pre-release sweep before next tag: vulncheck, check-arch,
     check-coverage, error-taxonomy, load-sweep (AGENTS verify list).
-41. [me] api-stability `TestEvery` after the dust settles (7209 ran green;
-    re-run post-sibling-merge).
-42. [me] Re-verify `#check-lint-config` after this session's yaml edit
-    (comment-only; still: gate it).
-43. [me] Review TODO row wording for skimmer-overtrust (18-12 §d/9 lesson;
-    my asyncapi row says "DEAD" — accurate, keep).
-44. [me] Skim sibling reports for NEW open items after their sessions end
-    (three ran during mine; their end-states may add work).
+~~41. [me] api-stability `TestEvery` after the dust settles (7209 ran green;~~
+~~    re-run post-sibling-merge).~~ done 2026-09-19 — 7,424 zero drift
+~~42. [me] Re-verify `#check-lint-config` after this session's yaml edit~~
+~~    (comment-only; still: gate it).~~ done 2026-09-19 — 18:05 green
+~~43. [me] Review TODO row wording for skimmer-overtrust (18-12 §d/9 lesson;~~
+~~    my asyncapi row says "DEAD" — accurate, keep).~~ **Won't implement — cosmetic only.**
+~~44. [me] Skim sibling reports for NEW open items after their sessions end~~
+~~    (three ran during mine; their end-states may add work).~~ done 2026-09-18 — skimmed, absorbed
 45. [me] Poll-then-run: verify-ci per-module matrix at quiet (mirrors CI).
 46. [owner] Whether the 2026-09-17 Goal/excellence plan priorities shift
     given today's temporal-cells landing (bigtable engine shipped; plan
     tasks may be stale).
-47. [me] Next session bootstrap: read 19:24 report + this review + 17:40/18-12
-    reports before touching anything.
-48. [me] Keep `/tmp/cqrs-overflow-probe` out of future docs (pattern: embed
-    or delete; no /tmp citations).
+~~47. [me] Next session bootstrap: read 19:24 report + this review + 17:40/18-12~~
+~~    reports before touching anything.~~ done — moot: next session bootstrapped
+~~48. [me] Keep `/tmp/cqrs-overflow-probe` out of future docs (pattern: embed~~
+~~    or delete; no /tmp citations).~~ done 2026-09-18 — probe embedded (19:24 §a3)
 49. [me] Add CSP gate to a cadence (nightly or verify) so it cannot silently
     skip again.
 50. [owner] Confirm no coordination protocol is needed for multi-session

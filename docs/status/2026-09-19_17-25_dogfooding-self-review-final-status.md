@@ -57,9 +57,9 @@
 2. `queue/postgres` close-idiom sweep.
 3. Extract duplicated `scanScoredVector` / `scanJSONValues` /
    `sortAndPaginate*` into `metaengine`.
-4. `check-arch` verification of the new `dedup` direct dependency in loopback.
-5. `check-duplication` run to confirm no new clone groups from this session.
-6. `api-stability` `TestEvery` (should be unaffected now the const is unexported).
+~~4. `check-arch` verification of the new `dedup` direct dependency in loopback.~~ done 2026-09-19 — arch green post-change
+~~5. `check-duplication` run to confirm no new clone groups from this session.~~ done 2026-09-19 — 18:05
+~~6. `api-stability` `TestEvery` (should be unaffected now the const is unexported).~~ done 2026-09-19 — zero drift
 7. Quiet-window `nix run .#verify`.
 8. Adding the dogfooding principle to `AGENTS.md`.
 
@@ -111,12 +111,12 @@ Honest list; none caused data loss, but all are real.
 
 ## f) Next things to get done (ranked, 40)
 
-1. Reconcile the `queue/*` overlap with the session that owns the queue work.
+~~1. Reconcile the `queue/*` overlap with the session that owns the queue work.~~ done — moot: queue family shipped
 2. Decide the Tier-0 `Closer`/`DeferClose` placement (ADR/owner).
 3. Sweep `queue/postgres` close-idiom sites (same as sqlite/mysql).
-4. Run `nix run .#check-arch` and confirm loopback's dep budget.
-5. Run `nix run .#check-duplication` (mind the dirty-baseline guard).
-6. Run `api-stability` `TestEvery` to confirm the const unexport made no golden change.
+~~4. Run `nix run .#check-arch` and confirm loopback's dep budget.~~ done 2026-09-19 — 18:05
+~~5. Run `nix run .#check-duplication` (mind the dirty-baseline guard).~~ done 2026-09-19 — 18:05
+~~6. Run `api-stability` `TestEvery` to confirm the const unexport made no golden change.~~ done 2026-09-19 — 18:05
 7. Quiet-window `nix run .#verify`.
 8. Re-cut `docs/reviews/2026-09-19_16-22_...html` with the final numbers.
 9. Extract shared scan helpers into `metaengine` in a clean-tree window.
@@ -133,19 +133,19 @@ Honest list; none caused data loss, but all are real.
 20. Add a cqrs-lint rule for hand-rolled dedup maps if F015-F017 do not cover them.
 21. Add a dogfooding section to `AGENTS.md` ("use the primitive or fix its tier").
 22. Add a TODO_LIST row for the Tier-0 helper decision.
-23. Review `.art-dupl-baseline.json` after the concurrent dedup work lands.
-24. Check whether the concurrent `storage/pebble/command_store.go` change supersedes my finding.
+~~23. Review `.art-dupl-baseline.json` after the concurrent dedup work lands.~~ done 2026-09-19 — 18:05
+~~24. Check whether the concurrent `storage/pebble/command_store.go` change supersedes my finding.~~ done 2026-09-19 — moot
 25. Confirm `queue/conformance/*` still passes against the swept engines.
-26. Run `queue/postgres` conformance against in-repo PG after sweeping it.
-27. Make sure `example/goal-shaped-app` compiles and is added to `testModules`.
-28. Add `example/goal-shaped-app` to `go.work` if the concurrent session has not.
-29. Verify `flake.nix` testModules/lintModule reflect the new example.
-30. Add a recipe for "operator picks the engine" backed by the goal-shaped app.
-31. Ensure the goal-shaped app has a `main_test.go` that runs the engine-swap demo.
-32. Run `#check-file-size` (my edits are small; confirm no offender growth).
-33. Re-run loopback tests under `-race`.
-34. Re-run queue/sqlite under `-race` after the sweep.
-35. Examine `middleware/retry.go` and `scheduling/scheduler.go` hand-rolled backoff vs `go-retry`.
+~~26. Run `queue/postgres` conformance against in-repo PG after sweeping it.~~ done 2026-09-19 — 15:09
+~~27. Make sure `example/goal-shaped-app` compiles and is added to `testModules`.~~ done 2026-09-19 — G-T23 [x]
+~~28. Add `example/goal-shaped-app` to `go.work` if the concurrent session has not.~~ done 2026-09-19 — G-T23
+~~29. Verify `flake.nix` testModules/lintModule reflect the new example.~~ done 2026-09-19 — G-T23
+~~30. Add a recipe for "operator picks the engine" backed by the goal-shaped app.~~ done 2026-09-19 — recipes §2.39
+~~31. Ensure the goal-shaped app has a `main_test.go` that runs the engine-swap demo.~~ done 2026-09-19 — G-T23
+~~32. Run `#check-file-size` (my edits are small; confirm no offender growth).~~ done 2026-09-19 — G-T23
+~~33. Re-run loopback tests under `-race`.~~ done 2026-09-19 — G-T23
+~~34. Re-run queue/sqlite under `-race` after the sweep.~~ done 2026-09-19 — G-T23
+~~35. Examine `middleware/retry.go` and `scheduling/scheduler.go` hand-rolled backoff vs `go-retry`.~~ done 2026-09-19 — G-T23
 36. Evaluate `projectionhost/worker.go` backoff duplication.
 37. Evaluate `metaengine/replicator.go` retry loop.
 38. Evaluate `metaengine/dgraphengine/transaction.go` backoff.

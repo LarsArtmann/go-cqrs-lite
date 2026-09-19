@@ -115,8 +115,8 @@ work.
 2. **Sweep `queue/postgres`** close sites (same as sqlite/mysql).
 3. **Extract duplicated scan/paginate helpers** into `metaengine` in a
    clean-tree window (the `.art-dupl` baseline dirty-tree rule requires it).
-4. **Keep `example/goal-shaped-app` compile-gated** as the North Star dogfooding
-   demo (owned by the concurrent session).
+~~4. **Keep `example/goal-shaped-app` compile-gated** as the North Star dogfooding~~
+~~   demo (owned by the concurrent session).~~ done 2026-09-19 — recipes §2.39 compile-gated (G-T23)
 
 ## Verification commands used
 

@@ -43,21 +43,21 @@
 
 ## f) Next tasks (prioritized)
 
-1. Finish the lint debt: embedded-field reorder (11 structs: queue/{sqlite,postgres,mysql} Engine; claimkit Claims/Dedup; badger/bbolt/duckdb/pebble/pg/mysql engines — move embedded above named fields); err113 sentinels (queue/*/register.go DSN errors + queue/conformance "observation abandoned"); gochecknoinits nolint on the 3 register.go (AGENTS #19 pattern); exhaustruct_v5 on the 3 queue EngineProfile literals (match pebbleengine/profile.go's pattern) + mysql.Store ownsDB; mnd consts (5000, 500, 8, 3, 10); gochecknoglobals nolint (cqrs-lint loadMu, queue/mysql schemaStmts); contextcheck in queue/sqlite NewEngine; exhaustive DuckDB cases in claiming (3 switches); varnamelen (queue/conformance deps.go 'a', benchkit metrics 'lo'); wastedassign lifecycle.go:190; gocyclo pinWatermark refactor; wrapcheck facttx.go:66; maintidx nolint claim_conformance.go:34; revive unused-params temporal_conformance (t1, vw); sqlclosecheck bench_test.go:165 defer; tparallel in 2 adttest tests; godoclint types.go:130; otelobserver deprecated Emit → Value.String.
-2. exhaustruct_v5 PANIC on stack/sqlite + stack/mysql: add package exclusions in `.golangci.yml` with a dated upstream-bug comment.
+~~1. Finish the lint debt: embedded-field reorder (11 structs: queue/{sqlite,postgres,mysql} Engine; claimkit Claims/Dedup; badger/bbolt/duckdb/pebble/pg/mysql engines — move embedded above named fields); err113 sentinels (queue/*/register.go DSN errors + queue/conformance "observation abandoned"); gochecknoinits nolint on the 3 register.go (AGENTS #19 pattern); exhaustruct_v5 on the 3 queue EngineProfile literals (match pebbleengine/profile.go's pattern) + mysql.Store ownsDB; mnd consts (5000, 500, 8, 3, 10); gochecknoglobals nolint (cqrs-lint loadMu, queue/mysql schemaStmts); contextcheck in queue/sqlite NewEngine; exhaustive DuckDB cases in claiming (3 switches); varnamelen (queue/conformance deps.go 'a', benchkit metrics 'lo'); wastedassign lifecycle.go:190; gocyclo pinWatermark refactor; wrapcheck facttx.go:66; maintidx nolint claim_conformance.go:34; revive unused-params temporal_conformance (t1, vw); sqlclosecheck bench_test.go:165 defer; tparallel in 2 adttest tests; godoclint types.go:130; otelobserver deprecated Emit → Value.String.~~ done 2026-09-19 — 18:05; CHANGELOG "lint debt cleared to zero"
+~~2. exhaustruct_v5 PANIC on stack/sqlite + stack/mysql: add package exclusions in `.golangci.yml` with a dated upstream-bug comment.~~ done 2026-09-19 — literals rewritten + ignore-patterns
 3. Re-run `nix run .#verify` → expect all phases green (doc-check included).
 4. `nix run .#test-integration` (all backends) — exercises FactSink live legs (PG/MySQL) + the ADR-0143 reset semantics under real servers.
 5. `nix run .#load-sweep`; re-baseline benchmarks if medians shifted under 1.27 (TODO_LIST item).
-6. `nix run .#check-duplication` (bbolt reset.go rewrite may have new clones), `#check-arch` (no dep changes, should hold), `#check-file-size` (reset.go edits shrank files).
-7. api-stability golden check (comment-only changes — expected no-op; run to confirm).
-8. CHANGELOG: fold the lint-debt cleanup into the existing sections once green.
+~~6. `nix run .#check-duplication` (bbolt reset.go rewrite may have new clones), `#check-arch` (no dep changes, should hold), `#check-file-size` (reset.go edits shrank files).~~ done 2026-09-19 — 18:05 all green
+~~7. api-stability golden check (comment-only changes — expected no-op; run to confirm).~~ done 2026-09-19 — 7,424 green
+~~8. CHANGELOG: fold the lint-debt cleanup into the existing sections once green.~~ done 2026-09-19 — 18:05 §a13
 9. Assess tag wave (claiming/v4.0.0 + queue family) once tree is quiet — coordinate with the concurrent session (g/1); verify tag-release.sh strips the new tursoengine claiming replace.
 10. Consider filing the go/types+x/tools race upstream (g/2).
 11. Load-threshold guard for verify (e/4) — small flake script or verify-app check.
 12. `.golangci.yml` ownership guard post-gci-incident (e/5).
-13. Re-pin `TestEngineHealth_CatchUpUnderConcurrentApplies` observation item in TODO_LIST (genuinely load-sensitive; distinct from the fixed bug).
-14. Sweep the two untracked status docs from 12:12 into git (daemon will absorb).
-15. Concurrent-session files to review before tag wave: queue/mysql facts.go GREATEST fix (foreign, sound), pgengine reset_test run-unique keys (foreign, sound), example/taskmanager 14:08 edits.
+~~13. Re-pin `TestEngineHealth_CatchUpUnderConcurrentApplies` observation item in TODO_LIST (genuinely load-sensitive; distinct from the fixed bug).~~ done 2026-09-19 — TODO_LIST L81 row
+~~14. Sweep the two untracked status docs from 12:12 into git (daemon will absorb).~~ done 2026-09-19 — daemon absorbed
+~~15. Concurrent-session files to review before tag wave: queue/mysql facts.go GREATEST fix (foreign, sound), pgengine reset_test run-unique keys (foreign, sound), example/taskmanager 14:08 edits.~~ done 2026-09-19 — see the 18:15 wave report
 
 ## g) Questions for the owner
 

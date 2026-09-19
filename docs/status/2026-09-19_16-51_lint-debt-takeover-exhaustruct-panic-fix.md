@@ -51,33 +51,33 @@
 
 ## f) Next tasks (prioritized)
 
-1. Apply the claiming fixes exactly as specified in b/1 (cases + consts) — the edit was mid-flight when interrupted.
-2. metaengine embedded-field reorder ×9: badgerengine/engine.go:65, bboltengine/engine.go:103, duckdbengine/engine.go:64, mysqlengine/engine.go:64, pebbleengine/engine.go:109, pgengine/engine.go:82, claimkit/claims.go:60, claimkit/claims_test.go:24, claimkit/dedup.go:24.
-3. metaengine/otelobserver/observer_test.go:202: deprecated `Emit` → `Value.String`.
-4. metaengine/types.go:130: godoc should start with "IsDegraded".
-5. metaengine/adttest/claim_conformance.go:34: maintidx nolint (conformance matrix function, deliberate).
-6. adttest claim_conformance_test.go:44+83: tparallel — add `t.Parallel()` to subtests or nolint with reason (check whether hosts share state first).
-7. adttest temporal_conformance.go:100+164: revive unused params `t1`, `vw` → `_`.
-8. metaengine/claimkit/bench_test.go:165: sqlclosecheck — proper `defer rows.Close()` (my own file from T18a).
-9. cmd/cqrs-lint/pkg/analyzer/loader.go:17: `//nolint:gochecknoglobals` on `loadMu` (mutex guarding packages.Load, mirrors queue/mysql ddl precedent).
-10. Full `nix run .#lint` → expect 0/94; any stragglers fixed on sight.
-11. Module tests for every touched module: queue/{sqlite,postgres,mysql,conformance}, stack/{sqlite,duckdb,postgres,mysql}, storage/{pebble,bbolt}, claiming, metaengine, metaengine/claimkit.
-12. `nix run .#check-duplication` — the bbolt/pebble literal rewrites + conformance refactor may have shifted clone groups (annotations may need re-placement).
-13. `nix run .#check-file-size` — journal.go grew ~8 lines (closure); confirm under 350.
-14. api-stability golden: `cd cmd/api-stability && GOWORK=off go run . --update` — expect no-op (no export changes); run to confirm.
-15. `#check-error-taxonomy` (new sentinel `errObservationAbandoned` + 3× `errDSNRequired` may need codes? they are plain errors.New — check whether the gate cares).
-16. cqrs-lint `TestExamples_AreV5Clean` on example/taskmanager (first honest lint of the T22 workqueue code; goldens were re-pinned by the 15:34 session — verify, don't trust).
+~~1. Apply the claiming fixes exactly as specified in b/1 (cases + consts) — the edit was mid-flight when interrupted.~~ done 2026-09-19 — 18:05 §a1
+~~2. metaengine embedded-field reorder ×9: badgerengine/engine.go:65, bboltengine/engine.go:103, duckdbengine/engine.go:64, mysqlengine/engine.go:64, pebbleengine/engine.go:109, pgengine/engine.go:82, claimkit/claims.go:60, claimkit/claims_test.go:24, claimkit/dedup.go:24.~~ done 2026-09-19 — 18:05 §a2
+~~3. metaengine/otelobserver/observer_test.go:202: deprecated `Emit` → `Value.String`.~~ done 2026-09-19 — 18:05 §a3
+~~4. metaengine/types.go:130: godoc should start with "IsDegraded".~~ done 2026-09-19 — 18:05 §a4
+~~5. metaengine/adttest/claim_conformance.go:34: maintidx nolint (conformance matrix function, deliberate).~~ done 2026-09-19 — 18:05 §a5
+~~6. adttest claim_conformance_test.go:44+83: tparallel — add `t.Parallel()` to subtests or nolint with reason (check whether hosts share state first).~~ done 2026-09-19 — fixed
+~~7. adttest temporal_conformance.go:100+164: revive unused params `t1`, `vw` → `_`.~~ done 2026-09-19 — fixed
+~~8. metaengine/claimkit/bench_test.go:165: sqlclosecheck — proper `defer rows.Close()` (my own file from T18a).~~ done 2026-09-19 — real fix
+~~9. cmd/cqrs-lint/pkg/analyzer/loader.go:17: `//nolint:gochecknoglobals` on `loadMu` (mutex guarding packages.Load, mirrors queue/mysql ddl precedent).~~ done 2026-09-19 — 18:05 §a7
+~~10. Full `nix run .#lint` → expect 0/94; any stragglers fixed on sight.~~ done 2026-09-19 — 18:05 §a9: 88 modules 0
+~~11. Module tests for every touched module: queue/{sqlite,postgres,mysql,conformance}, stack/{sqlite,duckdb,postgres,mysql}, storage/{pebble,bbolt}, claiming, metaengine, metaengine/claimkit.~~ done 2026-09-19 — 18:05 §a10 incl. SOAK_SKIP_BOLT rerun
+~~12. `nix run .#check-duplication` — the bbolt/pebble literal rewrites + conformance refactor may have shifted clone groups (annotations may need re-placement).~~ done 2026-09-19 — 18:05
+~~13. `nix run .#check-file-size` — journal.go grew ~8 lines (closure); confirm under 350.~~ done 2026-09-19 — gate green
+~~14. api-stability golden: `cd cmd/api-stability && GOWORK=off go run . --update` — expect no-op (no export changes); run to confirm.~~ done 2026-09-19 — zero drift
+~~15. `#check-error-taxonomy` (new sentinel `errObservationAbandoned` + 3× `errDSNRequired` may need codes? they are plain errors.New — check whether the gate cares).~~ done 2026-09-19 — 525 green
+~~16. cqrs-lint `TestExamples_AreV5Clean` on example/taskmanager (first honest lint of the T22 workqueue code; goldens were re-pinned by the 15:34 session — verify, don't trust).~~ done 2026-09-19 — green
 17. `nix run .#verify` END-TO-END — lint phase should now pass; race phase re-validates ADR-0143 on the current tree.
-18. Repairs: wire `Config.HTTPAddr` through `Run()` in example/taskmanager (or delete the field).
-19. gotchas-testing.md: add the two lessons (two-sqlite-pools WAL-conversion race; run-unique collections/keys for reset tests on shared DBs).
+~~18. Repairs: wire `Config.HTTPAddr` through `Run()` in example/taskmanager (or delete the field).~~ done 2026-09-19 — 18:05 §a12
+~~19. gotchas-testing.md: add the two lessons (two-sqlite-pools WAL-conversion race; run-unique collections/keys for reset tests on shared DBs).~~ done 2026-09-19 — 18:05 §a12
 20. `nix run .#verify-ci` per-module matrix.
 21. T18b: `nix run .#load-sweep` + `./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt` — ONLY on a quiet window (load was **70–85** at 16:51; needs <~10).
-22. CHANGELOG fold: lint-debt + panic-fix section (mention the 6 unlintable modules and the config workarounds with their dated comments).
-23. TODO_LIST: mark lint/verify items; T18b still open; T19–T21 remain v5-gated.
-24. Doc sync: `.golangci.yml` behavior notes → AGENTS.md internal contracts or gotchas-tooling-build.md (the exhaustruct panic shape + the nix-shell lint invocation trap).
-25. Consider `#lint-module` flake app (e/1) — small, prevents a recurring trap.
+~~22. CHANGELOG fold: lint-debt + panic-fix section (mention the 6 unlintable modules and the config workarounds with their dated comments).~~ done 2026-09-19 — 18:05 §a13
+~~23. TODO_LIST: mark lint/verify items; T18b still open; T19–T21 remain v5-gated.~~ done 2026-09-19 — TODO marks updated
+~~24. Doc sync: `.golangci.yml` behavior notes → AGENTS.md internal contracts or gotchas-tooling-build.md (the exhaustruct panic shape + the nix-shell lint invocation trap).~~ done 2026-09-19 — 18:05 §a12
+~~25. Consider `#lint-module` flake app (e/1) — small, prevents a recurring trap.~~ **Won't implement — #lint-module already exists (18:05 §d6).**
 26. Assess exhaustruct upstream filing (see g/2).
-27. Re-check the goal-shaped-app session's files before any repo-wide `nix fmt` (never reformat a live session's files).
+~~27. Re-check the goal-shaped-app session's files before any repo-wide `nix fmt` (never reformat a live session's files).~~ done 2026-09-19 — moot
 28. After tree stabilizes: tag-wave assessment for claiming/v4.0.0 + queue family (owner-gated regardless, g/3).
 
 ## g) Questions for the owner

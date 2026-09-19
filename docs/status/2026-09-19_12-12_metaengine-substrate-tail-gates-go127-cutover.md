@@ -188,19 +188,19 @@ previous session was breaking every workspace-mode compile; completed it.
 
 **P1 — close this session's loops**
 
-1. Wire `adttest.AssertFactSink` into sqliteengine/pgengine/mysqlengine/duckdbengine/tursoengine + queue engines' test suites (T14c completion — coordinate with the concurrent session that authored it).
+~~1. Wire `adttest.AssertFactSink` into sqliteengine/pgengine/mysqlengine/duckdbengine/tursoengine + queue engines' test suites (T14c completion — coordinate with the concurrent session that authored it).~~ done 2026-09-19 — 15:34 §a1
 2. Run `nix run .#verify` end-to-end on a quiet tree (the exclusive full gate).
-3. Cap `ConcurrentCASExactlyOneWinner` racers via `MYSQL_TEST_CONCURRENCY`-style env, or teach claim_conformance to skip the race under QEMU (detect via env the VM script sets).
+~~3. Cap `ConcurrentCASExactlyOneWinner` racers via `MYSQL_TEST_CONCURRENCY`-style env, or teach claim_conformance to skip the race under QEMU (detect via env the VM script sets).~~ done 2026-09-19 — ADTTEST_CAS_RACERS env
 4. Validate queue/mysql + mysqlengine against the nspawn leg (`nix run .#integration-mysql-nspawn`, needs root) — removes slirp from the equation.
-5. Write the recipes.md §2.x "engine-backed timers/queue/dedup" recipe + recipes_catalog classification + doc-check green (T17 remainder).
-6. Re-run `nix run .#test-integration` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph) after the 1.27 sweep — the sweep changed every go.mod.
+~~5. Write the recipes.md §2.x "engine-backed timers/queue/dedup" recipe + recipes_catalog classification + doc-check green (T17 remainder).~~ done 2026-09-19 — recipes §2.38
+~~6. Re-run `nix run .#test-integration` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph) after the 1.27 sweep — the sweep changed every go.mod.~~ done 2026-09-19 — 15:09 EXIT 0
 7. `nix run .#load-sweep` + benchmark-regression gate under 1.27; re-baseline if the toolchain shifted medians (documented TODO item).
 8. Check CI (ci.yml) actually ran green post-sweep; fix any 1.27-vs-gocache interactions in Nix.
 
 **P2 — 1.27 follow-through**
-9. Drop `-tags "goexperiment.jsonv2"` everywhere (scripts, flake, AGENTS, cmd tools) in ONE coordinated sweep; keep GOEXPERIMENT env until scripts updated.
-10. Sweep `GOEXPERIMENT=jsonv2` env exports from flake apps + vm scripts after #9.
-11. Update `docs/agents/gowork-modes.md` for post-graduation reality (tag is a no-op; version floor is now 1.27.1; GOTOOLCHAIN=auto for old hosts).
+~~9. Drop `-tags "goexperiment.jsonv2"` everywhere (scripts, flake, AGENTS, cmd tools) in ONE coordinated sweep; keep GOEXPERIMENT env until scripts updated.~~ done 2026-09-19 — 15:34 sweep
+~~10. Sweep `GOEXPERIMENT=jsonv2` env exports from flake apps + vm scripts after #9.~~ done 2026-09-19 — 15:34 sweep
+~~11. Update `docs/agents/gowork-modes.md` for post-graduation reality (tag is a no-op; version floor is now 1.27.1; GOTOOLCHAIN=auto for old hosts).~~ done 2026-09-19 — gowork-modes.md updated
 12. gopls/LSP: go.work requires 1.27.1 while gopls ran a 1.26.7 toolchain — pin the LSP toolchain or accept the noise (115 errors all from this).
 13. Consider `toolchain go1.27.1` directives vs bare `go 1.27.1` (uniformity review).
 14. go-error-family / go-codec / sibling external repos: check they build under consumer 1.27 (GOTOOLCHAIN auto handles it, but pins may lag).
@@ -216,22 +216,22 @@ previous session was breaking every workspace-mode compile; completed it.
 22. iroh: consider a leader-elected claim path (documented refusal reason points the way) — or leave refused forever, but write the ADR note.
 23. `EngineProfile.String()`: include refused count in the rendered suffix.
 24. claimkit: `ClaimFactsList` pagination/limits (unbounded list today per the factLister interface).
-25. Benchmarks: claim/dedup micro-benches vs direct-SQL baseline (T18a).
+~~25. Benchmarks: claim/dedup micro-benches vs direct-SQL baseline (T18a).~~ done 2026-09-19 — T18a (15:09)
 
 **P4 — queue/mysql production readiness**
 26. Tag wave: `claiming/v4.0.0`, `queue` family v4.0.0 (TODO_LIST item, blocked on clean tree — tree is 144 files dirty now, mostly the 1.27 sweep).
 27. Strip sibling replaces at cut time (tag-release.sh) — verify it handles the new tursoengine claiming replace.
 28. Deadlock-retry: add a metric/log line when `claimDeadlockRetries` fires (operators should see InnoDB deadlock rates).
 29. queue/mysql `HealthCheck` implementation (engine interface parity with mysqlengine).
-30. `example/taskmanager` on the engine-backed queue (T22) once tagged.
+~~30. `example/taskmanager` on the engine-backed queue (T22) once tagged.~~ done 2026-09-19 — done pre-tag with replaces
 
 **P5 — repo hygiene**
 31. Daemon gate hook (see e1).
 32. Single-writer session protocol or daemon in-flight marker (see e2).
-33. module-map: row the `metaengine/*engine/profile.go` split (no doc change needed, but the map cites file counts nowhere — skip if unchanged).
-34. FEATURES: ADR-0142 capability matrix section (engines × DueClaim/Dedup/FactSink: native/degraded/refused).
-35. FAQ: "why can't timers live on dgraph?" → point at RefusedADTs + Doctor.
-36. docs/error-taxonomy.md: sync if the refusal messages minted new codes (they didn't — verify).
+~~33. module-map: row the `metaengine/*engine/profile.go` split (no doc change needed, but the map cites file counts nowhere — skip if unchanged).~~ **Won't implement — own note: skip if unchanged.**
+~~34. FEATURES: ADR-0142 capability matrix section (engines × DueClaim/Dedup/FactSink: native/degraded/refused).~~ done 2026-09-19 — 15:09 report
+~~35. FAQ: "why can't timers live on dgraph?" → point at RefusedADTs + Doctor.~~ done 2026-09-19 — 15:09 report
+~~36. docs/error-taxonomy.md: sync if the refusal messages minted new codes (they didn't — verify).~~ done 2026-09-19 — 525 green
 37. CONTRIBUTING: document the new-module checklist (go.work + flake testModules + api-stability modules slice + layer/budget maps + three doc rows + VM legs if SQL).
 38. gowork-modes.md: add the VM-manual-mode row (see e4).
 39. Consider making `check-module-layers.sh` self-test (`--self-test`) like calibration-gate.sh (gate-script convention).

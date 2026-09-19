@@ -89,60 +89,60 @@ Also discovered: `.golangci.yml` still carries `build-tags: [goexperiment.jsonv2
 
 **Lint fixes (mechanical):**
 
-1. claimkit `claims.go:60` embedded reorder
-2. claimkit `claims_test.go:24` embedded reorder
-3. claimkit `dedup.go:24` embedded reorder
-4. badgerengine `engine.go:65` embedded
-5. bboltengine `engine.go:103` embedded
-6. duckdbengine `engine.go:64` embedded
-7. pebbleengine `engine.go:109` embedded
-8. pgengine `engine.go:82` embedded
-9. mysqlengine `engine.go:64` embedded
-10. queue/sqlite `register.go:21` err113 → sentinel
-11. queue/sqlite `register.go:26` contextcheck
-12. queue/sqlite sqlclosecheck ×5 (`cancel.go:134`, `enqueue.go:178`, `facts.go:137`, `reads.go:179`, `reads.go:216`)
-13. claimkit `bench_test.go:165` sqlclosecheck → defer
-14. claimkit `facts.go:211` sqlclosecheck
-15. adttest `claim_conformance.go:34` maintidx (nolint w/ conformance justification, or split)
-16. adttest `temporal_conformance.go:100` `t1` → `_`
-17. adttest `temporal_conformance.go:164` `vw` → `_`
-18. adttest `claim_conformance_test.go:44` tparallel
-19. adttest `claim_conformance_test.go:83` tparallel
-20. metaengine `types.go:130` godoclint (`IsDegraded` doc start)
-21. otelobserver `observer_test.go:202` `Emit` → `Value.String`
-22. claiming exhaustive ×3 — add `DialectDuckDB` cases (`migrate.go:16`, `rich.go:277`, `stmt.go:81`)
-23. claiming mnd ×3 (`rich.go:234`, `:298`, `:302` → named consts)
-24. cqrs-lint `loader.go:17` `loadMu` nolint (mirrors engine register.go pattern)
+~~1. claimkit `claims.go:60` embedded reorder~~ done 2026-09-19 — 18:05
+~~2. claimkit `claims_test.go:24` embedded reorder~~ done 2026-09-19 — 18:05
+~~3. claimkit `dedup.go:24` embedded reorder~~ done 2026-09-19 — 18:05
+~~4. badgerengine `engine.go:65` embedded~~ done 2026-09-19 — 18:05
+~~5. bboltengine `engine.go:103` embedded~~ done 2026-09-19 — 18:05
+~~6. duckdbengine `engine.go:64` embedded~~ done 2026-09-19 — 18:05
+~~7. pebbleengine `engine.go:109` embedded~~ done 2026-09-19 — 18:05
+~~8. pgengine `engine.go:82` embedded~~ done 2026-09-19 — 18:05
+~~9. mysqlengine `engine.go:64` embedded~~ done 2026-09-19 — 18:05
+~~10. queue/sqlite `register.go:21` err113 → sentinel~~ done 2026-09-19 — 18:05
+~~11. queue/sqlite `register.go:26` contextcheck~~ done 2026-09-19 — 18:05
+~~12. queue/sqlite sqlclosecheck ×5 (`cancel.go:134`, `enqueue.go:178`, `facts.go:137`, `reads.go:179`, `reads.go:216`)~~ done 2026-09-19 — 18:05
+~~13. claimkit `bench_test.go:165` sqlclosecheck → defer~~ done 2026-09-19 — 18:05
+~~14. claimkit `facts.go:211` sqlclosecheck~~ done 2026-09-19 — 18:05
+~~15. adttest `claim_conformance.go:34` maintidx (nolint w/ conformance justification, or split)~~ done 2026-09-19 — 18:05
+~~16. adttest `temporal_conformance.go:100` `t1` → `_`~~ done 2026-09-19 — 18:05
+~~17. adttest `temporal_conformance.go:164` `vw` → `_`~~ done 2026-09-19 — 18:05
+~~18. adttest `claim_conformance_test.go:44` tparallel~~ done 2026-09-19 — 18:05
+~~19. adttest `claim_conformance_test.go:83` tparallel~~ done 2026-09-19 — 18:05
+~~20. metaengine `types.go:130` godoclint (`IsDegraded` doc start)~~ done 2026-09-19 — 18:05
+~~21. otelobserver `observer_test.go:202` `Emit` → `Value.String`~~ done 2026-09-19 — 18:05
+~~22. claiming exhaustive ×3 — add `DialectDuckDB` cases (`migrate.go:16`, `rich.go:277`, `stmt.go:81`)~~ done 2026-09-19 — 18:05
+~~23. claiming mnd ×3 (`rich.go:234`, `:298`, `:302` → named consts)~~ done 2026-09-19 — 18:05
+~~24. cqrs-lint `loader.go:17` `loadMu` nolint (mirrors engine register.go pattern)~~ done 2026-09-19 — 18:05
 
 **Broken/skipped areas (investigate first):**
-25. Re-run `queue/conformance` GOWORK=off lint with FULL output captured → fix the typecheck breakage
-26. Lint `stack/mysql` (missed in baseline)
-27. Re-lint `queue/mysql` after 25 lands
-28. Repro-check exhaustruct panic in WORKSPACE mode (stack/sqlite + stack/mysql) → decide F28 (Q3)
+~~25. Re-run `queue/conformance` GOWORK=off lint with FULL output captured → fix the typecheck breakage~~ done 2026-09-19 — fixed, 18:05
+~~26. Lint `stack/mysql` (missed in baseline)~~ done 2026-09-19 — 18:05
+~~27. Re-lint `queue/mysql` after 25 lands~~ done 2026-09-19 — 18:05
+~~28. Repro-check exhaustruct panic in WORKSPACE mode (stack/sqlite + stack/mysql) → decide F28 (Q3)~~ done 2026-09-19 — killed via rewrites
 
 **Config hygiene:**
-29. `.golangci.yml`: drop `goexperiment.jsonv2` tag; align `run.go` with 1.27; keep `gci` OUT
-30. `nix run .#check-lint-config` green
+~~29. `.golangci.yml`: drop `goexperiment.jsonv2` tag; align `run.go` with 1.27; keep `gci` OUT~~ done 2026-09-19 — 18:05 §a8
+~~30. `nix run .#check-lint-config` green~~ done 2026-09-19 — green
 
 **Verify + integration:**
-31. Test stack/{duckdb,mysql,postgres} modules (preset repair)
+~~31. Test stack/{duckdb,mysql,postgres} modules (preset repair)~~ done 2026-09-19 — green
 32. Author commit for preset repair + lint fixes (beat the daemon)
-33. F26: per-module re-lint over all modules → 0
-34. F27: build+test touched modules (workspace mode)
+~~33. F26: per-module re-lint over all modules → 0~~ done 2026-09-19 — 18:05
+~~34. F27: build+test touched modules (workspace mode)~~ done 2026-09-19 — 18:05
 35. F30–31: quiet-window `nix run .#verify`; triage real vs load-transient
 36. F32: doc-check phase green in-run
-37. `#integration-pg` leg
+~~37. `#integration-pg` leg~~ done 2026-09-19 — 15:09 green
 38. `#integration-mysql-vm` leg (`-p 1`, CAS cap live)
 39. `#integration-dgraph` leg
 40. `#integration-redis` leg
-41. `#test-integration` composite local backends
+~~41. `#test-integration` composite local backends~~ done 2026-09-19 — 15:09 EXIT 0
 42. `#load-sweep` re-run
-43. `#check-duplication` (bbolt prefix-sweep rewrite)
-44. `#check-arch` + `#check-file-size`
-45. api-stability golden diff review (expect no-op)
-46. F42: review concurrent-session diffs (queue/mysql `SaveWatermark` GREATEST, pgengine reset keys)
+~~43. `#check-duplication` (bbolt prefix-sweep rewrite)~~ done 2026-09-19 — 18:05
+~~44. `#check-arch` + `#check-file-size`~~ done 2026-09-19 — 18:05
+~~45. api-stability golden diff review (expect no-op)~~ done 2026-09-19 — 18:05
+~~46. F42: review concurrent-session diffs (queue/mysql `SaveWatermark` GREATEST, pgengine reset keys)~~ done 2026-09-19 — 18:05
 47. Reconcile the plan doc with a staleness addendum (this report is the evidence)
-48. M17: re-pin `TestEngineHealth_CatchUpUnderConcurrentApplies` TODO
+~~48. M17: re-pin `TestEngineHealth_CatchUpUnderConcurrentApplies` TODO~~ done 2026-09-19 — TODO_LIST L81 row
 49. M14/M15 decisions after owner answers (upstream go/types race filing; verify load guard)
 50. Tag-wave assessment (M7/M8) — BLOCKED on owner Q1
 

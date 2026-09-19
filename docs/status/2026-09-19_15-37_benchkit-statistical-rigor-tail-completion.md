@@ -326,7 +326,7 @@ From the same 2026-09-16 tail (deliberately out of scope this session):
 23. Investigate CI golangci-lint version skew (#33, pre-existing).
 24. Consider `P100` in benchstat gate metrics once sample counts justify
     (#42).
-25. benchkit `infertypeargs` one-liners (#44).
+~~25. benchkit `infertypeargs` one-liners (#44).~~ done 2026-09-19 — benchkit lint 0
 
 **Docs / skill**
 

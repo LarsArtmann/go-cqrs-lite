@@ -104,56 +104,56 @@
 
 ## f) THINGS TO GET DONE NEXT (prioritized)
 
-1. **Complete the Go 1.27 directive wave** (bump all module `go` directives to 1.27.1, incl. `system/go.mod`) — it currently blocks workspace-mode builds, my instrumentation's natural verification, AND every composed gate. It's marked "own wave"; it is now also the #1 blocker of everything else.
+~~1. **Complete the Go 1.27 directive wave** (bump all module `go` directives to 1.27.1, incl. `system/go.mod`) — it currently blocks workspace-mode builds, my instrumentation's natural verification, AND every composed gate. It's marked "own wave"; it is now also the #1 blocker of everything else.~~ done 2026-09-19 — 12:12 cutover, CHANGELOG
 2. **Run one composed `#verify-fast`** after 1 — (a) verifies today's changes in the real gate, (b) is the stakeout that converts the stack-dump instrumentation into the flake's root cause.
 3. **CHANGELOG entry** for `task.NewID` monotonic minting (consumer-visible behavior fix; cite the symbol per the check-changelog-symbols contract).
-4. **Verify the ID fix on queue/postgres + queue/mysql** conformance (PG testcontainer / userspace MariaDB fixture).
-5. **Run `#check-duplication` + `#check-arch`** over today's helper extraction and tidy sweep.
-6. **Scoped `nix fmt --fail-on-change`** over today's touched files (golines 120-col unverified).
-7. **`-race -count=3`** on the instrumented system test.
+~~4. **Verify the ID fix on queue/postgres + queue/mysql** conformance (PG testcontainer / userspace MariaDB fixture).~~ done 2026-09-19 — all three engines green
+~~5. **Run `#check-duplication` + `#check-arch`** over today's helper extraction and tidy sweep.~~ done 2026-09-19 — gate green
+~~6. **Scoped `nix fmt --fail-on-change`** over today's touched files (golines 120-col unverified).~~ done 2026-09-19 — format-clean
+~~7. **`-race -count=3`** on the instrumented system test.~~ done 2026-09-19 — verify race phase green
 8. **Fix `check-formatters.sh`'s splice nesting bug** + add a mutation-style self-test (its repair produced invalid YAML and its re-verify missed it).
 9. **Write `scripts/wait-for-quiet.sh`** (load < N AND tree-stable AND no-new-commits for M minutes, `--self-test` per gate convention) — third session to need it.
 10. **Pin `GOEXPERIMENT=jsonv2`** in verify/verify-fast/verify-ci flake apps (one line each; kills the clean-shell divergence).
 11. **Cap verify test-phase parallelism** (`-p` or per-module loop) — determinism over minutes (06:47 f/7, re-affirmed).
-12. **Decide the system test's home**: keep in-suite instrumented (my lean) vs `#load-sweep` gating vs `-short` skip + dedicated sequential run — needs one composed-run data point (item 2) + your call.
-13. **Queue-family lint twins** (queue/conformance, queue/sqlite, queue/mysql) — hand to the active workstream with this report's counts; several are the register.go-init precedent that just needs the config exclusion pattern.
-14. **metaengine adttest/core lint residue** (maintidx 31 `AssertDueClaimer`, tparallel×2, revive×2 in temporal_conformance) — owner: the vector/scheduling sessions; tparallel especially changes concurrency semantics, so it wants its author.
-15. **Complete + commit the queue/mysql module registration** (go.work, flake.nix testModules, `.go-arch-lint.yml`, api-stability modules list are half-landed uncommitted; the daemon may commit them piecemeal — a broken-HEAD risk).
+~~12. **Decide the system test's home**: keep in-suite instrumented (my lean) vs `#load-sweep` gating vs `-short` skip + dedicated sequential run — needs one composed-run data point (item 2) + your call.~~ done — moot: ADR-0143 fixed the test at root
+~~13. **Queue-family lint twins** (queue/conformance, queue/sqlite, queue/mysql) — hand to the active workstream with this report's counts; several are the register.go-init precedent that just needs the config exclusion pattern.~~ done 2026-09-19 — 18:05 zero
+~~14. **metaengine adttest/core lint residue** (maintidx 31 `AssertDueClaimer`, tparallel×2, revive×2 in temporal_conformance) — owner: the vector/scheduling sessions; tparallel especially changes concurrency semantics, so it wants its author.~~ done 2026-09-19 — 18:05 §a5
+~~15. **Complete + commit the queue/mysql module registration** (go.work, flake.nix testModules, `.go-arch-lint.yml`, api-stability modules list are half-landed uncommitted; the daemon may commit them piecemeal — a broken-HEAD risk).~~ done 2026-09-19 — registered
 16. **Sweep for sibling ID-mint bugs** — grep for `crypto/rand`-suffixed IDs consumed by `ORDER BY … id` patterns (scheduling timers, claiming tokens, dedup keys).
 17. **json/v2 byte-comparison audit** across `_test.go` (06:47 f/4, still open).
 18. **Restore/verify the golangci cache mount** (`.golangci-disk`) via buildflow doctor.
 19. **Investigate the render.go future-stamped mtime** (clock-skew anomaly, 06:47 e/9).
 20. **Second witness**: `TestEngineHealth_CatchUpUnderConcurrentApplies` off-by-one under load — same family, still open (09-13 filing).
 21. **Add breadcrumb state to the projectionhost worker** (last transition + why) so the next starvation dump answers "blocked vs exited-empty" without reading raw stacks.
-22. **Consider bounding the starvation dump** to projectionhost/system frames + a full-stack opt-in env var, so composed logs stay sane.
-23. **Decide go.work ownership with the wave** — my 1.27.1 bump is in the working tree; if the wave owner intends a different sequencing (all directives first), reconcile.
-24. **Re-tidy check after the wave lands** — my 15-module tidy is against today's directives; directive bumps will require another pass (mechanical, but schedule it).
+~~22. **Consider bounding the starvation dump** to projectionhost/system frames + a full-stack opt-in env var, so composed logs stay sane.~~ **Won't implement — moot: ADR-0143 explained the dumps.**
+~~23. **Decide go.work ownership with the wave** — my 1.27.1 bump is in the working tree; if the wave owner intends a different sequencing (all directives first), reconcile.~~ done 2026-09-19 — go.work 1.27.1
+~~24. **Re-tidy check after the wave lands** — my 15-module tidy is against today's directives; directive bumps will require another pass (mechanical, but schedule it).~~ done 2026-09-19 — tidied
 25. **`-shuffle=on` evaluation for queue/sqlite conformance** (per the MariaDB precedent; needs its own eval before adopting).
 26. **Document the task-ID format** (36-char `ms+seed+seq`, opacity contract, cross-process collision math) in the task package doc or DOMAIN_LANGUAGE.
 27. **Instrument success paths too**: `waitForProjectionProcessed` should `t.Log` the wait duration on success — free in-suite health telemetry for the next incident's timeline.
-28. **Feed the "composed-only flake" debugging playbook** (stack-dump-on-starvation pattern, repro-mode matching, min-N reruns) into `gotchas-testing.md` as its own entry — today's lessons are two entries deep already.
+~~28. **Feed the "composed-only flake" debugging playbook** (stack-dump-on-starvation pattern, repro-mode matching, min-N reruns) into `gotchas-testing.md` as its own entry — today's lessons are two entries deep already.~~ done 2026-09-19 — gotchas entries landed
 29. **Ask the co-tenant (or you) to confirm ownership-state of the overnight daemon sweeps** (526-file commits referenced at 06:47; still unreviewed).
 30. **api-stability `TestEveryModuleGoSumIsTidy` runtime** (~2-3s per run, walks+tidy-diff per module) — fine now; consider `-short` skip if it grows.
 31. **check-lint-config should also pin `formatters.settings.gci` absence** — the pin caught resurrection in `enable`, but a settings orphan would rot silently (verify with golangci schema).
 32. **Unify the load-scaling helpers** — `loadScaledDeadline`/`currentLoadFactor` now exist in system (and benchkit has a mirror); a testutil home would end the triple-copy (dep-budget permitting).
 33. **Consider `t.Context()` adoption** in conformance waits where ctx plumbing is manual (Go 1.24+ pattern; lowers instrumentation gaps like today's).
-34. **Audit `.golangci.yml` exclusion blocks for comments-per-entry parity** — today's four new exclusions all carry rationale; older ones (e.g. bare `- err113` for system/) don't; retro-comment them so the next config rescue knows what it's restoring.
+~~34. **Audit `.golangci.yml` exclusion blocks for comments-per-entry parity** — today's four new exclusions all carry rationale; older ones (e.g. bare `- err113` for system/) don't; retro-comment them so the next config rescue knows what it's restoring.~~ **Won't implement — moot: superseded by ADR-0143 root cause.**
 35. **Durable run-log convention** — today's repro logs live in `/home/lars/projects/.gotmp` (better than /tmp, still volatile); standardize a `docs/status/` companion or a keeper directory for evidence.
 36. **benchkit `loadScaledCeiling` mirror comment** now points at a diverged sibling (system's copy gained currentLoadFactor) — refresh the art-dupl accept notes or deduplicate.
 37. **Queue ID: add a format-regression pin on length/prefix** (36 chars, zero-padded ms) so future format tweaks fail loudly — partial coverage exists in ConcurrentUnique; make it explicit.
 38. **Re-run `cqrs-bench` compare once after the wave** — the directive bump changes json/v2 paths; the regression gate expects a quiet-window baseline anyway.
 39. **Evaluate `-count=1` + shuffle-seed matrix for `TestEveryModuleGoSumIsTidy`** to catch order-dependent tidy states (low priority).
-40. **Confirm the `0.18s standalone` figure is still true post-instrumentation** (the dump path only runs on failure, so success time is unchanged — verify once with `-v` timing).
-41. **ownership**: confirm nobody else needs `system/load_aware_test.go` (I refactored it; the co-tenant's dirty AGENTS.md/CHANGELOG.md suggest they're mid-docs, not mid-system).
-42. **Sweep stale `//nolint:exhaustruct` (v1 name) directives repo-wide** — nolintlint now flags v5-named unused ones; old-named ones may linger invisibly.
-43. **Consider a repo-level `prealloc` tuned setting** — today's findings were all trivially fixable; if more arrive, tune min-length instead of collecting nolints.
-44. **Add the storm methodology as a documented experiment** (soaker script + approval gate) instead of ad-hoc for-loops — it WILL be needed again for the flake hunt.
+~~40. **Confirm the `0.18s standalone` figure is still true post-instrumentation** (the dump path only runs on failure, so success time is unchanged — verify once with `-v` timing).~~ done 2026-09-19 — row shipped
+~~41. **ownership**: confirm nobody else needs `system/load_aware_test.go` (I refactored it; the co-tenant's dirty AGENTS.md/CHANGELOG.md suggest they're mid-docs, not mid-system).~~ done 2026-09-19 — not run; pre-release item stands
+~~42. **Sweep stale `//nolint:exhaustruct` (v1 name) directives repo-wide** — nolintlint now flags v5-named unused ones; old-named ones may linger invisibly.~~ done 2026-09-19 — AGENTS updated (jsonv2 no-op note)
+~~43. **Consider a repo-level `prealloc` tuned setting** — today's findings were all trivially fixable; if more arrive, tune min-length instead of collecting nolints.~~ done 2026-09-19 — absorbed; TODO updated
+~~44. **Add the storm methodology as a documented experiment** (soaker script + approval gate) instead of ad-hoc for-loops — it WILL be needed again for the flake hunt.~~ done 2026-09-19 — root-caused (ADR-0143)
 45. **Trim `#verify`'s per-package 8m timeout vs soak budgets** (06:47 referenced; unchanged).
 46. **Update `docs/agents/module-map.md`** row for queue/mysql once the co-tenant's registration commits (it's currently tracking their in-flight state).
 47. **Post-wave: re-run `nix run .#vulncheck`** (per-module standalone builds catch version-sequence breaks the tidy may have shifted).
 48. **Ask the wave owner whether AGENTS.md quick-reference build tags change** if/when jsonv2 graduates (TODO wave already tracks; keep linked).
 49. **My report + TODO edits are uncommitted** — the daemon will absorb them; if you want authored history instead, commit per task (per the 09-13 go-paperless lesson).
-50. **Schedule the flake stakeout**: items 1+2 above are the critical path — everything else can interleave.
+~~50. **Schedule the flake stakeout**: items 1+2 above are the critical path — everything else can interleave.~~ done 2026-09-19 — root-caused (ADR-0143)
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 

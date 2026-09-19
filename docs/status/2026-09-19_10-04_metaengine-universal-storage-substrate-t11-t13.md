@@ -55,31 +55,31 @@ Authored commits this session: `b96e1ea34` (T11 tail + CHANGELOG T09–T11), `13
 
 ## f) Top next things (impact order)
 
-1. Fix `StampLeaseMySQLStmt` arg order in `claiming/rich.go` (+ positional pin test)
-2. Re-apply + grep-verify the `dedup.go:126` backtick fix
-3. Rerun mysql conformance ×3 against the live MariaDB (shell 147 still up), then the full mysqlengine suite
-4. Kill the ephemeral MariaDB (or leave for 3)
-5. tursoengine: add a dueclaim conformance test over a local file DSN (capability inherited via sqliteengine — prove it)
-6. T13 refusal notes: dgraph/iroh/bigtable explicit capability-refusal docs (omit ADT entries + README/ADR note — my recommended form; see (g-3))
-7. api golden regen (DialectDuckDB + profile changes) + `nix fmt`
-8. CHANGELOG entries for T12 + T13 (symbols gate)
-9. T14 FactSink journal-never-disagrees invariant
-10. T15 SCREAM/Doctor entries for ADTDueClaim/ADTDedup
-11. T16 reset-ladder tests
-12. T17 recipes §2.x + recipes_catalog classification
-13. T17 modules.md rows (claimkit, scheduling/engine, queue engines, duckdb/mysql capability rows)
-14. T17 FEATURES + module-map + FAQ
-15. T17 doc-check zero-warning run
-16. T18 micro-benches claim/dedup vs direct-SQL baseline
+~~1. Fix `StampLeaseMySQLStmt` arg order in `claiming/rich.go` (+ positional pin test)~~ done 2026-09-19 — 12:12 t13-t16 report §a1
+~~2. Re-apply + grep-verify the `dedup.go:126` backtick fix~~ done 2026-09-19 — §a2
+~~3. Rerun mysql conformance ×3 against the live MariaDB (shell 147 still up), then the full mysqlengine suite~~ done 2026-09-19 — §a3, green -race
+~~4. Kill the ephemeral MariaDB (or leave for 3)~~ done 2026-09-19 — 15:09 report §g3
+~~5. tursoengine: add a dueclaim conformance test over a local file DSN (capability inherited via sqliteengine — prove it)~~ done 2026-09-19 — §a6
+~~6. T13 refusal notes: dgraph/iroh/bigtable explicit capability-refusal docs (omit ADT entries + README/ADR note — my recommended form; see (g-3))~~ done 2026-09-19 — §a7
+~~7. api golden regen (DialectDuckDB + profile changes) + `nix fmt`~~ done 2026-09-19 — golden 7415, fmt 26 files
+~~8. CHANGELOG entries for T12 + T13 (symbols gate)~~ done 2026-09-19 — 142 citations
+~~9. T14 FactSink journal-never-disagrees invariant~~ done 2026-09-19 — §a8
+~~10. T15 SCREAM/Doctor entries for ADTDueClaim/ADTDedup~~ done 2026-09-19 — §a10
+~~11. T16 reset-ladder tests~~ done 2026-09-19 — CHANGELOG reset-ladder
+~~12. T17 recipes §2.x + recipes_catalog classification~~ done 2026-09-19 — recipes §2.38
+~~13. T17 modules.md rows (claimkit, scheduling/engine, queue engines, duckdb/mysql capability rows)~~ done 2026-09-19 — modules.md
+~~14. T17 FEATURES + module-map + FAQ~~ done 2026-09-19 — FEATURES/module-map/FAQ
+~~15. T17 doc-check zero-warning run~~ done 2026-09-19 — zero-warning green
+~~16. T18 micro-benches claim/dedup vs direct-SQL baseline~~ done 2026-09-19 — T18a
 17. T18 `#load-sweep`
-18. `#check-arch` (new dep edges), `#check-duplication`, `#check-file-size`
-19. api-stability `TestEvery`
-20. TODO_LIST harvest (mark T01–T12 done w/ CHANGELOG cross-refs)
-21. T22 example/taskmanager on engine-backed queue
-22. T23 go-taskqueue semantic-diff memo
+~~18. `#check-arch` (new dep edges), `#check-duplication`, `#check-file-size`~~ done 2026-09-19 — all green
+~~19. api-stability `TestEvery`~~ done 2026-09-19 — TestEvery green
+~~20. TODO_LIST harvest (mark T01–T12 done w/ CHANGELOG cross-refs)~~ done 2026-09-19 — TODO_LIST [x]
+~~21. T22 example/taskmanager on engine-backed queue~~ done 2026-09-19 — 15:09 report
+~~22. T23 go-taskqueue semantic-diff memo~~ done 2026-09-19 — 15:09 report
 23. T19–T21 v5 fold documentation
-24. Surface the Go-1.27 toolchain decision (g-1) — it gates composed `#verify` and all nix integration legs
-25. Claim-metrics parity decision for scheduling/engine (carried-over g-2)
+~~24. Surface the Go-1.27 toolchain decision (g-1) — it gates composed `#verify` and all nix integration legs~~ done 2026-09-19 — 1.27 cutover landed
+~~25. Claim-metrics parity decision for scheduling/engine (carried-over g-2)~~ done 2026-09-19 — 15:09 report
 
 ## g) Questions I cannot figure out myself
 

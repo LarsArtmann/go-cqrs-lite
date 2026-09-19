@@ -177,24 +177,24 @@ everything except detail already captured there).
 
 ## f) NEXT (up to 50, prioritized)
 
-1. Land the lint cleanup (concurrent session, in progress): 76 → 0.
+~~1. Land the lint cleanup (concurrent session, in progress): 76 → 0.~~ done 2026-09-19 — 18:05
 2. Re-run `nix run .#verify` END-TO-END (including race phase) on a
    stable tree.
 3. `nix run .#verify-ci` (per-module GOWORK=off matrix, mirrors CI).
 4. T18b: `nix run .#load-sweep` on a quiet window (load < ~10).
 5. `./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt`
-   (adds claimkit entries + 1.27 toolchain re-baseline), then the gate.
-6. Run cqrs-lint on example/taskmanager (`TestExamples_AreV5Clean`) —
+~~   (adds claimkit entries + 1.27 toolchain re-baseline), then the gate.~~
+~~6. Run cqrs-lint on example/taskmanager (`TestExamples_AreV5Clean`) —~~ done 2026-09-19 — 18:05 cqrs-lint green
    first honest lint of my new example code.
-7. Wire `Config.HTTPAddr` through `Run()` (or delete the field).
-8. Add the two new lessons to `docs/agents/gotchas-testing.md`.
-9. MySQL racer cap env (`MYSQL_TEST_CONCURRENCY`) for QEMU legs — local
-   runs proved the test itself is stable.
+~~7. Wire `Config.HTTPAddr` through `Run()` (or delete the field).~~ done 2026-09-19 — 18:05 §a12
+~~8. Add the two new lessons to `docs/agents/gotchas-testing.md`.~~ done 2026-09-19 — 18:05 gotchas
+~~9. MySQL racer cap env (`MYSQL_TEST_CONCURRENCY`) for QEMU legs — local~~
+~~   runs proved the test itself is stable.~~ done 2026-09-19 — 15:34 §a2
 10. Validate queue/mysql + mysqlengine on the nspawn leg (root) once —
     removes the last QEMU caveat.
 11. Check CI green post-1.27-sweep + post-lint-fix (ci.yml Nix matrix).
-12. api-stability golden: regenerate once lint lands (it ran green twice
-    in verify, but tree moved since).
+~~12. api-stability golden: regenerate once lint lands (it ran green twice~~
+~~    in verify, but tree moved since).~~ done 2026-09-19 — zero drift
 13. Tag wave (owner-gated): claiming/v4.0.0 + queue family v4.0.0 —
     strips the new example/taskmanager replaces too.
 14. gopls/LSP toolchain pin (115+ stale go.work-version errors all day —
@@ -226,8 +226,8 @@ everything except detail already captured there).
 31. go-taskqueue upstream: consider consuming the library from the donor
     (the memo proves it can adopt without behavior change) — consumer
     decision, needs its owner.
-32. `#check-duplication` on the final tree after the concurrent session's
-    lint fixes (their edits could introduce new clones).
+~~32. `#check-duplication` on the final tree after the concurrent session's~~
+~~    lint fixes (their edits could introduce new clones).~~ done 2026-09-19 — 18:05 green
 
 ## g) QUESTIONS (cannot figure out myself)
 

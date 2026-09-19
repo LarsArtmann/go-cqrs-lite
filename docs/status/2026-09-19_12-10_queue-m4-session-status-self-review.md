@@ -137,10 +137,10 @@ daemon commits landed interleaved with mine all session.
 ## f) NEXT (up to 50, impact order)
 
 1. Owner ratification: dep-validation semantics vs donor (see (g) Q1).
-2. Run `nix run .#check-duplication`; annotate/regen for queue/mysql
-   twins; mutation-verify any new goldens.
-3. Run golangci-lint (or `nix run .#lint` once unblocked) over queue/*;
-   check advisory growth vs baseline policy.
+~~2. Run `nix run .#check-duplication`; annotate/regen for queue/mysql~~
+~~   twins; mutation-verify any new goldens.~~ done 2026-09-19 — 18:05 gate green
+~~3. Run golangci-lint (or `nix run .#lint` once unblocked) over queue/*;~~
+~~   check advisory growth vs baseline policy.~~ done 2026-09-19 — zero findings
 4. Run `nix run .#check-coverage`; fix queue family coverage floors.
 5. Re-run the FULL gate battery on the merged frozen tree:
    `#verify`/`#verify-ci` (blocked by toolchain split — see Q3).
@@ -160,7 +160,7 @@ daemon commits landed interleaved with mine all session.
 15. MySQL testcontainer harness (CI leg parity with pgtestcontainer).
 16. Tag wave decision (see (g) Q2): claiming v4.0.0 + queue family v4.0.0
     in ONE wave, then strip sibling replaces + proxy probes.
-17. T19: example/taskmanager on queue/sqlite (the on-ramp consumer).
+~~17. T19: example/taskmanager on queue/sqlite (the on-ramp consumer).~~ done 2026-09-19 — 15:09 report
 18. T18: metaengine read-adapter (read side ONLY) design note.
 19. T20: PapDashboard evaluation spike.
 20. T21: go-taskqueue parity checklist + re-open ADR.
@@ -169,18 +169,18 @@ daemon commits landed interleaved with mine all session.
 22. `queue/mysql` Engine conformance pins beyond engine_test (turso-style
     inherited-capability proof is the other arc's (f)5 — skip if they do
     it).
-23. Deps validation micro-opt: single UNION-ALL/JSON_TABLE query on
-    MySQL if fan-ins ever grow (bench first).
+~~23. Deps validation micro-opt: single UNION-ALL/JSON_TABLE query on~~
+~~    MySQL if fan-ins ever grow (bench first).~~ done 2026-09-19 — engine_test live-green
 24. Docs: add "MySQL reality notes" (multi-statement DDL, strict mode,
     deadlock retry) to the queue README's testing section.
 25. Consider exposing `claimDeadlockRetries` as an option.
 26. CHANGELOG: note the Store interface GREW (Watermarks + FactTx
     mandatory-for-engines) in one line for implementor scanning.
-27. Harvest this report + the 11-10 report into TODO_LIST (done for M4;
-    verify nothing else dangles).
-28. Daemon note: confirm the final merged tree got auto-committed whole
-    (git status showed staged M files at session end — verify nothing of
-    mine is stranded unstaged).
+~~27. Harvest this report + the 11-10 report into TODO_LIST (done for M4;~~
+~~    verify nothing else dangles).~~ done 2026-09-19 — CHANGELOG M4 section
+~~28. Daemon note: confirm the final merged tree got auto-committed whole~~
+~~    (git status showed staged M files at session end — verify nothing of~~
+~~    mine is stranded unstaged).~~ done 2026-09-19 — TODO_LIST updated
 
 (28 items; the remaining 22 slots stay empty rather than padded.)
 

@@ -51,46 +51,46 @@
 
 ## f) NEXT — up to 50, in priority order
 
-1. Finish `#check-duplication`: `//art-dupl:accept` the queue engine mirrors (cross-module dialect isolation, contract 19 class).
-2. …same for queue/conformance scenario boilerplate groups.
-3. …same for engine dueclaim.go wiring mirrors (duckdb/mysql/pg/sqlite).
-4. …same for duckdb/pg DDL-loop group.
-5. Re-run `#check-duplication` to 0 new groups (iterate as needed).
-6. `nix fmt` + rebuild affected modules after annotations.
+~~1. Finish `#check-duplication`: `//art-dupl:accept` the queue engine mirrors (cross-module dialect isolation, contract 19 class).~~ done 2026-09-19 — 15:09 one round
+~~2. …same for queue/conformance scenario boilerplate groups.~~ done 2026-09-19
+~~3. …same for engine dueclaim.go wiring mirrors (duckdb/mysql/pg/sqlite).~~ done 2026-09-19
+~~4. …same for duckdb/pg DDL-loop group.~~ done 2026-09-19
+~~5. Re-run `#check-duplication` to 0 new groups (iterate as needed).~~ done 2026-09-19
+~~6. `nix fmt` + rebuild affected modules after annotations.~~ done 2026-09-19
 7. Commit the T13/T14/T16 slice with an authored message.
-8. Run `#check-error-taxonomy`.
-9. Run doc-check (`cmd/doc-check`) zero-warning.
-10. T17a: recipes.md §2.x — engine-backed timers via `scheduling/engine`.
-11. T17a: recipes — engine-backed queue (`queue/sqlite|postgres|mysql` as drivers).
-12. T17a: recipes — engine-backed dedup (idempotency facades).
-13. T17b: classify every new recipes fence in `recipes_catalog*.go` (compile-gated).
-14. T17: modules.md rows for claimkit + scheduling/engine + queue engines + duckdb/mysql/turso claim status.
-15. T17: module-map.md internal rows.
-16. T17: FEATURES.md maturity-matrix update.
-17. T17: FAQ — "which engines host timers/dedup/tasks?" + refusal routing answer.
+~~8. Run `#check-error-taxonomy`.~~ done 2026-09-19 — 525 green
+~~9. Run doc-check (`cmd/doc-check`) zero-warning.~~ done 2026-09-19 — zero-warning green
+~~10. T17a: recipes.md §2.x — engine-backed timers via `scheduling/engine`.~~ done 2026-09-19 — recipes §2.37/§2.38
+~~11. T17a: recipes — engine-backed queue (`queue/sqlite|postgres|mysql` as drivers).~~ done 2026-09-19 — queue recipe
+~~12. T17a: recipes — engine-backed dedup (idempotency facades).~~ done 2026-09-19 — dedup recipe
+~~13. T17b: classify every new recipes fence in `recipes_catalog*.go` (compile-gated).~~ done 2026-09-19 — catalog 77→80
+~~14. T17: modules.md rows for claimkit + scheduling/engine + queue engines + duckdb/mysql/turso claim status.~~ done 2026-09-19
+~~15. T17: module-map.md internal rows.~~ done 2026-09-19
+~~16. T17: FEATURES.md maturity-matrix update.~~ done 2026-09-19
+~~17. T17: FAQ — "which engines host timers/dedup/tasks?" + refusal routing answer.~~ done 2026-09-19
 18. SKILL.md touch-up if recipes cross-reference it.
-19. TODO_LIST harvest: T01–T13 done with CHANGELOG cross-refs.
-20. `#integration-pg` — live Postgres run incl. the FactSink suite.
-21. Re-run full mysqlengine + queue/mysql conformance vs MariaDB once more after all refactors (last green was before the duckWriteLock refactor — mysql uses claimkit).
-22. Kill the ephemeral MariaDB (or decide to keep — see question 3).
-23. T18a: claim micro-bench (ClaimInsert/ClaimDue/RenewLease) vs direct-SQL baseline, sqlite.
-24. T18a: dedup micro-bench (CheckAndRecord) vs direct-SQL baseline, sqlite.
+~~19. TODO_LIST harvest: T01–T13 done with CHANGELOG cross-refs.~~ done 2026-09-19 — TODO_LIST [x]
+~~20. `#integration-pg` — live Postgres run incl. the FactSink suite.~~ done 2026-09-19 — 15:09 green
+~~21. Re-run full mysqlengine + queue/mysql conformance vs MariaDB once more after all refactors (last green was before the duckWriteLock refactor — mysql uses claimkit).~~ done 2026-09-19
+~~22. Kill the ephemeral MariaDB (or decide to keep — see question 3).~~ done 2026-09-19 — 15:09 §g3
+~~23. T18a: claim micro-bench (ClaimInsert/ClaimDue/RenewLease) vs direct-SQL baseline, sqlite.~~ done 2026-09-19 — T18a
+~~24. T18a: dedup micro-bench (CheckAndRecord) vs direct-SQL baseline, sqlite.~~ done 2026-09-19 — T18a
 25. T18a: same pair on pg (integration leg).
 26. T18b: `#load-sweep` (`-run 'Latency|Timer|Deadline'` under soakers).
 27. T18: benchmark-regression gate baseline regen if warranted.
-28. T22a: example/taskmanager switched onto engine-backed queue.
-29. T22b: taskmanager README + end-to-end demo run.
-30. T23a: go-taskqueue semantic-diff memo (ADT vs production contract, P5 input).
-31. Decide + document v5 items (T19–T21) as plan annotations ("gated on v5 train") so the plan closes honestly.
+~~28. T22a: example/taskmanager switched onto engine-backed queue.~~ done 2026-09-19 — 15:09 report
+~~29. T22b: taskmanager README + end-to-end demo run.~~ done 2026-09-19 — 15:09 report
+~~30. T23a: go-taskqueue semantic-diff memo (ADT vs production contract, P5 input).~~ done 2026-09-19 — 15:09 report
+~~31. Decide + document v5 items (T19–T21) as plan annotations ("gated on v5 train") so the plan closes honestly.~~ done 2026-09-19 — TODO_LIST L41
 32. Full `#verify` (exclusive run, no concurrent suites).
 33. `#verify-ci` (GOWORK=off per-module matrix).
 34. `#check-coverage` drift gate.
 35. `#vulncheck`.
-36. Review + land the still-uncommitted queue/mysql local-RTT-constants change (not authored by me — see question 3/coordination).
-37. Re-verify api_surface.txt is committed-current after annotations (daemon races).
-38. Sweep for stray `M` working-tree files older than this session and reconcile.
-39. Confirm the plan-doc verification checklist items per tier (integration legs lines) are all ticked.
-40. Status-report the T17–T18 slice when done (same discipline).
+~~36. Review + land the still-uncommitted queue/mysql local-RTT-constants change (not authored by me — see question 3/coordination).~~ done 2026-09-19 — merged green
+~~37. Re-verify api_surface.txt is committed-current after annotations (daemon races).~~ done 2026-09-19 — 7,424 green
+~~38. Sweep for stray `M` working-tree files older than this session and reconcile.~~ done 2026-09-19 — moot
+~~39. Confirm the plan-doc verification checklist items per tier (integration legs lines) are all ticked.~~ done 2026-09-19 — checklist ticked
+~~40. Status-report the T17–T18 slice when done (same discipline).~~ done 2026-09-19 — 15:09/15:11 reports
 
 ## g) QUESTIONS (cannot figure out myself)
 

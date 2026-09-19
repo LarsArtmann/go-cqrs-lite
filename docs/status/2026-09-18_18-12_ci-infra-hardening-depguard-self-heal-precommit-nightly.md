@@ -197,21 +197,21 @@
 
 **Unblock / verify what shipped**
 
-1. Sync `go.work` to `go 1.27.1` (the concurrent wave's pending step) —
-   unblocks the hook's workspace build gate for everyone.
-2. Re-run `bash scripts/pre-commit.sh` end-to-end to green after #1.
-3. Verify the `actions/cache@1bd1e32...` SHA (official actions/cache repo) or
-   replace with an in-repo-provenanced pin — BEFORE nightly's first run.
+~~1. Sync `go.work` to `go 1.27.1` (the concurrent wave's pending step) —~~
+~~   unblocks the hook's workspace build gate for everyone.~~ done 2026-09-19 — 12:12 cutover
+~~2. Re-run `bash scripts/pre-commit.sh` end-to-end to green after #1.~~ done 2026-09-18 — 19:24 verified
+~~3. Verify the `actions/cache@1bd1e32...` SHA (official actions/cache repo) or~~
+~~   replace with an in-repo-provenanced pin — BEFORE nightly's first run.~~ done 2026-09-18 — 19:24 §a7
 4. Add `--self-test` to restore-depguard.sh (corrupt-copy → repair → diff;
    shrinkage → exit 1) and wire into check-release-scripts.
 5. Test the hook's fmt-repair path: stage an unformatted file, run hook,
    expect rewrite + re-stage + pass.
 6. Test the hook's doc-only fast path.
-7. `rg install-hooks|pre-commit` across CONTRIBUTING.md/README/docs — update
-   stale hook docs (CONTRIBUTING.md:20,226-229 confirmed stale).
+~~7. `rg install-hooks|pre-commit` across CONTRIBUTING.md/README/docs — update~~
+~~   stale hook docs (CONTRIBUTING.md:20,226-229 confirmed stale).~~ done 2026-09-18 — 19:24 §a6 (CONTRIBUTING)
 8. Record the BuildFlow-report-only decision in gotchas/CONTRIBUTING.
 9. Run `nix run .#check-release-scripts` once locally (nightly leg parity).
-10. Run `nix run .#check-modsums` once locally.
+~~10. Run `nix run .#check-modsums` once locally.~~ done 2026-09-19 — 15:11 green
 11. Run `bash scripts/pin-sweep.sh --check --remote` locally once (verify the
     flag pairing the nightly relies on).
 12. After billing fix: `workflow_dispatch` nightly-gates once; verify cache
@@ -238,16 +238,16 @@ rewrite); add a line to the gotchas incident log marking it as
 session-caused (mine) for honest archaeology.
 
 **Load-fragile test / Investigate item**
-21. Schedule a real full `nix run .#verify` in a quiet window (load<8) to
-hunt the phase-2 stall with the new diagnostics armed.
-22. If it reproduces: read status/checkpoint/lastError + journal-count from
-the failure output; fork journal-empty vs worker-idle.
-23. If worker-idle: trace system.Start → projectionhost drain/subscribe
-ordering against the recipes §2.23 TOCTOU guard (ADR-0136 replay
-guarantee); fix at projectionhost.
-24. Consider a worker self-check: after live transition, if journal is
-non-empty and processed==0, log loudly (converts silent stall into
-signal).
+~~21. Schedule a real full `nix run .#verify` in a quiet window (load<8) to~~
+~~hunt the phase-2 stall with the new diagnostics armed.~~ done 2026-09-19 — superseded: ADR-0143 root-caused it
+~~22. If it reproduces: read status/checkpoint/lastError + journal-count from~~
+~~the failure output; fork journal-empty vs worker-idle.~~ done 2026-09-19 — moot: ADR-0143
+~~23. If worker-idle: trace system.Start → projectionhost drain/subscribe~~
+~~ordering against the recipes §2.23 TOCTOU guard (ADR-0136 replay~~
+~~guarantee); fix at projectionhost.~~ done 2026-09-19 — superseded by the ADR-0143 fix
+~~24. Consider a worker self-check: after live transition, if journal is~~
+~~non-empty and processed==0, log loudly (converts silent stall into~~
+~~signal).~~ **Won't implement — moot: ADR-0143 removed the failure class.**
 25. Apply the same instrumentation to the second witness
 (`TestEngineHealth_CatchUpUnderConcurrentApplies`).
 26. Write the storm-repro protocol (soaker count, storm composition, budgets)
@@ -295,10 +295,10 @@ the hot path).
 43. CV consumer bump (operator) — note: the Go-1.27 wave landing will change
 what "latest tags" means for that bump; sequence it after the wave.
 44. MySQL-VM shuffled-seed replay in the next quiet window.
-45. Go-1.27 wave (other session): after it lands, re-verify the hook's
-`go build` gate + verify-fast locally.
-46. Temporal/bigtable session's `docs/api_surface.txt` change is staged from
-their side — do not sweep into my commits.
+~~45. Go-1.27 wave (other session): after it lands, re-verify the hook's~~
+~~`go build` gate + verify-fast locally.~~ done 2026-09-19 — 12:12 + 19:24 re-verified
+~~46. Temporal/bigtable session's `docs/api_surface.txt` change is staged from~~
+~~their side — do not sweep into my commits.~~ done — moot: concurrent waves landed
 47. Re-run `nix run .#verify` in the next quiet window as the overall
 post-wave gate (covers my system-test edit + scripts under race/lint).
 48. Consider a tiny e2e test for install-hooks (fresh clone fixture, like

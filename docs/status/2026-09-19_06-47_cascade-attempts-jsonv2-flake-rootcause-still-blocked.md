@@ -88,16 +88,16 @@
 ## f) Things to get done next (prioritized; this session's observations only)
 
 1. **Run the cascade when stable-quiet**: `#verify-fast` (one retry iff ONLY the system flake) → `#verify` → `#verify-ci`. Everything upstream is green; this is the only unverified delta.
-2. **Fix `TestSystem_ResetProjection_RestartAndReplay` starvation** (filed 2026-09-16; 3 strikes 09-18) — or temporarily split it out of the parallel suite (`-short` skip + dedicated sequential run) until fixed.
-3. **Make the queue/sqlite claim-expiry test clock-robust** (virtual clock or margin ≥ observed 4× contention slowdown).
+~~2. **Fix `TestSystem_ResetProjection_RestartAndReplay` starvation** (filed 2026-09-16; 3 strikes 09-18) — or temporarily split it out of the parallel suite (`-short` skip + dedicated sequential run) until fixed.~~ done 2026-09-19 — ADR-0143
+~~3. **Make the queue/sqlite claim-expiry test clock-robust** (virtual clock or margin ≥ observed 4× contention slowdown).~~ done 2026-09-19 — queue M4 forced clock-gap tests
 4. **json/v2 byte-comparison audit** across all `_test.go` (grep `string(got) != string(base)`-shaped patterns); fix any further decode-boundary byte comparisons.
-5. **Pin `GOEXPERIMENT=jsonv2` in the `verify`/`verify-fast`/`verify-ci` flake apps** (one line each; consistency with `doc-check`) — e/6.
+~~5. **Pin `GOEXPERIMENT=jsonv2` in the `verify`/`verify-fast`/`verify-ci` flake apps** (one line each; consistency with `doc-check`) — e/6.~~ **Won't implement — moot: jsonv2 graduated in Go 1.27; env removed 2026-09-19.**
 6. **`scripts/wait-for-quiet.sh`** with `--stable-minutes` (+ optional `--modules` scope) and a self-test per the gate-script convention; wire into the cascade resume runbook.
 7. **Cap test-phase parallelism** in verify apps (`-p` or per-module loop) — determinism over raw speed for the canonical gate.
 8. **Restore the golangci-lint cache mount** (`.golangci-disk`) — buildflow env-guard says it's dead.
 9. **Investigate the render.go future-stamped mtime** (clock skew during templ regen) — one `stat` + correlation check next occurrence.
 10. **HARVEST check**: items 2–7 above are TODO_LIST candidates (the 13 ADR-0141 items were already harvested by the predecessor — do not duplicate).
-11. _(observed, not mine to fix)_ The overnight session's uncommitted `encryption/` + `deriver/` working tree (00:58 mtimes) needs an owner-state confirmation before anyone runs tree-wide gates.
+~~11. _(observed, not mine to fix)_ The overnight session's uncommitted `encryption/` + `deriver/` working tree (00:58 mtimes) needs an owner-state confirmation before anyone runs tree-wide gates.~~ done 2026-09-19 — moot: tree absorbed, green since
 12. _(observed)_ Overnight daemon commits 00:54–00:58 swept 526 files (442+64+20; net −421 lines, mostly single-line removals) — unreviewed by me; worth a skim by its owning session.
 
 ## g) Questions I cannot answer myself

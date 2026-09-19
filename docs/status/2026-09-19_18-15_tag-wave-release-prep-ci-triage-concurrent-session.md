@@ -251,9 +251,9 @@
     mechanic (it confused me for an hour), (b) the two-phase formatter audit.
 
 **Code debt observed during triage (not mine to fix unilaterally):**
-33. `metaengine/adttest` skip-path panic class (mysql "panic(nil)") — the
-    concurrent session's racer-count work is adjacent; verify their fix covers
-    the skip path too.
+~~33. `metaengine/adttest` skip-path panic class (mysql "panic(nil)") — the~~
+~~    concurrent session's racer-count work is adjacent; verify their fix covers~~
+~~    the skip path too.~~ done 2026-09-19 — mysql factory fixed 15:34 §a6; suites green
 34. `system/integration` module: consider `testpackage` rename or a nolint
     policy decision — the module violates testpackage BY DESIGN? (its tests
     exercise the public API surface as a consumer would).
@@ -275,9 +275,9 @@
     (go-structure-linter ERROR) — `git rm --cached` + .gitignore, needs a
     decision (example repo hygiene).
 42. `catalog/ec-fixture` binary tracked in git — same class as 41.
-43. `metaengine/duckdbengine/dueclaim.go` (untracked at session start, now
-    committed?) — verify it landed in a daemon commit and is in the wave's
-    duckdbengine delta.
+~~43. `metaengine/duckdbengine/dueclaim.go` (untracked at session start, now~~
+~~    committed?) — verify it landed in a daemon commit and is in the wave's~~
+~~    duckdbengine delta.~~ done 2026-09-19 — committed; conformance green
 44. `govulncheck` cannot run in buildflow env (GOTOOLCHAIN=local vs go 1.27.1) —
     env fix candidate for `.buildflow.yml` (documented fix exists: `env -u
     GOTOOLCHAIN`).

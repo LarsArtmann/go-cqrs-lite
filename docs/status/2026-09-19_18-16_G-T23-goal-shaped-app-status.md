@@ -93,8 +93,8 @@ Also worth an honest flag (not a lie, but imprecise wording): my closing summary
 15. `RegisterQuery` takes `name string` while `RegisterCommand` takes `command.Type` — asymmetric; consider `query.Type` for v5.
 
 **Repo hygiene observed this session:**
-16. Triage the `system/` 510-finding lint failure: first check whether today's `.golangci.yml` daemon commit (`02a133d7e`) enabled/removed linter entries — the failures may be config-caused, not code-caused.
-17. Fix or re-pin whatever 16 reveals; then get `#verify` fully green again (G-T21's quiet-window claim depends on it).
+~~16. Triage the `system/` 510-finding lint failure: first check whether today's `.golangci.yml` daemon commit (`02a133d7e`) enabled/removed linter entries — the failures may be config-caused, not code-caused.~~
+~~17. Fix or re-pin whatever 16 reveals; then get `#verify` fully green again (G-T21's quiet-window claim depends on it).~~ done 2026-09-19 — lint zero (18:05)
 18. Daemon pre-commit sanity gate (build/lint the staged modules) so heuristic commits can't absorb red states.
 19. Add an examples CI leg (test the 6 examples; they are currently build-only in CI).
 20. Consolidate the 6-place module registration (single generated source or a `new-module` scaffold script).
@@ -122,9 +122,9 @@ Also worth an honest flag (not a lie, but imprecise wording): my closing summary
 40. features: record in FEATURES.md (or G-T25's evidence table) the example as Goal-story evidence with link — gated, so coordinate with G-T25.
 
 **Adjacent repo observations (from session noise, not researched):**
-41. Concurrent session reports exist under `docs/status/` (18:15 tag-wave/CI-triage) — coordinate before touching flake/CI files.
-42. `queue/mysql`, `queue/conformance`, `metaengine/irohengine/loopback` etc. carry uncommitted working-tree modifications from the concurrent session — leave alone, but they interact with any full-repo verify runs (shared gate).
-43. `/tmp` artifacts from this session (goal-demo binary, outputs, doccheck.out) — harmless, cleanable.
+~~41. Concurrent session reports exist under `docs/status/` (18:15 tag-wave/CI-triage) — coordinate before touching flake/CI files.~~ done — moot: coordinated in the 18:15 wave session
+~~42. `queue/mysql`, `queue/conformance`, `metaengine/irohengine/loopback` etc. carry uncommitted working-tree modifications from the concurrent session — leave alone, but they interact with any full-repo verify runs (shared gate).~~ done — moot: concurrent files landed
+~~43. `/tmp` artifacts from this session (goal-demo binary, outputs, doccheck.out) — harmless, cleanable.~~ done 2026-09-19 — moot
 44. `testModules` in flake lists `examplePaths` separately — a future example author must know examplePaths is the registration point for examples, NOT testModules; document in the module procedure (fold into 1).
 45. Consider a `make new-example` style nix app that scaffolds an example module with all six registrations pre-wired (productizes 20).
 
