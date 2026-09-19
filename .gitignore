@@ -158,3 +158,9 @@ cmd/cqrs-bench/cqrs-bench
 
 # Build artifact: the cqrs-upgrade binary must never be committed (10MB)
 cmd/cqrs-upgrade/cqrs-upgrade
+
+# Compiled binaries (go-structure-linter ERROR class, 18-15 items 41/42)
+catalog/ec-fixture
+cmd/cqrs-lint/testdata/typedfixture/typedfixture
+example/goal-shaped-app/goal-shaped-app
+example/scheduler-otel-status/scheduler-otel-status
