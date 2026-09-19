@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-
 	"go.opentelemetry.io/otel/codes"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"

@@ -18,25 +18,25 @@ func newClaimRecorder(meter cqrsotel.Meter) (sqlstore.ClaimMetrics, error) {
 		),
 	)
 	if err != nil {
-		return sqlstore.ClaimMetrics{}, err //nolint:wrapcheck // demo passthrough
+		return sqlstore.ClaimMetrics{}, err
 	}
 
 	timers, err := meter.Int64Counter("cqrs.scheduler.claim.timers",
 		cqrsotel.CounterMetricWithDescription("Timers claimed across all polls"))
 	if err != nil {
-		return sqlstore.ClaimMetrics{}, err //nolint:wrapcheck // demo passthrough
+		return sqlstore.ClaimMetrics{}, err
 	}
 
 	renewed, err := meter.Int64Counter("cqrs.scheduler.claim.renewed",
 		cqrsotel.CounterMetricWithDescription("Successful RenewLease extensions"))
 	if err != nil {
-		return sqlstore.ClaimMetrics{}, err //nolint:wrapcheck // demo passthrough
+		return sqlstore.ClaimMetrics{}, err
 	}
 
 	rejected, err := meter.Int64Counter("cqrs.scheduler.claim.renew_rejected",
 		cqrsotel.CounterMetricWithDescription("Renewals rejected with ErrLeaseNotHeld"))
 	if err != nil {
-		return sqlstore.ClaimMetrics{}, err //nolint:wrapcheck // demo passthrough
+		return sqlstore.ClaimMetrics{}, err
 	}
 
 	ctx := context.Background()

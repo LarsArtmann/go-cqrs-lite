@@ -18,11 +18,10 @@ import (
 	"os"
 	"time"
 
-	_ "modernc.org/sqlite" // driver registration for the demo database
-
 	cqrsprom "github.com/larsartmann/go-cqrs-lite/prometheus/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
+	_ "modernc.org/sqlite" // driver registration for the demo database
 )
 
 func main() {
@@ -70,7 +69,6 @@ func run() error {
 	addr := addr()
 	log.Printf("scheduler-otel-status listening on %s (GET /status, GET /metrics)", addr)
 
-	//nolint:wrapcheck // top-level server error
 	return http.ListenAndServe(addr, mux)
 }
 
@@ -88,6 +86,7 @@ func addr() string {
 // derived from the StartedAt anchor — the cross-restart-rate pattern.
 type statusSnapshot struct {
 	sqlstore.ClaimMetricsSnapshot
+
 	ClaimedPerMinute float64 `json:"claimedPerMinute"`
 }
 
@@ -96,6 +95,7 @@ func statusHandler(store *sqlstore.ClaimingTimerStore[struct{}]) http.HandlerFun
 		snap := store.Metrics()
 
 		minutes := time.Since(snap.StartedAt).Minutes()
+
 		rate := 0.0
 		if minutes > 0 {
 			rate = float64(snap.ClaimedTimers) / minutes
