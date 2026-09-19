@@ -24,9 +24,9 @@ const (
 	tasksCollection = "tasks"
 	openCollection  = "open_tasks"
 
-	evtTaskCreated   = event.Type("task.created")
-	evtTaskCompleted = event.Type("task.completed")
-	evtTaskDeleted   = event.Type("task.deleted")
+	evtTaskCreated = event.Type("task.created")
+	evtTaskUpdated = event.Type("task.updated")
+	evtTaskDeleted = event.Type("task.deleted")
 
 	cmdCreateTask   = command.Type("task.create")
 	cmdCompleteTask = command.Type("task.complete")
@@ -55,26 +55,33 @@ func applyTask(s TaskState, evt event.Event) (TaskState, error) {
 	switch evt.Type() {
 	case evtTaskCreated:
 		s.Exists = true
-	case evtTaskCompleted:
-		s.Done = true
+	case evtTaskUpdated:
+		p, err := event.DecodePayloadAuto[TaskUpdated](evt)
+		if err != nil {
+			return s, err
+		}
+
+		if p.Status == StatusDone {
+			s.Done = true
+		}
 	}
 
 	return s, nil
 }
 
 // Domain declares everything the developer owns. The Evolution is the only
-// place folds exist; Lookup and QuerySet both inherit them by result type.
+// place folds exist — all three are naming-convention folds (Created,
+// Updated, Deleted), so there is not a single fold closure in this app;
+// Lookup and QuerySet both inherit the folds by result type.
 func Domain() system.DomainConfig {
-	created := system.OnEvolution(
-		system.Evolve[TaskView](tasksCollection),
-		string(evtTaskCreated), TaskCreated{},
+	tasks := system.OnEvolution(
+		system.OnEvolution(
+			system.Evolve[TaskView](tasksCollection),
+			string(evtTaskCreated), TaskCreated{},
+		),
+		string(evtTaskUpdated), TaskUpdated{},
 	)
-	completed := system.OnEvolution(
-		created,
-		string(evtTaskCompleted), TaskCompleted{},
-		func(_ TaskCompleted, v *TaskView) { v.Status = StatusDone },
-	)
-	deleted := system.OnEvolution(completed, string(evtTaskDeleted), TaskDeleted{})
+	deleted := system.OnEvolution(tasks, string(evtTaskDeleted), TaskDeleted{})
 
 	return system.DomainConfig{
 		Evolutions: []system.EvolutionSpec{deleted.Done()},
@@ -145,10 +152,10 @@ func decideComplete(cmd CompleteTaskCmd, s TaskState, v event.Version) ([]event.
 		return nil, errTaskDone
 	}
 
-	evt, err := event.New(evtTaskCompleted, cmd.StreamID(), streamType, v.Increment(),
-		TaskCompleted{ID: cmd.StreamID().String()})
+	evt, err := event.New(evtTaskUpdated, cmd.StreamID(), streamType, v.Increment(),
+		TaskUpdated{ID: cmd.StreamID().String(), Status: StatusDone})
 	if err != nil {
-		return nil, fmt.Errorf("task.completed: %w", err)
+		return nil, fmt.Errorf("task.updated: %w", err)
 	}
 
 	return []event.Event{evt}, nil

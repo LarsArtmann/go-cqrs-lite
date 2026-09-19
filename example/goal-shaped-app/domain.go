@@ -23,10 +23,12 @@ type TaskCreated struct {
 	Priority int    `json:"priority"`
 }
 
-// TaskCompleted marks its task done. Every event carries the task ID —
-// the read model derives each fold's key from it.
-type TaskCompleted struct {
-	ID string `json:"id"`
+// TaskUpdated changes a task, e.g. completing it with Status "done".
+// The Updated suffix selects the convention's update fold — the view is
+// patched field-by-field from the payload, with no fold code anywhere.
+type TaskUpdated struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
 }
 
 // TaskDeleted removes its task. The Evolution's Deleted-convention fold
