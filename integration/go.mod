@@ -42,8 +42,6 @@ require (
 	pgregory.net/rapid v1.3.0
 )
 
-require github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
-
 // Unpublished-symbol siblings: the snapshot-encryption compose test uses
 // SnapshotStateCodec/RotatingSnapshotStateCodec and NewTransformedStore, which
 // exist only in the local sibling checkouts until the next tag wave. The
@@ -89,6 +87,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect

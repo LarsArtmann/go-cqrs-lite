@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
@@ -34,3 +34,5 @@ require (
 	modernc.org/libc v1.76.0 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../
