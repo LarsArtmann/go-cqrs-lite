@@ -208,6 +208,15 @@ func (e *dgraphEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTSortedMap: true,
 			metaengine.ADTVector:    true,
 		},
+		// ADR-0142 explicit capability refusal (never silence): DQL upsert
+		// blocks cannot express lease-fenced claims — there is no SKIP
+		// LOCKED row locking and no compare-and-set-with-expiry, so two
+		// concurrent claimers can both succeed. Revisit only with a server
+		// primitive that fences concurrent claimers atomically.
+		RefusedADTs: map[metaengine.ADT]string{
+			metaengine.ADTDueClaim: "DQL upserts cannot atomically fence concurrent claimers (no SKIP LOCKED / CAS-with-expiry)",
+			metaengine.ADTDedup:    "DQL upserts cannot make check-and-set-with-TTL atomic — a dedup window needs both in one step",
+		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutKV,
 			metaengine.ADTCounter:   metaengine.LayoutKV,

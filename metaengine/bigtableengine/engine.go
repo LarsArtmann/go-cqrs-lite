@@ -196,6 +196,16 @@ func (e *bigtableEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMap:     metaengine.ComplexityO1, // key-addressed LSM lookup
 			metaengine.ADTCounter: metaengine.ComplexityO1, // native ReadModifyWrite
 		},
+		// ADR-0142 explicit capability refusal (never silence): the shared
+		// Map runtimes (MapDueClaimer/MapDedupStore) need atomic
+		// arbitrary-value read-modify-write (MapUpdater) plus collection
+		// scans (ScanBackend) — this engine implements neither today.
+		// Native paths exist (CheckAndMutate CAS + ReadRows prefix scan);
+		// revisit when they are wired.
+		RefusedADTs: map[metaengine.ADT]string{
+			metaengine.ADTDueClaim: "no atomic arbitrary-value RMW (MapUpdate) or collection scan yet — claims need CheckAndMutate CAS + ReadRows",
+			metaengine.ADTDedup:    "no atomic arbitrary-value RMW (MapUpdate) or collection scan yet — dedup needs CAS-with-TTL",
+		},
 	}
 	e.cal.ApplyCalibration(&p)
 

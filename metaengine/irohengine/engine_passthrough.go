@@ -46,6 +46,12 @@ import (
 //     override the honest replication-derived NetworkRTT from the wrapper's
 //     own latency tracker (latency.go). For replicated engines the transport
 //     IS the network hop that matters.
+//   - DueClaimer / DedupStore / FactSink (ADR-0142 write-side): DELIBERATELY
+//     NOT FORWARDED, and refused in Profile() (RefusedADTs). A lease or
+//     dedup window taken on one replica is invisible to its peers until
+//     convergence — leaderless replication cannot fence concurrent claimers
+//     (double-fire) or hold a check-and-set window. Same reasoning as
+//     RunInTx above: forwarding creates silent divergence.
 
 // --- ScanBackend (local passthrough) ---
 

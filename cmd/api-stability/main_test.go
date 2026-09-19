@@ -88,6 +88,69 @@ func TestEveryGoModDirIsInModulesList(t *testing.T) {
 	}
 }
 
+// walkGoModDirs visits every project directory containing a go.mod, applying
+// the standard skip set (.git, vendor, dot-directories) and rel-path
+// normalization. Shared by the flake/layers/arch-lint consistency tests.
+func walkGoModDirs(t *testing.T, projectRoot string, visit func(rel string)) {
+	t.Helper()
+
+	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return nil
+		}
+		name := info.Name()
+		if name == ".git" || name == "vendor" ||
+			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
+			return filepath.SkipDir
+		}
+		if _, statErr := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(statErr) {
+			return nil
+		} else if statErr != nil {
+			return statErr
+		}
+		rel, relErr := filepath.Rel(projectRoot, path)
+		if relErr != nil {
+			return relErr
+		}
+		visit(rel)
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walk failed: %v", err)
+	}
+}
+
+// parseFlakeListSet extracts the quoted strings of a `name = [ ... ];` block
+// from flake.nix content.
+func parseFlakeListSet(t *testing.T, flake, listName string) map[string]struct{} {
+	t.Helper()
+
+	startIdx := strings.Index(flake, listName+" = [");
+	if startIdx < 0 {
+		t.Fatalf("could not find %q in flake.nix", listName+" = [");
+	}
+	endIdx := strings.Index(flake[startIdx:], "];")
+	if endIdx < 0 {
+		t.Fatalf("could not find closing '];' for %s in flake.nix", listName)
+	}
+	block := flake[startIdx : startIdx+endIdx]
+
+	quoteRe := regexp.MustCompile(`"([^"]+)"`)
+	set := make(map[string]struct{})
+	for _, m := range quoteRe.FindAllStringSubmatch(block, -1) {
+		set[m[1]] = struct{}{}
+	}
+	if len(set) == 0 {
+		t.Fatalf("failed to parse any entries from %s in flake.nix", listName)
+	}
+
+	return set
+}
+
 // TestEveryGoModDirIsInTestModules asserts that every directory containing a
 // go.mod (except examples, the root workspace, and integration) appears in the
 // testModules list in flake.nix. This catches the class of omission where a
@@ -98,34 +161,12 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 
 	projectRoot := filepath.Join(".", "..", "..")
 
-	// Parse testModules from flake.nix by extracting quoted strings between
-	// "testModules = [" and the closing "]".
+	// Parse testModules from flake.nix (quoted entries of the list block).
 	flakeBytes, err := os.ReadFile(filepath.Join(projectRoot, "flake.nix"))
 	if err != nil {
 		t.Fatalf("read flake.nix: %v", err)
 	}
-	flake := string(flakeBytes)
-
-	// Extract the testModules block.
-	startIdx := strings.Index(flake, "testModules = [")
-	if startIdx < 0 {
-		t.Fatal("could not find 'testModules = [' in flake.nix")
-	}
-	endIdx := strings.Index(flake[startIdx:], "];")
-	if endIdx < 0 {
-		t.Fatal("could not find closing '];' for testModules in flake.nix")
-	}
-	block := flake[startIdx : startIdx+endIdx]
-
-	// Extract quoted module paths from the block.
-	quoteRe := regexp.MustCompile(`"([^"]+)"`)
-	testModules := make(map[string]struct{})
-	for _, m := range quoteRe.FindAllStringSubmatch(block, -1) {
-		testModules[m[1]] = struct{}{}
-	}
-	if len(testModules) == 0 {
-		t.Fatal("failed to parse any module paths from testModules in flake.nix")
-	}
+	testModules := parseFlakeListSet(t, string(flakeBytes), "testModules")
 
 	// Directories intentionally excluded (same set as the Nix check-modules app
 	// and TestEveryGoModDirIsInModulesList).
@@ -141,50 +182,25 @@ func TestEveryGoModDirIsInTestModules(t *testing.T) {
 		"example/taskmanager":                 "example application",
 	}
 
-	err = filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			return nil
-		}
-		name := info.Name()
-		if name == ".git" || name == "vendor" ||
-			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
-			return filepath.SkipDir
-		}
-		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
-			return nil
-		} else if err != nil {
-			return err
-		}
-		rel, err := filepath.Rel(projectRoot, path)
-		if err != nil {
-			return err
-		}
+	walkGoModDirs(t, projectRoot, func(rel string) {
 		if reason, ok := excluded[rel]; ok {
 			t.Logf("excluding %s (%s)", rel, reason)
 
-			return nil
+			return
 		}
 		// Check direct match or parent coverage (e.g., event/v4/eventtest
 		// is covered by "event" in testModules).
 		if _, ok := testModules[rel]; ok {
-			return nil
+			return
 		}
 		for mod := range testModules {
 			if strings.HasPrefix(rel, mod+"/") {
-				return nil
+				return
 			}
 		}
 		t.Errorf("directory %q has a go.mod but is NOT in testModules in flake.nix — "+
 			"add it so CI builds, tests, and lints it", rel)
-
-		return nil
 	})
-	if err != nil {
-		t.Fatalf("walk failed: %v", err)
-	}
 }
 
 func TestAPISurfaceCheck(t *testing.T) {
@@ -579,46 +595,21 @@ func TestEveryModuleHasLayerEntry(t *testing.T) {
 		"integration": true, // workspace-only cross-module tests
 	}
 
-	err = filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			return nil
-		}
-		name := info.Name()
-		if name == ".git" || name == "vendor" ||
-			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
-			return filepath.SkipDir
-		}
-		if _, statErr := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(statErr) {
-			return nil
-		} else if statErr != nil {
-			return statErr
-		}
-		rel, relErr := filepath.Rel(projectRoot, path)
-		if relErr != nil {
-			return relErr
-		}
+	walkGoModDirs(t, projectRoot, func(rel string) {
 		if excluded[rel] {
-			return nil
+			return
 		}
 		if _, isInfra := infra[rel]; isInfra {
-			return nil
+			return
 		}
 		if strings.HasPrefix(rel, "example/") {
-			return nil
+			return
 		}
 		if _, ok := layerKeys[rel]; !ok {
 			t.Errorf("module %q has a go.mod but no LAYER entry in check-module-layers.sh — "+
 				"it silently skips layer enforcement; add LAYER[%s]=<tier>", rel, rel)
 		}
-
-		return nil
 	})
-	if err != nil {
-		t.Fatalf("walk failed: %v", err)
-	}
 }
 
 // TestGoArchLintConfigsAreValid verifies that every .go-arch-lint.yml in the
@@ -718,90 +709,69 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		"example/taskmanager":           "example application",
 	}
 
-	err := filepath.Walk(projectRoot, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			return nil
-		}
-		name := info.Name()
-		if name == ".git" || name == "vendor" ||
-			(len(name) > 0 && name[0] == '.' && path != projectRoot) {
-			return filepath.SkipDir
-		}
-		if _, err := os.Stat(filepath.Join(path, "go.mod")); os.IsNotExist(err) {
-			return nil
-		} else if err != nil {
-			return err
-		}
-		rel, err := filepath.Rel(projectRoot, path)
-		if err != nil {
-			return err
-		}
+	walkGoModDirs(t, projectRoot, func(rel string) {
 		if reason, ok := excluded[rel]; ok {
 			t.Logf("excluding %s (%s)", rel, reason)
 
-			return nil
+			return
 		}
 
-		// Find nested go.mod directories to exclude from package count.
-		nestedMods := make(map[string]bool)
-		_ = filepath.Walk(path, func(sub string, subInfo os.FileInfo, subErr error) error {
-			if subErr != nil {
-				return subErr
+		if pkgDirs := countProductionPackages(filepath.Join(projectRoot, rel)); pkgDirs >= 3 {
+			if _, err := os.Stat(filepath.Join(projectRoot, rel, ".go-arch-lint.yml")); os.IsNotExist(err) {
+				t.Errorf("module %s has %d production packages but no .go-arch-lint.yml — "+
+					"add one to enforce intra-module package dependencies", rel, pkgDirs)
 			}
-			if sub == path {
-				return nil
-			}
-			if _, e := os.Stat(filepath.Join(sub, "go.mod")); e == nil {
-				nestedMods[sub] = true
-			}
+		}
+	})
+}
 
-			return nil
-		})
-
-		// Count production packages (directories with non-test .go files).
-		pkgDirs := make(map[string]bool)
-		_ = filepath.Walk(path, func(sub string, subInfo os.FileInfo, subErr error) error {
-			if subErr != nil {
-				return subErr
-			}
-			if subInfo.IsDir() {
-				return nil
-			}
-			name := subInfo.Name()
-			if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-				return nil
-			}
-			if strings.Contains(sub, "/testdata/") {
-				return nil
-			}
-			// Skip files inside nested modules.
-			for nested := range nestedMods {
-				if strings.HasPrefix(sub, nested+"/") {
-					return nil
-				}
-			}
-			pkgDirs[filepath.Dir(sub)] = true
-
-			return nil
-		})
-
-		if len(pkgDirs) < 3 {
+// countProductionPackages counts a module's production packages: distinct
+// directories with non-test .go files, excluding testdata and any nested
+// module's subtree.
+func countProductionPackages(moduleDir string) int {
+	// Find nested go.mod directories to exclude from package count.
+	nestedMods := make(map[string]bool)
+	_ = filepath.Walk(moduleDir, func(sub string, subInfo os.FileInfo, subErr error) error {
+		if subErr != nil {
+			return subErr
+		}
+		if sub == moduleDir {
 			return nil
 		}
-
-		if _, err := os.Stat(filepath.Join(path, ".go-arch-lint.yml")); os.IsNotExist(err) {
-			t.Errorf("module %s has %d production packages but no .go-arch-lint.yml — "+
-				"add one to enforce intra-module package dependencies", rel, len(pkgDirs))
+		if _, e := os.Stat(filepath.Join(sub, "go.mod")); e == nil {
+			nestedMods[sub] = true
 		}
 
 		return nil
 	})
-	if err != nil {
-		t.Fatalf("walk failed: %v", err)
-	}
+
+	pkgDirs := make(map[string]bool)
+	_ = filepath.Walk(moduleDir, func(sub string, subInfo os.FileInfo, subErr error) error {
+		if subErr != nil {
+			return subErr
+		}
+		if subInfo.IsDir() {
+			return nil
+		}
+		name := subInfo.Name()
+		if !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			return nil
+		}
+		if strings.Contains(sub, "/testdata/") {
+			return nil
+		}
+		// Skip files inside nested modules.
+		for nested := range nestedMods {
+			if strings.HasPrefix(sub, nested+"/") {
+				return nil
+			}
+		}
+		pkgDirs[filepath.Dir(sub)] = true
+
+		return nil
+	})
+
+	return len(pkgDirs)
 }
 
 // TestEveryModuleGoSumIsTidy runs `go mod tidy -diff` (GOWORK=off, no-write)

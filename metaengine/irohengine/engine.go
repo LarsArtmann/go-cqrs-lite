@@ -64,6 +64,27 @@ func (e *replicatedEngine) Profile() metaengine.EngineProfile {
 		p.ReplicationLag = snap.ConvergenceP99
 		p.NetworkRTT = snap.DeliveryP50 * 2
 	}
+	// ADR-0142 write-side refusal (never silence): the wrapper does NOT
+	// forward DueClaimer/DedupStore — a lease or dedup window taken on one
+	// replica is invisible to its peers until convergence, so leaderless
+	// replication cannot fence concurrent claimers (double-fire) or hold a
+	// check-and-set window. The local engine still implements the
+	// capabilities (un-wrapped); the wrapper refuses them explicitly so
+	// operator engine picks never route claims/dedup through replication.
+	for _, adt := range []metaengine.ADT{metaengine.ADTDueClaim, metaengine.ADTDedup} {
+		if _, supported := p.Supports[adt]; supported {
+			delete(p.Supports, adt)
+			delete(p.DegradedADTs, adt)
+		}
+
+		if p.RefusedADTs == nil {
+			p.RefusedADTs = make(map[metaengine.ADT]string, 2)
+		}
+
+		p.RefusedADTs[adt] =
+			"leaderless replication cannot fence concurrent claimers — claims/dedup must not ride the replicated wrapper"
+	}
+
 	return p
 }
 

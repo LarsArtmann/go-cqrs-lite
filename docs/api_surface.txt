@@ -3514,6 +3514,7 @@ metaengine/method Record
 metaengine/method Record
 metaengine/method Record
 metaengine/method RecordEvent
+metaengine/method RefusesADT
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
 metaengine/method RemoveEngine

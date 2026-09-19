@@ -53,9 +53,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   two-statement claims, the documented InnoDB remedy). Green on the shared
   `queue/conformance` suite against live MariaDB 11.4, incl.
   `-race -count=2` (live-gated via `MYSQL_TEST_DSN`). The metaengine
-  Engine/claimkit surface is deliberately not wired yet (claimkit MySQL is
-  mid-adoption on the metaengine side); when it lands, wiring follows the
-  queue/sqlite+postgres engine pattern.
+  Engine surface (DueClaimer/DedupStore/FactSink via claimkit,
+  `NewEngine`, `"queue-mysql"` driver registration — ADR-0142) rides the
+  same wiring as queue/sqlite and queue/postgres, over the SAME database
+  the tasks live in.
 
 ### Added — ADR-0142 universal storage substrate: capabilities, runtimes, engine wiring — 2026-09-19
 
