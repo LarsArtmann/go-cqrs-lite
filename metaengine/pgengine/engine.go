@@ -45,6 +45,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
 )
 
 // PG_NsPerOp is the calibrated per-write cost.
@@ -74,6 +75,12 @@ type pgEngine struct {
 	plans          map[string]metaengine.LayoutPlan // collection → planned-table layout (D1; guarded by layoutMu)
 	copyMin        int                              // WithCopyAppend: bulk StreamAppend threshold; 0 = off
 	durability     metaengine.DurabilityTier        // set by the driver factory (withDurabilityTier)
+
+	// ADR-0142 write-side capabilities: the shared claimkit SQL runtime,
+	// attached in init (dueclaim.go) — DueClaimer + FactSink + DedupStore by
+	// promotion.
+	*claimkit.Claims
+	*claimkit.Dedup
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.
@@ -156,8 +163,12 @@ func (e *pgEngine) init() error {
 		}
 	}
 
+	if err := e.wireClaimkit(); err != nil {
+		return err
+	}
+
 	return nil
-}
+	}
 
 // Profile returns the cost profile for this Postgres engine.
 func (e *pgEngine) Profile() metaengine.EngineProfile {
@@ -202,6 +213,10 @@ func (e *pgEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTVector:    metaengine.ComplexityON,
 			metaengine.ADTSearch:    metaengine.ComplexityON,
 			metaengine.ADTSpatial:   metaengine.ComplexityON,
+			// ADR-0142: claimkit SQL claims (CTE SKIP LOCKED) and PK dedup
+			// upserts are native indexed operations.
+			metaengine.ADTDueClaim: metaengine.ComplexityOLogN,
+			metaengine.ADTDedup:    metaengine.ComplexityOLogN,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSet:      true,

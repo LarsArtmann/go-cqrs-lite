@@ -4,6 +4,7 @@ go 1.26.7
 
 require (
 	github.com/jackc/pgx/v5 v5.11.0
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0
@@ -79,3 +80,5 @@ require (
 // Unpublished sibling symbols (ErrPlannedColumnTypeMismatch, PlannedColumnType*) —
 // stripped by scripts/tag-release.sh when metaengine is tagged.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ..
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
