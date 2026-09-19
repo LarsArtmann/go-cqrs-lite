@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ExtractOrPassThrough extracts a value from an event, passing through to the next handler

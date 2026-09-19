@@ -51,6 +51,7 @@ THRESHOLD="25"
 GATE_SETS=(
 	"stack/bench::BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$"
 	"metaengine/tursoengine::BenchmarkMatViewRead/agg=[A-Z]+/scale=1k"
+	"metaengine/claimkit::BenchmarkClaimDue_ClaimKit|BenchmarkTimerRoundTrip_ClaimKit|BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit|BenchmarkDedupCheckAndRecord_LiveWindowHit"
 )
 BENCH_OVERRIDE=""
 DIR_OVERRIDE=""

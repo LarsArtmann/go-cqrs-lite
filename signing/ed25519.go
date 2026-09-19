@@ -4,9 +4,8 @@ import (
 	"crypto/ed25519"
 	"slices"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ed25519Signer signs events with Ed25519 private keys.
