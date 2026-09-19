@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )

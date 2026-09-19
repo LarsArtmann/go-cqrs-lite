@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -198,6 +197,7 @@ func validateDeps(ctx context.Context, q interface {
 
 		missing = append(missing, id)
 	}
+
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("validate deps: %w", err)
 	}

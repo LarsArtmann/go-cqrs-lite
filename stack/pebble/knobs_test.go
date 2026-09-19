@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/cockroachdb/pebble"
-
 	cqrspebble "github.com/larsartmann/go-cqrs-lite/storage/pebble/v4"
 )
 

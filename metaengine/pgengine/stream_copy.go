@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -17,12 +18,12 @@ func init() {
 		"queue-postgres",
 		func(ctx context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
 			if cfg.DSN == "" {
-				return nil, fmt.Errorf("queue-postgres: DSN required")
+				return nil, errors.New("queue-postgres: DSN required")
 			}
 
 			eng, err := NewEngine(ctx, cfg.DSN)
 			if err != nil {
-				return nil, err //nolint:wrapcheck // NewEngine wraps already
+				return nil, err
 			}
 
 			if err := eng.PingContext(ctx); err != nil {

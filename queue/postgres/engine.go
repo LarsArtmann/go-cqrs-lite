@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // database/sql driver for the claim substrate
-
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
@@ -103,5 +102,5 @@ func (e *Engine) Close() error {
 		return nil
 	}
 
-	return e.db.Close() //nolint:wrapcheck // driver-provided close error
+	return e.db.Close()
 }

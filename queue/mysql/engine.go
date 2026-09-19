@@ -108,5 +108,5 @@ func (e *Engine) Close() error {
 		return nil
 	}
 
-	return e.db.Close() //nolint:wrapcheck // driver-provided close error
+	return e.db.Close()
 }

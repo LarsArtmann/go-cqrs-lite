@@ -7,7 +7,6 @@ import (
 	"time"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
-
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -77,9 +76,7 @@ func (s *Store[T]) ClaimDue(
 // isDeadlock reports whether err is InnoDB's deadlock (1213) or
 // lock-wait timeout (1205) signal.
 func isDeadlock(err error) bool {
-	var myErr *mysqldriver.MySQLError
-
-	if errors.As(err, &myErr) {
+	if myErr, ok := errors.AsType[*mysqldriver.MySQLError](err); ok {
 		return myErr.Number == 1213 || myErr.Number == 1205
 	}
 

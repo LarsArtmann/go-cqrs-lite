@@ -160,7 +160,7 @@ func (s *Store[T]) SaveWatermark(ctx context.Context, consumer string, seq int64
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO watermarks (consumer, seq, updated_at) VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE
-			seq = IF(watermarks.seq < VALUES(seq), VALUES(seq), watermarks.seq),
+			seq = IF(watermarks.seq < VALUES(seq), watermarks.seq),
 			updated_at = VALUES(updated_at)`,
 		consumer, seq, time.Now().UnixMilli())
 

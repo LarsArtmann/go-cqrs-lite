@@ -16,6 +16,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4 v4.0.0-00010101000000-000000000000
+	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.0
@@ -40,13 +42,13 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/jackc/pgx/v5 v5.11.0 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
@@ -71,7 +73,6 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.32.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
@@ -88,10 +89,17 @@ require (
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260911204522-f61a6ca850bd // indirect
 	modernc.org/libc v1.76.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/queue/v4 => ../../queue
+
+replace github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4 => ../../queue/sqlite
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
+
+replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine

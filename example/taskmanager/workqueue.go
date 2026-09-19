@@ -133,7 +133,18 @@ func (wq *WorkQueue) run(ctx context.Context) {
 func (wq *WorkQueue) process(ctx context.Context, claim queue.Claim[AssignmentJob]) {
 	job := claim.Task.Payload
 
-	base, err := command.New(cmdAssignTask, id.StreamID(job.TaskID))
+	streamID, err := id.ParseStreamID(job.TaskID)
+	if err != nil {
+		// Malformed IDs never succeed: dead-letter immediately.
+		if dlqErr := wq.store.FailPermanent(ctx, claim.Task.ID, claim.Token,
+			fmt.Sprintf("parse task id: %v", err), nil); dlqErr != nil {
+			wq.logger.Error("assignment queue: dead-letter", "task", job.TaskID, "error", dlqErr)
+		}
+
+		return
+	}
+
+	base, err := command.New(cmdAssignTask, streamID)
 	if err != nil {
 		// Malformed IDs never succeed: dead-letter immediately.
 		if dlqErr := wq.store.FailPermanent(ctx, claim.Task.ID, claim.Token,
