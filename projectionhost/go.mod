@@ -30,15 +30,15 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
 	github.com/magiconair/properties v1.18.11 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
