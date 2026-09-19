@@ -38,10 +38,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
 )
-
-// Sibling replaces for unpublished symbols (MaterializedViewSpec, WithMaterializedViews); stripped by scripts/tag-release.sh at cut time. Replaces do NOT cascade — all are needed (claiming reached via the sqliteengine replace is untagged).
-replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ../sqliteengine
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ..
