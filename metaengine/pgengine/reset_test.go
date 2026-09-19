@@ -47,7 +47,12 @@ func TestResetEngine_ClearsAllState(t *testing.T) {
 		t.Fatalf("CounterIncrement: %v", err)
 	}
 
-	if err := sl.StreamAppend(ctx, "events", "s1", []any{"e1"}); err != nil {
+	// Run-unique journal key: the journal survives resets (ADR-0143) and a
+	// reused test database accumulates journal rows across runs — the
+	// survival assertion stays meaningful on long-lived servers.
+	streamKey := fmt.Sprintf("s1-%d", time.Now().UnixNano())
+
+	if err := sl.StreamAppend(ctx, "events", streamKey, []any{"e1"}); err != nil {
 		t.Fatalf("StreamAppend: %v", err)
 	}
 

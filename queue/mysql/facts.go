@@ -157,11 +157,14 @@ func (s *Store[T]) Watermarks(ctx context.Context) (map[string]int64, error) {
 // the stored seq never regresses, so a lagging or misconfigured second
 // process cannot drag a consumer backwards.
 func (s *Store[T]) SaveWatermark(ctx context.Context, consumer string, seq int64) error {
+	// MySQL/MariaDB have no upsert-WHERE (the sqlite/postgres guard), so the
+	// monotonic contract is expressed as GREATEST + a conditional timestamp:
+	// a regressing save changes nothing observable.
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO watermarks (consumer, seq, updated_at) VALUES (?, ?, ?)
 		ON DUPLICATE KEY UPDATE
-			seq = IF(watermarks.seq < VALUES(seq), watermarks.seq),
-			updated_at = VALUES(updated_at)`,
+			seq = GREATEST(watermarks.seq, VALUES(seq)),
+			updated_at = IF(VALUES(seq) > watermarks.seq, VALUES(updated_at), watermarks.updated_at)`,
 		consumer, seq, time.Now().UnixMilli())
 
 	return err

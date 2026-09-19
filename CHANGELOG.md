@@ -33,6 +33,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - FEATURES gained the ADR-0142 capability matrix (engine × DueClaim/Dedup);
   the FAQ explains why timers/claims refuse on dgraph and the iroh wrapper
   (`EngineProfile.RefusedADTs` → Doctor → capability audit).
+- **MySQL fixes found by the first long-lived-DB conformance run**: the
+  queue/mysql watermark upsert built syntactically invalid SQL (`IF` with
+  two arguments — every save failed); it now expresses the sqlite/postgres
+  monotonic guard as `GREATEST` + a conditional timestamp, green `-race
+  -count=2` vs live MariaDB including the 16-racer CAS exclusivity test
+  (local server, no QEMU flake). The mysql/pg engine reset tests assumed a
+  pristine shared test database — journal collections/keys are now
+  run-unique so ADR-0143's journal-survival assertions hold on reused
+  servers.
 
 ### Fixed — engine reset deleted the journal (ADR-0143: facts survive resets) — 2026-09-19
 
