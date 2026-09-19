@@ -13,14 +13,15 @@ import (
 // ResetEngine deletes exactly these ranges, so foreign keys in a
 // caller-supplied pebble.DB survive. When a new tag or index family is added,
 // this list AND the reset test must grow together.
+//
+// The journal prefixes (l, sl, jl) are deliberately ABSENT: journal entries
+// are facts on the ADR-0136 ladder (ADR-0143) — the replay source a reset
+// rebuilds FROM, never derived data a reset clears.
 var resetTagPrefixes = [][]byte{
 	[]byte("m\x00"),     // map
 	[]byte("s\x00"),     // set
 	[]byte("c\x00"),     // counter
 	[]byte("mm\x00"),    // multimap
-	[]byte("l\x00"),     // log
-	[]byte("sl\x00"),    // stream log
-	[]byte("jl\x00"),    // journal index
 	[]byte("vec\x00"),   // vector embeddings
 	[]byte("vecm\x00"),  // vector metadata
 	[]byte("edge\x00"),  // graph forward adjacency
@@ -30,17 +31,11 @@ var resetTagPrefixes = [][]byte{
 }
 
 // ResetEngine implements [metaengine.EngineResetter]: it deletes every
-// engine-owned key range in ONE atomic batch, returning the engine to its
-// empty post-construction state so a journal replay rebuilds every collection
-// from zero. Layout declarations (e.layouts) survive — a reset reverts the
-// Store to its post-Plan state, so secondary indexes are rebuilt by the
-// replay, not forgotten.
-//
-// In-memory sequence counters (log, multimap, stream, journal) deliberately
-// KEEP advancing across a reset: sequence numbers must stay monotonic
-// forever, so a consumer holding a pre-reset resumption token (journal seq >
-// N) never skips replayed entries, and replayed keys can never collide with
-// deleted ones.
+// engine-owned materialized key range in ONE atomic batch. Layout
+// declarations (e.layouts) survive — a reset reverts the Store to its
+// post-Plan state, so secondary indexes are rebuilt by the replay, not
+// forgotten. The JOURNAL (l/sl/jl prefixes) survives: its entries are facts
+// (ADR-0136 top rung / ADR-0143) — the replay source, never derived data.
 //
 // Serialized against counter/multimap/log seq operations via mu.
 func (e *pebbleEngine) ResetEngine(_ context.Context) error {

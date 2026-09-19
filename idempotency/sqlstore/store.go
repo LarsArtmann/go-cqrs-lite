@@ -122,7 +122,12 @@ func NewSQLiteStore(ctx context.Context, database *sql.DB) (*Store, error) {
 		return nil, fmt.Errorf("sqlstore: create table: %w", err)
 	}
 
-	return &Store{db: database, dialect: DialectSQLite, q: q}, nil
+	return &Store{
+		db:      database,
+		dialect: DialectSQLite,
+		q:       q,
+		engine:  engineFacadeOps{dedup: nil, collection: ""},
+	}, nil
 }
 
 // NewPostgresStore creates a PostgreSQL-backed idempotency store and creates
@@ -133,7 +138,12 @@ func NewPostgresStore(ctx context.Context, database *sql.DB) (*Store, error) {
 		return nil, fmt.Errorf("sqlstore: create table: %w", err)
 	}
 
-	return &Store{db: database, dialect: DialectPostgres, q: q}, nil
+	return &Store{
+		db:      database,
+		dialect: DialectPostgres,
+		q:       q,
+		engine:  engineFacadeOps{dedup: nil, collection: ""},
+	}, nil
 }
 
 // NewMySQLStore creates a MySQL/MariaDB-backed idempotency store and creates
@@ -144,7 +154,12 @@ func NewMySQLStore(ctx context.Context, database *sql.DB) (*Store, error) {
 		return nil, fmt.Errorf("sqlstore: create table: %w", err)
 	}
 
-	return &Store{db: database, dialect: DialectMySQL, q: q}, nil
+	return &Store{
+		db:      database,
+		dialect: DialectMySQL,
+		q:       q,
+		engine:  engineFacadeOps{dedup: nil, collection: ""},
+	}, nil
 }
 
 // Seen reports whether the key is currently recorded and not expired.

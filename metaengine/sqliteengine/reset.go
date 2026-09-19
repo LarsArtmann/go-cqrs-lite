@@ -12,13 +12,17 @@ import (
 // Planned tables (from e.plans) are cleared alongside them, but their LAYOUT
 // survives — [metaengine.Store.Reset] reverts the Store to its post-Plan
 // state, and re-planning after a reset must land on the same tables.
+//
+// The journal tables (meta_log, meta_stream_log) are deliberately ABSENT:
+// journal entries are facts on the ADR-0136 invertibility ladder — the
+// replay SOURCE, not derived data — so a reset must never delete them
+// (ADR-0143; the fact journal meta_facts already followed this rule). A
+// deployment hosting its event store on the engine relies on it.
 var resetBaseTables = []string{
 	"meta_map",
 	"meta_set",
 	"meta_counter",
 	"meta_multimap",
-	"meta_log",
-	"meta_stream_log",
 	"meta_graph_edges",
 	"meta_snapshot",
 	"meta_vector",
@@ -35,14 +39,13 @@ var resetBaseTables = []string{
 // (the layout itself survives), and every materialized view (dropped and
 // recreated against the emptied meta_map, because IVM DELETE-propagation is
 // not trusted for grouped views — they carry known upstream maintenance
-// defects) — and resets the cached multimap sequence counters, returning the
-// engine to its empty post-construction state so a journal replay rebuilds
-// every collection from zero.
+// defects) — and resets the cached multimap sequence counters.
 //
-// AUTOINCREMENT counters (meta_log.id, meta_stream_log.seq) deliberately keep
-// advancing across a reset: journal positions must stay monotonic forever, so
-// a consumer holding a pre-reset resumption token (seq > N) never skips
-// replayed events.
+// The JOURNAL (meta_log, meta_stream_log) survives: journal entries are facts
+// (ADR-0136 top rung / ADR-0143) — the replay source a reset rebuilds FROM,
+// never derived state a reset clears. Only their AUTOINCREMENT counters'
+// monotonicity matters to consumers, and rows surviving keeps positions
+// stable by construction.
 //
 // Serialized against RunInTx via txMu; a reset never interleaves with an
 // active transaction.

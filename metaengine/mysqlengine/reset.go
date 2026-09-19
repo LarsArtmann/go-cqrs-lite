@@ -11,11 +11,12 @@ import (
 // resetBaseTables are the engine-owned storage tables. A reset clears their
 // rows (never their schema) plus the planned tables registered via
 // ApplyLayout — the layouts survive, mirroring the post-Plan state
-// [metaengine.Store.Reset] reverts to.
+// [metaengine.Store.Reset] reverts to. The journal table (meta_stream_log)
+// is deliberately ABSENT: journal entries are facts on the ADR-0136 ladder
+// (ADR-0143) — the replay source, never derived data.
 var resetBaseTables = []string{
 	"meta_map",
 	"meta_counter",
-	"meta_stream_log",
 	"meta_graph_edges",
 	"meta_vector",
 	// ADR-0142 write-side collections (claimkit): timers and dedup windows
@@ -27,16 +28,14 @@ var resetBaseTables = []string{
 
 // ResetEngine implements [metaengine.EngineResetter]: it clears every
 // engine-owned table (base tables plus all layout-planned tables) in one
-// database transaction, returning the engine to its empty post-construction
-// state so a journal replay rebuilds every collection from zero. Table
-// schemas and layout declarations survive.
+// database transaction. Table schemas and layout declarations survive.
+// The JOURNAL (meta_stream_log) survives — its rows are facts (ADR-0136 top
+// rung / ADR-0143): the replay source a reset rebuilds FROM, never derived
+// state a reset clears; its AUTO_INCREMENT keeps positions monotonic.
 //
 // DELETE FROM (not TRUNCATE) keeps the clear inside a transaction — MySQL
 // TRUNCATE implicitly commits and could leave a half-reset behind on
-// failure. The meta_stream_log AUTO_INCREMENT deliberately KEEPS advancing
-// across a reset: sequence numbers must stay monotonic forever, so a
-// consumer holding a pre-reset resumption token (journal seq > N) never
-// skips replayed entries.
+// failure.
 //
 // Serialized against RunInTx via mu.
 func (e *mysqlEngine) ResetEngine(ctx context.Context) error {

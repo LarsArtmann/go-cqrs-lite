@@ -11,11 +11,12 @@ import (
 // resetBaseTables are the engine-owned storage tables. A reset clears their
 // rows (never their schema) plus the planned tables registered via
 // ApplyLayout/ApplyLayoutPlan — the layouts survive, mirroring the post-Plan
-// state [metaengine.Store.Reset] reverts to.
+// state [metaengine.Store.Reset] reverts to. The journal table
+// (meta_stream_log) is deliberately ABSENT: journal entries are facts on the
+// ADR-0136 ladder (ADR-0143) — the replay source, never derived data.
 var resetBaseTables = []string{
 	"meta_map",
 	"meta_counter",
-	"meta_stream_log",
 	"meta_graph_edges",
 	"meta_vector",
 	// ADR-0142 write-side collections (claimkit): timers and dedup windows
@@ -27,12 +28,10 @@ var resetBaseTables = []string{
 
 // ResetEngine implements [metaengine.EngineResetter]: it clears every
 // engine-owned table (base tables plus all layout-planned tables) in one
-// database transaction, returning the engine to its empty post-construction
-// state so a journal replay rebuilds every collection from zero. Table
-// schemas and layout declarations survive; the meta_stream_log BIGSERIAL
-// deliberately KEEPS advancing across a reset — sequence numbers must stay
-// monotonic forever, so a consumer holding a pre-reset resumption token
-// (journal seq > N) never skips replayed entries.
+// database transaction. Table schemas and layout declarations survive.
+// The JOURNAL (meta_stream_log) survives — its rows are facts (ADR-0136 top
+// rung / ADR-0143): the replay source a reset rebuilds FROM, never derived
+// state a reset clears; its BIGSERIAL keeps positions monotonic forever.
 //
 // Serialized against RunInTx via mu; the single transaction makes the clear
 // atomic (a partial reset cannot commit).

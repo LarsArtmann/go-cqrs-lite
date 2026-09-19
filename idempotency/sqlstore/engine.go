@@ -2,7 +2,7 @@ package sqlstore
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -11,6 +11,9 @@ import (
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
+
+// errNilDedupStore is returned by NewFromEngine when handed a nil DedupStore.
+var errNilDedupStore = errors.New("idempotency/sqlstore.NewFromEngine: nil DedupStore")
 
 // DefaultEngineCollection is the claims-collection name engine-backed stores
 // use for their dedup window.
@@ -24,14 +27,26 @@ const DefaultEngineCollection = "idempotency"
 // row untouched — lazier reads then behave identically either way.
 func NewFromEngine(dedup metaengine.DedupStore, collection string) (*Store, error) {
 	if dedup == nil {
-		return nil, fmt.Errorf("idempotency/sqlstore.NewFromEngine: nil DedupStore")
+		return nil, errNilDedupStore
 	}
 
 	if collection == "" {
 		collection = DefaultEngineCollection
 	}
 
-	return &Store{engine: engineFacadeOps{dedup: dedup, collection: collection}}, nil
+	return &Store{
+		db: nil,
+		q: queries{
+			ddl:            "",
+			seen:           "",
+			deleteKey:      "",
+			record:         "",
+			checkAndRecord: "",
+			sweep:          "",
+		},
+		dialect: 0,
+		engine:  engineFacadeOps{dedup: dedup, collection: collection},
+	}, nil
 }
 
 // engineFacadeOps holds the engine-backed implementation for the SQL-shaped
