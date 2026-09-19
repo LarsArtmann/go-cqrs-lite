@@ -86,7 +86,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Go 1.27 upgrade wave (proposed 2026-09-13)
 
-- [ ] 🔥 **Toolchain + go-directive wave to Go 1.27** — Go 1.27 (2026-08-19; 1.27.1 2026-09-01) graduated `encoding/json/v2` (v1 now backed by the v2 engine — the `-tags "goexperiment.jsonv2"` footgun dies repo-wide, clearing ~20 live gopls `stdversion` warnings) and legalized **generic methods** (method-level type params; interface methods still can't). Scope: bump all 85 `go.mod` `go` directives (language features are directive-gated), flake `goToolchain` pin to nixpkgs `go_1_27` (verify availability first — CONFIRMED 2026-09-18: `nixpkgs#go_1_27` = 1.27.1; repo flake currently resolves default go = 1.26.7), CI, AGENTS.md/docs command chains, then full `#verify` + integration suites + bench-regression sweep (v2 unmarshal is significantly faster — expect improvements), and a release train so consumers actually receive it. Consumer impact: `go` directive ≥ 1.27 forces toolchain download on older setups (`GOTOOLCHAIN=auto` mitigates). Sequel: revisit `decider.ExecuteCommandRef` as a true `Repository[State]` method (additive), plus the other option-func families. — evidence: go.dev/doc/go1.27 release notes, plan D1 amendment. _(Effort: L — own wave, do NOT fold into other plans)_
+- ~~[ ] 🔥 **Toolchain + go-directive wave to Go 1.27**~~ done 2026-09-19 — shipped as the 92-tag "Toolchain cutover wave" train: go 1.27.1 directives repo-wide, flake `goToolchain` = `go_1_27`, jsonv2 graduation (tags stripped repo-wide), consumers served (`go list -m @latest` = 1.27-based tags on the proxy). Remaining bench re-pin under 1.27 tracked as W1 T14 (baseline re-pin row below).<br>**Original:** Go 1.27 (2026-08-19; 1.27.1 2026-09-01) graduated `encoding/json/v2` (v1 now backed by the v2 engine — the `-tags "goexperiment.jsonv2"` footgun dies repo-wide, clearing ~20 live gopls `stdversion` warnings) and legalized **generic methods** (method-level type params; interface methods still can't). Scope: bump all 85 `go.mod` `go` directives (language features are directive-gated), flake `goToolchain` pin to nixpkgs `go_1_27` (verify availability first — CONFIRMED 2026-09-18: `nixpkgs#go_1_27` = 1.27.1; repo flake currently resolves default go = 1.26.7), CI, AGENTS.md/docs command chains, then full `#verify` + integration suites + bench-regression sweep (v2 unmarshal is significantly faster — expect improvements), and a release train so consumers actually receive it. Consumer impact: `go` directive ≥ 1.27 forces toolchain download on older setups (`GOTOOLCHAIN=auto` mitigates). Sequel: revisit `decider.ExecuteCommandRef` as a true `Repository[State]` method (additive), plus the other option-func families. — evidence: go.dev/doc/go1.27 release notes, plan D1 amendment. _(Effort: L — own wave, do NOT fold into other plans)_
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 
@@ -107,7 +107,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       _(Effort: M/L each)_
 - [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). NEXT STEP (SUPERB S28): design one-pager for `AggregateOn(fn, column, group)` on `QueryDecl` — the declarative seam the planner can read — then routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
       _(Effort: M)_
-- [ ] **Tag wave for the matview feature** — metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
+- ~~[ ] **Tag wave for the matview feature**~~ done 2026-09-19 — matview family published: `metaengine/v4.14.0` + `sqliteengine/v4.4.0` + `tursoengine/v4.2.0` + `system/v4.8.0` (tags carry zero local replaces; pins coherent per `pin-sweep --check --remote`).<br>**Original:** metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
       _(Effort: M)_
 
@@ -266,87 +266,73 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
-- [ ] **Reconciliation-wave untagged surfaces (2026-09-13)** — `metaengine`
-      (`Store.StreamCollection`), `commandlifecycle/projections`
-      (`CommandsByActor` + query/result types), plus the regenerated API golden.
-      Fold into the next tag wave when it is authorized; no release action
-      before that. — source:
-      [`docs/status/archived/2026-09-13_18-35_…execution.md`](docs/status/archived/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md)
-      _(Effort: XS note; M at tag time)_
+- ~~[ ] **Reconciliation-wave untagged surfaces (2026-09-13)**~~ done 2026-09-19 — shipped in the 92-tag train: `metaengine/v4.14.0` (`Store.StreamCollection`), `commandlifecycle/projections/v4.2.0` (`CommandsByActor` + query/result types), golden regenerated.<br>**Original:** `metaengine` (`Store.StreamCollection`), `commandlifecycle/projections` (`CommandsByActor` + query/result types), plus the regenerated API golden. — source: [`docs/status/archived/2026-09-13_18-35_…execution.md`](docs/status/archived/2026-09-13_18-35_event-query-model-truth-reconciliation-execution.md) _(Effort: XS note; M at tag time)_
 
-- [ ] [BLOCKED] 🔥 **Next v4 tag wave** — substantial unpublished surfaces on
-      master: `encryption` (key helpers + envelope v2), `snapshot`
-      (`NewRewritingTransformedStore` + wire tags), `storage`
-      (`MigrateSnapshotColumnsToStream`, EventSchema re-exports, bytea fix),
-      `cmd/cqrs-lint` (working `--fix`, C005, RULES.md, doctor JSON, scorecard
-      panel, preset policy), `cmd/api-stability` (sub-package golden),
-      `catalog`, `benchkit` (system harness), `metaengine` (planner capability
-      partition, record context, `SortPaginate[T]`, planned-table parity,
-      matview family) + engines (irohengine v4.2.0 for the pin repair,
-      mysqlengine, pgengine, sqliteengine, duckdbengine, dgraphengine
-      recalibration, badgerengine — now consumes new `metaengine.SortPaginate`,
-      pin bump + replace-strip REQUIRED), `scheduling/sqlstore` (MySQL
-      claiming), `watermill` (**v4.7.0 — the issue-#21 typed-causation wire
-      protocol: `writeCausation`/`parseCausation` + legacy custom-mirror
-      promotion, landed 2026-09-09 and STILL UNTAGGED**; go-localsync runs
-      its documented workaround until this tag exists), `system` (v4.7.0: materialized views + the MV recipe's
-      UNRELEASED marker flips when tagged). **Strip `storage/go.mod`'s two
-      local replaces in the same wave.** **NEW 2026-09-16 preconditions:** (1)
-      re-tag `otel/v4` carrying `DBSystem` BEFORE any storage/v4 tag — the
-      published storage would otherwise reference an unpublished symbol
-      (broken for consumers until otel re-tags); (2) the wave also strips the
-      newer sibling replaces: `cmd/cqrs-bench => ../../benchkit`
-      (statistical-rigor APIs: `RunRepeated`, `MetricVariation`,
-      `WriteBenchstatRepeated`), `queue/sqlite` + `queue/postgres => ../queue`,
-      `commandlifecycle/projections`, and bumps `metaengine`
-      (`Store.StreamCollection`) + `commandlifecycle/projections`
-      (`CommandsByActor`). Order constraints per CONTRIBUTING
-      pre-tag checklist; cut→push→next interleave (GOPRIVATE resolves siblings
-      via VCS). — source: 08-26 §c3, 15-09 §f47, SUPERB §f14-16; 08-04 §b5 +
-      02-09 §f3 + 09-35 §f18 (2026-09-16 additions)
-      _(Effort: M)_
-- [ ] **Tag `cmd/cqrs-lint` v4.10.2 (ships the buildinfo version reporting)** —
-      on master since 2026-09-11; v4.10.1 deliberately predates it. Verify the
+- ~~[ ] [BLOCKED] 🔥 **Next v4 tag wave**~~ done 2026-09-19 21:08–21:45 — the 92-tag train (B0–B6): every listed surface published, incl. `watermill/v4.6.1` (issue-#21 typed causation; the go-localsync workaround can die), `otel/v4.5.0` (DBSystem) cut BEFORE `storage/v4.10.0` (B2 before B3, ordering honored), `cmd/cqrs-lint/v4.12.0`, `cmd/api-stability/v4.4.0`, engine re-calibrations, `scheduling/sqlstore/v4.1.0`, `system/v4.8.0` (matview + coeffect gate). Tags verified replace-free with coherent pins.<br>**Original:** substantial unpublished surfaces on master: `encryption` (key helpers + envelope v2), `snapshot` (`NewRewritingTransformedStore` + wire tags), `storage` (`MigrateSnapshotColumnsToStream`, EventSchema re-exports, bytea fix), `cmd/cqrs-lint` (working `--fix`, C005, RULES.md, doctor JSON, scorecard panel, preset policy), `cmd/api-stability` (sub-package golden), `catalog`, `benchkit` (system harness), `metaengine` (planner capability partition, record context, `SortPaginate[T]`, planned-table parity, matview family) + engines (irohengine v4.2.0 for the pin repair, mysqlengine, pgengine, sqliteengine, duckdbengine, dgraphengine recalibration, badgerengine — now consumes new `metaengine.SortPaginate`, pin bump + replace-strip REQUIRED), `scheduling/sqlstore` (MySQL claiming), `watermill` (**v4.7.0 — the issue-#21 typed-causation wire protocol: `writeCausation`/`parseCausation` + legacy custom-mirror promotion, landed 2026-09-09 and STILL UNTAGGED**; go-localsync runs its documented workaround until this tag exists), `system` (v4.7.0: materialized views + the MV recipe's UNRELEASED marker flips when tagged). **Strip `storage/go.mod`'s two local replaces in the same wave.** **NEW 2026-09-16 preconditions:** (1) re-tag `otel/v4` carrying `DBSystem` BEFORE any storage/v4 tag — the published storage would otherwise reference an unpublished symbol (broken for consumers until otel re-tags); (2) the wave also strips the newer sibling replaces: `cmd/cqrs-bench => ../../benchkit` (statistical-rigor APIs: `RunRepeated`, `MetricVariation`, `WriteBenchstatRepeated`), `queue/sqlite` + `queue/postgres => ../queue`, `commandlifecycle/projections`, and bumps `metaengine` (`Store.StreamCollection`) + `commandlifecycle/projections` (`CommandsByActor`). Order constraints per CONTRIBUTING pre-tag checklist; cut→push→next interleave (GOPRIVATE resolves siblings via VCS). — source: 08-26 §c3, 15-09 §f47, SUPERB §f14-16; 08-04 §b5 + 02-09 §f3 + 09-35 §f18 (2026-09-16 additions) _(Effort: M)_
+- ~~[ ] **Tag `cmd/cqrs-lint` v4.10.2 (ships the buildinfo version reporting)**~~
+      done 2026-09-19 — superseded by `cmd/cqrs-lint/v4.12.0` in the 92-tag
+      train (buildinfo version reporting rides it; smoke probe covers the
+      installed binary).<br>**Original:** on master since 2026-09-11;
+      v4.10.1 deliberately predates it. Verify the
       installed binary prints the real tag after `go install …@v4.10.2`. —
-      source: 01-47 §b1/§f5
-      _(Effort: S)_
-- [ ] **`check-retracts-shipped.sh`** — fail when a master go.mod retract
+      source: 01-47 §b1/§f5 _(Effort: S)_
+- ~~[ ] **`check-retracts-shipped.sh`**~~ done — script exists, wired, green
+      2026-09-19 (5 modules with retracts checked); the clean-dir `go list -m
+      module@latest` acceptance ran green for 10 key modules post-train.<br>**Original:**
+      fail when a master go.mod retract
       directive is absent from the module's newest tag (the inert-retract
       class: `retract v4.8.0` sat on master ~10 days before v4.10.1 shipped
       it). Acceptance test for every retract = clean-dir `go list -m
       module@latest`. — source: 01-47 §d3/§e1/§f6
       _(Effort: S)_
-- [ ] **`tag-release.sh --audit --baseline` mode** — the one-shot audit found
+- ~~[ ] **`tag-release.sh --audit --baseline` mode**~~ done — mode +
+      `#check-tag-audit` CI leg exist; 2026-09-19 post-train audit: 24 known
+      violations, 0 NEW, 0 fixed (1175 tags checked).<br>**Original:** the one-shot audit found
       24 historical violations (1078 tags), all in dead paths that cannot be
       fixed; a known-violations baseline (art-dupl pattern) turns `--audit
       --check` into a CI leg gating NEW violations only. — source: 01-47
       §b3/§f7
       _(Effort: S/M)_
-- [ ] **`scripts/smoke-probes.txt` + strengthen test-tag-release.sh Test 5** —
+- ~~[ ] **`scripts/smoke-probes.txt` + strengthen test-tag-release.sh Test 5**~~
+      done — smoke-probes.txt exists (12 lines, explicit per-CLI probes) and
+      Test 5's lib suite covers the no-main skip path ("library module takes
+      the no-main skip path" ✓).<br>**Original:**
       per-binary probe command for the `--smoke` run check (`--help` exit
       semantics differ across CLIs); Test 5 covers the `--smoke` usage guard,
       not the no-main-package skip path. — source: 01-47 §b4/§b5/§f11/§f12
       _(Effort: S)_
 - [ ] [BLOCKED] **Dead-path module/tag decisions (owner)** — (a)
-      example/taskmanager + example/getting-started carry suffix-less module
+      ~~example/taskmanager + example/getting-started carry suffix-less module
       paths with permanently-invisible v3/v4 tags: re-path to /v4, delete, or
-      document as v0-only; (b) `event/v4/eventtest`'s invisible v0.x tags:
+      document as v0-only~~ done 2026-09-19 — decided by the wave: correct
+      v0-line tags cut (`taskmanager/v0.2.0`, `getting-started/v0.2.0`,
+      `scheduler-otel-status/v0.1.0`, `goal-shaped-app/v0.1.0`); the dead
+      v3/v4 tags stay baselined in `audit-tag-baseline.txt`. (b)
+      `event/v4/eventtest`'s invisible v0.x tags:
       document as dead in modules.md + pin-sweep note. — source: 01-47 §c1/§f9/§f10
       _(Effort: M decision + S doc)_
-- [ ] **Create GitHub Releases** for the outstanding tags (only storage/v4.7.1
-      ever got one). `gh` auth VERIFIED working; script exists
-      (`scripts/create-github-releases.sh`) — remaining work is running it per
-      tag. — source: 05-00 §f12
+- ~~[ ] **Create GitHub Releases** for the outstanding tags~~ done 2026-09-19
+      — 92 releases created for the train (152 repo total);
+      `create-github-releases.sh` extended to match train-section headers
+      (bounded-token match, newest section first, trimmed body + CHANGELOG
+      pointer like the 09-08 precedent) with `--dry-run`; all 92 extracted,
+      bogus tags skip. `gh` auth working. — source: 05-00 §f12
       _(Effort: S)_
-- [ ] **Consolidate indirect dep references** — the transitive
+- ~~[ ] **Consolidate indirect dep references**~~ done 2026-09-19 — moot:
+      ADR-0128 extracted codec/retry/idempotency/flightrecorder to external
+      repos and the 92-tag train repinned everything; zero
+      `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}` references
+      remain in any go.mod (verified by grep across all 95).<br>**Original:**
+      the transitive
       `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}/v4` indirect deps
       in ~49 consumer go.mod files clean up after new tags publish. Track and
       verify. _(Effort: M)_
-- [ ] **Run `scripts/pin-sweep.sh --check` as a standing post-release step** —
-      proven 2026-09-08: a coordinated release that EXCLUDES a module can
-      still break that module standalone (`storage` went red; whack-a-mole
-      tidy was not a census). Also verify `storage/eventstore` pin health with
-      evidence. — source: archived 07-48 §b2/§f2
+- ~~[ ] **Run `scripts/pin-sweep.sh --check` as a standing post-release step**~~
+      done 2026-09-19 — the train's cut loop ran per-batch pin-sweeps (commits
+      2a9ccb75a…38c3b4fd4) and the post-wave `--check --remote` is green
+      (local + origin tag sources); `storage/eventstore` is a package inside
+      `storage/v4`, so its pin health is the storage pin coherence the sweep
+      already covers. — source: archived 07-48 §b2/§f2
       _(Effort: S)_
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
