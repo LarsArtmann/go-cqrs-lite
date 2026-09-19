@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/cockroachdb/pebble"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 

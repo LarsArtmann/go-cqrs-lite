@@ -18,7 +18,9 @@ func init() {
 		"queue-sqlite",
 		func(ctx context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
 			if cfg.DSN == "" {
-				return nil, errors.New("queue-sqlite: DSN required (path to the queue database file)")
+				return nil, errors.New(
+					"queue-sqlite: DSN required (path to the queue database file)",
+				)
 			}
 
 			eng, err := NewEngine(cfg.DSN)

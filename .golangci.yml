@@ -823,7 +823,9 @@ linters:
       - vendor/
 formatters:
   enable:
-    - gci
+    # gci deliberately NOT enabled: treefmt/goimports owns import grouping
+    # (AGENTS contract 18 — two tools fighting re-broke 95+ files 2026-08-16;
+    # auto-configure re-adding it was reverted 2026-09-19).
     - goimports
     - gofumpt
     - golines
