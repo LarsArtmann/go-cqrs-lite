@@ -5,7 +5,7 @@
 > **Sources:**
 >
 > - [`docs/reviews/2026-09-13_command-side-depth-review.md`](../reviews/2026-09-13_command-side-depth-review.md) — the three domain gaps
-> - [`docs/reviews/2026-09-13_event-command-duplication-hypothesis-review.md`](../reviews/2026-09-13_event-command-duplication-hypothesis-review.md) — the `AsRecord` seam + v5 list
+> - [`docs/reviews/archived/2026-09-13_event-command-duplication-hypothesis-review.md`](../reviews/archived/2026-09-13_event-command-duplication-hypothesis-review.md) — the `AsRecord` seam + v5 list
 > - [`docs/reviews/2026-09-13_event-module-split-re-review.md`](../reviews/2026-09-13_event-module-split-re-review.md) — constraint (no event/ split; extract-downward only)
 > - Repo state `master` @ 7d4a6d000; every code fact below re-verified this session
 >

@@ -1239,7 +1239,7 @@ the newest version.
 
 ### Added — `queue/postgres`: the second engine, suite-green (durable-queue P1, part 3) — 2026-09-14
 
-- **Dedup seam decision (plan T10)** — `docs/planning/2026-09-14_queue-dedup-seam-decision.md`:
+- **Dedup seam decision (plan T10)** — `docs/planning/archived/2026-09-14_queue-dedup-seam-decision.md`:
   the dedup seam IS the `task.New.DedupKey` contract (partial unique
   index in both engines, conformance-pinned for forever-suppression);
   a go-idempotency-backed adapter is rejected — TTL-bounded command

@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-13 17:40 CEST
 
-> **KEEP-LIVE EVIDENCE (2026-09-19 docs-health 8th pass):** this file is source-verification EVIDENCE cited by planning docs (`docs/planning/2026-09-13_16-01_*`, T16–T18 memos) — not open work; do not archive by mistake. Forward items are routed: TODO_LIST [BLOCKED] session-log boundary, ROADMAP OQ #13/#15.
-**Parent plan:** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](../planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md) (task T02)
+> **KEEP-LIVE EVIDENCE (2026-09-19 docs-health 8th pass):** this file is source-verification EVIDENCE cited by planning docs (`docs/planning/archived/2026-09-13_16-01_*`, T16–T18 memos) — not open work; do not archive by mistake. Forward items are routed: TODO_LIST [BLOCKED] session-log boundary, ROADMAP OQ #13/#15.
+**Parent plan:** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](../planning/archived/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md) (task T02)
 **Purpose:** source-verified answers for the 7 inferred claims that T01..T22 annotations depend on. Every claim below was read from source in this session; file:line citations are exact as of `93cc2be6c` + working tree.
 
 ---

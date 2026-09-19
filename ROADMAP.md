@@ -732,19 +732,19 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
     `Store.StreamCollection` shipped (export now streams); the query-level
     form (typed input + configured filters/sort, `iter.Seq2`) remains open.
     Wire when an analytics/bulk-scan consumer needs it. — source:
-    `docs/planning/2026-09-13_T16-memo-streamingscan-wire-or-cut.md`
+    `docs/planning/archived/2026-09-13_T16-memo-streamingscan-wire-or-cut.md`
 14. **Command-rejection event scope** (2026-09-13; HALF RESOLVED 2026-09-15):
     `command.rejected` + errorfamily classification SHIPPED (T17 option A:
     `DefaultRejectionFamilies` {Rejection, Conflict}, `RejectionLog` folds
     rejected, DLQ/FailureLog unchanged — AGENTS.md contract #25). Remaining
     question: is opt-in payload capture ever wanted? Revisit only with a
     concrete compliance consumer. — source:
-    `docs/planning/2026-09-13_T17-memo-command-log-audit-scope.md`
+    `docs/planning/archived/2026-09-13_T17-memo-command-log-audit-scope.md`
 15. **Session log: external forever or a future `sessionlifecycle` module?**
     (2026-09-13): the T18 memo recommends staying external
     (`cqrs-htmx/identity-model`) and keeping the planned `queue/` module
     scoped to work items; revisit only on a concrete audit consumer. — source:
-    `docs/planning/2026-09-13_T18-memo-session-log-boundary.md`
+    `docs/planning/archived/2026-09-13_T18-memo-session-log-boundary.md`
 
 ---
 

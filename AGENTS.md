@@ -213,7 +213,7 @@ moved past one, do NOT silently edit its design intent:
 4. Never delete original design text; a reader must be able to see what was intended.
 5. `docs/planning/` is NOT in `cmd/doc-check`'s default scan set (gated only when passed explicitly). No snippet-compile gate is enforced for planning docs: snippets are illustrative, and md-go-validator flags them by design (see `docs/reviews/2026-09-13_md-go-validator-review.md`). The banner + addendum discipline is the gate.
 
-Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`).
+Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `docs/planning/archived/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`).
 
 ### Blast Radius Before Done
 

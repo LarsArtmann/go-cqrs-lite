@@ -3,7 +3,7 @@
 **Date:** 2026-09-18
 **Status:** Accepted
 **Supersedes:** N/A (extends [ADR-0123](0123-v5-unification-single-composition-root.md); operationalizes the "universal ADT" direction of [`meta-engine-universal-adt-support.md`](../planning/meta-engine-universal-adt-support.md))
-**Related:** ADR-0123 §3/§9/§10 (driver registry, universality, batch atomicity), ADR-0136 (invertibility ladder), ADR-0140 (capability-degradation precedent), [`2026-09-18 SUPERB plan`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md), [`durable-work-queue-module.md`](../planning/2026-09-13_durable-work-queue-module.md)
+**Related:** ADR-0123 §3/§9/§10 (driver registry, universality, batch atomicity), ADR-0136 (invertibility ladder), ADR-0140 (capability-degradation precedent), [`2026-09-18 SUPERB plan`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md), [`durable-work-queue-module.md`](../planning/archived/2026-09-13_durable-work-queue-module.md)
 
 > Numbered 0142, not 0141 as the SUPERB plan says: the 0141 slot was taken
 > ([native temporal versioned cells](0141-native-temporal-versioned-cells.md)) between planning and execution.
