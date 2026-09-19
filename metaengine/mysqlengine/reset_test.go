@@ -131,15 +131,15 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 		t.Fatalf("JournalReadAllWithSeq after reset: %v", err)
 	}
 
-	if len(after) != 1 {
-		t.Fatalf("exactly the replayed entry must exist after reset, got %d", len(after))
+	if len(after) != 2 {
+		t.Fatalf("journal (facts) must SURVIVE reset (ADR-0143): want the pre-reset entry plus the appended one, got %d", len(after))
 	}
 
-	if after[0].Seq <= lastSeq {
+	if after[len(after)-1].Seq <= lastSeq {
 		t.Fatalf(
 			"journal seq must stay monotonic across reset: before=%d after=%d",
 			lastSeq,
-			after[0].Seq,
+			after[len(after)-1].Seq,
 		)
 	}
 }
