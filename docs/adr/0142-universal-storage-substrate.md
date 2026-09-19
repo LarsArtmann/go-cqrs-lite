@@ -110,6 +110,25 @@ explicit capability refusal note in `Supports`, never silence.
 | Durable-queue plan P0–P5                                                      | P0 (`claiming/`) is reused verbatim; P4/T16 facts-in-tx IS `FactSink` (the ADT becomes its reference); queue T14/T15/T17 remain queue-internal and gate only T09's queue-driver leg                     |
 | ADR-0140 (degrade-everywhere precedent)                                       | Same pattern extended: capability + honest profile + conformance parity                                                                                                                                 |
 
+## Amendment (2026-09-18, owner review): one runtime per storage class, not per engine
+
+The original task breakdown read as "implement DueClaimer on sqlite (T04),
+again on postgres (T05), again on memory (T06)" — owner pushback ("I hate that
+we need to reimplement it") was correct: that shape would copy the same SQL and
+the same claim loop per engine. Amended execution structure:
+
+| Storage class      | Shared runtime                                                                                                                                                                                                                                                                                                                                                             | Consumed by                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| SQL engines        | `metaengine/claimkit` — ONE payload-agnostic `database/sql` runtime (table DDL, dialect-dispatched claims via `claiming/`, owner-fenced renew, epoch delete, same-tx facts, SQL dedup) implementing the metaengine interfaces directly                                                                                                                                      | sqlite, postgres, mysql, duckdb, turso — each embeds it (constructor + profile entries only)                       |
+| Map-shaped engines | `metaengine.MapDueClaimer` + `metaengine.MapDedupStore` — ONE pure-Go degraded runtime over the EXISTING `MapBackend`+`MapUpdater`+`ScanBackend` interfaces (per-key RMW claims under engine write serialization; honest `DegradedADTs` entry, the ADR-0140 pattern)                                                                                                         | memory, pebble, bbolt, badger — each embeds it                                                                     |
+
+Per-engine work drops to wiring: construct the runtime with the engine's
+handle, add the `Supports`/`DegradedADTs` profile entries, run the conformance
+suite. No engine hand-writes claim SQL or a claim loop. `claiming/` stays
+statement-builders (charter unchanged); claimkit extends it with a richer
+claim builder (owner column, collection filter, LIMIT) — old builders remain
+for `scheduling/sqlstore`.
+
 ## Consequences
 
 **Positive**
