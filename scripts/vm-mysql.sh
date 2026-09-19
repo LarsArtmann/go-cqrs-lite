@@ -128,7 +128,7 @@ else
 	log_shuffle_seed "metaengine/mysqlengine" "$SEED"
 	(
 		cd metaengine/mysqlengine
-		CGO_ENABLED=1 GOWORK=off \
+		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
 			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
@@ -146,7 +146,7 @@ else
 	log_shuffle_seed "queue/mysql" "$SEED"
 	(
 		cd queue/mysql
-		CGO_ENABLED=1 GOWORK=off \
+		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
 			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 fi

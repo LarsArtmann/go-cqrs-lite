@@ -24,13 +24,14 @@ func newEngine(t *testing.T) metaengine.Engine {
 }
 
 // TestQueueSQLiteEngine_Conformance: the queue database as a claim substrate
-// — the full ADR-0142 DueClaimer + DedupStore contract on the same SQLite
-// file the tasks live in (queue task semantics stay with queue.Store[T]).
+// — the full ADR-0142 DueClaimer + FactSink + DedupStore contract on the same
+// SQLite file the tasks live in (queue task semantics stay with queue.Store[T]).
 func TestQueueSQLiteEngine_Conformance(t *testing.T) {
 	t.Parallel()
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "queue-sqlite", Create: newEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "queue-sqlite", Create: newEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "queue-sqlite", Create: newEngine}})
 }
 
 func TestQueueSQLiteEngine_DriverRegistry(t *testing.T) {

@@ -131,4 +131,41 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"var lastTuesday, from, to time.Time\n",
 		trailers: "_ = past\n_ = hist\n_ = err",
 	},
+	"### 2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate (ADR-0142) #1": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/scheduling/v4"`,
+			`"context"`,
+			`"log"`,
+			`"time"`,
+		},
+		preamble: "type DelayCommand struct {\n\tOrderID string\n\tReason  string\n}\n\n" +
+			"ctx := context.Background()\ndispatch := func(DelayCommand) {}\n",
+		trailers: "_ = eng",
+	},
+	"### 2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate (ADR-0142) #2": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/metaengine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/queue/mysql/v4"`,
+			`"context"`,
+			`"log"`,
+			`"time"`,
+		},
+		preamble: "ctx := context.Background()\nvar cmdID string\n",
+		trailers: "_ = eng",
+		errFunc:  true,
+	},
+	"### 2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate (ADR-0142) #3": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/scheduling/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/system/v4"`,
+			`"context"`,
+			`"log"`,
+		},
+		preamble: "type DelayCommand struct {\n\tOrderID string\n\tReason  string\n}\n\n" +
+			"var sys *system.System\n" +
+			"dispatch := func(ctx context.Context, p DelayCommand) error { return nil }\n",
+	},
 }

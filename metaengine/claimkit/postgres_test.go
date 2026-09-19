@@ -54,6 +54,7 @@ func TestClaimKit_PostgresConformance(t *testing.T) {
 	t.Parallel()
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "claimkit-postgres", Create: newPGHost}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "claimkit-postgres", Create: newPGHost}})
 }
 
 // TestClaimKit_PostgresCrossKeyspaceIsolation pins the composite-keyspace

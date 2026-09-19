@@ -45,6 +45,7 @@
 > - [§2.35 Survive a Dead Engine](#235-survive-a-dead-engine-health-driven-deactivation-adr-0137)
 > - [§2.36 Watch Dgraph Contention Retries](#236-watch-dgraph-contention-retries-dgraphengine-observer)
 > - [§2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing](#237-point-in-time-reads-versioned-cells--asof-routing-adr-0141)
+> - [§2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate](#238-engine-backed-timers-queue-claims--dedup--the-one-substrate-adr-0142)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -2464,3 +2465,104 @@ planner rule emits a WARN diagnostic at plan time — never a silent wrong
 answer. The event fold stamps every write with event time
 (`metaengine.CellTimestamp`: Stored → Received → Created), so replayed
 projections keep their original temporal order.
+
+### 2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate (ADR-0142)
+
+Timers, work-queue claims, and command dedup are not separate stores to wire:
+they are capabilities of the ONE engine substrate (ADR-0142). `scheduling/engine`
+turns any engine implementing `metaengine.DueClaimer` into a
+`scheduling.TimerStore[P]` — schedule with a semantic (idempotent) timer ID,
+poll lease-fenced `Due`, and `MarkFired` is epoch-guarded so a stale fire after
+a re-schedule is a no-op, not a double dispatch:
+
+```go
+eng, err := sqliteengine.NewSQLiteEngineFromDSN("file:app.db")
+if err != nil {
+	log.Fatal(err)
+}
+
+timers, err := engine.NewTimerStore[DelayCommand](eng,
+	engine.WithCollection("order-timers"),
+	engine.WithOwner("dispatcher-1"),
+	engine.WithLease(30*time.Second),
+)
+if err != nil {
+	log.Fatal(err)
+}
+
+err = timers.Schedule(ctx, scheduling.Timer[DelayCommand]{
+	ID:      scheduling.MustParseTimerID("cancel-order-01J"), // semantic idempotency key
+	FireAt:  time.Now().Add(24 * time.Hour),
+	Payload: DelayCommand{OrderID: "01J", Reason: "payment-timeout"},
+})
+
+due, err := timers.Due(ctx, time.Now()) // lease-fenced: safe across dispatchers
+if err != nil {
+	log.Fatal(err)
+}
+
+for _, t := range due {
+	dispatch(t.Payload)
+
+	if err := timers.MarkFired(ctx, t.ID); err != nil { // stale fires are no-ops
+		log.Printf("mark fired: %v", err)
+	}
+}
+```
+
+The work-queue databases (`queue/sqlite`, `queue/postgres`, `queue/mysql`)
+expose the same substrate directly: `NewEngine` returns a `metaengine.Engine`
+whose `DedupStore` and `FactSink` capabilities ride the SAME database the
+tasks live in — a dedup window is one CAS call, and a claim transition and its
+journal fact land in ONE transaction (a fact without its state change, and a
+state change without its fact, are both unobservable):
+
+```go
+concrete, err := mysql.NewEngine(ctx, "user:pass@tcp(127.0.0.1:3306)/tasks?parseTime=true")
+if err != nil {
+	log.Fatal(err)
+}
+
+var eng metaengine.Engine = concrete
+
+dedupStore := eng.(metaengine.DedupStore)
+seen, err := dedupStore.DedupCheckAndRecord(ctx, "cmd-inbox", string(cmdID), 24*time.Hour, time.Now())
+if err != nil {
+	log.Fatal(err)
+}
+
+if seen {
+	return nil // duplicate command — already processed within the TTL window
+}
+
+sink := eng.(metaengine.FactSink)
+claims, err := sink.ClaimDueFacts(ctx, metaengine.ClaimDueRequest{
+	Collection: "email-outbox", Owner: "worker-1", Now: time.Now(),
+}, func(cl metaengine.DueClaim) []metaengine.ClaimFact {
+	return []metaengine.ClaimFact{{Type: "sent", Payload: cl.Payload}}
+})
+if err != nil {
+	log.Fatal(err)
+}
+
+_ = claims // dispatched rows, each with its "sent" fact journaled atomically
+```
+
+Engines that cannot honor a capability refuse it as data
+(`EngineProfile.RefusedADTs` with the reason), never silently — the capability
+audit (rule 4) fails any engine that neither supports nor refuses an ADT.
+In the composition root, hand the timer scheduler's lifecycle to the System:
+
+```go
+timers, err := engine.NewTimerStore[DelayCommand](sys.TimerEngine(),
+	engine.WithCollection("order-timers"))
+if err != nil {
+	log.Fatal(err)
+}
+
+sched := scheduling.New(timers, func(ctx context.Context, t scheduling.Timer[DelayCommand]) error {
+	return dispatch(ctx, t.Payload)
+})
+
+sys.ManageTimers(sched) // started with the System, stopped on GracefulClose
+```

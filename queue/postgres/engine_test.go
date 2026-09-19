@@ -39,13 +39,14 @@ func newQueueEngine(t *testing.T) metaengine.Engine {
 }
 
 // TestQueuePostgresEngine_Conformance: the queue database as a claim
-// substrate — the full ADR-0142 DueClaimer + DedupStore contract on the
-// same Postgres database the tasks live in.
+// substrate — the full ADR-0142 DueClaimer + FactSink + DedupStore contract
+// on the same Postgres database the tasks live in.
 func TestQueuePostgresEngine_Conformance(t *testing.T) {
 	t.Parallel()
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "queue-postgres", Create: newQueueEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "queue-postgres", Create: newQueueEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "queue-postgres", Create: newQueueEngine}})
 }
 
 func TestQueuePostgresEngine_DriverRegistry(t *testing.T) {

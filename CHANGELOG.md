@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — FactSink suite everywhere + QEMU CAS cap + recipes §2.38 — 2026-09-19
+
+- **`adttest.AssertFactSink` wired into every remaining same-tx substrate**:
+  tursoengine (libSQL file), `queue/sqlite`/`queue/postgres`/`queue/mysql`
+  engine surfaces, and the claimkit hosts themselves (sqlite + DSN-gated
+  postgres) — every engine whose claims and facts share a transaction now
+  pins the journal-never-disagrees invariant (ADR-0142 T14c coverage
+  complete). Map-runtimes without same-tx facts (badger/bbolt/pebble) do not
+  implement `metaengine.FactSink` and correctly do not run the suite.
+- **`ADTTEST_CAS_RACERS` (>= 2)** caps `ConcurrentCASExactlyOneWinner` racer
+  count for constrained runners — QEMU's slirp networking resets 16-way
+  concurrent connection bursts before mysqld sees them (infra flake, not a
+  semantics failure). The `vm-mysql.sh`/`vm-mysql-nspawn.sh` mysqlengine +
+  queue/mysql legs export 10; bare-metal/nspawn runs keep the full 16.
+- **recipes.md §2.38** — engine-backed timers, queue claims & dedup on the
+  ONE substrate (ADR-0142): `scheduling/engine.NewTimerStore[P]` over any
+  `DueClaimer` engine, the queue databases as `DedupStore`/`FactSink`
+  capability sources, and `system.TimerEngine`/`system.ManageTimers`
+  composition — three compile-verified recipe blocks (77→80, catalog
+  ratchet green).
+
 ### Added — FactSink conformance (journal-never-disagrees) + turso libSQL pin — 2026-09-19
 
 - **`claimkit.Claims.ClaimFactsList` + `adttest.AssertFactSink`**: the

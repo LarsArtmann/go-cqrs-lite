@@ -75,6 +75,12 @@ func TestClaimKit_SQLiteConformance(t *testing.T) {
 			Create: func(t *testing.T) metaengine.Engine { return newHost(t) },
 		},
 	})
+	adttest.AssertFactSink(t, []adttest.Factory{
+		{
+			Name:   "claimkit-sqlite",
+			Create: func(t *testing.T) metaengine.Engine { return newHost(t) },
+		},
+	})
 }
 
 func TestClaimKit_FactSinkSameTransaction(t *testing.T) {

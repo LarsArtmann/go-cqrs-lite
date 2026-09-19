@@ -3,6 +3,8 @@ package adttest
 import (
 	"context"
 	"fmt"
+	"os"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -113,7 +115,7 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 			})
 
 			t.Run("ConcurrentCASExactlyOneWinner", func(t *testing.T) {
-				const racers = 16
+				racers := casRacers(t)
 
 				var wg sync.WaitGroup
 
@@ -157,6 +159,21 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 			})
 		})
 	}
+}
+
+// casRacers reports how many concurrent CAS racers
+// ConcurrentCASExactlyOneWinner spawns. Default 16; ADTTEST_CAS_RACERS (>= 2)
+// caps it for constrained runners — QEMU's slirp networking resets bursts of
+// concurrent MySQL connections before the server ever sees them (an infra
+// limit, not a store-semantics limit).
+func casRacers(t *testing.T) int {
+	t.Helper()
+
+	if v, err := strconv.Atoi(os.Getenv("ADTTEST_CAS_RACERS")); err == nil && v >= 2 {
+		return v
+	}
+
+	return 16
 }
 
 func claimDueT(

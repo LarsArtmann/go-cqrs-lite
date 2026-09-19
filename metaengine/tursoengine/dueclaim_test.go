@@ -39,6 +39,7 @@ func TestTursoDueClaims(t *testing.T) {
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "turso-file", Create: newFileEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "turso-file", Create: newFileEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "turso-file", Create: newFileEngine}})
 }
 
 func TestTursoDueClaims_CapabilitySurface(t *testing.T) {

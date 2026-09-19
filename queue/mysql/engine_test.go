@@ -10,9 +10,9 @@ import (
 )
 
 // TestQueueMySQLEngine_Conformance: the queue database as a claim substrate
-// — the full ADR-0142 DueClaimer + DedupStore contract on the same MySQL
-// database the tasks live in (queue task semantics stay with queue.Store[T]).
-// Live-gated like the queue conformance suite (MYSQL_TEST_DSN).
+// — the full ADR-0142 DueClaimer + FactSink + DedupStore contract on the
+// same MySQL database the tasks live in (queue task semantics stay with
+// queue.Store[T]). Live-gated like the queue conformance suite (MYSQL_TEST_DSN).
 func TestQueueMySQLEngine_Conformance(t *testing.T) {
 	dsn := os.Getenv("MYSQL_TEST_DSN")
 	if dsn == "" {
@@ -36,6 +36,7 @@ func TestQueueMySQLEngine_Conformance(t *testing.T) {
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "queue-mysql", Create: newEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "queue-mysql", Create: newEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "queue-mysql", Create: newEngine}})
 }
 
 func TestQueueMySQLEngine_DriverRegistry(t *testing.T) {
