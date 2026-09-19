@@ -6903,6 +6903,7 @@ system/method CacheStats
 system/method Close
 system/method Close
 system/method Close
+system/method Close
 system/method CommandDispatcher
 system/method CommandStore
 system/method Delete
@@ -6926,6 +6927,7 @@ system/method Key
 system/method Key
 system/method LagDuration
 system/method LagPerProjection
+system/method Load
 system/method Load
 system/method Load
 system/method Load
@@ -6972,6 +6974,7 @@ system/method ReadQueriesFrom
 system/method RegisterCloser
 system/method RegisterDrainer
 system/method ResetProjection
+system/method Save
 system/method Save
 system/method Save
 system/method Save

@@ -21,7 +21,7 @@ const checkpointCollection = "system_checkpoints"
 // SQL engines JSON-encode — the wire struct is the stable contract between
 // them).
 type checkpointWire struct {
-	EventID    string    `json:"eventId"`
+	EventID     string    `json:"eventId"`
 	ProcessedAt time.Time `json:"processedAt"`
 }
 
@@ -70,7 +70,12 @@ func (s *engineCheckpointStore) Load(
 
 	eventID, err := id.ParseEventID(wire.EventID)
 	if err != nil {
-		return event.Checkpoint{}, fmt.Errorf("system: checkpoint %q event id %q: %w", projection, wire.EventID, err)
+		return event.Checkpoint{}, fmt.Errorf(
+			"system: checkpoint %q event id %q: %w",
+			projection,
+			wire.EventID,
+			err,
+		)
 	}
 
 	return event.Checkpoint{EventID: eventID, ProcessedAt: wire.ProcessedAt}, nil
@@ -83,10 +88,19 @@ func (s *engineCheckpointStore) Close() error { return nil }
 var _ event.CheckpointStore = (*engineCheckpointStore)(nil)
 
 // reifyCheckpoint decodes a stored checkpoint across engine value shapes —
-// the typed wire struct (memory engines) or its decoded JSON form
-// (map[string]any from SQL engines) — via JSON round-trip.
+// the typed wire struct (memory engines), raw JSON bytes (JSONValue), or its
+// decoded JSON form (map[string]any from SQL engines) — via JSON round-trip.
 func reifyCheckpoint(raw any) (checkpointWire, error) {
 	if w, ok := raw.(checkpointWire); ok {
+		return w, nil
+	}
+
+	if jv, ok := raw.(metaengine.JSONValue); ok {
+		var w checkpointWire
+		if err := json.Unmarshal(jv, &w); err != nil {
+			return checkpointWire{}, fmt.Errorf("unmarshal stored JSON value: %w", err)
+		}
+
 		return w, nil
 	}
 

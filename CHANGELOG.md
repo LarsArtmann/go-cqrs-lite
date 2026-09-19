@@ -57,6 +57,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   subscriber or `deriver.Deriver` reacts to the event and schedules via
   the engine-backed TimerStore — ADR-0040 rationale); the coeffect gate
   (`DomainConfig.Events`) validates the event side of that composition.
+- **Projection checkpoints are persistent by default**: when no
+  `DomainConfig.CheckpointStore` is configured and an engine carries the Map
+  ADT, the System persists checkpoints as entries of a `system_checkpoints`
+  Map collection on the deployment-declared engine (the engine named
+  `"checkpoints"`, falling back to primary) — checkpoints survive restarts
+  wherever the engine does, with zero dedicated infrastructure. The stored
+  wire shape round-trips across engine value forms (typed structs on memory
+  engines, JSON on SQL engines); restart durability is pinned by test.
+  Engines without the Map ADT keep the in-memory fallback.
 
 ### Fixed — scheduler family-aware retry (T17 partitioning) — 2026-09-19
 
