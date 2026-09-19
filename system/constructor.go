@@ -226,10 +226,16 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			hostOpts = append(hostOpts, projectionhost.WithSubscriber(bus))
 		}
 
-		// Use the consumer-provided checkpoint store, or fall back to in-memory.
+		// Checkpoint persistence: consumer-provided store, else the
+		// engine-backed store when an engine carries the Map ADT
+		// (persistent by default, ADR-0142), else in-memory.
 		cpStore := domain.CheckpointStore
 		if cpStore == nil {
-			cpStore = &memoryCheckpointStore{}
+			if backend := sys.checkpointEngine(); backend != nil {
+				cpStore = &engineCheckpointStore{engine: backend}
+			} else {
+				cpStore = &memoryCheckpointStore{}
+			}
 		}
 
 		host, err := projectionhost.New(journal, cpStore, hostOpts...)
