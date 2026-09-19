@@ -12,6 +12,15 @@ const (
 	ADTStreamLog ADT = "stream_log"
 	ADTSortedMap ADT = "sorted_map"
 	ADTMultimap  ADT = "multimap"
+
+	// ADTDueClaim is the lease-fenced due-claim capability (ADR-0142):
+	// timers and task queues. Not a fold-inferred read ADT — it is a
+	// write-side capability asserted via [SupportsDueClaims].
+	ADTDueClaim ADT = "due_claim"
+
+	// ADTDedup is the TTL check-and-set dedup window (ADR-0142). Write-side
+	// capability asserted via [SupportsDedup].
+	ADTDedup ADT = "dedup"
 )
 
 // ReadPattern describes how a query reads its projection.
