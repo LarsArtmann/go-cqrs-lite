@@ -217,6 +217,10 @@ func insertClaimStmt(
 	dueAt any,
 	payload []byte,
 ) (string, []any) {
+	if payload == nil {
+		payload = []byte{} // NOT NULL columns keep a zero-length blob
+	}
+
 	switch d {
 	case claiming.DialectPostgres:
 		return `INSERT INTO meta_due_claims (collection, key, due_at, payload)

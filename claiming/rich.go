@@ -55,15 +55,15 @@ func ClaimStmt(d Dialect, s Spec, p ClaimParams) (string, []any) {
 	}
 }
 
+// claimPredicates builds the due-gate and lease-fence predicates only. The
+// collection filter is appended by each dialect builder with its OWN
+// correctly-numbered placeholder (placeholder allocation differs per
+// dialect, so it cannot live here).
 func claimPredicates(s Spec, p ClaimParams, arg func(v any) string) string {
 	var b strings.Builder
 
 	b.WriteString(s.DueColumn + " <= " + arg(p.Now))
 	b.WriteString(" AND (" + s.LeaseColumn + " IS NULL OR " + s.LeaseColumn + " <= " + arg(p.Now) + ")")
-
-	if s.FilterColumn != "" && p.Filter != nil {
-		b.WriteString(" AND " + s.FilterColumn + " = " + arg(p.Filter))
-	}
 
 	return b.String()
 }

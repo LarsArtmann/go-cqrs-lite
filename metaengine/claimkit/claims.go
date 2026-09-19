@@ -17,9 +17,11 @@
 package claimkit
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
@@ -260,6 +262,18 @@ func scanClaimsWithIDs(rows *sql.Rows) ([]metaengine.DueClaim, []any, error) {
 	if err := rows.Err(); err != nil {
 		return nil, nil, fmt.Errorf("claim rows: %w", err) //nolint:wrapcheck // wrap context added by callers
 	}
+
+	// The claim STATEMENT selects due-ordered top-limit rows (ORDER BY inside
+	// the CTE/subquery), but RETURNING emits rows in engine visit order —
+	// unspecified on every dialect. Sort the (already correct) set in Go so
+	// the DueClaimer ordering contract holds uniformly.
+	slices.SortFunc(claims, func(a, b metaengine.DueClaim) int {
+		if c := a.DueAt.Compare(b.DueAt); c != 0 {
+			return c
+		}
+
+		return cmp.Compare(a.Key, b.Key)
+	})
 
 	return claims, ids, nil
 }
