@@ -23,6 +23,18 @@ var (
 	ErrDuplicateID = errors.New("queue: duplicate id")
 )
 
+// ErrDanglingDep is returned by Enqueue when New.Deps references a task
+// ID that does not exist: every dependency must already be enqueued.
+// This validation is also the cycle guard — deps are fixed at enqueue and
+// a fresh store-minted task ID cannot be referenced by any existing task,
+// so a dependency cycle can never close (its last edge would have to
+// point at a task that did not exist yet, which this error rejects).
+// Classified as Rejection — the caller's template is invalid.
+var ErrDanglingDep error = errorfamily.NewRejection(
+	"queue.dangling_dep",
+	"task depends on an unknown task id",
+)
+
 // ErrLeaseNotHeld is returned by Complete/Fail/Heartbeat/CancelOwned when
 // the caller no longer owns the task's lease: the task completed or
 // disappeared, or the lease expired and another worker may have

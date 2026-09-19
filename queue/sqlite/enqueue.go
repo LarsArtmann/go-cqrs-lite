@@ -6,6 +6,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
@@ -101,6 +102,10 @@ func (s *Store[T]) insertTask(
 			}
 		}
 
+		if err := validateDeps(ctx, tx, string(depsJSON)); err != nil {
+			return err
+		}
+
 		if err := s.insertTaskRow(ctx, tx, *t, string(depsJSON), payload, dedupKey); err != nil {
 			return err
 		}
@@ -157,4 +162,44 @@ func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task
 	}
 
 	return t, true, nil
+}
+
+// validateDeps enforces enqueue-time dep existence: every dep ID in the
+// JSON array must reference an existing task row. The anti-join yields
+// exactly the missing IDs in one query; an empty array is trivially valid
+// (and skipped). This is also the cycle guard — see queue.ErrDanglingDep.
+func validateDeps(ctx context.Context, q taskQuerier, depsJSON string) error {
+	if depsJSON == "" || depsJSON == "[]" {
+		return nil
+	}
+
+	rows, err := q.QueryContext(ctx, `
+		SELECT d.value FROM json_each(?) d
+		LEFT JOIN tasks t ON t.id = d.value
+		WHERE t.id IS NULL`, depsJSON)
+	if err != nil {
+		return fmt.Errorf("validate deps: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var missing []string
+
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("validate deps: scan: %w", err)
+		}
+
+		missing = append(missing, id)
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("validate deps: %w", err)
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("%w: %s", queue.ErrDanglingDep, strings.Join(missing, ", "))
+	}
+
+	return nil
 }

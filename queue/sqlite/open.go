@@ -140,6 +140,7 @@ func (s *Store[T]) withTx(ctx context.Context, fn func(tx *sql.Tx) error) error 
 // *sql.Conn for the load/scan helpers.
 type taskQuerier interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 // encodePayload serializes a payload through the store's codec.

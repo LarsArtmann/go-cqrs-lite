@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -96,6 +97,10 @@ func (s *Store[T]) insertTask(
 			}
 		}
 
+		if err := validateDeps(ctx, tx, string(depsJSON)); err != nil {
+			return err
+		}
+
 		return s.insertRows(ctx, tx, *t, string(depsJSON), payload, dedupKey)
 	})
 }
@@ -158,4 +163,47 @@ func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task
 	t, err := s.Get(ctx, task.ID(id))
 
 	return t, err == nil, err
+}
+
+// validateDeps enforces enqueue-time dep existence: every dep ID in the
+// JSON array must reference an existing task row. The anti-join over
+// jsonb_array_elements_text yields exactly the missing IDs in one query;
+// an empty array is trivially valid (and skipped). This is also the
+// cycle guard — see queue.ErrDanglingDep.
+func validateDeps(ctx context.Context, q interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}, depsJSON string) error {
+	if depsJSON == "" || depsJSON == "[]" {
+		return nil
+	}
+
+	rows, err := q.Query(ctx, `
+		SELECT d.value::text FROM jsonb_array_elements_text($1::jsonb) AS d(value)
+		LEFT JOIN tasks t ON t.id = d.value
+		WHERE t.id IS NULL`, depsJSON)
+	if err != nil {
+		return fmt.Errorf("validate deps: %w", err)
+	}
+	defer func() { _ = rows.Close() }()
+
+	var missing []string
+
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return fmt.Errorf("validate deps: scan: %w", err)
+		}
+
+		missing = append(missing, id)
+	}
+
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("validate deps: %w", err)
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("%w: %s", queue.ErrDanglingDep, strings.Join(missing, ", "))
+	}
+
+	return nil
 }
