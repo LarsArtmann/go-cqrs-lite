@@ -151,12 +151,12 @@
 
 ## f) NEXT (most valuable first)
 
-1. Verify `testModules`/CI matrix includes `cmd/doc-check` (one grep) — decides
+~~1. Verify `testModules`/CI matrix includes `cmd/doc-check` (one grep) — decides~~ done 2026-09-18 — TODO_LIST [x] DECIDED
    whether the recipes gate already runs in CI or needs the flake app (g)1).
-2. Run `cmd/api-stability` once to close the b)3 gate-compensation gap.
-3. Write the gotchas entries (15-21 f)19 + this session's: stale-lock
-   forensics checklist, `.githooks` tree-gate vs shared tree, keep-dir
-   staleness) once the file is free of co-writer changes.
+~~2. Run `cmd/api-stability` once to close the b)3 gate-compensation gap.~~ done — verified green; golden regen later
+~~3. Write the gotchas entries (15-21 f)19 + this session's: stale-lock~~
+~~   forensics checklist, `.githooks` tree-gate vs shared tree, keep-dir~~
+~~   staleness) once the file is free of co-writer changes.~~ done 2026-09-18 — canonical hook; traps documented 09-16/19
 4. Grep-sweep other skill references for `Get*Provider`/positional-Retry/
    `Timer.Actor`-string lie classes (15-21 f)20/f)40).
 5. Re-run md-go-validator over recipes.md post-fixes (15-21 f)33).
@@ -176,7 +176,7 @@
 15. calibration-gate: anchor-based help-text range (15-21 f)23).
 16. Pin PASS/WARN message shapes with goldens too (15-21 f)24) — apply the
     mutation-test policy from AGENTS.md.
-17. Re-check calibration-drift.sh composition/exit codes (15-21 f)31).
+~~17. Re-check calibration-drift.sh composition/exit codes (15-21 f)31).~~ done 2026-09-16 — redesigned + harness 5/5
 18. Grep for other scripts reading `/proc/loadavg` that want the fixture hook
     (15-21 f)32).
 19. Document the boundary: `example/getting-started` hand-written compile tests
@@ -185,23 +185,23 @@
 21. `nix run .#check-arch`, `.#check-duplication`, `.#check-error-taxonomy`,
     `.#check-coverage` — none run this session (no deps/clones added, but the
     sweep is the point).
-22. Resolve the wedged auto-commit daemon (g)2) — it is the repo's recovery
-    mechanism; right now the tree's only history is hand-made.
-23. After the co-writer lands its wave: re-run the doc-check binary + full
-    module suite to prove no interaction effects with the vector-search edits
-    (its sqlite/mysql/dgraph/duckdb engine files touch modules my doc fences
-    reference).
-24. Re-verify `nix run .#check-release-scripts` after the next
-    calibration-gate.sh change (the self-test is only as fresh as its last run).
+~~22. Resolve the wedged auto-commit daemon (g)2) — it is the repo's recovery~~
+~~    mechanism; right now the tree's only history is hand-made.~~ done 2026-09-18 — daemon resumed; culprit identified
+~~23. After the co-writer lands its wave: re-run the doc-check binary + full~~
+~~    module suite to prove no interaction effects with the vector-search edits~~
+~~    (its sqlite/mysql/dgraph/duckdb engine files touch modules my doc fences~~
+~~    reference).~~ done 2026-09-16 — 1,142 refs green
+~~24. Re-verify `nix run .#check-release-scripts` after the next~~
+~~    calibration-gate.sh change (the self-test is only as fresh as its last run).~~ done 2026-09-16 — 08-05 §a9 rc=0; nightly runs it
 25. Consider harness: print the exact generated snippet path on failure
     (replaces the keep-dir workflow for triage).
 26. Consider a `recipeSpec` linter: catalog entries whose trailers blank
     variables that the fence actually uses (or vice versa) could be caught by
     a post-build analysis instead of trial-and-error — would have saved 2 of
     this session's fix waves.
-27. Split-brain check: AGENTS.md "Recipe gate" row says `go test -run
-    TestRecipes .` — if the flake app from g)1 lands, keep the row and the app
-    in lockstep.
+~~27. Split-brain check: AGENTS.md "Recipe gate" row says `go test -run~~
+~~    TestRecipes .` — if the flake app from g)1 lands, keep the row and the app~~
+~~    in lockstep.~~ done 2026-09-18 — matrix-yes decision, consistent
 28. CHANGELOG hygiene: my Fixed subsection says "nine doc lies" but the
     session fixed 12 fences (9 lies + Plan variadic + TimerID + prose) —
     tighten the count wording at the next CHANGELOG touch.

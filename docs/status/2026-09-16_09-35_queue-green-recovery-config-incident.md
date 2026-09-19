@@ -200,39 +200,39 @@ mid-tidy at close).
 1. Re-run `nix run .#verify` to a green close once the concurrent `system/`
    session settles (go.mod tidy + replay test green) — the only blocker to
    "repo verify green".
-2. Run `queue/postgres` conformance integration leg (needs a PG instance:
-   `nix run .#integration-pg`) — the postgres engine has NEVER had its
-   conformance suite executed in-repo (only build+lint+vet this session).
+~~2. Run `queue/postgres` conformance integration leg (needs a PG instance:~~
+~~   `nix run .#integration-pg`) — the postgres engine has NEVER had its~~
+~~   conformance suite executed in-repo (only build+lint+vet this session).~~ done 2026-09-16 — 15-02; TODO_LIST [x]
 3. ~~HARVEST this §f into TODO_LIST.md (docs-health) — including retiring
    items done this session that may still be listed (queue clones, soak
    gocyclo, FEATURES line).~~ done (docs-health pass 2026-09-16) — P1 loose ends → TODO_LIST CI/Queue sections; P2 queue docs tail → TODO_LIST queue section; P3 benchkit → TODO_LIST benchkit section
-4. Root-cause the config corruption: find what re-adds gci / deletes the
-   depguard block inside auto-commit waves (daemon logs? an agent's fmt
-   flow?). Then kill it.
-5. Add depguard auto-restore to `check-lint-config` (mirror the gci
-   self-heal; pin the known-good block).
+~~4. Root-cause the config corruption: find what re-adds gci / deletes the~~
+~~   depguard block inside auto-commit waves (daemon logs? an agent's fmt~~
+~~   flow?). Then kill it.~~ done 2026-09-18 — TODO_LIST [x] CLOSED
+~~5. Add depguard auto-restore to `check-lint-config` (mirror the gci~~
+~~   self-heal; pin the known-good block).~~ done 2026-09-18 — restore-depguard.sh + golden
 
 **P2 — queue family follow-through**
-6. Fix the errcheck exclude-functions short forms (fully-qualify
-`(*database/sql.Rows).Close` et al.) or delete dead entries; re-lint to
-confirm which entries are load-bearing.
-7. Document `task.New` / `queue.Filter` / `facts.Fact` partial-literal
-semantics in the queue package docs (the exhaustruct exemptions are
-justified by design — say so where users read it).
-8. Consider a tiny queue/README or SKILL.md reference section for the
-queue family (consumers currently discover it only via CHANGELOG).
-9. `queue/mysql` is named in the Store doc comment as a future engine —
-either implement behind the conformance suite or strike the mention.
-10. Add `queue` family to `references/modules.md` lookup (module map in
-docs/agents/module-map.md likely lacks the 3 new modules — 91 go.mods
-now vs "88" in older docs).
+~~6. Fix the errcheck exclude-functions short forms (fully-qualify~~
+~~`(*database/sql.Rows).Close` et al.) or delete dead entries; re-lint to~~
+~~confirm which entries are load-bearing.~~ done 2026-09-16 — TODO_LIST queue docs tail (c)
+~~7. Document `task.New` / `queue.Filter` / `facts.Fact` partial-literal~~
+~~semantics in the queue package docs (the exhaustruct exemptions are~~
+~~justified by design — say so where users read it).~~ done 2026-09-16 — queue/README
+~~8. Consider a tiny queue/README or SKILL.md reference section for the~~
+~~queue family (consumers currently discover it only via CHANGELOG).~~ done 2026-09-16 — queue/README.md shipped
+~~9. `queue/mysql` is named in the Store doc comment as a future engine —~~
+~~either implement behind the conformance suite or strike the mention.~~ done 2026-09-19 — engine SHIPPED (M4)
+~~10. Add `queue` family to `references/modules.md` lookup (module map in~~
+~~docs/agents/module-map.md likely lacks the 3 new modules — 91 go.mods~~
+~~now vs "88" in older docs).~~ done 2026-09-16
 
 **P3 — benchkit/cqrs-bench backlog (carried from 02-09 report §f)**
-11. A/B-by-revision benchstat workflow (Q3 candidate A).
-12. Per-metric CI gating (Q3 candidate B) — gate on `MetricVariation`
-CoV thresholds in `benchmark-regression.sh`.
-13. `compare` command with cross-run variation reporting.
-14. Per-run JSON artifacts (one file per repeat run, not just the median).
+~~11. A/B-by-revision benchstat workflow (Q3 candidate A).~~ **Won't implement — 2026-09-19: per-metric CI gating chosen.**
+~~12. Per-metric CI gating (Q3 candidate B) — gate on `MetricVariation`~~ done 2026-09-19 — TODO_LIST [x]
+~~CoV thresholds in `benchmark-regression.sh`.~~ done 2026-09-19
+~~13. `compare` command with cross-run variation reporting.~~ done 2026-09-19
+~~14. Per-run JSON artifacts (one file per repeat run, not just the median).~~ done 2026-09-19 — benchmarks.yml noise gate
 15. CI wiring for `--repeat` runs (benchstat multi-sample in the nightly).
 16. Benchmark baseline refresh after this week's queue/benchkit churn.
 17. `nix run .#load-sweep` before the next `#verify` (benchkit timing paths
@@ -247,11 +247,11 @@ entries (exhaustruct patterns, wrapcheck sigs) — prune dead ones.
 20. Daemon pre-commit build smoke (stop publishing red intermediates).
 21. TODO_LIST.md full staleness audit (multiple sessions have landed since
 its last refresh).
-22. `docs/status/` older reports: annotate the 02-09 report with this
-session's resolution of its top items (docs-health ANNOTATE).
-23. Check whether `system/` replay test failure (seen 09:18, foreign) got
-fixed and captured by its owning session — if not, it belongs on this
-list properly.
+~~22. `docs/status/` older reports: annotate the 02-09 report with this~~
+~~session's resolution of its top items (docs-health ANNOTATE).~~ done 2026-09-16 — 7th pass, same day
+~~23. Check whether `system/` replay test failure (seen 09:18, foreign) got~~
+~~fixed and captured by its owning session — if not, it belongs on this~~
+~~list properly.~~ done 2026-09-19 — ADR-0143 root cause + instrumentation
 24. ADR-0139 is a DRAFT skeleton from another session — either its owner
 progresses it or it gets marked parked (I only indexed it).
 25. CHANGELOG "Fixed — 2026-09-16" section will need its citations re-run
@@ -261,16 +261,16 @@ against the golden at tag time (check-changelog-symbols covers it).
 session, so verify before acting)**
 26. cmd/doc-check arity checker (the other session's WIP): once landed,
 add it to the recipe-gate docs so recipe fences stay arity-honest.
-27. Vector-search contract tests (contract #26 says engine-native functions
-verified 2026-09-15 — confirm the DuckDB DDL fix didn't regress the
-fixed-`FLOAT[n]` casting).
+~~27. Vector-search contract tests (contract #26 says engine-native functions~~
+~~verified 2026-09-15 — confirm the DuckDB DDL fix didn't regress the~~
+~~fixed-`FLOAT[n]` casting).~~ done 2026-09-16 — cgo suite green
 28. `#verify` exclusivity rule vs multi-session reality: document a
 coordination protocol (who owns verify when two sessions are live).
 29. FEATURES.md: other coverage lines may be stale the same way 88+12 was
 (spot-check the biggest modules' counts).
-30. Incident-log automation: a tiny script that diffs `.golangci.yml`
-against `HEAD~` after each daemon wave and reports semantic changes
-(would have caught today's incident at 08:11 instead of 09:05).
+~~30. Incident-log automation: a tiny script that diffs `.golangci.yml`~~
+~~against `HEAD~` after each daemon wave and reports semantic changes~~
+~~(would have caught today's incident at 08:11 instead of 09:05).~~ done 2026-09-18 — superseded: self-heal + nightly diff visibility
 
 ## g) Questions I can NOT figure out myself (max 3)
 

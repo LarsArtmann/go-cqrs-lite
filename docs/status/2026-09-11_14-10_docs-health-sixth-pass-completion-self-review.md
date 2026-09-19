@@ -53,32 +53,32 @@
 
 ## f) Up to 50 things to do next (impact-sorted; 1–45 carried unchanged from 06-33 §f6–50 — still open, still ranked; 46–50 new from this session)
 
-1. 🔥 Resolve the RED `#check-duplication` (5 reset-wave clone groups): `//art-dupl:accept` per group (iterative until 0 new) or baseline re-pin on committed tree
-2. 🔥 CatchUpEngine snapshot race fix + concurrent stress test (pre-tag-wave)
-3. S08 REDO: verify-ci go.sum probe + `TestEveryModuleSumComplete` + mutation proof
-4. S09: `lint-module` tag arg + CI leg for `*_integration_test.go` modules
+~~1. 🔥 Resolve the RED `#check-duplication` (5 reset-wave clone groups): `//art-dupl:accept` per group (iterative until 0 new) or baseline re-pin on committed tree~~ done 2026-09-13 — pareto 11-28 §a21; gate green since
+~~2. 🔥 CatchUpEngine snapshot race fix + concurrent stress test (pre-tag-wave)~~ done 2026-09-13 — CHANGELOG "CatchUpEngine can no longer miss events"
+~~3. S08 REDO: verify-ci go.sum probe + `TestEveryModuleSumComplete` + mutation proof~~ done 2026-09-13/15 — check-modsums + TestEveryModuleGoSumIsTidy (CHANGELOG)
+~~4. S09: `lint-module` tag arg + CI leg for `*_integration_test.go` modules~~ done 2026-09-15 — integration-tag-lint CI job (CHANGELOG)
 5. Quiet-window exclusive `#verify` composed GREEN + `-race` metaengine + `verify-docs.sh` e2e (record date/commit/durations)
 6. MySQL live reset run + dgraph `-race` seeds 42/7/1234 + composite shuffle evals + seed-persistence log
 7. 🔥 S02 tag wave (dependency-ordered manifest, smoke probes, go-localsync `watermill/v4.7.0` unblock) — user authorization pending
 8. S26 sweep §4 remainder (watermill keys dual-read, SQL columns, benchkit key, bbolt tags, v6 markers, T18 tail, V5-MIGRATION-GUIDE)
 9. S28 `AggregateOn(fn, column, group)` design one-pager → routing v1 (scalar O(1), grouped O(N) + Doctor note)
-10. Error-taxonomy gate extension: watermill, pebble, event/command/query, view, stack, deriver (+ pool floor, extraction asserts)
-11. cqrs-lint cheap-fix tail: S001 corpus validation, D014/D015 registry tests, B008 baseline, receiver-context message, full-module `-race`
+~~10. Error-taxonomy gate extension: watermill, pebble, event/command/query, view, stack, deriver (+ pool floor, extraction asserts)~~ done 2026-09-16 — TODO_LIST [x]: 18 modules / 519 codes
+~~11. cqrs-lint cheap-fix tail: S001 corpus validation, D014/D015 registry tests, B008 baseline, receiver-context message, full-module `-race`~~ done 2026-09-13 — CHANGELOG linter-hardening entry
 12. cqrs-upgrade strict-gate holes (rep.Error fails strict, NoPins scanned, `bumps` always-present, `schemaVersion`, E2E fixture)
-13. Self-lint root fix (`IsLibrarySelfLint` treats `example/*` as consumers) + analyzed-assert; V007 typed detection decision pre-v5
+~~13. Self-lint root fix (`IsLibrarySelfLint` treats `example/*` as consumers) + analyzed-assert; V007 typed detection decision pre-v5~~ done 2026-09-18 — TODO_LIST [x] IsLibrarySelfLint fix
 14. check-turso-version `--self-test`; ivmrepro `-race`; `TURSO_IVM_REPRO_ROWS` clamp; release-checklist repro step
-15. Private-dep guard: `check-private-deps.sh` + flake app + CI leg; sibling-repo visibility audit; owner policy
-16. Release-tooling follow-ups: `--smoke-all`, batch limitation doc, `--verify` mode, CONTRIBUTING refs, `path_matches_major` lib
+~~15. Private-dep guard: `check-private-deps.sh` + flake app + CI leg; sibling-repo visibility audit; owner policy~~ done 2026-09-13 — CHANGELOG release-tooling entry
+~~16. Release-tooling follow-ups: `--smoke-all`, batch limitation doc, `--verify` mode, CONTRIBUTING refs, `path_matches_major` lib~~ done 2026-09-13 — --smoke-all + CONTRIBUTING + release_common.sh
 17. taskmanager tail: must.go unit tests, 0.080s-what-runs check, module-map notes
 18. Calibration gate v2 (load1 AND load5) + shellcheck; quiet-window count=5 re-run + titled re-pin + dgraph re-anchor
-19. Doctor: per-entry-point synthetic-feed counters
-20. Legacy-log-entry synthesis pin (one legacy `EventLog.Record()` case)
+~~19. Doctor: per-entry-point synthetic-feed counters~~ done 2026-09-15 — CHANGELOG Doctor entry-point advisory
+~~20. Legacy-log-entry synthesis pin (one legacy `EventLog.Record()` case)~~ done 2026-09-13 — CHANGELOG tests entry
 21. Conformance tail: ApplyIdempotent dedup case, applyFold micro-bench, live PG/MySQL ClaimMetrics
-22. Catch-up observability: Doctor/GetEngineStats state + high-water marks + ResetResult return
+~~22. Catch-up observability: Doctor/GetEngineStats state + high-water marks + ResetResult return~~ done — observability CL 2026-09-13; high-water-marks + WithResult halves declined (TODO_LIST Declined)
 23. 🔥 CI triage wave 2 (S04): verify-fast, go.work sync, Flake Check, CGo, Security, Coverage, FlakeHub bisect, matview gate dry-run
 24. S19 tail: per-finding lint attribution, `aggregate_*` mutation fixture, pre-commit gates
-25. Skill references: reset recipe all-engines + `WithContentionObserver` recipe + `ApplyEncodedRecord` snippet
-26. cec9248da orphaned-work record
+~~25. Skill references: reset recipe all-engines + `WithContentionObserver` recipe + `ApplyEncodedRecord` snippet~~ done 2026-09-16 — TODO_LIST [x]
+~~26. cec9248da orphaned-work record~~ done 2026-09-13 — CHANGELOG docs entry
 27. Scheduling/sqlstore hardening tail (race-stress, counter-scope pin, property, fuzz, examples, RenewLease, process-start ts)
 28. Fold-reroute test with Transactional engine; reroute-cost caching if bench-justified; `routedQuery` comment
 29. Taskmaster golden policy confirm (05-34 fix closure?) + D013/E003/S010/C023/C026 triage
@@ -92,9 +92,9 @@
 37. Indirect-dep consolidation post-tag-wave (~49 consumer go.mods) + standing pin-sweep
 38. Watch tonight's sentinel + post-push CI legs (file-size/verify-ci acceptance)
 39. Relational + pebble dotted/underscore code-spelling unification (v5; ~10 + ~40 pairs)
-40. Skip-vs-fail classifier spread to pg/mysql live helpers
-41. projectionhost `go vet -tags integration ./...` compile check
-42. `go mod tidy` in integration/ (gopls genproto warning — pre-existing, still flagged)
+~~40. Skip-vs-fail classifier spread to pg/mysql live helpers~~ done 2026-09-16 — TODO_LIST [x]
+~~41. projectionhost `go vet -tags integration ./...` compile check~~ done 2026-09-13 — CHANGELOG docs entry
+~~42. `go mod tidy` in integration/ (gopls genproto warning — pre-existing, still flagged)~~ done 2026-09-13 — CHANGELOG (tidied; flag disproven)
 43. ROADMAP Experimental: jsonv2 tag removal tracking (Go 1.27+); turso MVCC upstream watch
 44. Nightly-dogfood signal hygiene (known-red vs new-red summary table)
 45. Claims-ledger / CLAIMS.md convention trial next multi-session window

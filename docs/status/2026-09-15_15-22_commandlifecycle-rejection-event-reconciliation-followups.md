@@ -93,12 +93,12 @@ Nothing this session shipped is broken — but full honesty about process damage
 5. Investigate/harden the auto-commit daemon write path (temp-then-rename; fsync) that produced the empty objects.
 6. Prune reflog entries referencing the dead hash `e4bbbfd` (fsck noise).
 7. Drop/adopt dangling Git Town WIP stash commits (2026-08/09 housekeeping).
-8. Split external offender `cmd/doc-check/recipes_catalog_meta.go` (443 lines) or hand back to its owner.
-9. Split external offender `queue/conformance/lifecycle.go` (425 lines) or hand back to its owner.
+~~8. Split external offender `cmd/doc-check/recipes_catalog_meta.go` (443 lines) or hand back to its owner.~~ done 2026-09-16 — 08-05 §a1 (CHANGELOG)
+~~9. Split external offender `queue/conformance/lifecycle.go` (425 lines) or hand back to its owner.~~ done 2026-09-16 — same
 10. Re-run full `nix run .#verify` once 1+8+9 land; record the first all-green state after the corruption repair.
 
 **Rejection-feature hardening:**
-11. Add `-race` run for the lifecycle middleware pair (shared tracker mutation).
+~~11. Add `-race` run for the lifecycle middleware pair (shared tracker mutation).~~ done 2026-09-19 — #verify race phase ran (ADR-0143 entry)
 12. Pin the custom-`IsRetryable=true` + rejection behavior with a test (documents B1 reality).
 13. Decide + implement enforcement of "rejections never retried" (lifecycle-side guard, doc warning, or accepted default).
 14. End-to-end `system` test: rejection through `WithCommandLifecycle` asserting `RejectionLog` content.
@@ -116,16 +116,16 @@ Nothing this session shipped is broken — but full honesty about process damage
 26. Note the rejected/failed routing in `docs/error-taxonomy.md` (which families route where).
 27. ADR-0117 addendum (or new ADR): the rejection/DLQ partition semantics decision.
 28. Move the semantic-shift summary into a CHANGELOG **Changed** bullet.
-29. Update `FEATURES.md` (six lifecycle events, RejectionLog) and close the "distinct rejection event" deferred item in `TODO_LIST.md`.
+~~29. Update `FEATURES.md` (six lifecycle events, RejectionLog) and close the "distinct rejection event" deferred item in `TODO_LIST.md`.~~ done — docs-health banner: row closed, FEATURES/modules.md fixed
 30. Sweep `example/` + `SKILL.md` cheat-sheet for lifecycle event lists to add `command.rejected`.
 31. Check whether cqrs-lint E0xx or catalog coeffect declarations should know about lifecycle event types.
 32. Consider rejection telemetry (otel counter) — budget-gated, likely YAGNI.
 33. Property test `IsRejection` against `errorfamily.Classify` (rapid) — contract drift canary.
 
 **Docs/process debt surfaced this session:**
-34. Reconcile AGENTS.md contract #18 with reality (`.golangci.yml` re-enabled gci) — update one of them.
-35. Resolve the gci↔treefmt grouping war (single owner or scoped exclusions) — ~repo-wide finding noise today.
-36. HARVEST this report's (f) into `TODO_LIST.md`/`ROADMAP.md` (docs-health).
+~~34. Reconcile AGENTS.md contract #18 with reality (`.golangci.yml` re-enabled gci) — update one of them.~~ done 2026-09-15 — gci removed 09-15/16
+~~35. Resolve the gci↔treefmt grouping war (single owner or scoped exclusions) — ~repo-wide finding noise today.~~ done 2026-09-15 — same
+~~36. HARVEST this report's (f) into `TODO_LIST.md`/`ROADMAP.md` (docs-health).~~ done 2026-09-15 — banner: C3 struck
 37. Record the "M1-style `-short` run masked a stale assertion" lesson in `docs/agents/gotchas-testing.md` (filter/pipeline-masking family).
 38. Update the reconciliation plan's G2 outcome line (rejection half now shipped).
 39. Re-run md-go-validator over the annotated `event-query-model.md`; record finding delta.
@@ -136,11 +136,11 @@ Nothing this session shipped is broken — but full honesty about process damage
 44. Consider `Queue`-adjacent naming check: `commandlifecycle` rejection vocabulary vs queue/ DLQ vocabulary (avoid two DLQ dialects).
 
 **Known filed work this session re-confirmed:**
-45. `TestSystem_ResetProjection_RestartAndReplay` — deterministic repro now includes a standalone 45s timeout run; pursue the projectionhost subscribe/drain fix (ADR-0136 replay guarantee).
+~~45. `TestSystem_ResetProjection_RestartAndReplay` — deterministic repro now includes a standalone 45s timeout run; pursue the projectionhost subscribe/drain fix (ADR-0136 replay guarantee).~~ done 2026-09-19 — ADR-0143 (TODO_LIST [x])
 46. `TestEngineHealth_CatchUpUnderConcurrentApplies` flake family — same TODO item family; unchanged.
 47. Query-level `Stream(ctx, input, fn)` (T16 follow-up) — still deferred, unchanged.
-48. Payload capture (T17's other half) — still opt-out by design; revisit only with a concrete compliance consumer.
-49. `sessionlifecycle` module (T18 option B) — trigger-gated; still no consumer.
+~~48. Payload capture (T17's other half) — still opt-out by design; revisit only with a concrete compliance consumer.~~ **Won't implement — opt-out by design (T17 memo).**
+~~49. `sessionlifecycle` module (T18 option B) — trigger-gated; still no consumer.~~ **Won't implement — trigger-gated, no consumer (T18 memo).**
 50. Turso/ivm known defects and other standing TODO items — untouched this session, remain filed.
 
 ## g) Questions I cannot figure out myself

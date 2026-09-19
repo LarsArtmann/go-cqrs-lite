@@ -109,39 +109,39 @@ unification; T23 skill-maintenance pass; Go 1.27 availability check.
 
 ## f) NEXT (up to 50, sorted by impact)
 
-1. Update TODO_LIST with this wave's 8 closable rows (b2) + CHANGELOG `[Unreleased]` entries (b3).
+~~1. Update TODO_LIST with this wave's 8 closable rows (b2) + CHANGELOG `[Unreleased]` entries (b3).~~ done 2026-09-16 — CHANGELOG entries
 2. Quiet-window exclusive `nix run .#verify` composed GREEN (the standing 🔥 row; unblocks W4 close + release train).
 3. Push + observe the two fixed CI jobs (`go-work-sync`, benchmarks matview-gate) once billing allows.
 4. Fix GitHub Actions billing (user action; blocks ALL paid CI verification).
-5. Run scheduling/sqlstore + storage ClaimMetrics integration vs live PG (`PG_MODULES="scheduling/sqlstore storage"`).
-6. ResetProjection stall repro under the current load regime (system suite `-parallel` + soakers; the exact load band 30–52 was present all session — a missed window).
-7. Extend error-taxonomy drift gate beyond its 5 modules (watermill, pebble, core event/command/query, view, stack, deriver, storage-facade + pool-size floors).
-8. Root-cause `.golangci.yml` config-corruption loop + add depguard auto-restore to `check-lint-config`.
-9. Pre-commit hook hardening batch (one canonical hook, `.githooks/` tracked, `.golangci.yml` staged trigger, scoped fmt gate).
-10. Self-lint false-green fix (`example/*` as consumers + analyzed-assert file counts).
+~~5. Run scheduling/sqlstore + storage ClaimMetrics integration vs live PG (`PG_MODULES="scheduling/sqlstore storage"`).~~ done 2026-09-16 — PG half (TODO_LIST row)
+~~6. ResetProjection stall repro under the current load regime (system suite `-parallel` + soakers; the exact load band 30–52 was present all session — a missed window).~~ done 2026-09-19 — ADR-0143 root cause
+~~7. Extend error-taxonomy drift gate beyond its 5 modules (watermill, pebble, core event/command/query, view, stack, deriver, storage-facade + pool-size floors).~~ done 2026-09-16 — TODO_LIST [x]
+~~8. Root-cause `.golangci.yml` config-corruption loop + add depguard auto-restore to `check-lint-config`.~~ done 2026-09-18 — TODO_LIST [x]
+~~9. Pre-commit hook hardening batch (one canonical hook, `.githooks/` tracked, `.golangci.yml` staged trigger, scoped fmt gate).~~ done 2026-09-18 — TODO_LIST [x] + CHANGELOG
+~~10. Self-lint false-green fix (`example/*` as consumers + analyzed-assert file counts).~~ done 2026-09-18 — TODO_LIST [x]
 11. cqrs-upgrade residuals: NoPins deprecation scan + E2E `run()` fixture test.
-12. ADR-0140: vector distance-semantics contract (semantics already pinned in AGENTS #26).
-13. Vector gaps (a)(b): verify irohengine vector passthrough + CHANGELOG enumeration; system tests + metaengine-quickstart run.
+~~12. ADR-0140: vector distance-semantics contract (semantics already pinned in AGENTS #26).~~ done 2026-09-16 — TODO_LIST [x]
+~~13. Vector gaps (a)(b): verify irohengine vector passthrough + CHANGELOG enumeration; system tests + metaengine-quickstart run.~~ done 2026-09-16 — TODO_LIST [x] a–h
 14. AggregateOn(fn, column, group) on QueryDecl — the planner-readable declarative seam (design one-pager).
-15. Skip-vs-fail classifier spread to pg/mysql live helpers.
+~~15. Skip-vs-fail classifier spread to pg/mysql live helpers.~~ done 2026-09-16 — TODO_LIST [x] + CHANGELOG
 16. Turso defect-A onset-boundary characterization (rows × groups × tx bisect) for the upstream draft.
 17. Decide + implement grouped-matview mechanical guard (blocked on upstream timeline, but the flag design can land).
-18. Nightly gate cron workflow (check-lint-config + modsums + script harnesses) + calibration-baseline artifact loop.
+~~18. Nightly gate cron workflow (check-lint-config + modsums + script harnesses) + calibration-baseline artifact loop.~~ done 2026-09-18 — nightly-gates.yml
 19. md-go-validator real gate (`--init` config + baseline + flake app + P2 skip-validate sweep).
-20. benchkit SDK polish batch (per-metric MIN, LoadAvg1 drift report, zero-value audit).
-21. benchkit compare + serialization tail (noisy-metric column, markdown variation footer, manifest runs[]).
+~~20. benchkit SDK polish batch (per-metric MIN, LoadAvg1 drift report, zero-value audit).~~ done 2026-09-19 — TODO_LIST [x]
+~~21. benchkit compare + serialization tail (noisy-metric column, markdown variation footer, manifest runs[]).~~ done 2026-09-19 — TODO_LIST [x]
 22. Watermill skill tail: cross-links from SKILL.md/advanced.md, upstream plugin verify, 3 trigger-eval prompts.
 23. NATS JetStream roundtrip leg + `#integration-nats` flake app.
-24. queue/mysql engine behind the shared conformance suite (T17; consumer pull exists via PapDashboard).
-25. Queue T14: DAG dep-gating additions (enqueue validation, cycle rejection, unblock-bump).
-26. Queue T15: owner-bearing claims + claim-token ADR-0134.
-27. Queue T16: FactSink-in-tx + watermark API completion.
+~~24. queue/mysql engine behind the shared conformance suite (T17; consumer pull exists via PapDashboard).~~ done 2026-09-19 — M4, live MariaDB
+~~25. Queue T14: DAG dep-gating additions (enqueue validation, cycle rejection, unblock-bump).~~ done 2026-09-19 — M4
+~~26. Queue T15: owner-bearing claims + claim-token ADR-0134.~~ done 2026-09-19 — M4
+~~27. Queue T16: FactSink-in-tx + watermark API completion.~~ done 2026-09-19 — M4
 28. RenewLease ownership/claim tokens (scheduling/sqlstore; design-gated comment in code).
 29. Backport contention-retry review to turso/badger engines.
 30. Unify ephemeral-script passthrough conventions (pg positional / dgraph TEST_ARGS / redis raw).
 31. Shuffle eval + adoption for test-integration.sh/test-all-backends.sh (gated on ROADMAP OQ #9).
-32. T23 skill-maintenance pass (read-prior-reports + copy-template steps in review skills).
-33. Go 1.27 upgrade wave — own session: nixpkgs go_1_27 availability, 91 go.directives, flake pin, CI, doc command chains, verify + bench sweep.
+~~32. T23 skill-maintenance pass (read-prior-reports + copy-template steps in review skills).~~ done 2026-09-19 — 94 modules go 1.27.1 + jsonv2 graduation
+~~33. Go 1.27 upgrade wave — own session: nixpkgs go_1_27 availability, 91 go.directives, flake pin, CI, doc command chains, verify + bench sweep.~~ done 2026-09-18 — TODO_LIST [x]
 34. Pin the recipes-gate CI posture (grep cmd/doc-check in testModules; decide #verify cold-cost stance).
 35. V007 marker-driven detection decision (curated table now in lockstep vs auto-derive).
 36. Consolidate indirect dep references after the next tag wave publishes (~49 consumer go.mods).
@@ -152,8 +152,8 @@ unification; T23 skill-maintenance pass; Go 1.27 availability check.
 41. Calibration quiet-window re-runs: SearchQuery count=5 + benchmark-baseline re-pin + dgraph constant campaign.
 42. Green MySQL-VM shuffled suite in the quiet window (replay build/shuffle-seeds.log seeds).
 43. Watch dgraph+redis CI jobs (~10 shuffled runs) for rare-ordering failures.
-44. dgraph "Transaction has been aborted" flake investigation (failing on CI since 09-15; retryOnContention gap?).
-45. Dgraph version-floor decision: feature-detect/lazy vector schema vs documented v24+ floor.
+~~44. dgraph "Transaction has been aborted" flake investigation (failing on CI since 09-15; retryOnContention gap?).~~ done 2026-09-16 — TODO_LIST [x]
+~~45. Dgraph version-floor decision: feature-detect/lazy vector schema vs documented v24+ floor.~~ done 2026-09-16 — TODO_LIST [x]
 46. Matview routing v1: scalar-covered shapes priced O(1) after the AggregateOn seam (#14).
 47. cqrs-lint loose-heuristic gates batch (V001/V004/V005 import-scope, B018, A015-A019 FPs — needs FP analysis per rule).
 48. 350-line split waves after owner policy ratification (store.go 944 is the largest growth-gated file; typed_reader 1127 tops the split queue).

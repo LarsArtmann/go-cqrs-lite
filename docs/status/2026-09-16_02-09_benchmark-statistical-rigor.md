@@ -173,29 +173,29 @@ gates (not caused by this session) remain open and are the top CI blockers.
    exclusivity + time; targeted gates all ran).
 
 **benchkit SDK**
-6. `compare` table: per-backend noisy-metric count column + Variation footer.
-7. Markdown compare output: variation summary section.
-8. Serialize per-run data: `--format manifest` gains `runs[]` (opt-in flag to
-avoid size blowup).
-9. `RepeatedResult` JSON writer (mirror of WriteBenchstatRepeated).
-10. Track per-metric MIN (fast path) in LatencyCollector.
-11. Record `LoadAvg1` at run end too; report load drift.
-12. Configurable oversubscription threshold (Config knob).
-13. Soak × variation: cross-iteration CoV next to drift metrics.
+~~6. `compare` table: per-backend noisy-metric count column + Variation footer.~~ done 2026-09-19 — compare/serialization tail (TODO_LIST [x])
+~~7. Markdown compare output: variation summary section.~~ done 2026-09-19 — PrintComparisonVariation
+~~8. Serialize per-run data: `--format manifest` gains `runs[]` (opt-in flag to~~
+~~avoid size blowup).~~ done 2026-09-19 — --include-runs runs[]
+~~9. `RepeatedResult` JSON writer (mirror of WriteBenchstatRepeated).~~ done 2026-09-19 — WriteRepeatedJSON
+~~10. Track per-metric MIN (fast path) in LatencyCollector.~~ done 2026-09-19 — LatencyStats.Min
+~~11. Record `LoadAvg1` at run end too; report load drift.~~ done 2026-09-19 — LoadAvg1End
+~~12. Configurable oversubscription threshold (Config knob).~~ done 2026-09-19 — Config.LoadWarnThreshold
+~~13. Soak × variation: cross-iteration CoV next to drift metrics.~~ done 2026-09-19 — ThroughputCoV/WriteP99CoV
 14. Reservoir size configurability per-phase (P99 fidelity at 10M+ events).
-15. Percentile interpolation option for small-n runs (nearest-rank P50 is
-coarse below ~20 samples).
+~~15. Percentile interpolation option for small-n runs (nearest-rank P50 is~~
+~~coarse below ~20 samples).~~ done 2026-09-19 — InterpolatedPercentiles
 16. `tail_ratio` semantics for write_max_ns (true-max/P50 ratio).
-17. Export `resultMetrics()` names as a public constant list (stable benchstat
-metric names for downstream tooling).
+~~17. Export `resultMetrics()` names as a public constant list (stable benchstat~~
+~~metric names for downstream tooling).~~ done 2026-09-19 — MetricNames()
 18. `RunSuite` (testing.B) variant that uses RunRepeated + b.ReportMetric per
 metric CoV.
-19. Zero-value audit: a phase that records Count=0 but non-zero throughput
-(or inverse) should warn.
+~~19. Zero-value audit: a phase that records Count=0 but non-zero throughput~~
+~~(or inverse) should warn.~~ done 2026-09-19 — warnings shipped
 
 **CLI (cqrs-bench)**
-20. `benchstat-diff` subcommand: run two revisions (worktrees), emit benchstat
-comparison table.
+~~20. `benchstat-diff` subcommand: run two revisions (worktrees), emit benchstat~~
+~~comparison table.~~ **Won't implement — 2026-09-19: per-metric CI gating chosen; A/B = future convenience.**
 21. `--repeat` default guidance: warn when benchstat format used with repeat
 < 6 (benchstat wants ≥6 samples for CIs).
 22. `--format csv`: add variation columns (CoV per key metric).
@@ -207,13 +207,13 @@ comparison table.
 28. `list-phases`: include which metrics each phase feeds.
 
 **CI / gates**
-29. Nightly job: capture `--repeat 10 --format benchstat` artifacts and run
-benchstat against previous nightly; post delta summary.
-30. Regression gate: add a second gate set entry for a sqlite backend path
-(currently memory + turso matview only).
-31. Add `LoadAvg1 > threshold` abort to benchmark-regression.sh (reuse
-calibration-gate semantics) so local runs refuse to compare on loud
-machines.
+~~29. Nightly job: capture `--repeat 10 --format benchstat` artifacts and run~~
+~~benchstat against previous nightly; post delta summary.~~ **Won't implement — superseded by per-metric gating + nightly calibration loop.**
+~~30. Regression gate: add a second gate set entry for a sqlite backend path~~
+~~(currently memory + turso matview only).~~ done 2026-09-19 — BenchmarkBenchkitSuite_SQLite$
+~~31. Add `LoadAvg1 > threshold` abort to benchmark-regression.sh (reuse~~
+~~calibration-gate semantics) so local runs refuse to compare on loud~~
+~~machines.~~ done 2026-09-19 — load gate first
 32. `check-bench-gate`: assert gate set entries still exist as benchmarks
 (guard against silent benchmark renames breaking the allowlist regex).
 33. CI lint leg currently misses gocyclo in tests? (soak_test shipped red) —
@@ -225,14 +225,14 @@ benchstat) — then classify it in recipes_catalog (compile harness).
 35. faq.md: "why is my P100 1000x P99" entry (exact-max semantics).
 36. readmodels.md/core.md: cross-link variation section where CoV mentioned.
 37. AGENTS.md benchkit one-liner: mention RunRepeated/MetricVariation.
-38. docs/benchmarks/: capture a fresh backend-comparison with repeats
-(current one is 2026-07-31, pre-variation).
+~~38. docs/benchmarks/: capture a fresh backend-comparison with repeats~~
+~~(current one is 2026-07-31, pre-variation).~~ done 2026-09-19 — 2026-09-19_backend-comparison-variation.md
 
 **Queue module (from pre-existing red gate, not this session)**
-39. Audit queue/postgres vs queue/sqlite 19 clones: shared core extraction or
-accept-annotations.
-40. queue/conformance: consolidate the 4 `openEnv(t)` clone groups into a
-helper.
+~~39. Audit queue/postgres vs queue/sqlite 19 clones: shared core extraction or~~
+~~accept-annotations.~~ done 2026-09-16
+~~40. queue/conformance: consolidate the 4 `openEnv(t)` clone groups into a~~
+~~helper.~~ done 2026-09-16 — part of 42 accepts
 
 **Hygiene**
 41. Baseline `benchmarks/benchmark-baseline.txt` is stale relative to today's

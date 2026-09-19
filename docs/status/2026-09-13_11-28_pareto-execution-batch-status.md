@@ -95,22 +95,22 @@
 9. W0.7 `pin-sweep.sh --check` + storage/eventstore pin evidence
 10. W0.7 GitHub Releases batch + `cmd/cqrs-lint` v4.10.2 tag + install verification
 11. Owner: release-policy Q3 ruling (severity-in-minor; does `bumps`-always-present + sentinel `error`-interface change ride the minor wave?) — gates 8
-12. Owner: ratify one-release-cycle-after-v5 as the v6 shim-deletion window
+~~12. Owner: ratify one-release-cycle-after-v5 as the v6 shim-deletion window~~ done 2026-09-13 — v6 deadline table shipped (CHANGELOG docs entry)
 
 **CI trust**
-13. Decide + execute cache-backend migration (flakehub-cache-action vs drop magic-nix-cache, raise timeouts) — the single highest-leverage repair
+~~13. Decide + execute cache-backend migration (flakehub-cache-action vs drop magic-nix-cache, raise timeouts) — the single highest-leverage repair~~ done 2026-09-18 — magic-nix-cache removed from 24 jobs (TODO_LIST)
 14. Re-run CI; confirm file-size/shfmt/api-stability/cqrs-lint classes green
-15. Fix the go.work sync check job
-16. Dry-run benchmarks.yml matview gate (relative `cd ../metaengine/tursoengine` hop)
-17. Zero the 1 erraudit finding in `claiming/` when the parallel session lands it
+~~15. Fix the go.work sync check job~~ done 2026-09-16 — TODO_LIST (d) FIXED LOCALLY
+~~16. Dry-run benchmarks.yml matview gate (relative `cd ../metaengine/tursoengine` hop)~~ done 2026-09-16 — TODO_LIST (d), verified live
+~~17. Zero the 1 erraudit finding in `claiming/` when the parallel session lands it~~ done 2026-09-15 — erraudit zero across all modules (TODO_LIST)
 18. Owner: create ERRAUDIT_PAT secret → error-audit job arms (precondition now met)
 
 **W2.9 release tooling**
-19. `--smoke-all` batch mode in tag-release.sh/batch-release.sh
-20. Document same-batch sibling limitation + batch `--verify` dry-run decision
-21. Extract `path_matches_major` into a sourced lib (two-copy lockstep risk)
-22. CONTRIBUTING.md: batch-release + check-release-scripts references
-23. `check-retracts-shipped.sh` + clean-dir acceptance test
+~~19. `--smoke-all` batch mode in tag-release.sh/batch-release.sh~~ done 2026-09-13 — CHANGELOG
+~~20. Document same-batch sibling limitation + batch `--verify` dry-run decision~~ done 2026-09-13 — CHANGELOG CONTRIBUTING
+~~21. Extract `path_matches_major` into a sourced lib (two-copy lockstep risk)~~ done 2026-09-13 — release_common.sh
+~~22. CONTRIBUTING.md: batch-release + check-release-scripts references~~ done 2026-09-13 — CHANGELOG
+~~23. `check-retracts-shipped.sh` + clean-dir acceptance test~~ done 2026-09-13 — CHANGELOG check-retracts-shipped
 24. `smoke-probes.txt` + Test-5 no-main-package skip path
 25. `tag-release --audit --baseline` known-violations mode + CI leg
 
@@ -121,23 +121,23 @@
 29. W2.3c clamp last chunk for non-multiple-of-1000 repro rows
 30. W2.3d repro one-liner into docs/release-checklist.md
 31. W2.3e fold 3 findings into the frozen upstream draft
-32. W2.4a S001 allowlist corpus validation
-33. W2.4b D014/D015 registry-acceptance tests
-34. W2.4c B008 Warning baseline pin
-35. W2.4d S001 selector-LHS receiver context + golden impact
-36. W2.4e full-module `-race` cmd/cqrs-lint
-37. W2.4f URL/placeholder classifier → lintutil
-38. W2.10a sqlstore race-stress (Due pollers vs Metrics reader)
-39. W2.10b sqlstore counter-scope pin test
-40. W2.10c ApplyIdempotent dedup no-op conformance case
-41. W2.10d legacy `EventLog.Record()` synthesis pin
+~~32. W2.4a S001 allowlist corpus validation~~ done 2026-09-13 — CHANGELOG
+~~33. W2.4b D014/D015 registry-acceptance tests~~ done 2026-09-13 — CHANGELOG
+~~34. W2.4c B008 Warning baseline pin~~ done 2026-09-13 — CHANGELOG
+~~35. W2.4d S001 selector-LHS receiver context + golden impact~~ done 2026-09-13 — CHANGELOG
+~~36. W2.4e full-module `-race` cmd/cqrs-lint~~ done 2026-09-13 — CHANGELOG
+~~37. W2.4f URL/placeholder classifier → lintutil~~ done 2026-09-13 — CHANGELOG
+~~38. W2.10a sqlstore race-stress (Due pollers vs Metrics reader)~~ done 2026-09-13 — CHANGELOG
+~~39. W2.10b sqlstore counter-scope pin test~~ done 2026-09-13 — CHANGELOG
+~~40. W2.10c ApplyIdempotent dedup no-op conformance case~~ done 2026-09-13 — CHANGELOG
+~~41. W2.10d legacy `EventLog.Record()` synthesis pin~~ done 2026-09-13 — CHANGELOG
 42. W2.10e/f taskmanager must.go tests + module-map note
-43. W2.10g/h `check-private-deps.sh` + sibling visibility audit
+~~43. W2.10g/h `check-private-deps.sh` + sibling visibility audit~~ done 2026-09-13 — CHANGELOG
 
 **Follow-ups from THIS session**
-44. W2.6c decision: cross-call tail-only re-catch-up (persisted offsets vs always-full-rebuild) — write the one-paragraph decision
-45. W2.6d decision: `CatchUpEngineWithResult` additive API vs breaking `ResetResult` return at v5
-46. SKILL references: document the new catch-up semantics (stabilize loop, observability API) in recipes/advanced + doc-check
+~~44. W2.6c decision: cross-call tail-only re-catch-up (persisted offsets vs always-full-rebuild) — write the one-paragraph decision~~ **Won't implement — DECIDED AGAINST 2026-09-13 (TODO_LIST Declined).**
+~~45. W2.6d decision: `CatchUpEngineWithResult` additive API vs breaking `ResetResult` return at v5~~ **Won't implement — DECIDED AGAINST 2026-09-13 (TODO_LIST Declined).**
+~~46. SKILL references: document the new catch-up semantics (stabilize loop, observability API) in recipes/advanced + doc-check~~ done 2026-09-16 — TODO_LIST [x] + recipes/reset sections
 47. Owner: 350-line memo ruling (ratify ratchet + harness exemptions; schedule/drop store.go split wave)
 48. SSE flake: `TestSSE_MultiSubscriberFanOut` failed once under `-race`+load — add a flake-hardening look (subscriber-wait window)
 49. W3.3 v5 encryption-at-rest ADR (skeleton + KeyProvider + precedents)

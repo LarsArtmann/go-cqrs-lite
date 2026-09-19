@@ -111,9 +111,9 @@ files I had marked "audited".
 
 ## f) Next things (session-fallout, impact-sorted; real items only)
 
-1. Diagnose the pre-existing master CI failure (runs 06:30/06:47/07:00) —
+~~1. Diagnose the pre-existing master CI failure (runs 06:30/06:47/07:00) —~~ done 2026-09-13 — banner L3: root-caused; TODO_LIST CI-triage row
    cache-throttle flake vs real test failure; re-run if infra.
-2. Confirm CI green on this session's commits once the daemon pushes (fmt gate
+~~2. Confirm CI green on this session's commits once the daemon pushes (fmt gate~~ done 2026-09-13 — banner L3 (remote green still billing-gated)
    - docs + ~400 formatted files all ride together).
 3. Run `nix run .#verify-fast` before the next release-adjacent merge.
 4. ~~Port anchor + § cross-ref validation into `scripts/check-doc-links.sh`
@@ -128,7 +128,7 @@ files I had marked "audited".
 8. ~~Consolidate the v5-deprecation story (6+ tellings → 1 canonical + pointers).~~ done 2026-09-16 — canonical in faq.md; others point at it
 9. ~~Link `example/metaengine-quickstart` from README + metaengine module README.~~ done 2026-09-16
 10. ~~Decide `metaengine.Infer` end-state (deprecate at v5 vs promote with story).~~ done 2026-09-16 — deprecated, removal at v5
-11. Coordinate with the parallel session's TODO batch (compile-harness overlap)
+~~11. Coordinate with the parallel session's TODO batch (compile-harness overlap)~~ done 2026-09-13 — 08-47 §a11 same-day dedup
     — one owner, not two.
 12. CHANGELOG: decide whether consumer-visible doc/skill changes (trigger
     description) warrant `[Unreleased]` entries (likely no — not library API —

@@ -97,9 +97,9 @@
 
 **Owner-gated (unblock the chains)**
 
-1. Release-policy Q3 ruling (sentinel `error` retype + `bumps` wire change in the v4 minor?) — gates the entire tag wave
-2. gci-vs-treefmt ruling: remove gci from formatters (restores AGENTS #18) or configure `custom-sections` — gates repo-wide lint green; 80-file churn needs reconciling either way
-3. CI cache backend: flakehub-cache-action vs drop magic-nix-cache + raised timeouts
+~~1. Release-policy Q3 ruling (sentinel `error` retype + `bumps` wire change in the v4 minor?) — gates the entire tag wave~~ done 2026-09-13 — claiming sentinel retype shipped 09-14 §a1; bumps always-present 2026-09-13
+~~2. gci-vs-treefmt ruling: remove gci from formatters (restores AGENTS #18) or configure `custom-sections` — gates repo-wide lint green; 80-file churn needs reconciling either way~~ done 2026-09-15 — gci removed (AGENTS #18)
+~~3. CI cache backend: flakehub-cache-action vs drop magic-nix-cache + raised timeouts~~ done 2026-09-18 — magic-nix-cache removed, timeouts raised (TODO_LIST)
 4. 350-line memo ratification (+ harness-exemption syntax if C)
 5. ADR-0139 four open questions (provider call semantics; reference validation timing; read-model scope; plaintext→encrypted migration)
 6. ERRAUDIT_PAT secret creation (precondition fully met now)
@@ -122,17 +122,17 @@
 19. After CI: confirm file-size/shfmt/api-stability/cqrs-lint classes stay green
 
 **CI trust**
-20. Implement the chosen cache backend (raise `timeout-minutes` if dropping the action); confirm the 6 starved job classes go green
-21. Fix the go.work sync check job
-22. Dry-run benchmarks.yml matview gate (relative `cd ../metaengine/tursoengine` hop)
+~~20. Implement the chosen cache backend (raise `timeout-minutes` if dropping the action); confirm the 6 starved job classes go green~~ done 2026-09-18 — local migration done; remote confirm billing-gated
+~~21. Fix the go.work sync check job~~ done 2026-09-16 — CHANGELOG
+~~22. Dry-run benchmarks.yml matview gate (relative `cd ../metaengine/tursoengine` hop)~~ done 2026-09-16 — CHANGELOG
 
 **Follow-ups from THIS session**
-23. Verify `references/modules.md` has a `claiming/` row (parallel session's module; I flagged, did not check) + doc-check
+~~23. Verify `references/modules.md` has a `claiming/` row (parallel session's module; I flagged, did not check) + doc-check~~ done 2026-09-14 — 14-14 G3 ceremony
 24. Subscribe-before-flush in `ServeSSE` (headers are flushed BEFORE `watcher.Watch` registers — the race the SSE test hardening exposed is a real product gap; small behavioral change, worth a deliberate ruling)
 25. Extract the prime-until-subscribed helper if a second SSE test ever needs it (YAGNI until then)
 26. `check-release-scripts` into `#verify` (~30s) — decide
-27. `check-retracts-shipped` into `#verify`? (5-module scan is instant) — decide with 26
-28. New-export/new-module ⇒ reference-check hook (second session in a row this bit us; write it into AGENTS wrap-up discipline)
+~~27. `check-retracts-shipped` into `#verify`? (5-module scan is instant) — decide with 26~~ done — in #verify/nightly since 2026-09-15
+~~28. New-export/new-module ⇒ reference-check hook (second session in a row this bit us; write it into AGENTS wrap-up discipline)~~ done — same
 29. Smoke-probes entries for other published CLIs (cmd/cqrs-bench stub behavior check first)
 30. `tag-release --audit`: offer a `--write-baseline --prune-stale` combo so fixed entries drop instead of NOTEing
 31. `batch-release --smoke-all`: optional parallel mode (sequential stop-on-first is the safe default; a wave of 20 tags is slow)
@@ -141,14 +141,14 @@
 34. Move the taskmanager 0.080s census facts into gotchas-testing (currently only in module-map + TODO)
 
 **W2 tail (local, gate-verifiable)**
-35. sqlstore property test: counters never exceed committed polls
-36. sqlstore fuzz `decodeDueTimer` corrupt-payload path
+~~35. sqlstore property test: counters never exceed committed polls~~ done 2026-09-16 — 08-04 §a3
+~~36. sqlstore fuzz `decodeDueTimer` corrupt-payload path~~ done 2026-09-16 — 08-04 §a4
 37. RenewLease ownership/claim-token semantics (code comment defers today)
-38. `applyFold` raw-payload type-assertion micro-bench (defend the encoded-apply fix with a number)
+~~38. `applyFold` raw-payload type-assertion micro-bench (defend the encoded-apply fix with a number)~~ done 2026-09-16 — 08-04 §a6
 39. ClaimMetrics live PG/MySQL integration runs (`#integration-pg`, `#integration-mysql-nspawn`)
 40. Defect-A onset bisect (rows × groups × tx) → principled property envelope
 41. File the upstream turso-go issue (draft + addendum are ready; run the verify-before-filing gate, use github-voice)
-42. Draft the PR #8257 comment (defect C half) from the commit-failure draft
+~~42. Draft the PR #8257 comment (defect C half) from the commit-failure draft~~ done — defect C reported (TODO_LIST note)
 43. W2.2 matview guard — implement the chosen option once the upstream timeline lands
 44. W2.10 taskmanager follow-up: decide whether example code should carry C009 panics at all (it now teaches consumers 4 panic sites; count is pinned at 4)
 
@@ -157,8 +157,8 @@
 46. ADR-0139 implementation wave after rulings (DriverConfig.Encryption across engines)
 47. W3.1 v5 deletion batch 1 (owner-gated)
 48. W3.2 T18 live MySQL/DuckDB migration tail (schedule with integration backends)
-49. lintutil growth policy: url_placeholder.go pattern for the remaining baselined-near-cap files
-50. The ~90-thread TODO_LIST pareto re-pass (post-tag-wave, since closures shift priorities)
+~~49. lintutil growth policy: url_placeholder.go pattern for the remaining baselined-near-cap files~~ done — url_placeholder pattern adopted; lint zero 2026-09-19
+~~50. The ~90-thread TODO_LIST pareto re-pass (post-tag-wave, since closures shift priorities)~~ done — moot: rows tracked in TODO_LIST live sections
 
 ## g) QUESTIONS (cannot answer myself)
 

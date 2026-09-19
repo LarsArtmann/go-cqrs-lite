@@ -70,26 +70,26 @@
 
 **Correctness / risk (do first):**
 
-1. Inspect `.agents/skills/go-cqrs-lite/evals/` — do eval scenarios pin § numbers/anchors broken by the renumbering?
+~~1. Inspect `.agents/skills/go-cqrs-lite/evals/` — do eval scenarios pin § numbers/anchors broken by the renumbering?~~ done 2026-09-17 — 05-57 report §a1
 2. Run `doc-assertions` + `nix run .#verify` (or `#verify-fast`) to close the gate chain on this docs change.
-3. Root-cause the 390-file import-group drift: is it go-codec-move residue committed by the auto-commit daemon pre-format? Does CI's treefmt match local (same flake.lock)?
-4. Check CI is green on the current (formatted) tree.
-5. Programmatically validate AGENTS.md § references against the new recipes numbering (extend my checker to include `../../AGENTS.md`).
-6. Exhaustive relative-link crawl of all 7 skill docs (every `](…)` target exists on disk).
+~~3. Root-cause the 390-file import-group drift: is it go-codec-move residue committed by the auto-commit daemon pre-format? Does CI's treefmt match local (same flake.lock)?~~ done 2026-09-17 — 05-57 §a5
+~~4. Check CI is green on the current (formatted) tree.~~ done 2026-09-17 — 05-57 §b1 (root-caused; CI-triage row)
+~~5. Programmatically validate AGENTS.md § references against the new recipes numbering (extend my checker to include `../../AGENTS.md`).~~ done 2026-09-17 — 05-57 §a3
+~~6. Exhaustive relative-link crawl of all 7 skill docs (every `](…)` target exists on disk).~~ done 2026-09-17 — 05-57 §a4
 
 **Finish the audit (make "SUPERB" true, not asserted):**
-7. Full-read advanced.md §6.1–6.14; audit counts/claims.
-8. Full-read faq.md lines 1–180 and 350–375.
-9. Full-read recipes.md bodies (arity-level where feasible: `system.New`, `Plan(…)`, `NewReader(…)` call shapes).
+~~7. Full-read advanced.md §6.1–6.14; audit counts/claims.~~ done 2026-09-17 — 05-57 §a6 (100% read)
+~~8. Full-read faq.md lines 1–180 and 350–375.~~ done 2026-09-17 — 05-57 §a6
+~~9. Full-read recipes.md bodies (arity-level where feasible: `system.New`, `Plan(…)`, `NewReader(…)` call shapes).~~ done 2026-09-17 — 05-57 §a6 + arity gate
 10. Verify the doc-check reference delta (1,049→1,048→1,055) is fully explained by my edits (expected: removed `stack.WithMetaEngine`, added canonical command tokens).
 
 **Skill quality (goal readiness):**
-11. Add `metaengine`, `system`, `projectionhost` to SKILL.md frontmatter trigger list (owner decision — see question 2).
-12. Consider an explicit "The metaengine goal" framing block in core.md §0 (vision is currently distributed across quickstart, faq, and §2.30 — a reader assembling it must read 3 places).
-13. Run the three example binaries; confirm "runnable" claims.
-14. Number or relocate "## Metadata Serialization in KV Engines (Contributor Note)" (only unnumbered recipes.md section left out of the TOC).
-15. Add deprecation marker to core.md §0 axes table (`stack.Materialize` row reads as current in the first table a newcomer sees).
-16. TOC parity check for readmodels.md and advanced.md (small TOCs — same drift class as recipes.md, smaller blast radius).
+~~11. Add `metaengine`, `system`, `projectionhost` to SKILL.md frontmatter trigger list (owner decision — see question 2).~~ done 2026-09-17 — 05-57 §a9
+~~12. Consider an explicit "The metaengine goal" framing block in core.md §0 (vision is currently distributed across quickstart, faq, and §2.30 — a reader assembling it must read 3 places).~~ done 2026-09-17 — 05-57 §a9 (core.md §0)
+~~13. Run the three example binaries; confirm "runnable" claims.~~ done 2026-09-17 — 05-57 §a10
+~~14. Number or relocate "## Metadata Serialization in KV Engines (Contributor Note)" (only unnumbered recipes.md section left out of the TOC).~~ done 2026-09-17 — 05-57 §a7 (→ §2.21a)
+~~15. Add deprecation marker to core.md §0 axes table (`stack.Materialize` row reads as current in the first table a newcomer sees).~~ done 2026-09-17 — 05-57 §a9
+~~16. TOC parity check for readmodels.md and advanced.md (small TOCs — same drift class as recipes.md, smaller blast radius).~~ done 2026-09-17 — 05-57 §a4/a7
 17. ~~Teach `cmd/doc-check` to validate markdown anchors + § cross-refs (productize items from e)3).~~ done 2026-09-16 — shipped in cmd/doc-check (GitHub-exact slugger, TOC anchors, § cross-refs, duplicate-section gate); caught 2 real broken anchors on first run
 18. ~~Teach `cmd/doc-check` a call-arity spot-check for fenced Go code (productize e)4).~~ done 2026-09-16 — shipped (go/ast signature comparison + precision filters, pinned by unit tests)
 19. ~~The v5 deprecation story is told in ≥6 places (SKILL.md, core.md ×2, readmodels.md, faq.md, modules.md rows) — consider one canonical block + pointers to kill future drift.~~ done 2026-09-16 — canonical list in faq.md "Will the v5 cut break my imports?"; others keep a short notice + pointer

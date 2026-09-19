@@ -72,8 +72,8 @@ Nothing destructive: zero unintended file changes, no git state touched beyond t
 | #  | Task                                                                                                                                                                | Impact             | Effort | Category      |
 | -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------ | ------------- |
 | 1  | Run `nix fmt` + full `nix run .#verify` to close the session canonically (D2/B2)                                                                                    | High               | M      | Quality       |
-| 2  | Add the Scan-limit note to `readmodels.md` (finish B1/D1)                                                                                                           | Medium             | S      | Documentation |
-| 3  | CHANGELOG `[Unreleased]` entry for the Scan/WithLimit doc fix + FAQ (pending g-2)                                                                                   | Medium             | S      | Documentation |
+|~~ 2  ~~|~~ Add the Scan-limit note to `readmodels.md` (finish B1/D1)                                                                                                           ~~ done 2026-09-17 — CHANGELOG 2026-09-17 Fixed  |~~ Medium             ~~|~~ S      ~~|~~ Documentation ~~|
+|~~ 3  ~~|~~ CHANGELOG `[Unreleased]` entry for the Scan/WithLimit doc fix + FAQ (pending g-2)                                                                                   ~~ done 2026-09-17 — same  |~~ Medium             ~~|~~ S      ~~|~~ Documentation ~~|
 | 4  | Lease/single-writer story for engines — design + ADR (TODO row; ADR-0138 candidate)                                                                                 | High               | M      | Design        |
 | 5  | `FilterContains`/`FilterPrefix` FilterOp extension (v5 window; TODO row)                                                                                            | High               | M      | Feature       |
 | 6  | go-idempotency `Forever` decision (CV g-1 echo) → v0.4.0 → adapters write MaxInt64 directly + dedup `expiryFromTTL` + overflow boundary test                        | High (unblocks CV) | M      | Feature       |
@@ -88,7 +88,7 @@ Nothing destructive: zero unintended file changes, no git state touched beyond t
 | 15 | AGENTS.md: one-line pointer to the CV consumer relationship + review doc (future-session context)                                                                   | Low                | S      | Documentation |
 | 16 | Route items 31–33 answers back to CV's docs trail (pending g-3)                                                                                                     | Medium             | S      | Cross-repo    |
 | 17 | `modules.md` metaengine row: mention the Scan default (consumer-facing one-liner surface)                                                                           | Low                | S      | Documentation |
-| 18 | Awareness only: confirm what changed `metaengine/dgraphengine/engine.go` (not mine; daemon/sibling — do not touch, just verify it lands green in the next gate run) | Low                | S      | Verification  |
+|~~ 18 ~~|~~ Awareness only: confirm what changed `metaengine/dgraphengine/engine.go` (not mine; daemon/sibling — do not touch, just verify it lands green in the next gate run) ~~ done 2026-09-16 — vector-tail execution; gates green  |~~ Low                ~~|~~ S      ~~|~~ Verification  ~~|
 
 ## g) QUESTIONS (3, not self-answerable)
 

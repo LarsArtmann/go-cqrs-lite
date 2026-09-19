@@ -65,7 +65,7 @@ Nothing broke; gate green; no code touched. Two honesty/process failures:
 | 6  | Deep-dive remaining backends (SQLite first — aligns with repo's SQLite-first storage story) and fill matrix cells             | Medium | M      | Research |
 | 7  | CHANGELOG decision for the README NATS correction (see g2)                                                                    | Low    | S      | Docs     |
 | 8  | Claims-checklist habit → consider a tiny `docs/agents/` note or AGENTS.md line so future sessions inherit it                  | Medium | S      | Process  |
-| 9  | Inspect `benchkit/repeat_test.go` (foreign untracked file) once its author surfaces — judge on merits, don't absorb blindly   | Low    | S      | Hygiene  |
+|~~ 9  ~~|~~ Inspect `benchkit/repeat_test.go` (foreign untracked file) once its author surfaces — judge on merits, don't absorb blindly   ~~ done 2026-09-16 — banner: authored+landed by the 02-09 session  |~~ Low    ~~|~~ S      ~~|~~ Hygiene  ~~|
 | 10 | If NATS leg lands: add `nix run .#integration-nats`-style CI job analog to `#integration-redis`                               | Medium | M      | Infra    |
 | 11 | Consider recipes.md §addition: Forwarder outbox recipe using repo EventPublisher + watermill-sql tx publisher                 | Medium | M      | Docs     |
 | 12 | Re-check treefmt/flake formatter coverage for `.md` (treefmt.toml absent; config may be inline in flake.nix — unverified)     | Low    | S      | Hygiene  |

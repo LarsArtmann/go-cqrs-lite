@@ -101,11 +101,11 @@ The handoff described `claiming/` as _untracked work-in-progress_. Reality at se
 _My slice (release + proof):_
 
 1. Re-run `nix run .#verify` (or verify-fast) once the metaengine session quiesces; record the first full green.
-2. Re-run api-stability `--update`; confirm empty diff (proves b.5).
-3. `go test -race` on claiming + scheduling/sqlstore.
-4. Run sqlstore's pgtestcontainer suite (Docker) — live PG claim proof post-delegation.
+~~2. Re-run api-stability `--update`; confirm empty diff (proves b.5).~~ done — golden regenerated + TestEvery green repeatedly (7,092+ exports)
+~~3. `go test -race` on claiming + scheduling/sqlstore.~~ done 2026-09-13/14 — sqlstore -race green; claiming via queue family -race
+~~4. Run sqlstore's pgtestcontainer suite (Docker) — live PG claim proof post-delegation.~~ done 2026-09-16 — PG half (TODO_LIST [x])
 5. Run `nix run .#integration-mysql-vm` — live MariaDB SKIP LOCKED proof post-delegation.
-6. **Add a TODO_LIST item: "tag claiming/v4.0.0 + strip sqlstore replace + pin bump + per-module tidy"** (currently only in this report).
+~~6. **Add a TODO_LIST item: "tag claiming/v4.0.0 + strip sqlstore replace + pin bump + per-module tidy"** (currently only in this report).~~ done — TODO_LIST row exists (tag-wave row)
 7. Tag claiming/v4.0.0 via tag-release.sh (audit + proxy + smoke).
 8. Drop sqlstore's sibling replace; require the real tag; per-module tidy (go.sum `/go.mod` hashes).
 9. `nix run .#vulncheck` for claiming's dep tree.
@@ -127,26 +127,26 @@ _Docs truth:_
 21. After config reconciliation, re-run focused lint on claiming/sqlstore — expect zero.
 
 _Queue plan (the actual point of P0):_
-22. queue/ P1: task lifecycle (pending→running→completed/dead) + attempts/backoff/DLQ + dedup'd enqueue (SQLite+PG).
-23. queue/ P1: mirrored conformance suite across dialects.
-24. queue/ P2: priorities + aging in claim order; MySQL dialect.
-25. queue/ P3: DAG dep gating (composite-key NOT EXISTS).
-26. queue/ P4: same-tx journal option + watermark/cursor API.
-27. queue/ P5: go-taskqueue adoption ADR.
-28. Owner-bearing claims / claim tokens (RenewLease ownership note in sqlstore).
-29. example/taskmanager upgrade to real queue consumer.
+~~22. queue/ P1: task lifecycle (pending→running→completed/dead) + attempts/backoff/DLQ + dedup'd enqueue (SQLite+PG).~~ done 2026-09-14 — queue contract + engines (CHANGELOG)
+~~23. queue/ P1: mirrored conformance suite across dialects.~~ done 2026-09-14 — queue/conformance suite
+~~24. queue/ P2: priorities + aging in claim order; MySQL dialect.~~ done — priorities/aging M1–M3; queue/mysql live-green 2026-09-19
+~~25. queue/ P3: DAG dep gating (composite-key NOT EXISTS).~~ done 2026-09-19 — M4 T14 ErrDanglingDep
+~~26. queue/ P4: same-tx journal option + watermark/cursor API.~~ done 2026-09-14/19 — journal + FactTx/Watermarks
+~~27. queue/ P5: go-taskqueue adoption ADR.~~ done 2026-09-19 — T23 semantic-diff memo [x]
+~~28. Owner-bearing claims / claim tokens (RenewLease ownership note in sqlstore).~~ done 2026-09-19 — M4 T15 ADR-0134 claim tokens
+~~29. example/taskmanager upgrade to real queue consumer.~~ done 2026-09-19 — TODO_LIST [x] T22
 
 _Meta / tooling:_
 30. New-module wiring completeness meta-test (6 touchpoints, one check).
 31. go-taskqueue consumer pin evaluation after queue lands.
-32. cqrs-lint taskmanager version golden refresh at the tag wave.
+~~32. cqrs-lint taskmanager version golden refresh at the tag wave.~~ done 2026-09-13/18 — goldens re-pinned
 
 _Parallel session's outstanding items (observed, not mine):_
-33. Finish/fix `metaengine/catchup_state.go` (breaks workspace vet as of 11:00).
-34. Annotate or baseline-regen the 4 new art-dupl groups in `metaengine/*engine/reset*.go` (baseline regen needs a committed-clean baseline).
-35. The `TestSystem_ResetProjection_RestartAndReplay` + metaengine root failures under parallel load — flake-class or real; passes standalone; needs a quiet-machine rerun to classify.
-36. Verify the staged-`.go` syntax pre-commit gate is installed in whatever flow produced the broken `event/errors.go` commit (the exact class it exists for).
-37. Re-run `nix run .#lint` after 17/33 land; expect only real findings.
+~~33. Finish/fix `metaengine/catchup_state.go` (breaks workspace vet as of 11:00).~~ done 2026-09-13 — catch-up observability (CHANGELOG)
+~~34. Annotate or baseline-regen the 4 new art-dupl groups in `metaengine/*engine/reset*.go` (baseline regen needs a committed-clean baseline).~~ done 2026-09-13 — pareto 11-28 §a21
+~~35. The `TestSystem_ResetProjection_RestartAndReplay` + metaengine root failures under parallel load — flake-class or real; passes standalone; needs a quiet-machine rerun to classify.~~ done 2026-09-19 — TODO_LIST [x] RESOLVED (ADR-0143)
+~~36. Verify the staged-`.go` syntax pre-commit gate is installed in whatever flow produced the broken `event/errors.go` commit (the exact class it exists for).~~ done 2026-09-18 — TODO_LIST [x] pre-commit hardening
+~~37. Re-run `nix run .#lint` after 17/33 land; expect only real findings.~~ done 2026-09-19 — TODO_LIST [x] lint zero
 
 _Smaller observations from this session:_
 38. Root-level `t/` and `result/` directories (taskd buffer, venv-looking tree) — confirm they are intentional/ignored, not junk accumulating at repo root.
@@ -156,9 +156,9 @@ _Smaller observations from this session:_
 42. Consider `RenewStmt` unknown-dialect behavior contract test (currently only commented).
 43. claiming_test.go: pin the SQLite `?1/?2` arg ORDER explicitly in a comment next to the byte-exact test (the swap bug's natural antidote for future readers).
 44. sqlstore: the two `%w` wraps I added ("sqlstore: ensure lease column: claiming: …") — decide whether double-prefixing reads fine or whether claiming should drop its own prefix when wrapped (cosmetic).
-45. Watch file-size ratchet: claiming files all ≪350 today; queue code should start in new files, not grow claiming.go.
+~~45. Watch file-size ratchet: claiming files all ≪350 today; queue code should start in new files, not grow claiming.go.~~ done — ratchet green (CHANGELOG 2026-09-15)
 46. SKILL.md quick-reference: verify whether claiming belongs in the cheat-sheet (modules.md covered; cheat-sheet unchecked).
-47. Re-verify TODO_LIST wording after queue P1 starts (the P0-done phrasing will age).
+~~47. Re-verify TODO_LIST wording after queue P1 starts (the P0-done phrasing will age).~~ done — TODO_LIST queue section current (M4 state)
 48. Consider running the docserver/EventCatalog checks if claiming ever appears in docs served to consumers (not yet).
 49. Confirm go.work.sum committed entries for claiming are complete across all consumer modules (builds passed; one `go work sync` audit at tag time).
 50. Post-tag: `go install github.com/larsartmann/go-cqrs-lite/claiming/v4@v4.0.0` clean-dir smoke (the v4.8.0 poisoned-tag lesson).

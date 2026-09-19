@@ -89,27 +89,27 @@
 
 **Immediate — finish this plan's tail (P0):**
 
-1. Re-run `#check-duplication`, `#check-arch`, `#check-modsums`, changelog-symbols after the daemon's latest absorbs (tree moved under us).
-2. Re-apply the clobbered `DeferClose(batch)` errcheck fix in `metaengine/pebbleengine/reset.go:51` (coordinate with the OTEL agent first).
-3. Re-run doc-check (TODO_LIST/ROADMAP changed since last run).
-4. Decide + execute the 7 gocyclo refactors (mechanical: extract helpers; biggest: `catalog/eventcatalog/exporter.go` 27).
+~~1. Re-run `#check-duplication`, `#check-arch`, `#check-modsums`, changelog-symbols after the daemon's latest absorbs (tree moved under us).~~ done — all re-run green (18-35 §a26, OTEL §a-M10)
+~~2. Re-apply the clobbered `DeferClose(batch)` errcheck fix in `metaengine/pebbleengine/reset.go:51` (coordinate with the OTEL agent first).~~ done 2026-09-19 — lint zeroed incl. errcheck (TODO_LIST [x])
+~~3. Re-run doc-check (TODO_LIST/ROADMAP changed since last run).~~ done — green repeatedly (1,123+)
+~~4. Decide + execute the 7 gocyclo refactors (mechanical: extract helpers; biggest: `catalog/eventcatalog/exporter.go` 27).~~ done 2026-09-16/19 — soak gocyclo + catalog lint-clean (TODO_LIST)
 5. Get ONE green end-to-end `nix run .#verify` on a quiet machine (load < 10) with the system test either passing or explicitly skipped-with-issue-link.
 6. User decision: T13 release train (see questions).
 7. User decision: T14 ADR-0138 draft (see questions).
 8. Update TODO_LIST W4 → done once 5 lands; close the plan.
 
 **CI / repo health (P1):**
-9. Fix `TestSystem_ResetProjection_RestartAndReplay` properly: deterministic soaker repro → trace `system.Start` → projectionhost subscribe/drain ordering → fix at projectionhost layer (ADR-0136 replay-completeness guarantee).
-10. Add a replay-completeness regression test (worker must fold N persisted events or fail loudly).
-11. Revert-guard: stop the daemon re-adding removed `.golangci.yml` entries (same class as templ-components' `.out.css` resurrection — an allowlist/drift guard for the config).
-12. `nix run .#check-lint-config` after today's wrapcheck/gci edits (also confirms the gci removal passes the config-verify gate).
-13. CI triage item (d): go.work sync check job; benchmarks.yml matview-gate relative-`cd` hop.
-14. Investigate why the 09-11 config wave (gci + gocyclo 20 + wrapcheck settings) landed via auto-commit without a lint run — suggest a pre-commit lint hook on `.golangci.yml` itself.
+~~9. Fix `TestSystem_ResetProjection_RestartAndReplay` properly: deterministic soaker repro → trace `system.Start` → projectionhost subscribe/drain ordering → fix at projectionhost layer (ADR-0136 replay-completeness guarantee).~~ done 2026-09-19 — TODO_LIST [x] RESOLVED (ADR-0143)
+~~10. Add a replay-completeness regression test (worker must fold N persisted events or fail loudly).~~ done 2026-09-19 — superseded by ADR-0143 per-engine journal-survival pins
+~~11. Revert-guard: stop the daemon re-adding removed `.golangci.yml` entries (same class as templ-components' `.out.css` resurrection — an allowlist/drift guard for the config).~~ done 2026-09-18 — TODO_LIST [x] self-heal + staged trigger
+~~12. `nix run .#check-lint-config` after today's wrapcheck/gci edits (also confirms the gci removal passes the config-verify gate).~~ done 2026-09-19 — green again
+~~13. CI triage item (d): go.work sync check job; benchmarks.yml matview-gate relative-`cd` hop.~~ done 2026-09-16 — TODO_LIST (d) FIXED LOCALLY
+~~14. Investigate why the 09-11 config wave (gci + gocyclo 20 + wrapcheck settings) landed via auto-commit without a lint run — suggest a pre-commit lint hook on `.golangci.yml` itself.~~ done 2026-09-18 — TODO_LIST [x] culprit + trigger
 15. File/verify the golangci version pin (is `nix run .#lint` version-stable across nixpkgs bumps?).
 
 **Go 1.27 wave (P1, when green-lit):**
-16. Verify nixpkgs `go_1_27` availability; bump flake `goToolchain`.
-17. Bump 85 `go.mod` directives + go.work; drop `-tags "goexperiment.jsonv2"` from flake/CI/AGENTS/docs (grep for every occurrence).
+~~16. Verify nixpkgs `go_1_27` availability; bump flake `goToolchain`.~~ done 2026-09-18 — nixpkgs go_1_27 confirmed; sweep landed 2026-09-19
+~~17. Bump 85 `go.mod` directives + go.work; drop `-tags "goexperiment.jsonv2"` from flake/CI/AGENTS/docs (grep for every occurrence).~~ done 2026-09-19 — 94 modules go 1.27.1 + jsonv2 sweep (CHANGELOG)
 18. Re-baseline bench-regression after the jsonv2-default unmarshal change (expect improvements; confirm the 25% gate still passes).
 19. Add `decider.ExecuteCommandRef` method-form wrapper (or migrate) once generic methods compile; sweep other option-func families for the same upgrade.
 20. Clear the ~20 gopls `stdversion` warnings by the directive bump; confirm `go test` stdversion vet (new-in-1.27) stays clean.
@@ -130,7 +130,7 @@
 33. Example: watermill/grpc transport adapters stamping `CausedCommand` — end-to-end audit recipe.
 
 **Docs/skill hygiene (P2):**
-34. Re-run the full doc suite after the 1.27 wave changes command syntax examples.
+~~34. Re-run the full doc suite after the 1.27 wave changes command syntax examples.~~ done 2026-09-19 — docs swept in the jsonv2 sweep; harness green
 35. recipes.md: dedupe §2.19b vs §2.5 cross-usage (single source of the preservation rules).
 36. faq.md: the 51:6 event:command mention ratio — recount post-landing and record the delta.
 37. AGENTS.md: add the four candidate entries from e)/50.
@@ -141,7 +141,7 @@
 40. `/tmp` hygiene: a flake app or cron for stale `go-build*` cleanup (CGO link storms recur).
 41. gopls/LSP: restart policy after rewrites (stale diagnostics burned attention all session).
 42. File-size ratchet: `cmd/cqrs-lint/pkg/rules/lintutil/lintutil.go` 453→474 growth (other agent's) — needs their fix or baseline update.
-43. `system/load_aware_test.go`: factor formula underestimates IO contention on high-core boxes (load1/cores floors at 1) — consider EWMA or disk-pressure signal.
+~~43. `system/load_aware_test.go`: factor formula underestimates IO contention on high-core boxes (load1/cores floors at 1) — consider EWMA or disk-pressure signal.~~ done 2026-09-15 — CHANGELOG (at baseline; ratchet green)
 44. The `limiter.bak`/`scratch_*` files in `/tmp/.Trash-1000` — user files trashed by someone; surface to user rather than purge.
 45. flake.lock bump process: auto-commit bumped 4 sibling flakes at 08:31 with 525 files — consider gating flake bumps behind a verify run.
 

@@ -152,69 +152,69 @@ captured tail — not yet diagnosed (details in §d).
 
 ## f) NEXT (up to 50, ordered)
 
-1. Re-run `nix run .#verify-ci` on a FROZEN tree; capture full log;
-   triage any red module (T24.2).
-2. Record T24 evidence (matrix output) into this arc's final report.
+~~1. Re-run `nix run .#verify-ci` on a FROZEN tree; capture full log;~~
+~~   triage any red module (T24.2).~~ done 2026-09-14 — 14-46 continuation; matrix evidence
+~~2. Record T24 evidence (matrix output) into this arc's final report.~~ done 2026-09-14 — 14-46 report
 3. `tag-release.sh claiming v4.0.0 --dry-run` on clean tree (T12.1).
 4. T12.2: real tag claiming v4.0.0 via script (owner in loop — see Q1).
 5. T12.3: push tag; bump sqlstore + example pins off the replace.
 6. T12.4: strip sibling replaces in sqlstore/example; standalone
    `GOWORK=off` builds green.
 7. T12.5: proxy probe (`go get` claiming@v4.0.0 in a scratch module).
-8. T13.1–T13.4: golden+TestEvery, doc rows (done), CHANGELOG (done),
-   module-map/features check for queue trio.
+~~8. T13.1–T13.4: golden+TestEvery, doc rows (done), CHANGELOG (done),~~
+~~   module-map/features check for queue trio.~~ done — verified at creation
 9. T13.5: tag `queue/v4/v4.0.0`, `queue/sqlite/v4/v4.0.0`,
    `queue/postgres/v4/v4.0.0` (batch-release.sh wave; owner in loop).
 10. Push wave + `batch-release.sh --smoke-all` proxy checks.
 11. Re-run `nix flake check` (vendorHash drift after go.mod changes).
-12. Run `nix run .#check-duplication` over the new modules; add
-    `//art-dupl:accept` notes where the mirror pattern is intentional.
+~~12. Run `nix run .#check-duplication` over the new modules; add~~
+~~    `//art-dupl:accept` notes where the mirror pattern is intentional.~~ done 2026-09-16 — 42 accepts, gate green (09-35 §a1)
 13. Run `nix run .#verify` (full: race/coverage/doc gates).
 14. Run `nix run .#check-coverage` — new modules need coverage floor.
-15. Check golangci advisory count for queue/* modules vs baseline
-    growth policy (lint-baseline equivalent — cqrs side).
+~~15. Check golangci advisory count for queue/* modules vs baseline~~
+~~    growth policy (lint-baseline equivalent — cqrs side).~~ done 2026-09-16 — queue family 241→0
 16. T23: assemble the rulings batch (gci-vs-treefmt lint, OrderBy
     knob, rejection-propagation policy, wave timing) for the owner.
 17. T22.1: fix proposal doc P0 phrasing (claiming DONE + trim note).
-18. T22.2: fix cqrs AGENTS go.work use-block drift (go-idempotency).
+~~18. T22.2: fix cqrs AGENTS go.work use-block drift (go-idempotency).~~ done 2026-09-16 — 7th-pass AGENTS truth pass
 19. T22.3: encode the rejection-propagation rule (tq AGENTS).
-20. T14.1: deps enqueue-time validation design (exists / self-dep).
-21. T14.6: cycle-rejection policy + test (tq has none — new surface,
-    needs a small design note first).
-22. T14: unblock-bump (ADR-0015 donor concept) evaluation for queue/.
-23. T15.1: ADR-0134 adoption note (tokens day one — supersede owner
-    string; Claim struct is the seam).
-24. T15.2–T15.5: token column, mint (crypto/rand), token predicates in
-    renew/finalize, theft error semantics, conformance pins.
-25. T15.6: docs + golden regen.
-26. T16.1: FactSink-in-tx capability interface design.
-27. T16.2/T16.3: sqlite + PG in-tx external fact append.
-28. T16.4: watermark API completion (List/Set operator surfaces?).
-29. T16.5: conformance pin "no state change without fact" via sink.
-30. T16.6: ADR-0001-lineage docs.
-31. T17.1–T17.3: MySQL engine (DATETIME(3), two-statement claims via
-    claiming.MySQLClaimSelect+StampLeaseMySQL — the ONE dialect where
-    claiming/ statements may fit directly).
-32. T17.4: nspawn/mysql integration run.
-33. T17.5: MySQL conformance green.
-34. T19: taskmanager example on queue/sqlite (the on-ramp).
-35. T19.5: cqrs-lint V006 golden refresh after example dep changes.
+~~20. T14.1: deps enqueue-time validation design (exists / self-dep).~~
+~~21. T14.6: cycle-rejection policy + test (tq has none — new surface,~~ done 2026-09-19 — M4: ErrDanglingDep, cycles unrepresentable
+~~    needs a small design note first).~~ done 2026-09-19 — declined with rationale (claim-time gating covers it)
+~~22. T14: unblock-bump (ADR-0015 donor concept) evaluation for queue/.~~
+~~23. T15.1: ADR-0134 adoption note (tokens day one — supersede owner~~ done 2026-09-19 — ADR-0134 Accepted
+~~    string; Claim struct is the seam).~~
+~~24. T15.2–T15.5: token column, mint (crypto/rand), token predicates in~~
+~~    renew/finalize, theft error semantics, conformance pins.~~ done 2026-09-19 — M4 tokens shipped
+~~25. T15.6: docs + golden regen.~~ done 2026-09-19 — M4
+~~26. T16.1: FactSink-in-tx capability interface design.~~ done 2026-09-19 — queue.FactTx/FactSink
+~~27. T16.2/T16.3: sqlite + PG in-tx external fact append.~~ done 2026-09-19 — M4
+~~28. T16.4: watermark API completion (List/Set operator surfaces?).~~ done 2026-09-19 — Store.Watermarks
+~~29. T16.5: conformance pin "no state change without fact" via sink.~~ done 2026-09-19 — M4 conformance + AssertFactSink
+~~30. T16.6: ADR-0001-lineage docs.~~ done 2026-09-19 — M4 CHANGELOG/README
+~~31. T17.1–T17.3: MySQL engine (DATETIME(3), two-statement claims via~~
+~~    claiming.MySQLClaimSelect+StampLeaseMySQL — the ONE dialect where~~
+~~    claiming/ statements may fit directly).~~ done 2026-09-19 — queue/mysql live-green (M4)
+~~32. T17.4: nspawn/mysql integration run.~~ done 2026-09-19 — wired into VM/nspawn legs
+~~33. T17.5: MySQL conformance green.~~ done 2026-09-19 — M4
+~~34. T19: taskmanager example on queue/sqlite (the on-ramp).~~ done 2026-09-19 — substrate T22
+~~35. T19.5: cqrs-lint V006 golden refresh after example dep changes.~~ done 2026-09-18 — goldens re-pinned
 36. T18: metaengine read-adapter design note (read side ONLY).
 37. T18.2–T18.5: projection folds, FilterSpec demo, bench, docs.
 38. T20: PapDashboard usage read + mapping doc + gap list + verdict.
-39. T21.1: parity checklist vs conformance suite coverage table.
+~~39. T21.1: parity checklist vs conformance suite coverage table.~~ done 2026-09-19 — semantic-diff: 1:1 core
 40. T21.2: facade re-point spike in a tq branch.
 41. T21.3: run tq's own conformance batteries against upstream queue.
 42. T21.4: journal migration sketch (facts schema compat).
 43. T21.5: tq re-open ADR draft + verdict criteria.
 44. T22.4: per-landing skill/doc row checks (SKILL.md queue section).
-45. T22.5: final arc status report + index row (this file's successor).
+~~45. T22.5: final arc status report + index row (this file's successor).~~ done 2026-09-19 — M4 report
 46. Annotate the SUPERB plan file with milestone results (ANNOTATE
     mode — never rewrite; plans are point-in-time).
 47. Add queue/ sections to SKILL.md / references (consumer recipes).
 48. tq-side: TODO_LIST row for the re-open ADR once parity evidence
     exists (pool food, tq repo).
-49. Update go-cqrs-lite AGENTS module count (88→91 go.mods).
+~~49. Update go-cqrs-lite AGENTS module count (88→91 go.mods).~~ done 2026-09-16 — 7th pass §a6
 50. Post-wave: `nix run .#vulncheck` (per-module standalone builds).
 
 ## g) Questions for the owner

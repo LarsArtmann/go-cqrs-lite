@@ -77,11 +77,11 @@ from outcomes** — arguably cleaner than the doc's single-log sketch.
 
 ### Gaps
 
-- No pre-built per-user/per-actor command-audit projection.
-- No `CommandRejected{Reason}`-style rejection event distinct from failures
+~~- No pre-built per-user/per-actor command-audit projection.~~ done 2026-09-13 — CHANGELOG
+~~- No `CommandRejected{Reason}`-style rejection event distinct from failures~~ done 2026-09-15 — CHANGELOG
   (rejections vs retryable failures vs exhaustion are conflated into
   failed/dead-lettered; Rejection-classified errors are not separately modeled).
-- Naming/framing: the doc's "command log" vocabulary does not point to
+~~- Naming/framing: the doc's "command log" vocabulary does not point to~~ done 2026-09-13 — doc reconciled + banner (18-35 T03/T10)
   `commandlifecycle` or `CommandJournal`; a reader of the doc would not find them.
 
 ---
@@ -245,13 +245,13 @@ Reality:
 
 ## Open questions (need product intent, not code reading)
 
-1. **Command-log scope:** Is the doc's "full comprehensive audit — who did what,
-   when, what did it cause" still a target? Concretely: add per-user/actor and
-   payload-carrying projections to `commandlifecycle/projections` (actor already
-   propagates onto lifecycle events), or is DLQ/RetryCount/FailureLog the finished
-   scope? Also: should Rejection-classified errors get a distinct lifecycle event?
-2. **StreamingScan ghost:** Wire it (a `Store.Stream`/`TypedReader.Stream` API +
-   use it in `Store.Export`, fulfilling Decision 2) or cut it at v5 as an unwired
+~~1. **Command-log scope:** Is the doc's "full comprehensive audit — who did what,~~
+~~   when, what did it cause" still a target? Concretely: add per-user/actor and~~
+~~   payload-carrying projections to `commandlifecycle/projections` (actor already~~
+~~   propagates onto lifecycle events), or is DLQ/RetryCount/FailureLog the finished~~ done — CommandsByActor 2026-09-13 + command.rejected 2026-09-15 (CHANGELOG)
+~~   scope? Also: should Rejection-classified errors get a distinct lifecycle event?~~
+~~2. **StreamingScan ghost:** Wire it (a `Store.Stream`/`TypedReader.Stream` API +~~
+~~   use it in `Store.Export`, fulfilling Decision 2) or cut it at v5 as an unwired~~ done 2026-09-13 — Store.StreamCollection + streaming Export (CHANGELOG)
    capability?
 3. **Sessions & the planned `queue/`:** Are sessions-as-event-streams permanently
    delegated to the external `identity-model` repo, or a future go-cqrs-lite
