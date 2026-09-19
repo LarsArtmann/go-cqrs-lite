@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-18 16:17 CEST
 **Type:** Pareto execution plan
-**Basis:** 2026-09-18 session (scheduling/ v5 assessment → metaengine integration audit → "ALL disk writes through metaengine ONLY" directive) + [`meta-engine-universal-adt-support.md`](meta-engine-universal-adt-support.md) + [`2026-09-13_durable-work-queue-module.md`](2026-09-13_durable-work-queue-module.md) + [ADR-0123](../adr/0123-v5-unification-single-composition-root.md) + [ADR-0136](../adr/0136-temporal-composability.md)
+**Basis:** 2026-09-18 session (scheduling/ v5 assessment → metaengine integration audit → "ALL disk writes through metaengine ONLY" directive) + [`meta-engine-universal-adt-support.md`](meta-engine-universal-adt-support.md) + [`2026-09-13_durable-work-queue-module.md`](archived/2026-09-13_durable-work-queue-module.md) + [ADR-0123](../adr/0123-v5-unification-single-composition-root.md) + [ADR-0136](../adr/0136-temporal-composability-contract.md)
 **Target:** every durable write/read in the library rides metaengine Engine ADTs; operators pick engines for ALL state at deployment time.
 
 ---

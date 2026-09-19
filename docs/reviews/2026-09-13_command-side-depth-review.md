@@ -8,7 +8,7 @@
 > operationally — it is **shallow architecturally**. It received transport/persistence
 > parity, but never the domain-side depth the event side has.
 > **Companion reviews:** [event/ split re-review](2026-09-13_event-module-split-re-review.md) ·
-> [event/command duplication hypothesis](2026-09-13_event-command-duplication-hypothesis-review.md)
+> [event/command duplication hypothesis](archived/2026-09-13_event-command-duplication-hypothesis-review.md)
 > (the `AsRecord` wart found there is the same root cause as Gap 1 below)
 
 ---

@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-09-18
-**Related:** [ADR-0112](0112-es-native-planner.md), [ADR-0136](0136-temporal-composability-contract.md), [ADR-0140](0140-vector-distance-semantics-contract.md), [`docs/planning/meta-engine-layered-architecture.md` §3](../planning/meta-engine-layered-architecture.md)
+**Related:** [ADR-0112](0112-es-native-metaengine.md), [ADR-0136](0136-temporal-composability-contract.md), [ADR-0140](0140-vector-distance-semantics-contract.md), [`docs/planning/meta-engine-layered-architecture.md` §3](../planning/meta-engine-layered-architecture.md)
 
 ## Context
 

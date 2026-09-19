@@ -14,7 +14,7 @@
 >   dual-read cutover (§14). (`StreamingScan` was wired 2026-09-13 — see §15 D2.)
 > - **Current truth:** [`metaengine/README.md`](../../metaengine/README.md) (API surface),
 >   [`commandlifecycle/`](../../commandlifecycle/) (the command log, shipped as ADR-0117).
-> - **Audit trail:** [12:10 audit](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
+> - **Audit trail:** [12:10 audit](../status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
 >   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
 >   [T02 source-verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
 
@@ -1079,7 +1079,7 @@ for cutover.
 ## Implementation-Status Addendum (2026-09-13)
 
 > Added by the truth-reconciliation pass
-> ([plan](2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md)).
+> ([plan](archived/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md)).
 > The design text above is preserved verbatim; every row below was verified against source in
 > September 2026. Status vocabulary: **DONE** = shipped as designed · **DIFFERENT** = shipped in
 > a different shape · **PARTIAL** = some shipped, some not · **NOT SHIPPED** = no implementation ·
@@ -1124,7 +1124,7 @@ for cutover.
 
 - [`metaengine/README.md`](../../metaengine/README.md) — module overview and API surface.
 - [`commandlifecycle/`](../../commandlifecycle/) — command-log implementation (ADR-0117).
-- Audits: [12:10 audit](../status/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
+- Audits: [12:10 audit](../status/archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md) ·
   [15:55 deep dive](../status/2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) ·
   [T02 verification notes](../status/2026-09-13_17-40_event-query-model-t02-verification-notes.md).
 

@@ -778,7 +778,7 @@ Copy-paste wiring (per-engine versioning options, `MapGetAsOf`, `MapHistory`):
 [recipes.md](recipes.md) §2.37. Engine capability matrix incl. BigTable's
 GC-policy retention knob:
 [`metaengine/bigtableengine/README.md`](../../../../metaengine/bigtableengine/README.md).
-Design: [ADR-0141](../../../../docs/adr/0141-temporal-versioned-cells.md).
+Design: [ADR-0141](../../../../docs/adr/0141-native-temporal-versioned-cells.md).
 
 ## 7. Tooling Surface: doctor JSON + verification apps (v4.10.0 wave)
 

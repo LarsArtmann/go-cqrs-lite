@@ -9,7 +9,7 @@
 > **Method:** go-modularize skill — direction-neutrality tests (decomposition depth,
 > composability payoff), co-change analysis, importer-population analysis.
 > **Companion reviews:** [command-side depth](2026-09-13_command-side-depth-review.md) ·
-> [event/command duplication hypothesis](2026-09-13_event-command-duplication-hypothesis-review.md)
+> [event/command duplication hypothesis](archived/2026-09-13_event-command-duplication-hypothesis-review.md)
 
 ---
 

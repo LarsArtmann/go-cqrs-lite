@@ -10,9 +10,9 @@
 > `dispatcher.go`/`errors.go` per module), not from the code inside those files — the
 > behavior was already unified into Tier-0 generic cores. What remains genuinely wrong
 > is the `command.AsRecord` bridge fidelity, detailed in §3.
-> **Companion reviews:** [event/ split re-review](2026-09-13_event-module-split-re-review.md) ·
-> [command-side depth](2026-09-13_command-side-depth-review.md)
-> **Series:** extends [2026-08-22 core data-model review](2026-08-22_core-data-model-review.html)
+> **Companion reviews:** [event/ split re-review](../2026-09-13_event-module-split-re-review.md) ·
+> [command-side depth](../2026-09-13_command-side-depth-review.md)
+> **Series:** extends [2026-08-22 core data-model review](../2026-08-22_core-data-model-review.html)
 > (whose P5 finding — AsRecord bridges dropping instance ID — was fixed via `record.Record.ID`;
 > the asymmetry below is the next defect in the same family)
 
@@ -76,7 +76,7 @@ ADR-0112 (command sourcing — folding over command history) has nothing to fold
 `*PersistedCommand` — mirroring the query bridge. Non-breaking (additive
 variant or signature change at v5). This also feeds the v5 port-unification list.
 **Planned:** W2 of
-[`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](../planning/2026-09-13_11-45_SUPERB-command-side-depth.md).
+[`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](../../planning/2026-09-13_11-45_SUPERB-command-side-depth.md).
 
 ## 4. The Go-level answer to "did we pick the wrong abstraction?"
 
