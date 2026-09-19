@@ -30,7 +30,10 @@ type Store[T any] interface { //nolint:interfacebloat // one persistence contrac
 	// records the facts.Enqueued fact. When task.New.DedupKey is set
 	// and a task with that key already exists — in ANY status — the
 	// stored task is returned unchanged: no duplicate row, no duplicate
-	// fact. An empty Type is refused with ErrEmptyType.
+	// fact. An empty Type is refused with ErrEmptyType; a Deps entry
+	// naming a task that does not exist is refused with ErrDanglingDep
+	// (also the cycle guard: deps are fixed at enqueue and must already
+	// exist, so a dependency cycle can never be assembled).
 	Enqueue(ctx context.Context, n task.New[T]) (task.Task[T], error)
 
 	// ClaimDue atomically claims at most one due task for owner: pending

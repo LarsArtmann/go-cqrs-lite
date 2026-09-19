@@ -184,7 +184,7 @@ func validateDeps(ctx context.Context, q interface {
 	if err != nil {
 		return fmt.Errorf("validate deps: %w", err)
 	}
-	defer func() { _ = rows.Close() }()
+	defer rows.Close()
 
 	var missing []string
 
@@ -196,7 +196,6 @@ func validateDeps(ctx context.Context, q interface {
 
 		missing = append(missing, id)
 	}
-
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("validate deps: %w", err)
 	}

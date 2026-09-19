@@ -26,4 +26,15 @@
 // backlog clamping) — bands are application policy over the stored
 // int; the contract keeps priorities unbounded and provenance rides
 // the Reprioritized fact. The donor keeps those at its app layer.
+//
+// One deliberate semantic ADDITION vs the donor: enqueue validates
+// that every task.New.Deps entry references an existing task
+// (queue.ErrDanglingDep) on every engine — the donor inserts blindly
+// and lets SQLite's foreign keys reject dangling rows (Postgres did
+// not). Uniform validation is also the cycle policy: deps are fixed at
+// enqueue and a store-minted task ID cannot be referenced by any
+// existing task, so a dependency cycle's closing edge would have to
+// name a task that does not exist yet — rejected as dangling. Cycles
+// are unrepresentable by construction; no runtime cycle detection is
+// needed or provided.
 package queue

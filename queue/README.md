@@ -80,6 +80,11 @@ inside a transaction, so any number of workers can poll concurrently.
   truth (pending only) and journals the provenance.
 - **DAG gating.** `task.New.Deps` holds a task back until its dependencies
   complete; unblock happens transactionally with the completing write.
+  Every dep must already exist at enqueue (`queue.ErrDanglingDep`
+  otherwise) — which also makes dependency cycles unrepresentable: the
+  closing edge of any cycle would name a task that does not exist yet.
+  Cancelled and dead deps block forever (rescue the dep to re-open the
+  gate) so stranded waiters stay visible instead of silently running.
 - **Cooperative cancel.** `CancelRunning` requests, the worker observes via
   `CancelRequested`, finalizes via `CancelOwned`. Lease expiry finalizes it.
 
