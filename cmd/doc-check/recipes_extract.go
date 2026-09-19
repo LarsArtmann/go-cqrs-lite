@@ -52,7 +52,7 @@ func extractGoBlocks(md string) []RecipeBlock {
 			ordinal++
 			blocks = append(blocks, RecipeBlock{Heading: heading, Ordinal: ordinal, Line: i + 1})
 			open = true
-			body = nil
+			body = make([]string, 0, strings.Count(md, "\n"))
 		case open && trimmed == "```":
 			blocks[len(blocks)-1].Code = strings.Join(body, "\n")
 			open = false
@@ -67,21 +67,23 @@ func extractGoBlocks(md string) []RecipeBlock {
 // splitTypeDecls hoists at-col-0 `type` and `func` declarations out of a
 // snippet so the remaining statements can live inside a function body (a
 // func body may not contain package-level type or func syntax).
-func splitTypeDecls(code string) (decls []string, stmts []string) {
+func splitTypeDecls(code string) ([]string, []string) {
+	var decls, stmts []string
+
 	inDecl := false
 
-	for ln := range strings.SplitSeq(code, "\n") {
+	for line := range strings.SplitSeq(code, "\n") {
 		switch {
 		case inDecl:
-			decls = append(decls, ln)
-			if ln == "}" {
+			decls = append(decls, line)
+			if line == "}" {
 				inDecl = false
 			}
-		case strings.HasPrefix(ln, "type ") || strings.HasPrefix(ln, "func "):
-			decls = append(decls, ln)
-			inDecl = strings.HasSuffix(strings.TrimSpace(ln), "{")
+		case strings.HasPrefix(line, "type ") || strings.HasPrefix(line, "func "):
+			decls = append(decls, line)
+			inDecl = strings.HasSuffix(strings.TrimSpace(line), "{")
 		default:
-			stmts = append(stmts, ln)
+			stmts = append(stmts, line)
 		}
 	}
 

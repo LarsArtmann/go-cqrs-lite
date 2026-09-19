@@ -104,7 +104,7 @@ func parseHeadingLine(line string, lineNo int) (heading, bool) {
 
 	if depth == 0 || depth > 6 || depth >= len(line) ||
 		(line[depth] != ' ' && line[depth] != '\t') {
-		return heading{}, false //nolint:exhaustruct_v5 // zero heading = not found
+		return heading{}, false
 	}
 
 	text := strings.TrimRight(strings.TrimLeft(line[depth:], " \t"), " \t")

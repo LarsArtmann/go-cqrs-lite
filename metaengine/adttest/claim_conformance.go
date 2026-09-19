@@ -55,7 +55,7 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				mustClaimT(t, claimer.ClaimInsert(ctx, col, "t1", ms(100), []byte("first")))
 				mustClaimT(t, claimer.ClaimInsert(ctx, col, "t1", ms(200), []byte("second")))
 
-				claims := claimDueT(t, claimer, col, ms(1000))
+				claims := claimDueT(t, ctx, claimer, col, ms(1000))
 				if len(claims) != 1 || string(claims[0].Payload) != "first" {
 					t.Fatalf("idempotency violated: %+v", claims)
 				}
@@ -79,7 +79,7 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				)
 				mustClaimT(t, claimer.ClaimInsert(ctx, col, "c", now.Add(-time.Hour), []byte("0")))
 
-				claims := claimDueT(t, claimer, col, now)
+				claims := claimDueT(t, ctx, claimer, col, now)
 				want := []string{"c", "a", "b"}
 				if len(claims) != len(want) {
 					t.Fatalf(
@@ -110,16 +110,16 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 					claimer.ClaimInsert(ctx, col, "only", now.Add(-time.Minute), []byte("w")),
 				)
 
-				first := claimDueT(t, claimer, col, now)
+				first := claimDueT(t, ctx, claimer, col, now)
 				if len(first) != 1 {
 					t.Fatalf("first claim got %d, want 1", len(first))
 				}
 
-				if second := claimDueT(t, claimer, col, now); len(second) != 0 {
+				if second := claimDueT(t, ctx, claimer, col, now); len(second) != 0 {
 					t.Fatalf("lease fence violated: %+v", second)
 				}
 
-				reclaimed := claimDueT(t, claimer, col, now.Add(61*time.Second))
+				reclaimed := claimDueT(t, ctx, claimer, col, now.Add(61*time.Second))
 				if len(reclaimed) != 1 || reclaimed[0].Key != "only" {
 					t.Fatalf("lease-expiry reclaim failed: %+v", reclaimed)
 				}
@@ -131,7 +131,7 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 
 				mustClaimT(t, claimer.ClaimInsert(ctx, col, "k", now.Add(-time.Minute), nil))
 
-				owned := claimDueT(t, claimer, col, now)
+				owned := claimDueT(t, ctx, claimer, col, now)
 				if len(owned) != 1 {
 					t.Fatalf("claim: %d, want 1", len(owned))
 				}
@@ -170,7 +170,7 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				mustClaimT(t, claimer.ClaimDelete(ctx, col, "k"))
 				mustClaimT(t, claimer.ClaimDelete(ctx, col, "k"))
 
-				if claims := claimDueT(t, claimer, col, ms(10_000)); len(claims) != 0 {
+				if claims := claimDueT(t, ctx, claimer, col, ms(10_000)); len(claims) != 0 {
 					t.Fatalf("deleted item still claimable: %+v", claims)
 				}
 			})
@@ -184,7 +184,7 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 					claimer.ClaimInsert(ctx, col, "t", now.Add(-time.Minute), []byte("gen1")),
 				)
 
-				claims := claimDueT(t, claimer, col, now)
+				claims := claimDueT(t, ctx, claimer, col, now)
 				if len(claims) != 1 {
 					t.Fatalf("claim: %d", len(claims))
 				}
@@ -198,7 +198,7 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				)
 				mustClaimT(t, claimer.ClaimDeleteIfDue(ctx, col, "t", claims[0].DueAt))
 
-				after := claimDueT(t, claimer, col, now.Add(2*time.Hour))
+				after := claimDueT(t, ctx, claimer, col, now.Add(2*time.Hour))
 				if len(after) != 1 || string(after[0].Payload) != "gen2" {
 					t.Fatalf("stale finalizer deleted the re-scheduled generation: %+v", after)
 				}
@@ -452,13 +452,14 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 
 func claimDueT(
 	t *testing.T,
+	ctx context.Context,
 	claimer metaengine.DueClaimer,
 	col string,
 	now time.Time,
 ) []metaengine.DueClaim {
 	t.Helper()
 
-	claims, err := claimer.ClaimDue(context.Background(), metaengine.ClaimDueRequest{
+	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
 		Collection: col, Owner: "w1", Now: now,
 	})
 	if err != nil {

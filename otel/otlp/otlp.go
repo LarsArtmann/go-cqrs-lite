@@ -78,8 +78,7 @@ func SetupOTLP(
 		cqrsotel.WithService(cfg.ServiceName, cfg.ServiceVersion, cfg.InstanceID),
 	)
 
-	//nolint:contextcheck // resource metadata is process-scoped, not caller-ctx-scoped
-	//nolint:wrapcheck // provider construction; Setup error is already SDK-scoped
+	//nolint:contextcheck,wrapcheck // resource metadata is process-scoped; Setup error is already SDK-scoped
 	return cqrsotel.Setup(
 		append(setupOpts, opts...)...)
 }
