@@ -47,7 +47,9 @@ func ClaimStmt(d Dialect, s Spec, p ClaimParams) (string, []any) {
 	case DialectPostgres:
 		return postgresClaimStmt(s, p)
 	case DialectSQLite:
-		return sqliteClaimStmt(s, p)
+		return numberedClaimStmt(s, p, func(n int) string { return "?" + itoa(n) })
+	case DialectDuckDB:
+		return numberedClaimStmt(s, p, func(n int) string { return "$" + itoa(n) })
 	case DialectMySQL:
 		return mySQLClaimSelectFull(s, p)
 	default:
@@ -125,35 +127,38 @@ func postgresClaimStmt(s Spec, p ClaimParams) (string, []any) {
 	return query, args
 }
 
-func sqliteClaimStmt(s Spec, p ClaimParams) (string, []any) {
-	// Placeholder order: ?1 lease_until, ?2 owner?, ?3 filter?, ?4 now,
-	// ?5.. filter/limit repeats. SQLite reuses ?N ordinals, so repeated
-	// references are free.
+// numberedClaimStmt builds the single-statement UPDATE..RETURNING claim for
+// engines that number placeholders (?N on SQLite, $N on DuckDB) and support
+// IN-subqueries but not UPDATE..LIMIT or SKIP LOCKED: the subquery picks the
+// ordered, limited candidate keys first, the UPDATE stamps exactly those,
+// and RETURNING yields the claimed rows.
+func numberedClaimStmt(s Spec, p ClaimParams, placeholder func(int) string) (string, []any) {
+	// Placeholder order: 1 lease_until, 2 owner?, 3 now, 4 filter?, 5 limit?
+	// (numbered placeholders repeat for free, so the outer predicate reuses
+	// the same ordinals).
 	args := []any{p.LeaseUntil}
 
-	set := s.LeaseColumn + " = ?1"
+	set := s.LeaseColumn + " = " + placeholder(1)
 
 	n := 1
 
 	if s.OwnerColumn != "" && p.Owner != nil {
 		n++
-		set += ", " + s.OwnerColumn + " = ?" + itoa(n)
+		set += ", " + s.OwnerColumn + " = " + placeholder(n)
 		args = append(args, p.Owner)
 	}
 
 	n++
 
-	nowPh := "?" + itoa(n)
+	nowPh := placeholder(n)
 
 	args = append(args, p.Now)
 
 	filterEq := ""
-	filterPh := ""
 
 	if s.FilterColumn != "" && p.Filter != nil {
 		n++
-		filterPh = "?" + itoa(n)
-		filterEq = " AND " + s.FilterColumn + " = " + filterPh
+		filterEq = " AND " + s.FilterColumn + " = " + placeholder(n)
 		args = append(args, p.Filter)
 	}
 
@@ -161,15 +166,14 @@ func sqliteClaimStmt(s Spec, p ClaimParams) (string, []any) {
 
 	if p.Limit > 0 {
 		n++
-		limit = " LIMIT ?" + itoa(n)
+		limit = " LIMIT " + placeholder(n)
 		args = append(args, p.Limit)
 	}
 
 	pred := claimPredicates(s, p, func(any) string { return nowPh }) + filterEq
 
 	// The IN-subquery makes the claim ordered+limited WITHOUT
-	// UPDATE..LIMIT (which stock SQLite lacks): pick the candidate keys
-	// first, then stamp exactly those.
+	// UPDATE..LIMIT: pick the candidate keys first, then stamp exactly those.
 	query := "UPDATE " + s.Table + " SET " + set +
 		"\nWHERE " + s.IDColumn + " IN (\n" +
 		"  SELECT " + s.IDColumn + " FROM " + s.Table +
@@ -290,7 +294,7 @@ func RenewScopedStmt(d Dialect, s Spec, newUntil, id, owner, filter, now any) (s
 	}
 
 	switch d {
-	case DialectPostgres:
+	case DialectPostgres, DialectDuckDB:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 				" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
 				" = $3 AND " + s.FilterColumn + " = $4 AND " + s.LeaseColumn + " > $5",

@@ -50,6 +50,12 @@ const (
 	// DialectMySQL uses ? placeholders and native DATETIME(3); claims use
 	// FOR UPDATE SKIP LOCKED (MySQL 8.0+ or MariaDB 10.6+).
 	DialectMySQL
+
+	// DialectDuckDB uses $N placeholders and native TIMESTAMP columns.
+	// Claims use the SQLite IN-subquery UPDATE..RETURNING shape (DuckDB
+	// supports RETURNING on UPDATE); DuckDB is single-process, so its
+	// internal single-writer serialization replaces row locks.
+	DialectDuckDB
 )
 
 // ErrUnsupported is returned when claiming is requested for a dialect that
@@ -57,7 +63,7 @@ const (
 // LOCKED — verified live on MariaDB 11.4) IS supported; only unknown
 // dialects are rejected.
 var ErrUnsupported error = errors.New(
-	"claiming: requires Postgres, SQLite, or MySQL/MariaDB 10.6+ (FOR UPDATE SKIP LOCKED)",
+	"claiming: requires Postgres, SQLite, MySQL/MariaDB 10.6+, or DuckDB",
 )
 
 // ErrLeaseNotHeld is returned by lease renewal when the caller no longer

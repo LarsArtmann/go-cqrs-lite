@@ -17,7 +17,7 @@ const sqliteTimeFormat = "2006-01-02T15:04:05.000000000Z07:00"
 // ph renders a dialect placeholder for a 1-based position.
 func ph(d claiming.Dialect, n int) string {
 	switch d {
-	case claiming.DialectPostgres:
+	case claiming.DialectPostgres, claiming.DialectDuckDB:
 		return "$" + itoa(n)
 	case claiming.DialectMySQL:
 		return "?"

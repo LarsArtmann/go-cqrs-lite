@@ -40,7 +40,9 @@ type Claims struct {
 // New creates the runtime, ensuring the claims (and facts) tables exist.
 // The caller retains ownership of db.
 func New(ctx context.Context, db *sql.DB, d claiming.Dialect) (*Claims, error) {
-	if d != claiming.DialectSQLite && d != claiming.DialectPostgres && d != claiming.DialectMySQL {
+	switch d {
+	case claiming.DialectSQLite, claiming.DialectPostgres, claiming.DialectMySQL, claiming.DialectDuckDB:
+	default:
 		return nil, fmt.Errorf("claimkit.New: %w", claiming.ErrUnsupported)
 	}
 

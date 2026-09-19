@@ -23,7 +23,9 @@ type Dedup struct {
 // NewDedup creates the runtime, ensuring the dedup table exists. The caller
 // retains ownership of db.
 func NewDedup(ctx context.Context, db *sql.DB, d claiming.Dialect) (*Dedup, error) {
-	if d != claiming.DialectSQLite && d != claiming.DialectPostgres && d != claiming.DialectMySQL {
+	switch d {
+	case claiming.DialectSQLite, claiming.DialectPostgres, claiming.DialectMySQL, claiming.DialectDuckDB:
+	default:
 		return nil, fmt.Errorf("claimkit.NewDedup: %w", claiming.ErrUnsupported)
 	}
 
