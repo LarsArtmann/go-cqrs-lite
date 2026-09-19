@@ -2146,6 +2146,7 @@ metadata/struct Tracing
 metadata/type CustomData
 metaengine/adttest/func AssertDedupStore
 metaengine/adttest/func AssertDueClaimer
+metaengine/adttest/func AssertFactSink
 metaengine/adttest/func AssertTemporalConformance
 metaengine/adttest/func AssertVectorDimensionGuard
 metaengine/adttest/func AuditCapability
@@ -2379,6 +2380,7 @@ metaengine/claimkit/method ClaimDeleteFacts
 metaengine/claimkit/method ClaimDeleteIfDue
 metaengine/claimkit/method ClaimDue
 metaengine/claimkit/method ClaimDueFacts
+metaengine/claimkit/method ClaimFactsList
 metaengine/claimkit/method ClaimInsert
 metaengine/claimkit/method DedupCheckAndRecord
 metaengine/claimkit/method DedupSeen

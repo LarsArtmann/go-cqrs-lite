@@ -45,6 +45,7 @@ func TestSQLiteDueClaims(t *testing.T) {
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "sqlite", Create: newEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "sqlite", Create: newEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "sqlite", Create: newEngine}})
 }
 
 func TestSQLiteDueClaims_CapabilitySurface(t *testing.T) {

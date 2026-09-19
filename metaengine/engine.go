@@ -2,10 +2,7 @@ package metaengine
 
 import (
 	"context"
-	"fmt"
 	"iter"
-	"sort"
-	"strings"
 	"time"
 )
 
@@ -98,17 +95,12 @@ type EngineProfile struct {
 	// is available, and emits a DEGRADED diagnostic at plan time (ADR-0094).
 	DegradedADTs map[ADT]bool
 
-	// RefusedADTs records ADTs this engine deliberately does NOT serve, with
-	// the architectural reason — ADR-0142's "explicit capability refusal,
-	// never silence". An entry is a documented NO: the engine's reason string
-	// is rendered by Doctor and the capability audit, so an operator asking
-	// "why can't my timers live here?" gets an answer instead of absence.
-	//
-	// An ADT must appear in at most one of Supports (optionally also
-	// DegradedADTs) and RefusedADTs — the capability audit enforces
-	// disjointness, and for the ADR-0142 write-side ADTs (ADTDueClaim,
-	// ADTDedup) it additionally enforces coverage: every engine either
-	// supports or refuses them (the universality rule, ADR-0123 §9).
+	// RefusedADTs records ADTs this engine deliberately does NOT serve,
+	// with the architectural reason — ADR-0142's "explicit capability
+	// refusal, never silence". Rendered by Doctor + the capability audit.
+	// An ADT sits in at most one of Supports / RefusedADTs (audit-enforced
+	// disjointness); the write-side ADTs must be supported OR refused —
+	// silence is the violation (universality rule, ADR-0123 §9).
 	RefusedADTs map[ADT]string
 
 	// Persistence declares whether this engine's data survives process exit
@@ -234,47 +226,6 @@ func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {
 }
 
 // IsDegraded reports whether the engine handles the given ADT via a brute-force
-// fallback rather than a native backend. Returns false for ADTs not in Supports.
-func (p EngineProfile) IsDegraded(adt ADT) bool {
-	return p.DegradedADTs[adt]
-}
-
-// RefusesADT reports whether the engine has recorded an explicit capability
-// refusal for the ADT (ADR-0142), returning the architectural reason.
-func (p EngineProfile) RefusesADT(adt ADT) (string, bool) {
-	reason, ok := p.RefusedADTs[adt]
-	return reason, ok
-}
-
-func (p EngineProfile) String() string {
-	parts := make([]string, 0, len(p.Supports))
-	for adt, c := range p.Supports {
-		parts = append(parts, fmt.Sprintf("%s@%s", adt, c))
-	}
-
-	sort.Strings(parts)
-
-	extras := make([]string, 0, 4)
-	if p.IsReplicated() {
-		extras = append(extras, fmt.Sprintf("replication=%s", p.Replication))
-		if p.ReplicationLag > 0 {
-			extras = append(extras, fmt.Sprintf("lag=%s", p.ReplicationLag))
-		}
-	}
-	if p.NetworkRTT > 0 {
-		extras = append(extras, fmt.Sprintf("rtt=%s", p.NetworkRTT))
-	}
-	if p.IsVolatile() {
-		extras = append(extras, "volatile")
-	}
-
-	suffix := ""
-	if len(extras) > 0 {
-		suffix = " (" + strings.Join(extras, ", ") + ")"
-	}
-
-	return fmt.Sprintf("%s: %s%s", p.Name, strings.Join(parts, " "), suffix)
-}
 
 // Per-ADT backend interfaces (ISP — engines implement only what they support).
 

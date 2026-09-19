@@ -137,3 +137,15 @@ DGRAPH_ADDR=localhost:9080 go test -tags "goexperiment.jsonv2" ./...
 
 Cross-engine parity is verified via `adttest.RunMatrix` against the
 memory engine.
+
+## ADR-0142 capability refusal: DueClaim / Dedup
+
+This engine deliberately does NOT serve `ADTDueClaim` or `ADTDedup`, and its
+`Profile()` records both in `RefusedADTs` with reasons (never silence). DQL
+upserts cannot atomically fence concurrent claimers — there is no `SKIP
+LOCKED` equivalent and no CAS-with-expiry, so a due-claim race between two
+workers can double-fire; a dedup check-and-set needs exactly that atomicity.
+Route timers/queues/dedup to a claimkit-backed engine (sqlite, postgres,
+mysql, duckdb, turso) or a Map-runtime engine (memory, pebble, bbolt,
+badger) — `metaengine` planning never schedules claim/dedup work here, and
+the `capability_audit` test pins the refusal so the omission cannot drift.

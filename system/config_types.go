@@ -25,20 +25,12 @@ type DomainConfig struct {
 	// System via sys.Query(...).
 	Queries func(*System)
 
-	// Timers is a function that wires engine-backed timers into the
-	// composition root (ADR-0142): build a TimerStore over sys.TimerEngine()
-	// with scheduling/engine, construct scheduling.Scheduler over it, and
-	// hand the lifecycle to sys.ManageTimers. The System then starts the
-	// scheduler on Start and stops it on GracefulClose/Close.
-	//
-	// There is deliberately NO declarative event→timeout rule registry:
-	// ADR-0040 chose functional composition over declarative rule sets for
-	// event→command derivation, and timed derivation composes the same
-	// way — a bus subscriber (plain or deriver.Deriver) reacts to the
-	// event and calls TimerStore.Schedule with the timeout. The coeffect
-	// gate (DomainConfig.Events) validates the event side of that
-	// composition; the dispatch side targets runtime-registered command
-	// handlers and is validated by the command dispatcher itself.
+	// Timers wires engine-backed timers into the composition root
+	// (ADR-0142): build a TimerStore over sys.TimerEngine() with
+	// scheduling/engine, construct scheduling.Scheduler over it, and hand
+	// the lifecycle to sys.ManageTimers (started on Start, stopped on
+	// GracefulClose/Close). Deliberately a FUNCTION, not a declarative
+	// event→timeout registry — see timers.go for the ADR-0040 rationale.
 	Timers func(*System)
 
 	// Projections are sealed projection/query declarations that the System
@@ -55,21 +47,13 @@ type DomainConfig struct {
 	Evolutions []EvolutionSpec
 
 	// Events declares the complete set of event types that can appear in
-	// this system's journal: everything its commands can emit PLUS events
-	// written by external importers. When non-empty, New validates the
-	// coeffect graph at composition time:
-	//
-	//   - a projection or evolution consuming an UNDECLARED type is a hard
-	//     error ([ErrDanglingEventSubscription]) — nearly always a typo in
-	//     the coeffect specification, the kind that otherwise surfaces only
-	//     as a projection that silently never updates;
-	//   - a declared type that NOTHING consumes is logged as an advisory
-	//     (dead events are legitimate for audit-only journals).
-	//
-	// Leave empty to skip validation entirely (the v4 default — no existing
-	// consumer breaks). Skip selectively with DisableCoeffectValidation.
-	// RawQuery declarations are opaque to the gate; their event types are
-	// not validated.
+	// this system's journal (command emissions PLUS external imports).
+	// When non-empty, New validates the coeffect graph: consuming an
+	// UNDECLARED type is a hard error ([ErrDanglingEventSubscription] —
+	// nearly always a typo); a declared type nothing consumes is an
+	// advisory (dead events are legitimate for audit-only journals).
+	// Leave empty to skip validation (the v4 default); skip selectively
+	// with DisableCoeffectValidation. RawQuery is opaque to the gate.
 	Events []event.Type
 
 	// DisableCoeffectValidation turns off the DomainConfig.Events gate (both
@@ -110,10 +94,10 @@ type DomainConfig struct {
 	ProjectionHostOptions []projectionhost.HostOption
 
 	// CheckpointStore provides persistent checkpoint storage for the projection
-	// host. If nil, an in-memory store is used (checkpoints are lost on
-	// restart, forcing full projection replays). Set this to a persistent
-	// store (e.g., SQLCheckpointStore) for production deployments where
-	// projections must resume from their last position after a restart.
+	// host. If nil, the System persists checkpoints as entries of a
+	// system_checkpoints Map collection on the deployment-declared engine
+	// when one carries the Map ADT (ADR-0142); engines without it fall
+	// back to the in-memory store (checkpoints lost on restart).
 	CheckpointStore event.CheckpointStore
 
 	// ShutdownDependencies declares ordering constraints for System.Close().

@@ -74,11 +74,9 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		}
 	}
 
-	// Create engines from the deployment config via the driver registry.
-	// Iterate in sorted name order so engine creation (and error selection
-	// when two engines are both invalid) is deterministic across boots.
-	// Durability tiers are resolved per engine first: instances sharing an
-	// engine must agree (see resolveEngineDurability).
+	// Create engines from the deployment config via the driver registry,
+	// in sorted name order so error selection is deterministic across
+	// boots. Durability tiers resolve per engine (see resolveEngineDurability).
 	engineDurability, err := resolveEngineDurability(deployment)
 	if err != nil {
 		return nil, err
@@ -164,14 +162,14 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		return nil, err
 	}
 
-	// If no source-of-truth instance, create a default Memory engine.
+	// Default source of truth when nothing was wired: a Memory engine.
 	if sys.eventStore == nil {
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "default"})
 		sys.eventStore = NewEventAdapter(eng.(metaengine.StreamLogBackend), "events")
 	}
 
-	// If no projection store, create one from Memory if projections are declared.
+	// Default projection store from Memory when projections are declared.
 	if sys.projStore == nil && len(processedProjections) > 0 {
 		eng := metaengine.NewMemoryEngine()
 		sys.engines = append(sys.engines, namedEngine{engine: eng, name: "projections"})
@@ -226,17 +224,7 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 			hostOpts = append(hostOpts, projectionhost.WithSubscriber(bus))
 		}
 
-		// Checkpoint persistence: consumer-provided store, else the
-		// engine-backed store when an engine carries the Map ADT
-		// (persistent by default, ADR-0142), else in-memory.
-		cpStore := domain.CheckpointStore
-		if cpStore == nil {
-			if backend := sys.checkpointEngine(); backend != nil {
-				cpStore = &engineCheckpointStore{engine: backend}
-			} else {
-				cpStore = &memoryCheckpointStore{}
-			}
-		}
+		cpStore := resolveCheckpointStore(domain, sys)
 
 		host, err := projectionhost.New(journal, cpStore, hostOpts...)
 		if err != nil {

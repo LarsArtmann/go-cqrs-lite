@@ -257,7 +257,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"queue/mysql":                    "sub-engine (covered by queue)",
 		"queue/sqlite":                   "sub-engine (covered by queue)",
 		"record":                         "shared record primitive (Tier 0, consumed by event/command/metaengine)",
-		"scheduling/engine":             "facade sub-package (covered by scheduling)",
+		"scheduling/engine":              "facade sub-package (covered by scheduling)",
 		"scheduling/sqlstore":            "sub-package (covered by scheduling)",
 		"stack":                          "root stack types (consumers import stack/<backend> presets)",
 		"stack/bench":                    "benchmarking utility",

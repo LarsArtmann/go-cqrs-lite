@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
@@ -22,30 +21,23 @@ type Dedup struct {
 	db      *sql.DB
 	dialect claiming.Dialect
 
-	// mu serializes writes on single-writer engines (DuckDB): its ON
-	// CONFLICT upserts raise PK violations under concurrency instead of
-	// serializing — the in-process mutex is the row-lock equivalent for an
-	// embedded single-process database.
-	mu sync.Mutex
+	duckWriteLock
 }
 
 // lockWriter returns the write guard for the engine's concurrency model
-	// (see Claims.lockWriter).
+// (see Claims.lockWriter).
 func (d *Dedup) lockWriter() func() {
-	if d.dialect != claiming.DialectDuckDB {
-		return func() {}
-	}
-
-	d.mu.Lock()
-
-	return d.mu.Unlock
+	return d.duckWriteLock.lockWriterFor(d.dialect)
 }
 
 // NewDedup creates the runtime, ensuring the dedup table exists. The caller
 // retains ownership of db.
 func NewDedup(ctx context.Context, db *sql.DB, d claiming.Dialect) (*Dedup, error) {
 	switch d {
-	case claiming.DialectSQLite, claiming.DialectPostgres, claiming.DialectMySQL, claiming.DialectDuckDB:
+	case claiming.DialectSQLite,
+		claiming.DialectPostgres,
+		claiming.DialectMySQL,
+		claiming.DialectDuckDB:
 	default:
 		return nil, fmt.Errorf("claimkit.NewDedup: %w", claiming.ErrUnsupported)
 	}
@@ -127,9 +119,15 @@ func (d *Dedup) checkAndRecordMySQL(
 		// one concurrent racer's insert lands (RowsAffected 1, new window,
 		// not seen); everyone else's is ignored (RowsAffected 0, a window
 		// was created concurrently — live by construction — so seen).
-		res, err := d.db.ExecContext(ctx,
-			"INSERT IGNORE INTO meta_dedup (collection, "+idColumn(d.dialect)+", expires_at) VALUES (?, ?, ?)",
-			collection, key, now.Add(ttl))
+		res, err := d.db.ExecContext(
+			ctx,
+			"INSERT IGNORE INTO meta_dedup (collection, "+idColumn(
+				d.dialect,
+			)+", expires_at) VALUES (?, ?, ?)",
+			collection,
+			key,
+			now.Add(ttl),
+		)
 		if err != nil {
 			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: insert: %w", err)
 		}

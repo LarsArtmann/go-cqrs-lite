@@ -173,12 +173,65 @@ func insertFact(
 	collection, key string,
 	fact metaengine.ClaimFact,
 ) error {
-	query := "INSERT INTO meta_claim_facts (collection, " + idColumn(dialect) + ", type, payload) VALUES (" +
-		ph(dialect, 1) + ", " + ph(dialect, 2) + ", " + ph(dialect, 3) + ", " + ph(dialect, 4) + ")"
+	query := "INSERT INTO meta_claim_facts (collection, " + idColumn(
+		dialect,
+	) + ", type, payload) VALUES (" +
+		ph(
+			dialect,
+			1,
+		) + ", " + ph(
+		dialect,
+		2,
+	) + ", " + ph(
+		dialect,
+		3,
+	) + ", " + ph(
+		dialect,
+		4,
+	) + ")"
 
 	if _, err := tx.ExecContext(ctx, query, collection, key, fact.Type, fact.Payload); err != nil {
 		return fmt.Errorf("insert fact %q: %w", fact.Type, err)
 	}
 
 	return nil
+}
+
+// ClaimFactsList returns the facts recorded for one key, in journal order
+// (seq ascending). The fact journal is append-only (ADR-0142 §5): rows are
+// never mutated or reordered, and they deliberately survive engine resets —
+// journal positions must stay monotonic forever. This is the read side the
+// conformance suite (adttest.AssertFactSink) and fact-auditing consumers use
+// to observe what [FactSink] wrote.
+func (c *Claims) ClaimFactsList(
+	ctx context.Context,
+	collection, key string,
+) ([]metaengine.ClaimFact, error) {
+	rows, err := c.db.QueryContext(ctx,
+		"SELECT type, payload FROM meta_claim_facts WHERE collection = "+ph(c.dialect, 1)+
+			" AND "+idColumn(c.dialect)+" = "+ph(c.dialect, 2)+" ORDER BY seq",
+		collection, key)
+	if err != nil {
+		return nil, fmt.Errorf("claimkit.ClaimFactsList: %w", err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	var facts []metaengine.ClaimFact
+
+	for rows.Next() {
+		var fact metaengine.ClaimFact
+
+		if err := rows.Scan(&fact.Type, &fact.Payload); err != nil {
+			return nil, fmt.Errorf("claimkit.ClaimFactsList: %w", err)
+		}
+
+		facts = append(facts, fact)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("claimkit.ClaimFactsList: %w", err)
+	}
+
+	return facts, nil
 }

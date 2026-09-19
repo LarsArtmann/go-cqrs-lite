@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/signing/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23

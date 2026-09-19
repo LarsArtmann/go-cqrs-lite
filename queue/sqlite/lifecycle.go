@@ -84,7 +84,17 @@ func (s *Store[T]) Fail(
 			return s.deadLetter(ctx, tx, id, owner, token, newAttempts, errText, evidence, false)
 		}
 
-		return s.retryRow(ctx, tx, id, owner, token, newAttempts, errText, now.Add(backoff), evidence)
+		return s.retryRow(
+			ctx,
+			tx,
+			id,
+			owner,
+			token,
+			newAttempts,
+			errText,
+			now.Add(backoff),
+			evidence,
+		)
 	})
 }
 
@@ -114,8 +124,14 @@ func readAttemptHolder(ctx context.Context, tx *sql.Tx, id task.ID) (int, int, s
 // appends the Failed fact. The token predicate fences the write to the
 // current holder.
 func (s *Store[T]) retryRow(
-	ctx context.Context, tx *sql.Tx, id task.ID, owner, token string, newAttempts int, errText string,
-	notBefore time.Time, evidence []byte,
+	ctx context.Context,
+	tx *sql.Tx,
+	id task.ID,
+	owner, token string,
+	newAttempts int,
+	errText string,
+	notBefore time.Time,
+	evidence []byte,
 ) error {
 	res, err := tx.ExecContext(ctx, `
 		UPDATE tasks

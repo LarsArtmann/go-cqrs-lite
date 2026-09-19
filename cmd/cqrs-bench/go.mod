@@ -1,11 +1,12 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-bench/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
 	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/duckdb/v4 v4.2.0
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.4.0
@@ -21,17 +22,6 @@ require (
 	github.com/larsartmann/go-output/markdown v0.38.0
 	github.com/larsartmann/go-output/table v0.38.0
 	github.com/mattn/go-sqlite3 v1.14.52
-)
-
-require (
-	github.com/fsnotify/fsnotify v1.10.1 // indirect
-	github.com/knadh/koanf/providers/env v1.1.0 // indirect
-	github.com/knadh/koanf/providers/file v1.2.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 )
 
 require (
@@ -69,6 +59,7 @@ require (
 	github.com/duckdb/duckdb-go/v2 v2.10505.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/getsentry/sentry-go v0.49.0 // indirect
 	github.com/go-faster/errors v0.8.0 // indirect
@@ -95,12 +86,16 @@ require (
 	github.com/knadh/koanf/parsers/json v1.0.1 // indirect
 	github.com/knadh/koanf/parsers/toml v0.1.0 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
+	github.com/knadh/koanf/providers/env v1.1.0 // indirect
+	github.com/knadh/koanf/providers/file v1.2.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
@@ -109,8 +104,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
@@ -123,7 +118,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/turso/v4 v4.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.0 // indirect
 	github.com/larsartmann/go-output/daghtml v0.38.0 // indirect

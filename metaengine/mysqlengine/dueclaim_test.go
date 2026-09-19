@@ -16,6 +16,7 @@ func TestMySQLEngineDueClaims(t *testing.T) {
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
 }
 
 func TestMySQLEngineDueClaims_CapabilitySurface(t *testing.T) {

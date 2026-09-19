@@ -132,7 +132,13 @@ func (s *suite) pinPermanent(t *testing.T) {
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 9})
 	c := e.claim(t, "w1")
 
-	if err := e.store.FailPermanent(t.Context(), subject.ID, c.Token, "bad payload", nil); err != nil {
+	if err := e.store.FailPermanent(
+		t.Context(),
+		subject.ID,
+		c.Token,
+		"bad payload",
+		nil,
+	); err != nil {
 		t.Fatalf("fail-permanent: %v", err)
 	}
 

@@ -172,7 +172,8 @@ func (s *Store[T]) getTaskByDedupKey(ctx context.Context, key string) (task.Task
 // cycle guard — see queue.ErrDanglingDep.
 func validateDeps(ctx context.Context, q interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
-}, depsJSON string) error {
+}, depsJSON string,
+) error {
 	if depsJSON == "" || depsJSON == "[]" {
 		return nil
 	}

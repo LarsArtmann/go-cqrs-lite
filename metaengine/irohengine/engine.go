@@ -81,8 +81,7 @@ func (e *replicatedEngine) Profile() metaengine.EngineProfile {
 			p.RefusedADTs = make(map[metaengine.ADT]string, 2)
 		}
 
-		p.RefusedADTs[adt] =
-			"leaderless replication cannot fence concurrent claimers — claims/dedup must not ride the replicated wrapper"
+		p.RefusedADTs[adt] = "leaderless replication cannot fence concurrent claimers — claims/dedup must not ride the replicated wrapper"
 	}
 
 	return p

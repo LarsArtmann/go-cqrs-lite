@@ -29,6 +29,26 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// duckWriteLock is the write guard for single-writer engines (DuckDB): its
+// ON CONFLICT upserts raise PK violations under concurrency instead of
+// serializing, and it has no row locks — the in-process mutex is the SKIP
+// LOCKED equivalent for an embedded single-process database. Claims and
+// Dedup both embed it; on every other dialect the guard is a no-op.
+type duckWriteLock struct {
+	mu sync.Mutex
+}
+
+// lockWriterFor returns the write guard for the dialect's concurrency model.
+func (l *duckWriteLock) lockWriterFor(d claiming.Dialect) func() {
+	if d != claiming.DialectDuckDB {
+		return func() {}
+	}
+
+	l.mu.Lock()
+
+	return l.mu.Unlock
+}
+
 // Claims is the SQL runtime for due-claims: one shared table (meta_due_claims)
 // scoped by collection, implementing [metaengine.DueClaimer] and
 // [metaengine.FactSink]. Construct once per engine; safe for concurrent use
@@ -37,31 +57,22 @@ type Claims struct {
 	db      *sql.DB
 	dialect claiming.Dialect
 
-	// mu serializes writes on single-writer engines (DuckDB): its ON
-	// CONFLICT upserts raise PK violations under concurrency instead of
-	// serializing, and it has no row locks — the in-process mutex is the
-	// SKIP LOCKED equivalent for an embedded single-process database.
-	mu sync.Mutex
+	duckWriteLock
 }
 
-// lockWriter returns the write guard for the engine's concurrency model:
-	// DuckDB is single-writer (in-process mutex); client-server dialects
-	// serialize in the database itself and need no guard.
+// lockWriter returns the write guard for the engine's concurrency model.
 func (c *Claims) lockWriter() func() {
-	if c.dialect != claiming.DialectDuckDB {
-		return func() {}
-	}
-
-	c.mu.Lock()
-
-	return c.mu.Unlock
+	return c.duckWriteLock.lockWriterFor(c.dialect)
 }
 
 // New creates the runtime, ensuring the claims (and facts) tables exist.
 // The caller retains ownership of db.
 func New(ctx context.Context, db *sql.DB, d claiming.Dialect) (*Claims, error) {
 	switch d {
-	case claiming.DialectSQLite, claiming.DialectPostgres, claiming.DialectMySQL, claiming.DialectDuckDB:
+	case claiming.DialectSQLite,
+		claiming.DialectPostgres,
+		claiming.DialectMySQL,
+		claiming.DialectDuckDB:
 	default:
 		return nil, fmt.Errorf("claimkit.New: %w", claiming.ErrUnsupported)
 	}

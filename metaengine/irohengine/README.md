@@ -89,6 +89,18 @@ Tier 0 is in this module. Tiers 1 and 2 are separate submodules:
   `GraphAddEdge`/`GraphRemoveEdge` resolve edge presence per (from, to) pair the same way.
 - **Separate module**: Lives outside metaengine core to preserve the zero-dependency boundary.
 
+## ADR-0142 capability refusal: DueClaim / Dedup
+
+This engine deliberately does NOT serve `ADTDueClaim` or `ADTDedup`, and its
+`Profile()` records both in `RefusedADTs` with reasons (never silence). A
+lease or dedup window taken on one replica is not a lease anywhere else:
+claims require single-writer atomicity, while iroh replication is
+CRDT/eventual — two workers on different replicas could both "win" the same
+claim forever. Route timers/queues/dedup to a claimkit-backed engine
+(sqlite, postgres, mysql, duckdb, turso) or a Map-runtime engine (memory,
+pebble, bbolt, badger); the `capability_audit` test pins the refusal so the
+omission cannot drift.
+
 ## Related Modules
 
 - [**metaengine**](../README.md) — Core planner and `Engine` interface

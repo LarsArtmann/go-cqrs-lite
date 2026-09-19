@@ -1,5 +1,11 @@
 package metaengine
 
+import (
+	"fmt"
+	"sort"
+	"strings"
+)
+
 // ADT is the Abstract Data Type the planner infers from fold return types.
 type ADT string
 
@@ -113,3 +119,45 @@ const (
 	ComplexityONLogN  Complexity = "O(NlogN)"
 	ComplexityODegree Complexity = "O(degree^depth)"
 )
+
+// RefusesADT reports whether the engine has recorded an explicit capability
+// refusal for the ADT (ADR-0142), returning the architectural reason.
+func (p EngineProfile) RefusesADT(adt ADT) (string, bool) {
+	reason, ok := p.RefusedADTs[adt]
+	return reason, ok
+}
+
+// fallback rather than a native backend. Returns false for ADTs not in Supports.
+func (p EngineProfile) IsDegraded(adt ADT) bool {
+	return p.DegradedADTs[adt]
+}
+
+func (p EngineProfile) String() string {
+	parts := make([]string, 0, len(p.Supports))
+	for adt, c := range p.Supports {
+		parts = append(parts, fmt.Sprintf("%s@%s", adt, c))
+	}
+
+	sort.Strings(parts)
+
+	extras := make([]string, 0, 4)
+	if p.IsReplicated() {
+		extras = append(extras, fmt.Sprintf("replication=%s", p.Replication))
+		if p.ReplicationLag > 0 {
+			extras = append(extras, fmt.Sprintf("lag=%s", p.ReplicationLag))
+		}
+	}
+	if p.NetworkRTT > 0 {
+		extras = append(extras, fmt.Sprintf("rtt=%s", p.NetworkRTT))
+	}
+	if p.IsVolatile() {
+		extras = append(extras, "volatile")
+	}
+
+	suffix := ""
+	if len(extras) > 0 {
+		suffix = " (" + strings.Join(extras, ", ") + ")"
+	}
+
+	return fmt.Sprintf("%s: %s%s", p.Name, strings.Join(parts, " "), suffix)
+}

@@ -1,3 +1,3 @@
 module github.com/larsartmann/go-cqrs-lite/dedup/v4
 
-go 1.26
+go 1.27.1

@@ -103,6 +103,18 @@ no emulator binary, no GCP credentials, no network.
 behavior — especially GC policy timing and request routing. Budget a
 real-instance smoke test before production use.
 
+## ADR-0142 capability refusal: DueClaim / Dedup
+
+This engine deliberately does NOT serve `ADTDueClaim` or `ADTDedup`, and its
+`Profile()` records both in `RefusedADTs` with reasons (never silence).
+Claims need `CheckAndMutate`-style CAS over arbitrary values plus a
+collection scan for due-ordering, and dedup needs CAS-with-TTL; the current
+backend surface exposes neither atomic arbitrary-value RMW (`MapUpdate`) nor
+scans. Route timers/queues/dedup to a claimkit-backed engine (sqlite,
+postgres, mysql, duckdb, turso) or a Map-runtime engine (memory, pebble,
+bbolt, badger); the `capability_audit` test pins the refusal so the omission
+cannot drift.
+
 ## Related Modules
 
 - [**metaengine**](../README.md) — Core planner, temporal interfaces, `Engine`

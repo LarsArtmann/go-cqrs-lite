@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/watermill/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3

@@ -27,6 +27,12 @@ func TestPostgresDueClaims(t *testing.T) {
 			Create: func(t *testing.T) metaengine.Engine { return newPgEngineOrSkip(t) },
 		},
 	})
+	adttest.AssertFactSink(t, []adttest.Factory{
+		{
+			Name:   "postgres",
+			Create: func(t *testing.T) metaengine.Engine { return newPgEngineOrSkip(t) },
+		},
+	})
 }
 
 func TestPostgresDueClaims_CapabilitySurface(t *testing.T) {

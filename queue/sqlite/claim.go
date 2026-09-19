@@ -192,8 +192,17 @@ func (s *Store[T]) stampLease(
 	lease time.Duration,
 	out *task.Task[T],
 ) error {
-	res, err := tx.ExecContext(ctx, claimUpdateSQL,
-		owner, now.Add(lease).UnixMilli(), token, now.UnixMilli(), id, now.UnixMilli(), now.UnixMilli())
+	res, err := tx.ExecContext(
+		ctx,
+		claimUpdateSQL,
+		owner,
+		now.Add(lease).UnixMilli(),
+		token,
+		now.UnixMilli(),
+		id,
+		now.UnixMilli(),
+		now.UnixMilli(),
+	)
 	if err != nil {
 		return err
 	}

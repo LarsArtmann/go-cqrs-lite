@@ -288,12 +288,25 @@ func TestResetEngine_ClearsClaimkitCollections(t *testing.T) {
 	resetter := eng.(metaengine.EngineResetter)
 
 	claimer := eng.(metaengine.DueClaimer)
-	if err := claimer.ClaimInsert(ctx, "timers", "t1", time.Now().Add(-time.Second), []byte("fire")); err != nil {
+	if err := claimer.ClaimInsert(
+		ctx,
+		"timers",
+		"t1",
+		time.Now().Add(-time.Second),
+		[]byte("fire"),
+	); err != nil {
 		t.Fatalf("ClaimInsert: %v", err)
 	}
 
 	dedup := eng.(metaengine.DedupStore)
-	if seen, err := dedup.DedupCheckAndRecord(ctx, "cmds", "c1", time.Minute, time.Now()); err != nil || seen {
+	if seen, err := dedup.DedupCheckAndRecord(
+		ctx,
+		"cmds",
+		"c1",
+		time.Minute,
+		time.Now(),
+	); err != nil ||
+		seen {
 		t.Fatalf("DedupCheckAndRecord first (seen=%v err=%v)", seen, err)
 	}
 
@@ -333,9 +346,108 @@ func sqliteSeq(t *testing.T, db *sql.DB, table string) int64 {
 	t.Helper()
 
 	var seq sql.NullInt64
-	if err := db.QueryRow("SELECT seq FROM sqlite_sequence WHERE name = ?", table).Scan(&seq); err != nil {
+	if err := db.QueryRow("SELECT seq FROM sqlite_sequence WHERE name = ?", table).
+		Scan(&seq); err != nil {
 		t.Fatalf("read sqlite_sequence(%s): %v", table, err)
 	}
 
 	return seq.Int64
+}
+
+// TestResetEngine_FactsSurviveReset pins the ADR-0142 §5 journal rung: task
+// facts are append-only state-transition records, so a reset clears the
+// derived collections (claims, dedup) but NEVER the fact journal — and fact
+// positions keep advancing, exactly like stream-log seqs.
+func TestResetEngine_FactsSurviveReset(t *testing.T) {
+	t.Parallel()
+
+	eng, db := newResetTestEngine(t)
+	ctx := context.Background()
+
+	resetter := eng.(metaengine.EngineResetter)
+	claimer := eng.(metaengine.DueClaimer)
+	sink := eng.(metaengine.FactSink)
+
+	lister, ok := eng.(interface {
+		ClaimFactsList(ctx context.Context, collection, key string) ([]metaengine.ClaimFact, error)
+	})
+	if !ok {
+		t.Fatal("sqlite engine must expose claimkit.ClaimFactsList for fact verification")
+	}
+
+	now := time.Now()
+
+	if err := claimer.ClaimInsert(
+		ctx,
+		"tasks",
+		"f1",
+		now.Add(-time.Second),
+		[]byte("x"),
+	); err != nil {
+		t.Fatalf("ClaimInsert: %v", err)
+	}
+
+	if _, err := sink.ClaimDueFacts(ctx, metaengine.ClaimDueRequest{
+		Collection: "tasks", Owner: "w", Now: now,
+	}, func(metaengine.DueClaim) []metaengine.ClaimFact {
+		return []metaengine.ClaimFact{{Type: "claimed"}}
+	}); err != nil {
+		t.Fatalf("ClaimDueFacts: %v", err)
+	}
+
+	before, err := lister.ClaimFactsList(ctx, "tasks", "f1")
+	if err != nil || len(before) != 1 {
+		t.Fatalf("facts before reset (len=%d err=%v)", len(before), err)
+	}
+
+	var maxSeqBefore int64
+	if err := db.QueryRow("SELECT COALESCE(MAX(seq), 0) FROM meta_claim_facts").
+		Scan(&maxSeqBefore); err != nil {
+		t.Fatalf("max fact seq: %v", err)
+	}
+
+	if err := resetter.ResetEngine(ctx); err != nil {
+		t.Fatalf("ResetEngine: %v", err)
+	}
+
+	after, err := lister.ClaimFactsList(ctx, "tasks", "f1")
+	if err != nil || len(after) != 1 || after[0].Type != "claimed" {
+		t.Fatalf(
+			"fact journal must survive reset (len=%d facts=%+v err=%v)",
+			len(after),
+			after,
+			err,
+		)
+	}
+
+	// Post-reset facts land at strictly higher positions — a consumer holding
+	// a pre-reset fact cursor never skips or re-reads.
+	if err := claimer.ClaimInsert(
+		ctx,
+		"tasks",
+		"f2",
+		now.Add(-time.Second),
+		[]byte("y"),
+	); err != nil {
+		t.Fatalf("ClaimInsert post-reset: %v", err)
+	}
+
+	if _, err := sink.ClaimDueFacts(ctx, metaengine.ClaimDueRequest{
+		Collection: "tasks", Owner: "w", Now: now,
+	}, func(metaengine.DueClaim) []metaengine.ClaimFact {
+		return []metaengine.ClaimFact{{Type: "claimed"}}
+	}); err != nil {
+		t.Fatalf("ClaimDueFacts post-reset: %v", err)
+	}
+
+	var maxSeqAfter int64
+	if err := db.QueryRow("SELECT COALESCE(MAX(seq), 0) FROM meta_claim_facts").
+		Scan(&maxSeqAfter); err != nil {
+		t.Fatalf("max fact seq post-reset: %v", err)
+	}
+
+	if maxSeqAfter <= maxSeqBefore {
+		t.Fatalf("fact positions must keep advancing across reset: before=%d after=%d",
+			maxSeqBefore, maxSeqAfter)
+	}
 }

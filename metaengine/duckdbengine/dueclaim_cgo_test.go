@@ -32,6 +32,7 @@ func TestDuckDBDueClaims(t *testing.T) {
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "duckdb", Create: newClaimEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "duckdb", Create: newClaimEngine}})
+	adttest.AssertFactSink(t, []adttest.Factory{{Name: "duckdb", Create: newClaimEngine}})
 }
 
 func TestDuckDBDueClaims_CapabilitySurface(t *testing.T) {

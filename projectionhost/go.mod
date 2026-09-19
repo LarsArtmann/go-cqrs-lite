@@ -1,13 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/projectionhost/v4
 
-go 1.26.7
-
-require (
-	go.opentelemetry.io/otel v1.46.0
-	go.opentelemetry.io/otel/sdk v1.46.0
-	go.opentelemetry.io/otel/trace v1.46.0
-	modernc.org/sqlite v1.59.0
-)
+go 1.27.1
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
@@ -107,5 +100,9 @@ require (
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-flightrecorder v0.2.0
 	github.com/samber/lo v1.53.0
+	go.opentelemetry.io/otel v1.46.0
+	go.opentelemetry.io/otel/sdk v1.46.0
+	go.opentelemetry.io/otel/trace v1.46.0
 	go.uber.org/goleak v1.3.0
+	modernc.org/sqlite v1.59.0
 )

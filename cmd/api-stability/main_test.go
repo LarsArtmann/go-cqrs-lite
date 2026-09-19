@@ -717,7 +717,11 @@ func TestMultiPackageModulesHaveArchLintConfig(t *testing.T) {
 		}
 
 		if pkgDirs := countProductionPackages(filepath.Join(projectRoot, rel)); pkgDirs >= 3 {
-			if _, err := os.Stat(filepath.Join(projectRoot, rel, ".go-arch-lint.yml")); os.IsNotExist(err) {
+			if _, err := os.Stat(
+				filepath.Join(projectRoot, rel, ".go-arch-lint.yml"),
+			); os.IsNotExist(
+				err,
+			) {
 				t.Errorf("module %s has %d production packages but no .go-arch-lint.yml — "+
 					"add one to enforce intra-module package dependencies", rel, pkgDirs)
 			}

@@ -6,6 +6,113 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — FactSink conformance (journal-never-disagrees) + turso libSQL pin — 2026-09-19
+
+- **`claimkit.Claims.ClaimFactsList` + `adttest.AssertFactSink`**: the
+  journal-never-disagrees invariant (ADR-0142 T14c) is now an engine-agnostic
+  conformance suite — a claim transition and its facts are one transaction,
+  so a state change without its fact (and a fact without its state change)
+  must both be unobservable. `ClaimFactsList` is the read side of the fact
+  journal claimkit maintains (append-only, seq-ordered); `AssertFactSink`
+  pins both directions (facts ride `ClaimDueFacts` exactly for claimed
+  items; a stale-epoch `ClaimDeleteFacts` records nothing) and is wired into
+  the sqlite, postgres, mysql, and duckdb due-claim test suites.
+- **tursoengine local-file conformance**: `TestTursoDueClaims` runs the full
+  DueClaimer + DedupStore suites over a local libSQL FILE database — the
+  real tursogo driver path (previously only the :memory: default was
+  exercised, which never touches the file driver claimkit runs on).
+- **sqliteengine `TestResetEngine_FactsSurviveReset`**: pins the ADR-0142 §5
+  journal rung — reset clears derived claims/dedup but NEVER the fact
+  journal, and fact positions keep advancing across resets (a pre-reset
+  fact cursor never skips or re-reads).
+- **ADR-0142 realized capability matrix** (engine × DueClaim/Dedup:
+  native / degraded / REFUSED with reasons) + explicit capability-refusal
+  sections in the dgraphengine, irohengine, and bigtableengine READMEs.
+
+### Fixed — MySQL claims/dedup under live concurrency (first live run) — 2026-09-19
+
+- **`claiming.StampLeaseMySQLStmt` argument order**: the args slice was
+  built ids-first while the statement places the SET columns first — every
+  placeholder was misaligned by two and MySQL tried to stamp a key string
+  into the `lease_until` DATETIME column (Error 1292). Pinned by
+  `TestStampLeaseMySQLStmtArgsAlign` (placeholder count AND per-position
+  order), so the misalignment class cannot recur silently.
+- **`claimkit` MySQL dedup deadlocks (Error 1213)**: the
+  `SELECT .. FOR UPDATE` two-step took InnoDB gap locks on the absent row;
+  16 concurrent `DedupCheckAndRecord` racers deadlocked on insert. The
+  MySQL path is now lock-free with identical single-winner semantics: a
+  plain read fast-path, `INSERT IGNORE` row-count for the absent-row race
+  (exactly one racer's insert lands), and a conditional
+  `UPDATE .. WHERE expires_at <= now` CAS for lapsed-window takeover.
+  Verified 3× under `-race` against live MariaDB.
+- **`meta_dedup` reserved-word `key`**: the MySQL `FOR UPDATE` select was the
+  one remaining unquoted `key` reference (a syntax error on MySQL only).
+- **sqliteengine `TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected`
+  flake**: a 5s deadline landing mid-`StreamRead`/`StreamAppendExpected`
+  was recorded as a failure — under `-race` the writers legitimately
+  outlive the budget. In-flight `ctx.Err()` shutdowns are no longer
+  failures (same treatment the writer loop's pre-check already had).
+
+### Added — ADR-0142 tail: explicit capability refusals, queue/mysql engine surface — 2026-09-19
+
+- **`metaengine.EngineProfile.RefusedADTs`** (+ `RefusesADT`): ADR-0142's
+  "explicit capability refusal, never silence" is now DATA, not a comment —
+  an ADT→reason map rendered in the Doctor capability table and enforced by
+  the capability audit's new rule 4: an entry must not also be in `Supports`,
+  and the write-side ADTs (`due_claim`, `dedup`) must be supported OR refused
+  by every engine — the universality rule (ADR-0123 §9) made mechanical.
+  `ADTDueClaim`/`ADTDedup` join the audit's declared-vs-implemented contracts
+  (rule 1/2 now fire for engines implementing `DueClaimer`/`DedupStore`
+  without declaring them, or declaring without implementing).
+- **Engines that genuinely cannot, now say so**: dgraph (DQL upserts cannot
+  atomically fence concurrent claimers), bigtable (no atomic arbitrary-value
+  RMW or collection scan yet — the Map runtimes' prerequisites), and the iroh
+  `Replicated` wrapper (a lease or dedup window on one replica is invisible
+  to its peers until convergence — the wrapper strips the inherited
+  write-side `Supports` entries and refuses them; the local engine keeps the
+  capabilities un-wrapped). bigtableengine gains the missing
+  `TestCapabilityConformance` gate.
+- **`queue/mysql.NewEngine`/`NewEngineFromDB` + the `queue-mysql` driver**:
+  the third dialect joins the operator registry (ADR-0142 T09 family
+  completion) — `DueClaimer` + `FactSink` + `DedupStore` via the ONE claimkit
+  runtime over the queue's own database; engine conformance live-gated via
+  `MYSQL_TEST_DSN`, and queue/mysql added as a leg to the MySQL VM/nspawn
+  integration scripts.
+
+### Fixed — ADR-0136 reset ladder covers the claimkit collections — 2026-09-19
+
+- **sqlite/postgres/mysql/duckdb `ResetEngine` now clears `meta_due_claims`
+  and `meta_dedup`**: timers and dedup windows are derived data on the
+  invertibility ladder — reset + replay. Previously a reset left live claims
+  and dedup windows behind, so a replay could be fenced by pre-reset leases.
+  Pinned per engine by tests that also assert journal positions keep
+  advancing across the reset (pre-reset resumption tokens never skip
+  replayed entries).
+
+### Fixed — gates, budgets, and the half-done Go 1.27 migration — 2026-09-19
+
+- **All 94 modules now declare `go 1.27.1`** (root `go.mod` and `go.work`
+  already claimed it; the nix toolchain was already `go_1_27`) — completing
+  the jsonv2 graduation sweep. The previous half-state (workspace at 1.27,
+  modules at 1.26.x) broke EVERY workspace-mode compile under the 1.27
+  toolchain: `encoding/json/v2`'s graduated `Marshal`/`Unmarshal` are gated
+  to language ≥ 1.27, so all 55+ `json.*` call sites errored with
+  "requires go1.27 or later". Workspace build/vet/test are green again under
+  go 1.27.1; host toolchains older than 1.27 need `GOTOOLCHAIN=auto`.
+- **`scheduling/engine` joined the layer/budget maps** (it had silently
+  skipped layer enforcement — caught by the api-stability meta-test);
+  **`metaengine/tursoengine` gained the `claiming` sibling replace** its
+  standalone build needed (replaces do not cascade through the sqliteengine
+  replace); five modules' go.mod/go.sum re-tidied (projectionadapter,
+  sqliteengine, tursoengine, queue/sqlite, scheduling/engine).
+- **Layer lattice honest again**: `claiming` reclassified L4→L2 (a
+  zero-runtime statement library consumed downward by metaengine claimkit
+  per ADR-0142 — the L4 assignment predated the ADR), `idempotency/sqlstore`
+  L2→L4 (SQL stores; `NewFromEngine` legitimately depends on metaengine).
+  Dep budgets updated for the ADR-0142-sanctioned deps: metaengine 6
+  (+claiming), queue engines 4 (+claiming +metaengine for driver
+  registration), catalog 7 (templ-components/icons submodule).
+
 ### Added — queue M4: claim tokens (ADR-0134), dep validation, FactTx, MySQL engine — 2026-09-19
 
 - **Claim tokens from day one ([ADR-0134](docs/adr/0134-claim-token-ownership.md))**:

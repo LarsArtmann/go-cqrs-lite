@@ -23,28 +23,9 @@ type MapDedupStore struct {
 // NewMapDedupStore builds the runtime over an engine implementing MapBackend,
 // MapUpdater, and ScanBackend.
 func NewMapDedupStore(eng Engine) (*MapDedupStore, error) {
-	maps, ok := eng.(MapBackend)
-	if !ok {
-		return nil, fmt.Errorf(
-			"metaengine.NewMapDedupStore: engine %s lacks MapBackend",
-			eng.Profile().Name,
-		)
-	}
-
-	rmw, ok := eng.(MapUpdater)
-	if !ok {
-		return nil, fmt.Errorf(
-			"metaengine.NewMapDedupStore: engine %s lacks MapUpdater",
-			eng.Profile().Name,
-		)
-	}
-
-	scan, ok := eng.(ScanBackend)
-	if !ok {
-		return nil, fmt.Errorf(
-			"metaengine.NewMapDedupStore: engine %s lacks ScanBackend",
-			eng.Profile().Name,
-		)
+	maps, rmw, scan, err := mapRuntimeBackends(eng)
+	if err != nil {
+		return nil, fmt.Errorf("metaengine.NewMapDedupStore: %w", err)
 	}
 
 	return &MapDedupStore{maps: maps, rmw: rmw, scan: scan}, nil

@@ -16,7 +16,9 @@ import (
 func TestQueueMySQLEngine_Conformance(t *testing.T) {
 	dsn := os.Getenv("MYSQL_TEST_DSN")
 	if dsn == "" {
-		t.Skip("MYSQL_TEST_DSN not set — skipping MySQL engine conformance (server DSN, e.g. root@tcp(127.0.0.1:3306)/?parseTime=true)")
+		t.Skip(
+			"MYSQL_TEST_DSN not set — skipping MySQL engine conformance (server DSN, e.g. root@tcp(127.0.0.1:3306)/?parseTime=true)",
+		)
 	}
 
 	newEngine := func(t *testing.T) metaengine.Engine {

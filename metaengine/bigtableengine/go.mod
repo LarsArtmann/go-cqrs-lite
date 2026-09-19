@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	cloud.google.com/go/bigtable v1.57.0

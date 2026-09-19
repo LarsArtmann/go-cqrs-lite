@@ -45,3 +45,18 @@ func (s *memoryCheckpointStore) Close() error { return nil }
 
 // Compile-time assertion: memoryCheckpointStore implements event.CheckpointStore.
 var _ event.CheckpointStore = (*memoryCheckpointStore)(nil)
+
+// resolveCheckpointStore picks the projection-host checkpoint store:
+// consumer-provided, else the engine-backed store when an engine carries
+// the Map ADT (persistent by default, ADR-0142), else in-memory.
+func resolveCheckpointStore(domain DomainConfig, sys *System) event.CheckpointStore {
+	if domain.CheckpointStore != nil {
+		return domain.CheckpointStore
+	}
+
+	if backend := sys.checkpointEngine(); backend != nil {
+		return &engineCheckpointStore{engine: backend}
+	}
+
+	return &memoryCheckpointStore{}
+}

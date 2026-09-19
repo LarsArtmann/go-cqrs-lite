@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/bench/v4
 
-go 1.26.7
+go 1.27.1
 
 require (
 	github.com/cockroachdb/pebble v1.1.5

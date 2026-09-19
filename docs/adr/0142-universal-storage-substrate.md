@@ -129,6 +129,28 @@ statement-builders (charter unchanged); claimkit extends it with a richer
 claim builder (owner column, collection filter, LIMIT) — old builders remain
 for `scheduling/sqlstore`.
 
+## Realized capability matrix (2026-09-19, T13 complete)
+
+The universality rule (§4) as landed — every first-party engine is one of:
+native (claimkit SQL), degraded (Map runtimes, honestly declared), or
+explicitly refused (`RefusedADTs` with reason, pinned by the
+`capability_audit` test in `metaengine`).
+
+| Engine  | ADTDueClaim                        | ADTDedup                           | Mechanism / refusal reason                                                                    |
+| ------- | ---------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| memory  | O(N), degraded                     | O(logN)-ish, degraded              | `MapDueClaimer` + `MapDedupStore` reference runtimes (ADR-0140 pattern)                       |
+| pebble  | O(N), degraded                     | degraded                           | Map runtimes over KV key-scan claims + TTL iteration                                          |
+| bbolt   | O(N), degraded                     | degraded                           | Map runtimes over KV key-scan claims + TTL iteration                                          |
+| badger  | O(N), degraded                     | degraded                           | Map runtimes over KV key-scan claims + TTL iteration                                          |
+| sqlite  | O(logN), native                    | O(logN), native                    | `metaengine/claimkit` (single-statement upsert CAS)                                           |
+| turso   | O(logN), native                    | O(logN), native                    | delegates to sqliteengine — pinned by a local-file-DSN conformance run (libSQL driver path)    |
+| postgres| O(logN), native                    | O(logN), native                    | claimkit (CTE `FOR UPDATE SKIP LOCKED` via `claiming/`)                                       |
+| mysql   | O(logN), native                    | O(logN), native                    | claimkit (two-statement claim; lock-free dedup CAS — `INSERT IGNORE` + conditional UPDATE, no gap-lock deadlocks) |
+| duckdb  | O(logN), native                    | O(logN), native                    | claimkit; writes serialized by claimkit's dialect-conditional mutex (DuckDB ON CONFLICT limitation) |
+| dgraph  | **REFUSED**                        | **REFUSED**                        | DQL upserts cannot atomically fence concurrent claimers (no SKIP LOCKED / CAS-with-expiry)    |
+| iroh    | **REFUSED**                        | **REFUSED**                        | CRDT/eventual replication — a lease on one replica is not a lease anywhere                    |
+| bigtable| **REFUSED**                        | **REFUSED**                        | no atomic arbitrary-value RMW (`MapUpdate`) or collection scan yet (needs CheckAndMutate CAS) |
+
 ## Consequences
 
 **Positive**

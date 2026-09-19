@@ -134,7 +134,12 @@ func (s *suite) pinRoundtrip(t *testing.T) {
 		t.Fatalf("second claim: error = %v, want ErrNoTaskDue", err)
 	}
 
-	if err := e.store.Complete(t.Context(), subject.ID, c.Token, []byte(`{"ok":true}`)); err != nil {
+	if err := e.store.Complete(
+		t.Context(),
+		subject.ID,
+		c.Token,
+		[]byte(`{"ok":true}`),
+	); err != nil {
 		t.Fatalf("complete: %v", err)
 	}
 

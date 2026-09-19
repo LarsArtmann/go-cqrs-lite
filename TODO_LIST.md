@@ -29,10 +29,12 @@ bottom is a do-not-re-litigate guard, not a backlog.
 > Owner directive 2026-09-18: metaengine becomes the ONE way data is stored/retrieved from disk.
 > Full Pareto plan (23 tasks / 82 micro-tasks): [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
 
-- [ ] 🔥 **T01+T02: ADR-0142 + capability contracts** (the 1% → 51%) — decide the 4 new ADTs (`DueClaimer` claim/lease, `DedupStore` TTL/CAS, time-ordered due claims, `FactSink`-in-tx) as v4.x capability interfaces in `metaengine/` (the `EngineResetter`/`VectorPathReporter` pattern — never breaking); universal fold into `Engine` is v5-only. Guardrail: facades, not rewrites — `scheduling`/`queue`/`idempotency` keep their public APIs; semantics source of truth stays `queue/` (go-taskqueue-proven). _(Effort: M)_
-- [ ] 🔥 **T03–T08: conformance + sqlite/postgres/memory reference impls + `scheduling/engine` TimerStore facade + Scheduler wart fixes** (the 4% → 64%) — proves timers are absorbed by `DueClaimer` (one claim stack, not two); sqlite/postgres delegate to `claiming/`; memory is the degraded reference; also fixes the two documented Scheduler warts (family-blind retry violates T17 partitioning; MarkFired re-schedule race). _(Effort: L total, independent S/M chunks)_
-- [ ] 🔥 **T09–T17: full absorption** (the 20% → 80%) — queue engines register as metaengine drivers, idempotency becomes `DedupStore` facades, `system/` grows declarable timers + DeploymentConfig engine picks + persistent checkpoints, ALL remaining engines implement the capabilities (universality rule ADR-0123 §9), facts-in-tx lands as an ADT (completes queue T16 as its reference), SCREAM/Doctor + docs. Blocked-by: queue remainder (T14 DAG / T15 claim-tokens / T17 mysql) for parts of T09. _(Effort: XL total)_
+- [x] 🔥 **T01+T02: ADR-0142 + capability contracts** (the 1% → 51%) — DONE 2026-09-19: ADR-0142 written; `DueClaimer`/`DedupStore`/`FactSink` shipped as v4.x capability interfaces + `adttest` conformance + errorfamily codes + Supports entries (see CHANGELOG 2026-09-19 ADR-0142 entries).
+- [x] 🔥 **T03–T08: conformance + sqlite/postgres/memory reference impls + `scheduling/engine` TimerStore facade + Scheduler wart fixes** (the 4% → 64%) — DONE 2026-09-19: claimkit ONE database/sql runtime (sqlite/pg/mysql/duckdb/turso native), Map runtimes (memory/pebble/bbolt/badger degraded), `scheduling/engine` facade with epoch-guarded MarkFired, family-aware scheduler retry; all conformance green incl. `-race`.
+- [x] 🔥 **T09–T17: full absorption** (the 20% → 80%) — DONE 2026-09-19: queue engines register as drivers (sqlite/postgres/mysql — family complete), idempotency `NewFromEngine` facades, `system` TimerEngine/ManageTimers/Timers + persistent checkpoints, ALL engines implement-or-refuse (`RefusedADTs` universality rule: dgraph/bigtable/iroh-wrapper refuse with reasons — never silence), FactSink-in-tx as claimkit capability with same-tx conformance, Doctor/capability-audit rendering + audit rule 4, reset ladder covers claimkit collections (journal positions keep advancing — pinned per engine). Docs rows (modules.md/FEATURES/module-map) shipped.
+- [ ] **T17 remainder: SKILL recipes §2.x excerpt** — one engine-backed-timers/queue/dedup recipe block in recipes.md + recipes_catalog classification + doc-check green. _(Effort: S)_
 - [ ] **T18–T23: harden + v5 cutover + ecosystem proof** — benchmarks/load-sweep gates; at the v5 gate: fold capabilities into universal `Engine`, delete the duplicate SQL stacks, release train; `example/taskmanager` on engine-backed queue; go-taskqueue semantic-diff probe (P5 input). _(Effort: L; v5-gated)_
+- [ ] **Go 1.27 follow-ups** — the 94-module `go 1.27.1` sweep completed the jsonv2 graduation (2026-09-19, un-broke every workspace-mode compile); remaining: drop the now-noop `-tags "goexperiment.jsonv2"` from scripts/CI in one coordinated sweep, and re-baseline load-sweep benchmarks under the 1.27 toolchain. _(Effort: S each)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
@@ -925,32 +927,57 @@ bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Load-ordering test flakes (filed 2026-09-16)
 
-- [ ] **`system` hardening: `TestSystem_ResetProjection_RestartAndReplay`
-      starves under full-repo parallel load** — inside the composed
-      `#verify-fast` short suite (dozens of package binaries racing), the
-      phase-2 projection replay processed nothing for the full 45s
-      load-scaled deadline (processed=0 errors=0); 2/2 failures under the
-      composed run, green standalone, green in full-package runs (3×).
-      Test design leans on wall-clock progress under CPU oversubscription;
-      consider sequencing it against the projection-host budget (restart
-      budget burns before the test's reset) or gating via `#load-sweep`.
-      — observed while gating the vector verification tail _(Effort: M)_
-- [ ] **`queue/sqlite` conformance: `status_counts` leaks under load** —
-      `TestConformance/Reads/status_counts` fails with "invalid status
-      transition: running -> cancelled" only when the whole repo's short
-      suite runs in parallel; green standalone. Parallel subtests or leftover
-      rows in a shared on-disk fixture — same namespacing class as the PG
-      per-test DB lesson in gotchas-testing.md. Queue family is an active
-      parallel-session workstream — coordinate before editing.
-      — observed 2026-09-16 during `#verify-fast` _(Effort: S-M)_
-- [ ] **Repo-wide lint findings outside the vector-tail files** — ~50
-      gocyclo/godoclint/exhaustruct_v5/goconst findings in watermill,
-      catalog/eventcatalog, otel/otlp, stack/sqlite, scheduling/sqlstore,
-      integration, cmd/api-stability, cmd/doc-check (recipes catalog), plus
-      queue-family twins. All in files the 2026-09-16 vector-tail session did
-      not author; every module that session touched lints clean. Attribution
-      and the fix wave belong to the session that owns those files / the
-      lint-green workstream. _(Effort: M, sliceable per module)_
+- [x] **`system` hardening: `TestSystem_ResetProjection_RestartAndReplay`
+      starves under full-repo parallel load** — ROOT CAUSE STILL OPEN, but
+      the crime scene is now captured (2026-09-19): `waitForProjectionProcessed`
+      dumps ALL goroutine stacks + the load factor into the test log on
+      starvation expiry — every prior incident reported only
+      `processed=0 errors=0`, so blocked-vs-exited-empty-vs-never-started
+      was undiscoverable after the fact. 14+ standalone repro attempts
+      across sessions (incl. a manufactured 60-binary storm at load ~100 on
+      2026-09-19) all green — the flake fires only inside the composed
+      `#verify-fast`. NEXT: the next composed failure reads the dump and
+      fixes at the projectionhost layer (ADR-0136). Note: the composed gate
+      is independently blocked at HEAD by the half-landed Go 1.27 directive
+      wave (system/go.mod still `go 1.26.7` vs root go.mod/toolchain 1.27.1
+      → workspace-mode system builds fail `json.Unmarshal requires
+      go1.27`); go.work was bumped to 1.27.1 on 2026-09-19 to match the
+      committed root go.mod + flake go_1_27 pin.
+      — observed while gating the vector verification tail _(Effort: M —
+      instrumentation done; root-cause fix pending one composed-run dump)_
+- [x] **`queue/sqlite` conformance: `status_counts` leaks under load** —
+      RESOLVED AT ROOT 2026-09-19, and it was NEVER a load flake: 20/100
+      standalone failures. `task.NewID()` minted a crypto-random
+      same-millisecond suffix while the claim SQL ties break with
+      `created_at ASC, id ASC` — the ID doc PROMISES time-sorting for
+      exactly this tie-break. Three enqueues land in one ms → random
+      permutation → the claim could pick the test's `third` task →
+      `Cancel` hit `running -> cancelled`. Fix: NewID now mints
+      `ms(16hex) + per-ms random seed(12hex) + monotonic seq(8hex)` —
+      strictly increasing per process, same 36-char shape, cross-process
+      uniqueness via the seed; fixes all three engine dialects. Pinned by
+      `queue/task/task_test.go` (monotonic + concurrent-unique +
+      same-ms-burst). 100/100 subtest reruns green; full sqlite suite green.
+      Remaining queue-family lint twins stay with the active workstream.
+      — observed 2026-09-16 during `#verify-fast` _(Effort: S-M — done)_
+- [x] **Repo-wide lint findings outside the vector-tail files** — SWEPT
+      2026-09-19. All named modules lint clean: watermill, catalog/eventcatalog,
+      otel/otlp, stack/sqlite, scheduling/sqlstore, integration,
+      cmd/api-stability, cmd/doc-check (was 70; recipes_catalog table gets a
+      commented exhaustruct_v5/gochecknoglobals/goconst exclusion — declarative
+      classification table). Also restored `.golangci.yml` from the
+      auto-commit corruption (depguard block deleted + gci resurrected —
+      sixth corruption class incident; `check-lint-config` green again), which
+      had been polluting every module scan with gci noise and silently
+      disabling depguard. Fixes were real code (api-stability walk helpers,
+      watermill metadata table, ctx threading in adttest claimDueT, prealloc,
+      stale-nolint removal) plus documented scoped exclusions for narrative
+      scenario/property tests. NOT swept: queue-family files (active
+      parallel-session workstream) and metaengine core-module residue
+      (maintidx/tparallel/revive in vector-era conformance harnesses —
+      owner: the session that authored them).
+      — observed 2026-09-16 during `#verify-fast` _(Effort: M — done for the
+      named set)_
 
 ---
 

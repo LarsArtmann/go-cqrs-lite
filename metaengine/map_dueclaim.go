@@ -31,33 +31,35 @@ type MapDueClaimer struct {
 	scan ScanBackend
 }
 
+// mapRuntimeBackends asserts the ADR-0142 Map-runtime capability triple once
+// for both runtimes (DueClaimer and DedupStore build over the same shape).
+func mapRuntimeBackends(eng Engine) (MapBackend, MapUpdater, ScanBackend, error) {
+	maps, ok := eng.(MapBackend)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("engine %s lacks MapBackend", eng.Profile().Name)
+	}
+
+	rmw, ok := eng.(MapUpdater)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("engine %s lacks MapUpdater", eng.Profile().Name)
+	}
+
+	scan, ok := eng.(ScanBackend)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("engine %s lacks ScanBackend", eng.Profile().Name)
+	}
+
+	return maps, rmw, scan, nil
+}
+
 // NewMapDueClaimer builds the runtime over an engine implementing
 // MapBackend, MapUpdater, and ScanBackend. Panics never happen here; a
 // missing capability is the caller's (engine author's) wiring bug and surfaces
 // as this error at construction.
 func NewMapDueClaimer(eng Engine) (*MapDueClaimer, error) {
-	maps, ok := eng.(MapBackend)
-	if !ok {
-		return nil, fmt.Errorf(
-			"metaengine.NewMapDueClaimer: engine %s lacks MapBackend",
-			eng.Profile().Name,
-		)
-	}
-
-	rmw, ok := eng.(MapUpdater)
-	if !ok {
-		return nil, fmt.Errorf(
-			"metaengine.NewMapDueClaimer: engine %s lacks MapUpdater",
-			eng.Profile().Name,
-		)
-	}
-
-	scan, ok := eng.(ScanBackend)
-	if !ok {
-		return nil, fmt.Errorf(
-			"metaengine.NewMapDueClaimer: engine %s lacks ScanBackend",
-			eng.Profile().Name,
-		)
+	maps, rmw, scan, err := mapRuntimeBackends(eng)
+	if err != nil {
+		return nil, fmt.Errorf("metaengine.NewMapDueClaimer: %w", err)
 	}
 
 	return &MapDueClaimer{maps: maps, rmw: rmw, scan: scan}, nil

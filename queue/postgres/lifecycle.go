@@ -85,7 +85,17 @@ func (s *Store[T]) Fail(
 			return s.deadLetter(ctx, tx, id, owner, token, newAttempts, errText, evidence, false)
 		}
 
-		return s.retryRow(ctx, tx, id, owner, token, newAttempts, errText, now.Add(backoff), evidence)
+		return s.retryRow(
+			ctx,
+			tx,
+			id,
+			owner,
+			token,
+			newAttempts,
+			errText,
+			now.Add(backoff),
+			evidence,
+		)
 	})
 }
 
@@ -97,8 +107,11 @@ func readAttemptHolder(ctx context.Context, tx pgx.Tx, id task.ID) (int, int, st
 
 	var owner string
 
-	err := tx.QueryRow(ctx,
-		`SELECT attempts, max_attempts, lease_owner FROM tasks WHERE id = $1 FOR UPDATE`, id.String()).
+	err := tx.QueryRow(
+		ctx,
+		`SELECT attempts, max_attempts, lease_owner FROM tasks WHERE id = $1 FOR UPDATE`,
+		id.String(),
+	).
 		Scan(&attempts, &maxAttempts, &owner)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, 0, "", queue.ErrNotFound

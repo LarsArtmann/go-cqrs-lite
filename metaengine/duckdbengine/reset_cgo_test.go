@@ -46,12 +46,25 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 
 	// ADR-0142 write-side collections ride the same reset contract.
 	claimer := eng.(metaengine.DueClaimer)
-	if err := claimer.ClaimInsert(ctx, "timers", "t1", time.Now().Add(-time.Second), []byte("fire")); err != nil {
+	if err := claimer.ClaimInsert(
+		ctx,
+		"timers",
+		"t1",
+		time.Now().Add(-time.Second),
+		[]byte("fire"),
+	); err != nil {
 		t.Fatalf("ClaimInsert: %v", err)
 	}
 
 	dedup := eng.(metaengine.DedupStore)
-	if seen, err := dedup.DedupCheckAndRecord(ctx, "cmds", "c1", time.Minute, time.Now()); err != nil || seen {
+	if seen, err := dedup.DedupCheckAndRecord(
+		ctx,
+		"cmds",
+		"c1",
+		time.Minute,
+		time.Now(),
+	); err != nil ||
+		seen {
 		t.Fatalf("DedupCheckAndRecord first (seen=%v err=%v)", seen, err)
 	}
 
