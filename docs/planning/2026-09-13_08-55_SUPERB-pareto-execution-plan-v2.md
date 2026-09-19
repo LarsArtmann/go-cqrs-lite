@@ -6,6 +6,13 @@
 > Predecessor plan (2026-09-08, W0–W3) was executed through 2026-09-11.
 > This file is a snapshot; TODO_LIST.md stays the living source.
 >
+> **REFRESH (docs-health 8th pass, 2026-09-19):** snapshot is 6 days stale —
+> the queue arc (W2.1) completed through M4 incl. `queue/mysql` (2026-09-19),
+> the Go 1.27 wave + jsonv2 graduation landed, lint debt zeroed, ADR-0143
+> resolved the replay-starvation flake. Authoritative state: TODO_LIST.md +
+> the archived 11-28 execution report. This file is kept as the ranking
+> rationale, not as a status source.
+>
 > **Concurrency note (2026-09-13 08:55):** a parallel session is mid-move on
 > `claiming/` → the Durable Work Queue extraction (P0). This plan treats
 > queue/ as IN FLIGHT: W2.1 covers only the conformance-suite skeleton and

@@ -1,5 +1,13 @@
 # SUPERB Plan — go-cqrs-lite to the max (durable work queue + adoption arc)
 
+> **EXECUTION STATUS (docs-health 8th pass, 2026-09-19):** the CODE program is
+> DONE — M1–M4 all green (T1–T9, T14–T17, T19 executed; T10 resolved by the
+> native-dedup-seam decision; T21's semantic-diff probe shipped 2026-09-19).
+> OPEN: T12/T13 (claiming + queue family TAG WAVES — 0/90 tags cut, tracked
+> TODO_LIST "Durable Work Queue module"), T20 (PapDashboard evaluation spike),
+> T22 tail (AGENTS drift/rejection-rule encode). T18 superseded by the ADR-0142
+> substrate arc. This plan stays LIVE for the tag-wave sequencing.
+
 **Date:** 2026-09-14 12:45 CEST
 **Trigger:** owner ruling — "I want to use go-cqrs-lite to the max that
 makes sense!" (this answers the 2026-09-14 12-39 status report §g1:

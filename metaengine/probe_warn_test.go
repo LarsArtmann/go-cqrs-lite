@@ -37,16 +37,37 @@ func (e *proberNoTrackerHost) Probe(_ context.Context) (time.Duration, error) {
 	return e.probeRTT, nil
 }
 
+// lockedBuffer makes the sink safe for concurrent use: while this test's
+// handler is the process-wide slog default, PARALLEL tests in the package
+// (e.g. the catchup stress writers) may log through it concurrently — a raw
+// bytes.Buffer would be a data race (slog requires a concurrency-safe Writer).
+type lockedBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (l *lockedBuffer) Write(p []byte) (int, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.Write(p)
+}
+
+func (l *lockedBuffer) String() string {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.buf.String()
+}
+
 // TestProbeEngine_WarnOnMissingTrackerHost verifies that ProbeEngine emits a
 // slog.Warn when an engine implements Prober but not TrackerHost — the exact
 // symptom of a named-field-instead-of-embedded Calibration bug.
 func TestProbeEngine_WarnOnMissingTrackerHost(t *testing.T) {
 	t.Parallel()
 
-	var buf bytes.Buffer
+	logs := &lockedBuffer{}
 	orig := slog.Default()
 	t.Cleanup(func() { slog.SetDefault(orig) })
-	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{
+	slog.SetDefault(slog.New(slog.NewTextHandler(logs, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	})))
 
@@ -54,7 +75,7 @@ func TestProbeEngine_WarnOnMissingTrackerHost(t *testing.T) {
 	ph := metaengine.ProbeEngine(eng, metaengine.WithProbeInterval(time.Second))
 	t.Cleanup(ph.Stop)
 
-	got := buf.String()
+	got := logs.String()
 	if !strings.Contains(got, "not TrackerHost") {
 		t.Fatalf("expected warning about missing TrackerHost, got: %s", got)
 	}

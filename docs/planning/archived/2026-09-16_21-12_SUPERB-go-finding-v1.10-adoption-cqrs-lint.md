@@ -11,6 +11,8 @@
 > Evidence: commits `debd4839e`..`dfc3cc492` + CHANGELOG [Unreleased]
 > 2026-09-17 entry; upstream go-finding v1.11.0 cut (5 tags, preflight green,
 > proxy-verified) and ask filed as go-finding#32.
+> ARCHIVED by the docs-health 8th pass, 2026-09-19 (only M75/M76 remain,
+> user-gated on Actions billing — TODO_LIST "CI / Infrastructure").
 
 **Created:** 2026-09-16 21:12 CEST
 **Scope:** Execute the benefit analysis from `docs/status/archived/2026-09-16_21-05_go-finding-v1.10.0-benefit-analysis-cqrs-lint.md` — turn 8 verified-unadopted go-finding capabilities (50 candidate items) into an executable, impact-sorted plan for `cmd/cqrs-lint`.

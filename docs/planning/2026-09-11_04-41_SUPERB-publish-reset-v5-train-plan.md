@@ -9,6 +9,13 @@
 > ◐ Half (8): S01 (truth pass done; 3 audit rulings still open with the user) · S07 (`--audit`/`--smoke` shipped; `v4.10.2` tag, `check-retracts-shipped.sh`, `--baseline`, smoke-probes remain) · S12 · S15 (protocol done; quiet-window re-runs pending) · S16 (observer + skip-vs-fail done; MySQL live shuffle + `-race` pending) · S18 (ratchet green; ratification pending) · S19 · S22 (skip-vs-fail answered; shuffle evals pending).
 > Open (10): S02 (tag wave — user-gated; `watermill/v4.7.0` still absent), S03 (quiet-window `#verify`), S04 (CI triage), S08 (redo), S09, S26–S30. Executing sessions: 05-51 + the parallel 05:00–05:30 waves; open remainders live in `TODO_LIST.md`.
 > Marker note: the ✅/◐ markers on the §1 Pareto list are the SINGLE SOURCE OF TRUTH — §2 (task table), §3 (micro breakdown), and §4 (execution graph) intentionally carry no per-row markers; read any S-item's status from §1.
+>
+> **REFRESH (docs-health 8th pass, 2026-09-19):** additionally done since the banner
+> above — S08 (check-modsums gate live 2026-09-13, caught real drift) and the S04
+> cache-backend migration (magic-nix-cache removed from all 24 ci.yml jobs,
+> 2026-09-18; remote confirmation still billing-gated). Still open: S02 tag wave
+> (0/90 tags cut), S03 quiet-window `#verify`, S07 tail, S26–S30 (v5 train). The
+> authoritative live state is TODO_LIST.md; this plan stays for the v5-train staging.
 
 ## 0. Planning-time truth pass (executed BEFORE this plan was written)
 
