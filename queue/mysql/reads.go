@@ -212,6 +212,7 @@ func (s *Store[T]) CountTasks(ctx context.Context, f queue.Filter) (int, error) 
 // StatusCounts counts tasks per status in one GROUP BY.
 // art-dupl:accept dialect twin — queue engines are dep-isolated mirrors; conformance pins semantics
 func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error) {
+	//nolint:sqlclosecheck // rows closed via deferred DeferClose below
 	rows, err := s.db.QueryContext(
 		ctx,
 		`SELECT status, COUNT(*) FROM tasks GROUP BY status`,

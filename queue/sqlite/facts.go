@@ -134,10 +134,11 @@ func (s *Store[T]) Watermark(ctx context.Context, consumer string) (int64, bool,
 
 // Watermarks lists every consumer's cursor — the operator lag surface.
 func (s *Store[T]) Watermarks(ctx context.Context) (map[string]int64, error) {
+	//nolint:sqlclosecheck // rows closed via deferred DeferClose below
 	rows, err := s.db.QueryContext(
 		ctx,
 		`SELECT consumer, seq FROM watermarks ORDER BY consumer`,
-	) //nolint:sqlclosecheck
+	)
 	if err != nil {
 		return nil, err
 	}
