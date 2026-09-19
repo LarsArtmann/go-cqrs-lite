@@ -257,3 +257,35 @@ func itoa(n int) string {
 
 	return itoa(n/10) + string(rune('0'+n%10))
 }
+
+// RenewScopedStmt is [RenewOwnedStmt] with the Spec.FilterColumn equality
+// predicate added, for runtimes that share one claim table across many
+// collections: the renewal is fenced by owner AND scoped to the collection.
+func RenewScopedStmt(d Dialect, s Spec, newUntil, id, owner, filter, now any) (string, []any) {
+	if s.OwnerColumn == "" || s.FilterColumn == "" {
+		return RenewOwnedStmt(d, s, newUntil, id, owner, now)
+	}
+
+	switch d {
+	case DialectPostgres:
+		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
+			" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
+			" = $3 AND " + s.FilterColumn + " = $4 AND " + s.LeaseColumn + " > $5",
+			[]any{newUntil, id, owner, filter, now}
+	case DialectMySQL:
+		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
+			" = ? WHERE " + s.IDColumn + " = ? AND " + s.OwnerColumn +
+			" = ? AND " + s.FilterColumn + " = ? AND " + s.LeaseColumn + " > ?",
+			[]any{newUntil, id, owner, filter, now}
+	case DialectSQLite:
+		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
+			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
+			" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
+			[]any{newUntil, id, owner, filter, now}
+	default:
+		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
+			" = ?1 WHERE " + s.IDColumn + " = ?2 AND " + s.OwnerColumn +
+			" = ?3 AND " + s.FilterColumn + " = ?4 AND " + s.LeaseColumn + " > ?5",
+			[]any{newUntil, id, owner, filter, now}
+	}
+}

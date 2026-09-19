@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/v4
 go 1.26.7
 
 require (
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
@@ -48,5 +49,7 @@ require (
 	golang.org/x/tools v0.50.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../claiming
 
 replace github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 => ./sqliteengine

@@ -19,7 +19,6 @@ package claimkit
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -167,13 +166,13 @@ func (c *Claims) RenewLease(
 		now = time.Now()
 	}
 
-	spec := claimsSpec()
-	query, args := claiming.RenewOwnedStmt(
+	query, args := claiming.RenewScopedStmt(
 		c.dialect,
-		withFilter(spec, collection),
+		claimsSpec(),
 		c.encodeTime(now.Add(extend)),
 		key,
 		owner,
+		collection,
 		c.encodeTime(now),
 	)
 
@@ -223,19 +222,6 @@ func (c *Claims) ClaimDeleteIfDue(
 	return nil
 }
 
-// withFilter embeds the collection equality into a Spec used by
-// RenewOwnedStmt/RenewStmt-based statements, which address rows by ID and
-// therefore only need the collection to scope the keyspace.
-func withFilter(s claiming.Spec, collection string) claiming.Spec {
-	s.FilterColumn = "collection"
-
-	// Renew statements are hand-built with positional args in claiming;
-	// scoping happens through the query below instead. Kept for clarity.
-	_ = collection
-
-	return s
-}
-
 func (c *Claims) scanClaims(rows *sql.Rows) ([]metaengine.DueClaim, error) {
 	claims, _, err := scanClaimsWithIDs(rows)
 
@@ -250,31 +236,22 @@ func scanClaimsWithIDs(rows *sql.Rows) ([]metaengine.DueClaim, []any, error) {
 
 	for rows.Next() {
 		var (
-			cl          metaengine.DueClaim
-			dueAt       string
-			leaseUntil  string
-			leaseOrNull sql.NullString
+			cl      metaengine.DueClaim
+			dueAt   any
+			leaseAt any
 		)
 
-		if err := rows.Scan(&cl.Key, &dueAt, &leaseOrNull, &cl.Payload); err != nil {
+		if err := rows.Scan(&cl.Key, &dueAt, &leaseAt, &cl.Payload); err != nil {
 			return nil, nil, fmt.Errorf("scan claim row: %w", err)
 		}
 
-		parsedDue, err := time.Parse(time.RFC3339Nano, dueAt)
+		parsedDue, err := decodeTime(dueAt)
 		if err != nil {
-			return nil, nil, fmt.Errorf("parse due_at %q: %w", dueAt, err)
+			return nil, nil, fmt.Errorf("decode due_at: %w", err)
 		}
 
 		cl.DueAt = parsedDue
-
-		if leaseOrNull.Valid {
-			parsed, err := time.Parse(time.RFC3339Nano, leaseOrNull.String)
-			if err != nil {
-				return nil, nil, fmt.Errorf("parse lease_until %q: %w", leaseOrNull.String, err)
-			}
-
-			cl.LeaseUntil = parsed
-		}
+		cl.LeaseUntil, _ = decodeTime(leaseAt) // zero when NULL
 
 		claims = append(claims, cl)
 		ids = append(ids, cl.Key)
@@ -286,5 +263,3 @@ func scanClaimsWithIDs(rows *sql.Rows) ([]metaengine.DueClaim, []any, error) {
 
 	return claims, ids, nil
 }
-
-var errUnreachable = errors.New("claimkit: unreachable dialect path")
