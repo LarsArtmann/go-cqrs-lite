@@ -85,6 +85,18 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("stream log must be empty after reset (len=%d err=%v)", len(stream), err)
 	}
 
+	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
+		Collection: "timers", Owner: "w1", Lease: time.Minute,
+	})
+	if err != nil || len(claims) != 0 {
+		t.Fatalf("claims must be gone after reset (len=%d err=%v)", len(claims), err)
+	}
+
+	seen, err := dedup.DedupSeen(ctx, "cmds", "c1", time.Now())
+	if err != nil || seen {
+		t.Fatalf("dedup must be gone after reset (seen=%v err=%v)", seen, err)
+	}
+
 	neighbors, err := eng.(duckGraphReader).GraphNeighbors(ctx, "graph", "a", 1)
 	if err != nil {
 		t.Fatalf("GraphNeighbors: %v", err)
