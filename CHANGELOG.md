@@ -6,6 +6,279 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **encryption: key-management + envelope docs, wire goldens, and a v1↔v2
+  decode-symmetry property.** README now documents the previously
+  undocumented key lifecycle surfaces — `GenerateKey`/`GenerateKeyBase64`,
+  HKDF `DeriveKey` multi-tenant derivation, `StaticKeyResolver` rotation
+  selection, `WrapCiphertext` self-describing binary envelopes — plus the
+  v1↔v2 envelope wire formats (why v2 is raw JSON for JSON/JSONB columns,
+  and how readers auto-detect both generations). The wire format is pinned
+  by reviewed byte-exact goldens (field names/order, base64url `ct`
+  encoding, omitempty behavior, both generations' shapes) and a rapid
+  property test: for arbitrary envelopes, `UnmarshalEnvelope` recovers the
+  identical value from either generation's wire form.
+- **Docs-truth batch:** `error-taxonomy.md` now covers the storage (SQL
+  facade), storage/pebble, and watermill family codes (sentinels + wrap-code
+  families, including the Close≠Nack semantics note);
+  `METAENGINE_DOMAIN_LANGUAGE.md` gains the materialized-view maintenance
+  section (Materialized View Acceleration, IVM, View-Maintained Write, with
+  the tursogo divergence/27k-wall caveats); `example/metaengine-quickstart`
+  has a README (pinned mechanically by the new
+  `TestEveryExampleHasREADME`); both taskmanager and metaengine-quickstart
+  audited v5-clean via `cqrs-upgrade --dry-run --strict` (0 findings).
+- **New tripwires:** `scripts/check-linter-names.sh` (wired into
+  `#check-lint-config`) fails when `.golangci.yml` names a linter the
+  installed golangci-lint does not know — schema verify catches drift, but
+  a renamed linter silently no-ops (the gci incident class);
+  `scripts/check-templ-paths.sh` (wired into `#check-templ`) fails when a
+  `_templ.go` FileName carries a path, i.e. it was generated from the wrong
+  cwd; `TestNoRenamedAggregateFamilyCodeReappears` (api-stability) fails if
+  any of the 17 renamed `aggregate_*` error-family codes reappears in Go
+  source.
+- **Release tooling:** `tag-release.sh --smoke <module> <version>` is the
+  documented post-cut step — after pushing a tag it retries until
+  proxy.golang.org serves the version (live-verified), so dependent modules
+  never tidy against a tag the proxy has not absorbed; cqrs-lint reports
+  its version from the embedded Go build info when built via
+  `go install module@version` (the hand-maintained const stays as the
+  local-build fallback and gate-enforced source of truth), removing the
+  stranded-tag-chain drift class for installed binaries; and
+  `cmd/cqrs-lint/go.mod` now carries `retract v4.8.0` — the poisoned
+  (syntax-error) tag stops resolving for fresh consumers at the next
+  cqrs-lint tag.
+- **doc-check `--json` + no-import-alias ambiguity surfacing:** `--json`
+  emits a deterministic machine-readable summary (per-finding broken refs,
+  warnings, ambiguities) for CI annotations; references that resolve
+  through the repo-wide alias union when the alias maps to MULTIPLE
+  same-named packages are now reported instead of silently unioned
+  (currently zero; log-only, the zero-warning gate is unchanged).
+- **P014 `applylayout-bypasses-plan-path` (cqrs-lint, typed-info tier):**
+  flags `ApplyLayout(...)` calls whose receiver type also implements the
+  plan path (`ApplyLayoutPlan` — the `metaengine.LayoutPlanApplier` shape):
+  the legacy call bypasses type-derived layout planning (no pushdown or
+  aggregate cost inference). Structural method-shape detection, no
+  metaengine import; fires only when type info resolved the receiver
+  (silent on syntax-only loads and `--typed-info=off`). One deliberate
+  correction to the T23 design addendum: the detection pair is the
+  `ApplyLayout` call + `ApplyLayoutPlan` on the same type — `BuildLayoutPlan`
+  is a package-level function in metaengine, never an engine method, so the
+  addendum's literal pair could never match a real engine. Pinned by
+  typed-fixture tests (both-paths fires exactly once with receiver
+  attribution; legacy-only stays silent; plan-only has nothing to call) plus
+  a syntax-only negative.
+- **cqrs-upgrade growth**: `--strict` (non-zero exit when v5-removed API
+  usage is detected — a ready-made v5-readiness CI gate), `--json`
+  (deterministic machine-readable bump plan + deprecations per module),
+  `--to <version>` (clamps every bump target to at most that version;
+  never downgrades a pin that is already newer — status `held`), and
+  `--workspace` (runs the pipeline for every `go.mod` under the root,
+  skipping `vendor/`, `testdata/`, and `.git/`). `--dry-run` now also
+  prints the deprecation report (read-only preview covers the full
+  pipeline). Dogfooded by a new CI job that dry-runs the tool against
+  `example/getting-started` with `--strict`.
+- **Materialized-view safety tail (ADR-0135)**: the Doctor
+  `--- Materialized views ---` section is now test-pinned (content shape,
+  explicit `none` branch, the grouped-view upstream-defect WARN, and the
+  scalar-shape no-false-WARN guard); `matViewDDL` has an exact-DDL golden
+  across COUNT/SUM/MIN/AVG × scalar/grouped (plus a collection-quote escape
+  guard); and a multi-transaction grouped-SUM exactness pin documents the
+  tursogo IVM envelope (exact at small scale; the 2k+-row divergence class
+  stays characterized in the research doc and bench layer).
+- **`--typed-info` (auto | on | off)** — the F091 typed-confirmation tier is
+  wired as a first-class CLI/config flag (`analysisContext.TypedInfoMode`,
+  default `auto`: typed paths run whenever the package load produced type
+  info; typos in the mode warn and fall back to auto).
+- **F090(b): dot-imported removed symbols are attributed via type info.**
+  Bare identifiers resolving into a dot-imported go-cqrs-lite module now fire
+  V007 with the exact position and the module attribution
+  (`VersionedStore (dot-imported from schema) is removed at v5 — …`); silent
+  on the name-only fallback. Pinned by a committed replace-based fixture
+  module (`cmd/cqrs-lint/testdata/typedfixture`) so the typed tier is
+  CI-testable without throwaway modules.
+- **C008 usage-confirmation (F091 Tier 2)**: with the typed tier active, a
+  weak money field (`value`, `total`) corroborated ONLY by ambient signals
+  (a money-looking package path / project vibe) additionally needs local
+  evidence — a money-named/embedded struct, a registered command payload, or
+  a strong-money sibling. The historical heuristic is unchanged for
+  syntax-only loads and `--typed-info=off`.
+- **C013/C035 payload-shape confirmation (F091 Tier 3)**: the same typed gate
+  now covers the remaining name-heuristic rules. C013 fires on candidates
+  selected only by file location (`events.go`, `payloads.go`, `views.go`) only
+  when structural evidence confirms the guess — an `event.New`/`NewEvent`
+  payload flow (registry) or a payload-conventional `Type() string` method for
+  payload candidates, any `json` tag (serialization point) for view
+  candidates. C035 applies the identical pattern to weak read-model candidates
+  (generic handler/projector/store/cache suffixes and file-location matches):
+  they need a live selector reference to the map field in the analyzed files;
+  explicit read-model names (`View`/`ReadModel`/`Projection` suffixes) fire
+  unchanged, as does the historical heuristic on syntax-only loads and
+  `--typed-info=off`. The name/file vocabularies behind the split live in
+  shared `lintutil` primitives (`HasEventPayloadNameSuffix`,
+  `IsPayloadFileName`, `HasReadModelNameSuffix`, `IsReadModelFileName`).
+- **cqrs-lint payload capture sees pointer composite literals**: the scanner
+  registered `event.New(..., T{...})` but missed the dominant `&T{...}` form,
+  so the F091 evidence registry under-recorded real emissions. Pointer
+  composite-literal payloads are now recorded (pinned by a scanner test),
+  which also strengthens the C008 registered-payload confirmation channel.
+- **T13–T19 exhaustive rule-audit program completed (V, T, E, D, B, A, F
+  families + S001 line-by-line), 2026-09-11.** The per-family checklist
+  audits found and fixed real detector defects: V006 ordered version pins
+  lexicographically (v4.10.0 sorted below v4.9.0 — wrong anchor line and
+  downgrade suggestion); V007 discarded `Build()` errors and could emit
+  empty findings; E017's `.Stop()`/`.Shutdown(` suppression matched call
+  syntax that the AST renderer never produces, so legitimate graceful
+  shutdowns still fired (fixed by selector-name matching — taskmanager's
+  real server-Shutdown call on SIGTERM no longer false-fires); D001 anchored its finding
+  on randomized map order; D005 parsed this repo's own `module go-cqrs-lite`
+  directive as the dependency version; A013 missed the canonical
+  `*command.BasicCommand` embed (the qualified pointer form every example
+  uses — taskmanager now correctly reports 10); S001 never inspected
+  package-level var/const, composite-literal fields, or map-key assignments
+  (the most common hardcoded-secret placements). The alias-blindness class
+  (A014's historical bug) is now dead repo-wide: A002, A003, A022, A024,
+  A027, A030, and D011 resolve qualifiers through
+  `lintutil.QualifierTargetsModule` (type checker → import table → segment
+  fallback) instead of literal package-name comparisons. B021 gained B005's
+  method-fold `StrictApply` suppression parity, T004 lost a dead disjunct,
+  and nine doc comments that described behavior the code no longer has were
+  corrected. `taskmanager_golden.txt` and `taskmanagerGoldenProfile` are
+  updated for the intended A013/E017 changes.
+- **Completeness meta-tests for the linter's static tables**
+  (`TestConsumerOnlyRulesAreRealRules`, `TestPresetRuleIDsAreRealRules`,
+  `TestPresetHelpTextListsAllPresets`): every `consumerOnlyRules` /
+  preset-disable / severity-override ID must exist in `rules.AllRules()`, and
+  the `--preset` help text must list exactly `analyzer.ValidPresetNames()` —
+  dead IDs and forgotten presets now fail CI instead of drifting silently.
+
+### Fixed
+
+- **`MigrateSnapshotColumnsToStream` is safe under concurrent InitSchema.**
+  Two processes migrating the same legacy snapshots table at boot could
+  race: the loser's ALTER failed after the winner had already renamed the
+  columns, surfacing as a bogus Infrastructure error. A failed rename now
+  re-probes first — a fully-migrated table means success. Pinned by an
+  8-runner concurrent-init test, plus new guards: mixed-state tables (both
+  column spellings, including the half-migrated crash state between the two
+  ALTERs) are rejected loudly as `storage.snapshot_column_mixed` Corruption,
+  and legacy-subset schemas rename exactly what exists. The migration is now
+  live-verified on MariaDB 11.4 (`-tags integration`, PID-safe table
+  rebuild) and DuckDB (information_schema probe + RENAME COLUMN sequence),
+  and the V5-MIGRATION-GUIDE gained per-tier before/after examples, the
+  envelope-v2 consumer note, and operator verification snippets.
+- **watermill CatchUpSubscriber no longer reports a consumer Nack when the
+  subscriber was Closed.** `replayPhase` mapped EVERY non-ack termination of
+  `awaitAck` to the `watermill.catchup.replay_nacked` Orchestration error —
+  including ctx cancellation and `Close()`, where no nack happened.
+  `awaitAck` now returns a three-way outcome (acked / nacked / interrupted);
+  only a real Nack reports `replay_nacked`, cancellation returns `ctx.Err()`,
+  and Close shuts the replay down silently (matching the outer select's
+  close semantics).
+- **benchkit: a fully context-skipped run no longer reports success.** When
+  the caller's deadline (not a `Duration` measurement window) expired before
+  any phase ran, every phase "gracefully" skipped and `Run` returned
+  `(partial result, nil)` — observed under parallel-suite load as the
+  closed-store tests failing with "expected error from closed store, got
+  nil" after ~26s. `Run` now fails fast with a Transient
+  `benchmark context expired before any phase ran` error; Duration-bounded
+  runs keep the partial-result semantics. The timing tests' ceilings are
+  additionally load-scaled (`loadScaledCeiling` over the race factor), and
+  the system hardening tests align their outer ctx deadlines with the
+  already-load-scaled projection-wait budgets (the snapshot-load flake).
+- **`tursoengine.redactDSN` leaked `auth_token`/`AUTH_TOKEN` params.** The
+  matcher required exact spellings (`authToken`, `token`); snake-case and
+  upper-case token param names escaped redaction into error output. Any
+  param whose name contains `token` (case-insensitive) is now redacted —
+  same rule as the existing `key` containment. Pinned by adversarial
+  per-shape leak tests (userinfo+query combos, mixed case, URL-encoded
+  secrets, malformed remotes) plus a preserves-non-secrets guard so the
+  redactor cannot pass vacuously.
+- **SARIF scorecard output is byte-deterministic.** `run.properties` was a
+  `map[string]any`; `encoding/json/v2` emits map keys in iteration order
+  (v1 sorted), so CI consumers diffing SARIF reports got spurious diffs. It
+  is now a fixed-order struct (`sarifProperties`), pinned by
+  `TestRenderSARIF_DeterministicOutput` (50-render byte-compare). All
+  consumer-visible `json.Marshal` sites in `cqrs-lint` (doctor JSON, scorecard
+  JSON, SARIF, diagnostics re-encode, doctor profile echo) now pass
+  `json.Deterministic(true)` as belt-and-suspenders.
+- **Alias-blindness closed for the remaining call-scan sites.** The analyzer's
+  call scanner (`event.New`/`NewEvent`/`Register`/`system.RegisterCommand`/
+  `catalog.Event`/`decider.StrictApply`), D018/D019's catalog-builder
+  detection, and the performance JSON-codec heuristic now resolve package
+  qualifiers through type info via `analyzer.IsQualifierFor` — aliased imports
+  (`es "…/event/v4"`) are detected by import path, shadowing locals stop
+  matching, and syntax-only loads keep the historical string fallback.
+
+### Changed
+
+- **v5 sweep §4 wire keys — stream vocabulary everywhere (dual-read
+  windows, v6 deletion markers):** bbolt event/command CBOR and pebble
+  command CBOR now write `stream_id`/`stream_type` (was
+  `aggregate_id`/`aggregate_type`), with decode-only legacy fallbacks so
+  pre-rename journals stay readable; watermill event/command metadata keys
+  rename the same way behind a DUAL-write window (fresh messages carry both
+  spellings so pre-rename readers in rolling upgrades keep working; readers
+  prefer `stream_*` and fall back); pebble slog keys renamed
+  (`stream_type`/`stream_id`). The bbolt event wire golden was re-blessed
+  (envelope keys + bytes) and every fallback is pinned by legacy-row tests.
+  All fallbacks carry v6 deletion markers. The full status table — including
+  the SQL events/commands columns (still `aggregate_*`, expand-contract
+  migration recommended for a v5.x minor, not the v5.0 cut) — lives in
+  `docs/WIRE-FORMAT-KEYS.md`.
+- **benchkit result JSON schema v2.0.0:** the workload keys
+  `aggregates`/`eventsPerAggregate` are renamed to `streams`/
+  `eventsPerStream` (stream vocabulary, v5 sweep §4). Benchmark output
+  consumers (dashboards, the regression gate's artifact reader) must switch
+  to the new keys.
+- **First 350-line split wave (contract-honesty program):** three oversized
+  files were split into per-family files as pure same-package moves — no
+  symbol moved packages, so the api-stability golden is unchanged and nothing
+  is consumer-visible. `storage/sql/dialect.go` (590 lines) is now the
+  `Dialect` interface plus `dialect_postgres.go`/`dialect_mysql.go`/
+  `dialect_sqlite.go`/`dialect_duckdb.go`;
+  `cmd/cqrs-lint/pkg/rules/architecture/helpers.go` (628) split into shared
+  finding-emission helpers, composite-literal helpers, and project-level
+  helpers; `metaengine/typed_reader.go` (1127 — the largest file in the repo)
+  split around `TypedReader` into reader core, scan, aggregates, grouped
+  aggregates, scan options, and cursor files.
+
+
+
+## [metaengine/v4.14.0, system/v4.8.0, claiming/v4.0.0, queue/v4.0.0, storage/v4.10.0, decider/v4.7.0, projectionhost/v4.5.0, benchkit/v4.6.0, catalog/v4.5.0, cmd/cqrs-lint/v4.12.0 — 2026-09-19 release train (+82 more module tags)] — 2026-09-19
+
+Coordinated release of the full 2026-09-08 → 09-19 surface (92 modules):
+`record/v4.5.1`, `id/v4.6.1`, `dedup/v4.2.2`, `dispatcher/v4.4.1`, `kv/v4.3.1`, `event/v4.11.1`, 
+`command/v4.11.0`, `query/v4.8.1`, `metadata/v4.7.1`, `scheduling/v4.5.0`, `claiming/v4.0.0`, 
+`schema/v4.4.1`, `snapshot/v4.5.1`, `projection/v4.4.0`, `deriver/v4.3.1`, 
+`commandlifecycle/v4.2.0`, `idempotency/kvstore/v4.3.0`, `otel/v4.5.0`, `otel/otlp/v4.0.0`, 
+`prometheus/v4.3.1`, `middleware/v4.6.1`, `signing/v4.3.1`, `encryption/v4.4.1`, `testutil/v4.3.1`, 
+`testutil/pgtestcontainer/v4.2.1`, `watermill/v4.6.1`, `transport/http/v4.3.2`, 
+`transport/grpc/v4.3.1`, `metaengine/v4.14.0`, `storage/v4.10.0`, `storage/memory/v4.5.2`, 
+`storage/pebble/v4.4.1`, `storage/bbolt/v4.2.1`, `storage/turso/v4.3.2`, 
+`storage/backuptest/v4.2.1`, `decider/v4.7.0`, `graph/v4.3.1`, `listing/v4.4.1`, 
+`projectionhost/v4.5.0`, `queue/v4.0.0`, `scheduling/sqlstore/v4.1.0`, 
+`metaengine/sqliteengine/v4.4.0`, `metaengine/pgengine/v4.4.0`, `metaengine/mysqlengine/v4.3.0`, 
+`metaengine/duckdbengine/v4.3.0`, `metaengine/badgerengine/v4.3.0`, 
+`metaengine/bboltengine/v4.3.0`, `metaengine/pebbleengine/v4.4.0`, 
+`metaengine/dgraphengine/v4.3.0`, `metaengine/irohengine/v4.3.0`, 
+`metaengine/irohengine/loopback/v4.0.3`, `metaengine/irohengine/quic/v4.2.1`, 
+`metaengine/bigtableengine/v4.0.0`, `metaengine/otelobserver/v4.0.0`, 
+`metaengine/projectionadapter/v4.5.0`, `metaengine/graphadapter/v4.1.1`, `queue/sqlite/v4.0.0`, 
+`queue/postgres/v4.0.0`, `queue/mysql/v4.0.0`, `scheduling/engine/v4.0.0`, 
+`idempotency/sqlstore/v4.4.0`, `commandlifecycle/projections/v4.2.0`, `scenario/v4.4.0`, 
+`metaengine/tursoengine/v4.2.0`, `metaengine/bench/v4.1.0`, `integration/v4.2.1`, 
+`benchkit/v4.6.0`, `stack/v4.4.1`, `stack/memory/v4.4.1`, `stack/sqlite/v4.3.2`, 
+`stack/duckdb/v4.2.1`, `stack/pebble/v4.4.1`, `stack/bbolt/v4.2.1`, `stack/postgres/v4.4.1`, 
+`stack/mysql/v4.2.1`, `stack/turso/v4.4.1`, `stack/bench/v4.3.0`, `system/v4.8.0`, 
+`system/integration/v4.0.0`, `catalog/v4.5.0`, `cmd/cqrs-lint/v4.12.0`, `cmd/cqrs-bench/v4.3.1`, 
+`cmd/cqrs-upgrade/v4.1.0`, `cmd/cqrs-gen/v4.3.1`, `cmd/doc-check/v4.3.1`, 
+`cmd/api-stability/v4.4.0`, `example/taskmanager/v0.2.0`, `example/getting-started/v0.2.0`, 
+`example/readme-quickstart/v0.2.1`, `example/metaengine-quickstart/v0.1.1`, 
+`example/scheduler-otel-status/v0.1.0`, `example/goal-shaped-app/v0.1.0`
+First releases: `claiming/v4.0.0`, `queue/v4.0.0` (+ `queue/sqlite/v4.0.0`, `queue/postgres/v4.0.0`, `queue/mysql/v4.0.0`, `queue/conformance` ships with `queue/sqlite`), `scheduling/engine/v4.0.0`, `system/integration/v4.0.0`, `metaengine/bigtableengine/v4.0.0`, `metaengine/otelobserver/v4.0.0`, `otel/otlp/v4.0.0`, and `example/goal-shaped-app/v0.1.0` — the ADR-0142 universal storage substrate, the durable work-queue stack (ADR-0134/0142), and the Goal example become proxy-visible for consumers. The examples' module paths are suffix-less, so their v0 tags are the proxy-visible line.
+
+
 ### Fixed — repo-wide lint debt cleared to zero; exhaustruct_v5 panic class killed (2026-09-19)
 
 The true baseline was 47 findings across 13 modules PLUS six modules the
@@ -2002,244 +2275,6 @@ the newest version.
   the keys restore typed causation with no producer change. Partial key
   pairs and unparseable command IDs surface as corrupt-metadata rejections.
   The message-metadata golden pins the new keys.
-
-### Added
-
-- **encryption: key-management + envelope docs, wire goldens, and a v1↔v2
-  decode-symmetry property.** README now documents the previously
-  undocumented key lifecycle surfaces — `GenerateKey`/`GenerateKeyBase64`,
-  HKDF `DeriveKey` multi-tenant derivation, `StaticKeyResolver` rotation
-  selection, `WrapCiphertext` self-describing binary envelopes — plus the
-  v1↔v2 envelope wire formats (why v2 is raw JSON for JSON/JSONB columns,
-  and how readers auto-detect both generations). The wire format is pinned
-  by reviewed byte-exact goldens (field names/order, base64url `ct`
-  encoding, omitempty behavior, both generations' shapes) and a rapid
-  property test: for arbitrary envelopes, `UnmarshalEnvelope` recovers the
-  identical value from either generation's wire form.
-- **Docs-truth batch:** `error-taxonomy.md` now covers the storage (SQL
-  facade), storage/pebble, and watermill family codes (sentinels + wrap-code
-  families, including the Close≠Nack semantics note);
-  `METAENGINE_DOMAIN_LANGUAGE.md` gains the materialized-view maintenance
-  section (Materialized View Acceleration, IVM, View-Maintained Write, with
-  the tursogo divergence/27k-wall caveats); `example/metaengine-quickstart`
-  has a README (pinned mechanically by the new
-  `TestEveryExampleHasREADME`); both taskmanager and metaengine-quickstart
-  audited v5-clean via `cqrs-upgrade --dry-run --strict` (0 findings).
-- **New tripwires:** `scripts/check-linter-names.sh` (wired into
-  `#check-lint-config`) fails when `.golangci.yml` names a linter the
-  installed golangci-lint does not know — schema verify catches drift, but
-  a renamed linter silently no-ops (the gci incident class);
-  `scripts/check-templ-paths.sh` (wired into `#check-templ`) fails when a
-  `_templ.go` FileName carries a path, i.e. it was generated from the wrong
-  cwd; `TestNoRenamedAggregateFamilyCodeReappears` (api-stability) fails if
-  any of the 17 renamed `aggregate_*` error-family codes reappears in Go
-  source.
-- **Release tooling:** `tag-release.sh --smoke <module> <version>` is the
-  documented post-cut step — after pushing a tag it retries until
-  proxy.golang.org serves the version (live-verified), so dependent modules
-  never tidy against a tag the proxy has not absorbed; cqrs-lint reports
-  its version from the embedded Go build info when built via
-  `go install module@version` (the hand-maintained const stays as the
-  local-build fallback and gate-enforced source of truth), removing the
-  stranded-tag-chain drift class for installed binaries; and
-  `cmd/cqrs-lint/go.mod` now carries `retract v4.8.0` — the poisoned
-  (syntax-error) tag stops resolving for fresh consumers at the next
-  cqrs-lint tag.
-- **doc-check `--json` + no-import-alias ambiguity surfacing:** `--json`
-  emits a deterministic machine-readable summary (per-finding broken refs,
-  warnings, ambiguities) for CI annotations; references that resolve
-  through the repo-wide alias union when the alias maps to MULTIPLE
-  same-named packages are now reported instead of silently unioned
-  (currently zero; log-only, the zero-warning gate is unchanged).
-- **P014 `applylayout-bypasses-plan-path` (cqrs-lint, typed-info tier):**
-  flags `ApplyLayout(...)` calls whose receiver type also implements the
-  plan path (`ApplyLayoutPlan` — the `metaengine.LayoutPlanApplier` shape):
-  the legacy call bypasses type-derived layout planning (no pushdown or
-  aggregate cost inference). Structural method-shape detection, no
-  metaengine import; fires only when type info resolved the receiver
-  (silent on syntax-only loads and `--typed-info=off`). One deliberate
-  correction to the T23 design addendum: the detection pair is the
-  `ApplyLayout` call + `ApplyLayoutPlan` on the same type — `BuildLayoutPlan`
-  is a package-level function in metaengine, never an engine method, so the
-  addendum's literal pair could never match a real engine. Pinned by
-  typed-fixture tests (both-paths fires exactly once with receiver
-  attribution; legacy-only stays silent; plan-only has nothing to call) plus
-  a syntax-only negative.
-- **cqrs-upgrade growth**: `--strict` (non-zero exit when v5-removed API
-  usage is detected — a ready-made v5-readiness CI gate), `--json`
-  (deterministic machine-readable bump plan + deprecations per module),
-  `--to <version>` (clamps every bump target to at most that version;
-  never downgrades a pin that is already newer — status `held`), and
-  `--workspace` (runs the pipeline for every `go.mod` under the root,
-  skipping `vendor/`, `testdata/`, and `.git/`). `--dry-run` now also
-  prints the deprecation report (read-only preview covers the full
-  pipeline). Dogfooded by a new CI job that dry-runs the tool against
-  `example/getting-started` with `--strict`.
-- **Materialized-view safety tail (ADR-0135)**: the Doctor
-  `--- Materialized views ---` section is now test-pinned (content shape,
-  explicit `none` branch, the grouped-view upstream-defect WARN, and the
-  scalar-shape no-false-WARN guard); `matViewDDL` has an exact-DDL golden
-  across COUNT/SUM/MIN/AVG × scalar/grouped (plus a collection-quote escape
-  guard); and a multi-transaction grouped-SUM exactness pin documents the
-  tursogo IVM envelope (exact at small scale; the 2k+-row divergence class
-  stays characterized in the research doc and bench layer).
-- **`--typed-info` (auto | on | off)** — the F091 typed-confirmation tier is
-  wired as a first-class CLI/config flag (`analysisContext.TypedInfoMode`,
-  default `auto`: typed paths run whenever the package load produced type
-  info; typos in the mode warn and fall back to auto).
-- **F090(b): dot-imported removed symbols are attributed via type info.**
-  Bare identifiers resolving into a dot-imported go-cqrs-lite module now fire
-  V007 with the exact position and the module attribution
-  (`VersionedStore (dot-imported from schema) is removed at v5 — …`); silent
-  on the name-only fallback. Pinned by a committed replace-based fixture
-  module (`cmd/cqrs-lint/testdata/typedfixture`) so the typed tier is
-  CI-testable without throwaway modules.
-- **C008 usage-confirmation (F091 Tier 2)**: with the typed tier active, a
-  weak money field (`value`, `total`) corroborated ONLY by ambient signals
-  (a money-looking package path / project vibe) additionally needs local
-  evidence — a money-named/embedded struct, a registered command payload, or
-  a strong-money sibling. The historical heuristic is unchanged for
-  syntax-only loads and `--typed-info=off`.
-- **C013/C035 payload-shape confirmation (F091 Tier 3)**: the same typed gate
-  now covers the remaining name-heuristic rules. C013 fires on candidates
-  selected only by file location (`events.go`, `payloads.go`, `views.go`) only
-  when structural evidence confirms the guess — an `event.New`/`NewEvent`
-  payload flow (registry) or a payload-conventional `Type() string` method for
-  payload candidates, any `json` tag (serialization point) for view
-  candidates. C035 applies the identical pattern to weak read-model candidates
-  (generic handler/projector/store/cache suffixes and file-location matches):
-  they need a live selector reference to the map field in the analyzed files;
-  explicit read-model names (`View`/`ReadModel`/`Projection` suffixes) fire
-  unchanged, as does the historical heuristic on syntax-only loads and
-  `--typed-info=off`. The name/file vocabularies behind the split live in
-  shared `lintutil` primitives (`HasEventPayloadNameSuffix`,
-  `IsPayloadFileName`, `HasReadModelNameSuffix`, `IsReadModelFileName`).
-- **cqrs-lint payload capture sees pointer composite literals**: the scanner
-  registered `event.New(..., T{...})` but missed the dominant `&T{...}` form,
-  so the F091 evidence registry under-recorded real emissions. Pointer
-  composite-literal payloads are now recorded (pinned by a scanner test),
-  which also strengthens the C008 registered-payload confirmation channel.
-- **T13–T19 exhaustive rule-audit program completed (V, T, E, D, B, A, F
-  families + S001 line-by-line), 2026-09-11.** The per-family checklist
-  audits found and fixed real detector defects: V006 ordered version pins
-  lexicographically (v4.10.0 sorted below v4.9.0 — wrong anchor line and
-  downgrade suggestion); V007 discarded `Build()` errors and could emit
-  empty findings; E017's `.Stop()`/`.Shutdown(` suppression matched call
-  syntax that the AST renderer never produces, so legitimate graceful
-  shutdowns still fired (fixed by selector-name matching — taskmanager's
-  real server-Shutdown call on SIGTERM no longer false-fires); D001 anchored its finding
-  on randomized map order; D005 parsed this repo's own `module go-cqrs-lite`
-  directive as the dependency version; A013 missed the canonical
-  `*command.BasicCommand` embed (the qualified pointer form every example
-  uses — taskmanager now correctly reports 10); S001 never inspected
-  package-level var/const, composite-literal fields, or map-key assignments
-  (the most common hardcoded-secret placements). The alias-blindness class
-  (A014's historical bug) is now dead repo-wide: A002, A003, A022, A024,
-  A027, A030, and D011 resolve qualifiers through
-  `lintutil.QualifierTargetsModule` (type checker → import table → segment
-  fallback) instead of literal package-name comparisons. B021 gained B005's
-  method-fold `StrictApply` suppression parity, T004 lost a dead disjunct,
-  and nine doc comments that described behavior the code no longer has were
-  corrected. `taskmanager_golden.txt` and `taskmanagerGoldenProfile` are
-  updated for the intended A013/E017 changes.
-- **Completeness meta-tests for the linter's static tables**
-  (`TestConsumerOnlyRulesAreRealRules`, `TestPresetRuleIDsAreRealRules`,
-  `TestPresetHelpTextListsAllPresets`): every `consumerOnlyRules` /
-  preset-disable / severity-override ID must exist in `rules.AllRules()`, and
-  the `--preset` help text must list exactly `analyzer.ValidPresetNames()` —
-  dead IDs and forgotten presets now fail CI instead of drifting silently.
-
-### Fixed
-
-- **`MigrateSnapshotColumnsToStream` is safe under concurrent InitSchema.**
-  Two processes migrating the same legacy snapshots table at boot could
-  race: the loser's ALTER failed after the winner had already renamed the
-  columns, surfacing as a bogus Infrastructure error. A failed rename now
-  re-probes first — a fully-migrated table means success. Pinned by an
-  8-runner concurrent-init test, plus new guards: mixed-state tables (both
-  column spellings, including the half-migrated crash state between the two
-  ALTERs) are rejected loudly as `storage.snapshot_column_mixed` Corruption,
-  and legacy-subset schemas rename exactly what exists. The migration is now
-  live-verified on MariaDB 11.4 (`-tags integration`, PID-safe table
-  rebuild) and DuckDB (information_schema probe + RENAME COLUMN sequence),
-  and the V5-MIGRATION-GUIDE gained per-tier before/after examples, the
-  envelope-v2 consumer note, and operator verification snippets.
-- **watermill CatchUpSubscriber no longer reports a consumer Nack when the
-  subscriber was Closed.** `replayPhase` mapped EVERY non-ack termination of
-  `awaitAck` to the `watermill.catchup.replay_nacked` Orchestration error —
-  including ctx cancellation and `Close()`, where no nack happened.
-  `awaitAck` now returns a three-way outcome (acked / nacked / interrupted);
-  only a real Nack reports `replay_nacked`, cancellation returns `ctx.Err()`,
-  and Close shuts the replay down silently (matching the outer select's
-  close semantics).
-- **benchkit: a fully context-skipped run no longer reports success.** When
-  the caller's deadline (not a `Duration` measurement window) expired before
-  any phase ran, every phase "gracefully" skipped and `Run` returned
-  `(partial result, nil)` — observed under parallel-suite load as the
-  closed-store tests failing with "expected error from closed store, got
-  nil" after ~26s. `Run` now fails fast with a Transient
-  `benchmark context expired before any phase ran` error; Duration-bounded
-  runs keep the partial-result semantics. The timing tests' ceilings are
-  additionally load-scaled (`loadScaledCeiling` over the race factor), and
-  the system hardening tests align their outer ctx deadlines with the
-  already-load-scaled projection-wait budgets (the snapshot-load flake).
-- **`tursoengine.redactDSN` leaked `auth_token`/`AUTH_TOKEN` params.** The
-  matcher required exact spellings (`authToken`, `token`); snake-case and
-  upper-case token param names escaped redaction into error output. Any
-  param whose name contains `token` (case-insensitive) is now redacted —
-  same rule as the existing `key` containment. Pinned by adversarial
-  per-shape leak tests (userinfo+query combos, mixed case, URL-encoded
-  secrets, malformed remotes) plus a preserves-non-secrets guard so the
-  redactor cannot pass vacuously.
-- **SARIF scorecard output is byte-deterministic.** `run.properties` was a
-  `map[string]any`; `encoding/json/v2` emits map keys in iteration order
-  (v1 sorted), so CI consumers diffing SARIF reports got spurious diffs. It
-  is now a fixed-order struct (`sarifProperties`), pinned by
-  `TestRenderSARIF_DeterministicOutput` (50-render byte-compare). All
-  consumer-visible `json.Marshal` sites in `cqrs-lint` (doctor JSON, scorecard
-  JSON, SARIF, diagnostics re-encode, doctor profile echo) now pass
-  `json.Deterministic(true)` as belt-and-suspenders.
-- **Alias-blindness closed for the remaining call-scan sites.** The analyzer's
-  call scanner (`event.New`/`NewEvent`/`Register`/`system.RegisterCommand`/
-  `catalog.Event`/`decider.StrictApply`), D018/D019's catalog-builder
-  detection, and the performance JSON-codec heuristic now resolve package
-  qualifiers through type info via `analyzer.IsQualifierFor` — aliased imports
-  (`es "…/event/v4"`) are detected by import path, shadowing locals stop
-  matching, and syntax-only loads keep the historical string fallback.
-
-### Changed
-
-- **v5 sweep §4 wire keys — stream vocabulary everywhere (dual-read
-  windows, v6 deletion markers):** bbolt event/command CBOR and pebble
-  command CBOR now write `stream_id`/`stream_type` (was
-  `aggregate_id`/`aggregate_type`), with decode-only legacy fallbacks so
-  pre-rename journals stay readable; watermill event/command metadata keys
-  rename the same way behind a DUAL-write window (fresh messages carry both
-  spellings so pre-rename readers in rolling upgrades keep working; readers
-  prefer `stream_*` and fall back); pebble slog keys renamed
-  (`stream_type`/`stream_id`). The bbolt event wire golden was re-blessed
-  (envelope keys + bytes) and every fallback is pinned by legacy-row tests.
-  All fallbacks carry v6 deletion markers. The full status table — including
-  the SQL events/commands columns (still `aggregate_*`, expand-contract
-  migration recommended for a v5.x minor, not the v5.0 cut) — lives in
-  `docs/WIRE-FORMAT-KEYS.md`.
-- **benchkit result JSON schema v2.0.0:** the workload keys
-  `aggregates`/`eventsPerAggregate` are renamed to `streams`/
-  `eventsPerStream` (stream vocabulary, v5 sweep §4). Benchmark output
-  consumers (dashboards, the regression gate's artifact reader) must switch
-  to the new keys.
-- **First 350-line split wave (contract-honesty program):** three oversized
-  files were split into per-family files as pure same-package moves — no
-  symbol moved packages, so the api-stability golden is unchanged and nothing
-  is consumer-visible. `storage/sql/dialect.go` (590 lines) is now the
-  `Dialect` interface plus `dialect_postgres.go`/`dialect_mysql.go`/
-  `dialect_sqlite.go`/`dialect_duckdb.go`;
-  `cmd/cqrs-lint/pkg/rules/architecture/helpers.go` (628) split into shared
-  finding-emission helpers, composite-literal helpers, and project-level
-  helpers; `metaengine/typed_reader.go` (1127 — the largest file in the repo)
-  split around `TypedReader` into reader core, scan, aggregates, grouped
-  aggregates, scan options, and cursor files.
-
 
 ## [catalog/v4.4.0] - 2026-09-18
 
