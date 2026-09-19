@@ -197,10 +197,10 @@ func claimsDDL(d claiming.Dialect) []string {
 	lease_until  TIMESTAMP,
 	owner        VARCHAR NOT NULL DEFAULT '',
 	payload      BLOB NOT NULL,
-	created_at   TIMESTAMP NOT NULL,
+	created_at   TIMESTAMP NOT NULL DEFAULT now(),
 	PRIMARY KEY (collection, key)
 )`,
-			`CREATE SEQUENCE IF NOT EXISTS meta_claim_facts_seq`,
+	`CREATE SEQUENCE IF NOT EXISTS meta_claim_facts_seq`,
 			`CREATE TABLE IF NOT EXISTS meta_claim_facts (
 	seq        BIGINT PRIMARY KEY DEFAULT nextval('meta_claim_facts_seq'),
 	collection VARCHAR NOT NULL,

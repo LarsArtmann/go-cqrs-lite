@@ -22,6 +22,7 @@ import (
 	"database/sql"
 	"fmt"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
@@ -35,6 +36,25 @@ import (
 type Claims struct {
 	db      *sql.DB
 	dialect claiming.Dialect
+
+	// mu serializes writes on single-writer engines (DuckDB): its ON
+	// CONFLICT upserts raise PK violations under concurrency instead of
+	// serializing, and it has no row locks — the in-process mutex is the
+	// SKIP LOCKED equivalent for an embedded single-process database.
+	mu sync.Mutex
+}
+
+// lockWriter returns the write guard for the engine's concurrency model:
+	// DuckDB is single-writer (in-process mutex); client-server dialects
+	// serialize in the database itself and need no guard.
+func (c *Claims) lockWriter() func() {
+	if c.dialect != claiming.DialectDuckDB {
+		return func() {}
+	}
+
+	c.mu.Lock()
+
+	return c.mu.Unlock
 }
 
 // New creates the runtime, ensuring the claims (and facts) tables exist.
@@ -74,6 +94,8 @@ func (c *Claims) ClaimInsert(
 	dueAt time.Time,
 	payload []byte,
 ) error {
+	defer c.lockWriter()()
+
 	query, args := insertClaimStmt(c.dialect, collection, key, c.encodeTime(dueAt), payload)
 
 	if _, err := c.db.ExecContext(ctx, query, args...); err != nil {
@@ -90,6 +112,8 @@ func (c *Claims) ClaimDue(
 	ctx context.Context,
 	req metaengine.ClaimDueRequest,
 ) ([]metaengine.DueClaim, error) {
+	defer c.lockWriter()()
+
 	now := req.Now
 	if now.IsZero() {
 		now = time.Now()
@@ -169,6 +193,8 @@ func (c *Claims) RenewLease(
 	extend time.Duration,
 	now time.Time,
 ) error {
+	defer c.lockWriter()()
+
 	if now.IsZero() {
 		now = time.Now()
 	}
@@ -202,6 +228,8 @@ func (c *Claims) RenewLease(
 
 // ClaimDelete implements [metaengine.DueClaimer.ClaimDelete].
 func (c *Claims) ClaimDelete(ctx context.Context, collection, key string) error {
+	defer c.lockWriter()()
+
 	if _, err := c.db.ExecContext(
 		ctx,
 		"DELETE FROM meta_due_claims WHERE collection = "+ph(
@@ -228,6 +256,8 @@ func (c *Claims) ClaimDeleteIfDue(
 	collection, key string,
 	dueAt time.Time,
 ) error {
+	defer c.lockWriter()()
+
 	if _, err := c.db.ExecContext(ctx,
 		"DELETE FROM meta_due_claims WHERE collection = "+ph(c.dialect, 1)+
 			" AND key = "+ph(c.dialect, 2)+" AND due_at = "+ph(c.dialect, 3),

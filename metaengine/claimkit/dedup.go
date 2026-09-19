@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
@@ -18,6 +19,24 @@ import (
 type Dedup struct {
 	db      *sql.DB
 	dialect claiming.Dialect
+
+	// mu serializes writes on single-writer engines (DuckDB): its ON
+	// CONFLICT upserts raise PK violations under concurrency instead of
+	// serializing — the in-process mutex is the row-lock equivalent for an
+	// embedded single-process database.
+	mu sync.Mutex
+}
+
+// lockWriter returns the write guard for the engine's concurrency model
+	// (see Claims.lockWriter).
+func (d *Dedup) lockWriter() func() {
+	if d.dialect != claiming.DialectDuckDB {
+		return func() {}
+	}
+
+	d.mu.Lock()
+
+	return d.mu.Unlock
 }
 
 // NewDedup creates the runtime, ensuring the dedup table exists. The caller
@@ -52,6 +71,8 @@ func (d *Dedup) DedupCheckAndRecord(
 	ttl time.Duration,
 	now time.Time,
 ) (bool, error) {
+	defer d.lockWriter()()
+
 	if now.IsZero() {
 		now = time.Now()
 	}
@@ -176,6 +197,8 @@ func (d *Dedup) DedupSeen(
 
 // DedupSweep implements [metaengine.DedupStore.DedupSweep].
 func (d *Dedup) DedupSweep(ctx context.Context, collection string, now time.Time) (int, error) {
+	defer d.lockWriter()()
+
 	if now.IsZero() {
 		now = time.Now()
 	}

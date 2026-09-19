@@ -18,6 +18,8 @@ func (c *Claims) ClaimDueFacts(
 	req metaengine.ClaimDueRequest,
 	factFor func(metaengine.DueClaim) []metaengine.ClaimFact,
 ) ([]metaengine.DueClaim, error) {
+	defer c.lockWriter()()
+
 	now := req.Now
 	if now.IsZero() {
 		now = time.Now()
@@ -68,6 +70,8 @@ func (c *Claims) ClaimDeleteFacts(
 	dueAt time.Time,
 	facts ...metaengine.ClaimFact,
 ) (bool, error) {
+	defer c.lockWriter()()
+
 	tx, err := c.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("claimkit.ClaimDeleteFacts: begin: %w", err)
