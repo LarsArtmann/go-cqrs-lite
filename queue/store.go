@@ -15,7 +15,7 @@ import (
 // are held to identical semantics by the shared conformance suite
 // (queue/conformance).
 //
-// Two invariants bind every implementation:
+// Three invariants bind every implementation:
 //
 //   - Facts in the same transaction: every method that mutates task state
 //     appends its fact(s) inside the SAME transaction — a state change
@@ -25,6 +25,11 @@ import (
 //     deadline; a second claimer can take the task only after the lease
 //     expires (crash reclaim) or the holder releases it (Complete, Fail,
 //     Requeue, CancelOwned).
+//   - Finalizes are token-fenced (ADR-0134): every claim mints an
+//     unguessable Token; only the holder of the CURRENT token can
+//     finalize, renew, or cooperatively cancel. A worker whose lease
+//     lapsed and whose task was re-claimed fails with ErrLeaseNotHeld —
+//     the finalize path IS the theft detector.
 type Store[T any] interface { //nolint:interfacebloat // one persistence contract by design; splitting fractures the boundary
 	// Enqueue persists a new task (ID and defaults assigned here) and
 	// records the facts.Enqueued fact. When task.New.DedupKey is set
@@ -40,26 +45,26 @@ type Store[T any] interface { //nolint:interfacebloat // one persistence contrac
 	// with NotBefore passed, or running with an expired lease (crash
 	// reclaim), with every dependency completed, ordered by effective
 	// priority (stored priority + bounded age bonus, see
-	// PriorityAgingDaysPerPoint) then age. Sets Running + lease and
-	// records the facts.Claimed fact (a reclaim first records
-	// facts.Released for the previous owner). Returns ErrNoTaskDue when
-	// nothing is claimable.
+	// PriorityAgingDaysPerPoint) then age. Sets Running + lease + a fresh
+	// unguessable claim Token (see Claim) and records the facts.Claimed
+	// fact (a reclaim first records facts.Released for the previous
+	// owner). Returns ErrNoTaskDue when nothing is claimable.
 	ClaimDue(ctx context.Context, owner string, lease time.Duration) (Claim[T], error)
 
-	// Complete marks a Running task Completed (lease must be held) and
-	// records the facts.Completed fact, carrying the result when
+	// Complete marks a Running task Completed (claim token must be held)
+	// and records the facts.Completed fact, carrying the result when
 	// non-empty.
-	Complete(ctx context.Context, id task.ID, owner string, result []byte) error
+	Complete(ctx context.Context, id task.ID, token string, result []byte) error
 
 	// Fail records a failed attempt. When attempts remain, the task
 	// returns to Pending with NotBefore = now + backoff; otherwise it is
-	// dead-lettered. Facts: facts.Failed (attempt number, error,
-	// evidence in Detail) plus facts.DeadLettered with class
-	// "exhausted" on the final attempt.
+	// dead-lettered. The claim token must be held. Facts: facts.Failed
+	// (attempt number, error, evidence in Detail) plus facts.DeadLettered
+	// with class "exhausted" on the final attempt.
 	Fail(
 		ctx context.Context,
 		id task.ID,
-		owner string,
+		token string,
 		errText string,
 		backoff time.Duration,
 		evidence []byte,
@@ -67,33 +72,35 @@ type Store[T any] interface { //nolint:interfacebloat // one persistence contrac
 
 	// FailPermanent dead-letters a Running task immediately, regardless
 	// of the attempt budget: the error class makes retrying pointless.
-	// The attempt is still counted. Facts: facts.Failed (carrying
-	// evidence) + facts.DeadLettered with class "permanent".
+	// The claim token must be held. The attempt is still counted. Facts:
+	// facts.Failed (carrying evidence) + facts.DeadLettered with class
+	// "permanent".
 	FailPermanent(
 		ctx context.Context,
 		id task.ID,
-		owner string,
+		token string,
 		errText string,
 		evidence []byte,
 	) error
 
 	// Requeue returns a claimed task to Pending WITHOUT counting an
-	// attempt; it becomes claimable again after delay. For preflight
-	// refusals: the environment was not ready, not the task. Fact:
-	// facts.Requeued carrying facts.RequeueEvidence.
+	// attempt; it becomes claimable again after delay. The claim token
+	// must be held. For preflight refusals: the environment was not
+	// ready, not the task. Fact: facts.Requeued carrying
+	// facts.RequeueEvidence.
 	Requeue(
 		ctx context.Context,
 		id task.ID,
-		owner string,
+		token string,
 		errText string,
 		delay time.Duration,
 	) error
 
-	// Heartbeat extends the lease of a Running task held by owner. An
-	// expired or foreign lease affects zero rows and returns
-	// ErrLeaseNotHeld — an expired claim cannot be resurrected because
-	// another worker may already be processing.
-	Heartbeat(ctx context.Context, id task.ID, owner string, extend time.Duration) error
+	// Heartbeat extends the lease of a Running task while the claim token
+	// is held. An expired, foreign, or superseded claim affects zero rows
+	// and returns ErrLeaseNotHeld — a lapsed claim cannot be resurrected
+	// because another worker may already hold a fresher token.
+	Heartbeat(ctx context.Context, id task.ID, token string, extend time.Duration) error
 
 	// Cancel withdraws a Pending task. A non-empty reason is stored in
 	// the facts.Cancelled fact's Detail ("reason" key).
@@ -113,9 +120,9 @@ type Store[T any] interface { //nolint:interfacebloat // one persistence contrac
 	CancelRequested(ctx context.Context, id task.ID) (bool, error)
 
 	// CancelOwned finalizes a cooperative cancel: Running → Cancelled,
-	// recorded by the lease-holding worker after it stopped the
-	// execution.
-	CancelOwned(ctx context.Context, id task.ID, owner string) error
+	// recorded by the claim-holding worker (claim token required) after
+	// it stopped the execution.
+	CancelOwned(ctx context.Context, id task.ID, token string) error
 
 	// MarkOrphaned appends a facts.Orphaned fact for every Running task
 	// whose lease expired before the cutoff and that has no Orphaned

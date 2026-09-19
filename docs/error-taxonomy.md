@@ -297,6 +297,19 @@ Lease-stamp failure is **Infrastructure**; losing a claim race is
 | Lease stamp failure | Infrastructure | `claiming.stamp_lease`    |
 | `ErrLeaseNotHeld`   | Orchestration  | `claiming.lease_not_held` |
 
+### queue
+
+An enqueue template naming unknown dependencies is **Rejection** — the
+caller's input is invalid (and the rejection doubles as cycle
+prevention, see queue/doc.go). Losing a claim race or finalizing a
+stolen lease is **Orchestration** — a distributed-coordination race,
+not a caller bug (ADR-0134 claim tokens).
+
+| Error              | Family        | Code                   |
+| ------------------ | ------------- | ---------------------- |
+| `ErrDanglingDep`   | Rejection     | `queue.dangling_dep`   |
+| `ErrLeaseNotHeld`  | Orchestration | `queue.lease_not_held` |
+
 ### metaengine
 
 Planner/layout refusals are **Rejection** (caller-declared shapes that

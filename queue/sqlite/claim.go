@@ -29,9 +29,11 @@ const candidateSQL = `
 
 // claimUpdateSQL stamps the lease under the same predicate; the
 // RowsAffected re-check is the fence (a lost race yields zero rows).
+// The minted token is stamped beside the lease: it is the holder proof
+// every finalize predicate re-checks (ADR-0134).
 const claimUpdateSQL = `
 	UPDATE tasks
-	SET status = 'running', lease_owner = ?, lease_expires = ?, updated_at = ?
+	SET status = 'running', lease_owner = ?, lease_expires = ?, lease_token = ?, updated_at = ?
 	WHERE id = ? AND (
 	    (status = 'pending' AND not_before <= ?)
 	    OR (status = 'running' AND lease_expires IS NOT NULL AND lease_expires <= ?))`
@@ -45,6 +47,8 @@ func (s *Store[T]) ClaimDue(
 	now := time.Now()
 
 	var claimed task.Task[T]
+
+	token := queue.NewClaimToken()
 
 	finalizedCancel := false
 
@@ -71,7 +75,7 @@ func (s *Store[T]) ClaimDue(
 			}
 		}
 
-		return s.stampLease(ctx, tx, id, owner, now, lease, &claimed)
+		return s.stampLease(ctx, tx, id, owner, token, now, lease, &claimed)
 	})
 	//art-dupl:accept dialect twin of queue/postgres ClaimDue tail; conformance pins lease semantics
 	if err != nil {
@@ -88,6 +92,7 @@ func (s *Store[T]) ClaimDue(
 	return queue.Claim[T]{
 		Task:       claimed,
 		LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli()),
+		Token:      token,
 	}, nil
 }
 
@@ -182,13 +187,13 @@ func (s *Store[T]) cancelRunningRow(
 func (s *Store[T]) stampLease(
 	ctx context.Context,
 	tx *sql.Tx,
-	id, owner string,
+	id, owner, token string,
 	now time.Time,
 	lease time.Duration,
 	out *task.Task[T],
 ) error {
 	res, err := tx.ExecContext(ctx, claimUpdateSQL,
-		owner, now.Add(lease).UnixMilli(), now.UnixMilli(), id, now.UnixMilli(), now.UnixMilli())
+		owner, now.Add(lease).UnixMilli(), token, now.UnixMilli(), id, now.UnixMilli(), now.UnixMilli())
 	if err != nil {
 		return err
 	}

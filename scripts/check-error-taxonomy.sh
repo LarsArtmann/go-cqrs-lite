@@ -29,6 +29,7 @@ GATED_MODULES=(
 	"projectionhost|projectionhost|projectionhost."
 	"transport/grpc|transport/grpc|grpc."
 	"claiming|claiming|claiming."
+	"queue|queue|queue."
 	"watermill|watermill|watermill."
 	"storage/pebble|storage/pebble|pebble."
 	"core/event|event|event."

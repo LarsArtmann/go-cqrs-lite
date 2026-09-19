@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 	status         TEXT NOT NULL DEFAULT 'pending',
 	lease_owner    TEXT NOT NULL DEFAULT '',
 	lease_expires  INTEGER,                    -- unix millis, NULL when unleased
+	lease_token    TEXT,                       -- ADR-0134 claim fencing token, NULL when unclaimed
 	last_error     TEXT NOT NULL DEFAULT '',
 	created_at     INTEGER NOT NULL,
 	updated_at     INTEGER NOT NULL,

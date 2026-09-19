@@ -6,21 +6,22 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
 
-// Claim is the lease capability returned by ClaimDue: the claimed task
-// plus the lease deadline the holder must renew (Heartbeat) or finish
-// before. After LeaseUntil, with no renewal, the task becomes claimable
+// Claim is the lease capability returned by ClaimDue: the claimed task,
+// the lease deadline the holder must renew (Heartbeat) or finish before,
+// and the claim Token — the unguessable holder proof every finalize call
+// (Complete, Fail, FailPermanent, Requeue, Heartbeat, CancelOwned)
+// presents. After LeaseUntil, with no renewal, the task becomes claimable
 // by any other worker — crash reclaim is the lease predicate, not a
-// supervisor.
-//
-// The claim is currently carried by the (task ID, owner) pair, exactly as
-// in the donor. A token field (minted per claim, presented by finalize
-// calls, theft-detecting) is the planned ADR-0134 upgrade; the struct is
-// the seam so engines can add it without changing call sites.
+// supervisor — and the reclaim mints a fresh token, so a lapsed holder's
+// finalize fails with ErrLeaseNotHeld instead of racing the new owner
+// (ADR-0134 fencing tokens; the theft detector IS the finalize path).
 type Claim[T any] struct {
 	Task       task.Task[T]
 	LeaseUntil time.Time
+	Token      string
 }
 
 // ID returns the claimed task's ID — the handle every finalize call
-// (Complete, Fail, Heartbeat, Requeue, CancelOwned) takes.
+// (Complete, Fail, Heartbeat, Requeue, CancelOwned) takes, alongside the
+// claim's Token.
 func (c Claim[T]) ID() task.ID { return c.Task.ID }

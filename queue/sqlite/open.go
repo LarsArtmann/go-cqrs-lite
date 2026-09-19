@@ -84,7 +84,8 @@ func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
 
 // migrate applies the schema (idempotent) and converges legacy
 // databases: the dedup column is probed before its partial unique index
-// is created, so fresh and legacy databases take the same path.
+// is created, so fresh and legacy databases take the same path. The
+// lease-token column (ADR-0134) rides the same probe-then-ALTER shape.
 func (s *Store[T]) migrate(ctx context.Context) error {
 	if _, err := s.db.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("queue/sqlite: migrate: %w", err)
@@ -102,6 +103,21 @@ func (s *Store[T]) migrate(ctx context.Context) error {
 		if _, err := s.db.ExecContext(ctx,
 			`ALTER TABLE tasks ADD COLUMN dedup_key TEXT NOT NULL DEFAULT ''`); err != nil {
 			return fmt.Errorf("queue/sqlite: migrate: add dedup_key: %w", err)
+		}
+	}
+
+	var tokenCol int
+	if err := s.db.QueryRowContext(
+		ctx,
+		`SELECT COUNT(*) FROM pragma_table_info('tasks') WHERE name = 'lease_token'`,
+	).Scan(&tokenCol); err != nil {
+		return fmt.Errorf("queue/sqlite: migrate: check lease_token: %w", err)
+	}
+
+	if tokenCol == 0 {
+		if _, err := s.db.ExecContext(ctx,
+			`ALTER TABLE tasks ADD COLUMN lease_token TEXT`); err != nil {
+			return fmt.Errorf("queue/sqlite: migrate: add lease_token: %w", err)
 		}
 	}
 

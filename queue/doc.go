@@ -36,5 +36,9 @@
 // existing task, so a dependency cycle's closing edge would have to
 // name a task that does not exist yet — rejected as dangling. Cycles
 // are unrepresentable by construction; no runtime cycle detection is
-// needed or provided.
+// needed or provided. There is also no unblock-bump (the donor's
+// ADR-0015 concept): gating is evaluated at claim time, so completing
+// a dependency unblocks its waiters in the same write — and bounded
+// aging already lifts long-blocked tasks without distorting stored
+// priority.
 package queue
