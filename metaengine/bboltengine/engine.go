@@ -164,6 +164,12 @@ func NewBboltEngine(path string, opts ...Option) (metaengine.Engine, error) {
 		}
 	}
 
+	if err := eng.wireMapRuntimes(); err != nil {
+		_ = db.Close()
+
+		return nil, err
+	}
+
 	return eng, nil
 }
 

@@ -12,3 +12,19 @@ import (
 // metaengine.DedupStore with zero engine-specific claim code. Semantics are
 // pinned by adttest.AssertDueClaimer / AssertDedupStore (dueclaim_test.go).
 //art-dupl:accept each dep-isolated engine module wires the shared runtimes; per-module init is the database/sql registration pattern (AGENTS contract 19)
+func (e *badgerEngine) wireMapRuntimes() error {
+	claims, err := metaengine.NewMapDueClaimer(e)
+	if err != nil {
+		return fmt.Errorf("badgerengine: wire claims: %w", err)
+	}
+
+	dedup, err := metaengine.NewMapDedupStore(e)
+	if err != nil {
+		return fmt.Errorf("badgerengine: wire dedup: %w", err)
+	}
+
+	e.MapDueClaimer = claims
+	e.MapDedupStore = dedup
+
+	return nil
+}
