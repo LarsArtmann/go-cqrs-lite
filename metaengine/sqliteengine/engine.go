@@ -12,6 +12,7 @@ import (
 	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
 )
 
 // sqliteEngine implements all metaengine.ADT backends on a SQL database.
@@ -46,6 +47,12 @@ type sqliteEngine struct {
 	// versionRetention trims history per write when set.
 	versioning       bool
 	versionRetention *metaengine.RetentionPolicy
+
+	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
+	// method promotion — the ONE shared SQL claim/dedup implementation;
+	// see dueclaim.go.
+	*claimkit.Claims
+	*claimkit.Dedup
 }
 
 // sqliteQuerySet holds pre-built SQL strings per operation; two variants
@@ -178,6 +185,10 @@ func NewSQLiteEngine(database *sql.DB, opts ...EngineOption) (metaengine.Engine,
 	_, _ = database.ExecContext(context.Background(), `PRAGMA mmap_size = 268435456`)
 
 	if err := eng.createMatViews(context.Background()); err != nil {
+		return nil, err
+	}
+
+	if err := eng.wireClaimkit(); err != nil {
 		return nil, err
 	}
 

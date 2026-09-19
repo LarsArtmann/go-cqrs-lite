@@ -3,6 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4
 go 1.26.7
 
 require (
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
 	github.com/onsi/ginkgo/v2 v2.32.1
@@ -46,3 +47,5 @@ require (
 
 // Sibling replace for unpublished metaengine symbols (DurabilityReporter and later); stripped by scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming

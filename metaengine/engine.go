@@ -678,6 +678,10 @@ func SQLiteEngineProfile() EngineProfile {
 			ADTVector:    ComplexityON,
 			ADTSearch:    ComplexityON,
 			ADTSpatial:   ComplexityON,
+			// ADR-0142 write-side capabilities (claimkit SQL runtime): claims
+			// scan the (collection, due_at) index; dedup is a PK upsert.
+			ADTDueClaim: ComplexityOLogN,
+			ADTDedup:    ComplexityOLogN,
 		},
 		DegradedADTs: map[ADT]bool{
 			ADTVector:  true,
