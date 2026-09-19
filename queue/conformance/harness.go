@@ -46,6 +46,7 @@ func Run(t *testing.T, h Harness) {
 
 	t.Run("Lifecycle", s.runLifecycle)
 	t.Run("Claims", s.runClaims)
+	t.Run("Tokens", s.runTokens)
 	t.Run("Retry", s.runRetry)
 	t.Run("Dedup", s.runDedup)
 	t.Run("Deps", s.runDeps)

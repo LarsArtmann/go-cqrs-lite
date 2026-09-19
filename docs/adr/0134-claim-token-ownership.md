@@ -1,10 +1,14 @@
 # ADR-0134: Per-Claimer Claim Tokens for ClaimingTimerStore
 
-- Status: Proposed (stub — design not implemented; scheduled behind the
-  RenewLease adoption window)
-- Date: 2026-08-30
+- Status: Accepted for `queue/` (adopted 2026-09-19, pre-release —
+  `queue.Claim.Token`, `queue.NewClaimToken`, token-fenced finalize
+  methods); Proposed (stub) for `scheduling/sqlstore` D8 claiming
+  extensions — design not implemented there; scheduled behind the
+  RenewLease adoption window
+- Date: 2026-08-30 (proposed), 2026-09-19 (queue/ adoption)
 - Context: `scheduling/sqlstore` D8 claiming extensions
-  (RenewLease shipped 2026-08-30, commit `6f5fb66a0`)
+  (RenewLease shipped 2026-08-30, commit `6f5fb66a0`); the `queue/`
+  durable work-queue arc's T15
 
 ## Context
 
@@ -34,6 +38,28 @@ Introduce an opaque, per-claim token:
 - The token column rides the same idempotent `ensureLeaseColumn`-style
   migration as `lease_until`; NULL tokens (pre-migration rows) keep
   today's token-less semantics for one release.
+
+## Adoption in queue/ (2026-09-19)
+
+The queue arc implemented this ADR from day one — the modules were
+
+unreleased, so the breaking-ish concern below did not apply:
+
+- `ClaimDue` mints a token (`queue.NewClaimToken`, 16 crypto-random
+  bytes) and returns it on `queue.Claim{Task, LeaseUntil, Token}`; the
+  `lease_token` column (NULL when unclaimed) is stamped beside the
+  lease in both engines (SQLite pragma-probe ALTER migration, PG
+  `ADD COLUMN IF NOT EXISTS`).
+- The owner-string parameter on Complete/Fail/FailPermanent/Requeue/
+  Heartbeat/CancelOwned is SUPERSEDED by the token parameter — the
+  token is the fence; the owner remains attribution only (ClaimDue
+  argument, `lease_owner` column, fact Owner fields read from the row
+  inside the finalize transaction).
+- Conformance pins (`queue/conformance/tokens.go`): tokens minted per
+  claim and never reused across reclaims; forged tokens get
+  ErrLeaseNotHeld on every finalize; the theft story (lapse → reclaim →
+  lapsed holder fails, reclaiming holder succeeds, journal attributes
+  the completion to the new holder).
 
 ## Consequences
 

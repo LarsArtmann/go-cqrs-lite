@@ -97,7 +97,7 @@ func (s *suite) pinDeadDepGates(t *testing.T) {
 		t.Fatalf("claimed %s, want the blocker %s", c.Task.ID, blocker.ID)
 	}
 
-	if err := e.store.FailPermanent(t.Context(), blocker.ID, "w1", "poison", nil); err != nil {
+	if err := e.store.FailPermanent(t.Context(), blocker.ID, c.Token, "poison", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -116,7 +116,7 @@ func (s *suite) pinDeadDepGates(t *testing.T) {
 		t.Fatalf("claimed %s after rescue, want the blocker %s", c.Task.ID, blocker.ID)
 	}
 
-	if err := e.store.Complete(t.Context(), blocker.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), blocker.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -151,7 +151,7 @@ func (s *suite) pinChainDrains(t *testing.T) {
 			t.Fatalf("chain order broken: claimed %s, want %s", c.Task.ID, want)
 		}
 
-		if err := e.store.Complete(t.Context(), want, "w1", nil); err != nil {
+		if err := e.store.Complete(t.Context(), want, c.Token, nil); err != nil {
 			t.Fatal(err)
 		}
 	}

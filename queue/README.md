@@ -47,11 +47,16 @@ if errors.Is(err, queue.ErrNoTaskDue) {
 if err != nil {
     return err
 }
-defer store.Heartbeat(ctx, claim.ID(), "worker-1", 30*time.Second)
+defer store.Heartbeat(ctx, claim.ID(), claim.Token, 30*time.Second)
 
 // ... do the work ...
-err = store.Complete(ctx, claim.ID(), "worker-1", result)
+err = store.Complete(ctx, claim.ID(), claim.Token, result)
 ```
+
+Every claim mints an unguessable token (ADR-0134): finalize calls
+(`Complete`, `Fail`, `Requeue`, `Heartbeat`, `CancelOwned`) present the
+token, and a worker whose lease lapsed and was re-claimed gets
+`queue.ErrLeaseNotHeld` — the finalize path is the theft detector.
 
 ## Quickstart (Postgres)
 

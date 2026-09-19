@@ -51,7 +51,7 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 	}
 
 	// The re-claim sees the counted attempt.
-	c := e.claim(t, "w1")
+	c = e.claim(t, "w1")
 	if c.Task.ID != subject.ID || c.Task.Attempts != 1 {
 		t.Fatalf("re-claim = %s attempts=%d, want the same task at 1", c.Task.ID, c.Task.Attempts)
 	}
@@ -238,7 +238,7 @@ func (s *suite) pinRequeue(t *testing.T) {
 	// lease-checked like every finalize.
 	time.Sleep(100 * time.Millisecond)
 
-	c := e.claim(t, "w1")
+	c = e.claim(t, "w1")
 	mustError(
 		t,
 		"requeue stale token",

@@ -193,6 +193,11 @@ type Store[T any] interface { //nolint:interfacebloat // one persistence contrac
 	// sweepers after a restart.
 	Watermark(ctx context.Context, consumer string) (seq int64, exists bool, err error)
 
+	// Watermarks lists every consumer's persisted cursor — the operator
+	// surface behind lag dashboards (which bridge is where, who is
+	// behind), ordered by consumer name.
+	Watermarks(ctx context.Context) (map[string]int64, error)
+
 	// SaveWatermark checkpoints a consumer cursor as a monotonic upsert
 	// (never regresses). It records consumer progress, not task state, so
 	// no fact is appended.
