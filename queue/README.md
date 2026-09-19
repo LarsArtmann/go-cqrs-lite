@@ -18,6 +18,7 @@ conformance suite.
 | `queue/v4`          | The `Store[T]` contract, task/filter/fact types, error sentinels                    |
 | `queue/sqlite/v4`   | Engine: single-writer SQLite (WAL) — zero-ops default                               |
 | `queue/postgres/v4` | Engine: SKIP LOCKED claims over pgxpool — concurrent workers                        |
+| `queue/mysql/v4`    | Engine: two-statement SKIP LOCKED claims on MySQL 8+/MariaDB 10.6+                  |
 | `queue/conformance` | The mirrored suite every engine must pass (`-tags integration` for SQL engines)     |
 | `claiming/v4`       | The extracted claim core (Spec, SKIP LOCKED / single-writer / two-statement claims) |
 

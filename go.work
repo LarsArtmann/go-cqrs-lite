@@ -60,6 +60,7 @@ use (
 	./prometheus
 	./query
 	./queue
+	./queue/mysql
 	./queue/postgres
 	./queue/sqlite
 	./record

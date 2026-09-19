@@ -6,10 +6,21 @@ import (
 	"errors"
 	"time"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
+
+// claimDeadlockRetries bounds the in-engine retry of a claim
+// transaction that InnoDB killed with a deadlock (1213) or lock-wait
+// timeout (1205). Concurrent two-statement claims touch index-gap locks
+// in nondeterministic order, so occasional deadlocks are NORMAL on
+// MySQL — retrying the whole transaction is the documented InnoDB
+// remedy, and the claim is idempotent from the caller's perspective
+// (either it takes the lease or reports ErrNoTaskDue).
+const claimDeadlockRetries = 3
 
 // candidateSQL locks the next claimable row FOR UPDATE SKIP LOCKED —
 // competing workers sit on disjoint rows instead of queueing (MySQL 8+/
@@ -39,8 +50,45 @@ const claimUpdateSQL = `
 	    (status = 'pending' AND not_before <= ?)
 	    OR (status = 'running' AND lease_expires IS NOT NULL AND lease_expires <= ?))`
 
-// ClaimDue atomically claims one due task for owner.
+// ClaimDue atomically claims one due task for owner. InnoDB may
+// deadlock the claim transaction under concurrency (normal for
+// two-statement claims); the engine retries it internally before
+// surfacing the error.
 func (s *Store[T]) ClaimDue(
+	ctx context.Context,
+	owner string,
+	lease time.Duration,
+) (queue.Claim[T], error) {
+	var (
+		claim queue.Claim[T]
+		err   error
+	)
+
+	for range claimDeadlockRetries + 1 {
+		claim, err = s.claimOnce(ctx, owner, lease)
+		if err == nil || !isDeadlock(err) {
+			break
+		}
+	}
+
+	return claim, err
+}
+
+// isDeadlock reports whether err is InnoDB's deadlock (1213) or
+// lock-wait timeout (1205) signal.
+func isDeadlock(err error) bool {
+	var myErr *mysqldriver.MySQLError
+
+	if errors.As(err, &myErr) {
+		return myErr.Number == 1213 || myErr.Number == 1205
+	}
+
+	return false
+}
+
+// claimOnce runs one claim attempt (the transaction the retry loop
+// re-runs on deadlock).
+func (s *Store[T]) claimOnce(
 	ctx context.Context,
 	owner string,
 	lease time.Duration,

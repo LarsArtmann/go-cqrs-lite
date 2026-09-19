@@ -6,6 +6,57 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — queue M4: claim tokens (ADR-0134), dep validation, FactTx, MySQL engine — 2026-09-19
+
+- **Claim tokens from day one ([ADR-0134](docs/adr/0134-claim-token-ownership.md))**:
+  every `queue.ClaimDue` mints an unguessable `queue.Claim.Token`
+  (`queue.NewClaimToken`, crypto/rand) and stamps it beside the lease
+  (`lease_token` column, NULL when unclaimed, idempotent migrations in both
+  engines). The finalize methods — `queue.Store.Complete`/`Fail`/
+  `FailPermanent`/`Requeue`/`Heartbeat`/`CancelOwned` — now take the TOKEN
+  where they took the owner string: only the holder of the CURRENT claim can
+  finalize, and a worker whose lease lapsed and was re-claimed gets
+  `queue.ErrLeaseNotHeld` — the finalize path IS the theft detector. Owner
+  strings remain attribution (`ClaimDue` argument, `lease_owner` column,
+  fact `Owner` fields, read from the row inside the finalize tx). The
+  modules were unreleased, so the signature change ships "for free".
+  Conformance pins: tokens minted per claim and never reused across
+  reclaims, forged tokens refused, and the full theft story
+  (`queue/conformance` Tokens suite).
+- **Enqueue-time dependency validation — the cycle guard**:
+  `queue.Store.Enqueue` rejects a `task.New.Deps` entry naming a task that
+  does not exist with `queue.ErrDanglingDep` (Rejection family,
+  `queue.dangling_dep`), uniformly on every engine (the donor only got this
+  via SQLite FKs). Deps are fixed at enqueue and store-minted IDs cannot be
+  referenced by existing tasks, so a dependency cycle's closing edge always
+  names a not-yet-existing task — cycles are unrepresentable by
+  construction; no runtime detection is needed. Cancelled/dead deps still
+  block forever (rescue re-opens the gate) — stranded waiters stay visible.
+  No unblock-bump API: gating is evaluated at claim time (unblock is
+  transactional with the completing write) and bounded aging already lifts
+  long-blocked tasks.
+- **Same-tx fact appends for consumers**: `queue.FactTx`/`queue.FactSink` —
+  `WithFacts(ctx, fn)` runs fn inside ONE transaction whose sink appends
+  commit or roll back together (the go-taskqueue ADR-0001 lineage,
+  upstreamed). Both SQL engines implement it over the same connection
+  domain as the task tables; the conformance suite pins the atomicity
+  split.
+- **`queue.Store.Watermarks`**: lists every journal consumer's persisted
+  cursor — the operator lag surface behind bridge/sweeper dashboards
+  (`Watermark`/`SaveWatermark` remain the per-consumer pair).
+- **`queue/mysql/v4`** — the third engine: MySQL 8+/MariaDB 10.6+
+  two-statement claims (`SELECT … FOR UPDATE SKIP LOCKED`, then the
+  token-fenced UPDATE), BIGINT unix-milli timestamps (one encoding across
+  all three engines, no DATETIME timezone traps), nullable-`dedup_key`
+  unique emulation of the partial index, per-dep EXISTS validation, and an
+  in-engine retry of InnoDB deadlocks (1213/1205 — normal for concurrent
+  two-statement claims, the documented InnoDB remedy). Green on the shared
+  `queue/conformance` suite against live MariaDB 11.4, incl.
+  `-race -count=2` (live-gated via `MYSQL_TEST_DSN`). The metaengine
+  Engine/claimkit surface is deliberately not wired yet (claimkit MySQL is
+  mid-adoption on the metaengine side); when it lands, wiring follows the
+  queue/sqlite+postgres engine pattern.
+
 ### Added — ADR-0142 universal storage substrate: capabilities, runtimes, engine wiring — 2026-09-19
 
 - **`metaengine.DueClaimer` / `metaengine.DedupStore` / `metaengine.FactSink`**

@@ -191,6 +191,7 @@
             "queue"
             "queue/sqlite"
             "queue/postgres"
+            "queue/mysql"
             "record"
             "scenario"
             "scheduling"

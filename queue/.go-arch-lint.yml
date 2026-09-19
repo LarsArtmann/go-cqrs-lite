@@ -14,6 +14,7 @@ excludeFiles:
   - "^.*testdata/.*$"
   - "^postgres/.*$" # separate module
   - "^sqlite/.*$" # separate module
+  - "^mysql/.*$" # separate module
 
 components:
   core: { in: . }
