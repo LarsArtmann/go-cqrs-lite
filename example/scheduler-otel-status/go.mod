@@ -46,10 +46,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-// Examples pin published tags and run against the workspace in dev.
-// sqlstore's StartedAt is unpublished, and claiming has no tag at all —
-// both resolve to sibling checkouts (tag-release.sh strips these at cut).
-replace github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4 => ../../scheduling/sqlstore
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
