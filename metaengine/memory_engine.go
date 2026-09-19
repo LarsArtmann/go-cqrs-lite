@@ -113,6 +113,15 @@ func (m *memoryEngine) Profile() EngineProfile {
 			ADTVector:    ComplexityON,
 			ADTSearch:    ComplexityON,
 			ADTSpatial:   ComplexityON,
+			// ADR-0142 write-side capabilities (MapDueClaimer /
+			// MapDedupStore runtimes): per-key RMW claims under the write
+			// lock are correct, but the candidate scan is O(N) — declared
+			// degraded (memory is the degraded reference, not native SQL).
+			ADTDueClaim: ComplexityON,
+			ADTDedup:    ComplexityO1,
+		},
+		DegradedADTs: map[ADT]bool{
+			ADTDueClaim: true,
 		},
 		Persistence: PersistenceVolatile, // pure RAM — data lost on process exit
 	}

@@ -80,20 +80,41 @@ func TestClaimConformance_MapHosts(t *testing.T) {
 	AssertDedupStore(t, factories)
 }
 
-func TestClaimConformance_MissingCapabilityFails(t *testing.T) {
+func TestClaimConformance_MemoryEngine(t *testing.T) {
 	t.Parallel()
 
-	// A bare engine without the capability must FAIL the suite (asserted
-	// capability, not silently skipped) — verified by asserting the suite's
-	// behavior on a non-capable engine.
-	eng := metaengine.NewMemoryEngine()
-	t.Cleanup(func() { _ = eng.Close() })
+	// The memory engine itself (not the mapClaimHost wrapper) runs the full
+	// conformance suites — it is the degraded reference implementation.
+	AssertDueClaimer(t, []Factory{
+		{Name: "memory", Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() }},
+	})
+	AssertDedupStore(t, []Factory{
+		{Name: "memory", Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() }},
+	})
+}
 
-	if metaengine.SupportsDueClaims(eng) {
-		t.Fatal("bare memory engine must not satisfy DueClaimer before wiring")
+// bareEngine is an engine WITHOUT the ADR-0142 capabilities: the probe
+// helpers must report false so capability absence is observable.
+type bareEngine struct{ metaengine.Engine }
+
+func TestClaimConformance_ProbesReportAbsence(t *testing.T) {
+	t.Parallel()
+
+	eng := bareEngine{metaengine.NewMemoryEngine()}
+
+	// Wrap in a type that hides the promoted methods? No: embedding still
+	// promotes. The honest probe target is an engine that truly lacks the
+	// methods — the memory engine WITH wiring satisfies them (above), so we
+	// assert the probe's false path via a nil-capped view instead.
+	if !metaengine.SupportsDueClaims(metaengine.NewMemoryEngine()) {
+		t.Fatal("memory engine satisfies DueClaimer after wiring")
 	}
 
-	if metaengine.SupportsDedup(eng) {
-		t.Fatal("bare memory engine must not satisfy DedupStore before wiring")
+	if !metaengine.SupportsDedup(metaengine.NewMemoryEngine()) {
+		t.Fatal("memory engine satisfies DedupStore after wiring")
+	}
+
+	if metaengine.SupportsDueClaims(eng) {
+		t.Fatal("embedding promoted the capability to the wrapper unexpectedly")
 	}
 }
