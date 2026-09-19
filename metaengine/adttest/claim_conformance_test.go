@@ -2,7 +2,9 @@ package adttest
 
 import (
 	"database/sql"
+	"fmt"
 	"testing"
+	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
@@ -48,12 +50,16 @@ func TestClaimConformance_MapHosts(t *testing.T) {
 
 	factories := []Factory{{Name: "memory-map", Create: newMemory}}
 
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	// A UNIQUE named in-memory database: plain file::memory:?cache=shared is
+	// one database per PROCESS, so parallel test instances (-count>1) would
+	// close it out from under each other and invalidate cached statements.
+	db, err := sql.Open("sqlite",
+		fmt.Sprintf("file:adttest_%d?mode=memory&cache=shared", time.Now().UnixNano()))
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	db.SetMaxOpenConns(1) // one shared in-memory database across the pool
+	db.SetMaxOpenConns(1) // one connection: the named memory db lives while it exists
 
 	t.Cleanup(func() { _ = db.Close() })
 

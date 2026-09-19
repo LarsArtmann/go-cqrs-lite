@@ -22,12 +22,16 @@ func mapRuntimeHosts(t *testing.T) map[string]metaengine.Engine {
 	hosts := map[string]metaengine.Engine{"memory": metaengine.NewMemoryEngine()}
 	t.Cleanup(func() { _ = hosts["memory"].Close() })
 
-	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
+	// A UNIQUE named in-memory database: plain file::memory:?cache=shared is
+	// one database per PROCESS, so parallel test instances (-count>1) would
+	// close it out from under each other and invalidate cached statements.
+	db, err := sql.Open("sqlite",
+		fmt.Sprintf("file:adttest_%d?mode=memory&cache=shared", time.Now().UnixNano()))
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	db.SetMaxOpenConns(1) // one shared in-memory database across the pool
+	db.SetMaxOpenConns(1) // one connection: the named memory db lives while it exists
 
 	t.Cleanup(func() { _ = db.Close() })
 
