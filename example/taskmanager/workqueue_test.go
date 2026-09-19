@@ -61,7 +61,14 @@ func TestWorkQueue_AssignmentSurvivesRestart(t *testing.T) {
 		t.Fatalf("claimed payload %+v, want %+v", claim.Task.Payload, job)
 	}
 
-	if _, err := reopened.ClaimDue(ctx, "other-worker", claimLease); !errors.Is(err, queue.ErrNoTaskDue) {
+	if _, err := reopened.ClaimDue(
+		ctx,
+		"other-worker",
+		claimLease,
+	); !errors.Is(
+		err,
+		queue.ErrNoTaskDue,
+	) {
 		t.Fatalf("second claimer: error = %v, want ErrNoTaskDue (lease fencing)", err)
 	}
 }

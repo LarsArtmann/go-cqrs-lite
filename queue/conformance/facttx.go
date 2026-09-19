@@ -29,6 +29,7 @@ func (s *suite) pinFactTx(t *testing.T) {
 
 	// Rollback: fn appends two facts, then fails — neither may survive.
 	boom := errors.New("observation abandoned")
+
 	err = ftx.WithFacts(t.Context(), func(sink queue.FactSink) error {
 		for i, typ := range []string{"note.one", "note.two"} {
 			if err := sink.Append(t.Context(), facts.Fact{

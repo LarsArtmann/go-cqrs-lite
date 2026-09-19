@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 
 // CommandPublisherAdapter wraps a go-cqrs-lite command.Publisher as a

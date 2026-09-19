@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	idempotency "github.com/larsartmann/go-idempotency"
+
 	sqlstore "github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	idempotency "github.com/larsartmann/go-idempotency"
 )
 
 func newEngineStore(t *testing.T) *sqlstore.Store {

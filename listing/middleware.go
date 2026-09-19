@@ -3,8 +3,9 @@ package listing
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // StatusMiddleware returns PublishMiddleware that marks tombstone/rebirth metadata

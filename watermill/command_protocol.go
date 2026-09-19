@@ -4,10 +4,11 @@ import (
 	"strings"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Metadata keys for command field mapping. Tracing and custom keys are shared

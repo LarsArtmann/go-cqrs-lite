@@ -6,14 +6,15 @@ import (
 	"time"
 
 	gochannel "github.com/ThreeDotsLabs/watermill/pubsub/gochannel"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	wm "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
 // TestTraceContext_PropagationLinksSpans verifies that W3C trace context

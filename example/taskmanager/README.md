@@ -16,6 +16,7 @@ A production-grade task management service that demonstrates go-cqrs-lite **to t
 | **Signing**          | HMAC-SHA256 event signing (tamper-evident streams)                                        |
 | **Tombstone**        | Soft-delete as a `task.deleted` domain event (ADR-0114) — no hard deletes, data preserved |
 | **Deriver sagas**    | `deriver` derives follow-up commands from events (assignment cascade)                     |
+| **Durable work queue** | Deriver assignments ride `queue/sqlite` (ADR-0142): lease-fenced claims, retry with backoff, dead-lettering, dedup-convergent enqueue — assignments survive crashes instead of riding a fire-and-forget goroutine |
 | **Testing**          | Scenario DSL (`Given/When/Then`), integration tests, HTTP API tests                       |
 | **Error Taxonomy**   | 6-family error classification mapped to HTTP status codes                                 |
 | **Branded IDs**      | `TaskID = id.StreamID` for type-safe identifiers                                          |
@@ -39,6 +40,14 @@ HTTP API ──▶ Command Dispatcher ──▶ system.Execute Op ──▶ Even
                                                              ▼
                                                     Read Model Queries
 ```
+
+The deriver's assignment cascade goes through the durable work queue:
+`task.created` → enqueue `AssignmentJob` on `queue/sqlite` (dedup-keyed by
+task) → worker `ClaimDue` (lease-fenced) → dispatch `task.assign` →
+`Complete`; failures `Fail` with backoff and dead-letter after 3 attempts.
+With `DATABASE_PATH` set, both the event journal and the queue live in that
+one SQLite file — kill the process mid-cascade and the assignment is still
+there on restart.
 
 ## Quick Start
 

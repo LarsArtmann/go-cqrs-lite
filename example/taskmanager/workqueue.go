@@ -9,9 +9,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	qsqlite "github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
-	qsqlite "github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4"
 )
 
 // The engine-backed durable work queue (plan T22, ADR-0142): the deriver's
@@ -51,7 +51,11 @@ type WorkQueue struct {
 // openWorkQueue opens (and migrates) the assignment queue on the same SQLite
 // database the event journal lives in when DATABASE_PATH is a file; with the
 // in-memory default it is a fresh private database.
-func openWorkQueue(databasePath string, disp *command.Dispatcher, logger *slog.Logger) (*WorkQueue, error) {
+func openWorkQueue(
+	databasePath string,
+	disp *command.Dispatcher,
+	logger *slog.Logger,
+) (*WorkQueue, error) {
 	store, err := qsqlite.Open[AssignmentJob](databasePath)
 	if err != nil {
 		return nil, fmt.Errorf("open assignment queue: %w", err)

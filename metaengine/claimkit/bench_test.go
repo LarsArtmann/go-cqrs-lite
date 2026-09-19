@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite" // test-only driver registration
+
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
-
-	_ "modernc.org/sqlite" // test-only driver registration
 )
 
 // T18a (ADR-0142): claimkit vs the direct-SQL path a pre-substrate consumer

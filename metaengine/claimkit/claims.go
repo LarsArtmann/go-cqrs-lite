@@ -62,7 +62,7 @@ type Claims struct {
 
 // lockWriter returns the write guard for the engine's concurrency model.
 func (c *Claims) lockWriter() func() {
-	return c.duckWriteLock.lockWriterFor(c.dialect)
+	return c.lockWriterFor(c.dialect)
 }
 
 // New creates the runtime, ensuring the claims (and facts) tables exist.

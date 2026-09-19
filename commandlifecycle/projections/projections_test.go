@@ -5,12 +5,13 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/onsi/gomega"
+
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
-	. "github.com/onsi/gomega"
 )
 
 func TestDeclarations_ConstructWithoutPanic(t *testing.T) {

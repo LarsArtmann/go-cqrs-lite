@@ -5,12 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/larsartmann/go-finding"
-	output "github.com/larsartmann/go-output"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/correctness"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
+	"github.com/larsartmann/go-finding"
+	output "github.com/larsartmann/go-output"
 )
 
 func groupedFixture() []finding.Finding {

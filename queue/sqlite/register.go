@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -17,14 +18,12 @@ func init() {
 		"queue-sqlite",
 		func(ctx context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
 			if cfg.DSN == "" {
-				return nil, fmt.Errorf(
-					"queue-sqlite: DSN required (path to the queue database file)",
-				)
+				return nil, errors.New("queue-sqlite: DSN required (path to the queue database file)")
 			}
 
 			eng, err := NewEngine(cfg.DSN)
 			if err != nil {
-				return nil, err //nolint:wrapcheck // NewEngine wraps already
+				return nil, err
 			}
 
 			if err := eng.PingContext(ctx); err != nil {

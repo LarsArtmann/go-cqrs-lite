@@ -27,7 +27,7 @@ type Dedup struct {
 // lockWriter returns the write guard for the engine's concurrency model
 // (see Claims.lockWriter).
 func (d *Dedup) lockWriter() func() {
-	return d.duckWriteLock.lockWriterFor(d.dialect)
+	return d.lockWriterFor(d.dialect)
 }
 
 // NewDedup creates the runtime, ensuring the dedup table exists. The caller

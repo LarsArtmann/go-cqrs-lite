@@ -3,12 +3,13 @@ package grpc
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+	"google.golang.org/grpc"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
-	errorfamily "github.com/larsartmann/go-error-family"
-	"google.golang.org/grpc"
 )
 
 // CommandDispatcher is the server-side interface that the gRPC command

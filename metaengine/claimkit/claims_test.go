@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite" // test-only driver registration
+
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
-
-	_ "modernc.org/sqlite" // test-only driver registration
 )
 
 // host adapts the claimkit runtimes to metaengine.Engine so the adttest
@@ -90,10 +90,10 @@ func TestClaimKit_FactSinkSameTransaction(t *testing.T) {
 	ctx := context.Background()
 	now := time.UnixMilli(1000)
 
-	mustT(t, h.Claims.ClaimInsert(ctx, "tasks", "t1", now.Add(-time.Minute), []byte("w")))
-	mustT(t, h.Claims.ClaimInsert(ctx, "tasks", "t2", now.Add(-time.Minute), []byte("w2")))
+	mustT(t, h.ClaimInsert(ctx, "tasks", "t1", now.Add(-time.Minute), []byte("w")))
+	mustT(t, h.ClaimInsert(ctx, "tasks", "t2", now.Add(-time.Minute), []byte("w2")))
 
-	claims, err := h.Claims.ClaimDueFacts(ctx, metaengine.ClaimDueRequest{
+	claims, err := h.ClaimDueFacts(ctx, metaengine.ClaimDueRequest{
 		Collection: "tasks", Owner: "w1", Lease: time.Minute, Now: now,
 	}, func(cl metaengine.DueClaim) []metaengine.ClaimFact {
 		return []metaengine.ClaimFact{{Type: "claimed", Payload: []byte(cl.Key)}}
@@ -107,7 +107,7 @@ func TestClaimKit_FactSinkSameTransaction(t *testing.T) {
 	// Epoch-guarded delete with facts: matching epoch deletes + records;
 	// stale epoch records NOTHING (a fact without its state change did not
 	// happen either).
-	ok, err := h.Claims.ClaimDeleteFacts(ctx, "tasks", "t2", now.Add(-time.Minute),
+	ok, err := h.ClaimDeleteFacts(ctx, "tasks", "t2", now.Add(-time.Minute),
 		metaengine.ClaimFact{Type: "completed"})
 	mustT(t, err)
 
@@ -115,7 +115,7 @@ func TestClaimKit_FactSinkSameTransaction(t *testing.T) {
 		t.Fatal("matching-epoch delete must succeed")
 	}
 
-	ok, err = h.Claims.ClaimDeleteFacts(ctx, "tasks", "t2", now.Add(-time.Minute),
+	ok, err = h.ClaimDeleteFacts(ctx, "tasks", "t2", now.Add(-time.Minute),
 		metaengine.ClaimFact{Type: "completed"})
 	mustT(t, err)
 

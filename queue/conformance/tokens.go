@@ -41,6 +41,7 @@ func (s *suite) pinTokenMintedPerClaim(t *testing.T) {
 	}
 
 	short := e.enqueue(t, task.New[Payload]{Type: "sh"})
+
 	c, err := e.store.ClaimDue(t.Context(), "w3", 30*time.Millisecond)
 	if err != nil {
 		t.Fatal(err)

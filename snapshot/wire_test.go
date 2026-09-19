@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4/idtest"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"

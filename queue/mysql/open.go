@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql" // MySQL driver (CGo-free)
+
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 )
 

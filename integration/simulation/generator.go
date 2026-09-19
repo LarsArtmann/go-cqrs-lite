@@ -3,9 +3,10 @@ package simulation
 import (
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EventGenerator produces deterministic event sequences for stress testing.
