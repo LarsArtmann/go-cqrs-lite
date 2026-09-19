@@ -93,7 +93,10 @@ func TestResetEngine_ClearsAllState(t *testing.T) {
 
 	stream, err := sl.StreamRead(ctx, "events", "s1")
 	if err != nil || len(stream) != 1 {
-		t.Fatalf("stream log (journal, facts) must SURVIVE reset (ADR-0143): got %d entries", len(stream))
+		t.Fatalf(
+			"stream log (journal, facts) must SURVIVE reset (ADR-0143): got %d entries",
+			len(stream),
+		)
 	}
 
 	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{

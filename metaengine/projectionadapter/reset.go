@@ -9,14 +9,17 @@ import (
 // one-call revert of a metaengine-backed projection: it delegates to
 // [metaengine.Store.Reset], which clears the store's replay-affecting state
 // (event log, idempotency window, poison marks) and asks each engine to drop
-// its materialized collections. After Reset, the next Start replays the journal
-// from zero and rebuilds the read model cleanly.
+// its materialized collections. The JOURNAL survives (ADR-0143): journal
+// entries are facts — the replay source, never derived state — so a reset
+// that hosts its events on the same engine loses nothing. After Reset, the
+// next Start replays the journal from zero and rebuilds the read model
+// cleanly.
 //
-// Engines that implement metaengine.EngineResetter are fully cleared —
-// every first-party engine does (memory, SQLite/Turso, Pebble, bbolt,
-// Badger, Postgres, MySQL, DuckDB, Dgraph, and the iroh wrapper via its
-// local engine). Engines that do not (custom engines) cannot be
-// bulk-cleared; Reset logs a warning naming them and still returns nil,
+// Engines that implement metaengine.EngineResetter have their materialized
+// collections cleared — every first-party engine does (memory, SQLite/Turso,
+// Pebble, bbolt, Badger, Postgres, MySQL, DuckDB, Dgraph, and the iroh
+// wrapper via its local engine). Engines that do not (custom engines) cannot
+// be bulk-cleared; Reset logs a warning naming them and still returns nil,
 // because the checkpoint-only reset remains useful and a hard failure
 // would break existing v4 callers. Inspect the warning — or call
 // metaengine.Store.Reset directly for the structured ResetResult — when a

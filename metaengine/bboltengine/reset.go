@@ -49,7 +49,7 @@ func (e *bboltEngine) ResetEngine(_ context.Context) error {
 		for _, prefix := range resetTagPrefixes {
 			c := b.Cursor()
 
-			for k := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k = c.Next() {
+			for k, _ := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, _ = c.Next() {
 				if err := c.Delete(); err != nil {
 					return fmt.Errorf("delete prefix %q: %w", prefix, err)
 				}

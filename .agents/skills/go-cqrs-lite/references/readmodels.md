@@ -328,7 +328,10 @@ host.Start(ctx)
 **Engine capability ladder (metaengine):** `Store.Reset` clears every engine
 implementing the `EngineResetter` capability; the rest report through
 `ResetResult.UnclearableEngines` (and `Adapter.Reset` logs a WARN, still
-returning `nil` in v4.x):
+returning `nil` in v4.x). **The journal always survives** (ADR-0143): journal
+rows are facts — the replay source a reset rebuilds FROM — so resetting an
+engine that also hosts your event journal (`RoleSourceOfTruth` on the same
+engine) never loses events; only materialized collections are cleared.
 
 | Engine | `EngineResetter` |
 | --- | --- |

@@ -82,12 +82,20 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 
 	entries, err := lb.LogTail(ctx, "audit", 10)
 	if err != nil || len(entries) != 1 {
-		t.Fatalf("log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v", len(entries), err)
+		t.Fatalf(
+			"log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
+			len(entries),
+			err,
+		)
 	}
 
 	stream, err := sl.StreamRead(ctx, "events", "s1")
 	if err != nil || len(stream) != 2 {
-		t.Fatalf("stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v", len(stream), err)
+		t.Fatalf(
+			"stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
+			len(stream),
+			err,
+		)
 	}
 }
 
@@ -182,7 +190,10 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 	}
 
 	if len(after) != 2 {
-		t.Fatalf("journal (facts) must SURVIVE reset (ADR-0143): want the pre-reset entry plus the appended one, got %d", len(after))
+		t.Fatalf(
+			"journal (facts) must SURVIVE reset (ADR-0143): want the pre-reset entry plus the appended one, got %d",
+			len(after),
+		)
 	}
 
 	if after[len(after)-1].Seq <= lastSeq {

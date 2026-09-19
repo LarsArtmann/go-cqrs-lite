@@ -8,9 +8,14 @@ import (
 )
 
 // EngineResetter is an optional engine capability: engines that can drop ALL
-// their materialized state and return to the empty, post-construction state
-// implement it. [Store.Reset] uses it to fully revert a projection so a replay
-// from the beginning of the journal rebuilds the read model from zero.
+// their MATERIALIZED state implement it. [Store.Reset] uses it to fully revert
+// a projection so a replay from the beginning of the journal rebuilds the read
+// model from zero.
+//
+// The JOURNAL is never part of a reset: journal entries (log, stream log) are
+// facts on the ADR-0136 invertibility ladder (ADR-0143) — the replay source a
+// reset rebuilds FROM. A deployment hosting its event store on an engine
+// relies on reset preserving it.
 //
 // Engines that do NOT implement EngineResetter cannot be bulk-cleared;
 // [Store.Reset] reports them in [ResetResult.UnclearableEngines] so a partial

@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — engine reset deleted the journal (ADR-0143: facts survive resets) — 2026-09-19
+
+- **Root cause of the long-"flaky" `TestSystem_ResetProjection_RestartAndReplay`**
+  failures: `EngineResetter.ResetEngine` cleared EVERYTHING — including the
+  journal tables — which is correct only when the journal is a local cache of
+  an external event store. Under ADR-0142, a deployment can host its event
+  journal ON the engine (`RoleSourceOfTruth` → stream-log ADT); resetting
+  such an engine deleted the facts the replay needed
+  (`journal holds 0 event(s) from sys2's view`). The bug was masked in
+  `GOWORK=off` per-module tests because those run against PUBLISHED engine
+  versions that predate `ResetEngine` — only workspace mode (what `#verify`
+  runs) exercised it, and it had been mis-attributed to load-sensitivity for
+  days.
+- **Fix (ADR-0143)**: engine reset now clears MATERIALIZED state only; the
+  journal (SQL `meta_log`/`meta_stream_log`, KV `l`/`sl`/`jl` prefixes,
+  dgraph `LogEntry`/`StreamLogEntry`, memory `logs`/`streams`/
+  `streamJournal`) survives as facts on the ADR-0136 ladder. Every engine's
+  reset test now PINS journal survival (read-back non-empty after reset)
+  alongside the derived-collections-cleared pins; `CatchUpEngine` is
+  unaffected (it folds the in-process event log into materialized
+  collections). bbolt's reset went from drop-whole-bucket to prefix-scoped
+  deletion; bigtable needs no change (it hosts no journal ADTs).
+- Docs: `EngineResetter`/`projectionadapter.Reset` doc comments, AGENTS
+  contract 22, readmodels.md reset ladder, and the
+  workspace-vs-`GOWORK=off` masking lesson recorded in
+  `docs/agents/gotchas-testing.md`.
+
 ### Changed — jsonv2 graduation sweep: no-op build tag + GOEXPERIMENT removed everywhere — 2026-09-19
 
 - Go 1.27 graduated `encoding/json/v2`, making `-tags "goexperiment.jsonv2"`
