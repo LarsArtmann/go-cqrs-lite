@@ -75,8 +75,8 @@ func newEngine(ctx context.Context, db *sql.DB, ownsDB bool) (*Engine, error) {
 // (same-datacenter round trip, calibratable by the live probe) without a
 // production dep on that module.
 const (
-	mysqlNsPerOp     = 12000.0
-	mysqlNetworkRTT  = 1 * 1000 * 1000 // 1ms
+	mysqlNsPerOp    = 12000.0
+	mysqlNetworkRTT = 1 * 1000 * 1000 // 1ms
 )
 
 // Profile declares the engine's capabilities: native indexed claims and

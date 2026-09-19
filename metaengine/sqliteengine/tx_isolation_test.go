@@ -184,6 +184,12 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 				if err := aa.StreamAppendExpected(ctx, writeCol, sid, int64(i),
 					[]any{fmt.Sprintf("w-%04d", i)}); err != nil &&
 					!errors.Is(err, metaengine.ErrVersionConflict) {
+					// A deadline landing mid-append is shutdown, not failure —
+					// the pre-loop check cannot cover the in-flight window.
+					if ctx.Err() != nil {
+						return
+					}
+
 					fail("writer StreamAppendExpected", err)
 
 					return
@@ -214,6 +220,13 @@ func TestSQLiteEngine_ConcurrentStreamReadVsAppendExpected(t *testing.T) {
 
 				vals, err := sb.StreamRead(ctx, readCol, sid)
 				if err != nil {
+					// Deadline landing mid-read is shutdown, not failure: under
+					// -race the writers can outlive the 5s budget and a reader
+					// call in flight at expiry returns ctx.Err().
+					if ctx.Err() != nil {
+						return
+					}
+
 					fail("reader StreamRead", err)
 
 					return
