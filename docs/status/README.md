@@ -193,7 +193,7 @@ Full a)–g) breakdown:
 open in the archived file as the historical record).
 
 **2026-09-19 (8th docs-health pass):** processed the entire 2026-09-13..19
-accumulation — 57 session reports read in full, **772+ forward items resolved
+accumulation — 57 session reports read in full, **815+ forward items resolved
 inline** (`~~struck~~ done <date> — <evidence>`; evidence = TODO_LIST `[x]` rows
 + CHANGELOG `[Unreleased]` dated entries; agent line-drift in one file caught by
 atomic-write validation before any wrong strike), 62 RESOLVED-BY-ROUTING
