@@ -29,9 +29,12 @@ LAYER[decider]=3
 LAYER[graph]=3
 LAYER[scenario]=3
 LAYER[projectionhost]=3
-# claiming: dialect-correct claim-SQL core (no store) consumed by
-# scheduling/sqlstore (L5) and the queue engines (queue/sqlite etc., L5).
-LAYER[claiming]=4
+# claiming: dialect-correct claim/lease SQL STATEMENT library — zero runtime
+# deps (errorfamily only), owns NO store. Consumed downward by metaengine
+# claimkit (L3, ADR-0142), scheduling/sqlstore and the queue engines (L5).
+# Layer 2 (contract/utility, like queue at L3 minus the domain tie): the
+# original L4 classification predated ADR-0142, when only L5 stores used it.
+LAYER[claiming]=2
 # queue: the durable work-queue CONTRACT (task/journal/queue packages,
 # no engine). Engines implement it over claiming; semantically a domain
 # contract like decider, and dep-light (errorfamily only).
@@ -120,7 +123,11 @@ LAYER["testutil/pgtestcontainer"]=5
 # still budgeting its production deps.
 LAYER[metaengine]=3
 LAYER["idempotency/kvstore"]=2
-LAYER["idempotency/sqlstore"]=2
+# idempotency/sqlstore: SQL STORES over go-idempotency — storage
+# infrastructure by nature, and since ADR-0142 its NewFromEngine facade
+# depends on metaengine (L3) legitimately (an SQL store adapting to the
+# engine registry). The kvstore sibling stays L2 (pure kv abstraction).
+LAYER["idempotency/sqlstore"]=4
 
 # EXCEPTIONS: each entry suppresses a layer violation that is architecturally
 # legitimate. The script cannot distinguish production imports from test-only
@@ -227,10 +234,14 @@ DEP_BUDGET[projectionhost]=9
 DEP_BUDGET[claiming]=1
 # queue: 1 = go-error-family only (sentinel classification).
 DEP_BUDGET[queue]=1
-# queue/sqlite: 2 = queue contract + modernc sqlite driver.
-DEP_BUDGET["queue/sqlite"]=2
-# queue/postgres: 2 = queue contract + pgx (pgtestcontainer is test-only).
-DEP_BUDGET["queue/postgres"]=2
+# queue/sqlite: 4 = queue contract + modernc sqlite driver + claiming
+# (engine-owned claim SQL in the claiming SHAPE) + metaengine (NewEngine
+# driver registration, ADR-0142 T09 — the engine joins the operator registry).
+DEP_BUDGET["queue/sqlite"]=4
+# queue/postgres: 4 = queue contract + pgx + claiming + metaengine (same
+# ADR-0142 T09 driver-registration pair as queue/sqlite; pgtestcontainer is
+# test-only).
+DEP_BUDGET["queue/postgres"]=4
 # queue/mysql: 2 = queue contract + go-sql-driver (DSN-gated conformance is test-only).
 DEP_BUDGET["queue/mysql"]=2
 DEP_BUDGET[signing]=5
@@ -267,12 +278,17 @@ DEP_BUDGET["stack/bench"]=25
 # helpers), a-h/templ + templ-components (approved docserver UI adoption),
 # +1 templ-components/utils (generated d2view_templ.go imports it directly
 # since templ-components v1.11.0 — same +1-for-a-submodule precedent as
-# storage/pebble above).
-DEP_BUDGET[catalog]=6
+# storage/pebble above), +1 templ-components/icons (same submodule precedent,
+# v1.18 split the icon set into its own module).
+DEP_BUDGET[catalog]=7
 DEP_BUDGET[integration]=21
 DEP_BUDGET[benchkit]=25
 DEP_BUDGET[testutil]=5
-DEP_BUDGET[metaengine]=5
+# metaengine: 6 = the four Tier-0-ish primitives (record/id/dedup/errorfamily)
+# + go-sse (ServeSSE) + claiming (ADR-0142 claimkit: the ONE database/sql
+# claim+dedup runtime every SQL engine embeds; claiming is a zero-runtime
+# statement library, L2).
+DEP_BUDGET[metaengine]=6
 DEP_BUDGET["metaengine/pebbleengine"]=5
 DEP_BUDGET["metaengine/duckdbengine"]=5
 DEP_BUDGET["metaengine/pgengine"]=5

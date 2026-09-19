@@ -7,23 +7,55 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"sync"
 	"time"
 )
 
 // ID identifies a task. Opaque, unique, roughly time-sortable.
 type ID string
 
+// idMintState makes NewID monotonic within a millisecond. The claim order
+// (oldest first within a priority) breaks created_at ties with `id ASC`,
+// so same-millisecond IDs must sort by mint order — a purely random
+// suffix made that tie-break a random permutation (observed as the
+// status_counts conformance flake: the wrong task got claimed ~20% of
+// runs). seed is re-rolled every millisecond so cross-process uniqueness
+// survives; seq orders same-millisecond mints inside this process.
+var idMintState = struct {
+	sync.Mutex
+	lastMS int64
+	seq    uint64
+	seed   [6]byte
+}{}
+
 // NewID returns a new unique task ID: a millisecond timestamp prefix plus
-// a crypto-random suffix. The timestamp prefix makes IDs sort by creation
-// time, which the claim order (oldest first within a priority) relies on
-// for stable tie-breaking.
+// a per-millisecond random seed and a monotonic sequence. The timestamp
+// prefix and monotonic sequence make IDs sort by creation time, which the
+// claim order (oldest first within a priority) relies on for stable
+// tie-breaking.
 func NewID() ID {
-	var b [10]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		panic(fmt.Sprintf("queue: crypto/rand failed: %v", err))
+	idMintState.Lock()
+
+	now := time.Now().UnixMilli()
+	if now > idMintState.lastMS {
+		idMintState.lastMS = now
+		idMintState.seq = 0
+
+		if _, err := rand.Read(idMintState.seed[:]); err != nil {
+			idMintState.Unlock()
+
+			panic(fmt.Sprintf("queue: crypto/rand failed: %v", err))
+		}
 	}
 
-	return ID(fmt.Sprintf("%016x", time.Now().UnixMilli()) + hex.EncodeToString(b[:]))
+	seq := idMintState.seq
+	idMintState.seq++
+	ms := idMintState.lastMS
+	seed := idMintState.seed
+
+	idMintState.Unlock()
+
+	return ID(fmt.Sprintf("%016x%s%08x", ms, hex.EncodeToString(seed[:]), seq))
 }
 
 // String returns the raw ID.
