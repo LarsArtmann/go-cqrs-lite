@@ -11,9 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/larsartmann/go-idempotency"
-	otel "go.opentelemetry.io/otel"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // register "sqlite" driver
@@ -24,6 +21,8 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	"github.com/larsartmann/go-idempotency"
+	otel "go.opentelemetry.io/otel"
 )
 
 const (
@@ -46,6 +45,7 @@ type Server struct {
 	MetaEngine   *metaengine.Store
 	TaskReader   *metaengine.TypedReader[TaskView]
 	ProjHost     *projectionhost.Host
+	WorkQueue    *WorkQueue
 	Logger       *slog.Logger
 	otelProvider *cqrsotel.Provider
 	signer       signing.SignerVerifier
@@ -169,9 +169,21 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("setup: verify middleware: %w", err)
 	}
 
-	// ── Deriver: auto-assign new tasks (event→command reaction) ──────────
+	// ── Durable work queue: engine-backed assignments (T22, ADR-0142) ────
+	// The deriver's follow-up commands ride queue/sqlite (the "queue-sqlite"
+	// driver running the ONE claimkit claim/dedup/facts runtime) instead of a
+	// fire-and-forget goroutine: lease-fenced claims, backoff retries,
+	// dead-lettering, dedup-convergent enqueue.
+	wq, err := openWorkQueue(cfg.DatabasePath, sys.CommandDispatcher(), logger)
+	if err != nil {
+		return nil, fmt.Errorf("setup: work queue: %w", err)
+	}
+
+	srv.WorkQueue = wq
+
+	// ── Deriver: auto-assign new tasks (event→queue→command) ──────────
 	if err := sys.ProjectionHost().Register(
-		newDeriverProjection(sys.CommandDispatcher(), logger),
+		newDeriverProjection(wq),
 	); err != nil {
 		return nil, fmt.Errorf("setup: register deriver: %w", err)
 	}
@@ -195,6 +207,10 @@ func (s *Server) Start(ctx context.Context) {
 			s.Logger.Error("projection host", "error", err)
 		}
 	}()
+
+	if s.WorkQueue != nil {
+		s.WorkQueue.Start(ctx)
+	}
 }
 
 // StartHTTP launches the HTTP API server in a background goroutine.
@@ -237,6 +253,11 @@ func (s *Server) Stop() error {
 
 	if s.taskWatcher != nil {
 		s.taskWatcher.Close()
+	}
+
+	if s.WorkQueue != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
+		_ = s.WorkQueue.Stop()
 	}
 
 	return s.Sys.Close()

@@ -9,9 +9,9 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4"
-	"github.com/larsartmann/go-cqrs-lite/queue/task/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
+	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
+	qsqlite "github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4"
 )
 
 // The engine-backed durable work queue (plan T22, ADR-0142): the deriver's

@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"log/slog"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 )
@@ -12,46 +10,30 @@ import (
 // ──────────────────────────────────────────────────────────────────────────
 // Deriver — event→command reactions.
 //
-// When a task is created, the deriver automatically assigns it to the
-// default team lead. This demonstrates the reactive CQRS pattern:
-// events trigger commands that modify other aggregates (or the same one).
-//
-// The dispatch is ASYNCHRONOUS to avoid deadlocking the projection
-// pipeline (BlockPublishUntilSubscriberAck=true means a synchronous
-// dispatch inside a handler would block forever waiting for its own ack).
+// When a task is created, the deriver schedules its automatic assignment to
+// the default team lead — as a DURABLE job on the engine-backed work queue
+// (queue/sqlite, ADR-0142), not a fire-and-forget goroutine: the assignment
+// survives crashes, retries with backoff, and dead-letters when exhausted.
+// The enqueue is a quick SQL write on the queue database, so it cannot
+// deadlock the projection pipeline the way a synchronous dispatch would
+// (BlockPublishUntilSubscriberAck=true).
 // ──────────────────────────────────────────────────────────────────────────
 
 const defaultAssignee = "team-lead"
 
-// newDeriverProjection creates a projection that auto-assigns new tasks.
-// The command dispatch runs in a goroutine to avoid blocking the event pipeline.
+// newDeriverProjection creates a projection that auto-assigns new tasks via
+// the durable work queue; the worker loop dispatches the command.
 //
 //nolint:ireturn // factory returning interface is intentional for projection registration
-func newDeriverProjection(disp *command.Dispatcher, logger *slog.Logger) projection.Projection {
+func newDeriverProjection(wq *WorkQueue) projection.Projection {
 	//cqrs-lint:ignore(C004) library code or intentional pattern
 	return projection.NewProjection(
 		"auto-assign",
 		func(ctx context.Context, evt event.Event) error {
-			baseCmd, err := command.New(cmdAssignTask, evt.StreamID())
-			if err != nil {
-				return err
-			}
-
-			cmd := AssignTaskCmd{
-				BasicCommand: baseCmd,
-				AssigneeID:   defaultAssignee,
-			}
-
-			// Async dispatch: fire-and-forget to avoid deadlock with
-			// BlockPublishUntilSubscriberAck=true on the bus.
-			go func() {
-				if dErr := disp.Dispatch(ctx, cmd); dErr != nil {
-					logger.Error("deriver: auto-assign failed",
-						"taskID", evt.StreamID(), "error", dErr)
-				}
-			}()
-
-			return nil
+			return wq.enqueueAssignment(ctx, AssignmentJob{
+				TaskID:     evt.StreamID().String(),
+				AssigneeID: defaultAssignee,
+			})
 		},
 		[]event.Type{evtTaskCreated},
 	)

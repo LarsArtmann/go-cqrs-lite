@@ -6,10 +6,9 @@ import (
 	"io"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MemoryQueryStore is an in-memory implementation of query.QueryStore.

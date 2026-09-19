@@ -1,9 +1,8 @@
 package encryption
 
 import (
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // EncryptSinkTransform returns an [event.SinkTransform] that encrypts every

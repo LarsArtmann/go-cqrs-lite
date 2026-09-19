@@ -7,12 +7,11 @@ import (
 	"io"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Option configures the SQLite preset.
@@ -38,17 +37,13 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		PragmaConfig: sqlopt.PragmaConfig{
-			WAL:         true,
-			Optimize:    false,
-			ForeignKeys: false,
-		},
-		DSNConfig: sqlopt.DSNConfig{
-			AutoMigrate: true,
-			EventDSN:    "",
-			QueryDSN:    "",
-			ViewDSN:     "",
-		},
+		WAL:            true,
+		Optimize:       false,
+		ForeignKeys:    false,
+		AutoMigrate:    true,
+		EventDSN:       "",
+		QueryDSN:       "",
+		ViewDSN:        "",
 		driverName:     driverNameSQLite,
 		durability:     stack.DurabilityNormal,
 		cacheSizeBytes: 0,
