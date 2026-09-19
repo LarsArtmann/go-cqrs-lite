@@ -30,13 +30,15 @@ const candidateSQL = `
 	FOR UPDATE SKIP LOCKED`
 
 // claimUpdateSQL stamps the lease; the RowsAffected re-check is the
-// fence against a lost race.
+// fence against a lost race. The minted token is stamped beside the
+// lease: it is the holder proof every finalize predicate re-checks
+// (ADR-0134).
 const claimUpdateSQL = `
 	UPDATE tasks
-	SET status = 'running', lease_owner = $1, lease_expires = $2, updated_at = $3
-	WHERE id = $4 AND (
-	    (status = 'pending' AND not_before <= $3)
-	    OR (status = 'running' AND lease_expires IS NOT NULL AND lease_expires <= $3))`
+	SET status = 'running', lease_owner = $1, lease_expires = $2, lease_token = $3, updated_at = $4
+	WHERE id = $5 AND (
+	    (status = 'pending' AND not_before <= $4)
+	    OR (status = 'running' AND lease_expires IS NOT NULL AND lease_expires <= $4))`
 
 // ClaimDue atomically claims one due task for owner.
 func (s *Store[T]) ClaimDue(
@@ -47,6 +49,8 @@ func (s *Store[T]) ClaimDue(
 	now := time.Now()
 
 	var claimed task.Task[T]
+
+	token := queue.NewClaimToken()
 
 	finalizedCancel := false
 
@@ -69,7 +73,7 @@ func (s *Store[T]) ClaimDue(
 			}
 		}
 
-		return s.stampLease(ctx, tx, id, owner, now, lease, &claimed)
+		return s.stampLease(ctx, tx, id, owner, token, now, lease, &claimed)
 	})
 	//art-dupl:accept dialect twin of queue/sqlite ClaimDue tail; conformance pins lease semantics
 	if err != nil {
@@ -85,6 +89,7 @@ func (s *Store[T]) ClaimDue(
 	return queue.Claim[T]{
 		Task:       claimed,
 		LeaseUntil: time.UnixMilli(now.Add(lease).UnixMilli()),
+		Token:      token,
 	}, nil
 }
 
@@ -141,7 +146,7 @@ func (s *Store[T]) finalizeReclaim(
 	}
 
 	tag, err := tx.Exec(ctx, `
-		UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL
+		UPDATE tasks SET status = 'cancelled', updated_at = $1, lease_owner = '', lease_expires = NULL, lease_token = NULL
 		WHERE id = $2 AND status = 'running'`, now.UnixMilli(), id)
 	if err != nil {
 		return false, err
@@ -161,13 +166,13 @@ func (s *Store[T]) finalizeReclaim(
 func (s *Store[T]) stampLease(
 	ctx context.Context,
 	tx pgx.Tx,
-	id, owner string,
+	id, owner, token string,
 	now time.Time,
 	lease time.Duration,
 	out *task.Task[T],
 ) error {
 	tag, err := tx.Exec(ctx, claimUpdateSQL,
-		owner, now.Add(lease).UnixMilli(), now.UnixMilli(), id)
+		owner, now.Add(lease).UnixMilli(), token, now.UnixMilli(), id)
 	if err != nil {
 		return err
 	}

@@ -68,7 +68,7 @@ func (s *suite) pinDedupTerminal(t *testing.T) {
 		t.Fatalf("claimed %s, want %s", c.Task.ID, dead.ID)
 	}
 
-	if err := e.store.Fail(t.Context(), dead.ID, "w1", "boom", 0, nil); err != nil {
+	if err := e.store.Fail(t.Context(), dead.ID, c.Token, "boom", 0, nil); err != nil {
 		t.Fatal(err)
 	}
 

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 	status        TEXT NOT NULL DEFAULT 'pending',
 	lease_owner   TEXT NOT NULL DEFAULT '',
 	lease_expires BIGINT,
+	lease_token   TEXT,
 	last_error    TEXT NOT NULL DEFAULT '',
 	created_at    BIGINT NOT NULL,
 	updated_at    BIGINT NOT NULL,

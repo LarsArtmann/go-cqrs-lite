@@ -29,10 +29,10 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
 	// Zero backoff: the task re-enters the ready set immediately.
-	if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, c.Token, "boom", 0, nil); err != nil {
 		t.Fatalf("fail: %v", err)
 	}
 
@@ -57,7 +57,7 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 	}
 
 	// A real backoff parks the task until NotBefore.
-	if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom2", time.Hour, nil); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, c.Token, "boom2", time.Hour, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 			t.Fatalf("attempt %d claimed %s, want %s", attempt, c.Task.ID, subject.ID)
 		}
 
-		if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil); err != nil {
+		if err := e.store.Fail(t.Context(), subject.ID, c.Token, "boom", 0, nil); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -130,9 +130,9 @@ func (s *suite) pinPermanent(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 9})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
-	if err := e.store.FailPermanent(t.Context(), subject.ID, "w1", "bad payload", nil); err != nil {
+	if err := e.store.FailPermanent(t.Context(), subject.ID, c.Token, "bad payload", nil); err != nil {
 		t.Fatalf("fail-permanent: %v", err)
 	}
 
@@ -158,7 +158,7 @@ func (s *suite) pinEvidence(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
 	evidence := []byte(
 		`{"stage":"verify","exit_code":1,"tail":"` + strings.Repeat("x", 2048) + `"}`,
@@ -166,7 +166,7 @@ func (s *suite) pinEvidence(t *testing.T) {
 	if err := e.store.Fail(
 		t.Context(),
 		subject.ID,
-		"w1",
+		c.Token,
 		"verify failed",
 		0,
 		evidence,
@@ -199,12 +199,12 @@ func (s *suite) pinRequeue(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
 	if err := e.store.Requeue(
 		t.Context(),
 		subject.ID,
-		"w1",
+		c.Token,
 		"env not ready",
 		50*time.Millisecond,
 	); err != nil {
@@ -241,8 +241,8 @@ func (s *suite) pinRequeue(t *testing.T) {
 	c := e.claim(t, "w1")
 	mustError(
 		t,
-		"requeue stale owner",
-		e.store.Requeue(t.Context(), c.Task.ID, "someone-else", "x", 0),
+		"requeue stale token",
+		e.store.Requeue(t.Context(), c.Task.ID, "forged-token", "x", 0),
 		queue.ErrLeaseNotHeld,
 	)
 }
@@ -294,7 +294,7 @@ func deadTask(t *testing.T, e *env) task.Task[Payload] {
 		t.Fatalf("claimed %s, want %s", c.Task.ID, subject.ID)
 	}
 
-	if err := e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil); err != nil {
+	if err := e.store.Fail(t.Context(), subject.ID, c.Token, "boom", 0, nil); err != nil {
 		t.Fatal(err)
 	}
 

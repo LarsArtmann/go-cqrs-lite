@@ -151,7 +151,7 @@ func (s *suite) pinPriorityOrder(t *testing.T) {
 		t.Fatalf("claimed %s, want the priority-5 task %s", c.Task.ID, high.ID)
 	}
 
-	if err := e.store.Complete(t.Context(), high.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), high.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -207,7 +207,7 @@ func (s *suite) pinDepGating(t *testing.T) {
 		t.Fatalf("claimed dependent %s before its blocker — DAG gating broken", c.Task.ID)
 	}
 
-	if err := e.store.Complete(t.Context(), blocker.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), blocker.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -240,7 +240,7 @@ func (s *suite) pinAging(t *testing.T) {
 		)
 	}
 
-	if err := e.store.Complete(t.Context(), older.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), older.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -276,7 +276,7 @@ func (s *suite) pinStoredPriorityStable(t *testing.T) {
 		t.Fatalf("claimed priority = %d, want stored 42 (aging must not mutate)", c.Task.Priority)
 	}
 
-	if err := e.store.Heartbeat(t.Context(), subject.ID, "w1", time.Minute); err != nil {
+	if err := e.store.Heartbeat(t.Context(), subject.ID, c.Token, time.Minute); err != nil {
 		t.Fatal(err)
 	}
 

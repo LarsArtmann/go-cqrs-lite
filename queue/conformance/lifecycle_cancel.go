@@ -16,7 +16,7 @@ func (s *suite) pinCooperativeCancel(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
 	if err := e.store.CancelRunning(t.Context(), subject.ID, "stop it"); err != nil {
 		t.Fatalf("cancel-running: %v", err)
@@ -44,7 +44,7 @@ func (s *suite) pinCooperativeCancel(t *testing.T) {
 		queue.ErrInvalidTransition,
 	)
 
-	if err := e.store.CancelOwned(t.Context(), subject.ID, "w1"); err != nil {
+	if err := e.store.CancelOwned(t.Context(), subject.ID, c.Token); err != nil {
 		t.Fatalf("cancel-owned: %v", err)
 	}
 
@@ -65,7 +65,7 @@ func (s *suite) pinCooperativeCancel(t *testing.T) {
 	mustError(
 		t,
 		"cancel-owned after finalize",
-		e.store.CancelOwned(t.Context(), subject.ID, "w1"),
+		e.store.CancelOwned(t.Context(), subject.ID, c.Token),
 		queue.ErrLeaseNotHeld,
 	)
 }

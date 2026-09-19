@@ -106,6 +106,13 @@ func wrapPool[T any](
 		return nil, fmt.Errorf("queue/postgres: migrate: %w", err)
 	}
 
+	// ADR-0134 claim tokens: converge pre-token databases (no-op when the
+	// schema above already created the column).
+	if _, err := pool.Exec(ctx,
+		`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS lease_token TEXT`); err != nil {
+		return nil, fmt.Errorf("queue/postgres: migrate: add lease_token: %w", err)
+	}
+
 	return &Store[T]{pool: pool, codec: options.codec, ownsPool: false}, nil
 }
 

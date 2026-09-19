@@ -125,12 +125,16 @@ func (s *suite) pinRoundtrip(t *testing.T) {
 		t.Fatal("claim lease deadline not surfaced")
 	}
 
+	if c.Token == "" {
+		t.Fatal("claim carries no token (ADR-0134 fencing)")
+	}
+
 	_, err := e.store.ClaimDue(t.Context(), "w2", time.Minute)
 	if !errors.Is(err, queue.ErrNoTaskDue) {
 		t.Fatalf("second claim: error = %v, want ErrNoTaskDue", err)
 	}
 
-	if err := e.store.Complete(t.Context(), subject.ID, "w1", []byte(`{"ok":true}`)); err != nil {
+	if err := e.store.Complete(t.Context(), subject.ID, c.Token, []byte(`{"ok":true}`)); err != nil {
 		t.Fatalf("complete: %v", err)
 	}
 
@@ -166,38 +170,44 @@ func (s *suite) pinNotFound(t *testing.T) {
 	_, err := e.store.Get(t.Context(), id)
 	mustError(t, "get unknown", err, queue.ErrNotFound)
 
-	if err := e.store.Complete(t.Context(), id, "w", nil); err == nil {
+	if err := e.store.Complete(t.Context(), id, "no-such-token", nil); err == nil {
 		t.Fatal("complete unknown: expected error, got nil")
 	}
 }
 
-// pinLeaseGuards pins that finalize calls are lease-checked: wrong owner
-// and expired leases get ErrLeaseNotHeld.
+// pinLeaseGuards pins that finalize calls are token-checked: wrong
+// tokens and expired leases get ErrLeaseNotHeld.
 func (s *suite) pinLeaseGuards(t *testing.T) {
 	//art-dupl:accept standard scenario prologue (openEnv + enqueue); independent scenario tests
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
 	mustError(
 		t,
-		"complete wrong owner",
-		e.store.Complete(t.Context(), subject.ID, "w2", nil),
+		"complete wrong token",
+		e.store.Complete(t.Context(), subject.ID, "forged-token", nil),
 		queue.ErrLeaseNotHeld,
 	)
 	mustError(
 		t,
-		"fail wrong owner",
-		e.store.Fail(t.Context(), subject.ID, "w2", "x", 0, nil),
+		"fail wrong token",
+		e.store.Fail(t.Context(), subject.ID, "forged-token", "x", 0, nil),
 		queue.ErrLeaseNotHeld,
 	)
 	mustError(
 		t,
-		"heartbeat wrong owner",
-		e.store.Heartbeat(t.Context(), subject.ID, "w2", time.Minute),
+		"heartbeat wrong token",
+		e.store.Heartbeat(t.Context(), subject.ID, "forged-token", time.Minute),
 		queue.ErrLeaseNotHeld,
 	)
+
+	// The task survived every forged finalize.
+	got, _ := e.store.Get(t.Context(), subject.ID)
+	if got.Status != task.Running {
+		t.Fatalf("status = %s after forged finalizes, want running", got.Status)
+	}
 
 	// Expired lease: a second task claimed short completes after its
 	// deadline is refused.
@@ -213,7 +223,7 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 	mustError(
 		t,
 		"complete expired",
-		e.store.Complete(t.Context(), c.Task.ID, "expire-w", nil),
+		e.store.Complete(t.Context(), c.Task.ID, c.Token, nil),
 		queue.ErrLeaseNotHeld,
 	)
 
@@ -233,7 +243,7 @@ func (s *suite) pinHeartbeat(t *testing.T) {
 	// boundary so strict extension is deterministic.
 	time.Sleep(2 * time.Millisecond)
 
-	if err := e.store.Heartbeat(t.Context(), subject.ID, "w1", time.Minute); err != nil {
+	if err := e.store.Heartbeat(t.Context(), subject.ID, c.Token, time.Minute); err != nil {
 		t.Fatalf("heartbeat: %v", err)
 	}
 
@@ -297,9 +307,9 @@ func (s *suite) pinStatusGuards(t *testing.T) {
 	)
 
 	done := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
-	if err := e.store.Complete(t.Context(), done.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), done.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}
 

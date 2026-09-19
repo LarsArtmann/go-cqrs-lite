@@ -28,9 +28,9 @@ func (s *suite) pinSeqOrder(t *testing.T) {
 	}
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	_ = e.claim(t, "w1")
+	c := e.claim(t, "w1")
 
-	if err := e.store.Complete(t.Context(), subject.ID, "w1", nil); err != nil {
+	if err := e.store.Complete(t.Context(), subject.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -67,8 +67,8 @@ func (s *suite) pinTailBound(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1})
-	_ = e.claim(t, "w1")
-	_ = e.store.Fail(t.Context(), subject.ID, "w1", "boom", 0, nil) // failed + dead-lettered
+	c := e.claim(t, "w1")
+	_ = e.store.Fail(t.Context(), subject.ID, c.Token, "boom", 0, nil) // failed + dead-lettered
 
 	all := factsFor(t, e, subject.ID)
 	if len(all) < 3 {
