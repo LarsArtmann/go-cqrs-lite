@@ -28,7 +28,9 @@ func TestSystem_GracefulClose_DrainTimeout(t *testing.T) {
 	t.Parallel()
 
 	sys := &System{
-		drainers: []Drainer{&slowDrainer{delay: 200 * time.Millisecond}},
+		// 2s vs the 50ms budget: see TestSystem_Drain_ContextExpired — a wide
+		// margin keeps ctx.Done the only ready case under scheduler stalls.
+		drainers: []Drainer{&slowDrainer{delay: 2 * time.Second}},
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -200,9 +202,11 @@ func TestSystem_Drain_ContextExpired(t *testing.T) {
 	t.Parallel()
 
 	sys := &System{
-		drainers: []Drainer{
-			&slowDrainer{delay: 200 * time.Millisecond},
-		},
+		// 2s vs the 50ms budget: under heavy parallel-test load the test
+		// goroutine can stall past the whole budget before Drain runs; with a
+		// short delay BOTH select cases are then ready at entry and the random
+		// pick flakes. A wide margin keeps ctx.Done the only ready case.
+		drainers: []Drainer{&slowDrainer{delay: 2 * time.Second}},
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)

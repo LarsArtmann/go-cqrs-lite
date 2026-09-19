@@ -244,11 +244,11 @@ noise_gate() {
 	total="$(jq -r '(.metricVariation // []) | length' "$file" 2>/dev/null)" || total=""
 
 	if [[ -z "$total" ]]; then
-			echo "NOISE GATE FAILED — could not parse cqrs-bench result JSON: $file"
-			echo "  Regenerate with: cqrs-bench run --backend $NOISE_BACKEND --profile $NOISE_PROFILE --repeat $NOISE_REPEAT --format json"
+		echo "NOISE GATE FAILED — could not parse cqrs-bench result JSON: $file"
+		echo "  Regenerate with: cqrs-bench run --backend $NOISE_BACKEND --profile $NOISE_PROFILE --repeat $NOISE_REPEAT --format json"
 
-			return 1
-		fi
+		return 1
+	fi
 
 	if [[ "$total" -eq 0 ]]; then
 		echo "NOISE GATE FAILED — result carries no metricVariation data"
@@ -284,7 +284,7 @@ noise_gate() {
 		else
 			echo "  noisy (non-headline, advisory): $name CoV=${pct}%"
 		fi
-		done <<<"$noisy"
+	done <<<"$noisy"
 
 	if [[ "$failed" == 1 ]]; then
 		echo "NOISE GATE FAILED — headline metrics moved too much between runs;"
@@ -398,7 +398,7 @@ noise_status=0
 # gate benchmarks ran in a different step/process.
 if [[ -n "$NOISE_CURRENT" ]]; then
 	noise_gate "$NOISE_CURRENT" || noise_status=$?
-elif [[ "$SKIP_NOISE_GATE" == 0 && ( -z "$CURRENT_INPUT" || "$NOISE_ONLY" == 1 ) ]]; then
+elif [[ "$SKIP_NOISE_GATE" == 0 && (-z "$CURRENT_INPUT" || "$NOISE_ONLY" == 1) ]]; then
 	noise_result="$(mktemp)"
 	run_noise_benchmark "$noise_result" || noise_status=$?
 
