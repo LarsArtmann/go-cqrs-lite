@@ -184,6 +184,38 @@ func claimsDDL(d claiming.Dialect) []string {
 				"PRIMARY KEY (collection, key)\n" +
 				")",
 		}
+	case claiming.DialectDuckDB:
+		// DuckDB: native TIMESTAMP (microsecond) columns, dollar placeholders,
+		// and a sequence for fact positions (no AUTOINCREMENT). Claims ride
+		// the numbered IN-subquery UPDATE..RETURNING shape; DuckDB's
+		// single-process single-writer serialization replaces row locks.
+		return []string{
+			`CREATE TABLE IF NOT EXISTS meta_due_claims (
+	collection   VARCHAR NOT NULL,
+	key          VARCHAR NOT NULL,
+	due_at       TIMESTAMP NOT NULL,
+	lease_until  TIMESTAMP,
+	owner        VARCHAR NOT NULL DEFAULT '',
+	payload      BLOB NOT NULL,
+	created_at   TIMESTAMP NOT NULL,
+	PRIMARY KEY (collection, key)
+)`,
+			`CREATE SEQUENCE IF NOT EXISTS meta_claim_facts_seq`,
+			`CREATE TABLE IF NOT EXISTS meta_claim_facts (
+	seq        BIGINT PRIMARY KEY DEFAULT nextval('meta_claim_facts_seq'),
+	collection VARCHAR NOT NULL,
+	key        VARCHAR NOT NULL,
+	type       VARCHAR NOT NULL,
+	payload    BLOB,
+	recorded_at TIMESTAMP NOT NULL DEFAULT now()
+)`,
+			`CREATE TABLE IF NOT EXISTS meta_dedup (
+	collection  VARCHAR NOT NULL,
+	key         VARCHAR NOT NULL,
+	expires_at  TIMESTAMP NOT NULL,
+	PRIMARY KEY (collection, key)
+)`,
+		}
 	default: // SQLite
 		return []string{
 			`CREATE TABLE IF NOT EXISTS meta_due_claims (
@@ -228,7 +260,7 @@ func insertClaimStmt(
 	}
 
 	switch d {
-	case claiming.DialectPostgres:
+	case claiming.DialectPostgres, claiming.DialectDuckDB:
 		return `INSERT INTO meta_due_claims (collection, key, due_at, payload)
 VALUES ($1, $2, $3, $4) ON CONFLICT (collection, key) DO NOTHING`,
 			[]any{collection, key, dueAt, payload}

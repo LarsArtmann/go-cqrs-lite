@@ -23,6 +23,7 @@ require (
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
@@ -36,3 +37,5 @@ require (
 
 // Sibling replace for unpublished metaengine symbols (planned-table capabilities); stripped by scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming

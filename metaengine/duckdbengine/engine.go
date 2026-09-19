@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
 )
 
 // DuckDBNsPerOp is the calibrated per-write-operation cost.
@@ -56,6 +57,12 @@ type duckdbEngine struct {
 	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.RWMutex
+
+	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
+	// method promotion — the ONE shared SQL claim/dedup implementation
+	// (DuckDB dialect); see dueclaim.go.
+	*claimkit.Claims
+	*claimkit.Dedup
 }
 
 // New creates a DuckDB-backed metaengine Engine.
@@ -133,6 +140,10 @@ func (e *duckdbEngine) init() error {
 		}
 	}
 
+	if err := e.wireClaimkit(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -177,6 +188,10 @@ func (e *duckdbEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTVector:    metaengine.ComplexityON,
 			metaengine.ADTSearch:    metaengine.ComplexityON,
 			metaengine.ADTSpatial:   metaengine.ComplexityON,
+			// ADR-0142 write-side capabilities (claimkit DuckDB dialect):
+			// claims scan the (collection, due_at) index; dedup is a PK upsert.
+			metaengine.ADTDueClaim: metaengine.ComplexityOLogN,
+			metaengine.ADTDedup:    metaengine.ComplexityOLogN,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSet:      true,
