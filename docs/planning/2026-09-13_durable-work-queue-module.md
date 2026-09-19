@@ -1,7 +1,11 @@
 # Durable Work Queue Module — proposal (2026-09-13)
 
-**Status:** PROPOSED (owner-triggered: "go-cqrs-lite should have a solution
-for this" — go-taskqueue storage-adoption challenge, 2026-09-13 session)
+**Status:** EXECUTED THROUGH M4 (2026-09-19) — P0 claiming/ extraction, P1–P4 the
+full `queue/` family (sqlite/postgres/mysql engines, ADR-0134 claim tokens, T14 dep
+validation, `FactTx`/`FactSink`, `Store.Watermarks`) all shipped and conformance-green
+incl. `-race`; P5 routed (go-taskqueue semantic-diff memo 2026-09-19: upstreaming
+subtyped, not forked). Only the family TAG WAVE remains (TODO_LIST "Durable Work Queue
+module"). ARCHIVED by the docs-health 8th pass, 2026-09-19.
 **Trigger consumer:** go-taskqueue (`internal/queue` hand-rolled SQLite +
 Postgres stores); second consumer: PapDashboard ("worker pools over durable
 queues" in production today).

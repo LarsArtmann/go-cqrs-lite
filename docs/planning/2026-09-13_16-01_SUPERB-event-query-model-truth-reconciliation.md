@@ -451,3 +451,8 @@ after the memos recommended options A (wire `StreamingScan` as `Store.StreamColl
 B (per-actor `CommandsByActor` projection) — see CHANGELOG. Decisions still open: the
 `command.rejected` event (T17 deferred half), session-log boundary (T18), query-level
 `Stream(ctx, input, fn)` (T16 follow-up). Plan version: 1.1.
+
+> **CLOSED 2026-09-19 (docs-health 8th pass):** `command.rejected` SHIPPED 2026-09-15
+> (T17 option A — AGENTS.md contract #25); session-log boundary ROUTED (TODO_LIST
+> [BLOCKED] + ROADMAP OQ #15); query-level `Stream` ROUTED (ROADMAP OQ #13). All 26
+> tasks executed or routed. ARCHIVED.

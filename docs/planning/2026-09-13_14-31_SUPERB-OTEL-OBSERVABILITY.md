@@ -1,5 +1,11 @@
 # SUPERB: OTEL-OBSERVABILITY — Close the observability gaps
 
+> **EXECUTED IN FULL 2026-09-13** (same day; report:
+> [`docs/status/archived/2026-09-13_18-34_OTEL-OBSERVABILITY-SUPERB.md`](../status/archived/2026-09-13_18-34_OTEL-OBSERVABILITY-SUPERB.md)).
+> M1–M12 all shipped (M4 revised during execution — see the inline note);
+> the composed `#verify` half of M11 is the standing quiet-window TODO_LIST item.
+> ARCHIVED by the docs-health 8th pass, 2026-09-19.
+
 > Plan created 2026-09-13 14:31 CEST from the session question "How are we doing on OTEL?
 > Anything that should be improved?" Evidence-backed review found the shipped OTel surface
 > (tracing, metrics, bundles, lint rules F027–F029) solid, but four real gaps + two minor ones.
@@ -153,11 +159,11 @@ flowchart TD
 
 ## Definition of done
 
-- [ ] `metaengine.WithHealthObserver` + `otelobserver` module: quarantine/reactivation/probe/catch-up visible as OTel counters
-- [ ] `scheduling/sqlstore.NewClaimMetricsOTel` + `ClaimMetricsSnapshot.StartedAt`
-- [ ] `otel/otlp.SetupOTLP` one-call wiring with http exporters
-- [ ] Runnable example serving `/status` + `/metrics`
-- [ ] `db.system` on sql/pebble/bbolt spans; exemplars decision implemented or documented
-- [ ] api golden, doc-check, check-arch, verify-ci, `#verify` all green
-- [ ] CHANGELOG/FEATURES/TODO_LIST/module map/skill refs updated
-- [ ] Detailed commits + push
+- [x] `metaengine.WithHealthObserver` + `otelobserver` module: quarantine/reactivation/probe/catch-up visible as OTel counters
+- [x] `scheduling/sqlstore.NewClaimMetricsOTel` + `ClaimMetricsSnapshot.StartedAt` (revised: OTel wiring lives in the runnable example)
+- [x] `otel/otlp.SetupOTLP` one-call wiring with http exporters
+- [x] Runnable example serving `/status` + `/metrics`
+- [x] `db.system` on sql/pebble/bbolt spans; exemplars decision implemented or documented
+- [x] api golden, doc-check, check-arch, verify-ci, `#verify` all green (composed `#verify` = the standing quiet-window TODO item)
+- [x] CHANGELOG/FEATURES/TODO_LIST/module map/skill refs updated
+- [x] Detailed commits + push

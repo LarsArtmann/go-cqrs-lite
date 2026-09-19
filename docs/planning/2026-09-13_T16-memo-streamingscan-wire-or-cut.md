@@ -48,7 +48,7 @@ Remove `StreamingScan` from `engine.go`, delete the 4 engine implementations and
 
 ## Decision
 
-- [ ] A — wire it (recommended)
+- [x] A — wire it (recommended) — CHOSEN & EXECUTED 2026-09-13 (`Store.StreamCollection`; see Update below)
 - [ ] B — cut at v5
 - [ ] C — keep dormant
 

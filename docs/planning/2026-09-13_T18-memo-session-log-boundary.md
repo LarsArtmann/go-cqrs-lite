@@ -1,7 +1,7 @@
 # T18 Decision Memo: Session Log and the `queue/` Boundary
 
 **Date:** 2026-09-13
-**Status:** Proposal for decision (no code changed)
+**Status:** DECIDED — recommendation A adopted as standing policy 2026-09-13 (sessions stay external); revisit only on a concrete audit consumer (tracked: TODO_LIST [BLOCKED] session-log boundary + ROADMAP OQ #15). ARCHIVED 2026-09-19.
 **Parent plan:** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md) (T18)
 **Evidence:** repo-wide zero hits for session event types · `cqrs-htmx/identity-model` (external) · [`claiming/`](../../claiming/) extraction note
 
@@ -48,6 +48,6 @@ They share _patterns_, not _domain_: a queue is not a session store, and session
 
 ## Decision
 
-- [ ] A — sessions stay external; boundary documented (recommended)
+- [x] A — sessions stay external; boundary documented (recommended) — ADOPTED as standing policy 2026-09-13
 - [ ] B — add `sessionlifecycle` module later (trigger: concrete audit consumer)
 - [ ] C — fold into `queue/` (not recommended)

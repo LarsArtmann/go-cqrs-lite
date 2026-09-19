@@ -6,6 +6,12 @@
 **Parent plan (executed):** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md)
 **Target:** close every non-gated gap the status report identified — verification, stale doc surfaces, missing semantics tests, process notes — without touching gated product decisions.
 
+> **EXECUTED IN FULL 2026-09-14** — all 17 tasks executed (M2/M15 partial-by-design,
+> routed; see the authoritative execution report
+> [`docs/status/archived/2026-09-14_03-29_reconciliation-close-out-execution.md`](../status/archived/2026-09-14_03-29_reconciliation-close-out-execution.md) §a;
+> the in-file Status column below froze mid-run and was never updated). Q2 answered
+> 2026-09-15 (`command.rejected` shipped). ARCHIVED by the docs-health 8th pass, 2026-09-19.
+
 ---
 
 ## Why this plan exists

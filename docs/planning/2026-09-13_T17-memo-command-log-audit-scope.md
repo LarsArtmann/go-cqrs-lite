@@ -54,8 +54,8 @@ The 2026-07-23 design (§10) envisioned "a FULL COMPREHENSIVE audit log — who 
 
 ## Decision
 
-- [ ] A — full audit scope (rejection event + per-actor; no payload capture)
-- [ ] B — per-actor projection only (recommended)
+- [x] A — full audit scope (rejection event + per-actor; no payload capture) — rejection half EXECUTED 2026-09-15 (see Update below); payload capture stays out by design
+- [x] B — per-actor projection only (recommended) — EXECUTED 2026-09-13 (`projections.CommandsByActor`)
 - [ ] C — scope done as shipped
 
 ---
