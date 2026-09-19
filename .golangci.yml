@@ -167,14 +167,6 @@ linters:
         # Added 2026-09-19.
         - github.com/larsartmann/go-cqrs-lite/storage/v4/pebble\.storeBase
         - github.com/larsartmann/go-cqrs-lite/storage/v4/bbolt\.storeBase
-    modernize:
-      excludes:
-        # embedlit wants X{Embed{...}} (unkeyed embedded literal) — the exact
-        # shape exhaustruct v5.0.3 panics on and embeddedstructfieldcheck
-        # readability argues against. The analyzers directly contradict each
-        # other on embedded literals; we keep the explicit keyed form.
-        # Added 2026-09-19; revisit when exhaustruct > v5.0.3 lands.
-        - embedlit
     funlen:
       lines: 200
       statements: 100
@@ -384,6 +376,15 @@ linters:
       - path: queue/conformance/
         linters:
           - mnd
+      # embedlit wants the unkeyed embedded-literal form X{Embed{...}} — the
+      # exact shape exhaustruct v5.0.3 panics on (upstream skippedNamed bug)
+      # and that Go style guides discourage. The analyzers directly
+      # contradict each other on embedded literals; we keep the explicit
+      # keyed form X{Embed: Embed{...}}. Added 2026-09-19; revisit when
+      # exhaustruct > v5.0.3 lands.
+      - text: 'embedlit: embedded field type can be removed from struct literal'
+        linters:
+          - modernize
       - path: testhelpers/fake.*\.go$
         linters:
           - exhaustruct_v5

@@ -3,16 +3,17 @@ package loopback
 import (
 	"fmt"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 )
 
-// Pins the op-dedup window semantics of markSeen. The dedup set trades
-// correctness precision for bounded memory: beyond 10,000 entries the whole
-// set RESETS (not a ring/LFU eviction), so an op ID seen before the reset is
-// forgotten and would be re-applied on a later redelivery. These tests make
-// both halves of that contract explicit.
+// Pins the op-dedup window semantics of markSeen. The window is a bounded
+// dedup.Ring with graceful eviction of the oldest ID, not a map that resets
+// wholesale: the newest IDs always survive, so a redelivery inside the live
+// window is deduplicated without the full reset gap the hand-rolled map had.
+// These tests make the bounded-eviction contract explicit.
 func TestMarkSeen_DedupWindow(t *testing.T) {
-	tr := &LoopbackTransport{}
-	tr.dedupSeen = make(map[string]struct{})
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(DefaultDedupCapacity)}
 
 	if !tr.markSeen("op-1") {
 		t.Fatal("first markSeen(op-1) = false, want true")
@@ -27,27 +28,50 @@ func TestMarkSeen_DedupWindow(t *testing.T) {
 	}
 }
 
-func TestMarkSeen_ResetBeyondWindow(t *testing.T) {
-	tr := &LoopbackTransport{}
-	tr.dedupSeen = make(map[string]struct{})
+// TestMarkSeen_EvictsOldestNotAll pins the property the reset-based map lacked:
+// at capacity, exactly the oldest ID is forgotten — recent IDs stay deduplicated.
+func TestMarkSeen_EvictsOldestNotAll(t *testing.T) {
+	const capacity = 4
 
-	const window = 10000
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(capacity)}
 
-	// Fill the set past the reset threshold, remembering the FIRST id —
-	// it is the one the reset will forget.
-	const oldID = "op-0000"
-	tr.markSeen(oldID)
-	for i := range window {
+	const oldest = "op-oldest"
+
+	tr.markSeen(oldest)
+	for i := range capacity - 1 {
+		tr.markSeen(fmt.Sprintf("op-%02d", i))
+	}
+
+	// Capacity reached: the next distinct ID evicts exactly the oldest.
+	tr.markSeen("op-next")
+
+	if got := tr.dedupRing.Len(); got > capacity {
+		t.Fatalf("dedup ring holds %d entries, want <= %d", got, capacity)
+	}
+
+	if tr.markSeen("op-next") {
+		t.Fatal("recently added op-next = true, want false (still deduplicated)")
+	}
+
+	if !tr.markSeen(oldest) {
+		t.Fatal("markSeen(oldest) = false; evicted entry should be forgotten")
+	}
+}
+
+// TestMarkSeen_BoundedOverflow proves memory stays bounded across far more IDs
+// than the capacity, while every recent ID remains deduplicated.
+func TestMarkSeen_BoundedOverflow(t *testing.T) {
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(DefaultDedupCapacity)}
+
+	for i := range DefaultDedupCapacity * 2 {
 		tr.markSeen(fmt.Sprintf("fill-%06d", i))
 	}
 
-	if got := len(tr.dedupSeen); got > window+1 {
-		t.Fatalf("dedup set grew to %d entries, want bounded ~%d", got, window)
+	if got := tr.dedupRing.Len(); got > DefaultDedupCapacity {
+		t.Fatalf("dedup ring grew to %d entries, want <= %d", got, DefaultDedupCapacity)
 	}
 
-	// Old IDs are forgotten after the reset: redelivery of pre-reset ops
-	// re-applies. This is the documented tradeoff, not a bug.
-	if !tr.markSeen(oldID) {
-		t.Fatal("markSeen(oldID) after reset = false; reset should have forgotten it")
+	if tr.markSeen(fmt.Sprintf("fill-%06d", DefaultDedupCapacity*2-1)) {
+		t.Fatal("most recent ID = true, want false (still deduplicated)")
 	}
 }

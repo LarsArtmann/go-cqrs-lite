@@ -124,8 +124,6 @@ func TestGoal_DeletedTaskStaysDeleted(t *testing.T) {
 // database: the operator flips one config value and the deployment now
 // targets postgres, whose driver the app already carries.
 func TestGoal_OperatorSwapsDriverByConfig(t *testing.T) {
-	t.Parallel()
-
 	path := sqliteConfig(t)
 
 	t.Setenv("CQRS_ENGINES__PRIMARY__DRIVER", "postgres")
