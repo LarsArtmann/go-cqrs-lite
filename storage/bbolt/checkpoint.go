@@ -6,12 +6,11 @@ import (
 	"slices"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 )
 
 // CheckpointStore implements event.CheckpointStore backed by bbolt.
@@ -25,7 +24,7 @@ func NewCheckpointStore(database *bolt.DB, logger *slog.Logger) (*CheckpointStor
 		return nil, ErrNilDatabase
 	}
 
-	return &CheckpointStore{storeBase: storeBase{db: database, logger: logger}}, nil
+	return &CheckpointStore{db: database, logger: logger}, nil
 }
 
 func (s *CheckpointStore) Save(

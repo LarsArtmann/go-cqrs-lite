@@ -7,14 +7,13 @@ import (
 	"slices"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
+	bolt "go.etcd.io/bbolt"
 )
 
 // SnapshotStore implements snapshot.SnapshotStore backed by bbolt.
@@ -27,7 +26,7 @@ func NewSnapshotStore(database *bolt.DB, logger *slog.Logger) (*SnapshotStore, e
 		return nil, ErrNilDatabase
 	}
 
-	return &SnapshotStore{storeBase: storeBase{db: database, logger: logger}}, nil
+	return &SnapshotStore{db: database, logger: logger}, nil
 }
 
 // Save persists a snapshot to the bbolt database.
