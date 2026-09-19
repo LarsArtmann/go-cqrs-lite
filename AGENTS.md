@@ -59,7 +59,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Lint config | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
 | ErrTax      | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
 | Rel. tests  | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
-| Recipe gate | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 77/77 classified, coverage ratchet)  |
+| Recipe gate | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 80/80 classified, coverage ratchet)  |
 | CSP check   | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
 | EventCat    | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
 | Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
@@ -161,7 +161,7 @@ Split by topic; edit the topic file, never inline here:
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.
 - [`gowork-modes.md`](docs/agents/gowork-modes.md) — THE GOWORK decision table + mandatory env chain + jsonv2 tag.
-- [`module-map.md`](docs/agents/module-map.md) — the internal module map (73 of 90 modules rowed; engines/tools/examples live in FEATURES' maturity matrix).
+- [`module-map.md`](docs/agents/module-map.md) — the internal module map (73 of 95 modules rowed; census pending — engines/tools/examples live in FEATURES' maturity matrix).
 
 TL;DR rules (too hot to be one click away):
 
