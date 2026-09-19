@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
 	"github.com/larsartmann/go-idempotency"
 
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
@@ -63,7 +64,22 @@ func concurrentClaimExactlyOnce(t *testing.T, store *sqlstore.Store, key string,
 	for range n {
 		go func() {
 			defer wg.Done()
-			results <- store.CheckAndRecord(context.Background(), key, time.Minute)
+
+			// A transient failure (e.g. one reset connection through a VM
+			// port-forward) proves nothing either way — the store classifies it
+			// retryable, so retry. If the first attempt actually committed, the
+			// retry observes ErrDuplicate and the win/dup accounting below
+			// still holds for every interleaving.
+			for attempt := 0; ; attempt++ {
+				err := store.CheckAndRecord(context.Background(), key, time.Minute)
+				if err == nil || attempt >= 5 || !errorfamily.IsRetryable(err) {
+					results <- err
+
+					return
+				}
+
+				time.Sleep(50 * time.Millisecond)
+			}
 		}()
 	}
 
