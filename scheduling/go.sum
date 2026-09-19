@@ -32,8 +32,8 @@ github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0 h1:3sZBOJSYQGy+ld6EH90L0RTD
 github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0/go.mod h1:g8zMcdU2qkRVOZ47mnZ++Pjf2vV2k8aT64GhGOEaPcQ=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0 h1:PjI4Y+CPkg2mBG7InAi9y3+czCQsXyIdcjZiGQduq6M=
 github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0/go.mod h1:/Je8mL9pj1BtlAU8XtpBqtrLGHob1TeZpvlobrUmIy8=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 h1:hzkUocB88KT2jv+qbDdxhMbpSKwFuvYQoF1+Tg2NmQA=
-github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0/go.mod h1:M1X23EFSYHlThkbgXuryK8/WL/MZp4UgbNofYY9ztoE=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 h1:QvW5ZaugMScgDEx+rlwII7Hv7WBzD8FXwl0uIeQh9zU=
+github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1/go.mod h1:2DXPF00FLnyPUAEoQ6EAdAnhUfacceUPewISS21a1d4=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 h1:r8TEd1S2ptCmhRRrzPeyZSJjikRVgziG3NO6RCWQHaA=
 github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0/go.mod h1:lYMlD5qxyTJP/0t5+NBBG1jxA3au/IZ4mH2zpN9NYqM=
 github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0 h1:uiABVgMr6kugfFpLrTeedqCNH6gYKquEEOg7i9bOunM=
@@ -46,8 +46,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 h1:bq/xQ7bVX/uAB3/bQMxeDc
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0/go.mod h1:MZbb0l7pO2OZ8jYnehntwXlC6I866BI8rA2flyZw4sA=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0 h1:qFh42khDRIymw34RobCjy4uRYjQ2VW40mhIOSjVVYBk=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.0/go.mod h1:17eQbWCvNaCEYuH9seWcQMHALZd8xZeeJYmBcfL3Fpw=
-github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 h1:yEcaMLhWo+fgk7tCHtraL69I9m142U65OYFtkUZzqWo=
-github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0/go.mod h1:bxz4Y7LuYTLDGjMZmWebwQg0GpmuMag8NLxGO14aHss=
+github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1 h1:uzk5GupxNvWDFD1kTVV5UbIZTH98oyXEylRH4nKnWOo=
+github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1/go.mod h1:kagbYtWmFZlkelwKzKQWzBz7bQy4Vvbbnm3UQOYdiVk=
 github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
 github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/maruel/natural v1.3.0 h1:VsmCsBmEyrR46RomtgHs5hbKADGRVtliHTyCOLFBpsg=
