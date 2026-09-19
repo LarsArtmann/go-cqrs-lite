@@ -4,9 +4,9 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/onsi/gomega v1.43.0
 )
 

@@ -5,12 +5,12 @@ go 1.27.1
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-codec v0.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.1
 )
 

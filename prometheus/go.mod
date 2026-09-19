@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/prometheus/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/prometheus/client_golang v1.24.1
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.68.0

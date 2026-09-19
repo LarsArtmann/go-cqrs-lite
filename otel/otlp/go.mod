@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/otel/otlp/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.46.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.46.0
 	go.opentelemetry.io/otel/sdk/metric v1.46.0

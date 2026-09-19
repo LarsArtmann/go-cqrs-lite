@@ -8,20 +8,20 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-codec v0.3.0
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
-	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
 	github.com/larsartmann/go-error-family v0.10.1
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/sdk v1.46.0

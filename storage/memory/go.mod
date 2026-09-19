@@ -4,13 +4,13 @@ go 1.27.1
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.43.0

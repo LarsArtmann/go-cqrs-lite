@@ -3,17 +3,17 @@ module github.com/larsartmann/go-cqrs-lite/example/getting-started
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 )
 
 require (

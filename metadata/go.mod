@@ -3,8 +3,8 @@ module github.com/larsartmann/go-cqrs-lite/metadata/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 )
 
 require (

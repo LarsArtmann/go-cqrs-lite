@@ -3,9 +3,9 @@ module github.com/larsartmann/go-cqrs-lite/storage/backuptest/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 )
 
 require (
