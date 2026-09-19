@@ -26,6 +26,7 @@ func (s *suite) runRetry(t *testing.T) {
 
 // pinBackoffLadder pins attempt counting and the NotBefore backoff.
 func (s *suite) pinBackoffLadder(t *testing.T) {
+	//art-dupl:accept scenario prologue idiom (openEnv + enqueue + claim); test boilerplate
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})
@@ -127,6 +128,7 @@ func (s *suite) pinDeadLetter(t *testing.T) {
 // pinPermanent pins FailPermanent: dead immediately, budget irrelevant,
 // class "permanent".
 func (s *suite) pinPermanent(t *testing.T) {
+	//art-dupl:accept scenario prologue idiom (openEnv + enqueue + claim); test boilerplate
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 9})
@@ -202,6 +204,7 @@ func (s *suite) pinEvidence(t *testing.T) {
 // pinRequeue pins the preflight path: back to pending, no attempt
 // burned, RequeueEvidence on the fact.
 func (s *suite) pinRequeue(t *testing.T) {
+	//art-dupl:accept scenario prologue idiom (openEnv + enqueue + claim); test boilerplate
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 3})

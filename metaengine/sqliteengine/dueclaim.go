@@ -22,6 +22,7 @@ func (e *sqliteEngine) wireClaimkit() error {
 		return fmt.Errorf("metaengine: sqlite claimkit claims: %w", err)
 	}
 
+	//art-dupl:accept engine wiring twin — each dep-isolated engine module wires the ONE claimkit runtime (AGENTS contract 19); adttest pins semantics
 	dedup, err := claimkit.NewDedup(ctx, e.db, claiming.DialectSQLite)
 	if err != nil {
 		return fmt.Errorf("metaengine: sqlite claimkit dedup: %w", err)

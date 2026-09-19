@@ -84,6 +84,7 @@ func (c *Claims) ClaimDeleteFacts(
 			" AND "+idColumn(c.dialect)+" = "+ph(c.dialect, 2)+
 			" AND due_at = "+ph(c.dialect, 3),
 		collection, key, c.encodeTime(dueAt))
+	//art-dupl:accept Exec+RowsAffected error-handling idiom shared with DedupCheckAndRecord; not domain logic
 	if err != nil {
 		return false, fmt.Errorf("claimkit.ClaimDeleteFacts: %w", err)
 	}

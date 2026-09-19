@@ -158,6 +158,7 @@ func (d *Dedup) checkAndRecordMySQL(
 		"UPDATE meta_dedup SET expires_at = ? WHERE collection = ? AND "+idColumn(d.dialect)+
 			" = ? AND expires_at <= ?",
 		now.Add(ttl), collection, key, now)
+	//art-dupl:accept Exec+RowsAffected error-handling idiom shared with ClaimDeleteFacts; not domain logic
 	if err != nil {
 		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: update: %w", err)
 	}

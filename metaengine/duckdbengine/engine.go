@@ -134,6 +134,7 @@ func (e *duckdbEngine) init() error {
 		vectorTableDDL,
 	}
 
+	//art-dupl:accept DDL-apply loop idiom; each dialect owns its own DDL list
 	for _, ddl := range ddls {
 		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("duckdbengine.init: %w", err)

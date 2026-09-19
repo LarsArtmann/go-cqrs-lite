@@ -200,6 +200,7 @@ func (s *suite) pinDelayGating(t *testing.T) {
 // pinDepGating pins DAG semantics: a waiter is not claimable until every
 // dependency completed.
 func (s *suite) pinDepGating(t *testing.T) {
+	//art-dupl:accept scenario prologue twin of pinDeadDepGates; distinct gate pinned by design
 	e := s.openEnv(t)
 
 	blocker := e.enqueue(t, task.New[Payload]{Type: "sh"})
@@ -210,6 +211,7 @@ func (s *suite) pinDepGating(t *testing.T) {
 		t.Fatalf("claimed dependent %s before its blocker — DAG gating broken", c.Task.ID)
 	}
 
+	//art-dupl:accept unblock-then-reclaim step twin of pinDeadDepGates; shared by design
 	if err := e.store.Complete(t.Context(), blocker.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}

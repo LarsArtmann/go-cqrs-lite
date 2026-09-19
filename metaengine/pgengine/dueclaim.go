@@ -24,6 +24,7 @@ func (e *pgEngine) wireClaimkit() error {
 		return fmt.Errorf("pgengine: claimkit claims: %w", err)
 	}
 
+	//art-dupl:accept engine wiring twin — each dep-isolated engine module wires the ONE claimkit runtime (AGENTS contract 19); adttest pins semantics
 	dedup, err := claimkit.NewDedup(ctx, e.db, claiming.DialectPostgres)
 	if err != nil {
 		return fmt.Errorf("pgengine: claimkit dedup: %w", err)

@@ -86,6 +86,7 @@ func (s *suite) pinDepOnCancelled(t *testing.T) {
 // pinDeadDepGates pins the DLQ interaction: a dead dep also blocks
 // forever; rescuing it (back to pending) re-opens the waiter's gate.
 func (s *suite) pinDeadDepGates(t *testing.T) {
+	//art-dupl:accept scenario prologue twin of pinDepGating; distinct gate pinned by design
 	e := s.openEnv(t)
 
 	blocker := e.enqueue(t, task.New[Payload]{Type: "sh"})
@@ -115,6 +116,7 @@ func (s *suite) pinDeadDepGates(t *testing.T) {
 		t.Fatalf("claimed %s after rescue, want the blocker %s", c.Task.ID, blocker.ID)
 	}
 
+	//art-dupl:accept unblock-then-reclaim step twin of pinDepGating; shared by design
 	if err := e.store.Complete(t.Context(), blocker.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}

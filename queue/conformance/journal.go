@@ -65,6 +65,7 @@ func (s *suite) pinSeqOrder(t *testing.T) {
 // pinTailBound pins the cross-store catch from the donor: a limit bounds
 // to the MOST RECENT n facts, still ascending — not the first n.
 func (s *suite) pinTailBound(t *testing.T) {
+	//art-dupl:accept scenario prologue idiom (openEnv + enqueue + claim); test boilerplate
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh", MaxAttempts: 1})

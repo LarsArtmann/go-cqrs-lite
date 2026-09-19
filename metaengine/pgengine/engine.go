@@ -157,6 +157,7 @@ func (e *pgEngine) init() error {
 		)`,
 	}
 
+	//art-dupl:accept DDL-apply loop idiom; each dialect owns its own DDL list
 	for _, ddl := range ddls {
 		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("pgengine.init: %w", err)

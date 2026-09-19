@@ -25,6 +25,7 @@ func (e *duckdbEngine) wireClaimkit() error {
 		return fmt.Errorf("metaengine: duckdb claimkit claims: %w", err)
 	}
 
+	//art-dupl:accept engine wiring twin — each dep-isolated engine module wires the ONE claimkit runtime (AGENTS contract 19); adttest pins semantics
 	dedup, err := claimkit.NewDedup(ctx, e.db, claiming.DialectDuckDB)
 	if err != nil {
 		return fmt.Errorf("metaengine: duckdb claimkit dedup: %w", err)
