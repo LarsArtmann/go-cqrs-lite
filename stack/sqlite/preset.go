@@ -38,13 +38,18 @@ type config struct {
 
 func defaultConfig() config {
 	return config{
-		WAL:            true,
-		Optimize:       false,
-		ForeignKeys:    false,
-		AutoMigrate:    true,
-		EventDSN:       "",
-		QueryDSN:       "",
-		ViewDSN:        "",
+		DSNConfig: sqlopt.DSNConfig{
+			AutoMigrate: true,
+			EventDSN:    "",
+			QueryDSN:    "",
+			ViewDSN:     "",
+		},
+		PragmaConfig: sqlopt.PragmaConfig{
+			WAL:         true,
+			Optimize:    false,
+			ForeignKeys: false,
+		},
+
 		driverName:     driverNameSQLite,
 		durability:     stack.DurabilityNormal,
 		cacheSizeBytes: 0,

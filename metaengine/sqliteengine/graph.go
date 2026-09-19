@@ -103,7 +103,7 @@ func (e *sqliteEngine) graphNeighborsCTE(
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GraphNeighbors: %w", err)
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var result []any
 	for rows.Next() {
@@ -193,7 +193,7 @@ func (e *sqliteEngine) queryGraphNeighbors(
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var neighbors []string
 
@@ -217,7 +217,7 @@ func (e *sqliteEngine) queryGraphReverseNeighbors(
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var neighbors []string
 

@@ -57,10 +57,12 @@ func NewQueryStore(
 	}
 
 	s := &QueryStore{
-		db:         database,
-		logger:     logger,
-		prefix:     "cqrs_query:",
-		syncWrites: true,
+		storeBase: storeBase{
+			db:         database,
+			logger:     logger,
+			prefix:     "cqrs_query:",
+			syncWrites: true,
+		},
 	}
 
 	for _, opt := range opts {

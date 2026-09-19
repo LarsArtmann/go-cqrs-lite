@@ -80,7 +80,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 		t.Fatalf("Plan: %v", err)
 	}
 
-	defer func() { _ = store.Close() }()
+	defer metaengine.DeferClose(store)
 
 	ctx := context.Background()
 

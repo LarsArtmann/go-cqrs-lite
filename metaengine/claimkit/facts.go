@@ -216,7 +216,7 @@ func (c *Claims) ClaimFactsList(
 		return nil, fmt.Errorf("claimkit.ClaimFactsList: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var facts []metaengine.ClaimFact
 

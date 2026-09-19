@@ -167,7 +167,7 @@ func (e *pebbleEngine) vectorMetadata(collection, id string) (map[string]any, er
 	if err != nil {
 		return nil, err //nolint:wrapcheck // wrapped by caller
 	}
-	defer func() { _ = closer.Close() }()
+	defer metaengine.DeferClose(closer)
 
 	var meta map[string]any
 	if err := json.Unmarshal(value, &meta); err != nil {

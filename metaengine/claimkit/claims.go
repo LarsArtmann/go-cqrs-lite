@@ -167,7 +167,7 @@ func (c *Claims) ClaimDue(
 		return nil, fmt.Errorf("claimkit.ClaimDue: %w", err)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	return c.scanClaims(rows)
 }

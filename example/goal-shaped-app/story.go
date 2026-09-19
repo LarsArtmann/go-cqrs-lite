@@ -47,7 +47,12 @@ func runStory(ctx context.Context, sys *system.System) (TaskView, error) {
 		return TaskView{}, err
 	}
 
-	open, err := system.DispatchQuery[OpenTasks, []TaskView](ctx, sys, OpenTasks{})
+	openBasic, err := query.New(qryOpenTasks)
+	if err != nil {
+		return TaskView{}, fmt.Errorf("query.New: %w", err)
+	}
+
+	open, err := system.DispatchQuery[OpenTasks, []TaskView](ctx, sys, OpenTasks{BasicQuery: openBasic})
 	if err != nil {
 		return TaskView{}, fmt.Errorf("task.open: %w", err)
 	}

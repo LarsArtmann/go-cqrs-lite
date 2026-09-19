@@ -74,7 +74,7 @@ func RunRestartSafetyTest(t *testing.T, newEngine RestartSafetyFactory) {
 			t.Fatalf("reopen: %v", err)
 		}
 
-		defer func() { _ = eng2.Close() }()
+		defer metaengine.DeferClose(eng2)
 
 		restartVerifyAcrossReopen(t, ctx, eng2)
 	})
@@ -319,7 +319,7 @@ func RunRestartSafetyFromDBTest(
 		t.Fatalf("FromDB reopen: %v", err)
 	}
 
-	defer func() { _ = eng2.Close() }()
+	defer metaengine.DeferClose(eng2)
 
 	slb2, ok := eng2.(metaengine.StreamLogBackend)
 	if !ok {
