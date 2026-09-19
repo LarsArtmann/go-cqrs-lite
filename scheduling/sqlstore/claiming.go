@@ -204,6 +204,7 @@ func (c *ClaimingTimerStore[P]) MarkFired(ctx context.Context, id scheduling.Tim
 // timersSpec is the timers-table shape the claim statements run against;
 // the claim SQL itself lives in the claiming module (extracted 2026-09-13).
 func timersSpec() claiming.Spec {
+	//nolint:exhaustruct_v5 // owner-less, filter-less timers shape; documented in claiming.Spec
 	return claiming.Spec{
 		Table:       "timers",
 		IDColumn:    "id",

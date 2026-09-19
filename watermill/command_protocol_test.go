@@ -36,34 +36,20 @@ func TestCommandRoundTrip(t *testing.T) {
 
 	msg := wm.CommandToMessage(original)
 
-	if msg.Metadata.Get("command_type") != "user.create" {
-		t.Fatalf("command_type: got %q, want %q",
-			msg.Metadata.Get("command_type"), "user.create")
-	}
-	if msg.Metadata.Get("aggregate_id") != streamID.String() {
-		t.Fatalf("aggregate_id mismatch")
-	}
-	if msg.Metadata.Get("correlation_id") != correlationID.String() {
-		t.Fatalf("correlation_id mismatch")
-	}
-	if msg.Metadata.Get("causation_id") != causationID.String() {
-		t.Fatalf("causation_id mismatch")
-	}
-	if msg.Metadata.Get("user_id") != userID.String() {
-		t.Fatalf("user_id mismatch")
-	}
-	if msg.Metadata.Get("request_id") != requestID.String() {
-		t.Fatalf("request_id mismatch")
-	}
-	if msg.Metadata.Get("actor_id") != "system:scheduler" {
-		t.Fatalf("actor_id: got %q, want %q",
-			msg.Metadata.Get("actor_id"), "system:scheduler")
-	}
-	if msg.Metadata.Get("custom.tenant") != "acme" {
-		t.Fatalf("custom.tenant: got %q", msg.Metadata.Get("custom.tenant"))
-	}
-	if msg.Metadata.Get("custom.source") != "web" {
-		t.Fatalf("custom.source: got %q", msg.Metadata.Get("custom.source"))
+	for key, want := range map[string]string{
+		"command_type":   "user.create",
+		"aggregate_id":   streamID.String(),
+		"correlation_id": correlationID.String(),
+		"causation_id":   causationID.String(),
+		"user_id":        userID.String(),
+		"request_id":     requestID.String(),
+		"actor_id":       "system:scheduler",
+		"custom.tenant":  "acme",
+		"custom.source":  "web",
+	} {
+		if got := msg.Metadata.Get(key); got != want {
+			t.Fatalf("%s: got %q, want %q", key, got, want)
+		}
 	}
 
 	reconstructed, err := wm.MessageToCommand("user.create", msg)
