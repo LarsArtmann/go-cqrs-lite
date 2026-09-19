@@ -65,6 +65,7 @@ use (
 	./record
 	./scenario
 	./scheduling
+	./scheduling/engine
 	./scheduling/sqlstore
 	./schema
 	./signing

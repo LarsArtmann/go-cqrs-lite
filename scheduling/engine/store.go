@@ -154,16 +154,17 @@ func (s *TimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Ti
 // MarkFired removes a timer after dispatch, epoch-guarded: a stale
 // MarkFired for generation N cannot delete a re-scheduled generation N+1
 // scheduled under the same ID (the scheduler.go race, fixed structurally).
+// The epoch is the DueAt this store claimed in Due; a MarkFired with NO
+// remembered epoch (the timer was canceled or replaced since) is a NO-OP —
+// the TimerStore contract only fires MarkFired after a matching Due, so an
+// unknown generation means the dispatch's timer no longer exists.
 func (s *TimerStore[P]) MarkFired(ctx context.Context, id scheduling.TimerID) error {
-	if epoch, ok := s.takeEpoch(id.Get()); ok {
-		if err := s.claims.ClaimDeleteIfDue(ctx, s.collection, id.Get(), epoch); err != nil {
-			return fmt.Errorf("scheduling/engine: mark fired %s: %w", id.Get(), err)
-		}
-
+	epoch, ok := s.takeEpoch(id.Get())
+	if !ok {
 		return nil
 	}
 
-	if err := s.claims.ClaimDelete(ctx, s.collection, id.Get()); err != nil {
+	if err := s.claims.ClaimDeleteIfDue(ctx, s.collection, id.Get(), epoch); err != nil {
 		return fmt.Errorf("scheduling/engine: mark fired %s: %w", id.Get(), err)
 	}
 

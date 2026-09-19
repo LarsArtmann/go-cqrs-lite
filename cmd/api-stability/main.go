@@ -52,6 +52,7 @@ var modules = []string{
 	"queue/sqlite",
 	"queue/postgres",
 	"scheduling",
+	"scheduling/engine",
 	"scheduling/sqlstore",
 	"metadata",
 	"metaengine",

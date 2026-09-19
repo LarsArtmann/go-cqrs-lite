@@ -168,7 +168,7 @@ func (e *pgEngine) init() error {
 	}
 
 	return nil
-	}
+}
 
 // Profile returns the cost profile for this Postgres engine.
 func (e *pgEngine) Profile() metaengine.EngineProfile {

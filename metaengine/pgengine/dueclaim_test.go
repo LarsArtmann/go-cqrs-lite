@@ -16,10 +16,16 @@ func TestPostgresDueClaims(t *testing.T) {
 	t.Parallel()
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{
-		{Name: "postgres", Create: func(t *testing.T) metaengine.Engine { return newPgEngineOrSkip(t) }},
+		{
+			Name:   "postgres",
+			Create: func(t *testing.T) metaengine.Engine { return newPgEngineOrSkip(t) },
+		},
 	})
 	adttest.AssertDedupStore(t, []adttest.Factory{
-		{Name: "postgres", Create: func(t *testing.T) metaengine.Engine { return newPgEngineOrSkip(t) }},
+		{
+			Name:   "postgres",
+			Create: func(t *testing.T) metaengine.Engine { return newPgEngineOrSkip(t) },
+		},
 	})
 }
 
