@@ -6,17 +6,17 @@ require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/larsartmann/go-codec v0.3.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
-	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
@@ -24,9 +24,9 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
+	github.com/larsartmann/go-cqrs-lite/storage/pebble/v4 v4.4.1
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.1

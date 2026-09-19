@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/larsartmann/go-error-family v0.10.1

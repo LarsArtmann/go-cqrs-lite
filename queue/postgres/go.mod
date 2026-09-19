@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
 )

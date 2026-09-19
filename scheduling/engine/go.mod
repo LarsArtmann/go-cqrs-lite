@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0
 )
 

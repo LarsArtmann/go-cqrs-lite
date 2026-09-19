@@ -4,12 +4,12 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.7.0
 )
@@ -18,7 +18,7 @@ require (
 	github.com/ThreeDotsLabs/watermill v1.5.3 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -38,15 +38,15 @@ require (
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.1.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
@@ -75,8 +75,8 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	modernc.org/libc v1.75.7 // indirect
+	modernc.org/libc v1.76.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.58.0 // indirect
+	modernc.org/sqlite v1.59.0 // indirect
 )

@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-idempotency v0.3.0

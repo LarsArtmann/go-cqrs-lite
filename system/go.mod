@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.1.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
@@ -21,14 +21,14 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.13.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/gomega v1.43.0

@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-sse v0.6.0

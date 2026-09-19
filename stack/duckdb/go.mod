@@ -6,7 +6,7 @@ require (
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.9.0
+	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.1
 )
