@@ -853,9 +853,25 @@ linters:
           # recipes_catalog*.go are a declarative classification table: each
           # entry sets only the fields relevant to that recipes.md block
           # (skip vs compiled scaffold variants). Requiring all six recipeSpec
-          # fields per entry would bury the table in zero-value noise.
+          # fields per entry would bury the table in zero-value noise; the
+          # catalogs are package-level tables by design and repeat import
+          # names the way any literal table does.
           - exhaustruct_v5
+          - gochecknoglobals
+          - goconst
       - path: cmd/api-stability/
+        linters:
+          - gocognit
+      # End-to-end scenario and rapid property tests: the complexity is the
+      # sequential narrative (setup → act → per-aspect invariants); splitting
+      # it into helpers would scatter the story without adding checks.
+      - path: integration/full_flow_test.go
+        linters:
+          - gocyclo
+      - path: stack/sqlite/view_models_integration_test.go
+        linters:
+          - gocyclo
+      - path: scheduling/sqlstore/property_test.go
         linters:
           - gocognit
       - path: system/

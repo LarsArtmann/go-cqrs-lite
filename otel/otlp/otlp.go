@@ -68,7 +68,10 @@ func SetupOTLP(
 	// cadence and makes it a metric.Reader for cqrsotel.Setup.
 	metricReader := sdkmetric.NewPeriodicReader(metricExporter)
 
-	setupOpts := make([]cqrsotel.SetupOption, 0, 3+len(opts))
+	// numBuiltinSetupOpts: span exporter, metric reader, service identity.
+	const numBuiltinSetupOpts = 3
+
+	setupOpts := make([]cqrsotel.SetupOption, 0, numBuiltinSetupOpts+len(opts))
 	setupOpts = append(setupOpts,
 		cqrsotel.WithSpanExporter(spanExporter),
 		cqrsotel.WithMetricReader(metricReader),
@@ -76,6 +79,7 @@ func SetupOTLP(
 	)
 
 	//nolint:contextcheck // resource metadata is process-scoped, not caller-ctx-scoped
+	//nolint:wrapcheck // provider construction; Setup error is already SDK-scoped
 	return cqrsotel.Setup(
 		append(setupOpts, opts...)...)
 }

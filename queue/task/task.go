@@ -29,6 +29,9 @@ type idMinter struct {
 	seed   [6]byte
 }
 
+// taskIDs is the process-wide monotonic mint state (see NewID).
+//
+//nolint:gochecknoglobals // mint state is inherently process-wide
 var taskIDs idMinter
 
 // NewID returns a new unique task ID: a millisecond timestamp prefix plus
