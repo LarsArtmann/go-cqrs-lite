@@ -242,8 +242,10 @@ DEP_BUDGET["queue/sqlite"]=4
 # ADR-0142 T09 driver-registration pair as queue/sqlite; pgtestcontainer is
 # test-only).
 DEP_BUDGET["queue/postgres"]=4
-# queue/mysql: 2 = queue contract + go-sql-driver (DSN-gated conformance is test-only).
-DEP_BUDGET["queue/mysql"]=2
+# queue/mysql: 4 = queue contract + go-sql-driver + claiming + metaengine
+# (NewEngine driver registration, same ADR-0142 T09 pair as the sibling
+# engines; DSN-gated conformance is test-only).
+DEP_BUDGET["queue/mysql"]=4
 DEP_BUDGET[signing]=5
 DEP_BUDGET[encryption]=5
 DEP_BUDGET[otel]=7

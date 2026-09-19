@@ -71,7 +71,7 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 // close it). The DB must be a "mysql" driver connection to the database
 // holding the queue tables.
 func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
-	options := storeOptions[T]{codec: queue.JSONCodec[T]()} 
+	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
 	for _, opt := range opts {
 		opt(&options)
 	}

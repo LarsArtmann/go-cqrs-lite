@@ -12,7 +12,6 @@ import (
 // minute is the suite's standard lease length.
 const minute = time.Minute
 
-
 // runDeps pins the DAG dependency contract at the enqueue boundary: deps
 // must exist (ErrDanglingDep), chains build only in dependency order, and
 // the existence validation is the cycle guard — a cycle's closing edge
