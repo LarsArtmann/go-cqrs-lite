@@ -124,6 +124,31 @@ func (s *Store[T]) Watermark(ctx context.Context, consumer string) (int64, bool,
 	return seq, true, nil
 }
 
+// Watermarks lists every consumer's cursor — the operator lag surface.
+func (s *Store[T]) Watermarks(ctx context.Context) (map[string]int64, error) {
+	rows, err := s.pool.Query(ctx, `SELECT consumer, seq FROM watermarks ORDER BY consumer`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make(map[string]int64)
+
+	for rows.Next() {
+		var consumer string
+
+		var seq int64
+
+		if err := rows.Scan(&consumer, &seq); err != nil {
+			return nil, err
+		}
+
+		out[consumer] = seq
+	}
+
+	return out, rows.Err()
+}
+
 // SaveWatermark checkpoints a consumer cursor as a monotonic upsert.
 func (s *Store[T]) SaveWatermark(ctx context.Context, consumer string, seq int64) error {
 	_, err := s.pool.Exec(ctx, `

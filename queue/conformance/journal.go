@@ -17,6 +17,7 @@ func (s *suite) runJournal(t *testing.T) {
 	t.Run("Facts after cursor returns strictly greater", s.pinAfterCursor)
 	t.Run("orphan observation is idempotent", s.pinOrphaned)
 	t.Run("watermark monotonic upsert", s.pinWatermark)
+	t.Run("same-tx fact appends commit or roll back together", s.pinFactTx)
 }
 
 // pinSeqOrder pins monotonic seqs and HeadSeq agreement.
@@ -195,5 +196,15 @@ func (s *suite) pinWatermark(t *testing.T) {
 	seq, exists, err = e.store.Watermark(t.Context(), "sweeper")
 	if err != nil || !exists || seq != 2 {
 		t.Fatalf("second consumer = %d, %v, %v; want 2", seq, exists, err)
+	}
+
+	// The operator surface lists every cursor.
+	all, err := e.store.Watermarks(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(all) != 2 || all["bridge"] != 9 || all["sweeper"] != 2 {
+		t.Fatalf("watermarks = %v, want bridge=9 sweeper=2", all)
 	}
 }
