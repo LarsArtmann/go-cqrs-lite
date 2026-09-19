@@ -7,26 +7,30 @@ import (
 	"log/slog"
 	"math/rand/v2"
 	"time"
+
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Scheduler polls a TimerStore for due timers and dispatches them.
 // The type parameter P is the timer payload, forwarded to DispatchFunc.
 //
-// # Single-active-instance requirement
+// # Multi-instance safety
 //
-// There is NO claim/lease protocol: two Schedulers polling one TimerStore
-// will BOTH see every due timer and dispatch it twice (the Schedule→Due→
-// MarkFired cycle is not atomic across processes). Run exactly one active
-// Scheduler per store — leader election or a SKIP LOCKED-based
-// ClaimingTimerStore (additive follow-up) is required before scaling out.
+// Claim-based stores (scheduling/sqlstore's ClaimingTimerStore, or any
+// scheduling/engine TimerStore over a metaengine.DueClaimer engine) fence
+// concurrent Schedulers by lease — run as many as you like. Plain stores
+// (MemoryTimerStore, the base SQLTimerStore) have NO claim protocol: two
+// Schedulers polling one store will BOTH see every due timer and dispatch
+// it twice. Run exactly one active Scheduler per plain store.
 //
 // # Retry semantics
 //
-// dispatchWithRetry retries dispatch errors regardless of error family, so
-// a Rejection (a permanent failure) is retried MaxRetries times per poll
-// cycle, every cycle, forever — and errors.Join keeps only the last
-// attempt's error in the log. Classify dispatch errors or wrap the dispatch
-// func if permanent failures must surface immediately.
+// dispatchWithRetry retries only retriable failures: an error classified as
+// Rejection or Conflict (errorfamily) is a permanent decision and surfaces
+// immediately instead of burning MaxRetries attempts every poll cycle
+// forever. Transient/Infrastructure errors keep the equal-jitter exponential
+// backoff. Wrap the dispatch func to add classification if a handler returns
+// unclassified errors that should not be retried.
 //
 // # MarkFired race
 //
@@ -196,6 +200,14 @@ func (s *Scheduler[P]) dispatchWithRetry(ctx context.Context, timer Timer[P]) er
 		}
 
 		lastErr = err
+
+		// Permanent failures are not retried (commandlifecycle's T17
+		// partitioning): a Rejection or Conflict is a decision, not a
+		// transient fault — retrying it MaxRetries times every poll cycle
+		// forever is the family-blind retry wart this fixed.
+		if errorfamily.IsRejection(err) || errorfamily.IsConflict(err) {
+			return err
+		}
 
 		// Don't sleep after the final attempt.
 		if attempt < s.opts.maxRetries-1 {
