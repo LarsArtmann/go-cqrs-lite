@@ -29,6 +29,7 @@ import (
 	_ "github.com/go-sql-driver/mysql" // register the MySQL database/sql driver
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
 )
 
 // MySQLNsPerOp is the estimated per-write cost.
@@ -56,6 +57,12 @@ type mysqlEngine struct {
 	plans          map[string]metaengine.LayoutPlan  // collection → planned-table layout (D2; guarded by layoutMu)
 	gcColumns      atomic.Pointer[map[string]string] // MariaDB generated columns (field→name)
 	gcnColumns     atomic.Pointer[map[string]string] // MariaDB numeric twin columns for sort fields
+
+	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
+	// method promotion — the ONE shared SQL claim/dedup implementation
+	// (MySQL dialect, two-statement SKIP LOCKED); see dueclaim.go.
+	*claimkit.Claims
+	*claimkit.Dedup
 }
 
 // New creates a MySQL-backed metaengine Engine from a DSN.
@@ -147,6 +154,10 @@ func (e *mysqlEngine) init() error {
 	e.dialect = detectDialect(e.db)
 	e.graphCTE = probeRecursiveCTE(e.db)
 
+	if err := e.wireClaimkit(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -185,6 +196,11 @@ func (e *mysqlEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTLog:       metaengine.ComplexityON,
 			metaengine.ADTMultimap:  metaengine.ComplexityON,
 			metaengine.ADTVector:    metaengine.ComplexityON, // Go-side brute-force scan
+			// ADR-0142 write-side capabilities (claimkit MySQL dialect):
+			// claims are a FOR UPDATE SKIP LOCKED select + stamp; dedup is a
+			// locked two-step upsert.
+			metaengine.ADTDueClaim: metaengine.ComplexityOLogN,
+			metaengine.ADTDedup:    metaengine.ComplexityOLogN,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTSet:      true,

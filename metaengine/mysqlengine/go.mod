@@ -12,6 +12,7 @@ require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
@@ -26,3 +27,5 @@ require (
 // Unpublished sibling symbols (ErrPlannedColumnTypeMismatch, PlannedColumnType*) —
 // stripped by scripts/tag-release.sh when metaengine is tagged.
 replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ..
+
+replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
