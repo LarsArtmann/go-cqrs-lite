@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-finding"
+	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
 )
 
@@ -167,8 +168,14 @@ func TestFormatFindingsText_HonorsCIEnv(t *testing.T) {
 func TestFormatFindingsText_HonorsForceColor(t *testing.T) {
 	t.Setenv("FORCE_COLOR", "1")
 	t.Setenv("NO_COLOR", "")
-	t.Setenv("CI", "")
 	t.Setenv("TERM", "xterm")
+	// go-output's IsCI checks the full provider set (CI, GITHUB_ACTIONS,
+	// GITLAB_CI, JENKINS_URL, BUILDKITE) — neutralizing only CI still leaves
+	// GITHUB_ACTIONS=true on GitHub runners, which suppressed color and broke
+	// this test in CI only. Align with the exported list.
+	for _, ciVar := range output.CIEnvVars {
+		t.Setenv(ciVar, "")
+	}
 
 	var buf bytes.Buffer
 	formatFindingsText(&buf, []finding.Finding{sampleErrorFinding(t)}, parseColorMode("auto"))
