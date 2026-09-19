@@ -35,7 +35,7 @@ Consumers import what they need and compose their own stack. Not a framework —
 **Contributing to the skill:** edit the `.md` files under `.agents/skills/go-cqrs-lite/`, then verify:
 
 ```bash
-cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
+cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md
 ```
 
 ## Quick Reference
@@ -88,7 +88,7 @@ Non-obvious conventions that apply when editing code inside this repo. Consumer-
 7. **Hot-path zero-allocation discipline** — Public API clones stay, but internal hot paths eliminate allocs via: lazy map init, pre-computed middleware chains (rebuild on `Use()`/`UsePublish()` only), cached SQL templates, pre-sized result slices, batch SQL inserts (multi-VALUES with SQLite 999-param chunking).
 8. **Circuit breaker uses failsafe-go** — `middleware/circuit_breaker.go` wraps `failsafe-go/circuitbreaker`. Half-open semantics differ (limits trial executions to `SuccessThreshold` count). `decider/cache.go` uses `maypok86/otter/v2` TinyLFU.
 9. **Load coalescing via singleflight** — `decider.Repository[State]` uses `singleflight.Group` to coalesce concurrent `Load` calls. Events are immutable, sharing is safe. Disable via `WithLoadCoalescing[State](false)`.
-10. **Go build tags after jsonv2 graduation** — Modules are on `go 1.27.1` (swept 2026-09-19; toolchain = nix `go_1_27`, completing the half-done 1.27 migration). Builds still pass `-tags "goexperiment.jsonv2"` (a no-op since graduation) — scripts and CI keep it; remove only in a coordinated sweep. Host go older than 1.27 needs `GOTOOLCHAIN=auto`.
+10. **Go toolchain after jsonv2 graduation** — Modules are on `go 1.27.1` (swept 2026-09-19; toolchain = nix `go_1_27`). The former `-tags "goexperiment.jsonv2"` / `GOEXPERIMENT=jsonv2` are no-ops since graduation and were REMOVED from scripts, flake.nix, CI, and docs (2026-09-19 coordinated sweep) — plain `go build`/`go test` is the contract. Host go older than 1.27 needs `GOTOOLCHAIN=auto`.
 11. **Deletion as domain events (ADR-0114, direction; partial implementation)** — Deletion SHOULD be expressed as a domain event type (e.g. `user.deleted`), not mutable metadata. Today: metaengine is fully type-based (`metaengine.Remove`); `stack.Materialize.OnTombstone/OnRebirth` are still metadata-triggered (`event.TombstoneMark` — branch on `evt.Type()` in `OnUpdate` for pure domain-event style); `listing.StatusMiddleware(deleteTypes, rebirthTypes)` bridges event types → status. `event.DetectTombstone`/`MarkTombstone` are Deprecated (removal v5). No `Delete` on Store. See ADR-0114 implementation-status addendum.
 12. **Strong types** — No `any` as a value type in domain/business logic. Legitimate exceptions: JSON schema serialization (`catalog/`), `recover()` return value (`middleware/recovery.go`), `database/sql` interop. Generic type constraints (`[T any]`) are standard Go and always allowed.
 13. **Error-wrapping helpers** — When `if err != nil { return WrapX(err, code, msg) }; return nil` appears 3+ times in a module, extract an unexported `wrapXOrOK(err, code, msg) error` (returns nil when err is nil). Keep per-module — see [ADR-0069](docs/adr/0069-error-wrapping-helpers.md). When modules share a dependency (e.g., encryption + signing → codec), push the helper into the shared module.
@@ -166,10 +166,10 @@ Split by topic; edit the topic file, never inline here:
 TL;DR rules (too hot to be one click away):
 
 1. **Never `rm`/`git reset`/`git checkout`/plain `mv`** — `trash`, `git switch`/`git restore`, `git mv`.
-2. **Cache env chain + `-tags "goexperiment.jsonv2"`** on every go command ([`gowork-modes.md`](docs/agents/gowork-modes.md)).
+2. **Cache env chain** on every go command ([`gowork-modes.md`](docs/agents/gowork-modes.md)).
 3. **`#verify` runs exclusively** — never concurrent with integration suites or heavy builds.
 4. **Auto-commit daemon absorbs working-tree changes** — expect `chore: auto-commit` commits; wait for clean tree before tagging. For plan-driven work, commit at each phase boundary immediately if you need authored history (the daemon will otherwise absorb mid-phase edits into `chore:` commits).
-5. **API-surface change ⇒ api golden regen in the same edit** (`cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update`).
+5. **API-surface change ⇒ api golden regen in the same edit** (`cd cmd/api-stability && GOWORK=off go run . --update`).
 
 ## Procedures
 
@@ -179,16 +179,16 @@ TL;DR rules (too hot to be one click away):
 2. Add the module path to `go.work`
 3. Add the module path to `testModules` in `flake.nix` (feeds both `#test` and `#lint`)
 4. Add the module path to `cmd/api-stability/main.go` `modules` slice
-5. Run `go build -tags "goexperiment.jsonv2" ./...` to verify compilation
-6. Run `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update` to generate golden
-7. Run the meta-tests: `cd cmd/api-stability && GOWORK=off go test -tags "goexperiment.jsonv2" -run TestEvery .`
+5. Run `go build ./...` to verify compilation
+6. Run `cd cmd/api-stability && GOWORK=off go run . --update` to generate golden
+7. Run the meta-tests: `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`
 
 ### Change an Exported Symbol
 
 1. Make the code change
-2. Immediately: `cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" . --update` (regenerate golden)
+2. Immediately: `cd cmd/api-stability && GOWORK=off go run . --update` (regenerate golden)
 3. Update any affected skill references (`.agents/skills/go-cqrs-lite/references/*.md`)
-4. Run `cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
+4. Run `cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md`
 5. Run `nix run .#verify` (or at minimum `nix run .#verify-fast`)
 
 ### Verify Before Release

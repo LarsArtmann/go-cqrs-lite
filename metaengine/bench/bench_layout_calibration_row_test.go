@@ -35,7 +35,7 @@ import (
 // Run:
 //
 //	cd metaengine/bench
-//	GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" -run '^$' \
+//	GOWORK=off CGO_ENABLED=1 go test -run '^$' \
 //	  -bench 'BenchmarkRowLayoutCalibration' -benchtime 2s ./...
 
 // rowCalibSeq makes collection/table names unique per benchmark invocation so

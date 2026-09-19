@@ -43,7 +43,7 @@ import (
 // Runs once — use -benchtime=1x:
 //
 //	cd metaengine/bench
-//	GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
+//	GOWORK=off go test -run '^$' \
 //	  -bench 'BenchmarkDiskLayoutCalibration_Storage' -benchtime 1x .
 
 // diskStorageProjections are the three projection collection names shared by

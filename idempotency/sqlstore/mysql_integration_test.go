@@ -9,7 +9,7 @@ package sqlstore_test
 // those semantics. Set MYSQL_TEST_DSN, otherwise these skip:
 //
 //	MYSQL_TEST_DSN="cqrs:cqrs@tcp(127.0.0.1:3306)/cqrs_test?parseTime=true" \
-//	  go test -tags "integration goexperiment.jsonv2" ./...
+//	  go test -tags "integration" ./...
 //
 // The nix runners export it: nix run .#integration-mysql-nspawn (or -vm).
 

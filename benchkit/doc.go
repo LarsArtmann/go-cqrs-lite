@@ -189,13 +189,11 @@
 // Use a small profile (ProfileDev) for fast iterations and more data points.
 // CLI: `cqrs-bench run --soak 5m`.
 //
-// # Build tag requirement
+// # Toolchain requirement
 //
-// This package imports encoding/json/v2 and requires the build tag
-// "goexperiment.jsonv2". Use:
+// This package imports encoding/json/v2: it requires Go 1.27+ (where the
+// package graduated). No build tag or GOEXPERIMENT is needed.
 //
-//	go build -tags "goexperiment.jsonv2" ./benchkit/...
-//	go test -tags "goexperiment.jsonv2" ./benchkit/...
-//
-// or set GOEXPERIMENT=jsonv2 in the environment.
+//	go build ./benchkit/...
+//	go test ./benchkit/...
 package benchkit

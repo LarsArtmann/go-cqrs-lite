@@ -107,7 +107,7 @@ cqrs-bench run --backend postgres --dsn "postgres://user:pass@localhost:5432/ben
 cqrs-bench --version
 ```
 
-Build: `GOEXPERIMENT=jsonv2 go build -tags "goexperiment.jsonv2" ./cmd/cqrs-bench/...`
+Build: `go build ./cmd/cqrs-bench/...`
 
 See [ADR-0060](../docs/adr/0060-benchkit-design-decisions.md) for design rationale.
 

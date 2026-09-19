@@ -19,7 +19,7 @@ import (
 // Run live only:
 //
 //	nix run .#ephemeral-dgraph -- bash -c \
-//	  'cd metaengine/dgraphengine && GOWORK=off go test -tags goexperiment.jsonv2 \
+//	  'cd metaengine/dgraphengine && GOWORK=off go test \
 //	   -run "^$" -bench BenchmarkCalibration_DgraphScaled -benchtime 20x -count 3 .'
 
 func seedScaledDocs(b *testing.B, eng metaengine.Engine, col string, rows int) {

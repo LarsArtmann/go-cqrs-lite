@@ -25,7 +25,7 @@ import (
 //
 // Usage:
 //
-//	bash scripts/ephemeral-redis.sh go test -tags "goexperiment.jsonv2" -C watermill -run TestRedis -v ./...
+//	bash scripts/ephemeral-redis.sh go test -C watermill -run TestRedis -v ./...
 //
 // The test is skipped when REDIS_URL is not set, making it safe for CI.
 //

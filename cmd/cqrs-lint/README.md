@@ -730,7 +730,7 @@ jobs:
         with:
           go-version: stable
       - name: Install cqrs-lint
-        run: go install -tags "goexperiment.jsonv2" github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
+        run: go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
       - name: Run cqrs-lint
         run: cqrs-lint --format sarif --path ./... > results.sarif
       - uses: github/codeql-action/upload-sarif@v3

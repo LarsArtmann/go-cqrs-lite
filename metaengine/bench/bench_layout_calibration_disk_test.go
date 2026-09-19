@@ -35,7 +35,7 @@ import (
 // Run:
 //
 //	cd metaengine/bench
-//	GOWORK=off go test -tags "goexperiment.jsonv2" -run '^$' \
+//	GOWORK=off go test -run '^$' \
 //	  -bench 'BenchmarkDiskLayoutCalibration' -benchtime 1s -count 10 .
 //
 // The per-engine ratios (normalize/embed for read, write, and storage) are

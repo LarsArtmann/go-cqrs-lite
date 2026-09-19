@@ -89,7 +89,7 @@ verified against a real Redis broker by `TestRedisStreamRoundtrip` — run it
 via the ephemeral broker scripts (no Docker needed):
 
 ```bash
-bash scripts/ephemeral-redis.sh sh -c 'cd watermill && go test -tags "goexperiment.jsonv2" -run TestRedis -v .'
+bash scripts/ephemeral-redis.sh sh -c 'cd watermill && go test -run TestRedis -v .'
 ```
 
 **Kafka/RabbitMQ/etc.**: any Watermill plugin works the same way — construct

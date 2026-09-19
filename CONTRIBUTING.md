@@ -26,14 +26,13 @@ nix run .#install-hooks   # or: ./scripts/install-hooks.sh
 
 | Tool | Version | Purpose           |
 | ---- | ------- | ----------------- |
-| Go   | 1.26+   | Language runtime  |
+| Go   | 1.27+   | Language runtime  |
 | Nix  | latest  | Build environment |
 
-> **Build tag:** All Go commands require `-tags "goexperiment.jsonv2"` to enable
-> JSON v2 encoding (`encoding/json/v2`). This is a Go experiment flag, NOT a
-> standard build tag — it requires `GOEXPERIMENT` support in the toolchain.
-> `nix run .#build`, `nix run .#test`, and CI apply it automatically. If running
-> `go` commands directly, always pass `-tags "goexperiment.jsonv2"`.
+> **Build tag:** none. Go 1.27 graduated `encoding/json/v2`, so the former
+> `-tags "goexperiment.jsonv2"` / `GOEXPERIMENT=jsonv2` requirements are gone
+> (removed from scripts and CI on 2026-09-19). Plain `go build`/`go test` is
+> the contract.
 
 ### Using Nix (Recommended)
 
@@ -83,8 +82,8 @@ devShell via `pkgs.gcc`):
 
 ```bash
 # Inside nix develop (gcc is already on PATH)
-CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./stack/duckdb/...
-cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./...
+CGO_ENABLED=1 go build ./stack/duckdb/...
+cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test ./...
 
 # The cqrs-bench DuckDB factory is CGo-gated; without CGo a stub is compiled:
 CGO_ENABLED=0 go build ./cmd/cqrs-bench/...   # uses the no-cgo stub (duckdb backend errors at runtime)

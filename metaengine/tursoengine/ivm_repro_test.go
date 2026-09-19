@@ -12,7 +12,7 @@
 // Run (against the go.mod-pinned driver, ~2 min for the full 24-round suite):
 //
 //	cd metaengine/tursoengine && GOWORK=off go test \
-//	  -tags "goexperiment.jsonv2 ivmrepro" -run TestIVMRepro -count=1 -timeout 30m .
+//	  -tags "ivmrepro" -run TestIVMRepro -count=1 -timeout 30m .
 //
 // Checking a NEW upstream turso-go release: retarget the pin first (runbook
 // section "Checking a new turso-go release"), run this suite, then either

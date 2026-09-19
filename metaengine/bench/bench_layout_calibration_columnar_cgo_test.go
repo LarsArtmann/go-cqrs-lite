@@ -28,7 +28,7 @@ import (
 // Run:
 //
 //	cd metaengine/bench
-//	GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" -run '^$' \
+//	GOWORK=off CGO_ENABLED=1 go test -run '^$' \
 //	  -bench 'BenchmarkColumnarLayoutCalibration' -benchtime 2s ./...
 
 // newDuckEngineFile opens a DuckDB engine on its own file (embed-side ops).

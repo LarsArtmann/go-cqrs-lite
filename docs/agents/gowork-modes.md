@@ -28,5 +28,7 @@
 export GOCACHE=/home/lars/projects/.gocache-disk GOMODCACHE=/tmp/gomod-verify GOPATH=/tmp/gopath-verify GOTOOLCHAIN=auto GOLANGCI_LINT_CACHE=/home/lars/projects/.golangci-disk GOTMPDIR=/home/lars/projects/.gotmp TMPDIR=/home/lars/projects/.gotmp
 ```
 
-Build tag everywhere: `-tags "goexperiment.jsonv2"` (env `GOEXPERIMENT=jsonv2`
-covers `go test`/`go vet`; CI and `nix run .#build` apply it automatically).
+Build tag: NONE since Go 1.27 graduated `encoding/json/v2` (2026-09-19 sweep).
+The former `-tags "goexperiment.jsonv2"` / `GOEXPERIMENT=jsonv2` are no-ops and
+were removed from scripts, flake.nix, CI, and docs. Old commands that still
+carry the tag still work (unknown tags are ignored).
