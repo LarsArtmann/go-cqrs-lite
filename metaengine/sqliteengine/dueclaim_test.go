@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
-	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 )
 
 // newEngine builds a fresh, isolated SQLite engine over a unique named
@@ -69,7 +69,9 @@ func TestSQLiteDueClaims_CapabilitySurface(t *testing.T) {
 		t.Fatalf("profile must declare ADTDueClaim at O(logN), got %s/%v", complexity, ok)
 	}
 
-	if complexity, ok := eng.Profile().SupportsADT(metaengine.ADTDedup); !ok || complexity != metaengine.ComplexityOLogN {
+	if complexity, ok := eng.Profile().
+		SupportsADT(metaengine.ADTDedup); !ok ||
+		complexity != metaengine.ComplexityOLogN {
 		t.Fatalf("profile must declare ADTDedup at O(logN), got %s/%v", complexity, ok)
 	}
 

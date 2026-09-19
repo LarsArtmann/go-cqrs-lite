@@ -3,9 +3,9 @@ package badgerengine_test
 import (
 	"testing"
 
+	badgerengine "github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
-	badgerengine "github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4"
 )
 
 // newEngine builds a fresh in-memory badger engine. Ownership passes to the

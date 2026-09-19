@@ -3,9 +3,9 @@ package bboltengine_test
 import (
 	"testing"
 
+	bboltengine "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
-	bboltengine "github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 )
 
 // newEngine builds a fresh volatile bbolt engine. Ownership passes to the

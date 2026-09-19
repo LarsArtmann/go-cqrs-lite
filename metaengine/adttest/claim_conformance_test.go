@@ -86,10 +86,16 @@ func TestClaimConformance_MemoryEngine(t *testing.T) {
 	// The memory engine itself (not the mapClaimHost wrapper) runs the full
 	// conformance suites — it is the degraded reference implementation.
 	AssertDueClaimer(t, []Factory{
-		{Name: "memory", Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() }},
+		{
+			Name:   "memory",
+			Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+		},
 	})
 	AssertDedupStore(t, []Factory{
-		{Name: "memory", Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() }},
+		{
+			Name:   "memory",
+			Create: func(t *testing.T) metaengine.Engine { return metaengine.NewMemoryEngine() },
+		},
 	})
 }
 

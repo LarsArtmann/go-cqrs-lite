@@ -3,9 +3,9 @@ package pebbleengine_test
 import (
 	"testing"
 
+	pebbleengine "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
-	pebbleengine "github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4"
 )
 
 // newEngine builds a fresh in-memory pebble engine. Ownership passes to the

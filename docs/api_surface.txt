@@ -3290,8 +3290,12 @@ metaengine/method Check
 metaengine/method CheckAndRecord
 metaengine/method CheckRouting
 metaengine/method ClaimDelete
+metaengine/method ClaimDelete
+metaengine/method ClaimDeleteIfDue
 metaengine/method ClaimDeleteIfDue
 metaengine/method ClaimDue
+metaengine/method ClaimDue
+metaengine/method ClaimInsert
 metaengine/method ClaimInsert
 metaengine/method Clear
 metaengine/method Clear
@@ -3313,7 +3317,10 @@ metaengine/method CurrentHooks
 metaengine/method Cursor
 metaengine/method DDL
 metaengine/method DedupCheckAndRecord
+metaengine/method DedupCheckAndRecord
 metaengine/method DedupSeen
+metaengine/method DedupSeen
+metaengine/method DedupSweep
 metaengine/method DedupSweep
 metaengine/method DemoteEngine
 metaengine/method Distinct
@@ -3507,6 +3514,7 @@ metaengine/method RecordEvent
 metaengine/method RegisterQuery
 metaengine/method ReificationFailures
 metaengine/method RemoveEngine
+metaengine/method RenewLease
 metaengine/method RenewLease
 metaengine/method Replan
 metaengine/method ReplanLayout
