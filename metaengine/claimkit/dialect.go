@@ -89,7 +89,7 @@ WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?`
 			},
 			{
 				"meta_claim_facts", "idx_meta_claim_facts_key",
-				"CREATE INDEX idx_meta_claim_facts_key ON meta_claim_facts(collection, key, seq)",
+				"CREATE INDEX idx_meta_claim_facts_key ON meta_claim_facts(collection, `key`, seq)",
 			},
 			{
 				"meta_dedup", "idx_meta_dedup_expiry",
@@ -161,27 +161,27 @@ func claimsDDL(d claiming.Dialect) []string {
 		return []string{
 			"CREATE TABLE IF NOT EXISTS meta_due_claims (\n" +
 				"collection   VARCHAR(255) NOT NULL,\n" +
-				"key          VARCHAR(255) NOT NULL,\n" +
+				"`key`        VARCHAR(255) NOT NULL,\n" +
 				"due_at       DATETIME(3) NOT NULL,\n" +
 				"lease_until  DATETIME(3) NULL,\n" +
 				"owner        VARCHAR(255) NOT NULL DEFAULT '',\n" +
 				"payload      BLOB NOT NULL,\n" +
 				"created_at   DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),\n" +
-				"PRIMARY KEY (collection, key)\n" +
+				"PRIMARY KEY (collection, `key`)\n" +
 				")",
 			"CREATE TABLE IF NOT EXISTS meta_claim_facts (\n" +
 				"seq        BIGINT AUTO_INCREMENT PRIMARY KEY,\n" +
 				"collection VARCHAR(255) NOT NULL,\n" +
-				"key        VARCHAR(255) NOT NULL,\n" +
+				"`key`      VARCHAR(255) NOT NULL,\n" +
 				"type       VARCHAR(255) NOT NULL,\n" +
 				"payload    BLOB,\n" +
 				"at         DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)\n" +
 				")",
 			"CREATE TABLE IF NOT EXISTS meta_dedup (\n" +
 				"collection  VARCHAR(255) NOT NULL,\n" +
-				"key         VARCHAR(255) NOT NULL,\n" +
+				"`key`       VARCHAR(255) NOT NULL,\n" +
 				"expires_at  DATETIME(3) NOT NULL,\n" +
-				"PRIMARY KEY (collection, key)\n" +
+				"PRIMARY KEY (collection, `key`)\n" +
 				")",
 		}
 	case claiming.DialectDuckDB:
@@ -265,8 +265,8 @@ func insertClaimStmt(
 VALUES ($1, $2, $3, $4) ON CONFLICT (collection, key) DO NOTHING`,
 			[]any{collection, key, dueAt, payload}
 	case claiming.DialectMySQL:
-		return "INSERT INTO meta_due_claims (collection, key, due_at, payload)\n" +
-				"VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE key = key",
+		return "INSERT INTO meta_due_claims (collection, `key`, due_at, payload)\n" +
+				"VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE `key` = `key`",
 			[]any{collection, key, dueAt, payload}
 	default: // SQLite ordinal form
 		return `INSERT INTO meta_due_claims (collection, key, due_at, payload)

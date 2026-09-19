@@ -81,7 +81,8 @@ func (c *Claims) ClaimDeleteFacts(
 
 	res, err := tx.ExecContext(ctx,
 		"DELETE FROM meta_due_claims WHERE collection = "+ph(c.dialect, 1)+
-			" AND key = "+ph(c.dialect, 2)+" AND due_at = "+ph(c.dialect, 3),
+			" AND "+idColumn(c.dialect)+" = "+ph(c.dialect, 2)+
+			" AND due_at = "+ph(c.dialect, 3),
 		collection, key, c.encodeTime(dueAt))
 	if err != nil {
 		return false, fmt.Errorf("claimkit.ClaimDeleteFacts: %w", err)
@@ -127,7 +128,7 @@ func (c *Claims) claimDueTx(
 	}
 
 	if c.dialect == claiming.DialectMySQL {
-		selQuery, selArgs := claiming.ClaimStmt(c.dialect, claimsSpec(), p)
+		selQuery, selArgs := claiming.ClaimStmt(c.dialect, claimsSpec(c.dialect), p)
 
 		rows, err := tx.QueryContext(ctx, selQuery, selArgs...)
 		if err != nil {
@@ -140,7 +141,7 @@ func (c *Claims) claimDueTx(
 		}
 
 		if len(ids) > 0 {
-			stampQuery, stampArgs := claiming.StampLeaseMySQLStmt(claimsSpec(), ids, p)
+			stampQuery, stampArgs := claiming.StampLeaseMySQLStmt(claimsSpec(c.dialect), ids, p)
 
 			if _, err := tx.ExecContext(ctx, stampQuery, stampArgs...); err != nil {
 				return nil, fmt.Errorf("claimkit.ClaimDueFacts: stamp: %w", err)
@@ -150,7 +151,7 @@ func (c *Claims) claimDueTx(
 		return claims, nil
 	}
 
-	query, args := claiming.ClaimStmt(c.dialect, claimsSpec(), p)
+	query, args := claiming.ClaimStmt(c.dialect, claimsSpec(c.dialect), p)
 
 	rows, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -172,7 +173,7 @@ func insertFact(
 	collection, key string,
 	fact metaengine.ClaimFact,
 ) error {
-	query := "INSERT INTO meta_claim_facts (collection, key, type, payload) VALUES (" +
+	query := "INSERT INTO meta_claim_facts (collection, " + idColumn(dialect) + ", type, payload) VALUES (" +
 		ph(dialect, 1) + ", " + ph(dialect, 2) + ", " + ph(dialect, 3) + ", " + ph(dialect, 4) + ")"
 
 	if _, err := tx.ExecContext(ctx, query, collection, key, fact.Type, fact.Payload); err != nil {

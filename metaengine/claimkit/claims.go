@@ -73,16 +73,29 @@ func New(ctx context.Context, db *sql.DB, d claiming.Dialect) (*Claims, error) {
 	return &Claims{db: db, dialect: d}, nil
 }
 
-func claimsSpec() claiming.Spec {
+// idColumn renders the claim-key column name per dialect: MySQL-compatible
+// servers reserve KEY, so it is backtick-quoted there (same treatment the
+// mysqlengine meta_* tables give their `key` column).
+func idColumn(d claiming.Dialect) string {
+	if d == claiming.DialectMySQL {
+		return "`key`"
+	}
+
+	return "key"
+}
+
+func claimsSpec(d claiming.Dialect) claiming.Spec {
+	idCol := idColumn(d)
+
 	return claiming.Spec{
 		Table:        "meta_due_claims",
-		IDColumn:     "key",
+		IDColumn:     idCol,
 		DueColumn:    "due_at",
 		LeaseColumn:  "lease_until",
 		OwnerColumn:  "owner",
 		FilterColumn: "collection",
-		Returning:    []string{"key", "due_at", "lease_until", "payload"},
-		OrderBy:      "due_at ASC, key ASC",
+		Returning:    []string{idCol, "due_at", "lease_until", "payload"},
+		OrderBy:      "due_at ASC, " + idCol + " ASC",
 	}
 }
 
@@ -136,7 +149,7 @@ func (c *Claims) ClaimDue(
 		return c.claimDueMySQL(ctx, p)
 	}
 
-	query, args := claiming.ClaimStmt(c.dialect, claimsSpec(), p)
+	query, args := claiming.ClaimStmt(c.dialect, claimsSpec(c.dialect), p)
 
 	rows, err := c.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -159,7 +172,7 @@ func (c *Claims) claimDueMySQL(
 
 	defer func() { _ = tx.Rollback() }()
 
-	selQuery, selArgs := claiming.ClaimStmt(c.dialect, claimsSpec(), p)
+	selQuery, selArgs := claiming.ClaimStmt(c.dialect, claimsSpec(c.dialect), p)
 
 	rows, err := tx.QueryContext(ctx, selQuery, selArgs...)
 	if err != nil {
@@ -172,7 +185,7 @@ func (c *Claims) claimDueMySQL(
 	}
 
 	if len(ids) > 0 {
-		stampQuery, stampArgs := claiming.StampLeaseMySQLStmt(claimsSpec(), ids, p)
+		stampQuery, stampArgs := claiming.StampLeaseMySQLStmt(claimsSpec(c.dialect), ids, p)
 
 		if _, err := tx.ExecContext(ctx, stampQuery, stampArgs...); err != nil {
 			return nil, fmt.Errorf("claimkit.ClaimDue: stamp: %w", err)
@@ -201,7 +214,7 @@ func (c *Claims) RenewLease(
 
 	query, args := claiming.RenewScopedStmt(
 		c.dialect,
-		claimsSpec(),
+		claimsSpec(c.dialect),
 		c.encodeTime(now.Add(extend)),
 		key,
 		owner,
@@ -232,13 +245,8 @@ func (c *Claims) ClaimDelete(ctx context.Context, collection, key string) error 
 
 	if _, err := c.db.ExecContext(
 		ctx,
-		"DELETE FROM meta_due_claims WHERE collection = "+ph(
-			c.dialect,
-			1,
-		)+" AND key = "+ph(
-			c.dialect,
-			2,
-		),
+		"DELETE FROM meta_due_claims WHERE collection = "+ph(c.dialect, 1)+
+			" AND "+idColumn(c.dialect)+" = "+ph(c.dialect, 2),
 		collection,
 		key,
 	); err != nil {
@@ -260,7 +268,8 @@ func (c *Claims) ClaimDeleteIfDue(
 
 	if _, err := c.db.ExecContext(ctx,
 		"DELETE FROM meta_due_claims WHERE collection = "+ph(c.dialect, 1)+
-			" AND key = "+ph(c.dialect, 2)+" AND due_at = "+ph(c.dialect, 3),
+			" AND "+idColumn(c.dialect)+" = "+ph(c.dialect, 2)+
+			" AND due_at = "+ph(c.dialect, 3),
 		collection, key, c.encodeTime(dueAt)); err != nil {
 		return fmt.Errorf("claimkit.ClaimDeleteIfDue: %w", err)
 	}

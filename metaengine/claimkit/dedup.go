@@ -129,7 +129,7 @@ func (d *Dedup) checkAndRecordMySQL(
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		if _, err := tx.ExecContext(ctx,
-			"INSERT INTO meta_dedup (collection, key, expires_at) VALUES (?, ?, ?)",
+			"INSERT INTO meta_dedup (collection, "+idColumn(d.dialect)+", expires_at) VALUES (?, ?, ?)",
 			collection, key, now.Add(ttl)); err != nil {
 			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: insert: %w", err)
 		}
@@ -150,7 +150,7 @@ func (d *Dedup) checkAndRecordMySQL(
 		}
 
 		if _, err := tx.ExecContext(ctx,
-			"UPDATE meta_dedup SET expires_at = ? WHERE collection = ? AND key = ?",
+			"UPDATE meta_dedup SET expires_at = ? WHERE collection = ? AND "+idColumn(d.dialect)+" = ?",
 			now.Add(ttl), collection, key); err != nil {
 			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: update: %w", err)
 		}
@@ -177,7 +177,7 @@ func (d *Dedup) DedupSeen(
 
 	err := d.db.QueryRowContext(ctx,
 		"SELECT expires_at FROM meta_dedup WHERE collection = "+ph(d.dialect, 1)+
-			" AND key = "+ph(d.dialect, 2),
+			" AND "+idColumn(d.dialect)+" = "+ph(d.dialect, 2),
 		collection, key).Scan(&expiresRaw)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
