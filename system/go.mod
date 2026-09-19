@@ -48,7 +48,6 @@ require (
 	github.com/cockroachdb/pebble v1.1.5 // indirect
 	github.com/cockroachdb/redact v1.1.8 // indirect
 	github.com/cockroachdb/tokenbucket v0.0.0-20250429170803-42689b6311bb // indirect
-	github.com/containerd/log v0.2.0 // indirect
 	github.com/dgraph-io/badger/v4 v4.9.6 // indirect
 	github.com/dgraph-io/ristretto/v2 v2.4.2 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
@@ -77,9 +76,9 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.3.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
@@ -88,7 +87,6 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/moby/sys/userns v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
