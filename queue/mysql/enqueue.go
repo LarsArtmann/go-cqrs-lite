@@ -139,8 +139,8 @@ func (s *Store[T]) insertTaskRow(
 
 	_, err := tx.ExecContext(ctx,
 		`INSERT INTO tasks (id, project, type, payload, deps, priority, attempts, max_attempts,
-		                    not_before, status, created_at, updated_at, dedup_key)
-		 VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending', ?, ?, ?)`,
+		                    not_before, status, last_error, created_at, updated_at, dedup_key)
+		 VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, 'pending', '', ?, ?, ?)`,
 		t.ID.String(), t.Project, t.Type, payload, depsJSON, t.Priority,
 		t.MaxAttempts, ms(t.NotBefore), t.CreatedAt.UnixMilli(), t.UpdatedAt.UnixMilli(), key)
 

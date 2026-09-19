@@ -44,7 +44,7 @@ func WithCodec[T any](c queue.Codec[T]) StoreOption[T] {
 // schema, and returns a ready store. The pool is store-owned: Close
 // closes it.
 func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
-	options := storeOptions[T]{codec: queue.JSONCodec[T]{}}
+	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -71,7 +71,7 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 // close it). The DB must be a "mysql" driver connection to the database
 // holding the queue tables.
 func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
-	options := storeOptions[T]{codec: queue.JSONCodec[T]{}}
+	options := storeOptions[T]{codec: queue.JSONCodec[T]()} 
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -84,10 +84,12 @@ func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
 	return store, nil
 }
 
-// migrate applies the schema (idempotent).
+// migrate applies the schema (idempotent, one statement at a time).
 func (s *Store[T]) migrate(ctx context.Context) error {
-	if _, err := s.db.ExecContext(ctx, schema); err != nil {
-		return fmt.Errorf("queue/mysql: migrate: %w", err)
+	for _, stmt := range schemaStmts {
+		if _, err := s.db.ExecContext(ctx, stmt); err != nil {
+			return fmt.Errorf("queue/mysql: migrate: %w", err)
+		}
 	}
 
 	return nil

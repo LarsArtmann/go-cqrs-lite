@@ -3,7 +3,6 @@ package mysql
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"time"

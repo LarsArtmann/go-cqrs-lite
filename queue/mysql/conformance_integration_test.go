@@ -4,10 +4,11 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
-	"fmt"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/conformance"
@@ -58,47 +59,40 @@ func freshDatabase(t *testing.T, baseDSN string) string {
 	if err != nil {
 		t.Fatalf("open server: %v", err)
 	}
-	defer func() { _ = server.Close() }()
 
 	if _, err := server.Exec("CREATE DATABASE `" + name + "`"); err != nil {
 		t.Fatalf("create database: %v", err)
 	}
 
+	// Drop and close in ONE cleanup (LIFO order matters: dropping needs
+	// the live handle).
 	t.Cleanup(func() {
 		if _, err := server.Exec("DROP DATABASE `" + name + "`"); err != nil {
 			t.Errorf("drop database %s: %v", name, err)
 		}
+
+		_ = server.Close()
 	})
 
-	return injectDBName(baseDSN, name)
-}
-
-// injectDBName points a server DSN at one database, preserving params.
-func injectDBName(dsn, db string) string {
-	params := ""
-	if i := indexByte(dsn, '?'); i >= 0 {
-		dsn, params = dsn[:i], dsn[i:]
+	dbDSN, err := injectDBName(baseDSN, name)
+	if err != nil {
+		t.Fatalf("dsn: %v", err)
 	}
 
-	if i := indexByte(dsn, '/'); i >= 0 && !containsAt(dsn, i, "//") {
-		dsn = dsn[:i]
-	}
-
-	return fmt.Sprintf("%s/%s%s", dsn, db, params)
+	return dbDSN
 }
 
-func indexByte(s string, b byte) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == b {
-			return i
-		}
+// injectDBName points a server DSN at one database, preserving every
+// other component (parsed and re-rendered by the driver itself).
+func injectDBName(dsn, db string) (string, error) {
+	cfg, err := mysql.ParseDSN(dsn)
+	if err != nil {
+		return "", err
 	}
 
-	return -1
-}
+	cfg.DBName = db
 
-func containsAt(s string, i int, sub string) bool {
-	return i >= 1 && s[i-1] == '/' && len(sub) > 1
+	return cfg.FormatDSN(), nil
 }
 
 // backdate rewinds one task's created_at — the white-box hook the aging

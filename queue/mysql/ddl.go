@@ -1,12 +1,16 @@
 package mysql
 
-// schema is the full DDL, idempotent. It mirrors the SQLite/Postgres
-// engines' shapes with MySQL types: BIGINT unix-milli timestamps,
-// AUTO_INCREMENT fact seqs. dedup_key is NULLABLE with a plain UNIQUE
-// KEY — MySQL treats NULLs as distinct, so keyless tasks never collide
-// (the partial-index semantics the other engines express with WHERE).
-const schema = `
-CREATE TABLE IF NOT EXISTS tasks (
+// schemaStmts is the full DDL, idempotent, one statement per element
+// (database/sql executes single statements; MySQL connections do not
+// accept multi-statement scripts without the multiStatements DSN flag,
+// which this engine deliberately does not require). It mirrors the
+// SQLite/Postgres engines' shapes with MySQL types: BIGINT unix-milli
+// timestamps, AUTO_INCREMENT fact seqs. dedup_key is NULLABLE with a
+// plain UNIQUE KEY — MySQL treats NULLs as distinct, so keyless tasks
+// never collide (the partial-index semantics the other engines express
+// with WHERE).
+var schemaStmts = []string{
+	`CREATE TABLE IF NOT EXISTS tasks (
 	id            VARCHAR(64) PRIMARY KEY,
 	project       VARCHAR(255) NOT NULL DEFAULT '',
 	type          VARCHAR(255) NOT NULL,
@@ -28,16 +32,14 @@ CREATE TABLE IF NOT EXISTS tasks (
 	UNIQUE KEY idx_tasks_dedup (dedup_key),
 	KEY idx_tasks_status_due (status, not_before),
 	KEY idx_tasks_project (project)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS deps (
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+	`CREATE TABLE IF NOT EXISTS deps (
 	task_id VARCHAR(64) NOT NULL,
 	dep_id  VARCHAR(64) NOT NULL,
 	PRIMARY KEY (task_id, dep_id),
 	KEY idx_deps_dep (dep_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS facts (
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+	`CREATE TABLE IF NOT EXISTS facts (
 	seq      BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	time     BIGINT NOT NULL,
 	task_id  VARCHAR(64) NOT NULL,
@@ -47,11 +49,10 @@ CREATE TABLE IF NOT EXISTS facts (
 	error    LONGTEXT NOT NULL,
 	detail   LONGBLOB NOT NULL,
 	KEY idx_facts_task (task_id, seq)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS watermarks (
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+	`CREATE TABLE IF NOT EXISTS watermarks (
 	consumer   VARCHAR(255) PRIMARY KEY,
 	seq        BIGINT NOT NULL,
 	updated_at BIGINT NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+}

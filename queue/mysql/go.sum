@@ -1,0 +1,6 @@
+filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
+filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
+github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
+github.com/go-sql-driver/mysql v1.10.1/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
+github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
+github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=

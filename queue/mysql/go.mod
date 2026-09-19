@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 )
 
