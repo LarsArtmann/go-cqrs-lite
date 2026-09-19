@@ -106,6 +106,66 @@ func TestSystem_TimerEngineFallsBackToPrimary(t *testing.T) {
 	}
 }
 
+// TestSystem_DomainConfigTimersHook pins the declarable surface: timer
+// wiring rides DomainConfig.Timers (the Commands/Queries pattern) instead of
+// imperative post-construction calls.
+func TestSystem_DomainConfigTimersHook(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	var dispatched atomic.Int64
+
+	sys, err := system.New(ctx, system.DomainConfig{
+		Timers: func(s *system.System) {
+			store, err := engine.NewTimerStore[string](s.TimerEngine())
+			if err != nil {
+				t.Errorf("NewTimerStore: %v", err)
+				return
+			}
+
+			if err := store.Schedule(ctx, scheduling.Timer[string]{
+				ID:      scheduling.MustParseTimerID("domain-config-hook"),
+				FireAt:  time.Now().Add(-time.Second),
+				Payload: "go",
+			}); err != nil {
+				t.Errorf("Schedule: %v", err)
+			}
+
+			s.ManageTimers(scheduling.New(
+				store,
+				func(_ context.Context, _ scheduling.Timer[string]) error {
+					dispatched.Add(1)
+
+					return nil
+				},
+				scheduling.WithPollInterval(10*time.Millisecond),
+			))
+		},
+	}, system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+			"timers":  {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{{Role: system.RoleSourceOfTruth, Engine: "primary"}},
+	})
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	defer func() { _ = sys.Close() }()
+
+	if err := sys.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	waitForTimers(t, 3*time.Second, func() bool { return dispatched.Load() >= 1 })
+
+	if err := sys.GracefulClose(context.Background()); err != nil {
+		t.Fatalf("GracefulClose: %v", err)
+	}
+}
+
 func mustScheduleTimer(t *testing.T, s *engine.TimerStore[string], id string, fireAt time.Time) {
 	t.Helper()
 

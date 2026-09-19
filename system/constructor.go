@@ -328,6 +328,10 @@ func New(ctx context.Context, domain DomainConfig, deployment DeploymentConfig) 
 		domain.Queries(sys)
 	}
 
+	if domain.Timers != nil {
+		domain.Timers(sys)
+	}
+
 	return sys, nil
 }
 

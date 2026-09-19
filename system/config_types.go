@@ -25,6 +25,22 @@ type DomainConfig struct {
 	// System via sys.Query(...).
 	Queries func(*System)
 
+	// Timers is a function that wires engine-backed timers into the
+	// composition root (ADR-0142): build a TimerStore over sys.TimerEngine()
+	// with scheduling/engine, construct scheduling.Scheduler over it, and
+	// hand the lifecycle to sys.ManageTimers. The System then starts the
+	// scheduler on Start and stops it on GracefulClose/Close.
+	//
+	// There is deliberately NO declarative event→timeout rule registry:
+	// ADR-0040 chose functional composition over declarative rule sets for
+	// event→command derivation, and timed derivation composes the same
+	// way — a bus subscriber (plain or deriver.Deriver) reacts to the
+	// event and calls TimerStore.Schedule with the timeout. The coeffect
+	// gate (DomainConfig.Events) validates the event side of that
+	// composition; the dispatch side targets runtime-registered command
+	// handlers and is validated by the command dispatcher itself.
+	Timers func(*System)
+
 	// Projections are sealed projection/query declarations that the System
 	// will auto-wire into projection instances. Pass values created by
 	// [Lookup], [QuerySet], [Count], or [RawQuery].
