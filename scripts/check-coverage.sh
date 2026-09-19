@@ -62,9 +62,9 @@ for mod in "${!EXPECTED[@]}"; do
 	fi
 done
 
-# Modules are measured in workspace mode (go.work replacements) with the
-# goexperiment.jsonv2 build tag, matching the verify gate.
-TAGS="goexperiment.jsonv2"
+# Modules are measured in workspace mode (go.work replacements), matching
+# the verify gate.
+TAGS=""
 
 compute_coverage() {
 	local mod="$1"
@@ -91,7 +91,7 @@ if [ "${1:-}" = "--update" ]; then
 	# marker cannot go stale when numbers are recomputed. (GNU sed; this repo
 	# is Nix/Linux-first.)
 	sed -i "s|(verified [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\})|(verified $(date +%Y-%m-%d))|" "$0"
-	echo "# Recomputed coverage ($(date +%Y-%m-%d)), workspace mode, $TAGS tag:"
+	echo "# Recomputed coverage ($(date +%Y-%m-%d)), workspace mode:"
 	for mod in "${!EXPECTED[@]}"; do
 		printf "  %-18s %s%%\n" "$mod" "$(compute_coverage "$mod")"
 	done | sort -t% -k1 -r

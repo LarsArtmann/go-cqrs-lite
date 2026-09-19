@@ -55,7 +55,7 @@ if [ "$RUN_EPHEMERAL" = true ]; then
 	PGDATA_CACHE=$(mktemp -d /tmp/cqrs-pg-prof-XXXXXX)
 	export PGDATA_CACHE
 	bash "$SCRIPT_DIR/ephemeral-pg.sh" go test \
-		-tags "integration goexperiment.jsonv2" \
+		-tags "integration" \
 		-run "$TEST_PATTERN" -count=1 -v \
 		"./$TEST_MODULE/..." 2>&1 | tail -5
 	rm -rf "$PGDATA_CACHE"
@@ -79,7 +79,7 @@ if [ "$RUN_TESTCONTAINERS" = true ]; then
 		(
 			cd "$TEST_MODULE"
 			CGO_ENABLED=1 GOWORK=off \
-				go test -tags "integration goexperiment.jsonv2" \
+				go test -tags "integration" \
 				-run "$TEST_PATTERN" -count=1 -v ./... 2>&1 | tail -5
 		) || true
 

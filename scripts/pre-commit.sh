@@ -79,7 +79,7 @@ echo "==> Building all modules (catches broken-code commits, incl. auto-commit d
 # Compile-check the whole workspace before allowing a commit. This is the gate
 # that prevents the auto-commit daemon (or a human) from shipping code that does
 # not build, the recurring "stale GREEN" / broken-daemon-commit class of failure.
-if ! go build -tags "goexperiment.jsonv2" ./...; then
+if ! go build ./...; then
 	echo "ERROR: go build failed. Fix compile errors before committing."
 	exit 1
 fi
@@ -98,8 +98,8 @@ if grep -R 'fmt\.Printf' --include='*.go' . |
 fi
 
 echo "==> Checking api_surface.txt is up to date"
-if ! (cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" .); then
-	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability && GOWORK=off go run -tags 'goexperiment.jsonv2' . --update"
+if ! (cd cmd/api-stability && GOWORK=off go run .); then
+	echo "ERROR: docs/api_surface.txt is stale. Run: cd cmd/api-stability && GOWORK=off go run . --update"
 	exit 1
 fi
 

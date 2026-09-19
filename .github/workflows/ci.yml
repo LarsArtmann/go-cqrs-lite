@@ -29,8 +29,6 @@ on:
 # account decision lands, migrate to DeterminateSystems/flakehub-cache-action
 # (start with this file's nix jobs + nightly-gates.yml).
 
-env:
-  GOEXPERIMENT: jsonv2
 
 jobs:
   check:
@@ -88,7 +86,7 @@ jobs:
 
       - name: Doc cross-reference check
         run:
-          cd cmd/doc-check && GOWORK=off go run -tags "goexperiment.jsonv2" .
+          cd cmd/doc-check && GOWORK=off go run .
       # No explicit args needed: auto-discovers repo root + all .agents/skills/*/references/*.md
 
       - name: Documentation assertions
@@ -151,25 +149,25 @@ jobs:
         run: |
           nix develop -c bash -c '
             set -e
-            CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./stack/duckdb/...
-            CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./cmd/cqrs-bench/...
-            CGO_ENABLED=1 go vet -tags "goexperiment.jsonv2" ./stack/duckdb/...
+            CGO_ENABLED=1 go build ./stack/duckdb/...
+            CGO_ENABLED=1 go build ./cmd/cqrs-bench/...
+            CGO_ENABLED=1 go vet ./stack/duckdb/...
           '
 
       - name: Test DuckDB (CGo required)
         run: |
           nix develop -c bash -c '
             set -e
-            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
+            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
           '
 
       - name: Build + Test Iroh QUIC (CGo required, pre-compiled static lib)
         run: |
           nix develop -c bash -c '
             set -e
-            CGO_ENABLED=1 go build -tags "goexperiment.jsonv2" ./metaengine/irohengine/quic/...
-            CGO_ENABLED=1 go vet -tags "goexperiment.jsonv2" ./metaengine/irohengine/quic/...
-            cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 go test -tags "goexperiment.jsonv2" ./... -count=1
+            CGO_ENABLED=1 go build ./metaengine/irohengine/quic/...
+            CGO_ENABLED=1 go vet ./metaengine/irohengine/quic/...
+            cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
           '
 
   dgraph:
@@ -203,7 +201,7 @@ jobs:
           nix develop -c bash -c '
             set -e
             cd metaengine/irohengine/quic && GOWORK=off CGO_ENABLED=1 \
-              go test -tags "goexperiment.jsonv2" -race -count=3 \
+              go test -race -count=3 \
               -run TestQuicConvergenceSuite ./... -timeout=10m
           '
 
@@ -234,7 +232,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
       - name: Test module in isolation
-        run: (cd ${{ matrix.module }} && GOWORK=off go test -tags "goexperiment.jsonv2" ./... -count=1 -race)
+        run: (cd ${{ matrix.module }} && GOWORK=off go test ./... -count=1 -race)
 
   discover-modules:
     name: Discover modules
@@ -272,7 +270,7 @@ jobs:
 
       - name: Run cqrs-lint on its own source (self-lint auto-detected)
         run: |
-          cd cmd/cqrs-lint && GOWORK=off go run -tags "goexperiment.jsonv2" . . --strict-load --fail-on-stale-suppressions
+          cd cmd/cqrs-lint && GOWORK=off go run . . --strict-load --fail-on-stale-suppressions
 
     timeout-minutes: 15
   cqrs-lint-examples:
@@ -289,7 +287,7 @@ jobs:
           status=0
           for ex in ../../example/*/; do
             echo "::group::Linting $ex"
-            out=$(GOWORK=off go run -tags "goexperiment.jsonv2" . "$ex" 2>&1) || true
+            out=$(GOWORK=off go run . "$ex" 2>&1) || true
             echo "$out"
             if echo "$out" | grep -q "\[V007\]"; then
               echo "::error::V007 fired in $ex — examples are the copy-paste surface for consumers and must not use v5-removed APIs (AGENTS.md examples policy)"
@@ -350,7 +348,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
       - name: Verify API surface matches golden file
-        run: cd cmd/api-stability && GOWORK=off go run -tags "goexperiment.jsonv2" .
+        run: cd cmd/api-stability && GOWORK=off go run .
 
     timeout-minutes: 15
   replace-directives:
@@ -441,7 +439,7 @@ jobs:
           done < <(find . -name '*_integration_test.go' -not -path './vendor/*' -not -path './.git/*') |
             sort -u |
             while IFS= read -r mod; do
-              echo "==> Linting $mod (tags: goexperiment.jsonv2 integration)"
+              echo "==> Linting $mod (tags: integration)"
               nix run .#lint-module -- "$mod" integration
             done
 
@@ -863,7 +861,6 @@ jobs:
         if: env.HAS_ERRAUDIT_PAT == 'true'
         env:
           GOPRIVATE: github.com/larsartmann/*
-          GOEXPERIMENT: jsonv2
           GOWORK: "off"
         run: |
           git config --global url."https://x-access-token:${{ secrets.ERRAUDIT_PAT }}@github.com/".insteadOf "https://github.com/"

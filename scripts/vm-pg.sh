@@ -99,12 +99,12 @@ if [ $# -gt 0 ]; then
 		go "$@"
 	elif [[ "$1" == ./...* ]] || [[ "$1" == ./* ]]; then
 		echo "==> Running: go test -tags=integration $*"
-		go test -tags "integration goexperiment.jsonv2" "$@" -count=1 -v
+		go test -tags "integration" "$@" -count=1 -v
 	else
 		# Strip leading "-run " if user passed it explicitly
 		TEST_PATTERN="${*#-run }"
 		echo "==> Running integration tests matching: $TEST_PATTERN"
-		go test -tags "integration goexperiment.jsonv2" \
+		go test -tags "integration" \
 			./storage/... ./stack/postgres/... ./metaengine/pgengine/... ./projectionhost/... ./scheduling/sqlstore/... ./benchkit/... \
 			-count=1 -v -run "$TEST_PATTERN"
 	fi
@@ -117,7 +117,7 @@ else
 		(
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
-				go test -tags "integration goexperiment.jsonv2" ./... -count=1 -v 2>&1
+				go test -tags "integration" ./... -count=1 -v 2>&1
 		) || FAILED=1
 	done
 	if [ "$FAILED" -ne 0 ]; then

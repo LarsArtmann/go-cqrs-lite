@@ -16,7 +16,7 @@ log="$work/build.log"
 echo "==> workdir: $work"
 
 echo "==> 1/3 generating catalog fixture"
-(cd "$root/catalog" && GOWORK=off go run -tags "goexperiment.jsonv2" ./cmd/ec-fixture "$work")
+(cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work")
 
 cd "$work"
 

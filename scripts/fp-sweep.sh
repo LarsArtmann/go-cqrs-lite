@@ -60,7 +60,7 @@ command -v jq >/dev/null 2>&1 || {
 
 BIN=$(mktemp /tmp/cqrs-lint-fp-sweep.XXXXXX)
 trap 'rm -f "$BIN"' EXIT
-(cd cmd/cqrs-lint && GOWORK=off go build -tags "goexperiment.jsonv2" -o "$BIN" .)
+(cd cmd/cqrs-lint && GOWORK=off go build -o "$BIN" .)
 
 {
 	echo "# cqrs-lint FP sweep — $(date -u +%Y-%m-%dT%H:%M:%SZ)"

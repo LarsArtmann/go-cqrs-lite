@@ -16,7 +16,7 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-TAGS="goexperiment.jsonv2"
+TAGS=""
 RUN_PATTERN='Latency|Timer|Deadline'
 # Modules containing timing-assertion tests (Test.*(Latency|Timer|Deadline)).
 TIMING_MODULES=(

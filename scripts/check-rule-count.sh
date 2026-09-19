@@ -35,7 +35,7 @@ GOEOF
 
 # Run it from the cqrs-lint module directory.
 ACTUAL=$(cd "$REPO_ROOT/cmd/cqrs-lint" &&
-	GOWORK=off go run -tags "goexperiment.jsonv2" "$TMPDIR/count.go" 2>/dev/null) || {
+	GOWORK=off go run "$TMPDIR/count.go" 2>/dev/null) || {
 	echo "ERROR: could not get rule count from AllRules()"
 	exit 1
 }

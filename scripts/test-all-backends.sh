@@ -72,7 +72,7 @@ run_dgraph() {
 		bash -c "cd metaengine/dgraphengine && \
             CGO_ENABLED=1 GOWORK=off \
             timeout '$timeout' \
-            go test -tags 'goexperiment.jsonv2' ./... \
+            go test ./... \
             -count=1 2>&1" || return 1
 }
 
@@ -84,7 +84,7 @@ if [ "$RUN_EMBEDDED" = true ]; then
 	echo ""
 	echo ">>> Phase 1: Embedded backends (SQLite, Pebble, bbolt)"
 	for mod in "${EMBEDDED_MODULES[@]}"; do
-		if ! run_module "$mod" "goexperiment.jsonv2"; then
+		if ! run_module "$mod" ""; then
 			OVERALL_FAILED=1
 		fi
 	done
@@ -92,7 +92,7 @@ if [ "$RUN_EMBEDDED" = true ]; then
 	echo ""
 	echo ">>> Phase 2: CGo backends (DuckDB)"
 	for mod in "${CGO_MODULES[@]}"; do
-		if ! run_module "$mod" "cgo goexperiment.jsonv2"; then
+		if ! run_module "$mod" "cgo"; then
 			OVERALL_FAILED=1
 		fi
 	done

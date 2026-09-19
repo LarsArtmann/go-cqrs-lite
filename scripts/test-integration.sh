@@ -228,7 +228,7 @@ run_pg_modules() {
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$timeout" \
-				go test -tags "integration goexperiment.jsonv2" ./... \
+				go test -tags "integration" ./... \
 				-count=1 -v "${EXTRA_ARGS[@]}" 2>&1
 		) || failed=1
 	done
@@ -301,7 +301,7 @@ run_mysql_modules() {
 			cd "$mod"
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$timeout" \
-				go test -tags "goexperiment.jsonv2" ./... \
+				go test ./... \
 				-count=1 -v "${EXTRA_ARGS[@]}" 2>&1
 		) || failed=1
 	done

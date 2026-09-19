@@ -97,7 +97,7 @@ dump_constants() {
 	local out
 
 	if ! out="$(cd "$dir" && CALIB_DUMP=1 GOWORK=off go test \
-		-tags "goexperiment.jsonv2" -run '^TestCalibrationConstantsDump$' \
+		-run '^TestCalibrationConstantsDump$' \
 		-count=1 -v ./... 2>/dev/null | grep -o 'CALIB|[a-z_]*|[0-9.]*|[0-9]*' || true)"; then
 		out=""
 	fi
@@ -227,7 +227,7 @@ while IFS='|' read -r mod suffix label; do
 
 	log="$(mktemp)"
 
-	if ! (cd "$dir" && GOWORK=off go test -tags "goexperiment.jsonv2" \
+	if ! (cd "$dir" && GOWORK=off go test \
 		-run '^$' -bench "^${bench}" -benchmem -count "$COUNT" -timeout 20m ./... >"$log" 2>&1); then
 		echo "::error::calibration bench failed for $mod $label (see $log)"
 		FAILED=1

@@ -13,8 +13,7 @@ func buildBinary(t *testing.T) string {
 
 	bin := t.TempDir() + "/cqrs-bench"
 
-	cmd := exec.Command("go", "build", "-tags", "goexperiment.jsonv2", "-o", bin, ".")
-	cmd.Env = append(cmd.Environ(), "GOEXPERIMENT=jsonv2")
+	cmd := exec.Command("go", "build", "-o", bin, ".")
 
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("go build failed: %v\n%s", err, out)

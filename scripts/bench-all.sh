@@ -13,7 +13,7 @@
 #   scripts/bench-all.sh --benchtime 5x  # set benchtime per benchmark
 #
 # Environment:
-#   GOEXPERIMENT=jsonv2   (required — set automatically)
+#     (required — set automatically)
 #   CGO_ENABLED=1         (required for DuckDB/SQLite-CGo — set automatically)
 #   MYSQL_BENCH_DSN       (optional — enables MySQL benchmarks)
 #   POSTGRES_BENCH_DSN    (optional — enables Postgres benchmarks)
@@ -24,10 +24,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT_DIR"
-
-export GOEXPERIMENT=jsonv2
 export CGO_ENABLED=1
-export GOFLAGS="-tags=goexperiment.jsonv2"
+export GOFLAGS=""
 
 TIMEOUT="${BENCH_TIMEOUT:-20m}"
 QUICK=false
@@ -139,7 +137,6 @@ for mod in "${MODULES[@]}"; do
 	)
 
 	output=$(timeout "$TIMEOUT" go test \
-		-tags "goexperiment.jsonv2" \
 		-run='^$' \
 		-bench=. \
 		"$BENCH_TIME_FLAG" \

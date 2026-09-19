@@ -146,7 +146,6 @@ func BuildContextWithTypes(
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo |
 			packages.NeedSyntax | packages.NeedFiles,
 		Dir:        dir,
-		BuildFlags: []string{"-tags=goexperiment.jsonv2"},
 	}
 
 	pkgs, err := packages.Load(cfg, "./...")

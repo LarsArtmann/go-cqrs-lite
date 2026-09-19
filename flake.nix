@@ -166,9 +166,10 @@
           inherit (pkgs) lib;
           goPkg = goToolchain pkgs;
 
-          goTags = [
-            "goexperiment.jsonv2"
-          ];
+          # Empty since Go 1.27 graduated encoding/json/v2 — the
+          # "goexperiment.jsonv2" build tag and GOEXPERIMENT=jsonv2 are
+          # no-ops. Keep the mechanism for future experiments.
+          goTags = [ ];
           tagFlags = builtins.concatStringsSep " " (map (t: "-tags=${t}") goTags);
 
           testModules = [
@@ -813,11 +814,9 @@
                 GOWORK = "off";
               };
 
-              # buildGoModule silently drops GOEXPERIMENT from env (not in its
-              # whitelist), so export it in preBuild. The "goexperiment.jsonv2"
-              # build tag is set internally by the toolchain from GOEXPERIMENT.
+              # buildGoModule does not allow GOEXPERIMENT in env; none is
+              # needed since Go 1.27 graduated encoding/json/v2.
               preBuild = ''
-                export GOEXPERIMENT=jsonv2
                 export HOME=$TMPDIR
                 go mod tidy
               '';
@@ -1063,7 +1062,7 @@
             check-csp = mkApp "check-csp" [ goPkg pkgs.chromium pkgs.bash ] ''
               export CQRS_BROWSER=${pkgs.chromium}/bin/chromium
               cd catalog
-              GOWORK=off go test -tags "goexperiment.jsonv2" -run TestCSPBrowser -count=1 -v ./docserver/
+              GOWORK=off go test -run TestCSPBrowser -count=1 -v ./docserver/
             '';
 
             # verify-module: scoped verification for ONE module — build, vet,
@@ -1079,7 +1078,7 @@
               mod="$1"
               shift
               cd "$mod"
-              export CGO_ENABLED=1 GOWORK=off GOEXPERIMENT=jsonv2
+              export CGO_ENABLED=1 GOWORK=off
               echo "=== Build ($mod) ===" && ${goPkg}/bin/go build ./... \
                 && echo "=== Vet ===" && ${goPkg}/bin/go vet ./... \
                 && echo "=== Test ===" && ${goPkg}/bin/go test ./... -count=1 -timeout=10m "$@" \
@@ -1099,8 +1098,8 @@
                 echo "==> $mod"
                 (
                   cd "$mod"
-                  GOWORK=off ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./... \
-                    && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1 -timeout=15m
+                  GOWORK=off ${goPkg}/bin/go build ./... \
+                    && GOWORK=off ${goPkg}/bin/go test ./... -count=1 -timeout=15m
                 ) || failed=1
               done
               if [ "$failed" -ne 0 ]; then
@@ -1126,7 +1125,10 @@
                 exit 1
               fi
               cd "$mod"
-              exec ${pkgs.golangci-lint}/bin/golangci-lint run                 --build-tags "goexperiment.jsonv2 ''${extraTags}" ./...
+              if [ -n "''${extraTags}" ]; then
+                exec ${pkgs.golangci-lint}/bin/golangci-lint run                 --build-tags "''${extraTags}" ./...
+              fi
+              exec ${pkgs.golangci-lint}/bin/golangci-lint run                 ./...
             '';
 
             # load-sweep: run timing-assertion tests under deliberate CPU load
@@ -1195,7 +1197,7 @@
 
             test-grpc = mkApp "test-grpc" goModules ''
               echo "==> Testing transport/grpc (GOWORK=off)"
-              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1 "$@")
+              (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1 "$@")
             '';
 
             check-wasm = mkApp "check-wasm" goModules ''
@@ -1203,14 +1205,14 @@
               failed=0
               for mod in $wasmMods; do
                 echo "==> WASM build: $mod"
-                (cd "$mod" && GOWORK=off GOOS=js GOARCH=wasm ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./...) || failed=1
+                (cd "$mod" && GOWORK=off GOOS=js GOARCH=wasm ${goPkg}/bin/go build ./...) || failed=1
               done
               exit "$failed"
             '';
 
             check-api-stability = mkApp "check-api-stability" goModules ''
               echo "==> API surface check (with -race)"
-              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" -race -count=1 ./...)
+              (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go test -race -count=1 ./...)
             '';
 
             # check-duplication: CI gate that fails if new code clones are
@@ -1248,7 +1250,7 @@
               echo "==> Formatting (nix fmt)"
               nix fmt
               echo "==> Quick build check"
-              ${goPkg}/bin/go build -tags "goexperiment.jsonv2" ./... 2>/dev/null || echo "WARN: build has errors (formatting still applied)"
+              ${goPkg}/bin/go build ./... 2>/dev/null || echo "WARN: build has errors (formatting still applied)"
               echo "==> Lint auto-fix (golangci-lint --fix)"
               ${pkgs.golangci-lint}/bin/golangci-lint run --fix --timeout 5m ./... 2>/dev/null || true
               echo "==> Lint sweep (golangci-lint)"
@@ -1293,8 +1295,8 @@
                 echo "=== Vet ===" && ${goPkg}/bin/go vet ${tagFlags} ${modulePaths}
                 echo "=== Test ===" && ${goPkg}/bin/go test ${tagFlags} ${modulePaths} -count=1
                 echo "=== Check Arch ===" && nix run .#check-arch
-                echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run -tags "goexperiment.jsonv2" .)
-                echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test -tags "goexperiment.jsonv2" ./... -count=1)
+                echo "=== API Stability ===" && (cd cmd/api-stability && GOWORK=off ${goPkg}/bin/go run .)
+                echo "=== transport/grpc ===" && (cd transport/grpc && GOWORK=off ${goPkg}/bin/go test ./... -count=1)
                 echo "✅ All CI checks passed"
               '
             '';
@@ -1326,7 +1328,7 @@
             vulncheck = mkApp "vulncheck" [ goPkg pkgs.govulncheck ] ''
               for mod in ${builtins.concatStringsSep " " testModules}; do
                 echo "==> Vulnerability scan: $mod"
-                (cd "$mod" && GOWORK=off ${pkgs.govulncheck}/bin/govulncheck -tags "goexperiment.jsonv2" ./...)
+                (cd "$mod" && GOWORK=off ${pkgs.govulncheck}/bin/govulncheck ./...)
               done
             '';
 
@@ -1348,7 +1350,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/ephemeral-pg.sh" "$@"
                 '';
 
@@ -1364,7 +1365,6 @@
                   pkgs.redis
                 ]
                 ''
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/ephemeral-redis.sh" "$@"
                 '';
 
@@ -1385,7 +1385,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/vm-pg.sh" "$@"
                 '';
 
@@ -1397,7 +1396,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/vm-mysql.sh" "$@"
                 '';
 
@@ -1412,7 +1410,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/vm-mysql-nspawn.sh" "$@"
                 '';
 
@@ -1426,7 +1423,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   echo "=== Ephemeral PG Integration Tests ==="
                   bash "$PWD/scripts/ephemeral-pg.sh" "$@" || echo "⚠️ PG tests had failures"
                   echo ""
@@ -1450,7 +1446,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/test-integration.sh" "$@"
                 '';
 
@@ -1463,7 +1458,6 @@
                 ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   echo "=== Postgres VM Check ==="
                   nix build .#checks.x86_64-linux.postgres-vm -L
                   echo "=== MySQL Check (nspawn preferred, QEMU fallback) ==="
@@ -1477,14 +1471,12 @@
             # Ephemeral Redis for Watermill adapter testing.
             ephemeral-redis = mkApp "ephemeral-redis" [ goPkg pkgs.redis ] ''
               export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
               bash "$PWD/scripts/ephemeral-redis.sh" "$@"
             '';
 
             # Ephemeral NATS for Watermill adapter testing.
             ephemeral-nats = mkApp "ephemeral-nats" [ goPkg pkgs.nats-server ] ''
               export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
               bash "$PWD/scripts/ephemeral-nats.sh" "$@"
             '';
 
@@ -1493,7 +1485,6 @@
             #        nix run .#ephemeral-dgraph -- go test ./... # arbitrary command
             ephemeral-dgraph = mkApp "ephemeral-dgraph" [ goPkg pkgs.dgraph ] ''
               export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
               bash "$PWD/scripts/ephemeral-dgraph.sh" "$@"
             '';
 
@@ -1502,7 +1493,6 @@
             #        nix run .#integration-dgraph -- -run TestDgraph_ScanBackend
             integration-dgraph = mkApp "integration-dgraph" [ goPkg pkgs.dgraph ] ''
               export CGO_ENABLED=1
-              export GOEXPERIMENT=jsonv2
               bash "$PWD/scripts/ephemeral-dgraph.sh" "$@"
             '';
 
@@ -1511,7 +1501,6 @@
               mkApp "test-all-backends" [ goPkg pkgs.gcc pkgs.postgresql pkgs.redis pkgs.nats-server pkgs.dgraph ]
                 ''
                   export CGO_ENABLED=1
-                  export GOEXPERIMENT=jsonv2
                   bash "$PWD/scripts/test-all-backends.sh" "$@"
                 '';
 
@@ -1548,7 +1537,7 @@
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
-                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
 
@@ -1558,7 +1547,7 @@
             # ambiguity.
             doc-check = mkApp "doc-check" [ goPkg pkgs.bash ] ''
               cd cmd/doc-check
-              GOWORK=off GOEXPERIMENT=jsonv2 ${goPkg}/bin/go run . \
+              GOWORK=off ${goPkg}/bin/go run . \
                 ../../SKILL.md \
                 ../../.agents/skills/go-cqrs-lite/references/*.md \
                 ../../AGENTS.md \

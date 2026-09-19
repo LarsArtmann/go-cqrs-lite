@@ -98,7 +98,7 @@ if [ $# -gt 0 ]; then
 		echo "==> Running: go test $*"
 		SEED=$(new_shuffle_seed)
 		log_shuffle_seed "mysql-manual" "$SEED"
-		go test -tags "goexperiment.jsonv2" -shuffle="$SEED" "$@" -count=1 -v
+		go test -shuffle="$SEED" "$@" -count=1 -v
 	fi
 else
 	echo "==> Running all MySQL integration tests"
@@ -109,7 +109,7 @@ else
 	(
 		cd stack/mysql
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
+			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- idempotency/sqlstore ---"
@@ -120,7 +120,7 @@ else
 		# QEMU slirp port-forwarding resets bursts of simultaneous MySQL
 		# connections; 10 contenders still prove row-lock serialization.
 		CGO_ENABLED=1 GOWORK=off MYSQL_TEST_CONCURRENCY=10 \
-			go test -tags "integration goexperiment.jsonv2" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
+			go test -tags "integration" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- metaengine/mysqlengine (capability conformance + ADT matrix) ---"
@@ -129,7 +129,7 @@ else
 	(
 		cd metaengine/mysqlengine
 		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
-			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
+			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- scheduling/sqlstore (MySQL claiming via SKIP LOCKED) ---"
@@ -138,7 +138,7 @@ else
 	(
 		cd scheduling/sqlstore
 		CGO_ENABLED=1 GOWORK=off \
-			go test -tags "integration goexperiment.jsonv2" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
+			go test -tags "integration" -shuffle="$SEED" -run TestClaimingMySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
 	echo "--- queue/mysql (work-queue conformance + ADR-0142 engine surface) ---"
@@ -147,7 +147,7 @@ else
 	(
 		cd queue/mysql
 		CGO_ENABLED=1 GOWORK=off ADTTEST_CAS_RACERS=10 \
-			go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v 2>&1
+			go test -shuffle="$SEED" ./... -count=1 -v 2>&1
 	)
 fi
 

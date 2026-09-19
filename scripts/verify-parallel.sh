@@ -10,7 +10,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
 export CGO_ENABLED=1
-TAGS="-tags=goexperiment.jsonv2"
+TAGS=""
 BATCHES="${BATCHES:-$(nproc 2>/dev/null || echo 4)}"
 EXTRA_ARGS="$*"
 

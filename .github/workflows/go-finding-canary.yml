@@ -30,7 +30,6 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.26.x"
-          GOEXPERIMENT: goexperiment.jsonv2
 
       - name: Check out go-finding@master
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -51,8 +50,8 @@ jobs:
       - name: Build + test against master
         working-directory: cmd/cqrs-lint
         run: |
-          GOWORK=off go build -tags "goexperiment.jsonv2" ./...
-          GOWORK=off go test -tags "goexperiment.jsonv2" -count=1 . ./pkg/...
+          GOWORK=off go build ./...
+          GOWORK=off go test -count=1 . ./pkg/...
 
       - name: Report drift
         if: failure()

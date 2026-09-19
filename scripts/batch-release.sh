@@ -334,10 +334,10 @@ for mod in "${modules[@]}"; do
 	# -o refuses to compile library-only modules ("no main packages to
 	# build"), so those fall back to the plain build, which typechecks and
 	# discards — writing nothing either way.
-	if (cd "$mod" && GOWORK=off go build -o "$build_out/" -tags goexperiment.jsonv2 ./... 2>"$build_err"); then
+	if (cd "$mod" && GOWORK=off go build -o "$build_out/" ./... 2>"$build_err"); then
 		:
 	elif grep -q "no main packages to build" "$build_err"; then
-		if ! (cd "$mod" && GOWORK=off go build -tags goexperiment.jsonv2 ./... 2>"$build_err"); then
+		if ! (cd "$mod" && GOWORK=off go build ./... 2>"$build_err"); then
 			build_ok=0
 		fi
 	else

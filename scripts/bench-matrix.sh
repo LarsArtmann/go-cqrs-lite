@@ -43,10 +43,8 @@ while [[ $# -gt 0 ]]; do
 		;;
 	esac
 done
-
-export GOEXPERIMENT=jsonv2
 export CGO_ENABLED=1
-TAGS="goexperiment.jsonv2"
+TAGS=""
 
 echo "=== Benchmark Matrix Runner ==="
 echo "Config: benchtime=$BENCHTIME count=$COUNT"
@@ -54,7 +52,7 @@ echo ""
 
 # ─── Full Pipeline Backends ───
 echo "--- Full Pipeline Backend Comparison ---"
-GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
+CGO_ENABLED=1 go test -tags "$TAGS" \
 	-run='^$' \
 	-bench='BenchmarkFullPipeline_Backends' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
@@ -64,7 +62,7 @@ GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
 # ─── Durability Tiers ───
 echo ""
 echo "--- Durability Tier Comparison ---"
-GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
+CGO_ENABLED=1 go test -tags "$TAGS" \
 	-run='^$' \
 	-bench='BenchmarkDurabilityTiers_SQLite' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
@@ -74,7 +72,7 @@ GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
 # ─── Codec Pipeline ───
 echo ""
 echo "--- Codec Pipeline Comparison ---"
-GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
+CGO_ENABLED=1 go test -tags "$TAGS" \
 	-run='^$' \
 	-bench='BenchmarkCodecPipeline_WriteRead' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
@@ -84,7 +82,7 @@ GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
 # ─── Batch Size Sweep ───
 echo ""
 echo "--- Batch Size Sweep ---"
-GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
+CGO_ENABLED=1 go test -tags "$TAGS" \
 	-run='^$' \
 	-bench='BenchmarkBatchSizeSweep_SQLite' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \
@@ -94,7 +92,7 @@ GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
 # ─── Metaengine Promise ───
 echo ""
 echo "--- Metaengine Promise Benchmarks ---"
-GOEXPERIMENT=jsonv2 CGO_ENABLED=1 go test -tags "$TAGS" \
+CGO_ENABLED=1 go test -tags "$TAGS" \
 	-run='^$' \
 	-bench='BenchmarkMultiQuery_ReadMix|BenchmarkPlanner_PlanLatency|BenchmarkColumnarScan_DuckDB|BenchmarkPushdownScan_DuckDB' \
 	-benchtime="$BENCHTIME" -count="$COUNT" -benchmem \

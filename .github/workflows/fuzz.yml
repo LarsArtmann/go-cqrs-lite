@@ -36,7 +36,7 @@ jobs:
             FuzzBuildWhereClauseChecked_NeverPanics \
             FuzzBuildWhereClauseChecked_MultiCondition; do
             echo "::group::$target"
-            GOTOOLCHAIN=auto go test -tags "goexperiment.jsonv2" \
+            GOTOOLCHAIN=auto go test \
               -run "^${target}$" -fuzz "^${target}$" -fuzztime 60s ./sql/
             echo "::endgroup::"
           done

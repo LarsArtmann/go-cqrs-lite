@@ -66,6 +66,6 @@ else
 	log_shuffle_seed "watermill" "$SEED"
 	(
 		cd watermill
-		GOWORK=off go test -tags "goexperiment.jsonv2" -shuffle="$SEED" ./... -count=1 -v
+		GOWORK=off go test -shuffle="$SEED" ./... -count=1 -v
 	)
 fi

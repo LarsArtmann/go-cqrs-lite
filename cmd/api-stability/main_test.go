@@ -12,14 +12,6 @@ import (
 	"testing"
 )
 
-// jsonV2Env returns an environment with GOEXPERIMENT=jsonv2 set, needed because
-// cmdguard uses encoding/json/v2 behind a build tag.
-func jsonV2Env() []string {
-	return append(os.Environ(), "GOEXPERIMENT=jsonv2")
-}
-
-const jsonV2Tags = "goexperiment.jsonv2"
-
 // TestEveryGoModDirIsInModulesList asserts that every directory containing a
 // go.mod (except examples, integration, the root workspace, and this tool's own
 // module) appears in the modules slice. This catches the class of omission
@@ -214,8 +206,8 @@ func TestAPISurfaceCheck(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "go", "run", "-tags", jsonV2Tags, ".")
-	cmd.Env = jsonV2Env()
+	cmd := exec.CommandContext(ctx, "go", "run", ".")
+	cmd.Env = os.Environ()
 	cmd.Dir = "."
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -234,8 +226,8 @@ func TestToolCompiles(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "go", "build", "-tags", jsonV2Tags, ".")
-	cmd.Env = jsonV2Env()
+	cmd := exec.CommandContext(ctx, "go", "build", ".")
+	cmd.Env = os.Environ()
 	cmd.Dir = "."
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("api-stability tool does not compile:\n%s", out)
@@ -259,8 +251,8 @@ func TestAPISurfaceUpdateIdempotent(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	cmd := exec.CommandContext(ctx, "go", "run", "-tags", jsonV2Tags, ".", "--update")
-	cmd.Env = jsonV2Env()
+	cmd := exec.CommandContext(ctx, "go", "run", ".", "--update")
+	cmd.Env = os.Environ()
 	cmd.Dir = "."
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("update run failed: %s\n%s", err, out)

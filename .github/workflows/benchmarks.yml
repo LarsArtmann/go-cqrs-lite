@@ -40,7 +40,7 @@ jobs:
 
       - name: Run memory benchmark
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench run \
             --backend memory \
             --profile dev \
@@ -49,7 +49,7 @@ jobs:
 
       - name: Run raw sink comparison
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench run \
             --backend memory \
             --profile dev \
@@ -72,7 +72,7 @@ jobs:
       - name: Run Go benchmarks
         run: |
           cd stack/bench && \
-          GOEXPERIMENT=jsonv2 go test -tags "goexperiment.jsonv2" \
+          go test \
             -bench=. -benchmem -benchtime=100x -count=1 \
             -timeout 5m
 
@@ -98,7 +98,7 @@ jobs:
 
       - name: Memory benchmark (small profile, 5 repeats)
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench run \
             --backend memory \
             --profile small \
@@ -108,7 +108,7 @@ jobs:
 
       - name: SQLite benchmark (small profile, 5 repeats)
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench run \
             --backend sqlite \
             --profile small \
@@ -118,7 +118,7 @@ jobs:
 
       - name: Pebble benchmark (small profile, 5 repeats)
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench run \
             --backend pebble \
             --profile small \
@@ -128,7 +128,7 @@ jobs:
 
       - name: Multi-backend comparison
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench compare \
             --profile small \
             --format markdown \
@@ -136,7 +136,7 @@ jobs:
 
       - name: Scaling sweep (workers)
         run: |
-          GOEXPERIMENT=jsonv2 go run -tags "goexperiment.jsonv2" \
+          go run \
             ./cmd/cqrs-bench sweep \
             --param workers \
             --values 1,2,4,8,16 \
@@ -208,12 +208,12 @@ jobs:
           # it. The previous single-cd form hopped ../metaengine/tursoengine
           # from stack/bench (nonexistent path) and teed to stack/current.txt.
           (cd stack/bench && \
-          GOEXPERIMENT=jsonv2 go test -tags "goexperiment.jsonv2" \
+          go test \
             -bench='BenchmarkFullPipeline_Memory|BenchmarkBenchkitSuite_Memory$' \
             -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m) 2>&1 | tee current.txt
           (cd metaengine/tursoengine && \
-          GOEXPERIMENT=jsonv2 go test -tags "goexperiment.jsonv2" \
+          go test \
             -bench='BenchmarkMatViewRead/agg=[A-Z]+/scale=1k' \
             -run='^$' -benchmem -benchtime=10x -count=5 \
             -timeout 10m) 2>&1 | tee -a current.txt

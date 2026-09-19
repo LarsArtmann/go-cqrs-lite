@@ -157,7 +157,7 @@ else
 		echo "==> Running gate benchmarks ($set_dir, bench=$set_bench, count=$COUNT, benchtime=$BENCHTIME)"
 		(
 			cd "$set_dir"
-			GOTOOLCHAIN=auto GOEXPERIMENT=jsonv2 go test -tags goexperiment.jsonv2 \
+			GOTOOLCHAIN=auto go test \
 				-run='^$' -bench="$set_bench" -benchmem \
 				-benchtime="$BENCHTIME" -count="$COUNT" -timeout 10m 2>&1
 		) | tee -a "$current_file"

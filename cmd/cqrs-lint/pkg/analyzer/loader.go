@@ -17,7 +17,6 @@ func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 		Fset:       fset,
 		Tests:      false,
 		Dir:        dir,
-		BuildFlags: []string{"-tags=goexperiment.jsonv2"},
 	}
 
 	pkgs, err := packages.Load(cfg, "./...")

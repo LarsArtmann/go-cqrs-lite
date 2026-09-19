@@ -58,7 +58,7 @@ for arg in "$@"; do
 	esac
 done
 
-GO_TAGS="goexperiment.jsonv2"
+GO_TAGS=""
 
 # latest_tag prints the highest version tag for a module dir. Source: local
 # refs by default, `git ls-remote --tags origin` when REMOTE=1 (fetched ONCE
