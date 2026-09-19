@@ -103,6 +103,11 @@ type pebbleEngine struct {
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
+
+	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
+	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
+	*metaengine.MapDueClaimer
+	*metaengine.MapDedupStore
 }
 
 // writeOptions returns pebble.Sync when sync writes are enabled, otherwise
@@ -153,6 +158,11 @@ func NewPebbleEngine(dir string, opts ...Option) (metaengine.Engine, error) {
 		}
 	}
 
+	if err := eng.wireMapRuntimes(); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
 	return eng, nil
 }
 
@@ -174,6 +184,10 @@ func NewPebbleEngineFromDB(db *pebble.DB, opts ...Option) (metaengine.Engine, er
 	// Seed seq counters from existing data to prevent key collisions on restart.
 	if err := eng.seedSeqCounters(); err != nil {
 		return nil, fmt.Errorf("pebbleengine: seed seq counters: %w", err)
+	}
+
+	if err := eng.wireMapRuntimes(); err != nil {
+		return nil, err
 	}
 
 	return eng, nil
@@ -213,11 +227,16 @@ func (e *pebbleEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTVector:    metaengine.ComplexityON,
 			metaengine.ADTSearch:    metaengine.ComplexityON,
 			metaengine.ADTSpatial:   metaengine.ComplexityON,
+			// ADR-0142: Map-runtime claims scan the collection (O(N) candidate
+			// scan, correct under single-writer RMW) — degraded, declared.
+			metaengine.ADTDueClaim: metaengine.ComplexityON,
+			metaengine.ADTDedup:    metaengine.ComplexityO1,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
-			metaengine.ADTVector:  true,
-			metaengine.ADTSearch:  true,
-			metaengine.ADTSpatial: true,
+			metaengine.ADTVector:   true,
+			metaengine.ADTSearch:   true,
+			metaengine.ADTSpatial:  true,
+			metaengine.ADTDueClaim: true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutLSM,

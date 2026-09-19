@@ -59,6 +59,11 @@ type badgerEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
+
+	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
+	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
+	*metaengine.MapDueClaimer
+	*metaengine.MapDedupStore
 }
 
 // Option configures a Badger engine at construction time.
@@ -116,6 +121,11 @@ func NewBadgerEngine(dir string, engineOpts ...Option) (metaengine.Engine, error
 		return nil, fmt.Errorf("badgerengine: seed seq counters: %w", err)
 	}
 
+	if err := eng.wireMapRuntimes(); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
 	return eng, nil
 }
 
@@ -130,6 +140,10 @@ func NewBadgerEngineFromDB(db *badger.DB) (metaengine.Engine, error) {
 
 	if err := eng.seedSeqCounters(); err != nil {
 		return nil, fmt.Errorf("badgerengine: seed seq counters: %w", err)
+	}
+
+	if err := eng.wireMapRuntimes(); err != nil {
+		return nil, err
 	}
 
 	return eng, nil
@@ -168,9 +182,14 @@ func (e *badgerEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 			metaengine.ADTGraph:     metaengine.ComplexityODegree, // prefix-scan BFS on adjacency keys
 			metaengine.ADTVector:    metaengine.ComplexityON,      // brute-force scan (degraded)
+			// ADR-0142: Map-runtime claims scan the collection — degraded.
+			metaengine.ADTDueClaim: metaengine.ComplexityON,
+			metaengine.ADTDedup:    metaengine.ComplexityO1,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTVector: true, // O(N·D) brute-force, no ANN index
+			// ADR-0142: claims run on the Map runtime (O(N) candidate scan).
+			metaengine.ADTDueClaim: true,
 		},
 	}
 	e.ApplyCalibration(&p)

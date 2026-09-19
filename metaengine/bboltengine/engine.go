@@ -97,6 +97,11 @@ type bboltEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
+
+	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
+	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
+	*metaengine.MapDueClaimer
+	*metaengine.MapDedupStore
 }
 
 // NewBboltEngine creates a bbolt-backed metaengine engine. If path is empty,
@@ -175,6 +180,10 @@ func NewBboltEngineFromDB(db *bolt.DB) (metaengine.Engine, error) {
 		return nil, err
 	}
 
+	if err := eng.wireMapRuntimes(); err != nil {
+		return nil, err
+	}
+
 	if err := eng.seedSeqCounters(); err != nil {
 		return nil, fmt.Errorf("bboltengine: seed seq counters: %w", err)
 	}
@@ -221,9 +230,14 @@ func (e *bboltEngine) Profile() metaengine.EngineProfile {
 			metaengine.ADTLog:       metaengine.ComplexityOLogN, // append O(logN), tail O(N)
 			metaengine.ADTMultimap:  metaengine.ComplexityOLogN,
 			metaengine.ADTVector:    metaengine.ComplexityON, // brute-force scan (degraded)
+			// ADR-0142: Map-runtime claims scan the collection — degraded.
+			metaengine.ADTDueClaim: metaengine.ComplexityON,
+			metaengine.ADTDedup:    metaengine.ComplexityO1,
 		},
 		DegradedADTs: map[metaengine.ADT]bool{
 			metaengine.ADTVector: true, // O(N·D) brute-force, no ANN index
+			// ADR-0142: claims run on the Map runtime (O(N) candidate scan).
+			metaengine.ADTDueClaim: true,
 		},
 		Layouts: map[metaengine.ADT]metaengine.StorageLayout{
 			metaengine.ADTMap:       metaengine.LayoutLSM,
