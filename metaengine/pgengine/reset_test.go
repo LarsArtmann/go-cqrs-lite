@@ -2,6 +2,7 @@ package pgengine_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -91,7 +92,7 @@ func TestResetEngine_ClearsAllState(t *testing.T) {
 		t.Fatalf("counters must be empty after reset, got %v", counters)
 	}
 
-	stream, err := sl.StreamRead(ctx, "events", "s1")
+	stream, err := sl.StreamRead(ctx, "events", streamKey)
 	if err != nil || len(stream) != 1 {
 		t.Fatalf(
 			"stream log (journal, facts) must SURVIVE reset (ADR-0143): got %d entries",

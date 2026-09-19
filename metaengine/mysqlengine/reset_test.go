@@ -2,6 +2,7 @@ package mysqlengine_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -22,6 +23,14 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 	eng := mustNewMySQLEngine(t)
 	ctx := context.Background()
 
+	// The journal SURVIVES resets (ADR-0143) and this engine shares the
+	// persistent cqrs_test database across runs, so journal collections and
+	// keys must be run-unique — residue from earlier runs would break the
+	// survival length assertions. Derived collections need no such care:
+	// reset clears them.
+	journal := fmt.Sprintf("events-%d", time.Now().UnixNano())
+	streamKey := "s1"
+
 	mb := eng.(metaengine.MapBackend)
 	cb := eng.(metaengine.CounterBackend)
 	sl := eng.(metaengine.StreamLogBackend)
@@ -34,7 +43,7 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("CounterIncrement: %v", err)
 	}
 
-	if err := sl.StreamAppend(ctx, "events", "s1", []any{"e1", "e2"}); err != nil {
+	if err := sl.StreamAppend(ctx, journal, streamKey, []any{"e1", "e2"}); err != nil {
 		t.Fatalf("StreamAppend: %v", err)
 	}
 
@@ -79,7 +88,7 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 		t.Fatalf("counters must be empty after reset, got %v", counters)
 	}
 
-	stream, err := sl.StreamRead(ctx, "events", "s1")
+	stream, err := sl.StreamRead(ctx, journal, streamKey)
 	if err != nil || len(stream) != 2 {
 		t.Fatalf(
 			"stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v",
@@ -108,14 +117,18 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 	eng := mustNewMySQLEngine(t)
 	//art-dupl:accept intentional cross-module mirror — each dep-isolated engine module carries its own reset test/body (ADR-0136); see AGENTS.md #19
 	ctx := context.Background()
+	// Run-unique journal collection: the journal survives resets and the
+	// shared cqrs_test database accumulates rows across runs (ADR-0143),
+	// and this test counts WHOLE-collection entries.
+	journal := fmt.Sprintf("events-%d", time.Now().UnixNano())
 	sl := eng.(metaengine.StreamLogBackend)
 	seqLog := eng.(metaengine.SeqSeekableStreamLog)
 
-	if err := sl.StreamAppend(ctx, "events", "s1", []any{"e1"}); err != nil {
+	if err := sl.StreamAppend(ctx, journal, "s1", []any{"e1"}); err != nil {
 		t.Fatalf("StreamAppend: %v", err)
 	}
 
-	before, err := seqLog.JournalReadAllWithSeq(ctx, "events")
+	before, err := seqLog.JournalReadAllWithSeq(ctx, journal)
 	if err != nil || len(before) != 1 {
 		t.Fatalf("JournalReadAllWithSeq before reset (len=%d err=%v)", len(before), err)
 	}
@@ -126,11 +139,11 @@ func TestResetEngine_SeqMonotonicAcrossReset(t *testing.T) {
 		t.Fatalf("ResetEngine: %v", err)
 	}
 
-	if err := sl.StreamAppend(ctx, "events", "s1", []any{"replayed"}); err != nil {
+	if err := sl.StreamAppend(ctx, journal, "s1", []any{"replayed"}); err != nil {
 		t.Fatalf("StreamAppend after reset: %v", err)
 	}
 
-	after, err := seqLog.JournalReadAllWithSeq(ctx, "events")
+	after, err := seqLog.JournalReadAllWithSeq(ctx, journal)
 	if err != nil {
 		t.Fatalf("JournalReadAllWithSeq after reset: %v", err)
 	}

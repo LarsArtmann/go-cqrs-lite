@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — substrate tail: benches, taskmanager on the queue, semantic-diff proof (plan T18a/T22/T23) — 2026-09-19
+
+- **claimkit micro-benchmarks vs the direct-SQL path** (ADR-0142 T18a):
+  `metaengine/claimkit` benches measure the substrate's abstraction tax
+  against hand-composed statements — ClaimDue steady-state, the composite
+  timer round-trip (schedule → due+fact → epoch-guarded fire), and dedup
+  fresh-key/live-window shapes. Measured result: the runtime is FASTER than
+  the direct path on every pair (claim 63µs vs 82µs; dedup 11µs vs 19µs on
+  this machine) — no performance regression smuggled in by the abstraction.
+  Four claimkit benches joined the benchmark-regression gate set.
+- **`example/taskmanager` rides the engine-backed queue** (T22): the
+  deriver's auto-assign cascade is now a DURABLE job on `queue/sqlite`
+  (dedup-keyed enqueue, lease-fenced `ClaimDue` worker, backoff retries,
+  dead-lettering) instead of a fire-and-forget goroutine — pinned by a
+  restart-durability test (enqueue → close → reopen → still claimable) and
+  an end-to-end test, plus a live run demonstrating `task.assign`
+  dispatching through the queue. Sibling replaces (`queue`, `queue/sqlite`,
+  `claiming`, `metaengine`) ride until the family tag wave strips them.
+- **go-taskqueue semantic-diff memo** (T23):
+  [`docs/research/2026-09-19_go-taskqueue-semantic-diff.md`](docs/research/2026-09-19_go-taskqueue-semantic-diff.md)
+  — the production donor contract vs the library, verified against both
+  sources: core semantics 1:1, divergences are strengthenings (claim tokens,
+  dep validation), genericity (typed payloads), or product surface that
+  correctly stayed in the consumer. No silent drift.
+- FEATURES gained the ADR-0142 capability matrix (engine × DueClaim/Dedup);
+  the FAQ explains why timers/claims refuse on dgraph and the iroh wrapper
+  (`EngineProfile.RefusedADTs` → Doctor → capability audit).
+
 ### Fixed — engine reset deleted the journal (ADR-0143: facts survive resets) — 2026-09-19
 
 - **cqrs-lint `TestMultiModuleBuildContext_*` skip under `-race` (upstream)**:
