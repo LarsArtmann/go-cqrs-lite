@@ -6,9 +6,15 @@ import (
 	"io/fs"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"golang.org/x/tools/go/packages"
 )
+
+// loadMu serializes packages.Load calls: x/tools' loader is not goroutine-safe
+// against concurrent Load invocations (go/types state races under -race), and
+// nothing here benefits from overlapping them — BuildContext is sequential.
+var loadMu sync.Mutex
 
 func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	cfg := &packages.Config{
@@ -19,7 +25,9 @@ func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 		Dir:   dir,
 	}
 
+	loadMu.Lock()
 	pkgs, err := packages.Load(cfg, "./...")
+	loadMu.Unlock()
 	if err != nil {
 		return nil, fmt.Errorf("load packages from %s: %w", dir, err)
 	}
