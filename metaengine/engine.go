@@ -98,6 +98,19 @@ type EngineProfile struct {
 	// is available, and emits a DEGRADED diagnostic at plan time (ADR-0094).
 	DegradedADTs map[ADT]bool
 
+	// RefusedADTs records ADTs this engine deliberately does NOT serve, with
+	// the architectural reason — ADR-0142's "explicit capability refusal,
+	// never silence". An entry is a documented NO: the engine's reason string
+	// is rendered by Doctor and the capability audit, so an operator asking
+	// "why can't my timers live here?" gets an answer instead of absence.
+	//
+	// An ADT must appear in at most one of Supports (optionally also
+	// DegradedADTs) and RefusedADTs — the capability audit enforces
+	// disjointness, and for the ADR-0142 write-side ADTs (ADTDueClaim,
+	// ADTDedup) it additionally enforces coverage: every engine either
+	// supports or refuses them (the universality rule, ADR-0123 §9).
+	RefusedADTs map[ADT]string
+
 	// Persistence declares whether this engine's data survives process exit
 	// (DDIA Ch1: survivability). PersistenceVolatile (zero value) means data
 	// lives in process RAM and is lost on restart. PersistencePersistent means
@@ -224,6 +237,13 @@ func (p EngineProfile) SupportsADT(adt ADT) (Complexity, bool) {
 // fallback rather than a native backend. Returns false for ADTs not in Supports.
 func (p EngineProfile) IsDegraded(adt ADT) bool {
 	return p.DegradedADTs[adt]
+}
+
+// RefusesADT reports whether the engine has recorded an explicit capability
+// refusal for the ADT (ADR-0142), returning the architectural reason.
+func (p EngineProfile) RefusesADT(adt ADT) (string, bool) {
+	reason, ok := p.RefusedADTs[adt]
+	return reason, ok
 }
 
 func (p EngineProfile) String() string {

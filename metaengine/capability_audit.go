@@ -38,7 +38,18 @@ var adtContracts = map[ADT]adtContract{ //nolint:gochecknoglobals // immutable l
 	// StreamLog is routed structurally (StreamLogBackend type assertions in
 	// system adapters), not via Supports; declaring it is not yet required.
 	ADTStreamLog: {backend: reflect.TypeFor[StreamLogBackend](), declarationRequired: false},
+	// ADR-0142 write-side ADTs: the capability interfaces are runtime-asserted
+	// (DueClaimer/DedupStore), but an engine that implements one MUST declare
+	// the ADT in Supports (operators pick timer/dedup engines by profile), and
+	// an engine that cannot MUST refuse it explicitly (RefusedADTs) — silence
+	// is the violation (universality rule, ADR-0123 §9).
+	ADTDueClaim: {backend: reflect.TypeFor[DueClaimer](), declarationRequired: true},
+	ADTDedup:    {backend: reflect.TypeFor[DedupStore](), declarationRequired: true},
 }
+
+// writeSideADTs are the ADR-0142 ADTs every engine must either support or
+// explicitly refuse — the universality rule made mechanical.
+var writeSideADTs = []ADT{ADTDueClaim, ADTDedup} //nolint:gochecknoglobals // immutable
 
 // CapabilityGaps documents an ADT that violates a conformance rule with the
 // reason it is currently acceptable, forcing explicit tracking instead of
@@ -68,6 +79,9 @@ type CapabilityAuditResult struct {
 //     unless documented in gaps. The planner cannot route what is undeclared.
 //   - Rule 3 (consistency): every DegradedADTs entry must also be in
 //     Supports → violation unconditionally.
+//   - Rule 4 (refusal discipline, ADR-0142): an ADT in RefusedADTs must NOT
+//     be in Supports → violation. The write-side ADTs (ADTDueClaim, ADTDedup)
+//     must each be supported OR refused → silence is the violation.
 //
 // Doctor renders this per engine in its "--- Capability ---" section; the
 // adttest package exposes it as a test gate (RunCapabilityConformance).
@@ -90,7 +104,8 @@ func CapabilityAudit(engineName string, eng Engine, gaps CapabilityGaps) Capabil
 		complexity, declared := profile.Supports[adt]
 
 		row, violation := auditADTRow(engineName, adt, contract, gaps,
-			complexity, declared, profile.DegradedADTs[adt], implemented)
+			complexity, declared, profile.DegradedADTs[adt], implemented,
+			profile.RefusedADTs[adt])
 		res.Table = append(res.Table, row)
 
 		if violation != "" {
@@ -102,12 +117,44 @@ func CapabilityAudit(engineName string, eng Engine, gaps CapabilityGaps) Capabil
 	res.Violations = append(res.Violations, degradedViolations...)
 	res.Notes = notes
 
+	res.Violations = append(res.Violations, refusalViolations(engineName, profile)...)
+
 	return res
+}
+
+// refusalViolations enforces the RefusedADTs discipline (ADR-0142):
+// disjointness from Supports, and support-or-refuse coverage for the
+// write-side ADTs — an engine that neither supports nor refuses them is
+// silently incomplete, which is exactly what the universality rule forbids.
+func refusalViolations(engineName string, profile EngineProfile) []string {
+	var violations []string
+
+	for adt, reason := range profile.RefusedADTs {
+		if _, supported := profile.Supports[adt]; supported {
+			violations = append(violations, fmt.Sprintf(
+				"%s: ADT %s is both supported and refused (%q) — pick one",
+				engineName, adt, reason))
+		}
+	}
+
+	for _, adt := range writeSideADTs {
+		_, supported := profile.Supports[adt]
+		_, refused := profile.RefusedADTs[adt]
+		if !supported && !refused {
+			violations = append(violations, fmt.Sprintf(
+				"%s: ADT %s is neither supported nor refused — declare it in Supports "+
+					"or record the architectural reason in RefusedADTs (ADR-0142: "+
+					"never silence)",
+				engineName, adt))
+		}
+	}
+
+	return violations
 }
 
 // auditADTRow renders one table row plus the rule 1/2 violation ("" when the
 // row conforms or the gap is documented). Informational statuses (upgrade
-// candidates) are never violations.
+// candidates, documented refusals) are never violations.
 func auditADTRow(
 	engineName string,
 	adt ADT,
@@ -115,10 +162,13 @@ func auditADTRow(
 	gaps CapabilityGaps,
 	complexity Complexity,
 	declared, degraded, implemented bool,
+	refusalReason string,
 ) (row, violation string) {
 	status := "ok"
 
 	switch {
+	case refusalReason != "":
+		status = "REFUSED: " + refusalReason
 	case declared && !degraded && !implemented:
 		status = "OVER-DECLARED (native claim, no backend)"
 
