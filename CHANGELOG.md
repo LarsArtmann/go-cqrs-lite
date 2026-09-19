@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added — ADR-0142 universal storage substrate: capabilities, runtimes, engine wiring — 2026-09-19
+
+- **`metaengine.DueClaimer` / `metaengine.DedupStore` / `metaengine.FactSink`**
+  ([ADR-0142](docs/adr/0142-universal-storage-substrate.md)): the three
+  write-side capability interfaces every timer/queue/dedup subsystem can now
+  ride — lease-fenced due-claims with owner-checked renewal and epoch-guarded
+  deletes, a TTL check-and-set dedup window, and same-transaction claim
+  facts. Capability interfaces today (the `EngineResetter` pattern — never
+  breaking); they fold into the universal Engine at v5.
+- **ONE runtime per storage class, not per engine** (ADR-0142 amendment):
+  `metaengine/claimkit` is the single database/sql runtime (SQLite
+  UPDATE..RETURNING IN-subquery claims, Postgres CTE FOR UPDATE SKIP LOCKED,
+  MySQL two-statement SKIP LOCKED, atomic dedup upserts) built on new
+  `claiming.ClaimStmt`/`RenewScopedStmt` builders; `metaengine.MapDueClaimer`
+  + `metaengine.MapDedupStore` are the single degraded runtimes over existing
+  Map backends. Engines only wire: **sqlite, postgres** embed claimkit
+  (native, `FactSink` included); **memory, pebble, bbolt, badger** embed the
+  Map runtimes (honestly declared `DegradedADTs[ADTDueClaim]`). All seven run
+  the new `adttest.AssertDueClaimer`/`AssertDedupStore` conformance suites
+  green under `-race` (postgres verified against live Postgres).
+- **`scheduling/engine`**: a `scheduling.TimerStore[P]` facade over ANY
+  `DueClaimer` engine — timers ride the ONE claim stack. `MarkFired` is
+  epoch-guarded (the documented re-schedule race is structurally impossible;
+  a stale `MarkFired` is a no-op), `Due` is a lease-fenced claim loop
+  (multi-dispatcher safe, at-least-once).
+
+### Fixed — scheduler family-aware retry (T17 partitioning) — 2026-09-19
+
+- **`scheduling.Scheduler` no longer retries permanent dispatch failures**:
+  errors classified as Rejection or Conflict (errorfamily, unwrapping) are
+  decisions, not transient faults — they surface after ONE attempt instead
+  of burning `MaxRetries` per poll cycle forever. Transient errors keep the
+  equal-jitter backoff. The Scheduler doc comments now tell the truth about
+  multi-instance safety (claim-based stores fence concurrent Schedulers;
+  plain stores still require a single active instance).
+
 ### Fixed — cqrs-lint self-lint false-green killed at the root — 2026-09-18
 
 - **The example apps are now linted as consumers.** `IsLibrarySelfLint`
