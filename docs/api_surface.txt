@@ -2136,6 +2136,8 @@ metadata/method WithCustom
 metadata/struct Metadata
 metadata/struct Tracing
 metadata/type CustomData
+metaengine/adttest/func AssertDedupStore
+metaengine/adttest/func AssertDueClaimer
 metaengine/adttest/func AssertTemporalConformance
 metaengine/adttest/func AssertVectorDimensionGuard
 metaengine/adttest/func AuditCapability

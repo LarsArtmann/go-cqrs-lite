@@ -65,15 +65,28 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				col := claimConformanceCollection("order")
 				now := ms(1000)
 
-				mustClaimT(t, claimer.ClaimInsert(ctx, col, "late", now.Add(time.Hour), []byte("l")))
-				mustClaimT(t, claimer.ClaimInsert(ctx, col, "b", now.Add(-2*time.Second), []byte("2")))
-				mustClaimT(t, claimer.ClaimInsert(ctx, col, "a", now.Add(-2*time.Second), []byte("1")))
+				mustClaimT(
+					t,
+					claimer.ClaimInsert(ctx, col, "late", now.Add(time.Hour), []byte("l")),
+				)
+				mustClaimT(
+					t,
+					claimer.ClaimInsert(ctx, col, "b", now.Add(-2*time.Second), []byte("2")),
+				)
+				mustClaimT(
+					t,
+					claimer.ClaimInsert(ctx, col, "a", now.Add(-2*time.Second), []byte("1")),
+				)
 				mustClaimT(t, claimer.ClaimInsert(ctx, col, "c", now.Add(-time.Hour), []byte("0")))
 
 				claims := claimDueT(t, claimer, col, now)
 				want := []string{"c", "a", "b"}
 				if len(claims) != len(want) {
-					t.Fatalf("got %d claims, want %d (NotBefore must gate 'late')", len(claims), len(want))
+					t.Fatalf(
+						"got %d claims, want %d (NotBefore must gate 'late')",
+						len(claims),
+						len(want),
+					)
 				}
 
 				var order []string
@@ -92,7 +105,10 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				col := claimConformanceCollection("fence")
 				now := ms(1000)
 
-				mustClaimT(t, claimer.ClaimInsert(ctx, col, "only", now.Add(-time.Minute), []byte("w")))
+				mustClaimT(
+					t,
+					claimer.ClaimInsert(ctx, col, "only", now.Add(-time.Minute), []byte("w")),
+				)
 
 				first := claimDueT(t, claimer, col, now)
 				if len(first) != 1 {
@@ -120,11 +136,28 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 					t.Fatalf("claim: %d, want 1", len(owned))
 				}
 
-				if err := claimer.RenewLease(ctx, col, "k", "w1", time.Minute, now.Add(30*time.Second)); err != nil {
+				if err := claimer.RenewLease(
+					ctx,
+					col,
+					"k",
+					"w1",
+					time.Minute,
+					now.Add(30*time.Second),
+				); err != nil {
 					t.Fatalf("owner renew: %v", err)
 				}
 
-				if err := claimer.RenewLease(ctx, col, "k", "w2", time.Minute, now.Add(30*time.Second)); !errors.Is(err, metaengine.ErrClaimLeaseNotHeld) {
+				if err := claimer.RenewLease(
+					ctx,
+					col,
+					"k",
+					"w2",
+					time.Minute,
+					now.Add(30*time.Second),
+				); !errors.Is(
+					err,
+					metaengine.ErrClaimLeaseNotHeld,
+				) {
 					t.Fatalf("foreign renew: want ErrClaimLeaseNotHeld, got %v", err)
 				}
 			})
@@ -146,7 +179,10 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				col := claimConformanceCollection("epoch")
 				now := ms(1000)
 
-				mustClaimT(t, claimer.ClaimInsert(ctx, col, "t", now.Add(-time.Minute), []byte("gen1")))
+				mustClaimT(
+					t,
+					claimer.ClaimInsert(ctx, col, "t", now.Add(-time.Minute), []byte("gen1")),
+				)
 
 				claims := claimDueT(t, claimer, col, now)
 				if len(claims) != 1 {
@@ -156,7 +192,10 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				// Re-schedule under the same key; a stale epoch delete must
 				// not remove generation 2.
 				mustClaimT(t, claimer.ClaimDelete(ctx, col, "t"))
-				mustClaimT(t, claimer.ClaimInsert(ctx, col, "t", now.Add(time.Hour), []byte("gen2")))
+				mustClaimT(
+					t,
+					claimer.ClaimInsert(ctx, col, "t", now.Add(time.Hour), []byte("gen2")),
+				)
 				mustClaimT(t, claimer.ClaimDeleteIfDue(ctx, col, "t", claims[0].DueAt))
 
 				after := claimDueT(t, claimer, col, now.Add(2*time.Hour))
@@ -170,7 +209,16 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				now := ms(1000)
 
 				for i := range 10 {
-					mustClaimT(t, claimer.ClaimInsert(ctx, col, fmt.Sprintf("k%02d", i), now.Add(-time.Minute), nil))
+					mustClaimT(
+						t,
+						claimer.ClaimInsert(
+							ctx,
+							col,
+							fmt.Sprintf("k%02d", i),
+							now.Add(-time.Minute),
+							nil,
+						),
+					)
 				}
 
 				claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
@@ -192,7 +240,16 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 				const items = 40
 
 				for i := range items {
-					mustClaimT(t, claimer.ClaimInsert(ctx, col, fmt.Sprintf("k%03d", i), now.Add(-time.Minute), nil))
+					mustClaimT(
+						t,
+						claimer.ClaimInsert(
+							ctx,
+							col,
+							fmt.Sprintf("k%03d", i),
+							now.Add(-time.Minute),
+							nil,
+						),
+					)
 				}
 
 				var (
@@ -208,7 +265,10 @@ func AssertDueClaimer(t *testing.T, factories []Factory) {
 						defer wg.Done()
 
 						claimed, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
-							Collection: col, Owner: fmt.Sprintf("w%d", worker), Lease: time.Minute, Now: now,
+							Collection: col,
+							Owner:      fmt.Sprintf("w%d", worker),
+							Lease:      time.Minute,
+							Now:        now,
 						})
 						if err != nil {
 							t.Errorf("concurrent claim: %v", err)
@@ -272,7 +332,13 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 					t.Fatal("first CheckAndRecord must report unseen")
 				}
 
-				seen, err = dedup.DedupCheckAndRecord(ctx, col, "cmd-1", time.Minute, now.Add(time.Second))
+				seen, err = dedup.DedupCheckAndRecord(
+					ctx,
+					col,
+					"cmd-1",
+					time.Minute,
+					now.Add(time.Second),
+				)
 				mustClaimT(t, err)
 
 				if !seen {
@@ -309,7 +375,13 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 				sweepCol := fmt.Sprintf("dedup_sweep_%d", time.Now().UnixNano())
 
 				for i := range 5 {
-					_, err := dedup.DedupCheckAndRecord(ctx, sweepCol, fmt.Sprintf("k%d", i), time.Minute, now)
+					_, err := dedup.DedupCheckAndRecord(
+						ctx,
+						sweepCol,
+						fmt.Sprintf("k%d", i),
+						time.Minute,
+						now,
+					)
 					mustClaimT(t, err)
 				}
 
@@ -367,14 +439,23 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 				}
 
 				if seenCount != racers-1 {
-					t.Fatalf("CAS violated: %d racers saw seen, want exactly %d", seenCount, racers-1)
+					t.Fatalf(
+						"CAS violated: %d racers saw seen, want exactly %d",
+						seenCount,
+						racers-1,
+					)
 				}
 			})
 		})
 	}
 }
 
-func claimDueT(t *testing.T, claimer metaengine.DueClaimer, col string, now time.Time) []metaengine.DueClaim {
+func claimDueT(
+	t *testing.T,
+	claimer metaengine.DueClaimer,
+	col string,
+	now time.Time,
+) []metaengine.DueClaim {
 	t.Helper()
 
 	claims, err := claimer.ClaimDue(context.Background(), metaengine.ClaimDueRequest{
