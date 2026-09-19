@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"testing"
+	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -272,4 +273,69 @@ func TestStore_Reset_ClearsSQLiteEngine(t *testing.T) {
 	if len(result.ClearedEngines) != 1 || result.ClearedEngines[0] != "sqlite" {
 		t.Fatalf("expected sqlite in ClearedEngines, got %v", result.ClearedEngines)
 	}
+}
+
+// TestResetEngine_ClearsClaimkitCollections pins the ADR-0142 write-side
+// collections on the ADR-0136 ladder: timers and dedup windows are derived
+// data — a reset clears them like every other materialized collection,
+// while the stream-log AUTOINCREMENT (journal positions) deliberately keeps
+// advancing so pre-reset resumption tokens never skip replayed entries.
+func TestResetEngine_ClearsClaimkitCollections(t *testing.T) {
+	t.Parallel()
+
+	eng, db := newResetTestEngine(t)
+	ctx := context.Background()
+	resetter := eng.(metaengine.EngineResetter)
+
+	claimer := eng.(metaengine.DueClaimer)
+	if err := claimer.ClaimInsert(ctx, "timers", "t1", time.Now().Add(-time.Second), []byte("fire")); err != nil {
+		t.Fatalf("ClaimInsert: %v", err)
+	}
+
+	dedup := eng.(metaengine.DedupStore)
+	if seen, err := dedup.DedupCheckAndRecord(ctx, "cmds", "c1", time.Minute, time.Now()); err != nil || seen {
+		t.Fatalf("DedupCheckAndRecord first (seen=%v err=%v)", seen, err)
+	}
+
+	sl := eng.(metaengine.StreamLogBackend)
+	if err := sl.StreamAppend(ctx, "events", "s1", []any{"e1"}); err != nil {
+		t.Fatalf("StreamAppend: %v", err)
+	}
+
+	preResetSeq := sqliteSeq(t, db, "meta_stream_log")
+	if preResetSeq < 1 {
+		t.Fatalf("sqlite_sequence must have advanced past the append, got %d", preResetSeq)
+	}
+
+	if err := resetter.ResetEngine(ctx); err != nil {
+		t.Fatalf("ResetEngine: %v", err)
+	}
+
+	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{
+		Collection: "timers", Owner: "w1", Lease: time.Minute,
+	})
+	if err != nil || len(claims) != 0 {
+		t.Fatalf("claims must be gone after reset (len=%d err=%v)", len(claims), err)
+	}
+
+	seen, err := dedup.DedupSeen(ctx, "cmds", "c1", time.Now())
+	if err != nil || seen {
+		t.Fatalf("dedup must be gone after reset (seen=%v err=%v)", seen, err)
+	}
+
+	if seq := sqliteSeq(t, db, "meta_stream_log"); seq < preResetSeq {
+		t.Fatalf("journal seq must keep advancing across resets: pre=%d post=%d", preResetSeq, seq)
+	}
+}
+
+// sqliteSeq reads the AUTOINCREMENT sequence for table from sqlite_sequence.
+func sqliteSeq(t *testing.T, db *sql.DB, table string) int64 {
+	t.Helper()
+
+	var seq sql.NullInt64
+	if err := db.QueryRow("SELECT seq FROM sqlite_sequence WHERE name = ?", table).Scan(&seq); err != nil {
+		t.Fatalf("read sqlite_sequence(%s): %v", table, err)
+	}
+
+	return seq.Int64
 }
