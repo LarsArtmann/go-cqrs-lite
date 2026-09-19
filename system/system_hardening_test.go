@@ -290,6 +290,19 @@ func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed i
 		time.Sleep(50 * time.Millisecond)
 	}
 
+	// Starvation crime scene: every composed-run failure so far reported
+	// only processed=0 errors=0, never the worker's goroutine state — the
+	// root cause (blocked vs exited-empty vs never-started) was
+	// undiscoverable after the fact. Dump all stacks while the failure is
+	// live so the next composed-run incident pins the blocking site.
+	buf := make([]byte, 1<<20)
+
+	n := runtime.Stack(buf, true)
+
+	t.Logf("projection wait expired (deadline %s, load factor %.2f); goroutine dump follows",
+		deadline.Format(time.RFC3339), currentLoadFactor())
+	t.Logf("%s", buf[:n])
+
 	return false
 }
 

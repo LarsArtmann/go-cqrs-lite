@@ -10,10 +10,10 @@ import (
 )
 
 // lyingEngine implements SetBackend but declares nothing, declares Vector
-// natively without implementing VectorBackend, and degrades Log without
-// declaring it — one violation of each conformance rule. The embedded nil
-// Engine is never called: the audit only reads Profile() and the structural
-// method surface.
+// natively without implementing VectorBackend, degrades Log without declaring
+// it, and stays silent on the write-side ADTs — one violation of each
+// conformance rule. The embedded nil Engine is never called: the audit only
+// reads Profile() and the structural method surface.
 type lyingEngine struct {
 	metaengine.Engine // nil; intentional — the audit never invokes it
 
@@ -61,8 +61,12 @@ func TestAuditCapability_RulesFire(t *testing.T) {
 		t.Errorf("missing rule-3 violation (degraded log undeclared):\n%s", got)
 	}
 
-	if n := len(violations); n != 3 {
-		t.Errorf("got %d violations, want exactly 3:\n%s", n, got)
+	if !strings.Contains(got, "ADT due_claim is neither supported nor refused") {
+		t.Errorf("missing rule-4 violation (write-side silence):\n%s", got)
+	}
+
+	if n := len(violations); n != 5 {
+		t.Errorf("got %d violations, want exactly 5 (3 rules + 2 write-side silence):\n%s", n, got)
 	}
 }
 

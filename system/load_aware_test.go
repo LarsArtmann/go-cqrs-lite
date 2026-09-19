@@ -20,6 +20,12 @@ import (
 //
 // Local copy (not testutil): mirrors benchkit's loadScaledCeiling.
 func loadScaledDeadline(base time.Duration) time.Time {
+	return time.Now().Add(time.Duration(currentLoadFactor() * float64(base)))
+}
+
+// currentLoadFactor returns the ambient load factor (1-minute load average
+// over GOMAXPROCS, clamped to [1, 8]) used to scale wall-clock budgets.
+func currentLoadFactor() float64 {
 	factor := 1.0
 
 	if data, err := os.ReadFile("/proc/loadavg"); err == nil {
@@ -41,5 +47,5 @@ func loadScaledDeadline(base time.Duration) time.Time {
 		}
 	}
 
-	return time.Now().Add(time.Duration(factor * float64(base)))
+	return factor
 }
