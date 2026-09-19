@@ -191,7 +191,10 @@ func TestRun_SQLite_ReadModelAndJournal(t *testing.T) {
 }
 
 func TestCompare(t *testing.T) {
-	ctx, cancel := parallelTimeoutCtx(t, 60*time.Second)
+	// 150s: the benchmark suite takes ~36s under -race standalone; under the
+	// verify race phase (all packages parallel, CPU oversubscribed) it can
+	// blow past a 60s budget. Headroom is cheap, flakes are not.
+	ctx, cancel := parallelTimeoutCtx(t, 150*time.Second)
 	defer cancel()
 
 	results, err := Compare(ctx, Config{
