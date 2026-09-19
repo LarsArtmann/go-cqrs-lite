@@ -18,6 +18,11 @@ var resetBaseTables = []string{
 	"meta_stream_log",
 	"meta_graph_edges",
 	"meta_vector",
+	// ADR-0142 write-side collections (claimkit): timers and dedup windows
+	// are derived data on the ADR-0136 ladder — reset + replay, so a reset
+	// clears them like every other materialized collection.
+	"meta_due_claims",
+	"meta_dedup",
 }
 
 // ResetEngine implements [metaengine.EngineResetter]: it clears every

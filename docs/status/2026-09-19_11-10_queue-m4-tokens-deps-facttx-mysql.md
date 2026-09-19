@@ -16,7 +16,7 @@ mid-flight in parallel; overlap points are called out in (d).
 | **T14 — dep validation + cycle policy** | `queue.ErrDanglingDep` (Rejection, `queue.dangling_dep`): every `task.New.Deps` entry must exist at enqueue, uniformly on 3 engines (SQLite json_each anti-join; PG jsonb_array_elements_text anti-join; MySQL per-dep EXISTS); cycles are UNREPRESENTABLE by construction (deps fixed at enqueue + store-minted IDs) — documented as the policy in queue/doc.go; unblock-bump evaluated and REJECTED (claim-time gating unblocks transactionally; bounded aging covers starvation); cancelled/dead deps block forever (rescue re-opens) — pinned | Deps conformance suite (4 pins incl. total-rejection, dead-dep rescue re-open, chain drain, would-be-cycle rejection); error-taxonomy gate extended to queue (bidirectional) |
 | **T16 — FactTx + Watermarks** | `queue.FactTx`/`queue.FactSink`: `WithFacts(ctx, fn)` runs fn in ONE tx, sink appends commit/roll back together (ADR-0001 lineage upstreamed); implemented by sqlite+postgres+mysql over the task-tables' connection domain; `queue.Store.Watermarks(ctx)` operator list surface | conformance pin: rollback leaves HeadSeq unchanged, commit lands both ordered + time-stamped; Watermarks list pinned in pinWatermark |
 | **T17 — `queue/mysql/v4`** | Third engine: MySQL 8+/MariaDB 10.6+; two-statement claims (SELECT … FOR UPDATE SKIP LOCKED → token-fenced UPDATE + RowsAffected fence); BIGINT unix-ms everywhere (deliberate deviation from the plan's DATETIME(3) note — one encoding across all engines, no tz traps); per-statement DDL (no multiStatements DSN requirement); nullable-`dedup_key` UNIQUE emulation of the partial index; InnoDB deadlock (1213/1205) in-engine retry in ClaimDue; per-dep EXISTS validation; DSN-gated conformance (fresh throwaway database per subtest) | Green vs live ephemeral MariaDB 11.4 (`MYSQL_TEST_DSN`), incl. `-race -count=2`. Three dialect realities found+fixed live: multi-statement DDL split, `last_error` NOT NULL needs explicit '', deadlock retry |
-| **Ceremony** | go.work + flake testModules + api-stability slice + LAYER[queue/mysql]=5 + DEP_BUDGET 2 + cqrs-lint exclusion + queue/.go-arch-lint mysql exclusion; module-map + modules.md + README rows (queue row refreshed for tokens/FactTx/dep-validation); CHANGELOG entry (5 bullets); api golden regen **7400 exports** | api-stability `TestEvery*` green (-count=1); changelog-symbols 138 citations green; error-taxonomy 525 codes green; check-module-layers green; doc-check 1154 refs valid exit 0; file-size: ZERO queue violations; gofmt clean |
+| **Ceremony** | go.work + flake testModules + api-stability slice + LAYER[queue/mysql]=5 + DEP_BUDGET 2 + cqrs-lint exclusion + queue/.go-arch-lint mysql exclusion; module-map + modules.md + README rows (queue row refreshed for tokens/FactTx/dep-validation); CHANGELOG entry (5 bullets); api golden regen (7400 exports at my regen; 7413 after merging their Engine surface — see (d)) | api-stability `TestEvery*` green (-count=1); changelog-symbols 138 citations green; error-taxonomy 525 codes green; check-module-layers green; doc-check 1154 refs valid exit 0; file-size: ZERO queue violations; gofmt clean |
 
 ## b) Verification evidence (the runs that count)
 
@@ -40,11 +40,15 @@ mid-flight in parallel; overlap points are called out in (d).
 
 ## d) Interactions with the concurrent ADR-0142 arc
 
-- **Their claimkit MySQL is mid-adoption** (StampLeaseMySQLStmt arg
-  order + a dedup backtick were unfixed at session start) — queue/mysql
-  deliberately does NOT wire the metaengine Engine surface yet (doc.go
-  scope note); wiring follows their queue/sqlite+postgres pattern once
-  their dialect lands.
+- **Their claimkit MySQL landed MID-SESSION**: while this arc built the
+  queue/mysql Store, the substrate arc fixed the claimkit MySQL dialect
+  AND wired `queue/mysql`'s Engine surface (engine.go/register.go/
+  engine_test.go, claimkit capabilities over the same database) via
+  daemon commits. Reconciled: their wiring is included in the final
+  verification below (full queue/mysql suite incl. their engine_test
+  green with `-race` vs live MariaDB); the merged api golden is
+  7413 exports, `TestEvery` green; their budget/doc fixes to my
+  ceremony entries were kept as-written.
 - **Transient gate failures observed then resolved**: check-module-layers
   and the cqrs-lint catalog were red MID-FLIGHT from their un-swept
   ceremony (`scheduling/engine` uncatalogued — fixed on sight as a

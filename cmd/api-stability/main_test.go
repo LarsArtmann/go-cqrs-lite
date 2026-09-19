@@ -129,9 +129,9 @@ func walkGoModDirs(t *testing.T, projectRoot string, visit func(rel string)) {
 func parseFlakeListSet(t *testing.T, flake, listName string) map[string]struct{} {
 	t.Helper()
 
-	startIdx := strings.Index(flake, listName+" = [");
+	startIdx := strings.Index(flake, listName+" = [")
 	if startIdx < 0 {
-		t.Fatalf("could not find %q in flake.nix", listName+" = [");
+		t.Fatalf("could not find %q in flake.nix", listName+" = [")
 	}
 	endIdx := strings.Index(flake[startIdx:], "];")
 	if endIdx < 0 {
