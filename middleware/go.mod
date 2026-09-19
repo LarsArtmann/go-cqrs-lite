@@ -43,10 +43,10 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect

@@ -37,7 +37,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maruel/natural v1.3.0 // indirect

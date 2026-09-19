@@ -111,6 +111,11 @@
    `nix fmt`. The interruption arrived exactly between "repoint references" and
    "run gates". The doc-check gate is the one that matters most: this pass moved
    70 files and rewrote hundreds of lines.
+   _(2026-09-19 23:00 correction: `check-rows.py` does not exist in `scripts/`
+   — the citation was wrong. The runnable gates — `check-doc-links.sh` (791
+   relative link targets across 372 files, 0 broken) and
+   `check-changelog-symbols.sh` (6 citations honest) — were run green later
+   that evening; `cmd/doc-check` rides in `#verify`.)_
 2. **Composed `#verify`** — not attempted (load 28-74 all day per TODO L39; also
    blocked-by-convention: docs-only sessions run surface-scoped gates only).
 3. **module-map + FEATURES censuses** (73 of 95 rows) — harvested as TODO row,
@@ -212,7 +217,7 @@
 27. Benchkit: stale-baseline re-pin protocol + gate-set rename guard.
 28. Benchkit docs: recipes statistical-rigor block + FAQ P100 + cross-links.
 29. Quiet-window verify tooling: `wait-for-quiet.sh` + `#verify` parallelism cap
-    + golangci cache mount (three sessions asked).
+    - golangci cache mount (three sessions asked).
 30. cqrs-lint FP-sweep harness stderr surfacing + corrected 12-repo re-run.
 31. crush-daily 39-finding outlier investigation.
 32. goal-shaped-app tail: README fence compile-gating + AGENTS module-procedure
@@ -252,7 +257,7 @@
    plan dry-run validated, 0/90 cut, ADR-0142 + queue family + Go 1.27 + lint-zero
    all untagged on master). It is the single highest-leverage open item and gates
    ~15 TODO rows. Quiet-window `#verify` green first, or cut on module-test green
-   + verify-fast as the 18-15 plan proposes?
+   - verify-fast as the 18-15 plan proposes?
 3. **Who owns `cmd/api-stability/readme_claims_test.go` from today?** A change to
    it appeared under this docs pass (daemon-absorbed before I could read the full
    diff; plausibly a concurrent session aligning README-claim tests with the new

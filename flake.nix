@@ -197,6 +197,7 @@
             "scenario"
             "scheduling"
             "claiming"
+            "scheduling/engine"
             "scheduling/sqlstore"
             "storage/memory"
             "storage/pebble"
