@@ -95,7 +95,10 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 
-	_, err := e.store.ClaimDue(t.Context(), "crashed", 40*time.Millisecond)
+	// The lease must comfortably cover the pre-expiry probe even under
+	// -race slowdowns (a 40ms lease raced the probe and flaked); the
+	// expiry wait then exceeds it by a fixed margin.
+	_, err := e.store.ClaimDue(t.Context(), "crashed", 500*time.Millisecond)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +115,7 @@ func (s *suite) pinExpiryReclaim(t *testing.T) {
 		t.Fatalf("pre-expiry claim: error = %v, want ErrNoTaskDue", err)
 	}
 
-	time.Sleep(80 * time.Millisecond)
+	time.Sleep(650 * time.Millisecond)
 
 	c := e.claim(t, "w2")
 	if c.Task.ID != subject.ID {

@@ -220,19 +220,21 @@ func mySQLClaimSelectFull(s Spec, p ClaimParams) (string, []any) {
 // commit.
 func StampLeaseMySQLStmt(s Spec, ids []any, p ClaimParams) (string, []any) {
 	placeholders := make([]string, len(ids))
-	args := make([]any, 0, len(ids)+4)
+	args := make([]any, 0, len(ids)+3)
 
-	for i, id := range ids {
-		placeholders[i] = "?"
-		args = append(args, id)
-	}
-
+	// Argument order MUST match placeholder order: SET columns first, then
+	// the IN (...) ids, then the filter — pinned by TestStampLeaseMySQLStmtArgsAlign.
 	set := s.LeaseColumn + " = ?"
 	args = append(args, p.LeaseUntil)
 
 	if s.OwnerColumn != "" && p.Owner != nil {
 		set += ", " + s.OwnerColumn + " = ?"
 		args = append(args, p.Owner)
+	}
+
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args = append(args, id)
 	}
 
 	// Scope the stamp to the claim's keyspace when a filter column is set:

@@ -15,7 +15,9 @@ import (
 // (meta_dedup) scoped by collection, implementing [metaengine.DedupStore].
 // The check-and-set is a single atomic upsert on SQLite/Postgres (the
 // conflict-update fires only when the previous window lapsed) and a
-// SELECT..FOR UPDATE two-step inside one transaction on MySQL.
+// lock-free read plus INSERT IGNORE / conditional UPDATE pair on MySQL
+// (SELECT..FOR UPDATE on an absent row takes gap locks that deadlock
+// concurrent inserts — Error 1213).
 type Dedup struct {
 	db      *sql.DB
 	dialect claiming.Dialect
@@ -113,54 +115,61 @@ func (d *Dedup) checkAndRecordMySQL(
 	ttl time.Duration,
 	now time.Time,
 ) (bool, error) {
-	tx, err := d.db.BeginTx(ctx, nil)
-	if err != nil {
-		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: begin: %w", err)
-	}
-
-	defer func() { _ = tx.Rollback() }()
-
 	var expiresRaw any
 
-	err = tx.QueryRowContext(ctx,
-		"SELECT expires_at FROM meta_dedup WHERE collection = ? AND key = ? FOR UPDATE",
+	err := d.db.QueryRowContext(ctx,
+		"SELECT expires_at FROM meta_dedup WHERE collection = ? AND "+idColumn(d.dialect)+" = ?",
 		collection, key).Scan(&expiresRaw)
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		if _, err := tx.ExecContext(ctx,
-			"INSERT INTO meta_dedup (collection, "+idColumn(d.dialect)+", expires_at) VALUES (?, ?, ?)",
-			collection, key, now.Add(ttl)); err != nil {
+		// INSERT IGNORE keeps the absent-row race single-statement: exactly
+		// one concurrent racer's insert lands (RowsAffected 1, new window,
+		// not seen); everyone else's is ignored (RowsAffected 0, a window
+		// was created concurrently — live by construction — so seen).
+		res, err := d.db.ExecContext(ctx,
+			"INSERT IGNORE INTO meta_dedup (collection, "+idColumn(d.dialect)+", expires_at) VALUES (?, ?, ?)",
+			collection, key, now.Add(ttl))
+		if err != nil {
 			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: insert: %w", err)
 		}
+
+		n, err := res.RowsAffected()
+		if err != nil {
+			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: rows affected: %w", err)
+		}
+
+		return n == 0, nil
 	case err != nil:
 		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: select: %w", err)
-	default:
-		expires, err := decodeTime(expiresRaw)
-		if err != nil {
-			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: %w", err)
-		}
-
-		if expires.After(now) {
-			if err := tx.Commit(); err != nil {
-				return false, fmt.Errorf("claimkit.DedupCheckAndRecord: commit: %w", err)
-			}
-
-			return true, nil
-		}
-
-		if _, err := tx.ExecContext(ctx,
-			"UPDATE meta_dedup SET expires_at = ? WHERE collection = ? AND "+idColumn(d.dialect)+" = ?",
-			now.Add(ttl), collection, key); err != nil {
-			return false, fmt.Errorf("claimkit.DedupCheckAndRecord: update: %w", err)
-		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: commit: %w", err)
+	expires, err := decodeTime(expiresRaw)
+	if err != nil {
+		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: %w", err)
 	}
 
-	return false, nil
+	if expires.After(now) {
+		return true, nil // live window: seen, no write, no locks
+	}
+
+	// Lapsed window: the conditional UPDATE is the CAS — it lands only while
+	// the row is still expired, so a concurrent takeover (RowsAffected 0)
+	// means a live window exists: seen.
+	res, err := d.db.ExecContext(ctx,
+		"UPDATE meta_dedup SET expires_at = ? WHERE collection = ? AND "+idColumn(d.dialect)+
+			" = ? AND expires_at <= ?",
+		now.Add(ttl), collection, key, now)
+	if err != nil {
+		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: update: %w", err)
+	}
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("claimkit.DedupCheckAndRecord: rows affected: %w", err)
+	}
+
+	return n == 0, nil
 }
 
 // DedupSeen implements [metaengine.DedupStore.DedupSeen].

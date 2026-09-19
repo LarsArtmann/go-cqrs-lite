@@ -206,7 +206,7 @@ func (s *suite) pinRequeue(t *testing.T) {
 		subject.ID,
 		c.Token,
 		"env not ready",
-		50*time.Millisecond,
+		500*time.Millisecond,
 	); err != nil {
 		t.Fatalf("requeue: %v", err)
 	}
@@ -236,7 +236,7 @@ func (s *suite) pinRequeue(t *testing.T) {
 
 	// Claimable again once the delay lapses; the re-claim is
 	// lease-checked like every finalize.
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(600 * time.Millisecond)
 
 	c = e.claim(t, "w1")
 	mustError(

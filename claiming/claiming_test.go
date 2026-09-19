@@ -95,6 +95,48 @@ FOR UPDATE SKIP LOCKED`
 	}
 }
 
+// TestStampLeaseMySQLStmtArgsAlign pins the placeholder-to-argument
+// alignment of the MySQL lease-stamping UPDATE: placeholders appear in
+// statement order (SET lease, SET owner, IN ids, filter) and the args
+// slice MUST follow the same order. The ids-first variant of this builder
+// misaligned every placeholder by two and MySQL then tried to stamp a key
+// string into the lease_until DATETIME column (Error 1292).
+func TestStampLeaseMySQLStmtArgsAlign(t *testing.T) {
+	t.Parallel()
+
+	spec := claiming.Spec{
+		Table:        "timers",
+		IDColumn:     "id",
+		LeaseColumn:  "lease_until",
+		OwnerColumn:  "owner",
+		FilterColumn: "queue",
+	}
+
+	until, owner, filter := "2026-09-13T08:01:00Z", "worker-1", "critical"
+
+	got, args := claiming.StampLeaseMySQLStmt(spec,
+		[]any{"k00", "k01", "k02"},
+		claiming.ClaimParams{LeaseUntil: until, Owner: owner, Filter: filter})
+
+	const want = `UPDATE timers SET lease_until = ?, owner = ? WHERE id IN (?, ?, ?) AND queue = ?`
+
+	if got != want {
+		t.Errorf("stamp stmt:\ngot:\n%s\nwant:\n%s", got, want)
+	}
+
+	if n := strings.Count(got, "?"); n != len(args) {
+		t.Fatalf("placeholder count %d != arg count %d (args: %v)", n, len(args), args)
+	}
+
+	wantArgs := []any{until, owner, "k00", "k01", "k02", filter}
+
+	for i, w := range wantArgs {
+		if args[i] != w {
+			t.Errorf("args[%d] = %v, want %v (order must follow placeholder order)", i, args[i], w)
+		}
+	}
+}
+
 func TestRenewStmt_ByteExact(t *testing.T) {
 	t.Parallel()
 
