@@ -29,7 +29,6 @@ on:
 # account decision lands, migrate to DeterminateSystems/flakehub-cache-action
 # (start with this file's nix jobs + nightly-gates.yml).
 
-
 jobs:
   check:
     name: Nix Flake Check

@@ -21,7 +21,6 @@ on:
 permissions:
   contents: read
 
-
 concurrency:
   group: nightly-gates
   cancel-in-progress: true

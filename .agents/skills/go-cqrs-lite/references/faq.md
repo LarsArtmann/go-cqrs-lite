@@ -460,3 +460,23 @@ Local ciphers: `aegis256`, `aegis128l` (+`x2`/`x4` variants), `aes128gcm`,
 rekeying upstream yet: rotation is export/reimport. The turso-go driver's
 `database/sql` path opens EMBEDDED engines only; pure-remote connections to
 an encrypted cloud database are not reachable from Go today.
+
+### "Why can't my timers or queue claims live on dgraph (or the iroh Replicated wrapper)?"
+
+Because a lease is a cross-writer promise, and these engines cannot make it.
+Timers and queue claims ride `metaengine.DueClaimer` (ADR-0142), whose
+contract is atomic multi-key claiming — what `SELECT ... FOR UPDATE SKIP
+LOCKED` gives SQL engines and what DQL upserts cannot express: without
+compare-and-set-with-expiry, two concurrent claimers can both believe they
+won. The iroh `Replicated` wrapper is eventual-consistency CRDT sync — a
+lease taken on one replica is invisible to peers until convergence, which is
+silent divergence, not fencing.
+
+These engines SAY so as data instead of failing at first use:
+`EngineProfile.RefusedADTs` maps the ADT to the reason, `Doctor` renders it,
+and the capability audit's universality rule fails any engine that neither
+supports nor refuses a write-side ADT — refusal is a routing decision, not a
+dead end. Route timers/claims/dedup to a native engine (sqlite, postgres,
+mysql, duckdb, turso, any `queue/*` engine) or a degraded Map runtime
+(memory/pebble/bbolt/badger, single-process), and keep dgraph for what it is
+excellent at: graph-shaped reads.

@@ -305,10 +305,10 @@ prevention, see queue/doc.go). Losing a claim race or finalizing a
 stolen lease is **Orchestration** — a distributed-coordination race,
 not a caller bug (ADR-0134 claim tokens).
 
-| Error              | Family        | Code                   |
-| ------------------ | ------------- | ---------------------- |
-| `ErrDanglingDep`   | Rejection     | `queue.dangling_dep`   |
-| `ErrLeaseNotHeld`  | Orchestration | `queue.lease_not_held` |
+| Error             | Family        | Code                   |
+| ----------------- | ------------- | ---------------------- |
+| `ErrDanglingDep`  | Rejection     | `queue.dangling_dep`   |
+| `ErrLeaseNotHeld` | Orchestration | `queue.lease_not_held` |
 
 ### metaengine
 
@@ -316,12 +316,12 @@ Planner/layout refusals are **Rejection** (caller-declared shapes that
 contradict storage reality); losing a claim race is **Orchestration** — a
 distributed-coordination race, not a caller bug (ADR-0142 due-claims).
 
-| Error                         | Family        | Code                                 |
-| ----------------------------- | ------------- | ------------------------------------ |
-| Planned column type mismatch  | Rejection     | `metaengine.planned_column_type_mismatch` |
-| Backfill unsupported          | Rejection     | `metaengine.backfill_unsupported`    |
-| Vector dimension mismatch     | Rejection     | `metaengine.vector_dimension_mismatch` |
-| `ErrClaimLeaseNotHeld`        | Orchestration | `metaengine.claim_lease_not_held`    |
+| Error                        | Family        | Code                                      |
+| ---------------------------- | ------------- | ----------------------------------------- |
+| Planned column type mismatch | Rejection     | `metaengine.planned_column_type_mismatch` |
+| Backfill unsupported         | Rejection     | `metaengine.backfill_unsupported`         |
+| Vector dimension mismatch    | Rejection     | `metaengine.vector_dimension_mismatch`    |
+| `ErrClaimLeaseNotHeld`       | Orchestration | `metaengine.claim_lease_not_held`         |
 
 ### deriver
 

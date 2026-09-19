@@ -187,6 +187,7 @@ previous session was breaking every workspace-mode compile; completed it.
 ## f) NEXT (up to 50, prioritized)
 
 **P1 — close this session's loops**
+
 1. Wire `adttest.AssertFactSink` into sqliteengine/pgengine/mysqlengine/duckdbengine/tursoengine + queue engines' test suites (T14c completion — coordinate with the concurrent session that authored it).
 2. Run `nix run .#verify` end-to-end on a quiet tree (the exclusive full gate).
 3. Cap `ConcurrentCASExactlyOneWinner` racers via `MYSQL_TEST_CONCURRENCY`-style env, or teach claim_conformance to skip the race under QEMU (detect via env the VM script sets).

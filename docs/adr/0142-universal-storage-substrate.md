@@ -117,10 +117,10 @@ again on postgres (T05), again on memory (T06)" — owner pushback ("I hate that
 we need to reimplement it") was correct: that shape would copy the same SQL and
 the same claim loop per engine. Amended execution structure:
 
-| Storage class      | Shared runtime                                                                                                                                                                                                                                                                                                                                                             | Consumed by                                                                                                        |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| SQL engines        | `metaengine/claimkit` — ONE payload-agnostic `database/sql` runtime (table DDL, dialect-dispatched claims via `claiming/`, owner-fenced renew, epoch delete, same-tx facts, SQL dedup) implementing the metaengine interfaces directly                                                                                                                                      | sqlite, postgres, mysql, duckdb, turso — each embeds it (constructor + profile entries only)                       |
-| Map-shaped engines | `metaengine.MapDueClaimer` + `metaengine.MapDedupStore` — ONE pure-Go degraded runtime over the EXISTING `MapBackend`+`MapUpdater`+`ScanBackend` interfaces (per-key RMW claims under engine write serialization; honest `DegradedADTs` entry, the ADR-0140 pattern)                                                                                                         | memory, pebble, bbolt, badger — each embeds it                                                                     |
+| Storage class      | Shared runtime                                                                                                                                                                                                                                                       | Consumed by                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| SQL engines        | `metaengine/claimkit` — ONE payload-agnostic `database/sql` runtime (table DDL, dialect-dispatched claims via `claiming/`, owner-fenced renew, epoch delete, same-tx facts, SQL dedup) implementing the metaengine interfaces directly                               | sqlite, postgres, mysql, duckdb, turso — each embeds it (constructor + profile entries only) |
+| Map-shaped engines | `metaengine.MapDueClaimer` + `metaengine.MapDedupStore` — ONE pure-Go degraded runtime over the EXISTING `MapBackend`+`MapUpdater`+`ScanBackend` interfaces (per-key RMW claims under engine write serialization; honest `DegradedADTs` entry, the ADR-0140 pattern) | memory, pebble, bbolt, badger — each embeds it                                               |
 
 Per-engine work drops to wiring: construct the runtime with the engine's
 handle, add the `Supports`/`DegradedADTs` profile entries, run the conformance
@@ -136,20 +136,20 @@ native (claimkit SQL), degraded (Map runtimes, honestly declared), or
 explicitly refused (`RefusedADTs` with reason, pinned by the
 `capability_audit` test in `metaengine`).
 
-| Engine  | ADTDueClaim                        | ADTDedup                           | Mechanism / refusal reason                                                                    |
-| ------- | ---------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
-| memory  | O(N), degraded                     | O(logN)-ish, degraded              | `MapDueClaimer` + `MapDedupStore` reference runtimes (ADR-0140 pattern)                       |
-| pebble  | O(N), degraded                     | degraded                           | Map runtimes over KV key-scan claims + TTL iteration                                          |
-| bbolt   | O(N), degraded                     | degraded                           | Map runtimes over KV key-scan claims + TTL iteration                                          |
-| badger  | O(N), degraded                     | degraded                           | Map runtimes over KV key-scan claims + TTL iteration                                          |
-| sqlite  | O(logN), native                    | O(logN), native                    | `metaengine/claimkit` (single-statement upsert CAS)                                           |
-| turso   | O(logN), native                    | O(logN), native                    | delegates to sqliteengine — pinned by a local-file-DSN conformance run (libSQL driver path)    |
-| postgres| O(logN), native                    | O(logN), native                    | claimkit (CTE `FOR UPDATE SKIP LOCKED` via `claiming/`)                                       |
-| mysql   | O(logN), native                    | O(logN), native                    | claimkit (two-statement claim; lock-free dedup CAS — `INSERT IGNORE` + conditional UPDATE, no gap-lock deadlocks) |
-| duckdb  | O(logN), native                    | O(logN), native                    | claimkit; writes serialized by claimkit's dialect-conditional mutex (DuckDB ON CONFLICT limitation) |
-| dgraph  | **REFUSED**                        | **REFUSED**                        | DQL upserts cannot atomically fence concurrent claimers (no SKIP LOCKED / CAS-with-expiry)    |
-| iroh    | **REFUSED**                        | **REFUSED**                        | CRDT/eventual replication — a lease on one replica is not a lease anywhere                    |
-| bigtable| **REFUSED**                        | **REFUSED**                        | no atomic arbitrary-value RMW (`MapUpdate`) or collection scan yet (needs CheckAndMutate CAS) |
+| Engine   | ADTDueClaim     | ADTDedup              | Mechanism / refusal reason                                                                                        |
+| -------- | --------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| memory   | O(N), degraded  | O(logN)-ish, degraded | `MapDueClaimer` + `MapDedupStore` reference runtimes (ADR-0140 pattern)                                           |
+| pebble   | O(N), degraded  | degraded              | Map runtimes over KV key-scan claims + TTL iteration                                                              |
+| bbolt    | O(N), degraded  | degraded              | Map runtimes over KV key-scan claims + TTL iteration                                                              |
+| badger   | O(N), degraded  | degraded              | Map runtimes over KV key-scan claims + TTL iteration                                                              |
+| sqlite   | O(logN), native | O(logN), native       | `metaengine/claimkit` (single-statement upsert CAS)                                                               |
+| turso    | O(logN), native | O(logN), native       | delegates to sqliteengine — pinned by a local-file-DSN conformance run (libSQL driver path)                       |
+| postgres | O(logN), native | O(logN), native       | claimkit (CTE `FOR UPDATE SKIP LOCKED` via `claiming/`)                                                           |
+| mysql    | O(logN), native | O(logN), native       | claimkit (two-statement claim; lock-free dedup CAS — `INSERT IGNORE` + conditional UPDATE, no gap-lock deadlocks) |
+| duckdb   | O(logN), native | O(logN), native       | claimkit; writes serialized by claimkit's dialect-conditional mutex (DuckDB ON CONFLICT limitation)               |
+| dgraph   | **REFUSED**     | **REFUSED**           | DQL upserts cannot atomically fence concurrent claimers (no SKIP LOCKED / CAS-with-expiry)                        |
+| iroh     | **REFUSED**     | **REFUSED**           | CRDT/eventual replication — a lease on one replica is not a lease anywhere                                        |
+| bigtable | **REFUSED**     | **REFUSED**           | no atomic arbitrary-value RMW (`MapUpdate`) or collection scan yet (needs CheckAndMutate CAS)                     |
 
 ## Consequences
 

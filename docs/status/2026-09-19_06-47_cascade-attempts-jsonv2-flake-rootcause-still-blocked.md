@@ -8,18 +8,21 @@
 ## Self-review answers (asked first, answered first)
 
 **What did you forget?**
+
 1. To institute a **tree-stability check before the first cascade attempt** — I gated on machine load only. The other session's commits landed during my "quiet" windows (18:54 during post-split work, 20:19–20:23 during cascade run 3). The 5-min-stable watcher I eventually built should have existed before attempt 1.
 2. The **file-size baseline pre-check** before editing `exporter.go` (a baselined 382-line file): my +8-char nolint pushed the line past the formatter's wrap threshold → 384 lines → baseline growth. Caught by the fmt gate after the fact, not before the edit.
 3. That `/tmp` logs evaporate overnight — my verify-fast logs from last night are gone; the evidence below is what I captured in the final report at 23:30. Log copies should have gone to a durable location.
 
 **What could you have done better?**
+
 1. The docserver flaky-test reproduction: ~10 CLI variant runs (toolchain store binaries, GOEXPERIMENT on/off/none, tag matrix, GOWORK on/off) before I read the test file's **imports** — the answer was on line 5 (`encoding/json/v2`, whose Marshal does not sort map keys). READ THE CODE FIRST; theorize second.
 2. My last-night closing headline said "Session complete" while the primary deliverable (a green cascade) was unverified. The body was accurate; the headline overstated.
 3. Attempt accounting discipline: runs 3–4 of verify-fast (~40 min machine time) were partially invalidated by mid-flight tree churn. After run 2's clean flake-only failure, the correct next move was the stability watcher, not another immediate retry.
 
 **What could you still improve?**
+
 1. Convert the stability watcher into `scripts/wait-for-quiet.sh` (load + no-commits + no-edits, N consecutive minutes) so future sessions gate composed runs on it mechanically.
-2. Push the json/v2 byte-comparison audit (see e/2) — the docserver test was one member of a *class*; there may be more.
+2. Push the json/v2 byte-comparison audit (see e/2) — the docserver test was one member of a _class_; there may be more.
 3. Fix-or-deprioritize the two timing-flaky tests (system starvation flake: 3 strikes in one day; queue/sqlite claim-expiry) — they are now the highest-probability blockers of every composed gate on this repo.
 
 ---
@@ -75,7 +78,7 @@
 2. **json/v2 byte-comparison audit** — grep `_test.go` for `json.Marshal` comparisons across decode boundaries; the docserver test was one member of a class that v1's sorted-map-keys behavior used to hide.
 3. **The system starvation flake is now the #1 gate blocker** — 3 strikes in one day (45.7/46.3/66.9s). Filed 2026-09-16 but unfixed; every composed gate on this repo is probabilistic until it is.
 4. **queue/sqlite claim-expiry test needs a virtual clock or generous margin** — wall-clock-sensitive claim expiry under 4× contention slowdown.
-5. **verify-fast test phase runs ALL modules in one `go test` at default parallelism** — this *amplifies* timing-flake probability (same binary set, max contention). A `-p` cap or per-module sequencing would trade minutes for determinism.
+5. **verify-fast test phase runs ALL modules in one `go test` at default parallelism** — this _amplifies_ timing-flake probability (same binary set, max contention). A `-p` cap or per-module sequencing would trade minutes for determinism.
 6. **Env pinning inconsistency in flake apps** — `doc-check` and `integration-pg` export `GOEXPERIMENT=jsonv2` explicitly; `verify`/`verify-fast` do NOT (they inherit the caller's env). A bare `nix run .#verify-fast` from a clean shell runs stdlib json v1 with the `goexperiment.jsonv2` tag forced — exactly the split that made the docserver failure mysterious for an hour. Pin it in the app.
 7. **Cascade aborts at first failed phase** — when tests flake, lint/arch/coverage/api-stability phases never run, losing their signal per attempt. Consider running cheap gates before the (probabilistic) test phase, or continuing past a failed phase with a summary.
 8. **golangci cache mount is dead** — buildflow env-guard reported `GOLANGCI_LINT_CACHE /home/lars/projects/.golangci-disk` missing and rewrote to the default; caches run cold (fleet infra).
@@ -94,8 +97,8 @@
 8. **Restore the golangci-lint cache mount** (`.golangci-disk`) — buildflow env-guard says it's dead.
 9. **Investigate the render.go future-stamped mtime** (clock skew during templ regen) — one `stat` + correlation check next occurrence.
 10. **HARVEST check**: items 2–7 above are TODO_LIST candidates (the 13 ADR-0141 items were already harvested by the predecessor — do not duplicate).
-11. *(observed, not mine to fix)* The overnight session's uncommitted `encryption/` + `deriver/` working tree (00:58 mtimes) needs an owner-state confirmation before anyone runs tree-wide gates.
-12. *(observed)* Overnight daemon commits 00:54–00:58 swept 526 files (442+64+20; net −421 lines, mostly single-line removals) — unreviewed by me; worth a skim by its owning session.
+11. _(observed, not mine to fix)_ The overnight session's uncommitted `encryption/` + `deriver/` working tree (00:58 mtimes) needs an owner-state confirmation before anyone runs tree-wide gates.
+12. _(observed)_ Overnight daemon commits 00:54–00:58 swept 526 files (442+64+20; net −421 lines, mostly single-line removals) — unreviewed by me; worth a skim by its owning session.
 
 ## g) Questions I cannot answer myself
 
@@ -105,4 +108,4 @@
 
 ---
 
-*Point-in-time report written 2026-09-19 06:47. Claims trace to command runs captured in-session (verify-fast logs cited in the 23:30 handoff were lost with /tmp overnight; exit codes and messages were recorded contemporaneously). Working tree at report time: dirty with non-session changes; HEAD `36d5fee80` (00:58).*
+_Point-in-time report written 2026-09-19 06:47. Claims trace to command runs captured in-session (verify-fast logs cited in the 23:30 handoff were lost with /tmp overnight; exit codes and messages were recorded contemporaneously). Working tree at report time: dirty with non-session changes; HEAD `36d5fee80` (00:58)._

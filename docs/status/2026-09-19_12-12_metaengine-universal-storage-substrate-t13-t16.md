@@ -38,7 +38,7 @@
 
 ## d) TOTALLY FUCKED UP
 
-- **Nothing irreversible.** Three self-caught transient mistakes, all fixed within minutes: (1) ADR-0142 matrix insert briefly clobbered the `## Consequences` heading (re-anchored + restored; heading structure verified); (2) my new FactSink suite assumed `FactSink` embeds `DueClaimer` (it doesn't — asserted both) and initially asserted a "claimed" fact that a plain `ClaimDue` never records; (3) used interface *assignment* instead of *assertion* for the `ClaimFactsList` reader in the reset test (compile error, fixed).
+- **Nothing irreversible.** Three self-caught transient mistakes, all fixed within minutes: (1) ADR-0142 matrix insert briefly clobbered the `## Consequences` heading (re-anchored + restored; heading structure verified); (2) my new FactSink suite assumed `FactSink` embeds `DueClaimer` (it doesn't — asserted both) and initially asserted a "claimed" fact that a plain `ClaimDue` never records; (3) used interface _assignment_ instead of _assertion_ for the `ClaimFactsList` reader in the reset test (compile error, fixed).
 - **Process miss (not code):** I made **zero explicit commits** this session — everything is being absorbed by the daemon into `chore: auto-commit` blobs, losing authored per-task history. The CHANGELOG sections are the only narrative record.
 
 ## e) WHAT WE SHOULD IMPROVE

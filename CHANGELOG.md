@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **cqrs-lint `TestMultiModuleBuildContext_*` skip under `-race` (upstream)**:
   Go 1.27's reworked `go/types` lazy resolution races with x/tools
-  go/packages' parallel type checking inside a SINGLE `packages.Load`
+  go/packages' parallel type checking inside a SINGLE go/packages Load call
   (cross-package `*types.Named` access; x/tools v0.50.0 is the latest — no
   fixed release yet). First exposed once `#verify`'s race phase became
   reachable again (it had been blocked behind the journal bug). The two
@@ -47,7 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Go 1.27 graduated `encoding/json/v2`, making `-tags "goexperiment.jsonv2"`
   and `GOEXPERIMENT=jsonv2` no-ops. Removed from flake.nix (the central
   `goTags` list is now empty — the mechanism stays for future experiments),
-  26 scripts/, 6 GitHub workflows, cqrs-lint's `packages.Load` BuildFlags,
+  26 scripts/, 6 GitHub workflows, cqrs-lint's go/packages Load BuildFlags,
   api-stability/cqrs-bench test harnesses, the recipes compile harness, and
   every living doc (AGENTS.md, gowork-modes.md, testing-guide, EXPERIMENTAL_
   BUILD_TAGS.md, READMEs, Run-comments). Plain `go build`/`go test` is the
