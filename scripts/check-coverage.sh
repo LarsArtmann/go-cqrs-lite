@@ -30,7 +30,7 @@ export GOCACHE GOMODCACHE GOPATH GOTMPDIR GOTOOLCHAIN
 # larger is real drift that should update AGENTS.md.
 TOLERANCE=2.0
 
-# Module → documented coverage (verified 2026-08-27). Keep in sync with AGENTS.md.
+# Module → documented coverage (re-baselined 2026-09-19 at the tag-wave gate: command/dispatcher/id/kv/metaengine/schema rose — lint-debt regression tests + new code, no lost tests). Keep in sync with AGENTS.md.
 # Keys are plain module paths; codec was deleted (ADR-0128) and retry/
 # flightrecorder/idempotency shims never had coverage claims.
 # 2026-08-16: event 87.3→90.0, query 84.5→89.9 re-baselined UPWARD — the T9
@@ -39,14 +39,14 @@ declare -A EXPECTED=(
 	[decider]=96.1
 	["storage/memory"]=95.7
 	[snapshot]=91.9
-	[schema]=92.2
-	[command]=88.5
+	[schema]=95.3
+	[command]=92.3
 	[event]=90.0
-	[id]=86.5
-	[metaengine]=83.3
+	[id]=89.6
+	[metaengine]=87.8
 	[query]=89.9
-	[dispatcher]=87.7
-	[kv]=71.9
+	[dispatcher]=92.3
+	[kv]=77.2
 )
 
 # Meta-check: every EXPECTED key must resolve to a real module dir. A dangling
