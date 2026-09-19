@@ -25,14 +25,14 @@ func TestEngineProfilesSetReadCosts(t *testing.T) {
 	// engine dir → file carrying its ReadCosts block (profile factory or
 	// Profile method).
 	roster := map[string]string{
-		"metaengine/pgengine":     "engine.go",
+		"metaengine/pgengine":     "profile.go", // Profile() extracted (file-size ratchet)
 		"metaengine/mysqlengine":  "engine.go",
 		"metaengine/sqliteengine": "../engine.go", // profile factory lives core-side (SQLiteEngineProfile)
-		"metaengine/duckdbengine": "engine.go",
+		"metaengine/duckdbengine": "profile.go", // Profile() extracted (file-size ratchet)
 		"metaengine/dgraphengine": "engine.go",
 		"metaengine/badgerengine": "engine.go",
 		"metaengine/bboltengine":  "engine.go",
-		"metaengine/pebbleengine": "engine.go",
+		"metaengine/pebbleengine": "profile.go", // Profile() extracted (file-size ratchet)
 	}
 
 	// Engines intentionally without ReadCosts, with the reason recorded here

@@ -12,7 +12,9 @@ import (
 // implementation, this proves the wiring holds. Live-gated: set
 // MYSQL_TEST_DSN (see helper_test.go).
 func TestMySQLEngineDueClaims(t *testing.T) {
-	newEngine := func(*testing.T) metaengine.Engine { return mustNewMySQLEngine(t) }
+	// The factory must act on the SUBTEST t (the parameter), never a captured
+	// parent t — a skip/fatal on the parent mid-subtest panics the harness.
+	newEngine := func(t *testing.T) metaengine.Engine { return mustNewMySQLEngine(t) }
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
 	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
