@@ -105,13 +105,12 @@ func TestREADMEClaim_ModuleCountFloor(t *testing.T) {
 		t.Fatalf("walk failed: %v", err)
 	}
 
-	if count < 80 {
-		t.Errorf("repo has %d go.mod files, README claims 80+ — the claim overstates", count)
+	if count < 90 {
+		t.Errorf("repo has %d go.mod files, README claims 90+ — the claim overstates", count)
 	}
 
-	if !strings.Contains(readmePath(t), "80+ modules") &&
-		!strings.Contains(readmePath(t), "80+ independently-versioned modules") {
-		t.Error("README no longer carries the 80+ module-count claim — update the meta-test")
+	if !strings.Contains(readmePath(t), "90+ independently-versioned modules") {
+		t.Error("README no longer carries the 90+ module-count claim — update the meta-test")
 	}
 }
 

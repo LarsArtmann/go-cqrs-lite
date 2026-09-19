@@ -111,8 +111,8 @@ pair; the SUPERB plan stays LIVE with ✅12/◐8/open-10 wave markers. Known-ope
 decision pending). The pass's own reports: midflight
 [`06-33`](archived/2026-09-11_06-33_docs-health-sixth-pass-midflight.md)
 (archived, superseded) and the completion + self-review
-[`2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md`](2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md)
-(active).
+[`2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md`](archived/2026-09-11_14-10_docs-health-sixth-pass-completion-self-review.md)
+(archived by the 8th pass, 2026-09-19).
 
 **2026-09-11 batch-day reports (8 files, all archived; per-file index added
 2026-09-13 — this README is the only map of the ~1150-file archive):**
@@ -149,8 +149,8 @@ failing packages (18 → 0; 12 doc fences fixed incl. the not-legal-Go
 3 authored commits. Honest d)-section: stash-on-shared-tree gamble,
 `rm .git/index.lock`, three `--no-verify` commits, stale-queue reuse.
 Full a)–g) breakdown:
-[`2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md`](2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md)
-(active; §f tails harvested 2026-09-16).
+[`2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md`](archived/2026-09-15_18-19_quick-win-tail-gates-completion-self-review.md)
+(archived by the 8th pass, 2026-09-19; §f tails harvested).
 
 **2026-09-16 (7th docs-health pass) — the 2026-09-13..16 wave processed:**
 harvested the forward-looking sections of the 2026-09-13..16 reports into
@@ -188,9 +188,30 @@ Gate yield: 3 real anchor defects fixed. Honest d)-section: the new gate's
 silent-skip design hid a defect this session itself introduced (caught by
 the layered bash gate); `#verify` deferred a 3rd consecutive session.
 Full a)–g) breakdown:
-[`2026-09-16_13-05_skill-docs-navigation-hardening-execution.md`](2026-09-16_13-05_skill-docs-navigation-hardening-execution.md)
-(active; §f harvested candidates below — 45 items incl. the RED
-`check-file-size` store.go ratchet and the full-set doc-check CI leg).
+[`2026-09-16_13-05_skill-docs-navigation-hardening-execution.md`](archived/2026-09-16_13-05_skill-docs-navigation-hardening-execution.md)
+(archived by the 8th pass, 2026-09-19; §f polished-tail items remain
+open in the archived file as the historical record).
+
+**2026-09-19 (8th docs-health pass):** processed the entire 2026-09-13..19
+accumulation — 57 session reports read in full, **772+ forward items resolved
+inline** (`~~struck~~ done <date> — <evidence>`; evidence = TODO_LIST `[x]` rows
++ CHANGELOG `[Unreleased]` dated entries; agent line-drift in one file caught by
+atomic-write validation before any wrong strike), 62 RESOLVED-BY-ROUTING
+banners, **60 session reports archived** (only the two KEEP-LIVE evidence docs
+— `2026-09-13_15-55`, `2026-09-13_17-40` — plus the fp-sweep baseline stay
+active), 9 planning docs annotated + archived (OTEL, 16-01 reconciliation, 18-41
+close-out, durable-work-queue, T16/T17/T18 memos, queue-dedup-seam,
+go-finding-v1.10), 3 planning docs refreshed with dated addenda (publish-reset
+v5 train, pareto-v2, cqrs-to-the-max), 1 review archived (event-command
+duplication), go-graph-rag feedback triaged new/→reviewed/ with routing banner.
+Living docs: TODO_LIST header ledger + 9 harvested rows (README deep-read tail,
+docs censuses, benchkit CLI polish, goal-shaped-app tail, queue M4 polish +
+PapDashboard T20, quiet-window verify tooling, dogfooding follow-ups section,
+go-graph-rag follow-ups, cqrs-lint FP-sweep refresh); README 80+→90+ modules;
+ROADMAP 84→95 go.mod + [Unreleased] history extended through 09-19; AGENTS
+recipes 77→80, module-map 90→95. All inbound references to moved files
+repointed (0 stale). Pass report:
+[`2026-09-19_20-08_docs-health-eighth-pass-full-audit.md`](2026-09-19_20-08_docs-health-eighth-pass-full-audit.md).
 
 ## What this means
 
