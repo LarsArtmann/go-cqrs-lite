@@ -154,6 +154,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **Full-gate flake repairs + MySQL-leg vehicle diagnosis (2026-09-19
+  verify-green session).** Four load-sensitive tests no longer flip under
+  full-suite `-race` load: `metaengine`'s probe-warning test writes the
+  process-global slog sink through a mutex-wrapped buffer (a raw
+  `bytes.Buffer` shared with `t.Parallel` tests was a data race), the two
+  `system` drain-timeout tests use a 2s drainer delay (a >150ms scheduler
+  stall made both select cases ready at entry — random pick returned nil
+  ~50% of runs), `benchkit`'s `TestCompare` budget is 150s (race-mode
+  runtime measured up to 86s under load), and the `idempotency/sqlstore`
+  concurrent-claim helper plus the `adttest` CAS racer retry transient
+  failures a bounded 5x before failing (a committed-then-reset attempt
+  surfaces as a duplicate on retry, so the exactly-once invariants hold).
+  The MySQL integration leg was diagnosed as vehicle-fragile, not
+  test-fragile: a crashed nixos-test-driver orphans its QEMU (which keeps
+  holding the hostfwd port for every later run), and QEMU slirp resets
+  single fresh dials under host load. `scripts/vm-mysql.sh` now stubs
+  `POSTGRES_TEST_DSN` for the sqlstore block (no more ~80s throwaway
+  Postgres-container churn racing the slirp forward), and the full
+  six-module leg is validated green against a native userspace MariaDB
+  instance in single-digit seconds (the VM legs remain the CI-parity
+  vehicle). Also: `catalog/docserver` generated `_templ.go` files
+  regenerated from the canonical cwd (bare FileName paths; `#check-templ`
+  green) and the api-stability README claim pin tracks the current "90+
+  independently-versioned modules" line.
 - **`MigrateSnapshotColumnsToStream` is safe under concurrent InitSchema.**
   Two processes migrating the same legacy snapshots table at boot could
   race: the loser's ALTER failed after the winner had already renamed the
