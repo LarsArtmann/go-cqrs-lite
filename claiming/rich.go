@@ -98,14 +98,28 @@ func postgresClaimStmt(s Spec, p ClaimParams) (string, []any) {
 		args = append(args, p.Limit)
 	}
 
-	due := "SELECT " + s.IDColumn + " FROM " + s.Table +
+	// When a filter column scopes one table to many keyspaces, the UPDATE
+	// must join on BOTH the id and the filter value: joining on the id alone
+	// would stamp every keyspace's row carrying a selected id (the composite
+	// keyspace bug pinned by claimkit's cross-collection conformance).
+	joinFilter := ""
+	if s.FilterColumn != "" && p.Filter != nil {
+		joinFilter = " AND t." + s.FilterColumn + " = due." + s.FilterColumn
+	}
+
+	due := "SELECT " + s.IDColumn
+	if joinFilter != "" {
+		due += ", " + s.FilterColumn
+	}
+
+	due += " FROM " + s.Table +
 		"\nWHERE " + claimPredicates(s, p, func(any) string { return "$1" }) + filterAnd +
 		"\nORDER BY " + orderExpr(s) + limit +
 		"\nFOR UPDATE SKIP LOCKED"
 
 	query := "WITH due AS (\n" + due + "\n)\n" +
 		"UPDATE " + s.Table + " t SET " + s.LeaseColumn + " = $2" + ownerSet + " FROM due" +
-		" WHERE t." + s.IDColumn + " = due." + s.IDColumn +
+		" WHERE t." + s.IDColumn + " = due." + s.IDColumn + joinFilter +
 		"\nRETURNING " + qualified(s.Returning)
 
 	return query, args
@@ -217,8 +231,15 @@ func StampLeaseMySQLStmt(s Spec, ids []any, p ClaimParams) (string, []any) {
 		args = append(args, p.Owner)
 	}
 
-	query := "UPDATE " + s.Table + " SET " + set +
-		" WHERE " + s.IDColumn + " IN (" + strings.Join(placeholders, ", ") + ")"
+	// Scope the stamp to the claim's keyspace when a filter column is set:
+	// the id alone may exist in several keyspaces of one shared table.
+	idPred := s.IDColumn + " IN (" + strings.Join(placeholders, ", ") + ")"
+	if s.FilterColumn != "" && p.Filter != nil {
+		idPred += " AND " + s.FilterColumn + " = ?"
+		args = append(args, p.Filter)
+	}
+
+	query := "UPDATE " + s.Table + " SET " + set + " WHERE " + idPred
 
 	return query, args
 }

@@ -4702,6 +4702,10 @@ queue/facts/type FactType
 queue/func JSONCodec
 queue/interface Store
 queue/method ID
+queue/postgres/func NewEngine
+queue/postgres/func NewEngine
+queue/postgres/func NewEngineFromDB
+queue/postgres/func NewEngineFromDB
 queue/postgres/func Open
 queue/postgres/func Open
 queue/postgres/func OpenWithPool
@@ -4718,6 +4722,8 @@ queue/postgres/method CancelRunning
 queue/postgres/method CancelRunning
 queue/postgres/method ClaimDue
 queue/postgres/method ClaimDue
+queue/postgres/method Close
+queue/postgres/method Close
 queue/postgres/method Close
 queue/postgres/method Close
 queue/postgres/method Complete
@@ -4746,6 +4752,10 @@ queue/postgres/method List
 queue/postgres/method List
 queue/postgres/method MarkOrphaned
 queue/postgres/method MarkOrphaned
+queue/postgres/method PingContext
+queue/postgres/method PingContext
+queue/postgres/method Profile
+queue/postgres/method Profile
 queue/postgres/method Requeue
 queue/postgres/method Requeue
 queue/postgres/method RescueDead
@@ -4758,10 +4768,16 @@ queue/postgres/method UpdatePendingPriority
 queue/postgres/method UpdatePendingPriority
 queue/postgres/method Watermark
 queue/postgres/method Watermark
+queue/postgres/struct Engine
+queue/postgres/struct Engine
 queue/postgres/struct Store
 queue/postgres/struct Store
 queue/postgres/type StoreOption
 queue/postgres/type StoreOption
+queue/sqlite/func NewEngine
+queue/sqlite/func NewEngine
+queue/sqlite/func NewEngineFromDB
+queue/sqlite/func NewEngineFromDB
 queue/sqlite/func Open
 queue/sqlite/func Open
 queue/sqlite/func OpenDB
@@ -4778,6 +4794,8 @@ queue/sqlite/method CancelRunning
 queue/sqlite/method CancelRunning
 queue/sqlite/method ClaimDue
 queue/sqlite/method ClaimDue
+queue/sqlite/method Close
+queue/sqlite/method Close
 queue/sqlite/method Close
 queue/sqlite/method Close
 queue/sqlite/method Complete
@@ -4806,6 +4824,10 @@ queue/sqlite/method List
 queue/sqlite/method List
 queue/sqlite/method MarkOrphaned
 queue/sqlite/method MarkOrphaned
+queue/sqlite/method PingContext
+queue/sqlite/method PingContext
+queue/sqlite/method Profile
+queue/sqlite/method Profile
 queue/sqlite/method Requeue
 queue/sqlite/method Requeue
 queue/sqlite/method RescueDead
@@ -4818,6 +4840,8 @@ queue/sqlite/method UpdatePendingPriority
 queue/sqlite/method UpdatePendingPriority
 queue/sqlite/method Watermark
 queue/sqlite/method Watermark
+queue/sqlite/struct Engine
+queue/sqlite/struct Engine
 queue/sqlite/struct Store
 queue/sqlite/struct Store
 queue/sqlite/type StoreOption
