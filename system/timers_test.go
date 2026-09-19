@@ -7,8 +7,8 @@ import (
 	"time"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/engine/v4"
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 

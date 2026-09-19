@@ -6892,6 +6892,7 @@ system/func WithSnapshotStrategy
 system/interface Drainer
 system/interface EvolutionSpec
 system/interface ProjectionDeclaration
+system/interface TimerScheduler
 system/method AddNamedPublisher
 system/method AddPublisher
 system/method AppendBatch
@@ -6941,6 +6942,7 @@ system/method LoadToTimestamp
 system/method LoadToTimestamp
 system/method LoadToVersion
 system/method LoadToVersion
+system/method ManageTimers
 system/method MetaEngine
 system/method Names
 system/method On
@@ -6984,6 +6986,7 @@ system/method Sortable
 system/method Start
 system/method StreamID
 system/method StreamType
+system/method TimerEngine
 system/method ToAny
 system/method UseCommandMiddleware
 system/method VerifyProjections

@@ -31,6 +31,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   epoch-guarded (the documented re-schedule race is structurally impossible;
   a stale `MarkFired` is a no-op), `Due` is a lease-fenced claim loop
   (multi-dispatcher safe, at-least-once).
+- **Queue engines join the operator registry**: `queue/sqlite` and
+  `queue/postgres` register the `"queue-sqlite"` / `"queue-postgres"`
+  metaengine drivers (`queue/sqlite.NewEngine`,
+  `queue/postgres.NewEngine`/`NewEngineFromDB` open the SAME database the
+  tasks live in and expose only the claim/dedup capabilities — the planner
+  never routes folds there). Wiring them flushed out a real cross-keyspace
+  bug: the Postgres CTE claim and MySQL lease stamp joined on id alone, so
+  claiming in one collection stamped rows of every collection sharing that
+  id — both statements now join id+collection (pinned by a cross-keyspace
+  isolation test).
+- **Idempotency rides engines**: `idempotency/sqlstore.NewFromEngine`
+  builds the same public `Store` over any `metaengine.DedupStore` (memory,
+  sqlite, postgres, pebble, bbolt, badger) — `ErrDuplicate` semantics,
+  `ErrInvalidTTL`, and the no-op `Record`-on-live-window contract are
+  pinned by parity tests; `idempotency/kvstore` documents its 1:1
+  equivalence with `DedupStore` semantics.
+- **`system/` owns the timer story**: `system.TimerEngine` resolves the
+  deployment-declared timer engine (the engine named `"timers"`, falling
+  back to primary), `system.ManageTimers` hands scheduler lifecycles to
+  the composition root (started on Start, stopped as GracefulClose phase
+  0), and `system.DomainConfig.Timers` is the declarable hook (the
+  Commands/Queries pattern). A declarative event→timeout rule registry is
+  deliberately NOT added: timed derivation composes functionally (a bus
+  subscriber or `deriver.Deriver` reacts to the event and schedules via
+  the engine-backed TimerStore — ADR-0040 rationale); the coeffect gate
+  (`DomainConfig.Events`) validates the event side of that composition.
 
 ### Fixed — scheduler family-aware retry (T17 partitioning) — 2026-09-19
 
