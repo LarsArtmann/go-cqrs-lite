@@ -12,15 +12,10 @@ import (
 // implementation, this proves the wiring holds. Live-gated: set
 // MYSQL_TEST_DSN (see helper_test.go).
 func TestMySQLEngineDueClaims(t *testing.T) {
-	eng := mustNewMySQLEngine(t)
-	// NOTE: no t.Parallel — the shared live server serializes better.
+	newEngine := func(*testing.T) metaengine.Engine { return mustNewMySQLEngine(t) }
 
-	adttest.AssertDueClaimer(t, []adttest.Factory{
-		{Name: "mysql", Create: func(*testing.T) metaengine.Engine { return eng }},
-	})
-	adttest.AssertDedupStore(t, []adttest.Factory{
-		{Name: "mysql", Create: func(*testing.T) metaengine.Engine { return eng }},
-	})
+	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
+	adttest.AssertDedupStore(t, []adttest.Factory{{Name: "mysql", Create: newEngine}})
 }
 
 func TestMySQLEngineDueClaims_CapabilitySurface(t *testing.T) {
