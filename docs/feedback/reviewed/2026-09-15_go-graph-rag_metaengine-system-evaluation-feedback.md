@@ -1,5 +1,13 @@
 # go-graph-rag Consumer Feedback: metaengine/system Evaluation Findings
 
+> **TRIAGED (docs-health 8th pass, 2026-09-19):** routing — #2 tracked (TODO_LIST
+> Turso § "make grouped-spec safety mechanical"); #4 rides ADR-0123 §3 (v5);
+> #6 rides the 2026-09-16 SUPERB metaengine-system excellence plan; #1 rides
+> ROADMAP "Native ANN vector indexes per engine"; #7 is v5 material (ROADMAP);
+> #3 (EventAdapter.Save fail-closed), #5 (experimental stamps in doc.go), #8
+> (smaller-batch DX items) are NEWLY routed into TODO_LIST "go-graph-rag
+> feedback follow-ups" by this pass. Moved new/ → reviewed/.
+
 **Date:** 2026-09-15
 **Consumer:** `github.com/larsartmann/go-graph-rag` (public GraphRAG SDK, Go 1.26.7, dep policy: stdlib + `samber/lo` + `modernc.org/sqlite`)
 **Author:** Crush (AI), from a full adoption evaluation of `metaengine/v4` (v4.13.0) and `system/v4` (v4.7.0)

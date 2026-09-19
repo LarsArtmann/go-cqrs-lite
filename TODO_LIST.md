@@ -48,7 +48,18 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [x] 🔥 **Assemble the existing pieces into a `queue/` sibling module** — DONE through M4 2026-09-19: P0 `claiming/` extraction (2026-09-13); M1–M3 contract + conformance suite + sqlite/postgres engines green `-race` (2026-09-14/15); **M4 (2026-09-19): T14 enqueue dep validation (`queue.ErrDanglingDep`, cycles unrepresentable by construction — store-minted IDs + existence check; no unblock-bump: claim-time gating + bounded aging cover it), T15 ADR-0134 claim tokens (`queue.Claim.Token` + `queue.NewClaimToken`, `lease_token` column + migrations both engines, finalize signatures take the token, theft = `ErrLeaseNotHeld`; ADR-0134 Accepted for queue/), T16 `queue.FactTx`/`FactSink` same-tx consumer fact appends + `Store.Watermarks` list, T17 `queue/mysql/v4` third engine (two-statement SKIP LOCKED, BIGINT-ms, InnoDB deadlock retry, nullable-unique dedup emulation) green on live MariaDB 11.4 incl. `-race -count=2` (gate: `MYSQL_TEST_DSN`)**. ALL THREE engines green on the shared suite incl. `-race`. Dedup'd enqueue + priorities/aging were already M1–M3. Spec source of truth = go-taskqueue's production-proven `internal/queue.Store` contract (upstreamed, not reinvented). Consumers: go-taskqueue (reference donor), PapDashboard (production worker pools today), `example/taskmanager` (demo→real). — source: [`docs/planning/archived/2026-09-13_durable-work-queue-module.md`](docs/planning/archived/2026-09-13_durable-work-queue-module.md) + queue-arc reports 14-14/14-46 + 2026-09-19 M4 report _(Effort: P1+M4 DONE)_
 - [ ] **Tag the claiming + queue modules** — `claiming/v4.0.0` (dry-run READY, blocked on clean tree at the time; needs sqlstore replace pin + standalone build gate + proxy probe), then `queue`/`queue/sqlite`/`queue/postgres`/`queue/mysql` v4.0.0; also strips the `queue/{sqlite,postgres,mysql} => ../queue` sibling replaces. NOTE 2026-09-19: the T15 token change altered `queue.Store` finalize signatures pre-release — tag the WHOLE family in one wave so the golden and the modules move together. — source: queue-arc 14-14 §b2/§b3 _(Effort: S each once a wave is authorized — fold into the next tag wave)_
 - [x] **Run `queue/postgres` conformance against live in-repo PG** — DONE 2026-09-16: `PG_MODULES="queue/postgres" TEST_TIMEOUT=420 nix run .#integration-pg` full suite PASS on the repo's own ephemeral PG (first run on this leg), incl. the `lifecycle_cancel.go` split end-to-end. — source: 2026-09-16 09-35 report §f2; 2026-09-16 15-02 report §c _(Effort: S)_
-- [x] **Queue family docs + config tail** — DONE 2026-09-16, all four: (a) new `queue/README.md` (contract, module table, quickstarts; every claim source-verified before shipping); (b) `task.New`/`queue.Filter`/`facts.Fact` partial-literal semantics documented in that README (exhaustruct exemptions design-justified); (c) dead errcheck exclude-functions short forms replaced with fully-qualified `(*database/sql.DB|Rows|Stmt).Close` forms in `.golangci.yml` (probe found the short forms were dead); (d) `queue/mysql` doc mentions struck (`queue/store.go`, `queue/conformance/doc.go`) — the engine does not exist, so the mention lied. — source: 2026-09-16 09-35 report §e4/§f6-9 _(Effort: S each)_
+- [ ] **PapDashboard queue-adoption evaluation (queue T20)** — the second named
+      consumer ("worker pools over durable queues" in production today); evaluate
+      migrating its pools onto `queue/{sqlite,postgres}` and record the verdict
+      (adopt / blockers). — source: to-the-max plan T20; queue module doc
+      _(Effort: M, consumer-gated)_
+- [ ] **Queue M4 polish tail (2026-09-19 harvest)** — queue/README MySQL
+      quickstart; `queue/conformance/doc.go` 3-engine list update; PG
+      `-race -count=2` symmetric leg; mysql deadlock-retry backoff+jitter +
+      retry-or-document enqueue/finalize; MySQL pool options; fold
+      `MYSQL_TEST_DSN` into the nix legs; MySQL testcontainer; owner ratification
+      of the dep-validation semantics (M4 §f1). — source: archived 11-10 §b/e,
+      12-10 §f7-16 _(Effort: S/M each)_
 
 ## Command-side domain depth (2026-09-13 plan)
 
@@ -199,6 +210,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       (`types.Info.Selections`) remains a v5-cut decision (v007.go comment).
       — source: 05-26 §e2/§f18-20
       _(Effort: M)_
+- [ ] **cqrs-lint FP-sweep harness refresh (2026-09-19 harvest)** — surface
+      stderr from the sweep harness (5 empty repo rows were silent failures),
+      re-run the corrected 12-repo baseline
+      (`docs/status/2026-09-17_fp-sweep-baseline.md` is the known-bad snapshot),
+      investigate the crush-daily 39-finding outlier. — source: archived 08-45
+      §f11-13 _(Effort: M)_
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
@@ -416,6 +433,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       section above; budget margins deliberately NOT bumped further.
       _(was Effort: M, owner: system area)_
 
+- [ ] **Quiet-window verify tooling (asked by ≥3 sessions)** —
+      `scripts/wait-for-quiet.sh` (block until 1-min load < threshold), a
+      `#verify` test-phase parallelism cap (`-p`), and the golangci cache mount
+      restore; unblocks the standing composed-`#verify` item without burning
+      background attempts. — source: archived 06-47 §f6-8, 12-02 §f9/11/17,
+      18-11 §f11 _(Effort: S/M)_
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
@@ -768,6 +791,21 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       recipes §2.36 "Watch Dgraph Contention Retries" with a compile-verified
       scaffold (`TestRecipes` green). — source: 05-51 §f33; 2026-09-16 15-02 report
       _(Effort: S)_
+- [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
+      the 12-16 report verified all 93 READMEs mechanically but ~30 polish items
+      stayed unharvested; the substantive ones: (a) doc-check repoRoot regression
+      test + `[Unreleased]` Fixed entry + gotcha note for the relative-path fix;
+      (b) add READMEs to the doc-check gate (flake app/CI); (c) deep-read the six
+      big unread READMEs (catalog 587L, graph, stack, storage/view, watermill,
+      otel, prometheus); (d) quick-start drift-guard tests for stack/sqlite,
+      storage/memory, decider, scheduling, projectionhost; (e) deprecated-symbol
+      grep gate over READMEs; (f) `scripts/check-readme-links.sh` link checker.
+      — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
+      sliceable)_
+- [ ] **Docs censuses (7th-pass items 1-3)** — census `module-map.md` (73 of 95
+      rowed) + FEATURES maturity matrix vs the 95 modules; document deliberate
+      compaction scope in the map header; per-file index for the archived waves
+      in `docs/status/README.md`. — source: archived 13-03 §f1-3 _(Effort: S/M)_
 
 ---
 
@@ -833,6 +871,18 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       CPUs); treat per-backend deltas as non-decision-grade and supersede
       on a calibration-gate PASS window (the capture's Variation footer
       shows exactly which metrics flagged NOISY).
+- [ ] **Benchkit CLI polish tail (2026-09-19 harvest)** — unharvested §f items
+      from the statistical-rigor completion: render `Min` in output tables;
+      `--strict` failing on NOISY headline metrics; `list-phases` metric
+      mapping; `Load1` in env row; `--warmup` docs (README gap); CSV variation
+      columns; sweep CoV column; per-repeat progress; reservoir size per-phase;
+      `tail_ratio` true-max semantics; `RunSuite` testing.B variant over
+      RunRepeated; metric-name constants for downstream tooling; stale-baseline
+      re-pin protocol + gate-set rename guard; CI golangci version skew; P100
+      in benchstat gate metrics; recipes statistical-rigor block + FAQ P100
+      entry + readmodels/core cross-links; supersede-note on the oversubscribed
+      2026-09-19 capture once a quiet-window one exists. — source: archived 15-37
+      §f8-30, archived 02-09 §f14-42 _(Effort: M total, sliceable)_
 
 ---
 
@@ -943,6 +993,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       the plan's gates (not declared): evidence links per row, CHANGELOG
       Goal-story entry, release notes. Final stamp of Goal closure. — G-T25
       _(Effort: S, gated on gates A–D)_
+- [ ] **goal-shaped-app polish tail (2026-09-19 harvest)** — extend the AGENTS
+      "Add a New Module" procedure with the examplePaths/testModules split;
+      compile-gate the example README's Go fences (docs_compile_test); a real
+      postgres e2e leg for the config-swap test; README ns-figures
+      machine-specific caveat; cqrs-lint consumer probe + AsyncAPI export demo
+      on the example; `DomainConfig.Events` coeffect demo once `system` tags.
+      — source: archived 18-16 §f1-12 _(Effort: S/M)_
 
 ---
 
@@ -1142,6 +1199,45 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Soak env-var run for bigtableengine** — per
       `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
       `#verify`). — source: 14:07 §f33-34 _(Effort: S)_
+
+## Dogfooding self-review follow-ups (2026-09-19)
+
+> The dogfooding sessions adopted `dedup.Ring` in loopback and swept 54
+> `defer func(){ _ = x.Close() }()` sites onto `metaengine.DeferClose` across
+> engines + queue. What follows is the unharvested tail. — source:
+> [`docs/status/archived/2026-09-19_16-50_dogfooding-self-review-execution.md`](docs/status/archived/2026-09-19_16-50_dogfooding-self-review-execution.md) §f +
+> [`…17-25_dogfooding-self-review-final-status.md`](docs/status/archived/2026-09-19_17-25_dogfooding-self-review-final-status.md) §f
+
+- [ ] [BLOCKED] **Tier-0 close-helper decision (owner/ADR)** — should a
+      `DeferClose`-style helper live in Tier-0 (`id`/`kv`/`record`-adjacent) or
+      stay `metaengine`-owned? Blocks the remaining ~20 close-idiom sweeps
+      (queue/postgres, storage/pebble, snapshot_migration, scheduling/sqlstore,
+      projectionhost dlq, stack/run_projections, kv/cmd). _(Effort: XS ruling + M sweeps)_
+- [ ] **Extract scan/paginate helpers** — the dogfooding review found
+      near-identical scan/pagination boilerplate worth consolidating (finding 4).
+      _(Effort: M)_
+- [ ] **Retry-idiom reconciliation audit** — `middleware/retry` vs external
+      `go-retry`, projectionhost backoff, replicator retry, dgraph transaction
+      backoff: one pass to align idioms or document why they differ.
+      _(Effort: M)_
+- [ ] **quic/loopback const split brain + dedup parity test** — shared
+      transport constants duplicated; a parity test should pin the dedup rings.
+      _(Effort: S)_
+
+## go-graph-rag feedback follow-ups (2026-09-15, triaged 2026-09-19)
+
+> Consumer evaluation of `metaengine/v4.13` + `system/v4.7` (adopted neither —
+> "system is a category error for a library, metaengine wrong-shaped for
+> GraphRAG"). Routed requests live in their home sections (#2 Turso §, #4 v5 §,
+> #6 metaengine plans, #1/#7 ROADMAP); the unrouted ones:
+> [`docs/feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
+
+- [ ] **Fail closed on `EventAdapter.Save` racy fallback** — third-party engine
+      authors get silent partial writes today; make the fallback loud or refuse.
+      — feedback #3 _(Effort: S)_
+- [ ] **Stamp experimental status in each engine/module `doc.go`** — pkg.go.dev
+      readers cannot tell 🧪 from ✅ today (FEATURES knows; the godocs don't).
+      — feedback #5 _(Effort: S, mechanical)_
 
 ## Declined / Rejected (do not re-litigate)
 

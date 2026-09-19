@@ -46,7 +46,7 @@ But the **README** — the first thing consumers read — says "52 independent m
 
 ### Improvement applied
 
-Added a **Deployment Scope** section to `docs/DOMAIN_LANGUAGE.md` with the above table. The README should get a short "Deployment Scope" paragraph too — that's a separate docs task.
+Added a **Deployment Scope** section to `docs/DOMAIN_LANGUAGE.md` with the above table. ~~The README should get a short "Deployment Scope" paragraph too — that's a separate docs task.~~ RESOLVED 2026-09-19: the README's 2026-09-01 launch overhaul covers the scope ("Teams that choose storage at deployment time", the presets table, and the deployment-time examples paragraph).
 
 ---
 
