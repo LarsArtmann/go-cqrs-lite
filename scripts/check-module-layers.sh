@@ -76,6 +76,9 @@ LAYER["metaengine/irohengine/loopback"]=5
 LAYER["metaengine/irohengine/quic"]=5
 LAYER[record]=0
 LAYER["scheduling/sqlstore"]=5
+# scheduling/engine: TimerStore facade over any DueClaimer engine (ADR-0142) —
+# bridges scheduling (L1) to metaengine engines (L5), same tier as sqlstore.
+LAYER["scheduling/engine"]=5
 LAYER[testutil]=5
 # NOTE: testutil is also referenced as a direct dep in some lower-tier modules'
 # go.mod (projectionhost, transport/http, etc.) for test helpers. The
@@ -290,6 +293,9 @@ DEP_BUDGET["transport/grpc"]=12
 DEP_BUDGET["idempotency/kvstore"]=7
 DEP_BUDGET["idempotency/sqlstore"]=5
 DEP_BUDGET["scheduling/sqlstore"]=7
+# scheduling/engine: 3 = scheduling contract + metaengine + sqliteengine
+# (the facade's conformance/constructor target; memory engine is test-only).
+DEP_BUDGET["scheduling/engine"]=3
 DEP_BUDGET[system]=20
 DEP_BUDGET["system/integration"]=7
 DEP_BUDGET["metaengine/irohengine"]=2
