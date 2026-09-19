@@ -134,7 +134,13 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 						// every interleaving. Persistent errors still fail the
 						// test after the bounded attempts.
 						for attempt := 0; ; attempt++ {
-							seen, err := dedup.DedupCheckAndRecord(ctx, col, "race", time.Minute, now)
+							seen, err := dedup.DedupCheckAndRecord(
+								ctx,
+								col,
+								"race",
+								time.Minute,
+								now,
+							)
 							if err == nil {
 								trues <- seen
 

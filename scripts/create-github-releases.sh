@@ -13,8 +13,16 @@
 #
 # Tag-to-version mapping: the module prefix is stripped ("event/v4.0.1" →
 # "v4.0.1") and the CHANGELOG section whose header contains that version
-# ("## [4.0.1] …" or "## [event/v4.0.1] …") is used. No match = skip with a
-# warning (never fabricate notes).
+# ("## [4.0.1] …" or "## [event/v4.0.1] …") is used. Release-train sections
+# ("## [a/v1.0.0, b/v1.2.0 — 2026-09-19 release train (+82 more module tags)]")
+# never end a header with each version, so two extra match rules apply, over
+# sections scanned top-down (newest first):
+#   - the full tag appears as a delimiter-bounded token anywhere in the
+#     section (train bodies list every module in backticks), or
+#   - the tag's last two path components do (brace-shorthand groups like
+#     `metaengine/{badgerengine/v4.2.0, …}` list inner tags without the
+#     module prefix).
+# No match = skip with a warning (never fabricate notes).
 #
 # Requires: gh CLI authenticated against the repo; tags already PUSHED.
 set -euo pipefail
@@ -24,9 +32,15 @@ cd "$(git rev-parse --show-toplevel)"
 CHANGELOG="CHANGELOG.md"
 
 if [ $# -eq 0 ]; then
-	echo "Usage: $0 <tag> [<tag> ...]"
+	echo "Usage: $0 [--dry-run] <tag> [<tag> ...]"
 	echo "Example: $0 event/v4.0.1 metaengine/v4.2.0"
 	exit 1
+fi
+
+dry_run=0
+if [ "$1" = "--dry-run" ]; then
+	dry_run=1
+	shift
 fi
 
 command -v gh >/dev/null 2>&1 || {
@@ -35,11 +49,34 @@ command -v gh >/dev/null 2>&1 || {
 }
 
 extract_section() {
-	version="$1"
-	awk -v v="$version" '
-		$0 ~ "^## \\[.*" v "\\]" { in_section = 1; print; next }
-		in_section && /^## / { exit }
-		in_section { print }
+	tag="$1" # full tag, e.g. metaengine/badgerengine/v4.2.0
+	tail2="${tag#*/}" # badgerengine/v4.2.0 (last two path components)
+	[ "$tail2" = "$tag" ] && tail2="" # single-component tag: no shorthand form
+	awk -v tag="$tag" -v tail2="$tail2" '
+		function section_matches(text) {
+			n = split(text, lines, "\n")
+			for (l = 1; l <= n; l++) {
+				gsub(/[`{}()\[\]—; ]/, ",", lines[l])
+				m = split(lines[l], tok, ",")
+				for (i = 1; i <= m; i++)
+					if (tok[i] == tag || (tail2 != "" && tok[i] == tail2))
+						return 1
+			}
+			return 0
+		}
+		function flush() {
+			if (sec != "" && section_matches(sec)) {
+				printf "%s\n", sec
+				exit # top-down: the newest matching section wins
+			}
+		}
+		/^## / {
+			flush()
+			sec = ($0 ~ /^## \[/) ? $0 : ""
+			next
+		}
+		sec != "" { sec = sec "\n" $0 }
+		END { flush() }
 	' "$CHANGELOG"
 }
 
@@ -48,12 +85,18 @@ updated=0
 skipped=0
 
 for tag in "$@"; do
-	version="${tag##*/}" # event/v4.0.1 → v4.0.1
+	version="${tag##*/}" # event/v4.0.1 → v4.0.1 (kept for summary clarity)
 
-	body=$(extract_section "$version")
+	body=$(extract_section "$tag")
 	if [ -z "$body" ]; then
-		echo "SKIP $tag: no '## [$version]' section in $CHANGELOG"
+		echo "SKIP $tag: no matching section in $CHANGELOG"
 		skipped=$((skipped + 1))
+		continue
+	fi
+
+	if [ "$dry_run" = 1 ]; then
+		echo "[DRY] $tag: extracted $(printf '%s\n' "$body" | wc -l) lines starting: $(printf '%s' "$body" | head -1 | cut -c1-80)"
+		created=$((created + 1))
 		continue
 	fi
 

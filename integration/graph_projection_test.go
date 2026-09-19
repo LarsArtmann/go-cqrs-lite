@@ -152,10 +152,24 @@ func TestBundle_RunProjections_GraphProjection(t *testing.T) {
 		t.Fatalf("expected 2 users in graph, got %d", len(users))
 	}
 
-	// Verify the follow edge exists.
-	neighbors, edges := driver.Neighbors(
-		cqrsgraph.NodeRef{Label: "User", KeyProp: "id", KeyValue: "alice"},
-	)
+	// The user.followed event projects after the user.created events, so
+	// the edge can lag the users; poll for it with its own deadline.
+	deadline = time.Now().Add(3 * time.Second)
+
+	var neighbors []cqrsgraph.NodeView
+
+	var edges []cqrsgraph.EdgeView
+	for time.Now().Before(deadline) {
+		neighbors, edges = driver.Neighbors(
+			cqrsgraph.NodeRef{Label: "User", KeyProp: "id", KeyValue: "alice"},
+		)
+		if len(edges) > 0 {
+			break
+		}
+
+		time.Sleep(10 * time.Millisecond)
+	}
+
 	if len(edges) == 0 {
 		t.Fatalf("expected at least 1 edge from alice, got 0 (neighbors: %d)", len(neighbors))
 	}
