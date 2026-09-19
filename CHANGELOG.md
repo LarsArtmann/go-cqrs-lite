@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed — engine reset deleted the journal (ADR-0143: facts survive resets) — 2026-09-19
 
+- **cqrs-lint `TestMultiModuleBuildContext_*` skip under `-race` (upstream)**:
+  Go 1.27's reworked `go/types` lazy resolution races with x/tools
+  go/packages' parallel type checking inside a SINGLE `packages.Load`
+  (cross-package `*types.Named` access; x/tools v0.50.0 is the latest — no
+  fixed release yet). First exposed once `#verify`'s race phase became
+  reachable again (it had been blocked behind the journal bug). The two
+  full-workspace loader integration tests now skip under `-race` via
+  build-tag detection (`race_on_test.go`/`race_off_test.go`); non-race runs
+  still exercise the loader. Re-enable when a fixed x/tools lands.
 - **Root cause of the long-"flaky" `TestSystem_ResetProjection_RestartAndReplay`**
   failures: `EngineResetter.ResetEngine` cleared EVERYTHING — including the
   journal tables — which is correct only when the journal is a local cache of

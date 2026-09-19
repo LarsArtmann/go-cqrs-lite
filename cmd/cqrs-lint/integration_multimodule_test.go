@@ -18,7 +18,9 @@ func skipUnderRace(t *testing.T) {
 	t.Helper()
 
 	if raceEnabled {
-		t.Skip("go/types + x/tools parallel-check race under -race (upstream); see skipUnderRace comment")
+		t.Skip(
+			"go/types + x/tools parallel-check race under -race (upstream); see skipUnderRace comment",
+		)
 	}
 }
 
