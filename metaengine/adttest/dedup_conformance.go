@@ -127,14 +127,28 @@ func AssertDedupStore(t *testing.T, factories []Factory) {
 					go func() {
 						defer wg.Done()
 
-						seen, err := dedup.DedupCheckAndRecord(ctx, col, "race", time.Minute, now)
-						if err != nil {
-							t.Errorf("racer: %v", err)
+						// Retry transient infra failures (e.g. one reset
+						// connection through a VM port-forward): an attempt that
+						// failed after committing surfaces as seen=true on the
+						// retry, so the exactly-once accounting below holds for
+						// every interleaving. Persistent errors still fail the
+						// test after the bounded attempts.
+						for attempt := 0; ; attempt++ {
+							seen, err := dedup.DedupCheckAndRecord(ctx, col, "race", time.Minute, now)
+							if err == nil {
+								trues <- seen
 
-							return
+								return
+							}
+
+							if attempt >= 5 {
+								t.Errorf("racer: %v", err)
+
+								return
+							}
+
+							time.Sleep(50 * time.Millisecond)
 						}
-
-						trues <- seen
 					}()
 				}
 
