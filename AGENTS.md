@@ -65,7 +65,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
 | CI          | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
 
-Multi-module Go workspace (`go.work`) with 92 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 95 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 

@@ -39,6 +39,11 @@ func WithCodec[T any](c queue.Codec[T]) StoreOption[T] {
 	return func(o *storeOptions[T]) { o.codec = c }
 }
 
+// maxOpenConns bounds the store's pool: MySQL's default max_connections
+// is 151; a small dedicated pool leaves headroom for operators and other
+// services on the same server.
+const maxOpenConns = 8
+
 // Open connects to dsn (e.g.
 // "user:pass@tcp(127.0.0.1:3306)/tasks?parseTime=true"), applies the
 // schema, and returns a ready store. The pool is store-owned: Close
@@ -54,7 +59,7 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 		return nil, fmt.Errorf("queue/mysql: open: %w", err)
 	}
 
-	db.SetMaxOpenConns(8)
+	db.SetMaxOpenConns(maxOpenConns)
 
 	store := &Store[T]{db: db, codec: options.codec, ownsDB: true}
 
@@ -77,7 +82,7 @@ func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
 		opt(&options)
 	}
 
-	store := &Store[T]{db: db, codec: options.codec}
+	store := &Store[T]{db: db, codec: options.codec, ownsDB: false}
 	if err := store.migrate(context.Background()); err != nil {
 		return nil, err
 	}

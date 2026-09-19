@@ -79,7 +79,7 @@ func RenewStmt(d Dialect, s Spec, newUntil, id, now any) (string, []any) {
 	var query string
 
 	switch d {
-	case DialectPostgres:
+	case DialectPostgres, DialectDuckDB:
 		query = "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.LeaseColumn + " > $3"
 	case DialectMySQL:

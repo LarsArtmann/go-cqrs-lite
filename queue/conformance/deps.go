@@ -133,7 +133,7 @@ func (s *suite) pinDeadDepGates(t *testing.T) {
 func (s *suite) pinChainDrains(t *testing.T) {
 	e := s.openEnv(t)
 
-	a := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	first := e.enqueue(t, task.New[Payload]{Type: "sh"})
 
 	// The cycle-guard shape, pinned directly: B depending on C before C
 	// exists is rejected, so B→C→B can never be assembled.
@@ -143,10 +143,10 @@ func (s *suite) pinChainDrains(t *testing.T) {
 	})
 	mustError(t, "enqueue dep-on-future", err, queue.ErrDanglingDep)
 
-	b := e.enqueue(t, task.New[Payload]{Type: "sh", Deps: []task.ID{a.ID}})
-	cc := e.enqueue(t, task.New[Payload]{Type: "sh", Deps: []task.ID{b.ID}})
+	second := e.enqueue(t, task.New[Payload]{Type: "sh", Deps: []task.ID{first.ID}})
+	third := e.enqueue(t, task.New[Payload]{Type: "sh", Deps: []task.ID{second.ID}})
 
-	for _, want := range []task.ID{a.ID, b.ID, cc.ID} {
+	for _, want := range []task.ID{first.ID, second.ID, third.ID} {
 		c := e.claim(t, "w1")
 		if c.Task.ID != want {
 			t.Fatalf("chain order broken: claimed %s, want %s", c.Task.ID, want)

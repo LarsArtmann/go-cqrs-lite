@@ -127,7 +127,8 @@ func (p EngineProfile) RefusesADT(adt ADT) (string, bool) {
 	return reason, ok
 }
 
-// fallback rather than a native backend. Returns false for ADTs not in Supports.
+// IsDegraded reports whether the ADT runs via a fallback rather than a
+// native backend. Returns false for ADTs not in Supports.
 func (p EngineProfile) IsDegraded(adt ADT) bool {
 	return p.DegradedADTs[adt]
 }

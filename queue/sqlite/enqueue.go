@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -174,6 +175,7 @@ func validateDeps(ctx context.Context, q taskQuerier, depsJSON string) error {
 		return nil
 	}
 
+	//nolint:sqlclosecheck // rows closed via deferred DeferClose below
 	rows, err := q.QueryContext(ctx, `
 		SELECT d.value FROM json_each(?) d
 		LEFT JOIN tasks t ON t.id = d.value
@@ -181,7 +183,7 @@ func validateDeps(ctx context.Context, q taskQuerier, depsJSON string) error {
 	if err != nil {
 		return fmt.Errorf("validate deps: %w", err)
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	//art-dupl:accept dialect twin of queue/postgres validateDeps missing-scan; dep-isolated modules
 	var missing []string

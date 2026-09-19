@@ -46,6 +46,7 @@
 > - [§2.36 Watch Dgraph Contention Retries](#236-watch-dgraph-contention-retries-dgraphengine-observer)
 > - [§2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing](#237-point-in-time-reads-versioned-cells--asof-routing-adr-0141)
 > - [§2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate](#238-engine-backed-timers-queue-claims--dedup--the-one-substrate-adr-0142)
+> - [§2.39 The Goal in 5 Minutes — declare types, swap engines by config](#239-the-goal-in-5-minutes--declare-types-swap-engines-by-config-goal-shaped-app)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -1176,14 +1177,14 @@ byActor, _ := metaengine.ExecuteTyped[projections.CommandsByActorQuery, projecti
 // byActor.Commands lists each received command with type, stream, and time
 ```
 
-| Event type              | Emitted when                          | Projection     |
-| ----------------------- | ------------------------------------- | -------------- |
-| `command.received`      | Server accepts command                | ProcessingTime, CommandsByActor |
-| `command.rejected`      | Rejection-family error (never retried, never DLQed) | RejectionLog |
-| `command.failed`        | Single attempt fails (non-rejection)  | FailureLog     |
-| `command.retried`       | Before each retry                     | RetryCount     |
-| `command.dead-lettered` | All retries exhausted (non-rejection) | DLQ            |
-| `command.completed`     | Command processed successfully        | ProcessingTime |
+| Event type              | Emitted when                                        | Projection                      |
+| ----------------------- | --------------------------------------------------- | ------------------------------- |
+| `command.received`      | Server accepts command                              | ProcessingTime, CommandsByActor |
+| `command.rejected`      | Rejection-family error (never retried, never DLQed) | RejectionLog                    |
+| `command.failed`        | Single attempt fails (non-rejection)                | FailureLog                      |
+| `command.retried`       | Before each retry                                   | RetryCount                      |
+| `command.dead-lettered` | All retries exhausted (non-rejection)               | DLQ                             |
+| `command.completed`     | Command processed successfully                      | ProcessingTime                  |
 
 ### 2.19b Schema Evolution for Command Lifecycle Streams (schema + commandlifecycle)
 
@@ -2010,6 +2011,7 @@ An idempotent migration adds the `lease_until` column on every backend.
 Older MySQL/MariaDB servers (pre SKIP LOCKED) fail the claim query loudly at
 the first `Due`; unsupported dialects reject at construction with
 `ErrClaimingUnsupported` — never silently double-fire.
+
 - Lease sizing: set the lease comfortably ABOVE your worst-case
   dispatch-handler duration (the claim fence compares `lease_until` against
   now). Sizing it below makes another instance re-claim a timer whose
@@ -2023,12 +2025,12 @@ Capability roster (which engines implement the planned-table surface; the
 remaining engines — turso, pebble, bbolt, badger, dgraph — keep everything on
 `meta_map`):
 
-| Capability                                                 | pgengine | mysqlengine | sqliteengine | duckdbengine |
-| ---------------------------------------------------------- | -------- | ----------- | ------------ | ------------ |
-| `LayoutPlanApplier` (ApplyLayoutPlan)                      | ✓        | ✓           | ✓            | ✓            |
-| `LayoutPlanEvolver` (EvolveLayoutPlan)                     | ✓        | ✓           | ✓            | ✓            |
-| `PlannedTablesReporter` (Doctor "Planned tables" section)  | ✓        | ✓           | ✓            | ✓            |
-| `BackfillPlannedCollection` (opt-in backfill, §2.28)       | ✓        | ✓           | —            | —            |
+| Capability                                                | pgengine | mysqlengine | sqliteengine | duckdbengine |
+| --------------------------------------------------------- | -------- | ----------- | ------------ | ------------ |
+| `LayoutPlanApplier` (ApplyLayoutPlan)                     | ✓        | ✓           | ✓            | ✓            |
+| `LayoutPlanEvolver` (EvolveLayoutPlan)                    | ✓        | ✓           | ✓            | ✓            |
+| `PlannedTablesReporter` (Doctor "Planned tables" section) | ✓        | ✓           | ✓            | ✓            |
+| `BackfillPlannedCollection` (opt-in backfill, §2.28)      | ✓        | ✓           | —            | —            |
 
 `ApplyLayoutPlan` materializes a per-collection extracted-column table and
 routes map reads/writes through it — native columns and native indexes
@@ -2119,10 +2121,11 @@ filtered scan 779 µs vs meta_map 874 µs; CounterGet equal within noise
 ### 2.29 Materialized Views: Operator-Declared Aggregate Acceleration (tursoengine, ADR-0135)
 
 > Shipped in the 2026-09-08 release train: `system/v4.7.0` + `metaengine/v4.13.0`
-> + `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
-> `group_by` materialized views on tursogo ≤ v0.8.0-pre.10 are unsafe beyond a
-> single transaction's rows (upstream IVM defect — see the tursoengine module
-> notes); scalar views are the safe shape.
+>
+> - `metaengine/sqliteengine/v4.3.0` + `metaengine/tursoengine/v4.1.0`. Caveat:
+>   `group_by` materialized views on tursogo ≤ v0.8.0-pre.10 are unsafe beyond a
+>   single transaction's rows (upstream IVM defect — see the tursoengine module
+>   notes); scalar views are the safe shape.
 
 Turso (libSQL) maintains materialized views incrementally inside every write
 transaction — no REFRESH step. Declare WHAT to accelerate as an operator
@@ -2392,7 +2395,6 @@ is never returned to callers.
 whether a rebuild is in flight, failed (and why), or completed without
 inferring it from quarantine state alone.
 
-
 ### 2.36 Watch Dgraph Contention Retries (dgraphengine observer)
 
 `retryOnContention` retries transaction-aborted writes SILENTLY — correct
@@ -2416,7 +2418,6 @@ dep budget is 3, enforced by `check-arch`) — wire OTel, Prometheus, or a log
 line from the outside. Escalate to `metaengine`'s health machinery when
 retries pile up: quarantine/failover (§2.35) is driven by returned errors,
 which contention never produces until the backoff budget is exhausted.
-
 
 ### 2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing (ADR-0141)
 
@@ -2566,3 +2567,36 @@ sched := scheduling.New(timers, func(ctx context.Context, t scheduling.Timer[Del
 
 sys.ManageTimers(sched) // started with the System, stopped on GracefulClose
 ```
+
+### 2.39 The Goal in 5 Minutes — declare types, swap engines by config (goal-shaped app)
+
+The whole north-star story as one runnable app: `example/goal-shaped-app`.
+`domain.go` is plain Go structs; `app.go` declares ONE Evolution whose folds
+come entirely from the Created/Updated/Deleted naming convention (zero fold
+closures) plus two read shapes that inherit them by result type; `main.go`
+loads the operator's `cqrs.yaml`. Swapping sqlite → postgres is a config edit
+or one `CQRS_ENGINES__PRIMARY__DRIVER` env override — the binary carries both
+drivers as blank imports — and `ExplainPlan()`/`Doctor()` explain every
+placement the planner made:
+
+```go
+tasks := system.OnEvolution(
+	system.OnEvolution(
+		system.Evolve[TaskView]("tasks"),
+		"task.created", TaskCreated{},
+	),
+	"task.updated", TaskUpdated{},
+)
+evo := system.OnEvolution(tasks, "task.deleted", TaskDeleted{}).Done()
+
+lookup := system.Lookup[TaskView]("tasks").Done()
+openTasks := system.QuerySet[TaskView]("open_tasks").Filterable("status").Done()
+```
+
+The event structs behind it (`TaskCreated{ID, Title, Priority}`,
+`TaskUpdated{ID, Title, Status, Priority}`, `TaskDeleted{ID}`,
+`TaskView{ID, Title, Status, Priority}`) are the entire domain surface —
+the update event restates the full row because convention update folds
+mirror field-by-field. Tombstone removal is the Deleted-convention fold:
+after `task.deleted`, the view is gone from both collections while the
+journal keeps the fact (ADR-0114).

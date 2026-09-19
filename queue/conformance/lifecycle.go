@@ -187,7 +187,10 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 	e := s.openEnv(t)
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
-	c := e.claim(t, "w1")
+
+	// Claim subject once so it is Running; the forged-token calls below
+	// must not change that state.
+	_ = e.claim(t, "w1")
 
 	mustError(
 		t,
@@ -216,7 +219,7 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 
 	// Expired lease: a second task claimed short completes after its
 	// deadline is refused.
-	short := e.enqueue(t, task.New[Payload]{Type: "sh"})
+	_ = e.enqueue(t, task.New[Payload]{Type: "sh"})
 
 	c, err := e.store.ClaimDue(t.Context(), "expire-w", 30*time.Millisecond)
 	if err != nil {
@@ -231,8 +234,6 @@ func (s *suite) pinLeaseGuards(t *testing.T) {
 		e.store.Complete(t.Context(), c.Task.ID, c.Token, nil),
 		queue.ErrLeaseNotHeld,
 	)
-
-	_ = short
 }
 
 // pinHeartbeat pins lease extension.

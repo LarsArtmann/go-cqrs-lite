@@ -24,12 +24,12 @@ import (
 // pgxpool and this pool are two handles to one database.
 // art-dupl:accept engine scaffolding twin of queue/mysql; dep-isolated modules, claimkit carries the semantics
 type Engine struct {
-	db     *sql.DB
-	ownsDB bool
-
 	*claimkit.Claims
 
 	*claimkit.Dedup
+
+	db     *sql.DB
+	ownsDB bool
 }
 
 // NewEngine connects to the queue database at dsn and attaches the
@@ -75,19 +75,27 @@ func newEngine(ctx context.Context, db *sql.DB, ownsDB bool) (*Engine, error) {
 	return &Engine{db: db, ownsDB: ownsDB, Claims: claims, Dedup: dedup}, nil
 }
 
+// postgresNsPerOp / postgresNetworkRTT mirror the metaengine/pgengine
+// priors (same-datacenter round trip, calibratable by the live probe)
+// without a production dep on that module.
+const (
+	postgresNsPerOp    = 5000.0
+	postgresNetworkRTT = 500 * 1000 // 500µs
+)
+
 // Profile declares the engine's capabilities: native indexed claims and
 // dedup over SQL, and NOTHING else — task storage is not a projection ADT;
 // the planner must not route fold queries here.
 func (e *Engine) Profile() metaengine.EngineProfile {
 	return metaengine.EngineProfile{
 		Name:        "queue-postgres",
-		NsPerOp:     5000, // calibrated prior: server round trip per op
+		NsPerOp:     postgresNsPerOp,
 		Persistence: metaengine.PersistencePersistent,
 		Supports: map[metaengine.ADT]metaengine.Complexity{
 			metaengine.ADTDueClaim: metaengine.ComplexityOLogN,
 			metaengine.ADTDedup:    metaengine.ComplexityOLogN,
 		},
-		NetworkRTT: 500 * 1000, // 500µs server RTT prior (calibratable)
+		NetworkRTT: postgresNetworkRTT,
 	}
 }
 

@@ -31,7 +31,10 @@ func claimConformanceCollection(base string) string {
 //	        {Name: "sqlite", Create: func(t *testing.T) metaengine.Engine { return newSQLiteEngine(t) }},
 //	    })
 //	}
-func AssertDueClaimer(t *testing.T, factories []Factory) {
+func AssertDueClaimer(
+	t *testing.T,
+	factories []Factory,
+) { //nolint:maintidx // linear conformance narrative
 	t.Helper()
 
 	if len(factories) == 0 {

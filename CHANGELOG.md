@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed — repo-wide lint debt cleared to zero; exhaustruct_v5 panic class killed (2026-09-19)
+
+The true baseline was 47 findings across 13 modules PLUS six modules the
+linter could not run on at all: exhaustruct_v5 v5.0.3 panics
+(`makeslice: cap out of range` in `skippedNamed`) on struct literals keying
+promoted fields of embedded structs. The panic-shape literals were rewritten
+in explicit keyed form (stack/{sqlite,duckdb,postgres,mysql} presets,
+storage/{pebble,bbolt} constructors); partial-by-design literals got dated
+ignore-patterns in `.golangci.yml`. `claiming` now handles DuckDB
+explicitly: `EnsureLeaseColumn` shares the ADD COLUMN IF NOT EXISTS path
+with Postgres, and `RenewStmt`/`RenewOwnedStmt` emit `$N` placeholders
+instead of falling through to the SQLite-ordinal default. The metaengine
+engines and claimkit list embedded capability fields before named fields;
+otelobserver dropped the deprecated `attribute.Value.Emit`; queue/sqlite,
+queue/mysql and claimkit carry documented sqlclosecheck directives around
+`metaengine.DeferClose` (the analyzer cannot see the indirect close — the
+closes themselves were always there). `.golangci.yml` lost the graduated
+`goexperiment.jsonv2` build tag and its `run.go` pin moved to 1.27.1.
+Operator traps documented in `docs/agents/gotchas-tooling-build.md`.
+
+### Added — goal-shaped example app: "The Goal in 5 minutes" (2026-09-19)
+
+`example/goal-shaped-app` is the north star as a runnable consumer app.
+`domain.go` is plain Go structs — zero engine, schema, registration, or
+limit knowledge; `app.go` declares ONE `system.EvolutionSpec` whose folds come
+entirely from the Created/Updated/Deleted naming convention (no fold
+closures) and two read shapes (`system.Lookup`, `system.QuerySet`) that
+inherit them by result type; `main.go` composes the system from the
+operator's `cqrs.yaml` (or `CQRS_*` env overrides) with sqlite AND postgres
+drivers compiled in, so swapping engines is a config change, not a code
+change. The README walks real `ExplainPlan()`/`Doctor()` output. `core.md`
+gained a §0 "The Goal in 5 minutes" section, and `recipes.md` §2.39 is the
+compile-gated recipe.
+
 ### Added — benchkit statistical-rigor tail: compare/serialization, per-metric CI gating, SDK polish (2026-09-19)
 
 Closes the benchkit tail from

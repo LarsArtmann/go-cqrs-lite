@@ -35,11 +35,11 @@ Query   → Dispatcher → Handler → Read Model
 
 **Three orthogonal axes you compose independently:**
 
-| Axis              | Question                                    | Modules                                                                              |
-| ----------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                                  |
-| **Read model**    | How do I build queryable state from events? | `metaengine` Store + `projectionadapter` (v5 path); `stack.Materialize` + `kv` (deprecated, v5) |
-| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv` (stack presets deprecated, v5) |
+| Axis              | Question                                    | Modules                                                                                               |
+| ----------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Write model**   | How do I decide + persist changes?          | `event`, `command`, `decider`, `id`                                                                   |
+| **Read model**    | How do I build queryable state from events? | `metaengine` Store + `projectionadapter` (v5 path); `stack.Materialize` + `kv` (deprecated, v5)       |
+| **Storage**       | Where do events/snapshots/checkpoints live? | `storage/memory`, `storage`, `storage/pebble`, `storage/turso`, `kv` (stack presets deprecated, v5)   |
 | **Cross-cutting** | Security, evolution, observability, docs    | `signing`, `encryption`, `schema`, `middleware`, `otel`, `catalog` (delivery: `watermill/`, `go-sse`) |
 
 You do NOT need all of them. Start with the 60-second quickstart below, then use §1 to pick modules.
@@ -120,58 +120,89 @@ surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
 (health/DLQ/metrics managed for you), see the go-appkit `cqrs` EventService recipe in
 [recipes.md](recipes.md).
 
+### The Goal in 5 minutes — `example/goal-shaped-app`
+
+The story above as one runnable app, shaped like the north-star sentence:
+`domain.go` is plain Go structs (commands, events, view) with zero engine, schema,
+registration, or limit knowledge; `app.go` declares ONE Evolution — folds by naming
+convention, not a single closure — plus two read shapes that inherit them by result
+type; `main.go` composes from the operator's `cqrs.yaml`. Swapping sqlite → postgres
+is a config edit or one `CQRS_ENGINES__PRIMARY__DRIVER` env override (both drivers
+ship as blank imports and self-register); afterwards `ExplainPlan()` and `Doctor()`
+name every engine placement the planner made — the README walks the real output.
+
+```go
+// the developer surface beyond the structs: folds declared ONCE, zero closures
+tasks := system.OnEvolution(
+    system.OnEvolution(
+        system.Evolve[TaskView]("tasks"),
+        "task.created", TaskCreated{},
+    ),
+    "task.updated", TaskUpdated{},
+)
+evo := system.OnEvolution(tasks, "task.deleted", TaskDeleted{}).Done()
+
+// two read shapes inherit the folds by result type — no per-projection fold code
+lookup := system.Lookup[TaskView]("tasks").Done()
+openTasks := system.QuerySet[TaskView]("open_tasks").Filterable("status").Done()
+```
+
+Run it from `example/goal-shaped-app` with `GOWORK=off go run .`; tests pin the
+end-to-end story, the tombstone, the config-only engine swap, and the loud failure
+on a typo'd driver.
+
 ---
 
 ## 1. Module Decision Matrix — "I want to…"
 
-| If you want to…                                                       | Use                                                                                            | See recipe      |
-| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------- |
-| Create/store/load events                                              | `event`                                                                                        | recipes §2.1    |
-| Dispatch type-safe commands                                           | `command`                                                                                      | recipes §2.1    |
-| Run an event-sourced stream                                           | `decider`                                                                                      | recipes §2.1    |
-| Generate unique, type-safe IDs                                        | `id`                                                                                           | recipes §2.1    |
-| Typed event metadata (tracing, custom data)                           | `metadata`                                                                                     | —               |
-| Encode payloads as JSON/CBOR                                          | `codec`                                                                                        | recipes §2.1    |
-| Build a read model from events                                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                                    | readmodels §2.3 |
-| Multi-table projection (composite keys, junctions)                    | `storage.RelationalProjection`                                                                 | readmodels §2.3 |
-| Dispatch type-safe queries                                            | `query`                                                                                        | readmodels §2.3 |
-| List all streams + their status                                       | `listing`                                                                                      | advanced §6.3   |
-| Persist to PostgreSQL / SQLite / MySQL                                | `storage`                                                                                      | recipes §2.2    |
-| Persist to embedded PebbleDB                                          | `storage/pebble`                                                                               | recipes §2.2    |
-| Offline-first sync via Turso Database                                 | `storage/turso`                                                                                | advanced §6.5   |
-| Generic key-value abstraction                                         | `kv`                                                                                           | advanced §6.6   |
-| Snapshot streams for speed                                            | `snapshot`                                                                                     | recipes §2.4    |
-| Evolve event schemas over time                                        | `schema`                                                                                       | recipes §2.5    |
-| Upcast events during projection replay                                | `schema` (`UpcastSourceTransform` + `event.DecorateJournal`)                                   | advanced §6.9   |
-| Make event streams tamper-proof                                       | `signing`                                                                                      | recipes §2.6    |
-| Encrypt confidential payloads                                         | `encryption`                                                                                   | recipes §2.7    |
-| Add logging/retry/recovery/circuit-breaker                            | `middleware`                                                                                   | recipes §2.8    |
-| Deduplicate commands on retry (idempotency)                           | `idempotency` + `middleware`                                                                   | recipes §2.8    |
-| Add OpenTelemetry tracing/metrics                                     | `otel` + `middleware`                                                                          | recipes §2.8    |
-| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs                   | `catalog`                                                                                      | recipes §2.9    |
-| Soft-delete streams without data loss                                 | `listing` (event-type detection, ADR-0114)                                                     | advanced §6.1   |
-| Generate typed handler boilerplate                                    | `cmd/cqrs-gen`                                                                                 | advanced §6.7   |
-| Publish events to Watermill router                                    | `watermill`                                                                                    | advanced §6.4   |
-| Dispatch commands/queries remotely (deprecated path)                  | `transport/grpc` (ADR-0127 — prefer `watermill/`)                                               | advanced §6.8   |
-| Verify doc code references compile                                    | `cmd/doc-check`                                                                                | modules §5      |
-| In-memory command bus (typed pub/sub)                                 | `command` (`NewMemoryBus`)                                                                     | recipes §2.1    |
-| In-memory implementations for tests/dev                               | `memory`                                                                                       | recipes §2.1    |
-| One-call infrastructure wiring (Bundle presets)                       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/mysql`, `stack/turso` *(all deprecated, removed in v5 — ADR-0123)* | recipes §2.0    |
-| Typed read-model store over KV backend                                | `kv.TypedStore`                                                                                | recipes §2.0    |
-| Cache decorator for read models                                       | `kv.Cache`                                                                                     | recipes §2.0    |
-| Run projections with crash-restart + checkpoint + DLQ                 | `projectionhost`                                                                               | advanced §6.9   |
-| Test deciders/projections with Given/When/Then                        | `scenario`                                                                                     | advanced §6.10  |
-| Schedule delayed commands / durable deadlines                         | `scheduling`                                                                                   | advanced §6.11  |
-| Dead-letter failed dispatches (retry exhaustion)                      | `middleware` (DLQ)                                                                             | recipes §2.8    |
-| Cost-based query planner (10 ADTs, O(1) aggregates)                    | `metaengine` (`Plan`/`Store`; via `system` for full lifecycle)                                  | recipes §2.10   |
-| Survivable read models across restart (volatile vs persistent engine) | `metaengine` (`EngineProfile.Persistence`, ADR-0098)                                           | modules §5      |
-| Derive commands reactively from events                                | `deriver`                                                                                      | advanced §6.12  |
-| Build graph/traversal read models (nodes + edges)                     | `graph`                                                                                        | advanced §6.13  |
-| Expose CQRS metrics via Prometheus `/metrics`                         | `prometheus`                                                                                   | advanced §6.14  |
-| Stream events to browsers via SSE                                     | `go-sse` (or deprecated `transport/http` `SSEBroker` until v5)                                 | advanced §6.15  |
-| Replay events to reconnecting clients (catch-up)                      | `watermill` (`CatchUpSubscriber`) — or `go-sse` Last-Event-ID                                   | advanced §6.15  |
-| Pull-based event backfill (REST endpoint)                             | deprecated `transport/http` (`BackfillHandler`) until v5 — or `watermill` catch-up              | advanced §6.15  |
-| Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                | recipes §2.18   |
+| If you want to…                                                       | Use                                                                                                                                         | See recipe      |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------- |
+| Create/store/load events                                              | `event`                                                                                                                                     | recipes §2.1    |
+| Dispatch type-safe commands                                           | `command`                                                                                                                                   | recipes §2.1    |
+| Run an event-sourced stream                                           | `decider`                                                                                                                                   | recipes §2.1    |
+| Generate unique, type-safe IDs                                        | `id`                                                                                                                                        | recipes §2.1    |
+| Typed event metadata (tracing, custom data)                           | `metadata`                                                                                                                                  | —               |
+| Encode payloads as JSON/CBOR                                          | `codec`                                                                                                                                     | recipes §2.1    |
+| Build a read model from events                                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                                                                                 | readmodels §2.3 |
+| Multi-table projection (composite keys, junctions)                    | `storage.RelationalProjection`                                                                                                              | readmodels §2.3 |
+| Dispatch type-safe queries                                            | `query`                                                                                                                                     | readmodels §2.3 |
+| List all streams + their status                                       | `listing`                                                                                                                                   | advanced §6.3   |
+| Persist to PostgreSQL / SQLite / MySQL                                | `storage`                                                                                                                                   | recipes §2.2    |
+| Persist to embedded PebbleDB                                          | `storage/pebble`                                                                                                                            | recipes §2.2    |
+| Offline-first sync via Turso Database                                 | `storage/turso`                                                                                                                             | advanced §6.5   |
+| Generic key-value abstraction                                         | `kv`                                                                                                                                        | advanced §6.6   |
+| Snapshot streams for speed                                            | `snapshot`                                                                                                                                  | recipes §2.4    |
+| Evolve event schemas over time                                        | `schema`                                                                                                                                    | recipes §2.5    |
+| Upcast events during projection replay                                | `schema` (`UpcastSourceTransform` + `event.DecorateJournal`)                                                                                | advanced §6.9   |
+| Make event streams tamper-proof                                       | `signing`                                                                                                                                   | recipes §2.6    |
+| Encrypt confidential payloads                                         | `encryption`                                                                                                                                | recipes §2.7    |
+| Add logging/retry/recovery/circuit-breaker                            | `middleware`                                                                                                                                | recipes §2.8    |
+| Deduplicate commands on retry (idempotency)                           | `idempotency` + `middleware`                                                                                                                | recipes §2.8    |
+| Add OpenTelemetry tracing/metrics                                     | `otel` + `middleware`                                                                                                                       | recipes §2.8    |
+| Auto-generate AsyncAPI/OpenAPI/EventCatalog/D2 docs                   | `catalog`                                                                                                                                   | recipes §2.9    |
+| Soft-delete streams without data loss                                 | `listing` (event-type detection, ADR-0114)                                                                                                  | advanced §6.1   |
+| Generate typed handler boilerplate                                    | `cmd/cqrs-gen`                                                                                                                              | advanced §6.7   |
+| Publish events to Watermill router                                    | `watermill`                                                                                                                                 | advanced §6.4   |
+| Dispatch commands/queries remotely (deprecated path)                  | `transport/grpc` (ADR-0127 — prefer `watermill/`)                                                                                           | advanced §6.8   |
+| Verify doc code references compile                                    | `cmd/doc-check`                                                                                                                             | modules §5      |
+| In-memory command bus (typed pub/sub)                                 | `command` (`NewMemoryBus`)                                                                                                                  | recipes §2.1    |
+| In-memory implementations for tests/dev                               | `memory`                                                                                                                                    | recipes §2.1    |
+| One-call infrastructure wiring (Bundle presets)                       | `stack/memory`, `stack/sqlite`, `stack/pebble`, `stack/postgres`, `stack/mysql`, `stack/turso` _(all deprecated, removed in v5 — ADR-0123)_ | recipes §2.0    |
+| Typed read-model store over KV backend                                | `kv.TypedStore`                                                                                                                             | recipes §2.0    |
+| Cache decorator for read models                                       | `kv.Cache`                                                                                                                                  | recipes §2.0    |
+| Run projections with crash-restart + checkpoint + DLQ                 | `projectionhost`                                                                                                                            | advanced §6.9   |
+| Test deciders/projections with Given/When/Then                        | `scenario`                                                                                                                                  | advanced §6.10  |
+| Schedule delayed commands / durable deadlines                         | `scheduling`                                                                                                                                | advanced §6.11  |
+| Dead-letter failed dispatches (retry exhaustion)                      | `middleware` (DLQ)                                                                                                                          | recipes §2.8    |
+| Cost-based query planner (10 ADTs, O(1) aggregates)                   | `metaengine` (`Plan`/`Store`; via `system` for full lifecycle)                                                                              | recipes §2.10   |
+| Survivable read models across restart (volatile vs persistent engine) | `metaengine` (`EngineProfile.Persistence`, ADR-0098)                                                                                        | modules §5      |
+| Derive commands reactively from events                                | `deriver`                                                                                                                                   | advanced §6.12  |
+| Build graph/traversal read models (nodes + edges)                     | `graph`                                                                                                                                     | advanced §6.13  |
+| Expose CQRS metrics via Prometheus `/metrics`                         | `prometheus`                                                                                                                                | advanced §6.14  |
+| Stream events to browsers via SSE                                     | `go-sse` (or deprecated `transport/http` `SSEBroker` until v5)                                                                              | advanced §6.15  |
+| Replay events to reconnecting clients (catch-up)                      | `watermill` (`CatchUpSubscriber`) — or `go-sse` Last-Event-ID                                                                               | advanced §6.15  |
+| Pull-based event backfill (REST endpoint)                             | deprecated `transport/http` (`BackfillHandler`) until v5 — or `watermill` catch-up                                                          | advanced §6.15  |
+| Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                                                             | recipes §2.18   |
 
 > **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 
@@ -185,11 +216,11 @@ surface; see [faq.md](faq.md) "stack vs system". For framework-style lifecycle
 > root. They remain fully functional through v4.x. Canonical v5-removal list:
 > [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
-| Tier            | Module                               | One event writes…       | Use when                                                                            | Do NOT use for                                           |
-| --------------- | ------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Document/KV** | `stack.Materialize` + `kv.ViewStore` *(deprecated, v5)* | one record, one table   | single-entity lookups, CRUD reads, simple WHERE/ORDER BY on columns                 | composite keys, multi-table writes, OR conditions, JOINs |
-| **Relational**  | `storage.RelationalProjection` *(deprecated, v5)*       | several tables (atomic) | composite primary keys, junction tables, multi-table denormalization, complex WHERE | variable-depth traversal                                 |
-| **Graph**       | `graph.GraphProjection` *(deprecated, v5)*              | nodes + edges           | N-hop traversal, adjacency, path-finding, causation DAGs                            | simple CRUD (overkill)                                   |
+| Tier            | Module                                                  | One event writes…       | Use when                                                                            | Do NOT use for                                           |
+| --------------- | ------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Document/KV** | `stack.Materialize` + `kv.ViewStore` _(deprecated, v5)_ | one record, one table   | single-entity lookups, CRUD reads, simple WHERE/ORDER BY on columns                 | composite keys, multi-table writes, OR conditions, JOINs |
+| **Relational**  | `storage.RelationalProjection` _(deprecated, v5)_       | several tables (atomic) | composite primary keys, junction tables, multi-table denormalization, complex WHERE | variable-depth traversal                                 |
+| **Graph**       | `graph.GraphProjection` _(deprecated, v5)_              | nodes + edges           | N-hop traversal, adjacency, path-finding, causation DAGs                            | simple CRUD (overkill)                                   |
 
 `SQLViewStore` is the document tier **with queryable SQL columns** — still one record per event, single-column primary key. If you need composite keys or one event writing to multiple tables, that's `RelationalProjection`. Don't try to make ViewStore do relational work — the tiers exist because no single tier serves all read patterns well.
 
@@ -427,12 +458,13 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 
 ## 9. Examples in the Repo
 
-| Example                   | Path                              | Demonstrates                                                                                                 |
-| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **taskmanager**           | `example/taskmanager/`            | Flagship: full HTTP service, CQRS/ES, signing, SSE, snapshots, tombstones                                    |
-| **getting-started**       | `example/getting-started/`        | Single-file `system.New` composition root: event-sourced counter + metaengine read model                     |
-| **metaengine-quickstart** | `example/metaengine-quickstart/`  | The metaengine goal, runnable: convention folds (Maps), graph + vector ADTs, operator `cqrs.yaml` config     |
-| **readme-quickstart**     | `example/readme-quickstart/`      | Manual module wiring (event + decider + memory + watermill) — no composition root                            |
+| Example                   | Path                             | Demonstrates                                                                                             |
+| ------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **goal-shaped-app**       | `example/goal-shaped-app/`       | The Goal in 5 minutes: types-only domain, operator engine swap (sqlite→pg), Doctor/EXPLAIN walkthrough   |
+| **taskmanager**           | `example/taskmanager/`           | Flagship: full HTTP service, CQRS/ES, signing, SSE, snapshots, tombstones                                |
+| **getting-started**       | `example/getting-started/`       | Single-file `system.New` composition root: event-sourced counter + metaengine read model                 |
+| **metaengine-quickstart** | `example/metaengine-quickstart/` | The metaengine goal, runnable: convention folds (Maps), graph + vector ADTs, operator `cqrs.yaml` config |
+| **readme-quickstart**     | `example/readme-quickstart/`     | Manual module wiring (event + decider + memory + watermill) — no composition root                        |
 
 ---
 
@@ -441,7 +473,7 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | Need                    | Source                                                                                                                                                                             |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Per-module API details  | Each module's `README.md` and `doc.go` (renders on pkg.go.dev)                                                                                                                     |
-| Architectural decisions | `docs/adr/` (136 ADRs)                                                                                           |
+| Architectural decisions | `docs/adr/` (136 ADRs)                                                                                                                                                             |
 | Storage deep-dive       | `docs/STORAGE_GUIDE.md`                                                                                                                                                            |
 | Error system            | `docs/error-taxonomy.md`                                                                                                                                                           |
 | Signing internals       | `docs/signing-architecture.md`                                                                                                                                                     |

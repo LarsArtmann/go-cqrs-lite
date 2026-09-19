@@ -37,6 +37,7 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [x] **T22: `example/taskmanager` on engine-backed queue** — DONE 2026-09-19: the deriver's auto-assign cascade rides `queue/sqlite` (dedup-keyed enqueue, lease-fenced worker, backoff retries, dead-lettering) instead of a fire-and-forget goroutine; restart-durability + end-to-end tests green `-race`, live demo run verified. Sibling replaces in the example go.mod ride until the family tag wave.
 - [x] **T23: go-taskqueue semantic-diff probe** — DONE 2026-09-19: [`docs/research/2026-09-19_go-taskqueue-semantic-diff.md`](docs/research/2026-09-19_go-taskqueue-semantic-diff.md) — donor contract (read in full) vs library: core semantics 1:1, divergences are strengthenings (claim tokens, dep validation), genericity (typed payloads), or consumer-owned product surface. No silent drift; P5 input conclusion: upstreaming subtyped, not forked.
 - [ ] **T18b: load-sweep + benchmark baseline regen under Go 1.27** — `#load-sweep` on timing paths and a `benchmark-regression.sh --save` refresh (the committed baseline predates the 1.27 toolchain AND now needs the new claimkit entries). Quiet-window gated: only meaningful on a machine under ~10 load; the concurrent-session reality has kept load at 28-74 all day. _(Effort: S once the window opens)_
+- [x] **Lint debt → zero (ADR-0142 tail)** — DONE 2026-09-19: the real baseline was 47 findings + 6 unlintable modules (exhaustruct_v5 v5.0.3 panics on promoted-field literals — rewritten in keyed form; see CHANGELOG 2026-09-19). All 88 lint-gated modules re-verified 0 findings per-module with the canonical invocation; `.golangci.yml` dropped the graduated jsonv2 tag and aligned `run.go` to 1.27.1; traps (silent standalone-toolchain death, exhaustruct panic shape, multi-line nolint placement) documented in gotchas-tooling-build.md.
 - [ ] **T19–T21 (v5-gated): fold capabilities into universal `Engine`, delete the duplicate SQL stacks, release train** — blocked on the v5 train per ADR-0142 §decision; DO NOT execute in v4.x (growing core interfaces is breaking, contract 21g discipline). The tag waves for claiming + the queue family are the separately-tracked item below. _(Effort: L; v5-gated)_
 - [ ] **Go 1.27 follow-ups** — the 94-module `go 1.27.1` sweep completed the jsonv2 graduation (2026-09-19, un-broke every workspace-mode compile); the coordinated tag sweep (flake.nix/scripts/CI/workflows/Go-strings/docs → plain `go build`) landed 2026-09-19. Remaining: re-baseline load-sweep benchmarks under the 1.27 toolchain. _(Effort: S)_
 
@@ -927,11 +928,15 @@ bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Scan default v5 decision** — documented-100 (status quo, now loud in
       godoc+FAQ) vs unbounded default at the v5 cut. Survey consumers,
       decide, implement at the v5 branch. — G-T14 _(Effort: S decision + S impl)_
-- [ ] **`example/goal-shaped-app` + "The Goal in 5 minutes"** — one example
-      repo that declares types only (zero engine/schema/registration/limit
-      knowledge), swaps engines via operator config (sqlite→pg), Doctor
-      walkthrough in README; core.md section + compile-gated recipe. The
-      Goal's story surface. — G-T23 _(Effort: M)_
+- [x] **`example/goal-shaped-app` + "The Goal in 5 minutes"** — DONE
+      2026-09-19: `example/goal-shaped-app` (domain.go types only, zero
+      engine/schema/registration/limit imports; app.go ONE Evolution with
+      pure convention folds; operator `cqrs.yaml` + `CQRS_*` env swap
+      sqlite→postgres; README walks real EXPLAIN/Doctor output; 4 tests
+      incl. config-only swap + loud unknown-driver failure). core.md §0
+      "The Goal in 5 minutes" section + §9 row; recipes.md §2.39
+      compile-gated (catalog scaffold, TestRecipes green); wired into
+      go.work + flake examplePaths. — G-T23 _(Effort: M)_
 - [ ] **FEATURES maturity flip for the closed surface (🧪→✅)** — earned by
       the plan's gates (not declared): evidence links per row, CHANGELOG
       Goal-story entry, release notes. Final stamp of Goal closure. — G-T25

@@ -86,6 +86,11 @@ func boltOptions(cfg engineConfig) *bolt.Options {
 type bboltEngine struct {
 	metaengine.Calibration
 
+	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
+	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
+	*metaengine.MapDueClaimer
+	*metaengine.MapDedupStore
+
 	db          *bolt.DB
 	ownsDB      bool
 	noSync      bool
@@ -97,11 +102,6 @@ type bboltEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
-
-	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
-	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
-	*metaengine.MapDueClaimer
-	*metaengine.MapDedupStore
 }
 
 // NewBboltEngine creates a bbolt-backed metaengine engine. If path is empty,

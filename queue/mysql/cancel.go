@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
@@ -130,6 +131,7 @@ func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, err
 	marked := 0
 
 	err := s.withTx(ctx, func(tx *sql.Tx) error {
+		//nolint:sqlclosecheck // rows closed via deferred DeferClose below
 		rows, err := tx.QueryContext(ctx, `
 			SELECT t.id, t.lease_owner, t.lease_expires
 			FROM tasks t
@@ -143,7 +145,7 @@ func (s *Store[T]) MarkOrphaned(ctx context.Context, cutoff time.Time) (int, err
 		if err != nil {
 			return err
 		}
-		defer func() { _ = rows.Close() }()
+		defer metaengine.DeferClose(rows)
 
 		type orphan struct {
 			id      string

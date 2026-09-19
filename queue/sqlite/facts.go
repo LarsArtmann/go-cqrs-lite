@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
@@ -58,7 +59,7 @@ func (s *Store[T]) Facts(ctx context.Context, after int64, limit int) ([]facts.F
 		return nil, err
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	return scanFacts(rows)
 }
@@ -87,7 +88,7 @@ func (s *Store[T]) FactsForTask(ctx context.Context, id task.ID, limit int) ([]f
 		return nil, err
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	all, err := scanFacts(rows)
 	if err != nil {
@@ -133,11 +134,14 @@ func (s *Store[T]) Watermark(ctx context.Context, consumer string) (int64, bool,
 
 // Watermarks lists every consumer's cursor — the operator lag surface.
 func (s *Store[T]) Watermarks(ctx context.Context) (map[string]int64, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT consumer, seq FROM watermarks ORDER BY consumer`)
+	rows, err := s.db.QueryContext(
+		ctx,
+		`SELECT consumer, seq FROM watermarks ORDER BY consumer`,
+	) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	out := make(map[string]int64)
 

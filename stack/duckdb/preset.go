@@ -43,9 +43,10 @@ func defaultConfig() config {
 			QueryDSN:    "",
 			ViewDSN:     "",
 		},
-
-		Threads:     0,
-		MemoryLimit: "",
+		duckdbConfig: duckdbConfig{
+			Threads:     0,
+			MemoryLimit: "",
+		},
 	}
 }
 

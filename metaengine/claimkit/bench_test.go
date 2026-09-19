@@ -139,34 +139,41 @@ func BenchmarkClaimDue_DirectSQL(b *testing.B) {
 			Limit:      metaengine.DefaultClaimLimit,
 		})
 
-		rows, err := h.db.QueryContext(ctx, query, args...)
-		if err != nil {
+		scanDirectClaim(b, ctx, h.db, query, args)
+	}
+}
+
+// scanDirectClaim runs one direct-SQL claim iteration. Its own scope gives
+// rows a deferred Close that also covers the b.Fatal paths (runtime.Goexit
+// runs defers) without accumulating defers across b.Loop iterations.
+func scanDirectClaim(b *testing.B, ctx context.Context, db *sql.DB, query string, args []any) {
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	defer func() { _ = rows.Close() }()
+
+	n := 0
+
+	for rows.Next() {
+		var key, due, lease string
+
+		var payload []byte
+
+		if err := rows.Scan(&key, &due, &lease, &payload); err != nil {
 			b.Fatal(err)
 		}
 
-		n := 0
+		n++
+	}
 
-		for rows.Next() {
-			var key, due, lease string
+	if err := rows.Err(); err != nil {
+		b.Fatal(err)
+	}
 
-			var payload []byte
-
-			if err := rows.Scan(&key, &due, &lease, &payload); err != nil {
-				b.Fatal(err)
-			}
-
-			n++
-		}
-
-		if err := rows.Err(); err != nil {
-			b.Fatal(err)
-		}
-
-		_ = rows.Close()
-
-		if n != claimWorkload {
-			b.Fatalf("claimed %d rows, want %d", n, claimWorkload)
-		}
+	if n != claimWorkload {
+		b.Fatalf("claimed %d rows, want %d", n, claimWorkload)
 	}
 }
 

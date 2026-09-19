@@ -1,6 +1,3 @@
-// The five-minute story: two tasks in, one completed, one deleted, read
-// back through the typed query bus. It runs identically on every engine
-// the operator picks — run() in main.go composes the system from cqrs.yaml.
 package main
 
 import (
@@ -15,6 +12,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
+// The five-minute story: two tasks in, one completed, one deleted, read
+// back through the typed query bus. It runs identically on every engine
+// the operator picks — run() in main.go composes the system from cqrs.yaml.
+
 var errStoryNotDone = errors.New("story: task never reached done in the read model")
 
 // runStory boots the projection host, exercises every declared fold
@@ -26,20 +27,8 @@ func runStory(ctx context.Context, sys *system.System) (TaskView, error) {
 
 	doneID, goneID := id.NewStreamID(), id.NewStreamID()
 
-	steps := []struct {
-		name string
-		run  func() error
-	}{
-		{"create (Ship The Goal demo)", func() error { return createTask(ctx, sys, doneID, "Ship The Goal demo", 2) }},
-		{"create (Break the build)", func() error { return createTask(ctx, sys, goneID, "Break the build", 5) }},
-		{"complete the first", func() error { return dispatch(ctx, sys, cmdCompleteTask, doneID) }},
-		{"delete the second", func() error { return dispatch(ctx, sys, cmdDeleteTask, goneID) }},
-	}
-
-	for _, step := range steps {
-		if err := step.run(); err != nil {
-			return TaskView{}, fmt.Errorf("story %s: %w", step.name, err)
-		}
+	if err := runSteps(ctx, sys, doneID, goneID); err != nil {
+		return TaskView{}, err
 	}
 
 	view, err := awaitDone(ctx, sys, doneID.String())
@@ -52,7 +41,11 @@ func runStory(ctx context.Context, sys *system.System) (TaskView, error) {
 		return TaskView{}, fmt.Errorf("query.New: %w", err)
 	}
 
-	open, err := system.DispatchQuery[OpenTasks, []TaskView](ctx, sys, OpenTasks{BasicQuery: openBasic})
+	open, err := system.DispatchQuery[OpenTasks, []TaskView](
+		ctx,
+		sys,
+		OpenTasks{BasicQuery: openBasic},
+	)
 	if err != nil {
 		return TaskView{}, fmt.Errorf("task.open: %w", err)
 	}
@@ -62,7 +55,38 @@ func runStory(ctx context.Context, sys *system.System) (TaskView, error) {
 	return view, nil
 }
 
-func createTask(ctx context.Context, sys *system.System, taskID id.StreamID, title string, priority int) error {
+// runSteps dispatches the four commands whose facts the read models fold.
+func runSteps(ctx context.Context, sys *system.System, doneID, goneID id.StreamID) error {
+	steps := []struct {
+		name string
+		run  func() error
+	}{
+		{"create (Ship The Goal demo)", func() error {
+			return createTask(ctx, sys, doneID, "Ship The Goal demo", PriorityNormal)
+		}},
+		{"create (Break the build)", func() error {
+			return createTask(ctx, sys, goneID, "Break the build", PriorityHigh)
+		}},
+		{"complete the first", func() error { return dispatch(ctx, sys, cmdCompleteTask, doneID) }},
+		{"delete the second", func() error { return dispatch(ctx, sys, cmdDeleteTask, goneID) }},
+	}
+
+	for _, step := range steps {
+		if err := step.run(); err != nil {
+			return fmt.Errorf("story %s: %w", step.name, err)
+		}
+	}
+
+	return nil
+}
+
+func createTask(
+	ctx context.Context,
+	sys *system.System,
+	taskID id.StreamID,
+	title string,
+	priority int,
+) error {
 	basic, err := command.New(cmdCreateTask, taskID)
 	if err != nil {
 		return fmt.Errorf("command.New: %w", err)
@@ -72,13 +96,19 @@ func createTask(ctx context.Context, sys *system.System, taskID id.StreamID, tit
 		CreateTaskCmd{BasicCommand: basic, Title: title, Priority: priority})
 }
 
-func dispatch(ctx context.Context, sys *system.System, kind command.Type, taskID id.StreamID) error {
+func dispatch(
+	ctx context.Context,
+	sys *system.System,
+	kind command.Type,
+	taskID id.StreamID,
+) error {
 	basic, err := command.New(kind, taskID)
 	if err != nil {
 		return fmt.Errorf("command.New: %w", err)
 	}
 
 	var cmd command.Command = basic
+
 	switch kind {
 	case cmdCompleteTask:
 		cmd = CompleteTaskCmd{BasicCommand: basic}
@@ -98,7 +128,11 @@ func awaitGone(ctx context.Context, sys *system.System, taskID string) error {
 	}
 
 	for deadline := time.Now().Add(settleDeadline); ; {
-		_, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys, GetTask{BasicQuery: basic, ID: taskID})
+		_, qerr := system.DispatchQuery[GetTask, TaskView](
+			ctx,
+			sys,
+			GetTask{BasicQuery: basic, ID: taskID},
+		)
 		if errors.Is(qerr, errTaskGone) {
 			return nil
 		}
@@ -120,13 +154,17 @@ func awaitDone(ctx context.Context, sys *system.System, taskID string) (TaskView
 	}
 
 	for deadline := time.Now().Add(settleDeadline); ; {
-		view, qerr := system.DispatchQuery[GetTask, TaskView](ctx, sys, GetTask{BasicQuery: basic, ID: taskID})
+		view, qerr := system.DispatchQuery[GetTask, TaskView](
+			ctx,
+			sys,
+			GetTask{BasicQuery: basic, ID: taskID},
+		)
 		if qerr == nil && view.Status == StatusDone {
 			return view, nil
 		}
 
 		if time.Now().After(deadline) {
-			return TaskView{}, fmt.Errorf("%w: %v", errStoryNotDone, qerr)
+			return TaskView{}, fmt.Errorf("%w: %w", errStoryNotDone, qerr)
 		}
 
 		time.Sleep(settlePoll)

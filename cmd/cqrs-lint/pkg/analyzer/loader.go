@@ -14,7 +14,7 @@ import (
 // loadMu serializes packages.Load calls: x/tools' loader is not goroutine-safe
 // against concurrent Load invocations (go/types state races under -race), and
 // nothing here benefits from overlapping them — BuildContext is sequential.
-var loadMu sync.Mutex
+var loadMu sync.Mutex //nolint:gochecknoglobals // serializes packages.Load; x/tools loader is not goroutine-safe
 
 func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	cfg := &packages.Config{

@@ -21,7 +21,7 @@ if [ "${1:-}" = "--test" ]; then
 	MODE="test"
 fi
 
-TAGS=""
+TAGS=()
 failures=0
 total=0
 failed_modules=""
@@ -33,9 +33,9 @@ for mod in $(find . -name go.mod -not -path './vendor/*' | sed 's|/go.mod||' | s
 	mod_name="${mod#./}"
 
 	if [ "$MODE" = "test" ]; then
-		result=$(cd "$mod" && GOWORK=off go test $TAGS ./... 2>&1)
+		result=$(cd "$mod" && GOWORK=off go test "${TAGS[@]}" ./... 2>&1)
 	else
-		result=$(cd "$mod" && GOWORK=off go build $TAGS ./... 2>&1)
+		result=$(cd "$mod" && GOWORK=off go build "${TAGS[@]}" ./... 2>&1)
 	fi
 
 	rc=$?

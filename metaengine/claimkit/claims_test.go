@@ -19,11 +19,10 @@ import (
 // conformance suites can drive them — exactly the shape a real SQL engine
 // takes by embedding (constructor + profile, no hand-written claims).
 type host struct {
-	db *sql.DB
-
 	*claimkit.Claims
-
 	*claimkit.Dedup
+
+	db *sql.DB
 }
 
 func (host) Profile() metaengine.EngineProfile {

@@ -97,7 +97,7 @@ func assertTombstoneSemantics(
 	ctx context.Context,
 	vs metaengine.VersionedStorage,
 	vw metaengine.VersionedWriter,
-	col string, t1, t2, t3 time.Time,
+	col string, _, t2, t3 time.Time,
 ) {
 	t.Helper()
 
@@ -161,7 +161,7 @@ func assertHistoryRange(
 	t *testing.T,
 	ctx context.Context,
 	vs metaengine.VersionedStorage,
-	vw metaengine.VersionedWriter,
+	_ metaengine.VersionedWriter,
 	col string, t1, t4 time.Time,
 ) {
 	t.Helper()

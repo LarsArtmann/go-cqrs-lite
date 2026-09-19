@@ -41,7 +41,9 @@ func newMapClaimHost(t *testing.T, eng metaengine.Engine) metaengine.Engine {
 // TestClaimConformance_MapHosts proves the suites themselves against the
 // degraded Map runtimes over both stored-value shapes (memory structs, SQLite
 // JSON). Engine modules run the same suites over their native engines.
-func TestClaimConformance_MapHosts(t *testing.T) {
+func TestClaimConformance_MapHosts(
+	t *testing.T,
+) { //nolint:tparallel // scenarios are sequential by design
 	t.Parallel()
 
 	newMemory := func(t *testing.T) metaengine.Engine {
@@ -80,7 +82,9 @@ func TestClaimConformance_MapHosts(t *testing.T) {
 	AssertDedupStore(t, factories)
 }
 
-func TestClaimConformance_MemoryEngine(t *testing.T) {
+func TestClaimConformance_MemoryEngine(
+	t *testing.T,
+) { //nolint:tparallel // scenarios are sequential by design
 	t.Parallel()
 
 	// The memory engine itself (not the mapClaimHost wrapper) runs the full

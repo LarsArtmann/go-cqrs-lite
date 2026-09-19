@@ -49,6 +49,11 @@ const BadgerNsPerWrite = 4300.0
 type badgerEngine struct {
 	metaengine.Calibration
 
+	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
+	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
+	*metaengine.MapDueClaimer
+	*metaengine.MapDedupStore
+
 	db          *badger.DB
 	ownsDB      bool
 	syncWrites  bool
@@ -59,11 +64,6 @@ type badgerEngine struct {
 	mmSeq       sync.Map   // collection → *atomic.Int64 (multimap sequence counter)
 	streamSeq   sync.Map   // "col\x00sid" → *atomic.Int64 (per-stream sequence)
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
-
-	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
-	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
-	*metaengine.MapDueClaimer
-	*metaengine.MapDedupStore
 }
 
 // Option configures a Badger engine at construction time.

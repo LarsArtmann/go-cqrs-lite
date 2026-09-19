@@ -18,10 +18,10 @@ import (
 // (SELECT..FOR UPDATE on an absent row takes gap locks that deadlock
 // concurrent inserts — Error 1213).
 type Dedup struct {
+	duckWriteLock
+
 	db      *sql.DB
 	dialect claiming.Dialect
-
-	duckWriteLock
 }
 
 // lockWriter returns the write guard for the engine's concurrency model

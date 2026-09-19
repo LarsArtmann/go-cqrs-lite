@@ -7,15 +7,15 @@ import (
 )
 
 // EnsureLeaseColumn adds the lease column to tables created before
-// claiming existed. Idempotent per dialect: Postgres uses ADD COLUMN IF
-// NOT EXISTS; SQLite and MySQL have no such form, so the column is probed
-// first (pragma_table_info / information_schema) and added only when
-// missing. The column type matches each dialect's time representation
-// (SQLite TEXT, Postgres TIMESTAMP WITH TIME ZONE, MySQL DATETIME(3)).
+// claiming existed. Idempotent per dialect: Postgres and DuckDB use ADD
+// COLUMN IF NOT EXISTS; SQLite and MySQL have no such form, so the column
+// is probed first (pragma_table_info / information_schema) and added only
+// when missing. The column type matches each dialect's time representation
+// (SQLite TEXT, Postgres/DuckDB TIMESTAMP WITH TIME ZONE, MySQL DATETIME(3)).
 func EnsureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect, s Spec) error {
 	switch d {
-	case DialectPostgres:
-		return ensurePostgresLeaseColumn(ctx, db, s)
+	case DialectPostgres, DialectDuckDB:
+		return ensureIfNotExistsLeaseColumn(ctx, db, s)
 	case DialectSQLite:
 		return ensureSQLiteLeaseColumn(ctx, db, s)
 	case DialectMySQL:
@@ -25,7 +25,7 @@ func EnsureLeaseColumn(ctx context.Context, db *sql.DB, d Dialect, s Spec) error
 	}
 }
 
-func ensurePostgresLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
+func ensureIfNotExistsLeaseColumn(ctx context.Context, db *sql.DB, s Spec) error {
 	stmt := "ALTER TABLE " + s.Table + " ADD COLUMN IF NOT EXISTS " + //nolint:gosec // identifiers are store-author constants
 		s.LeaseColumn + " TIMESTAMP WITH TIME ZONE"
 

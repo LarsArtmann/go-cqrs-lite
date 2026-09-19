@@ -68,6 +68,7 @@ func (e *pgEngine) GraphNeighborsUndirected(
 	start := encodeNodeKey(node)
 
 	rows, err := e.conn().QueryContext(ctx, pgGraphNeighborsUndirectedCTE, col, start, depth)
+	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.GraphNeighborsUndirected: %w", err)
 	}

@@ -19,12 +19,12 @@ import (
 // (queue.Store[T]); this surface is the generic claim substrate.
 // art-dupl:accept engine scaffolding twin of queue/postgres; dep-isolated modules, claimkit carries the semantics
 type Engine struct {
-	db     *sql.DB
-	ownsDB bool
-
 	*claimkit.Claims
 
 	*claimkit.Dedup
+
+	db     *sql.DB
+	ownsDB bool
 }
 
 // NewEngine connects to the queue database at dsn and attaches the

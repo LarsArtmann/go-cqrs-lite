@@ -50,6 +50,12 @@ var _ metaengine.TrackerHost = (*duckdbEngine)(nil)
 type duckdbEngine struct {
 	metaengine.Calibration
 
+	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
+	// method promotion — the ONE shared SQL claim/dedup implementation
+	// (DuckDB dialect); see dueclaim.go.
+	*claimkit.Claims
+	*claimkit.Dedup
+
 	db          *sql.DB
 	persistence metaengine.Persistence
 	mu          sync.Mutex
@@ -57,12 +63,6 @@ type duckdbEngine struct {
 	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.RWMutex
-
-	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
-	// method promotion — the ONE shared SQL claim/dedup implementation
-	// (DuckDB dialect); see dueclaim.go.
-	*claimkit.Claims
-	*claimkit.Dedup
 }
 
 // New creates a DuckDB-backed metaengine Engine.

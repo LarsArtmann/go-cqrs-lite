@@ -7,8 +7,9 @@
 // prints EXPLAIN and Doctor so the planner explains every placement.
 //
 // Run: GOWORK=off go run .            (uses ./cqrs.yaml, sqlite at goal.db)
-// Swap: CQRS_ENGINES__PRIMARY__DRIVER=postgres \
-//       CQRS_ENGINES__PRIMARY__DSN=postgres://user:pass@host/goal go run .
+//
+//	Swap: CQRS_ENGINES__PRIMARY__DRIVER=postgres \
+//	      CQRS_ENGINES__PRIMARY__DSN=postgres://user:pass@host/goal go run .
 package main
 
 import (
@@ -17,13 +18,14 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4" // registers the "postgres" driver
+	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"     // registers the "postgres" driver
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // registers the "sqlite" driver
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
 func main() {
 	configPath := flag.String("config", "cqrs.yaml", "operator deployment config")
+
 	flag.Parse()
 
 	if err := run(context.Background(), *configPath); err != nil {
@@ -44,7 +46,7 @@ func run(ctx context.Context, configPath string) error {
 	if err != nil {
 		return fmt.Errorf("compose system: %w", err)
 	}
-	defer sys.Close()
+	defer func() { _ = sys.Close() }()
 
 	view, err := runStory(ctx, sys)
 	if err != nil {

@@ -1,8 +1,3 @@
-// The developer's wiring: ONE Evolution (folds declared once per result
-// type), two read shapes (a point Lookup and a filtered QuerySet), and
-// typed command/query handlers. Nothing here names an engine, a DSN, a
-// schema, or a limit — that is cqrs.yaml's job, and the same wiring runs
-// unchanged on every driver the operator picks.
 package main
 
 import (
@@ -18,6 +13,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
+
+// The developer's wiring: ONE Evolution (folds declared once per result
+// type), two read shapes (a point Lookup and a filtered QuerySet), and
+// typed command/query handlers. Nothing here names an engine, a DSN, a
+// schema, or a limit — that is cqrs.yaml's job, and the same wiring runs
+// unchanged on every driver the operator picks.
 
 const (
 	streamType      = "Task"
@@ -45,16 +46,26 @@ var (
 	errTaskGone   = errors.New("task not found")
 )
 
-// TaskState is the write-side invariant state (replay, never stored).
+// TaskState is the write-side invariant state (replayed from events,
+// never stored) — it also carries what an update event must re-state.
 type TaskState struct {
-	Exists bool
-	Done   bool
+	Exists   bool
+	Done     bool
+	Title    string
+	Priority int
 }
 
 func applyTask(s TaskState, evt event.Event) (TaskState, error) {
 	switch evt.Type() {
 	case evtTaskCreated:
+		p, err := event.DecodePayloadAuto[TaskCreated](evt)
+		if err != nil {
+			return s, err
+		}
+
 		s.Exists = true
+		s.Title = p.Title
+		s.Priority = p.Priority
 	case evtTaskUpdated:
 		p, err := event.DecodePayloadAuto[TaskUpdated](evt)
 		if err != nil {
@@ -95,38 +106,34 @@ func Domain() system.DomainConfig {
 }
 
 func registerCommands(sys *system.System) {
-	deciderErr := system.RegisterDecider(sys, streamType, decider.Decider[TaskState]{
+	must(system.RegisterDecider(sys, streamType, decider.Decider[TaskState]{
 		Initial: TaskState{},
 		Apply:   applyTask,
-	})
-	must(deciderErr)
+	}))
+	must(system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask, createOp))
+	must(system.RegisterCommand[CompleteTaskCmd, TaskState](sys, cmdCompleteTask, completeOp))
+	must(system.RegisterCommand[DeleteTaskCmd, TaskState](sys, cmdDeleteTask, deleteOp))
+}
 
-	createErr := system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask,
-		func(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
-			return system.Execute(ctx, cmd.StreamID(), streamType,
-				func(s TaskState, v event.Version) ([]event.Event, error) {
-					return decideCreate(cmd, s, v)
-				})
+func createOp(ctx context.Context, cmd CreateTaskCmd) system.Op[TaskState] {
+	return system.Execute(ctx, cmd.StreamID(), streamType,
+		func(s TaskState, v event.Version) ([]event.Event, error) {
+			return decideCreate(cmd, s, v)
 		})
-	must(createErr)
+}
 
-	completeErr := system.RegisterCommand[CompleteTaskCmd, TaskState](sys, cmdCompleteTask,
-		func(ctx context.Context, cmd CompleteTaskCmd) system.Op[TaskState] {
-			return system.Execute(ctx, cmd.StreamID(), streamType,
-				func(s TaskState, v event.Version) ([]event.Event, error) {
-					return decideComplete(cmd, s, v)
-				})
+func completeOp(ctx context.Context, cmd CompleteTaskCmd) system.Op[TaskState] {
+	return system.Execute(ctx, cmd.StreamID(), streamType,
+		func(s TaskState, v event.Version) ([]event.Event, error) {
+			return decideComplete(cmd, s, v)
 		})
-	must(completeErr)
+}
 
-	deleteErr := system.RegisterCommand[DeleteTaskCmd, TaskState](sys, cmdDeleteTask,
-		func(ctx context.Context, cmd DeleteTaskCmd) system.Op[TaskState] {
-			return system.Execute(ctx, cmd.StreamID(), streamType,
-				func(s TaskState, v event.Version) ([]event.Event, error) {
-					return decideDelete(cmd, s, v)
-				})
+func deleteOp(ctx context.Context, cmd DeleteTaskCmd) system.Op[TaskState] {
+	return system.Execute(ctx, cmd.StreamID(), streamType,
+		func(s TaskState, v event.Version) ([]event.Event, error) {
+			return decideDelete(cmd, s, v)
 		})
-	must(deleteErr)
 }
 
 func decideCreate(cmd CreateTaskCmd, s TaskState, v event.Version) ([]event.Event, error) {
@@ -153,7 +160,10 @@ func decideComplete(cmd CompleteTaskCmd, s TaskState, v event.Version) ([]event.
 	}
 
 	evt, err := event.New(evtTaskUpdated, cmd.StreamID(), streamType, v.Increment(),
-		TaskUpdated{ID: cmd.StreamID().String(), Status: StatusDone})
+		TaskUpdated{
+			ID: cmd.StreamID().String(), Title: s.Title,
+			Status: StatusDone, Priority: s.Priority,
+		})
 	if err != nil {
 		return nil, fmt.Errorf("task.updated: %w", err)
 	}

@@ -8,6 +8,9 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// errDSNRequired is the driver-factory rejection when no DSN is configured.
+var errDSNRequired = errors.New("queue-postgres: DSN required")
+
 // RegisterDriver registers the queue-postgres engine under its driver name
 // so operator config can pick it (the database/sql pattern; ADR-0142 T09).
 // Import for side effects: `_ "github.com/larsartmann/go-cqrs-lite/queue/postgres/v4"`.
@@ -18,7 +21,7 @@ func init() {
 		"queue-postgres",
 		func(ctx context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
 			if cfg.DSN == "" {
-				return nil, errors.New("queue-postgres: DSN required")
+				return nil, errDSNRequired
 			}
 
 			eng, err := NewEngine(ctx, cfg.DSN)

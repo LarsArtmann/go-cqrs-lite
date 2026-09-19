@@ -8,6 +8,11 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
+// errDSNRequired is the driver-factory rejection when no DSN is configured.
+var errDSNRequired = errors.New(
+	"queue-sqlite: DSN required (path to the queue database file)",
+)
+
 // RegisterDriver registers the queue-sqlite engine under its driver name so
 // operator config can pick it (the database/sql pattern; ADR-0142 T09).
 // Import for side effects: `_ "github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4"`.
@@ -18,12 +23,10 @@ func init() {
 		"queue-sqlite",
 		func(ctx context.Context, cfg metaengine.DriverConfig) (metaengine.Engine, error) {
 			if cfg.DSN == "" {
-				return nil, errors.New(
-					"queue-sqlite: DSN required (path to the queue database file)",
-				)
+				return nil, errDSNRequired
 			}
 
-			eng, err := NewEngine(cfg.DSN)
+			eng, err := NewEngine(cfg.DSN) //nolint:contextcheck // constructor takes no ctx
 			if err != nil {
 				return nil, err
 			}

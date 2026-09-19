@@ -2,6 +2,14 @@ package claiming
 
 import "strings"
 
+// stampExtraArgs is the argument headroom StampLeaseMySQLStmt reserves
+// beyond the claimed ids: lease_until, the optional owner, and the
+// optional filter.
+const stampExtraArgs = 3
+
+// decimalBase is the radix of the decimal digits itoa emits.
+const decimalBase = 10
+
 // ClaimParams carries the runtime values of one ClaimStmt-family claim:
 // everything a due-claim needs beyond the static [Spec]. Zero-value fields
 // degrade to the legacy whole-table behavior (no owner stamping, no filter,
@@ -231,7 +239,7 @@ func mySQLClaimSelectFull(s Spec, p ClaimParams) (string, []any) {
 // commit.
 func StampLeaseMySQLStmt(s Spec, ids []any, p ClaimParams) (string, []any) {
 	placeholders := make([]string, len(ids))
-	args := make([]any, 0, len(ids)+3)
+	args := make([]any, 0, len(ids)+stampExtraArgs)
 
 	// Argument order MUST match placeholder order: SET columns first, then
 	// the IN (...) ids, then the filter — pinned by TestStampLeaseMySQLStmtArgsAlign.
@@ -275,7 +283,7 @@ func RenewOwnedStmt(d Dialect, s Spec, newUntil, id, owner, now any) (string, []
 	}
 
 	switch d {
-	case DialectPostgres:
+	case DialectPostgres, DialectDuckDB:
 		return "UPDATE " + s.Table + " SET " + s.LeaseColumn +
 			" = $1 WHERE " + s.IDColumn + " = $2 AND " + s.OwnerColumn +
 			" = $3 AND " + s.LeaseColumn + " > $4", []any{newUntil, id, owner, now}
@@ -295,11 +303,11 @@ func RenewOwnedStmt(d Dialect, s Spec, newUntil, id, owner, now any) (string, []
 }
 
 func itoa(n int) string {
-	if n < 10 {
+	if n < decimalBase {
 		return string(rune('0' + n))
 	}
 
-	return itoa(n/10) + string(rune('0'+n%10))
+	return itoa(n/decimalBase) + string(rune('0'+n%decimalBase))
 }
 
 // RenewScopedStmt is [RenewOwnedStmt] with the Spec.FilterColumn equality

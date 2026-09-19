@@ -124,6 +124,7 @@ func (t *QuicTransport) handleStream(
 // Uses dedup.Ring for bounded memory with graceful eviction of the oldest
 // entries, avoiding the reset-gap vulnerability of a fixed-size map.
 func (t *QuicTransport) markSeen(opID string) bool {
+	//art-dupl:accept transport twin — loopback/quic dedup-ring guards are dep-isolated mirrors
 	t.dedupMu.Lock()
 	defer t.dedupMu.Unlock()
 	if t.dedupRing.Has(opID) {

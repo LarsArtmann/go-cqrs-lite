@@ -208,6 +208,7 @@ func (c *Claims) ClaimFactsList(
 	ctx context.Context,
 	collection, key string,
 ) ([]metaengine.ClaimFact, error) {
+	//nolint:sqlclosecheck // rows closed via deferred DeferClose below
 	rows, err := c.db.QueryContext(ctx,
 		"SELECT type, payload FROM meta_claim_facts WHERE collection = "+ph(c.dialect, 1)+
 			" AND "+idColumn(c.dialect)+" = "+ph(c.dialect, 2)+" ORDER BY seq",

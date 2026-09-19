@@ -111,6 +111,7 @@ LAYER["cmd/api-stability"]=7
 LAYER["cmd/doc-check"]=7
 LAYER["example/taskmanager"]=7
 LAYER["example/getting-started"]=7
+LAYER["example/goal-shaped-app"]=7
 LAYER["example/readme-quickstart"]=7
 LAYER["example/scheduler-otel-status"]=7
 LAYER["example/metaengine-quickstart"]=7
@@ -333,6 +334,10 @@ DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
 DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
+# goal-shaped-app is the Goal story: types-only domain + system composition
+# root with BOTH swap targets compiled in (sqliteengine + pgengine) —
+# command/decider/event/id/metaengine/query/system + 2 drivers = 9.
+DEP_BUDGET["example/goal-shaped-app"]=9
 DEP_BUDGET["example/readme-quickstart"]=6
 DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system + metaengine

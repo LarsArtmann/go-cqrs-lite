@@ -92,6 +92,11 @@ func WithDisableWAL() Option {
 type pebbleEngine struct {
 	metaengine.Calibration
 
+	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
+	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
+	*metaengine.MapDueClaimer
+	*metaengine.MapDedupStore
+
 	db          *pebble.DB
 	ownsDB      bool
 	syncWrites  bool
@@ -103,11 +108,6 @@ type pebbleEngine struct {
 	journalSeq  sync.Map   // collection → *atomic.Int64 (global journal sequence)
 	layoutMu    sync.Mutex
 	layouts     map[string]layoutPlan // collection → layout plan (secondary indexes)
-
-	// ADR-0142 write-side capabilities: the shared Map runtimes, attached by
-	// wireMapRuntimes (dueclaim.go) — DueClaimer + DedupStore by promotion.
-	*metaengine.MapDueClaimer
-	*metaengine.MapDedupStore
 }
 
 // writeOptions returns pebble.Sync when sync writes are enabled, otherwise

@@ -84,6 +84,7 @@ func (t *LoopbackTransport) recordLatency(d time.Duration) {
 }
 
 func (t *LoopbackTransport) markSeen(opID string) bool {
+	//art-dupl:accept transport twin — loopback/quic dedup-ring guards are dep-isolated mirrors
 	t.dedupMu.Lock()
 	defer t.dedupMu.Unlock()
 	if t.dedupRing.Has(opID) {

@@ -19,12 +19,12 @@ import (
 // (queue.Store[T]); this surface is the generic claim substrate, not a
 // replacement for the task contract.
 type Engine struct {
-	db     *sql.DB
-	ownsDB bool
-
 	*claimkit.Claims
 
 	*claimkit.Dedup
+
+	db     *sql.DB
+	ownsDB bool
 }
 
 // NewEngine opens (creating if needed) a queue database at path and attaches

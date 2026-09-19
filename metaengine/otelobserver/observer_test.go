@@ -155,7 +155,7 @@ func observerTestStore(t *testing.T) (
 }
 
 // counterValue sums the data points of a counter whose attributes match
-// want (attr key → emitted value), failing when the metric was never
+// want (attr key → value string), failing when the metric was never
 // collected.
 func counterValue(
 	t *testing.T,
@@ -199,7 +199,7 @@ func counterValueOrZero(
 
 				for k, v := range want {
 					got, ok := dp.Attributes.Value(attribute.Key(k))
-					if !ok || got.Emit() != v {
+					if !ok || got.String() != v {
 						matches = false
 
 						break

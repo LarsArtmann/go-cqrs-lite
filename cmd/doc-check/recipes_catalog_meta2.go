@@ -168,4 +168,12 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"var sys *system.System\n" +
 			"dispatch := func(ctx context.Context, p DelayCommand) error { return nil }\n",
 	},
+	"### 2.39 The Goal in 5 Minutes — declare types, swap engines by config (goal-shaped app) #1": {
+		imports: []string{`"github.com/larsartmann/go-cqrs-lite/system/v4"`},
+		preamble: "type TaskCreated struct {\n\tID       string\n\tTitle    string\n\tPriority int\n}\n\n" +
+			"type TaskUpdated struct {\n\tID       string\n\tTitle    string\n\tStatus   string\n\tPriority int\n}\n\n" +
+			"type TaskDeleted struct {\n\tID string\n}\n\n" +
+			"type TaskView struct {\n\tID       string\n\tTitle    string\n\tStatus   string\n\tPriority int\n}\n\n",
+		trailers: "_ = evo\n_ = lookup\n_ = openTasks",
+	},
 }

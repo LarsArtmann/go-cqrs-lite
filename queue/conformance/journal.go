@@ -164,19 +164,25 @@ func (s *suite) pinOrphaned(t *testing.T) {
 func (s *suite) pinWatermark(t *testing.T) {
 	e := s.openEnv(t)
 
-	seq, exists, err := e.store.Watermark(t.Context(), "bridge")
-	if err != nil || exists || seq != 0 {
-		t.Fatalf("unknown watermark = %d, %v, %v; want 0/false", seq, exists, err)
+	read := func(consumer string, wantSeq int64, wantExists bool) {
+		t.Helper()
+
+		seq, exists, err := e.store.Watermark(t.Context(), consumer)
+		if err != nil || exists != wantExists || seq != wantSeq {
+			t.Fatalf(
+				"watermark %s = %d, %v, %v; want %d/%v",
+				consumer, seq, exists, err, wantSeq, wantExists,
+			)
+		}
 	}
+
+	read("bridge", 0, false)
 
 	if err := e.store.SaveWatermark(t.Context(), "bridge", 0); err != nil {
 		t.Fatalf("save seq 0: %v", err)
 	}
 
-	seq, exists, err = e.store.Watermark(t.Context(), "bridge")
-	if err != nil || !exists || seq != 0 {
-		t.Fatalf("seq-0 checkpoint = %d, %v, %v; want 0/true", seq, exists, err)
-	}
+	read("bridge", 0, true)
 
 	for _, save := range []int64{5, 9, 3} {
 		if err := e.store.SaveWatermark(t.Context(), "bridge", save); err != nil {
@@ -184,20 +190,14 @@ func (s *suite) pinWatermark(t *testing.T) {
 		}
 	}
 
-	seq, exists, err = e.store.Watermark(t.Context(), "bridge")
-	if err != nil || !exists || seq != 9 {
-		t.Fatalf("watermark = %d, %v, %v; want 9 (monotonic, never regressed)", seq, exists, err)
-	}
+	read("bridge", 9, true)
 
 	// Consumers are independent cursors.
 	if err := e.store.SaveWatermark(t.Context(), "sweeper", 2); err != nil {
 		t.Fatal(err)
 	}
 
-	seq, exists, err = e.store.Watermark(t.Context(), "sweeper")
-	if err != nil || !exists || seq != 2 {
-		t.Fatalf("second consumer = %d, %v, %v; want 2", seq, exists, err)
-	}
+	read("sweeper", 2, true)
 
 	// The operator surface lists every cursor.
 	all, err := e.store.Watermarks(t.Context())

@@ -100,6 +100,7 @@ func (e *sqliteEngine) graphNeighborsCTE(
 ) ([]any, error) {
 	start := encodeKey(node)
 	rows, err := e.xd(ctx).QueryContext(ctx, graphNeighborsCTE, col, start, col, depth, start)
+	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GraphNeighbors: %w", err)
 	}
@@ -190,6 +191,7 @@ func (e *sqliteEngine) queryGraphNeighbors(
 	col, node string,
 ) ([]string, error) {
 	rows, err := e.xc(ctx).query(ctx, graphNeighborsDirectSQL, col, node)
+	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, err
 	}
@@ -214,6 +216,7 @@ func (e *sqliteEngine) queryGraphReverseNeighbors(
 	col, node string,
 ) ([]string, error) {
 	rows, err := e.xc(ctx).query(ctx, graphNeighborsReverseSQL, col, node)
+	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, err
 	}

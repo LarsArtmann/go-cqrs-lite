@@ -36,10 +36,10 @@ const maxOpSize = 16 * 1024 * 1024 // 16 MB
 // rttWindowSize is how many latency samples we keep for percentile computation.
 const rttWindowSize = 256
 
-// DefaultDedupCapacity is the op-dedup ring capacity. Memory stays bounded at
-// this many IDs while the most recently seen ones are retained — unlike the
-// previous map, which reset wholesale and could re-apply redelivered ops.
-const DefaultDedupCapacity = 10_000
+// dedupCapacity is the op-dedup ring capacity. Memory stays bounded at this
+// many IDs while the most recently seen ones are retained, unlike the previous
+// map, which reset wholesale and could re-apply redelivered ops.
+const dedupCapacity = 10_000
 
 // LoopbackTransport implements irohengine.Transport over real TCP connections.
 //
@@ -126,7 +126,7 @@ func New(opts ...Option) (*LoopbackTransport, error) {
 		addr:      listener.Addr().String(),
 		listener:  listener,
 		conns:     make(map[string]net.Conn),
-		dedupRing: dedup.NewRing(DefaultDedupCapacity),
+		dedupRing: dedup.NewRing(dedupCapacity),
 		maxDelay:  cfg.maxDelay,
 	}
 

@@ -66,6 +66,12 @@ const PG_NsPerRead = 5000.0
 type pgEngine struct {
 	metaengine.Calibration
 
+	// ADR-0142 write-side capabilities: the shared claimkit SQL runtime,
+	// attached in init (dueclaim.go) — DueClaimer + FactSink + DedupStore by
+	// promotion.
+	*claimkit.Claims
+	*claimkit.Dedup
+
 	db             *sql.DB
 	mu             sync.Mutex
 	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
@@ -75,12 +81,6 @@ type pgEngine struct {
 	plans          map[string]metaengine.LayoutPlan // collection → planned-table layout (D1; guarded by layoutMu)
 	copyMin        int                              // WithCopyAppend: bulk StreamAppend threshold; 0 = off
 	durability     metaengine.DurabilityTier        // set by the driver factory (withDurabilityTier)
-
-	// ADR-0142 write-side capabilities: the shared claimkit SQL runtime,
-	// attached in init (dueclaim.go) — DueClaimer + FactSink + DedupStore by
-	// promotion.
-	*claimkit.Claims
-	*claimkit.Dedup
 }
 
 // New creates a Postgres-backed metaengine Engine from a DSN.

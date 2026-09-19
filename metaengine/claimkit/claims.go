@@ -54,10 +54,10 @@ func (l *duckWriteLock) lockWriterFor(d claiming.Dialect) func() {
 // [metaengine.FactSink]. Construct once per engine; safe for concurrent use
 // (database/sql pool + atomic statements).
 type Claims struct {
+	duckWriteLock
+
 	db      *sql.DB
 	dialect claiming.Dialect
-
-	duckWriteLock
 }
 
 // lockWriter returns the write guard for the engine's concurrency model.

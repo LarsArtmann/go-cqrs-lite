@@ -2,12 +2,17 @@ package conformance
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/facts"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
+
+// errObservationAbandoned is the sentinel the rollback scenario fails its
+// WithFacts closure with, to prove the store propagates the caller error.
+var errObservationAbandoned = errors.New("observation abandoned")
 
 // pinFactTx pins the same-tx fact-append capability (queue.FactTx): a
 // failing fn rolls every sink append back; a succeeding fn lands all of
@@ -28,7 +33,7 @@ func (s *suite) pinFactTx(t *testing.T) {
 	}
 
 	// Rollback: fn appends two facts, then fails — neither may survive.
-	boom := errors.New("observation abandoned")
+	boom := errObservationAbandoned
 
 	err = ftx.WithFacts(t.Context(), func(sink queue.FactSink) error {
 		for i, typ := range []string{"note.one", "note.two"} {
@@ -63,7 +68,7 @@ func (s *suite) pinFactTx(t *testing.T) {
 				TaskID: subject.ID.String(),
 				Type:   facts.FactType(typ),
 			}); err != nil {
-				return err
+				return fmt.Errorf("append %s: %w", typ, err)
 			}
 		}
 

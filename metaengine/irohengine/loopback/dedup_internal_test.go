@@ -13,7 +13,7 @@ import (
 // window is deduplicated without the full reset gap the hand-rolled map had.
 // These tests make the bounded-eviction contract explicit.
 func TestMarkSeen_DedupWindow(t *testing.T) {
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(DefaultDedupCapacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(dedupCapacity)}
 
 	if !tr.markSeen("op-1") {
 		t.Fatal("first markSeen(op-1) = false, want true")
@@ -61,17 +61,17 @@ func TestMarkSeen_EvictsOldestNotAll(t *testing.T) {
 // TestMarkSeen_BoundedOverflow proves memory stays bounded across far more IDs
 // than the capacity, while every recent ID remains deduplicated.
 func TestMarkSeen_BoundedOverflow(t *testing.T) {
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(DefaultDedupCapacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(dedupCapacity)}
 
-	for i := range DefaultDedupCapacity * 2 {
+	for i := range dedupCapacity * 2 {
 		tr.markSeen(fmt.Sprintf("fill-%06d", i))
 	}
 
-	if got := tr.dedupRing.Len(); got > DefaultDedupCapacity {
-		t.Fatalf("dedup ring grew to %d entries, want <= %d", got, DefaultDedupCapacity)
+	if got := tr.dedupRing.Len(); got > dedupCapacity {
+		t.Fatalf("dedup ring grew to %d entries, want <= %d", got, dedupCapacity)
 	}
 
-	if tr.markSeen(fmt.Sprintf("fill-%06d", DefaultDedupCapacity*2-1)) {
+	if tr.markSeen(fmt.Sprintf("fill-%06d", dedupCapacity*2-1)) {
 		t.Fatal("most recent ID = true, want false (still deduplicated)")
 	}
 }

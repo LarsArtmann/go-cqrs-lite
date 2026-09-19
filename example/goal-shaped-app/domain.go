@@ -1,8 +1,3 @@
-// The Goal, in domain types. This file is the ENTIRE developer-owned data
-// surface: plain Go structs. It imports nothing from go-cqrs-lite except the
-// tier-1 core-domain bus types (command, query) — no engines, no schema, no
-// table registration, no scan limits. Operators decide all of that in
-// cqrs.yaml and can swap them per deployment without touching this file.
 package main
 
 import (
@@ -10,10 +5,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
+// The Goal, in domain types. This file is the ENTIRE developer-owned data
+// surface: plain Go structs. It imports nothing from go-cqrs-lite except the
+// tier-1 core-domain bus types (command, query) — no engines, no schema, no
+// table registration, no scan limits. Operators decide all of that in
+// cqrs.yaml and can swap them per deployment without touching this file.
+
 // Task status values folded into [TaskView].
 const (
 	StatusOpen = "open"
 	StatusDone = "done"
+
+	// PriorityNormal and PriorityHigh are the story's demo priorities.
+	PriorityNormal = 2
+	PriorityHigh   = 5
 )
 
 // TaskCreated opens a task.
@@ -24,11 +29,14 @@ type TaskCreated struct {
 }
 
 // TaskUpdated changes a task, e.g. completing it with Status "done".
-// The Updated suffix selects the convention's update fold — the view is
-// patched field-by-field from the payload, with no fold code anywhere.
+// The Updated suffix selects the convention's update fold — the payload is
+// the full resulting row (convention folds mirror field-by-field, so the
+// event carries Title/Priority too, sourced from the decider's state).
 type TaskUpdated struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Status   string `json:"status"`
+	Priority int    `json:"priority"`
 }
 
 // TaskDeleted removes its task. The Evolution's Deleted-convention fold

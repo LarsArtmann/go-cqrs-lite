@@ -224,6 +224,7 @@ func (e *mysqlEngine) queryGraphNeighbors(
 	col, node string,
 ) ([]string, error) {
 	rows, err := e.conn().QueryContext(ctx, mysqlGraphNeighborsDirect, col, node)
+	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, err
 	}

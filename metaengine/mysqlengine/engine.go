@@ -46,6 +46,12 @@ var _ metaengine.TrackerHost = (*mysqlEngine)(nil)
 type mysqlEngine struct {
 	metaengine.Calibration
 
+	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
+	// method promotion — the ONE shared SQL claim/dedup implementation
+	// (MySQL dialect, two-statement SKIP LOCKED); see dueclaim.go.
+	*claimkit.Claims
+	*claimkit.Dedup
+
 	db             *sql.DB
 	dialect        string // "mysql" or "mariadb" (detected via SELECT VERSION())
 	graphCTE       bool   // server supports WITH RECURSIVE (probed at init)
@@ -57,12 +63,6 @@ type mysqlEngine struct {
 	plans          map[string]metaengine.LayoutPlan  // collection → planned-table layout (D2; guarded by layoutMu)
 	gcColumns      atomic.Pointer[map[string]string] // MariaDB generated columns (field→name)
 	gcnColumns     atomic.Pointer[map[string]string] // MariaDB numeric twin columns for sort fields
-
-	// claimkit runtimes (ADR-0142): DueClaimer + FactSink + DedupStore by
-	// method promotion — the ONE shared SQL claim/dedup implementation
-	// (MySQL dialect, two-statement SKIP LOCKED); see dueclaim.go.
-	*claimkit.Claims
-	*claimkit.Dedup
 }
 
 // New creates a MySQL-backed metaengine Engine from a DSN.

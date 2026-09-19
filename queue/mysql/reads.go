@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
@@ -175,12 +176,12 @@ func (s *Store[T]) List(ctx context.Context, f queue.Filter) ([]task.Task[T], er
 		}
 	}
 
-	rows, err := s.db.QueryContext(ctx, q, args...)
+	rows, err := s.db.QueryContext(ctx, q, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	var out []task.Task[T]
 
@@ -211,12 +212,15 @@ func (s *Store[T]) CountTasks(ctx context.Context, f queue.Filter) (int, error) 
 // StatusCounts counts tasks per status in one GROUP BY.
 // art-dupl:accept dialect twin — queue engines are dep-isolated mirrors; conformance pins semantics
 func (s *Store[T]) StatusCounts(ctx context.Context) (map[task.Status]int, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT status, COUNT(*) FROM tasks GROUP BY status`)
+	rows, err := s.db.QueryContext(
+		ctx,
+		`SELECT status, COUNT(*) FROM tasks GROUP BY status`,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	out := make(map[task.Status]int)
 

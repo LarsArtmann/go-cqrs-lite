@@ -9,6 +9,8 @@ package mysql
 // plain UNIQUE KEY — MySQL treats NULLs as distinct, so keyless tasks
 // never collide (the partial-index semantics the other engines express
 // with WHERE).
+//
+//nolint:gochecknoglobals // DDL is immutable compile-time package data
 var schemaStmts = []string{
 	`CREATE TABLE IF NOT EXISTS tasks (
 	id            VARCHAR(64) PRIMARY KEY,

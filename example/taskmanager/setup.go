@@ -307,7 +307,7 @@ func Run() error {
 	defer cancel()
 
 	srv.Start(ctx)
-	srv.StartHTTP(":8080")
+	srv.StartHTTP(cfg.HTTPAddr)
 
 	time.Sleep(projectionSettleMs * time.Millisecond)
 	srv.SeedDemo(ctx)
