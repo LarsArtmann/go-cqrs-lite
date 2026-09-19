@@ -26,6 +26,7 @@ import (
 
 	"github.com/fxamacker/cbor/v2"
 
+	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
@@ -34,6 +35,11 @@ const maxOpSize = 16 * 1024 * 1024 // 16 MB
 
 // rttWindowSize is how many latency samples we keep for percentile computation.
 const rttWindowSize = 256
+
+// DefaultDedupCapacity is the op-dedup ring capacity. Memory stays bounded at
+// this many IDs while the most recently seen ones are retained — unlike the
+// previous map, which reset wholesale and could re-apply redelivered ops.
+const DefaultDedupCapacity = 10_000
 
 // LoopbackTransport implements irohengine.Transport over real TCP connections.
 //
@@ -61,7 +67,7 @@ type LoopbackTransport struct {
 
 	// Op-level dedup (prevents double-application under redelivery)
 	dedupMu   sync.Mutex
-	dedupSeen map[string]struct{}
+	dedupRing *dedup.Ring
 
 	// Optional simulated latency (for testing convergence under delay)
 	maxDelay time.Duration
@@ -120,7 +126,7 @@ func New(opts ...Option) (*LoopbackTransport, error) {
 		addr:      listener.Addr().String(),
 		listener:  listener,
 		conns:     make(map[string]net.Conn),
-		dedupSeen: make(map[string]struct{}),
+		dedupRing: dedup.NewRing(DefaultDedupCapacity),
 		maxDelay:  cfg.maxDelay,
 	}
 

@@ -22,7 +22,7 @@ type CommandStore struct {
 
 // NewCommandStore creates a CommandStore sharing the given *bbolt.DB.
 func NewCommandStore(db *bolt.DB, logger *slog.Logger) (*CommandStore, error) {
-	return &CommandStore{storeBase{db: db, logger: logger}}, nil
+	return &CommandStore{storeBase: storeBase{db: db, logger: logger}}, nil
 }
 
 func commandStreamKey(ref id.StreamRef, cmdID id.CommandID) []byte {

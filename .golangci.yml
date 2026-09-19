@@ -155,6 +155,26 @@ linters:
         - github.com/larsartmann/go-cqrs-lite/queue/v4/task.Task
         - github.com/larsartmann/go-cqrs-lite/queue/v4.Filter
         - github.com/larsartmann/go-cqrs-lite/queue/v4/facts.Fact
+        # EngineProfile literals are partial-by-design: compile-time priors are
+        # overridden by ApplyCalibration + live probing at runtime (the
+        # live-latency model), so "missing" cost fields are never accidents.
+        # Added 2026-09-19 with the queue engine Profiles.
+        - github.com/larsartmann/go-cqrs-lite/metaengine/v4\.EngineProfile
+        # exhaustruct v5.0.3 panics (makeslice: cap out of range, upstream
+        # skippedNamed bug) on literals keying promoted fields of these
+        # unexported scaffolding bases; full keying would force zero-value
+        # noise (shards/batch lock arrays). Revisit on analyzer bump.
+        # Added 2026-09-19.
+        - github.com/larsartmann/go-cqrs-lite/storage/v4/pebble\.storeBase
+        - github.com/larsartmann/go-cqrs-lite/storage/v4/bbolt\.storeBase
+    modernize:
+      excludes:
+        # embedlit wants X{Embed{...}} (unkeyed embedded literal) — the exact
+        # shape exhaustruct v5.0.3 panics on and embeddedstructfieldcheck
+        # readability argues against. The analyzers directly contradict each
+        # other on embedded literals; we keep the explicit keyed form.
+        # Added 2026-09-19; revisit when exhaustruct > v5.0.3 lands.
+        - embedlit
     funlen:
       lines: 200
       statements: 100
@@ -418,7 +438,7 @@ linters:
         linters:
           - modernize
           - recvcheck
-      - path: metaengine/(.*/)?register\.go$
+      - path: (metaengine|queue)/(.*/)?register\.go$
         linters:
           - gochecknoinits
       - path: cmd/cqrs-lint/pkg/rules/.*/template\.go$

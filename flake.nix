@@ -266,6 +266,7 @@
 
           examplePaths = builtins.concatStringsSep " " [
             "./example/getting-started/..."
+            "./example/goal-shaped-app/..."
             "./example/metaengine-quickstart/..."
             "./example/readme-quickstart/..."
             "./example/scheduler-otel-status/..."

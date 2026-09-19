@@ -1,0 +1,24 @@
+# Operator config — the ONLY file you touch to change where data lives.
+#
+# Swap to postgres without touching domain code (both drivers ship in the
+# binary; see the blank imports in main.go):
+#
+#   engines:
+#     primary:
+#       driver: postgres
+#       dsn: postgres://user:pass@localhost:5432/goal
+#
+# or leave the file alone and override per environment:
+#
+#   CQRS_ENGINES__PRIMARY__DRIVER=postgres
+#   CQRS_ENGINES__PRIMARY__DSN=postgres://user:pass@localhost:5432/goal
+engines:
+  primary:
+    driver: sqlite
+    dsn: goal.db
+    pragmas: ["journal_mode=WAL", "busy_timeout=5000"]
+instances:
+  - role: source-of-truth
+    engine: primary
+  - role: projections
+    engine: primary

@@ -31,7 +31,7 @@ func NewStore(database *bolt.DB, logger *slog.Logger) (*EventStore, error) {
 		return nil, ErrNilDatabase
 	}
 
-	return &EventStore{db: database, logger: logger}, nil
+	return &EventStore{storeBase: storeBase{db: database, logger: logger}}, nil
 }
 
 // eventKey builds the in-bucket key for an event.

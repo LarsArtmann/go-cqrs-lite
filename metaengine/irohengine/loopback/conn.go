@@ -86,13 +86,10 @@ func (t *LoopbackTransport) recordLatency(d time.Duration) {
 func (t *LoopbackTransport) markSeen(opID string) bool {
 	t.dedupMu.Lock()
 	defer t.dedupMu.Unlock()
-	if _, seen := t.dedupSeen[opID]; seen {
+	if t.dedupRing.Has(opID) {
 		return false
 	}
-	t.dedupSeen[opID] = struct{}{}
-	if len(t.dedupSeen) > 10000 {
-		t.dedupSeen = make(map[string]struct{})
-		t.dedupSeen[opID] = struct{}{}
-	}
+	t.dedupRing.Add(opID)
+
 	return true
 }

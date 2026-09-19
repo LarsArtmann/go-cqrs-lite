@@ -25,7 +25,7 @@ func NewCheckpointStore(database *bolt.DB, logger *slog.Logger) (*CheckpointStor
 		return nil, ErrNilDatabase
 	}
 
-	return &CheckpointStore{db: database, logger: logger}, nil
+	return &CheckpointStore{storeBase: storeBase{db: database, logger: logger}}, nil
 }
 
 func (s *CheckpointStore) Save(

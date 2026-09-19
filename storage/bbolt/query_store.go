@@ -22,7 +22,7 @@ type QueryStore struct {
 
 // NewQueryStore creates a QueryStore sharing the given *bbolt.DB.
 func NewQueryStore(db *bolt.DB, logger *slog.Logger) (*QueryStore, error) {
-	return &QueryStore{storeBase{db: db, logger: logger}}, nil
+	return &QueryStore{storeBase: storeBase{db: db, logger: logger}}, nil
 }
 
 func queryKey(requestID id.RequestID) []byte {

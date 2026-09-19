@@ -22,6 +22,7 @@ use (
 	./event
 	./event/v4/eventtest
 	./example/getting-started
+	./example/goal-shaped-app
 	./example/metaengine-quickstart
 	./example/readme-quickstart
 	./example/scheduler-otel-status

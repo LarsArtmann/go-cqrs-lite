@@ -27,7 +27,7 @@ func NewSnapshotStore(database *bolt.DB, logger *slog.Logger) (*SnapshotStore, e
 		return nil, ErrNilDatabase
 	}
 
-	return &SnapshotStore{db: database, logger: logger}, nil
+	return &SnapshotStore{storeBase: storeBase{db: database, logger: logger}}, nil
 }
 
 // Save persists a snapshot to the bbolt database.
