@@ -5,8 +5,10 @@
 and is **never** duplicated here — when a task finishes it moves to CHANGELOG
 and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
-2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, and 2026-09-16). The Declined section at the
-bottom is a do-not-re-litigate guard, not a backlog.
+2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, and 2026-09-19 —
+the 8th pass struck 772+ verified-done items inline across 57 reports and archived
+every session report except the two KEEP-LIVE evidence docs + the fp-sweep baseline).
+The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
 > [`docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md`](docs/planning/archived/2026-09-08_17-45_SUPERB-pareto-execution-plan.md)
