@@ -26,11 +26,6 @@ var resetTypePredicates = map[string][]string{
 	"MultimapEntry": {
 		"cqrs.multimap_collection", "cqrs.multimap_key", "cqrs.multimap_value",
 	},
-	"LogEntry": {"cqrs.log_collection", "cqrs.log_seq", "cqrs.log_value"},
-	"StreamLogEntry": {
-		"cqrs.stream_log_collection", "cqrs.stream_log_stream",
-		"cqrs.stream_log_seq", "cqrs.stream_log_value",
-	},
 	"GraphNode": {"cqrs.node_collection", "cqrs.node_id"},
 	"SearchDoc": {"cqrs.search_collection", "cqrs.search_id", "cqrs.search_content"},
 	"VectorEmbedding": {
@@ -39,13 +34,14 @@ var resetTypePredicates = map[string][]string{
 }
 
 // resetTypeOrder gives the var-binding order a stable iteration sequence.
+// The journal types (LogEntry, StreamLogEntry) are deliberately ABSENT:
+// journal entries are facts on the ADR-0136 ladder (ADR-0143) — the replay
+// source a reset rebuilds FROM, never derived data a reset clears.
 var resetTypeOrder = []string{
 	"MetaMapEntry",
 	"MetaSetEntry",
 	"MetaCounterEntry",
 	"MultimapEntry",
-	"LogEntry",
-	"StreamLogEntry",
 	"GraphNode",
 	"SearchDoc",
 	"VectorEmbedding",

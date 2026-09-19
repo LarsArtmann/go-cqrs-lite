@@ -94,8 +94,8 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 	}
 
 	stream, err := sl.StreamRead(ctx, "events", "s1")
-	if err != nil || len(stream) != 0 {
-		t.Fatalf("stream log must be empty after reset (len=%d err=%v)", len(stream), err)
+	if err != nil || len(stream) != 2 {
+		t.Fatalf("stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v", len(stream), err)
 	}
 
 	claims, err := claimer.ClaimDue(ctx, metaengine.ClaimDueRequest{

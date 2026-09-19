@@ -78,13 +78,13 @@ func TestResetEngine_ClearsEveryADT(t *testing.T) {
 	}
 
 	entries, err := lb.LogTail(ctx, "audit", 10)
-	if err != nil || len(entries) != 0 {
-		t.Fatalf("log must be empty after reset (len=%d err=%v)", len(entries), err)
+	if err != nil || len(entries) != 1 {
+		t.Fatalf("log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v", len(entries), err)
 	}
 
 	stream, err := sl.StreamRead(ctx, "events", "s1")
-	if err != nil || len(stream) != 0 {
-		t.Fatalf("stream log must be empty after reset (len=%d err=%v)", len(stream), err)
+	if err != nil || len(stream) != 2 {
+		t.Fatalf("stream log (journal, facts) must SURVIVE reset (ADR-0143): len=%d err=%v", len(stream), err)
 	}
 }
 

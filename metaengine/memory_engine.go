@@ -74,14 +74,24 @@ func (m *memoryEngine) SetCalibration(costs CalibrationCosts) {
 }
 
 // ResetEngine implements [EngineResetter]: it drops ALL materialized state —
-// every ADT collection, the version chains (when versioning is enabled), and
-// the vector/search/spatial indexes — returning the engine to its empty
-// post-construction state so a journal replay rebuilds it from zero.
+// every derived ADT collection, the version chains (when versioning is
+// enabled), and the vector/search/spatial indexes. The JOURNAL (logs,
+// streams, streamJournal) survives: journal entries are facts on the
+// ADR-0136 invertibility ladder (ADR-0143) — the replay source a reset
+// rebuilds FROM, never derived data a reset clears.
 func (m *memoryEngine) ResetEngine(_ context.Context) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	journal := m.data.logs
+	streams := m.data.streams
+	streamJournal := m.data.streamJournal
+
 	m.data = newMemData()
+	m.data.logs = journal
+	m.data.streams = streams
+	m.data.streamJournal = streamJournal
+
 	m.vectorIdx = NewMemoryVectorIndex()
 	m.searchIdx = NewMemorySearchIndex()
 	m.spatialIdx = NewMemorySpatialIndex()
