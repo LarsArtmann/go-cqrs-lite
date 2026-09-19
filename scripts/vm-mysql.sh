@@ -119,7 +119,12 @@ else
 		cd idempotency/sqlstore
 		# QEMU slirp port-forwarding resets bursts of simultaneous MySQL
 		# connections; 10 contenders still prove row-lock serialization.
+		# POSTGRES_TEST_DSN keeps the package TestMain (pgtestcontainer) off
+		# testcontainers: its unconditional postgres boot (~80s of Docker and
+		# ryuk churn) races the slirp forward and resets live MySQL
+		# connections; the -run filter means no PG test ever uses this DSN.
 		CGO_ENABLED=1 GOWORK=off MYSQL_TEST_CONCURRENCY=10 \
+			POSTGRES_TEST_DSN="postgres://mysql-vm-leg@127.0.0.1:1/no-pg-here" \
 			go test -tags "integration" -shuffle="$SEED" -run TestIntegration_MySQL ./... -count=1 -v 2>&1
 	)
 	echo ""
