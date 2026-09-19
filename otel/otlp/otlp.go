@@ -68,12 +68,14 @@ func SetupOTLP(
 	// cadence and makes it a metric.Reader for cqrsotel.Setup.
 	metricReader := sdkmetric.NewPeriodicReader(metricExporter)
 
-	setupOpts := []cqrsotel.SetupOption{
+	setupOpts := make([]cqrsotel.SetupOption, 0, 3+len(opts))
+	setupOpts = append(setupOpts,
 		cqrsotel.WithSpanExporter(spanExporter),
 		cqrsotel.WithMetricReader(metricReader),
 		cqrsotel.WithService(cfg.ServiceName, cfg.ServiceVersion, cfg.InstanceID),
-	}
+	)
 
+	//nolint:contextcheck // resource metadata is process-scoped, not caller-ctx-scoped
 	return cqrsotel.Setup(
 		append(setupOpts, opts...)...)
 }

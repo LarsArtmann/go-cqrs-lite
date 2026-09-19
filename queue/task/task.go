@@ -14,19 +14,22 @@ import (
 // ID identifies a task. Opaque, unique, roughly time-sortable.
 type ID string
 
-// idMintState makes NewID monotonic within a millisecond. The claim order
-// (oldest first within a priority) breaks created_at ties with `id ASC`,
-// so same-millisecond IDs must sort by mint order — a purely random
-// suffix made that tie-break a random permutation (observed as the
-// status_counts conformance flake: the wrong task got claimed ~20% of
-// runs). seed is re-rolled every millisecond so cross-process uniqueness
-// survives; seq orders same-millisecond mints inside this process.
-var idMintState = struct {
+// idMinter mints monotonic task IDs. The claim order (oldest first within a
+// priority) breaks created_at ties with `id ASC`, so same-millisecond IDs
+// must sort by mint order — a purely random suffix made that tie-break a
+// random permutation (observed as the status_counts conformance flake: the
+// wrong task got claimed ~20% of runs). seed is re-rolled every millisecond
+// so cross-process uniqueness survives; seq orders same-millisecond mints
+// inside this process.
+type idMinter struct {
 	sync.Mutex
+
 	lastMS int64
 	seq    uint64
 	seed   [6]byte
-}{}
+}
+
+var taskIDs idMinter
 
 // NewID returns a new unique task ID: a millisecond timestamp prefix plus
 // a per-millisecond random seed and a monotonic sequence. The timestamp
@@ -34,26 +37,26 @@ var idMintState = struct {
 // claim order (oldest first within a priority) relies on for stable
 // tie-breaking.
 func NewID() ID {
-	idMintState.Lock()
+	taskIDs.Lock()
 
 	now := time.Now().UnixMilli()
-	if now > idMintState.lastMS {
-		idMintState.lastMS = now
-		idMintState.seq = 0
+	if now > taskIDs.lastMS {
+		taskIDs.lastMS = now
+		taskIDs.seq = 0
 
-		if _, err := rand.Read(idMintState.seed[:]); err != nil {
-			idMintState.Unlock()
+		if _, err := rand.Read(taskIDs.seed[:]); err != nil {
+			taskIDs.Unlock()
 
 			panic(fmt.Sprintf("queue: crypto/rand failed: %v", err))
 		}
 	}
 
-	seq := idMintState.seq
-	idMintState.seq++
-	ms := idMintState.lastMS
-	seed := idMintState.seed
+	seq := taskIDs.seq
+	taskIDs.seq++
+	ms := taskIDs.lastMS
+	seed := taskIDs.seed
 
-	idMintState.Unlock()
+	taskIDs.Unlock()
 
 	return ID(fmt.Sprintf("%016x%s%08x", ms, hex.EncodeToString(seed[:]), seq))
 }

@@ -66,8 +66,6 @@ func (s *System) startTimersLocked(parent context.Context) {
 	s.timerCancel = cancel
 
 	for _, sched := range s.timers {
-		sched := sched
-
 		go func() {
 			// Start returns only on context cancellation (the documented
 			// Scheduler contract); its error is terminal noise at shutdown.

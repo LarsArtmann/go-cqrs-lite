@@ -850,6 +850,11 @@ linters:
         linters:
           - gosec
           - err113
+          # recipes_catalog*.go are a declarative classification table: each
+          # entry sets only the fields relevant to that recipes.md block
+          # (skip vs compiled scaffold variants). Requiring all six recipeSpec
+          # fields per entry would bury the table in zero-value noise.
+          - exhaustruct_v5
       - path: cmd/api-stability/
         linters:
           - gocognit
