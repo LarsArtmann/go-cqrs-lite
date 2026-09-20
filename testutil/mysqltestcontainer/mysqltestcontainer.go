@@ -40,9 +40,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
 )
 
-var (
-	serverDSN string //nolint:gochecknoglobals // test-framework cache
-)
+var serverDSN string //nolint:gochecknoglobals // test-framework cache
 
 // TestMain resolves the server DSN for the calling package's test binary
 // (env DSN > testcontainer > skip) and runs the tests. See the package
@@ -98,6 +96,7 @@ func TestMain(m *testing.M) {
 func finish(m *testing.M, cleanup func()) {
 	code := m.Run()
 
+	//art-dupl:accept test-infra twin — mysql/pg testcontainer finish helpers are dep-isolated sibling modules
 	if cleanup != nil {
 		cleanup()
 	}

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 
 	"go.opentelemetry.io/otel/attribute"

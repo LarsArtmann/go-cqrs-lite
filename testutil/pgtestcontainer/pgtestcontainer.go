@@ -130,6 +130,7 @@ func finish(m *testing.M, cleanup func()) {
 		afterRunFn(m)
 	}
 
+	//art-dupl:accept test-infra twin — mysql/pg testcontainer finish helpers are dep-isolated sibling modules
 	if cleanup != nil {
 		cleanup()
 	}
