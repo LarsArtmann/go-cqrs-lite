@@ -40,7 +40,11 @@ func (c *lineCache) getLines(path string) []string {
 
 		return nil
 	}
-	defer func() { _ = f.Close() }()
+
+	// Bare defer (C015-exempt): the module sits at its dep budget and a
+	// read-only os.File close error is not actionable — record.DeferClose
+	// is not worth a runtime dep in a static-analysis tool (ADR-0144 §4).
+	defer f.Close()
 
 	var lines []string
 

@@ -109,12 +109,12 @@ func sleep(ctx context.Context, d time.Duration) error {
 // claimRetryMaxDelay, randomized over [0, cap] so concurrent claimers
 // spread out instead of re-colliding on the next tick.
 func deadlockBackoff(attempt int) time.Duration {
-	cap_ := claimRetryBaseDelay << attempt
-	if cap_ > claimRetryMaxDelay {
-		cap_ = claimRetryMaxDelay
+	delay := claimRetryBaseDelay << attempt
+	if delay > claimRetryMaxDelay {
+		delay = claimRetryMaxDelay
 	}
 
-	return time.Duration(rand.Int64N(int64(cap_) + 1))
+	return time.Duration(rand.Int64N(int64(delay) + 1))
 }
 
 // isDeadlock reports whether err is InnoDB's deadlock (1213) or

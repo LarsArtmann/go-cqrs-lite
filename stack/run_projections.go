@@ -10,6 +10,7 @@ import (
 
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	cqrsprojection "github.com/larsartmann/go-cqrs-lite/projection/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
@@ -56,7 +57,7 @@ func (b *Bundle) RunProjections(
 			"subscribe to event stream")
 	}
 
-	defer func() { _ = catchUp.Close() }()
+	defer record.DeferClose(catchUp)
 
 	for {
 		select {

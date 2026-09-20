@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/storage/turso/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23
@@ -11,6 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
 	github.com/larsartmann/go-error-family v0.10.1
@@ -36,7 +37,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.52 // indirect
@@ -59,3 +59,5 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

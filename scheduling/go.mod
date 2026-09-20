@@ -21,3 +21,5 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	pgregory.net/rapid v1.3.0 // indirect
 )
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/projectionhost/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
@@ -36,7 +36,6 @@ require (
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 // indirect
@@ -90,6 +89,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
@@ -104,3 +104,5 @@ require (
 	go.uber.org/goleak v1.3.0
 	modernc.org/sqlite v1.59.0
 )
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

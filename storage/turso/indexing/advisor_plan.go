@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -32,7 +34,7 @@ func (a *Advisor) explain(
 		)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var plan []PlanRow
 
@@ -123,7 +125,7 @@ func (a *Advisor) userTables(ctx context.Context) ([]string, error) {
 			"list user tables")
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var tables []string
 

@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var (
@@ -202,7 +203,7 @@ func (s *SQLiteDeadLetterStore) List(
 		)
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var result []DeadLetterEntry
 

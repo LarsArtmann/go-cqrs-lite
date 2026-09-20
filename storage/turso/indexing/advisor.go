@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
@@ -194,7 +196,7 @@ func (a *Advisor) ExistingIndexes(ctx context.Context) error {
 			"list existing indexes")
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	newExisting := make(map[string]bool)
 

@@ -31,7 +31,9 @@ var (
 type StoreOption[T any] func(*storeOptions[T])
 
 type storeOptions[T any] struct {
-	codec queue.Codec[T]
+	codec        queue.Codec[T]
+	maxOpenConns int
+	maxIdleConns int
 }
 
 // WithCodec pins the payload serialization (default JSONCodec).
@@ -39,17 +41,48 @@ func WithCodec[T any](c queue.Codec[T]) StoreOption[T] {
 	return func(o *storeOptions[T]) { o.codec = c }
 }
 
+// WithMaxOpenConns bounds the pool Open creates (default
+// defaultMaxOpenConns; n <= 0 keeps the default). Only affects pools
+// Open opens — a caller-owned pool passed to OpenDB keeps its own
+// settings.
+func WithMaxOpenConns[T any](n int) StoreOption[T] {
+	return func(o *storeOptions[T]) {
+		if n > 0 {
+			o.maxOpenConns = n
+		}
+	}
+}
+
+// WithMaxIdleConns sets the pool's idle-connection count (default 2,
+// the database/sql default; n >= 0 applies as-is, so 0 disables idle
+// pooling). Only affects pools Open opens.
+func WithMaxIdleConns[T any](n int) StoreOption[T] {
+	return func(o *storeOptions[T]) {
+		if n >= 0 {
+			o.maxIdleConns = n
+		}
+	}
+}
+
 // maxOpenConns bounds the store's pool: MySQL's default max_connections
 // is 151; a small dedicated pool leaves headroom for operators and other
 // services on the same server.
 const maxOpenConns = 8
+
+// defaultMaxIdleConns mirrors database/sql's own default, stated
+// explicitly so the WithMaxIdleConns docs can name it.
+const defaultMaxIdleConns = 2
 
 // Open connects to dsn (e.g.
 // "user:pass@tcp(127.0.0.1:3306)/tasks?parseTime=true"), applies the
 // schema, and returns a ready store. The pool is store-owned: Close
 // closes it.
 func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
-	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
+	options := storeOptions[T]{
+		codec:        queue.JSONCodec[T](),
+		maxOpenConns: maxOpenConns,
+		maxIdleConns: defaultMaxIdleConns,
+	}
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -59,7 +92,8 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 		return nil, fmt.Errorf("queue/mysql: open: %w", err)
 	}
 
-	db.SetMaxOpenConns(maxOpenConns)
+	db.SetMaxOpenConns(options.maxOpenConns)
+	db.SetMaxIdleConns(options.maxIdleConns)
 
 	store := &Store[T]{db: db, codec: options.codec, ownsDB: true}
 

@@ -44,20 +44,31 @@ dependency would trade one inconsistent idiom for real dependency weight.
    `defer x.Close()` (C015-exempt, used by queue/postgres), explicit
    rollback-defers (`_ = tx.Rollback()` — wrong helper, different intent), or
    write paths where the close error is actionable.
-5. **Sweep executed in the same change:** the 29 sites listed above convert to
-   `record.DeferClose`. `queue/postgres` was audited and is already clean
-   (bare defers throughout).
+5. **Sweep executed in the same change:** the remaining sites convert to
+   `record.DeferClose` in `storage`, `storage/pebble`,
+   `storage/turso/indexing`, `scheduling/sqlstore`, `projectionhost`, `stack`,
+   and `kv` (28 sites). `queue/postgres` was audited and is already clean
+   (bare defers throughout). The one `cmd/cqrs-lint` site
+   (`pkg/suppression/linecache.go`) converts to the bare `defer f.Close()`
+   stdlib idiom instead: the tool sits exactly at its dep budget (9/9), and
+   pulling the runtime `record` library into a static-analysis tool to close
+   one read-only `os.File` fails the proportionality test — that site is the
+   documented exception, not a precedent.
 
 ## Consequences
 
 - Additive v4.x API: `record.DeferClose` (api golden regen + CHANGELOG in the
   same edit, per repo rule).
-- Dependency deltas: `kv`, `scheduling/sqlstore`, `projectionhost`,
-  `storage/turso`, and `cmd/cqrs-lint` gain `record/v4` as a direct require;
-  all stay within their `DEP_BUDGET` (kv 1/3, scheduling/sqlstore 4/7,
-  projectionhost 9/9, storage/turso 9/10, cmd/cqrs-lint 6/9 — counts verified
-  by `scripts/check-module-layers.sh` in the same change). `storage`,
-  `storage/pebble`, and `stack` already require `record`.
+- Dependency deltas: `kv`, `scheduling/sqlstore`, `projectionhost`, and
+  `storage/turso` gain `record/v4` as a direct require (`kv` moves to
+  `go 1.27.1` with it — the published record v4.5.1 declares `go 1.27.1` —
+  and `go.work` follows to `go 1.27.1`, aligning with the documented
+  toolchain contract). All stay within their `DEP_BUDGET` (verified by
+  `scripts/check-module-layers.sh` in the same change); `storage`,
+  `storage/pebble`, `stack`, and `metaengine` already require `record`.
+  Until the next release wave tags record, every touched module carries the
+  standard sibling replace (`replace .../record/v4 => ../record`), stripped
+  by `scripts/tag-release.sh` at cut time.
 - Consumers can adopt the discard-close idiom from Tier 0 without importing
   the engine substrate — the original complaint in finding 3.
 - Future close-idiom sweeps have an unambiguous target address; the

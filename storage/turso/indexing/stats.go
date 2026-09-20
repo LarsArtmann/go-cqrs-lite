@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
+
 	errorfamily "github.com/larsartmann/go-error-family"
 )
 
@@ -35,7 +37,7 @@ func Stats(ctx context.Context, db *sql.DB) ([]IndexUsageStats, error) {
 			"list indexes for stats")
 	}
 
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var stats []IndexUsageStats
 
@@ -148,7 +150,7 @@ func queryStat1(ctx context.Context, db *sql.DB) ([]stat1Row, error) {
 			"sqlite_stat1",
 		)
 	}
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var out []stat1Row
 

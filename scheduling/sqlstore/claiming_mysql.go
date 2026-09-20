@@ -9,6 +9,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -44,7 +45,7 @@ func claimDueMySQL[P any](
 	)
 
 	func() {
-		defer func() { _ = rows.Close() }()
+		defer record.DeferClose(rows)
 
 		timers, joinErr = c.scanClaimed(rows) // classifies rows.Err internally
 

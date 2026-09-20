@@ -11,6 +11,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
@@ -175,7 +176,7 @@ func (c *ClaimingTimerStore[P]) Due(
 				err, "scheduling.sqlstore.claim", "claim due timers")
 		}
 
-		defer func() { _ = rows.Close() }()
+		defer record.DeferClose(rows)
 
 		timers, joinErr = c.scanClaimed(rows)
 	}
