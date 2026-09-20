@@ -50,6 +50,10 @@ baseline="${DEP_BASELINE:-$repo_root/scripts/readme-deprecated-baseline.txt}"
 banner_lines="${DEPRECATED_BANNER_LINES:-12}"
 
 # Emits "pkg\tsymbol\tabsolute-file" rows for every deprecated export.
+# A symbol counts as deprecated only when a doc-comment LINE starts with
+# "Deprecated:" (the Go convention) — passing mid-line mentions of other
+# deprecated things (e.g. "(Deprecated: removed in v5)" field notes) do not
+# deprecate the symbol itself.
 discover_symbols() {
 	find "$src_root" -name '*.go' -not -path '*/.git/*' \
 		-not -path '*/vendor/*' -not -name '*_test.go' | while read -r f; do
@@ -57,7 +61,7 @@ discover_symbols() {
 			/^package / { pkg = $2 }
 			/^\/\// { doc = doc "\n" $0; next }
 			/^func [A-Z]/ || /^func \([^)]*\) [A-Z]/ || /^type [A-Z]/ {
-				if (doc ~ /Deprecated:/) {
+				if (doc ~ /\n\/\/ Deprecated:/) {
 					name = $0
 					sub(/^func \([^)]*\) /, "", name)
 					sub(/^func /, "", name)
@@ -148,13 +152,17 @@ func Old() {}
 
 // Fresh is the replacement.
 func Fresh() {}
+
+// Fresh2 maps legacy fields (CausationID is Deprecated: removed in v5) but
+// is itself current — a mid-line mention must NOT mark the symbol deprecated.
+func Fresh2() {}
 EOF
 	# Bare citation inside the declaring subtree: MUST flag.
 	printf '# lib readme\nUse `Old` today.\n' >"$fixture/mod/lib/README.md"
 	# Bare citation outside the declaring subtree: must NOT flag (scoping);
 	# qualified citation of the same symbol: MUST flag.
 	printf '# app readme\nUse `Old` freely, or `lib.Old`.\n' >"$fixture/mod/app/README.md"
-	printf '# clean readme\nUse `Fresh` only.\n' >"$fixture/mod/clean/README.md"
+	printf '# clean readme\nUse `Fresh` or `lib.Fresh2` only.\n' >"$fixture/mod/clean/README.md"
 	printf '# bannered readme\n\n> **Deprecated:** removed in v5. Use system.New.\n\nUse `lib.Old` freely.\n' >"$fixture/mod/bannered/README.md"
 	# Deprecation-framed citations are intentional disclosure, not drift:
 	# same-line marker and wrapped next-line marker must both be exempt.
