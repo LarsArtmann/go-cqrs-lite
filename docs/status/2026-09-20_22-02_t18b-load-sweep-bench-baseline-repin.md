@@ -1,0 +1,121 @@
+# Status Report: T18b — Load-Sweep + Benchmark Baseline Re-Pin Under Go 1.27
+
+**Date:** 2026-09-20 22:02 CEST (20:02 UTC)
+**Session scope:** T18b (plan T13 `#load-sweep` + T14 `benchmark-regression.sh --save` re-pin) from the Metaengine Universal Storage Substrate paste; T19–T21 confirmed out of scope (v5-gated).
+**Host:** shared 32-core (AMD RYZEN AI MAX+ 395); load oscillated 13–55 during the early watch; quiet window (load1/load5 < 5) opened 16:58 UTC.
+
+> Format note: skill default is a styled HTML dashboard; **explicit user instruction requested `.md`** — honored per the skill's override rule.
+
+---
+
+## a) FULLY DONE
+
+| # | What | Evidence |
+|---|------|----------|
+| A1 | **T13: `#load-sweep` PASS** — all 8 timing modules (`Latency\|Timer\|Deadline`) survived a 31-core CPU soaker under go1.27.1 | Pipeline log: "Phase 2: load-sweep PASS in 91s"; `✅ All timing-assertion tests survived CPU load` |
+| A2 | **T14: baseline re-pinned** — `benchmarks/benchmark-baseline.txt` regenerated under go1.27.1 with titled provenance header (re-pin timestamp + uptime sample + `# toolchain: go1.27.1` line) | Daemon commit `a91e7cd90`; header lines 1–4 of the committed file |
+| A3 | **Gate-set gap closed** — the 5 missing entries landed: claimkit ×4 (`ClaimDue`, `TimerRoundTrip`, `DedupFreshKeys`, `DedupLiveWindowHit`) + anchored `BenchmarkBenchkitSuite_SQLite` | Compare summary: "new in current" ×5; per-name counts 5 samples each in the committed file (MatView 70 = 14 variants × 5) |
+| A4 | **Compare vs 2026-09-11 baseline: 0 regressions, 15 improvements, 1 stable** | Attempt-2 log summary line |
+| A5 | **Noise-gate protection proven live** — attempt 1 (save during a marginal ramp) was rejected, suspect file auto-restored from backup, attempt 2 clean at load 3.02/4.95 | Pipeline log 17:11→17:12 UTC |
+| A6 | **Gate set pre-verified against source** — all 5 gate bench names exist with exact spellings (`metaengine/claimkit/bench_test.go:91-272`, `stack/bench/benchkit_suite_test.go:31`); `_Small` variant cannot match the anchored regex | grep evidence in session |
+| A7 | **Provenance-insertion fixture-tested** before arming — synthetic new-format header: insertion exact, 80/80 benchmark lines preserved; old-format file = safe no-op (parser ignores `#`) | `/tmp` fixture run in session |
+| A8 | **Autonomous quiet-window pipeline built + armed** (detached via setsid, survived ~1.5h of session-independence): quiet wait → calibration-gate → load-sweep → settle → calibration-gate → `--save` (3 noise-verified attempts, auto-restore) → toolchain provenance → verification leg; 8h deadline | `/tmp/t18b_pipeline.sh`, log `/tmp/t18b-pipeline.log` |
+| A9 | **TODO_LIST reconciled with evidence** — row 34 T18b → DONE (dated, with caveat); row 39 "re-baseline" remainder → DONE; row 306 clause (c) re-pin → DONE 2026-09-20; **new row 40** opened for the noise-gate finding (section d1/d2 below) | TODO_LIST lines 37–40, 310 |
+| A10 | **T19–T21 left untouched** — v5-gated per ADR-0142 §2 ("capability-interface path in v4.x; universal fold at v5"); contract-21g discipline holds | ADR-0142 §2; TODO row 38 unchanged |
+
+## b) PARTIALLY DONE
+
+| # | What works | What remains | Blocker |
+|---|-----------|--------------|---------|
+| B1 | **Local verification gate vs the new baseline** — the mechanism works (4 full gate runs executed; noise-rejection + restore logic proven) | **No green verification recorded.** All 4 runs were noise-gate-rejected: `write_p99_ns` CoV 11.5% → 20.6% → 22.5% (threshold 10%), including a deep-quiet window (load 2.89/4.23) and `--noise-repeat 7`. Each run's single >25% median flag landed on a *different* matview variant (MIN twice, SUM_VIA_GROUPED once) — sampling noise, never reproduced. Effort to close: S *once the gate policy is ruled* (question 1) | The gate's p99 headline metric is intrinsically at-threshold on this host (see d2) |
+| B2 | **Calibration protocol row 306(c)** — re-pin half is DONE (A2) | `SearchQuery` count=5 quiet re-run (supersede rule: medians moving >5%) still pending a gate-passing window | Pre-existing pending item; not started tonight (out of T18b scope) |
+
+## c) NOT STARTED (within this session's reachable scope; honest inventory)
+
+| # | Item | Why not started | Still wanted? |
+|---|------|-----------------|---------------|
+| C1 | T19–T21: fold capabilities into universal `Engine`, delete duplicate SQL stacks, release train | **v5-gated per ADR-0142 §2 — deliberately NOT executed in v4.x** | Yes, at v5 |
+| C2 | Row 306(d): re-anchor ALL dgraph constants in one gate-passing window | Separate campaign; tonight's window was consumed by T18b + verification attempts | Yes |
+| C3 | Promote the session-local quiet-window pipeline into standing `scripts/` tooling (the W2 "quiet-window verify tooling" row) | Built as `/tmp` session tooling; promotion is a design decision (flags, self-test, CI wiring) | Yes |
+| C4 | Gate-config fix for the `write_p99_ns` flake (row 40) | Owner policy call — I do not change gate semantics unilaterally | Yes, blocking B1 |
+| C5 | `api-stability` TestEvery green + composed `#verify`/`#verify-ci` re-record (W1 siblings) | Different W1 tasks owned by other rows/sessions; not touched tonight | Yes |
+
+## d) TOTALLY FUCKED UP
+
+**D1 — `benchmark-regression.sh --save` writes a baseline EVEN WHEN THE NOISE GATE FAILS.** Severity: **data-integrity of the perf regression gate.** The script's own header protocol demands a calibration-gate PASS before local re-pins, and the noise gate exists precisely to declare runs non-decision-grade — yet the save path runs "after the comparison and regardless" *including* noise-failed runs (script lines 461–477). Tonight attempt 1 wrote a suspect baseline mid-ramp; only my external pipeline guard (backup + restore) prevented it from being committed. Any future session that runs the documented one-liner `--save` during a marginal window pins a polluted baseline and every subsequent gate compare lies. Workaround: external guard (what I built). Proper fix: refuse `--save` on noise-gate failure unless an explicit `--force-save` override is passed (intentional re-baselines after perf changes keep working). — *Filed as next-task #2; this is the single most valuable finding of the session.*
+
+**D2 — The gate cannot close its own loop on this host: `write_p99_ns` is chronically over the 10% CoV threshold.** Severity: **high** — every local re-pin ends with a red verification, and whether a *save* passes its own noise gate is a coin flip (tonight: 1 pass in 5 runs). Evidence: CoV 11.5% (load ~4), 20.6% (load ~4-5), 22.5% (load 2.89, repeat 7 — *worse when quieter*); the other three headline metrics (`write_throughput`, `write_p50_ns`, `load_p50_ns`) stayed stable throughout. Root cause (mechanism-level, confident): an extreme-quantile estimator over ~100-iteration runs has intrinsic cross-run variance — this is not machine load, it is the metric. Compounding: `BenchmarkMatViewRead/agg=MIN/scale=1k/matview` is bimodal within runs (samples 7.9–15µs), so the 25% median-of-5 compare flags a random matview variant per run. Filed as TODO row 40 with decision options.
+
+**D3 — My process stumbles (all caught, none shipped broken, listed for honesty):**
+- First pipeline launch was **not detached** — it would have died with the session and the window opened 90 minutes later. Caught, relaunched with `setsid`. Cost: one redundant launch.
+- **TODO_LIST edit raced a concurrent session twice** (stale-read rejections at 17:51). No damage (row text was unchanged, only relocated), but I should have re-checked for concurrent edits immediately after the first rejection instead of retrying blind.
+- A **grep quoting artifact produced a false alarm** ("only 20 of 25 expected entries") — per-name recounts showed all 25 present. The combined `A\|B` pattern under-counted; unexplained in detail, superseded by per-name evidence. Cost: one verification cycle.
+- The verify-watcher **v1 had wrong retry semantics** (would have exit-flagged a noise+regression combo as "real" — exactly the combination phase-5 produced). Caught in self-review before launch; v2 fixed. It almost shipped wrong.
+- The **fixture-test command's diff logic** printed a spurious "fixture diff UNEXPECTED" — confusing evidence output, though the follow-up synthetic test was clean.
+
+## e) WHAT WE SHOULD IMPROVE
+
+1. **Detach long-running watchers on first launch** (setsid/nohup by default, not as a recovery). Impact: session-independent execution is the whole point of a quiet-window waiter. Fix: standard snippet in any future pipeline.
+2. **Assume concurrent sessions on shared files** (TODO_LIST, plans): `view` the exact lines immediately before every edit; expect daemon churn between reads. Impact: avoided corrupted edits tonight only by luck + tool staleness checks.
+3. **Make `--save` self-defending** (D1 fix): the tool should enforce its own protocol, not rely on external wrappers. Impact: removes a silent data-corruption footgun for every future session.
+4. **Record gate evidence inside the artifact**: save header should include the noise verdict + per-metric CoV table + `go env GOVERSION` (I post-hoc inserted the toolchain line; the script should own it). Impact: baselines become self-auditing.
+5. **Per-attempt log isolation from v1** (v2 did this; v1 grepped a shared log and mis-summarized once). Impact: trustworthy attempt summaries.
+6. **Machines emit machine-readable evidence**: pipeline should append a JSON block (phases, rc, durations, load samples, gate verdicts) for status reports and HARVEST. Impact: tonight's report was reconstructed from prose logs.
+7. **Ephemeral evidence**: key logs live in `/tmp` (evicted on reboot). Copy decisive excerpts into `docs/benchmarks/` or the report itself. Impact: tonight's CoV series is only in this report once /tmp clears.
+8. **Pre-flight everything cheap**: `bash -n` all scripts, `nix eval` app paths (done for `#load-sweep` — paid off), fixture-test sed/awk mutations (done — paid off). Keep this pattern.
+
+## f) NEXT TASKS (harvest candidates — sorted by impact; ★ = already in TODO_LIST from this session)
+
+| # | Task | Impact | Effort | Category |
+|---|------|--------|--------|----------|
+| 1 | ★ Rule on row 40: fix `write_p99_ns` noise-gate flake (p99-aware threshold / p50+max headline pair / higher default repeat / document as known-flaky) | Critical | S | Decision |
+| 2 | Harden `benchmark-regression.sh`: refuse `--save` when the noise gate failed, unless `--force-save` | Critical | S | Bug |
+| 3 | ★ Re-run local verification gate to green under the ruled config; attach evidence to rows 34/40 | High | S | Verification |
+| 4 | Investigate `MIN/matview` bimodality (7.9–15µs): perf stat, freq governor, memory alignment | High | M | Bug |
+| 5 | Widen matview gate entries (benchtime 100x→1000x or count 5→9) after #4; measure cost first | High | S | Quality |
+| 6 | Auto-record noise verdict + CoV table + `GOVERSION` in the `--save` header | High | S | Quality |
+| 7 | ★ Promote quiet-window pipeline → `scripts/quiet-window-run.sh` (flags: `--ceiling`, `--deadline`, `--noise-repeat`, `--skip-load-sweep`) + `--self-test` with planted loadavg fixtures | High | M | Feature |
+| 8 | Decide whether local green verification is a required re-pin acceptance (question 3); codify the answer in the script header + calibration protocol doc | High | S | Decision |
+| 9 | SearchQuery count=5 quiet re-run (row 306c remainder; supersede rule >5%) | High | S | Verification |
+| 10 | Dgraph constants re-anchor campaign (row 306d) | High | M | Quality |
+| 11 | Case-study appendix in `docs/benchmarks/calibration-2026-08-30.md` §Protocol from tonight's 5-run trace (one noise-clean save, four rejected verifications) | Medium | S | Documentation |
+| 12 | Investigate `SUM_VIA_GROUPED/baseline` one-off +34.5% (1073µs outlier samples in run 3) | Medium | S | Bug |
+| 13 | Confirm CI's `benchmark-baseline` artifact gained the 5 new entries (else first CI run reports informational "new in current" forever) | Medium | S | Quality |
+| 14 | Sweep other local gates for fragile p99-style thresholds on ~100-iteration estimators | Medium | M | Quality |
+| 15 | `api-stability` TestEvery green record (W1 remainder, untouched tonight) | High | S | Verification |
+| 16 | Composed `#verify` re-record post-re-pin (baseline is data-only; cheap sanity) | Medium | S | Verification |
+| 17 | `docs/agents/gotchas-testing.md`: add bench re-pin + p99-noise caveat (quiet window ≠ decision-grade; check the noise verdict, not just load) | Medium | S | Documentation |
+| 18 | Preserve tonight's decisive log excerpts under `docs/benchmarks/` before `/tmp` eviction | Medium | S | Cleanup |
+| 19 | Pipeline emits JSON evidence block (phases, rc, durations, load, verdicts) | Medium | S | Quality |
+| 20 | Deep-quiet window probe/logger: sample loadavg for a week, output best re-pin windows | Medium | M | Feature |
+| 21 | Decide whether claimkit DirectSQL A/B benches join the gate set (T18's original point; dep-budget review first) | Medium | S | Decision |
+| 22 | Nightly baseline-freshness job tied to nightly-gates (W2) | Medium | M | Feature |
+| 23 | Add dated DONE addendum to the 2026-09-18 SUPERB plan's T18b row (reconcile rule: banner/addendum, never rewrite) | Low | S | Documentation |
+| 24 | Annotate TODO row ~81's pointer ("remaining bench re-pin is T18b/T14") as resolved | Low | S | Documentation |
+| 25 | Audit other baselines predating the 1.27 toolchain (`audit-tag-baseline.txt`, calibration entries) for the same staleness class | Medium | S | Quality |
+| 26 | Run `nix run .#check-release-scripts` after #2/#6/#7 script changes (self-test gate) | Medium | S | Process |
+| 27 | SKILL/docs reference for the promoted quiet-window tooling (doc-check scan set) | Low | S | Documentation |
+| 28 | Evaluate `--count` bump (5→9) for median-of-N stability on µs-scale gate benches, with runtime cost measurement | Medium | M | Quality |
+| 29 | Verify the daemon committed tonight's TODO_LIST edits; capture the hash into row 34's evidence | Low | S | Cleanup |
+| 30 | Refresh stale load claims in TODO rows ("load at 28-74 all day") after tonight's data | Low | S | Cleanup |
+| 31 | If #2 lands, add a regression fixture: noise-fail + `--save` must NOT write (mutation-tested golden per repo convention) | Medium | S | Quality |
+| 32 | Codify #8's answer as an ADR or decision record if it changes gate semantics | Medium | S | Documentation |
+| 33 | Consider moving `# toolchain:` provenance into the script (supersedes my post-hoc awk; keep the fixture test) | Medium | S | Quality |
+| 34 | Retire `/tmp/t18b_*.sh` after #7 promotion | Low | S | Cleanup |
+| 35 | Re-check baseline parseability gate: add a fixture asserting `#`-line additions never break `medians()` (protects future header growth) | Medium | S | Quality |
+
+**Harvest note:** ★ items plus sections (a)/(b) states are already reflected in TODO_LIST (rows 34, 39, 40, 306c — done this session). The remaining rows are brainstorm-grade candidates; route through docs-health HARVEST on instruction.
+
+## g) QUESTIONS I CANNOT ANSWER MYSELF
+
+Tried and failed: (1) re-ran the verification gate 4× including deep-quiet + repeat 7 — the failure follows the metric, not the machine; (2) read the script's protocol comments, calibration doc, plan acceptance criteria — none state whether a re-pin needs a green local verification, and none authorize changing the headline set.
+
+**Q1 (row 40 ruling):** Which fix for the `write_p99_ns` noise-gate flake — (a) p99-aware CoV threshold, (b) replace the headline set with `write_p50_ns + write_max_ns`, (c) raise default `--noise-repeat` and accept slower gates, or (d) declare it known-flaky and document? The answer unblocks the entire local verification story (B1/#3).
+
+**Q2 (tool hardening):** Should `benchmark-regression.sh` refuse `--save` on a noise-gate failure (with `--force-save` for intentional re-baselines)? The current save-regardless behavior is the D1 footgun; but maybe save-regardless is deliberate for the "overwrite even a regressed baseline" workflow and you prefer wrapper-guarding.
+
+**Q3 (acceptance semantics):** Is a local green verification-vs-new-baseline a required acceptance for future re-pins, or is a noise-clean save sufficient given CI compares against its own runner-class artifact? Tonight I treated green verification as required and spent ~1h on it; the repo's written criteria (W1-done, script header) only require the provenance-carrying save.
+
+---
+
+*Evidence artifacts (ephemeral `/tmp`, excerpts embedded above): `/tmp/t18b-pipeline.log`, `/tmp/t18b-verify.log`, `/tmp/t18b-verify2.log`, `/tmp/t18b-verify2-run.log`, `/tmp/t18b-save-attempt{1,2}.log`, pre-run backup `/tmp/benchmark-baseline.pre-t18b.txt`. Key commit: `a91e7cd90` (baseline re-pin, daemon-committed). TODO_LIST edits ride the auto-commit daemon per repo convention — no manual commit per harness contract.*
