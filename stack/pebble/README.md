@@ -2,6 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/pebble/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/pebble/v4)
 
+> **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
+> composition root — pass the equivalent engine and codec options there.
+
 Embedded PebbleDB stack preset. All capabilities share one LSM tree via disjoint key prefixes. Adds backup, snapshot, and metrics capabilities on top of the base `Bundle`.
 
 ```bash

@@ -2,6 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/memory/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/memory/v4)
 
+> **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
+> composition root — pass the equivalent engine and codec options there.
+
 The fastest way to get a working `Bundle` for development, testing, and prototyping. Every capability is wired from in-memory implementations.
 
 ```bash

@@ -2,6 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4)
 
+> **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
+> composition root — pass the equivalent engine and codec options there.
+
 Recommended persistent preset for single-node deployments. Uses a single SQLite database file with WAL mode and auto-migration.
 
 ```bash

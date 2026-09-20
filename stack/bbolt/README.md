@@ -2,6 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4)
 
+> **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
+> composition root — pass the equivalent engine and codec options there.
+
 One-call [stack.Bundle](../) preset backed by [bbolt](../../storage/bbolt/) (B+tree, pure Go).
 
 ```bash

@@ -2,6 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/turso/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/turso/v4)
 
+> **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
+> composition root — pass the equivalent engine and codec options there.
+
 Embedded Turso database preset with optional remote sync. Offline-first architecture: work locally with a SQLite-compatible embedded database, sync to a remote Turso server when connectivity allows.
 
 ```bash

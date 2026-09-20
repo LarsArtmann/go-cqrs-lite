@@ -1,5 +1,8 @@
 # storage/view — Queryable SQL Read Model Store
 
+> **Deprecated:** removed in v5 (ADR-0123) — metaengine engines with layout
+> planning replace this module.
+
 The view store persists projection state in SQL tables with **queryable columns** —
 unlike blind KV stores, you can filter, order, and paginate by column values directly
 in SQL. Designed for read models materialized by CQRS projections.

@@ -2,6 +2,9 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/stack/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/stack/v4)
 
+> **Deprecated:** removed in v5 (ADR-0123). `system.New` is the single
+> composition root — pass the equivalent engine and codec options there.
+
 The composition root for go-cqrs-lite. A `Bundle` is a bag of peer capability fields (event sink/source, journals, publishers, snapshot store, checkpoint store, read-model backend) that a deployment wires together. Plus `Materialize[V,K]` — the tombstone-aware projection builder.
 
 ```bash
