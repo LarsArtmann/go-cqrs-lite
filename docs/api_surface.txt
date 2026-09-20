@@ -5071,6 +5071,8 @@ scheduling/engine/struct TimerStore
 scheduling/engine/struct TimerStore
 scheduling/engine/type Option
 scheduling/engine/type Option
+scheduling/engine/var ErrEngineNotDueClaimer
+scheduling/engine/var ErrEngineNotDueClaimer
 scheduling/func MustParseTimerID
 scheduling/func New
 scheduling/func NewMemoryTimerStore

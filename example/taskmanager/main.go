@@ -33,7 +33,12 @@ func main() {
 
 	help := flag.Bool("help", false, "print this usage and exit")
 	flag.StringVar(&cfg.HTTPAddr, "addr", cfg.HTTPAddr, "HTTP listen address")
-	flag.StringVar(&cfg.DatabasePath, "db", cfg.DatabasePath, `SQLite database path (":memory:" keeps everything in RAM)`)
+	flag.StringVar(
+		&cfg.DatabasePath,
+		"db",
+		cfg.DatabasePath,
+		`SQLite database path (":memory:" keeps everything in RAM)`,
+	)
 	flag.Parse()
 
 	if *help {

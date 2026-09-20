@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **scheduling/engine: `ErrEngineNotDueClaimer` sentinel.**
+  `NewTimerStore` rejected capability-less engines with a dynamic
+  `fmt.Errorf` (unmatchable by `errors.Is`); it now wraps a static sentinel,
+  so callers can branch on the ADR-0142 capability rejection. The lint debt
+  that surfaced with it (duplicate package godocs in 12 metaengine files,
+  `exhaustruct`/`prealloc`/`usetesting` findings) is fixed in the same pass.
+- **README deprecation-honesty gates:** `scripts/check-readme-links.sh`
+  (all 95 module READMEs through the fence-aware link checker — 673 relative
+  targets, 0 broken) and `scripts/check-readme-deprecated.sh`
+  (package-scoped, framing-aware: flags deprecated symbols cited as living
+  API; qualified `pkg.Sym` matches by declaring package, bare `Sym` only
+  within the README's subtree, deprecation-framed citations exempt; 7-leg
+  mutation-tested self-test) — both wired into the nightly gates workflow.
+  The ADR-0123 sweep that shipped with them banners all 8 stack presets +
+  `stack` + `storage/view` READMEs (mirroring their doc.go deprecations) and
+  migrates legacy citations in 13 living-package READMEs; the
+  `readme-deprecated-baseline.txt` ratchet starts at zero.
 - **encryption: key-management + envelope docs, wire goldens, and a v1↔v2
   decode-symmetry property.** README now documents the previously
   undocumented key lifecycle surfaces — `GenerateKey`/`GenerateKeyBase64`,
