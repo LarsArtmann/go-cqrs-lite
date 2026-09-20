@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** DECISION RECORD — stands (re-checked by this pass, 2026-09-20: no ports-without-core consumer population has emerged; the falsifiers below remain unmet). Archived as a completed decision record; the live statement lives in ROADMAP §Non-Goals.
+
 # Re-review: Do NOT split the `event/` module
 
 > **Date:** 2026-09-13

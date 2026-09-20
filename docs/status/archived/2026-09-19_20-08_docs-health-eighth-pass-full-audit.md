@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** Eighth-pass follow-through executed by the 2026-09-19/20 sessions: gate battery green (23-21 §a6), the 92-tag wave cut/pushed/published (10-25 + 09-40 reports), composed `#verify` GREEN with the S03 record (16-39), `check-doc-annotations.sh` + `check-canonical-facts.sh` shipped (T19/T20), module-map census 95/95, TODO `[x]` sweep (34 blocks). §g1's annotation-gate question was answered by T19's marker-OR-banner gate (option c). Open tails live in [TODO_LIST.md](../../../TODO_LIST.md): T18b bench baselines, upstream filings (exhaustruct panic, go/types race, turso-go), G-T01/Zenoh owner rulings, FEATURES maturity-matrix census.
+
 # Status Report — Docs-Health 8th Pass: Full Audit (Annotate + Harvest + Archive + Living-Docs Repair)
 
 **Date:** 2026-09-19 20:08 CEST

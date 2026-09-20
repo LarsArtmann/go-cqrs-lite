@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** Final wave state: 92/92 tags pushed, proxy-served, 92 GitHub Releases; the four CI root-cause classes fixed; the coverage re-baseline landed. §f's 50 items were harvested into [TODO_LIST.md](../../../TODO_LIST.md) by this pass (release-train CI/tooling polish tail + goal-shaped-app rows); owner questions ride the W3 owner bundle (`2026-09-20_11-36_owner-bundle-w3.md`).
+
 # Status Report: 92-Tag Release Train Executed End-to-End + CI Triage (templ war, daemon races, forward pins)
 
 **Date:** 2026-09-20 10:25 CEST

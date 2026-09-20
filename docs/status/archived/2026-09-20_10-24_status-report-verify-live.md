@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** Superseded hours later: attempt 4 died in the 10:31 concurrent corruption (10-56 report), the tree was repaired, and the S03 record landed GREEN at 15:04 (16-39 report). §f items are done or tracked in [TODO_LIST.md](../../../TODO_LIST.md).
+
 # Status Report: Publish-and-Prove Execution — W0 Verified, W2 Code Wave Landed, Composed Verify LIVE
 
 **Date:** 2026-09-20 10:24 CEST · **Session:** 2026-09-19 22:44 → ongoing (reboot gap 04:15–08:39)

@@ -1,3 +1,6 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** research complete — the §6 verdict is final
+> for v4.x (not scheduled; revisit conditions in §6's last paragraph). No open tasks.
+
 # scheduling/ on systemd-timers — feasibility analysis (2026-09-18)
 
 **Status:** RESEARCH — exploratory, no decision taken. Motivated by the v5

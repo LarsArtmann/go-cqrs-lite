@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** SUPERSEDED-SNAPSHOT (kept for ranking rationale since the 8th pass, archived by this pass): the queue arc, Go 1.27 wave, lint-zero, and ADR-0143 all landed after this snapshot; every open thread lives in [TODO_LIST.md](../../../TODO_LIST.md), the living source.
+
 # SUPERB Pareto Execution Plan v2 — 2026-09-13
 
 > **Point-in-time snapshot** of [`TODO_LIST.md`](../../TODO_LIST.md) (717→763

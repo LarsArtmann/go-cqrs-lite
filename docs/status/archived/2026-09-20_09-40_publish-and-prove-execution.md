@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** Fully closed: W0 verified end-to-end; T01 composed verify GREEN (S03, 2026-09-20 15:04 — 16-39 report); T13 load-sweep + T15 verify-ci GREEN (16-39 §a); T14 deliberately deferred to the next quiet window (recipe in 16-39); W2 slices landed (T27 pushdown, T28 ctx-tx ports, T22 stamps, T29-docs, T44-selftest, T47/T48). Remaining: the W3 owner bundle (`2026-09-20_11-36_owner-bundle-w3.md`, OPEN) and TODO_LIST-tracked tails.
+
 # Publish-and-Prove Execution: W0 verified end-to-end, W2 code fixes landed, verify gated on host load
 
 > Session start 2026-09-19 22:44, resumed post-reboot 08:39 (host rebooted ~04:15; all

@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** CLOSED: M10–M12 (CRM ctx-tx ports to pg/mysql/duckdb) SHIPPED 2026-09-20 (09-40 §a8; TODO_LIST rows struck); M18 (camelCase pushdown) SHIPPED (T27, 09-40 §a7); M3 superseded by the stronger S03 composed-green record (16-39); M9 (T18b) is the only plan item still open — tracked in [TODO_LIST.md](../../../TODO_LIST.md); M14/M15/M16 tails tracked in TODO_LIST. Archived as a fully-routed record.
+
 # SUPERB Plan: Verify-Green Gate → Substrate Ship (Tag Wave) → CRM Correctness Ports
 
 > **Status addendum (2026-09-19 23:59 — verify-green execution session).** This plan is a

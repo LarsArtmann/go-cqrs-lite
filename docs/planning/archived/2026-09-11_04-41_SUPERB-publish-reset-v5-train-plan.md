@@ -1,3 +1,5 @@
+> **RESOLVED — docs-health 9th pass (2026-09-20):** CLOSED: S02 DONE — the 92-tag train was cut, pushed, and published with 92 GitHub Releases (2026-09-19/20; `watermill/v4.6.1` shipped, so go-localsync's workaround can die); S03 DONE — composed `#verify` GREEN with the S03 record (2026-09-20, 16-39 report); S04's remaining classes fixed (10-25 §a11: color env, stale go-finding pins, shallow checkout, CGo cwd); S07 tail superseded by `cmd/cqrs-lint/v4.12.0`; S09 shipped (integration-tag-lint gate, ROADMAP Release History). S26–S30 remain v5/owner-gated and live in [TODO_LIST.md](../../../TODO_LIST.md) (v5 Unification, matview routing, decision bundle). Archived as an executed plan.
+
 # SUPERB — Publish, Reset & v5 Train: Pareto Execution Plan v2 (post-5th-audit)
 
 > **When:** 2026-09-11 04:41 CEST · **Input:** the TODO_LIST rebuilt by the 5th docs-health audit (2026-09-11, [`docs/status/archived/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md`](../status/archived/2026-09-11_04-35_docs-health-fifth-pass-full-audit.md)) + the 97 open checkboxes verified during planning.
