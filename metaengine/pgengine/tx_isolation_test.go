@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	pgengine "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestPGEngine_TxIsolationFromForeignContext pins the transaction

@@ -39,7 +39,10 @@ func TestExtractFieldsGoNameColumnsOverSnakeTags(t *testing.T) {
 	got := metaengine.ExtractFields(view, goNameColumns)
 	for _, col := range goNameColumns {
 		if got[col.Name] == nil {
-			t.Errorf("column %s extracted as nil — camelCase filterable fields over snake_case json tags silently NULL again (the 2026-09-18 CRM pushdown bug)", col.Name)
+			t.Errorf(
+				"column %s extracted as nil — camelCase filterable fields over snake_case json tags silently NULL again (the 2026-09-18 CRM pushdown bug)",
+				col.Name,
+			)
 		}
 	}
 

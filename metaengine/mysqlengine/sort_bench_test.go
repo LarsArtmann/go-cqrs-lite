@@ -59,7 +59,8 @@ func seedSortBench(tb testing.TB, e *mysqlEngine, col string) {
 		stmt := "INSERT INTO meta_map (collection, `key`, value) VALUES " +
 			strings.TrimSuffix(b.String(), ",") +
 			" ON DUPLICATE KEY UPDATE value = VALUES(value)"
-		if _, err := e.conn(context.Background()).ExecContext(context.Background(), stmt); err != nil {
+		if _, err := e.conn(context.Background()).
+			ExecContext(context.Background(), stmt); err != nil {
 			tb.Fatalf("seed sort bench: %v", err)
 		}
 

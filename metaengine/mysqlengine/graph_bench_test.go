@@ -46,7 +46,8 @@ func seedGraphBench(tb testing.TB, e *mysqlEngine, col string, nodes int) {
 
 		stmt := "INSERT IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES " +
 			strings.TrimSuffix(b.String(), ",")
-		if _, err := e.conn(context.Background()).ExecContext(context.Background(), stmt); err != nil {
+		if _, err := e.conn(context.Background()).
+			ExecContext(context.Background(), stmt); err != nil {
 			tb.Fatalf("seed graph bench: %v", err)
 		}
 

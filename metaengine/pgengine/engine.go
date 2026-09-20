@@ -1,4 +1,4 @@
-// Package pgengine provides a Postgres-backed metaengine Engine.
+// Engine construction and capability surface.
 //
 // Postgres is a mature relational database with JSONB support. This engine
 // implements MapBackend, CounterBackend, and ScanBackend with Postgres-specific

@@ -58,7 +58,7 @@ type duckdbEngine struct {
 	db          *sql.DB
 	persistence metaengine.Persistence
 	mu          sync.Mutex
-	took        bool                   // closed flag
+	took        bool // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.RWMutex
 }

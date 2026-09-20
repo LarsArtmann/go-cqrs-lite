@@ -1,4 +1,4 @@
-// Package metaengine cost model for the planner.
+// Cost model for the planner.
 //
 // HONESTY NOTE: This is a rough first-order model, not a calibrated query
 // optimizer. Per-engine cost constants come from calibration benchmarks

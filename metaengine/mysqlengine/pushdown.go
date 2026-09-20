@@ -147,7 +147,8 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 
 		// MySQL doesn't support CREATE INDEX IF NOT EXISTS; ignore duplicate
 		// index errors gracefully.
-		if _, err := e.conn(context.Background()).ExecContext(context.Background(), ddl); err != nil {
+		if _, err := e.conn(context.Background()).
+			ExecContext(context.Background(), ddl); err != nil {
 			// Error code 1061 = Duplicate key name (index already exists).
 			if !isDuplicateIndexErr(err) {
 				return fmt.Errorf("mysqlengine.ApplyLayout: create index %s: %w", idxName, err)

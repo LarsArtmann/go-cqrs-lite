@@ -23,4 +23,10 @@
 //
 //	DuckDBNsPerOp   = 15_000  (batch multi-VALUES INSERT, measured ~8,950 ns/row)
 //	DuckDBNsPerRead =  1_200  (vectorized scan + aggregation, measured 111-810 ns/row)
+//
+// # Experimental
+//
+// Part of the metaengine family — the cost-based storage planner and its
+// engine backends are experimental: the API may change between minor
+// versions (FEATURES.md, "Metaengine: EXPERIMENTAL").
 package duckdbengine

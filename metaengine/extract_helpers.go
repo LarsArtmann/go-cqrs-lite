@@ -48,7 +48,8 @@ func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 					continue
 				}
 
-				if strings.EqualFold(JSONFieldName(f), c.Name) || strings.EqualFold(f.Name, c.Name) {
+				if strings.EqualFold(JSONFieldName(f), c.Name) ||
+					strings.EqualFold(f.Name, c.Name) {
 					result[c.Name] = rv.Field(i).Interface()
 
 					break
