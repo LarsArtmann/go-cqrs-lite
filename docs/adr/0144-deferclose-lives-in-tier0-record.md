@@ -31,9 +31,14 @@ dependency would trade one inconsistent idiom for real dependency weight.
    so most of the remaining sweep converts with **no dependency change at
    all**. The signature accepts `io.Closer`: every target (*sql.Rows, Pebble
    iterators/batches, closer handles) satisfies it structurally.
-2. **`metaengine.DeferClose` stays, forwarding to `record.DeferClose`.** Its
-   public API is load-bearing (70+ call sites); no deprecation. One
-   implementation, two addresses.
+2. **`metaengine.DeferClose` stays as a self-contained twin.** Its public API
+   is load-bearing (70+ call sites); no deprecation. Forwarding to
+   `record.DeferClose` was considered and rejected: every module that
+   compiles `metaengine` from source via a sibling replace (the whole
+   dep-isolated engine family) would need a matching `record` replace too —
+   a ~15-module go.mod ripple to deduplicate a one-line body. The two
+   implementations are pinned by doc comments pointing at ADR-0144; the
+   release wave collapses them the next time both modules tag anyway.
 3. **The first Tier-0 sibling edge (`kv` → `record`) is sanctioned.**
    `check-module-layers.sh` allows same-layer dependencies; `record` stays
    zero-dep, so the edge introduces no cycle and no bloat. `kv` is blind
