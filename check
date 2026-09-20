@@ -1,0 +1,2 @@
+bash: /tmp/batch-release.sh: No such file or directory
+--audit names dead/v2.0.02
