@@ -19,16 +19,95 @@
 #   - config block absent/empty → the corruption signature; restore from golden.
 #
 # Usage: bash scripts/restore-depguard.sh   (called from check-depguard.sh)
+#        bash scripts/restore-depguard.sh --self-test
 # Exit:  0 when the config is healthy or was repaired, 1 when a human must
 #        decide (partial shrinkage) or the golden is missing and cannot be
 #        bootstrapped.
 
 set -euo pipefail
 
-cd "$(git rev-parse --show-toplevel)"
+# RD_ROOT: internal hook for --self-test fixtures (same pattern as
+# CALIB_GATE_LOADAVG_FILE — point the script at a planted tree).
+if [ -n "${RD_ROOT:-}" ]; then
+	cd "$RD_ROOT"
+else
+	cd "$(git rev-parse --show-toplevel)"
+fi
 
 CONFIG=.golangci.yml
 GOLDEN=scripts/depguard-block.golden.yml
+
+if [ "${1:-}" = "--self-test" ]; then
+	RD_TMP="$(mktemp -d)"
+	trap 'rm -rf "${RD_TMP:-}"' EXIT
+	mkdir -p "$RD_TMP/scripts"
+
+	cat >"$RD_TMP/.golangci.yml" <<'YML'
+linters:
+  settings:
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: github.com/larsartmann/go-cqrs-lite
+          allow:
+            - $gostd
+            - example.com/alpha
+            - example.com/beta
+YML
+	cat >"$RD_TMP/scripts/depguard-block.golden.yml" <<'YML'
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: github.com/larsartmann/go-cqrs-lite
+          allow:
+            - $gostd
+            - example.com/alpha
+            - example.com/beta
+YML
+
+	echo "━━━ restore-depguard self-test ━━━"
+	failures=0
+
+	# Leg 1: healthy config passes untouched.
+	before=$(sha256sum "$RD_TMP/.golangci.yml" | cut -d' ' -f1)
+	RD_ROOT="$RD_TMP" "$0" >/dev/null 2>&1 || failures=$((failures + 1))
+	after=$(sha256sum "$RD_TMP/.golangci.yml" | cut -d' ' -f1)
+	if [ "$before" = "$after" ] && [ "$failures" -eq 0 ]; then
+		echo "  ✓ PASS: healthy config untouched"
+	else
+		echo "  ✗ FAIL: healthy config must pass unchanged"
+		failures=$((failures + 1))
+	fi
+
+	# Leg 2: deleted block gets spliced back from the golden.
+	grep -v -e 'depguard:' -e 'deny:' -e 'pkg:' -e 'allow:' -e 'gostd' -e 'example.com' \
+		"$RD_TMP/.golangci.yml" >"$RD_TMP/.golangci.yml.m" && mv "$RD_TMP/.golangci.yml.m" "$RD_TMP/.golangci.yml"
+	RD_ROOT="$RD_TMP" "$0" >/dev/null 2>&1 || failures=$((failures + 1))
+	if grep -q 'example.com/alpha' "$RD_TMP/.golangci.yml"; then
+		echo "  ✓ PASS: deleted depguard block restored from golden"
+	else
+		echo "  ✗ FAIL: block was not restored"
+		failures=$((failures + 1))
+	fi
+
+	# Leg 3: partial shrinkage refuses loudly (no silent auto-repair).
+	sed -i '/example.com\/beta/d' "$RD_TMP/.golangci.yml"
+	if RD_ROOT="$RD_TMP" "$0" >/dev/null 2>&1; then
+		echo "  ✗ FAIL: partial shrinkage must exit nonzero"
+		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: partial shrinkage refused loudly"
+	fi
+
+	if [ "$failures" -gt 0 ]; then
+		echo "self-test: ${failures} failure(s)"
+		exit 1
+	fi
+	echo "self-test: all green"
+	exit 0
+fi
 
 # Extract the full depguard block (header through last allow item), tolerating
 # indentation; empty output means the block is gone.
