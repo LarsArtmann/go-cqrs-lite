@@ -246,6 +246,30 @@ inline** (`~~struck~~ done <date> — <evidence>`; evidence = TODO_LIST `[x]` ro
   repointed (0 stale). Pass report:
   [`2026-09-19_20-08_docs-health-eighth-pass-full-audit.md`](archived/2026-09-19_20-08_docs-health-eighth-pass-full-audit.md) (now archived — the 9th pass closed its follow-through).
 
+**2026-09-20 (9th docs-health pass):** closed the 09-19/20 arc — 8 session
+reports (the 8th-pass audit itself, verify-green/slirp-war, the 00-19 verify
+tail, 09-40 publish-and-prove, 10-24 verify-live, 10-25 tag-wave execution,
+10-56 corruption repair, 13-21 README-honesty) + 5 planning docs (15-37
+verify-green/tag-wave/CRM-ports, command-side depth, the vector-at-scale
+spike, publish-reset v5 train, pareto-v2) + 2 reviews (command-side depth —
+items 1–2 struck `done 2026-09-13` inline; event-module split re-review) +
+4 research docs (turso-8257 POSTED draft, systemd-timer feasibility,
+go-taskqueue semantic diff, benchkit tool design — its stale "Phases 6/7
+remain" line corrected inline) annotated with resolution banners and
+archived. Every banner cites where the work shipped (the 92-tag train, the
+S03 composed-verify GREEN, the T19/T20 doc gates) or where the remainder
+lives. HARVEST: the 10-25 report's 50-item §f (explicitly marked "harvest
+fuel" and never harvested) plus the close-out tails landed as TODO_LIST's
+"92-tag release-train tail" + consolidated "Owner decisions — W3 bundle"
+sections; stale rows closed (W4 gates + release train, the Go 1.27 wave
+section, quiet-window tooling, the module-map census, the cordis
+release-train note, a dangling experimental-stamps strike, an empty
+load-ordering section). Inbound references repointed (ROADMAP ×3, TODO_LIST,
+CHANGELOG ×3, this README). Still active in `docs/status/`: the fp-sweep
+baseline, the two KEEP-LIVE evidence docs, the W3 owner bundle
+(`2026-09-20_11-36_owner-bundle-w3.md`), and the 16:39/16:43 close-out pair
+(live §f backlog).
+
 ## What this means
 
 - **Claims of "broken" or "failing" may be resolved.** The codebase evolves

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
@@ -151,7 +152,7 @@ func probeSQLiteColumns(ctx context.Context, db *sql.DB, table string) ([]string
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var names []string
 	for rows.Next() {
@@ -190,7 +191,7 @@ func probeInformationSchemaColumns(
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = rows.Close() }()
+	defer record.DeferClose(rows)
 
 	var names []string
 	for rows.Next() {
