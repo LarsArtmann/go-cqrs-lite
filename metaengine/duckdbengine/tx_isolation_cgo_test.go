@@ -3,12 +3,12 @@
 package duckdbengine_test
 
 import (
-	"context"
 	"path/filepath"
 	"testing"
 
 	duckdbengine "github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	adttest "github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 )
 
 // openFileEngine builds a file-backed engine with a real connection pool:
@@ -40,54 +40,7 @@ func TestDuckDBEngine_TxIsolationFromForeignContext(t *testing.T) {
 
 	eng := openFileEngine(t)
 
-	tx := eng.(metaengine.Transactional)
-	mb := eng.(metaengine.MapBackend)
-
-	const col = "tx_iso_map"
-
-	inside := make(chan struct{})
-	commit := make(chan struct{})
-	done := make(chan error, 1)
-
-	go func() {
-		done <- tx.RunInTx(context.Background(), func(tctx context.Context) error {
-			if err := mb.MapSet(tctx, col, "ghost", "uncommitted"); err != nil {
-				return err
-			}
-
-			close(inside)
-			<-commit
-
-			return nil
-		})
-	}()
-
-	<-inside
-
-	_, found, err := mb.MapGet(context.Background(), col, "ghost")
-	if err != nil {
-		t.Fatalf("MapGet from foreign context while tx open: %v", err)
-	}
-
-	if found {
-		t.Fatalf("dirty read: uncommitted tx write visible to a foreign context — " +
-			"transaction leaked across goroutines via engine-global state")
-	}
-
-	close(commit)
-
-	if err := <-done; err != nil {
-		t.Fatalf("RunInTx: %v", err)
-	}
-
-	_, found, err = mb.MapGet(context.Background(), col, "ghost")
-	if err != nil {
-		t.Fatalf("MapGet after commit: %v", err)
-	}
-
-	if !found {
-		t.Fatalf("committed write must be visible after RunInTx returns")
-	}
+	adttest.AssertTxIsolationFromForeignContext(t, eng)
 }
 
 // The sqliteengine stress companion (concurrent StreamRead vs

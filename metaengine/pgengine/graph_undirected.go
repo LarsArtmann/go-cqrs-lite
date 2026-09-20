@@ -42,6 +42,7 @@ func (e *pgEngine) GraphRemoveEdge(
 	col string,
 	edge metaengine.Edge,
 ) error {
+	//art-dupl:accept per-engine dialect SQL: $n placeholders are Postgres-specific; sharing the string would couple dep-isolated engine modules (contract-19 class)
 	const q = `DELETE FROM meta_graph_edges WHERE collection = $1 AND from_node = $2 AND to_node = $3`
 
 	if _, err := e.conn(ctx).

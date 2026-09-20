@@ -59,6 +59,7 @@ func (e *mysqlEngine) GraphRemoveEdge(
 	col string,
 	edge metaengine.Edge,
 ) error {
+	//art-dupl:accept per-engine dialect SQL: ? placeholders are MySQL-specific; sharing the string would couple dep-isolated engine modules (contract-19 class)
 	const q = `DELETE FROM meta_graph_edges WHERE collection = ? AND from_node = ? AND to_node = ?`
 
 	if _, err := e.conn(ctx).

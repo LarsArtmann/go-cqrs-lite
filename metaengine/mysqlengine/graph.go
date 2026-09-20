@@ -75,6 +75,7 @@ func (e *mysqlEngine) GraphAddEdge(
 	col string,
 	edge metaengine.Edge,
 ) error {
+	//art-dupl:accept per-engine dialect SQL: ? placeholders + INSERT IGNORE are MySQL-specific; sharing the string would couple dep-isolated engine modules (contract-19 class)
 	const q = `INSERT IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`
 
 	if _, err := e.conn(ctx).
