@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** the design was implemented as `benchkit/` +
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** the design was implemented as `benchkit/` +
 > `cmd/cqrs-bench` and ALL phases shipped — including production replay and `benchtest.RunSuite`
 > (ROADMAP Theme 2); the body's "Phases 6/7 remain" line was stale fiction, corrected inline.
 > The living remainder (benchkit CLI polish tail) is tracked in [TODO_LIST.md](../../../TODO_LIST.md).
@@ -11,7 +11,7 @@
 > data.
 
 **Date:** 2026-07-23
-**Status:** ~~Proposal~~ **Implemented** (2026-07-23) as `benchkit/` module + `cmd/cqrs-bench/` CLI. Phases 1 (core types, runner, profiles, reports), 3 (projection), 4 (comparison + report), and 5 (CLI) are done. Phase 2 (durability) has partial progress (disk measurement via `DiskPath`/`DiskSizer` interface, Pebble `Disk.DatabaseBytes` tested). ~~Phases 6 (production replay) and 7 (`benchtest.RunSuite`) remain.~~ **Superseded — both shipped** (ROADMAP Theme 2; corrected 2026-09-20). 55 tests pass with `-race`. See [implementation status](../status/archived/2026-07-23_17-10_benchkit-implementation-status.md), [bugfix session](../status/archived/2026-07-24_05-59_benchkit-bugfix-session-status.md), [critical fixes](../status/archived/2026-07-24_15-13_benchkit-critical-fixes-status.md), and [completeness session](../status/archived/2026-07-24_16-45_benchkit-completeness-session-status.md) for progressive status.
+**Status:** ~~Proposal~~ **Implemented** (2026-07-23) as `benchkit/` module + `cmd/cqrs-bench/` CLI. Phases 1 (core types, runner, profiles, reports), 3 (projection), 4 (comparison + report), and 5 (CLI) are done. Phase 2 (durability) has partial progress (disk measurement via `DiskPath`/`DiskSizer` interface, Pebble `Disk.DatabaseBytes` tested). ~~Phases 6 (production replay) and 7 (`benchtest.RunSuite`) remain.~~ **Superseded — both shipped** (ROADMAP Theme 2; corrected 2026-09-20). 55 tests pass with `-race`. See [implementation status](../../status/archived/2026-07-23_17-10_benchkit-implementation-status.md), [bugfix session](../../status/archived/2026-07-24_05-59_benchkit-bugfix-session-status.md), [critical fixes](../../status/archived/2026-07-24_15-13_benchkit-critical-fixes-status.md), and [completeness session](../../status/archived/2026-07-24_16-45_benchkit-completeness-session-status.md) for progressive status.
 
 ---
 
@@ -948,7 +948,7 @@ The benchmarking tool reinforces this goal in three ways:
 ### 1. Data-driven backend selection
 
 Today, the deployer picks a backend based on the
-[Infrastructure Recommendations](../INFRASTRUCTURE_RECOMMENDATIONS.md) doc —
+[Infrastructure Recommendations](../../INFRASTRUCTURE_RECOMMENDATIONS.md) doc —
 which is qualitative advice. With `benchkit`, the deployer runs:
 
 ```bash

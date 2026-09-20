@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** Superseded: the verify arc ended GREEN (S03 — 16-39 report); T36e was validated + mutation-tested + nightly-wired (13-21 §a); the taskmanager `--help` fix shipped end-to-end as v0.2.1 (16-39 §a5); the ADR-0123 README banner sweep eliminated the citation debt 37→0 (13-21 §a3). The 10:31 repair ratification rides the W3 owner bundle (§3).
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** Superseded: the verify arc ended GREEN (S03 — 16-39 report); T36e was validated + mutation-tested + nightly-wired (13-21 §a); the taskmanager `--help` fix shipped end-to-end as v0.2.1 (16-39 §a5); the ADR-0123 README banner sweep eliminated the citation debt 37→0 (13-21 §a3). The 10:31 repair ratification rides the W3 owner bundle (§3).
 
 # Status Report — Verify-5 In Flight; Concurrent-Corruption Repaired; README Gates Landed (2026-09-20 10:56)
 

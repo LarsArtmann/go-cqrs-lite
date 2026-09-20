@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"math/rand/v2"
 	"time"
 
 	mysqldriver "github.com/go-sql-driver/mysql"
@@ -13,14 +14,23 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
 )
 
-// claimDeadlockRetries bounds the in-engine retry of a claim
-// transaction that InnoDB killed with a deadlock (1213) or lock-wait
-// timeout (1205). Concurrent two-statement claims touch index-gap locks
-// in nondeterministic order, so occasional deadlocks are NORMAL on
-// MySQL — retrying the whole transaction is the documented InnoDB
-// remedy, and the claim is idempotent from the caller's perspective
-// (either it takes the lease or reports ErrNoTaskDue).
-const claimDeadlockRetries = 3
+const (
+	// claimDeadlockRetries bounds the in-engine retry of a claim
+	// transaction that InnoDB killed with a deadlock (1213) or lock-wait
+	// timeout (1205). Concurrent two-statement claims touch index-gap locks
+	// in nondeterministic order, so occasional deadlocks are NORMAL on
+	// MySQL — retrying the whole transaction is the documented InnoDB
+	// remedy, and the claim is idempotent from the caller's perspective
+	// (either it takes the lease or reports ErrNoTaskDue).
+	claimDeadlockRetries = 3
+	// claimRetryBaseDelay and claimRetryMaxDelay shape the pause between
+	// deadlock retries: exponential growth (25ms, 50ms, 100ms) capped at
+	// the max, with full jitter so N racing workers do not re-collide in
+	// lockstep on the next attempt. Worst-case added claim latency is
+	// bounded (~175ms) — negligible against any real lease duration.
+	claimRetryBaseDelay = 25 * time.Millisecond
+	claimRetryMaxDelay  = 200 * time.Millisecond
+)
 
 // candidateSQL locks the next claimable row FOR UPDATE SKIP LOCKED —
 // competing workers sit on disjoint rows instead of queueing (MySQL 8+/
@@ -52,8 +62,9 @@ const claimUpdateSQL = `
 
 // ClaimDue atomically claims one due task for owner. InnoDB may
 // deadlock the claim transaction under concurrency (normal for
-// two-statement claims); the engine retries it internally before
-// surfacing the error.
+// two-statement claims); the engine retries it internally — with
+// backoff+jitter between attempts — before surfacing the error. A
+// canceled context aborts the retry loop immediately with ctx.Err().
 func (s *Store[T]) ClaimDue(
 	ctx context.Context,
 	owner string,
@@ -64,14 +75,46 @@ func (s *Store[T]) ClaimDue(
 		err   error
 	)
 
-	for range claimDeadlockRetries + 1 {
+	for attempt := range claimDeadlockRetries + 1 {
 		claim, err = s.claimOnce(ctx, owner, lease)
 		if err == nil || !isDeadlock(err) {
 			break
 		}
+
+		if attempt < claimDeadlockRetries {
+			if waitErr := sleep(ctx, deadlockBackoff(attempt)); waitErr != nil {
+				return queue.Claim[T]{}, waitErr
+			}
+		}
 	}
 
 	return claim, err
+}
+
+// sleep waits d or until ctx is done, whichever comes first.
+func sleep(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+// deadlockBackoff returns the full-jittered wait before retry attempt
+// attempt+1: exponential growth from claimRetryBaseDelay, capped at
+// claimRetryMaxDelay, randomized over [0, cap] so concurrent claimers
+// spread out instead of re-colliding on the next tick.
+func deadlockBackoff(attempt int) time.Duration {
+	cap_ := claimRetryBaseDelay << attempt
+	if cap_ > claimRetryMaxDelay {
+		cap_ = claimRetryMaxDelay
+	}
+
+	return time.Duration(rand.Int64N(int64(cap_) + 1))
 }
 
 // isDeadlock reports whether err is InnoDB's deadlock (1213) or

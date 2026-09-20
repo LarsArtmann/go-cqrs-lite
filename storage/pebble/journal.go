@@ -10,6 +10,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // journalKey generates a globally-ordered key for the journal index.
@@ -113,7 +114,7 @@ func (a *EventStore) scanJournalWithSkip(
 			"create iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer record.DeferClose(iter)
 
 	skipping := targetID != ""
 	found := false

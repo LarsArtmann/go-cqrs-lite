@@ -12,6 +12,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // AppendBatch implements event.Store.AppendBatch.
@@ -27,7 +28,7 @@ func (a *EventStore) AppendBatch(
 
 	batch := a.db.NewBatch()
 
-	defer func() { _ = batch.Close() }()
+	defer record.DeferClose(batch)
 
 	for _, evt := range events {
 		key := a.eventKey(ref, evt.Version())

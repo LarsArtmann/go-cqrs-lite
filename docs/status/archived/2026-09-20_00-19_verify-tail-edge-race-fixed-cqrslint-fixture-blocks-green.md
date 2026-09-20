@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** Superseded same day: the typedfixture root cause was found and fixed (stale fixture pins — 09-40 §a2, not an env divergence), the composed `#verify` went GREEN with the S03 record (16-39 report), and the binary-cleanup wave was verified (09-40 §a2). The open tail (T18b) lives in [TODO_LIST.md](../../../TODO_LIST.md).
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** Superseded same day: the typedfixture root cause was found and fixed (stale fixture pins — 09-40 §a2, not an env divergence), the composed `#verify` went GREEN with the S03 record (16-39 report), and the binary-cleanup wave was verified (09-40 §a2). The open tail (T18b) lives in [TODO_LIST.md](../../../TODO_LIST.md).
 
 # Verify tail: edge-poll race FIXED; cqrs-lint typedfixture blocks composed green (3 attempts)
 

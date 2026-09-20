@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 func (a *EventStore) checkVersion(
@@ -45,7 +46,7 @@ func (a *EventStore) countEvents(ref id.StreamRef) (int, error) {
 			"failed to create count iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer record.DeferClose(iter)
 
 	if !iter.Last() {
 		err := iter.Error()

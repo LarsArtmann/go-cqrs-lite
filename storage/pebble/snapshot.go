@@ -238,7 +238,7 @@ func (s *SnapshotStore) loadRaw(key []byte) (*serializableSnapshot, bool, error)
 			"read snapshot at key "+string(key))
 	}
 
-	defer func() { _ = closer.Close() }()
+	defer record.DeferClose(closer)
 
 	// Copy because Pebble buffers are only valid until closer.Close().
 	buf := make([]byte, len(val))

@@ -12,6 +12,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // maxByteValue is the largest value a single byte can hold (0xff).
@@ -107,7 +108,7 @@ func (adapter *KVAdapter) Get(_ context.Context, key []byte) ([]byte, error) {
 			fmt.Sprintf("get %q", key))
 	}
 
-	defer func() { _ = closer.Close() }()
+	defer record.DeferClose(closer)
 
 	return slices.Clone(val), nil
 }

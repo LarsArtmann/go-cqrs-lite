@@ -9,6 +9,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Load retrieves all commands for a stream, ordered by ReceivedAt.
@@ -145,7 +146,7 @@ func (s *CommandStore) scanCommands(
 			"create command iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer record.DeferClose(iter)
 
 	skipping := skipUntilID != ""
 

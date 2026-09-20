@@ -14,6 +14,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // CheckpointStore implements event.CheckpointStore backed by Pebble.
@@ -142,7 +143,7 @@ func (s *CheckpointStore) Load(
 		)
 	}
 
-	defer func() { _ = closer.Close() }()
+	defer record.DeferClose(closer)
 
 	buf := make([]byte, len(val))
 	copy(buf, val)

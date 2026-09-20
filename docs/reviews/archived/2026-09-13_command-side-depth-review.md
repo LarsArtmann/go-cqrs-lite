@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** the Pareto list below was executed —
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** the Pareto list below was executed —
 > items 1–2 shipped 2026-09-13 (`decider.ExecuteCommandRef` + `CausedCommand` causation
 > stamping; commandlifecycle upcast composition pinned), and the release train published the
 > decider/command/commandlifecycle surfaces (92-tag wave, 2026-09-19). Item 3 is routed to the
@@ -14,7 +14,7 @@
 > operationally — it is **shallow architecturally**. It received transport/persistence
 > parity, but never the domain-side depth the event side has.
 > **Companion reviews:** [event/ split re-review](2026-09-13_event-module-split-re-review.md) ·
-> [event/command duplication hypothesis](archived/2026-09-13_event-command-duplication-hypothesis-review.md)
+> [event/command duplication hypothesis](2026-09-13_event-command-duplication-hypothesis-review.md)
 > (the `AsRecord` wart found there is the same root cause as Gap 1 below)
 
 ---
@@ -34,7 +34,7 @@
 
 ### Gap 1 — The Decider has no Decide (structural second-class-ness)
 
-[`decider/decider.go:99`](../../decider/decider.go):
+[`decider/decider.go:99`](../../../decider/decider.go):
 
 ```go
 // DecideFunc is the signature for a decision function.
@@ -83,5 +83,5 @@ cmd→event lineage — the audit spine of event-sourced systems — is not firs
 3. **ADR-0112 command sourcing** — the big one; wait for real consumer demand. → routed: [BLOCKED] ADR-0138 row in TODO_LIST (consumer demand).
 
 ~~None of this is started; items 1–2 are planned in
-[`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](../planning/2026-09-13_11-45_SUPERB-command-side-depth.md)
+[`docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md`](../../planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md)
 (filed in TODO_LIST §Command-side domain depth).~~ Executed 2026-09-13 (items 1–2) and closed 2026-09-20 (W4 gates + release train) — see the banner above and the archived plan at [`docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md`](../../planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md).

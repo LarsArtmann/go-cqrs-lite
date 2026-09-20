@@ -77,3 +77,7 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+// Sibling replace for unpublished record symbols (DeferClose, ADR-0144);
+// stripped by scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

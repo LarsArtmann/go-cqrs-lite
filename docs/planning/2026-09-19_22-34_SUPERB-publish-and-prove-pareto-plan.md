@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-19 22:34 CEST
 **Trigger:** owner directive (paste_1): full Pareto breakdown (1%→51%, 4%→64%, 20%→80%, +20%→100%), ALL 120 open TODO_LIST rows planned at 30–100min tasks, top tier micro-broken to ≤12min, execution graph, then commit + push.
-**Predecessors:** [`2026-09-19_18-15_tag-wave-release-prep-ci-triage`](../status/archived/2026-09-19_18-15_tag-wave-release-prep-ci-triage-concurrent-session.md) (90-tag/6-batch plan, dry-run validated, 0 cut) · [`2026-09-19_20-08_docs-health-eighth-pass-full-audit`](../status/2026-09-19_20-08_docs-health-eighth-pass-full-audit.md) (docs floor: 815 annotations, 70 files archived, gates re-greened 22:35).
+**Predecessors:** [`2026-09-19_18-15_tag-wave-release-prep-ci-triage`](../status/archived/2026-09-19_18-15_tag-wave-release-prep-ci-triage-concurrent-session.md) (90-tag/6-batch plan, dry-run validated, 0 cut) · [`2026-09-19_20-08_docs-health-eighth-pass-full-audit`](../status/archived/2026-09-19_20-08_docs-health-eighth-pass-full-audit.md) (docs floor: 815 annotations, 70 files archived, gates re-greened 22:35).
 **Scope statement (the honest headline):** the library's code is DONE through the substrate arc (ADR-0141/0142/0143, queue M4, Go 1.27, lint-zero) — but **0 of ~90 pending tags are published** and the composed verification floor has no recorded green since 2026-09-09. This is a LIBRARY: the product IS the published, trusted surface. Publishing + proving IS the Pareto.
 
 ## §0 Current-state truth pass (verified 2026-09-19 22:35)

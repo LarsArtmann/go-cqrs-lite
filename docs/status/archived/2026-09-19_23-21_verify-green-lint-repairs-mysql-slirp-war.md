@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** Verify rc=0 held; the M4 legs completed (PG/Dgraph/Redis rc=0; MySQL via native MariaDB per the 15-37 plan addendum). §f executed or routed: CHANGELOG Fixed entries landed, the 15-37 staleness addendum was written, T18b remains open (TODO_LIST), and the M16 `.golangci.yml` drift guard + ephemeral-mysql codification were harvested into [TODO_LIST.md](../../../TODO_LIST.md) by this pass.
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** Verify rc=0 held; the M4 legs completed (PG/Dgraph/Redis rc=0; MySQL via native MariaDB per the 15-37 plan addendum). §f executed or routed: CHANGELOG Fixed entries landed, the 15-37 staleness addendum was written, T18b remains open (TODO_LIST), and the M16 `.golangci.yml` drift guard + ephemeral-mysql codification were harvested into [TODO_LIST.md](../../../TODO_LIST.md) by this pass.
 
 # Status Report: Verify GREEN (rc=0), Lint Repairs Under the Concurrent Sessions, and the MySQL-Leg Slirp War
 

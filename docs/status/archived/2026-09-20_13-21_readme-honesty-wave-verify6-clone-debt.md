@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** Closed: S03 GREEN ended §b (16-39 report); taskmanager shipped as v0.2.1 — the planned v4.1.1 was moot because the module path is suffix-less and the v0 line is the served line (16-39 §a5); the bbolt "missing doc.go" claim was self-corrected in 16-39 (godoc lives in preset.go — no gap). §f done or tracked; owner items ride the W3 bundle.
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** Closed: S03 GREEN ended §b (16-39 report); taskmanager shipped as v0.2.1 — the planned v4.1.1 was moot because the module path is suffix-less and the v0 line is the served line (16-39 §a5); the bbolt "missing doc.go" claim was self-corrected in 16-39 (godoc lives in preset.go — no gap). §f done or tracked; owner items ride the W3 bundle.
 
 # Status Report 2026-09-20 13:21 — README-Honesty Wave Landed; Verify 6 Red at Pre-Existing W2 Clone Debt
 

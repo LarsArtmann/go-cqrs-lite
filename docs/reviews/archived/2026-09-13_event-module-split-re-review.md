@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** DECISION RECORD — stands (re-checked by this pass, 2026-09-20: no ports-without-core consumer population has emerged; the falsifiers below remain unmet). Archived as a completed decision record; the live statement lives in ROADMAP §Non-Goals.
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** DECISION RECORD — stands (re-checked by this pass, 2026-09-20: no ports-without-core consumer population has emerged; the falsifiers below remain unmet). Archived as a completed decision record; the live statement lives in ROADMAP §Non-Goals.
 
 # Re-review: Do NOT split the `event/` module
 
@@ -6,12 +6,12 @@
 > **Kind:** Point-in-time decision re-review (no code changes)
 > **Repo state:** `master` @ 0711ef9e7; every number re-measured this session
 > **Decision under review:** "Do NOT split event/" — originally 2026-06-29, recorded in
-> [`docs/v4-WISHLIST.md`](../v4-WISHLIST.md) decision log, the archived v4 prep plan
-> (2026-07-10), the archived post-v4 plan (2026-07-12), and [`ROADMAP.md`](../../ROADMAP.md) §Non-Goals.
+> [`docs/v4-WISHLIST.md`](../../v4-WISHLIST.md) decision log, the archived v4 prep plan
+> (2026-07-10), the archived post-v4 plan (2026-07-12), and [`ROADMAP.md`](../../../ROADMAP.md) §Non-Goals.
 > **Method:** go-modularize skill — direction-neutrality tests (decomposition depth,
 > composability payoff), co-change analysis, importer-population analysis.
 > **Companion reviews:** [command-side depth](2026-09-13_command-side-depth-review.md) ·
-> [event/command duplication hypothesis](archived/2026-09-13_event-command-duplication-hypothesis-review.md)
+> [event/command duplication hypothesis](2026-09-13_event-command-duplication-hypothesis-review.md)
 
 ---
 

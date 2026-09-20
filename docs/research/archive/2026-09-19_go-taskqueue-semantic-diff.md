@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** probe complete — T23 of the substrate plan
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** probe complete — T23 of the substrate plan
 > delivered; the verdict below fed the P5 review, and the substrate shipped in the 92-tag wave
 > (2026-09-19). No open tasks.
 

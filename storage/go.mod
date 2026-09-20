@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/storage/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -122,3 +122,7 @@ replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
 // Sibling replace for the unpublished otel symbol (DBSystem); stripped by
 // scripts/tag-release.sh at cut time.
 replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../otel
+
+// Sibling replace for unpublished record symbols (DeferClose, ADR-0144);
+// stripped by scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

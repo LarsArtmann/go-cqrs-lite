@@ -1,4 +1,4 @@
-> **RESOLVED — docs-health 9th pass (2026-09-20):** SPIKE CLOSED: Phase 0 shipped 2026-08-17; the vector ADT has since shipped on EVERY engine with pushdown paths (2026-09-15; semantics contract ADR-0140 — see FEATURES.md, Metaengine section). Phases 1–2 remain trigger-gated proposals (ROADMAP → "Native ANN vector indexes"). Correction: the `-tags "goexperiment.jsonv2"` in §2's bench command is a no-op since the jsonv2 graduation — plain `go test` is the contract (2026-09-19 sweep). Archived as a completed spike record.
+> **RESOLVED-BY-ROUTING — docs-health 9th pass (2026-09-20):** SPIKE CLOSED: Phase 0 shipped 2026-08-17; the vector ADT has since shipped on EVERY engine with pushdown paths (2026-09-15; semantics contract ADR-0140 — see FEATURES.md, Metaengine section). Phases 1–2 remain trigger-gated proposals (ROADMAP → "Native ANN vector indexes"). Correction: the `-tags "goexperiment.jsonv2"` in §2's bench command is a no-op since the jsonv2 graduation — plain `go test` is the contract (2026-09-19 sweep). Archived as a completed spike record.
 
 # Vector Search at Scale — Quantization / HNSW Spike
 

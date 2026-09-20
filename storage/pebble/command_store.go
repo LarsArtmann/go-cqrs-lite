@@ -12,6 +12,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // CommandStore implements command.Store, command.CommandJournal, and
@@ -126,7 +127,7 @@ func (s *CommandStore) Save(
 	}
 
 	batch := s.db.NewBatch()
-	defer func() { _ = batch.Close() }()
+	defer record.DeferClose(batch)
 
 	err = s.writeCommandToBatch(batch, ref, cmd.ID(), jKey, data)
 	if err != nil {
@@ -163,7 +164,7 @@ func (s *CommandStore) AppendBatch(
 	defer span.End()
 
 	batch := s.db.NewBatch()
-	defer func() { _ = batch.Close() }()
+	defer record.DeferClose(batch)
 
 	// Lock all batch keys' shards up front (ordered) so the existence
 	// checks and the single commit are atomic against concurrent Saves.

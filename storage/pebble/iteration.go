@@ -10,6 +10,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // eventPredicate returns true when iteration should stop BEFORE appending
@@ -34,7 +35,7 @@ func (a *EventStore) iterateEvents(
 			"failed to create iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer record.DeferClose(iter)
 
 	var events []event.Event
 
