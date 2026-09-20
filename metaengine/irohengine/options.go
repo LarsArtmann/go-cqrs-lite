@@ -20,6 +20,12 @@ type config struct {
 
 const defaultAuthor = "default"
 
+// DefaultDedupCapacity is the op-dedup ring capacity shared by the replicated
+// engine's transports (quic, loopback): 10K recently-seen op IDs, with graceful
+// eviction of the oldest. One constant keeps the transport family's redelivery
+// windows identical; transports reference it so the value cannot drift.
+const DefaultDedupCapacity = 10_000
+
 // WithNamespace sets the logical namespace for this node's writes.
 // Maps to iroh-docs' NamespaceId in a real Iroh integration.
 func WithNamespace(ns string) Option {

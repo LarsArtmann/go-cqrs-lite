@@ -2,16 +2,18 @@ package quic
 
 import (
 	iroh_ffi "git.coopcloud.tech/decentral1se/iroh-go"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
 // Option configures a QuicTransport.
 type Option func(*config)
 
-// DefaultDedupCapacity is the op-dedup ring capacity used by QuicTransport
-// (10K recently-seen op IDs). The dedup regression test
-// TestRing_ProductionCapacity10K pins ring behavior at exactly this capacity
-// — if you change it here, update that test's capacity in the same commit.
-const DefaultDedupCapacity = 10_000
+// DefaultDedupCapacity re-exports the transport-family's shared op-dedup ring
+// capacity ([irohengine.DefaultDedupCapacity]) so existing importers of the
+// quic symbol stay source-compatible. The value lives in one place — the
+// irohengine parent — so quic and loopback cannot drift.
+const DefaultDedupCapacity = irohengine.DefaultDedupCapacity
 
 type config struct {
 	alpn        []byte

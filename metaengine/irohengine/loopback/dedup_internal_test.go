@@ -5,15 +5,18 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4"
 )
 
 // Pins the op-dedup window semantics of markSeen. The window is a bounded
 // dedup.Ring with graceful eviction of the oldest ID, not a map that resets
 // wholesale: the newest IDs always survive, so a redelivery inside the live
 // window is deduplicated without the full reset gap the hand-rolled map had.
-// These tests make the bounded-eviction contract explicit.
+// These tests make the bounded-eviction contract explicit. The quic twin keeps
+// the identical contract in dedup_parity_test.go, and both rings are built
+// from the shared irohengine.DefaultDedupCapacity so the windows cannot drift.
 func TestMarkSeen_DedupWindow(t *testing.T) {
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(dedupCapacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(irohengine.DefaultDedupCapacity)}
 
 	if !tr.markSeen("op-1") {
 		t.Fatal("first markSeen(op-1) = false, want true")
@@ -61,17 +64,17 @@ func TestMarkSeen_EvictsOldestNotAll(t *testing.T) {
 // TestMarkSeen_BoundedOverflow proves memory stays bounded across far more IDs
 // than the capacity, while every recent ID remains deduplicated.
 func TestMarkSeen_BoundedOverflow(t *testing.T) {
-	tr := &LoopbackTransport{dedupRing: dedup.NewRing(dedupCapacity)}
+	tr := &LoopbackTransport{dedupRing: dedup.NewRing(irohengine.DefaultDedupCapacity)}
 
-	for i := range dedupCapacity * 2 {
+	for i := range irohengine.DefaultDedupCapacity * 2 {
 		tr.markSeen(fmt.Sprintf("fill-%06d", i))
 	}
 
-	if got := tr.dedupRing.Len(); got > dedupCapacity {
-		t.Fatalf("dedup ring grew to %d entries, want <= %d", got, dedupCapacity)
+	if got := tr.dedupRing.Len(); got > irohengine.DefaultDedupCapacity {
+		t.Fatalf("dedup ring grew to %d entries, want <= %d", got, irohengine.DefaultDedupCapacity)
 	}
 
-	if tr.markSeen(fmt.Sprintf("fill-%06d", dedupCapacity*2-1)) {
+	if tr.markSeen(fmt.Sprintf("fill-%06d", irohengine.DefaultDedupCapacity*2-1)) {
 		t.Fatal("most recent ID = true, want false (still deduplicated)")
 	}
 }
