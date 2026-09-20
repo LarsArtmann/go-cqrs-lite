@@ -501,14 +501,25 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       seed that fails; rare orderings WILL eventually appear in CI (that is
       the point of shuffling). — source: 02-16 §e7/§f10
       _(Effort: XS)_
-- [ ] [BLOCKED] **Quiet-window exclusive `nix run .#verify` composed GREEN**
+- [x] ~~[BLOCKED] **Quiet-window exclusive `nix run .#verify` composed GREEN**
       (supersedes the contention-fix verify item) — last composed GREEN was
       2026-09-09; three days of waves (Cordis, publish/reset/v5-train, both
       parallel sessions) are unverified as one chain, the dispatch-core
       fold-reroute refactor has never seen `-race`, and `scripts/verify-docs.sh`
       has never run end-to-end with its new tripwire. When the box is quiet:
       run `#verify`, then `-race` over `metaengine`, then `verify-docs.sh`;
-      record date + commit + durations in TODO_LIST/plan (S03 acceptance).
+      record date + commit + durations in TODO_LIST/plan (S03 acceptance).~~
+      **DONE 2026-09-20 (S03):** composed GREEN 14:53:28–15:04:25 (~11 min,
+      head `61e1a2080`-era tree) — all 19 phases: verify-docs tripwires,
+      module coverage, build, vet, test, race (incl. metaengine + system),
+      lint, arch, modsums, lint-config, docserver-css, duplication (0 new,
+      baseline 60), turso, templ, bench-gate, coverage, api-stability,
+      error-taxonomy, doc-check. Log: `/tmp/verify-attempt10.log`. Getting
+      there surfaced and fixed three latent W2-wave tails along the way
+      (lint godoclint debt; tx-isolation/graph-SQL clone groups; templ
+      codegen drift) plus a real `GracefulClose` pre-cancelled-context
+      nondeterminism — see `docs/status/2026-09-20_13-21_*.md` + CHANGELOG
+      [Unreleased].
       — source: 02-16 §c4/§f13, 05-40 §f2/§f3/§f8, SUPERB S03
       _(Effort: M)_
 
