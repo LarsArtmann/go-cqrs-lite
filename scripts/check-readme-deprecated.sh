@@ -85,7 +85,7 @@ self_test() {
 	fixture="$(mktemp -d /tmp/readme-deprecated-fixture.XXXXXX)" || return 1
 	trap 'rm -rf "$fixture"' RETURN
 
-	mkdir -p "$fixture/mod"
+	mkdir -p "$fixture/mod/clean" "$fixture/mod/dirty" "$fixture/mod/bannered"
 	cat >"$fixture/mod/api.go" <<'EOF'
 package mod
 
@@ -97,29 +97,29 @@ func Old() {}
 // New is the replacement.
 func New() {}
 EOF
-	printf '# clean readme\nUse `New` only.\n' >"$fixture/mod/README-clean.md"
-	printf '# dirty readme\nUse `Old` today.\n' >"$fixture/mod/README-dirty.md"
-	printf '# bannered readme\n\n> **Deprecated:** removed in v5. Use system.New.\n\nUse `Old` freely.\n' >"$fixture/mod/README-bannered.md"
+	printf '# clean readme\nUse `New` only.\n' >"$fixture/mod/clean/README.md"
+	printf '# dirty readme\nUse `Old` today.\n' >"$fixture/mod/dirty/README.md"
+	printf '# bannered readme\n\n> **Deprecated:** removed in v5. Use system.New.\n\nUse `Old` freely.\n' >"$fixture/mod/bannered/README.md"
 
 	# Leg 1 (non-vacuous detection): backticked citation of a deprecated
 	# symbol in an un-bannered README MUST be flagged.
 	if ! DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
 		DEP_BASELINE="$fixture/empty-baseline.txt" \
-		bash "$0" 2>/dev/null | grep -q 'README-dirty.md Old'; then
+		bash "$0" 2>/dev/null | grep -q 'dirty/README.md Old'; then
 		echo "self-test FAILED: dirty README not flagged" >&2
 		return 1
 	fi
 	# Leg 2 (no false positive): clean README must not be flagged.
 	if DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
 		DEP_BASELINE="$fixture/empty-baseline.txt" \
-		bash "$0" 2>/dev/null | grep -q 'README-clean'; then
+		bash "$0" 2>/dev/null | grep -q 'clean/README'; then
 		echo "self-test FAILED: clean README flagged" >&2
 		return 1
 	fi
 	# Leg 3 (banner escape hatch): bannered README must be skipped.
 	if DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
 		DEP_BASELINE="$fixture/empty-baseline.txt" \
-		bash "$0" 2>/dev/null | grep -q 'README-bannered'; then
+		bash "$0" 2>/dev/null | grep -q 'bannered/README'; then
 		echo "self-test FAILED: bannered README flagged" >&2
 		return 1
 	fi
