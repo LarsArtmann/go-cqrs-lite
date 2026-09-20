@@ -86,19 +86,10 @@ func buildDisabledRuleSet(cfg *AppConfig, actx *analyzer.AnalysisContext) map[st
 // Disabled findings are dropped entirely — they do not appear in output, do
 // not count toward the health score, and do not trigger stale-suppression
 // warnings (unlike inline-suppressed findings which are retained for auditing).
+// Delegates to the shared analyzer implementation so the CLI and the
+// embedded (toolspec) path filter identically.
 func filterByDisabledRules(findings []finding.Finding, disabled map[string]bool) []finding.Finding {
-	if len(disabled) == 0 {
-		return findings
-	}
-
-	result := make([]finding.Finding, 0, len(findings))
-	for _, f := range findings {
-		if !disabled[string(f.Rule)] {
-			result = append(result, f)
-		}
-	}
-
-	return result
+	return analyzer.FilterDisabledFindings(findings, disabled)
 }
 
 // countConfigExcluded counts, per rule, how many findings the disabled-rule
@@ -389,37 +380,13 @@ var financialEscalationExempt = map[string]string{ //nolint:gochecknoglobals // 
 // config). Runs post-detection, pre-filter so triage, the health score, and
 // --min-severity all observe the overridden severity. Rule-ID lookup is
 // case-insensitive (parent configs are merged without normalization).
+// Delegates to the shared analyzer implementation so the CLI and the
+// embedded (toolspec) path apply overrides identically.
 func applySeverityOverrides(
 	findings []finding.Finding,
 	overrides map[string]string,
 ) []finding.Finding {
-	if len(overrides) == 0 {
-		return findings
-	}
-
-	// Normalize keys once: parent configs are merged without validation, so
-	// key casing is not guaranteed (local config is normalized upstream).
-	normalized := make(map[string]string, len(overrides))
-	for id, sev := range overrides {
-		normalized[strings.ToUpper(strings.TrimSpace(id))] = sev
-	}
-
-	result := make([]finding.Finding, len(findings))
-	for i, f := range findings {
-		sev, ok := normalized[string(f.Rule)]
-		if ok {
-			parsed := parseSeverity(sev)
-			if parsed != f.Severity {
-				f.Severity = parsed
-				if f.Message != "" {
-					f.Message += " [severity overridden: " + sev + "]"
-				}
-			}
-		}
-		result[i] = f
-	}
-
-	return result
+	return analyzer.ApplySeverityOverrides(findings, overrides)
 }
 
 // applyDomainBias escalates finding severities based on the project domain.
