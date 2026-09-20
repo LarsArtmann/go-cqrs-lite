@@ -286,15 +286,10 @@ func (s *Server) SeedDemo(ctx context.Context) {
 }
 
 // Run is the main entry point — wires, starts, waits for signal.
-func Run() error {
+func Run(cfg Config) error {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
-
-	cfg := DefaultConfig()
-	if p := os.Getenv("DATABASE_PATH"); p != "" {
-		cfg.DatabasePath = p
-	}
 
 	srv, err := NewServer(cfg, logger)
 	if err != nil {
