@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"slices"
-	"sort"
 
 	bolt "go.etcd.io/bbolt"
 
@@ -149,37 +148,14 @@ func (e *bboltEngine) MapScan(
 	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
 }
 
-// sortAndPaginateKV sorts pairs by value (with byte-key tiebreak for
-// determinism), applies keyset pagination, and truncates to limit+1.
-// art-dupl:accept cross-module KV engine pattern — separate go.mod
+// kvPairKey/kvPairValue are the accessors handed to metaengine.SortPaginate.
+func kvPairKey(p kvPair) []byte { return p.key }
+
+func kvPairValue(p kvPair) any { return p.value }
+
+// sortAndPaginateKV delegates to the shared metaengine.SortPaginate core; the
+// algorithm (sort by value, byte-key tiebreak, keyset cursor, limit+1) lives
+// in one place for all KV engines.
 func sortAndPaginateKV(pairs []kvPair, sortFn func(a, b any) int, cursor any, limit int) []kvPair {
-	if sortFn != nil {
-		sort.Slice(pairs, func(i, j int) bool {
-			if c := sortFn(pairs[i].value, pairs[j].value); c != 0 {
-				return c < 0
-			}
-
-			return bytes.Compare(pairs[i].key, pairs[j].key) < 0
-		})
-	}
-
-	if cursor != nil && sortFn != nil {
-		filtered := pairs[:0]
-
-		for _, p := range pairs {
-			if sortFn(p.value, cursor) <= 0 {
-				continue
-			}
-
-			filtered = append(filtered, p)
-		}
-
-		pairs = filtered
-	}
-
-	if limit > 0 && len(pairs) > limit {
-		pairs = pairs[:limit+1]
-	}
-
-	return pairs
+	return metaengine.SortPaginate(pairs, kvPairKey, kvPairValue, sortFn, cursor, limit)
 }

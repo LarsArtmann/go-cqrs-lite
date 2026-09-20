@@ -2,24 +2,20 @@ package mysql
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
+	"github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4"
 )
 
 // TestQueueMySQLEngine_Conformance: the queue database as a claim substrate
 // — the full ADR-0142 DueClaimer + FactSink + DedupStore contract on the
 // same MySQL database the tasks live in (queue task semantics stay with
-// queue.Store[T]). Live-gated like the queue conformance suite (MYSQL_TEST_DSN).
+// queue.Store[T]). DSN-resolved by TestMain like the queue conformance
+// suite (MYSQL_TEST_DSN > testcontainer > skip).
 func TestQueueMySQLEngine_Conformance(t *testing.T) {
-	dsn := os.Getenv("MYSQL_TEST_DSN")
-	if dsn == "" {
-		t.Skip(
-			"MYSQL_TEST_DSN not set — skipping MySQL engine conformance (server DSN, e.g. root@tcp(127.0.0.1:3306)/?parseTime=true)",
-		)
-	}
+	dsn := mysqltestcontainer.DSN(t)
 
 	newEngine := func(t *testing.T) metaengine.Engine {
 		t.Helper()
@@ -49,10 +45,7 @@ func TestQueueMySQLEngine_DriverRegistry(t *testing.T) {
 		t.Fatal("queue-mysql factory must reject an empty DSN")
 	}
 
-	dsn := os.Getenv("MYSQL_TEST_DSN")
-	if dsn == "" {
-		t.Skip("MYSQL_TEST_DSN not set — skipping live registry leg")
-	}
+	dsn := mysqltestcontainer.DSN(t)
 
 	eng, err := factory(context.Background(), metaengine.DriverConfig{DSN: freshDatabase(t, dsn)})
 	if err != nil {

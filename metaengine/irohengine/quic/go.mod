@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/quic/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	git.coopcloud.tech/decentral1se/iroh-go v0.0.0-20260830120307-d6233351aba3
@@ -23,3 +23,7 @@ require (
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 )
+
+// Sibling replace for unpublished irohengine symbols (DefaultDedupCapacity);
+// stripped by scripts/tag-release.sh at cut time.
+replace github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/v4 => ../

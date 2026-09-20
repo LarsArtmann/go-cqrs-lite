@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
-	"os"
 	"testing"
 	"time"
 
@@ -13,21 +12,20 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/queue/v4"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/conformance"
 	"github.com/larsartmann/go-cqrs-lite/queue/v4/task"
+	"github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4"
 )
 
+// TestMain resolves the DSN by priority: MYSQL_TEST_DSN (CI / nix legs)
+// > a local MariaDB testcontainer > skip. See mysqltestcontainer.TestMain.
+func TestMain(m *testing.M) { mysqltestcontainer.TestMain(m) }
+
 // TestConformance registers the shared suite against the MySQL engine:
-// the parity bar every queue engine must clear, third dialect. Live-gated:
-// set MYSQL_TEST_DSN to a server DSN (e.g.
-// "root@tcp(127.0.0.1:3306)/?parseTime=true"); every subtest gets its
-// own throwaway database on that server. Internal test package so the
-// Backdate hook can reach the engine's connection.
+// the parity bar every queue engine must clear, third dialect. Every
+// subtest gets its own throwaway database on the resolved server.
+// Internal test package so the Backdate hook can reach the engine's
+// connection.
 func TestConformance(t *testing.T) {
-	dsn := os.Getenv("MYSQL_TEST_DSN")
-	if dsn == "" {
-		t.Skip(
-			"MYSQL_TEST_DSN not set — skipping MySQL conformance (server DSN, e.g. root@tcp(127.0.0.1:3306)/?parseTime=true)",
-		)
-	}
+	dsn := mysqltestcontainer.DSN(t)
 
 	conformance.Run(t, conformance.Harness{
 		NewStore: func(t *testing.T) queue.Store[conformance.Payload] {
