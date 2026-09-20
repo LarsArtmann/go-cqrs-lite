@@ -161,7 +161,7 @@ func TestStripJSONC(t *testing.T) {
 		{
 			name: "line comments and trailing commas",
 			in:   "{\n// comment\n\"a\": [1,],\n}",
-			want: "{\n\n\"a\": [1]\n}",
+			want: "{\n\n\"a\": [1]}",
 		},
 		{
 			name: "block comment",

@@ -75,6 +75,95 @@ func TestRepairRunsEndToEnd(t *testing.T) {
 	}
 }
 
+// TestDetectHonorsProjectConfig proves the Spec's Detect path reads
+// .cqrs-lint.json from the working directory: a config disabling A018
+// suppresses exactly that finding while the same fixture without a config
+// reports it. Before the embedded path honored config, hosts (e.g. BuildFlow)
+// silently ignored every setting the CLI honored — a no-op config lie.
+func TestDetectHonorsProjectConfig(t *testing.T) {
+	t.Parallel()
+
+	dir := writeFixableFixture(t)
+	ctx := finding.WithWorkingDir(context.Background(), dir)
+
+	countA018 := func(findings []finding.Finding) int {
+		n := 0
+		for _, f := range findings {
+			if string(f.Rule) == "A018" {
+				n++
+			}
+		}
+
+		return n
+	}
+
+	baseline, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect without config: %v", err)
+	}
+	if countA018(baseline) == 0 {
+		t.Fatal("fixture must produce A018 without config (test precondition)")
+	}
+
+	config := `{
+		// A018 is intentional here: the import registers a tool, it is not dead.
+		"rules": {"disable": ["A018"]},
+	}`
+	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(config), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	configured, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect with config: %v", err)
+	}
+	if countA018(configured) != 0 {
+		t.Fatalf("A018 must be suppressed by rules.disable, got %d", countA018(configured))
+	}
+}
+
+// TestDetectHonorsPresetFromConfig proves preset expansion works through the
+// embedded path: the read-only preset pins command-flow, so command-flow
+// adoption rules cannot fire on a fixture they would otherwise flag.
+func TestDetectHonorsPresetFromConfig(t *testing.T) {
+	t.Parallel()
+
+	dir := writeFixableFixture(t)
+	ctx := finding.WithWorkingDir(context.Background(), dir)
+
+	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(`{"preset": "read-only"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	findings, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("Detect with preset config: %v", err)
+	}
+
+	for _, f := range findings {
+		if string(f.Rule) == "A018" {
+			t.Fatal("read-only preset must suppress A018 via its preset defaults")
+		}
+	}
+}
+
+// TestDetectRejectsMalformedConfig proves a broken config is a loud error,
+// never a silently-unconfigured lint run.
+func TestDetectRejectsMalformedConfig(t *testing.T) {
+	t.Parallel()
+
+	dir := writeFixableFixture(t)
+	ctx := finding.WithWorkingDir(context.Background(), dir)
+
+	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(`{"preset":`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := Spec().Detect.Detect(ctx); err == nil {
+		t.Fatal("malformed config must fail Detect, not lint unconfigured")
+	}
+}
+
 func writeFixableFixture(t *testing.T) string {
 	t.Helper()
 
