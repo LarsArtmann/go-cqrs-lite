@@ -64,11 +64,23 @@ func workingDir(ctx context.Context) string {
 }
 
 // detect runs every registered rule detector against the working directory.
+// The project's .cqrs-lint.json (preset + rules block) is honored exactly as
+// the CLI honors it: rule-specific config flows to detectors via
+// AnalysisContext.RulesConfig, and disabled rules are filtered post-detection.
 func detect(ctx context.Context) ([]finding.Finding, error) {
-	actx, err := analyzer.BuildContext(workingDir(ctx))
+	wd := workingDir(ctx)
+
+	actx, err := analyzer.BuildContext(wd)
 	if err != nil {
 		return nil, fmt.Errorf("cqrs-lint: load packages: %w", err)
 	}
+
+	effective, err := loadEffectiveRules(wd)
+	if err != nil {
+		return nil, err
+	}
+
+	actx.RulesConfig = effective
 
 	var all []finding.Finding
 
@@ -81,16 +93,44 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 		all = append(all, findings...)
 	}
 
-	return all, nil
+	all = analyzer.ApplySeverityOverrides(all, effective.SeverityOverrides)
+
+	return analyzer.FilterDisabledFindings(all, effective.DisabledSet()), nil
+}
+
+// loadEffectiveRules resolves the project's .cqrs-lint.json (preset + rules)
+// against wd. A missing config means "no overrides" — identical behavior to a
+// project without a config file. A malformed config or unknown preset is an
+// error: silently linting unconfigured would make the config file a no-op lie.
+func loadEffectiveRules(wd string) (analyzer.RulesConfig, error) {
+	cfg, found, err := analyzer.LoadProjectConfig(wd)
+	if err != nil {
+		return analyzer.RulesConfig{}, fmt.Errorf("cqrs-lint: %w", err)
+	}
+
+	if !found {
+		return analyzer.RulesConfig{}, nil
+	}
+
+	return cfg.EffectiveRules(), nil
 }
 
 // repair applies the safe fix set (the same CQRSFixProvider the CLI's --fix
-// uses) over one pipeline pass and returns how many findings were fixed.
+// uses) over one pipeline pass and returns how many findings were fixed. The
+// project's .cqrs-lint.json rules config applies to the fix pipeline too, so
+// config-driven rule behavior (e.g. c008 ignore lists) matches detection.
 func repair(ctx context.Context, wd string) (int, error) {
 	actx, err := analyzer.BuildContext(wd)
 	if err != nil {
 		return 0, fmt.Errorf("cqrs-lint repair: load packages: %w", err)
 	}
+
+	effective, err := loadEffectiveRules(wd)
+	if err != nil {
+		return 0, fmt.Errorf("cqrs-lint repair: %w", err)
+	}
+
+	actx.RulesConfig = effective
 
 	pipe, err := pipeline.New(pipeline.Config{
 		MaxIterations: 1,

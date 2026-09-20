@@ -9,8 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - **record: `DeferClose` (ADR-0144).** The discard-close idiom
-  (`defer record.DeferClose(x)` replacing the verbose
-  `defer func() { _ = x.Close() }()`) now lives at Tier 0, so leaf storage
+  (`defer record.DeferClose(x)` replacing the verbose func-wrapped
+  discard-close statement) now lives at Tier 0, so leaf storage
   modules reach it without the engine substrate; `metaengine.DeferClose`
   stays as the engine-tier twin. The Tier-0 close-helper ruling also
   converted the remaining func-wrapped close sites across `kv`, `storage`,
