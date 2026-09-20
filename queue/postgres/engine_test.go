@@ -9,19 +9,19 @@ import (
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
 	"github.com/larsartmann/go-cqrs-lite/queue/postgres/v4"
+	"github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4"
 )
 
-// queueDSN resolves the test DSN; skips unless POSTGRES_TEST_DSN is set
-// (the integration leg and ephemeral-pg.sh export it).
+// queueDSN resolves a per-test database DSN (pgtestcontainer provisions a
+// fresh database per test name — env DSN > container > skip). Isolation is
+// load-bearing here: the engine tests run t.Parallel() and every
+// NewEngine/factory call migrates its database, so sharing one database
+// races concurrent CREATE TABLE IF NOT EXISTS against PostgreSQL's
+// pg_type catalog (unique-violation flakes, seen under -count=2).
 func queueDSN(t *testing.T) string {
 	t.Helper()
 
-	dsn := os.Getenv("POSTGRES_TEST_DSN")
-	if dsn == "" {
-		t.Skip("POSTGRES_TEST_DSN not set — run via the integration leg")
-	}
-
-	return dsn
+	return pgtestcontainer.DSN(t)
 }
 
 // newQueueEngine connects to the queue database; skips when Postgres is
