@@ -154,6 +154,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **pgengine, mysqlengine, duckdbengine: transactions now travel in the
+  context, killing the engine-global `activeTx` leak class (the CRM
+  `sql: Rows are closed` production flake, sqliteengine 22ab7b218
+  port).** All three engines resolved the "active transaction" from an
+  engine-global `atomic.Pointer`, so any engine call from an unrelated
+  goroutine landing inside another caller's `RunInTx` window was handed
+  the foreign `*sql.Tx` — dirty reads of uncommitted writes, and readers
+  dying mid-iteration when the foreign tx committed. `RunInTx` now
+  carries the tx under a context marker, `conn(ctx)` resolves affinity
+  from the ctx alone, nested `RunInTx` is rejected, and the ambient-tx
+  fast paths (stream append, map update) key off the same marker.
+  Regression-pinned per engine by the deterministic
+  `TxIsolationFromForeignContext` test (pg validated live against the
+  testcontainer PG; mysql live-gated on `MYSQL_TEST_DSN`; duckdb green
+  on its full suite — its stress companion is deliberately not ported:
+  concurrent prepare on separate pool connections to a file DSN
+  convolves inside the go-duckdb C bindings, a driver limit, not an
+  affinity signal).
 - **`metaengine.ExtractFields`: camelCase planned columns over snake_case
   json tags extracted as NULL, silently breaking every pushdown filter
   (P0, 2026-09-18 Ledger CRM).** A projection registered with
