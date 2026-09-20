@@ -1043,17 +1043,22 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       post-fetch-depth-fix run confirming `TestTagContentMatchesChangelog`.
       Remote confirmation of the whole set is billing-gated (row above). —
       source: archived 10-25 §b1/§f5-10 _(Effort: M total)_
-- [ ] **Wire the check-readme-* gates into a push leg** (harvested 2026-09-20) —
+- [x] ~~**Wire the check-readme-* gates into a push leg** (harvested 2026-09-20) —
       both README gates currently run nightly-only, so a broken link or
       deprecated citation can land unnoticed for up to a day; the
-      self-test-then-gate pattern in nightly-gates.yml is ready to copy. —
-      source: archived 16-43 §f18 _(Effort: XS)_
-- [ ] **gotchas-testing.md: record the GracefulClose select-race pattern**
+      self-test-then-gate pattern in nightly-gates.yml is ready to copy.~~
+      **DONE 2026-09-20 (M09):** both gates (self-test-then-gate) added to the
+      `lint-scripts` job in ci.yml — every push, not nightly-only; gates green,
+      actionlint clean. — source: archived 16-43 §f18 _(Effort: XS)_
+- [x] ~~**gotchas-testing.md: record the GracefulClose select-race pattern**
       (harvested 2026-09-20) — a pre-cancelled context racing an instant Close
       loses ~50% to Go's uniform select pick under parallel load; the fix
       shipped 2026-09-20 (done-win re-checks `ctx.Err()`), and the reusable
-      lesson is the testing pattern, not the patch. — source: archived 16-39
-      §a2/16-43 §f20 _(Effort: XS)_
+      lesson is the testing pattern, not the patch.~~ **DONE 2026-09-20:**
+      recorded in gotchas-testing.md (select-uniform-pick lesson + the
+      done-win-re-checks-ctx.Err() shape, `system/system.go:322`). The
+      leaked-QEMU-33070/slirp-RST diagnosis was already recorded there
+      (2026-09-19 entries). — source: archived 16-39 §a2/16-43 §f20 _(Effort: XS)_
 - [ ] [BLOCKED] **Upstream filings (owner approval; verify-before-filing
       first)** — (a) turso-go native-lib hash-mismatch + lazy-init failure
       family (`TestBackend_LazyInit_Concurrent` / `TestVectorSearch_LibSQLPushdown`
