@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/storage/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2

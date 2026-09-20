@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/turso/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3

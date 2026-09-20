@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/storage/turso/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23

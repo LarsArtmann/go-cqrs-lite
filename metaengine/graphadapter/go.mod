@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/graphadapter/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/graph/v4 v4.3.1

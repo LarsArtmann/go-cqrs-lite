@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/go-sql-driver/mysql v1.10.1
