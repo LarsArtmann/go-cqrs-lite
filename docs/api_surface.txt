@@ -580,6 +580,7 @@ cmd/cqrs-lint/pkg/analyzer/const CommandFlowCommands
 cmd/cqrs-lint/pkg/analyzer/const CommandFlowReadOnly
 cmd/cqrs-lint/pkg/analyzer/const CommandFlowSync
 cmd/cqrs-lint/pkg/analyzer/const CommandFlowUnknown
+cmd/cqrs-lint/pkg/analyzer/const ConfigFileName
 cmd/cqrs-lint/pkg/analyzer/const DomainFinancial
 cmd/cqrs-lint/pkg/analyzer/const DomainInternal
 cmd/cqrs-lint/pkg/analyzer/const DomainSecurity
@@ -624,6 +625,7 @@ cmd/cqrs-lint/pkg/analyzer/func AllMonetaryKinds
 cmd/cqrs-lint/pkg/analyzer/func AllSnapshotKinds
 cmd/cqrs-lint/pkg/analyzer/func AllStoreKinds
 cmd/cqrs-lint/pkg/analyzer/func AllTracingKinds
+cmd/cqrs-lint/pkg/analyzer/func ApplySeverityOverrides
 cmd/cqrs-lint/pkg/analyzer/func BaseTypeName
 cmd/cqrs-lint/pkg/analyzer/func BuildContext
 cmd/cqrs-lint/pkg/analyzer/func BuildContextFromSource
@@ -636,6 +638,7 @@ cmd/cqrs-lint/pkg/analyzer/func DetectUsedModules
 cmd/cqrs-lint/pkg/analyzer/func ExprIdentName
 cmd/cqrs-lint/pkg/analyzer/func ExprString
 cmd/cqrs-lint/pkg/analyzer/func ExtractJSONTag
+cmd/cqrs-lint/pkg/analyzer/func FilterDisabledFindings
 cmd/cqrs-lint/pkg/analyzer/func FindFuncDecl
 cmd/cqrs-lint/pkg/analyzer/func FindHandlerArg
 cmd/cqrs-lint/pkg/analyzer/func FindMethodDecl
@@ -647,6 +650,7 @@ cmd/cqrs-lint/pkg/analyzer/func IsExampleModulePath
 cmd/cqrs-lint/pkg/analyzer/func IsInsideUpcasterClosure
 cmd/cqrs-lint/pkg/analyzer/func IsKnownPreset
 cmd/cqrs-lint/pkg/analyzer/func IsQualifierFor
+cmd/cqrs-lint/pkg/analyzer/func LoadProjectConfig
 cmd/cqrs-lint/pkg/analyzer/func NewCQRSRegistry
 cmd/cqrs-lint/pkg/analyzer/func ReceiverIsEventBus
 cmd/cqrs-lint/pkg/analyzer/func ReceiverTypeName
@@ -661,6 +665,7 @@ cmd/cqrs-lint/pkg/analyzer/func SelectorFromExpr
 cmd/cqrs-lint/pkg/analyzer/func SelectorNameAndPkg
 cmd/cqrs-lint/pkg/analyzer/func SelectorPackage
 cmd/cqrs-lint/pkg/analyzer/func StringLit
+cmd/cqrs-lint/pkg/analyzer/func StripJSONC
 cmd/cqrs-lint/pkg/analyzer/func UsedKeys
 cmd/cqrs-lint/pkg/analyzer/func ValidPresetNames
 cmd/cqrs-lint/pkg/analyzer/method All
@@ -671,6 +676,7 @@ cmd/cqrs-lint/pkg/analyzer/method CollectFoldCasesWithPos
 cmd/cqrs-lint/pkg/analyzer/method CommandByName
 cmd/cqrs-lint/pkg/analyzer/method Core
 cmd/cqrs-lint/pkg/analyzer/method DisabledSet
+cmd/cqrs-lint/pkg/analyzer/method EffectiveRules
 cmd/cqrs-lint/pkg/analyzer/method Get
 cmd/cqrs-lint/pkg/analyzer/method IsCommandRegistered
 cmd/cqrs-lint/pkg/analyzer/method IsDistributed
@@ -705,6 +711,7 @@ cmd/cqrs-lint/pkg/analyzer/struct ModuleEntry
 cmd/cqrs-lint/pkg/analyzer/struct ModuleUsage
 cmd/cqrs-lint/pkg/analyzer/struct PackageLoadError
 cmd/cqrs-lint/pkg/analyzer/struct PresetDefinition
+cmd/cqrs-lint/pkg/analyzer/struct ProjectConfig
 cmd/cqrs-lint/pkg/analyzer/struct ProjectionInfo
 cmd/cqrs-lint/pkg/analyzer/struct RulesConfig
 cmd/cqrs-lint/pkg/analyzer/type CommandFlowKind
