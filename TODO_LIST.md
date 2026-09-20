@@ -16,7 +16,9 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > ranked the then-list into Pareto waves (W0 release train → W1 trust →
 > W2 efficiency → W3 v5 train) and was EXECUTED through 2026-09-11 (W3's v5
 > items live in the v5 section below; the user-gated P22 halves remain in the
-> Turso section). This file remains the living source of truth.
+> Turso section). **Current plan (2026-09-20 17:40):**
+> [`docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md`](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md)
+> (M01–M27, all open rows mapped). This file remains the living source of truth.
 
 ## Legend
 
