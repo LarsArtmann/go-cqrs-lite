@@ -62,6 +62,20 @@ case "${1:-}" in
 		echo "✗ config not found: $CONFIG_FILE" >&2
 		exit 1
 	}
+	# Never pin a corrupted config: run the shape gates first (both repair
+	# known-bad shapes in place; a nonzero exit after repair means a human
+	# must decide). Incident #11 (2026-09-20): the golden was pinned over a
+	# config whose depguard block had been deleted — pinned corruption.
+	if [[ -z "${GOLANGCI_HASH_CONFIG:-}" ]]; then
+		bash "$ROOT/scripts/check-formatters.sh" || {
+			echo "✗ refusing to pin: check-formatters failed after repair" >&2
+			exit 1
+		}
+		bash "$ROOT/scripts/restore-depguard.sh" || {
+			echo "✗ refusing to pin: restore-depguard failed after repair" >&2
+			exit 1
+		}
+	fi
 	hash=$(hash_of "$CONFIG_FILE")
 	printf '%s  .golangci.yml\n' "$hash" >"$GOLDEN_FILE"
 	echo "PINNED — golden updated to sha256:${hash:0:12}… ($GOLDEN_FILE)"
