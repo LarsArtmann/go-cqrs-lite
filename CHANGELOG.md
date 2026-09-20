@@ -154,6 +154,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **`metaengine.ExtractFields`: camelCase planned columns over snake_case
+  json tags extracted as NULL, silently breaking every pushdown filter
+  (P0, 2026-09-18 Ledger CRM).** A projection registered with
+  `FilterOnField[R]("ParentID", …)` plans a column named by the GO field,
+  but extraction compared that name only against the struct's json TAG
+  (`parent_id`) — the underscore killed the case-insensitive match, the
+  column stayed NULL, and `Where("ParentID", …)` matched nothing without
+  erroring. Columns now match a field when either its json tag OR its Go
+  field name matches (case-insensitive), and the map path (decoded
+  documents) falls back to the snake_case form of the column name with
+  acronym runs kept intact (`ParentID` → `parent_id`, `URLKey` →
+  `url_key` — a naive per-capital splitter produced `parent_i_d`, caught
+  by the new tests). Pinned by three parity tests over the exact CRM
+  shape; full `metaengine`, `adttest`, and `sqliteengine` suites green.
+  The CRM's Go-side filter workaround (`tasksForParentID`) can be
+  deleted on the next consumer bump.
 - **Full-gate flake repairs + MySQL-leg vehicle diagnosis (2026-09-19
   verify-green session).** Four load-sensitive tests no longer flip under
   full-suite `-race` load: `metaengine`'s probe-warning test writes the
