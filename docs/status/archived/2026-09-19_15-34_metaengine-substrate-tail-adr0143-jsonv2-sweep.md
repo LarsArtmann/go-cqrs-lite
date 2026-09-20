@@ -3,7 +3,7 @@
 **Date:** 2026-09-19 15:34 · **Session:** continuation of the universal-storage-substrate tail execution
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Scope:** the 8-item todo list from `2026-09-19_12-12` (FactSink wiring, CAS cap, recipes §2.38, `#verify` end-to-end, integration+load-sweep, jsonv2 tag sweep, tag-wave assessment).
+> **Scope:** the 8-item todo list from `2026-09-19_12-12` (FactSink wiring, CAS cap, recipes §2.38, `#verify` end-to-end, integration+load-sweep, jsonv2 tag sweep, tag-wave assessment).
 
 ## a) Fully done (verified)
 

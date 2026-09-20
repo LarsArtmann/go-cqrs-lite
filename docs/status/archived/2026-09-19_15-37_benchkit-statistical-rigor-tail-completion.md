@@ -132,22 +132,22 @@ tag wave (which this session's +9 exports make more urgent, not less).
 
 20. **Verification matrix (this session)**:
 
-| Gate | Result |
-| --- | --- |
-| benchkit full suite, workspace mode | ok (39.7s) |
-| benchkit full suite, GOWORK=off | ok (48.3s) |
-| cmd/cqrs-bench suite, GOWORK=off (sibling replace) | ok (20.2s) |
-| benchkit race subset (new tests) | ok (5.9s) |
-| New SDK tests (14 in benchkit/variation_rigor_test.go + CLI TestFmtNoisyCount) | all PASS |
-| golangci-lint benchkit + cqrs-bench | 0 issues (1 self-introduced `varnamelen` fixed) |
-| `nix fmt` (treefmt) | idempotent |
-| file-size ratchet (`#check-file-size`) | PASS — no new offenders, no growth |
-| duplication gate (`#check-duplication`) | PASS — 0 new clones |
-| api-stability golden regen (+9 exports) + `TestEvery` | PASS |
-| changelog-symbols gate (152 citations) | PASS |
-| `check-bench-gate` via nix app (24 fixture cases) | PASS |
-| doc-check (SKILL + references + AGENTS) | exit 0, 1183 refs valid |
-| Live noise-gate run | correctly FAILED on noisy headline (see #11) |
+| Gate                                                                           | Result                                          |
+| ------------------------------------------------------------------------------ | ----------------------------------------------- |
+| benchkit full suite, workspace mode                                            | ok (39.7s)                                      |
+| benchkit full suite, GOWORK=off                                                | ok (48.3s)                                      |
+| cmd/cqrs-bench suite, GOWORK=off (sibling replace)                             | ok (20.2s)                                      |
+| benchkit race subset (new tests)                                               | ok (5.9s)                                       |
+| New SDK tests (14 in benchkit/variation_rigor_test.go + CLI TestFmtNoisyCount) | all PASS                                        |
+| golangci-lint benchkit + cqrs-bench                                            | 0 issues (1 self-introduced `varnamelen` fixed) |
+| `nix fmt` (treefmt)                                                            | idempotent                                      |
+| file-size ratchet (`#check-file-size`)                                         | PASS — no new offenders, no growth              |
+| duplication gate (`#check-duplication`)                                        | PASS — 0 new clones                             |
+| api-stability golden regen (+9 exports) + `TestEvery`                          | PASS                                            |
+| changelog-symbols gate (152 citations)                                         | PASS                                            |
+| `check-bench-gate` via nix app (24 fixture cases)                              | PASS                                            |
+| doc-check (SKILL + references + AGENTS)                                        | exit 0, 1183 refs valid                         |
+| Live noise-gate run                                                            | correctly FAILED on noisy headline (see #11)    |
 
 21. **Docs shipped**: CHANGELOG `[Unreleased]` dated section (symbols
     gate-verified); benchkit/README.md rigor section (serialization, Min,
@@ -189,13 +189,14 @@ tag wave (which this session's +9 exports make more urgent, not less).
 ## c) NOT STARTED (still open; attributed)
 
 From the same 2026-09-16 tail (deliberately out of scope this session):
+
 1. `benchstat-diff` subcommand / `scripts/bench-ab.sh` A/B-by-revision — the
    LOSING option; documented as future convenience only.
 2. Nightly benchstat artifacts + delta summary (benchstat-by-revision
    companion).
 3. `check-bench-gate`: assert gate-set entries still exist as benchmarks
    (silent-rename guard) — MORE valuable now that the set grew to 4 entries
-   + a noise benchmark.
+   - a noise benchmark.
 4. `--strict` fail on NOISY headline metrics (CLI opt-in).
 5. CSV variation columns; sweep CoV column; per-repeat progress; table
    `Load1` env row; `--warmup` docs; `list-phases` metric mapping.
@@ -328,7 +329,7 @@ From the same 2026-09-16 tail (deliberately out of scope this session):
 23. Investigate CI golangci-lint version skew (#33, pre-existing).
 24. Consider `P100` in benchstat gate metrics once sample counts justify
     (#42).
-~~25. benchkit `infertypeargs` one-liners (#44).~~ done 2026-09-19 — benchkit lint 0
+    ~~25. benchkit `infertypeargs` one-liners (#44).~~ done 2026-09-19 — benchkit lint 0
 
 **Docs / skill**
 

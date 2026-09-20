@@ -57,20 +57,20 @@ Nothing broke; gate green; no code touched. Two honesty/process failures:
 
 ## f) Next tasks (ranked; feeds HARVEST only on user go-ahead)
 
-| #  | Task                                                                                                                          | Impact | Effort | Cat      |
-| -- | ----------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | -------- |
-| 1  | Run the 3 drafted skill-eval prompts (with/without skill) and iterate on the description                                      | High   | M      | Quality  |
-| 2  | NATS JetStream roundtrip test: `watermill-nats/v2` + `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`        | High   | M      | Feature  |
-| 3  | Add watermill-skill `references/advanced.md`: Delayed Messages, Requeuing After Error, FanIn/FanOut, Metrics, Troubleshooting | Medium | M      | Docs     |
-| 4  | Cross-link: go-cqrs-lite `SKILL.md`/`advanced.md` watermill sections → `.agents/skills/watermill/`                            | Medium | S      | Docs     |
-| 5  | Verify upstream latests for watermill-redisstream/kafka/amqp/sql plugins; record in backends.md                               | Low    | S      | Research |
-| 6  | Deep-dive remaining backends (SQLite first — aligns with repo's SQLite-first storage story) and fill matrix cells             | Medium | M      | Research |
-| 7  | CHANGELOG decision for the README NATS correction (see g2)                                                                    | Low    | S      | Docs     |
-| 8  | Claims-checklist habit → consider a tiny `docs/agents/` note or AGENTS.md line so future sessions inherit it                  | Medium | S      | Process  |
-|~~ 9  ~~|~~ Inspect `benchkit/repeat_test.go` (foreign untracked file) once its author surfaces — judge on merits, don't absorb blindly   ~~ done 2026-09-16 — banner: authored+landed by the 02-09 session  |~~ Low    ~~|~~ S      ~~|~~ Hygiene  ~~|
-| 10 | If NATS leg lands: add `nix run .#integration-nats`-style CI job analog to `#integration-redis`                               | Medium | M      | Infra    |
-| 11 | Consider recipes.md §addition: Forwarder outbox recipe using repo EventPublisher + watermill-sql tx publisher                 | Medium | M      | Docs     |
-| 12 | Re-check treefmt/flake formatter coverage for `.md` (treefmt.toml absent; config may be inline in flake.nix — unverified)     | Low    | S      | Hygiene  |
+| #       | Task                                                                                                                                                                                             | Impact    | Effort  | Cat           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ------- | ------------- |
+| 1       | Run the 3 drafted skill-eval prompts (with/without skill) and iterate on the description                                                                                                         | High      | M       | Quality       |
+| 2       | NATS JetStream roundtrip test: `watermill-nats/v2` + `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`                                                                           | High      | M       | Feature       |
+| 3       | Add watermill-skill `references/advanced.md`: Delayed Messages, Requeuing After Error, FanIn/FanOut, Metrics, Troubleshooting                                                                    | Medium    | M       | Docs          |
+| 4       | Cross-link: go-cqrs-lite `SKILL.md`/`advanced.md` watermill sections → `.agents/skills/watermill/`                                                                                               | Medium    | S       | Docs          |
+| 5       | Verify upstream latests for watermill-redisstream/kafka/amqp/sql plugins; record in backends.md                                                                                                  | Low       | S       | Research      |
+| 6       | Deep-dive remaining backends (SQLite first — aligns with repo's SQLite-first storage story) and fill matrix cells                                                                                | Medium    | M       | Research      |
+| 7       | CHANGELOG decision for the README NATS correction (see g2)                                                                                                                                       | Low       | S       | Docs          |
+| 8       | Claims-checklist habit → consider a tiny `docs/agents/` note or AGENTS.md line so future sessions inherit it                                                                                     | Medium    | S       | Process       |
+| ~~ 9 ~~ | ~~ Inspect `benchkit/repeat_test.go` (foreign untracked file) once its author surfaces — judge on merits, don't absorb blindly ~~ done 2026-09-16 — banner: authored+landed by the 02-09 session | ~~ Low ~~ | ~~ S ~~ | ~~ Hygiene ~~ |
+| 10      | If NATS leg lands: add `nix run .#integration-nats`-style CI job analog to `#integration-redis`                                                                                                  | Medium    | M       | Infra         |
+| 11      | Consider recipes.md §addition: Forwarder outbox recipe using repo EventPublisher + watermill-sql tx publisher                                                                                    | Medium    | M       | Docs          |
+| 12      | Re-check treefmt/flake formatter coverage for `.md` (treefmt.toml absent; config may be inline in flake.nix — unverified)                                                                        | Low       | S       | Hygiene       |
 
 ## g) Questions I cannot answer myself
 

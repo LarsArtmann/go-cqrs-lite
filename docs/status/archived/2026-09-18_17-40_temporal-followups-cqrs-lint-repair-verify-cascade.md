@@ -103,9 +103,9 @@ Also: `nix run .#check-file-size` still red on `catalog/docserver/eventcatalogvi
 ## e) Next tasks
 
 1. When machine quiets: the full cascade (c above) — the only outstanding gate work.
-~~2. `check-file-size` on eventcatalogview.go once the docserver session commits~~
-~~   (their file was still being edited at 16:28–16:35).~~ done 2026-09-18 — 19:24 report §a8 (625→320, gate green)
-3. Owner decisions still open from 16:03 §g (daemon policy — now with 4 strikes;
+   ~~2. `check-file-size` on eventcatalogview.go once the docserver session commits~~
+   ~~ (their file was still being edited at 16:28–16:35).~~ done 2026-09-18 — 19:24 report §a8 (625→320, gate green)
+2. Owner decisions still open from 16:03 §g (daemon policy — now with 4 strikes;
    bigtable real-GCP gate; history reconstruction).
 
 _All green claims above verified by command runs in this session (logs: /tmp/_.log).*

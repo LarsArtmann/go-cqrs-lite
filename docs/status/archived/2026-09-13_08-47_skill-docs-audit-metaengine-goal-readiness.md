@@ -5,8 +5,8 @@
 **Date:** 2026-09-13 08:47 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped via later sessions (TODO_LIST `[x]` rows + CHANGELOG `[Unreleased]` dated entries). Unstruck items remain OPEN, tracked in TODO_LIST/ROADMAP where actionable (tag waves, quiet-window `#verify`, billing-gated CI, owner [BLOCKED] rulings); XS polish wishes not yet harvested stay here as the historical record. ARCHIVED.
-**Session scope:** Audit + fix of the consumer-facing skill documentation (`.agents/skills/go-cqrs-lite/SKILL.md` + 6 `references/*.md`, ~4,470 lines) against (1) general SUPERB-ness and (2) the metaengine north-star vision ("developers declare only Commands + Events + Queries and their relationships; where data lives is up to operators at deployment time").
-**Format note:** user explicitly requested `.md` at `docs/status/` — overrides the status-report skill's HTML default. Self-review folded in per brutal-self-review skill questions.
+> **Session scope:** Audit + fix of the consumer-facing skill documentation (`.agents/skills/go-cqrs-lite/SKILL.md` + 6 `references/*.md`, ~4,470 lines) against (1) general SUPERB-ness and (2) the metaengine north-star vision ("developers declare only Commands + Events + Queries and their relationships; where data lives is up to operators at deployment time").
+> **Format note:** user explicitly requested `.md` at `docs/status/` — overrides the status-report skill's HTML default. Self-review folded in per brutal-self-review skill questions.
 
 **One-line verdict:** The docs were NOT goal-ready when asked; 14 defects found and fixed, gates green. Self-review then found 2 MORE defects in the file I audited hardest — fixed too. Audit coverage was partial (4 of 7 files fully read); "SUPERB" is claimed only for what was actually verified.
 

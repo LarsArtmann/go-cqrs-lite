@@ -3,11 +3,11 @@
 **Date:** 2026-09-19 15:11 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Session scope:** Resumed the owner-stopped plan and executed the tail:
-clone-gate annotations, T17 doc rows, T18a benches, T22 taskmanager-on-queue,
-T23 semantic-diff memo, MySQL/PG live legs, integration sweep, verify attempt.
-Companion reports (same day): 12:12 ×2, 15:09 (superseded by this one for
-everything except detail already captured there).
+> **Session scope:** Resumed the owner-stopped plan and executed the tail:
+> clone-gate annotations, T17 doc rows, T18a benches, T22 taskmanager-on-queue,
+> T23 semantic-diff memo, MySQL/PG live legs, integration sweep, verify attempt.
+> Companion reports (same day): 12:12 ×2, 15:09 (superseded by this one for
+> everything except detail already captured there).
 
 **Plan:** [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
 
@@ -181,38 +181,38 @@ everything except detail already captured there).
 
 ~~1. Land the lint cleanup (concurrent session, in progress): 76 → 0.~~ done 2026-09-19 — 18:05
 2. Re-run `nix run .#verify` END-TO-END (including race phase) on a
-   stable tree.
+stable tree.
 3. `nix run .#verify-ci` (per-module GOWORK=off matrix, mirrors CI).
 4. T18b: `nix run .#load-sweep` on a quiet window (load < ~10).
 5. `./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt`
-~~   (adds claimkit entries + 1.27 toolchain re-baseline), then the gate.~~
+~~ (adds claimkit entries + 1.27 toolchain re-baseline), then the gate.~~
 ~~6. Run cqrs-lint on example/taskmanager (`TestExamples_AreV5Clean`) —~~ done 2026-09-19 — 18:05 cqrs-lint green
-   first honest lint of my new example code.
+first honest lint of my new example code.
 ~~7. Wire `Config.HTTPAddr` through `Run()` (or delete the field).~~ done 2026-09-19 — 18:05 §a12
 ~~8. Add the two new lessons to `docs/agents/gotchas-testing.md`.~~ done 2026-09-19 — 18:05 gotchas
 ~~9. MySQL racer cap env (`MYSQL_TEST_CONCURRENCY`) for QEMU legs — local~~
-~~   runs proved the test itself is stable.~~ done 2026-09-19 — 15:34 §a2
+~~ runs proved the test itself is stable.~~ done 2026-09-19 — 15:34 §a2
 10. Validate queue/mysql + mysqlengine on the nspawn leg (root) once —
-    removes the last QEMU caveat.
+removes the last QEMU caveat.
 11. Check CI green post-1.27-sweep + post-lint-fix (ci.yml Nix matrix).
 ~~12. api-stability golden: regenerate once lint lands (it ran green twice~~
-~~    in verify, but tree moved since).~~ done 2026-09-19 — zero drift
+~~ in verify, but tree moved since).~~ done 2026-09-19 — zero drift
 13. Tag wave (owner-gated): claiming/v4.0.0 + queue family v4.0.0 —
-    strips the new example/taskmanager replaces too.
+strips the new example/taskmanager replaces too.
 14. gopls/LSP toolchain pin (115+ stale go.work-version errors all day —
-    CLI was truth; the noise is unbearable).
+CLI was truth; the noise is unbearable).
 15. Daemon gate hook implementation (see e1) — prototype on
-    check-file-size only, then layers.
+check-file-size only, then layers.
 16. Doctor: dedicated "--- Refused ADTs ---" section (12:12 report P3.15).
 17. ExplainPlan/SCREAM: plan-time diagnostic when a DeploymentConfig
-    names a refused engine for timers/dedup (P3.16).
+names a refused engine for timers/dedup (P3.16).
 18. `system.TimerEngine()`: honor RefusedADTs at wiring time (P3.17).
 19. Capability-audit rule 4 for FactSink (mint `ADTFactSink` or document
-    why capability-only) (P3.18).
+why capability-only) (P3.18).
 20. Conformance: lease-expiry reclaim under clock skew (fake clock) +
-    cross-collection keyspace isolation for claimkit MySQL (P3.19).
+cross-collection keyspace isolation for claimkit MySQL (P3.19).
 21. bigtable: implement MapUpdate (CheckAndMutate CAS loop) + ScanBackend
-    (ReadRows prefix) → replace refusal with Degraded (P3.20).
+(ReadRows prefix) → replace refusal with Degraded (P3.20).
 22. dgraph: re-evaluate refusal if DQL gains upsert-CAS (P3.21).
 23. iroh: leader-elected claim path ADR note (P3.22).
 24. `EngineProfile.String()`: refused count in the suffix (P3.23).
@@ -220,16 +220,16 @@ everything except detail already captured there).
 26. queue/mysql `HealthCheck` implementation (P3.29).
 27. Deadlock-retry metric/log when `claimDeadlockRetries` fires (P3.28).
 28. v5 train when authorized: T19 fold capabilities into Engine → T20
-    delete duplicate stacks → T21 release train (in that order).
+delete duplicate stacks → T21 release train (in that order).
 29. CONTRIBUTING: new-module checklist (go.work + flake + api-stability +
-    layer/budget maps + three doc rows + VM legs) (P5.37).
+layer/budget maps + three doc rows + VM legs) (P5.37).
 30. gowork-modes.md: VM-manual-mode row (12:12 e4) + post-graduation
-    refresh (tag no-op, 1.27.1 floor).
+refresh (tag no-op, 1.27.1 floor).
 31. go-taskqueue upstream: consider consuming the library from the donor
-    (the memo proves it can adopt without behavior change) — consumer
-    decision, needs its owner.
+(the memo proves it can adopt without behavior change) — consumer
+decision, needs its owner.
 ~~32. `#check-duplication` on the final tree after the concurrent session's~~
-~~    lint fixes (their edits could introduce new clones).~~ done 2026-09-19 — 18:05 green
+~~ lint fixes (their edits could introduce new clones).~~ done 2026-09-19 — 18:05 green
 
 ## g) QUESTIONS (cannot figure out myself)
 

@@ -8,6 +8,7 @@
 ## a) FULLY DONE (all verified)
 
 ### W0 PUBLISH — the 1%→51% — complete to its acceptance bar
+
 - **The 92-tag train was cut+pushed by a parallel session (21:08–21:45)** — this session found it already shipped (the plan's "0 published" §0 was stale), then **verified every tail item**:
   - 1314 tags local == 1314 remote; wave tags match the batch manifests; sampled tags carry zero local replaces, coherent pins.
   - Proxy: `@latest` resolves wave versions from a clean dir for 10 key modules; pre-warmed all 92.
@@ -18,6 +19,7 @@
 - **T09/T12 recorded:** consumer-propagation handoff (CV, go-taskqueue, PapDashboard, go-graph-rag, go-localsync) + 16 release rows struck with evidence in TODO_LIST.
 
 ### W1 (partial) + W2 code wave
+
 - **T16:** api-stability fully green (incl. foreign `readme_claims_test.go`, TestEvery, tidy gate).
 - **T26 (3-session ask):** `wait-for-quiet.sh` + `can-run-composed-gate.sh` (both mutation-tested via planted fixtures — the first drafts' vacuous passes were caught and rebuilt with honored env hooks), `#verify` `-p 4` cap, cqrs-lint typed-fixture helpers fail-loud.
 - **T20:** `check-canonical-facts.sh` — derives go.mod count / module-map census / recipes-catalog size from the repo; **caught the 80→81 recipes drift on first real run**; wired into nightly.

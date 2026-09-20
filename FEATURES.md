@@ -395,66 +395,66 @@ Factory-driven benchmarking suite for measuring CQRS performance across
 backends, deployment sizes, and workload profiles. Mirrors the contracttest
 pattern: same workload, any backend, structured metrics report.
 
-| Feature                 | Detail                                                                                                         | Status |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
-| Core types              | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`                     | 🧪     |
-| LatencyCollector        | Sorted-slice + reservoir sampling (10K cap), thread-safe                                                       | 🧪     |
-| Resource sampling       | Peak heap via 100ms polling goroutine, baseline/after deltas                                                   | 🧪     |
-| Synthetic generator     | Seeded PCG, deterministic, configurable payload size, codec-aware padding                                      | 🧪     |
-| Mixed payload sizes     | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                                      | 🧪     |
-| 7 named profiles        | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                                       | 🧪     |
-| 9-phase runner          | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown                       | 🧪     |
-| Raw sink phase          | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity                    | 🧪     |
-| Environment metadata    | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`                               | 🧪     |
-| Schema versioning       | `Result.SchemaVersion` for JSON schema stability tracking                                                      | 🧪     |
-| Median fix              | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)                      | 🧪     |
-| Concurrent workers      | Channel-based, cancel-on-error, WaitGroup                                                                      | 🧪     |
-| `Run()` API             | Single-backend benchmark, returns `*Result`                                                                    | 🧪     |
-| `Compare()` API         | Multi-backend comparison, handles factory failures gracefully                                                  | 🧪     |
-| DiskSizer               | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                                   | 🧪     |
-| CPU measurement         | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                                          | 🧪     |
-| Projection phase        | Polls until all events processed, reports lag + events                                                         | 🧪     |
-| Reports                 | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env            | 🧪     |
-| Scaling sweeps          | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration     | 🧪     |
-| benchstat output        | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                                       | 🧪     |
-| Suite manifest          | `WriteManifest` — config + environment + result as JSON for reproducibility                                    | 🧪     |
-| JSON schema check       | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes                               | 🧪     |
-| ReadRatio               | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                                              | 🧪     |
-| Durability phase        | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`)       | 🧪     |
-| Replay phase            | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections                | 🧪     |
-| `benchtest.RunSuite`    | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench` | 🧪     |
-| Analytical profile      | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`                        | 🧪     |
-| Postgres backend        | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`                            | 🧪     |
-| kv projection handler   | Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback                      | 🧪     |
-| Statistical reliability | `RepeatStdDev`/`RepeatCoV`/`RepeatMean`/`RepeatIsReliable` — cross-run variance (ADR-0090)                     | 🧪     |
-| Multi-run API           | `RunRepeated`/`RepeatedResult` — every run + median; `Reliable()`, `NoisyMetrics()` verdicts                   | 🧪     |
-| Per-metric variation    | `Result.MetricVariation` + `VariationThreshold`/`NoisyMetricNames` — CoV for ~all metrics, not just throughput | 🧪     |
-| Exact max latency       | `LatencyStats.P100` tracks the true maximum; reservoir sampling can no longer hide tail spikes                 | 🧪     |
-| Exact min latency       | `LatencyStats.Min` — the exact fastest op; `Mean/Min` approximates scheduler + contention overhead             | 🧪     |
+| Feature                 | Detail                                                                                                                                                             | Status |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| Core types              | `Config`, `Result`, `LatencyStats`, `ResourceStats`, `DiskStats`, `Factory`, `Environment`                                                                         | 🧪     |
+| LatencyCollector        | Sorted-slice + reservoir sampling (10K cap), thread-safe                                                                                                           | 🧪     |
+| Resource sampling       | Peak heap via 100ms polling goroutine, baseline/after deltas                                                                                                       | 🧪     |
+| Synthetic generator     | Seeded PCG, deterministic, configurable payload size, codec-aware padding                                                                                          | 🧪     |
+| Mixed payload sizes     | `NewMixedGenerator(seed, sizes, codec)` — uniform-random per-event sizing                                                                                          | 🧪     |
+| 7 named profiles        | Dev, Small, Medium, Large, Stress, WriteHeavy, ReadHeavy                                                                                                           | 🧪     |
+| 9-phase runner          | setup → warmup → write → read → readmodel → projection → durability → rawsink → teardown                                                                           | 🧪     |
+| Raw sink phase          | Pre-built events timed against `EventSink.Save` only — isolates pure backend write capacity                                                                        | 🧪     |
+| Environment metadata    | `GoVersion`, `NumCPU`, `GOMAXPROCS`, `GOOS`, `GOARCH` recorded in every `Result`                                                                                   | 🧪     |
+| Schema versioning       | `Result.SchemaVersion` for JSON schema stability tracking                                                                                                          | 🧪     |
+| Median fix              | `runRepeated` sorts results by throughput before picking median (was insertion-order bug)                                                                          | 🧪     |
+| Concurrent workers      | Channel-based, cancel-on-error, WaitGroup                                                                                                                          | 🧪     |
+| `Run()` API             | Single-backend benchmark, returns `*Result`                                                                                                                        | 🧪     |
+| `Compare()` API         | Multi-backend comparison, handles factory failures gracefully                                                                                                      | 🧪     |
+| DiskSizer               | `Bundle.DiskSize()` via `stack.WithDiskSize()`, implemented by Pebble preset                                                                                       | 🧪     |
+| CPU measurement         | `syscall.Getrusage` (Unix), stub on non-Unix — microsecond resolution                                                                                              | 🧪     |
+| Projection phase        | Polls until all events processed, reports lag + events                                                                                                             | 🧪     |
+| Reports                 | Text, JSON (v2), Markdown, benchstat, manifest — latency percentiles, throughput, memory, disk, env                                                                | 🧪     |
+| Scaling sweeps          | `WorkerSweep`, `BatchSizeSweep`, `StreamLengthSweep`, `GOMAXPROCSSweep` — systematic parameter exploration                                                         | 🧪     |
+| benchstat output        | `WriteBenchstat` — benchstat-compatible lines for statistical comparison                                                                                           | 🧪     |
+| Suite manifest          | `WriteManifest` — config + environment + result as JSON for reproducibility                                                                                        | 🧪     |
+| JSON schema check       | `ExpectedJSONFields` + `VerifyJSONFields` — guards against silent schema changes                                                                                   | 🧪     |
+| ReadRatio               | Configurable read/write mix for WriteHeavy and ReadHeavy profiles                                                                                                  | 🧪     |
+| Durability phase        | `Config.Recovery` — close bundle, reopen via factory, reload streams (`RecoveryTime`, `RecoveredEvents`)                                                           | 🧪     |
+| Replay phase            | `Config.ReplayOnly` — skip writes, discover streams from journal, benchmark reads + projections                                                                    | 🧪     |
+| `benchtest.RunSuite`    | `RunSuite(b, config, factory)` wraps benchkit into Go `testing.B` (`b.ReportMetric`); wired into `stack/bench`                                                     | 🧪     |
+| Analytical profile      | `ProfileAnalytical` (10K streams, 90% reads, 5x journal scans) + `Profile.JournalScans`                                                                            | 🧪     |
+| Postgres backend        | `postgres` backend in `cqrs-bench`; benchkit tests skip without `POSTGRES_TEST_DSN`                                                                                | 🧪     |
+| kv projection handler   | Projection phase exercises a real `kv.Store` (Get+Set per event); atomic counter fallback                                                                          | 🧪     |
+| Statistical reliability | `RepeatStdDev`/`RepeatCoV`/`RepeatMean`/`RepeatIsReliable` — cross-run variance (ADR-0090)                                                                         | 🧪     |
+| Multi-run API           | `RunRepeated`/`RepeatedResult` — every run + median; `Reliable()`, `NoisyMetrics()` verdicts                                                                       | 🧪     |
+| Per-metric variation    | `Result.MetricVariation` + `VariationThreshold`/`NoisyMetricNames` — CoV for ~all metrics, not just throughput                                                     | 🧪     |
+| Exact max latency       | `LatencyStats.P100` tracks the true maximum; reservoir sampling can no longer hide tail spikes                                                                     | 🧪     |
+| Exact min latency       | `LatencyStats.Min` — the exact fastest op; `Mean/Min` approximates scheduler + contention overhead                                                                 | 🧪     |
 | Load provenance         | `Environment.LoadAvg1` (start) + `LoadAvg1End` (end) + oversubscription/drift warnings — noisy runs are self-describing; `Config.LoadWarnThreshold` tunes the line | 🧪     |
-| Small-n percentiles     | `Config.InterpolatedPercentiles` / `WithInterpolatedPercentiles` — linear interpolation when nearest-rank P99 collapses onto the max | 🧪     |
-| Metric-name contract    | `MetricNames()` — stable benchstat metric-name universe in report order for downstream tooling                 | 🧪     |
-| Comparison variation    | `Result.NoisyMetricCount` (table Noisy column) + `PrintComparisonVariation` footer — compare states which medians are decision-grade | 🧪     |
-| Per-run serialization   | `SuiteManifest.Runs` via `WriteManifestRepeated` (CLI `--include-runs`) + `RepeatedResult.WriteRepeatedJSON`   | 🧪     |
-| Soak dispersion         | `SoakResult.ThroughputCoV`/`WriteP99CoV` — cross-iteration spread next to endpoint drift (exposes bimodal soaks) | 🧪     |
-| Zero-value audit        | Phase throughput vs sample-count disagreement records a warning instead of publishing inconsistent metrics     | 🧪     |
-| GC pause metrics        | `GCMaxPause` — maximum GC pause during benchmark run                                                           | 🧪     |
-| Allocation metrics      | `AllocsPerOp`, `BytesPerOp` — derived per-operation allocation tracking                                        | 🧪     |
-| Data integrity          | `IntegrityErrors` — verifies event round-trip after benchmark run                                              | 🧪     |
-| Write amplification     | `Disk.WriteAmplification` — ratio of bytes written to logical payload size                                     | 🧪     |
-| Cold/warm read          | `ColdReadLatency` — first-read latency (no cache) vs steady-state                                              | 🧪     |
-| Tail ratio              | `TailRatio` (P99/P50) — latency distribution tail metric                                                       | 🧪     |
-| Environment enrichment  | `CPUModel`, `TotalRAMBytes` — hardware metadata for reproducibility                                            | 🧪     |
-| Soak test drift         | `SoakResult.GCMaxPauseDriftPct`, `AllocGrowthPct` — memory boundedness over sustained load                     | 🧪     |
-| Metaengine benchmark    | Memory + SQLite engines. Counter + Map ADTs. Correctness assertions prevent empty-store silent failure         | 🧪     |
-| Mixed workload          | `BenchmarkMixedWorkload_ReadsDuringWrites` — concurrent read/write contention profiling                        | 🧪     |
-| Resident memory         | `Memory.Resident` — post-GC heap footprint (actual retained memory)                                            | 🧪     |
-| Progress reporting      | `--progress` flag with heartbeat goroutine (elapsed time per phase)                                            | 🧪     |
-| Strict mode             | `--strict` flag + `ErrStrictSkip` sentinel — CI gate for skipped phases                                        | 🧪     |
-| Versioned read phase    | `LoadFromVersion`/`LoadToVersion`/`LoadToTimestamp` benchmarks                                                 | 🧪     |
-| Checkpoint phase        | Checkpoint latency benchmark phase                                                                             | 🧪     |
-| Batch write phase       | `SkipBatchWrite` flag + batch write benchmark                                                                  | 🧪     |
-| Phase listing           | `--list-phases` subcommand + `PhaseNames()` export                                                             | 🧪     |
+| Small-n percentiles     | `Config.InterpolatedPercentiles` / `WithInterpolatedPercentiles` — linear interpolation when nearest-rank P99 collapses onto the max                               | 🧪     |
+| Metric-name contract    | `MetricNames()` — stable benchstat metric-name universe in report order for downstream tooling                                                                     | 🧪     |
+| Comparison variation    | `Result.NoisyMetricCount` (table Noisy column) + `PrintComparisonVariation` footer — compare states which medians are decision-grade                               | 🧪     |
+| Per-run serialization   | `SuiteManifest.Runs` via `WriteManifestRepeated` (CLI `--include-runs`) + `RepeatedResult.WriteRepeatedJSON`                                                       | 🧪     |
+| Soak dispersion         | `SoakResult.ThroughputCoV`/`WriteP99CoV` — cross-iteration spread next to endpoint drift (exposes bimodal soaks)                                                   | 🧪     |
+| Zero-value audit        | Phase throughput vs sample-count disagreement records a warning instead of publishing inconsistent metrics                                                         | 🧪     |
+| GC pause metrics        | `GCMaxPause` — maximum GC pause during benchmark run                                                                                                               | 🧪     |
+| Allocation metrics      | `AllocsPerOp`, `BytesPerOp` — derived per-operation allocation tracking                                                                                            | 🧪     |
+| Data integrity          | `IntegrityErrors` — verifies event round-trip after benchmark run                                                                                                  | 🧪     |
+| Write amplification     | `Disk.WriteAmplification` — ratio of bytes written to logical payload size                                                                                         | 🧪     |
+| Cold/warm read          | `ColdReadLatency` — first-read latency (no cache) vs steady-state                                                                                                  | 🧪     |
+| Tail ratio              | `TailRatio` (P99/P50) — latency distribution tail metric                                                                                                           | 🧪     |
+| Environment enrichment  | `CPUModel`, `TotalRAMBytes` — hardware metadata for reproducibility                                                                                                | 🧪     |
+| Soak test drift         | `SoakResult.GCMaxPauseDriftPct`, `AllocGrowthPct` — memory boundedness over sustained load                                                                         | 🧪     |
+| Metaengine benchmark    | Memory + SQLite engines. Counter + Map ADTs. Correctness assertions prevent empty-store silent failure                                                             | 🧪     |
+| Mixed workload          | `BenchmarkMixedWorkload_ReadsDuringWrites` — concurrent read/write contention profiling                                                                            | 🧪     |
+| Resident memory         | `Memory.Resident` — post-GC heap footprint (actual retained memory)                                                                                                | 🧪     |
+| Progress reporting      | `--progress` flag with heartbeat goroutine (elapsed time per phase)                                                                                                | 🧪     |
+| Strict mode             | `--strict` flag + `ErrStrictSkip` sentinel — CI gate for skipped phases                                                                                            | 🧪     |
+| Versioned read phase    | `LoadFromVersion`/`LoadToVersion`/`LoadToTimestamp` benchmarks                                                                                                     | 🧪     |
+| Checkpoint phase        | Checkpoint latency benchmark phase                                                                                                                                 | 🧪     |
+| Batch write phase       | `SkipBatchWrite` flag + batch write benchmark                                                                                                                      | 🧪     |
+| Phase listing           | `--list-phases` subcommand + `PhaseNames()` export                                                                                                                 | 🧪     |
 
 **Coverage:** 164 benchkit + 44 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment

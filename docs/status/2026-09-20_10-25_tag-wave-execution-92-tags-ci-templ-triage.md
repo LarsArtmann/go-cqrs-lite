@@ -82,6 +82,7 @@
 ## f) NEXT (up to 50, impact-ordered; HARVEST fuel for TODO_LIST/ROADMAP)
 
 **Wave tail / release integrity:**
+
 1. Root-cause the projection catch-up double-fold (evidence: example got exactly one amount re-folded — 10+2, 10+3; correlate with the metaengine 2001-vs-2000 stress signature). Owner: substrate session; highest-value engine fix outstanding.
 2. If (1) is deferred: re-pin `TestEngineHealth_CatchUpUnderConcurrentApplies` + `TestGettingStarted_CounterValue` as documented known-flakes (their M17), so CI legs are honestly labeled instead of red.
 3. Bump the turso-go pin + refresh the verified-version citation (the `ivmrepro` release-check procedure) to clear `TestBackend_LazyInit_Concurrent` / `TestVectorSearch_LibSQLPushdown`.
@@ -147,4 +148,4 @@
 
 ---
 
-*Point-in-time snapshot, session-scoped (2026-09-19 18:30 → 2026-09-20 10:20). Cross-references: `docs/status/2026-09-20_09-40_publish-and-prove-execution.md` (parallel session's independent verification of the same train), `docs/status/archived/2026-09-19_18-15_tag-wave-release-prep-ci-triage-concurrent-session.md` (my prep-phase report). Section (f) is HARVEST input for TODO_LIST/ROADMAP.*
+_Point-in-time snapshot, session-scoped (2026-09-19 18:30 → 2026-09-20 10:20). Cross-references: `docs/status/2026-09-20_09-40_publish-and-prove-execution.md` (parallel session's independent verification of the same train), `docs/status/archived/2026-09-19_18-15_tag-wave-release-prep-ci-triage-concurrent-session.md` (my prep-phase report). Section (f) is HARVEST input for TODO_LIST/ROADMAP._

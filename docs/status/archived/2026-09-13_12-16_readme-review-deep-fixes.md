@@ -151,17 +151,17 @@ claim-checks (not a line-by-line deep read).
 2. `nix run .#verify` in an exclusive window (full gate).
 3. Add regression test for doc-check relative-path repoRoot (main_test.go).
 4. CHANGELOG `[Unreleased]` Fixed: doc-check repoRoot bug; README API
-   corrections; drift-guard tests added.
+corrections; drift-guard tests added.
 5. Record doc-check relative-path gotcha in gotchas-tooling-build.md.
 6. Add READMEs to the doc-check leg in flake.nix/CI.
 ~~7. Sweep `.agents/skills/go-cqrs-lite/references/*.md` for the same stale~~ done 2026-09-13/17 — 08-47/05-57 full-read audits
-   claims fixed in READMEs (middleware counts, listing middleware, schema
-   forms, decider pair forms, event options, id markers).
+claims fixed in READMEs (middleware counts, listing middleware, schema
+forms, decider pair forms, event options, id markers).
 8. Deep-read `catalog/README.md` (587 lines) — biggest unreviewed file.
 9. Deep-read `graph/`, `stack/`, `storage/view/`, `watermill/`,
-   `otel/`, `prometheus/` READMEs.
+`otel/`, `prometheus/` READMEs.
 10. Drift-guard tests for stack/sqlite, storage/memory, decider, scheduling,
-    projectionhost quick-starts.
+projectionhost quick-starts.
 11. Resolve example/readme-quickstart ambiguity (scope `memory.` import).
 12. Remove `projection` from doc-check skip-list; re-run; fix fallout.
 13. Establish `event.New` vs `event.NewEvent` canonical status; unify docs.
@@ -169,14 +169,14 @@ claim-checks (not a line-by-line deep read).
 15. README title-style sweep to one convention.
 16. storage/view README: badge decision (subpackage of storage module).
 17. Add `--json` exit-code note to doc-check README (it exits 1 with valid
-    JSON on broken refs — CI-annotation friendly; document).
+JSON on broken refs — CI-annotation friendly; document).
 18. Verify metadata.Tracing full field list vs event/README claim.
 19. Check deriver README's `evt.AggregateID()` for v5-removal risk
-    (StreamID() is the forwarder target).
+(StreamID() is the forwarder target).
 20. Grep-based gate: deprecated symbols (`MarkTombstone`, `CustomData`,
-    `NewVersionedStore`, pair-form decider methods) must not appear in
-    READMEs without "Deprecated" within 2 lines.
-21. Consider README quick-start snippet extraction test (parse ```go blocks,
+`NewVersionedStore`, pair-form decider methods) must not appear in
+READMEs without "Deprecated" within 2 lines.
+21. Consider README quick-start snippet extraction test (parse ``go blocks,
     goimports-format check) as cheap variant of drift guards.
 22. Link checker as `scripts/check-readme-links.sh` + flake app.
 ~~23. doc-check: warn when a block uses an alias that maps to 2+ repo~~ done 2026-09-16 — ambiguous-alias advisories exist
@@ -197,21 +197,23 @@ claim-checks (not a line-by-line deep read).
 30. metaengine README: consider a one-line "fold event types match by GO
     TYPE NAME" callout — I only learned it writing the drift-guard test.
 31. Extend doc-check to verify TABLE-cell backticked `pkg.Symbol` refs
-    (currently only ```go blocks).
+    (currently only``go blocks).
 ~~32. Run `#check-duplication` (two new test files may trip art-dupl).~~ done — gate green since 2026-09-13
 ~~33. Run `#check-file-size` (new files under 350 lines — confirm).~~ done 2026-09-15 — ratchet green (CHANGELOG)
 34. Sweep READMEs for stale version pins generally (grep "v4\.[0-9]").
 35. Decide rule: do example/* READMEs need badges/go-get (currently mixed)?
 36. doc-check README itself: document the new absolutized repoRoot behavior
-    - relative-path safety.
+
+- relative-path safety.
+
 37. Consider promoting the quick-start drift-guard pattern to
     `cmd/api-stability`-style meta-test ("every README Quick Start
     compiles") — long-term.
-~~38. Update `docs/agents/module-map.md` if any README restructuring changed~~ done — module-map kept current by later waves
+    ~~38. Update `docs/agents/module-map.md` if any README restructuring changed~~ done — module-map kept current by later waves
     navigation (it didn't this session — verify after future passes).
-39. Check whether root README's stack-preset example (`sqlite.New("app.db")`)
+38. Check whether root README's stack-preset example (`sqlite.New("app.db")`)
     still matches stack/sqlite API (mechanically passed; eyeball encoding).
-~~40. Re-run the FULL canonical doc-check gate + README gate together after~~ done — doc-check green repeatedly (1,123/1,127/1,142 refs)
+    ~~40. Re-run the FULL canonical doc-check gate + README gate together after~~ done — doc-check green repeatedly (1,123/1,127/1,142 refs)
     items 1–7 land.
 
 ## g) QUESTIONS (cannot figure out myself)

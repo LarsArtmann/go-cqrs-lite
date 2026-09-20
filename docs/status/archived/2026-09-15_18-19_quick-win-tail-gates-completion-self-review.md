@@ -154,63 +154,63 @@
 ## f) NEXT (most valuable first)
 
 ~~1. Verify `testModules`/CI matrix includes `cmd/doc-check` (one grep) — decides~~ done 2026-09-18 — TODO_LIST [x] DECIDED
-   whether the recipes gate already runs in CI or needs the flake app (g)1).
+whether the recipes gate already runs in CI or needs the flake app (g)1).
 ~~2. Run `cmd/api-stability` once to close the b)3 gate-compensation gap.~~ done — verified green; golden regen later
 ~~3. Write the gotchas entries (15-21 f)19 + this session's: stale-lock~~
-~~   forensics checklist, `.githooks` tree-gate vs shared tree, keep-dir~~
-~~   staleness) once the file is free of co-writer changes.~~ done 2026-09-18 — canonical hook; traps documented 09-16/19
+~~ forensics checklist, `.githooks` tree-gate vs shared tree, keep-dir~~
+~~ staleness) once the file is free of co-writer changes.~~ done 2026-09-18 — canonical hook; traps documented 09-16/19
 4. Grep-sweep other skill references for `Get*Provider`/positional-Retry/
-   `Timer.Actor`-string lie classes (15-21 f)20/f)40).
+`Timer.Actor`-string lie classes (15-21 f)20/f)40).
 5. Re-run md-go-validator over recipes.md post-fixes (15-21 f)33).
 6. Unit tests for `extractBodyImports`/`importPath` (15-21 f)25).
 7. Harness failure messages: name snippet headings, not `recipe_lNNN`
-   (15-21 f)26) — you feel this every failure triage.
+(15-21 f)26) — you feel this every failure triage.
 8. Harness `--list` mode for compiled/skipped inventory (15-21 f)39).
 9. Decide `-short` behavior + cold-cache economics for CI (15-21 f)27; warm
-   ≈ 5–15 s, cold ≈ 104 s).
+≈ 5–15 s, cold ≈ 104 s).
 10. Extend the harness to advanced.md, then readmodels.md/core.md/faq.md.
 11. Restructure block 3 (multi-`:=` fence) into three fences → retire that skip
-    (15-21 f)28).
+(15-21 f)28).
 12. Restructure block 63 (TOCTOU) WRONG/RIGHT halves → retire that skip
-    (15-21 f)29).
+(15-21 f)29).
 13. Decide block 9 (go-appkit): fixture go.mod vs permanent skip (15-21 f)30).
 14. calibration-gate: `--max-load` numeric validation (15-21 f)22).
 15. calibration-gate: anchor-based help-text range (15-21 f)23).
 16. Pin PASS/WARN message shapes with goldens too (15-21 f)24) — apply the
-    mutation-test policy from AGENTS.md.
+mutation-test policy from AGENTS.md.
 ~~17. Re-check calibration-drift.sh composition/exit codes (15-21 f)31).~~ done 2026-09-16 — redesigned + harness 5/5
 18. Grep for other scripts reading `/proc/loadavg` that want the fixture hook
-    (15-21 f)32).
+(15-21 f)32).
 19. Document the boundary: `example/getting-started` hand-written compile tests
-    vs generated harness coverage (15-21 f)38).
+vs generated harness coverage (15-21 f)38).
 20. Run `nix run .#verify-fast` in a quiet window (both 09-15 sessions punted).
 21. `nix run .#check-arch`, `.#check-duplication`, `.#check-error-taxonomy`,
-    `.#check-coverage` — none run this session (no deps/clones added, but the
-    sweep is the point).
+`.#check-coverage` — none run this session (no deps/clones added, but the
+sweep is the point).
 ~~22. Resolve the wedged auto-commit daemon (g)2) — it is the repo's recovery~~
-~~    mechanism; right now the tree's only history is hand-made.~~ done 2026-09-18 — daemon resumed; culprit identified
+~~ mechanism; right now the tree's only history is hand-made.~~ done 2026-09-18 — daemon resumed; culprit identified
 ~~23. After the co-writer lands its wave: re-run the doc-check binary + full~~
-~~    module suite to prove no interaction effects with the vector-search edits~~
-~~    (its sqlite/mysql/dgraph/duckdb engine files touch modules my doc fences~~
-~~    reference).~~ done 2026-09-16 — 1,142 refs green
+~~ module suite to prove no interaction effects with the vector-search edits~~
+~~ (its sqlite/mysql/dgraph/duckdb engine files touch modules my doc fences~~
+~~ reference).~~ done 2026-09-16 — 1,142 refs green
 ~~24. Re-verify `nix run .#check-release-scripts` after the next~~
-~~    calibration-gate.sh change (the self-test is only as fresh as its last run).~~ done 2026-09-16 — 08-05 §a9 rc=0; nightly runs it
+~~ calibration-gate.sh change (the self-test is only as fresh as its last run).~~ done 2026-09-16 — 08-05 §a9 rc=0; nightly runs it
 25. Consider harness: print the exact generated snippet path on failure
-    (replaces the keep-dir workflow for triage).
+(replaces the keep-dir workflow for triage).
 26. Consider a `recipeSpec` linter: catalog entries whose trailers blank
-    variables that the fence actually uses (or vice versa) could be caught by
-    a post-build analysis instead of trial-and-error — would have saved 2 of
-    this session's fix waves.
+variables that the fence actually uses (or vice versa) could be caught by
+a post-build analysis instead of trial-and-error — would have saved 2 of
+this session's fix waves.
 ~~27. Split-brain check: AGENTS.md "Recipe gate" row says `go test -run~~
 ~~    TestRecipes .` — if the flake app from g)1 lands, keep the row and the app~~
-~~    in lockstep.~~ done 2026-09-18 — matrix-yes decision, consistent
+~~ in lockstep.~~ done 2026-09-18 — matrix-yes decision, consistent
 28. CHANGELOG hygiene: my Fixed subsection says "nine doc lies" but the
-    session fixed 12 fences (9 lies + Plan variadic + TimerID + prose) —
-    tighten the count wording at the next CHANGELOG touch.
+session fixed 12 fences (9 lies + Plan variadic + TimerID + prose) —
+tighten the count wording at the next CHANGELOG touch.
 29. When the 8 skips are revisited (11–13), update the CHANGELOG Added entry's
-    "8 documented skips" number — it is a snapshot, not a invariant.
+"8 documented skips" number — it is a snapshot, not a invariant.
 30. ~~Archive-hygiene: when the next docs-health pass runs, both 09-15 reports
-    are ready for harvest (TODO_LIST items already ticked with evidence).~~ done (docs-health pass 2026-09-16) — 15-21 superseded-bannered; this report's §b/§c/§f tails routed (recipes-gate CI posture → TODO_LIST)
+are ready for harvest (TODO_LIST items already ticked with evidence).~~ done (docs-health pass 2026-09-16) — 15-21 superseded-bannered; this report's §b/§c/§f tails routed (recipes-gate CI posture → TODO_LIST)
 
 ## g) QUESTIONS (cannot be resolved from the repo alone)
 

@@ -3,8 +3,8 @@
 **Date:** 2026-09-13 11:05 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (queue M4 — ADR-0134 tokens, T14 dep validation, FactTx/Watermarks, queue/mysql live-green; CHANGELOG 2026-09-19). Open remainder tracked in TODO_LIST "Durable Work Queue module": family tag wave (0/90 cut), README quickstart + conformance doc polish, PG `-race -count=2` symmetric leg. ARCHIVED.
-**Session:** Complete the durable-work-queue P0 (extract lease-claim SQL core from `scheduling/sqlstore` into `claiming/`, wire it, delegate the timer store to it)
-**Format note:** written as `.md` per explicit user instruction (repo default for status reports is styled HTML).
+> **Session:** Complete the durable-work-queue P0 (extract lease-claim SQL core from `scheduling/sqlstore` into `claiming/`, wire it, delegate the timer store to it)
+> **Format note:** written as `.md` per explicit user instruction (repo default for status reports is styled HTML).
 
 ---
 
@@ -103,15 +103,15 @@ The handoff described `claiming/` as _untracked work-in-progress_. Reality at se
 _My slice (release + proof):_
 
 1. Re-run `nix run .#verify` (or verify-fast) once the metaengine session quiesces; record the first full green.
-~~2. Re-run api-stability `--update`; confirm empty diff (proves b.5).~~ done — golden regenerated + TestEvery green repeatedly (7,092+ exports)
-~~3. `go test -race` on claiming + scheduling/sqlstore.~~ done 2026-09-13/14 — sqlstore -race green; claiming via queue family -race
-~~4. Run sqlstore's pgtestcontainer suite (Docker) — live PG claim proof post-delegation.~~ done 2026-09-16 — PG half (TODO_LIST [x])
-5. Run `nix run .#integration-mysql-vm` — live MariaDB SKIP LOCKED proof post-delegation.
-~~6. **Add a TODO_LIST item: "tag claiming/v4.0.0 + strip sqlstore replace + pin bump + per-module tidy"** (currently only in this report).~~ done — TODO_LIST row exists (tag-wave row)
-7. Tag claiming/v4.0.0 via tag-release.sh (audit + proxy + smoke).
-8. Drop sqlstore's sibling replace; require the real tag; per-module tidy (go.sum `/go.mod` hashes).
-9. `nix run .#vulncheck` for claiming's dep tree.
-10. `nix run .#check-coverage` — watch claiming's baseline (PG/MySQL paths untestable in unit tests).
+   ~~2. Re-run api-stability `--update`; confirm empty diff (proves b.5).~~ done — golden regenerated + TestEvery green repeatedly (7,092+ exports)
+   ~~3. `go test -race` on claiming + scheduling/sqlstore.~~ done 2026-09-13/14 — sqlstore -race green; claiming via queue family -race
+   ~~4. Run sqlstore's pgtestcontainer suite (Docker) — live PG claim proof post-delegation.~~ done 2026-09-16 — PG half (TODO_LIST [x])
+2. Run `nix run .#integration-mysql-vm` — live MariaDB SKIP LOCKED proof post-delegation.
+   ~~6. **Add a TODO_LIST item: "tag claiming/v4.0.0 + strip sqlstore replace + pin bump + per-module tidy"** (currently only in this report).~~ done — TODO_LIST row exists (tag-wave row)
+3. Tag claiming/v4.0.0 via tag-release.sh (audit + proxy + smoke).
+4. Drop sqlstore's sibling replace; require the real tag; per-module tidy (go.sum `/go.mod` hashes).
+5. `nix run .#vulncheck` for claiming's dep tree.
+6. `nix run .#check-coverage` — watch claiming's baseline (PG/MySQL paths untestable in unit tests).
 
 _claiming module hardening (small, high-value):_
 11. Validate Specs at builder entry (empty Table/IDColumn/… → `ErrInvalidSpec`); today a malformed Spec emits broken SQL silently.

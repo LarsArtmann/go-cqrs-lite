@@ -128,46 +128,46 @@
 ## f) Next tasks (impact-ordered, ~30 real items — no padding to 50)
 
 1. Run composed `nix run .#verify` (gets -race over all new vector code).
-~~2. Run `system` module tests (planner input changed via SQLiteEngineProfile).~~ done 2026-09-16 — 15-07 (b); TODO_LIST [x]
-~~3. Run `example/metaengine-quickstart` tests (blast radius).~~ done 2026-09-16 — same
-~~4. Fix or label the MariaDB VECTOR claim in ROADMAP (verify against MariaDB~~
-~~   server source, or mark "unverified").~~ done 2026-09-16 — labeled UNVERIFIED inline (7th pass)
-~~5. Verify irohengine vector passthrough + add it to the CHANGELOG enumeration.~~ done 2026-09-16 — 15-07 (a); CHANGELOG iroh bullet
-~~6. Benchmark: libSQL pushdown vs Go scan (sqlite/turso), DuckDB pushdown;~~
-~~   add numbers to CHANGELOG; extend benchmark-regression gate if warranted.~~ done 2026-09-16 — benchmark doc + decision recorded
-~~7. Lazy-cache the libSQL probe (currently one wasted query per modernc~~ done — sync.OnceValue
+   ~~2. Run `system` module tests (planner input changed via SQLiteEngineProfile).~~ done 2026-09-16 — 15-07 (b); TODO_LIST [x]
+   ~~3. Run `example/metaengine-quickstart` tests (blast radius).~~ done 2026-09-16 — same
+   ~~4. Fix or label the MariaDB VECTOR claim in ROADMAP (verify against MariaDB~~
+   ~~ server source, or mark "unverified").~~ done 2026-09-16 — labeled UNVERIFIED inline (7th pass)
+   ~~5. Verify irohengine vector passthrough + add it to the CHANGELOG enumeration.~~ done 2026-09-16 — 15-07 (a); CHANGELOG iroh bullet
+   ~~6. Benchmark: libSQL pushdown vs Go scan (sqlite/turso), DuckDB pushdown;~~
+   ~~ add numbers to CHANGELOG; extend benchmark-regression gate if warranted.~~ done 2026-09-16 — benchmark doc + decision recorded
+   ~~7. Lazy-cache the libSQL probe (currently one wasted query per modernc~~ done — sync.OnceValue
    construction).
-~~8. Surface vector path (pushdown vs scan) in ExplainPlan/Doctor.~~ done — VectorPathReporter
-~~9. Dgraph <v24 compatibility decision: feature-detect/lazy vector schema, or~~
-~~   document the hard v24+ requirement in dgraphengine README.~~ done 2026-09-16 — lazy schema; TODO_LIST [x]
-~~10. Investigate the pre-existing Dgraph "Transaction has been aborted" flake~~
-~~    (retryOnContention gap under parallel `t.Parallel` load; failing on master~~
-~~    CI since at least 2026-09-15 13:22).~~ done 2026-09-16 — serial resets, retries, deadlines
-~~11. Fix pre-existing master `verify-fast` failure.~~ done 2026-09-19 — both classes resolved (ADR-0143 + NewID)
-~~12. Resolve the queue/* file-size + art-dupl baseline failures (19 clone~~
-~~    groups; owner coordination with the parallel session).~~ done 2026-09-16 — splits + 42 accepts
-13. Remote-Turso (libsql://) verification run of the pushdown path.
-~~14. Mixed-dimension insert guard/test per engine (currently undefined-ish).~~ done 2026-09-16 — dimension lock (15-07 f)
-15. Doctor `--- Vectors ---` live test on one new engine.
-~~16. Add vector persistence to the restart-safety harness (meta_vector across~~
-~~    reopen on file-backed sqlite/duckdb).~~ done 2026-09-16 — 15-07 (g)
-~~17. ADR (or ADR-0085 addendum) for the distance-semantics contract +~~
-~~    degrade-everywhere decision.~~ done 2026-09-16 — ADR-0140 Accepted
-18. Native Dgraph `similar_to` ANN path (schema-metric coupling + Go rescoring).
-19. DuckDB VSS HNSW experiment (opt-in `CREATE INDEX ... USING HNSW`).
-20. sqlite-vec operator guide (CGo/WASM drivers only).
-21. MariaDB VECTOR pushdown (after 4 is resolved).
-22. pgvector native path on pgengine.
-23. Update `docs/agents/module-map.md` engine rows with vector one-liners.
-24. Quickstart demo variant exercising Turso SQL pushdown.
-25. `#check-coverage` + `#vulncheck` runs over the changed modules.
-26. ~~TODO_LIST harvest of items 10–12 (canonical home per docs rules).~~ done (docs-health pass 2026-09-16) — verification gaps → TODO_LIST "Vector-search verification tail"; Dgraph v24 floor + abort flake → TODO_LIST; ANN paths already in ROADMAP Raw Ideas
-~~27. metaengine full (non-short) suite run once, incl. soaks.~~ done 2026-09-16 — TODO_LIST [x] (h), 22.4s
-28. Empty-query-vector behavior: document + test (currently routes to the
+   ~~8. Surface vector path (pushdown vs scan) in ExplainPlan/Doctor.~~ done — VectorPathReporter
+   ~~9. Dgraph <v24 compatibility decision: feature-detect/lazy vector schema, or~~
+   ~~ document the hard v24+ requirement in dgraphengine README.~~ done 2026-09-16 — lazy schema; TODO_LIST [x]
+   ~~10. Investigate the pre-existing Dgraph "Transaction has been aborted" flake~~
+   ~~ (retryOnContention gap under parallel `t.Parallel` load; failing on master~~
+   ~~ CI since at least 2026-09-15 13:22).~~ done 2026-09-16 — serial resets, retries, deadlines
+   ~~11. Fix pre-existing master `verify-fast` failure.~~ done 2026-09-19 — both classes resolved (ADR-0143 + NewID)
+   ~~12. Resolve the queue/* file-size + art-dupl baseline failures (19 clone~~
+   ~~ groups; owner coordination with the parallel session).~~ done 2026-09-16 — splits + 42 accepts
+2. Remote-Turso (libsql://) verification run of the pushdown path.
+   ~~14. Mixed-dimension insert guard/test per engine (currently undefined-ish).~~ done 2026-09-16 — dimension lock (15-07 f)
+3. Doctor `--- Vectors ---` live test on one new engine.
+   ~~16. Add vector persistence to the restart-safety harness (meta_vector across~~
+   ~~ reopen on file-backed sqlite/duckdb).~~ done 2026-09-16 — 15-07 (g)
+   ~~17. ADR (or ADR-0085 addendum) for the distance-semantics contract +~~
+   ~~ degrade-everywhere decision.~~ done 2026-09-16 — ADR-0140 Accepted
+4. Native Dgraph `similar_to` ANN path (schema-metric coupling + Go rescoring).
+5. DuckDB VSS HNSW experiment (opt-in `CREATE INDEX ... USING HNSW`).
+6. sqlite-vec operator guide (CGo/WASM drivers only).
+7. MariaDB VECTOR pushdown (after 4 is resolved).
+8. pgvector native path on pgengine.
+9. Update `docs/agents/module-map.md` engine rows with vector one-liners.
+10. Quickstart demo variant exercising Turso SQL pushdown.
+11. `#check-coverage` + `#vulncheck` runs over the changed modules.
+12. ~~TODO_LIST harvest of items 10–12 (canonical home per docs rules).~~ done (docs-health pass 2026-09-16) — verification gaps → TODO_LIST "Vector-search verification tail"; Dgraph v24 floor + abort flake → TODO_LIST; ANN paths already in ROADMAP Raw Ideas
+    ~~27. metaengine full (non-short) suite run once, incl. soaks.~~ done 2026-09-16 — TODO_LIST [x] (h), 22.4s
+13. Empty-query-vector behavior: document + test (currently routes to the
     filtered-scan path on DuckDB).
-29. Consider OTel spans for VectorInsert/VectorSearch if other engine ops
+14. Consider OTel spans for VectorInsert/VectorSearch if other engine ops
     carry them (check convention first).
-30. Load-sweep if any timing-sensitive follow-up lands (items 6–8).
+15. Load-sweep if any timing-sensitive follow-up lands (items 6–8).
 
 ## g) Questions I can NOT figure out myself
 

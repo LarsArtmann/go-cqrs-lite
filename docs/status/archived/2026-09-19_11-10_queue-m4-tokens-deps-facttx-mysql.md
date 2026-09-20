@@ -3,10 +3,10 @@
 **Date:** 2026-09-19 (midday session)
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Scope:** the queue TODO item's M4 remainder (T14–T17) — executed from
-the TODO_LIST under the "execute everything, keep going" directive.
-**Repos:** go-cqrs-lite only. Concurrent arc (ADR-0142 substrate) was
-mid-flight in parallel; overlap points are called out in (d).
+> **Scope:** the queue TODO item's M4 remainder (T14–T17) — executed from
+> the TODO_LIST under the "execute everything, keep going" directive.
+> **Repos:** go-cqrs-lite only. Concurrent arc (ADR-0142 substrate) was
+> mid-flight in parallel; overlap points are called out in (d).
 
 ---
 

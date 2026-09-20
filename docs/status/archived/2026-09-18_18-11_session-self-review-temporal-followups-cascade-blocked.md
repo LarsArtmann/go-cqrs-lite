@@ -163,35 +163,35 @@
    `nix run .#verify-fast` → `nix run .#verify` (EXCLUSIVE) → `nix run .#verify-ci`
    (env chain + repo root; expect the known flake to possibly trip #verify-fast —
    one retry is the filed policy).
-~~2. **CHANGELOG `[Unreleased]` Added**: `analyzer.StoreBigTable`,~~
-~~   `catalog.DeliveryExactlyOnce`, `catalog.DeliveryAtLeastOnce` — then~~
-~~   `bash scripts/check-changelog-symbols.sh`.~~ done 2026-09-19 — 06:47 §a2, 118 citations
-~~3. **Re-run `nix run .#check-duplication`** after the parser three-way split.~~ done 2026-09-19 — 06:47 §a3
-~~4. **`buildflow -s "golangci-lint [cmd/cqrs-lint]"`** and **`[catalog]`** after~~
-~~   this session's analyzer/constant changes.~~ done 2026-09-19 — lint zero (18:05)
-~~5. **`nix fmt --fail-on-change`** over the repo (verify the daemon-committed~~
-~~   split files are treefmt-clean).~~ done 2026-09-19 — 06:47 §a6; later clean
-~~6. **Re-run the docserver suite** after daemon commit `97df8cd60` (content should~~
-~~   be identical to the verified state; confirm).~~ done 2026-09-19 — 06:47 §a8 ×3 green
-7. **inotify-watch root go.mod** during the next concurrent-session pipeline;
+   ~~2. **CHANGELOG `[Unreleased]` Added**: `analyzer.StoreBigTable`,~~
+   ~~ `catalog.DeliveryExactlyOnce`, `catalog.DeliveryAtLeastOnce` — then~~
+   ~~ `bash scripts/check-changelog-symbols.sh`.~~ done 2026-09-19 — 06:47 §a2, 118 citations
+   ~~3. **Re-run `nix run .#check-duplication`** after the parser three-way split.~~ done 2026-09-19 — 06:47 §a3
+   ~~4. **`buildflow -s "golangci-lint [cmd/cqrs-lint]"`** and **`[catalog]`** after~~
+   ~~ this session's analyzer/constant changes.~~ done 2026-09-19 — lint zero (18:05)
+   ~~5. **`nix fmt --fail-on-change`** over the repo (verify the daemon-committed~~
+   ~~ split files are treefmt-clean).~~ done 2026-09-19 — 06:47 §a6; later clean
+   ~~6. **Re-run the docserver suite** after daemon commit `97df8cd60` (content should~~
+   ~~ be identical to the verified state; confirm).~~ done 2026-09-19 — 06:47 §a8 ×3 green
+2. **inotify-watch root go.mod** during the next concurrent-session pipeline;
    identify the stamper process; fix at source (hook step or daemon).
-8. **Coordinate with the docserver session**: eventcatalogview.go 578-line split
-~~   (their file), my test-side decisions (g/3), their pre-commit hook rework —~~
-~~   the hook currently self-poisons (d/1).~~ done 2026-09-19 — moot: 1.27 migration completed deliberately (12:12)
-~~9. **Escalate the starvation-flake fix** (e/4): sequence the test against the~~
-~~   projection-host restart budget or gate it via #load-sweep.~~ done 2026-09-18 — 19:24 split; 18:12 hook
-~~10. **CHANGELOG-completeness meta-gate** proposal (e/3) — decide BuildFlow-upstream~~
-~~    vs cmd/api-stability test; then implement.~~ done 2026-09-19 — ADR-0143
-11. **Pre-gate load-guard habit/tooling** (e/2) — a `wait-quiet` helper or a
-    doctor check; per buildflow rules, fleet-wide value belongs upstream.
-12. **Spot-check daemon commit `97df8cd60`** (25 files) against the last verified
-    state — confirm nothing else rode along.
-~~13. The 13 harvested ADR-0141 follow-ups now live in TODO_LIST.md ("Temporal~~
-~~    versioned cells" section) — the 🔥 one is real-GCP validation + calibration~~
-~~    (gated on credentials/owner).~~ done 2026-09-18 — TODO_LIST ADR-0141 section
-14. Owner decisions still open from the 16:03 §g (daemon policy — now with four
-    strike-typed evidence points incl. today's hook self-poisoning; bigtable
-    real-GCP gate; history reconstruction) — see g below for the new ones.
+3. **Coordinate with the docserver session**: eventcatalogview.go 578-line split
+   ~~ (their file), my test-side decisions (g/3), their pre-commit hook rework —~~
+   ~~ the hook currently self-poisons (d/1).~~ done 2026-09-19 — moot: 1.27 migration completed deliberately (12:12)
+   ~~9. **Escalate the starvation-flake fix** (e/4): sequence the test against the~~
+   ~~ projection-host restart budget or gate it via #load-sweep.~~ done 2026-09-18 — 19:24 split; 18:12 hook
+   ~~10. **CHANGELOG-completeness meta-gate** proposal (e/3) — decide BuildFlow-upstream~~
+   ~~ vs cmd/api-stability test; then implement.~~ done 2026-09-19 — ADR-0143
+4. **Pre-gate load-guard habit/tooling** (e/2) — a `wait-quiet` helper or a
+   doctor check; per buildflow rules, fleet-wide value belongs upstream.
+5. **Spot-check daemon commit `97df8cd60`** (25 files) against the last verified
+   state — confirm nothing else rode along.
+   ~~13. The 13 harvested ADR-0141 follow-ups now live in TODO_LIST.md ("Temporal~~
+   ~~ versioned cells" section) — the 🔥 one is real-GCP validation + calibration~~
+   ~~ (gated on credentials/owner).~~ done 2026-09-18 — TODO_LIST ADR-0141 section
+6. Owner decisions still open from the 16:03 §g (daemon policy — now with four
+   strike-typed evidence points incl. today's hook self-poisoning; bigtable
+   real-GCP gate; history reconstruction) — see g below for the new ones.
 
 ## g) Questions I cannot answer myself (max 3)
 

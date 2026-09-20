@@ -3,8 +3,8 @@
 **Date:** 2026-09-18 18:12 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (canonical pre-commit hook, depguard self-heal, nightly-gates.yml, cache-action removal — TODO_LIST `[x]` rows 2026-09-18). Open remainder tracked in TODO_LIST "CI / Infrastructure": GH billing fix, ERRAUDIT_PAT, self-lint re-run, first nightly run. ARCHIVED.
-**Scope:** TODO_LIST "CI / Infrastructure" section, 2026-09-18 session (one session, ~2h).
-**Base:** master (drifting via auto-commit daemon + one concurrent session doing temporal/bigtable work — their files are explicitly NOT touched).
+> **Scope:** TODO_LIST "CI / Infrastructure" section, 2026-09-18 session (one session, ~2h).
+> **Base:** master (drifting via auto-commit daemon + one concurrent session doing temporal/bigtable work — their files are explicitly NOT touched).
 
 ---
 
@@ -200,30 +200,30 @@
 **Unblock / verify what shipped**
 
 ~~1. Sync `go.work` to `go 1.27.1` (the concurrent wave's pending step) —~~
-~~   unblocks the hook's workspace build gate for everyone.~~ done 2026-09-19 — 12:12 cutover
+~~ unblocks the hook's workspace build gate for everyone.~~ done 2026-09-19 — 12:12 cutover
 ~~2. Re-run `bash scripts/pre-commit.sh` end-to-end to green after #1.~~ done 2026-09-18 — 19:24 verified
 ~~3. Verify the `actions/cache@1bd1e32...` SHA (official actions/cache repo) or~~
-~~   replace with an in-repo-provenanced pin — BEFORE nightly's first run.~~ done 2026-09-18 — 19:24 §a7
+~~ replace with an in-repo-provenanced pin — BEFORE nightly's first run.~~ done 2026-09-18 — 19:24 §a7
 4. Add `--self-test` to restore-depguard.sh (corrupt-copy → repair → diff;
-   shrinkage → exit 1) and wire into check-release-scripts.
+shrinkage → exit 1) and wire into check-release-scripts.
 5. Test the hook's fmt-repair path: stage an unformatted file, run hook,
-   expect rewrite + re-stage + pass.
+expect rewrite + re-stage + pass.
 6. Test the hook's doc-only fast path.
 ~~7. `rg install-hooks|pre-commit` across CONTRIBUTING.md/README/docs — update~~
-~~   stale hook docs (CONTRIBUTING.md:20,226-229 confirmed stale).~~ done 2026-09-18 — 19:24 §a6 (CONTRIBUTING)
+~~ stale hook docs (CONTRIBUTING.md:20,226-229 confirmed stale).~~ done 2026-09-18 — 19:24 §a6 (CONTRIBUTING)
 8. Record the BuildFlow-report-only decision in gotchas/CONTRIBUTING.
 9. Run `nix run .#check-release-scripts` once locally (nightly leg parity).
 ~~10. Run `nix run .#check-modsums` once locally.~~ done 2026-09-19 — 15:11 green
 11. Run `bash scripts/pin-sweep.sh --check --remote` locally once (verify the
-    flag pairing the nightly relies on).
+flag pairing the nightly relies on).
 12. After billing fix: `workflow_dispatch` nightly-gates once; verify cache
-    restore + ls-remote + calibration gate on a real runner.
+restore + ls-remote + calibration gate on a real runner.
 13. After billing fix: watch one full ci.yml run; confirm the 4 raised
-    timeouts are sufficient cold (else re-tune with data).
+timeouts are sufficient cold (else re-tune with data).
 14. After billing fix: re-run the cqrs-lint self-lint leg (existing item).
 15. Add a tracked-vs-installed hook drift gate (compare
-    `scripts/pre-commit.sh` to `.githooks/pre-commit`; they drifted once
-    before via `/demo/`).
+`scripts/pre-commit.sh` to `.githooks/pre-commit`; they drifted once
+before via `/demo/`).
 
 **Corruption loop — root cause, not just heal**
 16. Get daemon (pma) config/logs: does it run full BuildFlow (whose

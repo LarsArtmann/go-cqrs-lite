@@ -75,23 +75,23 @@
 1. **Census `module-map.md` vs the 90 modules** — 73 rows today; identify the ~17 missing (likely cmd/* + example/* + nested modules), add rows or document the deliberate compaction scope in the map header. My AGENTS line depends on this being true.
 2. **Census the FEATURES Module Maturity Matrix vs 90 modules** the same way (queue rows added; whole matrix not counted).
 3. **Per-file index for the 2026-09-13..16 wave** in `docs/status/README.md` (wave summary exists; the 09-11 batch got per-file entries — 15+ files here deserve the same).
-~~4. **Add keep-live banners to the two evidence docs** (17-40 T02 verification notes, 15-55 deep-dive): "live EVIDENCE referenced by planning docs — not open work; do not archive by mistake."~~ done 2026-09-19 — 8th pass added keep-live banners
-5. **Ratify or reject the two-tier annotation convention** (strike-verified + banner-route-brainstorm) — it is the de-facto pass standard since the 6th pass; make it a skill rule or re-strike the tails.
-6. **Verify the MariaDB 11.7 VECTOR claim against server source** (ROADMAP now labels it UNVERIFIED; the label is a placeholder until someone reads the actual source tree).
-7. **Stamp or soften FEATURES' unverifiable guarantee rows** ("lint passes", "race-free", coverage 86–96%) — last-verified dates or measured refresh (§g3).
-8. **README "80+ modules" → "90+ modules"** — still a true lower bound, now selling short by 10.
-9. **ROADMAP Release History is hand-maintained and drifted 5 days** — consider an "as of YYYY-MM-DD" stamp per bullet or a generation script from CHANGELOG.
-10. **AGENTS' module-map pointer now carries a row count** ("73 of 90") — it will rot with every module add; either accept the rot (it flags the census need) or drop the count after task 1 lands.
-~~11. **Next-pass archive queue:** 18-19, 12-21, 09-17, 08-47, 15-22 become archivable once their remaining routed items resolve — the banners say so explicitly.~~ done 2026-09-19 — 8th pass annotates + archives them
-12. **Extend the reconcile-a-planning-doc treatment to the 5 classified plans** (to-the-max, publish-reset-v5-train, command-side, OTEL, vector spike) — one verification pass each.
-13. **doc-check scan-profile question:** living docs (TODO_LIST/ROADMAP/FEATURES/status README) get only check-doc-links today; evaluate adding them to a doc-check profile for symbol/anchor coverage of the other living docs.
-14. **check-doc-links' ">10 live reports" NOTE** — recalibrate the threshold or make it list archivable candidates automatically (26 live reports is the new steady state).
-15. **Keep-dir/harness hygiene carry-over** (18-19 §f25): recipes harness failure messages naming snippet headings — still open in TODO.
-16. **Migrate this pass's two new Declined entries' wording** into the eventual decision-ADR if the catch-up SLO work ever starts (they are rationale-bearing, not just guards).
-17. **Skill-meta suggestion to skill-creator:** the "so what?" test and the anti-dump rule together imply a "report tails live in reports; TODO_LIST holds the routed top" doctrine — worth one line in the docs-health SKILL to stop future passes from re-litigating it.
-18. **`git status` hygiene for doc passes:** adopt the concurrent session's improvement — check `git status` at every artifact handoff; this pass noticed the foreign `navlinks.go` change only because the daemon's stat line looked odd.
-19. **Consider a `docs/.lock`-style coordination convention** for living-doc passes vs concurrent sessions (§g1) — even a one-line "pass in progress, files touched: …" note in `docs/status/` would do.
-20. **Verify the corrected AGENTS formulation** ("73 of 90") is still true after task 1-2's censuses (it is designed to be self-invalidating — good).
+   ~~4. **Add keep-live banners to the two evidence docs** (17-40 T02 verification notes, 15-55 deep-dive): "live EVIDENCE referenced by planning docs — not open work; do not archive by mistake."~~ done 2026-09-19 — 8th pass added keep-live banners
+4. **Ratify or reject the two-tier annotation convention** (strike-verified + banner-route-brainstorm) — it is the de-facto pass standard since the 6th pass; make it a skill rule or re-strike the tails.
+5. **Verify the MariaDB 11.7 VECTOR claim against server source** (ROADMAP now labels it UNVERIFIED; the label is a placeholder until someone reads the actual source tree).
+6. **Stamp or soften FEATURES' unverifiable guarantee rows** ("lint passes", "race-free", coverage 86–96%) — last-verified dates or measured refresh (§g3).
+7. **README "80+ modules" → "90+ modules"** — still a true lower bound, now selling short by 10.
+8. **ROADMAP Release History is hand-maintained and drifted 5 days** — consider an "as of YYYY-MM-DD" stamp per bullet or a generation script from CHANGELOG.
+9. **AGENTS' module-map pointer now carries a row count** ("73 of 90") — it will rot with every module add; either accept the rot (it flags the census need) or drop the count after task 1 lands.
+   ~~11. **Next-pass archive queue:** 18-19, 12-21, 09-17, 08-47, 15-22 become archivable once their remaining routed items resolve — the banners say so explicitly.~~ done 2026-09-19 — 8th pass annotates + archives them
+10. **Extend the reconcile-a-planning-doc treatment to the 5 classified plans** (to-the-max, publish-reset-v5-train, command-side, OTEL, vector spike) — one verification pass each.
+11. **doc-check scan-profile question:** living docs (TODO_LIST/ROADMAP/FEATURES/status README) get only check-doc-links today; evaluate adding them to a doc-check profile for symbol/anchor coverage of the other living docs.
+12. **check-doc-links' ">10 live reports" NOTE** — recalibrate the threshold or make it list archivable candidates automatically (26 live reports is the new steady state).
+13. **Keep-dir/harness hygiene carry-over** (18-19 §f25): recipes harness failure messages naming snippet headings — still open in TODO.
+14. **Migrate this pass's two new Declined entries' wording** into the eventual decision-ADR if the catch-up SLO work ever starts (they are rationale-bearing, not just guards).
+15. **Skill-meta suggestion to skill-creator:** the "so what?" test and the anti-dump rule together imply a "report tails live in reports; TODO_LIST holds the routed top" doctrine — worth one line in the docs-health SKILL to stop future passes from re-litigating it.
+16. **`git status` hygiene for doc passes:** adopt the concurrent session's improvement — check `git status` at every artifact handoff; this pass noticed the foreign `navlinks.go` change only because the daemon's stat line looked odd.
+17. **Consider a `docs/.lock`-style coordination convention** for living-doc passes vs concurrent sessions (§g1) — even a one-line "pass in progress, files touched: …" note in `docs/status/` would do.
+18. **Verify the corrected AGENTS formulation** ("73 of 90") is still true after task 1-2's censuses (it is designed to be self-invalidating — good).
 
 **Standing items this session re-confirmed as the right next moves (canonical home = TODO_LIST):** 21. tag wave (otel `DBSystem` re-tag precondition now documented in the wave row) · 22. queue/postgres live-PG conformance leg · 23. config-corruption root cause + depguard auto-restore · 24. pre-commit hook reconciliation · 25. nightly gate cron · 26. zenoh go/no-go decision (ROADMAP OQ #2) · 27. vector verification tail (iroh, system+quickstart blast radius, benchmarks) · 28. NATS roundtrip leg · 29. md-go-validator gate integration · 30. MySQL-VM green shuffled suite · 31. recipes-gate CI posture grep · 32. quiet-window composed `#verify` · 33. `ERRAUDIT_PAT` secret · 34. GitHub Actions billing · 35. cqrs-lint Self-Lint credentials · 36–50: the remaining ~60 open TODO_LIST rows are prioritized there (this pass re-sorted the CI section and refreshed queue/benchkit/vector/watermill sections; the Pareto re-pass post-tag-wave remains the right lens, per the standing Declined note against re-litigating declined items).
 

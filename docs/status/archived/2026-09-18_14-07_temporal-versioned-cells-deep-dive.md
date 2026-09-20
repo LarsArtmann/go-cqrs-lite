@@ -133,38 +133,38 @@ projectionadapter `ok`, system + bench build `ok`.
 ~~8. Run `nix run .#check-file-size` — all new files < 350 lines, functions < 30.~~ done 2026-09-18 — 16:03 §a12
 ~~9. Write `metaengine/bigtableengine/README.md` (scope, emulator/GC notes, ms-granularity caveat).~~ done 2026-09-18 — 16:03 §a15
 ~~10. CHANGELOG `[Unreleased]` Added entries citing `metaengine.VersionedWriter`,~~
-~~    `metaengine.VersionedUpdater`, `metaengine.CellHistoryReader`, `metaengine.RetentionPolicy`,~~
-~~    `metaengine.CellTimestamp`, `metaengine.EngineVersionsCells`, `metaengine.WithRetention`,~~
-~~    `sqliteengine.WithCellVersioning`, `bigtableengine.New` (gate: check-changelog-symbols).~~ done 2026-09-18 — CHANGELOG ADR-0141 entries
+~~ `metaengine.VersionedUpdater`, `metaengine.CellHistoryReader`, `metaengine.RetentionPolicy`,~~
+~~ `metaengine.CellTimestamp`, `metaengine.EngineVersionsCells`, `metaengine.WithRetention`,~~
+~~ `sqliteengine.WithCellVersioning`, `bigtableengine.New` (gate: check-changelog-symbols).~~ done 2026-09-18 — CHANGELOG ADR-0141 entries
 ~~11. FEATURES.md: update VersionedStorage row (3 engines + planner routing); add bigtableengine row~~
-~~    (🧪); add temporal rule row.~~ done 2026-09-18 — 16:03 §a7
+~~ (🧪); add temporal rule row.~~ done 2026-09-18 — 16:03 §a7
 ~~12. `docs/agents/module-map.md`: bigtableengine row.~~ done 2026-09-18 — 16:03 §a7
 ~~13. Planning-doc §3 addendum: banner + per-section DONE/DIFFERENT status (point-in-time policy).~~ done 2026-09-18 — 16:03 §a8
 ~~14. Skill refs: recipes.md new temporal section; modules.md bigtableengine row; advanced.md as-of~~
-~~    section; core.md §3 mention AsOf meta-field.~~ done 2026-09-18 — 16:03 §a9 + 17:40 §a4
+~~ section; core.md §3 mention AsOf meta-field.~~ done 2026-09-18 — 16:03 §a9 + 17:40 §a4
 ~~15. Run doc-check gate over SKILL.md + references.~~ done 2026-09-18 — 1,154 refs green
 16. `nix run .#verify-fast` then `nix run .#verify` (exclusive).
 17. `nix run .#verify-ci` (per-module GOWORK=off matrix incl. new module).
 ~~18. Go-mod pin sweep for bigtableengine (sibling-replace rules, gotchas-module-management).~~ done 2026-09-19 — 12:12 tidy/replace fixes
 ~~19. Conformance-runner wiring: add bigtableengine to any cross-engine matrix runner that enumerates~~
-~~    engines (bench/sqlite_factory-style) where appropriate — else document exclusion.~~ done 2026-09-18 — refusal docs + matrices
+~~ engines (bench/sqlite_factory-style) where appropriate — else document exclusion.~~ done 2026-09-18 — refusal docs + matrices
 20. Calibrate bigtable priors (NsPerOp/RTT) or mark explicitly UNCALIBRATED in profile comment.
 ~~21. Consider `Watcher`/SSE interaction note for versioned engines (notifyLive unchanged — verify).~~ done 2026-09-18 — 17:40 §a7 Watcher/SSE note
 22. Property-based (rapid) temporal test for memory chains (out-of-order stamps) — engine-level.
 23. sqlite versioned-cells soak/restart test (history table survives restart).
 24. bigtableengine restart-safety test (two engines over one bttest server).
 25. Add `MapUpdateAt` to bigtableengine via optimistic ReadRow+Apply (document non-atomic) or skip
-    (fold-lock serialization makes it optional) — decide + document.
+(fold-lock serialization makes it optional) — decide + document.
 26. Retention on bigtableengine: client-side MaxAge trim via `DeleteTimestampRange` option (GC
-    policy covers MaxVersions natively) — or document GC-policy-only.
+policy covers MaxVersions natively) — or document GC-policy-only.
 ~~27. TODO_LIST.md harvest of this report's (f) items (docs-health HARVEST).~~ done 2026-09-18 — 17:40 §a5, TODO_LIST ADR-0141 section
 28. Investigate the daemon's `.golangci.yml` data-loss mechanics; propose guard (owner decision).
 ~~29. `ExecuteAsOf` + AsOf-input doc examples into METAENGINE_DOMAIN_LANGUAGE.md update.~~ done 2026-09-18 — 16:03 §a8 + 17:40 §a7 examples
 ~~30. cqrs-docs: DOMain language VersionedStorage row already exists; update with new capabilities.~~ done 2026-09-18 — 16:03 §a8
 31. Consider pebble/bbolt versioned cells (natural `DeleteTimestampRange`-style prefixes exist) —
-    scope decision for next wave.
+scope decision for next wave.
 32. Consider `SystemTimestamp` policy option (strict event-time vs write-time) for engines where
-    wall-clock fallback is undesirable.
+wall-clock fallback is undesirable.
 ~~33. Race-detector run over bigtableengine tests (`-race`, gRPC fake).~~ done 2026-09-19 — verify race phase green
 34. Soak env var run per docs/agents/gotchas-testing.md for the new module.
 35. Bench: `BenchmarkCalibration_Bigtable_*` stubs (prior constants) — optional, post-calibration.
@@ -172,22 +172,22 @@ projectionadapter `ok`, system + bench build `ok`.
 ~~37. AGENTS.md module count 91 → 92 check (`find . -name go.mod | wc -l`).~~ done 2026-09-18 — 16:03 §a14 (count re-verified 92)
 ~~38. Docs: SKILL.md read-model tier table — add versioned engines column note.~~ done 2026-09-18 — 17:40 §a4
 ~~39. Reconcile `docs/planning/event-query-model.md` §temporal-roles with shipped AsOf routing~~
-~~    (addendum, not rewrite).~~ done 2026-09-18 — 16:03 §a8
+~~ (addendum, not rewrite).~~ done 2026-09-18 — 16:03 §a8
 40. Review `metaengine/memory_versioned.go` old wall-clock path: MapSet on versioned engine still
-    stamps wall-clock (documented) — consider naming clarity (`recordVersionAt(now)`).
+stamps wall-clock (documented) — consider naming clarity (`recordVersionAt(now)`).
 41. Cross-engine fuzz: reuse `fuzz_test.go` pattern for MapSetAt/MapGetAsOf (memory vs sqlite).
 42. Dgraph/PG/MySQL engines: temporal capability gap note in their READMEs (not supported yet).
 ~~43. `system.AdapterCore` — verify AsOf routing works through `system.New` compositions (blast radius).~~ done 2026-09-18 — 17:40 §a6
 44. projectionadapter: verify event stamps survive `ApplyRecord` → folds on versioned engines
-    (integration test exists at Store level; adapter-level test would pin the CQRS path).
+(integration test exists at Store level; adapter-level test would pin the CQRS path).
 ~~45. CHANGELOG policy: no per-module changelogs (contract 20) — ensure only root edited.~~ done 2026-09-18 — policy held (root CHANGELOG only)
 ~~46. Update `docs/METAENGINE_DOMAIN_LANGUAGE.md` AsOfSignal row (now documentation-type).~~ done 2026-09-18 — 16:03 §a8
 ~~47. Verify `nix run .#test` (workspace mode) passes after go.work fix — it currently CANNOT run.~~ done 2026-09-19 — nix #test green post-1.27
 48. Consider engine-pool/failover interaction: reroute onto versioned engine mid-flight (documented
-    loud-fail; maybe planner-aware reroute preference later).
+loud-fail; maybe planner-aware reroute preference later).
 ~~49. api-stability `TestEvery` will also demand metaengine adttest golden symbols — run and fix.~~ done 2026-09-19 — TestEvery green
 50. Final `git log` review: squash-annotate the chore-absorbed phases if authored history matters
-    for release notes (owner decision; do NOT rewrite without approval).
+for release notes (owner decision; do NOT rewrite without approval).
 
 ## g) Questions I cannot answer myself
 

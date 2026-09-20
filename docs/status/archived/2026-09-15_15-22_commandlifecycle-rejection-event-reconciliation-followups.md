@@ -5,11 +5,11 @@
 **Date:** 2026-09-15 15:22 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (queue M4 — ADR-0134 tokens, T14 dep validation, FactTx/Watermarks, queue/mysql live-green; CHANGELOG 2026-09-19). Open remainder tracked in TODO_LIST "Durable Work Queue module": family tag wave (0/90 cut), README quickstart + conformance doc polish, PG `-race -count=2` symmetric leg. ARCHIVED.
-**Session scope:** the four carry-forward items from the 2026-09-13 Event-Query-Model
-reconciliation (source: `docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`,
-T17/T18 memos, close-out plan `2026-09-13_18-41`). Report is point-in-time; based only on
-what this session executed and observed. No commits made by the session (per harness rule);
-the auto-commit daemon absorbed working-tree changes (`4da5249fa`, `f1c084727`, and later).
+> **Session scope:** the four carry-forward items from the 2026-09-13 Event-Query-Model
+> reconciliation (source: `docs/planning/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`,
+> T17/T18 memos, close-out plan `2026-09-13_18-41`). Report is point-in-time; based only on
+> what this session executed and observed. No commits made by the session (per harness rule);
+> the auto-commit daemon absorbed working-tree changes (`4da5249fa`, `f1c084727`, and later).
 
 ---
 
@@ -95,9 +95,9 @@ Nothing this session shipped is broken — but full honesty about process damage
 5. Investigate/harden the auto-commit daemon write path (temp-then-rename; fsync) that produced the empty objects.
 6. Prune reflog entries referencing the dead hash `e4bbbfd` (fsck noise).
 7. Drop/adopt dangling Git Town WIP stash commits (2026-08/09 housekeeping).
-~~8. Split external offender `cmd/doc-check/recipes_catalog_meta.go` (443 lines) or hand back to its owner.~~ done 2026-09-16 — 08-05 §a1 (CHANGELOG)
-~~9. Split external offender `queue/conformance/lifecycle.go` (425 lines) or hand back to its owner.~~ done 2026-09-16 — same
-10. Re-run full `nix run .#verify` once 1+8+9 land; record the first all-green state after the corruption repair.
+   ~~8. Split external offender `cmd/doc-check/recipes_catalog_meta.go` (443 lines) or hand back to its owner.~~ done 2026-09-16 — 08-05 §a1 (CHANGELOG)
+   ~~9. Split external offender `queue/conformance/lifecycle.go` (425 lines) or hand back to its owner.~~ done 2026-09-16 — same
+8. Re-run full `nix run .#verify` once 1+8+9 land; record the first all-green state after the corruption repair.
 
 **Rejection-feature hardening:**
 ~~11. Add `-race` run for the lifecycle middleware pair (shared tracker mutation).~~ done 2026-09-19 — #verify race phase ran (ADR-0143 entry)

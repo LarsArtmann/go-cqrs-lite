@@ -158,58 +158,58 @@
 
 ## f) 50 things to get done next (impact-ordered, brainstorm per skill note)
 
-| #  | Task                                                                                                                        | Size/Blocker          |
-| -- | --------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| 1  | Fix planned-table camelCase filter pushdown (canonical key mapping + round-trip parity test) — silent-empty P0              | M                     |
-| 2  | Port ctx-scoped tx to pgengine + `TestPgEngine_TxIsolationFromForeignContext` — P0                                          | M                     |
-| 3  | Port ctx-scoped tx to mysqlengine — P0                                                                                      | M                     |
-| 4  | Port ctx-scoped tx to duckdbengine — P0                                                                                     | M                     |
-| 5  | Composed quiet-window `nix run .#verify` + `-race` metaengine + verify-docs.sh (S03)                                        | M, quiet-window       |
-|~~ 6  ~~|~~ Run `check-duplication` (verify my 3 classifier art-dupl:accept groups suppress live)                                       ~~ done 2026-09-19 — gate green since  |~~ XS, this wave's debt  ~~|
-|~~ 7  ~~|~~ Run `check-file-size` (types.go/analyzer files grew this wave)                                                              ~~ done 2026-09-19 — gate green  |~~ XS, this wave's debt  ~~|
-| 8  | Add field-count validation to check-error-taxonomy.sh entries (kills the 6-field class)                                     | XS                    |
-| 9  | Release train: tag decider/command/commandlifecycle once `#verify` lands                                                    | M, user-gated         |
-| 10 | Tag claiming + queue/queue-sqlite/queue-postgres v4.0.0 (strip sibling replaces)                                            | S, fold into tag wave |
-|~~ 11 ~~|~~ Go 1.27 wave: 85 go.directives + flake go_1_27=1.27.1 + CI + docs + release train                                           ~~ done 2026-09-19 — CL 2026-09-19 Go 1.27 sweep; remainder = T18b  |~~ L, own wave           ~~|
-| 12 | Post-1.27: decider.ExecuteCommandRef as true generic method + option-func families                                          | M                     |
-|~~ 13 ~~|~~ Queue: owner-bearing claims + claim-token ADR-0134 (T15)                                                                    ~~ done 2026-09-19 — queue M4 (ADR-0134 Accepted)  |~~ M                     ~~|
-|~~ 14 ~~|~~ Queue: DAG dep-gating — enqueue validation/cycle rejection/unblock-bump (T14)                                               ~~ done 2026-09-19 — ErrDanglingDep, cycles unrepresentable  |~~ M                     ~~|
-|~~ 15 ~~|~~ Queue: FactSink-in-tx + watermark API completion (T16)                                                                      ~~ done 2026-09-19 — queue.FactTx/FactSink shipped  |~~ M                     ~~|
-|~~ 16 ~~|~~ Queue/mysql engine decision → implement behind conformance or strike (owner)                                                ~~ done 2026-09-19 — engine shipped, live-green  |~~ S decision + M        ~~|
-| 17 | AggregateOn(fn, column, group) QueryDecl one-pager (planner seam)                                                           | S doc                 |
-| 18 | Routing v1: scalar-covered matview shapes price O(1) (after #17)                                                            | M                     |
-| 19 | NATS JetStream roundtrip leg + `#integration-nats` flake app + CI leg                                                       | M                     |
-| 20 | Watermill skill: run 3 trigger-eval prompts                                                                                 | S                     |
-| 21 | Watermill skill: references/advanced.md (Delayed/Requeue/FanIn/Out/Metrics/Troubleshooting)                                 | M                     |
-| 22 | Cross-link go-cqrs-lite SKILL/advanced watermill sections → sibling skill                                                   | S                     |
-| 23 | Verify upstream latests: redisstream/kafka/amqp/sql watermill plugins                                                       | S                     |
-| 24 | Codify claims-checklist rule (verify inline factual assertions) in docs/agents                                              | S                     |
-| 25 | md-go-validator: commit config + baseline + flake app + CI packaging                                                        | M                     |
-| 26 | md-go-validator P2: `// skip-validate` the 9 consumer-facing blocks                                                         | S                     |
-| 27 | md-go-validator P3: ~55 active-doc blocks                                                                                   | M                     |
-| 28 | Decide md-go-validator P4 archived-errors policy (baseline vs ratchet)                                                      | XS decision           |
-|~~ 29 ~~|~~ benchkit compare/serialization tail (noisy-metric column, Variation footer, manifest runs[], RepeatedResult JSON)           ~~ done 2026-09-19 — TODO_LIST [x] compare/serialization  |~~ M                     ~~|
-|~~ 30 ~~|~~ benchkit SDK polish batch (MIN tracking, LoadAvg1 drift, small-n interpolation, constants, zero-value audit, fresh capture) ~~ done 2026-09-19 — TODO_LIST [x] SDK polish  |~~ M, sliceable          ~~|
-|~~ 31 ~~|~~ Benchstat CI decision: A/B nightly vs per-metric CoV gating (owner)                                                         ~~ done 2026-09-19 — TODO_LIST [x] per-metric CI gating  |~~ L, decision-gated     ~~|
-|~~ 32 ~~|~~ Wire sqlite vector paths into benchmark-regression gate set (deliberately skipped in (c) evidence)                          ~~ done 2026-09-19 — BenchmarkBenchkitSuite_SQLite$  |~~ S                     ~~|
-| 33 | Turso/badger contention-retry backport review                                                                               | M                     |
-|~~ 34 ~~|~~ Dgraph v24 floor decision (feature-detect vs hard floor) + aborted-tx flake investigate                                     ~~ done 2026-09-19 — TODO_LIST [x] dgraph floor  |~~ S decision + M        ~~|
-|~~ 35 ~~|~~ Universal Storage Substrate: execute the 23-task owner-directive plan                                                       ~~ done 2026-09-19 — TODO_LIST [x] T01–T17; T18b/T19–21 split out  |~~ XL, multi-session     ~~|
-| 36 | Confirm go-work-sync + matview-gate green on next real CI run                                                               | XS, needs CI          |
-| 37 | Confirm cache-migration unblocks the 5 starved CI jobs                                                                      | XS, needs CI          |
-| 38 | First nightly-gates.yml run observation (lint-config self-heal visibility)                                                  | XS, needs CI          |
-| 39 | GitHub Actions billing fix                                                                                                  | S, user action        |
-| 40 | Set `ERRAUDIT_PAT` secret                                                                                                   | S, user action        |
-| 41 | FlakeHub account decision (long-term cache backend)                                                                         | S, user decision      |
-| 42 | macOS ephemeral-PG verification leg                                                                                         | M, blocked infra      |
-| 43 | MySQL-VM shuffled suite replay (both logged seeds)                                                                          | M, quiet-window       |
-| 44 | 350-line policy: owner ratification → split waves (typed_reader 1127, adttest 953, …)                                       | XL, decision-gated    |
-| 45 | cqrs-upgrade residual holes: NoPins deprecation scan, `schemaVersion` in --json, E2E fixture test                           | S                     |
-| 46 | V007 typed-method detection (`types.Info.Selections`) decision before v5 cut                                                | M, decision           |
-| 47 | Doctor-JSON raw-vs-effective ruling                                                                                         | XS, owner             |
-| 48 | Session-log boundary decision (T18 memo)                                                                                    | XS, owner             |
-| 49 | Shuffle eval for test-integration.sh / test-all-backends.sh (gated on OQ-9)                                                 | S                     |
-| 50 | CV consumer bump (8 modules behind + vendorHash cascade)                                                                    | M, operator           |
+| #        | Task                                                                                                                                                                          | Size/Blocker               |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| 1        | Fix planned-table camelCase filter pushdown (canonical key mapping + round-trip parity test) — silent-empty P0                                                                | M                          |
+| 2        | Port ctx-scoped tx to pgengine + `TestPgEngine_TxIsolationFromForeignContext` — P0                                                                                            | M                          |
+| 3        | Port ctx-scoped tx to mysqlengine — P0                                                                                                                                        | M                          |
+| 4        | Port ctx-scoped tx to duckdbengine — P0                                                                                                                                       | M                          |
+| 5        | Composed quiet-window `nix run .#verify` + `-race` metaengine + verify-docs.sh (S03)                                                                                          | M, quiet-window            |
+| ~~ 6 ~~  | ~~ Run `check-duplication` (verify my 3 classifier art-dupl:accept groups suppress live) ~~ done 2026-09-19 — gate green since                                                | ~~ XS, this wave's debt ~~ |
+| ~~ 7 ~~  | ~~ Run `check-file-size` (types.go/analyzer files grew this wave) ~~ done 2026-09-19 — gate green                                                                             | ~~ XS, this wave's debt ~~ |
+| 8        | Add field-count validation to check-error-taxonomy.sh entries (kills the 6-field class)                                                                                       | XS                         |
+| 9        | Release train: tag decider/command/commandlifecycle once `#verify` lands                                                                                                      | M, user-gated              |
+| 10       | Tag claiming + queue/queue-sqlite/queue-postgres v4.0.0 (strip sibling replaces)                                                                                              | S, fold into tag wave      |
+| ~~ 11 ~~ | ~~ Go 1.27 wave: 85 go.directives + flake go_1_27=1.27.1 + CI + docs + release train ~~ done 2026-09-19 — CL 2026-09-19 Go 1.27 sweep; remainder = T18b                       | ~~ L, own wave ~~          |
+| 12       | Post-1.27: decider.ExecuteCommandRef as true generic method + option-func families                                                                                            | M                          |
+| ~~ 13 ~~ | ~~ Queue: owner-bearing claims + claim-token ADR-0134 (T15) ~~ done 2026-09-19 — queue M4 (ADR-0134 Accepted)                                                                 | ~~ M ~~                    |
+| ~~ 14 ~~ | ~~ Queue: DAG dep-gating — enqueue validation/cycle rejection/unblock-bump (T14) ~~ done 2026-09-19 — ErrDanglingDep, cycles unrepresentable                                  | ~~ M ~~                    |
+| ~~ 15 ~~ | ~~ Queue: FactSink-in-tx + watermark API completion (T16) ~~ done 2026-09-19 — queue.FactTx/FactSink shipped                                                                  | ~~ M ~~                    |
+| ~~ 16 ~~ | ~~ Queue/mysql engine decision → implement behind conformance or strike (owner) ~~ done 2026-09-19 — engine shipped, live-green                                               | ~~ S decision + M ~~       |
+| 17       | AggregateOn(fn, column, group) QueryDecl one-pager (planner seam)                                                                                                             | S doc                      |
+| 18       | Routing v1: scalar-covered matview shapes price O(1) (after #17)                                                                                                              | M                          |
+| 19       | NATS JetStream roundtrip leg + `#integration-nats` flake app + CI leg                                                                                                         | M                          |
+| 20       | Watermill skill: run 3 trigger-eval prompts                                                                                                                                   | S                          |
+| 21       | Watermill skill: references/advanced.md (Delayed/Requeue/FanIn/Out/Metrics/Troubleshooting)                                                                                   | M                          |
+| 22       | Cross-link go-cqrs-lite SKILL/advanced watermill sections → sibling skill                                                                                                     | S                          |
+| 23       | Verify upstream latests: redisstream/kafka/amqp/sql watermill plugins                                                                                                         | S                          |
+| 24       | Codify claims-checklist rule (verify inline factual assertions) in docs/agents                                                                                                | S                          |
+| 25       | md-go-validator: commit config + baseline + flake app + CI packaging                                                                                                          | M                          |
+| 26       | md-go-validator P2: `// skip-validate` the 9 consumer-facing blocks                                                                                                           | S                          |
+| 27       | md-go-validator P3: ~55 active-doc blocks                                                                                                                                     | M                          |
+| 28       | Decide md-go-validator P4 archived-errors policy (baseline vs ratchet)                                                                                                        | XS decision                |
+| ~~ 29 ~~ | ~~ benchkit compare/serialization tail (noisy-metric column, Variation footer, manifest runs[], RepeatedResult JSON) ~~ done 2026-09-19 — TODO_LIST [x] compare/serialization | ~~ M ~~                    |
+| ~~ 30 ~~ | ~~ benchkit SDK polish batch (MIN tracking, LoadAvg1 drift, small-n interpolation, constants, zero-value audit, fresh capture) ~~ done 2026-09-19 — TODO_LIST [x] SDK polish  | ~~ M, sliceable ~~         |
+| ~~ 31 ~~ | ~~ Benchstat CI decision: A/B nightly vs per-metric CoV gating (owner) ~~ done 2026-09-19 — TODO_LIST [x] per-metric CI gating                                                | ~~ L, decision-gated ~~    |
+| ~~ 32 ~~ | ~~ Wire sqlite vector paths into benchmark-regression gate set (deliberately skipped in (c) evidence) ~~ done 2026-09-19 — BenchmarkBenchkitSuite_SQLite$                     | ~~ S ~~                    |
+| 33       | Turso/badger contention-retry backport review                                                                                                                                 | M                          |
+| ~~ 34 ~~ | ~~ Dgraph v24 floor decision (feature-detect vs hard floor) + aborted-tx flake investigate ~~ done 2026-09-19 — TODO_LIST [x] dgraph floor                                    | ~~ S decision + M ~~       |
+| ~~ 35 ~~ | ~~ Universal Storage Substrate: execute the 23-task owner-directive plan ~~ done 2026-09-19 — TODO_LIST [x] T01–T17; T18b/T19–21 split out                                    | ~~ XL, multi-session ~~    |
+| 36       | Confirm go-work-sync + matview-gate green on next real CI run                                                                                                                 | XS, needs CI               |
+| 37       | Confirm cache-migration unblocks the 5 starved CI jobs                                                                                                                        | XS, needs CI               |
+| 38       | First nightly-gates.yml run observation (lint-config self-heal visibility)                                                                                                    | XS, needs CI               |
+| 39       | GitHub Actions billing fix                                                                                                                                                    | S, user action             |
+| 40       | Set `ERRAUDIT_PAT` secret                                                                                                                                                     | S, user action             |
+| 41       | FlakeHub account decision (long-term cache backend)                                                                                                                           | S, user decision           |
+| 42       | macOS ephemeral-PG verification leg                                                                                                                                           | M, blocked infra           |
+| 43       | MySQL-VM shuffled suite replay (both logged seeds)                                                                                                                            | M, quiet-window            |
+| 44       | 350-line policy: owner ratification → split waves (typed_reader 1127, adttest 953, …)                                                                                         | XL, decision-gated         |
+| 45       | cqrs-upgrade residual holes: NoPins deprecation scan, `schemaVersion` in --json, E2E fixture test                                                                             | S                          |
+| 46       | V007 typed-method detection (`types.Info.Selections`) decision before v5 cut                                                                                                  | M, decision                |
+| 47       | Doctor-JSON raw-vs-effective ruling                                                                                                                                           | XS, owner                  |
+| 48       | Session-log boundary decision (T18 memo)                                                                                                                                      | XS, owner                  |
+| 49       | Shuffle eval for test-integration.sh / test-all-backends.sh (gated on OQ-9)                                                                                                   | S                          |
+| 50       | CV consumer bump (8 modules behind + vendorHash cascade)                                                                                                                      | M, operator                |
 
 ## g) Three questions I can NOT figure out myself
 

@@ -91,33 +91,33 @@
 
 ## f) TOP #25 NEXT (by impact)
 
-| #  | Task                                                                                                                      | Impact                          | Effort           |
-| -- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---------------- |
-| 1  | Relieve `/tmp` (clear gexec/go-build artifacts or point TMPDIR at `/`) and re-run `#verify` to green                      | Unblocks the only red gate      | XS/S             |
-|~~ 2  ~~|~~ `git push` master (user go/no-go)                                                                                         ~~ done 2026-09-13 — 18-35 §a26 (pushed, in sync)  |~~ Ships the wave                  ~~|~~ XS               ~~|
-| 3  | Cut the v4 tag wave (6 modules above) via `tag-release.sh` flow                                                           | Consumers get the features      | M                |
-| 4  | Tag `claiming/v4.0.0` (unblocks example/sqlstore consumers)                                                               | Removes replace friction        | S                |
-|~~ 5  ~~|~~ storage/sql dialect-aware `db.system` spans                                                                               ~~ done 2026-09-15 — CHANGELOG storage entry  |~~ Semconv completeness            ~~|~~ S/M              ~~|
-| 6  | Migrate `WithMetrics`/`WithTracing` onto `Hooks.Merge` (stop clobbering)                                                  | Composability correctness       | S                |
-| 7  | otelobserver: expose gauge-style "currently quarantined" (up-down counter) derived from hooks                             | Operator dashboards love gauges | S                |
-|~~ 8  ~~|~~ Add `metaengine` health hooks to `system.New` wiring docs/recipes (operator quickstart)                                   ~~ done 2026-09-13 — recipes §2.35 (M9)  |~~ Adoption                        ~~|~~ S                ~~|
-| 9  | `example/scheduler-otel-status`: add a smoke test hitting /status + /metrics via httptest                                 | Example stays runnable          | S                |
-| 10 | cqrs-lint rule F030+: suggest `otelobserver.Attach` when metaengine + otel are both imported                              | Adoption coaching               | M                |
-| 11 | Aggregated module-add meta-test (single source of the 8 wiring points)                                                    | Dev-velocity, kills fix-cycles  | M                |
-|~~ 12 ~~|~~ Scheduling hardening tail: race-stress + counter-scope pin tests                                                          ~~ done 2026-09-13 — CHANGELOG tests entry  |~~ Reliability                     ~~|~~ S                ~~|
-|~~ 13 ~~|~~ `decodeDueTimer` fuzz                                                                                                     ~~ done 2026-09-13/16 — TODO_LIST row (shipped 2026-09-13..16)  |~~ Robustness                      ~~|~~ S                ~~|
-| 14 | RenewLease ownership/claim tokens                                                                                         | Correctness                     | M                |
-| 15 | Matview v2 per-view IVM write-amp otel counter                                                                            | Operator insight                | M                |
-| 16 | Turso grouped-view upstream issue (blocked on user approval — pre-existing)                                               | Upstream fix                    | XS once approved |
-| 17 | `system`/`stack` layers: consider span coverage at composition layer (currently 0 spans)                                  | Trace completeness              | M (decide first) |
-| 18 | otel/otlp: add gRPC variant module (`otel/otlpgrpc`)? only if asked — dep-heavy                                           | Convenience                     | M                |
-| 19 | Doc: AGENTS "Add a New Module" procedure update (8 steps)                                                                 | Docs truth                      | XS               |
-| 20 | api golden: add meta-test that CHANGELOG-cited symbols exist (currently only script)                                      | Gate parity                     | XS               |
-| 21 | pebble/bbolt: drop sibling replaces after otel/v4.5.0 tag lands                                                           | Hygiene                         | XS               |
-| 22 | `Hooks` doc: cross-link SPAN_NAMING.md from otelobserver README                                                           | Discoverability                 | XS               |
-| 23 | Coverage drift check after wave (`#check-coverage`)                                                                       | Gate                            | S                |
-| 24 | `#vulncheck` per-module standalone build (new modules enter the graph)                                                    | Release gate                    | S                |
-| 25 | Bench-regression gate (`benchmark-regression.sh`) — hooks added to hot-adjacent paths (execute records failures; measure) | Perf proof                      | S                |
+| #        | Task                                                                                                                               | Impact                          | Effort           |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---------------- |
+| 1        | Relieve `/tmp` (clear gexec/go-build artifacts or point TMPDIR at `/`) and re-run `#verify` to green                               | Unblocks the only red gate      | XS/S             |
+| ~~ 2 ~~  | ~~ `git push` master (user go/no-go) ~~ done 2026-09-13 — 18-35 §a26 (pushed, in sync)                                             | ~~ Ships the wave ~~            | ~~ XS ~~         |
+| 3        | Cut the v4 tag wave (6 modules above) via `tag-release.sh` flow                                                                    | Consumers get the features      | M                |
+| 4        | Tag `claiming/v4.0.0` (unblocks example/sqlstore consumers)                                                                        | Removes replace friction        | S                |
+| ~~ 5 ~~  | ~~ storage/sql dialect-aware `db.system` spans ~~ done 2026-09-15 — CHANGELOG storage entry                                        | ~~ Semconv completeness ~~      | ~~ S/M ~~        |
+| 6        | Migrate `WithMetrics`/`WithTracing` onto `Hooks.Merge` (stop clobbering)                                                           | Composability correctness       | S                |
+| 7        | otelobserver: expose gauge-style "currently quarantined" (up-down counter) derived from hooks                                      | Operator dashboards love gauges | S                |
+| ~~ 8 ~~  | ~~ Add `metaengine` health hooks to `system.New` wiring docs/recipes (operator quickstart) ~~ done 2026-09-13 — recipes §2.35 (M9) | ~~ Adoption ~~                  | ~~ S ~~          |
+| 9        | `example/scheduler-otel-status`: add a smoke test hitting /status + /metrics via httptest                                          | Example stays runnable          | S                |
+| 10       | cqrs-lint rule F030+: suggest `otelobserver.Attach` when metaengine + otel are both imported                                       | Adoption coaching               | M                |
+| 11       | Aggregated module-add meta-test (single source of the 8 wiring points)                                                             | Dev-velocity, kills fix-cycles  | M                |
+| ~~ 12 ~~ | ~~ Scheduling hardening tail: race-stress + counter-scope pin tests ~~ done 2026-09-13 — CHANGELOG tests entry                     | ~~ Reliability ~~               | ~~ S ~~          |
+| ~~ 13 ~~ | ~~ `decodeDueTimer` fuzz ~~ done 2026-09-13/16 — TODO_LIST row (shipped 2026-09-13..16)                                            | ~~ Robustness ~~                | ~~ S ~~          |
+| 14       | RenewLease ownership/claim tokens                                                                                                  | Correctness                     | M                |
+| 15       | Matview v2 per-view IVM write-amp otel counter                                                                                     | Operator insight                | M                |
+| 16       | Turso grouped-view upstream issue (blocked on user approval — pre-existing)                                                        | Upstream fix                    | XS once approved |
+| 17       | `system`/`stack` layers: consider span coverage at composition layer (currently 0 spans)                                           | Trace completeness              | M (decide first) |
+| 18       | otel/otlp: add gRPC variant module (`otel/otlpgrpc`)? only if asked — dep-heavy                                                    | Convenience                     | M                |
+| 19       | Doc: AGENTS "Add a New Module" procedure update (8 steps)                                                                          | Docs truth                      | XS               |
+| 20       | api golden: add meta-test that CHANGELOG-cited symbols exist (currently only script)                                               | Gate parity                     | XS               |
+| 21       | pebble/bbolt: drop sibling replaces after otel/v4.5.0 tag lands                                                                    | Hygiene                         | XS               |
+| 22       | `Hooks` doc: cross-link SPAN_NAMING.md from otelobserver README                                                                    | Discoverability                 | XS               |
+| 23       | Coverage drift check after wave (`#check-coverage`)                                                                                | Gate                            | S                |
+| 24       | `#vulncheck` per-module standalone build (new modules enter the graph)                                                             | Release gate                    | S                |
+| 25       | Bench-regression gate (`benchmark-regression.sh`) — hooks added to hot-adjacent paths (execute records failures; measure)          | Perf proof                      | S                |
 
 ## g) MY TOP QUESTION 🤔
 

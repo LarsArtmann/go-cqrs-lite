@@ -3,9 +3,9 @@
 **Date:** 2026-09-19 16:53
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Session:** Resumption of the metaengine-substrate-tail workstream (ADR-0142 tail, ADR-0143 fixed last session).
-**Continuation plan:** `docs/planning/2026-09-19_15-37_SUPERB-verify-green-tag-wave-crm-ports.md` (M1–M32, F01–F113).
-**Operating mode:** READ/UNDERSTAND/RESEARCH/REFLECT → execute-and-verify one step at a time.
+> **Session:** Resumption of the metaengine-substrate-tail workstream (ADR-0142 tail, ADR-0143 fixed last session).
+> **Continuation plan:** `docs/planning/2026-09-19_15-37_SUPERB-verify-green-tag-wave-crm-ports.md` (M1–M32, F01–F113).
+> **Operating mode:** READ/UNDERSTAND/RESEARCH/REFLECT → execute-and-verify one step at a time.
 
 ---
 

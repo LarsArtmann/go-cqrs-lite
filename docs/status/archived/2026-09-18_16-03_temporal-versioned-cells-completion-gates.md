@@ -135,7 +135,7 @@ mechanical was unambiguous; no new scope was opened.
 
 ~~1. Resolve parser.go (per g/2) → file-size gate green.~~ done 2026-09-18 — 17:40 report §a1
 2. `nix run .#verify-fast`, then `nix run .#verify` (EXCLUSIVE — nothing else running),
-   then `nix run .#verify-ci`.
+then `nix run .#verify-ci`.
 ~~3. advanced.md §6.20 + readmodels.md note, then re-run doc-check.~~ done 2026-09-18 — 17:40 report §a4
 ~~4. TODO_LIST.md harvest (curate the 14:07 50-item list into short/mid-term tasks).~~ done 2026-09-18 — 17:40 report §a5
 ~~5. system.AdapterCore AsOf routing spot-check (blast radius, 14:07 item 43).~~ done 2026-09-18 — 17:40 report §a6

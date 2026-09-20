@@ -3,8 +3,8 @@
 **Date:** 2026-09-19 18:05
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Session:** Owner-authorized execution of the full takeover todo list (continuation of `docs/status/2026-09-19_16-51_lint-debt-takeover-exhaustruct-panic-fix.md` — all 17 executable items; owner-gated items untouched).
-**Concurrent context:** the 16:22 goal-shaped-app/dogfooding session completed (final report 17:25); the 16:53 baseline-reconciliation session stayed idle; the auto-commit daemon absorbed continuously (one config-mangling wave mid-session — repaired, see d/5).
+> **Session:** Owner-authorized execution of the full takeover todo list (continuation of `docs/status/2026-09-19_16-51_lint-debt-takeover-exhaustruct-panic-fix.md` — all 17 executable items; owner-gated items untouched).
+> **Concurrent context:** the 16:22 goal-shaped-app/dogfooding session completed (final report 17:25); the 16:53 baseline-reconciliation session stayed idle; the auto-commit daemon absorbed continuously (one config-mangling wave mid-session — repaired, see d/5).
 
 ---
 

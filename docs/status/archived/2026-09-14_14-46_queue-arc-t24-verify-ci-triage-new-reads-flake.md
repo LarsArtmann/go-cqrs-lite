@@ -3,13 +3,13 @@
 **Date:** 2026-09-14 14:46 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (queue M4 — ADR-0134 tokens, T14 dep validation, FactTx/Watermarks, queue/mysql live-green; CHANGELOG 2026-09-19). Open remainder tracked in TODO_LIST "Durable Work Queue module": family tag wave (0/90 cut), README quickstart + conformance doc polish, PG `-race -count=2` symmetric leg. ARCHIVED.
-**Session:** ~14:15–14:46, continuation of the 12:50–14:14 queue arc
-(SUPERB plan `docs/planning/2026-09-14_12-45_SUPERB-cqrs-to-the-max.md`,
-prior report `2026-09-14_14-14_queue-arc-m1-m2-green-m3-tag-gate.md`).
-**Scope this session:** T24 only — frozen-tree `nix run .#verify-ci`,
-triage, fixes. T12–T23 untouched (owner's standing WAIT from 14:14 was
-superseded mid-session by an explicit "execute everything, keep going"
-directive; this report is the ordered stop).
+> **Session:** ~14:15–14:46, continuation of the 12:50–14:14 queue arc
+> (SUPERB plan `docs/planning/2026-09-14_12-45_SUPERB-cqrs-to-the-max.md`,
+> prior report `2026-09-14_14-14_queue-arc-m1-m2-green-m3-tag-gate.md`).
+> **Scope this session:** T24 only — frozen-tree `nix run .#verify-ci`,
+> triage, fixes. T12–T23 untouched (owner's standing WAIT from 14:14 was
+> superseded mid-session by an explicit "execute everything, keep going"
+> directive; this report is the ordered stop).
 
 ## a) FULLY DONE (this session)
 
@@ -114,48 +114,48 @@ evaluation; T21 tq re-open ADR; T22 doc tail; T23 rulings batch.
 
 ~~1. Poll matrix run #2 to completion; read its full log tail.~~ done 2026-09-14
 ~~2. Triage `Reads/status_counts`: read `queue/conformance/reads.go`~~
-~~   :100–160; reproduce locally with `-count=5 -shuffle=on`; check~~
-~~   `git log --oneline -- queue/` for concurrent-arc edits.~~ done 2026-09-19 — task.NewID time-sorting fix (TODO_LIST [x])
+~~ :100–160; reproduce locally with `-count=5 -shuffle=on`; check~~
+~~ `git log --oneline -- queue/` for concurrent-arc edits.~~ done 2026-09-19 — task.NewID time-sorting fix (TODO_LIST [x])
 ~~3. Fix the flake (forced clock gap or corrected claim/cancel~~
-~~   sequencing); local `-count=5` green.~~ done 2026-09-19
+~~ sequencing); local `-count=5` green.~~ done 2026-09-19
 ~~4. Matrix run #3 = T24 evidence GREEN; record log path as tag-wave~~
-~~   insurance (T24.3).~~ done 2026-09-14
+~~ insurance (T24.3).~~ done 2026-09-14
 ~~5. `git log -- queue/ cmd/cqrs-lint/` sanity: confirm no foreign edits~~
-~~   rode into the daemon commits carrying this session's fixes.~~ done — superseded; history settled
+~~ rode into the daemon commits carrying this session's fixes.~~ done — superseded; history settled
 ~~6. CHANGELOG `[Unreleased]`: cqrs-lint catalog queue entry (user-visible~~
-~~   suggestion surface) — check changelog-symbols gate.~~ done 2026-09-16 — queue-family entry; gate green
+~~ suggestion surface) — check changelog-symbols gate.~~ done 2026-09-16 — queue-family entry; gate green
 7. T23 rulings batch doc (see g3): recommendations + decision table,
-   ready for owner ruling without further research.
+ready for owner ruling without further research.
 ~~8. T12.1: CHANGELOG/release-note check for claiming entry.~~ done 2026-09-14
 9. T12.2-prep: `tag-release.sh claiming v4.0.0 "<desc>" --dry-run` on
-   clean tree; capture output.
+clean tree; capture output.
 10. T12.3 (OWNER-GATED): push tag; bump sqlstore/example pins.
 11. T12.4 (after push): strip sibling replaces; standalone GOWORK=off
-    builds green.
+builds green.
 12. T12.5 (after push): proxy probe (`go get` claiming@v4.0.0 scratch
-    module).
+module).
 ~~13. T13.1–T13.4: golden+TestEvery, doc rows, module-map/features check~~
-~~    for the queue trio (mostly done 13:xx — verify, don't redo).~~ done — verified at creation
+~~ for the queue trio (mostly done 13:xx — verify, don't redo).~~ done — verified at creation
 14. T13.5 (OWNER-GATED): batch-release wave `queue/v4/v4.0.0`,
-    `queue/sqlite/v4/v4.0.0`, `queue/postgres/v4/v4.0.0`.
+`queue/sqlite/v4/v4.0.0`, `queue/postgres/v4/v4.0.0`.
 15. Post-wave: `nix flake check` (vendorHash drift after go.mod edits).
 ~~16. Post-wave: `nix run .#check-duplication` — expect art-dupl accepts~~
-~~    for the engine mirrors.~~ done 2026-09-16
+~~ for the engine mirrors.~~ done 2026-09-16
 17. Post-wave: `nix run .#verify` (race/coverage/doc gates).
 18. Post-wave: `nix run .#check-coverage` — queue modules coverage floor.
 19. Post-wave: `nix run .#vulncheck`.
 ~~20. Advisory lint count check for queue/* vs baseline policy.~~ done 2026-09-16
 ~~21. T14.1: deps enqueue-time validation design note (see g2).~~
 ~~22. T14.6: cycle-rejection policy + test (new surface; design note~~ done 2026-09-19 — M4
-~~    first).~~
+~~ first).~~
 ~~23. T14: unblock-bump (ADR-0015 donor concept) evaluation for queue/.~~ done 2026-09-19 — M4
 ~~24. T14.5: conformance pin blocked-until-parent-done (verify existing~~
-~~    deps pins cover it; extend if not).~~ done 2026-09-19 — M4 conformance
+~~ deps pins cover it; extend if not).~~ done 2026-09-19 — M4 conformance
 ~~25. T15.1: ADR-0134 adoption note (tokens day one; Claim struct is the~~
-~~    seam; unreleased module ⇒ non-additive signature change is free).~~ done 2026-09-19 — ADR-0134 Accepted
+~~ seam; unreleased module ⇒ non-additive signature change is free).~~ done 2026-09-19 — ADR-0134 Accepted
 ~~26. T15.2: lease_token column + crypto/rand mint in both engines.~~ done 2026-09-19 — lease_token column
 ~~27. T15.3: token predicates in Heartbeat/Complete/Fail/FailPermanent/~~
-~~    Requeue/CancelOwned.~~ done 2026-09-19 — token predicates
+~~ Requeue/CancelOwned.~~ done 2026-09-19 — token predicates
 ~~28. T15.4: theft-detection error semantics (ErrLeaseNotHeld path).~~ done 2026-09-19 — ErrLeaseNotHeld
 ~~29. T15.5: conformance pins (holder-only ops).~~ done 2026-09-19
 ~~30. T15.6: docs + api golden regen (signature changes!).~~ done 2026-09-19
@@ -165,23 +165,23 @@ evaluation; T21 tq re-open ADR; T22 doc tail; T23 rulings batch.
 ~~34. T16.5: conformance pin "no state change without fact" via sink.~~ done 2026-09-19
 ~~35. T16.6: ADR-0001-lineage docs.~~ done 2026-09-19
 ~~36. T17.1–T17.3: MySQL engine (DATETIME(3), claiming.MySQLClaimSelect~~
-~~    two-statement claims).~~ done 2026-09-19 — queue/mysql (M4)
+~~ two-statement claims).~~ done 2026-09-19 — queue/mysql (M4)
 ~~37. T17.4: mysql testcontainer integration harness (docker available).~~ done 2026-09-19 — MYSQL_TEST_DSN + VM legs
 ~~38. T17.5: MySQL conformance green + ceremony (go.work/flake/golden/~~
-~~    module-map/layers budgets/CHANGELOG).~~ done 2026-09-19
+~~ module-map/layers budgets/CHANGELOG).~~ done 2026-09-19
 ~~39. T19.1–T19.4: taskmanager example on queue/sqlite; README; tests.~~ done 2026-09-19 — substrate T22
 ~~40. T19.5: cqrs-lint V006 golden refresh after example dep changes.~~ done 2026-09-18
 41. T18: metaengine read-adapter design note (read side ONLY).
 42. T18.2–T18.5: projection folds, FilterSpec demo, bench, docs.
 43. T20: PapDashboard usage read + mapping doc + gap list + verdict.
 ~~44. T21.1–T21.5: tq parity checklist, facade re-point spike, tq~~
-~~    conformance against upstream, journal migration sketch, ADR draft.~~ done 2026-09-19 — parity via T23 memo
+~~ conformance against upstream, journal migration sketch, ADR draft.~~ done 2026-09-19 — parity via T23 memo
 45. T22.1: proposal doc P0 phrasing fix (claiming DONE + trim note).
 ~~46. T22.2: cqrs AGENTS go.work use-block drift (go-idempotency).~~ done 2026-09-16
 47. T22.3: rejection-propagation rule encoded in tq AGENTS.
 48. T22.4: SKILL.md queue section + references/modules.md row checks.
 ~~49. T22.5 + plan annotation: SUPERB plan milestone banners (ANNOTATE,~~
-~~    never rewrite); AGENTS module count 88→91.~~ done 2026-09-19 — report + count DONE
+~~ never rewrite); AGENTS module count 88→91.~~ done 2026-09-19 — report + count DONE
 ~~50. T22.5: final arc status report (+ archive-counter updates).~~ done 2026-09-19 — M4 report
 
 ## g) Questions for the owner (cannot figure out myself)

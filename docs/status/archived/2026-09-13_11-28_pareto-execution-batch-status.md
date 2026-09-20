@@ -3,8 +3,8 @@
 **Date:** 2026-09-13 11:28 CEST · **Session window:** ~09:30–11:28 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped via later sessions (TODO_LIST `[x]` rows + CHANGELOG `[Unreleased]` dated entries). Unstruck items remain OPEN, tracked in TODO_LIST/ROADMAP where actionable (tag waves, quiet-window `#verify`, billing-gated CI, owner [BLOCKED] rulings); XS polish wishes not yet harvested stay here as the historical record. ARCHIVED.
-**Baseline:** post-quick-win-batch state (plan: `2026-09-13_08-55_SUPERB-pareto-execution-plan-v2.md`)
-**End state:** tree clean (daemon-committed), load 22.6 vs gate ceiling 5 → W0.4 still gated.
+> **Baseline:** post-quick-win-batch state (plan: `2026-09-13_08-55_SUPERB-pareto-execution-plan-v2.md`)
+> **End state:** tree clean (daemon-committed), load 22.6 vs gate ceiling 5 → W0.4 still gated.
 
 ---
 
@@ -97,7 +97,7 @@
 9. W0.7 `pin-sweep.sh --check` + storage/eventstore pin evidence
 10. W0.7 GitHub Releases batch + `cmd/cqrs-lint` v4.10.2 tag + install verification
 11. Owner: release-policy Q3 ruling (severity-in-minor; does `bumps`-always-present + sentinel `error`-interface change ride the minor wave?) — gates 8
-~~12. Owner: ratify one-release-cycle-after-v5 as the v6 shim-deletion window~~ done 2026-09-13 — v6 deadline table shipped (CHANGELOG docs entry)
+    ~~12. Owner: ratify one-release-cycle-after-v5 as the v6 shim-deletion window~~ done 2026-09-13 — v6 deadline table shipped (CHANGELOG docs entry)
 
 **CI trust**
 ~~13. Decide + execute cache-backend migration (flakehub-cache-action vs drop magic-nix-cache, raise timeouts) — the single highest-leverage repair~~ done 2026-09-18 — magic-nix-cache removed from 24 jobs (TODO_LIST)

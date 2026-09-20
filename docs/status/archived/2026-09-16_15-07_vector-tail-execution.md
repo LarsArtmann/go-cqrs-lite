@@ -162,66 +162,68 @@
 ## f) Things to get done next (impact-ordered, 30 real items)
 
 ~~1. **Fix the DuckDB DDL concat** (missing `;` before `vectorTableDDL`) and~~
-~~   rerun the FULL duckdb cgo suite (`-tags "cgo goexperiment.jsonv2"`,~~
-~~   ~113 s) — includes dimension guard, restart legs, pushdown tests.~~ done 2026-09-16 — banner; CHANGELOG 2026-09-16
+~~ rerun the FULL duckdb cgo suite (`-tags "cgo goexperiment.jsonv2"`,~~
+~~ ~113 s) — includes dimension guard, restart legs, pushdown tests.~~ done 2026-09-16 — banner; CHANGELOG 2026-09-16
 ~~2. **Bisect which auto-commit broke duckdb construction** and annotate the~~
-~~   18-32 report's "suite green" claim (docs-health ANNOTATE).~~ done 2026-09-16 — 18-32 CORRECTION banner
+~~ 18-32 report's "suite green" claim (docs-health ANNOTATE).~~ done 2026-09-16 — 18-32 CORRECTION banner
 ~~3. **Write `docs/benchmarks/2026-09-16_vector-search-paths.md`** (or fix the~~
-~~   CHANGELOG reference) — kill the dangling citation.~~ done 2026-09-16 — doc exists (2026-09-16_vector-search-paths.md)
+~~ CHANGELOG reference) — kill the dangling citation.~~ done 2026-09-16 — doc exists (2026-09-16_vector-search-paths.md)
 ~~4. **Run the DuckDB pushdown benchmark**, add the third number to the~~
-~~   CHANGELOG bullet.~~ done 2026-09-16 — 1.22ms in CHANGELOG
+~~ CHANGELOG bullet.~~ done 2026-09-16 — 1.22ms in CHANGELOG
 ~~5. **Run `nix run .#integration-dgraph`** (unfiltered, soak included) —~~
-~~   live-verifies the lazy vector schema + dgraph dimension guard + Vector~~
-~~   matrix; collects "Transaction has been aborted" flake evidence.~~ done 2026-09-16 — 7× green, banner
+~~ live-verifies the lazy vector schema + dgraph dimension guard + Vector~~
+~~ matrix; collects "Transaction has been aborted" flake evidence.~~ done 2026-09-16 — 7× green, banner
 ~~6. **Investigate the abort flake** against the collected evidence —~~
-~~   `retryOnContention` classification gap vs distinct contention class.~~ done 2026-09-16 — four real fixes; TODO_LIST [x]
+~~ `retryOnContention` classification gap vs distinct contention class.~~ done 2026-09-16 — four real fixes; TODO_LIST [x]
 ~~7. **MariaDB leg**: userspace MariaDB flow → `MYSQL_TEST_DSN` → dimension~~
-~~   guard + `TestMySQLVectorRoundtrip`.~~ done 2026-09-16 — banner
+~~ guard + `TestMySQLVectorRoundtrip`.~~ done 2026-09-16 — banner
 ~~8. **PG leg**: testcontainers → `TestVectorDimensionGuard` on pgengine.~~ done 2026-09-16 — banner
 ~~9. **metaengine FULL non-short suite** (item h; SOAK_SKIP_* policy per~~
-~~   gotchas-testing.md).~~ done 2026-09-16 — 22.4s
+~~ gotchas-testing.md).~~ done 2026-09-16 — 22.4s
 ~~10. **Per-module lint** over all touched modules (metaengine + 10 engine~~
-~~    modules + enginetest + adttest consumers).~~ done 2026-09-16 — touched modules clean
+~~ modules + enginetest + adttest consumers).~~ done 2026-09-16 — touched modules clean
 ~~11. **`nix run .#check-file-size`** — confirm the two shrunk baselines and~~
-~~    all new files (vector_path.go, vector_memory.go, vector_dimension.go,~~
-~~    adttest/vector_dimension.go) are clean.~~ done 2026-09-16 — green
+~~ all new files (vector_path.go, vector_memory.go, vector_dimension.go,~~
+~~ adttest/vector_dimension.go) are clean.~~ done 2026-09-16 — green
 ~~12. **`nix run .#check-duplication`** — add `//art-dupl:accept` directives to~~
-~~    the 10 dialect-twin test files if the gate trips.~~ done 2026-09-16 — 6 accepted groups
+~~ the 10 dialect-twin test files if the gate trips.~~ done 2026-09-16 — 6 accepted groups
 ~~13. **`nix run .#check-error-taxonomy`** — add~~
-~~    `metaengine.vector_dimension_mismatch` to `docs/error-taxonomy.md` if~~
-~~    the drift gate demands it.~~ done 2026-09-16 — green
+~~ `metaengine.vector_dimension_mismatch` to `docs/error-taxonomy.md` if~~
+~~ the drift gate demands it.~~ done 2026-09-16 — green
 ~~14. **`cd cmd/doc-check && GOWORK=off go run …`** over SKILL.md + references~~
-~~    - AGENTS.md (AGENTS.md changed; contract #26 now cites ADR-0140).~~ done 2026-09-16 — banner: docs assertions validated
+~~ - AGENTS.md (AGENTS.md changed; contract #26 now cites ADR-0140).~~ done 2026-09-16 — banner: docs assertions validated
 ~~15. **`nix run .#verify-fast`** — attribute my delta vs the pre-existing red.~~ done 2026-09-19 — both flakes filed → both resolved
 ~~16. **TODO_LIST harvest**: check off verification-tail items (b), (d), (e),~~
-~~    (a), (f-partial), (g), Dgraph floor decision, ADR-0140; leave pointers~~
-~~    to this report.~~ done 2026-09-16 — TODO_LIST [x] rows
+~~ (a), (f-partial), (g), Dgraph floor decision, ADR-0140; leave pointers~~
+~~ to this report.~~ done 2026-09-16 — TODO_LIST [x] rows
 17. **FEATURES.md vector row** — add dimension lock + path reporter +
-    Dgraph lazy schema one-liners.
+Dgraph lazy schema one-liners.
 18. **Skill references** — `.agents/skills/go-cqrs-lite/references/modules.md`
-    - `faq.md`: Dgraph v24 vector floor, `ErrVectorDimensionMismatch`
-      semantics, ExplainPlan path labels.
+
+- `faq.md`: Dgraph v24 vector floor, `ErrVectorDimensionMismatch`
+  semantics, ExplainPlan path labels.
+
 19. **`docs/agents/module-map.md`** engine vector notes (18-32 §f23).
-~~20. **Decide iroh `VectorCounter` promotion** (policy decision; owner input~~
-~~    via §g2 below).~~ **Won't implement — decided: stays local-only, documented.**
-21. **Bulk vector insert API** (amortize the dimension probe on remote
+    ~~20. **Decide iroh `VectorCounter` promotion** (policy decision; owner input~~
+    ~~ via §g2 below).~~ **Won't implement — decided: stays local-only, documented.**
+20. **Bulk vector insert API** (amortize the dimension probe on remote
     engines) — ROADMAP fuel unless ANN work lands first.
-22. **Remote-Turso pushdown verification** (needs credentials — 18-32 §g2).
-23. **Doctor `--- Vectors ---` live test** on one new engine (18-32 §f15).
-24. **Quickstart demo variant exercising Turso pushdown** (18-32 §f24).
-25. **`#check-coverage` + `#vulncheck`** over the changed modules (18-32 §f25).
-26. **Empty-query-vector behavior** doc+test (18-32 §f28 — interacts with my
+21. **Remote-Turso pushdown verification** (needs credentials — 18-32 §g2).
+22. **Doctor `--- Vectors ---` live test** on one new engine (18-32 §f15).
+23. **Quickstart demo variant exercising Turso pushdown** (18-32 §f24).
+24. **`#check-coverage` + `#vulncheck`** over the changed modules (18-32 §f25).
+25. **Empty-query-vector behavior** doc+test (18-32 §f28 — interacts with my
     zero-dim insert rejection; search-side empty-query behavior still
     duckdb-specific).
-27. **OTel spans for VectorInsert/VectorSearch** if convention supports
+26. **OTel spans for VectorInsert/VectorSearch** if convention supports
     (18-32 §f29).
-~~28. **benchmark-regression gate decision record** — deliberately not wired~~
-~~    this session (corpus-sensitive O(N) paths vs 25% CI threshold); record~~
-~~    the rationale where the gate docs live.~~ done 2026-09-16 — rationale in CHANGELOG; gate redesigned 2026-09-19
-29. **`nix run .#verify`** composed run in a quiet window (standing BLOCKED
+    ~~28. **benchmark-regression gate decision record** — deliberately not wired~~
+    ~~ this session (corpus-sensitive O(N) paths vs 25% CI threshold); record~~
+    ~~ the rationale where the gate docs live.~~ done 2026-09-16 — rationale in CHANGELOG; gate redesigned 2026-09-19
+27. **`nix run .#verify`** composed run in a quiet window (standing BLOCKED
     row — still subject to the quiet-window rule).
-~~30. **Annotate the 18-32 report** with this session's resolution of §b/§c~~
-~~    items (docs-health ANNOTATE pass).~~ done 2026-09-16 — CORRECTION + docs-health banners
+    ~~30. **Annotate the 18-32 report** with this session's resolution of §b/§c~~
+    ~~ items (docs-health ANNOTATE pass).~~ done 2026-09-16 — CORRECTION + docs-health banners
 
 ## g) Questions I can NOT figure out myself
 

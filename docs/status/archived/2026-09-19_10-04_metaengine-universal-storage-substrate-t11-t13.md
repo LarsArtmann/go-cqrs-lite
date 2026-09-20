@@ -3,8 +3,8 @@
 **Date:** 2026-09-19 10:04 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Scope:** Continuation of [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md) — this session covered the **T11 tail, all of T12, and most of T13** (duckdb done+green, mysql live-debugging mid-flight), after the previous session's T01–T11-core (see [`2026-09-19_08-50_...`](2026-09-19_08-50_metaengine-universal-storage-substrate-execution.md)).
-**Method:** per-module `GOWORK=off go test -tags "goexperiment.jsonv2" [-race] -count=N`; MySQL legs against a manually-started ephemeral MariaDB 11.4.12 (see (d)); authored commits where the daemon allowed.
+> **Scope:** Continuation of [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md) — this session covered the **T11 tail, all of T12, and most of T13** (duckdb done+green, mysql live-debugging mid-flight), after the previous session's T01–T11-core (see [`2026-09-19_08-50_...`](2026-09-19_08-50_metaengine-universal-storage-substrate-execution.md)).
+> **Method:** per-module `GOWORK=off go test -tags "goexperiment.jsonv2" [-race] -count=N`; MySQL legs against a manually-started ephemeral MariaDB 11.4.12 (see (d)); authored commits where the daemon allowed.
 
 ---
 

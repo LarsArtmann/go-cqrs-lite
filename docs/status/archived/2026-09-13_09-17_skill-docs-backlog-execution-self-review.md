@@ -5,11 +5,11 @@
 **Date:** 2026-09-13 09:17 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped via later sessions (TODO_LIST `[x]` rows + CHANGELOG `[Unreleased]` dated entries). Unstruck items remain OPEN, tracked in TODO_LIST/ROADMAP where actionable (tag waves, quiet-window `#verify`, billing-gated CI, owner [BLOCKED] rulings); XS polish wishes not yet harvested stay here as the historical record. ARCHIVED.
-**Session scope (this round):** Execute the backlog from
-[`2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md`](2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md):
-close the gate chain, finish the partial reads, harden the skill docs, harvest
-TODO_LIST. Report covers this round's run only.
-**Format:** `.md` per explicit user instruction (overrides HTML default; flagged).
+> **Session scope (this round):** Execute the backlog from
+> [`2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md`](2026-09-13_08-47_skill-docs-audit-metaengine-goal-readiness.md):
+> close the gate chain, finish the partial reads, harden the skill docs, harvest
+> TODO_LIST. Report covers this round's run only.
+> **Format:** `.md` per explicit user instruction (overrides HTML default; flagged).
 
 **One-line verdict:** All 8 backlog items executed and verified; 9 more defects
 found and fixed (including 2 caused by MY round-1 fixes). The round also proved
@@ -114,9 +114,11 @@ files I had marked "audited".
 ## f) Next things (session-fallout, impact-sorted; real items only)
 
 ~~1. Diagnose the pre-existing master CI failure (runs 06:30/06:47/07:00) —~~ done 2026-09-13 — banner L3: root-caused; TODO_LIST CI-triage row
-   cache-throttle flake vs real test failure; re-run if infra.
+cache-throttle flake vs real test failure; re-run if infra.
 ~~2. Confirm CI green on this session's commits once the daemon pushes (fmt gate~~ done 2026-09-13 — banner L3 (remote green still billing-gated)
-   - docs + ~400 formatted files all ride together).
+
+- docs + ~400 formatted files all ride together).
+
 3. Run `nix run .#verify-fast` before the next release-adjacent merge.
 4. ~~Port anchor + § cross-ref validation into `scripts/check-doc-links.sh`
    (file-links-only today; slug rules + false-positive filtering documented in
@@ -130,14 +132,14 @@ files I had marked "audited".
 8. ~~Consolidate the v5-deprecation story (6+ tellings → 1 canonical + pointers).~~ done 2026-09-16 — canonical in faq.md; others point at it
 9. ~~Link `example/metaengine-quickstart` from README + metaengine module README.~~ done 2026-09-16
 10. ~~Decide `metaengine.Infer` end-state (deprecate at v5 vs promote with story).~~ done 2026-09-16 — deprecated, removal at v5
-~~11. Coordinate with the parallel session's TODO batch (compile-harness overlap)~~ done 2026-09-13 — 08-47 §a11 same-day dedup
+    ~~11. Coordinate with the parallel session's TODO batch (compile-harness overlap)~~ done 2026-09-13 — 08-47 §a11 same-day dedup
     — one owner, not two.
-12. CHANGELOG: decide whether consumer-visible doc/skill changes (trigger
+11. CHANGELOG: decide whether consumer-visible doc/skill changes (trigger
     description) warrant `[Unreleased]` entries (likely no — not library API —
     but decide explicitly).
-13. Add "audit meta-sections first" + "sweep the class across files" to the
+12. Add "audit meta-sections first" + "sweep the class across files" to the
     docs-health skill's VERIFY checklist (skill-meta improvement, your call).
-14. If the daemon pushes rarely: consider pushing session-critical commits
+13. If the daemon pushes rarely: consider pushing session-critical commits
     sooner so CI actually exercises them.
 
 ## g) Questions I cannot answer myself (max 3)

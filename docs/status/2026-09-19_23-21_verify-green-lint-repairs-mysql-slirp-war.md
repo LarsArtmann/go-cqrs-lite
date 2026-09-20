@@ -81,7 +81,7 @@
 14. M15: verify load-threshold guard (refuse >N loadavg, retry message).
 15. `pgtestcontainer` lazy TestMain (library change; needs verify-before-filing + a new tag).
 16. claimkit errorfamily classification audit (e/5).
-17. Meta-tests (TestREADMEClaim_*, TestEvery*) into verify-fast if absent.
+17. Meta-tests (TestREADMEClaim__, TestEvery_) into verify-fast if absent.
 18. Post-wave repo-wide `GOWORK=off go mod tidy -diff` sweep (verify the wave session's completion).
 19. Re-run full `#verify` once on the post-wave tree (my rc=0 predates the 92-tag pin-sweeps).
 20. `#verify-ci` (GOWORK=off matrix) on the post-wave tree.
@@ -101,4 +101,4 @@
 
 ---
 
-*Point-in-time snapshot. Evidence artifacts: /tmp/verify{,2..7}.log, /tmp/lint-full.log, /tmp/int-{pg,mysql2..8}.log, /tmp/eph-mysql/, /tmp/golangci-regressed-snapshot-18-39.yml.*
+_Point-in-time snapshot. Evidence artifacts: /tmp/verify{,2..7}.log, /tmp/lint-full.log, /tmp/int-{pg,mysql2..8}.log, /tmp/eph-mysql/, /tmp/golangci-regressed-snapshot-18-39.yml._

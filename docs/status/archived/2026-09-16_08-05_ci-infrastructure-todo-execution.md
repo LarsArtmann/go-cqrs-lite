@@ -171,107 +171,107 @@
 ## f) NEXT (most valuable first)
 
 ~~1. **Split `metaengine/store.go` (945→954)** — ratchet is RED again RIGHT NOW from~~
-~~   the concurrent session's growth; needs an owner decision on coordination first.~~ done 2026-09-16 — 15-02 §a1; CHANGELOG
+~~ the concurrent session's growth; needs an owner decision on coordination first.~~ done 2026-09-16 — 15-02 §a1; CHANGELOG
 2. ~~Fix the `TestRecipesCompile` `StatusCounts` duplicate (§2.21b)~~ — done: driven to zero by the 09-15 18-19 session; re-verified GREEN this pass (`go test -run TestRecipes` → ok 3.5s).
 ~~3. **Queue session: fix queue/postgres wrapcheck ×37 + wsl_v5 ×2** surfaced by~~
-~~   `integration-tag-lint` (their in-flight files).~~ done 2026-09-16 — 09-35 §a5, 241→0
+~~ `integration-tag-lint` (their in-flight files).~~ done 2026-09-16 — 09-35 §a5, 241→0
 ~~4. **Queue session: fix `scheduling/sqlstore/property_test.go:310` gocognit 39>35**.~~ done 2026-09-19 — lint debt zeroed
 5. **Green MySQL-VM shuffled suite in the quiet window** — replay both logged seeds;
-   this closes §b1 fully.
+this closes §b1 fully.
 ~~6. **Nightly CI job for the calibration baseline artifact** — `--write-baseline` +~~
-~~   upload, next-night `--baseline` + compare (mechanism exists, wiring missing).~~ done 2026-09-18 — nightly-gates.yml
+~~ upload, next-night `--baseline` + compare (mechanism exists, wiring missing).~~ done 2026-09-18 — nightly-gates.yml
 ~~7. **Decide pin-sweep trigger policy** (owner): keep push-blocking (recommended) or~~
-~~   tag-push/cron; optionally add `--remote` as a report-only cron leg either way.~~ done 2026-09-18 — TODO_LIST [x] DECIDED
+~~ tag-push/cron; optionally add `--remote` as a report-only cron leg either way.~~ done 2026-09-18 — TODO_LIST [x] DECIDED
 ~~8. **Reconcile the two hook sources** — retire `scripts/install-hooks.sh`'s~~
-~~   BuildFlow heredoc or fold BuildFlow lint into `scripts/pre-commit.sh`; exactly~~
-~~   one canonical hook.~~ done 2026-09-18 — TODO_LIST [x] pre-commit batch
+~~ BuildFlow heredoc or fold BuildFlow lint into `scripts/pre-commit.sh`; exactly~~
+~~ one canonical hook.~~ done 2026-09-18 — TODO_LIST [x] pre-commit batch
 ~~9. **Make fresh-clone hooks non-dead:** track `.githooks/` in-repo (or bootstrap in~~
-~~   `nix develop`/hatch task) — today every new clone starts with silently-dead~~
-~~   pre-commit gating again.~~ done 2026-09-18 — nix develop shellHook
+~~ `nix develop`/hatch task) — today every new clone starts with silently-dead~~
+~~ pre-commit gating again.~~ done 2026-09-18 — nix develop shellHook
 ~~10. **Add `.golangci.yml` to pre-commit staged triggers** → run~~
-~~    `check-lint-config` when the config itself is staged (catches the gci/depguard~~
-~~    class at commit time, where the daemon's waves also pass through).~~ done 2026-09-18
+~~ `check-lint-config` when the config itself is staged (catches the gci/depguard~~
+~~ class at commit time, where the daemon's waves also pass through).~~ done 2026-09-18
 ~~11. **Cheap nightly gate cron** (check-lint-config + check-modsums + script~~
-~~    harnesses) — the meta-fix for the "self-heal only works when gates run" class.~~ done 2026-09-18 — nightly-gates.yml
+~~ harnesses) — the meta-fix for the "self-heal only works when gates run" class.~~ done 2026-09-18 — nightly-gates.yml
 12. **Set `ERRAUDIT_PAT` secret** (user) — erraudit findings are verified zero;
-    the `error-audit` job activates the moment the secret exists.
+the `error-audit` job activates the moment the secret exists.
 13. **Fix GitHub Actions billing** (user, BLOCKED).
 14. **cqrs-lint Self-Lint credentials** (user, BLOCKED).
 15. **Quiet-window composed `#verify` + `verify-docs.sh`** (pre-existing [BLOCKED]
-    item; now also owes a post-session composed confirmation of this session's
-    per-gate greens).
+item; now also owes a post-session composed confirmation of this session's
+per-gate greens).
 16. ~~**docs/status/README.md index entry** for this report.~~ done (docs-health pass 2026-09-16)
 17. **Verify `build/shuffle-seeds.log` gitignore status** (two new seeds written).
 ~~18. **Confirm `claiming/` was inside the erraudit zero sweep** (go.mod presence~~
-~~    check; re-run for that module explicitly).~~ done 2026-09-15 — all-modules zero + claiming zeroed 09-14
+~~ check; re-run for that module explicitly).~~ done 2026-09-15 — all-modules zero + claiming zeroed 09-14
 ~~19. **Run `queue/postgres` conformance suite against live PG** to exercise the~~
-~~    `lifecycle_cancel.go` split end-to-end.~~ done 2026-09-16 — TODO_LIST [x]
+~~ `lifecycle_cancel.go` split end-to-end.~~ done 2026-09-16 — TODO_LIST [x]
 20. **Automate the orphan-QEMU cure into `vm-mysql.sh`** (post-run pkill + state
-    cleanup) so the gotcha stops depending on manual ritual.
+cleanup) so the gotcha stops depending on manual ritual.
 21. **Preflight in `ephemeral-dgraph.sh`:** `go vet` the module before provisioning
-    the server (today's wasted run class).
+the server (today's wasted run class).
 22. **Document the `rg -rn` footgun** in gotchas-tooling-build.md.
 23. **Add the preflight protocol (§e1) to gotchas** — vet + pgrep + concurrent-
-    session check before heavy runs.
+session check before heavy runs.
 24. **Authorize + execute authored commits per task** (user decision, then do it).
 25. **`nix flake check` full** — only app-level evals ran this session.
 26. **Watch `integration-tag-lint` CI cost** (~18 modules × golangci ≈ minutes) —
-    scope or cache if the leg gets slow.
+scope or cache if the leg gets slow.
 27. **`TestEveryModuleGoSumIsTidy` runtime** (64s non-short) — parallelize if it
-    grows; keep out of `-short` paths.
+grows; keep out of `-short` paths.
 28. **Resolve the mid-session LSP phantom (`mustOpenProbe` undefined in
-    metaengine/sqliteengine/probe_vec_test.go)** — co-writer deleted those files
-    mid-session; confirm their final state has no dangling references.
+metaengine/sqliteengine/probe_vec_test.go)** — co-writer deleted those files
+mid-session; confirm their final state has no dangling references.
 29. **Confirm modsums meta-test runs in CI's per-module-test job context** (it is
-    `-short`-skipped; make sure at least one CI leg runs the non-short suite).
+`-short`-skipped; make sure at least one CI leg runs the non-short suite).
 ~~30. **Re-run `check-duplication`** after the two file splits (art-dupl baseline~~
-~~    gate — splits reduce code, but the gate hasn't been re-run since).~~ done 2026-09-16 — gate green
+~~ gate — splits reduce code, but the gate hasn't been re-run since).~~ done 2026-09-16 — gate green
 ~~31. **Re-pin `.art-dupl-baseline.json` only if the splits changed group shapes**~~
-~~    (check per the dirty-tree guard procedure).~~ done 2026-09-16 — baseline 54 untouched
+~~ (check per the dirty-tree guard procedure).~~ done 2026-09-16 — baseline 54 untouched
 ~~32. **Update `docs/agents/gowork-modes.md`?** No — but confirm the env chain was~~
-~~    used in every command this session (spot-audit a few; it was).~~ done — verified in-session
+~~ used in every command this session (spot-audit a few; it was).~~ done — verified in-session
 ~~33. **Consider `--remote` for the CI module-layers pin-sweep leg** (currently~~
-~~    local-refs `--check`) once #7 is decided.~~ done 2026-09-18 — nightly report-only --check --remote
+~~ local-refs `--check`) once #7 is decided.~~ done 2026-09-18 — nightly report-only --check --remote
 34. **Share the module-root resolution logic** between `integration-tag-lint`'s
-    inline loop and `pin-sweep`'s find (small dedup, or accept the clone with
-    `//art-dupl:accept` if the gate flags it).
+inline loop and `pin-sweep`'s find (small dedup, or accept the clone with
+`//art-dupl:accept` if the gate flags it).
 35. **CHANGELOG symbols:** current entries cite no `pkg.Symbol` (scripts/tests
-    only) — if any of the new tests get exported helpers later, re-run
-    `check-changelog-symbols`.
+only) — if any of the new tests get exported helpers later, re-run
+`check-changelog-symbols`.
 ~~36. **Error-family coverage of the new harness scripts** — n/a (bash), but the~~
-~~    new CI jobs' failure annotations use `::error::` consistently — verified for~~
-~~    modsums/pin-sweep; keep the convention for future jobs.~~ done — verified in-session
+~~ new CI jobs' failure annotations use `::error::` consistently — verified for~~
+~~ modsums/pin-sweep; keep the convention for future jobs.~~ done — verified in-session
 ~~37. **Sanity-check `api_surface.txt` untouched** (test-only + testdata changes; no~~
-~~    golden regen was needed — verified by `TestEveryGoModDirIsInModulesList` suite~~
-~~    green; note for the ledger).~~ done — verified in-session
+~~ golden regen was needed — verified by `TestEveryGoModDirIsInModulesList` suite~~
+~~ green; note for the ledger).~~ done — verified in-session
 ~~38. **metaengine/sqliteengine + tursoengine `probe_vec_*` deletions** (co-writer):~~
-~~    after their wave lands, re-run `check-file-size` + lint on those modules.~~ done 2026-09-16 — vector tail gates green
+~~ after their wave lands, re-run `check-file-size` + lint on those modules.~~ done 2026-09-16 — vector tail gates green
 39. **Re-verify doc-check binary via the flake app path** (`nix run .#doc-check`)
-    — I ran the equivalent `go run` by hand; the app adds nothing but is the
-    canonical entrypoint.
+— I ran the equivalent `go run` by hand; the app adds nothing but is the
+canonical entrypoint.
 40. **Batch the two VM-shaped follow-ups** (#5 MySQL green suite + pre-existing
-    [BLOCKED] macOS/nspawn items) into one quiet-window maintenance slot.
+[BLOCKED] macOS/nspawn items) into one quiet-window maintenance slot.
 41. **Decide whether `check-staged-go.sh` and the new staged gates should live in
-    ONE `scripts/pre-commit-gates.sh` dispatcher** (cosmetic; current inline
-    structure is readable).
+ONE `scripts/pre-commit-gates.sh` dispatcher** (cosmetic; current inline
+structure is readable).
 ~~42. **CI posture decision for `TestRecipesCompile`** (§f14 of the 09-15 report —~~
-~~    still open, still blocks #verify green).~~ done 2026-09-18 — TODO_LIST [x] DECIDED
+~~ still open, still blocks #verify green).~~ done 2026-09-18 — TODO_LIST [x] DECIDED
 ~~43. **Recount `TestRecipesCompile` failure inventory** after the co-writer's~~
-~~    catalog edits settle (was 12 → 1 known).~~ done 2026-09-15/16 — driven to zero
+~~ catalog edits settle (was 12 → 1 known).~~ done 2026-09-15/16 — driven to zero
 ~~44. **Add `.golangci.yml` + `.githooks/` to the "config-touching wave ⇒ run~~
-~~    check-lint-config" gotcha's trigger list** (docs done; enforcement = #10).~~ done — docs done; enforcement = #10, done 2026-09-18
+~~ check-lint-config" gotcha's trigger list** (docs done; enforcement = #10).~~ done — docs done; enforcement = #10, done 2026-09-18
 ~~45. **Post-session verification of my three .githooks gates under a REAL commit**~~
-~~    (sandbox proved firing; a real repo commit with go.mod staged proves the full~~
-~~    chain including workspace-sync).~~ done 2026-09-18 — verified over full tree
+~~ (sandbox proved firing; a real repo commit with go.mod staged proves the full~~
+~~ chain including workspace-sync).~~ done 2026-09-18 — verified over full tree
 46. **Instrument `build/shuffle-seeds.log` rotation** (appends forever).
 ~~47. **Keep `CALIB_FAKE_TMPFS_TYPE` documented** in the drift script header (it is;~~
-~~    confirm it survives the next script edit — one-line test hooks rot fast).~~ done — documented, header
+~~ confirm it survives the next script edit — one-line test hooks rot fast).~~ done — documented, header
 48. **Sweep for other scripts reading `/proc/loadavg`** that could use the
-    calibration-gate fixture hook (carried over from 09-15 §f32; still open).
+calibration-gate fixture hook (carried over from 09-15 §f32; still open).
 49. **Consider `stat -f` portability** in the new CoW detection (Linux-only
-    invocation; macOS leg is BLOCKED anyway — note for the macOS item).
+invocation; macOS leg is BLOCKED anyway — note for the macOS item).
 50. **Post-release smoke:** when tags next fly, confirm `pin-sweep --check --remote`
-    on CI would have caught the 09-08/09-11 stale-pin waves (dry exercise).
+on CI would have caught the 09-08/09-11 stale-pin waves (dry exercise).
 
 ## g) QUESTIONS (cannot be resolved from the repo alone)
 

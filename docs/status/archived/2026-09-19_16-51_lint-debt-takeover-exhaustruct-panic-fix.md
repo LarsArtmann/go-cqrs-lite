@@ -3,7 +3,7 @@
 **Date:** 2026-09-19 16:51 · **Session:** continuation of the substrate-tail execution, took over the lint finish line from the quiet 15:34 session
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Trigger:** owner authorization "keep going until everything works". Context: prior reports `2026-09-19_15-11` (substrate tail self-review), `2026-09-19_15-34` (ADR-0143/jsonv2-sweep session).
+> **Trigger:** owner authorization "keep going until everything works". Context: prior reports `2026-09-19_15-11` (substrate tail self-review), `2026-09-19_15-34` (ADR-0143/jsonv2-sweep session).
 
 ## a) Fully done (verified this session)
 

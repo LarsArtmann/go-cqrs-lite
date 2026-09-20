@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/event/v4/eventtest
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/gkampitakis/go-snaps v0.5.23

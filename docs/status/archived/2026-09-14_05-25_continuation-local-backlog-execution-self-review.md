@@ -3,8 +3,8 @@
 **Date:** 2026-09-14 05:25 CEST · **Session window:** ~11:45–13:00 + 04:30–05:25 CEST (2026-09-13/14, resumption of the 2026-09-13 11:28 batch)
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped via later sessions (TODO_LIST `[x]` rows + CHANGELOG `[Unreleased]` dated entries). Unstruck items remain OPEN, tracked in TODO_LIST/ROADMAP where actionable (tag waves, quiet-window `#verify`, billing-gated CI, owner [BLOCKED] rulings); XS polish wishes not yet harvested stay here as the historical record. ARCHIVED.
-**Baseline:** post-`2026-09-13_11-28_pareto-execution-batch-status.md` state (9 of 11 todos done; W0.4 load-gated; owner questions open)
-**End state:** every locally-executable item from the handoff executed and gate-verified; tree daemon-committed except the final CHANGELOG/lintutil edit pair; load 7.2 and falling — W0.4 still gated by evidence (42.9 → 9.3 → 27.6 → 7.2 across four polls).
+> **Baseline:** post-`2026-09-13_11-28_pareto-execution-batch-status.md` state (9 of 11 todos done; W0.4 load-gated; owner questions open)
+> **End state:** every locally-executable item from the handoff executed and gate-verified; tree daemon-committed except the final CHANGELOG/lintutil edit pair; load 7.2 and falling — W0.4 still gated by evidence (42.9 → 9.3 → 27.6 → 7.2 across four polls).
 
 ---
 

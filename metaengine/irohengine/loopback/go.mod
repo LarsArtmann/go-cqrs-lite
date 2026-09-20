@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/irohengine/loopback/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.4

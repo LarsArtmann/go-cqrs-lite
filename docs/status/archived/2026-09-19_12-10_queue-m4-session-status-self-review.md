@@ -3,13 +3,13 @@
 **Date:** 2026-09-19, ~10:07–12:10 CEST (single session)
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Scope:** the queue TODO item's M4 remainder (T14–T17) + ceremony, under
-the "execute everything, keep going" directive. This report covers THIS
-session's run only. Prior arc reports: 14-14, 14-46, and the mid-session
-report `2026-09-19_11-10_queue-m4-tokens-deps-facttx-mysql.md` (§d of
-which was already corrected once for the mid-flight merge — see (d)).
-**Concurrent arc:** ADR-0142 substrate session ran IN PARALLEL; their
-daemon commits landed interleaved with mine all session.
+> **Scope:** the queue TODO item's M4 remainder (T14–T17) + ceremony, under
+> the "execute everything, keep going" directive. This report covers THIS
+> session's run only. Prior arc reports: 14-14, 14-46, and the mid-session
+> report `2026-09-19_11-10_queue-m4-tokens-deps-facttx-mysql.md` (§d of
+> which was already corrected once for the mid-flight merge — see (d)).
+> **Concurrent arc:** ADR-0142 substrate session ran IN PARALLEL; their
+> daemon commits landed interleaved with mine all session.
 
 ---
 
@@ -139,50 +139,50 @@ daemon commits landed interleaved with mine all session.
 ## f) NEXT (up to 50, impact order)
 
 1. Owner ratification: dep-validation semantics vs donor (see (g) Q1).
-~~2. Run `nix run .#check-duplication`; annotate/regen for queue/mysql~~
-~~   twins; mutation-verify any new goldens.~~ done 2026-09-19 — 18:05 gate green
-~~3. Run golangci-lint (or `nix run .#lint` once unblocked) over queue/*;~~
-~~   check advisory growth vs baseline policy.~~ done 2026-09-19 — zero findings
-4. Run `nix run .#check-coverage`; fix queue family coverage floors.
-5. Re-run the FULL gate battery on the merged frozen tree:
+   ~~2. Run `nix run .#check-duplication`; annotate/regen for queue/mysql~~
+   ~~ twins; mutation-verify any new goldens.~~ done 2026-09-19 — 18:05 gate green
+   ~~3. Run golangci-lint (or `nix run .#lint` once unblocked) over queue/*;~~
+   ~~ check advisory growth vs baseline policy.~~ done 2026-09-19 — zero findings
+2. Run `nix run .#check-coverage`; fix queue family coverage floors.
+3. Re-run the FULL gate battery on the merged frozen tree:
    `#verify`/`#verify-ci` (blocked by toolchain split — see Q3).
-6. PG conformance `-race -count=2` (the one symmetric leg missing).
-7. Remove the vestigial `_ = subject` + unused `short` wart in
+4. PG conformance `-race -count=2` (the one symmetric leg missing).
+5. Remove the vestigial `_ = subject` + unused `short` wart in
    conformance tokens.go/lifecycle.go.
-8. Clock seam for the suite: inject lease durations / clock (ADR-0122
+6. Clock seam for the suite: inject lease durations / clock (ADR-0122
    pattern) in Harness; delete the fixed sleeps; suite runtime back to
    seconds.
-9. Backoff+jitter in the mysql deadlock retry.
-10. Retry-or-document for mysql Enqueue/finalize deadlock exposure.
-11. queue/README MySQL quickstart (DSN shape, parseTime, deadlock note).
-12. Name all three engines in queue/conformance/doc.go's list.
-13. MySQL pool options (maxConns knob / OpenWithPool-equivalent parity).
-14. Fold MYSQL_TEST_DSN into the nix mysql integration leg once the
+7. Backoff+jitter in the mysql deadlock retry.
+8. Retry-or-document for mysql Enqueue/finalize deadlock exposure.
+9. queue/README MySQL quickstart (DSN shape, parseTime, deadlock note).
+10. Name all three engines in queue/conformance/doc.go's list.
+11. MySQL pool options (maxConns knob / OpenWithPool-equivalent parity).
+12. Fold MYSQL_TEST_DSN into the nix mysql integration leg once the
     toolchain split resolves.
-15. MySQL testcontainer harness (CI leg parity with pgtestcontainer).
-16. Tag wave decision (see (g) Q2): claiming v4.0.0 + queue family v4.0.0
+13. MySQL testcontainer harness (CI leg parity with pgtestcontainer).
+14. Tag wave decision (see (g) Q2): claiming v4.0.0 + queue family v4.0.0
     in ONE wave, then strip sibling replaces + proxy probes.
-~~17. T19: example/taskmanager on queue/sqlite (the on-ramp consumer).~~ done 2026-09-19 — 15:09 report
-18. T18: metaengine read-adapter (read side ONLY) design note.
-19. T20: PapDashboard evaluation spike.
-20. T21: go-taskqueue parity checklist + re-open ADR.
-21. SKILL.md + recipes.md queue sections (consumer recipes; recipes
+    ~~17. T19: example/taskmanager on queue/sqlite (the on-ramp consumer).~~ done 2026-09-19 — 15:09 report
+15. T18: metaengine read-adapter (read side ONLY) design note.
+16. T20: PapDashboard evaluation spike.
+17. T21: go-taskqueue parity checklist + re-open ADR.
+18. SKILL.md + recipes.md queue sections (consumer recipes; recipes
     catalog classification + compile gate).
-22. `queue/mysql` Engine conformance pins beyond engine_test (turso-style
+19. `queue/mysql` Engine conformance pins beyond engine_test (turso-style
     inherited-capability proof is the other arc's (f)5 — skip if they do
     it).
-~~23. Deps validation micro-opt: single UNION-ALL/JSON_TABLE query on~~
-~~    MySQL if fan-ins ever grow (bench first).~~ done 2026-09-19 — engine_test live-green
-24. Docs: add "MySQL reality notes" (multi-statement DDL, strict mode,
+    ~~23. Deps validation micro-opt: single UNION-ALL/JSON_TABLE query on~~
+    ~~ MySQL if fan-ins ever grow (bench first).~~ done 2026-09-19 — engine_test live-green
+20. Docs: add "MySQL reality notes" (multi-statement DDL, strict mode,
     deadlock retry) to the queue README's testing section.
-25. Consider exposing `claimDeadlockRetries` as an option.
-26. CHANGELOG: note the Store interface GREW (Watermarks + FactTx
+21. Consider exposing `claimDeadlockRetries` as an option.
+22. CHANGELOG: note the Store interface GREW (Watermarks + FactTx
     mandatory-for-engines) in one line for implementor scanning.
-~~27. Harvest this report + the 11-10 report into TODO_LIST (done for M4;~~
-~~    verify nothing else dangles).~~ done 2026-09-19 — CHANGELOG M4 section
-~~28. Daemon note: confirm the final merged tree got auto-committed whole~~
-~~    (git status showed staged M files at session end — verify nothing of~~
-~~    mine is stranded unstaged).~~ done 2026-09-19 — TODO_LIST updated
+    ~~27. Harvest this report + the 11-10 report into TODO_LIST (done for M4;~~
+    ~~ verify nothing else dangles).~~ done 2026-09-19 — CHANGELOG M4 section
+    ~~28. Daemon note: confirm the final merged tree got auto-committed whole~~
+    ~~ (git status showed staged M files at session end — verify nothing of~~
+    ~~ mine is stranded unstaged).~~ done 2026-09-19 — TODO_LIST updated
 
 (28 items; the remaining 22 slots stay empty rather than padded.)
 

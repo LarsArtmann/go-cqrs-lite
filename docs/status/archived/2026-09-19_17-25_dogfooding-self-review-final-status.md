@@ -59,11 +59,11 @@
 2. `queue/postgres` close-idiom sweep.
 3. Extract duplicated `scanScoredVector` / `scanJSONValues` /
    `sortAndPaginate*` into `metaengine`.
-~~4. `check-arch` verification of the new `dedup` direct dependency in loopback.~~ done 2026-09-19 — arch green post-change
-~~5. `check-duplication` run to confirm no new clone groups from this session.~~ done 2026-09-19 — 18:05
-~~6. `api-stability` `TestEvery` (should be unaffected now the const is unexported).~~ done 2026-09-19 — zero drift
-7. Quiet-window `nix run .#verify`.
-8. Adding the dogfooding principle to `AGENTS.md`.
+   ~~4. `check-arch` verification of the new `dedup` direct dependency in loopback.~~ done 2026-09-19 — arch green post-change
+   ~~5. `check-duplication` run to confirm no new clone groups from this session.~~ done 2026-09-19 — 18:05
+   ~~6. `api-stability` `TestEvery` (should be unaffected now the const is unexported).~~ done 2026-09-19 — zero drift
+4. Quiet-window `nix run .#verify`.
+5. Adding the dogfooding principle to `AGENTS.md`.
 
 ## d) TOTALLY FUCKED UP
 

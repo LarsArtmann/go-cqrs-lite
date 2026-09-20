@@ -3,8 +3,8 @@
 **Date:** 2026-09-19 18:15 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (TODO_LIST `[x]` rows / CHANGELOG `[Unreleased]` dated entries; work rode auto-commit waves). Unstruck items remain OPEN and are tracked in TODO_LIST: tag-wave chain → "Release / Tagging" (0/90 tags cut); quiet-window composed `#verify` → Code Quality [BLOCKED]; billing-gated CI legs → "CI / Infrastructure". ARCHIVED.
-**Session scope:** "Time for some new releases?" — assess, plan, and execute the
-2026-09-19 tag wave (the 09-08 train's successor), gated on a green tree.
+> **Session scope:** "Time for some new releases?" — assess, plan, and execute the
+> 2026-09-19 tag wave (the 09-08 train's successor), gated on a green tree.
 
 ---
 
@@ -37,26 +37,26 @@
 
 ### CI triage of the 10 failed jobs on 87a219333 (all root-caused)
 
-| Job | Root cause | State |
-| --- | --- | --- |
-| Verify-fast | upstream go/types+x/tools race under -race (Go 1.27) | fixed by concurrent session (`skipUnderRace`) |
-| cmd/api-stability tests | CI-env-only; pass locally | passes now |
-| cmd/cqrs-lint tests | FORCE_COLOR env + same race class | fixed by concurrent session |
-| metaengine/mysqlengine | skip-path panic class in adttest factory | passes locally; fixed upstream of me |
-| system ResetProjection | checkpoint-after-replay failure | passes locally now (their fix) |
-| tursoengine/storage-turso | pushdown/version-ordering | pass locally now |
-| Tidy cold-cache (3 modules) | real drift | **fixed by me** (api-stability, taskmanager, integration tidied) |
-| Module Isolation Build | projections missing sibling replace | **fixed by me** |
-| Layer Arch Check tag-existence | forward pins to never-tagged claiming/scheduling-engine | **wave-transient by design** — resolves when those tags cut |
-| calibration-gate self-test | load-probe fixture regression | passes now (their fix) |
+| Job                            | Root cause                                              | State                                                            |
+| ------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------- |
+| Verify-fast                    | upstream go/types+x/tools race under -race (Go 1.27)    | fixed by concurrent session (`skipUnderRace`)                    |
+| cmd/api-stability tests        | CI-env-only; pass locally                               | passes now                                                       |
+| cmd/cqrs-lint tests            | FORCE_COLOR env + same race class                       | fixed by concurrent session                                      |
+| metaengine/mysqlengine         | skip-path panic class in adttest factory                | passes locally; fixed upstream of me                             |
+| system ResetProjection         | checkpoint-after-replay failure                         | passes locally now (their fix)                                   |
+| tursoengine/storage-turso      | pushdown/version-ordering                               | pass locally now                                                 |
+| Tidy cold-cache (3 modules)    | real drift                                              | **fixed by me** (api-stability, taskmanager, integration tidied) |
+| Module Isolation Build         | projections missing sibling replace                     | **fixed by me**                                                  |
+| Layer Arch Check tag-existence | forward pins to never-tagged claiming/scheduling-engine | **wave-transient by design** — resolves when those tags cut      |
+| calibration-gate self-test     | load-probe fixture regression                           | passes now (their fix)                                           |
 
 ### Real fixes landed by this session
 
 - `system/go.mod`: pseudo-version `v4.0.0-00010101000000-000000000000` → clean
   `v4.0.0` forward pin for scheduling/engine (the tagger rejects pseudo-versions).
 - `commandlifecycle/projections/go.mod`: missing sibling `replace => ../` added
-  + forward pin to commandlifecycle v4.2.0 (its code uses rejection-event symbols
-  that only exist there). Standalone build verified green.
+  - forward pin to commandlifecycle v4.2.0 (its code uses rejection-event symbols
+    that only exist there). Standalone build verified green.
 - `idempotency/sqlstore`: exhaustruct (Store/engineFacadeOps/queries literals now
   name every field) + err113 (static sentinel `errNilDedupStore`) — lint clean in
   default AND integration-tag mode; module tests green.
@@ -165,6 +165,7 @@
 ## f) Up to 50 things to do next (ordered)
 
 **Wave execution (the mission):**
+
 1. Wait for current concurrent-session burst (72 files dirty: queue/mysql,
    claimkit, NEW example/goal-shaped-app) to land and quiet for 8+ min.
 2. Fix the 15 lint findings (start: `system/integration/duckdb_test.go`
@@ -221,78 +222,78 @@
 
 **Immediate hygiene:**
 19. Move `/tmp/wave_*.txt` + `/tmp/pin-sweep.sh` somewhere durable BEFORE any
-    reboot (they are the wave's single source of truth).
+reboot (they are the wave's single source of truth).
 20. Re-derive versions from tags at cut time (defense against their burst adding
-    feat commits to already-classified modules — my MINOR assignments absorb
-    this, but PATCH modules with new feats would be misversioned).
+feat commits to already-classified modules — my MINOR assignments absorb
+this, but PATCH modules with new feats would be misversioned).
 21. Check `example/goal-shaped-app` go.mod path/first-tag policy (v0.1.0?).
 22. After B2 pushes: verify the CI tag-existence leg flips green (claiming +
-    scheduling/engine pins resolve).
+scheduling/engine pins resolve).
 23. During B4: watch the tursoengine cut — it embeds sqliteengine and must land
-    AFTER sqliteengine v4.4.0 is PUSHED (same-batch limitation is why it is in
-    B5; verify no batch reorder crept in).
+AFTER sqliteengine v4.4.0 is PUSHED (same-batch limitation is why it is in
+B5; verify no batch reorder crept in).
 24. If any batch cut fails its GOWORK=off gate: read the build error, move the
-    failed module one batch later, re-push — do NOT force through.
+failed module one batch later, re-push — do NOT force through.
 
 **Post-wave alignment:**
 25. Refresh `cmd/cqrs-lint` taskmanager/V006 goldens if the version set changed
-    (gotcha: cqrs-lint pins the version set).
+(gotcha: cqrs-lint pins the version set).
 26. Run `scripts/batch-release.sh --audit` post-wave (expect only baseline
-    dead-path violations).
+dead-path violations).
 27. Confirm `docs/api_surface.txt` golden still matches (go.mod sweeps do not
-    change exports — verify anyway).
+change exports — verify anyway).
 28. Check Dependabot config cap warnings (93 modules, capped at 20) — same wave
-    precedent: leave, it is informational.
+precedent: leave, it is informational.
 29. Verify `testModules`/api-stability list membership for every never-tagged
-    module now tagged (meta-test `TestEveryGoModDirIsInModulesList`).
+module now tagged (meta-test `TestEveryGoModDirIsInModulesList`).
 30. Confirm release.yml auto-created GitHub Releases for all 90 tags (or accept
-    the tag-only flow — check what 09-08 did).
+the tag-only flow — check what 09-08 did).
 31. Consumer-side propagation is go-ecosystem-upgrade's job — note it, don't do
-    it in this session.
+it in this session.
 32. Update AGENTS gotchas with: (a) the forward-pin + tag-existence-leg wave
-    mechanic (it confused me for an hour), (b) the two-phase formatter audit.
+mechanic (it confused me for an hour), (b) the two-phase formatter audit.
 
 **Code debt observed during triage (not mine to fix unilaterally):**
 ~~33. `metaengine/adttest` skip-path panic class (mysql "panic(nil)") — the~~
-~~    concurrent session's racer-count work is adjacent; verify their fix covers~~
-~~    the skip path too.~~ done 2026-09-19 — mysql factory fixed 15:34 §a6; suites green
+~~ concurrent session's racer-count work is adjacent; verify their fix covers~~
+~~ the skip path too.~~ done 2026-09-19 — mysql factory fixed 15:34 §a6; suites green
 34. `system/integration` module: consider `testpackage` rename or a nolint
-    policy decision — the module violates testpackage BY DESIGN? (its tests
-    exercise the public API surface as a consumer would).
+policy decision — the module violates testpackage BY DESIGN? (its tests
+exercise the public API surface as a consumer would).
 35. `cmd/cqrs-lint/pkg/analyzer/loader.go`: my mutex idea is still semantically
-    right for defense-in-depth IF x/tools ever fixes the internal race — record
-    as a TODO upstream-watching note, not code.
+right for defense-in-depth IF x/tools ever fixes the internal race — record
+as a TODO upstream-watching note, not code.
 36. coverage <80% job failing on 87a219333 — which package? Never triaged (CI
-    only). Re-triage post-wave.
+only). Re-triage post-wave.
 37. gosec job failing on 87a219333 — never triaged in detail (buildflow's local
-    gosec was env-broken). Re-triage post-wave.
+gosec was env-broken). Re-triage post-wave.
 38. CGo Build (DuckDB + Iroh QUIC) failure — never root-caused (nix build leg,
-    error invisible in my grep). Re-triage post-wave.
+error invisible in my grep). Re-triage post-wave.
 39. Dgraph Integration failure at 87a219333 — capability-refusal work changed
-    dgraph's ADT surface; check whether the dgraph conformance suite honors
-    `RefusedADTs`. Possibly fixed by their burst.
+dgraph's ADT surface; check whether the dgraph conformance suite honors
+`RefusedADTs`. Possibly fixed by their burst.
 40. Benchmarks workflow failing on 53dba1329 — new; likely their benchkit gate
-    work in flight. Leave to them, verify later.
+work in flight. Leave to them, verify later.
 41. `example/scheduler-otel-status/scheduler-otel-status` binary tracked in git
-    (go-structure-linter ERROR) — `git rm --cached` + .gitignore, needs a
-    decision (example repo hygiene).
+(go-structure-linter ERROR) — `git rm --cached` + .gitignore, needs a
+decision (example repo hygiene).
 42. `catalog/ec-fixture` binary tracked in git — same class as 41.
 ~~43. `metaengine/duckdbengine/dueclaim.go` (untracked at session start, now~~
-~~    committed?) — verify it landed in a daemon commit and is in the wave's~~
-~~    duckdbengine delta.~~ done 2026-09-19 — committed; conformance green
+~~ committed?) — verify it landed in a daemon commit and is in the wave's~~
+~~ duckdbengine delta.~~ done 2026-09-19 — committed; conformance green
 44. `govulncheck` cannot run in buildflow env (GOTOOLCHAIN=local vs go 1.27.1) —
-    env fix candidate for `.buildflow.yml` (documented fix exists: `env -u
+env fix candidate for `.buildflow.yml` (documented fix exists: `env -u
     GOTOOLCHAIN`).
 45. flatbuffers `+incompatible` warnings (9 go.mods) — upstream dep style;
-    low-priority sweep.
+low-priority sweep.
 46. `transport/grpc/proto` buf-lint naming warnings — pre-existing, cosmetic.
 47. flake meta warnings (homepage/mainProgram missing) — cosmetic.
 48. BuildFlow binary staleness (built at 42fd89b, HEAD 2fb0382) — rebuild
-    BuildFlow (`nix run .#reinstall` in BuildFlow repo) — operator action.
+BuildFlow (`nix run .#reinstall` in BuildFlow repo) — operator action.
 49. `todo-check`/`interrogate` binaries not in PATH — tool hygiene, low.
 50. After the wave: hand off consumer propagation to go-ecosystem-upgrade and
-    write the wave retrospective into `docs/agents/gotchas-module-management.md`
-    (forward-pins mechanic + never-tagged-first ordering).
+write the wave retrospective into `docs/agents/gotchas-module-management.md`
+(forward-pins mechanic + never-tagged-first ordering).
 
 ---
 

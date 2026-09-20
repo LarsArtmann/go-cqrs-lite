@@ -3,8 +3,8 @@
 **Date:** 2026-09-19 08:50 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Scope:** Execution of [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md) (23 tasks / 82 micro-tasks), session start → now.
-**Method:** every landed task is green under `GOWORK=off go test -tags "goexperiment.jsonv2" -race` per module; Postgres legs verified against live ephemeral Postgres (manually started, since `nix run .#integration-pg` is broken by a pre-existing toolchain mismatch — see (d)).
+> **Scope:** Execution of [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md) (23 tasks / 82 micro-tasks), session start → now.
+> **Method:** every landed task is green under `GOWORK=off go test -tags "goexperiment.jsonv2" -race` per module; Postgres legs verified against live ephemeral Postgres (manually started, since `nix run .#integration-pg` is broken by a pre-existing toolchain mismatch — see (d)).
 
 ---
 

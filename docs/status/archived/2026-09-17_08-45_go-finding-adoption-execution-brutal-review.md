@@ -89,53 +89,53 @@ never touched (queue/, metaengine internals, deriver, graph, scenario …).
 1. Commit the BuildFlow pilot wiring (sdk_imports.go, go.mod require, vendor) — it is still dirty in that repo.
 2. Add the 76 raw-`Detect` sites → `ruletest.RunDetector` conversion to TODO_LIST (the promised line that never landed), then execute in 3 batches.
 3. Re-run `nix run .#verify` when loadavg < 2 and confirm the full gate green (only the system flake should be in question).
-~~4. Fix `TestSystem_ResetProjection_RestartAndReplay` at root: keep-a-connection-open or temp-FILE DSN instead of shared-cache memory (tracked TODO_LIST item).~~ done 2026-09-19 — ADR-0143
-5. Re-check go-finding Release runs; re-run any still-cancelled (pipeline/toolsdk GitHub Releases were in flight at report time).
-6. Confirm go-finding master CI is green after the godoclint fix (pushed 8832565).
-~~7. Fix the 10 modules' pre-existing lint findings so `nix run .#verify`'s lint stage passes for everyone (scheduling/sqlstore, catalog, integration, watermill, otel/otlp, stack/sqlite, api-stability, doc-check, otelobserver, system).~~ done 2026-09-19 — lint zero (CHANGELOG)
-8. Act on go-finding#32 (FixOutcomes accessor): accept/PR upstream, then delete cqrs-lint's collector closure for the new accessor.
-9. Convert `cqrs-lint --fix` report to the new accessor when it lands (drops the collectFixOutcomes dedup rationale comment).
-10. Wire `cqrs-lint version` into the self-lint CI leg output so every run records the embedded go-finding version.
-11. Add fp-sweep stderr surfacing (print per-repo failure reason) and explain the 5 empty baseline rows.
-12. Re-run fp-sweep after 11 and mark the corrected baseline as the reference point.
-13. Investigate crush-daily's 39 findings / 15 suspects — highest FP-suspect density in the corpus; suppress or fix rule-level.
-14. Add a scheduled (post-billing) trigger matrix test for the canary workflow so the first real Monday run is not its first run ever.
-15. Author the `.github/workflows` unlock checklist for the day billing is fixed (self-lint, canary, docs).
-16. Convert remaining `sort.Slice` calls in cqrs-lint to `slices.SortFunc` for consistency with the cmp.Compare convention (4 sites, mechanical).
-17. Add `--min-confidence` decimal form to the smoke-test examples (README line 34 uses named level only).
-18. Sweep README for other flag tables that drifted from new help texts (scorecard/doctor sections).
-19. Evaluate `cqrs-lint explain --json` for doctor-style machine docs (feeds the C11 cancellation: correlations would fit here if ever needed).
-20. Publish the toolsdk Spec to a consumer-facing recipe in BuildFlow's CONSUMER_PERSPECTIVE.md (mirror of cqrs-lint README §BuildFlow).
-21. Extend toolspec tests: Repair re-detection delta assertion (mimic BuildFlow's measure-not-trust contract) once a fold-fixable fixture exists.
-22. Update `docs/agents/module-map.md` row for cmd/cqrs-lint (new pkg/toolspec + fix_report/output_related files).
-23. Add the fix-report + confidence-rejection behavior to `cmd/cqrs-lint/IMPROVEMENT_IDEAS.md` struck-through inventory (keeps the snapshot honest).
-24. Decide + implement `cqrs-lint doctor` surfacing of the fix-outcome tally (currently stderr-only in lint mode; doctor could show history if outcomes were persisted).
-25. Consider persisting last-run fix outcomes to `.cqrs-lint-cache.json` for diffing (pairs with idea 114 diff mode, currently rejected).
-26. Tag `cmd/cqrs-lint/v4.11.1` if any patch-level fix lands before the next feature (keeps the release-train cadence).
-27. Review whether `ruletest.AssertRule` should also verify finding GroupID stamping for rules declared grouped in the catalog (C019 pattern, generalize).
-28. Add GroupID to the JSON output documentation (README "Machine-readable output" section) — groupId field is emitted but undocumented.
-29. Verify SARIF viewers render the group property (hand-check GitHub Code Scanning once self-lint CI is back).
-~~30. Reconcile `docs/agents/gotchas-testing.md` with the new flake evidence: add the shared-cache-DSN failure mode as a named pattern (after the root-cause fix, document the cure).~~ **Won't implement — moot: real root cause was ADR-0143 journal-reset, not the DSN.**
-31. Add `-race` to the cqrs-lint pre-commit loop? (Currently verify-only; the suite is 8s with race — discuss cost.)
-32. Move `outcomeStatusOrder` knowledge (display order) into a test that fails if a new FixOutcomeStatus appears upstream unhandled.
-33. Check go-finding upstream for a `PipelineResult.Outcomes` milestone; subscribe cqrs-lint's bump to it (pairs with #8).
-34. Write the go-finding v1.11.0 release notes digest into the go-finding repo's own CHANGELOG GitHub Release bodies (the auto-created ones are thin).
-35. Sweep `docs/status/` for stale "BLOCK LIKELY STALE" style entries older than 7 days (docs-health ANNOTATE pass).
-~~36. Run `docs-health` HARVEST on this report: fold f-items 1–15 into TODO_LIST with owners.~~ done — TODO_LIST rows (error-taxonomy L161, self-lint L187)
-37. Add `cmd/cqrs-lint` to the pin-sweep `--remote` mode docs (external pins always resolve remotely; document the asymmetry).
-38. Pin the canary workflow's go.mod edit step to also verify `go.sum` consistency (currently tidy-only).
-39. Add `--fix` report lines for `no-change`/`invalid` outcomes to the integration test (fixture with a HasCodeChange=false finding) — currently only applied/conflict/failed are pinned.
-40. Extend `TestConfidenceOrderingContract` to fail on NEW confidence levels added upstream (assert len(levels)==5 with a message to re-audit).
-41. Bump `testrules` package to exercise findingTemplate.Builder (batch A–B skipped testrules as zero-site; confirm zero-site is still true).
-42. Audit `.golangci.yml` for `gochecknoglobals` exceptions list — remove entries made obsolete by this session's inline refactor.
-43. Sweep for other hand-rolled parsers duplicating go-finding (severity literals in test fixtures are fine; production code is clean — double-check `presets.go` `sort.Strings` → `slices.Sort`).
-44. Add CHANGELOG citations gate tolerance note: document that external go-finding symbols must be cited WITHOUT dot-notation (the trap I hit twice).
-45. Plan the v4.12.0 feature train: `--trace` + timing gate (the deferred C23 items) as its headline.
-~~46. Investigate why `system/v4` CI passes upstream but the same test fails locally under load — CPU-count-sensitive `loadScaledDeadline` factor (capped 8) may need machine-normalization.~~ **Won't implement — moot: superseded by the ADR-0143 root cause.**
-47. Add a `nix run .#check-fp-baseline` app that fails when a rule's finding count on the corpus exceeds the last baseline by >X% (turns the sweep into a gate).
-48. Reconcile `IMPROVEMENT_IDEAS.md` idea 117 (SARIF rule metadata) with the SARIF determinism pins — small, unblocks Code Scanning quality.
-49. Mirror the "rule-split convention" section into go-finding's docs (it constrains upstream rule contributions too).
-~~50. Push go-cqrs-lite master (33 commits) once the user authorizes — the fp baseline, gates, and recipes are useless to other machines until pushed.~~ done 2026-09-19 — origin synced
+   ~~4. Fix `TestSystem_ResetProjection_RestartAndReplay` at root: keep-a-connection-open or temp-FILE DSN instead of shared-cache memory (tracked TODO_LIST item).~~ done 2026-09-19 — ADR-0143
+4. Re-check go-finding Release runs; re-run any still-cancelled (pipeline/toolsdk GitHub Releases were in flight at report time).
+5. Confirm go-finding master CI is green after the godoclint fix (pushed 8832565).
+   ~~7. Fix the 10 modules' pre-existing lint findings so `nix run .#verify`'s lint stage passes for everyone (scheduling/sqlstore, catalog, integration, watermill, otel/otlp, stack/sqlite, api-stability, doc-check, otelobserver, system).~~ done 2026-09-19 — lint zero (CHANGELOG)
+6. Act on go-finding#32 (FixOutcomes accessor): accept/PR upstream, then delete cqrs-lint's collector closure for the new accessor.
+7. Convert `cqrs-lint --fix` report to the new accessor when it lands (drops the collectFixOutcomes dedup rationale comment).
+8. Wire `cqrs-lint version` into the self-lint CI leg output so every run records the embedded go-finding version.
+9. Add fp-sweep stderr surfacing (print per-repo failure reason) and explain the 5 empty baseline rows.
+10. Re-run fp-sweep after 11 and mark the corrected baseline as the reference point.
+11. Investigate crush-daily's 39 findings / 15 suspects — highest FP-suspect density in the corpus; suppress or fix rule-level.
+12. Add a scheduled (post-billing) trigger matrix test for the canary workflow so the first real Monday run is not its first run ever.
+13. Author the `.github/workflows` unlock checklist for the day billing is fixed (self-lint, canary, docs).
+14. Convert remaining `sort.Slice` calls in cqrs-lint to `slices.SortFunc` for consistency with the cmp.Compare convention (4 sites, mechanical).
+15. Add `--min-confidence` decimal form to the smoke-test examples (README line 34 uses named level only).
+16. Sweep README for other flag tables that drifted from new help texts (scorecard/doctor sections).
+17. Evaluate `cqrs-lint explain --json` for doctor-style machine docs (feeds the C11 cancellation: correlations would fit here if ever needed).
+18. Publish the toolsdk Spec to a consumer-facing recipe in BuildFlow's CONSUMER_PERSPECTIVE.md (mirror of cqrs-lint README §BuildFlow).
+19. Extend toolspec tests: Repair re-detection delta assertion (mimic BuildFlow's measure-not-trust contract) once a fold-fixable fixture exists.
+20. Update `docs/agents/module-map.md` row for cmd/cqrs-lint (new pkg/toolspec + fix_report/output_related files).
+21. Add the fix-report + confidence-rejection behavior to `cmd/cqrs-lint/IMPROVEMENT_IDEAS.md` struck-through inventory (keeps the snapshot honest).
+22. Decide + implement `cqrs-lint doctor` surfacing of the fix-outcome tally (currently stderr-only in lint mode; doctor could show history if outcomes were persisted).
+23. Consider persisting last-run fix outcomes to `.cqrs-lint-cache.json` for diffing (pairs with idea 114 diff mode, currently rejected).
+24. Tag `cmd/cqrs-lint/v4.11.1` if any patch-level fix lands before the next feature (keeps the release-train cadence).
+25. Review whether `ruletest.AssertRule` should also verify finding GroupID stamping for rules declared grouped in the catalog (C019 pattern, generalize).
+26. Add GroupID to the JSON output documentation (README "Machine-readable output" section) — groupId field is emitted but undocumented.
+27. Verify SARIF viewers render the group property (hand-check GitHub Code Scanning once self-lint CI is back).
+    ~~30. Reconcile `docs/agents/gotchas-testing.md` with the new flake evidence: add the shared-cache-DSN failure mode as a named pattern (after the root-cause fix, document the cure).~~ **Won't implement — moot: real root cause was ADR-0143 journal-reset, not the DSN.**
+28. Add `-race` to the cqrs-lint pre-commit loop? (Currently verify-only; the suite is 8s with race — discuss cost.)
+29. Move `outcomeStatusOrder` knowledge (display order) into a test that fails if a new FixOutcomeStatus appears upstream unhandled.
+30. Check go-finding upstream for a `PipelineResult.Outcomes` milestone; subscribe cqrs-lint's bump to it (pairs with #8).
+31. Write the go-finding v1.11.0 release notes digest into the go-finding repo's own CHANGELOG GitHub Release bodies (the auto-created ones are thin).
+32. Sweep `docs/status/` for stale "BLOCK LIKELY STALE" style entries older than 7 days (docs-health ANNOTATE pass).
+    ~~36. Run `docs-health` HARVEST on this report: fold f-items 1–15 into TODO_LIST with owners.~~ done — TODO_LIST rows (error-taxonomy L161, self-lint L187)
+33. Add `cmd/cqrs-lint` to the pin-sweep `--remote` mode docs (external pins always resolve remotely; document the asymmetry).
+34. Pin the canary workflow's go.mod edit step to also verify `go.sum` consistency (currently tidy-only).
+35. Add `--fix` report lines for `no-change`/`invalid` outcomes to the integration test (fixture with a HasCodeChange=false finding) — currently only applied/conflict/failed are pinned.
+36. Extend `TestConfidenceOrderingContract` to fail on NEW confidence levels added upstream (assert len(levels)==5 with a message to re-audit).
+37. Bump `testrules` package to exercise findingTemplate.Builder (batch A–B skipped testrules as zero-site; confirm zero-site is still true).
+38. Audit `.golangci.yml` for `gochecknoglobals` exceptions list — remove entries made obsolete by this session's inline refactor.
+39. Sweep for other hand-rolled parsers duplicating go-finding (severity literals in test fixtures are fine; production code is clean — double-check `presets.go` `sort.Strings` → `slices.Sort`).
+40. Add CHANGELOG citations gate tolerance note: document that external go-finding symbols must be cited WITHOUT dot-notation (the trap I hit twice).
+41. Plan the v4.12.0 feature train: `--trace` + timing gate (the deferred C23 items) as its headline.
+    ~~46. Investigate why `system/v4` CI passes upstream but the same test fails locally under load — CPU-count-sensitive `loadScaledDeadline` factor (capped 8) may need machine-normalization.~~ **Won't implement — moot: superseded by the ADR-0143 root cause.**
+42. Add a `nix run .#check-fp-baseline` app that fails when a rule's finding count on the corpus exceeds the last baseline by >X% (turns the sweep into a gate).
+43. Reconcile `IMPROVEMENT_IDEAS.md` idea 117 (SARIF rule metadata) with the SARIF determinism pins — small, unblocks Code Scanning quality.
+44. Mirror the "rule-split convention" section into go-finding's docs (it constrains upstream rule contributions too).
+    ~~50. Push go-cqrs-lite master (33 commits) once the user authorizes — the fp baseline, gates, and recipes are useless to other machines until pushed.~~ done 2026-09-19 — origin synced
 
 ## g) QUESTIONS (cannot self-answer)
 

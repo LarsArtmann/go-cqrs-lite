@@ -3,10 +3,10 @@
 **Date:** 2026-09-19 12:12 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Session scope:** Execute the remaining metaengine-universal-storage-substrate plan
-(T13 remainder, T14–T17), land the in-flight `queue/mysql` work, and fix every gate
-the tree was red on. Companion discovery: a **half-done Go 1.27 migration** left by the
-previous session was breaking every workspace-mode compile; completed it.
+> **Session scope:** Execute the remaining metaengine-universal-storage-substrate plan
+> (T13 remainder, T14–T17), land the in-flight `queue/mysql` work, and fix every gate
+> the tree was red on. Companion discovery: a **half-done Go 1.27 migration** left by the
+> previous session was breaking every workspace-mode compile; completed it.
 
 **Plan:** [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
 

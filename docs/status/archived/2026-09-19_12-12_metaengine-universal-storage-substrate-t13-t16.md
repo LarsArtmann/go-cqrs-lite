@@ -3,9 +3,9 @@
 **Date:** 2026-09-19 12:12 CEST
 
 > **RESOLVED-BY-ROUTING (2026-09-19 docs-health 8th pass):** struck items above = verified shipped (CHANGELOG 2026-09-19 ADR-0142/ADR-0143 entries; TODO_LIST `[x]` rows). Open remainder tracked in TODO_LIST "Metaengine Universal Storage Substrate": T18b load-sweep + benchmark re-baseline (quiet-window gated), T19–T21 (v5-gated), tag waves, claim-metrics parity owner decision. ARCHIVED.
-**Session scope:** resumed at the T13 MySQL pause point (2 known bugs); executed through T13 close-out + T14c + T16 gap + T15 verification; stopped mid-`#check-duplication` on owner order.
-**Plan:** [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
-**Prior report:** [`2026-09-19_10-04_metaengine-universal-storage-substrate-t11-t13.md`](2026-09-19_10-04_metaengine-universal-storage-substrate-t11-t13.md)
+> **Session scope:** resumed at the T13 MySQL pause point (2 known bugs); executed through T13 close-out + T14c + T16 gap + T15 verification; stopped mid-`#check-duplication` on owner order.
+> **Plan:** [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](../planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
+> **Prior report:** [`2026-09-19_10-04_metaengine-universal-storage-substrate-t11-t13.md`](2026-09-19_10-04_metaengine-universal-storage-substrate-t11-t13.md)
 
 ---
 

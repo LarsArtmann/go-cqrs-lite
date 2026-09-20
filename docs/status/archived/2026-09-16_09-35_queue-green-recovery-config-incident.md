@@ -202,17 +202,17 @@ mid-tidy at close).
 1. Re-run `nix run .#verify` to a green close once the concurrent `system/`
    session settles (go.mod tidy + replay test green) — the only blocker to
    "repo verify green".
-~~2. Run `queue/postgres` conformance integration leg (needs a PG instance:~~
-~~   `nix run .#integration-pg`) — the postgres engine has NEVER had its~~
-~~   conformance suite executed in-repo (only build+lint+vet this session).~~ done 2026-09-16 — 15-02; TODO_LIST [x]
-3. ~~HARVEST this §f into TODO_LIST.md (docs-health) — including retiring
+   ~~2. Run `queue/postgres` conformance integration leg (needs a PG instance:~~
+   ~~ `nix run .#integration-pg`) — the postgres engine has NEVER had its~~
+   ~~ conformance suite executed in-repo (only build+lint+vet this session).~~ done 2026-09-16 — 15-02; TODO_LIST [x]
+2. ~~HARVEST this §f into TODO_LIST.md (docs-health) — including retiring
    items done this session that may still be listed (queue clones, soak
    gocyclo, FEATURES line).~~ done (docs-health pass 2026-09-16) — P1 loose ends → TODO_LIST CI/Queue sections; P2 queue docs tail → TODO_LIST queue section; P3 benchkit → TODO_LIST benchkit section
-~~4. Root-cause the config corruption: find what re-adds gci / deletes the~~
-~~   depguard block inside auto-commit waves (daemon logs? an agent's fmt~~
-~~   flow?). Then kill it.~~ done 2026-09-18 — TODO_LIST [x] CLOSED
-~~5. Add depguard auto-restore to `check-lint-config` (mirror the gci~~
-~~   self-heal; pin the known-good block).~~ done 2026-09-18 — restore-depguard.sh + golden
+   ~~4. Root-cause the config corruption: find what re-adds gci / deletes the~~
+   ~~ depguard block inside auto-commit waves (daemon logs? an agent's fmt~~
+   ~~ flow?). Then kill it.~~ done 2026-09-18 — TODO_LIST [x] CLOSED
+   ~~5. Add depguard auto-restore to `check-lint-config` (mirror the gci~~
+   ~~ self-heal; pin the known-good block).~~ done 2026-09-18 — restore-depguard.sh + golden
 
 **P2 — queue family follow-through**
 ~~6. Fix the errcheck exclude-functions short forms (fully-qualify~~

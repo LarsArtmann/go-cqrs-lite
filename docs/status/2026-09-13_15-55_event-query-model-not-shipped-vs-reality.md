@@ -3,9 +3,9 @@
 **Date:** 2026-09-13 15:55 CEST
 
 > **KEEP-LIVE EVIDENCE (2026-09-19 docs-health 8th pass):** this file is source-verification EVIDENCE cited by planning docs (`docs/planning/archived/2026-09-13_16-01_*`, T16–T18 memos) — not open work; do not archive by mistake. Forward items are routed: TODO_LIST [BLOCKED] session-log boundary, ROADMAP OQ #13/#15.
-**Scope:** Deep-dive verification of every "Not shipped (aspirational)" item from the audit of [`docs/planning/event-query-model.md`](../planning/event-query-model.md) (2026-07-23). Follow-up to [`2026-09-13_12-10_metaengine-event-query-model-doc-audit.md`](archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md).
-**Method:** Repo-wide source verification (grep + read), not just `metaengine/`-scoped. All claims carry file:line evidence as of this date.
-**Nature:** Read-only research. No code modified.
+> **Scope:** Deep-dive verification of every "Not shipped (aspirational)" item from the audit of [`docs/planning/event-query-model.md`](../planning/event-query-model.md) (2026-07-23). Follow-up to [`2026-09-13_12-10_metaengine-event-query-model-doc-audit.md`](archived/2026-09-13_12-10_metaengine-event-query-model-doc-audit.md).
+> **Method:** Repo-wide source verification (grep + read), not just `metaengine/`-scoped. All claims carry file:line evidence as of this date.
+> **Nature:** Read-only research. No code modified.
 
 > **Corrections included.** This research overturns three verdicts from the earlier
 > 12:10 audit and status report: C1 (command log "not started" — wrong at repo
@@ -81,10 +81,10 @@ from outcomes** — arguably cleaner than the doc's single-log sketch.
 
 ~~- No pre-built per-user/per-actor command-audit projection.~~ done 2026-09-13 — CHANGELOG
 ~~- No `CommandRejected{Reason}`-style rejection event distinct from failures~~ done 2026-09-15 — CHANGELOG
-  (rejections vs retryable failures vs exhaustion are conflated into
-  failed/dead-lettered; Rejection-classified errors are not separately modeled).
+(rejections vs retryable failures vs exhaustion are conflated into
+failed/dead-lettered; Rejection-classified errors are not separately modeled).
 ~~- Naming/framing: the doc's "command log" vocabulary does not point to~~ done 2026-09-13 — doc reconciled + banner (18-35 T03/T10)
-  `commandlifecycle` or `CommandJournal`; a reader of the doc would not find them.
+`commandlifecycle` or `CommandJournal`; a reader of the doc would not find them.
 
 ---
 
@@ -248,19 +248,19 @@ Reality:
 ## Open questions (need product intent, not code reading)
 
 ~~1. **Command-log scope:** Is the doc's "full comprehensive audit — who did what,~~
-~~   when, what did it cause" still a target? Concretely: add per-user/actor and~~
-~~   payload-carrying projections to `commandlifecycle/projections` (actor already~~
-~~   propagates onto lifecycle events), or is DLQ/RetryCount/FailureLog the finished~~ done — CommandsByActor 2026-09-13 + command.rejected 2026-09-15 (CHANGELOG)
-~~   scope? Also: should Rejection-classified errors get a distinct lifecycle event?~~
+~~ when, what did it cause" still a target? Concretely: add per-user/actor and~~
+~~ payload-carrying projections to `commandlifecycle/projections` (actor already~~
+~~ propagates onto lifecycle events), or is DLQ/RetryCount/FailureLog the finished~~ done — CommandsByActor 2026-09-13 + command.rejected 2026-09-15 (CHANGELOG)
+~~ scope? Also: should Rejection-classified errors get a distinct lifecycle event?~~
 ~~2. **StreamingScan ghost:** Wire it (a `Store.Stream`/`TypedReader.Stream` API +~~
-~~   use it in `Store.Export`, fulfilling Decision 2) or cut it at v5 as an unwired~~ done 2026-09-13 — Store.StreamCollection + streaming Export (CHANGELOG)
-   capability?
+~~ use it in `Store.Export`, fulfilling Decision 2) or cut it at v5 as an unwired~~ done 2026-09-13 — Store.StreamCollection + streaming Export (CHANGELOG)
+capability?
 3. **Sessions & the planned `queue/`:** Are sessions-as-event-streams permanently
-   delegated to the external `identity-model` repo, or a future go-cqrs-lite
-   module? Related: `claiming/` was extracted 2026-09-13 with a note that a
-   planned `queue/` module builds on it (`modules.md:65`) — does `queue/`
-   intersect the doc's four-logs vision (e.g. query log as a queue), or is it
-   unrelated?
+delegated to the external `identity-model` repo, or a future go-cqrs-lite
+module? Related: `claiming/` was extracted 2026-09-13 with a note that a
+planned `queue/` module builds on it (`modules.md:65`) — does `queue/`
+intersect the doc's four-logs vision (e.g. query log as a queue), or is it
+unrelated?
 
 ---
 
