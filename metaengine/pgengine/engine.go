@@ -74,7 +74,6 @@ type pgEngine struct {
 
 	db             *sql.DB
 	mu             sync.Mutex
-	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
@@ -210,7 +209,7 @@ func (e *pgEngine) MapSet(ctx context.Context, col string, key any, value any) e
 		return fmt.Errorf("pgengine.MapSet: marshal: %w", err)
 	}
 
-	_, err = e.conn().ExecContext(
+	_, err = e.conn(ctx).ExecContext(
 		ctx,
 		`INSERT INTO meta_map (collection, key, value)
 		 VALUES ($1, $2, $3::jsonb)
@@ -231,7 +230,7 @@ func (e *pgEngine) MapGet(ctx context.Context, col string, key any) (any, bool, 
 
 	var raw []byte
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 		`SELECT value::text FROM meta_map WHERE collection = $1 AND key = $2`,
@@ -259,7 +258,7 @@ func (e *pgEngine) MapDelete(ctx context.Context, col string, key any) error {
 	}
 
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
@@ -306,7 +305,7 @@ func (e *pgEngine) CounterIncrement(
 		strings.Join(placeholders, ", "),
 	)
 
-	if _, err := e.conn().ExecContext(ctx, query, args...); err != nil {
+	if _, err := e.conn(ctx).ExecContext(ctx, query, args...); err != nil {
 		return fmt.Errorf("pgengine.CounterIncrement: %w", err)
 	}
 
@@ -314,7 +313,7 @@ func (e *pgEngine) CounterIncrement(
 }
 
 func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT key, value FROM meta_counter WHERE collection = $1`,
 		col,

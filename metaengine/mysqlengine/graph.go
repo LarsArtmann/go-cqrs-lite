@@ -77,7 +77,7 @@ func (e *mysqlEngine) GraphAddEdge(
 ) error {
 	const q = `INSERT IGNORE INTO meta_graph_edges (collection, from_node, to_node) VALUES (?, ?, ?)`
 
-	if _, err := e.conn().
+	if _, err := e.conn(ctx).
 		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("mysqlengine.GraphAddEdge: %w", err)
 	}
@@ -134,7 +134,7 @@ func (e *mysqlEngine) queryGraphRows(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // wrapped by caller
 	}
@@ -223,7 +223,7 @@ func (e *mysqlEngine) queryGraphNeighbors(
 	ctx context.Context,
 	col, node string,
 ) ([]string, error) {
-	rows, err := e.conn().QueryContext(ctx, mysqlGraphNeighborsDirect, col, node)
+	rows, err := e.conn(ctx).QueryContext(ctx, mysqlGraphNeighborsDirect, col, node)
 	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, err

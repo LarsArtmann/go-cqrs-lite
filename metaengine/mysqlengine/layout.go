@@ -105,7 +105,7 @@ func (e *mysqlEngine) applyMariaDBFieldColumn(field string, isSortField bool) er
 		column, escapeJSONPath(field),
 	)
 
-	if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
+	if _, err := e.conn(context.Background()).ExecContext(context.Background(), ddl); err != nil {
 		return fmt.Errorf("mysqlengine.ApplyLayout: add generated column %s: %w", column, err)
 	}
 
@@ -126,7 +126,7 @@ func (e *mysqlEngine) applyMariaDBFieldColumn(field string, isSortField bool) er
 
 	// MariaDB has no CREATE INDEX IF NOT EXISTS; a duplicate index name
 	// (1061) means a previous run already created it.
-	if _, err := e.conn().ExecContext(context.Background(), idxDDL); err != nil {
+	if _, err := e.conn(context.Background()).ExecContext(context.Background(), idxDDL); err != nil {
 		if !isDuplicateIndexErr(err) {
 			return fmt.Errorf("mysqlengine.ApplyLayout: create index %s: %w", idxName, err)
 		}
@@ -152,7 +152,7 @@ func (e *mysqlEngine) applyMariaDBSortTwin(field, textColumn string) error {
 		numColumn, escapeJSONPath(field),
 	)
 
-	if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
+	if _, err := e.conn(context.Background()).ExecContext(context.Background(), ddl); err != nil {
 		return fmt.Errorf("mysqlengine.ApplyLayout: add numeric twin column %s: %w", numColumn, err)
 	}
 
@@ -163,7 +163,7 @@ func (e *mysqlEngine) applyMariaDBSortTwin(field, textColumn string) error {
 		idxName, numColumn, textColumn, gcIndexPrefixLen,
 	)
 
-	if _, err := e.conn().ExecContext(context.Background(), idxDDL); err != nil {
+	if _, err := e.conn(context.Background()).ExecContext(context.Background(), idxDDL); err != nil {
 		if !isDuplicateIndexErr(err) {
 			return fmt.Errorf("mysqlengine.ApplyLayout: create sort index %s: %w", idxName, err)
 		}

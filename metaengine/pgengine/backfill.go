@@ -28,7 +28,7 @@ func (e *pgEngine) MapScanKeyValues(
 		cursorArg = fmt.Sprint(cursor)
 	}
 
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT key, value::text FROM meta_map
 		 WHERE collection = $1 AND ($2::text IS NULL OR key > $2)

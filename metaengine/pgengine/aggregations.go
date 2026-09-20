@@ -82,7 +82,7 @@ func (e *pgEngine) Aggregate(
 
 	var raw any
 
-	if err := e.conn().QueryRowContext(ctx, b.String(), args...).Scan(&raw); err != nil {
+	if err := e.conn(ctx).QueryRowContext(ctx, b.String(), args...).Scan(&raw); err != nil {
 		return 0, fmt.Errorf("pgengine.Aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
@@ -118,7 +118,7 @@ func (e *pgEngine) GroupedAggregate(
 
 	b.WriteString(" GROUP BY group_key")
 
-	rows, err := e.conn().QueryContext(ctx, b.String(), args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, b.String(), args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.GroupedAggregate: %w", err)
 	}
@@ -185,7 +185,7 @@ func (e *pgEngine) MultiAggregate(
 
 	return metaengine.MultiAggregateScan(
 		ctx,
-		e.conn(),
+		e.conn(ctx),
 		b.String(),
 		args,
 		specs,
@@ -228,7 +228,7 @@ func (e *pgEngine) MultiGroupedAggregate(
 
 	b.WriteString(" GROUP BY group_key")
 
-	rows, err := e.conn().QueryContext(ctx, b.String(), args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, b.String(), args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.MultiGroupedAggregate: %w", err)
 	}
@@ -294,7 +294,7 @@ func (e *pgEngine) DistinctValues(
 		appendPGFilter(&b, &args, f)
 	}
 
-	rows, err := e.conn().QueryContext(ctx, b.String(), args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, b.String(), args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.DistinctValues: %w", err)
 	}

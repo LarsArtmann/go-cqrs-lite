@@ -61,7 +61,7 @@ func (e *mysqlEngine) GraphRemoveEdge(
 ) error {
 	const q = `DELETE FROM meta_graph_edges WHERE collection = ? AND from_node = ? AND to_node = ?`
 
-	if _, err := e.conn().
+	if _, err := e.conn(ctx).
 		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("mysqlengine.GraphRemoveEdge: %w", err)
 	}
@@ -152,7 +152,7 @@ func (e *mysqlEngine) graphNeighborsBothDirections(
 		return nil, err
 	}
 
-	rows, err := e.conn().QueryContext(ctx, mysqlGraphNeighborsReverse, col, node)
+	rows, err := e.conn(ctx).QueryContext(ctx, mysqlGraphNeighborsReverse, col, node)
 	if err != nil {
 		return nil, err
 	}

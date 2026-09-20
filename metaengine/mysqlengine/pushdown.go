@@ -84,7 +84,7 @@ func (e *mysqlEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanMySQLJSONValues(ctx, e.conn(), b.String(), args...)
+	rows, err := scanMySQLJSONValues(ctx, e.conn(ctx), b.String(), args...)
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		return metaengine.ScanResult{}, err
@@ -147,7 +147,7 @@ func (e *mysqlEngine) ApplyLayout(collection string, filterFields, sortFields []
 
 		// MySQL doesn't support CREATE INDEX IF NOT EXISTS; ignore duplicate
 		// index errors gracefully.
-		if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
+		if _, err := e.conn(context.Background()).ExecContext(context.Background(), ddl); err != nil {
 			// Error code 1061 = Duplicate key name (index already exists).
 			if !isDuplicateIndexErr(err) {
 				return fmt.Errorf("mysqlengine.ApplyLayout: create index %s: %w", idxName, err)

@@ -44,7 +44,7 @@ func (e *pgEngine) GraphAddEdge(
 	const q = `INSERT INTO meta_graph_edges (collection, from_node, to_node)
 VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
 
-	if _, err := e.conn().
+	if _, err := e.conn(ctx).
 		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("pgengine.GraphAddEdge: %w", err)
 	}
@@ -66,7 +66,7 @@ func (e *pgEngine) GraphNeighbors(
 
 	start := encodeNodeKey(node)
 
-	rows, err := e.conn().QueryContext(ctx, pgGraphNeighborsCTE, col, start, depth)
+	rows, err := e.conn(ctx).QueryContext(ctx, pgGraphNeighborsCTE, col, start, depth)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.GraphNeighbors: %w", err)
 	}

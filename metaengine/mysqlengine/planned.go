@@ -134,7 +134,7 @@ func (e *mysqlEngine) mapSetPlanned(
 	value any,
 ) error {
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	if err := execPlannedUpsert(ctx, e.conn(), plan, fmt.Sprint(key), value); err != nil {
+	if err := execPlannedUpsert(ctx, e.conn(ctx), plan, fmt.Sprint(key), value); err != nil {
 		return fmt.Errorf("mysqlengine.mapSetPlanned: %w", err)
 	}
 
@@ -142,7 +142,7 @@ func (e *mysqlEngine) mapSetPlanned(
 }
 
 // execPlannedUpsert writes the value + re-extracted columns to the planned
-// table on the given executor (e.conn() for normal paths, a transaction for
+// table on the given executor (e.conn(ctx) for normal paths, a transaction for
 // MapUpdate). Shared by MapSet and the MapUpdate read-modify-write so the
 // extracted columns stay consistent with the JSON value on every write.
 func execPlannedUpsert(
@@ -203,7 +203,7 @@ func (e *mysqlEngine) mapGetPlanned(
 ) (any, bool, error) {
 	var raw []byte
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		fmt.Sprintf("SELECT CAST(value AS CHAR) FROM %s WHERE %s = ?",
 			backtickIdent(plan.Table), keyCol),
@@ -232,7 +232,7 @@ func (e *mysqlEngine) mapDeletePlanned(
 	plan metaengine.LayoutPlan,
 	key any,
 ) error {
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		fmt.Sprintf("DELETE FROM %s WHERE %s = ?", backtickIdent(plan.Table), keyCol),
 		fmt.Sprint(key),

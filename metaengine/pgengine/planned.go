@@ -123,7 +123,7 @@ func (e *pgEngine) mapSetPlanned(
 	value any,
 ) error {
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	if err := execPlannedUpsert(ctx, e.conn(), plan, fmt.Sprint(key), value); err != nil {
+	if err := execPlannedUpsert(ctx, e.conn(ctx), plan, fmt.Sprint(key), value); err != nil {
 		return fmt.Errorf("pgengine.mapSetPlanned: %w", err)
 	}
 
@@ -131,7 +131,7 @@ func (e *pgEngine) mapSetPlanned(
 }
 
 // execPlannedUpsert writes the value + re-extracted columns to the planned
-// table on the given executor (e.conn() for normal paths, a transaction for
+// table on the given executor (e.conn(ctx) for normal paths, a transaction for
 // MapUpdate). Shared by MapSet and the MapUpdate read-modify-write so the
 // extracted columns stay consistent with the JSONB value on every write.
 func execPlannedUpsert(
@@ -199,7 +199,7 @@ func (e *pgEngine) mapGetPlanned(
 	var raw []byte
 
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		fmt.Sprintf("SELECT value::text FROM %s WHERE key = $1",
 			metaengine.QuoteIdent(plan.Table)),
@@ -229,7 +229,7 @@ func (e *pgEngine) mapDeletePlanned(
 	key any,
 ) error {
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		fmt.Sprintf("DELETE FROM %s WHERE key = $1", metaengine.QuoteIdent(plan.Table)),
 		fmt.Sprint(key),

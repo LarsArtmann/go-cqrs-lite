@@ -44,7 +44,7 @@ func (e *pgEngine) GraphRemoveEdge(
 ) error {
 	const q = `DELETE FROM meta_graph_edges WHERE collection = $1 AND from_node = $2 AND to_node = $3`
 
-	if _, err := e.conn().
+	if _, err := e.conn(ctx).
 		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("pgengine.GraphRemoveEdge: %w", err)
 	}
@@ -67,7 +67,7 @@ func (e *pgEngine) GraphNeighborsUndirected(
 
 	start := encodeNodeKey(node)
 
-	rows, err := e.conn().QueryContext(ctx, pgGraphNeighborsUndirectedCTE, col, start, depth)
+	rows, err := e.conn(ctx).QueryContext(ctx, pgGraphNeighborsUndirectedCTE, col, start, depth)
 	//art-dupl:accept dialect twin — engine modules are dep-isolated SQL mirrors; conformance pins semantics
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.GraphNeighborsUndirected: %w", err)

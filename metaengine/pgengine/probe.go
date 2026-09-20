@@ -35,7 +35,7 @@ func (e *pgEngine) Probe(ctx context.Context) (time.Duration, error) {
 // captures index traversal cost without depending on user data.
 func (e *pgEngine) MeasureTransact(ctx context.Context) (time.Duration, error) {
 	start := time.Now()
-	_, err := e.conn().ExecContext(ctx,
+	_, err := e.conn(ctx).ExecContext(ctx,
 		`SELECT value FROM meta_map WHERE collection = $1 AND key = $2 LIMIT 1`,
 		"__probe", "__probe",
 	)

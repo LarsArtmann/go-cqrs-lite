@@ -33,7 +33,7 @@ func (e *pgEngine) VectorInsert(
 	// insert establishes the collection's dimension.
 	var established int
 
-	err := e.conn().QueryRowContext(ctx,
+	err := e.conn(ctx).QueryRowContext(ctx,
 		`SELECT jsonb_array_length(vector) FROM meta_vector WHERE collection = $1 LIMIT 1`,
 		collection).Scan(&established)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -58,7 +58,7 @@ func (e *pgEngine) VectorInsert(
 		metaJSON = string(mustMarshalMetadata(emb.Metadata))
 	}
 
-	_, err = e.conn().ExecContext(
+	_, err = e.conn(ctx).ExecContext(
 		ctx,
 		`INSERT INTO meta_vector (collection, id, vector, metadata)
 		 VALUES ($1, $2, $3::jsonb, $4::jsonb)
@@ -81,7 +81,7 @@ func (e *pgEngine) VectorSearch(
 	k int,
 	metric string,
 ) ([]metaengine.VectorResult, error) {
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT id, vector::text FROM meta_vector WHERE collection = $1`,
 		collection,
@@ -136,7 +136,7 @@ func (e *pgEngine) VectorSearchFiltered(
 	metric string,
 	filters []metaengine.VectorFilter,
 ) ([]metaengine.VectorResult, error) {
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT id, vector::text, metadata::text FROM meta_vector WHERE collection = $1`,
 		collection,
@@ -204,7 +204,7 @@ func mustMarshalMetadata(meta map[string]any) []byte {
 func (e *pgEngine) VectorCount(ctx context.Context, collection string) (int64, error) {
 	var n int64
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		`SELECT count(*) FROM meta_vector WHERE collection = $1`,
 		collection,
@@ -219,7 +219,7 @@ func (e *pgEngine) VectorCount(ctx context.Context, collection string) (int64, e
 // VectorCollections lists the collections holding at least one embedding.
 // Implements the enumeration member of [metaengine.VectorCounter].
 func (e *pgEngine) VectorCollections(ctx context.Context) ([]string, error) {
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT DISTINCT collection FROM meta_vector ORDER BY collection`,
 	)

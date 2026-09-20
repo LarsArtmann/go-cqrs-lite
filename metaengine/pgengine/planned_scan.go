@@ -192,7 +192,7 @@ func (e *pgEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
-	rows, err := scanPGJSONValues(ctx, e.conn(), query, args...)
+	rows, err := scanPGJSONValues(ctx, e.conn(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}

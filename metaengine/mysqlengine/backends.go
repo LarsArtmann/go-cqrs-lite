@@ -42,7 +42,7 @@ func (e *mysqlEngine) MapSet(ctx context.Context, col string, key any, value any
 		return fmt.Errorf("mysqlengine.MapSet: marshal: %w", err)
 	}
 
-	_, err = e.conn().ExecContext(
+	_, err = e.conn(ctx).ExecContext(
 		ctx,
 		`INSERT INTO meta_map (collection, `+keyCol+`, value)
 		 VALUES (?, ?, ?)
@@ -63,7 +63,7 @@ func (e *mysqlEngine) MapGet(ctx context.Context, col string, key any) (any, boo
 
 	var raw []byte
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		`SELECT CAST(value AS CHAR) FROM meta_map WHERE collection = ? AND `+keyCol+` = ?`,
 		col, fmt.Sprint(key),
@@ -90,7 +90,7 @@ func (e *mysqlEngine) MapDelete(ctx context.Context, col string, key any) error 
 		return e.mapDeletePlanned(ctx, plan, key)
 	}
 
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = ? AND `+keyCol+` = ?`,
 		col, fmt.Sprint(key),
@@ -135,7 +135,7 @@ func (e *mysqlEngine) CounterIncrement(
 		strings.Join(placeholders, ", "),
 	)
 
-	if _, err := e.conn().ExecContext(ctx, query, args...); err != nil {
+	if _, err := e.conn(ctx).ExecContext(ctx, query, args...); err != nil {
 		return fmt.Errorf("mysqlengine.CounterIncrement: %w", err)
 	}
 
@@ -143,7 +143,7 @@ func (e *mysqlEngine) CounterIncrement(
 }
 
 func (e *mysqlEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT `+keyCol+`, value FROM meta_counter WHERE collection = ?`,
 		col,

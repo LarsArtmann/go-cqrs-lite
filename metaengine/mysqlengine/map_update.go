@@ -41,8 +41,8 @@ func (e *mysqlEngine) mapUpdatePlanned(
 		return execPlannedUpsert(ctx, q, plan, keyStr, val)
 	}
 
-	if e.activeTx.Load() != nil {
-		return updatePlannedValue(ctx, e.conn(), plan.Table, fmt.Sprint(key), update, setFn)
+	if txFromCtx(ctx) != nil {
+		return updatePlannedValue(ctx, e.conn(ctx), plan.Table, fmt.Sprint(key), update, setFn)
 	}
 
 	tx, err := e.db.BeginTx(ctx, nil)
@@ -113,8 +113,8 @@ func (e *mysqlEngine) updateMetaMap(
 		return nil
 	}
 
-	if e.activeTx.Load() != nil {
-		return rm(ctx, e.conn())
+	if txFromCtx(ctx) != nil {
+		return rm(ctx, e.conn(ctx))
 	}
 
 	tx, err := e.db.BeginTx(ctx, nil)

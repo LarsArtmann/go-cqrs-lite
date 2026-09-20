@@ -86,7 +86,7 @@ func (e *pgEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanPGJSONValues(ctx, e.conn(), b.String(), args...)
+	rows, err := scanPGJSONValues(ctx, e.conn(ctx), b.String(), args...)
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if err != nil {
 		return metaengine.ScanResult{}, err
@@ -142,7 +142,7 @@ func (e *pgEngine) ApplyLayout(collection string, filterFields, sortFields []str
 			idxName, escaped, escapeSQLString(collection),
 		)
 
-		if _, err := e.conn().ExecContext(context.Background(), ddl); err != nil {
+		if _, err := e.conn(ctx).ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("pgengine.ApplyLayout: create index %s: %w", idxName, err)
 		}
 	}

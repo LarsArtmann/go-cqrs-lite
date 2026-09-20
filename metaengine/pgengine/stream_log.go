@@ -12,7 +12,7 @@ import (
 // --- StreamLogBackend implementation ---
 
 func (e *pgEngine) StreamAppend(ctx context.Context, col, sid string, values []any) error {
-	if e.copyMin > 0 && len(values) >= e.copyMin && e.activeTx.Load() == nil {
+	if e.copyMin > 0 && len(values) >= e.copyMin && txFromCtx(ctx) == nil {
 		if err := e.copyAppend(ctx, col, sid, values); !errors.Is(err, errCopyUnavailable) {
 			return err
 		}
@@ -65,7 +65,7 @@ func (e *pgEngine) StreamVersion(ctx context.Context, col, sid string) (int64, e
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	var count int64
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = $1 AND stream_id = $2`,
 		col, sid,
@@ -157,7 +157,7 @@ func (e *pgEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.scanStreamValues: %w", err)
 	}
@@ -190,7 +190,7 @@ func (e *pgEngine) scanStreamEntries(
 	query string,
 	args ...any,
 ) ([]metaengine.StreamLogEntry, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("pgengine.scanStreamEntries: %w", err)
 	}

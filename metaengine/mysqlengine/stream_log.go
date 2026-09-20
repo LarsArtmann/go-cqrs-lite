@@ -78,7 +78,7 @@ func (e *mysqlEngine) StreamVersion(ctx context.Context, col, sid string) (int64
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	var count int64
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		`SELECT COUNT(*) FROM meta_stream_log WHERE collection = ? AND stream_id = ?`,
 		col, sid,
@@ -171,7 +171,7 @@ func (e *mysqlEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.scanStreamValues: %w", err)
 	}
@@ -204,7 +204,7 @@ func (e *mysqlEngine) scanStreamEntries(
 	query string,
 	args ...any,
 ) ([]metaengine.StreamLogEntry, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.scanStreamEntries: %w", err)
 	}

@@ -36,7 +36,7 @@ func (e *pgEngine) MapScan(
 	}
 
 	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, fmt.Errorf("pgengine.MapScan: %w", err)
 	}

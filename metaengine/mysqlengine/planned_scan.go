@@ -190,7 +190,7 @@ func (e *mysqlEngine) pushdownMapScanPlanned(
 		return metaengine.ScanResult{}, err
 	}
 
-	rows, err := scanMySQLJSONValues(ctx, e.conn(), query, args...)
+	rows, err := scanMySQLJSONValues(ctx, e.conn(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}

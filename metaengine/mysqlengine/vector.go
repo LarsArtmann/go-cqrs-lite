@@ -46,7 +46,7 @@ func (e *mysqlEngine) VectorInsert(
 ) error {
 	var established int
 
-	err := e.conn().QueryRowContext(ctx,
+	err := e.conn(ctx).QueryRowContext(ctx,
 		// CAST ... AS SIGNED: MySQL/MariaDB "/" is DECIMAL division ("2.0000"
 		// scans as []uint8, not an int); both dialects cast to integer here.
 		"SELECT CAST(LENGTH(vec)/4 AS SIGNED) FROM meta_vector WHERE collection = ? LIMIT 1", collection).
@@ -73,7 +73,7 @@ func (e *mysqlEngine) VectorInsert(
 		metaJSON = string(data)
 	}
 
-	if _, err := e.conn().ExecContext(ctx, vectorInsertSQL,
+	if _, err := e.conn(ctx).ExecContext(ctx, vectorInsertSQL,
 		collection, emb.ID, metaengine.EncodeVectorF32(emb.Values), metaJSON,
 	); err != nil {
 		return fmt.Errorf("mysqlengine.VectorInsert: %w", err)
@@ -115,7 +115,7 @@ func (e *mysqlEngine) vectorScan(
 	metric string,
 	filters []metaengine.VectorFilter,
 ) ([]metaengine.VectorResult, error) {
-	rows, err := e.conn().QueryContext(ctx,
+	rows, err := e.conn(ctx).QueryContext(ctx,
 		"SELECT id, vec, metadata FROM meta_vector WHERE collection = ?", collection)
 	//art-dupl:accept dep-isolated dialect twin (duckdbengine/sqliteengine vector.go)
 	if err != nil {
@@ -187,7 +187,7 @@ func scanScoredVector(
 func (e *mysqlEngine) VectorCount(ctx context.Context, collection string) (int64, error) {
 	var n int64
 
-	err := e.conn().QueryRowContext(ctx,
+	err := e.conn(ctx).QueryRowContext(ctx,
 		"SELECT COUNT(*) FROM meta_vector WHERE collection = ?", collection).Scan(&n)
 	if err != nil {
 		return 0, fmt.Errorf("mysqlengine.VectorCount: %w", err)
@@ -199,7 +199,7 @@ func (e *mysqlEngine) VectorCount(ctx context.Context, collection string) (int64
 // VectorCollections lists the collections holding at least one embedding.
 // Implements the enumeration member of [metaengine.VectorCounter].
 func (e *mysqlEngine) VectorCollections(ctx context.Context) ([]string, error) {
-	rows, err := e.conn().QueryContext(ctx, "SELECT DISTINCT collection FROM meta_vector")
+	rows, err := e.conn(ctx).QueryContext(ctx, "SELECT DISTINCT collection FROM meta_vector")
 	if err != nil {
 		return nil, fmt.Errorf("mysqlengine.VectorCollections: %w", err)
 	}

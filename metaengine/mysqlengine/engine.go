@@ -56,7 +56,6 @@ type mysqlEngine struct {
 	dialect        string // "mysql" or "mariadb" (detected via SELECT VERSION())
 	graphCTE       bool   // server supports WITH RECURSIVE (probed at init)
 	mu             sync.Mutex
-	activeTx       atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	done           bool
 	layoutMu       sync.Mutex
 	appliedLayouts map[string]bool
@@ -244,11 +243,12 @@ func (e *mysqlEngine) HealthCheck(ctx context.Context) error {
 	return e.db.PingContext(ctx)
 }
 
-// conn returns the active transaction if RunInTx is in progress, otherwise
-// the engine's *sql.DB.
+// conn returns the ambient transaction when ctx descends from a RunInTx
+// callback, otherwise the engine's *sql.DB. Transaction affinity flows
+// through the context — never engine-global state.
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
-func (e *mysqlEngine) conn() metaengine.SQLExec {
-	if tx := e.activeTx.Load(); tx != nil {
+func (e *mysqlEngine) conn(ctx context.Context) metaengine.SQLExec {
+	if tx := txFromCtx(ctx); tx != nil {
 		return tx
 	}
 
@@ -260,7 +260,7 @@ func (e *mysqlEngine) conn() metaengine.SQLExec {
 // committed (or rolled back on error).
 // art-dupl:accept cross-module SQL engine pattern — separate go.mod
 func (e *mysqlEngine) inTx(ctx context.Context, fn func(metaengine.SQLExec) error) error {
-	if tx := e.activeTx.Load(); tx != nil {
+	if tx := txFromCtx(ctx); tx != nil {
 		return fn(tx)
 	}
 
