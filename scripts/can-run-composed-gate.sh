@@ -172,7 +172,7 @@ self_test() {
 	# 2. canary: a planted process matching the release pattern must fail the gate.
 	sleep 300 &
 	local planted=$!
-	if QUIET_LOADAVG_FILE="$tmp/quiet" TREE_STABLE_DELAY=0 \
+	if QUIET_LOADAVG_FILE="$tmp/quiet" TREE_STABLE_DELAY=0 CI=false \
 		CANARY_PROCS="sleep[ ]300" "$0" >/dev/null 2>&1; then
 		echo "  ✗ FAIL: live release-class process must fail the gate"
 		failures=$((failures + 1))

@@ -327,27 +327,41 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      # Plain setup-go (not the nix stack) so the gate has a `go` binary
+      # satisfying the go.work floor — without it the job died three times
+      # on `go: downloading go1.27.1` (the same toolchain-download trap the
+      # other plain-go jobs already fixed this way).
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
 
-      - name: Check per-package coverage >= 80%
+      - name: Check per-package coverage >= 80% (core tier)
         run: |
-          pkgs=$(go list ./... | grep -v '/example/')
+          # The root module has NO packages (workspace-only root go.mod):
+          # the old `go list ./...` here iterated an empty set — a fiction
+          # that only ever "ran" its toolchain download. Pin the real
+          # per-package floor to the Tier-1 core instead (GOWORK=off,
+          # per-module cwd; each module holds its own packages).
+          core=(event command query metadata scheduling)
           failed=false
-          for pkg in $pkgs; do
-            output=$(go test -coverprofile=/dev/null -covermode=set "$pkg" 2>&1)
+          for m in "${core[@]}"; do
+            pushd "$m" >/dev/null
+            output=$(GOWORK=off go test -coverprofile=/dev/null -covermode=set . 2>&1)
             pct=$(echo "$output" | grep -oP 'coverage: \K[0-9.]+')
-            if [ -n "$pct" ]; then
-              int_pct=$(echo "$pct" | cut -d. -f1)
-              if [ "$int_pct" -lt 80 ]; then
-                echo "::warning::$pkg coverage ${pct}% < 80%"
-                failed=true
-              else
-                echo "  $pkg: ${pct}%"
-              fi
+            if [ -z "$pct" ]; then
+              echo "::error::$m: no coverage line (test failure?)"
+              echo "$output"
+              failed=true
+            elif [ "$(echo "$pct" | cut -d. -f1)" -lt 80 ]; then
+              echo "::error::$m coverage ${pct}% < 80%"
+              failed=true
+            else
+              echo "  $m: ${pct}%"
             fi
+            popd >/dev/null
           done
           if [ "$failed" = true ]; then
-            echo "::error::One or more packages below 80% coverage"
+            echo "::error::One or more core packages below 80% coverage"
             exit 1
           fi
 

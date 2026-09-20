@@ -85,7 +85,7 @@ selected_phases() {
 }
 
 run_phase() {
-	local spec="$1" name cmd remedy fake_var fake_rc start
+	local spec="$1" name cmd remedy fake_var start
 	IFS='|' read -r name cmd remedy <<<"$spec"
 	fake_var="PREFLIGHT_FAKE_RC_$(echo "$name" | tr '[:lower:]-' '[:upper:]_')"
 	start=$SECONDS
@@ -127,18 +127,18 @@ case "${1:-}" in
 		bash "$0" >/tmp/preflight-selftest.log 2>&1
 	check "all-fake-green passes" 0 "$?"
 
-	out=$(PREFLIGHT_FAKE_RC_TEMPL=1 \
+	pout=$(PREFLIGHT_FAKE_RC_TEMPL=1 \
 		PREFLIGHT_FAKE_RC_LINT_CONFIG=0 PREFLIGHT_FAKE_RC_BENCH_GATE=0 \
 		PREFLIGHT_FAKE_RC_COVERAGE=0 PREFLIGHT_FAKE_RC_API_STABILITY=0 \
 		PREFLIGHT_FAKE_RC_DUPLICATION=0 bash "$0" 2>&1)
 	check "failing phase stops the run" 1 "$?"
-	grep -q "remedy: regenerate from the right cwd" <<<"$out" ||
+	grep -q "remedy: regenerate from the right cwd" <<<"$pout" ||
 		{
 			check "failed phase prints its remedy" 0 1
 		}
 
-	out=$(PREFLIGHT_ONLY=templ PREFLIGHT_FAKE_RC_TEMPL=0 bash "$0" 2>&1)
-	[[ $(grep -c '✓ PASS' <<<"$out") == 1 ]] && grep -q 'templ' <<<"$out"
+	out2=$(PREFLIGHT_ONLY=templ PREFLIGHT_FAKE_RC_TEMPL=0 bash "$0" 2>&1)
+	[[ $(grep -c '✓ PASS' <<<"$out2") == 1 ]] && grep -q 'templ' <<<"$out2"
 	check "PREFLIGHT_ONLY runs exactly the named phase" 0 "$?"
 
 	PREFLIGHT_SKIP=coverage,duplication PREFLIGHT_FAKE_RC_LINT_CONFIG=0 \

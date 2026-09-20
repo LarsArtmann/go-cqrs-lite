@@ -961,7 +961,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-golangci-hash.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" --self-test
-                  CALIB_GATE_LOADAVG_FILE="$(mktemp)" ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; if bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; then echo "verify-load-guard self-test: loud load must refuse" >&2; exit 1; fi'
+                  CALIB_GATE_LOADAVG_FILE="$(mktemp)" CI=false ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; if bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; then echo "verify-load-guard self-test: loud load must refuse" >&2; exit 1; fi'
                 '';
 
             # check-tag-audit: fail on NEW path-vs-tag violations (proxy-
