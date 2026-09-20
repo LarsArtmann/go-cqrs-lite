@@ -69,6 +69,11 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
+# Advisory verify-window lock (W3 Q5): release/tag windows serialize against
+# verify sessions instead of interleaving tree/cache writes.
+source "$(dirname "${BASH_SOURCE[0]}")/lib/verify-lock.sh"
+verify_lock_acquire
+
 usage() {
 	echo "Usage: $0 [--dry-run] \"<module> <version> <description>\" ..."
 	echo "       $0 --audit"

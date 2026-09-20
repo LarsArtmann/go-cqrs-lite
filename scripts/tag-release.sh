@@ -45,6 +45,11 @@ source "${SCRIPT_DIR}/lib/release_common.sh"
 
 cd "$(git rev-parse --show-toplevel)"
 
+# Advisory verify-window lock (W3 Q5): release/tag windows serialize against
+# verify sessions instead of interleaving tree/cache writes.
+source "${SCRIPT_DIR}/lib/verify-lock.sh"
+verify_lock_acquire
+
 usage() {
 	echo "Usage: $0 <module-path> <version> <description> [--dry-run]"
 	echo "       $0 --smoke <module-path> <version>"

@@ -25,6 +25,14 @@ export TMPDIR="${TMPDIR:-/home/lars/projects/.gotmp}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Advisory verify-window lock (W3 Q5): serialize the hook chain against
+# verify/release windows. Waits up to 60s (daemons release quickly) instead
+# of failing the commit; VERIFY_LOCK=0 opts out.
+source "$ROOT/scripts/lib/verify-lock.sh"
+if ! verify_lock_acquire 60; then
+	echo "WARNING: verify window active; proceeding without the advisory lock (VERIFY_LOCK=0 silences)"
+fi
+
 staged() {
 	git diff --cached --name-only --diff-filter=ACMR | grep -E "$1" || true
 }

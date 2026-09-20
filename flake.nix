@@ -1524,7 +1524,7 @@
                 '';
 
             verify =
-              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
+              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc pkgs.util-linux ]
                 ''
                   # In-verify load threshold (M05): refuse the launch under
                   # load instead of burning the attempt 30+ min deep. Retry
@@ -1533,6 +1533,10 @@
                   # Loud toolchain gate (W3 Q4 ruling): go.work contract vs
                   # the selected toolchain; fails loud on the GOTOOLCHAIN trap.
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" || exit 1
+                  # Advisory verify-window lock (W3 Q5): fail loud on
+                  # contention instead of interleaving with another session.
+                  source "$PWD/scripts/lib/verify-lock.sh"
+                  verify_lock_acquire || exit 1
                   export CGO_ENABLED=1
                   # The bbolt AutoCRUD soak measures 8-20m under load
                   # (509-1145s observed 2026-08-16), above the 8m per-package
