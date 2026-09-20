@@ -35,6 +35,18 @@ mysqlengine row, readmodels.md matview section). New reports land here
 unarchived; the next docs-health pass harvests their forward-looking
 sections into TODO_LIST/ROADMAP, then archives them.
 
+**2026-09-20 09:40 (publish-and-prove execution):** the SUPERB publish-and-prove
+plan executed post-train — the parallel session's 92-tag wave (21:08–21:45) was
+verified end-to-end (1314 tags local==remote, proxy @latest, 92 GitHub Releases,
+pin-sweep --remote, retracts, audit-baseline 0 NEW, smoke 91/92), post-wave
+residue repaired (13 go.sum completions, typedfixture re-pin, scheduling/engine
+gate registration, 4 committed binaries untracked), and the W2 code wave landed:
+quiet-window gate tooling, canonical-facts + doc-annotations gates wired into
+nightly, the camelCase pushdown P0 fix, ctx-scoped transactions across
+pg/mysql/duckdb engines, experimental doc.go stamps, the module-map census to
+all 95, and the TODO [x] sweep. Composed verify attempt 4 stays queued behind
+the host-load gate.
+
 **2026-09-08 23:12 (Pareto execution):** the SUPERB plan's Wave 0 shipped —
 60 tags pushed (54-module release train + iroh trio + stack/sqlite v4.3.1 +
 first proxy-visible example tags), 59 GitHub Releases, 63-module pin-sweep,
