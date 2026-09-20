@@ -59,7 +59,7 @@ func seedSortBench(tb testing.TB, e *mysqlEngine, col string) {
 		stmt := "INSERT INTO meta_map (collection, `key`, value) VALUES " +
 			strings.TrimSuffix(b.String(), ",") +
 			" ON DUPLICATE KEY UPDATE value = VALUES(value)"
-		if _, err := e.conn().ExecContext(context.Background(), stmt); err != nil {
+		if _, err := e.conn(context.Background()).ExecContext(context.Background(), stmt); err != nil {
 			tb.Fatalf("seed sort bench: %v", err)
 		}
 
@@ -91,7 +91,7 @@ func runSortBench(b *testing.B, query, label string) {
 		b.ResetTimer()
 
 		for range b.N {
-			rows, err := e.conn().QueryContext(ctx, query, col)
+			rows, err := e.conn(context.Background()).QueryContext(ctx, query, col)
 			if err != nil {
 				b.Skipf("sort form unsupported on this server: %v", err)
 			}

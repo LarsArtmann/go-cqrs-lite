@@ -142,7 +142,7 @@ func (e *pgEngine) ApplyLayout(collection string, filterFields, sortFields []str
 			idxName, escaped, escapeSQLString(collection),
 		)
 
-		if _, err := e.conn(ctx).ExecContext(context.Background(), ddl); err != nil {
+		if _, err := e.conn(context.Background()).ExecContext(context.Background(), ddl); err != nil {
 			return fmt.Errorf("pgengine.ApplyLayout: create index %s: %w", idxName, err)
 		}
 	}

@@ -40,7 +40,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register the pgx database/sql driver
 
