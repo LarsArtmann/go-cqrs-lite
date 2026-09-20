@@ -936,7 +936,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Fail closed on `EventAdapter.Save` racy fallback** — third-party engine
       authors get silent partial writes today; make the fallback loud or refuse.
       — feedback #3 _(Effort: S)_
-- [ ] **Stamp experimental status in each engine/module `doc.go`** — pkg.go.dev
+- ~~[ ] **Stamp experimental status in each engine/module `doc.go`**~~ done 2026-09-20 — all 17 metaengine-family modules carry a doc.go package comment with the `# Experimental` doc heading (the section pkg.go.dev renders); stray package comments on cost.go/engine.go consolidated. — feedback #5 _(Effort: S, mechanical)_
       readers cannot tell 🧪 from ✅ today (FEATURES knows; the godocs don't).
       — feedback #5 _(Effort: S, mechanical)_
 
