@@ -40,31 +40,31 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 
 ## Quick Reference
 
-| Item        | Value                                                                                                                                           |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Language    | Go 1.27.1                                                                                                                                       |
-| Build       | `nix run .#build`                                                                                                                               |
-| Test        | `nix run .#test`                                                                                                                                |
-| Lint        | `nix run .#lint`                                                                                                                                |
-| Format      | `nix fmt`                                                                                                                                       |
-| Dev shell   | `nix develop`                                                                                                                                   |
-| Verify all  | `nix run .#verify` (build + vet + test + race + lint + doc-check)                                                                               |
-| Int. PG     | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM)                                                    |
-| Int. MySQL  | `nix run .#integration-mysql-nspawn` (nspawn, ~15s, needs root + uid-range) or `nix run .#integration-mysql-vm` (QEMU VM, ~131s, always works)  |
-| Int. All    | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph)                                      |
-| Int. Dgraph | `nix run .#integration-dgraph` (ephemeral nixpkgs Dgraph, full dgraphengine suite; also a CI job)                                               |
-| Int. Redis  | `nix run .#integration-redis` (ephemeral nixpkgs Redis; watermill broker suite: roundtrip, Nack redelivery, group exactly-once, 2 MiB payloads) |
-| Load sweep  | `nix run .#load-sweep` (timing tests `-run 'Latency\|Timer\|Deadline'` under CPU soakers — run before `#verify` after touching timing paths)    |
-| Verify CI   | `nix run .#verify-ci` (GOWORK=off per-module build+test — mirrors the CI matrix job)                                                            |
-| Lint config | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
-| ErrTax      | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
-| Rel. tests  | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
-| README gates| `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)          |
-| Recipe gate | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 81/81 classified, coverage ratchet)  |
-| CSP check   | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
-| EventCat    | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
-| Bench       | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
-| CI          | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
+| Item         | Value                                                                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Language     | Go 1.27.1                                                                                                                                       |
+| Build        | `nix run .#build`                                                                                                                               |
+| Test         | `nix run .#test`                                                                                                                                |
+| Lint         | `nix run .#lint`                                                                                                                                |
+| Format       | `nix fmt`                                                                                                                                       |
+| Dev shell    | `nix develop`                                                                                                                                   |
+| Verify all   | `nix run .#verify` (build + vet + test + race + lint + doc-check)                                                                               |
+| Int. PG      | `nix run .#integration-pg` (ephemeral, no Docker) or `nix run .#integration-pg-vm` (QEMU VM)                                                    |
+| Int. MySQL   | `nix run .#integration-mysql-nspawn` (nspawn, ~15s, needs root + uid-range) or `nix run .#integration-mysql-vm` (QEMU VM, ~131s, always works)  |
+| Int. All     | `nix run .#test-integration` or `nix run .#test-all-backends` (SQLite+Pebble+bbolt+DuckDB+PG+MySQL+Dgraph)                                      |
+| Int. Dgraph  | `nix run .#integration-dgraph` (ephemeral nixpkgs Dgraph, full dgraphengine suite; also a CI job)                                               |
+| Int. Redis   | `nix run .#integration-redis` (ephemeral nixpkgs Redis; watermill broker suite: roundtrip, Nack redelivery, group exactly-once, 2 MiB payloads) |
+| Load sweep   | `nix run .#load-sweep` (timing tests `-run 'Latency\|Timer\|Deadline'` under CPU soakers — run before `#verify` after touching timing paths)    |
+| Verify CI    | `nix run .#verify-ci` (GOWORK=off per-module build+test — mirrors the CI matrix job)                                                            |
+| Lint config  | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
+| ErrTax       | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
+| Rel. tests   | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
+| README gates | `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)          |
+| Recipe gate  | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 81/81 classified, coverage ratchet)  |
+| CSP check    | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
+| EventCat     | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
+| Bench        | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
+| CI           | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
 
 Multi-module Go workspace (`go.work`) with 95 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 

@@ -138,6 +138,7 @@
    v4.x tags, or leave them documented as historical?
 
 ---
-*Evidence: `/tmp/verify-attempt{7,8,9,10}.log`, `/tmp/load-sweep.log`,
+
+_Evidence: `/tmp/verify-attempt{7,8,9,10}.log`, `/tmp/load-sweep.log`,
 `/tmp/verify-ci.log`, `scripts/readme-deprecated-baseline.txt` (0 entries),
-TODO_LIST S03 row, git `5014976e6` (all pushed).*
+TODO_LIST S03 row, git `5014976e6` (all pushed)._

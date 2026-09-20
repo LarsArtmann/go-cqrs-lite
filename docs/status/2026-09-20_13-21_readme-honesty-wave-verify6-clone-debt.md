@@ -124,8 +124,8 @@ push of the ~2 unpushed daemon commits.
 14. Verify-window advisory flock (owner question 5 dependency).
 15. `readme_claims_test.go` ownership resolution (owner question 1).
 16. iroh P99 follow-up probe (owner question 2).
-17–30. Standing TODO_LIST items (composed-verify row, W4+ plan slices,
-system/v4 follow-ups, metaengine live-latency doc sync, etc.).
+    17–30. Standing TODO_LIST items (composed-verify row, W4+ plan slices,
+    system/v4 follow-ups, metaengine live-latency doc sync, etc.).
 
 ## g) QUESTIONS ONLY THE OWNER CAN ANSWER
 
@@ -139,6 +139,7 @@ system/v4 follow-ups, metaengine live-latency doc sync, etc.).
    gate under whose ownership, or remove?
 
 ---
-*Evidence: `/tmp/verify-attempt6.log` (duplication findings),
+
+_Evidence: `/tmp/verify-attempt6.log` (duplication findings),
 `/tmp/lint-sweep.log` (95-module green), `scripts/readme-deprecated-baseline.txt`
-(0 entries), TODO_LIST.md row 634 (strikes).*
+(0 entries), TODO_LIST.md row 634 (strikes)._

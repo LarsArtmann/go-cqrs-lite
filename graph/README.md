@@ -14,11 +14,11 @@ go get github.com/larsartmann/go-cqrs-lite/graph/v4
 
 ## When to use which tier
 
-| Read pattern                                                | Tier                                        |
-| ----------------------------------------------------------- | ------------------------------------------- |
+| Read pattern                                                | Tier                                                                   |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------- |
 | Get/Lookup by ID, list all                                  | `kv.ViewStore[V,K]` + `stack.Materialize` (deprecated — removed in v5) |
-| Filtered/ordered/paginated lists, counts, stats             | `storage.RelationalProjection` + `Row` sink (removed in v5) |
-| **N-hop traversal, recursive relationships, graph queries** | **`graph.GraphProjection`** (deprecated — removed in v5) |
+| Filtered/ordered/paginated lists, counts, stats             | `storage.RelationalProjection` + `Row` sink (removed in v5)            |
+| **N-hop traversal, recursive relationships, graph queries** | **`graph.GraphProjection`** (deprecated — removed in v5)               |
 
 > **v5:** all three v1 read-model tiers above are deleted by ADR-0123;
 > metaengine auto-projection is the only consumer-facing read-model API.

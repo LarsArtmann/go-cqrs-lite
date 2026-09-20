@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metadata/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1

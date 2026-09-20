@@ -6,12 +6,12 @@
 
 ## The verify arc (13:21 → 15:04)
 
-| Attempt | Window | Result | Root cause |
-|---|---|---|---|
-| 7 | 13:27–13:29 (killed) | Test FAIL | api golden drift — the new `adttest.AssertTxIsolationFromForeignContext` export; I skipped the same-edit regen rule |
-| 8 | 13:33–13:35 | Test FAIL | `TestSystem_GracefulClose_ContextExpired`: genuine Go select race in `GracefulClose` (pre-cancelled ctx vs instant Close — uniform select choice) |
-| 9 | 14:25–14:39 | Templ FAIL | 5 `catalog/docserver/*_templ.go` drifted — W2-wave tail never verified (templ phase dark since before the wave) |
-| **10** | **14:53–15:04** | **GREEN rc=0** | **all 19 phases, 0 FAILs, ~11 min** |
+| Attempt | Window               | Result         | Root cause                                                                                                                                        |
+| ------- | -------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 7       | 13:27–13:29 (killed) | Test FAIL      | api golden drift — the new `adttest.AssertTxIsolationFromForeignContext` export; I skipped the same-edit regen rule                               |
+| 8       | 13:33–13:35          | Test FAIL      | `TestSystem_GracefulClose_ContextExpired`: genuine Go select race in `GracefulClose` (pre-cancelled ctx vs instant Close — uniform select choice) |
+| 9       | 14:25–14:39          | Templ FAIL     | 5 `catalog/docserver/*_templ.go` drifted — W2-wave tail never verified (templ phase dark since before the wave)                                   |
+| **10**  | **14:53–15:04**      | **GREEN rc=0** | **all 19 phases, 0 FAILs, ~11 min**                                                                                                               |
 
 ## What landed since 13:21
 

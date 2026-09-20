@@ -151,15 +151,15 @@ Provided implementations: `PostgresDialect{}`, `SQLiteDialect{}`.
 
 The `storage/sql` subpackage contains shared SQL infrastructure used by all SQL-based stores:
 
-| Component              | Description                                |
-| ---------------------- | ------------------------------------------ |
-| `Base`                 | Shared `*sql.DB` + `Dialect` holder        |
-| `Dialect`              | PostgreSQL/SQLite abstraction interface    |
-| `Placeholders`         | Generate comma-separated placeholder lists |
-| `ParseSQLiteTimestamp` | Multi-format SQLite timestamp parser       |
-| `SharedInsertEvents`   | Shared event insertion logic               |
-| `SharedCheckpointLoad` | Shared checkpoint read logic               |
-| `SharedEventLoad`      | Shared event scanning logic                |
+| Component              | Description                                                     |
+| ---------------------- | --------------------------------------------------------------- |
+| `Base`                 | Shared `*sql.DB` + `Dialect` holder                             |
+| `Dialect`              | PostgreSQL/SQLite abstraction interface                         |
+| `Placeholders`         | Generate comma-separated placeholder lists                      |
+| `ParseSQLiteTimestamp` | Multi-format SQLite timestamp parser                            |
+| `SharedInsertEvents`   | Shared event insertion logic                                    |
+| `SharedCheckpointLoad` | Shared checkpoint read logic                                    |
+| `SharedEventLoad`      | Shared event scanning logic                                     |
 | `DeleteByAggregate`    | Shared DELETE implementation (deprecated: use `DeleteByStream`) |
 
 The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrStreamTypeMismatch`, `ErrStreamIDMismatch`, `ErrVersionMismatch`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`.
