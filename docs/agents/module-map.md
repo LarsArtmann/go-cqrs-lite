@@ -2,7 +2,7 @@
 
 > Extracted from AGENTS.md (2026-09-08 indexed-split). The consumer-facing lookup lives in ../../.agents/skills/go-cqrs-lite/references/modules.md; this table adds internal-only notes. Edit HERE.
 >
-> **Census 2026-09-20:** all 95 repo `go.mod` files are rowed — 93 product/fixture modules explicitly or via the accurate `metaengine/*engine` + `example/*` wildcards (each names its members), plus root + the cqrs-lint typedfixture (excluded by gates as a replace-based test fixture). Verified by scripted diff of the table vs `find . -name go.mod`.
+> **Census 2026-09-20 (re-verified after `testutil/mysqltestcontainer` landed):** all 96 repo `go.mod` files are rowed — 94 product/fixture modules explicitly or via the accurate `metaengine/*engine` + `example/*` wildcards (each names its members), plus root + the cqrs-lint typedfixture (excluded by gates as a replace-based test fixture). Verified by scripted diff of the table vs `find . -name go.mod`.
 
 Compact reference — see [`references/modules.md`](../../.agents/skills/go-cqrs-lite/references/modules.md) for the full consumer-facing lookup.
 

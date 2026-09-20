@@ -66,7 +66,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Bench        | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
 | CI           | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
 
-Multi-module Go workspace (`go.work`) with 95 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 96 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
@@ -162,7 +162,7 @@ Split by topic; edit the topic file, never inline here:
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.
 - [`gowork-modes.md`](docs/agents/gowork-modes.md) — THE GOWORK decision table + mandatory env chain + jsonv2 tag.
-- [`module-map.md`](docs/agents/module-map.md) — the internal module map (all 95 go.mod files rowed — census verified 2026-09-20 by scripted diff; engines/tools/examples also live in FEATURES' maturity matrix).
+- [`module-map.md`](docs/agents/module-map.md) — the internal module map (all 96 go.mod files rowed — census re-verified 2026-09-20 after testutil/mysqltestcontainer; scripted diff; engines/tools/examples also live in FEATURES' maturity matrix).
 
 TL;DR rules (too hot to be one click away):
 

@@ -14,7 +14,7 @@
    - Parity pinned: `quic/dedup_parity_test.go` (`TestDedupParity_SharedCapacityConst` + `TestRing_ProductionCapacity10K` — the previously PHANTOM test referenced only in a stale comment) mirroring loopback's `dedup_internal_test.go`.
    - loopback + quic green, including `-race`.
 3. **Item 1 (XS+M): Tier-0 close-helper decision RULED and SWEPT.**
-   - [ADR-0144](../../adr/0144-deferclose-lives-in-tier0-record.md): `record.DeferClose` (io.Closer) is the canonical Tier-0 address; `metaengine.DeferClose` stays as a self-contained twin.
+   - [ADR-0144](../adr/0144-deferclose-lives-in-tier0-record.md: `record.DeferClose` (io.Closer) is the canonical Tier-0 address; `metaengine.DeferClose` stays as a self-contained twin.
    - 28 sites → `record.DeferClose` (kv, storage, storage/pebble, storage/turso/indexing, scheduling/sqlstore, projectionhost, stack) + 8 sites → `metaengine.DeferClose` where already reachable (sqliteengine, benchkit, 4 examples). `queue/postgres` audited clean (bare defers). `cmd/cqrs-lint` → bare defer (9/9 dep budget; documented exception).
    - Budget bumps with precedent comments: kv 3→4, projectionhost 9→10, storage 12→13. kv + go.work → `go 1.27.1`.
    - record: `closer.go` + `closer_test.go` (2 tests).
@@ -23,7 +23,7 @@
    - New `metaengine.ScanScoredVector` + `RowScanner`: mysql/sqlite byte-identical twins and the duckdb JSON variant all delegate; duckdb/mysql/sqlite test suites green (the []byte-scan-dest risk was real and resolved empirically).
    - `scanJSONValues` twins deliberately NOT unified (annotated-intentional + sqlite error-contract change) — documented.
 5. **Item 3 (M): retry-idiom audit.**
-   - [ADR-0145](../../adr/0145-retry-idioms-are-per-concern.md): four sites = four different concern classes; per-class rules + four alignment invariants; `go-retry` stays middleware-only.
+   - [ADR-0145](../adr/0145-retry-idioms-are-per-concern.md: four sites = four different concern classes; per-class rules + four alignment invariants; `go-retry` stays middleware-only.
 6. **Finalization chain (the repo's "change an exported symbol" procedure).**
    - API golden regenerated (`record.DeferClose`, `metaengine.ScanScoredVector`, `metaengine.RowScanner`, `irohengine.DefaultDedupCapacity`); `TestEvery` PASS.
    - CHANGELOG [Unreleased] Added entries passing `check-changelog-symbols`.

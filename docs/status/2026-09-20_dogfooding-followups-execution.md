@@ -8,7 +8,7 @@
 
 ### 1. Tier-0 close-helper decision — RULED + SWEPT (ADR-0144)
 
-- Ruling: `record.DeferClose` is the canonical Tier-0 address ([ADR-0144](../../adr/0144-deferclose-lives-in-tier0-record.md)).
+- Ruling: `record.DeferClose` is the canonical Tier-0 address ([ADR-0144](../adr/0144-deferclose-lives-in-tier0-record.md).
   `metaengine.DeferClose` stays as a self-contained twin — forwarding to record
   was attempted and REVERTED: it would force a `record` sibling replace into
   every module that compiles metaengine from source (~15 go.mods).
@@ -39,7 +39,7 @@
 
 ### 3. Retry-idiom reconciliation — DOCUMENTED (ADR-0145)
 
-- [ADR-0145](../../adr/0145-retry-idioms-are-per-concern.md): the four sites are
+- [ADR-0145](../adr/0145-retry-idioms-are-per-concern.md: the four sites are
   four different concern classes (transport op retry / crash-loop damping /
   shadow freshness budget / DB contention retry). No unification; per-class
   rules + the four alignment invariants recorded.
