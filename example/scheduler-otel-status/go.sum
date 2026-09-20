@@ -93,8 +93,8 @@ github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 h1:+witfyGQ2LZI8VqbftV+zFFp3q
 github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0/go.mod h1:aJAwsOhQl8bfjwKTZAWN1BIAmwhnHbK2klSIdb9/k58=
 github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.1 h1:MvanqDfG4Z4qSh0lnUTVWC5irAqvBPLKSGk0xPn4K38=
 github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.1/go.mod h1:T/pyqbTn1Udvel4ATGSbeGG9uPYktWEmp7ndUoo1VSw=
-github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0 h1:E8mf80o8NF0ljEwK8nOUd/Gs+/MgNAbPrL50YVjuTUQ=
-github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.0/go.mod h1:WeMpmN3U3uQVoGxXy7PrxRcKjfhOobotqFsFzPMStMk=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1 h1:p2WKc2ELSMv+mR3Of3lpURuE630LzuPnWyEzUOkeN7c=
+github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1/go.mod h1:9oD9oVY1tu9E2g9D/jMXoiALrv9jI6CJBqj9oWmAKIs=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0 h1:klHGHsWHxLHnIwXc48aO5fqEuxDKuFFBao+uXnEGL94=
 github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0/go.mod h1:Ts0sbVZnbwsnHpz53wsMeH7C+yBXAAVrFZsEfYeVC9M=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1 h1:GR/+dcyYOcDlZfNlI1epvky4NzAtGwr4nkQoFM3BG1Q=

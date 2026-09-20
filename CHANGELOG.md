@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **record: `DeferClose` (ADR-0144).** The discard-close idiom
+  (`defer record.DeferClose(x)` replacing the verbose
+  `defer func() { _ = x.Close() }()`) now lives at Tier 0, so leaf storage
+  modules reach it without the engine substrate; `metaengine.DeferClose`
+  stays as the engine-tier twin. The Tier-0 close-helper ruling also
+  converted the remaining func-wrapped close sites across `kv`, `storage`,
+  `storage/pebble`, `storage/turso/indexing`, `scheduling/sqlstore`,
+  `projectionhost`, `stack`, `metaengine/sqliteengine`, `benchkit`, and the
+  examples, and pinned the quic/loopback op-dedup parity on one shared
+  `metaengine/irohengine.DefaultDedupCapacity` constant
+  (`TestRing_ProductionCapacity10K` +
+  `TestDedupParity_SharedCapacityConst`).
+- **metaengine: `ScanScoredVector` + `RowScanner`.** The byte-identical
+  `scanScoredVector` dialect twins in the mysql/sqlite engines (and the
+  JSON-variant duckdb twin) now delegate to one shared core with a decode
+  seam (`DecodeVectorF32` blobs vs `DecodeVectorJSON` text columns);
+  `bboltengine.sortAndPaginateKV` likewise delegates to the existing
+  `metaengine.SortPaginate` core instead of re-implementing it.
 - **metaengine/adttest: `AssertTxIsolationFromForeignContext`.** The
   tx-isolation scenario (uncommitted writes invisible to foreign contexts;
   committed writes visible after `RunInTx`) previously lived as three

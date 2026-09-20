@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/dgraphengine/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/dgraph-io/dgo/v240 v240.2.0

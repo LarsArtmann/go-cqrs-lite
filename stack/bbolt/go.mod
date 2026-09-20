@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1

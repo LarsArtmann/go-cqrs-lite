@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/integration/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/cockroachdb/pebble v1.1.5
