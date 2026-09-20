@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **metaengine/adttest: `AssertTxIsolationFromForeignContext`.** The
+  tx-isolation scenario (uncommitted writes invisible to foreign contexts;
+  committed writes visible after `RunInTx`) previously lived as three
+  identical ~48-line test bodies across the duckdb/mysql/sqlite engine
+  modules; it is now one engine-agnostic helper each engine suite calls —
+  the conformance-kit pattern of `AssertVectorDimensionGuard`.
 - **scheduling/engine: `ErrEngineNotDueClaimer` sentinel.**
   `NewTimerStore` rejected capability-less engines with a dynamic
   `fmt.Errorf` (unmatchable by `errors.Is`); it now wraps a static sentinel,
@@ -171,6 +177,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **system: `GracefulClose` with a pre-expired context is now
+  deterministic.** Phase 2 raced `Close()`'s completion against
+  `ctx.Done()` with a bare `select`; when the context was already
+  cancelled AND `Close` finished instantly (empty system), both cases were
+  ready and Go's uniform select choice returned Close's nil ~50% of the
+  time — surfacing as a load-order flake in
+  `TestSystem_GracefulClose_ContextExpired` under parallel test load. A
+  done-win now re-checks `ctx.Err()` so a pre-expired context always wins
+  (Close still ran; its result is discarded).
 - **example/taskmanager: `--help` now prints usage and exits 0 instead of
   booting the server.** The demo binary ignored all arguments, so the
   post-release smoke probe (`--help`, must exit 0) started a real HTTP
