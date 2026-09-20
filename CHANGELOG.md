@@ -154,6 +154,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **example/taskmanager: `--help` now prints usage and exits 0 instead of
+  booting the server.** The demo binary ignored all arguments, so the
+  post-release smoke probe (`--help`, must exit 0) started a real HTTP
+  server on :8080 and hung forever — two orphaned servers from the 08:41
+  smoke run had to be killed. `main` now parses `-help`, `-addr`, and
+  `-db` flags (`DATABASE_PATH` env still honored as the `-db` default),
+  prints routes + flags, and exits cleanly; `Run` takes the resolved
+  `Config` instead of re-reading the environment.
+
 - **pgengine, mysqlengine, duckdbengine: transactions now travel in the
   context, killing the engine-global `activeTx` leak class (the CRM
   `sql: Rows are closed` production flake, sqliteengine 22ab7b218
