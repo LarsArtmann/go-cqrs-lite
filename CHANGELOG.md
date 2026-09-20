@@ -172,6 +172,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   concurrent prepare on separate pool connections to a file DSN
   convolves inside the go-duckdb C bindings, a driver limit, not an
   affinity signal).
+- **doc-check: regression pin for the relative-path repo-root fix.**
+  `findRepoRootFromPath` silently mis-resolved the repo root when invoked
+  with a relative starting directory (the CI shape: `cmd/doc-check` called
+  with `../../`-style args), breaking every alias-dir resolution
+  downstream. Pinned by `TestFindRepoRootFromPath_RelativePaths` (relative
+  starts climb to a root that actually contains `.git`, including the
+  worktree file form).
 - **`metaengine.ExtractFields`: camelCase planned columns over snake_case
   json tags extracted as NULL, silently breaking every pushdown filter
   (P0, 2026-09-18 Ledger CRM).** A projection registered with

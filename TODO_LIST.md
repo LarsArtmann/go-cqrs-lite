@@ -632,8 +632,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 - [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
       the 12-16 report verified all 93 READMEs mechanically but ~30 polish items
-      stayed unharvested; the substantive ones: (a) doc-check repoRoot regression
-      test + `[Unreleased]` Fixed entry + gotcha note for the relative-path fix;
+      stayed unharvested; the substantive ones: ~~(a) doc-check repoRoot regression
+      test + `[Unreleased]` Fixed entry + gotcha note for the relative-path fix~~ done 2026-09-20 (`reporoot_test.go` + CHANGELOG Fixed + gotcha);
       (b) add READMEs to the doc-check gate (flake app/CI); (c) deep-read the six
       big unread READMEs (catalog 587L, graph, stack, storage/view, watermill,
       otel, prometheus); (d) quick-start drift-guard tests for stack/sqlite,
