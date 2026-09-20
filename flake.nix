@@ -960,6 +960,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-calibration-drift.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-golangci-hash.sh" --self-test
+                  CALIB_GATE_LOADAVG_FILE="$(mktemp)" ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; if bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; then echo "verify-load-guard self-test: loud load must refuse" >&2; exit 1; fi'
                 '';
 
             # check-tag-audit: fail on NEW path-vs-tag violations (proxy-
@@ -1514,6 +1515,10 @@
             verify =
               mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc ]
                 ''
+                  # In-verify load threshold (M05): refuse the launch under
+                  # load instead of burning the attempt 30+ min deep. Retry
+                  # recipe and VERIFY_FORCE=1 escape hatch printed on refusal.
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/verify-load-guard.sh" || exit 1
                   export CGO_ENABLED=1
                   # The bbolt AutoCRUD soak measures 8-20m under load
                   # (509-1145s observed 2026-08-16), above the 8m per-package
