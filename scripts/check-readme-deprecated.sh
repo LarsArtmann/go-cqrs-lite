@@ -3,18 +3,25 @@
 # living API without a deprecation banner (row 634e).
 #
 # Discovery is source-derived (zero drift): exported funcs/types whose Go doc
-# comment contains "Deprecated:" are collected from every non-test .go file.
-# A module README is then flagged when it cites one of those symbols inside
-# backticks (prose word-boundary matches like "handler" or "execute" are
-# deliberately ignored — only code citations count). A README whose first
+# comment contains "Deprecated:" are collected from every non-test .go file,
+# together with the declaring package name and file path. Citations are then
+# scoped so generic names (New, Load, Handler, ...) cannot cross-wire modules:
+#   - qualified citation `pkg.Sym` (possibly after deeper qualifier segments,
+#     e.g. `a.b.pkg.Sym`) flags when package pkg declares Sym deprecated;
+#   - bare citation `Sym` flags only when a declaring file lives inside the
+#     README's own directory subtree (the citation reads as local API).
+# Prose word-boundary matches ("handler" in a sentence) are deliberately
+# ignored — only code citations inside backticks count. A README whose first
 # DEPRECATED_BANNER_LINES lines carry a deprecation banner ("> **Deprecated"
 # or "Deprecated: removed in") is skipped entirely: the package-level notice
 # already tells the reader, so per-symbol markers would be noise.
 #
 # Historical mentions are grandfathered in
-# scripts/readme-deprecated-baseline.txt (sorted "file symbol" lines);
+# scripts/readme-deprecated-baseline.txt (sorted "file citation" lines);
 # NEW mentions fail CI. Shrink the baseline by adding banners or replacing
 # the citations; re-pin only via --write-baseline after an honest review.
+# (Known limit: full-import-path citations like `.../stack/v4.New` are only
+# matched when the path's second-to-last segment equals the package name.)
 #
 # Usage:
 #   scripts/check-readme-deprecated.sh [--self-test] [--write-baseline]
@@ -37,10 +44,12 @@ readme_root="${DEP_README_ROOT:-$repo_root}"
 baseline="${DEP_BASELINE:-$repo_root/scripts/readme-deprecated-baseline.txt}"
 banner_lines="${DEPRECATED_BANNER_LINES:-12}"
 
+# Emits "pkg\tsymbol\tabsolute-file" rows for every deprecated export.
 discover_symbols() {
 	find "$src_root" -name '*.go' -not -path '*/.git/*' \
 		-not -path '*/vendor/*' -not -name '*_test.go' | while read -r f; do
-		awk '
+		awk -v abs="$f" '
+			/^package / { pkg = $2 }
 			/^\/\// { doc = doc "\n" $0; next }
 			/^func [A-Z]/ || /^func \([^)]*\) [A-Z]/ || /^type [A-Z]/ {
 				if (doc ~ /Deprecated:/) {
@@ -49,7 +58,7 @@ discover_symbols() {
 					sub(/^func /, "", name)
 					sub(/^type /, "", name)
 					sub(/[\[ (].*$/, "", name)
-					if (name != "") print name
+					if (name != "") print pkg "\t" name "\t" abs
 				}
 			}
 			{ doc = "" }
@@ -58,9 +67,9 @@ discover_symbols() {
 }
 
 scan_readmes() {
-	# $1 = newline-separated deprecated symbol list
-	local symbols="$1"
-	[ -n "$symbols" ] || {
+	# $1 = path to the "pkg\tsymbol\tfile" table produced by discover_symbols
+	local table="$1"
+	[ -s "$table" ] || {
 		echo "check-readme-deprecated: no deprecated symbols discovered" >&2
 		return 0
 	}
@@ -71,12 +80,39 @@ scan_readmes() {
 		if head -n "$banner_lines" "$f" | grep -qE '^> ?\*\*Deprecated|Deprecated: removed in'; then
 			continue
 		fi
-		for sym in $symbols; do
-			# Cite-in-backticks only: `sym` possibly qualified (pkg.sym).
-			if grep -qE "\`[^\`]*\b${sym}\b[^\`]*\`" "$f"; then
-				echo "$f $sym"
-			fi
-		done
+		dir="$(cd "$(dirname "$f")" && pwd)"
+		awk -v ROWS="$table" -v DIR="$dir" -v FILE="$f" '
+			BEGIN {
+				while ((getline row < ROWS) > 0) {
+					n = split(row, r, "\t")
+					qual[r[1] "." r[2]] = 1
+					decl[r[2]] = decl[r[2]] "\n" r[3]
+				}
+			}
+			{
+				line = $0
+				while (match(line, /`[^`]+`/)) {
+					span = substr(line, RSTART + 1, RLENGTH - 2)
+					line = substr(line, RSTART + RLENGTH)
+					cand = span
+					sub(/[[(].*$/, "", cand)
+					sub(/^[^A-Za-z0-9_]*/, "", cand)
+					m = split(cand, seg, ".")
+					if (m >= 2) {
+						s = seg[m]; q = seg[m - 1]
+						if (qual[q "." s]) print FILE " " cand
+					} else if (m == 1 && decl[cand] != "") {
+						n2 = split(decl[cand], paths, "\n")
+						for (i = 1; i <= n2; i++) {
+							if (paths[i] != "" && index(paths[i], DIR "/") == 1) {
+								print FILE " " cand
+								break
+							}
+						}
+					}
+				}
+			}
+		' "$f"
 	done
 }
 
@@ -85,46 +121,62 @@ self_test() {
 	fixture="$(mktemp -d /tmp/readme-deprecated-fixture.XXXXXX)" || return 1
 	trap 'rm -rf "$fixture"' RETURN
 
-	mkdir -p "$fixture/mod/clean" "$fixture/mod/dirty" "$fixture/mod/bannered"
-	cat >"$fixture/mod/api.go" <<'EOF'
-package mod
+	mkdir -p "$fixture/mod/lib" "$fixture/mod/app" "$fixture/mod/clean" "$fixture/mod/bannered"
+	cat >"$fixture/mod/lib/api.go" <<'EOF'
+package lib
 
 // Old is going away.
 //
-// Deprecated: removed in v5; use New.
+// Deprecated: removed in v5; use Fresh.
 func Old() {}
 
-// New is the replacement.
-func New() {}
+// Fresh is the replacement.
+func Fresh() {}
 EOF
-	printf '# clean readme\nUse `New` only.\n' >"$fixture/mod/clean/README.md"
-	printf '# dirty readme\nUse `Old` today.\n' >"$fixture/mod/dirty/README.md"
-	printf '# bannered readme\n\n> **Deprecated:** removed in v5. Use system.New.\n\nUse `Old` freely.\n' >"$fixture/mod/bannered/README.md"
+	# Bare citation inside the declaring subtree: MUST flag.
+	printf '# lib readme\nUse `Old` today.\n' >"$fixture/mod/lib/README.md"
+	# Bare citation outside the declaring subtree: must NOT flag (scoping);
+	# qualified citation of the same symbol: MUST flag.
+	printf '# app readme\nUse `Old` freely, or `lib.Old`.\n' >"$fixture/mod/app/README.md"
+	printf '# clean readme\nUse `Fresh` only.\n' >"$fixture/mod/clean/README.md"
+	printf '# bannered readme\n\n> **Deprecated:** removed in v5. Use system.New.\n\nUse `lib.Old` freely.\n' >"$fixture/mod/bannered/README.md"
 
-	# Leg 1 (non-vacuous detection): backticked citation of a deprecated
-	# symbol in an un-bannered README MUST be flagged.
-	if ! DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
+	# Run the engine once; capture output so grep -q early-exit cannot
+	# SIGPIPE the child under `set -o pipefail` and masquerade as a failure.
+	local out
+	out="$(DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
 		DEP_BASELINE="$fixture/empty-baseline.txt" \
-		bash "$0" 2>/dev/null | grep -q 'dirty/README.md Old'; then
-		echo "self-test FAILED: dirty README not flagged" >&2
+		bash "$0" 2>/dev/null)" || true
+
+	# Leg 1 (non-vacuous detection): bare citation of a deprecated symbol
+	# inside the declaring subtree MUST be flagged.
+	if ! grep -q 'lib/README.md Old' <<<"$out"; then
+		echo "self-test FAILED: in-subtree bare citation not flagged" >&2
 		return 1
 	fi
-	# Leg 2 (no false positive): clean README must not be flagged.
-	if DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
-		DEP_BASELINE="$fixture/empty-baseline.txt" \
-		bash "$0" 2>/dev/null | grep -q 'clean/README'; then
+	# Leg 2 (scoping): the same bare citation OUTSIDE the declaring subtree
+	# must not be flagged — generic names cannot cross-wire modules.
+	if grep -qE 'app/README\.md Old( |$)' <<<"$out"; then
+		echo "self-test FAILED: out-of-subtree bare citation flagged" >&2
+		return 1
+	fi
+	# Leg 3 (qualified detection): `pkg.Sym` citations flag via package match.
+	if ! grep -q 'app/README.md lib.Old' <<<"$out"; then
+		echo "self-test FAILED: qualified citation not flagged" >&2
+		return 1
+	fi
+	# Leg 4 (no false positive): clean README must not be flagged.
+	if grep -q 'clean/README' <<<"$out"; then
 		echo "self-test FAILED: clean README flagged" >&2
 		return 1
 	fi
-	# Leg 3 (banner escape hatch): bannered README must be skipped.
-	if DEP_SRC_ROOT="$fixture/mod" DEP_README_ROOT="$fixture/mod" \
-		DEP_BASELINE="$fixture/empty-baseline.txt" \
-		bash "$0" 2>/dev/null | grep -q 'bannered/README'; then
+	# Leg 5 (banner escape hatch): bannered README must be skipped.
+	if grep -q 'bannered/README' <<<"$out"; then
 		echo "self-test FAILED: bannered README flagged" >&2
 		return 1
 	fi
 
-	echo "check-readme-deprecated self-test: all three legs green (detect + clean + banner)"
+	echo "check-readme-deprecated self-test: all five legs green (detect + scope + qualified + clean + banner)"
 	return 0
 }
 
@@ -133,8 +185,10 @@ EOF
 	exit $?
 }
 
-symbols="$(discover_symbols)"
-findings="$(scan_readmes "$symbols" | sort)"
+table="$(mktemp /tmp/readme-deprecated-table.XXXXXX)" || exit 1
+trap 'rm -f "$table"' EXIT
+discover_symbols >"$table"
+findings="$(scan_readmes "$table" | sort -u)"
 
 if [ "${1:-}" = "--write-baseline" ]; then
 	printf '%s\n' "$findings" | sed '/^$/d' >"$baseline"

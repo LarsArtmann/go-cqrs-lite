@@ -82,6 +82,21 @@ jobs:
           bash scripts/check-doc-annotations.sh --self-test
           bash scripts/check-doc-annotations.sh
 
+      # README integrity: every relative link target must resolve (673 links
+      # verified at introduction), and deprecated symbols must not be cited
+      # as living API without a banner — historical mentions sit in
+      # scripts/readme-deprecated-baseline.txt and shrink as ADR-0123
+      # banners land (only shrinkage is legitimate growth direction).
+      - name: README links gate (all module READMEs)
+        run: |
+          bash scripts/check-readme-links.sh --self-test
+          bash scripts/check-readme-links.sh
+
+      - name: README deprecated-citations gate
+        run: |
+          bash scripts/check-readme-deprecated.sh --self-test
+          bash scripts/check-readme-deprecated.sh
+
       # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
       # stays on the per-push CI leg; the nightly only surfaces drift.
       - name: Pin sweep (report-only)
