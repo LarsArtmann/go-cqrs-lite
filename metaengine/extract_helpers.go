@@ -63,21 +63,34 @@ func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 }
 
 // snakeCase converts a Go identifier to its conventional snake_case json
-// key form: inserted underscores before uppercase letters, all lowered
+// key form, keeping acronym runs intact: an underscore is inserted only at
+// word boundaries — before an uppercase that follows a lowercase/digit, or
+// before an uppercase run's last letter when a lowercase follows it
 // (ParentID -> parent_id, DueAt -> due_at, URLKey -> url_key).
 func snakeCase(name string) string {
+	runes := []rune(name)
 	var b strings.Builder
 	b.Grow(len(name) + 4)
 
-	for i, r := range name {
-		if r >= 'A' && r <= 'Z' {
-			if i > 0 {
-				b.WriteByte('_')
-			}
-
-			b.WriteRune(r - 'A' + 'a')
-		} else {
+	for i, r := range runes {
+		if r < 'A' || r > 'Z' {
 			b.WriteRune(r)
+
+			continue
+		}
+
+		lower := r - 'A' + 'a'
+		prevLower := i > 0 && (runes[i-1] < 'A' || runes[i-1] > 'Z')
+		nextLower := i+1 < len(runes) && (runes[i+1] < 'A' || runes[i+1] > 'Z')
+
+		switch {
+		case i == 0:
+			b.WriteRune(lower)
+		case prevLower, nextLower:
+			b.WriteByte('_')
+			b.WriteRune(lower)
+		default: // inside an acronym run, not at its tail
+			b.WriteRune(lower)
 		}
 	}
 
