@@ -60,6 +60,12 @@ jobs:
             exit 1
           fi
 
+      # W3 Q4 ruling (2026-09-20): the go.work contract vs the selected
+      # toolchain must be checked loudly on a schedule — the GOTOOLCHAIN=auto
+      # env chain is the contract until nixpkgs pins 1.27.1.
+      - name: Go version contract
+        run: nix run .#check-go-version
+
       - name: Module sums (go.mod tidiness across all modules)
         run: nix run .#check-modsums
 

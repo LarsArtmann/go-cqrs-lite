@@ -960,6 +960,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-calibration-drift.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-golangci-hash.sh" --self-test
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" --self-test
                   CALIB_GATE_LOADAVG_FILE="$(mktemp)" ${pkgs.bash}/bin/bash -c 'printf "40.0 55.0 1.0 1/1 1\n" > "$CALIB_GATE_LOADAVG_FILE"; if bash "$PWD/scripts/verify-load-guard.sh" >/dev/null 2>&1; then echo "verify-load-guard self-test: loud load must refuse" >&2; exit 1; fi'
                 '';
 
@@ -990,6 +991,16 @@
             calibration-drift = mkApp "calibration-drift" [ goPkg pkgs.bash pkgs.git ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-drift.sh" "$@"
             '';
+
+            # check-go-version: loud toolchain gate (W3 Q4 ruling) — the
+            # go.work contract vs the selected toolchain, with the
+            # GOTOOLCHAIN=auto remedy. Cheap enough to run in the verify head
+            # and nightly; carries a stub-binary self-test.
+            check-go-version =
+              mkApp "check-go-version" [ goPkg pkgs.bash ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" "$@"
+                '';
 
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
@@ -1519,6 +1530,9 @@
                   # load instead of burning the attempt 30+ min deep. Retry
                   # recipe and VERIFY_FORCE=1 escape hatch printed on refusal.
                   ${pkgs.bash}/bin/bash "$PWD/scripts/verify-load-guard.sh" || exit 1
+                  # Loud toolchain gate (W3 Q4 ruling): go.work contract vs
+                  # the selected toolchain; fails loud on the GOTOOLCHAIN trap.
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" || exit 1
                   export CGO_ENABLED=1
                   # The bbolt AutoCRUD soak measures 8-20m under load
                   # (509-1145s observed 2026-08-16), above the 8m per-package
