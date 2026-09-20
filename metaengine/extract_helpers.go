@@ -10,13 +10,22 @@ import (
 //
 // Structs use a reflect fast path (no JSON marshal/unmarshal on writes).
 // Maps and other types fall back to JSON round-trip.
+//
+// Column names may come from EITHER naming world: the Go field name
+// (`FilterOnField[R]("ParentID", …)` plans a column named ParentID) or the
+// JSON tag name (`parent_id`, what the stored document carries). A column
+// therefore matches a field when its json tag matches (case-insensitive)
+// OR the Go field name matches; map keys additionally fall back to the
+// snake_case form of the column name. Without this, camelCase filterable
+// fields over snake_case json tags extracted as NULL and every pushdown
+// filter silently matched nothing (2026-09-18 Ledger CRM).
 func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 	result := make(map[string]any, len(columns))
 
 	if m, ok := value.(map[string]any); ok {
 		for _, c := range columns {
 			for k, v := range m {
-				if strings.EqualFold(k, c.Name) {
+				if strings.EqualFold(k, c.Name) || strings.EqualFold(k, snakeCase(c.Name)) {
 					result[c.Name] = v
 
 					break
@@ -39,9 +48,7 @@ func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 					continue
 				}
 
-				fieldName := JSONFieldName(f)
-
-				if strings.EqualFold(fieldName, c.Name) {
+				if strings.EqualFold(JSONFieldName(f), c.Name) || strings.EqualFold(f.Name, c.Name) {
 					result[c.Name] = rv.Field(i).Interface()
 
 					break
@@ -53,6 +60,28 @@ func ExtractFields(value any, columns []PlannedColumn) map[string]any {
 	}
 
 	return result
+}
+
+// snakeCase converts a Go identifier to its conventional snake_case json
+// key form: inserted underscores before uppercase letters, all lowered
+// (ParentID -> parent_id, DueAt -> due_at, URLKey -> url_key).
+func snakeCase(name string) string {
+	var b strings.Builder
+	b.Grow(len(name) + 4)
+
+	for i, r := range name {
+		if r >= 'A' && r <= 'Z' {
+			if i > 0 {
+				b.WriteByte('_')
+			}
+
+			b.WriteRune(r - 'A' + 'a')
+		} else {
+			b.WriteRune(r)
+		}
+	}
+
+	return b.String()
 }
 
 // JSONFieldName returns the JSON field name for a struct field, respecting
