@@ -10,7 +10,6 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit"
@@ -59,7 +58,6 @@ type duckdbEngine struct {
 	db          *sql.DB
 	persistence metaengine.Persistence
 	mu          sync.Mutex
-	activeTx    atomic.Pointer[sql.Tx] // non-nil inside RunInTx
 	took        bool                   // closed flag
 	plans       map[string]metaengine.LayoutPlan
 	layoutMu    sync.RWMutex
@@ -200,7 +198,7 @@ func (e *duckdbEngine) MapSet(ctx context.Context, col string, key any, value an
 		return fmt.Errorf("duckdbengine.MapSet: marshal value: %w", err)
 	}
 
-	_, err = e.conn().ExecContext(
+	_, err = e.conn(ctx).ExecContext(
 		ctx,
 		`INSERT INTO meta_map (collection, key, value)
 		 VALUES ($1, $2, $3)
@@ -221,7 +219,7 @@ func (e *duckdbEngine) MapGet(ctx context.Context, col string, key any) (any, bo
 
 	var raw string
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		`SELECT value FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
@@ -247,7 +245,7 @@ func (e *duckdbEngine) MapDelete(ctx context.Context, col string, key any) error
 		return e.mapDeletePlanned(ctx, plan, key)
 	}
 
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		`DELETE FROM meta_map WHERE collection = $1 AND key = $2`,
 		col, fmt.Sprint(key),
@@ -312,7 +310,7 @@ func (e *duckdbEngine) counterIncrementChunk(
 	// A multi-row VALUES upsert relies on the caller's delta map having
 	// unique keys — a duplicate target row within one statement is a
 	// DuckDB ON CONFLICT error, not a second increment.
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		`INSERT INTO meta_counter (collection, key, value)
 		 VALUES `+strings.Join(placeholders, ", ")+`
@@ -327,7 +325,7 @@ func (e *duckdbEngine) counterIncrementChunk(
 }
 
 func (e *duckdbEngine) CounterGet(ctx context.Context, col string) (map[string]int64, error) {
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT key, value FROM meta_counter WHERE collection = $1`,
 		col,

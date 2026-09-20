@@ -28,13 +28,13 @@ func (e *duckdbEngine) MapScan(
 		// closure-based fallback) must read from it, not meta_map — the same
 		// visibility contract D3 slice 2 enforced on the SQL engines.
 		if plan, ok := e.plans[collection]; ok {
-			return e.conn().QueryContext(
+			return e.conn(ctx).QueryContext(
 				ctx,
 				"SELECT key, value FROM "+metaengine.QuoteIdent(plan.Table),
 			)
 		}
 
-		return e.conn().QueryContext(
+		return e.conn(ctx).QueryContext(
 			ctx,
 			`SELECT key, value FROM meta_map WHERE collection = $1`,
 			collection,

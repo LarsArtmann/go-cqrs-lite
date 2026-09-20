@@ -76,7 +76,7 @@ func (e *duckdbEngine) VectorInsert(
 	//art-dupl:accept dep-isolated dialect twin (pgengine/sqliteengine vector.go)
 	var established int
 
-	err := e.conn().QueryRowContext(ctx,
+	err := e.conn(ctx).QueryRowContext(ctx,
 		"SELECT len(vec) FROM meta_vector WHERE collection = ? LIMIT 1", collection).
 		Scan(&established)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -106,7 +106,7 @@ func (e *duckdbEngine) VectorInsert(
 		metaJSON = string(data)
 	}
 
-	if _, err := e.conn().ExecContext(ctx, vectorInsertSQL,
+	if _, err := e.conn(ctx).ExecContext(ctx, vectorInsertSQL,
 		collection, emb.ID, string(vecJSON), metaJSON,
 	); err != nil {
 		return fmt.Errorf("duckdbengine.VectorInsert: %w", err)
@@ -133,7 +133,7 @@ func (e *duckdbEngine) VectorSearch(
 		return nil, fmt.Errorf("duckdbengine.VectorSearch: marshal query: %w", err)
 	}
 
-	rows, err := e.conn().QueryContext(ctx,
+	rows, err := e.conn(ctx).QueryContext(ctx,
 		"SELECT id, "+duckdbDistanceExpr(metric, len(query))+" AS d FROM meta_vector "+
 			"WHERE collection = ? ORDER BY d LIMIT ?",
 		string(queryJSON), collection, k)
@@ -174,7 +174,7 @@ func (e *duckdbEngine) VectorSearchFiltered(
 	metric string,
 	filters []metaengine.VectorFilter,
 ) ([]metaengine.VectorResult, error) {
-	rows, err := e.conn().QueryContext(ctx,
+	rows, err := e.conn(ctx).QueryContext(ctx,
 		"SELECT id, CAST(vec AS VARCHAR), CAST(metadata AS VARCHAR) "+
 			"FROM meta_vector WHERE collection = ?", collection)
 	if err != nil {
@@ -254,7 +254,7 @@ func (e *duckdbEngine) VectorCount(ctx context.Context, collection string) (int6
 	//art-dupl:accept dep-isolated dialect twin (mysqlengine/pgengine VectorCount)
 	var n int64
 
-	err := e.conn().QueryRowContext(ctx,
+	err := e.conn(ctx).QueryRowContext(ctx,
 		"SELECT COUNT(*) FROM meta_vector WHERE collection = ?", collection).Scan(&n)
 	if err != nil {
 		return 0, fmt.Errorf("duckdbengine.VectorCount: %w", err)
@@ -267,7 +267,7 @@ func (e *duckdbEngine) VectorCount(ctx context.Context, collection string) (int6
 // Implements the enumeration member of [metaengine.VectorCounter].
 func (e *duckdbEngine) VectorCollections(ctx context.Context) ([]string, error) {
 	//art-dupl:accept dep-isolated dialect twin (mysqlengine VectorCollections)
-	rows, err := e.conn().QueryContext(ctx, "SELECT DISTINCT collection FROM meta_vector")
+	rows, err := e.conn(ctx).QueryContext(ctx, "SELECT DISTINCT collection FROM meta_vector")
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.VectorCollections: %w", err)
 	}

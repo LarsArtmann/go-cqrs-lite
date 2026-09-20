@@ -270,7 +270,7 @@ func (e *duckdbEngine) scanScalar(
 ) (float64, error) {
 	var raw any
 
-	if err := e.conn().QueryRowContext(ctx, query, args...).Scan(&raw); err != nil {
+	if err := e.conn(ctx).QueryRowContext(ctx, query, args...).Scan(&raw); err != nil {
 		return 0, fmt.Errorf("duckdbengine.Aggregate %s %s(%s): %w", col, fn, column, err)
 	}
 
@@ -356,7 +356,7 @@ func (e *duckdbEngine) scanGrouped(
 	query string,
 	args []any,
 ) (map[string]float64, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
 	}
@@ -482,7 +482,7 @@ func (e *duckdbEngine) scanMulti(
 ) (map[string]float64, error) {
 	return metaengine.MultiAggregateScan(
 		ctx,
-		e.conn(),
+		e.conn(ctx),
 		query,
 		args,
 		specs,
@@ -598,7 +598,7 @@ func (e *duckdbEngine) scanMultiGrouped(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
-	rows, err := e.conn().QueryContext(ctx, query, args...)
+	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.MultiGroupedAggregate: %w", err)
 	}
@@ -681,7 +681,7 @@ func (e *duckdbEngine) distinctStandard(
 
 	return metaengine.ScanDistinctValues(
 		ctx,
-		e.conn(),
+		e.conn(ctx),
 		b.String(),
 		args,
 		"duckdbengine.DistinctValues",
@@ -714,7 +714,7 @@ func (e *duckdbEngine) distinctPlanned(
 
 	return metaengine.ScanDistinctValues(
 		ctx,
-		e.conn(),
+		e.conn(ctx),
 		b.String(),
 		args,
 		"duckdbengine.DistinctValues",

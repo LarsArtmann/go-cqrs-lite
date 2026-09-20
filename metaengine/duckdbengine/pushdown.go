@@ -90,7 +90,7 @@ func (e *duckdbEngine) PushdownMapScan(
 		fmt.Fprintf(&b, ` LIMIT %d`, limit+1)
 	}
 
-	rows, err := scanDuckDBJSONValues(ctx, e.conn(), b.String(), args...)
+	rows, err := scanDuckDBJSONValues(ctx, e.conn(ctx), b.String(), args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}

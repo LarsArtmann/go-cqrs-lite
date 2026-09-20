@@ -32,7 +32,7 @@ func (e *duckdbEngine) MapScanKeyValues(
 		cursorArg = fmt.Sprint(cursor)
 	}
 
-	rows, err := e.conn().QueryContext(
+	rows, err := e.conn(ctx).QueryContext(
 		ctx,
 		`SELECT key, value FROM meta_map
 		 WHERE collection = $1 AND ($2::VARCHAR IS NULL OR key > $2)

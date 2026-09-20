@@ -69,7 +69,7 @@ func (e *duckdbEngine) applyLayoutPlanLocked(
 		return nil
 	}
 
-	if _, err := e.conn().ExecContext(ctx, plan.DDL()); err != nil {
+	if _, err := e.conn(ctx).ExecContext(ctx, plan.DDL()); err != nil {
 		return fmt.Errorf("duckdbengine.ApplyLayoutPlan: create table %s: %w", plan.Table, err)
 	}
 
@@ -138,7 +138,7 @@ func (e *duckdbEngine) mapSetPlanned(
 		strings.Join(setCols, ", "),
 	)
 
-	if _, err := e.conn().ExecContext(ctx, query, args...); err != nil {
+	if _, err := e.conn(ctx).ExecContext(ctx, query, args...); err != nil {
 		return fmt.Errorf("duckdbengine.mapSetPlanned: %w", err)
 	}
 
@@ -152,7 +152,7 @@ func (e *duckdbEngine) mapGetPlanned(
 ) (any, bool, error) {
 	var raw string
 
-	err := e.conn().QueryRowContext(
+	err := e.conn(ctx).QueryRowContext(
 		ctx,
 		fmt.Sprintf("SELECT value FROM %s WHERE key = $1", metaengine.QuoteIdent(plan.Table)),
 		fmt.Sprint(key),
@@ -178,7 +178,7 @@ func (e *duckdbEngine) mapDeletePlanned(
 	plan metaengine.LayoutPlan,
 	key any,
 ) error {
-	_, err := e.conn().ExecContext(
+	_, err := e.conn(ctx).ExecContext(
 		ctx,
 		fmt.Sprintf("DELETE FROM %s WHERE key = $1", metaengine.QuoteIdent(plan.Table)),
 		fmt.Sprint(key),
@@ -200,7 +200,7 @@ func (e *duckdbEngine) pushdownMapScanPlanned(
 ) (metaengine.ScanResult, error) {
 	query, args := buildPlannedSelectQuery(plan, filters, sort, cursor, limit)
 
-	rows, err := scanDuckDBJSONValues(ctx, e.conn(), query, args...)
+	rows, err := scanDuckDBJSONValues(ctx, e.conn(ctx), query, args...)
 	if err != nil {
 		return metaengine.ScanResult{}, err
 	}

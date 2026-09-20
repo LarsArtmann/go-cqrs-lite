@@ -40,7 +40,7 @@ func (e *duckdbEngine) GraphAddEdge(
 	const q = `INSERT INTO meta_graph_edges (collection, from_node, to_node)
 VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`
 
-	if _, err := e.conn().
+	if _, err := e.conn(ctx).
 		ExecContext(ctx, q, col, encodeNodeKey(edge.From), encodeNodeKey(edge.To)); err != nil {
 		return fmt.Errorf("duckdbengine.GraphAddEdge: %w", err)
 	}
@@ -62,7 +62,7 @@ func (e *duckdbEngine) GraphNeighbors(
 
 	start := encodeNodeKey(node)
 
-	rows, err := e.conn().QueryContext(ctx, duckGraphNeighborsCTE, col, start, depth)
+	rows, err := e.conn(ctx).QueryContext(ctx, duckGraphNeighborsCTE, col, start, depth)
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.GraphNeighbors: %w", err)
 	}
