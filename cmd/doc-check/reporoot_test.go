@@ -12,8 +12,6 @@ import (
 // and a regression here silently mis-resolves every alias dir — the 12-16
 // relative-path fix class).
 func TestFindRepoRootFromPath_RelativePaths(t *testing.T) {
-	t.Parallel()
-
 	tmp := t.TempDir()
 	// Simulate a repo: <tmp>/repo/.git + a nested docs dir.
 	repo := filepath.Join(tmp, "repo")

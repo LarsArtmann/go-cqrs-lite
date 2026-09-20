@@ -20,6 +20,7 @@
 //
 // Both engines must stay in sync on these key shapes — they share the same
 // on-disk layout so that migration between engines is lossless.
+
 package keycodec
 
 import (

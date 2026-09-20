@@ -29,6 +29,7 @@
 //
 //	PG_NsPerOp   = 12_000  (INSERT UPSERT with JSONB encode + WAL fsync)
 //	PG_NsPerRead =  5_000  (indexed SELECT + JSONB decode + B-tree cache)
+
 package pgengine
 
 import (

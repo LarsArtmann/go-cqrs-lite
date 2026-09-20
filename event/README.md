@@ -72,7 +72,7 @@ type Bus interface {
 | `Event`           | `*ImmutableEvent` (concrete alias): Type, StreamID, Version, Payload, Metadata      |
 | `Version`         | Strong-typed event version with Add/Sub/Cmp arithmetic                              |
 | `Type`            | Event type string (alias of `record.Type`)                                          |
-| `StreamType`      | Aggregate/stream type string (`AggregateType` is a compat alias)                    |
+| `StreamType`      | Aggregate/stream type string (`AggregateType` is a deprecated compat alias)          |
 | `SchemaVersion`   | Event schema version for upcasting                                                  |
 | `Metadata`        | CorrelationID, CausationID, UserID, RequestID, Source, IPAddress, UserAgent, Custom |
 | `Checkpoint`      | EventID + ProcessedAt for projection checkpointing                                  |

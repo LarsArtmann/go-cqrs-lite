@@ -6,7 +6,7 @@ Benchmarks proving the `Bundle` composition layer is zero-overhead: accessing st
 
 ## Why?
 
-The `stack.Bundle` is a struct of interface fields. Consumers access stores via `bundle.EventStore()`, `bundle.Repository(d)`, etc. These benchmarks verify that the indirection through the Bundle costs nothing at runtime — the compiler inlines field access, so there is zero overhead.
+The `stack.Bundle` (deprecated — removed in v5, ADR-0123) is a struct of interface fields. Consumers access stores via `bundle.EventStore()`, `bundle.Repository(d)`, etc. These benchmarks verify that the indirection through the Bundle costs nothing at runtime — the compiler inlines field access, so there is zero overhead.
 
 ## Usage
 

@@ -13,6 +13,7 @@
 //
 // This module exists OUTSIDE the zero-dependency metaengine core (ADR-0062)
 // because it requires the go.etcd.io/bbolt dependency.
+
 package bboltengine
 
 import (

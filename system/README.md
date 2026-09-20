@@ -13,7 +13,8 @@ go get github.com/larsartmann/go-cqrs-lite/system/v4
 
 ## Why?
 
-`stack.Bundle` is a bag of peer capability fields — flexible, but the consumer
+`stack.Bundle` (deprecated — removed in v5, ADR-0123) is a bag of peer
+capability fields — flexible, but the consumer
 must wire them together manually. `system` goes further: the consumer declares
 domain intent (deciders, commands, queries, projections), the operator declares
 infrastructure (engines, bus, durability), and `System.New` wires everything

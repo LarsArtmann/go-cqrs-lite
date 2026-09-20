@@ -12,6 +12,7 @@
 //
 // Attach merges with any hooks already configured on the store, so a
 // metrics recorder (metaengine.WithMetrics) and this observer compose.
+
 package otelobserver
 
 import (

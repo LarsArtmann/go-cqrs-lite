@@ -14,6 +14,7 @@
 // to one cell collapse last-writer-wins (documented in ADR-0141 §1).
 //
 // Tests run against the in-process bttest fake — no emulator binary needed.
+
 package bigtableengine
 
 import (

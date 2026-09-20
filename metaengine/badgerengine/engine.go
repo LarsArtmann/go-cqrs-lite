@@ -11,6 +11,7 @@
 //
 // This module exists OUTSIDE the zero-dependency metaengine core (ADR-0062)
 // because it requires the dgraph-io/badger/v4 dependency.
+
 package badgerengine
 
 import (

@@ -87,8 +87,8 @@ err := repo.ExecuteCommandRef(ctx, id.NewStreamRef("Counter", aggID), IncrementC
 ## Design
 
 - **Pure functions**: `DecideFunc` and `Apply` have no side effects. State transitions are deterministic and testable.
-- **Singleflight load coalescing**: Concurrent `Load` calls for the same aggregate coalesce into one `store.Load` query. Events are immutable, so sharing is safe. Disable via `WithLoadCoalescing(false)`.
-- **Hot-state cache**: `NewStateCache[State](256)` enables incremental loads. On cache hit: `LoadFromVersion(cachedVer)` + fold delta. On miss: full `Load` + cache populate.
+- **Singleflight load coalescing**: Concurrent loads for the same aggregate coalesce into one `store.Load` query. Events are immutable, so sharing is safe. Disable via `WithLoadCoalescing(false)`.
+- **Hot-state cache**: `NewStateCache[State](256)` enables incremental loads. On cache hit: `LoadFromVersion(cachedVer)` + fold delta. On miss: full replay + cache populate.
 - **Snapshot strategies**: `EveryNEvents(n)` snapshots every N events. `NewReadPressure(loads)` snapshots after N loads + next write. Combine both with `WithInnerStrategy`.
 - **Version-based optimistic concurrency**: The repository stamps each new event with the expected version, preventing concurrent writes from corrupting state.
 

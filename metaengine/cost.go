@@ -13,6 +13,7 @@
 // between two engines with similar profiles. Re-run calibration benchmarks on
 // the target hardware before trusting absolute latency estimates; relative
 // rankings are more stable.
+
 package metaengine
 
 import (

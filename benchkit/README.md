@@ -6,7 +6,8 @@ Factory-driven benchmarking suite for go-cqrs-lite Bundle presets — the
 performance equivalent of `stack/contracttest`.
 
 A deployer provides a `Factory` (a function returning a fresh
-`*stack.Bundle`), and benchkit runs realistic write, read, read-model, and
+`*stack.Bundle` — the deprecated v1 composition root, removed in v5), and
+benchkit runs realistic write, read, read-model, and
 projection workloads while collecting latency percentiles, throughput,
 memory deltas, and storage footprint.
 

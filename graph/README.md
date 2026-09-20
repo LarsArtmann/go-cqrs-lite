@@ -16,9 +16,12 @@ go get github.com/larsartmann/go-cqrs-lite/graph/v4
 
 | Read pattern                                                | Tier                                        |
 | ----------------------------------------------------------- | ------------------------------------------- |
-| Get/Lookup by ID, list all                                  | `kv.ViewStore[V,K]` + `stack.Materialize`   |
-| Filtered/ordered/paginated lists, counts, stats             | `storage.RelationalProjection` + `Row` sink |
-| **N-hop traversal, recursive relationships, graph queries** | **`graph.GraphProjection`**                 |
+| Get/Lookup by ID, list all                                  | `kv.ViewStore[V,K]` + `stack.Materialize` (deprecated — removed in v5) |
+| Filtered/ordered/paginated lists, counts, stats             | `storage.RelationalProjection` + `Row` sink (removed in v5) |
+| **N-hop traversal, recursive relationships, graph queries** | **`graph.GraphProjection`** (deprecated — removed in v5) |
+
+> **v5:** all three v1 read-model tiers above are deleted by ADR-0123;
+> metaengine auto-projection is the only consumer-facing read-model API.
 
 ## Scope: writes portable, reads native
 
@@ -73,7 +76,8 @@ _ = proj.Handle(ctx, evt)
 
 ## Atomicity
 
-`GraphProjection.Handle` runs the handler inside a single driver transaction.
+`GraphProjection.Handle` (deprecated — removed in v5, ADR-0123) runs the
+handler inside a single driver transaction.
 All sink writes commit atomically when the handler returns nil and roll back
 when it returns an error. A real graph database's transaction (Neo4j, Memgraph)
 provides the same guarantee as the in-memory `MemoryDriver`, which snapshots
@@ -82,7 +86,8 @@ the graph on Begin and swaps it back only on commit.
 ## Schema validation (opt-in)
 
 A `graph.Schema` declares node types, edge types, and their properties. When
-attached to a projection (`WithSchema`) or driver (`WithDriverSchema`), the
+attached to a driver (`WithDriverSchema`; the projection-level `WithSchema`
+is deprecated — removed in v5 with `GraphProjection`), the
 sink rejects writes with unknown labels, unknown properties, or edge endpoint
 mismatches before they hit the graph — catching the most common projection
 bug: a typo that silently creates a phantom node.

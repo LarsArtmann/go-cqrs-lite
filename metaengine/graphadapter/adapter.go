@@ -6,6 +6,7 @@
 // (Profile + Close) with GraphAddEdge + GraphNeighbors methods for graph
 // dispatch. Simple Edge{From, To} folds from planner queries are synthesized
 // into graph.MergeEdge calls with auto-created NodeRefs.
+
 package graphadapter
 
 import (

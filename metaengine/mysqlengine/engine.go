@@ -17,6 +17,7 @@
 //   - JSON access: value->'$.field' (not value->'field')
 //   - Text columns: VARCHAR(255) for PRIMARY KEY (MySQL can't index TEXT)
 //   - Reserved word `key` escaped with backticks
+
 package mysqlengine
 
 import (

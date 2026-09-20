@@ -23,6 +23,7 @@
 // Sync configuration is handled at the connection level via the DSN. The
 // metaengine Engine interface does not expose sync operations — they are
 // managed by the operator through the Turso CLI or API.
+
 package tursoengine
 
 import (

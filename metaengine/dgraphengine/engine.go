@@ -15,6 +15,7 @@
 // Point-lookup benchmarks estimate ~10K ns/op (write) and ~8K ns/op (read)
 // for a same-datacenter deployment. Dgraph uses single-leader replication
 // per group (RAFT), so all writes go through the group leader.
+
 package dgraphengine
 
 import (

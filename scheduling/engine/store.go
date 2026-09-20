@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -73,6 +74,13 @@ func WithLease(d time.Duration) Option {
 	}
 }
 
+// ErrEngineNotDueClaimer reports NewTimerStore's rejection of an engine
+// without the ADR-0142 due-claim capability. Check
+// metaengine.SupportsDueClaims first when the engine is operator-supplied.
+var ErrEngineNotDueClaimer = errors.New(
+	"scheduling/engine: engine does not implement metaengine.DueClaimer (ADR-0142 capability)",
+)
+
 // NewTimerStore adapts any engine implementing [metaengine.DueClaimer] into
 // a [scheduling.TimerStore]. Engines without the capability are rejected —
 // check metaengine.SupportsDueClaims(eng) first when the engine is
@@ -80,10 +88,7 @@ func WithLease(d time.Duration) Option {
 func NewTimerStore[P any](eng metaengine.Engine, opts ...Option) (*TimerStore[P], error) {
 	claims, ok := eng.(metaengine.DueClaimer)
 	if !ok {
-		return nil, fmt.Errorf(
-			"scheduling/engine: engine %s does not implement metaengine.DueClaimer (ADR-0142 capability)",
-			eng.Profile().Name,
-		)
+		return nil, fmt.Errorf("%w: %s", ErrEngineNotDueClaimer, eng.Profile().Name)
 	}
 
 	cfg := config{collection: "timers", owner: "scheduler", lease: DefaultLease}
@@ -96,6 +101,7 @@ func NewTimerStore[P any](eng metaengine.Engine, opts ...Option) (*TimerStore[P]
 		collection: cfg.collection,
 		owner:      cfg.owner,
 		lease:      cfg.lease,
+		mu:         sync.Mutex{},
 		epochs:     map[string]time.Time{},
 	}, nil
 }
@@ -128,6 +134,7 @@ func (s *TimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Ti
 			Collection: s.collection,
 			Owner:      s.owner,
 			Lease:      s.lease,
+			Limit:      metaengine.DefaultClaimLimit,
 			Now:        now,
 		})
 		if err != nil {

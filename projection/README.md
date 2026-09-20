@@ -2,7 +2,7 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/projection/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/projection/v4)
 
-The `Projection` interface: the consumer-side contract for turning events into read models. Implemented by `storage.RelationalProjection`, `graph.GraphProjection`, and `stack.Materialize`.
+The `Projection` interface: the consumer-side contract for turning events into read models. Implemented by `storage.RelationalProjection`, `graph.GraphProjection`, and `stack.Materialize` — all three deprecated and removed in v5 (ADR-0123); metaengine auto-projection replaces them.
 
 ```bash
 go get github.com/larsartmann/go-cqrs-lite/projection/v4
@@ -59,11 +59,11 @@ Events whose type is not in `EventTypes()` are silently skipped by the projectio
 
 - **Type filter is a contract**: `EventTypes()` tells the projection runner which events to deliver. Events outside the filter never reach `Handle`.
 - **Clone-safe**: `NewProjection` clones the event-type slice so callers can safely mutate their original after construction.
-- **Implementations**: `storage.RelationalProjection` (multi-table SQL), `graph.GraphProjection` (nodes + edges), `stack.Materialize` (KV documents).
+- **Implementations**: `storage.RelationalProjection` (multi-table SQL), `graph.GraphProjection` (nodes + edges), `stack.Materialize` (KV documents) — all deprecated and removed in v5 (ADR-0123).
 
 ## Related Modules
 
 - [**projectionhost**](../projectionhost/README.md) — Managed lifecycle: registers projections, drives them from a journal with checkpoints and dead-letter queues
-- [**stack**](../stack/README.md) — `Materialize[V,K]` implements `Projection` for KV-backed read models
-- [**graph**](../graph/README.md) — `GraphProjection` implements `Projection` for traversal-heavy read models
-- [**storage**](../storage/README.md) — `RelationalProjection` implements `Projection` for multi-table SQL projections
+- [**stack**](../stack/README.md) — `Materialize[V,K]` implements `Projection` for KV-backed read models (deprecated — removed in v5)
+- [**graph**](../graph/README.md) — `GraphProjection` implements `Projection` for traversal-heavy read models (deprecated — removed in v5)
+- [**storage**](../storage/README.md) — `RelationalProjection` implements `Projection` for multi-table SQL projections (removed in v5)

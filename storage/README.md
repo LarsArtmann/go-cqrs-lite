@@ -160,7 +160,7 @@ The `storage/sql` subpackage contains shared SQL infrastructure used by all SQL-
 | `SharedInsertEvents`   | Shared event insertion logic               |
 | `SharedCheckpointLoad` | Shared checkpoint read logic               |
 | `SharedEventLoad`      | Shared event scanning logic                |
-| `DeleteByAggregate`    | Shared DELETE implementation               |
+| `DeleteByAggregate`    | Shared DELETE implementation (deprecated: use `DeleteByStream`) |
 
 The subpackage also defines all SQL-level sentinel errors: `ErrNilDB`, `ErrStreamTypeMismatch`, `ErrStreamIDMismatch`, `ErrVersionMismatch`, `ErrConcurrencyConflict`, `ErrUnsupportedTimestamp`, `ErrUnexpectedTimeType`.
 
