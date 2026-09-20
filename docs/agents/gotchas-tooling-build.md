@@ -82,3 +82,16 @@
   `go list` dies on go.work's 1.27.1 requirement, reads as "proxy does not
   serve" for ~2 minutes). Run smokes with `GOTOOLCHAIN=auto` (2026-09-20);
   the probe already clears GOFLAGS/GOPRIVATE but not GOTOOLCHAIN.
+- **`grep -q` + `set -o pipefail` turns success into SIGPIPE failure**
+  (2026-09-20): `producer | grep -q needle` lets grep exit on first match;
+  a producer with more output to write dies with rc=141, and pipefail makes
+  that the pipeline's status — `if ! producer | grep -q …` then enters the
+  FAILURE branch on a successful match. Gate self-tests must capture output
+  first (`out="$(producer)" || true; grep -q … <<<"$out"`), never race a
+  pipe against `grep -q`. Bit the check-readme-deprecated self-test leg 1.
+- **GNU sed 4.10: `"${n}i\\"` is a silent no-op** (2026-09-20): in double
+  quotes the script text arrives as `16i\` which inserts NOTHING (and still
+  rewrites the file — mtime moves, so the edit "looks done"); the working
+  one-line forms are single-quoted `'16i\\'` or double-quoted `"${n}i\\\\"`.
+  A 12-file sweep silently no-op'd this way and was caught only by
+  re-verifying line content (never trust rc alone for sed -i).
