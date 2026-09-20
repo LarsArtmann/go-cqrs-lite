@@ -228,37 +228,37 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 - ~~[ ] [BLOCKED] 🔥 **Next v4 tag wave**~~ done 2026-09-19 21:08–21:45 — the 92-tag train (B0–B6): every listed surface published, incl. `watermill/v4.6.1` (issue-#21 typed causation; the go-localsync workaround can die), `otel/v4.5.0` (DBSystem) cut BEFORE `storage/v4.10.0` (B2 before B3, ordering honored), `cmd/cqrs-lint/v4.12.0`, `cmd/api-stability/v4.4.0`, engine re-calibrations, `scheduling/sqlstore/v4.1.0`, `system/v4.8.0` (matview + coeffect gate). Tags verified replace-free with coherent pins.<br>**Original:** substantial unpublished surfaces on master: `encryption` (key helpers + envelope v2), `snapshot` (`NewRewritingTransformedStore` + wire tags), `storage` (`MigrateSnapshotColumnsToStream`, EventSchema re-exports, bytea fix), `cmd/cqrs-lint` (working `--fix`, C005, RULES.md, doctor JSON, scorecard panel, preset policy), `cmd/api-stability` (sub-package golden), `catalog`, `benchkit` (system harness), `metaengine` (planner capability partition, record context, `SortPaginate[T]`, planned-table parity, matview family) + engines (irohengine v4.2.0 for the pin repair, mysqlengine, pgengine, sqliteengine, duckdbengine, dgraphengine recalibration, badgerengine — now consumes new `metaengine.SortPaginate`, pin bump + replace-strip REQUIRED), `scheduling/sqlstore` (MySQL claiming), `watermill` (**v4.7.0 — the issue-#21 typed-causation wire protocol: `writeCausation`/`parseCausation` + legacy custom-mirror promotion, landed 2026-09-09 and STILL UNTAGGED**; go-localsync runs its documented workaround until this tag exists), `system` (v4.7.0: materialized views + the MV recipe's UNRELEASED marker flips when tagged). **Strip `storage/go.mod`'s two local replaces in the same wave.** **NEW 2026-09-16 preconditions:** (1) re-tag `otel/v4` carrying `DBSystem` BEFORE any storage/v4 tag — the published storage would otherwise reference an unpublished symbol (broken for consumers until otel re-tags); (2) the wave also strips the newer sibling replaces: `cmd/cqrs-bench => ../../benchkit` (statistical-rigor APIs: `RunRepeated`, `MetricVariation`, `WriteBenchstatRepeated`), `queue/sqlite` + `queue/postgres => ../queue`, `commandlifecycle/projections`, and bumps `metaengine` (`Store.StreamCollection`) + `commandlifecycle/projections` (`CommandsByActor`). Order constraints per CONTRIBUTING pre-tag checklist; cut→push→next interleave (GOPRIVATE resolves siblings via VCS). — source: 08-26 §c3, 15-09 §f47, SUPERB §f14-16; 08-04 §b5 + 02-09 §f3 + 09-35 §f18 (2026-09-16 additions) _(Effort: M)_
 - ~~[ ] **Tag `cmd/cqrs-lint` v4.10.2 (ships the buildinfo version reporting)**~~
-      done 2026-09-19 — superseded by `cmd/cqrs-lint/v4.12.0` in the 92-tag
-      train (buildinfo version reporting rides it; smoke probe covers the
-      installed binary).<br>**Original:** on master since 2026-09-11;
-      v4.10.1 deliberately predates it. Verify the
-      installed binary prints the real tag after `go install …@v4.10.2`. —
-      source: 01-47 §b1/§f5 _(Effort: S)_
+  done 2026-09-19 — superseded by `cmd/cqrs-lint/v4.12.0` in the 92-tag
+  train (buildinfo version reporting rides it; smoke probe covers the
+  installed binary).<br>**Original:** on master since 2026-09-11;
+  v4.10.1 deliberately predates it. Verify the
+  installed binary prints the real tag after `go install …@v4.10.2`. —
+  source: 01-47 §b1/§f5 _(Effort: S)_
 - ~~[ ] **`check-retracts-shipped.sh`**~~ done — script exists, wired, green
-      2026-09-19 (5 modules with retracts checked); the clean-dir `go list -m
+  2026-09-19 (5 modules with retracts checked); the clean-dir `go list -m
       module@latest` acceptance ran green for 10 key modules post-train.<br>**Original:**
-      fail when a master go.mod retract
-      directive is absent from the module's newest tag (the inert-retract
-      class: `retract v4.8.0` sat on master ~10 days before v4.10.1 shipped
-      it). Acceptance test for every retract = clean-dir `go list -m
+  fail when a master go.mod retract
+  directive is absent from the module's newest tag (the inert-retract
+  class: `retract v4.8.0` sat on master ~10 days before v4.10.1 shipped
+  it). Acceptance test for every retract = clean-dir `go list -m
       module@latest`. — source: 01-47 §d3/§e1/§f6
-      _(Effort: S)_
+  _(Effort: S)_
 - ~~[ ] **`tag-release.sh --audit --baseline` mode**~~ done — mode +
-      `#check-tag-audit` CI leg exist; 2026-09-19 post-train audit: 24 known
-      violations, 0 NEW, 0 fixed (1175 tags checked).<br>**Original:** the one-shot audit found
-      24 historical violations (1078 tags), all in dead paths that cannot be
-      fixed; a known-violations baseline (art-dupl pattern) turns `--audit
+  `#check-tag-audit` CI leg exist; 2026-09-19 post-train audit: 24 known
+  violations, 0 NEW, 0 fixed (1175 tags checked).<br>**Original:** the one-shot audit found
+  24 historical violations (1078 tags), all in dead paths that cannot be
+  fixed; a known-violations baseline (art-dupl pattern) turns `--audit
       --check` into a CI leg gating NEW violations only. — source: 01-47
-      §b3/§f7
-      _(Effort: S/M)_
+  §b3/§f7
+  _(Effort: S/M)_
 - ~~[ ] **`scripts/smoke-probes.txt` + strengthen test-tag-release.sh Test 5**~~
-      done — smoke-probes.txt exists (12 lines, explicit per-CLI probes) and
-      Test 5's lib suite covers the no-main skip path ("library module takes
-      the no-main skip path" ✓).<br>**Original:**
-      per-binary probe command for the `--smoke` run check (`--help` exit
-      semantics differ across CLIs); Test 5 covers the `--smoke` usage guard,
-      not the no-main-package skip path. — source: 01-47 §b4/§b5/§f11/§f12
-      _(Effort: S)_
+  done — smoke-probes.txt exists (12 lines, explicit per-CLI probes) and
+  Test 5's lib suite covers the no-main skip path ("library module takes
+  the no-main skip path" ✓).<br>**Original:**
+  per-binary probe command for the `--smoke` run check (`--help` exit
+  semantics differ across CLIs); Test 5 covers the `--smoke` usage guard,
+  not the no-main-package skip path. — source: 01-47 §b4/§b5/§f11/§f12
+  _(Effort: S)_
 - [ ] [BLOCKED] **Dead-path module/tag decisions (owner)** — (a)
       ~~example/taskmanager + example/getting-started carry suffix-less module
       paths with permanently-invisible v3/v4 tags: re-path to /v4, delete, or
@@ -270,28 +270,28 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       document as dead in modules.md + pin-sweep note. — source: 01-47 §c1/§f9/§f10
       _(Effort: M decision + S doc)_
 - ~~[ ] **Create GitHub Releases** for the outstanding tags~~ done 2026-09-19
-      — 92 releases created for the train (152 repo total);
-      `create-github-releases.sh` extended to match train-section headers
-      (bounded-token match, newest section first, trimmed body + CHANGELOG
-      pointer like the 09-08 precedent) with `--dry-run`; all 92 extracted,
-      bogus tags skip. `gh` auth working. — source: 05-00 §f12
-      _(Effort: S)_
+  — 92 releases created for the train (152 repo total);
+  `create-github-releases.sh` extended to match train-section headers
+  (bounded-token match, newest section first, trimmed body + CHANGELOG
+  pointer like the 09-08 precedent) with `--dry-run`; all 92 extracted,
+  bogus tags skip. `gh` auth working. — source: 05-00 §f12
+  _(Effort: S)_
 - ~~[ ] **Consolidate indirect dep references**~~ done 2026-09-19 — moot:
-      ADR-0128 extracted codec/retry/idempotency/flightrecorder to external
-      repos and the 92-tag train repinned everything; zero
-      `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}` references
-      remain in any go.mod (verified by grep across all 95).<br>**Original:**
-      the transitive
-      `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}/v4` indirect deps
-      in ~49 consumer go.mod files clean up after new tags publish. Track and
-      verify. _(Effort: M)_
+  ADR-0128 extracted codec/retry/idempotency/flightrecorder to external
+  repos and the 92-tag train repinned everything; zero
+  `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}` references
+  remain in any go.mod (verified by grep across all 95).<br>**Original:**
+  the transitive
+  `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}/v4` indirect deps
+  in ~49 consumer go.mod files clean up after new tags publish. Track and
+  verify. _(Effort: M)_
 - ~~[ ] **Run `scripts/pin-sweep.sh --check` as a standing post-release step**~~
-      done 2026-09-19 — the train's cut loop ran per-batch pin-sweeps (commits
-      2a9ccb75a…38c3b4fd4) and the post-wave `--check --remote` is green
-      (local + origin tag sources); `storage/eventstore` is a package inside
-      `storage/v4`, so its pin health is the storage pin coherence the sweep
-      already covers. — source: archived 07-48 §b2/§f2
-      _(Effort: S)_
+  done 2026-09-19 — the train's cut loop ran per-batch pin-sweeps (commits
+  2a9ccb75a…38c3b4fd4) and the post-wave `--check --remote` is green
+  (local + origin tag sources); `storage/eventstore` is a package inside
+  `storage/v4`, so its pin health is the storage pin coherence the sweep
+  already covers. — source: archived 07-48 §b2/§f2
+  _(Effort: S)_
 - [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
@@ -462,6 +462,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
       box is quiet; closes the [x] rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
+
 ---
 
 ## Code Quality
@@ -659,6 +660,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [BLOCKED] **Session-log boundary decision** — memo recommends sessions stay external
   (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
   a concrete audit consumer. — source: [`T18 memo`](docs/planning/archived/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
+
 ---
 
 ## benchkit statistical-rigor tail (2026-09-16)
@@ -937,8 +939,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       authors get silent partial writes today; make the fallback loud or refuse.
       — feedback #3 _(Effort: S)_
 - ~~[ ] **Stamp experimental status in each engine/module `doc.go`**~~ done 2026-09-20 — all 17 metaengine-family modules carry a doc.go package comment with the `# Experimental` doc heading (the section pkg.go.dev renders); stray package comments on cost.go/engine.go consolidated. — feedback #5 _(Effort: S, mechanical)_
-      readers cannot tell 🧪 from ✅ today (FEATURES knows; the godocs don't).
-      — feedback #5 _(Effort: S, mechanical)_
+  readers cannot tell 🧪 from ✅ today (FEATURES knows; the godocs don't).
+  — feedback #5 _(Effort: S, mechanical)_
 
 ## Declined / Rejected (do not re-litigate)
 

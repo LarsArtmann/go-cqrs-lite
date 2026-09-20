@@ -1,5 +1,5 @@
 // Package conformance is the ONE shared suite that holds every queue
-// engine (queue/sqlite, queue/postgres, …) to the contract's
+// engine (queue/sqlite, queue/postgres, queue/mysql) to the contract's
 // semantics. An engine registers the suite with a Harness; there is no
 // second copy to drift:
 //

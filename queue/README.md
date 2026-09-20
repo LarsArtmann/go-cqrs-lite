@@ -68,6 +68,18 @@ store, err := postgres.Open[payload](ctx, dsn, 0) // 0 = pgxpool default MaxConn
 The schema is created on open. Claims use `SELECT ... FOR UPDATE SKIP LOCKED`
 inside a transaction, so any number of workers can poll concurrently.
 
+## Quickstart (MySQL / MariaDB)
+
+```go
+store, err := mysql.Open[payload]("user:pass@tcp(127.0.0.1:3306)/tasks?parseTime=true")
+```
+
+Same shape as Postgres: schema on open (InnoDB — the dedup emulation needs
+a nullable unique index), two-statement `SKIP LOCKED` claims, `BIGINT`
+millisecond timestamps, automatic InnoDB deadlock retry. The engine's own
+suite runs against live MySQL/MariaDB when `MYSQL_TEST_DSN` is set
+(`-race -count=2` green on MariaDB 11.4).
+
 ## The contract in one minute
 
 - **Lifecycle:** `pending → running → completed | dead | cancelled`. Terminal
