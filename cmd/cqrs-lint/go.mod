@@ -4,8 +4,8 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
-	github.com/larsartmann/go-finding v1.11.0
-	github.com/larsartmann/go-finding/pipeline v1.11.0
+	github.com/larsartmann/go-finding v1.12.0
+	github.com/larsartmann/go-finding/pipeline v1.12.0
 	github.com/larsartmann/go-finding/toolsdk v1.11.0
 	github.com/larsartmann/go-output v0.38.0
 	github.com/larsartmann/go-output/delimited v0.38.0

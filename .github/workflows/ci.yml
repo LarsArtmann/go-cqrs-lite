@@ -34,7 +34,11 @@ jobs:
     name: Nix Flake Check
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth 0: nix flake check runs the module tests, including the
+      # api-stability tag-content test that enumerates git tags.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
 
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
@@ -209,7 +213,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      # fetch-depth 0: verify-fast runs TestTagContentMatchesChangelog, which
+      # enumerates git tags - shallow checkouts make it fail with "no module
+      # version tags found in git".
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
 
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 
@@ -226,7 +235,12 @@ jobs:
         module: ${{ fromJSON(needs.discover-modules.outputs.modules) }}
     needs: discover-modules
     steps:
+      # fetch-depth 0: the api-stability module's TestTagContentMatchesChangelog
+      # enumerates git tags; shallow checkouts hard-fail it with "no module
+      # version tags found in git".
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
 
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
 

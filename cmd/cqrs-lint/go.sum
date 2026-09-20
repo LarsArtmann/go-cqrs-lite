@@ -73,10 +73,10 @@ github.com/larsartmann/go-branded-id v0.6.0 h1:bqvJcozqtr8CP7/GWbWqHdYWt2YaIaWZd
 github.com/larsartmann/go-branded-id v0.6.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
 github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
-github.com/larsartmann/go-finding v1.11.0 h1:7FE+x19JvS1EG/un80+V5QgyzPRYHpMsU5HGjCJeXx4=
-github.com/larsartmann/go-finding v1.11.0/go.mod h1:oCnnUf+B9OVHv9grXF5+UpWajhf3wyNVs8Ze71LSDmM=
-github.com/larsartmann/go-finding/pipeline v1.11.0 h1:GUExTTzg3wu+EGcH2FkMkrMg8TecbmLkUFAmYwkU9iI=
-github.com/larsartmann/go-finding/pipeline v1.11.0/go.mod h1:/bLjTlAX37QEuHvaqB6+EDdQEUAFe1E60/gpBACJRWw=
+github.com/larsartmann/go-finding v1.12.0 h1:meOBoZbghWFJDSO5FSQJgP3VyLzfKqhl1X118zGj35s=
+github.com/larsartmann/go-finding v1.12.0/go.mod h1:oCnnUf+B9OVHv9grXF5+UpWajhf3wyNVs8Ze71LSDmM=
+github.com/larsartmann/go-finding/pipeline v1.12.0 h1:6yTdAYs1akGB+B06JrU+ZaXBKQTYP4V5vpTPVeaM0RI=
+github.com/larsartmann/go-finding/pipeline v1.12.0/go.mod h1:xGlNIpqdUnzCH9IPh2BCm3kxv3+oI/P1C2SXTehaNHk=
 github.com/larsartmann/go-finding/toolsdk v1.11.0 h1:CfS4nhhydHCeBYaK0VAwzyWfVEVEcS196VxNcVEf1aQ=
 github.com/larsartmann/go-finding/toolsdk v1.11.0/go.mod h1:LW0X5oOM+BA5+lvRrj4mSHR5B7G3N8QNFj9L4sy2DDw=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
