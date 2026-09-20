@@ -76,9 +76,21 @@ store, err := mysql.Open[payload]("user:pass@tcp(127.0.0.1:3306)/tasks?parseTime
 
 Same shape as Postgres: schema on open (InnoDB — the dedup emulation needs
 a nullable unique index), two-statement `SKIP LOCKED` claims, `BIGINT`
-millisecond timestamps, automatic InnoDB deadlock retry. The engine's own
-suite runs against live MySQL/MariaDB when `MYSQL_TEST_DSN` is set
-(`-race -count=2` green on MariaDB 11.4).
+millisecond timestamps, automatic InnoDB deadlock retry. Pool knobs:
+`mysql.WithMaxOpenConns[payload](16)` (default 8) and
+`mysql.WithMaxIdleConns[payload](0..n)` (default 2).
+
+The engine's own suite resolves its server via `MYSQL_TEST_DSN`, a local
+Docker MariaDB 11.4 (`testutil/mysqltestcontainer`), or skips when neither
+is available (`-race -count=2` green on MariaDB 11.4).
+
+Deadlock scope: only `ClaimDue` retries deadlocks internally (bounded,
+backoff+jitter) — claims are the one constant-contention path. Enqueue and
+the finalize calls surface a rare deadlock to the caller instead, whose
+retry is safe: `Enqueue` is idempotent under its `DedupKey` (keyless
+enqueues are deliberately non-idempotent) and every finalize is
+token-fenced (a retry either lands or reports `ErrLeaseNotHeld` after a
+theft).
 
 ## The contract in one minute
 
@@ -129,3 +141,24 @@ func TestConformance(t *testing.T) {
     })
 }
 ```
+
+### MySQL reality notes
+
+Dialect traps found and handled in the MySQL engine (worth knowing when
+porting further engines or debugging live):
+
+- **No multi-statement DDL by default**: the schema is applied one
+  statement at a time (`schemaStmts` slice) so the DSN never needs
+  `multiStatements=true`.
+- **Strict mode inserts**: strict-mode servers reject implicit defaults —
+  the nullable `last_error LONGTEXT NOT NULL` column gets an explicit
+  `''` in the INSERT.
+- **InnoDB deadlocks under concurrent claims are normal** for the
+  two-statement `SKIP LOCKED` pattern; `ClaimDue` retries them internally
+  (3 retries, 25ms→200ms full-jitter backoff). See the deadlock-scope note
+  in the MySQL quickstart above for why enqueue/finalize do not retry.
+- **Testing**: set `MYSQL_TEST_DSN` (server DSN, e.g.
+  `root@tcp(127.0.0.1:3306)/?parseTime=true`) — every subtest creates a
+  throwaway database on that server. Without the env var, the suite boots
+  a local Docker MariaDB 11.4 via `testutil/mysqltestcontainer`, and skips
+  when neither is available or under `-short`.

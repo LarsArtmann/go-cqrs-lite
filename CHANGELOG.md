@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **queue/mysql: pool options + deadlock backoff+jitter.** `WithMaxOpenConns[T]`
+  / `WithMaxIdleConns[T]` store options give the MySQL engine the same
+  maxConns knob `queue/postgres.Open` has (defaults unchanged: 8 open,
+  2 idle); both only affect pools `Open` creates — `OpenDB` callers keep
+  their own pool settings. The `ClaimDue` InnoDB deadlock retry now waits
+  between attempts with bounded exponential full-jitter backoff
+  (25ms→200ms, 3 retries) so racing workers stop re-colliding in lockstep,
+  and a canceled context aborts the retry loop instead of burning it. The
+  retry scope stays ClaimDue-only by design (documented in the package doc
+  and README): enqueue/finalize deadlocks surface to the caller, whose
+  retry is safe under DedupKey idempotency and token fencing.
+- **testutil/mysqltestcontainer: the pgtestcontainer pattern for MySQL.**
+  Resolves a server DSN by priority — `MYSQL_TEST_DSN` (CI / nix legs,
+  never boots a container) > local Docker MariaDB 11.4 testcontainer >
+  skip (also under `-short`). `queue/mysql`'s conformance and engine tests
+  consume it, so a plain `go test ./...` with Docker now runs the full
+  third-dialect parity bar without any environment setup.
 - **record: `DeferClose` (ADR-0144).** The discard-close idiom
   (`defer record.DeferClose(x)` replacing the verbose func-wrapped
   discard-close statement) now lives at Tier 0, so leaf storage
