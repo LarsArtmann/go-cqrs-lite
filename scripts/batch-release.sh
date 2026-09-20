@@ -72,7 +72,11 @@ cd "$(git rev-parse --show-toplevel)"
 # Advisory verify-window lock (W3 Q5): release/tag windows serialize against
 # verify sessions instead of interleaving tree/cache writes.
 source "$(dirname "${BASH_SOURCE[0]}")/lib/verify-lock.sh"
-verify_lock_acquire
+# --audit is a read-only replay: no lock (the batch audit execs this script,
+# and flock is per open-file-description — a re-acquire would refuse itself).
+if [ "${1:-}" != "--audit" ]; then
+	verify_lock_acquire
+fi
 
 usage() {
 	echo "Usage: $0 [--dry-run] \"<module> <version> <description>\" ..."
