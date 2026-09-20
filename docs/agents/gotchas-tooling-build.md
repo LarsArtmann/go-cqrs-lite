@@ -70,3 +70,15 @@
   (2026-09-20); the fix climbs from `filepath.Abs(start)` but accepts
   relative starts that climb to any dir containing `.git` (dir OR worktree
   file).
+
+- **`kill` is an unsupported builtin in the Crush tool shell (mvdan/sh)** —
+  `command -v kill` resolves it, but any invocation returns rc=2
+  "kill: unsupported builtin" (hidden by `2>/dev/null`, looking like
+  success). Use `/run/current-system/sw/bin/pkill -9 -f <pattern>` — it
+  worked first try after two no-op "kill" rounds let three duplicate
+  release-smoke trees hammer the host (2026-09-20).
+- **`tag-release.sh --smoke` inherits the caller's Go env** — a shell with
+  `GOTOOLCHAIN=local` makes every proxy poll fail invisibly (the probe's
+  `go list` dies on go.work's 1.27.1 requirement, reads as "proxy does not
+  serve" for ~2 minutes). Run smokes with `GOTOOLCHAIN=auto` (2026-09-20);
+  the probe already clears GOFLAGS/GOPRIVATE but not GOTOOLCHAIN.
