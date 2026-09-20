@@ -127,7 +127,7 @@ self_test() {
 
 	# 1. load probe: quiet passes, loud fails (procs+tree hooks bypassed by
 	#    impossible patterns / tiny delay; only the load leg is under test).
-	if QUIET_LOADAVG_FILE="$tmp/quiet" CANARY_PROCS='impossible-pattern-xyz' \
+	if QUIET_LOADAVG_FILE="$tmp/quiet" CI=false CANARY_PROCS='impossible-pattern-xyz' \
 		TREE_STABLE_DELAY=0 "$0" >/dev/null 2>&1; then
 		echo "  ✓ PASS: quiet load + idle tree passes"
 	else
@@ -135,7 +135,7 @@ self_test() {
 		failures=$((failures + 1))
 	fi
 
-	if QUIET_LOADAVG_FILE="$tmp/loud" CANARY_PROCS='impossible-pattern-xyz' \
+	if QUIET_LOADAVG_FILE="$tmp/loud" CI=false CANARY_PROCS='impossible-pattern-xyz' \
 		TREE_STABLE_DELAY=0 "$0" >/dev/null 2>&1; then
 		echo "  ✗ FAIL: loud load must be refused"
 		failures=$((failures + 1))
@@ -151,7 +151,7 @@ self_test() {
 		printf '2.0 3.0 1.0 1/1 1\n' >"$tmp/flip"
 	) &
 	local flipper=$!
-	if QUIET_LOADAVG_FILE="$tmp/flip" CANARY_PROCS='impossible-pattern-xyz' \
+	if QUIET_LOADAVG_FILE="$tmp/flip" CI=false CANARY_PROCS='impossible-pattern-xyz' \
 		TREE_STABLE_DELAY=0 "$0" --wait-loop --max-wait 8 --retry-interval 1 >/dev/null 2>&1; then
 		echo "  ✓ PASS: wait-loop survives one rebound and lands GREEN"
 	else
@@ -161,7 +161,7 @@ self_test() {
 	kill "$flipper" 2>/dev/null || true
 
 	# 2c. wait-loop times out when conditions never hold.
-	if QUIET_LOADAVG_FILE="$tmp/loud" CANARY_PROCS='impossible-pattern-xyz' \
+	if QUIET_LOADAVG_FILE="$tmp/loud" CI=false CANARY_PROCS='impossible-pattern-xyz' \
 		TREE_STABLE_DELAY=0 "$0" --wait-loop --max-wait 2 --retry-interval 1 >/dev/null 2>&1; then
 		echo "  ✗ FAIL: wait-loop must time out on persistent loud load"
 		failures=$((failures + 1))

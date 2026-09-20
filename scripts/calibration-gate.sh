@@ -97,12 +97,20 @@ SELFTEST_DIR=""
 
 self_run() {
 	# $1 = fixture loadavg line; remaining args = gate flags. Echoes the
-	# gate's combined output; the caller owns the exit code.
+	# gate's combined output; the caller owns the exit code. CI is forced
+	# false so the gate's CI pass-through (GH runners set CI=true) cannot
+	# flip the failure legs green on the runner (the 12/12-local vs red-CI
+	# divergence); the dedicated CI leg opts back in via SELFTEST_CI_LEG=1.
 	local content="$1"
 	shift
 	printf '%s\n' "$content" >"$SELFTEST_DIR/loadavg"
-	CALIB_GATE_LOADAVG_FILE="$SELFTEST_DIR/loadavg" \
-		bash "$SELFTEST_SELF" "$@" 2>&1
+	if [[ "${SELFTEST_CI_LEG:-}" == 1 ]]; then
+		CALIB_GATE_LOADAVG_FILE="$SELFTEST_DIR/loadavg" \
+			bash "$SELFTEST_SELF" "$@" 2>&1
+	else
+		CI=false CALIB_GATE_LOADAVG_FILE="$SELFTEST_DIR/loadavg" \
+			bash "$SELFTEST_SELF" "$@" 2>&1
+	fi
 }
 
 self_check() {
@@ -144,10 +152,10 @@ self_test_gate() {
 	self_check "warn-only override stays green" 0 "$rc" "$out" \
 		"WARN-ONLY override" || fails=$((fails + 1))
 
-	export CI=true
+	export SELFTEST_CI_LEG=1 CI=true
 	rc=0
 	out=$(self_run "7.20 9.90 4.00 2/1234 5678") || rc=$?
-	unset CI
+	unset SELFTEST_CI_LEG CI
 	self_check "CI never aborts" 0 "$rc" "$out" \
 		"informational only" || fails=$((fails + 1))
 
