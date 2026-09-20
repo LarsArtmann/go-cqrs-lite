@@ -15,9 +15,9 @@ import (
 
 // TestRunInTx_CommitPersistsAllWrites verifies the happy path: every write
 // performed inside the transaction becomes visible after it returns.
+// Serial (no t.Parallel): the 3-write burst aborts under the parallel
+// batch's contention (same rationale as the burst tests below).
 func TestRunInTx_CommitPersistsAllWrites(t *testing.T) {
-	t.Parallel()
-
 	g := gomega.NewWithT(t)
 
 	eng := mustNewDgraphEngine(t)
@@ -49,9 +49,9 @@ func TestRunInTx_CommitPersistsAllWrites(t *testing.T) {
 
 // TestRunInTx_RollbackDiscardsAllWrites verifies atomicity: when fn fails,
 // no write from the transaction is visible afterwards.
+// Serial (no t.Parallel): the 2-write burst aborts under the parallel
+// batch's contention (same rationale as the burst tests below).
 func TestRunInTx_RollbackDiscardsAllWrites(t *testing.T) {
-	t.Parallel()
-
 	g := gomega.NewWithT(t)
 
 	eng := mustNewDgraphEngine(t)

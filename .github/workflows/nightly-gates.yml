@@ -66,6 +66,14 @@ jobs:
       - name: Release-script harnesses (incl. pin-sweep fixtures)
         run: nix run .#check-release-scripts
 
+      # Number-rot class: "<N> go.mod files" / "<N>/<N> classified" /
+      # module-map census must match repo-derived truth, not memory
+      # (both had drifted by 2026-09-20). Self-test first, then the gate.
+      - name: Canonical-facts gate (docs numbers vs repo truth)
+        run: |
+          bash scripts/check-canonical-facts.sh --self-test
+          bash scripts/check-canonical-facts.sh
+
       # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
       # stays on the per-push CI leg; the nightly only surfaces drift.
       - name: Pin sweep (report-only)

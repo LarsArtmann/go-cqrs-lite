@@ -1,5 +1,38 @@
 # SUPERB Plan: Verify-Green Gate → Substrate Ship (Tag Wave) → CRM Correctness Ports
 
+> **Status addendum (2026-09-19 23:59 — verify-green execution session).** This plan is a
+> dated record; current truth lives in `TODO_LIST.md` + the M4/M13 artifacts below.
+> What shipped vs. what did not, per task:
+>
+> - **M1/M2 (lint debt) — DONE, DIFFERENTLY than enumerated.** The F-list was cleared by
+>   the concurrent lint-debt takeover session (commit `777507821`, report
+>   `docs/status/archived/2026-09-18...` line of 18:05/18:15); the verify-green session
+>   then found 7 broken nolint placements that survived that sweep (findings reporting at
+>   a construct's OPENING line only suppress from THAT line) and repaired them, plus a
+>   BuildFlow-mangled `.golangci.yml` restore (incident #9). Lint phase green 85/85 modules.
+> - **M3 (verify green) — DONE.** `nix run .#verify` rc=0 at ~22:30 2026-09-19 (evidence
+>   `/tmp/verify.log`-series, superseded-tree caveat: the run PRECEDED the 92-tag
+>   pin-sweeps; post-wave re-run is tracked as an open tail item).
+> - **M4 (integration legs) — DONE 2026-09-19/20.** PG rc=0 (`/tmp/int-pg.log`); MySQL
+>   green via a NATIVE userspace MariaDB on 127.0.0.1:13306 (all six modules,
+>   single-digit seconds — the QEMU slirp leg was diagnosed vehicle-fragile: orphaned
+>   QEMUs holding port 33070 + single-dial RSTs under load; VM legs stay for CI);
+>   Dgraph rc=0 after serializing two burst-writing RunInTx tests (the documented
+>   contention-abort class, `transaction_capability_test.go`); Redis rc=0
+>   (`/tmp/int-redis.log`).
+> - **M7/M8 (tag waves) — DONE by the concurrent release-train session** (92 tags,
+>   CHANGELOG cut `05b41e0e7`, final pin-sweep `38c3b4fd4`; `git tag | wc -l` = 1314).
+> - **M9 (T18b baselines) — NOT DONE** (load never dropped below the <~10 window).
+> - **M13 (ledger closure) — DONE** (`docs/status/2026-09-19_23-21_verify-green-lint-repairs-mysql-slirp-war.md`
+>   + CHANGELOG `[Unreleased]` Fixed entries + this addendum).
+> - **M10–M12 (CRM ctx-tx ports) and M18 (camelCase pushdown) — NOT SHIPPED**, still open
+>   🔥 rows in `TODO_LIST.md` (verified 2026-09-19 23:50).
+> - **M5/M6 — PARTIAL.** M6 pre-wave review absorbed into the release-train session;
+>   M5 post-wave gates re-running on the post-wave tree (duplication/arch/coverage/file-size
+>   sweeps by the verify-green continuation session).
+> - **Step 3's F-tables are doubly superseded** (takeover session + verify-green session);
+>   read them as the original enumeration, not as remaining work.
+
 **Date:** 2026-09-19 15:37 · **Author:** tail-execution session (continuation of the universal-storage-substrate arc)
 **Inputs:** `docs/status/archived/2026-09-19_15-34_metaengine-substrate-tail-adr0143-jsonv2-sweep.md`, `TODO_LIST.md` (2026-09-19 state, incl. concurrent-session completions T18a/T22/T23), ADR-0142/0143.
 

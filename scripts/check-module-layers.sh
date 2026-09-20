@@ -219,7 +219,10 @@ DEP_BUDGET[event]=13
 DEP_BUDGET[command]=8
 DEP_BUDGET[query]=8
 DEP_BUDGET[scheduling]=2
-DEP_BUDGET[metadata]=1
+# metadata: 2 = id + record (the ADR-0111 structural Actor/stamp types —
+# record is the Tier-0 base metadata's CommonMetadata embeds since the
+# 2026-08-22 extraction; the =1 predates it).
+DEP_BUDGET[metadata]=2
 DEP_BUDGET[schema]=4
 DEP_BUDGET[snapshot]=5
 DEP_BUDGET[projection]=2
