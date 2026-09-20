@@ -1,99 +1,133 @@
-# benchmark baseline — re-pinned 2026-09-11 ~02:40 CEST (UNTITLED at save time; retroactively labeled 2026-09-11)
-# Provenance gap: this refresh was saved during a load-ramp on the shared host with no uptime sample
-# recorded (the failure mode that produced the 2026-09-11 provenance protocol — see
-# docs/benchmarks/calibration-2026-08-30.md §Protocol items 6-8 and scripts/calibration-gate.sh).
-# Supersede via: scripts/calibration-gate.sh (must PASS) then
-#   ./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt
-# (which now writes this header automatically). Parser ignores '#' lines.
+# benchmark baseline — re-pinned 2026-09-20T17:12:50Z
+#  19:12:37  up  14:55,  30 users,  load average: 4.10, 4.96, 7.72
+# gate: scripts/calibration-gate.sh must PASS before a local re-pin; CI saves are exempt
+# toolchain: go1.27.1 (GOTOOLCHAIN=auto; T18b Go 1.27 re-pin); load at bench start: 3.77 4.85 7.64 4/4178 3766439
 goos: linux
 goarch: amd64
 pkg: github.com/larsartmann/go-cqrs-lite/stack/bench/v4
 cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
-BenchmarkBenchkitSuite_Memory-32    	     100	    266524 ns/op	    284697 events/sec	         5.000 gc-cycles	        15.25 gc-percent	      4510 ns/cold-read-p99	   2768205 ns/gc-max-pause	       230.0 ns/load-p50	      4510 ns/load-p99	       290.0 ns/raw-sink-p50	       760.0 ns/raw-sink-p99	      1810 ns/readall	      2840 ns/readfrom	       170.0 ns/write-p50	      2560 ns/write-p99	       600.0 projection-events	   1882658 raw_sink_events/sec	        19.61 tail-ratio	        15.06 write-tail-ratio	   12059 B/op	     165 allocs/op
-BenchmarkBenchkitSuite_Memory-32    	     100	    212291 ns/op	    314925 events/sec	         5.000 gc-cycles	         1.843 gc-percent	      6300 ns/cold-read-p99	    115837 ns/gc-max-pause	       150.0 ns/load-p50	      1780 ns/load-p99	       320.0 ns/raw-sink-p50	      2810 ns/raw-sink-p99	       440.0 ns/readall	      1010 ns/readfrom	       190.0 ns/write-p50	      1760 ns/write-p99	       600.0 projection-events	   1596980 raw_sink_events/sec	        11.87 tail-ratio	         9.263 write-tail-ratio	   12018 B/op	     161 allocs/op
-BenchmarkBenchkitSuite_Memory-32    	     100	    324528 ns/op	    319515 events/sec	         5.000 gc-cycles	         4.797 gc-percent	      5939 ns/cold-read-p99	    392148 ns/gc-max-pause	       150.0 ns/load-p50	      2460 ns/load-p99	       310.0 ns/raw-sink-p50	      1160 ns/raw-sink-p99	       450.0 ns/readall	       870.0 ns/readfrom	       170.0 ns/write-p50	      2100 ns/write-p99	       600.0 projection-events	   1847800 raw_sink_events/sec	        16.40 tail-ratio	        12.35 write-tail-ratio	   12219 B/op	     169 allocs/op
-BenchmarkBenchkitSuite_Memory-32    	     100	    370667 ns/op	    250381 events/sec	         5.000 gc-cycles	         4.624 gc-percent	     20840 ns/cold-read-p99	    570712 ns/gc-max-pause	       170.0 ns/load-p50	      7369 ns/load-p99	       450.0 ns/raw-sink-p50	      2830 ns/raw-sink-p99	      2400 ns/readall	      2270 ns/readfrom	       240.0 ns/write-p50	      2330 ns/write-p99	       600.0 projection-events	   1262091 raw_sink_events/sec	        43.35 tail-ratio	         9.708 write-tail-ratio	   12066 B/op	     166 allocs/op
-BenchmarkBenchkitSuite_Memory-32    	     100	    372541 ns/op	    162084 events/sec	         5.000 gc-cycles	         6.121 gc-percent	     29800 ns/cold-read-p99	    629281 ns/gc-max-pause	       710.0 ns/load-p50	      8060 ns/load-p99	       470.0 ns/raw-sink-p50	      2730 ns/raw-sink-p99	     10760 ns/readall	     16650 ns/readfrom	       370.0 ns/write-p50	      7500 ns/write-p99	       600.0 projection-events	   1173690 raw_sink_events/sec	        11.35 tail-ratio	        20.27 write-tail-ratio	   11864 B/op	     160 allocs/op
-BenchmarkFullPipeline_Memory-32     	     100	      8316 ns/op	    120244 pipelines/sec	    2493 B/op	      32 allocs/op
-BenchmarkFullPipeline_Memory-32     	     100	      5674 ns/op	    176257 pipelines/sec	    2363 B/op	      30 allocs/op
-BenchmarkFullPipeline_Memory-32     	     100	      6300 ns/op	    158730 pipelines/sec	    2365 B/op	      30 allocs/op
-BenchmarkFullPipeline_Memory-32     	     100	      6406 ns/op	    156094 pipelines/sec	    2366 B/op	      30 allocs/op
-BenchmarkFullPipeline_Memory-32     	     100	     12323 ns/op	     81148 pipelines/sec	    2304 B/op	      30 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	     100	    216007 ns/op	    284745 events/sec	         5.000 gc-cycles	         1.472 gc-percent	     12750 ns/cold-read-p99	     86248 ns/gc-max-pause	       260.0 ns/load-p50	      3930 ns/load-p99	       410.0 ns/raw-sink-p50	      1200 ns/raw-sink-p99	       670.0 ns/readall	      1360 ns/readfrom	       220.0 ns/write-p50	      2109 ns/write-p99	       600.0 projection-events	   1544444 raw_sink_events/sec	        15.12 tail-ratio	         9.586 write-tail-ratio	   11926 B/op	     162 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	     100	    224490 ns/op	    281541 events/sec	         5.000 gc-cycles	         1.709 gc-percent	     16970 ns/cold-read-p99	    109487 ns/gc-max-pause	       150.0 ns/load-p50	     16970 ns/load-p99	       210.0 ns/raw-sink-p50	       890.0 ns/raw-sink-p99	      2130 ns/readall	      3390 ns/readfrom	       200.0 ns/write-p50	      2410 ns/write-p99	       600.0 projection-events	   2340243 raw_sink_events/sec	       113.1 tail-ratio	        12.05 write-tail-ratio	   12172 B/op	     165 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	     100	    200182 ns/op	    307857 events/sec	         5.000 gc-cycles	         1.544 gc-percent	     15459 ns/cold-read-p99	     85228 ns/gc-max-pause	       160.0 ns/load-p50	      2160 ns/load-p99	       150.0 ns/raw-sink-p50	       380.0 ns/raw-sink-p99	      2070 ns/readall	      3920 ns/readfrom	       170.0 ns/write-p50	      2010 ns/write-p99	       600.0 projection-events	   3455544 raw_sink_events/sec	        13.50 tail-ratio	        11.82 write-tail-ratio	   12017 B/op	     164 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	     100	    208820 ns/op	    314746 events/sec	         5.000 gc-cycles	         1.903 gc-percent	      2970 ns/cold-read-p99	    112056 ns/gc-max-pause	       170.0 ns/load-p50	      1350 ns/load-p99	       210.0 ns/raw-sink-p50	       660.0 ns/raw-sink-p99	       540.0 ns/readall	      1500 ns/readfrom	       220.0 ns/write-p50	      2270 ns/write-p99	       600.0 projection-events	   2700455 raw_sink_events/sec	         7.941 tail-ratio	        10.32 write-tail-ratio	   11905 B/op	     161 allocs/op
+BenchmarkBenchkitSuite_Memory-32    	     100	    214347 ns/op	    289764 events/sec	         5.000 gc-cycles	         2.243 gc-percent	      8200 ns/cold-read-p99	    166225 ns/gc-max-pause	       150.0 ns/load-p50	      1639 ns/load-p99	       180.0 ns/raw-sink-p50	       570.0 ns/raw-sink-p99	      1030 ns/readall	      1520 ns/readfrom	       190.0 ns/write-p50	      2349 ns/write-p99	       600.0 projection-events	   2880931 raw_sink_events/sec	        10.93 tail-ratio	        12.36 write-tail-ratio	   11948 B/op	     161 allocs/op
+BenchmarkFullPipeline_Memory-32     	     100	      4353 ns/op	    229733 pipelines/sec	    2490 B/op	      32 allocs/op
+BenchmarkFullPipeline_Memory-32     	     100	      2981 ns/op	    335457 pipelines/sec	    2363 B/op	      30 allocs/op
+BenchmarkFullPipeline_Memory-32     	     100	      3001 ns/op	    333188 pipelines/sec	    2365 B/op	      30 allocs/op
+BenchmarkFullPipeline_Memory-32     	     100	      2916 ns/op	    342981 pipelines/sec	    2365 B/op	      30 allocs/op
+BenchmarkFullPipeline_Memory-32     	     100	      2944 ns/op	    339627 pipelines/sec	    2365 B/op	      30 allocs/op
 PASS
-ok  	github.com/larsartmann/go-cqrs-lite/stack/bench/v4	0.324s
+ok  	github.com/larsartmann/go-cqrs-lite/stack/bench/v4	0.229s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/stack/bench/v4
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkBenchkitSuite_SQLite-32    	     100	   1318061 ns/op	     24225 events/sec	        22.00 gc-cycles	         1.512 gc-percent	    203134 ns/cold-read-p99	    177475 ns/gc-max-pause	     26130 ns/load-p50	    203134 ns/load-p99	     33669 ns/raw-sink-p50	    171465 ns/raw-sink-p99	   1577094 ns/readall	   1979803 ns/readfrom	     33349 ns/write-p50	    135806 ns/write-p99	       513.0 projection-events	     25745 raw_sink_events/sec	         7.774 tail-ratio	        86.52 write-amp	         4.072 write-tail-ratio	   68090 B/op	    1299 allocs/op
+BenchmarkBenchkitSuite_SQLite-32    	     100	   1263248 ns/op	     24421 events/sec	        21.00 gc-cycles	         1.226 gc-percent	    278782 ns/cold-read-p99	    165426 ns/gc-max-pause	     26209 ns/load-p50	    212064 ns/load-p99	     28979 ns/raw-sink-p50	     96677 ns/raw-sink-p99	   1856936 ns/readall	   1869246 ns/readfrom	     33129 ns/write-p50	    135066 ns/write-p99	       529.0 projection-events	     31029 raw_sink_events/sec	         8.091 tail-ratio	        86.20 write-amp	         4.077 write-tail-ratio	   68170 B/op	    1302 allocs/op
+BenchmarkBenchkitSuite_SQLite-32    	     100	   1340507 ns/op	     24996 events/sec	        23.00 gc-cycles	         1.541 gc-percent	    175605 ns/cold-read-p99	    180745 ns/gc-max-pause	     24150 ns/load-p50	    153345 ns/load-p99	     30120 ns/raw-sink-p50	    115007 ns/raw-sink-p99	   1455028 ns/readall	   1674721 ns/readfrom	     33379 ns/write-p50	    136716 ns/write-p99	       500.0 projection-events	     29415 raw_sink_events/sec	         6.350 tail-ratio	        86.39 write-amp	         4.096 write-tail-ratio	   68192 B/op	    1298 allocs/op
+BenchmarkBenchkitSuite_SQLite-32    	     100	   1257185 ns/op	     26132 events/sec	        24.00 gc-cycles	         1.589 gc-percent	     69648 ns/cold-read-p99	    183094 ns/gc-max-pause	     22939 ns/load-p50	    114647 ns/load-p99	     30559 ns/raw-sink-p50	    110437 ns/raw-sink-p99	   2075040 ns/readall	   1747079 ns/readfrom	     31799 ns/write-p50	    125466 ns/write-p99	       532.0 projection-events	     29405 raw_sink_events/sec	         4.998 tail-ratio	        86.39 write-amp	         3.946 write-tail-ratio	   68349 B/op	    1303 allocs/op
+BenchmarkBenchkitSuite_SQLite-32    	     100	   1245436 ns/op	     25559 events/sec	        23.00 gc-cycles	         1.307 gc-percent	    147255 ns/cold-read-p99	    140976 ns/gc-max-pause	     23140 ns/load-p50	    162315 ns/load-p99	     29630 ns/raw-sink-p50	    110317 ns/raw-sink-p99	   1628562 ns/readall	   1416019 ns/readfrom	     31999 ns/write-p50	    122396 ns/write-p99	       568.0 projection-events	     29531 raw_sink_events/sec	         7.014 tail-ratio	        86.33 write-amp	         3.825 write-tail-ratio	   68470 B/op	    1308 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/stack/bench/v4	1.316s
 goos: linux
 goarch: amd64
 pkg: github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4
 cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
-BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    839340 ns/op	    1814 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    815794 ns/op	    1814 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    825982 ns/op	    1815 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    807897 ns/op	    1809 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    850307 ns/op	    1814 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	     13707 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	     10238 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	     10060 ns/op	    1465 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	     10422 ns/op	    1466 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	     11308 ns/op	    1465 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     77594 ns/op	    1636 B/op	      63 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     75079 ns/op	    1636 B/op	      63 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     85144 ns/op	    1632 B/op	      63 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     78288 ns/op	    1636 B/op	      63 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     91620 ns/op	    1636 B/op	      63 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	     10649 ns/op	    1425 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	     10974 ns/op	    1423 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	     10169 ns/op	    1423 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      9848 ns/op	    1417 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      9796 ns/op	    1417 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    872297 ns/op	    1817 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    877478 ns/op	    1801 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    815136 ns/op	    1814 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    826227 ns/op	    1801 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    882664 ns/op	    1819 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	     12656 ns/op	    1436 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	     11236 ns/op	    1440 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	     10267 ns/op	    1440 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	     11735 ns/op	    1440 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	      9738 ns/op	    1440 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    882917 ns/op	    1806 B/op	      65 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    838728 ns/op	    1813 B/op	      65 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    930864 ns/op	    1793 B/op	      65 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    944130 ns/op	    1810 B/op	      65 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    900010 ns/op	    1806 B/op	      65 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	     10514 ns/op	    1464 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	      9918 ns/op	    1464 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	     11274 ns/op	    1464 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	     11970 ns/op	    1464 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	     11482 ns/op	    1458 B/op	      53 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    892072 ns/op	    1814 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    899688 ns/op	    1825 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    871709 ns/op	    1806 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    893397 ns/op	    1822 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    917831 ns/op	    1817 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      9808 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      9353 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	     10464 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	     10645 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      9283 ns/op	    1472 B/op	      54 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1752484 ns/op	   20485 B/op	     855 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1767490 ns/op	   20486 B/op	     855 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1698569 ns/op	   20473 B/op	     855 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1771464 ns/op	   20468 B/op	     855 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1729163 ns/op	   20457 B/op	     855 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	    106501 ns/op	   19593 B/op	     836 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	    103278 ns/op	   19600 B/op	     836 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	    110296 ns/op	   19593 B/op	     836 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	    108392 ns/op	   19600 B/op	     836 allocs/op
-BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	    112287 ns/op	   19600 B/op	     836 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    874673 ns/op	    1806 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    876321 ns/op	    1806 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    866630 ns/op	    1818 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    824387 ns/op	    1809 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    724020 ns/op	    1805 B/op	      66 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     33592 ns/op	    1496 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     33515 ns/op	    1489 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     33399 ns/op	    1496 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     39335 ns/op	    1496 B/op	      51 allocs/op
-BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     33358 ns/op	    1496 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    706709 ns/op	    1826 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    705480 ns/op	    1825 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    735630 ns/op	    1826 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    706742 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/baseline-32         	     100	    713395 ns/op	    1825 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	      9539 ns/op	    1485 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	      9958 ns/op	    1488 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	      8453 ns/op	    1487 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	      8624 ns/op	    1481 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=SUM/scale=1k/matview-32          	     100	      8586 ns/op	    1487 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     67980 ns/op	    1652 B/op	      63 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     66632 ns/op	    1652 B/op	      63 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     66547 ns/op	    1649 B/op	      63 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     67048 ns/op	    1652 B/op	      63 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/baseline-32       	     100	     68889 ns/op	    1652 B/op	      63 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      8879 ns/op	    1439 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      8365 ns/op	    1439 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      8509 ns/op	    1439 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      8759 ns/op	    1439 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=COUNT/scale=1k/matview-32        	     100	      7887 ns/op	    1439 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    718626 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    739283 ns/op	    1830 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    695675 ns/op	    1825 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    738278 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/baseline-32         	     100	    738714 ns/op	    1821 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	     13672 ns/op	    1453 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	      8498 ns/op	    1456 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	      8827 ns/op	    1456 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	      8548 ns/op	    1456 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=AVG/scale=1k/matview-32          	     100	      8425 ns/op	    1456 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    729183 ns/op	    1813 B/op	      65 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    718954 ns/op	    1813 B/op	      65 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    705597 ns/op	    1825 B/op	      65 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    813554 ns/op	    1813 B/op	      65 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/baseline-32         	     100	    840109 ns/op	    1809 B/op	      65 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	      9428 ns/op	    1479 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	      8229 ns/op	    1479 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	      8319 ns/op	    1473 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	      8385 ns/op	    1479 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=MIN/scale=1k/matview-32          	     100	      7616 ns/op	    1479 B/op	      53 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    785510 ns/op	    1834 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    816626 ns/op	    1833 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    717579 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    697295 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/baseline-32         	     100	    792037 ns/op	    1827 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      9300 ns/op	    1481 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      8476 ns/op	    1487 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      8419 ns/op	    1487 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      8434 ns/op	    1481 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=MAX/scale=1k/matview-32          	     100	      7898 ns/op	    1481 B/op	      54 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1447928 ns/op	   20504 B/op	     855 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1442336 ns/op	   20479 B/op	     855 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1485598 ns/op	   20487 B/op	     855 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1534554 ns/op	   20477 B/op	     855 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/baseline-32 	     100	   1438577 ns/op	   20487 B/op	     855 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	     87959 ns/op	   19616 B/op	     836 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	     85312 ns/op	   19616 B/op	     836 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	    107815 ns/op	   19616 B/op	     836 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	     85764 ns/op	   19616 B/op	     836 allocs/op
+BenchmarkMatViewRead/agg=SUM_GROUPED/scale=1k/matview-32  	     100	     82229 ns/op	   19616 B/op	     836 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    782197 ns/op	    1826 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    695301 ns/op	    1821 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    719799 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    734615 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/baseline-32         	     100	    703743 ns/op	    1829 B/op	      66 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     31745 ns/op	    1505 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     31842 ns/op	    1512 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     33444 ns/op	    1512 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     30925 ns/op	    1505 B/op	      51 allocs/op
+BenchmarkMatViewRead/agg=SUM_VIA_GROUPED/scale=1k/matview-32          	     100	     33371 ns/op	    1505 B/op	      51 allocs/op
 PASS
-ok  	github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4	4.506s
+ok  	github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4	3.235s
+goos: linux
+goarch: amd64
+pkg: github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit
+cpu: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S          
+BenchmarkClaimDue_ClaimKit-32                         	     100	     46976 ns/op	    6968 B/op	     160 allocs/op
+BenchmarkClaimDue_ClaimKit-32                         	     100	     41006 ns/op	    6968 B/op	     160 allocs/op
+BenchmarkClaimDue_ClaimKit-32                         	     100	     37497 ns/op	    6968 B/op	     160 allocs/op
+BenchmarkClaimDue_ClaimKit-32                         	     100	     40620 ns/op	    6968 B/op	     160 allocs/op
+BenchmarkClaimDue_ClaimKit-32                         	     100	     40199 ns/op	    6968 B/op	     160 allocs/op
+BenchmarkTimerRoundTrip_ClaimKit-32                   	     100	     78091 ns/op	    6427 B/op	     183 allocs/op
+BenchmarkTimerRoundTrip_ClaimKit-32                   	     100	     88300 ns/op	    5597 B/op	     181 allocs/op
+BenchmarkTimerRoundTrip_ClaimKit-32                   	     100	     74463 ns/op	    5596 B/op	     181 allocs/op
+BenchmarkTimerRoundTrip_ClaimKit-32                   	     100	     89823 ns/op	    5629 B/op	     181 allocs/op
+BenchmarkTimerRoundTrip_ClaimKit-32                   	     100	     74120 ns/op	    5576 B/op	     181 allocs/op
+BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit-32    	     100	     10452 ns/op	    1128 B/op	      40 allocs/op
+BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit-32    	     100	     11750 ns/op	    1128 B/op	      40 allocs/op
+BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit-32    	     100	      9763 ns/op	    1128 B/op	      40 allocs/op
+BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit-32    	     100	      9636 ns/op	    1128 B/op	      40 allocs/op
+BenchmarkDedupCheckAndRecord_FreshKeys_ClaimKit-32    	     100	     11875 ns/op	    1128 B/op	      40 allocs/op
+BenchmarkDedupCheckAndRecord_LiveWindowHit-32         	     100	      9528 ns/op	    1080 B/op	      37 allocs/op
+BenchmarkDedupCheckAndRecord_LiveWindowHit-32         	     100	      8120 ns/op	    1080 B/op	      37 allocs/op
+BenchmarkDedupCheckAndRecord_LiveWindowHit-32         	     100	      8035 ns/op	    1080 B/op	      37 allocs/op
+BenchmarkDedupCheckAndRecord_LiveWindowHit-32         	     100	     12599 ns/op	    1080 B/op	      37 allocs/op
+BenchmarkDedupCheckAndRecord_LiveWindowHit-32         	     100	     10535 ns/op	    1080 B/op	      37 allocs/op
+PASS
+ok  	github.com/larsartmann/go-cqrs-lite/metaengine/v4/claimkit	0.091s
