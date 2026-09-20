@@ -2819,6 +2819,7 @@ metaengine/func ReplayTrace
 metaengine/func SQLiteEngineProfile
 metaengine/func SaveManifest
 metaengine/func ScanDistinctValues
+metaengine/func ScanScoredVector
 metaengine/func ScoreLayouts
 metaengine/func SearchExecuteTyped
 metaengine/func SelectLayout
@@ -2952,6 +2953,7 @@ metaengine/interface PushdownScan
 metaengine/interface RawScanReader
 metaengine/interface RawValueReader
 metaengine/interface RecordAwareFold
+metaengine/interface RowScanner
 metaengine/interface SQLExec
 metaengine/interface ScanBackend
 metaengine/interface SearchBackend
@@ -2976,6 +2978,8 @@ metaengine/interface VectorPathReporter
 metaengine/interface VersionedStorage
 metaengine/interface VersionedUpdater
 metaengine/interface VersionedWriter
+metaengine/irohengine/const DefaultDedupCapacity
+metaengine/irohengine/const DefaultDedupCapacity
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const FrameHeaderSize
 metaengine/irohengine/const OpCounterInc
@@ -4731,6 +4735,10 @@ queue/mysql/func OpenDB
 queue/mysql/func OpenDB
 queue/mysql/func WithCodec
 queue/mysql/func WithCodec
+queue/mysql/func WithMaxIdleConns
+queue/mysql/func WithMaxIdleConns
+queue/mysql/func WithMaxOpenConns
+queue/mysql/func WithMaxOpenConns
 queue/mysql/method Append
 queue/mysql/method Append
 queue/mysql/method Cancel
@@ -4995,6 +5003,7 @@ record/const CauseUnknown
 record/const EncodingCBOR
 record/const EncodingJSON
 record/const EncodingUnknown
+record/func DeferClose
 record/func NewStamp
 record/func NewStreamRef
 record/func NewStreamRefOrZero
@@ -7190,6 +7199,10 @@ testutil/method ReadFrom
 testutil/method Records
 testutil/method WithAttrs
 testutil/method WithGroup
+testutil/mysqltestcontainer/func DSN
+testutil/mysqltestcontainer/func DSN
+testutil/mysqltestcontainer/func TestMain
+testutil/mysqltestcontainer/func TestMain
 testutil/pgtestcontainer/func AfterRun
 testutil/pgtestcontainer/func AfterRun
 testutil/pgtestcontainer/func DSN
