@@ -940,20 +940,29 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`docs/status/archived/2026-09-19_16-50_dogfooding-self-review-execution.md`](docs/status/archived/2026-09-19_16-50_dogfooding-self-review-execution.md) §f +
 > [`…17-25_dogfooding-self-review-final-status.md`](docs/status/archived/2026-09-19_17-25_dogfooding-self-review-final-status.md) §f
 
-- [ ] [BLOCKED] **Tier-0 close-helper decision (owner/ADR)** — should a
-      `DeferClose`-style helper live in Tier-0 (`id`/`kv`/`record`-adjacent) or
-      stay `metaengine`-owned? Blocks the remaining ~20 close-idiom sweeps
-      (queue/postgres, storage/pebble, snapshot_migration, scheduling/sqlstore,
-      projectionhost dlq, stack/run_projections, kv/cmd). _(Effort: XS ruling + M sweeps)_
-- [ ] **Extract scan/paginate helpers** — the dogfooding review found
-      near-identical scan/pagination boilerplate worth consolidating (finding 4).
-      _(Effort: M)_
-- [ ] **Retry-idiom reconciliation audit** — `middleware/retry` vs external
-      `go-retry`, projectionhost backoff, replicator retry, dgraph transaction
-      backoff: one pass to align idioms or document why they differ.
-      _(Effort: M)_
-- [ ] **quic/loopback const split brain + dedup parity test** — shared
-      transport constants duplicated; a parity test should pin the dedup rings.
+- [x] **Tier-0 close-helper decision (owner/ADR)** — RULED 2026-09-20:
+      [ADR-0144](docs/adr/0144-deferclose-lives-in-tier0-record.md) —
+      `record.DeferClose` is the canonical Tier-0 address; `metaengine.DeferClose`
+      stays as a self-contained twin. Sweep executed the same day (kv, storage,
+      storage/pebble, storage/turso/indexing, scheduling/sqlstore, projectionhost,
+      stack, benchkit, examples; queue/postgres audited clean via bare defers;
+      cmd/cqrs-lint → bare defer, at dep budget).
+- [x] **Extract scan/paginate helpers** — done 2026-09-20: bbolt's
+      `sortAndPaginateKV` now delegates to `metaengine.SortPaginate` (pebble/badger
+      precedent); the mysql/sqlite `scanScoredVector` byte-twins + duckdb JSON
+      variant delegate to new `metaengine.ScanScoredVector`/`RowScanner`. The
+      `scanJSONValues` twins (mysql/duckdb) stay intentional (`art-dupl:accept`;
+      sqlite's passthrough error contract would change under unification).
+- [x] **Retry-idiom reconciliation audit** — done 2026-09-20:
+      [ADR-0145](docs/adr/0145-retry-idioms-are-per-concern.md) — four sites are
+      four DIFFERENT concern classes (transport op retry / crash-loop damping /
+      shadow freshness budget / DB contention retry); documented per-class rules
+      instead of forcing one idiom. `go-retry` stays middleware-only.
+- [x] **quic/loopback const split brain + dedup parity test** — done 2026-09-20:
+      one shared `irohengine.DefaultDedupCapacity` (quic re-exports; loopback
+      references), parity pinned by `quic/dedup_parity_test.go`
+      (`TestDedupParity_SharedCapacityConst` + `TestRing_ProductionCapacity10K`)
+      mirroring loopback's `dedup_internal_test.go` contract.
       _(Effort: S)_
 
 ## go-graph-rag feedback follow-ups (2026-09-15, triaged 2026-09-19)
