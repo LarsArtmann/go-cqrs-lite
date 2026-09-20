@@ -122,16 +122,24 @@ func TestDetectHonorsProjectConfig(t *testing.T) {
 	}
 }
 
-// TestDetectHonorsPresetFromConfig proves preset expansion works through the
-// embedded path: the read-only preset pins command-flow, so command-flow
-// adoption rules cannot fire on a fixture they would otherwise flag.
+// TestDetectHonorsPresetFromConfig proves the embedded path parses and
+// expands a preset config: the preset name is validated and its rule
+// defaults merge with explicit config disables (the same union the CLI
+// computes). A018 fires on the fixture and is suppressed through the merged
+// disable list.
 func TestDetectHonorsPresetFromConfig(t *testing.T) {
 	t.Parallel()
 
 	dir := writeFixableFixture(t)
 	ctx := finding.WithWorkingDir(context.Background(), dir)
 
-	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(`{"preset": "read-only"}`), 0o600); err != nil {
+	config := `{
+		// Preset features are pinned for parity with the CLI; the explicit
+		// disable exercises the preset+config union through Detect.
+		"preset": "read-only",
+		"rules": {"disable": ["A018"]},
+	}`
+	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(config), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -142,8 +150,30 @@ func TestDetectHonorsPresetFromConfig(t *testing.T) {
 
 	for _, f := range findings {
 		if string(f.Rule) == "A018" {
-			t.Fatal("read-only preset must suppress A018 via its preset defaults")
+			t.Fatal("A018 must be suppressed via the preset+config disable union")
 		}
+	}
+}
+
+// TestDetectRejectsUnknownPresetInConfig proves an unknown preset name is a
+// loud error through the embedded path (ghost-config guard), not a silently
+// unconfigured run.
+func TestDetectRejectsUnknownPresetInConfig(t *testing.T) {
+	t.Parallel()
+
+	dir := writeFixableFixture(t)
+	ctx := finding.WithWorkingDir(context.Background(), dir)
+
+	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(`{"preset": "productionn"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := Spec().Detect.Detect(ctx)
+	if err == nil {
+		t.Fatal("unknown preset must fail Detect")
+	}
+	if !strings.Contains(err.Error(), "productionn") {
+		t.Fatalf("error must name the bad preset: %v", err)
 	}
 }
 
