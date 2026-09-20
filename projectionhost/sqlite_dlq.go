@@ -20,12 +20,6 @@ var (
 	_ DeadLetterStoreAdmin = (*SQLiteDeadLetterStore)(nil)
 )
 
-// intFromVersion converts an event.Version (uint64) to int; versions never
-// approach int32 max.
-func intFromVersion(v event.Version) int {
-	return int(v)
-}
-
 // sqliteDLQSchema defines the projection dead-letter table and its indexes.
 //
 // Index audit (ADR feedback): three indexes cover all access patterns:
@@ -132,7 +126,7 @@ func (s *SQLiteDeadLetterStore) Store(ctx context.Context, entry DeadLetterEntry
 	encoding, occurredAt := "json", ""
 
 	if evt != nil {
-		version = intFromVersion(evt.Version())
+		version = int(evt.Version())
 		schemaVersion = evt.SchemaVersion().Int()
 		encoding = string(evt.Encoding())
 		occurredAt = evt.OccurredAt().Format(time.RFC3339Nano)
