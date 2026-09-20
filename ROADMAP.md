@@ -144,7 +144,7 @@ Open remainder: iroh standalone-pin repair + the skill-ref propagation wave.
   Requires `CommandAwareFold` interface + command journal replay. The concrete
   bridge now exists: `command.AsRecordPersisted` (2026-09-13) gives persisted
   commands full-fidelity `record.Record` form; gated items and demand evidence in
-  the [command-side depth plan](docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md).
+  the [command-side depth plan](docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md) (executed + archived 2026-09-20).
 - ✅ **ADR-0113 Phases 3–4: Delete `GraphBackend` interface entirely** — DONE.
   `GraphBackend` removed from `metaengine/engine.go`, all engines route ADTGraph
   through `graphadapter`. `adttest.RunMatrix` updated.
@@ -596,7 +596,7 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
   bring their own license can run it; go-cqrs-lite just speaks Postgres wire.
 - **Vector search at scale — int8 quantization + ANN indexing** — adopt when a
   real workload exceeds the brute-force budget (trigger-gated; full analysis:
-  `docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`)
+  `docs/planning/archived/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`)
 - **FoundationDB as a metaengine backend** — distributed ordered KV with
   ACID transactions (Apple, Apache-2.0). Atomic counters, consistent
   secondary indexes, push watches. Requires CGo binding + separate
@@ -763,7 +763,7 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
   consumer still imports both sides. Slimming happens extract-DOWNWARD
   instead (record/ ADR-0111, go-codec ADR-0128 — alias, never break the
   path). Do not split. Full evidence:
-  [`docs/reviews/2026-09-13_event-module-split-re-review.md`](docs/reviews/2026-09-13_event-module-split-re-review.md).
+  [`docs/reviews/archived/2026-09-13_event-module-split-re-review.md`](docs/reviews/archived/2026-09-13_event-module-split-re-review.md).
 - **ORM features** — no query builder, no ORM-style relations, no lazy loading.
   Auto-projection (v5, ADR-0123) infers everything from struct shapes. If the
   auto-projection gets it wrong, override with an explicit `OnRecord` fold.

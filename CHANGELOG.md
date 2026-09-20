@@ -492,7 +492,7 @@ the gate now asserts the run itself was quiet enough to trust).
   dispatching through the queue. Sibling replaces (`queue`, `queue/sqlite`,
   `claiming`, `metaengine`) ride until the family tag wave strips them.
 - **go-taskqueue semantic-diff memo** (T23):
-  [`docs/research/2026-09-19_go-taskqueue-semantic-diff.md`](docs/research/2026-09-19_go-taskqueue-semantic-diff.md)
+  [`docs/research/archive/2026-09-19_go-taskqueue-semantic-diff.md`](docs/research/archive/2026-09-19_go-taskqueue-semantic-diff.md)
   — the production donor contract vs the library, verified against both
   sources: core semantics 1:1, divergences are strengthenings (claim tokens,
   dep validation), genericity (typed payloads), or product surface that
@@ -3627,7 +3627,7 @@ modules predate this wave and are unchanged.
   43x), exactly as the spike predicted. pgengine intentionally stays JSON (its
   vector column is typed JSONB; binary needs a BYTEA DDL migration —
   documented in the spike doc §4). Design + measurements:
-  `docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md` §2/§4/§7.
+  `docs/planning/archived/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md` §2/§4/§7.
 - **mysqlengine depth-1 graph short-circuit** — `GraphNeighbors` and
   `GraphNeighborsUndirected` with `depth == 1` now resolve via the direct
   adjacency query (`AND to_node <> ?` preserves start-node exclusion)
@@ -3832,7 +3832,7 @@ forbidden — see CONTRIBUTING.md → Release Process.
   `UndirectedGraph`, and `VectorFilterBackend` capability gates; exhaustiveness
   mirror covers the new `FoldEdgeRemove` kind.
 - **Vector-at-scale spike with measured baselines** —
-  [`docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md):
+  [`docs/planning/archived/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md`](docs/planning/archived/2026-08-16_VECTOR-SEARCH-AT-SCALE-SPIKE.md):
   memory ~90 ns/vector vs pebble ~17 µs/vector (D=128 cosine) — the ~190x gap
   is JSON float decoding, not the scan. Phased plan: binary float32 payloads
   (Phase 0, unconditional), int8 scalar quantization + exact re-rank

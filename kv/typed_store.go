@@ -6,6 +6,7 @@ import (
 
 	"github.com/larsartmann/go-codec"
 	errorfamily "github.com/larsartmann/go-error-family"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // TypedStore is a typed read-model store over an untyped [Store].
@@ -129,7 +130,7 @@ func (s *TypedStore[T, K]) Scan(ctx context.Context, prefix []byte) ([]*T, error
 			"kv.typed_store.scan_iter", "create scan iterator")
 	}
 
-	defer func() { _ = iter.Close() }()
+	defer record.DeferClose(iter)
 
 	results := make([]*T, 0)
 
@@ -203,7 +204,7 @@ func (s *TypedStore[T, K]) DeleteAll(ctx context.Context) error {
 		return s.deleteAllOneByOne(ctx, keys)
 	}
 
-	defer func() { _ = batch.Close() }()
+	defer record.DeferClose(batch)
 
 	for _, k := range keys {
 		err = batch.Delete(ctx, k)

@@ -244,7 +244,7 @@ inline** (`~~struck~~ done <date> — <evidence>`; evidence = TODO_LIST `[x]` ro
   ROADMAP 84→95 go.mod + [Unreleased] history extended through 09-19; AGENTS
   recipes 77→80, module-map 90→95. All inbound references to moved files
   repointed (0 stale). Pass report:
-  [`2026-09-19_20-08_docs-health-eighth-pass-full-audit.md`](2026-09-19_20-08_docs-health-eighth-pass-full-audit.md).
+  [`2026-09-19_20-08_docs-health-eighth-pass-full-audit.md`](archived/2026-09-19_20-08_docs-health-eighth-pass-full-audit.md) (now archived — the 9th pass closed its follow-through).
 
 ## What this means
 

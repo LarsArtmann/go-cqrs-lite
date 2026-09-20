@@ -5,9 +5,10 @@
 and is **never** duplicated here — when a task finishes it moves to CHANGELOG
 and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
-2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, and 2026-09-19 —
-the 8th pass struck 815+ verified-done items inline across 57 reports and archived
-every session report except the two KEEP-LIVE evidence docs + the fp-sweep baseline).
+2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, 2026-09-19, and
+2026-09-20 — the 8th pass struck 815+ verified-done items inline across 57 reports;
+the 9th pass closed the 09-19/20 wave reports + executed plans and harvested the
+release-train tails below).
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
@@ -53,29 +54,27 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Command-side domain depth (2026-09-13 plan)
 
 > Prioritized execution plan:
-> [`docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md`](docs/planning/2026-09-13_11-45_SUPERB-command-side-depth.md)
+> [`docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md`](docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md)
 > — Pareto waves (W1 decider causation → W2 first-class command records → W3 lifecycle
 > upcasting + docs parity → W4 gates/filing), derived from the three 2026-09-13 reviews
 > (`docs/reviews/2026-09-13_*`). Additive-only v4.x; `decider` gains ZERO new deps
 > (local `CausedCommand` capability interface). Guardrails: decider.go is 377/350
 > baselined (new file required), api golden regen in same edit, CHANGELOG symbols gated.
 >
-> **Status 2026-09-13: W1–W3 EXECUTED** — `decider.ExecuteCommandRef` + `CausedCommand`
->
-> - `CommandDecideFunc` shipped with BDD/property/example coverage (note: Go 1.26
->   forbids generic methods, so it is a package-level function — recorded in the plan's
->   D1 amendment); `command.AsRecordPersisted` shipped with fidelity tests + v5
->   deprecation note on the thin bridge; D3 upcast composition CONFIRMED and pinned by
->   `commandlifecycle/upcast_composition_test.go`; recipes §2.1b/§2.19b, core §3.8 +
->   cheat-sheet rows, faq command-pitfalls section all landed; goldens regenerated.
-
-- [ ] **W4: gates** — per-module `GOWORK=off` tests (decider/command/commandlifecycle/schema), api-stability golden + `TestEvery`, CHANGELOG `pkg.Symbol` citations, doc-check zero-warning, `nix run .#verify`, `#check-arch` (decider: zero new deps), `#check-duplication` (0 new groups). STATE 2026-09-16: every leg green EXCEPT the composed `nix run .#verify` (quiet-window-gated; load never dropped below ~30) — per-module tests, api golden (7,092 exports), TestEvery, check-changelog-symbols (86 citations), doc-check (1,142 refs), check-arch, check-duplication all re-run green. _(Effort: M — in progress)_
-- [BLOCKED] **Release train (user approval)** — tag waves decider/command/commandlifecycle once W1–W4 land. _(Effort: M — see AGENTS.md tag-wave procedure)_
+> **EXECUTED IN FULL — W1–W3 shipped 2026-09-13; W4 closed 2026-09-20 (composed
+> `#verify` S03 GREEN, 16-39 report); the 92-tag train published
+> `decider/v4.7.0` + `command/v4.11.0` + commandlifecycle (2026-09-19). Plan
+> archived.** The section keeps only the demand-gated remainder:
 - [BLOCKED] **ADR-0138: command sourcing draft (consumer demand)** — design doc only, builds on W2's bridge, reconciles ADR-0112's planned `CommandAwareFold`. _(Effort: M)_
 
-## Go 1.27 upgrade wave (proposed 2026-09-13)
+## Go 1.27 upgrade wave (closed 2026-09-19)
 
-- ~~[ ] 🔥 **Toolchain + go-directive wave to Go 1.27**~~ done 2026-09-19 — shipped as the 92-tag "Toolchain cutover wave" train: go 1.27.1 directives repo-wide, flake `goToolchain` = `go_1_27`, jsonv2 graduation (tags stripped repo-wide), consumers served (`go list -m @latest` = 1.27-based tags on the proxy). Remaining bench re-pin under 1.27 tracked as W1 T14 (baseline re-pin row below).<br>**Original:** Go 1.27 (2026-08-19; 1.27.1 2026-09-01) graduated `encoding/json/v2` (v1 now backed by the v2 engine — the `-tags "goexperiment.jsonv2"` footgun dies repo-wide, clearing ~20 live gopls `stdversion` warnings) and legalized **generic methods** (method-level type params; interface methods still can't). Scope: bump all 85 `go.mod` `go` directives (language features are directive-gated), flake `goToolchain` pin to nixpkgs `go_1_27` (verify availability first — CONFIRMED 2026-09-18: `nixpkgs#go_1_27` = 1.27.1; repo flake currently resolves default go = 1.26.7), CI, AGENTS.md/docs command chains, then full `#verify` + integration suites + bench-regression sweep (v2 unmarshal is significantly faster — expect improvements), and a release train so consumers actually receive it. Consumer impact: `go` directive ≥ 1.27 forces toolchain download on older setups (`GOTOOLCHAIN=auto` mitigates). Sequel: revisit `decider.ExecuteCommandRef` as a true `Repository[State]` method (additive), plus the other option-func families. — evidence: go.dev/doc/go1.27 release notes, plan D1 amendment. _(Effort: L — own wave, do NOT fold into other plans)_
+> ~~Toolchain + go-directive wave to Go 1.27~~ DONE 2026-09-19 — shipped as the 92-tag
+> "Toolchain cutover wave": go 1.27.1 directives repo-wide, flake `goToolchain` =
+> `go_1_27`, jsonv2 graduation (tags stripped repo-wide), consumers served
+> (`go list -m @latest` = 1.27-based tags on the proxy). The remaining bench re-pin
+> under 1.27 is the T18b/T14 row in the Metaengine Universal Storage Substrate
+> section above; owner decisions on the flake go-pin ride the W3 owner bundle below.
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 
@@ -129,10 +128,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 >   and fold-write failover with `CatchUpEngine` (ADR-0137 completion —
 >   writes reroute like reads; reprobe rebuilds before reactivating).
 
-- [ ] **Release-train note** — the `metaengine/projectionadapter` and
-      `metaengine/irohengine` sibling replaces (unpublished `EngineResetter`
-      symbols) + the `metaengine` pin bumps ride the next tag wave
-      (`scripts/tag-release.sh` strips the replaces; smoke at cut time).
+- ~~[ ] **Release-train note**~~ done 2026-09-19 — the 92-tag wave stripped the
+      `metaengine/projectionadapter`/`irohengine` sibling replaces and repinned
+      every consumer (`pin-sweep --check --remote` green; tags verified
+      replace-free — 10-25 §a2/§a3, now archived).
 
 ---
 
@@ -311,6 +310,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
+- [ ] **metaengine live-latency doc sync vs code** (harvested 2026-09-20) —
+      recipes §2.11 (`ProbeEngine`/`LatencyTracker`/`Calibration` surface) has
+      never been drift-checked against the shipped code; verify every named
+      symbol/flow, fix the doc where the API moved. — source: archived 16-43 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
       silently ignores mistyped encryption params (`encryption_hexkkey=` opens
       the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
@@ -360,12 +363,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
-- [ ] **Quiet-window verify tooling (asked by ≥3 sessions)** —
-      `scripts/wait-for-quiet.sh` (block until 1-min load < threshold), a
-      `#verify` test-phase parallelism cap (`-p`), and the golangci cache mount
-      restore; unblocks the standing composed-`#verify` item without burning
-      background attempts. — source: archived 06-47 §f6-8, 12-02 §f9/11/17,
-      18-11 §f11 _(Effort: S/M)_
+- ~~[ ] **Quiet-window verify tooling (asked by ≥3 sessions)**~~ done 2026-09-20 —
+      `scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
+      `scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
+      load assert), and the `#verify` `-p` parallelism cap (`VERIFY_TEST_P`, set
+      to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
+      went GREEN the same day (S03). Remaining launcher ergonomics live in the
+      release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
@@ -462,6 +466,16 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
       box is quiet; closes the [x] rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
+- [ ] **Codify the ephemeral native-MariaDB leg** (harvested 2026-09-20) — the
+      09-19 M4 mysql leg went green via a userspace nixpkgs MariaDB on
+      127.0.0.1:13306 (single-digit seconds; the QEMU slirp leg was diagnosed
+      vehicle-fragile: orphaned QEMUs holding port 33070 + single-dial RSTs).
+      Productize: `scripts/ephemeral-mysql.sh` (init datadir, provision
+      `cqrs_test` DB/user) + an `#integration-mysql-ephemeral` flake app, and
+      run the full mysql module set against it (stack/mysql,
+      idempotency/sqlstore, metaengine/mysqlengine, scheduling/sqlstore,
+      queue/mysql, claiming). vm-mysql.sh pre-flight stale-port check +
+      process-group cleanup rides the same wave. — source: archived 23-21 §a8/§b1/§f3-4/§f11 _(Effort: M)_
 
 ---
 
@@ -658,10 +672,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       0 broken, nightly gate).
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
-- [ ] **Docs censuses (7th-pass items 1-3)** — census `module-map.md` (73 of 95
-      rowed) + FEATURES maturity matrix vs the 95 modules; document deliberate
-      compaction scope in the map header; per-file index for the archived waves
-      in `docs/status/README.md`. — source: archived 13-03 §f1-3 _(Effort: S/M)_
+- [ ] **Docs censuses (7th-pass items 1-3)** — ~~module-map census~~ DONE
+      2026-09-20 (all 95 go.mods rowed, scripted-diff verified — census banner
+      in the map header). REMAINING: FEATURES maturity matrix vs the 95 modules
+      (+ last-verified stamps on guarantee rows); per-file index for the
+      archived waves in `docs/status/README.md`. — source: archived 13-03 §f1-3 _(Effort: S/M)_
 
 ---
 
@@ -812,10 +827,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
-## Load-ordering test flakes (filed 2026-09-16)
-
----
-
 ## Vector-search verification tail (2026-09-15)
 
 > Vector ADT shipped on EVERY engine 2026-09-15 (brute-force + DuckDB/libSQL
@@ -954,9 +965,116 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Fail closed on `EventAdapter.Save` racy fallback** — third-party engine
       authors get silent partial writes today; make the fallback loud or refuse.
       — feedback #3 _(Effort: S)_
-- ~~[ ] **Stamp experimental status in each engine/module `doc.go`**~~ done 2026-09-20 — all 17 metaengine-family modules carry a doc.go package comment with the `# Experimental` doc heading (the section pkg.go.dev renders); stray package comments on cost.go/engine.go consolidated. — feedback #5 _(Effort: S, mechanical)_
-  readers cannot tell 🧪 from ✅ today (FEATURES knows; the godocs don't).
-  — feedback #5 _(Effort: S, mechanical)_
+- ~~[ ] **Stamp experimental status in each engine/module `doc.go`**~~ done 2026-09-20 — all 17 metaengine-family modules carry a doc.go package comment with the `# Experimental` doc heading (the section pkg.go.dev renders; readers can now tell 🧪 from ✅ in the godocs — FEATURES knows the rest); stray package comments on cost.go/engine.go consolidated. T22 in the 09-40 report (now archived). — feedback #5 _(Effort: S, mechanical)_
+
+- [ ] **goal-shaped-app consumer-value tail (2026-09-20 harvest)** — adopt
+      `DomainConfig.Events` + `.On` chaining (unblocked NOW by system v4.8.0;
+      bump the example pin first); a real postgres e2e leg already listed above;
+      an examples CI test leg (all six examples carry tests but CI is
+      build-only); scenario-based Given/When/Then test for the task flow;
+      snapshot story demo ("snapshots are a worry the library manages"). —
+      source: archived 10-25 §f21-26 _(Effort: M total, sliceable)_
+
+---
+
+## 92-tag release-train tail (2026-09-20 harvest)
+
+> Harvested from the train execution report's §f (`docs/status/archived/2026-09-20_10-25_tag-wave-execution-92-tags-ci-templ-triage.md`)
+> and the verify-arc reports; items since done are struck inline there. The
+> owner questions ride the W3 bundle section below.
+
+- [ ] 🔥 **`.golangci.yml` hash-golden drift guard (M16)** — the curated config
+      was mangled 10+ times (BuildFlow auto-configure + the 2026-09-20 10:31
+      concurrent-corruption incident deleted the depguard allow-list
+      mid-verify); `#check-lint-config` only helps when someone RUNS it. Wire a
+      content hash-golden into `#verify`/pre-commit so the mangle fails loudly
+      at the next gate touch. — source: archived 23-21 §e1/§f13, 10-56 §1 _(Effort: S)_
+- [ ] **Verify-launcher ergonomics** — (a) `can-run-composed-gate.sh --wait-loop`
+      (the gate pair is two one-shot scripts; a load rebound between them
+      aborts — the 16:39 session's retry-loop supervisor is the proven
+      composition); (b) a pre-flight wrapper that runs the cheap composed-gate
+      phases (templ, bench-gate, coverage, api-stability, duplication — each
+      <5 min) before burning a 12–46 min verify attempt (attempts 7–9 of the
+      S03 arc were each a skipped-pre-flight cost); (c) an in-`#verify` load
+      threshold guard (refuse >N loadavg with a retry message, M15). — source:
+      archived 16-39 §e/16-43 §e/f11+f14, 23-21 §f14 _(Effort: S/M)_
+- [ ] **CI tail from the train (six legs, all root-caused)** — (a) benchkit
+      load-gate fixture env propagation (actionlint+shellcheck leg red on GH
+      runners: fixture expects the planted-loadavg PASS message, runner output
+      shape differs; 12/12 pass locally); (b) coverage-gate pinned/setup Go
+      toolchain (three consecutive deaths on `go: downloading go1.27.1` — the
+      job has no setup-go step); (c) auto-retry-once for cancelled/failed infra
+      legs (CGo/coverage transient class); (d) triage the 04:12 nightly-gates
+      failure; (e) Module Isolation Build leg-set instability; (f) one clean
+      post-fetch-depth-fix run confirming `TestTagContentMatchesChangelog`.
+      Remote confirmation of the whole set is billing-gated (row above). —
+      source: archived 10-25 §b1/§f5-10 _(Effort: M total)_
+- [ ] [BLOCKED] **Upstream filings (owner approval; verify-before-filing
+      first)** — (a) turso-go native-lib hash-mismatch + lazy-init failure
+      family (`TestBackend_LazyInit_Concurrent` / `TestVectorSearch_LibSQLPushdown`
+      red-ing 1–3 legs intermittently; bump-or-file decision rides the owner);
+      (b) exhaustruct_v5 `skippedNamed` panic (repro ready); (c) go/types +
+      x/tools parallel-check race. Draft in Lars's voice via github-voice after
+      verification. — source: archived 10-25 §f3-4/§f20, 15-37 M14 _(Effort: S each + approval)_
+- [ ] **Release-tooling polish tail (sliceable)** — smoke-all: per-module
+      timing, `--resume` checkpoint, artifacts under `~/.cache/` never /tmp;
+      `check-templ` leg-first error summary; `batch-release.sh --from-manifest`;
+      `pin-sweep --dry-run` lists its standalone-verifies;
+      `TestTagContentMatchesChangelog` train-section threshold (>=10 tags) as
+      an error; document `SOAK_SKIP_BOLT=1` for the per-module loop;
+      cqrs-upgrade dogfood sentinel on goal-shaped-app; api-stability's four
+      exclusion maps unified into one table; the 6-place module registration
+      consolidated (go.work, flake testModules/examplePaths, layer script, api
+      exclusions, cqrs-lint catalog) or a `new-module` scaffold;
+      verification-ladder doc (meta-tests → touched-lint → verify-fast →
+      verify) in AGENTS testing gotchas; LSP/gopls `GOTOOLCHAIN=auto` config
+      (kills ~95 noise diagnostics per session); templ-generate canonical-cwd
+      contract in the docserver README/gate echo; scheduler-otel-status row in
+      core.md §9; `check-example-standalone.sh` (example require audit — would
+      have caught the B6f forward-pin abort). — source: archived 10-25 §f13-14/§f31-38/§f41-50 _(Effort: M total)_
+- [ ] [BLOCKED] **Daemon pre-commit sanity gate** (three sessions asked) — the
+      auto-commit daemon absorbs red/corrupt mid-edit states (6 authored
+      commits + the 10:31 corruption landed as `chore:` blobs); a sanity check
+      before heuristic commits would end the class. Infra/owner call. —
+      source: archived 10-25 §f17/§d6, 09-40 §e1 _(Effort: M, owner-gated)_
+- [ ] [BLOCKED] **BuildFlow templ-generate cwd fix** (external repo) — the
+      pre-commit templ step runs from the repo root and re-corrupted a correct
+      regeneration ( FileName paths baked in); file upstream, until then the
+      documented regenerate-from-`catalog/docserver/` + `--no-verify` pattern
+      stands. — source: archived 10-25 §d3/§f16 _(Effort: S, external)_
+
+---
+
+## Owner decisions — W3 bundle (2026-09-20)
+
+> Consolidated in [`docs/status/2026-09-20_11-36_owner-bundle-w3.md`](docs/status/2026-09-20_11-36_owner-bundle-w3.md)
+> (kept LIVE — it is the pending decision sheet). Each unblocks work the moment
+> it is answered; full context/options/recommendations live there.
+
+- [ ] [BLOCKED] **Q1: `cmd/api-stability/readme_claims_test.go` ownership** —
+      foreign, green, load-bearing (README truth); keep under whose name, or
+      remove. _(Effort: XS ruling)_
+- [ ] [BLOCKED] **Q3: ratify the 10:31 repair ruling** — restored `go 1.27.1`
+      contract + kept the formatter-consistent markdown reformats that rode the
+      unidentified concurrent editor's corruption. _(Effort: XS ruling)_
+- [ ] [BLOCKED] **Q4: flake.nix go pin vs nixpkgs lag** — `pkgs.go_1_27`
+      resolves to 1.27.0 on this host; everything works only via
+      `GOTOOLCHAIN=auto`. Recommended: document the env chain as the contract +
+      a loud `check-go-version` gate; explicit pin when nixpkgs lands 1.27.1.
+      _(Effort: XS ruling + S gate)_
+- [ ] [BLOCKED] **Q5: verify-window advisory flock** — `scripts/lib/verify-lock.sh`
+      (flock on `./.verify.lock`) so concurrent editors fail loudly instead of
+      corrupting (the 10:31 incident cost ~45 min). _(Effort: XS ruling + S impl)_
+- [ ] [BLOCKED] **Stale `example/taskmanager/v4.*` remote tags** (proxy-invisible
+      for the suffix-less module; v0.2.1 is the served line): delete or document
+      as historical. Related: the dead-path v3/v4 tag lines are already
+      baselined in `audit-tag-baseline.txt` (decided 2026-09-19). _(Effort: XS ruling)_
+- [ ] [BLOCKED] **MySQL leg vehicle** (from the 23-21 session): bless the
+      ephemeral native-MariaDB leg as the canonical local vehicle and demote
+      QEMU to CI-only, or keep retry-hardening the VM leg. Gates the
+      codification row above. _(Effort: XS ruling)_
+
+---
 
 ## Declined / Rejected (do not re-litigate)
 

@@ -3,6 +3,8 @@ package kv
 import (
 	"context"
 	"slices"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 type batchOp struct {
@@ -50,7 +52,7 @@ func (b *memBatch) Commit(_ context.Context) error {
 		return ErrClosed
 	}
 
-	defer func() { _ = b.Close() }()
+	defer record.DeferClose(b)
 
 	b.store.mu.Lock()
 	defer b.store.mu.Unlock()

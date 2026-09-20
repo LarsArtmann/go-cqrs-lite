@@ -4,6 +4,8 @@ import (
 	"context"
 	"iter"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // EngineProfile describes what an engine can do and at what cost.
@@ -568,8 +570,10 @@ type Closer interface {
 // DeferClose calls c.Close(), discarding the error. Intended for use in defer
 // statements where the close error is not actionable (rows, iterators, batches
 // in defer scope). Replaces the verbose `defer func() { _ = x.Close() }()` idiom.
+// Canonical implementation: [record.DeferClose] (ADR-0144) — this engine-tier
+// address forwards so existing call sites keep one implementation underneath.
 func DeferClose(c Closer) {
-	_ = c.Close()
+	record.DeferClose(c)
 }
 
 // Engine is a storage backend with a cost profile.
