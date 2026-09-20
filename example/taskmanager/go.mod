@@ -84,11 +84,3 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/queue/v4 => ../../queue
-
-replace github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4 => ../../queue/sqlite
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
-
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../../metaengine
