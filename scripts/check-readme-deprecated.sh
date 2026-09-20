@@ -11,7 +11,12 @@
 #   - bare citation `Sym` flags only when a declaring file lives inside the
 #     README's own directory subtree (the citation reads as local API).
 # Prose word-boundary matches ("handler" in a sentence) are deliberately
-# ignored — only code citations inside backticks count. A README whose first
+# ignored — only code citations inside backticks count. A citation is
+# INTENTIONAL (not flagged) when its own line or the following line carries a
+# deprecation marker (Deprecated / removed in v5 / v5 removal): READMEs are
+# allowed — encouraged — to name the symbol they are telling readers to stop
+# using; only citations that present deprecated API as living API flag.
+# A README whose first
 # DEPRECATED_BANNER_LINES lines carry a deprecation banner ("> **Deprecated"
 # or "Deprecated: removed in") is skipped entirely: the package-level notice
 # already tells the reader, so per-symbol markers would be noise.
@@ -90,23 +95,33 @@ scan_readmes() {
 				}
 			}
 			{
-				line = $0
-				while (match(line, /`[^`]+`/)) {
-					span = substr(line, RSTART + 1, RLENGTH - 2)
-					line = substr(line, RSTART + RLENGTH)
-					cand = span
-					sub(/[[(].*$/, "", cand)
-					sub(/^[^A-Za-z0-9_]*/, "", cand)
-					m = split(cand, seg, ".")
-					if (m >= 2) {
-						s = seg[m]; q = seg[m - 1]
-						if (qual[q "." s]) print FILE " " cand
-					} else if (m == 1 && decl[cand] != "") {
-						n2 = split(decl[cand], paths, "\n")
-						for (i = 1; i <= n2; i++) {
-							if (paths[i] != "" && index(paths[i], DIR "/") == 1) {
-								print FILE " " cand
-								break
+				L[FNR] = $0
+				if ($0 ~ /[Dd]eprecated|removed in v5|v5 removal/) M[FNR] = 1
+				n = FNR
+			}
+			END {
+				for (i = 1; i <= n; i++) {
+					# Deprecation-framed citations (marker on this line or the
+					# wrapped next line) are intentional disclosure, not drift.
+					if (M[i] || M[i + 1]) continue
+					line = L[i]
+					while (match(line, /`[^`]+`/)) {
+						span = substr(line, RSTART + 1, RLENGTH - 2)
+						line = substr(line, RSTART + RLENGTH)
+						cand = span
+						sub(/[[(].*$/, "", cand)
+						sub(/^[^A-Za-z0-9_]*/, "", cand)
+						m = split(cand, seg, ".")
+						if (m >= 2) {
+							s = seg[m]; q = seg[m - 1]
+							if (qual[q "." s]) print FILE " " cand
+						} else if (m == 1 && decl[cand] != "") {
+							n2 = split(decl[cand], paths, "\n")
+							for (k = 1; k <= n2; k++) {
+								if (paths[k] != "" && index(paths[k], DIR "/") == 1) {
+									print FILE " " cand
+									break
+								}
 							}
 						}
 					}
@@ -121,7 +136,8 @@ self_test() {
 	fixture="$(mktemp -d /tmp/readme-deprecated-fixture.XXXXXX)" || return 1
 	trap 'rm -rf "$fixture"' RETURN
 
-	mkdir -p "$fixture/mod/lib" "$fixture/mod/app" "$fixture/mod/clean" "$fixture/mod/bannered"
+	mkdir -p "$fixture/mod/lib" "$fixture/mod/app" "$fixture/mod/clean" "$fixture/mod/bannered" \
+		"$fixture/mod/legacy" "$fixture/mod/wrapped"
 	cat >"$fixture/mod/lib/api.go" <<'EOF'
 package lib
 
@@ -140,6 +156,10 @@ EOF
 	printf '# app readme\nUse `Old` freely, or `lib.Old`.\n' >"$fixture/mod/app/README.md"
 	printf '# clean readme\nUse `Fresh` only.\n' >"$fixture/mod/clean/README.md"
 	printf '# bannered readme\n\n> **Deprecated:** removed in v5. Use system.New.\n\nUse `lib.Old` freely.\n' >"$fixture/mod/bannered/README.md"
+	# Deprecation-framed citations are intentional disclosure, not drift:
+	# same-line marker and wrapped next-line marker must both be exempt.
+	printf '# legacy readme\nUse `lib.Old` while migrating (Deprecated: removed in v5).\n' >"$fixture/mod/legacy/README.md"
+	printf '# wrapped readme\nThe symbols\n`lib.Old`\nare deprecated and will be removed in v5.\n' >"$fixture/mod/wrapped/README.md"
 
 	# Run the engine once; capture output so grep -q early-exit cannot
 	# SIGPIPE the child under `set -o pipefail` and masquerade as a failure.
@@ -175,8 +195,19 @@ EOF
 		echo "self-test FAILED: bannered README flagged" >&2
 		return 1
 	fi
+	# Leg 6 (deprecation framing): a citation whose line says it is deprecated
+	# is intentional disclosure, not a living-API citation.
+	if grep -q 'legacy/README' <<<"$out"; then
+		echo "self-test FAILED: deprecation-framed citation flagged" >&2
+		return 1
+	fi
+	# Leg 7 (wrapped framing): marker on the following (wrapped) line exempts too.
+	if grep -q 'wrapped/README' <<<"$out"; then
+		echo "self-test FAILED: wrapped deprecation-framed citation flagged" >&2
+		return 1
+	fi
 
-	echo "check-readme-deprecated self-test: all five legs green (detect + scope + qualified + clean + banner)"
+	echo "check-readme-deprecated self-test: all seven legs green (detect + scope + qualified + clean + banner + framed + wrapped)"
 	return 0
 }
 
