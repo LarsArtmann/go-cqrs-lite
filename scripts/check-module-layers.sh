@@ -117,6 +117,7 @@ LAYER["example/scheduler-otel-status"]=7
 LAYER["example/metaengine-quickstart"]=7
 LAYER["cmd/cqrs-lint/testdata/typedfixture"]=7
 LAYER["event/v4/eventtest"]=7
+LAYER["testutil/mysqltestcontainer"]=5
 LAYER["testutil/pgtestcontainer"]=5
 # testutil is test-only infrastructure used from _test.go files across layers.
 # It has LAYER[testutil]=5 above, but lower-tier modules that import it from
@@ -205,7 +206,7 @@ TEST_PACKAGES="github.com/onsi/gomega github.com/onsi/ginkgo/v2 pgregory.net/rap
 # cmd/cqrs-lint/testdata/typedfixture: the committed F091 typed-path fixture —
 # a consumer-shaped module that exists only to be linted by cqrs-lint's own
 # tests (replace-based schema dep; never built by the workspace).
-TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/pgtestcontainer cmd/cqrs-lint/testdata/typedfixture"
+TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/mysqltestcontainer testutil/pgtestcontainer cmd/cqrs-lint/testdata/typedfixture"
 
 # Dependency budgets: maximum direct PRODUCTION dependencies per module.
 # Budgets are intentionally tight — new deps require explicit review.
@@ -357,6 +358,7 @@ DEP_BUDGET["example/metaengine-quickstart"]=7
 DEP_BUDGET["cmd/cqrs-lint/testdata/typedfixture"]=1
 DEP_BUDGET["event/v4/eventtest"]=5
 DEP_BUDGET[record]=0
+DEP_BUDGET["testutil/mysqltestcontainer"]=2
 DEP_BUDGET["testutil/pgtestcontainer"]=3
 DEP_BUDGET["metaengine/bench"]=5
 

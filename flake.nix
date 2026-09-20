@@ -219,6 +219,7 @@
             "otel"
             "otel/otlp"
             "testutil"
+            "testutil/mysqltestcontainer"
             "testutil/pgtestcontainer"
             "stack"
             "stack/bbolt"

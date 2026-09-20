@@ -91,6 +91,7 @@ use (
 	./system
 	./system/integration
 	./testutil
+	./testutil/mysqltestcontainer
 	./testutil/pgtestcontainer
 	./transport/grpc
 	./transport/http
