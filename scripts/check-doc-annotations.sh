@@ -28,8 +28,8 @@
 # Exit codes: 0 = clean (warnings allowed), 1 = violations, 2 = usage.
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BASELINE="$ROOT/scripts/doc-annotations-baseline.txt"
+ROOT="${CHECK_DOCS_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+BASELINE="${CHECK_DOCS_BASELINE:-$ROOT/scripts/doc-annotations-baseline.txt}"
 SELFTEST_MODE=0
 WRITE_BASELINE=0
 DRIFT_DAYS=14
@@ -109,32 +109,39 @@ self_test() {
 	# Violation: bare file, no baseline.
 	printf '# r\nplain report\n' >"$tmp/docs/status/archived/bare.md"
 
-	ROOT="$tmp" BASELINE="$tmp/no-such-baseline.txt" "$0" >/dev/null 2>&1
+	CHECK_DOCS_ROOT="$tmp" CHECK_DOCS_BASELINE="$tmp/no-such-baseline.txt" "$0" >/dev/null 2>&1
 	rc=$?
 	if [[ $rc == 1 ]]; then
 		echo "  ✓ PASS: bare un-annotated archive fails the gate"
 	else
 		echo "  ✗ FAIL: bare archive should fail (rc=$rc)"
+		local bad=1
 	fi
 
 	printf 'docs/status/archived/bare.md\n' >"$tmp/baseline.txt"
-	ROOT="$tmp" BASELINE="$tmp/baseline.txt" "$0" >/dev/null 2>&1
+	CHECK_DOCS_ROOT="$tmp" CHECK_DOCS_BASELINE="$tmp/baseline.txt" "$0" >/dev/null 2>&1
 	rc=$?
 	if [[ $rc == 0 ]]; then
 		echo "  ✓ PASS: baselined file passes; bannered+struck pass"
 	else
 		echo "  ✗ FAIL: baselined+annotated set should pass (rc=$rc)"
+		local bad=1
 	fi
 	rm "$tmp/docs/status/archived/bare.md"
 
 	# Mutation: stripping the marker from the struck file must re-fail.
 	printf '# r\n- item still open\n' >"$tmp/docs/status/archived/struck.md"
-	ROOT="$tmp" BASELINE="$tmp/baseline.txt" "$0" >/dev/null 2>&1
+	CHECK_DOCS_ROOT="$tmp" CHECK_DOCS_BASELINE="$tmp/baseline.txt" "$0" >/dev/null 2>&1
 	rc=$?
 	if [[ $rc == 1 ]]; then
 		echo "  ✓ PASS: marker removal re-fails the gate"
 	else
 		echo "  ✗ FAIL: stripped marker not caught (rc=$rc)"
+		local bad=1
+	fi
+
+	if [[ "${bad:-0}" == 1 ]]; then
+		return 1
 	fi
 }
 

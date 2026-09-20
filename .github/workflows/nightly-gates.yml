@@ -74,6 +74,14 @@ jobs:
           bash scripts/check-canonical-facts.sh --self-test
           bash scripts/check-canonical-facts.sh
 
+      # Archived reports must carry a resolution marker (banner or
+      # strikethrough) or sit in the conscious pre-convention baseline;
+      # live reports older than 14d without KEEP-LIVE surface as drift.
+      - name: Doc-annotations gate (archived-report markers)
+        run: |
+          bash scripts/check-doc-annotations.sh --self-test
+          bash scripts/check-doc-annotations.sh
+
       # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
       # stays on the per-push CI leg; the nightly only surfaces drift.
       - name: Pin sweep (report-only)
