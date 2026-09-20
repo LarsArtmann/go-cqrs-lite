@@ -635,11 +635,16 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       the 12-16 report verified all 93 READMEs mechanically but ~30 polish items
       stayed unharvested; the substantive ones: ~~(a) doc-check repoRoot regression
       test + `[Unreleased]` Fixed entry + gotcha note for the relative-path fix~~ done 2026-09-20 (`reporoot_test.go` + CHANGELOG Fixed + gotcha);
-      (b) add READMEs to the doc-check gate (flake app/CI); (c) deep-read the six
+      (b) add READMEs to the doc-check gate (flake app/CI); ~~(c) deep-read the six
       big unread READMEs (catalog 587L, graph, stack, storage/view, watermill,
-      otel, prometheus); (d) quick-start drift-guard tests for stack/sqlite,
-      storage/memory, decider, scheduling, projectionhost; (e) deprecated-symbol
-      grep gate over READMEs; (f) `scripts/check-readme-links.sh` link checker.
+      otel, prometheus)~~ done 2026-09-20 (T37: 8 READMEs symbol-verified
+      against source, zero drift); (d) quick-start drift-guard tests for stack/sqlite,
+      storage/memory, decider, scheduling, projectionhost; ~~(e) deprecated-symbol
+      grep gate over READMEs~~ done 2026-09-20 (`scripts/check-readme-deprecated.sh`:
+      package-scoped + framing-aware, 7-leg mutation-tested self-test, nightly
+      gate, ADR-0123 banner sweep + citation migration, baseline at 0); ~~(f)
+      `scripts/check-readme-links.sh` link checker~~ done 2026-09-20 (673 targets,
+      0 broken, nightly gate).
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
 - [ ] **Docs censuses (7th-pass items 1-3)** — census `module-map.md` (73 of 95

@@ -84,7 +84,7 @@ func TestTimerStore_Parity(t *testing.T) {
 		t.Fatalf("due: %v", err)
 	}
 
-	var order []string
+	order := make([]string, 0, len(due))
 	for _, tm := range due {
 		order = append(order, tm.ID.Get())
 	}

@@ -27,15 +27,10 @@ func TestFindRepoRootFromPath_RelativePaths(t *testing.T) {
 		t.Fatalf("write .git file (worktree form): %v", err)
 	}
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("getwd: %v", err)
-	}
-	t.Cleanup(func() { _ = os.Chdir(cwd) })
-
-	if err := os.Chdir(docs); err != nil {
-		t.Fatalf("chdir: %v", err)
-	}
+	// t.Chdir pins the process cwd to the nested docs dir for the duration
+	// of the test and restores it after (the reason this test is not
+	// t.Parallel — os.Chdir is process-global).
+	t.Chdir(docs)
 
 	// Relative start (the CI shape): "docs/deep" relative to repo root,
 	// plus a bare relative ".", plus a "../.." climb.

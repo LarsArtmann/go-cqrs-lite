@@ -25,12 +25,16 @@ This module is **read-only**. It never writes events. It queries via `event.Jour
 
 | Type              | Purpose                                                                |
 | ----------------- | ---------------------------------------------------------------------- |
-| `AggregateRef`    | Lightweight identity: ID, Type, Version, EventCount, LastEventAt       |
-| `AggregateStatus` | Pairs an `AggregateRef` with its `TombstoneStatus`                     |
+| `StreamListing`   | Lightweight identity: ID, Type, Version, EventCount, LastEventAt       |
+| `StreamStatus`    | Pairs a `StreamListing` with its `Status`                              |
 | `Page[T]`         | Cursor-based page: `Items []T` + `HasMore bool` (no TotalCount)        |
 | `ListOptions`     | Query params: Type (required), After (cursor), Limit, Tombstone policy |
 | `TombstonePolicy` | `TombstoneExclude` (default), `TombstoneInclude`, `TombstoneOnly`      |
-| `AggregateReader` | Interface: `List` and `ListWithStatus`                                 |
+| `StreamReader`    | Interface: `List` and `ListWithStatus`                                 |
+
+> The legacy `Aggregate*` spellings (`AggregateListing`, `AggregateStatus`,
+> `AggregateReader`) are deprecated aliases of the `Stream*` names — removed
+> in v5.
 
 ## Setup
 
@@ -132,8 +136,8 @@ if page1.HasMore {
 
 ## Status
 
-`listing.Status` is a tri-state enum (numeric values match the legacy
-`event.TombstoneStatus` wire values):
+`listing.Status` is a tri-state enum (numeric values match the deprecated
+legacy `event.TombstoneStatus` wire values):
 
 | Status               | Value | Meaning                                             |
 | -------------------- | ----- | --------------------------------------------------- |
@@ -144,16 +148,16 @@ if page1.HasMore {
 Classification uses the **last event** in the stream. Restoration takes
 precedence (newest event wins).
 
-## AggregateReader Interface
+## StreamReader Interface
 
 ```go
-type AggregateReader interface {
-    List(ctx context.Context, opts ListOptions) (*Page[AggregateRef], error)
-    ListWithStatus(ctx context.Context, opts ListOptions) (*Page[AggregateStatus], error)
+type StreamReader interface {
+    List(ctx context.Context, opts ListOptions) (*Page[StreamListing], error)
+    ListWithStatus(ctx context.Context, opts ListOptions) (*Page[StreamStatus], error)
 }
 ```
 
-Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
+Implementations: `InMemoryStreamReader`, `SQLStreamReader`.
 
 ## Dependencies
 
@@ -176,8 +180,8 @@ Implementations: `InMemoryAggregateReader`, `SQLAggregateReader`.
 
 ## Related Modules
 
-- [**projection**](../projection/README.md) — Register `AggregateProjection` with the runner to populate the reader
-- [**storage**](../storage/README.md) — SQL-backed `AggregateReader` for PostgreSQL/SQLite
+- [**projection**](../projection/README.md) — Register `StreamProjection` with the runner to populate the reader
+- [**storage**](../storage/README.md) — SQL-backed `StreamReader` for PostgreSQL/SQLite
 - [**event**](../event/README.md) — Event types consumed by `StatusClassifier`
-- [**id**](../id/README.md) — `AggregateID` type
-- [**memory**](../storage/memory/README.md) — `InMemoryAggregateReader` for tests
+- [**id**](../id/README.md) — `StreamID` type
+- [**memory**](../storage/memory/README.md) — `InMemoryStreamReader` for tests

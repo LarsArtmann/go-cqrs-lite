@@ -105,9 +105,9 @@ scan_readmes() {
 			}
 			END {
 				for (i = 1; i <= n; i++) {
-					# Deprecation-framed citations (marker on this line or the
-					# wrapped next line) are intentional disclosure, not drift.
-					if (M[i] || M[i + 1]) continue
+					# Deprecation-framed citations (marker on this line or an
+					# adjacent wrapped line) are intentional disclosure.
+					if (M[i - 1] || M[i] || M[i + 1]) continue
 					line = L[i]
 					while (match(line, /`[^`]+`/)) {
 						span = substr(line, RSTART + 1, RLENGTH - 2)
@@ -167,7 +167,7 @@ EOF
 	# Deprecation-framed citations are intentional disclosure, not drift:
 	# same-line marker and wrapped next-line marker must both be exempt.
 	printf '# legacy readme\nUse `lib.Old` while migrating (Deprecated: removed in v5).\n' >"$fixture/mod/legacy/README.md"
-	printf '# wrapped readme\nThe symbols\n`lib.Old`\nare deprecated and will be removed in v5.\n' >"$fixture/mod/wrapped/README.md"
+	printf '# wrapped readme\nThe symbols\n`lib.Old`\nare deprecated and will be removed in v5.\nAlso deprecated (removed in v5):\n`lib.Old` again.\n' >"$fixture/mod/wrapped/README.md"
 
 	# Run the engine once; capture output so grep -q early-exit cannot
 	# SIGPIPE the child under `set -o pipefail` and masquerade as a failure.
