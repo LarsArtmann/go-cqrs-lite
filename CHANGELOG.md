@@ -341,7 +341,7 @@ Coordinated release of the full 2026-09-08 → 09-19 surface (92 modules):
 `cmd/api-stability/v4.4.0`, `example/taskmanager/v0.2.0`, `example/getting-started/v0.2.0`, 
 `example/readme-quickstart/v0.2.1`, `example/metaengine-quickstart/v0.1.1`, 
 `example/scheduler-otel-status/v0.1.0`, `example/goal-shaped-app/v0.1.0`
-First releases: `claiming/v4.0.0`, `queue/v4.0.0` (+ `queue/sqlite/v4.0.0`, `queue/postgres/v4.0.0`, `queue/mysql/v4.0.0`, `queue/conformance` ships with `queue/sqlite`), `scheduling/engine/v4.0.0`, `system/integration/v4.0.0`, `metaengine/bigtableengine/v4.0.0`, `metaengine/otelobserver/v4.0.0`, `otel/otlp/v4.0.0`, and `example/goal-shaped-app/v0.1.0` — the ADR-0142 universal storage substrate, the durable work-queue stack (ADR-0134/0142), and the Goal example become proxy-visible for consumers. The examples' module paths are suffix-less, so their v0 tags are the proxy-visible line.
+First releases: `claiming/v4.0.0`, `queue/v4.0.0` (+ `queue/sqlite/v4.0.0`, `queue/postgres/v4.0.0`, `queue/mysql/v4.0.0`, `queue/conformance` ships with `queue`), `scheduling/engine/v4.0.0`, `system/integration/v4.0.0`, `metaengine/bigtableengine/v4.0.0`, `metaengine/otelobserver/v4.0.0`, `otel/otlp/v4.0.0`, and `example/goal-shaped-app/v0.1.0` — the ADR-0142 universal storage substrate, the durable work-queue stack (ADR-0134/0142), and the Goal example become proxy-visible for consumers. The examples' module paths are suffix-less, so their v0 tags are the proxy-visible line.
 
 
 ### Fixed — repo-wide lint debt cleared to zero; exhaustruct_v5 panic class killed (2026-09-19)
