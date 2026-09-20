@@ -202,49 +202,16 @@ func (e *duckdbEngine) VectorSearchFiltered(
 	return metaengine.TopKNearest(results, k), nil
 }
 
-// scanScoredVector decodes one meta_vector row (vec/metadata fetched as JSON
-// text via CAST), applies the metadata filters, and scores the survivor;
-// ok=false when a filter excluded the row.
+// scanScoredVector delegates to the shared metaengine.ScanScoredVector core;
+// the decode seam is DecodeVectorJSON because duckdb stores the vector as a
+// JSON-cast text column (the other SQL engines use raw F32 blobs).
 func scanScoredVector(
-	rows rowScanner,
+	rows metaengine.RowScanner,
 	query []float32,
 	metric string,
 	filters []metaengine.VectorFilter,
-) (res metaengine.VectorResult, ok bool, err error) {
-	var id string
-
-	var vec, metaRaw *string
-
-	if err := rows.Scan(&id, &vec, &metaRaw); err != nil {
-		return metaengine.VectorResult{}, false, fmt.Errorf("scan %s: %w", id, err)
-	}
-
-	var meta map[string]any
-	if metaRaw != nil {
-		if err := json.Unmarshal([]byte(*metaRaw), &meta); err != nil {
-			return metaengine.VectorResult{}, false, fmt.Errorf("metadata %s: %w", id, err)
-		}
-	}
-
-	if !metaengine.VectorMatchesFilters(meta, filters) {
-		return metaengine.VectorResult{}, false, nil
-	}
-
-	values, err := metaengine.DecodeVectorJSON([]byte(*vec))
-	if err != nil {
-		return metaengine.VectorResult{}, false, fmt.Errorf("decode %s: %w", id, err)
-	}
-
-	return metaengine.VectorResult{
-		ID:       id,
-		Distance: metaengine.VectorDistance(query, values, metric),
-	}, true, nil
-}
-
-// rowScanner is the Scan surface of *sql.Rows (interface seam keeps the
-// dialect-twin bodies comparable).
-type rowScanner interface {
-	Scan(dest ...any) error
+) (metaengine.VectorResult, bool, error) {
+	return metaengine.ScanScoredVector(rows, query, metric, filters, metaengine.DecodeVectorJSON)
 }
 
 // VectorCount returns the number of embeddings in the collection via SQL

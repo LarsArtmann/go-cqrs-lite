@@ -235,42 +235,15 @@ func (e *sqliteEngine) vectorScan(
 	return metaengine.TopKNearest(results, k), nil
 }
 
-// scanScoredVector decodes one meta_vector row, applies the metadata filters,
-// and scores the survivor; ok=false when a filter excluded the row.
+// scanScoredVector delegates to the shared metaengine.ScanScoredVector core
+// (raw F32 vector blob, byte metadata). Consolidated from the dialect twin.
 func scanScoredVector(
 	rows *sql.Rows,
 	query []float32,
 	metric string,
 	filters []metaengine.VectorFilter,
-) (res metaengine.VectorResult, ok bool, err error) {
-	var id string
-
-	var vec, metaRaw []byte
-
-	if err := rows.Scan(&id, &vec, &metaRaw); err != nil {
-		return metaengine.VectorResult{}, false, fmt.Errorf("scan %s: %w", id, err)
-	}
-
-	var meta map[string]any
-	if metaRaw != nil {
-		if err := json.Unmarshal(metaRaw, &meta); err != nil {
-			return metaengine.VectorResult{}, false, fmt.Errorf("metadata %s: %w", id, err)
-		}
-	}
-
-	if !metaengine.VectorMatchesFilters(meta, filters) {
-		return metaengine.VectorResult{}, false, nil
-	}
-
-	values, err := metaengine.DecodeVectorF32(vec)
-	if err != nil {
-		return metaengine.VectorResult{}, false, fmt.Errorf("decode %s: %w", id, err)
-	}
-
-	return metaengine.VectorResult{
-		ID:       id,
-		Distance: metaengine.VectorDistance(query, values, metric),
-	}, true, nil
+) (metaengine.VectorResult, bool, error) {
+	return metaengine.ScanScoredVector(rows, query, metric, filters, metaengine.DecodeVectorF32)
 }
 
 // VectorCount returns the number of embeddings in the collection via SQL
