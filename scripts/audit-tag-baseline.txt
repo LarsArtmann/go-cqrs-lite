@@ -4,9 +4,6 @@
 example/taskmanager/v3.6.0
 example/taskmanager/v3.7.0
 example/taskmanager/v3.7.1
-example/taskmanager/v4.0.0
-example/taskmanager/v4.0.1
-example/taskmanager/v4.1.0
 example/getting-started/v3.6.0
 example/getting-started/v3.7.0
 example/getting-started/v3.7.1
