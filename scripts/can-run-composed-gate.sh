@@ -18,6 +18,14 @@
 #   scripts/can-run-composed-gate.sh            # assert now (ceiling 10)
 #   scripts/can-run-composed-gate.sh --wait     # block via wait-for-quiet
 #                                               # first, then assert
+#   scripts/can-run-composed-gate.sh --wait-loop # retry the full assert until
+#                                               # it passes or --max-wait
+#                                               # elapses (default 3600s,
+#                                               # retry every --retry-interval
+#                                               # 120s). Survives rebounds:
+#                                               # a loud window just costs a
+#                                               # retry, the launch happens
+#                                               # only on a full GREEN assert.
 #   scripts/can-run-composed-gate.sh --self-test
 #
 # Fixture hooks (self-test only): QUIET_LOADAVG_FILE for the load probe,
@@ -30,6 +38,9 @@ set -uo pipefail
 
 CEILING="${VERIFY_MAX_LOAD:-10}"
 WAIT_MODE=0
+WAIT_LOOP=0
+MAX_WAIT="${VERIFY_MAX_WAIT:-3600}"
+RETRY_INTERVAL="${VERIFY_RETRY_INTERVAL:-120}"
 SELFTEST_MODE=0
 
 while [[ $# -gt 0 ]]; do
@@ -37,6 +48,18 @@ while [[ $# -gt 0 ]]; do
 	--wait)
 		WAIT_MODE=1
 		shift
+		;;
+	--wait-loop)
+		WAIT_LOOP=1
+		shift
+		;;
+	--max-wait)
+		MAX_WAIT="$2"
+		shift 2
+		;;
+	--retry-interval)
+		RETRY_INTERVAL="$2"
+		shift 2
 		;;
 	--max-load)
 		CEILING="$2"
@@ -120,6 +143,32 @@ self_test() {
 		echo "  ✓ PASS: loud load refused"
 	fi
 
+	# 2b. wait-loop recovers after one rebound: fixture starts loud, flips
+	#     quiet after 1s; the one-shot would refuse, the loop retries into GREEN.
+	printf '40.0 55.0 1.0 1/1 1\n' >"$tmp/flip"
+	(
+		sleep 1
+		printf '2.0 3.0 1.0 1/1 1\n' >"$tmp/flip"
+	) &
+	local flipper=$!
+	if QUIET_LOADAVG_FILE="$tmp/flip" CANARY_PROCS='impossible-pattern-xyz' \
+		TREE_STABLE_DELAY=0 "$0" --wait-loop --max-wait 8 --retry-interval 1 >/dev/null 2>&1; then
+		echo "  ✓ PASS: wait-loop survives one rebound and lands GREEN"
+	else
+		echo "  ✗ FAIL: wait-loop should recover after the rebound"
+		failures=$((failures + 1))
+	fi
+	kill "$flipper" 2>/dev/null || true
+
+	# 2c. wait-loop times out when conditions never hold.
+	if QUIET_LOADAVG_FILE="$tmp/loud" CANARY_PROCS='impossible-pattern-xyz' \
+		TREE_STABLE_DELAY=0 "$0" --wait-loop --max-wait 2 --retry-interval 1 >/dev/null 2>&1; then
+		echo "  ✗ FAIL: wait-loop must time out on persistent loud load"
+		failures=$((failures + 1))
+	else
+		echo "  ✓ PASS: wait-loop times out when conditions never hold"
+	fi
+
 	# 2. canary: a planted process matching the release pattern must fail the gate.
 	sleep 300 &
 	local planted=$!
@@ -150,21 +199,49 @@ if [[ "${CI:-}" == true ]]; then
 	exit 0
 fi
 
+assert_all() {
+	check_release_procs || return 1
+
+	local d1 d2
+	d1="$(tree_digest)"
+	sleep "$STABLE_DELAY"
+	d2="$(tree_digest)"
+	if [[ "$d1" != "$d2" ]]; then
+		echo "refusing: tree changed during the ${STABLE_DELAY}s stability window (daemon or concurrent session mid-edit)" >&2
+		return 1
+	fi
+
+	if ! check_load; then
+		echo "refusing: load above ceiling ${CEILING} (use --wait-loop to retry until quiet)" >&2
+		return 1
+	fi
+	return 0
+}
+
+if [[ "$WAIT_LOOP" == 1 ]]; then
+	deadline=$((SECONDS + MAX_WAIT))
+	attempt=1
+	while ((SECONDS < deadline)); do
+		if assert_all; then
+			echo "can-run-composed-gate: GREEN after ${attempt} attempt(s) — no release procs, tree stable ${STABLE_DELAY}s, load under ${CEILING}"
+			exit 0
+		fi
+		if ((SECONDS + RETRY_INTERVAL >= deadline)); then
+			break
+		fi
+		echo "can-run-composed-gate: attempt ${attempt} not GREEN, retrying in ${RETRY_INTERVAL}s (max-wait ${MAX_WAIT}s)" >&2
+		sleep "$RETRY_INTERVAL"
+		attempt=$((attempt + 1))
+	done
+	fail "--wait-loop timed out after ${MAX_WAIT}s (${attempt} attempt(s)); conditions never held"
+fi
+
 if [[ "$WAIT_MODE" == 1 ]]; then
 	"$SCRIPT_DIR/wait-for-quiet.sh" --max-load "$CEILING" || fail "host never quieted (wait-for-quiet rc=$?)"
 fi
 
-check_release_procs || fail "refusing: release session alive (their sweeps mutate fixtures/pins mid-gate)"
-
-d1="$(tree_digest)"
-sleep "$STABLE_DELAY"
-d2="$(tree_digest)"
-if [[ "$d1" != "$d2" ]]; then
-	fail "refusing: tree changed during the ${STABLE_DELAY}s stability window (daemon or concurrent session mid-edit)"
-fi
-
-if ! check_load; then
-	fail "refusing: load above ceiling ${CEILING} (use --wait to block first)"
+if ! assert_all; then
+	fail "precondition failed (see reason above)"
 fi
 
 echo "can-run-composed-gate: GREEN — no release procs, tree stable ${STABLE_DELAY}s, load under ${CEILING}"
