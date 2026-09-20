@@ -119,3 +119,19 @@ Tried and failed: (1) re-ran the verification gate 4× including deep-quiet + re
 ---
 
 *Evidence artifacts (ephemeral `/tmp`, excerpts embedded above): `/tmp/t18b-pipeline.log`, `/tmp/t18b-verify.log`, `/tmp/t18b-verify2.log`, `/tmp/t18b-verify2-run.log`, `/tmp/t18b-save-attempt{1,2}.log`, pre-run backup `/tmp/benchmark-baseline.pre-t18b.txt`. Key commit: `a91e7cd90` (baseline re-pin, daemon-committed). TODO_LIST edits ride the auto-commit daemon per repo convention — no manual commit per harness contract.*
+
+---
+
+## ADDENDUM 2026-09-20 ~22:40 CEST — owner rulings received + implemented
+
+Answers to section (g): Q1/Q3 were delegated ("do what makes sense / make the call for long-term maintainability"); Q2 = **yes**. Calls made and shipped:
+
+| Ruling | Implementation | Verification |
+|--------|----------------|--------------|
+| Q1: `write_p99_ns` **demoted** from the noise headline set (default now `write_throughput write_p50_ns load_p50_ns`) | `scripts/benchmark-regression.sh` NOISE_HEADLINE + usage-block rationale (evidence: p99 CoV 11.5–54% across 5 runs incl. deep-quiet & repeat 7, while the three stable metrics stayed <10% in every run; max was worse — 22.9–53.9% — so the earlier "p50+max pair" idea is refuted by tonight's own data) | Fixture A: p99-noisy JSON + `--save` → saves (advisory only) |
+| Q2: **yes** — `--save` refuses after a noise-gate failure | New `--force-save` flag + guard inside the save block (refusal message names the 2026-09-20 attempt-1 incident); CI unaffected (uses `cp`, never `--save`; compare-only path has no live noise verdict) | Fixtures B/C/D: p50-noisy→refuse+exit 1+no file; `--force-save`→file written (run still exits 1 — honest); compare-only+save→saves (CI path intact) |
+| Q3: **bounded attempts** acceptance — verify up to 3×; every-attempt-noise-rejected → save stands with rejections recorded; decision-grade regression → flag for triage | Codified in the armed verifier's semantics (already implemented in `/tmp/t18b_verify.sh`); to be codified in the promoted standing tooling (#7 in section f) | Re-armed live; a load storm (71) hit at 00:31 CEST — gate refused it correctly, verifier waiting for the next window |
+
+TODO row 40 → RESOLVED with the above; the matview bimodality remains open as the row's remainder (25% median-of-5 flags random variants on clean runs — investigate/widen benchtime, section f #4/#5).
+
+Status: **T18b re-pin complete and hardened; local green verification pending the next quiet window** (watcher detached, survives session end; log `/tmp/t18b-verify.log`).
