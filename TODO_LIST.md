@@ -472,16 +472,15 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
       box is quiet; closes the [x] rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
-- [ ] **Codify the ephemeral native-MariaDB leg** (harvested 2026-09-20) — the
-      09-19 M4 mysql leg went green via a userspace nixpkgs MariaDB on
-      127.0.0.1:13306 (single-digit seconds; the QEMU slirp leg was diagnosed
-      vehicle-fragile: orphaned QEMUs holding port 33070 + single-dial RSTs).
-      Productize: `scripts/ephemeral-mysql.sh` (init datadir, provision
-      `cqrs_test` DB/user) + an `#integration-mysql-ephemeral` flake app, and
-      run the full mysql module set against it (stack/mysql,
-      idempotency/sqlstore, metaengine/mysqlengine, scheduling/sqlstore,
-      queue/mysql, claiming). vm-mysql.sh pre-flight stale-port check +
-      process-group cleanup rides the same wave. — source: archived 23-21 §a8/§b1/§f3-4/§f11 _(Effort: M)_
+- [ ] **VM-leg hardening (vehicle ruled 2026-09-20, W3 bundle)** — owner ruled
+      the QEMU/VM leg stays the canonical local MySQL vehicle (native-MariaDB
+      productization CLOSED-WONTFIX: do NOT build `scripts/ephemeral-mysql.sh`
+      or an `#integration-mysql-ephemeral` app). Remaining: `vm-mysql.sh`
+      pre-flight stale-port check (orphaned QEMUs holding port 33070) +
+      process-group cleanup trap (from archived 23-21 §f11), plus the
+      `testutil/mysqltestcontainer` leg (landed 2026-09-20, commit
+      4b8ae5eab + follow-ups) serving CI/local Docker runs alongside the VM.
+      — source: archived 23-21 §a8/§b1/§f3-4/§f11; W3 vehicle ruling 2026-09-20 _(Effort: M)_
 
 ---
 
@@ -998,21 +997,41 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > and the verify-arc reports; items since done are struck inline there. The
 > owner questions ride the W3 bundle section below.
 
-- [ ] 🔥 **`.golangci.yml` hash-golden drift guard (M16)** — the curated config
+- [x] ~~🔥 **`.golangci.yml` hash-golden drift guard (M16)** — the curated config
       was mangled 10+ times (BuildFlow auto-configure + the 2026-09-20 10:31
       concurrent-corruption incident deleted the depguard allow-list
       mid-verify); `#check-lint-config` only helps when someone RUNS it. Wire a
       content hash-golden into `#verify`/pre-commit so the mangle fails loudly
-      at the next gate touch. — source: archived 23-21 §e1/§f13, 10-56 §1 _(Effort: S)_
-- [ ] **Verify-launcher ergonomics** — (a) `can-run-composed-gate.sh --wait-loop`
+      at the next gate touch.~~ **DONE 2026-09-20 (M02)** —
+      `scripts/check-golangci-hash.sh` (sha256 golden
+      `scripts/golangci-config-hash.golden.txt`, `--update` re-pin gated on the
+      shape gates passing so corruption can never be pinned) wired into
+      `#check-lint-config` (→ `#verify`), the pre-commit `.golangci.yml`
+      trigger, and `#check-release-scripts` (4-leg self-test + mutation-proof).
+      Caught live during rollout: incident #11 (auto-commit `96dc20986` 17:00 —
+      go downgrade + jsonv2 tag + depguard deletion + gci re-enable + rationale
+      stripping in one 111-file wave) repaired from the last-good commit
+      (`9212c8408`) and the golden pinned over the HEALTHY config.
+      Gotcha: docs/agents/gotchas-tooling-build.md "Incidents 8-11".
+      _(Effort: S)_
+- [x] ~~**Verify-launcher ergonomics** — (a) `can-run-composed-gate.sh --wait-loop`
       (the gate pair is two one-shot scripts; a load rebound between them
       aborts — the 16:39 session's retry-loop supervisor is the proven
       composition); (b) a pre-flight wrapper that runs the cheap composed-gate
       phases (templ, bench-gate, coverage, api-stability, duplication — each
       <5 min) before burning a 12–46 min verify attempt (attempts 7–9 of the
       S03 arc were each a skipped-pre-flight cost); (c) an in-`#verify` load
-      threshold guard (refuse >N loadavg with a retry message, M15). — source:
-      archived 16-39 §e/16-43 §e/f11+f14, 23-21 §f14 _(Effort: S/M)_
+      threshold guard (refuse >N loadavg with a retry message, M15).~~
+      **DONE 2026-09-20 (M03–M05):** (a) `--wait-loop` with `--max-wait`/
+      `--retry-interval`, rebound-recovery + timeout self-test legs;
+      (b) `scripts/preflight-composed.sh` (6 phases, stop-at-first-red with
+      remedies, `PREFLIGHT_ONLY/SKIP` env hooks, fixture self-test) — caught a
+      REAL templ FileName drift on its first live run (cwd-corrupted codegen
+      committed; regenerated); (c) `scripts/verify-load-guard.sh` in the
+      `#verify` head: refuse + retry recipe + `VERIFY_FORCE=1` override.
+      Launch recipe: `bash scripts/preflight-composed.sh && nix run
+      .#can-run-composed-gate -- --wait-loop && nix run .#verify`.
+      — source: archived 16-39 §e/16-43 §e/f11+f14, 23-21 §f14 _(Effort: S/M)_
 - [ ] **CI tail from the train (six legs, all root-caused)** — (a) benchkit
       load-gate fixture env propagation (actionlint+shellcheck leg red on GH
       runners: fixture expects the planted-loadavg PASS message, runner output
@@ -1073,32 +1092,39 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Owner decisions — W3 bundle (2026-09-20)
 
-> Consolidated in [`docs/status/2026-09-20_11-36_owner-bundle-w3.md`](docs/status/2026-09-20_11-36_owner-bundle-w3.md)
-> (kept LIVE — it is the pending decision sheet). Each unblocks work the moment
-> it is answered; full context/options/recommendations live there.
+> **RESOLVED 2026-09-20 (evening)** — all six rulings received and applied.
+> Consolidation sheet:
+> [`docs/status/2026-09-20_11-36_owner-bundle-w3.md`](docs/status/2026-09-20_11-36_owner-bundle-w3.md).
 
-- [ ] [BLOCKED] **Q1: `cmd/api-stability/readme_claims_test.go` ownership** —
-      foreign, green, load-bearing (README truth); keep under whose name, or
-      remove. _(Effort: XS ruling)_
-- [ ] [BLOCKED] **Q3: ratify the 10:31 repair ruling** — restored `go 1.27.1`
-      contract + kept the formatter-consistent markdown reformats that rode the
-      unidentified concurrent editor's corruption. _(Effort: XS ruling)_
-- [ ] [BLOCKED] **Q4: flake.nix go pin vs nixpkgs lag** — `pkgs.go_1_27`
-      resolves to 1.27.0 on this host; everything works only via
-      `GOTOOLCHAIN=auto`. Recommended: document the env chain as the contract +
-      a loud `check-go-version` gate; explicit pin when nixpkgs lands 1.27.1.
-      _(Effort: XS ruling + S gate)_
-- [ ] [BLOCKED] **Q5: verify-window advisory flock** — `scripts/lib/verify-lock.sh`
-      (flock on `./.verify.lock`) so concurrent editors fail loudly instead of
-      corrupting (the 10:31 incident cost ~45 min). _(Effort: XS ruling + S impl)_
-- [ ] [BLOCKED] **Stale `example/taskmanager/v4.*` remote tags** (proxy-invisible
-      for the suffix-less module; v0.2.1 is the served line): delete or document
-      as historical. Related: the dead-path v3/v4 tag lines are already
-      baselined in `audit-tag-baseline.txt` (decided 2026-09-19). _(Effort: XS ruling)_
-- [ ] [BLOCKED] **MySQL leg vehicle** (from the 23-21 session): bless the
-      ephemeral native-MariaDB leg as the canonical local vehicle and demote
-      QEMU to CI-only, or keep retry-hardening the VM leg. Gates the
-      codification row above. _(Effort: XS ruling)_
+- [x] ~~**Q1: `cmd/api-stability/readme_claims_test.go` ownership**~~
+      **RESOLVED 2026-09-20:** owner delegated ("do what makes the most
+      sense") → kept as-is under api-stability; ownership note added to the
+      module-map row (load-bearing README truth, green).
+- [x] ~~**Q3: ratify the 10:31 repair ruling**~~ **RATIFIED 2026-09-20** —
+      the go 1.27.1 contract restore + the formatter-consistent markdown
+      reformats both stand; row closed.
+- [x] ~~**Q4: flake.nix go pin vs nixpkgs lag**~~ **RESOLVED 2026-09-20
+      (yes)** — env chain documented as the contract
+      ([gowork-modes.md](docs/agents/gowork-modes.md)) and now mechanically
+      enforced: `scripts/check-go-version.sh` (flake app `#check-go-version`,
+      stub-fixture self-test) wired into the `#verify` head + the nightly
+      (`Go version contract` step). Explicit pin when nixpkgs ships 1.27.1.
+- [x] ~~**Q5: verify-window advisory flock**~~ **RESOLVED 2026-09-20**
+      (owner unsure → advisory default with escape hatch):
+      `scripts/lib/verify-lock.sh` (flock at a machine-level path, holder-PID
+      diagnosis, `VERIFY_LOCK=0` opt-out) taken by `#verify`, pre-commit
+      (60s wait, warn-only), `tag-release.sh` + `batch-release.sh`
+      (write windows only — `--audit` is read-only and lock-free; flock is
+      per open-file-description, the batch→tag exec re-acquire proved it).
+- [x] ~~**Stale `example/taskmanager/v4.*` remote tags**~~ **DELETED
+      2026-09-20** per ruling: `v4.0.0`/`v4.0.1`/`v4.1.0` removed from the
+      remote (and local); the three dead-path lines dropped from
+      `scripts/audit-tag-baseline.txt`; `check-release-scripts` green after.
+      v0.2.x remains the served line; v3 lines stay baselined (2026-09-19
+      decision).
+- [x] ~~**MySQL leg vehicle**~~ **RULED 2026-09-20: keep the VM** — QEMU VM
+      leg stays the canonical local vehicle; native-MariaDB productization
+      closed; the codification row above became the VM-hardening row.
 
 ---
 

@@ -32,3 +32,11 @@ Build tag: NONE since Go 1.27 graduated `encoding/json/v2` (2026-09-19 sweep).
 The former `-tags "goexperiment.jsonv2"` / `GOEXPERIMENT=jsonv2` are no-ops and
 were removed from scripts, flake.nix, CI, and docs. Old commands that still
 carry the tag still work (unknown tags are ignored).
+
+**Contract enforcement (W3 Q4 ruling, 2026-09-20):** this chain — specifically
+`GOTOOLCHAIN=auto` against the go.work directive — is the toolchain contract,
+not a convention. `scripts/check-go-version.sh` (flake app `#check-go-version`,
+also in the `#verify` head + nightly) fails loud when the selected toolchain is
+older than the go.work contract or a `go` binary cannot answer `go env
+GOVERSION`. The explicit nixpkgs pin lands when nixpkgs ships the contract
+version.
