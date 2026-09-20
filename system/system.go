@@ -321,6 +321,13 @@ func (s *System) GracefulClose(ctx context.Context) error {
 
 	select {
 	case err := <-done:
+		// A pre-expired context must win deterministically over an
+		// instantaneous Close: select's uniform choice between two ready
+		// cases would otherwise flake (observed under parallel test load).
+		if cerr := ctx.Err(); cerr != nil {
+			return fmt.Errorf("system: graceful close: %w", cerr)
+		}
+
 		return err
 	case <-ctx.Done():
 		return fmt.Errorf("system: graceful close: %w", ctx.Err())
