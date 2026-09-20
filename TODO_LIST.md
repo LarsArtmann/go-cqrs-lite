@@ -40,18 +40,21 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
-- [ ] **PapDashboard queue-adoption evaluation (queue T20)** — the second named
-      consumer ("worker pools over durable queues" in production today); evaluate
-      migrating its pools onto `queue/{sqlite,postgres}` and record the verdict
-      (adopt / blockers). — source: to-the-max plan T20; queue module doc
-      _(Effort: M, consumer-gated)_
-- [ ] **Queue M4 polish tail (2026-09-19 harvest)** — queue/README MySQL
-      quickstart; `queue/conformance/doc.go` 3-engine list update; PG
-      `-race -count=2` symmetric leg; mysql deadlock-retry backoff+jitter +
-      retry-or-document enqueue/finalize; MySQL pool options; fold
-      `MYSQL_TEST_DSN` into the nix legs; MySQL testcontainer; owner ratification
-      of the dep-validation semantics (M4 §f1). — source: archived 11-10 §b/e,
-      12-10 §f7-16 _(Effort: S/M each)_
+> ~~T20 PapDashboard adoption evaluation~~ and ~~M4 polish tail~~ done
+> 2026-09-20 — verdict + receipts in
+> [`docs/reviews/2026-09-20_papdashboard-queue-adoption-evaluation.md`](docs/reviews/2026-09-20_papdashboard-queue-adoption-evaluation.md)
+> (ADOPT for the notify pipeline, gated on the tag wave; no PapDashboard-side
+> blocker) and the CHANGELOG 2026-09-20 entries (pool options, deadlock
+> backoff+jitter, `testutil/mysqltestcontainer`, PG engine-test DB isolation,
+> PG `-race -count=2` + MySQL `-race -count=2` legs green). Items the 09-19
+> harvest listed but later sessions already landed: conformance/doc.go
+> 3-engine list, README MySQL quickstart, `MYSQL_TEST_DSN` in the nix legs.
+
+- [BLOCKED] **Owner ratification: queue dep-validation semantics (M4 §f1)** —
+  decision memo with options + recommendation:
+  [`docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md`](docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md).
+  Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
+  (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
 
 ## Command-side domain depth (2026-09-13 plan)
 
