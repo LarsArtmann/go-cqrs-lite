@@ -47,6 +47,26 @@ pg/mysql/duckdb engines, experimental doc.go stamps, the module-map census to
 all 95, and the TODO [x] sweep. Composed verify attempt 4 stays queued behind
 the host-load gate.
 
+**2026-09-20 16:39 (verify-green close-out):** the composed `#verify` went
+GREEN (attempt 10, 14:53–15:04, all 19 phases — S03 recorded in TODO_LIST),
+four attempts after the 10:31 concurrent-corruption repair. The path cleared
+every dark W2-wave tail: lint godoclint debt (24 findings), the
+tx-isolation/graph-SQL clone groups (consolidated into
+`adttest.AssertTxIsolationFromForeignContext` + dialect annotations),
+templ codegen drift (regenerated with the pinned CLI), plus a genuine
+`GracefulClose` pre-cancelled-context select race (fixed + race-stressed).
+Shipped alongside: the README deprecation-honesty gate system
+(`check-readme-links.sh`/`check-readme-deprecated.sh`, nightly-wired, baseline
+0) with the full ADR-0123 sweep (10 banners, 13 README migrations),
+`scheduling/engine.ErrEngineNotDueClaimer`, `example/taskmanager v0.2.1`
+(proxy-verified `--help` fix — the v4.x git tags are proxy-invisible for the
+suffix-less module; v0 is the examples' line), T13 load-sweep GREEN, T15
+verify-ci GREEN. T14 bench-baseline supersede deferred to the next quiet
+window (fleet ran 20–139 load all afternoon; protocol forbids a tainted
+capture). See
+[`2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md`](2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md)
+and the mid-session reports (10:56, 13:21, 11:36 owner bundle).
+
 **2026-09-08 23:12 (Pareto execution):** the SUPERB plan's Wave 0 shipped —
 60 tags pushed (54-module release train + iroh trio + stack/sqlite v4.3.1 +
 first proxy-visible example tags), 59 GitHub Releases, 63-module pin-sweep,
