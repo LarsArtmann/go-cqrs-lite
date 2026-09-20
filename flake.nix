@@ -959,6 +959,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-pin-sweep.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-calibration-drift.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-golangci-hash.sh" --self-test
                 '';
 
             # check-tag-audit: fail on NEW path-vs-tag violations (proxy-
@@ -1008,6 +1009,8 @@
                 ''
                   echo "==> golangci-lint config verify"
                   ${pkgs.golangci-lint}/bin/golangci-lint config verify --config "$PWD/.golangci.yml"
+                  echo "==> .golangci.yml hash golden (corruption tripwire)"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-golangci-hash.sh"
                   echo "==> depguard allow-list vs go.mod"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-depguard.sh"
                   echo "==> formatters.enable pin (treefmt owns grouping)"

@@ -11,12 +11,17 @@
 #   ./scripts/benchmark-regression.sh                                  # run gate set, compare vs committed baseline
 #   ./scripts/benchmark-regression.sh --current results.txt            # compare pre-computed output (CI)
 #   ./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt  # refresh local baseline
+#   ./scripts/benchmark-regression.sh --force-save ...             # save even after a noise-gate failure
 #   ./scripts/benchmark-regression.sh --noise-only                     # run only the benchkit noise gate
 #
 # Options:
 #   --baseline FILE   baseline results file (default: benchmarks/benchmark-baseline.txt)
 #   --current FILE    pre-computed `go test -bench` output (skips running benchmarks)
-#   --save FILE       also write the raw current results to FILE (baseline refresh)
+#   --save FILE       also write the raw current results to FILE (baseline
+#                     refresh). Refused when this run's noise gate FAILED
+#                     (non-decision-grade) unless --force-save is passed.
+#   --force-save      override the noise-gate save refusal (intentional
+#                     re-baselines after a deliberate perf change)
 #   --threshold PCT   allowed median regression in percent (default: 25)
 #   --bench REGEX     go test -bench pattern (default: the CI gate set; overrides
 #                     the default gate sets with a single stack/bench run)
@@ -41,8 +46,15 @@
 #                     (default: 10 — benchkit.VariationThreshold)
 #   --noise-headline LIST
 #                     space-separated metric names whose noise FAILS the gate
-#                     (default: "write_throughput write_p50_ns write_p99_ns
-#                     load_p50_ns"; non-headline noisy metrics only warn)
+#                     (default: "write_throughput write_p50_ns load_p50_ns";
+#                     non-headline noisy metrics only warn). write_p99_ns was
+#                     DEMOTED 2026-09-20: across 5 gate runs its CoV ranged
+#                     11.5-54% — including a deep-quiet window (load 2.89)
+#                     and --noise-repeat 7 — while the three stable metrics
+#                     stayed under 10% in every run. Tail quantiles from
+#                     ~100-iteration runs are not gateable; the median
+#                     compare itself routes contention through throughput
+#                     and p50 first.
 #
 # Baselines are hardware- and load-specific: only compare numbers from the
 # same machine or runner class, measured on a quiet machine. CI compares
@@ -54,6 +66,7 @@ set -euo pipefail
 BASELINE="benchmarks/benchmark-baseline.txt"
 CURRENT_INPUT=""
 SAVE=""
+FORCE_SAVE=0
 THRESHOLD="25"
 # The gate set is an EXPLICIT allowlist of "DIR::BENCH_REGEX" pairs,
 # deliberately NOT auto-discovered:
@@ -88,7 +101,10 @@ NOISE_BACKEND="sqlite"
 NOISE_PROFILE="dev"
 NOISE_REPEAT="5"
 NOISE_THRESHOLD="10"
-NOISE_HEADLINE="write_throughput write_p50_ns write_p99_ns load_p50_ns"
+# 2026-09-20: write_p99_ns demoted from the headline list — see the usage
+# block above for the evidence. p99-class metrics (and max, worse still)
+# measure estimator variance on this host, not machine loudness.
+NOISE_HEADLINE="write_throughput write_p50_ns load_p50_ns"
 NOISE_CURRENT=""
 NOISE_ONLY=0
 SKIP_NOISE_GATE=0
@@ -111,6 +127,10 @@ while [[ $# -gt 0 ]]; do
 	--save)
 		SAVE="$2"
 		shift 2
+		;;
+	--force-save)
+		FORCE_SAVE=1
+		shift
 		;;
 	--threshold)
 		THRESHOLD="$2"
@@ -461,6 +481,13 @@ fi
 # --save runs AFTER the comparison and regardless of its outcome: re-baselining
 # after an intentional perf change must overwrite even a "regressed" baseline.
 if [[ -n "$SAVE" ]]; then
+	if [[ $noise_status -ne 0 && "$FORCE_SAVE" != 1 ]]; then
+		echo "REFUSING --save: the noise gate FAILED this run (non-decision-grade)."
+		echo "  A baseline from a noise-failed run makes every future compare lie."
+		echo "  Re-run on a quieter machine, or pass --force-save to override for"
+		echo "  an intentional re-baseline after a deliberate perf change."
+		exit 1
+	fi
 	mkdir -p "$(dirname "$SAVE")"
 	# Titled re-pin (2026-09-11 protocol): a baseline without provenance is
 	# unreviewable — the 02:40 refresh landed during a load-ramp and nothing

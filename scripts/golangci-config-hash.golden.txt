@@ -1,1 +1,0 @@
-d871254db450a3cd2bbdcecc9c0af9192da360cf19ddb29cb04875602ab48eb6  .golangci.yml

@@ -121,6 +121,19 @@ if [ -n "$(staged '^\.golangci\.yml$')" ]; then
 		echo "    self-heal repaired .golangci.yml, re-staging"
 		git add .golangci.yml
 	fi
+
+	echo "==> Lint-config hash golden (corruption tripwire)"
+	if ! bash scripts/check-golangci-hash.sh; then
+		echo "       intentional change? re-pin and re-stage BOTH files, then retry:"
+		echo "         scripts/check-golangci-hash.sh --update && git add .golangci.yml scripts/golangci-config-hash.golden.txt"
+		exit 1
+	fi
+	if [ -n "$(staged '^scripts/golangci-config-hash\.golden\.txt$')" ]; then
+		if ! bash scripts/check-golangci-hash.sh; then
+			echo "ERROR: golden staged but does not match .golangci.yml. Re-pin: scripts/check-golangci-hash.sh --update"
+			exit 1
+		fi
+	fi
 fi
 
 if [ -n "$(staged 'scripts/.*\.sh$')" ]; then
