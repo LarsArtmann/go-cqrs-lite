@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // durabilityPhase measures on-disk storage footprint.
@@ -82,7 +84,7 @@ func (r *runner) recoveryPhase(parent context.Context) error {
 		return nil
 	}
 
-	defer func() { _ = recovered.Close() }()
+	defer metaengine.DeferClose(recovered)
 
 	start := time.Now()
 	totalEvents := 0

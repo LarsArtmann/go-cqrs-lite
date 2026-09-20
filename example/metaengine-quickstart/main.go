@@ -107,7 +107,7 @@ func runTaskDemo(ctx context.Context) error {
 		return fmt.Errorf("plan: %w", err)
 	}
 
-	defer func() { _ = store.Close() }()
+	defer metaengine.DeferClose(store)
 
 	// 3. Wire the projection adapter — this bridges event.Event → record.Record.
 	decoder := func(eventType string, payload []byte) (any, error) {

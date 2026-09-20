@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // --- undirected graph traversal ---
@@ -64,7 +66,7 @@ func (e *sqliteEngine) graphNeighborsUndirectedCTE(
 	if err != nil {
 		return nil, fmt.Errorf("sqliteengine.GraphNeighborsUndirected: %w", err)
 	}
-	defer func() { _ = rows.Close() }()
+	defer metaengine.DeferClose(rows)
 
 	result, err := scanNeighborRows(rows)
 	if err != nil {

@@ -42,7 +42,7 @@ func runVectorDemo(ctx context.Context) error {
 		return fmt.Errorf("plan vector: %w", err)
 	}
 
-	defer func() { _ = store.Close() }()
+	defer metaengine.DeferClose(store)
 
 	docs := []DocEmbedded{
 		{ID: "go-basics", Values: []float32{1, 0, 0}},

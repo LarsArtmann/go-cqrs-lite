@@ -52,7 +52,7 @@ func runGraphDemo(ctx context.Context) error {
 		return fmt.Errorf("plan graph: %w", err)
 	}
 
-	defer func() { _ = store.Close() }()
+	defer metaengine.DeferClose(store)
 
 	follows := []UserFollowed{
 		{From: demoUserAlice, To: demoUserBob},

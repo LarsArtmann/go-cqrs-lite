@@ -330,7 +330,7 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 func decodeJSON(r *http.Request, dst any) error {
 	dec := jsontext.NewDecoder(r.Body)
 
-	defer func() { _ = r.Body.Close() }()
+	defer r.Body.Close()
 
 	return json.UnmarshalDecode(dec, dst, json.RejectUnknownMembers(true))
 }

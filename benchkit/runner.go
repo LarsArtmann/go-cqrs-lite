@@ -11,6 +11,7 @@ import (
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 )
 
@@ -437,7 +438,7 @@ func (r *runner) warmup(ctx context.Context) (int, error) {
 			"warmup factory")
 	}
 
-	defer func() { _ = warmupBundle.Close() }()
+	defer metaengine.DeferClose(warmupBundle)
 
 	if warmupBundle == nil || warmupBundle.EventSink == nil || warmupBundle.EventSource == nil {
 		return 0, ErrIncompleteBundle

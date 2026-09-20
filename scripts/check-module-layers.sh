@@ -213,7 +213,10 @@ TEST_INFRA_MODULES="event/v4/eventtest testutil testutil/pgtestcontainer cmd/cqr
 declare -A DEP_BUDGET
 DEP_BUDGET[id]=3
 DEP_BUDGET[dispatcher]=0
-DEP_BUDGET[kv]=3
+# kv: 4 = codec + errorfamily + otter + record (ADR-0144 — record.DeferClose
+# is the Tier-0 lifecycle primitive kv's iter/batch close paths share;
+# internal primitive, not external sprawl — same precedent as storage/pebble).
+DEP_BUDGET[kv]=4
 DEP_BUDGET[dedup]=0
 DEP_BUDGET[event]=13
 DEP_BUDGET[command]=8
@@ -232,7 +235,9 @@ DEP_BUDGET["commandlifecycle/projections"]=4
 DEP_BUDGET[decider]=10
 DEP_BUDGET[graph]=3
 DEP_BUDGET[scenario]=3
-DEP_BUDGET[projectionhost]=9
+# projectionhost: 10 = the prior 9 + record (ADR-0144 DeferClose in the DLQ
+# row-scanning paths; internal primitive, not external sprawl).
+DEP_BUDGET[projectionhost]=10
 # claiming: 1 = go-error-family only (the modernc.org/sqlite require is
 # test-only, round-trip claim test).
 DEP_BUDGET[claiming]=1
@@ -254,7 +259,9 @@ DEP_BUDGET[signing]=5
 DEP_BUDGET[encryption]=5
 DEP_BUDGET[otel]=7
 DEP_BUDGET[middleware]=13
-DEP_BUDGET[storage]=12
+# storage: 13 = the prior 12 + record promoted from indirect (via event) to
+# direct (DeferClose in snapshot_migration.go, ADR-0144; internal primitive).
+DEP_BUDGET[storage]=13
 DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes

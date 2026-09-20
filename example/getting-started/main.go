@@ -232,7 +232,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	defer func() { _ = sys.Close() }()
+	defer metaengine.DeferClose(sys)
 
 	counterID := id.NewStreamID()
 

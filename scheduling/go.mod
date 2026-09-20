@@ -22,4 +22,4 @@ require (
 	pgregory.net/rapid v1.3.0 // indirect
 )
 
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

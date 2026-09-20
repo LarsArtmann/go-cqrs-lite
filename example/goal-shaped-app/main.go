@@ -20,6 +20,7 @@ import (
 
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"     // registers the "postgres" driver
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // registers the "sqlite" driver
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -46,7 +47,7 @@ func run(ctx context.Context, configPath string) error {
 	if err != nil {
 		return fmt.Errorf("compose system: %w", err)
 	}
-	defer func() { _ = sys.Close() }()
+	defer metaengine.DeferClose(sys)
 
 	view, err := runStory(ctx, sys)
 	if err != nil {
