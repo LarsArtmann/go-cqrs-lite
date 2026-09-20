@@ -2157,6 +2157,7 @@ metaengine/adttest/func AssertDedupStore
 metaengine/adttest/func AssertDueClaimer
 metaengine/adttest/func AssertFactSink
 metaengine/adttest/func AssertTemporalConformance
+metaengine/adttest/func AssertTxIsolationFromForeignContext
 metaengine/adttest/func AssertVectorDimensionGuard
 metaengine/adttest/func AuditCapability
 metaengine/adttest/func CanonicalizeAny
