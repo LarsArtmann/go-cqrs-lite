@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** both Deferred items landed — the bench baseline was re-pinned under go1.27.1 the same evening (T18b: `a91e7cd90`, then the widened-gate closure chain; state in [TODO_LIST.md](../../TODO_LIST.md), Metaengine Universal Storage Substrate rows) and the stale taskmanager v4 tags were DELETED 2026-09-20 per owner ruling. The §Process launcher lessons shipped as M03–M05 (`--wait-loop`, `preflight-composed.sh`, verify load guard). Archived.
+
 # Status Report 2026-09-20 16:39 — COMPOSED VERIFY GREEN (S03); W2 Tails Cleared; taskmanager v0.2.1 Shipped
 
 > Continuation of the 13:21 report. The critical-path goal — a quiet-window
@@ -52,8 +54,8 @@
   it's a script not a flake app) then
   `./scripts/benchmark-regression.sh --save benchmarks/benchmark-baseline.txt`
   (writes the provenance header automatically).
-- **Stale `example/taskmanager/v4.*` git tags** (proxy-invisible): deleting
-  remote tags is an owner call — added to the owner bundle questions.
+- ~~**Stale `example/taskmanager/v4.*` git tags** (proxy-invisible): deleting
+  remote tags is an owner call — added to the owner bundle questions.~~ **DONE 2026-09-20:** v4.0.0/v4.0.1/v4.1.0 deleted from remote+local per the W3 ruling.
 
 ## Corrections of my own earlier claims
 

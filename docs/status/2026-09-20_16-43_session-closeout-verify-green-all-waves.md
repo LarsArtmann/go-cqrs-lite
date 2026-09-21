@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** the three §g questions were all answered and applied 2026-09-20 (ratification, go-version gate, tag deletion — inline below); the §c/§f backlog landed via the M-wave (M02–M05 guards, M09 README push gates, M13 census, M16 docs-truth) or lives in [TODO_LIST.md](../../TODO_LIST.md) (634b/634d row, W1 rows). Archived.
+
 # Status Report 2026-09-20 16:43 — Session Close-Out: Verify GREEN (S03), All Waves Landed
 
 > Full-session self-assessment (11:00→16:43). Every claim below was verified
@@ -128,14 +130,14 @@
 
 ## g) QUESTIONS ONLY THE OWNER CAN ANSWER
 
-1. **Ratify the 10:31 repair ruling** (restored `go 1.27.1` contract + kept
+1. ~~**Ratify the 10:31 repair ruling** (restored `go 1.27.1` contract + kept
    the formatter-consistent markdown reformats that rode the unidentified
-   concurrent editor's corruption)?
-2. **flake.nix go pin:** document `GOTOOLCHAIN=auto` + a loud host-version
-   gate (recommended), explicitly pin/fetch 1.27.1 now, or wait for nixpkgs?
-3. **Stale `example/taskmanager/v4.*` git tags** (proxy-invisible for the
+   concurrent editor's corruption)?~~ **RATIFIED 2026-09-20** — both stand.
+2. ~~**flake.nix go pin:** document `GOTOOLCHAIN=auto` + a loud host-version
+   gate (recommended), explicitly pin/fetch 1.27.1 now, or wait for nixpkgs?~~ **RESOLVED 2026-09-20:** recommended option shipped — `scripts/check-go-version.sh` + `#check-go-version` in the `#verify` head + nightly.
+3. ~~**Stale `example/taskmanager/v4.*` git tags** (proxy-invisible for the
    suffix-less module; v0.2.1 is now the served line): delete the remote
-   v4.x tags, or leave them documented as historical?
+   v4.x tags, or leave them documented as historical?~~ **DELETED 2026-09-20** per ruling (remote + local; audit baseline trimmed).
 
 ---
 

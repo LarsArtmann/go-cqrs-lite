@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** this is the ninth-pass audit report, harvested + archived by the tenth pass per its own §f18. Its §f items landed via the 2026-09-21 M-wave (M02 hash-golden, M03–M05 launchers, M08/M09 CI, M13 census, M16 docs-truth, M20 one-pagers) or live in [TODO_LIST.md](../../TODO_LIST.md). The standing open tail is the composed `#verify` re-record (three script changes since the S03 green) — TODO CI section. §g1 (strike-vs-banner standard) remains: this pass again used banner + targeted inline strikes per the V3-T42 decline. Archived.
+
 # Status Report — Docs-Health 9th Pass: Full Audit (Annotate + Harvest + Archive + Living-Docs Repair)
 
 **Date:** 2026-09-20 17:34 CEST
@@ -111,8 +113,8 @@
    build-guide, agents-quality-guide, case-study unread). SKILL.md's inline
    summaries were sufficient for every decision made, but the letter of the
    activation rule says load what matches.
-4. **New report's own debt:** this status report is live and unarchived by
-   design (next pass harvests §f + archives it).
+4. ~~**New report's own debt:** this status report is live and unarchived by
+   design (next pass harvests §f + archives it).~~ done 2026-09-21 — harvested + archived by the 10th pass.
 
 ## c) NOT STARTED
 

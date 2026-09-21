@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** all four items shipped (see the 19-51 self-review, archived alongside). The three "found but NOT fixed" items are verified fixed by later sessions (catalog exclusion in `module_catalog_test.go`; TestStripJSONC green; gci deliberately disabled + hash-golden guard). Companion self-review archived this pass.
+
 # Dogfooding Follow-ups - Execution Status
 
 - **Date:** 2026-09-20
@@ -62,17 +64,16 @@ a single-use helper) · duplication ✓ (0 new groups) · api golden regenerated
 
 ## Found but NOT fixed (other sessions' active work)
 
-1. `.golangci.yml` re-adds `gci` as a formatter (commit 96dc20986) —
+1. ~~`.golangci.yml` re-adds `gci` as a formatter (commit 96dc20986) —
    contradicts AGENTS.md contract #18 (gci vs treefmt-goimports fight; files I
    never touched fail gci, e.g. `storage/aggregate_projection.go`). Raw
    golangci-lint was NOT used as this session's verdict for that reason;
-   treefmt + per-module tests were.
-2. `testutil/mysqltestcontainer` joined `go.work` today without a
+   treefmt + per-module tests were.~~ FIXED 2026-09-20 (incident-#11 repair; gci disabled + M02 hash-golden tripwire).
+2. ~~`testutil/mysqltestcontainer` joined `go.work` today without a
    cqrs-lint `DefaultCatalog` entry → `TestCatalogEveryGoWorkModuleCovered`
-   FAIL. (The new `finish` clone between the two testcontainer modules that
-   this introduced is annotated `art-dupl:accept` — duplication gate green.)
-3. `cmd/cqrs-lint` `TestStripJSONC` fails (JSONC stripper regression from
-   today's committed cqrs-lint work; unrelated to my suppression edit).
+   FAIL.~~ FIXED: exclusion entry added (`module_catalog_test.go`); test green 2026-09-21.
+3. ~~`cmd/cqrs-lint` `TestStripJSONC` fails (JSONC stripper regression from
+   today's committed cqrs-lint work; unrelated to my suppression edit).~~ FIXED: green 2026-09-21 (verified, 10th pass).
 
 ## Honest caveats
 
