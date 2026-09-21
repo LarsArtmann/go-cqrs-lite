@@ -235,6 +235,7 @@ func TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply(t *testing.T) {
 
 	requireEventually(t, 3*time.Second, func() bool {
 		cp, err := cpStore.Load(context.Background(), "overlap-dedup")
+
 		return err == nil && cp.EventID == sub.overlapID
 	})
 
