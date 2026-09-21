@@ -45,7 +45,7 @@ feedback doc, the md-go-validator review — each bannered + inline-struck),
 harvested their §f tails into TODO_LIST (md-go open tail, go-graph-rag follow-ups,
 release-train tail, W0 verification tail, docs-health hygiene + the never-harvested
 16-37 bench-gate items), deleted every completed receipt row from TODO_LIST
-(1,456 → ~1,270 lines; evidence lives in CHANGELOG + archived reports), fixed
+(1,456 → 1,302 lines; evidence lives in CHANGELOG + archived reports), fixed
 stale dev-replace comments (system, scheduling/sqlstore), corrected the flake.nix
 "all six carry suites" lie, adopted the fluent `.On` chain in the goal-shaped-app
 README, annotated + archived the md-go review, and recorded the THIRD go-directive

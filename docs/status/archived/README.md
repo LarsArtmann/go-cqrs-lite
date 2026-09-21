@@ -11,8 +11,9 @@ For up-to-date documentation, see:
 
 ## Archived waves index (updated 2026-09-22, 11th docs-health pass)
 
-Files per day across the 1233 archived snapshots — the wave granularity for
-navigating the archive. Individual files follow the `YYYY-MM-DD_HH-MM_name`
+Files per day across the 1,241 archived snapshots (rows = files MOVED to
+an archived/ dir that day, all doc trees; basis: archive-day, not filename
+date). The wave granularity for navigating the archive. Individual files follow the `YYYY-MM-DD_HH-MM_name`
 naming convention.
 
 | Day        | Files |
