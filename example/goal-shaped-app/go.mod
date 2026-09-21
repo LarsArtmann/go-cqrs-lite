@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/goal-shaped-app
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.5.0

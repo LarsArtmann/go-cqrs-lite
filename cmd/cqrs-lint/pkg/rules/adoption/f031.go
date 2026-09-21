@@ -4,6 +4,7 @@ import (
 	"context"
 	"go/ast"
 	"go/token"
+	"slices"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
@@ -93,10 +94,8 @@ func firstScanWithoutLimitPosIn(
 				return true
 			}
 
-			for _, arg := range call.Args {
-				if callsWithLimit(arg) {
-					return true
-				}
+			if slices.ContainsFunc(call.Args, callsWithLimit) {
+				return true
 			}
 
 			hit = call
