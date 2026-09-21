@@ -23,6 +23,9 @@ backend + per-backend gotchas and plugin versions).
 **Read [`references/internals.md`](references/internals.md)** for this repo's
 `watermill/` module map, the message-metadata protocol contract, CatchUpSubscriber
 mechanics, and test infrastructure.
+**Read [`references/advanced.md`](references/advanced.md)** for delayed delivery,
+evidence-carrying requeue, `ClaimMetrics`, Router fan-in patterns, and the
+troubleshooting table.
 
 ## 1. The contract you are programming against
 
