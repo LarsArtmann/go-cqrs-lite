@@ -131,6 +131,11 @@ func (e *pgEngine) init() error {
 			value BIGINT NOT NULL DEFAULT 0,
 			PRIMARY KEY (collection, key)
 		)`,
+		`CREATE TABLE IF NOT EXISTS meta_set (
+			collection TEXT NOT NULL,
+			key TEXT NOT NULL,
+			PRIMARY KEY (collection, key)
+		)`,
 		`CREATE TABLE IF NOT EXISTS meta_stream_log (
 			seq BIGSERIAL PRIMARY KEY,
 			collection TEXT NOT NULL,
@@ -349,6 +354,7 @@ func (e *pgEngine) CounterGet(ctx context.Context, col string) (map[string]int64
 var (
 	_ metaengine.Engine               = (*pgEngine)(nil)
 	_ metaengine.MapBackend           = (*pgEngine)(nil)
+	_ metaengine.SetBackend           = (*pgEngine)(nil)
 	_ metaengine.CounterBackend       = (*pgEngine)(nil)
 	_ metaengine.ScanBackend          = (*pgEngine)(nil)
 	_ metaengine.PushdownScan         = (*pgEngine)(nil)
