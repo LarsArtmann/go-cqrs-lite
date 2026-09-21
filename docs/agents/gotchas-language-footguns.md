@@ -27,3 +27,16 @@
 - **Cross-engine dialect SQL similarity is baselined, not deduplicated** — engine modules are dep-isolated by design; pg/mysql `graph.go` (and `encodeNodeKey`) intentionally repeat structure with dialect-specific SQL. Resolution is `art-dupl baseline . --threshold 3 --semantic` (documented intentional similarity), NOT exporting shared SQL fragments. Real logic duplication (e.g. `decodeVector`/`topKNearest` → `metaengine.DecodeVectorJSON`/`TopKNearest`) IS deduplicated.
 - **bttest ≠ BigTable: three empirical SDK traps (bigtableengine, v1.57.0)** — (1) cell timestamps are MILLSECOND-granularity: `TimestampRangeFilterMicros` truncates BOTH bounds via `TruncateToMilliseconds`, so an inclusive as-of bound must step a full +1000µs (`map_backend.go asOfEnd`); `+1µs` truncates back to the floor and yields an empty range. (2) filter-chain ORDER matters: Family → TimestampRange → LatestN; putting LatestN first selects the newest cell overall and then drops it against the bound (false not-found). (3) counter cells are 8-byte big-endian int64 (`binary.BigEndian.Uint64`, len==8) — not the 4-byte form some docs suggest. All three pinned in `bigtableengine/engine_test.go`; keep the probe-test pattern for any future BigTable work.
 - **`encoding/json/v2` does NOT sort map keys — byte-wise JSON comparisons are flaky by construction** — v1's `json.Marshal` sorts map keys alphabetically; the jsonv2 implementation (repo default since Go 1.27) emits them in unspecified map-iteration order. Any test comparing `json.Marshal(decodedAny)` against `json.Marshal(typedStruct)` (round-tripped `map[string]any` vs declaration-order struct) flips randomly per process/marshal — observed as `TestDocsServer_OpenAPISpecRequestScopedServers` failing 2/2 inside the `#verify-fast` suite while passing ~8/8 standalone (different binaries, different iteration luck). Fix pattern: decode BOTH sides and `reflect.DeepEqual` (never compare raw bytes across a decode boundary). Same class as the pipeline-masking rule: a gate that flips on map-iteration luck is worse than no gate.
+
+## sqlclosecheck cannot see `record.DeferClose` (2026-09-21)
+
+`scheduling/sqlstore/store.go` `Due()` was the only `QueryContext` site
+golangci flags with sqlclosecheck once the toolchain could actually load the
+workspace (the 1.27→1.27.1 directive fix un-muted it): the checker wants a
+literal `rows.Close()` in the function and does not model
+`record.DeferClose` (ADR-0144). Resolution: same-line
+`//nolint:sqlclosecheck // ADR-0144 DeferClose` on the QueryContext line.
+Gotchas: golines (max-len 120) wraps long calls AND long nolint explanations
+— a wrapped call puts the nolint on the closing-paren line where it is
+"unused" (nolintlint fires twice). Keep the call single-line and the
+explanation short.
