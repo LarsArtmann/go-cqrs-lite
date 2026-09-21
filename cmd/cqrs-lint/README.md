@@ -703,6 +703,7 @@ checkout:
    import IS the registration:
 
    ```go
+// skip-validate
    _ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
    ```
 

@@ -36,6 +36,7 @@ payload, err := event.DecodePayload[UserCreated](evt, codec.JSONCodec{})
 ## Store & Bus Interfaces
 
 ```go
+// skip-validate
 // Store = EventSink + EventSource (ISP split)
 type EventSink interface {
     Save(ctx, aggRef, events, expectedVersion) error

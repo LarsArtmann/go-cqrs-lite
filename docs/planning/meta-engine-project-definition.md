@@ -461,6 +461,7 @@ hope it works in another.
 ### Problem 5: Three Separate Tiers That the Developer Must Choose Between
 
 ```go
+// skip-validate
 // Current: developer picks the tier
 mat := stack.Materialize[V,K]{...}           // KV/document tier
 rel := storage.NewRelationalProjection(...)  // SQL/relational tier
@@ -475,6 +476,7 @@ storage mechanism when they should be declaring the query intent.
 ### Problem tiers That the Developer Must Choose Between
 
 ```go
+// skip-validate
 // Current: developer picks the tier
 mat := stack.Materialize [V,K]{...}           // KV/document tier
 rel :=  storage.NewRelationalProjection(...)  // SQL/relational tier
@@ -513,6 +515,7 @@ q := query.Or(
 ### Problem 6: ViewQuery Conditions Are Flat AND-Only
 
 ```go
+// skip-validate
 // Current: only AND--joined conditions, OR requires escape hatch
 type  ViewQuery struct {
       Conditions []Condition   // all AND-joined

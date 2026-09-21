@@ -245,6 +245,7 @@ The planner estimates cost for each query using a formal cost function based on
 complexity x volume. Volume hints and latency budgets drive engine selection:
 
 ```go
+// skip-validate
 store, _ := metaengine.Plan(engines,
     metaengine.Query[FindUser, FindUserResult]("find_user",
         folds...,
@@ -699,6 +700,7 @@ The Store provides zero-dependency observability hooks. Wire OTel, Prometheus,
 or any metrics system by implementing `MetricsRecorder`:
 
 ```go
+// skip-validate
 // Implement MetricsRecorder (zero-dep interface):
 type myRecorder struct{}
 

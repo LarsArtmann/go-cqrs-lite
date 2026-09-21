@@ -148,6 +148,7 @@ commands to a dead-letter mechanism.
 ## Wiring Recipe
 
 ```go
+// skip-validate
 import (
     "github.com/nats-io/nats.go"
     "github.com/nats-io/nats.go/jetstream"

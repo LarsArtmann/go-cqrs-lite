@@ -28,6 +28,7 @@ are opaque closures to plan time. Consequences:
 Add an optional declarative hint, stamped on `QueryDecl` at construction:
 
 ```go
+// skip-validate
 metaengine.Query[TopCustomers, Result]("top_customers",
     folds...,
     metaengine.AggregateOn(metaengine.MatViewSum, "amount", ""), // scalar

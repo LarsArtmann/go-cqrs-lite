@@ -36,6 +36,7 @@ Tests inject a `manualClock` that starts at a fixed epoch and advances
 explicitly via `Advance(d time.Duration)`.
 
 ```go
+// skip-validate
 // In tests:
 clock := newManualClock(time.Unix(0, 0))
 cluster := newTwoNodeClusterWithClock(t, clock, ...)

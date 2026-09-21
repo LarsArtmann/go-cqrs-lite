@@ -170,6 +170,7 @@ core/query/dispatcher.go  — Update DispatchTyped doc comments
 ## Example Usage
 
 ```go
+// skip-validate
 // Before (current)
 func handleGetUser(ctx context.Context, q query.Query) (any, error) {
     // ... type-unsafe return

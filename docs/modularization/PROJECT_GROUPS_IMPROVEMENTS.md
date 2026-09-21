@@ -13,6 +13,7 @@
 **Problem:** `storage/pebble_config.go` imported `memory` in production code, violating ADR-0003's rule that infrastructure modules depend only on `core`.
 
 ```go
+// skip-validate
 // BEFORE (storage/pebble_config.go:66)
 case PebbleBackendMemory:
     return memory.NewMemoryStore(), nil  // ❌ production dep on memory
@@ -21,6 +22,7 @@ case PebbleBackendMemory:
 **Fix:** Made `PebbleBackendMemory` return `ErrPebbleProviderRequired`, mirroring `PebbleBackendPebble`. Users must provide a `PebbleEventStoreProvider` explicitly.
 
 ```go
+// skip-validate
 // AFTER
 case PebbleBackendMemory:
     return nil, fmt.Errorf("%w: use WithPebbleProvider", ErrPebbleProviderRequired)

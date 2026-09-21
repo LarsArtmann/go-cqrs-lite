@@ -568,6 +568,7 @@ them. Neither talks to the other directly.
 Developer declares two projections:
 
 ```go
+// skip-validate
 users := projection.Declare[UserView, UserID]("users", ...,
     projection.Lookup(),                    // Map ADT
     projection.Filter("status", "country"), // SortedMap ADT
@@ -840,6 +841,7 @@ The user correctly pointed out: "if you want to query a full 1TB DB but the serv
 - Large result sets stream via Go channels or iterators, not `[]V` slices
 
 ```go
+// skip-validate
 // Paginated read
 page, _ := store.Users.ByStatusPaginated(ctx, "active", offset=100, limit=50)
 

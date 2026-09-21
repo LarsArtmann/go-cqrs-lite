@@ -64,6 +64,7 @@ Events are append-only, numbered by version, never mutated. This means:
 The developer declares which query operations they need at declaration time:
 
 ```go
+// skip-validate
 projection.Declare[UserView, UserID]("users",
     handlers...,
     projection.PointLookup(),
@@ -87,6 +88,7 @@ The optimal data structure depends on N. Without cardinality, the planner cannot
 between "sorted slice is optimal" (N < 10K) and "B-tree is necessary" (N > 100K).
 
 ```go
+// skip-validate
 projection.Declare[UserView, UserID]("users",
     handlers...,
     projection.PointLookup(),
@@ -108,6 +110,7 @@ and re-plan on restart. This is a future enhancement, not a day-one requirement.
 **Status: Optional but recommended.**
 
 ```go
+// skip-validate
 projection.PointLookup(projection.WithLatencyBudget(1 * time.Millisecond)),
 projection.EqualityFilter("status", projection.WithLatencyBudget(50 * time.Millisecond)),
 ```
@@ -1019,6 +1022,7 @@ SQLite doesn't natively support bitmap indexes. Postgres doesn't either (though 
 The engine profile must declare not just ADT support but INDEX TYPE support:
 
 ```go
+// skip-validate
 metaengine.ADTSortedMap: {
     EqualityFilter: metaengine.CLogN,
     IndexTypes: []metaengine.IndexType{

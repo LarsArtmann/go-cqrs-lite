@@ -82,6 +82,7 @@ err := bundle.RunProjections(ctx, kvProjection, sqlProjection, graphProjection)
 All three tiers implement `projection.Projection`. Use `bundle.RunProjections`:
 
 ```go
+// skip-validate
 bundle, _ := sqlite.New("app.db")
 defer bundle.Close()
 

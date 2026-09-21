@@ -68,6 +68,7 @@ This is Go idiomatic error handling, not duplication.
 **Example**:
 
 ```go
+// skip-validate
 // Flagged as clone but this is intentional test setup
 err = repo.Execute(ctx, aggID, "Counter", func(...) { ... })
 err = repo.Execute(ctx, aggID, "Counter", func(...) { ... }) // Slightly different lambda

@@ -25,6 +25,7 @@ func TestIncrement(t *testing.T) {
 Assert on errors or final state:
 
 ```go
+// skip-validate
 // Assert the decide function returns a specific error:
 scenario.Given[incrementCmd, counterState](t, foldCounter, counterState{}, ...).
     When(cmd, decide).

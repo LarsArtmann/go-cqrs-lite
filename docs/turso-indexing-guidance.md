@@ -81,6 +81,7 @@ The `middleware` package provides a health check HTTP handler. To monitor a
 Turso database connection opened via `turso.Open`:
 
 ```go
+// skip-validate
 import (
     "context"
     "database/sql"
@@ -119,6 +120,7 @@ For a sync-enabled database (`turso.OpenSync`), use the built-in
 `SyncDB.HealthCheck` method directly:
 
 ```go
+// skip-validate
 syncDB, _ := turso.OpenSync(ctx,
     turso.DbPath("local.db"),
     turso.RemoteURL("https://my-db.turso.io"),

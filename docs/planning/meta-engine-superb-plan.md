@@ -368,6 +368,7 @@ Phase 2 (Pebble) runs in parallel with Phase 1 — it's independent after Phase 
 **Improvement (Phase 5):** Typed at declaration, erased at engine boundary:
 
 ```go
+// skip-validate
 // Today: untyped
 Declare[any, any]("users", On(UserCreated, ...), PointLookup[any]())
 

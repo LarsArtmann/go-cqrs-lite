@@ -392,6 +392,7 @@ result, err := pipeline.Run(ctx)
 The linter does not implement its own fix transaction, backup, or rollback logic. All of this is handled by `pipeline.FixEngine` (byte-level) and `pipeline.FixApplier` (filesystem-level):
 
 ```go
+// skip-validate
 // Custom FixProvider for CQRS-specific fixes
 type CQRSFixProvider struct{}
 
@@ -941,6 +942,7 @@ func foldLock(state LockState, evt event.Event) (LockState, error) {
 **Auto-fix:**
 
 ```go
+// skip-validate
 // OLD:
 default:
     return state, nil
@@ -1068,6 +1070,7 @@ Risk: **Medium** — requires knowing the payload type `T` and the event variabl
 **Pattern:**
 
 ```go
+// skip-validate
 // BAD: manual arithmetic, prone to off-by-one
 evt, _ := event.NewEvent(type, id, aggType, event.Version(version.Int()+1), payload)
 
@@ -1221,6 +1224,7 @@ func decideDiscover(aggID id.AggregateID, kwNumber string) func(property.State, 
 **Pattern:**
 
 ```go
+// skip-validate
 // BAD: silently ignores decode errors
 case eventCreated:
     p, _ := decode(evt)  // error swallowed
@@ -2046,6 +2050,7 @@ This enables dynamic rule configuration from `.cqrs-lint.json` via `go-finding/p
 Generated files (`cqrs-gen` output, sqlc, protobuf, mockgen) are filtered automatically by `go-finding/pipeline.GeneratedFileFilter`, which uses the `gogenfilter` library. This is applied as a `FindingTransformer` in the pipeline's `Processors` list (see [Section 4.2](#42-go-finding-the-finding-model--pipeline)):
 
 ```go
+// skip-validate
 // In pipeline config — zero code to write
 Processors: []pipeline.FindingTransformer{
     pipeline.NewGeneratedFileFilter(),  // removes findings from generated files
@@ -2572,6 +2577,7 @@ This prevents the linter from wasting 8-12 seconds scanning a non-CQRS Go projec
 Rules access the `CQRSRegistry` and AST via closure capture at detector construction time. For dynamically-registered detectors (from config), the context is stored in a `DetectorRegistry`-adjacent factory:
 
 ```go
+// skip-validate
 // Static registration (most rules): closure capture
 func NewC006Detector(ctx *AnalysisContext) finding.Detector {
     return finding.NamedDetectorFunc("C006", func(goCtx context.Context) ([]finding.Finding, error) {

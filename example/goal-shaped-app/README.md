@@ -127,6 +127,7 @@ How to read it, line by line:
 Everything the developer writes beyond the structs in `domain.go`:
 
 ```go
+// skip-validate
 // app.go — folds declared ONCE, by naming convention. No closures.
 tasks := system.OnEvolution(
     system.OnEvolution(

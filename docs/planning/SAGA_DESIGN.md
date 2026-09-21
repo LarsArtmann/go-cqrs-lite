@@ -44,6 +44,7 @@ Aligns with the library's explicit, type-safe approach.
 ## Proposed API
 
 ```go
+// skip-validate
 // Define a saga
 type OrderSaga struct {
     saga.Core

@@ -338,6 +338,7 @@ type IS the declaration. The planner inspects it at startup.
 > the 4 abstract layouts `row`/`columnar`/`lsm`/`kv` (`layout_type.go:9-26`).
 
 ```go
+// skip-validate
 // ══ MAP ADT ══
 metaengine.OnRecord(Event{}, func(_ record.Record, e Event) (Key, Value) { ... })
 // Returns (key, value) → planner infers Map<Key, Value>

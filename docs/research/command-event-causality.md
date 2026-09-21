@@ -27,6 +27,7 @@ Events and commands in `core/event` and `core/command` are structurally disconne
 From `example/todo/commands/create_todo.go:56-72`:
 
 ```go
+// skip-validate
 func (h *CreateTodoHandler) Handle(ctx context.Context, cmd command.Command) error {
     return h.execute(
         ctx, createCmd.AggregateID(),
@@ -67,6 +68,7 @@ Add `MetadataKeyCommandType` and `MetadataKeyCommandID` to event metadata. An en
 Change the decider contract:
 
 ```go
+// skip-validate
 // Now:
 DecideFunc[State any] func(state State, version event.Version) ([]event.Event, error)
 

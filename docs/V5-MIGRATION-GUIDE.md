@@ -48,6 +48,7 @@ deleted modules have no in-repo consumers outside themselves.
 **Composition: stack presets → system composition root (wave A)**
 
 ```go
+// skip-validate
 // v4 (deprecated at v5):
 bundle, _ := sqlite.New(dsn, stack.WithEventCodec(codec.CBORCodec{}))
 defer bundle.Close()

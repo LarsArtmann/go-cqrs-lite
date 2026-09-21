@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **system: fail closed on the racy `EventAdapter.Save` fallback (go-graph-rag
+  feedback #3).** A backend implementing neither `AtomicAppender` nor
+  `Transactional` no longer silently runs the racy check-then-append Save:
+  `Save` returns the new `ErrRacySaveRefused` (write nothing) unless
+  `WithRacySave()` opts in for a deliberately single-threaded backend, and
+  `system.New` rejects such engines for the source-of-truth role at
+  construction with the new `ErrEventSaveNotAtomic` — same family as
+  `ErrDurabilityConflict`. Third-party engine authors now get a loud,
+  actionable failure instead of rare, load-dependent interleaved appends.
+  All shipped engines implement `AtomicAppender`; behavior is unchanged for
+  them. `system/doc.go` capability ladder updated.
 - **metaengine: ADTSet capability parity on Postgres and MySQL (G-T13).**
   `pgengine` and `mysqlengine` now implement `metaengine.SetBackend` (`SetAdd`
   via `ON CONFLICT DO NOTHING` / `INSERT IGNORE`, `SetContains` via an indexed

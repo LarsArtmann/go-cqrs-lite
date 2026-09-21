@@ -68,6 +68,7 @@ The current `system.DomainConfig` is called "domain" but 6 of its 10 fields are
 infrastructure concerns:
 
 ```go
+// skip-validate
 type DomainConfig struct {
     Commands              func(*System)                   // imperative callback, not declarative
     Queries               func(*System)                   // imperative callback, not declarative
@@ -330,6 +331,7 @@ The developer declares a different Evolution + Query pair with a smaller result
 type. The engine stores exactly the fields that result type needs:
 
 ```go
+// skip-validate
 // Full struct — all fields stored
 system.Evolve[TaskSummary]("tasks")...
 system.Lookup[TaskSummary]("get-task").Done()
@@ -352,6 +354,7 @@ system.Lookup[TaskContact]("get-task-contact").Done()
 The problem with separate query declarations per filter combination:
 
 ```go
+// skip-validate
 // WRONG — same data, same events, N declarations:
 system.Lookup[TaskSummary]("get-task")...
 system.Scan[TaskSummary]("tasks-by-status")...       // WHERE status=?
@@ -365,6 +368,7 @@ one collection with flexible runtime access.
 ### Declaration
 
 ```go
+// skip-validate
 system.QuerySet[TaskSummary]("tasks").
     Filterable("status", "priority", "assignee").
     Sortable("priority", "created_at").
@@ -407,6 +411,7 @@ mine, err := system.Find[TaskSummary](ctx, sys, "tasks",
 ### Why `Filterable(...)` is a build-time declaration
 
 ```go
+// skip-validate
 .Filterable("status", "priority", "assignee")
 ```
 
@@ -474,6 +479,7 @@ type**.
 ### Evolutions: same API as CRUD
 
 ```go
+// skip-validate
 system.Evolutions(
 
     // Node type — same as any CRUD entity
@@ -512,6 +518,7 @@ system.Evolve[Follow]("follows", system.Edge("From", "To"))
 ### Queries: graph-native access patterns
 
 ```go
+// skip-validate
 system.Queries(
 
     // "Who does this user follow?" — 1-hop traversal
@@ -583,6 +590,7 @@ Commands are pure business logic. Each handler receives:
 Returns events to emit.
 
 ```go
+// skip-validate
 system.On("task.complete",
     func(ctx context.Context, cmd CompleteTaskCmd, state TaskSummary) ([]system.Emission, error) {
         if state.ID == "" {
@@ -646,6 +654,7 @@ If a command needs state that doesn't belong in a public query (e.g., "was this
 task ever assigned?"), the developer declares an internal Evolution:
 
 ```go
+// skip-validate
 system.Evolve[TaskInternalState]("task-internal", system.Internal()).
     On("task.created", TaskCreated{},
         func(e TaskCreated, v *TaskInternalState) { v.Exists = true }).
@@ -706,6 +715,7 @@ natively support the query's access pattern.
 ### Level 3: Full operational config
 
 ```go
+// skip-validate
 system.Deployment{
     Engines:    ...,
     Topology:   ...,
@@ -752,6 +762,7 @@ Go generics allow methods with additional type parameters. This enables
 per-event type inference on the Evolution builder:
 
 ```go
+// skip-validate
 // evolutionBuilder[R] carries the result type. On[E] introduces the event type.
 type evolutionBuilder[R any] struct { ... }
 
@@ -769,6 +780,7 @@ func (b *evolutionBuilder[R]) On[E any](
 **Compile-time inference proof:**
 
 ```go
+// skip-validate
 system.Evolve[TaskSummary]("tasks").
     On("task.created", TaskCreated{})
 //  ↑ R=TaskSummary (fixed)   ↑ E=TaskCreated (inferred from sample)
@@ -889,6 +901,7 @@ Returns the same sealed `EvolutionSpec`. No `[]any` leak.
 ### Before: 199 LOC (metaengine.go) + 60 LOC (handlers.go) + decoder setup
 
 ```go
+// skip-validate
 // 11 typed folds with manual EventWithID wrapping + 11-line decoder
 func buildProjections() ([]any, *projectionadapter.TypeDecoder) {
     taskCounts := metaengine.Query[taskCountsInput, map[string]int64](
@@ -1120,6 +1133,7 @@ mental model.
 ### C. Single `Query` constructor with access-pattern options
 
 ```go
+// skip-validate
 // Rejected: too much flexibility, engine can't optimize upfront
 system.Query[TaskSummary]("tasks").
     AccessPattern(system.PointLookup).

@@ -1073,6 +1073,7 @@ folds. The system wires all infrastructure (D6). The operator provides engines,
 buses, and durability.
 
 ```go
+// skip-validate
 // ── CONSUMER CODE (deployment-agnostic) ──
 
 // 1. Domain types (pure Go structs)

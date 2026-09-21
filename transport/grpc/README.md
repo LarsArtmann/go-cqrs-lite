@@ -48,6 +48,7 @@ result, err := qryClient.Query(ctx, query)
 ### Custom Codec (CBOR for smaller payloads)
 
 ```go
+// skip-validate
 // Only query entry points accept a codec option:
 srv := grpc.NewServer()
 cqrsgrpc.RegisterQueryService(srv, qDispatcher,

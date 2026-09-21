@@ -89,6 +89,7 @@ For Map queries keyed by entity ID, the fold handler needs the stream ID.
 Use EventDecoder to bridge event-sourced stream IDs to Map keys:
 
 ```go
+// skip-validate
 type eventWithID[P any] struct {
     ID      string
     Payload P

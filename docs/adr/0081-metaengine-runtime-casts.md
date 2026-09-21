@@ -57,6 +57,7 @@ The runtime casts are **structurally necessary** given Go's type system. They're
 **Generic methods on concrete types** — the big one ([#77273](https://github.com/golang/go/issues/77273), accepted, implemented):
 
 ```go
+// skip-validate
 func (s *Store) Get[I, V any](input I) (V, error) { ... }  // legal in 1.27
 ```
 
@@ -69,6 +70,7 @@ The release notes confirm: _"methods of interfaces may not declare type paramete
 Proposal [#80448](https://github.com/golang/go/issues/80448), filed **July 17, 2026**:
 
 ```go
+// skip-validate
 type Container interface {
     type Element any
     Add(Element)

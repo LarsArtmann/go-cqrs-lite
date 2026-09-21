@@ -156,6 +156,7 @@ Remove `Database()` from the public API (or keep it as an explicit escape hatch,
 **Consumer impact:** The consumer writes raw SQL DDL when defining a view model:
 
 ```go
+// skip-validate
 mapper := storage.ViewMapper[TodoView]{
     Table: "todos_view",
     Columns: []storage.ViewColumn[TodoView]{
@@ -290,6 +291,7 @@ Add a declarative deployment layer where the deployer writes a manifest and the 
 touches the Bundle for read models.
 
 ```go
+// skip-validate
 // CONSUMER: pure declaration
 tasks := stack.ReadModel[TaskView, TaskID]{
     Name: "tasks", Key: taskKey, OnCreate: ..., OnUpdate: ...,

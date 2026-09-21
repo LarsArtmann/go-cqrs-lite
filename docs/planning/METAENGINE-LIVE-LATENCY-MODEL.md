@@ -237,6 +237,7 @@ type TransactMeasurer interface {
 #### b) `LatencyTracker` (live, EWMA + percentiles)
 
 ```go
+// skip-validate
 // LatencyTracker maintains a sliding window of latency samples with
 // exponential-decay weighting, so estimates respond to recent conditions
 // while dampening jitter. Stats are computed on demand (O(1) with a

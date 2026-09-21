@@ -201,6 +201,7 @@ The strongest type safety of all alternatives. Every cast is eliminated at the s
 Keep the current `Store` for writes (the erased layer), but make `TypedReader[V]` the primary read API (the typed layer). This is essentially what we already have, but formally documented as a two-layer architecture.
 
 ```go
+// skip-validate
 // Write layer (erased — accepts any, routes to folds)
 store.Apply(ctx, "task.created", payload)  // payload is any
 

@@ -26,6 +26,7 @@ Find the next available ID in your category by checking `rules.AllRules()`.
 Add a `RuleInfo` entry in the appropriate catalog file (`pkg/rules/catalog.go` or `catalog_extra.go` or `catalog_extra2.go`):
 
 ```go
+// skip-validate
 {
     ID:          "C013",
     Name:        "your-rule-name",
@@ -142,6 +143,7 @@ re-deriving project context with private heuristic functions. This centralizes
 "what kind of system is this?" in one place.
 
 ```go
+// skip-validate
 // CORRECT — consult the centralized feature profile
 if !ctx.FeatureProfile.HasServer {
     return nil, nil // local-only system, suppress

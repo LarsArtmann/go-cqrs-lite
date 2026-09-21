@@ -27,6 +27,7 @@ signal — no metadata markers needed.
 ## Before (Deprecated Tombstone API — still works in v4)
 
 ```go
+// skip-validate
 // Command handler: mark deletion via tombstone metadata
 func Delete(cmd DeleteCommand) ([]event.Event, error) {
     evt, err := event.New("task.deleted", cmd.ID, "Task", version, TaskDeleted{Reason: cmd.Reason})

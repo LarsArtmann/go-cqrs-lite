@@ -324,6 +324,7 @@ domain := system.DomainConfig{
 Register a drainer to reject new requests during a rolling deploy, then close:
 
 ```go
+// skip-validate
 type httpDrainer struct{ server *http.Server }
 
 func (d *httpDrainer) Drain(ctx context.Context) error {

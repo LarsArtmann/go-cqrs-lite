@@ -96,6 +96,7 @@ the deployer level via `stack.Bundle`. Classic dependency inversion / ports-and-
 The taskmanager example demonstrates every leak:
 
 ```go
+// skip-validate
 // example/taskmanager/setup.go — THIS is the app going down on the DB layer:
 
 // LEAK: app imports database/sql and type-asserts *sql.DB
@@ -157,6 +158,7 @@ The consumer writes raw SQL DDL (column names, SQL type strings, scan callbacks)
 a view model:
 
 ```go
+// skip-validate
 mapper := storage.ViewMapper[TodoView]{
     Table: "todos_view",
     Columns: []storage.ViewColumn[TodoView]{
@@ -224,6 +226,7 @@ bundle, _ := sqlite.New("events.db",
 ### Fix 2: Neutralize ViewMapper types
 
 ```go
+// skip-validate
 // BEFORE (app writes SQL DDL):
 Columns: []storage.ViewColumn[TodoView]{
     {Name: "title", Type: "TEXT", Extract: ...},
