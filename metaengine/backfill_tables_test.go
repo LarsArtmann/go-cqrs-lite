@@ -11,6 +11,12 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
+// findTaskResults is the collection-shaped read result (a struct with a
+// slice field) — the shape ExecuteTyped reconstructs from ScanResult.
+type findTaskResults struct {
+	Items []FindTaskResult
+}
+
 // filteredTaskQuery is findTaskQuery plus a declared filter, so the
 // auto-layout rule registers a planned table for the "find_task" collection.
 func filteredTaskQuery() metaengine.QueryDecl[FindTask, FindTaskResult] {
@@ -83,16 +89,28 @@ func TestBackfillPlannedTables_AfterData(t *testing.T) {
 		t.Fatalf("unexpected result: %+v", res)
 	}
 
-	// 4. Planned-path point read sees the backfilled row.
-	got, qerr := metaengine.ExecuteTyped[FindTask, FindTaskResult](
-		ctx, store, FindTask{ID: "t1"},
+	// 4. Planned-path scan sees the backfilled rows (FilterOnField promotes
+	// the query to a filtered scan; the planned table serves it).
+	rows, qerr := metaengine.ExecuteTyped[FindTask, findTaskResults](
+		ctx, store, FindTask{},
 	)
 	if qerr != nil {
-		t.Fatalf("post-backfill point read: %v", qerr)
+		t.Fatalf("post-backfill scan: %v", qerr)
 	}
 
+	if len(rows.Items) != 2 {
+		t.Fatalf("scan rows = %d, want 2: %+v", len(rows.Items), rows.Items)
+	}
+
+	byID := map[string]FindTaskResult{}
+
+	for _, r := range rows.Items {
+		byID[string(r.ID)] = r
+	}
+
+	got := byID["t1"]
 	if got.Status != "open" || got.Title != "one" {
-		t.Fatalf("backfilled row wrong: %+v", got)
+		t.Fatalf("backfilled row t1 wrong: %+v", got)
 	}
 
 	// 5. Idempotent re-run converges.
@@ -116,6 +134,8 @@ func TestBackfillPlannedTables_AfterData(t *testing.T) {
 type plannedFakeEngine struct {
 	fakeEngine
 }
+
+func (e *plannedFakeEngine) ApplyLayout(string, []string, []string) error { return nil }
 
 func (e *plannedFakeEngine) ApplyLayoutPlan(metaengine.LayoutPlan) error { return nil }
 
