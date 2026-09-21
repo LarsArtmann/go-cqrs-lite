@@ -257,8 +257,13 @@ jobs:
       - name: Find all go.mod modules
         id: set-modules
         run: |
+          # Root module has no packages (proven no-op leg) and the cqrs-lint
+          # typedfixture is testdata with zero test files — both burn a
+          # nix-installing runner each push. Examples stay: their tests run
+          # nowhere else.
           modules=$(find . -name go.mod -not -path './vendor/*' \
             | sed 's|/go.mod||' | sed 's|^\./||' | sort \
+            | grep -v -e '^\.$' -e '^cmd/cqrs-lint/testdata/' \
             | jq -R . | jq -s -c .)
           echo "modules=$modules" >> "$GITHUB_OUTPUT"
 
