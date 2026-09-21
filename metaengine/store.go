@@ -43,6 +43,7 @@ type Store struct {
 	priorityConfig    *PriorityConfig           // operator-driven layout priority (ADR-0124)
 	sharedCollections map[string]bool           // child types shared across collections (ADR-0124 boundaries)
 	capabilityGaps    map[string]CapabilityGaps // engine name → documented ADT gaps (persist across Replan)
+	backfillState     map[string]PlannedBackfillResult // collection → last planned-table backfill outcome (Doctor-visible; guarded by mu)
 
 	// Health-driven deactivation (ADR-0137): per-engine failure tracking and
 	// quarantine. healthMu never nests inside s.mu acquisitions in the other

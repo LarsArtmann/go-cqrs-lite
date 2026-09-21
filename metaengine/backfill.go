@@ -94,3 +94,88 @@ func BackfillPlannedCollection(
 
 	return total, nil
 }
+
+// PlannedBackfillResult reports one planned collection's backfill outcome:
+// how many rows were copied from meta_map, on which engine, and either the
+// failure (Err) or that the engine lacks the capability (Skipped).
+type PlannedBackfillResult struct {
+	Collection string
+	Engine     string
+	Rows       int
+	Skipped    bool  // engine does not implement KeyScanBackend + MapBackend
+	Err        error // nil on success and on skip
+}
+
+// BackfillPlannedTables runs [BackfillPlannedCollection] for every registered
+// planned collection on its assigned engine — the batch form of the opt-in
+// backfill for stores with several planned tables. Call it after Plan (or
+// after RegisterQuery) when data may predate the table's registration; it is
+// idempotent, so re-running converges to the same state.
+//
+// Engines without the KeyScanBackend+MapBackend capability pair are reported
+// as Skipped (never silent) and do not fail the batch. The latest outcome per
+// collection is recorded for Doctor's planned-tables section. The returned
+// error joins every per-collection failure; individual results are still
+// returned so callers can see exactly which collections copied, skipped, or
+// failed.
+func (s *Store) BackfillPlannedTables(ctx context.Context, batchSize int) ([]PlannedBackfillResult, error) {
+	s.mu.RLock()
+	var plans []LayoutPlan
+
+	if s.plan != nil {
+		plans = append(plans, s.plan.LayoutPlans...)
+	}
+
+	engines := make(map[string]Engine, len(s.queries))
+	for name, meta := range s.queries {
+		engines[name] = meta.QueryEngine()
+	}
+
+	s.mu.RUnlock()
+
+	results := make([]PlannedBackfillResult, 0, len(plans))
+	var errs []error
+
+	for _, plan := range plans {
+		res := PlannedBackfillResult{Collection: plan.Collection}
+
+		eng, ok := engines[plan.Collection]
+		if !ok {
+			continue
+		}
+
+		res.Engine = eng.Profile().Name
+
+		_, keyScan := eng.(KeyScanBackend)
+		_, mapBackend := eng.(MapBackend)
+		if !keyScan || !mapBackend {
+			res.Skipped = true
+			res.Err = ErrBackfillUnsupported
+			results = append(results, res)
+
+			continue
+		}
+
+		rows, err := BackfillPlannedCollection(ctx, eng, plan.Collection, batchSize)
+		res.Rows = rows
+		res.Err = err
+		results = append(results, res)
+
+		if err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", plan.Collection, err))
+		}
+	}
+
+	s.mu.Lock()
+	if s.backfillState == nil {
+		s.backfillState = make(map[string]PlannedBackfillResult, len(results))
+	}
+
+	for _, res := range results {
+		s.backfillState[res.Collection] = res
+	}
+
+	s.mu.Unlock()
+
+	return results, errors.Join(errs...)
+}

@@ -3,6 +3,7 @@ package metaengine
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
 )
@@ -42,6 +43,11 @@ func (s *Store) PlannedTablesDoctorSection(ctx context.Context) string {
 
 	reported := false
 
+	s.mu.RLock()
+	backfill := make(map[string]PlannedBackfillResult, len(s.backfillState))
+	maps.Copy(backfill, s.backfillState)
+	s.mu.RUnlock()
+
 	for _, eng := range engines {
 		reporter, ok := eng.(PlannedTablesReporter)
 		if !ok {
@@ -64,6 +70,20 @@ func (s *Store) PlannedTablesDoctorSection(ctx context.Context) string {
 
 			fmt.Fprintf(&b, "  %s: %s (rows=%s, columns=%v)\n",
 				info.Collection, info.Table, rows, info.Columns)
+
+			if state, ok := backfill[info.Collection]; ok {
+				switch {
+				case state.Skipped:
+					b.WriteString("    backfill: skipped (engine lacks KeyScanBackend)\n")
+				case state.Err != nil:
+					fmt.Fprintf(&b, "    backfill: ERROR: %v\n", state.Err)
+				default:
+					fmt.Fprintf(&b, "    backfill: rows=%d engine=%s\n", state.Rows, state.Engine)
+				}
+			} else {
+				b.WriteString("    backfill: never run (planned tables start empty)\n")
+			}
+
 			reported = true
 		}
 	}
