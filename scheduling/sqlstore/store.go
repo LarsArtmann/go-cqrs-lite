@@ -145,7 +145,11 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 // corrupt timers stay in the table and are re-reported each poll until an
 // operator removes them.
 func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Timer[P], error) {
-	rows, err := s.db.QueryContext(ctx, s.q.due, s.formatTime(now))
+	rows, err := s.db.QueryContext(
+		ctx,
+		s.q.due,
+		s.formatTime(now),
+	) //nolint:sqlclosecheck // rows closed via record.DeferClose (ADR-0144 canonical)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,
@@ -153,8 +157,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			"query due timers",
 		)
 	}
-	//nolint:sqlclosecheck // rows closed via record.DeferClose (ADR-0144 canonical)
-	rows, err := s.db.QueryContext(ctx, s.q.due, s.formatTime(now))
+	defer record.DeferClose(rows)
 
 	var timers []scheduling.Timer[P]
 
