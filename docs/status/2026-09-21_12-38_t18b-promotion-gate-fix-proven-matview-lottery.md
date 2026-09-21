@@ -108,3 +108,17 @@ Tried: the widening cost is measurable (queued); CI/nightly wiring is technicall
 ---
 
 *State at writing: cost pass detached (pid 1016121, expires ~17:26 CEST; re-arm: recreate `/tmp/matview-cost.sh` — its logic is 30 lines, described in A6); v3 verifier DONE (exit 5, flag recorded); my changes daemon-committed (221553bf9 et al.); `scripts/vm-mysql.sh` still another session's uncommitted work (untouched). No manual commit per harness contract. Waiting for instructions.*
+
+---
+
+## ADDENDUM 2026-09-21 ~12:55 CEST — three new rulings executed
+
+Q1 = **accept the autonomous widening rule** (cheapest config with MIN/matview median-of-N within ±10% across ≥3 consecutive quiet runs, suite ≤60s); Q2 = **nightly yes**; Q3 = **flaky annotation**.
+
+| Ruling | Shipped | Verification |
+|--------|---------|--------------|
+| Q3 known-flaky | `KNOWN_UNSTABLE` table in `benchmark-regression.sh` (`NAME\|reason\|expiry`); listed+unexpired >threshold flags print `UNSTABLE-KNOWN … [suppressed]` and never fail the gate; expiry (MIN/matview → **2026-10-21**) auto-restores strictness; per-suite `benchtime::count` opts added to GATE_SETS entries (needed by the widening anyway); matview entry pre-widened to `100x::9` as the cheapest candidate | Fixtures: listed+flagged → suppressed, exit 0; unlisted +66% → REGRESSION, exit 1; all-suppressed → exit 0. `bash -n` + shellcheck CLEAN (both gate scripts; fixed SC2034 in quiet-window-run.sh — the twice-forgotten lesson finally executed) |
+| Q2 nightly | `scripts/nightly-bench.sh` (quiet-window-run → gate, logs `/var/tmp/cqrs-nightly/<date>.log`), systemd user units `scripts/nightly/go-cqrs-nightly-bench.{service,timer}` (03:00, Persistent) + README with the install line, flake app `nightly-bench` | `bash -n`, `nix eval` app path, shellcheck clean. **Timer install is yours** (systemctl is harness-banned): `cp scripts/nightly/go-cqrs-nightly-bench.{service,timer} ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now go-cqrs-nightly-bench.timer` |
+| Q1 autonomous closure | `/tmp/matview-closure.sh` (detached, pid 624990, chained after the cost pass): candidates cheapest-first (100x/9 → 1000x/5 → 1000x/9); qualifies iff cost-pass wall ≤60s AND MIN/matview median-of-N within ±10% across 3 consecutive quiet runs; on qualify → widen entry, decision-grade re-pin (noise-clean save enforced), verify, close T18b; on no-qualify → revert entry to defaults + report numbers | `bash -n`; armed and waiting on the cost pass (which waits on the storm — load was 99 at 12:30) |
+
+TODO rows 34/40/41 updated with the rulings. Remaining open after this: the cost pass + closure need one real quiet window (load 99 → the current blocker); ceiling policy still undecided; CI's matview leg runs its own explicit `-benchtime=10x -count=5` so it is unaffected by the local widening.
