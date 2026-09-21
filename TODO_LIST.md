@@ -789,14 +789,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       CV-side at system v4.7.0 (= latest tag). A release lets consumers
       delete their bespoke gates. — source: reflection doc §4.3; rides the
       existing "Next v4 tag wave" row (P0 in the SUPERB plan) _(Effort: S — routine tag-wave mechanics)_
-- [ ] **Docs-truth tail (2026-09-16 plan-surfaced)** — readmodels.md
-      Scan-limit note (the review doc's §4.1 promised it; godoc + FAQ already
-      shipped); modules.md metaengine row mentions the Scan default;
-      CHANGELOG `[Unreleased]` entry for the Scan/WithLimit doc fix; resolve
-      the 3 pre-existing doc-check ambiguous-alias advisories
-      (core.md:448, recipes.md:119, faq.md:233); embed the overflow probe
-      source into the review doc (kill the `/tmp` citation).
-      — source: status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104 _(Effort: S)_
+- ~~[ ] **Docs-truth tail (2026-09-16 plan-surfaced)**~~ done 2026-09-21 —
+      readmodels.md Scan-limit note, modules.md Scan-default mention, and the
+      CHANGELOG `[Unreleased]` entry shipped 2026-09-17; ALL doc-check
+      ambiguous-alias advisories resolved (it was 5 by then, not 3 — the
+      alias set grew with queue/*: every affected fence now imports the exact
+      package, doc-check zero warnings, recipes harness green); overflow
+      probe source embedded in the review doc §3.1b on 2026-09-18.
+      <br>**Original:** status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104
 - [ ] **benchkit cross-tier PARITY gate** — before any tier-vs-tier benchmark
       number is trusted, assert cross-tier result identity (full snapshot,
       stat counts, ranked IDs) — the template CV's four-tier benchmark
