@@ -151,6 +151,7 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 				"F025",
 				"F026", // metaengine coaching (consumer's deployment choice)
 				"F030", // deprecated transport/http adoption (consumer's choice)
+				"F031", // scan-truncation nudge (WithDefaultLimit is the operator's call)
 				"S002",
 				"S003", // security middleware (consumer wires it)
 				"V007", // v5-removed-API self-reference (compat surface)
@@ -180,7 +181,7 @@ var PresetDefinitions = map[ConfigPreset]PresetDefinition{
 				"F008", "F009", "F010", "F011", "F012", "F013", "F014",
 				"F015", "F016", "F017", "F018", "F019", "F020", "F021",
 				"F022", "F023", "F024", "F025", "F026", "F027", "F028",
-				"F029", "F030",
+				"F029", "F030", "F031",
 				"S002", "S003",
 				"V007",
 			},

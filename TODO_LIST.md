@@ -350,7 +350,27 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
   `storage/v4`, so its pin health is the storage pin coherence the sweep
   already covers. — source: archived 07-48 §b2/§f2
   _(Effort: S)_
-- [ ] [BLOCKED] **Ratify one shipped judgment call** — iroh latency P99 bound
+- [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
+      metaengine wave (row above); queue/mysql + `testutil/mysqltestcontainer`
+      tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
+      docs/wire-goldens entry; cqrs-lint typed-info tier (P014/F090/F091/
+      C008/C013/C035 — the biggest single Unreleased item); cqrs-upgrade
+      `--strict` growth; benchkit/cqrs-bench (row in its own section). After the
+      queue/metaengine waves: drop taskmanager's four sibling replaces (queue,
+      queue/sqlite, claiming, metaengine) — the same consumer-purity play as
+      scheduler-otel-status. — source: closeout §f17-24 _(Effort: M each, wave mechanics)_
+- [ ] [BLOCKED] **claiming V006 advisory decision (owner)** — claiming has no
+      content since v4.0.0, so examples' V006 "same release" advisory is
+      structural: content-identical `claiming/v4.0.1` re-tag, or teach V006 to
+      skip pins at a module's newest existing tag (linter-semantics fix).
+      — source: closeout §f10/§g2 _(Effort: XS + decision)_
+- [ ] **Post-wave hygiene** — `scripts/pin-sweep.sh --check` pass (the cut-time
+      advisory flagged stale sibling pins repo-wide); V007-gated
+      `cqrs-lint-examples` loop over ALL six examples locally (CI ran 3);
+      rename-guard check: V006 version-set goldens vs the new tag set
+      (taskmanager golden pins the version list). — source: closeout §f15/§f16/§f25
+      _(Effort: S total)_
+- [ ] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
 
@@ -359,6 +379,22 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Metaengine — follow-ups
 
 
+- [ ] **Turso grouped-materialized-views fail-closed (feedback #2)** —
+      `WithKnownGroupedViewBug`-style opt-in: grouped matviews diverge silently
+      (upstream defect A, ADR-0135); construction-time refusal unless the caller
+      acknowledges. Complements the existing Doctor WARN + envelope-guard test.
+      — source: 23-24 followups §f18, feedback doc §3.2 _(Effort: S)_
+- [ ] **Feedback #6: system test-mass gap** — (a) config-loader table tests +
+      fuzz for `system` (koanf/YAML surfaces); (b) lifecycle/shutdown stress
+      with real engines; (c) determinism test (same domain+deployment →
+      identical wiring). The 2026-09-21 projectionhost double-apply find is
+      evidence for its priority. — source: 23-24 followups §f19-21, feedback doc
+      §4.6; execution sequencing: the archived SUPERB excellence plan P2 _(Effort: L each)_
+- [ ] **Post-v4.9.0 metaengine tag wave** — publish the [Unreleased]
+      metaengine surface: G-T13 ADTSet parity (pg/mysql, mysql VM leg still
+      pending a quiet window), G-T12 `BackfillPlannedTables`,
+      `ScanScoredVector`/`RowScanner`, adttest helpers (`AssertTxIsolationFromForeignContext`).
+      — source: closeout §f17/§c2 _(Effort: M — tag-wave mechanics)_
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (T18b row above: noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
 
@@ -448,6 +484,45 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
   to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
   went GREEN the same day (S03). Remaining launcher ergonomics live in the
   release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
+- [ ] [BLOCKED] 🔥 **Push decision (owner)** — 30+ commits from ≥3 sessions sit
+      unpushed on master (v4.9.0 wave, go.work fix, guard wave, md-go gate);
+      ALL remote CI evidence is gated on it (M23's ci.yml leg, the `Examples
+      Test` job, the guard-wave legs, release.yml runs). Also rules the push
+      cadence going forward (batch vs phase-boundary). — source: delta §f1,
+      18-19 §f38, closeout §f2/§g1 _(Effort: XS — owner)_
+- [ ] **go.work drift gate** — extend `check-go-version.sh` to assert
+      `go.work go >= max(module go directives)`; the 2-day broken
+      workspace-build class (16 go.mods + go.work downgraded to `go 1.27`,
+      pre-commit workspace build broken for every authored commit since the
+      09-19 sweep — only the daemon's `--no-verify` masked it).
+      — source: closeout §f8/§e1/§d1 _(Effort: S)_
+- [ ] **Pre-commit hook env hygiene** — the hook's appended workspace build and
+      govulncheck step run on the ambient toolchain (host go 1.26.7 → garbage
+      errors, the mid-wave `--no-verify` workaround); inject the documented env
+      chain or build per-module GOWORK=off. Overlaps the scoped-gates row above.
+      — source: closeout §f9/§f33, followups §f12 _(Effort: M)_
+- [ ] **`/mnt/buildcache` capacity monitoring** — hit 100% mid-gate on
+      2026-09-21 (an 18G shared-go-cache clear forced rebuilds on other
+      builders); 80% warning + a bounded `go clean` policy.
+      — source: followups §f13/§e8 _(Effort: S)_
+- [ ] **Watch the first real CI runs (push-gated)** — `Examples Test` job
+      (nix eval, 10m timeout, DB-skip env), the md-go-validator ci.yml leg
+      (cold build ~1-2 min), the nightly `Go version contract` step, and the
+      README push-leg timeout. — source: followups §f2, 18-19 §f3, W0 §f28/§f31
+      _(Effort: S, observe)_
+- [ ] **W0 verification tail (sliceable)** — (a) `CI=true` self-test-leg
+      audit across every gate script lacking one; (b) empty-`go list` fiction
+      sweep across the remaining plain-go CI jobs (coverage-gate class); (c)
+      `check-go-version` into `verify-ci`/`verify-parallel` heads; (d) grow
+      `preflight-composed.sh` (`check-turso-version`, error-taxonomy) if <5min;
+      (e) verify-lock consumers audit (smoke-all, load-sweep chains); (f)
+      coverage-gate Tier-2 floor (schema/snapshot/projection) after two green
+      weeks; (g) document verify-lock semantics in AGENTS; (h) load-guard (10)
+      vs calibration (5) two-tier ceiling intent in gowork-modes; (i)
+      api-stability golden spot-verify (`WithMaxOpenConns`/`WithMaxIdleConns`);
+      (j) triage the 18:38 112-file go-directive downgrade (incident #12?
+      closeout §d1 points at the pre-commit hole — confirm and close).
+      — source: archived 14-12 §f21-31/§f33-45 _(Effort: M total, sliceable)_
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
@@ -551,10 +626,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       Also consider the same stale-port pre-flight for `vm-mysql-nspawn.sh`
       (cheap insurance). — source: archived 14-12 §b1/§f2/§f25, 15-34 §b1 _(Effort: M, quiet-window)_
 - [ ] **`scripts/go-env.sh` env-chain helper** — `GOTOOLCHAIN=auto` + the
-      cache env chain in one sourced file, adopted by gate scripts and
-      session tooling; generalizes the GOTOOLCHAIN=local incident class (the
-      14:18 cost-pass burn) and the gowork-modes contract. Requested by 3
-      sessions. — source: archived 14-18 §e1/§f2, 14-52 §f8, 16-37 §e4/§f5 _(Effort: S)_
+      cache env chain in one sourced file, adopted by gate scripts, flake apps
+      (the `#check-coverage` ambient-PATH fragility), and session tooling;
+      generalizes the GOTOOLCHAIN=local incident class (the 14:18 cost-pass
+      burn) and the gowork-modes contract. Requested by 4 sessions. — source: archived 14-18 §e1/§f2, 14-52 §f8, 16-37 §e4/§f5 _(Effort: S)_
 - [ ] **Wire `quiet-window-run.sh --self-test` + the benchmark gate scripts
       into `check-release-scripts`** (CI-covered shellcheck + self-test for
       `quiet-window-run`, `nightly-bench`, `benchmark-regression`); add the
@@ -562,10 +637,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       restore-depguard mutation fixtures while there. — source: archived
       12-38 §f3, 14-18 §f4/§f19, 14-52 §f7, 14-12 §f22/§f24 _(Effort: S)_
 - [ ] **Composed `#verify` re-record (W1 sibling)** — the S03 green
-      (2026-09-20 15:04) predates ≥3 gate-script changes (hash-golden,
-      wait-loop, load guard, go-version gate, md-go-validator) and the
-      benchkit/cqrs-bench polish wave; one clean composed run re-proves the
-      chain end-to-end. Recipe:
+      (2026-09-20 15:04) now predates the guard chain (hash-golden,
+      wait-loop, load guard, go-version gate, md-go-validator insertions),
+      the v4.9.0 4-tag wave + example pin bumps, the go.work 1.27.1
+      restoration, and the benchkit/cqrs-bench polish wave; one clean composed
+      run re-proves the chain end-to-end (also closes the `#verify-fast`
+      execution-unverified insertions). Recipe:
       `bash scripts/preflight-composed.sh && nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify`.
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1 _(Effort: M, quiet-window)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
@@ -703,6 +780,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       asrecord/MIGRATION_TO_STACK/PRESETS guides once v5 nears. — source:
       08-26 §c6, 08-41 §f25–27
       _(Effort: M)_
+- [ ] **Feedback #4: split `system`'s engine requires (`systemtest`)** ahead of
+      v5 — "system is a category error for a library" was the consumer's core
+      verdict; the go-graph-rag evaluation routed it here. — source: 23-24
+      followups §f22, feedback doc §4.4 _(Effort: L)_
+- [ ] **`metaengine.DeferClose` engine-twin deprecation note** — every consumer
+      can reach the Tier-0 `record.DeferClose` since record/v4.6.0; add the
+      v5-list note to deprecate the self-contained twin (ADR-0144 kept it
+      deliberately — revisit at the v5 API train). — source: closeout §f45 _(Effort: XS)_
 - [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
       examples. Run full verify gate. _(Effort: M)_
 
@@ -720,6 +805,19 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       deprecated-symbol gate, (f) link checker — all done 2026-09-20.]
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
+- [ ] 🔥 **Post-v4.9.0 skill-reference sweep** — grep SKILL.md +
+      `references/*.md` + example READMEs for the nested `OnEvolution` pyramid
+      (still shown in core.md:136, recipes.md:2257/2600, goal-shaped README)
+      vs the now-blessed fluent `Evolve(...).On(...).Done()` chain; adopt `.On`
+      where shown (recipes catalog entries + compile-tests for changed fences);
+      add the FAQ "writing a minimal third-party engine" entry
+      (`AtomicAppender`/`Transactional` honestly; racy fallback now refused) +
+      the fail-closed registration recipe. — source: closeout §f4/§f6/§f14,
+      followups §f14-16/§f48 _(Effort: M)_
+- [ ] **Post-wave release verification** — confirm the 4 GitHub Releases
+      rendered (release.yml on the v4.9.0-wave tags) + curate system/v4.9.0's
+      notes; pkg.go.dev spot-check that `On`/`ErrRacySaveRefused`/`WithRacySave`
+      render. Push-gated. — source: closeout §f3/§f27 _(Effort: S)_
 - [ ] **Canonical T18b record + gate-semantics ADR** (replaces the six-report
       narrative series) — one `docs/benchmarks/2026-09-20-21_t18b-record.md`
       consolidating the arc (re-pin, p99 demotion, save guard, KNOWN-UNSTABLE
@@ -969,14 +1067,88 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
       `#verify`). — source: 14:07 §f33-34 _(Effort: S)_
 
+## md-go-validator CI integration (from 2026-09-13 audit)
+
+> The gate SHIPPED 2026-09-21 (M23): `#check-md-go` green on the 1,642-block
+> corpus (1461 valid / 78 skipped / 103 baselined archived), wired into
+> `#verify`, `#verify-fast`, and ci.yml; P2+P3 swept (67 `// skip-validate`
+> insertions across 34 files); P4 policy = archived-only baseline with
+> inert-shrink ratchet. Build narrative: the archived 18-19 + 23-24 delta
+> reports. The harvested open tail: — source: 18-19 §f, 23-24-delta §f
+
+- [ ] 🔥 **`--self-test` for `scripts/check-md-go.sh`** — planted fixture tree
+      (PATH-stubbed binary or `--config` override), golden message shapes in
+      `scripts/testdata/`, mutation-tested goldens; the four gate behaviors are
+      currently session-only memories (repo convention: CI-gating scripts ship
+      with self-tests). _(Effort: M)_
+- [ ] **Explain + verify the 11 tool-heuristic auto-skips, then decide
+      `--fail-on-skipped`** (strict vs tolerant) — open since the 09-13 audit
+      (§b5). _(Effort: S + XS decision)_
+- [ ] **Baseline-bump ritual + stale-entry ratchet** — pin the flake input to
+      tag/rev OR encode the master+lock bump ritual as a script (gotchas prose
+      exists); meta-check that fails when the baseline references files that no
+      longer exist (may only shrink). _(Effort: S)_
+- [ ] **`docs/status/` + planning authoring convention** — pseudo-Go fences in
+      new reports get `// skip-validate` at WRITE time (prevents surprise CI
+      failures); one convention line in `docs/status/README.md` + a CONTRIBUTING
+      paragraph for doc authors (fence-tag + regenerate command).
+      — source: 18-19 §f10/§f20 _(Effort: S)_
+- [ ] [BLOCKED] **Upstream md-go-validator (owner repo; verify-before-filing)** —
+      (a) relative-path baseline mode (deletes every consumer's sed
+      re-absolutization layer); (b) `--save-baseline` exits 0 when the save
+      succeeds (wrappers should not need `|| true`). _(Effort: M + XS)_
+- [ ] **Gate wiring tail** — `check-md-go` into nightly-gates.yml; FEATURES
+      gates-inventory row + `docs/release-checklist.md` mention; mutation-test
+      the `ARCHIVE_SEGMENT` regex in the script. — source: 18-19 §f15/§f16/§f37
+      _(Effort: S total, sliceable)_
+- [ ] **Version stamp + fleet pins** — packaged `--version` prints `dev` (VCS
+      stamping stripped by buildGoModule/proxyVendor?); host-binary catch-up
+      (SystemNix relock so bare runs agree with the app); consider one documented
+      pin cadence across the gogenfilter/SystemNix tool builds.
+      — source: 18-19 §f13/§f18/§f26 _(Effort: S/M)_
+- [ ] **Investigate the 5h endurance green window** — real annotation discipline
+      or zero exposure (did any concurrent doc carry go fences at all)? One jq
+      diff over the gap's doc commits. — source: delta §f6 _(Effort: S)_
+
 ## go-graph-rag feedback follow-ups (2026-09-15, triaged 2026-09-19)
 
 > Consumer evaluation of `metaengine/v4.13` + `system/v4.7` (adopted neither —
 > "system is a category error for a library, metaengine wrong-shaped for
-> GraphRAG"). Routed requests live in their home sections (#2 Turso §, #4 v5 §,
-> #6 metaengine plans, #1/#7 ROADMAP); the unrouted ones:
-> [`docs/feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
+> GraphRAG"). Feedback #3 (fail-closed Save) and #5 (doc.go stamps) are FIXED
+> and released in the 2026-09-21 v4.9.0 wave; #2 → Turso §, #4 → v5 §,
+> #6 → metaengine rows, #1/#7/#8 → ROADMAP. Source:
+> [`docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
 
+- [ ] [BLOCKED] **Update the go-graph-rag consumer** — feedback #3 + #5 are
+      fixed and released (`system/v4.9.0` `ErrRacySaveRefused`/`WithRacySave`/
+      `ErrEventSaveNotAtomic` + the 17 `# Experimental` doc.go stamps); nobody
+      has told the consumer. Needs owner voice (`github-voice`); consider
+      inviting a re-test on v4.9.0. — source: 23-24 followups §f5/§f40 _(Effort: S)_
+- [ ] **At-least-once projection-fold contract** — document the dedup recipe +
+      the at-least-once delivery contract in the skill references
+      (`recipes.md`/`readmodels.md`); mark getting-started's counter test as
+      the at-least-once canary in its README (purpose + what a failure means);
+      make the convergence test's failure messages actionable (name the seam:
+      drain/live overlap, pin drift, or load). — source: 23-24 followups §f6-8
+      _(Effort: M)_
+- [ ] **scheduler-otel-status test suite** — the one example with NO test files
+      (`go test` → `[no test files]`); the flake comment said "all six carry
+      suites" — comment corrected 2026-09-22, the suite is still missing (or
+      correct the claim everywhere + drop it from the CHANGELOG wording).
+      — source: 23-24 followups §f9/§f10, closeout §f12/§f13 _(Effort: S)_
+- [ ] **Naming: `evolutionBuilder.On` vs `lookupBuilder.On`** — same method
+      name, subtly different semantics (fold registration vs sample
+      registration); document or align. Also watch the line-count ratchet:
+      `projectionhost/worker_drain.go` 329, `system/evolutions.go` 320 (350
+      cap). — source: 23-24 followups §f30/§f31 _(Effort: S/L)_
+- [ ] [BLOCKED] **goal-shaped-app postgres e2e CI leg** — the test exists
+      (DSN-gated, runs under `#integration-pg`); the deferred slice is the
+      env-provisioned CI leg (ephemeral PG in the examples job vs nightly app —
+      cost/queue owner call). — source: closeout §f11/§g3 _(Effort: S + decision)_
+- [ ] [BLOCKED] **Does `#test-examples` join blocking `#verify`?** — built
+      CI-only (fast local loops); the projectionhost double-apply bug lived
+      precisely in the build-vs-tested gap. Owner call on gate ownership.
+      — source: 23-24 followups §f11/§g2 _(Effort: XS decision)_
 
 
 ---

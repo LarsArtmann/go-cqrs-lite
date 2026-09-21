@@ -256,6 +256,8 @@ func RegisterAll(ctx *analyzer.AnalysisContext) []finding.Detector {
 			adoption.NewF029Detector(ctx),
 			// Deprecated-module migration coaching (ADR-0127)
 			adoption.NewF030Detector(ctx),
+			// Scan-truncation nudge (G-T14)
+			adoption.NewF031Detector(ctx),
 		)
 	}
 

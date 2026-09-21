@@ -57,7 +57,7 @@ func buildHelperMediated() map[string]string {
 		m[fmt.Sprintf("E%03d", i+7)] = "built via singleFinding helper"
 		m[fmt.Sprintf("T%03d", i)] = "built via testing helper"
 	}
-	for i := 1; i <= 30; i++ {
+	for i := 1; i <= 31; i++ {
 		m[fmt.Sprintf("F%03d", i)] = "built via adoption helper"
 	}
 	return m

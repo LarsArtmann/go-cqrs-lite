@@ -83,8 +83,9 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-// Sibling replace for the not-yet-tagged claiming module (claim-core
-// extraction); stripped by scripts/tag-release.sh at cut time.
+// Sibling replace pinning claiming to the workspace copy (claiming's newest
+// tag v4.0.0 carries no newer content); stripped by scripts/tag-release.sh at
+// cut time.
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
 
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

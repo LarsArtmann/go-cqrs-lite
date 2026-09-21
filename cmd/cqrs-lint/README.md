@@ -133,8 +133,8 @@ explicit `rules.disable` entries are added on top (union).
 | ------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | `local-cli`         | `server: false`, `tracing: off`                                             | F004, F009, F013, F017                                                                                                                                                                                           | `warning`      |
 | `production`        | `server: true`, `tracing: on`                                               | (none)                                                                                                                                                                                                           | (default)      |
-| `library`           | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, F030, S002, S003, V007                                                                                                                   | (default)      |
-| `library-framework` | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, S002, S003, V007 | (default)      |
+| `library`           | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F002, F006, F010, F011, F015, F022, F023, F024, F025, F026, F030, F031, S002, S003, V007                                                                                                                   | (default)      |
+| `library-framework` | `server: false`, `command-flow: read-only`, `tracing: off`, `snapshot: off` | E003, E016, F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026, F027, F028, F029, F030, F031, S002, S003, V007 | (default)      |
 | `read-only`         | `command-flow: read-only`                                                   | (none)                                                                                                                                                                                                           | (default)      |
 | `v5-ready`          | (none)                                                                      | (none)                                                                                                                                                                                                           | (default)      |
 
@@ -213,7 +213,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**206 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (18), security (10), performance (10), version (7), testing (8), adoption (30).
+**207 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (18), security (10), performance (10), version (7), testing (8), adoption (31).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -433,6 +433,7 @@ Adoption rules (F-series) are advisory: they suggest modules and patterns that i
 | F028 | missing-slog-setdefault          | Info     | Server-mode project using slog without slog.SetDefault — default logger has no structured output                   |
 | F029 | missing-span-creation            | Info     | OTel import but no span creation in handlers — distributed traces are empty                                        |
 | F030 | deprecated-transport-import      | Warning  | Deprecated transport/* import — removed at v5; migrate per ADR-0127                                                |
+| F031 | scan-without-limit               | Warning  | Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit or set WithDefaultLimit (G-T14)       |
 
 ## CLI
 
