@@ -5,10 +5,11 @@
 and is **never** duplicated here — when a task finishes it moves to CHANGELOG
 and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
-2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, 2026-09-19, and
-2026-09-20 — the 8th pass struck 815+ verified-done items inline across 57 reports;
-the 9th pass closed the 09-19/20 wave reports + executed plans and harvested the
-release-train tails below).
+2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, 2026-09-19,
+2026-09-20, and 2026-09-21 — the 8th pass struck 815+ verified-done items inline
+across 57 reports; the 9th pass closed the 09-19/20 wave reports + executed plans;
+the 10th pass archived the 09-20/21 status cluster (11 files, banner + inline
+strikes) and harvested their tails into the sections below).
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
@@ -19,6 +20,37 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > Turso section). **Current plan (2026-09-20 17:40):**
 > [`docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md`](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md)
 > (M01–M27, all open rows mapped). This file remains the living source of truth.
+
+## Section index
+
+[Legend](#legend) ·
+[Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
+[Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
+[Command-side depth](#command-side-domain-depth-2026-09-13-plan) ·
+[Go 1.27 wave (closed)](#go-127-upgrade-wave-closed-2026-09-19) ·
+[Reset-projection stall](#investigate-testsystem_resetprojection_restartandreplay-contention-stall-found-2026-09-13) ·
+[Turso matviews](#turso-materialized-views-adr-0135--upstream-handoffs) ·
+[Cordis follow-ups](#cordis-spatiotemporal-composability-follow-ups-2026-09-10) ·
+[cqrs-lint](#cqrs-lint) ·
+[Release / Tagging](#release--tagging) ·
+[Metaengine follow-ups](#metaengine--follow-ups) ·
+[CI / Infrastructure](#ci--infrastructure) ·
+[Code Quality](#code-quality) ·
+[v5 Unification](#v5-unification-phase-8-deletion--cut) ·
+[Core Data Model](#core-data-model-v4xv5-2026-08-22-review--plan) ·
+[Docs truth](#docs--consumer-surface-truth) ·
+[benchkit tail](#benchkit-statistical-rigor-tail-2026-09-16) ·
+[CV verdicts](#cv-consumer-verdict-follow-ups-2026-09-16) ·
+[Goal-closure](#metaengine-goal-closure-follow-ups-2026-09-17) ·
+[Vector-search tail](#vector-search-verification-tail-2026-09-15) ·
+[Watermill skill](#watermill-sibling-skill-follow-through-2026-09-15) ·
+[md-go-validator](#md-go-validator-ci-integration-from-2026-09-13-audit) ·
+[Temporal cells](#temporal-versioned-cells--adr-0141-follow-ups-harvested-2026-09-18) ·
+[Dogfooding](#dogfooding-self-review-follow-ups-2026-09-19) ·
+[go-graph-rag](#go-graph-rag-feedback-follow-ups-2026-09-15-triaged-2026-09-19) ·
+[92-tag tail](#92-tag-release-train-tail-2026-09-20-harvest) ·
+[W3 bundle (resolved)](#owner-decisions--w3-bundle-2026-09-20) ·
+[Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
 
@@ -34,11 +66,19 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > Owner directive 2026-09-18: metaengine becomes the ONE way data is stored/retrieved from disk.
 > Full Pareto plan (23 tasks / 82 micro-tasks): [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
 
-- [x] ~~**T18b: load-sweep + benchmark baseline regen under Go 1.27** — `#load-sweep` on timing paths and a `benchmark-regression.sh --save` refresh (the committed baseline predates the 1.27 toolchain AND now needs the new claimkit entries)~~ **DONE 2026-09-20** — quiet window opened 16:58 UTC (load1/load5 3.73/4.88 < 5, `calibration-gate.sh` PASS); `#load-sweep` PASS in 91s (all 8 timing modules survived a 31-core soaker under go1.27.1); re-pin clean on attempt 2 (attempt 1 was noise-gate-rejected and auto-restored — the protection works), compare vs the 2026-09-11 baseline: **0 regressions, 15 improvements, 1 stable + 5 new entries** (claimkit ×4 + `BenchmarkBenchkitSuite_SQLite`); header carries re-pin timestamp + uptime sample + `# toolchain: go1.27.1` provenance line; daemon-committed (a91e7cd90). Caveat: the post-save verification re-run could not land a green gate tonight — 4 runs all noise-gate-rejected on chronic `write_p99_ns` CoV volatility, and the >25% flag landed on a different matview variant each run (sampling noise, never reproduced; see new row below). **UPDATE 2026-09-21:** headline demotion implemented (row below) and production-validated — first post-fix decision-grade run 08:46 UTC (noise gate PASSED at load 1.87/4.84, write_p99 advisory CoV 22.5%); it flagged `MIN/matview +33%` (11062 vs 8319) per the bounded-attempts ruling → baseline stands, bimodal lottery suspected (same variant 3+ times across runs, samples 7.9-15µs; the baseline caught the low mode). Cost pass (benchtime/count widening, chained quiet-window) decides the widening; until then MIN/matview flags are EXPECTED noise, not perf evidence.
+- [x] ~~**T18b: load-sweep + benchmark baseline regen under Go 1.27** — `#load-sweep` on timing paths and a `benchmark-regression.sh --save` refresh (the committed baseline predates the 1.27 toolchain AND now needs the new claimkit entries)~~ **DONE 2026-09-20** — quiet window opened 16:58 UTC (load1/load5 3.73/4.88 < 5, `calibration-gate.sh` PASS); `#load-sweep` PASS in 91s (all 8 timing modules survived a 31-core soaker under go1.27.1); re-pin clean on attempt 2 (attempt 1 was noise-gate-rejected and auto-restored — the protection works), compare vs the 2026-09-11 baseline: **0 regressions, 15 improvements, 1 stable + 5 new entries** (claimkit ×4 + `BenchmarkBenchkitSuite_SQLite`); header carries re-pin timestamp + uptime sample + `# toolchain: go1.27.1` provenance line; daemon-committed (a91e7cd90). Caveat: the post-save verification re-run could not land a green gate tonight — 4 runs all noise-gate-rejected on chronic `write_p99_ns` CoV volatility, and the >25% flag landed on a different matview variant each run (sampling noise, never reproduced; see new row below). **UPDATE 2026-09-21:** headline demotion implemented (row below) and production-validated — first post-fix decision-grade run 08:46 UTC (noise gate PASSED at load 1.87/4.84, write_p99 advisory CoV 22.5%); it flagged `MIN/matview +33%` (11062 vs 8319) per the bounded-attempts ruling → baseline stands, bimodal lottery suspected (same variant 3+ times across runs, samples 7.9-15µs; the baseline caught the low mode). Cost pass (benchtime/count widening, chained quiet-window) decides the widening; until then MIN/matview flags are EXPECTED noise, not perf evidence. **UPDATE 2026-09-21 evening (state #6):** the autonomous chain (closure-completion → campaign queue → root-cause matrix) is ALIVE and quiet-window-gated; load spiked to 863 — the completion watcher's 6h deadline may lapse without executing (designed behavior: exit 3, nothing written). Re-arm is one command, preserved in the 16:37 report (`setsid nohup bash /var/tmp/t18b/closure-completion.sh …`); baseline `a91e7cd90` and gate entry `100x::9` + CI parity untouched. Green at the closure tail closes T18b permanently.
 - [ ] **T19–T21 (v5-gated): fold capabilities into universal `Engine`, delete the duplicate SQL stacks, release train** — blocked on the v5 train per ADR-0142 §decision; DO NOT execute in v4.x (growing core interfaces is breaking, contract 21g discipline). The tag waves for claiming + the queue family are the separately-tracked item below. _(Effort: L; v5-gated)_
 - [ ] **Go 1.27 follow-ups** — the 94-module `go 1.27.1` sweep completed the jsonv2 graduation (2026-09-19, un-broke every workspace-mode compile); the coordinated tag sweep (flake.nix/scripts/CI/workflows/Go-strings/docs → plain `go build`) landed 2026-09-19. ~~Remaining: re-baseline load-sweep benchmarks under the 1.27 toolchain.~~ DONE 2026-09-20 via the T18b row above (`#load-sweep` PASS + re-pin under go1.27.1) — nothing remains in this row. _(Effort: S)_
 - [x] ~~**benchkit noise gate: `write_p99_ns` chronically exceeds the 10% CoV threshold on this host (sqlite/dev profile)** — observed 2026-09-20 across 4 gate runs (CoV 11.5% → 20.6% → 22.5%) including a deep-quiet window (load 2.89/4.23) and at `--noise-repeat 7`; the other 3 headline metrics stay stable. An extreme-quantile estimator (~100-iter runs) has intrinsic cross-run variance, so a clean baseline save is a coin flip around the threshold.~~ **RESOLVED 2026-09-20 late (owner-delegated calls, implemented):** (1) `write_p99_ns` DEMOTED from the headline set (default now `write_throughput write_p50_ns load_p50_ns` — p99/max measure estimator variance, not loudness; the median compare routes contention through throughput/p50 first); (2) `benchmark-regression.sh --save` now REFUSES on a noise-gate failure unless `--force-save` (the D1 footgun: attempt 1's suspect save was only caught by an external guard); (3) re-pin acceptance = bounded attempts (verify up to 3×; all-noise-rejected → save stands with rejections recorded; decision-grade regression → flag for triage). Fixture-tested (p99-noisy→saves; p50-noisy→refuses; `--force-save`→saves; compare-only+save→saves, CI path intact). Open remainder: the matview bimodality (MIN 7.9-15µs samples) still makes the 25% median-of-5 compare flag random variants on clean runs — investigate/widen benchtime (see T18b row caveat). **UPDATE 2026-09-21:** first post-fix decision-grade run confirmed the fix (noise gate PASSED with p99 advisory at CoV 22.5%); matview widening = owner ruled MEASURE FIRST — cost pass chained (100x/5, 1000x/5, 100x/9, 1000x/9 wall-clock + MIN/matview medians; results `/tmp/matview-cost-results.txt`). **UPDATE 2026-09-21 midday (owner rulings):** (a) matview gate entry PRE-WIDENED to `100x::9` as the cheapest candidate; closure pipeline (detached, chained after the cost pass) autonomously validates the accepted rule — median-of-9 within ±10% across 3 consecutive quiet runs, suite ≤60s wall — then re-pins (noise-clean save) and verifies; on failure reverts the entry to defaults; (b) KNOWN-UNSTABLE annotation shipped in `benchmark-regression.sh` (MIN/matview suppressed as advisory `UNSTABLE-KNOWN` until **2026-10-21** expiry; a quiet-night green fixture-verified; real regressions still fail) so nightly runs stay green while the sampling fix lands; (c) NIGHTLY WIRED (owner ruled yes): `scripts/nightly-bench.sh` + systemd user units `scripts/nightly/` (install: `cp scripts/nightly/go-cqrs-nightly-bench.{service,timer} ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now go-cqrs-nightly-bench.timer`) + flake app `nightly-bench` — logs `/var/tmp/cqrs-nightly/<date>.log`; (d) shellcheck CLEAN on all three touched scripts; (e) host benchmark-ceiling policy remains OPEN (owner undecided). **UPDATE 2026-09-21 afternoon (incident + three more rulings):** the first cost-pass run FAILED silently — `GOTOOLCHAIN=local` (inherited shell env) vs go.work `>= 1.27.1` killed every bare `go test` at `wall=0s`, and the closure began confirming against `median=0` garbage before being killed pre-revert; both session scripts now `export GOTOOLCHAIN=auto` + carry an implausible-median guard (lesson: the env chain applies to session tooling too, and plausibility guards precede mutations). Re-armed chain (cost → closure) executes three further owner rulings: (f) **CI parity** — closure updates `.github/workflows/benchmarks.yml` matview leg to the chosen config; (g) **baseline history** — `--save` now auto-archives the superseded baseline to `docs/benchmarks/baselines/benchmark-baseline-<UTC>.txt` (fixture-verified); (h) **fallback if no config stabilizes MIN/matview**: matview suite leaves the gate set entirely and moves to a nightly NON-GATING stability suite (`scripts/nightly/matview-stability.sh`, wired into nightly-bench by the closure) — closure installs it automatically. **UPDATE 2026-09-21 ~15:00 (three more rulings):** (i) root-cause campaign QUEUED as the fourth chained stage (`/var/tmp/t18b/rootcause-campaign.sh`): experiment matrix — back-to-back cold/warm pairs, taskset-pinned, GOMAXPROCS=1, /proc/cpuinfo frequency sampling during a run, perf stat when paranoid ≤ 2 — numbers only, the fix stays a design pass; (ii) nightly timer implemented the SystemNix way (see promotion row) — the go-cqrs-lite `scripts/nightly/` hand units are superseded by the declaration in `SystemNix/platforms/nixos/users/home.nix` (owner commits + deploys); (iii) weekly load-sweep leg added to `nightly-bench.sh` (Sundays, after the gate, never fails the nightly). **UPDATE 2026-09-21 ~15:45 (RULE QUALIFIED + exec-bit incident):** the re-armed cost pass produced real numbers in a 13:30 UTC quiet window — 100x/9: wall 6s, MIN/matview medians 8118→8131→8793 (max drift +8.3% ≤ 10%) → candidate QUALIFIED; closure widened the entry + applied CI parity (`benchmarks.yml` matview leg → `-benchtime=100x -count=9`), but its re-pin/verify died exit 126 — the `set_entry` awk>tmp+mv rewrite had STRIPPED the exec bit from `benchmark-regression.sh` (fixed: chmod restored; preserved closure copy now chmods after mv). Completion watcher (pid 1566584, `/var/tmp/t18b/closure-completion.log`) re-executes the interrupted tail autonomously: quiet → calibration-gate → noise-clean re-pin (auto-archives superseded baseline) → verify → green closes T18b. Campaign queue (Q1 ruling: autonomous) chained after completion: SearchQuery count=5 re-run (SMOKE-TESTED wiring, 34s) then full `BenchmarkCalibration_*` capture via `nix run .#integration-dgraph` — results+PROVENANCE to `/var/tmp/t18b/campaign-results.md`; supersede/re-anchor DOC+constant edits stay manual with numbers in hand. Hygiene batch landed: gotchas-testing quiet-window+GOTOOLCHAIN caveat, AGENTS Quick Reference rows (quiet-window-run, nightly-bench), 2026-09-18 SUPERB T18b addendum, row ~81 pointer resolved. Nightly timer implemented the SystemNix way (owner: use nix + SystemNix): `platforms/nixos/users/home.nix` systemd user service+timer (03:00, Persistent, go_1_27 on unit PATH) — alejandra-formatted, eval-verified on evo-x2 (`home-manager.users.lars.systemd.user.timers.go-cqrs-nightly-bench` renders `{03:00, Persistent, 30m}`); activation = owner deploy (sudo). The go-cqrs-lite `scripts/nightly/` units are superseded by the SystemNix declaration. Note: SystemNix `check-flake-inputs.sh` bans `GOTOOLCHAIN=auto` in flakes (sandbox purity) — the interactive `local` pin is policy-consistent; scripts self-export auto.
 - [x] ~~Quiet-window tooling promotion (W2 row)~~ **DONE 2026-09-21 (owner ruled promote-now):** `scripts/quiet-window-run.sh` — waits load1/load5 < `--ceiling` (default 5), runs the wrapped command with `--attempts`/`--no-retry` bounded retries, `--deadline` (default 6h), `--log`; `--self-test` 6/6 green (quiet+pass, never-quiet deadline, retry-then-pass, always-fail exhausted, usage); wired as flake app `nix run .#quiet-window-run -- CMD` (mirror of load-sweep). Open halves: nightly-gates wiring **DONE 2026-09-21 midday (see row above: systemd units + `nightly-bench` app; user installs the timer)**; host benchmark-ceiling policy (owner UNDECIDED 2026-09-21 — ceilings stay strict <5 until ruled). **SystemNix timer landed 2026-09-21** (`platforms/nixos/users/home.nix`: user service+timer 03:00/Persistent/30m, go_1_27 on unit PATH; alejandra-formatted, eval-verified on evo-x2; owner commits + deploys — the go-cqrs-lite `scripts/nightly/` hand units are superseded).
+- [ ] **T18b chain hardening: make the armed pipeline survive storms/reboots** —
+      the closure/campaign/root-cause stages are detached bash pollers (`/var/tmp/t18b/`,
+      pid-chained, 6h deadlines); a reboot or lapsed deadline strands the arc until a
+      session re-arms by hand (documented one-liner). Convert to a supervised design
+      (systemd user unit à la the nightly timer, or an idempotent cron re-arm line),
+      results-file polling instead of pid-chaining, `PHASE-*.{RUNNING,DONE,FAILED}`
+      watchdog markers, and settle the deadline-lapse policy (auto-re-arm vs one-shot —
+      owner question). — source: 16-37 §d2/§e2/§f4/§f20, 14-18 §d3 _(Effort: M)_
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
@@ -57,6 +97,25 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
   [`docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md`](docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md).
   Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
   (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
+
+- [ ] **Queue M4 verification tail (harvested 2026-09-21)** — sliceable:
+      (a) unit-pin `deadlockBackoff` (bounds, exponential shape, jitter range,
+      attempt cap) and exercise the ClaimDue retry loop under a forced real
+      deadlock (fault-injected `claimOnce` or lock-order contention) — the
+      shipped backoff path has zero executed coverage;
+      (b) prove `testutil/mysqltestcontainer` skip paths (no Docker, `-short`)
+      + a smoke test; confirm plain (non-integration-tag) queue/postgres skips
+      cleanly without a TestMain;
+      (c) clock seam for the conformance harness (ADR-0122 `WithClock` /
+      lease-duration injection) to delete the fixed 500-650ms sleeps;
+      (d) remove the vestigial `_ = subject` + unused `short` wart in
+      conformance tokens.go/lifecycle.go;
+      (e) sweep the shared-DB parallel-migrate class (t.Parallel + shared
+      `POSTGRES_TEST_DSN` migrate) across metaengine/*engine + storage engine
+      suites before CI `-count=2` legs multiply;
+      (f) CI legs: queue/mysql via the container harness (runners have Docker)
+      + an explicit queue/postgres matrix entry. —
+      source: archived 22-01 §b/§e3-5/§f3-17 _(Effort: M total, sliceable)_
 
 ## Command-side domain depth (2026-09-13 plan)
 
@@ -318,15 +377,38 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (T18b row above: noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
 
+- [ ] **M20 design-ratification follow-ups (one-pagers delivered 2026-09-21, awaiting owner)** —
+      (a) **ADR-0146 candidate: `EngineConfig.SingleWriter`** advisory lease —
+      `<dsn>.cqrs-lease` flock, fail-loud default-off, one shared Tier-0-style
+      helper (lease semantics today exist only in `queue/`+`claiming/` task
+      claims); one-pager:
+      [`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md).
+      (b) **AggregateOn first cut** — `AggregateSpec` QueryOption on `QueryDecl` +
+      construction-time validation + `MatViewSpecReporter` capability + planner
+      O(1) pricing for scalar-covered shapes (grouped routing stays unsafe until
+      turso-go defect A is fixed upstream + the flip-runbook gate passes);
+      one-pager:
+      [`docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md`](docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md).
+      (c) **Routing integration v1** after (b): scalar-covered shapes price O(1)
+      and route to the matview engine; Doctor INFO for uncovered shapes.
+      (d) Scan-default v5 survey feeding G-T14:
+      [`docs/planning/2026-09-21_scan-default-v5-survey.md`](docs/planning/2026-09-21_scan-default-v5-survey.md)
+      (row in Goal-closure section). — source: archived 15-34 §a1-3/§f28-32 _(Effort: M each, ratification-gated)_
+
 > The 2026-09-07/08 correctness batch (ApplyBatch Record handling,
 > record-aware cache invalidation, Doctor observations, MySQL claiming, dgraph
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-- [ ] **metaengine live-latency doc sync vs code** (harvested 2026-09-20) —
-      recipes §2.11 (`ProbeEngine`/`LatencyTracker`/`Calibration` surface) has
-      never been drift-checked against the shipped code; verify every named
-      symbol/flow, fix the doc where the API moved. — source: archived 16-43 §f16 _(Effort: S)_
+- ~~[ ] **metaengine live-latency doc sync vs code** (harvested 2026-09-20)~~
+      done 2026-09-21 (M16) — every §2.11 claim re-verified against source
+      (probe interval 1s `probe.go:89-115`, timeout 5s, jitter 0.2,
+      `DefaultRoutingHysteresis` 0.20 `store_routing.go:17-24`,
+      `StartAutoReplan` stop-func shape, `Replan`, `GetEngineStats`,
+      `FormatLiveLatency`): section accurate as-written, no edits needed. —
+      evidence: archived 15-34 §a9.<br>**Original:** recipes §2.11
+      (`ProbeEngine`/`LatencyTracker`/`Calibration` surface) had never been
+      drift-checked against the shipped code. — source: archived 16-43 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
       silently ignores mistyped encryption params (`encryption_hexkkey=` opens
       the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
@@ -479,15 +561,46 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
       box is quiet; closes the [x] rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
-- [ ] **VM-leg hardening (vehicle ruled 2026-09-20, W3 bundle)** — owner ruled
-      the QEMU/VM leg stays the canonical local MySQL vehicle (native-MariaDB
-      productization CLOSED-WONTFIX: do NOT build `scripts/ephemeral-mysql.sh`
-      or an `#integration-mysql-ephemeral` app). Remaining: `vm-mysql.sh`
-      pre-flight stale-port check (orphaned QEMUs holding port 33070) +
-      process-group cleanup trap (from archived 23-21 §f11), plus the
-      `testutil/mysqltestcontainer` leg (landed 2026-09-20, commit
-      4b8ae5eab + follow-ups) serving CI/local Docker runs alongside the VM.
-      — source: archived 23-21 §a8/§b1/§f3-4/§f11; W3 vehicle ruling 2026-09-20 _(Effort: M)_
+- [x] ~~**VM-leg hardening (vehicle ruled 2026-09-20, W3 bundle)**~~ — owner
+      ruled the QEMU/VM leg stays the canonical local MySQL vehicle
+      (native-MariaDB productization CLOSED-WONTFIX: do NOT build
+      `scripts/ephemeral-mysql.sh` or an `#integration-mysql-ephemeral` app).
+      ~~Remaining: `vm-mysql.sh` pre-flight stale-port check (orphaned QEMUs
+      holding port 33070) + process-group cleanup trap.~~ **DONE 2026-09-21**
+      (M10 hardening wave: `ss`+`/dev/tcp` fallback stale-port pre-flight,
+      orphan-QEMU diagnosis + remedy message, `set -m` process-group
+      TERM→KILL trap; shellcheck clean, positive+negative probe tests
+      passed — archived 14-12 §b1). The `testutil/mysqltestcontainer` leg
+      (landed 2026-09-20, commit 4b8ae5eab + follow-ups) serves CI/local
+      Docker runs alongside the VM. **Open remainder:** the real leg run —
+      next row. — source: archived 23-21 §a8/§b1/§f3-4/§f11; W3 vehicle
+      ruling 2026-09-20 _(Effort: M)_
+- [ ] **Run the real `#integration-mysql-vm` leg through the hardened
+      `vm-mysql.sh` in a quiet window (load1<5)**, then update the F52 AGENTS
+      integration rows + strike with evidence. The hardening is self-tested;
+      the live proof run never happened (load 8–72 all day 2026-09-21).
+      Also consider the same stale-port pre-flight for `vm-mysql-nspawn.sh`
+      (cheap insurance). — source: archived 14-12 §b1/§f2/§f25, 15-34 §b1 _(Effort: M, quiet-window)_
+- [ ] **`scripts/go-env.sh` env-chain helper** — `GOTOOLCHAIN=auto` + the
+      cache env chain in one sourced file, adopted by gate scripts and
+      session tooling; generalizes the GOTOOLCHAIN=local incident class (the
+      14:18 cost-pass burn) and the gowork-modes contract. Requested by 3
+      sessions. — source: archived 14-18 §e1/§f2, 14-52 §f8, 16-37 §e4/§f5 _(Effort: S)_
+- [ ] **Wire `quiet-window-run.sh --self-test` + the benchmark gate scripts
+      into `check-release-scripts`** (CI-covered shellcheck + self-test for
+      `quiet-window-run`, `nightly-bench`, `benchmark-regression`); add the
+      "assert the mangle landed" assertion to the check-golangci-hash and
+      restore-depguard mutation fixtures while there. — source: archived
+      12-38 §f3, 14-18 §f4/§f19, 14-52 §f7, 14-12 §f22/§f24 _(Effort: S)_
+- [ ] **Composed `#verify` re-record (W1 sibling)** — the S03 green
+      (2026-09-20 15:04) predates ≥3 gate-script changes (hash-golden,
+      wait-loop, load guard, go-version gate, md-go-validator) and the
+      benchkit/cqrs-bench polish wave; one clean composed run re-proves the
+      chain end-to-end. Recipe:
+      `bash scripts/preflight-composed.sh && nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify`.
+      — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1 _(Effort: M, quiet-window)_
+- [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
+      real run) and logs cleanly. — source: 14-52 addendum 2, 16-37 §f31 _(Effort: XS, observe)_
 
 ---
 
@@ -704,6 +817,34 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `docs/status/archived/README.md` + live-reports index in
       `docs/status/README.md`). — source: archived 13-03 §f1-3
 
+- [ ] **Canonical T18b record + gate-semantics ADR** (replaces the six-report
+      narrative series) — one `docs/benchmarks/2026-09-20-21_t18b-record.md`
+      consolidating the arc (re-pin, p99 demotion, save guard, KNOWN-UNSTABLE
+      table, per-suite benchtime::count, widening rule + closure, the
+      GOTOOLCHAIN and load-storm incidents) + one ADR for the four
+      gate-semantics changes; then the calibration case-study appendix in
+      `docs/benchmarks/calibration-2026-08-30.md` (storm/reboot/p99/bimodal/
+      GOTOOLCHAIN/863 series as the "why the gates exist" record). Retire the
+      `/tmp` + `/var/tmp/t18b` copies after the chain lands. — source:
+      archived 16-37 §d3/§e3/§f8/§f12, 14-52 §f12/§f16/§f30/§f34 _(Effort: M)_
+- [ ] **Stale-reference sweep for the bench-gate contract changes** — old
+      noise-headline list, unconditional `--save` mentions, matview
+      benchtime/count mentions across README, `cmd/cqrs-bench/README.md`,
+      docs/benchmarks, and workflows (five consecutive sessions flagged it).
+      — source: archived 10-30 §f3, 12-38 §f5, 14-18 §f5, 14-52 §f6, 16-37
+      §f16 _(Effort: S)_
+- [ ] **M13 tail: per-module fresh-run last-verified stamps + script-derived
+      counts** — FEATURES guarantee rows carry 09-21 doc-gate stamps, but
+      per-module fresh-run verification stamps need quiet CPU to be honest;
+      extend `check-canonical-facts.sh` to derive the go.mod count into
+      FEATURES too (F69 overlap, kills the last hand-maintained count). —
+      source: archived 15-34 §b4/§f5, 14-12 §f23 _(Effort: M, quiet-CPU)_
+- [ ] **doc-check `--list-all-ambiguous` mode** — emit EVERY instance per
+      ambiguous alias, not just the first (the M16 alias bundle took 5
+      iterate-and-unmask rounds; one sweep grep would have collapsed them).
+      Candidate for the md-go-validator-adjacent tooling wave. — source:
+      archived 15-05 §e, 15-34 §c/§f8 _(Effort: S)_
+
 ---
 
 ## benchkit statistical-rigor tail (2026-09-16)
@@ -747,6 +888,27 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       35.6/32 CPUs at the 2026-09-21 attempt. Protocol: wait for
       `scripts/calibration-gate.sh` PASS, re-run the compare command from the
       capture header, then annotate. — source: archived 15-37 §f3/§f30
+
+- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** —
+      (a) test for `RunSuiteRepeated` (the one new export with zero direct
+      coverage: tiny profile × 2 repeats, assert `<metric>_cov%` metrics +
+      NOISY Logf); (b) verify `<metric>_cov%` through real benchstat output;
+      (c) `startProfiling` teardown-order test; (d) drift-tripwire pinning
+      script `NOISE_HEADLINE` == `benchkit.HeadlineMetricNames()` (the
+      split-brain is comment-enforced today); (e) list-phases metric-map
+      test (every non-`report:` name must exist in `benchkit.MetricNames()`);
+      (f) fix the README `--progress` default row (says 0, flags.go says 5s);
+      (g) sync benchkit/README.md + doc.go API tours with the new exports
+      (RunSuiteRepeated, HeadlineMetricNames, constants, ReservoirSize);
+      (h) tighten `noise_target_guard` to identifier-grade matching; (i)
+      investigate the testcontainers teardown noise (`🚫 Container terminated`
+      during the race repro — leak or expected cleanup?). — source: archived
+      15-57-benchkit §b/§d/§e1-2/§f1-10 _(Effort: M total, sliceable)_
+- [ ] [BLOCKED] **Benchkit tag wave (owner go-ahead)** — cut benchkit with
+      the statistical-rigor + polish-tail APIs (~+17 untagged exports deep),
+      bump `cmd/cqrs-bench` pin, strip the sibling replace; batch with the
+      next queue/system release or cut now — owner timing call. — source:
+      archived 15-57-benchkit §f15/§g1 _(Effort: M, owner-gated)_
 
 ---
 

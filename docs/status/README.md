@@ -92,7 +92,7 @@ suffix-less module; v0 is the examples' line), T13 load-sweep GREEN, T15
 verify-ci GREEN. T14 bench-baseline supersede deferred to the next quiet
 window (fleet ran 20–139 load all afternoon; protocol forbids a tainted
 capture). See
-[`2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md`](2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md)
+[`2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md`](archived/2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md)
 and the mid-session reports (10:56, 13:21, 11:36 owner bundle).
 
 **2026-09-08 23:12 (Pareto execution):** the SUPERB plan's Wave 0 shipped —

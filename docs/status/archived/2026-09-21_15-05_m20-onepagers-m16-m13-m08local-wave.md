@@ -1,4 +1,4 @@
-> **SUPERSEDED-BY-ROUTING — docs-health 10th pass (2026-09-21):** already carried the 15:34 supersession banner; archived by the 10th pass. The authoritative wave record is [`2026-09-21_15-34_m20-wave-closeout-full-status.md`](archived/2026-09-21_15-34_m20-wave-closeout-full-status.md) (archived alongside); open tails live in [TODO_LIST.md](../../TODO_LIST.md) and the owner-unblock plan.
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** superseded interim report; already carried the 15:34 supersession banner; archived by the 10th pass. The authoritative wave record is [`2026-09-21_15-34_m20-wave-closeout-full-status.md`](archived/2026-09-21_15-34_m20-wave-closeout-full-status.md) (archived alongside); open tails live in [TODO_LIST.md](../../TODO_LIST.md) and the owner-unblock plan.
 
 # Status Report — M20 One-Pagers + M16/M13/M08-Local Wave (owner directive: M20 first)
 

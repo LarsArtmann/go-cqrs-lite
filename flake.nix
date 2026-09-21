@@ -138,7 +138,7 @@
         pkgs:
         import (go-nix-helpers + "/mkPreparedSource.nix") {
           inherit pkgs;
-          lib = pkgs.lib;
+          inherit (pkgs) lib;
           goPkg = goToolchain pkgs;
         };
 

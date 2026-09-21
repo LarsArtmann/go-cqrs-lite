@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/stack/memory/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/stack/pebble/v4 v4.4.1

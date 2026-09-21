@@ -89,7 +89,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0
