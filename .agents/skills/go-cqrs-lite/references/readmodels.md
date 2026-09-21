@@ -361,6 +361,11 @@ ADR-0136.
 
 There are **three projection tiers** — pick by read-access pattern:
 
+> **Benchmarking a tier choice?** Single runs are point estimates. Measure
+> with `cqrs-bench --repeat N` and check the per-metric cross-run CoV
+> (`Variation:` section / `MetricVariation`) before believing any "tier X is
+> faster" claim — see SKILL.md §Benchmarking and `recipes.md` §2.40.
+
 | Tier            | Module                               | Writes ONE event to…       | Best for                                          |
 | --------------- | ------------------------------------ | -------------------------- | ------------------------------------------------- |
 | **Document/KV** | `stack.Materialize` + `kv.ViewStore` | one record in one table    | single-entity lookups, CRUD-style reads           |

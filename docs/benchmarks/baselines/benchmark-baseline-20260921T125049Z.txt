@@ -1,0 +1,3 @@
+BenchmarkGate-8  1000000  100 ns/op
+BenchmarkGate-8  1000000  100 ns/op
+BenchmarkGate-8  1000000  100 ns/op

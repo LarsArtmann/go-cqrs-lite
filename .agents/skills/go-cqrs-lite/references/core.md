@@ -415,6 +415,7 @@ as-of reads before the delete still see the value. Full recipe: `recipes.md` §2
 | Editing dependency go.mod files by hand    | Use `go get` commands                                                   |
 | Using `any` types in public APIs           | Use generics / branded types                                            |
 | Storing the \*sql.DB lifetime in backend   | `backend.Close()` closes stores, NOT your `*sql.DB`                     |
+| Comparing backends on single bench runs   | `cqrs-bench --repeat N` + per-metric CoV (see SKILL.md §Benchmarking)    |
 
 ---
 

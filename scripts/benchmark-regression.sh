@@ -66,6 +66,17 @@
 # same machine or runner class, measured on a quiet machine. CI compares
 # against its own `benchmark-baseline` artifact; the committed file is for
 # local runs on this machine only.
+#
+# Re-pin protocol (fold the load gate in, 2026-09-21): a local --save re-pin
+# is only valid from a run where EVERY gate passed —
+#   1. scripts/calibration-gate.sh PASS (quiet window),
+#   2. this script in live mode: the built-in load gate (load1 AND load5 vs
+#      CPU count) and the noise gate run automatically BEFORE --save,
+#   3. then --save — which refuses to write when the noise gate FAILED
+#      (non-decision-grade) unless --force-save overrides for a deliberate
+#      perf change.
+# A --save from --current/--noise-current compare-only input skips the live
+# gates; treat those saves as unverified unless the producing run was green.
 
 set -euo pipefail
 
@@ -260,15 +271,11 @@ gate_set_guard() {
 
 		[[ ${#names[@]} -eq 0 ]] && continue
 
-	_pattern_join() {
-		local joined n
-		for n in "${names[@]}"; do
-			joined="${joined:+$joined|}$n"
+		pattern=""
+		for name in "${names[@]}"; do
+			pattern="${pattern:+$pattern|}$name"
 		done
-		printf '%s' "$joined"
-	}
-
-		pattern="func ($(_pattern_join))\\("
+		pattern="func ($pattern)\\("
 
 		if ! grep -rEq -- "$pattern" "$root/$dir" --include='*_test.go' 2>/dev/null; then
 			echo "GATE SET GUARD FAILED — no 'func Benchmark' under $dir matches gate regex '$bench'"
@@ -643,6 +650,7 @@ if [[ -n "$SAVE" ]]; then
 		echo "# benchmark baseline — re-pinned $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 		echo "# ${UPTIME_AT_START:-$(uptime 2>/dev/null || echo 'uptime unknown')}"
 		echo "# gate: scripts/calibration-gate.sh must PASS before a local re-pin; CI saves are exempt"
+		echo "# re-pin protocol: calibration PASS -> live gate run (load+noise gates) -> --save (refuses on noise fail)"
 		cat "$current_file"
 	} >"$SAVE"
 	echo "==> Current results saved to $SAVE (with provenance header)"
