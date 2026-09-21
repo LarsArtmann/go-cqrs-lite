@@ -22,7 +22,9 @@ func TestGoal_PostgresSwapEndToEnd(t *testing.T) {
 	}
 
 	if dsn == "" {
-		t.Skip("POSTGRES_TEST_DSN/DATABASE_URL not set — skipping Postgres e2e (use nix run .#integration-pg)")
+		t.Skip(
+			"POSTGRES_TEST_DSN/DATABASE_URL not set — skipping Postgres e2e (use nix run .#integration-pg)",
+		)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
