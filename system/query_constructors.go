@@ -71,6 +71,8 @@ func (b *lookupBuilder[R]) Done() ProjectionDeclaration {
 		name:       name,
 		resultType: rt,
 		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
+			warnPartialInheritance(name, evoIndex[rt], samplesCopy)
+
 			if len(samplesCopy) > 0 {
 				return buildCRUDQuery[LookupInput[string], R](
 					name, keyField, samplesCopy, nil, layoutPriority,
@@ -193,6 +195,8 @@ func (b *querySetBuilder[R]) Done() ProjectionDeclaration {
 		name:       name,
 		resultType: rt,
 		build: func(evoIndex map[reflect.Type]*evolutionSpec) (any, []decoderEntry, error) {
+			warnPartialInheritance(name, evoIndex[rt], samplesCopy)
+
 			opts := make([]any, 0, len(filterCopy)+len(sortCopy)+1)
 
 			for _, f := range filterCopy {

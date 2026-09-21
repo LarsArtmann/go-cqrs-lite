@@ -3,7 +3,11 @@ package system
 import (
 	"encoding/json/v2"
 	"fmt"
+	"log/slog"
+	"maps"
 	"reflect"
+	"slices"
+	"strings"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -225,6 +229,57 @@ func buildEvolutionFolds[R any](evo *evolutionSpec) ([]metaengine.Fold, error) {
 	}
 
 	return folds, nil
+}
+
+// warnPartialInheritance is the warn-first guard for the inheritance precedence
+// rule: a projection with its OWN .On samples wins outright, and any event type
+// its matching Evolution declares but the samples omit is silently dropped for
+// that projection — typically a *Deleted tombstone, leaving ghost rows. There
+// is no behavior change (v4 anti-Verschlimmbesserung), only a loud, actionable
+// warning. Silent when no matching Evolution exists or the sets cover it.
+func warnPartialInheritance(
+	projection string,
+	evo *evolutionSpec,
+	samples []metaengine.NamedSample,
+) {
+	if evo == nil || len(samples) == 0 {
+		return
+	}
+
+	declared := make(map[string]struct{}, len(evo.samples)+len(evo.explicitFolds))
+	for _, s := range evo.samples {
+		declared[s.EventType()] = struct{}{}
+	}
+
+	for _, ef := range evo.explicitFolds {
+		declared[ef.eventType] = struct{}{}
+	}
+
+	if len(declared) == 0 {
+		return
+	}
+
+	for _, s := range samples {
+		delete(declared, s.EventType())
+	}
+
+	if len(declared) == 0 {
+		return
+	}
+
+	missing := make([]string, 0, len(declared))
+	for _, e := range slices.Sorted(maps.Keys(declared)) {
+		missing = append(missing, e)
+	}
+
+	slog.Warn(
+		"system: projection samples do not cover its matching evolution; "+
+			"uncovered event types are dropped for this projection "+
+			"(a dropped *Deleted tombstone leaves ghost rows)",
+		"projection", projection,
+		"evolution", evo.name,
+		"missing_event_types", strings.Join(missing, ", "),
+	)
 }
 
 // buildQueryFromFolds creates a metaengine.Query from fold functions and decoder entries.
