@@ -1,7 +1,7 @@
 # T18 Decision Memo: Session Log and the `queue/` Boundary
 
 **Date:** 2026-09-13
-**Status:** DECIDED — recommendation A adopted as standing policy 2026-09-13 (sessions stay external); revisit only on a concrete audit consumer (tracked: TODO_LIST [BLOCKED] session-log boundary + ROADMAP OQ #15). ARCHIVED 2026-09-19.
+**Status:** DECIDED — recommendation A adopted as standing policy 2026-09-13 (sessions stay external); revisit only on a concrete audit consumer (tracked: TODO_LIST [BLOCKED] session-log boundary + ROADMAP OQ #15). ARCHIVED 2026-09-19. Tracking update 2026-09-21: the TODO_LIST entry moved out of this repo; the follow-up now lives with the session domain at LarsArtmann/cqrs-htmx#25 (ROADMAP OQ #15 repointed).
 **Parent plan:** [`2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`](2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md) (T18)
 **Evidence:** repo-wide zero hits for session event types · `cqrs-htmx/identity-model` (external) · [`claiming/`](../../claiming/) extraction note
 

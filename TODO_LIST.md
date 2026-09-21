@@ -706,20 +706,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
-## Event-Query-Model reconciliation follow-ups (2026-09-13)
-
-> The 2026-07-23 design doc was reconciled against source (status banner + per-section addendum
->
-> - coverage map); `StreamingScan` was wired (`Store.StreamCollection`) and the per-actor
->   lifecycle projection shipped the same day (see CHANGELOG). Carry-forward items below. Source:
->   [`plan`](docs/planning/archived/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md).
-
-- [BLOCKED] **Session-log boundary decision** — memo recommends sessions stay external
-  (`cqrs-htmx/identity-model`) and NOT fold into the planned `queue/` module; revisit only on
-  a concrete audit consumer. — source: [`T18 memo`](docs/planning/archived/2026-09-13_T18-memo-session-log-boundary.md) _(Effort: XS decision)_
-
----
-
 ## benchkit statistical-rigor tail (2026-09-16)
 
 > The 02-09 session shipped P100 exactness, `RunRepeated`/`RepeatedResult`,
