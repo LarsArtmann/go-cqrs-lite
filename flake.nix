@@ -1206,13 +1206,6 @@
             # (consumer perspective, published pins). Examples are NOT test
             # modules — CI builds them only; this is their test leg (all six
             # carry suites; DB-backed legs skip without their env vars).
-            #
-            # getting-started is build-only here until the next
-            # projectionhost/system tag wave: its counter test exposes the
-            # projection-host live/drain double-apply that is FIXED in the
-            # workspace (seenIDs markSeen symmetry, regression test
-            # TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply) but
-            # unreleased in the pins it resolves GOWORK=off.
             test-examples = mkApp "test-examples" [ goPkg pkgs.bash pkgs.gcc ] ''
               export CGO_ENABLED=1
               failed=0
@@ -1221,10 +1214,6 @@
                 (
                   cd "$ex"
                   GOWORK=off ${goPkg}/bin/go build ./... || exit 1
-                  if [ "$ex" = "example/getting-started" ]; then
-                    echo "  (test leg skipped: projectionhost double-apply fix unreleased — see flake comment)"
-                    exit 0
-                  fi
                   GOWORK=off ${goPkg}/bin/go test ./... -count=1 -timeout=10m
                 ) || failed=1
               done

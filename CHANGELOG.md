@@ -8,32 +8,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **system: fluent `Evolve(...).On(...)` chaining for convention folds.**
-  `evolutionBuilder.On(eventType, sample)` is the method form of
-  `OnEvolution` for Created/Updated/Deleted convention events (sample is
-  typed `any`, so it can be a method); explicit fold closures keep using
-  `OnEvolution`. This also makes the chained examples in the `Evolve` doc
-  comment actually compile. Chain form is pinned by
-  `TestSystem_Evolution_OnChain`.
-- **example/goal-shaped-app: testing + snapshot story demos (consumer-value
-  tail).** Six scenario-based Given/When/Then tests pin the task flow's
-  write-side invariants with the `scenario` DSL (pure decider tests — no
-  engine), and a snapshot demo proves the "snapshots are a worry the library
-  manages" claim: one `WithSnapshotStrategy(snapshot.EveryNEvents(2))` line
-  makes the decider checkpoint automatically, verified through
-  `SnapshotStore()`. `Domain()`'s nested `OnEvolution` pyramid is now a
-  readable fold-loop (the fluent `Evolve(...).On(...)` flip is one system
-  tag wave away).
-- **examples: CI test leg (`#test-examples`).** A new flake app builds AND
-  tests every example GOWORK=off against published pins (all six carry
-  suites), wired as the `Examples Test` CI job — examples were build-only
-  before. Its first run caught two real problems: scheduler-otel-status
-  could not build standalone (workspace `scheduling/sqlstore` now needs the
-  unreleased `record.DeferClose`; the example's replace set gained
-  `record/v4`), and getting-started's counter test exposed the
-  projection-host double-apply below (that example's test leg stays skipped
-  until the fix is tagged).
-
 - **tooling: `check-md-go` docs gate — every live `go` fence must parse or
   carry an explicit `// skip-validate`.** The repo's Markdown/MDX is now
   validated by `md-go-validator` (packaged in the flake from a pinned GitHub
@@ -47,17 +21,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `nix run .#check-md-go -- --update-baseline` (baseline signatures are
   coupled to the flake-pinned tool version; see gotchas-tooling-build).
 
-- **system: fail closed on the racy `EventAdapter.Save` fallback (go-graph-rag
-  feedback #3).** A backend implementing neither `AtomicAppender` nor
-  `Transactional` no longer silently runs the racy check-then-append Save:
-  `Save` returns the new `ErrRacySaveRefused` (write nothing) unless
-  `WithRacySave()` opts in for a deliberately single-threaded backend, and
-  `system.New` rejects such engines for the source-of-truth role at
-  construction with the new `ErrEventSaveNotAtomic` — same family as
-  `ErrDurabilityConflict`. Third-party engine authors now get a loud,
-  actionable failure instead of rare, load-dependent interleaved appends.
-  All shipped engines implement `AtomicAppender`; behavior is unchanged for
-  them. `system/doc.go` capability ladder updated.
 - **metaengine: ADTSet capability parity on Postgres and MySQL (G-T13).**
   `pgengine` and `mysqlengine` now implement `metaengine.SetBackend` (`SetAdd`
   via `ON CONFLICT DO NOTHING` / `INSERT IGNORE`, `SetContains` via an indexed
@@ -81,29 +44,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `never run`), making the no-backfill contract and its opt-in visible to
   operators. Register-after-data proven on sqlite (pre-registration
   `meta_map` rows become visible to the planned-table scan after backfill).
-- **system: warn-first guard for partial-sample projection declarations
-  (G-T10).** When a `Lookup`/`QuerySet` declares its own `.On` samples AND a
-  matching Evolution exists whose event types the samples do not cover, New
-  logs a warning naming the projection, the evolution, and the uncovered
-  event types — a dropped `*Deleted` tombstone silently leaves ghost rows in
-  that projection today. Behavior is unchanged (samples still win); the
-  warning is the v4.x half of the fix. Full semantics pinned by tests.
-- **system: tombstone + rebirth semantics pinned through the inherited-fold
-  path (G-T11).** New tests prove that through evolution inheritance (zero
-  projection-local samples) a `*Deleted` convention event removes the
-  read-model row (`metaengine.ErrNotFound`, never a ghost row) and a later
-  `*Created` for the same key rebirths it with the fresh payload. Audit +
-  evidence: `docs/planning/2026-09-21_evolution-fold-inheritance-coverage-audit.md`
-  (G-T09).
-- **example/goal-shaped-app: coeffect gate + docs-self-generation demo
-  (polish tail).** `Domain()` now declares its event universe
-  (`DomainConfig.Events`), arming the system v4.8 coeffect gate; new tests
-  demo a typo'd subscription failing composition loudly and export the
-  declared commands/events/queries as an AsyncAPI 3.0 document via
-  `catalog/asyncapi`. The README's Evolution fence is compile-gated by
-  `docs_compile_test.go`, and the Doctor output carries a machine-specific
-  ns-figures caveat plus a `goal.db` reset note (`trash`, never `rm`).
-
 - **benchkit/cqrs-bench: statistical-rigor polish tail (2026-09-19 harvest).**
   Reports now render the exact `Min` next to `Max` on every latency line and
   the start load average in the env line (`Load1=…`) plus a `Load1 (start)`
@@ -170,18 +110,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   skip (also under `-short`). `queue/mysql`'s conformance and engine tests
   consume it, so a plain `go test ./...` with Docker now runs the full
   third-dialect parity bar without any environment setup.
-- **record: `DeferClose` (ADR-0144).** The discard-close idiom
-  (`defer record.DeferClose(x)` replacing the verbose func-wrapped
-  discard-close statement) now lives at Tier 0, so leaf storage
-  modules reach it without the engine substrate; `metaengine.DeferClose`
-  stays as the engine-tier twin. The Tier-0 close-helper ruling also
-  converted the remaining func-wrapped close sites across `kv`, `storage`,
-  `storage/pebble`, `storage/turso/indexing`, `scheduling/sqlstore`,
-  `projectionhost`, `stack`, `metaengine/sqliteengine`, `benchkit`, and the
-  examples, and pinned the quic/loopback op-dedup parity on one shared
-  `metaengine/irohengine.DefaultDedupCapacity` constant
-  (`TestRing_ProductionCapacity10K` +
-  `TestDedupParity_SharedCapacityConst`).
 - **metaengine: `ScanScoredVector` + `RowScanner`.** The byte-identical
   `scanScoredVector` dialect twins in the mysql/sqlite engines (and the
   JSON-variant duckdb twin) now delegate to one shared core with a decode
@@ -357,17 +285,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- **projectionhost: live/catch-up overlap double-applied events.** The
-  overlap dedup between the live subscriber and the catch-up drain was
-  asymmetric: the live handler checked the `seenIDs` ring but never marked
-  processed events seen, and the drain never checked — so an event delivered
-  live before the catch-up drain re-read it from the journal was applied
-  twice. Every non-idempotent projection fold (counters, sums) silently
-  double-counted (getting-started's counter canary read 13 after 10).
-  Both paths now mark and check symmetrically; pinned by
-  `TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply`
-  (mutation-verified: removing the mark fails the test with
-  "applied 2 times").
 - **benchkit: progress-reporter heartbeat no longer races its own shutdown.**
   `stop()` closed the done channel and then set the field to nil while the
   heartbeat goroutine was selecting on that same field — a data race that
@@ -546,6 +463,118 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   split around `TypedReader` into reader core, scan, aggregates, grouped
   aggregates, scan options, and cursor files.
 
+## [system/v4.9.0, record/v4.6.0, projectionhost/v4.5.1, scheduling/sqlstore/v4.1.1] — 2026-09-21
+
+The go-graph-rag feedback follow-ups + goal-shaped-app consumer-value tail
+wave: the racy `EventAdapter.Save` fallback fails closed, convention folds
+get a fluent `Evolve(...).On(...)` chain, and every example runs its test
+suite in CI against published pins (getting-started's test leg re-arms with
+the projection-host double-apply fix).
+
+### Changed
+
+- **examples:** pinned to this wave's tags — goal-shaped-app and
+  getting-started resolve `system/v4.9.0` (getting-started also
+  `projectionhost/v4.5.1`), and scheduler-otel-status dropped all three of
+  its sibling replaces (`scheduling/sqlstore`, `claiming`, `record` — every
+  dependency is published now). `scheduling/sqlstore/v4.1.1` and
+  `projectionhost/v4.5.1` adopt `record.DeferClose` in their row loops.
+
+### Added
+
+- **system: fluent `Evolve(...).On(...)` chaining for convention folds.**
+  `evolutionBuilder.On(eventType, sample)` is the method form of
+  `OnEvolution` for Created/Updated/Deleted convention events (sample is
+  typed `any`, so it can be a method); explicit fold closures keep using
+  `OnEvolution`. This also makes the chained examples in the `Evolve` doc
+  comment actually compile. Chain form is pinned by
+  `TestSystem_Evolution_OnChain`.
+
+- **example/goal-shaped-app: testing + snapshot story demos (consumer-value
+  tail).** Six scenario-based Given/When/Then tests pin the task flow's
+  write-side invariants with the `scenario` DSL (pure decider tests — no
+  engine), and a snapshot demo proves the "snapshots are a worry the library
+  manages" claim: one `WithSnapshotStrategy(snapshot.EveryNEvents(2))` line
+  makes the decider checkpoint automatically, verified through
+  `SnapshotStore()`. `Domain()`'s evolution declaration is now the fluent
+  `Evolve[TaskView](...).On(...).On(...).Done()` chain (shipped in system
+  v4.9.0).
+
+- **examples: CI test leg (`#test-examples`).** A new flake app builds AND
+  tests every example GOWORK=off against published pins (all six carry
+  suites), wired as the `Examples Test` CI job — examples were build-only
+  before. Its first run caught two real problems: scheduler-otel-status
+  could not build standalone (workspace `scheduling/sqlstore` now needs the
+  unreleased `record.DeferClose`; the example's replace set gained
+  `record/v4`), and getting-started's counter test exposed the
+  projection-host double-apply below (its test leg re-arms with this wave's
+  `projectionhost/v4.5.1`).
+
+
+- **system: fail closed on the racy `EventAdapter.Save` fallback (go-graph-rag
+  feedback #3).** A backend implementing neither `AtomicAppender` nor
+  `Transactional` no longer silently runs the racy check-then-append Save:
+  `Save` returns the new `ErrRacySaveRefused` (write nothing) unless
+  `WithRacySave()` opts in for a deliberately single-threaded backend, and
+  `system.New` rejects such engines for the source-of-truth role at
+  construction with the new `ErrEventSaveNotAtomic` — same family as
+  `ErrDurabilityConflict`. Third-party engine authors now get a loud,
+  actionable failure instead of rare, load-dependent interleaved appends.
+  All shipped engines implement `AtomicAppender`; behavior is unchanged for
+  them. `system/doc.go` capability ladder updated.
+
+- **system: warn-first guard for partial-sample projection declarations
+  (G-T10).** When a `Lookup`/`QuerySet` declares its own `.On` samples AND a
+  matching Evolution exists whose event types the samples do not cover, New
+  logs a warning naming the projection, the evolution, and the uncovered
+  event types — a dropped `*Deleted` tombstone silently leaves ghost rows in
+  that projection today. Behavior is unchanged (samples still win); the
+  warning is the v4.x half of the fix. Full semantics pinned by tests.
+
+- **system: tombstone + rebirth semantics pinned through the inherited-fold
+  path (G-T11).** New tests prove that through evolution inheritance (zero
+  projection-local samples) a `*Deleted` convention event removes the
+  read-model row (`metaengine.ErrNotFound`, never a ghost row) and a later
+  `*Created` for the same key rebirths it with the fresh payload. Audit +
+  evidence: `docs/planning/2026-09-21_evolution-fold-inheritance-coverage-audit.md`
+  (G-T09).
+
+- **example/goal-shaped-app: coeffect gate + docs-self-generation demo
+  (polish tail).** `Domain()` now declares its event universe
+  (`DomainConfig.Events`), arming the system v4.8 coeffect gate; new tests
+  demo a typo'd subscription failing composition loudly and export the
+  declared commands/events/queries as an AsyncAPI 3.0 document via
+  `catalog/asyncapi`. The README's Evolution fence is compile-gated by
+  `docs_compile_test.go`, and the Doctor output carries a machine-specific
+  ns-figures caveat plus a `goal.db` reset note (`trash`, never `rm`).
+
+
+- **record: `DeferClose` (ADR-0144).** The discard-close idiom
+  (`defer record.DeferClose(x)` replacing the verbose func-wrapped
+  discard-close statement) now lives at Tier 0, so leaf storage
+  modules reach it without the engine substrate; `metaengine.DeferClose`
+  stays as the engine-tier twin. The Tier-0 close-helper ruling also
+  converted the remaining func-wrapped close sites across `kv`, `storage`,
+  `storage/pebble`, `storage/turso/indexing`, `scheduling/sqlstore`,
+  `projectionhost`, `stack`, `metaengine/sqliteengine`, `benchkit`, and the
+  examples, and pinned the quic/loopback op-dedup parity on one shared
+  `metaengine/irohengine.DefaultDedupCapacity` constant
+  (`TestRing_ProductionCapacity10K` +
+  `TestDedupParity_SharedCapacityConst`).
+
+### Fixed
+
+- **projectionhost: live/catch-up overlap double-applied events.** The
+  overlap dedup between the live subscriber and the catch-up drain was
+  asymmetric: the live handler checked the `seenIDs` ring but never marked
+  processed events seen, and the drain never checked — so an event delivered
+  live before the catch-up drain re-read it from the journal was applied
+  twice. Every non-idempotent projection fold (counters, sums) silently
+  double-counted (getting-started's counter canary read 13 after 10).
+  Both paths now mark and check symmetrically; pinned by
+  `TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply`
+  (mutation-verified: removing the mark fails the test with
+  "applied 2 times").
 
 
 ## [metaengine/v4.14.0, system/v4.8.0, claiming/v4.0.0, queue/v4.0.0, storage/v4.10.0, decider/v4.7.0, projectionhost/v4.5.0, benchkit/v4.6.0, catalog/v4.5.0, cmd/cqrs-lint/v4.12.0 — 2026-09-19 release train (+82 more module tags)] — 2026-09-19
