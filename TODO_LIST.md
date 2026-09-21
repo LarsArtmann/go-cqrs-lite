@@ -490,12 +490,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       Test` job, the guard-wave legs, release.yml runs). Also rules the push
       cadence going forward (batch vs phase-boundary). — source: delta §f1,
       18-19 §f38, closeout §f2/§g1 _(Effort: XS — owner)_
-- [ ] **go.work drift gate** — extend `check-go-version.sh` to assert
-      `go.work go >= max(module go directives)`; the 2-day broken
-      workspace-build class (16 go.mods + go.work downgraded to `go 1.27`,
-      pre-commit workspace build broken for every authored commit since the
-      09-19 sweep — only the daemon's `--no-verify` masked it).
-      — source: closeout §f8/§e1/§d1 _(Effort: S)_
+- [ ] 🔥 **go.work drift gate** — extend `check-go-version.sh` to assert
+      `go.work go >= max(module go directives)`; the downgrade class struck a
+      THIRD time (140-file auto-commit `4a540b02c` 2026-09-21 23:33 downgraded
+      go.work + all 96 go.mods to `go 1.27`, minutes after the 23:24 session
+      had restored 1.27.1 — workspace builds and `#test-examples` are RED
+      until re-restored; earlier waves: `27093331c` 18:38, `96dc20986` #11).
+      Vigilance failed three times — the gate is the only durable answer.
+      — source: closeout §f8/§e1/§d1, verified live by the 11th docs pass _(Effort: S; re-restore = S mechanical)_
 - [ ] **Pre-commit hook env hygiene** — the hook's appended workspace build and
       govulncheck step run on the ambient toolchain (host go 1.26.7 → garbage
       errors, the mid-wave `--no-verify` workaround); inject the documented env

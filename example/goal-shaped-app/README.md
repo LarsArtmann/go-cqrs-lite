@@ -129,14 +129,11 @@ Everything the developer writes beyond the structs in `domain.go`:
 ```go
 // skip-validate
 // app.go — folds declared ONCE, by naming convention. No closures.
-tasks := system.OnEvolution(
-    system.OnEvolution(
-        system.Evolve[TaskView]("tasks"),
-        "task.created", TaskCreated{},
-    ),
-    "task.updated", TaskUpdated{},
-)
-deleted := system.OnEvolution(tasks, "task.deleted", TaskDeleted{})
+evo := system.Evolve[TaskView]("tasks").
+    On("task.created", TaskCreated{}).
+    On("task.updated", TaskUpdated{}).
+    On("task.deleted", TaskDeleted{}).
+    Done()
 
 // two read shapes inherit the folds by result type
 system.Lookup[TaskView]("tasks").Done(),

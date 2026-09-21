@@ -439,7 +439,9 @@ in the suggestion. F030 covers the `transport/*` module imports. Run
 `TypedReader.Scan`/`ScanPage` default to a limit of **100** when no
 `WithLimit` option is passed — a silent truncation, not an error. Pass
 `WithLimit(n)` for a page size, or `WithLimit(0)` for an unbounded scan
-(engines skip the SQL `LIMIT` clause entirely). Query-input structs with a
+(engines skip the SQL `LIMIT` clause entirely). Operators can re-pin the
+store-wide default with the `metaengine.WithDefaultLimit(n)` plan option —
+an explicit `WithLimit` on the scan always wins. Query-input structs with a
 `Limit` field follow the same rule: `Limit: 0` means "default to 100", so set
 an explicit large limit (or page through with `ScanPage` cursors) when you
 need everything. Verify against `Doctor`'s row counts when a collection

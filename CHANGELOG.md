@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (`TestPostgresADTMatrix/Set/postgres` green against a live postgres via
   `#integration-pg`; the MySQL VM leg is pending a quiet window — VM boot
   raced twice on 2026-09-21).
+
 - **metaengine: `Store.BackfillPlannedTables(ctx, batchSize)` — the batch
   opt-in planned-table backfill (G-T12).** Runs
   `BackfillPlannedCollection` for every registered planned collection on its
@@ -432,6 +433,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **repo: go.work toolchain contract (`go 1.27.1`) vs the recurring daemon
+  downgrade wave.** A 112-file auto-commit downgraded go.work + 16 module
+  `go` directives to `go 1.27` mid-wave (2026-09-21 18:38), silently muting
+  the golangci lint leg and `#check-coverage`; the session restored all 96
+  go.mods to `go 1.27.1` (23:24) — and a further 140-file auto-commit
+  (23:33) downgraded the repo again. The contract: every module builds in
+  workspace mode under `GOTOOLCHAIN=auto` (or the nix dev shell) at ≥1.27.1;
+  a mechanical drift gate (`check-go-version.sh` asserting `go.work go >=
+  max(module go)`) and the daemon root-cause are queued in TODO_LIST.
+  Developer-facing: until the directives are re-restored, workspace-mode
+  builds require an explicit `GOTOOLCHAIN=go1.27.1`.
 - **v5 sweep §4 wire keys — stream vocabulary everywhere (dual-read
   windows, v6 deletion markers):** bbolt event/command CBOR and pebble
   command CBOR now write `stream_id`/`stream_type` (was

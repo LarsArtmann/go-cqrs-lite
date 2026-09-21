@@ -1,6 +1,11 @@
 # Survey: the Scan/Find 100-row default — consumer census + v5 options memo
 
-> **Status:** SURVEY DELIVERED — the decision remains owner-gated (TODO G-T14).
+> **Status:** SURVEY DELIVERED — decision RULLED 2026-09-21 (owner, in-session):
+> **Option C** — flip to unbounded at the v5 cut + cqrs-lint nudge + optional
+> operator ceiling. The two v4-safe add-ons LANDED 2026-09-21
+> (`metaengine.WithDefaultLimit` store option — `WithDefaultLimit` plan option,
+> and cqrs-lint **F031** `scan-without-limit`); the default flip itself is
+> staged for the v5 branch (TODO G-T14 remains open for that step only).
 > **Date:** 2026-09-21 · **Origin:** CV reflection doc §4.1 + goal-closure G-T14
 > (F111/M20 of the
 > [owner-unblock-trust plan](2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md))

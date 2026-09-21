@@ -16,7 +16,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
-| [Adoption](#adoption) | 30 | F001–F030 |
+| [Adoption](#adoption) | 31 | F001–F031 |
 
 ## Correctness
 
@@ -1700,4 +1700,12 @@ Project has OTel but no tracing middleware — handlers are not instrumented
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `adoption`
 
 Import of deprecated transport/* module — removed at v5; migrate to go-sse, watermill bridge, or cqrs-htmx (ADR-0127)
+
+<a id="f031"></a>
+
+#### F031 — `scan-without-limit`
+
+Severity: `warning` · Confidence: `low` · Auto-fix: no · Category: `adoption`
+
+Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit(n)/WithLimit(0) or set the WithDefaultLimit operator ceiling (G-T14)
 

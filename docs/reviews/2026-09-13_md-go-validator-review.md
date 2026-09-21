@@ -107,21 +107,21 @@ Top hotspots:
    `docs/MIGRATION_v1.md`, `docs/planning/archived/2026-04-23_MULTI_MODULE_MONOREPO_PLAN.md`,
    `docs/planning/archived/2026-04-30_SAMBER_RO_PROJECTION_INTEGRATION.md` (×2).
    Re-run: **167 errors** (was 172); all 4 files now 0 errors / 31 blocks.
-2. **P2 — consumer-facing docs (9 errors, 7 files):** add `// skip-validate` as the first
+2. ~~**P2 — consumer-facing docs (9 errors, 7 files):** add `// skip-validate` as the first
    line inside the failing block (the tool's own advice) — keeps syntax highlighting while
-   silencing intentional pseudo-code.
-3. **P3 — active guides / ADRs / planning / research (55 errors):** same skip-validate
-   treatment, only where the fragment is load-bearing for the prose.
-4. **P4 — archived/historical (108 errors):** do NOT edit history. Use the tool's
-   `--baseline` (file:line list, exactly like `scripts/file-size-baseline.txt` and
-   `.art-dupl-baseline.json`) so only _new_ failures fail.
-5. **Wire it into CI:** no `.md-go-validator.yaml` and no baseline exist yet
-   (`md-go-validator --init` creates the former). Add a flake app `check-md-go` running
-   `md-go-validator . --baseline scripts/md-go-baseline.txt -q`, mirroring
-   `check-file-size` / `check-duplication`.
-6. **Adopt the annotation convention explicitly** — the 11 tool-auto-skipped blocks today
-   come from built-in heuristics, not repo annotations; making `// skip-validate` the
-   documented convention keeps the gate honest going forward.
+   silencing intentional pseudo-code.~~ **EXECUTED 2026-09-21** — actually 11 errors across
+   9 files (2 grew since this audit); all annotated in-fence per this recommendation.
+3. ~~**P3 — active guides / ADRs / planning / research (55 errors):**~~ **EXECUTED 2026-09-21**
+   — 67 `// skip-validate` insertions across 34 files total (P2+P3 as one scripted sweep).
+4. ~~**P4 — archived/historical (108 errors):** do NOT edit history.~~ **EXECUTED 2026-09-21** —
+   `scripts/md-go-baseline.txt` (103 archived signatures; archived-only policy gate-enforced,
+   inert-shrink ratchet). Slightly different from this recommendation's shape: the baseline
+   is a committed signature list, not the tool's native `--baseline` file:line list.
+5. ~~**Wire it into CI:**~~ **EXECUTED 2026-09-21** — flake app `#check-md-go` +
+   `.md-go-validator.yaml` + baseline + ci.yml check-job step + `#verify`/`#verify-fast`.
+6. ~~**Adopt the annotation convention explicitly**~~ **EXECUTED** — the in-fence
+   `// skip-validate` convention is gate-enforced and documented in
+   gotchas-tooling-build; the 11 tool-auto-skips remain unexplained (open TODO row).
 
 ## Appendix: full failure inventory (172)
 
