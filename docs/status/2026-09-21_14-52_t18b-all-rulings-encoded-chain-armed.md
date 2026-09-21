@@ -123,3 +123,13 @@ The closure widened the gate entry to `100x::9`, applied CI parity (`benchmarks.
 **Q3 executed the SystemNix way:** nightly timer implemented in `/home/lars/projects/SystemNix/platforms/nixos/users/home.nix` following the taskwarrior house pattern (writeShellApplication + `systemd.user.timers`, 03:00/Persistent/30m jitter, `go_1_27` on the unit PATH because the go.work floor is 1.27.1 and user units don't inherit dev-shell toolchains). **Eval-verified** on evo-x2: `home-manager.users.lars.systemd.user.timers.go-cqrs-nightly-bench.Timer` renders `{03:00, Persistent, 30m}`. Alejandra-formatted (121/82 diff includes enforced format convergence on the niri TOML block — their pre-commit would produce it anyway). Activation = owner deploy (sudo). The go-cqrs-lite `scripts/nightly/` hand-written units are superseded by this declaration. SystemNix context discovered: `check-flake-inputs.sh` bans `GOTOOLCHAIN=auto` in flakes (sandbox purity) — so the interactive `local` pin is policy-consistent, and script-level self-export (what I did) is the correct layer.
 
 **Also noted:** the Q1/Q2 fallback and widening encoded in the closure + TODO row 40; the one thing still waited on is a quiet window for the completion + campaign legs (load 8.7/10.5 at last check — draining).
+
+---
+
+## ADDENDUM 2 — 2026-09-21 ~16:10 CEST — second Q-round executed
+
+Q1 (SystemNix flow) = **owner handles** → the formatted + eval-verified `home.nix` change sits uncommitted in SystemNix for the owner's normal flow; the go-cqrs-lite `scripts/nightly/` hand units stay superseded by it. Q2 = **queue root-cause**: `/var/tmp/t18b/rootcause-campaign.sh` armed (pid 2665376, chained after the campaign queue) — experiment matrix: back-to-back cold/warm pairs, taskset-pinned core, GOMAXPROCS=1, /proc/cpuinfo frequency sampling during a run, perf stat when `perf_event_paranoid ≤ 2` (checked at runtime); numbers only, fix stays a design pass. Q3 = **weekly sweep**: `nightly-bench.sh` gained a Sundays-only load-sweep leg (runs after the gate, `|| true` — flakes are findings, not gate breaches).
+
+**The complete autonomous chain now:** closure-completion (re-pin + verify → green closes T18b) → campaign queue (SearchQuery re-run + dgraph calibration capture) → root-cause campaign (bimodality matrix). Every stage: quiet-window gated, calibration-gated where benching, plausibility-guarded, `GOTOOLCHAIN=auto`, logs under `/var/tmp/t18b/`, 6h budgets.
+
+**Hygiene batch (Q2 of report #5) landed:** gotchas-testing caveat line; AGENTS.md Quick Reference rows; 2026-09-18 SUPERB plan T18b addendum; TODO row ~81 pointer resolved. Daemon-committed alongside concurrent sessions' work (exec bit survived — verified post-commit).
