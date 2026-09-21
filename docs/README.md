@@ -175,6 +175,8 @@ The authoritative module index with README links lives in the **[project README]
 | [0141](adr/0141-native-temporal-versioned-cells.md)                   | Native Temporal Versioned Cells (BigTable-Aligned)                | Accepted                                            |
 | [0142](adr/0142-universal-storage-substrate.md)                       | Universal Storage Substrate (Every Durable Write Rides an Engine) | Accepted                                            |
 | [0143](adr/0143-engine-reset-never-deletes-the-journal.md)            | Engine Reset Never Deletes the Journal                            | Accepted                                            |
+| [0144](adr/0144-deferclose-lives-in-tier0-record.md)                  | DeferClose Lives in Tier-0 record                                 | Accepted                                            |
+| [0145](adr/0145-retry-idioms-are-per-concern.md)                      | Retry and Backoff Idioms Are Per-Concern, One Per Class           | Accepted                                            |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                      | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                        | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                       | Accepted                                            |

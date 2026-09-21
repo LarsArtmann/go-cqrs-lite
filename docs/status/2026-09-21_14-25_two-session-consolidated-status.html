@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consolidated Status Snapshot — go-cqrs-lite</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>Status Dashboard</span>
+      <span>2026-09-21 14:25 CEST</span>
+      <span>go-cqrs-lite &middot; consolidated</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#verify">Verification</a>
+          <a href="#done">a) Fully Done</a>
+          <a href="#partial">b) Partially Done</a>
+          <a href="#notstarted">c) Not Started</a>
+          <a href="#fucked">d) Fucked Up</a>
+          <a href="#improve">e) Improve</a>
+          <a href="#next">f) Top 25 Next</a>
+          <a href="#question">g) Question</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Status Snapshot</div>
+          <h1>Consolidated Status &mdash; get smart on go-cqrs-lite</h1>
+          <p class="hero-subtitle">
+            Point-in-time aggregate of the two 2026-09-21 sessions (SUPERB
+            M-wave 14:12 + T18b bench chain 14:18) plus fresh verification
+            passes run by this session at 14:25 CEST. Every claim cites its
+            evidence.
+          </p>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card stat-good">
+            <div class="stat-value">10</div>
+            <div class="stat-label">Fully Done</div>
+          </div>
+          <div class="stat-card stat-warn">
+            <div class="stat-value">7</div>
+            <div class="stat-label">Partially Done</div>
+          </div>
+          <div class="stat-card stat-bad">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Fucked Up</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">25</div>
+            <div class="stat-label">Next Tasks</div>
+          </div>
+        </div>
+
+        <h2 id="verify"><span class="num">01</span>How this was verified (live, 14:25 CEST)</h2>
+        <div class="card card-solution">
+          <h4>Checks run by this session before writing a single claim</h4>
+          <p>
+            <code>scripts/check-canonical-facts.sh</code> GREEN (go.mod count
+            derived=96; module-map census all rowed; recipes catalog 81/81)
+            &middot; core <code>event</code> module <code>GOWORK=off go build
+            + go test -short</code> GREEN (0.017s) &middot; all six new guard
+            scripts confirmed present in the tree (<code>check-go-version.sh</code>,
+            <code>verify-load-guard.sh</code>, <code>preflight-composed.sh</code>,
+            <code>lib/verify-lock.sh</code>, <code>check-golangci-hash</code>
+            golden, <code>check-canonical-facts.sh</code>) &middot;
+            <code>scripts/nightly/</code> systemd units + <code>nightly-bench.sh</code>
+            + <code>quiet-window-run.sh</code> confirmed on disk &middot;
+            git state read (master ahead 5, daemon commits) &middot; T18b chain
+            pids checked &mdash; <strong>dead</strong> (finding D1) &middot;
+            ROADMAP module-count drift found and <strong>fixed inline</strong>
+            (line 15: 95&rarr;96, audited 2026-09-21).
+          </p>
+        </div>
+
+        <h2 id="done"><span class="num">02</span>a) Fully done (verifiably complete)</h2>
+        <div class="strengths">
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>92-tag release train published + S03 composed <code>#verify</code> GREEN</strong>
+              <span>All 19 phases, 2026-09-20 14:53&ndash;15:04 (first composed green since 09-09); pins coherent per <code>pin-sweep --check --remote</code>; proxy <code>@latest</code> verified. Source: TODO_LIST Code-Quality section, ROADMAP Unreleased cell.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>SUPERB plan M01&ndash;M10 wave executed (2026-09-20..21)</strong>
+              <span>M02 hash-golden tripwire, M03 <code>--wait-loop</code>, M04 preflight wrapper, M05 verify load guard, M09 README gates onto the push leg &mdash; authored commit <code>66f88cbea</code>, pushed <code>547be142a..26d087686</code>. Source: status report 14:12 A1&ndash;A9; guard scripts verified present in tree today.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>All six W3 owner rulings applied</strong>
+              <span>Q4 go-pin gate (<code>check-go-version.sh</code> + <code>#verify</code> head + nightly), Q5 advisory flock, taskmanager v4.* tags deleted, readme_claims kept, 10:31 repair ratified, MySQL vehicle = VM. TODO_LIST W3 bundle rows all struck with evidence.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Incident #11 (config corruption) caught live and repaired</strong>
+              <span>Corrupted <code>.golangci.yml</code> (go downgrade + depguard deletion, 111 files) repaired from last-good <code>9212c8408</code>; hash golden pinned over the healthy config; 4-leg self-test + mutation-proof. Source: 14:12 report A2.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>T18b baseline re-pinned under go1.27.1</strong>
+              <span><code>#load-sweep</code> PASS in 91s; re-pin <code>a91e7cd90</code>: 0 regressions, 15 improvements, +5 new entries; <code>--force-save</code> guard + p99 demotion + KNOWN-UNSTABLE suppression shipped and fixture-proven. Source: TODO_LIST T18b row + 14:18 report A1&ndash;A2.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Nightly + quiet-window tooling shipped</strong>
+              <span><code>scripts/nightly-bench.sh</code> + systemd user units + flake apps <code>nightly-bench</code>/<code>quiet-window-run</code>; shellcheck clean. Verified on disk by this session. Timer install remains one owner command (see b7).</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Both red CI legs root-caused and fixed locally (M07)</strong>
+              <span>benchkit actionlint leg = <code>CI=true</code> env leak (fixed with per-leg isolation); coverage-gate was a vacuous empty-<code>go list</code> job &mdash; rebuilt with a real core-tier floor (event 91.0 / command 92.3 / query 90.1 / metadata 94.4 / scheduling 96.0). 86/86 release-script assertions green under <code>CI=true</code>. Source: 14:12 A7.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Go 1.27.1 cutover + jsonv2 graduation repo-wide</strong>
+              <span>96 go.mod files on <code>go 1.27.1</code>; tags stripped everywhere; <code>GOTOOLCHAIN=auto</code> contract mechanically enforced by <code>check-go-version.sh</code>. Re-confirmed today: canonical-facts derived=96, event module green under the env chain.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Queue M4 tail + dogfooding closures</strong>
+              <span><code>testutil/mysqltestcontainer</code> = module #96, PG <code>-race -count=2</code> green, PapDashboard ADOPT verdict; ADR-0144 (DeferClose Tier-0) + ADR-0145 (retry idioms per-concern) executed with sweeps. Source: TODO_LIST struck rows, 14:12 A9.</span>
+            </div>
+          </div>
+          <div class="strength">
+            <div class="check">+</div>
+            <div class="text">
+              <strong>Repo-count sync 95&rarr;96 completed (and completed again today)</strong>
+              <span>AGENTS (x2), ROADMAP Unreleased cell, module-map census synced 2026-09-21 morning; this session found and fixed the one missed line (ROADMAP:15 intro) &mdash; the canonical-facts gate does not yet cover that line (see e7).</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="partial"><span class="num">03</span>b) Partially done</h2>
+        <div class="issue issue-important">
+          <span class="severity severity-important">High</span>
+          <h3>b1 &mdash; T18b matview widening chain: armed, then silently dead</h3>
+          <div class="where">/tmp/matview-cost.log &middot; /tmp/matview-closure.log</div>
+          <p>
+            Works: chain re-armed 12:19Z with the GOTOOLCHAIN fix + plausibility
+            guard; gate entry <code>::100x::9</code> and baseline
+            <code>a91e7cd90</code> intact. Dead: pids 2033248/2045814 are gone
+            as of 14:27 CEST (verified by this session); both logs freeze at
+            12:19Z on &ldquo;waiting for quiet window&rdquo; with no error and
+            no completion marker. Root cause unknown &mdash; bounded wait exit
+            or SIGHUP with the arming session's shell; the pid-chaining
+            brittleness the report itself flagged (D3). Load is 17&ndash;25
+            now, so nothing could run anyway.
+          </p>
+          <div class="callout callout-warning">
+            <strong>Blocker</strong>
+            Needs re-arm with results-file polling + a watchdog (14:18 report
+            e4/f#20), and the widening fallback policy is unruled (section g).
+          </div>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">High</span>
+          <h3>b2 &mdash; M10 VM hardening: script fixes landed, leg never run</h3>
+          <div class="where">scripts/vm-mysql.sh</div>
+          <p>
+            Works: stale-port pre-flight + process-group trap in, syntax +
+            shellcheck clean, positive/negative probe tests passed. Missing:
+            one real <code>#integration-mysql-vm</code> run through the new
+            script, the F52 AGENTS integration-rows update, and the TODO
+            evidence line. Blocker: heavy leg, needs a quiet-ish window.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">High</span>
+          <h3>b3 &mdash; Composed <code>#verify</code> with the new guards: no recorded run</h3>
+          <div class="where">scripts/verify-load-guard.sh &middot; verify-lock.sh &middot; check-go-version.sh</div>
+          <p>
+            Works: all three new verify-head guards fixture-tested (14:12 A6/A5
+            + A1). Missing: one real composed green through the new chain
+            (load was 56&ndash;75 in the checked window; S-rule: every wave
+            ends composed-green).
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Medium</span>
+          <h3>b4 &mdash; CI remote confirmation of the fixed legs: billing-gated</h3>
+          <div class="where">.github/workflows/ci.yml</div>
+          <p>
+            Works locally: 86/86 under <code>CI=true</code>, actionlint clean.
+            Missing: remote proof that the benchkit and coverage legs are green
+            on runners &mdash; blocked on the Actions billing fix (D4, broken
+            since ~2026-07-17).
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Medium</span>
+          <h3>b5 &mdash; M07/M10 bookkeeping: TODO_LIST rows still open</h3>
+          <div class="where">TODO_LIST.md</div>
+          <p>
+            The 14:12 session explicitly left f#1 open: record M07 leg
+            dispositions and M10 evidence in TODO_LIST. Deliberately not done
+            by this session &mdash; the file is another live session's
+            in-flight surface (edit-race class, 14:12 d5).
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Medium</span>
+          <h3>b6 &mdash; Nightly bench automation: one owner command from done</h3>
+          <div class="where">scripts/nightly/README.md</div>
+          <p>
+            Everything shipped (script, units, flake app, README). Missing:
+            <code>systemctl --user enable --now go-cqrs-nightly-bench.timer</code>
+            &mdash; harness-banned for agents, documented verbatim for the
+            owner.
+          </p>
+        </div>
+        <div class="issue issue-important">
+          <span class="severity severity-important">Low</span>
+          <h3>b7 &mdash; Master is 5 daemon commits ahead of origin</h3>
+          <div class="where">af040317e..79bd9d5b0 (chore: auto-commit)</div>
+          <p>
+            The T18b session's post-push daemon waves are local-only. Not
+            pushed by this session (never push without an explicit ask). If the
+            T18b work should be visible remotely, push is a one-liner &mdash;
+            but confirm the baseline <code>a91e7cd90</code> content is what
+            should be public first.
+          </p>
+        </div>
+
+        <h2 id="notstarted"><span class="num">04</span>c) Not started (planned, in plan order)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Plan item</th><th>What</th><th>Why not started</th><th>Priority</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>M11/M12</strong></td><td>Three upstream filings: exhaustruct_v5 <code>skippedNamed</code> panic, go/types+x/tools race, turso-go native-lib family</td><td>Owner APPROVED 2026-09-20; repros ready; simply not picked up yet &mdash; highest-value unstarted work</td><td><span class="badge badge-critical">High</span></td></tr>
+              <tr><td><strong>M08</strong></td><td>CI green-2: retry-once wrapper, Module-Isolation leg-set diff, nightly 04:12 triage, TagContent confirm</td><td>Next in plan order after the M07 wave</td><td><span class="badge badge-high">Medium</span></td></tr>
+              <tr><td><strong>M13</strong></td><td>FEATURES maturity census: all 96 modules rowed + last-verified stamps + script-derived counts</td><td>M/L effort census, not yet picked up</td><td><span class="badge badge-high">Medium</span></td></tr>
+              <tr><td><strong>M14/M15</strong></td><td>READMEs into the doc-check gate (634b); quick-start drift-guard tests (634d)</td><td>Multi-step gate work, queued behind filings</td><td><span class="badge badge-high">Medium</span></td></tr>
+              <tr><td><strong>M16</strong></td><td>Docs-truth bundle: recipes &sect;2.11 sync, 3 alias advisories (core.md:448, recipes.md:123, faq.md:233), archived-waves index</td><td>Queued; advisories seen live in doc-check output 2026-09-21</td><td><span class="badge badge-high">Medium</span></td></tr>
+              <tr><td><strong>M17/M18</strong></td><td>goal-shaped-app: pin bump to system v4.8.0, <code>DomainConfig.Events</code> + <code>.On</code> adoption, GWT/snapshot/AsyncAPI demos</td><td>Unblocked by the v4.8.0 tag; not picked up</td><td><span class="badge badge-high">Medium</span></td></tr>
+              <tr><td><strong>M19</strong></td><td>metaengine <code>FilterContains</code>/<code>FilterPrefix</code> FilterOp</td><td>GATED: grows metaengine's surface while the metaengine/record pin-skew + queue tag wave are in flight (14:12 warning)</td><td><span class="badge badge-high">Medium</span></td></tr>
+              <tr><td><strong>M20</strong></td><td>One-pagers: single-writer/lease story, <code>AggregateOn</code> seam, Scan-default v5 survey</td><td>Pure docs, zero flight risk &mdash; deliberately deferred while M19 waits</td><td><span class="badge badge-medium">Low</span></td></tr>
+              <tr><td><strong>M22&ndash;M27</strong></td><td>benchkit polish tail, md-go-validator gate, temporal property/soak tails, watermill NATS leg, ~14-item polish wave</td><td>P3 tails by design</td><td><span class="badge badge-low">Low</span></td></tr>
+              <tr><td><strong>T19&ndash;T21 + v5 deletions</strong></td><td>Fold capabilities into universal Engine, delete duplicate SQL stacks, v5.0.0 cut</td><td>STAGED &mdash; v5-gated per ADR-0123, never executed in v4.x</td><td><span class="badge badge-low">Staged</span></td></tr>
+              <tr><td>Bounded externals</td><td>Real-GCP bigtable validation (credentials), macOS PG leg (CI), Turso upstream filings (owner), CV consumer bump (operator)</td><td>Each gated on an external action</td><td><span class="badge badge-low">Gated</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="fucked"><span class="num">05</span>d) Totally fucked up (radical honesty)</h2>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">High &middot; live</span>
+          <h3>D1 &mdash; The re-armed T18b chain died silently &mdash; again the watchdog gap</h3>
+          <div class="where">/tmp/matview-*.log &middot; pids 2033248, 2045814</div>
+          <p>
+            The 14:18 report armed the cost pass + closure with fixes for its
+            own D1&ndash;D3, and by 14:27 both processes are gone: logs frozen
+            at 12:19Z, no error line, no completion marker, no revert executed
+            (gate entry + baseline verified intact &mdash; the plausibility
+            guard at least prevented a garbage mutation). Severity: the next
+            quiet window will burn again if nobody re-checks before the window.
+            Root cause: unknown &mdash; bounded-wait exit or SIGHUP when the
+            arming shell went away; pid-chained design remains brittle (14:18
+            D3 said so itself).
+          </p>
+          <div class="callout callout-solution">
+            <strong>Mitigation</strong>
+            Re-arm with results-file polling + a loud marker file on
+            completion/timeout; verify gate entry + baseline before arming.
+          </div>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">High</span>
+          <h3>D2 &mdash; The daemon can commit corruption, and pre-commit never fires for it</h3>
+          <div class="where">incident #11: 96dc20986 (09-20 17:00, 111 files)</div>
+          <p>
+            The auto-commit daemon absorbed a fully corrupted
+            <code>.golangci.yml</code> (go downgrade, depguard deletion, gci
+            re-enable, rationale stripping) as a <code>chore:</code> blob that
+            sat in HEAD ~4h because no gate ran. The pre-commit lint-config
+            trigger fires for human commits but the daemon appears to bypass
+            hooks (<code>--no-verify</code> or hooksPath absent &mdash;
+            candidate root cause, explicitly uninvestigated, 14:12 e7/f#21).
+            Two catches in two days by the new hash-golden prove the class is
+            active, not historical.
+          </p>
+          <div class="callout callout-solution">
+            <strong>Mitigation</strong>
+            Tripwire is live and caught both instances; the durable fix is
+            answering whether the daemon skips hooks (f-item 12).
+          </div>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">High</span>
+          <h3>D3 &mdash; CI billing broken since ~2026-07-17: master's remote truth is two months stale</h3>
+          <div class="where">.github/workflows &middot; TODO_LIST CI section</div>
+          <p>
+            Every paid CI job fails in 3&ndash;7s. Local <code>#verify</code>
+            is the only authoritative gate, so &ldquo;master is green&rdquo;
+            has been unverifiable remotely for ~2 months and every CI-fix wave
+            (M07/M08/M09) ships with local-only evidence. Owner action; no
+            workaround exists from inside the repo.
+          </p>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">High &middot; fixed</span>
+          <h3>D4 &mdash; A perfect quiet window burned on <code>GOTOOLCHAIN=local</code>; closure nearly mutated on garbage</h3>
+          <div class="where">14:18 report D1/D2 &middot; fixed in both scripts</div>
+          <p>
+            The best window of the session (load 1.71/4.59) died in
+            <code>wall=0s</code> because ad-hoc session scripts inherited
+            <code>GOTOOLCHAIN=local</code> against go.work's
+            <code>&gt;= 1.27.1</code>; worse, the closure then accepted
+            <code>median: 0 ns; samples: 0</code> as input and began
+            &ldquo;confirming&rdquo; toward a revert. Killed mid-flight. Three
+            defects fixed (env export, plausibility guard, guard-before-mutate)
+            &mdash; but the env-chain-as-discipline trap remains for the NEXT
+            ad-hoc script (see e1).
+          </p>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Medium &middot; fixed</span>
+          <h3>D5 &mdash; The coverage-gate CI job was vacuous fiction for weeks</h3>
+          <div class="where">ci.yml coverage-gate job &middot; rebuilt 2026-09-21</div>
+          <p>
+            The root module has no packages, so the 80%-coverage loop iterated
+            an empty set and the leg only ever exercised a failing toolchain
+            download &mdash; a green-looking job that measured nothing. Rebuilt
+            with a real core-tier floor (91.0/92.3/90.1/94.4/96.0 measured).
+            The class (zero-packages <code>go list</code> guard) is unaudited
+            across the other plain-go jobs (f-item 43 of the 14:12 report).
+          </p>
+        </div>
+        <div class="issue issue-critical">
+          <span class="severity severity-critical">Low &middot; fixed by this session</span>
+          <h3>D6 &mdash; ROADMAP module-count drift survived the 95&rarr;96 sync</h3>
+          <div class="where">ROADMAP.md:15</div>
+          <p>
+            The 09-21 morning sync updated AGENTS (x2), the ROADMAP Unreleased
+            cell, and module-map &mdash; but missed the ROADMAP intro sentence
+            still saying &ldquo;95 go.mod files, audited 2026-09-19&rdquo;.
+            Verified 96 by <code>find | wc -l</code> and by
+            check-canonical-facts (derived=96); fixed inline today (trivial
+            staleness, owner pre-authorized). Gate gap: canonical-facts does
+            not derive this line &mdash; see e7.
+          </p>
+        </div>
+
+        <h2 id="improve"><span class="num">06</span>e) What we should improve</h2>
+        <div class="grid-2">
+          <div class="card card-solution">
+            <h4>e1 &mdash; <code>scripts/go-env.sh</code>: one sourced env chain</h4>
+            <p>
+              The GOTOOLCHAIN/cache chain is load-bearing for EVERY go
+              invocation including &ldquo;temporary&rdquo; session tooling
+              &mdash; discipline failed twice in two days. A 5-line sourced
+              helper kills the class. (14:18 e1.)
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>e2 &mdash; Watchdogs + results-file polling for detached chains</h4>
+            <p>
+              Any background automation writes a loud completion/timeout marker
+              and is polled by file state, never by pid. Today's D1 is the
+              third silent-death incident. (14:18 e4, D3.)
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>e3 &mdash; Guards before mutations, health before pins</h4>
+            <p>
+              Every <code>--save/--update/--pin</code> path must refuse on
+              implausible inputs (zero medians, failed prechecks). The pattern
+              now exists twice (bench-gate, hash-golden) &mdash; generalize it
+              and assert-the-mangle-landed in all mutation fixtures. (14:12 e2/e3.)
+            </p>
+          </div>
+          <div class="card card-solution">
+            <h4>e4 &mdash; <code>CI=true</code> self-test leg from day one</h4>
+            <p>
+              Every gate script with a CI pass-through behaves differently on
+              runners; three scripts hid the same leak until one session
+              looked. Mandate the two-mode fixture for new gates. (14:12 e4.)
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>e5 &mdash; Commit authored work within seconds</h4>
+            <p>
+              The daemon converts uncommitted verified work into
+              <code>chore:</code> history &mdash; of a 10+ commit wave, exactly
+              one carries an authored message. Authored messages are the audit
+              trail; commit at each phase boundary. (14:12 e1.)
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>e6 &mdash; Zero-packages guard on <code>go list</code> CI loops</h4>
+            <p>
+              An empty iteration is fiction, not a pass. Audit the remaining
+              plain-go jobs for the coverage-gate class. (14:12 e6, f#43.)
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>e7 &mdash; Derive the ROADMAP intro count in check-canonical-facts</h4>
+            <p>
+              Today's D6 shows the gate's coverage is line-selective. Deriving
+              the count from the filesystem inside the gate makes the whole
+              drift class mechanical. (This session's finding.)
+            </p>
+          </div>
+          <div class="card card-warning">
+            <h4>e8 &mdash; scripts/INDEX.md: 60+ scripts, no map</h4>
+            <p>
+              Several new gate scripts landed this week alone; a one-line-per-
+              script index (name, purpose, gate wiring) would cut discovery
+              cost for every future session. (14:12 f#45.)
+            </p>
+          </div>
+        </div>
+
+        <h2 id="next"><span class="num">07</span>f) Top 25 things to do next (impact-sorted)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Impact</th><th>Task</th><th>Effort</th><th>Category</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td><span class="badge badge-critical">Critical</span></td><td>Re-arm the T18b matview chain with a watchdog + results-file polling; verify gate entry + baseline first (it is dead right now, b1/D1)</td><td>S</td><td>Verification</td></tr>
+              <tr><td>2</td><td><span class="badge badge-critical">Critical</span></td><td>Composed <code>#verify</code> re-record through the new guard chain in the next quiet window (<code>preflight-composed.sh &amp;&amp; can-run-composed-gate --wait-loop &amp;&amp; #verify</code>)</td><td>S + wait</td><td>Verification</td></tr>
+              <tr><td>3</td><td><span class="badge badge-high">High</span></td><td>OWNER: install the nightly bench timer (one command, scripts/nightly/README.md)</td><td>S</td><td>Feature</td></tr>
+              <tr><td>4</td><td><span class="badge badge-high">High</span></td><td>M11: file the exhaustruct_v5 <code>skippedNamed</code> panic upstream (owner-approved, repro ready, github-voice draft)</td><td>S</td><td>Bug</td></tr>
+              <tr><td>5</td><td><span class="badge badge-high">High</span></td><td>M11: file the go/types + x/tools parallel-check race upstream</td><td>S</td><td>Bug</td></tr>
+              <tr><td>6</td><td><span class="badge badge-high">High</span></td><td>M12: file the turso-go native-lib hash-mismatch + lazy-init family (with bump-or-hold recommendation)</td><td>S/M</td><td>Bug</td></tr>
+              <tr><td>7</td><td><span class="badge badge-high">High</span></td><td>Record M07 leg dispositions + M10 evidence in TODO_LIST (open f#1 of the 14:12 session; mind edit races)</td><td>S</td><td>Documentation</td></tr>
+              <tr><td>8</td><td><span class="badge badge-high">High</span></td><td>Run one real <code>#integration-mysql-vm</code> leg through the hardened <code>vm-mysql.sh</code>; then F52 AGENTS integration rows</td><td>M</td><td>Verification</td></tr>
+              <tr><td>9</td><td><span class="badge badge-high">High</span></td><td>Investigate whether the auto-commit daemon bypasses pre-commit (<code>--no-verify</code>/hooksPath) &mdash; root cause of the whole corruption class</td><td>S</td><td>Quality</td></tr>
+              <tr><td>10</td><td><span class="badge badge-high">High</span></td><td><code>scripts/go-env.sh</code> helper sourced by gate scripts + documented for session tooling</td><td>S</td><td>Quality</td></tr>
+              <tr><td>11</td><td><span class="badge badge-high">High</span></td><td>Verify the two fixed CI legs on the remote the moment billing resolves (M07/M09 changed ci.yml)</td><td>S</td><td>Verification</td></tr>
+              <tr><td>12</td><td><span class="badge badge-high">High</span></td><td>M08 CI green-2: retry-once wrapper, Module-Isolation leg-set diff, nightly 04:12 triage, TagContent clean confirm</td><td>M</td><td>Quality</td></tr>
+              <tr><td>13</td><td><span class="badge badge-medium">Medium</span></td><td>M16 docs-truth bundle: 3 alias advisories (core.md:448, recipes.md:123, faq.md:233), recipes &sect;2.11 symbol-diff, archived-waves index, &gt;10-live-reports NOTE</td><td>S/M</td><td>Documentation</td></tr>
+              <tr><td>14</td><td><span class="badge badge-medium">Medium</span></td><td>M13 FEATURES maturity census: 96 modules rowed, last-verified stamps, script-derived counts so it cannot rot</td><td>M/L</td><td>Documentation</td></tr>
+              <tr><td>15</td><td><span class="badge badge-medium">Medium</span></td><td>M15 quick-start drift guards: 5 fences &rarr; compile tests (getting-started pattern)</td><td>M</td><td>Quality</td></tr>
+              <tr><td>16</td><td><span class="badge badge-medium">Medium</span></td><td>M14 READMEs into the doc-check gate: multi-README spike &rarr; flake app &rarr; CI leg &rarr; mutation test</td><td>M</td><td>Quality</td></tr>
+              <tr><td>17</td><td><span class="badge badge-medium">Medium</span></td><td>SearchQuery count=5 quiet-window re-run via <code>nix run .#quiet-window-run</code> (calibration row 306c)</td><td>S</td><td>Verification</td></tr>
+              <tr><td>18</td><td><span class="badge badge-medium">Medium</span></td><td>Dgraph constants re-anchor campaign (row 306d), same quiet-window vehicle</td><td>M</td><td>Quality</td></tr>
+              <tr><td>19</td><td><span class="badge badge-medium">Medium</span></td><td>M17: goal-shaped-app pin bump to system v4.8.0 + <code>DomainConfig.Events</code>/<code>.On</code> adoption demo</td><td>M</td><td>Feature</td></tr>
+              <tr><td>20</td><td><span class="badge badge-medium">Medium</span></td><td>M20 one-pagers: single-writer/lease story, <code>AggregateOn</code> seam, Scan-default v5 survey (pure docs, safe now)</td><td>M</td><td>Documentation</td></tr>
+              <tr><td>21</td><td><span class="badge badge-medium">Medium</span></td><td>M19 <code>FilterContains</code>/<code>FilterPrefix</code> &mdash; ONLY after the metaengine/record pin-skew + queue tag wave lands</td><td>M</td><td>Feature</td></tr>
+              <tr><td>22</td><td><span class="badge badge-medium">Medium</span></td><td>M22 benchkit polish tail: Min column, <code>--strict</code> NOISY fail, list-phases map, CSV/CoV columns, RunSuite variant, stale-baseline protocol</td><td>M</td><td>Quality</td></tr>
+              <tr><td>23</td><td><span class="badge badge-medium">Medium</span></td><td>M23 md-go-validator gate: committed baseline + flake app + CI leg + the 9 P2 consumer-facing skips</td><td>M</td><td>Quality</td></tr>
+              <tr><td>24</td><td><span class="badge badge-medium">Medium</span></td><td>Stale-reference sweep of old bench headline/<code>--save</code>/benchtime mentions (README, cmd/cqrs-bench, docs/benchmarks, workflows) + standing shellcheck leg</td><td>S</td><td>Documentation</td></tr>
+              <tr><td>25</td><td><span class="badge badge-low">Low</span></td><td>M25/M26/M27 tails: temporal property/soak + bigtable decisions, watermill NATS roundtrip leg, ~14-item polish wave</td><td>M each</td><td>Quality</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout callout-warning">
+          <strong>HARVEST note</strong>
+          Items 1&ndash;25 mostly map onto existing TODO_LIST rows (the
+          living source of truth). The genuinely new asks for TODO_LIST:
+          the chain re-arm + watchdog (1), the daemon hook-bypass
+          investigation (9), <code>go-env.sh</code> (10), and the
+          canonical-facts ROADMAP-line derivation (e7).
+        </div>
+
+        <h2 id="question"><span class="num">08</span>g) The #1 question I cannot answer myself</h2>
+        <div class="card card-problem">
+          <h4>T18b widening fallback policy (blocks the armed chain's failure branch)</h4>
+          <p>
+            If the re-armed cost pass shows that even
+            <code>100x::9</code> fails the &plusmn;10% stability rule across 3
+            quiet runs &mdash; i.e. the MIN/matview bimodality is NOT
+            sampling-count-limited &mdash; which fallback do you want?
+            (a) drop MIN/matview from the gate set entirely (loses the
+            serving-path signal), (b) move it to a nightly non-gating suite
+            (signal without gate risk), or (c) extend the KNOWN-UNSTABLE
+            expiry (currently 2026-10-21) and keep root-causing.
+          </p>
+          <p>
+            What I tried: read the accepted closure rule in the TODO_LIST T18b
+            row and the 14:18 report &mdash; it rules only
+            &ldquo;widen if it works&rdquo;; the no-qualify branch ends in an
+            automatic revert with no ruled destination, and the chain is
+            currently dead anyway (D1). Your answer decides what gets re-armed
+            and whether the next quiet window closes this or stalls again.
+          </p>
+        </div>
+
+        <footer class="footer">
+          Generated 2026-09-21 14:25 CEST &middot; go-cqrs-lite &middot; every
+          claim cites the 14:12/14:18 session reports, TODO_LIST.md, or a check
+          run live by this session &middot; no manual commit per harness
+          contract (auto-commit daemon picks this up)
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>

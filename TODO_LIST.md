@@ -650,10 +650,20 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 >   v5 with a validating constructor; the struct `record.Stream` proposal is
 >   rejected.
 
-- [ ] **T23 — upstream skill-maintenance pass** (the plan's one open task):
+- [x] ~~**T23 — upstream skill-maintenance pass** (the plan's one open task):
       docs/reviews↔brainstorming divergence; read-prior-reports +
-      copy-template steps in the review skills. Execute or decline at the next
-      skill-maintenance window. _(Effort: S)_
+      copy-template steps in the review skills.~~ **DONE 2026-09-21** —
+      executed in `~/projects/SKILLS` (canonical skill repo). The 2026-08-22
+      fix (`95ec7fc`) had covered only the data-model-review skill; this pass
+      added the two steps ("read prior reports in the series" + "copy the
+      template, never transcribe") to the other five HTML-report skills
+      (architecture-review, brutal-self-review, code-quality-scan,
+      full-code-review, naming-review) and to the canonical html-report-kit
+      guide (new "Series Discipline" section carrying both observed failure
+      modes from the 2026-08-22 session), then re-vendored into all 10 kit
+      consumers (`sync-html-kit.sh --check` green; `check-skills.sh` 30/30,
+      links clean). Divergence re-verified dead: no skill body names
+      `docs/brainstorming` as an output target.
 
 ---
 
