@@ -99,7 +99,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - [ ] **Code guard follow-up: make grouped-spec safety mechanical** — today the danger is advisory-only (Doctor WARN + docs). Options: `MaterializedViewSpec` validation refusing `GroupBy` on turso-go ≤ v0.8.0-pre.10 (breaking for legitimate small deployments) vs a config flag (`AllowGroupedViews`) vs silent status. Decide + implement once the upstream timeline is known (still unknown: PR #8257 unanswered, defect re-verified live on pre.10 2026-09-11). The mechanical flip point now exists: `TestTursoMatView_GroupedSumDefectAEnvelopeGuard` + `TURSO_IVM_ENFORCE_FIX=1` asserts exactness at the 2k-row repro shape the day upstream fixes it. _(Effort: S)_
 - [ ] **Matview v2 feature surface** — planned-table matviews (ordered with `ApplyLayout` + backfill), filtered-view spec variants, multi-aggregate/DISTINCT serving, `DropMaterializedView` off-boarding, per-view IVM write-amp otel counter, `system.Introspection()` surface, cqrs-lint rules (matview-on-unsupported-driver; matview-plus-planned-table staleness trap), `example/materialized-views/`. Route individually when a consumer asks. — source: archived 19-25 §f23-35, 05-33 §f29-35
       _(Effort: M/L each)_
-- [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). NEXT STEP (SUPERB S28): design one-pager for `AggregateOn(fn, column, group)` on `QueryDecl` — the declarative seam the planner can read — then routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
+- [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). DESIGN STEP DONE 2026-09-21 (SUPERB S28/F110):
+      one-pager at [`docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md`](docs/planning/2026-09-21_aggregateon-querydecl-seam-one-pager.md)
+      — `AggregateOn(fn, column, group)` as a QueryOption stamped on `QueryDecl`,
+      `MatViewSpecReporter` capability, scalar-covered-first scope. REMAINING:
+      ratification + implementation — routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
       _(Effort: M)_
 - ~~[ ] **Tag wave for the matview feature**~~ done 2026-09-19 — matview family published: `metaengine/v4.14.0` + `sqliteengine/v4.4.0` + `tursoengine/v4.2.0` + `system/v4.8.0` (tags carry zero local replaces; pins coherent per `pin-sweep --check --remote`).<br>**Original:** metaengine/sqliteengine/tursoengine/system carry sibling replaces for unpublished symbols (`MaterializedViewSpec` family); pins must be bumped and replaces stripped at the next release wave so consumers can use the feature from published tags. _(Effort: M — see AGENTS.md tag-wave procedure)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
@@ -753,14 +757,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > FilterContains + Forever + E9/E10 + matview guard; P2: v5 deletions + E-items +
 > AggregateOn seam; P3: proof + docs + v5.0.0 cut).
 
-- [ ] **Decide a first-class single-writer/lease story for engines** — CV's
-      Phase-0 ADR conditions every library-store cutover on a CV-owned
-      `metaengine.RegisterDriver` decorator wrapping their `<dsn>.lease`
-      single-writer marker, because the library has NO engine/store-level
-      lock (verified: only `queue/` has lease semantics — task claims, a
-      different concept). Minimal shape: an engine open-mode/advisory lock
-      option at `system` construction. Decide before v5 freezes engine
-      construction surfaces. — source: reflection doc §4.2 _(Effort: M — design + ADR)_
+- ~~[ ] **Decide a first-class single-writer/lease story for engines**~~ — DESIGN
+      DELIVERED 2026-09-21:
+      [`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md)
+      (verified current reality: lease semantics live only in `queue/` + `claiming/`
+      task claims; recommendation = `EngineConfig.SingleWriter` advisory
+      `<dsn>.cqrs-lease` flock, fail-loud default-off; becomes ADR-0146 on
+      ratification). REMAINS OPEN: owner ratification + implementation before v5
+      freezes engine construction surfaces.<br>**Original:** CV's Phase-0 ADR
+      conditions every library-store cutover on a CV-owned `metaengine.RegisterDriver`
+      decorator wrapping their `<dsn>.lease` single-writer marker, because the library
+      has NO engine/store-level lock. — source: reflection doc §4.2
 - [ ] **`FilterContains`/`FilterPrefix` FilterOp extension** — metaengine
       FilterOp today is exactly eq/ne/lt/le/gt/ge/in (`enum_validation.go:71`);
       substring search degrades to a client-side full scan (CV measured
@@ -826,9 +833,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       Doctor-loud degraded warnings on every affected query — "operators
       pick any engine" must never break a declared query silently. — G-T13
       _(Effort: S/M by probe)_
-- [ ] **Scan default v5 decision** — documented-100 (status quo, now loud in
-      godoc+FAQ) vs unbounded default at the v5 cut. Survey consumers,
-      decide, implement at the v5 branch. — G-T14 _(Effort: S decision + S impl)_
+- [ ] **Scan default v5 decision** — SURVEY DELIVERED 2026-09-21:
+      [`docs/planning/2026-09-21_scan-default-v5-survey.md`](docs/planning/2026-09-21_scan-default-v5-survey.md)
+      (consumer census incl. `system.Find` inheriting the cap + recommendation:
+      flip to unbounded at the v5 cut + cqrs-lint nudge + optional operator
+      ceiling). Documented-100 is the status quo, loud in godoc+FAQ. REMAINING:
+      owner decision, implement at the v5 branch. — G-T14 _(Effort: S decision + S impl)_
 - [ ] **FEATURES maturity flip for the closed surface (🧪→✅)** — earned by
       the plan's gates (not declared): evidence links per row, CHANGELOG
       Goal-story entry, release notes. Final stamp of Goal closure. — G-T25
