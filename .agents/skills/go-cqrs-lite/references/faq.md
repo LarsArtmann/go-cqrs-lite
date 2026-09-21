@@ -339,6 +339,8 @@ library versions; new code wants new payload fields.
 **Fix:** no migration tool needed — compose an upcaster onto the store:
 
 ```go
+import schema "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
 upcasted := event.DecorateStore(raw, nil, schema.UpcastSourceTransform(
     schema.NewUpcaster(commandlifecycle.TypeFailed, 1, upcastFailedV1toV2),
 ))

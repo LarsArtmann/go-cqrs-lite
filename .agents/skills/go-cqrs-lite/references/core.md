@@ -421,6 +421,8 @@ as-of reads before the delete still see the value. Full recipe: `recipes.md` §2
 ## 7. Testing Patterns
 
 ```go
+import memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+
 // In-memory test implementations
 store := memory.NewMemoryStore()
 bus := watermill.NewEventBus()

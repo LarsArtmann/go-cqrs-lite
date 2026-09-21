@@ -2521,6 +2521,8 @@ journal fact land in ONE transaction (a fact without its state change, and a
 state change without its fact, are both unobservable):
 
 ```go
+import mysql "github.com/larsartmann/go-cqrs-lite/queue/mysql/v4"
+
 concrete, err := mysql.NewEngine(ctx, "user:pass@tcp(127.0.0.1:3306)/tasks?parseTime=true")
 if err != nil {
 	log.Fatal(err)
