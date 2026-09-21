@@ -131,3 +131,17 @@
   `scripts/md-go-baseline.txt` may only reference `*/archive*/` paths
   (enforced); wrong-language fences are fenced as text, not go (```
   fences for non-Go content use the right tag: `go.mod`/`go.work` files are fenced as `text`, JSON as `json`).
+
+## go.work directive must lead (or match) the member sweep — ambient-go gates fail quietly otherwise (2026-09-21)
+
+The 2026-09-19 sweep moved all 96 member `go.mod`s to `go 1.27.1` but left
+`go.work` at `go 1.27`. Workspace-mode `go`/gopls tolerate the gap while the
+selected toolchain is >= 1.27.1 (nix `go_1_27`), but `GOTOOLCHAIN=auto`
+against host go (1.26.7) selects exactly the DIRECTIVE version (1.27.0),
+which then fails workspace consistency against the 1.27.1 members:
+`module X requires go >= 1.27.1, but go.work lists go 1.27`. Gates that run
+`nix run` with the ambient PATH go (e.g. `#check-coverage`) died on this.
+Fixed by bumping the go.work directive to `1.27.1` (2026-09-21): the
+directive is the CONTRACT — keep it at the max of the member sweep, never
+behind it. Golangci-lint LSP/CLI noise ("running go 1.26.7") is the same
+class: the binary's build-go, not the workspace, is the limiting side.

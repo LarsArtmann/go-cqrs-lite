@@ -86,21 +86,12 @@ func applyTask(s TaskState, evt event.Event) (TaskState, error) {
 // Updated, Deleted), so there is not a single fold closure in this app;
 // Lookup and QuerySet both inherit the folds by result type.
 func Domain() system.DomainConfig {
-	// Convention folds declared once per result type. (When the next system
-	// release tags evolutionBuilder.On, this loop becomes a fluent
-	// Evolve[TaskView](...).On(...).On(...).Done() chain.)
-	tasks := system.Evolve[TaskView](tasksCollection)
-
-	for _, fold := range []struct {
-		kind   event.Type
-		sample any
-	}{
-		{evtTaskCreated, TaskCreated{}},
-		{evtTaskUpdated, TaskUpdated{}},
-		{evtTaskDeleted, TaskDeleted{}},
-	} {
-		tasks = system.OnEvolution(tasks, string(fold.kind), fold.sample)
-	}
+	// Convention folds declared once per result type, as one readable
+	// fluent chain (system v4.9 evolutionBuilder.On).
+	tasks := system.Evolve[TaskView](tasksCollection).
+		On(string(evtTaskCreated), TaskCreated{}).
+		On(string(evtTaskUpdated), TaskUpdated{}).
+		On(string(evtTaskDeleted), TaskDeleted{})
 
 	return system.DomainConfig{
 		// Events declares the journal's complete event universe — the

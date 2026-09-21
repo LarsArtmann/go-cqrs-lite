@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
 )
 
 require (
