@@ -8,6 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **system: fluent `Evolve(...).On(...)` chaining for convention folds.**
+  `evolutionBuilder.On(eventType, sample)` is the method form of
+  `OnEvolution` for Created/Updated/Deleted convention events (sample is
+  typed `any`, so it can be a method); explicit fold closures keep using
+  `OnEvolution`. This also makes the chained examples in the `Evolve` doc
+  comment actually compile. Chain form is pinned by
+  `TestSystem_Evolution_OnChain`.
+- **example/goal-shaped-app: testing + snapshot story demos (consumer-value
+  tail).** Six scenario-based Given/When/Then tests pin the task flow's
+  write-side invariants with the `scenario` DSL (pure decider tests — no
+  engine), and a snapshot demo proves the "snapshots are a worry the library
+  manages" claim: one `WithSnapshotStrategy(snapshot.EveryNEvents(2))` line
+  makes the decider checkpoint automatically, verified through
+  `SnapshotStore()`. `Domain()`'s nested `OnEvolution` pyramid is now a
+  readable fold-loop (the fluent `Evolve(...).On(...)` flip is one system
+  tag wave away).
+- **examples: CI test leg (`#test-examples`).** A new flake app builds AND
+  tests every example GOWORK=off against published pins (all six carry
+  suites), wired as the `Examples Test` CI job — examples were build-only
+  before. Its first run caught two real problems: scheduler-otel-status
+  could not build standalone (workspace `scheduling/sqlstore` now needs the
+  unreleased `record.DeferClose`; the example's replace set gained
+  `record/v4`), and getting-started's counter test exposed the
+  projection-host double-apply below (that example's test leg stays skipped
+  until the fix is tagged).
+
 - **tooling: `check-md-go` docs gate — every live `go` fence must parse or
   carry an explicit `// skip-validate`.** The repo's Markdown/MDX is now
   validated by `md-go-validator` (packaged in the flake from a pinned GitHub
@@ -331,6 +357,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **projectionhost: live/catch-up overlap double-applied events.** The
+  overlap dedup between the live subscriber and the catch-up drain was
+  asymmetric: the live handler checked the `seenIDs` ring but never marked
+  processed events seen, and the drain never checked — so an event delivered
+  live before the catch-up drain re-read it from the journal was applied
+  twice. Every non-idempotent projection fold (counters, sums) silently
+  double-counted (getting-started's counter canary read 13 after 10).
+  Both paths now mark and check symmetrically; pinned by
+  `TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply`
+  (mutation-verified: removing the mark fails the test with
+  "applied 2 times").
 - **benchkit: progress-reporter heartbeat no longer races its own shutdown.**
   `stop()` closed the done channel and then set the field to nil while the
   heartbeat goroutine was selecting on that same field — a data race that

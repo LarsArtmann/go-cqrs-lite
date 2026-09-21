@@ -1071,18 +1071,29 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > #6 metaengine plans, #1/#7 ROADMAP); the unrouted ones:
 > [`docs/feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md`](docs/feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md)
 
-- [ ] **Fail closed on `EventAdapter.Save` racy fallback** — third-party engine
-      authors get silent partial writes today; make the fallback loud or refuse.
+- [x] ~~**Fail closed on `EventAdapter.Save` racy fallback**~~ done 2026-09-21:
+      `Save` returns `ErrRacySaveRefused` (writes nothing) unless
+      `WithRacySave()` opts in; `system.New` rejects non-atomic engines for
+      the source-of-truth role with `ErrEventSaveNotAtomic`. Pinned by
+      `adapter_racy_save_test.go` (3 tests incl. construction rejection).
       — feedback #3 _(Effort: S)_
 - ~~[ ] **Stamp experimental status in each engine/module `doc.go`**~~ done 2026-09-20 — all 17 metaengine-family modules carry a doc.go package comment with the `# Experimental` doc heading (the section pkg.go.dev renders; readers can now tell 🧪 from ✅ in the godocs — FEATURES knows the rest); stray package comments on cost.go/engine.go consolidated. T22 in the 09-40 report (now archived). — feedback #5 _(Effort: S, mechanical)_
 
-- [ ] **goal-shaped-app consumer-value tail (2026-09-20 harvest)** — adopt
-      `DomainConfig.Events` + `.On` chaining (unblocked NOW by system v4.8.0;
-      bump the example pin first); a real postgres e2e leg already listed above;
-      an examples CI test leg (all six examples carry tests but CI is
-      build-only); scenario-based Given/When/Then test for the task flow;
-      snapshot story demo ("snapshots are a worry the library manages"). —
-      source: archived 10-25 §f21-26 _(Effort: M total, sliceable)_
+- [x] ~~**goal-shaped-app consumer-value tail (2026-09-20 harvest)**~~ done
+      2026-09-21, slice by slice: `DomainConfig.Events` was already adopted
+      (coeffect gate armed, pin at system v4.8.0); the nested `OnEvolution`
+      pyramid is now a readable fold-loop and the missing `evolutionBuilder.On`
+      chain method shipped in system (example's `.On` flip is release-gated —
+      one system tag wave); scenario-based Given/When/Then tests for the task
+      flow (6 scenarios via `scenario` DSL); snapshot story demo
+      (`WithSnapshotStrategy(EveryNEvents(2))` + `SnapshotStore()` assertion);
+      postgres e2e leg existed already (`postgres_e2e_test.go`); examples CI
+      test leg landed as `nix run .#test-examples` + the `Examples Test` CI
+      job — its first run caught the scheduler-otel-status standalone-build
+      break (added the `record/v4` replace) and getting-started's
+      projectionhost double-apply (fixed in projectionhost, example test leg
+      skips until the fix is tagged). — source: archived 10-25 §f21-26
+      _(Effort: M total, sliceable)_
 
 ---
 
