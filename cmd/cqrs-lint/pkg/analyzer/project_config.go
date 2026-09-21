@@ -2,13 +2,19 @@ package analyzer
 
 import (
 	"encoding/json/v2"
+	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/larsartmann/go-finding"
 )
+
+// errUnknownPreset is the static sentinel wrapped by every unknown-preset
+// error; the path and valid names are the dynamic context around it.
+var errUnknownPreset = errors.New("unknown preset")
 
 // ConfigFileName is the per-project configuration file cqrs-lint reads from
 // the linted directory. Both the CLI and the embedded (toolspec) detection
@@ -58,8 +64,8 @@ func LoadProjectConfig(dir string) (ProjectConfig, bool, error) {
 
 	if cfg.Preset != PresetNone && !IsKnownPreset(cfg.Preset) {
 		return ProjectConfig{}, true, fmt.Errorf(
-			"%s: unknown preset %q (valid: %s)",
-			path, cfg.Preset, strings.Join(ValidPresetNames(), ", "),
+			"%s: %w %q (valid: %s)",
+			path, errUnknownPreset, cfg.Preset, strings.Join(ValidPresetNames(), ", "),
 		)
 	}
 
@@ -91,12 +97,8 @@ func (p ProjectConfig) EffectiveRules() RulesConfig {
 			map[string]string,
 			len(def.Rules.SeverityOverrides)+len(effective.SeverityOverrides),
 		)
-		for id, sev := range def.Rules.SeverityOverrides {
-			merged[id] = sev
-		}
-		for id, sev := range effective.SeverityOverrides {
-			merged[id] = sev
-		}
+		maps.Copy(merged, def.Rules.SeverityOverrides)
+		maps.Copy(merged, effective.SeverityOverrides)
 
 		effective.SeverityOverrides = merged
 	}

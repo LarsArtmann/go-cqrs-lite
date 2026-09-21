@@ -111,7 +111,7 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 // holding the queue tables.
 func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
 	//art-dupl:accept engine scaffolding twin of queue/sqlite OpenDB; dep-isolated modules, conformance pins semantics
-	options := storeOptions[T]{codec: queue.JSONCodec[T]()}
+	options := storeOptions[T]{codec: queue.JSONCodec[T]()} //nolint:exhaustruct_v5 // caller-owned DB: pool tuning stays with the DB owner
 	for _, opt := range opts {
 		opt(&options)
 	}

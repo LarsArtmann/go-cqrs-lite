@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"math/rand/v2"
 	"time"
 
@@ -100,7 +101,7 @@ func sleep(ctx context.Context, d time.Duration) error {
 	case <-timer.C:
 		return nil
 	case <-ctx.Done():
-		return ctx.Err()
+		return fmt.Errorf("queue/mysql: claim sleep cancelled: %w", ctx.Err())
 	}
 }
 
@@ -109,12 +110,9 @@ func sleep(ctx context.Context, d time.Duration) error {
 // claimRetryMaxDelay, randomized over [0, cap] so concurrent claimers
 // spread out instead of re-colliding on the next tick.
 func deadlockBackoff(attempt int) time.Duration {
-	delay := claimRetryBaseDelay << attempt
-	if delay > claimRetryMaxDelay {
-		delay = claimRetryMaxDelay
-	}
+	delay := min(claimRetryBaseDelay<<attempt, claimRetryMaxDelay)
 
-	return time.Duration(rand.Int64N(int64(delay) + 1))
+	return time.Duration(rand.Int64N(int64(delay) + 1)) //nolint:gosec // non-crypto backoff jitter
 }
 
 // isDeadlock reports whether err is InnoDB's deadlock (1213) or

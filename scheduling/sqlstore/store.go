@@ -153,7 +153,8 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 			"query due timers",
 		)
 	}
-	defer record.DeferClose(rows)
+	//nolint:sqlclosecheck // rows closed via record.DeferClose (ADR-0144 canonical)
+	rows, err := s.db.QueryContext(ctx, s.q.due, s.formatTime(now))
 
 	var timers []scheduling.Timer[P]
 
