@@ -10,13 +10,18 @@ import (
 //
 // WARNING: without [WithLimit], Scan returns at most 100 rows — a silent
 // truncation for larger collections. Pass [WithLimit] with the page size you
-// want, or WithLimit(0) for an unbounded scan (no SQL LIMIT clause).
+// want, or WithLimit(0) for an unbounded scan (no SQL LIMIT clause). An
+// operator may re-pin this default store-wide with [WithDefaultLimit]
+// (plan option) — an explicit WithLimit always wins.
 func (r *TypedReader[V]) Scan(ctx context.Context, opts ...ScanOption) ([]V, error) {
 	if err := r.store.IsPoisoned(r.collection); err != nil {
 		return nil, err
 	}
 
 	cfg := scanConfig{limit: 100}
+	if dl := r.store.defaultLimit; dl > 0 {
+		cfg.limit = dl
+	}
 
 	for _, opt := range opts {
 		opt(&cfg)

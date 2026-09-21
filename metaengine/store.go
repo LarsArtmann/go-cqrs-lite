@@ -44,6 +44,7 @@ type Store struct {
 	sharedCollections map[string]bool                  // child types shared across collections (ADR-0124 boundaries)
 	capabilityGaps    map[string]CapabilityGaps        // engine name → documented ADT gaps (persist across Replan)
 	backfillState     map[string]PlannedBackfillResult // collection → last planned-table backfill outcome (Doctor-visible; guarded by mu)
+	defaultLimit      int                              // operator ceiling for un-limited scans (WithDefaultLimit); 0 = built-in 100
 
 	// Health-driven deactivation (ADR-0137): per-engine failure tracking and
 	// quarantine. healthMu never nests inside s.mu acquisitions in the other
@@ -122,6 +123,7 @@ func (s *Store) replanWithTransition(
 		priority:                 s.priorityConfig,
 		sharedCollections:        s.sharedCollections,
 		capabilityGaps:           s.capabilityGaps,
+		defaultLimit:             s.defaultLimit,
 		routingHysteresis:        s.routingHysteresis,
 		routingMinDeltaMs:        s.routingMinDelta,
 	}
