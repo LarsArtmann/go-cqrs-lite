@@ -1,5 +1,9 @@
 # Status Report — M20 One-Pagers + M16/M13/M08-Local Wave (owner directive: M20 first)
 
+> **SUPERSEDED (2026-09-21 15:34):** interim mid-session report; the full a–g
+> close-out including what aged (§b/f) lives in
+> [`2026-09-21_15-34_m20-wave-closeout-full-status.md`](2026-09-21_15-34_m20-wave-closeout-full-status.md).
+
 > Point-in-time snapshot, 2026-09-21 ~15:05 CEST, master @ `ffbfdcf07` + pending.
 > Continues `2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md` under the
 > [owner-unblock-trust plan](../planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md)
