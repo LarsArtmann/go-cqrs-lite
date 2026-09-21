@@ -109,7 +109,11 @@ func TestDetectHonorsProjectConfig(t *testing.T) {
 		// A018 is intentional here: the import registers a tool, it is not dead.
 		"rules": {"disable": ["A018"]},
 	}`
-	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(config), 0o600); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, ".cqrs-lint.json"),
+		[]byte(config),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -139,7 +143,11 @@ func TestDetectHonorsPresetFromConfig(t *testing.T) {
 		"preset": "read-only",
 		"rules": {"disable": ["A018"]},
 	}`
-	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(config), 0o600); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, ".cqrs-lint.json"),
+		[]byte(config),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -164,7 +172,11 @@ func TestDetectRejectsUnknownPresetInConfig(t *testing.T) {
 	dir := writeFixableFixture(t)
 	ctx := finding.WithWorkingDir(context.Background(), dir)
 
-	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(`{"preset": "productionn"}`), 0o600); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, ".cqrs-lint.json"),
+		[]byte(`{"preset": "productionn"}`),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -185,7 +197,11 @@ func TestDetectRejectsMalformedConfig(t *testing.T) {
 	dir := writeFixableFixture(t)
 	ctx := finding.WithWorkingDir(context.Background(), dir)
 
-	if err := os.WriteFile(filepath.Join(dir, ".cqrs-lint.json"), []byte(`{"preset":`), 0o600); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, ".cqrs-lint.json"),
+		[]byte(`{"preset":`),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 

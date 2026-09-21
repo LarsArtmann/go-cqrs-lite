@@ -996,11 +996,9 @@
             # go.work contract vs the selected toolchain, with the
             # GOTOOLCHAIN=auto remedy. Cheap enough to run in the verify head
             # and nightly; carries a stub-binary self-test.
-            check-go-version =
-              mkApp "check-go-version" [ goPkg pkgs.bash ]
-                ''
-                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" "$@"
-                '';
+            check-go-version = mkApp "check-go-version" [ goPkg pkgs.bash ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" "$@"
+            '';
 
             # check-lint-config: validate the lint configuration itself.
             # golangci-lint config verify catches schema drift after version
@@ -1537,7 +1535,16 @@
                 '';
 
             verify =
-              mkApp "verify" [ goPkg pkgs.golangci-lint pkgs.bash pkgs.findutils pkgs.gnugrep pkgs.gcc pkgs.util-linux ]
+              mkApp "verify"
+                [
+                  goPkg
+                  pkgs.golangci-lint
+                  pkgs.bash
+                  pkgs.findutils
+                  pkgs.gnugrep
+                  pkgs.gcc
+                  pkgs.util-linux
+                ]
                 ''
                   # In-verify load threshold (M05): refuse the launch under
                   # load instead of burning the attempt 30+ min deep. Retry

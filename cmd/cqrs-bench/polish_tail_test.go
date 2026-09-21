@@ -23,30 +23,30 @@ func TestStrictNoiseGate(t *testing.T) {
 	}
 
 	cases := []struct {
-		name    string
-		strict  bool
+		name     string
+		strict   bool
 		repeated *benchkit.RepeatedResult
-		wantMsg bool
+		wantMsg  bool
 	}{
 		{
-			name:    "noisy headline metric fails",
-			strict:  true,
+			name:   "noisy headline metric fails",
+			strict: true,
 			repeated: repeated(benchkit.MetricVariation{
 				Name: benchkit.MetricWriteThroughput, CoV: 0.14, Reliable: false,
 			}),
 			wantMsg: true,
 		},
 		{
-			name:    "noisy non-headline metric passes",
-			strict:  true,
+			name:   "noisy non-headline metric passes",
+			strict: true,
 			repeated: repeated(benchkit.MetricVariation{
 				Name: "gc_total_pause_ns", CoV: 0.40, Reliable: false,
 			}),
 			wantMsg: false,
 		},
 		{
-			name:    "stable headline passes",
-			strict:  true,
+			name:   "stable headline passes",
+			strict: true,
 			repeated: repeated(benchkit.MetricVariation{
 				Name: benchkit.MetricWriteP50NS, CoV: 0.03, Reliable: true,
 			}),

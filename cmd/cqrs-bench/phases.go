@@ -28,9 +28,13 @@ func listPhasesHandler(_ context.Context, _ *AppConfig, _ *ListPhasesFlags) erro
 	// listed directly; metrics that only appear in the text/JSON report are
 	// prefixed "report:". A phase whose metrics are all zero emits nothing.
 	phaseMetrics := map[string]string{
-		"write": fmt.Sprintf("%s %s %s %s write_tail_ratio rawsink_throughput rawsink_p50_ns rawsink_p99_ns",
-			benchkit.MetricWriteThroughput, benchkit.MetricWriteP50NS,
-			benchkit.MetricWriteP99NS, benchkit.MetricWriteMaxNS),
+		"write": fmt.Sprintf(
+			"%s %s %s %s write_tail_ratio rawsink_throughput rawsink_p50_ns rawsink_p99_ns",
+			benchkit.MetricWriteThroughput,
+			benchkit.MetricWriteP50NS,
+			benchkit.MetricWriteP99NS,
+			benchkit.MetricWriteMaxNS,
+		),
 		"batch-write":    "report: batchWriteLatency, batchWriteThroughput",
 		"read":           "load_p50_ns load_p99_ns load_max_ns cold_read_p50_ns cold_read_p99_ns tail_ratio",
 		"versioned-read": "report: loadFromVersionLatency, loadToVersionLatency, loadToTimestampLatency",
