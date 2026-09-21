@@ -80,8 +80,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > "Toolchain cutover wave": go 1.27.1 directives repo-wide, flake `goToolchain` =
 > `go_1_27`, jsonv2 graduation (tags stripped repo-wide), consumers served
 > (`go list -m @latest` = 1.27-based tags on the proxy). The remaining bench re-pin
-> under 1.27 is the T18b/T14 row in the Metaengine Universal Storage Substrate
-> section above; owner decisions on the flake go-pin ride the W3 owner bundle below.
+> under 1.27 was the T18b/T14 row in the Metaengine Universal Storage Substrate
+> section above — **that row is now DONE 2026-09-20/21** (re-pin + gate hardening
+> + widening closure; see rows 34/40/41); owner decisions on the flake go-pin
+> ride the W3 owner bundle below.
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 

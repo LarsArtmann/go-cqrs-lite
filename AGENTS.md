@@ -55,6 +55,8 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Int. Dgraph  | `nix run .#integration-dgraph` (ephemeral nixpkgs Dgraph, full dgraphengine suite; also a CI job)                                               |
 | Int. Redis   | `nix run .#integration-redis` (ephemeral nixpkgs Redis; watermill broker suite: roundtrip, Nack redelivery, group exactly-once, 2 MiB payloads) |
 | Load sweep   | `nix run .#load-sweep` (timing tests `-run 'Latency\|Timer\|Deadline'` under CPU soakers — run before `#verify` after touching timing paths)    |
+| Quiet window | `nix run .#quiet-window-run -- CMD` (wait load1/load5 < `--ceiling`, bounded retries — wraps load-sensitive commands like the bench gate or calibration campaigns; `--self-test` built in) |
+| Nightly bench| `nix run .#nightly-bench` (verification vs the committed baseline inside a quiet window; systemd user timer in `scripts/nightly/` — install per its README) |
 | Verify CI    | `nix run .#verify-ci` (GOWORK=off per-module build+test — mirrors the CI matrix job)                                                            |
 | Lint config  | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
 | ErrTax       | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |

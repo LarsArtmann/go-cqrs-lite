@@ -200,6 +200,13 @@ Sorted by importance/impact/effort/customer-value (tier order, then dependency o
 | T17c | FEATURES + module-map + FAQ v5 note                                                                   | 12m | T17    |
 | T18a | Micro-benches: claim/dedup vs direct-SQL baseline                                                     | 12m | T18    |
 | T18b | `#load-sweep` on timing paths + baseline regen if warranted                                           | 12m | T18    |
+
+> **T18b — DONE 2026-09-20/21** (dated addendum; original text above
+> preserved): `#load-sweep` PASS 91s under go1.27.1 soakers; baseline
+> re-pinned with go1.27.1 provenance + claimkit/SQLite entries (0 regressions
+> vs 2026-09-11); gate hardening + matview widening closure executed under
+> owner rulings. Truth lives in TODO_LIST rows 34/40/41 and
+> `docs/status/2026-09-2{0,1}_*` — this plan doc is not the live record.
 | T19a | v5: fold capabilities into Engine interface + base-embed helper                                       | 12m | T19    |
 | T19b | v5: update all engines + api-stability golden regen                                                   | 12m | T19    |
 | T20a | v5: sqlstore/queue internals → facade-only delegation                                                 | 12m | T20    |
