@@ -1,0 +1,8 @@
+[Unit]
+Description=go-cqrs-lite nightly benchmark gate (verification vs committed baseline)
+
+[Service]
+Type=oneshot
+# Adjust the path if the repo moves; the script waits for a quiet window
+# itself (up to 3h) and never races interactive work.
+ExecStart=%h/projects/go-cqrs-lite/scripts/nightly-bench.sh

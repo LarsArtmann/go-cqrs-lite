@@ -1,0 +1,11 @@
+[Unit]
+Description=Nightly go-cqrs-lite benchmark gate
+
+[Timer]
+# 03:00 local; Persistent=true catches missed runs after downtime. The gate
+# still waits for a load1/load5 < 5 window before benching.
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1164,6 +1164,12 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/quiet-window-run.sh" "$@"
             '';
 
+            # nightly-bench: verification vs the committed baseline inside a
+            # quiet window (systemd user timer in scripts/nightly/, or manual).
+            nightly-bench = mkApp "nightly-bench" [ pkgs.bash pkgs.coreutils pkgs.git ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/nightly-bench.sh" "$@"
+            '';
+
             # Rebuild catalog/docserver/static/docs-ui.css from docs-ui.src.css
             # + templ-components module sources (pinned tailwindcss v4).
             build-docserver-css =
