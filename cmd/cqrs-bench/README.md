@@ -41,12 +41,13 @@ cqrs-bench compare --profile medium --backends mem,sq,peb --format markdown
 | `--output`                     | path                                                                                                            | stdout   | Output file                                                                              |
 | `--payload-size`               | int                                                                                                             | `256`    | Payload size in bytes                                                                    |
 | `--payload-sizes`              | `64,256,4096`                                                                                                   | —        | Mixed per-event payload sizes (uniform random)                                           |
-| `--warmup`                     | int                                                                                                             | `0`      | Warmup iterations before timing                                                          |
+| `--warmup`                     | int                                                                                                             | `0`      | Warmup iterations before timing; runs on a SEPARATE bundle, so warmup events never touch the measured store's journal or metrics |
 | `--repeat`                     | int                                                                                                             | `0`      | Run N times: median + per-metric cross-run CoV                                           |
+| `--reservoir-size`             | int                                                                                                             | `0`      | Latency samples each phase retains once the workload exceeds it (default 10000; raise for 10M+ event profiles — Min/Max/Mean stay exact) |
 | `--include-runs`               | bool                                                                                                            | `false`  | With `--format manifest`: serialize every repeat run (`runs[]`; file grows N-fold)       |
 | `--interpolated-percentiles`   | bool                                                                                                            | `false`  | Interpolate P50-P99 between samples (smoother small-n percentiles; default nearest-rank) |
 | `--soak`                       | duration (`5m`, `1h`)                                                                                           | `0`      | Soak mode: leak/degradation trends                                                       |
-| `--strict`                     | bool                                                                                                            | `false`  | Fail on skipped phases (CI gate)                                                         |
+| `--strict`                     | bool                                                                                                            | `false`  | CI gate: fail on skipped phases; with `--repeat N` also fail when a headline metric's cross-run CoV is NOISY |
 | `--progress`                   | duration                                                                                                        | `0`      | Heartbeat per phase                                                                      |
 | `--quiet`                      | bool                                                                                                            | `false`  | Summary-only output                                                                      |
 | `--cpuprofile`, `--memprofile` | path                                                                                                            | —        | pprof output                                                                             |
@@ -116,15 +117,15 @@ Payload:  256 bytes/event
 Duration: 4.2s
 
 Write Performance:
-  Latency: P50=455µs P95=2.1ms P99=4.8ms Max=12ms
+  Latency: P50=455µs P95=2.1ms P99=4.8ms Max=12ms Min=402µs
   Throughput: 119,047 events/sec
 
 Read Performance:
-  Latency: P50=125µs P95=891µs P99=1.8ms Max=5ms
+  Latency: P50=125µs P95=891µs P99=1.8ms Max=5ms Min=98µs
 
 Read Model:
-  Set: P50=98µs P95=412µs P99=780µs Max=2ms
-  Get: P50=52µs P95=201µs P99=390µs Max=1ms
+  Set: P50=98µs P95=412µs P99=780µs Max=2ms Min=88µs
+  Get: P50=52µs P95=201µs P99=390µs Max=1ms Min=47µs
 
 Projection: 500,000 events, lag=2.1s
 
@@ -138,6 +139,12 @@ Storage:
   Events:   8 MB
   Overhead: 50.0%
 ```
+
+`Min` and `Max` are the exact fastest/worst observed latencies (tracked per
+operation, not reservoir-sampled): `Mean/Min` approximates how much scheduler
+wait and contention add on top of the backend itself. When a load average was
+recorded, the `Env:` line carries it (`Load1=3.5`) and warns if the machine
+was (or became) oversubscribed.
 
 ## Design
 

@@ -129,6 +129,10 @@ MAX_LOAD=""
 # Fault-injection hook for the fixture tests: point the load probe at a
 # fixture file instead of /proc/loadavg (calibration-gate.sh semantics).
 LOADAVG_FILE="${BENCH_GATE_LOADAVG_FILE:-/proc/loadavg}"
+# Fault-injection hook for the fixture tests: point the rename guards at a
+# planted temp source tree instead of the repo (guards never mutate and never
+# depend on live tracked files for their own tests).
+GUARD_ROOT="${BENCH_GATE_GUARD_ROOT:-}"
 
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -224,6 +228,91 @@ if [[ -n "$BENCH_OVERRIDE" || -n "$DIR_OVERRIDE" ]]; then
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# guard_root resolves the source tree the rename guards grep: the repo, or
+# the fixture-injection root.
+guard_root() {
+	printf '%s' "${GUARD_ROOT:-$REPO_ROOT}"
+}
+
+# gate_set_guard fails loudly when a GATE_SETS entry's regex would match zero
+# `func Benchmark` declarations in its package: a silently renamed benchmark
+# empties the gate set, and an empty gate compares nothing and passes forever.
+# Sub-benchmark paths (after '/') and '$' anchors never appear in func
+# declarations, so the top-level name is what gets grepped.
+gate_set_guard() {
+	local root
+	root="$(guard_root)"
+
+	local failed=0 set dir bench alt name names pattern
+	for set in "${GATE_SETS[@]}"; do
+		dir="${set%%::*}"
+		bench="${set#*::}"
+		bench="${bench%%::*}" # drop a ::benchtime::count suffix
+
+		names=()
+		IFS='|' read -ra alts <<<"$bench"
+		for alt in "${alts[@]}"; do
+			name="${alt%\$}"   # drop the $ anchor
+			name="${name%%/*}" # drop the sub-benchmark path
+			[[ -n "$name" ]] && names+=("$name")
+		done
+
+		[[ ${#names[@]} -eq 0 ]] && continue
+
+	_pattern_join() {
+		local joined n
+		for n in "${names[@]}"; do
+			joined="${joined:+$joined|}$n"
+		done
+		printf '%s' "$joined"
+	}
+
+		pattern="func ($(_pattern_join))\\("
+
+		if ! grep -rEq -- "$pattern" "$root/$dir" --include='*_test.go' 2>/dev/null; then
+			echo "GATE SET GUARD FAILED — no 'func Benchmark' under $dir matches gate regex '$bench'"
+			echo "  A renamed benchmark silently empties the gate set (the gate would compare"
+			echo "  nothing and pass forever). Fix GATE_SETS in scripts/benchmark-regression.sh."
+			failed=1
+		fi
+	done
+
+	return "$failed"
+}
+
+# noise_target_guard asserts the noise gate's target still exists in the
+# sources: the cqrs-bench 'run' subcommand, the backend name in the factory
+# switch, and the profile name in benchkit. A rename would otherwise surface
+# later as an opaque 'cqrs-bench run exited non-zero'.
+noise_target_guard() {
+	local root
+	root="$(guard_root)"
+
+	local failed=0
+
+	if ! grep -q -- '"run"' "$root/cmd/cqrs-bench/main.go" 2>/dev/null; then
+		echo "NOISE TARGET GUARD FAILED — cqrs-bench 'run' subcommand not found in cmd/cqrs-bench/main.go"
+		failed=1
+	fi
+
+	if ! grep -rEq -- "\"$NOISE_BACKEND\"" "$root/cmd/cqrs-bench" --include='*.go' 2>/dev/null; then
+		echo "NOISE TARGET GUARD FAILED — backend '$NOISE_BACKEND' not found in cmd/cqrs-bench sources"
+		failed=1
+	fi
+
+	if ! grep -rEq -- "\"$NOISE_PROFILE\"" "$root/benchkit" --include='*.go' 2>/dev/null; then
+		echo "NOISE TARGET GUARD FAILED — profile '$NOISE_PROFILE' not found in benchkit sources"
+		failed=1
+	fi
+
+	if [[ "$failed" == 1 ]]; then
+		echo "  The noise benchmark targets these names; a rename must update the NOISE_*"
+		echo "  defaults in scripts/benchmark-regression.sh in the same change."
+	fi
+
+	return "$failed"
+}
 
 # load_gate aborts before any benchmarking when the machine is already
 # oversubscribed (calibration-gate.sh v2 rule: load1 AND load5 must sit
@@ -387,7 +476,20 @@ current_file=$(mktemp)
 noise_result=""
 trap 'rm -f "$current_file" ${noise_result:+"$noise_result" "${noise_result}.json"}' EXIT
 
-# Load gate first: refusing loud machines BEFORE benching saves the full
+# Rename guards FIRST — pure greps, the cheapest possible failure point. A
+# renamed gate benchmark or noise target must fail with an actionable message
+# here, not as a confusing empty-pass or opaque non-zero exit after minutes of
+# benchmarking. --current compare-only mode skips them: those benchmarks and
+# artifacts were produced by an earlier invocation.
+if [[ -z "$CURRENT_INPUT" ]] && ! gate_set_guard; then
+	exit 1
+fi
+
+if [[ "$SKIP_NOISE_GATE" == 0 && (-z "$CURRENT_INPUT" || "$NOISE_ONLY" == 1) ]] && ! noise_target_guard; then
+	exit 1
+fi
+
+# Load gate next: refusing loud machines BEFORE benching saves the full
 # gate run on a box whose numbers would be worthless anyway. Skipped in
 # --current compare-only mode — those benchmarks already ran elsewhere —
 # but --noise-only always benches, so it always pays the load gate.

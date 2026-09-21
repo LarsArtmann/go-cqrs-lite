@@ -98,6 +98,8 @@ hatch; scalar knobs compose on top of it.
 #### Production options (SQLite / Turso)
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 // SQLite with production optimizations (WAL + synchronous=NORMAL are default)
 b, _ := sqlite.New("app.db",
     sqlite.WithPragmas(
@@ -142,6 +144,8 @@ Multi-DB split (SQLite, Turso, Postgres, MySQL) — isolates event writes from
 read-model scans by routing each concern to a separate database:
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 b, _ := sqlite.New("primary.db",
     sqlite.WithDSN(
         sqlopt.WithEventDB("events.db"),   // events + snapshots + checkpoints
@@ -204,6 +208,8 @@ to see which capabilities are set. This is the fastest way to catch missing
 wiring — each field shows ✓ (set) or ✗ (nil):
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 b, _ := sqlite.New("app.db")
 fmt.Println(b.Debug())
 // Output:
@@ -1093,6 +1099,8 @@ qryDisp.Use(middleware.QueryFlightRecorder(recorder,
 **Stack bundle integration** (lifecycle management + discovery):
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 bundle, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithFlightRecorder(recorder)))
 defer bundle.Close() // stops recorder automatically
 // Access for trigger wiring: bundle.FlightRecorder()
@@ -1199,6 +1207,8 @@ reads see the new shape, writes pass through untouched. Verified by
 `commandlifecycle/upcast_composition_test.go` (2026-09-13, plan D3).
 
 ```go
+import schema "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
 // 1. The evolved payload: ErrorCode added after old streams were persisted.
 type failedPayloadV2 struct {
     CommandType string    `json:"commandType"`
@@ -1431,6 +1441,8 @@ outer envelope codec.
 Wire a cost-based query planner into the Bundle lifecycle with one option.
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 // 1. Declare your query (Counter ADT for O(1) status counts)
 type StatusCounts struct{}
 

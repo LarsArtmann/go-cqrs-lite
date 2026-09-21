@@ -219,6 +219,8 @@ mapper := storage.AutoMapperWithTombstone[TodoView]("todos_view", "tombstoned")
 From a Bundle preset (the one-call path):
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 b, _ := sqlite.New("app.db")
 store, _ := sqlite.SQLViewModel[TodoView, TodoID](b, mapper) // ← uses bundle's DB
 mat := stack.Materialize[TodoView, TodoID]{Store: store, ...}
@@ -261,6 +263,8 @@ message), which breaks ordering for projections that need FIFO guarantees.
 The canonical pattern (see `example/taskmanager`):
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 b, _ := sqlite.New("app.db")
 defer b.Close()
 
