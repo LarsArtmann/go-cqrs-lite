@@ -7031,6 +7031,7 @@ system/func Where
 system/func WithCommandLifecycle
 system/func WithCommandSerialization
 system/func WithQuerySerialization
+system/func WithRacySave
 system/func WithSerialization
 system/func WithSnapshotStrategy
 system/interface Drainer
@@ -7188,6 +7189,7 @@ system/var ErrDanglingEventSubscription
 system/var ErrDeciderTypeMismatch
 system/var ErrDuplicateInstanceRole
 system/var ErrDurabilityConflict
+system/var ErrEventSaveNotAtomic
 system/var ErrEventStoreMissing
 system/var ErrJournalMissing
 system/var ErrNoDecider
@@ -7198,6 +7200,7 @@ system/var ErrNotSnapshotBackend
 system/var ErrNotStreamLogBackend
 system/var ErrQueryResultMismatch
 system/var ErrQueryTypeMismatch
+system/var ErrRacySaveRefused
 system/var ErrSeekableJournalMissing
 system/var ErrShutdownDependencyInvalid
 system/var ErrSystemStopped

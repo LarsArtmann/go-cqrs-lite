@@ -832,6 +832,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       revive: Layer-1 inference via compile-time codegen, visible+auditable ·
       hybrid), owner ruling, ADR-0141, AGENTS.md Goal sentence amended to the
       ruled meaning. The Goal is undefinable at 100% until this is ruled.
+      **G-T01 DELIVERED 2026-09-21:**
+      [`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md)
+      (R01 Infer coverage inventory · R02 sanctioned-surface coverage matrix ·
+      R03 consumer shapes · 3 options + hybrid recommendation · per-outcome
+      XS session script; ruling lands as **ADR-0146** — the ADR-0141 slot this
+      row named was taken by temporal cells). REMAINING: G-T02 owner ruling
+      (+ G-T03 one-pager if revive/hybrid).
       — G-T01/G-T02/G-T03 _(Effort: S memo + XS ruling; M if revive)_
 - [x] **Auto-projection completion** — Evolution-fold-inheritance coverage
       audit (which declaration shapes inherit vs hand-wire; close the top

@@ -19,11 +19,12 @@
 //     metaengine.DurabilityTier). This path is only reached for third-party
 //     engines that implement Transactional but not AtomicAppender.
 //
-//  3. Neither — RACY. A bare check-then-append with no atomicity between
-//     the two steps: two concurrent writers can both pass the version check
-//     and both append, corrupting the version sequence. This fallback exists
-//     so minimal third-party engines still function single-threaded; do NOT
-//     rely on it under concurrency.
+//  3. Neither — REFUSED. The bare check-then-append fallback is racy: two
+//     concurrent writers can both pass the version check and both append,
+//     corrupting the version sequence. Save fails closed with
+//     [ErrRacySaveRefused]; [WithRacySave] opts in for a deliberately
+//     single-threaded backend, and system.New rejects such engines for the
+//     source-of-truth role at construction ([ErrEventSaveNotAtomic]).
 //
 // Consumers reasoning about crash windows should therefore confirm their
 // engine is an AtomicAppender (all shipped engines are) — then Save is

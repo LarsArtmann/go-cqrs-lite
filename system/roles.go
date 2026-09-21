@@ -108,6 +108,19 @@ func wireSourceOfTruth(
 		return fmt.Errorf("%w: engine %q", ErrNotStreamLogBackend, engineName)
 	}
 
+	// Fail closed on racy event saves: an engine with neither atomic append
+	// nor transactions cannot enforce optimistic concurrency, and concurrent
+	// writers would corrupt the version sequence silently. The racy fallback
+	// stays reachable only through direct NewEventAdapter use with WithRacySave.
+	if _, atomic := backend.(metaengine.AtomicAppender); !atomic {
+		if _, tx := backend.(metaengine.Transactional); !tx {
+			return fmt.Errorf(
+				"%w: engine %q implements neither metaengine.AtomicAppender nor metaengine.Transactional — concurrent event saves would corrupt the version sequence; have the engine implement one of the two capabilities or pick an atomic engine",
+				ErrEventSaveNotAtomic, engineName,
+			)
+		}
+	}
+
 	// Auto-detect serialization: Memory stores pointers directly; all
 	// other engines need JSON envelope serialization.
 	serialize := engineNeedsSerialization(deployment, engineName)
