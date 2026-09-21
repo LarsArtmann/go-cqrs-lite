@@ -172,6 +172,13 @@ GOWORK=off go test ./...
 - `TestGoal_OperatorSwapsDriverByConfig` — the sqlite→postgres swap via
   `CQRS_*` env overrides, plus all three drivers registered.
 - `TestGoal_UnknownDriverFailsLoud` — typo'd drivers never silently boot.
+- `TestDocs_ReadmeEvolutionFence` — the README fence above is compile-gated;
+  it cannot drift from the API silently.
+- `TestDocs_CoeffectGate_DanglingSubscriptionFailsLoud` — the `Events`
+  declaration arms the coeffect gate; a typo'd subscription fails loudly.
+- `TestDocs_AsyncAPIExport` — the declared commands/events/queries export an
+  AsyncAPI 3.0 document (`catalog/asyncapi`): docs generate themselves, there
+  is no second source of truth.
 
 ## Related
 

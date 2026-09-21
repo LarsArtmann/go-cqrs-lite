@@ -3317,6 +3317,7 @@ metaengine/method ApplyIdempotent
 metaengine/method ApplyRecord
 metaengine/method Avg
 metaengine/method Backfill
+metaengine/method BackfillPlannedTables
 metaengine/method CatchUpEngine
 metaengine/method CatchUpSnapshot
 metaengine/method CellVersioningEnabled
@@ -3712,6 +3713,10 @@ metaengine/mysqlengine/method ResetEngine
 metaengine/mysqlengine/method ResetEngine
 metaengine/mysqlengine/method RunInTx
 metaengine/mysqlengine/method RunInTx
+metaengine/mysqlengine/method SetAdd
+metaengine/mysqlengine/method SetAdd
+metaengine/mysqlengine/method SetContains
+metaengine/mysqlengine/method SetContains
 metaengine/mysqlengine/method StreamAppend
 metaengine/mysqlengine/method StreamAppend
 metaengine/mysqlengine/method StreamAppendExpected
@@ -3912,6 +3917,10 @@ metaengine/pgengine/method ResetEngine
 metaengine/pgengine/method ResetEngine
 metaengine/pgengine/method RunInTx
 metaengine/pgengine/method RunInTx
+metaengine/pgengine/method SetAdd
+metaengine/pgengine/method SetAdd
+metaengine/pgengine/method SetContains
+metaengine/pgengine/method SetContains
 metaengine/pgengine/method StreamAppend
 metaengine/pgengine/method StreamAppend
 metaengine/pgengine/method StreamAppendExpected
@@ -4207,6 +4216,7 @@ metaengine/struct PlanAuditEntry
 metaengine/struct PlanContext
 metaengine/struct PlanDiffResult
 metaengine/struct PlanResult
+metaengine/struct PlannedBackfillResult
 metaengine/struct PlannedColumn
 metaengine/struct PlannedIndex
 metaengine/struct PlannedTableInfo
