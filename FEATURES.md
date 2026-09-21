@@ -1396,7 +1396,12 @@ Features mentioned in project docs/planning but with **no production code yet**:
 > 96 `go.mod` files across the workspace (multi-module `go.work`; census
 > re-verified 2026-09-21 by scripted diff against the matrix — M13). External
 > modules (`go-codec`, `go-retry`, `go-idempotency`, `go-flightrecorder`) are
-> consumed from their own repos (ADR-0128). Sub-packages (catalog/asyncapi, catalog/d2, catalog/openapi, catalog/eventcatalog, catalog/docserver, catalog/schema, storage/turso/indexing, signing/multisig, storage/eventstore, storage/readmodel) share their parent's `go.mod`.
+> consumed from their own repos (ADR-0128). Four matrix rows name sub-packages
+> without their own `go.mod` (storage/sql, metaengine/adttest,
+> metaengine/enginetest, metaengine/keycodec) — they share their parent's
+> `go.mod`, as do the catalog, turso-indexing, signing/multisig, and storage
+> event/readmodel sub-packages; the `event/eventtest` row is the
+> `event/v4/eventtest` module.
 
 | Module                           | Import Path                           | Maturity                                                                                                                                                                                                                                  |
 | -------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1520,6 +1525,14 @@ Full decision record: [`docs/adr/0142-universal-storage-substrate.md`](docs/adr/
 ---
 
 ## Architecture Guarantees
+
+> **Last-verified stamps (2026-09-21):** doc-truth gates verified this session
+> (doc-check 1194 refs zero-warning, doc-links 0 broken, changelog-symbol
+> citations honest, release-script smoke 86/86, actionlint clean — see
+> [status report](docs/status/2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md)).
+> Full `#verify` (build + vet + test + race + lint + arch across all modules)
+> last green 2026-09-20 16:39 composed run; the per-module `-race` CI matrix
+> re-proves it on every push.
 
 | Guarantee              | Detail                                                                                                                                                                              |
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
