@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"time"
 )
 
 // PrintReport writes a human-readable text report for a single result.

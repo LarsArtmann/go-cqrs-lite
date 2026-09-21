@@ -12,7 +12,7 @@ import (
 //
 // The function runs the benchmark once (not b.N iterations — each run is
 // a full write+read+project workload). For multiple samples, use
-// Config.Repeat or go test -count=N.
+// [RunSuiteRepeated] or go test -count=N.
 //
 // Example:
 //
@@ -35,6 +35,53 @@ func RunSuite(b *testing.B, config Config, factory Factory) {
 	if err != nil {
 		b.Fatalf("benchkit.Run: %v", err)
 	}
+
+	reportSuiteResult(b, result)
+}
+
+// RunSuiteRepeated is the [RunSuite] variant for statistically honest
+// benchmarks: it runs the workload Config.Repeat times (minimum 2; below
+// that it delegates to the single-run [RunSuite]) and, on top of the median
+// run's metrics, reports every metric's cross-run coefficient of variation
+// as a "<metric>_cov%" custom metric. A go test -count run of these lines
+// gives benchstat both the medians AND their dispersion, so a CI gate can
+// refuse to judge a benchmark whose CoV says the machine was too loud.
+// Noisy metrics (CoV >= [VariationThreshold]) are also surfaced via b.Log
+// for -v runs.
+func RunSuiteRepeated(b *testing.B, config Config, factory Factory) {
+	b.Helper()
+
+	if config.Repeat < 2 {
+		RunSuite(b, config, factory)
+
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(b.Context(), 30*time.Minute)
+	defer cancel()
+
+	repeated, err := RunRepeated(ctx, config, factory)
+	if err != nil {
+		b.Fatalf("benchkit.RunRepeated: %v", err)
+	}
+
+	reportSuiteResult(b, repeated.Median)
+
+	for _, v := range repeated.Median.MetricVariation {
+		b.ReportMetric(v.CoV*100, v.Name+"_cov%")
+
+		if !v.Reliable {
+			b.Logf("NOISY metric %s: CoV=%.1f%% >= %.0f%% (not decision-grade at %d runs)",
+				v.Name, v.CoV*100, VariationThreshold*100, len(repeated.Runs))
+		}
+	}
+}
+
+// reportSuiteResult surfaces a Result's key metrics through testing.B's
+// custom-metric channel so `go test -bench` output carries them and
+// benchstat can consume the result directly.
+func reportSuiteResult(b *testing.B, result *Result) {
+	b.Helper()
 
 	b.ReportMetric(result.WriteThroughput, "events/sec")
 	b.ReportMetric(float64(result.WriteLatency.P50.Nanoseconds()), "ns/write-p50")

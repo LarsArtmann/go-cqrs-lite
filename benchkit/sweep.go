@@ -20,6 +20,10 @@ type SweepResult struct {
 // to a fresh copy of base before each run. Returns one SweepResult per value,
 // in the same order as values. Failed runs have a non-empty Result.Error.
 //
+// base.Repeat is honored per data point: with Repeat > 1 each point is the
+// median of its own repeats (Result.RepeatCount/RepeatCoV carry the
+// dispersion) so a sweep can judge its own reliability.
+//
 // For GOMAXPROCS sweeps, the modifier must call runtime.GOMAXPROCS and the
 // caller is responsible for restoring the original value (or use
 // GOMAXPROCSSweep which handles this automatically).
@@ -121,12 +125,17 @@ func StreamLengthSweep(
 }
 
 // PrintSweep writes a scaling-sweep comparison table with evidence-grade columns.
+// When the sweep ran with Config.Repeat > 1 (each data point internally
+// repeated), a CoV column shows the cross-run throughput coefficient of
+// variation per point — a sweep number whose CoV is high is a coin flip,
+// not a scaling verdict.
 func PrintSweep(w io.Writer, results []SweepResult) {
 	if len(results) == 0 {
 		return
 	}
 
 	param := results[0].Parameter
+	withCoV := sweepHasRepeats(results)
 
 	fmt.Fprintf(w, "\n%s Sweep\n", TitleCase(param))
 	fmt.Fprintln(w, strings.Repeat("=", 100))
@@ -135,6 +144,10 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 		"%-10s %10s %10s %10s %10s %10s %8s %8s",
 		param, "WriteP50", "WriteP99", "LoadP50", "GCMaxPau", "Allocs/op", "WrtAmp", "Heap",
 	)
+	if withCoV {
+		header += "     CoV"
+	}
+
 	fmt.Fprintln(w, header)
 	fmt.Fprintln(w, strings.Repeat("-", len(header)))
 
@@ -163,7 +176,7 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 		}
 
 		fmt.Fprintf(
-			w, "%-10d %10s %10s %10s %10s %10s %8s %8s\n",
+			w, "%-10d %10s %10s %10s %10s %10s %8s %8s",
 			sweepResult.Value,
 			roundDuration(r.WriteLatency.P50),
 			roundDuration(r.WriteLatency.P99),
@@ -173,9 +186,36 @@ func PrintSweep(w io.Writer, results []SweepResult) {
 			wrtAmp,
 			formatBytes(r.Memory.After),
 		)
+
+		if withCoV {
+			fmt.Fprintf(w, " %7s", fmtCoVPercent(r.RepeatCoV))
+		}
+
+		fmt.Fprintln(w)
 	}
 
 	fmt.Fprintln(w)
+}
+
+// sweepHasRepeats reports whether any sweep point carries repeat dispersion.
+func sweepHasRepeats(results []SweepResult) bool {
+	for _, sr := range results {
+		if sr.Result != nil && sr.Result.RepeatCount > 1 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// fmtCoVPercent renders a coefficient of variation as a percent string,
+// "-" when there is no dispersion data (single-run point).
+func fmtCoVPercent(cov float64) string {
+	if cov <= 0 {
+		return "-"
+	}
+
+	return fmt.Sprintf("%.1f%%", cov*100)
 }
 
 // WriteSweepJSON serializes sweep results as a JSON array.
