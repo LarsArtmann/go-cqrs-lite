@@ -22,10 +22,11 @@ func TestWithDefaultLimit_CeilingsUnlimitedScans(t *testing.T) {
 		mem := metaengine.NewMemoryEngine()
 		t.Cleanup(func() { _ = mem.Close() })
 
-		args := append([]any{mem}, opts...)
+		args := make([]any, 0, len(opts)+1)
+		args = append(args, opts...)
 		args = append(args, findTaskQuery())
 
-		store, err := metaengine.Plan(args...)
+		store, err := metaengine.Plan([]metaengine.Engine{mem}, args...)
 		if err != nil {
 			t.Fatalf("Plan: %v", err)
 		}
