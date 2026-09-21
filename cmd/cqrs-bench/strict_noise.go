@@ -40,5 +40,7 @@ func strictNoiseGate(strict bool, repeated *benchkit.RepeatedResult) string {
 
 	return fmt.Sprintf(
 		"--strict: NOISY headline metric(s): %s — medians from %d runs are not decision-grade; re-run on a quieter machine or raise --repeat",
-		strings.Join(noisy, ", "), len(repeated.Runs))
+		strings.Join(noisy, ", "),
+		len(repeated.Runs),
+	)
 }

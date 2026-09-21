@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime/pprof"
 	"strings"
 	"time"
 
@@ -109,33 +108,7 @@ func main() {
 // ── run subcommand ──
 
 func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
-	if flags.CPUProfile != "" {
-		f, err := os.Create(flags.CPUProfile)
-		if err != nil {
-			fatalf("create cpu profile: %v", err)
-		}
-
-		defer f.Close()
-
-		if err := pprof.StartCPUProfile(f); err != nil {
-			fatalf("start cpu profile: %v", err)
-		}
-
-		defer pprof.StopCPUProfile()
-	}
-
-	if flags.MemProfile != "" {
-		defer func() {
-			f, err := os.Create(flags.MemProfile)
-			if err != nil {
-				fatalf("create mem profile: %v", err)
-			}
-
-			defer f.Close()
-
-			_ = pprof.WriteHeapProfile(f)
-		}()
-	}
+	defer startProfiling(flags.CPUProfile, flags.MemProfile)()
 
 	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 

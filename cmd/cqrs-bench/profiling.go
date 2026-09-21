@@ -6,26 +6,30 @@ import (
 )
 
 // startProfiling wires the --cpuprofile/--memprofile flags onto a handler:
-// CPU profiling starts immediately and stops via defer; the heap profile is
-// written in a defer so it captures the heap after the benchmark ran.
-func startProfiling(cpuProfile, memProfile string) {
+// CPU profiling starts NOW and the returned stop func (intended for
+// `defer startProfiling(...)()`) stops it and writes the heap profile when
+// the handler returns — matching the defers this extracted.
+func startProfiling(cpuProfile, memProfile string) func() {
+	var teardown []func()
+
 	if cpuProfile != "" {
 		f, err := os.Create(cpuProfile)
 		if err != nil {
 			fatalf("create cpu profile: %v", err)
 		}
 
-		defer f.Close()
-
 		if err := pprof.StartCPUProfile(f); err != nil {
 			fatalf("start cpu profile: %v", err)
 		}
 
-		defer pprof.StopCPUProfile()
+		teardown = append(teardown,
+			func() { _ = f.Close() },
+			pprof.StopCPUProfile,
+		)
 	}
 
 	if memProfile != "" {
-		defer func() {
+		teardown = append(teardown, func() {
 			f, err := os.Create(memProfile)
 			if err != nil {
 				fatalf("create mem profile: %v", err)
@@ -34,6 +38,13 @@ func startProfiling(cpuProfile, memProfile string) {
 			defer f.Close()
 
 			_ = pprof.WriteHeapProfile(f)
-		}()
+		})
+	}
+
+	return func() {
+		// Reverse order — the same LIFO a defer stack would give.
+		for i := len(teardown) - 1; i >= 0; i-- {
+			teardown[i]()
+		}
 	}
 }
