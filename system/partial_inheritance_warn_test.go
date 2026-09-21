@@ -72,8 +72,6 @@ func captureSlog(t *testing.T) *bytes.Buffer {
 // event types warns loudly, naming the missing types and the ghost-row
 // consequence. Behavior is unchanged (the samples still win).
 func TestSystem_PartialSampleProjectionWarns(t *testing.T) {
-	t.Parallel()
-
 	buf := captureSlog(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -100,8 +98,6 @@ func TestSystem_PartialSampleProjectionWarns(t *testing.T) {
 // TestSystem_CoveringSamplesDoNotWarn pins the quiet side: samples covering
 // every evolution event type (or no matching evolution at all) stay silent.
 func TestSystem_CoveringSamplesDoNotWarn(t *testing.T) {
-	t.Parallel()
-
 	buf := captureSlog(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

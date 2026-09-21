@@ -95,6 +95,11 @@ func Domain() system.DomainConfig {
 	deleted := system.OnEvolution(tasks, string(evtTaskDeleted), TaskDeleted{})
 
 	return system.DomainConfig{
+		// Events declares the journal's complete event universe — the
+		// coeffect gate (system v4.8): consuming an undeclared type is a
+		// hard error (typo'd subscription), a declared type nothing
+		// consumes is an advisory.
+		Events: []event.Type{evtTaskCreated, evtTaskUpdated, evtTaskDeleted},
 		Evolutions: []system.EvolutionSpec{deleted.Done()},
 		Projections: []system.ProjectionDeclaration{
 			system.Lookup[TaskView](tasksCollection).Done(),
