@@ -24,7 +24,14 @@ GOWORK=off go run .
 
 `cqrs.yaml` ships with SQLite at `goal.db`. After the five-line story runs
 (two tasks created, one completed, one deleted), the binary prints the view,
-the plan, and the Doctor report shown below.
+the plan, and the Doctor report shown below. `go run .` creates `goal.db`
+in the module directory (gitignored); reset the demo with
+`trash goal.db && GOWORK=off go run .` — never `rm`.
+
+> The Doctor/Explain numbers below are **machine-specific** — ns figures
+> come from the calibrated cost model and live probes of the machine that
+> ran the demo, so yours will differ. The shape of the report is what the
+> story is about, not the exact numbers.
 
 ## Swap sqlite → postgres Without Touching the App
 
@@ -134,6 +141,13 @@ deleted := system.OnEvolution(tasks, "task.deleted", TaskDeleted{})
 system.Lookup[TaskView]("tasks").Done(),
 system.QuerySet[TaskView]("open_tasks").Filterable("status").Done(),
 ```
+
+The app also declares its event universe — `Events: [task.created,
+task.updated, task.deleted]` in `Domain()` — arming the coeffect gate
+(system v4.8): a projection subscribing to an undeclared type fails
+composition loudly (`TestDocs_CoeffectGate_DanglingSubscriptionFailsLoud`
+demos the typo case). This fence is compile-gated by
+`docs_compile_test.go`; it cannot drift from the API silently.
 
 `Created`/`Updated`/`Deleted` suffixes classify the fold kind — create,
 full-row update, and tombstone-remove (ADR-0114: deletion is a domain

@@ -180,11 +180,15 @@ TL;DR rules (too hot to be one click away):
 
 1. Create the directory with a `go.mod` (module path: `github.com/larsartmann/go-cqrs-lite/<name>/v4`)
 2. Add the module path to `go.work`
-3. Add the module path to `testModules` in `flake.nix` (feeds both `#test` and `#lint`)
+3. Add the module path to `testModules` in `flake.nix` (feeds both `#test` and `#lint`). **Examples are NOT test modules**: register them under `examplePaths` instead — `examplePaths` is the registration point for examples (build-only in CI), never `testModules`
 4. Add the module path to `cmd/api-stability/main.go` `modules` slice
 5. Run `go build ./...` to verify compilation
 6. Run `cd cmd/api-stability && GOWORK=off go run . --update` to generate golden
 7. Run the meta-tests: `cd cmd/api-stability && GOWORK=off go test -run TestEvery .`
+8. Register the module in the three gates that otherwise only fail during an expensive `#verify` (all three were hit undocumented by the 2026-09-19 goal-shaped-app session):
+   - `scripts/check-module-layers.sh` — add the module to its tier list (`LAYER=`) and dependency budget (`DEP_BUDGET=` with a one-line rationale)
+   - `cmd/api-stability/main_test.go` — examples/tooling modules need entries in the exclusion maps (four maps recording WHY a module is excluded from the golden-compat scan)
+   - `cmd/cqrs-lint/pkg/analyzer/module_catalog_test.go` — the module catalog meta-test requires every workspace module to be known to the linter
 
 ### Change an Exported Symbol
 
