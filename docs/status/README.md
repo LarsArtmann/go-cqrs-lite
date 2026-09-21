@@ -26,6 +26,7 @@ preserved for audit trail and progress tracking.
 | [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md) | toolchain incident + guarded re-arm |
 | [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html) | cross-session HTML snapshot |
 | [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md) | all rulings encoded; storm-waiting |
+| [2026-09-21 benchkit polish tail](2026-09-21_15-57_benchkit-polish-tail-execution.md) | 16/17 slices shipped; rename guards + litter fix; self-review |
 
 **Fully-resolved reports live in [`archived/`](archived/)** (consolidated
 2026-08-29 from the older `archive/` + `archived/` split). A report is moved

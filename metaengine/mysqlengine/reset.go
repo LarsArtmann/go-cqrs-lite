@@ -16,6 +16,7 @@ import (
 // (ADR-0143) — the replay source, never derived data.
 var resetBaseTables = []string{
 	"meta_map",
+	"meta_set",
 	"meta_counter",
 	"meta_graph_edges",
 	"meta_vector",

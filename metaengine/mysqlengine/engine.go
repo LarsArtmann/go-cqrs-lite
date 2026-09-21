@@ -111,6 +111,11 @@ func (e *mysqlEngine) init() error {
 			value BIGINT NOT NULL DEFAULT 0,
 			PRIMARY KEY (collection, ` + "`key`" + `)
 		)`,
+		`CREATE TABLE IF NOT EXISTS meta_set (
+			collection VARCHAR(255) NOT NULL,
+			` + "`key`" + ` VARCHAR(255) NOT NULL,
+			PRIMARY KEY (collection, ` + "`key`" + `)
+		)`,
 		`CREATE TABLE IF NOT EXISTS meta_stream_log (
 			seq BIGINT AUTO_INCREMENT PRIMARY KEY,
 			collection VARCHAR(255) NOT NULL,
@@ -289,6 +294,7 @@ func (e *mysqlEngine) inTx(ctx context.Context, fn func(metaengine.SQLExec) erro
 var (
 	_ metaengine.Engine               = (*mysqlEngine)(nil)
 	_ metaengine.MapBackend           = (*mysqlEngine)(nil)
+	_ metaengine.SetBackend           = (*mysqlEngine)(nil)
 	_ metaengine.CounterBackend       = (*mysqlEngine)(nil)
 	_ metaengine.ScanBackend          = (*mysqlEngine)(nil)
 	_ metaengine.PushdownScan         = (*mysqlEngine)(nil)

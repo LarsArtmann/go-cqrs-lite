@@ -102,6 +102,44 @@ func (e *mysqlEngine) MapDelete(ctx context.Context, col string, key any) error 
 	return nil
 }
 
+// --- SetBackend ---
+
+// SetAdd records membership. Re-adding an existing member is a no-op
+// (INSERT IGNORE), matching sqlite's INSERT OR IGNORE and pg's ON CONFLICT
+// DO NOTHING.
+func (e *mysqlEngine) SetAdd(ctx context.Context, col string, key any) error {
+	_, err := e.conn(ctx).ExecContext(
+		ctx,
+		`INSERT IGNORE INTO meta_set (collection, `+keyCol+`) VALUES (?, ?)`,
+		col, fmt.Sprint(key),
+	)
+	if err != nil {
+		return fmt.Errorf("mysqlengine.SetAdd: %w", err)
+	}
+
+	return nil
+}
+
+// SetContains reports membership; a missing row is (false, nil).
+func (e *mysqlEngine) SetContains(ctx context.Context, col string, key any) (bool, error) {
+	var one int
+
+	err := e.conn(ctx).QueryRowContext(
+		ctx,
+		`SELECT 1 FROM meta_set WHERE collection = ? AND `+keyCol+` = ?`,
+		col, fmt.Sprint(key),
+	).Scan(&one)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("mysqlengine.SetContains: %w", err)
+	}
+
+	return true, nil
+}
+
 // --- CounterBackend ---
 
 func (e *mysqlEngine) CounterIncrement(
