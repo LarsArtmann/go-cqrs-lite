@@ -32,8 +32,9 @@ type BenchFlags struct {
 	Progress       cmdguard.Duration `default:"5s"     flag:"progress"                 help:"Progress update interval to stderr (0 disables)"`
 	Quiet          bool              `default:"false"  flag:"quiet"                    help:"Suppress all progress output (stderr). Result only. Implies --progress=0"`
 	Repeat         int               `default:"0"      flag:"repeat"                   help:"Run N times, report median (reduces ~20% variance)"`
-	Strict         bool              `default:"false"  flag:"strict"                   help:"Fail if any phase is skipped (missing bundle component or config flag). For CI gates."`
+	Strict         bool              `default:"false"  flag:"strict"                    help:"Fail if any phase is skipped (missing bundle component or config flag). With --repeat N: also fail when a headline metric's cross-run CoV is noisy. For CI gates."`
 	Interpolated   bool              `default:"false"  flag:"interpolated-percentiles" help:"Interpolate P50-P99 between samples (smoother percentiles for small-n runs; default nearest-rank)"`
+	ReservoirSize  int               `default:"0"      flag:"reservoir-size"            help:"Latency samples each phase retains once the workload exceeds it (default 10000). Raise for 10M+ event profiles; Min/Max/Mean stay exact at any size"`
 }
 
 // RunFlags extends BenchFlags with run-specific flags.
