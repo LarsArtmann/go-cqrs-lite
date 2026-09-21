@@ -267,10 +267,7 @@ func warnPartialInheritance(
 		return
 	}
 
-	missing := make([]string, 0, len(declared))
-	for _, e := range slices.Sorted(maps.Keys(declared)) {
-		missing = append(missing, e)
-	}
+	missing := append([]string(nil), slices.Sorted(maps.Keys(declared))...)
 
 	slog.Warn(
 		"system: projection samples do not cover its matching evolution; "+

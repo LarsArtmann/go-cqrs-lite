@@ -20,5 +20,15 @@ scripts/quiet-window-run.sh --deadline 10800 --attempts 2 \
 	--log "$LOG" \
 	-- ./scripts/benchmark-regression.sh >>"$LOG" 2>&1
 rc=$?
+
+# Weekly load-sweep leg (owner ruling 2026-09-21): Sundays only — timing
+# tests under deliberate CPU soakers. Never fails the nightly (its flakes
+# are findings, not gate breaches); runs after the gate so the two never
+# share a measurement window.
+if [ "$(date -u +%u)" = "7" ]; then
+	echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] weekly load-sweep leg (Sundays)" >>"$LOG"
+	scripts/load-sweep.sh >>"$LOG" 2>&1 || true
+fi
+
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] nightly bench exit=$rc" >>"$LOG"
 exit "$rc"

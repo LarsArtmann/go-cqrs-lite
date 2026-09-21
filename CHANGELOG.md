@@ -8,6 +8,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **metaengine: ADTSet capability parity on Postgres and MySQL (G-T13).**
+  `pgengine` and `mysqlengine` now implement `metaengine.SetBackend` (`SetAdd`
+  via `ON CONFLICT DO NOTHING` / `INSERT IGNORE`, `SetContains` via an indexed
+  PK read) backed by a new `meta_set` table created at engine init and cleared
+  by `ResetEngine`. Both profiles already declared `ADTSet` — this fixes the
+  declared-vs-implemented gap that made every Set-membership read fail at
+  runtime on those engines and red the capability-conformance audit; a routed
+  Set query now works. Parity with the memory/sqlite set semantics is asserted
+  by the adttest matrix legs that activate automatically per backend
+  (`TestPostgresADTMatrix/Set/postgres` green against a live postgres via
+  `#integration-pg`; the MySQL VM leg is pending a quiet window — VM boot
+  raced twice on 2026-09-21).
+- **metaengine: `Store.BackfillPlannedTables(ctx, batchSize)` — the batch
+  opt-in planned-table backfill (G-T12).** Runs
+  `BackfillPlannedCollection` for every registered planned collection on its
+  assigned engine: idempotent, keyset-paged, KeyScanBackend+MapBackend-gated.
+  Engines without the capability are reported `Skipped` (never silent) and do
+  not fail the batch; per-collection outcomes land in a new
+  `PlannedBackfillResult`. Doctor's "--- Planned tables ---" section now
+  renders the backfill state per table (`rows=N engine=…` / `skipped` /
+  `never run`), making the no-backfill contract and its opt-in visible to
+  operators. Register-after-data proven on sqlite (pre-registration
+  `meta_map` rows become visible to the planned-table scan after backfill).
+- **system: warn-first guard for partial-sample projection declarations
+  (G-T10).** When a `Lookup`/`QuerySet` declares its own `.On` samples AND a
+  matching Evolution exists whose event types the samples do not cover, New
+  logs a warning naming the projection, the evolution, and the uncovered
+  event types — a dropped `*Deleted` tombstone silently leaves ghost rows in
+  that projection today. Behavior is unchanged (samples still win); the
+  warning is the v4.x half of the fix. Full semantics pinned by tests.
+- **system: tombstone + rebirth semantics pinned through the inherited-fold
+  path (G-T11).** New tests prove that through evolution inheritance (zero
+  projection-local samples) a `*Deleted` convention event removes the
+  read-model row (`metaengine.ErrNotFound`, never a ghost row) and a later
+  `*Created` for the same key rebirths it with the fresh payload. Audit +
+  evidence: `docs/planning/2026-09-21_evolution-fold-inheritance-coverage-audit.md`
+  (G-T09).
+- **example/goal-shaped-app: coeffect gate + docs-self-generation demo
+  (polish tail).** `Domain()` now declares its event universe
+  (`DomainConfig.Events`), arming the system v4.8 coeffect gate; new tests
+  demo a typo'd subscription failing composition loudly and export the
+  declared commands/events/queries as an AsyncAPI 3.0 document via
+  `catalog/asyncapi`. The README's Evolution fence is compile-gated by
+  `docs_compile_test.go`, and the Doctor output carries a machine-specific
+  ns-figures caveat plus a `goal.db` reset note (`trash`, never `rm`).
+
 - **benchkit/cqrs-bench: statistical-rigor polish tail (2026-09-19 harvest).**
   Reports now render the exact `Min` next to `Max` on every latency line and
   the start load average in the env line (`Load1=…`) plus a `Load1 (start)`

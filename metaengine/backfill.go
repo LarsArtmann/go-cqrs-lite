@@ -118,7 +118,10 @@ type PlannedBackfillResult struct {
 // error joins every per-collection failure; individual results are still
 // returned so callers can see exactly which collections copied, skipped, or
 // failed.
-func (s *Store) BackfillPlannedTables(ctx context.Context, batchSize int) ([]PlannedBackfillResult, error) {
+func (s *Store) BackfillPlannedTables(
+	ctx context.Context,
+	batchSize int,
+) ([]PlannedBackfillResult, error) {
 	s.mu.RLock()
 	var plans []LayoutPlan
 

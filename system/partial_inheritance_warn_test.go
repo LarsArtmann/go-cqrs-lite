@@ -91,7 +91,10 @@ func TestSystem_PartialSampleProjectionWarns(t *testing.T) {
 	if !strings.Contains(out, "partial_views") ||
 		!strings.Contains(out, "partial.deleted") ||
 		!strings.Contains(out, "ghost rows") {
-		t.Fatalf("expected partial-inheritance warning naming projection and missing tombstone, got:\n%s", out)
+		t.Fatalf(
+			"expected partial-inheritance warning naming projection and missing tombstone, got:\n%s",
+			out,
+		)
 	}
 }
 

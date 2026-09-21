@@ -22,7 +22,10 @@ func TestDocs_AsyncAPIExport(t *testing.T) {
 
 	r.AddEvent("tasks", catalog.Message{Name: "task.created", Summary: "A task was created"})
 	r.AddEvent("tasks", catalog.Message{Name: "task.updated", Summary: "A task was updated"})
-	r.AddEvent("tasks", catalog.Message{Name: "task.deleted", Summary: "A task was deleted (ADR-0114 tombstone)"})
+	r.AddEvent(
+		"tasks",
+		catalog.Message{Name: "task.deleted", Summary: "A task was deleted (ADR-0114 tombstone)"},
+	)
 
 	r.AddQuery("tasks", catalog.Message{Name: "task.get", Summary: "Fetch one task view"})
 	r.AddQuery("tasks", catalog.Message{Name: "task.open", Summary: "List open task views"})

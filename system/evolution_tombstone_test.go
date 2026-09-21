@@ -187,7 +187,12 @@ func awaitTombView(ctx context.Context, sys *system.System, key string,
 // awaitTombPhase polls until the view's presence matches want (found/gone).
 // ok reports whether the phase was reached before the deadline; view is the
 // last observed row when want=true.
-func awaitTombPhase(ctx context.Context, sys *system.System, key string, want bool) (*EvoTombView, bool) {
+func awaitTombPhase(
+	ctx context.Context,
+	sys *system.System,
+	key string,
+	want bool,
+) (*EvoTombView, bool) {
 	deadline := loadScaledDeadline(5 * time.Second)
 
 	for time.Now().Before(deadline) {

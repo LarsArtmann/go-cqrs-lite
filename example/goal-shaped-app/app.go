@@ -99,7 +99,7 @@ func Domain() system.DomainConfig {
 		// coeffect gate (system v4.8): consuming an undeclared type is a
 		// hard error (typo'd subscription), a declared type nothing
 		// consumes is an advisory.
-		Events: []event.Type{evtTaskCreated, evtTaskUpdated, evtTaskDeleted},
+		Events:     []event.Type{evtTaskCreated, evtTaskUpdated, evtTaskDeleted},
 		Evolutions: []system.EvolutionSpec{deleted.Done()},
 		Projections: []system.ProjectionDeclaration{
 			system.Lookup[TaskView](tasksCollection).Done(),
