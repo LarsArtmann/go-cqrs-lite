@@ -272,5 +272,14 @@ func adoptionRules() []RuleInfo {
 			Description: "Import of deprecated transport/* module — removed at v5; migrate to go-sse, watermill bridge, or cqrs-htmx (ADR-0127)",
 			AutoFix:     false,
 		},
+		{
+			ID:          "F031",
+			Name:        "scan-without-limit",
+			Category:    "adoption",
+			Severity:    "warning",
+			Confidence:  "low",
+			Description: "Reader Scan without WithLimit silently truncates at 100 rows — pass WithLimit(n)/WithLimit(0) or set the WithDefaultLimit operator ceiling (G-T14)",
+			AutoFix:     false,
+		},
 	}
 }
