@@ -111,9 +111,14 @@ func Open[T any](dsn string, opts ...StoreOption[T]) (*Store[T], error) {
 // holding the queue tables.
 func OpenDB[T any](db *sql.DB, opts ...StoreOption[T]) (*Store[T], error) {
 	//art-dupl:accept engine scaffolding twin of queue/sqlite OpenDB; dep-isolated modules, conformance pins semantics
+	// Caller-owned DB: the pool is never re-tuned here, so the connection
+	// limits stay at their zero values (SetMaxOpenConns/SetMaxIdleConns are
+	// only called by Open, which owns its pool).
 	options := storeOptions[T]{
-		codec: queue.JSONCodec[T](),
-	} //nolint:exhaustruct_v5 // caller-owned DB: pool tuning stays with the DB owner
+		codec:        queue.JSONCodec[T](),
+		maxOpenConns: 0,
+		maxIdleConns: 0,
+	}
 	for _, opt := range opts {
 		opt(&options)
 	}
