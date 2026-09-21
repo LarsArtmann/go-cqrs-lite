@@ -17,8 +17,9 @@ and degrades silently (WAL allows multi-process writes; a second writer of a
 file-backed KV engine may corrupt).
 
 **Current reality (verified 2026-09-21):** lease semantics exist only for TASK claims,
-not storage: `queue.ClaimDue` + heartbeat + `ErrLeaseNotHeld` (`queue/store.go:24-52`,
-ADR-0134) and the `claiming/` module. Neither arbitrates engine open. There is no
+not storage: `queue.ClaimDue` + heartbeat + `ErrLeaseNotHeld` (`queue/store.go:24`,
+`:52`, `:99-101`; ADR-0134) and the `claiming/` module. Neither arbitrates engine
+open. There is no
 open-mode, advisory-lock, or marker-file option anywhere in engine construction;
 `system.EngineConfig` carries only `Driver/DSN/Pragmas/Priority/MaterializedViews`
 (`system/config_types.go:186`).
