@@ -17,6 +17,10 @@ GATE="$SCRIPT_DIR/benchmark-regression.sh"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
+# Fixture runs must never drop fake superseded-baseline archives into the
+# REAL dated series (docs/benchmarks/baselines/) — redirect the archive dir.
+export BENCH_GATE_ARCHIVE_DIR="$tmp/archives"
+
 failures=0
 check() {
 	local name="$1" expected="$2" actual="$3"
@@ -91,6 +95,14 @@ fixture "$tmp/cur6" 300 300 300
 "$GATE" --baseline "$tmp/base6" --current "$tmp/cur6" --save "$tmp/base6" >/dev/null 2>&1
 # A +200% regression must still FAIL even though --save overwrote the baseline.
 check "save does not mask a regression (compare-before-save)" 1 $?
+# The superseded baseline archives into the injected dir, never the repo's
+# dated series.
+if ls "$tmp/archives/"benchmark-baseline-*.txt >/dev/null 2>&1; then
+	echo "PASS: superseded baseline archived into the injected dir"
+else
+	echo "FAIL: superseded baseline archive missing from $tmp/archives"
+	failures=$((failures + 1))
+fi
 
 # --- 7. vanished and new benchmarks are informational only ---
 : >"$tmp/base7"

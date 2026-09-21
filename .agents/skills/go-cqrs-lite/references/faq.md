@@ -486,3 +486,31 @@ dead end. Route timers/claims/dedup to a native engine (sqlite, postgres,
 mysql, duckdb, turso, any `queue/*` engine) or a degraded Map runtime
 (memory/pebble/bbolt/badger, single-process), and keep dgraph for what it is
 excellent at: graph-shaped reads.
+
+## Benchmarking pitfalls
+
+### "Why is my P100 1000x my P99?"
+
+Nothing is wrong — `P100`/`Max` is the EXACT worst observed latency, tracked
+per operation, while `P50-P99` are estimates over a bounded reservoir sample.
+One scheduler hiccup, GC pause, or page fault lands in the max and nothing
+else does, so on an otherwise quiet workload the max can sit orders of
+magnitude above P99.
+
+Reading it honestly:
+
+- `P100` answers "what was the single worst experience?", not "what do
+  users at the 99.9th percentile see?". With ~100 operations per repeat it
+  IS essentially a single sample — do not gate on it (that is why
+  `benchkit.HeadlineMetricNames()` and the noise gate exclude tail metrics;
+  `write_p99_ns` was demoted 2026-09-20 for the same reason).
+- `Min` is the exact fastest (same per-operation tracking): `Mean/Min`
+  approximates how much scheduler wait and contention add on top of the
+  backend itself.
+- For a stabler tail signal, raise repeats (`--repeat N` + benchstat
+  confidence intervals) rather than staring at a single run's max.
+
+The write-tail ratio uses the exact max deliberately:
+`WriteTailRatio = write_max_ns / write_p50` — a tame P99 must not hide the
+one write that stalled the pipeline. See `recipes.md` §2.40 for the repeat
+and CoV workflow.

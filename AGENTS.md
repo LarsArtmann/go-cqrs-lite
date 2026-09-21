@@ -63,7 +63,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Recipe gate  | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 81/81 classified, coverage ratchet)  |
 | CSP check    | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
 | EventCat     | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
-| Bench        | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gate: median ns/op, 25% threshold — CI fails on breach)                   |
+| Bench        | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gates: load + per-metric noise via `benchkit.RunRepeated`/`MetricVariation` + median ns/op 25% — rename-guarded, CI fails on breach) |
 | CI           | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                   |
 
 Multi-module Go workspace (`go.work`) with 96 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`

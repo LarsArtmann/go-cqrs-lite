@@ -45,7 +45,9 @@ warns. `--format manifest --include-runs` serializes every repeat run;
 `--interpolated-percentiles` smooths small-n P50-P99. CI gates enforce the
 same discipline: `scripts/benchmark-regression.sh` aborts on an
 oversubscribed machine (load gate) and fails when a headline metric's CoV
-reaches the threshold (noise gate).
+reaches the threshold (noise gate), and `cqrs-bench --strict --repeat N`
+enforces the same noise check for CI consumers (`list-phases` shows which
+metrics each phase feeds).
 
 ```bash
 ./cqrs-bench run --backend sqlite --profile small --repeat 10 --format benchstat > new.txt

@@ -47,6 +47,7 @@
 > - [§2.37 Point-in-Time Reads: Versioned Cells & AsOf Routing](#237-point-in-time-reads-versioned-cells--asof-routing-adr-0141)
 > - [§2.38 Engine-Backed Timers, Queue Claims & Dedup — the ONE Substrate](#238-engine-backed-timers-queue-claims--dedup--the-one-substrate-adr-0142)
 > - [§2.39 The Goal in 5 Minutes — declare types, swap engines by config](#239-the-goal-in-5-minutes--declare-types-swap-engines-by-config-goal-shaped-app)
+> - [§2.40 Statistical Rigor: repeats, CoV, benchstat (benchkit)](#240-statistical-rigor-repeats-cov-benchstat-benchkit)
 
 ### 2.0 Bundle Presets — one-call infrastructure wiring
 
@@ -2616,3 +2617,63 @@ the update event restates the full row because convention update folds
 mirror field-by-field. Tombstone removal is the Deleted-convention fold:
 after `task.deleted`, the view is gone from both collections while the
 journal keeps the fact (ADR-0114).
+
+### 2.40 Statistical Rigor: repeats, CoV, benchstat (benchkit)
+
+A single benchmark run is a point estimate — run-to-run throughput on the
+same backend varies 20-25% on a typical dev box. Before comparing backends,
+claiming an optimization win, or gating a regression, run repeats and read
+the dispersion. `RunRepeated` returns every run, the median run annotated
+with per-metric cross-run CoV (`MetricVariation`), and the writers that make
+the data benchstat- and tooling-ready:
+
+```go
+repeated, err := benchkit.RunRepeated(ctx, benchkit.Config{
+	Profile: benchkit.ProfileSmall,
+	Repeat:  10,
+}, factory)
+if err != nil {
+	log.Fatal(err)
+}
+
+if names := repeated.NoisyMetrics(); len(names) > 0 {
+	log.Printf("NOISY (CoV >= %.0f%%), not decision-grade: %v",
+		benchkit.VariationThreshold*100, names)
+}
+
+f, err := os.Create("new.txt")
+if err != nil {
+	log.Fatal(err)
+}
+if err := benchkit.WriteBenchstatRepeated(f, repeated); err != nil {
+	log.Fatal(err)
+}
+_ = f.Close()
+```
+
+A metric flagged NOISY (CoV >= `benchkit.VariationThreshold`, 10%) is not
+decision-grade at that sample count — increase repeats, use a larger
+profile, or bench on a quieter machine. The regression gates key on
+`benchkit.HeadlineMetricNames()` (the metrics whose noise fails a gate;
+tail quantiles are deliberately excluded), and `cqrs-bench --strict
+--repeat N` enforces the same check at the CLI.
+
+Inside your own `go test -bench` suite, `RunSuiteRepeated` reports the
+median run's metrics PLUS every metric's cross-run CoV as a custom metric —
+`go test -bench` output then feeds benchstat directly, dispersion included:
+
+```go
+func BenchmarkMyBackend(b *testing.B) {
+	benchkit.RunSuiteRepeated(b, benchkit.Config{
+		Profile: benchkit.ProfileSmall,
+		Repeat:  5,
+	}, func() (*stack.Bundle, error) {
+		return memory.New()
+	})
+}
+```
+
+Run it with `go test -bench=BenchmarkMyBackend -benchtime=1x`; capture the
+output and `benchstat old.txt new.txt` reports confidence intervals. The
+CLI front-end (with load gates, manifest output, and the variation-aware
+report) is `cqrs-bench` — see SKILL.md §Benchmarking.

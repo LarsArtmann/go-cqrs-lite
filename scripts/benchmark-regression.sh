@@ -516,6 +516,11 @@ if [[ -f "$BASELINE" ]] && [[ -n "$(medians "$BASELINE")" ]]; then
 	had_baseline=true
 fi
 
+# Superseded-baseline archive dir (owner ruling 2026-09-21: dated series
+# under docs/benchmarks/baselines/). Fixture-injectable so test runs never
+# drop fake archives into the real dated series.
+ARCHIVE_DIR="${BENCH_GATE_ARCHIVE_DIR:-$REPO_ROOT/docs/benchmarks/baselines}"
+
 if [[ -n "$CURRENT_INPUT" ]]; then
 	cp "$CURRENT_INPUT" "$current_file"
 elif [[ "$NOISE_ONLY" == 1 ]]; then
@@ -627,9 +632,8 @@ fi
 # after an intentional perf change must overwrite even a "regressed" baseline.
 if [[ -n "$SAVE" ]]; then
 	if [[ -f "$SAVE" && -s "$SAVE" ]]; then
-		archive_dir="$REPO_ROOT/docs/benchmarks/baselines"
-		mkdir -p "$archive_dir"
-		archive="$archive_dir/benchmark-baseline-$(date -u +%Y%m%dT%H%M%SZ).txt"
+		mkdir -p "$ARCHIVE_DIR"
+		archive="$ARCHIVE_DIR/benchmark-baseline-$(date -u +%Y%m%dT%H%M%SZ).txt"
 		cp "$SAVE" "$archive"
 		echo "==> Superseded baseline archived to $archive (owner ruling 2026-09-21: dated series under docs/benchmarks/baselines/)"
 	fi

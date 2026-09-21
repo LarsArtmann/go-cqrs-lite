@@ -176,4 +176,21 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"type TaskView struct {\n\tID       string\n\tTitle    string\n\tStatus   string\n\tPriority int\n}\n\n",
 		trailers: "_ = evo\n_ = lookup\n_ = openTasks",
 	},
+	"### 2.40 Statistical Rigor: repeats, CoV, benchstat (benchkit) #1": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/benchkit/v4"`,
+			`"context"`,
+			`"log"`,
+			`"os"`,
+		},
+		preamble: "ctx := context.Background()\nvar factory benchkit.Factory\n",
+	},
+	"### 2.40 Statistical Rigor: repeats, CoV, benchstat (benchkit) #2": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/benchkit/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/stack/memory/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/stack/v4"`,
+			`"testing"`,
+		},
+	},
 }
