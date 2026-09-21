@@ -278,6 +278,16 @@ jobs:
         run: nix run .#check-isolation
 
     timeout-minutes: 15
+  examples-test:
+    name: Examples Test (GOWORK=off)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      - name: Build + test every example against published pins
+        run: nix run .#test-examples
+
+    timeout-minutes: 20
   cqrs-lint-self-lint:
     name: cqrs-lint Self-Lint
     runs-on: ubuntu-latest

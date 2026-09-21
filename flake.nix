@@ -292,14 +292,19 @@
           # All modules are linted.
           lintModules = testModules;
 
-          examplePaths = builtins.concatStringsSep " " [
-            "./example/getting-started/..."
-            "./example/goal-shaped-app/..."
-            "./example/metaengine-quickstart/..."
-            "./example/readme-quickstart/..."
-            "./example/scheduler-otel-status/..."
-            "./example/taskmanager/..."
+          # Example module dirs (no trailing ./... — examplePaths derives
+          # the build pattern, #test-examples iterates the dirs).
+          exampleModules = [
+            "example/getting-started"
+            "example/goal-shaped-app"
+            "example/metaengine-quickstart"
+            "example/readme-quickstart"
+            "example/scheduler-otel-status"
+            "example/taskmanager"
           ];
+
+          examplePaths = builtins.concatStringsSep " "
+            (map (m: "./${m}/...") exampleModules);
 
           allPaths = "${modulePaths} ${examplePaths}";
 
@@ -1196,6 +1201,28 @@
                 exit 1
               fi
               echo "✅ verify-ci passed (GOWORK=off per-module build+test)"
+            '';
+
+            # test-examples: run every example's test suite GOWORK=off
+            # (consumer perspective, published pins). Examples are NOT test
+            # modules — CI builds them only; this is their test leg (all six
+            # carry suites; DB-backed legs skip without their env vars).
+            test-examples = mkApp "test-examples" [ goPkg pkgs.bash pkgs.gcc ] ''
+              export CGO_ENABLED=1
+              failed=0
+              for ex in ${builtins.concatStringsSep " " exampleModules}; do
+                echo "==> $ex"
+                (
+                  cd "$ex"
+                  GOWORK=off ${goPkg}/bin/go build ./... \
+                    && GOWORK=off ${goPkg}/bin/go test ./... -count=1 -timeout=10m
+                ) || failed=1
+              done
+              if [ "$failed" -ne 0 ]; then
+                echo "❌ test-examples failed (see example above)"
+                exit 1
+              fi
+              echo "✅ test-examples passed (GOWORK=off per-example build+test)"
             '';
 
             # lint-module: per-task lint gate for ONE module —
