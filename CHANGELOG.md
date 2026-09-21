@@ -503,12 +503,9 @@ the projection-host double-apply fix).
 - **examples: CI test leg (`#test-examples`).** A new flake app builds AND
   tests every example GOWORK=off against published pins (all six carry
   suites), wired as the `Examples Test` CI job — examples were build-only
-  before. Its first run caught two real problems: scheduler-otel-status
-  could not build standalone (workspace `scheduling/sqlstore` now needs the
-  unreleased `record.DeferClose`; the example's replace set gained
-  `record/v4`), and getting-started's counter test exposed the
-  projection-host double-apply below (its test leg re-arms with this wave's
-  `projectionhost/v4.5.1`).
+  before. Its first run caught a real product bug: getting-started's counter
+  test exposed the projection-host double-apply below (the leg re-arms with
+  this wave's `projectionhost/v4.5.1` fix).
 
 
 - **system: fail closed on the racy `EventAdapter.Save` fallback (go-graph-rag
