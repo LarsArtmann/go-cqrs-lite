@@ -5,6 +5,28 @@
 Each file captures the project status at a specific timestamp. They are
 preserved for audit trail and progress tracking.
 
+## Live reports index (2026-09-21)
+
+| Report | What it captured |
+| ------ | ---------------- |
+| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | research: planned event-query surface vs shipped truth |
+| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md) | file:line verification behind the reconciliation |
+| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md) | false-positive sweep numbers feeding the next lint refresh |
+| [2026-09-20 owner bundle W3](2026-09-20_11-36_owner-bundle-w3.md) | the five owner decisions requested (all answered 09-20/21) |
+| [2026-09-20 composed verify green](2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md) | first composed-verify green; W2 tails cleared |
+| [2026-09-20 session close-out](2026-09-20_16-43_session-closeout-verify-green-all-waves.md) | same-day close-out snapshot |
+| [2026-09-20 docs-health 9th pass](2026-09-20_17-34_docs-health-ninth-pass-full-audit.md) | full annotate + harvest + archive audit |
+| [2026-09-20 dogfooding follow-ups status](2026-09-20_19-51_dogfooding-followups-status.md) | dogfooding extraction/audit state |
+| [2026-09-20 queue M4 tail + T20](2026-09-20_22-01_queue-m4-tail-t20-execution.md) | queue polish execution; PapDashboard verdict |
+| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md) | perf claims re-anchored under Go 1.27 |
+| [2026-09-20 dogfooding execution](2026-09-20_dogfooding-followups-execution.md) | execution detail for the follow-ups row |
+| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md) | hardening + rulings implementation watch |
+| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md) | promotion gate fix proven; flake quantified |
+| [2026-09-21 W0 burn-class guards + W3 rulings](2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md) | M01–M10 guard wave; incident #11 caught live |
+| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md) | toolchain incident + guarded re-arm |
+| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html) | cross-session HTML snapshot |
+| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md) | all rulings encoded; storm-waiting |
+
 **Fully-resolved reports live in [`archived/`](archived/)** (consolidated
 2026-08-29 from the older `archive/` + `archived/` split). A report is moved
 there once every item it raised is verified resolved, tracked in
