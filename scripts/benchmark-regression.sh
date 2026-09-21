@@ -517,6 +517,13 @@ fi
 # --save runs AFTER the comparison and regardless of its outcome: re-baselining
 # after an intentional perf change must overwrite even a "regressed" baseline.
 if [[ -n "$SAVE" ]]; then
+	if [[ -f "$SAVE" && -s "$SAVE" ]]; then
+		archive_dir="$REPO_ROOT/docs/benchmarks/baselines"
+		mkdir -p "$archive_dir"
+		archive="$archive_dir/benchmark-baseline-$(date -u +%Y%m%dT%H%M%SZ).txt"
+		cp "$SAVE" "$archive"
+		echo "==> Superseded baseline archived to $archive (owner ruling 2026-09-21: dated series under docs/benchmarks/baselines/)"
+	fi
 	if [[ $noise_status -ne 0 && "$FORCE_SAVE" != 1 ]]; then
 		echo "REFUSING --save: the noise gate FAILED this run (non-decision-grade)."
 		echo "  A baseline from a noise-failed run makes every future compare lie."
