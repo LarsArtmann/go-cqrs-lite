@@ -63,7 +63,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | md-go gate   | `nix run .#check-md-go` (every live `go` fence in docs must parse or carry `// skip-validate`; frozen history baselined in scripts/md-go-baseline.txt) |
 | Rel. tests   | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
 | README gates | `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)          |
-| Recipe gate  | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 81/81 classified, coverage ratchet)  |
+| Recipe gate  | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 83/83 classified, coverage ratchet)  |
 | CSP check    | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                 |
 | EventCat     | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                          |
 | Bench        | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gates: load + per-metric noise via `benchkit.RunRepeated`/`MetricVariation` + median ns/op 25% — rename-guarded, CI fails on breach) |
