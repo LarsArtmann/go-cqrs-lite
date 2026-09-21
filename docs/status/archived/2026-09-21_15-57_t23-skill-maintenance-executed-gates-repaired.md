@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** T23 executed + four verify-gate blockers repaired (§a). §f tails harvested/routed: the clean full `#verify-fast`/lint legs fold into the standing composed-`#verify` re-record TODO row; the gopls/GOTOOLCHAIN env fix was already a TODO release-tooling item; §g owner rulings (SKILLS commit style, concurrent-session protocol, series-reading scope) are questions for the owner, not TODO work. Archived.
+
 # Status Report: T23 Skill-Maintenance Pass Executed + Verify-Gate Blockers Repaired
 
 **Date:** 2026-09-21 15:57 CEST

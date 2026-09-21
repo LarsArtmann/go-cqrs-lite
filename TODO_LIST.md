@@ -1205,7 +1205,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **RESOLVED 2026-09-20 (evening)** — all six rulings received and applied.
 > Consolidation sheet:
-> [`docs/status/2026-09-20_11-36_owner-bundle-w3.md`](docs/status/2026-09-20_11-36_owner-bundle-w3.md).
+> [`docs/status/archived/2026-09-20_11-36_owner-bundle-w3.md`](docs/status/archived/2026-09-20_11-36_owner-bundle-w3.md) (archived 2026-09-21, 10th docs-health pass — per-question resolutions inline).
 
 - [x] ~~**Q1: `cmd/api-stability/readme_claims_test.go` ownership**~~
       **RESOLVED 2026-09-20:** owner delegated ("do what makes the most

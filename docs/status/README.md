@@ -9,24 +9,18 @@ preserved for audit trail and progress tracking.
 
 | Report | What it captured |
 | ------ | ---------------- |
-| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | research: planned event-query surface vs shipped truth |
-| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md) | file:line verification behind the reconciliation |
-| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md) | false-positive sweep numbers feeding the next lint refresh |
-| [2026-09-20 owner bundle W3](2026-09-20_11-36_owner-bundle-w3.md) | the five owner decisions requested (all answered 09-20/21) |
-| [2026-09-20 composed verify green](2026-09-20_16-39_composed-verify-green-s03-w2-tails-cleared.md) | first composed-verify green; W2 tails cleared |
-| [2026-09-20 session close-out](2026-09-20_16-43_session-closeout-verify-green-all-waves.md) | same-day close-out snapshot |
-| [2026-09-20 docs-health 9th pass](2026-09-20_17-34_docs-health-ninth-pass-full-audit.md) | full annotate + harvest + archive audit |
-| [2026-09-20 dogfooding follow-ups status](2026-09-20_19-51_dogfooding-followups-status.md) | dogfooding extraction/audit state |
-| [2026-09-20 queue M4 tail + T20](2026-09-20_22-01_queue-m4-tail-t20-execution.md) | queue polish execution; PapDashboard verdict |
-| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md) | perf claims re-anchored under Go 1.27 |
-| [2026-09-20 dogfooding execution](2026-09-20_dogfooding-followups-execution.md) | execution detail for the follow-ups row |
-| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md) | hardening + rulings implementation watch |
-| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md) | promotion gate fix proven; flake quantified |
-| [2026-09-21 W0 burn-class guards + W3 rulings](2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md) | M01–M10 guard wave; incident #11 caught live |
-| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md) | toolchain incident + guarded re-arm |
-| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html) | cross-session HTML snapshot |
-| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md) | all rulings encoded; storm-waiting |
-| [2026-09-21 benchkit polish tail](2026-09-21_15-57_benchkit-polish-tail-execution.md) | 16/17 slices shipped; rename guards + litter fix; self-review |
+| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | KEEP-LIVE evidence: planned event-query surface vs shipped truth |
+| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md) | KEEP-LIVE evidence: file:line verification behind the reconciliation |
+| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md) | KEEP-LIVE baseline: sweep numbers feeding the next lint refresh |
+| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md) | T18b #1: perf claims re-anchored under Go 1.27 (arc OPEN — chain armed) |
+| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md) | T18b #2: hardening + rulings implementation watch |
+| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md) | T18b #3: promotion gate fix proven; flake quantified |
+| [2026-09-21 W0 burn-class guards + W3 rulings](2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md) | M01–M10 guard wave; incident #11 caught live (M10 leg open) |
+| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md) | T18b #4: toolchain incident + guarded re-arm |
+| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md) | T18b #5: all rulings encoded; chain armed; addenda through 16:10 |
+| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html) | cross-session HTML snapshot (HTML exempt from archiving per standing rule) |
+| [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md) | T18b #6: chain intact at load 863; re-arm one-liner inside |
+| [2026-09-21 md-go-validator gate M23](2026-09-21_18-19_md-go-validator-gate-m23-execution.md) | LIVE session: M23 gate build + P2/P3 sweep + self-review |
 
 **Fully-resolved reports live in [`archived/`](archived/)** (consolidated
 2026-08-29 from the older `archive/` + `archived/` split). A report is moved
@@ -37,6 +31,17 @@ with 28 stale claims corrected inline. The July archive pass (2026-08-29,
 same session) moved all 2026-07 status (240 files) and planning (52 files)
 snapshots to `archived/` — July work is shipped or superseded by the August
 waves; inbound references from active docs were repointed.
+
+**2026-09-21 (10th docs-health pass):** harvested the 2026-09-20/21 cluster
+(queue M4/T20, dogfooding pair, 16:39/16:43 close-outs, W3 owner bundle, 9th-pass
+audit itself, the M20 wave pair, and the benchkit + T23 skill-maintenance reports —
+11 files archived, each with a RESOLVED-BY-ROUTING banner + targeted inline
+strikes) and rebuilt TODO_LIST from their forward sections (benchkit test tails,
+queue verification tails, T18b chain-hardening + canonical record, go-env.sh
+helper, M20 design-ratification follow-ups, M13 stamps). The live set is now the
+open T18b arc (6 reports, chain armed), the M10/M23 remainders, and three
+KEEP-LIVE evidence docs. Inbound links repointed; doc gates re-run green.
+See [TODO_LIST.md](../../TODO_LIST.md).
 
 **2026-09-06 passes (two):** the morning pass archived 83 files (25 status
 reports 08-27→09-06, 8 plans + 16 artifacts, 5 reviews, 23 feedback) and

@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** the M4 polish tail + T20 verdict shipped (§a); the §b verification gaps and §f actionable tails were harvested into [TODO_LIST.md](../../TODO_LIST.md) (Durable Work Queue section: deadlock-retry pins, harness skip-path proofs, clock seam, conformance wart, parallel-migrate sweep, queue CI legs); owner items (dep-validation ratification, queue tag wave) were already tracked there. Archived.
+
 # Queue M4 polish tail + T20 PapDashboard evaluation — execution report
 
 **Date:** 2026-09-20, ~17:00–22:00 CEST (single session)

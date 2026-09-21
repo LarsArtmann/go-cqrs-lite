@@ -2,7 +2,7 @@
 
 > **When:** 2026-09-20 17:40 CEST · **Input:** [`TODO_LIST.md`](../../TODO_LIST.md)
 > rebuilt by the 9th docs-health pass (116 open + 31 BLOCKED rows across 29
-> sections; pass report `docs/status/2026-09-20_17-34_docs-health-ninth-pass-full-audit.md`)
+> sections; pass report `docs/status/archived/2026-09-20_17-34_docs-health-ninth-pass-full-audit.md`)
 > + the S03 composed-verify GREEN + the published 92-tag train.
 > **Goal:** convert the post-train state into consumer-experienced trust — owner
 > rulings unblocked, the two recurring time-burn classes killed, master green,

@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** 16/17 slices shipped (§a); the 17th (supersede-note) keeps its [BLOCKED] TODO row. The §f test/doc tails (RunSuiteRepeated test, benchstat cov% check, NOISE_HEADLINE↔HeadlineMetricNames tripwire, list-phases drift tripwire, benchkit README/doc.go tour, --progress README fix) were harvested into a TODO benchkit-tail row this pass; the benchkit tag wave was added [BLOCKED]. Archived.
+
 # Benchkit CLI polish tail — execution + self-review (2026-09-21 15:57)
 
 > Executed TODO_LIST row "Benchkit CLI polish tail (2026-09-19 harvest)" —

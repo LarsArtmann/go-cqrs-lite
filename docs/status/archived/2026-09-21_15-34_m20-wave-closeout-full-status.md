@@ -1,3 +1,5 @@
+> **RESOLVED-BY-ROUTING — docs-health 10th pass (2026-09-21):** the M20 one-pagers + M16/M13/M08-local wave shipped (§a). Every open tail is now tracked: M10 real VM run + M13 stamps → [TODO_LIST.md](../../TODO_LIST.md) (CI / Docs sections); M08 remote → TODO CI tail row; M26 NATS → TODO watermill row; M14/M15 → TODO README-review row; M17/M18/M19/M25/M27 → the owner-unblock plan; the §f28-32 design-ratification follow-ups (ADR-0146 SingleWriter, AggregateOn first cut, routing v1) → new TODO Metaengine row. Archived.
+
 # Status Report — M20 One-Pagers Wave + M16/M13/M08-local/M26-tail (session close-out)
 
 > Point-in-time snapshot: **2026-09-21 15:34 CEST**, master `5808e54bf`, clean of
