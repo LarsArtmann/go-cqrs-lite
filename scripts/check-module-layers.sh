@@ -347,8 +347,9 @@ DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
 # goal-shaped-app is the Goal story: types-only domain + system composition
 # root with BOTH swap targets compiled in (sqliteengine + pgengine) —
-# command/decider/event/id/metaengine/query/system + 2 drivers = 9.
-DEP_BUDGET["example/goal-shaped-app"]=9
+# command/decider/event/id/metaengine/query/system + 2 drivers + snapshot
+# (the snapshot-story demo strategy line) = 10.
+DEP_BUDGET["example/goal-shaped-app"]=10
 DEP_BUDGET["example/readme-quickstart"]=6
 DEP_BUDGET["example/scheduler-otel-status"]=8
 # metaengine-quickstart demos the full strategic surface: system + metaengine
