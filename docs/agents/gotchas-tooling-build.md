@@ -98,3 +98,12 @@
   one-line forms are single-quoted `'16i\\'` or double-quoted `"${n}i\\\\"`.
   A 12-file sweep silently no-op'd this way and was caught only by
   re-verifying line content (never trust rc alone for sed -i).
+- **Docs-authoring claims checklist** (2026-09-21, from the watermill-skill
+  trigger evals): `cmd/doc-check` verifies `pkg.Symbol` references and file:line
+  cites — it does NOT verify inline factual assertions. Before landing a doc
+  that states an env var name, a default value, a numeric threshold, or "X
+  registers Y", grep the source for that exact claim (two invented details — a
+  wrong env name and a driver-registration that lives elsewhere — were caught
+  in one FEATURES row draft only because the author re-checked their own
+  citations). The check is one grep per claim; skip it and the doc lies with a
+  valid-looking citation next to it.

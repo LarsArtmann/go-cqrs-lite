@@ -81,6 +81,11 @@ builder := listing.NewListBuilder(reader)
 
 ### 6.4 Watermill Integration
 
+> Broker powers/tradeoffs/limits, backend selection matrix, and the
+> troubleshooting table live in the sibling **watermill skill**
+> (`.agents/skills/watermill/SKILL.md`) — load it for any cross-process
+> delivery question.
+
 ```go
 // Bridge go-cqrs-lite events to a Watermill router
 publisher := watermill.NewPublisherAdapter(bus)      // wraps event.Publisher

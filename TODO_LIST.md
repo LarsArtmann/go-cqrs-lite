@@ -893,15 +893,21 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`; if it
       lands, an `.#integration-nats`-style flake app + CI leg analog to
       `#integration-redis`. — source: 19-45 §c1/§f2/§f10 _(Effort: M)_
-- [ ] **Skill-quality tail** — run the 3 drafted trigger-eval prompts
-      (with/without skill); add `references/advanced.md` (Delayed Messages,
-      Requeuing After Error, FanIn/FanOut, Metrics, Troubleshooting);
-      cross-link go-cqrs-lite `SKILL.md`/`advanced.md` watermill sections →
-      the sibling skill (discovery is currently AGENTS.md-only); verify
-      upstream latests for the redisstream/kafka/amqp/sql plugins. Codify the
-      claims-checklist rule (verify inline factual assertions, not just
-      file:line cites) in docs/agents. — source: 19-45 §f1/§f3-5/§f8; 19-57 §f3/§f8
-      _(Effort: M total)_
+- [ ] **Skill-quality tail** — ~~run the 3 drafted trigger-eval prompts~~ DONE
+      2026-09-21 (P1 Router/Kafka fired; P2 atomic-commit and P3 browser-live-updates
+      were trigger MISSES though the skill answers both — description now carries
+      "commit events atomically with my database writes" + "browser live updates");
+      ~~add `references/advanced.md`~~ DONE 2026-09-21 (Delayed/NotBefore,
+      evidence-carrying Requeue, ClaimMetrics, Router fan-in, troubleshooting
+      table — all source-cited); ~~cross-link FROM sibling SKILL.md~~ DONE;
+      ~~reverse cross-link from go-cqrs-lite skill §6.4 → sibling skill~~ DONE;
+      ~~codify the claims-checklist rule~~ DONE 2026-09-21
+      (docs/agents/gotchas-tooling-build.md: verify inline factual assertions —
+      env names, defaults, numbers — not just file:line cites).
+      REMAINING: verify upstream latests for the redisstream/kafka/amqp/sql
+      plugins; codify the claims-checklist rule (verify inline factual assertions,
+      not just file:line cites) in docs/agents. — source: 19-45 §f1/§f3-5/§f8; 19-57 §f3/§f8
+      _(Effort: S remaining)_
 
 ---
 

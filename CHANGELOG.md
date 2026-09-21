@@ -261,6 +261,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **benchkit: progress-reporter heartbeat no longer races its own shutdown.**
+  `stop()` closed the done channel and then set the field to nil while the
+  heartbeat goroutine was selecting on that same field — a data race that
+  failed the `-race` leg of `#verify` (first caught by
+  `TestRunRepeated_PerRepeatProgress`). The channel is now closed exactly
+  once via `sync.Once` and never reassigned.
 - **system: `GracefulClose` with a pre-expired context is now
   deterministic.** Phase 2 raced `Close()`'s completion against
   `ctx.Done()` with a bare `select`; when the context was already

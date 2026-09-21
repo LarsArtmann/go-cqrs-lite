@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"runtime/pprof"
+	"slices"
 )
 
 // startProfiling wires the --cpuprofile/--memprofile flags onto a handler:
@@ -43,8 +44,8 @@ func startProfiling(cpuProfile, memProfile string) func() {
 
 	return func() {
 		// Reverse order — the same LIFO a defer stack would give.
-		for i := len(teardown) - 1; i >= 0; i-- {
-			teardown[i]()
+		for _, fn := range slices.Backward(teardown) {
+			fn()
 		}
 	}
 }
