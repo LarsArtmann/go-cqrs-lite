@@ -888,13 +888,33 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       the plan's gates (not declared): evidence links per row, CHANGELOG
       Goal-story entry, release notes. Final stamp of Goal closure. — G-T25
       _(Effort: S, gated on gates A–D)_
-- [ ] **goal-shaped-app polish tail (2026-09-19 harvest)** — extend the AGENTS
+      **GATE STATUS (verified 2026-09-21, still BLOCKED — do not flip):**
+      Gate A needs the owner Direction Ruling recorded as an ADR
+      (G-T01/G-T02 — the 🔥 row above, unanswered; ADR-0141 slot was taken
+      by temporal cells) plus routing integration tests across ≥2 engines.
+      Gate B needs the G-T16 parity benchmark + new-surface conformance
+      sweep. Gate C/D need the release wave (W0 ~90-tag publish) and the
+      example-green-under-two-engines proof (sqlite ✓; postgres leg landed
+      2026-09-21, runs under `#integration-pg`). This row executes only
+      after ALL of those are earned.
+- [x] **goal-shaped-app polish tail (2026-09-19 harvest)** — extend the AGENTS
       "Add a New Module" procedure with the examplePaths/testModules split;
       compile-gate the example README's Go fences (docs_compile_test); a real
       postgres e2e leg for the config-swap test; README ns-figures
       machine-specific caveat; cqrs-lint consumer probe + AsyncAPI export demo
       on the example; `DomainConfig.Events` coeffect demo once `system` tags.
       — source: archived 18-16 §f1-12 _(Effort: S/M)_
+      **DONE 2026-09-21:** AGENTS procedure now documents examplePaths-vs-
+      testModules AND the three undocumented gates (module-layers script,
+      api-stability exclusion maps, cqrs-lint module catalog); README fence
+      compile-gated (`TestDocs_ReadmeEvolutionFence`) + ns-figures caveat +
+      `goal.db` reset note; real postgres e2e leg
+      (`TestGoal_PostgresSwapEndToEnd`, DSN-gated, runs under
+      `#integration-pg`); cqrs-lint probe on the example: 0 errors / 3
+      warnings (2 demo-deliberate, 1 = claiming pin-wave item) / 10 infos;
+      AsyncAPI export demo (`TestDocs_AsyncAPIExport` via
+      `catalog/asyncapi`); `DomainConfig.Events` declared + coeffect
+      dangling-subscription demo test (system v4.8.0 already pinned).
 
 ---
 

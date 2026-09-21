@@ -45,10 +45,7 @@ func TestGoal_PostgresSwapEndToEnd(t *testing.T) {
 
 	defer sys.Close()
 
-	if err := sys.Start(ctx); err != nil {
-		t.Fatalf("system.Start: %v", err)
-	}
-
+	// runStory starts the system itself.
 	view, err := runStory(ctx, sys)
 	if err != nil {
 		t.Fatalf("story on postgres: %v", err)
