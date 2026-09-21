@@ -1157,6 +1157,13 @@
               ${pkgs.bash}/bin/bash "$PWD/scripts/load-sweep.sh" "$@"
             '';
 
+            # quiet-window-run: wait for a load1/load5 quiet window, then run
+            # a load-sensitive command with a bounded retry budget (e.g. the
+            # benchmark gate, calibration campaigns). Self-test: --self-test.
+            quiet-window-run = mkApp "quiet-window-run" [ pkgs.bash pkgs.coreutils ] ''
+              ${pkgs.bash}/bin/bash "$PWD/scripts/quiet-window-run.sh" "$@"
+            '';
+
             # Rebuild catalog/docserver/static/docs-ui.css from docs-ui.src.css
             # + templ-components module sources (pinned tailwindcss v4).
             build-docserver-css =

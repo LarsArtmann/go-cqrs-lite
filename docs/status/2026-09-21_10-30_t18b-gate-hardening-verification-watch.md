@@ -108,3 +108,17 @@ Tried: read CI workflow + calibration docs for ceiling policy (no guidance beyon
 ---
 
 *State at writing: v3 verifier detached (pid 295475, 6h deadline, log `/tmp/t18b-verify.log`); `scripts/vm-mysql.sh` carries another session's uncommitted edit (untouched); my hardening + TODO/report changes are daemon-committed (latest touching mine: `449416da2`). No manual commit per harness contract. Waiting for instructions.*
+
+---
+
+## ADDENDUM 2026-09-21 ~10:45 CEST — rulings executed; noise-gate fix production-validated
+
+Answers to report #2 section (g): Q1 = **undecided** (ceiling policy stays strict `<5` until ruled — recorded in TODO); Q2 = **promote now**; Q3 = **measure first**. Execution:
+
+| Ruling | Shipped | Verification |
+|--------|---------|--------------|
+| Q2 promote-now | `scripts/quiet-window-run.sh` (window waiter: load1/load5 < `--ceiling`, bounded `--attempts`/`--no-retry` retries, `--deadline`, `--log`) + `--self-test` (6/6 green: quiet+pass, never-quiet deadline exit 3, retry-then-pass with both attempts logged, always-fail exhausted exit 1, usage exit 2) + flake app `nix run .#quiet-window-run -- CMD` | `bash -n`; self-test via direct + flake invocation; `nix eval` app path resolves |
+| Q3 measure-first | Chained cost pass `/tmp/matview-cost.sh` (detached): waits for the verifier, then the quiet window, then measures the matview suite at (100x/5, 1000x/5, 100x/9, 1000x/9) — wall-clock + MIN/matview medians per config → `/tmp/matview-cost-results.txt` | Script syntax-checked; armed (pid 1016121) |
+| Q1 undecided | No ceiling changes; recorded as open in TODO | — |
+
+**Overnight verifier outcome (v3, 08:46 UTC):** first post-fix decision-grade run — **noise gate PASSED** with the demoted headline (`write_p99_ns` advisory at CoV 22.5%), validating the Q1 fix in production. The run flagged `MIN/matview +33%` (11062 vs 8319 ns/op) → per the bounded-attempts ruling: baseline stands, flagged for triage. Assessment: the known bimodal lottery (same variant flagged 3+ times across all of last night's runs; samples 7.9–15µs; the baseline saved the low mode) — implausible as a real regression since no library code changed between save and verify; the cost pass's count=9 medians will settle it with numbers. TODO rows 34/40 updated with the final state; tooling promotion recorded DONE with open halves (nightly wiring, ceiling policy).
