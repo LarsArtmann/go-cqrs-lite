@@ -1,5 +1,14 @@
 # Status Report — 10th Docs-Health Pass (full archive wave) + TODO_LIST rebuild
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** this pass's
+> §f1-14 (★) rows live in TODO_LIST; §f15-18/§f20 routed per inline strikes;
+> §f21-50 are tracked rows (CI/Release/metaengine/benchkit/v5 sections) or
+> owner-gated; the two genuinely untracked single-mention sets (16-37 §f tail,
+> SKILLS-repo + arch-viz rulings) are now the TODO bench-gate-tail and
+> hygiene rows. §g1 deadline-lapse policy → owner (chain-hardening row);
+> §g2 TODO size → executed by deletion (strike on item 17); §g3 foreign-lint
+> policy → owner. Its 11 archived files + TODO rebuild stand. ARCHIVED.
+
 **Date:** 2026-09-21 23:31 CEST
 **Scope:** this session only — the third run of the "view ALL `**/2026-0*` files +
 execute docs-health + superb living docs + archive fully-done files" mandate
@@ -230,14 +239,14 @@ commits). Their in-flight files were left untouched.
 13. ★ Queue M4 verification tail (deadlockBackoff pin, forced-deadlock test,
     skip-path proofs, clock seam, wart, parallel-migrate sweep, CI legs).
 14. ★ Weekly load-sweep first-Sunday verification (observe).
-15. **Index-vs-disk gate** (e1) — build it so pass #11 doesn't repeat d1.
-16. **Mechanical harvest ledger** as a pass artifact (e2).
-17. **Compress struck TODO evidence tails** to one-line pointers (b2 — the
+~~15. **Index-vs-disk gate** (e1) — build it so pass #11 doesn't repeat d1.~~ done-routed 2026-09-22 — TODO_LIST docs-health-hygiene row (11th pass)
+~~16. **Mechanical harvest ledger** as a pass artifact (e2).~~ done-routed 2026-09-22 — docs-health-hygiene row
+~~17. **Compress struck TODO evidence tails** to one-line pointers (b2 — the~~ done 2026-09-22 — the 11th pass deleted completed receipt rows outright (1,456 → ~1,270 lines; evidence lives in CHANGELOG + archived reports)
     1,456-line lever).
-18. **Next docs-health pass:** harvest the live M23 report (18:19) once that
+~~18. **Next docs-health pass:** harvest the live M23 report (18:19) once that~~ done 2026-09-22 — the 11th pass harvested 18-19 + 23-24 delta + both go-graph-rag reports + W0 + this report
     session closes; re-check their lint-red claim at HEAD.
 19. **Weekly docs-health cadence** decision (e3).
-20. Add the docs-health pass checklist (index update step + banner
+~~20. Add the docs-health pass checklist (index update step + banner~~ done-routed 2026-09-22 — hygiene row (d); convention line added to docs/status/README.md
     vocabulary pointer) to SKILL.md or the repo's docs-health gotchas.
 
 **Carried, unchanged, owner- or quiet-window-gated**
@@ -265,7 +274,7 @@ commits). Their in-flight files were left untouched.
 40. Auto-embed noise verdict + CoV + GOVERSION into `--save` headers (f18).
 41. DirectSQL A/B gate-set decision (f26; dep-budget review first).
 42. README ops section for `quiet-window-run`/`nightly-bench` (f35).
-43. Trash `metaengine/tursoengine/P\x11B` after confirming its owning
+~~43. Trash `metaengine/tursoengine/P\x11B` after confirming its owning~~ checked 2026-09-22 — no such file on disk (already gone)
     session ended (verify nothing references it).
 44. M14/M15 (READMEs into doc-check; quickstart drift guards) — TODO row
     634b/d sub-items.

@@ -847,6 +847,25 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       iterate-and-unmask rounds; one sweep grep would have collapsed them).
       Candidate for the md-go-validator-adjacent tooling wave. — source:
       archived 15-05 §e, 15-34 §c/§f8 _(Effort: S)_
+- [ ] **docs-health pass hygiene (10th-pass §e/§f15-20)** — (a) index-vs-disk
+      gate: extend `check-canonical-facts.sh` (or a sibling) to derive
+      live-report count vs the README table, archived count vs the day-table
+      sum, and day-row presence per archived day (the 9th AND 10th passes
+      almost shipped index rot); (b) mechanical harvest ledger (per-report
+      item → new-row/existing/declined table) as a pass artifact; (c) weekly
+      docs-health cadence decision (owner); (d) pass checklist (index update
+      step + banner vocabulary pointer) — suggest upstream to the crush-config
+      skill repo. — source: archived 23-31 §e1-3/§f15-20 _(Effort: S gate + XS conventions)_
+- [ ] **Bench-gate/tooling single-mention tail (16-37 §f, never harvested)** —
+      `--explain <bench>` per-sample diagnostics; `--json` evidence output for
+      quiet-window-run; deep-quiet window probe/logger; variance-aware
+      stability probe (two-axes verdicts); CI baseline-artifact 5-new-entries
+      confirm; fragile p99/max threshold sweep across gates;
+      `SUM_VIA_GROUPED/baseline` +34.5% one-off investigation; auto-embed
+      noise verdict + CoV + GOVERSION into `--save` headers; DirectSQL A/B
+      gate-set decision (dep-budget review first); README ops section for
+      `quiet-window-run`/`nightly-bench`. — source: archived 16-37 §f14-26/§f35
+      _(Effort: S-M each, sliceable)_
 
 ---
 

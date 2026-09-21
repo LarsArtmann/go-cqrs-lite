@@ -9,7 +9,7 @@ For up-to-date documentation, see:
 - [SKILL.md](../../../SKILL.md) — AI consumer guide
 - [docs/getting-started.md](../../../docs/getting-started.md) — getting started guide
 
-## Archived waves index (generated 2026-09-21, 10th docs-health pass)
+## Archived waves index (updated 2026-09-22, 11th docs-health pass)
 
 Files per day across the 1233 archived snapshots — the wave granularity for
 navigating the archive. Individual files follow the `YYYY-MM-DD_HH-MM_name`
@@ -148,4 +148,4 @@ naming convention.
 | 2026-09-18 | 8     |
 | 2026-09-19 | 21    |
 | 2026-09-20 | 6     |
-| 2026-09-21 | 11    |
+| 2026-09-21 | 21    |

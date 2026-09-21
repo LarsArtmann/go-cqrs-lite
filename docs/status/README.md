@@ -5,7 +5,7 @@
 Each file captures the project status at a specific timestamp. They are
 preserved for audit trail and progress tracking.
 
-## Live reports index (2026-09-21)
+## Live reports index (2026-09-22)
 
 | Report                                                                                                              | What it captured                                                                |
 | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
@@ -15,13 +15,17 @@ preserved for audit trail and progress tracking.
 | [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md)            | T18b #1: perf claims re-anchored under Go 1.27 (arc OPEN — chain armed)         |
 | [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md)                  | T18b #2: hardening + rulings implementation watch                               |
 | [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md)   | T18b #3: promotion gate fix proven; flake quantified                            |
-| [2026-09-21 W0 burn-class guards + W3 rulings](2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md)       | M01–M10 guard wave; incident #11 caught live (M10 leg open)                     |
 | [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md)                   | T18b #4: toolchain incident + guarded re-arm                                    |
 | [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md)                         | T18b #5: all rulings encoded; chain armed; addenda through 16:10                |
 | [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html)                 | cross-session HTML snapshot (HTML exempt from archiving per standing rule)      |
 | [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md)                   | T18b #6: chain intact at load 863; re-arm one-liner inside                      |
-| [2026-09-21 md-go-validator gate M23](2026-09-21_18-19_md-go-validator-gate-m23-execution.md)                       | M23 gate build + P2/P3 sweep + self-review (superseded by 23-24 delta)          |
-| [2026-09-21 md-go-validator M23 delta](2026-09-21_23-24_md-go-validator-m23-delta-endurance.md)                     | LIVE session: 5h endurance green, daemon absorption audit, deepened self-review |
+
+
+**Row-ownership convention (2026-09-22):** for multi-report sessions, the
+latest report owns its index row; predecessors are marked superseded in the
+row they keep, and fully-superseded reports are archived. New status docs
+carrying pseudo-Go fences get `// skip-validate` at WRITE time (the
+`#check-md-go` gate fails otherwise — see `scripts/check-md-go.sh`).
 
 **Fully-resolved reports live in [`archived/`](archived/)** (consolidated
 2026-08-29 from the older `archive/` + `archived/` split). A report is moved
@@ -32,6 +36,21 @@ with 28 stale claims corrected inline. The July archive pass (2026-08-29,
 same session) moved all 2026-07 status (240 files) and planning (52 files)
 snapshots to `archived/` — July work is shipped or superseded by the August
 waves; inbound references from active docs were repointed.
+
+
+**2026-09-22 (11th docs-health pass):** archived 10 files (the M23 pair, both
+go-graph-rag 23-24 reports, the W0 guard-wave report, the 10th-pass report
+itself, two SUPERB plans [excellence + publish-and-prove], the go-graph-rag
+feedback doc, the md-go-validator review — each bannered + inline-struck),
+harvested their §f tails into TODO_LIST (md-go open tail, go-graph-rag follow-ups,
+release-train tail, W0 verification tail, docs-health hygiene + the never-harvested
+16-37 bench-gate items), deleted every completed receipt row from TODO_LIST
+(1,456 → ~1,270 lines; evidence lives in CHANGELOG + archived reports), fixed
+stale dev-replace comments (system, scheduling/sqlstore), corrected the flake.nix
+"all six carry suites" lie, adopted the fluent `.On` chain in the goal-shaped-app
+README, annotated + archived the md-go review, and recorded the THIRD go-directive
+downgrade incident (140-file wave 23:33 — go.work drift gate row). Live set: the
+open T18b arc (6 reports) + three KEEP-LIVE evidence docs. Doc gates re-run green.
 
 **2026-09-21 (10th docs-health pass):** harvested the 2026-09-20/21 cluster
 (queue M4/T20, dogfooding pair, 16:39/16:43 close-outs, W3 owner bundle, 9th-pass
