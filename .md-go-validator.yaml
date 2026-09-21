@@ -1,0 +1,28 @@
+# md-go-validator configuration (gate: nix run .#check-md-go)
+# See: https://github.com/LarsArtmann/md-go-validator
+# Policy lives in scripts/check-md-go.sh + scripts/md-go-baseline.txt:
+# live ```go fences must parse or carry `// skip-validate`; frozen history
+# is baselined instead.
+
+# Languages to validate (default: go)
+languages:
+  - go
+  # - typescript
+  # - rust
+  # - nix
+  # - hcl
+  # - templ
+
+# Glob patterns to exclude from validation
+exclude:
+  - "vendor/*"
+  - "node_modules/*"
+  - "docs/generated/*"
+
+# Custom skip directives — blocks containing these are skipped
+# skipDirectives:
+#   - "<!-- sketch -->"
+#   - "// pseudo-code"
+
+# Output format: table, json, yaml, csv, markdown, quiet
+format: table

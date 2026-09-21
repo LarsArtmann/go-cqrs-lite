@@ -173,6 +173,23 @@
         "type": "github"
       }
     },
+    "md-go-validator": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789858531,
+        "narHash": "sha256-M1TzldxFJNidu3hJA2YBp0qrrerWosO9uEZHxxfHGhY=",
+        "owner": "LarsArtmann",
+        "repo": "md-go-validator",
+        "rev": "4dd9437bceeaf045f3371577774937f8179003c7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LarsArtmann",
+        "ref": "master",
+        "repo": "md-go-validator",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1789785513,
@@ -201,6 +218,7 @@
         "go-nix-helpers": "go-nix-helpers",
         "go-output": "go-output",
         "gogenfilter": "gogenfilter",
+        "md-go-validator": "md-go-validator",
         "nixpkgs": "nixpkgs",
         "samber-do-auditlog": "samber-do-auditlog",
         "systems": "systems",

@@ -204,3 +204,60 @@ func TestSystem_Evolution_QuerySet(t *testing.T) {
 		t.Fatalf("expected 1 result with title 'A', got %+v", results)
 	}
 }
+
+// TestSystem_Evolution_OnChain pins the fluent `.On` chaining form of
+// Evolution declaration: it must wire exactly like the standalone
+// OnEvolution wrappers (same convention folds, same inheritance).
+func TestSystem_Evolution_OnChain(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	domain := system.DomainConfig{
+		Evolutions: []system.EvolutionSpec{
+			system.Evolve[EvoView]("evo_tasks4").
+				On("evo.created", EvoCreated{}).
+				On("evo.deleted", EvoDeleted{}).
+				Done(),
+		},
+		Projections: []system.ProjectionDeclaration{
+			system.Lookup[EvoView]("evo_lookup4").Done(),
+		},
+	}
+
+	deployment := system.DeploymentConfig{
+		Engines: map[string]system.EngineConfig{
+			"primary": {Driver: "memory"},
+		},
+		Instances: []system.InstanceConfig{
+			{Role: system.RoleSourceOfTruth, Engine: "primary"},
+			{Role: system.RoleProjections, Engine: "primary"},
+		},
+	}
+
+	sys, err := system.New(ctx, domain, deployment)
+	if err != nil {
+		t.Fatalf("system.New: %v", err)
+	}
+
+	defer sys.Close()
+
+	store := sys.MetaEngine()
+	mustApply(t, store, "evo.created", EvoCreated{ID: "e4", Title: "Chained", Status: "open"})
+
+	v, err := system.Get[EvoView](ctx, sys, "evo_lookup4", "e4")
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if v.Title != "Chained" || v.Status != "open" {
+		t.Fatalf("unexpected view: %+v", v)
+	}
+
+	mustApply(t, store, "evo.deleted", EvoDeleted{ID: "e4"})
+
+	if _, err := system.Get[EvoView](ctx, sys, "evo_lookup4", "e4"); err == nil {
+		t.Fatal("deleted view must be gone after the tombstone fold")
+	}
+}

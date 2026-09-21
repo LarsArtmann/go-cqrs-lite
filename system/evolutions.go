@@ -80,10 +80,11 @@ type evolutionBuilder[R any] struct {
 //
 // Level 2 — explicit fold (for non-convention events):
 //
-//	system.Evolve[TaskView]("tasks").
-//	    On("task.completed", TaskCompleted{},
-//	        func(e TaskCompleted, v *TaskView) { v.Status = "done" }).
-//	    Done()
+//	system.OnEvolution(
+//	    system.Evolve[TaskView]("tasks"),
+//	    "task.completed", TaskCompleted{},
+//	    func(e TaskCompleted, v *TaskView) { v.Status = "done" },
+//	).Done()
 func Evolve[R any](name string, opts ...EvolveOption) *evolutionBuilder[R] {
 	cfg := evolveOptConfig{}
 	for _, opt := range opts {
@@ -95,6 +96,25 @@ func Evolve[R any](name string, opts ...EvolveOption) *evolutionBuilder[R] {
 		keyField: cfg.keyField,
 		internal: cfg.internal,
 	}
+}
+
+// On registers a convention fold for the event type: the sample struct's
+// name suffix (Created/Updated/Deleted) classifies the fold kind. Chainable —
+// this is the fluent form of [OnEvolution] for convention events:
+//
+//	system.Evolve[TaskView]("tasks").
+//	    On("task.created", TaskCreated{}).
+//	    On("task.updated", TaskUpdated{}).
+//	    On("task.deleted", TaskDeleted{}).
+//	    Done()
+//
+// Sample is typed any (no per-call type parameter), so On can be a method —
+// Go does not allow type parameters on methods. Non-convention events with
+// an explicit fold closure still go through [OnEvolution].
+func (b *evolutionBuilder[R]) On(eventType string, sample any) *evolutionBuilder[R] {
+	b.samples = append(b.samples, metaengine.NamedEvent(eventType, sample))
+
+	return b
 }
 
 // OnEvolution registers an event handler for the builder. E is inferred from the sample.

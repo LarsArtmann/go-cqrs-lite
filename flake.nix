@@ -59,6 +59,13 @@
       url = "github:LarsArtmann/go-ndjson?ref=master";
       flake = false;
     };
+    # Source of the md-go-validator docs gate (consumed flake=false and built
+    # via mkPreparedSource below — the tool's own flake fetches go-finding via
+    # git+ssh, which CI sandboxes cannot do; this mirrors the cqrs-lint build).
+    md-go-validator = {
+      url = "github:LarsArtmann/md-go-validator?ref=master";
+      flake = false;
+    };
   };
 
   outputs =
@@ -77,12 +84,10 @@
       go-atomic-write,
       go-error-family,
       go-ndjson,
+      md-go-validator,
       ...
     }:
     let
-      # Prepared source for building cmd/cqrs-lint as a distributable binary.
-      # Only go-finding is private (GOPRIVATE); all other LarsArtmann deps are
-      # public and served by proxy.golang.org during the vendor phase.
       version = self.rev or self.dirtyRev or "dev";
 
       # Go toolchain for the whole flake. Was a go.dev-tarball pin at 1.26.6
@@ -94,16 +99,53 @@
       # sandbox toolchain downloads).
       goToolchain = pkgs: pkgs.go_1_27;
 
+      # LarsArtmann deps replaced with flake-input sources by mkPreparedSource
+      # so sandbox builds never fetch them over the network (go-finding is the
+      # only truly private one; the rest are public but pinned hermetically).
+      # Shared by cqrs-lint and md-go-validator — extra replaces are harmless
+      # no-ops for modules a target does not use.
+      preparedDeps = {
+        "github.com/larsartmann/go-finding" = go-finding;
+        "github.com/larsartmann/cmdguard/v4" = cmdguard;
+        "github.com/larsartmann/go-output" = go-output;
+        "github.com/LarsArtmann/gogenfilter/v3" = gogenfilter;
+        "github.com/larsartmann/go-branded-id" = go-branded-id;
+        "github.com/larsartmann/samber-do-auditlog" = samber-do-auditlog;
+        "github.com/larsartmann/go-atomic-write" = go-atomic-write;
+        "github.com/larsartmann/go-error-family" = go-error-family;
+        "github.com/larsartmann/go-ndjson" = go-ndjson;
+      };
+      preparedSubModules = {
+        "github.com/larsartmann/go-finding" = [ "pipeline" ];
+        "github.com/larsartmann/go-output" = [
+          "d2"
+          "daghtml"
+          "delimited"
+          "escape"
+          "graph"
+          "markdown"
+          "markup"
+          "plantuml"
+          "serialization"
+          "table"
+          "testhelpers"
+          "testhelpers/graphtest"
+          "tree"
+        ];
+      };
+
+      mkPreparedSourceFn =
+        pkgs:
+        import (go-nix-helpers + "/mkPreparedSource.nix") {
+          inherit pkgs;
+          lib = pkgs.lib;
+          goPkg = goToolchain pkgs;
+        };
+
+      # Prepared source for building cmd/cqrs-lint as a distributable binary.
       mkCqrsLintSource =
         pkgs:
-        let
-          inherit (pkgs) lib;
-          mkPreparedSourceFn = import (go-nix-helpers + "/mkPreparedSource.nix") {
-            inherit pkgs lib;
-            goPkg = goToolchain pkgs;
-          };
-        in
-        mkPreparedSourceFn {
+        mkPreparedSourceFn pkgs {
           name = "cqrs-lint";
           inherit version;
           src = builtins.path {
@@ -118,35 +160,19 @@
                 "README.md"
               ]);
           };
-          deps = {
-            "github.com/larsartmann/go-finding" = go-finding;
-            "github.com/larsartmann/cmdguard/v4" = cmdguard;
-            "github.com/larsartmann/go-output" = go-output;
-            "github.com/LarsArtmann/gogenfilter/v3" = gogenfilter;
-            "github.com/larsartmann/go-branded-id" = go-branded-id;
-            "github.com/larsartmann/samber-do-auditlog" = samber-do-auditlog;
-            "github.com/larsartmann/go-atomic-write" = go-atomic-write;
-            "github.com/larsartmann/go-error-family" = go-error-family;
-            "github.com/larsartmann/go-ndjson" = go-ndjson;
-          };
-          subModules = {
-            "github.com/larsartmann/go-finding" = [ "pipeline" ];
-            "github.com/larsartmann/go-output" = [
-              "d2"
-              "daghtml"
-              "delimited"
-              "escape"
-              "graph"
-              "markdown"
-              "markup"
-              "plantuml"
-              "serialization"
-              "table"
-              "testhelpers"
-              "testhelpers/graphtest"
-              "tree"
-            ];
-          };
+          deps = preparedDeps;
+          subModules = preparedSubModules;
+        };
+
+      # Prepared source for the md-go-validator docs gate binary.
+      mkMdGoValidatorSource =
+        pkgs:
+        mkPreparedSourceFn pkgs {
+          name = "md-go-validator";
+          inherit version;
+          src = md-go-validator;
+          deps = preparedDeps;
+          subModules = preparedSubModules;
         };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
@@ -733,6 +759,10 @@
               echo "vendor hash verified: ${config.packages.cqrs-lint.goModules}"
               touch $out
             '';
+            vendor-hash-md-go-validator = pkgs.runCommand "vendor-hash-md-go-validator" { } ''
+              echo "vendor hash verified: ${config.packages.md-go-validator.goModules}"
+              touch $out
+            '';
             vendor-hash-benchstat = pkgs.runCommand "vendor-hash-benchstat" { } ''
               echo "vendor hash verified: ${benchstat.goModules}"
               touch $out
@@ -836,6 +866,48 @@
                   }
                 ];
                 mainProgram = "cqrs-lint";
+                platforms = platforms.unix;
+              };
+            };
+
+            # Docs gate binary: validates ```go fences in Markdown/MDX.
+            # Built from the md-go-validator flake=false input via the shared
+            # mkPreparedSource machinery (NOT the tool's own flake — its
+            # go-finding input is git+ssh, unfetchable in CI sandboxes).
+            # Consumed by the check-md-go app + scripts/check-md-go.sh.
+            md-go-validator = (pkgs.buildGoModule.override { go = goPkg; }) {
+              pname = "md-go-validator";
+              inherit version;
+
+              src = mkMdGoValidatorSource pkgs;
+
+              vendorHash = "sha256-PLACEHOLDER";
+              proxyVendor = true;
+
+              subPackages = [ "cmd/md-go-validator" ];
+
+              env = {
+                CGO_ENABLED = "0";
+                GOWORK = "off";
+              };
+
+              preBuild = ''
+                export HOME=$TMPDIR
+                go mod tidy
+              '';
+
+              doCheck = false;
+
+              meta = with lib; {
+                description = "Validates go code blocks embedded in Markdown/MDX docs";
+                license = licenses.mit;
+                maintainers = [
+                  {
+                    name = "Lars Artmann";
+                    github = "LarsArtmann";
+                  }
+                ];
+                mainProgram = "md-go-validator";
                 platforms = platforms.unix;
               };
             };
@@ -1189,6 +1261,21 @@
             check-file-size = mkApp "check-file-size" [ pkgs.bash pkgs.findutils ] ''
               ${pkgs.bash}/bin/bash "$PWD/scripts/check-file-size.sh" "$@"
             '';
+
+            # check-md-go: docs gate — every live ```go fence must parse or
+            # carry // skip-validate; frozen history is baselined. See
+            # scripts/check-md-go.sh for the policy and --update-baseline.
+            check-md-go = mkApp "check-md-go"
+              [
+                pkgs.bash
+                pkgs.git
+                pkgs.coreutils
+                pkgs.gnugrep
+                config.packages.md-go-validator
+              ]
+              ''
+                ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" "$@"
+              '';
 
             check-modules = mkApp "check-modules" [ pkgs.findutils pkgs.gnugrep ] ''
               # Verify every go.mod in the workspace is covered by testModules.
@@ -1592,6 +1679,7 @@
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
+                  echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
@@ -1637,6 +1725,7 @@
                   echo "=== Check Templ ===" && nix run .#check-templ && \
                   echo "=== Check Bench Gate ===" && nix run .#check-bench-gate && \
                   echo "=== Check Coverage ===" && nix run .#check-coverage && \
+                  echo "=== Check md-go ===" && nix run .#check-md-go && \
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "✅ All fast verification checks passed (soak tests skipped)"
                 '';

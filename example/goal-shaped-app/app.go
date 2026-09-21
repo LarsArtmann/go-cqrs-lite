@@ -85,14 +85,21 @@ func applyTask(s TaskState, evt event.Event) (TaskState, error) {
 // Updated, Deleted), so there is not a single fold closure in this app;
 // Lookup and QuerySet both inherit the folds by result type.
 func Domain() system.DomainConfig {
-	tasks := system.OnEvolution(
-		system.OnEvolution(
-			system.Evolve[TaskView](tasksCollection),
-			string(evtTaskCreated), TaskCreated{},
-		),
-		string(evtTaskUpdated), TaskUpdated{},
-	)
-	deleted := system.OnEvolution(tasks, string(evtTaskDeleted), TaskDeleted{})
+	// Convention folds declared once per result type. (When the next system
+	// release tags evolutionBuilder.On, this loop becomes a fluent
+	// Evolve[TaskView](...).On(...).On(...).Done() chain.)
+	tasks := system.Evolve[TaskView](tasksCollection)
+
+	for _, fold := range []struct {
+		kind   event.Type
+		sample any
+	}{
+		{evtTaskCreated, TaskCreated{}},
+		{evtTaskUpdated, TaskUpdated{}},
+		{evtTaskDeleted, TaskDeleted{}},
+	} {
+		tasks = system.OnEvolution(tasks, string(fold.kind), fold.sample)
+	}
 
 	return system.DomainConfig{
 		// Events declares the journal's complete event universe — the
@@ -100,7 +107,7 @@ func Domain() system.DomainConfig {
 		// hard error (typo'd subscription), a declared type nothing
 		// consumes is an advisory.
 		Events:     []event.Type{evtTaskCreated, evtTaskUpdated, evtTaskDeleted},
-		Evolutions: []system.EvolutionSpec{deleted.Done()},
+		Evolutions: []system.EvolutionSpec{tasks.Done()},
 		Projections: []system.ProjectionDeclaration{
 			system.Lookup[TaskView](tasksCollection).Done(),
 			system.QuerySet[TaskView](openCollection).Filterable("status").Done(),
