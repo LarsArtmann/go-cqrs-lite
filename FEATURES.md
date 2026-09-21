@@ -456,14 +456,18 @@ pattern: same workload, any backend, structured metrics report.
 | Batch write phase       | `SkipBatchWrite` flag + batch write benchmark                                                                                                                      | 🧪     |
 | Phase listing           | `--list-phases` subcommand + `PhaseNames()` export                                                                                                                 | 🧪     |
 
-**Coverage:** 164 benchkit + 44 CLI test functions (`-race`). Includes raw sink phase,
+**Coverage:** 172 benchkit + 48 CLI test functions (`-race`). Includes raw sink phase,
 scaling sweeps, benchstat output, suite manifest, schema verification, environment
 metadata, schema versioning, durability/recovery, replay, `benchtest.RunSuite`,
 analytical profile, Postgres backend, median selection tests, evidence-grade
 metrics (GC pause, write amplification, tail ratio, allocation tracking), soak
 test drift, metaengine benchmark (Memory + SQLite), mixed workload phase, exact
 P100 latency, multi-run repeats with per-metric variation (`RunRepeated`,
-`MetricVariation`, `Reliable`), and multi-sample benchstat output.
+`MetricVariation`, `Reliable`), multi-sample benchstat output, and the
+statistical-rigor polish tail (exact `Min`/`Load1` rendering, true-max
+`WriteTailRatio`, per-phase `ReservoirSize`, `RunSuiteRepeated` per-metric
+CoV, `HeadlineMetricNames` + metric-name constants, sweep CoV column,
+`--strict` noise gate, per-repeat progress, list-phases metric mapping).
 Run-to-run variance is ~20-25% on the memory backend (use `--repeat N` for median reporting).
 See [backend comparison](docs/benchmarks/2026-07-31_backend-comparison.md) (pre-variation,
 superseded as a format example by
@@ -1499,7 +1503,7 @@ Features mentioned in project docs/planning but with **no production code yet**:
 | `queue/sqlite`                   | `…/queue/sqlite/v4`                   | 🧪 Experimental (single serialized writer + WAL; first engine green on the conformance suite incl. `-race`, 2026-09-14)                                                                                                                   |
 | `queue/postgres`                 | `…/queue/postgres/v4`                 | 🧪 Experimental (SKIP LOCKED claims over a caller-owned pgx pool; conformance-green via pgtestcontainer incl. `-race`)                                                                                                                    |
 | `queue/mysql`                    | `…/queue/mysql/v4`                    | 🧪 Experimental (two-statement SKIP LOCKED claims on MySQL 8+/MariaDB 10.6+, BIGINT-ms timestamps, internal deadlock retry; conformance-green vs live MariaDB 11.4 incl. `-race -count=2`; registers the `queue-mysql` metaengine driver) |
-| `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 164 tests, `--repeat N` + `RunRepeated`/`MetricVariation` statistical rigor available)                                                                                                                       |
+| `benchkit`                       | `…/benchkit/v4`                       | 🧪 Experimental (functional, 172 tests, `--repeat N` + `RunRepeated`/`MetricVariation` statistical rigor available)                                                                                                                       |
 | `cmd/cqrs-bench`                 | `…/cmd/cqrs-bench/v4`                 | 🔧 Tool (CLI benchmark runner; `go install` — the `/v4` suffix is stripped from the binary name)                                                                                                                                          |
 | `cmd/cqrs-upgrade`               | `…/cmd/cqrs-upgrade/v4`               | 🔧 Tool (consumer upgrade CLI: pin bumps to latest tags + in-process V007 deprecation report; v4.0.0 tagged 2026-09-07)                                                                                                                   |
 | `cmd/cqrs-lint`                  | `…/cmd/cqrs-lint`                     | 🔧 Tool (204-rule domain-aware linter: correctness, API misuse, boilerplate, adoption, architecture, consistency, performance, security, testing, version)                                                                                |

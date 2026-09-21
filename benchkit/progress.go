@@ -22,8 +22,9 @@ type progressReporter struct {
 	phase string
 	start time.Time
 
-	heart *time.Ticker
-	done  chan struct{}
+	heart    *time.Ticker
+	done     chan struct{}
+	stopOnce sync.Once
 }
 
 func newProgressReporter(
@@ -105,12 +106,13 @@ func (p *progressReporter) endPhase(phase string, d time.Duration) {
 		p.backend, num, p.total, phase, d.Round(time.Millisecond))
 }
 
-// stop terminates the heartbeat goroutine. Idempotent.
+// stop terminates the heartbeat goroutine. Idempotent. The done channel is
+// closed exactly once and never reassigned — heartbeat() reads it in a select,
+// so mutating it here would race with that read.
 func (p *progressReporter) stop() {
 	if p == nil || p.done == nil {
 		return
 	}
 
-	close(p.done)
-	p.done = nil
+	p.stopOnce.Do(func() { close(p.done) })
 }

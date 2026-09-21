@@ -8,6 +8,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **benchkit/cqrs-bench: statistical-rigor polish tail (2026-09-19 harvest).**
+  Reports now render the exact `Min` next to `Max` on every latency line and
+  the start load average in the env line (`Load1=…`) plus a `Load1 (start)`
+  summary-table row; `Result.WriteTailRatio` is the TRUE max (`write_max_ns`)
+  over P50 so a tame P99 can no longer hide the one write that stalled the
+  pipeline. New `Config.ReservoirSize` (CLI `--reservoir-size`) raises
+  per-phase reservoir sampling for 10M+ event profiles (Min/Max/Mean stay
+  exact at any size), `RunSuite` gains the `RunSuiteRepeated` testing.B
+  variant reporting every metric's cross-run CoV as a `<metric>_cov%`
+  custom metric, and downstream tooling gets stable metric-name constants
+  (`benchkit.MetricWriteThroughput`, `MetricWriteP50NS`, `MetricWriteP99NS`,
+  `MetricWriteMaxNS`, `MetricLoadP50NS`, `MetricLoadP99NS`) plus
+  `benchkit.HeadlineMetricNames()` — the single source of truth the
+  `cqrs-bench --strict` noise gate and `scripts/benchmark-regression.sh`
+  key on (tail quantiles deliberately excluded; write_p99_ns demotion
+  2026-09-20). CLI: `--strict --repeat N` now fails on NOISY headline
+  metrics, `list-phases` shows which benchstat/report metrics each phase
+  feeds, repeated runs show per-repeat progress (`repeat i/N`), the run
+  summary/CSV/TSV output gains per-headline CoV rows, and sweeps honor
+  `--repeat` with a per-point CoV column (SDK `PrintSweep` too).
+  Gates: `scripts/benchmark-regression.sh` gained rename guards
+  (`gate_set_guard`/`noise_target_guard`) that fail loudly when a GATE_SETS
+  regex matches zero benchmarks or the noise benchmark's subcommand/backend/
+  profile was renamed (fixture-injectable via `BENCH_GATE_GUARD_ROOT`,
+  mutation-tested), the baseline archive dir is fixture-injectable
+  (`BENCH_GATE_ARCHIVE_DIR`) so test runs stop dropping fake archives into
+  the dated series, and the re-pin runbook now folds the load gate in
+  (calibration PASS → live gate run → `--save`, refused on noise fail).
+  Skill docs: recipes §2.40 (statistical rigor, compile-verified), FAQ
+  "why is my P100 1000x P99" entry, readmodels/core cross-links,
+  cqrs-bench README `--warmup` separate-bundle semantics.
 - **Corruption-class tripwires + verify ergonomics (owner-unblock wave, 2026-09-20/21).**
   The 10-incident `.golangci.yml` config-corruption class is closed by a content
   hash-golden (`scripts/check-golangci-hash.sh`, wired into `#check-lint-config` and

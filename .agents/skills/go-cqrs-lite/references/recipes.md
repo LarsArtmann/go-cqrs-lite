@@ -2645,9 +2645,7 @@ f, err := os.Create("new.txt")
 if err != nil {
 	log.Fatal(err)
 }
-if err := benchkit.WriteBenchstatRepeated(f, repeated); err != nil {
-	log.Fatal(err)
-}
+benchkit.WriteBenchstatRepeated(f, repeated)
 _ = f.Close()
 ```
 
