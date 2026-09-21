@@ -965,8 +965,9 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       inert-shrink ratchet — new errors anywhere fail; the baseline may only
       reference `*/archive*/` paths (gate-enforced); live docs must annotate or
       fix. See `scripts/check-md-go.sh` header + gotchas-tooling-build.
-      Residual numbers at close: 1460 valid / 78 skipped (67 annotated + 11
-      tool-heuristic) / 103 baselined archived.
+      Residual numbers at close (flake-pinned binary): 1461 valid / 78 skipped
+      (67 annotated + 11 tool-heuristic) / 103 baselined archived (sums to the
+      1642-block corpus).
       — source: 12-21 §b2/§c1-6/§f1-4/§f6-8 _(Effort: M)_
 
 ---
