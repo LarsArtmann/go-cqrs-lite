@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/doc-check/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
