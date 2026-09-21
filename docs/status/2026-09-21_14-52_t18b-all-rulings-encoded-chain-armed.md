@@ -100,3 +100,26 @@ The blocking decisions have converged — the remaining owner-only items are seq
 ---
 
 *State at writing: cost pass pid 3244128 + closure pid 3258300 alive (waiting out load 41); scripts preserved in `/var/tmp/t18b/`; baseline `a91e7cd90` untouched; tree clean. No manual commit per harness contract. Waiting for instructions.*
+
+---
+
+## ADDENDUM 2026-09-21 ~15:50 CEST — THE RULE QUALIFIED; incident + repair; all three Q-rulings executed
+
+**The headline event:** at 13:30 UTC the re-armed chain hit a genuine quiet window and the cost pass produced real numbers — then the accepted rule PASSED on its first candidate:
+
+| Config | Wall | MIN/matview median |
+|--------|------|--------------------|
+| 100x/5 (old) | 5s | 11313 ns |
+| 1000x/5 | 27s | 7640 ns |
+| **100x/9 (candidate)** | **6s** | **8118 → 8131 → 8793 (max drift +8.3% ≤ 10%)** |
+| 1000x/9 | 48s | 7573 ns |
+
+The closure widened the gate entry to `100x::9`, applied CI parity (`benchmarks.yml` matview leg → `-benchtime=100x -count=9`), passed the calibration gate (load 1.94/3.60) — then its re-pin and verification **died with exit 126: Permission denied**. Root cause: my `set_entry` rewrote the gate script via `awk > tmp && mv`, and the fresh file lost its exec bit (644). Fixed (chmod restored; the preserved closure copy now chmods after mv). The completion of the interrupted tail — quiet → calibration-gate → noise-clean re-pin (superseded baseline auto-archived to `docs/benchmarks/baselines/`) → verification — is armed as `/var/tmp/t18b/closure-completion.sh` (pid 1566584). **Green there closes T18b permanently.**
+
+**Q1 executed — campaign queue armed** (chained after completion): SearchQuery count=5 re-run (row 306c) then a full `BenchmarkCalibration_*` measurement capture (row 306d inputs), via `nix run .#integration-dgraph`, plausibility-guarded, results + PROVENANCE to `/var/tmp/t18b/campaign-results.md`. The bench wiring was **smoke-tested first** (34s live run, PASS — the D2 lesson applied). Supersede/re-anchor *edits* stay manual with numbers in hand (row 306d's constant campaign is a design pass, not a script).
+
+**Q2 executed — hygiene batch landed:** gotchas-testing caveat (quiet loadavg ≠ sufficient; KNOWN_UNSTABLE; GOTOOLCHAIN trap), AGENTS.md Quick Reference rows (`#quiet-window-run`, `#nightly-bench`), dated addendum on the 2026-09-18 SUPERB plan's T18b row, TODO row ~81 pointer resolved. Evidence preservation decided AGAINST as raw files: the four status reports already embed the decisive excerpts and are committed — duplicating raw logs into docs/ would be noise.
+
+**Q3 executed the SystemNix way:** nightly timer implemented in `/home/lars/projects/SystemNix/platforms/nixos/users/home.nix` following the taskwarrior house pattern (writeShellApplication + `systemd.user.timers`, 03:00/Persistent/30m jitter, `go_1_27` on the unit PATH because the go.work floor is 1.27.1 and user units don't inherit dev-shell toolchains). **Eval-verified** on evo-x2: `home-manager.users.lars.systemd.user.timers.go-cqrs-nightly-bench.Timer` renders `{03:00, Persistent, 30m}`. Alejandra-formatted (121/82 diff includes enforced format convergence on the niri TOML block — their pre-commit would produce it anyway). Activation = owner deploy (sudo). The go-cqrs-lite `scripts/nightly/` hand-written units are superseded by this declaration. SystemNix context discovered: `check-flake-inputs.sh` bans `GOTOOLCHAIN=auto` in flakes (sandbox purity) — so the interactive `local` pin is policy-consistent, and script-level self-export (what I did) is the correct layer.
+
+**Also noted:** the Q1/Q2 fallback and widening encoded in the closure + TODO row 40; the one thing still waited on is a quiet window for the completion + campaign legs (load 8.7/10.5 at last check — draining).
