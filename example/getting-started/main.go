@@ -83,8 +83,12 @@ type IncrementCmd struct {
 }
 
 // CounterView is the read model: a metaengine Map query folded from events.
+// LastVersion is the at-least-once guard: delivery is at-least-once by
+// contract, so the fold skips any event at or below the newest version
+// already folded instead of double-counting on a redelivery.
 type CounterView struct {
-	Value int `json:"value"`
+	Value       int   `json:"value"`
+	LastVersion int64 `json:"last_version"`
 }
 
 // counterProjection declares the read model as folds over the event types.
@@ -95,14 +99,19 @@ func counterProjection() ([]system.ProjectionDeclaration, *projectionadapter.Typ
 		metaengine.OnRecordTyped(
 			string(evtIncremented),
 			projectionadapter.EventWithID[IncrementedPayload]{},
-			func(_ record.Record, e projectionadapter.EventWithID[IncrementedPayload]) (string, CounterView) {
-				return e.ID, CounterView{Value: e.Payload.Amount}
+			func(rec record.Record, e projectionadapter.EventWithID[IncrementedPayload]) (string, CounterView) {
+				return e.ID, CounterView{Value: e.Payload.Amount, LastVersion: rec.Version}
 			},
 		),
 		metaengine.OnRecordTyped(
 			string(evtIncremented),
 			projectionadapter.EventWithID[IncrementedPayload]{},
-			func(_ record.Record, e projectionadapter.EventWithID[IncrementedPayload], prev CounterView) CounterView {
+			func(rec record.Record, e projectionadapter.EventWithID[IncrementedPayload], prev CounterView) CounterView {
+				if rec.Version <= prev.LastVersion {
+					return prev
+				}
+
+				prev.LastVersion = rec.Version
 				prev.Value += e.Payload.Amount
 
 				return prev

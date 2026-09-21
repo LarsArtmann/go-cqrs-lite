@@ -190,9 +190,7 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 		w.handleMu.Lock()
 		defer w.handleMu.Unlock()
 
-		println("DBG live-handler", evt.ID().String())
 		if w.wasSeen(evt.ID().String()) {
-			println("DBG live-skip-seen", evt.ID().String())
 			return nil
 		}
 
@@ -222,7 +220,6 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 		}
 
 		w.markSeen(evt.ID().String())
-		println("DBG live-applied", evt.ID().String())
 		w.processed.Add(1)
 		w.lastProcessedNs.Store(time.Now().UnixNano())
 
@@ -239,9 +236,7 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 // if the event cannot be processed even after retries and DLQ routing. Shared
 // by the initial drain and the catch-up drain.
 func (w *worker) processEvent(ctx context.Context, evt event.Event) error {
-	println("DBG drain-process", evt.ID().String())
 	if w.wasSeen(evt.ID().String()) {
-		println("DBG drain-skip-seen", evt.ID().String())
 		return nil
 	}
 
