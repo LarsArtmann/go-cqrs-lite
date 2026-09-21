@@ -2661,6 +2661,8 @@ median run's metrics PLUS every metric's cross-run CoV as a custom metric —
 `go test -bench` output then feeds benchstat directly, dispersion included:
 
 ```go
+import memory "github.com/larsartmann/go-cqrs-lite/stack/memory/v4"
+
 func BenchmarkMyBackend(b *testing.B) {
 	benchkit.RunSuiteRepeated(b, benchkit.Config{
 		Profile: benchkit.ProfileSmall,
