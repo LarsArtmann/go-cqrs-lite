@@ -12,6 +12,14 @@ var (
 	ErrDuplicateInstanceRole  = errors.New("system: duplicate dedicated instance role")
 	ErrDurabilityConflict     = errors.New("system: conflicting durability tiers for engine")
 	ErrEventStoreMissing      = errors.New("system: no event store")
+	// ErrEventSaveNotAtomic rejects a source-of-truth engine that implements
+	// neither AtomicAppender nor Transactional at construction time: event
+	// saves on such an engine are racy under concurrency.
+	ErrEventSaveNotAtomic = errors.New("system: source-of-truth engine cannot save events atomically")
+	// ErrRacySaveRefused is returned by EventAdapter.Save when the backend
+	// implements neither AtomicAppender nor Transactional and the racy
+	// check-then-append fallback was not explicitly opted into via WithRacySave.
+	ErrRacySaveRefused = errors.New("system: racy event save refused")
 	ErrJournalMissing         = errors.New("system: store does not implement event.Journal")
 	ErrNoDecider              = errors.New("system: no decider registered for stream type")
 	ErrNoProjectionHost       = errors.New("system: no projection host configured")

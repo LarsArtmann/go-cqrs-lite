@@ -29,6 +29,18 @@ func WithSerialization() EventAdapterOption {
 	return func(a *EventAdapter) { a.Serialize = true }
 }
 
+// WithRacySave opts in to the racy check-then-append Save fallback for
+// backends that implement neither [metaengine.AtomicAppender] nor
+// [metaengine.Transactional]. Without it such a backend fails closed
+// ([ErrRacySaveRefused]). Under concurrency two writers can both pass the
+// version check and both append, corrupting the stream version sequence —
+// use only for single-threaded or externally-serialized backends. The
+// source-of-truth role refuses such engines at construction regardless
+// ([ErrEventSaveNotAtomic]).
+func WithRacySave() EventAdapterOption {
+	return func(a *EventAdapter) { a.allowRacySave = true }
+}
+
 // EventAdapter wraps a [metaengine.StreamLogBackend] as an [event.Store].
 type EventAdapter struct {
 	AdapterCore[event.Event]
@@ -48,6 +60,10 @@ type EventAdapter struct {
 	// processes cannot grow it without limit; otter is safe for concurrent
 	// use, so no external mutex is needed.
 	seqCache *otter.Cache[string, int64]
+
+	// allowRacySave opts into the racy check-then-append Save fallback for
+	// backends with neither AtomicAppender nor Transactional (see WithRacySave).
+	allowRacySave bool
 }
 
 // NewEventAdapter creates an event.Store backed by a StreamLogBackend.
@@ -135,6 +151,13 @@ func (a *EventAdapter) Save(
 
 			return a.Backend.StreamAppend(ctx, a.Collection, sid, values)
 		})
+	}
+
+	if !a.allowRacySave {
+		return fmt.Errorf(
+			"%w: backend %T implements neither metaengine.AtomicAppender nor metaengine.Transactional; have the backend implement one of them for concurrent safety, or pass WithRacySave() for a deliberately single-threaded store",
+			ErrRacySaveRefused, a.Backend,
+		)
 	}
 
 	current, err := a.Backend.StreamVersion(ctx, a.Collection, sid)

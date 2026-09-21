@@ -474,6 +474,16 @@ overlap with metaengine. Consumers face two valid, overlapping stacks with no
 single blessed path. See
 `docs/architecture-understanding/2026-08-09_self-integration-review.md`.
 
+> **Decision recorded 2026-09-21 (owner, cqrs-htmx design-tree interview):**
+> `stack/v4` is REMOVED entirely in v5 — not merely tier-deprecated (the
+> 2026-08-17 markers) and not split from metaengine (an earlier consumer ask,
+> withdrawn): metaengine + `system/` is the intended direction, the option/
+> bundle layer's metaengine coupling is direction-aligned, and cqrs-htmx's
+> V007 migration already moves its usermgmt composition onto `system.New`
+> declaratively (the systemadapter module demonstrates the path). The
+> earlier "decouple stack's root package from metaengine" request from
+> cqrs-htmx is superseded by this decision.
+
 ### Design Principles
 
 1. **Developer sees only domain types.** Events, Commands, Query inputs,
