@@ -82,9 +82,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-// Sibling replace for the not-yet-tagged claiming module (claim-core
-// extraction); stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
-
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record
