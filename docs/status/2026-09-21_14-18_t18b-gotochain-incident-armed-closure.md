@@ -99,3 +99,19 @@ C1 T19–T21 (v5-gated) · C2 SearchQuery re-run + dgraph re-anchor via the prom
 ---
 
 *State at writing: cost pass pid 2033248 + closure pid 2045814 (chained, GOTOOLCHAIN=auto, plausibility-guarded, 6h budgets); stale zero-results purged; gate entry `::100x::9` intact; baseline `a91e7cd90` untouched; `scripts/vm-mysql.sh` still another session's uncommitted work. No manual commit per harness contract. Waiting for instructions.*
+
+---
+
+## ADDENDUM 2026-09-21 ~14:30 CEST — three more rulings executed; chain hardened + relaunched
+
+Q1 fallback = **nightly-only suite**; Q2 = **versioned baseline history**; Q3 = **CI parity**. All encoded into the re-armed closure:
+
+| Ruling | Implementation |
+|--------|----------------|
+| Q2 versioned history | `benchmark-regression.sh --save` now auto-archives the superseded baseline to `docs/benchmarks/baselines/benchmark-baseline-<UTC>.txt` before overwrite. Fixture-verified (archive contains old content, new baseline written, exit 0) |
+| Q3 CI parity | On qualify, the closure updates the benchmarks.yml matview stanza (`-benchtime/-count`) to the chosen config via a targeted awk rewrite (only the stanza following the matview bench regex) |
+| Q1 fallback | On no-qualify: matview suite removed from GATE_SETS, `scripts/nightly/matview-stability.sh` created (1000x/9, non-gating, `GOTOOLCHAIN=auto`), auto-wired into `nightly-bench.sh`; syntax-checked before the closure declares success |
+
+**Incident closure (D1):** the killed closure had NOT mutated anything (revert was pre-guard); stale zero-results purged; both scripts re-armed with `GOTOOLCHAIN=auto` + plausibility guards (new pids: cost 3244128 → closure 3258300). The `GOTOOLCHAIN=local` env incident is now documented in TODO row 40 as a fresh instance of the env-chain rule.
+
+**Remaining for closure:** one real quiet window (the only blocker all session); everything after that is autonomous per the accepted rule + fallback.
