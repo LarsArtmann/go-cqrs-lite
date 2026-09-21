@@ -1,7 +1,9 @@
-# md-go-validator ratchet baseline (see scripts/check-md-go.sh for the policy).
-# Format: <repo-relative-file>:<line>:<errorCode> — only errors NOT in this file fail the gate.
-# POLICY (P4, 2026-09-21): entries may ONLY reference archived/history paths (/archive*) —
-# live docs must use // skip-validate annotations or real fixes instead.
+# md-go-validator ratchet baseline (policy in scripts/check-md-go.sh).
+# Format: <repo-relative-file>:<line>:<errorCode> — only errors NOT listed here fail the gate.
+# Entries may ONLY reference archived/history paths (*/archive*/); live docs use
+# // skip-validate annotations or real fixes. Regenerate:
+#   md-go-validator . -q --save-baseline /tmp/base && \
+#   { head -5 scripts/md-go-baseline.txt; sed "s|^/home/lars/projects/go-cqrs-lite/||" /tmp/base | sort -u; } > scripts/md-go-baseline.txt
 docs/brainstorming/archive/2026-06-21_07-21_API-SURFACE-REDUCTION-IDEAS.md:188:syntax
 docs/feedback/archived/2026-07-10_DiscordSync_leverage_review.md:197:syntax
 docs/feedback/archived/2026-07-10_DiscordSync_leverage_review.md:273:syntax

@@ -54,3 +54,5 @@ require (
 replace github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4 => ../../scheduling/sqlstore
 
 replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
+
+replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

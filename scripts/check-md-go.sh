@@ -65,7 +65,9 @@ check_policy() {
 if [ "${1:-}" = "--update-baseline" ]; then
 	tmp=$(mktemp)
 	trap 'rm -f "$tmp"' EXIT
-	md-go-validator . -q --save-baseline "$tmp" >/dev/null
+	# The tool exits 1 whenever errors exist — including when saving a
+	# baseline of them. Its non-zero exit here is expected, not a failure.
+	md-go-validator . -q --save-baseline "$tmp" >/dev/null || true
 	{
 		echo "# md-go-validator ratchet baseline (policy in scripts/check-md-go.sh)."
 		echo "# Format: <repo-relative-file>:<line>:<errorCode> — only errors NOT listed here fail the gate."
