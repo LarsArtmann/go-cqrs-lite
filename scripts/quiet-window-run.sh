@@ -151,7 +151,6 @@ exit 0
 EOF
 	chmod +x "$fail_once"
 
-	local check
 	check() {
 		local name="$1" want="$2" got="$3"
 		if [[ "$got" == "$want" ]]; then
