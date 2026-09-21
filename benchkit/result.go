@@ -232,9 +232,12 @@ type Result struct {
 	// experience 3x+ worse at the 99th percentile.
 	TailRatio float64 `json:"tailRatio,omitempty"`
 
-	// WriteTailRatio is WriteLatency.P99 / WriteLatency.P50. Same concept as
-	// TailRatio but for the write path. High write tail ratios matter for
-	// ingestion-sensitive workloads where a single slow write stalls the
+	// WriteTailRatio is WriteLatency.P100 / WriteLatency.P50 — the TRUE
+	// maximum (exact, tracked per Record) over the median, matching the exact
+	// write_max_ns benchstat metric. Same concept as TailRatio but for the
+	// write path; using the exact max rather than the reservoir P99 means the
+	// ratio never hides the single worst write. High write tail ratios matter
+	// for ingestion-sensitive workloads where a single slow write stalls the
 	// pipeline.
 	WriteTailRatio float64 `json:"writeTailRatio,omitempty"`
 

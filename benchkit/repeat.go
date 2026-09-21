@@ -75,6 +75,14 @@ func RunRepeated(ctx context.Context, config Config, factory Factory) (*Repeated
 	runs := make([]*Result, 0, repeat)
 
 	for i := range repeat {
+		// Per-repeat progress: a --repeat N run can take N times as long as
+		// a single one, and per-phase progress alone cannot tell the user
+		// which repetition they are watching (phase 3/12 three times in a
+		// row looks stuck).
+		if config.ProgressWriter != nil {
+			fmt.Fprintf(config.ProgressWriter, "==> repeat %d/%d\n", i+1, repeat)
+		}
+
 		result, err := newRunner(single, factory).run(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("repeat run %d/%d: %w", i+1, repeat, err)

@@ -1,44 +1,10 @@
 package benchkit
 
 import (
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
 	"time"
-)
-
-// durationMarshalers serializes time.Duration as nanoseconds (int64)
-// because JSON v2 has no default representation for time.Duration.
-var durationMarshalers = json.MarshalFunc(
-	func(d time.Duration) ([]byte, error) {
-		return []byte(strconv.FormatInt(d.Nanoseconds(), 10)), nil
-	},
-)
-
-// durationUnmarshalers deserializes time.Duration from nanoseconds (int64),
-// enabling JSON round-trip (WriteJSON → json.Unmarshal with jsonOpts).
-var durationUnmarshalers = json.UnmarshalFunc(
-	func(b []byte, t *time.Duration) error {
-		n, err := strconv.ParseInt(string(b), 10, 64)
-		if err != nil {
-			return fmt.Errorf("parse duration nanoseconds: %w", err)
-		}
-
-		*t = time.Duration(n)
-
-		return nil
-	},
-)
-
-// jsonOpts are the default JSON encoding options: indented output
-// with time.Duration serialized/deserialized as nanoseconds.
-var jsonOpts = json.JoinOptions(
-	jsontext.WithIndent("  "),
-	json.WithMarshalers(durationMarshalers),
-	json.WithUnmarshalers(durationUnmarshalers),
 )
 
 // PrintReport writes a human-readable text report for a single result.
@@ -116,9 +82,14 @@ func printEnv(w io.Writer, r *Result) {
 		cpuInfo = r.Environment.CPUModel
 	}
 
-	fmt.Fprintf(w, "Env: %s | %s/%s | %s GOMAXPROCS=%d workers=%d\n\n",
+	loadInfo := ""
+	if r.Environment.LoadAvg1 > 0 {
+		loadInfo = fmt.Sprintf(" Load1=%.1f", r.Environment.LoadAvg1)
+	}
+
+	fmt.Fprintf(w, "Env: %s | %s/%s | %s GOMAXPROCS=%d workers=%d%s\n\n",
 		r.Environment.GoVersion, r.Environment.GOOS, r.Environment.GOARCH,
-		cpuInfo, r.Environment.GOMAXPROCS, r.Workers)
+		cpuInfo, r.Environment.GOMAXPROCS, r.Workers, loadInfo)
 }
 
 func printRepeat(w io.Writer, r *Result) {
@@ -163,7 +134,7 @@ func printReadPerformance(w io.Writer, r *Result) {
 	}
 
 	if r.WriteTailRatio > 0 {
-		fmt.Fprintf(w, "  Write tail: %.1fx (P99/P50)\n", r.WriteTailRatio)
+		fmt.Fprintf(w, "  Write tail: %.1fx (Max/P50)\n", r.WriteTailRatio)
 	}
 
 	if r.ReadAllTime > 0 {
@@ -378,22 +349,15 @@ func printLatencyLine(w io.Writer, label string, stats LatencyStats) {
 		return
 	}
 
+	// Min/Max are the exact best/worst observed (tracked per Record, not
+	// reservoir-sampled); Mean/Min approximates scheduler + contention cost.
 	fmt.Fprintf(
-		w, "%s P50=%s P95=%s P99=%s Max=%s\n",
+		w, "%s P50=%s P95=%s P99=%s Max=%s Min=%s\n",
 		label,
 		roundDuration(stats.P50),
 		roundDuration(stats.P95),
 		roundDuration(stats.P99),
 		roundDuration(stats.P100),
+		roundDuration(stats.Min),
 	)
-}
-
-// WriteJSON serializes a result as indented JSON.
-func WriteJSON(w io.Writer, r *Result) error {
-	return json.MarshalWrite(w, r, jsonOpts)
-}
-
-// writeJSONAny serializes any value as indented JSON using the standard options.
-func writeJSONAny(w io.Writer, v any) error {
-	return json.MarshalWrite(w, v, jsonOpts)
 }

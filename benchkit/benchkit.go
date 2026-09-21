@@ -228,6 +228,15 @@ type Config struct {
 	// keep the exact reservoir semantics (and cross-run comparability).
 	InterpolatedPercentiles bool
 
+	// ReservoirSize caps how many latency samples each phase's collector
+	// retains once the workload exceeds it (Algorithm R reservoir sampling;
+	// the default of 10000 bounds memory to ~80KB per collector). Raise it
+	// for large profiles (10M+ events per phase) where P99 fidelity over a
+	// 10K-sample reservoir is too coarse; Min/Max/Mean stay exact at any
+	// size. Zero uses the default. Applies to every phase uniformly — a
+	// sweep can vary it per data point through its modifier.
+	ReservoirSize int
+
 	// ProgressWriter, when non-nil, receives debounced progress updates
 	// during benchmark execution. Phase transitions are always reported;
 	// in-phase heartbeat updates fire every ProgressInterval. Use this for
@@ -260,6 +269,14 @@ func (c *Config) validate() error {
 
 	if c.Warmup < 0 {
 		return fmt.Errorf("%w: Warmup must be >= 0, got %d", ErrInvalidConfig, c.Warmup)
+	}
+
+	if c.ReservoirSize < 0 {
+		return fmt.Errorf(
+			"%w: ReservoirSize must be >= 0 (0 = library default), got %d",
+			ErrInvalidConfig,
+			c.ReservoirSize,
+		)
 	}
 
 	return nil

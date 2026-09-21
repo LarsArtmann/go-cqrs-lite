@@ -94,8 +94,12 @@ func (r *runner) finalizeResult(peakMem uint64, baseline memSnapshot) {
 			float64(r.result.LoadLatency.P50)
 	}
 
+	// Write tail uses the TRUE max (WriteLatency.P100, tracked per Record),
+	// matching the exact write_max_ns benchstat metric: a reservoir P99 can
+	// look tame while the exact max shows the spike an ingestion pipeline
+	// actually stalls on.
 	if r.result.WriteLatency.P50 > 0 {
-		r.result.WriteTailRatio = float64(r.result.WriteLatency.P99) /
+		r.result.WriteTailRatio = float64(r.result.WriteLatency.P100) /
 			float64(r.result.WriteLatency.P50)
 	}
 
@@ -135,9 +139,14 @@ func (r *runner) auditZeroValues() {
 }
 
 // newCollector builds a latency collector honoring the runner's Config
-// (currently the InterpolatedPercentiles small-n option). Every phase creates
-// its collectors through this so a config knob reaches all of them at once.
+// (InterpolatedPercentiles, ReservoirSize). Every phase creates its
+// collectors through this so a config knob reaches all of them at once.
+// maxLen <= 0 falls back to Config.ReservoirSize, then the library default.
 func (r *runner) newCollector(maxLen int) *LatencyCollector {
+	if maxLen <= 0 {
+		maxLen = r.config.ReservoirSize
+	}
+
 	if r.config.InterpolatedPercentiles {
 		return NewLatencyCollectorWithOptions(maxLen, WithInterpolatedPercentiles())
 	}

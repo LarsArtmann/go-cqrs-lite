@@ -16,6 +16,39 @@ type metric struct {
 	value  float64
 }
 
+// Stable benchstat metric-name constants for the metrics downstream tooling
+// (regression gates, dashboards, the cqrs-bench --strict noise check) keys on
+// most often. The full name universe stays behind [MetricNames]; these
+// exported constants exist so tooling stops hand-typing strings that drift
+// silently when a metric is renamed.
+const (
+	// MetricWriteThroughput is the write-phase events/sec headline.
+	MetricWriteThroughput = "write_throughput"
+	// MetricWriteP50NS is the write-path median latency (ns/op).
+	MetricWriteP50NS = "write_p50_ns"
+	// MetricWriteP99NS is the write-path P99 latency (ns/op).
+	MetricWriteP99NS = "write_p99_ns"
+	// MetricWriteMaxNS is the write-path TRUE maximum latency — exact, not a
+	// reservoir estimate.
+	MetricWriteMaxNS = "write_max_ns"
+	// MetricLoadP50NS is the read-path median latency (ns/op).
+	MetricLoadP50NS = "load_p50_ns"
+	// MetricLoadP99NS is the read-path P99 latency (ns/op).
+	MetricLoadP99NS = "load_p99_ns"
+)
+
+// HeadlineMetricNames returns the metrics whose cross-run noise fails the
+// regression gates — the set `cqrs-bench --strict` checks and
+// scripts/benchmark-regression.sh gates by default (its --noise-headline
+// override must stay in sync with this list). Deliberately excludes tail
+// quantiles: write_p99_ns was demoted 2026-09-20 after its CoV ranged
+// 11.5-54% across five gate runs including a deep-quiet window — tail
+// quantiles measure estimator variance at ~100-iteration samples, not
+// machine loudness. The returned slice is a fresh copy.
+func HeadlineMetricNames() []string {
+	return []string{MetricWriteThroughput, MetricWriteP50NS, MetricLoadP50NS}
+}
+
 // resultMetrics extracts the benchstat-compatible metric set from a Result in a
 // stable phase-grouped order. Zero-valued metrics — phases that were skipped or
 // that the backend does not support — are omitted, so a report never claims a
@@ -65,13 +98,13 @@ func MetricNames() []string {
 // filters the zeros; MetricNames exposes the name universe.
 func allMetrics(r *Result) []metric {
 	return []metric{
-		{"write_throughput", "ops/s", r.WriteThroughput},
+		{MetricWriteThroughput, "ops/s", r.WriteThroughput},
 		{"rawsink_throughput", "ops/s", r.RawSinkThroughput},
-		{"write_p50_ns", "ns/op", float64(r.WriteLatency.P50.Nanoseconds())},
-		{"write_p99_ns", "ns/op", float64(r.WriteLatency.P99.Nanoseconds())},
-		{"write_max_ns", "ns", float64(r.WriteLatency.P100.Nanoseconds())},
-		{"load_p50_ns", "ns/op", float64(r.LoadLatency.P50.Nanoseconds())},
-		{"load_p99_ns", "ns/op", float64(r.LoadLatency.P99.Nanoseconds())},
+		{MetricWriteP50NS, "ns/op", float64(r.WriteLatency.P50.Nanoseconds())},
+		{MetricWriteP99NS, "ns/op", float64(r.WriteLatency.P99.Nanoseconds())},
+		{MetricWriteMaxNS, "ns", float64(r.WriteLatency.P100.Nanoseconds())},
+		{MetricLoadP50NS, "ns/op", float64(r.LoadLatency.P50.Nanoseconds())},
+		{MetricLoadP99NS, "ns/op", float64(r.LoadLatency.P99.Nanoseconds())},
 		{"load_max_ns", "ns", float64(r.LoadLatency.P100.Nanoseconds())},
 		{"rawsink_p50_ns", "ns/op", float64(r.RawSinkLatency.P50.Nanoseconds())},
 		{"rawsink_p99_ns", "ns/op", float64(r.RawSinkLatency.P99.Nanoseconds())},
