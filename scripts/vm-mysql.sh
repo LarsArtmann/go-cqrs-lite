@@ -26,14 +26,39 @@ source "${SCRIPT_DIR}/lib/shuffle-seed.sh"
 HOST_PORT="${MYSQL_VM_PORT:-33070}"
 DRIVER_PID=""
 
+# set -m: each background job gets its OWN process group, so $! is the group
+# leader and the EXIT trap can group-kill the driver tree (driver + QEMU +
+# anything under it). Without this, a crashed test driver orphaned its QEMU,
+# which kept holding the hostfwd port and poisoned every subsequent run
+# (gotchas-testing.md, 2026-09-19).
+set -m
+
 cleanup() {
 	if [ -n "$DRIVER_PID" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
-		echo "==> Stopping test driver (PID $DRIVER_PID)"
-		kill "$DRIVER_PID" 2>/dev/null || true
+		echo "==> Stopping test driver process group (PGID $DRIVER_PID)"
+		kill -TERM -- -"$DRIVER_PID" 2>/dev/null || true
+		sleep 2
+		kill -KILL -- -"$DRIVER_PID" 2>/dev/null || true
 		wait "$DRIVER_PID" 2>/dev/null || true
 	fi
 }
 trap cleanup EXIT INT TERM
+
+# Pre-flight stale-port check: a holder on the hostfwd port (orphaned QEMU
+# class) makes every dial in the leg RST or hang; diagnose before booting.
+port_held=false
+if command -v ss >/dev/null 2>&1; then
+	ss -tln 2>/dev/null | grep -q ":${HOST_PORT} " && port_held=true
+elif (echo >/dev/tcp/127.0.0.1/"$HOST_PORT") 2>/dev/null; then
+	port_held=true
+fi
+if [ "$port_held" = true ]; then
+	echo "ERROR: port ${HOST_PORT} is already held — likely an orphaned QEMU from a crashed run:"
+	command -v ss >/dev/null 2>&1 && ss -tlnp 2>/dev/null | grep ":${HOST_PORT} " || true
+	pgrep -af qemu 2>/dev/null | sed 's/^/  /' || true
+	echo "  Kill the orphan(s) first, then re-run (gotchas-testing.md: leaked-QEMU entry)."
+	exit 1
+fi
 
 # Warn if KVM is not available (10-50x slowdown without it)
 if [ ! -e /dev/kvm ]; then
