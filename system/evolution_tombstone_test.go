@@ -184,31 +184,26 @@ func awaitTombView(ctx context.Context, sys *system.System, key string,
 	return nil, false
 }
 
-// awaitTombPhase polls until the view's presence matches want (found/gone),
-// so projection lag can never be mistaken for a fold result.
-func awaitTombPhase(ctx context.Context, sys *system.System, key string, want bool) *EvoTombView {
+// awaitTombPhase polls until the view's presence matches want (found/gone).
+// ok reports whether the phase was reached before the deadline; view is the
+// last observed row when want=true.
+func awaitTombPhase(ctx context.Context, sys *system.System, key string, want bool) (*EvoTombView, bool) {
 	deadline := loadScaledDeadline(5 * time.Second)
 
 	for time.Now().Before(deadline) {
 		view, gone := awaitTombView(ctx, sys, key)
-		if gone != want && view == nil {
-			time.Sleep(25 * time.Millisecond)
-
-			continue
+		if want && view != nil {
+			return view, true
 		}
 
 		if !want && gone {
-			return nil
-		}
-
-		if want && view != nil {
-			return view
+			return nil, true
 		}
 
 		time.Sleep(25 * time.Millisecond)
 	}
 
-	return nil
+	return nil, false
 }
 
 func startTombstoneSystem(t *testing.T, ctx context.Context) *system.System {
@@ -244,8 +239,8 @@ func TestSystem_EvolutionInheritance_TombstoneRemovesRow(t *testing.T) {
 	streamID := id.NewStreamID()
 	dispatchTomb(t, ctx, sys, "evotomb.create", streamID)
 
-	view := awaitTombPhase(ctx, sys, streamID.String(), true)
-	if view == nil {
+	view, ok := awaitTombPhase(ctx, sys, streamID.String(), true)
+	if !ok || view == nil {
 		t.Fatal("created view never appeared")
 	}
 
@@ -255,7 +250,7 @@ func TestSystem_EvolutionInheritance_TombstoneRemovesRow(t *testing.T) {
 
 	dispatchTomb(t, ctx, sys, "evotomb.delete", streamID)
 
-	if awaitTombPhase(ctx, sys, streamID.String(), false) != nil {
+	if _, ok := awaitTombPhase(ctx, sys, streamID.String(), false); !ok {
 		t.Fatal("tombstone auto-fold did not remove the inherited read-model row")
 	}
 }
@@ -274,13 +269,13 @@ func TestSystem_EvolutionInheritance_RebirthAfterTombstone(t *testing.T) {
 	streamID := id.NewStreamID()
 	dispatchTomb(t, ctx, sys, "evotomb.create", streamID)
 
-	if view := awaitTombPhase(ctx, sys, streamID.String(), true); view == nil {
+	if _, ok := awaitTombPhase(ctx, sys, streamID.String(), true); !ok {
 		t.Fatal("precondition failed: created view never appeared")
 	}
 
 	dispatchTomb(t, ctx, sys, "evotomb.delete", streamID)
 
-	if awaitTombPhase(ctx, sys, streamID.String(), false) == nil {
+	if _, ok := awaitTombPhase(ctx, sys, streamID.String(), false); !ok {
 		t.Fatal("precondition failed: row never disappeared after tombstone")
 	}
 
