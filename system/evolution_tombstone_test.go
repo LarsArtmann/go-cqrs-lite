@@ -2,10 +2,11 @@ package system_test
 
 import (
 	"context"
-	"encoding/json/v2"
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
@@ -39,7 +40,7 @@ type EvoTombView struct {
 }
 
 type evoTombState struct {
-	Title string
+	Title  string
 	Exists bool
 }
 
@@ -48,8 +49,13 @@ func applyEvoTomb(state evoTombState, evt event.Event) (evoTombState, error) {
 	case "evotomb.created":
 		var p EvoTombCreated
 
-		if err := json.Unmarshal(evt.Payload(), &p); err != nil {
-			return state, err
+		c, cerr := codec.ForEncoding(evt.Encoding())
+		if cerr != nil {
+			return state, cerr
+		}
+
+		if derr := c.Decode(evt.Payload(), &p); derr != nil {
+			return state, derr
 		}
 
 		state.Title = p.Title
@@ -83,18 +89,28 @@ func newTombstoneDomain() system.DomainConfig {
 				func(ctx context.Context, cmd *command.BasicCommand) system.Op[evoTombState] {
 					return system.Execute(ctx, cmd.StreamID(), "EvoTomb",
 						func(state evoTombState, ver event.Version) ([]event.Event, error) {
-							var p EvoTombCreated
-
-							if err := json.Unmarshal(cmd.Payload(), &p); err != nil {
-								return nil, err
-							}
-
 							if state.Exists {
 								return nil, errors.New("already exists")
 							}
 
 							return []event.Event{mustEvent(event.New(
-								"evotomb.created", cmd.StreamID(), "EvoTomb", ver+1, p,
+								"evotomb.created", cmd.StreamID(), "EvoTomb", ver+1,
+								EvoTombCreated{ID: cmd.StreamID().String(), Title: "first life"},
+							))}, nil
+						})
+				})
+
+			system.RegisterCommand[*command.BasicCommand, evoTombState](sys, "evotomb.recreate",
+				func(ctx context.Context, cmd *command.BasicCommand) system.Op[evoTombState] {
+					return system.Execute(ctx, cmd.StreamID(), "EvoTomb",
+						func(state evoTombState, ver event.Version) ([]event.Event, error) {
+							if state.Exists {
+								return nil, errors.New("already exists")
+							}
+
+							return []event.Event{mustEvent(event.New(
+								"evotomb.created", cmd.StreamID(), "EvoTomb", ver+1,
+								EvoTombCreated{ID: cmd.StreamID().String(), Title: "second life"},
 							))}, nil
 						})
 				})
@@ -130,11 +146,11 @@ func tombstoneDeployment() system.DeploymentConfig {
 }
 
 func dispatchTomb(t *testing.T, ctx context.Context, sys *system.System,
-	cmdType command.Type, streamID id.StreamID, payload any,
+	cmdType command.Type, streamID id.StreamID,
 ) {
 	t.Helper()
 
-	basic, err := command.New(cmdType, streamID, payload)
+	basic, err := command.New(cmdType, streamID)
 	if err != nil {
 		t.Fatalf("command.New: %v", err)
 	}
@@ -144,10 +160,10 @@ func dispatchTomb(t *testing.T, ctx context.Context, sys *system.System,
 	}
 }
 
-// awaitTombView polls the inherited-fold lookup until view resolves (nil) or
-// metaengine.ErrNotFound surfaces (errGone).
+// awaitTombView polls the inherited-fold lookup until the view resolves
+// (returned) or metaengine.ErrNotFound surfaces (gone=true).
 func awaitTombView(ctx context.Context, sys *system.System, key string,
-) (view *EvoTombView, errGone bool) {
+) (view *EvoTombView, gone bool) {
 	deadline := loadScaledDeadline(5 * time.Second)
 
 	for time.Now().Before(deadline) {
@@ -176,7 +192,7 @@ func startTombstoneSystem(t *testing.T, ctx context.Context) *system.System {
 		t.Fatalf("system.New: %v", err)
 	}
 
-	t.Cleanup(func() { sys.Close() })
+	t.Cleanup(func() { _ = sys.Close() })
 
 	if err := sys.Start(ctx); err != nil {
 		t.Fatalf("system.Start: %v", err)
@@ -187,8 +203,9 @@ func startTombstoneSystem(t *testing.T, ctx context.Context) *system.System {
 
 // TestSystem_EvolutionInheritance_TombstoneRemovesRow pins the tombstone
 // auto-fold: through the INHERITED evolution folds (the projection declares
-// no samples of its own), the *Deleted convention event removes the read-model
-// row — the read becomes metaengine.ErrNotFound, not a stale ghost row.
+// no samples of its own), the *Deleted convention event removes the
+// read-model row — the read becomes metaengine.ErrNotFound, not a stale
+// ghost row.
 func TestSystem_EvolutionInheritance_TombstoneRemovesRow(t *testing.T) {
 	t.Parallel()
 
@@ -198,25 +215,23 @@ func TestSystem_EvolutionInheritance_TombstoneRemovesRow(t *testing.T) {
 	sys := startTombstoneSystem(t, ctx)
 
 	streamID := id.NewStreamID()
-	dispatchTomb(t, ctx, sys, "evotomb.create", streamID,
-		EvoTombCreated{ID: streamID.String(), Title: "tombstone me"})
+	dispatchTomb(t, ctx, sys, "evotomb.create", streamID)
 
 	view, gone := awaitTombView(ctx, sys, streamID.String())
 	if gone || view == nil {
 		t.Fatalf("created view never appeared (gone=%v)", gone)
 	}
 
-	if view.Title != "tombstone me" {
-		t.Fatalf("inherited insert fold: title %q, want %q", view.Title, "tombstone me")
+	if view.Title != "first life" {
+		t.Fatalf("inherited insert fold: title %q, want %q", view.Title, "first life")
 	}
 
-	dispatchTomb(t, ctx, sys, "evotomb.delete", streamID, nil)
+	dispatchTomb(t, ctx, sys, "evotomb.delete", streamID)
 
 	deadline := loadScaledDeadline(5 * time.Second)
 
 	for time.Now().Before(deadline) {
-		_, gone := awaitTombView(ctx, sys, streamID.String())
-		if gone {
+		if _, gone := awaitTombView(ctx, sys, streamID.String()); gone {
 			return
 		}
 
@@ -238,22 +253,28 @@ func TestSystem_EvolutionInheritance_RebirthAfterTombstone(t *testing.T) {
 	sys := startTombstoneSystem(t, ctx)
 
 	streamID := id.NewStreamID()
-	dispatchTomb(t, ctx, sys, "evotomb.create", streamID,
-		EvoTombCreated{ID: streamID.String(), Title: "first life"})
-	dispatchTomb(t, ctx, sys, "evotomb.delete", streamID, nil)
+	dispatchTomb(t, ctx, sys, "evotomb.create", streamID)
+	dispatchTomb(t, ctx, sys, "evotomb.delete", streamID)
 
 	deadline := loadScaledDeadline(5 * time.Second)
 
+	goneAt := false
+
 	for time.Now().Before(deadline) {
 		if _, gone := awaitTombView(ctx, sys, streamID.String()); gone {
+			goneAt = true
+
 			break
 		}
 
 		time.Sleep(25 * time.Millisecond)
 	}
 
-	dispatchTomb(t, ctx, sys, "evotomb.create", streamID,
-		EvoTombCreated{ID: streamID.String(), Title: "second life"})
+	if !goneAt {
+		t.Fatal("precondition failed: row never disappeared after tombstone")
+	}
+
+	dispatchTomb(t, ctx, sys, "evotomb.recreate", streamID)
 
 	for time.Now().Before(deadline) {
 		view, gone := awaitTombView(ctx, sys, streamID.String())
