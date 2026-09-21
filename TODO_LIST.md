@@ -692,11 +692,15 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       0 broken, nightly gate).
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
-- [ ] **Docs censuses (7th-pass items 1-3)** — ~~module-map census~~ DONE
-      2026-09-20 (all 95 go.mods rowed, scripted-diff verified — census banner
-      in the map header). REMAINING: FEATURES maturity matrix vs the 95 modules
-      (+ last-verified stamps on guarantee rows); per-file index for the
-      archived waves in `docs/status/README.md`. — source: archived 13-03 §f1-3 _(Effort: S/M)_
+- ~~[ ] **Docs censuses (7th-pass items 1-3)**~~ done 2026-09-21 —
+      ~~module-map census~~ DONE 2026-09-20 (then 95 go.mods); ~~FEATURES
+      maturity matrix~~ DONE 2026-09-21 (scripted bidirectional diff: 96
+      modules, 6 missing rows added incl. both testcontainer helpers and the
+      Goal demo, sub-package naming explained, guarantee rows stamped with
+      dated evidence); ~~per-file index for the archived waves~~ DONE
+      2026-09-21 (per-DAY wave table, 132 rows, in
+      `docs/status/archived/README.md` + live-reports index in
+      `docs/status/README.md`). — source: archived 13-03 §f1-3
 
 ---
 
@@ -724,18 +728,37 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`docs/status/archived/2026-09-16_02-09_benchmark-statistical-rigor.md`](docs/status/archived/2026-09-16_02-09_benchmark-statistical-rigor.md)
 > §b/§f, 09-35 §f P3
 
-- [ ] **Benchkit CLI polish tail (2026-09-19 harvest)** — unharvested §f items
-      from the statistical-rigor completion: render `Min` in output tables;
-      `--strict` failing on NOISY headline metrics; `list-phases` metric
-      mapping; `Load1` in env row; `--warmup` docs (README gap); CSV variation
-      columns; sweep CoV column; per-repeat progress; reservoir size per-phase;
-      `tail_ratio` true-max semantics; `RunSuite` testing.B variant over
-      RunRepeated; metric-name constants for downstream tooling; stale-baseline
-      re-pin protocol + gate-set rename guard; CI golangci version skew; P100
-      in benchstat gate metrics; recipes statistical-rigor block + FAQ P100
-      entry + readmodels/core cross-links; supersede-note on the oversubscribed
-      2026-09-19 capture once a quiet-window one exists. — source: archived 15-37
-      §f8-30, archived 02-09 §f14-42 _(Effort: M total, sliceable)_
+- [x] **Benchkit CLI polish tail (2026-09-19 harvest)** — done 2026-09-21, all
+      slices verified green: render `Min` in output tables (every latency line +
+      CLI `Write Min` row); `--strict` failing on NOISY headline metrics (shared
+      `benchkit.HeadlineMetricNames()` contract); `list-phases` metric mapping;
+      `Load1` in env row (text `Env:` line + summary-table row); `--warmup` docs
+      (separate-bundle semantics in README flag table); CSV variation columns
+      (per-headline CoV rows in table/CSV/TSV); sweep CoV column (SDK
+      `PrintSweep` + CLI, sweep now honors `--repeat`); per-repeat progress
+      (`repeat i/N` from `RunRepeated`); reservoir size per-phase
+      (`Config.ReservoirSize` + `--reservoir-size`); `tail_ratio` true-max
+      semantics (`WriteTailRatio` = `write_max_ns`/P50); `RunSuite` testing.B
+      variant (`RunSuiteRepeated`, `<metric>_cov%` custom metrics);
+      metric-name constants (`benchkit.MetricWriteThroughput` etc. +
+      `HeadlineMetricNames()`); re-pin protocol folds the load gate in + gate-set
+      rename guard (`gate_set_guard`/`noise_target_guard`, mutation-tested via
+      `BENCH_GATE_GUARD_ROOT`); CI golangci version skew — RESOLVED BY EVIDENCE:
+      CI lints via `nix run .#lint` (ci.yml:61) = same pinned nixpkgs
+      golangci-lint as local, no Action-based skew exists; P100 in gate metrics —
+      DECIDED NO with the 2026-09-20 evidence (write_p99_ns CoV 11.5-54%
+      including a deep-quiet window; max is worse still — documented in the
+      script header + FAQ); recipes statistical-rigor block (§2.40,
+      compile-verified) + FAQ P100 entry + readmodels/core cross-links. —
+      source: archived 15-37 §f8-30, archived 02-09 §f14-42 _(Effort: M total,
+      sliceable)_
+- [BLOCKED] **Supersede-note on the oversubscribed 2026-09-19 capture** —
+      annotate `docs/benchmarks/2026-09-19_backend-comparison-variation.md` as
+      superseded (keeping it as the what-noisy-looks-like example) once a
+      quiet-window capture exists. Blocked on machine quietness: load was
+      35.6/32 CPUs at the 2026-09-21 attempt. Protocol: wait for
+      `scripts/calibration-gate.sh` PASS, re-run the compare command from the
+      capture header, then annotate. — source: archived 15-37 §f3/§f30
 
 ---
 
