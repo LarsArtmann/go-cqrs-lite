@@ -81,6 +81,9 @@ jobs:
       - name: Error-taxonomy drift gate
         run: nix run .#check-error-taxonomy
 
+      - name: md-go-validator docs gate
+        run: nix run .#check-md-go
+
       - name: Heap-measurement contract
         run: bash scripts/check-heap-parallel.sh
 

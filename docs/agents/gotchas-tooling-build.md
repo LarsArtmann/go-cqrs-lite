@@ -107,3 +107,27 @@
   in one FEATURES row draft only because the author re-checked their own
   citations). The check is one grep per claim; skip it and the doc lies with a
   valid-looking citation next to it.
+- **md-go-validator gate (`check-md-go`): baseline is BINARY-VERSION-COUPLED**
+  (2026-09-21). The canonical invocation is `nix run .#check-md-go`, which runs
+  the flake-packaged binary pinned by `flake.lock` (`inputs.md-go-validator`,
+  GitHub master). The host-level `/run/current-system/sw/bin/md-go-validator`
+  can be OLDER and disagree on individual blocks (observed: host 64724e8 flags
+  104 archived errors, master flags 103 — one fence parses clean on master).
+  Consequences: (a) regenerate the baseline ONLY through the app
+  (`nix run .#check-md-go -- --update-baseline`), never with a bare host
+  binary — a host-generated baseline mixes versions and can shadow a real new
+  error; (b) after bumping the flake input, expect possible drift and re-pin
+  via the same app command; (c) a bare `bash scripts/check-md-go.sh` may
+  false-fail on a stale host binary — that is the signal to use the app.
+  Mechanics worth knowing: the tool keys baseline signatures on ABSOLUTE
+  paths (`validatePath` → `filepath.Abs`), so the committed
+  `scripts/md-go-baseline.txt` is repo-RELATIVE and the script re-absolutizes
+  it with `sed "s|^|$PWD/|"` at run time (portable across machines/CI).
+  Exit codes: 0 = green; 1 = errors exist (INCLUDING during `--save-baseline`
+  — under `set -e`, `|| true` the save call or the script dies mid-update);
+  the tool also auto-loads `.md-go-validator.yaml` from the CWD. Policy:
+  live docs use an in-fence `// skip-validate` line (first line of the fence;
+  keeps Go highlighting — prefer it over demoting fences to ```text);
+  `scripts/md-go-baseline.txt` may only reference `*/archive*/` paths
+  (enforced); wrong-language fences are fenced as text, not go (```
+  `go.mod`/`go.work` → ```text```, JSON → ```json```).

@@ -60,6 +60,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Verify CI    | `nix run .#verify-ci` (GOWORK=off per-module build+test — mirrors the CI matrix job)                                                            |
 | Lint config  | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
 | ErrTax       | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
+| md-go gate   | `nix run .#check-md-go` (every live ```go fence in docs must parse or carry `// skip-validate`; frozen history baselined in scripts/md-go-baseline.txt) |
 | Rel. tests   | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
 | README gates | `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)          |
 | Recipe gate  | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 81/81 classified, coverage ratchet)  |
@@ -218,7 +219,7 @@ moved past one, do NOT silently edit its design intent:
 2. Add a per-section addendum (DONE / DIFFERENT / PARTIAL / NOT SHIPPED / PHILOSOPHY); every row cites `file:line` evidence or explicitly says "unverified".
 3. Correct inline examples only where the API moved; mark each correction with a dated note.
 4. Never delete original design text; a reader must be able to see what was intended.
-5. `docs/planning/` is NOT in `cmd/doc-check`'s default scan set (gated only when passed explicitly). No snippet-compile gate is enforced for planning docs: snippets are illustrative, and md-go-validator flags them by design (see `docs/reviews/2026-09-13_md-go-validator-review.md`). The banner + addendum discipline is the gate.
+5. `docs/planning/` is NOT in `cmd/doc-check`'s default scan set (gated only when passed explicitly). Planning snippets are illustrative, so there is no snippet-COMPILE gate for them — but since 2026-09-21 the md-go-validator gate (`nix run .#check-md-go`) DOES cover them at parse level: intentional pseudo-code carries an in-fence `// skip-validate` line, and frozen history lives in `scripts/md-go-baseline.txt` (policy in `scripts/check-md-go.sh`). The banner + addendum discipline remains the semantic gate.
 
 Exemplar: `docs/planning/event-query-model.md` (reconciled 2026-09-13; plan `docs/planning/archived/2026-09-13_16-01_SUPERB-event-query-model-truth-reconciliation.md`).
 

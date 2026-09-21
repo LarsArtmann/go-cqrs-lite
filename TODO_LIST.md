@@ -952,12 +952,21 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > archived); P1 (6 fence fixes) is done, P2–P4 are not. Report:
 > [`docs/status/archived/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md`](docs/status/archived/2026-09-13_12-21_md-go-validator-audit-and-p1-fence-fixes.md)
 
-- [ ] **Make the validator a real gate** — commit `--init` config + baseline
-      file (`scripts/md-go-baseline.txt`, mirror `check-file-size`); flake app
-      `check-md-go`; verify/package the tool for CI (today it only exists as a
-      host-level NixOS package); then P2 (`// skip-validate` the 9
-      consumer-facing blocks, 7 files) and P3 (~55 active-doc blocks); decide
-      the P4 archived-errors policy (baseline-forever vs shrinking ratchet).
+- [x] **Make the validator a real gate** — DONE 2026-09-21. Committed
+      `.md-go-validator.yaml` + relative baseline `scripts/md-go-baseline.txt`
+      (103 archived-error signatures, regenerated via the app so it matches the
+      flake binary); flake app `check-md-go` + packaged `md-go-validator`
+      package (built from a `flake=false` GitHub input via the shared
+      mkPreparedSource machinery — NOT the tool's own flake, whose go-finding
+      input is git+ssh and unfetchable in CI); wired into `#verify`,
+      `#verify-fast`, and the ci.yml check job. P2+P3: `// skip-validate`
+      inserted into all 67 then-live error blocks across 34 files (scripted,
+      bottom-up per file). P4 policy DECIDED: archived-only baseline with
+      inert-shrink ratchet — new errors anywhere fail; the baseline may only
+      reference `*/archive*/` paths (gate-enforced); live docs must annotate or
+      fix. See `scripts/check-md-go.sh` header + gotchas-tooling-build.
+      Residual numbers at close: 1460 valid / 78 skipped (67 annotated + 11
+      tool-heuristic) / 103 baselined archived.
       — source: 12-21 §b2/§c1-6/§f1-4/§f6-8 _(Effort: M)_
 
 ---
