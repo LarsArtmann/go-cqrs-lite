@@ -89,7 +89,7 @@ intent).
   (system v4.7.0) and hand-rolls what master already does (excellence plan
   context); its evaluation asked whether metaengine's Vector+Graph ADTs can
   replace its hand-rolled SQLite store
-  ([feedback](../feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md):276),
+  ([feedback](../feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md):276),
   and it hit the Scan-100 silent truncation (G-T14 survey census). Its shape
   class (funnel/graph/vector) sits OUTSIDE row-materialization convention —
   it would use explicit declarations under every option. CV verdict on
@@ -207,5 +207,5 @@ v5-deprecation list gains nothing new (`Infer` already listed).
 §2/§4/§6 · [scan survey](2026-09-21_scan-default-v5-survey.md) ·
 [ADR-0116](../adr/0116-layered-auto-projection.md) §Layer-1 + §Alternatives-B ·
 [ADR-0114](../adr/0114-tombstone-as-domain-event.md) ·
-[CV feedback](../feedback/reviewed/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md):276 ·
+[CV feedback](../feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md):276 ·
 `cmd/cqrs-gen/main.go:1-14` · `example/goal-shaped-app/app.go:87-111`

@@ -1536,7 +1536,7 @@ Full decision record: [`docs/adr/0142-universal-storage-substrate.md`](docs/adr/
 > **Last-verified stamps (2026-09-21):** doc-truth gates verified this session
 > (doc-check 1194 refs zero-warning, doc-links 0 broken, changelog-symbol
 > citations honest, release-script smoke 86/86, actionlint clean — see
-> [status report](docs/status/2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md)).
+> [status report](docs/status/archived/2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md)).
 > Full `#verify` (build + vet + test + race + lint + arch across all modules)
 > last green 2026-09-20 16:39 composed run; the per-module `-race` CI matrix
 > re-proves it on every push.

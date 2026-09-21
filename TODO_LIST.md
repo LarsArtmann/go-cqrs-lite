@@ -923,7 +923,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 >
 > **Execution sequencing for this section + the metaengine/system reliability
 > items lives in the Pareto plan
-> [`docs/planning/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md`](docs/planning/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md)**
+> [`docs/planning/archived/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md`](docs/planning/archived/2026-09-16_21-05_SUPERB-metaengine-system-excellence-pareto-plan.md)**
 > (P0: tag wave + replay-starvation fix + ApplyBatch atomicity; P1: lease +
 > FilterContains + Forever + E9/E10 + matview guard; P2: v5 deletions + E-items +
 > AggregateOn seam; P3: proof + docs + v5.0.0 cut).
@@ -1050,6 +1050,18 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `references/advanced.md`, both cross-links, and the claims-checklist rule
       all landed 2026-09-21). — source: 19-45 §f1/§f3-5/§f8; 19-57 §f3/§f8
       _(Effort: S)_
+## Temporal versioned cells — ADR-0141 follow-ups (harvested 2026-09-18)
+
+> From the temporal deep-dive reports
+> ([14:07](docs/status/archived/2026-09-18_14-07_temporal-versioned-cells-deep-dive.md) §f items 19–44,
+> [16:03](docs/status/archived/2026-09-18_16-03_temporal-versioned-cells-completion-gates.md)).
+> Items 1–18 of the 14:07 list + docs/CHANGELOG/FEATURES/golden/lint work are DONE
+> (see those reports); the core API (`VersionedStorage`, `MapSetAt`/`MapGetAsOf`,
+> `temporal-asof` rule, memory/sqlite/bigtable engines) is green and documented
+> (recipes §2.37, advanced §6.20, readmodels versioned-engine note). Engine
+> enumeration in tooling (api-stability, cqrs-lint `StoreBigTable` +
+> `metaengineEngineFromImport`) landed 2026-09-18 evening session.
+
 - [ ] 🔥 **Real-GCP validation + prior calibration for `bigtableengine`** — the
       module ships 🧪 (bttest-fake-validated only, no credentials on this
       machine). Run the suite once against a real BigTable instance, then

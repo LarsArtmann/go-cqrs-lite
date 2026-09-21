@@ -103,7 +103,7 @@ it. Cheapest correctness win on this list.
 
 ---
 
-## 3. Fail closed on `EventAdapter.Save` racy fallback
+## ~~3. Fail closed on `EventAdapter.Save` racy fallback~~ — SHIPPED 2026-09-21 in `system/v4.9.0` (`ErrRacySaveRefused`/`WithRacySave`/`ErrEventSaveNotAtomic`, 3 pinning tests)
 
 ### The Problem
 
@@ -157,7 +157,7 @@ The v5 design is right; the v4 graph doesn't have to wait for it.
 
 ---
 
-## 5. Stamp experimental status in each module's `doc.go`
+## ~~5. Stamp experimental status in each module's `doc.go`~~ — SHIPPED 2026-09-20 (all 17 metaengine-family modules carry `# Experimental` doc headings)
 
 ### The Problem
 
