@@ -270,6 +270,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"system":                         "system-level utilities (not a domain module)",
 		"system/integration":             "test sub-module (covered by system)",
 		"testutil":                       "test utility package",
+		"testutil/mysqltestcontainer":    "test utility sub-package (covered by testutil)",
 		"testutil/pgtestcontainer":       "test utility sub-package (covered by testutil)",
 		"transport/grpc":                 "deprecated module (removal at v5, ADR-0127; watermill/ is the sanctioned broker path)",
 		"transport/http":                 "deprecated module (removal at v5, ADR-0127; go-sse + watermill/ are the sanctioned delivery paths)",
