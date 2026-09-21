@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/storage/pebble/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/cockroachdb/pebble v1.1.5

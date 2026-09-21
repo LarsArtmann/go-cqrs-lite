@@ -184,6 +184,7 @@
 ## f) Up to 50 things to do next (ranked; harvested rows carry their TODO IDs)
 
 **This pass's direct tails:**
+
 1. T18b: quiet-window `#load-sweep` + `benchmark-regression.sh --save` with
    provenance header (TODO row; recipe in archived 16-39).
 2. W3 owner bundle rulings (TODO section — Q1/Q3/Q4/Q5 + stale v4 tags + MySQL
@@ -208,19 +209,19 @@
 
 **Docs-health process tails (this pass's class):**
 16. Decide §g1: per-item strikes vs banner-routing as the ratified archive
-    standard; if per-item, schedule a targeted strike pass over the 16
-    banner-archived reports' §f lists.
+standard; if per-item, schedule a targeted strike pass over the 16
+banner-archived reports' §f lists.
 17. File the docs-health SKILL.md suggestion (banner-regex pointer + harvest
-    closing-check) in the crush-config repo.
+closing-check) in the crush-config repo.
 18. Next pass: harvest + archive this report, the 16:39/16:43 close-outs, and
-    the owner bundle once their items resolve; keep fp-sweep + evidence docs
-    KEEP-LIVE.
+the owner bundle once their items resolve; keep fp-sweep + evidence docs
+KEEP-LIVE.
 19. Run `check-readme-links.sh`/`-deprecated.sh` once as insurance (skipped
-    this pass).
+this pass).
 20. Verify this pass's diff under the markdown formatter (`nix fmt`) at the
-    next tree touch — never run this pass.
+next tree touch — never run this pass.
 21. Classify the four files only header-read this pass (self-integration
-    review, book-insights pair, graph-databases research) at the next pass.
+review, book-insights pair, graph-databases research) at the next pass.
 
 **Standing backlog (carried, unchanged, tracked in TODO_LIST — listed for
 completeness, not re-derived):**
@@ -236,14 +237,14 @@ completeness, not re-derived):**
 31. Queue M4 polish tail; PapDashboard T20 adoption evaluation.
 32. md-go-validator gate (P2–P4); cqrs-lint FP-sweep harness refresh.
 33. Dogfooding tails: Tier-0 close-helper ruling, scan/paginate extraction,
-    retry-idiom audit, quic/loopback parity test (foreign test file appeared
-    in-tree this pass — `metaengine/irohengine/quic/dedup_parity_test.go`,
-    left untouched per the foreign-change rule).
+retry-idiom audit, quic/loopback parity test (foreign test file appeared
+in-tree this pass — `metaengine/irohengine/quic/dedup_parity_test.go`,
+left untouched per the foreign-change rule).
 34. Temporal tails: bigtable real-GCP validation, version-chain properties,
-    restart soaks, Pebble/bbolt scope decision.
+restart soaks, Pebble/bbolt scope decision.
 35. Watermill tails: NATS leg, sibling-skill quality tail.
 36. v5 section rows (deletions, E-items, migration tail, guide expansion) —
-    v5-gated, untouched per contract 21g.
+v5-gated, untouched per contract 21g.
 37. CI billing fix — the gate on every remote-confirmation row above.
 38. Daemon pre-commit sanity gate (three+ sessions asked).
 39. BuildFlow templ-generate cwd fix (external repo).

@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/system/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/knadh/koanf/parsers/yaml v1.1.1

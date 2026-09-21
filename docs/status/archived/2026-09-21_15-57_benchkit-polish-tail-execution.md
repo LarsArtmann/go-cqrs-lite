@@ -74,12 +74,12 @@ alone.
 
 14. **Rename guards** — `gate_set_guard` (each GATE_SETS regex must match
     ≥1 `func Benchmark`; $-anchors and sub-bench paths stripped correctly)
-    + `noise_target_guard` (run subcommand / backend / profile still exist).
-    Both run before the load gate in live mode; compare-only mode skips.
-    Fixture-injectable via `BENCH_GATE_GUARD_ROOT`; 7 new fixture cases
-    including two mutations (renamed benchmark → fail; renamed backend →
-    actionable message; restore → green). Existing 23 fixtures still green
-    — and they now continuously guard the REAL repo sources for free.
+    - `noise_target_guard` (run subcommand / backend / profile still exist).
+      Both run before the load gate in live mode; compare-only mode skips.
+      Fixture-injectable via `BENCH_GATE_GUARD_ROOT`; 7 new fixture cases
+      including two mutations (renamed benchmark → fail; renamed backend →
+      actionable message; restore → green). Existing 23 fixtures still green
+      — and they now continuously guard the REAL repo sources for free.
 15. **Fixture litter bug FIXED (found this session)** — every fixture run
     was dropping fake `BenchmarkGate` baselines into
     `docs/benchmarks/baselines/` (the real dated series; 4 had even been

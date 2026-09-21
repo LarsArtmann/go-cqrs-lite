@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1

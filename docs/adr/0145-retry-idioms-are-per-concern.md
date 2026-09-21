@@ -13,11 +13,11 @@ reconciliation pass: align them onto one idiom, or document why they differ.
 
 The audit found four DIFFERENT concerns, each with tuned semantics:
 
-| Site | Concern | Policy |
-| --- | --- | --- |
-| `middleware/retry.go` | transport-facing op retry | `go-retry`-powered, caller-configured (`MaxAttempts`, backoff, `IsRetryable`), DLQ on exhaust, OTel span per attempt |
-| `projectionhost/worker.go` | crash-loop damping | exponential + FULL jitter on WORKER RESTART (not per-op), 1s→30s defaults, exponent capped at `1<<30` |
-| `metaengine/replicator.go` `applyWithRetry` | shadow freshness budget | fixed attempts, LINEAR 50ms×n, per-op timeout, retries all errors; exhaust converts to stale/demotion downstream |
+| Site                                              | Concern                       | Policy                                                                                                                         |
+| ------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `middleware/retry.go`                             | transport-facing op retry     | `go-retry`-powered, caller-configured (`MaxAttempts`, backoff, `IsRetryable`), DLQ on exhaust, OTel span per attempt           |
+| `projectionhost/worker.go`                        | crash-loop damping            | exponential + FULL jitter on WORKER RESTART (not per-op), 1s→30s defaults, exponent capped at `1<<30`                          |
+| `metaengine/replicator.go` `applyWithRetry`       | shadow freshness budget       | fixed attempts, LINEAR 50ms×n, per-op timeout, retries all errors; exhaust converts to stale/demotion downstream               |
 | `dgraphengine/transaction.go` `retryOnContention` | DB transient-contention retry | classified (contention string classes only), 6 attempts exp 15ms→2s + jitter, per-retry metric, in-tx aborts surface to caller |
 
 These differ on every axis that matters: what gets retried (classified vs

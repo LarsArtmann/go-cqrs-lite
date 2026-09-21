@@ -3,7 +3,7 @@
 > **Date:** 2026-09-21 18:19 CEST
 > **Kind:** Session-scoped status report (gate build + P2/P3 sweep + P4 policy + self-review)
 > **Repo state:** `master` @ `63fff005b` — 12 commits ahead of `origin/master`, NOT pushed.
-> Concurrent sessions were LIVE throughout (system/*, example/*, projectionhost/*, and even
+> Concurrent sessions were LIVE throughout (system/_, example/_, projectionhost/*, and even
 > `flake.nix` changed under me after my edits landed); the auto-commit daemon absorbed most
 > of my authored commits into `chore:` commits (authored survivor: `17b70e96a`).
 > **TODO item closed:** "md-go-validator CI integration" (from the 2026-09-13 audit,
@@ -154,8 +154,8 @@
    the app; the "generate with the binary that consumes" rule should have
    been obvious BEFORE the first write, not after two confusing gate runs.
 5. **Ran repo-wide `nix fmt` while a concurrent session had Go WIP in
-   flight** — the fmt pass reformatted THEIR uncommitted files (system/*,
-   example/*). CI would have demanded it eventually, but I touched another
+   flight** — the fmt pass reformatted THEIR uncommitted files (system/_,
+   example/_). CI would have demanded it eventually, but I touched another
    session's in-flight work without scoping. Scoped fmt (my files only) was
    the polite move.
 6. **Raced the auto-commit daemon and lost my authored commit message.** The
@@ -209,46 +209,46 @@
 _Ranked by impact/effort within this session's scope. ✱ = done during THIS
 reporting pass._
 
-| #   | Task                                                                                                                                                                                            | Impact | Effort |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | ✱ Correct the TODO_LIST 1460→1461 residual-numbers line (§d1)                                                                                                                                     | S      | XS     |
-| 2   | Add `--self-test` to `scripts/check-md-go.sh` (planted fixture tree via `PATH`-stubbed binary or `--config` override; golden message shapes in `scripts/testdata/`; mutation-test the goldens)  | High   | M      |
-| 3   | Execute `nix run .#verify-fast` once end-to-end to prove both chain insertions run (quiet window)                                                                                                 | High   | M      |
-| 4   | Get the branch pushed/PR'd so the ci.yml leg runs on real CI; confirm the cold build fits the 15-min job                                                                                          | High   | S       |
-| 5   | Run full `#verify` in a quiet window post-wiring (canonical trust)                                                                                                                                | High   | L       |
-| 6   | Back-annotate `docs/reviews/2026-09-13_md-go-validator-review.md`: "(annotated 2026-09-21)" appendix markers, replace `/tmp` links, "as of rev" stamp, persist a fresh JSON run beside it          | M      | S       |
-| 7   | Verify WHY the 11 blocks auto-skip (tool docs or `-v` listing); document the mechanism (audit §b5, open since 09-13)                                                                              | M      | S       |
-| 8   | Decide `--fail-on-skipped` for the gate (strict mode vs tolerate) after #7                                                                                                                        | M      | XS      |
-| 9   | Pin the flake input to a tag/rev OR document the master+lock bump ritual as the official one (gotchas has prose; make it a script or drop the option)                                             | M      | S       |
-| 10  | Write the `docs/status/` authoring convention: pseudo-Go fences in status docs get `// skip-validate` at write time (prevents surprise CI failures)                                               | M      | S       |
-| 11  | Upstream (md-go-validator repo, after verify-before-filing): relative-path baseline mode so consumers can delete the sed re-absolutization layer                                                  | M      | M      |
-| 12  | Upstream: `--save-baseline` should exit 0 (saving succeeds even when errors exist); every wrapper currently needs `\|\| true`                                                                     | S      | XS      |
-| 13  | Investigate packaged `--version` printing `dev` (VCS stamping stripped by buildGoModule/proxyVendor?); stamp via ldflags if the tool reads it                                                     | S      | S       |
-| 14  | Decide the invisible-annotation question for the 9 consumer-facing files (§e5) — owner ruling, then possibly re-sweep with `<!-- skip-validate -->` above the fence                                | M      | S       |
-| 15  | Add gate row to FEATURES.md gates/tooling inventory + docs/release-checklist.md mention                                                                                                           | S      | S       |
-| 16  | Add `check-md-go` to nightly-gates.yml (drift watch; also surfaces host-binary catch-up)                                                                                                          | M      | S       |
-| 17  | Stale-entry ratchet: meta-check that fails when baseline references files that no longer exist (baseline may only shrink in practice)                                                             | S      | S       |
-| 18  | Fix the host-binary foot-gun for real: ask for a SystemNix relock so `/run/current-system` catches up to master (then bare runs agree with the app)                                               | S      | XS      |
-| 19  | Look at `docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md:46` — the one fence the two binaries DISAGREE on. If it's genuinely broken Go, fix the archived fence (truth > tooling) | S      | S       |
-| 20  | CONTRIBUTING.md: one paragraph for doc authors (fence-tag convention + `// skip-validate` + regenerate command)                                                                                   | S      | S       |
-| 21  | Upstream the fence-tag convention to the tool's README/docs (go.mod/go.work → text, JSON → json)                                                                                                  | S      | S       |
-| 22  | `--init` template nit upstream: `docs/generated/*` default exclude is repo-specific noise for most consumers                                                                                      | S      | XS      |
-| 23  | AGENTS.md quick-ref table re-alignment (cosmetic; no md formatter in treefmt to do it mechanically)                                                                                               | S      | XS      |
-| 24  | Confirm `check-readme-links`/`check-readme-deprecated` unaffected by the 67 in-fence insertions (principle says yes; one run makes it evidence)                                                   | S      | XS      |
-| 25  | Decide whether archived dirs should eventually be config-EXCLUDED instead of baselined (simpler; loses the inventory) — revisit with 90 days of drift data                                        | S      | XS      |
-| 26  | Fleet consistency: gogenfilter/SystemNix pin their own tool builds — consider one documented pin cadence across repos (or a BuildFlow/upstream answer)                                            | S      | M      |
-| 27  | BuildFlow upstream: `nix-hash-fix` discovery degraded to default-only on this flake shape (observed live this session — the new vendorHash was hand-pasted as fallback); check provider coverage    | S      | M      |
-| 28  | Add a `--json` evidence directory convention under `docs/reviews/` for validator runs (kills the /tmp pattern permanently)                                                                          | S      | S       |
-| 29  | Tag the 11 auto-skipped blocks' locations in the review report once #7 lands                                                                                                                      | S      | XS      |
-| 30  | Consider `prefixed` baseline-section comments (which archived dir contributed how many entries) for future cleanup waves                                                                           | S      | XS      |
-| 31  | Evaluate gate placement in BuildFlow pre-commit mode (currently NOT in pre-commit — nix builds are blocklisted there; document the exclusion rationale in the repo)                                | S      | XS      |
-| 32  | Teach `cmd/doc-check`'s scan set nothing new — CONFIRM no interaction with the yaml config file it may traverse (it only reads passed .md args; verified today, keep it that way)                  | S      | XS      |
-| 33  | Add the gate to the onboarding blurb in AGENTS.md "Docs validate" sentence (§f45 of the old audit — still open there)                                                                             | S      | XS      |
-| 34  | Sweep other LarsArtmann repos with heavy pseudo-Go docs (bank-sync feedback, cqrs-htmx) for the same gate — fleet rollout decision                                                                 | M      | L       |
-| 35  | Review whether `examplePaths`-style exclude is needed for `example/` docs (they ARE gated today; goal-shaped-app README needed an annotation — intended, but worth confirming the policy)          | S      | XS      |
-| 36  | Long-term: baseline pruning party when an archived tree gets rewritten (the inert entries accumulate silently; #17's meta-check makes them visible)                                               | S      | S       |
-| 37  | Mutation-test the ARCHIVE_SEGMENT regex in check-md-go.sh (`archived-notes/` must NOT count as archive; `rearchived/` must not either)                                                            | S      | XS      |
-| 38  | Decide push cadence: 12 commits are sitting unpushed on master incl. the whole gate — CI leg stays unproven until they land (#4)                                                                   | High   | XS      |
+| #  | Task                                                                                                                                                                                                  | Impact | Effort |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1  | ✱ Correct the TODO_LIST 1460→1461 residual-numbers line (§d1)                                                                                                                                         | S      | XS     |
+| 2  | Add `--self-test` to `scripts/check-md-go.sh` (planted fixture tree via `PATH`-stubbed binary or `--config` override; golden message shapes in `scripts/testdata/`; mutation-test the goldens)        | High   | M      |
+| 3  | Execute `nix run .#verify-fast` once end-to-end to prove both chain insertions run (quiet window)                                                                                                     | High   | M      |
+| 4  | Get the branch pushed/PR'd so the ci.yml leg runs on real CI; confirm the cold build fits the 15-min job                                                                                              | High   | S      |
+| 5  | Run full `#verify` in a quiet window post-wiring (canonical trust)                                                                                                                                    | High   | L      |
+| 6  | Back-annotate `docs/reviews/2026-09-13_md-go-validator-review.md`: "(annotated 2026-09-21)" appendix markers, replace `/tmp` links, "as of rev" stamp, persist a fresh JSON run beside it             | M      | S      |
+| 7  | Verify WHY the 11 blocks auto-skip (tool docs or `-v` listing); document the mechanism (audit §b5, open since 09-13)                                                                                  | M      | S      |
+| 8  | Decide `--fail-on-skipped` for the gate (strict mode vs tolerate) after #7                                                                                                                            | M      | XS     |
+| 9  | Pin the flake input to a tag/rev OR document the master+lock bump ritual as the official one (gotchas has prose; make it a script or drop the option)                                                 | M      | S      |
+| 10 | Write the `docs/status/` authoring convention: pseudo-Go fences in status docs get `// skip-validate` at write time (prevents surprise CI failures)                                                   | M      | S      |
+| 11 | Upstream (md-go-validator repo, after verify-before-filing): relative-path baseline mode so consumers can delete the sed re-absolutization layer                                                      | M      | M      |
+| 12 | Upstream: `--save-baseline` should exit 0 (saving succeeds even when errors exist); every wrapper currently needs `\|\| true`                                                                         | S      | XS     |
+| 13 | Investigate packaged `--version` printing `dev` (VCS stamping stripped by buildGoModule/proxyVendor?); stamp via ldflags if the tool reads it                                                         | S      | S      |
+| 14 | Decide the invisible-annotation question for the 9 consumer-facing files (§e5) — owner ruling, then possibly re-sweep with `<!-- skip-validate -->` above the fence                                   | M      | S      |
+| 15 | Add gate row to FEATURES.md gates/tooling inventory + docs/release-checklist.md mention                                                                                                               | S      | S      |
+| 16 | Add `check-md-go` to nightly-gates.yml (drift watch; also surfaces host-binary catch-up)                                                                                                              | M      | S      |
+| 17 | Stale-entry ratchet: meta-check that fails when baseline references files that no longer exist (baseline may only shrink in practice)                                                                 | S      | S      |
+| 18 | Fix the host-binary foot-gun for real: ask for a SystemNix relock so `/run/current-system` catches up to master (then bare runs agree with the app)                                                   | S      | XS     |
+| 19 | Look at `docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md:46` — the one fence the two binaries DISAGREE on. If it's genuinely broken Go, fix the archived fence (truth > tooling) | S      | S      |
+| 20 | CONTRIBUTING.md: one paragraph for doc authors (fence-tag convention + `// skip-validate` + regenerate command)                                                                                       | S      | S      |
+| 21 | Upstream the fence-tag convention to the tool's README/docs (go.mod/go.work → text, JSON → json)                                                                                                      | S      | S      |
+| 22 | `--init` template nit upstream: `docs/generated/*` default exclude is repo-specific noise for most consumers                                                                                          | S      | XS     |
+| 23 | AGENTS.md quick-ref table re-alignment (cosmetic; no md formatter in treefmt to do it mechanically)                                                                                                   | S      | XS     |
+| 24 | Confirm `check-readme-links`/`check-readme-deprecated` unaffected by the 67 in-fence insertions (principle says yes; one run makes it evidence)                                                       | S      | XS     |
+| 25 | Decide whether archived dirs should eventually be config-EXCLUDED instead of baselined (simpler; loses the inventory) — revisit with 90 days of drift data                                            | S      | XS     |
+| 26 | Fleet consistency: gogenfilter/SystemNix pin their own tool builds — consider one documented pin cadence across repos (or a BuildFlow/upstream answer)                                                | S      | M      |
+| 27 | BuildFlow upstream: `nix-hash-fix` discovery degraded to default-only on this flake shape (observed live this session — the new vendorHash was hand-pasted as fallback); check provider coverage      | S      | M      |
+| 28 | Add a `--json` evidence directory convention under `docs/reviews/` for validator runs (kills the /tmp pattern permanently)                                                                            | S      | S      |
+| 29 | Tag the 11 auto-skipped blocks' locations in the review report once #7 lands                                                                                                                          | S      | XS     |
+| 30 | Consider `prefixed` baseline-section comments (which archived dir contributed how many entries) for future cleanup waves                                                                              | S      | XS     |
+| 31 | Evaluate gate placement in BuildFlow pre-commit mode (currently NOT in pre-commit — nix builds are blocklisted there; document the exclusion rationale in the repo)                                   | S      | XS     |
+| 32 | Teach `cmd/doc-check`'s scan set nothing new — CONFIRM no interaction with the yaml config file it may traverse (it only reads passed .md args; verified today, keep it that way)                     | S      | XS     |
+| 33 | Add the gate to the onboarding blurb in AGENTS.md "Docs validate" sentence (§f45 of the old audit — still open there)                                                                                 | S      | XS     |
+| 34 | Sweep other LarsArtmann repos with heavy pseudo-Go docs (bank-sync feedback, cqrs-htmx) for the same gate — fleet rollout decision                                                                    | M      | L      |
+| 35 | Review whether `examplePaths`-style exclude is needed for `example/` docs (they ARE gated today; goal-shaped-app README needed an annotation — intended, but worth confirming the policy)             | S      | XS     |
+| 36 | Long-term: baseline pruning party when an archived tree gets rewritten (the inert entries accumulate silently; #17's meta-check makes them visible)                                                   | S      | S      |
+| 37 | Mutation-test the ARCHIVE_SEGMENT regex in check-md-go.sh (`archived-notes/` must NOT count as archive; `rearchived/` must not either)                                                                | S      | XS     |
+| 38 | Decide push cadence: 12 commits are sitting unpushed on master incl. the whole gate — CI leg stays unproven until they land (#4)                                                                      | High   | XS     |
 
 ## g) Questions I cannot figure out myself
 

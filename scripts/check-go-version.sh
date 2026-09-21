@@ -45,8 +45,10 @@ version_at_least() {
 	local i
 	for i in 0 1 2; do
 		local x="${a[i]:-0}" y="${b[i]:-0}"
-		x="${x%%rc*}"; x="${x%%beta*}"
-		y="${y%%rc*}"; y="${y%%beta*}"
+		x="${x%%rc*}"
+		x="${x%%beta*}"
+		y="${y%%rc*}"
+		y="${y%%beta*}"
 		if ((10#$x > 10#$y)); then return 0; fi
 		if ((10#$x < 10#$y)); then return 1; fi
 	done

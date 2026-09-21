@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/projectionhost/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	dario.cat/mergo v1.0.2 // indirect

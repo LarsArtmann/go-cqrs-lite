@@ -176,9 +176,9 @@ EOF
 	# 3. fails once then passes, attempts 3 -> 0, both attempts logged
 	QUIET_WINDOW_LOADAVG_FILE="$quiet_file" "$0" --attempts 3 --log "$dir/3.log" -- "$fail_once" >/dev/null 2>&1
 	check "retry-then-pass" 0 $?
-	grep -q "attempt 0" "$dir/3.log" && grep -q "attempt 1" "$dir/3.log" \
-		&& echo "ok   retry logged both attempts" \
-		|| {
+	grep -q "attempt 0" "$dir/3.log" && grep -q "attempt 1" "$dir/3.log" &&
+		echo "ok   retry logged both attempts" ||
+		{
 			echo "FAIL retry-then-pass: attempts missing from log"
 			rc_total=1
 		}

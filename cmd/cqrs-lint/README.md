@@ -703,13 +703,15 @@ checkout:
    import IS the registration:
 
    ```go
-// skip-validate
-   _ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
    ```
 
+// skip-validate
+_ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
+
+````
 3. Run the loop in a consumer repo (`buildflow --build-mode=dev` includes it;
-   full mode reports findings and measures Repair by re-detecting — BuildFlow
-   does not trust self-reported fix counts).
+full mode reports findings and measures Repair by re-detecting — BuildFlow
+does not trust self-reported fix counts).
 
 Detect runs all 206 rules with the working directory from the toolsdk context;
 Repair applies the same safe C-series structural rewrites as `--fix`.
@@ -723,21 +725,21 @@ Repair applies the same safe C-series structural rewrites as `--fix`.
 name: cqrs-lint
 on: [push, pull_request]
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
-      - name: Install cqrs-lint
-        run: go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
-      - name: Run cqrs-lint
-        run: cqrs-lint --format sarif --path ./... > results.sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
-```
+lint:
+ runs-on: ubuntu-latest
+ steps:
+   - uses: actions/checkout@v4
+   - uses: actions/setup-go@v5
+     with:
+       go-version: stable
+   - name: Install cqrs-lint
+     run: go install github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4@latest
+   - name: Run cqrs-lint
+     run: cqrs-lint --format sarif --path ./... > results.sarif
+   - uses: github/codeql-action/upload-sarif@v3
+     with:
+       sarif_file: results.sarif
+````
 
 ### Health-score gate
 

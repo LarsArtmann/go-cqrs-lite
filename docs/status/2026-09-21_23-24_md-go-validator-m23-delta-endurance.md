@@ -119,16 +119,16 @@ _The canonical ranked list remains **§f of the 18:19 report** (37 open items
 after #1 was done). This table only ADDS/REORDERS what the gap revealed —
 merge on next harvest._
 
-| #   | Task                                                                                                                                              | Impact | Effort |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1   | **PUSH DECISION (owner)**: 30 unpushed commits incl. the whole gate; blocks CI evidence for M23 and two other waves — the single highest-leverage call pending   | High   | XS     |
-| 2   | Write the `--self-test` for check-md-go.sh per the 18:19 §f2 spec (golden message shapes, PATH-stubbed fault injection, mutation test)             | High   | M      |
-| 3   | Post-push: confirm the ci.yml leg green on real CI; record cold-build cost                                                                        | High   | S      |
-| 4   | Status-index convention line in docs/status/README.md: latest report owns the row; predecessors marked superseded (this pass did it by hand)      | S      | XS     |
-| 5   | Distill 18:19 §f (37 items) + this §f into TODO_LIST via the docs-health harvest flow — two ranked lists in reports and zero in TODO_LIST is drift | M      | S      |
-| 6   | Investigate whether the 5h green window was real discipline or zero exposure (which concurrent docs carried go fences at all) — one jq diff       | S      | S      |
-| 7   | After #1: bisect-verify the gate leg alone is green by CI-attributing to `17b70e96a` if the bulk run fails anywhere                              | S      | XS     |
-| 8   | Carry-over unchanged: 18:19 §f #2–#37 (self-test, verify-fast execution, review-report back-annotation, 11-skip verification, upstream filings, pin ritual, FEATURES/nightly/release-checklist rows, host-binary catch-up, SUPERB-command-side-depth:46 truth fix, …) | —      | —      |
+| # | Task                                                                                                                                                                                                                                                                  | Impact | Effort |
+| - | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
+| 1 | **PUSH DECISION (owner)**: 30 unpushed commits incl. the whole gate; blocks CI evidence for M23 and two other waves — the single highest-leverage call pending                                                                                                        | High   | XS     |
+| 2 | Write the `--self-test` for check-md-go.sh per the 18:19 §f2 spec (golden message shapes, PATH-stubbed fault injection, mutation test)                                                                                                                                | High   | M      |
+| 3 | Post-push: confirm the ci.yml leg green on real CI; record cold-build cost                                                                                                                                                                                            | High   | S      |
+| 4 | Status-index convention line in docs/status/README.md: latest report owns the row; predecessors marked superseded (this pass did it by hand)                                                                                                                          | S      | XS     |
+| 5 | Distill 18:19 §f (37 items) + this §f into TODO_LIST via the docs-health harvest flow — two ranked lists in reports and zero in TODO_LIST is drift                                                                                                                    | M      | S      |
+| 6 | Investigate whether the 5h green window was real discipline or zero exposure (which concurrent docs carried go fences at all) — one jq diff                                                                                                                           | S      | S      |
+| 7 | After #1: bisect-verify the gate leg alone is green by CI-attributing to `17b70e96a` if the bulk run fails anywhere                                                                                                                                                   | S      | XS     |
+| 8 | Carry-over unchanged: 18:19 §f #2–#37 (self-test, verify-fast execution, review-report back-annotation, 11-skip verification, upstream filings, pin ritual, FEATURES/nightly/release-checklist rows, host-binary catch-up, SUPERB-command-side-depth:46 truth fix, …) | —      | —      |
 
 ## g) Questions I cannot figure out myself (unchanged, now sharper)
 

@@ -36,10 +36,10 @@ the deviation itself was flagged for ratification rather than assumed.
 
 ## Options
 
-| Option | Effect |
-| ------ | ------ |
-| **A. Ratify as-is (recommended)** | Contract stands; donor-style incremental DAG declaration stays unsupported. Callers that wanted it can create placeholder tasks — but the simpler answer is "declare deps bottom-up", which the validation teaches at enqueue time with a precise error. |
-| B. Restore donor blindness | Remove the anti-join checks on 3 engines, delete the 4 conformance pins + error-taxonomy entries, lose the unrepresentable-cycle property (needs a separate cycle story or an explicit "cycles possible" caveat), renegotiate `ErrDanglingDep`'s public API before the tag wave. |
+| Option                            | Effect                                                                                                                                                                                                                                                                           |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. Ratify as-is (recommended)** | Contract stands; donor-style incremental DAG declaration stays unsupported. Callers that wanted it can create placeholder tasks — but the simpler answer is "declare deps bottom-up", which the validation teaches at enqueue time with a precise error.                         |
+| B. Restore donor blindness        | Remove the anti-join checks on 3 engines, delete the 4 conformance pins + error-taxonomy entries, lose the unrepresentable-cycle property (needs a separate cycle story or an explicit "cycles possible" caveat), renegotiate `ErrDanglingDep`'s public API before the tag wave. |
 
 ## Recommendation
 

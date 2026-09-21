@@ -7,21 +7,21 @@ preserved for audit trail and progress tracking.
 
 ## Live reports index (2026-09-21)
 
-| Report | What it captured |
-| ------ | ---------------- |
-| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | KEEP-LIVE evidence: planned event-query surface vs shipped truth |
-| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md) | KEEP-LIVE evidence: file:line verification behind the reconciliation |
-| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md) | KEEP-LIVE baseline: sweep numbers feeding the next lint refresh |
-| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md) | T18b #1: perf claims re-anchored under Go 1.27 (arc OPEN — chain armed) |
-| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md) | T18b #2: hardening + rulings implementation watch |
-| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md) | T18b #3: promotion gate fix proven; flake quantified |
-| [2026-09-21 W0 burn-class guards + W3 rulings](2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md) | M01–M10 guard wave; incident #11 caught live (M10 leg open) |
-| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md) | T18b #4: toolchain incident + guarded re-arm |
-| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md) | T18b #5: all rulings encoded; chain armed; addenda through 16:10 |
-| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html) | cross-session HTML snapshot (HTML exempt from archiving per standing rule) |
-| [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md) | T18b #6: chain intact at load 863; re-arm one-liner inside |
-| [2026-09-21 md-go-validator gate M23](2026-09-21_18-19_md-go-validator-gate-m23-execution.md) | M23 gate build + P2/P3 sweep + self-review (superseded by 23-24 delta) |
-| [2026-09-21 md-go-validator M23 delta](2026-09-21_23-24_md-go-validator-m23-delta-endurance.md) | LIVE session: 5h endurance green, daemon absorption audit, deepened self-review |
+| Report                                                                                                              | What it captured                                                                |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | KEEP-LIVE evidence: planned event-query surface vs shipped truth                |
+| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md)                   | KEEP-LIVE evidence: file:line verification behind the reconciliation            |
+| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md)                                           | KEEP-LIVE baseline: sweep numbers feeding the next lint refresh                 |
+| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md)            | T18b #1: perf claims re-anchored under Go 1.27 (arc OPEN — chain armed)         |
+| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md)                  | T18b #2: hardening + rulings implementation watch                               |
+| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md)   | T18b #3: promotion gate fix proven; flake quantified                            |
+| [2026-09-21 W0 burn-class guards + W3 rulings](2026-09-21_14-12_w0-burn-class-guards-w3-rulings-execution.md)       | M01–M10 guard wave; incident #11 caught live (M10 leg open)                     |
+| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md)                   | T18b #4: toolchain incident + guarded re-arm                                    |
+| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md)                         | T18b #5: all rulings encoded; chain armed; addenda through 16:10                |
+| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html)                 | cross-session HTML snapshot (HTML exempt from archiving per standing rule)      |
+| [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md)                   | T18b #6: chain intact at load 863; re-arm one-liner inside                      |
+| [2026-09-21 md-go-validator gate M23](2026-09-21_18-19_md-go-validator-gate-m23-execution.md)                       | M23 gate build + P2/P3 sweep + self-review (superseded by 23-24 delta)          |
+| [2026-09-21 md-go-validator M23 delta](2026-09-21_23-24_md-go-validator-m23-delta-endurance.md)                     | LIVE session: 5h endurance green, daemon absorption audit, deepened self-review |
 
 **Fully-resolved reports live in [`archived/`](archived/)** (consolidated
 2026-08-29 from the older `archive/` + `archived/` split). A report is moved

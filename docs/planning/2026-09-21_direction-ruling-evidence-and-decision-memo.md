@@ -29,16 +29,16 @@ library itself tells consumers not to use. Until the owner rules what
 
 ### R01 — What `Infer` covered (the deprecated surface)
 
-| Capability | Mechanism | Evidence |
-|---|---|---|
+| Capability                | Mechanism                                                                          | Evidence                              |
+| ------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------- |
 | Convention classification | Go struct NAME suffix `*Created`/`*Updated`/`*Deleted` → insert/update/remove fold | `metaengine/fold_inference.go:96-100` |
-| Row-materializing folds | Field-name matching, nested struct flattening | `metaengine/fold_inference.go:40-42` |
-| Key detection | Single non-pagination Q field's Go type, fallback `"ID"` | `metaengine/fold_inference.go:33-35` |
-| Filter inference | Q fields beyond key matching R fields → `FilterOnField` | `metaengine/infer_filters.go` |
-| Sort inference | Temporal-field detection (`CreatedAt`, …), descending | `metaengine/infer_sort.go` |
-| Composite keys | Multi-field key detection | `metaengine/infer_composite.go` |
-| Wire-event variant | `InferFromNamedEvents` pairs dot-separated wire types with struct samples | `metaengine/infer_named.go:43` |
-| Evaluation point | Per-`QueryDecl`, at `Plan()` time, via reflection | `metaengine/fold_inference.go:10-16` |
+| Row-materializing folds   | Field-name matching, nested struct flattening                                      | `metaengine/fold_inference.go:40-42`  |
+| Key detection             | Single non-pagination Q field's Go type, fallback `"ID"`                           | `metaengine/fold_inference.go:33-35`  |
+| Filter inference          | Q fields beyond key matching R fields → `FilterOnField`                            | `metaengine/infer_filters.go`         |
+| Sort inference            | Temporal-field detection (`CreatedAt`, …), descending                              | `metaengine/infer_sort.go`            |
+| Composite keys            | Multi-field key detection                                                          | `metaengine/infer_composite.go`       |
+| Wire-event variant        | `InferFromNamedEvents` pairs dot-separated wire types with struct samples          | `metaengine/infer_named.go:43`        |
+| Evaluation point          | Per-`QueryDecl`, at `Plan()` time, via reflection                                  | `metaengine/fold_inference.go:10-16`  |
 
 What it never covered: counter/delta arithmetic, graph/traversal shapes,
 anything ambiguous (hard errors instead). In-repo callers today: **zero
@@ -59,16 +59,16 @@ materializes from events; projections inherit the folds by result type
 `system/query_constructors.go:80-99`, `:212-231`; inheritance audit:
 [2026-09-21 coverage audit](2026-09-21_evolution-fold-inheritance-coverage-audit.md)).
 
-| Capability | `Infer` (dead) | Evolution path (live) |
-|---|---|---|
-| CRUD row folds from convention | struct-name suffix, per-query samples | same suffix classes via `AutoCRUDByNamedEvents` (`metaengine/auto_named_events.go:51-130`), **keyed by wire event type declared at the DomainConfig** (`system/evolutions.go:104-140`) |
-| Tombstone removal | `*Deleted` suffix → remove | same, type-driven Remove per ADR-0114 (`metaengine/auto_naming.go:104-119`), pinned by tests (`system/evolution_tombstone_test.go`) |
-| Rebirth after delete | upsert semantics | structural: insert fold is a fresh upsert (`metaengine/auto_naming.go:36-49`) |
-| Filters / sorting | auto-inferred, invisible | consumer opts per declaration: `Filterable`/`Sortable` (visible) |
-| Partial/missing coverage | silent | **warn-first guard** naming projection + missing types (G-T10, `system/evolutions.go:234+`) |
-| Event-universe consistency | none | `DomainConfig.Events` coeffect gate — hard error on undeclared consumption (`system/config_types.go:49-57`) |
-| Escape hatch for the 20% | `Override(...)` wrappers | explicit fold closures on the Evolution (`.On(wireType, sample, closure)`, `system/evolutions.go:144-160`) |
-| Non-row shapes (Count, RawQuery) | not covered | declared directly — `Count(...).On(...)` IS the declaration (audit §4 gap B: by design) |
+| Capability                       | `Infer` (dead)                        | Evolution path (live)                                                                                                                                                                  |
+| -------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CRUD row folds from convention   | struct-name suffix, per-query samples | same suffix classes via `AutoCRUDByNamedEvents` (`metaengine/auto_named_events.go:51-130`), **keyed by wire event type declared at the DomainConfig** (`system/evolutions.go:104-140`) |
+| Tombstone removal                | `*Deleted` suffix → remove            | same, type-driven Remove per ADR-0114 (`metaengine/auto_naming.go:104-119`), pinned by tests (`system/evolution_tombstone_test.go`)                                                    |
+| Rebirth after delete             | upsert semantics                      | structural: insert fold is a fresh upsert (`metaengine/auto_naming.go:36-49`)                                                                                                          |
+| Filters / sorting                | auto-inferred, invisible              | consumer opts per declaration: `Filterable`/`Sortable` (visible)                                                                                                                       |
+| Partial/missing coverage         | silent                                | **warn-first guard** naming projection + missing types (G-T10, `system/evolutions.go:234+`)                                                                                            |
+| Event-universe consistency       | none                                  | `DomainConfig.Events` coeffect gate — hard error on undeclared consumption (`system/config_types.go:49-57`)                                                                            |
+| Escape hatch for the 20%         | `Override(...)` wrappers              | explicit fold closures on the Evolution (`.On(wireType, sample, closure)`, `system/evolutions.go:144-160`)                                                                             |
+| Non-row shapes (Count, RawQuery) | not covered                           | declared directly — `Count(...).On(...)` IS the declaration (audit §4 gap B: by design)                                                                                                |
 
 2026-09-21 hardening closed the audit's top gap (ghost-row warning), pinned
 tombstone+rebirth through the inherited path, and shipped
@@ -111,7 +111,7 @@ retired; the Evolution-convention declaration is the sanctioned Layer 1).
 
 - Cost: **XS** — ADR + AGENTS sentence + doc pass. Gate A unblocks now.
 - Gain: the Goal becomes true on shipped, hardened, warn-loud surface; the
-  declaration is *more* auditable than `Infer` ever was (wire types listed,
+  declaration is _more_ auditable than `Infer` ever was (wire types listed,
   coeffect-gated, Doctor-visible, lint-covered).
 - Risk: "ONLY" gains one keyword; readers dreaming of literal zero-fold
   declarations must accept that the Evolution IS the declaration. Counters
@@ -184,13 +184,13 @@ routed by the system".)
 
 ## 6. What happens mechanically under each ruling (XS session script)
 
-| Step | REFRAME | HYBRID (recommended) | REVIVE |
-|---|---|---|---|
-| ADR-0146 draft (decision + consequences + ADR-0116 addendum) | ✓ | ✓ | ✓ |
-| AGENTS.md Goal sentence amended | ✓ | ✓ | ✗ (sentence stays, meaning re-expanded) |
-| G-T03 `cqrs-gen` fold-codegen one-pager | doc note: declined, why | ✓ parked one-pager w/ activation gate | ✓ promoted to build plan |
-| TODO_LIST 🔥 row closed | ✓ | ✓ | partially (build rows open) |
-| CHANGELOG [Unreleased] entry (Goal story) | ✓ | ✓ | at build time |
+| Step                                                         | REFRAME                 | HYBRID (recommended)                  | REVIVE                                  |
+| ------------------------------------------------------------ | ----------------------- | ------------------------------------- | --------------------------------------- |
+| ADR-0146 draft (decision + consequences + ADR-0116 addendum) | ✓                       | ✓                                     | ✓                                       |
+| AGENTS.md Goal sentence amended                              | ✓                       | ✓                                     | ✗ (sentence stays, meaning re-expanded) |
+| G-T03 `cqrs-gen` fold-codegen one-pager                      | doc note: declined, why | ✓ parked one-pager w/ activation gate | ✓ promoted to build plan                |
+| TODO_LIST 🔥 row closed                                      | ✓                       | ✓                                     | partially (build rows open)             |
+| CHANGELOG [Unreleased] entry (Goal story)                    | ✓                       | ✓                                     | at build time                           |
 
 Shared after any ruling: TODO_LIST G-T14 scan-default decision recorded the
 same session (survey recommendation: flip to unbounded at the v5 cut);

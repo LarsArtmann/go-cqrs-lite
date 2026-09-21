@@ -18,12 +18,12 @@ cap silently**.
 
 ## Consumer census
 
-| Consumer                                   | Limit behavior                                             |
-| ------------------------------------------ | ---------------------------------------------------------- |
-| `example/goal-shaped-app` (`app.go:209`)    | `Scan(ctx, WithFilter(...))` — no limit → capped at 100     |
-| `benchkit` (`phases_metaengine_map.go:103`) | explicit `WithLimit(100)` — aware                          |
-| `system.Find` consumers                     | inherit 100 unless they pass `WithLimit`                    |
-| CV (external)                               | hit the silent truncation; the finding behind this memo     |
+| Consumer                                    | Limit behavior                                          |
+| ------------------------------------------- | ------------------------------------------------------- |
+| `example/goal-shaped-app` (`app.go:209`)    | `Scan(ctx, WithFilter(...))` — no limit → capped at 100 |
+| `benchkit` (`phases_metaengine_map.go:103`) | explicit `WithLimit(100)` — aware                       |
+| `system.Find` consumers                     | inherit 100 unless they pass `WithLimit`                |
+| CV (external)                               | hit the silent truncation; the finding behind this memo |
 
 No in-repo consumer passes an explicit large limit; everyone either is capped
 unknowingly or asks for exactly the default.

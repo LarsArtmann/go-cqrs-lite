@@ -207,15 +207,15 @@ Sorted by importance/impact/effort/customer-value (tier order, then dependency o
 > vs 2026-09-11); gate hardening + matview widening closure executed under
 > owner rulings. Truth lives in TODO_LIST rows 34/40/41 and
 > `docs/status/2026-09-2{0,1}_*` — this plan doc is not the live record.
-| T19a | v5: fold capabilities into Engine interface + base-embed helper                                       | 12m | T19    |
-| T19b | v5: update all engines + api-stability golden regen                                                   | 12m | T19    |
-| T20a | v5: sqlstore/queue internals → facade-only delegation                                                 | 12m | T20    |
-| T20b | v5: delete dead claim SQL paths + golden regen + doc-check                                            | 12m | T20    |
-| T21a | v5: CHANGELOG symbols gate + `#verify` + `#vulncheck` + `#check-arch`                                 | 12m | T21    |
-| T21b | v5: tag wave + pin sweep + GitHub Releases                                                            | 12m | T21    |
-| T22a | example/taskmanager on engine-backed queue                                                            | 12m | T22    |
-| T22b | README + end-to-end demo run                                                                          | 12m | T22    |
-| T23a | go-taskqueue semantic-diff memo (ADT vs production contract)                                          | 12m | T23    |
+> | T19a | v5: fold capabilities into Engine interface + base-embed helper | 12m | T19 |
+> | T19b | v5: update all engines + api-stability golden regen | 12m | T19 |
+> | T20a | v5: sqlstore/queue internals → facade-only delegation | 12m | T20 |
+> | T20b | v5: delete dead claim SQL paths + golden regen + doc-check | 12m | T20 |
+> | T21a | v5: CHANGELOG symbols gate + `#verify` + `#vulncheck` + `#check-arch` | 12m | T21 |
+> | T21b | v5: tag wave + pin sweep + GitHub Releases | 12m | T21 |
+> | T22a | example/taskmanager on engine-backed queue | 12m | T22 |
+> | T22b | README + end-to-end demo run | 12m | T22 |
+> | T23a | go-taskqueue semantic-diff memo (ADT vs production contract) | 12m | T23 |
 
 **Total: 82 micro-tasks.** Each ends with a per-module build (`GOWORK=off go
 build ./...` + `-tags "goexperiment.jsonv2"`) and its own tests green; symbol

@@ -38,6 +38,7 @@ type planConfig struct {
 	priority                 *PriorityConfig           // operator-driven layout priorities (ADR-0124)
 	sharedCollections        map[string]bool           // child Go types shared across collections (ADR-0124 aggregate boundaries)
 	idempotencyCapacity      int                       // dedup ring capacity for ApplyIdempotent; <=0 → unbounded legacy mode
+	defaultLimit             int                       // operator ceiling for un-limited scans (WithDefaultLimit); 0 = built-in 100
 	capabilityGaps           map[string]CapabilityGaps // engine name → documented ADT conformance gaps; suppresses over-declaration diagnostics
 }
 
@@ -135,6 +136,21 @@ func WithIdempotencyCapacity(n int) planOption {
 	return func(c *planConfig) { c.idempotencyCapacity = n }
 }
 
+// WithDefaultLimit sets the OPERATOR ceiling for scans: when a caller issues
+// a Scan without an explicit [WithLimit], the scan is bounded to n rows
+// instead of the built-in 100. It exists so operators can re-pin the scan
+// bound deployment-wide (v5 decision G-T14: the default flips to unbounded;
+// this option is how an operator opts back into a bound). Values <= 0 are
+// ignored — the built-in 100 stays in force. An explicit WithLimit on the
+// scan always wins.
+func WithDefaultLimit(n int) planOption {
+	return func(c *planConfig) {
+		if n > 0 {
+			c.defaultLimit = n
+		}
+	}
+}
+
 // Plan creates a storage plan from available engines and declared queries.
 // Each query gets its own independent projection — the same event updates
 // each matching query's projection separately.
@@ -180,6 +196,7 @@ func Plan(engines []Engine, args ...any) (*Store, error) {
 		routingHysteresis: defaultRoutingHysteresis(cfg.routingHysteresis),
 		routingMinDelta:   defaultRoutingMinDelta(cfg.routingMinDeltaMs),
 		capabilityGaps:    cfg.capabilityGaps,
+		defaultLimit:      cfg.defaultLimit,
 	}
 
 	for _, q := range queries {

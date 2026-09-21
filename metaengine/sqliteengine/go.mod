@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0

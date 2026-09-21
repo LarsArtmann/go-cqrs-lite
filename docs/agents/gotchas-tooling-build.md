@@ -127,9 +127,9 @@
   — under `set -e`, `|| true` the save call or the script dies mid-update);
   the tool also auto-loads `.md-go-validator.yaml` from the CWD. Policy:
   live docs use an in-fence `// skip-validate` line (first line of the fence;
-  keeps Go highlighting — prefer it over demoting fences to ```text);
+  keeps Go highlighting — prefer it over demoting fences to ``text);
   `scripts/md-go-baseline.txt` may only reference `*/archive*/` paths
-  (enforced); wrong-language fences are fenced as text, not go (```
+  (enforced); wrong-language fences are fenced as text, not go (``
   fences for non-Go content use the right tag: `go.mod`/`go.work` files are fenced as `text`, JSON as `json`).
 
 ## go.work directive must lead (or match) the member sweep — ambient-go gates fail quietly otherwise (2026-09-21)

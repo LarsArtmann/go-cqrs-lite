@@ -113,8 +113,8 @@ case "${1:-}" in
 	rc=0
 	out=$(self_run --update) || rc=$?
 	self_check "--update pins the fixture hash" 0 "$rc" "$out" "PINNED — golden updated" || fails=$((fails + 1))
-	[[ "$(cut -d' ' -f1 "$SELFTEST_DIR/golden.txt")" == "$(hash_of "$SELFTEST_DIR/.golangci.yml")" ]] \
-		|| {
+	[[ "$(cut -d' ' -f1 "$SELFTEST_DIR/golden.txt")" == "$(hash_of "$SELFTEST_DIR/.golangci.yml")" ]] ||
+		{
 			echo "  ✗ FAIL: --update did not pin the fixture hash"
 			fails=$((fails + 1))
 		}

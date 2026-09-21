@@ -131,6 +131,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > `#verify` S03 GREEN, 16-39 report); the 92-tag train published
 > `decider/v4.7.0` + `command/v4.11.0` + commandlifecycle (2026-09-19). Plan
 > archived.** The section keeps only the demand-gated remainder:
+
 - [BLOCKED] **ADR-0138: command sourcing draft (consumer demand)** — design doc only, builds on W2's bridge, reconciles ADR-0112's planned `CommandAwareFold`. _(Effort: M)_
 
 ## Go 1.27 upgrade wave (closed 2026-09-19)
@@ -141,8 +142,9 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > (`go list -m @latest` = 1.27-based tags on the proxy). The remaining bench re-pin
 > under 1.27 was the T18b/T14 row in the Metaengine Universal Storage Substrate
 > section above — **that row is now DONE 2026-09-20/21** (re-pin + gate hardening
-> + widening closure; see rows 34/40/41); owner decisions on the flake go-pin
-> ride the W3 owner bundle below.
+>
+> - widening closure; see rows 34/40/41); owner decisions on the flake go-pin
+>   ride the W3 owner bundle below.
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 
@@ -201,9 +203,9 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 >   writes reroute like reads; reprobe rebuilds before reactivating).
 
 - ~~[ ] **Release-train note**~~ done 2026-09-19 — the 92-tag wave stripped the
-      `metaengine/projectionadapter`/`irohengine` sibling replaces and repinned
-      every consumer (`pin-sweep --check --remote` green; tags verified
-      replace-free — 10-25 §a2/§a3, now archived).
+  `metaengine/projectionadapter`/`irohengine` sibling replaces and repinned
+  every consumer (`pin-sweep --check --remote` green; tags verified
+  replace-free — 10-25 §a2/§a3, now archived).
 
 ---
 
@@ -401,14 +403,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
 - ~~[ ] **metaengine live-latency doc sync vs code** (harvested 2026-09-20)~~
-      done 2026-09-21 (M16) — every §2.11 claim re-verified against source
-      (probe interval 1s `probe.go:89-115`, timeout 5s, jitter 0.2,
-      `DefaultRoutingHysteresis` 0.20 `store_routing.go:17-24`,
-      `StartAutoReplan` stop-func shape, `Replan`, `GetEngineStats`,
-      `FormatLiveLatency`): section accurate as-written, no edits needed. —
-      evidence: archived 15-34 §a9.<br>**Original:** recipes §2.11
-      (`ProbeEngine`/`LatencyTracker`/`Calibration` surface) had never been
-      drift-checked against the shipped code. — source: archived 16-43 §f16 _(Effort: S)_
+  done 2026-09-21 (M16) — every §2.11 claim re-verified against source
+  (probe interval 1s `probe.go:89-115`, timeout 5s, jitter 0.2,
+  `DefaultRoutingHysteresis` 0.20 `store_routing.go:17-24`,
+  `StartAutoReplan` stop-func shape, `Replan`, `GetEngineStats`,
+  `FormatLiveLatency`): section accurate as-written, no edits needed. —
+  evidence: archived 15-34 §a9.<br>**Original:** recipes §2.11
+  (`ProbeEngine`/`LatencyTracker`/`Calibration` surface) had never been
+  drift-checked against the shipped code. — source: archived 16-43 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
       silently ignores mistyped encryption params (`encryption_hexkkey=` opens
       the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
@@ -459,12 +461,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## CI / Infrastructure
 
 - ~~[ ] **Quiet-window verify tooling (asked by ≥3 sessions)**~~ done 2026-09-20 —
-      `scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
-      `scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
-      load assert), and the `#verify` `-p` parallelism cap (`VERIFY_TEST_P`, set
-      to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
-      went GREEN the same day (S03). Remaining launcher ergonomics live in the
-      release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
+  `scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
+  `scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
+  load assert), and the `#verify` `-p` parallelism cap (`VERIFY_TEST_P`, set
+  to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
+  went GREEN the same day (S03). Remaining launcher ergonomics live in the
+  release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
@@ -808,14 +810,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
 - ~~[ ] **Docs censuses (7th-pass items 1-3)**~~ done 2026-09-21 —
-      ~~module-map census~~ DONE 2026-09-20 (then 95 go.mods); ~~FEATURES
-      maturity matrix~~ DONE 2026-09-21 (scripted bidirectional diff: 96
-      modules, 6 missing rows added incl. both testcontainer helpers and the
-      Goal demo, sub-package naming explained, guarantee rows stamped with
-      dated evidence); ~~per-file index for the archived waves~~ DONE
-      2026-09-21 (per-DAY wave table, 132 rows, in
-      `docs/status/archived/README.md` + live-reports index in
-      `docs/status/README.md`). — source: archived 13-03 §f1-3
+  ~~module-map census~~ DONE 2026-09-20 (then 95 go.mods); ~~FEATURES
+  maturity matrix~~ DONE 2026-09-21 (scripted bidirectional diff: 96
+  modules, 6 missing rows added incl. both testcontainer helpers and the
+  Goal demo, sub-package naming explained, guarantee rows stamped with
+  dated evidence); ~~per-file index for the archived waves~~ DONE
+  2026-09-21 (per-DAY wave table, 132 rows, in
+  `docs/status/archived/README.md` + live-reports index in
+  `docs/status/README.md`). — source: archived 13-03 §f1-3
 
 - [ ] **Canonical T18b record + gate-semantics ADR** (replaces the six-report
       narrative series) — one `docs/benchmarks/2026-09-20-21_t18b-record.md`
@@ -882,12 +884,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       source: archived 15-37 §f8-30, archived 02-09 §f14-42 _(Effort: M total,
       sliceable)_
 - [BLOCKED] **Supersede-note on the oversubscribed 2026-09-19 capture** —
-      annotate `docs/benchmarks/2026-09-19_backend-comparison-variation.md` as
-      superseded (keeping it as the what-noisy-looks-like example) once a
-      quiet-window capture exists. Blocked on machine quietness: load was
-      35.6/32 CPUs at the 2026-09-21 attempt. Protocol: wait for
-      `scripts/calibration-gate.sh` PASS, re-run the compare command from the
-      capture header, then annotate. — source: archived 15-37 §f3/§f30
+  annotate `docs/benchmarks/2026-09-19_backend-comparison-variation.md` as
+  superseded (keeping it as the what-noisy-looks-like example) once a
+  quiet-window capture exists. Blocked on machine quietness: load was
+  35.6/32 CPUs at the 2026-09-21 attempt. Protocol: wait for
+  `scripts/calibration-gate.sh` PASS, re-run the compare command from the
+  capture header, then annotate. — source: archived 15-37 §f3/§f30
 
 - [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** —
       (a) test for `RunSuiteRepeated` (the one new export with zero direct
@@ -931,16 +933,16 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > AggregateOn seam; P3: proof + docs + v5.0.0 cut).
 
 - ~~[ ] **Decide a first-class single-writer/lease story for engines**~~ — DESIGN
-      DELIVERED 2026-09-21:
-      [`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md)
-      (verified current reality: lease semantics live only in `queue/` + `claiming/`
-      task claims; recommendation = `EngineConfig.SingleWriter` advisory
-      `<dsn>.cqrs-lease` flock, fail-loud default-off; becomes ADR-0146 on
-      ratification). REMAINS OPEN: owner ratification + implementation before v5
-      freezes engine construction surfaces.<br>**Original:** CV's Phase-0 ADR
-      conditions every library-store cutover on a CV-owned `metaengine.RegisterDriver`
-      decorator wrapping their `<dsn>.lease` single-writer marker, because the library
-      has NO engine/store-level lock. — source: reflection doc §4.2
+  DELIVERED 2026-09-21:
+  [`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md)
+  (verified current reality: lease semantics live only in `queue/` + `claiming/`
+  task claims; recommendation = `EngineConfig.SingleWriter` advisory
+  `<dsn>.cqrs-lease` flock, fail-loud default-off; becomes ADR-0146 on
+  ratification). REMAINS OPEN: owner ratification + implementation before v5
+  freezes engine construction surfaces.<br>**Original:** CV's Phase-0 ADR
+  conditions every library-store cutover on a CV-owned `metaengine.RegisterDriver`
+  decorator wrapping their `<dsn>.lease` single-writer marker, because the library
+  has NO engine/store-level lock. — source: reflection doc §4.2
 - [ ] **`FilterContains`/`FilterPrefix` FilterOp extension** — metaengine
       FilterOp today is exactly eq/ne/lt/le/gt/ge/in (`enum_validation.go:71`);
       substring search degrades to a client-side full scan (CV measured
@@ -963,13 +965,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       delete their bespoke gates. — source: reflection doc §4.3; rides the
       existing "Next v4 tag wave" row (P0 in the SUPERB plan) _(Effort: S — routine tag-wave mechanics)_
 - ~~[ ] **Docs-truth tail (2026-09-16 plan-surfaced)**~~ done 2026-09-21 —
-      readmodels.md Scan-limit note, modules.md Scan-default mention, and the
-      CHANGELOG `[Unreleased]` entry shipped 2026-09-17; ALL doc-check
-      ambiguous-alias advisories resolved (it was 5 by then, not 3 — the
-      alias set grew with queue/*: every affected fence now imports the exact
-      package, doc-check zero warnings, recipes harness green); overflow
-      probe source embedded in the review doc §3.1b on 2026-09-18.
-      <br>**Original:** status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104
+  readmodels.md Scan-limit note, modules.md Scan-default mention, and the
+  CHANGELOG `[Unreleased]` entry shipped 2026-09-17; ALL doc-check
+  ambiguous-alias advisories resolved (it was 5 by then, not 3 — the
+  alias set grew with queue/*: every affected fence now imports the exact
+  package, doc-check zero warnings, recipes harness green); overflow
+  probe source embedded in the review doc §3.1b on 2026-09-18.
+  <br>**Original:** status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104
 - [ ] **benchkit cross-tier PARITY gate** — before any tier-vs-tier benchmark
       number is trusted, assert cross-tier result identity (full snapshot,
       stat counts, ranked IDs) — the template CV's four-tier benchmark
@@ -1314,7 +1316,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       post-fetch-depth-fix run confirming `TestTagContentMatchesChangelog`.
       Remote confirmation of the whole set is billing-gated (row above). —
       source: archived 10-25 §b1/§f5-10 _(Effort: M total)_
-- [x] ~~**Wire the check-readme-* gates into a push leg** (harvested 2026-09-20) —
+- [x] ~~__Wire the check-readme-_ gates into a push leg_* (harvested 2026-09-20) —
       both README gates currently run nightly-only, so a broken link or
       deprecated citation can land unnoticed for up to a day; the
       self-test-then-gate pattern in nightly-gates.yml is ready to copy.~~

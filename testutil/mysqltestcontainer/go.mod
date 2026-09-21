@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/testcontainers/testcontainers-go v0.44.0
