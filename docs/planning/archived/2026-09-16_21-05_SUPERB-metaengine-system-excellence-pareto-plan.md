@@ -1,5 +1,14 @@
 # SUPERB — metaengine + system Excellence (Pareto Plan)
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** the plan is
+> superseded by events: P0 (tag wave) shipped as the 92-tag train 2026-09-19;
+> the matview/replay/reset items shipped 2026-09-10/11 (Cordis waves); the
+> lease one-pager + AggregateOn + scan-default items were delivered 2026-09-21
+> (M20, live docs/planning one-pagers); FilterOp + E-items + ApplyBatch
+> atomicity live on as open TODO_LIST rows (CV section + v5 Unification);
+> feedback #6 slices → TODO metaengine row. Every open remainder is tracked;
+> archived as a historical snapshot. ARCHIVED.
+
 - **Date:** 2026-09-16 21:05 CEST
 - **Mandate:** "metaengine + system must be SUPERB, reliable, 100% just fuvking the best and composable and smart!"
 - **Scope:** the `metaengine/` module family (core + engines + projectionadapter) and `system/` — every open TODO that touches them, harvested from `TODO_LIST.md` (all sections), the 2026-09-16 CV-verdicts reflection (`docs/reviews/2026-09-16_cv-verdicts-reflection.md`), and this session's status report (`docs/status/archived/2026-09-16_21-02_cv-verdicts-reflection-verification.md`).

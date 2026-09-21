@@ -1,5 +1,12 @@
 # Status: M23 md-go-validator gate — delta + endurance snapshot (second pass)
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** the delta's
+> open items (§f1-8) are harvested into TODO_LIST (push decision → CI
+> push-decision row; self-test → md-go section; CI evidence → CI-watch row;
+> #4 status-index convention line → applied to docs/status/README.md by this
+> pass; #5 harvest → executed by this pass). The 18-19 report remains the
+> canonical §f list. ARCHIVED.
+
 > **Date:** 2026-09-21 23:24 CEST
 > **Kind:** Session-scoped status report — DELTA over
 > [`2026-09-21_18-19_md-go-validator-gate-m23-execution.md`](2026-09-21_18-19_md-go-validator-gate-m23-execution.md)
@@ -124,8 +131,8 @@ merge on next harvest._
 | 1 | **PUSH DECISION (owner)**: 30 unpushed commits incl. the whole gate; blocks CI evidence for M23 and two other waves — the single highest-leverage call pending                                                                                                        | High   | XS     |
 | 2 | Write the `--self-test` for check-md-go.sh per the 18:19 §f2 spec (golden message shapes, PATH-stubbed fault injection, mutation test)                                                                                                                                | High   | M      |
 | 3 | Post-push: confirm the ci.yml leg green on real CI; record cold-build cost                                                                                                                                                                                            | High   | S      |
-| 4 | Status-index convention line in docs/status/README.md: latest report owns the row; predecessors marked superseded (this pass did it by hand)                                                                                                                          | S      | XS     |
-| 5 | Distill 18:19 §f (37 items) + this §f into TODO_LIST via the docs-health harvest flow — two ranked lists in reports and zero in TODO_LIST is drift                                                                                                                    | M      | S      |
+~~| 4 | Status-index convention line in docs/status/README.md: latest report owns the row; predecessors marked superseded (this pass did it by hand)                                                                                                                          | S      | XS     |~~ done 2026-09-22 — 11th docs-health pass (README convention line + TODO_LIST harvest)
+~~| 5 | Distill 18:19 §f (37 items) + this §f into TODO_LIST via the docs-health harvest flow — two ranked lists in reports and zero in TODO_LIST is drift                                                                                                                    | M      | S      |~~ done 2026-09-22 — 11th docs-health pass (README convention line + TODO_LIST harvest)
 | 6 | Investigate whether the 5h green window was real discipline or zero exposure (which concurrent docs carried go fences at all) — one jq diff                                                                                                                           | S      | S      |
 | 7 | After #1: bisect-verify the gate leg alone is green by CI-attributing to `17b70e96a` if the bulk run fails anywhere                                                                                                                                                   | S      | XS     |
 | 8 | Carry-over unchanged: 18:19 §f #2–#37 (self-test, verify-fast execution, review-report back-annotation, 11-skip verification, upstream filings, pin ritual, FEATURES/nightly/release-checklist rows, host-binary catch-up, SUPERB-command-side-depth:46 truth fix, …) | —      | —      |

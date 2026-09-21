@@ -769,6 +769,7 @@ cmd/cqrs-lint/pkg/rules/adoption/func NewF027Detector
 cmd/cqrs-lint/pkg/rules/adoption/func NewF028Detector
 cmd/cqrs-lint/pkg/rules/adoption/func NewF029Detector
 cmd/cqrs-lint/pkg/rules/adoption/func NewF030Detector
+cmd/cqrs-lint/pkg/rules/adoption/func NewF031Detector
 cmd/cqrs-lint/pkg/rules/api/func NewA001Detector
 cmd/cqrs-lint/pkg/rules/api/func NewA002Detector
 cmd/cqrs-lint/pkg/rules/api/func NewA003Detector
@@ -2864,6 +2865,7 @@ metaengine/func WithColumnarLayout
 metaengine/func WithCursor
 metaengine/func WithCursorString
 metaengine/func WithDebug
+metaengine/func WithDefaultLimit
 metaengine/func WithDemoteForce
 metaengine/func WithDemoteRole
 metaengine/func WithDryRun

@@ -1,11 +1,20 @@
 # Audit: `md-go-validator` over the full repo
 
+> **ANNOTATED 2026-09-22 (docs-health 11th pass):** every recommendation below
+> is EXECUTED (P1 2026-09-13; P2+P3+P4+CI-wiring+convention 2026-09-21 as the
+> M23 gate — see the archived 18-19/23-24 reports). Residual error count moved
+> 172 → 167 (P1) → **103 baselined archived** (flake-pinned binary; the host
+> binary sees 104 — one fence parses clean on master). This audit's numbers
+> are as of rev `37ea7a7cf` (2026-09-13); the appendix inventory is preserved
+> as the historical baseline rationale. Archived 2026-09-22.
+
 > **Date:** 2026-09-13
 > **Kind:** Point-in-time tooling audit (no code changes)
 > **Command:** `md-go-validator . -v` (system-installed binary, exit 1 = failures found)
 > **Repo state:** `master` @ 37ea7a7cf (auto-commit daemon active; working-tree changes in
 > `scripts/batch-release.sh` + 3 module READMEs are pre-existing and unrelated)
-> **Raw output:** `/tmp/mdgov-full.txt` (verbose), `/tmp/mdgov.json` (machine-readable, this session)
+> **Raw output:** ~~`/tmp/mdgov-full.txt` (verbose), `/tmp/mdgov.json` (machine-readable, this session)~~
+> (dead on reboot — the /tmp-evidence lesson; regenerate via `nix run .#check-md-go`)
 
 ---
 

@@ -1,5 +1,12 @@
 # Status: M23 md-go-validator gate — execution + brutal self-review
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** the gate is
+> shipped and green (§a); the §f table's open remainder is harvested into
+> TODO_LIST → md-go-validator section (self-test, 11-skip verification,
+> `--fail-on-skipped`, pin ritual, authoring convention, upstream filings,
+> nightly/FEATURES wiring, version stamp, CI-watch). #1 was done in-session
+> (✱). Push/CI-evidence items ride the CI push-decision row. ARCHIVED.
+
 > **Date:** 2026-09-21 18:19 CEST
 > **Kind:** Session-scoped status report (gate build + P2/P3 sweep + P4 policy + self-review)
 > **Repo state:** `master` @ `63fff005b` — 12 commits ahead of `origin/master`, NOT pushed.
@@ -211,7 +218,7 @@ reporting pass._
 
 | #  | Task                                                                                                                                                                                                  | Impact | Effort |
 | -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ |
-| 1  | ✱ Correct the TODO_LIST 1460→1461 residual-numbers line (§d1)                                                                                                                                         | S      | XS     |
+~~| 1  | ✱ Correct the TODO_LIST 1460→1461 residual-numbers line (§d1)                                                                                                                                         | S      | XS     |~~ done in-session (✱)
 | 2  | Add `--self-test` to `scripts/check-md-go.sh` (planted fixture tree via `PATH`-stubbed binary or `--config` override; golden message shapes in `scripts/testdata/`; mutation-test the goldens)        | High   | M      |
 | 3  | Execute `nix run .#verify-fast` once end-to-end to prove both chain insertions run (quiet window)                                                                                                     | High   | M      |
 | 4  | Get the branch pushed/PR'd so the ci.yml leg runs on real CI; confirm the cold build fits the 15-min job                                                                                              | High   | S      |

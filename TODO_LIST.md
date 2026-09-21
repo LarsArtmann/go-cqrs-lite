@@ -985,6 +985,14 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       flip to unbounded at the v5 cut + cqrs-lint nudge + optional operator
       ceiling). Documented-100 is the status quo, loud in godoc+FAQ. REMAINING:
       owner decision, implement at the v5 branch. — G-T14 _(Effort: S decision + S impl)_
+      **RULED 2026-09-21 (owner): Option C** — unbounded at the v5 cut +
+      cqrs-lint nudge + operator ceiling. The v4-safe add-ons LANDED:
+      `metaengine.WithDefaultLimit(n)` plan option (operator ceiling for
+      un-limited scans; explicit `WithLimit` wins; survives Replan) with tests,
+      and cqrs-lint **F031** `scan-without-limit` (warn/low, suppressed by
+      `WithDefaultLimit`, disabled in library presets). The remaining step —
+      flipping the built-in 100 to unbounded — executes ON THE V5 BRANCH per
+      the ADR-0123 cut plan.
 - [ ] **FEATURES maturity flip for the closed surface (🧪→✅)** — earned by
       the plan's gates (not declared): evidence links per row, CHANGELOG
       Goal-story entry, release notes. Final stamp of Goal closure. — G-T25

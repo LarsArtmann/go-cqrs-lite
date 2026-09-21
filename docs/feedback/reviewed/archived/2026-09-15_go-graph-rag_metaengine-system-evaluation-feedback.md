@@ -1,5 +1,13 @@
 # go-graph-rag Consumer Feedback: metaengine/system Evaluation Findings
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** every
+> feedback item is resolved or routed: #3 fail-closed Save + #5 doc.go stamps
+> shipped in the 2026-09-21 v4.9.0 wave; #2 → TODO Turso grouped-matview
+> fail-closed row; #4 → TODO v5 systemtest row; #6 → TODO feedback-#6 row;
+> #1 → ROADMAP ANN item; #7/#8 → ROADMAP raw ideas (added by this pass — the
+> earlier "routed to ROADMAP" claim was aspirational). Consumer reply pending
+> owner voice (TODO go-graph-rag row). ARCHIVED.
+
 > **TRIAGED (docs-health 8th pass, 2026-09-19):** routing — #2 tracked (TODO_LIST
 > Turso § "make grouped-spec safety mechanical"); #4 rides ADR-0123 §3 (v5);
 > #6 rides the 2026-09-16 SUPERB metaengine-system excellence plan; #1 rides

@@ -1,5 +1,12 @@
 # SUPERB Plan: Publish & Prove — Release the Unpublished Surface + Close the Trust Floor
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** executed:
+> the 92-tag train (W0) verified end-to-end 2026-09-20 (publish-and-prove
+> session), composed `#verify` S03 GREEN 2026-09-20 15:04, T13/T15 green,
+> T18b re-pin + gate hardening landed 2026-09-20/21 (open closure tail →
+> TODO T18b rows), ADR-0139 rulings + dead-path decisions remain open TODO
+> rows (v5 + Release sections). Archived as a historical snapshot. ARCHIVED.
+
 **Date:** 2026-09-19 22:34 CEST
 **Trigger:** owner directive (paste_1): full Pareto breakdown (1%→51%, 4%→64%, 20%→80%, +20%→100%), ALL 120 open TODO_LIST rows planned at 30–100min tasks, top tier micro-broken to ≤12min, execution graph, then commit + push.
 **Predecessors:** [`2026-09-19_18-15_tag-wave-release-prep-ci-triage`](../status/archived/2026-09-19_18-15_tag-wave-release-prep-ci-triage-concurrent-session.md) (90-tag/6-batch plan, dry-run validated, 0 cut) · [`2026-09-19_20-08_docs-health-eighth-pass-full-audit`](../status/archived/2026-09-19_20-08_docs-health-eighth-pass-full-audit.md) (docs floor: 815 annotations, 70 files archived, gates re-greened 22:35).

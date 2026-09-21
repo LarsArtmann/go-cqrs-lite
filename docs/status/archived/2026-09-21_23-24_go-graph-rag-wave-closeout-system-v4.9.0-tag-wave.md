@@ -1,5 +1,18 @@
 # Status Report — go-graph-rag feedback follow-ups: the v4.9.0 tag wave closeout
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** the 4-tag
+> wave shipped (record/v4.6.0, scheduling/sqlstore/v4.1.1, projectionhost/v4.5.1,
+> system/v4.9.0 — CHANGELOG section of that name; all six examples green).
+> §f routed: 1-2 → TODO CI section; 3/27 → TODO release-verification row;
+> 4/6/7 → TODO skill-reference sweep + this pass (grep found no "future
+> release" claims left); 8-10 → TODO CI/Release rows (go.work drift gate
+> fired a THIRD time 23:33 — see that row); 12-15 → TODO go-graph-rag/Release
+> rows (13/14 executed by this pass); 17-25 → TODO release-train-tail row;
+> 30/34 executed by this pass (CHANGELOG blank line + go.work Changed entry);
+> 35 executed (ROADMAP GraphRAG routing verified, #7/#8 added); 36-50 →
+> ROADMAP raw ideas + TODO polish rows. §g → owner (push cadence → ROADMAP
+> OQ). ARCHIVED.
+
 **When:** 2026-09-21 23:24 CEST
 **Scope:** This session only — execution of the pasted follow-up list (feedback #3 fail-closed Save, goal-shaped-app consumer-value tail), including the release wave it was blocked on. Not a whole-project census; backlog items are included only where this session directly observed them.
 
@@ -90,8 +103,8 @@ _(Brainstorm per status-report skill: beyond the top ~25 these are ROADMAP fuel 
 10. Decide claiming: content-identical v4.0.1 re-tag to silence example V006 noise, or accept and document the advisory (c3, e8).
 11. Postgres e2e CI leg for goal-shaped-app (ephemeral PG service in the examples job, or a nightly app) — the one deferred tail slice (b2).
 12. Add a smoke test to scheduler-otel-status — the only suite-less example; the flake comment "all six carry suites" is currently a lie (observed directly).
-13. Fix the flake.nix "all six carry suites" comment once 12 lands (or now, to be honest immediately).
-14. Refresh stale dev-replace comments in `system/go.mod` + `scheduling/sqlstore/go.mod` (c8) — two-line fixes, do on sight.
+~~13. Fix the flake.nix "all six carry suites" comment once 12 lands (or now, to be honest immediately).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+~~14. Refresh stale dev-replace comments in `system/go.mod` + `scheduling/sqlstore/go.mod` (c8) — two-line fixes, do on sight.~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
 15. Run the V007-gated `cqrs-lint-examples` loop over ALL six examples locally (I ran 3) to mirror CI exactly (from verification gap).
 
 **⚡ Near-term (next wave prep):**
@@ -113,12 +126,12 @@ _(Brainstorm per status-report skill: beyond the top ~25 these are ROADMAP fuel 
 27. pkg.go.dev spot-check: system v4.9.0 renders `On`/`ErrRacySaveRefused`/`WithRacySave` docs correctly (c6).
 28. `gh run list` — confirm release.yml legs for the 4 tags finished green (build/test/race/govulncheck per module).
 29. Confirm no dangling staged renames from the concurrent session's docs/status archival mid-flight (I saw `R` entries earlier).
-30. Cosmetic: restore the missing blank line between the ADTSet and BackfillPlannedTables entries in Unreleased (my relocation script's collapse).
+~~30. Cosmetic: restore the missing blank line between the ADTSet and BackfillPlannedTables entries in Unreleased (my relocation script's collapse).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
 31. Configure the LSP/gopls env (GOTOOLCHAIN=auto + cache chain) so the permanent 106-diagnostic host-toolchain noise stops masking real findings (noticed all session).
 32. BuildFlow binary is 31h stale (its own doctor warns) — rebuild/reinstall, or record as known-stale.
 33. Hook's govulncheck step produces toolchain-mismatch garbage in pre-commit mode — fix or remove from pre-commit scope (overlaps 9).
-34. CHANGELOG: consider a `Changed` line for the go.work contract fix (developer-facing; even user-facing modules require 1.27.1 toolchains — half a line).
-35. ROADMAP sweep of the routed GraphRAG requests (#2 Turso, #4 v5, #6 metaengine plans, #1/#7) — confirm they actually live in their home sections post-wave.
+~~34. CHANGELOG: consider a `Changed` line for the go.work contract fix (developer-facing; even user-facing modules require 1.27.1 toolchains — half a line).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+~~35. ROADMAP sweep of the routed GraphRAG requests (#2 Turso, #4 v5, #6 metaengine plans, #1/#7) — confirm they actually live in their home sections post-wave.~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
 
 **🧭 ROADMAP fuel (larger, later):**
 

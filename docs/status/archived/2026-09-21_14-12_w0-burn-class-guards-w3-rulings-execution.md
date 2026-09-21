@@ -1,5 +1,16 @@
 # Status Report: W0 Burn-Class Guards + W3 Rulings Execution (SUPERB plan M01–M10 wave)
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** M01-M10 all
+> landed (§a; incident #11 caught + repaired). §f routing: 1-2 → done/TODO
+> mysql-vm row; 3-5 → TODO upstream-filings row (owner-approved, unfiled);
+> 6-8 → done (M08 partial → CI-tail row; M16 resolved 2026-09-17 wave; M13
+> census done); 9-18 → TODO rows (README-review-tail b/d, FilterOp,
+> temporal/watermill/NATS, benchkit, md-go sections); 19-50 untracked tail →
+> TODO "W0 verification tail" row (this pass); 26/40/46/47 executed or
+> superseded (this pass archived the cluster; W3 sheet archived by the 10th
+> pass; CHANGELOG carries the guard-wave entry). §g questions → owner.
+> ARCHIVED.
+
 **Date:** 2026-09-21 14:12 CEST
 **Session scope:** execute the 2026-09-20 17:40 SUPERB owner-unblock/trust plan
 (M01–M27) from the top: M02–M05 guard build, M01 W3 ruling application (owner
@@ -103,7 +114,7 @@ duplicated.
 23. **Check-canonical-facts extension**: derive the module count into FEATURES too (M13 F69 overlap).
 24. **Add a `CI=true` self-test leg to every gate script lacking one** (calibration/can-run/golangci-hash/go-version/load-guard now covered; audit the rest).
 25. **vm-mysql-nspawn.sh**: consider the same stale-port pre-flight + trap (nspawn has no QEMU orphan class, but the port check is cheap insurance).
-26. **Archive the finished 2026-09-20/21 status reports** (docs/status holds >10 live — gate NOTE) once the concurrent sessions settle.
+~~26. **Archive the finished 2026-09-20/21 status reports** (docs/status holds >10 live — gate NOTE) once the concurrent sessions settle.~~ done 2026-09-22 — 11th docs-health pass
 27. **`benchmark-regression.sh --save` + hash-golden symmetry**: consider a provenance precheck pattern audit across `--save`-class tools (post-D1 hardening, one more sweep).
 28. **README push leg watch**: confirm the two new steps don't push lint-scripts past its timeout on runners.
 29. **M16 alias advisories**: import-scope core.md:448, recipes.md:123, faq.md:233 → golden 0 advisories.
@@ -117,14 +128,14 @@ duplicated.
 37. **Coverage-gate core set**: metadata/scheduling joined the floor; consider Tier-2 (schema, snapshot, projection) after two green weeks.
 38. **Document the lock in AGENTS** (verify windows section) — gotcha line exists for the recipe, not for the lock's semantics.
 39. **`can-run-composed-gate --wait-loop` + flock interplay**: the wait-loop's retry loop holds no lock; verify the composed recipe acquires AFTER GREEN (it does — verify head), document it.
-40. **Renew the W3 consolidation sheet** (`docs/status/2026-09-20_11-36_owner-bundle-w3.md` is stale-pending; all six now answered — it can be archived with a RESOLVED banner at the next docs pass).
+~~40. **Renew the W3 consolidation sheet** (`docs/status/2026-09-20_11-36_owner-bundle-w3.md` is stale-pending; all six now answered — it can be archived with a RESOLVED banner at the next docs pass).~~ done 2026-09-22 — 11th docs-health pass
 41. **Dgraph constants re-anchor campaign** (row 306d, pending quiet window) — candidate for `quiet-window-run.sh` (promoted by the concurrent session).
 42. **SearchQuery count=5 quiet re-run** (row 306c remainder) — same vehicle.
 43. **Sweep other CI jobs for the empty-`go list` fiction class** (modsums/go-work-sync verified real; audit the remaining plain-go jobs).
 44. **Add `check-go-version` to `verify-parallel.sh`/`verify-ci` heads** for parity with `#verify`.
 45. **scripts/README or scripts/INDEX.md** — 60+ scripts, several new this week; a one-line-per-script index would cut discovery cost (candidate for M27).
-46. **Tag the guard wave** when the queue-family tag wave lands (batch-release bar) — the new scripts are unreleased tooling; no consumer tag needed, but the CHANGELOG [Unreleased] should cite them (check-changelog-symbols will demand real symbols — cite the flake apps).
-47. **CHANGELOG [Unreleased] entry for the guard wave** (hash-golden tripwire, wait-loop, preflight, load guard, go-version gate, flock, coverage floor, README push gates) — not yet written by me.
+~~46. **Tag the guard wave** when the queue-family tag wave lands (batch-release bar) — the new scripts are unreleased tooling; no consumer tag needed, but the CHANGELOG [Unreleased] should cite them (check-changelog-symbols will demand real symbols — cite the flake apps).~~ done — rides the queue-family wave row
+~~47. **CHANGELOG [Unreleased] entry for the guard wave** (hash-golden tripwire, wait-loop, preflight, load guard, go-version gate, flock, coverage floor, README push gates) — not yet written by me.~~ done — "Corruption-class tripwires + verify ergonomics" entry
 48. **Retire `/tmp` evidence**: this session's decisive outputs (crs2.log, ccf.log, preflight logs) are ephemeral; copy excerpts into the next status report or docs/benchmarks as needed.
 49. **verify-load-guard ceiling policy**: default 10 matches wait-for-quiet; calibration uses 5 — document the two-tier intent (verify vs bench) in gowork-modes.
 50. **After M01–M26 close**: run the full gates + composed verify + write the wave-close status report + push — the S03 end-of-wave rule.

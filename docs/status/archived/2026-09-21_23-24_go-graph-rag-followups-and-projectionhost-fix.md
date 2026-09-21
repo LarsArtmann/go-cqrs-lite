@@ -1,5 +1,15 @@
 # Status: go-graph-rag follow-ups executed (fail-closed Save, `.On` chaining, examples CI leg) + the projectionhost double-apply it uncovered
 
+> **RESOLVED-BY-ROUTING — docs-health 11th pass (2026-09-22):** everything
+> shipped (§a: fail-closed Save, `.On` chaining, examples CI leg,
+> projectionhost double-apply fix — all released in the 2026-09-21 v4.9.0
+> wave, CHANGELOG section of that name). §f routed: 1-3 → TODO CI section
+> (composed-verify, CI-watch, LSP/env rows); 5-16 → TODO go-graph-rag + Docs
+> truth + md-go sections; 17-34 → TODO quality/Roadmap fuel; 35-49 → TODO
+> CI/Roadmap; 50 (this harvest) → executed by this pass. §g questions → owner
+> (push cadence now ROADMAP OQ; examples-in-verify + claiming → TODO BLOCKED
+> rows). ARCHIVED.
+
 **Session:** 2026-09-21 ~17:30 → 23:24 (Crush, one session)
 **Scope of this report:** this session's run only, plus what I noticed while running it. No new research.
 **Format note:** `.md` requested explicitly — the status-report skill's canonical output is styled HTML; override honored, not propagated back into the skill.
@@ -171,7 +181,7 @@ Process/design, not bugs:
 | 47 | Consider bumping `dedup` ring capacity documentation if overlap windows grow (seenIDs ring is 10K; fine today)                                                        | L      | S      | Docs     |
 | 48 | Add the `.On` chain to the goal-shaped-app README prose if it shows the old nested form anywhere                                                                      | L      | S      | Docs     |
 | 49 | Investigate whether other repos' examples (go-atomic-write etc.) show the same build-only CI pattern (same fix likely applies)                                        | M      | M      | Quality  |
-| 50 | Close the loop on this report: HARVEST items 1–14 into TODO_LIST; 18–28 confirmed as ROADMAP (docs-health)                                                            | M      | S      | Docs     |
+~~| 50 | Close the loop on this report: HARVEST items 1–14 into TODO_LIST; 18–28 confirmed as ROADMAP (docs-health)                                                            | M      | S      | Docs     |~~ done 2026-09-22 — 11th docs-health pass (items 1-14 → TODO_LIST; 18-28 routed TODO/ROADMAP)
 
 ---
 
