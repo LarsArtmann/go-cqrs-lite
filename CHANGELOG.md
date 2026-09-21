@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Corruption-class tripwires + verify ergonomics (owner-unblock wave, 2026-09-20/21).**
+  The 10-incident `.golangci.yml` config-corruption class is closed by a content
+  hash-golden (`scripts/check-golangci-hash.sh`, wired into `#check-lint-config` and
+  pre-commit; `--update` refuses to pin a shape-failing config — it caught a live
+  corruption at HEAD on rollout day). `#verify` now refuses to launch under system load
+  (`scripts/verify-load-guard.sh`, `VERIFY_FORCE=1` escape, CI pass-through), takes a
+  machine-level advisory flock (`scripts/lib/verify-lock.sh`, `VERIFY_LOCK=0` opt-out,
+  also held by release scripts and pre-commit so tag waves serialize), and
+  `scripts/preflight-composed.sh` runs the six known 12–46-minute failure modes
+  (lint-config, templ, bench-gate, coverage, api-stability, duplication) in under five
+  minutes before any composed verify attempt; `can-run-composed-gate.sh --wait-loop`
+  retries the composition until a quiet window opens. A Go-version contract gate
+  (`scripts/check-go-version.sh`, flake app `#check-go-version`, nightly step) fails
+  loud when the host toolchain falls below the `go.work` contract. CI: the vacuous
+  coverage-gate job was rebuilt as a real setup-go core-tier 80% floor, README gates
+  moved onto the push leg, and the benchkit load-gate fixtures now pass under GitHub
+  runners' `CI=true`. `scripts/vm-mysql.sh` gained a stale-port pre-flight and a
+  process-group trap so failed VM boots stop leaking QEMU listeners.
 - **queue/mysql: pool options + deadlock backoff+jitter.** `WithMaxOpenConns[T]`
   / `WithMaxIdleConns[T]` store options give the MySQL engine the same
   maxConns knob `queue/postgres.Open` has (defaults unchanged: 8 open,
