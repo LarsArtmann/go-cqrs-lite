@@ -489,6 +489,8 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 ## 11. Quick API Cheat Sheet
 
 ```go
+import schema "github.com/larsartmann/go-cqrs-lite/schema/v4"
+
 // Events
 evt, _ := event.NewEvent("user.created", aggID, "User", event.Version(1), payload, opts...)
 events, _ := event.NewEvents(aggID, "User", baseVersion, []event.Type{...}, []any{...})

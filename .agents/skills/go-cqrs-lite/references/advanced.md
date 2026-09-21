@@ -227,7 +227,7 @@ import (
 )
 
 // journal: any event.SeekableJournal (MemoryStore, SQLEventStore, pebble.EventStore, ...)
-// cpStore: event.CheckpointStore (memory.MemoryCheckpointStore, SQLCheckpointStore, ...)
+// cpStore: event.CheckpointStore (storage/memory's MemoryCheckpointStore, SQLCheckpointStore, ...)
 host, _ := projectionhost.New(journal, cpStore,
     projectionhost.WithBatchSize(100),
     projectionhost.WithDeadLetterStore(projectionhost.NewMemoryDeadLetterStore(), 3), // poison after 3 retries

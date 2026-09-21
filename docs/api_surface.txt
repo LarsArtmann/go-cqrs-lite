@@ -1,3 +1,9 @@
+benchkit/const MetricLoadP50NS
+benchkit/const MetricLoadP99NS
+benchkit/const MetricWriteMaxNS
+benchkit/const MetricWriteP50NS
+benchkit/const MetricWriteP99NS
+benchkit/const MetricWriteThroughput
 benchkit/const SchemaVersion
 benchkit/const VariationThreshold
 benchkit/func AdaptSystem
@@ -10,6 +16,7 @@ benchkit/func FormatDuration
 benchkit/func FormatFloat
 benchkit/func FormatInt
 benchkit/func GOMAXPROCSSweep
+benchkit/func HeadlineMetricNames
 benchkit/func MetricNames
 benchkit/func NewGenerator
 benchkit/func NewLatencyCollector
@@ -30,6 +37,7 @@ benchkit/func Run
 benchkit/func RunRepeated
 benchkit/func RunSoak
 benchkit/func RunSuite
+benchkit/func RunSuiteRepeated
 benchkit/func ScalingSweep
 benchkit/func SortedSweepResults
 benchkit/func StreamLengthSweep

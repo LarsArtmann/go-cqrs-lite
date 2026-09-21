@@ -120,6 +120,8 @@ b, _ := turso.New("app.db", turso.WithPragmas(sqlopt.WithoutWAL()))
 #### Postgres preset
 
 ```go
+import postgres "github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
+
 b, _ := postgres.New("postgres://user:pass@localhost:5432/myapp?sslmode=disable")
 // Events use in-process bus (watermill GoChannel).
 // For cross-process pub/sub, wire a Watermill-backed bus externally.

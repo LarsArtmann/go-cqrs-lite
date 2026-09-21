@@ -170,6 +170,7 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 		Backend:                 flags.Backend,
 		DiskPath:                diskPath,
 		InterpolatedPercentiles: flags.Interpolated,
+		ReservoirSize:           flags.ReservoirSize,
 	}
 	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
 
@@ -224,7 +225,46 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 
 	writeResult(flags.Format, flags.Output, config, result, repeated, flags.IncludeRuns)
 
+	// --strict on a repeated run is also a noise gate: a headline metric whose
+	// cross-run CoV reached the threshold means the medians are not
+	// decision-grade, and a CI consumer must fail instead of trusting them.
+	// Runs after writeResult so the report/artifact still lands for triage.
+	if msg := strictNoiseGate(flags.Strict, repeated); msg != "" {
+		fatalf("%s", msg)
+	}
+
 	return nil
+}
+
+// strictNoiseGate returns a non-empty failure message when any headline metric
+// (the set scripts/benchmark-regression.sh gates by default — kept in sync
+// via benchkit.HeadlineMetricNames) was NOISY across the repeat runs; empty
+// means the run is decision-grade (or the gate does not apply).
+func strictNoiseGate(strict bool, repeated *benchkit.RepeatedResult) string {
+	if !strict || repeated == nil || repeated.Median == nil {
+		return ""
+	}
+
+	headline := make(map[string]bool)
+	for _, name := range benchkit.HeadlineMetricNames() {
+		headline[name] = true
+	}
+
+	var noisy []string
+
+	for _, v := range repeated.Median.MetricVariation {
+		if headline[v.Name] && !v.Reliable {
+			noisy = append(noisy, fmt.Sprintf("%s CoV=%.1f%%", v.Name, v.CoV*100))
+		}
+	}
+
+	if len(noisy) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"--strict: NOISY headline metric(s): %s — medians from %d runs are not decision-grade; re-run on a quieter machine or raise --repeat",
+		strings.Join(noisy, ", "), len(repeated.Runs))
 }
 
 // ── compare subcommand ──
@@ -259,6 +299,7 @@ func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) erro
 		SkipQuery:               flags.SkipQuery,
 		SkipSnapshot:            flags.SkipSnapshot,
 		InterpolatedPercentiles: flags.Interpolated,
+		ReservoirSize:           flags.ReservoirSize,
 	}
 	applyProgress(&config, flags.Progress.Duration(), flags.Quiet)
 
@@ -304,16 +345,19 @@ func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
 	}
 
 	config := benchkit.Config{
-		Profile:        profile,
-		PayloadSize:    flags.PayloadSize,
-		Codec:          codec,
-		SkipBatchWrite: flags.SkipBatchWrite,
-		SkipRawSink:    flags.SkipRawSink,
-		SkipJourney:    flags.SkipJourney,
-		SkipQuery:      flags.SkipQuery,
-		SkipSnapshot:   flags.SkipSnapshot,
-		Backend:        flags.Backend,
-		DiskPath:       diskPath,
+		Profile:                 profile,
+		PayloadSize:             flags.PayloadSize,
+		Codec:                   codec,
+		Repeat:                  flags.Repeat,
+		SkipBatchWrite:          flags.SkipBatchWrite,
+		SkipRawSink:             flags.SkipRawSink,
+		SkipJourney:             flags.SkipJourney,
+		SkipQuery:               flags.SkipQuery,
+		SkipSnapshot:            flags.SkipSnapshot,
+		Backend:                 flags.Backend,
+		DiskPath:                diskPath,
+		InterpolatedPercentiles: flags.Interpolated,
+		ReservoirSize:           flags.ReservoirSize,
 	}
 
 	runCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)

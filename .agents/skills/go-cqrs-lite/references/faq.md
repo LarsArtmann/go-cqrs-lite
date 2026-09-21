@@ -110,6 +110,8 @@ backend, _ := storage.NewSQLBackend(db)
 `[]byte` instead of `time.Time`, breaking event timestamps:
 
 ```go
+import mysql "github.com/larsartmann/go-cqrs-lite/stack/mysql/v4"
+
 // Wrong — timestamps will be []byte
 b, _ := mysql.New("root:pass@tcp(localhost:3306)/myapp")
 
@@ -230,6 +232,8 @@ Use `stack.WithMetaEngine(store)` to register a metaengine Store with the Bundle
 The Bundle manages its lifecycle (Close), and benchkit auto-discovers it.
 
 ```go
+import sqlite "github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4"
+
 store, _ := metaengine.Plan(engines, queries...)
 bundle, _ := sqlite.New(dsn, sqlite.WithStack(stack.WithMetaEngine(store)))
 // bundle.MetaEngine() returns the store for runtime queries

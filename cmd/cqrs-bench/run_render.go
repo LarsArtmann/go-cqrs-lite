@@ -102,9 +102,14 @@ func buildRunSummaryTable(r *benchkit.Result) *output.Table {
 	t.AddRow([]string{"Duration", fmtDur(r.Duration)})
 	t.AddRow([]string{"Workers", strconv.Itoa(r.Workers)})
 
+	if r.Environment.LoadAvg1 > 0 {
+		t.AddRow([]string{"Load1 (start)", fmt.Sprintf("%.1f", r.Environment.LoadAvg1)})
+	}
+
 	if r.WriteLatency.Count > 0 {
 		t.AddRow([]string{"Write P50", fmtDur(r.WriteLatency.P50)})
 		t.AddRow([]string{"Write P99", fmtDur(r.WriteLatency.P99)})
+		t.AddRow([]string{"Write Min", fmtDur(r.WriteLatency.Min) + " (exact fastest)"})
 	}
 
 	if r.WriteThroughput > 0 {

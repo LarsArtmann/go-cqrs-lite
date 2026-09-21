@@ -316,6 +316,22 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 		"GC Max Pause", "Allocs/Op", "Write Amp", "Heap",
 	}
 
+	// CoV appears exactly when the sweep ran with --repeat N: it is the
+	// cross-run dispersion of each point's own repeats, not a new metric.
+	withCoV := false
+
+	for _, sr := range results {
+		if sr.Result != nil && sr.Result.RepeatCount > 1 {
+			withCoV = true
+
+			break
+		}
+	}
+
+	if withCoV {
+		headers = append(headers, "CoV %")
+	}
+
 	t := output.NewTable(headers)
 
 	empty := make([]string, len(headers)-1)
@@ -343,7 +359,7 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 			continue
 		}
 
-		t.AddRow([]string{
+		row := []string{
 			strconv.Itoa(sr.Value),
 			fmtDur(r.WriteLatency.P50),
 			fmtDur(r.WriteLatency.P99),
@@ -352,7 +368,13 @@ func buildSweepTable(results []benchkit.SweepResult) *output.Table {
 			fmtAllocDash(r.AllocsPerOp),
 			fmtRatioDash(r.Disk.WriteAmplification),
 			fmtBytes(r.Memory.After),
-		})
+		}
+
+		if withCoV {
+			row = append(row, fmtCoVDash(r.RepeatCoV))
+		}
+
+		t.AddRow(row)
 	}
 
 	return t
