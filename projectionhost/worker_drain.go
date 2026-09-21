@@ -175,7 +175,8 @@ func (w *worker) processLive(ctx context.Context, afterID id.EventID) error {
 
 // liveHandler returns the event.Handler callback for the live subscriber.
 // The handler acquires handleMu to serialize with any concurrent catch-up
-// drain processing.
+// drain processing, and marks applied events as seen so the subsequent (or
+// concurrent) catch-up drain skips them instead of double-applying.
 func (w *worker) liveHandler(ctx context.Context) event.Handler {
 	return func(_ context.Context, evt event.Event) error {
 		select {
@@ -194,6 +195,7 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 		}
 
 		if !w.shouldHandle(evt) {
+			w.markSeen(evt.ID().String())
 			w.lastProcessedNs.Store(time.Now().UnixNano())
 
 			return nil
@@ -217,6 +219,7 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 			return saveErr
 		}
 
+		w.markSeen(evt.ID().String())
 		w.processed.Add(1)
 		w.lastProcessedNs.Store(time.Now().UnixNano())
 
@@ -225,11 +228,18 @@ func (w *worker) liveHandler(ctx context.Context) event.Handler {
 }
 
 // processEvent applies a single event to the projection (with retry), recording
-// metrics and updating internal counters. Events that don't match the
-// projection's filter are skipped (marked as seen but not processed). Returns
-// a fatal error if the event cannot be processed even after retries and DLQ
-// routing. Shared by the initial drain and the catch-up drain.
+// metrics and updating internal counters. Events already applied by the live
+// handler are skipped — the catch-up drain re-reads journal events the live
+// handler may have processed first, and the seenIDs ring is what keeps the
+// overlap from double-applying. Events that don't match the projection's
+// filter are skipped (marked as seen but not processed). Returns a fatal error
+// if the event cannot be processed even after retries and DLQ routing. Shared
+// by the initial drain and the catch-up drain.
 func (w *worker) processEvent(ctx context.Context, evt event.Event) error {
+	if w.wasSeen(evt.ID().String()) {
+		return nil
+	}
+
 	if !w.shouldHandle(evt) {
 		w.markSeen(evt.ID().String())
 

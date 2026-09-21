@@ -156,7 +156,8 @@ func (a *EventAdapter) Save(
 	if !a.allowRacySave {
 		return fmt.Errorf(
 			"%w: backend %T implements neither metaengine.AtomicAppender nor metaengine.Transactional; have the backend implement one of them for concurrent safety, or pass WithRacySave() for a deliberately single-threaded store",
-			ErrRacySaveRefused, a.Backend,
+			ErrRacySaveRefused,
+			a.Backend,
 		)
 	}
 

@@ -90,7 +90,15 @@ func TestEventAdapter_Save_RacyOptInAppends(t *testing.T) {
 	}
 
 	stale := eventtest.NewEvent(t, "racy.event", ref.ID, ref.Type, event.Version(2), nil)
-	if err := adapter.Save(ctx, ref, []event.Event{stale}, event.Version(0)); !errors.Is(err, event.ErrVersionConflict) {
+	if err := adapter.Save(
+		ctx,
+		ref,
+		[]event.Event{stale},
+		event.Version(0),
+	); !errors.Is(
+		err,
+		event.ErrVersionConflict,
+	) {
 		t.Fatalf("expected version conflict on stale expectedVersion, got %v", err)
 	}
 

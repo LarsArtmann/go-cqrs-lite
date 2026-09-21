@@ -60,7 +60,7 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | Verify CI    | `nix run .#verify-ci` (GOWORK=off per-module build+test — mirrors the CI matrix job)                                                            |
 | Lint config  | `nix run .#check-lint-config` (golangci config verify + depguard allow-list)                                                                    |
 | ErrTax       | `nix run .#check-error-taxonomy` (drift gate: errorfamily codes vs docs/error-taxonomy.md, bidirectional)                                       |
-| md-go gate   | `nix run .#check-md-go` (every live ```go fence in docs must parse or carry `// skip-validate`; frozen history baselined in scripts/md-go-baseline.txt) |
+| md-go gate   | `nix run .#check-md-go` (every live `go` fence in docs must parse or carry `// skip-validate`; frozen history baselined in scripts/md-go-baseline.txt) |
 | Rel. tests   | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                               |
 | README gates | `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)          |
 | Recipe gate  | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 81/81 classified, coverage ratchet)  |

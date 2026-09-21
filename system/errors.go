@@ -15,7 +15,9 @@ var (
 	// ErrEventSaveNotAtomic rejects a source-of-truth engine that implements
 	// neither AtomicAppender nor Transactional at construction time: event
 	// saves on such an engine are racy under concurrency.
-	ErrEventSaveNotAtomic = errors.New("system: source-of-truth engine cannot save events atomically")
+	ErrEventSaveNotAtomic = errors.New(
+		"system: source-of-truth engine cannot save events atomically",
+	)
 	// ErrRacySaveRefused is returned by EventAdapter.Save when the backend
 	// implements neither AtomicAppender nor Transactional and the racy
 	// check-then-append fallback was not explicitly opted into via WithRacySave.

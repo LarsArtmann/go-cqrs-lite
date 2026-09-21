@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **tooling: `check-md-go` docs gate — every live `go` fence must parse or
+  carry an explicit `// skip-validate`.** The repo's Markdown/MDX is now
+  validated by `md-go-validator` (packaged in the flake from a pinned GitHub
+  source via the same sandbox-safe machinery as `cqrs-lint`); intentional
+  pseudo-code is annotated in-fence (67 blocks across 34 files, keeping Go
+  highlighting), and frozen history is baselined in
+  `scripts/md-go-baseline.txt` (103 archived-error signatures). Policy: new
+  errors anywhere fail the gate (wired into `#verify`, `#verify-fast`, and the
+  ci.yml check job); the baseline may only reference `*/archive*/` paths, so
+  it can never become a dumping ground for live docs. Regenerate only via
+  `nix run .#check-md-go -- --update-baseline` (baseline signatures are
+  coupled to the flake-pinned tool version; see gotchas-tooling-build).
+
 - **system: fail closed on the racy `EventAdapter.Save` fallback (go-graph-rag
   feedback #3).** A backend implementing neither `AtomicAppender` nor
   `Transactional` no longer silently runs the racy check-then-append Save:

@@ -46,12 +46,28 @@ func givenDoneTask(t *testing.T, title string, priority int) []event.Event {
 	return []event.Event{
 		mustEvent(t, evtTaskCreated, streamID, event.Version(1),
 			TaskCreated{ID: streamID.String(), Title: title, Priority: priority}),
-		mustEvent(t, evtTaskUpdated, streamID, event.Version(2),
-			TaskUpdated{ID: streamID.String(), Title: title, Status: StatusDone, Priority: priority}),
+		mustEvent(
+			t,
+			evtTaskUpdated,
+			streamID,
+			event.Version(2),
+			TaskUpdated{
+				ID:       streamID.String(),
+				Title:    title,
+				Status:   StatusDone,
+				Priority: priority,
+			},
+		),
 	}
 }
 
-func mustEvent(t *testing.T, kind event.Type, streamID id.StreamID, version event.Version, payload any) event.Event {
+func mustEvent(
+	t *testing.T,
+	kind event.Type,
+	streamID id.StreamID,
+	version event.Version,
+	payload any,
+) event.Event {
 	t.Helper()
 
 	evt, err := event.New(kind, streamID, streamType, version, payload)
@@ -89,7 +105,11 @@ func TestScenario_CreateTwiceIsRejected(t *testing.T) {
 		Priority:     PriorityNormal,
 	}
 
-	scenario.Given[CreateTaskCmd](t, applyTask, TaskState{}, givenCreated(t, "Duplicate", PriorityNormal)...).
+	scenario.Given[CreateTaskCmd](
+		t,
+		applyTask,
+		TaskState{},
+		givenCreated(t, "Duplicate", PriorityNormal)...).
 		When(cmd, func(s TaskState, c CreateTaskCmd) ([]event.Event, error) {
 			return decideCreate(c, s, event.Version(1))
 		}).
@@ -101,7 +121,11 @@ func TestScenario_CompleteOpenTask(t *testing.T) {
 
 	cmd := CompleteTaskCmd{BasicCommand: scenarioCmd(t, cmdCompleteTask)}
 
-	scenario.Given[CompleteTaskCmd](t, applyTask, TaskState{}, givenCreated(t, "Finish me", PriorityHigh)...).
+	scenario.Given[CompleteTaskCmd](
+		t,
+		applyTask,
+		TaskState{},
+		givenCreated(t, "Finish me", PriorityHigh)...).
 		When(cmd, func(s TaskState, c CompleteTaskCmd) ([]event.Event, error) {
 			return decideComplete(c, s, event.Version(1))
 		}).
@@ -115,7 +139,11 @@ func TestScenario_CompleteTwiceIsRejected(t *testing.T) {
 
 	cmd := CompleteTaskCmd{BasicCommand: scenarioCmd(t, cmdCompleteTask)}
 
-	scenario.Given[CompleteTaskCmd](t, applyTask, TaskState{}, givenDoneTask(t, "Done once", PriorityNormal)...).
+	scenario.Given[CompleteTaskCmd](
+		t,
+		applyTask,
+		TaskState{},
+		givenDoneTask(t, "Done once", PriorityNormal)...).
 		When(cmd, func(s TaskState, c CompleteTaskCmd) ([]event.Event, error) {
 			return decideComplete(c, s, event.Version(2))
 		}).
@@ -127,7 +155,11 @@ func TestScenario_DeleteOpenTask(t *testing.T) {
 
 	cmd := DeleteTaskCmd{BasicCommand: scenarioCmd(t, cmdDeleteTask)}
 
-	scenario.Given[DeleteTaskCmd](t, applyTask, TaskState{}, givenCreated(t, "Ephemeral", PriorityNormal)...).
+	scenario.Given[DeleteTaskCmd](
+		t,
+		applyTask,
+		TaskState{},
+		givenCreated(t, "Ephemeral", PriorityNormal)...).
 		When(cmd, func(s TaskState, c DeleteTaskCmd) ([]event.Event, error) {
 			return decideDelete(c, s, event.Version(1))
 		}).

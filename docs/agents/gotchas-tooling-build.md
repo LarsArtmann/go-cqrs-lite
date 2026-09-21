@@ -130,4 +130,4 @@
   keeps Go highlighting — prefer it over demoting fences to ```text);
   `scripts/md-go-baseline.txt` may only reference `*/archive*/` paths
   (enforced); wrong-language fences are fenced as text, not go (```
-  `go.mod`/`go.work` → ```text```, JSON → ```json```).
+  fences for non-Go content use the right tag: `go.mod`/`go.work` files are fenced as `text`, JSON as `json`).

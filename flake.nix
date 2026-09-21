@@ -303,8 +303,7 @@
             "example/taskmanager"
           ];
 
-          examplePaths = builtins.concatStringsSep " "
-            (map (m: "./${m}/...") exampleModules);
+          examplePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") exampleModules);
 
           allPaths = "${modulePaths} ${examplePaths}";
 
@@ -1292,17 +1291,18 @@
             # check-md-go: docs gate — every live ```go fence must parse or
             # carry // skip-validate; frozen history is baselined. See
             # scripts/check-md-go.sh for the policy and --update-baseline.
-            check-md-go = mkApp "check-md-go"
-              [
-                pkgs.bash
-                pkgs.git
-                pkgs.coreutils
-                pkgs.gnugrep
-                config.packages.md-go-validator
-              ]
-              ''
-                ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" "$@"
-              '';
+            check-md-go =
+              mkApp "check-md-go"
+                [
+                  pkgs.bash
+                  pkgs.git
+                  pkgs.coreutils
+                  pkgs.gnugrep
+                  config.packages.md-go-validator
+                ]
+                ''
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" "$@"
+                '';
 
             check-modules = mkApp "check-modules" [ pkgs.findutils pkgs.gnugrep ] ''
               # Verify every go.mod in the workspace is covered by testModules.

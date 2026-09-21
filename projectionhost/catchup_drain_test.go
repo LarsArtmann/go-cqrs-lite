@@ -160,6 +160,91 @@ func TestHost_CatchUpDrain_LiveDeliveryWorksAfterCatchUp(t *testing.T) {
 	_ = host.Stop()
 }
 
+// liveFirstSub appends an event to the journal and delivers it live INSIDE
+// SubscribeAll — before the catch-up drain runs. This deterministically
+// reproduces the live-then-catch-up overlap order: the live handler applies
+// the event first, then drainCatchUp re-reads the same journal event.
+type liveFirstSub struct {
+	journal   *memoryJournal
+	handler   event.Handler
+	overlapID id.EventID
+	delivered chan struct{}
+}
+
+func (s *liveFirstSub) Subscribe(_ event.Type, _ event.Handler) error {
+	return errors.New("liveFirstSub only supports SubscribeAll")
+}
+
+func (s *liveFirstSub) SubscribeAll(handler event.Handler) error {
+	evt := makeEvent("task.created")
+
+	s.journal.append(evt)
+
+	if err := handler(context.Background(), evt); err != nil {
+		return err
+	}
+
+	s.handler = handler
+	s.overlapID = evt.ID()
+	close(s.delivered)
+
+	return nil
+}
+
+// TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply is the regression
+// test for the asymmetric overlap dedup: the live handler checked wasSeen but
+// never marked processed events seen, and the catch-up drain never checked —
+// so an event delivered live before the catch-up drain re-read it from the
+// journal was applied twice. Every non-idempotent projection fold (counters,
+// sums) silently double-counted; the goal-shaped-app counter canary caught it.
+func TestHost_CatchUpDrain_LiveThenCatchUpDoesNotDoubleApply(t *testing.T) {
+	t.Parallel()
+
+	journal := &memoryJournal{}
+	cpStore := newMemoryCheckpointStore()
+
+	sub := &liveFirstSub{
+		journal:   journal,
+		delivered: make(chan struct{}),
+	}
+
+	proj := &countingProjection{name: "overlap-dedup", eventTypes: []event.Type{"task.created"}}
+
+	host, err := projectionhost.New(
+		journal, cpStore,
+		projectionhost.WithSubscriber(sub),
+		projectionhost.WithBatchSize(10),
+	)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	if err := host.Register(proj); err != nil {
+		t.Fatalf("Register: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := host.Start(ctx); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	<-sub.delivered
+
+	requireEventually(t, 3*time.Second, func() bool {
+		cp, err := cpStore.Load(context.Background(), "overlap-dedup")
+		return err == nil && cp.EventID == sub.overlapID
+	})
+
+	if got := proj.count.Load(); got != 1 {
+		t.Fatalf("overlap event applied %d times, want exactly 1", got)
+	}
+
+	cancel()
+	_ = host.Stop()
+}
+
 // TestHost_CatchUpDrain_WorkerLiveVisibleDuringBlockingSubscribe verifies that
 // WorkerLive status is set BEFORE SubscribeAll, so it is visible during the
 // blocking subscriber's lifetime (not just nanoseconds before WorkerStopped).

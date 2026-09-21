@@ -116,7 +116,8 @@ func wireSourceOfTruth(
 		if _, tx := backend.(metaengine.Transactional); !tx {
 			return fmt.Errorf(
 				"%w: engine %q implements neither metaengine.AtomicAppender nor metaengine.Transactional — concurrent event saves would corrupt the version sequence; have the engine implement one of the two capabilities or pick an atomic engine",
-				ErrEventSaveNotAtomic, engineName,
+				ErrEventSaveNotAtomic,
+				engineName,
 			)
 		}
 	}
