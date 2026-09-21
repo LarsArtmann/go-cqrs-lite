@@ -881,7 +881,7 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              vendorHash = "sha256-PLACEHOLDER";
+              vendorHash = "sha256-+C4ZnSxBKlNcov153RNFr5kMY58uNgDIxlhVWcU50T8=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];

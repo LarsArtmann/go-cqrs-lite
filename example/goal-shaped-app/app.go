@@ -11,6 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -118,10 +119,16 @@ func Domain() system.DomainConfig {
 }
 
 func registerCommands(sys *system.System) {
+	// Snapshots are a worry the library manages: one strategy line and the
+	// decider checkpoints long streams automatically (every 2nd event here so
+	// the demo's short streams actually fire it).
+	strategy, err := snapshot.EveryNEvents(2)
+	must(err)
+
 	must(system.RegisterDecider(sys, streamType, decider.Decider[TaskState]{
 		Initial: TaskState{},
 		Apply:   applyTask,
-	}))
+	}, system.WithSnapshotStrategy(strategy)))
 	must(system.RegisterCommand[CreateTaskCmd, TaskState](sys, cmdCreateTask, createOp))
 	must(system.RegisterCommand[CompleteTaskCmd, TaskState](sys, cmdCompleteTask, completeOp))
 	must(system.RegisterCommand[DeleteTaskCmd, TaskState](sys, cmdDeleteTask, deleteOp))
