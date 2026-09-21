@@ -1238,23 +1238,26 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `WithRacySave()` opts in; `system.New` rejects non-atomic engines for
       the source-of-truth role with `ErrEventSaveNotAtomic`. Pinned by
       `adapter_racy_save_test.go` (3 tests incl. construction rejection).
+      Shipped in `system/v4.9.0` (2026-09-21 wave, proxy-smoke-verified).
       — feedback #3 _(Effort: S)_
 - ~~[ ] **Stamp experimental status in each engine/module `doc.go`**~~ done 2026-09-20 — all 17 metaengine-family modules carry a doc.go package comment with the `# Experimental` doc heading (the section pkg.go.dev renders; readers can now tell 🧪 from ✅ in the godocs — FEATURES knows the rest); stray package comments on cost.go/engine.go consolidated. T22 in the 09-40 report (now archived). — feedback #5 _(Effort: S, mechanical)_
 
 - [x] ~~**goal-shaped-app consumer-value tail (2026-09-20 harvest)**~~ done
       2026-09-21, slice by slice: `DomainConfig.Events` was already adopted
-      (coeffect gate armed, pin at system v4.8.0); the nested `OnEvolution`
-      pyramid is now a readable fold-loop and the missing `evolutionBuilder.On`
-      chain method shipped in system (example's `.On` flip is release-gated —
-      one system tag wave); scenario-based Given/When/Then tests for the task
+      (coeffect gate armed); the nested `OnEvolution` pyramid became a
+      readable fold-loop, and the `evolutionBuilder.On` fluent chain shipped
+      in system/v4.9.0 — the example flipped to the
+      `Evolve[TaskView](...).On(...).On(...).Done()` chain and pins system
+      v4.9.0 (2026-09-21 wave); scenario-based Given/When/Then tests for the task
       flow (6 scenarios via `scenario` DSL); snapshot story demo
       (`WithSnapshotStrategy(EveryNEvents(2))` + `SnapshotStore()` assertion);
       postgres e2e leg existed already (`postgres_e2e_test.go`); examples CI
       test leg landed as `nix run .#test-examples` + the `Examples Test` CI
       job — its first run caught the scheduler-otel-status standalone-build
-      break (added the `record/v4` replace) and getting-started's
-      projectionhost double-apply (fixed in projectionhost, example test leg
-      skips until the fix is tagged). — source: archived 10-25 §f21-26
+      break and getting-started's projectionhost double-apply; the fix
+      shipped in projectionhost/v4.5.1 so getting-started's test leg runs
+      again and scheduler-otel-status dropped all three sibling replaces
+      (every dependency published). — source: archived 10-25 §f21-26
       _(Effort: M total, sliceable)_
 
 ---
