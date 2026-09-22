@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -168,7 +167,6 @@ func duckdbCanonicalType(t string) string {
 // order. Row counts report -1 when the COUNT query fails (e.g. the table was
 // dropped out-of-band) rather than failing the whole listing.
 func (e *duckdbEngine) PlannedTables(ctx context.Context) ([]metaengine.PlannedTableInfo, error) {
-	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	e.layoutMu.RLock()
 	planList := make([]metaengine.LayoutPlan, 0, len(e.plans))
 	for _, plan := range e.plans {
@@ -176,32 +174,7 @@ func (e *duckdbEngine) PlannedTables(ctx context.Context) ([]metaengine.PlannedT
 	}
 	e.layoutMu.RUnlock()
 
-	sort.Slice(planList, func(i, j int) bool {
-		return planList[i].Collection < planList[j].Collection
-	})
-
-	infos := make([]metaengine.PlannedTableInfo, 0, len(planList))
-
-	for _, plan := range planList {
-		info := metaengine.PlannedTableInfo{
-			Collection: plan.Collection,
-			Table:      plan.Table,
-			Columns:    plan.ColumnNames(),
-			Rows:       -1,
-		}
-
-		var n int64
-
-		if err := e.db.QueryRowContext(
-			ctx, "SELECT COUNT(*) FROM "+metaengine.QuoteIdent(plan.Table),
-		).Scan(&n); err == nil {
-			info.Rows = n
-		}
-
-		infos = append(infos, info)
-	}
-
-	return infos, nil
+	return metaengine.ListPlannedTables(ctx, e.db, planList), nil
 }
 
 // compile-time capability pins.

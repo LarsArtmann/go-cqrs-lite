@@ -3,8 +3,6 @@ package mysqlengine
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
-	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
