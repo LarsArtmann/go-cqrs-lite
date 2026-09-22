@@ -21,7 +21,29 @@ func toPointers[S ~string](ids []S) []pointer {
 	return out
 }
 
-// toServiceRefs renders service references for message frontmatter.
+// toChannelRefs converts channel IDs to EventCatalog channelPointer objects
+// ({id, version?}). Plain strings fail schema validation
+// ("Expected type object, received string").
+type channelVersionSource interface {
+	ChannelVersion(id catalog.ChannelID) (catalog.Version, bool)
+}
+
+func toChannelRefs(ids []catalog.ChannelID, versions map[catalog.ChannelID]catalog.Version) []channelRefFM {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	out := make([]channelRefFM, len(ids))
+	for i, id := range ids {
+		ref := channelRefFM{ID: string(id)}
+		if v, ok := versions[id]; ok {
+			ref.Version = string(v)
+		}
+		out[i] = ref
+	}
+
+	return out
+}
 // EventCatalog's message schema declares producers/consumers as plain string
 // references into the services collection, whose generated entry IDs are
 // "<serviceID>-<serviceVersion>" — a bare service ID would not resolve, and
@@ -63,6 +85,14 @@ func toRefs(refs []catalog.Ref) []pointer {
 	return out
 }
 
+// toBadges converts badges, filling EventCatalog's REQUIRED backgroundColor
+// and textColor when the caller left them empty (the schema rejects badges
+// without them: "backgroundColor: Required").
+const (
+	defaultBadgeBackgroundColor = "blue"
+	defaultBadgeTextColor       = "white"
+)
+
 func toBadges(badges []catalog.Badge) []badgeFM {
 	if len(badges) == 0 {
 		return nil
@@ -70,10 +100,17 @@ func toBadges(badges []catalog.Badge) []badgeFM {
 
 	out := make([]badgeFM, len(badges))
 	for i, b := range badges {
+		bg, fg := string(b.BackgroundColor), string(b.TextColor)
+		if bg == "" {
+			bg = defaultBadgeBackgroundColor
+		}
+		if fg == "" {
+			fg = defaultBadgeTextColor
+		}
 		out[i] = badgeFM{
 			Content:         b.Content,
-			BackgroundColor: string(b.BackgroundColor),
-			TextColor:       string(b.TextColor),
+			BackgroundColor: bg,
+			TextColor:       fg,
 			Icon:            string(b.Icon),
 			URL:             string(b.URL),
 		}
