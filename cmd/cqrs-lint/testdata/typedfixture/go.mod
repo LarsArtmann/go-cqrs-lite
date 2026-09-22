@@ -1,6 +1,6 @@
 module example.com/typedfixture
 
-go 1.27.1
+go 1.27
 
 require github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.0
 

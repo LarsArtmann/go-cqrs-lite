@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/stack/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.5.3
