@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // These specs lock in honest cost claims and prior-session correctness fixes

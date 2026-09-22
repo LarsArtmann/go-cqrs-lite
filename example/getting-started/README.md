@@ -48,6 +48,15 @@ Counter <ulid>: value=10 (expected 10)
 5. **Query the view**: `metaengine.NewReader.Get(ctx, streamID)` returns the
    materialized `CounterView` once the projection converges.
 
+> **The counter test is the at-least-once canary.** Event delivery to
+> projections is at-least-once BY DESIGN (the journal replay and the live
+> subscription overlap; a crash can reprocess the last checkpoint window) —
+> so a projection must never double-count. `TestGettingStarted_CounterValue`
+> pins exactly that: `value > 10` means the drain/live overlap was
+> double-applied (a library dedup bug — file it), `value < 10` means events
+> were lost between journal and projection (pin drift / replay gap). Neither
+> is flakiness; the failure message names the seam.
+
 ## Swap to Persistent Storage
 
 ```go

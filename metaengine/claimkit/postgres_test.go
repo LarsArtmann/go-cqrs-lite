@@ -9,7 +9,6 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // test-only: Postgres dialect leg
-
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"

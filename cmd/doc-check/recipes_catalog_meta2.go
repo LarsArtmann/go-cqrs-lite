@@ -174,7 +174,7 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			"type TaskUpdated struct {\n\tID       string\n\tTitle    string\n\tStatus   string\n\tPriority int\n}\n\n" +
 			"type TaskDeleted struct {\n\tID string\n}\n\n" +
 			"type TaskView struct {\n\tID       string\n\tTitle    string\n\tStatus   string\n\tPriority int\n}\n\n",
-		trailers: "_ = evo\n_ = lookup\n_ = openTasks",
+		trailers: "_ = tasks\n_ = lookup\n_ = openTasks",
 	},
 	"### 2.40 Statistical Rigor: repeats, CoV, benchstat (benchkit) #1": {
 		imports: []string{

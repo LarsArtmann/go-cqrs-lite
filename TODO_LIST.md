@@ -1218,7 +1218,12 @@ has NO engine/store-level lock. — source: reflection doc §4.2
       make the convergence test's failure messages actionable (name the seam:
       drain/live overlap, pin drift, or load). — source: 23-24 followups §f6-8
       _(Effort: M)_
-- [ ] **scheduler-otel-status test suite** — the one example with NO test files
+- [x] **scheduler-otel-status test suite** — done 2026-09-22 (T15):
+      `main_test.go` added — claim-flow test (schedule → Due-claim →
+      MarkFired → Metrics() counts exactly that → second poll finds
+      nothing, race-clean) + the /status rate-math test. flake.nix comment
+      flipped back to "all six carry suites"; CHANGELOG's "all six" wording
+      is now TRUE again. Original: the one example with NO test files
       (`go test` → `[no test files]`); the flake comment said "all six carry
       suites" — comment corrected 2026-09-22, the suite is still missing (or
       correct the claim everywhere + drop it from the CHANGELOG wording).
@@ -1263,6 +1268,18 @@ has NO engine/store-level lock. — source: reflection doc §4.2
       (b) exhaustruct_v5 `skippedNamed` panic (repro ready); (c) go/types +
       x/tools parallel-check race. Draft in Lars's voice via github-voice after
       verification. — source: archived 10-25 §f3-4/§f20, 15-37 M14 _(Effort: S each + approval)_
+      2026-09-22 repro-prep session findings on (b): the upstream module is
+      `dev.gaijin.team/go/exhaustruct/v5` (the gaijin fork golangci wraps as
+      exhaustruct_v5) — `github.com/4meepo/exhaustruct` is 404-GONE, file at
+      the Gaijin forge. A singlechecker harness built + ran v5.0.3 (kept at
+      `/tmp/exhaustruct-repro`, rebuild: go get
+      dev.gaijin.team/go/exhaustruct/v5/analyzer@v5.0.3); minimal synthetic
+      shapes (same-pkg + cross-pkg embedded, unkeyed-element and keyed-field
+      forms) do NOT trigger the panic — the trigger is subtler than the 16-51
+      report's one-liner; the definitive repro is running the analyzer over
+      the historical pre-fix tree (refs around `eea1c3c66^`, storage/pebble +
+      stack presets still carried the old literal forms). Isolate before
+      filing; check the fork's latest version for a fix first (Gate 5).
 - [ ] **Release-tooling polish tail (sliceable)** — smoke-all: per-module
       timing, `--resume` checkpoint, artifacts under `~/.cache/` never /tmp;
       `check-templ` leg-first error summary; `batch-release.sh --from-manifest`;

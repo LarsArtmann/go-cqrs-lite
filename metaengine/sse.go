@@ -7,9 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	sse "github.com/larsartmann/go-sse"
-
 	"github.com/larsartmann/go-cqrs-lite/dedup/v4"
+	sse "github.com/larsartmann/go-sse"
 )
 
 // SSEConfig configures Server-Sent Events streaming behavior.

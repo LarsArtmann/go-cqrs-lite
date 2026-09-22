@@ -67,6 +67,24 @@ flushed; only a hard crash can lose progress, in which case **at most n−1 live
 are reprocessed on restart** — the same at-least-once contract as the replay→live
 overlap. Catch-up (drain) phase always saves per batch, independent of these knobs.
 
+**The at-least-once delivery contract (folds must be idempotent).** Every
+projection path — journal replay, the drain→live overlap, and crash
+reprocessing — may deliver the same event MORE than once. That is the
+contract; it is what makes the pipeline crash-safe without distributed
+transactions. The consequence for your code:
+
+- **Folds must be idempotent** (applying the same event twice = applying it
+  once): assignment folds (`r.Status = e.NewStatus`) are naturally so;
+  counting/summing folds (`r.Count++`) are NOT and need dedup — either
+  checkpoint-store dedup (projectionhost's default: the checkpoint store and
+  the projection share the engine transaction), or an explicit dedup window
+  (`dedup.Ring` in-process, `idempotency/sqlstore` durable; recipes §2.38
+  routes all three through the same engine substrate).
+- **A counter that over-counts under replay is a contract violation in YOUR
+  fold, not a delivery bug** — delivery was at-least-once, as documented.
+  `example/getting-started`'s counter test is the canonical canary: its
+  failure message names the seam (double-apply vs lost events).
+
 **Option B — `CatchUpSubscriber` (push-based, live tail after replay).** Pairs with `stack.Materialize` for ordered, durable projections. See §2.3 "Canonical projection pattern" below and advanced.md §6.9 for the full `projectionhost` lifecycle.
 
 Query the read model with type-safe dispatch:

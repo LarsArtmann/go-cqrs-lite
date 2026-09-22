@@ -29,6 +29,12 @@
 # 2 = usage (unknown phase in ONLY/SKIP).
 set -uo pipefail
 
+# Forced go env chain (T05): the phases shell out to `nix run .#check-*`
+# apps that inherit THIS shell's env — under the ambient GOTOOLCHAIN=local
+# + full /mnt/buildcache caches the api-stability watermill tidy check dies
+# with ENOSPC and reads as a false "not tidy" failure (observed 2026-09-22).
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
+
 PHASES=(
 	"lint-config|nix run .#check-lint-config|intentional config change? scripts/check-golangci-hash.sh --update and commit BOTH .golangci.yml + the golden; unexpected? git diff .golangci.yml then git restore .golangci.yml"
 	"templ|nix run .#check-templ|regenerate from the right cwd: (cd catalog/docserver && templ generate); never from the repo root (FileName metadata bakes the cwd)"

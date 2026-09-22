@@ -1204,10 +1204,9 @@
 
             # test-examples: run every example's test suite GOWORK=off
             # (consumer perspective, published pins). Examples are NOT test
-            # modules — CI builds them only; this is their test leg (five of
-            # six carry suites — scheduler-otel-status is build-only until its
-            # suite lands, see TODO_LIST; DB-backed legs skip without their
-            # env vars).
+            # modules — CI builds them only; this is their test leg (all six
+            # carry suites since scheduler-otel-status gained its claim-flow
+            # suite 2026-09-22; DB-backed legs skip without their env vars).
             #
             test-examples = mkApp "test-examples" [ goPkg pkgs.bash pkgs.gcc ] ''
               export CGO_ENABLED=1
