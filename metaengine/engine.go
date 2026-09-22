@@ -572,6 +572,11 @@ type Closer interface {
 // self-contained on purpose: forwarding to record would force every module
 // that compiles metaengine from source (the sibling-replace family) into a
 // record replace too — heavier than a one-line body.
+//
+// Deprecated (v5-list note, 2026-09-22): since record/v4.6.0 every consumer
+// can reach the canonical [record.DeferClose], so new code should prefer it.
+// The twin is kept through v5 for the sibling-replace family (ADR-0144) and
+// is slated for removal at the v6 API train.
 func DeferClose(c Closer) {
 	_ = c.Close()
 }

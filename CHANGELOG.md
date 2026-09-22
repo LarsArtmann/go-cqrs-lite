@@ -8,6 +8,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **v5 train: sweep §4 tail — pebble event rows move to stream vocabulary +
+  E1 encoding stamps typed (last binary surfaces carrying `aggregate_*`).**
+  Fresh pebble event envelopes now write `stream_id`/`stream_type` (the
+  `aggregate_id`/`aggregate_type` spellings decode-only until v6, mirroring
+  the bbolt/pebble command rows); the census gap is closed in
+  `docs/WIRE-FORMAT-KEYS.md` (new pebble-events row + encoding-stamp row).
+  Event wire structs in pebble + bbolt stamp the open codec.Encoding namespace (open
+  namespace — custom codecs round-trip; pinned by
+  `TestEventWireEncodingOpenNamespace`) instead of bare `string` (E1; the
+  review's `record.Encoding` suggestion was rejected deliberately: the
+  closed enum would drop custom codec stamps). Pinned by
+  `TestDeserializeEvent_ReadsLegacyAggregateKeys`.
+- **v5 train: E15 middleware signature unification via
+  `dispatcher.Middleware[H]`.** `command.Middleware`,
+  `command.PublishMiddleware`, `event.Middleware`, `event.PublishMiddleware`,
+  `query.Middleware`, and `middleware.Middleware` are now aliases of the one
+  shared generic shape, so a single function value composes with every
+  dispatcher and bus without adapters (pinned by
+  `TestMiddlewareAliasesAreIdentical`). Zero migration for consumers: all
+  renamed types are identical aliases.
+- **v5 train: E8 typed message Kind — `middleware.Kind` +
+  `KindCommand`/`KindEvent`/`KindQuery`.** `MessageAdapter.Kind` and
+  `DeadLetterEntry.Kind` carry the closed-set enum (string-backed: log, SQL,
+  and OTel attribute output unchanged); typos in switches and DLQ records no
+  longer compile. Literal assignments (`Kind: "command"`) keep compiling.
+- **v5 train: E11 — `AdapterCore.Encode` returns errors.**
+  `system.AdapterCore[T].Encode` is `func(T) (string, error)` and
+  `AdapterCore.ToAny` propagates failures; the event/command/query adapters
+  no longer persist nil metadata on marshal errors (the silent-degrade
+  comments and behavior are gone).
+- **v5 train: E7 — watermill retry config renamed
+  (`HandlerRetryConfig`).** The name collision with
+  `middleware.RetryConfig` (incompatible fields) ends: watermill's
+  delivery-retry knob is `HandlerRetryConfig` /
+  `DefaultHandlerRetryConfig`; `RetryConfig`/`DefaultRetryConfig` remain as
+  deprecated aliases so existing values compile (removed at v6).
+- **v5 train: E6 — `middleware.BundleOption` merged into `Option`.**
+  `NewOTelBundle` takes plain `Option`s and `WithMetricsDisabled` returns
+  one; `BundleOption` survives as a deprecated type alias (removed at v6).
+
 - **tursoengine: grouped materialized views fail closed
   (`ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug` opt-in).** Grouped
   matview specs on turso-go silently return wrong results from the second

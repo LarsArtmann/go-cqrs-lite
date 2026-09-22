@@ -782,18 +782,20 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `TombstoneStatus`/`Metadata.Tombstone`; pre-reqs: type-driven status in
       `listing` (replaces the DetectTombstone call at listing/in_memory.go:155),
       migrate `example/taskmanager` off `OnTombstone`, regen golden. _(Effort: M)_
-- [ ] **Rest of sweep §4 (wire-vocabulary renames):** watermill metadata keys
-      `aggregate_id`/`aggregate_type` → `stream_*` with dual-read; events +
-      commands table column renames + migrations (decide 5.0.0 vs later 5.x —
-      08-41 §g1); benchkit `aggregates` output-key rename + re-golden;
-      bbolt `command_serialization` CBOR tags + golden. Extend the sweep
-      census with the newly-found pebble `slog` attribute keys
-      (`aggregate_type`/`aggregate_id` in helpers.go + snapshot.go) and grep
-      sibling consumer projects for old code strings in alert/dashboard
-      configs at the cut. Consider a central wire-key table doc
-      (JSON/CBOR/SQL × backend × fallback status) rewriting sweep §4 as a
-      table. — source: 08-41 §b1/§f1–11, archived 07-48 §f5-6/§f7-13
-      _(Effort: M)_
+- [ ] **Rest of sweep §4 (wire-vocabulary renames):** REMAINING (2026-09-22
+      pass): (a) SQL `events`/`commands` column renames + migrations —
+      recommendation on the table: v5.x expand-contract, NOT the v5.0 cut
+      (assessment in `docs/WIRE-FORMAT-KEYS.md`; owner ruling pending);
+      (b) consumer grep for old code strings in sibling alert/dashboard
+      configs at the cut; (c) `listing.aggregate_projection` collection-name
+      rename (TBD). DONE in this pass + earlier waves: pebble event rows
+      (`aggregate_*` → `stream_*` with decode-only legacy fallback — the
+      last binary surface; census gap closed in WIRE-FORMAT-KEYS), watermill
+      dual-read/dual-write, bbolt/pebble command + snapshot rows, benchkit
+      keys, pebble slog keys, error-family codes, E1 encoding stamps typed
+      as `codec.Encoding`, and the central wire-key table doc itself
+      (`docs/WIRE-FORMAT-KEYS.md`). — source: 08-41 §b1/§f1–11, 07-48 §f5-13
+      _(Effort: S remaining)_
 - [ ] **v5 ADR: encryption-at-rest configuration** — SKELETON SHIPPED
       2026-09-13 as [ADR-0139](docs/adr/0139-v5-encryption-at-rest-configuration.md):
       `DriverConfig.Encryption` + `KeyProvider func(ctx) ([]byte, error)` (vs raw
@@ -812,18 +814,24 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       test; mid-migration failure-path test; concurrent-init idempotency test;
       property test for arbitrary legacy JSON subsets. — source: 08-41 §f13–23
       _(Effort: M)_
-- [ ] **v5 items from extended review** — E1 (event-envelope Encoding →
-      `record.Encoding`), E7 (watermill/middleware RetryConfig collision),
-      E8 (typed Message Kind enum), E11 (AdapterCore.Encode error return),
-      E13 (SQLTimerStore phantom param), E15 (middleware signature
-      unification). _(Effort: M)_
-- [ ] **More extended-review follow-ups** — E3 (bbolt command/query bare
-      `fmt.Errorf` → pebble error-family pattern), E6 (`middleware.Option` vs
-      `BundleOption` merge/bridge), E9 (turso Policy nil-write panics), E10
-      (ShutdownDependency name validation), E14 (eventstore ownership
-      asymmetry). (E4 — sentinel name↔code mismatch — RESOLVED by the
-      2026-09-08 stream-code rename.) — source: `docs/reviews/2026-08-22_extended-data-model-review.md`
-      _(Effort: M)_
+- [ ] **v5 items from extended review — EXECUTED 2026-09-22** — E1 (event
+      envelope Encoding typed as `codec.Encoding`; `record.Encoding`
+      rejected — its closed enum would drop custom codec stamps), E7
+      (`HandlerRetryConfig` rename + deprecated aliases), E8 (typed
+      `middleware.Kind`), E11 (`AdapterCore.Encode` error return), E13
+      (phantom param documented: Go has no generic methods — the honest
+      resolution), E15 (`dispatcher.Middleware[H]` alias unification).
+      E3/E9/E10/E14 verified already-done in earlier waves (bbolt
+      errorfamily, turso Policy write guards, ShutdownDependency
+      validation, OwnedDBHandle type split). Remaining: golden/meta-tests
+      pass + cut. _(Effort: — )_
+- [ ] **More extended-review follow-ups — DONE (verified 2026-09-22)** — E3
+      (bbolt errorfamily — landed), E6 (`BundleOption` → deprecated alias
+      of `Option`), E9 (turso Policy nil-write guards — landed), E10
+      (ShutdownDependency validation incl. unknown-engine rejection —
+      landed), E14 (`OwnedDBHandle` vs `DBHandle` type split — landed).
+      (E4 was resolved by the 2026-09-08 stream-code rename.) — source:
+      `docs/reviews/2026-08-22_extended-data-model-review.md` _(Effort: — )_
 - [ ] **Post-landing sweep for the data-model series** — api-stability
       meta-tests, doc-check over skill refs, consumer-pin sweep for `record/v4`
       consumers under GOWORK=off (MarshalBinary lesson). _(Effort: M)_
@@ -838,10 +846,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       v5 — "system is a category error for a library" was the consumer's core
       verdict; the go-graph-rag evaluation routed it here. — source: 23-24
       followups §f22, feedback doc §4.4 _(Effort: L)_
-- [ ] **`metaengine.DeferClose` engine-twin deprecation note** — every consumer
-      can reach the Tier-0 `record.DeferClose` since record/v4.6.0; add the
-      v5-list note to deprecate the self-contained twin (ADR-0144 kept it
-      deliberately — revisit at the v5 API train). — source: closeout §f45 _(Effort: XS)_
+- [x] **`metaengine.DeferClose` engine-twin deprecation note** — done
+      2026-09-22: `Deprecated` doc note added (record.DeferClose is the
+      canonical home since record/v4.6.0; twin kept through v5 for the
+      sibling-replace family, removed at the v6 API train) — ADR-0144's
+      deliberate-keep stance preserved. Original: every consumer can reach
+      the Tier-0 `record.DeferClose` since record/v4.6.0; add the v5-list
+      note to deprecate the self-contained twin (ADR-0144 kept it
+      deliberately — revisit at the v5 API train). — source: closeout §f45
+      _(Effort: XS)_
 - [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
       examples. Run full verify gate. _(Effort: M)_
 
