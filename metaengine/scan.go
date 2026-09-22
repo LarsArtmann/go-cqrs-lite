@@ -124,13 +124,10 @@ func ScanDistinctValues(
 	return result, nil
 }
 
-// ScanJSONKeyValues drains a paged two-column `SELECT key, value` result —
-// string key, JSON-text value — into parallel key/value slices with
-// hasMore = len(keys) == limit. It is the shared read primitive behind
-// KeyScanBackend's MapScanKeyValues (planned-table backfill) across SQL
-// engine implementations. The label is used as the error prefix
-// (e.g. "duckdbengine.MapScanKeyValues").
-func ScanJSONKeyValues(
+// scanJSONKeyValues drains a `SELECT key, value` result set — string key,
+// JSON-text value — into parallel key/value slices with hasMore =
+// len(keys) == limit. The label is used as the error prefix.
+func scanJSONKeyValues(
 	rows *sql.Rows,
 	limit int,
 	label string,
@@ -160,6 +157,53 @@ func ScanJSONKeyValues(
 	}
 
 	return keys, values, len(keys) == limit, nil
+}
+
+// ScanKeyValuesPage implements the KeyScanBackend.MapScanKeyValues contract
+// for the SQL engine modules: a paged key+value read over the BASE meta_map
+// table in deterministic key order — the read primitive for planned-table
+// backfill. The query text is dialect-specific and passed by the caller; it
+// must select (key, JSON-text value) pairs and bind its LIMIT placeholder to
+// limit. The label is used as the error prefix
+// (e.g. "duckdbengine.MapScanKeyValues").
+func ScanKeyValuesPage(
+	ctx context.Context,
+	q SQLExec,
+	query string,
+	args []any,
+	limit int,
+	label string,
+) ([]any, []any, bool, error) {
+	limit = ScanLimit(limit)
+
+	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	if err != nil {
+		return nil, nil, false, fmt.Errorf("%s: %w", label, err)
+	}
+
+	defer DeferClose(rows)
+
+	return scanJSONKeyValues(rows, limit, label)
+}
+
+// ScanLimit normalizes a paged-read limit: non-positive values default to
+// 500, the KeyScanBackend page size floor.
+func ScanLimit(limit int) int {
+	if limit <= 0 {
+		return 500
+	}
+
+	return limit
+}
+
+// CursorArg converts a page cursor to its SQL text form; nil passes through
+// so the query's "cursor IS NULL" guard binds page start.
+func CursorArg(cursor any) any {
+	if cursor == nil {
+		return nil
+	}
+
+	return fmt.Sprint(cursor)
 }
 
 // MultiAggregateScan executes a single-row aggregate query and decodes the

@@ -21,30 +21,15 @@ func (e *duckdbEngine) MapScanKeyValues(
 	cursor any,
 	limit int,
 ) ([]any, []any, bool, error) {
-	if limit <= 0 {
-		limit = 500
-	}
+	limit = metaengine.ScanLimit(limit)
 
-	var cursorArg any
-	if cursor != nil {
-		cursorArg = fmt.Sprint(cursor)
-	}
-
-	rows, err := e.conn(ctx).QueryContext(
-		ctx,
+	return metaengine.ScanKeyValuesPage(ctx, e.conn(ctx),
 		`SELECT key, value FROM meta_map
 		 WHERE collection = $1 AND ($2::VARCHAR IS NULL OR key > $2)
 		 ORDER BY key
 		 LIMIT $3`,
-		collection, cursorArg, limit,
-	)
-	if err != nil {
-		return nil, nil, false, fmt.Errorf("duckdbengine.MapScanKeyValues: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	return metaengine.ScanJSONKeyValues(rows, limit, "duckdbengine.MapScanKeyValues")
+		[]any{collection, metaengine.CursorArg(cursor), limit},
+		limit, "duckdbengine.MapScanKeyValues")
 }
 
 // EvolveLayoutPlan implements metaengine.LayoutPlanEvolver. It reconciles

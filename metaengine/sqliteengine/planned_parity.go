@@ -20,30 +20,15 @@ func (e *sqliteEngine) MapScanKeyValues(
 	cursor any,
 	limit int,
 ) ([]any, []any, bool, error) {
-	if limit <= 0 {
-		limit = 500
-	}
+	limit = metaengine.ScanLimit(limit)
 
-	var cursorArg any
-	if cursor != nil {
-		cursorArg = fmt.Sprint(cursor)
-	}
-
-	rows, err := e.db.QueryContext(
-		ctx,
+	return metaengine.ScanKeyValuesPage(ctx, e.db,
 		`SELECT key, value FROM meta_map
 		 WHERE collection = ? AND (? IS NULL OR key > ?)
 		 ORDER BY key
 		 LIMIT ?`,
-		collection, cursorArg, cursorArg, limit,
-	)
-	if err != nil {
-		return nil, nil, false, fmt.Errorf("sqliteengine.MapScanKeyValues: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	return metaengine.ScanJSONKeyValues(rows, limit, "sqliteengine.MapScanKeyValues")
+		[]any{collection, metaengine.CursorArg(cursor), metaengine.CursorArg(cursor), limit},
+		limit, "sqliteengine.MapScanKeyValues")
 }
 
 // EvolveLayoutPlan implements metaengine.LayoutPlanEvolver. It reconciles
