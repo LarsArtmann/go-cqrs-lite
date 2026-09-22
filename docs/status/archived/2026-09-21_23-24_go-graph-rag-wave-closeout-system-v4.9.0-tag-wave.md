@@ -103,9 +103,9 @@ _(Brainstorm per status-report skill: beyond the top ~25 these are ROADMAP fuel 
 10. Decide claiming: content-identical v4.0.1 re-tag to silence example V006 noise, or accept and document the advisory (c3, e8).
 11. Postgres e2e CI leg for goal-shaped-app (ephemeral PG service in the examples job, or a nightly app) — the one deferred tail slice (b2).
 12. Add a smoke test to scheduler-otel-status — the only suite-less example; the flake comment "all six carry suites" is currently a lie (observed directly).
-~~13. Fix the flake.nix "all six carry suites" comment once 12 lands (or now, to be honest immediately).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
-~~14. Refresh stale dev-replace comments in `system/go.mod` + `scheduling/sqlstore/go.mod` (c8) — two-line fixes, do on sight.~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
-15. Run the V007-gated `cqrs-lint-examples` loop over ALL six examples locally (I ran 3) to mirror CI exactly (from verification gap).
+    ~~13. Fix the flake.nix "all six carry suites" comment once 12 lands (or now, to be honest immediately).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+    ~~14. Refresh stale dev-replace comments in `system/go.mod` + `scheduling/sqlstore/go.mod` (c8) — two-line fixes, do on sight.~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+13. Run the V007-gated `cqrs-lint-examples` loop over ALL six examples locally (I ran 3) to mirror CI exactly (from verification gap).
 
 **⚡ Near-term (next wave prep):**
 
@@ -126,12 +126,12 @@ _(Brainstorm per status-report skill: beyond the top ~25 these are ROADMAP fuel 
 27. pkg.go.dev spot-check: system v4.9.0 renders `On`/`ErrRacySaveRefused`/`WithRacySave` docs correctly (c6).
 28. `gh run list` — confirm release.yml legs for the 4 tags finished green (build/test/race/govulncheck per module).
 29. Confirm no dangling staged renames from the concurrent session's docs/status archival mid-flight (I saw `R` entries earlier).
-~~30. Cosmetic: restore the missing blank line between the ADTSet and BackfillPlannedTables entries in Unreleased (my relocation script's collapse).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
-31. Configure the LSP/gopls env (GOTOOLCHAIN=auto + cache chain) so the permanent 106-diagnostic host-toolchain noise stops masking real findings (noticed all session).
-32. BuildFlow binary is 31h stale (its own doctor warns) — rebuild/reinstall, or record as known-stale.
-33. Hook's govulncheck step produces toolchain-mismatch garbage in pre-commit mode — fix or remove from pre-commit scope (overlaps 9).
-~~34. CHANGELOG: consider a `Changed` line for the go.work contract fix (developer-facing; even user-facing modules require 1.27.1 toolchains — half a line).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
-~~35. ROADMAP sweep of the routed GraphRAG requests (#2 Turso, #4 v5, #6 metaengine plans, #1/#7) — confirm they actually live in their home sections post-wave.~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+    ~~30. Cosmetic: restore the missing blank line between the ADTSet and BackfillPlannedTables entries in Unreleased (my relocation script's collapse).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+30. Configure the LSP/gopls env (GOTOOLCHAIN=auto + cache chain) so the permanent 106-diagnostic host-toolchain noise stops masking real findings (noticed all session).
+31. BuildFlow binary is 31h stale (its own doctor warns) — rebuild/reinstall, or record as known-stale.
+32. Hook's govulncheck step produces toolchain-mismatch garbage in pre-commit mode — fix or remove from pre-commit scope (overlaps 9).
+    ~~34. CHANGELOG: consider a `Changed` line for the go.work contract fix (developer-facing; even user-facing modules require 1.27.1 toolchains — half a line).~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
+    ~~35. ROADMAP sweep of the routed GraphRAG requests (#2 Turso, #4 v5, #6 metaengine plans, #1/#7) — confirm they actually live in their home sections post-wave.~~ done 2026-09-22 — 11th docs-health pass (fix-on-sight)
 
 **🧭 ROADMAP fuel (larger, later):**
 

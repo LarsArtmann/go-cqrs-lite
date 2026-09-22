@@ -28,37 +28,37 @@
 
 ## a) FULLY DONE (verified, with evidence)
 
-| Item | Evidence |
-| --- | --- |
-| **Root cause of all 4+1 downgrade waves: BuildFlow `go-version-auto-configure`** | buildflow DB step_outputs at rewrite mtimes; step's own warning text; 5th wave caught live at 02:41 |
-| **Corruption source killed**: step skipped in `.buildflow.yml` | **0 files at bare `go 1.27` after 8h of daemon cycles** (checked 11:32) — the field proof |
-| T01: `go 1.27.1` restored (97 files) + verified | workspace build green; system/metaengine/taskmanager `GOWORK=off` green; 6/6 example suites green; F152 fence green |
-| T02: drift gate (floor + lockstep) in `check-go-version.sh` | 9/9 self-test legs; mutation-tested; `nix run .#check-go-version` PASS; nightly/`#verify` wiring pre-existed |
-| T05: `scripts/go-env.sh` + adoption (hook, check-coverage, benchmark-regression, preflight-composed) | idempotency proven; hook passed under poisoned ambient env (authored commit `b91205f23` = live proof) |
-| T20 (partial-but-effective): pre-commit env hygiene | authored commits no longer need `--no-verify` — demonstrated |
-| `.golangci.yml` corruption restored (depguard stripped / go 1.26.7 / jsonv2 tag) | hash-golden tripwire PASS; `nix run .#check-lint-config` PASS |
-| templ regenerated from correct cwd | preflight templ phase PASS |
-| Preflight-composed **GREEN 6/6** | api-stability "not tidy" was ENOSPC in disguise — fixed by env chain |
-| shellcheck debt → 0 findings (incl. `scripts/lib/`) | `.shellcheckrc` policy + real fixes; real bug killed (canonical-facts fixture printf arg → ROADMAP.md never created) |
-| T06/T12 core: `check-md-go.sh --self-test` (4 behaviors, ARCHIVE_SEGMENT mutation leg) | 4/4 legs; mutation-proven (after fixing my own fixture-ordering bug — the policy leg was masked by the dirty-tree guard until the planted row was committed) |
-| T12: md-go version stamps | `nix eval .#md-go-validator.version` → `4dd9437` (pinned-source rev, not flake rev) |
-| md-go baseline +1 (sanctioned archived-history regen) | gate green, 104 entries |
-| T03: remote evidence sweep | CI-failure class confirmed (correct fails on corrupted tree); 10 releases render; system/v4.9.0 notes curated; pkg.go.dev indexed (License: UNKNOWN = proprietary, by design); proxy fetch + `go doc` symbols verified |
-| T13: go-graph-rag re-test invitation | [go-graph-rag#2](https://github.com/LarsArtmann/go-graph-rag/issues/2), voice-checked (0 FAIL / 0 WARN) |
-| T18b watcher: chain closed GREEN | closure log: "widened 100x/9, baseline re-pinned, verification PASS"; results in `/var/tmp/t18b/` |
-| Session record for harvest | `docs/status/2026-09-22_02-30_...md` committed |
+| Item                                                                                                 | Evidence                                                                                                                                                                                                               |
+| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Root cause of all 4+1 downgrade waves: BuildFlow `go-version-auto-configure`**                     | buildflow DB step_outputs at rewrite mtimes; step's own warning text; 5th wave caught live at 02:41                                                                                                                    |
+| **Corruption source killed**: step skipped in `.buildflow.yml`                                       | **0 files at bare `go 1.27` after 8h of daemon cycles** (checked 11:32) — the field proof                                                                                                                              |
+| T01: `go 1.27.1` restored (97 files) + verified                                                      | workspace build green; system/metaengine/taskmanager `GOWORK=off` green; 6/6 example suites green; F152 fence green                                                                                                    |
+| T02: drift gate (floor + lockstep) in `check-go-version.sh`                                          | 9/9 self-test legs; mutation-tested; `nix run .#check-go-version` PASS; nightly/`#verify` wiring pre-existed                                                                                                           |
+| T05: `scripts/go-env.sh` + adoption (hook, check-coverage, benchmark-regression, preflight-composed) | idempotency proven; hook passed under poisoned ambient env (authored commit `b91205f23` = live proof)                                                                                                                  |
+| T20 (partial-but-effective): pre-commit env hygiene                                                  | authored commits no longer need `--no-verify` — demonstrated                                                                                                                                                           |
+| `.golangci.yml` corruption restored (depguard stripped / go 1.26.7 / jsonv2 tag)                     | hash-golden tripwire PASS; `nix run .#check-lint-config` PASS                                                                                                                                                          |
+| templ regenerated from correct cwd                                                                   | preflight templ phase PASS                                                                                                                                                                                             |
+| Preflight-composed **GREEN 6/6**                                                                     | api-stability "not tidy" was ENOSPC in disguise — fixed by env chain                                                                                                                                                   |
+| shellcheck debt → 0 findings (incl. `scripts/lib/`)                                                  | `.shellcheckrc` policy + real fixes; real bug killed (canonical-facts fixture printf arg → ROADMAP.md never created)                                                                                                   |
+| T06/T12 core: `check-md-go.sh --self-test` (4 behaviors, ARCHIVE_SEGMENT mutation leg)               | 4/4 legs; mutation-proven (after fixing my own fixture-ordering bug — the policy leg was masked by the dirty-tree guard until the planted row was committed)                                                           |
+| T12: md-go version stamps                                                                            | `nix eval .#md-go-validator.version` → `4dd9437` (pinned-source rev, not flake rev)                                                                                                                                    |
+| md-go baseline +1 (sanctioned archived-history regen)                                                | gate green, 104 entries                                                                                                                                                                                                |
+| T03: remote evidence sweep                                                                           | CI-failure class confirmed (correct fails on corrupted tree); 10 releases render; system/v4.9.0 notes curated; pkg.go.dev indexed (License: UNKNOWN = proprietary, by design); proxy fetch + `go doc` symbols verified |
+| T13: go-graph-rag re-test invitation                                                                 | [go-graph-rag#2](https://github.com/LarsArtmann/go-graph-rag/issues/2), voice-checked (0 FAIL / 0 WARN)                                                                                                                |
+| T18b watcher: chain closed GREEN                                                                     | closure log: "widened 100x/9, baseline re-pinned, verification PASS"; results in `/var/tmp/t18b/`                                                                                                                      |
+| Session record for harvest                                                                           | `docs/status/2026-09-22_02-30_...md` committed                                                                                                                                                                         |
 
 ## b) PARTIALLY DONE
 
-| Item | What's missing |
-| --- | --- |
-| **T04 composed `#verify`** | Preflight GREEN 6/6, wait-loop armed — but timed out unchained (load 448→908 during session). **Window is open NOW (load 17).** S04 not recorded |
-| **T05 adoption breadth** | Plan named quiet-window-run.sh too — deliberately skipped (generic wrapper; TMPDIR risk) — decision undocumented in the TODO row |
-| **T20** | Config+hook route done; the "GOWORK=off per staged module" alternative never evaluated/ruled |
-| **md-go version stamp** | eval-verified; **binary never built/run** (gate uses host `64724e8`) |
-| **CHANGELOG completeness** | 02:30 wave documented; 03:10 wave (md-go self-test/wiring) undocumented |
-| **M13 TODO rows** | Deferred to harvest (lane contention) — still the right call, but not done |
-| **F150 post-push CI watch** | Impossible de facto — nothing was pushed |
+| Item                        | What's missing                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **T04 composed `#verify`**  | Preflight GREEN 6/6, wait-loop armed — but timed out unchained (load 448→908 during session). **Window is open NOW (load 17).** S04 not recorded |
+| **T05 adoption breadth**    | Plan named quiet-window-run.sh too — deliberately skipped (generic wrapper; TMPDIR risk) — decision undocumented in the TODO row                 |
+| **T20**                     | Config+hook route done; the "GOWORK=off per staged module" alternative never evaluated/ruled                                                     |
+| **md-go version stamp**     | eval-verified; **binary never built/run** (gate uses host `64724e8`)                                                                             |
+| **CHANGELOG completeness**  | 02:30 wave documented; 03:10 wave (md-go self-test/wiring) undocumented                                                                          |
+| **M13 TODO rows**           | Deferred to harvest (lane contention) — still the right call, but not done                                                                       |
+| **F150 post-push CI watch** | Impossible de facto — nothing was pushed                                                                                                         |
 
 ## c) NOT STARTED
 
@@ -90,6 +90,7 @@
 ## f) NEXT — up to 50, ordered
 
 **Immediate (minutes):**
+
 1. Run `nix run .#verify` NOW (window open; record S04 in the TODO row after)
 2. Push master (7 commits, plan-authorized) — then watch CI re-runs (F150)
 3. `nix build .#md-go-validator` — prove the ldflags stamp end-to-end

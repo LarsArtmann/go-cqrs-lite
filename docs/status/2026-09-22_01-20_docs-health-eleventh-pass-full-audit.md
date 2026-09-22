@@ -37,7 +37,7 @@
 
 ## d) TOTALLY FUCKED UP (radical honesty — this pass's own ledger)
 
-1. **My bulk-deletion script ate TWO sections of living TODO_LIST.** The continuation-line-consuming loop over-matched twice: it swallowed the md-go-validator section header (caught by structure inspection) AND the entire "Temporal versioned cells" header + blockquote (caught ONLY because doc-check flagged the dangling section-index anchor — 12 open temporal rows sat orphaned under the Watermill section). A docs-health pass whose core rule is "never destroy living content" deleted living content twice in one session, and the second was caught by a gate, not by me. The loop's stop-condition (`      `-continuations) is structurally wrong for rows followed by section headers; a row-scoped parser (or the skill's annotate scripts) was the right tool.
+1. **My bulk-deletion script ate TWO sections of living TODO_LIST.** The continuation-line-consuming loop over-matched twice: it swallowed the md-go-validator section header (caught by structure inspection) AND the entire "Temporal versioned cells" header + blockquote (caught ONLY because doc-check flagged the dangling section-index anchor — 12 open temporal rows sat orphaned under the Watermill section). A docs-health pass whose core rule is "never destroy living content" deleted living content twice in one session, and the second was caught by a gate, not by me. The loop's stop-condition (``-continuations) is structurally wrong for rows followed by section headers; a row-scoped parser (or the skill's annotate scripts) was the right tool.
 2. **I submitted an edit with a FABRICATED old_string.** The md-go section rebuild multiedit contained a "Placeholder — section rebuilt below" old_string I had never read from the file — invented, then submitted. It failed safely (file-modified + no-match), but "read before edit" is rule #1 and I broke it while rebuilding the exact section I had just broken.
 3. **My opening inventory said 46 live files and missed the 10th-pass report** (`2026-09-21_23-31_…`, mtime 23:34). Root cause unresolved: the truncated glob (100-result cap) plus one `find` listing that did not show it; it surfaced only when my post-archive `ls` listed it. I then integrated it correctly (harvest + archive), but an inventory that silently misses a whole file is how arcs get double-processed by two concurrent docs-health sessions — exactly what happened next (`d7`).
 4. **I reported a misleading archived-coverage number.** "1,541 already-archived covered by the repo's baseline gate" conflates ALL archived md repo-wide with the gate's actual scope (status/planning/reviews only; research/quality/feedback archives ride the pre-convention baseline). Correct statement: ~1,550 archived files repo-wide, of which the annotation gate mechanically covers three trees. The claims-checklist rule (grep before landing a number) exists for exactly this and I narrated past it.
@@ -48,7 +48,7 @@
 
 ## e) WHAT WE SHOULD IMPROVE
 
-1. **Never hand-roll bulk deletions on TODO_LIST.** Write a row-scoped parser (a row = its `- ` line through the last continuation line BEFORE the next non-indented construct) or extend the skill's `annotate-*.py` with a delete mode; the 10th pass's d4 (batch into ONE write) plus a dry-run diff is the minimum ceremony for structural surgery.
+1. **Never hand-roll bulk deletions on TODO_LIST.** Write a row-scoped parser (a row = its `-` line through the last continuation line BEFORE the next non-indented construct) or extend the skill's `annotate-*.py` with a delete mode; the 10th pass's d4 (batch into ONE write) plus a dry-run diff is the minimum ceremony for structural surgery.
 2. **Check the clock before stamping dates.** I stamped "2026-09-22" across ~10 files starting 23:40 without running `date`; it happened to be right (01:18 at self-review), but it was an assumption, not a check.
 3. **Gate the archives index against the disk** (the hygiene TODO row): both this pass (d5) and the 10th (its d1/d5) wrote count claims that a 20-line derivation would have replaced.
 4. **Concurrency claims for docs-health:** the mandate is re-run so often that two passes now overlapped once. The row-ownership convention line I added covers report rows; extend it with "one docs-health pass at a time — claim the pass in TODO_LIST's header ledger first" (cheap, matches the claims-ledger idea).
@@ -58,6 +58,7 @@
 ## f) Up to 50 things to get done next (★ = new TODO row from this pass; owners noted)
 
 **This pass's direct tails**
+
 1. ★ **go.work drift gate + directive re-restore** (🔥): assert `go.work go >= max(module go)` in `check-go-version.sh`; re-restore 96 go.mods to 1.27.1 (mechanical, S) — the tree is RED for workspace builds until then (third occurrence, `4a540b02c` 23:33).
 2. ★ Push decision (owner): 30+ commits, all remote CI evidence gated.
 3. ★ md-go `--self-test` (High/M) — the repo's own gate-script convention.

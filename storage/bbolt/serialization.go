@@ -55,7 +55,7 @@ func serializeEvent(evt event.Event) ([]byte, error) {
 		Payload:       event.PayloadReadOnly(evt),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
 		Metadata:      evt.Metadata(),
-		Encoding:      string(evt.Encoding()),
+		Encoding:      evt.Encoding(),
 	}
 
 	//art-dupl:accept mirror of command/query serialization — type-specific wire structs
@@ -82,7 +82,7 @@ func deserializeEvent(data []byte) (event.Event, error) {
 		s.Version, s.SchemaVersion,
 		s.Payload, s.Metadata,
 		time.Unix(0, s.OccurredAt).UTC(),
-		codec.Encoding(s.Encoding), "bbolt",
+		s.Encoding, "bbolt",
 	)
 	if err != nil {
 		return nil, errorfamily.WrapCorruption(err, "bbolt.reconstruct_event",
@@ -102,7 +102,11 @@ type serializableEvent struct {
 	Payload       []byte         `json:"payload"`
 	OccurredAt    int64          `json:"occurred_at"`
 	Metadata      event.Metadata `json:"metadata"`
-	Encoding      string         `json:"encoding,omitempty"`
+	// Encoding is typed as [codec.Encoding] (the event module's canonical
+	// stamp): events carry an OPEN codec namespace (custom codecs), unlike
+	// the snapshot wire structs whose closed record.Encoding enum covers
+	// exactly json/cbor.
+	Encoding codec.Encoding `json:"encoding,omitempty"`
 }
 
 // streamKeysLegacy is the decode-only fallback for rows written before the

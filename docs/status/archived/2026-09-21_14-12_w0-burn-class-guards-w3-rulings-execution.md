@@ -114,31 +114,31 @@ duplicated.
 23. **Check-canonical-facts extension**: derive the module count into FEATURES too (M13 F69 overlap).
 24. **Add a `CI=true` self-test leg to every gate script lacking one** (calibration/can-run/golangci-hash/go-version/load-guard now covered; audit the rest).
 25. **vm-mysql-nspawn.sh**: consider the same stale-port pre-flight + trap (nspawn has no QEMU orphan class, but the port check is cheap insurance).
-~~26. **Archive the finished 2026-09-20/21 status reports** (docs/status holds >10 live — gate NOTE) once the concurrent sessions settle.~~ done 2026-09-22 — 11th docs-health pass
-27. **`benchmark-regression.sh --save` + hash-golden symmetry**: consider a provenance precheck pattern audit across `--save`-class tools (post-D1 hardening, one more sweep).
-28. **README push leg watch**: confirm the two new steps don't push lint-scripts past its timeout on runners.
-29. **M16 alias advisories**: import-scope core.md:448, recipes.md:123, faq.md:233 → golden 0 advisories.
-30. **api-stability golden**: confirm `WithMaxOpenConns`/`WithMaxIdleConns` (queue session's exports) made it into the golden + `#check-api-stability` green (they reported it; spot-verify).
-31. **Nightly `Go version contract` step**: verify it passes on the runner (nix go = 1.27.1 locally; runner nixpkgs may differ — the gate is DESIGNED to fail loud there if so; watch first run).
-32. **Todo tool ledger**: my in-session todo list has M07/M09/M10 completed but TODO_LIST rows for M07/M10 open — close the loop (task 1) before the next docs-health pass.
-33. **M19 prerequisite**: pin-sweep `--check --remote` state snapshot before touching metaengine.
-34. **Goal-shaped T20 follow-up**: the PapDashboard ADOPT verdict needs its pending queue-family tag wave — tracked in the queue section; keep un-tagged work out of v4 promises.
-35. **Flywheel: preflight-composed phases list** should grow `check-turso-version` + `check-error-taxonomy` once runtime stays <5min each (they're in #verify).
-36. **scripts/lib/verify-lock.sh consumers audit**: any OTHER long-window scripts (smoke-all, load-sweep chains) that should take the advisory lock.
-37. **Coverage-gate core set**: metadata/scheduling joined the floor; consider Tier-2 (schema, snapshot, projection) after two green weeks.
-38. **Document the lock in AGENTS** (verify windows section) — gotcha line exists for the recipe, not for the lock's semantics.
-39. **`can-run-composed-gate --wait-loop` + flock interplay**: the wait-loop's retry loop holds no lock; verify the composed recipe acquires AFTER GREEN (it does — verify head), document it.
-~~40. **Renew the W3 consolidation sheet** (`docs/status/2026-09-20_11-36_owner-bundle-w3.md` is stale-pending; all six now answered — it can be archived with a RESOLVED banner at the next docs pass).~~ done 2026-09-22 — 11th docs-health pass
-41. **Dgraph constants re-anchor campaign** (row 306d, pending quiet window) — candidate for `quiet-window-run.sh` (promoted by the concurrent session).
-42. **SearchQuery count=5 quiet re-run** (row 306c remainder) — same vehicle.
-43. **Sweep other CI jobs for the empty-`go list` fiction class** (modsums/go-work-sync verified real; audit the remaining plain-go jobs).
-44. **Add `check-go-version` to `verify-parallel.sh`/`verify-ci` heads** for parity with `#verify`.
-45. **scripts/README or scripts/INDEX.md** — 60+ scripts, several new this week; a one-line-per-script index would cut discovery cost (candidate for M27).
-~~46. **Tag the guard wave** when the queue-family tag wave lands (batch-release bar) — the new scripts are unreleased tooling; no consumer tag needed, but the CHANGELOG [Unreleased] should cite them (check-changelog-symbols will demand real symbols — cite the flake apps).~~ done — rides the queue-family wave row
-~~47. **CHANGELOG [Unreleased] entry for the guard wave** (hash-golden tripwire, wait-loop, preflight, load guard, go-version gate, flock, coverage floor, README push gates) — not yet written by me.~~ done — "Corruption-class tripwires + verify ergonomics" entry
-48. **Retire `/tmp` evidence**: this session's decisive outputs (crs2.log, ccf.log, preflight logs) are ephemeral; copy excerpts into the next status report or docs/benchmarks as needed.
-49. **verify-load-guard ceiling policy**: default 10 matches wait-for-quiet; calibration uses 5 — document the two-tier intent (verify vs bench) in gowork-modes.
-50. **After M01–M26 close**: run the full gates + composed verify + write the wave-close status report + push — the S03 end-of-wave rule.
+    ~~26. **Archive the finished 2026-09-20/21 status reports** (docs/status holds >10 live — gate NOTE) once the concurrent sessions settle.~~ done 2026-09-22 — 11th docs-health pass
+26. **`benchmark-regression.sh --save` + hash-golden symmetry**: consider a provenance precheck pattern audit across `--save`-class tools (post-D1 hardening, one more sweep).
+27. **README push leg watch**: confirm the two new steps don't push lint-scripts past its timeout on runners.
+28. **M16 alias advisories**: import-scope core.md:448, recipes.md:123, faq.md:233 → golden 0 advisories.
+29. **api-stability golden**: confirm `WithMaxOpenConns`/`WithMaxIdleConns` (queue session's exports) made it into the golden + `#check-api-stability` green (they reported it; spot-verify).
+30. **Nightly `Go version contract` step**: verify it passes on the runner (nix go = 1.27.1 locally; runner nixpkgs may differ — the gate is DESIGNED to fail loud there if so; watch first run).
+31. **Todo tool ledger**: my in-session todo list has M07/M09/M10 completed but TODO_LIST rows for M07/M10 open — close the loop (task 1) before the next docs-health pass.
+32. **M19 prerequisite**: pin-sweep `--check --remote` state snapshot before touching metaengine.
+33. **Goal-shaped T20 follow-up**: the PapDashboard ADOPT verdict needs its pending queue-family tag wave — tracked in the queue section; keep un-tagged work out of v4 promises.
+34. **Flywheel: preflight-composed phases list** should grow `check-turso-version` + `check-error-taxonomy` once runtime stays <5min each (they're in #verify).
+35. **scripts/lib/verify-lock.sh consumers audit**: any OTHER long-window scripts (smoke-all, load-sweep chains) that should take the advisory lock.
+36. **Coverage-gate core set**: metadata/scheduling joined the floor; consider Tier-2 (schema, snapshot, projection) after two green weeks.
+37. **Document the lock in AGENTS** (verify windows section) — gotcha line exists for the recipe, not for the lock's semantics.
+38. **`can-run-composed-gate --wait-loop` + flock interplay**: the wait-loop's retry loop holds no lock; verify the composed recipe acquires AFTER GREEN (it does — verify head), document it.
+    ~~40. **Renew the W3 consolidation sheet** (`docs/status/2026-09-20_11-36_owner-bundle-w3.md` is stale-pending; all six now answered — it can be archived with a RESOLVED banner at the next docs pass).~~ done 2026-09-22 — 11th docs-health pass
+39. **Dgraph constants re-anchor campaign** (row 306d, pending quiet window) — candidate for `quiet-window-run.sh` (promoted by the concurrent session).
+40. **SearchQuery count=5 quiet re-run** (row 306c remainder) — same vehicle.
+41. **Sweep other CI jobs for the empty-`go list` fiction class** (modsums/go-work-sync verified real; audit the remaining plain-go jobs).
+42. **Add `check-go-version` to `verify-parallel.sh`/`verify-ci` heads** for parity with `#verify`.
+43. **scripts/README or scripts/INDEX.md** — 60+ scripts, several new this week; a one-line-per-script index would cut discovery cost (candidate for M27).
+    ~~46. **Tag the guard wave** when the queue-family tag wave lands (batch-release bar) — the new scripts are unreleased tooling; no consumer tag needed, but the CHANGELOG [Unreleased] should cite them (check-changelog-symbols will demand real symbols — cite the flake apps).~~ done — rides the queue-family wave row
+    ~~47. **CHANGELOG [Unreleased] entry for the guard wave** (hash-golden tripwire, wait-loop, preflight, load guard, go-version gate, flock, coverage floor, README push gates) — not yet written by me.~~ done — "Corruption-class tripwires + verify ergonomics" entry
+44. **Retire `/tmp` evidence**: this session's decisive outputs (crs2.log, ccf.log, preflight logs) are ephemeral; copy excerpts into the next status report or docs/benchmarks as needed.
+45. **verify-load-guard ceiling policy**: default 10 matches wait-for-quiet; calibration uses 5 — document the two-tier intent (verify vs bench) in gowork-modes.
+46. **After M01–M26 close**: run the full gates + composed verify + write the wave-close status report + push — the S03 end-of-wave rule.
 
 ## g) QUESTIONS I CANNOT ANSWER MYSELF
 

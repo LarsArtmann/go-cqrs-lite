@@ -83,7 +83,7 @@ func (a *EventStore) serializeEvent(evt event.Event) ([]byte, error) {
 		Payload:       event.PayloadReadOnly(evt),
 		OccurredAt:    evt.OccurredAt().UnixNano(),
 		Metadata:      evt.Metadata(),
-		Encoding:      string(evt.Encoding()),
+		Encoding:      evt.Encoding(),
 	}
 
 	return marshalCBOROrErr(s, "pebble.serialize_event", "marshal event")
@@ -101,12 +101,14 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 	}
 
 	// s.Payload is a fresh decode with no other owner — adopt it (no clone).
+	adoptLegacyEventStreamKeys(data, &s.StreamID, &s.StreamType)
+
 	evt, err := event.ReconstructEventWithAdoptedPayload(
 		s.ID, event.Type(s.Type), id.StreamType(s.StreamType), s.StreamID,
 		s.Version, s.SchemaVersion,
 		s.Payload, s.Metadata,
 		time.Unix(0, s.OccurredAt).UTC(),
-		codec.Encoding(s.Encoding),
+		s.Encoding,
 		"pebble",
 	)
 	if err != nil {
@@ -119,16 +121,42 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 
 // serializableEvent represents the CBOR (and legacy JSON) storage format for events.
 // fxamacker/cbor reads `json` struct tags by default, so no separate `cbor` tags needed.
+// Encoding is typed as [codec.Encoding] (the event module's canonical stamp):
+// events carry an OPEN codec namespace (custom codecs), unlike the snapshot
+// wire structs whose closed record.Encoding enum covers exactly json/cbor.
 // cqrs-lint:ignore(A011) library code or intentional pattern
 type serializableEvent struct {
-	ID            id.EventID     `json:"id"`
-	Type          string         `json:"type"`
-	StreamID      id.StreamID    `json:"aggregate_id"`
-	StreamType    string         `json:"aggregate_type"`
-	Version       int            `json:"version"`
-	SchemaVersion int            `json:"schema_version,omitempty"`
-	Payload       []byte         `json:"payload"`
-	OccurredAt    int64          `json:"occurred_at"`
-	Metadata      event.Metadata `json:"metadata"`
-	Encoding      string         `json:"encoding,omitempty"`
+	ID            id.EventID      `json:"id"`
+	Type          string          `json:"type"`
+	StreamID      id.StreamID     `json:"stream_id"`
+	StreamType    string          `json:"stream_type"`
+	Version       int             `json:"version"`
+	SchemaVersion int             `json:"schema_version,omitempty"`
+	Payload       []byte          `json:"payload"`
+	OccurredAt    int64           `json:"occurred_at"`
+	Metadata      event.Metadata  `json:"metadata"`
+	Encoding      codec.Encoding  `json:"encoding,omitempty"`
+}
+
+// eventStreamKeysLegacy is the decode-only fallback for event rows written
+// before the stream_id/stream_type wire rename (v5 sweep §4); deleted at v6.
+type eventStreamKeysLegacy struct {
+	StreamID   id.StreamID `json:"aggregate_id"`
+	StreamType string      `json:"aggregate_type"`
+}
+
+// adoptLegacyEventStreamKeys fills the identity fields from the pre-rename
+// keys when the primary decode left them zero. Best-effort: rows carrying
+// neither spelling fail identity validation downstream exactly as before.
+func adoptLegacyEventStreamKeys(data []byte, streamID *id.StreamID, streamType *string) {
+	if !streamID.IsZero() || *streamType != "" {
+		return
+	}
+
+	var legacy eventStreamKeysLegacy
+	if err := unmarshalCBOROrJSON(data, &legacy,
+		"pebble.legacy_event_stream_keys", "decode legacy event stream keys"); err == nil &&
+		!legacy.StreamID.IsZero() {
+		*streamID, *streamType = legacy.StreamID, legacy.StreamType
+	}
 }

@@ -7,19 +7,18 @@ preserved for audit trail and progress tracking.
 
 ## Live reports index (2026-09-22)
 
-| Report                                                                                                              | What it captured                                                                |
-| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | KEEP-LIVE evidence: planned event-query surface vs shipped truth                |
-| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md)                   | KEEP-LIVE evidence: file:line verification behind the reconciliation            |
-| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md)                                           | KEEP-LIVE baseline: sweep numbers feeding the next lint refresh                 |
-| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md)            | T18b #1: perf claims re-anchored under Go 1.27 (arc OPEN — chain armed)         |
-| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md)                  | T18b #2: hardening + rulings implementation watch                               |
-| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md)   | T18b #3: promotion gate fix proven; flake quantified                            |
-| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md)                   | T18b #4: toolchain incident + guarded re-arm                                    |
-| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md)                         | T18b #5: all rulings encoded; chain armed; addenda through 16:10                |
-| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html)                 | cross-session HTML snapshot (HTML exempt from archiving per standing rule)      |
-| [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md)                   | T18b #6: chain intact at load 863; re-arm one-liner inside                      |
-
+| Report                                                                                                              | What it captured                                                           |
+| ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [2026-09-13 event-query-model not-shipped vs reality](2026-09-13_15-55_event-query-model-not-shipped-vs-reality.md) | KEEP-LIVE evidence: planned event-query surface vs shipped truth           |
+| [2026-09-13 T02 verification notes](2026-09-13_17-40_event-query-model-t02-verification-notes.md)                   | KEEP-LIVE evidence: file:line verification behind the reconciliation       |
+| [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md)                                           | KEEP-LIVE baseline: sweep numbers feeding the next lint refresh            |
+| [2026-09-20 T18b load-sweep + baseline re-pin](2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md)            | T18b #1: perf claims re-anchored under Go 1.27 (arc OPEN — chain armed)    |
+| [2026-09-21 T18b gate hardening watch](2026-09-21_10-30_t18b-gate-hardening-verification-watch.md)                  | T18b #2: hardening + rulings implementation watch                          |
+| [2026-09-21 T18b promotion + matview lottery](2026-09-21_12-38_t18b-promotion-gate-fix-proven-matview-lottery.md)   | T18b #3: promotion gate fix proven; flake quantified                       |
+| [2026-09-21 T18b GOTOOLCHAIN incident](2026-09-21_14-18_t18b-gotochain-incident-armed-closure.md)                   | T18b #4: toolchain incident + guarded re-arm                               |
+| [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md)                         | T18b #5: all rulings encoded; chain armed; addenda through 16:10           |
+| [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html)                 | cross-session HTML snapshot (HTML exempt from archiving per standing rule) |
+| [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md)                   | T18b #6: chain intact at load 863; re-arm one-liner inside                 |
 
 **Row-ownership convention (2026-09-22):** for multi-report sessions, the
 latest report owns its index row; predecessors are marked superseded in the
@@ -36,7 +35,6 @@ with 28 stale claims corrected inline. The July archive pass (2026-08-29,
 same session) moved all 2026-07 status (240 files) and planning (52 files)
 snapshots to `archived/` — July work is shipped or superseded by the August
 waves; inbound references from active docs were repointed.
-
 
 **2026-09-22 (11th docs-health pass):** archived 10 files (the M23 pair, both
 go-graph-rag 23-24 reports, the W0 guard-wave report, the 10th-pass report

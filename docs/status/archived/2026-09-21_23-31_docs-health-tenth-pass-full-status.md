@@ -92,7 +92,7 @@ commits). Their in-flight files were left untouched.
 8. **Archive navigation kept true (late-caught, see d1):** the per-day
    archived-waves table gained the 2026-09-21 row (11 files) and the
    snapshot counts were refreshed to the derived 1,233 total (1,204 `.md`
-   + 29 non-md; 1,222 + 11 = 1,233 — the old hand-count basis reconciled).
+   - 29 non-md; 1,222 + 11 = 1,233 — the old hand-count basis reconciled).
 9. **Claim verification before every strike:** banner regex read from
    `check-doc-annotations.sh` (the 9th pass shipped banners the gate
    rejected — this pass copied the accepted vocabulary); ADR-0144/0145
@@ -153,7 +153,7 @@ commits). Their in-flight files were left untouched.
 ## d) TOTALLY FUCKED UP
 
 1. **I declared the archive-index work done and it wasn't.** Moving 11
-   files into `docs/status/archived/`_obsoleted_ the per-day wave table I
+   files into `docs/status/archived/` _obsoleted_ the per-day wave table I
    was standing next to: no 2026-09-21 row, counts stale, and the 1,222
    basis never reconciled. I indexed the LIVE reports table carefully and
    simply forgot the ARCHIVED table exists. Caught ~4.5 hours later during
@@ -215,6 +215,7 @@ commits). Their in-flight files were left untouched.
 ## f) NEXT (up to 50; ★ = already in TODO_LIST from this pass; owners noted)
 
 **This pass's direct tails**
+
 1. ★ Land the T18b closure chain green (re-arm one-liner in the 16:37
    report if the deadline lapsed) — critical path.
 2. ★ Chain hardening: supervised design (systemd/cron), results-file
@@ -239,14 +240,14 @@ commits). Their in-flight files were left untouched.
 13. ★ Queue M4 verification tail (deadlockBackoff pin, forced-deadlock test,
     skip-path proofs, clock seam, wart, parallel-migrate sweep, CI legs).
 14. ★ Weekly load-sweep first-Sunday verification (observe).
-~~15. **Index-vs-disk gate** (e1) — build it so pass #11 doesn't repeat d1.~~ done-routed 2026-09-22 — TODO_LIST docs-health-hygiene row (11th pass)
-~~16. **Mechanical harvest ledger** as a pass artifact (e2).~~ done-routed 2026-09-22 — docs-health-hygiene row
-~~17. **Compress struck TODO evidence tails** to one-line pointers (b2 — the~~ done 2026-09-22 — the 11th pass deleted completed receipt rows outright (1,456 → ~1,270 lines; evidence lives in CHANGELOG + archived reports)
+    ~~15. **Index-vs-disk gate** (e1) — build it so pass #11 doesn't repeat d1.~~ done-routed 2026-09-22 — TODO_LIST docs-health-hygiene row (11th pass)
+    ~~16. **Mechanical harvest ledger** as a pass artifact (e2).~~ done-routed 2026-09-22 — docs-health-hygiene row
+    ~~17. **Compress struck TODO evidence tails** to one-line pointers (b2 — the~~ done 2026-09-22 — the 11th pass deleted completed receipt rows outright (1,456 → ~1,270 lines; evidence lives in CHANGELOG + archived reports)
     1,456-line lever).
-~~18. **Next docs-health pass:** harvest the live M23 report (18:19) once that~~ done 2026-09-22 — the 11th pass harvested 18-19 + 23-24 delta + both go-graph-rag reports + W0 + this report
+    ~~18. **Next docs-health pass:** harvest the live M23 report (18:19) once that~~ done 2026-09-22 — the 11th pass harvested 18-19 + 23-24 delta + both go-graph-rag reports + W0 + this report
     session closes; re-check their lint-red claim at HEAD.
-19. **Weekly docs-health cadence** decision (e3).
-~~20. Add the docs-health pass checklist (index update step + banner~~ done-routed 2026-09-22 — hygiene row (d); convention line added to docs/status/README.md
+15. **Weekly docs-health cadence** decision (e3).
+    ~~20. Add the docs-health pass checklist (index update step + banner~~ done-routed 2026-09-22 — hygiene row (d); convention line added to docs/status/README.md
     vocabulary pointer) to SKILL.md or the repo's docs-health gotchas.
 
 **Carried, unchanged, owner- or quiet-window-gated**
@@ -255,12 +256,12 @@ commits). Their in-flight files were left untouched.
 23. Daemon pre-commit `--no-verify` investigation (corruption-class root cause).
 24. Branch protection / F040.
 25. M11/M12 upstream filings (exhaustruct_v5 panic, go/types+x/tools race,
-    turso-go family) — CPU-gated repros, owner-approved.
+turso-go family) — CPU-gated repros, owner-approved.
 26. Queue dep-validation ratification + queue-family tag wave (owner).
 27. Benchkit tag wave (owner; [BLOCKED] row added).
 28. Nightly timer deploy via SystemNix (owner one-liner; eval-verified).
 29. Host benchmark-ceiling policy + CI-only-arbitration strategy fork
-    (16:37 Q3) + deadline-lapse policy (16:37 Q2).
+(16:37 Q3) + deadline-lapse policy (16:37 Q2).
 30. LSP/gopls `GOTOOLCHAIN=auto` env fix (existing TODO row).
 31. SKILLS-repo commit-style + changelog-convention rulings (t23 g1/g2).
 32. architecture-visualization series-reading scope ruling (t23 g3).
@@ -275,12 +276,12 @@ commits). Their in-flight files were left untouched.
 41. DirectSQL A/B gate-set decision (f26; dep-budget review first).
 42. README ops section for `quiet-window-run`/`nightly-bench` (f35).
 ~~43. Trash `metaengine/tursoengine/P\x11B` after confirming its owning~~ checked 2026-09-22 — no such file on disk (already gone)
-    session ended (verify nothing references it).
+session ended (verify nothing references it).
 44. M14/M15 (READMEs into doc-check; quickstart drift guards) — TODO row
-    634b/d sub-items.
+634b/d sub-items.
 45. M17/M18 goal-shaped-app adoption demos (plan-tracked).
 46. M25 temporal tails (rapid property tests, sqlite restart soak,
-    bigtable decisions — plan-tracked).
+bigtable decisions — plan-tracked).
 47. M26 watermill NATS leg (TODO row exists).
 48. M27 polish wave (plan-tracked).
 49. v5 train rows (ADR-0123 deletions etc. — gated, never v4.x).
@@ -311,9 +312,9 @@ commits). Their in-flight files were left untouched.
 
 ---
 
-*State at pause: 11 reports archived this pass with banners + inline strikes;
+_State at pause: 11 reports archived this pass with banners + inline strikes;
 TODO_LIST current (1,456 lines, indexed, 12 new rows); ROADMAP extended;
 AGENTS drift fixed; all six doc gates green; live-report count 14 and
 climbing (three concurrent sessions' reports pending the next pass); T18b
 chain still storm-gated (re-arm one-liner in the 16-37 report); nothing
-pushed, no manual commits — daemon absorbs. Waiting for instructions.*
+pushed, no manual commits — daemon absorbs. Waiting for instructions._
