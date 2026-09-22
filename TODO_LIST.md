@@ -330,7 +330,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       pending a quiet window), G-T12 `BackfillPlannedTables`,
       `ScanScoredVector`/`RowScanner`, adttest helpers (`AssertTxIsolationFromForeignContext`).
       — source: closeout §f17/§c2 _(Effort: M — tag-wave mechanics)_
-- [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (T18b row above: noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
+- [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (receipt: the T18b canonical record `docs/benchmarks/2026-09-20-21_t18b-record.md` — noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
 
 - [ ] [BLOCKED] **M20 design-ratification follow-ups (one-pagers delivered
@@ -714,13 +714,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       errorfamily, turso Policy write guards, ShutdownDependency
       validation, OwnedDBHandle type split). Remaining: golden/meta-tests
       pass + cut. _(Effort: — )_
-- [ ] **More extended-review follow-ups — DONE (verified 2026-09-22)** — E3
-      (bbolt errorfamily — landed), E6 (`BundleOption` → deprecated alias
-      of `Option`), E9 (turso Policy nil-write guards — landed), E10
-      (ShutdownDependency validation incl. unknown-engine rejection —
-      landed), E14 (`OwnedDBHandle` vs `DBHandle` type split — landed).
-      (E4 was resolved by the 2026-09-08 stream-code rename.) — source:
-      `docs/reviews/2026-08-22_extended-data-model-review.md` _(Effort: — )_
 - [ ] **Post-landing sweep for the data-model series** — api-stability
       meta-tests, doc-check over skill refs, consumer-pin sweep for `record/v4`
       consumers under GOWORK=off (MarshalBinary lesson). _(Effort: M)_
@@ -917,8 +910,8 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `Infer` deprecation?** — evidence pack + 3-option decision memo
       (reframe: Evolutions+Queries on the `system` surface IS the goal ·
       revive: Layer-1 inference via compile-time codegen, visible+auditable ·
-      hybrid), owner ruling, ADR-0141, AGENTS.md Goal sentence amended to the
-      ruled meaning. The Goal is undefinable at 100% until this is ruled.
+      hybrid), owner ruling, ~~ADR-0141~~ → ADR-0147, AGENTS.md Goal sentence
+      amended to the ruled meaning. The Goal is undefinable at 100% until this is ruled.
       **G-T01 DELIVERED 2026-09-21:**
       [`docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md`](docs/planning/2026-09-21_direction-ruling-evidence-and-decision-memo.md)
       (R01 Infer coverage inventory · R02 sanctioned-surface coverage matrix ·
