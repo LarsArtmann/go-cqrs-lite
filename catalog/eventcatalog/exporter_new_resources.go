@@ -27,7 +27,6 @@ func (e *Exporter) writeEntity(entity catalog.Entity) error {
 		Properties:    toEntityProperties(entity.Properties),
 		Owners:        entity.Owners,
 		Badges:        toBadges(entity.Badges),
-		Schemas:       toSchemas(entity.Schemas),
 	}
 
 	if entity.Schema != nil {
@@ -107,7 +106,7 @@ func (e *Exporter) writeAgent(agent catalog.Agent) error {
 		WritesTo:  toPointers(agent.WritesTo),
 		Model:     toAgentModel(agent.Model),
 		Tools:     toAgentTools(agent.Tools),
-		Flows:     stringIDsToStrings(agent.Flows),
+		Flows:     toPointers(agent.Flows),
 		Badges:    toBadges(agent.Badges),
 	}
 

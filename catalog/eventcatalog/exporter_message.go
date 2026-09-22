@@ -13,6 +13,7 @@ func (e *Exporter) writeMessage(
 	kind string,
 	msg catalog.Message,
 	serviceVersions map[catalog.ServiceID]catalog.Version,
+	channelVersions map[catalog.ChannelID]catalog.Version,
 ) error {
 	messageID := catalog.Key(msg)
 	dir := filepath.Join(e.outputDir, kind, string(messageID))
@@ -29,16 +30,15 @@ func (e *Exporter) writeMessage(
 		Summary:    string(msg.Summary),
 		Deprecated: toDeprecated(msg.Deprecated, msg.Deprecation),
 		Owners:     msg.Owners,
-		Labels:     msg.Labels,
-		Channels:   stringIDsToStrings(msg.Channels),
+		Channels:   toChannelRefs(msg.Channels, channelVersions),
 		Schemas:    toSchemas(msg.Schemas),
-		Changelog:  toChangelog(msg.Changelog),
 		Producers:  toServiceRefs(msg.Producers, serviceVersions),
 		Consumers:  toServiceRefs(msg.Consumers, serviceVersions),
 		Operation:  toOperation(msg.Operation),
-		Responses:  toResponses(msg.Responses),
 		Badges:     toBadges(msg.Badges),
 		Repository: toRepository(msg.Repository),
+		XLabels:    msg.Labels,
+		XResponses: toResponses(msg.Responses),
 	}
 
 	if msg.Schema != nil {
@@ -61,6 +61,11 @@ func (e *Exporter) writeMessage(
 			return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_message.4",
 				"write schema for %s: %v", messageID, err)
 		}
+	}
+
+	if err := e.writeChangelogFile(dir, msg.Changelog); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter_message.5",
+			"write changelog for %s: %v", messageID, err)
 	}
 
 	return e.writeExamples(dir, msg.Examples)

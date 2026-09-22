@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
+	yaml "github.com/go-faster/yaml"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
@@ -70,32 +71,105 @@ func (e *Exporter) writeSchema(dir string, schema *catalog.Schema) error {
 	)
 }
 
+// writeExamples writes each example payload as its own file under
+// <message>/examples/. EventCatalog's example loader reads individual files
+// from that folder (any text format); a single examples.json array at the
+// message root was never read and the data was silently lost.
 func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 	if len(examples) == 0 {
 		return nil
 	}
 
-	data, err := json.Marshal(
-		examples,
-		json.Deterministic(true),
-		jsontext.WithIndentPrefix(""),
-		jsontext.WithIndent("  "),
-	)
+	examplesDir := filepath.Join(dir, "examples")
+
+	err := os.MkdirAll(examplesDir, dirPerm)
 	if err != nil {
 		return errorfamily.Newf(
 			errorfamily.Infrastructure,
 			"catalog.writer.3",
-			"marshal examples for dir %s: %v",
+			"create examples dir in %s: %v",
 			dir,
 			err,
 		)
 	}
 
-	return os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
-		filepath.Join(dir, "examples.json"),
-		data,
-		filePerm,
-	)
+	for i, ex := range examples {
+		data, err := json.Marshal(
+			ex,
+			jsontext.WithIndentPrefix(""),
+			jsontext.WithIndent("  "),
+		)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.writer.3b",
+				"marshal example %d for dir %s: %v",
+				i+1,
+				dir,
+				err,
+			)
+		}
+
+		err = os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
+			filepath.Join(examplesDir, fmt.Sprintf("example-%d.json", i+1)),
+			data,
+			filePerm,
+		)
+		if err != nil {
+			return errorfamily.Newf(
+				errorfamily.Infrastructure,
+				"catalog.writer.3c",
+				"write example %d for dir %s: %v",
+				i+1,
+				dir,
+				err,
+			)
+		}
+	}
+
+	return nil
+}
+
+// writeChangelogFile writes the message changelog as EventCatalog's
+// changelog.mdx sidecar file (collection pattern "**/changelog.(md|mdx)").
+// EventCatalog has no changelog frontmatter field on messages — inline lists
+// are rejected as unknown properties and fail the downstream build.
+func (e *Exporter) writeChangelogFile(dir string, changes []catalog.Change) error {
+	if len(changes) == 0 {
+		return nil
+	}
+
+	content := "---\n---\n\n" + changelogBody(changes)
+
+	return e.writeMDXFile(filepath.Join(dir, "changelog.mdx"), content)
+}
+
+// writeUbiquitousLanguageFile writes a domain's ubiquitous language as
+// EventCatalog's ubiquitous-language.mdx sidecar file with a dictionary
+// list. The old frontmatter field was an unknown property that failed the
+// downstream build.
+func (e *Exporter) writeUbiquitousLanguageFile(dir string, terms []catalog.UbiquitousLanguageTerm) error {
+	if len(terms) == 0 {
+		return nil
+	}
+
+	dictionary := make([]dictionaryTermFM, len(terms))
+	for i, t := range terms {
+		name := string(t.Name)
+		dictionary[i] = dictionaryTermFM{ID: name, Name: name, Description: t.Description}
+	}
+
+	data, err := yaml.Marshal(struct {
+		Dictionary []dictionaryTermFM `yaml:"dictionary"`
+	}{Dictionary: dictionary})
+	if err != nil {
+		return errorfamily.WrapCorruption(err, "catalog.marshal_ubiquitous_language",
+			"marshal ubiquitous language dictionary")
+	}
+
+	content := "---\n" + string(data) + "---\n\n# Ubiquitous Language\n"
+
+	return e.writeMDXFile(filepath.Join(dir, "ubiquitous-language.mdx"), content)
 }
 
 // writeBuilderFile builds a string with fn and writes it to filename in the

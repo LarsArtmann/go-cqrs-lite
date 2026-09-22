@@ -100,6 +100,8 @@ func (f *updateFold) EventType() string { return f.eventType }
 func (f *updateFold) EventSample() any  { return f.sample }
 func (f *updateFold) Kind() FoldKind    { return FoldUpdate }
 
+func (f *updateFold) keyExtractorPtr() *func(event any) any { return &f.keyExtractor }
+
 // removeFold: key extraction from event → MapDelete.
 type removeFold struct {
 	eventType    string
@@ -112,6 +114,8 @@ func (f *removeFold) fold()             {}
 func (f *removeFold) EventType() string { return f.eventType }
 func (f *removeFold) EventSample() any  { return f.sample }
 func (f *removeFold) Kind() FoldKind    { return FoldRemove }
+
+func (f *removeFold) keyExtractorPtr() *func(event any) any { return &f.keyExtractor }
 
 // countFold: func(E) Delta → CounterIncrement.
 type countFold struct {

@@ -36,6 +36,10 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	enriched := autoDeriveProducersConsumers(cat)
 
 	for _, svc := range enriched.Services {
+		if err := rejectUnsupportedBaseConfig("service", string(svc.ID), svc.BaseConfig); err != nil {
+			return err
+		}
+
 		err := e.writeService(svc)
 		if err != nil {
 			return errorfamily.Newf(
@@ -53,6 +57,10 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	}
 
 	for _, domain := range enriched.Domains {
+		if err := rejectUnsupportedBaseConfig("domain", string(domain.ID), domain.BaseConfig); err != nil {
+			return err
+		}
+
 		err := e.writeDomain(domain)
 		if err != nil {
 			return errorfamily.Newf(
@@ -66,7 +74,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	}
 
 	for _, ch := range enriched.Channels {
-		err := e.writeChannel(ch)
+		err := e.writeChannel(ch, channelMessageIndex(enriched))
 		if err != nil {
 			return errorfamily.Newf(
 				errorfamily.Infrastructure,
@@ -228,6 +236,7 @@ func (e *Exporter) writeAllMessages(cat *catalog.Catalog) error {
 
 	written := make(map[string]struct{})
 	serviceVersions := serviceVersionsOf(cat)
+	channelVersions := channelVersionsOf(cat)
 
 	for _, group := range []kindMessages{
 		{kind: "commands", messages: commandsOf(cat)},
@@ -241,7 +250,7 @@ func (e *Exporter) writeAllMessages(cat *catalog.Catalog) error {
 			}
 			written[key] = struct{}{}
 
-			err := e.writeMessage(group.kind, msg, serviceVersions)
+			err := e.writeMessage(group.kind, msg, serviceVersions, channelVersions)
 			if err != nil {
 				return errorfamily.Newf(
 					errorfamily.Infrastructure,
@@ -296,6 +305,48 @@ func serviceVersionsOf(cat *catalog.Catalog) map[catalog.ServiceID]catalog.Versi
 	return versions
 }
 
+// channelVersionsOf maps each channel ID to its declared version so message
+// channel pointers can carry explicit versions.
+func channelVersionsOf(cat *catalog.Catalog) map[catalog.ChannelID]catalog.Version {
+	versions := make(map[catalog.ChannelID]catalog.Version, len(cat.Channels))
+	for _, ch := range cat.Channels {
+		versions[ch.ID] = ch.Version
+	}
+
+	return versions
+}
+
+// channelMessageIndex resolves every message in the catalog to the fully
+// qualified pointer EventCatalog's channel frontmatter requires:
+// {collection, name, id, version}. Bare {id, version} pointers fail schema
+// validation ("messages.0.collection: Required") and channels render as
+// disconnected stubs.
+func channelMessageIndex(cat *catalog.Catalog) map[catalog.MessageID]channelMessageFM {
+	index := make(map[catalog.MessageID]channelMessageFM)
+
+	type kindMessages struct {
+		collection string
+		messages   []catalog.Message
+	}
+
+	for _, group := range []kindMessages{
+		{collection: "commands", messages: commandsOf(cat)},
+		{collection: "events", messages: eventsOf(cat)},
+		{collection: "queries", messages: queriesOf(cat)},
+	} {
+		for _, msg := range group.messages {
+			index[catalog.Key(msg)] = channelMessageFM{
+				Collection: group.collection,
+				Name:       string(msg.Name),
+				ID:         string(catalog.Key(msg)),
+				Version:    string(msg.Version),
+			}
+		}
+	}
+
+	return index
+}
+
 func (e *Exporter) writeService(svc catalog.Service) error {
 	dir := filepath.Join(e.outputDir, "services", string(svc.ID))
 
@@ -316,8 +367,8 @@ func (e *Exporter) writeService(svc catalog.Service) error {
 		Receives:       receives,
 		WritesTo:       toPointers(svc.WritesTo),
 		ReadsFrom:      toPointers(svc.ReadsFrom),
-		Entities:       svc.Entities,
-		Flows:          stringIDsToStrings(svc.Flows),
+		Entities:       toPointers(svc.Entities),
+		Flows:          toPointers(svc.Flows),
 		ExternalSystem: svc.ExternalSystem,
 		Badges:         toBadges(svc.Badges),
 		Repository:     toRepository(svc.Repository),
@@ -343,33 +394,25 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 			"create domain dir: %v", err)
 	}
 
-	domainIDs := make([]string, len(domain.SubDomains))
-	for i, id := range domain.SubDomains {
-		domainIDs[i] = string(id)
-	}
-
-	dpDataIDs := make([]string, len(domain.DataProducts))
-	for i, id := range domain.DataProducts {
-		dpDataIDs[i] = string(id)
-	}
+	domainIDs := toPointers(domain.SubDomains)
+	dpDataIDs := toPointers(domain.DataProducts)
 
 	fm := domainFM{
-		ID:                 string(domain.ID),
-		Name:               string(domain.Name),
-		Version:            string(domain.Version),
-		Summary:            string(domain.Summary),
-		Owners:             domain.Owners,
-		Services:           toPointers(domain.Services),
-		Sends:              toRefs(domain.Sends),
-		Receives:           toRefs(domain.Receives),
-		Entities:           domain.Entities,
-		Flows:              stringIDsToStrings(domain.Flows),
-		Domains:            domainIDs,
-		DataProducts:       dpDataIDs,
-		UbiquitousLanguage: toUbiquitousLanguage(domain.UbiquitousLanguage),
-		Badges:             toBadges(domain.Badges),
-		Attachments:        toAttachments(domain.Attachments),
-		baseConfigFM:       toBaseConfig(domain.BaseConfig),
+		ID:           string(domain.ID),
+		Name:         string(domain.Name),
+		Version:      string(domain.Version),
+		Summary:      string(domain.Summary),
+		Owners:       domain.Owners,
+		Services:     toPointers(domain.Services),
+		Sends:        toRefs(domain.Sends),
+		Receives:     toRefs(domain.Receives),
+		Entities:     toPointers(domain.Entities),
+		Flows:        toPointers(domain.Flows),
+		Domains:      domainIDs,
+		DataProducts: dpDataIDs,
+		Badges:       toBadges(domain.Badges),
+		Attachments:  toAttachments(domain.Attachments),
+		baseConfigFM: toBaseConfig(domain.BaseConfig),
 	}
 
 	content, err := renderMDX(fm, string(domain.Name), string(domain.Summary), true)
@@ -378,5 +421,15 @@ func (e *Exporter) writeDomain(domain catalog.Domain) error {
 			"render domain %s: %v", domain.ID, err)
 	}
 
-	return e.writeMDXFile(filepath.Join(dir, indexFile), content)
+	if err := e.writeMDXFile(filepath.Join(dir, indexFile), content); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter.13c",
+			"write domain %s: %v", domain.ID, err)
+	}
+
+	if err := e.writeUbiquitousLanguageFile(dir, domain.UbiquitousLanguage); err != nil {
+		return errorfamily.Newf(errorfamily.Infrastructure, "catalog.exporter.13d",
+			"write ubiquitous language for %s: %v", domain.ID, err)
+	}
+
+	return nil
 }

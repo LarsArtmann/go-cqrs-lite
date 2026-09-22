@@ -399,13 +399,8 @@ func buildFilterSpecs(cfg QueryConfig, input any) []FilterSpec {
 			continue
 		}
 
-		inputField := acc.spec.Column
-		if acc.spec.InputColumn != "" {
-			inputField = acc.spec.InputColumn
-		}
-
-		val := extractValueByName(input, inputField)
-		if val == nil {
+		val, ok := filterInputValue(acc.spec, input)
+		if !ok {
 			continue
 		}
 
@@ -417,6 +412,23 @@ func buildFilterSpecs(cfg QueryConfig, input any) []FilterSpec {
 	}
 
 	return specs
+}
+
+// filterInputValue resolves a declarative filter's input column (InputColumn
+// wins over Column) and extracts the filter value from the query input;
+// ok=false when the input carries no value for the field.
+func filterInputValue(spec *FilterSpec, input any) (any, bool) {
+	inputField := spec.Column
+	if spec.InputColumn != "" {
+		inputField = spec.InputColumn
+	}
+
+	val := extractValueByName(input, inputField)
+	if val == nil {
+		return nil, false
+	}
+
+	return val, true
 }
 
 // buildFilterPredicates creates runtime filter predicates from typed closures
@@ -436,13 +448,8 @@ func buildFilterPredicates(q queryMeta, input any) []filterPredicate {
 		// expected value is read from the input by column name; the item value is
 		// read from each row by the same column name (map key or struct field).
 		if acc.spec != nil {
-			inputField := acc.spec.Column
-			if acc.spec.InputColumn != "" {
-				inputField = acc.spec.InputColumn
-			}
-
-			expected := extractValueByName(input, inputField)
-			if expected == nil {
+			expected, ok := filterInputValue(acc.spec, input)
+			if !ok {
 				continue
 			}
 

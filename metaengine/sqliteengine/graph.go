@@ -135,6 +135,22 @@ func (e *sqliteEngine) graphNeighborsIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
+	return e.graphBFS(ctx, node, depth, "sqliteengine.GraphNeighbors", func(ctx context.Context, n string) ([]string, error) {
+		return e.queryGraphNeighbors(ctx, col, n)
+	})
+}
+
+// graphBFS walks the graph breadth-first up to depth levels, expanding each
+// frontier node with expand (directed: one neighbor query; undirected:
+// outgoing+incoming). The label is used as the error prefix; the result is
+// never nil.
+func (e *sqliteEngine) graphBFS(
+	ctx context.Context,
+	node any,
+	depth int,
+	label string,
+	expand func(ctx context.Context, n string) ([]string, error),
+) ([]any, error) {
 	startNode := encodeKey(node)
 	visited := map[string]bool{startNode: true}
 	frontier := []string{startNode}
@@ -144,9 +160,9 @@ func (e *sqliteEngine) graphNeighborsIterative(
 		var next []string
 
 		for _, n := range frontier {
-			neighbors, err := e.queryGraphNeighbors(ctx, col, n)
+			neighbors, err := expand(ctx, n)
 			if err != nil {
-				return nil, fmt.Errorf("sqliteengine.GraphNeighbors: %w", err)
+				return nil, fmt.Errorf("%s: %w", label, err)
 			}
 
 			for _, nb := range neighbors {

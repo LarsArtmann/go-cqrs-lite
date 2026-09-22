@@ -84,44 +84,20 @@ func (e *sqliteEngine) graphNeighborsUndirectedIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	startNode := encodeKey(node)
-	visited := map[string]bool{startNode: true}
-	frontier := []string{startNode}
-	var result []any
-
-	for level := 0; level < depth && len(frontier) > 0; level++ {
-		var next []string
-
-		for _, n := range frontier {
+	return e.graphBFS(ctx, node, depth, "sqliteengine.GraphNeighborsUndirected",
+		func(ctx context.Context, n string) ([]string, error) {
 			outgoing, err := e.queryGraphNeighbors(ctx, col, n)
 			if err != nil {
-				return nil, fmt.Errorf("sqliteengine.GraphNeighborsUndirected: %w", err)
+				return nil, err
 			}
 
 			incoming, err := e.queryGraphReverseNeighbors(ctx, col, n)
 			if err != nil {
-				return nil, fmt.Errorf("sqliteengine.GraphNeighborsUndirected: %w", err)
+				return nil, err
 			}
 
-			for _, nb := range append(outgoing, incoming...) {
-				if visited[nb] {
-					continue
-				}
-
-				visited[nb] = true
-				result = append(result, nb)
-				next = append(next, nb)
-			}
-		}
-
-		frontier = next
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
+			return append(outgoing, incoming...), nil
+		})
 }
 
 // scanNeighborRows drains a neighbors query into []any, returning an empty

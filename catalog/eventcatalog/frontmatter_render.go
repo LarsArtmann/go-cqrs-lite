@@ -105,19 +105,6 @@ func toDeprecated(deprecated bool, info *catalog.DeprecationInfo) any {
 	return nil
 }
 
-func stringIDsToStrings[T ~string](ids []T) []string {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	out := make([]string, len(ids))
-	for i, id := range ids {
-		out[i] = string(id)
-	}
-
-	return out
-}
-
 func toDataProductOutputs(outputs []catalog.DataProductOutput) []dataProductOutputFM {
 	if len(outputs) == 0 {
 		return nil

@@ -9,7 +9,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
-func (e *Exporter) writeChannel(ch catalog.Channel) error {
+func (e *Exporter) writeChannel(ch catalog.Channel, messages map[catalog.MessageID]channelMessageFM) error {
 	dir := filepath.Join(e.outputDir, "channels", string(ch.ID))
 
 	if err := os.MkdirAll(dir, dirPerm); err != nil {
@@ -27,6 +27,16 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 		routes[i] = channelRouteFM{ID: string(r.ID)}
 	}
 
+	// Channel messages need fully qualified pointers
+	// ({collection, name, id, version}); unresolved IDs are skipped because
+	// EventCatalog would fail resolving them as content references.
+	msgPointers := make([]channelMessageFM, 0, len(ch.Messages))
+	for _, id := range ch.Messages {
+		if m, ok := messages[id]; ok {
+			msgPointers = append(msgPointers, m)
+		}
+	}
+
 	fm := channelFM{
 		ID:                string(ch.ID),
 		Name:              string(ch.Name),
@@ -34,7 +44,7 @@ func (e *Exporter) writeChannel(ch catalog.Channel) error {
 		Summary:           string(ch.Summary),
 		Address:           string(ch.Address),
 		Protocols:         protocols,
-		Messages:          toPointers(ch.Messages),
+		Messages:          msgPointers,
 		DeliveryGuarantee: string(ch.DeliveryGuarantee),
 		Parameters:        toChannelParams(ch.Parameters),
 		Routes:            routes,

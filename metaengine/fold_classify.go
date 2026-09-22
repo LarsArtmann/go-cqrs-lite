@@ -77,32 +77,38 @@ func deriveKeys(folds []Fold) error {
 	}
 
 	for _, f := range folds {
-		switch fold := f.(type) {
-		case *updateFold:
-			if fold.keyExtractor != nil {
-				continue
+		if keyed, ok := f.(extractorFold); ok {
+			if err := ensureKeyExtractor(keyed, keyType); err != nil {
+				return err
 			}
-
-			extractor, err := buildKeyExtractor(fold.EventSample(), keyType)
-			if err != nil {
-				return fmt.Errorf("fold for %s: %w", fold.EventType(), err)
-			}
-
-			fold.keyExtractor = extractor.(func(event any) any)
-
-		case *removeFold:
-			if fold.keyExtractor != nil {
-				continue
-			}
-
-			extractor, err := buildKeyExtractor(fold.EventSample(), keyType)
-			if err != nil {
-				return fmt.Errorf("fold for %s: %w", fold.EventType(), err)
-			}
-
-			fold.keyExtractor = extractor.(func(event any) any)
 		}
 	}
+
+	return nil
+}
+
+// extractorFold is the set of fold kinds whose event key is extracted from
+// the event payload (update and remove folds).
+type extractorFold interface {
+	fold()
+	EventType() string
+	EventSample() any
+	keyExtractorPtr() *func(event any) any
+}
+
+// ensureKeyExtractor lazily builds a fold's event-key extractor from its
+// event sample, leaving an already-built extractor untouched.
+func ensureKeyExtractor(f extractorFold, keyType reflect.Type) error {
+	if *f.keyExtractorPtr() != nil {
+		return nil
+	}
+
+	extractor, err := buildKeyExtractor(f.EventSample(), keyType)
+	if err != nil {
+		return fmt.Errorf("fold for %s: %w", f.EventType(), err)
+	}
+
+	*f.keyExtractorPtr() = extractor.(func(event any) any)
 
 	return nil
 }

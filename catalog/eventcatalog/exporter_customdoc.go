@@ -25,7 +25,6 @@ func (e *Exporter) writeCustomDoc(doc catalog.CustomDoc) error {
 	}
 
 	fm := customDocFM{
-		ID:      string(doc.ID),
 		Title:   string(doc.Title),
 		Summary: string(doc.Summary),
 		Slug:    slug,
