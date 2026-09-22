@@ -2,8 +2,6 @@ package mysqlengine
 
 import (
 	"context"
-	"encoding/json/v2"
-	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -18,54 +16,12 @@ func (e *mysqlEngine) MapScanKeyValues(
 	cursor any,
 	limit int,
 ) ([]any, []any, bool, error) {
-	if limit <= 0 {
-		limit = 500
-	}
+	limit = metaengine.ScanLimit(limit)
 
-	var cursorArg any
-	if cursor != nil {
-		cursorArg = fmt.Sprint(cursor)
-	}
-
-	rows, err := e.db.QueryContext(
-		ctx,
+	return metaengine.ScanKeyValuesPage(ctx, e.db,
 		"SELECT `key`, value FROM meta_map "+
 			"WHERE collection = ? AND (? IS NULL OR `key` > ?) "+
 			"ORDER BY `key` LIMIT ?",
-		collection, cursorArg, cursorArg, limit,
-	)
-	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
-	if err != nil {
-		return nil, nil, false, fmt.Errorf("mysqlengine.MapScanKeyValues: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	keys := make([]any, 0, limit)
-	values := make([]any, 0, limit)
-
-	for rows.Next() {
-		var key string
-
-		var raw []byte
-
-		if err := rows.Scan(&key, &raw); err != nil {
-			return nil, nil, false, fmt.Errorf("mysqlengine.MapScanKeyValues: scan: %w", err)
-		}
-
-		var val any
-
-		if err := json.Unmarshal(raw, &val); err != nil {
-			return nil, nil, false, fmt.Errorf("mysqlengine.MapScanKeyValues: unmarshal: %w", err)
-		}
-
-		keys = append(keys, key)
-		values = append(values, val)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, nil, false, fmt.Errorf("mysqlengine.MapScanKeyValues: rows: %w", err)
-	}
-
-	return keys, values, len(keys) == limit, nil
+		[]any{collection, metaengine.CursorArg(cursor), metaengine.CursorArg(cursor), limit},
+		limit, "mysqlengine.MapScanKeyValues")
 }
