@@ -809,11 +809,14 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       scope, plaintext→encrypted migration), then implementation.
       — source: 20-18 §f15-17/§f21, 20-57 §f9-10
       _(Effort: L)_
-- [ ] **Migration-verification tail for T18:** live MySQL/MariaDB +
-      DuckDB `MigrateSnapshotColumnsToStream` runs; mixed-state corruption
-      test; mid-migration failure-path test; concurrent-init idempotency test;
-      property test for arbitrary legacy JSON subsets. — source: 08-41 §f13–23
-      _(Effort: M)_
+- [ ] **Migration-verification tail for T18:** 2026-09-22 pass: mixed-state
+      corruption test, mid-migration (half-renamed) failure-path test,
+      concurrent-init idempotency test, legacy-subset test, and a LIVE
+      DuckDB run (`integration/snapshot_migration_duckdb_integration_test.go`,
+      green against the embedded engine) are ALL landed. REMAINING: the live
+      MySQL/MariaDB run — `snapshot_migration_mysql_integration_test.go` is
+      ready, gated on the userspace MariaDB / `#integration-mysql-nspawn`
+      leg in a quiet window. — source: 08-41 §f13–23 _(Effort: S — infra leg)_
 - [ ] **v5 items from extended review — EXECUTED 2026-09-22** — E1 (event
       envelope Encoding typed as `codec.Encoding`; `record.Encoding`
       rejected — its closed enum would drop custom codec stamps), E7
