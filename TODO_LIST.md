@@ -731,26 +731,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       asrecord/MIGRATION_TO_STACK/PRESETS guides once v5 nears. — source:
       08-26 §c6, 08-41 §f25–27
       _(Effort: M)_
-- [x] **Feedback #4: split `system`'s engine requires (`systemtest`)** — done
-      2026-09-22: the Tier-7 `systemtest/` module now owns system's
-      real-engine suites (13 moved files + the four sqlite wiring tests +
-      the checkpoint restart-durability test via the new public
-      `system.NewEngineCheckpointStore`); system/go.mod drops ALL engine
-      requires (consumers importing system/v4 pull zero engines); system
-      keeps memory-driver-only unit tests. Registered in go.work, flake
-      testModules, api-stability, module layers/budget, and the cqrs-lint
-      catalog; module census 96→97. Remaining at the tag wave: strip
-      systemtest's sibling replaces. — source: 23-24 followups §f22,
-      feedback doc §4.4 _(Effort: L → executed)_
-- [x] **`metaengine.DeferClose` engine-twin deprecation note** — done
-      2026-09-22: `Deprecated` doc note added (record.DeferClose is the
-      canonical home since record/v4.6.0; twin kept through v5 for the
-      sibling-replace family, removed at the v6 API train) — ADR-0144's
-      deliberate-keep stance preserved. Original: every consumer can reach
-      the Tier-0 `record.DeferClose` since record/v4.6.0; add the v5-list
-      note to deprecate the self-contained twin (ADR-0144 kept it
-      deliberately — revisit at the v5 API train). — source: closeout §f45
-      _(Effort: XS)_
+- [ ] **systemtest tag-wave tail: strip the module's sibling replaces** —
+      the Feedback #4 split itself is DONE 2026-09-22: the Tier-7
+      `systemtest/` module owns system's real-engine suites (13 moved files
+      + the four sqlite wiring tests + the checkpoint restart-durability test
+      via the new public `system.NewEngineCheckpointStore`); system/go.mod
+      drops ALL engine requires; registered in go.work, flake testModules,
+      api-stability, module layers/budget, and the cqrs-lint catalog (census
+      96→97) — receipt: CHANGELOG [Unreleased].
+      — source: 23-24 followups §f22, feedback doc §4.4 _(Effort: XS at tag time)_
 - [ ] **Cut v5.0.0** — tag all modules. Update CHANGELOG, README, SKILL.md,
       examples. Run full verify gate. _(Effort: M)_
 

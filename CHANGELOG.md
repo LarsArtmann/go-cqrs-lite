@@ -83,6 +83,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `nix run .#check-md-go -- --update-baseline` (baseline signatures are
   coupled to the flake-pinned tool version; see gotchas-tooling-build).
 
+- **tooling: `check-md-go.sh --self-test`** — planted fixture repo +
+  PATH-stubbed binary (flag-file controlled) pinning the four gate behaviors
+  (green pass, new-error refusal, live-path-baseline refusal via an
+  `ARCHIVE_SEGMENT` mutation leg, uncommitted-baseline refusal); wired into
+  `#check-release-scripts` and the ci.yml check job, with the FEATURES gates
+  row + `docs/release-checklist.md` mentions added.
+
 - **metaengine: ADTSet capability parity on Postgres and MySQL (G-T13).**
   `pgengine` and `mysqlengine` now implement `metaengine.SetBackend` (`SetAdd`
   via `ON CONFLICT DO NOTHING` / `INSERT IGNORE`, `SetContains` via an indexed
@@ -521,6 +528,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   matching, and syntax-only loads keep the historical string fallback.
 
 ### Changed
+
+- **metaengine: `DeferClose` engine-twin marked `Deprecated`.** The doc note
+  points at the Tier-0 `record.DeferClose` as the canonical home (reachable
+  by every consumer since record/v4.6.0); the twin is kept through v5 for
+  the sibling-replace family and removed at the v6 API train, preserving
+  ADR-0144's deliberate-keep stance.
 
 - **repo: go.work toolchain contract (`go 1.27.1`) vs the recurring daemon
   downgrade wave.** A 112-file auto-commit downgraded go.work + 16 module
