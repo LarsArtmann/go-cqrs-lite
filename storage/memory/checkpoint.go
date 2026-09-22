@@ -57,6 +57,7 @@ func (s *MemoryCheckpointStore) Save(
 // under the lock.
 func (s *MemoryCheckpointStore) withWriteLock(code, msg string, fn func() error) error {
 	if err := wrapClosed(s.CheckClosed(dispatcher.ErrDispatcherClosed), code, msg); err != nil {
+		//art-dupl:accept documented per-type lock-wrapper idiom (AGENTS.md internal contract #14)
 		return err
 	}
 
@@ -73,6 +74,7 @@ func withCheckpointReadLock[T any](
 	fn func() (T, error),
 ) (T, error) {
 	if err := wrapClosed(s.CheckClosed(dispatcher.ErrDispatcherClosed), code, msg); err != nil {
+		//art-dupl:accept documented per-type lock-wrapper idiom (AGENTS.md internal contract #14)
 		var zero T
 
 		return zero, err

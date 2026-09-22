@@ -1,6 +1,8 @@
 package eventcatalog
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -24,10 +26,6 @@ func toPointers[S ~string](ids []S) []pointer {
 // toChannelRefs converts channel IDs to EventCatalog channelPointer objects
 // ({id, version?}). Plain strings fail schema validation
 // ("Expected type object, received string").
-type channelVersionSource interface {
-	ChannelVersion(id catalog.ChannelID) (catalog.Version, bool)
-}
-
 func toChannelRefs(ids []catalog.ChannelID, versions map[catalog.ChannelID]catalog.Version) []channelRefFM {
 	if len(ids) == 0 {
 		return nil
@@ -194,40 +192,21 @@ func toAttachments(attachments []catalog.Attachment) []attachmentFM {
 	return out
 }
 
-func toChangelog(changes []catalog.Change) []changeFM {
-	if len(changes) == 0 {
-		return nil
-	}
-
-	out := make([]changeFM, len(changes))
-	for i, c := range changes {
-		out[i] = changeFM{
-			Version: string(c.Version),
-			Summary: string(c.Summary),
-		}
-
+// changelogBody renders message changelog entries as the markdown body of
+// EventCatalog's changelog.(md|mdx) file. EventCatalog has NO changelog
+// frontmatter field on messages — an inline list is rejected as an unknown
+// property; the changelog is a separate file loaded by the changelogs
+// collection (pattern "**/changelog.(md|mdx)").
+func changelogBody(changes []catalog.Change) string {
+	var b strings.Builder
+	for _, c := range changes {
 		if c.Date != nil {
-			out[i].Date = c.Date.Format(time.DateOnly)
+			fmt.Fprintf(&b, "- **%s** (%s): %s\n", string(c.Version), c.Date.Format(time.DateOnly), string(c.Summary))
+			continue
 		}
+		fmt.Fprintf(&b, "- **%s**: %s\n", string(c.Version), string(c.Summary))
 	}
-
-	return out
-}
-
-func toUbiquitousLanguage(terms []catalog.UbiquitousLanguageTerm) []ubiquitousLanguageTermFM {
-	if len(terms) == 0 {
-		return nil
-	}
-
-	out := make([]ubiquitousLanguageTermFM, len(terms))
-	for i, t := range terms {
-		out[i] = ubiquitousLanguageTermFM{
-			Name:        string(t.Name),
-			Description: t.Description,
-		}
-	}
-
-	return out
+	return b.String()
 }
 
 func toAgentModel(model *catalog.AgentModel) *agentModelFM {
@@ -299,25 +278,19 @@ func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
 			step.Message = &pointer{ID: s.Message.ID.String(), Version: string(s.Message.Version)}
 		}
 
-		if s.Channel != nil {
-			step.Channel = &pointer{ID: s.Channel.ID.String()}
-		}
-
 		if s.Actor != nil {
+			// EventCatalog's actor shape is {name, summary} only — no url
+			// (that field exists on externalSystem; emitting it on an actor is
+			// silently stripped by zod).
 			step.Actor = &flowActor{
-				Name: string(
-					s.Actor.Name,
-				),
+				Name:    string(s.Actor.Name),
 				Summary: string(s.Actor.Summary),
-				URL:     string(s.Actor.URL),
 			}
 		}
 
 		if s.External != nil {
 			step.ExternalSys = &flowActor{
-				Name: string(
-					s.External.Name,
-				),
+				Name:    string(s.External.Name),
 				Summary: string(s.External.Summary),
 				URL:     string(s.External.URL),
 			}
@@ -340,8 +313,12 @@ func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
 			step.Agent = &pointer{ID: s.Agent.ID.String(), Version: string(s.Agent.Version)}
 		}
 
+		// DataStore and SubFlow map onto EventCatalog's container and flow step
+		// node keys. FlowStep.Channel has no EventCatalog flow equivalent (flow
+		// steps support message/agent/service/flow/container/dataProduct/actor/
+		// custom/externalSystem only), so channel steps are skipped here.
 		if s.DataStore != nil {
-			step.DataStore = &pointer{ID: s.DataStore.ID.String()}
+			step.Container = &pointer{ID: s.DataStore.ID.String()}
 		}
 
 		if s.DataProduct != nil {
@@ -349,7 +326,7 @@ func toFlowSteps(steps []catalog.FlowStep) []flowStepFM {
 		}
 
 		if s.SubFlow != nil {
-			step.SubFlow = &pointer{ID: s.SubFlow.ID.String()}
+			step.Flow = &pointer{ID: s.SubFlow.ID.String()}
 		}
 
 		if s.NextStep != nil {

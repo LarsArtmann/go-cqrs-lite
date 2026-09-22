@@ -40,55 +40,16 @@ func validatePlannedFilterValue(
 	return nil
 }
 
-// appendPlannedFilter writes one filter clause with ? placeholders. The
-// caller passes started so the first clause gets " WHERE " and the rest
-// " AND ".
-//
-// art-dupl:accept cross-module SQL builder pattern — separate go.mod
+// appendPlannedFilter writes one filter clause with ? placeholders and
+// MySQL backtick-quoted column names; the clause mechanics live in
+// metaengine.AppendPlannedFilter.
 func appendPlannedFilter(
 	b *strings.Builder,
 	args *[]any,
 	f metaengine.FilterSpec,
 	started *bool,
 ) {
-	if f.Op == metaengine.FilterIn {
-		values, ok := f.Value.([]any)
-		if !ok || len(values) == 0 {
-			return
-		}
-
-		if !*started {
-			b.WriteString(" WHERE ")
-
-			*started = true
-		} else {
-			b.WriteString(" AND ")
-		}
-
-		placeholders := make([]string, len(values))
-		for i := range values {
-			placeholders[i] = "?"
-
-			*args = append(*args, values[i])
-		}
-
-		fmt.Fprintf(b, "%s IN (%s)",
-			backtickIdent(f.Column), strings.Join(placeholders, ", "))
-
-		return
-	}
-
-	if !*started {
-		b.WriteString(" WHERE ")
-
-		*started = true
-	} else {
-		b.WriteString(" AND ")
-	}
-
-	fmt.Fprintf(b, "%s %s ?", backtickIdent(f.Column), string(f.Op))
-
-	*args = append(*args, f.Value)
+	metaengine.AppendPlannedFilter(b, args, f, started, backtickIdent, metaengine.QuestionPlaceholders)
 }
 
 // buildPlannedScanQuery renders the planned-table pushdown SELECT: native

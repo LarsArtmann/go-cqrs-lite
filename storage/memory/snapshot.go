@@ -51,6 +51,7 @@ func (s *MemorySnapshotStore) Save(_ context.Context, snap snappkg.Snapshot) err
 // shared by all write-side methods.
 func (s *MemorySnapshotStore) withWriteLock(code, msg string, fn func() error) error {
 	if err := wrapClosed(s.CheckClosed(snappkg.ErrSnapshotStoreClosed), code, msg); err != nil {
+		//art-dupl:accept documented per-type lock-wrapper idiom (AGENTS.md internal contract #14)
 		return err
 	}
 
@@ -68,6 +69,7 @@ func withSnapshotReadLock[T any](
 	fn func() (T, error),
 ) (T, error) {
 	if err := wrapClosed(s.CheckClosed(snappkg.ErrSnapshotStoreClosed), code, msg); err != nil {
+		//art-dupl:accept documented per-type lock-wrapper idiom (AGENTS.md internal contract #14)
 		var zero T
 
 		return zero, err

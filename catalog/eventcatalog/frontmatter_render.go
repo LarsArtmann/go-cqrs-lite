@@ -31,16 +31,36 @@ func renderMDX(fm any, title, summary string, includeGraph bool) (string, error)
 	return body, nil
 }
 
+// rejectUnsupportedBaseConfig fails loudly when BaseConfig carries fields the
+// EventCatalog format cannot represent. EventCatalog resourceGroups items
+// must be typed pointers ({id, version, type: <resource-kind>}) — the
+// catalog's plain string items cannot be mapped, and emitting them makes the
+// downstream eventcatalog build fail schema validation.
+func rejectUnsupportedBaseConfig(resourceKind, resourceID string, cfg catalog.BaseConfig) error {
+	if len(cfg.ResourceGroups) == 0 {
+		return nil
+	}
+
+	return errorfamily.Newf(errorfamily.Rejection, "catalog.exporter.unsupported.1",
+		"%s %s: EventCatalog resourceGroups require typed resource pointers, which the catalog's "+
+			"string-based ResourceGroup.Items cannot express; remove ResourceGroups before exporting "+
+			"to EventCatalog", resourceKind, resourceID)
+}
+
 func toBaseConfig(b catalog.BaseConfig) baseConfigFM {
 	var fm baseConfigFM
 	if b.Sidebar != nil {
 		fm.Sidebar = &sidebarFM{Badge: b.Sidebar.Badge, Label: b.Sidebar.Label}
 	}
 	if b.Styles != nil {
+		// EventCatalog styles nest node color/label under styles.node — flat
+		// nodeColor/nodeLabel keys are silently stripped by zod.
 		fm.Styles = &stylesFM{
-			Icon:      b.Styles.Icon,
-			NodeColor: b.Styles.NodeColor,
-			NodeLabel: b.Styles.NodeLabel,
+			Icon: b.Styles.Icon,
+			Node: &nodeStylesFM{
+				Color: b.Styles.NodeColor,
+				Label: b.Styles.NodeLabel,
+			},
 		}
 	}
 	fm.EditUrl = b.EditUrl
@@ -48,17 +68,10 @@ func toBaseConfig(b catalog.BaseConfig) baseConfigFM {
 		fm.Draft = &draftFM{Title: b.Draft.Title, Message: b.Draft.Message}
 	}
 	fm.Visualiser = b.Visualiser
-	if len(b.ResourceGroups) > 0 {
-		fm.ResourceGroups = make([]resourceGroupFM, len(b.ResourceGroups))
-		for i, rg := range b.ResourceGroups {
-			fm.ResourceGroups[i] = resourceGroupFM{
-				ID: rg.ID, Title: rg.Title, Items: rg.Items, Limit: rg.Limit,
-			}
-		}
-	}
-	if b.DetailsPanel != nil {
-		fm.DetailsPanel = &detailsPanelFM{Sections: b.DetailsPanel.Sections}
-	}
+
+	// DetailsPanel has no EventCatalog equivalent (its per-resource
+	// detailsPanel maps section keys to {visible} flags, not a section list)
+	// and is intentionally not emitted.
 
 	return fm
 }

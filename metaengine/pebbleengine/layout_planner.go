@@ -117,19 +117,16 @@ func (e *pebbleEngine) ApplyLayout(collection string, filterFields, sortFields [
 	return nil
 }
 
-// writeIndexEntries writes secondary index entries for a value's filter fields.
-// Called by MapSet when a layout plan exists for the collection.
-func (e *pebbleEngine) writeIndexEntries(
-	batch *pebble.Batch,
-	col, key string,
-	valueJSON []byte,
+// applyIndexEntries walks a value's layout-plan fields and hands every
+// produced secondary-index key to fn: filter-field keys first (prefix + key
+// suffix), then sort-field keys. kind carries the error-message fragment
+// ("index entry" / "sort index entry") so callers keep their exact strings.
+func applyIndexEntries(
+	fields map[string]any,
 	plan layoutPlan,
+	col, key string,
+	fn func(kind string, idxKey []byte) error,
 ) error {
-	var fields map[string]any
-	if err := json.Unmarshal(valueJSON, &fields); err != nil {
-		return nil //nolint:nilerr // not JSON object — skip indexing
-	}
-
 	for _, field := range plan.filterFields {
 		fieldVal, ok := fields[field]
 		if !ok {
@@ -139,8 +136,8 @@ func (e *pebbleEngine) writeIndexEntries(
 		valStr := encodeIndexValue(fieldVal)
 		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
 
-		if err := batch.Set(idxKey, nil, nil); err != nil {
-			return fmt.Errorf("pebbleengine: write index entry: %w", err)
+		if err := fn("index entry", idxKey); err != nil {
+			return err
 		}
 	}
 
@@ -153,12 +150,34 @@ func (e *pebbleEngine) writeIndexEntries(
 		valStr := encodeIndexValue(fieldVal)
 		idxKey := sortIndexKey(col, field, valStr, key)
 
-		if err := batch.Set(idxKey, nil, nil); err != nil {
-			return fmt.Errorf("pebbleengine: write sort index entry: %w", err)
+		if err := fn("sort index entry", idxKey); err != nil {
+			return err
 		}
 	}
 
 	return nil
+}
+
+// writeIndexEntries writes secondary index entries for a value's filter and
+// sort fields. Called by MapSet when a layout plan exists for the collection.
+func (e *pebbleEngine) writeIndexEntries(
+	batch *pebble.Batch,
+	col, key string,
+	valueJSON []byte,
+	plan layoutPlan,
+) error {
+	var fields map[string]any
+	if err := json.Unmarshal(valueJSON, &fields); err != nil {
+		return nil //nolint:nilerr // not JSON object — skip indexing
+	}
+
+	return applyIndexEntries(fields, plan, col, key, func(kind string, idxKey []byte) error {
+		if err := batch.Set(idxKey, nil, nil); err != nil {
+			return fmt.Errorf("pebbleengine: write %s: %w", kind, err)
+		}
+
+		return nil
+	})
 }
 
 // deleteIndexEntries removes old secondary index entries for a key being updated.
@@ -178,27 +197,9 @@ func (e *pebbleEngine) deleteIndexEntries(
 		return
 	}
 
-	for _, field := range plan.filterFields {
-		fieldVal, ok := fields[field]
-		if !ok {
-			continue
-		}
-
-		valStr := encodeIndexValue(fieldVal)
-		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
-		_ = batch.Delete(idxKey, nil)
-	}
-
-	for _, field := range plan.sortFields {
-		fieldVal, ok := fields[field]
-		if !ok {
-			continue
-		}
-
-		valStr := encodeIndexValue(fieldVal)
-		idxKey := sortIndexKey(col, field, valStr, key)
-		_ = batch.Delete(idxKey, nil)
-	}
+	_ = applyIndexEntries(fields, plan, col, key, func(_ string, idxKey []byte) error {
+		return batch.Delete(idxKey, nil)
+	})
 }
 
 // fieldIndexPrefix builds the secondary index key prefix for a field (all values).

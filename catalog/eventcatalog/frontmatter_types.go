@@ -54,17 +54,6 @@ type attachmentFM struct {
 	Icon        string `yaml:"icon,omitempty"`
 }
 
-type changeFM struct {
-	Version string `yaml:"version"`
-	Date    string `yaml:"date,omitempty"`
-	Summary string `yaml:"summary"`
-}
-
-type ubiquitousLanguageTermFM struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description,omitempty"`
-}
-
 type agentModelFM struct {
 	Provider string `yaml:"provider"`
 	Name     string `yaml:"name"`

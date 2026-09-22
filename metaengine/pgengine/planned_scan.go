@@ -41,56 +41,16 @@ func validatePlannedFilterValue(
 	return nil
 }
 
-// appendPGPlannedFilter writes one filter clause with $N placeholders.
-// The caller passes started so the first clause gets " WHERE " and the
-// rest " AND ".
-//
-// art-dupl:accept cross-module SQL builder pattern — separate go.mod
+// appendPGPlannedFilter writes one filter clause with $N placeholders and
+// QuoteIdent-quoted column names; the clause mechanics live in
+// metaengine.AppendPlannedFilter.
 func appendPGPlannedFilter(
 	b *strings.Builder,
 	args *[]any,
 	f metaengine.FilterSpec,
 	started *bool,
 ) {
-	if f.Op == metaengine.FilterIn {
-		values, ok := f.Value.([]any)
-		if !ok || len(values) == 0 {
-			return
-		}
-
-		if !*started {
-			b.WriteString(" WHERE ")
-
-			*started = true
-		} else {
-			b.WriteString(" AND ")
-		}
-
-		placeholders := make([]string, len(values))
-		for i, v := range values {
-			placeholders[i] = fmt.Sprintf("$%d", len(*args)+1)
-
-			*args = append(*args, v)
-		}
-
-		fmt.Fprintf(b, "%s IN (%s)",
-			metaengine.QuoteIdent(f.Column), strings.Join(placeholders, ", "))
-
-		return
-	}
-
-	if !*started {
-		b.WriteString(" WHERE ")
-
-		*started = true
-	} else {
-		b.WriteString(" AND ")
-	}
-
-	fmt.Fprintf(b, "%s %s $%d",
-		metaengine.QuoteIdent(f.Column), string(f.Op), len(*args)+1)
-
-	*args = append(*args, f.Value)
+	metaengine.AppendPlannedFilter(b, args, f, started, metaengine.QuoteIdent, metaengine.DollarPlaceholders)
 }
 
 // buildPGPlannedScanQuery renders the planned-table pushdown SELECT: native

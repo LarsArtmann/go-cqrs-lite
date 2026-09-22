@@ -74,6 +74,7 @@ func (s *LogStore[T, ID]) Close() error {
 // under the lock.
 func (s *LogStore[T, ID]) WithWrite(code, msg string, fn func() error) error {
 	if err := wrapClosed(s.CheckClosed(s.cfg.ClosedErr), code, msg); err != nil {
+		//art-dupl:accept documented per-type lock-wrapper idiom (AGENTS.md internal contract #14)
 		return err
 	}
 
@@ -92,6 +93,7 @@ func WithReadLock[T any, ID comparable, R any](
 	fn func() (R, error),
 ) (R, error) {
 	if err := wrapClosed(s.CheckClosed(s.cfg.ClosedErr), code, msg); err != nil {
+		//art-dupl:accept documented per-type lock-wrapper idiom (AGENTS.md internal contract #14)
 		var zero R
 
 		return zero, err
