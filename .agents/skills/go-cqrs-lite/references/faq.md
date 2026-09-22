@@ -351,6 +351,32 @@ Reads see the evolved payload and `SchemaVersion()` bump; raw bytes and the
 write path stay untouched. Full recipe with the preservation rules: recipes
 §2.19b.
 
+## How do I write a minimal third-party engine for `system.New`?
+
+An engine is a `metaengine.Engine` (Profile + Closer). For anything beyond
+read-only query roles, the event write path is where honesty is enforced —
+fail-closed since `system/v4.9.0`:
+
+- `system.New` rejects an engine for the **source-of-truth role** at
+  construction (`ErrEventSaveNotAtomic`) when its event backend cannot save
+  atomically. You see this at wiring time, not under race load.
+- `EventAdapter.Save` requires the backend to implement
+  `metaengine.AtomicAppender` (append-if-version) or
+  `metaengine.Transactional` (transaction-wrapped read+append). A backend
+  with neither returns `ErrRacySaveRefused` — the old silent
+  check-then-append fallback is gone because under concurrency two writers
+  can both pass the version check and corrupt the stream sequence.
+- `WithRacySave()` opts back into the racy fallback **only** for a
+  deliberately single-threaded store (embedded test doubles, toy backends).
+  If you reach for it in production wiring, the engine needs one of the two
+  capability interfaces instead.
+
+So the minimal honest engine implements `AtomicAppender` — one method — and
+everything else (registration, capability reporting, reset semantics) rides
+the standard `Profile()` declaration. Engine authors get loud refusals
+instead of corrupted streams; see `system/adapter_event.go` for the exact
+capability dispatch.
+
 ## Will the v5 cut break my imports? What is going away?
 
 > **This section is the single canonical v5-removal list.** Other docs

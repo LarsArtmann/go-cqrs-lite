@@ -62,8 +62,8 @@ check_gomod_count() {
 }
 
 check_module_map() {
-	local dir="$1"
-	python3 - "$dir" <<'PYEOF'
+	local dir="$1" census_failed=0
+	python3 - "$dir" <<'PYEOF' || census_failed=1
 import re, subprocess, sys
 root = sys.argv[1]
 rows = set()
@@ -91,7 +91,7 @@ if missing:
     sys.exit(1)
 print(f"  module-map census: all {len(real)} modules rowed")
 PYEOF
-	if [[ $? -ne 0 ]]; then
+	if [[ $census_failed -ne 0 ]]; then
 		failures=$((failures + 1))
 	fi
 }
@@ -99,7 +99,7 @@ PYEOF
 check_recipes_count() {
 	local dir="$1"
 	local derived
-	derived=$(grep -hE '^\s*"[^"]+":\s*\{' "$dir"/cmd/doc-check/recipes_catalog*.go | wc -l | tr -d ' ')
+	derived=$(grep -hE '^\s*"[^"]+":\s*\{' "$dir"/cmd/doc-check/recipes_catalog*.go | awk 'END {print NR}')
 
 	local cited
 	cited=$(grep -oE '[0-9]+/[0-9]+ classified' "$dir/AGENTS.md" | head -1 | grep -oE '^[0-9]+')
@@ -136,7 +136,8 @@ self_test() {
 	printf 'var recipeCatalogA = map[string]recipeSpec{\n\t"r1": {\n\t\tpreamble: "x",\n\t},\n}\n' \
 		>"$tmp/cmd/doc-check/recipes_catalog.go"
 	printf '# t\n\n5 go.mod files and 1/1 classified\n' >"$tmp/AGENTS.md"
-	printf '# t\n' "$tmp/ROADMAP.md" >"$tmp/README.md"
+	printf '# t\n' >"$tmp/README.md"
+	printf '# t\n' >"$tmp/ROADMAP.md"
 
 	echo "━━━ check-canonical-facts self-test ━━━"
 
@@ -196,7 +197,7 @@ if [[ "$SELFTEST_MODE" == 1 ]]; then
 	exit $?
 fi
 
-cd "$ROOT"
+cd "$ROOT" || exit 1
 failures=0
 run_all "$ROOT"
 

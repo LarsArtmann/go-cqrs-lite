@@ -213,10 +213,10 @@ Evidence-grade metrics added (2026-08-01, ADR-0090).
 
 ### 3. cqrs-lint → Trustworthy
 
-The linter grew from 65 to **206 rules** across 10 categories. Quality has been
+The linter grew from 65 to **207 rules** across 10 categories. Quality has been
 hardened through multiple brutal review passes and 7 consumer feedback rounds.
 
-- ✅ **206 rules shipped** across correctness, API misuse, boilerplate, adoption,
+- ✅ **207 rules shipped** across correctness, API misuse, boilerplate, adoption,
   architecture, consistency, security, performance, testing, version.
   Metaengine-aware detection (F018-F026). Resilience rules (B029-B031).
   Observability rules (F027-F029). Optimistic concurrency rules (C041-C042).

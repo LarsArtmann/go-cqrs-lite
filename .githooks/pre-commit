@@ -13,17 +13,16 @@ set -euo pipefail
 #
 # Install/update with: nix run .#install-hooks
 
-# Mandatory disk-backed cache env chain (docs/agents/gowork-modes.md), go
-# builds inside the hook otherwise land on default caches that ENOSPC-rot.
-export GOCACHE="${GOCACHE:-/home/lars/projects/.gocache-disk}"
-export GOMODCACHE="${GOMODCACHE:-/tmp/gomod-verify}"
-export GOPATH="${GOPATH:-/tmp/gopath-verify}"
-export GOTOOLCHAIN="${GOTOOLCHAIN:-auto}"
-export GOTMPDIR="${GOTMPDIR:-/home/lars/projects/.gotmp}"
-export TMPDIR="${TMPDIR:-/home/lars/projects/.gotmp}"
-
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+
+# Mandatory disk-backed cache env chain (docs/agents/gowork-modes.md), go
+# builds inside the hook otherwise land on default caches that ENOSPC-rot.
+# Forced overrides via scripts/go-env.sh (T05): the ambient session env can
+# carry GOTOOLCHAIN=local (nixpkgs Go wrapper) and caches on a full
+# /mnt/buildcache — the old `${VAR:-default}` form let those poison the
+# hook's build leg (the 2026-09-22 --no-verify class).
+source "$ROOT/scripts/go-env.sh"
 
 # Advisory verify-window lock (W3 Q5): serialize the hook chain against
 # verify/release windows. Waits up to 60s (daemons release quickly) instead
@@ -146,7 +145,7 @@ fi
 
 if [ -n "$(staged 'scripts/.*\.sh$')" ]; then
 	echo "==> shellcheck on scripts/ (commit touches scripts/)"
-	if ! nix-shell -p shellcheck --run 'shellcheck scripts/*.sh'; then
+	if ! nix-shell -p shellcheck --run 'shellcheck scripts/*.sh scripts/lib/*.sh'; then
 		echo "ERROR: shellcheck findings in scripts (repo gate is zero findings)"
 		exit 1
 	fi

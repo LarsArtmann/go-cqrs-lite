@@ -31,7 +31,19 @@ func TestGettingStarted_CounterValue(t *testing.T) {
 		t.Fatalf("runPipeline: %v", err)
 	}
 
-	if view.Value != 10 {
-		t.Errorf("counter value: got %d, want 10", view.Value)
+	// The at-least-once canary (see README): delivery is at-least-once, so a
+	// correct projection must dedup the drain/live overlap. The two wrong
+	// directions name different seams.
+	switch {
+	case view.Value > 10:
+		t.Errorf(
+			"counter value: got %d, want 10 — events applied more than once: the projection double-applied the drain/live overlap (delivery is at-least-once BY DESIGN; the fold layer must be idempotent or the checkpoint store must dedup — this is a library bug, not flakiness)",
+			view.Value,
+		)
+	case view.Value < 10:
+		t.Errorf(
+			"counter value: got %d, want 10 — events lost between journal and projection: a replay/checkpoint gap (pin drift or a missed journal segment), not a fold bug (folds are pure and total)",
+			view.Value,
+		)
 	}
 }

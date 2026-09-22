@@ -39,8 +39,13 @@ go_work_modules=$(grep -E '^[[:space:]]*\./' go.work | grep -oE '\./[a-zA-Z0-9/_
 flake_modules=$(awk '/testModules = \[/,/\]/' flake.nix |
 	grep -oE '"[a-zA-Z0-9/_-]+"' | tr -d '"' | sort -u)
 
-# Also get example modules (always tested via examplePaths)
-example_modules=$(grep '"\./example/' flake.nix | sed 's|.*"\./\(example/[a-zA-Z0-9/_-]*\)/\.\.\.".*|\1|' | sort -u)
+# Also get example modules (always tested via examplePaths). The flake lists
+# them in the exampleModules array as bare "example/<name>" strings; the old
+# '"./example/…/..."' grep form died silently under set -e + pipefail once the
+# flake moved to the array form (no match → rc 1 → every authored commit's
+# hook leg aborted with no diagnostics). Keep the || true guards.
+example_modules=$(awk '/exampleModules = \[/,/\]/' flake.nix |
+	grep -oE '"example/[a-zA-Z0-9/_-]+"' | tr -d '"' | sort -u || true)
 
 # Combine flake + example modules as "tested"
 tested_modules=$(printf '%s\n%s\n' "$flake_modules" "$example_modules" | sort -u)

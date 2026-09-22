@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/taskmanager
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-codec v0.3.0
@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/middleware/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.0
@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/larsartmann/go-idempotency v0.3.0
 	go.opentelemetry.io/otel v1.46.0

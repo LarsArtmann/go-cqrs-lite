@@ -133,14 +133,13 @@ name every engine placement the planner made — the README walks the real outpu
 
 ```go
 // the developer surface beyond the structs: folds declared ONCE, zero closures
-tasks := system.OnEvolution(
-    system.OnEvolution(
-        system.Evolve[TaskView]("tasks"),
-        "task.created", TaskCreated{},
-    ),
-    "task.updated", TaskUpdated{},
-)
-evo := system.OnEvolution(tasks, "task.deleted", TaskDeleted{}).Done()
+// (system v4.9 fluent chain — On is the method form of OnEvolution for
+// convention events; explicit fold closures still use OnEvolution)
+tasks := system.Evolve[TaskView]("tasks").
+	On("task.created", TaskCreated{}).
+	On("task.updated", TaskUpdated{}).
+	On("task.deleted", TaskDeleted{}).
+	Done()
 
 // two read shapes inherit the folds by result type — no per-projection fold code
 lookup := system.Lookup[TaskView]("tasks").Done()

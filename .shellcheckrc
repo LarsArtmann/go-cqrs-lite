@@ -1,0 +1,12 @@
+# shellcheck policy (2026-09-22): the scripts/ gate runs zero-findings.
+# external-sources follows scripts/lib/*.sh so sourced libraries are linted
+# with their consumers. The four disables below are info/style heuristics
+# that misfire on this repo's intentional patterns: printf fixture literals
+# containing backticks (SC2016 — double quotes would execute them),
+# log-appending wrappers (SC2094), A && B || C assertion chains in
+# self-tests (SC2015), and sed line-prefixing where parameter expansion
+# cannot express the transform (SC2001). SC1091 is disabled because the
+# repo's SCRIPT_DIR-pattern sources are dynamically pathed and cannot be
+# followed; the gate lints scripts/lib/*.sh explicitly instead.
+external-sources=true
+disable=SC1091,SC2001,SC2015,SC2016,SC2094

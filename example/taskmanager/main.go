@@ -32,6 +32,7 @@ func main() {
 	}
 
 	help := flag.Bool("help", false, "print this usage and exit")
+
 	flag.StringVar(&cfg.HTTPAddr, "addr", cfg.HTTPAddr, "HTTP listen address")
 	flag.StringVar(
 		&cfg.DatabasePath,

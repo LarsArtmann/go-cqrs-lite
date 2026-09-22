@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/goal-shaped-app
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.5.0
@@ -51,7 +51,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/projectionadapter/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect

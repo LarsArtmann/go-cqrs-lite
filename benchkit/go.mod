@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/benchkit/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/dustin/go-humanize v1.1.0
@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
@@ -22,7 +22,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/sqlite/v4 v4.3.2
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.1

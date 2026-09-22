@@ -240,6 +240,11 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Forced go env chain (T05): benchmark builds must not write to a full
+# /mnt/buildcache or run under an ambient GOTOOLCHAIN=local — both silently
+# skew or kill the gate (docs/agents/gowork-modes.md contract).
+source "$REPO_ROOT/scripts/go-env.sh"
+
 # guard_root resolves the source tree the rename guards grep: the repo, or
 # the fixture-injection root.
 guard_root() {

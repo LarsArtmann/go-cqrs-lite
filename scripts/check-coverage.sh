@@ -17,14 +17,10 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Self-heal the toolchain cache env (the nix wrapper runs this script bare;
 # without writable caches go test fails and coverage parses as EMPTY — the
-# vacuous 0.0%-DRIFT class this script once reported). Set-before-use only:
-# an explicitly exported environment always wins.
-: "${GOCACHE:=${HOME:-/home}/.cache/go-build}"
-: "${GOMODCACHE:=${HOME:-/home}/go/pkg/mod}"
-: "${GOPATH:=${HOME:-/home}/go}"
-: "${GOTMPDIR:=$(mktemp -d)}"
-: "${GOTOOLCHAIN:=auto}"
-export GOCACHE GOMODCACHE GOPATH GOTMPDIR GOTOOLCHAIN
+# vacuous 0.0%-DRIFT class this script once reported). Forced chain via
+# scripts/go-env.sh (T05): the old set-before-use form let an ambient
+# GOTOOLCHAIN=local (nixpkgs Go wrapper) poison the run the same way.
+source "$PWD/scripts/go-env.sh"
 
 # Tolerance: coverage changes below this are noise (minor refactors). Anything
 # larger is real drift that should update AGENTS.md.

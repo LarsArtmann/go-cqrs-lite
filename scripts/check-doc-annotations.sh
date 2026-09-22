@@ -150,7 +150,7 @@ if [[ "$SELFTEST_MODE" == 1 ]]; then
 	exit $?
 fi
 
-cd "$ROOT"
+cd "$ROOT" || exit 1
 
 if [[ "$WRITE_BASELINE" == 1 ]]; then
 	{

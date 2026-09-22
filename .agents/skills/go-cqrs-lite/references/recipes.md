@@ -2597,14 +2597,11 @@ drivers as blank imports — and `ExplainPlan()`/`Doctor()` explain every
 placement the planner made:
 
 ```go
-tasks := system.OnEvolution(
-	system.OnEvolution(
-		system.Evolve[TaskView]("tasks"),
-		"task.created", TaskCreated{},
-	),
-	"task.updated", TaskUpdated{},
-)
-evo := system.OnEvolution(tasks, "task.deleted", TaskDeleted{}).Done()
+tasks := system.Evolve[TaskView]("tasks").
+	On("task.created", TaskCreated{}).
+	On("task.updated", TaskUpdated{}).
+	On("task.deleted", TaskDeleted{}).
+	Done()
 
 lookup := system.Lookup[TaskView]("tasks").Done()
 openTasks := system.QuerySet[TaskView]("open_tasks").Filterable("status").Done()

@@ -20,9 +20,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > Turso section). **Current plan (2026-09-22 01:25):**
 > [`docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
 > (T01–T27, all 25 sections mapped; 1% tier = restore the go 1.27.1 contract
-> + drift gate + composed verify; predecessor:
-> [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
-> M-items folded into the new T-numbering). This file remains the living source of truth.
+>
+> - drift gate + composed verify; predecessor:
+>   [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
+>   M-items folded into the new T-numbering). This file remains the living source of truth.
 
 ## Section index
 
@@ -87,7 +88,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       completed the jsonv2 graduation (2026-09-19) and the load-sweep + baseline
       re-pin landed 2026-09-20 (`a91e7cd90`, T18b arc). Row kept as the section
       anchor only. _(Effort: —)_
-
 
 ## Durable Work Queue module (proposed 2026-09-13)
 
@@ -198,9 +198,9 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 >   and fold-write failover with `CatchUpEngine` (ADR-0137 completion —
 >   writes reroute like reads; reprobe rebuilds before reactivating).
 
-  `metaengine/projectionadapter`/`irohengine` sibling replaces and repinned
-  every consumer (`pin-sweep --check --remote` green; tags verified
-  replace-free — 10-25 §a2/§a3, now archived).
+`metaengine/projectionadapter`/`irohengine` sibling replaces and repinned
+every consumer (`pin-sweep --check --remote` green; tags verified
+replace-free — 10-25 §a2/§a3, now archived).
 
 ---
 
@@ -333,26 +333,26 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `event/v4/eventtest`'s invisible v0.x tags:
       document as dead in modules.md + pin-sweep note. — source: 01-47 §c1/§f9/§f10
       _(Effort: M decision + S doc)_
-  — 92 releases created for the train (152 repo total);
-  `create-github-releases.sh` extended to match train-section headers
-  (bounded-token match, newest section first, trimmed body + CHANGELOG
-  pointer like the 09-08 precedent) with `--dry-run`; all 92 extracted,
-  bogus tags skip. `gh` auth working. — source: 05-00 §f12
-  _(Effort: S)_
-  ADR-0128 extracted codec/retry/idempotency/flightrecorder to external
-  repos and the 92-tag train repinned everything; zero
-  `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}` references
-  remain in any go.mod (verified by grep across all 95).<br>**Original:**
-  the transitive
-  `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}/v4` indirect deps
-  in ~49 consumer go.mod files clean up after new tags publish. Track and
-  verify. _(Effort: M)_
-  done 2026-09-19 — the train's cut loop ran per-batch pin-sweeps (commits
-  2a9ccb75a…38c3b4fd4) and the post-wave `--check --remote` is green
-  (local + origin tag sources); `storage/eventstore` is a package inside
-  `storage/v4`, so its pin health is the storage pin coherence the sweep
-  already covers. — source: archived 07-48 §b2/§f2
-  _(Effort: S)_
+      — 92 releases created for the train (152 repo total);
+      `create-github-releases.sh` extended to match train-section headers
+      (bounded-token match, newest section first, trimmed body + CHANGELOG
+      pointer like the 09-08 precedent) with `--dry-run`; all 92 extracted,
+      bogus tags skip. `gh` auth working. — source: 05-00 §f12
+      _(Effort: S)_
+      ADR-0128 extracted codec/retry/idempotency/flightrecorder to external
+      repos and the 92-tag train repinned everything; zero
+      `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}` references
+      remain in any go.mod (verified by grep across all 95).<br>**Original:**
+      the transitive
+      `go-cqrs-lite/{codec,retry,idempotency,flightrecorder}/v4` indirect deps
+      in ~49 consumer go.mod files clean up after new tags publish. Track and
+      verify. _(Effort: M)_
+      done 2026-09-19 — the train's cut loop ran per-batch pin-sweeps (commits
+      2a9ccb75a…38c3b4fd4) and the post-wave `--check --remote` is green
+      (local + origin tag sources); `storage/eventstore` is a package inside
+      `storage/v4`, so its pin health is the storage pin coherence the sweep
+      already covers. — source: archived 07-48 §b2/§f2
+      _(Effort: S)_
 - [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
       metaengine wave (row above); queue/mysql + `testutil/mysqltestcontainer`
       tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
@@ -380,7 +380,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ---
 
 ## Metaengine — follow-ups
-
 
 - [ ] **Turso grouped-materialized-views fail-closed (feedback #2)** —
       `WithKnownGroupedViewBug`-style opt-in: grouped matviews diverge silently
@@ -424,14 +423,15 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > calibration, planner polish, keycodec, restart harnesses) SHIPPED in full —
 > see CHANGELOG `[Unreleased]`. What follows is the open tail.
 
-  done 2026-09-21 (M16) — every §2.11 claim re-verified against source
-  (probe interval 1s `probe.go:89-115`, timeout 5s, jitter 0.2,
-  `DefaultRoutingHysteresis` 0.20 `store_routing.go:17-24`,
-  `StartAutoReplan` stop-func shape, `Replan`, `GetEngineStats`,
-  `FormatLiveLatency`): section accurate as-written, no edits needed. —
-  evidence: archived 15-34 §a9.<br>**Original:** recipes §2.11
-  (`ProbeEngine`/`LatencyTracker`/`Calibration` surface) had never been
-  drift-checked against the shipped code. — source: archived 16-43 §f16 _(Effort: S)_
+done 2026-09-21 (M16) — every §2.11 claim re-verified against source
+(probe interval 1s `probe.go:89-115`, timeout 5s, jitter 0.2,
+`DefaultRoutingHysteresis` 0.20 `store_routing.go:17-24`,
+`StartAutoReplan` stop-func shape, `Replan`, `GetEngineStats`,
+`FormatLiveLatency`): section accurate as-written, no edits needed. —
+evidence: archived 15-34 §a9.<br>**Original:** recipes §2.11
+(`ProbeEngine`/`LatencyTracker`/`Calibration` surface) had never been
+drift-checked against the shipped code. — source: archived 16-43 §f16 _(Effort: S)_
+
 - [ ] [BLOCKED] **Turso strict-vs-lenient DSN param policy** — the driver
       silently ignores mistyped encryption params (`encryption_hexkkey=` opens
       the DB UNENCRYPTED). Strict posture (reject unknown `*encrypt*`/`*key*`
@@ -481,12 +481,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ## CI / Infrastructure
 
-  `scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
-  `scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
-  load assert), and the `#verify` `-p` parallelism cap (`VERIFY_TEST_P`, set
-  to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
-  went GREEN the same day (S03). Remaining launcher ergonomics live in the
-  release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
+`scripts/wait-for-quiet.sh` (1-min AND 5-min ceilings, self-tested),
+`scripts/can-run-composed-gate.sh` (no-release-procs + tree-stability +
+load assert), and the `#verify` `-p` parallelism cap (`VERIFY_TEST_P`, set
+to 4) all shipped in T26 (09-40 §a4, now archived); composed-`#verify`
+went GREEN the same day (S03). Remaining launcher ergonomics live in the
+release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/17, 18-11 §f11
+
 - [ ] [BLOCKED] 🔥 **Push decision (owner)** — 30+ commits from ≥3 sessions sit
       unpushed on master (v4.9.0 wave, go.work fix, guard wave, md-go gate);
       ALL remote CI evidence is gated on it (M23's ci.yml leg, the `Examples
@@ -501,6 +502,33 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       until re-restored; earlier waves: `27093331c` 18:38, `96dc20986` #11).
       Vigilance failed three times — the gate is the only durable answer.
       — source: closeout §f8/§e1/§d1, verified live by the 11th docs pass _(Effort: S; re-restore = S mechanical)_
+      RESOLVED 2026-09-22 ~02:45: ROOT CAUSE FOUND — BuildFlow's
+      `go-version-auto-configure` auto-fix (pre-commit hook) canonicalizes go
+      directives to major.minor (`1.27.1`→`1.27`); every wave was an authored
+      commit's hook run + daemon absorption (2 more waves: ~02:39 + the
+      02:41 failed-commit replay). FIX SHIPPED: (1) `.buildflow.yml`
+      `skip_steps: [go-version-auto-configure]` (dry-run-verified effective);
+      (2) gate extended with floor + full lockstep equality + CI=true leg
+      (self-test 9/9 green; wiring inherited via #verify head + nightly);
+      (3) upstream BuildFlow patch-floor fix → F154. Waves 5 restores landed
+      with the skip in place — no recurrence since.
+- [ ] **F154: BuildFlow upstream — go-version-auto-configure must respect
+      dependency-driven patch floors** — the step canonicalizes go directives
+      to major.minor, silently downgrading modules whose deps require the
+      patch (this repo: 5 waves, hours lost). File upstream (owner-approved
+      class) with the repro: module with `go 1.27.1` + dep requiring >=1.27.1,
+      `buildflow -s go-version-auto-configure --fix` → directive becomes
+      `go 1.27`, build breaks. Fleet-wide blast radius — every LarsArtmann
+      repo with a patch-qualified contract is exposed. — source: 2026-09-22
+      root-cause session _(Effort: S filing)_
+- [ ] **F153: pkg.go.dev license detection — "License: UNKNOWN"** hides all
+      module docs (license-redistribution gate) for system/v4@v4.9.0 — and
+      possibly every module: no LICENSE file at module subdirectory roots?
+      Verify whether the repo-root LICENSE propagates to submodules on
+      pkg.go.dev; if not, decide per-module LICENSE files or accept hidden
+      docs. Consumer-trust blocker for the public surface. — source: T03
+      post-wave verification 2026-09-22 _(Effort: S verify, M if per-module
+      LICENSE files needed)_
 - [ ] **Pre-commit hook env hygiene** — the hook's appended workspace build and
       govulncheck step run on the ambient toolchain (host go 1.26.7 → garbage
       errors, the mid-wave `--no-verify` workaround); inject the documented env
@@ -508,7 +536,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       — source: closeout §f9/§f33, followups §f12 _(Effort: M)_
 - [ ] **`/mnt/buildcache` capacity monitoring** — hit 100% mid-gate on
       2026-09-21 (an 18G shared-go-cache clear forced rebuilds on other
-      builders); 80% warning + a bounded `go clean` policy.
+      builders); 80% warning + a bounded `go clean` policy. RECURRED
+      2026-09-22 02:49 — 100% full again (208G/220G, 0 avail; ambient-
+      GOMODCACHE toolchain unzips die "no space left on device"; the go-mod
+      subdir is only 5.6G, so ~200G lives elsewhere on the mount — needs a
+      `du` breakdown before any clear policy).
       — source: followups §f13/§e8 _(Effort: S)_
 - [ ] **Watch the first real CI runs (push-gated)** — `Examples Test` job
       (nix eval, 10m timeout, DB-skip env), the md-go-validator ci.yml leg
@@ -819,7 +851,16 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       (`AtomicAppender`/`Transactional` honestly; racy fallback now refused) +
       the fail-closed registration recipe. — source: closeout §f4/§f6/§f14,
       followups §f14-16/§f48 _(Effort: M)_
-- [ ] **Post-wave release verification** — confirm the 4 GitHub Releases
+- [x] **Post-wave release verification** — done 2026-09-22 (T03): 3 of 4
+      Releases had rendered (system/v4.9.0, record/v4.6.0,
+      projectionhost/v4.5.1); `scheduling/sqlstore/v4.1.1`'s tag was pushed
+      but release.yml never triggered for it — release created manually
+      with a provenance note. system/v4.9.0 notes curated (headline: fluent
+      `.On` chain + fail-closed racy Save). pkg.go.dev indexes system/v4
+      @v4.9.0; `On`/`WithRacySave` render, `ErrRacySaveRefused` defined at
+      system/errors.go:24 and tagged — BUT pkg.go.dev shows "License:
+      UNKNOWN" and hides docs (license-redistribution gate) → folded into
+      F153. Original: confirm the 4 GitHub Releases
       rendered (release.yml on the v4.9.0-wave tags) + curate system/v4.9.0's
       notes; pkg.go.dev spot-check that `On`/`ErrRacySaveRefused`/`WithRacySave`
       render. Push-gated. — source: closeout §f3/§f27 _(Effort: S)_
@@ -931,16 +972,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > FilterContains + Forever + E9/E10 + matview guard; P2: v5 deletions + E-items +
 > AggregateOn seam; P3: proof + docs + v5.0.0 cut).
 
-  DELIVERED 2026-09-21:
-  [`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md)
-  (verified current reality: lease semantics live only in `queue/` + `claiming/`
-  task claims; recommendation = `EngineConfig.SingleWriter` advisory
-  `<dsn>.cqrs-lease` flock, fail-loud default-off; becomes ADR-0146 on
-  ratification). REMAINS OPEN: owner ratification + implementation before v5
-  freezes engine construction surfaces.<br>**Original:** CV's Phase-0 ADR
-  conditions every library-store cutover on a CV-owned `metaengine.RegisterDriver`
-  decorator wrapping their `<dsn>.lease` single-writer marker, because the library
-  has NO engine/store-level lock. — source: reflection doc §4.2
+DELIVERED 2026-09-21:
+[`docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md`](docs/planning/2026-09-21_engine-single-writer-lease-one-pager.md)
+(verified current reality: lease semantics live only in `queue/` + `claiming/`
+task claims; recommendation = `EngineConfig.SingleWriter` advisory
+`<dsn>.cqrs-lease` flock, fail-loud default-off; becomes ADR-0146 on
+ratification). REMAINS OPEN: owner ratification + implementation before v5
+freezes engine construction surfaces.<br>**Original:** CV's Phase-0 ADR
+conditions every library-store cutover on a CV-owned `metaengine.RegisterDriver`
+decorator wrapping their `<dsn>.lease` single-writer marker, because the library
+has NO engine/store-level lock. — source: reflection doc §4.2
+
 - [ ] **`FilterContains`/`FilterPrefix` FilterOp extension** — metaengine
       FilterOp today is exactly eq/ne/lt/le/gt/ge/in (`enum_validation.go:71`);
       substring search degrades to a client-side full scan (CV measured
@@ -962,13 +1004,13 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       CV-side at system v4.7.0 (= latest tag). A release lets consumers
       delete their bespoke gates. — source: reflection doc §4.3; rides the
       existing "Next v4 tag wave" row (P0 in the SUPERB plan) _(Effort: S — routine tag-wave mechanics)_
-  readmodels.md Scan-limit note, modules.md Scan-default mention, and the
-  CHANGELOG `[Unreleased]` entry shipped 2026-09-17; ALL doc-check
-  ambiguous-alias advisories resolved (it was 5 by then, not 3 — the
-  alias set grew with queue/*: every affected fence now imports the exact
-  package, doc-check zero warnings, recipes harness green); overflow
-  probe source embedded in the review doc §3.1b on 2026-09-18.
-  <br>**Original:** status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104
+      readmodels.md Scan-limit note, modules.md Scan-default mention, and the
+      CHANGELOG `[Unreleased]` entry shipped 2026-09-17; ALL doc-check
+      ambiguous-alias advisories resolved (it was 5 by then, not 3 — the
+      alias set grew with queue/*: every affected fence now imports the exact
+      package, doc-check zero warnings, recipes harness green); overflow
+      probe source embedded in the review doc §3.1b on 2026-09-18.
+      <br>**Original:** status report 2026-09-16 21-02 §f-2/12/13; SUPERB plan T27/M104
 - [ ] **benchkit cross-tier PARITY gate** — before any tier-vs-tier benchmark
       number is trusted, assert cross-tier result identity (full snapshot,
       stat counts, ranked IDs) — the template CV's four-tier benchmark
@@ -1053,6 +1095,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       `references/advanced.md`, both cross-links, and the claims-checklist rule
       all landed 2026-09-21). — source: 19-45 §f1/§f3-5/§f8; 19-57 §f3/§f8
       _(Effort: S)_
+
 ## Temporal versioned cells — ADR-0141 follow-ups (harvested 2026-09-18)
 
 > From the temporal deep-dive reports
@@ -1193,7 +1236,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       CI-only (fast local loops); the projectionhost double-apply bug lived
       precisely in the build-vs-tested gap. Owner call on gate ownership.
       — source: 23-24 followups §f11/§g2 _(Effort: XS decision)_
-
 
 ---
 

@@ -714,7 +714,7 @@ _ "github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/toolspec"
 full mode reports findings and measures Repair by re-detecting — BuildFlow
 does not trust self-reported fix counts).
 
-Detect runs all 206 rules with the working directory from the toolsdk context;
+Detect runs all 207 rules with the working directory from the toolsdk context;
 Repair applies the same safe C-series structural rewrites as `--fix`.
 
 ## CI Integration

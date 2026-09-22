@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/example/metaengine-quickstart
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.8.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
 )
 
 require (
@@ -40,7 +40,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect

@@ -4,6 +4,34 @@
 # FIXME/XXX/BUG-class markers fail; TODO/NOTE/OPTIMIZE do not block commits.
 todo_min_severity: warning
 
+# go-version-auto-configure strips patch components from go directives
+# (1.27.1 -> 1.27) under its "major.minor only" rule. This repo's W3 Q4
+# ruling (2026-09-20, docs/agents/gowork-modes.md) pins the contract at
+# go 1.27.1 because published deps (go-finding toolsdk >= 1.27.1) hard-fail
+# under `go 1.27` + GOTOOLCHAIN=auto. The step's --fix caused every
+# directive-downgrade wave (root cause found 2026-09-22 via the buildflow
+# DB). Skipped until BuildFlow learns dependency-driven patch floors;
+# upstream fix tracked in TODO_LIST.md.
+skip_steps:
+  - go-version-auto-configure
+
+# The host go (1.26.7) is older than the workspace contract (go 1.27.1);
+# BuildFlow pins GOTOOLCHAIN=local for hermeticity, which made every go
+# step false-skip and the hook's build leg fail (T20 hole). auto lets go
+# resolve 1.27.1 from the module cache — same contract as the documented
+# env chain in docs/agents/gowork-modes.md. In the nix sandbox the pinned
+# go_1_27 already satisfies the directive, so no download is attempted.
+env:
+  GOTOOLCHAIN: auto
+  # /mnt/buildcache (host go's default cache mount) hit 100% on 2026-09-22 —
+  # every tool write failed with ENOSPC. Use the same disk-backed chain as the
+  # repo's verify apps (docs/agents/gowork-modes.md), all on / which has room.
+  GOCACHE: /home/lars/projects/.gocache-disk
+  GOMODCACHE: /tmp/gomod-verify
+  GOPATH: /tmp/gopath-verify
+  GOLANGCI_LINT_CACHE: /home/lars/projects/.golangci-disk
+  GOTMPDIR: /home/lars/projects/.gotmp
+
 exclude:
   - "**/docserver/static/**"
   - "**/eventcatalog-output/**"
