@@ -235,8 +235,8 @@ func TestExporter_CustomDoc(t *testing.T) {
 
 	cattest.AssertContentContains(
 		t, content, "custom doc mdx",
-		"id: adr-001",
 		"title: 'ADR-001: Use Event Sourcing'",
+		"summary: Decision to adopt event sourcing",
 		"slug: adrs/adr-001",
 		"Event sourcing",
 	)
@@ -256,7 +256,8 @@ func TestExporter_CustomDocDefaultSlug(t *testing.T) {
 
 	cattest.AssertContentContains(
 		t, content, "custom doc default slug",
-		"id: architecture",
+		"title: Architecture Overview",
+		"summary: \"\"",
 		"# Architecture Overview",
 	)
 }
@@ -431,10 +432,21 @@ func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
 	cattest.AssertContentContains(
 		t, content, "domain mdx",
 		"id: orders",
-		"ubiquitousLanguage:",
+		"data-products:",
+	)
+
+	if strings.Contains(content, "ubiquitousLanguage") {
+		t.Errorf("ubiquitous language must not be frontmatter (EventCatalog rejects it):\n%s", content)
+	}
+
+	dictionary := readExported(t, tmpDir, "domains", "orders", "ubiquitous-language.mdx")
+	cattest.AssertContentContains(
+		t, dictionary, "ubiquitous-language.mdx",
+		"dictionary:",
+		"id: Order",
 		"name: Order",
 		"description: A customer request to purchase items",
-		"data-products:",
+		"name: Fulfillment",
 	)
 }
 
@@ -508,7 +520,8 @@ func TestExporter_FlowStepWithNewTypes(t *testing.T) {
 	cattest.AssertContentContains(
 		t, content, "flow with new step types",
 		"agent:",
-		"dataStore:",
+		"container:",
+		"id: db",
 		"dataProduct:",
 	)
 }
@@ -530,8 +543,8 @@ func TestExporter_FlowStepSubFlow(t *testing.T) {
 	tmpDir := exportCatalog(t, reg)
 	content := readExported(t, tmpDir, "flows", "parent-flow", "index.mdx")
 
-	if !strings.Contains(content, "subFlow:") {
-		t.Errorf("flow should contain subFlow step\n%s", content)
+	if !strings.Contains(content, "flow:") {
+		t.Errorf("flow should contain nested flow step\n%s", content)
 	}
 }
 

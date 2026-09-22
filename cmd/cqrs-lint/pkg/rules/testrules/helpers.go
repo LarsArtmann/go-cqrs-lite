@@ -2,7 +2,6 @@ package testrules
 
 import (
 	"go/ast"
-	"strings"
 
 	"github.com/larsartmann/go-finding"
 
@@ -23,27 +22,11 @@ func hasTestFiles(ctx *analyzer.AnalysisContext) bool {
 	return false
 }
 
-// fileImportsSubstr returns true if the AST file imports a path containing substr.
-func fileImportsSubstr(file *ast.File, substr string) bool {
-	for _, imp := range file.Imports {
-		if imp == nil || imp.Path == nil {
-			continue
-		}
-
-		path := strings.Trim(imp.Path.Value, `"`)
-		if strings.Contains(path, substr) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // anyFileImports checks if any Go file (test or production) imports a path
 // containing substr.
 func anyFileImports(ctx *analyzer.AnalysisContext, substr string) bool {
 	for _, gf := range ctx.GoFiles {
-		if fileImportsSubstr(gf.AST, substr) {
+		if lintutil.FileImportsSubstr(gf.AST, substr) {
 			return true
 		}
 	}
@@ -58,7 +41,7 @@ func anyProdFileImports(ctx *analyzer.AnalysisContext, substr string) bool {
 			continue
 		}
 
-		if fileImportsSubstr(gf.AST, substr) {
+		if lintutil.FileImportsSubstr(gf.AST, substr) {
 			return true
 		}
 	}

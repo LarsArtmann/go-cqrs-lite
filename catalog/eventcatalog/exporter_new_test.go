@@ -248,9 +248,6 @@ func TestExporter_Export_ServiceWithBaseConfig(t *testing.T) {
 			Sidebar:    &catalog.SidebarConfig{Badge: "v2", Label: "MySvc"},
 			Styles:     &catalog.StylesConfig{Icon: "server", NodeColor: "blue"},
 			Draft:      &catalog.DraftConfig{Title: "WIP", Message: "Do not use yet"},
-			ResourceGroups: []catalog.ResourceGroup{
-				{ID: "rg1", Title: "Group 1", Limit: 5},
-			},
 		},
 	})
 
@@ -272,8 +269,35 @@ func TestExporter_Export_ServiceWithBaseConfig(t *testing.T) {
 	assertContains(t, content, "badge: v2")
 	assertContains(t, content, "label: MySvc")
 	assertContains(t, content, "icon: server")
-	assertContains(t, content, "nodeColor: blue")
+	assertContains(t, content, "node:")
+	assertContains(t, content, "color: blue")
 	assertContains(t, content, "title: WIP")
+}
+
+// TestExporter_Export_ResourceGroupsRejected pins the loud-failure contract:
+// EventCatalog resourceGroups items must be typed resource pointers, which
+// catalog.ResourceGroup.Items (plain strings) cannot express. Exporting such
+// a catalog must fail with a Rejection instead of emitting frontmatter that
+// breaks the downstream eventcatalog build.
+func TestExporter_Export_ResourceGroupsRejected(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	reg := cattest.NewTestRegistry(catalog.Service{
+		ID: "svc", Name: "Service", Version: "1.0.0",
+		BaseConfig: catalog.BaseConfig{
+			ResourceGroups: []catalog.ResourceGroup{
+				{ID: "rg1", Title: "Group 1", Items: []string{"OrderCreated"}, Limit: 5},
+			},
+		},
+	})
+
+	err := NewExporter(tmpDir).Export(reg.Build())
+	if err == nil {
+		t.Fatal("expected export to reject ResourceGroups")
+	}
+
+	assertContains(t, err.Error(), "resourceGroups")
 }
 
 func TestExporter_Export_TeamWithSource(t *testing.T) {

@@ -135,8 +135,8 @@ func TestExporter_Export_ExamplesFile(t *testing.T) {
 
 	cattest.AssertContentContains(
 		t,
-		readExported(t, tmpDir, "commands", "CreateOrder", "examples.json"),
-		"examples.json",
+		readExported(t, tmpDir, "commands", "CreateOrder", "examples", "example-1.json"),
+		"examples/example-1.json",
 		"orderId",
 		"42.5",
 	)

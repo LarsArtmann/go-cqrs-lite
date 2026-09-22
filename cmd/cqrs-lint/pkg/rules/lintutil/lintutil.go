@@ -451,3 +451,20 @@ func lastSegment(importPath string) string {
 
 	return importPath
 }
+
+// FileImportsSubstr reports whether the AST file imports a path containing
+// substr. Shared by the architecture and testrules detectors.
+func FileImportsSubstr(file *ast.File, substr string) bool {
+	for _, imp := range file.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+
+		path := strings.Trim(imp.Path.Value, `"`)
+		if strings.Contains(path, substr) {
+			return true
+		}
+	}
+
+	return false
+}

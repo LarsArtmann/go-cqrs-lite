@@ -18,6 +18,7 @@ func TestRenderMDX_MessageFullFields(t *testing.T) {
 		Summary:   "Creates a new order",
 		Direction: catalog.Receives,
 		Labels:    map[string]string{"domain": "ordering", "team": "order-team"},
+		Changelog: []catalog.Change{{Version: "1.0.0", Summary: "initial release"}},
 		Producers: []catalog.ServiceID{"order-svc"},
 		Consumers: []catalog.ServiceID{"payment-svc", "inventory-svc"},
 		Operation: &catalog.Operation{
@@ -41,8 +42,7 @@ func TestRenderMDX_MessageFullFields(t *testing.T) {
 		Version:    string(msg.Version),
 		Summary:    string(msg.Summary),
 		Owners:     msg.Owners,
-		Labels:     msg.Labels,
-		Changelog:  toChangelog(msg.Changelog),
+		XLabels:    msg.Labels,
 		Producers:  toServiceRefs(msg.Producers, nil),
 		Consumers:  toServiceRefs(msg.Consumers, nil),
 		Operation:  toOperation(msg.Operation),
@@ -78,6 +78,16 @@ func TestRenderMDX_MessageFullFields(t *testing.T) {
 	frontmatterAssertContains(t, out, "icon: check")
 	frontmatterAssertContains(t, out, "repository:")
 	frontmatterAssertContains(t, out, "schemaPath: schemas/schema.json")
+	frontmatterAssertContains(t, out, "x-labels:", "domain: ordering", "team: order-team")
+
+	if strings.Contains(out, "\nlabels:") {
+		t.Error("plain labels key is rejected by EventCatalog; must be x-labels")
+	}
+
+	changelog := changelogBody(msg.Changelog)
+	if !strings.Contains(changelog, "**1.0.0**: initial release") {
+		t.Errorf("changelog body should render entry, got:\n%s", changelog)
+	}
 
 	if !strings.HasPrefix(out, "---\n") {
 		t.Error("MDX should start with ---")
@@ -139,10 +149,10 @@ func TestRenderMDX_WithResponses(t *testing.T) {
 	}
 
 	fm := messageFM{
-		ID:        string(catalog.Key(msg)),
-		Name:      string(msg.Name),
-		Version:   "1.0.0",
-		Responses: toResponses(msg.Responses),
+		ID:         string(catalog.Key(msg)),
+		Name:       string(msg.Name),
+		Version:    "1.0.0",
+		XResponses: toResponses(msg.Responses),
 	}
 
 	out, err := renderMDX(fm, string(msg.Name), "", false)
@@ -152,10 +162,14 @@ func TestRenderMDX_WithResponses(t *testing.T) {
 
 	frontmatterAssertContains(
 		t, out,
-		"responses:",
+		"x-responses:",
 		"statusCode: \"201\"",
 		"description: User created",
 		"statusCode: \"400\"",
 		"description: Bad request",
 	)
+
+	if strings.Contains(out, "\nresponses:") {
+		t.Error("plain responses key is rejected by EventCatalog; must be x-responses")
+	}
 }
