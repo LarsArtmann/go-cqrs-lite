@@ -124,6 +124,44 @@ func ScanDistinctValues(
 	return result, nil
 }
 
+// ScanJSONKeyValues drains a paged two-column `SELECT key, value` result —
+// string key, JSON-text value — into parallel key/value slices with
+// hasMore = len(keys) == limit. It is the shared read primitive behind
+// KeyScanBackend's MapScanKeyValues (planned-table backfill) across SQL
+// engine implementations. The label is used as the error prefix
+// (e.g. "duckdbengine.MapScanKeyValues").
+func ScanJSONKeyValues(
+	rows *sql.Rows,
+	limit int,
+	label string,
+) ([]any, []any, bool, error) {
+	keys := make([]any, 0, limit)
+	values := make([]any, 0, limit)
+
+	for rows.Next() {
+		var key, raw string
+
+		if err := rows.Scan(&key, &raw); err != nil {
+			return nil, nil, false, fmt.Errorf("%s: scan: %w", label, err)
+		}
+
+		var val any
+
+		if err := json.Unmarshal([]byte(raw), &val); err != nil {
+			return nil, nil, false, fmt.Errorf("%s: unmarshal: %w", label, err)
+		}
+
+		keys = append(keys, key)
+		values = append(values, val)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, nil, false, fmt.Errorf("%s: rows: %w", label, err)
+	}
+
+	return keys, values, len(keys) == limit, nil
+}
+
 // MultiAggregateScan executes a single-row aggregate query and decodes the
 // results into a map keyed by each spec's alias. Shared by DuckDB, SQLite,
 // and Postgres engine implementations for MultiAggregate. The label is used

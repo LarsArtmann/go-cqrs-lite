@@ -3,7 +3,6 @@ package sqliteengine
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
 	"fmt"
 	"sort"
 	"strings"
@@ -21,7 +20,6 @@ func (e *sqliteEngine) MapScanKeyValues(
 	cursor any,
 	limit int,
 ) ([]any, []any, bool, error) {
-	//art-dupl:accept cross-module SQL engine pattern — dep-isolated go.mod modules
 	if limit <= 0 {
 		limit = 500
 	}
@@ -45,33 +43,7 @@ func (e *sqliteEngine) MapScanKeyValues(
 
 	defer metaengine.DeferClose(rows)
 
-	keys := make([]any, 0, limit)
-	values := make([]any, 0, limit)
-
-	for rows.Next() {
-		var key string
-
-		var raw string
-
-		if err := rows.Scan(&key, &raw); err != nil {
-			return nil, nil, false, fmt.Errorf("sqliteengine.MapScanKeyValues: scan: %w", err)
-		}
-
-		var val any
-
-		if err := json.Unmarshal([]byte(raw), &val); err != nil {
-			return nil, nil, false, fmt.Errorf("sqliteengine.MapScanKeyValues: unmarshal: %w", err)
-		}
-
-		keys = append(keys, key)
-		values = append(values, val)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, nil, false, fmt.Errorf("sqliteengine.MapScanKeyValues: rows: %w", err)
-	}
-
-	return keys, values, len(keys) == limit, nil
+	return metaengine.ScanJSONKeyValues(rows, limit, "sqliteengine.MapScanKeyValues")
 }
 
 // EvolveLayoutPlan implements metaengine.LayoutPlanEvolver. It reconciles
