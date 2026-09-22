@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,6 +11,9 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/larsartmann/go-idempotency"
+	otel "go.opentelemetry.io/otel"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -21,8 +25,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
-	"github.com/larsartmann/go-idempotency"
-	otel "go.opentelemetry.io/otel"
 )
 
 const (
@@ -51,6 +53,7 @@ type Server struct {
 	signer       signing.SignerVerifier
 	httpServer   *http.Server
 	taskWatcher  *metaengine.Watcher[TaskView]
+	dlqDB        *sql.DB
 }
 
 // Config configures the Server.
@@ -93,7 +96,20 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 		return nil, fmt.Errorf("setup: snapshot strategy: %w", err)
 	}
 
-	dlq := projectionhost.NewMemoryDeadLetterStore()
+	// SQLite-backed dead letters, matching the persistent event store — a
+	// memory DLQ would silently lose poison messages on restart (C017).
+	// The "sqlite" driver is the sqliteengine blank import above.
+	dlqDB, err := sql.Open("sqlite", cfg.DatabasePath)
+	if err != nil {
+		return nil, fmt.Errorf("setup: open dead-letter db: %w", err)
+	}
+
+	dlq, err := projectionhost.NewSQLiteDeadLetterStore(context.Background(), dlqDB)
+	if err != nil {
+		_ = dlqDB.Close()
+
+		return nil, fmt.Errorf("setup: dead-letter store: %w", err)
+	}
 
 	const idempotencyTTL = 10 * time.Minute
 
@@ -159,6 +175,10 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	// ── Event bus signing (HMAC-SHA256 tamper detection) ─────────────────
+	//cqrs-lint:ignore(S010) signing protects the WIRE (publish/subscribe
+	// integrity); at-rest signing of journal events is a separate seam the
+	// signing module does not yet expose transforms for — teaching the
+	// difference IS part of this demo.
 	srv.signer = newDemoSigner()
 
 	if err := sys.Bus().UsePublish(signing.SignMiddleware(srv.signer)); err != nil {
@@ -258,6 +278,11 @@ func (s *Server) Stop() error {
 	if s.WorkQueue != nil {
 		//cqrs-lint:ignore(C023) library code or intentional pattern
 		_ = s.WorkQueue.Stop()
+	}
+
+	if s.dlqDB != nil {
+		//cqrs-lint:ignore(C023) library code or intentional pattern
+		_ = s.dlqDB.Close()
 	}
 
 	return s.Sys.Close()

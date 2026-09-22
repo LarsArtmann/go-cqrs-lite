@@ -187,4 +187,4 @@ if ((failures > 0)); then
 	echo "✗ preflight RED (${failures} phase(s)) — fix the remedies above BEFORE nix run .#verify"
 	exit 1
 fi
-echo "✓ preflight GREEN — launch with: nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify"
+echo "✓ preflight GREEN — launch with: nix run .#quiet-window-run -- nix run .#verify"

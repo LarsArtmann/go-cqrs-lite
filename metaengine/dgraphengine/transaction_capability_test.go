@@ -6,8 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	gomega "github.com/onsi/gomega"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // --- T41: Transactional capability ---

@@ -8,9 +8,10 @@ import (
 	"slices"
 	"sync/atomic"
 
+	bolt "go.etcd.io/bbolt"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
-	bolt "go.etcd.io/bbolt"
 )
 
 // --- StreamLogBackend implementation ---

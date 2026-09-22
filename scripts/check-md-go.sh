@@ -21,7 +21,111 @@
 # Usage:
 #   bash scripts/check-md-go.sh                    # gate (default)
 #   bash scripts/check-md-go.sh --update-baseline  # regenerate baseline
+#   bash scripts/check-md-go.sh --self-test        # planted-fixture suite
 set -euo pipefail
+
+# ── Self-test (repo convention: CI-gating scripts ship with self-tests) ────
+# Hermetic: a throwaway git repo + a PATH-stubbed md-go-validator whose
+# exit code a flag file controls — never the live tree, never the real
+# binary. Pins the four gate behaviors that were session-only memories:
+# green pass, new-error refusal, live-path baseline refusal (the
+# ARCHIVE_SEGMENT mutation leg), and the uncommitted-baseline refusal.
+if [ "${1:-}" = "--self-test" ]; then
+	SELF="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+	TMP="$(mktemp -d)"
+	trap 'rm -rf "$TMP"' EXIT
+
+	# Stub binary: exits 1 iff the fail-flag file exists (simulates "new
+	# validation errors found"); answers --version like the packaged binary.
+	mkdir -p "$TMP/bin"
+	cat >"$TMP/bin/md-go-validator" <<'STUB'
+#!/bin/sh
+if [ "${1:-}" = "--version" ] || [ "${1:-}" = "-V" ]; then
+	echo "md-go-validator stub-4dd9437"
+	exit 0
+fi
+if [ -f "$(dirname "$0")/../stub-fail" ]; then
+	echo "stub: planted validation error" >&2
+	exit 1
+fi
+exit 0
+STUB
+	chmod +x "$TMP/bin/md-go-validator"
+
+	# Fixture repo: live doc with a clean fence + archived doc whose errors
+	# are baselined. Mirrors the layout the hardcoded relative paths expect.
+	fixture() {
+		rm -rf "$TMP/repo"
+		mkdir -p "$TMP/repo/scripts" "$TMP/repo/docs" "$TMP/repo/docs/archived"
+		git -C "$TMP/repo" init -q
+		git -C "$TMP/repo" config user.email t@t && git -C "$TMP/repo" config user.name t
+		printf 'walk: ["docs"]\n' >"$TMP/repo/.md-go-validator.yaml"
+		printf '# t\n\n```go\nfmt.Println("ok")\n```\n' >"$TMP/repo/docs/live.md"
+		printf '# old\n\n```go\nfunc broken(\n```\n' >"$TMP/repo/docs/archived/old.md"
+		printf '# baseline\n%s/docs/archived/old.md:3:PARSE_ERROR\n' "$TMP/repo" \
+			>"$TMP/repo/scripts/md-go-baseline.txt"
+		git -C "$TMP/repo" add -A && git -C "$TMP/repo" commit -qm fixture
+		rm -f "$TMP/stub-fail"
+	}
+
+	fails=0
+	check() {
+		if [ "$3" = "$2" ]; then
+			echo "  ✓ PASS: $1"
+		else
+			echo "  ✗ FAIL: $1 (want rc=$2, got rc=$3)"
+			fails=$((fails + 1))
+		fi
+	}
+
+	fixture
+	rc=0
+	(cd "$TMP/repo" && PATH="$TMP/bin:$PATH" bash "$SELF") >/dev/null 2>&1 || rc=$?
+	check "green: baselined archived errors pass" 0 "$rc"
+
+	touch "$TMP/stub-fail"
+	rc=0
+	out=$(cd "$TMP/repo" && PATH="$TMP/bin:$PATH" bash "$SELF" 2>&1) || rc=$?
+	check "new validation error fails loud" 1 "$rc"
+	grep -q "New md-go-validator errors" <<<"$out" || {
+		echo "  ✗ FAIL: new-error message missing"
+		fails=$((fails + 1))
+	}
+	rm -f "$TMP/stub-fail"
+
+	# Policy leg (the ARCHIVE_SEGMENT mutation test): a baseline row pointing
+	# at a LIVE path must be refused — the baseline may never become a dumping
+	# ground for live docs. The row is COMMITTED so the dirty-tree guard does
+	# not mask the policy check being tested.
+	fixture
+	printf '%s/docs/live.md:3:PARSE_ERROR\n' "$TMP/repo" >>"$TMP/repo/scripts/md-go-baseline.txt"
+	git -C "$TMP/repo" add -A && git -C "$TMP/repo" commit -qm planted-live-row
+	rc=0
+	out=$(cd "$TMP/repo" && PATH="$TMP/bin:$PATH" bash "$SELF" 2>&1) || rc=$?
+	check "baseline row on live path fails (ARCHIVE_SEGMENT)" 1 "$rc"
+	grep -q "non-archived paths" <<<"$out" || {
+		echo "  ✗ FAIL: policy message missing"
+		fails=$((fails + 1))
+	}
+
+	# Dirty-tree leg: an uncommitted baseline must refuse to gate.
+	fixture
+	printf '%s/docs/archived/other.md:3:PARSE_ERROR\n' "$TMP/repo" >>"$TMP/repo/scripts/md-go-baseline.txt"
+	rc=0
+	out=$(cd "$TMP/repo" && PATH="$TMP/bin:$PATH" bash "$SELF" 2>&1) || rc=$?
+	check "uncommitted baseline refuses to gate" 1 "$rc"
+	grep -q "uncommitted changes" <<<"$out" || {
+		echo "  ✗ FAIL: dirty-tree message missing"
+		fails=$((fails + 1))
+	}
+
+	if [ "$fails" -eq 0 ]; then
+		echo "check-md-go self-test passed."
+		exit 0
+	fi
+	echo "check-md-go self-test FAILED."
+	exit 1
+fi
 
 cd "$(git rev-parse --show-toplevel)"
 
@@ -35,6 +139,9 @@ baseline_entries() {
 
 if ! command -v md-go-validator >/dev/null 2>&1; then
 	echo "SKIP: md-go-validator not on PATH (use: nix run .#check-md-go — packaged binary)"
+	echo "NOTE: a host-installed binary that lags the flake pin can silently change"
+	echo "gate semantics — compare 'md-go-validator --version' against the pinned rev"
+	echo "in flake.lock (node md-go-validator)."
 	exit 0
 fi
 
@@ -55,7 +162,7 @@ check_policy() {
 	bad=$(grep -v '^#' "$BASELINE" | cut -d: -f1 | sort -u | grep -Ev "$ARCHIVE_SEGMENT" || true)
 	if [ -n "$bad" ]; then
 		echo "::error::$BASELINE references non-archived paths — live docs must carry"
-		echo "::error://'// skip-validate' annotations (or real fixes), not baseline entries:"
+		echo "::error::'// skip-validate' annotations (or real fixes), not baseline entries:"
 		echo "$bad" | sed 's/^/  - /'
 		return 1
 	fi
@@ -104,6 +211,7 @@ trap 'rm -f "$tmpbase"' EXIT
 grep -v '^#' "$BASELINE" | sed "s|^|$PWD/|" >"$tmpbase"
 
 echo "==> md-go-validator gate ($(baseline_entries) baselined archived error(s))"
+echo "    binary: $(md-go-validator --version 2>/dev/null || echo 'version unknown')"
 if ! md-go-validator . --baseline "$tmpbase" -q; then
 	echo "::error::New md-go-validator errors (not in $BASELINE)."
 	echo "Fix the fence, or annotate intentional pseudo-code with '// skip-validate'"

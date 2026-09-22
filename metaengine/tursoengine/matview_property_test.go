@@ -8,9 +8,10 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"pgregory.net/rapid"
 )
 
 // matViewPropertyDBCounter gives every rapid iteration its own database file
@@ -56,7 +57,8 @@ func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
 		dir := t.TempDir()
 		path := filepath.Join(dir, fmt.Sprintf("mvprop_%d.db", matViewPropertyDBCounter.Add(1)))
 
-		eng, err := tursoengine.New(path,
+		eng, err := tursoengine.New(
+			path,
 			tursoengine.WithMaterializedViews(matViewPropertySpecs()),
 			tursoengine.WithKnownGroupedViewBug(), // specs include grouped: upstream defect deliberately exercised
 		)

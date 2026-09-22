@@ -1,10 +1,10 @@
 package main
 
 import (
-	"math"
 	"context"
 	"database/sql"
 	"errors"
+	"math"
 	"testing"
 	"time"
 
@@ -121,6 +121,10 @@ func TestSchedulerOtelStatus_StatusSnapshotRate(t *testing.T) {
 		zeroRate = float64(zero.ClaimedTimers) / zeroMinutes
 	}
 	if math.IsNaN(zeroRate) || math.IsInf(zeroRate, 0) {
-		t.Errorf("fresh StartedAt produced a non-finite rate: %f (window %f)", zeroRate, zeroMinutes)
+		t.Errorf(
+			"fresh StartedAt produced a non-finite rate: %f (window %f)",
+			zeroRate,
+			zeroMinutes,
+		)
 	}
 }

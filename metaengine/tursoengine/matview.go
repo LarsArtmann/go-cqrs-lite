@@ -28,7 +28,8 @@ type options struct {
 var ErrGroupedViewBugRefused = errors.New(
 	"tursoengine: grouped materialized view refused: upstream turso-go grouped views silently diverge " +
 		"(wrong results from the second transaction on, collapse at ~27k rows); " +
-		"pass WithKnownGroupedViewBug() to acknowledge and opt in, or drop GroupBy (scalar views are exact)")
+		"pass WithKnownGroupedViewBug() to acknowledge and opt in, or drop GroupBy (scalar views are exact)",
+)
 
 // WithKnownGroupedViewBug opts in to grouped materialized view specs despite
 // the upstream silent-wrong-results defect (see ErrGroupedViewBugRefused).

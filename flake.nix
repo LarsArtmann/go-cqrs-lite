@@ -881,7 +881,11 @@
             # Consumed by the check-md-go app + scripts/check-md-go.sh.
             md-go-validator = (pkgs.buildGoModule.override { go = goPkg; }) {
               pname = "md-go-validator";
-              inherit version;
+              # Stamp the PINNED SOURCE rev, not this flake's rev: a dirty
+              # tree made `inherit version` claim "dev" forever, and the
+              # binary's --version must identify the md-go-validator commit
+              # that validated the docs (T12 fix, 2026-09-22).
+              version = md-go-validator.shortRev or (md-go-validator.rev or "unknown");
 
               src = mkMdGoValidatorSource pkgs;
 
@@ -889,6 +893,12 @@
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
+
+              ldflags = [
+                "-s"
+                "-w"
+                "-X main.version=${md-go-validator.rev or "unknown"}"
+              ];
 
               env = {
                 CGO_ENABLED = "0";
