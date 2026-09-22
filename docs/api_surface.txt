@@ -2751,6 +2751,7 @@ metaengine/func CheckVectorDimension
 metaengine/func Checksum
 metaengine/func CompareValues
 metaengine/func ContractSuite
+metaengine/func CursorArg
 metaengine/func DecodeFloat
 metaengine/func DecodeFloatResults
 metaengine/func DecodeStreamValue
@@ -2836,7 +2837,8 @@ metaengine/func ReplayTrace
 metaengine/func SQLiteEngineProfile
 metaengine/func SaveManifest
 metaengine/func ScanDistinctValues
-metaengine/func ScanJSONKeyValues
+metaengine/func ScanKeyValuesPage
+metaengine/func ScanLimit
 metaengine/func ScanScoredVector
 metaengine/func ScoreLayouts
 metaengine/func SearchExecuteTyped

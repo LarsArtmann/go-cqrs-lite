@@ -322,49 +322,8 @@ func (e *sqliteEngine) scanMultiGroupedSQLite(
 	args []any,
 	specs []metaengine.AggregateSpec,
 ) ([]metaengine.GroupedAggregateRow, error) {
-	rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
-	if err != nil {
-		return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	var result []metaengine.GroupedAggregateRow
-
-	for rows.Next() {
-		var groupKey string
-
-		raws := make([]any, len(specs))
-		scanTargets := make([]any, 0, 1+len(specs))
-		scanTargets = append(scanTargets, &groupKey)
-
-		for i := range raws {
-			scanTargets = append(scanTargets, &raws[i])
-		}
-
-		if err := rows.Scan(scanTargets...); err != nil {
-			return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate: scan: %w", err)
-		}
-
-		values := make(map[string]float64, len(specs))
-		for i, s := range specs {
-			val, err := metaengine.DecodeFloat(raws[i])
-			if err != nil {
-				return nil, fmt.Errorf("sqliteengine.MultiGroupedAggregate alias %q: %w",
-					s.AliasOr(), err)
-			}
-
-			values[s.AliasOr()] = val
-		}
-
-		result = append(result, metaengine.GroupedAggregateRow{Group: groupKey, Values: values})
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("sqliteengine.MultiGroupedAggregate: %w", err)
-	}
-
-	return result, nil
+	return metaengine.ScanGroupedAggregates(ctx, e.xd(ctx), query, args, specs,
+		"sqliteengine.MultiGroupedAggregate")
 }
 
 // ---------------------------------------------------------------------------

@@ -206,6 +206,69 @@ func CursorArg(cursor any) any {
 	return fmt.Sprint(cursor)
 }
 
+// scanGroupedRow scans one grouped-aggregate row — group key column first,
+// then one column per spec — and decodes the aggregate values via
+// DecodeFloatResults. The label is used as the error prefix.
+func scanGroupedRow(rows *sql.Rows, specs []AggregateSpec, label string) (GroupedAggregateRow, error) {
+	var groupKey string
+
+	raws := make([]any, len(specs))
+	scanTargets := make([]any, 0, 1+len(specs))
+	scanTargets = append(scanTargets, &groupKey)
+
+	for i := range raws {
+		scanTargets = append(scanTargets, &raws[i])
+	}
+
+	if err := rows.Scan(scanTargets...); err != nil {
+		return GroupedAggregateRow{}, fmt.Errorf("%s: scan: %w", label, err)
+	}
+
+	values, err := DecodeFloatResults(raws, specs, label)
+	if err != nil {
+		return GroupedAggregateRow{}, err
+	}
+
+	return GroupedAggregateRow{Group: groupKey, Values: values}, nil
+}
+
+// ScanGroupedAggregates implements the MultiGroupedAggregate read for the
+// SQL engine modules: it drains a grouped aggregate query — group key column
+// first, then one column per spec — into GroupedAggregateRows. The label is
+// used as the error prefix (e.g. "duckdbengine.MultiGroupedAggregate").
+func ScanGroupedAggregates(
+	ctx context.Context,
+	q SQLExec,
+	query string,
+	args []any,
+	specs []AggregateSpec,
+	label string,
+) ([]GroupedAggregateRow, error) {
+	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+
+	defer DeferClose(rows)
+
+	var result []GroupedAggregateRow
+
+	for rows.Next() {
+		row, err := scanGroupedRow(rows, specs, label)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, row)
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("%s: %w", label, err)
+	}
+
+	return result, nil
+}
+
 // MultiAggregateScan executes a single-row aggregate query and decodes the
 // results into a map keyed by each spec's alias. Shared by DuckDB, SQLite,
 // and Postgres engine implementations for MultiAggregate. The label is used

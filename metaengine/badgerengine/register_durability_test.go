@@ -31,6 +31,7 @@ func TestRegisterDriver_DurabilityTiers(t *testing.T) {
 			DSN:        t.TempDir(),
 			Durability: tier,
 		})
+		//art-dupl:accept per-engine durability test — dep-isolated modules (rule-19 pattern)
 		if err != nil {
 			t.Fatalf("tier %q: %v", tier, err)
 		}
