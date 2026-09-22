@@ -97,6 +97,37 @@ store := event.DecorateStore(base,
 )
 ```
 
+**SQL read models: `storage/relational` → metaengine declared queries (wave B)**
+
+The relational tier made you declare a schema AND hand-write a fold per
+table; metaengine derives the projection from event samples and plans the
+layout from the declared query shape (details + decision matrix:
+[MIGRATION-kv-to-metaengine.md](MIGRATION-kv-to-metaengine.md)).
+
+```go
+// skip-validate
+// v4 (deprecated at v5): schema + handler you maintain per table
+schema := storage.NewRelationalSchema(
+	storage.RelationalTable{Name: "tasks", Columns: []storage.RelationalColumn{…}},
+)
+proj, _ := storage.NewRelationalProjection("tasks", schema, db,
+	sqlite.Dialect{}, tasksHandler, []event.Type{"task.created", "task.done"})
+
+// v5 — declare the query; the layout and folds are derived from samples:
+q := metaengine.Query[TaskView, TaskView]("tasks",
+	metaengine.OnRecordTyped("task.created", event.Event("task.created", TaskEvent{}),
+		func(_ record.Record, s metaengine.State[TaskView]) metaengine.Delta { … }),
+	metaengine.OnRecordTyped("task.done", …),
+	metaengine.FilterOnField("Assignee"), metaengine.SortOnField("DueAt"),
+)
+sys, _ := system.New(ctx, domain, deployment) // engines route + materialize q
+```
+
+What you give up: per-table hand-written SQL. What you get: cost-based
+engine routing, filtered/sorted scans (`Scan`/`FilterOnField`), hot
+rollups (`ADTCounter`, operator-declared materialized views), and
+reset+replay rebuilds instead of schema migrations (ADR-0136 ladder).
+
 ## 3. Wire formats and data
 
 - **Snapshot JSON/CBOR tags** rename `aggregate_id`/`aggregateType` →

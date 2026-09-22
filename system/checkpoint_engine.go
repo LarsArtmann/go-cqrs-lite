@@ -33,6 +33,15 @@ type engineCheckpointStore struct {
 	engine metaengine.MapBackend
 }
 
+// NewEngineCheckpointStore returns the engine-backed checkpoint store used
+// by every System deployment: checkpoints persist as entries of a metaengine
+// Map collection on the given backend, so they survive restarts wherever the
+// engine does (ADR-0142). Exposed for operators and systemtest wiring that
+// build custom projection-host checkpoint storage on a deployment engine.
+func NewEngineCheckpointStore(backend metaengine.MapBackend) event.CheckpointStore {
+	return &engineCheckpointStore{engine: backend}
+}
+
 // Save implements [event.CheckpointSink].
 func (s *engineCheckpointStore) Save(
 	ctx context.Context,
