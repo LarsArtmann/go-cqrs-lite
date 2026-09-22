@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **tursoengine: grouped materialized views fail closed
+  (`ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug` opt-in).** Grouped
+  matview specs on turso-go silently return wrong results from the second
+  transaction on (ADR-0135 upstream defects A+B — scalar views are exact);
+  the danger was advisory-only (Doctor WARN + docs). Construction now
+  refuses a `GroupBy` spec unless `WithKnownGroupedViewBug()` acknowledges
+  the defect, mirroring system v4.9.0's fail-closed racy-Save stance. Pinned
+  by `TestTursoMatView_GroupedSpecRefusedWithoutOptIn`; the defect-exercising
+  repro/bench/property suites opt in explicitly.
 - **tooling: `check-md-go` docs gate — every live `go` fence must parse or
   carry an explicit `// skip-validate`.** The repo's Markdown/MDX is now
   validated by `md-go-validator` (packaged in the flake from a pinned GitHub
