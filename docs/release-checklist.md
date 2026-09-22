@@ -13,6 +13,11 @@
 
    Must exit 0. Includes build + vet + test + race + lint + api-stability + doc-check.
 
+   Docs fences are also gated: `nix run .#check-md-go` (live `go` fences
+   parse or carry `// skip-validate`; the baseline is archived-history
+   only). New documentation should already be green here — never add live
+   paths to `scripts/md-go-baseline.txt`.
+
 2. **Coverage drift check:**
 
    ```bash

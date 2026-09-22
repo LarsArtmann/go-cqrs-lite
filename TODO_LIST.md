@@ -1180,7 +1180,14 @@ has NO engine/store-level lock. — source: reflection doc §4.2
 > inert-shrink ratchet. Build narrative: the archived 18-19 + 23-24 delta
 > reports. The harvested open tail: — source: 18-19 §f, 23-24-delta §f
 
-- [ ] 🔥 **`--self-test` for `scripts/check-md-go.sh`** — planted fixture tree
+- [x] 🔥 **`--self-test` for `scripts/check-md-go.sh`** — done (2026-09-22
+      verified 4/4 PASS): planted fixture repo + PATH-stubbed binary
+      (flag-file controlled), pins green-pass / new-error refusal /
+      live-path-baseline refusal (ARCHIVE_SEGMENT mutation leg) /
+      uncommitted-baseline refusal; wired into `#check-release-scripts`
+      (flake:1047) + ci.yml:85. FEATURES gates row +
+      `docs/release-checklist.md` mention added 2026-09-22. Original:
+      planted fixture tree
       (PATH-stubbed binary or `--config` override), golden message shapes in
       `scripts/testdata/`, mutation-tested goldens; the four gate behaviors are
       currently session-only memories (repo convention: CI-gating scripts ship

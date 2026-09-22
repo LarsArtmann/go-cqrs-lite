@@ -522,7 +522,10 @@ pins are already correct.
 
 The release tooling is smoke-tested against throwaway fixture repos by
 `nix run .#check-release-scripts` (also a CI leg) — run it after touching
-`scripts/tag-release.sh`, `scripts/batch-release.sh`, or the retracts gate.
+`scripts/tag-release.sh`, `scripts/batch-release.sh`, the retracts gate, or
+any CI-gating script with a `--self-test` (`check-go-version.sh`,
+`check-md-go.sh`, `calibration-gate.sh`, `check-golangci-hash.sh` — the
+repo convention is that gates ship with mutation-tested self-tests).
 
 #### Pre-tag checklist (multi-module wave)
 
