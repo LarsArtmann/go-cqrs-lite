@@ -38,3 +38,12 @@ exclude:
   # transport/grpc is isolated from go.work (genproto conflict via cockroachdb/errors).
   # BuildFlow's golangci-lint can't typecheck it in-workspace. Tracked in TODO_LIST.md.
   - "transport/grpc"
+
+# Render-level per-tool warning ceilings (summary collapse; never gates).
+# Set 2026-09-22 from 14d telemetry: max findings/run + ~20% headroom.
+# The [OVER budget] marker doubles as a noise-drift tripwire.
+warnings_budget:
+  markdown-lint: 179000
+  go-auto-upgrade: 1000
+  lychee: 700
+  cqrs-lint: 700
