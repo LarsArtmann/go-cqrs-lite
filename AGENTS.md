@@ -170,10 +170,11 @@ Split by topic; edit the topic file, never inline here:
 TL;DR rules (too hot to be one click away):
 
 1. **Never `rm`/`git reset`/`git checkout`/plain `mv`** — `trash`, `git switch`/`git restore`, `git mv`.
-2. **Cache env chain** on every go command ([`gowork-modes.md`](docs/agents/gowork-modes.md)).
+2. **`source scripts/go-env.sh` before any go/buildflow command** — the one-file env chain; the ambient session can carry `GOTOOLCHAIN=local` + full-`/mnt/buildcache` caches that silently break or poison builds ([`gowork-modes.md`](docs/agents/gowork-modes.md)).
 3. **`#verify` runs exclusively** — never concurrent with integration suites or heavy builds.
 4. **Auto-commit daemon absorbs working-tree changes** — expect `chore: auto-commit` commits; wait for clean tree before tagging. For plan-driven work, commit at each phase boundary immediately if you need authored history (the daemon will otherwise absorb mid-phase edits into `chore:` commits).
 5. **API-surface change ⇒ api golden regen in the same edit** (`cd cmd/api-stability && GOWORK=off go run . --update`).
+6. **BuildFlow's `go-version-auto-configure` is SKIPPED in `.buildflow.yml`** (known tool bug, 2026-09-22): its major.minor-only rule strips the `go 1.27.1` patch floor the dependencies require — it caused all four directive-downgrade waves. Do not re-enable until BuildFlow learns dependency-driven patch floors; `scripts/check-go-version.sh` enforces the floor + lockstep mechanically.
 
 ## Procedures
 

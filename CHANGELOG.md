@@ -286,6 +286,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **build: the recurring `go 1.27.1 → go 1.27` directive-downgrade waves
+  (4 incidents) are root-caused and mechanically killed.** The trigger was
+  BuildFlow's `go-version-auto-configure` step: its "major.minor only" rule
+  strips the patch floor this repo's published dependencies require, and the
+  auto-commit daemon's repair cycles applied it after every sweep. It is now
+  skipped in `.buildflow.yml` pending an upstream fix;
+  `scripts/check-go-version.sh` additionally enforces a drift lock (go.work
+  floor + lockstep go.mod equality) with planted-fixture self-test legs
+  including a CI=true no-bypass proof; and `scripts/go-env.sh` — the
+  documented env chain as one sourced file — is force-sourced by the
+  pre-commit hook, `check-coverage.sh`, `benchmark-regression.sh`, and
+  `preflight-composed.sh`, closing the ambient `GOTOOLCHAIN=local` +
+  100%-full `/mnt/buildcache` poisoning class (authored commits no longer
+  need `--no-verify`).
+- **lint: corrupted `.golangci.yml` restored.** The 2026-09-21 23:33 daemon
+  wave had stripped the 111-line depguard allow-list, pinned `go: 1.26.7`,
+  and re-added the removed `goexperiment.jsonv2` build tag; the hash-golden
+  tripwire correctly refused the pair and is green again on the restored
+  config.
+- **catalog: `docserver` `*_templ.go` regenerated from the correct cwd** —
+  the committed files carried repo-root FileName metadata (daemon
+  collateral), tripping the templ drift gate.
+- **scripts: shellcheck debt cleared to zero findings** (`.shellcheckrc`
+  policy for intentional printf-fixture/log-append patterns + real fixes,
+  including an ignored printf argument in the canonical-facts self-test
+  fixture that silently skipped creating `ROADMAP.md`); the pre-commit
+  scripts gate now lints `scripts/lib/*.sh` as well.
 - **benchkit: progress-reporter heartbeat no longer races its own shutdown.**
   `stop()` closed the done channel and then set the field to nil while the
   heartbeat goroutine was selecting on that same field — a data race that
