@@ -2,7 +2,6 @@ package systemtest_test
 
 import (
 	"context"
-	"encoding/json/v2"
 	"errors"
 	"testing"
 	"time"

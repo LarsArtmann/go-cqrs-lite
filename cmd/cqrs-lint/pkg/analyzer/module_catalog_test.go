@@ -269,6 +269,7 @@ func TestCatalogEveryGoWorkModuleCovered(t *testing.T) {
 		"storage/turso":                  "low-level Turso connector (covered by stack/turso)",
 		"system":                         "system-level utilities (not a domain module)",
 		"system/integration":             "test sub-module (covered by system)",
+		"systemtest":                     "test sub-module (Feedback-#4 split: owns system's real-engine suites)",
 		"testutil":                       "test utility package",
 		"testutil/mysqltestcontainer":    "test utility sub-package (covered by testutil)",
 		"testutil/pgtestcontainer":       "test utility sub-package (covered by testutil)",

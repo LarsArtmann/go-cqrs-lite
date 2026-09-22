@@ -7026,6 +7026,7 @@ system/func Lookup
 system/func New
 system/func NewCachedEventStore
 system/func NewCommandAdapter
+system/func NewEngineCheckpointStore
 system/func NewEventAdapter
 system/func NewMemorySnapshotBackend
 system/func NewMultiBus

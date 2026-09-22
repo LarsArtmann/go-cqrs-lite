@@ -98,6 +98,10 @@ LAYER["stack/mysql"]=6
 LAYER["stack/turso"]=6
 LAYER[system]=6
 LAYER["system/integration"]=7
+# systemtest (7): the Feedback-#4 split — system's real-engine suites moved
+# here so system/v4 consumers pull no engine implementation. Test-only
+# module: no production consumers.
+LAYER[systemtest]=7
 LAYER[catalog]=7
 LAYER[integration]=7
 LAYER["stack/bench"]=7
@@ -328,6 +332,10 @@ DEP_BUDGET["scheduling/sqlstore"]=7
 DEP_BUDGET["scheduling/engine"]=3
 DEP_BUDGET[system]=20
 DEP_BUDGET["system/integration"]=7
+# systemtest: 6 = system + metaengine core + the four engine drivers whose
+# suites it owns (goleak is test-only); the point of the module is engine
+# coverage, so a high budget is the design, not sprawl.
+DEP_BUDGET[systemtest]=6
 DEP_BUDGET["metaengine/irohengine"]=2
 DEP_BUDGET["metaengine/irohengine/loopback"]=4
 DEP_BUDGET["metaengine/irohengine/quic"]=5
