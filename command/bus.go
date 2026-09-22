@@ -2,6 +2,8 @@ package command
 
 import (
 	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 )
 
 // Publisher publishes commands to subscribers.
@@ -33,8 +35,9 @@ type Bus interface {
 
 // PublishMiddleware wraps the publish path (analogous to event.PublishMiddleware).
 // Use it for concerns that should apply to outgoing commands:
-// signing, encryption, tracing, metrics.
-type PublishMiddleware func(Publisher) Publisher
+// signing, encryption, tracing, metrics. Alias of the shared
+// [dispatcher.Middleware] shape (E15 unification).
+type PublishMiddleware = dispatcher.Middleware[Publisher]
 
 // PublisherFunc is a function adapter for Publisher.
 type PublisherFunc func(ctx context.Context, cmds ...Command) error

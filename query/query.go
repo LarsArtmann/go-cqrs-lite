@@ -5,6 +5,7 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
@@ -133,8 +134,10 @@ func New(queryType Type, opts ...Option) (*BasicQuery, error) {
 	return q, nil
 }
 
-// Middleware wraps query handlers for cross-cutting concerns.
-type Middleware func(Handler) Handler
+// Middleware wraps query handlers for cross-cutting concerns. It is an
+// alias of the shared [dispatcher.Middleware] shape (E15 unification): one
+// function value composes with every dispatcher and bus.
+type Middleware = dispatcher.Middleware[Handler]
 
 // TypedHandler processes a typed query and returns a typed result.
 // Q is the concrete query type, R is the result type.

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
@@ -13,8 +14,11 @@ import (
 // Command and event handlers both satisfy this signature (returning only error).
 type Handler[M any] func(context.Context, M) error
 
-// Middleware wraps a Handler with cross-cutting concerns.
-type Middleware[M any] func(Handler[M]) Handler[M]
+// Middleware wraps a Handler with cross-cutting concerns. Generic alias of
+// the shared [dispatcher.Middleware] shape (E15 unification) instantiated at
+// the message Handler — the same type command.Middleware, event.Middleware,
+// and query.Middleware alias at their own handler types.
+type Middleware[M any] = dispatcher.Middleware[Handler[M]]
 
 // Kind identifies which CQRS message kind a generic middleware invocation
 // carries ("command", "event", or "query"). Typed so closed-set switches

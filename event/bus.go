@@ -2,6 +2,8 @@ package event
 
 import (
 	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/dispatcher/v4"
 )
 
 // Handler processes events.
@@ -48,9 +50,12 @@ type Bus interface {
 	UsePublish(middleware ...PublishMiddleware) error
 }
 
-// Middleware wraps event handlers for cross-cutting concerns.
-type Middleware func(Handler) Handler
+// Middleware wraps event handlers for cross-cutting concerns. It is an
+// alias of the shared [dispatcher.Middleware] shape (E15 unification): one
+// function value composes with every dispatcher and bus.
+type Middleware = dispatcher.Middleware[Handler]
 
 // PublishMiddleware wraps the Publish method for cross-cutting concerns
-// (logging, metrics, retry). Applied via Bus.UsePublish().
-type PublishMiddleware func(Publisher) Publisher
+// (logging, metrics, retry). Applied via Bus.UsePublish(). Alias of the
+// shared [dispatcher.Middleware] shape (E15 unification).
+type PublishMiddleware = dispatcher.Middleware[Publisher]
