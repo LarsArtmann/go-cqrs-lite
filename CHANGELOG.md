@@ -48,6 +48,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `NewOTelBundle` takes plain `Option`s and `WithMetricsDisabled` returns
   one; `BundleOption` survives as a deprecated type alias (removed at v6).
 
+- **Feedback #4: `systemtest/` module — system's real-engine suites move out
+  of the system module.** The consumer verdict ("system is a category error
+  for a library") traced to engine implementations (sqlite/pebble/badger/pg)
+  riding in system/go.mod purely for its tests, so every system/v4 consumer
+  transitively pulled engines it never used. Those suites now live in the
+  Tier-7 `systemtest/` module (which also registers the real drivers);
+  system keeps memory-driver unit tests only and its go.mod drops ALL engine
+  requires. `system.NewEngineCheckpointStore` is the new public seam the
+  split needed (the internal engineCheckpointStore becomes externally
+  testable; additive). The sqlite-vs-driver-registration tests,
+  restart-durability test, and the four sqlite wiring tests moved with the
+  split; taskmanager V006/version goldens unaffected.
+
 - **tursoengine: grouped materialized views fail closed
   (`ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug` opt-in).** Grouped
   matview specs on turso-go silently return wrong results from the second

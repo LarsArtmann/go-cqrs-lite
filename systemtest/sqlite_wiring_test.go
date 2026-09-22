@@ -2,16 +2,21 @@ package systemtest_test
 
 import (
 	"context"
+	"errors"
+
+	"github.com/larsartmann/go-codec"
 	"slices"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -341,4 +346,74 @@ func taskDomainConfig(
 		ProjectionHostOptions: opts,
 		CheckpointStore:       cpStore,
 	}
+}
+
+// taskProjectionQuery twin of system/system_hardening_test.go helper.
+
+//art-dupl:accept test-fixture twin of system/system_hardening_test.go helper
+
+// taskProjectionQuery returns a metaengine query declaration for a task view
+// projection. Used by multiple hardening tests.
+func taskProjectionQuery(collection string) any {
+	return metaengine.Query[FindTask, TaskView](
+		collection,
+		metaengine.OnRecordTyped(
+			"task.created",
+			TaskCreated{},
+			func(_ record.Record, e TaskCreated) (string, TaskView) {
+				return e.Title, TaskView{Title: e.Title, Status: "pending"}
+			},
+		),
+	)
+}
+
+// waitForProjectionProcessed twin of system/system_hardening_test.go helper.
+
+//art-dupl:accept test-fixture twin of system/system_hardening_test.go helper
+
+// waitForProjectionProcessed polls the projection host until at least one
+// worker has processed >= minProcessed events with zero errors, or the
+// deadline expires.
+//
+// Base is 45s (raised from 15s, 2026-09-13): under full-suite contention the
+// replay-from-zero phase 2 of TestSystem_ResetProjection_RestartAndReplay
+// starved past 15s — load1/cores underestimates disk + cross-process
+// contention on high-core machines (factor floors at 1), so the raw budget
+// carries the headroom.
+func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed int) bool {
+	t.Helper()
+
+	deadline := loadScaledDeadline(45 * time.Second)
+
+	for time.Now().Before(deadline) {
+		for _, s := range sys.ProjectionHost().Status() {
+			if s.Processed >= int64(minProcessed) && s.Errors == 0 {
+				return true
+			}
+		}
+
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	// Starvation crime scene: every composed-run failure so far reported
+	// only processed=0 errors=0, never the worker's goroutine state — the
+	// root cause (blocked vs exited-empty vs never-started) was
+	// undiscoverable after the fact. Dump all stacks while the failure is
+	// live so the next composed-run incident pins the blocking site.
+	buf := make([]byte, 1<<20)
+
+	n := runtime.Stack(buf, true)
+
+	t.Logf("projection wait expired (deadline %s, load factor %.2f); goroutine dump follows",
+		deadline.Format(time.RFC3339), currentLoadFactor())
+	t.Logf("%s", buf[:n])
+
+	return false
+}
+// checkpoint returns the last saved checkpoint for a projection (race-safe).
+func (s *recordingCheckpointStore) checkpoint(projection string) event.Checkpoint {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.saved[projection]
 }

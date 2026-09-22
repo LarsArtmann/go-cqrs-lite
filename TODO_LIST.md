@@ -845,10 +845,17 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       asrecord/MIGRATION_TO_STACK/PRESETS guides once v5 nears. — source:
       08-26 §c6, 08-41 §f25–27
       _(Effort: M)_
-- [ ] **Feedback #4: split `system`'s engine requires (`systemtest`)** ahead of
-      v5 — "system is a category error for a library" was the consumer's core
-      verdict; the go-graph-rag evaluation routed it here. — source: 23-24
-      followups §f22, feedback doc §4.4 _(Effort: L)_
+- [x] **Feedback #4: split `system`'s engine requires (`systemtest`)** — done
+      2026-09-22: the Tier-7 `systemtest/` module now owns system's
+      real-engine suites (13 moved files + the four sqlite wiring tests +
+      the checkpoint restart-durability test via the new public
+      `system.NewEngineCheckpointStore`); system/go.mod drops ALL engine
+      requires (consumers importing system/v4 pull zero engines); system
+      keeps memory-driver-only unit tests. Registered in go.work, flake
+      testModules, api-stability, module layers/budget, and the cqrs-lint
+      catalog; module census 96→97. Remaining at the tag wave: strip
+      systemtest's sibling replaces. — source: 23-24 followups §f22,
+      feedback doc §4.4 _(Effort: L → executed)_
 - [x] **`metaengine.DeferClose` engine-twin deprecation note** — done
       2026-09-22: `Deprecated` doc note added (record.DeferClose is the
       canonical home since record/v4.6.0; twin kept through v5 for the
