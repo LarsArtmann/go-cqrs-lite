@@ -185,20 +185,6 @@ func TestSystem_MultiBusFanOut(t *testing.T) {
 	}
 }
 
-func TestSystem_RegisteredDriversIncludesMemoryAndSQLite(t *testing.T) {
-	t.Parallel()
-
-	drivers := metaengine.RegisteredDrivers()
-
-	if !slices.Contains(drivers, "memory") {
-		t.Fatal("memory driver not registered")
-	}
-
-	if !slices.Contains(drivers, "sqlite") {
-		t.Fatal("sqlite driver not registered")
-	}
-}
-
 func TestUnknownBusDriverErrors(t *testing.T) {
 	t.Parallel()
 

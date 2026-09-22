@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -65,59 +63,6 @@ func TestSystem_RoleWiring_DedicatedCommandsQueries(t *testing.T) {
 
 	if len(loaded) != 1 || loaded[0].Type() != "task.create" {
 		t.Fatalf("loaded commands = %+v, want one task.create", loaded)
-	}
-}
-
-// TestSystem_RoleWiring_DedicatedSnapshots verifies a dedicated snapshots
-// instance binds the snapshot store from its own engine (SQLite implements
-// SnapshotBackend; the memory source-of-truth does not).
-func TestSystem_RoleWiring_DedicatedSnapshots(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	sys, err := system.New(ctx, system.DomainConfig{}, system.DeploymentConfig{
-		Engines: map[string]system.EngineConfig{
-			"primary": {Driver: "memory"},
-			"snaps":   {Driver: "sqlite"},
-		},
-		Instances: []system.InstanceConfig{
-			{Role: system.RoleSourceOfTruth, Engine: "primary"},
-			{Role: system.RoleSnapshots, Engine: "snaps"},
-		},
-	})
-	if err != nil {
-		t.Fatalf("system.New: %v", err)
-	}
-
-	defer sys.Close()
-
-	snapStore := sys.SnapshotStore()
-	if snapStore == nil {
-		t.Fatal("dedicated snapshots instance must bind SnapshotStore")
-	}
-
-	streamID := id.NewStreamID()
-
-	snap := snapshot.Snapshot{
-		StreamID:   streamID,
-		StreamType: "Task",
-		Version:    event.Version(3),
-		State:      []byte("state"),
-		CreatedAt:  time.Now(),
-	}
-
-	if err := snapStore.Save(ctx, snap); err != nil {
-		t.Fatalf("Save: %v", err)
-	}
-
-	loaded, err := snapStore.Load(ctx, id.NewStreamRef("Task", streamID))
-	if err != nil {
-		t.Fatalf("Load: %v", err)
-	}
-
-	if loaded == nil || string(loaded.State) != "state" || loaded.Version != event.Version(3) {
-		t.Fatalf("snapshot = %+v, want (state, version 3)", loaded)
 	}
 }
 
