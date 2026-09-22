@@ -23,6 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
 	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-sqlitestore v0.1.0
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/sdk v1.46.0
 	modernc.org/sqlite v1.59.0

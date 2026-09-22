@@ -12,6 +12,7 @@ import (
 	errorfamily "github.com/larsartmann/go-error-family"
 
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	"github.com/larsartmann/go-sqlitestore"
 )
 
 // EnsureSQLiteDSNBusyTimeout appends _pragma=busy_timeout(ms) to the DSN so
@@ -109,12 +110,12 @@ func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 // configures production-safe pragmas: synchronous=NORMAL (safe with WAL, avoids
 // an fsync per transaction — 3-10x faster than FULL) and busy_timeout=5000
 // (eliminates "database is locked" errors under concurrency).
+//
+// Delegates to the shared engine (go-sqlitestore), which owns the canonical
+// PRAGMA set; this wrapper preserves the public API and the 5000ms timeout
+// for existing callers (SUPERB T11: one engine, no duplicated pragma lists).
 func SQLiteEnableWAL(ctx context.Context, db *sql.DB) error {
-	return execPragmas(ctx, db, []string{
-		"PRAGMA journal_mode=WAL",
-		"PRAGMA synchronous=NORMAL",
-		"PRAGMA busy_timeout=5000",
-	}, "storage.enable_wal")
+	return sqlitestore.EnableWAL(ctx, db, 5000)
 }
 
 // SQLiteEnableForeignKeys turns on SQLite foreign-key enforcement for the
@@ -136,12 +137,10 @@ func SQLiteEnableForeignKeys(ctx context.Context, db *sql.DB) error {
 // workloads: cache_size (64 MB page cache), temp_store=MEMORY, and
 // mmap_size=256 MB. These are safe, portable SQLite settings that improve
 // throughput without durability trade-offs. Call after schema creation.
+//
+// Delegates to the shared engine's identical optimization set (SUPERB T11).
 func SQLiteApplyOptimizations(ctx context.Context, db *sql.DB) error {
-	return execPragmas(ctx, db, []string{
-		"PRAGMA cache_size=-65536",   // 64 MB page cache
-		"PRAGMA temp_store=MEMORY",   // avoid temp files on disk
-		"PRAGMA mmap_size=268435456", // 256 MB memory-mapped I/O
-	}, "storage.apply_optimizations")
+	return sqlitestore.ApplyOptimizations(ctx, db)
 }
 
 // ConfigureSQLitePool caps the connection pool at 1 for SQLite — WAL mode
