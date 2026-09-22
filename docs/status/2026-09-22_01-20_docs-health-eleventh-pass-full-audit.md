@@ -106,7 +106,7 @@
 43. Weekly load-sweep first-Sunday verification (observe).
 44. Benchkit tag wave (owner) + verification debts a–i.
 45. Queue M4 verification tail a–f + dep-validation ratification (owner).
-46. M20/G-T02 owner rulings → ADR-0146 (direction ruling, SingleWriter lease, AggregateOn, scan-default v5).
+46. M20/G-T02 owner rulings → ADR-0146 (direction ruling, SingleWriter lease, AggregateOn, scan-default v5). — corrected 2026-09-22: ADR-0146 belongs to the SingleWriter lease (first claim); the direction ruling re-slots to ADR-0147; scan-default v5 was ruled (Option C) same day.
 47. 350-line policy ratification (owner; memo waits since 09-13).
 48. Turso upstream issue filing (defects A+B draft ready; owner approval) + defect-A onset characterization.
 49. LSP/gopls `GOTOOLCHAIN=auto` env fix (~100 phantom diagnostics/session — bit me all pass).

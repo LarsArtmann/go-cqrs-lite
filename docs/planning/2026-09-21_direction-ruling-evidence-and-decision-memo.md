@@ -3,7 +3,8 @@
 > **Status: DELIVERED — the ruling itself remains owner-gated (G-T02).**
 > **Date:** 2026-09-21 · **Source:** goal-closure plan §1.1 / G-T01–G-T03
 > ([plan](2026-09-17_05-49_SUPERB-metaengine-goal-closure-pareto-plan.md)).
-> **Routing:** the ruling lands as **ADR-0146** (next free slot; the ADR-0141
+> **Routing:** the ruling lands as **ADR-0147** (re-slotted 2026-09-22: the
+> SingleWriter lease one-pager claimed ADR-0146 first; the ADR-0141
 > the plan named was taken by temporal versioned cells) plus an AGENTS.md Goal
 > sentence amendment. Ruling session = XS from here: §6 states what is drafted
 > for each outcome.
@@ -137,7 +138,7 @@ dead so the auditability objection is answered by construction.
 
 ### (c) HYBRID — Reframe NOW, codegen as evidence-gated opt-in later
 
-Rule (a) immediately: AGENTS sentence + ADR-0146 + ADR-0116 addendum. Park a
+Rule (a) immediately: AGENTS sentence + ADR-0147 (see routing note) + ADR-0116 addendum. Park a
 ONE-PAGER (G-T03, doc only, no code) describing the `cqrs-gen` fold-generation
 path as an opt-in for CRUD-shaped views, to be picked up only if the G-T16
 parity benchmark or consumer evidence shows the Evolution declaration is a
@@ -186,7 +187,7 @@ routed by the system".)
 
 | Step                                                         | REFRAME                 | HYBRID (recommended)                  | REVIVE                                  |
 | ------------------------------------------------------------ | ----------------------- | ------------------------------------- | --------------------------------------- |
-| ADR-0146 draft (decision + consequences + ADR-0116 addendum) | ✓                       | ✓                                     | ✓                                       |
+| ADR-0147 draft (decision + consequences + ADR-0116 addendum) | ✓                       | ✓                                     | ✓                                       |
 | AGENTS.md Goal sentence amended                              | ✓                       | ✓                                     | ✗ (sentence stays, meaning re-expanded) |
 | G-T03 `cqrs-gen` fold-codegen one-pager                      | doc note: declined, why | ✓ parked one-pager w/ activation gate | ✓ promoted to build plan                |
 | TODO_LIST 🔥 row closed                                      | ✓                       | ✓                                     | partially (build rows open)             |
