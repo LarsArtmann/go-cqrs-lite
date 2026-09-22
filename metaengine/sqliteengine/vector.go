@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json/v2"
-	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -80,31 +79,21 @@ func (e *sqliteEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
-	var established int
-
-	err := e.xc(ctx).queryRow(ctx,
-		"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection).
-		Scan(&established)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("sqliteengine.VectorInsert: dimension probe: %w", err)
+	established, err := metaengine.ScanVectorDimensionProbe(
+		e.xc(ctx).queryRow(ctx,
+			"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection),
+		"sqliteengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
-	if err := metaengine.CheckVectorDimension(
-		collection,
-		established,
-		len(emb.Values),
-	); err != nil {
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
 		return fmt.Errorf("sqliteengine.VectorInsert: %w", err)
 	}
 
-	var metaJSON any // nil marshals to SQL NULL
-	if emb.Metadata != nil {
-		data, err := json.Marshal(emb.Metadata)
-		if err != nil {
-			return fmt.Errorf("sqliteengine.VectorInsert: marshal metadata: %w", err)
-		}
-
-		metaJSON = string(data)
+	metaJSON, err := metaengine.VectorMetadataArg(emb, "sqliteengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
 	if _, err := e.xc(ctx).exec(
@@ -165,25 +154,7 @@ func (e *sqliteEngine) vectorSearchPushdown(
 	}
 	defer metaengine.DeferClose(rows)
 
-	var results []metaengine.VectorResult
-
-	for rows.Next() {
-		var id string
-
-		var dist float64
-
-		if err := rows.Scan(&id, &dist); err != nil {
-			return nil, fmt.Errorf("sqliteengine.VectorSearch: scan: %w", err)
-		}
-
-		results = append(results, metaengine.VectorResult{ID: id, Distance: float32(dist)})
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("sqliteengine.VectorSearch: %w", err)
-	}
-
-	return results, nil
+	return metaengine.ScanVectorResults(rows, "sqliteengine.VectorSearch")
 }
 
 // VectorSearchFiltered is the metadata-filtered k-NN path: filters apply

@@ -2,9 +2,7 @@ package duckdbengine
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json/v2"
-	"errors"
 	"fmt"
 
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
@@ -73,21 +71,15 @@ func (e *duckdbEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
-	//art-dupl:accept dep-isolated dialect twin (pgengine/sqliteengine vector.go)
-	var established int
-
-	err := e.conn(ctx).QueryRowContext(ctx,
-		"SELECT len(vec) FROM meta_vector WHERE collection = ? LIMIT 1", collection).
-		Scan(&established)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("duckdbengine.VectorInsert: dimension probe: %w", err)
+	established, err := metaengine.ScanVectorDimensionProbe(
+		e.conn(ctx).QueryRowContext(ctx,
+			"SELECT len(vec) FROM meta_vector WHERE collection = ? LIMIT 1", collection),
+		"duckdbengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
-	if err := metaengine.CheckVectorDimension(
-		collection,
-		established,
-		len(emb.Values),
-	); err != nil {
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
 		return fmt.Errorf("duckdbengine.VectorInsert: %w", err)
 	}
 
@@ -96,14 +88,9 @@ func (e *duckdbEngine) VectorInsert(
 		return fmt.Errorf("duckdbengine.VectorInsert: marshal: %w", err)
 	}
 
-	var metaJSON any // nil → SQL NULL
-	if emb.Metadata != nil {
-		data, err := json.Marshal(emb.Metadata)
-		if err != nil {
-			return fmt.Errorf("duckdbengine.VectorInsert: marshal metadata: %w", err)
-		}
-
-		metaJSON = string(data)
+	metaJSON, err := metaengine.VectorMetadataArg(emb, "duckdbengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
 	if _, err := e.conn(ctx).ExecContext(ctx, vectorInsertSQL,
@@ -142,25 +129,7 @@ func (e *duckdbEngine) VectorSearch(
 	}
 	defer metaengine.DeferClose(rows)
 
-	var results []metaengine.VectorResult
-
-	for rows.Next() {
-		var id string
-
-		var dist float64
-
-		if err := rows.Scan(&id, &dist); err != nil {
-			return nil, fmt.Errorf("duckdbengine.VectorSearch: scan: %w", err)
-		}
-
-		results = append(results, metaengine.VectorResult{ID: id, Distance: float32(dist)})
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("duckdbengine.VectorSearch: %w", err)
-	}
-
-	return results, nil
+	return metaengine.ScanVectorResults(rows, "duckdbengine.VectorSearch")
 }
 
 // VectorSearchFiltered is the metadata-filtered k-NN path: filters apply

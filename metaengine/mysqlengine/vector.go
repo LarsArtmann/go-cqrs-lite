@@ -44,33 +44,24 @@ func (e *mysqlEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
-	var established int
-
-	err := e.conn(ctx).QueryRowContext(ctx,
-		// CAST ... AS SIGNED: MySQL/MariaDB "/" is DECIMAL division ("2.0000"
-		// scans as []uint8, not an int); both dialects cast to integer here.
-		"SELECT CAST(LENGTH(vec)/4 AS SIGNED) FROM meta_vector WHERE collection = ? LIMIT 1", collection).
-		Scan(&established)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("mysqlengine.VectorInsert: dimension probe: %w", err)
+	established, err := metaengine.ScanVectorDimensionProbe(
+		e.conn(ctx).QueryRowContext(ctx,
+			// CAST ... AS SIGNED: MySQL/MariaDB "/" is DECIMAL division ("2.0000"
+			// scans as []uint8, not an int); both dialects cast to integer here.
+			"SELECT CAST(LENGTH(vec)/4 AS SIGNED) FROM meta_vector WHERE collection = ? LIMIT 1",
+			collection),
+		"mysqlengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
-	if err := metaengine.CheckVectorDimension(
-		collection,
-		established,
-		len(emb.Values),
-	); err != nil {
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
 		return fmt.Errorf("mysqlengine.VectorInsert: %w", err)
 	}
 
-	var metaJSON any // nil → SQL NULL
-	if emb.Metadata != nil {
-		data, err := json.Marshal(emb.Metadata)
-		if err != nil {
-			return fmt.Errorf("mysqlengine.VectorInsert: marshal metadata: %w", err)
-		}
-
-		metaJSON = string(data)
+	metaJSON, err := metaengine.VectorMetadataArg(emb, "mysqlengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
 	if _, err := e.conn(ctx).ExecContext(ctx, vectorInsertSQL,

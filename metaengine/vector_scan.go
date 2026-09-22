@@ -1,6 +1,7 @@
 package metaengine
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 )
@@ -55,4 +56,31 @@ func ScanScoredVector(
 		ID:       id,
 		Distance: VectorDistance(query, values, metric),
 	}, true, nil
+}
+
+// ScanVectorResults drains a SQL-pushdown k-NN result set — (id, distance)
+// rows in ascending distance order — into VectorResults, casting the scanned
+// float64 distance to float32. The label is used as the error prefix
+// (e.g. "duckdbengine.VectorSearch"); the rows.Err wrap intentionally carries
+// no sub-prefix, matching the engines' original error strings.
+func ScanVectorResults(rows *sql.Rows, label string) ([]VectorResult, error) {
+	var results []VectorResult
+
+	for rows.Next() {
+		var id string
+
+		var dist float64
+
+		if err := rows.Scan(&id, &dist); err != nil {
+			return nil, fmt.Errorf("%s: scan: %w", label, err)
+		}
+
+		results = append(results, VectorResult{ID: id, Distance: float32(dist)})
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+
+	return results, nil
 }

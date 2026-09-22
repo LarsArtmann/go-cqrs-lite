@@ -31,20 +31,16 @@ func (e *pgEngine) VectorInsert(
 ) error {
 	// Dimension lock (metaengine.ErrVectorDimensionMismatch): the first
 	// insert establishes the collection's dimension.
-	var established int
-
-	err := e.conn(ctx).QueryRowContext(ctx,
-		`SELECT jsonb_array_length(vector) FROM meta_vector WHERE collection = $1 LIMIT 1`,
-		collection).Scan(&established)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("pgengine.VectorInsert: dimension probe: %w", err)
+	established, err := metaengine.ScanVectorDimensionProbe(
+		e.conn(ctx).QueryRowContext(ctx,
+			`SELECT jsonb_array_length(vector) FROM meta_vector WHERE collection = $1 LIMIT 1`,
+			collection),
+		"pgengine.VectorInsert")
+	if err != nil {
+		return err
 	}
 
-	if err := metaengine.CheckVectorDimension(
-		collection,
-		established,
-		len(emb.Values),
-	); err != nil {
+	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
 		return fmt.Errorf("pgengine.VectorInsert: %w", err)
 	}
 
