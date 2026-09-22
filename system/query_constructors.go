@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // ─── Lookup: point lookup by key ───

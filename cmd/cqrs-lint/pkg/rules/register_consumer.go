@@ -15,7 +15,10 @@ import (
 // to "adopt" its own features, and consumer-architecture patterns (preset
 // bypass, read-your-writes, signing defaults) are meaningless in library
 // source.
-func appendConsumerCoaching(detectors []finding.Detector, ctx *analyzer.AnalysisContext) []finding.Detector {
+func appendConsumerCoaching(
+	detectors []finding.Detector,
+	ctx *analyzer.AnalysisContext,
+) []finding.Detector {
 	return append(
 		detectors,
 		// Architecture (consumer-coaching)
