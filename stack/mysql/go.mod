@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.10.1
 	github.com/testcontainers/testcontainers-go v0.44.0
-	github.com/testcontainers/testcontainers-go/modules/mysql v0.43.0
+	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0
 )
 
 require (
@@ -72,10 +72,13 @@ require (
 	github.com/moby/term v0.5.2 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20260805114148-88456608a4f6 // indirect
+	github.com/redis/go-redis/v9 v9.22.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.8 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
@@ -96,4 +99,5 @@ require (
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
+	modernc.org/libc v1.77.0 // indirect
 )
