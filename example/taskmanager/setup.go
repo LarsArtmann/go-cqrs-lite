@@ -175,12 +175,13 @@ func NewServer(cfg Config, logger *slog.Logger) (*Server, error) {
 	}
 
 	// ── Event bus signing (HMAC-SHA256 tamper detection) ─────────────────
-	//cqrs-lint:ignore(S010) signing protects the WIRE (publish/subscribe
-	// integrity); at-rest signing of journal events is a separate seam the
-	// signing module does not yet expose transforms for — teaching the
-	// difference IS part of this demo.
+	// Signing protects the WIRE (publish/subscribe integrity); at-rest
+	// signing of journal events is a separate seam the signing module does
+	// not yet expose transforms for — teaching the difference IS part of
+	// this demo.
 	srv.signer = newDemoSigner()
 
+	//cqrs-lint:ignore(S010) wire signing demo; see the comment above
 	if err := sys.Bus().UsePublish(signing.SignMiddleware(srv.signer)); err != nil {
 		return nil, fmt.Errorf("setup: sign middleware: %w", err)
 	}

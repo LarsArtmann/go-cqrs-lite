@@ -1044,6 +1044,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-check-retracts-shipped.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-pin-sweep.sh"
                   ${pkgs.bash}/bin/bash "$PWD/scripts/test-calibration-drift.sh"
+                  ${pkgs.bash}/bin/bash "$PWD/scripts/check-md-go.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/calibration-gate.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-golangci-hash.sh" --self-test
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" --self-test

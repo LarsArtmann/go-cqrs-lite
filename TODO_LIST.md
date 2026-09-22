@@ -373,6 +373,16 @@ replace-free — 10-25 §a2/§a3, now archived).
       rename-guard check: V006 version-set goldens vs the new tag set
       (taskmanager golden pins the version list). — source: closeout §f15/§f16/§f25
       _(Effort: S total)_
+      2026-09-22 (T07 partial): pin-sweep --check GREEN ("All sibling pins
+      at their latest tags"); cqrs-lint over all six examples — zero
+      error-severity findings after fixing taskmanager (C017 memory-DLQ →
+      SQLiteDeadLetterStore on cfg.DatabasePath, S010 wire-vs-at-rest nolint
+      with rationale, F031 explicit WithLimit(listPageSize)) and
+      readme-quickstart (C028 ×2 discarded Dispatch/RegisterTyped errors
+      handled); remaining WARNINGs are deliberate demo simplicity
+      (branded-ID suggestions, must.go panics, version-pin mix advisory —
+      dispatcher IS at its latest tag). V006 taskmanager golden: still open
+      (needs the next tag wave's version set).
 - [ ] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
@@ -381,7 +391,14 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## Metaengine — follow-ups
 
-- [ ] **Turso grouped-materialized-views fail-closed (feedback #2)** —
+- [x] **Turso grouped-materialized-views fail-closed (feedback #2)** — done
+      2026-09-22 (T16): `tursoengine.New` refuses a `GroupBy` matview spec
+      with `ErrGroupedViewBugRefused` unless `WithKnownGroupedViewBug()`
+      acknowledges; pinned by
+      `TestTursoMatView_GroupedSpecRefusedWithoutOptIn`; the
+      defect-exercising repro/bench/property suites opt in explicitly;
+      API golden regenerated; CHANGELOG + readmodels.md caveat updated
+      (Doctor WARN retained for opted-in deployments). Original:
       `WithKnownGroupedViewBug`-style opt-in: grouped matviews diverge silently
       (upstream defect A, ADR-0135); construction-time refusal unless the caller
       acknowledges. Complements the existing Doctor WARN + envelope-guard test.
