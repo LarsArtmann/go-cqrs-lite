@@ -1682,6 +1682,7 @@
                   ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" || exit 1
                   # Advisory verify-window lock (W3 Q5): fail loud on
                   # contention instead of interleaving with another session.
+                  # shellcheck disable=SC1091  # sourced lib lives beside the script
                   source "$PWD/scripts/lib/verify-lock.sh"
                   verify_lock_acquire || exit 1
                   export CGO_ENABLED=1
