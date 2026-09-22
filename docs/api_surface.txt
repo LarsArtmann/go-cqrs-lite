@@ -2837,6 +2837,7 @@ metaengine/func ReplayTrace
 metaengine/func SQLiteEngineProfile
 metaengine/func SaveManifest
 metaengine/func ScanDistinctValues
+metaengine/func ScanGroupedAggregates
 metaengine/func ScanKeyValuesPage
 metaengine/func ScanLimit
 metaengine/func ScanScoredVector
