@@ -149,7 +149,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		ctx,
 		s.q.due,
 		s.formatTime(now),
-	) //nolint:sqlclosecheck // ADR-0144 DeferClose
+	)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,

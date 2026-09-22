@@ -14,8 +14,8 @@ import (
 func TestMiddlewareAliasesAreIdentical(t *testing.T) {
 	t.Parallel()
 
-	var handlerMW command.Middleware = dispatcher.Middleware[command.Handler](nil)
-	var publishMW command.PublishMiddleware = dispatcher.Middleware[command.Publisher](nil)
+	handlerMW := dispatcher.Middleware[command.Handler](nil)
+	publishMW := dispatcher.Middleware[command.Publisher](nil)
 
 	if handlerMW != nil || publishMW != nil {
 		t.Fatal("nil dispatcher middleware values must assign cleanly to the command aliases")

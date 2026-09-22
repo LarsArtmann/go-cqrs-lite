@@ -4,7 +4,6 @@ package systemtest_test
 // in system/system_test.go — test fixtures may not cross the module
 // boundary created by the Feedback-#4 split.
 
-
 import (
 	"encoding/json/v2"
 	"errors"
@@ -18,7 +17,7 @@ import (
 
 // ── Domain types ──
 
-//art-dupl:accept test-fixture twin of system/system_test.go domain block
+// art-dupl:accept test-fixture twin of system/system_test.go domain block
 type TaskCreated struct {
 	Title string
 	At    time.Time

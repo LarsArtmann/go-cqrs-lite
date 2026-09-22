@@ -46,6 +46,7 @@ func main() {
 	//cqrs-lint:ignore(B023) library code or intentional pattern
 	cmds := command.NewDispatcher()
 	aggID := id.NewStreamID()
+
 	if err := command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *CreateUser) error {
 			return repo.ExecuteRef(
