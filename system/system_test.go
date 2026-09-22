@@ -69,6 +69,32 @@ func newCmd(cmdType command.Type, streamID id.StreamID) *command.BasicCommand {
 	return cmd
 }
 
+
+// ── Projection fixtures ──
+
+type TaskView struct {
+	Title  string
+	Status string
+}
+
+type FindTask struct {
+	ID string
+}
+
+func projectionDecoder(eventType string, payload []byte) (any, error) {
+	switch eventType {
+	case "task.created":
+		var e TaskCreated
+		if err := json.Unmarshal(payload, &e); err != nil {
+			return nil, err
+		}
+
+		return e, nil
+	}
+
+	return nil, errors.New("unknown event type: " + eventType)
+}
+
 // ── Tests ──
 
 func TestSystem_FullCQRSRoundtrip(t *testing.T) {

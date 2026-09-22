@@ -286,6 +286,7 @@
             "metaengine/mysqlengine"
             "system"
             "system/integration"
+            "systemtest"
           ];
           modulePaths = builtins.concatStringsSep " " (map (m: "./${m}/...") testModules);
 

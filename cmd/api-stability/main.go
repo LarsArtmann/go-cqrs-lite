@@ -113,6 +113,7 @@ var modules = []string{
 	"benchkit",
 	"system",
 	"system/integration",
+	"systemtest",
 	"cmd/cqrs-lint",
 	"cmd/cqrs-bench",
 	"cmd/cqrs-upgrade",

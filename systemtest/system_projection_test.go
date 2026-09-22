@@ -17,31 +17,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
-// ── Projection E2E types ──
-
-type TaskView struct {
-	Title  string
-	Status string
-}
-
-type FindTask struct {
-	ID string
-}
-
-func projectionDecoder(eventType string, payload []byte) (any, error) {
-	switch eventType {
-	case "task.created":
-		var e TaskCreated
-		if err := json.Unmarshal(payload, &e); err != nil {
-			return nil, err
-		}
-
-		return e, nil
-	}
-
-	return nil, errors.New("unknown event type: " + eventType)
-}
-
 func TestSystem_ProjectionE2E(t *testing.T) {
 	t.Parallel()
 

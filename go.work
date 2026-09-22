@@ -90,6 +90,7 @@ use (
 	./storage/turso
 	./system
 	./system/integration
+	./systemtest
 	./testutil
 	./testutil/mysqltestcontainer
 	./testutil/pgtestcontainer
