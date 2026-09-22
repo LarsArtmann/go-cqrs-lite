@@ -71,7 +71,8 @@ defer sys.Close()
 
 ```go
 // v4 (deprecated at v5):
-mat := stack.NewMaterialize[TaskView](bundle.KV(), adapter)
+mat, _ := stack.NewMaterialize[TaskView, TaskKey](bundle,
+	codec.JSONCodec{}, taskKeyFromEvent)
 go stack.RunProjections(ctx, bundle.Journal(), mat)
 
 // v5 — inside a system deployment the host is wired for you:
@@ -107,18 +108,25 @@ layout from the declared query shape (details + decision matrix:
 ```go
 // skip-validate
 // v4 (deprecated at v5): schema + handler you maintain per table
-schema := storage.NewRelationalSchema(
-	storage.RelationalTable{Name: "tasks", Columns: []storage.RelationalColumn{…}},
-)
+schema := storage.RelationalSchema{
+	Tables: []storage.RelationalTable{
+		{Name: "tasks", Columns: []storage.RelationalColumn{/* … */}},
+	},
+}
 proj, _ := storage.NewRelationalProjection("tasks", schema, db,
-	sqlite.Dialect{}, tasksHandler, []event.Type{"task.created", "task.done"})
+	sqlpkg.SQLiteDialect{}, tasksHandler,
+	[]event.Type{"task.created", "task.done"})
 
 // v5 — declare the query; the layout and folds are derived from samples:
-q := metaengine.Query[TaskView, TaskView]("tasks",
-	metaengine.OnRecordTyped("task.created", event.Event("task.created", TaskEvent{}),
-		func(_ record.Record, s metaengine.State[TaskView]) metaengine.Delta { … }),
-	metaengine.OnRecordTyped("task.done", …),
-	metaengine.FilterOnField("Assignee"), metaengine.SortOnField("DueAt"),
+q := metaengine.Query[FindTask, TaskView]("tasks",
+	metaengine.OnRecordTyped("task.created", TaskCreated{},
+		func(_ record.Record, e TaskCreated) (string, TaskView) {
+			return e.Title, TaskView{Title: e.Title, Status: "pending"}
+		}),
+	metaengine.OnRecordTyped("task.completed", TaskCompleted{},
+		func(r record.Record, e TaskCompleted) (string, TaskView) { /* … */ }),
+	metaengine.FilterOnField[TaskView]("Status", metaengine.FilterEq),
+	metaengine.SortOnField[TaskView]("Title", false),
 )
 sys, _ := system.New(ctx, domain, deployment) // engines route + materialize q
 ```

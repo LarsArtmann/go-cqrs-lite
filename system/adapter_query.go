@@ -60,6 +60,7 @@ func (a *QueryAdapter) SaveQuery(ctx context.Context, q *query.PersistedQuery) e
 	// Use the query's request ID as the stream key for per-query isolation.
 	sid := q.ID().String()
 
+	//art-dupl:accept same-shape ToAny+wrap — adapter-specific types
 	values, err := a.ToAny([]*query.PersistedQuery{q})
 	if err != nil {
 		return err

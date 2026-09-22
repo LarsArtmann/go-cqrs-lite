@@ -119,6 +119,7 @@ func (a *EventAdapter) Save(
 ) error {
 	sid := ref.StreamKey()
 
+	//art-dupl:accept same-shape ToAny+wrap — adapter-specific types
 	values, err := a.ToAny(events)
 	if err != nil {
 		return err
@@ -182,6 +183,7 @@ func (a *EventAdapter) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
+	//art-dupl:accept same-shape ToAny+wrap — adapter-specific types
 	values, err := a.ToAny(events)
 	if err != nil {
 		return err

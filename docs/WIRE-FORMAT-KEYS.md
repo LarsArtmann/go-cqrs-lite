@@ -70,3 +70,13 @@ site (`v6: drop` / "deleted at v6" comments on `snapshotWireLegacy`, the
 bbolt/pebble `*StreamKeysLegacy` shadows, and the watermill
 `metaLegacyAggregate*` constants). At v6: delete the fallback types, the
 dual-write block in watermill, and this table's Legacy column.
+
+## Consumer grep (alert/dashboard configs)
+
+2026-09-22 pre-cut sweep of the sibling consumer projects
+(`go-graph-rag`, `PapDashboard`, `go-appkit`) for the old
+`aggregate_id`/`aggregate_type` strings in JSON/YAML/TOML configs and
+code: **no consumer depends on go-cqrs-lite's old wire spellings.**
+(PapDashboard's `internal/api/audit.go` carries `aggregate_id` columns, but
+that is its own local audit-event schema, not a go-cqrs-lite wire surface.)
+Re-run at the v5.0.0 cut per the sweep §4 checklist.

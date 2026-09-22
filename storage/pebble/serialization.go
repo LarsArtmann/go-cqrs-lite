@@ -126,16 +126,16 @@ func (a *EventStore) deserializeEvent(data []byte) (event.Event, error) {
 // wire structs whose closed record.Encoding enum covers exactly json/cbor.
 // cqrs-lint:ignore(A011) library code or intentional pattern
 type serializableEvent struct {
-	ID            id.EventID      `json:"id"`
-	Type          string          `json:"type"`
-	StreamID      id.StreamID     `json:"stream_id"`
-	StreamType    string          `json:"stream_type"`
-	Version       int             `json:"version"`
-	SchemaVersion int             `json:"schema_version,omitempty"`
-	Payload       []byte          `json:"payload"`
-	OccurredAt    int64           `json:"occurred_at"`
-	Metadata      event.Metadata  `json:"metadata"`
-	Encoding      codec.Encoding  `json:"encoding,omitempty"`
+	ID            id.EventID     `json:"id"`
+	Type          string         `json:"type"`
+	StreamID      id.StreamID    `json:"stream_id"`
+	StreamType    string         `json:"stream_type"`
+	Version       int            `json:"version"`
+	SchemaVersion int            `json:"schema_version,omitempty"`
+	Payload       []byte         `json:"payload"`
+	OccurredAt    int64          `json:"occurred_at"`
+	Metadata      event.Metadata `json:"metadata"`
+	Encoding      codec.Encoding `json:"encoding,omitempty"`
 }
 
 // eventStreamKeysLegacy is the decode-only fallback for event rows written

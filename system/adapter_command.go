@@ -58,6 +58,7 @@ func (a *CommandAdapter) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
+	//art-dupl:accept same-shape ToAny+wrap — adapter-specific types
 	values, err := a.ToAny([]*command.PersistedCommand{cmd})
 	if err != nil {
 		return err
@@ -71,6 +72,7 @@ func (a *CommandAdapter) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
+	//art-dupl:accept same-shape ToAny+wrap — adapter-specific types
 	values, err := a.ToAny(cmds)
 	if err != nil {
 		return err

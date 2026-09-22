@@ -69,7 +69,6 @@ func newCmd(cmdType command.Type, streamID id.StreamID) *command.BasicCommand {
 	return cmd
 }
 
-
 // ── Projection fixtures ──
 
 type TaskView struct {

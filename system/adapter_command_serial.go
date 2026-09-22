@@ -38,6 +38,7 @@ func (a *CommandAdapter) encodeCommand(cmd *command.PersistedCommand) (string, e
 		Metadata:   metaJSON,
 	}
 
+	//art-dupl:accept same-shape marshal+wrap — type-specific wire structs
 	data, err := json.Marshal(env)
 	if err != nil {
 		return "", fmt.Errorf("command adapter: encode envelope: %w", err)

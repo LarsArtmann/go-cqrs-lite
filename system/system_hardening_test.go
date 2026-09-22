@@ -573,6 +573,7 @@ func TestSystem_RegisterDrainer_ErrorPropagation(t *testing.T) {
 		t.Fatalf("expected error to wrap drainErr, got: %v", err)
 	}
 }
+
 // taskDomainConfig twin — shared by both system (memory legs) and
 // systemtest (sqlite legs) after the Feedback-#4 module split.
 

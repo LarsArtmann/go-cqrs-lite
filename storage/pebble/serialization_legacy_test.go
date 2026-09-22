@@ -51,7 +51,11 @@ func TestDeserializeEvent_ReadsLegacyAggregateKeys(t *testing.T) {
 		Encoding:   "json",
 	}
 
-	data, err := marshalCBOROrErr(row, "pebble.test.legacy_event_marshal", "marshal legacy event row")
+	data, err := marshalCBOROrErr(
+		row,
+		"pebble.test.legacy_event_marshal",
+		"marshal legacy event row",
+	)
 	if err != nil {
 		t.Fatalf("marshal legacy row: %v", err)
 	}

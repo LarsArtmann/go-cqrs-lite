@@ -3,20 +3,21 @@ package systemtest_test
 import (
 	"context"
 	"errors"
-
-	"github.com/larsartmann/go-codec"
+	"runtime"
 	"slices"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/larsartmann/go-codec"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	"github.com/larsartmann/go-cqrs-lite/snapshot/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
 
@@ -410,6 +411,7 @@ func waitForProjectionProcessed(t *testing.T, sys *system.System, minProcessed i
 
 	return false
 }
+
 // checkpoint returns the last saved checkpoint for a projection (race-safe).
 func (s *recordingCheckpointStore) checkpoint(projection string) event.Checkpoint {
 	s.mu.Lock()

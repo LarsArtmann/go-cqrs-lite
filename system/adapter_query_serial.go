@@ -34,6 +34,7 @@ func (a *QueryAdapter) encodeQuery(q *query.PersistedQuery) (string, error) {
 		Metadata:   metaJSON,
 	}
 
+	//art-dupl:accept same-shape marshal+wrap — type-specific wire structs
 	data, err := json.Marshal(env)
 	if err != nil {
 		return "", fmt.Errorf("query adapter: encode envelope: %w", err)

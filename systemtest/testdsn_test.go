@@ -49,6 +49,7 @@ func mustApply(t *testing.T, store *metaengine.Store, eventType string, payload 
 		t.Fatalf("Apply %s: %v", eventType, err)
 	}
 }
+
 // loadScaledDeadline mirrors system/load_aware_test.go's load-aware timeout
 // helper: tests under a loaded host get a proportional budget instead of a
 // fixed deadline (shared box, parallel sessions). Local twin, not testutil:
