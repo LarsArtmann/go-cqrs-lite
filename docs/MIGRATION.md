@@ -1,5 +1,9 @@
 # API Migration Guide
 
+> **v5 notice (2026-09-22):** sections describing `stack/` presets,
+> `stack.Materialize`, or the ADR-0126 transform shells describe surfaces
+> DELETED at v5.0.0 — see [V5-MIGRATION-GUIDE.md](V5-MIGRATION-GUIDE.md).
+
 ## query.Handler: `any` → TypedHandler[T]
 
 ### The Problem

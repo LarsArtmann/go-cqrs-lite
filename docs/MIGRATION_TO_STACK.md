@@ -1,5 +1,11 @@
 # Migration Guide: Hand-Wired → Stack Presets
 
+> **v5 notice (2026-09-22):** the `stack/` presets this guide teaches are
+> DELETED at v5.0.0 (ADR-0123) — the destination is now
+> [`system.New`](V5-MIGRATION-GUIDE.md) + `projectionhost.Host`. Read this
+> guide only for its rationale; follow [V5-MIGRATION-GUIDE.md](V5-MIGRATION-GUIDE.md)
+> for the target composition.
+
 > **Stop wiring infrastructure by hand.** The `stack/` layer eliminates the boilerplate every consumer currently reimplements: schema migration, dialect mapping, bus wiring, projection replay, and deduplication. This guide shows you how to replace 200–400 lines of custom infrastructure code with 5–10 lines of stack preset.
 
 ---

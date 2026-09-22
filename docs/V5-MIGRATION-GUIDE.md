@@ -235,10 +235,13 @@ must be present until the fleet is fully on v5.
 3. Wire-tag renames (§3) land AFTER wave C's code deletions — never in the
    same commit as a code rename (execution rule 2).
 4. Error-code batch rename last, with a CHANGELOG migration note.
-5. `nix run .#verify-standalone` equivalent (`#verify-ci`) over ALL modules
+5. Strip `systemtest/go.mod` sibling replaces at the system/engines tag
+   wave (the split's tests pin system's UNRELEASED surface —
+   `NewEngineCheckpointStore` — until then).
+6. `nix run .#verify-standalone` equivalent (`#verify-ci`) over ALL modules
    after every wave — unpublished-symbol pin traps surface here, not in
    workspace builds.
-6. Tag wave per CONTRIBUTING "Pre-tag checklist"; `create-github-releases.sh`
+7. Tag wave per CONTRIBUTING "Pre-tag checklist"; `create-github-releases.sh`
    publishes changelog-accurate bodies.
 7. Post-cut sweep: `grep -rn "Deprecated:"` over the tree must return EMPTY
    (everything deprecated in v4 is now either deleted or un-deprecated), and

@@ -1,5 +1,8 @@
 # Migration Guide: Upgrading to go-cqrs-lite v1.0.0
 
+> **Historical (2023-era):** v0→v1 migration. Kept for archaeology; the
+> current cut guidance is [V5-MIGRATION-GUIDE.md](V5-MIGRATION-GUIDE.md).
+
 This guide covers all breaking changes and migration paths from pre-v1.0.0 to v1.0.0 of go-cqrs-lite.
 
 ## Table of Contents

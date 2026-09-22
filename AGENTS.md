@@ -244,7 +244,7 @@ Tier 3 — Aggregation: decider/, graph/, scenario/, projectionhost/, listing/, 
 Tier 4 — Infrastructure: storage/*, signing/, encryption/, otel/, otel/otlp/, prometheus/, middleware/, transport/*, watermill/, queue/ (+sqlite, postgres; conformance is a subpackage),
                      testutil/, metaengine/*engine/, metaengine/projectionadapter/, metaengine/otelobserver/, metaengine/keycodec/, scheduling/sqlstore/, claiming/
 Tier 5 — Composition: stack/, stack/*presets/, system/
-Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, cmd/*, example/*, event/v4/eventtest/
+Tier 6 — Tooling & Examples: catalog/, integration/, benchkit/, cmd/*, example/*, event/v4/eventtest/, systemtest/ (Feedback-#4 split: owns system's real-engine suites)
 ```
 
 ## Dependencies
