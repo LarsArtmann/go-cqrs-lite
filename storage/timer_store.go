@@ -19,6 +19,14 @@ import (
 // pass [sqlpkg.PostgresDialect] or [sqlpkg.SQLiteDialect] (or any custom
 // [sqlpkg.Dialect]) at construction.
 //
+// The [P] type parameter exists ONLY on the methods (Schedule/Due take and
+// return [scheduling.Timer] values of the caller's payload type), not in any
+// struct field: the store holds no per-type state, and Go has no generic
+// methods, so the parameter must sit on the type for the methods to be
+// typed. This is the documented v5 resolution of the extended-data-model
+// review's "phantom type param" finding (E13) — the shape is honest: P is
+// call-site payload typing, not storage.
+//
 // Use NewSQLTimerStore / NewSQLiteTimerStore for the common cases, or
 // NewSQLTimerStoreWithDialect to supply a custom dialect. The timers table is
 // created automatically by SQLiteInitSchema / PostgresInitSchema; to add it to

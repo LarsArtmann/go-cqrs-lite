@@ -39,18 +39,20 @@ type OTelBundle struct {
 	metricsEnabled bool
 }
 
-// BundleOption configures the OTel bundle.
-type BundleOption func(*bundleConfig)
-
-type bundleConfig struct {
-	metricsEnabled bool
-}
+// BundleOption configures the OTel bundle. Deprecated bridge for the
+// pre-v5 separate option universe: BundleOption and [Option] are the same
+// type since the E6 unification (one config struct, one option type); the
+// name survives so existing consumer signatures keep compiling. Use
+// [Option] directly.
+//
+// Deprecated: use [Option].
+type BundleOption = Option
 
 // WithMetricsDisabled produces a tracing-only bundle: the Command/Event/Query
 // chains emit spans but skip metric recording. The meter argument to
 // NewOTelBundle may be nil when this option is set.
-func WithMetricsDisabled() BundleOption {
-	return func(c *bundleConfig) {
+func WithMetricsDisabled() Option {
+	return func(c *middlewareConfig) {
 		c.metricsEnabled = false
 	}
 }
@@ -83,14 +85,14 @@ func WithMetricsDisabled() BundleOption {
 func NewOTelBundle(
 	tracer cqrsotel.Tracer,
 	meter cqrsotel.Meter,
-	opts ...BundleOption,
+	opts ...Option,
 ) (*OTelBundle, error) {
-	cfg := &bundleConfig{
+	cfg := middlewareConfig{
 		metricsEnabled: true,
 	}
 
 	for _, opt := range opts {
-		opt(cfg)
+		opt(&cfg)
 	}
 
 	b := &OTelBundle{ //nolint:exhaustruct_v5 // recorder set conditionally below

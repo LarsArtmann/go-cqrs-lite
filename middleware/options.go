@@ -4,6 +4,10 @@ import "log/slog"
 
 type middlewareConfig struct {
 	logger *slog.Logger
+
+	// metricsEnabled is only consumed by [NewOTelBundle], which seeds it to
+	// true before applying options (plain middleware paths ignore it).
+	metricsEnabled bool
 }
 
 // Option configures middleware behavior.
