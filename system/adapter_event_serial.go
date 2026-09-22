@@ -27,15 +27,10 @@ type serializedEvent struct {
 	OccurredAt    time.Time `json:"occurred_at"`
 }
 
-func (a *EventAdapter) encodeEvent(evt event.Event) string {
-	// encodeEvent cannot propagate errors: AdapterCore.Encode is `func(T) string`
-	// by design (ADR-0126 core constraint). MarshalMetadataJSON returns nil data
-	// on failure, so a failed metadata marshal persists a nil Metadata field
-	// (decodes to zero-value metadata) instead of partial JSON. Marshal errors
-	// are impossible for serializedEvent's marshal-safe field types.
+func (a *EventAdapter) encodeEvent(evt event.Event) (string, error) {
 	metaJSON, metaErr := event.MarshalMetadataJSON(evt.Metadata(), "system")
 	if metaErr != nil {
-		metaJSON = nil
+		return "", fmt.Errorf("event adapter: encode metadata: %w", metaErr)
 	}
 
 	env := serializedEvent{
@@ -51,9 +46,12 @@ func (a *EventAdapter) encodeEvent(evt event.Event) string {
 		OccurredAt:    evt.OccurredAt(),
 	}
 
-	data, _ := json.Marshal(env)
+	data, err := json.Marshal(env)
+	if err != nil {
+		return "", fmt.Errorf("event adapter: encode envelope: %w", err)
+	}
 
-	return string(data)
+	return string(data), nil
 }
 
 func (a *EventAdapter) decodeEvent(s string) (event.Event, error) {

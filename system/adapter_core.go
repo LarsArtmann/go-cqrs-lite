@@ -29,8 +29,10 @@ type AdapterCore[T any] struct {
 	// With*Serialization option.
 	Serialize bool
 
-	// Encode renders one item as its persistent envelope string.
-	Encode func(T) string
+	// Encode renders one item as its persistent envelope string. An encode
+	// failure surfaces as an error (v5 resolution of the extended review's
+	// E11: silent nil/partial envelopes cannot be persisted).
+	Encode func(T) (string, error)
 
 	// Decode parses one envelope string back into an item.
 	Decode func(string) (T, error)
@@ -41,8 +43,9 @@ type AdapterCore[T any] struct {
 }
 
 // ToAny converts items into backend values: direct pointers when Serialize
-// is off, envelope strings when it is on.
-func (c *AdapterCore[T]) ToAny(items []T) []any {
+// is off, envelope strings when it is on. Returns an error when any item
+// fails to encode.
+func (c *AdapterCore[T]) ToAny(items []T) ([]any, error) {
 	result := make([]any, len(items))
 
 	if !c.Serialize {
@@ -50,14 +53,19 @@ func (c *AdapterCore[T]) ToAny(items []T) []any {
 			result[i] = item
 		}
 
-		return result
+		return result, nil
 	}
 
 	for i, item := range items {
-		result[i] = c.Encode(item)
+		encoded, err := c.Encode(item)
+		if err != nil {
+			return nil, fmt.Errorf("system: encode item %d: %w", i, err)
+		}
+
+		result[i] = encoded
 	}
 
-	return result
+	return result, nil
 }
 
 // FromAny converts backend values back into items via decodeValue.

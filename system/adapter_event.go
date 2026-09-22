@@ -118,7 +118,11 @@ func (a *EventAdapter) Save(
 	expectedVersion event.Version,
 ) error {
 	sid := ref.StreamKey()
-	values := a.ToAny(events)
+
+	values, err := a.ToAny(events)
+	if err != nil {
+		return err
+	}
 
 	if ap, ok := a.Backend.(metaengine.AtomicAppender); ok {
 		if err := ap.StreamAppendExpected(
@@ -178,7 +182,12 @@ func (a *EventAdapter) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
-	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), a.ToAny(events))
+	values, err := a.ToAny(events)
+	if err != nil {
+		return err
+	}
+
+	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), values)
 }
 
 // ─── EventSource ───

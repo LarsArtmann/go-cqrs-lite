@@ -1269,6 +1269,7 @@ dispatcher/method WrapCheckClosed
 dispatcher/method WrapClose
 dispatcher/struct Dispatcher
 dispatcher/struct Lifecycle
+dispatcher/type Middleware
 dispatcher/var ErrDispatcherClosed
 dispatcher/var ErrHandlerAlreadyRegistered
 dispatcher/var ErrHandlerNotFound
@@ -4355,6 +4356,9 @@ metaengine/var ErrUnsupportedPattern
 metaengine/var ErrVectorDimensionMismatch
 metaengine/var ErrVersionConflict
 metaengine/var V1StabilizationChecklist
+middleware/const KindCommand
+middleware/const KindEvent
+middleware/const KindQuery
 middleware/const MetadataKeyOTelCorrelationID
 middleware/func AsCommand
 middleware/func AsEvent
@@ -4455,6 +4459,7 @@ middleware/type CommandValidator
 middleware/type DeadLetterHandler
 middleware/type EventValidator
 middleware/type Handler
+middleware/type Kind
 middleware/type Middleware
 middleware/type Option
 middleware/type QueryValidator
@@ -7409,6 +7414,7 @@ watermill/const DefaultCommandBusTopic
 watermill/const DefaultEventBusTopic
 watermill/func CommandToMessage
 watermill/func CorrelationIDMiddleware
+watermill/func DefaultHandlerRetryConfig
 watermill/func DefaultRetryConfig
 watermill/func EventToMessage
 watermill/func ExtractContext
@@ -7466,10 +7472,11 @@ watermill/struct CommandPublisherAdapter
 watermill/struct CommandSubscriberAdapter
 watermill/struct EventBus
 watermill/struct EventPublisher
+watermill/struct HandlerRetryConfig
 watermill/struct PublisherAdapter
-watermill/struct RetryConfig
 watermill/struct SubscriberAdapter
 watermill/type CheckpointStore
 watermill/type CommandBusOption
 watermill/type EventBusOption
+watermill/type RetryConfig
 watermill/var ErrMissingMetadata

@@ -58,12 +58,12 @@ func (a *CommandAdapter) Save(
 	ref command.StreamRef,
 	cmd *command.PersistedCommand,
 ) error {
-	return a.Backend.StreamAppend(
-		ctx,
-		a.Collection,
-		ref.StreamKey(),
-		a.ToAny([]*command.PersistedCommand{cmd}),
-	)
+	values, err := a.ToAny([]*command.PersistedCommand{cmd})
+	if err != nil {
+		return err
+	}
+
+	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), values)
 }
 
 func (a *CommandAdapter) AppendBatch(
@@ -71,7 +71,12 @@ func (a *CommandAdapter) AppendBatch(
 	ref command.StreamRef,
 	cmds []*command.PersistedCommand,
 ) error {
-	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), a.ToAny(cmds))
+	values, err := a.ToAny(cmds)
+	if err != nil {
+		return err
+	}
+
+	return a.Backend.StreamAppend(ctx, a.Collection, ref.StreamKey(), values)
 }
 
 func (a *CommandAdapter) Load(
