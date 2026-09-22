@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6

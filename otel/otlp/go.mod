@@ -1,6 +1,6 @@
 module github.com/larsartmann/go-cqrs-lite/otel/otlp/v4
 
-go 1.27
+go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
