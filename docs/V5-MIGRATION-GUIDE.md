@@ -243,6 +243,6 @@ must be present until the fleet is fully on v5.
    workspace builds.
 7. Tag wave per CONTRIBUTING "Pre-tag checklist"; `create-github-releases.sh`
    publishes changelog-accurate bodies.
-7. Post-cut sweep: `grep -rn "Deprecated:"` over the tree must return EMPTY
+8. Post-cut sweep: `grep -rn "Deprecated:"` over the tree must return EMPTY
    (everything deprecated in v4 is now either deleted or un-deprecated), and
    `v5-deprecation-sweep.md` must have every row struck.

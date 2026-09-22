@@ -21,8 +21,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > [`docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
 > (T01–T27, all 25 sections mapped; 1% tier = restore the go 1.27.1 contract
 > — drift gate + composed verify; predecessor:
->   [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
->   M-items folded into the new T-numbering). This file remains the living source of truth.
+> [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
+> M-items folded into the new T-numbering). This file remains the living source of truth.
 
 ## Section index
 
@@ -94,10 +94,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > 3-engine list, README MySQL quickstart, `MYSQL_TEST_DSN` in the nix legs.
 
 - [ ] [BLOCKED] **Owner ratification: queue dep-validation semantics (M4 §f1)** —
-  decision memo with options + recommendation:
-  [`docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md`](docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md).
-  Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
-  (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
+      decision memo with options + recommendation:
+      [`docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md`](docs/reviews/2026-09-20_queue-dep-validation-ratification-memo.md).
+      Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
+      (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
 
 - [ ] **Queue M4 verification tail (harvested 2026-09-21)** — sliceable:
       (a) unit-pin `deadlockBackoff` (bounds, exponential shape, jitter range,
@@ -813,12 +813,12 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > §b/§f, 09-35 §f P3
 
 - [ ] [BLOCKED] **Supersede-note on the oversubscribed 2026-09-19 capture** —
-  annotate `docs/benchmarks/2026-09-19_backend-comparison-variation.md` as
-  superseded (keeping it as the what-noisy-looks-like example) once a
-  quiet-window capture exists. Blocked on machine quietness: load was
-  35.6/32 CPUs at the 2026-09-21 attempt. Protocol: wait for
-  `scripts/calibration-gate.sh` PASS, re-run the compare command from the
-  capture header, then annotate. — source: archived 15-37 §f3/§f30
+      annotate `docs/benchmarks/2026-09-19_backend-comparison-variation.md` as
+      superseded (keeping it as the what-noisy-looks-like example) once a
+      quiet-window capture exists. Blocked on machine quietness: load was
+      35.6/32 CPUs at the 2026-09-21 attempt. Protocol: wait for
+      `scripts/calibration-gate.sh` PASS, re-run the compare command from the
+      capture header, then annotate. — source: archived 15-37 §f3/§f30
 
 - [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** —
       (a) test for `RunSuiteRepeated` (the one new export with zero direct

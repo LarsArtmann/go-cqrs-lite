@@ -14,11 +14,11 @@ Reply per question with the option letter (or "as recommended").
 
 `KeyProvider func(ctx) ([]byte, error)` — WHEN is it called?
 
-| Option | Semantics | Tradeoffs |
-| ------ | --------- | --------- |
-| A | Once at engine construction; key cached until Close | Deterministic, trivially testable; rotation needs an explicit re-open/Rotate step |
-| B | Per key-open (every file/txn open re-calls) | Rotation converges passively; a failing/slow provider turns every operation into a potential failure (context deadlines kill background writes) |
-| C | Cached with TTL | Passive rotation without per-op calls; a hidden clock — non-deterministic tests, surprise mid-write key switches |
+| Option | Semantics                                           | Tradeoffs                                                                                                                                       |
+| ------ | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Once at engine construction; key cached until Close | Deterministic, trivially testable; rotation needs an explicit re-open/Rotate step                                                               |
+| B      | Per key-open (every file/txn open re-calls)         | Rotation converges passively; a failing/slow provider turns every operation into a potential failure (context deadlines kill background writes) |
+| C      | Cached with TTL                                     | Passive rotation without per-op calls; a hidden clock — non-deterministic tests, surprise mid-write key switches                                |
 
 **Recommendation: A + explicit rotation seam.** The provider is called once
 per engine construction; rotation is an operator action through an explicit
@@ -34,11 +34,11 @@ needs the current key, which A gives it after rotation re-open.
 
 `DeploymentConfig` carries env/file/secret-manager references (never keys).
 
-| Option | Behavior | Tradeoffs |
-| ------ | -------- | --------- |
-| A | Fail-fast: deploy-check resolves every reference eagerly | Catches typos before engines build; fails when a secret manager is unreachable at check time (sidecar warm-up races) |
-| B | Lazy: references resolve at engine construction; construction fails loudly | Single failure point (the established refusal precedent); form errors surface late |
-| C | Layered: deploy-check validates reference FORM (non-empty, known scheme); construction does the actual resolution | Catches the cheap errors early without demanding live secret-manager auth at check time |
+| Option | Behavior                                                                                                          | Tradeoffs                                                                                                            |
+| ------ | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| A      | Fail-fast: deploy-check resolves every reference eagerly                                                          | Catches typos before engines build; fails when a secret manager is unreachable at check time (sidecar warm-up races) |
+| B      | Lazy: references resolve at engine construction; construction fails loudly                                        | Single failure point (the established refusal precedent); form errors surface late                                   |
+| C      | Layered: deploy-check validates reference FORM (non-empty, known scheme); construction does the actual resolution | Catches the cheap errors early without demanding live secret-manager auth at check time                              |
 
 **Recommendation: C.** Form validation is free and kills the typo class at
 CI/deploy-check; eager resolution (A) couples deploy-check liveness to
@@ -49,10 +49,10 @@ Construction-time loud failure stays the last line of defense, exactly like
 
 ### Q3. Scope at v5: do read-model engine files join?
 
-| Option | Scope | Tradeoffs |
-| ------ | ----- | --------- |
-| A | Event streams + snapshots at v5; matview state later | Protects the irreplaceable data first; ships with machinery that already has proofs (transforms, rotation convergence) |
-| B | Events + snapshots + matview files at v5 | One surface immediately; but matview state is DERIVED — and every first-party engine can already reset + replay it (ADR-0136/0143) |
+| Option | Scope                                                | Tradeoffs                                                                                                                          |
+| ------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Event streams + snapshots at v5; matview state later | Protects the irreplaceable data first; ships with machinery that already has proofs (transforms, rotation convergence)             |
+| B      | Events + snapshots + matview files at v5             | One surface immediately; but matview state is DERIVED — and every first-party engine can already reset + replay it (ADR-0136/0143) |
 
 **Recommendation: A.** The journal (events) is the crown jewel — ADR-0143
 makes it the replay source that survives every reset; snapshots are the
@@ -64,10 +64,10 @@ ADR's consequence list) keeps B open as pure config addition.
 
 ### Q4. Plaintext → encrypted migration path
 
-| Option | Path | Tradeoffs |
-| ------ | ---- | --------- |
-| A | Mandated in-place migration tool at v5 (batched re-encrypt of every row) | Zero-choice for operators; a large-table campaign as a CONSTRUCTION side effect — exactly what the snapshots-column assessment rejected for events |
-| B | No tool at v5: re-seed OR re-encrypt-on-touch convergence (documented pattern; the PG snapshot rotation proof generalizes) | v5.0 migration surface stays equal to the snapshots migration; the campaign, if wanted, is a deliberate v5.x operator step |
+| Option | Path                                                                                                                       | Tradeoffs                                                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Mandated in-place migration tool at v5 (batched re-encrypt of every row)                                                   | Zero-choice for operators; a large-table campaign as a CONSTRUCTION side effect — exactly what the snapshots-column assessment rejected for events |
+| B      | No tool at v5: re-seed OR re-encrypt-on-touch convergence (documented pattern; the PG snapshot rotation proof generalizes) | v5.0 migration surface stays equal to the snapshots migration; the campaign, if wanted, is a deliberate v5.x operator step                         |
 
 **Recommendation: B**, for the same reason `docs/WIRE-FORMAT-KEYS.md`
 defers the SQL column rename: a full-table rewrite belongs to an
@@ -98,9 +98,9 @@ its proto fields unchanged).
 
 ## What each ruling unblocks
 
-| Ruling | Unblocks |
-| ------ | -------- |
-| Q1–Q4 | ADR-0139 status DRAFT → ACCEPTED; `DriverConfig.Encryption` + KeyProvider implementation (the L-effort item) |
-| Q5 | v5.0.0 cut scope freeze (the cut can proceed with SQL columns documented as the deferred 5.x item) |
+| Ruling | Unblocks                                                                                                     |
+| ------ | ------------------------------------------------------------------------------------------------------------ |
+| Q1–Q4  | ADR-0139 status DRAFT → ACCEPTED; `DriverConfig.Encryption` + KeyProvider implementation (the L-effort item) |
+| Q5     | v5.0.0 cut scope freeze (the cut can proceed with SQL columns documented as the deferred 5.x item)           |
 
 Reply format: five letters (or "all as recommended").

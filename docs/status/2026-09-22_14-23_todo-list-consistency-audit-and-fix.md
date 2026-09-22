@@ -41,12 +41,12 @@ mine interleaved; the auto-commit daemon absorbed both into `chore:` commits.
    fragment, M16 §2.11 paragraph, Scan doc-lie orphan tail, `[x]` rows T16 /
    T14 / T03 / T15 / md-go self-test, go.work drift row (root-caused + gate
    shipped, CHANGELOG receipt), pre-commit env-hygiene row (go-env.sh shipped
-   + force-sourced by the hook), go-env.sh helper row (shipped), Go-1.27
-   "anchor" row, "More extended-review follow-ups — DONE" row (concurrent
-   session's), Turso "Code guard follow-up" row (shipped as T16:
-   `ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug`), CV "Tag `system`"
-   row (coeffect gate shipped in system/v4.8.0, 2026-09-19 train — verified in
-   CHANGELOG §2788+).
+   - force-sourced by the hook), go-env.sh helper row (shipped), Go-1.27
+     "anchor" row, "More extended-review follow-ups — DONE" row (concurrent
+     session's), Turso "Code guard follow-up" row (shipped as T16:
+     `ErrGroupedViewBugRefused` + `WithKnownGroupedViewBug`), CV "Tag `system`"
+     row (coeffect gate shipped in system/v4.8.0, 2026-09-19 train — verified in
+     CHANGELOG §2788+).
 4. **10 stale/partial rows restructured** to lead with the open remainder:
    Dead-path (only (b) eventtest-dead-tags remains; un-blocked), Post-wave
    hygiene (V006 golden only), T18b (chain landed green 2026-09-21 18:14 +
