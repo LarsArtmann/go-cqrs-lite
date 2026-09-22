@@ -859,7 +859,17 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       deprecated-symbol gate, (f) link checker — all done 2026-09-20.]
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
-- [ ] 🔥 **Post-v4.9.0 skill-reference sweep** — grep SKILL.md +
+- [x] 🔥 **Post-v4.9.0 skill-reference sweep** — done 2026-09-22 (T14):
+      core.md + recipes.md pyramids rewritten to the fluent
+      `Evolve(...).On(...).Done()` chain (recipes catalog trailer updated,
+      TestRecipes green); FAQ "How do I write a minimal third-party engine"
+      entry added (AtomicAppender/Transactional/ErrRacySaveRefused honesty);
+      F151 rule-count drift fixed (206→207 in FEATURES/ROADMAP/cqrs-lint
+      README); at-least-once contract block in readmodels.md + dedup routes;
+      getting-started counter canary (README note + seam-naming failure
+      messages); goal-shaped README fence verified green
+      (F152). doc-check 1200 refs + TestRecipes + example tests all green.
+      Original: grep SKILL.md +
       `references/*.md` + example READMEs for the nested `OnEvolution` pyramid
       (still shown in core.md:136, recipes.md:2257/2600, goal-shaped README)
       vs the now-blessed fluent `Evolve(...).On(...).Done()` chain; adopt `.On`
@@ -882,15 +892,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       notes; pkg.go.dev spot-check that `On`/`ErrRacySaveRefused`/`WithRacySave`
       render. Push-gated. — source: closeout §f3/§f27 _(Effort: S)_
 - [ ] **Canonical T18b record + gate-semantics ADR** (replaces the six-report
-      narrative series) — one `docs/benchmarks/2026-09-20-21_t18b-record.md`
-      consolidating the arc (re-pin, p99 demotion, save guard, KNOWN-UNSTABLE
-      table, per-suite benchtime::count, widening rule + closure, the
-      GOTOOLCHAIN and load-storm incidents) + one ADR for the four
-      gate-semantics changes; then the calibration case-study appendix in
+      narrative series) — RECORD DONE 2026-09-22 (T17):
+      `docs/benchmarks/2026-09-20-21_t18b-record.md` written (closure
+      receipt, the four gate-semantics changes with evidence, widening rule,
+      KNOWN-UNSTABLE table, GOTOOLCHAIN + load-storm + reboot incidents);
+      `/var/tmp/t18b` retired (trashed; chain had landed green 2026-09-21
+      18:14 UTC per closure-completion.log). REMAINING: the gate-semantics
+      ADR document + the calibration case-study appendix in
       `docs/benchmarks/calibration-2026-08-30.md` (storm/reboot/p99/bimodal/
-      GOTOOLCHAIN/863 series as the "why the gates exist" record). Retire the
-      `/tmp` + `/var/tmp/t18b` copies after the chain lands. — source:
-      archived 16-37 §d3/§e3/§f8/§f12, 14-52 §f12/§f16/§f30/§f34 _(Effort: M)_
+      GOTOOLCHAIN/863 series as the "why the gates exist" record — source
+      material now one click away in the canonical record). Original: one
 - [ ] **Stale-reference sweep for the bench-gate contract changes** — old
       noise-headline list, unconditional `--save` mentions, matview
       benchtime/count mentions across README, `cmd/cqrs-bench/README.md`,
