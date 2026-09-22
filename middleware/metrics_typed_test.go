@@ -151,12 +151,12 @@ func TestCommandTypedMetrics_CapturesAttrs(t *testing.T) {
 		t.Fatalf("expected 1 observation, got %d", len(rec.operations))
 	}
 
-	if rec.operations[0] != kindCommand {
-		t.Errorf("expected operation %q, got %q", kindCommand, rec.operations[0])
+	if rec.operations[0] != string(KindCommand) {
+		t.Errorf("expected operation %q, got %q", string(KindCommand), rec.operations[0])
 	}
 
 	wantAttrs := map[string]string{
-		cqrsotel.AttrMessageKind: kindCommand,
+		cqrsotel.AttrMessageKind: string(KindCommand),
 		cqrsotel.AttrStatus:      cqrsotel.StatusSuccess,
 	}
 

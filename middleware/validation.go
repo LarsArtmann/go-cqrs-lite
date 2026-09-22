@@ -33,9 +33,9 @@ func NewValidation[M any](
 
 				return errorfamily.Wrapf(
 					err, errorfamily.Rejection,
-					"middleware."+adapter.Kind+"_validation",
+					"middleware."+string(adapter.Kind)+"_validation",
 					"validation failed for %s %s",
-					adapter.Kind,
+					string(adapter.Kind),
 					adapter.ExtractType(msg),
 				)
 			}

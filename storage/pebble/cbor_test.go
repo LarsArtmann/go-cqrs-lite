@@ -415,7 +415,7 @@ func TestSerializeEvent_SmallerThanJSON(t *testing.T) {
 		Version:    evt.Version().Int(),
 		Payload:    payload,
 		OccurredAt: evt.OccurredAt().UnixNano(),
-		Encoding:   string(evt.Encoding()),
+		Encoding:   evt.Encoding(),
 	}
 
 	cborData, err := store.serializeEvent(evt)

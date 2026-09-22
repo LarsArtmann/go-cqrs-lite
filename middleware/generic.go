@@ -16,38 +16,47 @@ type Handler[M any] func(context.Context, M) error
 // Middleware wraps a Handler with cross-cutting concerns.
 type Middleware[M any] func(Handler[M]) Handler[M]
 
+// Kind identifies which CQRS message kind a generic middleware invocation
+// carries ("command", "event", or "query"). Typed so closed-set switches
+// and dead-letter records cannot drift into typos; the string backing keeps
+// log/SQL/OTel attribute output identical to the previous bare strings.
+type Kind string
+
+const (
+	// KindCommand marks command-dispatch invocations.
+	KindCommand Kind = "command"
+	// KindEvent marks event-handler invocations.
+	KindEvent Kind = "event"
+	// KindQuery marks query-dispatch invocations.
+	KindQuery Kind = "query"
+)
+
 // MessageAdapter provides message-specific extraction for generic middleware.
 type MessageAdapter[M any] struct {
-	Kind        string              // "command", "event", "query"
+	Kind        Kind                // Which CQRS message kind this adapter extracts.
 	ExtractType func(M) string      // extracts the message type name
 	ExtractID   func(M) id.StreamID // extracts the stream ID (may be nil for queries)
 }
-
-const (
-	kindCommand = "command"
-	kindEvent   = "event"
-	kindQuery   = "query"
-)
 
 // Pre-built adapters for each CQRS message type.
 var (
 	//nolint:gochecknoglobals // immutable adapter, used throughout package
 	CommandAdapter = MessageAdapter[command.Command]{
-		Kind:        kindCommand,
+		Kind:        KindCommand,
 		ExtractType: func(cmd command.Command) string { return string(cmd.Type()) },
 		ExtractID:   func(cmd command.Command) id.StreamID { return cmd.StreamID() },
 	}
 
 	//nolint:gochecknoglobals // immutable adapter, used throughout package
 	EventAdapter = MessageAdapter[event.Event]{
-		Kind:        kindEvent,
+		Kind:        KindEvent,
 		ExtractType: func(evt event.Event) string { return string(evt.Type()) },
 		ExtractID:   func(evt event.Event) id.StreamID { return evt.StreamID() },
 	}
 
 	//nolint:gochecknoglobals // immutable adapter, used throughout package
 	QueryAdapter = MessageAdapter[query.Query]{ //nolint:exhaustruct_v5 // queries have no streamID
-		Kind:        kindQuery,
+		Kind:        KindQuery,
 		ExtractType: func(q query.Query) string { return string(q.Type()) },
 	}
 )

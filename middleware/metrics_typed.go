@@ -23,13 +23,13 @@ type TypedMetricsRecorder interface {
 }
 
 // typeAttrFor maps a message kind to its canonical OTel attribute key.
-func typeAttrFor(kind string) string {
+func typeAttrFor(kind Kind) string {
 	switch kind {
-	case kindCommand:
+	case KindCommand:
 		return cqrsotel.AttrCommandType
-	case kindEvent:
+	case KindEvent:
 		return cqrsotel.AttrEventType
-	case kindQuery:
+	case KindQuery:
 		return cqrsotel.AttrQueryType
 	default:
 		return "cqrs.type"
@@ -54,8 +54,8 @@ func NewTypedMetrics[M any](
 			}
 
 			recorder.ObserveTyped(
-				ctx, adapter.Kind, time.Since(start),
-				cqrsotel.AttrString(cqrsotel.AttrMessageKind, adapter.Kind),
+				ctx, string(adapter.Kind), time.Since(start),
+				cqrsotel.AttrString(cqrsotel.AttrMessageKind, string(adapter.Kind)),
 				cqrsotel.AttrString(typeAttrFor(adapter.Kind), adapter.ExtractType(msg)),
 				cqrsotel.AttrString(cqrsotel.AttrStatus, status),
 			)

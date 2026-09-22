@@ -73,7 +73,7 @@ func NewLogging[M any](adapter MessageAdapter[M], logger *slog.Logger) Middlewar
 
 			return logWithContext(
 				logger,
-				adapter.Kind,
+				string(adapter.Kind),
 				adapter.ExtractType(msg),
 				aggID,
 				func() error {

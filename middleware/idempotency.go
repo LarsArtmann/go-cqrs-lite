@@ -40,9 +40,9 @@ func NewIdempotency[M any](
 
 				return errorfamily.Wrapf(
 					err, errorfamily.Transient,
-					"middleware."+adapter.Kind+"_idempotency",
+					"middleware."+string(adapter.Kind)+"_idempotency",
 					"check-and-record failed for %s %s",
-					adapter.Kind, adapter.ExtractType(msg),
+					string(adapter.Kind), adapter.ExtractType(msg),
 				)
 			}
 

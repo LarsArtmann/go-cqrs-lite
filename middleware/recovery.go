@@ -51,7 +51,7 @@ func NewRecovery[M any](adapter MessageAdapter[M], opts ...Option) Middleware[M]
 		return func(ctx context.Context, msg M) (err error) {
 			defer func() {
 				if r := recover(); r != nil {
-					err = handleRecovery(cfg, adapter.Kind, adapter.ExtractType(msg), r)
+					err = handleRecovery(cfg, string(adapter.Kind), adapter.ExtractType(msg), r)
 				}
 			}()
 

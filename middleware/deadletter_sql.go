@@ -152,7 +152,7 @@ func (s *SQLDeadLetterStore) Entries(ctx context.Context) ([]DeadLetterEntry, er
 		}
 
 		entry := DeadLetterEntry{ //nolint:exhaustruct_v5 // StreamID/Error/FailedAt set below
-			Kind:     kind,
+			Kind:     Kind(kind),
 			Type:     typ,
 			Attempts: attempts,
 		}

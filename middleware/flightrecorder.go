@@ -36,7 +36,7 @@ func NewFlightRecorder[M any](
 			}
 
 			tc := flightrecorder.TriggerContext{
-				Kind:     adapter.Kind,
+				Kind:     string(adapter.Kind),
 				Type:     adapter.ExtractType(msg),
 				Duration: time.Since(start),
 				Err:      err,

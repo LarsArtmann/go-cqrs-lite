@@ -18,8 +18,9 @@ import (
 // see projectionhost.DeadLetterEntry. The two types are intentionally
 // separate — see ADR-0043 for the rationale.
 type DeadLetterEntry struct {
-	// Kind is the message category: "command", "event", or "query".
-	Kind string
+	// Kind is the message category: [KindCommand], [KindEvent], or
+	// [KindQuery].
+	Kind Kind
 
 	// Type is the message type name (e.g., "user.created", "todo.create").
 	Type string
