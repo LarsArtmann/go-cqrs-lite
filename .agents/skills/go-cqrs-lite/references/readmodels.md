@@ -462,9 +462,12 @@ surface (`materialized_views` in EngineConfig YAML). Full recipe: `recipes.md`
 > **Upstream correctness caveat (tursogo ≤ v0.8.0-pre.10):** SCALAR views
 > (SUM/COUNT/MIN/MAX/AVG without `GroupBy`) are exact in every test; GROUPED
 > views return silently wrong sums beyond a single transaction's rows and
-> collapse at ~27k view-maintained rows. `Store.Doctor` emits a WARN for
-> grouped specs; treat scalar views as the recommended shape until upstream
-> fixes it. Details: `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
+> collapse at ~27k view-maintained rows. Grouped specs are therefore REFUSED
+> at engine construction with `tursoengine.ErrGroupedViewBugRefused` unless
+> `WithKnownGroupedViewBug()` opts in (fail-closed since 2026-09-22; the
+> `Store.Doctor` WARN remains for opted-in deployments). Treat scalar views
+> as the recommended shape until upstream fixes it. Details:
+> `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`.
 
 #### Point-in-time reads: pick a versioned engine (ADR-0141)
 

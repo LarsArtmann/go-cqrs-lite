@@ -2,6 +2,7 @@ package tursoengine_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -66,7 +67,21 @@ func mustEngineWithMatViews(
 ) metaengine.Engine {
 	tb.Helper()
 
-	eng, err := tursoengine.New(dsn, tursoengine.WithMaterializedViews(specs))
+	// Grouped specs deliberately exercise the documented upstream defect
+	// (tests are the "operator who knows"): acknowledge via the opt-in so
+	// the fail-closed default (ErrGroupedViewBugRefused, pinned by
+	// TestTursoMatView_GroupedSpecRefusedWithoutOptIn) stays production
+	// behavior.
+	opts := []tursoengine.Option{tursoengine.WithMaterializedViews(specs)}
+	for _, spec := range specs {
+		if spec.GroupBy != "" {
+			opts = append(opts, tursoengine.WithKnownGroupedViewBug())
+
+			break
+		}
+	}
+
+	eng, err := tursoengine.New(dsn, opts...)
 	if err != nil {
 		tb.Skipf("turso not available: %v", err)
 	}
@@ -74,6 +89,46 @@ func mustEngineWithMatViews(
 	tb.Cleanup(func() { _ = eng.Close() })
 
 	return eng
+}
+
+// TestTursoMatView_GroupedSpecRefusedWithoutOptIn pins the fail-closed
+// default: a grouped spec without WithKnownGroupedViewBug is refused with
+// ErrGroupedViewBugRefused (upstream grouped views silently return wrong
+// results); the opt-in acknowledges and proceeds; scalar specs never trip
+// the guard.
+func TestTursoMatView_GroupedSpecRefusedWithoutOptIn(t *testing.T) {
+	t.Parallel()
+
+	grouped := []metaengine.MaterializedViewSpec{
+		{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount", GroupBy: "customer"},
+	}
+
+	_, err := tursoengine.New("", tursoengine.WithMaterializedViews(grouped))
+	if !errors.Is(err, tursoengine.ErrGroupedViewBugRefused) {
+		t.Fatalf("grouped spec without opt-in: got %v, want ErrGroupedViewBugRefused", err)
+	}
+
+	eng, err := tursoengine.New("",
+		tursoengine.WithMaterializedViews(grouped),
+		tursoengine.WithKnownGroupedViewBug())
+	if err != nil {
+		t.Skipf("turso not available: %v", err)
+	}
+	if err := eng.Close(); err != nil {
+		t.Fatalf("close: %v", err)
+	}
+
+	scalar := []metaengine.MaterializedViewSpec{
+		{Collection: "orders", Fn: metaengine.MatViewSum, Column: "amount"},
+	}
+
+	eng, err = tursoengine.New("", tursoengine.WithMaterializedViews(scalar))
+	if err != nil {
+		t.Skipf("turso not available: %v", err)
+	}
+	if err := eng.Close(); err != nil {
+		t.Fatalf("close scalar: %v", err)
+	}
 }
 
 func expectScalar(t *testing.T, eng metaengine.Engine, col string,

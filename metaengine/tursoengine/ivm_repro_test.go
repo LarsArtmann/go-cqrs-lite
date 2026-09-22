@@ -98,6 +98,7 @@ func ivmOpenReproEngine(t *testing.T, name string) *ivmReproEngine {
 				GroupBy:    "customer",
 			},
 		}),
+		tursoengine.WithKnownGroupedViewBug(), // grouped spec: upstream defect deliberately exercised
 	)
 	if err != nil {
 		t.Skipf("turso not available: %v", err)
@@ -379,6 +380,7 @@ func TestIVMReproDefectC_CommitAbortsAtRowWall(t *testing.T) {
 					GroupBy:    "customer",
 				},
 			}),
+			tursoengine.WithKnownGroupedViewBug(), // grouped spec: upstream defect deliberately exercised
 		)
 		if err != nil {
 			t.Fatalf("round %d: post-abort reopen of %s failed: %v", round, path, err)

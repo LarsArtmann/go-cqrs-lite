@@ -68,6 +68,7 @@ func openBenchEngine(
 		eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
 			filepath.Join(dir, fmt.Sprintf("%s_%d.db", name, attempt)),
 			tursoengine.WithMaterializedViews(specs),
+			tursoengine.WithKnownGroupedViewBug(), // specs include grouped: upstream defect deliberately exercised
 		)
 		if err != nil {
 			tb.Skipf("turso not available: %v", err)
@@ -460,6 +461,7 @@ func BenchmarkMatViewWrite(b *testing.B) {
 			eng, err := tursoengine.New( //nolint:contextcheck // constructor takes no ctx
 				filepath.Join(dir, "write_"+mode.name+".db"),
 				tursoengine.WithMaterializedViews(mode.specs),
+				tursoengine.WithKnownGroupedViewBug(), // specs include grouped: upstream defect deliberately exercised
 			)
 			if err != nil {
 				b.Skipf("turso not available: %v", err)

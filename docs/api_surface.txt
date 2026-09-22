@@ -4291,12 +4291,16 @@ metaengine/tursoengine/func New
 metaengine/tursoengine/func New
 metaengine/tursoengine/func WithEncryption
 metaengine/tursoengine/func WithEncryption
+metaengine/tursoengine/func WithKnownGroupedViewBug
+metaengine/tursoengine/func WithKnownGroupedViewBug
 metaengine/tursoengine/func WithMaterializedViews
 metaengine/tursoengine/func WithMaterializedViews
 metaengine/tursoengine/type Cipher
 metaengine/tursoengine/type Cipher
 metaengine/tursoengine/type Option
 metaengine/tursoengine/type Option
+metaengine/tursoengine/var ErrGroupedViewBugRefused
+metaengine/tursoengine/var ErrGroupedViewBugRefused
 metaengine/type ADT
 metaengine/type AddEngineOption
 metaengine/type AggregateFn

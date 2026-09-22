@@ -120,6 +120,16 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 			if err := spec.Validate(); err != nil {
 				return nil, fmt.Errorf("tursoengine: %w", err)
 			}
+
+			// Fail closed on grouped views (ADR-0135 upstream defects A+B):
+			// they silently return wrong results on turso-go; scalar views
+			// are exact and unaffected.
+			if spec.GroupBy != "" && !cfg.knownGroupedViewBug {
+				return nil, fmt.Errorf(
+					"tursoengine: spec %s(%s.%s) group by %q: %w",
+					spec.Fn, spec.Collection, spec.Column, spec.GroupBy,
+					ErrGroupedViewBugRefused)
+			}
 		}
 
 		dsn = withExperimentalViews(dsn)

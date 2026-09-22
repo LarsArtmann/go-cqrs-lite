@@ -56,7 +56,10 @@ func TestTursoMatView_PropertyServedMatchesBase(t *testing.T) {
 		dir := t.TempDir()
 		path := filepath.Join(dir, fmt.Sprintf("mvprop_%d.db", matViewPropertyDBCounter.Add(1)))
 
-		eng, err := tursoengine.New(path, tursoengine.WithMaterializedViews(matViewPropertySpecs()))
+		eng, err := tursoengine.New(path,
+			tursoengine.WithMaterializedViews(matViewPropertySpecs()),
+			tursoengine.WithKnownGroupedViewBug(), // specs include grouped: upstream defect deliberately exercised
+		)
 		if err != nil {
 			rt.Skipf("turso not available: %v", err)
 		}
@@ -213,6 +216,7 @@ func TestTursoMatView_GroupedSumDefectAEnvelopeGuard(t *testing.T) {
 				GroupBy:    "customer",
 			},
 		}),
+		tursoengine.WithKnownGroupedViewBug(), // grouped spec: upstream defect deliberately exercised
 	)
 	if err != nil {
 		t.Skipf("turso not available: %v", err)
