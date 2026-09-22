@@ -57,6 +57,7 @@ func (e *pgEngine) ResetEngine(ctx context.Context) error {
 
 	for _, table := range tables {
 		if _, err := tx.ExecContext(ctx, "DELETE FROM "+metaengine.QuoteIdent(table)); err != nil {
+			//art-dupl:accept intentional cross-module mirror (mysqlengine reset.go, ADR-0136)
 			return rollbackReturning(
 				tx,
 				fmt.Errorf("pgengine.ResetEngine: clear %s: %w", table, err),

@@ -28,6 +28,7 @@ func (e *mysqlEngine) ExplainScanQuery(
 			opts.Cursor,
 			opts.Limit,
 		)
+		//art-dupl:accept dialect twin (pgengine explain.go) — builder diverges per dialect below
 		if err != nil {
 			return "", nil
 		}
