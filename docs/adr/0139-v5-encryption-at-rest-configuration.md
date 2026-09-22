@@ -1,6 +1,8 @@
 # ADR-0139: v5 Encryption-at-Rest Configuration
 
-**Status:** DRAFT (skeleton — see "Open questions")
+**Status:** DRAFT (skeleton — see "Open questions"; decision memo with
+options + recommendations per question:
+[`docs/reviews/2026-09-22_adr0139-encryption-and-sweep-owner-memo.md`](../reviews/2026-09-22_adr0139-encryption-and-sweep-owner-memo.md))
 **Date:** 2026-09-13
 **Deciders:** Lars (owner ruling pending)
 **Source threads:** TODO_LIST "v5 ADR: encryption-at-rest configuration"
