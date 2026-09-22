@@ -46,7 +46,7 @@ func main() {
 	//cqrs-lint:ignore(B023) library code or intentional pattern
 	cmds := command.NewDispatcher()
 	aggID := id.NewStreamID()
-	_ = command.RegisterTyped(cmds, "user.create",
+	if err := command.RegisterTyped(cmds, "user.create",
 		func(ctx context.Context, cmd *CreateUser) error {
 			return repo.ExecuteRef(
 				ctx,
@@ -56,10 +56,18 @@ func main() {
 						[]event.Type{"user.created"}, []any{UserCreated{Name: cmd.Name}})
 				},
 			)
-		})
+		}); err != nil {
+		fmt.Println("register user.create:", err)
+
+		return
+	}
 
 	basic, _ := command.New("user.create", aggID)
-	_ = cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"})
+	if err := cmds.Dispatch(ctx, &CreateUser{BasicCommand: basic, Name: "Alice"}); err != nil {
+		fmt.Println("dispatch user.create:", err)
+
+		return
+	}
 
 	state, _, _ := repo.LoadRef(ctx, id.NewStreamRef(streamType, aggID))
 	fmt.Printf("User: %s\n", state.Name) // User: Alice

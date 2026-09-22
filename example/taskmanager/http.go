@@ -18,6 +18,7 @@ const (
 	jsonKeyStatus   = "status"
 	jsonKeyUpdated  = "updated"
 	maxPathSegments = 2
+	listPageSize    = 100
 )
 
 // routes builds the HTTP mux with all task management endpoints.
@@ -97,6 +98,10 @@ func (s *Server) handleListTasks(w http.ResponseWriter, r *http.Request) {
 
 	// Default sort: priority DESC (highest-priority tasks first).
 	opts = append(opts, metaengine.WithSort("priority", true))
+
+	// Explicit page size — Scan's silent default truncates at 100; naming
+	// it makes the truncation contract visible (F031).
+	opts = append(opts, metaengine.WithLimit(listPageSize))
 
 	tasks, err := s.TaskReader.Scan(r.Context(), opts...)
 	if err != nil {
