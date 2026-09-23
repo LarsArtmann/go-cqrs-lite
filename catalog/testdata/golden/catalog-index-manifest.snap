@@ -32,6 +32,12 @@
       "kind": "channels",
       "version": "1.0.0",
       "path": "channels/order-events/index.mdx"
+    },
+    {
+      "id": "orders-db",
+      "kind": "containers",
+      "version": "1.0.0",
+      "path": "containers/orders-db/index.mdx"
     }
   ]
 }

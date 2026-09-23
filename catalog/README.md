@@ -367,6 +367,40 @@ The merged hub build is the union of per-source exports; per-repo dev UX stays
 whatever the repo wants (a docs server, specs on an admin page, …). Only the
 CI-facing export command is part of the contract.
 
+#### Diffing builds with `catalog.index.json`
+
+Every export writes a machine-readable manifest, `catalog.index.json`, to the
+export root — one entry per exported resource with `id`, `kind`, `version`,
+and `path`:
+
+```json
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "id": "order-svc",
+      "kind": "services",
+      "version": "1.0.0",
+      "path": "services/order-svc/index.mdx"
+    }
+  ]
+}
+```
+
+Entries are deterministically ordered (canonical kind order, then ID), so
+re-exporting an unchanged catalog produces a byte-identical file. Hubs use it
+for cheap change detection and PR gates — diff two exports' manifests instead
+of walking MDX frontmatter:
+
+- **resource added/removed** → new/missing entries,
+- **contract bump** → changed `version`,
+- **no semantic change** → identical manifests (formatting-only MDX churn is
+  invisible).
+
+The manifest only lists resources (not schema/changelog sidecars) and is
+written last, so it never describes a half-written tree. Consumers should
+reject `schemaVersion` values above their own.
+
 #### Versioning your catalog
 
 EventCatalog renders per-resource versions and changelogs; the exporter maps
@@ -381,7 +415,6 @@ Date, Summary}`). Guidance:
   enables changelog pages when safe).
 - Service `Version` follows the service's own release cadence; it feeds the
   rendered badge, not compatibility decisions.
-
 
 #### Full Resource Coverage
 

@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **catalog/eventcatalog: `catalog.index.json` export manifest.** Every
+  EventCatalog export now writes a machine-readable manifest to the export
+  root — one entry per exported resource (`id`, `kind`, `version`, `path`),
+  deterministically ordered (canonical kind order, then ID) so re-exporting
+  an unchanged catalog is byte-identical. Federation hubs diff manifests
+  between builds for cheap change detection and PR gates instead of walking
+  MDX frontmatter. Written after all resources, so it never describes a
+  half-written tree. Golden-pinned in
+  `catalog/testdata/golden/catalog-index-manifest.snap`.
 - **metaengine: shared engine-plumbing families in core (t4
   clone-elimination campaign).** The SQL engines' duplicated plumbing is now
   core helpers: `metaengine.ScanVectorDimensionProbe` +

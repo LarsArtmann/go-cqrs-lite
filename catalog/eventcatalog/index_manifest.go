@@ -35,7 +35,7 @@ type manifestResource struct {
 // deterministically (canonical kind order, then ID) so re-exporting an
 // unchanged catalog produces byte-identical output.
 type indexManifest struct {
-	SchemaVersion int               `json:"schemaVersion"`
+	SchemaVersion int                `json:"schemaVersion"`
 	Resources     []manifestResource `json:"resources"`
 }
 

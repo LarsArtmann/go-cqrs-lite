@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 

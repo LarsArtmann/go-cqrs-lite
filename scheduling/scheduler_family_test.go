@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 )
 
 // TestScheduler_RejectionIsNotRetried pins the family-aware retry fix
