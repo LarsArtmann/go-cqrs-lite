@@ -355,6 +355,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **catalog/eventcatalog: the EventCatalog export actually matches the
+  @eventcatalog/core 4.x schema.** Verified against the pinned core's zod
+  schemas plus live build probes, the exporter emitted frontmatter that
+  hard-failed the downstream `eventcatalog build`
+  (`InvalidContentEntryDataError`) or was silently zod-stripped for a wide
+  slice of the public `catalog` API: message `Channels` (plain strings instead
+  of `{id, version}` channel pointers), `Labels`/`Responses` (unknown keys —
+  now preserved as `x-labels`/`x-responses` custom properties),
+  `Changelog` (now a `changelog.mdx` sidecar file — EventCatalog has no
+  changelog frontmatter field — and the generated `eventcatalog.config.js`
+  enables `changelog` when changelogs exist), service/agent/domain
+  `Entities`/`Flows`/`Domains`/`DataProducts` (plain strings instead of
+  pointer objects), domain `UbiquitousLanguage` (now a
+  `ubiquitous-language.mdx` dictionary file), channel `Messages` (now fully
+  qualified `{collection, name, id, version}` pointers — channels previously
+  rendered as disconnected stubs with zero message links), team
+  `Role`/`AvatarURL` (unknown keys — now `x-role`/`x-avatarUrl`), entity
+  `Schemas` (not an EventCatalog field), badges without colors (backgroundColor
+  and textColor are required — defaults applied), flow step `DataStore`/
+  `SubFlow` keys (EventCatalog calls them `container`/`flow`), flow actor
+  `url` (only `externalSystem` supports it), `Styles` node colors (nested
+  under `styles.node` instead of flat keys), custom docs (`summary` is
+  required; `id` is not a field), and examples (written as
+  `examples/example-N.json` files EventCatalog actually loads instead of an
+  `examples.json` it never read). `BaseConfig.ResourceGroups` now fails the
+  export with a Rejection (EventCatalog requires typed resource pointers the
+  string-based items cannot express) instead of emitting a broken build.
+  `cmd/ec-fixture` exercises every resource kind and risky field class, and
+  `scripts/check-eventcatalog.sh` builds two fixture profiles (default +
+  changelog; agents omitted in the changelog profile because core 4.6.3
+  crashes rendering agent changelog pages) with semantic spot-checks for
+  channel message links and rendered changelog pages.
+
 - **build: the recurring `go 1.27.1 → go 1.27` directive-downgrade waves
   (4 incidents) are root-caused and mechanically killed.** The trigger was
   BuildFlow's `go-version-auto-configure` step: its "major.minor only" rule

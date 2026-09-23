@@ -53,6 +53,43 @@ fallbacks — keep both when adding pages.
 - `@eventcatalog/core` is pinned via the `eventCatalogCoreVersion` constant
   (exporter.go). Bump only after verifying the new release renders the generated
   MDX; then regen goldens.
+- **Verified format contract (against core 4.6.3 zod schemas, 2026-09-23).**
+  The exporter must keep honoring these or the downstream `eventcatalog build`
+  hard-fails (`InvalidContentEntryDataError`) or silently strips data:
+  - Pointer lists (`entities`, `flows`, `domains`, `data-products`, `sends`,
+    `receives`, `writesTo`, `readsFrom`) are `{id, version?}` OBJECTS — plain
+    strings fail schema validation.
+  - Channel `messages` pointers need `{collection, name, id, version}` —
+    resolved from the catalog via `channelMessageIndex` (exporter.go).
+  - Unknown top-level frontmatter keys are REJECTED unless `x-` prefixed
+    (`withExtensionProperties.superRefine`): message labels/responses and team
+    role/avatarUrl ride `x-*` custom properties.
+  - Changelogs are `changelog.mdx` sidecar FILES (not frontmatter); domain
+    ubiquitous language is a `ubiquitous-language.mdx` dictionary file;
+    examples are individual `examples/example-N.json` files.
+  - Badges REQUIRE `backgroundColor` + `textColor` (defaults: blue/white);
+    custom docs REQUIRE `title` + `summary` and have no `id` field.
+  - Flow step node keys: `container` (data stores), `flow` (sub-flows) — there
+    is no channel step kind; flow actors have no `url` (externalSystem does).
+  - `styles` node color/label nest under `styles.node.{color,label}`.
+- **Deliberately not exported:** `BaseConfig.ResourceGroups` (export fails with
+  a Rejection — EventCatalog needs typed `{id, version, type}` items the
+  string-based `catalog.ResourceGroup.Items` cannot express),
+  `BaseConfig.DetailsPanel` (no equivalent; EventCatalog's is a per-section
+  `{visible}` map), and `FlowStep.Channel` (no channel step kind exists).
+- **Known upstream bug (core 4.6.3):** enabling `changelog` in
+  `eventcatalog.config.js` crashes the build on ANY agent changelog page
+  (`getBadgeHref` on an undefined badge — with or without a changelog file).
+  `shouldEnableChangelog` (writer.go) keeps the flag off when the catalog has
+  agents; drop that guard (and the ec-fixture changelog profile) when bumping
+  past a fixed core release.
+- Custom docs export to `docs/<slug>/index.mdx`: collected by the community
+  build (and included for enterprise rendering), but standalone custom pages
+  are an EventCatalog enterprise feature — community builds do not route them.
+- The render gate (`nix run .#check-eventcatalog`) builds TWO fixture profiles
+  (default + changelog) and asserts schema-clean logs plus semantic artifacts
+  (channel message links, rendered changelog page). Extend `cmd/ec-fixture`
+  when adding new exported frontmatter.
 
 ## Golden tests
 
