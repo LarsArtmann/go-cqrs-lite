@@ -134,3 +134,35 @@ func TestExporter_Export_MultipleServices(t *testing.T) {
 		"index.mdx",
 	)
 }
+
+// TestExporter_ChannelMessagesFullyQualified pins the channel→message link
+// contract: EventCatalog requires {collection, name, id, version} pointers
+// where id is the version-qualified Astro entry ID ("<messageID>-<version>").
+// Bare ids log "Invalid content reference" and never resolve.
+func TestExporter_ChannelMessagesFullyQualified(t *testing.T) {
+	t.Parallel()
+
+	reg := cattest.NewTestRegistry(
+		catalog.Service{ID: "svc", Name: "Service", Version: "1.0.0"},
+	)
+	reg.AddCommand("svc", catalog.Message{
+		Kind: catalog.CommandMessage, ID: "CreateOrder", Name: "Create Order",
+		Version: "1.0.0", Summary: "Create a new order",
+	})
+	reg.AddChannel(catalog.Channel{
+		ID: "orders", Name: "Orders", Version: "1.0.0",
+		Messages: []catalog.MessageID{"CreateOrder"},
+	})
+
+	tmpDir := exportCatalog(t, reg)
+
+	cattest.AssertContentContains(
+		t,
+		readExported(t, tmpDir, "channels", "orders", "index.mdx"),
+		"channel messages",
+		"collection: commands",
+		"name: Create Order",
+		"id: CreateOrder-1.0.0",
+		"version: 1.0.0",
+	)
+}
