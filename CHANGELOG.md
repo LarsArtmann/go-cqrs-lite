@@ -8,6 +8,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **metaengine: shared engine-plumbing families in core (t4
+  clone-elimination campaign).** The SQL engines' duplicated plumbing is now
+  core helpers: `metaengine.ScanVectorDimensionProbe` +
+  `metaengine.VectorMetadataArg` + `metaengine.ScanVectorResults` (vector
+  insert probe/metadata/scan tails), `metaengine.ListPlannedTables`
+  (planned-table listing; the caller keeps owning its lock mode), and
+  `metaengine.AppendPlannedFilter` with `metaengine.QuestionPlaceholders` /
+  `metaengine.DollarPlaceholders` (unified filter-clause builder; the IN-list
+  separator is now `", "` everywhere). duckdb/sqlite/mysql/pg engines rewire
+  onto them with byte-identical error strings (label-prefix pattern).
+  `metaengine.GraphBFS` is the iterative breadth-first fallback for servers
+  without WITH RECURSIVE (sqliteengine + mysqlengine delegate; the directed
+  and undirected entry points pass their adjacency closure). pgengine's
+  hand-rolled tx-isolation test now runs the shared
+  `adttest.AssertTxIsolationFromForeignContext` like every other engine.
+  Internal-only dedup (watermill `streamIDFromMessage`, cqrs-lint
+  `lintutil.FileImportsSubstr`, memory/pebble/graph/execute intra-module
+  extractions) is unexported and unlisted.
 - **v5 train: sweep §4 tail — pebble event rows move to stream vocabulary +
   E1 encoding stamps typed (last binary surfaces carrying `aggregate_*`).**
   Fresh pebble event envelopes now write `stream_id`/`stream_type` (the

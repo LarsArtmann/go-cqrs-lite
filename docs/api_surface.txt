@@ -923,6 +923,7 @@ cmd/cqrs-lint/pkg/rules/lintutil/func CallSelectorMatches
 cmd/cqrs-lint/pkg/rules/lintutil/func CollectPkgLevelVarCalls
 cmd/cqrs-lint/pkg/rules/lintutil/func ExprCallSelector
 cmd/cqrs-lint/pkg/rules/lintutil/func FileImportsCQRS
+cmd/cqrs-lint/pkg/rules/lintutil/func FileImportsSubstr
 cmd/cqrs-lint/pkg/rules/lintutil/func FirstFilePos
 cmd/cqrs-lint/pkg/rules/lintutil/func HasEventPayloadNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasReadModelNameSuffix
@@ -2733,6 +2734,7 @@ metaengine/func AllFilterOps
 metaengine/func AllFoldKinds
 metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
+metaengine/func AppendPlannedFilter
 metaengine/func AutoCRUD
 metaengine/func AutoCRUDByConvention
 metaengine/func AutoCRUDByNamedEvents
@@ -2762,6 +2764,7 @@ metaengine/func DecodeVectorJSON
 metaengine/func DefaultRebuildThreshold
 metaengine/func DeferClose
 metaengine/func DeserializePlan
+metaengine/func DollarPlaceholders
 metaengine/func EncodeStreamValue
 metaengine/func EncodeVectorBinary
 metaengine/func EncodeVectorF32
@@ -2774,6 +2777,7 @@ metaengine/func ExtractFields
 metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
+metaengine/func GraphBFS
 metaengine/func HasGraphEdgeRemoval
 metaengine/func HasGraphSupport
 metaengine/func HasUndirectedGraphSupport
@@ -2781,6 +2785,7 @@ metaengine/func Infer
 metaengine/func InferFromNamedEvents
 metaengine/func ItemFieldByName
 metaengine/func JSONFieldName
+metaengine/func ListPlannedTables
 metaengine/func LoadManifest
 metaengine/func LookupDriver
 metaengine/func MapUpdateTyped
@@ -2825,6 +2830,7 @@ metaengine/func PlannedColumnTypeCompatible
 metaengine/func PlansColumnCompatible
 metaengine/func ProbeEngine
 metaengine/func Query
+metaengine/func QuestionPlaceholders
 metaengine/func QuoteIdent
 metaengine/func ReadTrace
 metaengine/func RecordTrace
@@ -2841,6 +2847,8 @@ metaengine/func ScanGroupedAggregates
 metaengine/func ScanKeyValuesPage
 metaengine/func ScanLimit
 metaengine/func ScanScoredVector
+metaengine/func ScanVectorDimensionProbe
+metaengine/func ScanVectorResults
 metaengine/func ScoreLayouts
 metaengine/func SearchExecuteTyped
 metaengine/func SelectLayout
@@ -2861,6 +2869,7 @@ metaengine/func ValidateDurabilityTier
 metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
 metaengine/func VectorMatchesFilters
+metaengine/func VectorMetadataArg
 metaengine/func VerifyChecksum
 metaengine/func Volume
 metaengine/func WatchTyped
