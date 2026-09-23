@@ -4,8 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 const (
@@ -23,11 +24,19 @@ const (
 // Exporter generates EventCatalog-compatible MDX files from a catalog.
 type Exporter struct {
 	outputDir string
+
+	skipBootstrapFiles bool
 }
 
-// NewExporter creates an exporter that writes MDX files to the given output directory.
-func NewExporter(outputDir string) *Exporter {
-	return &Exporter{outputDir: outputDir}
+// NewExporter creates an exporter that writes MDX files to the given output
+// directory. Options (e.g. WithSkipBootstrapFiles) are applied in order.
+func NewExporter(outputDir string, opts ...Option) *Exporter {
+	e := &Exporter{outputDir: outputDir}
+	for _, opt := range opts {
+		opt(e)
+	}
+
+	return e
 }
 
 // Export writes all services, messages, and schemas as MDX files to the output directory.

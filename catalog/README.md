@@ -401,6 +401,22 @@ The manifest only lists resources (not schema/changelog sidecars) and is
 written last, so it never describes a half-written tree. Consumers should
 reject `schemaVersion` values above their own.
 
+#### Hub CI exports: `WithSkipBootstrapFiles`
+
+Federation hubs own their OWN `eventcatalog.config.js` and `package.json`
+(site title, pinned core version, dependencies). Per-source exports that
+also carry them would fight the hub's during a union-merge. Hub CI export
+commands therefore pass:
+
+```go
+ec := eventcatalog.NewExporter(outDir, eventcatalog.WithSkipBootstrapFiles())
+```
+
+Exactly the two bootstrap files are omitted; every resource, the manifest,
+`llms.txt`, and `schemas.txt` are byte-identical to a default export. Local
+dev exports keep the default so the output directory remains directly
+buildable (`npm install && npx eventcatalog build`).
+
 #### Versioning your catalog
 
 EventCatalog renders per-resource versions and changelogs; the exporter maps

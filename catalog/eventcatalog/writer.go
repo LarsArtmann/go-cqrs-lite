@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	yaml "github.com/go-faster/yaml"
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 func (e *Exporter) writeMDXFile(path, content string) error {
@@ -190,6 +191,13 @@ func (e *Exporter) writeBuilderFile(filename string, fn func(*strings.Builder)) 
 }
 
 func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
+	// WithSkipBootstrapFiles: the hub (or whoever merges this tree) owns its
+	// own eventcatalog.config.js/package.json — emitting per-source copies
+	// would force first-wins merge semantics on them.
+	if e.skipBootstrapFiles {
+		return nil
+	}
+
 	if err := e.writeBuilderFile("eventcatalog.config.js", func(cfg *strings.Builder) {
 		cfg.WriteString(
 			"/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */\n",

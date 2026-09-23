@@ -186,8 +186,10 @@ catalog/docserver/struct DocsServer
 catalog/docserver/type CatalogProvider
 catalog/docserver/type D2Option
 catalog/eventcatalog/func NewExporter
+catalog/eventcatalog/func WithSkipBootstrapFiles
 catalog/eventcatalog/method Export
 catalog/eventcatalog/struct Exporter
+catalog/eventcatalog/type Option
 catalog/func ChannelAddress
 catalog/func ChannelBadges
 catalog/func ChannelDeliveryGuarantee

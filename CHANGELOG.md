@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **catalog/eventcatalog: `WithSkipBootstrapFiles` export option.** CI
+  exports for federation hubs can omit the generated `eventcatalog.config.js`
+  and `package.json` — the hub owns its own bootstrap files, and per-source
+  copies previously forced fragile first-wins merge semantics. Default
+  behavior is unchanged (local export directories stay directly buildable);
+  only the two bootstrap files are skipped, all content is byte-identical.
 - **catalog/eventcatalog: `catalog.index.json` export manifest.** Every
   EventCatalog export now writes a machine-readable manifest to the export
   root — one entry per exported resource (`id`, `kind`, `version`, `path`),
