@@ -592,6 +592,32 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
+- [ ] [BLOCKED] **art-dupl baseline re-pin decision (owner)** — the t4
+      clone-elimination campaign (2026-09-23, plan
+      `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md`)
+      extracted 11 core/intra-module families (scan/vector/planned/filter/
+      GraphBFS, watermill streamIDFromMessage, cqrs-lint lintutil)
+      and shrank the t3 `check-duplication` red set ~69 → 50 pre-existing
+      groups vs the 2026-09-18 baseline. The gate is now HARD (art-dupl
+      nix-provisioned at v0.7.0 in `packages.art-dupl`; no silent SKIP), so
+      CI stays red until the baseline is re-pinned
+      (`art-dupl baseline . --threshold 3 --semantic` on a committed tree) or
+      the remaining 50 groups are worked down. Owner call: re-pin now (locks
+      in the campaign gains, legalizes the 50) vs work-down first.
+      _(Effort: S to re-pin; M-L to work down)_
+- [ ] [BLOCKED] **sqlite IN-list separator change sign-off (owner)** — the
+      unified `AppendPlannedFilter` renders IN lists with `", "` (the pg
+      form) everywhere, including sqlite's previously space-free form; no
+      test pinned the old rendering, but it is a wire-visible SQL string
+      change. Approve or reject (revert = per-dialect separator param).
+      _(Effort: S)_
+- [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
+      — core's degraded-path BFS (graph_fallback.go) still carries its own
+      copy of the loop with different semantics: `[]any` frontier,
+      `typedNodeKey` dedup, `nil` result for depth<=0 (engines normalize to
+      `[]any{}`). Merging needs a deliberate nil-vs-empty behavior decision
+      and a typed-key encode param. Not a clone-gate violation today (shape
+      differs enough that art-dupl does not group it). _(Effort: M)_
 - [ ] **>350-line production files (~54, 2026-09-06 count)** — see the
       cqrs-lint section for the verified picture, gate-policy options, and the
       already-split offenders; the code-file split waves are a standalone
