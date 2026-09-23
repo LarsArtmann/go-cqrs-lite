@@ -1,0 +1,38 @@
+
+[TestGolden_EventCatalog_IndexManifest - 1]
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "id": "order-svc",
+      "kind": "services",
+      "version": "1.0.0",
+      "path": "services/order-svc/index.mdx"
+    },
+    {
+      "id": "CreateOrder",
+      "kind": "commands",
+      "version": "1.0.0",
+      "path": "commands/CreateOrder/index.mdx"
+    },
+    {
+      "id": "OrderCreated",
+      "kind": "events",
+      "version": "1.0.0",
+      "path": "events/OrderCreated/index.mdx"
+    },
+    {
+      "id": "GetOrder",
+      "kind": "queries",
+      "version": "1.0.0",
+      "path": "queries/GetOrder/index.mdx"
+    },
+    {
+      "id": "order-events",
+      "kind": "channels",
+      "version": "1.0.0",
+      "path": "channels/order-events/index.mdx"
+    }
+  ]
+}
+---

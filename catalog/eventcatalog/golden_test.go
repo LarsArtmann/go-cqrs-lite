@@ -83,6 +83,18 @@ func TestGolden_EventCatalog_PackageJSON(t *testing.T) {
 	matchCatalogGolden(t, "package", string(pkgContent))
 }
 
+func TestGolden_EventCatalog_IndexManifest(t *testing.T) {
+	cat := cattest.BuildTestCatalog()
+	tmpDir := exportToTempDir(t, cat)
+
+	manifestContent, err := os.ReadFile(filepath.Join(tmpDir, "catalog.index.json"))
+	if err != nil {
+		t.Fatalf("read catalog.index.json: %v", err)
+	}
+
+	matchCatalogGolden(t, "catalog-index-manifest", string(manifestContent))
+}
+
 // Fixture types exercising the schema flattener: Payment embeds
 // PaymentMethod (multi-level flattening), PlaceOrderPayload embeds two
 // structs plus a plain field. The golden pins the FLATTENED output —

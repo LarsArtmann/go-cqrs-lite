@@ -225,7 +225,14 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 		)
 	}
 
-	return e.writeSchemasTxt(cat)
+	if err := e.writeSchemasTxt(cat); err != nil {
+		return err
+	}
+
+	// The manifest is written last: it only exists for fully successful
+	// exports, so a hub diffing catalog.index.json never sees a manifest
+	// that describes a half-written tree.
+	return e.writeIndexManifest(enriched)
 }
 
 func (e *Exporter) writeService(svc catalog.Service) error {
