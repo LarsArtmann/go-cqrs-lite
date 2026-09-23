@@ -51,6 +51,7 @@ func TestMain(m *testing.M) {
 	if dsn := os.Getenv("MYSQL_TEST_DSN"); dsn != "" {
 		serverDSN = dsn
 
+		//art-dupl:accept TestMain scaffolding twin of pgtestcontainer; each dep-isolated container module repeats the DSN/short-circuit ladder on purpose
 		finish(m, nil)
 
 		return

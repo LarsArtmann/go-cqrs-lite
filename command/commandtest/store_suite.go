@@ -144,6 +144,7 @@ func testAppendBatch(t *testing.T, store StoreSuite) {
 	}
 
 	if err := store.AppendBatch(ctx, ref, cmds); err != nil {
+		//art-dupl:accept append/load round-trip smoke twin of eventtest fake_store_test; command and event suites test different domain types
 		t.Fatalf("AppendBatch: %v", err)
 	}
 

@@ -74,6 +74,7 @@ func TestMain(m *testing.M) {
 		// becomes a problem (especially under -race).
 		adminDB, _ = sql.Open("pgx", containerDSN)
 
+		//art-dupl:accept TestMain scaffolding twin of mysqltestcontainer; each dep-isolated container module repeats the DSN/short-circuit ladder on purpose
 		finish(m, nil)
 
 		return

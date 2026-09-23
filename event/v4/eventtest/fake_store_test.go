@@ -42,6 +42,7 @@ func TestFakeStore_Save_Default(t *testing.T) {
 	evt := newTestEvent(t, streamID, 1)
 
 	if err := store.Save(ctx, ref, []event.Event{evt}, 0); err != nil {
+		//art-dupl:accept save/load round-trip smoke twin of commandtest store_suite; event and command suites test different domain types
 		t.Fatalf("Save: %v", err)
 	}
 
