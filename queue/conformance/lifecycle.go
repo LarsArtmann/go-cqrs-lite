@@ -265,6 +265,7 @@ func (s *suite) pinCancel(t *testing.T) {
 
 	subject := e.enqueue(t, task.New[Payload]{Type: "sh"})
 	if err := e.store.Cancel(t.Context(), subject.ID, "superseded"); err != nil {
+		//art-dupl:accept conformance-pin twin of retry.go pinDismiss; Cancel and DismissDead intentionally walk the same get/status/fact ladder
 		t.Fatalf("cancel: %v", err)
 	}
 

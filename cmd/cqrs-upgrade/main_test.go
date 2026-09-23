@@ -326,6 +326,7 @@ func TestEmitJSON_WireShape(t *testing.T) {
 }
 
 func readAll(t *testing.T, path string) string {
+	//art-dupl:accept trivial test-helper twin of catalog/internal/cattest ReadFile; dep-isolated modules, no shared import path
 	t.Helper()
 
 	data, err := os.ReadFile(path)

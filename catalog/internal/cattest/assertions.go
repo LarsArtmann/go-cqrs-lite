@@ -7,6 +7,7 @@ import (
 )
 
 func ReadFile(tb testing.TB, path string) string {
+	//art-dupl:accept trivial test-helper twin of cqrs-upgrade readAll; cattest is internal to catalog, the cmd module cannot import it
 	tb.Helper()
 
 	data, err := os.ReadFile(path)

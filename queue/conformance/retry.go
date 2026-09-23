@@ -318,6 +318,7 @@ func (s *suite) pinDismiss(t *testing.T) {
 	dead := deadTask(t, e)
 
 	if err := e.store.DismissDead(t.Context(), dead.ID, "unfixable", "operator"); err != nil {
+		//art-dupl:accept conformance-pin twin of lifecycle.go pinCancel; DismissDead and Cancel intentionally walk the same get/status/fact ladder
 		t.Fatalf("dismiss: %v", err)
 	}
 
