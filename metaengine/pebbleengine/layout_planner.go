@@ -117,47 +117,6 @@ func (e *pebbleEngine) ApplyLayout(collection string, filterFields, sortFields [
 	return nil
 }
 
-// applyIndexEntries walks a value's layout-plan fields and hands every
-// produced secondary-index key to fn: filter-field keys first (prefix + key
-// suffix), then sort-field keys. kind carries the error-message fragment
-// ("index entry" / "sort index entry") so callers keep their exact strings.
-func applyIndexEntries(
-	fields map[string]any,
-	plan layoutPlan,
-	col, key string,
-	fn func(kind string, idxKey []byte) error,
-) error {
-	for _, field := range plan.filterFields {
-		fieldVal, ok := fields[field]
-		if !ok {
-			continue
-		}
-
-		valStr := encodeIndexValue(fieldVal)
-		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
-
-		if err := fn("index entry", idxKey); err != nil {
-			return err
-		}
-	}
-
-	for _, field := range plan.sortFields {
-		fieldVal, ok := fields[field]
-		if !ok {
-			continue
-		}
-
-		valStr := encodeIndexValue(fieldVal)
-		idxKey := sortIndexKey(col, field, valStr, key)
-
-		if err := fn("sort index entry", idxKey); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // writeIndexEntries writes secondary index entries for a value's filter and
 // sort fields. Called by MapSet when a layout plan exists for the collection.
 func (e *pebbleEngine) writeIndexEntries(

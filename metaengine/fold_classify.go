@@ -96,6 +96,9 @@ type extractorFold interface {
 	keyExtractorPtr() *func(event any) any
 }
 
+func (f *updateFold) keyExtractorPtr() *func(event any) any { return &f.keyExtractor }
+func (f *removeFold) keyExtractorPtr() *func(event any) any { return &f.keyExtractor }
+
 // ensureKeyExtractor lazily builds a fold's event-key extractor from its
 // event sample, leaving an already-built extractor untouched.
 func ensureKeyExtractor(f extractorFold, keyType reflect.Type) error {

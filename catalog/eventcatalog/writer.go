@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	yaml "github.com/go-faster/yaml"
@@ -236,23 +237,19 @@ func shouldEnableChangelog(cat *catalog.Catalog) bool {
 }
 
 func catalogHasChangelogs(cat *catalog.Catalog) bool {
+	hasChangelog := func(msgs []catalog.Message) bool {
+		return slices.ContainsFunc(
+			msgs,
+			func(m catalog.Message) bool { return len(m.Changelog) > 0 },
+		)
+	}
+
 	for _, svc := range cat.Services {
-		for _, msg := range svc.Commands {
-			if len(msg.Changelog) > 0 {
-				return true
-			}
-		}
-		for _, msg := range svc.Events {
-			if len(msg.Changelog) > 0 {
-				return true
-			}
-		}
-		for _, msg := range svc.Queries {
-			if len(msg.Changelog) > 0 {
-				return true
-			}
+		if hasChangelog(svc.Commands) || hasChangelog(svc.Events) || hasChangelog(svc.Queries) {
+			return true
 		}
 	}
+
 	return false
 }
 
