@@ -4,9 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 const (
@@ -26,6 +25,7 @@ type Exporter struct {
 	outputDir string
 
 	skipBootstrapFiles bool
+	plainRefIDs         bool
 }
 
 // NewExporter creates an exporter that writes MDX files to the given output
@@ -90,7 +90,7 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	}
 
 	for _, ch := range enriched.Channels {
-		err := e.writeChannel(ch, channelMessageIndex(enriched))
+		err := e.writeChannel(ch, channelMessageIndex(enriched, e.plainRefIDs))
 		if err != nil {
 			return errorfamily.Newf(
 				errorfamily.Infrastructure,

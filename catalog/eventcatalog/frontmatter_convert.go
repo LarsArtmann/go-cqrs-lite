@@ -47,14 +47,19 @@ func toChannelRefs(
 }
 
 // EventCatalog's message schema declares producers/consumers as plain string
-// references into the services collection, whose generated entry IDs are
-// "<serviceID>-<serviceVersion>" — a bare service ID would not resolve, and
-// the previous {id: ...} object form failed schema validation outright.
+// references into the services collection. The DEFAULT form is the
+// composite "<serviceID>-<serviceVersion>" Astro entry ID: @eventcatalog/core's
+// content layer (and its visualiser graph edges) resolves exactly that key,
+// and a bare service ID makes its build log `Invalid content reference`.
+// The composite form is invisible to @eventcatalog/linter, which indexes by
+// frontmatter ID — WithPlainRefIDs flips this function to bare IDs for
+// governance/lint exports (see the option's doc comment).
 // Unknown services fall back to the bare ID (the reference stays resolvable
 // once a service with that ID exists).
 func toServiceRefs(
 	ids []catalog.ServiceID,
 	versions map[catalog.ServiceID]catalog.Version,
+	plain bool,
 ) []string {
 	if len(ids) == 0 {
 		return nil
@@ -62,10 +67,12 @@ func toServiceRefs(
 
 	out := make([]string, len(ids))
 	for i, id := range ids {
-		if v, ok := versions[id]; ok && v != "" {
-			out[i] = string(id) + "-" + string(v)
+		if !plain {
+			if v, ok := versions[id]; ok && v != "" {
+				out[i] = string(id) + "-" + string(v)
 
-			continue
+				continue
+			}
 		}
 
 		out[i] = string(id)

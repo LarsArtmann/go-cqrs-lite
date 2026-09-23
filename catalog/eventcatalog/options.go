@@ -19,3 +19,25 @@ func WithSkipBootstrapFiles() Option {
 		e.skipBootstrapFiles = true
 	}
 }
+
+// WithPlainRefIDs emits resource references as bare IDs instead of the
+// default composite "<id>-<version>" Astro entry IDs — producers/consumers
+// become plain service IDs and channel message pointers carry the plain
+// message ID (the version stays a separate field).
+//
+// Use for GOVERNANCE exports consumed by tooling that keys resources by
+// frontmatter ID: `@eventcatalog/linter` indexes every collection by the
+// frontmatter `id` and can never resolve the composite form, so
+// `refs/resource-exists` errors on every ref in a default export. A
+// plain-ref export lints clean.
+//
+// Do NOT use for trees that `@eventcatalog/core` builds: its Astro content
+// layer keys entries by "<id>-<version>" and logs `Invalid content
+// reference` for bare IDs (the visualiser graph edges use the same keys).
+// That is why composite is the default and this is an option — one catalog,
+// two exports: render the default tree, lint the plain one.
+func WithPlainRefIDs() Option {
+	return func(e *Exporter) {
+		e.plainRefIDs = true
+	}
+}
