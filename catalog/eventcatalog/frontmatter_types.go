@@ -94,7 +94,7 @@ type messageFM struct {
 	// EventCatalog has no native fields for labels or REST responses;
 	// both ride the sanctioned x- custom-property escape hatch instead
 	// (withExtensionProperties allows any x-* key).
-	XLabels    map[string]string `yaml:"x-labels,omitempty"`     //nolint:tagliatelle // custom property
+	XLabels    map[string]string `yaml:"x-labels,omitempty"`    //nolint:tagliatelle // custom property
 	XResponses []responseFM      `yaml:"x-responses,omitempty"` //nolint:tagliatelle // custom property
 }
 

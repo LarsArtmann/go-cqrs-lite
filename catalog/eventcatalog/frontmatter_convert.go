@@ -26,7 +26,10 @@ func toPointers[S ~string](ids []S) []pointer {
 // toChannelRefs converts channel IDs to EventCatalog channelPointer objects
 // ({id, version?}). Plain strings fail schema validation
 // ("Expected type object, received string").
-func toChannelRefs(ids []catalog.ChannelID, versions map[catalog.ChannelID]catalog.Version) []channelRefFM {
+func toChannelRefs(
+	ids []catalog.ChannelID,
+	versions map[catalog.ChannelID]catalog.Version,
+) []channelRefFM {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -42,6 +45,7 @@ func toChannelRefs(ids []catalog.ChannelID, versions map[catalog.ChannelID]catal
 
 	return out
 }
+
 // EventCatalog's message schema declares producers/consumers as plain string
 // references into the services collection, whose generated entry IDs are
 // "<serviceID>-<serviceVersion>" — a bare service ID would not resolve, and
@@ -201,7 +205,13 @@ func changelogBody(changes []catalog.Change) string {
 	var b strings.Builder
 	for _, c := range changes {
 		if c.Date != nil {
-			fmt.Fprintf(&b, "- **%s** (%s): %s\n", string(c.Version), c.Date.Format(time.DateOnly), string(c.Summary))
+			fmt.Fprintf(
+				&b,
+				"- **%s** (%s): %s\n",
+				string(c.Version),
+				c.Date.Format(time.DateOnly),
+				string(c.Summary),
+			)
 			continue
 		}
 		fmt.Fprintf(&b, "- **%s**: %s\n", string(c.Version), string(c.Summary))

@@ -50,7 +50,14 @@ func appendPGPlannedFilter(
 	f metaengine.FilterSpec,
 	started *bool,
 ) {
-	metaengine.AppendPlannedFilter(b, args, f, started, metaengine.QuoteIdent, metaengine.DollarPlaceholders)
+	metaengine.AppendPlannedFilter(
+		b,
+		args,
+		f,
+		started,
+		metaengine.QuoteIdent,
+		metaengine.DollarPlaceholders,
+	)
 }
 
 // buildPGPlannedScanQuery renders the planned-table pushdown SELECT: native

@@ -87,7 +87,11 @@ func (e *sqliteEngine) VectorInsert(
 		return err
 	}
 
-	if err := metaengine.CheckVectorDimension(collection, established, len(emb.Values)); err != nil {
+	if err := metaengine.CheckVectorDimension(
+		collection,
+		established,
+		len(emb.Values),
+	); err != nil {
 		return fmt.Errorf("sqliteengine.VectorInsert: %w", err)
 	}
 

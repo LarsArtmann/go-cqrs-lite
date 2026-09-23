@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	errorfamily "github.com/larsartmann/go-error-family"
 	yaml "github.com/go-faster/yaml"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
@@ -148,7 +148,10 @@ func (e *Exporter) writeChangelogFile(dir string, changes []catalog.Change) erro
 // EventCatalog's ubiquitous-language.mdx sidecar file with a dictionary
 // list. The old frontmatter field was an unknown property that failed the
 // downstream build.
-func (e *Exporter) writeUbiquitousLanguageFile(dir string, terms []catalog.UbiquitousLanguageTerm) error {
+func (e *Exporter) writeUbiquitousLanguageFile(
+	dir string,
+	terms []catalog.UbiquitousLanguageTerm,
+) error {
 	if len(terms) == 0 {
 		return nil
 	}

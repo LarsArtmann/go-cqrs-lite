@@ -436,7 +436,10 @@ func TestExporter_DomainWithUbiquitousLanguage(t *testing.T) {
 	)
 
 	if strings.Contains(content, "ubiquitousLanguage") {
-		t.Errorf("ubiquitous language must not be frontmatter (EventCatalog rejects it):\n%s", content)
+		t.Errorf(
+			"ubiquitous language must not be frontmatter (EventCatalog rejects it):\n%s",
+			content,
+		)
 	}
 
 	dictionary := readExported(t, tmpDir, "domains", "orders", "ubiquitous-language.mdx")

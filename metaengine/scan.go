@@ -209,7 +209,11 @@ func CursorArg(cursor any) any {
 // scanGroupedRow scans one grouped-aggregate row — group key column first,
 // then one column per spec — and decodes the aggregate values via
 // DecodeFloatResults. The label is used as the error prefix.
-func scanGroupedRow(rows *sql.Rows, specs []AggregateSpec, label string) (GroupedAggregateRow, error) {
+func scanGroupedRow(
+	rows *sql.Rows,
+	specs []AggregateSpec,
+	label string,
+) (GroupedAggregateRow, error) {
 	var groupKey string
 
 	raws := make([]any, len(specs))

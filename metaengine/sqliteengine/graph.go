@@ -135,9 +135,15 @@ func (e *sqliteEngine) graphNeighborsIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	return e.graphBFS(ctx, node, depth, "sqliteengine.GraphNeighbors", func(ctx context.Context, n string) ([]string, error) {
-		return e.queryGraphNeighbors(ctx, col, n)
-	})
+	return e.graphBFS(
+		ctx,
+		node,
+		depth,
+		"sqliteengine.GraphNeighbors",
+		func(ctx context.Context, n string) ([]string, error) {
+			return e.queryGraphNeighbors(ctx, col, n)
+		},
+	)
 }
 
 // graphBFS walks the graph breadth-first up to depth levels, expanding each

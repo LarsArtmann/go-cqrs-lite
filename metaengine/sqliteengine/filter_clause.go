@@ -49,5 +49,12 @@ func appendStandardFilter(b *strings.Builder, args *[]any, f metaengine.FilterSp
 // using direct column references (QuoteIdent) and ? placeholders; the clause
 // mechanics live in metaengine.AppendPlannedFilter.
 func appendPlannedFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpec, started *bool) {
-	metaengine.AppendPlannedFilter(b, args, f, started, metaengine.QuoteIdent, metaengine.QuestionPlaceholders)
+	metaengine.AppendPlannedFilter(
+		b,
+		args,
+		f,
+		started,
+		metaengine.QuoteIdent,
+		metaengine.QuestionPlaceholders,
+	)
 }

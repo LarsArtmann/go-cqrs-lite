@@ -9,7 +9,10 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
-func (e *Exporter) writeChannel(ch catalog.Channel, messages map[catalog.MessageID]channelMessageFM) error {
+func (e *Exporter) writeChannel(
+	ch catalog.Channel,
+	messages map[catalog.MessageID]channelMessageFM,
+) error {
 	dir := filepath.Join(e.outputDir, "channels", string(ch.ID))
 
 	if err := os.MkdirAll(dir, dirPerm); err != nil {

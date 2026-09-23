@@ -133,4 +133,3 @@ func channelMessageIndex(cat *catalog.Catalog) map[catalog.MessageID]channelMess
 
 	return index
 }
-

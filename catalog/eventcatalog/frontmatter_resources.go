@@ -122,8 +122,8 @@ type teamFM struct {
 
 	// EventCatalog teams have no role/avatarUrl fields (users do); both ride
 	// the sanctioned x- custom-property escape hatch.
-	XRole       string `yaml:"x-role,omitempty"`       //nolint:tagliatelle // custom property
-	XAvatarURL  string `yaml:"x-avatarUrl,omitempty"` //nolint:tagliatelle // custom property
+	XRole      string `yaml:"x-role,omitempty"`      //nolint:tagliatelle // custom property
+	XAvatarURL string `yaml:"x-avatarUrl,omitempty"` //nolint:tagliatelle // custom property
 }
 
 type userFM struct {
@@ -169,8 +169,8 @@ type nodeStylesFM struct {
 }
 
 type stylesFM struct {
-	Icon  string         `yaml:"icon,omitempty"`
-	Node  *nodeStylesFM  `yaml:"node,omitempty"`
+	Icon string        `yaml:"icon,omitempty"`
+	Node *nodeStylesFM `yaml:"node,omitempty"`
 }
 
 type draftFM struct {

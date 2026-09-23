@@ -11,8 +11,9 @@ import (
 
 	errorfamily "github.com/larsartmann/go-error-family"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 	"github.com/larsartmann/go-sqlitestore"
+
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // EnsureSQLiteDSNBusyTimeout appends _pragma=busy_timeout(ms) to the DSN so

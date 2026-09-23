@@ -36,7 +36,11 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	enriched := autoDeriveProducersConsumers(cat)
 
 	for _, svc := range enriched.Services {
-		if err := rejectUnsupportedBaseConfig("service", string(svc.ID), svc.BaseConfig); err != nil {
+		if err := rejectUnsupportedBaseConfig(
+			"service",
+			string(svc.ID),
+			svc.BaseConfig,
+		); err != nil {
 			return err
 		}
 
@@ -57,7 +61,11 @@ func (e *Exporter) Export(cat *catalog.Catalog) error { //nolint:cyclop,gocyclo 
 	}
 
 	for _, domain := range enriched.Domains {
-		if err := rejectUnsupportedBaseConfig("domain", string(domain.ID), domain.BaseConfig); err != nil {
+		if err := rejectUnsupportedBaseConfig(
+			"domain",
+			string(domain.ID),
+			domain.BaseConfig,
+		); err != nil {
 			return err
 		}
 

@@ -49,7 +49,14 @@ func appendPlannedFilter(
 	f metaengine.FilterSpec,
 	started *bool,
 ) {
-	metaengine.AppendPlannedFilter(b, args, f, started, backtickIdent, metaengine.QuestionPlaceholders)
+	metaengine.AppendPlannedFilter(
+		b,
+		args,
+		f,
+		started,
+		backtickIdent,
+		metaengine.QuestionPlaceholders,
+	)
 }
 
 // buildPlannedScanQuery renders the planned-table pushdown SELECT: native
