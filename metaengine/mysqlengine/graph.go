@@ -162,52 +162,6 @@ func (e *mysqlEngine) graphNeighborsCTE(
 	return result, nil
 }
 
-// graphWalk is the shared iterative BFS skeleton for graph neighborhood
-// reads: one adjacency lookup per node per level, visited-set dedup, and a
-// non-nil result. The adjacency callback selects directed or both-direction
-// edges; servers without WITH RECURSIVE take this path for both entry points.
-func (e *mysqlEngine) graphWalk(
-	ctx context.Context,
-	col string,
-	node any,
-	depth int,
-	adjacency func(ctx context.Context, col, node string) ([]string, error),
-) ([]any, error) {
-	startNode := encodeNodeKey(node)
-	visited := map[string]bool{startNode: true}
-	frontier := []string{startNode}
-	var result []any
-
-	for level := 0; level < depth && len(frontier) > 0; level++ {
-		var next []string
-
-		for _, n := range frontier {
-			neighbors, err := adjacency(ctx, col, n)
-			if err != nil {
-				return nil, fmt.Errorf("mysqlengine.graphWalk: %w", err)
-			}
-
-			for _, nb := range neighbors {
-				if visited[nb] {
-					continue
-				}
-
-				visited[nb] = true
-				result = append(result, nb)
-				next = append(next, nb)
-			}
-		}
-
-		frontier = next
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
-}
-
 // graphNeighborsIterative is the fallback for servers without WITH
 // RECURSIVE: one indexed lookup per node per level.
 func (e *mysqlEngine) graphNeighborsIterative(
@@ -216,7 +170,11 @@ func (e *mysqlEngine) graphNeighborsIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	return e.graphWalk(ctx, col, node, depth, e.queryGraphNeighbors) //nolint:wrapcheck
+	//nolint:wrapcheck // metaengine.GraphBFS wraps adjacency errors with the label prefix
+	return metaengine.GraphBFS(ctx, node, depth, "mysqlengine.graphWalk", encodeNodeKey,
+		func(ctx context.Context, n string) ([]string, error) {
+			return e.queryGraphNeighbors(ctx, col, n)
+		})
 }
 
 // queryGraphNeighbors reads the direct adjacency of one node.

@@ -133,14 +133,18 @@ func (e *mysqlEngine) graphNeighborsUndirectedCTE(
 
 // graphNeighborsUndirectedIterative is the fallback for servers without WITH
 // RECURSIVE: one indexed lookup per node per level per direction, via the
-// shared graphWalk skeleton.
+// shared metaengine.GraphBFS skeleton.
 func (e *mysqlEngine) graphNeighborsUndirectedIterative(
 	ctx context.Context,
 	col string,
 	node any,
 	depth int,
 ) ([]any, error) {
-	return e.graphWalk(ctx, col, node, depth, e.graphNeighborsBothDirections) //nolint:wrapcheck
+	//nolint:wrapcheck // metaengine.GraphBFS wraps adjacency errors with the label prefix
+	return metaengine.GraphBFS(ctx, node, depth, "mysqlengine.graphWalk", encodeNodeKey,
+		func(ctx context.Context, n string) ([]string, error) {
+			return e.graphNeighborsBothDirections(ctx, col, n)
+		})
 }
 
 // graphNeighborsBothDirections reads a node's outgoing and incoming adjacency.

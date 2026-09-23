@@ -135,61 +135,17 @@ func (e *sqliteEngine) graphNeighborsIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	return e.graphBFS(
+	//nolint:wrapcheck // metaengine.GraphBFS wraps expand errors with the label prefix
+	return metaengine.GraphBFS(
 		ctx,
 		node,
 		depth,
 		"sqliteengine.GraphNeighbors",
+		encodeKey,
 		func(ctx context.Context, n string) ([]string, error) {
 			return e.queryGraphNeighbors(ctx, col, n)
 		},
 	)
-}
-
-// graphBFS walks the graph breadth-first up to depth levels, expanding each
-// frontier node with expand (directed: one neighbor query; undirected:
-// outgoing+incoming). The label is used as the error prefix; the result is
-// never nil.
-func (e *sqliteEngine) graphBFS(
-	ctx context.Context,
-	node any,
-	depth int,
-	label string,
-	expand func(ctx context.Context, n string) ([]string, error),
-) ([]any, error) {
-	startNode := encodeKey(node)
-	visited := map[string]bool{startNode: true}
-	frontier := []string{startNode}
-	var result []any
-
-	for level := 0; level < depth && len(frontier) > 0; level++ {
-		var next []string
-
-		for _, n := range frontier {
-			neighbors, err := expand(ctx, n)
-			if err != nil {
-				return nil, fmt.Errorf("%s: %w", label, err)
-			}
-
-			for _, nb := range neighbors {
-				if visited[nb] {
-					continue
-				}
-
-				visited[nb] = true
-				result = append(result, nb)
-				next = append(next, nb)
-			}
-		}
-
-		frontier = next
-	}
-
-	if result == nil {
-		result = []any{}
-	}
-
-	return result, nil
 }
 
 // GraphRemoveEdge deletes the specific directed edge (ADR-0114 style

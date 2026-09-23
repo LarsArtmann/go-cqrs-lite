@@ -109,8 +109,8 @@ func run(outputDir string, changelogProfile bool) error {
 			"orderId": {Type: catalog.TypeString},
 		}},
 	})
-	reg.AddEvent("order-svc", catalog.Message{
-		Kind: catalog.EventMessage, ID: "OrderCreated", Name: "Order Created",
+	reg.AddEvent(fixtureServiceID, catalog.Message{
+		Kind: catalog.EventMessage, ID: fixtureEventID, Name: "Order Created",
 		Version: fixtureVersion, Summary: "Order was created", Direction: catalog.Sends,
 		Channels: []catalog.ChannelID{"order-events"},
 		Deprecation: &catalog.DeprecationInfo{
@@ -118,7 +118,7 @@ func run(outputDir string, changelogProfile bool) error {
 			Date:    ptrTime(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)),
 		},
 	})
-	reg.AddQuery("order-svc", catalog.Message{
+	reg.AddQuery(fixtureServiceID, catalog.Message{
 		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order",
 		Version: fixtureVersion, Summary: "Get order by ID",
 	})
@@ -127,8 +127,8 @@ func run(outputDir string, changelogProfile bool) error {
 		ID: "order-events", Name: "Order Events", Version: fixtureVersion,
 		Summary: "All order-related events", Protocols: []catalog.Protocol{"kafka"},
 		Address: "orders.events", DeliveryGuarantee: "at-least-once",
-		Messages: []catalog.MessageID{"CreateOrder", "OrderCreated"},
-		Owners:   []string{"order-team"},
+		Messages: []catalog.MessageID{"CreateOrder", fixtureEventID},
+		Owners:   []string{fixtureTeamID},
 		Parameters: map[string]catalog.ChannelParam{
 			"region": {Enum: []string{"eu", "us"}, Default: "eu", Description: "Cluster region"},
 		},
@@ -142,9 +142,9 @@ func run(outputDir string, changelogProfile bool) error {
 
 	reg.AddDomain(catalog.Domain{
 		ID: "ordering", Name: "Ordering", Version: fixtureVersion,
-		Summary: "Order management domain", Services: []catalog.ServiceID{"order-svc"},
+		Summary: "Order management domain", Services: []catalog.ServiceID{fixtureServiceID},
 		Entities:   []string{"Order"},
-		Flows:      []catalog.FlowID{"checkout-flow"},
+		Flows:      []catalog.FlowID{fixtureFlowID},
 		SubDomains: []catalog.DomainID{"checkout"},
 	})
 	reg.AddDomain(catalog.Domain{
@@ -168,7 +168,7 @@ func run(outputDir string, changelogProfile bool) error {
 			},
 			{Name: "items", Type: "array", RelationType: "one-to-many", References: "OrderItem"},
 		},
-		Owners: []string{"order-team"},
+		Owners: []string{fixtureTeamID},
 	})
 
 	if !changelogProfile {
@@ -180,12 +180,12 @@ func run(outputDir string, changelogProfile bool) error {
 			Name:    "Order Bot",
 			Version: fixtureVersion,
 			Summary: "AI assistant for order support",
-			Sends:   []catalog.Ref{{ID: "OrderCreated", Version: fixtureVersion}},
+			Sends:   []catalog.Ref{{ID: fixtureEventID, Version: fixtureVersion}},
 			Model:   &catalog.AgentModel{Provider: "openai", Name: "gpt", Version: "4o"},
 			Tools: []catalog.AgentTool{
 				{Name: "orders-db-lookup", Type: "mcp", URL: "https://mcp.example.com/orders"},
 			},
-			Flows: []catalog.FlowID{"checkout-flow"},
+			Flows: []catalog.FlowID{fixtureFlowID},
 		})
 	}
 
@@ -194,24 +194,25 @@ func run(outputDir string, changelogProfile bool) error {
 		Name:    "Order Analytics",
 		Version: fixtureVersion,
 		Summary: "Aggregated order metrics for BI",
-		Owners:  []string{"order-team"},
-		Inputs:  []catalog.Ref{{ID: "OrderCreated", Version: fixtureVersion}},
+		Owners:  []string{fixtureTeamID},
+		Inputs:  []catalog.Ref{{ID: fixtureEventID, Version: fixtureVersion}},
 		Outputs: []catalog.DataProductOutput{
 			{
-				Ref:      catalog.Ref{ID: "OrderCreated", Version: fixtureVersion},
+				Ref:      catalog.Ref{ID: fixtureEventID, Version: fixtureVersion},
 				Contract: &catalog.DataContract{Path: "contracts/orders.yaml", Name: "orders"},
 			},
 		},
 	})
 
 	reg.AddFlow(catalog.Flow{
-		ID: "checkout-flow", Name: "Checkout Flow", Version: fixtureVersion,
+		ID: fixtureFlowID, Name: "Checkout Flow", Version: fixtureVersion,
 		Summary: "From command to event",
 		Steps:   checkoutSteps(changelogProfile),
 	})
 
 	reg.AddTeam(catalog.Team{
-		ID: "order-team", Name: "Order Team",
+		ID:      fixtureTeamID,
+		Name:    "Order Team",
 		Summary: "Owns ordering", Members: []string{"alice"},
 		Email: "orders@example.com", Role: "platform", AvatarURL: "https://example.com/team.png",
 	})
@@ -229,7 +230,7 @@ func run(outputDir string, changelogProfile bool) error {
 		Summary: "How the demo fits together",
 		Slug:    "guides/architecture",
 		Content: "## Context\nThe demo shows every resource kind.\n## Decision\nGenerate docs from Go types.",
-		Owners:  []string{"order-team"},
+		Owners:  []string{fixtureTeamID},
 	})
 
 	return eventcatalog.NewExporter(outputDir).Export(reg.Build())
@@ -247,7 +248,7 @@ func checkoutSteps(withAgent bool) []catalog.FlowStep {
 		{
 			ID:       "s2",
 			Title:    "Submit",
-			Service:  &catalog.FlowStepRef{ID: "order-svc"},
+			Service:  &catalog.FlowStepRef{ID: fixtureServiceID},
 			NextStep: &catalog.FlowEdge{ID: "s3"},
 		},
 		{

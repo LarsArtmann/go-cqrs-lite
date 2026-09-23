@@ -84,7 +84,8 @@ func (e *sqliteEngine) graphNeighborsUndirectedIterative(
 	node any,
 	depth int,
 ) ([]any, error) {
-	return e.graphBFS(ctx, node, depth, "sqliteengine.GraphNeighborsUndirected",
+	//nolint:wrapcheck // metaengine.GraphBFS wraps expand errors with the label prefix
+	return metaengine.GraphBFS(ctx, node, depth, "sqliteengine.GraphNeighborsUndirected", encodeKey,
 		func(ctx context.Context, n string) ([]string, error) {
 			outgoing, err := e.queryGraphNeighbors(ctx, col, n)
 			if err != nil {

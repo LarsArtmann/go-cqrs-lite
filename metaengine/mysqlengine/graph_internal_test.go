@@ -72,7 +72,7 @@ func TestGraphCTEProbeEnabledOnModernServers(t *testing.T) {
 // TestGraphNeighborsUndirected_IterativeMatchesCTE is the undirected twin of
 // TestGraphNeighbors_IterativeMatchesCTE: forces the both-directions BFS
 // fallback and verifies it matches the undirected CTE walk. Guards the
-// shared graphWalk skeleton's undirected adjacency selection.
+// shared BFS skeleton's (metaengine.GraphBFS) undirected adjacency selection.
 func TestGraphNeighborsUndirected_IterativeMatchesCTE(t *testing.T) {
 	t.Parallel()
 
