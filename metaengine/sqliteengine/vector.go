@@ -83,6 +83,7 @@ func (e *sqliteEngine) VectorInsert(
 		e.xc(ctx).queryRow(ctx,
 			"SELECT LENGTH(vec)/4 FROM meta_vector WHERE collection = ? LIMIT 1", collection),
 		"sqliteengine.VectorInsert")
+	//art-dupl:accept post-extraction call-ladder twin of mysqlengine VectorInsert; exec surface and SQL constant differ per dialect, adttest pins the semantics
 	if err != nil {
 		return err
 	}

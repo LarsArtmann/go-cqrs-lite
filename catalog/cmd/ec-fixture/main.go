@@ -101,7 +101,7 @@ func run(outputDir string, changelogProfile bool) error {
 			{
 				Version: "1.0.0",
 				Summary: "initial release",
-				Date:    ptrTime(time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)),
+				Date:    new(time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)),
 			},
 		},
 		Examples: []jsontext.Value{jsontext.Value(`{"orderId":"abc-123","amount":42.5}`)},
@@ -115,7 +115,7 @@ func run(outputDir string, changelogProfile bool) error {
 		Channels: []catalog.ChannelID{"order-events"},
 		Deprecation: &catalog.DeprecationInfo{
 			Message: "superseded by OrderPlaced",
-			Date:    ptrTime(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)),
+			Date:    new(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)),
 		},
 	})
 	reg.AddQuery(fixtureServiceID, catalog.Message{
@@ -235,8 +235,6 @@ func run(outputDir string, changelogProfile bool) error {
 
 	return eventcatalog.NewExporter(outputDir).Export(reg.Build())
 }
-
-func ptrTime(t time.Time) *time.Time { return &t }
 
 func checkoutSteps(withAgent bool) []catalog.FlowStep {
 	steps := []catalog.FlowStep{

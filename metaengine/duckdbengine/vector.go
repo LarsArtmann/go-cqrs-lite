@@ -71,6 +71,7 @@ func (e *duckdbEngine) VectorInsert(
 	collection string,
 	emb metaengine.Embedding,
 ) error {
+	//art-dupl:accept dimension-lock idiom twin of pgengine VectorInsert; probe SQL, value marshaling, and exec surface are dialect-specific, adttest pins the semantics
 	established, err := metaengine.ScanVectorDimensionProbe(
 		e.conn(ctx).QueryRowContext(ctx,
 			"SELECT len(vec) FROM meta_vector WHERE collection = ? LIMIT 1", collection),

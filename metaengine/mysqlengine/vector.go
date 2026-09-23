@@ -49,6 +49,7 @@ func (e *mysqlEngine) VectorInsert(
 			"SELECT CAST(LENGTH(vec)/4 AS SIGNED) FROM meta_vector WHERE collection = ? LIMIT 1",
 			collection),
 		"mysqlengine.VectorInsert")
+	//art-dupl:accept post-extraction call-ladder twin of sqliteengine VectorInsert; exec surface and SQL constant differ per dialect, adttest pins the semantics
 	if err != nil {
 		return err
 	}

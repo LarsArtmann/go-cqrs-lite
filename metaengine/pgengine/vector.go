@@ -29,6 +29,7 @@ func (e *pgEngine) VectorInsert(
 ) error {
 	// Dimension lock (metaengine.ErrVectorDimensionMismatch): the first
 	// insert establishes the collection's dimension.
+	//art-dupl:accept dimension-lock idiom twin of duckdbengine VectorInsert; probe SQL, value marshaling, and exec surface are dialect-specific, adttest pins the semantics
 	established, err := metaengine.ScanVectorDimensionProbe(
 		e.conn(ctx).QueryRowContext(ctx,
 			`SELECT jsonb_array_length(vector) FROM meta_vector WHERE collection = $1 LIMIT 1`,
