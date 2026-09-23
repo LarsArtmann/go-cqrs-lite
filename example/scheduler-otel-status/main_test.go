@@ -8,9 +8,8 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite" // driver registration for the test database
-
 	"github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4"
+	_ "modernc.org/sqlite" // driver registration for the test database
 )
 
 // newTestStore builds the example's exact store shape (in-memory SQLite,

@@ -1,13 +1,13 @@
 # Status Report: t4 Clone-Elis (in-flight) — Campaign Execution Session
 
-| | |
-| --- | --- |
-| **Date** | 2026-09-23, 01:38 CEST |
-| **Session scope** | Execute `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md` (21 actionable art-dupl t4 groups) |
-| **Plan** | committed authored + pushed as `873eb8ed7` ✓ |
-| **Progress** | **13 of 21 groups resolved** (10 extracted into shared code, 3 judged-intentional + correctly annotated). Watermill pair analyzed, mid-flight. |
-| **Repo state** | working tree clean; daemon absorbed all code work into `chore:` commits (authored-commit attempts lost the race twice); master pushed |
-| **Tests** | every touched module green at time of its change (core, sqlite, mysql, pg, pebble, badger?, no — badger untouched this session; storage/memory, cqrs-lint pkg). **duckdb's current tree state NOT yet re-tested** (see d.4). |
+|                   |                                                                                                                                                                                                                              |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**          | 2026-09-23, 01:38 CEST                                                                                                                                                                                                       |
+| **Session scope** | Execute `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md` (21 actionable art-dupl t4 groups)                                                                                                          |
+| **Plan**          | committed authored + pushed as `873eb8ed7` ✓                                                                                                                                                                                 |
+| **Progress**      | **13 of 21 groups resolved** (10 extracted into shared code, 3 judged-intentional + correctly annotated). Watermill pair analyzed, mid-flight.                                                                               |
+| **Repo state**    | working tree clean; daemon absorbed all code work into `chore:` commits (authored-commit attempts lost the race twice); master pushed                                                                                        |
+| **Tests**         | every touched module green at time of its change (core, sqlite, mysql, pg, pebble, badger?, no — badger untouched this session; storage/memory, cqrs-lint pkg). **duckdb's current tree state NOT yet re-tested** (see d.4). |
 
 ---
 
@@ -92,4 +92,4 @@
 
 ---
 
-*Report generated 2026-09-23 01:38 CEST. Campaign: 13/21 groups resolved, 0 regressions, all touched-module suites green at time of change; duckdb rerun + watermill edits + golden/docs/CHANGELOG are the remaining tail.*
+_Report generated 2026-09-23 01:38 CEST. Campaign: 13/21 groups resolved, 0 regressions, all touched-module suites green at time of change; duckdb rerun + watermill edits + golden/docs/CHANGELOG are the remaining tail._

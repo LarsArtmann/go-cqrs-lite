@@ -346,20 +346,20 @@ from each service page.
 
 The exporter supports all EventCatalog resource types:
 
-| Resource      | Exported To                                                                  | Notes                                                                                                               |
-| ------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                                                        |
-| Services      | `services/<id>/index.mdx`                                                    | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser)         |
-| Domains       | `domains/<id>/index.mdx`                                                     | With ubiquitous language, sub-domains, data products, base config                                                   |
-| Entities      | `entities/<id>/index.mdx`                                                    | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                                   |
-| Data Products | `data-products/<id>/index.mdx`                                               | Data mesh products with inputs/outputs, output contracts, hidden flag                                               |
-| Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                            |
-| Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                             |
-| Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`) |
+| Resource      | Exported To                                                                  | Notes                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Messages      | `commands/<id>/index.mdx`, `events/<id>/index.mdx`, `queries/<id>/index.mdx` | Top-level dirs, deduplicated across services                                                                                                                            |
+| Services      | `services/<id>/index.mdx`                                                    | With messages, specs, data stores, external flag, base config (sidebar, styles, editUrl, draft, visualiser)                                                             |
+| Domains       | `domains/<id>/index.mdx`                                                     | With ubiquitous language, sub-domains, data products, base config                                                                                                       |
+| Entities      | `entities/<id>/index.mdx`                                                    | DDD entities: aggregateRoot, identifier, properties with references/relationTypes                                                                                       |
+| Data Products | `data-products/<id>/index.mdx`                                               | Data mesh products with inputs/outputs, output contracts, hidden flag                                                                                                   |
+| Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                                                                                |
+| Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                                                                                 |
+| Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`)                                                     |
 | Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step) |
-| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields) |
-| Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                         |
-| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); standalone pages render in EventCatalog enterprise |
+| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields)                                           |
+| Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                                                                             |
+| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); standalone pages render in EventCatalog enterprise                                                                |
 
 #### Format fidelity
 

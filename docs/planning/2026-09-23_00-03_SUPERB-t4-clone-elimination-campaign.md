@@ -1,12 +1,12 @@
 # SUPERB Plan: t4 Clone Elimination Campaign (art-dupl type-aware, 21 actionable groups)
 
-| | |
-| --- | --- |
-| **Created** | 2026-09-23 00:03 CEST |
-| **Input** | `art-dupl --sort total-tokens -t 4 --type-aware --html` → **21 actionable groups** (45 occurrences, 192 tokens; 42 production / 3 test; 1384 detected, 1363 suppressed) |
-| **Predecessor** | 2026-09-22 session killed the t7 family (`MapScanKeyValues` ×4 engines, `MultiGroupedAggregate` ×3) → `metaengine.ScanKeyValuesPage/ScanLimit/CursorArg/ScanGroupedAggregates`. Status: `docs/status/2026-09-22_23-49_metaengine-scan-family-dedup.md` |
-| **Repo state at authoring** | working tree clean; `check-duplication` (t3 baseline gate) red with 69 pre-existing groups (baseline pinned 2026-09-18, 60 groups) — decision pending with owner |
-| **Hard rule** | **No verschlimmbessern.** Every extraction must preserve byte-identical error strings (label-prefix pattern), respect dep-isolated go.mod boundaries, keep functions ≤30 lines / files ≤350, regen api golden in the same change, and pass the touched modules' full test suites before moving on. |
+|                             |                                                                                                                                                                                                                                                                                                    |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Created**                 | 2026-09-23 00:03 CEST                                                                                                                                                                                                                                                                              |
+| **Input**                   | `art-dupl --sort total-tokens -t 4 --type-aware --html` → **21 actionable groups** (45 occurrences, 192 tokens; 42 production / 3 test; 1384 detected, 1363 suppressed)                                                                                                                            |
+| **Predecessor**             | 2026-09-22 session killed the t7 family (`MapScanKeyValues` ×4 engines, `MultiGroupedAggregate` ×3) → `metaengine.ScanKeyValuesPage/ScanLimit/CursorArg/ScanGroupedAggregates`. Status: `docs/status/2026-09-22_23-49_metaengine-scan-family-dedup.md`                                             |
+| **Repo state at authoring** | working tree clean; `check-duplication` (t3 baseline gate) red with 69 pre-existing groups (baseline pinned 2026-09-18, 60 groups) — decision pending with owner                                                                                                                                   |
+| **Hard rule**               | **No verschlimmbessern.** Every extraction must preserve byte-identical error strings (label-prefix pattern), respect dep-isolated go.mod boundaries, keep functions ≤30 lines / files ≤350, regen api golden in the same change, and pass the touched modules' full test suites before moving on. |
 
 ---
 
@@ -14,55 +14,56 @@
 
 ### A. Engine cross-module families (6 groups, 14 occurrences) — metaengine core owns shared plumbing
 
-| ID | Family | Sites | Prio | Verdict |
-| --- | --- | --- | --- | --- |
-| G1 | `PlannedTables` listing body (sort + COUNT loop) | duckdbengine/planned_parity.go:179 · pgengine/planned_tables.go:23 · sqliteengine/planned_parity.go:148 | low | **Extract** → `metaengine` helper (query per dialect is one COUNT string; body identical) |
-| G2 | filter-clause builder (`values, ok := f.Value.([]any)` + WHERE/AND + placeholders) | mysqlengine/planned_scan.go:55 · pgengine/planned_scan.go:56 · sqliteengine/filter_clause.go:55 | low | **Extract** → shared clause builder in core (dialect param: placeholder style) |
-| G4 | `VectorSearch` drain (rows→VectorResult) | duckdbengine/vector.go:140 · sqliteengine/vector.go:163 | **medium** | **Extract** → `ScanVectorResults(rows, label)` (same class as today's fix) |
-| G5 | `explain.go` body | mysqlengine/explain.go:31 · pgengine/explain.go:31 | **medium** | **Extract** (check duckdb for same shape first) |
-| G7 | `reset.go` body | mysqlengine/reset.go:65 · pgengine/reset.go:60 | low | **Extract** (check other engines first) |
-| G16 | `VectorInsert` dimension-probe + metadata marshal | mysqlengine/vector.go:54 · sqliteengine/vector.go:88 | **medium** | **Extract** → shared probe/prepare helper (`CheckVectorDimension` already core; wrap probe+marshal) |
+| ID  | Family                                                                             | Sites                                                                                                   | Prio       | Verdict                                                                                             |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| G1  | `PlannedTables` listing body (sort + COUNT loop)                                   | duckdbengine/planned_parity.go:179 · pgengine/planned_tables.go:23 · sqliteengine/planned_parity.go:148 | low        | **Extract** → `metaengine` helper (query per dialect is one COUNT string; body identical)           |
+| G2  | filter-clause builder (`values, ok := f.Value.([]any)` + WHERE/AND + placeholders) | mysqlengine/planned_scan.go:55 · pgengine/planned_scan.go:56 · sqliteengine/filter_clause.go:55         | low        | **Extract** → shared clause builder in core (dialect param: placeholder style)                      |
+| G4  | `VectorSearch` drain (rows→VectorResult)                                           | duckdbengine/vector.go:140 · sqliteengine/vector.go:163                                                 | **medium** | **Extract** → `ScanVectorResults(rows, label)` (same class as today's fix)                          |
+| G5  | `explain.go` body                                                                  | mysqlengine/explain.go:31 · pgengine/explain.go:31                                                      | **medium** | **Extract** (check duckdb for same shape first)                                                     |
+| G7  | `reset.go` body                                                                    | mysqlengine/reset.go:65 · pgengine/reset.go:60                                                          | low        | **Extract** (check other engines first)                                                             |
+| G16 | `VectorInsert` dimension-probe + metadata marshal                                  | mysqlengine/vector.go:54 · sqliteengine/vector.go:88                                                    | **medium** | **Extract** → shared probe/prepare helper (`CheckVectorDimension` already core; wrap probe+marshal) |
 
 ### B. Intra-module mechanical pairs (7 groups, 14 occurrences) — zero API growth, local helpers
 
-| ID | Pair | Sites | Verdict |
-| --- | --- | --- | --- |
-| G3 | lock-run tail (`s.mu.Lock(); defer; return fn()`) | storage/memory: checkpoint.go:60 · log_store.go:77 · snapshot.go:54 | **Extract** local `withLock` (already idiomatic pattern in this pkg per AGENTS §14) |
-| G8 | checkpoint/snapshot variant tail | storage/memory: checkpoint.go:76 · snapshot.go:71 | **Extract** (likely folds into G3's helper) |
-| G9 | graph BFS step | sqliteengine: graph.go:138 · graph_undirected.go:87 | **Extract** local neighbor-step helper (judgment on structure) |
-| G18 | index-key build A | pebbleengine/layout_planner.go:134 vs 182 | **Extract** local helper |
-| G21 | index-key build B | pebbleengine/layout_planner.go:148 vs 193 | **Extract** local helper (may merge with G18) |
-| G19 | key-extractor init | metaengine/fold_classify.go:82 vs 94 | **Extract** local helper |
-| G20 | inputField resolution | metaengine/execute.go:402 vs 439 | **Extract** local helper |
+| ID  | Pair                                              | Sites                                                               | Verdict                                                                             |
+| --- | ------------------------------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| G3  | lock-run tail (`s.mu.Lock(); defer; return fn()`) | storage/memory: checkpoint.go:60 · log_store.go:77 · snapshot.go:54 | **Extract** local `withLock` (already idiomatic pattern in this pkg per AGENTS §14) |
+| G8  | checkpoint/snapshot variant tail                  | storage/memory: checkpoint.go:76 · snapshot.go:71                   | **Extract** (likely folds into G3's helper)                                         |
+| G9  | graph BFS step                                    | sqliteengine: graph.go:138 · graph_undirected.go:87                 | **Extract** local neighbor-step helper (judgment on structure)                      |
+| G18 | index-key build A                                 | pebbleengine/layout_planner.go:134 vs 182                           | **Extract** local helper                                                            |
+| G21 | index-key build B                                 | pebbleengine/layout_planner.go:148 vs 193                           | **Extract** local helper (may merge with G18)                                       |
+| G19 | key-extractor init                                | metaengine/fold_classify.go:82 vs 94                                | **Extract** local helper                                                            |
+| G20 | inputField resolution                             | metaengine/execute.go:402 vs 439                                    | **Extract** local helper                                                            |
 
 ### C. Tooling (1 group)
 
-| ID | Pair | Sites | Verdict |
-| --- | --- | --- | --- |
+| ID  | Pair                   | Sites                                                                        | Verdict                                                                               |
+| --- | ---------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | G17 | import-contains helper | cmd/cqrs-lint/pkg/rules/architecture/helpers.go:36 · testrules/helpers.go:29 | **Extract** into one shared internal helpers package (same module, no boundary issue) |
 
 ### D. watermill (2 groups) — parallel command/event twins, judgment needed
 
-| ID | Pair | Sites | Verdict |
-| --- | --- | --- | --- |
-| G11 | protocol decode/validate | watermill/command_protocol.go:78 · protocol.go:131 | **Judge**: command/event symmetry is deliberate documentation; likely `//art-dupl:accept` with rationale |
-| G14 | bus Ack/continue loop | watermill/command_bus_internals.go:66 · event_bus_internals.go:87 | **Judge**: the two bodies carry DIFFERENT safety comments (Ack-vs-Nack rationale) — likely accept, NOT merge (merging would delete load-bearing comments) |
+| ID  | Pair                     | Sites                                                             | Verdict                                                                                                                                                   |
+| --- | ------------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G11 | protocol decode/validate | watermill/command_protocol.go:78 · protocol.go:131                | **Judge**: command/event symmetry is deliberate documentation; likely `//art-dupl:accept` with rationale                                                  |
+| G14 | bus Ack/continue loop    | watermill/command_bus_internals.go:66 · event_bus_internals.go:87 | **Judge**: the two bodies carry DIFFERENT safety comments (Ack-vs-Nack rationale) — likely accept, NOT merge (merging would delete load-bearing comments) |
 
 ### E. Test scaffolding (5 groups, 9 occurrences)
 
-| ID | Pair | Sites | Verdict |
-| --- | --- | --- | --- |
-| G6 | conformance harness block | queue/conformance: lifecycle.go:268 · retry.go:321 | Accept-annotate (same-package test scaffolding) or local helper |
-| G10 | testcontainer setup | testutil/mysqltestcontainer:54 · pgtestcontainer:77 | Accept-annotate (dep-isolated testutil twins — rule-19 class) |
-| G12 | assertion util | catalog/internal/cattest:10 · cmd/cqrs-upgrade/main_test.go:329 | Accept-annotate (different modules, cross-module test dep not worth it) |
-| G13 | store-suite assertion | command/commandtest:147 · event/v4/eventtest:45 | Accept-annotate (dep-isolated sibling modules) |
-| G15 | tx-isolation chan setup | metaengine/adttest:31 · pgengine/tx_isolation_test:34 | Judge: adttest IS the shared harness — promote the pg local copy to use adttest (may already; verify) else accept |
+| ID  | Pair                      | Sites                                                           | Verdict                                                                                                           |
+| --- | ------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| G6  | conformance harness block | queue/conformance: lifecycle.go:268 · retry.go:321              | Accept-annotate (same-package test scaffolding) or local helper                                                   |
+| G10 | testcontainer setup       | testutil/mysqltestcontainer:54 · pgtestcontainer:77             | Accept-annotate (dep-isolated testutil twins — rule-19 class)                                                     |
+| G12 | assertion util            | catalog/internal/cattest:10 · cmd/cqrs-upgrade/main_test.go:329 | Accept-annotate (different modules, cross-module test dep not worth it)                                           |
+| G13 | store-suite assertion     | command/commandtest:147 · event/v4/eventtest:45                 | Accept-annotate (dep-isolated sibling modules)                                                                    |
+| G15 | tx-isolation chan setup   | metaengine/adttest:31 · pgengine/tx_isolation_test:34           | Judge: adttest IS the shared harness — promote the pg local copy to use adttest (may already; verify) else accept |
 
 ---
 
 ## 2. Pareto Breakdown
 
 ### 1% → 51% (do FIRST — the single highest-leverage move)
+
 **Consolidate the engine read/write plumbing families (A: G1, G2, G4, G5, G7, G16).**
 Six extractions into `metaengine` core, one API-review, one test matrix. Kills 6/21 groups and 14/45
 occurrences, all cross-module (the highest-maintenance-cost class: a bug fix must today be replicated
@@ -70,11 +71,13 @@ in 2–3 engines). These are also 4 of the 12 medium-priority groups. Everything
 the label-prefix helper pattern, `SQLExec`, `DeferClose` — proven twice this week.
 
 ### 4% → 64%
+
 **Intra-module mechanical extractions (B: G3, G8, G9, G18, G19, G20, G21 + C: G17).**
 Eight groups, zero public-API growth, pure local refactors, each independently testable. Zero risk of
 boundary violations. Kills 8 more groups → 14/21 (67%) and 28/45 occurrences (62%).
 
 ### 20% → 80%
+
 **Judgment groups (D: G11, G14) + test scaffolding triage (E: G6, G10, G12, G13, G15).**
 Most of these are INTENTIONAL similarity (dep-isolated twins, parallel command/event semantics with
 load-bearing comments, same-package test scaffolding). The 80% deliverable here is honest
@@ -82,6 +85,7 @@ load-bearing comments, same-package test scaffolding). The 80% deliverable here 
 promotion (pg local test → adttest harness).
 
 ### The other 20% → 100%
+
 1. **Family completeness sweep**: turso + badger/bbolt/pebble checked against every new helper (the
    2026-09-22 session's miss: mysql/pg were found late; don't repeat).
 2. **API golden + `TestEvery` + doc-check after each family** (repo procedure).
@@ -93,36 +97,36 @@ promotion (pg local test → adttest harness).
 7. **Gate hardening**: `check-duplication` silently SKIPs without art-dupl in PATH; provision from
    flake, fail hard.
 8. **Full `nix run .#verify`** once the parallel eventcatalog session lands (their file-size offender
-   + typecheck errors are currently mixed into repo-wide gates).
+   - typecheck errors are currently mixed into repo-wide gates).
 
 ---
 
 ## 3. Comprehensive Plan (30–100 min tasks, ALL todos, sorted by importance/impact → effort → customer-value)
 
-| # | Task | Outcome | Est | Impact | Risk | Depends |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | Vector family extraction: `VectorSearch` drain (G4) + `VectorInsert` probe/marshal (G16); sweep duck/pg for same shape first | 2 core helpers, 4+ engines rewired | 90 | High | Med | — |
-| 2 | `PlannedTables` trio → core helper (G1) | 1 helper, 3 engines | 45 | High | Low | — |
-| 3 | explain pair → core helper (G5, check duckdb) | 1 helper, 2–3 engines | 45 | Med | Low | — |
-| 4 | reset pair → core helper (G7, check others) | 1 helper, 2–4 engines | 30 | Med | Low | — |
-| 5 | filter-clause builder trio → core (G2, dialect param) | 1 builder, 3 engines | 100 | High | **High** | 1 (pattern familiarity) |
-| 6 | storage/memory `withLock` consolidation (G3+G8) | local helper, 3 files | 30 | Med | Low | — |
-| 7 | pebble layout_planner pairs (G18+G21) | local helpers | 45 | Med | Low | — |
-| 8 | metaengine fold_classify (G19) + execute.go (G20) | local helpers ×2 | 60 | Med | Low | — |
-| 9 | sqliteengine graph BFS pair (G9) | local helper | 45 | Med | Med | — |
-| 10 | cqrs-lint unified helpers pkg (G17) | one internal pkg | 30 | Med | Low | — |
-| 11 | watermill G11+G14 judgment: read both fully, accept-annotate with rationale (or extract if truly mergeable WITHOUT losing comments) | 2 annotations/merges | 30 | Med | Med | — |
-| 12 | Test scaffolding triage G6/G10/G12/G13: accept-annotate with rule-19 rationale | 4 annotations | 30 | Low | Low | — |
-| 13 | G15 judgment: promote pg tx-isolation test to adttest or accept | 1 promotion/annotation | 30 | Low | Low | — |
-| 14 | Family completeness sweep: turso/badger/bbolt/pebble vs every helper from tasks 1–5 | no stragglers | 45 | High | Low | 1–5 |
-| 15 | API golden regen + `TestEvery` + doc-check after families land | golden current | 30 | High | Low | 1–10 |
-| 16 | CHANGELOG `[Unreleased]` entries + `check-changelog-symbols` gate | changelog honest | 30 | Med | Low | 15 |
-| 17 | SKILL.md references: document helper canon (recipes/modules/faq) | consumers informed | 60 | Med | Low | 15 |
-| 18 | AGENTS.md internal contract entry: engine reads delegate to core helpers | convention durable | 15 | Med | Low | 17 |
-| 19 | **OWNER DECISION**: baseline re-pin (69 pre-existing + residue) vs triage-first | gate green path | 30 | **High** | Med | 1–13 |
-| 20 | Gate hardening: art-dupl nix-provisioned, no silent SKIP | deterministic gate | 45 | Med | Med | — |
-| 21 | Post-campaign verify: t4+t3+t7 scans, per-module tests, `#verify` (after parallel session lands) | all green | 100 | High | Low | all |
-| 22 | Update TODO_LIST.md from this plan (docs-health HARVEST) | living source current | 15 | Low | Low | 21 |
+| #  | Task                                                                                                                                | Outcome                            | Est | Impact   | Risk     | Depends                 |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | --- | -------- | -------- | ----------------------- |
+| 1  | Vector family extraction: `VectorSearch` drain (G4) + `VectorInsert` probe/marshal (G16); sweep duck/pg for same shape first        | 2 core helpers, 4+ engines rewired | 90  | High     | Med      | —                       |
+| 2  | `PlannedTables` trio → core helper (G1)                                                                                             | 1 helper, 3 engines                | 45  | High     | Low      | —                       |
+| 3  | explain pair → core helper (G5, check duckdb)                                                                                       | 1 helper, 2–3 engines              | 45  | Med      | Low      | —                       |
+| 4  | reset pair → core helper (G7, check others)                                                                                         | 1 helper, 2–4 engines              | 30  | Med      | Low      | —                       |
+| 5  | filter-clause builder trio → core (G2, dialect param)                                                                               | 1 builder, 3 engines               | 100 | High     | **High** | 1 (pattern familiarity) |
+| 6  | storage/memory `withLock` consolidation (G3+G8)                                                                                     | local helper, 3 files              | 30  | Med      | Low      | —                       |
+| 7  | pebble layout_planner pairs (G18+G21)                                                                                               | local helpers                      | 45  | Med      | Low      | —                       |
+| 8  | metaengine fold_classify (G19) + execute.go (G20)                                                                                   | local helpers ×2                   | 60  | Med      | Low      | —                       |
+| 9  | sqliteengine graph BFS pair (G9)                                                                                                    | local helper                       | 45  | Med      | Med      | —                       |
+| 10 | cqrs-lint unified helpers pkg (G17)                                                                                                 | one internal pkg                   | 30  | Med      | Low      | —                       |
+| 11 | watermill G11+G14 judgment: read both fully, accept-annotate with rationale (or extract if truly mergeable WITHOUT losing comments) | 2 annotations/merges               | 30  | Med      | Med      | —                       |
+| 12 | Test scaffolding triage G6/G10/G12/G13: accept-annotate with rule-19 rationale                                                      | 4 annotations                      | 30  | Low      | Low      | —                       |
+| 13 | G15 judgment: promote pg tx-isolation test to adttest or accept                                                                     | 1 promotion/annotation             | 30  | Low      | Low      | —                       |
+| 14 | Family completeness sweep: turso/badger/bbolt/pebble vs every helper from tasks 1–5                                                 | no stragglers                      | 45  | High     | Low      | 1–5                     |
+| 15 | API golden regen + `TestEvery` + doc-check after families land                                                                      | golden current                     | 30  | High     | Low      | 1–10                    |
+| 16 | CHANGELOG `[Unreleased]` entries + `check-changelog-symbols` gate                                                                   | changelog honest                   | 30  | Med      | Low      | 15                      |
+| 17 | SKILL.md references: document helper canon (recipes/modules/faq)                                                                    | consumers informed                 | 60  | Med      | Low      | 15                      |
+| 18 | AGENTS.md internal contract entry: engine reads delegate to core helpers                                                            | convention durable                 | 15  | Med      | Low      | 17                      |
+| 19 | **OWNER DECISION**: baseline re-pin (69 pre-existing + residue) vs triage-first                                                     | gate green path                    | 30  | **High** | Med      | 1–13                    |
+| 20 | Gate hardening: art-dupl nix-provisioned, no silent SKIP                                                                            | deterministic gate                 | 45  | Med      | Med      | —                       |
+| 21 | Post-campaign verify: t4+t3+t7 scans, per-module tests, `#verify` (after parallel session lands)                                    | all green                          | 100 | High     | Low      | all                     |
+| 22 | Update TODO_LIST.md from this plan (docs-health HARVEST)                                                                            | living source current              | 15  | Low      | Low      | 21                      |
 
 **Sorting rationale:** tasks 1–5 (engine families) are 1%/4% — highest maintenance-cost reduction per
 hour and directly customer-visible (engine consistency + trust). 6–10 are safe mechanical wins. 11–13
@@ -136,19 +140,20 @@ here touches the 69 pre-existing groups except via the explicit owner decision (
 Columns: ID · action · min · impact · dep. Timeboxes assume warm caches; `source scripts/go-env.sh` before every go command; commit after each family (authored, not daemon).
 
 **Family: Vector (task 1)**
-| ID | Action | min | Impact | Dep |
-| --- | --- | --- | --- | --- |
-| 1.1 | Read all 4 engines' vector.go fully; map exact diffs (drain + probe) | 10 | High | — |
-| 1.2 | Sweep duck/pg/mysql/sqlite for VectorSearch/VectorInsert family completeness (rg) | 6 | High | 1.1 |
-| 1.3 | Write `ScanVectorResults(rows, label)` in metaengine/scan.go (≤30 lines) | 12 | High | 1.1 |
-| 1.4 | Write `PrepareVectorInsert` (probe + dimension lock + metadata marshal) helper | 12 | High | 1.1 |
-| 1.5 | Rewire duckdbengine vector.go to helpers; keep label strings identical | 12 | High | 1.3,1.4 |
-| 1.6 | Rewire sqliteengine vector.go | 12 | High | 1.3,1.4 |
-| 1.7 | Rewire mysqlengine vector.go | 12 | High | 1.4 |
-| 1.8 | Rewire pgengine vector.go (if shape matches) | 12 | High | 1.3,1.4 |
-| 1.9 | Build + full test all touched engine modules (GOWORK=off) | 10 | High | 1.5–1.8 |
-| 1.10 | t4 scan: confirm G4+G16 gone; no new groups introduced | 5 | High | 1.9 |
-| 1.11 | api golden regen + TestEvery; authored commit "vector family" | 8 | High | 1.10 |
+
+| ID   | Action                                                                            | min | Impact | Dep     |
+| ---- | --------------------------------------------------------------------------------- | --- | ------ | ------- |
+| 1.1  | Read all 4 engines' vector.go fully; map exact diffs (drain + probe)              | 10  | High   | —       |
+| 1.2  | Sweep duck/pg/mysql/sqlite for VectorSearch/VectorInsert family completeness (rg) | 6   | High   | 1.1     |
+| 1.3  | Write `ScanVectorResults(rows, label)` in metaengine/scan.go (≤30 lines)          | 12  | High   | 1.1     |
+| 1.4  | Write `PrepareVectorInsert` (probe + dimension lock + metadata marshal) helper    | 12  | High   | 1.1     |
+| 1.5  | Rewire duckdbengine vector.go to helpers; keep label strings identical            | 12  | High   | 1.3,1.4 |
+| 1.6  | Rewire sqliteengine vector.go                                                     | 12  | High   | 1.3,1.4 |
+| 1.7  | Rewire mysqlengine vector.go                                                      | 12  | High   | 1.4     |
+| 1.8  | Rewire pgengine vector.go (if shape matches)                                      | 12  | High   | 1.3,1.4 |
+| 1.9  | Build + full test all touched engine modules (GOWORK=off)                         | 10  | High   | 1.5–1.8 |
+| 1.10 | t4 scan: confirm G4+G16 gone; no new groups introduced                            | 5   | High   | 1.9     |
+| 1.11 | api golden regen + TestEvery; authored commit "vector family"                     | 8   | High   | 1.10    |
 
 **Family: PlannedTables (task 2)**
 | 2.1 | Read trio bodies; diff placeholders/accessors (e.db vs conn) | 8 | Med | — |

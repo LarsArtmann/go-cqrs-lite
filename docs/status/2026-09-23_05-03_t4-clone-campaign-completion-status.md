@@ -8,24 +8,24 @@
 
 ## a) FULLY DONE (verified green this session)
 
-| Item | Evidence |
-| --- | --- |
-| F11/G11: `streamIDFromMessage` extracted (`watermill/stream_id.go`), `MessageToCommand`/`MessageToEvent` rewired | watermill suite `ok` 0.321s (run twice) |
-| F11/G14: asymmetric bus-loop twins accepted (directives on region first lines) | watermill t4 scan: 0 shown, 15 suppressed |
-| duckdb full-suite rerun (tree previously untested since F2) | `ok` 462.116s |
-| F12: 8 accept-directives placed — G6 (queue/conformance ×2), G10 (testutil containers ×2), G12 (cattest/cqrs-upgrade ×2), G13 (commandtest/eventtest ×2) | scoped t4 scan 0 shown; all modules vetted + tested |
-| F13/G15: pgengine hand-rolled tx-isolation test promoted onto `adttest.AssertTxIsolationFromForeignContext` | real-PG `ok` 77.4s; pair scan 0 shown |
-| Residual group: third BFS copy eliminated — `metaengine.GraphBFS` in core; mysql `graphWalk` + sqlite `graphBFS` deleted; 4 call sites delegate with byte-identical label errors | sqlite full `ok` 10.4s; core graph tests `ok`; engines build |
-| Residual groups: vector dimension-lock ladders accepted (4 directives, duck/pg + mysql/sqlite) | engines build; t4 idle-run 0 shown |
-| F14: family completeness sweep — every engine's VectorInsert uses core `CheckVectorDimension`; 9 engine modules pin it via `adttest.AssertVectorDimensionGuard`; no copies of new SQL families in KV engines/memory/iroh | rg sweep + adttest coverage list |
-| F15: api golden regenerated (+9 exports incl. `GraphBFS`), `TestEvery` green uncached, doc-check green (1200 refs) | `docs/api_surface.txt` diff; `ok` 3.901s / 9.741s |
-| F16: CHANGELOG entry (rewritten after separator revert); honesty gate green | `Verified 35 pkg.Symbol citation(s)` |
-| F17: `references/modules.md` metaengine row extended (GraphBFS + plumbing families) | doc-check green |
-| F18: AGENTS internal contract #27 (engine plumbing in core, label-prefix errors, caller-owns-lock-mode, accept-don't-merge residue) | doc-check green |
-| F20: `check-duplication` hardened — art-dupl nix-provisioned at v0.7.0 (`packages.art-dupl`, fetchFromGitHub + vendorHash resolved), silent SKIP replaced with hard error, dirty-tree guard kept | `nix build .#art-dupl` green; gate executes and reports 50 groups |
-| F21: file-size ratchet violations fixed (relocations: `keyExtractorPtr` → fold_classify.go, `applyIndexEntries` → sort_index.go, `streamIDFromMessage` → stream_id.go); full test matrix green; t4+t7 clean | `check-file-size`: only the parallel session's eventcatalog offender remains |
-| F22: TODO_LIST harvest (3 items) | TODO_LIST.md Code Quality section |
-| Owner decisions executed: per-dialect IN separator restored (`AppendPlannedFilter` + `inSeparator` param; sqlite `","`, pg/mysql `", "`), work-down policy recorded, daemon commit policy confirmed | sqlite `ok` 11.8s, pg `ok` 35.6s, mysql `ok`; changelog gate green |
+| Item                                                                                                                                                                                                                     | Evidence                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| F11/G11: `streamIDFromMessage` extracted (`watermill/stream_id.go`), `MessageToCommand`/`MessageToEvent` rewired                                                                                                         | watermill suite `ok` 0.321s (run twice)                                      |
+| F11/G14: asymmetric bus-loop twins accepted (directives on region first lines)                                                                                                                                           | watermill t4 scan: 0 shown, 15 suppressed                                    |
+| duckdb full-suite rerun (tree previously untested since F2)                                                                                                                                                              | `ok` 462.116s                                                                |
+| F12: 8 accept-directives placed — G6 (queue/conformance ×2), G10 (testutil containers ×2), G12 (cattest/cqrs-upgrade ×2), G13 (commandtest/eventtest ×2)                                                                 | scoped t4 scan 0 shown; all modules vetted + tested                          |
+| F13/G15: pgengine hand-rolled tx-isolation test promoted onto `adttest.AssertTxIsolationFromForeignContext`                                                                                                              | real-PG `ok` 77.4s; pair scan 0 shown                                        |
+| Residual group: third BFS copy eliminated — `metaengine.GraphBFS` in core; mysql `graphWalk` + sqlite `graphBFS` deleted; 4 call sites delegate with byte-identical label errors                                         | sqlite full `ok` 10.4s; core graph tests `ok`; engines build                 |
+| Residual groups: vector dimension-lock ladders accepted (4 directives, duck/pg + mysql/sqlite)                                                                                                                           | engines build; t4 idle-run 0 shown                                           |
+| F14: family completeness sweep — every engine's VectorInsert uses core `CheckVectorDimension`; 9 engine modules pin it via `adttest.AssertVectorDimensionGuard`; no copies of new SQL families in KV engines/memory/iroh | rg sweep + adttest coverage list                                             |
+| F15: api golden regenerated (+9 exports incl. `GraphBFS`), `TestEvery` green uncached, doc-check green (1200 refs)                                                                                                       | `docs/api_surface.txt` diff; `ok` 3.901s / 9.741s                            |
+| F16: CHANGELOG entry (rewritten after separator revert); honesty gate green                                                                                                                                              | `Verified 35 pkg.Symbol citation(s)`                                         |
+| F17: `references/modules.md` metaengine row extended (GraphBFS + plumbing families)                                                                                                                                      | doc-check green                                                              |
+| F18: AGENTS internal contract #27 (engine plumbing in core, label-prefix errors, caller-owns-lock-mode, accept-don't-merge residue)                                                                                      | doc-check green                                                              |
+| F20: `check-duplication` hardened — art-dupl nix-provisioned at v0.7.0 (`packages.art-dupl`, fetchFromGitHub + vendorHash resolved), silent SKIP replaced with hard error, dirty-tree guard kept                         | `nix build .#art-dupl` green; gate executes and reports 50 groups            |
+| F21: file-size ratchet violations fixed (relocations: `keyExtractorPtr` → fold_classify.go, `applyIndexEntries` → sort_index.go, `streamIDFromMessage` → stream_id.go); full test matrix green; t4+t7 clean              | `check-file-size`: only the parallel session's eventcatalog offender remains |
+| F22: TODO_LIST harvest (3 items)                                                                                                                                                                                         | TODO_LIST.md Code Quality section                                            |
+| Owner decisions executed: per-dialect IN separator restored (`AppendPlannedFilter` + `inSeparator` param; sqlite `","`, pg/mysql `", "`), work-down policy recorded, daemon commit policy confirmed                      | sqlite `ok` 11.8s, pg `ok` 35.6s, mysql `ok`; changelog gate green           |
 
 **Test matrix run this session (all mine green):** watermill, metaengine core (full ×2), sqliteengine (full ×2), pgengine (full ×2, real PG), duckdbengine (full, 462s), mysqlengine (compile + server-gated skip), pebbleengine (full, post-relocation), queue, catalog, cmd/cqrs-upgrade, testutil, storage/memory, command/commandtest, event/v4/eventtest, cmd/api-stability, cmd/cqrs-lint (pre-existing red only).
 
@@ -74,6 +74,7 @@ Nothing irrecoverable; one self-inflicted rework cycle:
 ## f) Next things (up to 50; brainstorm-graded, top items already in TODO_LIST)
 
 **Queue (from this session's open ends):**
+
 1. Work down t3 group #1-10 of the 50 (start with the largest by tokens; extract or accept each) — TODO_LIST item.
 2. …continue through #50; the baseline shrinks naturally at the next structural re-pin.
 3. Unify `graphNeighborsFallback` onto `GraphBFS` (nil-vs-empty decision + typed-key encode param) — TODO_LIST item.
@@ -122,7 +123,7 @@ Nothing irrecoverable; one self-inflicted rework cycle:
 34. Investigate whether `nix fmt`+daemon interleaving can be serialized (daemon hook) to kill the moving-target class for scanners and agents alike.
 35-50. Reserved: the 50-group work-down itself will generate its own item list once triage starts (each group = one item; do not pre-invent them here).
 
-*Routing note: items 1-3 and 13 are already in TODO_LIST.md (harvested this session); the rest is ROADMAP/triage fuel per docs-health HARVEST rigor — a future docs-health pass should route, not blanket-copy.*
+_Routing note: items 1-3 and 13 are already in TODO_LIST.md (harvested this session); the rest is ROADMAP/triage fuel per docs-health HARVEST rigor — a future docs-health pass should route, not blanket-copy._
 
 ---
 
@@ -134,4 +135,4 @@ Nothing irrecoverable; one self-inflicted rework cycle:
 
 ---
 
-*Point-in-time snapshot. Annotate, never rewrite, when stale.*
+_Point-in-time snapshot. Annotate, never rewrite, when stale._

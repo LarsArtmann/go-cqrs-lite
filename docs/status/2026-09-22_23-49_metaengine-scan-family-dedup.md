@@ -1,13 +1,13 @@
 # Status Report: Metaengine Scan-Family Deduplication
 
-| | |
-| --- | --- |
-| **Date** | 2026-09-22, 23:49 CEST |
-| **Session scope** | art-dupl clone elimination: `MapScanKeyValues` family (duckdb/sqlite/mysql/pg engines) + `MultiGroupedAggregate` family (duckdb/sqlite/pg) |
-| **Trigger** | `art-dupl --sort total-tokens -t 7 --type-aware` → 1 clone group (`duckdbengine/planned_parity.go:43-75` vs `sqliteengine/planned_parity.go:42-74`) |
-| **Tool** | art-dupl 0.7.0-81ce00b (system profile) |
-| **Final state** | t7 type-aware: **0 shown clone groups** (was 1). Repo t3 gate: 74 → 69 new groups (all remaining pre-date this session) |
-| **Working tree** | clean; all work absorbed by auto-commit daemon (no authored commits) |
+|                   |                                                                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Date**          | 2026-09-22, 23:49 CEST                                                                                                                              |
+| **Session scope** | art-dupl clone elimination: `MapScanKeyValues` family (duckdb/sqlite/mysql/pg engines) + `MultiGroupedAggregate` family (duckdb/sqlite/pg)          |
+| **Trigger**       | `art-dupl --sort total-tokens -t 7 --type-aware` → 1 clone group (`duckdbengine/planned_parity.go:43-75` vs `sqliteengine/planned_parity.go:42-74`) |
+| **Tool**          | art-dupl 0.7.0-81ce00b (system profile)                                                                                                             |
+| **Final state**   | t7 type-aware: **0 shown clone groups** (was 1). Repo t3 gate: 74 → 69 new groups (all remaining pre-date this session)                             |
+| **Working tree**  | clean; all work absorbed by auto-commit daemon (no authored commits)                                                                                |
 
 ## Executive Summary
 
@@ -128,6 +128,7 @@ baseline); this session reduced it to 69 and left the re-pin/triage decision ope
 ## f) NEXT (up to 50)
 
 **Duplication follow-up**
+
 1. Decide baseline policy: wholesale re-pin the 69 vs triage-first (blocks CI green).
 2. Triage the 69 groups into harmful / accept-annotate / dedupe-now buckets; write the
    list to `docs/planning/` or TODO_LIST.
@@ -152,12 +153,12 @@ baseline); this session reduced it to 69 and left the re-pin/triage decision ope
 
 **Docs & conventions**
 16. Document `ScanKeyValuesPage`/`ScanGroupedAggregates`/`ScanLimit`/`CursorArg` in
-    SKILL.md references (recipes/modules) as the canonical SQL-engine pattern.
+SKILL.md references (recipes/modules) as the canonical SQL-engine pattern.
 17. Add AGENTS.md internal contract: new engine scan/aggregate reads must delegate to the
-    metaengine scan helpers.
+metaengine scan helpers.
 18. CHANGELOG `[Unreleased]` entries + run `check-changelog-symbols`.
 19. Update the `KeyScanBackend` interface doc to state the limit-normalization contract
-    (≤0 → 500) now enforced in core.
+(≤0 → 500) now enforced in core.
 20. Note the label-prefix error convention for engine reads in `references/faq.md` if absent.
 
 **Verification debt**
@@ -166,58 +167,58 @@ baseline); this session reduced it to 69 and left the re-pin/triage decision ope
 23. Run `nix run .#check-arch` and `nix run .#check-coverage` after the move.
 24. Run `nix run .#check-error-taxonomy` (new `fmt.Errorf` wraps introduced no new codes — confirm).
 25. Add a shared `adttest`-style KeyScanBackend conformance harness (paging, cursor="" first
-    page, hasMore-on-exact-multiple edge) run by all 4 engines.
+page, hasMore-on-exact-multiple edge) run by all 4 engines.
 26. Add a test pinning `ScanGroupedAggregates` row ordering across engines.
 27. Investigate the art-dupl 0.7.0 output-format switch mid-session (PATH resolution?
-    profile activation? corpus 2991→2992 file?).
+profile activation? corpus 2991→2992 file?).
 28. Reconcile the 23:02 "2 new" vs later "72 new" gate readings on near-identical trees;
-    consider `BUILDFLOW_NO_RESULT_CACHE=1` for gate runs.
+consider `BUILDFLOW_NO_RESULT_CACHE=1` for gate runs.
 29. Make `check-duplication` fail hard (not SKIP) when art-dupl is absent; provision
-    art-dupl from the flake so CI and local use the same version.
+art-dupl from the flake so CI and local use the same version.
 30. Investigate bbolt's 493s module suite (slowest by far; soak markers?).
 
 **Cross-engine consistency (bugs-adjacent, found this session)**
 31. Decide: sqlite/mysql `MapScanKeyValues` used raw `e.db` while duck/pg used `e.conn(ctx)`
-    (tx-aware). I preserved original behavior — but is bypassing active transactions in
-    backfill reads intentional? Document or unify.
+(tx-aware). I preserved original behavior — but is bypassing active transactions in
+backfill reads intentional? Document or unify.
 32. Sweep all engine read paths for the same `e.db` vs `e.conn(ctx)` inconsistency.
 33. Verify turso engine for the scan/aggregate pattern (c.4 — the one engine never checked).
 34. Confirm `value::text` (pg) vs `VARCHAR` (duck) vs backtick quoting (mysql) dialect
-    matrix is covered by tests for NULL/empty/unicode keys.
+matrix is covered by tests for NULL/empty/unicode keys.
 
 **Parallel-session & repo hygiene**
 35. Coordinate with the eventcatalog session: their `frontmatter_convert.go` is a 370-line
-    file-size ratchet offender; split or baseline it (owner: them).
+file-size ratchet offender; split or baseline it (owner: them).
 36. Re-run `nix run .#check-eventcatalog` + `check-file-size` after their work lands.
 37. Fix `eventcatalog/exporter_message.go` typecheck errors ("too many errors" in lint).
 38. Fix systemtest lint warnings (gocyclo `integration_lifecycle_test.go:26`,
-    nestif `testdsn_test.go:69`, prealloc `sqlite_wiring_test.go:321`).
+nestif `testdsn_test.go:69`, prealloc `sqlite_wiring_test.go:321`).
 39. Fix `example/metaengine-quickstart` warnings (errcheck RemoveAll/Close, duplicate godoc,
-    magic number 0o600).
+magic number 0o600).
 40. Triage the 10 pre-existing cqrs-lint errors (A001 command/event/query store+event.go,
-    A008 catalog/types_phantom.go, turso advisor) — baseline or fix.
+A008 catalog/types_phantom.go, turso advisor) — baseline or fix.
 41. Adopt authored-commit-at-phase-boundary for future sessions (avoid daemon absorption).
 
 **Linter/tooling ideas spawned by this session**
 42. cqrs-lint rule candidate: flag `json.Unmarshal`-based scan loops inside
-    `metaengine/*engine` modules that bypass the shared helpers.
+`metaengine/*engine` modules that bypass the shared helpers.
 43. Evaluate art-dupl annotation format stability across versions (accept directives are
-    load-bearing; a 0.7.x format change would silently un-suppress groups).
+load-bearing; a 0.7.x format change would silently un-suppress groups).
 44. Add the 4 new exports to the api-stability "high-risk aggregate exports" watchlist if
-    their signatures ever grow (they're consumed by 4 engine modules).
+their signatures ever grow (they're consumed by 4 engine modules).
 45. Consider a `KeyScanBackend` page-size constant export (500 is now encoded in
-    `ScanLimit`; engines' doc comments repeat the number).
+`ScanLimit`; engines' doc comments repeat the number).
 
 **Nice-to-have**
 46. Benchmark the helper path (per-row `raws`/`scanTargets` allocs) in benchkit sweep.
 47. Showcase the shared helpers in `example/metaengine-quickstart` (examples are demos).
 48. Short ADR or planning note: "engine-tier shared plumbing lives in metaengine core"
-    (formalizes the QuoteIdent/DeferClose/scan-helpers precedent).
+(formalizes the QuoteIdent/DeferClose/scan-helpers precedent).
 49. Update `docs/agents/module-map.md` engine rows if the helper contract changes
-    maintenance notes.
+maintenance notes.
 50. After everything: rerun `art-dupl --sort total-tokens -t 7 --type-aware` +
-    `nix run .#check-duplication` as the closing gate pair, and record results in
-    TODO_LIST.
+`nix run .#check-duplication` as the closing gate pair, and record results in
+TODO_LIST.
 
 ## g) QUESTIONS (cannot answer myself)
 
@@ -236,5 +237,5 @@ baseline); this session reduced it to 69 and left the re-pin/triage decision ope
 
 ---
 
-*Report generated 2026-09-22 23:49 CEST. All session work: metaengine/scan.go + 7 engine
-modules; final t7 = 0 shown; t3 gate 74→69 (pre-existing drift documented above).*
+_Report generated 2026-09-22 23:49 CEST. All session work: metaengine/scan.go + 7 engine
+modules; final t7 = 0 shown; t3 gate 74→69 (pre-existing drift documented above)._

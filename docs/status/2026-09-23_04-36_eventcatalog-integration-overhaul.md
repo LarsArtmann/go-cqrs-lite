@@ -197,6 +197,7 @@ is green (tests, race, lint, file-size, md-go, changelog-symbols).
 ## f) NEXT — up to 50 candidates (roughly Pareto-ordered)
 
 **Close out this work**
+
 1. Re-run `nix run .#lint` (last edit removed an unused nolint — confirm zero
    catalog findings).
 2. Re-run `nix run .#check-eventcatalog` once more after final lint fixes
@@ -210,47 +211,47 @@ is green (tests, race, lint, file-size, md-go, changelog-symbols).
 
 **Harden the exporter**
 7. Unit-level conformance test: table mapping every `messageFM`/`serviceFM`/...
-   field to its upstream zod constraint (name + shape), so field additions
-   without a fixture update fail locally.
+field to its upstream zod constraint (name + shape), so field additions
+without a fixture update fail locally.
 8. Dangling-reference validation: warn/skip when channel `messages`,
-   `writesTo`/`readsFrom`, domain `services`, flow step refs point at IDs not
-   in the catalog (currently silent skips or broken links).
+`writesTo`/`readsFrom`, domain `services`, flow step refs point at IDs not
+in the catalog (currently silent skips or broken links).
 9. Emit `sidebar.position`/`order` support for custom docs (docusaurus-style
-   ordering) if consumers need deterministic doc order.
+ordering) if consumers need deterministic doc order.
 10. Consider exporting `message.channels[].parameters` (channelPointer
-    supports `parameters` record; we only emit id/version).
+supports `parameters` record; we only emit id/version).
 11. Consider `versioned/` directory output for multi-version messages
-    (EventCatalog's versioning story; catalog currently single-version).
+(EventCatalog's versioning story; catalog currently single-version).
 12. Ubiquitous-language dictionary `icon`/`summary` terms (schema supports).
 13. Data-product `hidden` etc. verified; consider `outputs[].contract`
-    file copying warning when the contract path doesn't exist in output.
+file copying warning when the contract path doesn't exist in output.
 14. `writeExamples`: honor `examples.config.yaml` metadata (title/summary/usage
-    per example) if catalog ever models it.
+per example) if catalog ever models it.
 15. `coeffects.md`/`schemas.txt`: move under `docs/` (llms inclusion) or
-    document why root placement is intentional.
+document why root placement is intentional.
 
 **Upstream / ecosystem**
 16. File upstream issue for the agent-changelog crash (minimal repro in hand:
-    any agent + `changelog: {enabled: true}` → TypeError in getBadgeHref).
+any agent + `changelog: {enabled: true}` → TypeError in getBadgeHref).
 17. Re-check @eventcatalog/core releases for the fix; bump pin + drop the
-    `shouldEnableChangelog` guard + simplify the gate to one profile.
+`shouldEnableChangelog` guard + simplify the gate to one profile.
 18. Upstream: ask/docs whether custom-pages routing is planned for community.
 19. Verify the `eventcatalog.config.js` JSDoc type path
-    (`@eventcatalog/core/bin/eventcatalog.config`) actually resolves in 4.6.3
-    (harmless if not, but sloppy).
+(`@eventcatalog/core/bin/eventcatalog.config`) actually resolves in 4.6.3
+(harmless if not, but sloppy).
 
 **Repo hygiene**
 20. Fix the 3 pre-existing file-size ratchet violations (other modules).
 21. Correct catalog/AGENTS.md golden-snap regeneration guidance (see e/2).
 22. Add `--self-test` legs to check-eventcatalog.sh where feasible (offline
-    assertions on the spot-check functions via fixture files).
+assertions on the spot-check functions via fixture files).
 23. Consider a `catalog/conformance/` package sharing fixture builders between
-    ec-fixture and unit tests (currently duplicated literals).
+ec-fixture and unit tests (currently duplicated literals).
 24. Sweep `docserver` eventcatalog view for the same class of format drift
-    (it renders in-process, NOT from the MDX — different code path, unverified
-    this session against the new contract).
+(it renders in-process, NOT from the MDX — different code path, unverified
+this session against the new contract).
 25. README quick-start example uses `reg.Build()` without error handling for
-    `Export` — cosmetic.
+`Export` — cosmetic.
 
 **Bigger catalog-module ideas (not started, optional)**
 26. AsyncAPI exporter: same audit treatment vs AsyncAPI 3.0 spec.
@@ -265,18 +266,18 @@ is green (tests, race, lint, file-size, md-go, changelog-symbols).
 
 ## Verification Evidence (this session)
 
-| Gate | Result |
-| --- | --- |
-| `go test ./...` (catalog module) | ok (16 pkgs) |
-| `go test -race ./...` (catalog module) | ok |
-| `nix run .#lint` (catalog scope) | zero findings after final cycle (last
-edit pending re-confirm, see f/1) |
-| `nix run .#check-file-size` | catalog clean (3 unrelated violations remain) |
-| `nix run .#check-md-go` | 1461 blocks valid, no new errors |
-| `bash scripts/check-changelog-symbols.sh` | 25 citations honest |
-| `bash scripts/check-eventcatalog.sh` | OK — both profiles, semantic checks |
-| Rendered-HTML spot checks | channel→message links, changelog page,
-  ubiquitous language, examples tab, styles.node, defaulted badges — all present |
+| Gate                                                                           | Result                                        |
+| ------------------------------------------------------------------------------ | --------------------------------------------- |
+| `go test ./...` (catalog module)                                               | ok (16 pkgs)                                  |
+| `go test -race ./...` (catalog module)                                         | ok                                            |
+| `nix run .#lint` (catalog scope)                                               | zero findings after final cycle (last         |
+| edit pending re-confirm, see f/1)                                              |                                               |
+| `nix run .#check-file-size`                                                    | catalog clean (3 unrelated violations remain) |
+| `nix run .#check-md-go`                                                        | 1461 blocks valid, no new errors              |
+| `bash scripts/check-changelog-symbols.sh`                                      | 25 citations honest                           |
+| `bash scripts/check-eventcatalog.sh`                                           | OK — both profiles, semantic checks           |
+| Rendered-HTML spot checks                                                      | channel→message links, changelog page,        |
+| ubiquitous language, examples tab, styles.node, defaulted badges — all present |                                               |
 
 ## g) Questions I cannot answer myself
 
