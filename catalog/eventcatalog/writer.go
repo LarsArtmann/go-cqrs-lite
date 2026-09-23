@@ -201,6 +201,12 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 			"Event-driven architecture documentation, auto-generated from Go types.")
 		fmt.Fprintf(cfg, "  organizationName: %q,\n", cat.Title)
 		cfg.WriteString("  llmsTxt: { enabled: true },\n")
+		// Changelog pages are opt-in in EventCatalog
+		// (config.changelog.enabled defaults to false) — without this flag the
+		// exported changelog.mdx sidecar files never render.
+		if catalogHasChangelogs(cat) {
+			cfg.WriteString("  changelog: { enabled: true },\n")
+		}
 		cfg.WriteString("};\n")
 	}); err != nil {
 		return errorfamily.Newf(
@@ -212,6 +218,27 @@ func (e *Exporter) writeConfig(cat *catalog.Catalog) error {
 	}
 
 	return e.writePackageJSON(cat)
+}
+
+func catalogHasChangelogs(cat *catalog.Catalog) bool {
+	for _, svc := range cat.Services {
+		for _, msg := range svc.Commands {
+			if len(msg.Changelog) > 0 {
+				return true
+			}
+		}
+		for _, msg := range svc.Events {
+			if len(msg.Changelog) > 0 {
+				return true
+			}
+		}
+		for _, msg := range svc.Queries {
+			if len(msg.Changelog) > 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (e *Exporter) writePackageJSON(cat *catalog.Catalog) error {
