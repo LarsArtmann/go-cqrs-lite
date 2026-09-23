@@ -46,6 +46,7 @@ type serviceConfig struct {
 	name    string
 	version string
 	summary string
+	owners  []string
 }
 
 // Option configures a Builder.
@@ -69,6 +70,15 @@ func WithServiceSummary(summary string) Option {
 func WithServiceID(id string) Option {
 	return func(b *Builder) {
 		b.serviceID = catalog.ServiceID(id)
+	}
+}
+
+// WithServiceOwners sets the owner references (user or team IDs) rendered
+// on the service page. The referenced users/teams themselves are registered
+// on the inner builder (AddUser/AddTeam) — usually via InnerBuilder().
+func WithServiceOwners(owners ...string) Option {
+	return func(b *Builder) {
+		b.serviceCfg.owners = append(b.serviceCfg.owners, owners...)
 	}
 }
 
@@ -153,6 +163,10 @@ func (b *Builder) addConfiguredService() {
 		b.serviceCfg.summary,
 		b.msgs...,
 	)
+
+	if len(b.serviceCfg.owners) > 0 {
+		b.inner.ConfigureService(b.serviceID, catalog.ServiceOwners(b.serviceCfg.owners...))
+	}
 }
 
 // buildInner finalises the configured service and returns the built catalog.

@@ -424,6 +424,7 @@ catalog/simple/func Query
 catalog/simple/func WithOperation
 catalog/simple/func WithServiceID
 catalog/simple/func WithServiceName
+catalog/simple/func WithServiceOwners
 catalog/simple/func WithServiceSummary
 catalog/simple/method AddAgent
 catalog/simple/method AddDataProduct
