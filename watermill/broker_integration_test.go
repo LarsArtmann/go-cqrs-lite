@@ -10,12 +10,11 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
-	"github.com/redis/go-redis/v9"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
+	"github.com/redis/go-redis/v9"
 )
 
 // TestRedisStreamRoundtrip verifies the watermill/ bridge (EventBus +

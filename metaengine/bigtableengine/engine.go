@@ -25,9 +25,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigtable"
-	"google.golang.org/api/option"
-
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+	"google.golang.org/api/option"
 )
 
 const (

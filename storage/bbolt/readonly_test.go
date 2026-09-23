@@ -6,10 +6,9 @@ import (
 	"testing"
 	"time"
 
-	bolt "go.etcd.io/bbolt"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	bolt "go.etcd.io/bbolt"
 )
 
 // Regression for issue #22: OpenWith with ReadOnly used to fail during

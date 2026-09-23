@@ -5,9 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/cockroachdb/pebble"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Backend is a facade that provides access to all Pebble-backed stores

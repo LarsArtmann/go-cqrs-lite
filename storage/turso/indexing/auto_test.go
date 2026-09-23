@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4/indexing"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func TestAutoIndexer_EnableDisable(t *testing.T) {

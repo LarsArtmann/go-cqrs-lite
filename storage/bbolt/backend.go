@@ -6,10 +6,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	bolt "go.etcd.io/bbolt"
-
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // BackendOption configures bbolt Backend behavior.

@@ -56,11 +56,17 @@ type demoEvent struct {
 }
 
 func main() {
-	output := flag.String("o", "work/out/catalog-export", "output directory for the EventCatalog MDX tree")
+	output := flag.String(
+		"o",
+		"work/out/catalog-export",
+		"output directory for the EventCatalog MDX tree",
+	)
+
 	flag.Parse()
 
 	if err := eventcatalog.NewExporter(*output).Export(buildCatalog()); err != nil {
 		log.Fatalf("catalog-export: %v", err)
 	}
+
 	fmt.Printf("catalog-export: wrote EventCatalog tree to %s\n", *output)
 }

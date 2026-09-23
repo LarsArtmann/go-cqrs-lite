@@ -1,9 +1,8 @@
 package command
 
 import (
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // StreamType and StreamRef are type aliases for the id package types.

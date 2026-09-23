@@ -5,11 +5,10 @@ import (
 	"time"
 
 	"github.com/cockroachdb/pebble"
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // LoadQueries retrieves all queries where ReceivedAt > after.

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-
 	cqrsevent "github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"

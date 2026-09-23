@@ -5,9 +5,8 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
-
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	_ "modernc.org/sqlite"
 )
 
 func TestPostgresDialect_Placeholder(t *testing.T) {

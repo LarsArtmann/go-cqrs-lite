@@ -7,10 +7,9 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
+	"github.com/larsartmann/go-finding"
 )
 
 // piiFieldNames lists field names (case-insensitive) that indicate personally
