@@ -63,6 +63,7 @@ func (b *CommandBus) runCommandLoop(ctx context.Context, msgs <-chan *message.Me
 			}
 
 			cmd, decodeErr := MessageToCommand(b.topic, msg)
+			//art-dupl:accept deliberate asymmetric twin of event_bus_internals.go runEventLoop (load-bearing Ack/Nack rationale comments differ)
 			if decodeErr != nil {
 				b.logger.ErrorContext(ctx, "watermill: decode command message failed",
 					"error", decodeErr)

@@ -53,6 +53,22 @@ const (
 	metaLegacyAggregateType = "aggregate_type"
 )
 
+// streamIDFromMessage reads the stream ID from message metadata, honoring the
+// dual-read window: messages written before the stream vocabulary rename carry
+// only the legacy aggregate spelling (v6: drop the fallback).
+func streamIDFromMessage(md message.Metadata) (id.StreamID, error) {
+	streamIDStr := md.Get(metaStreamID)
+	if streamIDStr == "" {
+		streamIDStr = md.Get(metaLegacyAggregateID)
+	}
+	streamID, err := id.ParseStreamID(streamIDStr)
+	if err != nil {
+		return id.StreamID{}, errorfamily.WrapRejection(err,
+			"watermill.parse_stream_id_failed", "parse stream_id")
+	}
+	return streamID, nil
+}
+
 // EventToMessage maps a go-cqrs-lite event to a Watermill message.
 // All event fields are preserved in message metadata; payload is stored as message payload.
 //
@@ -128,15 +144,9 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 
 	// Dual-read window (v6: drop the legacy fallback): messages written
 	// before the rename carry only the aggregate spellings.
-	streamIDStr := md.Get(metaStreamID)
-	if streamIDStr == "" {
-		streamIDStr = md.Get(metaLegacyAggregateID)
-	}
-
-	streamID, err := id.ParseStreamID(streamIDStr)
+	streamID, err := streamIDFromMessage(md)
 	if err != nil {
-		return nil, errorfamily.WrapRejection(err,
-			"watermill.parse_stream_id_failed", "parse stream_id")
+		return nil, err
 	}
 
 	streamTypeStr := md.Get(metaStreamType)

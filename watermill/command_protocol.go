@@ -75,15 +75,9 @@ func MessageToCommand(topic string, msg *message.Message) (*command.BasicCommand
 	}
 
 	// Dual-read window (v6: drop the legacy fallback).
-	streamIDStr := md.Get(metaStreamID)
-	if streamIDStr == "" {
-		streamIDStr = md.Get(metaLegacyAggregateID)
-	}
-
-	streamID, err := id.ParseStreamID(streamIDStr)
+	streamID, err := streamIDFromMessage(md)
 	if err != nil {
-		return nil, errorfamily.WrapRejection(err,
-			"watermill.parse_stream_id_failed", "parse stream_id")
+		return nil, err
 	}
 
 	opts := parseCommandOptions(md)

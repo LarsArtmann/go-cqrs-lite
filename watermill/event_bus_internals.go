@@ -84,6 +84,7 @@ func (b *EventBus) runEventLoop(ctx context.Context, msgs <-chan *message.Messag
 			}
 
 			evt, decodeErr := MessageToEvent(b.topic, msg)
+			//art-dupl:accept deliberate asymmetric twin of command_bus_internals.go runCommandLoop (load-bearing Ack/Nack rationale comments differ)
 			if decodeErr != nil {
 				// Decode failure is non-transient (same bytes → same error).
 				// Ack to prevent infinite retry loops, especially under
