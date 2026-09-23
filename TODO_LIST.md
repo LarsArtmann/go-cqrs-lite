@@ -27,6 +27,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Section index
 
 [Legend](#legend) ·
+[EventCatalog exporter options](#eventcatalog-exporter-options-routed-from-the-systemnix-federation-hub-2026-09-23) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
 [Command-side depth](#command-side-domain-depth-2026-09-13-plan) ·
@@ -59,6 +60,29 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - `~~Struck~~` = done sub-part of an otherwise-open row (kept for context;
   fully-completed rows are deleted outright per the header policy)
 - _(Effort: XS/S/M/L/XL)_ = rough size
+
+---
+
+## EventCatalog exporter options (routed from the SystemNix federation hub, 2026-09-23)
+
+Source: SystemNix plan `docs/planning/2026-09-22_23-27_EVENTCATALOG-FEDERATION-HUB.md` T13
+(the hub at `github:LarsArtmann/eventcatalog-hub` union-merges per-source exports from
+the catalog module's `eventcatalog` exporter; both options below serve that pipeline).
+
+- [ ] **Export `catalog.index.json` (golden-tested)** — a machine-readable manifest of
+  every exported resource (id, version, kind, file path) emitted alongside the MDX tree.
+  Lets the hub diff builds cheaply (change detection, PR gates) without walking MDX
+  frontmatter. Golden test like `ec-fixture`'s render validation. _(Effort: M)_
+- [ ] **`skip-bootstrap-files` export option** — let CI exports omit the generated
+  `package.json`/`eventcatalog.config.js`/bootstrap files (the hub owns its own; the
+  merge currently relies on first-wins copy semantics to keep hub bootstrap files).
+  Default stays current behavior. _(Effort: S)_
+- Related finding (context for whoever picks this up): `@eventcatalog/linter` resolves
+  producer/consumer refs against versioned resource dirs while our exporter writes
+  unversioned `services/<id>/index.mdx` — every ref flags `refs/resource-exists`. Also
+  message/container-level `owners` are not emitted (services only). Both are currently
+  `warn`-suppressed in the hub's `.eventcatalogrc.js`; fixing them here re-arms those
+  rules. _(Effort: M)_
 
 ---
 
