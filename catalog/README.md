@@ -356,10 +356,27 @@ The exporter supports all EventCatalog resource types:
 | Agents        | `agents/<id>/index.mdx`                                                      | AI agents with sends/receives, model, tools, data stores                                                            |
 | Channels      | `channels/<id>/index.mdx`                                                    | With protocols, parameters, routes, delivery guarantees                                                             |
 | Data Stores   | `containers/<id>/index.mdx`                                                  | Databases/caches with authoritative, accessMode, classification (EventCatalog 4.x collects them from `containers/`) |
-| Flows         | `flows/<id>/index.mdx`                                                       | All step types: service, message, agent, dataStore, dataProduct, subFlow                                            |
-| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                         |
+| Flows         | `flows/<id>/index.mdx`                                                       | Step types: service, message, agent, dataProduct, actor, externalSystem, custom; data stores map to `container`, sub-flows to `flow` (EventCatalog has no channel step) |
+| Teams         | `teams/<id>.mdx`                                                             | With external source sync, hidden, readOnly; role/avatar ride `x-` custom properties (EventCatalog teams have no such fields) |
 | Users         | `users/<id>.mdx`                                                             | With external source sync, hidden, readOnly                                                                         |
-| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs)                                                                |
+| Custom Docs   | `docs/<slug>/index.mdx`                                                      | Global documentation pages (ADRs, architecture docs); standalone pages render in EventCatalog enterprise |
+
+#### Format fidelity
+
+The output is verified against the pinned `@eventcatalog/core` zod schemas
+(`nix run .#check-eventcatalog` builds a fixture covering every resource
+kind). Details worth knowing:
+
+- Message `Labels` and `Responses` are preserved as `x-labels`/`x-responses`
+  custom properties — EventCatalog has no native fields for them.
+- Message `Changelog` is written as a `changelog.mdx` sidecar file, and the
+  generated `eventcatalog.config.js` enables `changelog: { enabled: true }`
+  when changelogs exist and the catalog has no agents (an upstream core
+  4.6.3 crash on agent changelog pages).
+- Message examples are written as `examples/example-N.json` files — the
+  format EventCatalog's example loader reads.
+- `BaseConfig.ResourceGroups` cannot be expressed (EventCatalog needs typed
+  resource pointers) and fails the export with a clear Rejection error.
 
 #### DDD Ubiquitous Language
 

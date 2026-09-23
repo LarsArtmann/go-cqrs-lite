@@ -62,6 +62,12 @@ if [ ! -f "$work/commands/CreateOrder/changelog.mdx" ]; then
 fi
 
 echo "==> 3/4 generating catalog fixture (changelog profile)"
+# The exporter is non-destructive (consumers may keep their own files in the
+# project), so clear its generated resource dirs between profiles — a stale
+# agents/ dir would retrigger the upstream agent-changelog crash.
+find "$work" -mindepth 1 -maxdepth 1 \
+	\( -name node_modules -o -name dist -o -name package-lock.json -o -name build.log \) -prune -o \
+	-exec rm -rf {} +
 (cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work" changelog)
 run_build changelog
 
@@ -77,6 +83,9 @@ fi
 
 echo "==> 4/4 semantic spot-checks (default profile artifacts)"
 # Re-generate the default profile so its dist is the one left for inspection.
+find "$work" -mindepth 1 -maxdepth 1 \
+	\( -name node_modules -o -name dist -o -name package-lock.json -o -name build.log \) -prune -o \
+	-exec rm -rf {} +
 (cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$work")
 run_build default
 
