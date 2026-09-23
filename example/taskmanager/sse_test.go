@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"encoding/json/v2"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"github.com/larsartmann/go-sse/ssetest"
 )
 
 const (
@@ -61,24 +60,20 @@ func TestIntegration_SSEStreamsTaskViewUpdates(t *testing.T) {
 	}
 
 	var last TaskView
-	scanner := bufio.NewScanner(resp.Body)
+	reader := ssetest.NewStreamReader(resp.Body)
 
-	for scanner.Scan() {
-		line := scanner.Text()
-		if !strings.HasPrefix(line, "data: ") {
-			continue // skip heartbeat comments, id:, and retry: lines
+	for {
+		evt, readErr := reader.Next()
+		if readErr != nil {
+			t.Fatalf("SSE stream ended before TaskView arrived (err=%v, last=%+v)", readErr, last)
 		}
 
-		payload := strings.TrimPrefix(line, "data: ")
-
-		if err := json.Unmarshal([]byte(payload), &last); err != nil {
-			t.Fatalf("decode SSE data %q: %v", payload, err)
+		if err := json.Unmarshal([]byte(evt.Data()), &last); err != nil {
+			t.Fatalf("decode SSE data %q: %v", evt.Data(), err)
 		}
 
 		if last.ID == taskID.String() && last.Title == sseTestTitle {
 			return // pass: projected view arrived over SSE
 		}
 	}
-
-	t.Fatalf("SSE stream ended before TaskView arrived (err=%v, last=%+v)", scanner.Err(), last)
 }
