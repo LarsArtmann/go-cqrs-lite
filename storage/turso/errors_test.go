@@ -133,8 +133,8 @@ func TestWrapInfraOrOK_InfrastructureForNormalError(t *testing.T) {
 		t.Errorf("wrapped should contain original error: got %v", wrapped)
 	}
 
-	var famErr *errorfamily.Error
-	if !errors.As(wrapped, &famErr) {
+	famErr, ok := errors.AsType[*errorfamily.Error](wrapped)
+	if !ok {
 		t.Fatalf("wrapped should be *errorfamily.Error: got %T", wrapped)
 	}
 
@@ -159,8 +159,8 @@ func TestWrapInfraOrOK_RejectionForQuotaError(t *testing.T) {
 		t.Errorf("wrapped should contain original error: got %v", wrapped)
 	}
 
-	var famErr *errorfamily.Error
-	if !errors.As(wrapped, &famErr) {
+	famErr, ok := errors.AsType[*errorfamily.Error](wrapped)
+	if !ok {
 		t.Fatalf("wrapped should be *errorfamily.Error: got %T", wrapped)
 	}
 

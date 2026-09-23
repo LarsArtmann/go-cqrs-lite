@@ -221,8 +221,8 @@ func TestSyncDB_SyncClient_NilForTestConstructor(t *testing.T) {
 // isInfraError reports whether err is classified as an Infrastructure error.
 func isInfraError(t *testing.T, err error) bool {
 	t.Helper()
-	var famErr *errorfamily.Error
-	if !errors.As(err, &famErr) {
+	famErr, ok := errors.AsType[*errorfamily.Error](err)
+	if !ok {
 		return false
 	}
 

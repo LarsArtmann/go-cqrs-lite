@@ -68,8 +68,8 @@ func TestStore_Seen_CorruptedValue(t *testing.T) {
 	if seen {
 		t.Fatal("expected seen=false for corrupted value")
 	}
-	var ferr *errorfamily.Error
-	if !errors.As(err, &ferr) {
+	_, ok := errors.AsType[*errorfamily.Error](err)
+	if !ok {
 		t.Fatalf("expected *errorfamily.Error, got %T: %v", err, err)
 	}
 }
@@ -143,8 +143,8 @@ func TestStore_CheckAndRecord_CorruptedExisting(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected corruption error")
 	}
-	var ferr *errorfamily.Error
-	if !errors.As(err, &ferr) {
+	_, ok := errors.AsType[*errorfamily.Error](err)
+	if !ok {
 		t.Fatalf("expected *errorfamily.Error, got %T: %v", err, err)
 	}
 }
