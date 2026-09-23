@@ -22,12 +22,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > (T01–T27, all 25 sections mapped; 1% tier = restore the go 1.27.1 contract
 > — drift gate + composed verify; predecessor:
 > [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
-> M-items folded into the new T-numbering). This file remains the living source of truth.
+> M-items folded into the new T-numbering). **Current plan (2026-09-23 22:12, data-mesh scope):**
+> [`docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md`](docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
+> (T01–T27 + 72 fine tasks; 1% tier = federation-hub unblockers `catalog.index.json` +
+> `skip-bootstrap-files`; harvested from the 2026-09-23 data-mesh conformance session —
+> the 2026-09-22 T-plan above remains active for its items). This file remains the living source of truth.
 
 ## Section index
 
 [Legend](#legend) ·
 [EventCatalog exporter options](#eventcatalog-exporter-options-routed-from-the-systemnix-federation-hub-2026-09-23) ·
+[Data-mesh & federation follow-ups](#data-mesh--federation-follow-ups-2026-09-23-plan) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
 [Command-side depth](#command-side-domain-depth-2026-09-13-plan) ·
@@ -83,6 +88,40 @@ the catalog module's `eventcatalog` exporter; both options below serve that pipe
   message/container-level `owners` are not emitted (services only). Both are currently
   `warn`-suppressed in the hub's `.eventcatalogrc.js`; fixing them here re-arms those
   rules. _(Effort: M)_
+
+---
+
+## Data-mesh & federation follow-ups (2026-09-23 plan)
+
+Source: [plan 2026-09-23_22-12](docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
+(harvested from the [data-mesh conformance session](docs/status/2026-09-23_18-09_data-mesh-conformance-assessment-session.md)).
+T01–T04 = the EventCatalog exporter section above (hub unblockers + lint re-arming) —
+not duplicated here. Cross-repo items (T22–T24) are pointers; per decision D3 they are
+executed in `eventcatalog-hub`.
+
+- [ ] 🔥 **T05 — Data-mesh conformance mapping doc** (`docs/architecture-understanding/`,
+  Cordis cross-links; D1). _(Effort: M)_
+- [ ] 🔥 **T06/T07 — ADRs: federated-query rejected (formalize meta-engine-design.md:116) +
+  mesh policy enforcement non-goal (D2)**. _(Effort: S each)_
+- [ ] 🔥 **T08–T10 — `example/mesh-demo`**: two bounded contexts, bilateral
+  `Sends`/`Receives`, hub-mergeable exports, dry-run merge script. _(Effort: L)_
+- [ ] **T11 — recipes.md: declare data products + contracts** (verified missing) +
+  doc-check catalog entry. _(Effort: M)_
+- [ ] **T13–T15 — mesh docs**: journal-as-outbox replication, contract evolution
+  (upcasting ↔ DataContract), serving ports (ServeSSE). _(Effort: M total)_
+- [ ] **T16 — docserver renders DataProducts** (verified missing) + nav/test. _(Effort: S)_
+- [ ] **T17 — verify api-stability golden covers DataProduct/DataContract**. _(Effort: S)_
+- [ ] **T18 — cqrs-lint advisory: DataProduct without output contract**. _(Effort: M)_
+- [ ] **T19 — gRPC v5 migration guide** (sync cross-service contracts → HTTP/SSE/broker). _(Effort: M)_
+- [ ] **T20 — ROADMAP positioning entry** (check Declined guard first). _(Effort: S)_
+- [ ] **T21 — goal-shaped-app: data-product materialized view via cqrs.yaml**. _(Effort: M)_
+- [ ] **T22–T24 — [cross-repo, eventcatalog-hub]** stale-source CI, fail-on-dangling
+  coeffects, owners dedupe. _(Effort: M each, hub repo)_
+- [ ] **T25 — investigate EventCatalog SLA/freshness schema → proposal**. _(Effort: S)_
+- [ ] **T26 — spot-verify session single-source claims** (watermill brokers, ADR-016,
+  DeploymentConfig fields). _(Effort: S)_
+- [x] ~~T12/T27 — harvest + cross-links~~ (done 2026-09-23 with this plan: this section,
+  header pointer; status-report addendum pending its own session)
 
 ---
 
