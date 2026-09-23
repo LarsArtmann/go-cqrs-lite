@@ -18,8 +18,10 @@ func DollarPlaceholders(n int) string { return fmt.Sprintf("$%d", n+1) }
 // every other operator renders a binary comparison. The WHERE/AND switch is
 // shared (first clause " WHERE ", the rest " AND "). It is the shared core of
 // the SQL engines' appendPlannedFilter builders; identQuote quotes the column
-// name (backticks on MySQL, [QuoteIdent] elsewhere) and placeholder renders
-// each bind position.
+// name (backticks on MySQL, [QuoteIdent] elsewhere), placeholder renders
+// each bind position, and inSeparator joins IN-list placeholders (", " on
+// pg/mysql, "," on sqlite — the wire strings each dialect historically
+// emitted; keep them byte-identical).
 func AppendPlannedFilter(
 	b *strings.Builder,
 	args *[]any,
@@ -27,6 +29,7 @@ func AppendPlannedFilter(
 	started *bool,
 	identQuote func(string) string,
 	placeholder func(int) string,
+	inSeparator string,
 ) {
 	values, _ := f.Value.([]any)
 
@@ -44,7 +47,7 @@ func AppendPlannedFilter(
 			*args = append(*args, v)
 		}
 
-		fmt.Fprintf(b, "%s IN (%s)", identQuote(f.Column), strings.Join(placeholders, ", "))
+		fmt.Fprintf(b, "%s IN (%s)", identQuote(f.Column), strings.Join(placeholders, inSeparator))
 
 		return
 	}

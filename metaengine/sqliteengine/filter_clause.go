@@ -56,5 +56,6 @@ func appendPlannedFilter(b *strings.Builder, args *[]any, f metaengine.FilterSpe
 		started,
 		metaengine.QuoteIdent,
 		metaengine.QuestionPlaceholders,
+		",", // sqlite's historical space-free IN-list rendering
 	)
 }

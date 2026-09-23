@@ -56,6 +56,7 @@ func appendPlannedFilter(
 		started,
 		backtickIdent,
 		metaengine.QuestionPlaceholders,
+		", ",
 	)
 }
 

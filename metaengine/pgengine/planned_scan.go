@@ -57,6 +57,7 @@ func appendPGPlannedFilter(
 		started,
 		metaengine.QuoteIdent,
 		metaengine.DollarPlaceholders,
+		", ",
 	)
 }
 
