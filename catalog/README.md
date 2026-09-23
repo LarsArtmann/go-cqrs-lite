@@ -342,6 +342,47 @@ Messages are written to the canonical top-level EventCatalog directories and
 deduplicated: a message shared by several services is written once and linked
 from each service page.
 
+#### Feeding the federation hub (catalog.home.lan)
+
+The LarsArtmann architecture hub ([eventcatalog-hub](https://github.com/LarsArtmann/eventcatalog-hub),
+served at `catalog.home.lan`) federates every service's exported tree into ONE
+EventCatalog site: CI clones each source repo, runs a HEADLESS export command,
+union-merges the trees, and builds the static site. To onboard a service:
+
+1. Provide a headless export — a command that writes the complete MDX tree and
+   exits 0 (no server, no TTY). Three working shapes:
+   - a `catalog` subcommand on your service CLI (bank-sync:
+     `bank-sync catalog --format eventcatalog -o work/out/bank-sync`),
+   - an `-export-only` flag on a docs demo (cqrs-htmx:
+     `catalog-demo -eventcatalog <dir> -export-only`),
+   - the copy-paste template `catalog/cmd/catalog-export/main.go` in this
+     repo — drop it into your repo, replace `buildCatalog()`, done.
+2. Add the repo to the hub's `sources.json` (`name`/`repo`/`forgejo`/`branch`/
+   `build`/`export`/`tree` fields; see that file for live examples).
+3. Register directions (`Sends`/`Receives`) faithfully — the hub union-merges
+   producers/consumers across sources, so cross-service links render only if
+   both sides declare them.
+
+The merged hub build is the union of per-source exports; per-repo dev UX stays
+whatever the repo wants (a docs server, specs on an admin page, …). Only the
+CI-facing export command is part of the contract.
+
+#### Versioning your catalog
+
+EventCatalog renders per-resource versions and changelogs; the exporter maps
+them 1:1 (the `Version` field, `Changelog []Change` entries — each `{Version,
+Date, Summary}`). Guidance:
+
+- Bump a message's `Version` when its CONTRACT changes (fields added/removed/
+  renamed, semantics) — not on every code change. Point consumers at the
+  version they actually handle (`Ref{ID, Version}`).
+- Add a `Changelog` entry for every version bump so the rendered history
+  explains the change (the exporter writes `changelog.mdx` sidecars and
+  enables changelog pages when safe).
+- Service `Version` follows the service's own release cadence; it feeds the
+  rendered badge, not compatibility decisions.
+
+
 #### Full Resource Coverage
 
 The exporter supports all EventCatalog resource types:
