@@ -7,7 +7,12 @@
 // ubiquitous language, entities/flows pointers, badges, flow step node
 // kinds, team x- fields, custom docs).
 //
-// Usage: ec-fixture <output-dir>
+// The optional "changelog" profile omits agents so the generated config can
+// enable changelog pages (@eventcatalog/core 4.6.3 crashes on agent
+// changelog pages — see shouldEnableChangelog); the default profile covers
+// everything else.
+//
+// Usage: ec-fixture <output-dir> [changelog]
 package main
 
 import (
@@ -21,12 +26,12 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: ec-fixture <output-dir>")
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		fmt.Fprintln(os.Stderr, "usage: ec-fixture <output-dir> [changelog]")
 		os.Exit(2)
 	}
 
-	if err := run(os.Args[1]); err != nil {
+	if err := run(os.Args[1], len(os.Args) == 3 && os.Args[2] == "changelog"); err != nil {
 		fmt.Fprintf(os.Stderr, "ec-fixture: %v\n", err)
 		os.Exit(1)
 	}
@@ -34,7 +39,7 @@ func main() {
 
 const fixtureVersion = "1.0.0"
 
-func run(outputDir string) error {
+func run(outputDir string, changelogProfile bool) error {
 	reg := catalog.NewRegistry("Demo", fixtureVersion)
 	visualiser := true
 
@@ -132,14 +137,19 @@ func run(outputDir string) error {
 		Owners: []string{"order-team"},
 	})
 
-	reg.AddAgent(catalog.Agent{
-		ID: "order-bot", Name: "Order Bot", Version: fixtureVersion,
-		Summary: "AI assistant for order support",
-		Sends:   []catalog.Ref{{ID: "OrderCreated", Version: fixtureVersion}},
-		Model:   &catalog.AgentModel{Provider: "openai", Name: "gpt", Version: "4o"},
-		Tools:   []catalog.AgentTool{{Name: "orders-db-lookup", Type: "mcp", URL: "https://mcp.example.com/orders"}},
-		Flows:   []catalog.FlowID{"checkout-flow"},
-	})
+	if !changelogProfile {
+		// The default profile covers agents; the changelog profile omits them
+		// because @eventcatalog/core 4.6.3 crashes rendering agent changelog
+		// pages, which keeps shouldEnableChangelog(false).
+		reg.AddAgent(catalog.Agent{
+			ID: "order-bot", Name: "Order Bot", Version: fixtureVersion,
+			Summary: "AI assistant for order support",
+			Sends:   []catalog.Ref{{ID: "OrderCreated", Version: fixtureVersion}},
+			Model:   &catalog.AgentModel{Provider: "openai", Name: "gpt", Version: "4o"},
+			Tools:   []catalog.AgentTool{{Name: "orders-db-lookup", Type: "mcp", URL: "https://mcp.example.com/orders"}},
+			Flows:   []catalog.FlowID{"checkout-flow"},
+		})
+	}
 
 	reg.AddDataProduct(catalog.DataProduct{
 		ID: "order-analytics", Name: "Order Analytics", Version: fixtureVersion,
@@ -151,16 +161,7 @@ func run(outputDir string) error {
 	reg.AddFlow(catalog.Flow{
 		ID: "checkout-flow", Name: "Checkout Flow", Version: fixtureVersion,
 		Summary: "From command to event",
-		Steps: []catalog.FlowStep{
-			{ID: "s1", Title: "Customer", Actor: &catalog.FlowActor{Name: "Customer", Summary: "Places orders"}},
-			{ID: "s2", Title: "Submit", Service: &catalog.FlowStepRef{ID: "order-svc"}, NextStep: &catalog.FlowEdge{ID: "s3"}},
-			{ID: "s3", Title: "Create", Message: &catalog.FlowStepRef{ID: "CreateOrder"}, NextSteps: []catalog.FlowEdge{{ID: "s4"}}},
-			{ID: "s4", Title: "Persist", DataStore: &catalog.FlowStepRef{ID: "orders-db"}},
-			{ID: "s5", Title: "AI summary", Agent: &catalog.FlowStepRef{ID: "order-bot"}},
-			{ID: "s6", Title: "Analytics", DataProduct: &catalog.FlowStepRef{ID: "order-analytics"}},
-			{ID: "s7", Title: "Payment provider", External: &catalog.FlowActor{Name: "Stripe", URL: "https://stripe.com"}},
-			{ID: "s8", Title: "Audit", Custom: &catalog.FlowCustomNode{Title: "Audit log", Icon: "clipboard"}},
-		},
+		Steps: checkoutSteps(changelogProfile),
 	})
 
 	reg.AddTeam(catalog.Team{
@@ -184,3 +185,21 @@ func run(outputDir string) error {
 }
 
 func ptrTime(t time.Time) *time.Time { return &t }
+
+func checkoutSteps(withAgent bool) []catalog.FlowStep {
+	steps := []catalog.FlowStep{
+		{ID: "s1", Title: "Customer", Actor: &catalog.FlowActor{Name: "Customer", Summary: "Places orders"}},
+		{ID: "s2", Title: "Submit", Service: &catalog.FlowStepRef{ID: "order-svc"}, NextStep: &catalog.FlowEdge{ID: "s3"}},
+		{ID: "s3", Title: "Create", Message: &catalog.FlowStepRef{ID: "CreateOrder"}, NextSteps: []catalog.FlowEdge{{ID: "s4"}}},
+		{ID: "s4", Title: "Persist", DataStore: &catalog.FlowStepRef{ID: "orders-db"}},
+	}
+	if withAgent {
+		steps = append(steps, catalog.FlowStep{ID: "s5", Title: "AI summary", Agent: &catalog.FlowStepRef{ID: "order-bot"}})
+	}
+
+	return append(steps,
+		catalog.FlowStep{ID: "s6", Title: "Analytics", DataProduct: &catalog.FlowStepRef{ID: "order-analytics"}},
+		catalog.FlowStep{ID: "s7", Title: "Payment provider", External: &catalog.FlowActor{Name: "Stripe", URL: "https://stripe.com"}},
+		catalog.FlowStep{ID: "s8", Title: "Audit", Custom: &catalog.FlowCustomNode{Title: "Audit log", Icon: "clipboard"}},
+	)
+}
