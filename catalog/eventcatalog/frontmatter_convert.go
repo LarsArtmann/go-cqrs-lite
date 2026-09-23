@@ -215,6 +215,7 @@ func changelogBody(changes []catalog.Change) string {
 		}
 		fmt.Fprint(&b, entry)
 	}
+
 	return b.String()
 }
 
