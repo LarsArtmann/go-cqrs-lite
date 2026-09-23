@@ -111,7 +111,7 @@ func (e *Exporter) writeExamples(dir string, examples []jsontext.Value) error {
 			)
 		}
 
-		err = os.WriteFile( //nolint:wrapcheck // os.WriteFile returns direct error
+		err = os.WriteFile(
 			filepath.Join(examplesDir, fmt.Sprintf("example-%d.json", i+1)),
 			data,
 			filePerm,
