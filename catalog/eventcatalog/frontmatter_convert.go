@@ -204,17 +204,16 @@ func toAttachments(attachments []catalog.Attachment) []attachmentFM {
 func changelogBody(changes []catalog.Change) string {
 	var b strings.Builder
 	for _, c := range changes {
+		entry := fmt.Sprintf("- **%s**: %s\n", string(c.Version), string(c.Summary))
 		if c.Date != nil {
-			fmt.Fprintf(
-				&b,
+			entry = fmt.Sprintf(
 				"- **%s** (%s): %s\n",
 				string(c.Version),
 				c.Date.Format(time.DateOnly),
 				string(c.Summary),
 			)
-			continue
 		}
-		fmt.Fprintf(&b, "- **%s**: %s\n", string(c.Version), string(c.Summary))
+		fmt.Fprint(&b, entry)
 	}
 	return b.String()
 }

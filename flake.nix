@@ -926,6 +926,45 @@
                 platforms = platforms.unix;
               };
             };
+
+            # Semantic clone detector powering #check-duplication. Public
+            # repo: fetchFromGitHub + proxy.golang.org, no mkPreparedSource
+            # machinery needed. Pinned: the gate must be reproducible and
+            # its directive semantics stable.
+            art-dupl = (pkgs.buildGoModule.override { go = goPkg; }) {
+              pname = "art-dupl";
+              version = "0.7.0";
+
+              src = pkgs.fetchFromGitHub {
+                owner = "LarsArtmann";
+                repo = "art-dupl";
+                rev = "v0.7.0";
+                hash = "sha256-KOjiTspiVFweUiSYPCPb+Lnk+sqymnfIyujxduk9tOY=";
+              };
+
+              vendorHash = "sha256-C/CUJ5zWvHDQrgw658LinO80HOWQ2EQQRt8YG7KmkVE=";
+              proxyVendor = true;
+
+              env = {
+                CGO_ENABLED = "0";
+                GOWORK = "off";
+              };
+
+              doCheck = false;
+
+              meta = with lib; {
+                description = "Semantic Go clone detector";
+                license = licenses.mit;
+                maintainers = [
+                  {
+                    name = "Lars Artmann";
+                    github = "LarsArtmann";
+                  }
+                ];
+                mainProgram = "art-dupl";
+                platforms = platforms.unix;
+              };
+            };
           };
 
           apps = {
@@ -1375,25 +1414,33 @@
 
             # check-duplication: CI gate that fails if new code clones are
             # introduced relative to the committed baseline (.art-dupl-baseline.json).
-            # Requires art-dupl in PATH (go install github.com/larsartmann/art-dupl@latest).
-            # To accept new clones: `art-dupl baseline . --threshold 3`
-            check-duplication = mkApp "check-duplication" [ pkgs.bash pkgs.git ] ''
-              if ! command -v art-dupl >/dev/null 2>&1; then
-                echo "SKIP: art-dupl not installed (go install github.com/larsartmann/art-dupl@latest)"
-                exit 0
-              fi
-              # Dirty-tree guard: the gate must run against a COMMITTED baseline.
-              # Re-pinning while the baseline is uncommitted validates against
-              # in-flight state and invites pinning foreign half-done code.
-              if ! git diff --quiet -- .art-dupl-baseline.json 2>/dev/null \
-                 || ! git diff --cached --quiet -- .art-dupl-baseline.json 2>/dev/null; then
-                echo "ERROR: .art-dupl-baseline.json has uncommitted changes."
-                echo "Commit the baseline first, or restore it: git restore .art-dupl-baseline.json"
-                exit 1
-              fi
-              echo "==> Duplication check (threshold=3, semantic)"
-              art-dupl check . --threshold 3 --semantic
-            '';
+            # art-dupl is nix-provisioned (packages.art-dupl) — a missing
+            # binary is a HARD failure, never a silent SKIP.
+            # To accept new clones: `art-dupl baseline . --threshold 3 --semantic`
+            check-duplication =
+              mkApp "check-duplication"
+                [
+                  pkgs.bash
+                  pkgs.git
+                  config.packages.art-dupl
+                ]
+                ''
+                  command -v art-dupl >/dev/null 2>&1 || {
+                    echo "ERROR: art-dupl not on PATH (nix-provisioned via packages.art-dupl)"
+                    exit 1
+                  }
+                  # Dirty-tree guard: the gate must run against a COMMITTED baseline.
+                  # Re-pinning while the baseline is uncommitted validates against
+                  # in-flight state and invites pinning foreign half-done code.
+                  if ! git diff --quiet -- .art-dupl-baseline.json 2>/dev/null \
+                     || ! git diff --cached --quiet -- .art-dupl-baseline.json 2>/dev/null; then
+                    echo "ERROR: .art-dupl-baseline.json has uncommitted changes."
+                    echo "Commit the baseline first, or restore it: git restore .art-dupl-baseline.json"
+                    exit 1
+                  fi
+                  echo "==> Duplication check (threshold=3, semantic)"
+                  art-dupl check . --threshold 3 --semantic
+                '';
 
             # verify-parallel: run module tests in parallel batches (race ON).
             # Cuts ~4min sequential verify to ~1-2min depending on CPU cores.
