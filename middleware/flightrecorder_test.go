@@ -8,12 +8,13 @@ import (
 	"testing"
 	"time"
 
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 // safeBuffer is a mutex-protected bytes.Buffer for concurrent read/write in tests.

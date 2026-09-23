@@ -8,10 +8,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // DefaultClaimLease is how long a claim lasts when the operator does not
