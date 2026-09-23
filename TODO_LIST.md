@@ -592,25 +592,18 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
-- [ ] [BLOCKED] **art-dupl baseline re-pin decision (owner)** — the t4
-      clone-elimination campaign (2026-09-23, plan
+- [ ] **Work down the 50 remaining t3 clone groups (owner decision
+      2026-09-23: NO baseline re-pin)** — the t4 clone-elimination campaign
+      (2026-09-23, plan
       `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md`)
       extracted 11 core/intra-module families (scan/vector/planned/filter/
-      GraphBFS, watermill streamIDFromMessage, cqrs-lint lintutil)
-      and shrank the t3 `check-duplication` red set ~69 → 50 pre-existing
-      groups vs the 2026-09-18 baseline. The gate is now HARD (art-dupl
-      nix-provisioned at v0.7.0 in `packages.art-dupl`; no silent SKIP), so
-      CI stays red until the baseline is re-pinned
-      (`art-dupl baseline . --threshold 3 --semantic` on a committed tree) or
-      the remaining 50 groups are worked down. Owner call: re-pin now (locks
-      in the campaign gains, legalizes the 50) vs work-down first.
-      _(Effort: S to re-pin; M-L to work down)_
-- [ ] [BLOCKED] **sqlite IN-list separator change sign-off (owner)** — the
-      unified `AppendPlannedFilter` renders IN lists with `", "` (the pg
-      form) everywhere, including sqlite's previously space-free form; no
-      test pinned the old rendering, but it is a wire-visible SQL string
-      change. Approve or reject (revert = per-dialect separator param).
-      _(Effort: S)_
+      GraphBFS, watermill streamIDFromMessage, cqrs-lint lintutil) and shrank
+      the t3 `check-duplication` red set ~69 → 50 pre-existing groups vs the
+      2026-09-18 baseline. The gate is now HARD (art-dupl nix-provisioned at
+      v0.7.0 in `packages.art-dupl`; no silent SKIP), so CI stays red until
+      the 50 are worked down (extract or accept-annotate each, then the
+      baseline shrinks naturally at the next structural re-pin).
+      _(Effort: M-L)_
 - [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
       — core's degraded-path BFS (graph_fallback.go) still carries its own
       copy of the loop with different semantics: `[]any` frontier,

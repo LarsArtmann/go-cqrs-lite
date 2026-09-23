@@ -16,7 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   (planned-table listing; the caller keeps owning its lock mode), and
   `metaengine.AppendPlannedFilter` with `metaengine.QuestionPlaceholders` /
   `metaengine.DollarPlaceholders` (unified filter-clause builder; the IN-list
-  separator is now `", "` everywhere). duckdb/sqlite/mysql/pg engines rewire
+  separator stays per-dialect: `", "` on pg/mysql, `","` on sqlite — wire
+  strings stay byte-identical to each engine's historical rendering). duckdb/sqlite/mysql/pg engines rewire
   onto them with byte-identical error strings (label-prefix pattern).
   `metaengine.GraphBFS` is the iterative breadth-first fallback for servers
   without WITH RECURSIVE (sqliteengine + mysqlengine delegate; the directed

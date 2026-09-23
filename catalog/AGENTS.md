@@ -83,6 +83,15 @@ fallbacks — keep both when adding pages.
   `shouldEnableChangelog` (writer.go) keeps the flag off when the catalog has
   agents; drop that guard (and the ec-fixture changelog profile) when bumping
   past a fixed core release.
+- **Known upstream WARN (core 4.6.3), cosmetic:** with `changelog` enabled,
+  the build's link-validation logs 3 broken sidebar links
+  (`/docs/{channels,data-products,entities}/<id>/<version>/changelog`). The
+  changelog page route (`src/pages/docs/[type]/[id]/[version]/changelog/_index.data.ts`
+  `itemTypes`) covers only agents/events/commands/queries/services/domains/
+  systems/flows/containers — but the entity/data-product sidebar builders and
+  `sidebar-store/state.ts` emit Changelog links for those 3 collections anyway.
+  Unfixable from exporter output (even a `changelog.mdx` cannot make the page
+  generate); the render gate must NOT fail on this WARN.
 - Custom docs export to `docs/<slug>/index.mdx`: collected by the community
   build (and included for enterprise rendering), but standalone custom pages
   are an EventCatalog enterprise feature — community builds do not route them.
@@ -93,9 +102,19 @@ fallbacks — keep both when adding pages.
 
 ## Golden tests
 
-`testdata/golden/` is shared by every package's suite. `UPDATE_SNAPS=true go
-test ./<pkg>/...` treats snaps owned by OTHER packages as obsolete and DELETES
-them. Always regen module-wide: `UPDATE_SNAPS=true go test ./...`.
+`testdata/golden/` is shared by FOUR package suites (asyncapi, d2,
+eventcatalog, openapi), but each package runs as its own test binary and
+go-snaps `Clean` DELETES every `.snap` in the shared dir that its binary did
+not touch. So ANY scoped `UPDATE_SNAPS=true go test ./<pkg>/...` deletes the
+other three packages' snaps — and module-wide `go test ./...` does NOT save
+you (four binaries each clean the others; survivors are nondeterministic).
+Safe procedure (regen scoped, then restore the cross-deletions):
+
+    UPDATE_SNAPS=true go test ./eventcatalog/...
+    git ls-files -d -- testdata/golden | xargs -r git restore --
+
+If you intentionally removed a golden test, delete its `.snap` explicitly
+afterwards (the restore line would otherwise bring it back).
 
 ## Budgets
 
