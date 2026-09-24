@@ -399,7 +399,9 @@ buckets, all deleted at the v5.0.0 cut:
 - **`storage/view` + `storage/relational`**: the metaengine auto-projection
   and `storage/relational`'s sink replacement path cover the same ground.
 - **`transport/http` (SSE) + `transport/grpc`**: use `watermill/` brokers (or
-  go-sse directly). See ADR-0127.
+  go-sse directly). See ADR-0127; the gRPC surface has a dedicated
+  capability-by-capability migration guide
+  ([`docs/MIGRATION-grpc-to-v5.md`](../../../../docs/MIGRATION-grpc-to-v5.md)).
 - **ADR-0126 compatibility shells** (`schema.VersionedStore`,
   `schema.VersionedSeekableJournal`, `metadata.CustomData`, and friends):
   compose `event.DecorateStore` / `event.DecorateJournal` with

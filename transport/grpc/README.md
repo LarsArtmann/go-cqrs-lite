@@ -8,6 +8,8 @@
 > | Plain gRPC dispatch               | bridge your own dispatcher over grpc-go directly — the transport is a thin adapter, not domain logic                                                               |
 >
 > New projects must not import this module.
+>
+> Capability-by-capability migration paths: [`docs/MIGRATION-grpc-to-v5.md`](../../docs/MIGRATION-grpc-to-v5.md).
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/transport/grpc/v4.svg)](https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/transport/grpc/v4)
 
