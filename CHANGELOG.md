@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Skill: hard-requires the `system` + `metaengine` composition root.** The
+  `go-cqrs-lite` skill now refuses to guide hand-wired `event`/`command`/
+  `decider`/`storage`/`stack` composition for new apps and redirects to
+  `system.New(...)` + `metaengine` (ADR-0123). The rule is propagated into
+  `core.md`/`modules.md`/`readmodels.md`, the v1 read-model tiers are demoted
+  to a legacy table, and the front page gains a quickstart, the ADR link, and
+  an experimental-status notice. New negative/redirect trigger-eval cases were
+  added. The evals themselves remain UNVALIDATED (no `claude` CLI in the
+  authoring environment).
 - **example/mesh-demo: the multi-bounded-context proof.** Orders + billing
   contexts, each owning its decider, events, and catalog declarations, wired
   ONLY through a bilateral contract (`order.placed` →, `invoice.issued` ←).

@@ -82,5 +82,17 @@
   {
     "query": "add a Redis cache to my Go service using go-redis, with a TTL of 5 minutes on the cached user profile objects",
     "should_trigger": false
+  },
+  {
+    "query": "help me hand-wire a new go-cqrs-lite service myself: event store, decider repository, my own projection goroutine, and a stack/sqlite preset bundle",
+    "should_trigger": true
+  },
+  {
+    "query": "set up event sourcing in a C# service using Marten for my .NET API",
+    "should_trigger": false
+  },
+  {
+    "query": "should I use Kafka or RabbitMQ as the message broker for my Go microservice?",
+    "should_trigger": false
   }
 ]

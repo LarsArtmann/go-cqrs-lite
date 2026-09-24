@@ -1251,38 +1251,38 @@ follow-ups from that refocus. (Resolved in the same pass and therefore not liste
 `metadata.tags` gained `composition-root`/`metaengine`; both eval JSON files were
 refreshed; the stale global fan-out symlink was healed.)
 
-- [ ] 🔥 **Rewrite the SSE + read-model routing matrices to lead with system/metaengine** —
+- [x] ✅ 2026-09-24 (non-deprecated path table now leads; SSE rule redirects new code to `go-sse`/`watermill`) 🔥 **Rewrite the SSE + read-model routing matrices to lead with system/metaengine** —
       both matrices still present the deprecated v1 tiers (`stack.Materialize`,
       `storage.RelationalProjection`, `transport/http.SSEBroker`) as peers rather than
       demoted rows. Evidence: `.agents/skills/go-cqrs-lite/SKILL.md` §Routing Decision
       Matrices. — source: report §f16 _(Effort: M)_
-- [ ] **Add a runnable `system.New` quickstart snippet to the skill front page** — the
+- [x] ✅ 2026-09-24 (quickstart snippet + ADR-0123 link + experimental notice added to SKILL.md) **Add a runnable `system.New` quickstart snippet to the skill front page** — the
       hard-block section names the API but shows no code; `references/core.md:47-110` has
       one to lift. Evidence: `SKILL.md:13-24`. — source: report §f22 _(Effort: S)_
-- [ ] **Audit `references/modules.md` engine rows for completeness** — the corrected
+- [x] ✅ 2026-09-24 (added the missing `sqliteengine` + `badgerengine` rows; 11 dirs + in-core memory covered) **Audit `references/modules.md` engine rows for completeness** — the corrected
       description lists 12 engines (built-in memory + 11 `metaengine/*engine` dirs);
       modules.md's per-engine rows were not re-audited after the fix. — source: report
       §f13/§d4 _(Effort: S)_
-- [ ] **Reconcile v5-removed tiers' mentions across all skill references** — deprecation
+- [x] ✅ 2026-09-24 (core/readmodels/faq swept; modules/recipes/advanced already annotated) **Reconcile v5-removed tiers' mentions across all skill references** — deprecation
       markers exist in modules.md and the matrices, but references still describe the
       removed tiers in detail; sweep for stragglers. — source: report §f21 _(Effort: M)_
-- [ ] **Cross-link `metaengine/COOKBOOK.md` from `references/readmodels.md`** — the
+- [x] ✅ 2026-09-24 (linked from the readmodels v5 notice) **Cross-link `metaengine/COOKBOOK.md` from `references/readmodels.md`** — the
       canonical copy-paste patterns live in the cookbook; readmodels.md does not link it.
       — source: report §f23 _(Effort: S)_
-- [ ] **State `system` + `metaengine` experimental status in the skill** — both are
+- [x] ✅ 2026-09-24 (SKILL.md quickstart block states the FEATURES.md experimental status) **State `system` + `metaengine` experimental status in the skill** — both are
       Experimental in `FEATURES.md`; a hard block on experimental modules should say so.
       — source: report §f25 _(Effort: S)_
-- [ ] **Add an ADR-0123 hyperlink to the skill's hard-block section** — currently named
+- [x] ✅ 2026-09-24 (link added to the quickstart block) **Add an ADR-0123 hyperlink to the skill's hard-block section** — currently named
       but not linked. — source: report §f26 _(Effort: XS)_
-- [ ] **Check whether `stack` presets still emit deprecation warnings** — if silent, add
+- [x] ✅ 2026-09-24 (Go `Deprecated:` doc comments exist on every `stack` package; doc notes added where the skill showed presets) **Check whether `stack` presets still emit deprecation warnings** — if silent, add
       warnings or a doc note so manual composition is visibly legacy. — source: report
       §f27 _(Effort: S)_
-- [ ] **Verify `system` accessor list against current code before further skill edits** —
+- [x] ✅ 2026-09-24 (`system.New(ctx, DomainConfig, DeploymentConfig)` + accessors verified in `system/constructor.go`/`system/system.go`) **Verify `system` accessor list against current code before further skill edits** —
       the description enumerates accessors that should be re-derived, not restated. —
       source: report §f24 _(Effort: S)_
 - [ ] **Load `user:go-cqrs-lite` in a fresh Crush session** to verify the new frontmatter
       parses and the description triggers. — source: report §f11 _(Effort: S)_
-- [ ] **Execute the refreshed evals** (`evals/trigger-eval-set.json`, `evals/evals.json`)
+- [ ] 🔥 [BLOCKED:tooling] **Execute the evals (currently UNVALIDATED)** (`evals/trigger-eval-set.json`, `evals/evals.json`)
       after the description change — needs the `claude` CLI, currently blocked. — source:
       report §f7 _(Effort: M, tooling-blocked)_
 
@@ -1292,13 +1292,13 @@ refreshed; the stale global fan-out symlink was healed.)
 
 Source: `~/projects/crush-config/docs/status/2026-09-24_16-27_skill-hard-block-harvest-and-fanout-guard.md` §f.
 
-- [ ] 🔥 **Propagate the hard-block into `references/*.md`** — the front page refuses
+- [x] ✅ 2026-09-24 (banners in core/modules/readmodels; SKILL.md canonical; core/readmodels/faq contradictions fixed) 🔥 **Propagate the hard-block into `references/*.md`** — the front page refuses
       manual composition, but the references still present the low-level modules as
       routes in places; a hard rule contradicted by its own references is a split-brain.
       — source: report §b1/§e6/§f7 _(Effort: M)_
-- [ ] **Decide the canonical surface for the hard rule** (`SKILL.md` vs reference prose)
+- [x] ✅ 2026-09-24 (SKILL.md is canonical; references defer to it via the hard-rule banner) **Decide the canonical surface for the hard rule** (`SKILL.md` vs reference prose)
       and make the other defer to it. — source: report §f36 _(Effort: S)_
-- [ ] **Add negative/redirect trigger cases to the evals** — prove the skill triggers on a
+- [x] ✅ 2026-09-24 (hand-wire redirect case + 2 near-miss negatives added to `trigger-eval-set.json`) **Add negative/redirect trigger cases to the evals** — prove the skill triggers on a
       "hand-wire event+decider" request and still redirects to `system`/`metaengine`. —
       source: report §f37 _(Effort: S)_
 - [ ] **Add a changelog entry for the skill refocus** in this repo's `CHANGELOG.md` — the

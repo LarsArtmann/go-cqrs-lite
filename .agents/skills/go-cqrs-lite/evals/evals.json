@@ -1,7 +1,7 @@
 {
   "skill_name": "go-cqrs-lite",
   "version": "1.0",
-  "notes": "Behavioral evals for the go-cqrs-lite skill. Run with-skill vs baseline (no skill) using the skill-creator workflow. The `claude` CLI is required to actually execute these — currently blocked (no claude CLI in this environment). Prompts are designed to test whether the skill routes the consumer to the correct recipe/reference rather than guessing from training data.",
+  "notes": "UNVALIDATED (2026-09-24): these evals were rewritten to the system+metaengine path but have NOT been executed — the skill-creator workflow needs the `claude` CLI, which is not available in this environment (only `crush` is). Do not read 'refreshed' as 'passing'. Behavioral evals for the go-cqrs-lite skill: run with-skill vs baseline (no skill) using the skill-creator workflow. Prompts test whether the skill routes the consumer to the correct recipe/reference rather than guessing from training data.",
   "evals": [
     {
       "id": 1,

@@ -25,6 +25,23 @@ Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save�
 
 **Read [`core.md`](references/core.md) first** — decision matrix, conventions, cheat sheet, anti-patterns.
 
+**Quickstart (30 seconds):** declare a domain + folds, then ONE composition root.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/system/v4"
+    "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+sys, err := system.New(ctx,
+    system.DomainConfig{ /* Commands, Queries, projections (folds) */ },
+    system.DeploymentConfig{ /* engines: sqlite in dev, postgres in prod */ })
+```
+
+Full walkthrough: [`core.md` → 60-second quickstart](references/core.md#60-second-quickstart--hello-cqrs-composition-root-systemnew). Design rationale: [ADR-0123 — v5 unification, single composition root](../../../docs/adr/0123-v5-unification-single-composition-root.md).
+
+> **Experimental status:** `system` is marked experimental in the repo's `FEATURES.md` (the module code and its README carry no marker — 2026-09-15 adoption research §2.4). It is production-capable today, but the v5 cut renames some constructors (see [`faq.md`](references/faq.md)). `metaengine` is the stable shared surface.
+
 - [`recipes.md`](references/recipes.md) — event sourcing, persistence, snapshots, signing, encryption, OTel
 - [`readmodels.md`](references/readmodels.md) — projections, SQL views, tier selection
 - [`modules.md`](references/modules.md) — all modules: imports + one-liners
@@ -84,11 +101,11 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 | **Materialized query results** (read-model values) to browser | `metaengine`     | `ServeSSE[V]`       | `Watcher[V]` (Store collection)       | In-memory ring (`SSEReplay[V]`, **recent-only**) | Heartbeat keepalive, `Last-Event-ID` reconnect, drop-old backpressure, timeout                                                                                   |
 | **Events to a server-side worker/projection** (not a browser) | `watermill`      | `CatchUpSubscriber` | `event.SeekableJournal` + live sub    | Checkpoint store (**durable**)                   | Crash-restart, routes through any broker (NATS/Kafka/Redis), ordered delivery                                                                                    |
 
-**Rule of thumb:**
+**Rule of thumb (v5-first — `transport/http.SSEBroker` is DEPRECATED per ADR-0127 and removed in v5):**
 
-- Browser needs the **event log** (audit feed, notification stream, event-sourced UI) → `transport/http.SSEBroker`.
-- Browser needs the **current read-model state** (live-updating table/dashlet built from a `metaengine.Store`) → `metaengine.ServeSSE`.
-- Server-side projection/integration that must survive crashes → `watermill.CatchUpSubscriber` + `projectionhost.Host`.
+- Browser needs the **event log** (audit feed, notification stream, event-sourced UI) → `go-sse` directly (the wire-format layer the deprecated broker already used internally), or `watermill.CatchUpSubscriber` for a server-side bridge. Do NOT start new code on `transport/http.SSEBroker`.
+- Browser needs the **current read-model state** (live-updating table/dashlet built from a `metaengine.Store`) → `metaengine.ServeSSE` (survives v5).
+- Server-side projection/integration that must survive crashes → `watermill.CatchUpSubscriber` + `projectionhost.Host` (both survive v5).
 
 **Do NOT merge the two browser-facing implementations** — `SSEBroker` replays from a durable journal (survives restart, cross-process), while `ServeSSE` replays from an in-process ring buffer (cheap, recent-only, lost on restart). See `advanced.md` §6.15–6.16 for the full comparison and code.
 
@@ -100,14 +117,21 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 > root. The tiers remain fully functional through v4.x. Canonical v5-removal
 > list: [FAQ — "Will the v5 cut break my imports?"](references/faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 
-| Data shape                                                     | Query pattern                          | Recommended tier                                                                                                                                                                                                  |
-| -------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| One document per key                                           | Get/Set by key                         | `kv.ViewStore[V,K]` or `stack.Materialize` (deprecated, v5)                                                                                                                                                       |
-| Multi-table, joins, relations                                  | SQL WHERE/ORDER BY/LIMIT               | `storage.RelationalProjection` (deprecated, v5)                                                                                                                                                                   |
-| Variable-depth traversal, adjacency, paths                     | N-hop queries                          | `graph.GraphProjection` (deprecated, v5)                                                                                                                                                                          |
-| Event-folded aggregations, counters                            | Cost-planned queries                   | `metaengine` Store + `projectionadapter`                                                                                                                                                                          |
-| Large map collections with known filters/sorts                 | Filter+sort scans                      | `metaengine` planned tables (`LayoutPlanApplier` + `BuildLayoutPlanFromType[R]`; recipes §2.27/2.28)                                                                                                              |
-| Hot unfiltered rollups (SUM/COUNT/AVG/MIN/MAX, per-key groups) | Same aggregate queries, O(1)/O(groups) | Operator-declared Turso materialized views (tursoengine; recipes §2.29, ADR-0135; **scalar views exact — grouped views carry an upstream correctness caveat**, see readmodels.md §Materialized-view acceleration) |
+**Non-deprecated path (start here):**
+
+| Data shape                                                     | Query pattern                          | Tier                                                                                                                              |
+| -------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Event-folded aggregations, counters                            | Cost-planned queries                   | `metaengine` Store + `projectionadapter`                                                                                          |
+| Large map collections with known filters/sorts                 | Filter+sort scans                      | `metaengine` planned tables (`LayoutPlanApplier` + `BuildLayoutPlanFromType[R]`; recipes §2.27/2.28)                              |
+| Hot unfiltered rollups (SUM/COUNT/AVG/MIN/MAX, per-key groups) | Same aggregate queries, O(1)/O(groups) | Operator-declared materialized views (sqliteengine/tursoengine; recipes §2.29, ADR-0135; **scalar views exact — grouped views carry an upstream correctness caveat**, see readmodels.md §Materialized-view acceleration) |
+
+**Legacy v1 tiers (DEPRECATED, removed in v5 — read only to migrate existing code):**
+
+| Data shape                          | Query pattern            | Legacy tier                                                                 |
+| ----------------------------------- | ------------------------ | --------------------------------------------------------------------------- |
+| One document per key                | Get/Set by key           | `kv.ViewStore[V,K]` or `stack.Materialize`                                  |
+| Multi-table, joins, relations       | SQL WHERE/ORDER BY/LIMIT | `storage.RelationalProjection`                                              |
+| Variable-depth traversal, adjacency | N-hop queries            | `graph.GraphProjection` (edges-only reads move to `metaengine/graphadapter`) |
 
 #### Dead-letter handling: Which layer?
 

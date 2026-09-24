@@ -17,6 +17,9 @@ _Extracted from the former recipes §2.3. This is the most-asked-about topic in 
 > functional through v4.x; `projectionhost` (Option A) is the projection
 > runner that survives v5. Canonical v5-removal list:
 > [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
+>
+> Copy-paste read-model patterns: [`metaengine/COOKBOOK.md`](../../../metaengine/COOKBOOK.md)
+> (in the repo at `metaengine/COOKBOOK.md`).
 
 ### 2.3 Read Models (projection + query)
 
@@ -85,7 +88,7 @@ transactions. The consequence for your code:
   `example/getting-started`'s counter test is the canonical canary: its
   failure message names the seam (double-apply vs lost events).
 
-**Option B — `CatchUpSubscriber` (push-based, live tail after replay).** Pairs with `stack.Materialize` for ordered, durable projections. See §2.3 "Canonical projection pattern" below and advanced.md §6.9 for the full `projectionhost` lifecycle.
+**Option B — `CatchUpSubscriber` (push-based, live tail after replay).** The v5 path pairs it with `metaengine` projections (the Store is the read model; `projectionadapter` bridges events). The old recipe paired it with `stack.Materialize` — deprecated and removed in v5 (ADR-0123). See §2.3 "Canonical projection pattern" below and advanced.md §6.9 for the full `projectionhost` lifecycle.
 
 Query the read model with type-safe dispatch:
 

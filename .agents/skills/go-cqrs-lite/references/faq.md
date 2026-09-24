@@ -226,7 +226,12 @@ backward-compatible aliases, but the canonical paths are:
 
 **If your old code compiles, it still works.** The aliases are permanent.
 
-### "How do I integrate metaengine with my stack?"
+### "How do I integrate metaengine with my stack?" (legacy)
+
+> **Deprecated (ADR-0123):** `stack/` and `stack.WithMetaEngine` are removed in
+> v5. For new code, hand the Store to `system.New` — the composition root owns
+> its lifecycle (`Close`) instead of the Bundle. The snippet below is a
+> migration input for existing `stack`-based code only.
 
 Use `stack.WithMetaEngine(store)` to register a metaengine Store with the Bundle.
 The Bundle manages its lifecycle (Close), and benchkit auto-discovers it.

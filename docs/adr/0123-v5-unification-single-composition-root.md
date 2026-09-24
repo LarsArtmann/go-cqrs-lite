@@ -256,3 +256,14 @@ deprecation contract. Rules:
    never a blanket `//nolint`.
 3. Removal happens at the v5 cut; a deprecated symbol without a removal
    target in its marker is a docs bug.
+
+## Follow-up (2026-09-24): the skill now enforces the decision
+
+The `go-cqrs-lite` skill treats this ADR as a HARD RULE: new applications must
+build on `system` + `metaengine`, and the skill refuses to guide manual
+composition of the low-level modules, redirecting with the migration path
+instead. The rule lives canonically in `SKILL.md`; `core.md`, `modules.md`, and
+`readmodels.md` carry a deferring banner, and the v1 read-model tiers are
+demoted to a legacy table. See also the skill's front-page quickstart and
+experimental-status notice. This addendum records the skill-to-ADR binding, not
+a change to the decision.

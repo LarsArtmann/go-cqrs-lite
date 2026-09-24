@@ -2,6 +2,15 @@
 
 > Read this first. It holds the decision-making material you need on every task: the mental model, the module decision matrix, the non-negotiable conventions, the anti-patterns, and the API cheat sheet. For long copy-paste recipes, jump to [`recipes.md`](recipes.md); for read-model patterns see [`readmodels.md`](readmodels.md); for pitfalls see [`faq.md`](faq.md).
 
+> **Hard rule (ADR-0123): NEW apps build on `system` + `metaengine` only.**
+> `system.New(ctx, DomainConfig, DeploymentConfig)` is the single composition
+> root; `metaengine.Store` + `Query[Q,R]` own projections and read models. The
+> low-level modules (`event`, `command`, `decider`, `storage`, `stack`, `kv`)
+> and the v1 read-model tiers are legacy/migration-only and are removed in v5.
+> If you find yourself hand-wiring them for new code, stop and redirect to the
+> composition root. Canonical v5-removal list:
+> [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
+
 > **Contents** — jump to the section you need:
 >
 > - [§0 Mental Model](#0-mental-model-read-this-first) — library, not framework; what composes into what
@@ -162,8 +171,8 @@ on a typo'd driver.
 | Generate unique, type-safe IDs                                        | `id`                                                                                                                                        | recipes §2.1    |
 | Typed event metadata (tracing, custom data)                           | `metadata`                                                                                                                                  | —               |
 | Encode payloads as JSON/CBOR                                          | `codec`                                                                                                                                     | recipes §2.1    |
-| Build a read model from events                                        | `stack.Materialize` + `kv.ViewStore` (see tier table below)                                                                                 | readmodels §2.3 |
-| Multi-table projection (composite keys, junctions)                    | `storage.RelationalProjection`                                                                                                              | readmodels §2.3 |
+| Build a read model from events                                        | `metaengine` Store + `projectionadapter` (v5 path); `stack.Materialize` legacy (see tier table below)                                       | readmodels §2.3 |
+| Multi-table projection (composite keys, junctions)                    | `metaengine` planned tables / `LayoutPlanApplier` (v5 path); `storage.RelationalProjection` legacy                                          | readmodels §2.3 |
 | Dispatch type-safe queries                                            | `query`                                                                                                                                     | readmodels §2.3 |
 | List all streams + their status                                       | `listing`                                                                                                                                   | advanced §6.3   |
 | Persist to PostgreSQL / SQLite / MySQL                                | `storage`                                                                                                                                   | recipes §2.2    |
@@ -221,7 +230,7 @@ on a typo'd driver.
 | **Relational**  | `storage.RelationalProjection` _(deprecated, v5)_       | several tables (atomic) | composite primary keys, junction tables, multi-table denormalization, complex WHERE | variable-depth traversal                                 |
 | **Graph**       | `graph.GraphProjection` _(deprecated, v5)_              | nodes + edges           | N-hop traversal, adjacency, path-finding, causation DAGs                            | simple CRUD (overkill)                                   |
 
-`SQLViewStore` is the document tier **with queryable SQL columns** — still one record per event, single-column primary key. If you need composite keys or one event writing to multiple tables, that's `RelationalProjection`. Don't try to make ViewStore do relational work — the tiers exist because no single tier serves all read patterns well.
+`SQLViewStore` is the document tier **with queryable SQL columns** — still one record per event, single-column primary key. The tiers exist because no single tier serves all read patterns well. **For new code, do not pick a tier at all:** declare `metaengine` queries/folds (`AutoCRUDByConvention`, `BuildLayoutPlanFromType`) and let the planner choose; the v1 tiers above are migration inputs, not recommendations (ADR-0123).
 
 ---
 
