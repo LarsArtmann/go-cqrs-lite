@@ -159,6 +159,7 @@ catalog/docserver/func AsyncAPIPage
 catalog/docserver/func D2Handler
 catalog/docserver/func D2Page
 catalog/docserver/func EventCatalogChannelPage
+catalog/docserver/func EventCatalogDataProductPage
 catalog/docserver/func EventCatalogMessagePage
 catalog/docserver/func EventCatalogPage
 catalog/docserver/func EventCatalogServicePage
