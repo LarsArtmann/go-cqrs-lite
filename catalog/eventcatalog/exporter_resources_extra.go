@@ -21,6 +21,7 @@ func (e *Exporter) writeFlow(f catalog.Flow) error {
 		Name:    string(f.Name),
 		Version: string(f.Version),
 		Summary: string(f.Summary),
+		Owners:  f.Owners,
 		Badges:  toBadges(f.Badges),
 		Steps:   toFlowSteps(f.Steps),
 	}

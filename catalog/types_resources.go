@@ -125,6 +125,7 @@ type Flow struct {
 	Summary Summary    `json:"summary,omitempty"`
 	Steps   []FlowStep `json:"steps"`
 	Badges  []Badge    `json:"badges,omitempty"`
+	Owners  []string   `json:"owners,omitempty"`
 }
 
 // FlowStep represents a single step in a flow diagram.

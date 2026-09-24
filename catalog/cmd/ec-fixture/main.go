@@ -61,7 +61,7 @@ const (
 	fixtureFlowID    = "checkout-flow"
 )
 
-func run(outputDir string, changelogProfile bool) error {
+func run(outputDir string, changelogProfile, plainProfile bool) error {
 	reg := catalog.NewRegistry("Demo", fixtureVersion)
 	visualiser := true
 
@@ -127,6 +127,7 @@ func run(outputDir string, changelogProfile bool) error {
 		Kind: catalog.EventMessage, ID: fixtureEventID, Name: "Order Created",
 		Version: fixtureVersion, Summary: "Order was created", Direction: catalog.Sends,
 		Channels: []catalog.ChannelID{"order-events"},
+		Owners:   []string{fixtureTeamID},
 		Deprecation: &catalog.DeprecationInfo{
 			Message: "superseded by OrderPlaced",
 			Date:    new(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC)),
@@ -135,6 +136,7 @@ func run(outputDir string, changelogProfile bool) error {
 	reg.AddQuery(fixtureServiceID, catalog.Message{
 		Kind: catalog.QueryMessage, ID: "GetOrder", Name: "Get Order",
 		Version: fixtureVersion, Summary: "Get order by ID",
+		Owners: []string{fixtureTeamID},
 	})
 
 	reg.AddChannel(catalog.Channel{
@@ -150,8 +152,10 @@ func run(outputDir string, changelogProfile bool) error {
 	reg.AddDataStore(catalog.DataStore{
 		ID: "orders-db", Name: "Orders Database", Version: fixtureVersion,
 		ContainerType: "database", Technology: "postgres@16",
-		Classification: "confidential", Retention: "7y", Residency: "eu",
+		Summary: "Primary order store", Classification: "confidential",
+		Retention: "7y", Residency: "eu",
 		Authoritative: true, AccessMode: "readWrite",
+		Owners: []string{fixtureTeamID},
 	})
 
 	reg.AddDomain(catalog.Domain{
@@ -160,10 +164,11 @@ func run(outputDir string, changelogProfile bool) error {
 		Entities:   []string{"Order"},
 		Flows:      []catalog.FlowID{fixtureFlowID},
 		SubDomains: []catalog.DomainID{"checkout"},
+		Owners:     []string{fixtureTeamID},
 	})
 	reg.AddDomain(catalog.Domain{
 		ID: "checkout", Name: "Checkout", Version: fixtureVersion,
-		Summary: "Checkout subdomain",
+		Summary: "Checkout subdomain", Owners: []string{fixtureTeamID},
 		UbiquitousLanguage: []catalog.UbiquitousLanguageTerm{
 			{Name: "Cart", Description: "Items pending purchase"},
 			{Name: "Fulfillment", Description: "The process of completing an order"},
@@ -184,6 +189,15 @@ func run(outputDir string, changelogProfile bool) error {
 		},
 		Owners: []string{fixtureTeamID},
 	})
+	reg.AddEntity(catalog.Entity{
+		ID: "OrderItem", Name: "Order Item", Version: fixtureVersion,
+		Summary: "A line item of an order", Identifier: "itemId",
+		Properties: []catalog.EntityProperty{
+			{Name: "itemId", Type: "string", Required: true},
+			{Name: "quantity", Type: "integer"},
+		},
+		Owners: []string{fixtureTeamID},
+	})
 
 	if !changelogProfile {
 		// The default profile covers agents; the changelog profile omits them
@@ -194,6 +208,7 @@ func run(outputDir string, changelogProfile bool) error {
 			Name:    "Order Bot",
 			Version: fixtureVersion,
 			Summary: "AI assistant for order support",
+			Owners:  []string{fixtureTeamID},
 			Sends:   []catalog.Ref{{ID: fixtureEventID, Version: fixtureVersion}},
 			Model:   &catalog.AgentModel{Provider: "openai", Name: "gpt", Version: "4o"},
 			Tools: []catalog.AgentTool{
@@ -221,6 +236,7 @@ func run(outputDir string, changelogProfile bool) error {
 	reg.AddFlow(catalog.Flow{
 		ID: fixtureFlowID, Name: "Checkout Flow", Version: fixtureVersion,
 		Summary: "From command to event",
+		Owners:  []string{fixtureTeamID},
 		Steps:   checkoutSteps(changelogProfile),
 	})
 
@@ -247,8 +263,45 @@ func run(outputDir string, changelogProfile bool) error {
 		Owners:  []string{fixtureTeamID},
 	})
 
-	return eventcatalog.NewExporter(outputDir).Export(reg.Build())
+	exporter := eventcatalog.NewExporter(outputDir)
+	if plainProfile {
+		exporter = eventcatalog.NewExporter(outputDir, eventcatalog.WithPlainRefIDs())
+	}
+
+	if err := exporter.Export(reg.Build()); err != nil {
+		return err
+	}
+
+	// The data product's output contract points at a contract FILE; the
+	// linter's refs/file-exists rule (and EventCatalog's contract rendering)
+	// expects it inside the data product's directory. The exporter copies
+	// nothing (contract files are the declaring repo's assets) — the fixture
+	// writes its own.
+	contractDir := filepath.Join(outputDir, "data-products", "order-analytics", "contracts")
+	if err := os.MkdirAll(contractDir, 0o750); err != nil {
+		return err
+	}
+
+	return os.WriteFile(
+		filepath.Join(contractDir, "orders.yaml"),
+		[]byte(fixtureDataContract),
+		0o600,
+	)
 }
+
+// fixtureDataContract is the data product output contract the fixture
+// places at contracts/orders.yaml.
+const fixtureDataContract = `# Data contract: orders (fixture)
+id: orders
+owner: order-team
+type: table
+ description: One row per order event aggregate
+fields:
+  - name: order_id
+    type: string
+    required: true
+`
+
 
 func checkoutSteps(withAgent bool) []catalog.FlowStep {
 	steps := []catalog.FlowStep{
