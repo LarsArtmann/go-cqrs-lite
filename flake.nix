@@ -843,7 +843,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-mY+mdZEzK3cRHsSXDxKeyhuZZJw8bDaALUbYTH9zBT0=";
+              vendorHash = "sha256-De0v4pULiOcSS3ZEclwIbWh3IMeOQuLR4uL4MWEVuCc=";
               proxyVendor = true;
 
               subPackages = [ "." ];
@@ -898,7 +898,7 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              vendorHash = "sha256-+C4ZnSxBKlNcov153RNFr5kMY58uNgDIxlhVWcU50T8=";
+              vendorHash = "sha256-UNtccRM3x2dXVt18MiObqThfkGZpjwrF0JmA+Q2eTUs=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
