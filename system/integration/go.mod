@@ -57,6 +57,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
+	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -64,6 +65,8 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.29 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
@@ -82,3 +85,9 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
+
+// Sibling replace: published system/v4.9.0 requires storage/v4 v4.10.0,
+// a tag that was cut and later deleted (dead revision in the proxy graph).
+// Resolve system from the workspace until the next system tag wave carries
+// the repaired storage pin — strip in that wave's replace sweep.
+replace github.com/larsartmann/go-cqrs-lite/system/v4 => ../../system
