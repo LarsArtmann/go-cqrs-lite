@@ -713,6 +713,7 @@ cmd/cqrs-lint/pkg/analyzer/struct CQRSRegistry
 cmd/cqrs-lint/pkg/analyzer/struct Catalog
 cmd/cqrs-lint/pkg/analyzer/struct CommandInfo
 cmd/cqrs-lint/pkg/analyzer/struct ConfigFeatures
+cmd/cqrs-lint/pkg/analyzer/struct DataProductInfo
 cmd/cqrs-lint/pkg/analyzer/struct DeciderInfo
 cmd/cqrs-lint/pkg/analyzer/struct EventEmission
 cmd/cqrs-lint/pkg/analyzer/struct EventInfo
@@ -825,6 +826,7 @@ cmd/cqrs-lint/pkg/rules/architecture/func NewE015Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE016Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE017Detector
 cmd/cqrs-lint/pkg/rules/architecture/func NewE018Detector
+cmd/cqrs-lint/pkg/rules/architecture/func NewE019Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB001Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB002Detector
 cmd/cqrs-lint/pkg/rules/boilerplate/func NewB003Detector
