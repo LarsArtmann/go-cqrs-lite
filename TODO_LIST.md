@@ -22,17 +22,17 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > (T01–T27, all 25 sections mapped; 1% tier = restore the go 1.27.1 contract
 > — drift gate + composed verify; predecessor:
 > [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
-> M-items folded into the new T-numbering). **Current plan (2026-09-23 22:12, data-mesh scope):**
+> M-items folded into the new T-numbering). **Data-mesh plan (2026-09-23 22:12):**
 > [`docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md`](docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
-> (T01–T27 + 72 fine tasks; 1% tier = federation-hub unblockers `catalog.index.json` +
-> `skip-bootstrap-files`; harvested from the 2026-09-23 data-mesh conformance session —
-> the 2026-09-22 T-plan above remains active for its items). This file remains the living source of truth.
+> (T01–T27 + 72 fine tasks) — EXECUTED to completion 2026-09-23/24 (reports:
+> [12-26](docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md),
+> [13-32](docs/status/2026-09-24_13-32_data-mesh-completion-session.md)); the open tail
+> is the section below. This file remains the living source of truth.
 
 ## Section index
 
 [Legend](#legend) ·
-[EventCatalog exporter options](#eventcatalog-exporter-options-routed-from-the-systemnix-federation-hub-2026-09-23) ·
-[Data-mesh & federation follow-ups](#data-mesh--federation-follow-ups-2026-09-23-plan) ·
+[Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
 [Command-side depth](#command-side-domain-depth-2026-09-13-plan) ·
@@ -70,60 +70,50 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 ---
 
-## EventCatalog exporter options (routed from the SystemNix federation hub, 2026-09-23)
+## Data-mesh & federation tail (2026-09-24)
 
-Source: SystemNix plan `docs/planning/2026-09-22_23-27_EVENTCATALOG-FEDERATION-HUB.md` T13
-(the hub at `github:LarsArtmann/eventcatalog-hub` union-merges per-source exports from
-the catalog module's `eventcatalog` exporter; both options below serve that pipeline).
+The 2026-09-23 plan (T01–T27, f01–f72) is COMPLETE — CHANGELOG `[Unreleased]`
+receipts for the exporter wave (manifest, `WithSkipBootstrapFiles`, `WithPlainRefIDs`,
+`Flow.Owners`, docserver DataProducts, E019, mesh-demo, cookbook recipes, gRPC v5
+guide); hub-side work (merge gate, per-source governance lint, stale-source probe,
+mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
+[12-26 report](docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md) ·
+[13-32 report](docs/status/2026-09-24_13-32_data-mesh-completion-session.md). Open tail:
 
-- [ ] **Export `catalog.index.json` (golden-tested)** — a machine-readable manifest of
-      every exported resource (id, version, kind, file path) emitted alongside the MDX tree.
-      Lets the hub diff builds cheaply (change detection, PR gates) without walking MDX
-      frontmatter. Golden test like `ec-fixture`'s render validation. _(Effort: M)_
-- [ ] **`skip-bootstrap-files` export option** — let CI exports omit the generated
-      `package.json`/`eventcatalog.config.js`/bootstrap files (the hub owns its own; the
-      merge currently relies on first-wins copy semantics to keep hub bootstrap files).
-      Default stays current behavior. _(Effort: S)_
-- Related finding (context for whoever picks this up): `@eventcatalog/linter` resolves
-  producer/consumer refs against versioned resource dirs while our exporter writes
-  unversioned `services/<id>/index.mdx` — every ref flags `refs/resource-exists`. Also
-  message/container-level `owners` are not emitted (services only). Both are currently
-  `warn`-suppressed in the hub's `.eventcatalogrc.js`; fixing them here re-arms those
-  rules. _(Effort: M)_
-
----
-
-## Data-mesh & federation follow-ups (2026-09-23 plan)
-
-Source: [plan 2026-09-23_22-12](docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
-(harvested from the [data-mesh conformance session](docs/status/2026-09-23_18-09_data-mesh-conformance-assessment-session.md)).
-T01–T04 = the EventCatalog exporter section above (hub unblockers + lint re-arming) —
-not duplicated here. Cross-repo items (T22–T24) are pointers; per decision D3 they are
-executed in `eventcatalog-hub`.
-
-- [ ] 🔥 **T05 — Data-mesh conformance mapping doc** (`docs/architecture-understanding/`,
-      Cordis cross-links; D1). _(Effort: M)_
-- [ ] 🔥 **T06/T07 — ADRs: federated-query rejected (formalize meta-engine-design.md:116) +
-      mesh policy enforcement non-goal (D2)**. _(Effort: S each)_
-- [ ] 🔥 **T08–T10 — `example/mesh-demo`**: two bounded contexts, bilateral
-      `Sends`/`Receives`, hub-mergeable exports, dry-run merge script. _(Effort: L)_
-- [ ] **T11 — recipes.md: declare data products + contracts** (verified missing) +
-      doc-check catalog entry. _(Effort: M)_
-- [ ] **T13–T15 — mesh docs**: journal-as-outbox replication, contract evolution
-      (upcasting ↔ DataContract), serving ports (ServeSSE). _(Effort: M total)_
-- [ ] **T16 — docserver renders DataProducts** (verified missing) + nav/test. _(Effort: S)_
-- [ ] **T17 — verify api-stability golden covers DataProduct/DataContract**. _(Effort: S)_
-- [ ] **T18 — cqrs-lint advisory: DataProduct without output contract**. _(Effort: M)_
-- [ ] **T19 — gRPC v5 migration guide** (sync cross-service contracts → HTTP/SSE/broker). _(Effort: M)_
-- [ ] **T20 — ROADMAP positioning entry** (check Declined guard first). _(Effort: S)_
-- [ ] **T21 — goal-shaped-app: data-product materialized view via cqrs.yaml**. _(Effort: M)_
-- [ ] **T22–T24 — [cross-repo, eventcatalog-hub]** stale-source CI, fail-on-dangling
-      coeffects, owners dedupe. _(Effort: M each, hub repo)_
-- [ ] **T25 — investigate EventCatalog SLA/freshness schema → proposal**. _(Effort: S)_
-- [ ] **T26 — spot-verify session single-source claims** (watermill brokers, ADR-016,
-      DeploymentConfig fields). _(Effort: S)_
-- [x] ~~T12/T27 — harvest + cross-links~~ (done 2026-09-23 with this plan: this section,
-      header pointer; status-report addendum pending its own session)
+- [ ] [BLOCKED] 🔥 **Cut the catalog/v4.6+ tag wave** (manifest + options + owners +
+  docserver + E019 surface) — owner go-ahead pending (13-32 §g2); the new
+  `tag_zip_content_check` pre-push guard is in place (`scripts/tag-release.sh`).
+  Unblocks the mesh-demo replace-strip + bank-sync/cqrs-htmx lint adoption.
+  — source: 12-26 §f11, 13-32 §f14 _(Effort: M)_
+- [ ] [BLOCKED] 🔥 **Poisoned-tag surgery** — retract + re-cut
+  `metaengine/tursoengine/v4.2.0` (binary-junk zip); decide `storage/v4.10.0`
+  re-cut vs retraction (re-creating a deleted tag re-poisons cached absence;
+  retraction leaves published system/v4.9.0's graph broken) — owner call, 13-32 §g3.
+  — source: 12-26 §d3/§d4, 13-32 §f16 _(Effort: S)_
+- [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
+  once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
+  (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
+- [ ] **Pin-sweep after the catalog tag** — strip mesh-demo's pre-release
+  `replace ../../catalog`, bump example pins to the new tag. — source: 12-26 §f14,
+  13-32 §f15 _(Effort: S)_
+- [ ] **Weekly "proxy resolves every module's latest tag" probe** — the poisoned-tag
+  class ships silently otherwise; the zip-content guard protects FUTURE tags only.
+  — source: 12-26 §e1, 13-32 §f17 _(Effort: M)_
+- [ ] **changelog gate: flag uncited consumer-visible surface** — diff api_surface.txt
+  exports + new modules vs CHANGELOG mentions (the mesh-demo/E019/docserver miss
+  stayed green through the blind spot). — source: 12-26 §e2, 13-32 §f18 _(Effort: M)_
+- [ ] **mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
+  demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
+- [ ] **cqrs-lint E019: non-literal DataProduct scanner support** — variable-passed
+  products are invisible today. — source: 13-32 §f21 _(Effort: M)_
+- [ ] **docserver: DataProduct badges + hidden-flag rendering** — declared but
+  unrendered fields. — source: 13-32 §f22 _(Effort: S)_
+- [ ] **check-eventcatalog: lockfile-pin the linter install** — `@1.1.20` is ad hoc
+  today. — source: 13-32 §f23 _(Effort: S)_
+- [ ] **cqrs-lint D007 repair-path "unsafe path" failures** — report-only in
+  pre-commit; the repair path is broken repo-wide. — source: 12-26 §d6, 13-32 §f25 _(Effort: M)_
+- [ ] 🔥 **Address the 3 high Dependabot vulnerabilities on master** — carried since
+  the 2026-09-23 session. — source: 12-26 §d8, 13-32 §f26 _(Effort: M)_
 
 ---
 

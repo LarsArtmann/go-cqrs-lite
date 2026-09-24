@@ -6,6 +6,20 @@
 
 **Verschlimmbessern guard:** every task is additive (new docs, new options, new examples, new lint advisories). No task rewrites existing exporter behavior for existing consumers without a default-preserving option. Nothing here touches v4 API surface destructively.
 
+> **Execution status (2026-09-24): COMPLETE — T01–T27 shipped; open tail in
+> TODO_LIST "Data-mesh & federation tail".** Evidence:
+> [`docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md`](../status/2026-09-24_12-26_data-mesh-pareto-execution-session.md)
+> (T01–T21 + receipts) and
+> [`docs/status/2026-09-24_13-32_data-mesh-completion-session.md`](../status/2026-09-24_13-32_data-mesh-completion-session.md)
+> (T22–T27 tail, hub phase, guard hardening). Deviations from plan mechanics
+> (goals survived, three mechanisms corrected by experiment — see the 12-26
+> report §e6): T03's versioned-dir mechanism was replaced by `WithPlainRefIDs`
+> (a dual-profile export); hub work landed 2026-09-24 per D3; T21 shipped as a
+> documented config block, BLOCKED on the poisoned tursoengine tag; T25
+> concluded "no SLA/freshness schema upstream" → ROADMAP raw idea. Owner-gated
+> leftovers: catalog tag wave, poisoned-tag surgery, pushes. Original plan
+> text below, unchanged.
+
 ---
 
 ## Decisions (autonomous, user-overridable)
