@@ -167,6 +167,44 @@ func TestExport_PlainRefsAndSkipBootstrapOptionsWork(t *testing.T) {
 	}
 }
 
+// TestExport_GovernanceLintContract pins the per-source hygiene the hub's
+// governance lint (@eventcatalog/linter on a plain-refs re-export) demands:
+// every declared data-product contract FILE must exist in the export (the
+// exporter copies nothing), and every team member must resolve to a declared
+// user. Cross-source refs are exempt per-source (they resolve only in the
+// hub's merged union — enforced by merge.py's strict gate), so these two
+// intra-source invariants are what keeps a source lint-clean.
+func TestExport_GovernanceLintContract(t *testing.T) {
+	for _, tc := range []struct {
+		domain        string
+		contractPath  string
+		memberUserMDX string
+	}{
+		{"orders", "data-products/order-lifecycle/contracts/order-placed.yaml", "users/marta.mdx"},
+		{"billing", "data-products/billing-ledger/contracts/invoice-issued.yaml", "users/juno.mdx"},
+	} {
+		dir := t.TempDir()
+		if err := exportDomain(
+			tc.domain,
+			dir,
+			exportOptions{plain: true, skipBootstrap: true},
+		); err != nil {
+			t.Fatalf("export %s: %v", tc.domain, err)
+		}
+
+		for _, path := range []string{tc.contractPath, tc.memberUserMDX} {
+			if _, err := os.Stat(filepath.Join(dir, filepath.FromSlash(path))); err != nil {
+				t.Errorf(
+					"%s export missing %s (governance lint would fail): %v",
+					tc.domain,
+					path,
+					err,
+				)
+			}
+		}
+	}
+}
+
 func keysOf(m map[string]string) []string {
 	out := make([]string, 0, len(m))
 	for k := range m {

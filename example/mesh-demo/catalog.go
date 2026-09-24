@@ -8,6 +8,9 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 )
@@ -88,6 +91,9 @@ func buildOrdersCatalog() *catalog.Catalog {
 	reg.AddTeam(catalog.Team{
 		ID: ordersTeamID, Name: "Orders Team", Summary: "Owns ordering", Members: []string{"marta"},
 	})
+	reg.AddUser(catalog.User{
+		ID: "marta", Name: "Marta Vega", Role: "Lead Engineer", Email: "marta@orders.example.com",
+	})
 
 	return reg.Build()
 }
@@ -147,6 +153,9 @@ func buildBillingCatalog() *catalog.Catalog {
 		ID: billingTeamID, Name: "Billing Team", Summary: "Owns invoicing",
 		Members: []string{"juno"},
 	})
+	reg.AddUser(catalog.User{
+		ID: "juno", Name: "Juno Ray", Role: "Staff Engineer", Email: "juno@billing.example.com",
+	})
 
 	return reg.Build()
 }
@@ -180,5 +189,89 @@ func exportDomain(domain, outDir string, opts exportOptions) error {
 		options = append(options, eventcatalog.WithSkipBootstrapFiles())
 	}
 
-	return eventcatalog.NewExporter(outDir, options...).Export(cat)
+	if err := eventcatalog.NewExporter(outDir, options...).Export(cat); err != nil {
+		return err
+	}
+
+	return writeDomainContracts(domain, outDir)
 }
+
+// domainContract locates a bounded context's data-product output contract
+// file inside the export tree.
+type domainContract struct {
+	dataProduct string // owning data product (directory name)
+	file        string // contract file name under contracts/
+	content     string
+}
+
+var domainContracts = map[string]domainContract{
+	"orders": {
+		dataProduct: "order-lifecycle",
+		file:        "order-placed.yaml",
+		content:     orderPlacedContract,
+	},
+	"billing": {
+		dataProduct: "billing-ledger",
+		file:        "invoice-issued.yaml",
+		content:     invoiceIssuedContract,
+	},
+}
+
+// writeDomainContracts materializes the data-product output contract FILES.
+// The exporter copies nothing — a declared contract path is a promise the
+// declaring repo keeps by shipping the file itself (same rule as
+// catalog/cmd/ec-fixture). The hub's per-source governance lint
+// (refs/file-exists) fails the build when a declared path is missing.
+func writeDomainContracts(domain, outDir string) error {
+	contract, ok := domainContracts[domain]
+	if !ok {
+		return errUnknownDomain
+	}
+
+	dir := filepath.Join(outDir, "data-products", contract.dataProduct, "contracts")
+	if err := os.MkdirAll(dir, 0o750); err != nil {
+		return err
+	}
+
+	return os.WriteFile(filepath.Join(dir, contract.file), []byte(contract.content), 0o600)
+}
+
+// orderPlacedContract is the bilateral order.placed contract billing codes
+// against (mirrors OrderPlacedPayload).
+const orderPlacedContract = `# Data contract: order.placed (bilateral, orders -> billing)
+id: order-placed
+owner: orders-team
+type: event
+version: 1.0.0
+description: Emitted when an order is placed and awaits invoicing
+fields:
+  - name: orderId
+    type: string
+    required: true
+  - name: customerId
+    type: string
+    required: true
+  - name: totalCents
+    type: integer
+    required: true
+`
+
+// invoiceIssuedContract is the bilateral invoice.issued contract orders
+// folds (mirrors InvoiceIssuedPayload).
+const invoiceIssuedContract = `# Data contract: invoice.issued (bilateral, billing -> orders)
+id: invoice-issued
+owner: billing-team
+type: event
+version: 1.0.0
+description: Emitted when billing issues an invoice for an order
+fields:
+  - name: invoiceRef
+    type: string
+    required: true
+  - name: orderId
+    type: string
+    required: true
+  - name: amountCents
+    type: integer
+    required: true
+`
