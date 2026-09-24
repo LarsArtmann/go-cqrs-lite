@@ -109,7 +109,8 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			}
 		}
 
-	case funcName == "AddDataProduct" && IsQualifierFor(gf, sel, "go-cqrs-lite/catalog"):
+	case funcName == "AddDataProduct" && (IsQualifierFor(gf, sel, "go-cqrs-lite/catalog") ||
+		argIsCatalogDataProduct(call)):
 		scanDataProductDeclaration(ctx, gf, call)
 
 	case funcName == "NewProjection":

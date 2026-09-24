@@ -12,7 +12,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 10 | P001–P014 |
 | [Consistency](#consistency) | 18 | D001–D019 |
-| [Architecture](#architecture) | 18 | E001–E018 |
+| [Architecture](#architecture) | 19 | E001–E019 |
 | [Security](#security) | 10 | S001–S011 |
 | [Testing](#testing) | 8 | T001–T008 |
 | [Version](#version) | 7 | V001–V007 |
@@ -1242,6 +1242,14 @@ signal.Notify without GracefulClose/Stop — in-flight events lost on SIGTERM
 Severity: `warning` · Confidence: `medium` · Auto-fix: no · Category: `architecture`
 
 Projection handles an event type nothing emits or catalogs — typo class, mirror of E006; fold-side twin: C040
+
+<a id="e019"></a>
+
+#### E019 — `data-product-without-contract`
+
+Severity: `info` · Confidence: `high` · Auto-fix: no · Category: `architecture`
+
+Data product serves outputs without a DataContract (or declares no outputs) — consumers get no schema or version pin; advisory contract-completeness check
 
 
 ## Security

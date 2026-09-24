@@ -58,6 +58,26 @@ func firstCompositeLitArg(call *ast.CallExpr) *ast.CompositeLit {
 	return nil
 }
 
+// argIsCatalogDataProduct reports whether the call's payload argument is a
+// composite literal explicitly typed catalog.DataProduct — the fallback
+// signal when the receiver cannot be resolved to the catalog package (a
+// Registry method value whose qualifier is a plain variable ident).
+func argIsCatalogDataProduct(call *ast.CallExpr) bool {
+	lit := firstCompositeLitArg(call)
+	if lit == nil {
+		return false
+	}
+
+	sel, ok := lit.Type.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+
+	pkg, ok := sel.X.(*ast.Ident)
+
+	return ok && pkg.Name == "catalog" && sel.Sel.Name == "DataProduct"
+}
+
 // countContractedOutputs counts the elements of an Outputs literal and how
 // many carry a non-nil Contract key.
 func countContractedOutputs(expr ast.Expr) (total, contracted int) {
