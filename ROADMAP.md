@@ -355,6 +355,36 @@ Both items explicitly committed to in the 2026-08-03 ADR review are now DONE:
 
 ### 10. Iroh Distributed Engine (ADR-0096)
 
+### 11. Data-Mesh-Ready SDK (positioning, 2026-09-24)
+
+> Honest status: **PARTIAL — the strongest three of the four Dehghani
+> principles are real mechanics, the fourth is deliberately bounded.**
+> Full conformance mapping:
+> [`docs/architecture-understanding/2026-09-24_data-mesh-conformance-mapping.md`](docs/architecture-understanding/2026-09-24_data-mesh-conformance-mapping.md).
+
+The positioning: **a data-mesh-ready SDK per bounded context** — it powers
+the cells, not the mesh. Shipped:
+
+- **Domain ownership (strong)** — deciders own state per context; branded
+  stream IDs; `catalog.Domain` + ubiquitous language.
+- **Data as a product (first-class)** — typed `DataProduct`/`DataContract`
+  with owners, input/output ports; EventCatalog renders them (exporter +
+  docserver); `catalog.index.json` manifest per export; cqrs-lint E019
+  contract-completeness advisory.
+- **Self-serve platform (strong)** — `system.New`'s compiler-enforced
+  DomainConfig/DeploymentConfig split; `cqrs.yaml`; operator-picked engines.
+- **Federated governance (partial, by design)** — three-tier coeffect
+  validation + lint-clean governance exports (`WithPlainRefIDs`,
+  full-severity `check-eventcatalog`); the MESH-level enforcement and
+  cross-source checks live in the eventcatalog-hub, not here (ADR-0147);
+  federated queries are rejected outright — journal replication is the
+  cross-domain mechanism (ADR-0146). The living proof is
+  `example/mesh-demo` (two contexts, bilateral contracts, hub-mergeable
+  exports).
+
+Next in this lane: the hub-side CI items (stale-source detection,
+fail-on-dangling coeffects at merge) tracked in the eventcatalog-hub repo.
+
 Evaluating Iroh (Rust CRDT) as a distributed metaengine backend. The
 replication model (ADR-0093) established the foundation; Iroh would be the
 first `ReplicationLeaderless` engine.
@@ -821,6 +851,12 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 
 - **Framework opinions** — the library will never mandate a transport, message
   broker, or SQL driver. Consumers compose their own stack.
+- **Federated query engine** — rejected (ADR-0146): cross-domain data flows
+  ride journal replication (outbox + `CatchUpSubscriber`), never query-time
+  federation across independently owned domains.
+- **Mesh-level policy enforcement** — non-goal (ADR-0147): the library makes
+  each repo's export trustworthy and machine-checkable; cross-source
+  contract adjudication belongs to the federation hub.
 - **Splitting the `event/` module** — re-reviewed 2026-09-13: 41 modules
   direct-require it (27 at the 2026-06-29 decision; 66 dirs incl. tests) and
   the seam has zero composability payoff — not one importer uses the

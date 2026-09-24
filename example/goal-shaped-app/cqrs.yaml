@@ -17,6 +17,14 @@ engines:
     driver: sqlite
     dsn: goal.db
     pragmas: ["journal_mode=WAL", "busy_timeout=5000"]
+    # The "task stats" DATA PRODUCT's output port, served by the operator:
+    # an O(1) scalar view over the tasks collection (see ADR-0135 — views
+    # are a deployment-time acceleration, developers never declare them).
+    # Scalar COUNT views are exact; grouped views carry an upstream
+    # correctness caveat (readmodels.md §Materialized-view acceleration).
+    materialized_views:
+      - collection: tasks
+        fn: COUNT
 instances:
   - role: source-of-truth
     engine: primary
