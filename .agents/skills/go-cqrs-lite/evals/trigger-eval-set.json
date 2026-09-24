@@ -20,6 +20,10 @@
     "should_trigger": true
   },
   {
+    "query": "in go-cqrs-lite what is the single composition root and how do I pick different storage engines per deployment (sqlite in dev, postgres in prod) without changing my domain code?",
+    "should_trigger": true
+  },
+  {
     "query": "We want tamper-proof event streams — cryptographically sign events so we can detect if anyone tampered with the store. Also need to encrypt sensitive payloads at rest. Go backend, CQRS architecture.",
     "should_trigger": true
   },

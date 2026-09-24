@@ -55,6 +55,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [go-graph-rag](#go-graph-rag-feedback-follow-ups-2026-09-15-triaged-2026-09-19) ·
 [92-tag tail](#92-tag-release-train-tail-2026-09-20-harvest) ·
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
+[Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
@@ -1249,6 +1250,52 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 - [ ] **Upstream `requestContextEnricher` into `event/`** — cqrs-htmx's usermgmt carries a local copy (correlation/request-ID metadata enricher, `audit_context.go`) because no upstream enricher covers it. Upstreaming it lets the local copy drop at the next family train. Source: cqrs-htmx TODO_LIST P3 ask (3); verify pass there 2026-09-22.
 - [ ] **`system.New` checkpoint/DLQ store options** — the declarative composition root uses an internal in-memory checkpoint store, so consumers needing durable checkpoints or dead letters cannot use it (ADR-0051's accepted limitation keeps cqrs-htmx's `NewProjectionLayer` consumers pinned until this lands). Source: cqrs-htmx ADR-0051 + TODO_LIST P3 ask (4).
 - [ ] **`System.Explain`: include per-query Volume/placement in the topology view** — Explain currently shows drivers/engines/collection counts; the metaengine cost-based planner's Volume hints (which cqrs-htmx's systemadapter declarations all carry) are invisible for introspection. Verified absent against system/v4.9.0 on 2026-09-22 (empirical run: topology prints collections count only).
+
+## go-cqrs-lite skill hard-block refocus (2026-09-24 harvest)
+
+Source report: `~/projects/crush-config/docs/status/2026-09-24_13-59_go-cqrs-lite-skill-repoint-and-refocus.md` §f.
+The skill now hard-requires `system` + `metaengine` for new apps (ADR-0123) and
+refuses to guide manual composition; these are the surviving content/tooling
+follow-ups from that refocus. (Resolved in the same pass and therefore not listed:
+`metadata.tags` gained `composition-root`/`metaengine`; both eval JSON files were
+refreshed; the stale global fan-out symlink was healed.)
+
+- [ ] 🔥 **Rewrite the SSE + read-model routing matrices to lead with system/metaengine** —
+      both matrices still present the deprecated v1 tiers (`stack.Materialize`,
+      `storage.RelationalProjection`, `transport/http.SSEBroker`) as peers rather than
+      demoted rows. Evidence: `.agents/skills/go-cqrs-lite/SKILL.md` §Routing Decision
+      Matrices. — source: report §f16 _(Effort: M)_
+- [ ] **Add a runnable `system.New` quickstart snippet to the skill front page** — the
+      hard-block section names the API but shows no code; `references/core.md:47-110` has
+      one to lift. Evidence: `SKILL.md:13-24`. — source: report §f22 _(Effort: S)_
+- [ ] **Audit `references/modules.md` engine rows for completeness** — the corrected
+      description lists 12 engines (built-in memory + 11 `metaengine/*engine` dirs);
+      modules.md's per-engine rows were not re-audited after the fix. — source: report
+      §f13/§d4 _(Effort: S)_
+- [ ] **Reconcile v5-removed tiers' mentions across all skill references** — deprecation
+      markers exist in modules.md and the matrices, but references still describe the
+      removed tiers in detail; sweep for stragglers. — source: report §f21 _(Effort: M)_
+- [ ] **Cross-link `metaengine/COOKBOOK.md` from `references/readmodels.md`** — the
+      canonical copy-paste patterns live in the cookbook; readmodels.md does not link it.
+      — source: report §f23 _(Effort: S)_
+- [ ] **State `system` + `metaengine` experimental status in the skill** — both are
+      Experimental in `FEATURES.md`; a hard block on experimental modules should say so.
+      — source: report §f25 _(Effort: S)_
+- [ ] **Add an ADR-0123 hyperlink to the skill's hard-block section** — currently named
+      but not linked. — source: report §f26 _(Effort: XS)_
+- [ ] **Check whether `stack` presets still emit deprecation warnings** — if silent, add
+      warnings or a doc note so manual composition is visibly legacy. — source: report
+      §f27 _(Effort: S)_
+- [ ] **Verify `system` accessor list against current code before further skill edits** —
+      the description enumerates accessors that should be re-derived, not restated. —
+      source: report §f24 _(Effort: S)_
+- [ ] **Load `user:go-cqrs-lite` in a fresh Crush session** to verify the new frontmatter
+      parses and the description triggers. — source: report §f11 _(Effort: S)_
+- [ ] **Execute the refreshed evals** (`evals/trigger-eval-set.json`, `evals/evals.json`)
+      after the description change — needs the `claude` CLI, currently blocked. — source:
+      report §f7 _(Effort: M, tooling-blocked)_
+
+---
 
 ## Declined / Rejected (do not re-litigate)
 
