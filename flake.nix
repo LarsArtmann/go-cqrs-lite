@@ -11,7 +11,11 @@
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    systems.url = "github:nix-systems/default";
+    # NOTE: deliberately NOT github:nix-systems/default — that list includes
+    # x86_64-darwin, which nixpkgs unstable (26.11+) no longer supports; keeping
+    # it failed every flake-wide walk (flake show / flake check / tooling
+    # discovery) on the unsupported-system evaluation error. The supported
+    # systems are inlined in mkFlake below.
 
     # Build infrastructure for distributable CLI packages (cmd/cqrs-lint, etc.)
     # flake=false tarballs fetched via GitHub (HTTPS) — used as local replace
@@ -73,7 +77,6 @@
       self,
       flake-parts,
       treefmt-nix,
-      systems,
       go-nix-helpers,
       go-finding,
       cmdguard,
@@ -176,7 +179,11 @@
         };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = import systems;
+      systems = [
+        "aarch64-linux"
+        "x86_64-linux"
+        "aarch64-darwin"
+      ];
 
       imports = [
         treefmt-nix.flakeModule
