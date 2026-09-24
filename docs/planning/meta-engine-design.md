@@ -115,7 +115,8 @@ Meta-engine:
   event log.
 - **NOT a federated query engine.** Federated engines (Calcite, Presto) route queries across
   databases at query time. The meta-engine optimizes the physical layout at deployment time
-  so queries DON'T need to cross engines.
+  so queries DON'T need to cross engines. (Formalized as [ADR-0146](../adr/0146-no-federated-query-engine.md)
+  2026-09-24: cross-domain data flows ride journal replication, never query-time federation.)
 - **NOT a universal DB interface.** We're not hiding the engines behind one API. We're
   distributing data across engines optimally and exposing engine-specific read paths.
 - **NOT a magical silver bullet.** It makes intelligent tradeoffs. Sometimes the optimal

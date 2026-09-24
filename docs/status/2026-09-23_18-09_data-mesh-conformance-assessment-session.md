@@ -5,6 +5,20 @@
 Analysis-only session. Zero code changes, zero commits authored (working tree untouched).
 This report covers only what this session did and noticed.
 
+> **Addendum 2026-09-24 (execution session):** this report's §f items became
+> [the data-mesh Pareto plan](../planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
+> (T01–T27), which is being executed. Durable landing spots so far:
+> [data-mesh conformance mapping](../architecture-understanding/2026-09-24_data-mesh-conformance-mapping.md)
+> (D1), [ADR-0146](../adr/0146-no-federated-query-engine.md) (federated
+> queries: rejected, replication instead — formalizes the `meta-engine-design.md:116`
+> line cited in row 5 below), and
+> [ADR-0147](../adr/0147-mesh-policy-enforcement-non-goal.md) (D2: mesh-level
+> policy enforcement is a hub concern, not a library one — answers §g Q3).
+> The "federated governance: partial" verdict's exporter-side blockers are
+> lifted: `WithPlainRefIDs` + owners-on-every-kind exports now lint clean at
+> full severity (`nix run .#check-eventcatalog`), and `catalog.index.json`
+> gives the hub machine-readable change detection.
+
 ---
 
 ## a) FULLY DONE

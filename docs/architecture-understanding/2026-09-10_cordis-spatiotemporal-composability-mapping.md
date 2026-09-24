@@ -6,6 +6,10 @@
 >
 > - Shi, Zhang, Cui — _A Programming Paradigm for Spatiotemporal Composability_ (arXiv:2608.25512, cs.PL, Aug 2026; Peking University + DeepSeek-AI). Full text has no arXiv HTML rendering; grounding = the detailed abstract + the DeepSeek Harness Cordis primer (`deepseek-harness.github.io/deepseek-harness/reference/cordis-primer`), whose authors overlap with the paper.
 > - Repo state as of `master` @ 23ffe380a; every cited mechanism spot-verified with `rg` before writing.
+>
+> **Companion mapping (2026-09-24):** [go-cqrs-lite → Data Mesh](2026-09-24_data-mesh-conformance-mapping.md)
+> projects the same two axes (developer coeffects / operator config) onto
+> Dehghani's four data-mesh principles.
 
 ---
 

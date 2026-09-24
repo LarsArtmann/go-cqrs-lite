@@ -245,5 +245,10 @@ watermill/     — Watermill protocol adapter
 | [0140](0140-vector-distance-semantics-contract.md) | Vector Distance-Semantics Contract (One Ranking, Every Engine) | 2026-09-16 | Accepted |
 | [0141](0141-native-temporal-versioned-cells.md) | Native Temporal Versioned Cells (BigTable-Aligned) | 2026-09-18 | Accepted |
 | [0142](0142-universal-storage-substrate.md) | Universal Storage Substrate (Every Durable Write Rides an Engine) | 2026-09-18 | Accepted |
+| [0143](0143-engine-reset-never-deletes-the-journal.md) | Engine Reset Never Deletes the Journal | 2026-09-19 | Accepted |
+| [0144](0144-deferclose-lives-in-tier0-record.md) | DeferClose Lives in Tier-0 `record` | 2026-09-20 | Accepted |
+| [0145](0145-retry-idioms-are-per-concern.md) | Retry Idioms Are per-Concern | 2026-09-21 | Accepted |
+| [0146](0146-no-federated-query-engine.md) | No Federated Query Engine — Replication Is the Cross-Domain Mechanism | 2026-09-24 | Accepted |
+| [0147](0147-mesh-policy-enforcement-non-goal.md) | Mesh-Level Policy Enforcement Is an Explicit Non-Goal | 2026-09-24 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).
