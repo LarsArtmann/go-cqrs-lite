@@ -120,47 +120,47 @@ proxy_smoke_check() {
 	exit 1
 	}
 
-	# tag_zip_content_check <tag>: reject a tag whose tree would produce a
-	# malformed proxy zip, BEFORE the push makes it irreversible. The observed
-	# class (metaengine/tursoengine/v4.2.0: zip contained files with \x06 control
-	# characters — every consumer 'go get' failed with "malformed file path";
-	# only retraction fixes a served tag). Guard classes:
-	#   1. any path with bytes outside printable ASCII — control characters are
-	#      invisible in everyday git status output (git merely quotes the path)
-	#   2. any blob over 4 MiB — nothing legitimate in this repo comes close
-	#      (largest tracked asset: catalog/docserver/static/scalar.js, 3.7 MiB);
-	#      bulk binary junk is exactly what poisoned the tag above. If a >4 MiB
-	#      asset is ever intentional, raise the threshold consciously — never
-	#      by deleting the guard.
-	tag_zip_content_check() {
-		local tag="$1"
-		local bad=0 entry path
+# tag_zip_content_check <tag>: reject a tag whose tree would produce a
+# malformed proxy zip, BEFORE the push makes it irreversible. The observed
+# class (metaengine/tursoengine/v4.2.0: zip contained files with \x06 control
+# characters — every consumer 'go get' failed with "malformed file path";
+# only retraction fixes a served tag). Guard classes:
+#   1. any path with bytes outside printable ASCII — control characters are
+#      invisible in everyday git status output (git merely quotes the path)
+#   2. any blob over 4 MiB — nothing legitimate in this repo comes close
+#      (largest tracked asset: catalog/docserver/static/scalar.js, 3.7 MiB);
+#      bulk binary junk is exactly what poisoned the tag above. If a >4 MiB
+#      asset is ever intentional, raise the threshold consciously — never
+#      by deleting the guard.
+tag_zip_content_check() {
+	local tag="$1"
+	local bad=0 entry path
 
-		while IFS= read -r -d '' entry; do
-			path="${entry#*$'\t'}"
-			if printf '%s' "$path" | LC_ALL=C grep -q '[^ -~]'; then
-				echo "ERROR: ${tag} tree contains a path with control/non-printable characters:"
-				printf '  %q\n' "$path"
-				bad=1
-			fi
-		done < <(git ls-tree -r -z "$tag")
-
-		local oversized
-		oversized="$(git ls-tree -r -l "$tag" | awk -F'\t' '{ split($1, m, " "); if (m[4] ~ /^[0-9]+$/ && m[4]+0 > 4*1024*1024) print m[4] " " $2 }')"
-		if [ -n "$oversized" ]; then
-			echo "ERROR: ${tag} tree contains blob(s) over 4 MiB (binary junk?):"
-			printf '%s\n' "$oversized" | sed 's/^/  /'
+	while IFS= read -r -d '' entry; do
+		path="${entry#*$'\t'}"
+		if printf '%s' "$path" | LC_ALL=C grep -q '[^ -~]'; then
+			echo "ERROR: ${tag} tree contains a path with control/non-printable characters:"
+			printf '  %q\n' "$path"
 			bad=1
 		fi
+	done < <(git ls-tree -r -z "$tag")
 
-		if [ "$bad" -ne 0 ]; then
-			echo ""
-			echo "A PUSHED tag with any of the above is unfixable without retraction"
-			echo "(every 'go get' of it fails). Fix the tree, re-cut the tag."
-			return 1
-		fi
-		echo "✓ zip-content guard: no control-char paths, no blobs over 4 MiB"
-	}
+	local oversized
+	oversized="$(git ls-tree -r -l "$tag" | awk -F'\t' '{ split($1, m, " "); if (m[4] ~ /^[0-9]+$/ && m[4]+0 > 4*1024*1024) print m[4] " " $2 }')"
+	if [ -n "$oversized" ]; then
+		echo "ERROR: ${tag} tree contains blob(s) over 4 MiB (binary junk?):"
+		printf '%s\n' "$oversized" | sed 's/^/  /'
+		bad=1
+	fi
+
+	if [ "$bad" -ne 0 ]; then
+		echo ""
+		echo "A PUSHED tag with any of the above is unfixable without retraction"
+		echo "(every 'go get' of it fails). Fix the tree, re-cut the tag."
+		return 1
+	fi
+	echo "✓ zip-content guard: no control-char paths, no blobs over 4 MiB"
+}
 
 # smoke_install_and_run installs module@ver from the PROXY into a clean
 ## GOBIN and runs it with its probe invocation. The install is a hard gate: a

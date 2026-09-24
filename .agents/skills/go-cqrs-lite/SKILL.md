@@ -113,3 +113,12 @@ go-cqrs-lite has **two SSE implementations** (ADR-0091: kept separate — differ
 | In-process, fast, ephemeral | `go-idempotency`       | `MemoryStore`                         |
 | SQL-backed, persistent      | `idempotency/sqlstore` | `NewSQLiteStore` / `NewPostgresStore` |
 | KV-backed (Pebble, etc.)    | `idempotency/kvstore`  | `KVStore` with any `kv.Store`         |
+
+### Catalog exports: render tree vs governance tree
+
+One catalog, TWO exports. `@eventcatalog/core` resolves composite
+`"<id>-<version>"` refs (its visualiser graph edges use them); the
+`@eventcatalog/linter` indexes bare frontmatter IDs and can never resolve the
+composite form. Export the DEFAULT tree for rendering; re-export with
+`catalog.WithPlainRefIDs` (and `WithSkipBootstrapFiles` in CI) for linting —
+details in `catalog/README.md` ("Governance exports") and recipes §2.41.

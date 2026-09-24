@@ -10,6 +10,8 @@
 # 5. release_common.sh unit tests: path_matches_major / module_has_root_main /
 #    smoke_probe_args (one shared implementation — no fork between scripts)
 # 6. --audit --baseline gates on NEW violations only; --write-baseline writes
+# 7. (see Test 7+) — and the zip-content guard: control-char paths and >4 MiB
+#    blobs kill the tag before push (tursoengine/v4.2.0 class); clean trees pass
 #
 # Run: bash scripts/test-tag-release.sh
 set -euo pipefail
@@ -205,6 +207,46 @@ check "tree fully restored" bash -c "git -C \"\$0\" status --porcelain | wc -l |
 check "no build artifact left behind" bash -c "test ! -e \"\$0/good/good\"" "$TMPROOT/t6"
 check "worktree go.mod keeps the local replace" bash -c "grep -q 'replace github.com/example/fixture/dead => ../dead' \"\$0/good/go.mod\"" "$TMPROOT/t6"
 check "tagged go.mod has the replace stripped" bash -c "! git -C \"\$0\" show good/v2.0.2:good/go.mod | grep -q 'replace github.com/example/fixture/dead'" "$TMPROOT/t6"
+
+echo "━━━ Test 9: zip-content guard rejects a control-char path ━━━"
+# The tursoengine/v4.2.0 class: a path with an embedded control byte renders
+# a proxy zip no 'go get' can extract. The guard must kill the tag BEFORE
+# the push hint and clean up both tag and temp commit.
+fixture_repo "$TMPROOT/t9"
+git -C "$TMPROOT/t9" config tag.gpgSign false
+git -C "$TMPROOT/t9" config tag.forceSignAnnotated false
+badname="bad"$'\x06'"file"
+printf 'junk\n' >"$TMPROOT/t9/good/$badname"
+test -e "$TMPROOT/t9/good/$badname" || { echo "  ✗ FAIL: fixture did not create control-char file"; FAILED=1; }
+git -C "$TMPROOT/t9" add -A
+git -C "$TMPROOT/t9" commit -qm poison
+out="$(cd "$TMPROOT/t9" && bash "$SCRIPT" good v2.0.3 "poisoned" 2>&1)" && rc=0 || rc=$?
+check "release exits nonzero on control-char path" test "$rc" -ne 0
+check "guard names the class" bash -c "printf '%s' \"\$0\" | grep -q 'control/non-printable characters'" "$out"
+check "guard says retraction is the alternative" bash -c "printf '%s' \"\$0\" | grep -q 'unfixable without retraction'" "$out"
+check "no tag was left behind" bash -c "! git -C \"\$0\" tag -l good/v2.0.3 | grep -q ." "$TMPROOT/t9"
+check "tree fully restored after guard" bash -c "git -C \"\$0\" status --porcelain | wc -l | grep -qx 0" "$TMPROOT/t9"
+
+echo "━━━ Test 10: zip-content guard rejects a >4 MiB blob ━━━"
+fixture_repo "$TMPROOT/t10"
+git -C "$TMPROOT/t10" config tag.gpgSign false
+git -C "$TMPROOT/t10" config tag.forceSignAnnotated false
+dd if=/dev/zero of="$TMPROOT/t10/good/blob.bin" bs=1M count=5 status=none
+git -C "$TMPROOT/t10" add -A
+git -C "$TMPROOT/t10" commit -qm bulk
+out="$(cd "$TMPROOT/t10" && bash "$SCRIPT" good v2.0.4 "bulky" 2>&1)" && rc=0 || rc=$?
+check "release exits nonzero on oversized blob" test "$rc" -ne 0
+check "guard names the blob" bash -c "printf '%s' \"\$0\" | grep -q 'blob.bin'" "$out"
+check "no tag was left behind" bash -c "! git -C \"\$0\" tag -l good/v2.0.4 | grep -q ." "$TMPROOT/t10"
+
+echo "━━━ Test 11: clean tree passes the zip-content guard ━━━"
+fixture_repo "$TMPROOT/t11"
+git -C "$TMPROOT/t11" config tag.gpgSign false
+git -C "$TMPROOT/t11" config tag.forceSignAnnotated false
+out="$(cd "$TMPROOT/t11" && bash "$SCRIPT" good v2.0.5 "clean" 2>&1)" && rc=0 || rc=$?
+check "release exits 0 on a clean tree" test "$rc" -eq 0
+check "guard success line printed" bash -c "printf '%s' \"\$0\" | grep -q 'zip-content guard: no control-char paths'" "$out"
+check "tag created" bash -c "git -C \"\$0\" tag -l good/v2.0.5 | grep -q ." "$TMPROOT/t11"
 
 if [ "$FAILED" -eq 0 ]; then
 	echo ""
