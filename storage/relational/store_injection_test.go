@@ -6,9 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
-	_ "modernc.org/sqlite"
 )
 
 func newInjectionStore(t *testing.T) *RelationalStore {

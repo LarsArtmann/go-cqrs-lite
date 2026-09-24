@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Save persists a single command.

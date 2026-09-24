@@ -3,10 +3,11 @@ package architecture_test
 import (
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/architecture"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
-	"golang.org/x/tools/go/packages"
 )
 
 // --- E001: Layer violation ---

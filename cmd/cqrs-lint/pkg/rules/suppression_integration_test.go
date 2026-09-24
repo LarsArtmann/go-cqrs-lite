@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/larsartmann/go-finding"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/suppression"
-	"github.com/larsartmann/go-finding"
 )
 
 // TestNewRulesSuppressedByInlineComment verifies that each of the 12 rules
