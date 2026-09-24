@@ -113,8 +113,8 @@ github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 h1:hY3ROnoTs7KZdz0eCa9V4M
 github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1/go.mod h1:dYEMrEHsuREOwTeVHPjBMQeBugZc/km4oD7mEpBr1A0=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2 h1:fViHIT2sakt1E6nfWZ+MRJGFN9Hjt8iD5YYkRkyXHHs=
 github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2/go.mod h1:mP//5AQ7Kt+BQ83I+dv7PpEBSyuFJmSXqyiGb6p5n6Q=
-github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0 h1:L/lWDZGDrUPU2ARYVtlOWE1kKKWwV/EETwo/5TOgO7E=
-github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.0/go.mod h1:mfJkBVyCpG33p15pwaIFhZ6x+OXjpnO3YsFPjQSLWMc=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1 h1:fz5t6NwfzrMz8W9Jc3DX+92RalGV89tGObbivp1JKzc=
+github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1/go.mod h1:80uxRnIehVUhU1TOW8U1oItWzej3fRkTM8WZFXIAC5Q=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1 h1:GR/+dcyYOcDlZfNlI1epvky4NzAtGwr4nkQoFM3BG1Q=
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1/go.mod h1:Wdh1Uu5QM/9NBdt7ds/7iUfLX2bvI/kawLT8di8fJcs=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1 h1:uzk5GupxNvWDFD1kTVV5UbIZTH98oyXEylRH4nKnWOo=
@@ -123,6 +123,8 @@ github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8
 github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
+github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
+github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykWdmJLnm8K8LdmH2JzU8=
 github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
 github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
