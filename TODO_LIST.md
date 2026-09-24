@@ -56,6 +56,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [92-tag tail](#92-tag-release-train-tail-2026-09-20-harvest) ·
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
 [Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
+[Skill hard-block late harvest](#go-cqrs-lite-skill-hard-block--late-harvest-2026-09-24) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
@@ -1294,6 +1295,29 @@ refreshed; the stale global fan-out symlink was healed.)
 - [ ] **Execute the refreshed evals** (`evals/trigger-eval-set.json`, `evals/evals.json`)
       after the description change — needs the `claude` CLI, currently blocked. — source:
       report §f7 _(Effort: M, tooling-blocked)_
+
+---
+
+## go-cqrs-lite skill hard-block — late harvest (2026-09-24)
+
+Source: `~/projects/crush-config/docs/status/2026-09-24_16-27_skill-hard-block-harvest-and-fanout-guard.md` §f.
+
+- [ ] 🔥 **Propagate the hard-block into `references/*.md`** — the front page refuses
+      manual composition, but the references still present the low-level modules as
+      routes in places; a hard rule contradicted by its own references is a split-brain.
+      — source: report §b1/§e6/§f7 _(Effort: M)_
+- [ ] **Decide the canonical surface for the hard rule** (`SKILL.md` vs reference prose)
+      and make the other defer to it. — source: report §f36 _(Effort: S)_
+- [ ] **Add negative/redirect trigger cases to the evals** — prove the skill triggers on a
+      "hand-wire event+decider" request and still redirects to `system`/`metaengine`. —
+      source: report §f37 _(Effort: S)_
+- [ ] **Add a changelog entry for the skill refocus** in this repo's `CHANGELOG.md` — the
+      skill/evals/TODO changes were only auto-committed with heuristic messages. — source:
+      report §b8/§f23 _(Effort: XS)_
+- [ ] **Run the repo's formatter over the edited skill + evals** — `dprint` was not on
+      `PATH`; the Markdown went unchecked. — source: report §b9/§f24 _(Effort: S)_
+- [ ] **Note the skill hard-block in ADR-0123's follow-ups** — keep the ADR aligned with
+      how the skill now teaches the decision. — source: report §f46 _(Effort: XS)_
 
 ---
 
