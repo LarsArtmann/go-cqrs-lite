@@ -23,6 +23,7 @@ import (
 	"encoding/json/jsontext"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
@@ -295,7 +296,7 @@ const fixtureDataContract = `# Data contract: orders (fixture)
 id: orders
 owner: order-team
 type: table
- description: One row per order event aggregate
+description: One row per order event aggregate
 fields:
   - name: order_id
     type: string

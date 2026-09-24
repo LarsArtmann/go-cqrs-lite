@@ -26,6 +26,7 @@ func copyFlow(f *Flow) Flow {
 		Summary: f.Summary,
 		Steps:   copyFlowSteps(f.Steps),
 		Badges:  copyBadges(f.Badges),
+		Owners:  copySlice(f.Owners),
 	}
 }
 

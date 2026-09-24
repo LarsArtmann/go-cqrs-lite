@@ -99,6 +99,7 @@ type flowFM struct {
 	Name    string       `yaml:"name"`
 	Version string       `yaml:"version"`
 	Summary string       `yaml:"summary,omitempty"`
+	Owners  []string     `yaml:"owners,omitempty"`
 	Badges  []badgeFM    `yaml:"badges,omitempty"`
 	Steps   []flowStepFM `yaml:"steps,omitempty"`
 }

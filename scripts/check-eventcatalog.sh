@@ -99,4 +99,33 @@ if ! grep -rq "Create Order" "$work/dist/docs/channels/order-events/1.0.0/index.
 	exit 1
 fi
 
-echo "OK: eventcatalog build clean (log: $log)"
+echo "==> 5/5 @eventcatalog/linter on the plain-refs profile"
+# The render profiles above pin the @eventcatalog/core contract (composite
+# "<id>-<version>" refs). The linter is the opposite consumer: it indexes by
+# frontmatter ID and can never resolve composite refs, so the same fixture is
+# exported again with WithPlainRefIDs and linted with the two rules the
+# federation hub previously had to warn-suppress — refs/resource-exists and
+# best-practices/owner-required — fully re-armed at error severity.
+plain="$work-plain"
+mkdir -p "$plain"
+(cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$plain" plain)
+# --no-save: the linter is a gate tool, not an export dependency.
+npm install --no-save --no-audit --no-fund --loglevel=error @eventcatalog/linter@1.1.20 >/dev/null
+cat > "$plain/.eventcatalogrc.js" <<'RC'
+export default {
+  rules: {
+    'refs/resource-exists': 'error',
+    'best-practices/owner-required': 'error',
+    'best-practices/summary-required': 'error',
+    'refs/file-exists': 'error',
+    'structure/duplicate-resource-ids': 'error',
+  },
+};
+RC
+if ! (cd "$plain" && node "$work/node_modules/@eventcatalog/linter/dist/cli/index.js" -q .); then
+	echo "FAIL: @eventcatalog/linter reported problems on the plain-refs fixture" >&2
+	echo "      (workdir: $plain)" >&2
+	exit 1
+fi
+
+echo "OK: eventcatalog build clean + linter clean (log: $log)"
