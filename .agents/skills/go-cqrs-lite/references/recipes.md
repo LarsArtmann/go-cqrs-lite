@@ -2674,3 +2674,55 @@ Run it with `go test -bench=BenchmarkMyBackend -benchtime=1x`; capture the
 output and `benchstat old.txt new.txt` reports confidence intervals. The
 CLI front-end (with load gates, manifest output, and the variation-aware
 report) is `cqrs-bench` — see SKILL.md §Benchmarking.
+
+### 2.41 Declare Data Products + Contracts End-to-End (catalog, data mesh)
+
+A data product is a typed, OWNED dataset with declared inputs and outputs —
+the mesh-facing half of a bounded context. Declare it next to the events it
+serves; every ownable resource carries `Owners` (teams register via
+`AddTeam`), and the EventCatalog export renders it as a
+`data-products/<id>/index.mdx` page with an output-contract link plus a
+machine-readable `catalog.index.json` manifest at the export root.
+
+```go
+import (
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+)
+
+reg := catalog.NewRegistry("Orders", "1.0.0")
+reg.AddService(catalog.Service{ID: "orders-svc", Name: "Orders", Version: "1.0.0", Owners: []string{"orders-team"}})
+
+// The bilateral contract, producing side: name the consumer so either
+// catalog copy tells the whole relationship (hub union-merge is lossless).
+reg.AddEvent("orders-svc", catalog.Message{
+    ID: "order.placed", Name: "Order Placed", Version: "1.0.0",
+    Direction: catalog.Sends, Consumers: []catalog.ServiceID{"billing-svc"},
+    Schema: catalog.SchemaFromType[OrderPlaced](), Owners: []string{"orders-team"},
+})
+
+reg.AddDataProduct(catalog.DataProduct{
+    ID: "order-lifecycle", Name: "Order Lifecycle", Version: "1.0.0",
+    Summary: "Order facts for analytics consumers", Owners: []string{"orders-team"},
+    Outputs: []catalog.DataProductOutput{{
+        Ref:      catalog.Ref{ID: "order.placed", Version: "1.0.0"},
+        Contract: &catalog.DataContract{Path: "contracts/order-placed.yaml", Name: "order-placed"},
+    }},
+})
+
+cat := reg.Build()
+if violations := cat.ValidateCoeffects(); len(violations) > 0 {
+    log.Fatalf("dangling subscription: %v", violations)
+}
+_ = eventcatalog.NewExporter("./eventcatalog").Export(cat)
+```
+
+The consuming context declares the SAME event with `Direction:
+catalog.Receives` plus an explicit `Producers` list — that is what keeps
+`ValidateCoeffects` green per source even though each catalog sees only
+half the mesh (imported events are not dangling). For governance linting,
+export a second tree with `eventcatalog.WithPlainRefIDs()` (the linter
+indexes bare frontmatter IDs; the default composite refs are what
+@eventcatalog/core renders); for hub CI, `WithSkipBootstrapFiles()` omits
+the per-source `package.json`/`eventcatalog.config.js`. The full two-context
+walkthrough is `example/mesh-demo`.

@@ -385,7 +385,10 @@ Static + docs twins: `cqrs-lint` rule **E018** (projection handles a type nothin
 `catalog.Event` declarations count as provided for imported events) and
 `catalog.Catalog.ValidateCoeffects` (the EventCatalog export writes a `coeffects.md`
 summary — producers, consumers, dangling rows). Leave `Events` empty to skip the gate
-entirely (default, v4-compatible).
+entirely (default, v4-compatible). The mesh-facing counterpart of this gate is the
+data-product declaration story — see recipes.md §2.41 (typed `DataProduct`/`DataContract`
+with owners, inputs, and bilateral producers/consumers) and `example/mesh-demo` for the
+full two-context walkthrough.
 
 ### 3.10 AsOf is a meta field — point-in-time reads (ADR-0141)
 

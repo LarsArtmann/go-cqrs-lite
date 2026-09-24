@@ -193,4 +193,12 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			`"testing"`,
 		},
 	},
+	"### 2.41 Declare Data Products + Contracts End-to-End (catalog, data mesh) #1": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/catalog/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"`,
+			`"log"`,
+		},
+		preamble: "type OrderPlaced struct{ OrderID string }\n",
+	},
 }
