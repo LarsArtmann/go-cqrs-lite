@@ -43,7 +43,10 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: mesh-demo demo | export -domain orders|billing -out DIR [-plain] [-skip-bootstrap]")
+	fmt.Fprintln(
+		os.Stderr,
+		"usage: mesh-demo demo | export -domain orders|billing -out DIR [-plain] [-skip-bootstrap]",
+	)
 }
 
 func runExportCmd(args []string) error {
@@ -52,7 +55,11 @@ func runExportCmd(args []string) error {
 	domain := fs.String("domain", "", "bounded context to export (orders|billing)")
 	outDir := fs.String("out", "", "output directory for the EventCatalog tree")
 	plain := fs.Bool("plain", false, "emit plain frontmatter-ID refs (governance/lint exports)")
-	skipBootstrap := fs.Bool("skip-bootstrap", false, "omit eventcatalog.config.js + package.json (hub CI)")
+	skipBootstrap := fs.Bool(
+		"skip-bootstrap",
+		false,
+		"omit eventcatalog.config.js + package.json (hub CI)",
+	)
 
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -62,7 +69,11 @@ func runExportCmd(args []string) error {
 		return errors.New("mesh-demo export: -domain and -out are required")
 	}
 
-	return exportDomain(*domain, *outDir, exportOptions{plain: *plain, skipBootstrap: *skipBootstrap})
+	return exportDomain(
+		*domain,
+		*outDir,
+		exportOptions{plain: *plain, skipBootstrap: *skipBootstrap},
+	)
 }
 
 // runDemo walks the full cross-domain lifecycle with pure deciders — no

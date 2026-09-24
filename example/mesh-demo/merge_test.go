@@ -31,7 +31,7 @@ type manifestResource struct {
 }
 
 type manifestDoc struct {
-	SchemaVersion int               `json:"schemaVersion"`
+	SchemaVersion int                `json:"schemaVersion"`
 	Resources     []manifestResource `json:"resources"`
 }
 
@@ -141,7 +141,11 @@ func TestUnionMerge_ManifestsUnionWithoutResourceIDCollisions(t *testing.T) {
 func TestExport_PlainRefsAndSkipBootstrapOptionsWork(t *testing.T) {
 	dir := t.TempDir()
 
-	if err := exportDomain("orders", dir, exportOptions{plain: true, skipBootstrap: true}); err != nil {
+	if err := exportDomain(
+		"orders",
+		dir,
+		exportOptions{plain: true, skipBootstrap: true},
+	); err != nil {
 		t.Fatalf("export: %v", err)
 	}
 

@@ -26,11 +26,16 @@ func dataProductTestProvider() *catalog.Catalog {
 	reg.AddDataProduct(catalog.DataProduct{
 		ID: "order-lifecycle", Name: "Order Lifecycle", Version: "1.0.0",
 		Summary: "Order facts for analytics", Owners: []string{"orders-team"},
-		Inputs:  []catalog.Ref{{ID: "invoice.issued", Version: "1.0.0"}},
-		Outputs: []catalog.DataProductOutput{{
-			Ref:      catalog.Ref{ID: "order.placed", Version: "1.0.0"},
-			Contract: &catalog.DataContract{Path: "contracts/order-placed.yaml", Name: "order-placed"},
-		}},
+		Inputs: []catalog.Ref{{ID: "invoice.issued", Version: "1.0.0"}},
+		Outputs: []catalog.DataProductOutput{
+			{
+				Ref: catalog.Ref{ID: "order.placed", Version: "1.0.0"},
+				Contract: &catalog.DataContract{
+					Path: "contracts/order-placed.yaml",
+					Name: "order-placed",
+				},
+			},
+		},
 	})
 
 	return reg.Build()
@@ -39,7 +44,10 @@ func dataProductTestProvider() *catalog.Catalog {
 func dataProductTestServer(t *testing.T) *DocsServer {
 	t.Helper()
 
-	return NewDocsServer(dataProductTestProvider, Config{ServiceName: "Mesh Service", Version: "1.0.0"})
+	return NewDocsServer(
+		dataProductTestProvider,
+		Config{ServiceName: "Mesh Service", Version: "1.0.0"},
+	)
 }
 
 func TestDocsServer_EventCatalog_DataProductOverviewSection(t *testing.T) {

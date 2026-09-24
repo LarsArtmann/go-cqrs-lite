@@ -101,7 +101,12 @@ func TestLifecycle_CrossDomainRoundTripCompletesOrder(t *testing.T) {
 
 	// orders consumes the invoice by folding it through its own fold.
 	for _, evt := range billingEvents {
-		if orderEvents, err = appendForeign(orderEvents, evt, initialOrderState(), foldOrder); err != nil {
+		if orderEvents, err = appendForeign(
+			orderEvents,
+			evt,
+			initialOrderState(),
+			foldOrder,
+		); err != nil {
 			t.Fatalf("consume invoice: %v", err)
 		}
 	}

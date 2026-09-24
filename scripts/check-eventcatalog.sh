@@ -111,7 +111,7 @@ mkdir -p "$plain"
 (cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$plain" plain)
 # --no-save: the linter is a gate tool, not an export dependency.
 npm install --no-save --no-audit --no-fund --loglevel=error @eventcatalog/linter@1.1.20 >/dev/null
-cat > "$plain/.eventcatalogrc.js" <<'RC'
+cat >"$plain/.eventcatalogrc.js" <<'RC'
 export default {
   rules: {
     'refs/resource-exists': 'error',

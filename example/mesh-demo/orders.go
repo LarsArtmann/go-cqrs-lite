@@ -37,9 +37,9 @@ var ErrEmptyOrder = errors.New("order: cart is empty")
 // OrderPlacedPayload is the CONTRACT of the order.placed event — billing
 // codes against this shape; breaking it is a version bump, not an edit.
 type OrderPlacedPayload struct {
-	OrderID      string `json:"orderId"`
-	CustomerID   string `json:"customerId"`
-	TotalCents   int64  `json:"totalCents"`
+	OrderID    string `json:"orderId"`
+	CustomerID string `json:"customerId"`
+	TotalCents int64  `json:"totalCents"`
 }
 
 // OrderCompletedPayload is the contract of order.completed.

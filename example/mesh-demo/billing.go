@@ -20,9 +20,9 @@ const (
 // InvoiceIssuedPayload is the CONTRACT of invoice.issued — orders codes
 // against this shape.
 type InvoiceIssuedPayload struct {
-	InvoiceRef string `json:"invoiceRef"`
-	OrderID    string `json:"orderId"`
-	AmountCents int64 `json:"amountCents"`
+	InvoiceRef  string `json:"invoiceRef"`
+	OrderID     string `json:"orderId"`
+	AmountCents int64  `json:"amountCents"`
 }
 
 // OrderPlacedReceived mirrors orders' order.placed contract from the
@@ -86,9 +86,9 @@ func issueInvoice(cmd IssueInvoiceCmd) decider.DecideFunc[InvoiceState] {
 
 		evt, err := event.New(evtInvoiceIssued, id.DeriveStreamID("invoice", cmd.OrderID),
 			billingStreamType, v.Increment(), InvoiceIssuedPayload{
-				InvoiceRef:   ref,
-				OrderID:      cmd.OrderID,
-				AmountCents:  cmd.AmountCents,
+				InvoiceRef:  ref,
+				OrderID:     cmd.OrderID,
+				AmountCents: cmd.AmountCents,
 			})
 		if err != nil {
 			return nil, err

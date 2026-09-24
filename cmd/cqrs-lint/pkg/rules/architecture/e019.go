@@ -37,7 +37,9 @@ func NewE019Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				case dp.Contracted < dp.OutputCount:
 					message = fmt.Sprintf(
 						"data product %q serves %d output(s) but only %d carry a DataContract — consumers get no schema or version pin for the rest",
-						dp.Name, dp.OutputCount, dp.Contracted,
+						dp.Name,
+						dp.OutputCount,
+						dp.Contracted,
 					)
 				default:
 					continue

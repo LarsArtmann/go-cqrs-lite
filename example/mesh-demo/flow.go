@@ -9,7 +9,11 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
-func replay[S any](history []event.Event, initial S, fold func(S, event.Event) (S, error)) (S, error) {
+func replay[S any](
+	history []event.Event,
+	initial S,
+	fold func(S, event.Event) (S, error),
+) (S, error) {
 	state := initial
 
 	var err error

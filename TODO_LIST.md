@@ -75,13 +75,13 @@ Source: SystemNix plan `docs/planning/2026-09-22_23-27_EVENTCATALOG-FEDERATION-H
 the catalog module's `eventcatalog` exporter; both options below serve that pipeline).
 
 - [ ] **Export `catalog.index.json` (golden-tested)** — a machine-readable manifest of
-  every exported resource (id, version, kind, file path) emitted alongside the MDX tree.
-  Lets the hub diff builds cheaply (change detection, PR gates) without walking MDX
-  frontmatter. Golden test like `ec-fixture`'s render validation. _(Effort: M)_
+      every exported resource (id, version, kind, file path) emitted alongside the MDX tree.
+      Lets the hub diff builds cheaply (change detection, PR gates) without walking MDX
+      frontmatter. Golden test like `ec-fixture`'s render validation. _(Effort: M)_
 - [ ] **`skip-bootstrap-files` export option** — let CI exports omit the generated
-  `package.json`/`eventcatalog.config.js`/bootstrap files (the hub owns its own; the
-  merge currently relies on first-wins copy semantics to keep hub bootstrap files).
-  Default stays current behavior. _(Effort: S)_
+      `package.json`/`eventcatalog.config.js`/bootstrap files (the hub owns its own; the
+      merge currently relies on first-wins copy semantics to keep hub bootstrap files).
+      Default stays current behavior. _(Effort: S)_
 - Related finding (context for whoever picks this up): `@eventcatalog/linter` resolves
   producer/consumer refs against versioned resource dirs while our exporter writes
   unversioned `services/<id>/index.mdx` — every ref flags `refs/resource-exists`. Also
@@ -100,15 +100,15 @@ not duplicated here. Cross-repo items (T22–T24) are pointers; per decision D3 
 executed in `eventcatalog-hub`.
 
 - [ ] 🔥 **T05 — Data-mesh conformance mapping doc** (`docs/architecture-understanding/`,
-  Cordis cross-links; D1). _(Effort: M)_
+      Cordis cross-links; D1). _(Effort: M)_
 - [ ] 🔥 **T06/T07 — ADRs: federated-query rejected (formalize meta-engine-design.md:116) +
-  mesh policy enforcement non-goal (D2)**. _(Effort: S each)_
+      mesh policy enforcement non-goal (D2)**. _(Effort: S each)_
 - [ ] 🔥 **T08–T10 — `example/mesh-demo`**: two bounded contexts, bilateral
-  `Sends`/`Receives`, hub-mergeable exports, dry-run merge script. _(Effort: L)_
+      `Sends`/`Receives`, hub-mergeable exports, dry-run merge script. _(Effort: L)_
 - [ ] **T11 — recipes.md: declare data products + contracts** (verified missing) +
-  doc-check catalog entry. _(Effort: M)_
+      doc-check catalog entry. _(Effort: M)_
 - [ ] **T13–T15 — mesh docs**: journal-as-outbox replication, contract evolution
-  (upcasting ↔ DataContract), serving ports (ServeSSE). _(Effort: M total)_
+      (upcasting ↔ DataContract), serving ports (ServeSSE). _(Effort: M total)_
 - [ ] **T16 — docserver renders DataProducts** (verified missing) + nav/test. _(Effort: S)_
 - [ ] **T17 — verify api-stability golden covers DataProduct/DataContract**. _(Effort: S)_
 - [ ] **T18 — cqrs-lint advisory: DataProduct without output contract**. _(Effort: M)_
@@ -116,12 +116,12 @@ executed in `eventcatalog-hub`.
 - [ ] **T20 — ROADMAP positioning entry** (check Declined guard first). _(Effort: S)_
 - [ ] **T21 — goal-shaped-app: data-product materialized view via cqrs.yaml**. _(Effort: M)_
 - [ ] **T22–T24 — [cross-repo, eventcatalog-hub]** stale-source CI, fail-on-dangling
-  coeffects, owners dedupe. _(Effort: M each, hub repo)_
+      coeffects, owners dedupe. _(Effort: M each, hub repo)_
 - [ ] **T25 — investigate EventCatalog SLA/freshness schema → proposal**. _(Effort: S)_
 - [ ] **T26 — spot-verify session single-source claims** (watermill brokers, ADR-016,
-  DeploymentConfig fields). _(Effort: S)_
+      DeploymentConfig fields). _(Effort: S)_
 - [x] ~~T12/T27 — harvest + cross-links~~ (done 2026-09-23 with this plan: this section,
-  header pointer; status-report addendum pending its own session)
+      header pointer; status-report addendum pending its own session)
 
 ---
 

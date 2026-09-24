@@ -21,20 +21,20 @@ mesh itself.
 
 ## 1. Principle-by-principle conformance
 
-| # | Principle                    | Verdict          | Load-bearing mechanics (verified)                                                                                                                                       |
-| - | ---------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | Domain ownership             | **Strong**       | Deciders own state per bounded context; branded stream IDs (`id.StreamID`, string-backed semantic keys, ADR-0111 d); `catalog.Domain` + ubiquitous-language sidecars; per-module versioning |
-| 2 | Data as a product            | **First-class**  | Typed `catalog.DataProduct` / `catalog.DataContract` (`catalog/types_resources.go`); inputs/outputs with output contracts; `owners` on every ownable kind (incl. flows, 2026-09-24); `catalog.index.json` per-export manifest |
-| 3 | Self-serve data platform     | **Strong**       | `system.New` DomainConfig-vs-DeploymentConfig split is COMPILER-ENFORCED (developers declare behavior, operators place data); `cqrs.yaml`; metaengine cost-planned routing with operator-picked engines |
-| 4 | Federated computational governance | **Partial** | Three-tier coeffect validation (runtime `ErrDanglingEventSubscription`, cqrs-lint E018, docs-side `catalog.ValidateCoeffects`); EventCatalog contracts (see §3); mesh-level enforcement is an explicit non-goal (ADR-0147) |
+| # | Principle                          | Verdict         | Load-bearing mechanics (verified)                                                                                                                                                                                             |
+| - | ---------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | Domain ownership                   | **Strong**      | Deciders own state per bounded context; branded stream IDs (`id.StreamID`, string-backed semantic keys, ADR-0111 d); `catalog.Domain` + ubiquitous-language sidecars; per-module versioning                                   |
+| 2 | Data as a product                  | **First-class** | Typed `catalog.DataProduct` / `catalog.DataContract` (`catalog/types_resources.go`); inputs/outputs with output contracts; `owners` on every ownable kind (incl. flows, 2026-09-24); `catalog.index.json` per-export manifest |
+| 3 | Self-serve data platform           | **Strong**      | `system.New` DomainConfig-vs-DeploymentConfig split is COMPILER-ENFORCED (developers declare behavior, operators place data); `cqrs.yaml`; metaengine cost-planned routing with operator-picked engines                       |
+| 4 | Federated computational governance | **Partial**     | Three-tier coeffect validation (runtime `ErrDanglingEventSubscription`, cqrs-lint E018, docs-side `catalog.ValidateCoeffects`); EventCatalog contracts (see §3); mesh-level enforcement is an explicit non-goal (ADR-0147)    |
 
 ## 2. Module mapping per principle
 
-| Principle | Modules that carry it                                                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1         | `decider`, `command`, `event` (journal = the domain's own history), `id`, `deriver` (sagas keep compensation in-domain), `scheduling`               |
-| 2         | `catalog` (`DataProduct`/`DataContract`/`AddDataProduct`), `catalog/eventcatalog` (renders products into EventCatalog), `metaengine` (`ServeSSE` output ports), `watermill` (`CatchUpSubscriber` input ports) |
-| 3         | `system` (`DomainConfig`/`DeploymentConfig`), `metaengine` (planner, `Profile()`-declared engines, calibration), `storage/*` (engine menu), `stack` |
+| Principle | Modules that carry it                                                                                                                                                                                                                                                             |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1         | `decider`, `command`, `event` (journal = the domain's own history), `id`, `deriver` (sagas keep compensation in-domain), `scheduling`                                                                                                                                             |
+| 2         | `catalog` (`DataProduct`/`DataContract`/`AddDataProduct`), `catalog/eventcatalog` (renders products into EventCatalog), `metaengine` (`ServeSSE` output ports), `watermill` (`CatchUpSubscriber` input ports)                                                                     |
+| 3         | `system` (`DomainConfig`/`DeploymentConfig`), `metaengine` (planner, `Profile()`-declared engines, calibration), `storage/*` (engine menu), `stack`                                                                                                                               |
 | 4         | `catalog` coeffects (three tiers), `cmd/cqrs-lint` (E018 et al.), `catalog/eventcatalog` governance exports (`WithPlainRefIDs` — lint-clean at full severity, enforced by `check-eventcatalog`), the external [eventcatalog-hub](https://github.com/LarsArtmann/eventcatalog-hub) |
 
 ## 3. Governance: what the exporter wave changed
@@ -57,13 +57,13 @@ hub-side change detection a JSON diff.
 
 ## 4. Honest gaps
 
-| Gap                                             | Status                                                                                     |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Cross-source federated queries                  | **Rejected by design** — replication via journal-as-outbox is the mechanism (ADR-0146)     |
-| Mesh-level policy enforcement in this library   | Explicit non-goal; belongs to the hub (ADR-0147)                                            |
-| gRPC sync transport                             | Deprecated at v5; mesh consumers move to HTTP/SSE/broker (migration guide, see FAQ)         |
-| Multi-bounded-context example                   | `example/mesh-demo` (in flight)                                                            |
-| SLA/freshness fields on data products           | Under investigation against EventCatalog's schema (ROADMAP raw idea)                       |
+| Gap                                           | Status                                                                                 |
+| --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Cross-source federated queries                | **Rejected by design** — replication via journal-as-outbox is the mechanism (ADR-0146) |
+| Mesh-level policy enforcement in this library | Explicit non-goal; belongs to the hub (ADR-0147)                                       |
+| gRPC sync transport                           | Deprecated at v5; mesh consumers move to HTTP/SSE/broker (migration guide, see FAQ)    |
+| Multi-bounded-context example                 | `example/mesh-demo` (in flight)                                                        |
+| SLA/freshness fields on data products         | Under investigation against EventCatalog's schema (ROADMAP raw idea)                   |
 
 ## 5. Relation to the Cordis mapping
 

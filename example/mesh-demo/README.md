@@ -15,13 +15,13 @@ query federation — see
 
 ## Layout
 
-| File          | What it shows                                                                                  |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| `orders.go`   | Orders context: commands, events, state, deciders; consumes `invoice.issued`                   |
-| `billing.go`  | Billing context: consumes `order.placed`, issues `invoice.issued` (idempotently)               |
-| `flow.go`     | The load→fold→decide→save loop, bare — what `decider.Repository` automates against a store      |
-| `catalog.go`  | Per-context catalog declarations: bilateral `Sends`/`Receives`, data products, teams, owners   |
-| `mesh_test.go` | Domain tests: folds, rejection, idempotency, the full cross-domain round trip                  |
+| File            | What it shows                                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `orders.go`     | Orders context: commands, events, state, deciders; consumes `invoice.issued`                                |
+| `billing.go`    | Billing context: consumes `order.placed`, issues `invoice.issued` (idempotently)                            |
+| `flow.go`       | The load→fold→decide→save loop, bare — what `decider.Repository` automates against a store                  |
+| `catalog.go`    | Per-context catalog declarations: bilateral `Sends`/`Receives`, data products, teams, owners                |
+| `mesh_test.go`  | Domain tests: folds, rejection, idempotency, the full cross-domain round trip                               |
 | `merge_test.go` | Hub dry-run: coeffects dangling-free per source, bilateral copies carry both sides, manifests union cleanly |
 
 ## Run it
@@ -45,8 +45,7 @@ go run . export -domain billing -out work/out/billing -skip-bootstrap
 
 For governance linting (`@eventcatalog/linter`), export the plain-refs
 variant instead — the two ref formats exist because core and linter resolve
-different ID shapes (see [catalog/README.md "Governance
-exports"](../../catalog/README.md)):
+different ID shapes (see [catalog/README.md "Governance exports"](../../catalog/README.md)):
 
 ```bash
 go run . export -domain orders -out work/lint/orders -plain -skip-bootstrap

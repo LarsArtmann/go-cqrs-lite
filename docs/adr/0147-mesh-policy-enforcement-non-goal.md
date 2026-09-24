@@ -31,10 +31,10 @@ per-source exports, diffs `catalog.index.json`, and renders the union.
 **Mesh-level policy enforcement is a non-goal for go-cqrs-lite.** The
 division of labor:
 
-| Layer                | Owner             | Enforces                                                             |
-| -------------------- | ----------------- | -------------------------------------------------------------------- |
-| One repo's catalog   | go-cqrs-lite      | Schema validity, coeffect completeness, lint-clean exports, render-clean exports |
-| The mesh / union     | eventcatalog-hub  | Cross-source contract resolution, dangling cross-repo refs, org-wide standards |
+| Layer              | Owner            | Enforces                                                                         |
+| ------------------ | ---------------- | -------------------------------------------------------------------------------- |
+| One repo's catalog | go-cqrs-lite     | Schema validity, coeffect completeness, lint-clean exports, render-clean exports |
+| The mesh / union   | eventcatalog-hub | Cross-source contract resolution, dangling cross-repo refs, org-wide standards   |
 
 The library's obligation to the mesh is to make each source's export
 TRUSTWORTHY and machine-checkable — deterministic manifests, typed

@@ -19,7 +19,7 @@ const (
 	ordersTeamID  = "orders-team"
 	billingTeamID = "billing-team"
 
-	evtOrderPlacedID  = catalog.MessageID("order.placed")
+	evtOrderPlacedID   = catalog.MessageID("order.placed")
 	evtInvoiceIssuedID = catalog.MessageID("invoice.issued")
 )
 
@@ -47,10 +47,10 @@ func buildOrdersCatalog() *catalog.Catalog {
 	reg.AddEvent("orders-svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: catalog.MessageID("order.completed"),
 		Name: "Order Completed", Version: ordersCatalogVersion,
-		Summary: "The order's invoice was settled; lifecycle closed",
+		Summary:   "The order's invoice was settled; lifecycle closed",
 		Direction: catalog.Sends,
-		Schema:   catalog.SchemaFromType[OrderCompletedPayload](),
-		Owners:   []string{ordersTeamID},
+		Schema:    catalog.SchemaFromType[OrderCompletedPayload](),
+		Owners:    []string{ordersTeamID},
 	})
 	reg.AddEvent("orders-svc", catalog.Message{
 		Kind: catalog.EventMessage, ID: evtInvoiceIssuedID, Name: "Invoice Issued",
@@ -74,10 +74,15 @@ func buildOrdersCatalog() *catalog.Catalog {
 		Summary: "Order placement + completion facts for downstream analytics",
 		Owners:  []string{ordersTeamID},
 		Inputs:  []catalog.Ref{{ID: evtInvoiceIssuedID, Version: ordersCatalogVersion}},
-		Outputs: []catalog.DataProductOutput{{
-			Ref:      catalog.Ref{ID: evtOrderPlacedID, Version: ordersCatalogVersion},
-			Contract: &catalog.DataContract{Path: "contracts/order-placed.yaml", Name: "order-placed"},
-		}},
+		Outputs: []catalog.DataProductOutput{
+			{
+				Ref: catalog.Ref{ID: evtOrderPlacedID, Version: ordersCatalogVersion},
+				Contract: &catalog.DataContract{
+					Path: "contracts/order-placed.yaml",
+					Name: "order-placed",
+				},
+			},
+		},
 	})
 
 	reg.AddTeam(catalog.Team{
@@ -126,11 +131,16 @@ func buildBillingCatalog() *catalog.Catalog {
 		ID: "billing-ledger", Name: "Billing Ledger", Version: billingCatalogVersion,
 		Summary: "Issued-invoice facts for finance consumers",
 		Owners:  []string{billingTeamID},
-		Inputs: []catalog.Ref{{ID: evtOrderPlacedID, Version: ordersCatalogVersion}},
-		Outputs: []catalog.DataProductOutput{{
-			Ref:      catalog.Ref{ID: evtInvoiceIssuedID, Version: billingCatalogVersion},
-			Contract: &catalog.DataContract{Path: "contracts/invoice-issued.yaml", Name: "invoice-issued"},
-		}},
+		Inputs:  []catalog.Ref{{ID: evtOrderPlacedID, Version: ordersCatalogVersion}},
+		Outputs: []catalog.DataProductOutput{
+			{
+				Ref: catalog.Ref{ID: evtInvoiceIssuedID, Version: billingCatalogVersion},
+				Contract: &catalog.DataContract{
+					Path: "contracts/invoice-issued.yaml",
+					Name: "invoice-issued",
+				},
+			},
+		},
 	})
 
 	reg.AddTeam(catalog.Team{
@@ -143,8 +153,8 @@ func buildBillingCatalog() *catalog.Catalog {
 
 // exportOptions carries the headless-export flags shared by both domains.
 type exportOptions struct {
-	plain           bool
-	skipBootstrap   bool
+	plain         bool
+	skipBootstrap bool
 }
 
 // exportDomain runs the headless export for one bounded context — the
