@@ -20,7 +20,6 @@ import (
 
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4"     // registers the "postgres" driver
 	_ "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4" // registers the "sqlite" driver
-	_ "github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"   // registers the "turso" driver (libSQL: materialized views)
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
 )
