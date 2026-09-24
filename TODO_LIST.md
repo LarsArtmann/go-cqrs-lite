@@ -1301,12 +1301,12 @@ Source: `~/projects/crush-config/docs/status/2026-09-24_16-27_skill-hard-block-h
 - [x] ✅ 2026-09-24 (hand-wire redirect case + 2 near-miss negatives added to `trigger-eval-set.json`) **Add negative/redirect trigger cases to the evals** — prove the skill triggers on a
       "hand-wire event+decider" request and still redirects to `system`/`metaengine`. —
       source: report §f37 _(Effort: S)_
-- [ ] **Add a changelog entry for the skill refocus** in this repo's `CHANGELOG.md` — the
+- [x] ✅ 2026-09-24 (entry added under [Unreleased]) **Add a changelog entry for the skill refocus** in this repo's `CHANGELOG.md` — the
       skill/evals/TODO changes were only auto-committed with heuristic messages. — source:
       report §b8/§f23 _(Effort: XS)_
-- [ ] **Run the repo's formatter over the edited skill + evals** — `dprint` was not on
+- [x] ✅ 2026-09-24 (`dprint fmt` on the changed references; `dprint.json` now excludes `**/SKILL.md` — dprint's YAML frontmatter handling corrupts the long unquoted description) **Run the repo's formatter over the edited skill + evals** — `dprint` was not on
       `PATH`; the Markdown went unchecked. — source: report §b9/§f24 _(Effort: S)_
-- [ ] **Note the skill hard-block in ADR-0123's follow-ups** — keep the ADR aligned with
+- [x] ✅ 2026-09-24 (follow-up addendum appended to ADR-0123) **Note the skill hard-block in ADR-0123's follow-ups** — keep the ADR aligned with
       how the skill now teaches the decision. — source: report §f46 _(Effort: XS)_
 
 ---

@@ -740,9 +740,13 @@
                 echo "pre-commit hook installed (.githooks/pre-commit, hooksPath set)"
               fi
               # Make the Crush skill globally available so AI assistants trigger it
-              # from any consumer project, not just inside this repo. Idempotent & non-destructive.
-              if [ -d "''${HOME:-}/.config/crush/skills" ]; then
-                ln -sfn "${self}/.agents/skills/go-cqrs-lite" "$HOME/.config/crush/skills/go-cqrs-lite"
+              # from any consumer project, not just inside this repo. Point at THIS
+              # working checkout — NEVER ''${self}, which is the frozen /nix/store
+              # copy: repointing the global link at a store snapshot is exactly the
+              # 2026-09 stale-skill incident (19 days of frozen content). Only
+              # touch the link when a real checkout is present.
+              if [ -d "''${HOME:-}/.config/crush/skills" ] && [ -d "$PWD/.agents/skills/go-cqrs-lite" ]; then
+                ln -sfn "$PWD/.agents/skills/go-cqrs-lite" "$HOME/.config/crush/skills/go-cqrs-lite"
               fi
 
               # Non-interactive auth for private LarsArtmann Go modules.
