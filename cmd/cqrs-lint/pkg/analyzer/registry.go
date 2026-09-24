@@ -62,6 +62,20 @@ type CQRSRegistry struct {
 	// Used by E007 to distinguish real CQRS query types (which implement
 	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
 	TypesWithTypeMethod map[string]bool
+
+	// DataProducts records every catalog.AddDataProduct declaration site
+	// with its contract completeness, for the E019 advisory.
+	DataProducts []DataProductInfo
+}
+
+// DataProductInfo is one catalog data-product declaration as seen at its
+// AddDataProduct call site.
+type DataProductInfo struct {
+	Name         string
+	File         string
+	Line, Column int
+	OutputCount  int
+	Contracted   int // outputs carrying an explicit Contract
 }
 
 // NewCQRSRegistry creates an empty registry.
