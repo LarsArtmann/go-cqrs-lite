@@ -84,13 +84,14 @@ type eventCatalogServiceRow struct {
 
 // eventCatalogOverview is the view model of the event catalog landing page.
 type eventCatalogOverview struct {
-	Brand      string
-	DocsPath   string
-	CatalogRef string
-	Version    string
-	Services   []eventCatalogServiceRow
-	Channels   []eventCatalogChannelRow
-	Messages   []eventCatalogMessageRow
+	Brand        string
+	DocsPath     string
+	CatalogRef   string
+	Version      string
+	Services     []eventCatalogServiceRow
+	Channels     []eventCatalogChannelRow
+	Messages     []eventCatalogMessageRow
+	DataProducts []eventCatalogDataProductRow
 }
 
 // unknownKindOrder sorts message kinds that are not one of the three known
@@ -246,13 +247,14 @@ func newEventCatalogOverview(cfg Config, cat *catalog.Catalog) eventCatalogOverv
 	}
 
 	return eventCatalogOverview{
-		Brand:      cmpOr(cfg.ServiceName, string(cat.Title)),
-		DocsPath:   cfg.DocsPath,
-		CatalogRef: cfg.DocsPath + "/catalog.json",
-		Version:    cmpOr(string(cat.Version), cfg.Version),
-		Services:   services,
-		Channels:   channels,
-		Messages:   rows,
+		Brand:        cmpOr(cfg.ServiceName, string(cat.Title)),
+		DocsPath:     cfg.DocsPath,
+		CatalogRef:   cfg.DocsPath + "/catalog.json",
+		Version:      cmpOr(string(cat.Version), cfg.Version),
+		Services:     services,
+		Channels:     channels,
+		Messages:     rows,
+		DataProducts: dataProductOverviewRows(cfg, cat),
 	}
 }
 

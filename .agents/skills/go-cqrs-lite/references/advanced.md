@@ -785,6 +785,44 @@ GC-policy retention knob:
 [`metaengine/bigtableengine/README.md`](../../../../metaengine/bigtableengine/README.md).
 Design: [ADR-0141](../../../../docs/adr/0141-native-temporal-versioned-cells.md).
 
+### 6.21 Data Products: Ports, Replication, and Contract Evolution
+
+The data-mesh view of a bounded context: a typed, owned dataset with
+declared INPUT ports (how facts arrive), OUTPUT ports (how consumers read),
+and CONTRACTS that version. The full conformance story lives in
+[docs/architecture-understanding/2026-09-24_data-mesh-conformance-mapping.md](../../../../docs/architecture-understanding/2026-09-24_data-mesh-conformance-mapping.md);
+the working example is `example/mesh-demo`.
+
+**Input ports = journal-as-outbox replication (ADR-0146).** Cross-domain
+data flows are NEVER federated queries — a domain that needs another
+domain's facts subscribes to the producing journal. The event journal IS
+the outbox ([ADR-0016](../../../../docs/adr/0016-outbox-pattern.md)):
+the append-only log is the publication record, and
+`watermill.CatchUpSubscriber` (§6.15) is the reference consumer — durable
+checkpoint, crash-restart, broker-routable delivery. The consuming domain
+folds replicated facts into its OWN projections, on engines its operator
+picked; the dependency is declared as a coeffect + a `DataProduct.Inputs`
+entry so governance sees it.
+
+**Output ports = serving surfaces.** Two shapes: `metaengine.ServeSSE[V]`
+pushes materialized query results to browsers (§6.16 — live-updating views
+off a `Watcher`, recent-window replay, `Last-Event-ID` reconnect), and
+query execution over planned tables/point-lookups serves request/response
+consumers (§2.27/2.28 recipes). The `catalog.Query` declaration documents
+the surface in the same catalog that renders the data product.
+
+**Contract evolution = version bumps + upcasting.** A `DataContract` (typed
+output on a `DataProduct`) versions with the event it serves: bump the
+message `Version` when the payload SHAPE changes, add a `Changelog` entry
+so the rendered history explains it, and keep old consumers whole with
+`schema` upcasting (`UpcastSourceTransform` — register `v1 → v2` payload
+rewriters so stored events decode into the current Go type; see
+[schema module](../../../../schema/)). EventCatalog renders every version
+side-by-side; consumers pin the version they actually handle
+(`Ref{ID, Version}`). The golden rule: contracts only ever WIDEN within a
+major version — additive fields, never renames; breaking changes are a new
+version, not an edit.
+
 ## 7. Tooling Surface: doctor JSON + verification apps (v4.10.0 wave)
 
 **cqrs-lint BuildFlow tool** (v4.11.0, 2026-09-17): `pkg/toolspec` registers
