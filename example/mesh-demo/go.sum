@@ -37,8 +37,6 @@ github.com/larsartmann/go-branded-id v0.6.0 h1:bqvJcozqtr8CP7/GWbWqHdYWt2YaIaWZd
 github.com/larsartmann/go-branded-id v0.6.0/go.mod h1:gM5FhB6d23qZO8hIU/rHpUnm/6dwKy9UGMhgvXDqNsc=
 github.com/larsartmann/go-codec v0.3.0 h1:KqwarePns8Xcxg0YEf4NjLnPXIl9i1nvFp2Jaxvc464=
 github.com/larsartmann/go-codec v0.3.0/go.mod h1:zUkKQzRqGltYF0kBwzrETezAKJDErcs0H2cc1/cY9x0=
-github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.5.0 h1:t9/xBcT3sAYsdIJKZfu9yXXUWYlwH1LSgPwpR92FDRI=
-github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.5.0/go.mod h1:YBpEnCW0eq0FyOiwK9P2qQ49x3jQIIR1VPg/9M8T19g=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0 h1:cy2FVGR8+SBU+LeSmSBSDJ+gxcpQmIOmOcgr5K5iKAI=
 github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0/go.mod h1:gErtqAwA1Fs73z48MqYEUMJyGjqwASZG07g7Zv0Obos=
 github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 h1:OTDCHJ0oG+NTvYl8ZIiYg9o/Ub1ccAyyVreLVJf4+yc=

@@ -54,7 +54,9 @@ func TestBilling_FoldsForeignOrderPlacedAndIssuesInvoice(t *testing.T) {
 		t.Fatalf("want one invoice.issued event, got %v", billingEvents)
 	}
 
-	state, err := replay(billingEvents, initialInvoiceState(), foldInvoice)
+	// billing's journal holds the consumed order.placed plus its own
+	// invoice.issued — cross-context integration is a fold (ADR-0146).
+	state, err := replay(append(orderEvents, billingEvents...), initialInvoiceState(), foldInvoice)
 	if err != nil {
 		t.Fatalf("replay: %v", err)
 	}
