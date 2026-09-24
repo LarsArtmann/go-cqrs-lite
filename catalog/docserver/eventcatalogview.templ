@@ -63,6 +63,66 @@ templ EventCatalogPage(data eventCatalogOverview) {
 				CellPadding: display.TableCellPaddingCompact,
 				Rows:        serviceRows(data.Services),
 			})
+
+			if len(data.DataProducts) > 0 {
+				@catalogSection("Data Products")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Data Product", "Version", "Summary", "Owners"},
+						BaseProps:   utils.BaseProps{AriaLabel: "Catalog data products"},
+					Striped:     true,
+					Hover:       true,
+					CellPadding: display.TableCellPaddingCompact,
+					Rows:        dataProductRows(data.DataProducts),
+				})
+			}
+		</div>
+	}
+}
+
+// EventCatalogDataProductPage renders one data product: owners, input
+// ports (the events it consumes), and output ports with their contracts.
+templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
+	{{ base := docsPageProps(d.Name+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
+	@layout.Base(base) {
+		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
+		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
+				Items: []navigation.BreadcrumbItem{
+					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
+					{Text: d.Name, Active: true},
+				},
+			})
+			@display.PageHeader(display.PageHeaderProps{
+				Title:    d.Name,
+				Subtitle: d.Summary,
+			})
+			@display.DefinitionList(display.DefinitionListProps{
+				Items: []display.DefinitionItem{
+					{Term: "Data Product ID", Detail: d.ID},
+					{Term: "Version", Detail: d.Version},
+					{Term: "Owners", Detail: joinOr(d.Owners)},
+				},
+			})
+			if len(d.Inputs) > 0 {
+				@catalogSection("Input ports (events consumed)")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Event", "Version"},
+						BaseProps:   utils.BaseProps{AriaLabel: "Data product inputs"},
+					Striped:     true,
+					CellPadding: display.TableCellPaddingCompact,
+					Rows:        portRows(d.Inputs),
+				})
+			}
+			if len(d.Outputs) > 0 {
+				@catalogSection("Output ports (events served)")
+				@display.Table(display.TableProps{
+					Headers:     []string{"Event", "Version", "Contract"},
+						BaseProps:   utils.BaseProps{AriaLabel: "Data product outputs"},
+					Striped:     true,
+					CellPadding: display.TableCellPaddingCompact,
+					Rows:        portRowsWithContract(d.Outputs),
+				})
+			}
 		</div>
 	}
 }

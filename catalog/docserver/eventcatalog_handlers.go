@@ -78,3 +78,25 @@ func (ds *DocsServer) serveEventCatalogService(w http.ResponseWriter, r *http.Re
 
 	ds.renderComponent(w, r, EventCatalogServicePage(newEventCatalogServiceDetail(ds.config, svc)))
 }
+
+func (ds *DocsServer) serveEventCatalogDataProduct(w http.ResponseWriter, r *http.Request) {
+	r = ds.applyCSP(w, r)
+
+	detail, ok := newEventCatalogDataProductDetail(ds.config, ds.provider(), r.PathValue("id"))
+	if !ok {
+		ds.renderComponent(
+			w,
+			r,
+			eventCatalogNotFound(
+				ds.config.ServiceName,
+				ds.config.DocsPath,
+				"data product",
+				r.PathValue("id"),
+			),
+		)
+
+		return
+	}
+
+	ds.renderComponent(w, r, EventCatalogDataProductPage(detail))
+}

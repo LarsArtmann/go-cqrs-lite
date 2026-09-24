@@ -119,6 +119,49 @@ func serviceRows(rows []eventCatalogServiceRow) []display.TableRow {
 	return out
 }
 
+// dataProductRows builds the data-products table rows.
+func dataProductRows(rows []eventCatalogDataProductRow) []display.TableRow {
+	out := make([]display.TableRow, 0, len(rows))
+	for _, dp := range rows {
+		out = append(out, tableRow(
+			componentCell(messageLinkCell(dp.Name, "", dp.Href)),
+			textCell(dp.Version),
+			textCell(dp.Summary),
+			textCell(dp.Owners),
+		))
+	}
+
+	return out
+}
+
+// portRows builds input-port table rows (event link + version).
+func portRows(rows []eventCatalogPortRow) []display.TableRow {
+	out := make([]display.TableRow, 0, len(rows))
+	for _, port := range rows {
+		out = append(out, tableRow(
+			componentCell(messageLinkCell(port.RefLabel, "", port.RefHref)),
+			textCell(port.Version),
+		))
+	}
+
+	return out
+}
+
+// portRowsWithContract builds output-port table rows (event link, version,
+// contract path).
+func portRowsWithContract(rows []eventCatalogPortRow) []display.TableRow {
+	out := make([]display.TableRow, 0, len(rows))
+	for _, port := range rows {
+		out = append(out, tableRow(
+			componentCell(messageLinkCell(port.RefLabel, "", port.RefHref)),
+			textCell(port.Version),
+			textCell(port.Contract),
+		))
+	}
+
+	return out
+}
+
 // propertyRows builds the schema property table rows of a message detail
 // page.
 func propertyRows(props []eventCatalogProperty) []display.TableRow {

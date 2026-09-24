@@ -104,7 +104,7 @@ func newEventCatalogDataProductDetail(
 		Version:    string(dp.Version),
 		Summary:    string(dp.Summary),
 		Owners:     dp.Owners,
-		Inputs:     portRows(cfg.DocsPath, dp.Inputs, nil),
+		Inputs:     portViewRows(cfg.DocsPath, dp.Inputs, nil),
 	}
 
 	outputRefs := make([]catalog.Ref, len(dp.Outputs))
@@ -112,14 +112,14 @@ func newEventCatalogDataProductDetail(
 		outputRefs[i] = out.Ref
 	}
 
-	detail.Outputs = portRows(cfg.DocsPath, outputRefs, dp.Outputs)
+	detail.Outputs = portViewRows(cfg.DocsPath, outputRefs, dp.Outputs)
 
 	return detail, true
 }
 
 // portRows renders input/output refs as link rows; for outputs the
 // matching DataProductOutput carries the contract when declared.
-func portRows(
+func portViewRows(
 	docsPath string,
 	refs []catalog.Ref,
 	outputs []catalog.DataProductOutput,
