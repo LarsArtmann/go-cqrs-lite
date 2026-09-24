@@ -298,6 +298,7 @@
           exampleModules = [
             "example/getting-started"
             "example/goal-shaped-app"
+            "example/mesh-demo"
             "example/metaengine-quickstart"
             "example/readme-quickstart"
             "example/scheduler-otel-status"

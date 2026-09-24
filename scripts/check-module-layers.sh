@@ -113,6 +113,7 @@ LAYER["cmd/cqrs-bench"]=7
 LAYER["cmd/cqrs-upgrade"]=7
 LAYER["cmd/api-stability"]=7
 LAYER["cmd/doc-check"]=7
+LAYER["example/mesh-demo"]=7
 LAYER["example/taskmanager"]=7
 LAYER["example/getting-started"]=7
 LAYER["example/goal-shaped-app"]=7
@@ -351,6 +352,8 @@ DEP_BUDGET["cmd/cqrs-bench"]=19
 DEP_BUDGET["cmd/cqrs-upgrade"]=3
 DEP_BUDGET["cmd/api-stability"]=3
 DEP_BUDGET["cmd/doc-check"]=2
+# mesh-demo: catalog/decider/event/command/id = 5 (the bilateral-contract example).
+DEP_BUDGET["example/mesh-demo"]=5
 DEP_BUDGET["example/taskmanager"]=25
 DEP_BUDGET["example/getting-started"]=10
 # goal-shaped-app is the Goal story: types-only domain + system composition
