@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/mysqlengine/v4 v4.3.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
@@ -54,6 +54,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
@@ -73,7 +74,7 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	modernc.org/libc v1.77.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )

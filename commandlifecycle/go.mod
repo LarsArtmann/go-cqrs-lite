@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
 	github.com/larsartmann/go-error-family v0.10.1
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (
@@ -34,6 +34,7 @@ require (
 	github.com/larsartmann/go-idempotency v0.3.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
@@ -46,4 +47,5 @@ require (
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
+	modernc.org/libc v1.77.0 // indirect
 )

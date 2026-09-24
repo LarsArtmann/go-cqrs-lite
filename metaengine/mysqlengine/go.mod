@@ -6,7 +6,7 @@ require (
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (

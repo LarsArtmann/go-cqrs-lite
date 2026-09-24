@@ -4,7 +4,7 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (

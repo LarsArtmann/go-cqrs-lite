@@ -20,5 +20,8 @@ require (
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-sse v0.6.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
+	modernc.org/libc v1.77.0 // indirect
 )

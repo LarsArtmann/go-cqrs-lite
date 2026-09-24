@@ -8,7 +8,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (

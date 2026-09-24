@@ -10,8 +10,8 @@ require (
 	github.com/larsartmann/templ-components v1.18.0
 	github.com/larsartmann/templ-components/icons v1.18.0
 	github.com/larsartmann/templ-components/utils v1.18.0
-	github.com/onsi/ginkgo/v2 v2.32.1
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (
