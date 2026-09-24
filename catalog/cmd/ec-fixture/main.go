@@ -7,12 +7,16 @@
 // ubiquitous language, entities/flows pointers, badges, flow step node
 // kinds, team x- fields, custom docs).
 //
-// The optional "changelog" profile omits agents so the generated config can
-// enable changelog pages (@eventcatalog/core 4.6.3 crashes on agent
-// changelog pages — see shouldEnableChangelog); the default profile covers
-// everything else.
+// Profiles (optional second arg):
+//   - changelog: omits agents so the generated config can enable changelog
+//     pages (@eventcatalog/core 4.6.3 crashes on agent changelog pages —
+//     see shouldEnableChangelog)
+//   - plain: same resources as the default profile but exported with
+//     WithPlainRefIDs — the @eventcatalog/linter (frontmatter-ID keyed)
+//     variant the check-eventcatalog gate lints with refs/resource-exists
+//     and best-practices/owner-required fully re-armed.
 //
-// Usage: ec-fixture <output-dir> [changelog]
+// Usage: ec-fixture <output-dir> [changelog|plain]
 package main
 
 import (
@@ -27,11 +31,21 @@ import (
 
 func main() {
 	if len(os.Args) < 2 || len(os.Args) > 3 {
-		fmt.Fprintln(os.Stderr, "usage: ec-fixture <output-dir> [changelog]")
+		fmt.Fprintln(os.Stderr, "usage: ec-fixture <output-dir> [changelog|plain]")
 		os.Exit(2)
 	}
 
-	if err := run(os.Args[1], len(os.Args) == 3 && os.Args[2] == "changelog"); err != nil {
+	profile := ""
+	if len(os.Args) == 3 {
+		profile = os.Args[2]
+	}
+
+	if profile != "" && profile != "changelog" && profile != "plain" {
+		fmt.Fprintf(os.Stderr, "ec-fixture: unknown profile %q (want changelog|plain)\n", profile)
+		os.Exit(2)
+	}
+
+	if err := run(os.Args[1], profile == "changelog", profile == "plain"); err != nil {
 		fmt.Fprintf(os.Stderr, "ec-fixture: %v\n", err)
 		os.Exit(1)
 	}

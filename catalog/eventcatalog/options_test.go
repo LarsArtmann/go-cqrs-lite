@@ -3,8 +3,10 @@ package eventcatalog_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/internal/cattest"
 )
@@ -85,5 +87,86 @@ func TestExporter_SkipBootstrapFilesLeavesContentIdentical(t *testing.T) {
 			"skip-bootstrap export changed content of %s:\ndefault:\n%s\nskip:\n%s",
 			rel, defaultContent, skipContent,
 		)
+	}
+}
+
+// plainRefExport registers one service (version 1.2.3) whose event is
+// auto-derived onto a channel, exports it with the given options, and
+// returns the event and channel MDX.
+func plainRefExport(t *testing.T, opts ...eventcatalog.Option) (eventMDX, channelMDX string) {
+	t.Helper()
+
+	reg := cattest.NewTestRegistry(catalog.Service{
+		ID: "order-svc", Name: "Order Service", Version: "1.2.3", Summary: "orders",
+	})
+	reg.AddEvent("order-svc", catalog.Message{
+		Kind: catalog.EventMessage, ID: "OrderPlaced", Name: "Order Placed",
+		Version: "1.0.0", Summary: "placed", Direction: catalog.Sends,
+		Channels: []catalog.ChannelID{"orders"},
+	})
+	reg.AddChannel(catalog.Channel{
+		ID: "orders", Name: "Orders", Version: "1.0.0", Summary: "order messages",
+		Messages: []catalog.MessageID{"OrderPlaced"},
+	})
+
+	tmpDir := t.TempDir()
+	if err := eventcatalog.NewExporter(tmpDir, opts...).Export(reg.Build()); err != nil {
+		t.Fatalf("export: %v", err)
+	}
+
+	read := func(rel string) string {
+		t.Helper()
+
+		data, err := os.ReadFile(filepath.Join(tmpDir, rel))
+		if err != nil {
+			t.Fatalf("read %s: %v", rel, err)
+		}
+
+		return string(data)
+	}
+
+	return read(filepath.Join("events", "OrderPlaced", "index.mdx")),
+		read(filepath.Join("channels", "orders", "index.mdx"))
+}
+
+// TestExporter_DefaultUsesCompositeRefIDs pins the @eventcatalog/core
+// contract: producers/consumers and channel message pointers carry the
+// "<id>-<version>" Astro entry IDs the core content layer resolves.
+func TestExporter_DefaultUsesCompositeRefIDs(t *testing.T) {
+	eventMDX, channelMDX := plainRefExport(t)
+
+	if !strings.Contains(eventMDX, "- order-svc-1.2.3") {
+		t.Errorf("default producers should be composite entry IDs, got:\n%s", eventMDX)
+	}
+
+	if !strings.Contains(channelMDX, "id: OrderPlaced-1.0.0") {
+		t.Errorf("default channel pointer should be composite entry ID, got:\n%s", channelMDX)
+	}
+}
+
+// TestExporter_PlainRefIDsEmitsBareRefs pins the @eventcatalog/linter
+// contract: refs are bare frontmatter IDs (the linter keys its index by id
+// and can never resolve the composite form).
+func TestExporter_PlainRefIDsEmitsBareRefs(t *testing.T) {
+	eventMDX, channelMDX := plainRefExport(t, eventcatalog.WithPlainRefIDs())
+
+	if !strings.Contains(eventMDX, "- order-svc") {
+		t.Errorf("plain producers should be bare service IDs, got:\n%s", eventMDX)
+	}
+
+	if strings.Contains(eventMDX, "order-svc-1.2.3") {
+		t.Errorf("plain producers must not carry the version suffix, got:\n%s", eventMDX)
+	}
+
+	if !strings.Contains(channelMDX, "id: OrderPlaced\n") {
+		t.Errorf("plain channel pointer should be the bare message ID, got:\n%s", channelMDX)
+	}
+
+	if strings.Contains(channelMDX, "id: OrderPlaced-1.0.0") {
+		t.Errorf("plain channel pointer must not carry the version suffix, got:\n%s", channelMDX)
+	}
+
+	if !strings.Contains(channelMDX, "version: 1.0.0") {
+		t.Errorf("channel pointer must keep the separate version field, got:\n%s", channelMDX)
 	}
 }
