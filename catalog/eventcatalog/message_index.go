@@ -103,10 +103,12 @@ func channelVersionsOf(cat *catalog.Catalog) map[catalog.ChannelID]catalog.Versi
 // channelMessageIndex resolves every message in the catalog to the fully
 // qualified pointer EventCatalog's channel frontmatter requires:
 // {collection, name, id, version}. Bare {id, version} pointers fail schema
-// validation ("messages.0.collection: Required"), and the id must carry the
-// version-qualified Astro entry ID ("<messageID>-<version>") or the build
-// logs "Invalid content reference" and the links never resolve.
-func channelMessageIndex(cat *catalog.Catalog) map[catalog.MessageID]channelMessageFM {
+// validation ("messages.0.collection: Required"), and by default the id
+// carries the version-qualified Astro entry ID ("<messageID>-<version>")
+// because @eventcatalog/core resolves exactly that key — bare ids log
+// "Invalid content reference" on a core build. WithPlainRefIDs strips the
+// version suffix for @eventcatalog/linter, which indexes by frontmatter id.
+func channelMessageIndex(cat *catalog.Catalog, plain bool) map[catalog.MessageID]channelMessageFM {
 	index := make(map[catalog.MessageID]channelMessageFM)
 
 	type kindMessages struct {
@@ -121,10 +123,14 @@ func channelMessageIndex(cat *catalog.Catalog) map[catalog.MessageID]channelMess
 	} {
 		for _, msg := range group.messages {
 			id := catalog.Key(msg)
+			pointerID := string(id)
+			if !plain {
+				pointerID += "-" + string(msg.Version)
+			}
 			index[id] = channelMessageFM{
 				Collection: group.collection,
 				Name:       string(msg.Name),
-				ID:         string(id) + "-" + string(msg.Version),
+				ID:         pointerID,
 				Version:    string(msg.Version),
 			}
 		}
