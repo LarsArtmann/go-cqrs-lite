@@ -416,7 +416,7 @@ first `ReplicationLeaderless` engine.
 - ✅ **Fix `TestQuicSetConvergence` flakiness** — fixed 2026-08-08 (unified `Eventually` blocks)
 - ✅ **QUIC ADT matrix** — `TestQuicADTMatrix` runs full 10-ADT matrix against QUIC transport
 
-### 11. Metaengine Persistence + System Redesign
+### 12. Metaengine Persistence + System Redesign
 
 Two interconnected design efforts documented in late 2026-08 planning sessions.
 
@@ -455,7 +455,7 @@ ADR-0117 follow-ups). Dgraph real-instance testing and the layout-planning
 verify gate are DONE (24/24 live Dgraph 2026-08-15; regression matrix
 2026-08-11).
 
-### 12. FoundationDB Backend (design-doc-backed)
+### 13. FoundationDB Backend (design-doc-backed)
 
 > Fit analysis: `docs/planning/FOUNDATIONDB_METAENGINE_FIT.md` (2026-08-10) —
 > all external claims verified against primary sources. Ordered tasks when
@@ -596,6 +596,12 @@ minor of dual-read support):
 - Transactional outbox (ADR-0016 designed, zero code — the biggest ES-library
   gap per the 2026-08-14 review)
 - Multi-tenant event store (schema-per-tenant)
+- Data-product SLA/freshness fields (probed 2026-09-24: EventCatalog core 4.6.3
+  has NO SLA/freshness schema — data products carry only input/output pointers
+  plus base fields, and unknown frontmatter keys pass as unrendered extension
+  properties). If mesh consumers need product-level SLOs: typed SLA/freshness
+  struct on `catalog.DataProduct`, exporter emits it, our docserver renders it
+  (core won't); upstream schema contribution optional.
 - Distributed projection runner (leader election, multi-node coordination)
 - Event archival to S3 / GCS / Azure Blob
 - CQRS-lite dashboard (web UI for inspecting streams, events, projections)
@@ -648,7 +654,7 @@ CONFLICT`, JSONB) should work with near-zero changes. Point the DSN at port
 - **FoundationDB as a metaengine backend** — distributed ordered KV with
   ACID transactions (Apple, Apache-2.0). Atomic counters, consistent
   secondary indexes, push watches. Requires CGo binding + separate
-  `fdbserver` deployment. **→ Graduated to [Theme 12](#12-foundationdb-backend-design-doc-backed)**
+  `fdbserver` deployment. **→ Graduated to [Theme 13](#13-foundationdb-backend-design-doc-backed)**
   (fit analysis: `docs/planning/FOUNDATIONDB_METAENGINE_FIT.md`).
 - Add ScyllaDB metaengine backend + performance benchmarks — ScyllaDB is a
   NoSQL wide-column store (CQL, Cassandra-compatible, shard-per-core C++/Seastar,
