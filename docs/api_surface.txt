@@ -186,6 +186,7 @@ catalog/docserver/struct DocsServer
 catalog/docserver/type CatalogProvider
 catalog/docserver/type D2Option
 catalog/eventcatalog/func NewExporter
+catalog/eventcatalog/func WithPlainRefIDs
 catalog/eventcatalog/func WithSkipBootstrapFiles
 catalog/eventcatalog/method Export
 catalog/eventcatalog/struct Exporter

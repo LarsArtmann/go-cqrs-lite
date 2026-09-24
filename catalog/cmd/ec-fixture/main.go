@@ -303,7 +303,6 @@ fields:
     required: true
 `
 
-
 func checkoutSteps(withAgent bool) []catalog.FlowStep {
 	steps := []catalog.FlowStep{
 		{

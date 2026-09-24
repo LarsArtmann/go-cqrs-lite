@@ -1,8 +1,9 @@
 package eventcatalog
 
 import (
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // writeAllMessages writes every event, command, and query exactly once to

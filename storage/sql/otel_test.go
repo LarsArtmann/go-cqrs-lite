@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 )
 
 type customDialect struct{ SQLiteDialect }

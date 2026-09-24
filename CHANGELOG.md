@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **catalog/eventcatalog: `WithPlainRefIDs` export option (governance
+  exports).** Default producer/consumer refs and channel message pointers
+  carry the composite `"<id>-<version>"` Astro entry IDs that
+  `@eventcatalog/core` resolves (its visualiser graph uses the same keys);
+  `@eventcatalog/linter` indexes by frontmatter ID and can never resolve
+  that form — which is why every hub ref flagged `refs/resource-exists`.
+  The option emits bare IDs (version stays a separate field) so the SAME
+  catalog can be exported twice: render the default tree, lint the plain
+  one. `check-eventcatalog` now render-validates both shapes AND runs the
+  linter on the plain profile with `refs/resource-exists`,
+  `best-practices/owner-required`, `best-practices/summary-required`,
+  `refs/file-exists`, and `structure/duplicate-resource-ids` all at error
+  severity — the rules the federation hub previously had to warn-suppress.
+- **catalog: `Flow.Owners`.** Flows were the only ownable resource without
+  an owners field; the registry copy and the exporter frontmatter now carry
+  it (emitted under `owners:`, matching every other kind — pinned by
+  `TestExporter_OwnersEmittedOnEveryOwnableKind`). The ec-fixture gained
+  owners/summaries on all owner-required resources, an `OrderItem` entity
+  (the Order aggregate referenced it without a declaration), and its data
+  product's `contracts/orders.yaml` file so `refs/file-exists` passes.
 - **catalog/eventcatalog: `WithSkipBootstrapFiles` export option.** CI
   exports for federation hubs can omit the generated `eventcatalog.config.js`
   and `package.json` — the hub owns its own bootstrap files, and per-source

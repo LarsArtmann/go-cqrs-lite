@@ -417,6 +417,22 @@ Exactly the two bootstrap files are omitted; every resource, the manifest,
 dev exports keep the default so the output directory remains directly
 buildable (`npm install && npx eventcatalog build`).
 
+#### Governance exports: `WithPlainRefIDs`
+
+Producers/consumers and channel message pointers have TWO incompatible
+consumers:
+
+| Consumer               | Resolves                             | Default refs     | `WithPlainRefIDs`                |
+| ---------------------- | ------------------------------------ | ---------------- | -------------------------------- |
+| `@eventcatalog/core`   | composite `<id>-<version>` entry IDs | ✓                | logs `Invalid content reference` |
+| `@eventcatalog/linter` | bare frontmatter IDs                 | every ref errors | ✓                                |
+
+One catalog, two exports: hubs RENDER the default tree and LINT a
+plain-ref export (the `check-eventcatalog` gate does exactly this and
+fails unless the plain profile is clean at full severity). Object-form
+refs (`{id, version}`) are not an alternative — core's schema rejects
+them outright.
+
 #### Versioning your catalog
 
 EventCatalog renders per-resource versions and changelogs; the exporter maps

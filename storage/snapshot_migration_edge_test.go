@@ -8,8 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )
 
 // createSnapshotsWithColumns builds a snapshots table with exactly the given
