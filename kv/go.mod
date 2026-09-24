@@ -12,6 +12,7 @@ require (
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/tidwall/match v1.2.0 // indirect

@@ -6,7 +6,7 @@ require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
 	github.com/larsartmann/go-finding v1.12.0
 	github.com/larsartmann/go-finding/pipeline v1.12.0
-	github.com/larsartmann/go-finding/toolsdk v1.11.0
+	github.com/larsartmann/go-finding/toolsdk v1.12.0
 	github.com/larsartmann/go-output v0.38.0
 	github.com/larsartmann/go-output/delimited v0.38.0
 	github.com/larsartmann/go-output/table v0.38.0
@@ -43,7 +43,7 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/v2 v2.3.6 // indirect
-	github.com/larsartmann/go-atomic-write v0.5.1 // indirect
+	github.com/larsartmann/go-atomic-write v0.5.2 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.10.1 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
@@ -66,6 +66,8 @@ require (
 	github.com/muesli/mango-cobra v1.3.0 // indirect
 	github.com/muesli/mango-pflag v0.2.0 // indirect
 	github.com/muesli/roff v0.1.0 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
