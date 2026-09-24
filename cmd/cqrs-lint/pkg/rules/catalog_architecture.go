@@ -166,5 +166,14 @@ func architectureRules() []RuleInfo {
 			Description: "Projection handles an event type nothing emits or catalogs — typo class, mirror of E006; fold-side twin: C040",
 			AutoFix:     false,
 		},
+		{
+			ID:          "E019",
+			Name:        "data-product-without-contract",
+			Category:    "architecture",
+			Severity:    "info",
+			Confidence:  "high",
+			Description: "Data product serves outputs without a DataContract (or declares no outputs) — consumers get no schema or version pin; advisory contract-completeness check",
+			AutoFix:     false,
+		},
 	}
 }
