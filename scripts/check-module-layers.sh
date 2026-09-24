@@ -265,9 +265,11 @@ DEP_BUDGET[signing]=5
 DEP_BUDGET[encryption]=5
 DEP_BUDGET[otel]=7
 DEP_BUDGET[middleware]=13
-# storage: 13 = the prior 12 + record promoted from indirect (via event) to
-# direct (DeferClose in snapshot_migration.go, ADR-0144; internal primitive).
-DEP_BUDGET[storage]=13
+# storage: 14 = the prior 12 + record promoted from indirect (via event) to
+# direct (DeferClose in snapshot_migration.go, ADR-0144; internal primitive)
+# + go-sqlitestore (sqlite_helpers.go delegates the canonical SQLite engine
+# bootstrap to the shared engine; added 2026-09-22 without its budget bump).
+DEP_BUDGET[storage]=14
 DEP_BUDGET[listing]=6
 DEP_BUDGET[watermill]=9
 # codec is required for CBORToJSONTransform (SSE CBOR->JSON adapter composes
