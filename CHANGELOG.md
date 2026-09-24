@@ -8,6 +8,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **example/mesh-demo: the multi-bounded-context proof.** Orders + billing
+  contexts, each owning its decider, events, and catalog declarations, wired
+  ONLY through a bilateral contract (`order.placed` →, `invoice.issued` ←).
+  Each context exports its own EventCatalog tree via headless flags
+  (`export -domain/-out/-skip-bootstrap/-plain`); both sides declare the
+  shared messages with explicit `Producers`/`Consumers` (an external producer
+  is honored by `catalog.ValidateCoeffects`), so either copy alone tells the
+  whole relationship and the federation hub's union-merge is lossless. Pinned
+  by tests: dangling-free coeffects per source, cross-domain round trip,
+  manifest union without ID collisions, both-copies-carry-both-sides.
+- **cqrs-lint: E019 `data-product-without-contract`.** The
+  `catalog.AddDataProduct` scanner now flags data products whose outputs
+  carry no `DataContract` (and output contracts referencing an undeclared
+  product). RULES.md regenerated; rule count 207 → 208.
+- **catalog/docserver: DataProduct rendering.** The EventCatalog docs UI now
+  lists data products in the overview and serves a detail page at
+  `/docs/eventcatalog/data-products/{id}` (owners, input ports, output ports
+  with contract paths). Three docserver tests pin the handler + rows.
+- **Skill references: the data-mesh cookbook.** recipes.md §2.41 "Declare
+  data products + contracts end-to-end" (compile-verified fence) and
+  advanced.md §6.21 "Data Products: Ports, Replication, and Contract
+  Evolution" (journal-as-outbox input ports per ADR-0016/0146,
+  ServeSSE/query output ports, upcasting-driven contract evolution).
+- **docs/MIGRATION-grpc-to-v5.md.** Consumer-facing gRPC removal guide:
+  surface inventory, capability → HTTP/SSE/broker replacement table, and
+  decision help; linked from transport/grpc's README and the FAQ (outcome
+  rejections arrive as `command.rejected` events, not wire metadata).
 - **catalog/eventcatalog: `WithPlainRefIDs` export option (governance
   exports).** Default producer/consumer refs and channel message pointers
   carry the composite `"<id>-<version>"` Astro entry IDs that

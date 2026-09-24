@@ -5,6 +5,14 @@
 *.so
 *.dylib
 
+# Compiled example binaries (bare `go build` output at repo/example roots —
+# once daemon-absorbed into history; never again)
+/goal-shaped-app
+/scheduler-otel-status
+/metaengine-quickstart
+/readme-quickstart
+/example/mesh-demo/mesh-demo
+
 # Test binary, built with 'go test -c'
 *.test
 

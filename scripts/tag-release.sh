@@ -11,6 +11,11 @@
 # reads <module>/go.mod, and ignores every other go.mod in the tree. Touching
 # all 58 go.mod files (the old behavior) was unnecessary and risky.
 #
+# A pre-push zip-content guard additionally rejects tags whose tree would
+# render a malformed module zip (control-character paths, blobs over 4 MiB) —
+# the metaengine/tursoengine/v4.2.0 poisoned-tag class (2026-09-24) is
+# detectable before the push makes it proxy-irreversible.
+#
 # A "local" replace is any directive whose target is a filesystem path —
 # relative (../event) or absolute (/home/lars/projects/go-finding). Both the
 # go-cqrs-lite/* dev replaces AND sibling-repo replaces (go-finding, go-must)
@@ -113,7 +118,49 @@ proxy_smoke_check() {
 	echo "after 12 attempts (~2 min). Check https://proxy.golang.org/ and the"
 	echo "tag's ancestry; do NOT build dependent tags until this resolves."
 	exit 1
-}
+	}
+
+	# tag_zip_content_check <tag>: reject a tag whose tree would produce a
+	# malformed proxy zip, BEFORE the push makes it irreversible. The observed
+	# class (metaengine/tursoengine/v4.2.0: zip contained files with \x06 control
+	# characters — every consumer 'go get' failed with "malformed file path";
+	# only retraction fixes a served tag). Guard classes:
+	#   1. any path with bytes outside printable ASCII — control characters are
+	#      invisible in everyday git status output (git merely quotes the path)
+	#   2. any blob over 4 MiB — nothing legitimate in this repo comes close
+	#      (largest tracked asset: catalog/docserver/static/scalar.js, 3.7 MiB);
+	#      bulk binary junk is exactly what poisoned the tag above. If a >4 MiB
+	#      asset is ever intentional, raise the threshold consciously — never
+	#      by deleting the guard.
+	tag_zip_content_check() {
+		local tag="$1"
+		local bad=0 entry path
+
+		while IFS= read -r -d '' entry; do
+			path="${entry#*$'\t'}"
+			if printf '%s' "$path" | LC_ALL=C grep -q '[^ -~]'; then
+				echo "ERROR: ${tag} tree contains a path with control/non-printable characters:"
+				printf '  %q\n' "$path"
+				bad=1
+			fi
+		done < <(git ls-tree -r -z "$tag")
+
+		local oversized
+		oversized="$(git ls-tree -r -l "$tag" | awk -F'\t' '{ split($1, m, " "); if (m[4] ~ /^[0-9]+$/ && m[4]+0 > 4*1024*1024) print m[4] " " $2 }')"
+		if [ -n "$oversized" ]; then
+			echo "ERROR: ${tag} tree contains blob(s) over 4 MiB (binary junk?):"
+			printf '%s\n' "$oversized" | sed 's/^/  /'
+			bad=1
+		fi
+
+		if [ "$bad" -ne 0 ]; then
+			echo ""
+			echo "A PUSHED tag with any of the above is unfixable without retraction"
+			echo "(every 'go get' of it fails). Fix the tree, re-cut the tag."
+			return 1
+		fi
+		echo "✓ zip-content guard: no control-char paths, no blobs over 4 MiB"
+	}
 
 # smoke_install_and_run installs module@ver from the PROXY into a clean
 ## GOBIN and runs it with its probe invocation. The install is a hard gate: a
@@ -622,6 +669,14 @@ tag_type="$(git cat-file -t "$tag")"
 if [ "$tag_type" != "tag" ]; then
 	echo "ERROR: tag is ${tag_type}, not 'tag' (annotated). Cleaning up..."
 	git tag -d "$tag"
+	undo_temp_commit
+	exit 1
+fi
+
+# Pre-push zip-content guard: the push is the point of no return for the
+# module proxy. Same cleanup path as the annotation failure above.
+if ! tag_zip_content_check "$tag"; then
+	git tag -d "$tag" >/dev/null
 	undo_temp_commit
 	exit 1
 fi
