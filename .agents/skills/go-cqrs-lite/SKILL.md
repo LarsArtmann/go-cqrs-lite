@@ -1,6 +1,6 @@
 ---
 name: go-cqrs-lite
-description: Build Go applications with go-cqrs-lite — the composable CQRS + event-sourcing library (event-sourced streams, deciders, projections, read models, SQL/Pebble/Turso storage, snapshots, schema evolution, signing, scheduling, deriver sagas). Use when a project imports any github.com/larsartmann/go-cqrs-lite/*/v4 module, OR the user asks how to build CQRS/event-sourcing systems in Go, dispatch commands/queries, build read models or projections, use event stores or buses, or work with any go-cqrs-lite module (event, command, query, decider, storage, stack, projection, schema, middleware, catalog, watermill, scheduling, deriver, graph, metaengine, system, projectionhost) — even when the library is NOT named explicitly (e.g. "set up event sourcing", "build a read model", "dispatch a command", "snapshot a stream", "replay events", "idempotent commands", "cost-based query planner", "operator-picked engines").
+description: Build Go applications with go-cqrs-lite — the composable CQRS + event-sourcing library. Apps compose through the `system` composition root (ADR-0123: `system.New(ctx, DomainConfig, DeploymentConfig)` auto-wires event store, bus, projections, deciders, queries, snapshots, timers, health, lifecycle) and the `metaengine` cost-based storage planner (`Store` + `Query[Q,R]` auto-projection across interchangeable engines: memory, sqlite, turso, pebble, bbolt, badger, dgraph, duckdb, postgres, mysql, iroh CRDT). Use when a project imports any github.com/larsartmann/go-cqrs-lite/*/v4 module, OR the user asks how to build CQRS/event-sourcing systems in Go, dispatch commands/queries, build read models or projections, use event stores or buses, or work with any go-cqrs-lite module (event, command, query, decider, storage, stack, projection, schema, middleware, catalog, watermill, scheduling, deriver, graph, metaengine, system, projectionhost) — even when the library is NOT named explicitly (e.g. "set up event sourcing", "build a read model", "dispatch a command", "snapshot a stream", "replay events", "idempotent commands", "cost-based query planner", "operator-picked engines").
 user-invocable: true
 metadata:
   tags: cqrs, event-sourcing, go, decider, projection, read-model, event-store, domain-driven-design
@@ -9,6 +9,13 @@ metadata:
 # go-cqrs-lite
 
 A **library, not a framework**: import only the modules you need; compose them.
+
+**Going forward, apps build on two modules (ADR-0123, the v5 direction):**
+
+- **`system`** — the single composition root. `system.New(ctx, DomainConfig, DeploymentConfig)` auto-wires event store, bus, projections (`projectionhost`), deciders, queries, snapshots, timers, health, and lifecycle. Developers declare domain types + folds; operators pick engines in ONE `DeploymentConfig` place.
+- **`metaengine`** — the cost-based storage planner. `Store` + `Query[Q,R]` declarations (`On`/`Delta` folds, `OnRecord`, `AutoCRUDByConvention`) build read models with auto-projection across interchangeable engines. Copy-paste patterns: `metaengine/COOKBOOK.md`.
+
+Reach for the low-level modules (`event`, `command`, `decider`, `storage`, `stack`, `kv`) only when `system`/`metaengine` don't cover the need — `stack` presets and the v1 read-model tiers are deprecated and removed in v5.
 
 Core loop: Command→Dispatcher→Handler→Decider(load→fold→decide→save→publish)→EventStore+Bus→Projection→ReadModel→Query.
 
