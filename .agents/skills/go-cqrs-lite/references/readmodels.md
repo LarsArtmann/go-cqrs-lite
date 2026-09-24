@@ -344,11 +344,11 @@ host.Start(ctx)
 **Make your projection revertible** — implement `projectionhost.Resettable`
 (`Reset(ctx) error`). Ready-made covers:
 
-| Your projection is… | Resettable implementation | Reset clears |
-| --- | --- | --- |
-| `metaengine` Store-backed | none needed — `projectionadapter.Adapter` already implements `Resettable` (delegates to `metaengine.Store.Reset`) | collections + replay aids (event log, idempotency ring, poison tracker) |
-| `SQLViewStore`-backed `Materialize` | wrap `store.DeleteAll(ctx)` in a 3-line `Reset` | the view table (`DELETE FROM`) |
-| hand-rolled in-memory | wrap your `clear()` in a `Reset` | your maps |
+| Your projection is…                 | Resettable implementation                                                                                         | Reset clears                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `metaengine` Store-backed           | none needed — `projectionadapter.Adapter` already implements `Resettable` (delegates to `metaengine.Store.Reset`) | collections + replay aids (event log, idempotency ring, poison tracker) |
+| `SQLViewStore`-backed `Materialize` | wrap `store.DeleteAll(ctx)` in a 3-line `Reset`                                                                   | the view table (`DELETE FROM`)                                          |
+| hand-rolled in-memory               | wrap your `clear()` in a `Reset`                                                                                  | your maps                                                               |
 
 **Engine capability ladder (metaengine):** `Store.Reset` clears every engine
 implementing the `EngineResetter` capability; the rest report through
@@ -358,10 +358,10 @@ rows are facts — the replay source a reset rebuilds FROM — so resetting an
 engine that also hosts your event journal (`RoleSourceOfTruth` on the same
 engine) never loses events; only materialized collections are cleared.
 
-| Engine | `EngineResetter` |
-| --- | --- |
-| every first-party engine (memory, sqlite/turso, pebble, bbolt, badger, pg, mysql, duckdb, dgraph, iroh via its local engine) | full reset since 2026-09-11 |
-| custom engines | implement the capability or land in `UnclearableEngines` |
+| Engine                                                                                                                       | `EngineResetter`                                         |
+| ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| every first-party engine (memory, sqlite/turso, pebble, bbolt, badger, pg, mysql, duckdb, dgraph, iroh via its local engine) | full reset since 2026-09-11                              |
+| custom engines                                                                                                               | implement the capability or land in `UnclearableEngines` |
 
 For direct metaengine use (no host), reset the Store itself and inspect the
 result — a partial reset is YOUR call to make, not the library's to hide:
