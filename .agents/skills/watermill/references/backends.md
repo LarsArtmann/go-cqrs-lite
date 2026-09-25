@@ -3,6 +3,11 @@
 > Verified against watermill.io pub/sub pages on **2026-09-15**. Core repo:
 > ThreeDotsLabs/watermill (v1.5.3, 2026-08-25, active — not archived, 9.9k stars).
 > Plugin majors are independent of core: check each repo's releases before bumping.
+>
+> **Plugin latests re-verified against proxy.golang.org on 2026-09-25** (all
+> cited majors/versions current): watermill v1.5.3 · redisstream v1.4.5 ·
+> nats/v2 v2.2.0 (2026-05-15) · kafka/v3 v3.1.4 (2026-07-29) · amqp/v3
+> v3.1.0 (2026-05-14) · sql/v4 v4.1.5 (2026-05-14).
 
 ## 1. Characteristics matrix (from each plugin's official docs page)
 

@@ -56,6 +56,10 @@ LOG="$LOGDIR/$(date -u +%Y-%m-%d).log"
 REPO="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null || echo "$SCRIPT_DIR/..")"
 cd "$REPO" || exit 2
 
+# Shared buildcache capacity pre-flight (report-only): a full mount is the
+# known ENOSPC-mid-gate class; record it in the log before any benching.
+bash "$SCRIPT_DIR/check-buildcache-capacity.sh" >>"$LOG" 2>&1 || true
+
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] nightly bench start (repo=$REPO)" >>"$LOG"
 scripts/quiet-window-run.sh --deadline 10800 --attempts 2 \
 	--log "$LOG" \
