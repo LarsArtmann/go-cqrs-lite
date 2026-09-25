@@ -63,13 +63,13 @@ cd cmd/doc-check && GOWORK=off go run . ../../SKILL.md ../../.agents/skills/go-c
 | md-go gate    | `nix run .#check-md-go` (every live `go` fence in docs must parse or carry `// skip-validate`; frozen history baselined in scripts/md-go-baseline.txt)                                                     |
 | Rel. tests    | `nix run .#check-release-scripts` (tag-release.sh + batch-release.sh smoke tests vs fixture repos; also a CI leg)                                                                                          |
 | README gates  | `bash scripts/check-readme-links.sh` + `bash scripts/check-readme-deprecated.sh` (link integrity + deprecated-symbol honesty; nightly)                                                                     |
-| Recipe gate   | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 83/83 classified, coverage ratchet)                                                             |
+| Recipe gate   | `cd cmd/doc-check && GOWORK=off go test -run TestRecipes .` (recipes.md fenced-Go blocks compile-verified; 84/84 classified, coverage ratchet)                                                             |
 | CSP check     | `nix run .#check-csp` (docserver CSP policy, browser-validated)                                                                                                                                            |
 | EventCat      | `nix run .#check-eventcatalog` (EventCatalog export render-validation)                                                                                                                                     |
 | Bench         | `nix run .#bench` (full sweep) · `./scripts/benchmark-regression.sh` (gates: load + per-metric noise via `benchkit.RunRepeated`/`MetricVariation` + median ns/op 25% — rename-guarded, CI fails on breach) |
 | CI            | GitHub Actions: ci.yml (Nix-based, build/vet/test/lint/race/coverage + GOWORK=off per-module)                                                                                                              |
 
-Multi-module Go workspace (`go.work`) with 96 `go.mod` files (incl. root). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
+Multi-module Go workspace (`go.work`) with 98 `go.mod` files (incl. root; count gate-derived via `check-canonical-facts.sh`). Verify: `find . -name go.mod -not -path './vendor/*' | wc -l`
 
 Per-module isolation: `cd event && GOWORK=off go test ./... -count=1`
 
@@ -166,7 +166,7 @@ Split by topic; edit the topic file, never inline here:
 - [`gotchas-language-footguns.md`](docs/agents/gotchas-language-footguns.md) — pgx/CBOR/encoding traps, GOWORK positional, alloc pins, Dgraph/MariaDB/SQLite/DuckDB dialects.
 - [`gotchas-testing.md`](docs/agents/gotchas-testing.md) — full testing conventions.
 - [`gowork-modes.md`](docs/agents/gowork-modes.md) — THE GOWORK decision table + mandatory env chain + jsonv2 tag.
-- [`module-map.md`](docs/agents/module-map.md) — the internal module map (all 97 go.mod files rowed — census re-verified 2026-09-22 after systemtest landed, the Feedback-#4 split; scripted diff; engines/tools/examples also live in FEATURES' maturity matrix).
+- [`module-map.md`](docs/agents/module-map.md) — the internal module map (all 98 go.mod files rowed — census re-verified 2026-09-25; engines/tools/examples also live in FEATURES' maturity matrix).
 
 TL;DR rules (too hot to be one click away):
 

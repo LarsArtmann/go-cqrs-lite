@@ -157,6 +157,9 @@ fi
 
 # Policy: the baseline is for frozen history only. Live docs must carry
 # // skip-validate annotations (or real fence fixes) — never baseline rows.
+# The baseline may only SHRINK: entries whose file no longer exists on disk
+# are ghosts (the doc was trashed/renamed) and fail the gate — prune them
+# with --update-baseline (baseline-bump ritual, 2026-09-13 audit §b).
 check_policy() {
 	local bad
 	bad=$(grep -v '^#' "$BASELINE" | cut -d: -f1 | sort -u | grep -Ev "$ARCHIVE_SEGMENT" || true)
@@ -166,6 +169,18 @@ check_policy() {
 		echo "$bad" | sed 's/^/  - /'
 		return 1
 	fi
+
+	local ghosts
+	ghosts=$(grep -v '^#' "$BASELINE" | cut -d: -f1 | sort -u | while IFS= read -r p; do
+		[ -e "$p" ] || echo "$p"
+	done)
+	if [ -n "$ghosts" ]; then
+		echo "::error::$BASELINE references files that no longer exist (ghost entries; the"
+		echo "::error::baseline may only shrink) — regenerate: bash scripts/check-md-go.sh --update-baseline"
+		echo "$ghosts" | sed 's/^/  - /'
+		return 1
+	fi
+
 	return 0
 }
 
