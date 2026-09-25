@@ -23,14 +23,23 @@ func (m *memoryEngine) chainLocked(col, key string) *versionChain {
 	return chain
 }
 
-// recordVersionAt records a timestamped entry on the key's chain (sorted
-// insert + retention trim), without touching the latest view — the caller
-// has already written the main map. Caller MUST hold m.mu.Lock() and MUST
-// have versioning enabled (m.versions != nil).
+// recordVersionAt records an explicitly-stamped entry on the key's chain
+// (sorted insert + retention trim), without touching the latest view — the
+// caller has already written the main map. This is the REPLAY path
+// (MapUpdateAt and other caller-supplied-timestamp writes). Caller MUST
+// hold m.mu.Lock() and MUST have versioning enabled (m.versions != nil).
 func (m *memoryEngine) recordVersionAt(col, key string, value any, ts time.Time) {
 	chain := m.chainLocked(col, key)
 	chain.insertAt(versionedEntry{ts: ts, value: value})
 	m.trimRetentionLocked(chain, ts)
+}
+
+// recordVersionNow is the LIVE-write path (MapSet/MapDelete/MapUpdate): it
+// stamps the current wall clock, in contrast to recordVersionAt, which
+// records the caller-supplied event timestamp. Caller MUST hold m.mu.Lock()
+// and MUST have versioning enabled (m.versions != nil).
+func (m *memoryEngine) recordVersionNow(col, key string, value any) {
+	m.recordVersionAt(col, key, value, time.Now())
 }
 
 // applyVersionLocked records one timestamped version and syncs the latest

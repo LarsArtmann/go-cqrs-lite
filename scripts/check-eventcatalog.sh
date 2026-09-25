@@ -109,8 +109,15 @@ echo "==> 5/5 @eventcatalog/linter on the plain-refs profile"
 plain="$work-plain"
 mkdir -p "$plain"
 (cd "$root/catalog" && GOWORK=off go run ./cmd/ec-fixture "$plain" plain)
-# --no-save: the linter is a gate tool, not an export dependency.
-npm install --no-save --no-audit --no-fund --loglevel=error @eventcatalog/linter@1.1.20 >/dev/null
+# The linter install is lockfile-pinned (scripts/testdata/eventcatalog-linter):
+# `npm ci` installs EXACTLY the committed package-lock.json — no ad-hoc
+# @version drift, transitive deps included. Bump = edit package.json +
+# regenerate the lockfile, never the install flag.
+lintdir="$work-linter"
+mkdir -p "$lintdir"
+cp "$root/scripts/testdata/eventcatalog-linter/package.json" \
+	"$root/scripts/testdata/eventcatalog-linter/package-lock.json" "$lintdir/"
+npm ci --prefix "$lintdir" --no-audit --no-fund --loglevel=error >/dev/null
 cat >"$plain/.eventcatalogrc.js" <<'RC'
 export default {
   rules: {
@@ -122,7 +129,7 @@ export default {
   },
 };
 RC
-if ! (cd "$plain" && node "$work/node_modules/@eventcatalog/linter/dist/cli/index.js" -q .); then
+if ! (cd "$plain" && node "$lintdir/node_modules/@eventcatalog/linter/dist/cli/index.js" -q .); then
 	echo "FAIL: @eventcatalog/linter reported problems on the plain-refs fixture" >&2
 	echo "      (workdir: $plain)" >&2
 	exit 1

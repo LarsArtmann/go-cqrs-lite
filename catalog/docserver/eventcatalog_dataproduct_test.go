@@ -26,6 +26,7 @@ func dataProductTestProvider() *catalog.Catalog {
 	reg.AddDataProduct(catalog.DataProduct{
 		ID: "order-lifecycle", Name: "Order Lifecycle", Version: "1.0.0",
 		Summary: "Order facts for analytics", Owners: []string{"orders-team"},
+		Badges: []catalog.Badge{{Content: "PII", URL: "https://example.com/handling"}},
 		Inputs: []catalog.Ref{{ID: "invoice.issued", Version: "1.0.0"}},
 		Outputs: []catalog.DataProductOutput{
 			{
@@ -36,6 +37,10 @@ func dataProductTestProvider() *catalog.Catalog {
 				},
 			},
 		},
+	})
+	reg.AddDataProduct(catalog.DataProduct{
+		ID: "internal-audit", Name: "Internal Audit", Version: "0.3.0",
+		Summary: "hidden from the overview on purpose", Hidden: true,
 	})
 
 	return reg.Build()
@@ -72,6 +77,10 @@ func TestDocsServer_EventCatalog_DataProductOverviewSection(t *testing.T) {
 			t.Errorf("expected overview page to contain %q", expected)
 		}
 	}
+
+	if strings.Contains(body, "Internal Audit") || strings.Contains(body, "internal-audit") {
+		t.Error("hidden data product must not be listed on the overview page")
+	}
 }
 
 func TestDocsServer_EventCatalog_DataProductDetail(t *testing.T) {
@@ -91,6 +100,7 @@ func TestDocsServer_EventCatalog_DataProductDetail(t *testing.T) {
 		"Order Lifecycle",
 		"order-lifecycle",
 		"orders-team",
+		"PII",
 		"Input ports",
 		"invoice.issued",
 		"Output ports",
@@ -101,6 +111,32 @@ func TestDocsServer_EventCatalog_DataProductDetail(t *testing.T) {
 		if !strings.Contains(body, expected) {
 			t.Errorf("expected data product page to contain %q", expected)
 		}
+	}
+
+	if strings.Contains(body, ">hidden<") {
+		t.Error("visible data product must not carry a hidden marker")
+	}
+}
+
+func TestDocsServer_EventCatalog_DataProductHiddenDetail(t *testing.T) {
+	srv := dataProductTestServer(t)
+
+	req := newTestRequest("/docs/eventcatalog/data-products/internal-audit")
+	req.SetPathValue("id", "internal-audit")
+	recorder := httptest.NewRecorder()
+	srv.serveEventCatalogDataProduct(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+
+	body := recorder.Body.String()
+	if !strings.Contains(body, "Internal Audit") {
+		t.Error("hidden data product stays reachable by direct link")
+	}
+
+	if !strings.Contains(body, ">hidden<") {
+		t.Error("hidden data product page must show the hidden marker")
 	}
 }
 

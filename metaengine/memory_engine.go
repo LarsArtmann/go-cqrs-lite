@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 )
 
 // memoryEngine implements all ADT backends for testing and development.
@@ -120,8 +119,8 @@ func (m *memoryEngine) MapSet(_ context.Context, col string, key any, value any)
 
 	m.getMapLocked(col)[key] = value
 
-	if m.versions != nil { // opt-in versioning
-		m.recordVersionAt(col, fmt.Sprint(key), value, time.Now())
+	if m.versions != nil { // opt-in versioning: live write, wall-clock stamp
+		m.recordVersionNow(col, fmt.Sprint(key), value)
 	}
 
 	return nil
@@ -147,8 +146,8 @@ func (m *memoryEngine) MapDelete(_ context.Context, col string, key any) error {
 
 	delete(m.getMapLocked(col), key)
 
-	if m.versions != nil { // opt-in versioning
-		m.recordVersionAt(col, fmt.Sprint(key), nil, time.Now())
+	if m.versions != nil { // opt-in versioning: live delete, wall-clock stamp
+		m.recordVersionNow(col, fmt.Sprint(key), nil)
 	}
 
 	return nil
@@ -172,8 +171,8 @@ func (m *memoryEngine) MapUpdate(
 	newVal := update(prev)
 	store[key] = newVal
 
-	if m.versions != nil { // opt-in versioning
-		m.recordVersionAt(col, fmt.Sprint(key), newVal, time.Now())
+	if m.versions != nil { // opt-in versioning: live write, wall-clock stamp
+		m.recordVersionNow(col, fmt.Sprint(key), newVal)
 	}
 
 	return nil

@@ -1,0 +1,9 @@
+{
+  "name": "cqrs-eventcatalog-linter-pin",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lockfile pin for the @eventcatalog/linter gate install in scripts/check-eventcatalog.sh (step 5/5). Not a published package.",
+  "dependencies": {
+    "@eventcatalog/linter": "1.1.20"
+  }
+}

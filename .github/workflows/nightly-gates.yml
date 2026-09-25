@@ -103,6 +103,15 @@ jobs:
           bash scripts/check-readme-deprecated.sh --self-test
           bash scripts/check-readme-deprecated.sh
 
+      # md-go gate: every live ```go fence in docs must parse (or carry
+      # // skip-validate); frozen history baselined in
+      # scripts/md-go-baseline.txt (inert-shrink ratchet). Self-test first,
+      # then the real gate — same pattern as the gates above.
+      - name: md-go validator gate (docs go fences)
+        run: |
+          bash scripts/check-md-go.sh --self-test
+          bash scripts/check-md-go.sh
+
       # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
       # stays on the per-push CI leg; the nightly only surfaces drift.
       - name: Pin sweep (report-only)
