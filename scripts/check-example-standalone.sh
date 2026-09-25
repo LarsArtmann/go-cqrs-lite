@@ -19,11 +19,17 @@
 #   bash scripts/check-example-standalone.sh --self-test
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="${EXAMPLES_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
-# Deliberate local replaces (module => reason). Keep SHORT: each entry dies
-# at the tag wave that obsoletes it.
-ALLOWED_REPLACES=''
+# Deliberate local replaces (example name => reason). Keep SHORT: each
+# entry dies at the tag wave that obsoletes it.
+#   taskmanager — 4 sibling replaces (queue, queue/sqlite, claiming,
+#     metaengine) ride until the queue/metaengine tag waves land (TODO:
+#     release-train tail; the same consumer-purity play as
+#     scheduler-otel-status).
+#   mesh-demo — pre-release `replace ../../catalog` until the catalog/v4.6+
+#     tag wave lands (TODO: data-mesh tail).
+ALLOWED_REPLACES='taskmanager mesh-demo'
 
 DO_BUILD=0
 if [ "${1:-}" = "--build" ]; then
@@ -37,13 +43,13 @@ elif [ "${1:-}" = "--self-test" ]; then
 	printf 'module example.com/bad\n\ngo 1.27.1\n\nrequire x/y v1.0.0\n\nreplace x/y => ../../y\n' >"$tmp/example/bad/go.mod"
 	printf 'module example.com/good\n\ngo 1.27.1\n' >"$tmp/example/good/go.mod"
 
-	out="$(cd "$tmp" && bash "$ROOT/scripts/check-example-standalone.sh" 2>&1)"
+	out="$(EXAMPLES_ROOT="$tmp" bash "$ROOT/scripts/check-example-standalone.sh" 2>&1)"
 	rc=$?
 	echo "$out" | grep -q "example/bad" && echo "  ✓ PASS: path-replace example flagged" ||
 		echo "  ✗ FAIL: path-replace example not flagged"
 	[ "$rc" -eq 1 ] && echo "  ✓ PASS: audit exits nonzero" || echo "  ✗ FAIL: audit should exit 1"
 	rm -rf "$tmp/example/bad"
-	out="$(cd "$tmp" && bash "$ROOT/scripts/check-example-standalone.sh" 2>&1)"
+	out="$(EXAMPLES_ROOT="$tmp" bash "$ROOT/scripts/check-example-standalone.sh" 2>&1)"
 	[ $? -eq 0 ] && echo "  ✓ PASS: clean example set passes" || echo "  ✗ FAIL: clean set should pass"
 	exit 0
 fi
@@ -56,7 +62,7 @@ for gomod in "$ROOT"/example/*/go.mod; do
 	# Leg 1: no local path replaces (the standalone killer).
 	while IFS= read -r line; do
 		[ -z "$line" ] && continue
-		if echo "$ALLOWED_REPLACES" | grep -qF "[$name]"; then
+		if grep -qF "$name" <<<"$ALLOWED_REPLACES"; then
 			continue
 		fi
 		echo "✗ example/$name carries a local replace — standalone builds cannot resolve it:" >&2
