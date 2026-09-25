@@ -95,6 +95,7 @@ templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
 			@display.PageHeader(display.PageHeaderProps{
 				Title:    d.Name,
 				Subtitle: d.Summary,
+				Action: dataProductHeaderBadges(d),
 			})
 			@display.DefinitionList(display.DefinitionListProps{
 				Items: []display.DefinitionItem{
@@ -317,6 +318,22 @@ templ messageKindBadge(kind string) {
 		Type: utils.Lookup(messageKindBadgeTypes, kind, display.BadgeNeutral),
 		Pill: true,
 	})
+}
+
+// dataProductHeaderBadges renders the data-product page-header action
+// cluster: the hidden marker (hidden products stay reachable by direct link
+// but are excluded from the overview) plus every declared catalog badge.
+templ dataProductHeaderBadges(d eventCatalogDataProductDetail) {
+	if d.Hidden || len(d.Badges) > 0 {
+		<div class="flex flex-wrap items-center justify-end gap-1.5">
+			if d.Hidden {
+				@display.Badge(display.BadgeProps{Text: "hidden", Type: display.BadgeNeutral, Pill: true})
+			}
+			for _, b := range d.Badges {
+				@display.Badge(display.BadgeProps{Text: b.Content, Type: display.BadgeNeutral, Href: string(b.URL)})
+			}
+		</div>
+	}
 }
 
 // messageLinkCell renders the labeled link content of a catalog row cell.

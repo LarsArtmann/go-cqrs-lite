@@ -38,6 +38,8 @@ type eventCatalogDataProductDetail struct {
 	Version    string
 	Summary    string
 	Owners     []string
+	Hidden     bool
+	Badges     []catalog.Badge
 	Inputs     []eventCatalogPortRow
 	Outputs    []eventCatalogPortRow
 }
@@ -58,11 +60,16 @@ func findDataProduct(cat *catalog.Catalog, id string) (catalog.DataProduct, bool
 	return catalog.DataProduct{}, false
 }
 
-// dataProductOverviewRows builds the overview table rows for every data
-// product (sorted by name for stable ordering).
+// dataProductOverviewRows builds the overview table rows for every VISIBLE
+// data product (Hidden products stay reachable by direct link but are not
+// listed), sorted by name for stable ordering.
 func dataProductOverviewRows(cfg Config, cat *catalog.Catalog) []eventCatalogDataProductRow {
 	rows := make([]eventCatalogDataProductRow, 0, len(cat.DataProducts))
 	for _, dp := range cat.DataProducts {
+		if dp.Hidden {
+			continue
+		}
+
 		rows = append(rows, eventCatalogDataProductRow{
 			Name:    cmpOr(string(dp.Name), string(dp.ID)),
 			Href:    eventCatalogDataProductHref(cfg.DocsPath, string(dp.ID)),
@@ -104,6 +111,8 @@ func newEventCatalogDataProductDetail(
 		Version:    string(dp.Version),
 		Summary:    string(dp.Summary),
 		Owners:     dp.Owners,
+		Hidden:     dp.Hidden,
+		Badges:     dp.Badges,
 		Inputs:     portViewRows(cfg.DocsPath, dp.Inputs, nil),
 	}
 
