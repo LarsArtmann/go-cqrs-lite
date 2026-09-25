@@ -33,8 +33,10 @@ package mysqltestcontainer
 import (
 	"context"
 	"flag"
+	"net"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mysql"
@@ -70,13 +72,23 @@ func TestMain(m *testing.M) {
 	// erroring — the skip was correct but slow. When there is clearly no
 	// socket and no DOCKER_HOST override, skip immediately.
 	if os.Getenv("DOCKER_HOST") == "" {
-		if _, statErr := os.Stat("/var/run/docker.sock"); statErr != nil {
+		// Dial, not stat: the socket file can exist while the daemon is
+		// dead — the exact state that made the probe burn 60s.
+		conn, dialErr := net.DialTimeout("unix", "/var/run/docker.sock", 500*time.Millisecond)
+		if dialErr != nil {
 			finish(m, nil)
 			return
 		}
+		_ = conn.Close()
 	}
 
-	ctr, err := mysql.Run(ctx, "mariadb:11.4",
+	// Bound the container attempt: a wedged daemon/image pull burns ~60s
+	// per test binary before erroring into the skip. 25s covers a warm
+	// local image start (mariadb:11.4 ~5-10s); past that, skip.
+	runCtx, cancelRun := context.WithTimeout(ctx, 25*time.Second)
+	defer cancelRun()
+
+	ctr, err := mysql.Run(runCtx, "mariadb:11.4",
 		mysql.WithDatabase("cqrs_test"),
 		mysql.WithUsername("cqrs"),
 		mysql.WithPassword("cqrs"),
