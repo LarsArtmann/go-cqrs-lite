@@ -28,9 +28,9 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-GOLDEN="$ROOT/docs/api_surface.txt"
-CHANGELOG="$ROOT/CHANGELOG.md"
-BASELINE="$ROOT/scripts/changelog-coverage-baseline.txt"
+GOLDEN="${GOLDEN:-$ROOT/docs/api_surface.txt}"
+CHANGELOG="${CHANGELOG:-$ROOT/CHANGELOG.md}"
+BASELINE="${BASELINE:-$ROOT/scripts/changelog-coverage-baseline.txt}"
 
 # Common-primitive export names that a changelog need not call out
 # individually (they ride module-level entries). Extend freely.
@@ -136,7 +136,7 @@ if [ "${#missing[@]}" -gt 0 ]; then
 		echo "::error::--fail-on-new: unmentioned, unbaselined headline exports above" >&2
 		failures=$((failures + 1))
 	elif [ "$MODE" = "prune" ]; then
-		printf '  %s\n' "${missing[@]}" >>"$BASELINE"
+		printf '%s\n' "${missing[@]}" >>"$BASELINE"
 		sort -u "$BASELINE" -o "$BASELINE"
 		echo "baseline appended: scripts/changelog-coverage-baseline.txt ($(wc -l <"$BASELINE") entries) — review the diff before committing"
 	fi

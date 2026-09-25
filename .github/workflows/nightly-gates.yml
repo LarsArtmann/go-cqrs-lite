@@ -105,6 +105,15 @@ jobs:
           bash scripts/check-readme-deprecated.sh --self-test
           bash scripts/check-readme-deprecated.sh
 
+      # Reverse changelog gate: every module in the api golden must be
+      # mentioned in CHANGELOG.md; NEW unmentioned headline exports fail
+      # (513 pre-existing entries baselined 2026-09-25; the mesh-demo/E019/
+      # docserver miss class stayed green through the old one-way gate).
+      - name: Changelog coverage gate (reverse)
+        run: |
+          bash scripts/check-changelog-coverage.sh --self-test
+          bash scripts/check-changelog-coverage.sh --fail-on-new
+
       # md-go gate: every live ```go fence in docs must parse (or carry
       # // skip-validate); frozen history baselined in
       # scripts/md-go-baseline.txt (inert-shrink ratchet). Self-test first,
