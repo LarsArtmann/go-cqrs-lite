@@ -55,3 +55,12 @@ also in the `#verify` head + nightly) fails loud when the selected toolchain is
 older than the go.work contract or a `go` binary cannot answer `go env
 GOVERSION`. The explicit nixpkgs pin lands when nixpkgs ships the contract
 version.
+
+**Two-tier load ceilings (intent, documented 2026-09-25):** the composed-`#verify`
+load guard refuses at load 10 (`verify-load-guard.sh`, CalibGate-independent)
+while calibration/baseline runs refuse at load 5 (`calibration-gate.sh`) —
+deliberate, not drift. `#verify` is CPU-heavy itself and only needs "no other
+heavy session"; baseline-producing benches need "the host quiet" because their
+NUMBERS become committed constants (a load-9 verify window would poison a
+SearchQuery median but is harmless to a test-pass verdict). Do not "unify" the
+ceilings; widen either one only with a recorded reason.
