@@ -341,14 +341,21 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 		}
 	}
 
-	// The latest CHANGELOG version should have a reasonable number of module tags
-	// (at least 10 — not all 58 modules release at the same version, but core
-	// modules should be tagged together).
+	// Train-section threshold (release-tooling tail; calibrated 2026-09-25):
+	// a section with <5 tags is an abandoned train — ERROR. 5-9 is a small
+	// coordinated wave (v4.7.0 shipped 9 legitimately) — log the aspiration
+	// toward >=10 without failing it; single-module patches routinely land
+	// under 10.
 	latestChangelogVer := matches[0][1]
-	if taggedVersions[latestChangelogVer] < 10 {
-		t.Logf("WARNING: latest CHANGELOG version %s has only %d module tags "+
-			"(expected >= 10 for a coordinated release)",
-			latestChangelogVer, taggedVersions[latestChangelogVer])
+	switch n := taggedVersions[latestChangelogVer]; {
+	case n < 5:
+		t.Errorf("latest CHANGELOG version %s has only %d module tags "+
+			"(<5 — the release train left its cars behind)",
+			latestChangelogVer, n)
+	case n < 10:
+		t.Logf("NOTE: latest CHANGELOG version %s has %d module tags "+
+			"(aspiration >=10 for full coordinated waves; small waves are legal)",
+			latestChangelogVer, n)
 	}
 }
 

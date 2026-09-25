@@ -40,6 +40,8 @@
 #
 # Usage:
 #   ./scripts/batch-release.sh [--dry-run] "<module> <version> <description>" ...
+#   ./scripts/batch-release.sh --from-manifest <file>
+#   ./scripts/batch-release.sh --from-manifest <file> --dry-run
 #   ./scripts/batch-release.sh --audit
 #   ./scripts/batch-release.sh --smoke-all <file>
 #
@@ -153,9 +155,50 @@ fi
 
 DRY_RUN=0
 ARGS=()
+
+# Materialize --from-manifest FIRST: read the wave as one
+# "<module> <version> <description>" line per row (# comments and blank
+# lines allowed) — the same file feeds --smoke-all after the push, so cut +
+# verify share one manifest instead of a copy-pasted argv blob.
+raw_args=()
+skip_next=0
 for a in "$@"; do
+	if [ "$skip_next" = 1 ]; then
+		skip_next=0
+		continue
+	fi
+	case "$a" in
+	--from-manifest)
+		manifest_next=1
+		raw_args+=("$a")
+		;;
+	*)
+		if [ "${manifest_next:-0}" = 1 ]; then
+			manifest_next=0
+			if [ ! -f "$a" ]; then
+				echo "ERROR: --from-manifest requires an existing file (got: $a)"
+				exit 1
+			fi
+			while IFS= read -r line || [ -n "$line" ]; do
+				case "$line" in
+				\#* | "") continue ;;
+				esac
+				ARGS+=("$line")
+			done <"$a"
+			# drop the flag from further processing
+			raw_args=("${raw_args[@]:0:${#rawargs[@]:-0}}")
+			raw_args=("${raw_args[@]:0:$((${#raw_args[@]} - 1))}")
+		else
+			raw_args+=("$a")
+		fi
+		;;
+	esac
+done
+
+for a in "${raw_args[@]}"; do
 	case "$a" in
 	--dry-run) DRY_RUN=1 ;;
+	--from-manifest) : ;;
 	-h | --help)
 		usage
 		exit 0
@@ -163,6 +206,7 @@ for a in "$@"; do
 	*) ARGS+=("$a") ;;
 	esac
 done
+unset raw_args manifest_next skip_next
 
 if [ ${#ARGS[@]} -eq 0 ]; then
 	usage

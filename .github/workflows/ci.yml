@@ -160,12 +160,18 @@ jobs:
             cd ../../stack/duckdb && GOWORK=off CGO_ENABLED=1 go vet ./...
           '
 
+      # Infra retry-once (2026-09-25, CI tail (c)): the CGo/Dgraph legs die
+      # on transient infra (runner disk, substituter resets, toolchain
+      # download hiccups) — one bounded retry before declaring red.
       - name: Test DuckDB (CGo required)
         run: |
           nix develop -c bash -c '
             set -e
             cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
-          '
+          ' || (echo "::warning::first attempt failed — retrying once (infra-transient class)" && sleep 30 && nix develop -c bash -c '
+            set -e
+            cd stack/duckdb && GOWORK=off CGO_ENABLED=1 go test ./... -count=1
+          ')
 
       - name: Build + Test Iroh QUIC (CGo required, pre-compiled static lib)
         run: |
@@ -188,7 +194,7 @@ jobs:
       # Ephemeral nixpkgs Dgraph (Zero + Alpha), full dgraphengine suite,
       # teardown on exit. Same path as `nix run .#integration-dgraph`.
       - name: Run dgraphengine tests against ephemeral Dgraph
-        run: nix run .#integration-dgraph
+        run: nix run .#integration-dgraph || (echo "::warning::first attempt failed — retrying once (infra-transient class)" && sleep 30 && nix run .#integration-dgraph)
 
   quic-flake-watch:
     name: QUIC Convergence Flake Watch (-race x3)
