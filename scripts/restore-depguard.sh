@@ -84,6 +84,12 @@ YML
 	# Leg 2: deleted block gets spliced back from the golden.
 	grep -v -e 'depguard:' -e 'deny:' -e 'pkg:' -e 'allow:' -e 'gostd' -e 'example.com' \
 		"$RD_TMP/.golangci.yml" >"$RD_TMP/.golangci.yml.m" && mv "$RD_TMP/.golangci.yml.m" "$RD_TMP/.golangci.yml"
+	# Assert the MANGLE landed before repairing — a mutation that deletes
+	# nothing would make the restore assertion below pass vacuously.
+	if grep -q 'depguard:' "$RD_TMP/.golangci.yml"; then
+		echo "  ✗ FAIL: fixture mutation did not delete the depguard block"
+		failures=$((failures + 1))
+	fi
 	RD_ROOT="$RD_TMP" "$0" >/dev/null 2>&1 || failures=$((failures + 1))
 	if grep -q 'example.com/alpha' "$RD_TMP/.golangci.yml"; then
 		echo "  ✓ PASS: deleted depguard block restored from golden"
