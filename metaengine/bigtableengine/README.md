@@ -66,6 +66,19 @@ no client-side RMW is needed (ADR-0141 §"fold path").
 - **Retention = GC policy** (`WithGCPolicy`), set once at table creation and
   enforced by BigTable server-side. The engine never prunes client-side, and
   BigTable GC never removes the newest version.
+- **`MapUpdateAt` exclusion (decided 2026-09-25, ADR-0141 f25)**: the
+  optimistic ReadRow+Apply shape is non-atomic, but the Store's fold
+  dispatch serializes map updates via fold locks — the same serialization
+  `MapUpdate` relies on — so the read-latest → fold → `MapSetAt` fallback
+  (which `VersionedUpdater` exists to bypass on engines that need it) is
+  correct here. Not implemented as a dedicated atomic; revisit only if a
+  consumer runs the engine OUTSIDE the Store's fold serialization.
+- **`MaxAge` retention is GC-policy-only (decided 2026-09-25, f26)**:
+  `RetentionPolicy.MaxAge` maps to a BigTable `MaxAgePolicy` in
+  `WithGCPolicy` at table creation. A client-side `DeleteTimestampRange`
+  trim was considered and declined: it duplicates the server's GC, races
+  concurrent writes the server GC is designed to tolerate, and would need
+  its own scheduling. Configure retention once, server-side.
 
 ## Cost Profile
 

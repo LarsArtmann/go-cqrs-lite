@@ -2,8 +2,11 @@ package projectionadapter_test
 
 import (
 	"context"
+	"time"
 	"encoding/json/v2"
 	"testing"
+
+	"github.com/larsartmann/go-codec"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -197,5 +200,114 @@ func TestAdapter_OnRecordFold_LegacyOnStillWorks(t *testing.T) {
 
 	if result["a"] != 5 {
 		t.Errorf("count = %d, want 5", result["a"])
+	}
+}
+
+// TestAdapter_TemporalStampsSurviveApplyRecord pins ADR-0141 follow-up f44
+// (2026-09-25): the CQRS path — event stamps flowing through
+// projectionadapter.Handle → ApplyRecord → folds — lands on a VERSIONED
+// engine with the EVENT's timestamp, so as-of reads over the projected
+// collection answer at event time, not wall-clock ingestion time.
+func TestAdapter_TemporalStampsSurviveApplyRecord(t *testing.T) {
+	t.Parallel()
+
+	type priceEvent struct {
+		SKU    string
+		Amount int
+	}
+
+	type priceQuery struct {
+		SKU string
+	}
+
+	type priceView struct {
+		SKU    string
+		Amount int
+	}
+
+	q := metaengine.Query[priceQuery, priceView](
+		"price-temporal",
+		metaengine.OnRecord(priceEvent{}, func(_ record.Record, e priceEvent) (string, priceView) {
+			return e.SKU, priceView{SKU: e.SKU, Amount: e.Amount}
+		}),
+	)
+
+	eng := metaengine.NewMemoryEngineWithVersioning()
+	t.Cleanup(func() { _ = eng.Close() })
+
+	store, err := metaengine.Plan([]metaengine.Engine{eng}, q)
+	if err != nil {
+		t.Fatalf("Plan: %v", err)
+	}
+	t.Cleanup(func() { _ = store.Close() })
+
+	// Fold handlers are reflection-based: they need typed structs, so the
+	// adapter gets a decoder (CBOR payloads decode via the event codec's
+	// JSON-compatible re-encode — use the shared test decoder shape).
+	decoder := func(eventType string, payload []byte) (any, error) {
+		var e priceEvent
+		if err := json.Unmarshal(payload, &e); err != nil {
+			return nil, err
+		}
+		return e, nil
+	}
+
+	handle := projectionadapter.New("price-projection", store, decoder)
+
+	stream, _ := id.ParseStreamID("price-1")
+
+	makeEvent := func(amount int, when time.Time) *event.ImmutableEvent {
+		evt, err := event.New(
+			"priceEvent",
+			stream,
+			"Price",
+			1,
+			priceEvent{SKU: "sku-1", Amount: amount},
+			event.WithOccurredAt(when),
+			event.WithCodec(codec.JSONCodec{}),
+		)
+		if err != nil {
+			t.Fatalf("event.New: %v", err)
+		}
+		return evt
+	}
+
+	old := time.Now().Add(-2 * time.Hour)
+	newer := time.Now().Add(-1 * time.Hour)
+
+	for _, evt := range []*event.ImmutableEvent{makeEvent(100, old), makeEvent(200, newer)} {
+		if err := handle.Handle(context.Background(), evt); err != nil {
+			t.Fatalf("Handle: %v", err)
+		}
+	}
+
+	// Fold-serialized latest: newest stamp wins regardless of arrival order.
+	gotRaw, err := store.Execute(priceQuery{SKU: "sku-1"})
+	if err != nil {
+		t.Fatalf("Execute latest: %v", err)
+	}
+
+	got, ok := gotRaw.(priceView)
+	if !ok {
+		t.Fatalf("latest value shape: %T", gotRaw)
+	}
+
+	if got.Amount != 200 {
+		t.Fatalf("latest amount = %d, want 200 (newest event stamp must win)", got.Amount)
+	}
+
+	// As-of between the two events: the older price.
+	asOfVal, err := store.ExecuteAsOf(context.Background(), "price-temporal", "sku-1", time.Now().Add(-90*time.Minute))
+	if err != nil {
+		t.Fatalf("ExecuteAsOf: %v", err)
+	}
+
+	asOfView, ok := asOfVal.(priceView)
+	if !ok {
+		t.Fatalf("as-of value shape: %T", asOfVal)
+	}
+
+	if asOfView.Amount != 100 {
+		t.Fatalf("as-of amount = %d, want 100 (event stamps must survive the adapter path)", asOfView.Amount)
 	}
 }
