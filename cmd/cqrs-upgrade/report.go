@@ -32,7 +32,14 @@ type moduleReport struct {
 // below is the --json contract. `bumps` and `deprecations` are ALWAYS
 // present (empty arrays when clean) so consumers never rely on
 // key-absence folklore to tell "clean" from "old CLI" or a failed scan.
+// `schemaVersion` (per module — the wire is a bare top-level array, so a
+// wrapper object would break jq consumers) is the wire-format generation:
+// 1 = bumps always-present + deprecations always-present + NoPins modules
+// scanned. Old CLIs omit it; bump it on any contract change.
+const moduleSchemaVersion = 1
+
 type moduleJSON struct {
+	SchemaVersion        int           `json:"schemaVersion"`
 	Dir                  string        `json:"dir"`
 	NoPins               bool          `json:"noPins,omitempty"`
 	Error                string        `json:"error,omitempty"`
@@ -50,6 +57,7 @@ func (r moduleReport) toJSON() moduleJSON {
 	}
 
 	out := moduleJSON{
+		SchemaVersion:        moduleSchemaVersion,
 		Dir:                  r.Dir,
 		NoPins:               r.NoPins,
 		Error:                r.Error,

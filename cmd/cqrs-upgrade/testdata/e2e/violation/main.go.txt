@@ -1,0 +1,11 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
+)
+
+func main() {
+	fmt.Println(event.DetectTombstone(nil))
+}

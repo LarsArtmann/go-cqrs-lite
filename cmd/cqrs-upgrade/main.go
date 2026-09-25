@@ -132,8 +132,17 @@ func run(_ context.Context, args []string) error {
 		reports = append(reports, upgradeModule(cfg, dir))
 	}
 
+	// Compute the strict verdict BEFORE branching on output format:
+	// --json used to return early and silently skip strictGateError, making
+	// `--json --strict` a no-op gate (E2E-caught, 2026-09-25).
+	strictErr := strictGateError(reports)
+
 	if cfg.jsonOut {
-		return emitJSON(os.Stdout, reports)
+		if err := emitJSON(os.Stdout, reports); err != nil {
+			return err
+		}
+
+		return strictErr
 	}
 
 	for i, r := range reports {
@@ -152,7 +161,7 @@ func run(_ context.Context, args []string) error {
 		fmt.Println("dry run: no changes written")
 	}
 
-	return strictGateError(reports)
+	return strictErr
 }
 
 // strictGateError returns the --strict failure for a report set: an
@@ -222,6 +231,14 @@ func upgradeModule(cfg config, dir string) moduleReport {
 	if len(pins) == 0 {
 		rep.NoPins = true
 
+		// Still scan: an indirect-only cqrs consumer (no direct pins) can
+		// use v5-removed APIs just the same — no pins ≠ no cqrs code
+		// (strict-gate hole (a), 05-26 §e4). Bump planning is skipped, the
+		// deprecation report is not.
+		findings, scanErr := deprecationFindings(dir)
+		rep.Deprecations = findings
+		rep.ScanErr = scanErr
+
 		return rep
 	}
 
@@ -260,6 +277,11 @@ func printReport(r moduleReport) {
 		fmt.Printf("error: %s\n", r.Error)
 	case r.NoPins:
 		fmt.Printf("no direct go-cqrs-lite pins found in %s\n", filepath.Join(r.Dir, "go.mod"))
+		if r.ScanErr != nil {
+			fmt.Printf("deprecation report: scan failed — %v (v5-readiness unknown)\n", r.ScanErr)
+		} else {
+			printDeprecations(os.Stdout, r.Deprecations)
+		}
 	default:
 		printBumps(r.Bumps)
 		if r.ScanErr != nil {
