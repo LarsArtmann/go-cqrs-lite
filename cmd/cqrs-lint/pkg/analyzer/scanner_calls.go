@@ -110,7 +110,10 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		}
 
 	case funcName == "AddDataProduct" && (IsQualifierFor(gf, sel, "go-cqrs-lite/catalog") ||
-		argIsCatalogDataProduct(call)):
+		argIsCatalogDataProduct(call) ||
+		// Variable-passed product: the ident argument resolves to a
+		// same-file catalog.DataProduct literal (13-32 §f21).
+		dataProductLiteralFor(gf, call) != nil):
 		scanDataProductDeclaration(ctx, gf, call)
 
 	case funcName == "NewProjection":

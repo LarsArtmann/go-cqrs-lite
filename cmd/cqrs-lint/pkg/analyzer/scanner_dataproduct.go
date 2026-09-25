@@ -8,10 +8,12 @@ import (
 // the product's ID and how many of its outputs carry an explicit Contract.
 // The composite literal is inspected structurally — key-value elements for
 // ID/Outputs, and within each output element the presence of a Contract
-// key. Products built through helpers (a variable passed instead of a
-// literal) are invisible to this scanner and simply not recorded.
+// key. A single-variable indirection in the SAME file
+// (`dp := catalog.DataProduct{...}; reg.AddDataProduct(dp)`) is resolved to
+// its literal; cross-file variables and helper-built products remain
+// invisible to this scanner and are simply not recorded.
 func scanDataProductDeclaration(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
-	lit := firstCompositeLitArg(call)
+	lit := dataProductLiteralFor(gf, call)
 	if lit == nil {
 		return
 	}
@@ -52,6 +54,67 @@ func firstCompositeLitArg(call *ast.CallExpr) *ast.CompositeLit {
 	for _, arg := range call.Args {
 		if lit, ok := arg.(*ast.CompositeLit); ok {
 			return lit
+		}
+	}
+
+	return nil
+}
+
+// dataProductLiteralFor returns the payload literal of an AddDataProduct
+// call, resolving ONE level of same-file variable indirection: when the
+// argument is an identifier, its `:=`/`var` declaration in the same file is
+// consulted for the composite literal (13-32 §f21: variable-passed products
+// were invisible to E019). Later re-assignments are NOT tracked — the first
+// declared literal wins, matching the single-declaration style the catalog
+// recipes teach.
+func dataProductLiteralFor(gf *GoFile, call *ast.CallExpr) *ast.CompositeLit {
+	if lit := firstCompositeLitArg(call); lit != nil {
+		return lit
+	}
+
+	for _, arg := range call.Args {
+		ident, ok := arg.(*ast.Ident)
+		if !ok {
+			continue
+		}
+
+		var found *ast.CompositeLit
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			if found != nil {
+				return false
+			}
+
+			switch stmt := n.(type) {
+				case *ast.AssignStmt:
+					for i, lhs := range stmt.Lhs {
+						if id, ok := lhs.(*ast.Ident); ok && id.Name == ident.Name && i < len(stmt.Rhs) {
+							if cl, ok := stmt.Rhs[i].(*ast.CompositeLit); ok {
+								found = cl
+
+								return false
+							}
+						}
+					}
+				case *ast.ValueSpec:
+					for i, name := range stmt.Names {
+						if name.Name != ident.Name || i >= len(stmt.Values) {
+							continue
+						}
+
+						if cl, ok := stmt.Values[i].(*ast.CompositeLit); ok {
+							found = cl
+
+							return false
+						}
+					}
+				}
+
+				return true
+			})
+
+		if found != nil {
+			return found
 		}
 	}
 
