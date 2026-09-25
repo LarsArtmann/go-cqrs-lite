@@ -36,9 +36,9 @@ check_zip() {
 		return
 	fi
 
-	# Zip listing paths look like <modbase>@<v>/go.mod — the version dir
-	# prefix is mandated by the module zip spec.
-	if ! grep -qE '^[^/]+/go\.mod$' <<<"$entries"; then
+	# Zip listing paths are <full-module-path>@<v>/go.mod — the module
+	# path itself contains slashes, so anchor on the @version segment.
+	if ! grep -qE '@v[^/]+/go\.mod$' <<<"$entries"; then
 		echo "✗ $mod@latest: zip has no root go.mod (junk or mis-rooted archive)" >&2
 		failures=$((failures + 1))
 		return
