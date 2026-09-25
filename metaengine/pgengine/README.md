@@ -100,6 +100,16 @@ Routing decision: counters, graph, and aggregate operations stay on
 the other ADTs keep their native paths. `MapUpdate` serializes concurrent
 read-modify-writes with `SELECT ... FOR UPDATE` (PG is multi-writer).
 
+## Temporal reads (versioned cells)
+
+Not supported: this engine does not implement `metaengine.VersionedStorage`,
+so as-of reads (`MapGetAsOf` and friends) are unavailable — temporal requests
+fail loudly rather than silently returning current-state data, and the planner's
+`temporal-asof` rule WARNs on as-of usage here. See
+[ADR-0141](../../docs/adr/0141-native-temporal-versioned-cells.md) for the
+versioned-cells design and the engines that implement it (memory, sqlite,
+bigtable).
+
 ## Related Modules
 
 - [**metaengine**](../README.md) — Core planner and `Engine` interface

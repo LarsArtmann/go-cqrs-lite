@@ -31,6 +31,16 @@ MapBackend, CounterBackend, ScanBackend, PushdownScan, LayoutPlanner.
 - **LayoutPlanner**: planned-column and expression-index support for declared
   query patterns.
 
+## Temporal reads (versioned cells)
+
+Not supported: this engine does not implement `metaengine.VersionedStorage`,
+so as-of reads (`MapGetAsOf` and friends) are unavailable — temporal requests
+fail loudly rather than silently returning current-state data, and the planner's
+`temporal-asof` rule WARNs on as-of usage here. See
+[ADR-0141](../../docs/adr/0141-native-temporal-versioned-cells.md) for the
+versioned-cells design and the engines that implement it (memory, sqlite,
+bigtable).
+
 ## Notes
 
 - MariaDB's `JSON_EXTRACT` returns LONGTEXT; numeric ordering must go through

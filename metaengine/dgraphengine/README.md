@@ -122,6 +122,16 @@ shared cluster is never touched. Journal sequences are UnixNano timestamps,
 so post-replay entries always sort after pre-reset ones — pre-reset
 resumption tokens stay valid.
 
+## Temporal reads (versioned cells)
+
+Not supported: this engine does not implement `metaengine.VersionedStorage`,
+so as-of reads (`MapGetAsOf` and friends) are unavailable — temporal requests
+fail loudly rather than silently returning current-state data, and the planner's
+`temporal-asof` rule WARNs on as-of usage here. See
+[ADR-0141](../../docs/adr/0141-native-temporal-versioned-cells.md) for the
+versioned-cells design and the engines that implement it (memory, sqlite,
+bigtable).
+
 ## Testing
 
 Tests require a running Dgraph instance. Set `DGRAPH_ADDR` (default:
