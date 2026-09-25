@@ -3,6 +3,7 @@ package benchkit
 import (
 	"bytes"
 	"context"
+	"os"
 	"math"
 	"slices"
 	"strings"
@@ -217,5 +218,84 @@ func TestPrintSweep_CoVColumnOnlyWhenRepeated(t *testing.T) {
 
 	if !strings.Contains(out, "15.2%") {
 		t.Errorf("CoV column does not render the point's 15.2%% dispersion: %q", out)
+	}
+}
+
+// TestHeadlineMetricNames_MatchesGateScriptLiteral pins the OTHER half of
+// the split-brain (2026-09-25): the library list is pinned against itself
+// above, but scripts/benchmark-regression.sh's default NOISE_HEADLINE is a
+// shell literal — this test fails when the script's list and the library's
+// list drift apart (the equality was comment-enforced until now).
+func TestHeadlineMetricNames_MatchesGateScriptLiteral(t *testing.T) {
+	t.Parallel()
+
+	script, err := os.ReadFile("../scripts/benchmark-regression.sh")
+	if err != nil {
+		t.Skipf("gate script not readable from test context: %v", err)
+	}
+
+	for _, line := range strings.Split(string(script), "\n") {
+		if !strings.HasPrefix(line, "NOISE_HEADLINE=") || strings.Contains(line, "${") {
+			continue
+		}
+
+		want := strings.Trim(strings.TrimPrefix(line, "NOISE_HEADLINE="), `"`)
+		got := strings.Join(HeadlineMetricNames(), " ")
+
+		if want != got {
+			t.Fatalf("NOISE_HEADLINE drift: gate gates %q, benchkit headlines %q", want, got)
+		}
+
+		return
+	}
+
+	t.Fatal("NOISE_HEADLINE default assignment not found in benchmark-regression.sh")
+}
+
+// TestRunSuiteRepeated_ReportsCoVMetrics pins the suite helper that had zero
+// direct coverage (polish-tail (a), 2026-09-25): driven through
+// testing.Benchmark so the real *testing.B path executes — Repeat >= 2 must
+// surface <metric>_cov% custom metrics, Repeat < 2 must delegate to the
+// single-run suite without them.
+func TestRunSuiteRepeated_ReportsCoVMetrics(t *testing.T) {
+	t.Parallel()
+
+	factory := func() (*stack.Bundle, error) {
+		return memory.New()
+	}
+
+	br := testing.Benchmark(func(b *testing.B) {
+		RunSuiteRepeated(b, Config{
+			Profile:     ProfileDev,
+			PayloadSize: 64,
+			Warmup:      1,
+			Repeat:      2,
+		}, factory)
+	})
+
+	if !strings.Contains(br.String(), "write_throughput_cov%") {
+		t.Fatalf("RunSuiteRepeated must report <metric>_cov%% custom metrics, got: %q", br.String())
+	}
+}
+
+// TestRunSuiteRepeated_DelegatesBelowTwoRepeats pins the delegation edge.
+func TestRunSuiteRepeated_DelegatesBelowTwoRepeats(t *testing.T) {
+	t.Parallel()
+
+	factory := func() (*stack.Bundle, error) {
+		return memory.New()
+	}
+
+	br := testing.Benchmark(func(b *testing.B) {
+		RunSuiteRepeated(b, Config{
+			Profile:     ProfileDev,
+			PayloadSize: 64,
+			Warmup:      1,
+			Repeat:      1,
+		}, factory)
+	})
+
+	if strings.Contains(br.String(), "_cov%") {
+		t.Fatalf("single-run delegation must not report CoV metrics, got: %q", br.String())
 	}
 }
