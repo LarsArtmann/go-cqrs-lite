@@ -479,6 +479,8 @@ Layer 6: integration/, catalog/, examples/, cmd/cqrs-gen, cmd/api-stability, cmd
 | **getting-started**       | `example/getting-started/`       | Single-file `system.New` composition root: event-sourced counter + metaengine read model                 |
 | **metaengine-quickstart** | `example/metaengine-quickstart/` | The metaengine goal, runnable: convention folds (Maps), graph + vector ADTs, operator `cqrs.yaml` config |
 | **readme-quickstart**     | `example/readme-quickstart/`     | Manual module wiring (event + decider + memory + watermill) — no composition root                        |
+| **mesh-demo**             | `example/mesh-demo/`             | Data-mesh federation: EventCatalog export, DataProducts, owners, plain-ref lint profile                   |
+| **scheduler-otel-status** | `example/scheduler-otel-status/` | Scheduling/timers with OTel observability: worked `Metrics()` export + status plumbing                  |
 
 ---
 

@@ -217,7 +217,10 @@ if [ "$MODE" = dryrun ]; then
 	printf '%s\n' "$stale" | while IFS=$'\t' read -r dir dep ver latest; do
 		echo "  $dir: $dep $ver → $latest"
 	done
-	echo "==> dry-run: would standalone-verify each changed module, then refresh cqrs-lint goldens"
+	echo "==> dry-run: would standalone-verify each changed module (tidy + build + test-compile), then refresh cqrs-lint goldens:"
+	printf '%s\n' "$stale" | cut -f1 | sort -u | while IFS= read -r dir; do
+		echo "  verify: $dir"
+	done
 	echo "Dry-run complete: no changes made."
 
 	exit 0

@@ -82,6 +82,7 @@ fi
 
 usage() {
 	echo "Usage: $0 [--dry-run] \"<module> <version> <description>\" ..."
+	echo "       $0 --from-manifest <file> [--dry-run]   # triples from a wave manifest"
 	echo "       $0 --audit"
 	echo "       $0 --smoke-all <file-with-module-version-lines>"
 	echo "Example:"
@@ -160,53 +161,42 @@ ARGS=()
 # "<module> <version> <description>" line per row (# comments and blank
 # lines allowed) — the same file feeds --smoke-all after the push, so cut +
 # verify share one manifest instead of a copy-pasted argv blob.
-raw_args=()
-skip_next=0
-for a in "$@"; do
-	if [ "$skip_next" = 1 ]; then
-		skip_next=0
-		continue
-	fi
-	case "$a" in
-	--from-manifest)
-		manifest_next=1
-		raw_args+=("$a")
-		;;
-	*)
-		if [ "${manifest_next:-0}" = 1 ]; then
-			manifest_next=0
-			if [ ! -f "$a" ]; then
-				echo "ERROR: --from-manifest requires an existing file (got: $a)"
-				exit 1
-			fi
-			while IFS= read -r line || [ -n "$line" ]; do
-				case "$line" in
-				\#* | "") continue ;;
-				esac
-				ARGS+=("$line")
-			done <"$a"
-			# drop the flag from further processing
-			raw_args=("${raw_args[@]:0:${#rawargs[@]:-0}}")
-			raw_args=("${raw_args[@]:0:$((${#raw_args[@]} - 1))}")
-		else
-			raw_args+=("$a")
+argv=("$@")
+remaining=()
+i=0
+while [ "$i" -lt "${#argv[@]}" ]; do
+	a="${argv[$i]}"
+	if [ "$a" = "--from-manifest" ]; then
+		i=$((i + 1))
+		if [ "$i" -ge "${#argv[@]}" ]; then
+			echo "ERROR: --from-manifest requires a file argument"
+			exit 1
 		fi
-		;;
-	esac
-done
-
-for a in "${raw_args[@]}"; do
-	case "$a" in
-	--dry-run) DRY_RUN=1 ;;
-	--from-manifest) : ;;
-	-h | --help)
+		manifest="${argv[$i]}"
+		if [ ! -f "$manifest" ]; then
+			echo "ERROR: --from-manifest file not found: $manifest"
+			exit 1
+		fi
+		while IFS= read -r line || [ -n "$line" ]; do
+			case "$line" in
+			\#* | "") continue ;;
+			esac
+			ARGS+=("$line")
+		done <"$manifest"
+	elif [ "$a" = "--dry-run" ]; then
+		DRY_RUN=1
+	elif [ "$a" = "-h" ] || [ "$a" = "--help" ]; then
 		usage
 		exit 0
-		;;
-	*) ARGS+=("$a") ;;
-	esac
+	else
+		remaining+=("$a")
+	fi
+	i=$((i + 1))
 done
-unset raw_args manifest_next skip_next
+for a in "${remaining[@]}"; do
+	ARGS+=("$a")
+done
+unset argv remaining
 
 if [ ${#ARGS[@]} -eq 0 ]; then
 	usage

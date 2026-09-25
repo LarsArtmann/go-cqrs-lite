@@ -703,6 +703,21 @@ Access the underlying `catalog.Builder` via `b.InnerBuilder()` for multi-service
 | `templ-components` | docserver HTML UI components     |
 | `a-h/templ`        | HTML templating (code-generated) |
 
+## Regenerating docserver templ code — canonical cwd contract
+
+`templ generate` bakes the invocation cwd into the generated `_templ.go`
+FileName metadata. ALWAYS run it from `catalog/docserver/`, never from the
+repo root:
+
+```bash
+(cd catalog/docserver && templ generate)
+```
+
+Running it anywhere else produces code that fails `nix run .#check-templ`
+(the drift + FileName tripwire legs) even though it compiles. This is the
+documented workaround for BuildFlow's pre-commit templ step running from the
+repo root (external bug, filed upstream).
+
 ## Related Modules
 
 - [**command**](../command/README.md) — Generates docs for command types
