@@ -9,12 +9,15 @@ For up-to-date documentation, see:
 - [SKILL.md](../../../SKILL.md) — AI consumer guide
 - [docs/getting-started.md](../../../docs/getting-started.md) — getting started guide
 
-## Archived waves index (updated 2026-09-22, 11th docs-health pass)
+## Archived waves index (recount 2026-09-25; waves updated 2026-09-22, 11th docs-health pass)
 
-Files per day across the 1,241 archived snapshots (rows = files MOVED to
+Files per day across the 1,238 archived snapshots (rows = files MOVED to
 an archived/ dir that day, all doc trees; basis: archive-day, not filename
 date). The wave granularity for navigating the archive. Individual files follow the `YYYY-MM-DD_HH-MM_name`
-naming convention.
+naming convention. The 1,238 intro count is gate-pinned
+(`scripts/check-canonical-facts.sh` status leg); the per-day rows are
+approximate historical navigation — the 2026-09-22 table summed 1,241 on a
+cross-tree move basis and is NOT reconciled to the dir count.
 
 | Day        | Files |
 | ---------- | ----- |

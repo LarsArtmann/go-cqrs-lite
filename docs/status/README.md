@@ -19,6 +19,24 @@ preserved for audit trail and progress tracking.
 | [2026-09-21 T18b rulings encoded](2026-09-21_14-52_t18b-all-rulings-encoded-chain-armed.md)                         | T18b #5: all rulings encoded; chain armed; addenda through 16:10           |
 | [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html)                 | cross-session HTML snapshot (HTML exempt from archiving per standing rule) |
 | [2026-09-21 T18b holding under extreme load](2026-09-21_16-37_t18b-holding-under-extreme-load.md)                   | T18b #6: chain intact at load 863; re-arm one-liner inside                 |
+| [2026-09-22 Goal-closure G-T09..T14 wave](2026-09-22_01-19_goal-closure-gt09-t14-polish-tail-wave.md)                | G-T09..T14 + G-T25 gate check + goal-shaped-app tail                       |
+| [2026-09-22 11th docs-health pass](2026-09-22_01-20_docs-health-eleventh-pass-full-audit.md)                        | full audit + self-review; M23/go-graph-rag/W0 cluster archived             |
+| [2026-09-22 unblock-machine root cause](2026-09-22_02-30_unblock-machine-root-cause-session.md)                     | go-directive root cause (BuildFlow auto-configure) + Tier-1 fixes          |
+| [2026-09-22 full-execution T01–T17](2026-09-22_03-31_full-execution-t01-t17-disjoint-waves.md)                      | Pareto plan T01–T17 disjoint-wave execution                                |
+| [2026-09-22 execution review + verify RED](2026-09-22_11-32_full-execution-review-verify-red-honest-ledger.md)      | T01–T17 review; T04 verify RED; honest ledger                              |
+| [2026-09-22 unblock-session self-review](2026-09-22_11-32_unblock-session-full-self-review-status.md)               | unblock-the-machine full self-review + state                               |
+| [2026-09-22 v5-train T26 paste](2026-09-22_12-58_v5-train-execution-t26-paste.md)                                  | T26 paste items; preflight GREEN; verify armed                             |
+| [2026-09-22 TODO_LIST consistency audit](2026-09-22_14-23_todo-list-consistency-audit-and-fix.md)                  | TODO_LIST vs reports/archives consistency fix                              |
+| [2026-09-22 metaengine scan-family dedup](2026-09-22_23-49_metaengine-scan-family-dedup.md)                        | scan/vector/planned/filter/GraphBFS core extraction                        |
+| [2026-09-23 t4 campaign mid-flight](2026-09-23_01-38_t4-campaign-mid-flight-status.md)                             | t4 clone-elimination in-flight status                                      |
+| [2026-09-23 EventCatalog overhaul](2026-09-23_04-36_eventcatalog-integration-overhaul.md)                          | EventCatalog integration overhaul                                          |
+| [2026-09-23 t4 campaign completion](2026-09-23_05-03_t4-clone-campaign-completion-status.md)                       | t4 clone-elimination completion + self-review                              |
+| [2026-09-23 EventCatalog closeout](2026-09-23_05-14_eventcatalog-verification-closeout-upstream-draft.md)          | verification re-runs + upstream draft                                      |
+| [2026-09-23 data-mesh conformance](2026-09-23_18-09_data-mesh-conformance-assessment-session.md)                   | data-mesh conformance assessment                                          |
+| [2026-09-23 EventCatalog agent-changelog crash draft](2026-09-23_eventcatalog-agent-changelog-crash-issue-draft.md)| upstream issue draft: agent-changelog crash                                |
+| [2026-09-24 data-mesh execution](2026-09-24_12-26_data-mesh-pareto-execution-session.md)                           | data-mesh Pareto execution T01–T27                                         |
+| [2026-09-24 data-mesh completion](2026-09-24_13-32_data-mesh-completion-session.md)                                | T22–T27 tail + §f queue harvest                                            |
+| [2026-09-24 hub-phase + final gate](2026-09-24_18-14_hub-phase-and-final-gate-session.md)                          | hub phase completion + final gate                                          |
 
 **Row-ownership convention (2026-09-22):** for multi-report sessions, the
 latest report owns its index row; predecessors are marked superseded in the

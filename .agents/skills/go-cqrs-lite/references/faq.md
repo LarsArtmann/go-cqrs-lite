@@ -20,7 +20,7 @@
 > - [Sharing one \*sql.DB](#can-i-share-one-sqldb-for-events-and-read-models)
 > - [When to use snapshots](#when-should-i-use-snapshots)
 > - [Storage package restructure](#storage-package-restructure--where-did-types-move)
-> - [Integrating metaengine](#how-do-i-integrate-metaengine-with-my-stack)
+> - [Integrating metaengine](#how-do-i-integrate-metaengine-with-my-stack-legacy)
 > - [Circuit breaker: middleware vs failsafe-go](#should-i-use-the-circuit-breaker-from-middleware-or-failsafe-go-directly)
 > - [ProjectionSink.Increment went negative](#projectionsinkincrement-went-negative--shouldnt-it-clamp-to-zero)
 > - [KeysetPositionQuery empty string](#why-does-storagesqlkeysetpositionquery-return-an-empty-string-for-a-bad-table-name)

@@ -194,9 +194,14 @@ type brokenRef struct {
 // verifyBlocks checks every reference block-scoped and returns the broken
 // references, the total, any parse warnings for the zero-warning gate, and
 // no-import references that resolved through an ambiguous multi-package
-// alias union.
+// alias union. With listAllAmbiguous, EVERY union-resolved reference is
+// reported (default: one line per alias — the first instance only, which
+// hides how many sites a cleanup must touch).
 func verifyBlocks(
-	blocks []block, allImports []string, res *resolver,
+	blocks []block,
+	allImports []string,
+	res *resolver,
+	listAllAmbiguous bool,
 ) ([]brokenRef, int, []string, []string) {
 	var brokenRefs []brokenRef
 
@@ -227,7 +232,8 @@ func verifyBlocks(
 				continue
 			}
 
-			if viaUnion && len(res.aliasDirs[ref.pkg]) > 1 && !seenAmbiguous[ref.pkg] {
+			if viaUnion && len(res.aliasDirs[ref.pkg]) > 1 &&
+				(listAllAmbiguous || !seenAmbiguous[ref.pkg]) {
 				seenAmbiguous[ref.pkg] = true
 				ambiguities = append(ambiguities, fmt.Sprintf(
 					"alias %q maps to %d repo packages (%s) — %s:%d verified via union; "+

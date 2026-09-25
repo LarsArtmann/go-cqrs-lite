@@ -72,8 +72,13 @@ func main() {
 	rootCmd.Flags().BoolVar(&jsonOut, "json", false,
 		"emit a machine-readable JSON summary (CI annotations) to stdout")
 
+	listAllAmbiguous := false
+	rootCmd.Flags().BoolVar(&listAllAmbiguous, "list-all-ambiguous", false,
+		"emit EVERY reference resolved through an ambiguous alias union (default: one line per alias — "+
+			"the first instance); the sweep form for unmasking hidden instances")
+
 	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
-		return run(args, jsonOut)
+		return run(args, jsonOut, listAllAmbiguous)
 	}
 
 	cli.ExecuteAndExit(context.Background())
@@ -101,7 +106,7 @@ func fileArgs(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func run(files []string, jsonOut bool) error {
+func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	if len(files) == 0 {
 		// Auto-discover from the repo root so the tool works regardless of CWD
 		// (cmd/doc-check is its own module, so it's often run from inside cmd/doc-check/).
@@ -144,7 +149,7 @@ func run(files []string, jsonOut bool) error {
 	// repo-wide package-name index; same-named packages cannot cross-resolve.
 	res := newResolver(repoRoot)
 
-	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(allBlocks, allImports, res)
+	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(allBlocks, allImports, res, listAllAmbiguous)
 
 	navIssues := checkFiles(files, repoRoot)
 
