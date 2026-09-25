@@ -2,6 +2,7 @@ package conformance
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -65,12 +66,10 @@ func (s *suite) pinTokenMintedPerClaim(t *testing.T) {
 	// The lapsed holder cannot heartbeat its old claim back to life.
 	mustError(
 		t,
-		"lapsed holder heartbeat",
+		fmt.Sprintf("lapsed holder heartbeat on %s", subject.ID),
 		e.store.Heartbeat(t.Context(), short.ID, c.Token, time.Minute),
 		queue.ErrLeaseNotHeld,
 	)
-
-	_ = subject
 }
 
 // pinTheftDetected pins the core ADR-0134 story: worker 1's lease lapses,

@@ -868,6 +868,14 @@ jobs:
       - name: Run PG integration tests via ephemeral PostgreSQL
         run: nix run .#integration-pg -- -short
 
+      # Queue conformance over a real networked engine (queue M4 tail (f),
+      # 2026-09-25): explicit queue/postgres matrix entry — the ephemeral PG
+      # script exports POSTGRES_TEST_DSN for its module set.
+      - name: Queue postgres conformance (explicit matrix entry)
+        run: nix run .#integration-pg -- -short
+        env:
+          PG_MODULES: queue/postgres
+
       # Shuffle seeds make failed orderings replayable — never lose them.
       - name: Upload shuffle seeds
         if: failure()
