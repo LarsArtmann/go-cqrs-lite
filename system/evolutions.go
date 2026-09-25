@@ -111,6 +111,10 @@ func Evolve[R any](name string, opts ...EvolveOption) *evolutionBuilder[R] {
 // Sample is typed any (no per-call type parameter), so On can be a method —
 // Go does not allow type parameters on methods. Non-convention events with
 // an explicit fold closure still go through [OnEvolution].
+//
+// Naming note: this method has the SAME semantics as
+// [lookupBuilder.On] (sample registration driving auto fold generation);
+// the shared name is deliberate — both builders register convention events.
 func (b *evolutionBuilder[R]) On(eventType string, sample any) *evolutionBuilder[R] {
 	b.samples = append(b.samples, metaengine.NamedEvent(eventType, sample))
 

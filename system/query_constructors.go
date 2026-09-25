@@ -40,6 +40,9 @@ func (b *lookupBuilder[R]) Key(field string) *lookupBuilder[R] {
 // On registers an event type and sample struct for auto fold generation.
 // The sample struct name suffix (Created/Updated/Deleted) classifies the fold
 // kind. Chainable. Finalize with [.Done].
+//
+// Naming note: same semantics as [evolutionBuilder.On] — sample registration
+// driving auto fold generation; the shared name is deliberate.
 func (b *lookupBuilder[R]) On(eventType string, sample any) *lookupBuilder[R] {
 	b.samples = append(b.samples, metaengine.NamedEvent(eventType, sample))
 
