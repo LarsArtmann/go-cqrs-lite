@@ -26,6 +26,20 @@ PROXY="https://proxy.golang.org"
 
 failures=0
 
+# KNOWN_UNRESOLVED: modules whose proxy @latest is ALREADY known broken and
+# tracked for owner surgery — listed here so NEW invisible tags still fail
+# while the known one doesn't re-noise every week. REMOVE when fixed.
+KNOWN_UNRESOLVED="github.com/larsartmann/go-cqrs-lite/metaengine/tursoengine/v4"
+
+# Never-published placeholder paths (replace-based test fixtures — the
+# census excludes typedfixture for the same reason).
+is_fixture_module() {
+	case "$1" in
+	example.com/*) return 0 ;;
+	*) return 1 ;;
+	 esac
+}
+
 # check_zip <module-path> <zip-file>: go.mod at root + no ELF entries.
 check_zip() {
 	local mod="$1" zip="$2"
@@ -66,11 +80,19 @@ probe_module() {
 	mod="$(grep -m1 '^module ' "$mod_dir/go.mod" | awk '{print $2}')"
 	[ -n "$mod" ] || return 0
 
+	if is_fixture_module "$mod"; then
+		return 0
+	fi
+
 	local latest
 	latest="$(python3 -c "import urllib.request,sys;print(urllib.request.urlopen('$PROXY/$mod/@latest').read().decode())" 2>/dev/null |
 		python3 -c 'import json,sys;print(json.load(sys.stdin)["Version"])' 2>/dev/null || true)"
 
 	if [ -z "$latest" ]; then
+		if grep -qxF "$mod" <<<"$KNOWN_UNRESOLVED"; then
+			echo "  ⚠ $mod: @latest unresolved — KNOWN (poisoned-tag surgery pending, TODO data-mesh tail)"
+			return
+		fi
 		echo "✗ $mod: proxy @latest does not resolve (invisible tag?)" >&2
 		failures=$((failures + 1))
 		return
