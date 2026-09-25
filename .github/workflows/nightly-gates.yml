@@ -37,7 +37,9 @@ jobs:
 
       - name: Nightly date
         id: date
-        run: echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "date=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+          echo "dow=$(date -u +%u)" >> "$GITHUB_OUTPUT"
 
       # Rolling baseline: today's key, restore-keys falls back to the most
       # recent night's artifact (the N-1 baseline the compare step wants).
@@ -126,3 +128,13 @@ jobs:
 
       - name: Calibration baseline refresh (tonight's numbers)
         run: nix run .#calibration-drift -- --write-baseline build/calibration-baseline.txt
+
+      # Weekly (Sundays, UTC): the published-tag surface probe — proxy
+      # resolves every module's latest tag and the zip is REAL (the
+      # poisoned-tag class ships silently otherwise; the tag-release
+      # zip-content guard protects FUTURE tags only).
+      - name: Proxy tag probe (Sundays)
+        if: ${{ github.event_name == 'schedule' && steps.date.outputs.dow == '7' }}
+        run: |
+          bash scripts/probe-proxy-tags.sh --self-test
+          bash scripts/probe-proxy-tags.sh
