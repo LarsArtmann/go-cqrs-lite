@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **getting-started convergence failure message** now names the seam (double-apply vs pin drift vs load) instead of a bare "did not converge".
 - **Security**: `github.com/moby/go-archive` bumped to v0.3.0 in `queue/mysql` + `testutil/mysqltestcontainer` (the three open high Dependabot alerts).
 - **conformance tokens wart**: the vestigial `_ = subject` dropped; the lapsed-holder heartbeat assertion now names the task.
+- **Config-war recovery**: the oscillating auto-commit daemon shipped a de-indented/deleted-depguard `.golangci.yml` mid-session; restored to the last-good structure with the two new allow entries (`go-sqlmock` test-only, `go-sqlitestore`) and the hash golden re-pinned. The ADR index gained 0148 (the doc-assertion phase caught its absence — the composed gate doing its job).
 
 ### Changed
 
