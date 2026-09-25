@@ -97,7 +97,7 @@ func TestClaimDue_SucceedsAfterTransientDeadlock(t *testing.T) {
 	mock.ExpectQuery("SELECT t.id").WillReturnRows(
 		sqlmock.NewRows([]string{"id", "status", "lease_owner"}),
 	)
-	mock.ExpectCommit()
+	mock.ExpectRollback() // ErrNoTaskDue aborts the tx before any write
 
 	_, err := store.ClaimDue(context.Background(), "worker-1", time.Second)
 	if !errors.Is(err, queue.ErrNoTaskDue) {

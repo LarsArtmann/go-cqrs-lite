@@ -51,10 +51,11 @@ func TestDeadlockBackoff_JitterActuallySpreads(t *testing.T) {
 
 	const samples = 512
 
+	cap2 := min(claimRetryBaseDelay<<2, claimRetryMaxDelay) // attempt 2's cap
 	low, high := 0, 0
 
 	for range samples {
-		if deadlockBackoff(2) <= claimRetryMaxDelay/2 {
+		if deadlockBackoff(2) <= cap2/2 {
 			low++
 		} else {
 			high++

@@ -65,6 +65,17 @@ func TestMain(m *testing.M) {
 
 	ctx := context.Background()
 
+	// Fast absence check (2026-09-25, queue M4 tail (b)): with no Docker
+	// daemon, testcontainers' own probe burns ~60s per test binary before
+	// erroring — the skip was correct but slow. When there is clearly no
+	// socket and no DOCKER_HOST override, skip immediately.
+	if os.Getenv("DOCKER_HOST") == "" {
+		if _, statErr := os.Stat("/var/run/docker.sock"); statErr != nil {
+			finish(m, nil)
+			return
+		}
+	}
+
 	ctr, err := mysql.Run(ctx, "mariadb:11.4",
 		mysql.WithDatabase("cqrs_test"),
 		mysql.WithUsername("cqrs"),
