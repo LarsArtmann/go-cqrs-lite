@@ -254,3 +254,76 @@ func TestBigtable_TombstoneThenRebirth(t *testing.T) {
 		t.Fatalf("as-of reborn = (%v, %v), want (reborn, nil)", val, err)
 	}
 }
+
+// TestBigtable_RestartSafety pins ADR-0141 follow-up f24 (2026-09-25): two
+// engines over ONE bttest server must not bleed state across instances, and
+// a second engine over the same table re-reads the first engine's writes
+// cleanly (the restart-shape contract: no cross-instance contamination, no
+// stale caching).
+func TestBigtable_RestartSafety(t *testing.T) {
+	t.Parallel()
+
+	srv, err := bttest.NewServer("localhost:0")
+	if err != nil {
+		t.Fatalf("bttest.NewServer: %v", err)
+	}
+	t.Cleanup(srv.Close)
+
+	conn, err := grpc.NewClient(srv.Addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fatalf("grpc.NewClient: %v", err)
+	}
+	t.Cleanup(func() { _ = conn.Close() })
+
+	ctx := context.Background()
+
+	newEngine := func(table string) metaengine.Engine {
+		t.Helper()
+
+		admin, err := bigtable.NewAdminClient(ctx, "proj", "inst", option.WithGRPCConn(conn))
+		if err != nil {
+			t.Fatalf("NewAdminClient: %v", err)
+		}
+
+		client, err := bigtable.NewClient(ctx, "proj", "inst", option.WithGRPCConn(conn))
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+
+		eng, err := bigtableengine.NewWithClients(admin, client, table)
+		if err != nil {
+			t.Fatalf("NewWithClients: %v", err)
+		}
+		t.Cleanup(func() { _ = eng.Close() })
+
+		return eng
+	}
+
+	sharedTable := fmt.Sprintf("restart_%d", time.Now().UnixNano())
+
+	first := newEngine(sharedTable)
+	second := newEngine(fmt.Sprintf("other_%d", time.Now().UnixNano()))
+
+	mb1 := first.(metaengine.MapBackend)
+	mb2 := second.(metaengine.MapBackend)
+
+	// Distinct tables: the second engine must NOT see the first's writes.
+	if err := mb1.MapSet(ctx, "isolation", "only-first", "sentinel"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, found, err := mb2.MapGet(ctx, "isolation", "only-first"); err != nil || found {
+		t.Fatalf("cross-instance bleed: found=%v err=%v — separate tables must be isolated", found, err)
+	}
+
+	// Same table re-opened (the restart shape): a third engine over the
+	// FIRST's table re-reads the sentinel cleanly.
+	third := newEngine(sharedTable)
+	mb3 := third.(metaengine.MapBackend)
+
+	val, found, err := mb3.MapGet(ctx, "isolation", "only-first")
+	if err != nil || !found || val != "sentinel" {
+		t.Fatalf("re-open over same table: val=%v found=%v err=%v — want sentinel", val, found, err)
+	}
+}

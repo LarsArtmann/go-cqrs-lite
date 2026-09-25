@@ -156,3 +156,134 @@ func TestSQLiteVersioning_DisabledByDefault(t *testing.T) {
 		t.Fatal("plain engine must not report versioned cells")
 	}
 }
+
+// TestSQLiteVersioning_RestartSoak pins that meta_cell_versions history
+// SURVIVES process restart (ADR-0141 follow-up f23, 2026-09-25): the same
+// DSN re-opened after Close still answers as-of reads written before.
+func TestSQLiteVersioning_RestartSoak(t *testing.T) {
+	t.Parallel()
+
+	dsn := "file:" + t.TempDir() + "/restart.db?mode=rwc"
+
+	eng, err := sqliteengine.NewSQLiteEngineFromDSNWith(dsn, nil,
+		sqliteengine.WithCellVersioning())
+	if err != nil {
+		t.Fatalf("open first incarnation: %v", err)
+	}
+
+	mb := eng.(metaengine.MapBackend)
+	_ = mb // latest-view writes flow through MapSet; kept for the interface pin
+
+	vw := eng.(metaengine.VersionedWriter)
+	ctx := context.Background()
+
+	writeAt := func(val string, when time.Time) {
+		t.Helper()
+		if err := vw.MapSetAt(ctx, "restart", "k", val, when); err != nil {
+			t.Fatalf("MapSetAt(%s): %v", val, err)
+		}
+	}
+
+	writeAt("v1", time.Now().Add(-2*time.Hour))
+	writeAt("v2", time.Now().Add(-1*time.Hour))
+	writeAt("v3", time.Now())
+
+	if err := eng.Close(); err != nil {
+		t.Fatalf("close first incarnation: %v", err)
+	}
+
+	// Second incarnation over the same file.
+	eng2, err := sqliteengine.NewSQLiteEngineFromDSNWith(dsn, nil,
+		sqliteengine.WithCellVersioning())
+	if err != nil {
+		t.Fatalf("reopen: %v", err)
+	}
+	t.Cleanup(func() { _ = eng2.Close() })
+
+	vs2 := eng2.(metaengine.VersionedStorage)
+
+	// Probes measured from the SECOND incarnation's clock (slightly after
+	// the writes): -90m predates v2 (-1h) so v1 is correct; -30m postdates
+	// v2 but predates v3 (now) so v2 is correct.
+	probeBase := time.Now()
+	for _, tc := range []struct {
+		asOf    time.Time
+		want    any
+		wantErr error
+	}{
+		{probeBase.Add(-90 * time.Minute), "v1", nil},
+		{probeBase.Add(-30 * time.Minute), "v2", nil},
+	} {
+		val, err := vs2.MapGetAsOf(ctx, "restart", "k", tc.asOf)
+		if !errors.Is(err, tc.wantErr) {
+			t.Fatalf("as-of(-%v) err = %v, want %v", time.Since(tc.asOf), err, tc.wantErr)
+		}
+		if tc.wantErr == nil && val != tc.want {
+			t.Fatalf("as-of(-%v) = %v, want %v", time.Since(tc.asOf), val, tc.want)
+		}
+	}
+}
+
+// TestSQLiteVersioning_DifferentialVsMemory pins contract equivalence of
+// the two emulating engines (ADR-0141 follow-up f41, 2026-09-25): the same
+// timestamped write sequence replayed on memory-with-versioning and sqlite
+// versioned cells must answer every as-of probe identically, including
+// out-of-order stamps and tombstones.
+func TestSQLiteVersioning_DifferentialVsMemory(t *testing.T) {
+	t.Parallel()
+
+	base := time.Now().Add(-time.Hour)
+
+	// Deterministic op sequence: out-of-order stamps + a tombstone + a
+	// resurrection.
+	ops := []struct {
+		ts      time.Duration
+		val     any
+		tomb    bool
+	}{
+		{0, "alpha", false},
+		{30 * time.Minute, "beta", false},
+		{10 * time.Minute, "late-alpha", false}, // out-of-order insert
+		{45 * time.Minute, nil, true},           // tombstone
+		{50 * time.Minute, "gamma", false},      // resurrection
+	}
+
+	build := func(eng metaengine.Engine) {
+		vw := eng.(metaengine.VersionedWriter)
+		for _, op := range ops {
+			if op.tomb {
+				if err := vw.MapDeleteAt(context.Background(), "diff", "k", base.Add(op.ts)); err != nil {
+					t.Fatalf("MapDeleteAt: %v", err)
+				}
+				continue
+			}
+			if err := vw.MapSetAt(context.Background(), "diff", "k", op.val, base.Add(op.ts)); err != nil {
+				t.Fatalf("MapSetAt: %v", err)
+			}
+		}
+	}
+
+	memEng := metaengine.NewMemoryEngineWithVersioning()
+	t.Cleanup(func() { _ = memEng.Close() })
+	sqlEng := newVersionedSQLite(t)
+
+	build(memEng)
+	build(sqlEng)
+
+	memVS := memEng.(metaengine.VersionedStorage)
+	sqlVS := sqlEng.(metaengine.VersionedStorage)
+
+	for probe := time.Duration(0); probe <= 55*time.Minute; probe += 5*time.Minute {
+		asOf := base.Add(probe)
+
+		memVal, memErr := memVS.MapGetAsOf(context.Background(), "diff", "k", asOf)
+		sqlVal, sqlErr := sqlVS.MapGetAsOf(context.Background(), "diff", "k", asOf)
+
+		if (memErr == nil) != (sqlErr == nil) {
+			t.Fatalf("probe -%v: memory err=%v sqlite err=%v — engines disagree", probe, memErr, sqlErr)
+		}
+		if memVal != sqlVal {
+			t.Fatalf("probe -%v: memory=%v sqlite=%v — engines disagree", probe, memVal, sqlVal)
+		}
+	}
+}
