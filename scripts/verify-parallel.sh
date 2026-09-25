@@ -9,6 +9,10 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
+# Go version contract first (W0 tail (c)): a stale toolchain invalidates
+# everything after it — fail before compiling anything.
+bash scripts/check-go-version.sh
+
 export CGO_ENABLED=1
 TAGS=""
 BATCHES="${BATCHES:-$(nproc 2>/dev/null || echo 4)}"

@@ -42,6 +42,9 @@ PHASES=(
 	"coverage|nix run .#check-coverage|coverage dropped below the floor — add tests in the named module(s) or run nix run .#check-coverage -- --update if the floor moved deliberately"
 	"api-stability|nix run .#check-api-stability|API surface changed without a golden regen: cd cmd/api-stability && GOWORK=off go run . --update (same edit rule, AGENTS contract)"
 	"duplication|nix run .#check-duplication|new clone group: consolidate, or annotate //art-dupl:accept <reason> on/above the region's first line, or re-pin baseline for structural shifts"
+	"go-version|bash scripts/check-go-version.sh|go directive/toolchain drift: never hand-edit directives; BuildFlow's go-version-auto-configure is disabled in .buildflow.yml for cause (F154)"
+	"turso-version|nix run .#check-turso-version|a live turso-go citation outran TursoGoIVMVerifiedThrough — update the constant + its evidence, or revert the citation"
+	"error-taxonomy|nix run .#check-error-taxonomy|errorfamily codes drifted from docs/error-taxonomy.md — reconcile BOTH sides per module, never just the doc"
 )
 
 phase_names() {

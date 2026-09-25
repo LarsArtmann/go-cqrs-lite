@@ -1253,6 +1253,9 @@
             # workspace mode of #verify masks.
             verify-ci = mkApp "verify-ci" [ goPkg pkgs.bash pkgs.gcc ] ''
               export CGO_ENABLED=1
+              # Go version contract first (W0 tail (c)): a stale toolchain
+              # invalidates everything after it — fail before building.
+              ${pkgs.bash}/bin/bash "$PWD/scripts/check-go-version.sh" || exit 1
               failed=0
               for mod in ${builtins.concatStringsSep " " testModules}; do
                 echo "==> $mod"
