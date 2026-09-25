@@ -3,8 +3,8 @@ package benchkit
 import (
 	"bytes"
 	"context"
-	"os"
 	"math"
+	"os"
 	"slices"
 	"strings"
 	"testing"

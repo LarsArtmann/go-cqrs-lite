@@ -86,32 +86,33 @@ func dataProductLiteralFor(gf *GoFile, call *ast.CallExpr) *ast.CompositeLit {
 			}
 
 			switch stmt := n.(type) {
-				case *ast.AssignStmt:
-					for i, lhs := range stmt.Lhs {
-						if id, ok := lhs.(*ast.Ident); ok && id.Name == ident.Name && i < len(stmt.Rhs) {
-							if cl, ok := stmt.Rhs[i].(*ast.CompositeLit); ok {
-								found = cl
-
-								return false
-							}
-						}
-					}
-				case *ast.ValueSpec:
-					for i, name := range stmt.Names {
-						if name.Name != ident.Name || i >= len(stmt.Values) {
-							continue
-						}
-
-						if cl, ok := stmt.Values[i].(*ast.CompositeLit); ok {
+			case *ast.AssignStmt:
+				for i, lhs := range stmt.Lhs {
+					if id, ok := lhs.(*ast.Ident); ok && id.Name == ident.Name &&
+						i < len(stmt.Rhs) {
+						if cl, ok := stmt.Rhs[i].(*ast.CompositeLit); ok {
 							found = cl
 
 							return false
 						}
 					}
 				}
+			case *ast.ValueSpec:
+				for i, name := range stmt.Names {
+					if name.Name != ident.Name || i >= len(stmt.Values) {
+						continue
+					}
 
-				return true
-			})
+					if cl, ok := stmt.Values[i].(*ast.CompositeLit); ok {
+						found = cl
+
+						return false
+					}
+				}
+			}
+
+			return true
+		})
 
 		if found != nil {
 			return found

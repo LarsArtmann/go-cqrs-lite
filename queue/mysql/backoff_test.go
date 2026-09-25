@@ -17,7 +17,7 @@ func TestDeadlockBackoff_BoundsAndShape(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		attempt   int
+		attempt    int
 		upperBound time.Duration
 	}{
 		{0, claimRetryBaseDelay},
@@ -63,7 +63,12 @@ func TestDeadlockBackoff_JitterActuallySpreads(t *testing.T) {
 	}
 
 	if low < samples/10 || high < samples/10 {
-		t.Fatalf("jitter collapsed: low=%d high=%d of %d — backoff is effectively constant", low, high, samples)
+		t.Fatalf(
+			"jitter collapsed: low=%d high=%d of %d — backoff is effectively constant",
+			low,
+			high,
+			samples,
+		)
 	}
 }
 

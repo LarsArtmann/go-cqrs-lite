@@ -149,7 +149,12 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 	// repo-wide package-name index; same-named packages cannot cross-resolve.
 	res := newResolver(repoRoot)
 
-	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(allBlocks, allImports, res, listAllAmbiguous)
+	brokenRefs, totalRefs, warnings, ambiguities := verifyBlocks(
+		allBlocks,
+		allImports,
+		res,
+		listAllAmbiguous,
+	)
 
 	navIssues := checkFiles(files, repoRoot)
 

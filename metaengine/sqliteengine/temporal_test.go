@@ -237,9 +237,9 @@ func TestSQLiteVersioning_DifferentialVsMemory(t *testing.T) {
 	// Deterministic op sequence: out-of-order stamps + a tombstone + a
 	// resurrection.
 	ops := []struct {
-		ts      time.Duration
-		val     any
-		tomb    bool
+		ts   time.Duration
+		val  any
+		tomb bool
 	}{
 		{0, "alpha", false},
 		{30 * time.Minute, "beta", false},
@@ -252,12 +252,23 @@ func TestSQLiteVersioning_DifferentialVsMemory(t *testing.T) {
 		vw := eng.(metaengine.VersionedWriter)
 		for _, op := range ops {
 			if op.tomb {
-				if err := vw.MapDeleteAt(context.Background(), "diff", "k", base.Add(op.ts)); err != nil {
+				if err := vw.MapDeleteAt(
+					context.Background(),
+					"diff",
+					"k",
+					base.Add(op.ts),
+				); err != nil {
 					t.Fatalf("MapDeleteAt: %v", err)
 				}
 				continue
 			}
-			if err := vw.MapSetAt(context.Background(), "diff", "k", op.val, base.Add(op.ts)); err != nil {
+			if err := vw.MapSetAt(
+				context.Background(),
+				"diff",
+				"k",
+				op.val,
+				base.Add(op.ts),
+			); err != nil {
 				t.Fatalf("MapSetAt: %v", err)
 			}
 		}
@@ -273,14 +284,19 @@ func TestSQLiteVersioning_DifferentialVsMemory(t *testing.T) {
 	memVS := memEng.(metaengine.VersionedStorage)
 	sqlVS := sqlEng.(metaengine.VersionedStorage)
 
-	for probe := time.Duration(0); probe <= 55*time.Minute; probe += 5*time.Minute {
+	for probe := time.Duration(0); probe <= 55*time.Minute; probe += 5 * time.Minute {
 		asOf := base.Add(probe)
 
 		memVal, memErr := memVS.MapGetAsOf(context.Background(), "diff", "k", asOf)
 		sqlVal, sqlErr := sqlVS.MapGetAsOf(context.Background(), "diff", "k", asOf)
 
 		if (memErr == nil) != (sqlErr == nil) {
-			t.Fatalf("probe -%v: memory err=%v sqlite err=%v — engines disagree", probe, memErr, sqlErr)
+			t.Fatalf(
+				"probe -%v: memory err=%v sqlite err=%v — engines disagree",
+				probe,
+				memErr,
+				sqlErr,
+			)
 		}
 		if memVal != sqlVal {
 			t.Fatalf("probe -%v: memory=%v sqlite=%v — engines disagree", probe, memVal, sqlVal)

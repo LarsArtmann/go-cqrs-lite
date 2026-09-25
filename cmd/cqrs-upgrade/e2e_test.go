@@ -62,9 +62,9 @@ func setupFixture(t *testing.T, name string) string {
 // wireModule is the subset of moduleJSON the E2E asserts on, decoded
 // generically so this test cannot silently drift from the real struct.
 type wireModule struct {
-	SchemaVersion        *int `json:"schemaVersion"`
-	NoPins               bool `json:"noPins"`
-	Bumps                []struct {
+	SchemaVersion *int `json:"schemaVersion"`
+	NoPins        bool `json:"noPins"`
+	Bumps         []struct {
 		Module string `json:"module"`
 		Status string `json:"status"`
 	} `json:"bumps"`
@@ -112,7 +112,11 @@ func TestE2E_NoPins_ModuleStillScanned(t *testing.T) {
 	}
 
 	if mod.SchemaVersion == nil || *mod.SchemaVersion != moduleSchemaVersion {
-		t.Errorf("expected schemaVersion=%d in wire, got %v", moduleSchemaVersion, mod.SchemaVersion)
+		t.Errorf(
+			"expected schemaVersion=%d in wire, got %v",
+			moduleSchemaVersion,
+			mod.SchemaVersion,
+		)
 	}
 
 	if mod.Bumps == nil {

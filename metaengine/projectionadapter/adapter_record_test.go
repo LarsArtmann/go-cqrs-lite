@@ -2,9 +2,9 @@ package projectionadapter_test
 
 import (
 	"context"
-	"time"
 	"encoding/json/v2"
 	"testing"
+	"time"
 
 	"github.com/larsartmann/go-codec"
 
@@ -297,7 +297,12 @@ func TestAdapter_TemporalStampsSurviveApplyRecord(t *testing.T) {
 	}
 
 	// As-of between the two events: the older price.
-	asOfVal, err := store.ExecuteAsOf(context.Background(), "price-temporal", "sku-1", time.Now().Add(-90*time.Minute))
+	asOfVal, err := store.ExecuteAsOf(
+		context.Background(),
+		"price-temporal",
+		"sku-1",
+		time.Now().Add(-90*time.Minute),
+	)
 	if err != nil {
 		t.Fatalf("ExecuteAsOf: %v", err)
 	}
@@ -308,6 +313,9 @@ func TestAdapter_TemporalStampsSurviveApplyRecord(t *testing.T) {
 	}
 
 	if asOfView.Amount != 100 {
-		t.Fatalf("as-of amount = %d, want 100 (event stamps must survive the adapter path)", asOfView.Amount)
+		t.Fatalf(
+			"as-of amount = %d, want 100 (event stamps must survive the adapter path)",
+			asOfView.Amount,
+		)
 	}
 }

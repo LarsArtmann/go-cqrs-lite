@@ -96,24 +96,8 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 - [ ] **Pin-sweep after the catalog tag** — strip mesh-demo's pre-release
   `replace ../../catalog`, bump example pins to the new tag. — source: 12-26 §f14,
   13-32 §f15 _(Effort: S)_
-- [ ] **Weekly "proxy resolves every module's latest tag" probe** — the poisoned-tag
-  class ships silently otherwise; the zip-content guard protects FUTURE tags only.
-  — source: 12-26 §e1, 13-32 §f17 _(Effort: M)_
-- [ ] **changelog gate: flag uncited consumer-visible surface** — diff api_surface.txt
-  exports + new modules vs CHANGELOG mentions (the mesh-demo/E019/docserver miss
-  stayed green through the blind spot). — source: 12-26 §e2, 13-32 §f18 _(Effort: M)_
 - [ ] **mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
   demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
-- [ ] **cqrs-lint E019: non-literal DataProduct scanner support** — variable-passed
-  products are invisible today. — source: 13-32 §f21 _(Effort: M)_
-- [ ] **docserver: DataProduct badges + hidden-flag rendering** — declared but
-  unrendered fields. — source: 13-32 §f22 _(Effort: S)_
-- [ ] **check-eventcatalog: lockfile-pin the linter install** — `@1.1.20` is ad hoc
-  today. — source: 13-32 §f23 _(Effort: S)_
-- [ ] **cqrs-lint D007 repair-path "unsafe path" failures** — report-only in
-  pre-commit; the repair path is broken repo-wide. — source: 12-26 §d6, 13-32 §f25 _(Effort: M)_
-- [ ] 🔥 **Address the 3 high Dependabot vulnerabilities on master** — carried since
-  the 2026-09-23 session. — source: 12-26 §d8, 13-32 §f26 _(Effort: M)_
 
 ---
 
@@ -155,7 +139,7 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
 
 - [ ] **Queue M4 verification tail (harvested 2026-09-21)** — sliceable:
-      (a) unit-pin `deadlockBackoff` (bounds, exponential shape, jitter range,
+      ~~(a) unit-pin `deadlockBackoff` + retry-loop coverage~~ DONE 2026-09-25 (sqlmock-driven full-transaction replay, budget, recovery), ~~(b) mysqltestcontainer skip paths~~ DONE (dial fast-skip + 25s bound; -short verified clean), ~~(d) vestigial warts~~ DONE, ~~(f) CI legs~~ LOCAL-half DONE (queue/postgres matrix entry verified green over live ephemeral PG; remote confirmation billing-gated). REMAINING: (c) clock seam (design-gated), (e) shared-DB parallel-migrate sweep across engine suites. Original: (a) unit-pin `deadlockBackoff` (bounds, exponential shape, jitter range,
       attempt cap) and exercise the ClaimDue retry loop under a forced real
       deadlock (fault-injected `claimOnce` or lock-order contention) — the
       shipped backoff path has zero executed coverage;
@@ -273,15 +257,6 @@ replace-free — 10-25 §a2/§a3, now archived).
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [ ] **cqrs-upgrade strict-gate residual holes** — (a) run the
-      deprecation scan even for NoPins modules (indirect-only cqrs consumers
-      currently escape); (b) consider a `schemaVersion` field for the
-      `--json` wire; (c) E2E test of `run()` against a fixture module
-      (flags→report→strict exit codes). — source: 05-26 §e4/§f6-10
-      (DONE 2026-09-13: --strict now fails on module errors — unscanned =
-      unproven — and `bumps` is always-present in --json, symmetric with
-      `deprecations`; both pinned by tests.)
-      _(Effort: S)_
 - [ ] **cqrs-lint FP-sweep harness refresh (2026-09-19 harvest)** — surface
       stderr from the sweep harness (5 empty repo rows were silent failures),
       re-run the corrected 12-repo baseline
@@ -338,13 +313,6 @@ replace-free — 10-25 §a2/§a3, now archived).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
-- [ ] **Dead-path tag decision (owner): document `event/v4/eventtest`'s
-      invisible v0.x tags as dead** in modules.md + a pin-sweep note — the
-      sibling (a) example-tag decisions were settled by the 2026-09-19 wave
-      (correct v0-line tags cut: `taskmanager/v0.2.0`, `getting-started/v0.2.0`,
-      `scheduler-otel-status/v0.1.0`, `goal-shaped-app/v0.1.0`; dead v3/v4
-      tags baselined in `audit-tag-baseline.txt`). — source: 01-47 §c1/§f9/§f10
-      _(Effort: S doc)_
 - [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
       metaengine wave (row in Metaengine follow-ups below); queue/mysql + `testutil/mysqltestcontainer`
       tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
@@ -477,16 +445,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       92-tag train + v4.9.0 wave ran their remote legs; remote CI evidence
       now gates on the billing fix row below. — source: delta §f1,
       18-19 §f38, closeout §f2/§g1 _(Effort: XS — owner)_
-- [ ] **F154: BuildFlow upstream — go-version-auto-configure must respect
-      dependency-driven patch floors** — the step canonicalizes go directives
-      to major.minor, silently downgrading modules whose deps require the
-      patch (this repo: 5 waves, hours lost). File upstream (owner-approved
-      class) with the repro: module with `go 1.27.1` + dep requiring >=1.27.1,
-      `buildflow -s go-version-auto-configure --fix` → directive becomes
-      `go 1.27`, build breaks. Fleet-wide blast radius — every LarsArtmann
-      repo with a patch-qualified contract is exposed. — source: 2026-09-22
-      root-cause session _(Effort: S filing)_
-- [ ] **F153: pkg.go.dev license detection — "License: UNKNOWN"** hides all
+- [ ] [BLOCKED:owner] **F153: pkg.go.dev license — RESOLVED AS DESIGNED 2026-09-25:** the repo-root LICENSE is deliberately PROPRIETARY ("All rights reserved"), and pkg.go.dev hides docs for non-OSS licenses BY DESIGN — propagation was never the issue. Remaining decision is the owner's: relicense OSS (unblocks pkg.go.dev docs) or accept hidden docs (godoc remains local). Verified empirically against pkg.go.dev 2026-09-25. ~~hides all
       module docs (license-redistribution gate) for system/v4@v4.9.0 — and
       possibly every module: no LICENSE file at module subdirectory roots?
       Verify whether the repo-root LICENSE propagates to submodules on
@@ -494,34 +453,11 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       docs. Consumer-trust blocker for the public surface. — source: T03
       post-wave verification 2026-09-22 _(Effort: S verify, M if per-module
       LICENSE files needed)_
-- [ ] **`/mnt/buildcache` capacity monitoring** — hit 100% mid-gate on
-      2026-09-21 (an 18G shared-go-cache clear forced rebuilds on other
-      builders); 80% warning + a bounded `go clean` policy. RECURRED
-      2026-09-22 02:49 — 100% full again (208G/220G, 0 avail; ambient-
-      GOMODCACHE toolchain unzips die "no space left on device"; the go-mod
-      subdir is only 5.6G, so ~200G lives elsewhere on the mount — needs a
-      `du` breakdown before any clear policy).
-      — source: followups §f13/§e8 _(Effort: S)_
 - [ ] **Watch the first real CI runs (push-gated)** — `Examples Test` job
       (nix eval, 10m timeout, DB-skip env), the md-go-validator ci.yml leg
       (cold build ~1-2 min), the nightly `Go version contract` step, and the
       README push-leg timeout. — source: followups §f2, 18-19 §f3, W0 §f28/§f31
       _(Effort: S, observe)_
-- [ ] **W0 verification tail (sliceable)** — (a) `CI=true` self-test-leg
-      audit across every gate script lacking one; (b) empty-`go list` fiction
-      sweep across the remaining plain-go CI jobs (coverage-gate class); (c)
-      `check-go-version` into `verify-ci`/`verify-parallel` heads; (d) grow
-      `preflight-composed.sh` (`check-turso-version`, error-taxonomy) if <5min;
-      (e) verify-lock consumers audit (smoke-all, load-sweep chains); (f)
-      coverage-gate Tier-2 floor (schema/snapshot/projection) after two green
-      weeks; (g) document verify-lock semantics in AGENTS; (h) load-guard (10)
-      vs calibration (5) two-tier ceiling intent in gowork-modes; (i)
-      api-stability golden spot-verify (`WithMaxOpenConns`/`WithMaxIdleConns`);
-      ~~(j) triage the 18:38 112-file go-directive downgrade (incident #12?
-      closeout §d1 points at the pre-commit hole — confirm and close)~~
-      resolved 2026-09-22: root cause = BuildFlow `go-version-auto-configure`
-      (CHANGELOG [Unreleased] build entry; upstream tail → F154).
-      — source: archived 14-12 §f21-31/§f33-45 _(Effort: M total, sliceable)_
 - [ ] [BLOCKED] **Fix GitHub Actions billing** — every paid CI job fails in
       3–7s; broken since ~2026-07-17. Local `nix run .#verify` remains the
       authoritative gate. _(Effort: S, user action)_
@@ -624,13 +560,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       the live proof run never happened (load 8–72 all day 2026-09-21).
       Also consider the same stale-port pre-flight for `vm-mysql-nspawn.sh`
       (cheap insurance). — source: archived 14-12 §b1/§f2/§f25, 15-34 §b1 _(Effort: M, quiet-window)_
-- [ ] **Wire `quiet-window-run.sh --self-test` + the benchmark gate scripts
-      into `check-release-scripts`** (still missing: `quiet-window-run`,
-      `nightly-bench`, `benchmark-regression` — the md-go, calibration-gate,
-      check-go-version, and check-golangci-hash self-tests are already in the
-      flake list); add the "assert the mangle landed" assertion to the
-      restore-depguard mutation fixtures while there. — source: archived
-      12-38 §f3, 14-18 §f4/§f19, 14-52 §f7, 14-12 §f22/§f24 _(Effort: S)_
 - [ ] **Composed `#verify` re-record (W1 sibling)** — the S03 green
       (2026-09-20 15:04) now predates the guard chain (hash-golden,
       wait-loop, load guard, go-version gate, md-go-validator insertions),
@@ -824,37 +753,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       deprecated-symbol gate, (f) link checker — all done 2026-09-20.]
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
-- [ ] **Canonical T18b record + gate-semantics ADR** (replaces the six-report
-      narrative series) — RECORD DONE 2026-09-22 (T17):
-      `docs/benchmarks/2026-09-20-21_t18b-record.md` written (closure
-      receipt, the four gate-semantics changes with evidence, widening rule,
-      KNOWN-UNSTABLE table, GOTOOLCHAIN + load-storm + reboot incidents);
-      `/var/tmp/t18b` retired (trashed; chain had landed green 2026-09-21
-      18:14 UTC per closure-completion.log). REMAINING: the gate-semantics
-      ADR document + the calibration case-study appendix in
-      `docs/benchmarks/calibration-2026-08-30.md` (storm/reboot/p99/bimodal/
-      GOTOOLCHAIN/863 series as the "why the gates exist" record — source
-      material now one click away in the canonical record). Original: one
-      canonical record + gate-semantics ADR replacing the six-report
-      narrative series.
-- [ ] **Stale-reference sweep for the bench-gate contract changes** — one
-      sweep of the old noise-headline list, unconditional `--save` mentions, matview
-      benchtime/count mentions across README, `cmd/cqrs-bench/README.md`,
-      docs/benchmarks, and workflows (five consecutive sessions flagged it).
-      — source: archived 10-30 §f3, 12-38 §f5, 14-18 §f5, 14-52 §f6, 16-37
-      §f16 _(Effort: S)_
 - [ ] **M13 tail: per-module fresh-run last-verified stamps + script-derived
       counts** — FEATURES guarantee rows carry 09-21 doc-gate stamps, but
       per-module fresh-run verification stamps need quiet CPU to be honest;
       extend `check-canonical-facts.sh` to derive the go.mod count into
       FEATURES too (F69 overlap, kills the last hand-maintained count). —
       source: archived 15-34 §b4/§f5, 14-12 §f23 _(Effort: M, quiet-CPU)_
-- [ ] **doc-check `--list-all-ambiguous` mode** — emit EVERY instance per
-      ambiguous alias, not just the first (the M16 alias bundle took 5
-      iterate-and-unmask rounds; one sweep grep would have collapsed them).
-      Candidate for the md-go-validator-adjacent tooling wave. — source:
-      archived 15-05 §e, 15-34 §c/§f8 _(Effort: S)_
-- [ ] **docs-health pass hygiene (10th-pass §e/§f15-20)** — (a) index-vs-disk
+- [ ] **docs-health pass hygiene — ~~(a) index-vs-disk gate~~ DONE 2026-09-25 (canonical-facts status leg + 18-row rot fix), ~~(b) harvest-ledger convention~~ DONE (crush-config harvest-guide), ~~(d) pass-checklist rows~~ DONE (verify-checklist + md-go/docs conventions) — remaining: (c) weekly docs-health cadence decision (owner). Original: (a) index-vs-disk
       gate: extend `check-canonical-facts.sh` (or a sibling) to derive
       live-report count vs the README table, archived count vs the day-table
       sum, and day-row presence per archived day (the 9th AND 10th passes
@@ -894,7 +799,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `scripts/calibration-gate.sh` PASS, re-run the compare command from the
       capture header, then annotate. — source: archived 15-37 §f3/§f30
 
-- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** —
+- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** — ~~(a) RunSuiteRepeated test~~ DONE 2026-09-25 (testing.Benchmark-driven CoV + delegation pins), ~~(d) NOISE_HEADLINE tripwire~~ DONE (script-literal sync test), ~~(e) list-phases metric-map~~ DONE (core-suffix universe pin), ~~(f) README --progress default~~ DONE (5s) —
       (a) test for `RunSuiteRepeated` (the one new export with zero direct
       coverage: tiny profile × 2 repeats, assert `<metric>_cov%` metrics +
       NOISY Logf); (b) verify `<metric>_cov%` through real benchstat output;
@@ -1032,11 +937,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`; if it
       lands, an `.#integration-nats`-style flake app + CI leg analog to
       `#integration-redis`. — source: 19-45 §c1/§f2/§f10 _(Effort: M)_
-- [ ] **Skill-quality tail — verify upstream latests for the
-      redisstream/kafka/amqp/sql watermill plugins** (trigger-eval prompts,
-      `references/advanced.md`, both cross-links, and the claims-checklist rule
-      all landed 2026-09-21). — source: 19-45 §f1/§f3-5/§f8; 19-57 §f3/§f8
-      _(Effort: S)_
 
 ## Temporal versioned cells — ADR-0141 follow-ups (harvested 2026-09-18)
 
@@ -1062,36 +962,9 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       out-of-order stamps, same-ms LWW collapse, retention-never-prunes-newest,
       tombstone-as-of visibility (engine-level, memory first). — source: 14:07 §f22,
       `metaengine/version_chain.go` _(Effort: M)_
-- [ ] **sqlite versioned-cells restart soak** — prove `meta_cell_versions`
-      history survives process restart (re-open DSN, as-of reads still answer).
-      — source: 14:07 §f23, `metaengine/sqliteengine/` _(Effort: S)_
-- [ ] **bigtableengine restart-safety test** — two engines over one bttest
-      server; verify no cross-instance state bleed and clean re-reads. — source:
-      14:07 §f24 _(Effort: S)_
-- [ ] **Decide + document `MapUpdateAt` on bigtableengine** — optimistic
-      ReadRow+Apply is non-atomic; fold-lock serialization may make it
-      skippable. Decide, then document either the implementation or the
-      exclusion rationale in the README. — source: 14:07 §f25 _(Effort: S)_
-- [ ] **bigtableengine client-side MaxAge retention trim** — via the
-      `DeleteTimestampRange` option (GC policy covers MaxVersions natively), or
-      document GC-policy-only as the deliberate choice. — source: 14:07 §f26 _(Effort: S)_
 - [ ] **Pebble/bbolt versioned cells — scope decision for the next wave** —
       both have natural prefix-range machinery for version chains; decide
       whether they join the 3 versioned engines. — source: 14:07 §f31 _(Effort: M once scoped)_
-- [ ] **memory_versioned wall-clock path naming clarity** — `MapSet` on a
-      versioned engine still stamps wall-clock (documented); consider a clearer
-      name for the `recordVersionAt(now)` path so replay-vs-live writes are
-      obvious at the call site. — source: 14:07 §f40, `metaengine/memory_versioned.go:31` _(Effort: XS)_
-- [ ] **Cross-engine fuzz: `MapSetAt`/`MapGetAsOf` memory vs sqlite** — reuse
-      the existing `fuzz_test.go` pattern to pin contract equivalence across
-      the two emulating engines. — source: 14:07 §f41 _(Effort: M)_
-- [ ] **Temporal capability gap notes in Dgraph/PG/MySQL engine READMEs** —
-      one paragraph each: versioned cells not supported yet, temporal reads
-      fail loud + `temporal-asof` WARNs (link ADR-0141). — source: 14:07 §f42 _(Effort: XS)_
-- [ ] **projectionadapter-level temporal stamp test** — Store-level integration
-      exists; pin the CQRS path (event stamps survive `ApplyRecord` → folds on
-      versioned engines) at the adapter level. — source: 14:07 §f44,
-      `metaengine/projectionadapter/` _(Effort: S)_
 - [ ] **Soak env-var run for bigtableengine** — per
       `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
       `#verify`). — source: 14:07 §f33-34 _(Effort: S)_
@@ -1105,34 +978,10 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > inert-shrink ratchet. Build narrative: the archived 18-19 + 23-24 delta
 > reports. The harvested open tail: — source: 18-19 §f, 23-24-delta §f
 
-- [ ] **Explain + verify the 11 tool-heuristic auto-skips, then decide
-      `--fail-on-skipped`** (strict vs tolerant) — open since the 09-13 audit
-      (§b5). _(Effort: S + XS decision)_
-- [ ] **Baseline-bump ritual + stale-entry ratchet** — pin the flake input to
-      tag/rev OR encode the master+lock bump ritual as a script (gotchas prose
-      exists); meta-check that fails when the baseline references files that no
-      longer exist (may only shrink). _(Effort: S)_
-- [ ] **`docs/status/` + planning authoring convention** — pseudo-Go fences in
-      new reports get `// skip-validate` at WRITE time (prevents surprise CI
-      failures); one convention line in `docs/status/README.md` + a CONTRIBUTING
-      paragraph for doc authors (fence-tag + regenerate command).
-      — source: 18-19 §f10/§f20 _(Effort: S)_
 - [ ] [BLOCKED] **Upstream md-go-validator (owner repo; verify-before-filing)** —
       (a) relative-path baseline mode (deletes every consumer's sed
       re-absolutization layer); (b) `--save-baseline` exits 0 when the save
       succeeds (wrappers should not need `|| true`). _(Effort: M + XS)_
-- [ ] **Gate wiring tail** — remaining piece: `check-md-go` into
-      nightly-gates.yml (the FEATURES gates row + `docs/release-checklist.md`
-      mention and the `ARCHIVE_SEGMENT` mutation leg landed 2026-09-22 with
-      the self-test). — source: 18-19 §f15/§f16/§f37 _(Effort: XS)_
-- [ ] **Version stamp + fleet pins** — packaged `--version` prints `dev` (VCS
-      stamping stripped by buildGoModule/proxyVendor?); host-binary catch-up
-      (SystemNix relock so bare runs agree with the app); consider one documented
-      pin cadence across the gogenfilter/SystemNix tool builds.
-      — source: 18-19 §f13/§f18/§f26 _(Effort: S/M)_
-- [ ] **Investigate the 5h endurance green window** — real annotation discipline
-      or zero exposure (did any concurrent doc carry go fences at all)? One jq
-      diff over the gap's doc commits. — source: delta §f6 _(Effort: S)_
 
 ## go-graph-rag feedback follow-ups (2026-09-15, triaged 2026-09-19)
 
@@ -1148,18 +997,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `ErrEventSaveNotAtomic` + the 17 `# Experimental` doc.go stamps); nobody
       has told the consumer. Needs owner voice (`github-voice`); consider
       inviting a re-test on v4.9.0. — source: 23-24 followups §f5/§f40 _(Effort: S)_
-- [ ] **At-least-once projection-fold contract** — document the dedup recipe +
-      the at-least-once delivery contract in the skill references
-      (`recipes.md`/`readmodels.md`); mark getting-started's counter test as
-      the at-least-once canary in its README (purpose + what a failure means);
-      make the convergence test's failure messages actionable (name the seam:
-      drain/live overlap, pin drift, or load). — source: 23-24 followups §f6-8
-      _(Effort: M)_
-- [ ] **Naming: `evolutionBuilder.On` vs `lookupBuilder.On`** — same method
-      name, subtly different semantics (fold registration vs sample
-      registration); document or align. Also watch the line-count ratchet:
-      `projectionhost/worker_drain.go` 329, `system/evolutions.go` 320 (350
-      cap). — source: 23-24 followups §f30/§f31 _(Effort: S/L)_
 - [ ] [BLOCKED] **goal-shaped-app postgres e2e CI leg** — the test exists
       (DSN-gated, runs under `#integration-pg`); the deferred slice is the
       env-provisioned CI leg (ephemeral PG in the examples job vs nightly app —
@@ -1207,7 +1044,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       the historical pre-fix tree (refs around `eea1c3c66^`, storage/pebble +
       stack presets still carried the old literal forms). Isolate before
       filing; check the fork's latest version for a fix first (Gate 5).
-- [ ] **Release-tooling polish tail (sliceable)** — smoke-all: per-module
+- [ ] **Release-tooling polish tail (sliceable)** — ~~batch-release.sh --from-manifest~~ DONE 2026-09-25, ~~pin-sweep --dry-run lists standalone-verifies~~ DONE, ~~TestTagContentMatchesChangelog train threshold as error~~ DONE (calibrated <5 hard, 5-9 note), ~~verification-ladder doc~~ DONE (gotchas-testing), ~~templ-generate canonical-cwd contract~~ DONE (catalog README), ~~scheduler-otel-status row in core.md §9~~ DONE (+ mesh-demo row), ~~check-example-standalone.sh~~ DONE (baselined taskmanager/mesh-demo pending replaces). Remaining: smoke-all timing/resume/cache, check-templ leg-first summary, SOAK_SKIP_BOLT doc for the loop, cqrs-upgrade dogfood sentinel, exclusion-map unification, 6-place registration consolidation, LSP GOTOOLCHAIN config. Original: smoke-all: per-module
       timing, `--resume` checkpoint, artifacts under `~/.cache/` never /tmp;
       `check-templ` leg-first error summary; `batch-release.sh --from-manifest`;
       `pin-sweep --dry-run` lists its standalone-verifies;
@@ -1280,8 +1117,6 @@ refreshed; the stale global fan-out symlink was healed.)
 - [x] ✅ 2026-09-24 (`system.New(ctx, DomainConfig, DeploymentConfig)` + accessors verified in `system/constructor.go`/`system/system.go`) **Verify `system` accessor list against current code before further skill edits** —
       the description enumerates accessors that should be re-derived, not restated. —
       source: report §f24 _(Effort: S)_
-- [ ] **Load `user:go-cqrs-lite` in a fresh Crush session** to verify the new frontmatter
-      parses and the description triggers. — source: report §f11 _(Effort: S)_
 - [ ] 🔥 [BLOCKED:tooling] **Execute the evals (currently UNVALIDATED)** (`evals/trigger-eval-set.json`, `evals/evals.json`)
       after the description change — needs the `claude` CLI, currently blocked. — source:
       report §f7 _(Effort: M, tooling-blocked)_
