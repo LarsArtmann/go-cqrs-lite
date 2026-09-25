@@ -51,9 +51,9 @@ func eventCatalogDataProductHref(docsPath, id string) string {
 
 // findDataProduct locates a data product by ID.
 func findDataProduct(cat *catalog.Catalog, id string) (catalog.DataProduct, bool) {
-	for _, dp := range cat.DataProducts {
-		if string(dp.ID) == id {
-			return dp, true
+	for _, product := range cat.DataProducts {
+		if string(product.ID) == id {
+			return product, true
 		}
 	}
 
@@ -65,17 +65,17 @@ func findDataProduct(cat *catalog.Catalog, id string) (catalog.DataProduct, bool
 // listed), sorted by name for stable ordering.
 func dataProductOverviewRows(cfg Config, cat *catalog.Catalog) []eventCatalogDataProductRow {
 	rows := make([]eventCatalogDataProductRow, 0, len(cat.DataProducts))
-	for _, dp := range cat.DataProducts {
-		if dp.Hidden {
+	for _, product := range cat.DataProducts {
+		if product.Hidden {
 			continue
 		}
 
 		rows = append(rows, eventCatalogDataProductRow{
-			Name:    cmpOr(string(dp.Name), string(dp.ID)),
-			Href:    eventCatalogDataProductHref(cfg.DocsPath, string(dp.ID)),
-			Version: string(dp.Version),
-			Summary: string(dp.Summary),
-			Owners:  joinOr(dp.Owners),
+			Name:    cmpOr(string(product.Name), string(product.ID)),
+			Href:    eventCatalogDataProductHref(cfg.DocsPath, string(product.ID)),
+			Version: string(product.Version),
+			Summary: string(product.Summary),
+			Owners:  joinOr(product.Owners),
 		})
 	}
 
@@ -97,7 +97,7 @@ func newEventCatalogDataProductDetail(
 	cat *catalog.Catalog,
 	id string,
 ) (eventCatalogDataProductDetail, bool) {
-	dp, ok := findDataProduct(cat, id)
+	product, ok := findDataProduct(cat, id)
 	if !ok {
 		return eventCatalogDataProductDetail{}, false
 	}
@@ -106,22 +106,22 @@ func newEventCatalogDataProductDetail(
 		Brand:      cmpOr(cfg.ServiceName, string(cat.Title)),
 		DocsPath:   cfg.DocsPath,
 		CatalogRef: cfg.DocsPath + "/catalog.json",
-		Name:       cmpOr(string(dp.Name), string(dp.ID)),
-		ID:         string(dp.ID),
-		Version:    string(dp.Version),
-		Summary:    string(dp.Summary),
-		Owners:     dp.Owners,
-		Hidden:     dp.Hidden,
-		Badges:     dp.Badges,
-		Inputs:     portViewRows(cfg.DocsPath, dp.Inputs, nil),
+		Name:       cmpOr(string(product.Name), string(product.ID)),
+		ID:         string(product.ID),
+		Version:    string(product.Version),
+		Summary:    string(product.Summary),
+		Owners:     product.Owners,
+		Hidden:     product.Hidden,
+		Badges:     product.Badges,
+		Inputs:     portViewRows(cfg.DocsPath, product.Inputs, nil),
 	}
 
-	outputRefs := make([]catalog.Ref, len(dp.Outputs))
-	for i, out := range dp.Outputs {
+	outputRefs := make([]catalog.Ref, len(product.Outputs))
+	for i, out := range product.Outputs {
 		outputRefs[i] = out.Ref
 	}
 
-	detail.Outputs = portViewRows(cfg.DocsPath, outputRefs, dp.Outputs)
+	detail.Outputs = portViewRows(cfg.DocsPath, outputRefs, product.Outputs)
 
 	return detail, true
 }
@@ -137,7 +137,7 @@ func portViewRows(
 	for i, ref := range refs {
 		row := eventCatalogPortRow{
 			RefLabel: string(ref.ID),
-			RefHref:  eventCatalogMessageHref(docsPath, catalog.MessageID(ref.ID)),
+			RefHref:  eventCatalogMessageHref(docsPath, ref.ID),
 			Version:  string(ref.Version),
 		}
 

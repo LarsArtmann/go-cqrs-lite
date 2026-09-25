@@ -83,7 +83,9 @@ func TestMain(m *testing.M) {
 	)
 
 	if os.Getenv("DOCKER_HOST") == "" {
+		//nolint:exhaustruct_v5 // probe: only Timeout is meaningful for a unix-socket dial
 		probe := net.Dialer{Timeout: dockerProbeTimeout}
+
 		conn, dialErr := probe.DialContext(ctx, "unix", "/var/run/docker.sock")
 		if dialErr != nil {
 			finish(m, nil)
