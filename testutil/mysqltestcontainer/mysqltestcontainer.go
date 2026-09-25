@@ -71,21 +71,30 @@ func TestMain(m *testing.M) {
 	// daemon, testcontainers' own probe burns ~60s per test binary before
 	// erroring — the skip was correct but slow. When there is clearly no
 	// socket and no DOCKER_HOST override, skip immediately.
+	const (
+		// dockerProbeTimeout bounds the socket dial: the socket file can
+		// exist while the daemon is dead — the exact state that made the
+		// probe burn 60s before erroring into the skip.
+		dockerProbeTimeout = 500 * time.Millisecond
+		// containerStartTimeout bounds the container attempt: a wedged
+		// daemon/image pull burns ~60s per test binary otherwise. Covers a
+		// warm local image start (mariadb:11.4 ~5-10s); past that, skip.
+		containerStartTimeout = 25 * time.Second
+	)
+
 	if os.Getenv("DOCKER_HOST") == "" {
-		// Dial, not stat: the socket file can exist while the daemon is
-		// dead — the exact state that made the probe burn 60s.
-		conn, dialErr := net.DialTimeout("unix", "/var/run/docker.sock", 500*time.Millisecond)
+		probe := net.Dialer{Timeout: dockerProbeTimeout}
+		conn, dialErr := probe.DialContext(ctx, "unix", "/var/run/docker.sock")
 		if dialErr != nil {
 			finish(m, nil)
+
 			return
 		}
+
 		_ = conn.Close()
 	}
 
-	// Bound the container attempt: a wedged daemon/image pull burns ~60s
-	// per test binary before erroring into the skip. 25s covers a warm
-	// local image start (mariadb:11.4 ~5-10s); past that, skip.
-	runCtx, cancelRun := context.WithTimeout(ctx, 25*time.Second)
+	runCtx, cancelRun := context.WithTimeout(ctx, containerStartTimeout)
 	defer cancelRun()
 
 	ctr, err := mysql.Run(runCtx, "mariadb:11.4",

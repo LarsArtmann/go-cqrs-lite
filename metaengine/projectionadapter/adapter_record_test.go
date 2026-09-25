@@ -228,7 +228,7 @@ func TestAdapter_TemporalStampsSurviveApplyRecord(t *testing.T) {
 	q := metaengine.Query[priceQuery, priceView](
 		"price-temporal",
 		metaengine.OnRecord(priceEvent{}, func(_ record.Record, e priceEvent) (string, priceView) {
-			return e.SKU, priceView{SKU: e.SKU, Amount: e.Amount}
+			return e.SKU, priceView(e)
 		}),
 	)
 
