@@ -8,6 +8,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`cqrs-upgrade`: NoPins modules are scanned + `--json --strict` actually fails.** The deprecation scan now runs for modules with zero direct go-cqrs-lite pins (indirect consumers previously escaped v5-readiness entirely — strict-gate hole (a)); the `--json` wire carries `schemaVersion: 1` per module (hole (b)); and the strict verdict is computed BEFORE the JSON branch, so `--json --strict` no longer silently exits 0 on violations (hole (c), E2E-pinned by new fixture tests in `cmd/cqrs-upgrade/e2e_test.go`).
+- **`doc-check --list-all-ambiguous`**: emits EVERY reference resolved through an ambiguous alias union (default reports only the first per alias — the sweep form for unmasking how many sites a cleanup touches).
+- **Reverse changelog gate (`scripts/check-changelog-coverage.sh`)**: every module in the api golden must be mentioned in CHANGELOG.md, and NEW unmentioned headline exports fail under `--fail-on-new` (513 pre-existing entries baselined; wired into nightly-gates + `#check-release-scripts` self-test). The mesh-demo/E019/docserver miss class stayed green through the old one-way gate.
+- **Weekly proxy-tag probe (`scripts/probe-proxy-tags.sh`)**: proxy.golang.org must resolve every module's `@latest` AND the zip must be real (root go.mod present, no ELF entries per decompressed file). Live-run green across all modules; the known tursoengine poisoned tag is allowlisted with rationale; Sundays-only leg in nightly-gates.
+- **Temporal tests (ADR-0141 follow-ups)**: sqlite versioned-cells restart soak (history survives re-open), differential memory-vs-sqlite contract equivalence (out-of-order stamps + tombstones + resurrection), bigtableengine restart-safety (no cross-instance bleed; same-table re-open reads cleanly), and the projectionadapter-level stamp pin (event timestamps survive `Handle` → folds; as-of reads answer at event time). `MapUpdateAt`-on-bigtable and MaxAge-client-trim are decided-and-documented exclusions (README).
+- **`check-example-standalone.sh`**: fails when any example go.mod carries a local path replace it cannot resolve standalone (the B6f forward-pin abort class); taskmanager + mesh-demo's documented pending replaces are baselined with reasons.
+- **`batch-release.sh --from-manifest <file>`**: cut a wave from the same manifest file that later feeds `--smoke-all` (one artifact for cut + verify).
+- **Buildcache capacity monitor (`scripts/check-buildcache-capacity.sh`)**: 80% warn + 95% fail on the shared `/mnt/buildcache` mount (the ENOSPC-mid-gate class), wired into nightly-bench pre-flight + `#check-release-scripts`.
+- **E019 sees variable-passed data products**: same-file single-indirection resolution (`dp := catalog.DataProduct{...}; reg.AddDataProduct(dp)`) now registers for the contract-completeness check (dispatch + scanner, positive + negative tests).
+- **Queue/mysql deadlock-retry coverage**: `deadlockBackoff` bounds/shape/jitter pins + `ClaimDue` retry-loop tests via sqlmock (full-transaction replay, attempt budget, transient-deadlock recovery) — the shipped backoff path had zero executed coverage.
+- **benchkit `RunSuiteRepeated` coverage + gate-script split-brain pin**: the suite helper is now driven through `testing.Benchmark` (CoV custom metrics + single-run delegation), and `benchmark-regression.sh`'s `NOISE_HEADLINE` default is pinned against `benchkit.HeadlineMetricNames()` from inside the module's tests.
+- **Canonical-facts gate: status-index leg.** `check-canonical-facts.sh` now pins the `docs/status/README.md` live index against disk (every report rowed, no dangling links) and the archived/ intro claim against the actual dir count — the 9th/10th docs-health passes almost shipped this rot twice. FEATURES.md joins the gated doc set (the last hand-maintained go.mod count dies).
+
+### Fixed
+
+- **Skill frontmatter bug**: the `go-cqrs-lite` skill's description contained an unquoted `: ` that breaks strict YAML frontmatter parsing — Crush silently stopped registering the skill. Quoted (byte-identical description); the user-level install is a symlink, so both installs heal.
+- **Canonical-facts drift**: go.mod citations updated to the gate-derived 98 (AGENTS/ROADMAP/FEATURES/module-map), the recipes claim to 84/84, the status live index regained 18 unindexed 09-22+ reports, the archived intro claim to the recounted 1,238, and a stale FAQ TOC anchor (`-legacy` suffix) — doc-check is green at 1,218 references.
+- **`mysqltestcontainer` skip latency**: no-Docker hosts now skip in milliseconds (socket dial check) and the container attempt is bounded to 25s (a wedged daemon burned ~60s per test binary before erroring into the skip).
+- **`cqrs-bench` README `--progress` default**: documented `0`, actual `5s` — fixed the row.
+- **getting-started convergence failure message** now names the seam (double-apply vs pin drift vs load) instead of a bare "did not converge".
+- **Security**: `github.com/moby/go-archive` bumped to v0.3.0 in `queue/mysql` + `testutil/mysqltestcontainer` (the three open high Dependabot alerts).
+- **conformance tokens wart**: the vestigial `_ = subject` dropped; the lapsed-holder heartbeat assertion now names the task.
+
+### Changed
+
+- **`verify-ci`/`verify-parallel` run the go-version contract gate first** — a stale toolchain invalidates everything after it.
+- **`preflight-composed.sh` grew three phases** (go-version, turso-version, error-taxonomy — each seconds) so the composed-gate preflight catches contract drift before the expensive phases.
+- **CI: infra retry-once** on the DuckDB test + Dgraph integration legs (the transient-runner class); explicit queue/postgres matrix entry via `PG_MODULES` (verified green over live ephemeral PG); the tag-content train-section threshold is now a hard ERROR below 5 tags (calibrated: v4.7.0 legitimately shipped 9).
+- **md-go gate: baseline ghost ratchet** — baseline entries whose file no longer exists fail (may only shrink); the 11 tool-heuristic auto-skips from the 09-13 audit were verified all-converted to explicit `// skip-validate` (zero heuristic-only skips remain in live fences; `--fail-on-skipped` ruled UNNECESSARY — explicit-annotation-only is the enforced contract); the packaged `--version` stamp verified FIXED (prints the flake-pinned rev).
+- **Docs**: engine READMEs (dgraph/pg/mysql) document the temporal-reads capability gap; core.md §9 rows mesh-demo + scheduler-otel-status; catalog README documents the templ-regen canonical-cwd contract; AGENTS documents verify-lock consumers + the two-tier load-ceiling intent; gotchas-testing gains the verification ladder + gate-script self-test inventory/earning rule.
+- **ADR-0148 (benchmark gate semantics)** codifies the T18b campaign's four gate laws; the calibration doc gains the storm/reboot case-study appendix.
+- **F154 (BuildFlow go-directive downgrade)**: verified FIXED upstream (gvac v0.2.1 dep-forced floor contract, BuildFlow S87, 2026-09-25) — no filing needed; the installed PATH binary is stale, so the repo's `go-version-auto-configure` skip stands until `buildflow upgrade`.
+- **`nightly-bench.sh --self-test`** (composition checks: Sunday guard, delegation lines, timer units) wired into `#check-release-scripts` alongside `quiet-window-run`, `test-benchmark-regression`, the buildcache monitor, the changelog-coverage gate, and the proxy probe self-tests; restore-depguard's fixture now asserts the mutation landed before repairing.
+
 - **Skill: hard-requires the `system` + `metaengine` composition root.** The
   `go-cqrs-lite` skill now refuses to guide hand-wired `event`/`command`/
   `decider`/`storage`/`stack` composition for new apps and redirects to

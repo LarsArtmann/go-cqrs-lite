@@ -208,7 +208,10 @@ func runPipeline(
 
 		if time.Now().After(deadline) {
 			return CounterView{}, fmt.Errorf(
-				"%w: got %+v (found=%t)",
+				"%w: got %+v (found=%t) — name the seam before touching margins: "+
+					"(a) drain/live overlap double-apply (idempotency: the fold must dedup), "+
+					"(b) pin drift (engine pin predates the fix; cqrs-upgrade --strict), "+
+					"(c) load (host saturated; re-run quiet)",
 				errProjectionConvergence,
 				view,
 				found,

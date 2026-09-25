@@ -236,3 +236,16 @@ keep their prior until each gets the same one-RPC-vs-ops reassessment
 - Shipped: nightly `benchmarks.yml` calibration-drift job diffs fresh benches
   against this baseline (warn >25%, fail >100%) — local engines only;
   pg/mysql/dgraph need live-DSN windows and are re-anchored by hand.
+
+## Appendix: the storm/reboot series — why the gates exist (2026-09-25)
+
+The T18b campaign (2026-09-20/21) is the case study behind
+[ADR-0148](../adr/0148-benchmark-gate-semantics.md). Its canonical record —
+the four gate-semantics changes with evidence, the widening rule, the
+KNOWN-UNSTABLE table, and the GOTOOLCHAIN + load-863 + overnight-reboot
+incidents — lives in
+[`2026-09-20-21_t18b-record.md`](2026-09-20-21_t18b-record.md). Short form
+for calibration readers: a quiet loadavg is necessary but never sufficient;
+tail quantiles at ~100 samples measure estimator variance, not the host;
+and a baseline without a provenance header is not decision-grade. Those
+three sentences cost six armed verify cycles to earn.
