@@ -37,6 +37,7 @@ preserved for audit trail and progress tracking.
 | [2026-09-24 data-mesh execution](2026-09-24_12-26_data-mesh-pareto-execution-session.md)                           | data-mesh Pareto execution T01–T27                                         |
 | [2026-09-24 data-mesh completion](2026-09-24_13-32_data-mesh-completion-session.md)                                | T22–T27 tail + §f queue harvest                                            |
 | [2026-09-24 hub-phase + final gate](2026-09-24_18-14_hub-phase-and-final-gate-session.md)                          | hub phase completion + final gate                                          |
+| [2026-09-26 TODO-list full-execution session](2026-09-26_16-44_todo-list-full-execution-session.md)                | whole-TODO execution: ~29 items done, 3 bugs fixed, honest skip/blocker ledger |
 
 **Row-ownership convention (2026-09-22):** for multi-report sessions, the
 latest report owns its index row; predecessors are marked superseded in the
