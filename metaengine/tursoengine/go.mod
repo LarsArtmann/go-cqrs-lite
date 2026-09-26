@@ -5,7 +5,7 @@ go 1.27.1
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 	github.com/samber/lo v1.53.0
 	pgregory.net/rapid v1.3.0
 	turso.tech/database/tursogo v0.7.2
@@ -21,8 +21,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.1 // indirect
-	github.com/larsartmann/go-sse v0.6.0 // indirect
+	github.com/larsartmann/go-error-family v0.10.2 // indirect
+	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-sqlite3 v1.14.52 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -33,7 +33,7 @@ require (
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	modernc.org/libc v1.77.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect

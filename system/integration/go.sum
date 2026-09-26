@@ -195,8 +195,8 @@ github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1 h1:uzk5GupxNvWDFD1kTVV5Ub
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1/go.mod h1:kagbYtWmFZlkelwKzKQWzBz7bQy4Vvbbnm3UQOYdiVk=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 h1:gnXM/21tPWUKf0qd01CbRrvWryXs/iGCfnlgDO84y2E=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1/go.mod h1:G8H+ScY5BNvAs8F3Gp9e7uVXFaXgx5jIfv8dy4jICOQ=
-github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
-github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
+github.com/larsartmann/go-error-family v0.10.2 h1:WXrBI60IZBli5bvjOr/XOZbqzPtGAPFerdumzy8CnTU=
+github.com/larsartmann/go-error-family v0.10.2/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.3.0 h1:iCuxh2gdr3iSqpaKLfilkXTzT0s6ha3x2XBtoYBGDDA=
@@ -205,8 +205,8 @@ github.com/larsartmann/go-retry v0.7.1 h1:e3MwEB8SvR0p1XMOtkFofFOS2y5rITzNLmbgZf
 github.com/larsartmann/go-retry v0.7.1/go.mod h1:jIPlAHcD/D+lqBo9CLWAEaJQqDgyFtvDE2RoG1SbZL4=
 github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
 github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykWdmJLnm8K8LdmH2JzU8=
-github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
-github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
+github.com/larsartmann/go-sse v0.6.1 h1:GSc2ueXIjNAsYlZjOR8kfOlm/UwiOh5eNwVmnrqyGVw=
+github.com/larsartmann/go-sse v0.6.1/go.mod h1:yN/gsqxOYwt9aqfcsfnIAzENNk+libcm2t3M4ByW1KU=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
 github.com/lithammer/shortuuid/v3 v3.0.7/go.mod h1:vMk8ke37EmiewwolSO1NLW8vP4ZaKlRuDIi8tWWmAts=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
@@ -353,8 +353,8 @@ google.golang.org/appengine v1.6.8 h1:IhEN5q69dyKagZPYMSdIjS2HqprW324FRQZJcGqPAs
 google.golang.org/appengine v1.6.8/go.mod h1:1jJ3jBArFh5pcgW8gCtRJnepW8FzD1V44FJffLiz/Ds=
 google.golang.org/protobuf v1.36.12 h1:pJOKDDOyeXErUroCihFAd5LQuwXBSpVnKGrj5o/fwxc=
 google.golang.org/protobuf v1.36.12/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
-modernc.org/libc v1.76.0 h1:eaJHMv2zn5oXT6IPXPwxAMVpzmQzSDsCdKcNl1ZpaRg=
-modernc.org/libc v1.76.0/go.mod h1:2h0dedmVSE8qH2DrxzYDXbQaxLMl0XNg8Z7/HJRdk2M=
+modernc.org/libc v1.77.0 h1:wV+faa9ixRoUNlakU0fHLi/1kV2YLG8D8Ksk3c2mPtY=
+modernc.org/libc v1.77.0/go.mod h1:BmXDCJcMkRMRbX2EI8+Zhh4fKWlHNbCCZEy0tiZevP4=
 modernc.org/mathutil v1.7.1 h1:GCZVGXdaN8gTqB1Mf/usp1Y/hSqgI2vAGGP4jZMCxOU=
 modernc.org/mathutil v1.7.1/go.mod h1:4p5IwJITfppl0G4sUEDtCr4DthTaT47/N3aT6MhfgJg=
 modernc.org/memory v1.12.1 h1:nFMiWrpStgZczNl6XI9GnIk/rWhYIyHGUaR04pGbp9g=
