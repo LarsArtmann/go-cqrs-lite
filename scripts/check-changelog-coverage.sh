@@ -68,7 +68,10 @@ self_test() {
 		bash "$0" >/dev/null 2>&1
 	rc=$?
 	[ $rc -eq 1 ] && echo "  ✓ PASS: unmentioned module fails leg 1" ||
-		{ echo "  ✗ FAIL: unmentioned module not caught"; return 1; }
+		{
+			echo "  ✗ FAIL: unmentioned module not caught"
+			return 1
+		}
 	printf 'mod/func DomainThing\nmod/func NewThing\n' >"$tmp/docs/api_surface.txt"
 
 	# Leg 2 strict: unmentioned domain export fails under --fail-on-new.
@@ -76,7 +79,10 @@ self_test() {
 		bash "$0" --fail-on-new >/dev/null 2>&1
 	rc=$?
 	[ $rc -eq 1 ] && echo "  ✓ PASS: unmentioned domain export fails under --fail-on-new" ||
-		{ echo "  ✗ FAIL: strict leg not caught"; return 1; }
+		{
+			echo "  ✗ FAIL: strict leg not caught"
+			return 1
+		}
 
 	echo "self-test: all legs behave"
 	return 0
@@ -97,8 +103,14 @@ for arg in "$@"; do
 	esac
 done
 
-[ -f "$GOLDEN" ] || { echo "::error::missing $GOLDEN" >&2; exit 1; }
-[ -f "$CHANGELOG" ] || { echo "::error::missing $CHANGELOG" >&2; exit 1; }
+[ -f "$GOLDEN" ] || {
+	echo "::error::missing $GOLDEN" >&2
+	exit 1
+}
+[ -f "$CHANGELOG" ] || {
+	echo "::error::missing $CHANGELOG" >&2
+	exit 1
+}
 [ -f "$BASELINE" ] || : >"$BASELINE"
 
 # Leg 1: module aliases vs CHANGELOG mentions.

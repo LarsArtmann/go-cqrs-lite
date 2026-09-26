@@ -344,7 +344,7 @@ from each service page.
 
 #### Feeding the federation hub (catalog.home.lan)
 
-The LarsArtmann architecture hub (*eventcatalog-hub* — a private repo mirrored
+The LarsArtmann architecture hub (_eventcatalog-hub_ — a private repo mirrored
 on the home Forgejo at `forgejo.home.lan/lars/eventcatalog-hub`,
 served at `catalog.home.lan`) federates every service's exported tree into ONE
 EventCatalog site: CI clones each source repo, runs a HEADLESS export command,

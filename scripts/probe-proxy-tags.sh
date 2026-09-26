@@ -37,7 +37,7 @@ is_fixture_module() {
 	case "$1" in
 	example.com/*) return 0 ;;
 	*) return 1 ;;
-	 esac
+	esac
 }
 
 # check_zip <module-path> <zip-file>: go.mod at root + no ELF entries.
@@ -102,12 +102,11 @@ probe_module() {
 	tmp="$(mktemp)"
 	trap 'rm -f "$tmp"' RETURN
 
-	if ! python3 - "$mod" "$latest" "$tmp" <<'PYEOF' 2>/dev/null
+	if ! python3 - "$mod" "$latest" "$tmp" <<'PYEOF' 2>/dev/null; then
 import sys, urllib.request
 mod, ver, out = sys.argv[1], sys.argv[2], sys.argv[3]
 urllib.request.urlretrieve(f"https://proxy.golang.org/{mod}/@v/{ver}.zip", out)
 PYEOF
-	then
 		echo "✗ $mod@$latest: zip download failed" >&2
 		failures=$((failures + 1))
 		return
@@ -144,7 +143,10 @@ if [ "${1:-}" = "--self-test" ]; then
 	fails_before=$failures
 	check_zip "example.com/good" "$tmp/good-latest.zip" >/dev/null
 	[ "$failures" -eq "$fails_before" ] && echo "  ✓ PASS: clean zip accepted" ||
-		{ echo "  ✗ FAIL: clean zip rejected"; fails_before=$failures; }
+		{
+			echo "  ✗ FAIL: clean zip rejected"
+			fails_before=$failures
+		}
 
 	check_zip "example.com/bad1" "$tmp/bad1-latest.zip" >/dev/null 2>&1
 	[ $((failures - fails_before)) -ge 1 ] && echo "  ✓ PASS: go.mod-less zip caught" ||
@@ -155,7 +157,10 @@ if [ "${1:-}" = "--self-test" ]; then
 	[ $((failures - local_fails)) -ge 1 ] && echo "  ✓ PASS: ELF-junk zip caught" ||
 		echo "  ✗ FAIL: ELF-junk zip not caught"
 
-	[ "$failures" -gt 0 ] && { echo "self-test: mutation legs behaved"; exit 0; }
+	[ "$failures" -gt 0 ] && {
+		echo "self-test: mutation legs behaved"
+		exit 0
+	}
 	echo "self-test: GOOD zip was rejected — checker over-strict"
 	exit 1
 fi

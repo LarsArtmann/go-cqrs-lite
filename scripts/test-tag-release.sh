@@ -217,7 +217,10 @@ git -C "$TMPROOT/t9" config tag.gpgSign false
 git -C "$TMPROOT/t9" config tag.forceSignAnnotated false
 badname="bad"$'\x06'"file"
 printf 'junk\n' >"$TMPROOT/t9/good/$badname"
-test -e "$TMPROOT/t9/good/$badname" || { echo "  ✗ FAIL: fixture did not create control-char file"; FAILED=1; }
+test -e "$TMPROOT/t9/good/$badname" || {
+	echo "  ✗ FAIL: fixture did not create control-char file"
+	FAILED=1
+}
 git -C "$TMPROOT/t9" add -A
 git -C "$TMPROOT/t9" commit -qm poison
 out="$(cd "$TMPROOT/t9" && bash "$SCRIPT" good v2.0.3 "poisoned" 2>&1)" && rc=0 || rc=$?

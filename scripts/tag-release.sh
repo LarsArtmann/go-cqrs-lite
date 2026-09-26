@@ -118,7 +118,7 @@ proxy_smoke_check() {
 	echo "after 12 attempts (~2 min). Check https://proxy.golang.org/ and the"
 	echo "tag's ancestry; do NOT build dependent tags until this resolves."
 	exit 1
-	}
+}
 
 # tag_zip_content_check <tag>: reject a tag whose tree would produce a
 # malformed proxy zip, BEFORE the push makes it irreversible. The observed

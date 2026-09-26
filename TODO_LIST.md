@@ -81,23 +81,23 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 [13-32 report](docs/status/2026-09-24_13-32_data-mesh-completion-session.md). Open tail:
 
 - [ ] [BLOCKED] 🔥 **Cut the catalog/v4.6+ tag wave** (manifest + options + owners +
-  docserver + E019 surface) — owner go-ahead pending (13-32 §g2); the new
-  `tag_zip_content_check` pre-push guard is in place (`scripts/tag-release.sh`).
-  Unblocks the mesh-demo replace-strip + bank-sync/cqrs-htmx lint adoption.
-  — source: 12-26 §f11, 13-32 §f14 _(Effort: M)_
+      docserver + E019 surface) — owner go-ahead pending (13-32 §g2); the new
+      `tag_zip_content_check` pre-push guard is in place (`scripts/tag-release.sh`).
+      Unblocks the mesh-demo replace-strip + bank-sync/cqrs-htmx lint adoption.
+      — source: 12-26 §f11, 13-32 §f14 _(Effort: M)_
 - [ ] [BLOCKED] 🔥 **Poisoned-tag surgery** — retract + re-cut
-  `metaengine/tursoengine/v4.2.0` (binary-junk zip); decide `storage/v4.10.0`
-  re-cut vs retraction (re-creating a deleted tag re-poisons cached absence;
-  retraction leaves published system/v4.9.0's graph broken) — owner call, 13-32 §g3.
-  — source: 12-26 §d3/§d4, 13-32 §f16 _(Effort: S)_
+      `metaengine/tursoengine/v4.2.0` (binary-junk zip); decide `storage/v4.10.0`
+      re-cut vs retraction (re-creating a deleted tag re-poisons cached absence;
+      retraction leaves published system/v4.9.0's graph broken) — owner call, 13-32 §g3.
+      — source: 12-26 §d3/§d4, 13-32 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
-  once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
-  (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
+      once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
+      (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
 - [ ] **Pin-sweep after the catalog tag** — strip mesh-demo's pre-release
-  `replace ../../catalog`, bump example pins to the new tag. — source: 12-26 §f14,
-  13-32 §f15 _(Effort: S)_
+      `replace ../../catalog`, bump example pins to the new tag. — source: 12-26 §f14,
+      13-32 §f15 _(Effort: S)_
 - [ ] **mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
-  demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
+      demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
 
 ---
 
