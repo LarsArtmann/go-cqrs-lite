@@ -5,13 +5,12 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "modernc.org/sqlite"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	sqliteengine "github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/system/v4"
+	_ "modernc.org/sqlite"
 )
 
 func newSQLiteEventAdapter(t *testing.T) (metaengine.StreamLogBackend, *system.EventAdapter) {
