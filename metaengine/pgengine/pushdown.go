@@ -41,6 +41,7 @@ func (e *pgEngine) PushdownMapScan(
 
 	for _, f := range filters {
 		if f.Op == metaengine.FilterIn {
+			//art-dupl:accept cross-module SQL builder pattern — dep-isolated go.mod
 			values, ok := f.Value.([]any)
 			if !ok || len(values) == 0 {
 				continue
