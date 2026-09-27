@@ -49,11 +49,11 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 	refA := id.NewStreamRef("User", streamA)
 	refB := id.NewStreamRef("Order", streamB)
 
-	evtA1, _ := event.NewEvent("UserCreated", streamA, "User", 1, []byte(`{"name":"alice"}`))
+	evtA1, _ := event.New("UserCreated", streamA, "User", 1, []byte(`{"name":"alice"}`))
 	must(t, "save A1", source.EventStore().Save(ctx, refA, []event.Event{evtA1}, 0))
 
-	evtB1, _ := event.NewEvent("OrderPlaced", streamB, "Order", 1, []byte(`{"total":42}`))
-	evtB2, _ := event.NewEvent("OrderShipped", streamB, "Order", 2, []byte(`{"tracking":"XYZ"}`))
+	evtB1, _ := event.New("OrderPlaced", streamB, "Order", 1, []byte(`{"total":42}`))
+	evtB2, _ := event.New("OrderShipped", streamB, "Order", 2, []byte(`{"tracking":"XYZ"}`))
 	must(t, "save B1,B2", source.EventStore().Save(ctx, refB, []event.Event{evtB1, evtB2}, 0))
 
 	snap := snapshot.Snapshot{
@@ -77,7 +77,7 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 	backupPath := filepath.Join(t.TempDir(), "backup")
 	f.Backup(t, source, backupPath)
 
-	evtA2, _ := event.NewEvent("UserUpdated", streamA, "User", 2, []byte(`{"name":"alice2"}`))
+	evtA2, _ := event.New("UserUpdated", streamA, "User", 2, []byte(`{"name":"alice2"}`))
 	must(t, "save A2 post-backup", source.EventStore().Save(ctx, refA, []event.Event{evtA2}, 1))
 
 	must(
@@ -120,7 +120,7 @@ func RunFullLifecycle(t *testing.T, f Factory) {
 		)
 	}
 
-	evtA3, _ := event.NewEvent("UserDeleted", streamA, "User", 2, []byte(`{}`))
+	evtA3, _ := event.New("UserDeleted", streamA, "User", 2, []byte(`{}`))
 	must(
 		t,
 		"save to restored backend",
@@ -148,13 +148,13 @@ func RunIncrementalCheckpoints(t *testing.T, f Factory) {
 	streamID := id.NewStreamID()
 	ref := id.NewStreamRef("Counter", streamID)
 
-	evt1, _ := event.NewEvent("Incremented", streamID, "Counter", 1, []byte(`{}`))
+	evt1, _ := event.New("Incremented", streamID, "Counter", 1, []byte(`{}`))
 	must(t, "save evt1", store.Save(ctx, ref, []event.Event{evt1}, 0))
 
 	backup1 := filepath.Join(t.TempDir(), "b1")
 	f.Backup(t, source, backup1)
 
-	evt2, _ := event.NewEvent("Incremented", streamID, "Counter", 2, []byte(`{}`))
+	evt2, _ := event.New("Incremented", streamID, "Counter", 2, []byte(`{}`))
 	must(t, "save evt2", store.Save(ctx, ref, []event.Event{evt2}, 1))
 
 	backup2 := filepath.Join(t.TempDir(), "b2")

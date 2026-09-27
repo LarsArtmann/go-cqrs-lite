@@ -31,7 +31,7 @@ func MakeTimelineEvents(
 	result := make([]event.Event, len(events))
 	for i, e := range events {
 		//cqrs-lint:ignore(A014,D011) library code or intentional pattern
-		evt, err := event.NewEvent(
+		evt, err := event.New(
 			event.Type(e.Type),
 			aggID,
 			aggType,
@@ -65,7 +65,7 @@ func NewEventOpts(
 	tb.Helper()
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.NewEvent(typ, aggID, aggType, version, payload, opts...)
+	evt, err := event.New(typ, aggID, aggType, version, payload, opts...)
 	if err != nil {
 		tb.Fatalf("create event %q: %v", typ, err)
 	}
@@ -84,7 +84,7 @@ func NewEvent(
 	t.Helper()
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.NewEvent(eventType, aggID, aggType, version, payload)
+	evt, err := event.New(eventType, aggID, aggType, version, payload)
 	if err != nil {
 		t.Fatalf("create event %q: %v", eventType, err)
 	}
@@ -101,7 +101,7 @@ func MakeEvent(
 	payload []byte,
 ) (event.Event, error) {
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.NewEvent(eventType, aggID, aggType, version, payload)
+	evt, err := event.New(eventType, aggID, aggType, version, payload)
 
 	return evt, err //nolint:wrapcheck // thin wrapper, caller adds context if needed
 }
@@ -114,7 +114,7 @@ func QuickEvent(
 	payload []byte,
 ) event.Event {
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload)
+	evt, _ := event.New(eventType, aggID, aggType, version, payload)
 
 	return evt
 }
@@ -128,14 +128,14 @@ func QuickEventOpts(
 	opts ...event.Option,
 ) event.Event {
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, _ := event.NewEvent(eventType, aggID, aggType, version, payload, opts...)
+	evt, _ := event.New(eventType, aggID, aggType, version, payload, opts...)
 
 	return evt
 }
 
 func TamperEvent(original event.Event, newPayload []byte) event.Event {
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	tampered, _ := event.NewEvent(
+	tampered, _ := event.New(
 		original.Type(),
 		original.StreamID(),
 		original.StreamType(),
