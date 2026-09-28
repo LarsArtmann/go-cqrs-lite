@@ -595,18 +595,20 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
-- [ ] **Work down the 50 remaining t3 clone groups (owner decision
-      2026-09-23: NO baseline re-pin)** — the t4 clone-elimination campaign
-      (2026-09-23, plan
-      `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md`)
-      extracted 11 core/intra-module families (scan/vector/planned/filter/
-      GraphBFS, watermill streamIDFromMessage, cqrs-lint lintutil) and shrank
-      the t3 `check-duplication` red set ~69 → 50 pre-existing groups vs the
-      2026-09-18 baseline. The gate is now HARD (art-dupl nix-provisioned at
-      v0.7.0 in `packages.art-dupl`; no silent SKIP), so CI stays red until
-      the 50 are worked down (extract or accept-annotate each, then the
-      baseline shrinks naturally at the next structural re-pin).
-      _(Effort: M-L)_
+- [ ] **Watch the 3 baselined `.templ` clone groups (specview noscript pair,
+      eventcatalogview catalogSection pair + Breadcrumbs ×4)** — the 2026-09-28
+      dedup campaign (`docs/status/2026-09-28_02-21_deduplication-52-clone-groups-session.md`)
+      worked the red set 52 → 3 Go-side zero (32 extractions + ~40 accept
+      directives) and closed with the sanctioned structural re-pin (baseline
+      60 → 187 groups; mutation-tested: novel-shape clones flag red, gate
+      green). The 3 templ groups have NO suppression lever — `//art-dupl:accept`
+      does not parse in `.templ` (empirically verified, HTML comments included) —
+      so they live in the baseline until art-dupl learns templ directives or
+      the docserver pages gain extracted shared components. ⚠ Semantics caveat
+      discovered 2026-09-28: `check` matches groups by normalized-shape HASH,
+      not location — a verbatim copy of already-baselined code does NOT flag;
+      the gate detects novel duplication shapes, not instances. _(Effort: S to
+      watch, M to extract the templ components)_
 - [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
       — core's degraded-path BFS (graph_fallback.go) still carries its own
       copy of the loop with different semantics: `[]any` frontier,
@@ -619,7 +621,10 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       already-split offenders; the code-file split waves are a standalone
       multi-session program pending the policy decision. Decide
       harness-dir exemptions (adttest/enginetest are exported test harnesses)
-      first. _(Effort: XL, multi-session)_
+      first. NEW offenders as of 2026-09-28 (daemon-era waves, gate-red until
+      split): `catalog/docserver/docserver.go` (351),
+      `catalog/eventcatalog/frontmatter_convert.go` (364),
+      `catalog/cmd/ec-fixture/main.go` (356). _(Effort: XL, multi-session)_
 - [ ] [BLOCKED] **macOS verification of ephemeral PG** —
       `scripts/ephemeral-pg.sh` claims cross-platform but was only
       static-review-tested; a GitHub Actions macOS runner leg is the
