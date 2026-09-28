@@ -14,6 +14,7 @@ preserved for audit trail and progress tracking.
 | [2026-09-17 cqrs-lint FP sweep baseline](2026-09-17_fp-sweep-baseline.md)                                           | KEEP-LIVE baseline: sweep numbers feeding the next lint refresh         |
 | [2026-09-21 two-session consolidated status](2026-09-21_14-25_two-session-consolidated-status.html)                 | cross-session HTML snapshot (HTML exempt from archiving per standing rule) |
 | [2026-09-23 EventCatalog agent-changelog crash draft](2026-09-23_eventcatalog-agent-changelog-crash-issue-draft.md) | KEEP-LIVE unfiled upstream issue draft (owner-gated external action)    |
+| [2026-09-28 12th docs-health pass + self-review](2026-09-28_15-10_docs-health-12th-pass-full-audit-self-review.md) | this pass's honest ledger (36 archived, ~335 strikes, gates green, math erratum d1) |
 
 **Row-ownership convention (2026-09-22):** for multi-report sessions, the
 latest report owns its index row; predecessors are marked superseded in the

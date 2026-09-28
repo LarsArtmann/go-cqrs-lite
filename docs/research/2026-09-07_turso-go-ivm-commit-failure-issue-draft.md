@@ -130,6 +130,20 @@ possible for a precomputed aggregate: consumers have no signal.
 
 ## Characterization findings (2026-09-11 → 2026-09-13 addendum)
 
+**2026-09-28 update — defect C/zombie half is FIXED upstream in flight:** our
+standalone zombie-readback filing
+([tursodatabase/turso#9391](https://github.com/tursodatabase/turso/issues/9391),
+verified on v0.7.2 + v0.8.0-pre.13) got
+[tursodatabase/turso#9392](https://github.com/tursodatabase/turso/pull/9392)
+the same day (resume COMMIT when view-delta application yields on I/O;
+"Fixes #9391"). The A+B silent-wrong-results body below remains unfiled and
+UNAFFECTED by that fix (different path: successful commits losing grouped
+deltas — onset envelope in
+[`docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md`](../benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md);
+wall moved 27k → 29k in the standalone shape). When filing, cite #9392 as the
+resolved C-half context, and re-verify the collapse threshold on a
+post-#9392 build.
+
 Three findings from the scripted three-defect repro suite
 (`metaengine/tursoengine/ivm_repro_test.go`, `-tags ivmrepro`) that sharpen
 the numbers above; fold them into the final filed body:
