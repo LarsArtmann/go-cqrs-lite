@@ -296,10 +296,10 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		"order-analytics",
 		"contracts",
 	)
-	if err := os.MkdirAll(
+	if err := os.MkdirAll( //nolint:gosec // argv-supplied output dir
 		contractDir,
 		dirPerm,
-	); err != nil { //nolint:gosec // argv-supplied output dir
+	); err != nil {
 		return err
 	}
 
