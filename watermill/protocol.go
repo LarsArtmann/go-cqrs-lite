@@ -188,7 +188,13 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 		streamID,
 		streamType,
 		event.Version(version), //nolint:gosec // G115: version bounded by event count
-		msg.Payload,
+		// msg.Payload is watermill's NAMED []byte type (message.Payload);
+		// passed through as-is it misses event.New's `case []byte:` fast
+		// path and falls into DefaultCodec (CBOR), which wraps the bytes in
+		// a CBOR byte-string header (0x40|len — 'P' for short payloads)
+		// while WithEncoding still stamps "json". Convert to the plain
+		// []byte the contract documents.
+		[]byte(msg.Payload),
 		opts...,
 	)
 	if err != nil {
