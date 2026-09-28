@@ -205,7 +205,7 @@ v5-deprecation list gains nothing new (`Infer` already listed).
 `:234+` · `system/query_constructors.go:80-99`, `:206-231` ·
 `system/evolution_tombstone_test.go` ·
 [inheritance audit](2026-09-21_evolution-fold-inheritance-coverage-audit.md)
-§2/§4/§6 · [scan survey](2026-09-21_scan-default-v5-survey.md) ·
+§2/§4/§6 · [scan survey](archived/2026-09-21_scan-default-v5-survey.md) ·
 [ADR-0116](../adr/0116-layered-auto-projection.md) §Layer-1 + §Alternatives-B ·
 [ADR-0114](../adr/0114-tombstone-as-domain-event.md) ·
 [CV feedback](../feedback/reviewed/archived/2026-09-15_go-graph-rag_metaengine-system-evaluation-feedback.md):276 ·

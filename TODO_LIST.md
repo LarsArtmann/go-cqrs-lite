@@ -419,7 +419,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       (tracked jointly with the Turso-section routing row).
       (d) ~~Scan-default v5 survey feeding G-T14~~ RULED 2026-09-21 (Option
       C) — now tracked in the Goal-closure G-T14 row; survey:
-      [`docs/planning/2026-09-21_scan-default-v5-survey.md`](docs/planning/2026-09-21_scan-default-v5-survey.md).
+      [`docs/planning/archived/2026-09-21_scan-default-v5-survey.md`](docs/planning/archived/2026-09-21_scan-default-v5-survey.md).
       — source: archived 15-34 §a1-3/§f28-32 _(Effort: M each, ratification-gated)_
 
 > The 2026-09-07/08 correctness batch (ApplyBatch Record handling,
@@ -990,7 +990,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       — G-T01/G-T02/G-T03 _(Effort: S memo + XS ruling; M if revive)_
 - [ ] **Scan default v5 decision — RULED 2026-09-21 (owner): Option C**
       (unbounded at the v5 cut + cqrs-lint nudge + operator ceiling; survey:
-      [`docs/planning/2026-09-21_scan-default-v5-survey.md`](docs/planning/2026-09-21_scan-default-v5-survey.md)
+      [`docs/planning/archived/2026-09-21_scan-default-v5-survey.md`](docs/planning/archived/2026-09-21_scan-default-v5-survey.md)
       — consumer census incl. `system.Find` inheriting the cap; documented-100
       stays the loud v4 status quo in godoc+FAQ). The v4-safe add-ons LANDED:
       `metaengine.WithDefaultLimit(n)` plan option (operator ceiling for

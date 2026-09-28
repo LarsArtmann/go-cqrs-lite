@@ -1,7 +1,7 @@
 # SUPERB — Publish-Integrity-First Pareto Plan (session backlog)
 
 **Planned:** 2026-09-28 01:26 CEST
-**Source backlog:** [`docs/status/2026-09-27_23-43_sqliteengine-metaengine-system-qa-session.md`](../status/2026-09-27_23-43_sqliteengine-metaengine-system-qa-session.md) §f (26 items) + §g (3 owner questions)
+**Source backlog:** [`docs/status/2026-09-27_23-43_sqliteengine-metaengine-system-qa-session.md`](../status/archived/2026-09-27_23-43_sqliteengine-metaengine-system-qa-session.md) §f (26 items) + §g (3 owner questions)
 **Scope:** EVERYTHING this session surfaced — the full 26-item backlog and the 3 gates. NOT the whole `TODO_LIST.md` (that stays the living source; task M15/HARVEST syncs this plan into it).
 **Method:** Pareto (1% → 4% → 20% → other 20%), two granularities (25 medium tasks 30–100 min; 107 micro tasks ≤ 12 min), impact/effort/customer-value sorted, dependency-graph executed.
 
