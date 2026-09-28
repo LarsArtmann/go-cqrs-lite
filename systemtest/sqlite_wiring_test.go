@@ -317,9 +317,8 @@ func taskDomainConfig(
 	cpStore event.CheckpointStore,
 	extraOpts ...projectionhost.HostOption,
 ) system.DomainConfig {
-	opts := []projectionhost.HostOption{
-		projectionhost.WithBackoff(10*time.Millisecond, 100*time.Millisecond),
-	}
+	opts := make([]projectionhost.HostOption, 0, 1+len(extraOpts))
+	opts = append(opts, projectionhost.WithBackoff(10*time.Millisecond, 100*time.Millisecond))
 	opts = append(opts, extraOpts...)
 
 	return system.DomainConfig{

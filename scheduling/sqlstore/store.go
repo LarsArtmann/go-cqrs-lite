@@ -21,10 +21,11 @@ import (
 	"fmt"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // SQLTimerStore is a SQL-backed [scheduling.TimerStore]. Payloads are
@@ -144,11 +145,11 @@ func (s *SQLTimerStore[P]) Schedule(ctx context.Context, t scheduling.Timer[P]) 
 // corrupt timers stay in the table and are re-reported each poll until an
 // operator removes them.
 func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling.Timer[P], error) {
-	rows, err := s.db.QueryContext(
+	rows, err := s.db.QueryContext( //nolint:sqlclosecheck // closed below via record.DeferClose (ADR-0144 idiom; linter cannot see through the helper)
 		ctx,
 		s.q.due,
 		s.formatTime(now),
-	) //nolint:sqlclosecheck // closed below via record.DeferClose (ADR-0144 idiom; linter cannot see through the helper)
+	)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,

@@ -22,6 +22,22 @@ import (
 // two-engine deployment: SQLite for the event source-of-truth, Memory for
 // projection read models. Exercises the full lifecycle: construct, dispatch,
 // project, HealthCheck, HealthCheckDetailed, GracefulClose.
+func waitUntilProcessed(t *testing.T, sys *system.System) {
+	t.Helper()
+
+	deadline := loadScaledDeadline(8 * time.Second)
+
+	for time.Now().Before(deadline) {
+		for _, s := range sys.ProjectionHost().Status() {
+			if s.Processed >= 1 && s.Errors == 0 {
+				return
+			}
+		}
+
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
 func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 	t.Parallel()
 
@@ -91,19 +107,8 @@ func TestIntegration_SQLiteSource_MemoryProjection_HealthCheck(t *testing.T) {
 	}
 
 	// Wait for projection to catch up.
-	deadline := loadScaledDeadline(8 * time.Second)
+	waitUntilProcessed(t, sys)
 
-	for time.Now().Before(deadline) {
-		for _, s := range sys.ProjectionHost().Status() {
-			if s.Processed >= 1 && s.Errors == 0 {
-				goto caughtUp
-			}
-		}
-
-		time.Sleep(50 * time.Millisecond)
-	}
-
-caughtUp:
 	for _, s := range sys.ProjectionHost().Status() {
 		if s.Errors > 0 {
 			t.Fatalf("projection %q has %d errors", s.Name, s.Errors)

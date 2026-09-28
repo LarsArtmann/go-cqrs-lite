@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"sync"
 	"time"
@@ -174,10 +175,7 @@ func (h *Host) Start(ctx context.Context) error {
 	runCtx, cancel := context.WithCancel(ctx)
 	h.cancel = cancel
 
-	workers := make([]*worker, 0, len(h.workers))
-	for _, w := range h.workers {
-		workers = append(workers, w)
-	}
+	workers := slices.Collect(maps.Values(h.workers))
 	h.mu.Unlock()
 
 	for i, w := range workers {
@@ -220,6 +218,7 @@ func (h *Host) Stop() error {
 		if s := w.snapshot().Status; s == WorkerRunning || s == WorkerLive || s == WorkerBackoff {
 			w.setStatus(WorkerDraining)
 		}
+
 		w.signalStop()
 	}
 	h.mu.Unlock()

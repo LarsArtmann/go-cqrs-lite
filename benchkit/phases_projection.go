@@ -67,18 +67,24 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 		select {
 		case <-deadline.C:
 			// timeout — report what we got
-			r.stopAndCollect(host)
+			r.stopAndCollect(
+				host,
+			) //nolint:contextcheck // ctx-free drain by design (Host.Stop takes no ctx)
 
 			return nil
 		case <-ticker.C:
 		case <-ctx.Done():
-			r.stopAndCollect(host)
+			r.stopAndCollect(
+				host,
+			) //nolint:contextcheck // ctx-free drain by design (Host.Stop takes no ctx)
 
 			return nil
 		}
 	}
 
-	r.stopAndCollect(host)
+	r.stopAndCollect(
+		host,
+	) //nolint:contextcheck // ctx-free drain by design (Host.Stop takes no ctx)
 
 	return nil
 }
