@@ -31,8 +31,8 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.9.0 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect

@@ -6,7 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.0
 	github.com/larsartmann/go-cqrs-lite/testutil/mysqltestcontainer/v4 v4.0.0
 )

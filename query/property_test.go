@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"pgregory.net/rapid"
-
 	"github.com/larsartmann/go-cqrs-lite/query/v4"
+	"pgregory.net/rapid"
 )
 
 func TestQueryCreation_ValidType(t *testing.T) {

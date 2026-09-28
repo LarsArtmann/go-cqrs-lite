@@ -8,12 +8,11 @@ import (
 	"testing"
 	"time"
 
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
-
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4/eventtest"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 // deciderFRMu serializes flight recorder tests (process-global constraint).

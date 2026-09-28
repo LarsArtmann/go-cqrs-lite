@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	_ "github.com/duckdb/duckdb-go/v2"
-
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
 )

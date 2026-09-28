@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/graph/v4"
 	"github.com/larsartmann/go-cqrs-lite/middleware/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // TestErrorClassification verifies that sentinels from modules that were
