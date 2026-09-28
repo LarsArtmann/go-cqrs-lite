@@ -88,8 +88,7 @@ func (e *badgerEngine) StreamRead(
 		}
 
 		return nil
-	})
-	//art-dupl:accept cross-module KV stream-log nil-to-empty tail — engine-local row iteration
+	}) //art-dupl:accept cross-module KV stream-log nil-to-empty tail — engine-local row iteration
 	if err != nil {
 		return nil, err
 	}
