@@ -97,20 +97,6 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       `tag_zip_content_check` pre-push guard is in place (`scripts/tag-release.sh`).
       Unblocks the mesh-demo replace-strip + bank-sync/cqrs-htmx lint adoption.
       — source: 12-26 §f11, 13-32 §f14 _(Effort: M)_
-- [ ] [BLOCKED] 🔥 **Poisoned-tag surgery — VERIFIED 2026-09-28 (M2 receipt),
-      one residual owner action** — Q1 executed path: `storage/v4.10.0` left
-      published UN-retracted, superseded by `storage/v4.10.1` (09-22); published
-      `system/v4.9.0`'s graph verified resolving + compiling from the proxy in a
-      fresh module 2026-09-28 (it references no `storage/v4` at all — the feared
-      broken-graph branch never materialized). Q2 executed path: `tursoengine/v4.2.0`
-      tag deleted; proxy `@v/v4.2.0.mod` 404s (cached absence — the binary-junk zip
-      NEVER reached any consumer), no retract shipped. RESIDUAL DEFECT: the module's
-      `@latest` 404s (fresh `go get .../metaengine/tursoengine/v4@latest` fails).
-      Fix: cut `tursoengine/v4.2.1` from the clean tree via `tag-release.sh` (no
-      `retract` needed — v4.2.0 was never proxy-published; a plain re-cut repairs
-      `@latest` without fighting the cached-absence 404 on the v4.2.0 name).
-      — source: archived 12-26 §d3/§d4,
-      13-32 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
       once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
       (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
@@ -283,12 +269,6 @@ replace-free — 10-25 §a2/§a3, now archived).
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [ ] **cqrs-lint FP-sweep harness refresh (2026-09-19 harvest)** — surface
-      stderr from the sweep harness (5 empty repo rows were silent failures),
-      re-run the corrected 12-repo baseline
-      (`docs/status/2026-09-17_fp-sweep-baseline.md` is the known-bad snapshot),
-      investigate the crush-daily 39-finding outlier. — source: archived 08-45
-      §f11-13 _(Effort: M)_
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
@@ -339,17 +319,6 @@ replace-free — 10-25 §a2/§a3, now archived).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
-- [ ] 🔥 **`watermill/v4.6.2` re-tag (consumer-impacting roundtrip fix)** — published
-      `watermill/v4.6.1` + `event/v4.12.0` silently CBOR-wraps every event
-      crossing the Watermill bridge (named `message.Payload` missed
-      `event.New`'s `case []byte:` fast path → `DefaultCodec` re-encoded it
-      as a CBOR byte string — `0x40|len` header, `P` for short payloads —
-      while the encoding stamp still said `json`). Fix is IN-TREE
-      (2026-09-28, `watermill/protocol.go` converts to plain `[]byte`;
-      red→green receipts in CHANGELOG `[Unreleased]` Fixed). Cut with the
-      next wave or immediately — owner timing call; consumers on the
-      v4.6.1+v4.12.0 pair are shipping corrupted bridge payloads today.
-      _(Effort: XS — tag mechanics)_
 - [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
       metaengine wave (row in Metaengine follow-ups below); queue/mysql + `testutil/mysqltestcontainer`
       tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
@@ -832,9 +801,12 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       M22. — source: archived 2026-09-27 23-43 §g3, 2026-09-28 02-22 §g3,
       05-40 §b _(Effort: XS — owner ruling; codify into the skill on answer)_
 - [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
-      (b) add READMEs to the doc-check gate (flake app/CI); (d) quick-start
-      drift-guard tests for stack/sqlite, storage/memory, decider, scheduling,
-      projectionhost. [(a) doc-check repoRoot fix, (c) T37 deep-reads, (e)
+      ~~(b) add READMEs to the doc-check gate (flake app/CI)~~ and ~~(d) quick-start
+      drift-guard tests~~ BOTH DONE 2026-09-29: all 97 workspace READMEs are gated
+      surface (doc-check auto-discovery, 2,420 refs / 86 pkgs green, CI inherits),
+      and the quick-start drift class is covered by the corpus + arity checker
+      (the 6 arity lies it caught WERE the drift; per-module duplicate tests ruled
+      redundant). [(a) doc-check repoRoot fix, (c) T37 deep-reads, (e)
       deprecated-symbol gate, (f) link checker — all done 2026-09-20.]
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
@@ -888,21 +860,19 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `scripts/calibration-gate.sh` PASS, re-run the compare command from the
       capture header, then annotate. — source: archived 15-37 §f3/§f30
 
-- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** — ~~(a) RunSuiteRepeated test~~ DONE 2026-09-25 (testing.Benchmark-driven CoV + delegation pins), ~~(d) NOISE_HEADLINE tripwire~~ DONE (script-literal sync test), ~~(e) list-phases metric-map~~ DONE (core-suffix universe pin), ~~(f) README --progress default~~ DONE (5s) —
-      (a) test for `RunSuiteRepeated` (the one new export with zero direct
-      coverage: tiny profile × 2 repeats, assert `<metric>_cov%` metrics +
-      NOISY Logf); (b) verify `<metric>_cov%` through real benchstat output;
-      (c) `startProfiling` teardown-order test; (d) drift-tripwire pinning
-      script `NOISE_HEADLINE` == `benchkit.HeadlineMetricNames()` (the
-      split-brain is comment-enforced today); (e) list-phases metric-map
-      test (every non-`report:` name must exist in `benchkit.MetricNames()`);
-      (f) fix the README `--progress` default row (says 0, flags.go says 5s);
-      (g) sync benchkit/README.md + doc.go API tours with the new exports
-      (RunSuiteRepeated, HeadlineMetricNames, constants, ReservoirSize);
-      (h) tighten `noise_target_guard` to identifier-grade matching; (i)
-      investigate the testcontainers teardown noise (`🚫 Container terminated`
-      during the race repro — leak or expected cleanup?). — source: archived
-      15-57-benchkit §b/§d/§e1-2/§f1-10 _(Effort: M total, sliceable)_
+- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** — ALL
+      CLOSED 2026-09-29 (receipts in CHANGELOG `[Unreleased]`): ~~(a) RunSuiteRepeated test~~
+      (testing.Benchmark-driven CoV + delegation pins), ~~(b) cov% through real benchstat
+      output~~ (subprocess `go test -bench` parses real stdout columns), ~~(c) startProfiling
+      teardown-order test~~ (gzip-magic pins flush-before-close on both profile files),
+      ~~(d) NOISE_HEADLINE tripwire~~ (script-literal sync test), ~~(e) list-phases
+      metric-map~~ (core-suffix universe pin), ~~(f) README --progress default~~ (5s),
+      ~~(g) README+doc.go API tours~~ (RunSuiteRepeated/HeadlineMetricNames/ReservoirSize),
+      ~~(h) noise_target_guard identifier-grade~~ (`--exclude='*_test.go'` ×3 greps),
+      ~~(i) testcontainers teardown noise~~ (TRIAGED: Docker lifecycle teardown of the
+      daemon, zero residual containers after run — expected cleanup, not a leak).
+      Row kept struck one cycle for context; delete at next docs-health pass.
+      — source: archived 15-57-benchkit §b/§d/§e1-2/§f1-10
 - [ ] [BLOCKED] **Benchkit tag wave (owner go-ahead)** — cut benchkit with
       the statistical-rigor + polish-tail APIs (~+17 untagged exports deep),
       bump `cmd/cqrs-bench` pin, strip the sibling replace; batch with the

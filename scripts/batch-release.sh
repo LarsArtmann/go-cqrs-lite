@@ -79,6 +79,12 @@
 #     "cmd/cqrs-lint v0.3.0 Scanner accuracy overhaul"
 set -euo pipefail
 
+# scripts/go-env.sh (T05): self-source the env chain — batch cuts run go
+# verify legs that false-fail under the ambient host env (GOTOOLCHAIN=local).
+# See tag-release.sh's sourcing note for the 2026-09-29 failure instance.
+# shellcheck disable=SC1091
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
+
 cd "$(git rev-parse --show-toplevel)"
 
 # Advisory verify-window lock (W3 Q5): release/tag windows serialize against
