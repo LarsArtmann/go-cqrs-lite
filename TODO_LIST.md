@@ -6,10 +6,10 @@ and is **never** duplicated here — when a task finishes it moves to CHANGELOG
 and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
 2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, 2026-09-19,
-2026-09-20, 2026-09-21 ×2 — the 8th pass struck 815+ verified-done items
-inline across 57 reports; the 11th pass archived the v4.9.0-wave/M23/W0
-cluster (7 files) and harvested the M23 + go-graph-rag + W0 §f tails below,
-deleting every completed receipt row).
+2026-09-20, 2026-09-21 ×2, 2026-09-22 — the 12th pass (2026-09-28) archived
+the 09-20..28 accumulation: the T18b arc ×6, the unblock/verify/data-mesh/t4/
+dedup/publish-integrity clusters, and five executed SUPERB plans, all
+RESOLVED-BY-ROUTING-bannered).
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
@@ -17,17 +17,23 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > ranked the then-list into Pareto waves (W0 release train → W1 trust →
 > W2 efficiency → W3 v5 train) and was EXECUTED through 2026-09-11 (W3's v5
 > items live in the v5 section below; the user-gated P22 halves remain in the
-> Turso section). **Current plan (2026-09-22 01:25):**
-> [`docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
-> (T01–T27, all 25 sections mapped; 1% tier = restore the go 1.27.1 contract
-> — drift gate + composed verify; predecessor:
-> [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
-> M-items folded into the new T-numbering). **Data-mesh plan (2026-09-23 22:12):**
-> [`docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md`](docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
-> (T01–T27 + 72 fine tasks) — EXECUTED to completion 2026-09-23/24 (reports:
-> [12-26](docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md),
-> [13-32](docs/status/2026-09-24_13-32_data-mesh-completion-session.md)); the open tail
-> is the section below. This file remains the living source of truth.
+> Turso section). **Unblock·Prove·Deliver plan (2026-09-22 01:25, EXECUTED;
+> archived 2026-09-28):**
+> [`docs/planning/archived/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](docs/planning/archived/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
+> (T01–T27; the T04 composed-verify remainder lives in the CI section below,
+> the T08/T09 tag waves in the Release section; predecessor:
+> [2026-09-20 17:40 owner-unblock plan](docs/planning/archived/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
+> archived — M-items were folded into the T-numbering). **Data-mesh plan (2026-09-23 22:12,
+> EXECUTED; archived 2026-09-28):**
+> [`docs/planning/archived/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md`](docs/planning/archived/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
+> (T01–T27 + 72 fine tasks) — shipped 2026-09-23/24 (reports:
+> [12-26](docs/status/archived/2026-09-24_12-26_data-mesh-pareto-execution-session.md),
+> [13-32](docs/status/archived/2026-09-24_13-32_data-mesh-completion-session.md));
+> the open tail is the section below. **Current plan (2026-09-28 01:26):**
+> [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md)
+> (M-tasks; M1–M4, M6, M14–M16, M19, M23–M25 done with receipts in this file;
+> open: M5+M20 quiet-window campaign, M22 owner Q3). This file remains the
+> living source of truth.
 
 ## Section index
 
@@ -56,7 +62,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [92-tag tail](#92-tag-release-train-tail-2026-09-20-harvest) ·
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
 [Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
-[Skill hard-block late harvest](#go-cqrs-lite-skill-hard-block--late-harvest-2026-09-24) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
@@ -82,8 +87,10 @@ receipts for the exporter wave (manifest, `WithSkipBootstrapFiles`, `WithPlainRe
 `Flow.Owners`, docserver DataProducts, E019, mesh-demo, cookbook recipes, gRPC v5
 guide); hub-side work (merge gate, per-source governance lint, stale-source probe,
 mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
-[12-26 report](docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md) ·
-[13-32 report](docs/status/2026-09-24_13-32_data-mesh-completion-session.md). Open tail:
+[12-26 report](docs/status/archived/2026-09-24_12-26_data-mesh-pareto-execution-session.md) ·
+[13-32 report](docs/status/archived/2026-09-24_13-32_data-mesh-completion-session.md) ·
+[18-14 hub-phase report](docs/status/archived/2026-09-24_18-14_hub-phase-and-final-gate-session.md)
+(all archived 2026-09-28, RESOLVED-BY-ROUTING). Open tail:
 
 - [ ] [BLOCKED] 🔥 **Cut the catalog/v4.6+ tag wave** (manifest + options + owners +
       docserver + E019 surface) — owner go-ahead pending (13-32 §g2); the new
@@ -102,8 +109,7 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       Fix: cut `tursoengine/v4.2.1` from the clean tree via `tag-release.sh` (no
       `retract` needed — v4.2.0 was never proxy-published; a plain re-cut repairs
       `@latest` without fighting the cached-absence 404 on the v4.2.0 name).
-      — receipt: 2026-09-28 publish-integrity plan M2 (proxy @v/list + .mod probes,
-      fresh-module go get system/v4.9.0 + dispatcher/v4.5.0) — source: 12-26 §d3/§d4,
+      — source: archived 12-26 §d3/§d4,
       13-32 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
       once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
@@ -141,9 +147,9 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 
 > ~~T20 PapDashboard adoption evaluation~~ and ~~M4 polish tail~~ done
 > 2026-09-20 — verdict + receipts in
-> [`docs/reviews/2026-09-20_papdashboard-queue-adoption-evaluation.md`](docs/reviews/2026-09-20_papdashboard-queue-adoption-evaluation.md)
+> [`docs/reviews/archived/2026-09-20_papdashboard-queue-adoption-evaluation.md`](docs/reviews/archived/2026-09-20_papdashboard-queue-adoption-evaluation.md)
 > (ADOPT for the notify pipeline, gated on the tag wave; no PapDashboard-side
-> blocker) and the CHANGELOG 2026-09-20 entries (pool options, deadlock
+> blocker; archived 2026-09-28) and the CHANGELOG 2026-09-20 entries (pool options, deadlock
 > backoff+jitter, `testutil/mysqltestcontainer`, PG engine-test DB isolation,
 > PG `-race -count=2` + MySQL `-race -count=2` legs green). Items the 09-19
 > harvest listed but later sessions already landed: conformance/doc.go
@@ -362,6 +368,11 @@ replace-free — 10-25 §a2/§a3, now archived).
 - [ ] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
+- [ ] [BLOCKED] **`benchkit/LICENSE` says "Unknown Author"** (template artifact —
+      owner's legal file, recorded-not-touched 2026-09-28). Correct to the real
+      name or leave; a legal notice is not agent-editable without instruction.
+      — source: 2026-09-28 publish-integrity session M1 §a + session-2 §g
+      _(Effort: XS — owner legal call)_
 
 ---
 
@@ -487,6 +498,10 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       docs. Consumer-trust blocker for the public surface. — source: T03
       post-wave verification 2026-09-22 _(Effort: S verify, M if per-module
       LICENSE files needed)_
+- [ ] **`nix run .#check-md-go` baseline: prune the 1 inert entry** — 104
+      baselined vs 103 actually-suppressed live fences (counted 2026-09-26;
+      the ghost-ratchet already forbids growth, so the prune is safe anytime).
+      — source: archived 2026-09-26 §e/§f50 _(Effort: XS)_
 - [ ] **Watch the first real CI runs (push-gated)** — `Examples Test` job
       (nix eval, 10m timeout, DB-skip env), the md-go-validator ci.yml leg
       (cold build ~1-2 min), the nightly `Go version contract` step, and the
@@ -586,7 +601,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       died ~15s in with transport-level resets on DIFFERENT modules/seeds
       (zero assertion failures; the documented semi-dead-VM/host-contention
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
-      box is quiet; closes the [x] rollout item's caveat fully.
+      box is quiet; closes the dgraph `-shuffle=on` rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
 - [ ] **Run the real `#integration-mysql-vm` leg through the hardened
       `vm-mysql.sh` in a quiet window (load1<5)**, then update the F52 AGENTS
@@ -602,7 +617,11 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       run re-proves the chain end-to-end (also closes the `#verify-fast`
       execution-unverified insertions). Recipe:
       `bash scripts/preflight-composed.sh && nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify`.
-      — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1 _(Effort: M, quiet-window)_
+      STATE 2026-09-28: the E15 pin-gap blocker is dead (`dispatcher/v4.5.0`
+      published 09-27) and the SC1091 shellcheck wall is fixed (09-22); the
+      dedup-campaign row in Code Quality is the new pre-run obligation.
+      — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
+      _(Effort: M, quiet-window)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
       real run) and logs cleanly. — source: 14-52 addendum 2, 16-37 §f31 _(Effort: XS, observe)_
 
@@ -612,7 +631,8 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 - [ ] **Watch the 3 baselined `.templ` clone groups (specview noscript pair,
       eventcatalogview catalogSection pair + Breadcrumbs ×4)** — the 2026-09-28
-      dedup campaign (`docs/status/2026-09-28_02-21_deduplication-52-clone-groups-session.md`)
+      dedup campaign (archived
+      [`2026-09-28_02-21_deduplication-52-clone-groups-session.md`](docs/status/archived/2026-09-28_02-21_deduplication-52-clone-groups-session.md))
       worked the red set 52 → 3 Go-side zero (32 extractions + ~40 accept
       directives) and closed with the sanctioned structural re-pin (baseline
       60 → 187 groups; mutation-tested: novel-shape clones flag red, gate
@@ -624,6 +644,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       not location — a verbatim copy of already-baselined code does NOT flag;
       the gate detects novel duplication shapes, not instances. _(Effort: S to
       watch, M to extract the templ components)_
+- [ ] 🔥 **Dedup-campaign verification tail (2026-09-28 harvest)** — the 52→3
+      clone campaign closed gate-green but the composed gates NEVER ran over it:
+      (a) `nix run .#verify` (composed) on the current tree; (b) `#lint` (the
+      trailing art-dupl comment line-length class is the known risk); (c)
+      `#load-sweep` (drainQuery/PairsToScanResult touched timing paths); (d)
+      live-DB legs for the engine-helper extractions (`#integration-pg` planned-scan,
+      `#integration-mysql-vm` cowLookup, `#integration-dgraph` SanitizeIdent,
+      `#integration-redis` watermill refactor); (e) `-race` on metaengine/watermill/
+      projectionhost/system/queue; (f) compile-verify systemtest + mesh-demo.
+      — source: archived 2026-09-28 04-04 §b/§f1-14 _(Effort: M total, sliceable)_
 - [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
       — core's degraded-path BFS (graph_fallback.go) still carries its own
       copy of the loop with different semantics: `[]any` frontier,
@@ -792,6 +822,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       One FAQ/README sentence prevents the next session from re-deriving this
       or "fixing" it by sweeping LICENSE copies into 97 module dirs (dead on
       arrival). — source: 2026-09-28 publish-integrity plan M15/e6 _(Effort: XS)_
+- [ ] [BLOCKED] **M22 / Q3: report-artifact policy for narrow skill triggers**
+      (owner ruling, asked 2026-09-27..28 by three sessions) — when a skill like
+      `status-report` triggers on a narrow question (one or two modules), is a
+      chat answer + "report on request" a sanctioned deviation, or must the
+      full artifact always be written? Gates only the publish-integrity plan's
+      M22. — source: archived 2026-09-27 23-43 §g3, 2026-09-28 02-22 §g3,
+      05-40 §b _(Effort: XS — owner ruling; codify into the skill on answer)_
 - [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
       (b) add READMEs to the doc-check gate (flake app/CI); (d) quick-start
       drift-guard tests for stack/sqlite, storage/memory, decider, scheduling,
@@ -1126,73 +1163,25 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 ## Upstream asks from cqrs-htmx (harvested 2026-09-22, docs-health D1)
 
 - [ ] **Upstream `requestContextEnricher` into `event/`** — cqrs-htmx's usermgmt carries a local copy (correlation/request-ID metadata enricher, `audit_context.go`) because no upstream enricher covers it. Upstreaming it lets the local copy drop at the next family train. Source: cqrs-htmx TODO_LIST P3 ask (3); verify pass there 2026-09-22.
-- [x] **`system.New` checkpoint/DLQ store options** — CLOSED 2026-09-28 as ALREADY SHIPPED (design verified in-tree, ADR-0149): durable checkpoints = `NewEngineCheckpointStore(backend)` persisting to the `system_checkpoints` Map collection on the deployment engine ("checkpoints"-named engine wins, Map-ADT-gated, in-memory fallback documented; override via `DomainConfig.CheckpointStore`; restart-durability pinned by `systemtest.TestEngineCheckpointStoreRestartDurability`); durable DLQ = **no separate store by design** (ADR-0117): `WithCommandLifecycle(store)` records lifecycle events into the caller's event store and DLQ/FailureLog/RejectionLog are projections over them. The ORIGINAL claim ("internal in-memory checkpoint store, consumers needing durable checkpoints or dead letters cannot use it") was stale against the in-tree `system/v4.10.0` content. RESIDUAL GAP: publishing — the stalled 2026-09-27 tag wave left `system/v4.10.0` uncut, so consumers on published v4.9.0 still see the old behavior; cqrs-htmx `NewProjectionLayer` can unpin once the tag ships. Source: cqrs-htmx ADR-0051 + TODO_LIST P3 ask (4).
-- [x] **`System.Explain`: include per-query Volume/placement in the topology view** — DONE 2026-09-28: gap re-confirmed against current code (`system/introspection.go` rendered collections count only), then shipped as `metaengine.Store.QueryPlacements()` (`QueryPlacement`: engine, ADT, declared Volume, plan estimate, complexity — additive, name-sorted) + `System.Explain` rendering `~ <query>: <engine> (<adt>, volume=N/s, est=Xms)` per projection. Tests: `TestQueryPlacements`, `TestExplainRendersQueryPlacements`, `TestExplainWithoutProjectionStore`. Api golden regenerated (+8 exports); CHANGELOG entry added; original row: Explain showed drivers/engines/collection counts; the metaengine cost-based planner's Volume hints (which cqrs-htmx's systemadapter declarations all carry) were invisible for introspection. First verified absent against system/v4.9.0 on 2026-09-22.
+  - ~~`system.New` checkpoint/DLQ store options~~ CLOSED 2026-09-28 as ALREADY SHIPPED (ADR-0149: `NewEngineCheckpointStore` durable checkpoints; DLQ-by-events per ADR-0117; receipts in CHANGELOG `[Unreleased]` + ADR-0149) — deleted as a row; residual = publishing (`system/v4.10.0` uncut in the stalled wave).
+  - ~~`System.Explain` per-query Volume/placement~~ DONE 2026-09-28 (`Store.QueryPlacements()` + Explain rendering; CHANGELOG `[Unreleased]` receipt) — deleted as a row.
 
 ## go-cqrs-lite skill hard-block refocus (2026-09-24 harvest)
 
 Source report: `~/projects/crush-config/docs/status/2026-09-24_13-59_go-cqrs-lite-skill-repoint-and-refocus.md` §f.
 The skill now hard-requires `system` + `metaengine` for new apps (ADR-0123) and
-refuses to guide manual composition; these are the surviving content/tooling
-follow-ups from that refocus. (Resolved in the same pass and therefore not listed:
-`metadata.tags` gained `composition-root`/`metaengine`; both eval JSON files were
-refreshed; the stale global fan-out symlink was healed.)
+refuses to guide manual composition. All nine content/tooling follow-ups from
+that refocus shipped same-day (routing matrices, quickstart snippet, modules.md
+engine rows, v5-tier sweeps, cookbook link, experimental-status notice, ADR
+link, preset deprecation visibility, accessor re-verification — CHANGELOG
+`[Unreleased]` "Skill: hard-requires" entry); the late-harvest batch (banner
+propagation, canonical-surface decision, eval negatives, changelog entry,
+dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
+2026-09-28 per the no-completed-rows policy. Surviving open item:
 
-- [x] ✅ 2026-09-24 (non-deprecated path table now leads; SSE rule redirects new code to `go-sse`/`watermill`) 🔥 **Rewrite the SSE + read-model routing matrices to lead with system/metaengine** —
-      both matrices still present the deprecated v1 tiers (`stack.Materialize`,
-      `storage.RelationalProjection`, `transport/http.SSEBroker`) as peers rather than
-      demoted rows. Evidence: `.agents/skills/go-cqrs-lite/SKILL.md` §Routing Decision
-      Matrices. — source: report §f16 _(Effort: M)_
-- [x] ✅ 2026-09-24 (quickstart snippet + ADR-0123 link + experimental notice added to SKILL.md) **Add a runnable `system.New` quickstart snippet to the skill front page** — the
-      hard-block section names the API but shows no code; `references/core.md:47-110` has
-      one to lift. Evidence: `SKILL.md:13-24`. — source: report §f22 _(Effort: S)_
-- [x] ✅ 2026-09-24 (added the missing `sqliteengine` + `badgerengine` rows; 11 dirs + in-core memory covered) **Audit `references/modules.md` engine rows for completeness** — the corrected
-      description lists 12 engines (built-in memory + 11 `metaengine/*engine` dirs);
-      modules.md's per-engine rows were not re-audited after the fix. — source: report
-      §f13/§d4 _(Effort: S)_
-- [x] ✅ 2026-09-24 (core/readmodels/faq swept; modules/recipes/advanced already annotated) **Reconcile v5-removed tiers' mentions across all skill references** — deprecation
-      markers exist in modules.md and the matrices, but references still describe the
-      removed tiers in detail; sweep for stragglers. — source: report §f21 _(Effort: M)_
-- [x] ✅ 2026-09-24 (linked from the readmodels v5 notice) **Cross-link `metaengine/COOKBOOK.md` from `references/readmodels.md`** — the
-      canonical copy-paste patterns live in the cookbook; readmodels.md does not link it.
-      — source: report §f23 _(Effort: S)_
-- [x] ✅ 2026-09-24 (SKILL.md quickstart block states the FEATURES.md experimental status) **State `system` + `metaengine` experimental status in the skill** — both are
-      Experimental in `FEATURES.md`; a hard block on experimental modules should say so.
-      — source: report §f25 _(Effort: S)_
-- [x] ✅ 2026-09-24 (link added to the quickstart block) **Add an ADR-0123 hyperlink to the skill's hard-block section** — currently named
-      but not linked. — source: report §f26 _(Effort: XS)_
-- [x] ✅ 2026-09-24 (Go `Deprecated:` doc comments exist on every `stack` package; doc notes added where the skill showed presets) **Check whether `stack` presets still emit deprecation warnings** — if silent, add
-      warnings or a doc note so manual composition is visibly legacy. — source: report
-      §f27 _(Effort: S)_
-- [x] ✅ 2026-09-24 (`system.New(ctx, DomainConfig, DeploymentConfig)` + accessors verified in `system/constructor.go`/`system/system.go`) **Verify `system` accessor list against current code before further skill edits** —
-      the description enumerates accessors that should be re-derived, not restated. —
-      source: report §f24 _(Effort: S)_
 - [ ] 🔥 [BLOCKED:tooling] **Execute the evals (currently UNVALIDATED)** (`evals/trigger-eval-set.json`, `evals/evals.json`)
       after the description change — needs the `claude` CLI, currently blocked. — source:
       report §f7 _(Effort: M, tooling-blocked)_
-
----
-
-## go-cqrs-lite skill hard-block — late harvest (2026-09-24)
-
-Source: `~/projects/crush-config/docs/status/2026-09-24_16-27_skill-hard-block-harvest-and-fanout-guard.md` §f.
-
-- [x] ✅ 2026-09-24 (banners in core/modules/readmodels; SKILL.md canonical; core/readmodels/faq contradictions fixed) 🔥 **Propagate the hard-block into `references/*.md`** — the front page refuses
-      manual composition, but the references still present the low-level modules as
-      routes in places; a hard rule contradicted by its own references is a split-brain.
-      — source: report §b1/§e6/§f7 _(Effort: M)_
-- [x] ✅ 2026-09-24 (SKILL.md is canonical; references defer to it via the hard-rule banner) **Decide the canonical surface for the hard rule** (`SKILL.md` vs reference prose)
-      and make the other defer to it. — source: report §f36 _(Effort: S)_
-- [x] ✅ 2026-09-24 (hand-wire redirect case + 2 near-miss negatives added to `trigger-eval-set.json`) **Add negative/redirect trigger cases to the evals** — prove the skill triggers on a
-      "hand-wire event+decider" request and still redirects to `system`/`metaengine`. —
-      source: report §f37 _(Effort: S)_
-- [x] ✅ 2026-09-24 (entry added under [Unreleased]) **Add a changelog entry for the skill refocus** in this repo's `CHANGELOG.md` — the
-      skill/evals/TODO changes were only auto-committed with heuristic messages. — source:
-      report §b8/§f23 _(Effort: XS)_
-- [x] ✅ 2026-09-24 (`dprint fmt` on the changed references; `dprint.json` now excludes `**/SKILL.md` — dprint's YAML frontmatter handling corrupts the long unquoted description) **Run the repo's formatter over the edited skill + evals** — `dprint` was not on
-      `PATH`; the Markdown went unchecked. — source: report §b9/§f24 _(Effort: S)_
-- [x] ✅ 2026-09-24 (follow-up addendum appended to ADR-0123) **Note the skill hard-block in ADR-0123's follow-ups** — keep the ADR aligned with
-      how the skill now teaches the decision. — source: report §f46 _(Effort: XS)_
 
 ---
 
