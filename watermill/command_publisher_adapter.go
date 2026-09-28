@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
 

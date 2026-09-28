@@ -3,8 +3,9 @@ package adoption
 import (
 	"context"
 
-	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-finding"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 // F009 detects projects with time-based business rules (deadlines, timeouts,

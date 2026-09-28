@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"testing"
 
+	"pgregory.net/rapid"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/schema/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	"pgregory.net/rapid"
 )
 
 // chainUpcaster transforms "test.event" events from sourceVer to sourceVer+1.

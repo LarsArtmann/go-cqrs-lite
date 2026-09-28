@@ -6,12 +6,13 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // integrationProjection is a real read-model projection that counts

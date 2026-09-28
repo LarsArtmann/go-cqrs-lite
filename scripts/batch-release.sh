@@ -59,6 +59,16 @@
 # advertised while an earlier tag in the wave is not proxy-servable — and
 # exits nonzero if any line failed.
 #
+# RUN LOG (2026-09-28, TODO M15/e1): every real cut and every --smoke-all
+# pass writes a dated run log under build/release-logs/ (gitignored;
+# override the directory with BATCH_RELEASE_LOG_DIR). Logging is
+# INCREMENTAL — one timestamped line per module per phase (strip, tidy,
+# verify, tag, smoke) plus a failure tail — and a real cut closes with a
+# one-line-per-module SUMMARY (module, version, tagged?, verify, smoke).
+# The 2026-09-27 7-tag wave stalled at 1/7 with zero artifacts to diagnose
+# from; this log makes a stalled wave a 5-minute read instead of forensics.
+# --dry-run logs nothing (its promise is "nothing touched").
+#
 # Each argument is a space-separated triple: module-path, version, description.
 # Description may contain spaces if quoted as part of the triple.
 #
@@ -98,6 +108,48 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091 # sourced release lib lives beside this script
 source "${SCRIPT_DIR}/lib/release_common.sh"
 
+# --- Run log (see header): dated, incremental, never load-bearing ---
+#
+# Defaults to build/release-logs/ (gitignored, survives with the checkout;
+# /tmp can be tmpfs and evaporates on the reboot class of stall). Every
+# helper no-ops while RUN_LOG is empty, and a logging failure can never
+# break a release: run logs are diagnostics, not gates.
+RUN_LOG_DIR="${BATCH_RELEASE_LOG_DIR:-build/release-logs}"
+RUN_LOG=""
+
+run_log() {
+	if [ -n "$RUN_LOG" ]; then
+		printf '%s %s\n' "$(date +%H:%M:%S)" "$*" >>"$RUN_LOG" 2>/dev/null || true
+	fi
+}
+
+run_log_tail() { # <label> <file-or-process-substitution>: failure tail into the log
+	if [ -n "$RUN_LOG" ]; then
+		{
+			echo "--- tail: $1 (last 10 lines) ---"
+			tail -10 "$2" 2>/dev/null
+		} >>"$RUN_LOG" 2>/dev/null || true
+	fi
+}
+
+run_log_start() { # <kind: batch|smoke> <detail-line>: open a new dated log
+	mkdir -p "$RUN_LOG_DIR" 2>/dev/null || true
+	local path
+	path="${RUN_LOG_DIR}/$1-$(date +%Y%m%d-%H%M%S).log"
+	if {
+		echo "# batch-release.sh $1 run log"
+		echo "# started: $(date -Is)"
+		echo "# head: $(git rev-parse --short HEAD 2>/dev/null || echo unknown) $(git log -1 --format=%s 2>/dev/null || true)"
+		echo "# $2"
+	} >"$path" 2>/dev/null; then
+		RUN_LOG="$path"
+		echo "Run log: ${RUN_LOG}"
+	else
+		RUN_LOG=""
+		echo "NOTE: run log unavailable (${RUN_LOG_DIR} not writable); continuing without."
+	fi
+}
+
 if [ "${1:-}" = "--audit" ]; then
 	if [ $# -ne 1 ]; then
 		usage
@@ -118,6 +170,10 @@ if [ "${1:-}" = "--smoke-all" ]; then
 		exit 1
 	fi
 
+	run_log_start smoke "probes: ${probes_file}"
+	smoke_out="$(mktemp)"
+	trap 'rm -f "$smoke_out"' EXIT
+
 	total=0
 	failed=0
 	while IFS= read -r line || [ -n "$line" ]; do
@@ -134,13 +190,18 @@ if [ "${1:-}" = "--smoke-all" ]; then
 		total=$((total + 1))
 		echo ""
 		echo "━━━ smoke ${mod} ${ver} ━━━"
-		if ! bash "${SCRIPT_DIR}/tag-release.sh" --smoke "$mod" "$ver"; then
+		if bash "${SCRIPT_DIR}/tag-release.sh" --smoke "$mod" "$ver" 2>&1 | tee "$smoke_out"; then
+			run_log "smoke ok ${mod} ${ver}"
+		else
+			run_log "smoke FAIL ${mod} ${ver}"
+			run_log_tail "smoke ${mod} ${ver}" "$smoke_out"
 			echo "✗ ${mod} ${ver} FAILED — stopping: dependent tags in this wave"
 			echo "  must not be advertised while this tag is broken."
 			failed=$((failed + 1))
 			break
 		fi
 	done <"$probes_file"
+	run_log "smoke pass ended: ${total} probed, ${failed} failed"
 
 	if [ "$total" -eq 0 ]; then
 		echo 'ERROR: no "<module> <version>" lines in '"${probes_file}"
@@ -203,6 +264,13 @@ if [ ${#ARGS[@]} -eq 0 ]; then
 	exit 1
 fi
 
+# Open the run log before the guards so even up-front rejections leave a
+# trail (the 09-27 stall left nothing). --dry-run keeps its "nothing
+# touched" promise — no log either.
+if [ "$DRY_RUN" -eq 0 ]; then
+	run_log_start batch "args: ${ARGS[*]}"
+fi
+
 # --- Parse triples; every non-mutating guard runs up front so a bad batch
 # fails before anything is touched ---
 modules=()
@@ -219,6 +287,7 @@ for arg in "${ARGS[@]}"; do
 
 	if [ ! -f "$gomod" ]; then
 		echo "ERROR: ${gomod} not found"
+		run_log "guard FAIL ${module}: ${gomod} not found"
 		exit 1
 	fi
 
@@ -228,6 +297,7 @@ for arg in "${ARGS[@]}"; do
 		echo "ERROR: malformed triple \"${arg}\""
 		echo "Each argument must be ONE quoted string: \"<module> <version> <description>\""
 		echo "(e.g. \"event v4.0.3 Patch release\") — got version \"${version}\"."
+		run_log "guard FAIL ${module}: malformed triple (version \"${version}\")"
 		exit 1
 		;;
 	esac
@@ -248,11 +318,13 @@ for arg in "${ARGS[@]}"; do
 		esac
 		echo "The proxy cannot serve mismatched tags, so this release would be"
 		echo "invisible to 'go install'/'go get' @latest resolution."
+		run_log "guard FAIL ${module}: ${tag} inconsistent with module path ${module_path}"
 		exit 1
 	fi
 
 	if git tag -l "$tag" | grep -q .; then
 		echo "ERROR: tag ${tag} already exists"
+		run_log "guard FAIL ${module}: tag ${tag} already exists"
 		exit 1
 	fi
 
@@ -281,6 +353,7 @@ fi
 if ! git diff-index --quiet HEAD --; then
 	echo "ERROR: working tree has uncommitted changes. Commit first."
 	git status --short
+	run_log "guard FAIL: working tree dirty (uncommitted changes)"
 	exit 1
 fi
 
@@ -293,6 +366,9 @@ echo "Pre-flight: checking for stale sibling pins (advisory)..."
 if ! bash "$(dirname "$0")/pin-sweep.sh" --check; then
 	echo "NOTE: stale pins are non-fatal for this cut; run scripts/pin-sweep.sh"
 	echo "      before the next dependent tag wave that needs them."
+	run_log "pin-sweep advisory: stale pins present (non-fatal)"
+else
+	run_log "pin-sweep advisory: all pins current"
 fi
 
 # --- Hardened restore (mirrors tag-release.sh) ---
@@ -310,7 +386,13 @@ restore_original_tree() {
 	git reset --soft "$original_head" 2>/dev/null || true
 	git restore --staged --worktree . 2>/dev/null || true
 }
-trap restore_original_tree EXIT
+
+on_exit() {
+	local rc=$?
+	run_log "run ended rc=${rc}"
+	restore_original_tree
+}
+trap on_exit EXIT
 
 # --- Strip LOCAL replace directives from the TAGGED modules only ---
 #
@@ -338,12 +420,14 @@ for mod in "${modules[@]}"; do
 			;;
 		esac
 	done < <(grep '=>' "$gomod" 2>/dev/null || true)
+	run_log "strip done ${mod}"
 done
 
 # --- Re-resolve requires for the tagged modules ---
 echo "Re-resolving requires (go mod tidy with local replaces stripped)..."
 for mod in "${modules[@]}"; do
 	(cd "$mod" && GOWORK=off go mod tidy -e 2>/dev/null || true)
+	run_log "tidy done ${mod}"
 done
 
 # --- Verify no pseudo-versions remain in the tagged modules ---
@@ -357,6 +441,8 @@ for mod in "${modules[@]}"; do
 		echo ""
 		echo "Aborting release. Every module ${mod} depends on must have a"
 		echo "published tag. Publish the missing sibling(s), then re-run."
+		run_log "guard FAIL ${mod}: pseudo-version require remains in ${gomod}"
+		run_log_tail "pseudo-version ${mod}" <(grep -n "00010101000000" "$gomod" || true)
 		exit 1
 	fi
 done
@@ -392,12 +478,15 @@ for mod in "${modules[@]}"; do
 		echo "require to the published tag providing the missing symbols, then"
 		echo "re-run. Build output:"
 		cat "$build_err"
+		run_log "verify FAIL ${mod} (standalone build)"
+		run_log_tail "verify ${mod}" "$build_err"
 		rm -f "$build_err"
 		rm -rf "$build_out"
 		exit 1
 	fi
 	rm -f "$build_err"
 	rm -rf "$build_out"
+	run_log "verify ok ${mod}"
 done
 
 # --- Temp commit carrying the stripped go.mods; all tags point at it ---
@@ -425,6 +514,7 @@ for i in "${!tags[@]}"; do
 		git tag -d "$tag" 2>/dev/null || true
 		echo "ERROR: git tag failed for ${tag}; the tree was restored. Already-"
 		echo "created tags (if any) still exist locally: ${created[*]:-none}"
+		run_log "tag FAIL ${tag} (git tag error)"
 		exit 1
 	fi
 
@@ -434,11 +524,23 @@ for i in "${!tags[@]}"; do
 		echo "ERROR: tag ${tag} is ${tag_type}, not 'tag' (annotated); the tree"
 		echo "was restored. Already-created tags (if any) still exist locally:"
 		echo "  ${created[*]:-none}"
+		run_log "tag FAIL ${tag} (type ${tag_type}, not annotated)"
 		exit 1
 	fi
 	echo "  ✓ ${tag_type}: ${tag}"
 	created+=("$tag")
+	run_log "tagged ${tag}"
 done
+
+# --- Run-log summary: one line per module (TODO M15/e1) ---
+if [ -n "$RUN_LOG" ]; then
+	{
+		echo "# summary — one line per module; smoke results land in smoke-*.log via --smoke-all"
+		for i in "${!tags[@]}"; do
+			echo "SUMMARY ${modules[$i]} ${versions[$i]} tagged=yes verify=ok smoke=pending"
+		done
+	} >>"$RUN_LOG"
+fi
 
 echo ""
 echo "Original go.mod files restored."
@@ -450,3 +552,6 @@ echo "After pushing, smoke-check every tag (proxy serves it + it installs):"
 for i in "${!tags[@]}"; do
 	echo "  scripts/tag-release.sh --smoke ${modules[$i]} ${versions[$i]}"
 done
+if [ -n "$RUN_LOG" ]; then
+	echo "Run log: ${RUN_LOG}"
+fi

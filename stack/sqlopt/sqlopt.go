@@ -14,9 +14,10 @@ import (
 	"fmt"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // OpenDBOrErr opens a SQL database and wraps any failure as an Infrastructure

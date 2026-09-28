@@ -9,8 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 	_ "modernc.org/sqlite"
+
+	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
 )
 
 // timersSpec is the scheduling/sqlstore timers-table shape. The
