@@ -21,7 +21,7 @@ C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
 C009 panic() in production code — use error returns instead
 C013 Struct TaskDueDateSetPayload has DueDate of type time.Time — timezone info is lost via CBOR epoch encoding
-C015 unchecked Close() at /home/lars/projects/go-cqrs-lite/example/taskmanager/setup.go:285:7 — error is discarded, resource leak risk
+C015 unchecked Close() at /home/lars/projects/go-cqrs-lite/example/taskmanager/setup.go:286:7 — error is discarded, resource leak risk
 C023 Close() error ignored — pending events or resources may be lost
 C023 Close() error ignored — pending events or resources may be lost
 C023 Shutdown() error ignored — pending events or resources may be lost
