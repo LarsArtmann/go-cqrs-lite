@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // DemoteOption configures DemoteEngine.
@@ -315,18 +313,7 @@ func (s *Store) replayToShadow(
 	queryFilter map[string]bool,
 ) error {
 	for _, evt := range events {
-		rec := evt.Record
-		if rec.Type == "" {
-			rec = record.Record{Type: evt.Type}
-		}
-
-		job := repJob{
-			eventType: evt.Type,
-			rec:       rec,
-			payload:   evt.Payload,
-		}
-
-		if err := rep.applyJobFilter(ctx, job, queryFilter); err != nil {
+		if err := rep.applyJobFilter(ctx, repJobFor(evt), queryFilter); err != nil {
 			return fmt.Errorf("replay %s into %s: %w", evt.Type, rep.name, err)
 		}
 	}

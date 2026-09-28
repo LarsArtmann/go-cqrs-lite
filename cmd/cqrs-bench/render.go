@@ -9,12 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
 	"github.com/larsartmann/go-output/markdown"
 	gotable "github.com/larsartmann/go-output/table"
-
-	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
 // ── format resolution ──
@@ -436,8 +435,7 @@ func printSoakSummary(w io.Writer, r *benchkit.SoakResult) {
 		return
 	}
 
-	first := r.Samples[0]
-	last := r.Samples[len(r.Samples)-1]
+	first, last, _ := r.FirstAndLastSample()
 
 	fmt.Fprintf(w, "\nDrift over %s (%d iterations):\n", fmtDur(r.Duration), r.Iterations)
 	fmt.Fprintf(w, "  Throughput: %s/s → %s/s (%+.1f%%)\n",

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
+	"sync/atomic"
 )
 
 // gcIndexPrefixLen is the prefix length for indexes on TEXT generated
@@ -187,10 +188,8 @@ func (e *mysqlEngine) applyMariaDBSortTwin(field, textColumn string) error {
 // exactly like the LONGTEXT expression did.
 func (e *mysqlEngine) filterExpr(field string) string {
 	if e.isMariaDB() {
-		if m := e.gcColumns.Load(); m != nil {
-			if column, ok := (*m)[field]; ok {
-				return column
-			}
+		if column, ok := cowLookup(&e.gcColumns, field); ok {
+			return column
 		}
 	}
 
@@ -200,33 +199,41 @@ func (e *mysqlEngine) filterExpr(field string) string {
 // hasGcNumColumn reports whether a numeric twin column was recorded for the
 // field (sort fields only).
 func (e *mysqlEngine) hasGcNumColumn(field string) bool {
-	if m := e.gcnColumns.Load(); m != nil {
-		_, ok := (*m)[field]
+	_, ok := cowLookup(&e.gcnColumns, field)
 
-		return ok
-	}
-
-	return false
+	return ok
 }
 
 // recordGcNumColumn publishes the field→numeric-column map (copy-on-write,
 // lock-free reads). Callers must hold layoutMu.
 func (e *mysqlEngine) recordGcNumColumn(field, column string) {
-	next := make(map[string]string, 1)
-	if m := e.gcnColumns.Load(); m != nil {
-		for k, v := range *m {
-			next[k] = v
-		}
-	}
-
-	next[field] = column
-	e.gcnColumns.Store(&next)
+	cowPublish(&e.gcnColumns, field, column)
 }
 
 // gcNumColumnFor returns the numeric twin column for the field, if any.
 func (e *mysqlEngine) gcNumColumnFor(field string) (string, bool) {
-	if m := e.gcnColumns.Load(); m != nil {
-		column, ok := (*m)[field]
+	return cowLookup(&e.gcnColumns, field)
+}
+
+// hasGcColumn reports whether a generated column was already recorded for
+// the field in this engine instance.
+func (e *mysqlEngine) hasGcColumn(field string) bool {
+	_, ok := cowLookup(&e.gcColumns, field)
+
+	return ok
+}
+
+// recordGcColumn publishes field→column in the copy-on-write map so query
+// paths read it lock-free. Callers must hold layoutMu.
+func (e *mysqlEngine) recordGcColumn(field, column string) {
+	cowPublish(&e.gcColumns, field, column)
+}
+
+// cowLookup reads field from a copy-on-write map snapshot; ok is false when
+// the map is unpublished or the field is absent.
+func cowLookup(m *atomic.Pointer[map[string]string], field string) (string, bool) {
+	if snap := m.Load(); snap != nil {
+		column, ok := (*snap)[field]
 
 		return column, ok
 	}
@@ -234,28 +241,16 @@ func (e *mysqlEngine) gcNumColumnFor(field string) (string, bool) {
 	return "", false
 }
 
-// hasGcColumn reports whether a generated column was already recorded for
-// the field in this engine instance.
-func (e *mysqlEngine) hasGcColumn(field string) bool {
-	if m := e.gcColumns.Load(); m != nil {
-		_, ok := (*m)[field]
-
-		return ok
-	}
-
-	return false
-}
-
-// recordGcColumn publishes field→column in the copy-on-write map so query
-// paths read it lock-free. Callers must hold layoutMu.
-func (e *mysqlEngine) recordGcColumn(field, column string) {
+// cowPublish stores field→value in the copy-on-write map so query paths read
+// it lock-free. Callers must hold layoutMu.
+func cowPublish(m *atomic.Pointer[map[string]string], field, value string) {
 	next := make(map[string]string, 1)
-	if m := e.gcColumns.Load(); m != nil {
-		for k, v := range *m {
+	if snap := m.Load(); snap != nil {
+		for k, v := range *snap {
 			next[k] = v
 		}
 	}
 
-	next[field] = column
-	e.gcColumns.Store(&next)
+	next[field] = value
+	m.Store(&next)
 }

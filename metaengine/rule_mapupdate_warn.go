@@ -22,7 +22,7 @@ func (r *mapUpdateReplicationRule) Apply(result *PlanResult, ctx PlanContext) er
 			continue
 		}
 
-		meta, ok := ctx.Store.queries[q.QueryName]
+		meta, ok := declaredQuery(ctx, q)
 		if !ok {
 			continue
 		}

@@ -19,8 +19,7 @@ func PrintSoakReport(w io.Writer, r *SoakResult) {
 		return
 	}
 
-	first := r.Samples[0]
-	last := r.Samples[len(r.Samples)-1]
+	first, last, _ := r.FirstAndLastSample()
 
 	fmt.Fprintf(w, "Throughput: %s/s → %s/s (%.1f%% drift, CoV %.1f%%)\n",
 		formatFloat(first.Throughput), formatFloat(last.Throughput),

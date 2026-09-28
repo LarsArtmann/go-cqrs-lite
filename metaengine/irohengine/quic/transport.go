@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -210,10 +212,7 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 	}
 
 	t.mu.RLock()
-	peers := make([]*peerConn, 0, len(t.conns))
-	for _, pc := range t.conns {
-		peers = append(peers, pc)
-	}
+	peers := slices.Collect(maps.Values(t.conns))
 	t.mu.RUnlock()
 
 	if len(peers) == 0 {

@@ -32,6 +32,18 @@ type repJob struct {
 	payload   any
 }
 
+// repJobFor builds the replication job for an event, synthesizing a
+// minimal Type-only Record when the input carries none. Shared by the
+// backfill and shadow-replay paths.
+func repJobFor(evt EventInput) repJob {
+	rec := evt.Record
+	if rec.Type == "" {
+		rec = record.Record{Type: evt.Type}
+	}
+
+	return repJob{eventType: evt.Type, rec: rec, payload: evt.Payload}
+}
+
 // replicator mirrors every applied event into one shadow engine
 // (METAENGINE-LAYOUT-ROLES.md §3). Failure-isolated: tryEnqueue never blocks,
 // and every halt path (overflow, permanent failure, shutdown) is loud — a

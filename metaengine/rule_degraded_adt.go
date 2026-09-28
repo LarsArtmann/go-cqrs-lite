@@ -22,7 +22,7 @@ func (*degradedADTRule) Name() string { return "degraded-adt" }
 
 func (r *degradedADTRule) Apply(result *PlanResult, ctx PlanContext) error {
 	for _, q := range result.Queries {
-		meta, ok := ctx.Store.queries[q.QueryName]
+		meta, ok := declaredQuery(ctx, q)
 		if !ok {
 			continue
 		}

@@ -145,3 +145,31 @@ Fixed by bumping the go.work directive to `1.27.1` (2026-09-21): the
 directive is the CONTRACT — keep it at the max of the member sweep, never
 behind it. Golangci-lint LSP/CLI noise ("running go 1.26.7") is the same
 class: the binary's build-go, not the workspace, is the limiting side.
+
+## Test-dropping junk files with control-char names — the daemon commits them, tags freeze them (2026-09-28)
+
+A test run that opens a SQLite (or any) database with a garbage DSN creates
+`<name>` + `<name>-wal` files in the package CWD. When the names are raw
+control bytes (`\006`, `P\021B`) they are INVISIBLE in normal `ls` and
+`git status` output — but the auto-commit daemon sees them and commits them
+(added 2026-09-19/09-21 in `metaengine/tursoengine/`), and any tag cut while
+they exist freezes them into the module zip (they sat inside the
+`tursoengine/v4.2.0` tag tree; the tag was deleted and the proxy never
+ingested it — `@v/v4.2.0.mod` 404s). Forensics 2026-09-28: the current
+suite cannot reproduce the leak (a full run leaves the tree clean), so the
+producer was some 09-19/09-20-era garbage DSN; the drop set was `\006`,
+`\006-wal`, `P\021B`, `P\021B-wal` (removed in `2d1669f78`).
+
+Discipline:
+
+- Before ANY tag wave: `git status --short` AND `ls | cat -v` (or `ls -b`)
+  in module dirs — control-char names only show up that way.
+- `scripts/tag-release.sh`'s `tag_zip_content_check` already REJECTS zips
+  with ELF/binary entries — that guard is what catches this class; never
+  bypass it.
+- `scripts/probe-proxy-tags.sh` (weekly) re-verifies every module's
+  `@latest` zip for binary entries — the long-horizon backstop.
+- If a poisoned tag was already pushed: delete the tag FAST (the proxy
+  caches zips forever, but it also caches 404-absence); never re-push the
+  same version name; cut the next patch version instead.
+

@@ -20,7 +20,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
+	"slices"
 	"sync"
 	"time"
 
@@ -183,10 +185,7 @@ func (t *LoopbackTransport) Publish(_ context.Context, op irohengine.WriteOp) er
 	}
 
 	t.mu.RLock()
-	conns := make([]net.Conn, 0, len(t.conns))
-	for _, c := range t.conns {
-		conns = append(conns, c)
-	}
+	conns := slices.Collect(maps.Values(t.conns))
 	t.mu.RUnlock()
 
 	if len(conns) == 0 {
@@ -218,10 +217,7 @@ func (t *LoopbackTransport) Close() error {
 		return nil
 	}
 	t.closed = true
-	conns := make([]net.Conn, 0, len(t.conns))
-	for _, c := range t.conns {
-		conns = append(conns, c)
-	}
+	conns := slices.Collect(maps.Values(t.conns))
 	t.mu.Unlock()
 
 	for _, c := range conns {

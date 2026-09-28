@@ -71,7 +71,7 @@ The production maturity chain is complete. Highlights (full per-entry detail in
   `Calibration` for external engines; live RTT via `ProbeEngine`/`LatencyTracker`
 - **Correctness rails** — fold sealed interface (no `any` god-struct),
   exhaustiveness guard, property-based cross-engine parity (rapid), Postgres
-  testcontainers, `adttest.RunMatrix` over all 10 ADTs,
+  testcontainers, `adttest.RunMatrix` over all 12 ADTs,
   `enginetest` shared contract suites (incl. StreamLog positional semantics),
   `AtomicAppender` optimistic concurrency, boundary key validation
 

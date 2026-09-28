@@ -1,10 +1,9 @@
 package query_test
 
 import (
+	"github.com/larsartmann/go-cqrs-lite/query/v4"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/larsartmann/go-cqrs-lite/query/v4"
 )
 
 var _ = Describe("Pagination", func() {

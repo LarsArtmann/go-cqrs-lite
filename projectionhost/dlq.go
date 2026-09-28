@@ -162,19 +162,12 @@ func (s *MemoryDeadLetterStore) Delete(_ context.Context, projectionName, eventI
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	filtered := s.entries[:0]
-	for _, e := range s.entries {
-		// Keep entries that do not match BOTH the projection and the event ID.
-		// This makes Delete safe to call with a non-empty projectionName to
-		// scope the delete, or with an empty one to delete by eventID globally.
-		if e.ProjectionName == projectionName && e.EventID == eventID {
-			continue
-		}
-
-		filtered = append(filtered, e)
-	}
-
-	s.entries = filtered
+	// Keep entries that do not match BOTH the projection and the event ID.
+	// This makes Delete safe to call with a non-empty projectionName to
+	// scope the delete, or with an empty one to delete by eventID globally.
+	s.retainEntries(func(e DeadLetterEntry) bool {
+		return e.ProjectionName != projectionName || e.EventID != eventID
+	})
 
 	return nil
 }
@@ -189,14 +182,7 @@ func (s *MemoryDeadLetterStore) Purge(_ context.Context, projectionName string) 
 		return nil
 	}
 
-	filtered := s.entries[:0]
-	for _, e := range s.entries {
-		if e.ProjectionName != projectionName {
-			filtered = append(filtered, e)
-		}
-	}
-
-	s.entries = filtered
+	s.retainEntries(func(e DeadLetterEntry) bool { return e.ProjectionName != projectionName })
 
 	return nil
 }
@@ -244,12 +230,21 @@ func (s *MemoryDeadLetterStore) PurgeBefore(_ context.Context, before time.Time)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var count int64
+	dropped := s.retainEntries(func(e DeadLetterEntry) bool { return !e.FailedAt.Before(before) })
 
+	return int64(dropped), nil
+}
+
+// retainEntries filters s.entries in place (slice-reuse filter idiom),
+// keeping the entries keep approves and returning how many were dropped.
+// Callers must hold s.mu.
+func (s *MemoryDeadLetterStore) retainEntries(keep func(DeadLetterEntry) bool) int {
 	filtered := s.entries[:0]
+	dropped := 0
+
 	for _, e := range s.entries {
-		if e.FailedAt.Before(before) {
-			count++
+		if !keep(e) {
+			dropped++
 
 			continue
 		}
@@ -259,5 +254,5 @@ func (s *MemoryDeadLetterStore) PurgeBefore(_ context.Context, before time.Time)
 
 	s.entries = filtered
 
-	return count, nil
+	return dropped
 }

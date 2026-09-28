@@ -30,6 +30,15 @@ type RulePipeline struct {
 	rules []PlanRule
 }
 
+// declaredQuery resolves the query declaration behind a planned assignment.
+// The bool is false when the plan references a query the store no longer
+// knows; advisory rules skip those silently (re-planning owns the error).
+func declaredQuery(ctx PlanContext, q QueryAssignment) (queryMeta, bool) {
+	meta, ok := ctx.Store.queries[q.QueryName]
+
+	return meta, ok
+}
+
 // NewRulePipeline creates a pipeline that applies the given rules sequentially.
 func NewRulePipeline(rules ...PlanRule) *RulePipeline {
 	return &RulePipeline{rules: rules}

@@ -21,7 +21,6 @@ package dgraphengine
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -259,24 +258,7 @@ func (e *dgraphEngine) Close() error {
 
 // sanitizePredicate builds a safe Dgraph predicate name from components.
 func sanitizePredicate(parts ...string) string {
-	var b strings.Builder
-
-	for i, p := range parts {
-		if i > 0 {
-			b.WriteByte('.')
-		}
-
-		for _, r := range p {
-			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
-				(r >= '0' && r <= '9') || r == '_' || r == '.' {
-				b.WriteRune(r)
-			} else {
-				b.WriteByte('_')
-			}
-		}
-	}
-
-	return b.String()
+	return metaengine.SanitizeIdent(".", "._", parts...)
 }
 
 // graphEdgePredicate returns the Dgraph predicate name for a graph edge collection.

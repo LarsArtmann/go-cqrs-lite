@@ -45,9 +45,21 @@ func OnRecordTyped[E any](eventType string, sample E, handler any) Fold {
 	return onRecordFold(eventType, sample, handler)
 }
 
+// removeFoldFor returns the remove fold when handler is the sentinel
+// returned by Remove[V](), or nil for a real handler function. Shared by the
+// On and OnRecord construction paths.
+func removeFoldFor(eventType string, sample any, handler any) *removeFold {
+	rs, ok := handler.(removeSignal)
+	if !ok {
+		return nil
+	}
+
+	return &removeFold{eventType: eventType, sample: sample, valueType: rs.valueType}
+}
+
 func onRecordFold[E any](eventType string, sample E, handler any) Fold {
-	if rs, ok := handler.(removeSignal); ok {
-		return &removeFold{eventType: eventType, sample: sample, valueType: rs.valueType}
+	if rf := removeFoldFor(eventType, sample, handler); rf != nil {
+		return rf
 	}
 
 	handlerType := reflect.TypeOf(handler)

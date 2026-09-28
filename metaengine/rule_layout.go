@@ -17,7 +17,7 @@ func (*layoutRule) Name() string { return "auto-layout" }
 
 func (r *layoutRule) Apply(result *PlanResult, ctx PlanContext) error {
 	for _, q := range result.Queries {
-		rt, ok := ctx.Store.queries[q.QueryName]
+		rt, ok := declaredQuery(ctx, q)
 		if !ok {
 			continue
 		}

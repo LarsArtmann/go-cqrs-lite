@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	codecpkg "github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/encryption/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"

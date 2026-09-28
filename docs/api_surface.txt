@@ -2741,7 +2741,9 @@ metaengine/func AllFilterOps
 metaengine/func AllFoldKinds
 metaengine/func AllReadPatterns
 metaengine/func AllStorageLayouts
+metaengine/func AppendPlannedCursor
 metaengine/func AppendPlannedFilter
+metaengine/func AppendPlannedOrderLimit
 metaengine/func AutoCRUD
 metaengine/func AutoCRUDByConvention
 metaengine/func AutoCRUDByNamedEvents
@@ -2785,6 +2787,7 @@ metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
 metaengine/func GraphBFS
+metaengine/func GroupedAggregateScan
 metaengine/func HasGraphEdgeRemoval
 metaengine/func HasGraphSupport
 metaengine/func HasUndirectedGraphSupport
@@ -2848,6 +2851,7 @@ metaengine/func Remove
 metaengine/func ReplayCost
 metaengine/func ReplayTrace
 metaengine/func SQLiteEngineProfile
+metaengine/func SanitizeIdent
 metaengine/func SaveManifest
 metaengine/func ScanDistinctValues
 metaengine/func ScanGroupedAggregates
@@ -2870,8 +2874,10 @@ metaengine/func SpatialExecuteTyped
 metaengine/func StoreTraceSink
 metaengine/func SupportsDedup
 metaengine/func SupportsDueClaims
+metaengine/func SyncWritesTier
 metaengine/func TopKNearest
 metaengine/func TraceStats
+metaengine/func TypeName
 metaengine/func ValidateDurabilityTier
 metaengine/func VectorDistance
 metaengine/func VectorExecuteTyped
@@ -3560,6 +3566,7 @@ metaengine/method QueryInputTypeName
 metaengine/method QueryIsPaginated
 metaengine/method QueryKeyType
 metaengine/method QueryName
+metaengine/method QueryPlacements
 metaengine/method QueryReadPattern
 metaengine/method QueryResultType
 metaengine/method Range
@@ -4253,6 +4260,7 @@ metaengine/struct QueryBuilder
 metaengine/struct QueryChange
 metaengine/struct QueryConfig
 metaengine/struct QueryDecl
+metaengine/struct QueryPlacement
 metaengine/struct RangeSpec
 metaengine/struct RawScanResult
 metaengine/struct ReadCoalescer

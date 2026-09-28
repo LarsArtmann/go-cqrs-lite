@@ -214,6 +214,24 @@ func (s *System) Explain(_ context.Context) string {
 
 	if s.projStore != nil {
 		fmt.Fprintf(&b, "  ProjectionStore: %d collections\n", len(s.projStore.Collections()))
+
+		// Per-query placement: which engine serves each projection, its ADT,
+		// and the declared Volume hint (events/sec) that informed the
+		// cost-based placement. The hints were previously invisible here —
+		// only the collection count rendered.
+		for _, p := range s.projStore.QueryPlacements() {
+			fmt.Fprintf(&b, "    ~ %s: %s (%s", p.QueryName, p.Engine, p.ADT)
+
+			if p.Volume > 0 {
+				fmt.Fprintf(&b, ", volume=%d/s", p.Volume)
+			}
+
+			if p.EstimatedLatencyMs > 0 {
+				fmt.Fprintf(&b, ", est=%.3fms", p.EstimatedLatencyMs)
+			}
+
+			b.WriteString(")\n")
+		}
 	}
 
 	fmt.Fprintf(&b, "  Go version: %s\n", runtime.Version())

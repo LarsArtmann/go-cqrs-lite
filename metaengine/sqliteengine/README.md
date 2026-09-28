@@ -39,3 +39,10 @@ StreamingScan, LayoutPlanner, LayoutPlanApplier, RawValueReader, RawScanReader.
 - PRAGMAs (journal mode, synchronous, cache size) are accepted at open time
   via `NewSQLiteEngineFromDSN` variadic args and drive the effective
   durability tier.
+- **C extensions cannot be loaded — sqlite-vec stays an operator-only option.**
+  This engine is pure Go on `modernc.org/sqlite`, whose `database/sql` driver
+  exposes no `LoadExtension` (v1.59.0). Native vector SQL (`vector_distance_*`,
+  vec0 indexes via sqlite-vec) therefore requires an operator-managed libSQL
+  server reached through `tursoengine` — inside this engine, vector search
+  always runs the probe-gated libSQL-SQL or Go-scan path (see the metaengine
+  vector contract), never an extension.

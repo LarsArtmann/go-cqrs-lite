@@ -250,5 +250,7 @@ watermill/     — Watermill protocol adapter
 | [0145](0145-retry-idioms-are-per-concern.md) | Retry Idioms Are per-Concern | 2026-09-21 | Accepted |
 | [0146](0146-no-federated-query-engine.md) | No Federated Query Engine — Replication Is the Cross-Domain Mechanism | 2026-09-24 | Accepted |
 | [0147](0147-mesh-policy-enforcement-non-goal.md) | Mesh-Level Policy Enforcement Is an Explicit Non-Goal | 2026-09-24 | Accepted |
+| [0148](0148-benchmark-gate-semantics.md) | Benchmark Gate Semantics — Noise, Provenance, and Refusal | 2026-09-25 | Accepted |
+| [0149](0149-durable-checkpoints-and-dlq-by-events.md) | Durable Checkpoints and DLQ-by-Events in system.New | 2026-09-28 | Accepted |
 
 > **Note:** ADRs 0036 and 0041 were never assigned (gaps in numbering).

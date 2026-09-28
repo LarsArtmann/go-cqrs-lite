@@ -8,10 +8,9 @@ import (
 	"slices"
 	"testing"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projection/v4"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // DecideFunc is a pure function that takes the current state and a command,
@@ -221,12 +220,7 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 	state := initial
 
 	for _, evt := range s.given {
-		var err error
-
-		state, err = apply(state, evt)
-		if err != nil {
-			s.t.Fatalf("Given: fold failed: %v", err)
-		}
+		state = foldOrFatal(s.t, apply, state, evt, "Given: fold failed")
 	}
 
 	events, err := s.decide(state, s.cmd)
@@ -235,17 +229,30 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 	}
 
 	for _, evt := range events {
-		var err error
-
-		state, err = apply(state, evt)
-		if err != nil {
-			s.t.Fatalf("ThenState: fold produced event failed: %v", err)
-		}
+		state = foldOrFatal(s.t, apply, state, evt, "ThenState: fold produced event failed")
 	}
 
 	if !reflect.DeepEqual(state, expected) {
 		s.t.Fatalf("ThenState: expected %v, got %v", expected, state)
 	}
+}
+
+// foldOrFatal applies one event and fails the scenario test with failureMsg
+// when the fold errors. Shared by the Given and produced-events loops of
+// ThenState.
+func foldOrFatal[State any](
+	t testing.TB,
+	apply func(State, event.Event) (State, error),
+	state State,
+	evt event.Event,
+	failureMsg string,
+) State {
+	state, err := apply(state, evt)
+	if err != nil {
+		t.Fatalf("%s: %v", failureMsg, err)
+	}
+
+	return state
 }
 
 // --- Projection DSL ---

@@ -297,12 +297,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryMeta, input any)
 	// (1 JSON op per row instead of 3). Preferred when the engine supports it
 	// and all filter/sort accessors are declarative (pushdown-eligible).
 	if rsr, ok := q.QueryEngine().(RawScanReader); ok && canPushdown(q.QueryConfig()) {
-		specs := buildFilterSpecs(q.QueryConfig(), input)
-
-		var sortSpec *SortSpec
-		if q.QueryConfig().sortAccessor.spec != nil {
-			sortSpec = q.QueryConfig().sortAccessor.spec
-		}
+		specs, sortSpec := scanFilterSortSpecs(q.QueryConfig(), input)
 
 		rawResult, err := rsr.ScanRawValues(ctx, q.QueryName(), specs, sortSpec, cursorVal, limit)
 		if err != nil {
@@ -321,12 +316,7 @@ func (s *Store) executeFilteredScan(ctx context.Context, q queryMeta, input any)
 	// have declarative specs (FilterOnField/SortOnField), push WHERE/ORDER BY/
 	// LIMIT into SQL instead of loading all rows into Go.
 	if pushdown, ok := q.QueryEngine().(PushdownScan); ok && canPushdown(q.QueryConfig()) {
-		specs := buildFilterSpecs(q.QueryConfig(), input)
-
-		var sortSpec *SortSpec
-		if q.QueryConfig().sortAccessor.spec != nil {
-			sortSpec = q.QueryConfig().sortAccessor.spec
-		}
+		specs, sortSpec := scanFilterSortSpecs(q.QueryConfig(), input)
 
 		rows, err := pushdown.PushdownMapScan(ctx, q.QueryName(), specs, sortSpec, cursorVal, limit)
 		if err != nil {
@@ -383,6 +373,20 @@ func canPushdown(cfg QueryConfig) bool {
 	}
 
 	return true
+}
+
+// scanFilterSortSpecs builds the pushdown filter specs and the optional
+// declarative sort spec for one scan. Shared by the raw-scan and pushdown
+// fast paths of executeFilteredScan.
+func scanFilterSortSpecs(cfg QueryConfig, input any) ([]FilterSpec, *SortSpec) {
+	specs := buildFilterSpecs(cfg, input)
+
+	var sortSpec *SortSpec
+	if cfg.sortAccessor.spec != nil {
+		sortSpec = cfg.sortAccessor.spec
+	}
+
+	return specs, sortSpec
 }
 
 // buildFilterSpecs converts declarative filter accessors into FilterSpec values

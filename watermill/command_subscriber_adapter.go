@@ -62,9 +62,7 @@ func (a *CommandSubscriberAdapter) Subscribe(
 
 	//cqrs-lint:ignore(C027) library code or intentional pattern
 	if err := a.subscriber.Subscribe(command.Type(topic), handler); err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err, "watermill.subscribe_failed", "subscribe to "+topic,
-		)
+		return nil, wrapSubscribeError(err, topic)
 	}
 
 	registerSubscriberHandler(&a.handlersMu, a.handlers, topic, handler)

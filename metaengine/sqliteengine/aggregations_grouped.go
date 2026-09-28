@@ -103,32 +103,13 @@ func (e *sqliteEngine) scanGroupedSQLite(
 	query string,
 	args []any,
 ) (map[string]float64, error) {
-	rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
-	if err != nil {
-		return nil, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	result := make(map[string]float64)
-
-	for rows.Next() {
-		var key string
-
-		var val float64
-
-		if err := rows.Scan(&key, &val); err != nil {
-			return nil, fmt.Errorf("sqliteengine.GroupedAggregate: scan: %w", err)
-		}
-
-		result[key] = val
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("sqliteengine.GroupedAggregate: %w", err)
-	}
-
-	return result, nil
+	return metaengine.GroupedAggregateScan(
+		ctx,
+		e.xd(ctx),
+		query,
+		args,
+		"sqliteengine.GroupedAggregate",
+	)
 }
 
 // ---------------------------------------------------------------------------

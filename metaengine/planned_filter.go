@@ -69,3 +69,51 @@ func beginFilterClause(b *strings.Builder, started *bool) {
 		b.WriteString(" AND ")
 	}
 }
+
+// AppendPlannedCursor writes the keyset cursor predicate for planned-table
+// scans: the WHERE/AND switch, then `col op <placeholder>` (op flips with
+// sort direction), then appends the cursor argument. identQuote and
+// placeholder follow the dialect (see [AppendPlannedFilter]).
+func AppendPlannedCursor(
+	b *strings.Builder,
+	args *[]any,
+	started *bool,
+	sort *SortSpec,
+	cursor any,
+	identQuote func(string) string,
+	placeholder func(int) string,
+) {
+	op := ">"
+	if sort.Desc {
+		op = "<"
+	}
+
+	beginFilterClause(b, started)
+
+	fmt.Fprintf(b, "%s %s %s", identQuote(sort.Column), op, placeholder(len(*args)))
+
+	*args = append(*args, cursor)
+}
+
+// AppendPlannedOrderLimit writes the ORDER BY / LIMIT tail shared by the SQL
+// engines' planned-table scan builders: ORDER BY the quoted sort column
+// (DESC when requested), then LIMIT limit+1 — the keyset HasMore probe. Both
+// engines interpolate the integer limit directly; there is no bind parameter.
+func AppendPlannedOrderLimit(
+	b *strings.Builder,
+	sort *SortSpec,
+	limit int,
+	identQuote func(string) string,
+) {
+	if sort != nil {
+		fmt.Fprintf(b, " ORDER BY %s", identQuote(sort.Column))
+
+		if sort.Desc {
+			b.WriteString(" DESC")
+		}
+	}
+
+	if limit > 0 {
+		fmt.Fprintf(b, " LIMIT %d", limit+1)
+	}
+}

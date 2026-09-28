@@ -207,20 +207,5 @@ func escapeSQLString(s string) string {
 // sanitizeIndexName builds a safe SQL identifier from components.
 // Non-alphanumeric characters are replaced with underscores.
 func sanitizeIndexName(parts ...string) string {
-	var b strings.Builder
-	for i, p := range parts {
-		if i > 0 {
-			b.WriteByte('_')
-		}
-
-		for _, r := range p {
-			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') {
-				b.WriteRune(r)
-			} else {
-				b.WriteByte('_')
-			}
-		}
-	}
-
-	return b.String()
+	return metaengine.SanitizeIdent("_", "", parts...)
 }

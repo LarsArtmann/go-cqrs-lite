@@ -3,12 +3,11 @@ package sqlite
 import (
 	"fmt"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // ErrNoDatabase is returned when the Bundle was not created by an SQL preset

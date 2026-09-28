@@ -235,17 +235,7 @@ func (s *Store) replayShadows(ctx context.Context, events []EventInput) error {
 
 	for _, rep := range reps {
 		for _, evt := range events {
-			rec := evt.Record
-			if rec.Type == "" {
-				rec = record.Record{Type: evt.Type}
-			}
-
-			job := repJob{
-				eventType: evt.Type,
-				rec:       rec,
-				payload:   evt.Payload,
-			}
-			if err := rep.applyJob(ctx, job); err != nil {
+			if err := rep.applyJob(ctx, repJobFor(evt)); err != nil {
 				return fmt.Errorf("metaengine: backfill shadow %s: %w", rep.name, err)
 			}
 

@@ -85,11 +85,21 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       `tag_zip_content_check` pre-push guard is in place (`scripts/tag-release.sh`).
       Unblocks the mesh-demo replace-strip + bank-sync/cqrs-htmx lint adoption.
       — source: 12-26 §f11, 13-32 §f14 _(Effort: M)_
-- [ ] [BLOCKED] 🔥 **Poisoned-tag surgery** — retract + re-cut
-      `metaengine/tursoengine/v4.2.0` (binary-junk zip); decide `storage/v4.10.0`
-      re-cut vs retraction (re-creating a deleted tag re-poisons cached absence;
-      retraction leaves published system/v4.9.0's graph broken) — owner call, 13-32 §g3.
-      — source: 12-26 §d3/§d4, 13-32 §f16 _(Effort: S)_
+- [ ] [BLOCKED] 🔥 **Poisoned-tag surgery — VERIFIED 2026-09-28 (M2 receipt),
+      one residual owner action** — Q1 executed path: `storage/v4.10.0` left
+      published UN-retracted, superseded by `storage/v4.10.1` (09-22); published
+      `system/v4.9.0`'s graph verified resolving + compiling from the proxy in a
+      fresh module 2026-09-28 (it references no `storage/v4` at all — the feared
+      broken-graph branch never materialized). Q2 executed path: `tursoengine/v4.2.0`
+      tag deleted; proxy `@v/v4.2.0.mod` 404s (cached absence — the binary-junk zip
+      NEVER reached any consumer), no retract shipped. RESIDUAL DEFECT: the module's
+      `@latest` 404s (fresh `go get .../metaengine/tursoengine/v4@latest` fails).
+      Fix: cut `tursoengine/v4.2.1` from the clean tree via `tag-release.sh` (no
+      `retract` needed — v4.2.0 was never proxy-published; a plain re-cut repairs
+      `@latest` without fighting the cached-absence 404 on the v4.2.0 name).
+      — receipt: 2026-09-28 publish-integrity plan M2 (proxy @v/list + .mod probes,
+      fresh-module go get system/v4.9.0 + dispatcher/v4.5.0) — source: 12-26 §d3/§d4,
+      13-32 §f16 _(Effort: S)_
 - [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
       once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
       (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
@@ -176,7 +186,7 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 
-- [ ] **TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity** — failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated — genuine timing sensitivity to full-suite contention, no correctness signal observed since. Revisit only if it recurs. _(Effort: S — observe)_
+- [ ] **TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity** — failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated — genuine timing sensitivity to full-suite contention, no correctness signal observed since. Revisit only if it recurs. **Receipt 2026-09-28: still no recurrence — 15/15 green under `-race` (isolated), full metaengine package suite green ×2 this session (including once with concurrent edits in flight). Keep as observe-only.** _(Effort: S — observe)_
 
 ## Turso materialized views (ADR-0135) — upstream handoffs
 
@@ -352,6 +362,15 @@ replace-free — 10-25 §a2/§a3, now archived).
       metaengine surface: G-T13 ADTSet parity (pg/mysql, mysql VM leg still
       pending a quiet window), G-T12 `BackfillPlannedTables`,
       `ScanScoredVector`/`RowScanner`, adttest helpers (`AssertTxIsolationFromForeignContext`).
+      **Receipt 2026-09-28 (M1):** the 2026-09-27 7-tag wave (dispatcher/v4.5.0,
+      middleware/v4.7.0, metaengine/v4.15.0, system/v4.10.0, event/v4.12.0,
+      command/v4.12.0, query/v4.9.0 — prep `2d1669f78`) STALLED at 1/7: only
+      `dispatcher/v4.5.0` exists (tagged 09-27 23:53, verified on proxy + pkg.go.dev,
+      fresh-module build green); the other 6 tags are cut nowhere (local+origin+proxy
+      checked), their release content is in-tree, dependents' go.mod already pin
+      dispatcher/v4.5.0 (published), and CHANGELOG `[Unreleased]` honestly still
+      carries the 6 entries. No logs kept by batch-release.sh; cause of the stall
+      unknown. Completing the wave is owner mechanics (verify-lock + zip guard).
       — source: closeout §f17/§c2 _(Effort: M — tag-wave mechanics)_
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (receipt: the T18b canonical record `docs/benchmarks/2026-09-20-21_t18b-record.md` — noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
@@ -1076,8 +1095,8 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 ## Upstream asks from cqrs-htmx (harvested 2026-09-22, docs-health D1)
 
 - [ ] **Upstream `requestContextEnricher` into `event/`** — cqrs-htmx's usermgmt carries a local copy (correlation/request-ID metadata enricher, `audit_context.go`) because no upstream enricher covers it. Upstreaming it lets the local copy drop at the next family train. Source: cqrs-htmx TODO_LIST P3 ask (3); verify pass there 2026-09-22.
-- [ ] **`system.New` checkpoint/DLQ store options** — the declarative composition root uses an internal in-memory checkpoint store, so consumers needing durable checkpoints or dead letters cannot use it (ADR-0051's accepted limitation keeps cqrs-htmx's `NewProjectionLayer` consumers pinned until this lands). Source: cqrs-htmx ADR-0051 + TODO_LIST P3 ask (4).
-- [ ] **`System.Explain`: include per-query Volume/placement in the topology view** — Explain currently shows drivers/engines/collection counts; the metaengine cost-based planner's Volume hints (which cqrs-htmx's systemadapter declarations all carry) are invisible for introspection. Verified absent against system/v4.9.0 on 2026-09-22 (empirical run: topology prints collections count only).
+- [x] **`system.New` checkpoint/DLQ store options** — CLOSED 2026-09-28 as ALREADY SHIPPED (design verified in-tree, ADR-0149): durable checkpoints = `NewEngineCheckpointStore(backend)` persisting to the `system_checkpoints` Map collection on the deployment engine ("checkpoints"-named engine wins, Map-ADT-gated, in-memory fallback documented; override via `DomainConfig.CheckpointStore`; restart-durability pinned by `systemtest.TestEngineCheckpointStoreRestartDurability`); durable DLQ = **no separate store by design** (ADR-0117): `WithCommandLifecycle(store)` records lifecycle events into the caller's event store and DLQ/FailureLog/RejectionLog are projections over them. The ORIGINAL claim ("internal in-memory checkpoint store, consumers needing durable checkpoints or dead letters cannot use it") was stale against the in-tree `system/v4.10.0` content. RESIDUAL GAP: publishing — the stalled 2026-09-27 tag wave left `system/v4.10.0` uncut, so consumers on published v4.9.0 still see the old behavior; cqrs-htmx `NewProjectionLayer` can unpin once the tag ships. Source: cqrs-htmx ADR-0051 + TODO_LIST P3 ask (4).
+- [x] **`System.Explain`: include per-query Volume/placement in the topology view** — DONE 2026-09-28: gap re-confirmed against current code (`system/introspection.go` rendered collections count only), then shipped as `metaengine.Store.QueryPlacements()` (`QueryPlacement`: engine, ADT, declared Volume, plan estimate, complexity — additive, name-sorted) + `System.Explain` rendering `~ <query>: <engine> (<adt>, volume=N/s, est=Xms)` per projection. Tests: `TestQueryPlacements`, `TestExplainRendersQueryPlacements`, `TestExplainWithoutProjectionStore`. Api golden regenerated (+8 exports); CHANGELOG entry added; original row: Explain showed drivers/engines/collection counts; the metaengine cost-based planner's Volume hints (which cqrs-htmx's systemadapter declarations all carry) were invisible for introspection. First verified absent against system/v4.9.0 on 2026-09-22.
 
 ## go-cqrs-lite skill hard-block refocus (2026-09-24 harvest)
 

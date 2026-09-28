@@ -16,7 +16,7 @@ func (*replicationRule) Name() string { return "replication" }
 
 func (r *replicationRule) Apply(result *PlanResult, ctx PlanContext) error {
 	for _, q := range result.Queries {
-		meta, ok := ctx.Store.queries[q.QueryName]
+		meta, ok := declaredQuery(ctx, q)
 		if !ok {
 			continue
 		}

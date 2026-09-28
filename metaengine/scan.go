@@ -298,3 +298,47 @@ func MultiAggregateScan(
 
 	return DecodeFloatResults(raws, specs, label)
 }
+
+// GroupedAggregateScan drains a single-group aggregate query — one row per
+// group, (group key, value) columns — into a group→value map, normalizing
+// the value via DecodeFloat. Shared by the SQL engines' GroupedAggregate.
+// The label is the error prefix (e.g. "duckdbengine.GroupedAggregate").
+func GroupedAggregateScan(
+	ctx context.Context,
+	q SQLExec,
+	query string,
+	args []any,
+	label string,
+) (map[string]float64, error) {
+	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", label, err)
+	}
+
+	defer DeferClose(rows)
+
+	result := make(map[string]float64)
+
+	for rows.Next() {
+		var key string
+
+		var raw any
+
+		if err := rows.Scan(&key, &raw); err != nil {
+			return nil, fmt.Errorf("%s: scan: %w", label, err)
+		}
+
+		val, err := DecodeFloat(raw)
+		if err != nil {
+			return nil, err
+		}
+
+		result[key] = val
+	}
+
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("%s: %w", label, err)
+	}
+
+	return result, nil
+}

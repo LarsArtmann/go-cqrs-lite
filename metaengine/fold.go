@@ -255,12 +255,7 @@ func (f *skipFold) Kind() FoldKind    { return FoldSkip }
 // ── Helpers ──
 
 func EventTypeName(sample any) string {
-	t := reflect.TypeOf(sample)
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-
-	return t.Name()
+	return TypeName(sample)
 }
 
 // removeSignal is the sentinel returned by Remove[V]().
@@ -322,12 +317,8 @@ func reflectCall1[T any](hv reflect.Value) func(record.Record, any) T {
 }
 
 func onFold[E any](eventType string, sample E, handler any) Fold {
-	if rs, ok := handler.(removeSignal); ok {
-		return &removeFold{
-			eventType: eventType,
-			sample:    sample,
-			valueType: rs.valueType,
-		}
+	if rf := removeFoldFor(eventType, sample, handler); rf != nil {
+		return rf
 	}
 
 	handlerType := reflect.TypeOf(handler)

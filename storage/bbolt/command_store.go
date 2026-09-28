@@ -248,15 +248,8 @@ func (s *CommandStore) ReadAll(ctx context.Context) ([]*command.PersistedCommand
 			return nil
 		})
 	})
-	if err != nil {
-		return nil, recordErr(
-			span,
-			wrapBucketErr(err, "bbolt.command_read_all", "read all commands from journal"),
-		)
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
-	return cmds, nil
+	return finishBucketRead(span, err, "bbolt.command_read_all",
+		"read all commands from journal", "command.count", cmds)
 }
 
 // ReadFrom returns commands from the journal starting after the given command
@@ -297,13 +290,6 @@ func (s *CommandStore) ReadFrom(
 
 		return nil
 	})
-	if err != nil {
-		return nil, recordErr(
-			span,
-			wrapBucketErr(err, "bbolt.command_read_from", "read commands from journal position"),
-		)
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("command.count", len(cmds)))
-	return cmds, nil
+	return finishBucketRead(span, err, "bbolt.command_read_from",
+		"read commands from journal position", "command.count", cmds)
 }

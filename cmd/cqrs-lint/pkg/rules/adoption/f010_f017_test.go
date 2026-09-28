@@ -3,11 +3,10 @@ package adoption_test
 import (
 	"testing"
 
-	"golang.org/x/tools/go/packages"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
+	"golang.org/x/tools/go/packages"
 )
 
 func TestF010_TraversalPatternWithoutGraph(t *testing.T) {

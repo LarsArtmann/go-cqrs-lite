@@ -17,9 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/larsartmann/go-idempotency"
-
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
+	"github.com/larsartmann/go-idempotency"
 )
 
 func TestIntegration_PostgresIdempotency_CheckAndRecordLifecycle(t *testing.T) {

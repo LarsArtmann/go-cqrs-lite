@@ -155,6 +155,54 @@ func registerSubscriberHandler[H any](
 	mu.Unlock()
 }
 
+// wrapSubscribeError wraps a failed Subscribe call with the shared
+// watermill.subscribe_failed code. Shared between SubscriberAdapter and
+// CommandSubscriberAdapter.
+func wrapSubscribeError(err error, topic string) error {
+	return errorfamily.WrapInfrastructure(
+		err,
+		"watermill.subscribe_failed",
+		"subscribe to "+topic,
+	)
+}
+
+// publishAll converts each message via convert and publishes it through
+// publish. Conversion failures wrap as Corruption with the shared
+// convert_message code; publish failures wrap as Infrastructure with the
+// adapter's failure code and describe() rendering the failure message.
+// Shared between PublisherAdapter and CommandPublisherAdapter so the loop
+// and error families cannot fork.
+func publishAll[T any](
+	ctx context.Context,
+	publish func(context.Context, T) error,
+	topic string,
+	messages []*message.Message,
+	convert func(string, *message.Message) (T, error),
+	failureCode string,
+	describe func(T) string,
+) error {
+	for _, msg := range messages {
+		v, err := convert(topic, msg)
+		if err != nil {
+			return errorfamily.WrapCorruption(
+				err,
+				"watermill.convert_message_failed",
+				"convert message "+msg.UUID,
+			)
+		}
+
+		if err := publish(ctx, v); err != nil {
+			return errorfamily.WrapInfrastructure(
+				err,
+				failureCode,
+				describe(v),
+			)
+		}
+	}
+
+	return nil
+}
+
 // dispatchCached reads a handler function under a mutex and invokes it outside
 // the lock. Shared between CommandBus.dispatchLocal and EventBus.dispatchLocal.
 //

@@ -29,7 +29,7 @@ func (r *sharedCollectionRule) Apply(result *PlanResult, ctx PlanContext) error 
 	for i := range result.Queries {
 		qa := &result.Queries[i]
 
-		q, ok := ctx.Store.queries[qa.QueryName]
+		q, ok := declaredQuery(ctx, *qa)
 		if !ok {
 			continue
 		}
