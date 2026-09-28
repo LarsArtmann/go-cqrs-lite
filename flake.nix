@@ -1790,7 +1790,7 @@
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
-                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
 
@@ -1805,6 +1805,9 @@
                 ../../.agents/skills/go-cqrs-lite/references/*.md \
                 ../../AGENTS.md \
                 ../../README.md \
+                ../../*/README.md \
+                ../../*/*/README.md \
+                ../../*/*/*/README.md \
                 ../../TODO_LIST.md \
                 ../../ROADMAP.md \
                 ../../FEATURES.md \

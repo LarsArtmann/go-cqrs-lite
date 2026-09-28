@@ -124,6 +124,17 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 		); err == nil {
 			files = append(files, refFiles...)
 		}
+		// Module READMEs are consumer-facing API surface (2026-09-29, M13):
+		// their quick-start fences get the same reference + arity drift
+		// checks as the skill docs. Depth 1-3 covers every module README
+		// (e.g. event/, storage/memory/, metaengine/irohengine/loopback/).
+		for _, pattern := range []string{
+			"*/README.md", "*/*/README.md", "*/*/*/README.md",
+		} {
+			if readmeFiles, err := filepath.Glob(filepath.Join(root, pattern)); err == nil {
+				files = append(files, readmeFiles...)
+			}
+		}
 	}
 
 	// Resolve repo root by walking up from the first file's directory.

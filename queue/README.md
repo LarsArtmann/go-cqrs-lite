@@ -25,6 +25,8 @@ conformance suite.
 ## Quickstart (SQLite)
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/queue/sqlite/v4"
+
 store, err := sqlite.Open[payload]("file:tasks.db")
 if err != nil {
     return err
@@ -62,6 +64,8 @@ token, and a worker whose lease lapsed and was re-claimed gets
 ## Quickstart (Postgres)
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/queue/postgres/v4"
+
 store, err := postgres.Open[payload](ctx, dsn, 0) // 0 = pgxpool default MaxConns
 ```
 
@@ -71,6 +75,8 @@ inside a transaction, so any number of workers can poll concurrently.
 ## Quickstart (MySQL / MariaDB)
 
 ```go
+import "github.com/larsartmann/go-cqrs-lite/queue/mysql/v4"
+
 store, err := mysql.Open[payload]("user:pass@tcp(127.0.0.1:3306)/tasks?parseTime=true")
 ```
 
