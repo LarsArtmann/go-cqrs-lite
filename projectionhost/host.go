@@ -220,7 +220,6 @@ func (h *Host) Stop() error {
 		if s := w.snapshot().Status; s == WorkerRunning || s == WorkerLive || s == WorkerBackoff {
 			w.setStatus(WorkerDraining)
 		}
-
 		w.signalStop()
 	}
 	h.mu.Unlock()

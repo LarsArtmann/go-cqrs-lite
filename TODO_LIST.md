@@ -339,6 +339,17 @@ replace-free — 10-25 §a2/§a3, now archived).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
+- [ ] 🔥 **`watermill/v4.6.2` re-tag (consumer-impacting roundtrip fix)** — published
+      `watermill/v4.6.1` + `event/v4.12.0` silently CBOR-wraps every event
+      crossing the Watermill bridge (named `message.Payload` missed
+      `event.New`'s `case []byte:` fast path → `DefaultCodec` re-encoded it
+      as a CBOR byte string — `0x40|len` header, `P` for short payloads —
+      while the encoding stamp still said `json`). Fix is IN-TREE
+      (2026-09-28, `watermill/protocol.go` converts to plain `[]byte`;
+      red→green receipts in CHANGELOG `[Unreleased]` Fixed). Cut with the
+      next wave or immediately — owner timing call; consumers on the
+      v4.6.1+v4.12.0 pair are shipping corrupted bridge payloads today.
+      _(Effort: XS — tag mechanics)_
 - [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
       metaengine wave (row in Metaengine follow-ups below); queue/mysql + `testutil/mysqltestcontainer`
       tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
