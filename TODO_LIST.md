@@ -222,7 +222,7 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       _(Effort: M)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
   - **2026-09-28 (M14 receipt): DONE — onset matrix measured and recorded in [`docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md`](docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md)** (15-config sweep via `metaengine/tursoengine/ivm_bisect_test.go`, env `TURSO_IVM_BISECT=1`). Headlines: single-tx loads ALWAYS exact; ≤64 groups exact at any tx size; 2000 single-member groups exact — divergence needs (≥2nd tx) × (groups in the 10²–10³ band), onset at tx#2 for ≥500-row txs, delayed to tx#4/tx#33 for 100/10-row txs; loss is PARTIAL (≈1–5% of the offending tx's delta); the draft's canonical 430.50 delta reproduces byte-for-byte at 2k/316/2×1000. Defect-C wall recorded as data (chunk=10 wall at tx#93 carries the per-tx-scan asterisk). The row stays open only for the remaining upstream-filing step.
-      _(Effort: M)_
+    _(Effort: M)_
 
 ---
 
