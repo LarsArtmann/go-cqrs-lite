@@ -110,7 +110,7 @@ func isCQRSHandler(fn *ast.FuncDecl) bool {
 
 	for _, field := range fn.Type.Params.List {
 		// Check for context.Context parameter.
-		if isContextType(field.Type) {
+		if lintutil.IsContextType(field.Type) {
 			return true
 		}
 		// Check for event.Event parameter.
@@ -122,13 +122,4 @@ func isCQRSHandler(fn *ast.FuncDecl) bool {
 	}
 
 	return false
-}
-
-func isContextType(expr ast.Expr) bool {
-	sel, ok := expr.(*ast.SelectorExpr)
-	if !ok {
-		return false
-	}
-
-	return lintutil.SelectorMatches(sel, "context", "Context")
 }

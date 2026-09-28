@@ -143,7 +143,7 @@ func IsFmtErrorf(call *ast.CallExpr) bool {
 
 // SelectorMatches reports whether sel is pkgName.selName where selName matches
 // any of selNames. Shared by rules that check call targets by package and
-// method name (d012 isContextType, c032 isContextCreation, IsFmtErrorf).
+// method name (c032 isContextCreation, IsFmtErrorf, IsContextType).
 func SelectorMatches(sel *ast.SelectorExpr, pkgName string, selNames ...string) bool {
 	ident, ok := sel.X.(*ast.Ident)
 	if !ok || ident.Name != pkgName {
@@ -151,6 +151,27 @@ func SelectorMatches(sel *ast.SelectorExpr, pkgName string, selNames ...string) 
 	}
 
 	return slices.Contains(selNames, sel.Sel.Name)
+}
+
+// IsContextType reports whether expr denotes context.Context, unwrapping one
+// level of pointer or ellipsis (so variadic ...context.Context params match).
+// Shared by rules that detect context parameters (d012 isCQRSHandler, c016
+// hasContextParam).
+func IsContextType(expr ast.Expr) bool {
+	sel, ok := expr.(*ast.SelectorExpr)
+	if ok {
+		return SelectorMatches(sel, "context", "Context")
+	}
+
+	if star, ok := expr.(*ast.StarExpr); ok {
+		return IsContextType(star.X)
+	}
+
+	if ell, ok := expr.(*ast.Ellipsis); ok {
+		return IsContextType(ell.Elt)
+	}
+
+	return false
 }
 
 // selectorIdent returns the package qualifier identifier from a selector

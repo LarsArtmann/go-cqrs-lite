@@ -240,17 +240,7 @@ func (m *memoryEngine) MapScan(
 		pairs = filtered
 	}
 
-	hasMore := limit > 0 && len(pairs) > limit
-	if hasMore {
-		pairs = pairs[:limit]
-	}
-
-	results := make([]any, len(pairs))
-	for i, p := range pairs {
-		results[i] = p.value
-	}
-
-	return ScanResult{Items: results, HasMore: hasMore}, nil
+	return PairsToScanResult(pairs, func(p kv) any { return p.value }, limit), nil
 }
 
 // --- VectorBackend ---

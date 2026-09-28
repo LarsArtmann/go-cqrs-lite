@@ -98,30 +98,15 @@ func ScanDistinctValues(
 	args []any,
 	label string,
 ) ([]any, error) {
-	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", label, err)
-	}
-
-	defer DeferClose(rows)
-
-	var result []any
-
-	for rows.Next() {
+	return drainQuery(ctx, q, query, args, label, func(rows *sql.Rows) (any, error) {
 		var raw any
 
 		if err := rows.Scan(&raw); err != nil {
 			return nil, fmt.Errorf("%s: scan: %w", label, err)
 		}
 
-		result = append(result, raw)
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("%s: %w", label, err)
-	}
-
-	return result, nil
+		return raw, nil
+	})
 }
 
 // scanJSONKeyValues drains a `SELECT key, value` result set — string key,
@@ -248,29 +233,9 @@ func ScanGroupedAggregates(
 	specs []AggregateSpec,
 	label string,
 ) ([]GroupedAggregateRow, error) {
-	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", label, err)
-	}
-
-	defer DeferClose(rows)
-
-	var result []GroupedAggregateRow
-
-	for rows.Next() {
-		row, err := scanGroupedRow(rows, specs, label)
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, row)
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("%s: %w", label, err)
-	}
-
-	return result, nil
+	return drainQuery(ctx, q, query, args, label, func(rows *sql.Rows) (GroupedAggregateRow, error) {
+		return scanGroupedRow(rows, specs, label)
+	})
 }
 
 // MultiAggregateScan executes a single-row aggregate query and decodes the
@@ -310,35 +275,37 @@ func GroupedAggregateScan(
 	args []any,
 	label string,
 ) (map[string]float64, error) {
-	rows, err := q.QueryContext(ctx, query, args...) //nolint:sqlclosecheck
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", label, err)
-	}
-
-	defer DeferClose(rows)
-
-	result := make(map[string]float64)
-
-	for rows.Next() {
+	pairs, err := drainQuery(ctx, q, query, args, label, func(rows *sql.Rows) (groupedPair, error) {
 		var key string
 
 		var raw any
 
 		if err := rows.Scan(&key, &raw); err != nil {
-			return nil, fmt.Errorf("%s: scan: %w", label, err)
+			return groupedPair{}, fmt.Errorf("%s: scan: %w", label, err)
 		}
 
 		val, err := DecodeFloat(raw)
 		if err != nil {
-			return nil, err
+			return groupedPair{}, err
 		}
 
-		result[key] = val
+		return groupedPair{key: key, val: val}, nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("%s: %w", label, err)
+	result := make(map[string]float64, len(pairs))
+	for _, p := range pairs {
+		result[p.key] = p.val
 	}
 
 	return result, nil
+}
+
+// groupedPair is GroupedAggregateScan's row shape: one decoded group key and
+// its normalized float value.
+type groupedPair struct {
+	key string
+	val float64
 }

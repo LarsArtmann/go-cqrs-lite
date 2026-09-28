@@ -317,16 +317,9 @@ func reflectCall1[T any](hv reflect.Value) func(record.Record, any) T {
 }
 
 func onFold[E any](eventType string, sample E, handler any) Fold {
-	if rf := removeFoldFor(eventType, sample, handler); rf != nil {
-		return rf
-	}
-
-	handlerType := reflect.TypeOf(handler)
-	if handlerType == nil || handlerType.Kind() != reflect.Func {
-		panic(fmt.Sprintf(
-			"metaengine.On(%s): handler must be a function or Remove[V](), got %T",
-			eventType, handler,
-		))
+	fold, handlerType := foldPrelude("On", eventType, sample, handler)
+	if fold != nil {
+		return fold
 	}
 
 	if err := verifyEventParam[E](handlerType, eventType); err != nil {

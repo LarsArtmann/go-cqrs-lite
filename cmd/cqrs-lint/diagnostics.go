@@ -72,6 +72,28 @@ func loadConfigFileBytes(path string) []byte {
 	return stripJSONComments(data)
 }
 
+// eachAncestorConfigFile calls fn with the .cqrs-lint.json path of every
+// ancestor directory ABOVE the immediate parent (which cmdguard already
+// loads), walking upward to the filesystem root. Shared by the config-merge
+// and doctor paths so both see the same ancestor set.
+func eachAncestorConfigFile(lintPath string, fn func(configPath string)) {
+	absPath, err := filepath.Abs(lintPath)
+	if err != nil {
+		return
+	}
+
+	for dir := filepath.Dir(absPath); ; {
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return // reached filesystem root
+		}
+
+		fn(filepath.Join(parent, ".cqrs-lint.json"))
+
+		dir = parent
+	}
+}
+
 // loadParentRulesConfig walks up the directory tree from lintPath looking for
 // .cqrs-lint.json files. Parent config is merged into the local config:
 //   - rules.disable: union (both parent and local disables apply)
@@ -84,37 +106,25 @@ func loadConfigFileBytes(path string) []byte {
 // The immediate parent's config is NOT loaded (cmdguard already loaded it).
 // Only ancestors beyond the current directory are consulted.
 func loadParentRulesConfig(lintPath string) analyzer.RulesConfig {
-	absPath, err := filepath.Abs(lintPath)
-	if err != nil {
-		return analyzer.RulesConfig{}
-	}
-
 	var merged analyzer.RulesConfig
 
-	dir := filepath.Dir(absPath)
-	for {
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break // reached filesystem root
-		}
-
-		configPath := filepath.Join(parent, ".cqrs-lint.json")
+	eachAncestorConfigFile(lintPath, func(configPath string) {
 		data := loadConfigFileBytes(configPath)
-		if data != nil {
-			var top struct {
-				Rules analyzer.RulesConfig `json:"rules"`
-			}
-			if json.Unmarshal(data, &top) == nil {
-				merged.Disable = append(merged.Disable, top.Rules.Disable...)
-				merged.ExternalAPIStructPrefixes = append(
-					merged.ExternalAPIStructPrefixes,
-					top.Rules.ExternalAPIStructPrefixes...,
-				)
-			}
+		if data == nil {
+			return
 		}
 
-		dir = parent
-	}
+		var top struct {
+			Rules analyzer.RulesConfig `json:"rules"`
+		}
+		if json.Unmarshal(data, &top) == nil {
+			merged.Disable = append(merged.Disable, top.Rules.Disable...)
+			merged.ExternalAPIStructPrefixes = append(
+				merged.ExternalAPIStructPrefixes,
+				top.Rules.ExternalAPIStructPrefixes...,
+			)
+		}
+	})
 
 	return merged
 }

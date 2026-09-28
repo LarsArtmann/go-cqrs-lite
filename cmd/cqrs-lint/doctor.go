@@ -148,27 +148,13 @@ func renderDoctorConfigFile(w io.Writer, cfg *AppConfig) {
 // findParentConfigs walks up the directory tree and returns paths to all
 // .cqrs-lint.json files found in ancestor directories.
 func findParentConfigs(lintPath string) []string {
-	absPath, err := filepath.Abs(lintPath)
-	if err != nil {
-		return nil
-	}
-
 	var found []string
 
-	dir := filepath.Dir(absPath)
-	for {
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			break
-		}
-
-		configPath := filepath.Join(parent, ".cqrs-lint.json")
+	eachAncestorConfigFile(lintPath, func(configPath string) {
 		if _, err := os.Stat(configPath); err == nil {
 			found = append(found, configPath)
 		}
-
-		dir = parent
-	}
+	})
 
 	return found
 }
