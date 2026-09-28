@@ -144,6 +144,7 @@ func (s *EventStore) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
+	//art-dupl:accept empty-batch+span head — cross-module blind-store idiom, dep-isolated go.mod
 	if len(events) == 0 {
 		return nil
 	}

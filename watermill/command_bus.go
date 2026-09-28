@@ -137,6 +137,7 @@ func (b *CommandBus) Close() error {
 	defer b.mu.Unlock()
 
 	if b.closed {
+		//art-dupl:accept close-once latch idiom — bus Close contract, deliberately not merged (lock discipline differs)
 		return nil
 	}
 

@@ -33,6 +33,7 @@ func (s *suite) pinBackoffLadder(t *testing.T) {
 	c := e.claim(t, "w1")
 
 	// Zero backoff: the task re-enters the ready set immediately.
+	//art-dupl:accept conformance test-step twins — fail/assert steps mirror the requeue path by design
 	if err := e.store.Fail(t.Context(), subject.ID, c.Token, "boom", 0, nil); err != nil {
 		t.Fatalf("fail: %v", err)
 	}

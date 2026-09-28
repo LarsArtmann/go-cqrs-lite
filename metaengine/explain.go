@@ -111,6 +111,7 @@ func (r *TypedReader[V]) ExplainAggregate(
 // query to a particular engine. Use it during development to verify
 // FilterOnField/SortOnField declarations produce pushdown scans.
 func (s *Store) ExplainPlan() string {
+	//art-dupl:accept read-locked engine iteration prologue — idiomatic store snapshot
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
