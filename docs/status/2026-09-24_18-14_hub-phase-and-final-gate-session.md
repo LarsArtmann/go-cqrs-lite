@@ -1,5 +1,7 @@
 # Status Report — Hub-Phase Completion + Final Gate Session
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Hub phase + final gate — .golangci.yml restored + hash golden re-pinned (config-war recovery, CHANGELOG 09-26); systemtest lint findings + the never-run composed verify are tracked TODO rows (Code Quality 'Dedup-campaign verification tail' + CI composed-verify); push cadence collapsed to the billing row (premise cleared 09-22); all release/hub items routed as in 13-32.
+
 **Date:** 2026-09-24 18:14 (Thursday)
 **Session scope:** Resumed under "READ, UNDERSTAND, RESEARCH, REFLECT … execute
 and verify one step at a time, repeat until done" from the

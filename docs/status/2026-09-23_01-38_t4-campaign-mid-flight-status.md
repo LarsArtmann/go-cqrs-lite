@@ -1,5 +1,7 @@
 # Status Report: t4 Clone-Elis (in-flight) — Campaign Execution Session
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Mid-flight snapshot of the t4 campaign — COMPLETED by the 05-03 report (21/21 groups; completion addendum in that file). Superseded; nothing open here that the campaign's own completion + the 2026-09-28 52-group closure (CHANGELOG) did not cover.
+
 |                   |                                                                                                                                                                                                                              |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Date**          | 2026-09-23, 01:38 CEST                                                                                                                                                                                                       |

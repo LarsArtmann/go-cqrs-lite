@@ -1,5 +1,7 @@
 # Status Report — Goal-Closure Wave: G-T09..T14 + G-T25 gate check + goal-shaped-app polish tail
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** G-T09..G-T14 + polish tail EXECUTED (receipts in TODO_LIST Goal-closure section rows; CHANGELOG [Unreleased]). Open tails all tracked: G-T13 MySQL VM leg + G-T12 wave (TODO 'Post-v4.9.0 metaengine tag wave'), G-T01/G-T02 direction ruling (TODO Goal-closure #1), G-T25 flip gate (TODO Goal-closure #3), G-T14 v5 flip (v5 section). (f) #2/#3 resolved by the drift-gate + config-war recovery waves; #4 taskmanager golden repaired 2026-09-28; #43 junk files deleted pre-v4.15.0 cut (CHANGELOG Fixed); #44 routed (TODO Turso section #1); DuckDB ADTSet (#14) remains an open audit lens under the capability work.
+
 **Date:** 2026-09-22 01:19 CEST
 **Session window:** ~15:40–01:15 CEST (2026-09-21, spilling past midnight)
 **Repo state at writing:** master, tree essentially clean (2 stray entries), daemon has absorbed all work into `chore:` heuristic commits through `412079518`

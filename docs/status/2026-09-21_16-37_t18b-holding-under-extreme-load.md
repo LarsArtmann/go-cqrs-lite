@@ -1,5 +1,7 @@
 # Status Report #6: T18b — Holding Under Extreme Load (863); Chain Intact, Zero Execution This Round
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T18b report #6 of 6 (final) — the consolidation it asked for in (e)3 SHIPPED: docs/benchmarks/2026-09-20-21_t18b-record.md + ADR-0148; the chain landed green 2026-09-21 18:14 UTC. Weekly load-sweep nightly leg + nightly-bench timer shipped. Open remainders routed as in report #1.
+
 **Date:** 2026-09-21 16:37 CEST (14:37 UTC)
 **Scope:** continuation of the T18b session (reports #1–#5 + addenda). This round executed **nothing** — by design it is a state check, and the honest headline is the machine state itself. No unrelated work researched.
 

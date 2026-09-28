@@ -1,5 +1,7 @@
 # Status Report — Data-Mesh Conformance Assessment Session
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** The assessment fed the 2026-09-23 data-mesh plan — EXECUTED to completion 2026-09-24 (plan archived; execution receipts in TODO data-mesh section + CHANGELOG). All §f items either shipped with T01-T27 or live in the data-mesh open tail.
+
 **Date:** 2026-09-23 18:09 (Wednesday)
 **Session scope:** ONE question — "How well does go-cqrs-lite conform to / enable data mesh?"
 Analysis-only session. Zero code changes, zero commits authored (working tree untouched).

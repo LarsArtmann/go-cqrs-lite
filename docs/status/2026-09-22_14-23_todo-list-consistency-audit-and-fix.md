@@ -1,5 +1,7 @@
 # TODO_LIST.md Consistency Audit + Fix — Full Status Report
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** The consistency audit's fixes all landed (receipts in its §a). Its open §b/§c items were absorbed by later passes: the count-basis hygiene became the canonical-facts status-index leg (shipped 2026-09-26, gate-green); the composed-verify ask is the tracked TODO row.
+
 > **Session:** 2026-09-22 ~11:30–14:25 · **Scope:** the user's two asks — (1) "Is
 > TODO_LIST.md consistent with itself?", (2) "Fix?" — plus this mandated status
 > report. Everything below derives from THIS session's run and what it

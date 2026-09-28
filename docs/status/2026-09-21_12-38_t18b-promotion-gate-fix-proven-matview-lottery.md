@@ -1,5 +1,7 @@
 # Status Report #3: T18b — Promotion Shipped, Gate Fix Proven, Matview Lottery Quantified
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T18b report #3 of 6 — superseded by the arc closure (all three rulings executed in the addendum: KNOWN_UNSTABLE suppression, nightly-bench + SystemNix timer, autonomous widening chain; the chain later closed green — canonical record). Open remainders routed as in report #1.
+
 **Date:** 2026-09-21 12:38 CEST (10:38 UTC)
 **Scope:** continuation of the T18b session (`docs/status/2026-09-20_22-02_…`, `docs/status/2026-09-21_10-30_…`) — covers the owner rulings executed since report #2 (tooling promotion, chained cost pass) and the overnight verifier outcome. No unrelated work researched.
 **Host:** shared 32-core; **load 99.6/36/22 at writing** — the heaviest storm yet; the chained cost pass (pid 1016121) is waiting it out (6h deadline, expires ~17:26 CEST).

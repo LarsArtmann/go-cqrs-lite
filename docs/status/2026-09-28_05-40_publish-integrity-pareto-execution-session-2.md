@@ -1,5 +1,7 @@
 # Publish-Integrity Pareto Plan — Execution Session 2 (continuation)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Publish-integrity session 2 — M14/M19/M25/M15/M16 done (receipts in TODO rows: onset-matrix doc, issue #9391, quiet-campaign.sh + dgraph-calibration-leg.sh); M5+M20 armed window-dependent (the TODO calibration row owns the campaign; harvest procedure in plan §8 addendum); M22 owner Q3 + benchkit/LICENSE are TODO rows (12th-pass harvest). The 'Not done / blocked' trio is fully tracked.
+
 **Written:** 2026-09-28 05:40 CEST
 **Scope:** continuation of [`2026-09-28_02-22_publish-integrity-pareto-execution-session.md`](2026-09-28_02-22_publish-integrity-pareto-execution-session.md) — the remaining plan tasks after the report demand. Plan: [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](../planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md).
 

@@ -1,5 +1,7 @@
 # PapDashboard → go-cqrs-lite/queue adoption evaluation (T20 spike)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Verdict DELIVERED (ADOPT for the notify pipeline, gated on the queue-family tag wave; no PapDashboard-side blocker). The gating tag pair is the TODO_LIST 'Release-train tail' row (queue/mysql + testutil/mysqltestcontainer). Archived by the 12th pass.
+
 **Date:** 2026-09-20
 **Scope:** TODO_LIST "Durable Work Queue module" T20 — evaluate migrating
 PapDashboard's worker pools onto `queue/{sqlite,postgres}`; record the

@@ -1,5 +1,7 @@
 # EventCatalog Integration Overhaul — Status Report
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** EventCatalog integration overhaul — the 16 zod-schema defects + renderer/gate/linter work SHIPPED (CHANGELOG data-mesh receipts; verified by the 05-14 closeout). (f) hardening candidates (dangling-ref validation, sidebar ordering, unit conformance table) are exporter-v2 fuel in the data-mesh tail context; the catalog/AGENTS golden-snap guidance correction is absorbed by the shipped module-wide regen + git-status rule.
+
 **Date:** 2026-09-23 04:36
 **Scope:** `catalog/` module, `catalog/eventcatalog/` exporter, `catalog/cmd/ec-fixture`, `scripts/check-eventcatalog.sh`
 **Trigger:** User verdict: "catalog and its eventcatalog.dev integration is a disgrace" → READ/UNDERSTAND/RESEARCH/REFLECT, fix, verify.

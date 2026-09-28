@@ -1,5 +1,7 @@
 # Status Report — 11th Docs-Health Pass: Full Audit + Self-Review (what I forgot, what I fucked up)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** The 11th docs-health pass — superseded by the 12th pass (2026-09-28, this sweep), which archived it per the standing convention. Its harvest landed (starred §f rows exist in TODO_LIST; the go.work drift gate shipped 09-22 and the BuildFlow cause was verified fixed upstream 09-25; md-go rows landed; skill-ref .On sweep shipped 09-22 as T14). Its (d) lessons are encoded in the docs-health skill's annotate scripts (row-scoped tools, never hand-rolled bulk deletions).
+
 **When:** 2026-09-21 23:40 → 2026-09-22 01:25 CEST (spans midnight; daemon committed most edits 23:4x–23:5x on 09-21, banners say 2026-09-22 as the pass-completion date — disclosed, not silently mixed)
 **Scope:** the fourth run of the "View ALL `**/2026-0*` files + execute docs-health + six living docs SUPERB + archive fully-done files" mandate (8th 09-19, 9th 09-20, 10th 09-21 23:31, this). Docs-health AUDIT: gates-first baseline → read/verify → annotate/archive → harvest → living-docs repair → gates. Zero production code touched (comments in two go.mods + flake.nix only).
 **Repo state at close:** master ahead of origin (nothing pushed — never without ask); auto-commit daemon absorbed every wave (`chore:` commits `8b1620a73`, `b2410b28e`, `9f5852986`, …); concurrent sessions live throughout (a `command/go.mod` edit appeared mid-pass; `metaengine/store.go` WIP untouched).

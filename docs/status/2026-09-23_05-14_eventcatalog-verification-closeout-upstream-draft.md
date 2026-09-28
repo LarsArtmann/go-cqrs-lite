@@ -1,5 +1,7 @@
 # Status Report — EventCatalog Overhaul Closeout: Verification Re-Runs + Upstream Issue Draft
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Closeout verified (gates green; exporter waves in CHANGELOG). The upstream agent-changelog crash DRAFT lives as docs/status/2026-09-23_eventcatalog-agent-changelog-crash-issue-draft.md (KEEP-LIVE until filed — owner-gated external action). Remaining hub-side items are eventcatalog-hub repo work (routed there by decision D3).
+
 **Date:** 2026-09-23 05:14 (Wednesday)
 **Session scope:** Continuation of the EventCatalog integration overhaul (prior report: `2026-09-23_04-36_eventcatalog-integration-overhaul.md`). This segment: final verification re-runs, two upstream bugs root-caused to source, doc corrections, upstream issue drafted + verified. Report covers THIS session's run and what was noticed in passing.
 

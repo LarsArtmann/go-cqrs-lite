@@ -1,5 +1,7 @@
 # Status Report — Full-Execution Session: Pareto Plan T01–T17 (disjoint waves under heavy concurrency)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T01-T17 disjoint waves — all A-items verified in the 11:32 follow-up; open tails tracked: T04 verify (TODO 'Composed `#verify` re-record' — E15 pin gap dead since dispatcher/v4.5.0 published 09-27), T08/T09 tag waves (TODO Release section — the 2026-09-27 train stalled at 1/7, receipt in the metaengine tag-wave row), T10 filings (TODO 'Upstream filings' row), F153 (TODO CI section, resolved-as-designed 09-25), defect-A characterization DONE 2026-09-28 (M14 onset matrix).
+
 **Date:** 2026-09-22 02:33 → 03:31 CEST
 **Mandate:** "GET SHIT DONE! The WHOLE TODO LIST!" — execute
 `docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`.

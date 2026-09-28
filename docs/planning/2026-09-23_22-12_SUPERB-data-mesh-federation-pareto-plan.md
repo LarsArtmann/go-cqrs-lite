@@ -1,5 +1,7 @@
 # SUPERB — Data-Mesh & Federation-Hub Pareto Plan
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** EXECUTION COMPLETE 2026-09-24 (banner above) — open tail lives in TODO_LIST 'Data-mesh & federation tail' (catalog tag wave, poisoned-tag residual, pin-sweep, mesh-demo variant, goal-shaped activation); hub-side work in the eventcatalog-hub repo. Archived by the 12th pass.
+
 **Date:** 2026-09-23 22:12 · **Author:** planning session (user-prompted Pareto breakdown)
 **Inputs:** [`docs/status/2026-09-23_18-09_data-mesh-conformance-assessment-session.md`](../status/2026-09-23_18-09_data-mesh-conformance-assessment-session.md) §f items 1–26, TODO_LIST "EventCatalog exporter options" (T13, routed from SystemNix 2026-09-23), and the session's 3 open questions (resolved as D1–D3 below).
 **Goal:** Turn the data-mesh conformance assessment into shipped capability: unblock the federation hub, re-arm federated governance, prove the story with an example, and pin the decisions.

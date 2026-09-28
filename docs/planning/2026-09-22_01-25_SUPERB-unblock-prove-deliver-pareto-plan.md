@@ -1,5 +1,7 @@
 # SUPERB — Unblock · Prove · Deliver: Pareto Execution Plan (post-11th-audit)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** EXECUTED: T01-T07/T10-T17/T20/T26 done across the 09-22 waves (receipts in CHANGELOG [Unreleased] + the archived 03-31/11-32/12-58 reports); T04's composed-verify remainder, T08/T09 tag waves, T25 owner bundle, and T27 long tail all live as TODO_LIST rows (CI, Release, Metaengine sections). Archived by the 12th pass (2026-09-28).
+
 **Date:** 2026-09-22 01:25 CEST
 **Mandate:** owner directive (paste_1): full Pareto breakdown (1%→51%, 4%→64%, 20%→80%, +20%→100%), ALL TODO rows planned at 30–100min tasks, top tier micro-broken to ≤12min, sorted by importance/impact/effort/customer-value, execution graph, then commit + push (push explicitly authorized by the directive).
 **Input:** `TODO_LIST.md` @ 2026-09-22 01:22 (131 open + 28 BLOCKED rows across 25 sections), rebuilt by the 11th docs-health pass (report: `docs/status/2026-09-22_01-20_docs-health-eleventh-pass-full-audit.md`).

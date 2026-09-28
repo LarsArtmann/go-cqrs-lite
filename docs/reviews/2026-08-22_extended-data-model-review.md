@@ -1,5 +1,7 @@
 # Extended Data-Model Review — storage/*, system/, stack/, watermill/, middleware/
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** E-items EXECUTED 2026-09-22 (E1/E7/E8/E11/E13/E15 shipped; E3/E9/E10/E14 verified already-done; remaining halves tracked in the v5 section — receipts in CHANGELOG [Unreleased] + the archived 12-58 v5-train report). Archived by the 12th pass.
+
 > **Date:** 2026-08-22 · **Plan task:** T21 (core data-model v5 execution plan)
 > **Companion to:** `docs/reviews/2026-08-22_core-data-model-review.html`
 > (which covered id/event/command/query/record/metadata/decider/snapshot).

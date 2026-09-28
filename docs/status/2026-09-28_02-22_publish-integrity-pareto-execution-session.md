@@ -1,5 +1,7 @@
 # Publish-Integrity Pareto Plan — Execution Session Status
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Publish-integrity session 1 — M1-M13 receipts rowed in TODO_LIST (stalled-train M1, surgery M2, race M3, junk M6, counts M7, placements M8/M9, flake M10, ADR-0149 M11, README note M12); M14 finished + M19 filed by session 2 (05-40); M15 rows added; M16 gates green; M22 owner Q3 is now a TODO row. Open: M5+M20 (armed quiet campaign — TODO calibration row + plan §8 addendum), M22, and the owner mechanics (train completion, tursoengine v4.2.1).
+
 **Written:** 2026-09-28 02:22 CEST
 **Scope:** THIS SESSION ONLY — execution of [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](../planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md) (M-tasks), stopped mid-M14 on the user's report demand. Prior-session work (the plan itself, the QA session) is context, not inventory here.
 **Format note:** Markdown per explicit user instruction (skill default is HTML dashboard; override flagged, not propagated).

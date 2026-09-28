@@ -1,5 +1,7 @@
 # Status Report — v5 Train Execution: T26 Paste Items, Preflight GREEN, Verify Armed
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** The v5-train paste EXECUTED (A1-A20). Open gates all tracked: cut v5.0.0 + deletion waves (TODO v5 section), MariaDB migration leg (TODO v5 'Migration-verification tail'), ADR-0139 ruling (TODO v5 row + owner memo doc), listing rename (v5 sweep row). The composed verify ask is the tracked TODO row (CI section).
+
 **Date:** 2026-09-22 12:58 CEST
 **Mandate:** the v5 Unification paste (sweep §4 rest · ADR-0139 · T18 tail ·
 E-items · post-landing sweep · V5-MIGRATION-GUIDE · systemtest split ·

@@ -1,5 +1,7 @@
 # Status Report: T18b — Load-Sweep + Benchmark Baseline Re-Pin Under Go 1.27
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T18b report #1 of 6. The arc CLOSED green 2026-09-21 18:14 UTC (widened 100x/9, re-pinned, verification PASS); the canonical record is docs/benchmarks/2026-09-20-21_t18b-record.md and ADR-0148 codifies the gate laws. Every ruling-ask in (g) was answered in the dated addenda below. Open remainders (SearchQuery count=5 + dgraph re-anchor; --explain/--json/deep-quiet probe/stability probe/threshold sweep; ceiling policy) live in TODO_LIST 'Metaengine — follow-ups' (calibration row + T18b tail row) and the 'Bench-gate/tooling single-mention tail' row.
+
 **Date:** 2026-09-20 22:02 CEST (20:02 UTC)
 **Session scope:** T18b (plan T13 `#load-sweep` + T14 `benchmark-regression.sh --save` re-pin) from the Metaengine Universal Storage Substrate paste; T19–T21 confirmed out of scope (v5-gated).
 **Host:** shared 32-core (AMD RYZEN AI MAX+ 395); load oscillated 13–55 during the early watch; quiet window (load1/load5 < 5) opened 16:58 UTC.

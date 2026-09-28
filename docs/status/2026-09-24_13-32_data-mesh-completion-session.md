@@ -1,5 +1,7 @@
 # Status Report — Data-Mesh Completion Session (T22–T27 tail + §f queue)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T22-T27 tail + hub phase — receipts as in the 12-26 report; hub-side remainder (dist provisioning, stale-source cron, sources.json onboarding) is eventcatalog-hub repo work; the go-cqrs-lite open tail = the TODO data-mesh section rows (tag wave, surgery, pin-sweep, mesh-demo variant, goal-shaped activation).
+
 **Date:** 2026-09-24 13:32 (Thursday)
 **Session scope:** Resumed execution under the user's "READ, UNDERSTAND, RESEARCH,
 REFLECT … execute and verify one step at a time, repeat until done" instruction,

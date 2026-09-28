@@ -1,5 +1,7 @@
 # SUPERB Plan — go-cqrs-lite to the max (durable work queue + adoption arc)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** The code program is DONE (banner above, 8th pass). Its last open halves all landed: T20 PapDashboard verdict delivered 2026-09-20 (review archived); T22 tail encoded across ADR-0142/ADR-0117 contracts; T12/T13 tag-wave sequencing now lives in TODO_LIST 'Release / Tagging' + the metaengine tag-wave row (M1 receipt, 2026-09-28). Nothing in this plan is executed from here — archived by the 12th pass.
+
 > **EXECUTION STATUS (docs-health 8th pass, 2026-09-19):** the CODE program is
 > DONE — M1–M4 all green (T1–T9, T14–T17, T19 executed; T10 resolved by the
 > native-dedup-seam decision; T21's semantic-diff probe shipped 2026-09-19).

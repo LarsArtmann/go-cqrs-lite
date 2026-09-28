@@ -1,5 +1,7 @@
 # t4 Clone-Elimination Campaign — Completion Status & Self-Review
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** t4 campaign COMPLETE (its own §a). The 50-group work-down it queued became the 2026-09-28 52-group campaign — closed 0 new Go-side groups, structural re-pin 60→187 sanctioned + mutation-tested (CHANGELOG). graphNeighborsFallback stays a TODO row (Code Quality); templ extraction is the TODO templ-watch row; taskmanager golden repaired 09-28; dependabot fixed 09-26; dispatcher re-tag landed as v4.5.0 (09-27). The art-dupl templ-directive + hash-matching upstream asks live in the TODO templ-watch row's caveats.
+
 **Report time:** 2026-09-23 05:03 CEST
 **Scope:** This session's run (continuation of `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md`; prior state in `docs/status/2026-09-23_01-38_t4-campaign-mid-flight-status.md`).
 **Verdict:** Campaign COMPLETE. 21/21 clone groups resolved. t4 AND t7 repo scans clean (0 actionable, verified by consecutive idle-tree double-runs). One owner-rejected decision (IN separator) reworked and re-verified. Format note: user requested `.md`; the status-report skill's HTML default was overridden by explicit instruction.

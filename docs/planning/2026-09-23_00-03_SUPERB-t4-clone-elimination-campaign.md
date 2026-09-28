@@ -1,5 +1,7 @@
 # SUPERB Plan: t4 Clone Elimination Campaign (art-dupl type-aware, 21 actionable groups)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Campaign COMPLETE (21/21 groups, 05-03 report) and superseded by the 2026-09-28 repo-wide 52-group closure (0 new Go-side groups; sanctioned re-pin 60→187; CHANGELOG receipt). Remaining lenses (templ groups, graphNeighborsFallback, key-encoding vocab) are TODO_LIST rows. Archived by the 12th pass.
+
 |                             |                                                                                                                                                                                                                                                                                                    |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Created**                 | 2026-09-23 00:03 CEST                                                                                                                                                                                                                                                                              |

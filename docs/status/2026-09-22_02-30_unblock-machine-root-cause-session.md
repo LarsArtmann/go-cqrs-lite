@@ -1,5 +1,7 @@
 # Session report: Unblock-the-Machine — go-directive root cause + Tier-1 execution
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Root cause + fixes all shipped (`b91205f23`; .buildflow.yml skip; check-go-version drift gate 9/9 self-test; go-env.sh adopted; F154 verified FIXED upstream 2026-09-25 — CHANGELOG). T13 done (go-graph-rag#2 filed); T15 landed; TODO strikes done by the 14-23 consistency pass. The buildcache-capacity monitor (80%/95%) shipped 2026-09-26 (CHANGELOG) — follow-up #1's monitoring half done; the space-prune itself is an owner env call outside this repo. T04's composed verify rode the re-record row (TODO CI section).
+
 **Date:** 2026-09-22 02:30–04:00 CEST
 **Plan:** [`docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](../planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md) (Tier 1%→51% + parts of 4%)
 **Outcome:** T01/T02/T03/T05 done, T06+T12 done, T20 partial (hook env), T04 armed-but-window-blocked. **The 4× downgrade-wave class is root-caused and mechanically dead.**

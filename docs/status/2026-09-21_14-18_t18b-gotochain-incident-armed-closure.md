@@ -1,5 +1,7 @@
 # Status Report #4: T18b — GOTOOLCHAIN Incident, Guarded Re-Arm, Autonomy Armed
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T18b report #4 of 6 — the GOTOOLCHAIN incident class is dead (scripts/go-env.sh shipped 2026-09-22, .buildflow.yml skip + check-go-version drift gate; F154 verified FIXED upstream 2026-09-25). Superseded by the arc closure; open remainders routed as in report #1.
+
 **Date:** 2026-09-21 14:18 CEST (12:18 UTC)
 **Scope:** continuation of the T18b session (reports #1–#3) — covers the post-ruling execution: the failed cost pass, its root cause, the guards added, and the re-armed autonomous chain. No unrelated work researched.
 **Host:** shared 32-core; load 34/37 at report time (another storm); cost pass + closure re-armed and waiting.

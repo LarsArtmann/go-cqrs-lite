@@ -1,5 +1,7 @@
 # Deduplication Session — 52 art-dupl Clone Groups (2026-09-28 02:21)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Dedup campaign session 1 — COMPLETE (status banner at top of file; closed by the 04-04 continuation: 52→0 Go-side, re-pin 60→187 mutation-tested, api golden + TestEvery green, CHANGELOG receipt). Remaining tails: the 3 templ groups (TODO templ-watch row), the 3 catalog file-size offenders SPLIT GREEN 2026-09-28 (05-40 report), verification debt → the TODO 'Dedup-campaign verification tail' row, skill-ref scan-family docs → the TODO docs-truth tail.
+
 > **STATUS (2026-09-28 03:10): COMPLETE — gate GREEN.** The campaign closed at
 > **52 → 0 new Go-side clone groups** (32 extractions total across both sessions,
 > ~40 accept directives, 3 templ groups absorbed by the closing structural

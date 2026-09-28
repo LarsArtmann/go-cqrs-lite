@@ -1,5 +1,7 @@
 # SUPERB — Owner-Unblock & Trust-Closure: Pareto Execution Plan (post-9th-audit)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** SUPERSEDED 2026-09-22 by the Unblock·Prove·Deliver plan (T-numbering folded the M-items; situation changed: master pushed, S03 green, 92-tag train published) and EXECUTED through the 09-22..26 waves. Open remainders live in TODO_LIST (T18b tail rulings → the T25 bundle questions, M20 one-pagers pending owner, calibration campaign). Archived by the 12th pass.
+
 > **When:** 2026-09-20 17:40 CEST · **Input:** [`TODO_LIST.md`](../../TODO_LIST.md)
 > rebuilt by the 9th docs-health pass (116 open + 31 BLOCKED rows across 29
 > sections; pass report `docs/status/archived/2026-09-20_17-34_docs-health-ninth-pass-full-audit.md`)

@@ -1,5 +1,7 @@
 # Status Report — sqliteengine / metaengine / system Q&A Session
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** QA session — every 'broken' claim it surveyed was re-verified 2026-09-28 by the publish-integrity plan (M1-M11 receipts): counts fixed (12/11/12 across 6 docs), junk files forensically pinned + deleted pre-cut, Explain gap CLOSED (QueryPlacements), checkpoint/DLQ premise stale (ADR-0149), race stale-claim killed, sqliteengine README note shipped (M12), IVM bisect done + upstream #9391 filed (M14/M19), tag waves receipted. Item #9's report-artifact policy ask is the TODO 'M22 / Q3' row (owner); #8's verified-vs-doc-claim convention shipped as the TODO receipt-convention (Legend).
+
 **Date:** 2026-09-27 23:43 CEST
 **Scope:** THIS SESSION ONLY (per directive: no research beyond what this session touched)
 **Session type:** Pure read/inventory Q&A. **Zero code edits, zero git operations, zero deletions.**

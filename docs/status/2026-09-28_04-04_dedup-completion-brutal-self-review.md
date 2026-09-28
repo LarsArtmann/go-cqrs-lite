@@ -1,5 +1,7 @@
 # Dedup Completion + Brutal Self-Review (2026-09-28 04:04)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Dedup completion — campaign closed; its verification debt (§b + §f1-14) is now the TODO 'Dedup-campaign verification tail' row; the catalog file-size offenders were split green the same day (05-40 report); the repair-tool war's root cause is dead upstream (F154 verified FIXED — the rewrite rule no longer fires under skip_steps); the NewEvent canary idea (#16) is noted there; the gocache-disk quarantine is machine-local env (workaround documented in gotchas; not repo work).
+
 **Mission (this session):** Resume the 52-group deduplication campaign
 (`docs/status/2026-09-28_02-21_deduplication-52-clone-groups-session.md`),
 work the plan top-down, verify everything. The user then asked: *what did you

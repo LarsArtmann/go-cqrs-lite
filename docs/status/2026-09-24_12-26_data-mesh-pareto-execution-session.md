@@ -1,5 +1,7 @@
 # Status Report — Data-Mesh Pareto Execution Session (T01–T27)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Data-mesh execution T01-T21 — receipts in TODO_LIST 'Data-mesh & federation tail' + CHANGELOG. Later sessions closed most of §f: proxy probe SHIPPED (weekly, CHANGELOG), reverse changelog gate SHIPPED, dependabot FIXED (moby v0.3.0), E019 variable-pass SHIPPED, docserver badges SHIPPED, linter lockfile-pin SHIPPED, D007 verified NOT broken (09-26), md-go vendorHash/stamp FIXED, formatting sweep green (09-28 M16), zip-content guard SHIPPED (tag-release.sh). Open: catalog tag wave + surgery + pin-sweep + mesh-demo/goal-shaped rows (all in the TODO data-mesh tail); hub items live in the eventcatalog-hub repo.
+
 **Date:** 2026-09-24 12:26 (Wednesday)
 **Session scope:** Full execution of the
 [data-mesh & federation Pareto plan](../planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)

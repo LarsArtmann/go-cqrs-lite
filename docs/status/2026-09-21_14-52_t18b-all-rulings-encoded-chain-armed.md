@@ -1,5 +1,7 @@
 # Status Report #5: T18b — All Rulings Encoded; Chain Armed; Storm-Waiting
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T18b report #5 of 6 — superseded by the arc closure (green 18:14 UTC the same evening; canonical record + ADR-0148 + calibration case-study appendix all shipped). The /var/tmp/t18b copies were retired once the record cited them (03-31 report A11).
+
 **Date:** 2026-09-21 14:52 CEST (12:52 UTC)
 **Scope:** continuation of the T18b session (reports #1–#4 + addenda). This round's work: durable preservation of the session tooling, shellcheck of the detached scripts, and the armed-chain state. No unrelated work researched.
 **Host:** shared 32-core; load 40.9/41.4/33.6 at writing — the cost pass (pid 3244128) and closure (pid 3258300) are both alive, waiting for a quiet window; baseline `a91e7cd90` untouched; working tree clean (daemon-absorbed).

@@ -1,5 +1,7 @@
 # Status Report — TODO_LIST Full-Execution Session (2026-09-25 17:55 → 2026-09-26)
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Whole-TODO execution — every §a item has its CHANGELOG [Unreleased] receipt. §f routing: #1 dispatcher wave (published as v4.5.0 09-27; 6 of 7 train tags stalled — the TODO metaengine tag-wave row carries the M1 receipt), #2-4 clone campaigns DONE (2026-09-28, gate green), #5-13 release waves (TODO Release section), #14 composed verify (TODO row, STATE 09-28), #15-23 quiet-window heavies (TODO calibration/mysql rows), #24-26 cqrs-htmx (one open row + two closed 09-28), #27-35 tracked, #36 lint debt → the new 'Dedup-campaign verification tail' row, #37-50 tracked or shipped. (g) Q1 answered by the stalled-train receipt; Q2 = the F153 row; Q3 resolved by the campaign execution.
+
 > One session against the entire open TODO_LIST.md. Scope: execute every
 > executable item; verify each; document blockers precisely. This report is
 > the honest ledger — including what went wrong and what was skipped — per

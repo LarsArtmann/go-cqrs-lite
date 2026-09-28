@@ -1,5 +1,7 @@
 # Status Report — Full-Execution Session Review: T01–T17 Waves, T04 Verify RED, Honest Ledger
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** The T04 RED was fixed same-day by the v5-train session (SC1091 directive in the flake verify app — 12-58 report A1); T17 remainder shipped (ADR-0148 + calibration case-study appendix, CHANGELOG 09-26); T07 V006 golden repaired 2026-09-28; exhaustruct intel banked in the TODO 'Upstream filings' row; the E15 structural-lint blocker died with dispatcher/v4.5.0 (09-27). Composed verify remains the tracked TODO row (CI section, STATE 2026-09-28).
+
 **Date:** 2026-09-22 11:32 CEST (session ran 02:33 → 03:31; aftermath verified now)
 **Mandate:** "GET SHIT DONE! The WHOLE TODO LIST!" against
 `docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`,

@@ -1,5 +1,7 @@
 # STATUS: Unblock-the-Machine Session — Full Self-Review & State Report
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Self-review companion of the unblock session — all findings routed by the later waves (drift gate shipped; verify re-record tracked; lint debt zero'd 2026-09-19, then re-tracked for the post-dedup tree by the 12th pass's new Code Quality row).
+
 **Written:** 2026-09-22 11:32 CEST (session ran 02:30–03:30; 8h cooldown since)
 **Plan:** [`docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](../planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
 **Companion:** [`2026-09-22_02-30_unblock-machine-root-cause-session.md`](2026-09-22_02-30_unblock-machine-root-cause-session.md) (the technical record)

@@ -1,5 +1,7 @@
 # Survey: the Scan/Find 100-row default — consumer census + v5 options memo
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** Survey DELIVERED + decision RULED 2026-09-21 (Option C — banner above); both v4-safe add-ons shipped (WithDefaultLimit + F031, CHANGELOG). The only remainder (flip the built-in default on the v5 branch) is the TODO_LIST Goal-closure G-T14 row. Archived by the 12th pass.
+
 > **Status:** SURVEY DELIVERED — decision RULLED 2026-09-21 (owner, in-session):
 > **Option C** — flip to unbounded at the v5 cut + cqrs-lint nudge + optional
 > operator ceiling. The two v4-safe add-ons LANDED 2026-09-21

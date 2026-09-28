@@ -1,5 +1,7 @@
 # Status Report #2: T18b — Gate Hardening, Rulings Implemented, Verification Watch
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** T18b report #2 of 6 — superseded by the arc closure (green 2026-09-21 18:14 UTC; canonical record + ADR-0148). Rulings Q1/Q2/Q3 executed in the addendum; tooling promotion + nightly wiring shipped (see ROADMAP [Unreleased] 2026-09-21 segment). Open remainders routed as in report #1.
+
 **Date:** 2026-09-21 10:30 CEST (08:30 UTC)
 **Scope:** continuation of the 2026-09-20 T18b session (`docs/status/2026-09-20_22-02_t18b-load-sweep-bench-baseline-repin.md`) — covers the owner rulings, the `benchmark-regression.sh` hardening, overnight events (host reboot), and current watch state. No other work researched.
 **Host:** shared 32-core; current load 46/17/7 (morning burst draining); **the host rebooted overnight** — all `/tmp` evidence and the v2 verifier died with it.
