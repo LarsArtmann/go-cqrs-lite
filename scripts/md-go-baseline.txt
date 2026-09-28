@@ -63,7 +63,6 @@ docs/planning/archived/2026-07-23_extraction-analysis.md:170:syntax
 docs/planning/archived/2026-07-23_extraction-analysis.md:72:syntax
 docs/planning/archived/2026-08-03_00-51_SUPERB-METAENGINE-REPLICATION-MODEL-CORRECTION.md:75:syntax
 docs/planning/archived/2026-09-06_cqrs-lint-t23-design-passes.md:31:syntax
-docs/planning/archived/2026-09-13_11-45_SUPERB-command-side-depth.md:46:syntax
 docs/planning/archived/2026-09-13_T16-memo-streamingscan-wire-or-cut.md:14:syntax
 docs/quality/archive/2026-06-13_06-43_BDD_REVIEW.md:58:syntax
 docs/quality/archive/2026-06-16_BRANCHING_FLOW_REVIEW.md:201:syntax
