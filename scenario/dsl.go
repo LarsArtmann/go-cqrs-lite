@@ -237,7 +237,7 @@ func (s *DeciderScenario[Cmd, State]) ThenState(
 // when the fold errors. Shared by the Given and produced-events loops of
 // ThenState.
 func foldOrFatal[State any](
-	t testing.TB,
+	tb testing.TB,
 	apply func(State, event.Event) (State, error),
 	state State,
 	evt event.Event,
@@ -245,7 +245,7 @@ func foldOrFatal[State any](
 ) State {
 	state, err := apply(state, evt)
 	if err != nil {
-		t.Fatalf("%s: %v", failureMsg, err)
+		tb.Fatalf("%s: %v", failureMsg, err)
 	}
 
 	return state

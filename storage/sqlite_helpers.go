@@ -87,17 +87,6 @@ func execDDL(ctx context.Context, db *sql.DB, ddls []string) error {
 	return nil
 }
 
-// execPragmas runs each PRAGMA statement against db, wrapping the first failure
-// with errCode. Shared by SQLiteEnableWAL and SQLiteApplyOptimizations.
-func execPragmas(ctx context.Context, db *sql.DB, pragmas []string, errCode string) error {
-	for _, pragma := range pragmas {
-		if _, err := db.ExecContext(ctx, pragma); err != nil {
-			return errorfamily.WrapInfrastructure(err, errCode, "exec "+pragma)
-		}
-	}
-	return nil
-}
-
 func SQLiteInitSchema(ctx context.Context, db *sql.DB) error {
 	if err := execDDL(ctx, db, []string{sqlpkg.SQLiteSchemaEmbed()}); err != nil {
 		return err

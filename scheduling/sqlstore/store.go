@@ -148,7 +148,7 @@ func (s *SQLTimerStore[P]) Due(ctx context.Context, now time.Time) ([]scheduling
 		ctx,
 		s.q.due,
 		s.formatTime(now),
-	)
+	) //nolint:sqlclosecheck // closed below via record.DeferClose (ADR-0144 idiom; linter cannot see through the helper)
 	if err != nil {
 		return nil, errorfamily.WrapInfrastructure(
 			err,
