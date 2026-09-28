@@ -23,7 +23,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.0
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.10.2
 	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/larsartmann/go-sse/ssetest v0.3.0
 	go.opentelemetry.io/otel v1.46.0
@@ -46,7 +46,7 @@ require (
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
 	github.com/knadh/koanf/providers/env v1.1.0 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
-	github.com/knadh/koanf/v2 v2.3.6 // indirect
+	github.com/knadh/koanf/v2 v2.3.7 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.0 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
 	github.com/larsartmann/go-retry v0.7.1 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
-	github.com/larsartmann/go-sse v0.6.0 // indirect
+	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
@@ -67,8 +67,6 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
-	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
-	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
@@ -83,7 +81,9 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260921155816-b14227669459 // indirect
+	google.golang.org/grpc v1.84.0 // indirect
+	modernc.org/libc v1.77.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.59.0 // indirect
