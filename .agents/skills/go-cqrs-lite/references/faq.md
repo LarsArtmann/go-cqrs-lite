@@ -295,6 +295,20 @@ The same `storage/sql.ValidateJournalIdentifiers` guard protects the
 `JournalReader` and cursor-timestamp interpolation paths, backed by
 adversarial injection tests and a persisted fuzz corpus.
 
+### "Why must I never pass a named `[]byte` type into `event.New`?"
+
+`event.New`'s fast path (`case []byte:`) matches ONLY the unnamed slice
+type. A named type with the same underlying shape — `message.Payload`
+(watermill), `json.RawMessage` (encoding/json v1), your own
+`type Blob []byte` — misses the case and falls through to codec
+re-encoding: raw JSON bytes get CBOR-wrapped as a byte string (`0x40`
+header) while `WithEncoding(json)` stamps a label that lies about it.
+This exact bug shipped in `watermill/v4.6.1` (`MessageToEvent`) and was
+fixed with a boundary conversion: `[]byte(msg.Payload)`. Rule: convert
+named byte-slice types to plain `[]byte` at the bridge boundary before
+they reach `event.New` / `command.New` / `query.New`.
+(`jsontext.Value` from encoding/json/v2 IS handled natively.)
+
 ## Command-side pitfalls
 
 ### "Why don't my events record which command caused them?"

@@ -646,16 +646,18 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       not location — a verbatim copy of already-baselined code does NOT flag;
       the gate detects novel duplication shapes, not instances. _(Effort: S to
       watch, M to extract the templ components)_
-- [ ] 🔥 **Dedup-campaign verification tail (2026-09-28 harvest)** — the 52→3
-      clone campaign closed gate-green but the composed gates NEVER ran over it:
-      (a) `nix run .#verify` (composed) on the current tree; (b) `#lint` (the
-      trailing art-dupl comment line-length class is the known risk); (c)
-      `#load-sweep` (drainQuery/PairsToScanResult touched timing paths); (d)
-      live-DB legs for the engine-helper extractions (`#integration-pg` planned-scan,
-      `#integration-mysql-vm` cowLookup, `#integration-dgraph` SanitizeIdent,
-      `#integration-redis` watermill refactor); (e) `-race` on metaengine/watermill/
-      projectionhost/system/queue; (f) compile-verify systemtest + mesh-demo.
-      — source: archived 2026-09-28 04-04 §b/§f1-14 _(Effort: M total, sliceable)_
+- [ ] 🔥 **Dedup-campaign verification tail — remaining: (a) composed `#verify`
+      + (d)-mysql live legs only** — every other leg closed green: (b) `#lint`
+      88/88 modules 2026-09-29 (G703 nolints moved to the MkdirAll/WriteFile
+      SINK lines in `catalog/cmd/ec-fixture`, dupl accept on the two
+      declarative rule-table files in cqrs-lint); (c) `#load-sweep` ✅ 2026-09-28;
+      (d) `#integration-pg` planned-scan ✅, `#integration-dgraph` SanitizeIdent ✅,
+      `#integration-redis` watermill ✅ (green after the `MessageToEvent` payload
+      fix); (e) `-race` metaengine/watermill/projectionhost/system/queue ✅
+      zero failure lines; (f) compile-verify systemtest + mesh-demo ✅.
+      (a) is quiet-window-gated (`can-run-composed-gate`, load storm 163 at
+      2026-09-28 22:00); (d)-mysql = `#integration-mysql-vm` cowLookup leg.
+      — source: archived 2026-09-28 04-04 §b/§f1-14 _(Effort: S remainder)_
 - [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
       — core's degraded-path BFS (graph_fallback.go) still carries its own
       copy of the loop with different semantics: `[]any` frontier,
