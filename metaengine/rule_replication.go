@@ -15,20 +15,15 @@ type replicationRule struct{}
 func (*replicationRule) Name() string { return "replication" }
 
 func (r *replicationRule) Apply(result *PlanResult, ctx PlanContext) error {
-	for _, q := range result.Queries {
-		meta, ok := declaredQuery(ctx, q)
-		if !ok {
-			continue
-		}
-
+	eachDeclaredQuery(result, ctx, func(q QueryAssignment, meta queryMeta) {
 		profile := meta.QueryEngine().Profile()
 		if !profile.IsReplicated() {
-			continue
+			return
 		}
 
 		lag := profile.EffectiveReplicationLag()
 		if lag <= 0 {
-			continue
+			return
 		}
 
 		result.Diagnostics = append(result.Diagnostics, Diagnostic{
@@ -45,7 +40,7 @@ func (r *replicationRule) Apply(result *PlanResult, ctx PlanContext) error {
 			Query:  q.QueryName,
 			Reason: fmt.Sprintf("%s replication, lag=%s", profile.Replication, lag),
 		})
-	}
+	})
 
 	return nil
 }

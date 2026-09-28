@@ -18,15 +18,10 @@ type durabilityRule struct{}
 func (*durabilityRule) Name() string { return "durability" }
 
 func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
-	for _, q := range result.Queries {
-		meta, ok := declaredQuery(ctx, q)
-		if !ok {
-			continue
-		}
-
+	eachDeclaredQuery(result, ctx, func(q QueryAssignment, meta queryMeta) {
 		profile := meta.QueryEngine().Profile()
 		if !profile.IsVolatile() {
-			continue
+			return
 		}
 
 		adt := meta.QueryADT()
@@ -104,7 +99,7 @@ func (r *durabilityRule) Apply(result *PlanResult, ctx PlanContext) error {
 			Query:  q.QueryName,
 			Reason: "volatile engine " + profile.Name,
 		})
-	}
+	})
 
 	return nil
 }
