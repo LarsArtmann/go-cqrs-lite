@@ -296,7 +296,11 @@ gate_set_guard() {
 # noise_target_guard asserts the noise gate's target still exists in the
 # sources: the cqrs-bench 'run' subcommand, the backend name in the factory
 # switch, and the profile name in benchkit. A rename would otherwise surface
-# later as an opaque 'cqrs-bench run exited non-zero'.
+# later as an opaque 'cqrs-bench run exited non-zero'. Matching is
+# identifier-grade (2026-09-29, benchkit debt (h)): the double-quote anchors
+# require the exact identifier, and _test.go files are EXCLUDED — a target
+# renamed in production but still mentioned in a test must fail the guard,
+# not silently pass it.
 noise_target_guard() {
 	local root
 	root="$(guard_root)"
@@ -308,12 +312,12 @@ noise_target_guard() {
 		failed=1
 	fi
 
-	if ! grep -rEq -- "\"$NOISE_BACKEND\"" "$root/cmd/cqrs-bench" --include='*.go' 2>/dev/null; then
+	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_BACKEND\"" "$root/cmd/cqrs-bench" --include='*.go' 2>/dev/null; then
 		echo "NOISE TARGET GUARD FAILED — backend '$NOISE_BACKEND' not found in cmd/cqrs-bench sources"
 		failed=1
 	fi
 
-	if ! grep -rEq -- "\"$NOISE_PROFILE\"" "$root/benchkit" --include='*.go' 2>/dev/null; then
+	if ! grep -rEq --exclude='*_test.go' -- "\"$NOISE_PROFILE\"" "$root/benchkit" --include='*.go' 2>/dev/null; then
 		echo "NOISE TARGET GUARD FAILED — profile '$NOISE_PROFILE' not found in benchkit sources"
 		failed=1
 	fi
