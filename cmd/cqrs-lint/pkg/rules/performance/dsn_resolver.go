@@ -420,3 +420,41 @@ func fileHasWrapperCall(file *ast.File, wrapperNames ...string) bool {
 
 	return found
 }
+
+// hasSQLiteOpenEvidence reports whether an sql.Open call site already handles
+// the pragma concern (suppressing the finding): any resolvable DSN string part
+// matching dsnCheck, a fully opaque DSN (no literals or resolvable identifiers
+// — suppressed to avoid false positives on runtime-built DSNs), a post-open
+// PRAGMA statement in the enclosing function, or a known library wrapper call
+// in the same file. Shared by the p012 WAL and p013 busy_timeout evidence
+// checks, which differ only in predicate, pragma, and wrapper names.
+func hasSQLiteOpenEvidence(
+	site sqliteOpenSite,
+	constMap map[string]string,
+	pragma string,
+	dsnCheck func(string) bool,
+	wrapperNames ...string,
+) bool {
+	localExprScope := buildLocalExprScope(site.funcDecl)
+
+	// 1. Check if any resolvable string part of the DSN matches the predicate.
+	if site.dsnArg != nil {
+		if dsnExprContainsPragma(site.dsnArg, constMap, localExprScope, nil, dsnCheck) {
+			return true
+		}
+
+		// If the DSN has no inspectable string parts at all, it's fully
+		// opaque — suppress.
+		if !hasInspectableStringParts(site.dsnArg, constMap, localExprScope, nil) {
+			return true
+		}
+	}
+
+	// 2. Check for post-open PRAGMA in the enclosing function.
+	if funcSetsPragma(site.funcDecl, pragma) {
+		return true
+	}
+
+	// 3. Check for library wrapper calls in the same file.
+	return site.file != nil && fileHasWrapperCall(site.file, wrapperNames...)
+}
