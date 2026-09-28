@@ -12,7 +12,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/pebbleengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/pgengine/v4 v4.4.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/projectionhost/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
