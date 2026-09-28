@@ -154,6 +154,7 @@ func (s *suite) pinPriorityOrder(t *testing.T) {
 		t.Fatalf("claimed %s, want the priority-5 task %s", c.Task.ID, high.ID)
 	}
 
+	//art-dupl:accept conformance test-step twin of deps.go rescue flow — shared by design
 	if err := e.store.Complete(t.Context(), high.ID, c.Token, nil); err != nil {
 		t.Fatal(err)
 	}

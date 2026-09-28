@@ -82,6 +82,7 @@ func applyTask(state TaskState, evt event.Event) (TaskState, error) {
 
 	case evtTaskBlockedBy:
 		p, err := event.DecodePayloadAuto[TaskBlockedByPayload](evt)
+		//art-dupl:accept mirrored event arms — decode+parse prologue per payload type
 		if err != nil {
 			return state, err
 		}
