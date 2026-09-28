@@ -78,9 +78,9 @@ Session-corrective (from this session's own failures), then carry-forward fixes 
 
 | # | Task | Why |
 |---|------|-----|
-| 11 | Poisoned-tag surgery: retract + re-cut `metaengine/tursoengine/v4.2.0` (binary-junk zip) | BLOCKED on owner go-ahead |
+| ~~11~~ | ~~Poisoned-tag surgery: retract + re-cut `metaengine/tursoengine/v4.2.0` (binary-junk zip)~~ done — 2026-09-28 — M2 receipt: tag deleted, proxy 404 cached-absence, re-cut path rowed | ~~BLOCKED on owner go-ahead~~ |
 | ~~12~~ | ~~🔴 OWNER CALL: `storage/v4.10.0` — re-cut (re-poisons cached absence) vs retraction (leaves published system/v4.9.0 graph broken)~~ done — 2026-09-28 — M2 receipt: leave-published verified | ~~Cannot be decided for you~~ |
-| 13 | Fix the catch-up replay race (once-taken Events snapshot vs concurrent applies) — TODO_LIST 🔥 | Correctness |
+| ~~13~~ | ~~Fix the catch-up replay race (once-taken Events snapshot vs concurrent applies) — TODO_LIST 🔥~~ done — 2026-09-28 — M3 verdict: STALE claim, fix already in-tree (failover.go stabilize passes; 15/15 -race green) | ~~Correctness~~ |
 | ~~14~~ | ~~De-flake or quarantine `TestEngineHealth_CatchUpUnderConcurrentApplies` (load-sensitive, passes isolated)~~ done — observe-only; 15/15 green receipt re-recorded 2026-09-28 | ~~CI noise~~ |
 | ~~15~~ | ~~`system.New` durable checkpoint/DLQ store options (internal in-memory store today; pins cqrs-htmx consumers)~~ done — 2026-09-28 — premise stale; ADR-0149 written (M11) | ~~Known API gap~~ |
 | ~~16~~ | ~~`System.Explain`: surface per-query Volume/placement hints~~ done — 2026-09-28 — QueryPlacements shipped (M9) | ~~Introspection gap~~ |

@@ -93,7 +93,7 @@
 
 **Immediate (minutes):**
 
-1. Run `nix run .#verify` NOW (window open; record S04 in the TODO row after)
+~~1. Run `nix run .#verify` NOW (window open; record S04 in the TODO row after)~~ — routed — the composed-verify ask is the TODO_LIST CI row (STATE 2026-09-28)
 2. Push master (7 commits, plan-authorized) — then watch CI re-runs (F150)
 3. `nix build .#md-go-validator` — prove the ldflags stamp end-to-end
 4. Fix stale flake comment (scheduler-otel-status suite landed)

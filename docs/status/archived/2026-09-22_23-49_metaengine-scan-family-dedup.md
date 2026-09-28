@@ -1,5 +1,7 @@
 # Status Report: Metaengine Scan-Family Deduplication
 
+> **RESOLVED-BY-ROUTING (docs-health 12th pass, 2026-09-28):** the scan-family extraction is the t4 campaign's predecessor — its exports shipped in metaengine/v4.15.0 (CHANGELOG), the pattern is canonized as AGENTS contract #27, and the 69-group residue it left was closed by the 2026-09-28 repo-wide campaign (0 new Go-side groups, baseline re-pinned 60→187). Turso sweep done; turso-scan pattern consumed by the same helpers.
+
 |                   |                                                                                                                                                     |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Date**          | 2026-09-22, 23:49 CEST                                                                                                                              |

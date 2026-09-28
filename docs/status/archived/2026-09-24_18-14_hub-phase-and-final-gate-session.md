@@ -135,8 +135,8 @@ All committed (authored + daemon waves in three repos; nothing pushed).
 | ~~17~~ | ~~check-eventcatalog lockfile-pin of the linter install~~ done — 2026-09-26 — lockfile pin shipped | ~~Low~~ | ~~S~~ |
 | ~~18~~ | ~~cqrs-lint D007 repair-path "unsafe path" failures~~ done — 2026-09-26 — D007 verified not broken | ~~Medium~~ | ~~M~~ |
 | ~~19~~ | ~~3 high Dependabot vulnerabilities on master~~ done — 2026-09-26 — dependabot fixed | ~~High~~ | ~~M~~ |
-| 20 | bank-sync + cqrs-htmx lint-block adoption once the catalog tag lands                                                                                                     | Medium   | S      |
-| 21 | Note: hub CI cannot go green until go-cqrs-lite is pushed (mesh entries build from the mirror; the contract-file fix is local-only) — sequence push BEFORE first hub run | High     | XS     |
+| ~~20~~ | ~~bank-sync + cqrs-htmx lint-block adoption once the catalog tag lands~~ done — routed — TODO data-mesh tail row 1 (catalog tag wave unblocks it) | ~~Medium~~ | ~~S~~ |
+| ~~21~~ | ~~Note: hub CI cannot go green until go-cqrs-lite is pushed (mesh entries build from the mirror; the contract-file fix is local-only) — sequence push BEFORE first hub run~~ done — 2026-09-22 — master pushed; hub sequencing noted | ~~High~~ | ~~XS~~ |
 | ~~22~~ | ~~Verify formatting sweep completeness via `nix fmt --fail-on-change` (§f24 residue)~~ done — 2026-09-28 — nix fmt sweep green (M16) | ~~Low~~ | ~~S~~ |
 
 ## g) Questions I cannot answer myself
