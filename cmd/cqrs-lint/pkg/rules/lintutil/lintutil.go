@@ -6,7 +6,6 @@ import (
 	"go/ast"
 	"go/token"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/larsartmann/go-finding"

@@ -206,7 +206,8 @@ func (h *Host) Start(ctx context.Context) error {
 // times. If the timeout fires and workers are stuck, use [Host.ForceStop].
 func (h *Host) Stop() error {
 	h.mu.Lock()
-	if !h.started || h.stopped { //art-dupl:accept Stop/ForceStop stop-latch prologue — subtle concurrency, deliberately not merged
+	if !h.started ||
+		h.stopped { //art-dupl:accept Stop/ForceStop stop-latch — deliberately not merged
 		h.mu.Unlock()
 
 		return nil

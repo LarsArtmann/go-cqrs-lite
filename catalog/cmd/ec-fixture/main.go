@@ -289,4 +289,3 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		0o600,
 	)
 }
-

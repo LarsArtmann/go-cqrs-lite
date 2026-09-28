@@ -250,4 +250,3 @@ func foldOrFatal[State any](
 
 	return state
 }
-

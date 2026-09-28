@@ -198,5 +198,3 @@ func toAttachments(attachments []catalog.Attachment) []attachmentFM {
 
 	return out
 }
-
-
