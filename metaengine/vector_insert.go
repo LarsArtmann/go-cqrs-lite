@@ -31,9 +31,9 @@ func ScanVectorDimensionProbe(row *sql.Row, label string) (int, error) {
 func VectorMetadataArg(
 	emb Embedding,
 	label string,
-) (any, error) { //nolint:nilnil // nil,nil IS the contract: a nil any binds SQL NULL for absent metadata
+) (any, error) {
 	if emb.Metadata == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // nil binds SQL NULL by contract
 	}
 
 	data, err := json.Marshal(emb.Metadata)

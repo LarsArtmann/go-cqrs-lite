@@ -24,6 +24,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
@@ -68,5 +69,5 @@ func main() {
 		log.Fatalf("catalog-export: %v", err)
 	}
 
-	fmt.Printf("catalog-export: wrote EventCatalog tree to %s\n", *output)
+	fmt.Fprintf(os.Stdout, "catalog-export: wrote EventCatalog tree to %s\n", *output)
 }

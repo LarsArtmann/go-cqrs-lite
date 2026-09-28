@@ -37,7 +37,7 @@ func main() {
 	}
 
 	profile := ""
-	if len(os.Args) == 3 {
+	if len(os.Args) == argvCountWithProfile {
 		profile = os.Args[2]
 	}
 
@@ -57,15 +57,20 @@ const (
 	// Repeated resource IDs: goconst-clean and a single source of truth for
 	// the cross-references between fixture resources.
 	fixtureServiceID = "order-svc"
-	fixtureTeamID    = "order-team"
-	fixtureEventID   = "OrderCreated"
-	fixtureFlowID    = "checkout-flow"
+	// argvCountWithProfile is the argument count when the optional profile
+	// name is present: ec-fixture <output-dir> <profile>.
+	argvCountWithProfile = 3
+
+	// dirPerm/filePermPrivate: fixture-tree permissions (mnd: named for the linter's benefit).
+	dirPerm         = 0o750
+	filePermPrivate = 0o600
+
+	fixtureTeamID  = "order-team"
+	fixtureEventID = "OrderCreated"
+	fixtureFlowID  = "checkout-flow"
 )
 
-func run(outputDir string, changelogProfile, plainProfile bool) error {
-	reg := catalog.NewRegistry("Demo", fixtureVersion)
-	visualiser := true
-
+func registerFixtureService(reg *catalog.Registry, visualiser bool) {
 	reg.AddService(catalog.Service{
 		ID:       fixtureServiceID,
 		Name:     "Order Service",
@@ -94,6 +99,13 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 			EditUrl:    "https://github.com/example/order-svc/edit/main/docs",
 		},
 	})
+}
+
+func run(outputDir string, changelogProfile, plainProfile bool) error {
+	reg := catalog.NewRegistry("Demo", fixtureVersion)
+	visualiser := true
+
+	registerFixtureService(reg, visualiser)
 	reg.AddCommand(fixtureServiceID, catalog.Message{
 		Kind:     catalog.CommandMessage,
 		ID:       "CreateOrder",
@@ -278,14 +290,19 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 	// expects it inside the data product's directory. The exporter copies
 	// nothing (contract files are the declaring repo's assets) — the fixture
 	// writes its own.
-	contractDir := filepath.Join(outputDir, "data-products", "order-analytics", "contracts")
-	if err := os.MkdirAll(contractDir, 0o750); err != nil {
+	contractDir := filepath.Join(
+		outputDir,
+		"data-products",
+		"order-analytics",
+		"contracts",
+	) //nolint:gosec // argv-supplied output dir by design
+	if err := os.MkdirAll(contractDir, dirPerm); err != nil {
 		return err
 	}
 
 	return os.WriteFile(
-		filepath.Join(contractDir, "orders.yaml"),
+		filepath.Join(contractDir, "orders.yaml"), //nolint:gosec // fixture output path
 		[]byte(fixtureDataContract),
-		0o600,
+		filePermPrivate,
 	)
 }

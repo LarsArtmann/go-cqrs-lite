@@ -243,6 +243,8 @@ func foldOrFatal[State any](
 	evt event.Event,
 	failureMsg string,
 ) State {
+	tb.Helper()
+
 	state, err := apply(state, evt)
 	if err != nil {
 		tb.Fatalf("%s: %v", failureMsg, err)
