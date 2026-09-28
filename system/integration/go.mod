@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/duckdbengine/v4 v4.3.0
-	github.com/larsartmann/go-cqrs-lite/system/v4 v4.9.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.0
 )
 
 require (
@@ -85,9 +85,3 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
-
-// Sibling replace: published system/v4.9.0 requires storage/v4 v4.10.0,
-// a tag that was cut and later deleted (dead revision in the proxy graph).
-// Resolve system from the workspace until the next system tag wave carries
-// the repaired storage pin — strip in that wave's replace sweep.
-replace github.com/larsartmann/go-cqrs-lite/system/v4 => ../../system
