@@ -54,7 +54,7 @@ func AttachEncryption(
 	}
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	clone, err := event.NewEvent(
+	clone, err := event.New(
 		evt.Type(),
 		evt.StreamID(),
 		evt.StreamType(),

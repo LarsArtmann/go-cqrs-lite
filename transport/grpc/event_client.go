@@ -85,7 +85,7 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 	}
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.NewEvent(
+	evt, err := event.New(
 		event.Type(envelope.GetType()),
 		aggID,
 		id.StreamType(envelope.GetAggregateType()),
