@@ -169,6 +169,17 @@
 // RepeatedResult.WriteRepeatedJSON (or --format manifest --include-runs)
 // serializes the full per-run record instead.
 //
+// Inside `go test -bench` benchmarks, [RunSuiteRepeated] is the one-call
+// form of the same rigor: it runs the suite Config.Repeat times and reports
+// the median run's metrics PLUS every metric's cross-run CoV as a
+// `<metric>_cov%` custom metric — one `go test -bench -count=N` run gives
+// benchstat the medians and their dispersion together, so a CI gate can
+// refuse to judge a benchmark whose own CoV says the machine was too loud.
+// [HeadlineMetricNames] returns the metric names whose noise the regression
+// gate watches (kept in lockstep with scripts/benchmark-regression.sh by
+// test). Per-phase latency samples are bounded by Config.ReservoirSize
+// (default 10,000; 0 = library default) — exact P100/Min survive eviction.
+//
 // The latency bounds are exact at BOTH ends: P100 (worst) and Min (fastest)
 // are tracked per Record and survive reservoir eviction. P50-P99 default to
 // nearest-rank; Config.InterpolatedPercentiles switches them to linear

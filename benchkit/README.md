@@ -289,6 +289,18 @@ compared as point estimates. Raw per-run data also serializes on request:
 --include-runs` opts in from the CLI (file grows N-fold — that is why it is
 opt-in).
 
+Inside `go test -bench` benchmarks, `RunSuiteRepeated(b, config, factory)` is
+the one-call form of the same rigor: it runs the suite `Config.Repeat` times
+and reports the median run's metrics PLUS every metric's cross-run CoV as a
+`<metric>_cov%` custom metric — a `go test -bench -count=N` run gives
+benchstat the medians and their dispersion together, and noisy metrics
+(CoV >= `VariationThreshold`) are logged as `NOISY` lines for `-v` runs.
+`HeadlineMetricNames()` returns the metric names whose noise the regression
+gate watches (kept in lockstep with `scripts/benchmark-regression.sh` by
+test), and `Config.ReservoirSize` bounds each phase's latency reservoir
+(default 10,000 samples; 0 = library default — exact P100/Min always
+survive reservoir eviction).
+
 Percentile semantics: P50-P99 are nearest-rank estimates over the bounded
 reservoir sample; `P100` is the exact worst observed latency and `Min` the
 exact fastest (both tracked on every `Record`), so reservoir eviction can
