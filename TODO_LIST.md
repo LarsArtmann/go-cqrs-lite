@@ -67,6 +67,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - `~~Struck~~` = done sub-part of an otherwise-open row (kept for context;
   fully-completed rows are deleted outright per the header policy)
 - _(Effort: XS/S/M/L/XL)_ = rough size
+- **Receipt convention (2026-09-28, publish-integrity plan §6.9):** every
+  "verify" task closes its row with a DATED receipt sub-bullet stating what
+  was observed (numbers, commands, links) — verdicts like "confirmed / stale
+  claim / already fixed" never live only in chat or session reports. Four
+  stale claims were killed this way in one session; keep the discipline.
 
 ---
 
@@ -326,6 +331,12 @@ replace-free — 10-25 §a2/§a3, now archived).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
+- [ ] **`batch-release.sh` run-log** — the 2026-09-27 7-tag train stalled at 1/7
+      with zero artifacts to diagnose from (no logs kept). Write one
+      line per module to a dated log under `/tmp` or `scripts/`
+      (module, tagged?, verify result, smoke result, failure tail) so a
+      stalled wave is a 5-minute read instead of forensics. — source:
+      2026-09-28 publish-integrity plan M15/e1 _(Effort: S)_
 - [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
       metaengine wave (row in Metaengine follow-ups below); queue/mysql + `testutil/mysqltestcontainer`
       tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
@@ -773,6 +784,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
+- [ ] **pkg.go.dev hidden docs = intended (license consequence) — record it** —
+      the root LICENSE is proprietary, so pkg.go.dev hides documentation for
+      every module by design (verified via benchkit counter-example
+      2026-09-28: it carries its own LICENSE copy and is hidden identically).
+      One FAQ/README sentence prevents the next session from re-deriving this
+      or "fixing" it by sweeping LICENSE copies into 97 module dirs (dead on
+      arrival). — source: 2026-09-28 publish-integrity plan M15/e6 _(Effort: XS)_
 - [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
       (b) add READMEs to the doc-check gate (flake app/CI); (d) quick-start
       drift-guard tests for stack/sqlite, storage/memory, decider, scheduling,
@@ -784,7 +802,11 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       counts** — FEATURES guarantee rows carry 09-21 doc-gate stamps, but
       per-module fresh-run verification stamps need quiet CPU to be honest;
       extend `check-canonical-facts.sh` to derive the go.mod count into
-      FEATURES too (F69 overlap, kills the last hand-maintained count). —
+      FEATURES too (F69 overlap, kills the last hand-maintained count).
+      ALSO derive (2026-09-28 addition, M7 found the drift class): engine
+      implementations (12), registered drivers (11, register.go census), and
+      ADTs (12) — the hand-maintained counts rotted 10-vs-11-vs-12 across
+      FEATURES/skill/ROADMAP before the 2026-09-28 fix sweep. —
       source: archived 15-34 §b4/§f5, 14-12 §f23 _(Effort: M, quiet-CPU)_
 - [ ] **docs-health pass hygiene — ~~(a) index-vs-disk gate~~ DONE 2026-09-25 (canonical-facts status leg + 18-row rot fix), ~~(b) harvest-ledger convention~~ DONE (crush-config harvest-guide), ~~(d) pass-checklist rows~~ DONE (verify-checklist + md-go/docs conventions) — remaining: (c) weekly docs-health cadence decision (owner). Original: (a) index-vs-disk
       gate: extend `check-canonical-facts.sh` (or a sibling) to derive
