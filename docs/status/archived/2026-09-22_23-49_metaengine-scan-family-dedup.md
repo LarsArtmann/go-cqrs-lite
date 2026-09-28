@@ -74,15 +74,15 @@ baseline); this session reduced it to 69 and left the re-pin/triage decision ope
 
 ~~1. CHANGELOG `[Unreleased]` entries for the 4 new exports (+ `check-changelog-symbols` run).~~ — done — CHANGELOG metaengine/v4.15.0 entry carries the scan-family exports
 ~~2. SKILL.md / `references/*.md` documentation of the new helpers as the canonical~~ — done — AGENTS contract #27 + skill references document the helper canon
-   engine-authoring pattern (doc-check passes only because nothing references them yet).
+engine-authoring pattern (doc-check passes only because nothing references them yet).
 ~~3. Triaging the 69 remaining t3 groups (harmful vs accept vs dedupe) into a decision list.~~ — done 2026-09-28 — 52-group campaign closed the triage (0 new Go-side)
 ~~4. Turso (and any non-Postgres/MySQL dialect) sweep for the same scan/aggregate pattern.~~ — done — turso swept in the t4 + 09-28 campaigns
 ~~5. AGENTS.md internal-contract entry: "engine scan/aggregate loops must use metaengine~~ — done — AGENTS contract #27 written
-   scan helpers" (convention discovered by this session, not yet written down).
+scan helpers" (convention discovered by this session, not yet written down).
 6. Authored commits — everything landed as `chore: auto-commit` daemon noise; one commit
-   (4bd4e1670) even mixes my annotations with the parallel session's eventcatalog work.
+(4bd4e1670) even mixes my annotations with the parallel session's eventcatalog work.
 7. CI gate hardening: `check-duplication` silently **SKIPS** when `art-dupl` is not in
-   PATH (flake comment admits it) — soft gate.
+PATH (flake comment admits it) — soft gate.
 8. TODO_LIST entries for the follow-up campaign.
 
 ## d) TOTALLY FUCKED UP

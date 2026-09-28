@@ -22,6 +22,7 @@
 ## Not done / blocked
 
 ~~- **M5+M20 completion** — window-dependent (see above); everything up to the measurement is shipped.~~ — routed — M5+M20 armed (TODO calibration row; harvest steps in plan §8); M22 is the TODO owner-Q3 row; owner mechanics rowed in Release/data-mesh sections
+
 - **M22** — owner Q3 (report-artifact policy) still unanswered; gates only this.
 - **Owner questions carried forward:** the stalled 6-tag wave; tursoengine v4.2.1 cut timing; benchkit/LICENSE "Unknown Author".
 

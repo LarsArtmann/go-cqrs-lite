@@ -9,6 +9,7 @@
 **Verschlimmbessern guard:** every task is additive (new docs, new options, new examples, new lint advisories). No task rewrites existing exporter behavior for existing consumers without a default-preserving option. Nothing here touches v4 API surface destructively.
 
 ~~> **Execution status (2026-09-24): COMPLETE — T01–T27 shipped; open tail in~~ — done — shipped 2026-09-24; open tail = TODO_LIST 'Data-mesh & federation tail'
+
 > TODO_LIST "Data-mesh & federation tail".** Evidence:
 > [`docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md`](../status/2026-09-24_12-26_data-mesh-pareto-execution-session.md)
 > (T01–T21 + receipts) and

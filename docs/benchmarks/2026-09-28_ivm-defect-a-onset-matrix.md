@@ -28,33 +28,33 @@ the wall a write-only workload would see.
 
 ### Dimension 1 — transaction size (2 000 rows, 316 groups)
 
-| chunk/tx | txs | verdict |
-| -------: | --: | ------- |
-| 2000 | 1 | **EXACT** |
-| 1000 | 2 | DIVERGES at tx#2 (view 95 459.50 vs base 95 890.00, **delta 430.50**) |
-| 500 | 4 | DIVERGES at tx#2 (delta 272.00) |
-| 100 | 20 | DIVERGES at tx#4 (delta 81.50) |
-| 10 | 200 | DIVERGES at tx#33 (delta 25.00); defect-C WALL at tx#93\* |
+| chunk/tx | txs | verdict                                                               |
+| -------: | --: | --------------------------------------------------------------------- |
+|     2000 |   1 | **EXACT**                                                             |
+|     1000 |   2 | DIVERGES at tx#2 (view 95 459.50 vs base 95 890.00, **delta 430.50**) |
+|      500 |   4 | DIVERGES at tx#2 (delta 272.00)                                       |
+|      100 |  20 | DIVERGES at tx#4 (delta 81.50)                                        |
+|       10 | 200 | DIVERGES at tx#33 (delta 25.00); defect-C WALL at tx#93\*             |
 
 ### Dimension 2 — distinct groups (2 000 rows, 500-row txs)
 
-| groups | verdict |
-| -----: | ------- |
-| 1 | **EXACT** |
-| 2 | **EXACT** |
-| 8 | **EXACT** |
-| 64 | **EXACT** |
-| 316 | DIVERGES at tx#2 (delta 272.00) |
-| 2000 | **EXACT** (single-member groups); defect-C WALL at tx#3 |
+| groups | verdict                                                 |
+| -----: | ------------------------------------------------------- |
+|      1 | **EXACT**                                               |
+|      2 | **EXACT**                                               |
+|      8 | **EXACT**                                               |
+|     64 | **EXACT**                                               |
+|    316 | DIVERGES at tx#2 (delta 272.00)                         |
+|   2000 | **EXACT** (single-member groups); defect-C WALL at tx#3 |
 
 ### Dimension 3 — total rows (316 groups, 500-row txs)
 
-| rows | txs | verdict |
-| ---: | --: | ------- |
-| 500 | 1 | **EXACT** |
-| 1000 | 2 | DIVERGES at tx#2 (delta 272.00) |
-| 2000 | 4 | DIVERGES at tx#2 (delta 272.00) |
-| 4000 | 8 | DIVERGES at tx#2 (delta 272.00) |
+| rows | txs | verdict                         |
+| ---: | --: | ------------------------------- |
+|  500 |   1 | **EXACT**                       |
+| 1000 |   2 | DIVERGES at tx#2 (delta 272.00) |
+| 2000 |   4 | DIVERGES at tx#2 (delta 272.00) |
+| 4000 |   8 | DIVERGES at tx#2 (delta 272.00) |
 
 \* The chunk=10 wall carries an asterisk: 200 per-tx `GroupedAggregate` scans
 shrink defect C's write budget (known constraint, warned in

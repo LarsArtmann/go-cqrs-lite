@@ -11,11 +11,13 @@
 ## a) FULLY DONE
 
 ### M1.1 — Release-train gate assessment (with a surprise)
+
 - `go.work`/`go.work.sum` restored, no `.hold`; all 15 verify-lock files tested with `flock -n`: **FREE** (stale leftovers, no live verify).
 - Tree NOT clean: 7 modified `metaengine/rule_*.go` files = ANOTHER SESSION's in-flight `declaredQuery(ctx, q)` refactor (mechanical extraction of `ctx.Store.queries[q.QueryName]`, semantically neutral). Read in full, left untouched, never reverted.
 - One transient build break raced the other session's live edits (`../fold.go:258: undefined: TypeName` — retry green seconds later).
 
 ### M1 — 7-tag train verification: **THE TRAIN STALLED AT 1/7**
+
 - The prep commit `2d1669f78` describes 7 intended tags: `dispatcher/v4.5.0`, `middleware/v4.7.0`, `metaengine/v4.15.0`, `system/v4.10.0`, `event/v4.12.0`, `command/v4.12.0`, `query/v4.9.0`.
 - Reality: ONLY `dispatcher/v4.5.0` exists (local + origin + proxy + pkg.go.dev; tagged 09-27 23:53). The other 6 are cut **nowhere**. Their release content IS in-tree; dependents' go.mod already pin `dispatcher/v4.5.0` (published); CHANGELOG `[Unreleased]` honestly still carries the 6 entries.
 - `batch-release.sh` keeps **no logs** — the stall cause is undiagnosable from artifacts.
@@ -24,12 +26,14 @@
 - Receipt rowed into the TODO_LIST tag-wave row.
 
 ### M2 — Poisoned-tag surgery verification
+
 - **Q1 executed path = leave-published + supersede:** `storage/v4.10.0` stays on the proxy un-retracted; `storage/v4.10.1` (09-22) is @latest. Verified `storage/v4.10.1`'s published go.mod carries only the ancient `retract v4.7.0`.
 - **`system/v4.9.0` graph fully resolves + compiles** in a fresh module — and it references NO `storage/v4` at all. The feared "retraction breaks system/v4.9.0's graph" branch never existed.
 - **Q2 executed path = tag-delete:** `tursoengine/v4.2.0` tag deleted from origin; proxy `@v/v4.2.0.mod` 404s (cached absence) while `@v/list` still names it → the binary-junk zip **never reached any consumer**. No retract shipped.
 - **RESIDUAL DEFECT found + rowed:** the module's `@latest` 404s entirely (fresh `go get .../metaengine/tursoengine/v4@latest` fails). Fix proposal in the TODO row: cut `tursoengine/v4.2.1` from the clean tree via `tag-release.sh` (no retract needed — v4.2.0 was never proxy-published). Owner action.
 
 ### M3 — CatchUpEngine race verification: **STALE CLAIM, already fixed**
+
 - Code read: the current algorithm (`failover.go:137-189`) replays via offset-keyed stabilize passes and lifts quarantine only inside the append-blocked stability gate `reactivateIfStable` (`consistency.go:92-103`); the live path records into the EventLog BEFORE the routing decision under one `s.mu.RLock` (`store.go:495-511`) — the once-taken-Events-snapshot hole is closed by construction.
 - Fix landed 2026-09-13 (commit-dated); the stress test `TestEngineHealth_CatchUpUnderConcurrentApplies` exists to pin it; the TODO 🔥 row the FEATURES caveat pointed at no longer exists.
 - Empirical: **15/15 green under `-race`** (5 + 10 counts) at ~0.08s/run.
@@ -37,6 +41,7 @@
 - FEATURES.md:326's "Known fast-follow" sentence replaced with the verified-fixed statement.
 
 ### M6 — Junk-file forensics + gotcha
+
 - Exact dropped set (from `2d1669f78`): `\006` (4 KB), `\006-wal` (169 KB), `P\021B` (4 KB), `P\021B-wal` (250 KB) — two SQLite DB+WAL pairs.
 - **Zip-poison vector pinned:** `git ls-tree metaengine/tursoengine/v4.2.0` shows the `\006` pair INSIDE the tag's tree. The junk was added by daemon commits 09-19/09-20 (after the v4.1.0 tag, before v4.2.0's cut).
 - **The CHANGELOG's side-claim was FALSE:** "the `\006` pair already shipped inside published v4.14.0" — downloaded the real `metaengine/v4.14.0` proxy zip and inspected: 345 entries, zero tursoengine entries, zero >100 KB files. Corrected the CHANGELOG line to the verified truth.
@@ -44,10 +49,12 @@
 - Gotcha entry written: `docs/agents/gotchas-tooling-build.md` — "Test-dropping junk files with control-char names" (invisibility via `cat -v`/`ls -b`, daemon-commit vector, tag-freeze risk, the three guards, poisoned-tag runbook).
 
 ### M7 — Engine/driver/ADT count truth audit (6 docs fixed)
+
 - Census: **12 engine implementations** (memory in-core + 11 modules), **11 registered drivers** (memory + 10 module `register.go`; iroh does not self-register), **12 ADTs** (Map/Set/Counter/SortedMap/Log/Multimap/Graph/Vector/Search/Spatial/DueClaim/Dedup). bigtable's `EngineResetter` verified as a real implementation, not a comment.
 - Fixed: `FEATURES.md:325` (bigtable missing from the 12-engine enumeration), `FEATURES.md:1477` ("10 engines, 10 ADTs" → 12/12 with full ADT list), `FEATURES.md:1500` ("all 10 drivers" → 11 with parenthetical), skill `core.md:205` (10→12 ADTs), skill `modules.md:104` (stale 10-ADT enumeration that even listed a nonexistent "Scan" ADT → correct 12), `ROADMAP.md:74` (10→12 ADTs).
 
 ### M8 + M9 — Explain Volume/placement gap: confirmed, then IMPLEMENTED
+
 - M8: gap still present — `System.Explain` printed drivers/engines/collections-count only (`system/introspection.go:195-223`).
 - M9 shipped:
   - `metaengine`: exported `QueryPlacement` struct + `Store.QueryPlacements()` (name-sorted; engine, ADT, **declared Volume hint**, plan estimate, complexity) in `explain.go` (baselined-file headroom respected: 430→~485 of 515).
@@ -57,9 +64,11 @@
   - api-stability golden regenerated (+8 exports); `check-changelog-symbols.sh` green (42 citations); CHANGELOG `[Unreleased]` Added entry; TODO:1099 closed with receipt.
 
 ### M10 — Health catch-up test flake: evidence gathered, kept observe-only
+
 - 15/15 green under `-race` isolated; full metaengine package suite green **twice** this session (41 s, 46 s — the second run concurrent with another session's edits). Receipt appended to the row; no recurrence since 2026-09-13.
 
 ### M11 — Durable checkpoint/DLQ design: premise was STALE, ADR written instead
+
 - **Durable checkpoints already SHIPPED in-tree:** `system.NewEngineCheckpointStore(backend)` persists checkpoints as `system_checkpoints` Map-collection entries on the deployment-declared engine (engine named "checkpoints" wins, Map-ADT gated, documented in-memory fallback, `DomainConfig.CheckpointStore` override, restart-durability pinned by `systemtest.TestEngineCheckpointStoreRestartDurability`). This is the untagged system/v4.10.0 content.
 - **Durable DLQ: no separate store exists BY DESIGN** (ADR-0117): `WithCommandLifecycle(store)` records lifecycle events into the caller's event store; DLQ/FailureLog/RejectionLog are projections over them.
 - Wrote **ADR-0149** (`docs/adr/0149-durable-checkpoints-and-dlq-by-events.md`) documenting the shipped design and superseding the TODO premise; M17 (checkpoint impl) = already satisfied, M18 (DLQ store extraction) = obsolete.
@@ -67,6 +76,7 @@
 - TODO row closed; residual gap = PUBLISHING (the stalled wave), not design. cqrs-htmx `NewProjectionLayer` unblocks when system/v4.10.0 ships.
 
 ### M12 — sqliteengine README note
+
 - Added the operator-only limitation note: modernc.org/sqlite's `database/sql` surface exposes no `LoadExtension` (v1.59.0) → C extensions (sqlite-vec, vec0 indexes) are impossible inside this engine; native vector SQL requires an operator-managed libSQL server via `tursoengine`. (doc-check batch pass = M16, still pending.)
 
 ---
@@ -74,12 +84,14 @@
 ## b) PARTIALLY DONE
 
 ### M14 — IVM defect-A onset bisect (interrupted here)
+
 - `metaengine/tursoengine/ivm_bisect_test.go` WRITTEN (build tag `ivmrepro`, opt-in `TURSO_IVM_BISECT=1`): fresh-DB-per-config workload sweeping three dimensions — chunk/tx-size {2000,1000,500,100,10} at 2k rows; groups {1,2,8,64,316,2000} at 500-chunk; rows {500,1000,2000,4000} at 500-chunk — with per-transaction divergence detection and defect-C wall detection.
 - First run FAILED at chunk=10/tx#93: hit defect C's commit wall ("cannot commit - no transaction is active") — my per-tx `GroupedAggregate` scans shrink the wall (documented behavior I initially treated as harness failure).
 - Harness fixed: wall now recorded as DATA (`wallTx` verdict) instead of `t.Fatalf`; `go vet -tags ivmrepro` green.
 - **NOT YET DONE: the sweep itself has never run to completion.** Next step: re-run, harvest the matrix, record in `docs/benchmarks/` + TODO:208 receipt, then M19 (upstream filing) unblocks.
 
 ### Inline receipts into TODO_LIST (part of M15's job, done incrementally)
+
 - Rows updated with dated receipts this session: tag-wave row (M1), poisoned-tag-surgery row (M2), catch-up-race FEATURES fix (M3), health-test flake row (M10), Explain row closed (M8/M9), checkpoint/DLQ row closed (M11). M15's remaining work: add genuinely-new rows (see f).
 
 ---
@@ -165,4 +177,4 @@
 
 ---
 
-*Arte in Aeternum — execution resumes on instruction.*
+_Arte in Aeternum — execution resumes on instruction._

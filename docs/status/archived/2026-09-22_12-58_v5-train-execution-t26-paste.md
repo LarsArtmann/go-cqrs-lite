@@ -67,12 +67,13 @@ execute + verify step by step.
 ## c) NOT DONE / gated (with the why)
 
 ~~- **Cut v5.0.0** — the paste's final item. Gated on the ADR-0123 deletion~~ — routed — cut v5.0.0 + deletion waves = TODO_LIST v5 section rows
-  waves (Materialize, Relational+view, GraphProjection, Bundle+presets,
-  ADR-0126 shells, BuildWhereClause, NewStreamRef validation, transport
-  deletions, tombstone API) which are NOT part of the pasted mandate and are
-  still open in the v5 section; cutting now would ship a v5.0.0 that
-  contradicts its own contract. The cut checklist in V5-MIGRATION-GUIDE §5
-  is otherwise staged.
+waves (Materialize, Relational+view, GraphProjection, Bundle+presets,
+ADR-0126 shells, BuildWhereClause, NewStreamRef validation, transport
+deletions, tombstone API) which are NOT part of the pasted mandate and are
+still open in the v5 section; cutting now would ship a v5.0.0 that
+contradicts its own contract. The cut checklist in V5-MIGRATION-GUIDE §5
+is otherwise staged.
+
 - **Live MariaDB migration run** — test ready (`-tags integration` +
   `MYSQL_TEST_DSN`); no local MariaDB this session (no socket, systemctl
   blocked); ride the next `#integration-mysql-nspawn` quiet window.

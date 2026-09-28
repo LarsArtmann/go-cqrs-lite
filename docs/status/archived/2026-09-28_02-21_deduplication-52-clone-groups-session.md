@@ -27,48 +27,48 @@ EXTRACT / ACCEPT-directive / BASELINE categories before any edit.
 
 ### metaengine core (new shared helpers + same-package extractions)
 
-| # | Change | Files | Group killed |
-|---|--------|-------|--------------|
-| 1 | `requireStructSample` helper | fold_inference.go, infer_named.go | Infer/InferFromNamedEvents sample validation |
-| 2 | `declaredQuery(ctx, q)` helper in rules.go | 8 rule files (degraded_adt, durability, replication, mapupdate_warn, temporal_asof, layout, schema, shared_collection) | rule trio prologue (3 flagged + 5 unflagged sites unified) |
-| 3 | `reifyReadResult[V]` | typed_reader.go | coalesced/direct Get tails |
-| 4 | `scanFilterSortSpecs` | execute.go | raw-scan + pushdown fast paths |
-| 5 | `streamSnapshot` | memory_stream_log.go | StreamRead + fast path |
-| 6 | `removeFoldFor` | record_fold.go (helper), fold.go, record_fold.go | onFold/onRecordFold removeSignal ladders |
-| 7 | `TypeName` exported (reflect.go); `EventTypeName` becomes forwarder; enginetest `engineName` uses it | reflect.go, fold.go, enginetest/enginetest.go | EventTypeName/engineName reflect pair |
-| 8 | `repJobFor` (replicator.go) | demote.go, runtime_backend.go | backfill/replay job building |
+| # | Change                                                                                               | Files                                                                                                                  | Group killed                                               |
+| - | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1 | `requireStructSample` helper                                                                         | fold_inference.go, infer_named.go                                                                                      | Infer/InferFromNamedEvents sample validation               |
+| 2 | `declaredQuery(ctx, q)` helper in rules.go                                                           | 8 rule files (degraded_adt, durability, replication, mapupdate_warn, temporal_asof, layout, schema, shared_collection) | rule trio prologue (3 flagged + 5 unflagged sites unified) |
+| 3 | `reifyReadResult[V]`                                                                                 | typed_reader.go                                                                                                        | coalesced/direct Get tails                                 |
+| 4 | `scanFilterSortSpecs`                                                                                | execute.go                                                                                                             | raw-scan + pushdown fast paths                             |
+| 5 | `streamSnapshot`                                                                                     | memory_stream_log.go                                                                                                   | StreamRead + fast path                                     |
+| 6 | `removeFoldFor`                                                                                      | record_fold.go (helper), fold.go, record_fold.go                                                                       | onFold/onRecordFold removeSignal ladders                   |
+| 7 | `TypeName` exported (reflect.go); `EventTypeName` becomes forwarder; enginetest `engineName` uses it | reflect.go, fold.go, enginetest/enginetest.go                                                                          | EventTypeName/engineName reflect pair                      |
+| 8 | `repJobFor` (replicator.go)                                                                          | demote.go, runtime_backend.go                                                                                          | backfill/replay job building                               |
 
 ### metaengine core → engine modules (contract #27 pattern: shared mechanics to core)
 
-| # | New core helper | Consumers | Replaces |
-|---|----------------|-----------|----------|
-| 9 | `SanitizeIdent(sep, extraAllowed, parts...)` — new file metaengine/sanitize.go | mysqlengine, pgengine, dgraphengine | 3 per-engine sanitizer bodies (~54 lines) |
-| 10 | `GroupedAggregateScan` (scan.go) | duckdbengine, sqliteengine | scanGrouped twins (~70 lines) |
-| 11 | `SyncWritesTier(volatile, syncWrites)` (durability.go) | badgerengine, pebbleengine | EffectiveDurability ladders |
-| 12 | `AppendPlannedCursor` + `AppendPlannedOrderLimit` (planned_filter.go) | mysqlengine, pgengine planned_scan | both flagged planned_scan groups (real extraction, no directives needed) |
+| #  | New core helper                                                                | Consumers                           | Replaces                                                                 |
+| -- | ------------------------------------------------------------------------------ | ----------------------------------- | ------------------------------------------------------------------------ |
+| 9  | `SanitizeIdent(sep, extraAllowed, parts...)` — new file metaengine/sanitize.go | mysqlengine, pgengine, dgraphengine | 3 per-engine sanitizer bodies (~54 lines)                                |
+| 10 | `GroupedAggregateScan` (scan.go)                                               | duckdbengine, sqliteengine          | scanGrouped twins (~70 lines)                                            |
+| 11 | `SyncWritesTier(volatile, syncWrites)` (durability.go)                         | badgerengine, pebbleengine          | EffectiveDurability ladders                                              |
+| 12 | `AppendPlannedCursor` + `AppendPlannedOrderLimit` (planned_filter.go)          | mysqlengine, pgengine planned_scan  | both flagged planned_scan groups (real extraction, no directives needed) |
 
 ### Engine-internal extractions
 
-| # | Change | File |
-|---|--------|------|
-| 13 | `cowLookup` + `cowPublish` (6 sites unified) | mysqlengine/layout.go |
-| 14 | `indexFieldValue` (2 index loops) | pebbleengine/sort_index.go |
-| 15 | `appendExplainOrder` + `appendExplainLimit` (2 query builders) | sqliteengine/explain.go |
-| 16 | `slices.Collect(maps.Values(...))` replaces 3 hand-rolled conns-snapshot loops | irohengine loopback + quic transports |
-| 17 | Fixed misplaced `//art-dupl:accept` (was 7 lines above region; now adjacent) — empirically verified suppression works | pgengine/pushdown.go |
+| #  | Change                                                                                                                | File                                  |
+| -- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 13 | `cowLookup` + `cowPublish` (6 sites unified)                                                                          | mysqlengine/layout.go                 |
+| 14 | `indexFieldValue` (2 index loops)                                                                                     | pebbleengine/sort_index.go            |
+| 15 | `appendExplainOrder` + `appendExplainLimit` (2 query builders)                                                        | sqliteengine/explain.go               |
+| 16 | `slices.Collect(maps.Values(...))` replaces 3 hand-rolled conns-snapshot loops                                        | irohengine loopback + quic transports |
+| 17 | Fixed misplaced `//art-dupl:accept` (was 7 lines above region; now adjacent) — empirically verified suppression works | pgengine/pushdown.go                  |
 
 ### Other modules
 
-| # | Change | Module | Tests |
-|---|--------|--------|-------|
-| 18 | `finishBucketRead[T]` — 4 recordErr tails (read_all/read_from × command/query) | storage/bbolt | short PASS |
-| 19 | `wrapSubscribeError` | watermill | short PASS (incl. snapshot tests) |
-| 20 | `publishAll[T]` — full generic publish loop for event+command adapters | watermill | short PASS |
-| 21 | `logPhaseOutcome` — Canceled-vs-failure classification | watermill/catchup_subscriber.go | short PASS |
-| 22 | `retainEntries` — in-place filter idiom, 3 sites (Delete/Purge/PurgeBefore) | projectionhost/dlq.go | short PASS |
-| 23 | `foldOrFatal` — Given + produced-events loops | scenario/dsl.go | short PASS |
-| 24 | `stopAndCollect` — 3 exit arms unified | benchkit/phases_projection.go | UNVERIFIED (see d) |
-| 25 | `SoakResult.FirstAndLastSample()` + both consumers | benchkit/soak.go, soak_report.go, cmd/cqrs-bench/render.go | UNVERIFIED |
+| #  | Change                                                                         | Module                                                     | Tests                             |
+| -- | ------------------------------------------------------------------------------ | ---------------------------------------------------------- | --------------------------------- |
+| 18 | `finishBucketRead[T]` — 4 recordErr tails (read_all/read_from × command/query) | storage/bbolt                                              | short PASS                        |
+| 19 | `wrapSubscribeError`                                                           | watermill                                                  | short PASS (incl. snapshot tests) |
+| 20 | `publishAll[T]` — full generic publish loop for event+command adapters         | watermill                                                  | short PASS                        |
+| 21 | `logPhaseOutcome` — Canceled-vs-failure classification                         | watermill/catchup_subscriber.go                            | short PASS                        |
+| 22 | `retainEntries` — in-place filter idiom, 3 sites (Delete/Purge/PurgeBefore)    | projectionhost/dlq.go                                      | short PASS                        |
+| 23 | `foldOrFatal` — Given + produced-events loops                                  | scenario/dsl.go                                            | short PASS                        |
+| 24 | `stopAndCollect` — 3 exit arms unified                                         | benchkit/phases_projection.go                              | UNVERIFIED (see d)                |
+| 25 | `SoakResult.FirstAndLastSample()` + both consumers                             | benchkit/soak.go, soak_report.go, cmd/cqrs-bench/render.go | UNVERIFIED                        |
 
 **Modules verified green this session:** metaengine (build+vet), mysqlengine
 (build+short test), pgengine (build+short test), watermill, storage/bbolt,
@@ -80,17 +80,17 @@ pebbleengine/irohengine (builds; see NOT STARTED for their test runs).
 ## b) PARTIALLY DONE
 
 ~~1. **art-dupl re-check NOT re-run after extractions** — the 52-group report predates~~ — done 2026-09-28 — re-check ran; 52→0 Go-side (04-04 completion)
-   all edits. Extractions should have killed ~20 groups, but this is unmeasured.
+all edits. Extractions should have killed ~20 groups, but this is unmeasured.
 ~~2. **Accept-directive batch fully planned but NOT applied** (12+ groups of~~ — done — directive batch applied (~40 groups)
-   intentional residue — see f) items 3–18).
+intentional residue — see f) items 3–18).
 ~~3. **Templ clone groups (3 groups in catalog/docserver)** — directive support in~~ — done — re-pin was the sanctioned lever (60→187, mutation-tested)
-   `.templ` files untested; if directives don't parse there, a baseline re-pin is
-   the only lever.
+`.templ` files untested; if directives don't parse there, a baseline re-pin is
+the only lever.
 ~~4. **api-stability golden regen NOT done** — this session ADDED exported API~~ — done — api golden regenerated + TestEvery green
-   (`TypeName`, `SanitizeIdent`, `GroupedAggregateScan`, `SyncWritesTier`,
-   `AppendPlannedCursor`, `AppendPlannedOrderLimit`, `FirstAndLastSample`).
-   Contract: golden must be regenerated in the same edit; currently violated
-   (pending).
+(`TypeName`, `SanitizeIdent`, `GroupedAggregateScan`, `SyncWritesTier`,
+`AppendPlannedCursor`, `AppendPlannedOrderLimit`, `FirstAndLastSample`).
+Contract: golden must be regenerated in the same edit; currently violated
+(pending).
 
 ---
 
@@ -235,24 +235,24 @@ pebbleengine/irohengine (builds; see NOT STARTED for their test runs).
 **End state: `art-dupl check . --threshold 3 --semantic` → 0 new clone groups
 (baseline re-pinned 60 → 187).** All 48 next-items resolved or dispositioned:
 
-| Item | Outcome |
-|------|---------|
-| 1 re-measure | 52 → 29 after session-1 extractions; 29 → 3 after session-2; 3 templ → baseline |
-| 3–18 directives | ALL placed (incl. trailing-comment form where the +1 line would break the >350 shrink-only ratchet: badger stream_log, projectionhost host) |
-| 19 p012/p013 | EXTRACTED: `hasSQLiteOpenEvidence(site, constMap, pragma, dsnCheck, wrappers...)` in dsn_resolver.go; both evidence funcs are one-liners |
-| 20 d012/c016 | EXTRACTED: `lintutil.IsContextType` (richer pointer/ellipsis semantics adopted by both) |
-| 21 scanDeprecations | EXTRACTED (cmd/cqrs-upgrade/main.go) |
-| 22 ancestor walk | EXTRACTED: `eachAncestorConfigFile` (diagnostics.go); doctor.go reuses |
-| 23 templ | Directives DO NOT parse in .templ (HTML comments neither) → the 3 groups live in the re-pinned baseline; TODO_LIST carries the watch item |
-| 24 api golden | REGENERATED (7514 exports) + TestEvery green |
-| 25–34 tests | ALL GREEN: benchkit, cqrs-bench, metaengine full, sqlite/badger/pebble/bbolt/duckdb/dgraph engines, iroh loopback+quic, system, middleware, watermill, storage/bbolt, projectionhost, queue(+sqlite), scenario, taskmanager, cqrs-upgrade/gen/lint, doc-check, signing, encryption, grpc, eventtest |
-| 35–39 gates | nix fmt applied; file-size gate green for MY files (2 own ratchet violations fixed via trailing directives; 3 FOREIGN catalog offenders remain red — daemon-era, TODO_LIST'd); check-duplication GREEN; check-arch GREEN; check-changelog-symbols GREEN (51 citations); doc-check GREEN (1218 refs) |
-| 41–42 docs | CHANGELOG [Unreleased] Added entry for the 8 new exports; AGENTS contract #27 inventory + #14 semantics updated |
-| 43–44 | nil-to-empty tails: badger/bbolt directed (2 engines ≠ ≥3 threshold); paging-tail EXTRACTED as `PairsToScanResult` (memory + bbolt + pebble — a third consumer surfaced beyond the flagged pair) |
-| 45 | Daemon-formatted files spot-checked (watermill publisher.go clean) |
-| 46 | gocache-disk: still corrupted for cold stdlib entries; fresh GOCACHE dirs remain the workaround |
-| 47 | TODO_LIST harvested (templ watch item + 3 file-size offenders) |
-| 48 | Mutation-tested BOTH ways: novel-shape clone pair → RED (detected); verbatim copy of baselined function → absorbed (by-design hash semantics, documented in AGENTS #14) |
+| Item                | Outcome                                                                                                                                                                                                                                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 re-measure        | 52 → 29 after session-1 extractions; 29 → 3 after session-2; 3 templ → baseline                                                                                                                                                                                                                     |
+| 3–18 directives     | ALL placed (incl. trailing-comment form where the +1 line would break the >350 shrink-only ratchet: badger stream_log, projectionhost host)                                                                                                                                                         |
+| 19 p012/p013        | EXTRACTED: `hasSQLiteOpenEvidence(site, constMap, pragma, dsnCheck, wrappers...)` in dsn_resolver.go; both evidence funcs are one-liners                                                                                                                                                            |
+| 20 d012/c016        | EXTRACTED: `lintutil.IsContextType` (richer pointer/ellipsis semantics adopted by both)                                                                                                                                                                                                             |
+| 21 scanDeprecations | EXTRACTED (cmd/cqrs-upgrade/main.go)                                                                                                                                                                                                                                                                |
+| 22 ancestor walk    | EXTRACTED: `eachAncestorConfigFile` (diagnostics.go); doctor.go reuses                                                                                                                                                                                                                              |
+| 23 templ            | Directives DO NOT parse in .templ (HTML comments neither) → the 3 groups live in the re-pinned baseline; TODO_LIST carries the watch item                                                                                                                                                           |
+| 24 api golden       | REGENERATED (7514 exports) + TestEvery green                                                                                                                                                                                                                                                        |
+| 25–34 tests         | ALL GREEN: benchkit, cqrs-bench, metaengine full, sqlite/badger/pebble/bbolt/duckdb/dgraph engines, iroh loopback+quic, system, middleware, watermill, storage/bbolt, projectionhost, queue(+sqlite), scenario, taskmanager, cqrs-upgrade/gen/lint, doc-check, signing, encryption, grpc, eventtest |
+| 35–39 gates         | nix fmt applied; file-size gate green for MY files (2 own ratchet violations fixed via trailing directives; 3 FOREIGN catalog offenders remain red — daemon-era, TODO_LIST'd); check-duplication GREEN; check-arch GREEN; check-changelog-symbols GREEN (51 citations); doc-check GREEN (1218 refs) |
+| 41–42 docs          | CHANGELOG [Unreleased] Added entry for the 8 new exports; AGENTS contract #27 inventory + #14 semantics updated                                                                                                                                                                                     |
+| 43–44               | nil-to-empty tails: badger/bbolt directed (2 engines ≠ ≥3 threshold); paging-tail EXTRACTED as `PairsToScanResult` (memory + bbolt + pebble — a third consumer surfaced beyond the flagged pair)                                                                                                    |
+| 45                  | Daemon-formatted files spot-checked (watermill publisher.go clean)                                                                                                                                                                                                                                  |
+| 46                  | gocache-disk: still corrupted for cold stdlib entries; fresh GOCACHE dirs remain the workaround                                                                                                                                                                                                     |
+| 47                  | TODO_LIST harvested (templ watch item + 3 file-size offenders)                                                                                                                                                                                                                                      |
+| 48                  | Mutation-tested BOTH ways: novel-shape clone pair → RED (detected); verbatim copy of baselined function → absorbed (by-design hash semantics, documented in AGENTS #14)                                                                                                                             |
 
 **Additional extractions this session (beyond the 25):** `eachDeclaredQuery`
 (rules trio), `drainQuery[T]` (scan.go ×3, new file scan_drain.go),
@@ -261,6 +261,7 @@ pebbleengine/irohengine (builds; see NOT STARTED for their test runs).
 `scanDeprecations`, `groupedPair` — total 32 extractions campaign-wide.
 
 **Foreign incidents resolved en route (not dedup work, blocking test gates):**
+
 1. Daemon's BuildFlow repair sweep re-applied the `event.New→NewEvent` rewrite
    at all 7 sites commit 609b4449a had reverted (watermill protocol, signing ×2,
    encryption, grpc client, eventtest ×2) — bisected to d4d08a7ba; re-repaired

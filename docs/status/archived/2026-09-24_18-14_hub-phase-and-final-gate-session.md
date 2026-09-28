@@ -114,30 +114,30 @@ All committed (authored + daemon waves in three repos; nothing pushed).
 
 ## f) Next tasks (harvest candidates, 22)
 
-| #  | Task                                                                                                                                                                     | Impact   | Effort |
-| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------ |
-| ~~1~~  | ~~Restore `.golangci.yml` (gci re-corruption; `#check-lint-config` prints the restore) + investigate how the hash golden missed it~~ done — 2026-09-26 — .golangci.yml restored + hash golden re-pinned (config-war recovery) | ~~Critical~~ | ~~S~~ |
-| ~~2~~  | ~~Fix 3 systemtest lint findings (gocyclo 22, nestif, prealloc)~~ done — routed — TODO Dedup-campaign verification tail row (lint legs) | ~~High~~ | ~~S~~ |
-| ~~3~~  | ~~Re-run `nix run .#verify` — expected green after 1+2~~ done — routed — TODO_LIST composed-verify row | ~~Critical~~ | ~~M~~ |
-| ~~4~~  | ~~Wire GOTMPDIR/TMPDIR off tmpfs into the flake verify/test apps (structural fix for the space-death class)~~ done — routed — superseded by the buildcache-capacity monitor (shipped 2026-09-26) | ~~High~~ | ~~S~~ |
-| ~~5~~  | ~~gotchas doc: topdir-trash-on-tmpfs mechanism + the false-"built" eval lesson~~ done — routed — gotchas doc absorbed the space-class lessons | ~~Low~~ | ~~XS~~ |
-| ~~6~~  | ~~Push decision: ~12 go-cqrs-lite + 6 hub + 1 SystemNix local commits~~ done — 2026-09-22 — push happened; billing row is the only remote gate | ~~High~~ | ~~S~~ |
-| ~~7~~  | ~~Hub dist provisioning / first publish (owner action or explicit debug go-ahead)~~ done — routed — hub dist provisioning = owner action | ~~Critical~~ | ~~M~~ |
-| ~~8~~  | ~~catalog/v4.6+ tag wave (owner-gated) — unblocks 9, 20~~ done — routed — TODO data-mesh tail row 1 | ~~Critical~~ | ~~M~~ |
-| ~~9~~  | ~~Pin-sweep after the tag: strip mesh-demo `replace ../../catalog`, bump examples~~ done — routed — TODO data-mesh tail (pin-sweep) | ~~High~~ | ~~S~~ |
-| ~~10~~ | ~~Poisoned-tag surgery: tursoengine/v4.2.0 + storage/v4.10.0 (owner call)~~ done — 2026-09-28 — M2 receipts rowed | ~~Critical~~ | ~~S~~ |
-| ~~11~~ | ~~Weekly "proxy resolves every module's latest tag" probe~~ done — 2026-09-26 — weekly proxy probe shipped | ~~High~~ | ~~M~~ |
-| ~~12~~ | ~~changelog gate: flag uncited consumer-visible surface (api_surface diff vs CHANGELOG)~~ done — 2026-09-26 — reverse changelog gate shipped | ~~Medium~~ | ~~M~~ |
-| ~~13~~ | ~~goal-shaped-app IVM activation once the turso tag is clean~~ done — routed — TODO data-mesh tail (goal-shaped) | ~~Medium~~ | ~~S~~ |
-| ~~14~~ | ~~mesh-demo system.New-backed variant (runtime coeffect gate demo)~~ done — routed — TODO data-mesh tail (mesh-demo) | ~~Medium~~ | ~~M~~ |
-| ~~15~~ | ~~E019 non-literal DataProduct scanner support~~ done — 2026-09-26 — E019 shipped | ~~Low~~ | ~~M~~ |
-| ~~16~~ | ~~docserver DataProduct badges/hidden-flag rendering~~ done — 2026-09-26 — docserver badges shipped | ~~Low~~ | ~~S~~ |
-| ~~17~~ | ~~check-eventcatalog lockfile-pin of the linter install~~ done — 2026-09-26 — lockfile pin shipped | ~~Low~~ | ~~S~~ |
-| ~~18~~ | ~~cqrs-lint D007 repair-path "unsafe path" failures~~ done — 2026-09-26 — D007 verified not broken | ~~Medium~~ | ~~M~~ |
-| ~~19~~ | ~~3 high Dependabot vulnerabilities on master~~ done — 2026-09-26 — dependabot fixed | ~~High~~ | ~~M~~ |
-| ~~20~~ | ~~bank-sync + cqrs-htmx lint-block adoption once the catalog tag lands~~ done — routed — TODO data-mesh tail row 1 (catalog tag wave unblocks it) | ~~Medium~~ | ~~S~~ |
-| ~~21~~ | ~~Note: hub CI cannot go green until go-cqrs-lite is pushed (mesh entries build from the mirror; the contract-file fix is local-only) — sequence push BEFORE first hub run~~ done — 2026-09-22 — master pushed; hub sequencing noted | ~~High~~ | ~~XS~~ |
-| ~~22~~ | ~~Verify formatting sweep completeness via `nix fmt --fail-on-change` (§f24 residue)~~ done — 2026-09-28 — nix fmt sweep green (M16) | ~~Low~~ | ~~S~~ |
+| #      | Task                                                                                                                                                                                                                                 | Impact       | Effort |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ | ------ |
+| ~~1~~  | ~~Restore `.golangci.yml` (gci re-corruption; `#check-lint-config` prints the restore) + investigate how the hash golden missed it~~ done — 2026-09-26 — .golangci.yml restored + hash golden re-pinned (config-war recovery)        | ~~Critical~~ | ~~S~~  |
+| ~~2~~  | ~~Fix 3 systemtest lint findings (gocyclo 22, nestif, prealloc)~~ done — routed — TODO Dedup-campaign verification tail row (lint legs)                                                                                              | ~~High~~     | ~~S~~  |
+| ~~3~~  | ~~Re-run `nix run .#verify` — expected green after 1+2~~ done — routed — TODO_LIST composed-verify row                                                                                                                               | ~~Critical~~ | ~~M~~  |
+| ~~4~~  | ~~Wire GOTMPDIR/TMPDIR off tmpfs into the flake verify/test apps (structural fix for the space-death class)~~ done — routed — superseded by the buildcache-capacity monitor (shipped 2026-09-26)                                     | ~~High~~     | ~~S~~  |
+| ~~5~~  | ~~gotchas doc: topdir-trash-on-tmpfs mechanism + the false-"built" eval lesson~~ done — routed — gotchas doc absorbed the space-class lessons                                                                                        | ~~Low~~      | ~~XS~~ |
+| ~~6~~  | ~~Push decision: ~12 go-cqrs-lite + 6 hub + 1 SystemNix local commits~~ done — 2026-09-22 — push happened; billing row is the only remote gate                                                                                       | ~~High~~     | ~~S~~  |
+| ~~7~~  | ~~Hub dist provisioning / first publish (owner action or explicit debug go-ahead)~~ done — routed — hub dist provisioning = owner action                                                                                             | ~~Critical~~ | ~~M~~  |
+| ~~8~~  | ~~catalog/v4.6+ tag wave (owner-gated) — unblocks 9, 20~~ done — routed — TODO data-mesh tail row 1                                                                                                                                  | ~~Critical~~ | ~~M~~  |
+| ~~9~~  | ~~Pin-sweep after the tag: strip mesh-demo `replace ../../catalog`, bump examples~~ done — routed — TODO data-mesh tail (pin-sweep)                                                                                                  | ~~High~~     | ~~S~~  |
+| ~~10~~ | ~~Poisoned-tag surgery: tursoengine/v4.2.0 + storage/v4.10.0 (owner call)~~ done — 2026-09-28 — M2 receipts rowed                                                                                                                    | ~~Critical~~ | ~~S~~  |
+| ~~11~~ | ~~Weekly "proxy resolves every module's latest tag" probe~~ done — 2026-09-26 — weekly proxy probe shipped                                                                                                                           | ~~High~~     | ~~M~~  |
+| ~~12~~ | ~~changelog gate: flag uncited consumer-visible surface (api_surface diff vs CHANGELOG)~~ done — 2026-09-26 — reverse changelog gate shipped                                                                                         | ~~Medium~~   | ~~M~~  |
+| ~~13~~ | ~~goal-shaped-app IVM activation once the turso tag is clean~~ done — routed — TODO data-mesh tail (goal-shaped)                                                                                                                     | ~~Medium~~   | ~~S~~  |
+| ~~14~~ | ~~mesh-demo system.New-backed variant (runtime coeffect gate demo)~~ done — routed — TODO data-mesh tail (mesh-demo)                                                                                                                 | ~~Medium~~   | ~~M~~  |
+| ~~15~~ | ~~E019 non-literal DataProduct scanner support~~ done — 2026-09-26 — E019 shipped                                                                                                                                                    | ~~Low~~      | ~~M~~  |
+| ~~16~~ | ~~docserver DataProduct badges/hidden-flag rendering~~ done — 2026-09-26 — docserver badges shipped                                                                                                                                  | ~~Low~~      | ~~S~~  |
+| ~~17~~ | ~~check-eventcatalog lockfile-pin of the linter install~~ done — 2026-09-26 — lockfile pin shipped                                                                                                                                   | ~~Low~~      | ~~S~~  |
+| ~~18~~ | ~~cqrs-lint D007 repair-path "unsafe path" failures~~ done — 2026-09-26 — D007 verified not broken                                                                                                                                   | ~~Medium~~   | ~~M~~  |
+| ~~19~~ | ~~3 high Dependabot vulnerabilities on master~~ done — 2026-09-26 — dependabot fixed                                                                                                                                                 | ~~High~~     | ~~M~~  |
+| ~~20~~ | ~~bank-sync + cqrs-htmx lint-block adoption once the catalog tag lands~~ done — routed — TODO data-mesh tail row 1 (catalog tag wave unblocks it)                                                                                    | ~~Medium~~   | ~~S~~  |
+| ~~21~~ | ~~Note: hub CI cannot go green until go-cqrs-lite is pushed (mesh entries build from the mirror; the contract-file fix is local-only) — sequence push BEFORE first hub run~~ done — 2026-09-22 — master pushed; hub sequencing noted | ~~High~~     | ~~XS~~ |
+| ~~22~~ | ~~Verify formatting sweep completeness via `nix fmt --fail-on-change` (§f24 residue)~~ done — 2026-09-28 — nix fmt sweep green (M16)                                                                                                 | ~~Low~~      | ~~S~~  |
 
 ## g) Questions I cannot answer myself
 

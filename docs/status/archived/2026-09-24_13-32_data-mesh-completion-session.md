@@ -114,36 +114,36 @@ daemon waves `54684bc92`/`8d94768c2` in go-cqrs-lite; `fc95f7a` in the hub).
 
 ## f) Next tasks (harvest candidates, ≤50)
 
-| #  | Task                                                                                                                                                                      | Impact   | Effort |
-| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
-| ~~1~~  | ~~Finish hub build.yml: per-source plain-refs governance lint step (optional `lint` field in sources.json)~~ done — routed — hub repo work (per-source lint step) | ~~High~~ | ~~S~~ |
-| ~~2~~  | ~~Write mesh-demo entries into hub sources.json (validated this session) + rebuild-once to publish dist~~ done — routed — hub repo work (sources.json onboarding) | ~~High~~ | ~~S~~ |
-| 3  | Probe polish: separate AUTH vs ROT classification (token-aware ls-remote)                                                                                                 | Medium   | XS     |
-| ~~4~~  | ~~Hub README: merge semantics (owners union, ref canonicalization, strict gate), probe usage, lint field~~ done — routed — hub repo work (README) | ~~High~~ | ~~S~~ |
-| ~~5~~  | ~~Hub TODO_LIST: unblock the 2 [blocked:upstream] items (manifest diff available; exporter upgrade shipped) — rewrite the linter re-arm item as resolved-by-per-source-lint~~ done — routed — hub repo work (TODO_LIST) | ~~Medium~~ | ~~S~~ |
-| ~~6~~  | ~~Hub scheduled workflow for check-stale-sources (cron matching 8h mirror cadence, workflow_dispatch)~~ done — routed — hub repo work (stale-source cron) | ~~Medium~~ | ~~S~~ |
-| 7  | f72: SystemNix plan cross-reference note (addendum linking the pareto plan + hub state)                                                                                   | Low      | XS     |
-| ~~8~~  | ~~docs-health: TODO_LIST data-mesh strike-through T01–T22 (T22–T24 hub items done/partial per this report)~~ done — this pass struck the TODO data-mesh rows | ~~High~~ | ~~S~~ |
-| ~~9~~  | ~~docs-health: harvest handoff §f (30 rows) + this report's §f into TODO_LIST/ROADMAP; plan doc completion addendum~~ done — this pass is that harvest | ~~High~~ | ~~M~~ |
-| ~~10~~ | ~~Final `nix run .#verify` closing gate for the whole wave~~ done — routed — TODO_LIST composed-verify row | ~~Critical~~ | ~~M~~ |
-| ~~11~~ | ~~Attempt `check-md-go` vendorHash repair (nix hash update)~~ done — md-go vendorHash repaired | ~~Medium~~ | ~~S~~ |
-| ~~12~~ | ~~Investigate WHY hub build workflow never published dist (runner provisioned? secrets set? first run failed?) — may need owner/forgejo access~~ done — routed — hub dist provisioning = owner action (documented) | ~~Critical~~ | ~~M~~ |
-| 13 | check-architecture-changes.sh: switch to structured `catalog.index.json` diff (now shipped by exporter; hub TODO [blocked:upstream] #2)                                   | Medium   | M      |
-| ~~14~~ | ~~Release train: cut catalog/v4.6+ tag wave (owner-gated, §g1) — unblocks replace-strip + hub pin bump~~ done — routed — TODO data-mesh tail row 1 | ~~Critical~~ | ~~M~~ |
-| ~~15~~ | ~~Pin-sweep after release: strip mesh-demo `replace ../../catalog`, bump examples~~ done — routed — TODO data-mesh tail (pin-sweep) | ~~High~~ | ~~S~~ |
-| ~~16~~ | ~~Poisoned-tag surgery: retract+re-cut tursoengine/v4.2.0; decide storage/v4.10.0 re-cut vs retraction (owner-gated, §g3)~~ done — 2026-09-28 — M2 surgery receipts rowed | ~~Critical~~ | ~~S~~ |
-| ~~17~~ | ~~Weekly "proxy resolves every module's latest tag" probe (handoff §e1)~~ done — 2026-09-26 — weekly proxy-tag probe shipped (CHANGELOG) | ~~High~~ | ~~M~~ |
-| ~~18~~ | ~~changelog gate: flag uncited consumer-visible surface (api_surface diff vs CHANGELOG) — handoff §e2~~ done — 2026-09-26 — reverse changelog gate shipped | ~~Medium~~ | ~~M~~ |
-| ~~19~~ | ~~goal-shaped-app: activate IVM view + boot test once turso tag is clean~~ done — routed — TODO data-mesh tail (goal-shaped activation) | ~~Medium~~ | ~~S~~ |
-| ~~20~~ | ~~mesh-demo: system.New-backed variant (runtime coeffect gate demo)~~ done — routed — TODO data-mesh tail (mesh-demo variant) | ~~Medium~~ | ~~M~~ |
-| ~~21~~ | ~~E019: non-literal DataProduct scanner support~~ done — 2026-09-26 — E019 variable-pass shipped | ~~Low~~ | ~~M~~ |
-| ~~22~~ | ~~docserver: DataProduct badges/hidden flag rendering~~ done — 2026-09-26 — docserver badges shipped | ~~Low~~ | ~~S~~ |
-| ~~23~~ | ~~check-eventcatalog: lockfile-pin the linter install~~ done — 2026-09-26 — lockfile pin shipped | ~~Low~~ | ~~S~~ |
-| 24 | Sweep daemon formatting anomalies (spot-check vs `nix fmt --fail-on-change`)                                                                                              | Low      | S      |
-| ~~25~~ | ~~Fix cqrs-lint D007 repair-path "unsafe path" failures (report-only today)~~ done — 2026-09-26 — D007 verified not broken | ~~Medium~~ | ~~M~~ |
-| ~~26~~ | ~~Address 3 high Dependabot vulnerabilities on master~~ done — 2026-09-26 — dependabot fixed | ~~High~~ | ~~M~~ |
-| ~~27~~ | ~~Push decision: ~10 local commits in go-cqrs-lite + hub commits awaiting authorization~~ done — 2026-09-22 — master pushed; remote CI gates on billing only | ~~High~~ | ~~S~~ |
-| 28 | bank-sync + cqrs-htmx: adopt the new exporter options (owners, plain-refs lint command) once catalog tag lands                                                            | Medium   | S      |
+| #      | Task                                                                                                                                                                                                                    | Impact       | Effort |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
+| ~~1~~  | ~~Finish hub build.yml: per-source plain-refs governance lint step (optional `lint` field in sources.json)~~ done — routed — hub repo work (per-source lint step)                                                       | ~~High~~     | ~~S~~  |
+| ~~2~~  | ~~Write mesh-demo entries into hub sources.json (validated this session) + rebuild-once to publish dist~~ done — routed — hub repo work (sources.json onboarding)                                                       | ~~High~~     | ~~S~~  |
+| 3      | Probe polish: separate AUTH vs ROT classification (token-aware ls-remote)                                                                                                                                               | Medium       | XS     |
+| ~~4~~  | ~~Hub README: merge semantics (owners union, ref canonicalization, strict gate), probe usage, lint field~~ done — routed — hub repo work (README)                                                                       | ~~High~~     | ~~S~~  |
+| ~~5~~  | ~~Hub TODO_LIST: unblock the 2 [blocked:upstream] items (manifest diff available; exporter upgrade shipped) — rewrite the linter re-arm item as resolved-by-per-source-lint~~ done — routed — hub repo work (TODO_LIST) | ~~Medium~~   | ~~S~~  |
+| ~~6~~  | ~~Hub scheduled workflow for check-stale-sources (cron matching 8h mirror cadence, workflow_dispatch)~~ done — routed — hub repo work (stale-source cron)                                                               | ~~Medium~~   | ~~S~~  |
+| 7      | f72: SystemNix plan cross-reference note (addendum linking the pareto plan + hub state)                                                                                                                                 | Low          | XS     |
+| ~~8~~  | ~~docs-health: TODO_LIST data-mesh strike-through T01–T22 (T22–T24 hub items done/partial per this report)~~ done — this pass struck the TODO data-mesh rows                                                            | ~~High~~     | ~~S~~  |
+| ~~9~~  | ~~docs-health: harvest handoff §f (30 rows) + this report's §f into TODO_LIST/ROADMAP; plan doc completion addendum~~ done — this pass is that harvest                                                                  | ~~High~~     | ~~M~~  |
+| ~~10~~ | ~~Final `nix run .#verify` closing gate for the whole wave~~ done — routed — TODO_LIST composed-verify row                                                                                                              | ~~Critical~~ | ~~M~~  |
+| ~~11~~ | ~~Attempt `check-md-go` vendorHash repair (nix hash update)~~ done — md-go vendorHash repaired                                                                                                                          | ~~Medium~~   | ~~S~~  |
+| ~~12~~ | ~~Investigate WHY hub build workflow never published dist (runner provisioned? secrets set? first run failed?) — may need owner/forgejo access~~ done — routed — hub dist provisioning = owner action (documented)      | ~~Critical~~ | ~~M~~  |
+| 13     | check-architecture-changes.sh: switch to structured `catalog.index.json` diff (now shipped by exporter; hub TODO [blocked:upstream] #2)                                                                                 | Medium       | M      |
+| ~~14~~ | ~~Release train: cut catalog/v4.6+ tag wave (owner-gated, §g1) — unblocks replace-strip + hub pin bump~~ done — routed — TODO data-mesh tail row 1                                                                      | ~~Critical~~ | ~~M~~  |
+| ~~15~~ | ~~Pin-sweep after release: strip mesh-demo `replace ../../catalog`, bump examples~~ done — routed — TODO data-mesh tail (pin-sweep)                                                                                     | ~~High~~     | ~~S~~  |
+| ~~16~~ | ~~Poisoned-tag surgery: retract+re-cut tursoengine/v4.2.0; decide storage/v4.10.0 re-cut vs retraction (owner-gated, §g3)~~ done — 2026-09-28 — M2 surgery receipts rowed                                               | ~~Critical~~ | ~~S~~  |
+| ~~17~~ | ~~Weekly "proxy resolves every module's latest tag" probe (handoff §e1)~~ done — 2026-09-26 — weekly proxy-tag probe shipped (CHANGELOG)                                                                                | ~~High~~     | ~~M~~  |
+| ~~18~~ | ~~changelog gate: flag uncited consumer-visible surface (api_surface diff vs CHANGELOG) — handoff §e2~~ done — 2026-09-26 — reverse changelog gate shipped                                                              | ~~Medium~~   | ~~M~~  |
+| ~~19~~ | ~~goal-shaped-app: activate IVM view + boot test once turso tag is clean~~ done — routed — TODO data-mesh tail (goal-shaped activation)                                                                                 | ~~Medium~~   | ~~S~~  |
+| ~~20~~ | ~~mesh-demo: system.New-backed variant (runtime coeffect gate demo)~~ done — routed — TODO data-mesh tail (mesh-demo variant)                                                                                           | ~~Medium~~   | ~~M~~  |
+| ~~21~~ | ~~E019: non-literal DataProduct scanner support~~ done — 2026-09-26 — E019 variable-pass shipped                                                                                                                        | ~~Low~~      | ~~M~~  |
+| ~~22~~ | ~~docserver: DataProduct badges/hidden flag rendering~~ done — 2026-09-26 — docserver badges shipped                                                                                                                    | ~~Low~~      | ~~S~~  |
+| ~~23~~ | ~~check-eventcatalog: lockfile-pin the linter install~~ done — 2026-09-26 — lockfile pin shipped                                                                                                                        | ~~Low~~      | ~~S~~  |
+| 24     | Sweep daemon formatting anomalies (spot-check vs `nix fmt --fail-on-change`)                                                                                                                                            | Low          | S      |
+| ~~25~~ | ~~Fix cqrs-lint D007 repair-path "unsafe path" failures (report-only today)~~ done — 2026-09-26 — D007 verified not broken                                                                                              | ~~Medium~~   | ~~M~~  |
+| ~~26~~ | ~~Address 3 high Dependabot vulnerabilities on master~~ done — 2026-09-26 — dependabot fixed                                                                                                                            | ~~High~~     | ~~M~~  |
+| ~~27~~ | ~~Push decision: ~10 local commits in go-cqrs-lite + hub commits awaiting authorization~~ done — 2026-09-22 — master pushed; remote CI gates on billing only                                                            | ~~High~~     | ~~S~~  |
+| 28     | bank-sync + cqrs-htmx: adopt the new exporter options (owners, plain-refs lint command) once catalog tag lands                                                                                                          | Medium       | S      |
 
 ## g) Questions I cannot answer myself
 

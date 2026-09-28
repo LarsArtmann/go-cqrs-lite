@@ -10,6 +10,7 @@
 ## a) FULLY DONE (verified green unless noted)
 
 ### M01 — Lint → green (the gate that guards everything)
+
 - G703 (gosec path-traversal taint) nolints moved to the SINK lines in
   `catalog/cmd/ec-fixture/main.go` — with a fresh trap lesson: statement +
   trailing nolint >120 chars makes golines WRAP the call and relocate the
@@ -23,6 +24,7 @@
   run rc=1 was my /tmp-path bug in the loop; clean on rerun, 7.3s).
 
 ### M06 — config-war tripwire trio: ALREADY STRUCTURAL, now PROVEN
+
 - Discovery: `#check-lint-config` (config-verify + hash-golden + depguard +
   formatters pin) has run inside BOTH `#verify` and `#verify-fast` since
   2026-09-06 — the plan's "wire it" step was already done. What was missing
@@ -34,6 +36,7 @@
   ~2-minute `#verify-fast` probe.
 
 ### M08 — named-byte payload hazard: swept, documented, rule deferred
+
 - Repo-wide sweep clean: gRPC getters return plain `[]byte`; the watermill
   command bridge carries no payload through constructors; no
   `json.RawMessage` at any constructor; the three in-repo named `[]byte`
@@ -45,6 +48,7 @@
   TODO).
 
 ### M03 — watermill/v4.6.2 hotfix published (ACTIVE CONSUMER HARM STOPPED)
+
 - Pre-cut: tag-content audit (`git log` since v4.6.1 = the fix + pin bumps),
   module tests green.
 - First `batch-release.sh` attempt FAILED on the ambient-env trap
@@ -56,6 +60,7 @@
   (18 files, committed).
 
 ### M07 — tag-wave mechanics
+
 - **CHANGELOG sections cut** (committed authored `1962b83fd`):
   `## [watermill/v4.6.2] — 2026-09-29` and the missing
   `## [7-tag wave] — 2026-09-28` train section (8 bullets moved; dedup
@@ -74,6 +79,7 @@
     the data-mesh arc is CLOSED.
 
 ### M12 — benchkit polish-tail: ALL FIVE debts closed
+
 - (b) `<metric>_cov%` verified through REAL benchstat-format output:
   new subprocess test runs `go test -bench` and parses the actual
   tab-separated `<name> <iters> <value> <unit>` columns (green, 7.3s).
@@ -90,6 +96,7 @@
   residual testcontainers after the run. Not a leak.
 
 ### M13 — README/doc gates: module READMEs are now gated surface
+
 - doc-check corpus extended: auto-discovery globs depth 1–3 (97 module
   READMEs), flake `#doc-check` + `#verify` inline corpus updated; the CI
   doc-check leg (zero-arg auto-discovery) inherits everything.
@@ -102,7 +109,7 @@
     missing (w, r) ×1;
   - 4 ambiguity warnings: doc-check gained file-level import carryover
     (continuation fences inherit prior blocks' imports); readme-quickstart
-    + queue README quick-starts got scoping imports.
+    - queue README quick-starts got scoping imports.
   - nav-checker `loadDocName` gained the same-skill `../SKILL.md`
     candidate (watermill advanced.md's "(SKILL.md §1)" refs were resolving
     to the WRONG skill's SKILL.md); core.md §ref legend now names docs.
@@ -110,6 +117,7 @@
   zero warnings, zero broken nav.** (Was 1246/54 before READMEs.)
 
 ### M10 — cqrs-lint FP-sweep harness refresh
+
 - Harness: stderr captured separately; zero-findings + stderr → `STDERR:`
   tail; EMPTY stdout → `NO JSON OUTPUT (linter skipped repo)` (a skip is
   never read as clean); arithmetic hardened (`${n:-0}`).
@@ -123,6 +131,7 @@
   standard-bug-tracking-schema 194/9 also stable.
 
 ### M02 — receipts sync
+
 - Dedup-campaign row rewritten: (b)(c)(d-pg/dgraph/redis)(e)(f) struck
   with dated receipts; (a) composed-verify + (d)-mysql remain, gates named.
 - CI "Composed #verify re-record" row: STATE 2026-09-29 (pre-run

@@ -43,7 +43,7 @@ unknowingly or asks for exactly the default.
    **correctness** hazard (wrong answers, silently); an unbounded scan is an
    **operations** hazard (slow, big) — and the escape hatches for the latter
    (`WithLimit`, `ScanPage` + `WithCursor` keyset pagination) already exist and are
-~~   the documented path for large collections. A v5 breaking cut is the one window~~ — done — ruled Option C 2026-09-21; only the v5-branch flip remains (TODO G-T14 row)
+   ~~ the documented path for large collections. A v5 breaking cut is the one window~~ — done — ruled Option C 2026-09-21; only the v5-branch flip remains (TODO G-T14 row)
    where the flip is honest.
 3. **Unbounded + operator ceiling:** add `metaengine.WithDefaultLimit(n)` at Store
    construction so an operator can cap worst-case memory deployment-side without

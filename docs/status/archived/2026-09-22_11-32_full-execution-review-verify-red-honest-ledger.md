@@ -32,26 +32,26 @@ This file adds the overnight aftermath + the brutal layer those two under-report
 ## b) PARTIALLY DONE
 
 ~~1. **T04 composed `#verify` — ARMED, RAN, AND RED.** Preflight was 6/6 GREEN~~ — done 2026-09-22 — SC1091 fixed in the flake verify app (12-58 report A1)
-   (lint-config, templ, bench-gate, coverage, api-stability, duplication),
-   but the `#verify` nix build fails at BUILD time, all 3 quiet-window
-   attempts: the flake's zero-findings shellcheck gate dies on
-   **SC1091 (info): "Not following: ./scripts/lib/verify-lock.sh was not
-   specified as input (see shellcheck -x)"** (`/var/tmp/t04-verify.log`,
-   `nix log ...-verify.drv`). A script added by the night's hook-hardening
-   sources the lib; the gate's shellcheck invocation neither passes the lib
-   as input nor runs with `-x`. Small fix, big blocker: **nothing downstream
-   (S04 record, T08/T09 tag waves) can proceed until this is green.**
+(lint-config, templ, bench-gate, coverage, api-stability, duplication),
+but the `#verify` nix build fails at BUILD time, all 3 quiet-window
+attempts: the flake's zero-findings shellcheck gate dies on
+**SC1091 (info): "Not following: ./scripts/lib/verify-lock.sh was not
+specified as input (see shellcheck -x)"** (`/var/tmp/t04-verify.log`,
+`nix log ...-verify.drv`). A script added by the night's hook-hardening
+sources the lib; the gate's shellcheck invocation neither passes the lib
+as input nor runs with `-x`. Small fix, big blocker: **nothing downstream
+(S04 record, T08/T09 tag waves) can proceed until this is green.**
 2. **T17 remainder**: gate-semantics ADR + calibration case-study appendix
-   still open (source material now consolidated in the canonical record).
+still open (source material now consolidated in the canonical record).
 ~~3. **T07 remainder**: V006 taskmanager version-set golden (needs the next~~ — done 2026-09-28 — V006 taskmanager golden repaired
-   tag wave's version set).
+tag wave's version set).
 4. **T10 prep**: exhaustruct filing intel banked (module = the gaijin fork
-   `dev.gaijin.team/go/exhaustruct/v5`, `4meepo` is 404-GONE; harness at
-   `/tmp/exhaustruct-repro`; synthetic shapes don't trigger — historical
-   tree ~`eea1c3c66^` is the repro). Drafts NOT written; filing owner-blocked.
+`dev.gaijin.team/go/exhaustruct/v5`, `4meepo` is 404-GONE; harness at
+`/tmp/exhaustruct-repro`; synthetic shapes don't trigger — historical
+tree ~`eea1c3c66^` is the repro). Drafts NOT written; filing owner-blocked.
 5. **T05/T20 (concurrent lane)**: go-env.sh + hook env hygiene landed and I
-   verified adoption in hook + 3 scripts; the FULL fragile-script adoption
-   audit is still open.
+verified adoption in hook + 3 scripts; the FULL fragile-script adoption
+audit is still open.
 
 ## c) NOT STARTED (this session's reachable scope; deliberate)
 

@@ -64,34 +64,34 @@ This report covers only what this session did and noticed.
 
 ## f) Next tasks (session-derived, ranked; 1–4 pre-exist in TODO_LIST.md T13)
 
-| #  | Task                                                                                                                                                              | Impact | Effort | Category      |
-| -- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
-| ~~1~~  | ~~Write `docs/architecture-understanding/` data-mesh mapping doc (4 principles → modules, cross-link Cordis doc)~~ done — 2026-09-24 — T13 exporter options shipped (plan T01-T27) | ~~High~~ | ~~M~~ | ~~Documentation~~ |
-| ~~2~~  | ~~HARVEST this report's new items into `TODO_LIST.md` / `ROADMAP.md`~~ done — mesh-demo + hub onboarding shipped | ~~Medium~~ | ~~S~~ | ~~Cleanup~~ |
-| ~~3~~  | ~~T13: export `catalog.index.json` manifest (golden-tested) for cheap hub diffing~~ done — decision D3: hub items live in the eventcatalog-hub repo | ~~High~~ | ~~M~~ | ~~Feature~~ |
-| 4  | T13: `skip-bootstrap-files` export option (hub owns its bootstrap)                                                                                                | Medium | S      | Feature       |
-| 5  | T13-related: fix `@eventcatalog/linter` ref mismatch — versioned vs unversioned `services/<id>/` dirs (`refs/resource-exists` false flags)                        | Medium | M      | Bug           |
-| 6  | T13-related: emit message/container-level `owners` (currently services only) — re-arms warn-suppressed hub lint rules                                             | Medium | M      | Feature       |
-| 7  | Multi-bounded-context example under `example/`: two domains, bilateral `Sends`/`Receives`, hub-mergeable exports — the in-repo proof of the data-mesh story       | High   | L      | Documentation |
-| 8  | Verify + fill "declare DataProducts + DataContracts end-to-end" cookbook recipe in `references/recipes.md` (README §Entities/DataProducts exists; recipe may not) | Medium | S      | Documentation |
-| 9  | Hub CI: fail the union-merge build on dangling coeffect refs (mirror `Catalog.ValidateCoeffects` at mesh level)                                                   | Medium | M      | Feature       |
-| 10 | Hub: cross-service link completeness report (matrix of both-sides-declared links)                                                                                 | Low    | M      | Feature       |
-| 11 | cqrs-lint rule: data product declared without an output `DataContract` → advisory                                                                                 | Medium | M      | Feature       |
-| 12 | Doc: journal-as-outbox (ADR-016) _as the mesh replication mechanism_ — connect CatchUpSubscriber to data-product input ports                                      | Medium | S      | Documentation |
-| 13 | Doc: `schema` upcasting + `DataContract` versioning interplay (contract evolution story)                                                                          | Medium | M      | Documentation |
-| 14 | Doc: `metaengine.ServeSSE` + query surfaces as data-product _serving ports_                                                                                       | Low    | S      | Documentation |
-| 15 | Formalize "NOT a federated query engine" from `meta-engine-design.md:116` into a dated ADR (it is currently a planning-doc aside)                                 | Medium | S      | Documentation |
-| 16 | ADR: mesh-level policy enforcement (privacy/access across domains) — adopt explicitly or reject explicitly; don't leave it undecided                              | Medium | M      | Documentation |
-| 17 | Verify `DataProduct` renders in `catalog/docserver` UI (agent did not confirm)                                                                                    | Low    | S      | Quality       |
-| 18 | Verify `DataProduct`/`DataContract` are covered by the api-stability golden                                                                                       | Low    | S      | Quality       |
-| 19 | gRPC (ADR-0127, v5 removal): migration guide for sync cross-service contracts → HTTP/SSE/brokers, aimed at mesh consumers                                         | Medium | M      | Documentation |
-| 20 | Hub: owners/teams federation — dedupe of teams/users across per-service exports                                                                                   | Low    | M      | Feature       |
-| 21 | Hub: stale-source detection (repo in `sources.json` whose export command fails/missing)                                                                           | Low    | S      | Feature       |
-| 22 | `example/goal-shaped-app`: demonstrate a data product materialized view via `cqrs.yaml` operator config                                                           | Low    | M      | Documentation |
-| 23 | ROADMAP entry: "data-mesh-ready SDK" positioning (or reject the positioning deliberately)                                                                         | Medium | S      | Documentation |
-| 24 | Cross-link this report's (f) items to the SystemNix hub plan where they are hub-owned (cross-repo routing rule)                                                   | Low    | S      | Cleanup       |
-| 25 | Spot-verify the three single-source claims from (b2)                                                                                                              | Low    | S      | Quality       |
-| 26 | Consider `DataProduct` SLA/freshness fields if EventCatalog schema supports them (verify first)                                                                   | Low    | M      | Feature       |
+| #     | Task                                                                                                                                                                               | Impact     | Effort | Category          |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------ | ----------------- |
+| ~~1~~ | ~~Write `docs/architecture-understanding/` data-mesh mapping doc (4 principles → modules, cross-link Cordis doc)~~ done — 2026-09-24 — T13 exporter options shipped (plan T01-T27) | ~~High~~   | ~~M~~  | ~~Documentation~~ |
+| ~~2~~ | ~~HARVEST this report's new items into `TODO_LIST.md` / `ROADMAP.md`~~ done — mesh-demo + hub onboarding shipped                                                                   | ~~Medium~~ | ~~S~~  | ~~Cleanup~~       |
+| ~~3~~ | ~~T13: export `catalog.index.json` manifest (golden-tested) for cheap hub diffing~~ done — decision D3: hub items live in the eventcatalog-hub repo                                | ~~High~~   | ~~M~~  | ~~Feature~~       |
+| 4     | T13: `skip-bootstrap-files` export option (hub owns its bootstrap)                                                                                                                 | Medium     | S      | Feature           |
+| 5     | T13-related: fix `@eventcatalog/linter` ref mismatch — versioned vs unversioned `services/<id>/` dirs (`refs/resource-exists` false flags)                                         | Medium     | M      | Bug               |
+| 6     | T13-related: emit message/container-level `owners` (currently services only) — re-arms warn-suppressed hub lint rules                                                              | Medium     | M      | Feature           |
+| 7     | Multi-bounded-context example under `example/`: two domains, bilateral `Sends`/`Receives`, hub-mergeable exports — the in-repo proof of the data-mesh story                        | High       | L      | Documentation     |
+| 8     | Verify + fill "declare DataProducts + DataContracts end-to-end" cookbook recipe in `references/recipes.md` (README §Entities/DataProducts exists; recipe may not)                  | Medium     | S      | Documentation     |
+| 9     | Hub CI: fail the union-merge build on dangling coeffect refs (mirror `Catalog.ValidateCoeffects` at mesh level)                                                                    | Medium     | M      | Feature           |
+| 10    | Hub: cross-service link completeness report (matrix of both-sides-declared links)                                                                                                  | Low        | M      | Feature           |
+| 11    | cqrs-lint rule: data product declared without an output `DataContract` → advisory                                                                                                  | Medium     | M      | Feature           |
+| 12    | Doc: journal-as-outbox (ADR-016) _as the mesh replication mechanism_ — connect CatchUpSubscriber to data-product input ports                                                       | Medium     | S      | Documentation     |
+| 13    | Doc: `schema` upcasting + `DataContract` versioning interplay (contract evolution story)                                                                                           | Medium     | M      | Documentation     |
+| 14    | Doc: `metaengine.ServeSSE` + query surfaces as data-product _serving ports_                                                                                                        | Low        | S      | Documentation     |
+| 15    | Formalize "NOT a federated query engine" from `meta-engine-design.md:116` into a dated ADR (it is currently a planning-doc aside)                                                  | Medium     | S      | Documentation     |
+| 16    | ADR: mesh-level policy enforcement (privacy/access across domains) — adopt explicitly or reject explicitly; don't leave it undecided                                               | Medium     | M      | Documentation     |
+| 17    | Verify `DataProduct` renders in `catalog/docserver` UI (agent did not confirm)                                                                                                     | Low        | S      | Quality           |
+| 18    | Verify `DataProduct`/`DataContract` are covered by the api-stability golden                                                                                                        | Low        | S      | Quality           |
+| 19    | gRPC (ADR-0127, v5 removal): migration guide for sync cross-service contracts → HTTP/SSE/brokers, aimed at mesh consumers                                                          | Medium     | M      | Documentation     |
+| 20    | Hub: owners/teams federation — dedupe of teams/users across per-service exports                                                                                                    | Low        | M      | Feature           |
+| 21    | Hub: stale-source detection (repo in `sources.json` whose export command fails/missing)                                                                                            | Low        | S      | Feature           |
+| 22    | `example/goal-shaped-app`: demonstrate a data product materialized view via `cqrs.yaml` operator config                                                                            | Low        | M      | Documentation     |
+| 23    | ROADMAP entry: "data-mesh-ready SDK" positioning (or reject the positioning deliberately)                                                                                          | Medium     | S      | Documentation     |
+| 24    | Cross-link this report's (f) items to the SystemNix hub plan where they are hub-owned (cross-repo routing rule)                                                                    | Low        | S      | Cleanup           |
+| 25    | Spot-verify the three single-source claims from (b2)                                                                                                                               | Low        | S      | Quality           |
+| 26    | Consider `DataProduct` SLA/freshness fields if EventCatalog schema supports them (verify first)                                                                                    | Low        | M      | Feature           |
 
 ## g) Questions I cannot answer myself
 

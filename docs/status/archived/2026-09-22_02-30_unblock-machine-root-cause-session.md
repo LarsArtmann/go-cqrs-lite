@@ -71,17 +71,17 @@ preflight, then the wait-loop + `nix run .#verify` in a real window; record S04.
 2. **Ambient session env carries `GOTOOLCHAIN=local` + buildcache paths** (nixpkgs Go
    wrapper default; the fish guard fixes it only for fish login shells — crush/daemon
    envs bypass it). go-env.sh defends this repo; a session-wide fix is an owner call.
-~~3. **Upstream BuildFlow fix (fleet-wide value):** `go-version-auto-configure` must learn~~ — done 2026-09-25 — F154 verified FIXED upstream (gvac v0.2.1); no filing needed
+   ~~3. **Upstream BuildFlow fix (fleet-wide value):** `go-version-auto-configure` must learn~~ — done 2026-09-25 — F154 verified FIXED upstream (gvac v0.2.1); no filing needed
    dependency-driven patch floors (strip a patch only when no dependency requires it);
    its current rule silently breaks any repo whose deps pin a patch. Also worth filing:
    auto-configure under a too-old toolchain rewrote `.golangci.yml` and patched adjacent
    goldens — repairs should refuse to run when the toolchain can't even load the module.
    BuildFlow repo HEAD (`9663c02`) is ahead of the installed binary (`557fe59`) — check
    whether a fix already landed before filing.
-~~4. **The concurrent goal-closure lane shipped T15** (scheduler-otel-status suite, +126-line~~ — done — T15 row struck by the 14-23 consistency pass
+   ~~4. **The concurrent goal-closure lane shipped T15** (scheduler-otel-status suite, +126-line~~ — done — T15 row struck by the 14-23 consistency pass
    `main_test.go`, absorbed by daemon `dd3691be0`/`442d168f8`) — TODO row strike pending
    the lane's own close-out.
-~~5. TODO_LIST rows for this session's strikes (T01/T02/T05/T06/T12/T13, F152) deferred to~~ — done — TODO strikes landed by the 14-23 pass
+   ~~5. TODO_LIST rows for this session's strikes (T01/T02/T05/T06/T12/T13, F152) deferred to~~ — done — TODO strikes landed by the 14-23 pass
    the next docs-health harvest — the file is lane-contended (guardrail G1).
 
 ## T18b watcher note (guardrail G2 — record only)

@@ -201,14 +201,14 @@ is green (tests, race, lint, file-size, md-go, changelog-symbols).
 **Close out this work**
 
 ~~1. Re-run `nix run .#lint` (last edit removed an unused nolint — confirm zero~~ — routed — lint legs live in the TODO Dedup-campaign verification tail row
-   catalog findings).
+catalog findings).
 ~~2. Re-run `nix run .#check-eventcatalog` once more after final lint fixes~~ — done — check-eventcatalog green (verified by the closeout + M16 wave)
-   (changelogBody refactor + fixture constants changed output paths' inputs —
-   semantics identical, but verify).
+(changelogBody refactor + fixture constants changed output paths' inputs —
+semantics identical, but verify).
 ~~3. Run `nix run .#verify` (exclusive window) for the full-suite stamp.~~ — routed — TODO_LIST composed-verify row
 ~~4. Run `nix run .#verify-ci` (GOWORK=off per-module matrix) — mirrors CI.~~ — routed — verify-ci mirrors CI; tracked with the composed gate
 5. Check `git status` for uncommitted stragglers; author a proper commit if the
-   daemon hasn't (message per repo conventions, NOT "chore:").
+daemon hasn't (message per repo conventions, NOT "chore:").
 ~~6. `benchkit/go.mod` was dirty at session start (not mine) — decide owner.~~ — done — foreign dirt resolved by the owning sessions
 
 **Harden the exporter**

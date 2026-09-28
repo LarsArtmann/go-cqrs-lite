@@ -28,26 +28,26 @@ since 09-09). What remains between here and "boring to trust" is concentrated,
 not spread:
 
 ~~1. **Six owner rulings** gate ~20 rows (W3 bundle). Every one is XS; none can~~ — routed — every W3 ruling now lives in TODO_LIST (T18b tail row, M20 one-pager rows, push/billing rows)
-   be executed without the answer. This is the single highest-leverage open item.
+be executed without the answer. This is the single highest-leverage open item.
 2. **Two recurring burn classes:** the `.golangci.yml` config-corruption war
-   (10+ incidents, ~45 min each) and verify-attempt burns (attempts 7–9 of the
-   S03 arc were each a skipped pre-flight, 12–46 min each). Both have S-effort
-   mechanical fixes designed and waiting.
+(10+ incidents, ~45 min each) and verify-attempt burns (attempts 7–9 of the
+S03 arc were each a skipped pre-flight, 12–46 min each). Both have S-effort
+mechanical fixes designed and waiting.
 3. **T18b** is the last substrate-plan item: the committed benchmark baseline
-   predates the Go 1.27 toolchain — every perf claim cites a stale baseline.
-   Quiet-window gated.
+predates the Go 1.27 toolchain — every perf claim cites a stale baseline.
+Quiet-window gated.
 4. **Master is red across ~6 CI legs**, all root-caused with owners, none caused
-   by wave content. Red master normalizes drift.
+by wave content. Red master normalizes drift.
 5. **The queue/claiming substrate has no durable MySQL leg** (QEMU diagnosed
-   vehicle-fragile; the native-MariaDB path proved out manually on 09-19 but
-   was never productized — a concurrent session is now building
-   `testutil/mysqltestcontainer`, so coordinate).
+vehicle-fragile; the native-MariaDB path proved out manually on 09-19 but
+was never productized — a concurrent session is now building
+`testutil/mysqltestcontainer`, so coordinate).
 6. **Consumer-truth tails:** FEATURES maturity census, READMEs outside the
-   doc-check gate, quick-start drift guards, recipes §2.11 never drift-checked,
-   3 known ambiguous-alias advisories.
+doc-check gate, quick-start drift guards, recipes §2.11 never drift-checked,
+3 known ambiguous-alias advisories.
 7. Three upstream filings (exhaustruct_v5 panic, go/types race, turso-go
-   native-lib family) have repros ready and would fix ecosystem classes that
-   red our CI legs.
+native-lib family) have repros ready and would fix ecosystem classes that
+red our CI legs.
 
 ---
 

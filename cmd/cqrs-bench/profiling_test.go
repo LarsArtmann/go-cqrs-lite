@@ -36,7 +36,10 @@ func TestStartProfiling_TeardownOrderFlushesBeforeClose(t *testing.T) {
 	}
 
 	if !bytes.HasPrefix(cpuBytes, []byte{0x1f, 0x8b}) {
-		t.Fatalf("cpu profile is not a gzipped pprof stream (teardown closed before flush?): %d bytes", len(cpuBytes))
+		t.Fatalf(
+			"cpu profile is not a gzipped pprof stream (teardown closed before flush?): %d bytes",
+			len(cpuBytes),
+		)
 	}
 
 	memBytes, err := os.ReadFile(memPath)

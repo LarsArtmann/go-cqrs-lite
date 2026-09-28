@@ -4,8 +4,8 @@
 
 **Mission (this session):** Resume the 52-group deduplication campaign
 (`docs/status/2026-09-28_02-21_deduplication-52-clone-groups-session.md`),
-work the plan top-down, verify everything. The user then asked: *what did you
-forget, what could be better, what remains?* — this report answers that against
+work the plan top-down, verify everything. The user then asked: _what did you
+forget, what could be better, what remains?_ — this report answers that against
 what actually happened, not against an idealized retelling.
 
 **Headline:** `nix run .#check-duplication` is GREEN — **52 → 0 new clone
@@ -22,18 +22,19 @@ pgengine/mysqlengine changes remain unexercised.
 
 ### Extractions applied + tested (7 new this session, 32 campaign-wide)
 
-| Extraction | Files | Verification |
-|---|---|---|
-| `eachDeclaredQuery` iterator (rule prologue trio) | rules.go, rule_degraded_adt/durability/replication | metaengine full suite green |
-| `drainQuery[T]` (rows query+close+drain core) | NEW scan_drain.go; ScanDistinctValues/ScanGroupedAggregates/GroupedAggregateScan in scan.go | metaengine full green; sqlite+duckdb engine tests green |
-| `PairsToScanResult` (SortPaginate tail half) | sort_paginate.go + memory_engine, bboltengine/map_backends, pebbleengine/engine | memory/sqlite-full/bbolt/pebble suites green |
-| `foldPrelude` (remove-guard + handler validation) | record_fold.go helper; onFold + onRecordFold callers | metaengine green (panic-message merge pinned by `MatchRegexp("handler must be a function")`) |
-| `lintutil.IsContextType` (pointer/ellipsis-aware) | lintutil.go; d012 + c016 adopt | all 4 rule packages green |
-| `eachAncestorConfigFile` (ancestor-config walk) | diagnostics.go helper + doctor.go | cqrs-lint main green |
-| `hasSQLiteOpenEvidence` (pragma-ladder core) | dsn_resolver.go; p012/p013 one-liners | performance package green |
-| `scanDeprecations` | cmd/cqrs-upgrade/main.go | cqrs-upgrade suite green |
+| Extraction                                        | Files                                                                                       | Verification                                                                                 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `eachDeclaredQuery` iterator (rule prologue trio) | rules.go, rule_degraded_adt/durability/replication                                          | metaengine full suite green                                                                  |
+| `drainQuery[T]` (rows query+close+drain core)     | NEW scan_drain.go; ScanDistinctValues/ScanGroupedAggregates/GroupedAggregateScan in scan.go | metaengine full green; sqlite+duckdb engine tests green                                      |
+| `PairsToScanResult` (SortPaginate tail half)      | sort_paginate.go + memory_engine, bboltengine/map_backends, pebbleengine/engine             | memory/sqlite-full/bbolt/pebble suites green                                                 |
+| `foldPrelude` (remove-guard + handler validation) | record_fold.go helper; onFold + onRecordFold callers                                        | metaengine green (panic-message merge pinned by `MatchRegexp("handler must be a function")`) |
+| `lintutil.IsContextType` (pointer/ellipsis-aware) | lintutil.go; d012 + c016 adopt                                                              | all 4 rule packages green                                                                    |
+| `eachAncestorConfigFile` (ancestor-config walk)   | diagnostics.go helper + doctor.go                                                           | cqrs-lint main green                                                                         |
+| `hasSQLiteOpenEvidence` (pragma-ladder core)      | dsn_resolver.go; p012/p013 one-liners                                                       | performance package green                                                                    |
+| `scanDeprecations`                                | cmd/cqrs-upgrade/main.go                                                                    | cqrs-upgrade suite green                                                                     |
 
 ### Directives (~40 groups) — all detector-verified
+
 Every intentional-residue group from both reports: engine Close trio, seedSeq
 ladders, stream-log heads/tails, vector heads, batch heads, bus Close pairs,
 close-latch trios, Stop/ForceStop (deliberately NOT extracted — subtle
@@ -44,12 +45,14 @@ Two converted to **trailing-comment form** (badger stream_log, projectionhost
 host) when the +1 line broke the >350 shrink-only ratchet.
 
 ### Gates green
+
 `#check-duplication` (0 new, baseline 187) · api-stability golden regen
 (7514 exports) + `TestEvery` · `#check-arch` · `check-changelog-symbols`
 (51 citations) · doc-check 1218 refs (at the time it ran — see b) ·
 `check-file-size` for MY files · `nix fmt` applied.
 
 ### Foreign incidents FIXED en route (were blocking test gates)
+
 1. **Daemon repair-tool re-broke `event.NewEvent` semantics at all 7 sites**
    commit `609b4449a` had fixed (watermill protocol, signing ×2, encryption,
    grpc client, eventtest ×2). Bisected to `d4d08a7ba` (616-file wave); the
@@ -60,6 +63,7 @@ host) when the +1 line broke the >350 shrink-only ratchet.
    286→285, daemon line-shift) — fixed, TestLintExampleTaskmanager green.
 
 ### Docs
+
 CHANGELOG `[Unreleased]` Added entry (8 new exports) · AGENTS contract #27
 helper inventory extended · AGENTS contract #14 gained the two discovered
 art-dupl semantics · TODO_LIST harvested (templ watch item replaces the
@@ -67,6 +71,7 @@ art-dupl semantics · TODO_LIST harvested (templ watch item replaces the
 completion addendum appended to the 02:21 session report.
 
 ### Recovered from previous session
+
 benchkit (51s, fresh GOCACHE) + cqrs-bench (11s) — both green after the
 previous "context canceled" interruption.
 
@@ -166,9 +171,9 @@ previous "context canceled" interruption.
 
 ~~1. Run `nix run .#verify` (composed) on the current tree; fix anything red.~~ — routed — TODO Dedup-campaign verification tail row
 ~~2. Run `nix run .#lint` (or at minimum golangci on metaengine, cqrs-lint,~~ — routed — same row (lint leg)
-   watermill, cmd/*) — trailing-directive line length is the known risk.
+watermill, cmd/*) — trailing-directive line length is the known risk.
 ~~3. Re-run doc-check (`cmd/doc-check`) over SKILL.md + references + AGENTS.md~~ — done 2026-09-28 — doc-check green at 1,218 refs (M16)
-   after the contract #14 edit.
+after the contract #14 edit.
 ~~4. `#load-sweep` — drainQuery/PairsToScanResult touched timing paths.~~ — routed — same row (load-sweep leg)
 5. `#nightly-bench` (or benchmark-regression.sh) vs committed baseline.
 6. `#integration-pg` (pgengine planned-scan + pushdown directives).
@@ -182,69 +187,69 @@ previous "context canceled" interruption.
 14. Full `#test-integration` composite after the legs above pass.
 15. Owner decision: ratify or revert the baseline re-pin (60→187) — see g-1.
 16. Add a pinned regression test asserting `event.NewEvent` does NOT
-    CBOR-stamp raw payloads (the repair-tool canary).
+CBOR-stamp raw payloads (the repair-tool canary).
 17. Disable or upstream-fix BuildFlow's `event.NewEvent→event.New` rewrite
-    rule (third strike this week; the fix commit 609b4449a documents rounds
-    1–2, this session was round 3).
+rule (third strike this week; the fix commit 609b4449a documents rounds
+1–2, this session was round 3).
 ~~18. Split `catalog/docserver/docserver.go` (351 lines, gate-red).~~ — done 2026-09-28 — the three catalog offenders split green (05-40 report)
 ~~19. Split `catalog/eventcatalog/frontmatter_convert.go` (364, gate-red).~~ — done 2026-09-28 — same
 ~~20. Split `catalog/cmd/ec-fixture/main.go` (356, gate-red).~~ — done 2026-09-28 — same
 ~~21. Quarantine/rebuild `/home/lars/projects/.gocache-disk` (missing stdlib~~ — routed — machine-local env; workaround documented in gotchas
-    entries poison cold sessions).
+entries poison cold sessions).
 22. Extract `noscriptSpecFallback` templ component (specview pair) → shrink
-    baseline group.
+baseline group.
 23. Extract a breadcrumbs wrapper component (eventcatalogview ×4 group).
 24. Extract `catalogSection` wrapper (eventcatalogview pair).
 25. File art-dupl upstream: `//art-dupl:accept` support for `.templ` files.
 26. File art-dupl upstream docs issue: hash-based (not location-based) group
-    matching — "verbatim copies of baselined shapes are absorbed" deserves
-    to be documented behavior, not a discovery.
+matching — "verbatim copies of baselined shapes are absorbed" deserves
+to be documented behavior, not a discovery.
 27. Update skill references (recipes.md scan-family section) with
-    SanitizeIdent/GroupedAggregateScan/PairsToScanResult/AppendPlannedCursor/
-    OrderLimit/SyncWritesTier/TypeName.
+SanitizeIdent/GroupedAggregateScan/PairsToScanResult/AppendPlannedCursor/
+OrderLimit/SyncWritesTier/TypeName.
 28. Consider doc examples (pkg.go.dev) for the 8 new exported helpers.
 29. Unify `graphNeighborsFallback` onto `GraphBFS` (pre-existing TODO, nil-vs
-    -empty decision needed).
+-empty decision needed).
 30. Adopt `SortPaginate` in memory_engine's hand-rolled sort (key types are
-    `any` — needs key-encoder decision).
+`any` — needs key-encoder decision).
 31. Evaluate `PairsToScanResult` adoption for sqlite/duckdb/dgraph
-    truncate-tails (they diverge more; may not fit).
+truncate-tails (they diverge more; may not fit).
 32. Ride `drainQuery` under `scanJSONKeyValues` + `ScanKeyValuesPage`
-    (same-package follow-on).
+(same-package follow-on).
 33. `#check-templ` + `#check-eventcatalog` + `#check-csp` after any future
-    templ work (not needed this session — file round-tripped byte-identical).
+templ work (not needed this session — file round-tripped byte-identical).
 34. Add the two status reports (02:21 + this one) to
-    `docs/status/README.md` live index — canonical-facts gate leg.
+`docs/status/README.md` live index — canonical-facts gate leg.
 35. md-go gate sweep over the new status doc content (`#check-md-go`).
 36. Spot-audit the daemon's committed formatting of my 30+ edited files for
-    semantic drift (only publisher.go was spot-checked).
+semantic drift (only publisher.go was spot-checked).
 37. Consider `--min-lines`/config hardening for art-dupl now that the
-    baseline is shape-based (novel small shapes currently flag at threshold 3).
+baseline is shape-based (novel small shapes currently flag at threshold 3).
 38. Reconcile FEATURES.md maturity rows if the engine helper consolidation
-    shifts any module's surface claims.
+shifts any module's surface claims.
 39. Post-re-pin ratchet: at the NEXT structural shift, prune baseline entries
-    whose groups the extractions killed (baseline can only honestly shrink).
+whose groups the extractions killed (baseline can only honestly shrink).
 40. Delete the corrupted-cache workaround documentation debt once .gocache-disk
-    is rebuilt (gotchas-tooling-build.md row).
+is rebuilt (gotchas-tooling-build.md row).
 41. Queue `#verify-parallel` baseline run for CI comparison (mirror matrix).
 42. Watermill: consider extracting the close-once latch into a tiny type IF
-    lock-discipline unification is ever accepted (currently directive-guarded).
+lock-discipline unification is ever accepted (currently directive-guarded).
 43. cqrs-lint: convert the 5 other declaredQuery call sites to
-    eachDeclaredQuery for one-idiom consistency (cosmetic, unflagged today).
+eachDeclaredQuery for one-idiom consistency (cosmetic, unflagged today).
 44. Re-run the cqrs-lint self-lint over the WHOLE repo (it linted itself green
-    only for the taskmanager fixture).
+only for the taskmanager fixture).
 45. Check `docs/api_surface.txt` diff noise floor — 7514 exports regenerated
-    while daemon waves landed; confirm no foreign symbols leaked into the
-    golden between my edits and the regen.
+while daemon waves landed; confirm no foreign symbols leaked into the
+golden between my edits and the regen.
 46. Add `art-dupl check` scoped-vs-full equivalence note to
-    gotchas-tooling-build.md (truncated full-run output hid 9 groups).
+gotchas-tooling-build.md (truncated full-run output hid 9 groups).
 47. Sweep remaining `hasMore := limit > 0` sites (duckdb×3, dgraph, sqlite×3)
-    for the truncate-only variant — a `TruncateHasMore` helper if ≥3 adopt.
+for the truncate-only variant — a `TruncateHasMore` helper if ≥3 adopt.
 48. TODO_LIST: fold items 22–26 above into the templ watch entry if declined.
 49. Consider an ADR for the dedup campaign end-state (baseline semantics +
-    directive inventory) if the owner wants it durable beyond AGENTS #14.
+directive inventory) if the owner wants it durable beyond AGENTS #14.
 50. Release train: NOT mine to trigger — owner gates tagging; the CHANGELOG
-    entry is staged for whenever the next wave cuts.
+entry is staged for whenever the next wave cuts.
 
 ## g) QUESTIONS (cannot answer myself)
 
