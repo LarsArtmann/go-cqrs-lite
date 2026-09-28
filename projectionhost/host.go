@@ -206,6 +206,7 @@ func (h *Host) Start(ctx context.Context) error {
 func (h *Host) Stop() error {
 	h.mu.Lock()
 	if !h.started || h.stopped {
+		//art-dupl:accept Stop/ForceStop stop-latch prologue — subtle concurrency, deliberately not merged
 		h.mu.Unlock()
 
 		return nil

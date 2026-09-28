@@ -153,6 +153,7 @@ func (b *EventBus) UsePublish(mw ...event.PublishMiddleware) error {
 
 // Close shuts down the backend. Safe to call multiple times.
 func (b *EventBus) Close() error {
+	//art-dupl:accept close-once latch idiom — transport/backend Close contract
 	b.mu.Lock()
 
 	if b.closed {

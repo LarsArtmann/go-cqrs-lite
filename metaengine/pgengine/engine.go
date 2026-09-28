@@ -96,6 +96,7 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 	}
 
 	if err := eng.init(); err != nil {
+		//art-dupl:accept constructor-failure cleanup idiom — dep-isolated go.mod engines
 		_ = db.Close()
 
 		return nil, err

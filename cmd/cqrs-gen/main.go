@@ -63,6 +63,7 @@ func main() {
 				"  //cqrs:event UserCreated",
 		),
 	)
+	//art-dupl:accept cobra CLI bootstrap guard — identical by design across cmd tools
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
 		os.Exit(1)

@@ -228,6 +228,7 @@ func (c *Claims) ClaimFactsList(
 			return nil, fmt.Errorf("claimkit.ClaimFactsList: %w", err)
 		}
 
+		//art-dupl:accept rows-drain tail vs projectionhost DLQ — distinct domains, same SQL idiom
 		facts = append(facts, fact)
 	}
 

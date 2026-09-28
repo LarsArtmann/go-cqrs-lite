@@ -278,6 +278,7 @@ func (t *QuicTransport) Subscribe(handler func(op irohengine.WriteOp)) error {
 
 // Close implements irohengine.Transport. Closes all connections and the endpoint.
 func (t *QuicTransport) Close() error {
+	//art-dupl:accept close-once latch idiom — transport/backend Close contract
 	t.mu.Lock()
 	if t.closed {
 		t.mu.Unlock()

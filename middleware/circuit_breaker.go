@@ -130,6 +130,7 @@ func NewCircuitBreaker[M any](
 	config CircuitBreakerConfig,
 	opts ...Option,
 ) Middleware[M] {
+	//art-dupl:accept config-validation guard — constructor preflight idiom
 	err := config.Validate()
 	if err != nil {
 		return failingMiddleware[M](err)
