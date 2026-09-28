@@ -233,9 +233,16 @@ func ScanGroupedAggregates(
 	specs []AggregateSpec,
 	label string,
 ) ([]GroupedAggregateRow, error) {
-	return drainQuery(ctx, q, query, args, label, func(rows *sql.Rows) (GroupedAggregateRow, error) {
-		return scanGroupedRow(rows, specs, label)
-	})
+	return drainQuery(
+		ctx,
+		q,
+		query,
+		args,
+		label,
+		func(rows *sql.Rows) (GroupedAggregateRow, error) {
+			return scanGroupedRow(rows, specs, label)
+		},
+	)
 }
 
 // MultiAggregateScan executes a single-row aggregate query and decodes the

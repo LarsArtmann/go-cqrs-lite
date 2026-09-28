@@ -3,8 +3,9 @@ package signing
 import (
 	"encoding/base64"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // MetadataKey is the custom metadata key used to store event signatures.
@@ -19,7 +20,7 @@ func CloneEvent(
 ) (event.Event, error) {
 	//nolint:wrapcheck // callers wrap with context
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	return event.New(
+	return event.NewEvent(
 		evt.Type(),
 		evt.StreamID(),
 		evt.StreamType(),

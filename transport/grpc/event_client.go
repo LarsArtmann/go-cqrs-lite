@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
+	"google.golang.org/grpc"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsproto "github.com/larsartmann/go-cqrs-lite/transport/grpc/v4/proto"
-	errorfamily "github.com/larsartmann/go-error-family"
-	"google.golang.org/grpc"
 )
 
 // EventClient subscribes to events from a remote gRPC EventService.
@@ -85,7 +86,7 @@ func envelopeToEvent(envelope *cqrsproto.EventEnvelope) (event.Event, error) {
 	}
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.New(
+	evt, err := event.NewEvent(
 		event.Type(envelope.GetType()),
 		aggID,
 		id.StreamType(envelope.GetAggregateType()),

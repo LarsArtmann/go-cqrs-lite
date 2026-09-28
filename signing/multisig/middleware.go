@@ -3,9 +3,10 @@ package multisig
 import (
 	"context"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/signing/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // MultiSignMiddleware returns event.PublishMiddleware that signs every published event

@@ -3,8 +3,9 @@ package encryption
 import (
 	"encoding/base64"
 
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 const MetadataKey event.MetadataKey = "event.encrypted"
@@ -54,7 +55,7 @@ func AttachEncryption(
 	}
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	clone, err := event.New(
+	clone, err := event.NewEvent(
 		evt.Type(),
 		evt.StreamID(),
 		evt.StreamType(),

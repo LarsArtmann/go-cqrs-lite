@@ -9,9 +9,10 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/larsartmann/go-codec"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // Metadata keys for event field mapping.
@@ -182,7 +183,7 @@ func MessageToEvent(topic string, msg *message.Message) (event.Event, error) {
 	opts = append(opts, event.WithMetadata(metadata))
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.New(
+	evt, err := event.NewEvent(
 		eventType,
 		streamID,
 		streamType,

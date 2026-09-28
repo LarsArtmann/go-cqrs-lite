@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"io"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 func openSecondaryDB(dsn string, cfg config) (*sql.DB, error) {

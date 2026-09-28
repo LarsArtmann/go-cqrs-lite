@@ -7,10 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/larsartmann/go-finding/pipeline"
+
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/fix"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/correctness"
-	"github.com/larsartmann/go-finding/pipeline"
 )
 
 // TestFixE2E_C003AppliesAtReportedOccurrence drives the real go-finding

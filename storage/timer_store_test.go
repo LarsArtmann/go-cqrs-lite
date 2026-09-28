@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	_ "modernc.org/sqlite" // pure-Go SQLite driver
+
 	"github.com/larsartmann/go-cqrs-lite/scheduling/v4"
 	"github.com/larsartmann/go-cqrs-lite/storage/v4"
-	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )
 
 func newTestTimerStore(t *testing.T) *storage.SQLTimerStore[string] {

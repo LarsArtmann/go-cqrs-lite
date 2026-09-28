@@ -26,9 +26,12 @@ func TestExplainRendersQueryPlacements(t *testing.T) {
 		[]metaengine.Engine{metaengine.NewMemoryEngine()},
 		metaengine.Query[explainInput, explainRow](
 			"items_by_name",
-			metaengine.OnRecord(explainItemCreated{}, func(_ record.Record, e explainItemCreated) (string, explainRow) {
-				return e.Name, explainRow(e)
-			}),
+			metaengine.OnRecord(
+				explainItemCreated{},
+				func(_ record.Record, e explainItemCreated) (string, explainRow) {
+					return e.Name, explainRow(e)
+				},
+			),
 			metaengine.Volume(2_500),
 		),
 	)

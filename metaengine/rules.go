@@ -43,7 +43,11 @@ func declaredQuery(ctx PlanContext, q QueryAssignment) (queryMeta, bool) {
 // query, yielding the assignment and its declared-query metadata. Undeclared
 // queries carry no engine metadata and are skipped silently (re-planning owns
 // the dangling-query error).
-func eachDeclaredQuery(result *PlanResult, ctx PlanContext, fn func(q QueryAssignment, meta queryMeta)) {
+func eachDeclaredQuery(
+	result *PlanResult,
+	ctx PlanContext,
+	fn func(q QueryAssignment, meta queryMeta),
+) {
 	for _, q := range result.Queries {
 		meta, ok := declaredQuery(ctx, q)
 		if !ok {

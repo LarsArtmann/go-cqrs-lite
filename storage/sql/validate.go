@@ -3,8 +3,9 @@ package sql
 import (
 	"regexp"
 
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // identifierPattern matches bare SQL identifiers: an ASCII letter or

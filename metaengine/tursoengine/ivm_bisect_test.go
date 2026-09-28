@@ -102,7 +102,14 @@ func runBisectConfig(t *testing.T, rows, groups, chunk int) bisectOutcome {
 			return out
 		}
 
-		perGroup, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+		perGroup, err := gr.GroupedAggregate(
+			ctx,
+			"orders",
+			metaengine.MatViewSum,
+			"amount",
+			"customer",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("GroupedAggregate: %v", err)
 		}
@@ -120,7 +127,14 @@ func runBisectConfig(t *testing.T, rows, groups, chunk int) bisectOutcome {
 	}
 
 	if out.onsetTx == 0 {
-		perGroup, err := gr.GroupedAggregate(ctx, "orders", metaengine.MatViewSum, "amount", "customer", nil)
+		perGroup, err := gr.GroupedAggregate(
+			ctx,
+			"orders",
+			metaengine.MatViewSum,
+			"amount",
+			"customer",
+			nil,
+		)
 		if err != nil {
 			t.Fatalf("final GroupedAggregate: %v", err)
 		}
@@ -157,7 +171,11 @@ func TestIVMReproDefectAOnsetBisect(t *testing.T) {
 					o.onsetTx, o.view, o.base, o.base-o.view)
 			}
 			if o.wallTx > 0 {
-				verdict += fmt.Sprintf("; defect-C WALL at tx#%d (base by then %.2f)", o.wallTx, o.base)
+				verdict += fmt.Sprintf(
+					"; defect-C WALL at tx#%d (base by then %.2f)",
+					o.wallTx,
+					o.base,
+				)
 			}
 			t.Logf("BISECT %s rows=%d groups=%d chunk=%d txs=%d → %s",
 				label, o.rows, o.groups, o.chunk, ceilDiv(o.rows, o.chunk), verdict)
