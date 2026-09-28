@@ -25,7 +25,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/gomega v1.43.0
 	go.uber.org/goleak v1.3.0

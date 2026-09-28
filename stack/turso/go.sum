@@ -149,8 +149,8 @@ github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1 h1:GR/+dc
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1/go.mod h1:Wdh1Uu5QM/9NBdt7ds/7iUfLX2bvI/kawLT8di8fJcs=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0 h1:yEcaMLhWo+fgk7tCHtraL69I9m142U65OYFtkUZzqWo=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.0/go.mod h1:bxz4Y7LuYTLDGjMZmWebwQg0GpmuMag8NLxGO14aHss=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 h1:gnXM/21tPWUKf0qd01CbRrvWryXs/iGCfnlgDO84y2E=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1/go.mod h1:G8H+ScY5BNvAs8F3Gp9e7uVXFaXgx5jIfv8dy4jICOQ=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2 h1:mZ21VsNdtGLjhbfIOYyH3SKOhlH80qaDo0YRrWIZC18=
+github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2/go.mod h1:6TYWCw0LCkwBWrS0IVzvY24JVq+l7iN93pssTHdw2X4=
 github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
 github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
