@@ -222,3 +222,5 @@ For the full feature inventory see [FEATURES.md](FEATURES.md), for direction see
 ## License
 
 PROPRIETARY — see [LICENSE](LICENSE).
+
+Because the license is not OSS-approved, pkg.go.dev hides module documentation for every module by design (verified 2026-09-28; per-module LICENSE copies do not change this). Browse the API locally with `go doc <module>`, or read [SKILL.md](SKILL.md).

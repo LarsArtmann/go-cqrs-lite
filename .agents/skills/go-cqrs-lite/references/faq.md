@@ -31,6 +31,7 @@
 > - [Will the v5 cut break my imports?](#will-the-v5-cut-break-my-imports-what-is-going-away)
 > - [stack vs system — which composition layer?](#stack-vs-system--which-composition-layer-should-i-import)
 > - [Turso engine encryption at rest](#does-the-turso-engine-support-encryption-at-rest)
+> - [pkg.go.dev shows no documentation](#why-does-pkggodev-show-no-documentation-for-these-modules)
 
 ### "My event payload won't decode"
 
@@ -549,3 +550,16 @@ The write-tail ratio uses the exact max deliberately:
 `WriteTailRatio = write_max_ns / write_p50` — a tame P99 must not hide the
 one write that stalled the pipeline. See `recipes.md` §2.40 for the repeat
 and CoV workflow.
+
+## Documentation availability
+
+### "Why does pkg.go.dev show no documentation for these modules?"
+
+Nothing is broken and nothing needs fixing: the repository LICENSE is
+proprietary ("All rights reserved"), and pkg.go.dev hides documentation for
+non-OSS licenses **by design**. Verified empirically (2026-09-25 on
+`system/v4@v4.9.0`; re-verified 2026-09-28 via `benchkit`, which carries its
+own LICENSE copy and is hidden identically — sweeping LICENSE copies into the
+module directories does not help, so do not attempt that "fix"). The
+pkg.go.dev badges in the README still work as version links; for readable
+docs use `go doc <module-path>` locally, or read `SKILL.md`.
