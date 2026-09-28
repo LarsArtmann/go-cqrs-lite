@@ -622,6 +622,11 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       STATE 2026-09-28: the E15 pin-gap blocker is dead (`dispatcher/v4.5.0`
       published 09-27) and the SC1091 shellcheck wall is fixed (09-22); the
       dedup-campaign row in Code Quality is the new pre-run obligation.
+      STATE 2026-09-29: pre-run obligations are now GREEN (`#lint` 88/88 on
+      the post-config-war-repair tree; config tripwires mutation-verified via
+      `#check-lint-config` inside `#verify-fast`) — only the quiet window is
+      missing: load1 hit 163 at 2026-09-28 22:00 (shared-host storm; still
+      ~10 at 00:30). Never force under storm.
       — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
       _(Effort: M, quiet-window)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
