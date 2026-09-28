@@ -339,12 +339,6 @@ replace-free — 10-25 §a2/§a3, now archived).
 > Zero local `=> ../` replaces remain EXCEPT `storage/go.mod` (`=> ../encryption`,
 > `=> ../snapshot` — the documented unpublished-sibling pattern).
 
-- [ ] **`batch-release.sh` run-log** — the 2026-09-27 7-tag train stalled at 1/7
-      with zero artifacts to diagnose from (no logs kept). Write one
-      line per module to a dated log under `/tmp` or `scripts/`
-      (module, tagged?, verify result, smoke result, failure tail) so a
-      stalled wave is a 5-minute read instead of forensics. — source:
-      2026-09-28 publish-integrity plan M15/e1 _(Effort: S)_
 - [ ] **Release-train tail (post-v4.9.0 waves, queued in [Unreleased])** —
       metaengine wave (row in Metaengine follow-ups below); queue/mysql + `testutil/mysqltestcontainer`
       tag pair; `scheduling/engine` for `ErrEngineNotDueClaimer`; encryption
@@ -359,13 +353,6 @@ replace-free — 10-25 §a2/§a3, now archived).
       structural: content-identical `claiming/v4.0.1` re-tag, or teach V006 to
       skip pins at a module's newest existing tag (linter-semantics fix).
       — source: closeout §f10/§g2 _(Effort: XS + decision)_
-- [ ] **Post-wave hygiene (remainder)** — V006 version-set goldens vs the
-      next tag wave's version set (taskmanager golden pins the version
-      list). Done 2026-09-22 (T07): `pin-sweep --check` GREEN ("All sibling
-      pins at their latest tags"); cqrs-lint over all six examples — zero
-      error-severity findings (taskmanager C017/S010/F031 + readme-quickstart
-      C028 ×2 fixes landed; remaining WARNINGs are deliberate demo
-      simplicity). — source: closeout §f15/§f16/§f25 _(Effort: XS)_
 - [ ] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
@@ -389,15 +376,22 @@ replace-free — 10-25 §a2/§a3, now archived).
       metaengine surface: G-T13 ADTSet parity (pg/mysql, mysql VM leg still
       pending a quiet window), G-T12 `BackfillPlannedTables`,
       `ScanScoredVector`/`RowScanner`, adttest helpers (`AssertTxIsolationFromForeignContext`).
-      **Receipt 2026-09-28 (M1):** the 2026-09-27 7-tag wave (dispatcher/v4.5.0,
-      middleware/v4.7.0, metaengine/v4.15.0, system/v4.10.0, event/v4.12.0,
-      command/v4.12.0, query/v4.9.0 — prep `2d1669f78`) STALLED at 1/7: only
-      `dispatcher/v4.5.0` exists (tagged 09-27 23:53, verified on proxy + pkg.go.dev,
-      fresh-module build green); the other 6 tags are cut nowhere (local+origin+proxy
-      checked), their release content is in-tree, dependents' go.mod already pin
-      dispatcher/v4.5.0 (published), and CHANGELOG `[Unreleased]` honestly still
-      carries the 6 entries. No logs kept by batch-release.sh; cause of the stall
-      unknown. Completing the wave is owner mechanics (verify-lock + zip guard).
+      **Receipt 2026-09-28 (M1, SUPERSEDED same day):** the wave STALLED at 1/7
+      (only `dispatcher/v4.5.0` existed at receipt time; no logs kept by
+      batch-release.sh; cause of the stall unknown).
+      **Receipt 2026-09-28 (later session):** WAVE COMPLETED — all 7 tags exist
+      local+origin and the 6 remaining resolve on the module proxy (`go list -m`
+      green ×6; proxy Time 2026-09-28T05:04:20Z). Post-wave hygiene executed
+      same day: full `pin-sweep.sh` (7 consumers bumped to the new tags,
+      cqrs-lint goldens refreshed), `system/integration`'s dead-`storage/v4.10.0`
+      sibling replace stripped (its documented obsolescence condition — published
+      system/v4.10.0 carries `storage/v4 v4.10.1` — is met),
+      `check-example-standalone.sh --build` green at 0 findings (taskmanager's
+      dead `projectionhost→storage/v4.10.0` edge healed via MVS through
+      system/v4.10.0), `pin-sweep --check` fully green (sibling + external; the
+      `go-finding` family bump for cqrs-lint cleared the external leg — 19/19
+      packages green). REMAINING: the G-T13 mysql-VM quiet-window leg + the
+      CHANGELOG wave-section cut (owner mechanics).
       — source: closeout §f17/§c2 _(Effort: M — tag-wave mechanics)_
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (receipt: the T18b canonical record `docs/benchmarks/2026-09-20-21_t18b-record.md` — noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
@@ -499,10 +493,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       docs. Consumer-trust blocker for the public surface. — source: T03
       post-wave verification 2026-09-22 _(Effort: S verify, M if per-module
       LICENSE files needed)_
-- [ ] **`nix run .#check-md-go` baseline: prune the 1 inert entry** — 104
-      baselined vs 103 actually-suppressed live fences (counted 2026-09-26;
-      the ghost-ratchet already forbids growth, so the prune is safe anytime).
-      — source: archived 2026-09-26 §e/§f50 _(Effort: XS)_
 - [ ] **Watch the first real CI runs (push-gated)** — `Examples Test` job
       (nix eval, 10m timeout, DB-skip env), the md-go-validator ci.yml leg
       (cold build ~1-2 min), the nightly `Go version contract` step, and the
@@ -816,13 +806,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
-- [ ] **pkg.go.dev hidden docs = intended (license consequence) — record it** —
-      the root LICENSE is proprietary, so pkg.go.dev hides documentation for
-      every module by design (verified via benchkit counter-example
-      2026-09-28: it carries its own LICENSE copy and is hidden identically).
-      One FAQ/README sentence prevents the next session from re-deriving this
-      or "fixing" it by sweeping LICENSE copies into 97 module dirs (dead on
-      arrival). — source: 2026-09-28 publish-integrity plan M15/e6 _(Effort: XS)_
 - [ ] [BLOCKED] **M22 / Q3: report-artifact policy for narrow skill triggers**
       (owner ruling, asked 2026-09-27..28 by three sessions) — when a skill like
       `status-report` triggers on a narrow question (one or two modules), is a
