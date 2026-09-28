@@ -4,9 +4,9 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/go-branded-id v0.6.0
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.10.2
 	github.com/oklog/ulid/v2 v2.1.2
-	github.com/onsi/gomega v1.43.0
+	github.com/onsi/gomega v1.43.1
 	pgregory.net/rapid v1.3.0
 )
 
