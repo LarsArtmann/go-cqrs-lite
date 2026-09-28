@@ -361,3 +361,22 @@ flowchart TD
 - **Tier 4%:** race verdict is binary and rowed; G-T13 MySQL receipt exists; junk-file class documented.
 - **Tier 20%:** FEATURES counts match a greppable census; Explain verdict closed (fixed or marked stale); design one-pager awaiting sign-off; TODO_LIST harvested.
 - **Tail:** upstream issue filed or blocked-recorded; calibration provenance current; Q3 codified; v5 census accurate.
+
+---
+
+## 8. Execution addendum (2026-09-28)
+
+**M25 orchestrator shipped:** `scripts/quiet-campaign.sh` — batch sequencer
+wrapping each campaign leg in its own quiet window via
+`scripts/quiet-window-run.sh`. Invocation:
+
+```bash
+scripts/quiet-campaign.sh                        # legs: mysql (G-T13, nspawn→vm fallback), dgraph (constants re-anchor bench)
+scripts/quiet-campaign.sh --legs dgraph -- <cmd> # custom quiet-windowed leg
+scripts/quiet-campaign.sh --dry-run              # print dispatch, execute nothing
+scripts/quiet-campaign.sh --self-test            # offline suite (capture-then-grep: `| grep -q` SIGPIPEs under pipefail)
+```
+
+One leg's failure/deadline never aborts the remaining legs; per-leg logs land
+under a printed `/tmp/quiet-campaign.*` dir. Self-test mutation-verified
+2026-09-28 (corrupted leg → suite fails → original green ×2).
