@@ -380,3 +380,29 @@ scripts/quiet-campaign.sh --self-test            # offline suite (capture-then-g
 One leg's failure/deadline never aborts the remaining legs; per-leg logs land
 under a printed `/tmp/quiet-campaign.*` dir. Self-test mutation-verified
 2026-09-28 (corrupted leg → suite fails → original green ×2).
+
+**M20 leg companion:** `scripts/dgraph-calibration-leg.sh` — the dgraph
+constants re-anchor as one leg (mechanical calibration-gate WITH provenance
+capture first, then ephemeral Dgraph +
+`BenchmarkCalibration_DgraphScaled|DgraphSearchQuery` at count=5, protocol
+items 6–8). Invocation:
+
+```bash
+scripts/quiet-campaign.sh --legs mysql,dgraph -- scripts/dgraph-calibration-leg.sh
+```
+
+(Note for compound legs: pass a SCRIPT path as the custom cmd — the wrapper's
+`bash -c` joining mangles inline `&&` quoting.)
+
+**Detached campaign in flight (2026-09-28 04:56 CEST):** the M5+M20 campaign
+runs DETACHED (`nohup setsid`) under a sustained load storm (load1/5 ≈ 15–20,
+ceiling 5), deadline 10:56 CEST. Progress: `/tmp/quiet-campaign-session.log`
++ per-leg logs in the printed `/tmp/quiet-campaign.KpUgk0/` dir. Harvest
+procedure when it fires: (1) mysql leg output → G-T13 receipt into FEATURES +
+TODO release-wave row; (2) dgraph leg: gate PROVENANCE lines + bench medians
+vs the constants in `metaengine/dgraphengine/engine.go` (NsPerScan/
+NsPerFilteredScan = 2_200, NsPerAggregate = 2_700 per
+calibration-2026-08-30.md §G1) — supersede ONLY if medians move >5%, in the
+same commit as the baseline update + `TestRealProfiles_ReadCostsPinned`
+(protocol item 4); (3) `benchmark-regression.sh` drift check. If the deadline
+expired with no window: relaunch the same command (one line above).
