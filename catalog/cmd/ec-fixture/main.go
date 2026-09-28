@@ -295,13 +295,16 @@ func run(outputDir string, changelogProfile, plainProfile bool) error {
 		"data-products",
 		"order-analytics",
 		"contracts",
-	) //nolint:gosec // argv-supplied output dir by design
-	if err := os.MkdirAll(contractDir, dirPerm); err != nil {
+	)
+	if err := os.MkdirAll(
+		contractDir,
+		dirPerm,
+	); err != nil { //nolint:gosec // argv-supplied output dir
 		return err
 	}
 
-	return os.WriteFile(
-		filepath.Join(contractDir, "orders.yaml"), //nolint:gosec // fixture output path
+	return os.WriteFile( //nolint:gosec // fixture output path
+		filepath.Join(contractDir, "orders.yaml"),
 		[]byte(fixtureDataContract),
 		filePermPrivate,
 	)
