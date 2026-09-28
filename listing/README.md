@@ -49,7 +49,7 @@ import (
 store := memory.NewMemoryStore()
 
 // Classify status from domain event types (ADR-0114) — recommended.
-reader := listing.NewInMemoryAggregateReader(store,
+reader := listing.NewInMemoryStreamReader(store,
     listing.WithStatusClassifier(listing.NewStatusClassifier(
         []event.Type{"user.deleted"},       // deletion events
         []event.Type{"user.reactivated"},   // restoration events
@@ -74,7 +74,7 @@ classifier := listing.NewStatusClassifier(
 )
 
 // In-memory reader:
-reader := listing.NewInMemoryAggregateReader(store,
+reader := listing.NewInMemoryStreamReader(store,
     listing.WithStatusClassifier(classifier))
 
 // Classify a single stream's last event directly:
