@@ -16,6 +16,7 @@ preserved for audit trail and progress tracking.
 | [2026-09-23 EventCatalog agent-changelog crash draft](2026-09-23_eventcatalog-agent-changelog-crash-issue-draft.md) | KEEP-LIVE unfiled upstream issue draft (owner-gated external action)    |
 | [2026-09-28 12th docs-health pass + self-review](2026-09-28_15-10_docs-health-12th-pass-full-audit-self-review.md) | this pass's honest ledger (36 archived, ~335 strikes, gates green, math erratum d1) |
 | [2026-09-28 TODO-execution: watermill roundtrip fix + lint recovery](2026-09-28_17-57_todo-execution-watermill-roundtrip-fix-lint-recovery.md) | publish-integrity rows shipped; 7-tag wave completion discovered; consumer-impacting `MessageToEvent` payload corruption root-caused+fixed; config-war repaired; lint 16/20 |
+| [2026-09-29 post-wave Pareto execution: lint green + hotfix re-tags + README doc-corpus](2026-09-29_01-27_post-wave-pareto-execution-lint-green-hotfix-retags-doc-corpus.md) | M01 lint 88/88; config tripwires mutation-proven; watermill/v4.6.2 + tursoengine/v4.2.1 published (poisoned @latest FIXED); benchkit debts (b)(c)(g)(h)(i) closed; 97 module READMEs gated in doc-check (2420 refs) |
 
 **Row-ownership convention (2026-09-22):** for multi-report sessions, the
 latest report owns its index row; predecessors are marked superseded in the

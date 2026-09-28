@@ -77,13 +77,18 @@ trap 'rm -f "$BIN"' EXIT
 		out=$("$BIN" --quiet --format json "$repo" 2>"$errfile" || true)
 		n=$(printf '%s' "$out" | jq '[.findings // [] | length] | add // 0' 2>/dev/null || echo 0)
 		s=$(printf '%s' "$out" | jq '[.findings // [] | map(select((.confidence // 1) < 0.5)) | length] | add // 0' 2>/dev/null || echo 0)
+		n=${n:-0}
+		s=${s:-0}
 		total=$((total + n))
 		suspects=$((suspects + s))
 		# Silence class (2026-09-28 baseline: 5 repos reported 0 with a hidden
 		# load failure): a zero-findings run with non-empty stderr is a FAILED
-		# scan, not a clean repo — surface the tail so the row cannot lie.
+		# scan, not a clean repo; EMPTY stdout is the linter SKIPPING the repo
+		# (non-consumer projects print nothing) — never read that as clean.
 		note=""
-		if [ "$n" = "0" ] && [ -s "$errfile" ]; then
+		if [ -z "$out" ]; then
+			note="NO JSON OUTPUT (linter skipped repo — consumer-probe prerequisites unmet?)"
+		elif [ "$n" = "0" ] && [ -s "$errfile" ]; then
 			tail=$(tr '\n' ' ' <"$errfile" | tr -s ' ' | cut -c1-160)
 			note="STDERR: ${tail}"
 		elif [ -s "$errfile" ]; then
