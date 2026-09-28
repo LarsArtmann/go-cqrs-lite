@@ -129,6 +129,7 @@ func (e *duckdbEngine) VectorSearch(
 		"SELECT id, "+duckdbDistanceExpr(metric, len(query))+" AS d FROM meta_vector "+
 			"WHERE collection = ? ORDER BY d LIMIT ?",
 		string(queryJSON), collection, k)
+	//art-dupl:accept SQL vector-search head pair — cross-module engine idiom, dep-isolated go.mod
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.VectorSearch: %w", err)
 	}

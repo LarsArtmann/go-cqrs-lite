@@ -56,6 +56,7 @@ benchkit/func WriteSoakJSON
 benchkit/func WriteSweepJSON
 benchkit/interface DiskSizer
 benchkit/method Close
+benchkit/method FirstAndLastSample
 benchkit/method MarshalJSON
 benchkit/method MeanSize
 benchkit/method NoisyMetricCount
@@ -936,6 +937,7 @@ cmd/cqrs-lint/pkg/rules/lintutil/func HasEventPayloadNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasReadModelNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasWeakReadModelNameSuffix
 cmd/cqrs-lint/pkg/rules/lintutil/func HasWrapVerb
+cmd/cqrs-lint/pkg/rules/lintutil/func IsContextType
 cmd/cqrs-lint/pkg/rules/lintutil/func IsEventPayloadName
 cmd/cqrs-lint/pkg/rules/lintutil/func IsFmtErrorf
 cmd/cqrs-lint/pkg/rules/lintutil/func IsNonCQRSRegisterPackage
@@ -2829,6 +2831,7 @@ metaengine/func OnRecord
 metaengine/func OnRecordTyped
 metaengine/func OnTyped
 metaengine/func Override
+metaengine/func PairsToScanResult
 metaengine/func ParseCursor
 metaengine/func PassesFilterSpecs
 metaengine/func Plan

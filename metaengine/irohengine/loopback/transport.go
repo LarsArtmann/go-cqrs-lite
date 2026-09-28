@@ -203,6 +203,7 @@ func (t *LoopbackTransport) Publish(_ context.Context, op irohengine.WriteOp) er
 
 // Subscribe implements irohengine.Transport.
 func (t *LoopbackTransport) Subscribe(handler func(op irohengine.WriteOp)) error {
+	//art-dupl:accept transport Subscribe lock idiom — loopback/quic twins by contract
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.subs = append(t.subs, handler)
