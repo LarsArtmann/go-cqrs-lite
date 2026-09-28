@@ -3,7 +3,6 @@ package analyzer
 import (
 	"go/ast"
 	"slices"
-	"strings"
 )
 
 // scanCallExpr inspects call expressions for event.New/NewEvent,
