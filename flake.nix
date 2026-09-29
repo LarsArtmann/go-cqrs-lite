@@ -165,6 +165,14 @@
           };
           deps = preparedDeps;
           subModules = preparedSubModules;
+          # cqrs-lint v4.13.0 gained public proxy-served deps (go-etag
+          # submodules, go-sqlitestore) — exclude them from private-dep
+          # validation (option 3 of the mkPreparedSource error guidance).
+          publicDeps = [
+            "github.com/larsartmann/go-etag/entitytag"
+            "github.com/larsartmann/go-etag/server"
+            "github.com/larsartmann/go-sqlitestore"
+          ];
         };
 
       # Prepared source for the md-go-validator docs gate binary.
@@ -847,7 +855,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-De0v4pULiOcSS3ZEclwIbWh3IMeOQuLR4uL4MWEVuCc=";
+              vendorHash = "";
               proxyVendor = true;
 
               subPackages = [ "." ];
