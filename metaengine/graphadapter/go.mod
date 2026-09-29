@@ -18,8 +18,8 @@ require (
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.1 // indirect
-	github.com/larsartmann/go-sse v0.6.0 // indirect
+	github.com/larsartmann/go-error-family v0.11.0 // indirect
+	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 )

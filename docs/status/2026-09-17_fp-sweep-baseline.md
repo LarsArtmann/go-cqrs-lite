@@ -13,20 +13,20 @@ corrected baseline.
 
 ## Corrected baseline (2026-09-28T22:46:52Z, binary `1962b83fd`)
 
-| repo                         | findings | low-confidence (<0.5) | notes                    |
-| ---------------------------- | -------- | --------------------- | ------------------------ |
-| cqrs-htmx                    | 61       | 4                     | stderr: 5 line(s)        |
-| bank-sync                    | 6        | 0                     |                          |
-| browser-history              | 4        | 0                     |                          |
-| github-local-sync            | 14       | 2                     | stderr: 5 line(s)        |
-| go-localsync                 | 15       | 3                     |                          |
-| crush-daily                  | 38       | 14                    | stderr: 5 line(s)        |
-| timesheets                   | 6        | 2                     |                          |
-| accountability-system        | 39       | 3                     | stderr: 5 line(s)        |
+| repo                         | findings | low-confidence (<0.5) | notes                                                               |
+| ---------------------------- | -------- | --------------------- | ------------------------------------------------------------------- |
+| cqrs-htmx                    | 61       | 4                     | stderr: 5 line(s)                                                   |
+| bank-sync                    | 6        | 0                     |                                                                     |
+| browser-history              | 4        | 0                     |                                                                     |
+| github-local-sync            | 14       | 2                     | stderr: 5 line(s)                                                   |
+| go-localsync                 | 15       | 3                     |                                                                     |
+| crush-daily                  | 38       | 14                    | stderr: 5 line(s)                                                   |
+| timesheets                   | 6        | 2                     |                                                                     |
+| accountability-system        | 39       | 3                     | stderr: 5 line(s)                                                   |
 | overview                     | —        | —                     | transitive-only consumer (7 indirect pins, 0 direct) — labeled skip |
-| storbi                       | 32       | 1                     |                          |
-| standard-bug-tracking-schema | 194      | 9                     |                          |
-| dnsblockd                    | 17       | 3                     |                          |
+| storbi                       | 32       | 1                     |                                                                     |
+| standard-bug-tracking-schema | 194      | 9                     |                                                                     |
+| dnsblockd                    | 17       | 3                     |                                                                     |
 
 **Total: 426 findings, 41 low-confidence suspects.**
 

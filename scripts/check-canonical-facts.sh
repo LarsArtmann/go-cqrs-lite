@@ -213,10 +213,10 @@ check_engine_counts() {
 					cited_total=1
 					if [[ "$cited" != "${derived[$unit]}" ]]; then
 						echo "✗ $doc cites '$cited $unit' but the repo derives ${derived[$unit]}" >&2
-					echo "  line: $line" >&2
-					bad=$((bad + 1))
+						echo "  line: $line" >&2
+						bad=$((bad + 1))
+					fi
 				fi
-			fi
 			done < <(grep -nE "[0-9]+ ${unit}" "$dir/$doc" || true)
 		done
 		if [[ $cited_total -eq 0 ]]; then

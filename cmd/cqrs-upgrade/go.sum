@@ -10,10 +10,16 @@ github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 h1:LMLX+LgTNWpfvCBdFe
 github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3/go.mod h1:jl5iWTm0/hd5PjEYEOuwAJ57L/CibdZfrqZ5XA5GrCk=
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.12.1 h1:YT3rM+lg6IYyhcF5mZYIiWQmM3Phd/zaD+I1ZW7z8BQ=
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.12.1/go.mod h1:Z15gJFde4//bOgvv29fs0fVtgyO92KS6o2xF6+bmeEA=
+github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.0 h1:XwoYULT84kkeo/dtqVaBXKZd6zu3IwSBHvo6/KH0GT8=
+github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.0/go.mod h1:9yzfxvn5CNMfK9qChoQ4RQGMEnaGUbF5aa6NMMOpInI=
 github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
 github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
+github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
+github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-finding v1.12.0 h1:meOBoZbghWFJDSO5FSQJgP3VyLzfKqhl1X118zGj35s=
 github.com/larsartmann/go-finding v1.12.0/go.mod h1:oCnnUf+B9OVHv9grXF5+UpWajhf3wyNVs8Ze71LSDmM=
+github.com/larsartmann/go-finding v1.13.0 h1:JTLKvlNb6C9Yldwu1Iojyte7c6ng8frzGTdq5DNEvcc=
+github.com/larsartmann/go-finding v1.13.0/go.mod h1:0ebJF4MSuJDqO1+u2SK/QVJF+vJfwxJDuzTSjc39eIs=
 github.com/onsi/ginkgo/v2 v2.32.1 h1:6tlvcDm/3sE8lGJbZ4+d4mO3RLy24/tQWOFzVSQNIfw=
 github.com/onsi/ginkgo/v2 v2.32.1/go.mod h1:+aXOY+vzZ5mu2iI2HpTZUPmM//oQfsNFX6gU9kNcA44=
 github.com/onsi/gomega v1.43.0 h1:VlG/1FxqNxhSO+lq/OHBNaaqwiBK/mO8JbVkX9Y+FeU=
