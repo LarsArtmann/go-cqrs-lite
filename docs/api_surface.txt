@@ -5166,6 +5166,8 @@ scheduling/method Schedule
 scheduling/method Start
 scheduling/sqlstore/const DefaultClaimLease
 scheduling/sqlstore/const DefaultClaimLease
+scheduling/sqlstore/const DialectDuckDB
+scheduling/sqlstore/const DialectDuckDB
 scheduling/sqlstore/const DialectMySQL
 scheduling/sqlstore/const DialectMySQL
 scheduling/sqlstore/const DialectPostgres
