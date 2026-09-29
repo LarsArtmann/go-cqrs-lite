@@ -30,6 +30,13 @@
 
 set -euo pipefail
 
+# go-env.sh: the sweep's verify legs (tidy/build/test-compile) run go —
+# under the ambient host env (GOTOOLCHAIN=local, 1.26.7) they false-fail
+# with "go.mod requires go >= 1.27.1" (hit 2026-09-29 mid-sweep). Self-source
+# the env chain so sweeps are honest wherever they run.
+# shellcheck disable=SC1091
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
+
 cd "$(git rev-parse --show-toplevel)"
 
 MODE=sweep

@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/example/mesh-demo
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/catalog/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
@@ -45,10 +45,3 @@ require (
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
-
-// PRE-RELEASE BUILD: this example demonstrates WithPlainRefIDs +
-// WithSkipBootstrapFiles + the catalog.index.json manifest, which ship in
-// catalog/v4 AFTER v4.5.0. Until that tag exists, build against the
-// workspace sibling; delete this replace block once the pinned require
-// above is bumped to a release that has them (the release train sweeps it).
-replace github.com/larsartmann/go-cqrs-lite/catalog/v4 => ../../catalog
