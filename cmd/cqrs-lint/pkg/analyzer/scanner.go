@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"strings"
@@ -219,6 +220,20 @@ func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 // constant: a bare identifier, a selector expression, a parenthesized
 // reference, or a string(...) conversion of one of those. Literal values are
 // handled by the typed-const path in scanConstDecl.
+func isConstReferenceExpr(expr ast.Expr) bool {
+	switch e := expr.(type) {
+	case *ast.Ident, *ast.SelectorExpr:
+		return true
+	case *ast.ParenExpr:
+		return isConstReferenceExpr(e.X)
+	case *ast.CallExpr:
+		if id, ok := e.Fun.(*ast.Ident); ok && id.Name == "string" && len(e.Args) == 1 {
+			return isConstReferenceExpr(e.Args[0])
+		}
+	}
+
+	return false
+}
 
 // isCommandOrQueryType reports whether expr is a typed event/command/query
 // type: "command.Type", "query.Type", or "event.Type" (a SelectorExpr whose
@@ -287,12 +302,15 @@ func ResolveRegisteredTypeConsts(reg *CQRSRegistry) {
 // passed a string literal, so C038/C040/E006 and the catalog-parity rules see
 // constant-emitted events. See cqrs-htmx feedback (C040 phantoms).
 func ResolveEmittedEventTypeConsts(reg *CQRSRegistry) {
-	if len(reg.pendingEmittedEventTypeRefs) == 0 &&
-		len(reg.pendingCatalogEventTypeRefs) == 0 {
-		return
-	}
+	fmt.Printf("DEBUG-C040: pending emit=%d catalog=%d aliasExprs=%d TypeConstValues=%d\n",
+		len(reg.pendingEmittedEventTypeRefs), len(reg.pendingCatalogEventTypeRefs),
+		len(reg.constAliasExprs), len(reg.TypeConstValues))
 
 	reg.expandConstAliases()
+
+	fmt.Printf("DEBUG-C040: after expand: TypeConstValues=%d eventUserRegistered=%q userRegisteredEmitted=%q\n",
+		len(reg.TypeConstValues), reg.TypeConstValues["eventUserRegistered"],
+		reg.EventTypesEmitted["UserRegistered"].File)
 
 	for _, ref := range reg.pendingEmittedEventTypeRefs {
 		val, ok := reg.TypeConstValues[ref.constName]

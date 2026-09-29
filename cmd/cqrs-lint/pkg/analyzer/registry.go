@@ -76,7 +76,7 @@ type CQRSRegistry struct {
 	// ResolveEmittedEventTypeConsts after all files are scanned — the const
 	// declaration and the emission site may live in different files/packages,
 	// and alias chains only resolve once every declaration is scanned.
-	pendingEmittedEventTypeRefs  []pendingEventTypeRef
+	pendingEmittedEventTypeRefs []pendingEventTypeRef
 	pendingCatalogEventTypeRefs []pendingEventTypeRef
 
 	// TypesWithTypeMethod records struct type names that have a Type() method.
