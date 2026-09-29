@@ -62,7 +62,7 @@ func bridgeConsumerInitializer(
 	}
 
 	consumer, err := stream.CreateOrUpdateConsumer(ctx, natsjs.ConsumerConfig{
-		Name:      "watermill__" + topic,
+		Name:      "watermill__" + natsStreamName(topic),
 		AckPolicy: natsjs.AckExplicitPolicy,
 	})
 	if err != nil {
