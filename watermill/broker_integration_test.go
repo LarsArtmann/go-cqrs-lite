@@ -28,9 +28,10 @@ import (
 //
 // The test is skipped when REDIS_URL is not set, making it safe for CI.
 //
-// NATS JetStream: no maintained watermill plugin exists (watermill-nats is
-// NATS Streaming — deprecated technology built against watermill v1.2-rc).
-// Revisit when a JetStream subscriber adapter is available.
+// NATS JetStream: covered by TestNatsJetStreamRoundtrip
+// (broker_integration_nats_test.go) via the maintained watermill-nats/v2
+// plugin — the earlier "no maintained plugin" claim was corrected 2026-09-15
+// (watermill-nats/v2 v2.2.0, 2026-05).
 func TestRedisStreamRoundtrip(t *testing.T) {
 	url := os.Getenv("REDIS_URL")
 	if url == "" {

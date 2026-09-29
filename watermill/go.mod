@@ -22,6 +22,7 @@ require (
 
 require (
 	github.com/Rican7/retry v0.3.1 // indirect
+	github.com/ThreeDotsLabs/watermill-nats/v2 v2.2.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect

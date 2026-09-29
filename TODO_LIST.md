@@ -1009,13 +1009,21 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `BenchmarkCalibration_Bigtable_*` stubs. Owner decision pending: is a
       real-GCP smoke test tag-blocking for the next release? — source: 14:07 §f20/§g2,
       `metaengine/bigtableengine/README.md` _(Effort: S each, gated on GCP access)_
-- [ ] **Property-based temporal tests for memory version chains** — rapid-based:
-      out-of-order stamps, same-ms LWW collapse, retention-never-prunes-newest,
-      tombstone-as-of visibility (engine-level, memory first). — source: 14:07 §f22,
-      `metaengine/version_chain.go` _(Effort: M)_
+- [x] **Property-based temporal tests for memory version chains** — DONE
+      2026-09-29 (M18): `metaengine/temporal_property_test.go` — three rapid
+      properties vs a reference model (out-of-order + same-ts LWW collapse
+      with shuffled application order; retention-never-prunes-newest under
+      adversarial MaxVersions=1 + MaxAge; set→tombstone→rebirth as-of
+      boundaries at ±1ns and midpoints). All green ×100 draws. — source: 14:07 §f22,
+      `metaengine/version_chain.go`
 - [ ] **Pebble/bbolt versioned cells — scope decision for the next wave** —
       both have natural prefix-range machinery for version chains; decide
-      whether they join the 3 versioned engines. — source: 14:07 §f31 _(Effort: M once scoped)_
+      whether they join the 3 versioned engines.
+      **Decision note 2026-09-29 (M18.4, owner ruling pending):**
+      [`docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md`](docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md)
+      — effort ~M/engine (retention + same-ts tiebreak byte are the real
+      cost; reads are the natural fit), recommendation DEFER with demand
+      trigger; ruling A/B/C/D requested. — source: 14:07 §f31 _(Effort: M once scoped)_
 - [ ] **Soak env-var run for bigtableengine** — per
       `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
       `#verify`). — source: 14:07 §f33-34 _(Effort: S)_

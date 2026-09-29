@@ -39,6 +39,7 @@ nats-server \
 	--port "$NATS_PORT" \
 	--jetstream \
 	--store_dir "$JETSTREAM_DIR" \
+	--max_payload 8MB \
 	--log level=warn \
 	&
 NATS_PID=$!
