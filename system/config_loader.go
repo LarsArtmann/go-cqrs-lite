@@ -143,6 +143,10 @@ func applyLegacyEnvOverrides(cfg *DeploymentConfig) {
 	}
 }
 
+// instanceEnvParts is the "__"-separated shape of an indexed instance env
+// override: CQRS_INSTANCES, <i>, <FIELD>.
+const instanceEnvParts = 3
+
 // applyIndexedInstanceEnvOverrides applies CQRS_INSTANCES__<i>__<field> env
 // overrides onto already-loaded instances (koanf's env provider cannot index
 // into slices). Supported fields: durability, role, engine. An index with no
@@ -156,7 +160,7 @@ func applyIndexedInstanceEnvOverrides(cfg *DeploymentConfig) error {
 		}
 
 		parts := strings.Split(key, "__") // CQRS_INSTANCES, <i>, <FIELD>
-		if len(parts) != 3 {
+		if len(parts) != instanceEnvParts {
 			continue
 		}
 

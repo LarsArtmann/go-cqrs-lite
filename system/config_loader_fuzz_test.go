@@ -117,6 +117,8 @@ func TestProperty_LoadConfig_IndexedInstanceOverride(t *testing.T) {
 		}
 
 		key := fmt.Sprintf("CQRS_INSTANCES__%d__DURABILITY", idx)
+		//nolint:usetesting // per-iteration lifetime: t.Setenv cleans up at
+		// test end, leaking each iteration's key into the next draw.
 		os.Setenv(key, durability)
 		defer os.Unsetenv(key)
 
