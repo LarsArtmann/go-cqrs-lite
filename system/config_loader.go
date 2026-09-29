@@ -3,6 +3,7 @@ package system
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
@@ -103,6 +104,14 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	// support.)
 	applyLegacyEnvOverrides(&cfg)
 
+	// 6. Apply indexed instance env overrides (koanf's env provider cannot
+	// reach into []InstanceConfig: CQRS_INSTANCES__0__DURABILITY would
+	// surface as the key instances.0.durability and be dropped at
+	// unmarshal). Documented in LoadConfig — this makes that contract true.
+	if err := applyIndexedInstanceEnvOverrides(&cfg); err != nil {
+		return DeploymentConfig{}, err
+	}
+
 	return cfg, nil
 }
 
@@ -123,4 +132,47 @@ func applyLegacyEnvOverrides(cfg *DeploymentConfig) {
 		Driver: driver,
 		DSN:    os.Getenv("CQRS_DEFAULT_DSN"),
 	}
+}
+
+// applyIndexedInstanceEnvOverrides applies CQRS_INSTANCES__<i>__<field> env
+// overrides onto already-loaded instances (koanf's env provider cannot index
+// into slices). Supported fields: durability, role, engine. An index with no
+// corresponding instance is a loud error — a silently-dropped override would
+// be a config lie.
+func applyIndexedInstanceEnvOverrides(cfg *DeploymentConfig) error {
+	for _, kv := range os.Environ() {
+		key, value, ok := strings.Cut(kv, "=")
+		if !ok || !strings.HasPrefix(key, "CQRS_INSTANCES__") {
+			continue
+		}
+
+		parts := strings.Split(key, "__") // CQRS_INSTANCES, <i>, <FIELD>
+		if len(parts) != 3 {
+			continue
+		}
+
+		idx, err := strconv.Atoi(parts[1])
+		if err != nil || idx < 0 {
+			return fmt.Errorf("system: env override %s: index %q is not a non-negative integer", key, parts[1])
+		}
+
+		if idx >= len(cfg.Instances) {
+			return fmt.Errorf("system: env override %s: no instances[%d] to override (loaded %d)", key, idx, len(cfg.Instances))
+		}
+
+		inst := &cfg.Instances[idx]
+
+		switch strings.ToLower(parts[2]) {
+		case "durability":
+			inst.Durability = DurabilityTier(value)
+		case "role":
+			inst.Role = InstanceRole(value)
+		case "engine":
+			inst.Engine = value
+		default:
+			return fmt.Errorf("system: env override %s: unknown instance field %q (want durability, role, or engine)", key, parts[2])
+		}
+	}
+
+	return nil
 }

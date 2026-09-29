@@ -213,20 +213,45 @@ func TestLoadConfig_Errors(t *testing.T) {
 }
 
 func TestLoadConfig_EnvIndexedInstances(t *testing.T) {
+	yml := `
+engines:
+  primary:
+    driver: memory
+instances:
+  - role: source-of-truth
+    engine: primary
+`
 	t.Setenv("CQRS_INSTANCES__0__DURABILITY", "strict")
 
-	cfg, err := system.LoadConfig("")
+	cfg, err := system.LoadConfig(writeConfig(t, yml))
 	if err != nil {
 		t.Fatalf("LoadConfig: %v", err)
 	}
 
-	if len(cfg.Instances) != 1 {
-		t.Fatalf("instances = %d, want 1 from env index", len(cfg.Instances))
-	}
-
 	if cfg.Instances[0].Durability != system.DurabilityStrict {
-		t.Fatalf("instances[0].durability = %q, want strict", cfg.Instances[0].Durability)
+		t.Fatalf("instances[0].durability = %q, want strict from env index", cfg.Instances[0].Durability)
 	}
+}
+
+func TestLoadConfig_EnvIndexedInstancesErrors(t *testing.T) {
+	t.Run("index out of range is loud", func(t *testing.T) {
+		t.Setenv("CQRS_INSTANCES__5__DURABILITY", "strict")
+
+		_, err := system.LoadConfig("")
+		if err == nil || !strings.Contains(err.Error(), "no instances[5]") {
+			t.Fatalf("err = %v, want no-instances[5] error", err)
+		}
+	})
+
+	t.Run("unknown field is loud", func(t *testing.T) {
+		yml := "instances:\n  - role: events\n"
+		t.Setenv("CQRS_INSTANCES__0__ENGINE_NAME", "x")
+
+		_, err := system.LoadConfig(writeConfig(t, yml))
+		if err == nil || !strings.Contains(err.Error(), "unknown instance field") {
+			t.Fatalf("err = %v, want unknown-field error", err)
+		}
+	})
 }
 
 func TestLoadConfig_LegacyEnvIgnoredWhenPrimaryExists(t *testing.T) {
