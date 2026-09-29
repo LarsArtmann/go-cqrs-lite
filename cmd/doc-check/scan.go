@@ -73,26 +73,9 @@ func carryImportsForward(blocks []block) {
 
 	for i := range blocks {
 		merged := append(append([]string{}, carried...), blocks[i].imports...)
-		blocks[i].imports = dedupeStrings(merged)
+		blocks[i].imports = dedupe(merged)
 		carried = blocks[i].imports
 	}
-}
-
-// dedupeStrings preserves first-seen order.
-func dedupeStrings(items []string) []string {
-	seen := make(map[string]bool, len(items))
-
-	var out []string
-
-	for _, item := range items {
-		if !seen[item] {
-			seen[item] = true
-
-			out = append(out, item)
-		}
-	}
-
-	return out
 }
 
 // blockLine returns the 1-based source line of a byte offset.
