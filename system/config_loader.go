@@ -166,11 +166,20 @@ func applyIndexedInstanceEnvOverrides(cfg *DeploymentConfig) error {
 
 		idx, err := strconv.Atoi(parts[1])
 		if err != nil || idx < 0 {
-			return fmt.Errorf("system: env override %s: index %q is not a non-negative integer", key, parts[1])
+			return fmt.Errorf(
+				"system: env override %s: index %q is not a non-negative integer",
+				key,
+				parts[1],
+			)
 		}
 
 		if idx >= len(cfg.Instances) {
-			return fmt.Errorf("system: env override %s: no instances[%d] to override (loaded %d)", key, idx, len(cfg.Instances))
+			return fmt.Errorf(
+				"system: env override %s: no instances[%d] to override (loaded %d)",
+				key,
+				idx,
+				len(cfg.Instances),
+			)
 		}
 
 		inst := &cfg.Instances[idx]
@@ -183,7 +192,11 @@ func applyIndexedInstanceEnvOverrides(cfg *DeploymentConfig) error {
 		case "engine":
 			inst.Engine = value
 		default:
-			return fmt.Errorf("system: env override %s: unknown instance field %q (want durability, role, or engine)", key, parts[2])
+			return fmt.Errorf(
+				"system: env override %s: unknown instance field %q (want durability, role, or engine)",
+				key,
+				parts[2],
+			)
 		}
 	}
 

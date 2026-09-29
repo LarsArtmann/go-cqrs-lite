@@ -20,18 +20,18 @@ job is to let a lease or requeue delay lapse in wall-clock time. Cost:
 
 ## Inventory of the sleeps (evidence)
 
-| Site | Wait | What must lapse |
-| --- | --- | --- |
-| `claims.go:118` | 650 ms | 500 ms lease on crashed worker → reclaim |
-| `claims.go:189` | 120 ms | short lease → visibility flip |
-| `tokens.go:35` | 60 ms | guard before pre-expiry probe |
-| `tokens.go:55` | 60 ms | 30 ms lease → second token mint |
-| `tokens.go:89` | 60 ms | 30 ms lease → reclaim |
-| `lifecycle.go:229` | 60 ms | 30 ms lease → complete must fail fenced |
-| `lifecycle.go:250` | 2 ms | ms-truncation boundary (same-ms heartbeat rewrite) |
-| `lifecycle_cancel.go:91` | 60 ms | 30 ms lease → cancel-after-expiry |
-| `journal.go:139` | 60 ms | 30 ms lease → MarkOrphaned |
-| `retry.go:249` | 600 ms | requeue `retry_in` delay → claimable again |
+| Site                     | Wait   | What must lapse                                    |
+| ------------------------ | ------ | -------------------------------------------------- |
+| `claims.go:118`          | 650 ms | 500 ms lease on crashed worker → reclaim           |
+| `claims.go:189`          | 120 ms | short lease → visibility flip                      |
+| `tokens.go:35`           | 60 ms  | guard before pre-expiry probe                      |
+| `tokens.go:55`           | 60 ms  | 30 ms lease → second token mint                    |
+| `tokens.go:89`           | 60 ms  | 30 ms lease → reclaim                              |
+| `lifecycle.go:229`       | 60 ms  | 30 ms lease → complete must fail fenced            |
+| `lifecycle.go:250`       | 2 ms   | ms-truncation boundary (same-ms heartbeat rewrite) |
+| `lifecycle_cancel.go:91` | 60 ms  | 30 ms lease → cancel-after-expiry                  |
+| `journal.go:139`         | 60 ms  | 30 ms lease → MarkOrphaned                         |
+| `retry.go:249`           | 600 ms | requeue `retry_in` delay → claimable again         |
 
 Key observation: every sleep waits for **store-internal time comparisons**
 (lease fencing, requeue `not_before`, token mint ordering) — there is no

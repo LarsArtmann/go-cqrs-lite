@@ -27,14 +27,14 @@ That makes the READ side cheap and natural. The hard parts are elsewhere
 
 ## Effort estimate (S/M/L per engine)
 
-| Piece | bbolt | pebble | Notes |
-| --- | --- | --- | --- |
-| Chain layout + MapSetAt/MapDeleteAt | S | S | append-only keyed writes |
-| MapGetAsOf (seek-to-prefix, read backwards one step) | S | S | the natural fit |
-| Retention (MaxVersions/MaxAge, never-prune-newest) | M | M | batched range deletes; must mirror `trimRetentionLocked` semantics exactly (incl. same-ts LWW ties and the newest-entry guarantee — now property-pinned by `temporal_property_test.go`, so a divergence fails tests instead of rotting silently) |
-| Same-ts LWW collapse | S | S | duplicate `{ts}` keys need a tiebreak byte (application seq) to make "last applied wins" durable — unlike memory, KV has no insert-order column |
-| `EngineResetter` interaction (ADR-0143: journal survives, chains clear) | S | S | chains are derived data → clear on reset, keep journal |
-| adttest conformance legs | S | S | the versioned matrix runner already exists |
+| Piece                                                                   | bbolt | pebble | Notes                                                                                                                                                                                                                                            |
+| ----------------------------------------------------------------------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chain layout + MapSetAt/MapDeleteAt                                     | S     | S      | append-only keyed writes                                                                                                                                                                                                                         |
+| MapGetAsOf (seek-to-prefix, read backwards one step)                    | S     | S      | the natural fit                                                                                                                                                                                                                                  |
+| Retention (MaxVersions/MaxAge, never-prune-newest)                      | M     | M      | batched range deletes; must mirror `trimRetentionLocked` semantics exactly (incl. same-ts LWW ties and the newest-entry guarantee — now property-pinned by `temporal_property_test.go`, so a divergence fails tests instead of rotting silently) |
+| Same-ts LWW collapse                                                    | S     | S      | duplicate `{ts}` keys need a tiebreak byte (application seq) to make "last applied wins" durable — unlike memory, KV has no insert-order column                                                                                                  |
+| `EngineResetter` interaction (ADR-0143: journal survives, chains clear) | S     | S      | chains are derived data → clear on reset, keep journal                                                                                                                                                                                           |
+| adttest conformance legs                                                | S     | S      | the versioned matrix runner already exists                                                                                                                                                                                                       |
 
 Total: ~M per engine, mostly shared shape (a third SQL-vs-KV dialect split
 like the scan-family work in t4).

@@ -24,7 +24,11 @@ func execDDLLocked(ctx context.Context, db *sql.DB, ddls []string) error {
 		return fmt.Errorf("pgengine.execDDLLocked: begin: %w", err)
 	}
 
-	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", ddlAdvisoryKey); err != nil {
+	if _, err := tx.ExecContext(
+		ctx,
+		"SELECT pg_advisory_xact_lock($1)",
+		ddlAdvisoryKey,
+	); err != nil {
 		_ = tx.Rollback()
 
 		return fmt.Errorf("pgengine.execDDLLocked: advisory lock: %w", err)

@@ -148,10 +148,14 @@ func TestNatsJetStreamRoundtrip(t *testing.T) {
 		t.Fatalf("nats command subscriber: %v", err)
 	}
 
-	evtBus := cqrswatermill.NewEventBus(cqrswatermill.WithBackend(pub, evtSub, natsConnCloser{conn}))
+	evtBus := cqrswatermill.NewEventBus(
+		cqrswatermill.WithBackend(pub, evtSub, natsConnCloser{conn}),
+	)
 	t.Cleanup(func() { _ = evtBus.Close() })
 
-	cmdBus := cqrswatermill.NewCommandBus(cqrswatermill.WithCommandBackend(pub, cmdSub, natsConnCloser{conn}))
+	cmdBus := cqrswatermill.NewCommandBus(
+		cqrswatermill.WithCommandBackend(pub, cmdSub, natsConnCloser{conn}),
+	)
 	t.Cleanup(func() { _ = cmdBus.Close() })
 
 	// ── EventBus roundtrip ──────────────────────────────────────────────

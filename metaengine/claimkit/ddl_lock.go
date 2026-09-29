@@ -26,7 +26,11 @@ func ensureClaimsTablesLocked(ctx context.Context, db *sql.DB, d claiming.Dialec
 		return fmt.Errorf("claimkit.ensureClaimsTablesLocked: begin: %w", err)
 	}
 
-	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", ddlAdvisoryKey); err != nil {
+	if _, err := tx.ExecContext(
+		ctx,
+		"SELECT pg_advisory_xact_lock($1)",
+		ddlAdvisoryKey,
+	); err != nil {
 		_ = tx.Rollback()
 
 		return fmt.Errorf("claimkit.ensureClaimsTablesLocked: advisory lock: %w", err)

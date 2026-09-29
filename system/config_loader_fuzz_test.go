@@ -108,7 +108,8 @@ func TestProperty_LoadConfig_IndexedInstanceOverride(t *testing.T) {
 	rapid.Check(t, func(rt *rapid.T) {
 		n := rapid.IntRange(1, 4).Draw(rt, "n")
 		idx := rapid.IntRange(0, n).Draw(rt, "idx")
-		durability := rapid.SampledFrom([]string{"strict", "normal", "relaxed"}).Draw(rt, "durability")
+		durability := rapid.SampledFrom([]string{"strict", "normal", "relaxed"}).
+			Draw(rt, "durability")
 
 		var b strings.Builder
 		b.WriteString("instances:\n")

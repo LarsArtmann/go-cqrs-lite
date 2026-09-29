@@ -46,13 +46,21 @@ func TestSystem_WiringDeterministic(t *testing.T) {
 	explainB, namesB := build()
 
 	if explainA != explainB {
-		t.Fatalf("Explain() differs between two identical constructs:\n--- A ---\n%s\n--- B ---\n%s",
-			explainA, explainB)
+		t.Fatalf(
+			"Explain() differs between two identical constructs:\n--- A ---\n%s\n--- B ---\n%s",
+			explainA,
+			explainB,
+		)
 	}
 
 	for i := range namesA {
 		if namesA[i] != namesB[i] {
-			t.Fatalf("EngineNames[%d] = %q vs %q (wiring not deterministic)", i, namesA[i], namesB[i])
+			t.Fatalf(
+				"EngineNames[%d] = %q vs %q (wiring not deterministic)",
+				i,
+				namesA[i],
+				namesB[i],
+			)
 		}
 	}
 }

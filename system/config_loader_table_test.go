@@ -62,11 +62,17 @@ priority:
 		}
 
 		if cfg.Priority.PerQuery["find_tasks"] != metaengine.PriorityStorageSpace {
-			t.Fatalf("perQuery[find_tasks] = %q, want StorageSpace", cfg.Priority.PerQuery["find_tasks"])
+			t.Fatalf(
+				"perQuery[find_tasks] = %q, want StorageSpace",
+				cfg.Priority.PerQuery["find_tasks"],
+			)
 		}
 
 		if cfg.Engines["primary"].Priority != metaengine.PriorityStorageSpace {
-			t.Fatalf("inline engine priority = %q, want StorageSpace", cfg.Engines["primary"].Priority)
+			t.Fatalf(
+				"inline engine priority = %q, want StorageSpace",
+				cfg.Engines["primary"].Priority,
+			)
 		}
 	})
 
@@ -229,7 +235,10 @@ instances:
 	}
 
 	if cfg.Instances[0].Durability != system.DurabilityStrict {
-		t.Fatalf("instances[0].durability = %q, want strict from env index", cfg.Instances[0].Durability)
+		t.Fatalf(
+			"instances[0].durability = %q, want strict from env index",
+			cfg.Instances[0].Durability,
+		)
 	}
 }
 

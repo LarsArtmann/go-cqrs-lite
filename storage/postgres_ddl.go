@@ -23,25 +23,45 @@ const postgresDDLAdvisoryKey = int64(0x63717273)
 func execPostgresDDLLocked(ctx context.Context, db *sql.DB, ddls []string) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
-		return errorfamily.WrapInfrastructure(err, "storage.postgres_ddl_lock", "begin DDL transaction")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"storage.postgres_ddl_lock",
+			"begin DDL transaction",
+		)
 	}
 
-	if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", postgresDDLAdvisoryKey); err != nil {
+	if _, err := tx.ExecContext(
+		ctx,
+		"SELECT pg_advisory_xact_lock($1)",
+		postgresDDLAdvisoryKey,
+	); err != nil {
 		_ = tx.Rollback()
 
-		return errorfamily.WrapInfrastructure(err, "storage.postgres_ddl_lock", "acquire advisory lock")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"storage.postgres_ddl_lock",
+			"acquire advisory lock",
+		)
 	}
 
 	for _, ddl := range ddls {
 		if _, err := tx.ExecContext(ctx, ddl); err != nil {
 			_ = tx.Rollback()
 
-			return errorfamily.WrapInfrastructure(err, "storage.postgres_ddl_lock", "exec DDL: "+ddl)
+			return errorfamily.WrapInfrastructure(
+				err,
+				"storage.postgres_ddl_lock",
+				"exec DDL: "+ddl,
+			)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
-		return errorfamily.WrapInfrastructure(err, "storage.postgres_ddl_lock", "commit DDL transaction")
+		return errorfamily.WrapInfrastructure(
+			err,
+			"storage.postgres_ddl_lock",
+			"commit DDL transaction",
+		)
 	}
 
 	return nil

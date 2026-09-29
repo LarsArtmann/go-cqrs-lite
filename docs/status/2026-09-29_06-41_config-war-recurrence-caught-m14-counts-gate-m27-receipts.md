@@ -36,10 +36,10 @@ Load at start 14.4, at close 24.4/36.3/44.4 — quiet gates stayed closed all se
      (missing BigTable + Iroh) → "12 engine implementations";
      ROADMAP:176 "All 10 drivers" census → 11 (+bigtable, iroh-exclusion
      noted); ROADMAP:74 "all 12 ADTs" → "all 11 planner ADTs"; FEATURES:246
-     + FEATURES:1493 "10 ADTs" → 11 planner ADTs; FEATURES:1500 driver
-     parenthetical rewritten gate-derived; NEW FEATURES row
-     "Canonical engine/ADT counts" citing the gate; skill `modules.md` +
-     `core.md` "12 ADTs" → 11 planner ADTs + write-side note.
+     - FEATURES:1493 "10 ADTs" → 11 planner ADTs; FEATURES:1500 driver
+       parenthetical rewritten gate-derived; NEW FEATURES row
+       "Canonical engine/ADT counts" citing the gate; skill `modules.md` +
+       `core.md` "12 ADTs" → 11 planner ADTs + write-side note.
    - **M14 CHANGELOG bullet** added; gates re-run green (canonical-facts,
      changelog-symbols, doc-check 1,132 refs over the edited skill docs).
 4. **`.golangci.yml` config-war recurrence DETECTED + REPAIRED** (the
@@ -155,10 +155,10 @@ rule, quiet-gated M04/M05/M11 (+M14.3 stamps), closing status report + push.
 15. M18.4 pebble/bbolt join-scope decision note (owner question).
 16. M19.1 `scripts/ephemeral-nats.sh` (mirror `ephemeral-redis.sh`).
 17. M19.2 watermill-nats roundtrip test (mirror redis leg: roundtrip, Nack
-   redelivery, group exactly-once, 2 MiB payloads).
+    redelivery, group exactly-once, 2 MiB payloads).
 18. M19.3 `#integration-nats` flake app + CI-leg decision.
 19. M21.1 `graphNeighborsFallback` → `GraphBFS` unify (nil-vs-empty decision
-    + typed-key param).
+    - typed-key param).
 20. M21.2 ephemeral-script passthrough conventions unify.
 21. M21.3 contention-retry backport review (turso/badger transient-abort
     class).

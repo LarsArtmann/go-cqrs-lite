@@ -165,7 +165,12 @@ func TestProperty_VersionChain_OutOfOrderAndSameTsLWW(t *testing.T) {
 			}
 
 			if got != want {
-				rt.Fatalf("AsOf(%v): got %v, want %d (same-ts LWW or ordering broken)", probe, got, want)
+				rt.Fatalf(
+					"AsOf(%v): got %v, want %d (same-ts LWW or ordering broken)",
+					probe,
+					got,
+					want,
+				)
 			}
 		}
 
@@ -177,7 +182,12 @@ func TestProperty_VersionChain_OutOfOrderAndSameTsLWW(t *testing.T) {
 
 		if !wantExists {
 			if ok || !errors.Is(err, ErrNotFound) {
-				rt.Fatalf("MapGet after tombstone-at-max: want ErrNotFound, got val=%v ok=%v err=%v", got, ok, err)
+				rt.Fatalf(
+					"MapGet after tombstone-at-max: want ErrNotFound, got val=%v ok=%v err=%v",
+					got,
+					ok,
+					err,
+				)
 			}
 
 			return
@@ -235,8 +245,14 @@ func TestProperty_Retention_NeverPrunesNewest(t *testing.T) {
 			}
 
 			if err != nil || got != value {
-				rt.Fatalf("write %d: newest version not readable as-of its own ts: got (%v, %v), want %d "+
-					"(retention pruned the newest entry)", i, got, err, value)
+				rt.Fatalf(
+					"write %d: newest version not readable as-of its own ts: got (%v, %v), want %d "+
+						"(retention pruned the newest entry)",
+					i,
+					got,
+					err,
+					value,
+				)
 			}
 		}
 	})
@@ -277,7 +293,10 @@ func TestProperty_Tombstone_AsOfVisibility(t *testing.T) {
 		shuffleInPlace(rt, applied, func(e struct {
 			ts    time.Time
 			value any
-		}) int { return 0 })
+		},
+		) int {
+			return 0
+		})
 
 		for _, e := range applied {
 			var err error
@@ -302,15 +321,15 @@ func TestProperty_Tombstone_AsOfVisibility(t *testing.T) {
 		ns := time.Nanosecond
 
 		phases := []phase{
-			{tSet.Add(-ns), 0, true},                     // before first write
-			{tSet, 1, false},                             // at set
-			{midpoint(tSet, tDelete), 1, false},          // between set and tombstone
-			{tDelete.Add(-ns), 1, false},                 // just before tombstone
-			{tDelete, 0, true},                           // at tombstone
-			{midpoint(tDelete, tRebirth), 0, true},       // tombstoned window
-			{tRebirth.Add(-ns), 0, true},                 // just before rebirth
-			{tRebirth, 2, false},                         // at rebirth
-			{tRebirth.Add(time.Hour), 2, false},          // well after
+			{tSet.Add(-ns), 0, true},               // before first write
+			{tSet, 1, false},                       // at set
+			{midpoint(tSet, tDelete), 1, false},    // between set and tombstone
+			{tDelete.Add(-ns), 1, false},           // just before tombstone
+			{tDelete, 0, true},                     // at tombstone
+			{midpoint(tDelete, tRebirth), 0, true}, // tombstoned window
+			{tRebirth.Add(-ns), 0, true},           // just before rebirth
+			{tRebirth, 2, false},                   // at rebirth
+			{tRebirth.Add(time.Hour), 2, false},    // well after
 		}
 
 		for _, ph := range phases {
@@ -318,7 +337,12 @@ func TestProperty_Tombstone_AsOfVisibility(t *testing.T) {
 
 			if ph.wantGone {
 				if !errors.Is(err, ErrNotFound) {
-					rt.Fatalf("AsOf(%v): want tombstone NotFound, got val=%v err=%v", ph.probe, got, err)
+					rt.Fatalf(
+						"AsOf(%v): want tombstone NotFound, got val=%v err=%v",
+						ph.probe,
+						got,
+						err,
+					)
 				}
 
 				continue

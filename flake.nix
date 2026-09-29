@@ -1604,6 +1604,22 @@
                   bash "$PWD/scripts/ephemeral-redis.sh" "$@"
                 '';
 
+            # Ephemeral NATS JetStream broker (nixpkgs, no Docker/VM) for the
+            # watermill adapter tests (TestNatsJetStreamRoundtrip + the NATS
+            # broker-edge suite). Mirrors .#integration-redis.
+            # Usage: nix run .#integration-nats
+            #        nix run .#integration-nats -- go test -C watermill -run TestNats ./...
+            integration-nats =
+              mkApp "integration-nats"
+                [
+                  goPkg
+                  pkgs.nats-server
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  bash "$PWD/scripts/ephemeral-nats.sh" "$@"
+                '';
+
             # NixOS VM integration tests — boot a QEMU VM with the database
             # service, forward the port, run Go tests on the host.
             # Hermetic, reproducible, cached by Nix. Requires x86_64-linux + KVM.
