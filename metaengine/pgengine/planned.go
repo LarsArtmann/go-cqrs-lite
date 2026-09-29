@@ -72,7 +72,7 @@ func (e *pgEngine) planFor(col string) (metaengine.LayoutPlan, bool) {
 // registerPlannedLayout creates the planned table + indexes and stores the
 // plan. Called with layoutMu held.
 func (e *pgEngine) registerPlannedLayout(ctx context.Context, plan metaengine.LayoutPlan) error {
-	if _, err := e.db.ExecContext(ctx, pgDDL(plan)); err != nil {
+	if err := execDDLLocked(ctx, e.db, []string{pgDDL(plan)}); err != nil {
 		return fmt.Errorf("pgengine.registerPlannedLayout: %w", err)
 	}
 

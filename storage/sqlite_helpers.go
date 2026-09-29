@@ -171,7 +171,7 @@ func SQLiteSetSynchronous(ctx context.Context, db *sql.DB, level string) error {
 func ConfigureTursoPool(db *sql.DB) { db.SetMaxOpenConns(1) }
 
 func PostgresInitSchema(ctx context.Context, db *sql.DB) error {
-	if err := execDDL(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()}); err != nil {
+	if err := execPostgresDDLLocked(ctx, db, []string{sqlpkg.PostgresSchemaEmbed()}); err != nil {
 		return err
 	}
 
