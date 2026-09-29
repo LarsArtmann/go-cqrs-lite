@@ -3,13 +3,17 @@ package watermill_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-nats/v2/pkg/jetstream"
 	natsgo "github.com/nats-io/nats.go"
+	natsjs "github.com/nats-io/nats.go/jetstream"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
@@ -22,6 +26,69 @@ import (
 type natsConnCloser struct{ conn *natsgo.Conn }
 
 func (c natsConnCloser) Close() error { return c.conn.Drain() }
+
+// natsStreamName sanitizes a topic into a legal JetStream stream name: NATS
+// stream names reject '.', '*', '>', spaces and tabs, but SUBJECTS want the
+// dotted form. The watermill-nats/v2 built-in initializers derive the stream
+// name from the topic VERBATIM (upstream gap, v2.2.0) — dotted event types
+// like "user.created" need this custom mapping on both sides.
+func natsStreamName(topic string) string {
+	return strings.NewReplacer(".", "_", "*", "_", ">", "_", " ", "_", "\t", "_").Replace(topic)
+}
+
+// bridgeStreamConfig maps a (possibly dotted) topic to a WorkQueue stream
+// under a sanitized name. The plugin routes by stream NAME as the SUBJECT
+// too (the marshaler receives streamConfig.Name), so the sanitized name is
+// what the subject must be — the dotted topic never reaches the wire.
+func bridgeStreamConfig(topic string) natsjs.StreamConfig {
+	name := natsStreamName(topic)
+
+	return natsjs.StreamConfig{
+		Name:      name,
+		Subjects:  []string{name},
+		Retention: natsjs.WorkQueuePolicy,
+	}
+}
+
+// bridgeConsumerInitializer provisions (or attaches to) the stream and
+// consumer for a dotted topic — the ResourceInitializer the plugin's
+// built-ins cannot express (they derive stream names verbatim from topics).
+func bridgeConsumerInitializer(
+	ctx context.Context, js natsjs.JetStream, topic string,
+) (natsjs.Consumer, func(context.Context, watermill.LoggerAdapter), error) {
+	stream, err := js.CreateOrUpdateStream(ctx, bridgeStreamConfig(topic))
+	if err != nil {
+		return nil, nil, fmt.Errorf("create stream for topic %s: %w", topic, err)
+	}
+
+	consumer, err := stream.CreateOrUpdateConsumer(ctx, natsjs.ConsumerConfig{
+		Name:      "watermill__" + topic,
+		AckPolicy: natsjs.AckExplicitPolicy,
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("create consumer for topic %s: %w", topic, err)
+	}
+
+	return consumer, nil, nil
+}
+
+// ensureBridgeStream provisions the stream for a bus topic via the shared
+// sanitized-name mapping (see bridgeStreamConfig).
+func ensureBridgeStream(t *testing.T, conn *natsgo.Conn, topic string) {
+	t.Helper()
+
+	js, err := natsjs.New(conn)
+	if err != nil {
+		t.Fatalf("jetstream handle: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := js.CreateOrUpdateStream(ctx, bridgeStreamConfig(topic)); err != nil {
+		t.Fatalf("create stream for %s: %v", topic, err)
+	}
+}
 
 // TestNatsJetStreamRoundtrip verifies the watermill/ bridge (EventBus +
 // CommandBus) against a real NATS JetStream broker via the maintained
@@ -47,32 +114,35 @@ func TestNatsJetStreamRoundtrip(t *testing.T) {
 
 	t.Cleanup(func() { _ = conn.Drain() })
 
-	// The plugin's subscribers never provision streams (GET only) — create
-	// the bus topics' streams before the subscribes below.
-	ensureNatsStream(t, conn, "user.created")
-	ensureNatsStream(t, conn, "user.create")
+	// The bridge publishes everything to fixed topics (DefaultEventBusTopic
+	// "cqrs.events" / DefaultCommandBusTopic "cqrs.commands") — both dotted,
+	// so the bus streams are pre-created here under sanitized names (the
+	// plugin derives stream names verbatim from topics — upstream gap).
+	ensureBridgeStream(t, conn, cqrswatermill.DefaultEventBusTopic)
+	ensureBridgeStream(t, conn, cqrswatermill.DefaultCommandBusTopic)
 
 	pub, err := jetstream.NewPublisher(jetstream.PublisherConfig{
-		Conn:           conn,
-		TrackMessageID: true,
+		Conn:            conn,
+		TrackMessageID:  true,
+		ConfigureStream: bridgeStreamConfig,
 	})
 	if err != nil {
 		t.Fatalf("nats publisher: %v", err)
 	}
 
 	evtSub, err := jetstream.NewSubscriber(jetstream.SubscriberConfig{
-		Conn:               conn,
-		AckWaitTimeout:     5 * time.Second,
-		ResourceInitializer: jetstream.GroupedConsumer("nats-roundtrip-events"),
+		Conn:                conn,
+		AckWaitTimeout:      5 * time.Second,
+		ResourceInitializer: bridgeConsumerInitializer,
 	})
 	if err != nil {
 		t.Fatalf("nats event subscriber: %v", err)
 	}
 
 	cmdSub, err := jetstream.NewSubscriber(jetstream.SubscriberConfig{
-		Conn:               conn,
-		AckWaitTimeout:     5 * time.Second,
-		ResourceInitializer: jetstream.GroupedConsumer("nats-roundtrip-commands"),
+		Conn:                conn,
+		AckWaitTimeout:      5 * time.Second,
+		ResourceInitializer: bridgeConsumerInitializer,
 	})
 	if err != nil {
 		t.Fatalf("nats command subscriber: %v", err)
