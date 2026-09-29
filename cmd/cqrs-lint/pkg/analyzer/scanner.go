@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"slices"
 	"strings"
 )
 
@@ -311,6 +312,16 @@ func ResolveEmittedEventTypeConsts(reg *CQRSRegistry) {
 	fmt.Printf("DEBUG-C040: after expand: TypeConstValues=%d eventUserRegistered=%q userRegisteredEmitted=%q\n",
 		len(reg.TypeConstValues), reg.TypeConstValues["eventUserRegistered"],
 		reg.EventTypesEmitted["UserRegistered"].File)
+	_, aliasRecorded := reg.constAliasExprs["eventUserRegistered"]
+	keys := make([]string, 0, len(reg.constAliasExprs))
+	for k := range reg.constAliasExprs {
+		keys = append(keys, k)
+	}
+
+	slices.Sort(keys)
+
+	fmt.Printf("DEBUG-C040: aliasRecorded=%v typedConst=%q aliasKeys=%v\n",
+		aliasRecorded, reg.TypeConstValues["EventUserRegistered"], keys)
 
 	for _, ref := range reg.pendingEmittedEventTypeRefs {
 		val, ok := reg.TypeConstValues[ref.constName]
