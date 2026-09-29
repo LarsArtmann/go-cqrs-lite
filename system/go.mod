@@ -29,6 +29,7 @@ require (
 	github.com/maypok86/otter/v2 v2.3.0
 	github.com/onsi/gomega v1.43.0
 	go.uber.org/goleak v1.3.0
+	pgregory.net/rapid v1.3.0
 )
 
 require (

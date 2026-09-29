@@ -69,8 +69,17 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	// 2. Load env overrides with CQRS_ prefix. Double-underscore maps to
 	// the koanf delimiter ("."), enabling structured nested overrides:
 	// CQRS_ENGINES__PRIMARY__DRIVER=sqlite → engines.primary.driver
+	//
+	// CQRS_INSTANCES__<i>__<field> vars are EXCLUDED here: koanf would load
+	// them as the key instances.<i>.<field>, and merging that map-shaped key
+	// into the YAML-loaded instances LIST corrupts the slice (entries beyond
+	// the env index drop out). They are applied post-unmarshal in step 6.
 	if err := k.Load(env.Provider("CQRS_", ".", func(key string) string {
 		stripped := strings.TrimPrefix(key, "CQRS_")
+		if strings.HasPrefix(stripped, "INSTANCES__") {
+			return ""
+		}
+
 		return strings.ReplaceAll(strings.ToLower(stripped), "__", ".")
 	}), nil); err != nil {
 		return DeploymentConfig{}, fmt.Errorf("system: load env overrides: %w", err)
