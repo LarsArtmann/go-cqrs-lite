@@ -24,6 +24,10 @@ const (
 	DialectPostgres = claiming.DialectPostgres
 	// DialectMySQL uses ? placeholders and native DATETIME(3).
 	DialectMySQL = claiming.DialectMySQL
+	// DialectDuckDB is claim-core-only (metaengine/duckdbengine due-claims):
+	// the timer store has no DuckDB query set, so constructors reject it
+	// with [ErrUnknownDialect].
+	DialectDuckDB = claiming.DialectDuckDB
 )
 
 // sqliteTimeFormat is a fixed-width RFC3339 variant that always emits 9

@@ -686,6 +686,7 @@ github.com/go-openapi/swag/fileutils v0.29.2/go.mod h1:7QKmmodjAebaq61lGVJa8ldLd
 github.com/go-openapi/swag/jsonutils v0.28.0/go.mod h1:CYM3WlTUcagR2ZoHdz54di/cbBqt82tuxuXgAjxw+mg=
 github.com/go-openapi/swag/jsonutils v0.29.2/go.mod h1:ONTdNvj3Y+IXRzfa17E+Rgt2ns/qiSOYjIo2K7v2yDs=
 github.com/go-openapi/swag/jsonutils/fixtures_test v0.28.0/go.mod h1:mofwUWx70wvskwESqRJ//k/9kURmCgyJl5m5Ppoh5kY=
+github.com/go-openapi/swag/jsonutils/fixtures_test v0.29.2/go.mod h1:HC2egPORFzbj/gf05Zrfgz8Mgplx3oW7hgGi7pjZVhM=
 github.com/go-openapi/swag/loading v0.28.0/go.mod h1:rXB0QiQX5mMveXEA7ouM4KiiM9jVJe4K6BVbwhD1M4k=
 github.com/go-openapi/swag/loading v0.29.2/go.mod h1:DqilDjuiJKETecsS4TRopWG1acUDsfqN39ZmQhPu6uI=
 github.com/go-openapi/swag/mangling v0.28.0/go.mod h1:jtBE2+V+3pILxOR7Vgce+Cwp6A2PgZbvVqfNntbVs0w=
@@ -701,7 +702,9 @@ github.com/go-openapi/swag/typeutils v0.29.2/go.mod h1:7+GDG+uz9Ke+eVt4rClZg7wkl
 github.com/go-openapi/swag/yamlutils v0.28.0/go.mod h1:x0q/yndZHEgk9Rx3DyDqzFUmHy55KTvIZldvF2dTJXs=
 github.com/go-openapi/swag/yamlutils v0.29.2/go.mod h1:7MGqtcrK73sxQ4ceiyIf8qiXS/s09JLMdR5esK5euYQ=
 github.com/go-openapi/testify/enable/yaml/v2 v2.6.0/go.mod h1:tY+St1SGq4NFl0QIqdTY4aEdbChAHxhyB77XQi9iJCo=
+github.com/go-openapi/testify/enable/yaml/v2 v2.7.0/go.mod h1:mI1M88etYbc3PhgHsWQK2kwvNwW5aGFqMPbmib+SGIs=
 github.com/go-openapi/testify/v2 v2.6.0/go.mod h1:SgsVHtfooshd0tublTtJ50FPKhujf47YRqauXXOUxfw=
+github.com/go-openapi/testify/v2 v2.8.0/go.mod h1:4gUN8jC+RqOE2qjW/vDmfyTvl5BCht4qL7oca0odrak=
 github.com/go-openapi/validate v0.26.1/go.mod h1:B8UMgXiQiwwQWIbmuROlwJZDPGlikPuh7iHV1vPX9Oo=
 github.com/go-openapi/validate v1.0.0/go.mod h1:wwXGRqMQzOZ7PCqBcgNk+DD9+Cacnxv7we5T0M/eA3Y=
 github.com/go-pdf/fpdf v0.5.0/go.mod h1:HzcnA+A23uwogo0tp9yU+l3V+KXhiESpt1PMayhOh5M=
@@ -987,6 +990,7 @@ github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4 v4.0.0-20260806125330-508e2
 github.com/larsartmann/go-datastar/static v0.1.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.2.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.5.0/go.mod h1:J5d13HKqAKSH67hTgOcGTQQtv8UXmm5jm5tcM4+/tnM=
+github.com/larsartmann/go-datastar/static v0.6.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
 github.com/larsartmann/go-output v0.38.1/go.mod h1:E8cCAWWBcND96zqS3Fc0jhRDmyjz43SPXrVNF5Qcg34=
 github.com/larsartmann/go-output/escape v0.38.1/go.mod h1:q4RijNjIZSffgE1Z7vCn9NaP2Zf8y4t02Re6wXl0tZ8=
 github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
@@ -997,18 +1001,21 @@ github.com/larsartmann/templ-components/charts/echarts v1.13.2/go.mod h1:1ZYGGQR
 github.com/larsartmann/templ-components/charts/echarts v1.16.0/go.mod h1:PJtGzwLTpgUr3znpOdZ71M2i1c2JR44N60hgDq68XMk=
 github.com/larsartmann/templ-components/charts/echarts v1.17.0/go.mod h1:U09ZwU1PdkvwGilbaoKDYgUbPNa54VVzNUEwBa1iV48=
 github.com/larsartmann/templ-components/charts/echarts v1.18.0/go.mod h1:A42WT8HfY8a2frOlIbfssWz5ttsFeuFSfvDXO7muSTQ=
+github.com/larsartmann/templ-components/charts/echarts v1.19.4/go.mod h1:Ty8IqZ+G/2tu1zUtyPr9+vMazGeG25L49Ver4d0IhuA=
 github.com/larsartmann/templ-components/datastar v1.8.2/go.mod h1:0VY3QU6FpWu1kN/EDdU+CaPDEwlLgC6X7VlHXspM2oA=
 github.com/larsartmann/templ-components/datastar v1.11.0/go.mod h1:M4nSh8qGKqD+iJQ8p9mTck67ksTHEeaGX7CMuYCtbmo=
 github.com/larsartmann/templ-components/datastar v1.13.2/go.mod h1:NboBxHnArZlQKaS7k1qqRBowNbQZWnuzC1z0tS9GMGw=
 github.com/larsartmann/templ-components/datastar v1.16.0/go.mod h1:HhDnrzb+ss54lT4euZ3iys++VBrLXWJKMUI4LdS7t5M=
 github.com/larsartmann/templ-components/datastar v1.17.0/go.mod h1:hEVWn5AXoX5wQlWVHcaf1u7zPTvIZJwc5dbDg92J4Nk=
 github.com/larsartmann/templ-components/datastar v1.18.0/go.mod h1:bbtwOJTjnSjRJDxoJnoKQ3j2KNBENHTVNs+nGWSqujA=
+github.com/larsartmann/templ-components/datastar v1.19.4/go.mod h1:6Q9OjombbiCIs8hLmWUj28SvCvuTggD8NcSFvpmnTWA=
 github.com/larsartmann/templ-components/errorpage v1.8.2/go.mod h1:ExVmotoNgWEtou/PBku44ucNnLQw+R0Uqk8QXUAfxdE=
 github.com/larsartmann/templ-components/errorpage v1.11.0/go.mod h1:bqU2IC/4X7BJTwAe9EgGJAvDRXXYIbegr7ir486RNs4=
 github.com/larsartmann/templ-components/errorpage v1.13.2/go.mod h1:4aQ0u6RIDzxskzfQjAWs+xGovQfmdERaffrlQNmR9IQ=
 github.com/larsartmann/templ-components/errorpage v1.16.0/go.mod h1:GhPKkb86Wc+hZN3G+BvpRi/lSUjho1e2PSBVtu910VE=
 github.com/larsartmann/templ-components/errorpage v1.17.0/go.mod h1:B+ra2RSOb4+UTeB7CFFvSKsGpQwINZh6Shw05KjBgC0=
 github.com/larsartmann/templ-components/errorpage v1.18.0/go.mod h1:tO7XyROIfv4ITYOFoM8GsWCpIWNMK43sq+yas4TRs6Y=
+github.com/larsartmann/templ-components/errorpage v1.19.4/go.mod h1:BiG9yVe2CGjicQAjZlZR+LyQWKIKSAHHOlJN0hYWGjA=
 github.com/leodido/go-urn v1.2.0/go.mod h1:+8+nEpDfqqsY+g338gtMEUOtuK+4dEMhiQEgxpxOKII=
 github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=
 github.com/lithammer/fuzzysearch v1.1.8 h1:/HIuJnjHuXS8bKaiTMeeDlW2/AyIWk2brx1V8LFgLN4=

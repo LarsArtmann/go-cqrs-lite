@@ -65,6 +65,9 @@ func newStore[P any](ctx context.Context, db *sql.DB, d Dialect) (*SQLTimerStore
 		q = postgresQueries()
 	case DialectMySQL:
 		q = mysqlQueries()
+	case DialectDuckDB:
+		// No timer-store query set exists for DuckDB (claim-core-only).
+		fallthrough
 	default:
 		return nil, fmt.Errorf("%w: %d", ErrUnknownDialect, d)
 	}

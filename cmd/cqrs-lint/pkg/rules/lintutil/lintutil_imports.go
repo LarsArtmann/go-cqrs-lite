@@ -87,8 +87,8 @@ func QualifierTargetsModule(gf *analyzer.GoFile, ident *ast.Ident, pathFragment 
 	}
 
 	segment := pathFragment
-	if i := strings.LastIndex(pathFragment, "/"); i >= 0 {
-		segment = pathFragment[i+1:]
+	if _, after, ok := strings.CutLast(pathFragment, "/"); ok {
+		segment = after
 	}
 
 	return ident.Name == segment
@@ -118,22 +118,21 @@ func isMajorVersionSegment(seg string) bool {
 }
 
 func lastSegment(importPath string) string {
-	if idx := strings.LastIndex(importPath, "/"); idx >= 0 {
-		seg := importPath[idx+1:]
-		// Strip major-version suffix (v2, v3, ... v99) — the package name is
-		// the segment before it.
-		if isMajorVersionSegment(seg) {
-			rest := importPath[:idx]
-			if idx2 := strings.LastIndex(rest, "/"); idx2 >= 0 {
-				return rest[idx2+1:]
-			}
-			return rest
-		}
-
-		return seg
+	before, seg, ok := strings.CutLast(importPath, "/")
+	if !ok {
+		return importPath
 	}
 
-	return importPath
+	// Strip major-version suffix (v2, v3, ... v99) — the package name is
+	// the segment before it.
+	if isMajorVersionSegment(seg) {
+		if _, parent, ok2 := strings.CutLast(before, "/"); ok2 {
+			return parent
+		}
+		return before
+	}
+
+	return seg
 }
 
 // FileImportsSubstr reports whether the AST file imports a path containing

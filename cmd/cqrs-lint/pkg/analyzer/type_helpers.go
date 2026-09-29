@@ -110,8 +110,8 @@ func IsQualifierFor(gf *GoFile, sel *ast.SelectorExpr, pathFragment string) bool
 	}
 
 	segment := pathFragment
-	if i := strings.LastIndex(pathFragment, "/"); i >= 0 {
-		segment = pathFragment[i+1:]
+	if _, after, ok := strings.CutLast(pathFragment, "/"); ok {
+		segment = after
 	}
 
 	return ident.Name == segment
