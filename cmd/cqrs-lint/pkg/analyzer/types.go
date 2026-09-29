@@ -285,13 +285,13 @@ func IsCQRSModulePath(path string) bool {
 // analyzed package's import path starts with the go-cqrs-lite prefix — and
 // is not an example module — the code is the library itself.
 func (ctx *AnalysisContext) IsLibrarySelfLint() bool {
-	if IsCQRSModulePath(ctx.ModulePath) && !IsExampleModulePath(ctx.ModulePath) {
+	if IsCQRSModulePath(ctx.ModulePath) && !strings.HasPrefix(ctx.ModulePath, "github.com/larsartmann/go-cqrs-lite/example/") {
 		return true
 	}
 
 	for _, gf := range ctx.GoFiles {
 		if gf.Pkg == nil || !IsCQRSModulePath(gf.Pkg.PkgPath) ||
-			IsExampleModulePath(gf.Pkg.PkgPath) {
+			strings.HasPrefix(gf.Pkg.PkgPath, "github.com/larsartmann/go-cqrs-lite/example/") {
 			continue
 		}
 

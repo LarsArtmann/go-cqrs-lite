@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"cmp"
+
 	"pgregory.net/rapid"
 )
 
@@ -33,7 +35,7 @@ func shuffleInPlace[T any](rt *rapid.T, s []T, key func(T) int) []T {
 		keyedSlice[i] = keyed{v: v, pri: key(v) + rapid.IntRange(0, 1<<30).Draw(rt, "prio")}
 	}
 
-	slices.SortStableFunc(keyedSlice, func(a, b keyed) int { return a.pri - b.pri })
+	slices.SortStableFunc(keyedSlice, func(a, b keyed) int { return cmp.Compare(a.pri, b.pri) })
 
 	for i := range s {
 		s[i] = keyedSlice[i].v
