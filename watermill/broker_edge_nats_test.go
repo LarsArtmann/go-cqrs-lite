@@ -73,6 +73,9 @@ func TestNatsJetStream_NackRedelivers(t *testing.T) {
 	conn := newNatsEdgeConn(t)
 	ensureNatsStream(t, conn, topic)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
 	sub, err := jetstream.NewSubscriber(jetstream.SubscriberConfig{
 		Conn:                conn,
 		AckWaitTimeout:      5 * time.Second,
@@ -123,7 +126,6 @@ func TestNatsJetStream_NackRedelivers(t *testing.T) {
 // receive each of the published messages exactly once between them.
 func TestNatsJetStream_ConsumerGroupExactlyOnce(t *testing.T) {
 	conn := newNatsEdgeConn(t)
-	ensureNatsStream(t, conn, topic)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -133,6 +135,8 @@ func TestNatsJetStream_ConsumerGroupExactlyOnce(t *testing.T) {
 		group = "nats-edge-group"
 		total = 20
 	)
+
+	ensureNatsStream(t, conn, topic)
 
 	mkSub := func() <-chan *message.Message {
 		t.Helper()

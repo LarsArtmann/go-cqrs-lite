@@ -47,6 +47,11 @@ func TestNatsJetStreamRoundtrip(t *testing.T) {
 
 	t.Cleanup(func() { _ = conn.Drain() })
 
+	// The plugin's subscribers never provision streams (GET only) — create
+	// the bus topics' streams before the subscribes below.
+	ensureNatsStream(t, conn, "user.created")
+	ensureNatsStream(t, conn, "user.create")
+
 	pub, err := jetstream.NewPublisher(jetstream.PublisherConfig{
 		Conn:           conn,
 		TrackMessageID: true,
