@@ -35,11 +35,18 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "==> Starting ephemeral NATS (port $NATS_PORT, JetStream enabled)"
+# max_payload lives in the config file (no CLI flag): 8MB so the 2 MiB
+# broker-edge payload leg mirrors the Redis suite (NATS default cap is 1MB).
+NATS_CONF="$JETSTREAM_DIR/nats.conf"
+cat >"$NATS_CONF" <<EOF
+port: $NATS_PORT
+jetstream {
+	store_dir: "$JETSTREAM_DIR"
+}
+max_payload: 8388608
+EOF
 nats-server \
-	--port "$NATS_PORT" \
-	--jetstream \
-	--store_dir "$JETSTREAM_DIR" \
-	--max_payload 8MB \
+	--config "$NATS_CONF" \
 	--log level=warn \
 	&
 NATS_PID=$!

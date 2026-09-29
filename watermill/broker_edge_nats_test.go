@@ -12,6 +12,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill-nats/v2/pkg/jetstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	natsgo "github.com/nats-io/nats.go"
+	natsjs "github.com/nats-io/nats.go/jetstream"
 )
 
 // NATS JetStream broker-edge suite — the sibling of the Redis Streams edge
@@ -39,16 +40,38 @@ func newNatsEdgeConn(t *testing.T) *natsgo.Conn {
 	return conn
 }
 
+// ensureNatsStream pre-creates the topic's stream (WorkQueue retention, the
+// GroupedConsumer configurator's shape): the plugin's subscribers only GET
+// streams — they never provision — so a subscribe-before-publish needs the
+// stream to exist.
+func ensureNatsStream(t *testing.T, conn *natsgo.Conn, topic string) {
+	t.Helper()
+
+	js, err := natsjs.New(conn)
+	if err != nil {
+		t.Fatalf("jetstream handle: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := js.CreateOrUpdateStream(ctx, natsjs.StreamConfig{
+		Name:      topic,
+		Subjects:  []string{topic},
+		Retention: natsjs.WorkQueuePolicy,
+	}); err != nil {
+		t.Fatalf("create stream %s: %v", topic, err)
+	}
+}
+
 // TestNatsJetStream_NackRedelivers pins that a Nacked message comes back:
 // JetStream terminally NAKs nothing until the consumer's max deliver lapses —
 // the same at-least-once contract the Redis Streams leg pins.
 func TestNatsJetStream_NackRedelivers(t *testing.T) {
-	conn := newNatsEdgeConn(t)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	t.Cleanup(cancel)
-
 	const topic = "nats-edge-redeliver"
+
+	conn := newNatsEdgeConn(t)
+	ensureNatsStream(t, conn, topic)
 
 	sub, err := jetstream.NewSubscriber(jetstream.SubscriberConfig{
 		Conn:                conn,
@@ -100,6 +123,7 @@ func TestNatsJetStream_NackRedelivers(t *testing.T) {
 // receive each of the published messages exactly once between them.
 func TestNatsJetStream_ConsumerGroupExactlyOnce(t *testing.T) {
 	conn := newNatsEdgeConn(t)
+	ensureNatsStream(t, conn, topic)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -192,12 +216,13 @@ func TestNatsJetStream_ConsumerGroupExactlyOnce(t *testing.T) {
 // through JetStream persistence (server started with --max_payload 8MB; the
 // NATS default 1MB cap would reject the publish).
 func TestNatsJetStream_LargePayloadRoundtrip(t *testing.T) {
+	const topic = "nats-edge-large"
+
 	conn := newNatsEdgeConn(t)
+	ensureNatsStream(t, conn, topic)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-
-	const topic = "nats-edge-large"
 
 	sub, err := jetstream.NewSubscriber(jetstream.SubscriberConfig{
 		Conn:                conn,

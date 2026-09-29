@@ -17,6 +17,12 @@ import (
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 
+// natsConnCloser adapts *natsgo.Conn to io.Closer (nats.Conn.Close returns
+// nothing; Drain drains then closes and reports an error).
+type natsConnCloser struct{ conn *natsgo.Conn }
+
+func (c natsConnCloser) Close() error { return c.conn.Drain() }
+
 // TestNatsJetStreamRoundtrip verifies the watermill/ bridge (EventBus +
 // CommandBus) against a real NATS JetStream broker via the maintained
 // watermill-nats/v2 plugin — the WithBackend contract that ADR-0127
@@ -67,10 +73,10 @@ func TestNatsJetStreamRoundtrip(t *testing.T) {
 		t.Fatalf("nats command subscriber: %v", err)
 	}
 
-	evtBus := cqrswatermill.NewEventBus(cqrswatermill.WithBackend(pub, evtSub, conn))
+	evtBus := cqrswatermill.NewEventBus(cqrswatermill.WithBackend(pub, evtSub, natsConnCloser{conn}))
 	t.Cleanup(func() { _ = evtBus.Close() })
 
-	cmdBus := cqrswatermill.NewCommandBus(cqrswatermill.WithCommandBackend(pub, cmdSub, conn))
+	cmdBus := cqrswatermill.NewCommandBus(cqrswatermill.WithCommandBackend(pub, cmdSub, natsConnCloser{conn}))
 	t.Cleanup(func() { _ = cmdBus.Close() })
 
 	// ── EventBus roundtrip ──────────────────────────────────────────────
