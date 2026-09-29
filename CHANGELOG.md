@@ -63,29 +63,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   an experimental-status notice. New negative/redirect trigger-eval cases were
   added. The evals themselves remain UNVALIDATED (no `claude` CLI in the
   authoring environment).
-- **example/mesh-demo: the multi-bounded-context proof.** Orders + billing
-  contexts, each owning its decider, events, and catalog declarations, wired
-  ONLY through a bilateral contract (`order.placed` →, `invoice.issued` ←).
-  Each context exports its own EventCatalog tree via headless flags
-  (`export -domain/-out/-skip-bootstrap/-plain`); both sides declare the
-  shared messages with explicit `Producers`/`Consumers` (an external producer
-  is honored by `catalog.ValidateCoeffects`), so either copy alone tells the
-  whole relationship and the federation hub's union-merge is lossless. Pinned
-  by tests: dangling-free coeffects per source, cross-domain round trip,
-  manifest union without ID collisions, both-copies-carry-both-sides.
-- **cqrs-lint: E019 `data-product-without-contract`.** The
-  `catalog.AddDataProduct` scanner now flags data products whose outputs
-  carry no `DataContract` (and output contracts referencing an undeclared
-  product). RULES.md regenerated; rule count 207 → 208.
-- **catalog/docserver: DataProduct rendering.** The EventCatalog docs UI now
-  lists data products in the overview and serves a detail page at
-  `/docs/eventcatalog/data-products/{id}` (owners, input ports, output ports
-  with contract paths). Three docserver tests pin the handler + rows.
 - **Skill references: the data-mesh cookbook.** recipes.md §2.41 "Declare
   data products + contracts end-to-end" (compile-verified fence) and
   advanced.md §6.21 "Data Products: Ports, Replication, and Contract
   Evolution" (journal-as-outbox input ports per ADR-0016/0146,
   ServeSSE/query output ports, upcasting-driven contract evolution).
+- **Release-tooling honesty fixes (M09 fallout).** `batch-release.sh
+  --smoke-all` was self-refusing 100% since the verify-lock landed (the
+  parent held the advisory flock; every spawned `tag-release.sh --smoke`
+  child re-acquired and was refused — verified by manual reproduction);
+  `--smoke-all` now takes no lock (read-only proxy probing, same exemption
+  class as `--audit`). `tag-release.sh`, `batch-release.sh`, `pin-sweep.sh`,
+  and `check-example-standalone.sh` self-source `scripts/go-env.sh` — their
+  go legs previously false-failed under the ambient host env
+  (`GOTOOLCHAIN=local`, 1.26.7: "go.mod requires go >= 1.27.1"), which also
+  made the standalone-example gate report 7/7 false failures.
 - **docs/MIGRATION-grpc-to-v5.md.** Consumer-facing gRPC removal guide:
   surface inventory, capability → HTTP/SSE/broker replacement table, and
   decision help; linked from transport/grpc's README and the FAQ (outcome
@@ -745,6 +737,66 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   helpers; `metaengine/typed_reader.go` (1127 — the largest file in the repo)
   split around `TypedReader` into reader core, scan, aggregates, grouped
   aggregates, scan options, and cursor files.
+
+## [catalog/v4.6.0, cmd/cqrs-lint/v4.13.0 — data-mesh federation surface] — 2026-09-29
+
+The data-mesh/federation wave: the EventCatalog exporter grows its governance + federation machinery, cqrs-lint gains the E019 contract-completeness rule. Both tags proxy-verified + smoke green; mesh-demo's pre-release sibling replace stripped (it builds standalone on published pins now), `cmd/cqrs-upgrade` + `example/goal-shaped-app` re-pinned, and the `check-example-standalone` audit is back at 0 findings.
+
+### Added
+
+- **catalog/eventcatalog: `catalog.index.json` export manifest.** Every
+  EventCatalog export now writes a machine-readable manifest to the export
+  root — one entry per exported resource (`id`, `kind`, `version`, `path`),
+  deterministically ordered (canonical kind order, then ID) so re-exporting
+  an unchanged catalog is byte-identical. Federation hubs diff manifests
+  between builds for cheap change detection and PR gates instead of walking
+  MDX frontmatter. Written after all resources, so it never describes a
+  half-written tree. Golden-pinned in
+  `catalog/testdata/golden/catalog-index-manifest.snap`.
+- **catalog/eventcatalog: `WithSkipBootstrapFiles` export option.** CI
+  exports for federation hubs can omit the generated `eventcatalog.config.js`
+  and `package.json` — the hub owns its own bootstrap files, and per-source
+  copies previously forced fragile first-wins merge semantics. Default
+  behavior is unchanged (local export directories stay directly buildable);
+  only the two bootstrap files are skipped, all content is byte-identical.
+- **catalog/eventcatalog: `WithPlainRefIDs` export option (governance
+  exports).** Default producer/consumer refs and channel message pointers
+  carry the composite `"<id>-<version>"` Astro entry IDs that
+  `@eventcatalog/core` resolves (its visualiser graph uses the same keys);
+  `@eventcatalog/linter` indexes by frontmatter ID and can never resolve
+  that form — which is why every hub ref flagged `refs/resource-exists`.
+  The option emits bare IDs (version stays a separate field) so the SAME
+  catalog can be exported twice: render the default tree, lint the plain
+  one. `check-eventcatalog` now render-validates both shapes AND runs the
+  linter on the plain profile with `refs/resource-exists`,
+  `best-practices/owner-required`, `best-practices/summary-required`,
+  `refs/file-exists`, and `structure/duplicate-resource-ids` all at error
+  severity — the rules the federation hub previously had to warn-suppress.
+- **catalog: `Flow.Owners`.** Flows were the only ownable resource without
+  an owners field; the registry copy and the exporter frontmatter now carry
+  it (emitted under `owners:`, matching every other kind — pinned by
+  `TestExporter_OwnersEmittedOnEveryOwnableKind`). The ec-fixture gained
+  owners/summaries on all owner-required resources, an `OrderItem` entity
+  (the Order aggregate referenced it without a declaration), and its data
+  product's `contracts/orders.yaml` file so `refs/file-exists` passes.
+- **catalog/docserver: DataProduct rendering.** The EventCatalog docs UI now
+  lists data products in the overview and serves a detail page at
+  `/docs/eventcatalog/data-products/{id}` (owners, input ports, output ports
+  with contract paths). Three docserver tests pin the handler + rows.
+- **cmd/cqrs-lint: E019 `data-product-without-contract`.** The
+  `catalog.AddDataProduct` scanner now flags data products whose outputs
+  carry no `DataContract` (and output contracts referencing an undeclared
+  product). RULES.md regenerated; rule count 207 → 208.
+- **example/mesh-demo: the multi-bounded-context proof.** Orders + billing
+  contexts, each owning its decider, events, and catalog declarations, wired
+  ONLY through a bilateral contract (`order.placed` →, `invoice.issued` ←).
+  Each context exports its own EventCatalog tree via headless flags
+  (`export -domain/-out/-skip-bootstrap/-plain`); both sides declare the
+  shared messages with explicit `Producers`/`Consumers` (an external producer
+  is honored by `catalog.ValidateCoeffects`), so either copy alone tells the
+  whole relationship and the federation hub's union-merge is lossless. Pinned
+  by tests: dangling-free coeffects per source, cross-domain round trip,
+  manifest union without ID collisions, both-copies-carry-both-sides.
 
 ## [metaengine/tursoengine/v4.2.1] — 2026-09-29
 
