@@ -93,6 +93,25 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 			recordTypeConstArg(ctx, call, 1)
 		}
 
+	case funcName == "Register" && len(call.Args) == 1 &&
+		!IsQualifierFor(gf, sel, "go-cqrs-lite/event") &&
+		eventMetadataTypeExpr(call) != nil:
+		// Event-catalog metadata registration (e.g. a catalog builder's
+		// Register(EventMetadata{Type: ...})): the Type field carries the
+		// event type as a literal, a constant reference, or a string(...)
+		// conversion of either. Counts as a catalog declaration for the
+		// provider-parity rules (C040/E018). See cqrs-htmx feedback (C040
+		// phantoms on EventCatalog-declared events).
+		expr := unwrapStringConv(eventMetadataTypeExpr(call))
+		if eventTypeStr := StringLit(expr); eventTypeStr != "" {
+			ctx.Registry.EventTypesInCatalog[eventTypeStr] = true
+		} else if name := ExprIdentName(expr); name != "" {
+			ctx.Registry.pendingCatalogEventTypeRefs = append(
+				ctx.Registry.pendingCatalogEventTypeRefs,
+				pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
+			)
+		}
+
 	case funcName == "Register" && !IsQualifierFor(gf, sel, "go-cqrs-lite/event"):
 		// Plain dispatcher.Register(typeConst, handler) — the string-type-based
 		// command registration API. The handler type is not visible in the call

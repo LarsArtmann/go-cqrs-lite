@@ -1,10 +1,8 @@
 package analyzer
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
-	"slices"
 	"strings"
 )
 
@@ -38,6 +36,11 @@ func scanFile(ctx *AnalysisContext, gf *GoFile) {
 func scanGenDecl(ctx *AnalysisContext, gf *GoFile, decl *ast.GenDecl) {
 	if decl.Tok == token.CONST {
 		scanConstDecl(ctx, gf, decl)
+		return
+	}
+
+	if decl.Tok == token.VAR {
+		scanVarAliasDecl(ctx, decl)
 		return
 	}
 
@@ -217,6 +220,52 @@ func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 	}
 }
 
+// scanVarAliasDecl records package-level var declarations whose values are
+// cross-package constant references. Go has no const aliases, so consumers
+// re-expose domain constants as vars (`var eventUserRegistered =
+// identitymodel.EventUserRegistered` — the cqrs-htmx identity-model↔usermgmt
+// pattern) and emission sites then reference the var. Restricted to
+// selector-shaped values: same-package var references are mutable and stay
+// unrecorded, so a missed resolution is a false negative, never a false
+// positive. Values may be wrapped in a string(...) conversion.
+func scanVarAliasDecl(ctx *AnalysisContext, decl *ast.GenDecl) {
+	for _, spec := range decl.Specs {
+		vs, ok := spec.(*ast.ValueSpec)
+		if !ok || len(vs.Values) == 0 {
+			continue
+		}
+
+		if !isCrossPackageConstReference(vs.Values[0]) {
+			continue
+		}
+
+		for _, name := range vs.Names {
+			ctx.Registry.constAliasExprs[name.Name] = vs.Values[0]
+		}
+	}
+}
+
+// unwrapStringConv returns the inner expression of a string(...) conversion,
+// or expr unchanged.
+func unwrapStringConv(expr ast.Expr) ast.Expr {
+	if call, ok := expr.(*ast.CallExpr); ok && len(call.Args) == 1 {
+		if id, ok := call.Fun.(*ast.Ident); ok && id.Name == "string" {
+			return call.Args[0]
+		}
+	}
+
+	return expr
+}
+
+// isCrossPackageConstReference reports whether expr is a package-qualified
+// identifier (possibly string(...)-wrapped) — the var-alias shape of a
+// constant re-exported from another package.
+func isCrossPackageConstReference(expr ast.Expr) bool {
+	_, ok := unwrapStringConv(expr).(*ast.SelectorExpr)
+
+	return ok
+}
+
 // isConstReferenceExpr reports whether expr is a reference to another
 // constant: a bare identifier, a selector expression, a parenthesized
 // reference, or a string(...) conversion of one of those. Literal values are
@@ -303,25 +352,12 @@ func ResolveRegisteredTypeConsts(reg *CQRSRegistry) {
 // passed a string literal, so C038/C040/E006 and the catalog-parity rules see
 // constant-emitted events. See cqrs-htmx feedback (C040 phantoms).
 func ResolveEmittedEventTypeConsts(reg *CQRSRegistry) {
-	fmt.Printf("DEBUG-C040: pending emit=%d catalog=%d aliasExprs=%d TypeConstValues=%d\n",
-		len(reg.pendingEmittedEventTypeRefs), len(reg.pendingCatalogEventTypeRefs),
-		len(reg.constAliasExprs), len(reg.TypeConstValues))
-
-	reg.expandConstAliases()
-
-	fmt.Printf("DEBUG-C040: after expand: TypeConstValues=%d eventUserRegistered=%q userRegisteredEmitted=%q\n",
-		len(reg.TypeConstValues), reg.TypeConstValues["eventUserRegistered"],
-		reg.EventTypesEmitted["UserRegistered"].File)
-	_, aliasRecorded := reg.constAliasExprs["eventUserRegistered"]
-	keys := make([]string, 0, len(reg.constAliasExprs))
-	for k := range reg.constAliasExprs {
-		keys = append(keys, k)
+	if len(reg.pendingEmittedEventTypeRefs) == 0 &&
+		len(reg.pendingCatalogEventTypeRefs) == 0 {
+		return
 	}
 
-	slices.Sort(keys)
-
-	fmt.Printf("DEBUG-C040: aliasRecorded=%v typedConst=%q aliasKeys=%v\n",
-		aliasRecorded, reg.TypeConstValues["EventUserRegistered"], keys)
+	reg.expandConstAliases()
 
 	for _, ref := range reg.pendingEmittedEventTypeRefs {
 		val, ok := reg.TypeConstValues[ref.constName]
