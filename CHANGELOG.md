@@ -42,6 +42,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **`example/goal-shaped-app`: the materialized view is LIVE (M27).** The
+  demo's shipped `cqrs.yaml` now runs `driver: turso` with an active
+  `materialized_views: [{collection: tasks, fn: COUNT}]` entry against
+  published `tursoengine/v4.2.1` (sibling replace stripped, `go.sum`
+  resolved); `TestShippedConfigBoots` pins the shipped config byte-for-byte,
+  so the matview story the docs tell is now the config the app boots.
 - **Post-wave hygiene for the 2026-09-28 7-tag wave** (dispatcher/v4.5.0, middleware/v4.7.0, metaengine/v4.15.0, system/v4.10.0, event/v4.12.0, command/v4.12.0, query/v4.9.0 — all proxy-verified): full `pin-sweep.sh` bumped 7 consumers to the fresh tags with cqrs-lint goldens refreshed and per-module standalone verify; `system/integration`'s sibling replace for the deleted `storage/v4.10.0` tag stripped (its documented obsolescence condition is met — published system/v4.10.0 carries `storage/v4 v4.10.1`); `check-example-standalone.sh --build` green at 0 findings (taskmanager's dead `projectionhost→storage/v4.10.0` module-graph edge healed via MVS); `pin-sweep --check` fully green including the external leg after `cmd/cqrs-lint` bumped to the `go-finding` family wave (`go-finding`/`pipeline` v1.13.0 + `toolsdk` v1.13.1, additive `NotRequires`/`ModuleFanOut` — full cqrs-lint suite 19/19 green).
 - **md-go gate baseline pruned to the live 103**: the one inert entry (an archived command-side plan fence whose validation error vanished) removed via `--update-baseline`; the ghost ratchet keeps the file shrinking-only.
 - **pkg.go.dev hidden-docs policy recorded** (README License section + skill FAQ): the proprietary root license hides module documentation on pkg.go.dev BY DESIGN (verified 2026-09-25 on system/v4@v4.9.0; re-verified 2026-09-28 via benchkit's own-LICENSE counter-example — per-module LICENSE copies do not help). Use `go doc` locally; do not sweep LICENSE copies into module directories.

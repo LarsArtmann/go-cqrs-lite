@@ -172,7 +172,7 @@ Split by topic; edit the topic file, never inline here:
 TL;DR rules (too hot to be one click away):
 
 1. **Never `rm`/`git reset`/`git checkout`/plain `mv`** — `trash`, `git switch`/`git restore`, `git mv`.
-2. **`source scripts/go-env.sh` before any go/buildflow command** — the one-file env chain; the ambient session can carry `GOTOOLCHAIN=local` + full-`/mnt/buildcache` caches that silently break or poison builds ([`gowork-modes.md`](docs/agents/gowork-modes.md)).
+2. **`source scripts/go-env.sh` before any go/buildflow command** — the one-file env chain; the ambient session can carry `GOTOOLCHAIN=local` + full-`/mnt/buildcache` caches that silently break or poison builds ([`gowork-modes.md`](docs/agents/gowork-modes.md)). `tag-release.sh`, `batch-release.sh`, `pin-sweep.sh`, and `check-example-standalone.sh` self-source it since 2026-09-29 (their go legs false-failed under the ambient env before); new release/gate scripts that invoke `go` must self-source the same way.
 3. **`#verify` runs exclusively** — never concurrent with integration suites or heavy builds.
 4. **Auto-commit daemon absorbs working-tree changes** — expect `chore: auto-commit` commits; wait for clean tree before tagging. For plan-driven work, commit at each phase boundary immediately if you need authored history (the daemon will otherwise absorb mid-phase edits into `chore:` commits).
 5. **API-surface change ⇒ api golden regen in the same edit** (`cd cmd/api-stability && GOWORK=off go run . --update`).
