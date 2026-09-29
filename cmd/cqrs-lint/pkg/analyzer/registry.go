@@ -1,5 +1,7 @@
 package analyzer
 
+import "go/ast"
+
 // CQRSRegistry holds the cross-referenced analysis of all CQRS constructs
 // found in the analyzed project.
 type CQRSRegistry struct {
@@ -58,6 +60,25 @@ type CQRSRegistry struct {
 	// query type from its parameter list. See SEC consumer feedback.
 	pendingHandlerMethods map[string]bool
 
+	// constAliasExprs records const declarations whose value is a reference
+	// to another constant (bare identifier, selector expression, or
+	// string(...) conversion) rather than a literal — including type-inherited
+	// aliases like `eventUserRegistered = identitymodel.EventUserRegistered`.
+	// Resolved into TypeConstValues by ResolveEmittedEventTypeConsts, because
+	// the referenced constant may live in another file or package scanned
+	// later. See cqrs-htmx feedback (C040 phantoms on alias-emitted events).
+	constAliasExprs map[string]ast.Expr
+
+	// pendingEmittedEventTypeRefs and pendingCatalogEventTypeRefs record
+	// event-type arguments passed to event.New/event.NewEvent/catalog.Event
+	// that could not be resolved to a string at the call site (constant
+	// identifiers). Resolved against TypeConstValues by
+	// ResolveEmittedEventTypeConsts after all files are scanned — the const
+	// declaration and the emission site may live in different files/packages,
+	// and alias chains only resolve once every declaration is scanned.
+	pendingEmittedEventTypeRefs  []pendingEventTypeRef
+	pendingCatalogEventTypeRefs []pendingEventTypeRef
+
 	// TypesWithTypeMethod records struct type names that have a Type() method.
 	// Used by E007 to distinguish real CQRS query types (which implement
 	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
@@ -89,8 +110,17 @@ func NewCQRSRegistry() *CQRSRegistry {
 		TypeConstValues:        make(map[string]string),
 		StrictApplyFolds:       make(map[string]bool),
 		pendingHandlerMethods:  make(map[string]bool),
+		constAliasExprs:        make(map[string]ast.Expr),
 		TypesWithTypeMethod:    make(map[string]bool),
 	}
+}
+
+// pendingEventTypeRef is one event-type argument that could not be resolved
+// to a string at its call site and awaits post-pass const resolution.
+type pendingEventTypeRef struct {
+	constName string
+	file      string
+	line      int
 }
 
 // CommandByName finds a command by struct type name.

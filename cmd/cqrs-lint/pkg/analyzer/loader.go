@@ -162,6 +162,7 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 
 	filterEventPayloads(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveEmittedEventTypeConsts(ctx.Registry)
 	ResolveHandlerMethods(ctx)
 	ResolveTransportAdapters(ctx)
 

@@ -181,8 +181,12 @@ func capturePayloadTypeFromVar(
 //
 // Only constants whose declared type is exactly command.Type, query.Type, or
 // event.Type (a SelectorExpr ending in ".Type") are recorded — this avoids
-// capturing unrelated string constants. See browser-history feedback
-// (E005/E007).
+// capturing unrelated string constants. Constants whose VALUE references
+// another constant (type-inherited aliases like
+// `aliasEvent = pkg.TypedConst`) are recorded as alias expressions and
+// resolved in a post-pass — see ResolveEmittedEventTypeConsts. See
+// browser-history feedback (E005/E007) and cqrs-htmx feedback (C040
+// phantoms on alias-emitted events).
 func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 	for _, spec := range decl.Specs {
 		vs, ok := spec.(*ast.ValueSpec)
@@ -190,20 +194,31 @@ func scanConstDecl(ctx *AnalysisContext, _ *GoFile, decl *ast.GenDecl) {
 			continue
 		}
 
-		if !isCommandOrQueryType(vs.Type) {
+		if isCommandOrQueryType(vs.Type) {
+			val := StringLit(vs.Values[0])
+			if val == "" {
+				continue
+			}
+
+			for _, name := range vs.Names {
+				ctx.Registry.TypeConstValues[name.Name] = val
+			}
+
 			continue
 		}
 
-		val := StringLit(vs.Values[0])
-		if val == "" {
-			continue
-		}
-
-		for _, name := range vs.Names {
-			ctx.Registry.TypeConstValues[name.Name] = val
+		if isConstReferenceExpr(vs.Values[0]) {
+			for _, name := range vs.Names {
+				ctx.Registry.constAliasExprs[name.Name] = vs.Values[0]
+			}
 		}
 	}
 }
+
+// isConstReferenceExpr reports whether expr is a reference to another
+// constant: a bare identifier, a selector expression, a parenthesized
+// reference, or a string(...) conversion of one of those. Literal values are
+// handled by the typed-const path in scanConstDecl.
 
 // isCommandOrQueryType reports whether expr is a typed event/command/query
 // type: "command.Type", "query.Type", or "event.Type" (a SelectorExpr whose
@@ -260,4 +275,103 @@ func ResolveRegisteredTypeConsts(reg *CQRSRegistry) {
 			reg.CommandTypesRegistered[val] = true
 		}
 	}
+}
+
+// ResolveEmittedEventTypeConsts resolves event-type arguments that were
+// recorded as constant references at event.New / event.NewEvent /
+// catalog.Event call sites, and expands alias const chains into
+// TypeConstValues. Must run AFTER all files are scanned: the referenced const
+// may live in another file or package, and alias chains resolve only once
+// every declaration is in the table. Resolved entries land in
+// EventTypesEmitted / EventTypesInCatalog exactly as if the call site had
+// passed a string literal, so C038/C040/E006 and the catalog-parity rules see
+// constant-emitted events. See cqrs-htmx feedback (C040 phantoms).
+func ResolveEmittedEventTypeConsts(reg *CQRSRegistry) {
+	if len(reg.pendingEmittedEventTypeRefs) == 0 &&
+		len(reg.pendingCatalogEventTypeRefs) == 0 {
+		return
+	}
+
+	reg.expandConstAliases()
+
+	for _, ref := range reg.pendingEmittedEventTypeRefs {
+		val, ok := reg.TypeConstValues[ref.constName]
+		if !ok || val == "" {
+			continue
+		}
+
+		reg.EventTypesEmitted[val] = EventEmission{File: ref.file, Line: ref.line}
+	}
+
+	for _, ref := range reg.pendingCatalogEventTypeRefs {
+		val := reg.TypeConstValues[ref.constName]
+		if val == "" {
+			continue
+		}
+
+		reg.EventTypesInCatalog[val] = true
+	}
+}
+
+// maxConstAliasDepth bounds alias-chain resolution (a = b, b = c, ...).
+const maxConstAliasDepth = 16
+
+// expandConstAliases resolves every recorded alias const into
+// TypeConstValues. Resolution is a memoized fixpoint: chains resolve
+// regardless of declaration order, and cycles are cut by the seen-set.
+func (r *CQRSRegistry) expandConstAliases() {
+	if len(r.constAliasExprs) == 0 {
+		return
+	}
+
+	for name := range r.constAliasExprs {
+		r.resolveConstAlias(name, make(map[string]bool), 0)
+	}
+}
+
+// resolveConstAlias returns the string value of the named constant, following
+// alias references through constAliasExprs when the constant has no literal
+// value of its own. Missing names resolve to "".
+func (r *CQRSRegistry) resolveConstAlias(name string, seen map[string]bool, depth int) string {
+	if val, ok := r.TypeConstValues[name]; ok {
+		return val
+	}
+
+	expr, ok := r.constAliasExprs[name]
+	if !ok || depth >= maxConstAliasDepth || seen[name] {
+		return ""
+	}
+
+	seen[name] = true
+
+	if val := r.evalConstExpr(expr, seen, depth+1); val != "" {
+		r.TypeConstValues[name] = val
+
+		return val
+	}
+
+	return ""
+}
+
+// evalConstExpr evaluates a const value expression to its string: a string
+// literal, an identifier/selector reference to another constant (matched by
+// bare name — cross-package collisions only risk a false negative, the same
+// tradeoff as recordTypeConstArg), or a string(...) conversion of either.
+func (r *CQRSRegistry) evalConstExpr(expr ast.Expr, seen map[string]bool, depth int) string {
+	switch e := expr.(type) {
+	case *ast.BasicLit:
+		return StringLit(e)
+	case *ast.ParenExpr:
+		return r.evalConstExpr(e.X, seen, depth)
+	case *ast.CallExpr:
+		if id, ok := e.Fun.(*ast.Ident); ok && id.Name == "string" && len(e.Args) == 1 {
+			return r.evalConstExpr(e.Args[0], seen, depth)
+		}
+	case *ast.Ident:
+		return r.resolveConstAlias(e.Name, seen, depth)
+	case *ast.SelectorExpr:
+		return r.resolveConstAlias(e.Sel.Name, seen, depth)
+	}
+
+	return ""
 }

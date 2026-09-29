@@ -38,6 +38,14 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 					File: gf.Path,
 					Line: pos.Line,
 				}
+			} else if name := ExprIdentName(call.Args[0]); name != "" {
+				// Constant identifier (possibly an alias chain): resolved
+				// against TypeConstValues in ResolveEmittedEventTypeConsts,
+				// after all const declarations have been scanned.
+				ctx.Registry.pendingEmittedEventTypeRefs = append(
+					ctx.Registry.pendingEmittedEventTypeRefs,
+					pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
+				)
 			}
 		}
 
@@ -50,6 +58,11 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 					File: gf.Path,
 					Line: pos.Line,
 				}
+			} else if name := ExprIdentName(call.Args[0]); name != "" {
+				ctx.Registry.pendingEmittedEventTypeRefs = append(
+					ctx.Registry.pendingEmittedEventTypeRefs,
+					pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
+				)
 			}
 		}
 
@@ -105,6 +118,11 @@ func scanCallExpr(ctx *AnalysisContext, gf *GoFile, call *ast.CallExpr) {
 		if len(call.Args) > 0 {
 			if eventTypeStr := StringLit(call.Args[0]); eventTypeStr != "" {
 				ctx.Registry.EventTypesInCatalog[eventTypeStr] = true
+			} else if name := ExprIdentName(call.Args[0]); name != "" {
+				ctx.Registry.pendingCatalogEventTypeRefs = append(
+					ctx.Registry.pendingCatalogEventTypeRefs,
+					pendingEventTypeRef{constName: name, file: gf.Path, line: pos.Line},
+				)
 			}
 		}
 
