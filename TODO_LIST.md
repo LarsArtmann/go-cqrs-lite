@@ -92,9 +92,6 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 [18-14 hub-phase report](docs/status/archived/2026-09-24_18-14_hub-phase-and-final-gate-session.md)
 (all archived 2026-09-28, RESOLVED-BY-ROUTING). Open tail:
 
-- [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
-      once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
-      (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
 - [ ] **mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
       demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
 
