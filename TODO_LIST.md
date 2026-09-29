@@ -136,24 +136,22 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
       (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
 
-- [ ] **Queue M4 verification tail (harvested 2026-09-21)** — sliceable:
-      ~~(a) unit-pin `deadlockBackoff` + retry-loop coverage~~ DONE 2026-09-25 (sqlmock-driven full-transaction replay, budget, recovery), ~~(b) mysqltestcontainer skip paths~~ DONE (dial fast-skip + 25s bound; -short verified clean), ~~(d) vestigial warts~~ DONE, ~~(f) CI legs~~ LOCAL-half DONE (queue/postgres matrix entry verified green over live ephemeral PG; remote confirmation billing-gated). REMAINING: (c) clock seam (design-gated), (e) shared-DB parallel-migrate sweep across engine suites. Original: (a) unit-pin `deadlockBackoff` (bounds, exponential shape, jitter range,
-      attempt cap) and exercise the ClaimDue retry loop under a forced real
-      deadlock (fault-injected `claimOnce` or lock-order contention) — the
-      shipped backoff path has zero executed coverage;
-      (b) prove `testutil/mysqltestcontainer` skip paths (no Docker, `-short`)
-      + a smoke test; confirm plain (non-integration-tag) queue/postgres skips
-      cleanly without a TestMain;
-      (c) clock seam for the conformance harness (ADR-0122 `WithClock` /
-      lease-duration injection) to delete the fixed 500-650ms sleeps;
-      (d) remove the vestigial `_ = subject` + unused `short` wart in
-      conformance tokens.go/lifecycle.go;
-      (e) sweep the shared-DB parallel-migrate class (t.Parallel + shared
-      `POSTGRES_TEST_DSN` migrate) across metaengine/*engine + storage engine
-      suites before CI `-count=2` legs multiply;
-      (f) CI legs: queue/mysql via the container harness (runners have Docker)
-      + an explicit queue/postgres matrix entry. —
-      source: archived 22-01 §b/§e3-5/§f3-17 _(Effort: M total, sliceable)_
+- [x] **Queue M4 verification tail (harvested 2026-09-21)** — DONE 2026-09-29:
+      ~~(a) unit-pin `deadlockBackoff`~~ DONE 2026-09-25 (sqlmock replay), ~~(b) mysqltestcontainer skip paths~~ DONE,
+      ~~(d) vestigial warts~~ DONE, ~~(f) CI legs~~ LOCAL-half DONE (remote billing-gated),
+      ~~(c) clock seam~~ DONE 2026-09-29 as DESIGN (owner-gated implementation):
+      [`docs/planning/2026-09-29_07-20_queue-conformance-clock-seam-design.md`](docs/planning/2026-09-29_07-20_queue-conformance-clock-seam-design.md)
+      — inventory of all 10 sleeps, options A/B/C, recommendation B (internal
+      `nowFn` seam, `queue.WithClock` at v5); open question posed to owner.
+      ~~(e) shared-DB parallel-migrate sweep~~ DONE 2026-09-29: exposure
+      matrix drawn (pgtestcontainer per-test-DB suites are safe incl. under
+      explicit DSN; RAW-DSN claimkit suite was the one live race), root cause
+      fixed at all three PG DDL sites (advisory-lock serialization:
+      `storage.PostgresInitSchema`, `pgengine` init + planned layouts,
+      `claimkit` pg dialect — also protects multi-process rolling deploys),
+      8-way concurrent-construction regression tests ×3 modules green against
+      ephemeral PG; MySQL leg has zero parallel+DSN exposure (verified). —
+      source: archived 22-01 §b/§e3-5/§f3-17
 
 ## Command-side domain depth (2026-09-13 plan)
 
@@ -335,12 +333,17 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## Metaengine — follow-ups
 
-- [ ] **Feedback #6: system test-mass gap** — (a) config-loader table tests +
-      fuzz for `system` (koanf/YAML surfaces); (b) lifecycle/shutdown stress
-      with real engines; (c) determinism test (same domain+deployment →
-      identical wiring). The 2026-09-21 projectionhost double-apply find is
+- [x] **Feedback #6: system test-mass gap** — DONE 2026-09-29 (M17):
+      (a) config-loader table tests + 3 rapid properties — which FOUND and
+      FIXED two live `system.LoadConfig` bugs (documented
+      `CQRS_INSTANCES__<i>__<field>` env overrides were silently dropped AND
+      corrupted the YAML instances list); (b) real-sqlite lifecycle/shutdown
+      stress in `systemtest` (6 rounds × 8 concurrent creates, Count
+      double-apply sentinel, racing GracefulClose/Close); (c) wiring
+      determinism (two identical constructs → byte-identical
+      `system.Explain`). The 2026-09-21 projectionhost double-apply find is
       evidence for its priority. — source: 23-24 followups §f19-21, feedback doc
-      §4.6; execution sequencing: the archived SUPERB excellence plan P2 _(Effort: L each)_
+      §4.6
 - [ ] **Post-v4.9.0 metaengine tag wave** — publish the [Unreleased]
       metaengine surface: G-T13 ADTSet parity (pg/mysql, mysql VM leg still
       pending a quiet window), G-T12 `BackfillPlannedTables`,

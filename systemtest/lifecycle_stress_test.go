@@ -41,9 +41,9 @@ func TestSystem_LifecycleStress_Sqlite(t *testing.T) {
 			sys, err := system.New(ctx, stressDomain(), system.DeploymentConfig{
 				Engines: map[string]system.EngineConfig{
 					"primary": {
-					Driver: "sqlite",
-					DSN:    "file:" + filepath.Join(t.TempDir(), "stress.db"),
-				},
+						Driver: "sqlite",
+						DSN:    "file:" + filepath.Join(t.TempDir(), "stress.db"),
+					},
 				},
 				Instances: []system.InstanceConfig{
 					{Role: system.RoleSourceOfTruth, Engine: "primary"},
