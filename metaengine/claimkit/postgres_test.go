@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -54,6 +55,48 @@ func TestClaimKit_PostgresConformance(t *testing.T) {
 
 	adttest.AssertDueClaimer(t, []adttest.Factory{{Name: "claimkit-postgres", Create: newPGHost}})
 	adttest.AssertFactSink(t, []adttest.Factory{{Name: "claimkit-postgres", Create: newPGHost}})
+}
+
+// TestClaimKit_PostgresConcurrentNew pins the advisory-lock serialization of
+// the Postgres claims DDL (M16.2 sweep): N concurrent claimkit.New calls on
+// ONE shared database must all succeed. This suite resolves the shared
+// POSTGRES_TEST_DSN directly (no per-test database provisioning), so before
+// the lock this was the repo's live instance of the shared-DB parallel-migrate
+// race class.
+func TestClaimKit_PostgresConcurrentNew(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("pgx", pgDSN(t))
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	const workers = 8
+
+	errs := make(chan error, workers)
+	var wg sync.WaitGroup
+
+	for range workers {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			_, err := claimkit.New(context.Background(), db, claiming.DialectPostgres)
+			errs <- err
+		}()
+	}
+
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
+		if err != nil {
+			t.Fatalf("concurrent claimkit.New: %v", err)
+		}
+	}
 }
 
 // TestClaimKit_PostgresCrossKeyspaceIsolation pins the composite-keyspace

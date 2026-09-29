@@ -17,9 +17,26 @@ import (
 func TestNew_ConcurrentConstruction(t *testing.T) {
 	t.Parallel()
 
+	dsn := pgDSN(t)
+
+	// Pre-flight one construction so skip-class unavailability is handled on
+	// the test goroutine; the DSN helper caches per test name, so all workers
+	// below hit the same per-test database.
+	first, err := pgengine.New(dsn)
+	if err != nil {
+		if pgSkipClass(err) {
+			t.Skipf("Postgres not available: %v", err)
+		}
+
+		t.Fatalf("pgengine.New pre-flight: %v", err)
+	}
+
+	if err := first.Close(); err != nil {
+		t.Fatalf("close pre-flight engine: %v", err)
+	}
+
 	const workers = 8
 
-	engines := make(chan any, workers)
 	errs := make(chan error, workers)
 	var wg sync.WaitGroup
 
@@ -29,41 +46,23 @@ func TestNew_ConcurrentConstruction(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			eng, err := pgengine.New(pgDSN(t))
+			eng, err := pgengine.New(dsn)
 			if err != nil {
-				if pgSkipClass(err) {
-					engines <- nil
-					return
-				}
-
 				errs <- err
 
 				return
 			}
 
-			engines <- eng
+			errs <- eng.Close()
 		}()
 	}
 
 	wg.Wait()
-	close(engines)
 	close(errs)
 
 	for err := range errs {
 		if err != nil {
-			t.Fatalf("concurrent pgengine.New: %v", err)
-		}
-	}
-
-	for eng := range engines {
-		if eng == nil {
-			t.Skip("Postgres not available for all workers")
-		}
-
-		if closer, ok := eng.(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				t.Fatalf("close engine: %v", err)
-			}
+			t.Fatalf("concurrent pgengine.New/Close: %v", err)
 		}
 	}
 }
