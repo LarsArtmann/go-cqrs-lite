@@ -9,7 +9,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.11.0
 	modernc.org/sqlite v1.59.0
 	pgregory.net/rapid v1.3.0
 )
