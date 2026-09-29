@@ -902,7 +902,9 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              vendorHash = "sha256-UNtccRM3x2dXVt18MiObqThfkGZpjwrF0JmA+Q2eTUs=";
+              # Re-pinned 2026-09-29: the prepared-deps replace set (go-finding
+              # family wave) shifted the module graph under the pinned rev.
+              vendorHash = "sha256-pRrHMB8ZRMS8wAoPAbDd1uvnsd/JOtB6ve7ob9ioKkE=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
