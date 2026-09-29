@@ -14,7 +14,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.11.0
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/trace v1.46.0
 	turso.tech/database/tursogo v0.7.2
@@ -23,7 +23,7 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
-	github.com/ebitengine/purego v0.11.0 // indirect
+	github.com/ebitengine/purego v0.11.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
@@ -63,10 +63,10 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sys v0.48.0 // indirect
-	modernc.org/libc v1.76.0 // indirect
+	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	modernc.org/sqlite v1.59.0 // indirect
+	modernc.org/sqlite v1.60.0 // indirect
 )
 
 replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../../record

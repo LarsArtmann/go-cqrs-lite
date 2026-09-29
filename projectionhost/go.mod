@@ -96,7 +96,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-flightrecorder v0.2.0
 	github.com/samber/lo v1.53.0
 	go.opentelemetry.io/otel v1.46.0

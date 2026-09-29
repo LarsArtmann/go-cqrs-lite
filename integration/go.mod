@@ -30,7 +30,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/v4 v4.10.1
 	github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.43.1

@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/claiming/v4
 go 1.27.1
 
 require (
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.11.0
 	modernc.org/sqlite v1.59.0
 )
 

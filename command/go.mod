@@ -10,7 +10,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-error-family v0.11.0
 	github.com/onsi/ginkgo/v2 v2.32.1
 	github.com/onsi/gomega v1.43.0
 	pgregory.net/rapid v1.3.0

@@ -30,10 +30,10 @@ github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0 h1:ZpG4Ro/RiYyptrkcFkk
 github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0/go.mod h1:VfXxbCiG42POuJuf8ML1Z2vm1uAYatg1wBnF4HwUS40=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 h1:pWXdzbzleiHESLtgE7fbOvxyDO1sCtT7m/tN5G+eKwc=
 github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0/go.mod h1:9oD9oVY1tu9E2g9D/jMXoiALrv9jI6CJBqj9oWmAKIs=
-github.com/larsartmann/go-error-family v0.10.1 h1:lf1RNjpdK7k+tCzphkg5qRolAY76U8OGEc09ZsZ5S6A=
-github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
-github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
-github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
+github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
+github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
+github.com/larsartmann/go-sse v0.6.1 h1:GSc2ueXIjNAsYlZjOR8kfOlm/UwiOh5eNwVmnrqyGVw=
+github.com/larsartmann/go-sse v0.6.1/go.mod h1:yN/gsqxOYwt9aqfcsfnIAzENNk+libcm2t3M4ByW1KU=
 github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsReI=
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
