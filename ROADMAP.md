@@ -54,10 +54,11 @@ production maturity chain is complete:
 The production maturity chain is complete. Highlights (full per-entry detail in
 [CHANGELOG.md](CHANGELOG.md) `[Unreleased]`; every item shipped and tested):
 
-- **10 engine backends** — Memory, SQLite, Pebble, bbolt, DuckDB, Postgres,
-  MySQL, Badger, Dgraph, Turso (+ Iroh replication prototype). Each in its own
-  module (dep isolation); SQLite/Pebble/Bbolt/DuckDB/PG all implement
-  StreamLogBackend; DuckDB + PG have AtomicAppender
+- **12 engine implementations** — Memory (in-core), SQLite, Pebble, bbolt,
+  DuckDB, Postgres, MySQL, Badger, Dgraph, Turso, BigTable, Iroh. Each engine
+  module is dep-isolated (memory lives in `metaengine` core); SQLite/Pebble/
+  Bbolt/DuckDB/PG all implement StreamLogBackend; DuckDB + PG have
+  AtomicAppender (counts gate-derived, `check-canonical-facts.sh`)
 - **SQL pushdown + layout planning** — `FilterOnField`/`SortOnField` pushdown
   per dialect (json_extract / JSONB `->>`); `LayoutPlan` generates indexed-column
   DDL from declared query fields (10x filter+sort); pgengine expression indexes;
@@ -71,7 +72,7 @@ The production maturity chain is complete. Highlights (full per-entry detail in
   `Calibration` for external engines; live RTT via `ProbeEngine`/`LatencyTracker`
 - **Correctness rails** — fold sealed interface (no `any` god-struct),
   exhaustiveness guard, property-based cross-engine parity (rapid), Postgres
-  testcontainers, `adttest.RunMatrix` over all 12 ADTs,
+  testcontainers, `adttest.RunMatrix` over all 11 planner ADTs,
   `enginetest` shared contract suites (incl. StreamLog positional semantics),
   `AtomicAppender` optimistic concurrency, boundary key validation
 
@@ -173,9 +174,10 @@ Open remainder: iroh standalone-pin repair + the skill-ref propagation wave.
   int→INTEGER). Vectorized GROUP BY/SUM/AVG on DuckDB.
 - **Postgres GIN containment Indexes** — `@>` operator for JSONB containment
 - ✅ **Operator-driven engine selection + layout planning** — `system/` self-registering
-  driver registry shipped; `metaengine/` registry moved from `system/`. All 10 drivers
-  (memory, sqlite, pebble, bbolt, duckdb, postgres, mysql, badger, dgraph,
-  turso) self-register. Layout planning (ADR-0124) shipped with priority system,
+  driver registry shipped; `metaengine/` registry moved from `system/`. All 11
+  self-registering drivers (memory, sqlite, pebble, bbolt, duckdb, postgres,
+  mysql, badger, dgraph, turso, bigtable — irohengine deliberately does not
+  register; count gate-derived). Layout planning (ADR-0124) shipped with priority system,
   embed-vs-normalize scoring, `ReplanLayout`, `ConfirmRebuild`. Live cost
   measurement shipped with `ProbeEngine`, `LatencyTracker`, `Store.Replan`,
   `CheckRouting`. Remaining: NATS/Redis bus driver registration, role-based sync.
