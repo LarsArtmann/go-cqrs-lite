@@ -157,7 +157,11 @@ func TestSQLCheckpointStore_Save_ZeroCheckpointDeletes(t *testing.T) {
 		WithArgs("my-projection").
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err := s.Save(context.Background(), "my-projection", event.Checkpoint{}) //nolint:exhaustruct_v5 // zero-value is the cleared-checkpoint intent
+	err := s.Save(
+		context.Background(),
+		"my-projection",
+		event.Checkpoint{},
+	) //nolint:exhaustruct_v5 // zero-value is the cleared-checkpoint intent
 	if err != nil {
 		t.Fatalf("Save zero checkpoint: %v", err)
 	}

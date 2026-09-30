@@ -1,13 +1,12 @@
 package metaengine
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"slices"
 	"testing"
 	"time"
-
-	"cmp"
 
 	"pgregory.net/rapid"
 )
