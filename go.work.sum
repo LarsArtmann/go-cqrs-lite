@@ -1191,6 +1191,7 @@ github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD
 github.com/substrait-io/substrait v0.87.0 h1:40rP4LejyK6SNQlWz7NX6kQELf8cmScWMBGruWhN4io=
 github.com/substrait-io/substrait v0.87.0/go.mod h1:MPFNw6sToJgpD5Z2rj0rQrdP/Oq8HG7Z2t3CAEHtkHw=
 github.com/substrait-io/substrait-go v0.4.2/go.mod h1:qhpnLmrcvAnlZsUyPXZRqldiHapPTXC3t7xFgDi3aQg=
+github.com/substrait-io/substrait-go/v4 v4.4.0/go.mod h1:GzpaFqO5VRtMkEjATgRxGK5p82OmEtCmszAVYxE+iWc=
 github.com/substrait-io/substrait-go/v7 v7.2.2/go.mod h1:FVQ38NeDorflB3ogd8F9tjh9S1y8RDwwfSFm24/u9HY=
 github.com/substrait-io/substrait-go/v8 v8.1.1 h1:XL7CqVVOQkXP9FRSIm2ylJCjqRASg1yBRcn5nRCRwss=
 github.com/substrait-io/substrait-go/v8 v8.1.1/go.mod h1:6GLz9k21udB64g4lLKq8632TKfQCRAVfhuU3NSXtZWY=

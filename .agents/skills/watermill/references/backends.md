@@ -40,6 +40,23 @@
   dedup) and keep `AckAsync=false`.
 - Marshaler: `NATSMarshaler` carries watermill metadata in NATS headers;
   reserved header `_watermill_message_uuid`.
+- **Upstream name gaps (v2.2.0, verified on a real broker 2026-09-29):**
+  stream AND consumer names derive VERBATIM from the topic — dotted topics
+  (`user.created`, and the bridge's fixed `cqrs.events`/`cqrs.commands`)
+  are illegal stream names (NATS rejects `.`, `*`, `>`, space, tab). Map to
+  sanitized names (dots → underscores) on BOTH sides: a custom
+  `ConfigureStream` on the publisher and a custom `ResourceInitializer` on
+  the subscriber (see `watermill/broker_integration_nats_test.go` —
+  `natsStreamName`, `bridgeStreamConfig`, `bridgeConsumerInitializer`).
+- The publisher routes by stream NAME AS THE SUBJECT: the marshaler
+  receives `streamConfig.Name`, so the sanitized name is what hits the wire
+  — the dotted topic never does. Set `Subjects: []string{name}` (the
+  sanitized name) in the stream config or publishes miss the stream.
+- Subscribers only GET streams — they never provision. Pre-create the
+  stream (or provision inside your `ResourceInitializer` with
+  `CreateOrUpdateStream` + a named consumer, `AckExplicit`).
+- `nats.Conn.Close()` returns nothing → does not satisfy `io.Closer`;
+  wrap with `Drain` (drains subscriptions first, reports errors).
 
 ### Kafka
 - Exactly-once: NOT achievable — official docs: Kafka transactions have no Go
@@ -105,9 +122,14 @@ import (
 eventBus := watermill.NewEventBus(watermill.WithBackend(pub, sub, client))
 ```
 
-Verified broker path here: Redis Streams roundtrip
-(`TestRedisStreamRoundtrip` via `scripts/ephemeral-redis.sh`);
-`scripts/ephemeral-nats.sh` exists for a JetStream leg.
+Verified broker paths here: Redis Streams roundtrip
+(`TestRedisStreamRoundtrip` via `scripts/ephemeral-nats.sh` sibling
+`scripts/ephemeral-redis.sh`) and NATS JetStream (M19, 2026-09-29):
+`TestNatsJetStreamRoundtrip` + the edge suite (Nack redelivery, consumer-
+group exactly-once via `TrackMessageID` + seen-set, 2 MiB payloads) via
+`scripts/ephemeral-nats.sh` / `nix run .#integration-nats`. The dotted-topic
+gaps above are worked around in-test with the custom configurator +
+initializer — copy those helpers when wiring dotted event types.
 NATS note: this repo's README claimed "no maintained JetStream plugin" until
 corrected 2026-09-15 — watermill-nats/v2 IS maintained (v2.2.0, 2026-05).
 
