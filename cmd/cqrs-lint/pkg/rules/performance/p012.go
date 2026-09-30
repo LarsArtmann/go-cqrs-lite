@@ -74,29 +74,7 @@ func hasWALEvidence(
 	site sqliteOpenSite,
 	constMap map[string]string,
 ) bool {
-	localExprScope := buildLocalExprScope(site.funcDecl)
-
-	// 1. Check if any resolvable string part of the DSN enables WAL.
-	if site.dsnArg != nil {
-		if dsnExprContainsPragma(site.dsnArg, constMap, localExprScope, nil, dsnHasWAL) {
-			return true
-		}
-
-		if !hasInspectableStringParts(site.dsnArg, constMap, localExprScope, nil) {
-			return true
-		}
-	}
-
-	// 2. Check for post-open PRAGMA in the enclosing function.
-	if funcSetsPragma(site.funcDecl, "journal_mode") {
-		return true
-	}
-
-	// 3. Check for library wrapper calls in the same file.
-	if site.file != nil &&
-		fileHasWrapperCall(site.file, "SQLiteEnableWAL") {
-		return true
-	}
-
-	return false
+	return hasSQLiteOpenEvidence(
+		site, constMap, "journal_mode", dsnHasWAL, "SQLiteEnableWAL",
+	)
 }

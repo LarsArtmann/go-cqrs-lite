@@ -10,13 +10,5 @@ import (
 // normal for Pebble, so it reports as normal. The in-memory engine reports
 // engine-default (empty) — nothing it writes is durable in any tier's sense.
 func (e *pebbleEngine) EffectiveDurability() metaengine.DurabilityTier {
-	if e.persistence == metaengine.PersistenceVolatile {
-		return ""
-	}
-
-	if e.syncWrites {
-		return metaengine.DurabilityStrict
-	}
-
-	return metaengine.DurabilityNormal
+	return metaengine.SyncWritesTier(e.persistence == metaengine.PersistenceVolatile, e.syncWrites)
 }

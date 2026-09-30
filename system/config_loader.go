@@ -3,6 +3,7 @@ package system
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
@@ -68,8 +69,17 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	// 2. Load env overrides with CQRS_ prefix. Double-underscore maps to
 	// the koanf delimiter ("."), enabling structured nested overrides:
 	// CQRS_ENGINES__PRIMARY__DRIVER=sqlite → engines.primary.driver
+	//
+	// CQRS_INSTANCES__<i>__<field> vars are EXCLUDED here: koanf would load
+	// them as the key instances.<i>.<field>, and merging that map-shaped key
+	// into the YAML-loaded instances LIST corrupts the slice (entries beyond
+	// the env index drop out). They are applied post-unmarshal in step 6.
 	if err := k.Load(env.Provider("CQRS_", ".", func(key string) string {
 		stripped := strings.TrimPrefix(key, "CQRS_")
+		if strings.HasPrefix(stripped, "INSTANCES__") {
+			return ""
+		}
+
 		return strings.ReplaceAll(strings.ToLower(stripped), "__", ".")
 	}), nil); err != nil {
 		return DeploymentConfig{}, fmt.Errorf("system: load env overrides: %w", err)
@@ -103,6 +113,14 @@ func LoadConfig(path string) (DeploymentConfig, error) {
 	// support.)
 	applyLegacyEnvOverrides(&cfg)
 
+	// 6. Apply indexed instance env overrides (koanf's env provider cannot
+	// reach into []InstanceConfig: CQRS_INSTANCES__0__DURABILITY would
+	// surface as the key instances.0.durability and be dropped at
+	// unmarshal). Documented in LoadConfig — this makes that contract true.
+	if err := applyIndexedInstanceEnvOverrides(&cfg); err != nil {
+		return DeploymentConfig{}, err
+	}
+
 	return cfg, nil
 }
 
@@ -123,4 +141,64 @@ func applyLegacyEnvOverrides(cfg *DeploymentConfig) {
 		Driver: driver,
 		DSN:    os.Getenv("CQRS_DEFAULT_DSN"),
 	}
+}
+
+// instanceEnvParts is the "__"-separated shape of an indexed instance env
+// override: CQRS_INSTANCES, <i>, <FIELD>.
+const instanceEnvParts = 3
+
+// applyIndexedInstanceEnvOverrides applies CQRS_INSTANCES__<i>__<field> env
+// overrides onto already-loaded instances (koanf's env provider cannot index
+// into slices). Supported fields: durability, role, engine. An index with no
+// corresponding instance is a loud error — a silently-dropped override would
+// be a config lie.
+func applyIndexedInstanceEnvOverrides(cfg *DeploymentConfig) error {
+	for _, kv := range os.Environ() {
+		key, value, ok := strings.Cut(kv, "=")
+		if !ok || !strings.HasPrefix(key, "CQRS_INSTANCES__") {
+			continue
+		}
+
+		parts := strings.Split(key, "__") // CQRS_INSTANCES, <i>, <FIELD>
+		if len(parts) != instanceEnvParts {
+			continue
+		}
+
+		idx, err := strconv.Atoi(parts[1])
+		if err != nil || idx < 0 {
+			return fmt.Errorf(
+				"system: env override %s: index %q is not a non-negative integer",
+				key,
+				parts[1],
+			)
+		}
+
+		if idx >= len(cfg.Instances) {
+			return fmt.Errorf(
+				"system: env override %s: no instances[%d] to override (loaded %d)",
+				key,
+				idx,
+				len(cfg.Instances),
+			)
+		}
+
+		inst := &cfg.Instances[idx]
+
+		switch strings.ToLower(parts[2]) {
+		case "durability":
+			inst.Durability = DurabilityTier(value)
+		case "role":
+			inst.Role = InstanceRole(value)
+		case "engine":
+			inst.Engine = value
+		default:
+			return fmt.Errorf(
+				"system: env override %s: unknown instance field %q (want durability, role, or engine)",
+				key,
+				parts[2],
+			)
+		}
+	}
+
+	return nil
 }

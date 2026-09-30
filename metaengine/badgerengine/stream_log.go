@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/dgraph-io/badger/v4"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
@@ -87,7 +88,7 @@ func (e *badgerEngine) StreamRead(
 		}
 
 		return nil
-	})
+	}) //art-dupl:accept cross-module KV stream-log nil-to-empty tail — engine-local row iteration
 	if err != nil {
 		return nil, err
 	}

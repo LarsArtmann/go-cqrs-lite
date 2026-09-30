@@ -43,6 +43,20 @@ type readResult struct {
 	found bool
 }
 
+// reifyReadResult reifies a raw read into (value, found), mapping a missing
+// key to the zero value with found=false. Shared by the coalesced and the
+// direct Get paths.
+func reifyReadResult[V any](rr readResult) (V, bool, error) {
+	if !rr.found {
+		var zero V
+		return zero, false, nil
+	}
+
+	v, err := reify[V](rr.value)
+
+	return v, true, err
+}
+
 // Get performs a point lookup by key, decoding the value directly to V.
 // Returns (zero, false, nil) when the key is not found.
 // When a ReadCoalescer is configured on the Store, concurrent Get calls for
@@ -65,13 +79,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 			return zero, false, fmt.Errorf("%w: %T", errCoalescerTypeMismatch, result)
 		}
 
-		if !rr.found {
-			return zero, false, nil
-		}
-
-		v, err := reify[V](rr.value)
-
-		return v, true, err
+		return reifyReadResult[V](rr)
 	}
 
 	rr, err := r.getUncached(ctx, key)
@@ -79,13 +87,7 @@ func (r *TypedReader[V]) Get(ctx context.Context, key any) (V, bool, error) {
 		return zero, false, err
 	}
 
-	if !rr.found {
-		return zero, false, nil
-	}
-
-	v, err := reify[V](rr.value)
-
-	return v, true, err
+	return reifyReadResult[V](rr)
 }
 
 // getUncached performs the actual engine read without coalescer wrapping.

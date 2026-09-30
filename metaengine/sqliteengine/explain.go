@@ -40,20 +40,38 @@ func explainStandard(
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, ` ORDER BY json_extract(value, '%s')`, jsonPath(sort.Column))
-
-		if sort.Desc {
-			b.WriteString(` DESC`)
-		}
+		appendExplainOrder(
+			&b,
+			fmt.Sprintf("json_extract(value, '%s')", jsonPath(sort.Column)),
+			sort,
+		)
 	}
 
+	args = appendExplainLimit(&b, args, limit)
+
+	return b.String(), args
+}
+
+// appendExplainOrder appends the shared ORDER BY tail of explain queries,
+// with DESC when the sort requests it.
+func appendExplainOrder(b *strings.Builder, colExpr string, sort *metaengine.SortSpec) {
+	fmt.Fprintf(b, " ORDER BY %s", colExpr)
+
+	if sort.Desc {
+		b.WriteString(" DESC")
+	}
+}
+
+// appendExplainLimit appends the keyset-paging LIMIT (limit+1 for HasMore)
+// when a limit was requested.
+func appendExplainLimit(b *strings.Builder, args []any, limit int) []any {
 	if limit > 0 {
-		b.WriteString(` LIMIT ?`)
+		b.WriteString(" LIMIT ?")
 
 		args = append(args, limit+1)
 	}
 
-	return b.String(), args
+	return args
 }
 
 func explainPlanned(
@@ -75,18 +93,10 @@ func explainPlanned(
 	}
 
 	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", metaengine.QuoteIdent(sort.Column))
-
-		if sort.Desc {
-			b.WriteString(" DESC")
-		}
+		appendExplainOrder(&b, metaengine.QuoteIdent(sort.Column), sort)
 	}
 
-	if limit > 0 {
-		b.WriteString(" LIMIT ?")
-
-		args = append(args, limit+1)
-	}
+	args = appendExplainLimit(&b, args, limit)
 
 	return b.String(), args
 }

@@ -96,6 +96,7 @@ func New(dsn string, opts ...Option) (metaengine.Engine, error) {
 	}
 
 	if err := eng.init(); err != nil {
+		//art-dupl:accept constructor-failure cleanup idiom — dep-isolated go.mod engines
 		_ = db.Close()
 
 		return nil, err
@@ -160,11 +161,8 @@ func (e *pgEngine) init() error {
 		)`,
 	}
 
-	//art-dupl:accept DDL-apply loop idiom; each dialect owns its own DDL list
-	for _, ddl := range ddls {
-		if _, err := e.db.ExecContext(context.Background(), ddl); err != nil {
-			return fmt.Errorf("pgengine.init: %w", err)
-		}
+	if err := execDDLLocked(context.Background(), e.db, ddls); err != nil {
+		return fmt.Errorf("pgengine.init: %w", err)
 	}
 
 	if err := e.wireClaimkit(); err != nil {

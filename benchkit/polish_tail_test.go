@@ -5,7 +5,11 @@ import (
 	"context"
 	"math"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -297,5 +301,71 @@ func TestRunSuiteRepeated_DelegatesBelowTwoRepeats(t *testing.T) {
 
 	if strings.Contains(br.String(), "_cov%") {
 		t.Fatalf("single-run delegation must not report CoV metrics, got: %q", br.String())
+	}
+}
+
+// BenchmarkCovBenchstatFixture is the subprocess fixture for
+// TestRunSuiteRepeated_CovThroughRealBenchstatOutput (polish-tail (b)):
+// its `go test -bench` stdout lines ARE the benchstat input format.
+func BenchmarkCovBenchstatFixture(b *testing.B) {
+	RunSuiteRepeated(b, Config{
+		Profile:     ProfileDev,
+		PayloadSize: 64,
+		Warmup:      1,
+		Repeat:      2,
+	}, func() (*stack.Bundle, error) { return memory.New() })
+}
+
+// TestRunSuiteRepeated_CovThroughRealBenchstatOutput (polish-tail (b),
+// 2026-09-29) verifies the CoV custom metrics through the REAL
+// `go test -bench` stdout format — the exact tab-separated
+// `<name> <iterations> <value> <unit>` columns benchstat parses — not the
+// in-process BenchmarkResult.String() rendering. A formatting change in
+// ReportMetric emission (or a unit-name regression like a stripped `%`)
+// surfaces here, not in a CI benchstat run.
+func TestRunSuiteRepeated_CovThroughRealBenchstatOutput(t *testing.T) {
+	if testing.Short() {
+		t.Skip("subprocess bench run skipped in -short")
+	}
+
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("cannot locate package dir")
+	}
+
+	pkgDir := filepath.Dir(thisFile)
+
+	cmd := exec.Command("go", "test",
+		"-bench=^BenchmarkCovBenchstatFixture$", "-run=^$", "-count=1", ".")
+	cmd.Dir = pkgDir
+	cmd.Env = append(os.Environ(), "GOWORK=off")
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("go test -bench exited: %v\n%s", err, out)
+	}
+
+	var covLines int
+
+	for _, line := range strings.Split(string(out), "\n") {
+		fields := strings.Fields(line)
+		// benchstat input row: name, iterations, then <value unit> pairs.
+		if len(fields) < 4 || !strings.HasPrefix(fields[0], "BenchmarkCovBenchstatFixture") {
+			continue
+		}
+
+		for i := 2; i+1 < len(fields); i += 2 {
+			if strings.HasSuffix(fields[i+1], "_cov%") {
+				covLines++
+
+				if _, convErr := strconv.ParseFloat(fields[i], 64); convErr != nil {
+					t.Errorf("cov column %q is not numeric: %v", fields[i], convErr)
+				}
+			}
+		}
+	}
+
+	if covLines == 0 {
+		t.Fatalf("no <metric>_cov%% unit columns in real bench output:\n%s", out)
 	}
 }

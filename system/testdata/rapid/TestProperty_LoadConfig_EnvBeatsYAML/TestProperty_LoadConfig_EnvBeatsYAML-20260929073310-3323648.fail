@@ -1,0 +1,15 @@
+# 2026/09/29 07:33:10.762648 [TestProperty_LoadConfig_EnvBeatsYAML] [rapid] draw dsn: "-"
+# 2026/09/29 07:33:10.762658 [TestProperty_LoadConfig_EnvBeatsYAML] [rapid] draw override: "."
+# 2026/09/29 07:33:10.762703 [TestProperty_LoadConfig_EnvBeatsYAML] LoadConfig: system: load config "/home/lars/projects/.gotmp/TestProperty_LoadConfig_EnvBeatsYAML302622556/011/config.yaml": yaml: line 4: block sequence entries are not allowed in this context
+# 
+v0.4.8#7490153243371891430
+0x2afe1fd0e526b
+0x0
+0x151a04f67c
+0x0
+0x82f0bdb639a1
+0x1c81ad75bdf19a
+0x0
+0x944672e0b0bac
+0x1
+0x4248b360a417a

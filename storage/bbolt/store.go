@@ -58,8 +58,8 @@ func journalKey(evt event.Event) []byte {
 }
 
 func journalKeyEventID(key []byte) string {
-	if i := bytes.LastIndexByte(key, ':'); i >= 0 {
-		return string(key[i+1:])
+	if _, after, ok := bytes.CutLast(key, []byte(":")); ok {
+		return string(after)
 	}
 
 	return string(key)
@@ -145,6 +145,7 @@ func (s *EventStore) AppendBatch(
 	ref id.StreamRef,
 	events []event.Event,
 ) error {
+	//art-dupl:accept empty-batch+span head — cross-module blind-store idiom, dep-isolated go.mod
 	if len(events) == 0 {
 		return nil
 	}

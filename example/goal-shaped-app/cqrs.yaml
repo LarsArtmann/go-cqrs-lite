@@ -14,23 +14,18 @@
 #   CQRS_ENGINES__PRIMARY__DSN=postgres://user:pass@localhost:5432/goal
 engines:
   primary:
-    driver: sqlite
+    # turso (libSQL) instead of plain sqlite: the only embedded driver that
+    # serves the materialized_views block below (IVM needs libSQL's
+    # experimental views feature; the engine injects the flag itself).
+    driver: turso
     dsn: goal.db
-    pragmas: ["journal_mode=WAL", "busy_timeout=5000"]
     # The "task stats" DATA PRODUCT's output port is an OPERATOR-declared
-    # materialized view (ADR-0135 — developers never declare views). IVM
-    # views need libSQL's experimental views feature, so on the default
-    # sqlite driver this block is the documented upgrade path, not active:
-    # uncomment AND switch to the turso driver (libSQL) to serve it:
-    #
-    #   driver: turso            # + blank-import metaengine/tursoengine
-    #   dsn: goal.db
-    #   materialized_views:
-    #     - collection: tasks
-    #       fn: COUNT
-    #
+    # materialized view (ADR-0135 — developers never declare views).
     # Scalar COUNT views are exact; grouped views carry an upstream
     # correctness caveat (readmodels.md §Materialized-view acceleration).
+    materialized_views:
+      - collection: tasks
+        fn: COUNT
 instances:
   - role: source-of-truth
     engine: primary

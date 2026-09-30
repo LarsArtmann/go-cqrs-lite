@@ -9,6 +9,7 @@ import (
 	"github.com/larsartmann/go-finding"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
 )
 
 // C016: context.Background() or context.TODO() in handlers.
@@ -141,30 +142,9 @@ func hasContextParam(fn *ast.FuncDecl) bool {
 	}
 
 	for _, field := range fn.Type.Params.List {
-		if isContextType(field.Type) {
+		if lintutil.IsContextType(field.Type) {
 			return true
 		}
-	}
-
-	return false
-}
-
-func isContextType(expr ast.Expr) bool {
-	// Direct: context.Context
-	sel, ok := expr.(*ast.SelectorExpr)
-	if ok {
-		ident, ok := sel.X.(*ast.Ident)
-
-		return ok && ident.Name == "context" && sel.Sel.Name == "Context"
-	}
-
-	// Pointer or ellipsis: recurse one level
-	if star, ok := expr.(*ast.StarExpr); ok {
-		return isContextType(star.X)
-	}
-
-	if ell, ok := expr.(*ast.Ellipsis); ok {
-		return isContextType(ell.Elt)
 	}
 
 	return false

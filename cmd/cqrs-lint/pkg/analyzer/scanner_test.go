@@ -531,3 +531,268 @@ type CreateUser struct {
 		t.Error("expected nil for non-existent command")
 	}
 }
+
+func TestScanCallExpr_EventTypesEmitted_ConstIdentifier(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"consts.go": `package main
+
+import "event"
+
+const EventUserRegistered event.Type = "UserRegistered"
+`,
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New(EventUserRegistered, id, "User", 1, payload)
+}
+`,
+	})
+
+	emitted, ok := ctx.Registry.EventTypesEmitted["UserRegistered"]
+	if !ok {
+		t.Fatalf(
+			"expected const-identifier emission to resolve to UserRegistered, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+
+	if emitted.File != "emit.go" {
+		t.Errorf("expected file emit.go, got %s", emitted.File)
+	}
+}
+
+func TestScanCallExpr_EventTypesEmitted_AliasChain(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+import "event"
+
+const (
+	EventUserRegistered event.Type = "UserRegistered"
+
+	eventUserRegistered = EventUserRegistered
+)
+`,
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New(eventUserRegistered, id, "User", 1, payload)
+}
+`,
+	})
+
+	if _, ok := ctx.Registry.EventTypesEmitted["UserRegistered"]; !ok {
+		t.Fatalf(
+			"expected type-inherited alias emission to resolve to UserRegistered, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+}
+
+func TestScanCallExpr_EventTypesEmitted_AliasSelectorCrossFile(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"consts.go": `package main
+
+import identitymodel "identitymodel"
+
+const eventUserRegistered = identitymodel.EventUserRegistered
+`,
+		"model.go": `package identitymodel
+
+import "event"
+
+const EventUserRegistered event.Type = "UserRegistered"
+`,
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New(eventUserRegistered, id, "User", 1, payload)
+}
+`,
+	})
+
+	if _, ok := ctx.Registry.EventTypesEmitted["UserRegistered"]; !ok {
+		t.Fatalf(
+			"expected selector alias across files to resolve to UserRegistered, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+}
+
+func TestScanCallExpr_CatalogEvent_ConstIdentifier(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"catalog.go": `package main
+
+import "catalog"
+
+import "event"
+
+const EventX event.Type = "x.evt"
+
+func register() {
+	catalog.Event(EventX, nil)
+}
+`,
+	})
+
+	if !ctx.Registry.EventTypesInCatalog["x.evt"] {
+		t.Fatalf(
+			"expected catalog.Event const arg to resolve to x.evt, got: %v",
+			ctx.Registry.EventTypesInCatalog,
+		)
+	}
+}
+
+func TestScanCallExpr_UnresolvableEventConst(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New(mysteryConst, id, "User", 1, payload)
+}
+`,
+	})
+
+	if len(ctx.Registry.EventTypesEmitted) != 0 {
+		t.Fatalf(
+			"expected no emissions for an unresolvable const, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+}
+
+func TestScanCallExpr_ConstAliasCycle(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"consts.go": `package main
+
+const (
+	a = b
+	b = a
+)
+`,
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New(a, id, "User", 1, payload)
+}
+`,
+	})
+
+	if len(ctx.Registry.EventTypesEmitted) != 0 {
+		t.Fatalf(
+			"expected alias cycle to resolve to nothing, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+}
+
+func TestScanVarAlias_EventTypeEmission(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+import "event"
+
+const EventUserRegistered event.Type = "UserRegistered"
+`,
+		"aliases.go": `package main
+
+import identitymodel "model"
+
+// Go has no const aliases: consumers re-expose domain constants as vars.
+var eventUserRegistered = identitymodel.EventUserRegistered
+`,
+		"emit.go": `package main
+
+func emit() {
+	_ = event.New(eventUserRegistered, id, "User", 1, payload)
+}
+`,
+	})
+
+	emitted, ok := ctx.Registry.EventTypesEmitted["UserRegistered"]
+	if !ok {
+		t.Fatalf(
+			"expected var-alias emission to resolve to UserRegistered, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+
+	if emitted.File != "emit.go" {
+		t.Errorf("expected file emit.go, got %s", emitted.File)
+	}
+}
+
+func TestScanVarAlias_SamePackageVarNotRecorded(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"emit.go": `package main
+
+var localName = userName
+
+func emit() {
+	_ = event.New(localName, id, "User", 1, payload)
+}
+`,
+	})
+
+	if len(ctx.Registry.EventTypesEmitted) != 0 {
+		t.Fatalf(
+			"expected same-package var references to stay unrecorded, got: %v",
+			ctx.Registry.EventTypesEmitted,
+		)
+	}
+}
+
+func TestScanCallExpr_EventMetadataRegister(t *testing.T) {
+	t.Parallel()
+
+	ctx := BuildContextFromSource(t, map[string]string{
+		"model.go": `package main
+
+import "event"
+
+const EventRolesUpdated event.Type = "RolesUpdated"
+`,
+		"catalog.go": `package main
+
+type EventMetadata struct {
+	Type    string
+	Aggregate string
+}
+
+type Catalog struct{}
+
+func (c *Catalog) Register(meta EventMetadata) {}
+
+var catalog Catalog
+
+func register() {
+	catalog.Register(EventMetadata{Type: string(identitymodelEventRolesUpdated), Aggregate: "User"})
+}
+
+const identitymodelEventRolesUpdated = EventRolesUpdated
+`,
+	})
+
+	if !ctx.Registry.EventTypesInCatalog["RolesUpdated"] {
+		t.Fatalf(
+			"expected EventMetadata Register to declare RolesUpdated, got: %v",
+			ctx.Registry.EventTypesInCatalog,
+		)
+	}
+}

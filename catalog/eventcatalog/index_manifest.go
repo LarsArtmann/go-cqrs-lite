@@ -8,8 +8,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
 // indexManifestFile is the machine-readable manifest written to the export
@@ -42,10 +43,12 @@ type indexManifest struct {
 // manifestKindOrder is the canonical resource order of the manifest. It is
 // stable by declaration: services first (the mesh's owning units), then
 // their messages, then the supporting collections.
-var manifestKindOrder = []string{
-	"services", "commands", "events", "queries", "channels",
-	"domains", "containers", "entities", "data-products", "flows",
-	"agents", "teams", "users", "docs",
+func manifestKindOrder() []string {
+	return []string{
+		"services", "commands", "events", "queries", "channels",
+		"domains", "containers", "entities", "data-products", "flows",
+		"agents", "teams", "users", "docs",
+	}
 }
 
 // buildIndexManifest derives the manifest from the same catalog the MDX
@@ -148,7 +151,7 @@ func buildIndexManifest(cat *catalog.Catalog) indexManifest {
 	}
 
 	manifest := indexManifest{SchemaVersion: indexManifestSchemaVersion}
-	for _, kind := range manifestKindOrder {
+	for _, kind := range manifestKindOrder() {
 		group := byKind[kind]
 		slices.SortFunc(group, func(a, b manifestResource) int {
 			return strings.Compare(a.ID, b.ID)

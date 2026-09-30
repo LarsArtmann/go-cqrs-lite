@@ -45,7 +45,7 @@ func TamperEvent(tb testing.TB, evt event.Event) event.Event {
 	tb.Helper()
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	tampered, err := event.NewEvent(
+	tampered, err := event.New(
 		evt.Type(), evt.StreamID(), evt.StreamType(), evt.Version(),
 		[]byte(`{"tampered":true}`),
 		event.WithEventID(evt.ID()),

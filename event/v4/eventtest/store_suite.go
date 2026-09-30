@@ -27,7 +27,7 @@ func (c StoreTestConfig) NewTestEvent(
 	t.Helper()
 
 	//cqrs-lint:ignore(A014) library code or intentional pattern
-	evt, err := event.NewEvent(
+	evt, err := event.New(
 		c.EvtType,
 		aggID,
 		c.AggType,

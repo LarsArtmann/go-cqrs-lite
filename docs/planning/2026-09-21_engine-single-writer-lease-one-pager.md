@@ -2,7 +2,7 @@
 
 > **Status:** DESIGN MEMO — awaiting owner ratification before ADR.
 > **Date:** 2026-09-21 · **Origin:** CV Phase-0 verdicts (reflection doc §4.2, F109/M20 of the
-> [owner-unblock-trust plan](2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md))
+> [owner-unblock-trust plan](archived/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md))
 > **Routing:** becomes ADR-0146 on ratification. Adjacent to the G-T01 direction ruling
 > (operator-config vs developer-declaration axis — this is operator territory).
 

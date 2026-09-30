@@ -67,18 +67,35 @@ trap 'rm -f "$BIN"' EXIT
 	echo
 	echo "Binary: $(git rev-parse --short HEAD) | Repos: ${#REPOS[@]}"
 	echo
-	echo "| repo | findings | low-confidence (<0.5) |"
-	echo "| ---- | -------- | --------------------- |"
+	echo "| repo | findings | low-confidence (<0.5) | notes |"
+	echo "| ---- | -------- | --------------------- | ----- |"
 	total=0
 	suspects=0
 	for repo in "${REPOS[@]}"; do
 		[ -d "$repo" ] || continue
-		out=$("$BIN" --quiet --format json "$repo" 2>/dev/null || true)
+		errfile=$(mktemp /tmp/cqrs-lint-fp-sweep-err.XXXXXX)
+		out=$("$BIN" --quiet --format json "$repo" 2>"$errfile" || true)
 		n=$(printf '%s' "$out" | jq '[.findings // [] | length] | add // 0' 2>/dev/null || echo 0)
 		s=$(printf '%s' "$out" | jq '[.findings // [] | map(select((.confidence // 1) < 0.5)) | length] | add // 0' 2>/dev/null || echo 0)
+		n=${n:-0}
+		s=${s:-0}
 		total=$((total + n))
 		suspects=$((suspects + s))
-		printf '| %s | %s | %s |\n' "$(basename "$repo")" "$n" "$s"
+		# Silence class (2026-09-28 baseline: 5 repos reported 0 with a hidden
+		# load failure): a zero-findings run with non-empty stderr is a FAILED
+		# scan, not a clean repo; EMPTY stdout is the linter SKIPPING the repo
+		# (non-consumer projects print nothing) — never read that as clean.
+		note=""
+		if [ -z "$out" ]; then
+			note="NO JSON OUTPUT (linter skipped repo — consumer-probe prerequisites unmet?)"
+		elif [ "$n" = "0" ] && [ -s "$errfile" ]; then
+			tail=$(tr '\n' ' ' <"$errfile" | tr -s ' ' | cut -c1-160)
+			note="STDERR: ${tail}"
+		elif [ -s "$errfile" ]; then
+			note="stderr: $(wc -l <"$errfile") line(s)"
+		fi
+		rm -f "$errfile"
+		printf '| %s | %s | %s | %s |\n' "$(basename "$repo")" "$n" "$s" "$note"
 	done
 	echo
 	echo "Total: $total finding(s), $suspects low-confidence suspect(s)"

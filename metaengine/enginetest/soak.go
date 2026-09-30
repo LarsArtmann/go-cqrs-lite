@@ -95,6 +95,7 @@ func RunAutoCRUDSoak(t *testing.T, eng metaengine.Engine) {
 		keys[i] = fmt.Sprintf("task-%04d", i)
 	}
 
+	//art-dupl:accept heap-baseline measurement idiom — GC + ReadMemStats probe, shared by soak harnesses
 	runtime.GC()
 
 	var baseline runtime.MemStats

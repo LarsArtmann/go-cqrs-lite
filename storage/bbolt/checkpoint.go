@@ -130,3 +130,21 @@ func recordErr(span cqrsotel.Span, err error) error {
 
 	return err
 }
+
+// finishBucketRead is the shared tail of the journal bucket-read methods: a
+// failed View records the wrapped bucket error on the span; otherwise the
+// result count is attributed and the items returned.
+func finishBucketRead[T any](
+	span cqrsotel.Span,
+	err error,
+	op, readMsg, countAttr string,
+	items []T,
+) ([]T, error) {
+	if err != nil {
+		return nil, recordErr(span, wrapBucketErr(err, op, readMsg))
+	}
+
+	span.SetAttributes(cqrsotel.AttrInt(countAttr, len(items)))
+
+	return items, nil
+}

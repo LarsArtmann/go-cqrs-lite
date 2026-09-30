@@ -52,23 +52,7 @@ func InferFromNamedEvents(samples ...NamedSample) namedInferenceRequest {
 			))
 		}
 
-		t := reflect.TypeOf(s.sample)
-		if t == nil {
-			panic(fmt.Sprintf(
-				"metaengine.InferFromNamedEvents: sample[%d] is a nil interface", i,
-			))
-		}
-
-		if t.Kind() == reflect.Pointer {
-			t = t.Elem()
-		}
-
-		if t.Kind() != reflect.Struct {
-			panic(fmt.Sprintf(
-				"metaengine.InferFromNamedEvents: sample[%d] (%s) must be a struct, got %s",
-				i, t.Name(), t.Kind(),
-			))
-		}
+		requireStructSample("metaengine.InferFromNamedEvents", i, reflect.TypeOf(s.sample))
 	}
 
 	return namedInferenceRequest{samples: samples}

@@ -45,6 +45,22 @@ type DurabilityReporter interface {
 	EffectiveDurability() DurabilityTier
 }
 
+// SyncWritesTier derives the effective durability tier for engines whose
+// only durability knobs are volatility and per-write fsync: volatile →
+// engine-default (empty — nothing it writes is durable), fsync on every
+// write → strict, async writes → normal. Shared by the embedded LSM
+// engines' EffectiveDurability reports.
+func SyncWritesTier(volatile, syncWrites bool) DurabilityTier {
+	switch {
+	case volatile:
+		return ""
+	case syncWrites:
+		return DurabilityStrict
+	default:
+		return DurabilityNormal
+	}
+}
+
 // ValidateDurabilityTier reports whether tier is a valid DurabilityTier.
 // The empty string is valid: unspecified, meaning engine defaults.
 func ValidateDurabilityTier(tier DurabilityTier) error {

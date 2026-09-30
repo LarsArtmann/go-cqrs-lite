@@ -21,15 +21,22 @@ set -uo pipefail
 
 ROOT="${EXAMPLES_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
+# go-env.sh: the --build leg runs `go build` — under the ambient host env
+# (GOTOOLCHAIN=local, 1.26.7) every example false-fails with "go.work
+# requires go >= 1.27.1". Self-source the env chain so the gate is honest
+# wherever it runs (verified 2026-09-29: 7/7 false failures without it).
+# shellcheck disable=SC1091
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/go-env.sh"
+
 # Deliberate local replaces (example name => reason). Keep SHORT: each
 # entry dies at the tag wave that obsoletes it.
 #   taskmanager — 4 sibling replaces (queue, queue/sqlite, claiming,
 #     metaengine) ride until the queue/metaengine tag waves land (TODO:
 #     release-train tail; the same consumer-purity play as
 #     scheduler-otel-status).
-#   mesh-demo — pre-release `replace ../../catalog` until the catalog/v4.6+
-#     tag wave lands (TODO: data-mesh tail).
-ALLOWED_REPLACES='taskmanager mesh-demo'
+#   mesh-demo — REMOVED 2026-09-29: catalog/v4.6.0 published; the replace
+#     block and its obsolescence comment were deleted from the go.mod.
+ALLOWED_REPLACES='taskmanager'
 
 DO_BUILD=0
 if [ "${1:-}" = "--build" ]; then
@@ -49,8 +56,11 @@ elif [ "${1:-}" = "--self-test" ]; then
 		echo "  ✗ FAIL: path-replace example not flagged"
 	[ "$rc" -eq 1 ] && echo "  ✓ PASS: audit exits nonzero" || echo "  ✗ FAIL: audit should exit 1"
 	rm -rf "$tmp/example/bad"
-	out="$(EXAMPLES_ROOT="$tmp" bash "$ROOT/scripts/check-example-standalone.sh" 2>&1)"
-	[ $? -eq 0 ] && echo "  ✓ PASS: clean example set passes" || echo "  ✗ FAIL: clean set should pass"
+	if out="$(EXAMPLES_ROOT="$tmp" bash "$ROOT/scripts/check-example-standalone.sh" 2>&1)"; then
+		echo "  ✓ PASS: clean example set passes"
+	else
+		echo "  ✗ FAIL: clean set should pass"
+	fi
 	exit 0
 fi
 

@@ -49,6 +49,7 @@ func BuildContextFromSource(t *testing.T, sources map[string]string) *AnalysisCo
 
 	ctx.FeatureProfile = DetectFeatures(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveEmittedEventTypeConsts(ctx.Registry)
 	ResolveHandlerMethods(ctx)
 	ResolveTransportAdapters(ctx)
 
@@ -103,6 +104,7 @@ func BuildContextFromTempFiles(
 
 	ctx.FeatureProfile = DetectFeatures(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveEmittedEventTypeConsts(ctx.Registry)
 	ResolveHandlerMethods(ctx)
 	ResolveTransportAdapters(ctx)
 
@@ -191,6 +193,7 @@ func BuildContextWithTypes(
 
 	ctx.FeatureProfile = DetectFeatures(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveEmittedEventTypeConsts(ctx.Registry)
 	ResolveHandlerMethods(ctx)
 	ResolveTransportAdapters(ctx)
 

@@ -20,7 +20,7 @@ func (*temporalAsOfRule) Name() string { return "temporal-asof" }
 
 func (r *temporalAsOfRule) Apply(result *PlanResult, ctx PlanContext) error {
 	for _, q := range result.Queries {
-		meta, ok := ctx.Store.queries[q.QueryName]
+		meta, ok := declaredQuery(ctx, q)
 		if !ok || !meta.QueryDeclaresAsOf() {
 			continue
 		}

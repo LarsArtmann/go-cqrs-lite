@@ -24,6 +24,13 @@
 #      equal the dir's actual file count. The per-day wave table stays
 #      hand-maintained navigation (cross-tree move basis, not derivable
 #      from disk) — the intro claim is the pinned number.
+#   5. engine/ADT counts (M14): "<N> engine implementations" (dep-isolated
+#      metaengine/*engine dirs + the in-core memory engine), "<N>
+#      self-registering drivers" (register.go files calling RegisterDriver;
+#      irohengine deliberately does not register), and "<N> planner ADTs"
+#      (identifiers listed in metaengine.AllADTs()) — the 10-vs-11-vs-12
+#      count rot this leg killed lived in ROADMAP/FEATURES/skill refs.
+#      Each unit must be cited at least once across the doc set.
 #
 # Usage:
 #   scripts/check-canonical-facts.sh             # gate
@@ -176,6 +183,53 @@ check_status_index() {
 	fi
 }
 
+# check_engine_counts (fact 5, M14): the three metaengine count units are
+# derived from the repo — engine implementations = metaengine/*engine
+# directories + the in-core memory engine (memory_engine.go); self-
+# registering drivers = register.go files that call RegisterDriver;
+# planner ADTs = the identifier list inside metaengine.AllADTs(). Docs may
+# use the canonical phrasings with any number; a mismatch fails. At least
+# one citation of each unit must exist somewhere in the doc set.
+check_engine_counts() {
+	local dir="$1" docs=("${DOC_SET[@]}")
+	local engine_modules=0 memory_core=0 engines drivers adts
+	engine_modules=$(find "$dir/metaengine" -mindepth 1 -maxdepth 1 -type d -name '*engine' 2>/dev/null | wc -l | tr -d ' ')
+	[[ -f "$dir/metaengine/memory_engine.go" ]] && memory_core=1
+	engines=$((engine_modules + memory_core))
+	drivers=$(grep -rl 'RegisterDriver(' "$dir/metaengine" --include='register.go' 2>/dev/null | wc -l | tr -d ' ')
+	adts=$(awk '/^func AllADTs/,/^}/' "$dir/metaengine/enum_validation.go" 2>/dev/null | grep -oE '\bADT[A-Z][A-Za-z]*' | sort -u | wc -l | tr -d ' ')
+
+	local cited_total=0 bad=0
+	local -A derived=(["engine implementations"]="$engines" ["self-registering drivers"]="$drivers" ["planner ADTs"]="$adts")
+	local unit
+	for unit in "engine implementations" "self-registering drivers" "planner ADTs"; do
+		cited_total=0
+		for doc in "${docs[@]}"; do
+			[[ -f "$dir/$doc" ]] || continue
+			while IFS= read -r line; do
+				local cited
+				cited=$(printf '%s' "$line" | grep -oE "[0-9]+ ${unit}" | grep -oE '^[0-9]+')
+				if [[ -n "$cited" ]]; then
+					cited_total=1
+					if [[ "$cited" != "${derived[$unit]}" ]]; then
+						echo "✗ $doc cites '$cited $unit' but the repo derives ${derived[$unit]}" >&2
+						echo "  line: $line" >&2
+						bad=$((bad + 1))
+					fi
+				fi
+			done < <(grep -nE "[0-9]+ ${unit}" "$dir/$doc" || true)
+		done
+		if [[ $cited_total -eq 0 ]]; then
+			echo "✗ no doc cites '<N> $unit' — the gate cannot verify the count" >&2
+			bad=$((bad + 1))
+		fi
+	done
+	if [[ $bad -gt 0 ]]; then
+		failures=$((failures + bad))
+	fi
+	echo "  engine counts: engines=$engines (modules=$engine_modules+core) drivers=$drivers planner-ADTs=$adts"
+}
+
 run_all() {
 	local dir="$1"
 	echo "━━━ canonical facts ($dir) ━━━"
@@ -183,6 +237,7 @@ run_all() {
 	check_module_map "$dir"
 	check_recipes_count "$dir"
 	check_status_index "$dir"
+	check_engine_counts "$dir"
 }
 
 self_test() {
@@ -207,6 +262,17 @@ self_test() {
 	touch "$tmp/docs/status/2026-01-01_00-00_r.md"
 	printf '# a\n\nFiles per day across the 1 archived snapshots.\n' >"$tmp/docs/status/archived/README.md"
 	touch "$tmp/docs/status/archived/2026-01-01_00-00_a.md"
+
+	# Fact-5 fixture: minimal metaengine with one engine module, the in-core
+	# memory engine, one registering driver, and a 2-entry AllADTs list.
+	mkdir -p "$tmp/metaengine/fakeengine"
+	touch "$tmp/metaengine/memory_engine.go"
+	printf 'package metaengine\n\nfunc RegisterDriver(name string, open func()) {}\n\nfunc init() { RegisterDriver("memory", func() {}) }\n' \
+		>"$tmp/metaengine/register.go"
+	printf 'package metaengine\n\nfunc AllADTs() []ADT {\n\treturn []ADT{\n\t\tADTMap, ADTSet,\n\t}\n}\n' \
+		>"$tmp/metaengine/enum_validation.go"
+	printf '# t\n\n2 engine implementations, 1 self-registering drivers, 2 planner ADTs.\n' \
+		>"$tmp/FEATURES.md"
 
 	echo "━━━ check-canonical-facts self-test ━━━"
 
@@ -279,6 +345,26 @@ self_test() {
 		echo "  ✓ PASS: honest status index passes"
 	else
 		echo "  ✗ FAIL: honest status index should pass (got $failures failures)"
+	fi
+
+	# Leg 5 mutation: wrong engine/driver/ADT counts + a missing unit claim.
+	failures=0
+	printf '# t\n\n99 engine implementations, 7 self-registering drivers.\n' >"$tmp/FEATURES.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -ge 3 ]]; then
+		echo "  ✓ PASS: engine-count drift + missing-unit claim caught"
+	else
+		echo "  ✗ FAIL: engine-count leg did not catch all three (got $failures failures)"
+	fi
+
+	# Leg 5 restore: honest counts pass.
+	failures=0
+	printf '# t\n\n2 engine implementations, 1 self-registering drivers, 2 planner ADTs.\n' >"$tmp/FEATURES.md"
+	run_all "$tmp" >/dev/null 2>&1
+	if [[ $failures -eq 0 ]]; then
+		echo "  ✓ PASS: honest engine counts pass"
+	else
+		echo "  ✗ FAIL: honest engine counts should pass (got $failures failures)"
 	fi
 
 	if [[ "${honest_failed:-0}" == 1 ]]; then

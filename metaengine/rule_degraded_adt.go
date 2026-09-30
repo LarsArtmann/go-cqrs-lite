@@ -21,15 +21,10 @@ type degradedADTRule struct{}
 func (*degradedADTRule) Name() string { return "degraded-adt" }
 
 func (r *degradedADTRule) Apply(result *PlanResult, ctx PlanContext) error {
-	for _, q := range result.Queries {
-		meta, ok := ctx.Store.queries[q.QueryName]
-		if !ok {
-			continue
-		}
-
+	eachDeclaredQuery(result, ctx, func(q QueryAssignment, meta queryMeta) {
 		profile := meta.QueryEngine().Profile()
 		if !profile.IsDegraded(q.ADT) {
-			continue
+			return
 		}
 
 		recommendation := findNativeADTEngine(
@@ -63,7 +58,7 @@ func (r *degradedADTRule) Apply(result *PlanResult, ctx PlanContext) error {
 			Query:  q.QueryName,
 			Reason: traceReason,
 		})
-	}
+	})
 
 	return nil
 }

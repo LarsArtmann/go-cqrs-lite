@@ -102,8 +102,8 @@ func defaultQualifier(path string) string {
 // lastPathSegment returns the final slash-separated segment of an import
 // path (the default package qualifier).
 func lastPathSegment(path string) string {
-	if idx := strings.LastIndex(path, "/"); idx >= 0 {
-		return path[idx+1:]
+	if _, after, ok := strings.CutLast(path, "/"); ok {
+		return after
 	}
 
 	return path

@@ -6,10 +6,10 @@ and is **never** duplicated here — when a task finishes it moves to CHANGELOG
 and its entry is deleted from this file. Historical session reports live under
 `docs/status/archived/` (annotated + archived by the docs-health passes of
 2026-08-29, 2026-09-06 ×2, 2026-09-08, 2026-09-11, 2026-09-16, 2026-09-19,
-2026-09-20, 2026-09-21 ×2 — the 8th pass struck 815+ verified-done items
-inline across 57 reports; the 11th pass archived the v4.9.0-wave/M23/W0
-cluster (7 files) and harvested the M23 + go-graph-rag + W0 §f tails below,
-deleting every completed receipt row).
+2026-09-20, 2026-09-21 ×2, 2026-09-22 — the 12th pass (2026-09-28) archived
+the 09-20..28 accumulation: the T18b arc ×6, the unblock/verify/data-mesh/t4/
+dedup/publish-integrity clusters, and five executed SUPERB plans, all
+RESOLVED-BY-ROUTING-bannered).
 The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 
 > **Prioritized execution plan (2026-09-08):**
@@ -17,17 +17,23 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > ranked the then-list into Pareto waves (W0 release train → W1 trust →
 > W2 efficiency → W3 v5 train) and was EXECUTED through 2026-09-11 (W3's v5
 > items live in the v5 section below; the user-gated P22 halves remain in the
-> Turso section). **Current plan (2026-09-22 01:25):**
-> [`docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](docs/planning/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
-> (T01–T27, all 25 sections mapped; 1% tier = restore the go 1.27.1 contract
-> — drift gate + composed verify; predecessor:
-> [2026-09-20 17:40 owner-unblock plan](docs/planning/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
-> M-items folded into the new T-numbering). **Data-mesh plan (2026-09-23 22:12):**
-> [`docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md`](docs/planning/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
-> (T01–T27 + 72 fine tasks) — EXECUTED to completion 2026-09-23/24 (reports:
-> [12-26](docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md),
-> [13-32](docs/status/2026-09-24_13-32_data-mesh-completion-session.md)); the open tail
-> is the section below. This file remains the living source of truth.
+> Turso section). **Unblock·Prove·Deliver plan (2026-09-22 01:25, EXECUTED;
+> archived 2026-09-28):**
+> [`docs/planning/archived/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md`](docs/planning/archived/2026-09-22_01-25_SUPERB-unblock-prove-deliver-pareto-plan.md)
+> (T01–T27; the T04 composed-verify remainder lives in the CI section below,
+> the T08/T09 tag waves in the Release section; predecessor:
+> [2026-09-20 17:40 owner-unblock plan](docs/planning/archived/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md),
+> archived — M-items were folded into the T-numbering). **Data-mesh plan (2026-09-23 22:12,
+> EXECUTED; archived 2026-09-28):**
+> [`docs/planning/archived/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md`](docs/planning/archived/2026-09-23_22-12_SUPERB-data-mesh-federation-pareto-plan.md)
+> (T01–T27 + 72 fine tasks) — shipped 2026-09-23/24 (reports:
+> [12-26](docs/status/archived/2026-09-24_12-26_data-mesh-pareto-execution-session.md),
+> [13-32](docs/status/archived/2026-09-24_13-32_data-mesh-completion-session.md));
+> the open tail is the section below. **Current plan (2026-09-28 01:26):**
+> [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md)
+> (M-tasks; M1–M4, M6, M14–M16, M19, M23–M25 done with receipts in this file;
+> open: M5+M20 quiet-window campaign, M22 owner Q3). This file remains the
+> living source of truth.
 
 ## Section index
 
@@ -56,7 +62,6 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 [92-tag tail](#92-tag-release-train-tail-2026-09-20-harvest) ·
 [Upstream asks (cqrs-htmx)](#upstream-asks-from-cqrs-htmx-harvested-2026-09-22-docs-health-d1) ·
 [Skill hard-block refocus](#go-cqrs-lite-skill-hard-block-refocus-2026-09-24-harvest) ·
-[Skill hard-block late harvest](#go-cqrs-lite-skill-hard-block--late-harvest-2026-09-24) ·
 [Declined](#declined--rejected-do-not-re-litigate)
 
 ## Legend
@@ -67,6 +72,11 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 - `~~Struck~~` = done sub-part of an otherwise-open row (kept for context;
   fully-completed rows are deleted outright per the header policy)
 - _(Effort: XS/S/M/L/XL)_ = rough size
+- **Receipt convention (2026-09-28, publish-integrity plan §6.9):** every
+  "verify" task closes its row with a DATED receipt sub-bullet stating what
+  was observed (numbers, commands, links) — verdicts like "confirmed / stale
+  claim / already fixed" never live only in chat or session reports. Four
+  stale claims were killed this way in one session; keep the discipline.
 
 ---
 
@@ -77,25 +87,11 @@ receipts for the exporter wave (manifest, `WithSkipBootstrapFiles`, `WithPlainRe
 `Flow.Owners`, docserver DataProducts, E019, mesh-demo, cookbook recipes, gRPC v5
 guide); hub-side work (merge gate, per-source governance lint, stale-source probe,
 mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
-[12-26 report](docs/status/2026-09-24_12-26_data-mesh-pareto-execution-session.md) ·
-[13-32 report](docs/status/2026-09-24_13-32_data-mesh-completion-session.md). Open tail:
+[12-26 report](docs/status/archived/2026-09-24_12-26_data-mesh-pareto-execution-session.md) ·
+[13-32 report](docs/status/archived/2026-09-24_13-32_data-mesh-completion-session.md) ·
+[18-14 hub-phase report](docs/status/archived/2026-09-24_18-14_hub-phase-and-final-gate-session.md)
+(all archived 2026-09-28, RESOLVED-BY-ROUTING). Open tail:
 
-- [ ] [BLOCKED] 🔥 **Cut the catalog/v4.6+ tag wave** (manifest + options + owners +
-      docserver + E019 surface) — owner go-ahead pending (13-32 §g2); the new
-      `tag_zip_content_check` pre-push guard is in place (`scripts/tag-release.sh`).
-      Unblocks the mesh-demo replace-strip + bank-sync/cqrs-htmx lint adoption.
-      — source: 12-26 §f11, 13-32 §f14 _(Effort: M)_
-- [ ] [BLOCKED] 🔥 **Poisoned-tag surgery** — retract + re-cut
-      `metaengine/tursoengine/v4.2.0` (binary-junk zip); decide `storage/v4.10.0`
-      re-cut vs retraction (re-creating a deleted tag re-poisons cached absence;
-      retraction leaves published system/v4.9.0's graph broken) — owner call, 13-32 §g3.
-      — source: 12-26 §d3/§d4, 13-32 §f16 _(Effort: S)_
-- [ ] [BLOCKED] **goal-shaped-app: activate the materialized-view upgrade + boot test**
-      once the turso tag is clean — the shipped `cqrs.yaml` documents the exact path
-      (the capability doc, not the wiring, is the truth). — source: 12-26 §f23, 13-32 §f19 _(Effort: S)_
-- [ ] **Pin-sweep after the catalog tag** — strip mesh-demo's pre-release
-      `replace ../../catalog`, bump example pins to the new tag. — source: 12-26 §f14,
-      13-32 §f15 _(Effort: S)_
 - [ ] **mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
       demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
 
@@ -107,6 +103,8 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 > Full Pareto plan (23 tasks / 82 micro-tasks): [`docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md`](docs/planning/2026-09-18_16-17_SUPERB-metaengine-universal-storage-substrate.md)
 
 - [ ] **T19–T21 (v5-gated): fold capabilities into universal `Engine`, delete the duplicate SQL stacks, release train** — blocked on the v5 train per ADR-0142 §decision; DO NOT execute in v4.x (growing core interfaces is breaking, contract 21g discipline). The tag waves for claiming + the queue family are the separately-tracked item below. _(Effort: L; v5-gated)_
+  - **2026-09-28 (M23 receipt):** the v5-REMOVAL CENSUS already exists as gate machinery — `cmd/cqrs-lint/pkg/rules/version/v007_tables.go` (curated removal surface: 10 whole modules incl. the 8 stack presets + storage/relational + storage/view; ~50 symbols incl. `On`/`OnTyped`, `Infer`, `InferFromNamedEvents`, `Bundle`, the ADR-0126 shells) held bidirectionally against the source by `v007_drift_test.go` + `v007_drift_scan_test.go` (every in-source v5 `Deprecated:` marker must have a table/allowlist entry and vice versa; ≥90-marker scanner floor). Drift tests re-run green 2026-09-28. No separate census doc is needed — do not hand-maintain a list that the gate already derives.
+  - **2026-09-28 (M24 receipt):** row currency CONFIRMED — ADR-0142 remains Accepted, its §Decision 2 ("capability-interface path in v4.x; universal fold at v5; growing core interfaces is breaking, contract-21g discipline") matches this row's citation verbatim in substance; no drift. (Its "folds the existing 12 backends" figure is a dated-record count — bigtable arrived the same day — and ADRs are history, not living docs.)
 
 - [ ] [BLOCKED] **T18b tail: two owner questions (routed to the T25 decision
       bundle in the 2026-09-22 plan)** — (a) deadline-lapse policy (auto-re-arm
@@ -124,9 +122,9 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 
 > ~~T20 PapDashboard adoption evaluation~~ and ~~M4 polish tail~~ done
 > 2026-09-20 — verdict + receipts in
-> [`docs/reviews/2026-09-20_papdashboard-queue-adoption-evaluation.md`](docs/reviews/2026-09-20_papdashboard-queue-adoption-evaluation.md)
+> [`docs/reviews/archived/2026-09-20_papdashboard-queue-adoption-evaluation.md`](docs/reviews/archived/2026-09-20_papdashboard-queue-adoption-evaluation.md)
 > (ADOPT for the notify pipeline, gated on the tag wave; no PapDashboard-side
-> blocker) and the CHANGELOG 2026-09-20 entries (pool options, deadlock
+> blocker; archived 2026-09-28) and the CHANGELOG 2026-09-20 entries (pool options, deadlock
 > backoff+jitter, `testutil/mysqltestcontainer`, PG engine-test DB isolation,
 > PG `-race -count=2` + MySQL `-race -count=2` legs green). Items the 09-19
 > harvest listed but later sessions already landed: conformance/doc.go
@@ -138,24 +136,22 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       Reply A (ratify `ErrDanglingDep` at-enqueue validation; recommended) or B
       (restore donor-faithful blindness). Freezes with the queue-family tag wave. _(Effort: XS — owner reply)_
 
-- [ ] **Queue M4 verification tail (harvested 2026-09-21)** — sliceable:
-      ~~(a) unit-pin `deadlockBackoff` + retry-loop coverage~~ DONE 2026-09-25 (sqlmock-driven full-transaction replay, budget, recovery), ~~(b) mysqltestcontainer skip paths~~ DONE (dial fast-skip + 25s bound; -short verified clean), ~~(d) vestigial warts~~ DONE, ~~(f) CI legs~~ LOCAL-half DONE (queue/postgres matrix entry verified green over live ephemeral PG; remote confirmation billing-gated). REMAINING: (c) clock seam (design-gated), (e) shared-DB parallel-migrate sweep across engine suites. Original: (a) unit-pin `deadlockBackoff` (bounds, exponential shape, jitter range,
-      attempt cap) and exercise the ClaimDue retry loop under a forced real
-      deadlock (fault-injected `claimOnce` or lock-order contention) — the
-      shipped backoff path has zero executed coverage;
-      (b) prove `testutil/mysqltestcontainer` skip paths (no Docker, `-short`)
-      + a smoke test; confirm plain (non-integration-tag) queue/postgres skips
-      cleanly without a TestMain;
-      (c) clock seam for the conformance harness (ADR-0122 `WithClock` /
-      lease-duration injection) to delete the fixed 500-650ms sleeps;
-      (d) remove the vestigial `_ = subject` + unused `short` wart in
-      conformance tokens.go/lifecycle.go;
-      (e) sweep the shared-DB parallel-migrate class (t.Parallel + shared
-      `POSTGRES_TEST_DSN` migrate) across metaengine/*engine + storage engine
-      suites before CI `-count=2` legs multiply;
-      (f) CI legs: queue/mysql via the container harness (runners have Docker)
-      + an explicit queue/postgres matrix entry. —
-      source: archived 22-01 §b/§e3-5/§f3-17 _(Effort: M total, sliceable)_
+- [x] **Queue M4 verification tail (harvested 2026-09-21)** — DONE 2026-09-29:
+      ~~(a) unit-pin `deadlockBackoff`~~ DONE 2026-09-25 (sqlmock replay), ~~(b) mysqltestcontainer skip paths~~ DONE,
+      ~~(d) vestigial warts~~ DONE, ~~(f) CI legs~~ LOCAL-half DONE (remote billing-gated),
+      ~~(c) clock seam~~ DONE 2026-09-29 as DESIGN (owner-gated implementation):
+      [`docs/planning/2026-09-29_07-20_queue-conformance-clock-seam-design.md`](docs/planning/2026-09-29_07-20_queue-conformance-clock-seam-design.md)
+      — inventory of all 10 sleeps, options A/B/C, recommendation B (internal
+      `nowFn` seam, `queue.WithClock` at v5); open question posed to owner.
+      ~~(e) shared-DB parallel-migrate sweep~~ DONE 2026-09-29: exposure
+      matrix drawn (pgtestcontainer per-test-DB suites are safe incl. under
+      explicit DSN; RAW-DSN claimkit suite was the one live race), root cause
+      fixed at all three PG DDL sites (advisory-lock serialization:
+      `storage.PostgresInitSchema`, `pgengine` init + planned layouts,
+      `claimkit` pg dialect — also protects multi-process rolling deploys),
+      8-way concurrent-construction regression tests ×3 modules green against
+      ephemeral PG; MySQL leg has zero parallel+DSN exposure (verified). —
+      source: archived 22-01 §b/§e3-5/§f3-17
 
 ## Command-side domain depth (2026-09-13 plan)
 
@@ -176,7 +172,7 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 
 ## Investigate: `TestSystem_ResetProjection_RestartAndReplay` contention stall (found 2026-09-13)
 
-- [ ] **TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity** — failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated — genuine timing sensitivity to full-suite contention, no correctness signal observed since. Revisit only if it recurs. _(Effort: S — observe)_
+- [ ] **TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity** — failed once under the full metaengine package suite ("primary ticks = 2001, want exactly 2000"); passes 5/5 isolated — genuine timing sensitivity to full-suite contention, no correctness signal observed since. Revisit only if it recurs. **Receipt 2026-09-28: still no recurrence — 15/15 green under `-race` (isolated), full metaengine package suite green ×2 this session (including once with concurrent edits in flight). Keep as observe-only.** _(Effort: S — observe)_
 
 ## Turso materialized views (ADR-0135) — upstream handoffs
 
@@ -187,6 +183,8 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 > `docs/status/archived/2026-09-07_19-25_turso-materialized-views-operator-option.md`).
 
 - [ ] [BLOCKED] 🔥 **File the standalone upstream issue for the silent wrong-results bugs (defects A+B)** — grouped views diverge from the second transaction on and collapse at ~27k rows; draft is ready and fully verified in `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md` (everything below its first `---`). Blocked on user approval (external action). The COMMIT-abort half (defect C) is already reported: PR #8257 comment https://github.com/tursodatabase/turso/pull/8257#issuecomment-5576078646. _(Effort: XS once approved)_
+  - **2026-09-28 (M19 receipt): the zombie-tx readback follow-on is now FILED standalone — [tursodatabase/turso#9391](https://github.com/tursodatabase/turso/issues/9391)** (standalone `database/sql` repro, verified same-day on v0.7.2 `@latest` AND v0.8.0-pre.13: aborted chunk readable through the surviving connection on both; on pre.13 it also PERSISTS after fresh reopen and a commit-error write still lands; on v0.7.2 fresh reopen dies with `API misuse: unknown database open flags`). NEW findings for the A+B body when it files: wall now observed at 29k (not 27k) in the standalone shape; onset-matrix doc [`docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md`](docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md) sharpens defect A's envelope (single-tx always exact; ≤64 groups exact; loss needs 2nd tx × 10²–10³ group band). This row stays blocked for the A+B filing only.
+  - **2026-09-28 SAME DAY: upstream FIX in flight — [tursodatabase/turso#9392](https://github.com/tursodatabase/turso/pull/9392)** (`roboturso`, +78/−2: `core/vdbe/execute.rs` resume-COMMIT fix + integration test `issue_9391_aborted_commit_views.rs`, "Fixes #9391", all CI green ~4h after filing). Mechanism per commit message: view-delta merge yielding on I/O left `commit_state` Ready → `op_auto_commit` restart saw autocommit on → spurious "cannot commit" with the tx left open — EXACTLY the zombie readback we characterized. Covers defect C + the zombie state (and by extension its downstream artifacts: post-abort persistence on pre.13, commit-error-but-persists). Does NOT cover defects A+B (wrong results on SUCCESSFUL commits — different path). **When the fix ships in a tagged tursogo release:** the `-tags ivmrepro` defect-C suite will fail its "did not reproduce" guard by design — flip per [`docs/turso-go-ivm-fix-flip-runbook.md`](docs/turso-go-ivm-fix-flip-runbook.md), re-verify the v0.7.2 reopen-crash (`API misuse: unknown database open flags`) is also gone, and re-check the A+B onset matrix on the fixed build before filing the owner-gated A+B issue.
 - [ ] **Matview v2 feature surface** — planned-table matviews (ordered with `ApplyLayout` + backfill), filtered-view spec variants, multi-aggregate/DISTINCT serving, `DropMaterializedView` off-boarding, per-view IVM write-amp otel counter, `system.Introspection()` surface, cqrs-lint rules (matview-on-unsupported-driver; matview-plus-planned-table staleness trap), `example/materialized-views/`. Route individually when a consumer asks. — source: archived 19-25 §f23-35, 05-33 §f29-35
       _(Effort: M/L each)_
 - [ ] **Routing integration: teach the cost model matview-covered shapes are O(1)/O(groups)** so cross-engine routing prefers the Turso engine for covered aggregates (planner-side). DESIGN FINDINGS 2026-09-11: there is no clean seam yet — the planner (`EngineProfile.ReadCosts` per-pattern, `ReadPattern=ReadAggregate`) never sees the aggregate SHAPE (fn/column/group live in opaque query closures), so coverage cannot influence plan cost without a new declarative surface (queries must carry their aggregate spec at plan time — v2-adjacent). DESIGN STEP DONE 2026-09-21 (SUPERB S28/F110):
@@ -196,7 +194,8 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
       ratification + implementation — routing v1: scalar-covered shapes price O(1) (matview-served), grouped shapes stay O(N) with a Doctor note (upstream defect A makes grouped routing unsafe). Also: routing grouped shapes would be UNSAFE until upstream fixes defect A — scope the first cut to scalar-covered shapes only. Tracked jointly with M20 (b)/(c) in Metaengine follow-ups. — source: archived 19-25 §f29, 05-33 §f32, SUPERB S28/05-51 §f16-17
       _(Effort: M)_
 - [ ] **Sharpen the defect-A characterization before filing upstream** — bisect the actual onset boundary (rows × groups × tx) for a principled property envelope and investigate the anomaly cluster (collapse at 26k vs draft's ~27k; wall onset through tursoengine observed at 24k-25k — the "deterministic at 27000" claim is scan-activity-sensitive, confirmed by the `-tags ivmrepro` suite logs 2026-09-11; post-abort views absorb the aborted tx's deltas). The scalar-at-scale exactness pin and the three-defect repro suite now exist (`metaengine/tursoengine/ivm_repro_test.go`); what remains is the principled onset-boundary characterization for the upstream issue. — source: 02-48 §d4/§f2/§f9/§f10
-      _(Effort: M)_
+  - **2026-09-28 (M14 receipt): DONE — onset matrix measured and recorded in [`docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md`](docs/benchmarks/2026-09-28_ivm-defect-a-onset-matrix.md)** (15-config sweep via `metaengine/tursoengine/ivm_bisect_test.go`, env `TURSO_IVM_BISECT=1`). Headlines: single-tx loads ALWAYS exact; ≤64 groups exact at any tx size; 2000 single-member groups exact — divergence needs (≥2nd tx) × (groups in the 10²–10³ band), onset at tx#2 for ≥500-row txs, delayed to tx#4/tx#33 for 100/10-row txs; loss is PARTIAL (≈1–5% of the offending tx's delta); the draft's canonical 430.50 delta reproduces byte-for-byte at 2k/316/2×1000. Defect-C wall recorded as data (chunk=10 wall at tx#93 carries the per-tx-scan asterisk). The row stays open only for the remaining upstream-filing step.
+    _(Effort: M)_
 
 ---
 
@@ -257,12 +256,6 @@ replace-free — 10-25 §a2/§a3, now archived).
       root-go.mod-only scope; b022_b025.go (495) and
       a020_a021_a022_a023.go (~357) over the 350-line convention — bundle
       with the file-size-gate policy decision.
-- [ ] **cqrs-lint FP-sweep harness refresh (2026-09-19 harvest)** — surface
-      stderr from the sweep harness (5 empty repo rows were silent failures),
-      re-run the corrected 12-repo baseline
-      (`docs/status/2026-09-17_fp-sweep-baseline.md` is the known-bad snapshot),
-      investigate the crush-daily 39-finding outlier. — source: archived 08-45
-      §f11-13 _(Effort: M)_
 - [ ] [BLOCKED] **Doctor-JSON pre-merge semantics ruling** — should
       `doctor --format json` report RAW config (today, golden-pinned) or
       EFFECTIVE post-`applyConfigOverrides` values (what the text path shows)?
@@ -327,31 +320,50 @@ replace-free — 10-25 §a2/§a3, now archived).
       structural: content-identical `claiming/v4.0.1` re-tag, or teach V006 to
       skip pins at a module's newest existing tag (linter-semantics fix).
       — source: closeout §f10/§g2 _(Effort: XS + decision)_
-- [ ] **Post-wave hygiene (remainder)** — V006 version-set goldens vs the
-      next tag wave's version set (taskmanager golden pins the version
-      list). Done 2026-09-22 (T07): `pin-sweep --check` GREEN ("All sibling
-      pins at their latest tags"); cqrs-lint over all six examples — zero
-      error-severity findings (taskmanager C017/S010/F031 + readme-quickstart
-      C028 ×2 fixes landed; remaining WARNINGs are deliberate demo
-      simplicity). — source: closeout §f15/§f16/§f25 _(Effort: XS)_
 - [ ] **Ratify one shipped judgment call** — iroh latency P99 bound
       50→150ms (worst-of-30 sample inflates under gate load). Shipped + gated
       green; keep or revisit. _(Effort: XS)_
+- [ ] [BLOCKED] **`benchkit/LICENSE` says "Unknown Author"** (template artifact —
+      owner's legal file, recorded-not-touched 2026-09-28). Correct to the real
+      name or leave; a legal notice is not agent-editable without instruction.
+      — source: 2026-09-28 publish-integrity session M1 §a + session-2 §g
+      _(Effort: XS — owner legal call)_
 
 ---
 
 ## Metaengine — follow-ups
 
-- [ ] **Feedback #6: system test-mass gap** — (a) config-loader table tests +
-      fuzz for `system` (koanf/YAML surfaces); (b) lifecycle/shutdown stress
-      with real engines; (c) determinism test (same domain+deployment →
-      identical wiring). The 2026-09-21 projectionhost double-apply find is
+- [x] **Feedback #6: system test-mass gap** — DONE 2026-09-29 (M17):
+      (a) config-loader table tests + 3 rapid properties — which FOUND and
+      FIXED two live `system.LoadConfig` bugs (documented
+      `CQRS_INSTANCES__<i>__<field>` env overrides were silently dropped AND
+      corrupted the YAML instances list); (b) real-sqlite lifecycle/shutdown
+      stress in `systemtest` (6 rounds × 8 concurrent creates, Count
+      double-apply sentinel, racing GracefulClose/Close); (c) wiring
+      determinism (two identical constructs → byte-identical
+      `system.Explain`). The 2026-09-21 projectionhost double-apply find is
       evidence for its priority. — source: 23-24 followups §f19-21, feedback doc
-      §4.6; execution sequencing: the archived SUPERB excellence plan P2 _(Effort: L each)_
+      §4.6
 - [ ] **Post-v4.9.0 metaengine tag wave** — publish the [Unreleased]
       metaengine surface: G-T13 ADTSet parity (pg/mysql, mysql VM leg still
       pending a quiet window), G-T12 `BackfillPlannedTables`,
       `ScanScoredVector`/`RowScanner`, adttest helpers (`AssertTxIsolationFromForeignContext`).
+      **Receipt 2026-09-28 (M1, SUPERSEDED same day):** the wave STALLED at 1/7
+      (only `dispatcher/v4.5.0` existed at receipt time; no logs kept by
+      batch-release.sh; cause of the stall unknown).
+      **Receipt 2026-09-28 (later session):** WAVE COMPLETED — all 7 tags exist
+      local+origin and the 6 remaining resolve on the module proxy (`go list -m`
+      green ×6; proxy Time 2026-09-28T05:04:20Z). Post-wave hygiene executed
+      same day: full `pin-sweep.sh` (7 consumers bumped to the new tags,
+      cqrs-lint goldens refreshed), `system/integration`'s dead-`storage/v4.10.0`
+      sibling replace stripped (its documented obsolescence condition — published
+      system/v4.10.0 carries `storage/v4 v4.10.1` — is met),
+      `check-example-standalone.sh --build` green at 0 findings (taskmanager's
+      dead `projectionhost→storage/v4.10.0` edge healed via MVS through
+      system/v4.10.0), `pin-sweep --check` fully green (sibling + external; the
+      `go-finding` family bump for cqrs-lint cleared the external leg — 19/19
+      packages green). REMAINING: the G-T13 mysql-VM quiet-window leg + the
+      CHANGELOG wave-section cut (owner mechanics).
       — source: closeout §f17/§c2 _(Effort: M — tag-wave mechanics)_
 - [ ] **Calibration provenance protocol + quiet-window re-runs** — protocol HALF DONE 2026-09-11 (later session), re-runs remain gated on a quiet window: (a) DONE — `scripts/calibration-gate.sh` asserts 1-min load < 5 (overridable `--max-load`/`CALIB_MAX_LOAD`; CI exempt) and aborts loudly — verified against a live compile storm (load 207 → hard abort); `calibration-drift.sh` runs it before benching; (b) DONE — protocol items 6-8 in `docs/benchmarks/calibration-2026-08-30.md` define the per-entry PROVENANCE line (store path + binary version output + uptime samples) and ban secondhand version citations; the 2026-09-11 SearchQuery entry now carries an explicit provenance-gap note; (c) MECHANISM DONE, RUN PARTIAL — `benchmark-regression.sh --save` writes a titled provenance header (fixture-tested, parser-safe); the titled re-pin of `benchmarks/benchmark-baseline.txt` **DID run 2026-09-20 17:12 UTC** (receipt: the T18b canonical record `docs/benchmarks/2026-09-20-21_t18b-record.md` — noise-clean save, go1.27.1 provenance, claimkit/SQLite entries, 0 regressions vs the 2026-09-11 baseline); the quiet-window count=5 SearchQuery re-run remains pending (a 493-load storm held the 2026-09-11 session; gate correctly refuses); (d) PENDING — re-anchor ALL dgraph constants in one gate-passing window. Run when `scripts/calibration-gate.sh` passes: SearchQuery count=5 (supersede today's table if medians move >5%), then the benchmark-baseline re-pin, then the dgraph constant campaign. — source: 03-50 §b2/§b3/§f7/§f8/§f15/§f16, 02-48 §d3/§f8
       _(Effort: M)_
@@ -374,7 +386,7 @@ replace-free — 10-25 §a2/§a3, now archived).
       (tracked jointly with the Turso-section routing row).
       (d) ~~Scan-default v5 survey feeding G-T14~~ RULED 2026-09-21 (Option
       C) — now tracked in the Goal-closure G-T14 row; survey:
-      [`docs/planning/2026-09-21_scan-default-v5-survey.md`](docs/planning/2026-09-21_scan-default-v5-survey.md).
+      [`docs/planning/archived/2026-09-21_scan-default-v5-survey.md`](docs/planning/archived/2026-09-21_scan-default-v5-survey.md).
       — source: archived 15-34 §a1-3/§f28-32 _(Effort: M each, ratification-gated)_
 
 > The 2026-09-07/08 correctness batch (ApplyBatch Record handling,
@@ -552,7 +564,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       died ~15s in with transport-level resets on DIFFERENT modules/seeds
       (zero assertion failures; the documented semi-dead-VM/host-contention
       class). Replay both logged seeds (`build/shuffle-seeds.log`) when the
-      box is quiet; closes the [x] rollout item's caveat fully.
+      box is quiet; closes the dgraph `-shuffle=on` rollout item's caveat fully.
       — source: 08-05 §b1/§f5 _(Effort: M)_
 - [ ] **Run the real `#integration-mysql-vm` leg through the hardened
       `vm-mysql.sh` in a quiet window (load1<5)**, then update the F52 AGENTS
@@ -568,7 +580,16 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       run re-proves the chain end-to-end (also closes the `#verify-fast`
       execution-unverified insertions). Recipe:
       `bash scripts/preflight-composed.sh && nix run .#can-run-composed-gate -- --wait-loop && nix run .#verify`.
-      — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1 _(Effort: M, quiet-window)_
+      STATE 2026-09-28: the E15 pin-gap blocker is dead (`dispatcher/v4.5.0`
+      published 09-27) and the SC1091 shellcheck wall is fixed (09-22); the
+      dedup-campaign row in Code Quality is the new pre-run obligation.
+      STATE 2026-09-29: pre-run obligations are now GREEN (`#lint` 88/88 on
+      the post-config-war-repair tree; config tripwires mutation-verified via
+      `#check-lint-config` inside `#verify-fast`) — only the quiet window is
+      missing: load1 hit 163 at 2026-09-28 22:00 (shared-host storm; still
+      ~10 at 00:30). Never force under storm.
+      — source: archived 16-37 §f10, 15-34 §f20, 15-57 §b1; 04-04 §f1
+      _(Effort: M, quiet-window)_
 - [ ] **Verify the nightly weekly load-sweep leg fires** (Sundays-only, first
       real run) and logs cleanly. — source: 14-52 addendum 2, 16-37 §f31 _(Effort: XS, observe)_
 
@@ -576,18 +597,33 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Code Quality
 
-- [ ] **Work down the 50 remaining t3 clone groups (owner decision
-      2026-09-23: NO baseline re-pin)** — the t4 clone-elimination campaign
-      (2026-09-23, plan
-      `docs/planning/2026-09-23_00-03_SUPERB-t4-clone-elimination-campaign.md`)
-      extracted 11 core/intra-module families (scan/vector/planned/filter/
-      GraphBFS, watermill streamIDFromMessage, cqrs-lint lintutil) and shrank
-      the t3 `check-duplication` red set ~69 → 50 pre-existing groups vs the
-      2026-09-18 baseline. The gate is now HARD (art-dupl nix-provisioned at
-      v0.7.0 in `packages.art-dupl`; no silent SKIP), so CI stays red until
-      the 50 are worked down (extract or accept-annotate each, then the
-      baseline shrinks naturally at the next structural re-pin).
-      _(Effort: M-L)_
+- [ ] **Watch the 3 baselined `.templ` clone groups (specview noscript pair,
+      eventcatalogview catalogSection pair + Breadcrumbs ×4)** — the 2026-09-28
+      dedup campaign (archived
+      [`2026-09-28_02-21_deduplication-52-clone-groups-session.md`](docs/status/archived/2026-09-28_02-21_deduplication-52-clone-groups-session.md))
+      worked the red set 52 → 3 Go-side zero (32 extractions + ~40 accept
+      directives) and closed with the sanctioned structural re-pin (baseline
+      60 → 187 groups; mutation-tested: novel-shape clones flag red, gate
+      green). The 3 templ groups have NO suppression lever — `//art-dupl:accept`
+      does not parse in `.templ` (empirically verified, HTML comments included) —
+      so they live in the baseline until art-dupl learns templ directives or
+      the docserver pages gain extracted shared components. ⚠ Semantics caveat
+      discovered 2026-09-28: `check` matches groups by normalized-shape HASH,
+      not location — a verbatim copy of already-baselined code does NOT flag;
+      the gate detects novel duplication shapes, not instances. _(Effort: S to
+      watch, M to extract the templ components)_
+- [ ] 🔥 **Dedup-campaign verification tail — remaining: (a) composed `#verify`
+      + (d)-mysql live legs only** — every other leg closed green: (b) `#lint`
+      88/88 modules 2026-09-29 (G703 nolints moved to the MkdirAll/WriteFile
+      SINK lines in `catalog/cmd/ec-fixture`, dupl accept on the two
+      declarative rule-table files in cqrs-lint); (c) `#load-sweep` ✅ 2026-09-28;
+      (d) `#integration-pg` planned-scan ✅, `#integration-dgraph` SanitizeIdent ✅,
+      `#integration-redis` watermill ✅ (green after the `MessageToEvent` payload
+      fix); (e) `-race` metaengine/watermill/projectionhost/system/queue ✅
+      zero failure lines; (f) compile-verify systemtest + mesh-demo ✅.
+      (a) is quiet-window-gated (`can-run-composed-gate`, load storm 163 at
+      2026-09-28 22:00); (d)-mysql = `#integration-mysql-vm` cowLookup leg.
+      — source: archived 2026-09-28 04-04 §b/§f1-14 _(Effort: S remainder)_
 - [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
       — core's degraded-path BFS (graph_fallback.go) still carries its own
       copy of the loop with different semantics: `[]any` frontier,
@@ -600,7 +636,10 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       already-split offenders; the code-file split waves are a standalone
       multi-session program pending the policy decision. Decide
       harness-dir exemptions (adttest/enginetest are exported test harnesses)
-      first. _(Effort: XL, multi-session)_
+      first. NEW offenders as of 2026-09-28 (daemon-era waves, gate-red until
+      split): `catalog/docserver/docserver.go` (351),
+      `catalog/eventcatalog/frontmatter_convert.go` (364),
+      `catalog/cmd/ec-fixture/main.go` (356). _(Effort: XL, multi-session)_
 - [ ] [BLOCKED] **macOS verification of ephemeral PG** —
       `scripts/ephemeral-pg.sh` claims cross-platform but was only
       static-review-tested; a GitHub Actions macOS runner leg is the
@@ -746,10 +785,20 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > Consumer-facing contracts that live only in CHANGELOG or doc comments are
 > invisible to consumers reading the skill references.
 
+- [ ] [BLOCKED] **M22 / Q3: report-artifact policy for narrow skill triggers**
+      (owner ruling, asked 2026-09-27..28 by three sessions) — when a skill like
+      `status-report` triggers on a narrow question (one or two modules), is a
+      chat answer + "report on request" a sanctioned deviation, or must the
+      full artifact always be written? Gates only the publish-integrity plan's
+      M22. — source: archived 2026-09-27 23-43 §g3, 2026-09-28 02-22 §g3,
+      05-40 §b _(Effort: XS — owner ruling; codify into the skill on answer)_
 - [ ] **README review deep-read tail (2026-09-13 cluster, 8th-pass harvest)** —
-      (b) add READMEs to the doc-check gate (flake app/CI); (d) quick-start
-      drift-guard tests for stack/sqlite, storage/memory, decider, scheduling,
-      projectionhost. [(a) doc-check repoRoot fix, (c) T37 deep-reads, (e)
+      ~~(b) add READMEs to the doc-check gate (flake app/CI)~~ and ~~(d) quick-start
+      drift-guard tests~~ BOTH DONE 2026-09-29: all 97 workspace READMEs are gated
+      surface (doc-check auto-discovery, 2,420 refs / 86 pkgs green, CI inherits),
+      and the quick-start drift class is covered by the corpus + arity checker
+      (the 6 arity lies it caught WERE the drift; per-module duplicate tests ruled
+      redundant). [(a) doc-check repoRoot fix, (c) T37 deep-reads, (e)
       deprecated-symbol gate, (f) link checker — all done 2026-09-20.]
       — source: archived 12-16 §f (150-154, 158-161, 174, 179) _(Effort: M total,
       sliceable)_
@@ -757,7 +806,11 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       counts** — FEATURES guarantee rows carry 09-21 doc-gate stamps, but
       per-module fresh-run verification stamps need quiet CPU to be honest;
       extend `check-canonical-facts.sh` to derive the go.mod count into
-      FEATURES too (F69 overlap, kills the last hand-maintained count). —
+      FEATURES too (F69 overlap, kills the last hand-maintained count).
+      ALSO derive (2026-09-28 addition, M7 found the drift class): engine
+      implementations (12), registered drivers (11, register.go census), and
+      ADTs (12) — the hand-maintained counts rotted 10-vs-11-vs-12 across
+      FEATURES/skill/ROADMAP before the 2026-09-28 fix sweep. —
       source: archived 15-34 §b4/§f5, 14-12 §f23 _(Effort: M, quiet-CPU)_
 - [ ] **docs-health pass hygiene — ~~(a) index-vs-disk gate~~ DONE 2026-09-25 (canonical-facts status leg + 18-row rot fix), ~~(b) harvest-ledger convention~~ DONE (crush-config harvest-guide), ~~(d) pass-checklist rows~~ DONE (verify-checklist + md-go/docs conventions) — remaining: (c) weekly docs-health cadence decision (owner). Original: (a) index-vs-disk
       gate: extend `check-canonical-facts.sh` (or a sibling) to derive
@@ -799,21 +852,19 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `scripts/calibration-gate.sh` PASS, re-run the compare command from the
       capture header, then annotate. — source: archived 15-37 §f3/§f30
 
-- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** — ~~(a) RunSuiteRepeated test~~ DONE 2026-09-25 (testing.Benchmark-driven CoV + delegation pins), ~~(d) NOISE_HEADLINE tripwire~~ DONE (script-literal sync test), ~~(e) list-phases metric-map~~ DONE (core-suffix universe pin), ~~(f) README --progress default~~ DONE (5s) —
-      (a) test for `RunSuiteRepeated` (the one new export with zero direct
-      coverage: tiny profile × 2 repeats, assert `<metric>_cov%` metrics +
-      NOISY Logf); (b) verify `<metric>_cov%` through real benchstat output;
-      (c) `startProfiling` teardown-order test; (d) drift-tripwire pinning
-      script `NOISE_HEADLINE` == `benchkit.HeadlineMetricNames()` (the
-      split-brain is comment-enforced today); (e) list-phases metric-map
-      test (every non-`report:` name must exist in `benchkit.MetricNames()`);
-      (f) fix the README `--progress` default row (says 0, flags.go says 5s);
-      (g) sync benchkit/README.md + doc.go API tours with the new exports
-      (RunSuiteRepeated, HeadlineMetricNames, constants, ReservoirSize);
-      (h) tighten `noise_target_guard` to identifier-grade matching; (i)
-      investigate the testcontainers teardown noise (`🚫 Container terminated`
-      during the race repro — leak or expected cleanup?). — source: archived
-      15-57-benchkit §b/§d/§e1-2/§f1-10 _(Effort: M total, sliceable)_
+- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** — ALL
+      CLOSED 2026-09-29 (receipts in CHANGELOG `[Unreleased]`): ~~(a) RunSuiteRepeated test~~
+      (testing.Benchmark-driven CoV + delegation pins), ~~(b) cov% through real benchstat
+      output~~ (subprocess `go test -bench` parses real stdout columns), ~~(c) startProfiling
+      teardown-order test~~ (gzip-magic pins flush-before-close on both profile files),
+      ~~(d) NOISE_HEADLINE tripwire~~ (script-literal sync test), ~~(e) list-phases
+      metric-map~~ (core-suffix universe pin), ~~(f) README --progress default~~ (5s),
+      ~~(g) README+doc.go API tours~~ (RunSuiteRepeated/HeadlineMetricNames/ReservoirSize),
+      ~~(h) noise_target_guard identifier-grade~~ (`--exclude='*_test.go'` ×3 greps),
+      ~~(i) testcontainers teardown noise~~ (TRIAGED: Docker lifecycle teardown of the
+      daemon, zero residual containers after run — expected cleanup, not a leak).
+      Row kept struck one cycle for context; delete at next docs-health pass.
+      — source: archived 15-57-benchkit §b/§d/§e1-2/§f1-10
 - [ ] [BLOCKED] **Benchkit tag wave (owner go-ahead)** — cut benchkit with
       the statistical-rigor + polish-tail APIs (~+17 untagged exports deep),
       bump `cmd/cqrs-bench` pin, strip the sibling replace; batch with the
@@ -903,7 +954,7 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       — G-T01/G-T02/G-T03 _(Effort: S memo + XS ruling; M if revive)_
 - [ ] **Scan default v5 decision — RULED 2026-09-21 (owner): Option C**
       (unbounded at the v5 cut + cqrs-lint nudge + operator ceiling; survey:
-      [`docs/planning/2026-09-21_scan-default-v5-survey.md`](docs/planning/2026-09-21_scan-default-v5-survey.md)
+      [`docs/planning/archived/2026-09-21_scan-default-v5-survey.md`](docs/planning/archived/2026-09-21_scan-default-v5-survey.md)
       — consumer census incl. `system.Find` inheriting the cap; documented-100
       stays the loud v4 status quo in godoc+FAQ). The v4-safe add-ons LANDED:
       `metaengine.WithDefaultLimit(n)` plan option (operator ceiling for
@@ -958,13 +1009,21 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `BenchmarkCalibration_Bigtable_*` stubs. Owner decision pending: is a
       real-GCP smoke test tag-blocking for the next release? — source: 14:07 §f20/§g2,
       `metaengine/bigtableengine/README.md` _(Effort: S each, gated on GCP access)_
-- [ ] **Property-based temporal tests for memory version chains** — rapid-based:
-      out-of-order stamps, same-ms LWW collapse, retention-never-prunes-newest,
-      tombstone-as-of visibility (engine-level, memory first). — source: 14:07 §f22,
-      `metaengine/version_chain.go` _(Effort: M)_
+- [x] **Property-based temporal tests for memory version chains** — DONE
+      2026-09-29 (M18): `metaengine/temporal_property_test.go` — three rapid
+      properties vs a reference model (out-of-order + same-ts LWW collapse
+      with shuffled application order; retention-never-prunes-newest under
+      adversarial MaxVersions=1 + MaxAge; set→tombstone→rebirth as-of
+      boundaries at ±1ns and midpoints). All green ×100 draws. — source: 14:07 §f22,
+      `metaengine/version_chain.go`
 - [ ] **Pebble/bbolt versioned cells — scope decision for the next wave** —
       both have natural prefix-range machinery for version chains; decide
-      whether they join the 3 versioned engines. — source: 14:07 §f31 _(Effort: M once scoped)_
+      whether they join the 3 versioned engines.
+      **Decision note 2026-09-29 (M18.4, owner ruling pending):**
+      [`docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md`](docs/reviews/2026-09-29_pebble-bbolt-versioned-cells-scope-decision.md)
+      — effort ~M/engine (retention + same-ts tiebreak byte are the real
+      cost; reads are the natural fit), recommendation DEFER with demand
+      trigger; ruling A/B/C/D requested. — source: 14:07 §f31 _(Effort: M once scoped)_
 - [ ] **Soak env-var run for bigtableengine** — per
       `docs/agents/gotchas-testing.md` soak conventions (`-race` covered by
       `#verify`). — source: 14:07 §f33-34 _(Effort: S)_
@@ -1076,73 +1135,25 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 ## Upstream asks from cqrs-htmx (harvested 2026-09-22, docs-health D1)
 
 - [ ] **Upstream `requestContextEnricher` into `event/`** — cqrs-htmx's usermgmt carries a local copy (correlation/request-ID metadata enricher, `audit_context.go`) because no upstream enricher covers it. Upstreaming it lets the local copy drop at the next family train. Source: cqrs-htmx TODO_LIST P3 ask (3); verify pass there 2026-09-22.
-- [ ] **`system.New` checkpoint/DLQ store options** — the declarative composition root uses an internal in-memory checkpoint store, so consumers needing durable checkpoints or dead letters cannot use it (ADR-0051's accepted limitation keeps cqrs-htmx's `NewProjectionLayer` consumers pinned until this lands). Source: cqrs-htmx ADR-0051 + TODO_LIST P3 ask (4).
-- [ ] **`System.Explain`: include per-query Volume/placement in the topology view** — Explain currently shows drivers/engines/collection counts; the metaengine cost-based planner's Volume hints (which cqrs-htmx's systemadapter declarations all carry) are invisible for introspection. Verified absent against system/v4.9.0 on 2026-09-22 (empirical run: topology prints collections count only).
+  - ~~`system.New` checkpoint/DLQ store options~~ CLOSED 2026-09-28 as ALREADY SHIPPED (ADR-0149: `NewEngineCheckpointStore` durable checkpoints; DLQ-by-events per ADR-0117; receipts in CHANGELOG `[Unreleased]` + ADR-0149) — deleted as a row; residual = publishing (`system/v4.10.0` uncut in the stalled wave).
+  - ~~`System.Explain` per-query Volume/placement~~ DONE 2026-09-28 (`Store.QueryPlacements()` + Explain rendering; CHANGELOG `[Unreleased]` receipt) — deleted as a row.
 
 ## go-cqrs-lite skill hard-block refocus (2026-09-24 harvest)
 
 Source report: `~/projects/crush-config/docs/status/2026-09-24_13-59_go-cqrs-lite-skill-repoint-and-refocus.md` §f.
 The skill now hard-requires `system` + `metaengine` for new apps (ADR-0123) and
-refuses to guide manual composition; these are the surviving content/tooling
-follow-ups from that refocus. (Resolved in the same pass and therefore not listed:
-`metadata.tags` gained `composition-root`/`metaengine`; both eval JSON files were
-refreshed; the stale global fan-out symlink was healed.)
+refuses to guide manual composition. All nine content/tooling follow-ups from
+that refocus shipped same-day (routing matrices, quickstart snippet, modules.md
+engine rows, v5-tier sweeps, cookbook link, experimental-status notice, ADR
+link, preset deprecation visibility, accessor re-verification — CHANGELOG
+`[Unreleased]` "Skill: hard-requires" entry); the late-harvest batch (banner
+propagation, canonical-surface decision, eval negatives, changelog entry,
+dprint, ADR-0123 addendum) shipped the same day — completed rows deleted
+2026-09-28 per the no-completed-rows policy. Surviving open item:
 
-- [x] ✅ 2026-09-24 (non-deprecated path table now leads; SSE rule redirects new code to `go-sse`/`watermill`) 🔥 **Rewrite the SSE + read-model routing matrices to lead with system/metaengine** —
-      both matrices still present the deprecated v1 tiers (`stack.Materialize`,
-      `storage.RelationalProjection`, `transport/http.SSEBroker`) as peers rather than
-      demoted rows. Evidence: `.agents/skills/go-cqrs-lite/SKILL.md` §Routing Decision
-      Matrices. — source: report §f16 _(Effort: M)_
-- [x] ✅ 2026-09-24 (quickstart snippet + ADR-0123 link + experimental notice added to SKILL.md) **Add a runnable `system.New` quickstart snippet to the skill front page** — the
-      hard-block section names the API but shows no code; `references/core.md:47-110` has
-      one to lift. Evidence: `SKILL.md:13-24`. — source: report §f22 _(Effort: S)_
-- [x] ✅ 2026-09-24 (added the missing `sqliteengine` + `badgerengine` rows; 11 dirs + in-core memory covered) **Audit `references/modules.md` engine rows for completeness** — the corrected
-      description lists 12 engines (built-in memory + 11 `metaengine/*engine` dirs);
-      modules.md's per-engine rows were not re-audited after the fix. — source: report
-      §f13/§d4 _(Effort: S)_
-- [x] ✅ 2026-09-24 (core/readmodels/faq swept; modules/recipes/advanced already annotated) **Reconcile v5-removed tiers' mentions across all skill references** — deprecation
-      markers exist in modules.md and the matrices, but references still describe the
-      removed tiers in detail; sweep for stragglers. — source: report §f21 _(Effort: M)_
-- [x] ✅ 2026-09-24 (linked from the readmodels v5 notice) **Cross-link `metaengine/COOKBOOK.md` from `references/readmodels.md`** — the
-      canonical copy-paste patterns live in the cookbook; readmodels.md does not link it.
-      — source: report §f23 _(Effort: S)_
-- [x] ✅ 2026-09-24 (SKILL.md quickstart block states the FEATURES.md experimental status) **State `system` + `metaengine` experimental status in the skill** — both are
-      Experimental in `FEATURES.md`; a hard block on experimental modules should say so.
-      — source: report §f25 _(Effort: S)_
-- [x] ✅ 2026-09-24 (link added to the quickstart block) **Add an ADR-0123 hyperlink to the skill's hard-block section** — currently named
-      but not linked. — source: report §f26 _(Effort: XS)_
-- [x] ✅ 2026-09-24 (Go `Deprecated:` doc comments exist on every `stack` package; doc notes added where the skill showed presets) **Check whether `stack` presets still emit deprecation warnings** — if silent, add
-      warnings or a doc note so manual composition is visibly legacy. — source: report
-      §f27 _(Effort: S)_
-- [x] ✅ 2026-09-24 (`system.New(ctx, DomainConfig, DeploymentConfig)` + accessors verified in `system/constructor.go`/`system/system.go`) **Verify `system` accessor list against current code before further skill edits** —
-      the description enumerates accessors that should be re-derived, not restated. —
-      source: report §f24 _(Effort: S)_
 - [ ] 🔥 [BLOCKED:tooling] **Execute the evals (currently UNVALIDATED)** (`evals/trigger-eval-set.json`, `evals/evals.json`)
       after the description change — needs the `claude` CLI, currently blocked. — source:
       report §f7 _(Effort: M, tooling-blocked)_
-
----
-
-## go-cqrs-lite skill hard-block — late harvest (2026-09-24)
-
-Source: `~/projects/crush-config/docs/status/2026-09-24_16-27_skill-hard-block-harvest-and-fanout-guard.md` §f.
-
-- [x] ✅ 2026-09-24 (banners in core/modules/readmodels; SKILL.md canonical; core/readmodels/faq contradictions fixed) 🔥 **Propagate the hard-block into `references/*.md`** — the front page refuses
-      manual composition, but the references still present the low-level modules as
-      routes in places; a hard rule contradicted by its own references is a split-brain.
-      — source: report §b1/§e6/§f7 _(Effort: M)_
-- [x] ✅ 2026-09-24 (SKILL.md is canonical; references defer to it via the hard-rule banner) **Decide the canonical surface for the hard rule** (`SKILL.md` vs reference prose)
-      and make the other defer to it. — source: report §f36 _(Effort: S)_
-- [x] ✅ 2026-09-24 (hand-wire redirect case + 2 near-miss negatives added to `trigger-eval-set.json`) **Add negative/redirect trigger cases to the evals** — prove the skill triggers on a
-      "hand-wire event+decider" request and still redirects to `system`/`metaengine`. —
-      source: report §f37 _(Effort: S)_
-- [x] ✅ 2026-09-24 (entry added under [Unreleased]) **Add a changelog entry for the skill refocus** in this repo's `CHANGELOG.md` — the
-      skill/evals/TODO changes were only auto-committed with heuristic messages. — source:
-      report §b8/§f23 _(Effort: XS)_
-- [x] ✅ 2026-09-24 (`dprint fmt` on the changed references; `dprint.json` now excludes `**/SKILL.md` — dprint's YAML frontmatter handling corrupts the long unquoted description) **Run the repo's formatter over the edited skill + evals** — `dprint` was not on
-      `PATH`; the Markdown went unchecked. — source: report §b9/§f24 _(Effort: S)_
-- [x] ✅ 2026-09-24 (follow-up addendum appended to ADR-0123) **Note the skill hard-block in ADR-0123's follow-ups** — keep the ADR aligned with
-      how the skill now teaches the decision. — source: report §f46 _(Effort: XS)_
 
 ---
 

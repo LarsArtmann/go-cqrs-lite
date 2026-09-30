@@ -45,6 +45,7 @@ func NewEngine(path string) (*Engine, error) {
 
 	eng, err := newEngine(context.Background(), db, true)
 	if err != nil {
+		//art-dupl:accept constructor-failure cleanup idiom — dep-isolated go.mod engines
 		_ = db.Close()
 
 		return nil, err

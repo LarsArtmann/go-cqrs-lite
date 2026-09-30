@@ -63,6 +63,14 @@ func decodeTime(v any) (time.Time, error) {
 }
 
 func ensureClaimsTables(ctx context.Context, db *sql.DB, d claiming.Dialect) error {
+	// Postgres DDL runs under an advisory lock: concurrent construction
+	// (t.Parallel suites, rolling deploys) would otherwise race catalog
+	// updates. The other dialects are single-writer embedded (SQLite, DuckDB)
+	// or carry no parallel exposure today (MySQL, see the M16.2 sweep note).
+	if d == claiming.DialectPostgres {
+		return ensureClaimsTablesLocked(ctx, db, d)
+	}
+
 	for _, ddl := range claimsDDL(d) {
 		if _, err := db.ExecContext(ctx, ddl); err != nil {
 			return fmt.Errorf("ensure table: %w", err)

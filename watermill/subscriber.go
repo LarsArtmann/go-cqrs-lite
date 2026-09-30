@@ -6,8 +6,9 @@ import (
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
 
 // SubscriberAdapter wraps a go-cqrs-lite event.Bus as a Watermill subscriber.
@@ -56,11 +57,8 @@ func (a *SubscriberAdapter) Subscribe(
 
 	//cqrs-lint:ignore(C027) library code or intentional pattern
 	if err := a.bus.Subscribe(event.Type(topic), handler); err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err,
-			"watermill.subscribe_failed",
-			"subscribe to "+topic,
-		)
+		//art-dupl:accept adapter twin subscribe-return shape — command/event adapters mirror by contract
+		return nil, wrapSubscribeError(err, topic)
 	}
 
 	registerSubscriberHandler(&a.handlersMu, a.handlers, topic, handler)

@@ -182,6 +182,7 @@ func (e *sqliteEngine) scanStreamValues(
 	query string,
 	args ...any,
 ) ([]any, error) {
+	//art-dupl:accept same-file query head pair — defer must live with its loop
 	rows, err := e.xd(ctx).QueryContext(ctx, query, args...) //nolint:sqlclosecheck
 	if err != nil {
 		return nil, err //nolint:wrapcheck // passthrough

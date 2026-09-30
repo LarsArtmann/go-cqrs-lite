@@ -10,11 +10,12 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
+	"github.com/redis/go-redis/v9"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
-	"github.com/redis/go-redis/v9"
 )
 
 // TestRedisStreamRoundtrip verifies the watermill/ bridge (EventBus +
@@ -28,9 +29,10 @@ import (
 //
 // The test is skipped when REDIS_URL is not set, making it safe for CI.
 //
-// NATS JetStream: no maintained watermill plugin exists (watermill-nats is
-// NATS Streaming — deprecated technology built against watermill v1.2-rc).
-// Revisit when a JetStream subscriber adapter is available.
+// NATS JetStream: covered by TestNatsJetStreamRoundtrip
+// (broker_integration_nats_test.go) via the maintained watermill-nats/v2
+// plugin — the earlier "no maintained plugin" claim was corrected 2026-09-15
+// (watermill-nats/v2 v2.2.0, 2026-05).
 func TestRedisStreamRoundtrip(t *testing.T) {
 	url := os.Getenv("REDIS_URL")
 	if url == "" {

@@ -491,12 +491,7 @@ func engineName(eng metaengine.Engine) string {
 		return "nil"
 	}
 
-	t := reflect.TypeOf(eng)
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
-	}
-
-	return t.Name()
+	return metaengine.TypeName(eng)
 }
 
 // assertTxCommitSetup asserts Transactional + MapBackend, sets up a context

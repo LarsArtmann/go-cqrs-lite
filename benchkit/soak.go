@@ -115,6 +115,16 @@ type SoakResult struct {
 	Config SoakConfig `json:"config"`
 }
 
+// FirstAndLastSample returns the first and last soak samples — the anchors
+// every drift metric compares. ok is false when no samples were collected.
+func (r *SoakResult) FirstAndLastSample() (first, last SoakSample, ok bool) {
+	if len(r.Samples) == 0 {
+		return first, last, false
+	}
+
+	return r.Samples[0], r.Samples[len(r.Samples)-1], true
+}
+
 // RunSoak runs the benchmark repeatedly for the configured duration, detecting
 // memory leaks and performance degradation across iterations. Each iteration
 // creates a fresh Bundle via the factory and runs the full benchmark suite,

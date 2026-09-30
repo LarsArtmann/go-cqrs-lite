@@ -356,37 +356,13 @@ func (e *duckdbEngine) scanGrouped(
 	query string,
 	args []any,
 ) (map[string]float64, error) {
-	rows, err := e.conn(ctx).QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
-	}
-
-	defer metaengine.DeferClose(rows)
-
-	result := make(map[string]float64)
-
-	for rows.Next() {
-		var key string
-
-		var raw any
-
-		if err := rows.Scan(&key, &raw); err != nil {
-			return nil, fmt.Errorf("duckdbengine.GroupedAggregate: scan: %w", err)
-		}
-
-		val, err := metaengine.DecodeFloat(raw)
-		if err != nil {
-			return nil, err
-		}
-
-		result[key] = val
-	}
-
-	if err := rows.Err(); err != nil {
-		return result, fmt.Errorf("duckdbengine.GroupedAggregate: %w", err)
-	}
-
-	return result, nil
+	return metaengine.GroupedAggregateScan(
+		ctx,
+		e.conn(ctx),
+		query,
+		args,
+		"duckdbengine.GroupedAggregate",
+	)
 }
 
 // ---------------------------------------------------------------------------

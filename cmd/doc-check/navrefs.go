@@ -239,6 +239,11 @@ func (nc *navChecker) loadDocName(name, dir string) *docNav {
 	for _, cand := range []string{
 		filepath.Join(dir, name),
 		filepath.Join(dir, "references", name),
+		// Same-skill SKILL.md one level up (2026-09-29): a references/ doc
+		// saying "(SKILL.md §1)" means ITS OWN skill's SKILL.md — without
+		// this candidate the lookup fell through to the go-cqrs-lite
+		// fallback and cross-skill references resolved to the wrong doc.
+		filepath.Join(dir, "..", name),
 		filepath.Join(dir, "..", "references", name),
 		filepath.Join(nc.repoRoot, ".agents", "skills", "go-cqrs-lite", "references", name),
 		filepath.Join(nc.repoRoot, ".agents", "skills", "go-cqrs-lite", name),

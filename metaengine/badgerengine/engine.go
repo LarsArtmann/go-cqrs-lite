@@ -21,6 +21,7 @@ import (
 	"sync"
 
 	"github.com/dgraph-io/badger/v4"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
@@ -116,6 +117,7 @@ func NewBadgerEngine(dir string, engineOpts ...Option) (metaengine.Engine, error
 		persistence: persistence,
 	}
 
+	//art-dupl:accept seedSeqCounters constructor ladder — cross-module engine init idiom, dep-isolated go.mod
 	if err := eng.seedSeqCounters(); err != nil {
 		_ = db.Close()
 		return nil, fmt.Errorf("badgerengine: seed seq counters: %w", err)

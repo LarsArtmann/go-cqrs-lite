@@ -90,9 +90,9 @@ Reusable test functions for verifying any `event.Store` implementation:
 func TestMyStore(t *testing.T) {
     store := NewMyStore()
     cfg := eventtest.NewStoreTestConfig("Order", "order.created", "total", "100")
-    eventtest.TestStoreSaveAndLoad(t, store, cfg, aggID)
-    eventtest.TestStoreConcurrencyConflict(t, store, cfg, aggID)
-    eventtest.TestStoreAppendBatch(t, store, cfg, aggID)
+    eventtest.TestStoreSaveAndLoad(t, store, cfg)
+    eventtest.TestStoreConcurrencyConflict(t, store, cfg)
+    eventtest.TestStoreAppendBatch(t, store, cfg)
 }
 ```
 

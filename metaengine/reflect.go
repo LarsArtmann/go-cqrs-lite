@@ -43,6 +43,18 @@ func derefType(sample any) reflect.Type {
 	return t
 }
 
+// TypeName returns the name of v's type after one pointer dereference, so
+// pointer and value samples of the same struct share a name. Empty for a
+// nil value.
+func TypeName(v any) string {
+	t := derefType(v)
+	if t == nil {
+		return ""
+	}
+
+	return t.Name()
+}
+
 // qualifiedTypeName returns a package-qualified type name to prevent collisions
 // between types with the same name from different packages.
 func qualifiedTypeName(v any) string {

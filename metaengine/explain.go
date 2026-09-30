@@ -111,6 +111,7 @@ func (r *TypedReader[V]) ExplainAggregate(
 // query to a particular engine. Use it during development to verify
 // FilterOnField/SortOnField declarations produce pushdown scans.
 func (s *Store) ExplainPlan() string {
+	//art-dupl:accept read-locked engine iteration prologue — idiomatic store snapshot
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -190,6 +191,62 @@ func (s *Store) ExplainPlan() string {
 	}
 
 	return b.String()
+}
+
+// QueryPlacement is the machine-readable answer to "where did the planner
+// put this query, and what hint informed it": the assigned engine, the ADT,
+// the DECLARED volume hint ([Volume], events/sec — 0 when none), and the
+// plan's estimated read latency (0 while unplanned; the planner may assume
+// a default volume when none is declared). Composition layers
+// (system.Explain, Doctor dashboards) render this so the cost-based
+// placement is introspectable without parsing ExplainPlan's text output.
+type QueryPlacement struct {
+	QueryName          string
+	Engine             string
+	ADT                string
+	Volume             int64
+	EstimatedLatencyMs float64
+	Complexity         Complexity
+}
+
+// QueryPlacements returns one [QueryPlacement] per planned query, sorted by
+// query name (the same order ExplainPlan renders). Queries not yet planned
+// (no engine assigned) are returned with an empty Engine so callers can see
+// the declared hints regardless of plan state.
+func (s *Store) QueryPlacements() []QueryPlacement {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	out := make([]QueryPlacement, 0, len(s.queries))
+
+	for _, name := range slices.Sorted(maps.Keys(s.queries)) {
+		q := s.queries[name]
+
+		placement := QueryPlacement{
+			QueryName:  name,
+			ADT:        string(q.QueryADT()),
+			Volume:     q.QueryConfig().Volume,
+			Complexity: q.QueryComplexity(),
+		}
+
+		if eng := q.QueryEngine(); eng != nil {
+			placement.Engine = eng.Profile().Name
+		}
+
+		if s.plan != nil {
+			for _, qa := range s.plan.Queries {
+				if qa.QueryName == name && qa.Cost.Volume > 0 {
+					placement.EstimatedLatencyMs = qa.Cost.EstimatedLatencyMs
+
+					break
+				}
+			}
+		}
+
+		out = append(out, placement)
+	}
+
+	return out
 }
 
 // Doctor returns a runtime diagnostic report combining health checks,

@@ -64,26 +64,31 @@ func loadScaledDeadline(base time.Duration) time.Time {
 // currentLoadFactor returns the ambient load factor (1-minute load average
 // over GOMAXPROCS, clamped to [1, 8]) used to scale wall-clock budgets.
 func currentLoadFactor() float64 {
-	factor := 1.0
-
-	if data, err := os.ReadFile("/proc/loadavg"); err == nil {
-		if fields := strings.Fields(string(data)); len(fields) > 0 {
-			if load1, err := strconv.ParseFloat(fields[0], 64); err == nil {
-				cores := float64(runtime.GOMAXPROCS(0))
-				if cores < 1 {
-					cores = 1
-				}
-
-				factor = load1 / cores
-				if factor < 1 {
-					factor = 1
-				}
-				if factor > 8 {
-					factor = 8
-				}
-			}
-		}
+	load1, ok := readLoadAverage()
+	if !ok {
+		return 1
 	}
 
-	return factor
+	factor := load1 / max(1, float64(runtime.GOMAXPROCS(0)))
+
+	return min(max(factor, 1), 8)
+}
+
+func readLoadAverage() (float64, bool) {
+	data, err := os.ReadFile("/proc/loadavg")
+	if err != nil {
+		return 0, false
+	}
+
+	fields := strings.Fields(string(data))
+	if len(fields) == 0 {
+		return 0, false
+	}
+
+	load1, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return load1, true
 }

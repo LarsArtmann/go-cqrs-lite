@@ -3,7 +3,7 @@
 > **Date:** 2026-09-24
 > **Kind:** Point-in-time conformance mapping (assessment made durable)
 > **Sources:** Data-mesh conformance assessment session
-> ([status report, 2026-09-23](../status/2026-09-23_18-09_data-mesh-conformance-assessment-session.md));
+> ([status report, 2026-09-23](../status/archived/2026-09-23_18-09_data-mesh-conformance-assessment-session.md));
 > repo state as of `master` after the 2026-09-23/24 federation-hub wave
 > (catalog.index.json, `WithSkipBootstrapFiles`, `WithPlainRefIDs`,
 > `Flow.Owners`). Companion paradigm mapping:

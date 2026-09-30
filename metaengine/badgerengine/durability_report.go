@@ -11,13 +11,5 @@ import (
 // in-memory engine reports engine-default (empty) — nothing it writes is
 // durable in any tier's sense.
 func (e *badgerEngine) EffectiveDurability() metaengine.DurabilityTier {
-	if e.inMemory {
-		return ""
-	}
-
-	if e.syncWrites {
-		return metaengine.DurabilityStrict
-	}
-
-	return metaengine.DurabilityNormal
+	return metaengine.SyncWritesTier(e.inMemory, e.syncWrites)
 }

@@ -1,5 +1,7 @@
 ## Problem
 
+> **KEEP-LIVE:** unfiled upstream issue draft (EventCatalog agent-changelog crash) — owner-gated external action; file via verify-before-filing + github-voice when approved.
+
 With `changelog: { enabled: true }` in `eventcatalog.config.js`, any catalog that contains an agent fails `eventcatalog build` with exit code 1:
 
 ```

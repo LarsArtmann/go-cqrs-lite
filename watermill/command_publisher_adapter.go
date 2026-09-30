@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // CommandPublisherAdapter wraps a go-cqrs-lite command.Publisher as a
@@ -25,28 +25,15 @@ func NewCommandPublisherAdapter(publisher command.Publisher) *CommandPublisherAd
 // The topic is mapped to command type; all command fields are reconstructed
 // from message metadata.
 func (a *CommandPublisherAdapter) Publish(topic string, messages ...*message.Message) error {
-	ctx := context.Background()
-
-	for _, msg := range messages {
-		cmd, err := MessageToCommand(topic, msg)
-		if err != nil {
-			return errorfamily.WrapCorruption(
-				err,
-				"watermill.convert_message_failed",
-				"convert message "+msg.UUID,
-			)
-		}
-
-		if err := a.publisher.Publish(ctx, cmd); err != nil {
-			return errorfamily.WrapInfrastructure(
-				err,
-				"watermill.publish_command_failed",
-				"publish command "+string(cmd.Type()),
-			)
-		}
-	}
-
-	return nil
+	return publishAll(
+		context.Background(),
+		func(ctx context.Context, cmd *command.BasicCommand) error { return a.publisher.Publish(ctx, cmd) },
+		topic,
+		messages,
+		MessageToCommand,
+		"watermill.publish_command_failed",
+		func(cmd *command.BasicCommand) string { return "publish command " + string(cmd.Type()) },
+	)
 }
 
 // Close closes the underlying publisher if it implements io.Closer.

@@ -144,6 +144,29 @@ func TestSQLCheckpointStore_Save_Error(t *testing.T) {
 	}
 }
 
+// TestSQLCheckpointStore_Save_ZeroCheckpointDeletes pins the reset contract:
+// saving a zero checkpoint clears the row instead of inserting a NULL
+// event_id (the schema is NOT NULL, so Host.Reset's zero-checkpoint save
+// would otherwise fail with a constraint violation).
+func TestSQLCheckpointStore_Save_ZeroCheckpointDeletes(t *testing.T) {
+	t.Parallel()
+
+	s, mock := newTestCheckpointStore(t)
+
+	mock.ExpectExec(`DELETE FROM checkpoints WHERE projection_name`).
+		WithArgs("my-projection").
+		WillReturnResult(sqlmock.NewResult(0, 1))
+
+	err := s.Save(context.Background(), "my-projection", event.Checkpoint{}) //nolint:exhaustruct_v5 // zero-value is the cleared-checkpoint intent
+	if err != nil {
+		t.Fatalf("Save zero checkpoint: %v", err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatalf("expectations: %v", err)
+	}
+}
+
 func TestCheckpointSchema_ContainsExpectedDDL(t *testing.T) {
 	t.Parallel()
 

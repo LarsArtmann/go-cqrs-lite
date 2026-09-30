@@ -111,12 +111,8 @@ func (s *QueryStore) ReadAllQueries(ctx context.Context) ([]*query.PersistedQuer
 			return nil
 		})
 	})
-	if err != nil {
-		return nil, recordErr(span, wrapBucketErr(err, "bbolt.query_read_all", "read all queries"))
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-	return queries, nil
+	return finishBucketRead(span, err, "bbolt.query_read_all",
+		"read all queries", "query.count", queries)
 }
 
 // ReadQueriesFrom returns queries starting after the given request ID,
@@ -156,15 +152,8 @@ func (s *QueryStore) ReadQueriesFrom(
 
 		return nil
 	})
-	if err != nil {
-		return nil, recordErr(
-			span,
-			wrapBucketErr(err, "bbolt.query_read_from", "read queries from position"),
-		)
-	}
-
-	span.SetAttributes(cqrsotel.AttrInt("query.count", len(queries)))
-	return queries, nil
+	return finishBucketRead(span, err, "bbolt.query_read_from",
+		"read queries from position", "query.count", queries)
 }
 
 // Close is a no-op — the *bbolt.DB is owned by the Backend.

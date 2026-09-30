@@ -59,6 +59,7 @@ func main() {
 				"Defaults to SKILL.md, AGENTS.md, and .agents/skills/*/references/*.md if no files are given.",
 		),
 	)
+	//art-dupl:accept cobra CLI bootstrap guard — identical by design across cmd tools
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
 		os.Exit(1)
@@ -122,6 +123,17 @@ func run(files []string, jsonOut, listAllAmbiguous bool) error {
 			filepath.Join(root, ".agents/skills/*/references/*.md"),
 		); err == nil {
 			files = append(files, refFiles...)
+		}
+		// Module READMEs are consumer-facing API surface (2026-09-29, M13):
+		// their quick-start fences get the same reference + arity drift
+		// checks as the skill docs. Depth 1-3 covers every module README
+		// (e.g. event/, storage/memory/, metaengine/irohengine/loopback/).
+		for _, pattern := range []string{
+			"*/README.md", "*/*/README.md", "*/*/*/README.md",
+		} {
+			if readmeFiles, err := filepath.Glob(filepath.Join(root, pattern)); err == nil {
+				files = append(files, readmeFiles...)
+			}
 		}
 	}
 

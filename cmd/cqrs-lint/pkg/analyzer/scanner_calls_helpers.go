@@ -118,3 +118,32 @@ func hasAsyncInBody(body *ast.BlockStmt) bool {
 
 	return hasGo
 }
+
+// eventMetadataTypeExpr returns the value expression of the "Type" field when
+// call's single argument is a composite literal carrying one (the
+// event-metadata registration shape, e.g.
+// Register(EventMetadata{Type: string(identitymodel.EventX), ...})), and nil
+// otherwise.
+func eventMetadataTypeExpr(call *ast.CallExpr) ast.Expr {
+	if len(call.Args) != 1 {
+		return nil
+	}
+
+	lit, ok := call.Args[0].(*ast.CompositeLit)
+	if !ok {
+		return nil
+	}
+
+	for _, elt := range lit.Elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+
+		if id, ok := kv.Key.(*ast.Ident); ok && id.Name == "Type" {
+			return kv.Value
+		}
+	}
+
+	return nil
+}

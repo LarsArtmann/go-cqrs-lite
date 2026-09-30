@@ -549,7 +549,9 @@ not raw domain events:
 
 ```go
 watcher := metaengine.NewWatcher[TaskView](store, "task_views")
-http.HandleFunc("/tasks/stream", metaengine.ServeSSE(watcher))
+http.HandleFunc("/tasks/stream", func(w http.ResponseWriter, r *http.Request) {
+    _ = metaengine.ServeSSE(w, r, watcher)
+})
 ```
 
 For raw domain event streaming (bus-to-client), use

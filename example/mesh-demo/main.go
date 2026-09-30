@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 )
 
 var errUnknownDomain = errors.New("mesh-demo: unknown domain (want orders|billing)")
@@ -102,6 +103,7 @@ func runDemo() error {
 	// orders consumes invoice.issued back (folded into its own history) and
 	// completes.
 	orderEvents = append(orderEvents, billingEvents...)
+
 	orderEvents, err = decideInto(orderEvents, initialOrderState(), foldOrder,
 		completeOrderFromInvoice(orderID, billingEvents))
 	if err != nil {
@@ -117,7 +119,8 @@ func runDemo() error {
 
 	// billing's journal holds the consumed order.placed plus its own
 	// invoice.issued — cross-context integration is a fold (ADR-0146).
-	billingHistory := append(orderEvents[:len(orderEvents):len(orderEvents)], billingEvents...)
+	billingHistory := append(slices.Clip(orderEvents), billingEvents...)
+
 	finalInvoice := initialInvoiceState()
 	for _, evt := range billingHistory {
 		if finalInvoice, err = foldInvoice(finalInvoice, evt); err != nil {

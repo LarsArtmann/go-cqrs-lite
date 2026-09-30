@@ -53,6 +53,7 @@ func (a *CommandAdapter) decodeCommand(s string) (*command.PersistedCommand, err
 		return nil, fmt.Errorf("command adapter: decode envelope: %w", err)
 	}
 
+	//art-dupl:accept branded-ID parse ladder — type-specific wire formats (prior baselined acceptance)
 	cmdID, err := id.ParseCommandID(env.ID)
 	if err != nil {
 		return nil, fmt.Errorf("command adapter: parse command ID: %w", err)

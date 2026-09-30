@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/cockroachdb/pebble"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
@@ -36,12 +37,11 @@ func applyIndexEntries(
 	fn func(kind string, idxKey []byte) error,
 ) error {
 	for _, field := range plan.filterFields {
-		fieldVal, ok := fields[field]
+		valStr, ok := indexFieldValue(fields, field)
 		if !ok {
 			continue
 		}
 
-		valStr := encodeIndexValue(fieldVal)
 		idxKey := append(layoutKeyPrefix(col, field, valStr), []byte(key)...)
 
 		if err := fn("index entry", idxKey); err != nil {
@@ -50,12 +50,11 @@ func applyIndexEntries(
 	}
 
 	for _, field := range plan.sortFields {
-		fieldVal, ok := fields[field]
+		valStr, ok := indexFieldValue(fields, field)
 		if !ok {
 			continue
 		}
 
-		valStr := encodeIndexValue(fieldVal)
 		idxKey := sortIndexKey(col, field, valStr, key)
 
 		if err := fn("sort index entry", idxKey); err != nil {
@@ -64,6 +63,17 @@ func applyIndexEntries(
 	}
 
 	return nil
+}
+
+// indexFieldValue encodes a field's value for a secondary-index key; ok is
+// false when the event carries no value for the field.
+func indexFieldValue(fields map[string]any, field string) (string, bool) {
+	fieldVal, ok := fields[field]
+	if !ok {
+		return "", false
+	}
+
+	return encodeIndexValue(fieldVal), true
 }
 
 // scanWithSortIndex uses the sort index for ordered iteration. Keys in the

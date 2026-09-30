@@ -1,0 +1,39 @@
+# 2026/09/29 07:44:30.526256 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw events: 4
+# 2026/09/29 07:44:30.526262 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw offset: 0
+# 2026/09/29 07:44:30.526263 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw offset: 0
+# 2026/09/29 07:44:30.526265 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw offset: 0
+# 2026/09/29 07:44:30.526266 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw offset: 0
+# 2026/09/29 07:44:30.526267 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw prio: 0
+# 2026/09/29 07:44:30.526268 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw prio: 0
+# 2026/09/29 07:44:30.526268 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw prio: 1
+# 2026/09/29 07:44:30.526268 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] [rapid] draw prio: 0
+# 2026/09/29 07:44:30.526270 [TestProperty_VersionChain_OutOfOrderAndSameTsLWW] AsOf(2023-11-14 22:13:20 +0000 UTC): got 2, want 3 (same-ts LWW or ordering broken)
+# 
+v0.4.8#14657013839973964823
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1
+0x0
+0x0
+0x0

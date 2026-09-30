@@ -4,15 +4,15 @@ go 1.27.1
 
 require (
 	github.com/larsartmann/go-codec v0.3.0
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.1
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.5.2
-	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1
-	github.com/larsartmann/go-error-family v0.10.1
+	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2
+	github.com/larsartmann/go-error-family v0.11.0
 )
 
 require (
@@ -24,24 +24,28 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/command/v4 v4.11.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/command/v4 v4.12.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.4.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/projection/v4 v4.4.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/query/v4 v4.8.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/query/v4 v4.9.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-flightrecorder v0.2.0 // indirect
-	github.com/larsartmann/go-sse v0.6.0 // indirect
+	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/maypok86/otter/v2 v2.3.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
+	github.com/onsi/ginkgo/v2 v2.33.0 // indirect
+	github.com/onsi/gomega v1.43.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/redis/go-redis/v9 v9.22.0 // indirect
 	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
+	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
@@ -53,4 +57,5 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
+	modernc.org/sqlite v1.60.0 // indirect
 )

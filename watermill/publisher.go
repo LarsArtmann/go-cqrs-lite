@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // PublisherAdapter wraps a go-cqrs-lite event.Publisher as a Watermill publisher.
@@ -21,28 +21,15 @@ func NewPublisherAdapter(publisher event.Publisher) *PublisherAdapter {
 // Publish publishes Watermill messages as go-cqrs-lite events.
 // The topic is mapped to event.Type; all event fields are reconstructed from message metadata.
 func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) error {
-	ctx := context.Background()
-
-	for _, msg := range messages {
-		evt, err := MessageToEvent(topic, msg)
-		if err != nil {
-			return errorfamily.WrapCorruption(
-				err,
-				"watermill.convert_message_failed",
-				"convert message "+msg.UUID,
-			)
-		}
-
-		if err := a.publisher.Publish(ctx, evt); err != nil {
-			return errorfamily.WrapInfrastructure(
-				err,
-				"watermill.publish_event_failed",
-				"publish event "+string(evt.Type()),
-			)
-		}
-	}
-
-	return nil
+	return publishAll(
+		context.Background(),
+		func(ctx context.Context, evt event.Event) error { return a.publisher.Publish(ctx, evt) },
+		topic,
+		messages,
+		MessageToEvent,
+		"watermill.publish_event_failed",
+		func(evt event.Event) string { return "publish event " + string(evt.Type()) },
+	)
 }
 
 // Close closes the underlying publisher.

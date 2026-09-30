@@ -82,6 +82,7 @@ func New(dsn string) (metaengine.Engine, error) {
 	eng := &duckdbEngine{db: db, persistence: persistence}
 
 	if err := eng.init(); err != nil {
+		//art-dupl:accept constructor-failure cleanup idiom — dep-isolated go.mod engines
 		_ = db.Close()
 
 		return nil, err

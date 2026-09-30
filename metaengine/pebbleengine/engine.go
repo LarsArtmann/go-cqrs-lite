@@ -29,6 +29,7 @@ import (
 
 	"github.com/cockroachdb/pebble"
 	"github.com/cockroachdb/pebble/vfs"
+
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/keycodec"
 )
@@ -445,17 +446,7 @@ func (e *pebbleEngine) MapScan(
 
 	pairs = sortAndPaginate(pairs, sortFunc, cursor, limit)
 
-	hasMore := limit > 0 && len(pairs) > limit
-	if hasMore {
-		pairs = pairs[:limit]
-	}
-
-	results := make([]any, len(pairs))
-	for i, p := range pairs {
-		results[i] = p.value
-	}
-
-	return metaengine.ScanResult{Items: results, HasMore: hasMore}, nil
+	return metaengine.PairsToScanResult(pairs, kvPairValue, limit), nil
 }
 
 // --- SetBackend ---

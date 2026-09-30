@@ -28,9 +28,12 @@ func ScanVectorDimensionProbe(row *sql.Row, label string) (int, error) {
 // for the metadata column: nil metadata → nil (binds SQL NULL); otherwise the
 // JSON encoding as a string (json/v2 semantics, matching the engines'
 // original marshals byte for byte). The label is used as the error prefix.
-func VectorMetadataArg(emb Embedding, label string) (any, error) {
+func VectorMetadataArg(
+	emb Embedding,
+	label string,
+) (any, error) {
 	if emb.Metadata == nil {
-		return nil, nil
+		return nil, nil //nolint:nilnil // nil binds SQL NULL by contract
 	}
 
 	data, err := json.Marshal(emb.Metadata)

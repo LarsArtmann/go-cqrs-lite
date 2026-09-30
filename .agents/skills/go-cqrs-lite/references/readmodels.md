@@ -18,7 +18,7 @@ _Extracted from the former recipes §2.3. This is the most-asked-about topic in 
 > runner that survives v5. Canonical v5-removal list:
 > [FAQ — "Will the v5 cut break my imports?"](faq.md#will-the-v5-cut-break-my-imports-what-is-going-away).
 >
-> Copy-paste read-model patterns: [`metaengine/COOKBOOK.md`](../../../metaengine/COOKBOOK.md)
+> Copy-paste read-model patterns: [`metaengine/COOKBOOK.md`](../../../../metaengine/COOKBOOK.md)
 > (in the repo at `metaengine/COOKBOOK.md`).
 
 ### 2.3 Read Models (projection + query)

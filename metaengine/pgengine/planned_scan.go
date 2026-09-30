@@ -112,34 +112,11 @@ func buildPGPlannedScanQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		if !started {
-			b.WriteString(" WHERE ")
-		} else {
-			b.WriteString(" AND ")
-		}
-
-		fmt.Fprintf(&b, "%s %s $%d",
-			metaengine.QuoteIdent(sort.Column), op, len(args)+1)
-
-		args = append(args, cursor)
+		metaengine.AppendPlannedCursor(&b, &args, &started, sort, cursor,
+			metaengine.QuoteIdent, metaengine.DollarPlaceholders)
 	}
 
-	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", metaengine.QuoteIdent(sort.Column))
-
-		if sort.Desc {
-			b.WriteString(" DESC")
-		}
-	}
-
-	if limit > 0 {
-		fmt.Fprintf(&b, " LIMIT %d", limit+1)
-	}
+	metaengine.AppendPlannedOrderLimit(&b, sort, limit, metaengine.QuoteIdent)
 
 	return b.String(), args, nil
 }

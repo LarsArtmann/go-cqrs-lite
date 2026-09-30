@@ -287,8 +287,8 @@ func NewB008Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 // trailing identifier of the decider.StrictApply arg) matches regardless of
 // how the fold was named.
 func lastSegmentOfFoldName(name string) string {
-	if i := strings.LastIndex(name, "."); i >= 0 {
-		return name[i+1:]
+	if _, after, ok := strings.CutLast(name, "."); ok {
+		return after
 	}
 
 	return name

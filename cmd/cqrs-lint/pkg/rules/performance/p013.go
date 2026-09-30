@@ -88,33 +88,10 @@ func hasBusyTimeoutEvidence(
 	site sqliteOpenSite,
 	constMap map[string]string,
 ) bool {
-	localExprScope := buildLocalExprScope(site.funcDecl)
-
-	// 1. Check if any resolvable string part of the DSN contains busy_timeout.
-	if site.dsnArg != nil {
-		if dsnExprContainsPragma(site.dsnArg, constMap, localExprScope, nil, dsnHasBusyTimeout) {
-			return true
-		}
-
-		// If the DSN has no inspectable string parts at all (no literals, no
-		// resolvable consts/vars), it's fully opaque — suppress.
-		if !hasInspectableStringParts(site.dsnArg, constMap, localExprScope, nil) {
-			return true
-		}
-	}
-
-	// 2. Check for post-open PRAGMA in the enclosing function.
-	if funcSetsPragma(site.funcDecl, "busy_timeout") {
-		return true
-	}
-
-	// 3. Check for library wrapper calls in the same file.
-	if site.file != nil &&
-		fileHasWrapperCall(site.file, "SQLiteEnableWAL", "EnsureSQLiteDSNBusyTimeout") {
-		return true
-	}
-
-	return false
+	return hasSQLiteOpenEvidence(
+		site, constMap, "busy_timeout", dsnHasBusyTimeout,
+		"SQLiteEnableWAL", "EnsureSQLiteDSNBusyTimeout",
+	)
 }
 
 // dsnExprContainsPragma walks the DSN expression tree and checks every

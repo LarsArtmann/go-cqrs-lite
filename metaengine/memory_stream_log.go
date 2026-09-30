@@ -38,10 +38,7 @@ func (m *memoryEngine) StreamReadFromVersion(
 	minVersion int64,
 ) ([]any, error) {
 	if minVersion <= 0 {
-		m.mu.RLock()
-		defer m.mu.RUnlock()
-
-		return slices.Clone(m.data.streams[col][sid]), nil
+		return m.streamSnapshot(col, sid), nil
 	}
 
 	m.mu.RLock()
@@ -84,10 +81,17 @@ func (m *memoryEngine) StreamAppend(_ context.Context, col, sid string, values [
 }
 
 func (m *memoryEngine) StreamRead(_ context.Context, col, sid string) ([]any, error) {
+	return m.streamSnapshot(col, sid), nil
+}
+
+// streamSnapshot returns a cloned snapshot of one stream's values taken
+// under the read lock. Shared by StreamRead and the whole-stream fast path
+// of StreamReadFromVersion.
+func (m *memoryEngine) streamSnapshot(col, sid string) []any {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return slices.Clone(m.data.streams[col][sid]), nil
+	return slices.Clone(m.data.streams[col][sid])
 }
 
 func (m *memoryEngine) StreamVersion(_ context.Context, col, sid string) (int64, error) {

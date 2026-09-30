@@ -202,7 +202,7 @@ on a typo'd driver.
 | Test deciders/projections with Given/When/Then                        | `scenario`                                                                                                                                  | advanced §6.10  |
 | Schedule delayed commands / durable deadlines                         | `scheduling`                                                                                                                                | advanced §6.11  |
 | Dead-letter failed dispatches (retry exhaustion)                      | `middleware` (DLQ)                                                                                                                          | recipes §2.8    |
-| Cost-based query planner (10 ADTs, O(1) aggregates)                   | `metaengine` (`Plan`/`Store`; via `system` for full lifecycle)                                                                              | recipes §2.10   |
+| Cost-based query planner (11 planner ADTs, O(1) aggregates)           | `metaengine` (`Plan`/`Store`; via `system` for full lifecycle)                                                                              | recipes §2.10   |
 | Survivable read models across restart (volatile vs persistent engine) | `metaengine` (`EngineProfile.Persistence`, ADR-0098)                                                                                        | modules §5      |
 | Derive commands reactively from events                                | `deriver`                                                                                                                                   | advanced §6.12  |
 | Build graph/traversal read models (nodes + edges)                     | `graph`                                                                                                                                     | advanced §6.13  |
@@ -212,7 +212,7 @@ on a typo'd driver.
 | Pull-based event backfill (REST endpoint)                             | deprecated `transport/http` (`BackfillHandler`) until v5 — or `watermill` catch-up                                                          | advanced §6.15  |
 | Capture execution trace on slow/error operations                      | `flightrecorder` + `middleware`                                                                                                             | recipes §2.18   |
 
-> **§2 (recipes), §5 (module reference), §6 (advanced patterns)** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
+> **recipes §2, modules §5, advanced §6** live in the on-demand `references/` files. This is the progressive-disclosure design — this file holds the decision material needed on every trigger; the references hold long copy-paste recipes loaded only when needed.
 
 ### Which projection tier?
 

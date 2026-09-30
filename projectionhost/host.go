@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"maps"
 	"slices"
 	"sync"
 	"time"
@@ -174,10 +175,7 @@ func (h *Host) Start(ctx context.Context) error {
 	runCtx, cancel := context.WithCancel(ctx)
 	h.cancel = cancel
 
-	workers := make([]*worker, 0, len(h.workers))
-	for _, w := range h.workers {
-		workers = append(workers, w)
-	}
+	workers := slices.Collect(maps.Values(h.workers))
 	h.mu.Unlock()
 
 	for i, w := range workers {
@@ -206,6 +204,7 @@ func (h *Host) Start(ctx context.Context) error {
 // times. If the timeout fires and workers are stuck, use [Host.ForceStop].
 func (h *Host) Stop() error {
 	h.mu.Lock()
+	//art-dupl:accept Stop/ForceStop stop-latch prologue — subtle concurrency, deliberately not merged
 	if !h.started || h.stopped {
 		h.mu.Unlock()
 

@@ -213,7 +213,7 @@ Each module declares its own `go.mod`; this is the greatest-hits across the libr
 
 ## Maturity
 
-90+ modules on `/v4` import paths (95 `go.mod` files as of 2026-09-19). Core modules carry 86–96% test coverage (event 90%, decider 96%, id 86%, dispatcher 87%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
+90+ modules on `/v4` import paths (98 `go.mod` files incl. root — count gate-derived via `scripts/check-canonical-facts.sh`). Core modules carry 86–96% test coverage (event 90%, decider 96%, id 86%, dispatcher 87%). The library covers the full CQRS/ES lifecycle: event sourcing with branded IDs, command/query dispatch, pure-function deciders, three projection tiers (document/KV, relational/SQL, graph), durable deadline scheduling, dead-letter quarantine, managed projection hosting, event signing and encryption, OTel tracing and metrics, auto-documentation generation, and a domain-aware linter (cqrs-lint).
 
 **Migrating from v3?** Read the **[Migration Guide](docs/migration/MIGRATION-GUIDE.md)** — covers the v4 breaking changes (codec defaults, API cleanup, path migration). For v2-to-v3 changes, see the **[v3 Migration Guide](docs/migration/V3_MIGRATION.md)**.
 
@@ -222,3 +222,5 @@ For the full feature inventory see [FEATURES.md](FEATURES.md), for direction see
 ## License
 
 PROPRIETARY — see [LICENSE](LICENSE).
+
+Because the license is not OSS-approved, pkg.go.dev hides module documentation for every module by design (verified 2026-09-28; per-module LICENSE copies do not change this). Browse the API locally with `go doc <module>`, or read [SKILL.md](SKILL.md).

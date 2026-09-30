@@ -4,8 +4,8 @@ go 1.27.1
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.14.0
-	github.com/onsi/gomega v1.43.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
+	github.com/onsi/gomega v1.43.1
 )
 
 require (
@@ -16,13 +16,13 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/klauspost/compress v1.20.0 // indirect
+	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.6.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
-	github.com/larsartmann/go-error-family v0.10.1 // indirect
-	github.com/larsartmann/go-sse v0.6.0 // indirect
+	github.com/larsartmann/go-error-family v0.11.0 // indirect
+	github.com/larsartmann/go-sse v0.6.1 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect

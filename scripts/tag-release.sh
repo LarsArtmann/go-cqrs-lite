@@ -45,6 +45,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# scripts/go-env.sh (T05): a release cut run under the ambient host env
+# (GOTOOLCHAIN=local + /mnt/buildcache caches) false-fails its verify leg
+# with "go.work requires go >= 1.27.1" — the watermill/v4.6.2 first-attempt
+# failure class (2026-09-29). Self-source so the contract holds even when the
+# operator forgets.
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/go-env.sh"
 # shellcheck disable=SC1091 # sourced release lib lives beside this script
 source "${SCRIPT_DIR}/lib/release_common.sh"
 

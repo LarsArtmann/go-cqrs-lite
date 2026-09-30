@@ -61,3 +61,22 @@ func SortPaginate[T any](
 
 	return pairs
 }
+
+// PairsToScanResult truncates pairs to limit (reporting hasMore when more data
+// existed beyond it) and collects each pair's value into the ScanResult items.
+// It is the tail half of the SortPaginate contract: SortPaginate returns up to
+// limit+1 pairs precisely so this helper can detect has-more. Each KV engine
+// maps its own pair type in via valueOf.
+func PairsToScanResult[T any](pairs []T, valueOf func(T) any, limit int) ScanResult {
+	hasMore := limit > 0 && len(pairs) > limit
+	if hasMore {
+		pairs = pairs[:limit]
+	}
+
+	results := make([]any, len(pairs))
+	for i, p := range pairs {
+		results[i] = valueOf(p)
+	}
+
+	return ScanResult{Items: results, HasMore: hasMore}
+}

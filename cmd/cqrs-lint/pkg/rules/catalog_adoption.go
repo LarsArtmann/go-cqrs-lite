@@ -1,4 +1,4 @@
-package rules
+package rules //nolint:dupl // declarative rule tables; shape-match with catalog_boilerplate is intentional
 
 func adoptionRules() []RuleInfo {
 	return []RuleInfo{

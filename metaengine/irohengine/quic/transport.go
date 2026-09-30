@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -210,10 +212,7 @@ func (t *QuicTransport) Publish(_ context.Context, op irohengine.WriteOp) error 
 	}
 
 	t.mu.RLock()
-	peers := make([]*peerConn, 0, len(t.conns))
-	for _, pc := range t.conns {
-		peers = append(peers, pc)
-	}
+	peers := slices.Collect(maps.Values(t.conns))
 	t.mu.RUnlock()
 
 	if len(peers) == 0 {
@@ -279,6 +278,7 @@ func (t *QuicTransport) Subscribe(handler func(op irohengine.WriteOp)) error {
 
 // Close implements irohengine.Transport. Closes all connections and the endpoint.
 func (t *QuicTransport) Close() error {
+	//art-dupl:accept close-once latch idiom — transport/backend Close contract
 	t.mu.Lock()
 	if t.closed {
 		t.mu.Unlock()

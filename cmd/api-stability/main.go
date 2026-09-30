@@ -140,6 +140,7 @@ func main() {
 			"api-stability verifies the exported API surface of every go-cqrs-lite module against a golden file.",
 		),
 	)
+	//art-dupl:accept cobra CLI bootstrap guard — identical by design across cmd tools
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
 		os.Exit(1)

@@ -66,29 +66,31 @@ func (r *runner) projectionPhase(ctx context.Context) error {
 
 		select {
 		case <-deadline.C:
-			//cqrs-lint:ignore(C023) library code or intentional pattern
-			_ = host.Stop()
+			// timeout — report what we got
+			r.stopAndCollect(host) //nolint:contextcheck
 
-			r.collectProjectionStats(host)
-
-			return nil // timeout — report what we got
+			return nil
 		case <-ticker.C:
 		case <-ctx.Done():
-			//cqrs-lint:ignore(C023) library code or intentional pattern
-			_ = host.Stop()
-
-			r.collectProjectionStats(host)
+			r.stopAndCollect(host) //nolint:contextcheck
 
 			return nil
 		}
 	}
 
+	r.stopAndCollect(host) //nolint:contextcheck
+
+	return nil
+}
+
+// stopAndCollect stops the projection host (ignoring its error — the
+// benchmark reports its own failures) and records its projection stats —
+// the shared exit path of the deadline, ctx-cancel, and completion arms.
+func (r *runner) stopAndCollect(host *projectionhost.Host) {
 	//cqrs-lint:ignore(C023) library code or intentional pattern
 	_ = host.Stop()
 
 	r.collectProjectionStats(host)
-
-	return nil
 }
 
 // newCountingProjection creates a projection that increments a per-stream

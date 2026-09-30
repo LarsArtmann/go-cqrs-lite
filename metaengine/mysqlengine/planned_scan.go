@@ -112,33 +112,11 @@ func buildPlannedScanQuery(
 	}
 
 	if sort != nil && cursor != nil {
-		op := ">"
-		if sort.Desc {
-			op = "<"
-		}
-
-		if !started {
-			b.WriteString(" WHERE ")
-		} else {
-			b.WriteString(" AND ")
-		}
-
-		fmt.Fprintf(&b, "%s %s ?", backtickIdent(sort.Column), op)
-
-		args = append(args, cursor)
+		metaengine.AppendPlannedCursor(&b, &args, &started, sort, cursor,
+			backtickIdent, metaengine.QuestionPlaceholders)
 	}
 
-	if sort != nil {
-		fmt.Fprintf(&b, " ORDER BY %s", backtickIdent(sort.Column))
-
-		if sort.Desc {
-			b.WriteString(" DESC")
-		}
-	}
-
-	if limit > 0 {
-		fmt.Fprintf(&b, " LIMIT %d", limit+1)
-	}
+	metaengine.AppendPlannedOrderLimit(&b, sort, limit, backtickIdent)
 
 	return b.String(), args, nil
 }

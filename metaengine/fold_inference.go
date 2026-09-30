@@ -66,24 +66,30 @@ func Infer(samples ...any) inferenceRequest {
 	}
 
 	for i, s := range samples {
-		t := reflect.TypeOf(s)
-		if t == nil {
-			panic(fmt.Sprintf("metaengine.Infer: sample[%d] is a nil interface", i))
-		}
-
-		if t.Kind() == reflect.Pointer {
-			t = t.Elem()
-		}
-
-		if t.Kind() != reflect.Struct {
-			panic(fmt.Sprintf(
-				"metaengine.Infer: sample[%d] (%s) must be a struct, got %s",
-				i, t.Name(), t.Kind(),
-			))
-		}
+		requireStructSample("metaengine.Infer", i, reflect.TypeOf(s))
 	}
 
 	return inferenceRequest{samples: samples}
+}
+
+// requireStructSample panics with caller context unless t is a struct, after
+// one pointer deref. Shared by the Infer and InferFromNamedEvents intake
+// validation loops.
+func requireStructSample(caller string, i int, t reflect.Type) {
+	if t == nil {
+		panic(fmt.Sprintf("%s: sample[%d] is a nil interface", caller, i))
+	}
+
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+
+	if t.Kind() != reflect.Struct {
+		panic(fmt.Sprintf(
+			"%s: sample[%d] (%s) must be a struct, got %s",
+			caller, i, t.Name(), t.Kind(),
+		))
+	}
 }
 
 // conventionClassification holds the event types classified by naming suffix.

@@ -235,11 +235,7 @@ func upgradeModule(cfg config, dir string) moduleReport {
 		// use v5-removed APIs just the same — no pins ≠ no cqrs code
 		// (strict-gate hole (a), 05-26 §e4). Bump planning is skipped, the
 		// deprecation report is not.
-		findings, scanErr := deprecationFindings(dir)
-		rep.Deprecations = findings
-		rep.ScanErr = scanErr
-
-		return rep
+		return scanDeprecations(dir, rep)
 	}
 
 	rep.Bumps = planUpgrades(pins, cfg.to)
@@ -263,6 +259,13 @@ func upgradeModule(cfg config, dir string) moduleReport {
 		}
 	}
 
+	return scanDeprecations(dir, rep)
+}
+
+// scanDeprecations fills the report's deprecation-scan fields and returns
+// it. Shared by the no-pins early exit and the post-bump path — both owe the
+// caller a v5-readiness report.
+func scanDeprecations(dir string, rep moduleReport) moduleReport {
 	findings, scanErr := deprecationFindings(dir)
 	rep.Deprecations = findings
 	rep.ScanErr = scanErr

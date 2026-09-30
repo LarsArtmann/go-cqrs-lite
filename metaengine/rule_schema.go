@@ -14,7 +14,7 @@ func (*schemaRule) Name() string { return "schema-enforcement" }
 
 func (*schemaRule) Apply(result *PlanResult, ctx PlanContext) error {
 	for _, q := range result.Queries {
-		rt, ok := ctx.Store.queries[q.QueryName]
+		rt, ok := declaredQuery(ctx, q)
 		if !ok {
 			continue
 		}

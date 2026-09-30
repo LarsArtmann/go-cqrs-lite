@@ -45,17 +45,42 @@ func OnRecordTyped[E any](eventType string, sample E, handler any) Fold {
 	return onRecordFold(eventType, sample, handler)
 }
 
-func onRecordFold[E any](eventType string, sample E, handler any) Fold {
-	if rs, ok := handler.(removeSignal); ok {
-		return &removeFold{eventType: eventType, sample: sample, valueType: rs.valueType}
+// removeFoldFor returns the remove fold when handler is the sentinel
+// returned by Remove[V](), or nil for a real handler function. Shared by the
+// On and OnRecord construction paths.
+func removeFoldFor(eventType string, sample any, handler any) *removeFold {
+	rs, ok := handler.(removeSignal)
+	if !ok {
+		return nil
+	}
+
+	return &removeFold{eventType: eventType, sample: sample, valueType: rs.valueType}
+}
+
+// foldPrelude routes a fold constructor's prologue: a Remove[V]() sentinel
+// handler yields the ready-made remove Fold (returned non-nil with a nil
+// type); a real handler function is validated and its reflect.Type returned.
+// construct names the public constructor for panic messages.
+func foldPrelude(construct, eventType string, sample any, handler any) (Fold, reflect.Type) {
+	if rf := removeFoldFor(eventType, sample, handler); rf != nil {
+		return rf, nil
 	}
 
 	handlerType := reflect.TypeOf(handler)
 	if handlerType == nil || handlerType.Kind() != reflect.Func {
 		panic(fmt.Sprintf(
-			"metaengine.OnRecord(%s): handler must be a function, got %T",
-			eventType, handler,
+			"metaengine.%s(%s): handler must be a function or Remove[V](), got %T",
+			construct, eventType, handler,
 		))
+	}
+
+	return nil, handlerType
+}
+
+func onRecordFold[E any](eventType string, sample E, handler any) Fold {
+	fold, handlerType := foldPrelude("OnRecord", eventType, sample, handler)
+	if fold != nil {
+		return fold
 	}
 
 	if handlerType.NumIn() < 2 {

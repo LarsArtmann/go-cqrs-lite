@@ -3,7 +3,7 @@
 > **Status:** DESIGN MEMO — the SUPERB S28 next-step; awaiting owner ratification.
 > **Date:** 2026-09-21 · **Origin:** routing-integration design findings 2026-09-11
 > (F110/M20 of the
-> [owner-unblock-trust plan](2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md))
+> [owner-unblock-trust plan](archived/2026-09-20_17-40_SUPERB-owner-unblock-trust-pareto-plan.md))
 > **Routing:** folds into the future routing/v5 ADR; adjacency to the G-T01 direction
 > ruling — every new declarative surface must answer "is this developer declaration or
 > operator config?"

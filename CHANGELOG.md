@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **`system` test-mass closure (M17, Feedback #6).** The config-loader koanf/YAML surface gains table tests (priority all three levels + inline, materialized views + manifest path, mixed-pool instances, buses, nil-map invariants, error paths), three rapid properties, a real-sqlite lifecycle/shutdown stress test in `systemtest` (6 rounds × 8 concurrent creates → Count double-apply sentinel must equal dispatches exactly → racing GracefulClose/Close), and a wiring-determinism test (two identical constructs → byte-identical `system.Explain`). The property tests caught two live `system.LoadConfig` bugs (see Fixed).
+- **`batch-release.sh` run logs (M15/e1).** Every real cut and every `--smoke-all` pass now writes a dated, incremental run log under `build/release-logs/` (override with `BATCH_RELEASE_LOG_DIR`): one timestamped line per module per phase (strip, tidy, verify, tag, smoke) with failure tails on abort, closing with a one-line-per-module `SUMMARY` (module, version, tagged?, verify, smoke). The 2026-09-27 7-tag wave stalled at 1/7 with zero artifacts to diagnose from — a stalled wave is now a 5-minute read instead of forensics. `--dry-run` logs nothing (its "nothing touched" promise), and a logging failure never breaks a release. Pinned by 12 new smoke-test assertions in `scripts/test-batch-release.sh` (guard rejections, verify-failure tails, summaries, dry-run silence, `--smoke-all` log).
+
+- **`metaengine.Store.QueryPlacements` + `system.Explain` per-query placement rendering.** The topology view previously printed only the collections count — the cost-based planner's per-query placement and the declared `Volume` hints (events/sec) were invisible to `system.Explain` introspection. `QueryPlacements()` returns one `QueryPlacement` per query (engine, ADT, declared volume, plan estimate, complexity, name-sorted), and `System.Explain` renders a `~ <query>: <engine> (<adt>, volume=N/s, est=Xms)` line per projection. Pinned by `TestQueryPlacements` + `TestExplainRendersQueryPlacements`/`TestExplainWithoutProjectionStore`.
 - **`cqrs-upgrade`: NoPins modules are scanned + `--json --strict` actually fails.** The deprecation scan now runs for modules with zero direct go-cqrs-lite pins (indirect consumers previously escaped v5-readiness entirely — strict-gate hole (a)); the `--json` wire carries `schemaVersion: 1` per module (hole (b)); and the strict verdict is computed BEFORE the JSON branch, so `--json --strict` no longer silently exits 0 on violations (hole (c), E2E-pinned by new fixture tests in `cmd/cqrs-upgrade/e2e_test.go`).
 - **`doc-check --list-all-ambiguous`**: emits EVERY reference resolved through an ambiguous alias union (default reports only the first per alias — the sweep form for unmasking how many sites a cleanup touches).
 - **Reverse changelog gate (`scripts/check-changelog-coverage.sh`)**: every module in the api golden must be mentioned in CHANGELOG.md, and NEW unmentioned headline exports fail under `--fail-on-new` (513 pre-existing entries baselined; wired into nightly-gates + `#check-release-scripts` self-test). The mesh-demo/E019/docserver miss class stayed green through the old one-way gate.
@@ -20,19 +24,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Queue/mysql deadlock-retry coverage**: `deadlockBackoff` bounds/shape/jitter pins + `ClaimDue` retry-loop tests via sqlmock (full-transaction replay, attempt budget, transient-deadlock recovery) — the shipped backoff path had zero executed coverage.
 - **benchkit `RunSuiteRepeated` coverage + gate-script split-brain pin**: the suite helper is now driven through `testing.Benchmark` (CoV custom metrics + single-run delegation), and `benchmark-regression.sh`'s `NOISE_HEADLINE` default is pinned against `benchkit.HeadlineMetricNames()` from inside the module's tests.
 - **Canonical-facts gate: status-index leg.** `check-canonical-facts.sh` now pins the `docs/status/README.md` live index against disk (every report rowed, no dangling links) and the archived/ intro claim against the actual dir count — the 9th/10th docs-health passes almost shipped this rot twice. FEATURES.md joins the gated doc set (the last hand-maintained go.mod count dies).
-- **`dispatcher/v4.5.0`: the shared generic middleware shape.** `dispatcher.Middleware[H any]` is THE workspace-wide middleware type (E15 signature unification): one function value composes with every dispatcher and bus without adapters; `command.Middleware`, `event.Middleware`/`event.PublishMiddleware`, `query.Middleware`, and `middleware.Middleware` become aliases of it (pure aliasing — identical underlying func type, every existing signature and func value keeps compiling).
-- **`middleware/v4.7.0`: typed message kinds.** Exported `Kind` with `KindCommand`/`KindEvent`/`KindQuery` replaces the unexported `kindCommand`-style bare strings; `MessageAdapter.Kind` is now `Kind` (string-backed — log/SQL/OTel attribute output byte-identical; untyped string constants still assign, so custom adapters compile unchanged).
-- **`metaengine/v4.15.0`: vector + planned-tables surface.** Vector insert/scan promoted into the engine contract (`vector_insert.go`/`vector_scan.go`, shared `scan.go` hoisted out of per-engine copies), `PlannedBackfillResult` reporting per-collection backfill outcome, `ListPlannedTables`, and `AppendPlannedFilter`; planner options moved to `planner_options.go` (same package, zero signature changes); sqliteengine vector/graph/filter paths slimmed onto the shared implementation.
-- **`system/v4.10.0`: engine-independent core + query builders.** `NewEngineCheckpointStore(backend)` turns a `metaengine.MapBackend` into an `event.CheckpointStore`; new `query_builders.go` replaces the collapsed `query_constructors.go` list; engine requires dropped from go.mod — the system core no longer drags engine modules, and the engine-backed integration tests moved to the `systemtest` module (coverage preserved out-of-module).
+- **Canonical-facts gate: engine/ADT count leg (M14).** The three metaengine count units are now repo-derived and gate-pinned: 12 engine implementations (11 `metaengine/*engine` modules + in-core memory), 11 self-registering drivers (`RegisterDriver` register.go sites — irohengine deliberately does not register), 11 planner ADTs (the `metaengine.AllADTs()` list; write-side DueClaim/Dedup are not planner-routable). Killed live rot: ROADMAP "10 engine backends" (missing BigTable+Iroh as engines), ROADMAP/FEATURES/skill "10/12 ADTs" (three docs, three different wrong counts), the stale driver census — the 10-vs-11-vs-12 class had recurred since 2026-09-10. Self-test mutation legs (wrong count + missing-unit claim) green; the nightly-gates leg inherits both.
+- **Module READMEs join the doc-check gate (M13).** The `#doc-check` app + inline `#verify` leg auto-discover every workspace README (`*/README.md` → `*/*/*/README.md` depth): 97 module READMEs gated, 2,420 references valid across 86 packages, zero warnings. doc-check resolution grew three mechanics: block-local declared identifiers no longer resolve as package refs, file-level import carryover (`carryImportsForward`), and same-skill `SKILL.md` nav-ref resolution — the enablers that made README scope practical. CI inherits the leg for free (it runs the same app).
+- **cqrs-lint FP-sweep harness honesty refresh (M10).** `scripts/fp-sweep.sh` now captures per-repo stderr separately, labels empty linter output as `NO JSON OUTPUT (linter skipped repo)` instead of reading it as clean, and hardens the arithmetic (`${n:-0}`). Corrected 12-repo baseline re-run: **426 findings / 41 low-confidence** — the 2026-09-17 snapshot (357/36) was known-bad with five SILENT rows (bank-sync, browser-history, github-local-sync, go-localsync, dnsblockd) and an unlabeled `overview` skip (transitive-only consumer). Baseline doc superseded with methodology + outlier verdicts (crush-daily 38/14 stable, standard-bug-tracking-schema 194/9 stable).
+- **benchkit + cqrs-bench polish-tail debts closed (M12 b/c/g/h/i).** `<metric>_cov%` is now verified through REAL benchstat output (subprocess `go test -bench` run, parses actual stdout columns — the fixture-driven assumption class is gone); `startProfiling` teardown ordering pinned by gzip-magic bytes on both profile files (flush-before-close) + empty-flags no-op in `cmd/cqrs-bench`; benchkit README + doc.go carry API tours for `benchkit.RunSuiteRepeated`, `benchkit.HeadlineMetricNames`, and the `ReservoirSize` config field; `benchmark-regression.sh`'s `noise_target_guard` greps are identifier-grade (`--exclude='*_test.go'` on all three) — test-file noise can no longer satisfy the guard. Config-war tripwire trio mutation-verified: planted `gci` in `.golangci.yml` → `#verify-fast` red, restore → green.
 
 ### Fixed
 
-- **`metaengine/tursoengine` binary garbage removed**: four accidental SQLite DB/WAL artifacts with control-character names (daemon-committed test droppings) deleted from the tree before the v4.15.0 cut — the zip-content guard would have rejected the tag; the `\006` pair already shipped inside published v4.14.0 (harmless, but bloats that zip).
-
+- **`storage/sql`: saving a zero checkpoint now DELETES the row (`SharedCheckpointSave`).** The schema declares `event_id NOT NULL`, but a zero `event.Checkpoint` serializes to SQL NULL (go-branded-id maps zero IDs to NULL), so `projectionhost.Host.Reset`'s checkpoint-clear — the documented Stop→Reset→Start rebuild recipe — failed with `NOT NULL constraint failed: checkpoints.event_id` against every SQL-backed store. Row absence is the canonical no-progress state (`SharedCheckpointLoad` already maps `ErrNoRows` to a zero checkpoint), so the round-trip stays consistent. Pinned by `TestSQLCheckpointStore_Save_ZeroCheckpointDeletes`; found by indexer-web's new projection-reset admin endpoint.
+- **`system.LoadConfig`: indexed instance env overrides actually apply (`CQRS_INSTANCES__<i>__<field>`).** Two bugs found by the new config-loader property tests (M17): (a) the documented `CQRS_INSTANCES__0__DURABILITY` override was silently dropped — koanf's env provider cannot index into slices, so the key never reached `[]InstanceConfig`; overrides now apply post-unmarshal (`applyIndexedInstanceEnvOverrides`) with loud errors for out-of-range indices and unknown fields (durability, role, engine supported). (b) Setting such a var CORRUPTED the YAML-loaded instances list — koanf merged the map-shaped `instances.<i>.<field>` key into the list and silently truncated it; the provider now excludes those vars. Pinned by table tests + three rapid properties (`YAMLRoundTrip`, `EnvBeatsYAML`, `IndexedInstanceOverride`).
+- **PostgreSQL schema setup is now advisory-lock serialized (M16.2 sweep).** Concurrent `CREATE TABLE IF NOT EXISTS` from parallel tests or multi-process rolling deploys intermittently collided in PostgreSQL's catalog (pg_type unique-index violations). `storage.PostgresInitSchema`, `pgengine` construction + planned-layout registration, and `claimkit`'s Postgres DDL now run inside one `pg_advisory_xact_lock(0x63717273)` transaction — all CQRS DDL on one database serializes against itself. Concurrent-construction regression tests in all three modules (8 racing constructors each) verified green against ephemeral PostgreSQL.
 - **Skill frontmatter bug**: the `go-cqrs-lite` skill's description contained an unquoted `: ` that breaks strict YAML frontmatter parsing — Crush silently stopped registering the skill. Quoted (byte-identical description); the user-level install is a symlink, so both installs heal.
 - **Canonical-facts drift**: go.mod citations updated to the gate-derived 98 (AGENTS/ROADMAP/FEATURES/module-map), the recipes claim to 84/84, the status live index regained 18 unindexed 09-22+ reports, the archived intro claim to the recounted 1,238, and a stale FAQ TOC anchor (`-legacy` suffix) — doc-check is green at 1,218 references.
 - **`mysqltestcontainer` skip latency**: no-Docker hosts now skip in milliseconds (socket dial check) and the container attempt is bounded to 25s (a wedged daemon burned ~60s per test binary before erroring into the skip).
 - **`cqrs-bench` README `--progress` default**: documented `0`, actual `5s` — fixed the row.
+- **Consumer README truth sweep (M13.2, gate-enforced)**: 1 broken ref (a removed `listing` aggregate-reader constructor → `listing.NewInMemoryStreamReader(store, opts...)`), 6 arity lies (`metaengine.ServeSSE` 3-arg form inside `HandlerFunc`, `eventtest` conformance calls minus the removed aggID arg, `stack`/`queue`/`readme-quickstart` fences missing scoping imports), and 4 ambiguous cross-refs disambiguated (core.md §ref pools named explicitly) — all found by the README doc-check corpus and fixed at the source.
+- **Build binaries dropped from the tree**: two ~8 MiB daemon-committed binaries (`catalog/cmd/ec-fixture/ec-fixture`, `catalog/cmd/catalog-export/catalog-export`) removed via `git rm` (they had already forced a tag-cleanup detour once) and `.gitignore`d; remaining G703 nolints relocated onto the actual `os.MkdirAll`/`os.WriteFile` sink lines with the call pre-wrapped (golines can no longer silently un-suppress by relocation).
 - **getting-started convergence failure message** now names the seam (double-apply vs pin drift vs load) instead of a bare "did not converge".
 - **Security**: `github.com/moby/go-archive` bumped to v0.3.0 in `queue/mysql` + `testutil/mysqltestcontainer` (the three open high Dependabot alerts).
 - **conformance tokens wart**: the vestigial `_ = subject` dropped; the lapsed-holder heartbeat assertion now names the task.
@@ -40,6 +47,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **`example/goal-shaped-app`: the materialized view is LIVE (M27).** The
+  demo's shipped `cqrs.yaml` now runs `driver: turso` with an active
+  `materialized_views: [{collection: tasks, fn: COUNT}]` entry against
+  published `tursoengine/v4.2.1` (sibling replace stripped, `go.sum`
+  resolved); `TestShippedConfigBoots` pins the shipped config byte-for-byte,
+  so the matview story the docs tell is now the config the app boots.
+- **Post-wave hygiene for the 2026-09-28 7-tag wave** (dispatcher/v4.5.0, middleware/v4.7.0, metaengine/v4.15.0, system/v4.10.0, event/v4.12.0, command/v4.12.0, query/v4.9.0 — all proxy-verified): full `pin-sweep.sh` bumped 7 consumers to the fresh tags with cqrs-lint goldens refreshed and per-module standalone verify; `system/integration`'s sibling replace for the deleted `storage/v4.10.0` tag stripped (its documented obsolescence condition is met — published system/v4.10.0 carries `storage/v4 v4.10.1`); `check-example-standalone.sh --build` green at 0 findings (taskmanager's dead `projectionhost→storage/v4.10.0` module-graph edge healed via MVS); `pin-sweep --check` fully green including the external leg after `cmd/cqrs-lint` bumped to the `go-finding` family wave (`go-finding`/`pipeline` v1.13.0 + `toolsdk` v1.13.1, additive `NotRequires`/`ModuleFanOut` — full cqrs-lint suite 19/19 green).
+- **md-go gate baseline pruned to the live 103**: the one inert entry (an archived command-side plan fence whose validation error vanished) removed via `--update-baseline`; the ghost ratchet keeps the file shrinking-only.
+- **pkg.go.dev hidden-docs policy recorded** (README License section + skill FAQ): the proprietary root license hides module documentation on pkg.go.dev BY DESIGN (verified 2026-09-25 on system/v4@v4.9.0; re-verified 2026-09-28 via benchkit's own-LICENSE counter-example — per-module LICENSE copies do not help). Use `go doc` locally; do not sweep LICENSE copies into module directories.
 - **`verify-ci`/`verify-parallel` run the go-version contract gate first** — a stale toolchain invalidates everything after it.
 - **`preflight-composed.sh` grew three phases** (go-version, turso-version, error-taxonomy — each seconds) so the composed-gate preflight catches contract drift before the expensive phases.
 - **CI: infra retry-once** on the DuckDB test + Dgraph integration legs (the transient-runner class); explicit queue/postgres matrix entry via `PG_MODULES` (verified green over live ephemeral PG); the tag-content train-section threshold is now a hard ERROR below 5 tags (calibrated: v4.7.0 legitimately shipped 9).
@@ -48,8 +64,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **ADR-0148 (benchmark gate semantics)** codifies the T18b campaign's four gate laws; the calibration doc gains the storm/reboot case-study appendix.
 - **F154 (BuildFlow go-directive downgrade)**: verified FIXED upstream (gvac v0.2.1 dep-forced floor contract, BuildFlow S87, 2026-09-25) — no filing needed; the installed PATH binary is stale, so the repo's `go-version-auto-configure` skip stands until `buildflow upgrade`.
 - **`nightly-bench.sh --self-test`** (composition checks: Sunday guard, delegation lines, timer units) wired into `#check-release-scripts` alongside `quiet-window-run`, `test-benchmark-regression`, the buildcache monitor, the changelog-coverage gate, and the proxy probe self-tests; restore-depguard's fixture now asserts the mutation landed before repairing.
-- **`middleware/v4.7.0`: one option universe (E6 unification).** `BundleOption` is a deprecated alias of `Option` (one config struct); `NewOTelBundle` takes `...Option` and `WithMetricsDisabled` returns `Option` — existing consumer signatures keep compiling through the alias.
-- **`event/v4.12.0` + `command/v4.12.0` + `query/v4.9.0`: middleware aliases unified on `dispatcher.Middleware`.** Their `Middleware` (and event's `PublishMiddleware`) types become aliases of the shared generic shape — no signature or behavior change; the releases exist so hermetic (`GOWORK=off`) consumers resolve `dispatcher/v4.5.0`.
 
 - **Skill: hard-requires the `system` + `metaengine` composition root.** The
   `go-cqrs-lite` skill now refuses to guide hand-wired `event`/`command`/
@@ -60,29 +74,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   an experimental-status notice. New negative/redirect trigger-eval cases were
   added. The evals themselves remain UNVALIDATED (no `claude` CLI in the
   authoring environment).
-- **example/mesh-demo: the multi-bounded-context proof.** Orders + billing
-  contexts, each owning its decider, events, and catalog declarations, wired
-  ONLY through a bilateral contract (`order.placed` →, `invoice.issued` ←).
-  Each context exports its own EventCatalog tree via headless flags
-  (`export -domain/-out/-skip-bootstrap/-plain`); both sides declare the
-  shared messages with explicit `Producers`/`Consumers` (an external producer
-  is honored by `catalog.ValidateCoeffects`), so either copy alone tells the
-  whole relationship and the federation hub's union-merge is lossless. Pinned
-  by tests: dangling-free coeffects per source, cross-domain round trip,
-  manifest union without ID collisions, both-copies-carry-both-sides.
-- **cqrs-lint: E019 `data-product-without-contract`.** The
-  `catalog.AddDataProduct` scanner now flags data products whose outputs
-  carry no `DataContract` (and output contracts referencing an undeclared
-  product). RULES.md regenerated; rule count 207 → 208.
-- **catalog/docserver: DataProduct rendering.** The EventCatalog docs UI now
-  lists data products in the overview and serves a detail page at
-  `/docs/eventcatalog/data-products/{id}` (owners, input ports, output ports
-  with contract paths). Three docserver tests pin the handler + rows.
 - **Skill references: the data-mesh cookbook.** recipes.md §2.41 "Declare
   data products + contracts end-to-end" (compile-verified fence) and
   advanced.md §6.21 "Data Products: Ports, Replication, and Contract
   Evolution" (journal-as-outbox input ports per ADR-0016/0146,
   ServeSSE/query output ports, upcasting-driven contract evolution).
+- **Release-tooling honesty fixes (M09 fallout).** `batch-release.sh
+  --smoke-all` was self-refusing 100% since the verify-lock landed (the
+  parent held the advisory flock; every spawned `tag-release.sh --smoke`
+  child re-acquired and was refused — verified by manual reproduction);
+  `--smoke-all` now takes no lock (read-only proxy probing, same exemption
+  class as `--audit`). `tag-release.sh`, `batch-release.sh`, `pin-sweep.sh`,
+  and `check-example-standalone.sh` self-source `scripts/go-env.sh` — their
+  go legs previously false-failed under the ambient host env
+  (`GOTOOLCHAIN=local`, 1.26.7: "go.mod requires go >= 1.27.1"), which also
+  made the standalone-example gate report 7/7 false failures.
 - **docs/MIGRATION-grpc-to-v5.md.** Consumer-facing gRPC removal guide:
   surface inventory, capability → HTTP/SSE/broker replacement table, and
   decision help; linked from transport/grpc's README and the FAQ (outcome
@@ -742,6 +748,95 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   helpers; `metaengine/typed_reader.go` (1127 — the largest file in the repo)
   split around `TypedReader` into reader core, scan, aggregates, grouped
   aggregates, scan options, and cursor files.
+
+## [catalog/v4.6.0, cmd/cqrs-lint/v4.13.0 — data-mesh federation surface] — 2026-09-29
+
+The data-mesh/federation wave: the EventCatalog exporter grows its governance + federation machinery, cqrs-lint gains the E019 contract-completeness rule. Both tags proxy-verified + smoke green; mesh-demo's pre-release sibling replace stripped (it builds standalone on published pins now), `cmd/cqrs-upgrade` + `example/goal-shaped-app` re-pinned, and the `check-example-standalone` audit is back at 0 findings.
+
+### Added
+
+- **catalog/eventcatalog: `catalog.index.json` export manifest.** Every
+  EventCatalog export now writes a machine-readable manifest to the export
+  root — one entry per exported resource (`id`, `kind`, `version`, `path`),
+  deterministically ordered (canonical kind order, then ID) so re-exporting
+  an unchanged catalog is byte-identical. Federation hubs diff manifests
+  between builds for cheap change detection and PR gates instead of walking
+  MDX frontmatter. Written after all resources, so it never describes a
+  half-written tree. Golden-pinned in
+  `catalog/testdata/golden/catalog-index-manifest.snap`.
+- **catalog/eventcatalog: `WithSkipBootstrapFiles` export option.** CI
+  exports for federation hubs can omit the generated `eventcatalog.config.js`
+  and `package.json` — the hub owns its own bootstrap files, and per-source
+  copies previously forced fragile first-wins merge semantics. Default
+  behavior is unchanged (local export directories stay directly buildable);
+  only the two bootstrap files are skipped, all content is byte-identical.
+- **catalog/eventcatalog: `WithPlainRefIDs` export option (governance
+  exports).** Default producer/consumer refs and channel message pointers
+  carry the composite `"<id>-<version>"` Astro entry IDs that
+  `@eventcatalog/core` resolves (its visualiser graph uses the same keys);
+  `@eventcatalog/linter` indexes by frontmatter ID and can never resolve
+  that form — which is why every hub ref flagged `refs/resource-exists`.
+  The option emits bare IDs (version stays a separate field) so the SAME
+  catalog can be exported twice: render the default tree, lint the plain
+  one. `check-eventcatalog` now render-validates both shapes AND runs the
+  linter on the plain profile with `refs/resource-exists`,
+  `best-practices/owner-required`, `best-practices/summary-required`,
+  `refs/file-exists`, and `structure/duplicate-resource-ids` all at error
+  severity — the rules the federation hub previously had to warn-suppress.
+- **catalog: `Flow.Owners`.** Flows were the only ownable resource without
+  an owners field; the registry copy and the exporter frontmatter now carry
+  it (emitted under `owners:`, matching every other kind — pinned by
+  `TestExporter_OwnersEmittedOnEveryOwnableKind`). The ec-fixture gained
+  owners/summaries on all owner-required resources, an `OrderItem` entity
+  (the Order aggregate referenced it without a declaration), and its data
+  product's `contracts/orders.yaml` file so `refs/file-exists` passes.
+- **catalog/docserver: DataProduct rendering.** The EventCatalog docs UI now
+  lists data products in the overview and serves a detail page at
+  `/docs/eventcatalog/data-products/{id}` (owners, input ports, output ports
+  with contract paths). Three docserver tests pin the handler + rows.
+- **cmd/cqrs-lint: E019 `data-product-without-contract`.** The
+  `catalog.AddDataProduct` scanner now flags data products whose outputs
+  carry no `DataContract` (and output contracts referencing an undeclared
+  product). RULES.md regenerated; rule count 207 → 208.
+- **example/mesh-demo: the multi-bounded-context proof.** Orders + billing
+  contexts, each owning its decider, events, and catalog declarations, wired
+  ONLY through a bilateral contract (`order.placed` →, `invoice.issued` ←).
+  Each context exports its own EventCatalog tree via headless flags
+  (`export -domain/-out/-skip-bootstrap/-plain`); both sides declare the
+  shared messages with explicit `Producers`/`Consumers` (an external producer
+  is honored by `catalog.ValidateCoeffects`), so either copy alone tells the
+  whole relationship and the federation hub's union-merge is lossless. Pinned
+  by tests: dangling-free coeffects per source, cross-domain round trip,
+  manifest union without ID collisions, both-copies-carry-both-sides.
+
+## [metaengine/tursoengine/v4.2.1] — 2026-09-29
+
+- **Re-cut over the deleted `v4.2.0` (repairs `@latest`).** `v4.2.0` froze ~8 MiB of daemon-committed binary junk in its tree (control-character SQLite artifacts); the tag was deleted before the proxy ingested it (`@v/v4.2.0.mod` 404s — no consumer ever received the junk), but with it gone, `@latest` still pointed at the poisoned entry. `v4.2.1` is the clean cut: vector surface + `SanitizeIdent` plumbing on `metaengine/v4.15.0` pins. Tag pushed, proxy-verified (`@latest` now resolves to `v4.2.1` with a real, clean zip), smoke green.
+
+## [watermill/v4.6.2] — 2026-09-29
+
+- **`watermill.MessageToEvent` silently corrupted bridged event payloads (consumer-impacting).** `msg.Payload` is Watermill's NAMED `message.Payload` type; passed through to `event.New` as-is it missed the `case []byte:` fast path in `marshalPayload` and fell into `DefaultCodec` (CBOR), which re-encoded the bytes as a CBOR byte string — first byte `0x40|len` (`P` for ≤23-byte payloads) followed by the original bytes — while `WithEncoding(codec.EncodingJSON)` still stamped the encoding label `json`. Every event crossing the Watermill bridge round-tripped with the wrong framing and a lying encoding stamp. The bridge now converts to the plain `[]byte` the `event.New` contract documents (`watermill/protocol.go`). Caught by the dedup-campaign verification tail: `TestRedisStreamRoundtrip`, `TestEventPublisher_RoundTripCBOR`, and `TestRoundTrip` were red in-tree and are green after the fix (offline suite + the ephemeral-Redis broker suite). Published `watermill/v4.6.1` carries the bug when paired with `event/v4.12.0` — re-tagged as `watermill/v4.6.2` (2026-09-29). Lesson for bridge authors: never pass a named `[]byte`-kind type into `event.New` — convert with `[]byte(v)`.
+
+## [event/v4.12.0, command/v4.12.0, query/v4.9.0, dispatcher/v4.5.0, middleware/v4.7.0, metaengine/v4.15.0, system/v4.10.0 — E15/E6 middleware unification + metaengine vector wave] — 2026-09-28
+
+Coordinated wave tagged 2026-09-28 05:04 UTC, all seven tags local+origin+proxy verified: `dispatcher/v4.5.0`, `event/v4.12.0`, `command/v4.12.0`, `query/v4.9.0`, `middleware/v4.7.0`, `metaengine/v4.15.0`, `system/v4.10.0`.
+
+### Added
+
+- **`dispatcher/v4.5.0`: the shared generic middleware shape.** `dispatcher.Middleware[H any]` is THE workspace-wide middleware type (E15 signature unification): one function value composes with every dispatcher and bus without adapters; `command.Middleware`, `event.Middleware`/`event.PublishMiddleware`, `query.Middleware`, and `middleware.Middleware` become aliases of it (pure aliasing — identical underlying func type, every existing signature and func value keeps compiling).
+- **`middleware/v4.7.0`: typed message kinds.** Exported `Kind` with `KindCommand`/`KindEvent`/`KindQuery` replaces the unexported `kindCommand`-style bare strings; `MessageAdapter.Kind` is now `Kind` (string-backed — log/SQL/OTel attribute output byte-identical; untyped string constants still assign, so custom adapters compile unchanged).
+- **`metaengine/v4.15.0`: vector + planned-tables surface.** Vector insert/scan promoted into the engine contract (`vector_insert.go`/`vector_scan.go`, shared `scan.go` hoisted out of per-engine copies), `PlannedBackfillResult` reporting per-collection backfill outcome, `ListPlannedTables`, and `AppendPlannedFilter`; planner options moved to `planner_options.go` (same package, zero signature changes); sqliteengine vector/graph/filter paths slimmed onto the shared implementation; `Store.QueryPlacements()` introspection accessor (one `QueryPlacement` per planned query, sorted — backs `system` introspection).
+- **`system/v4.10.0`: engine-independent core + query builders.** `NewEngineCheckpointStore(backend)` turns a `metaengine.MapBackend` into an `event.CheckpointStore`; new `query_builders.go` replaces the collapsed `query_constructors.go` list; engine requires dropped from go.mod — the system core no longer drags engine modules, and the engine-backed integration tests moved to the `systemtest` module (coverage preserved out-of-module).
+- **Engine-plumbing helpers + `benchkit.FirstAndLastSample` (repo-wide deduplication, 52→3 clone groups).** Shared engine mechanics move into core per contract #27: `metaengine.SanitizeIdent` (identifier sanitizing — mysql/pg/dgraph engines), `metaengine.GroupedAggregateScan` (grouped-aggregate drain — duckdb/sqlite), `metaengine.SyncWritesTier` (volatile+syncWrites durability tier — badger/pebble), `metaengine.AppendPlannedCursor`/`metaengine.AppendPlannedOrderLimit` (planned-scan cursor/order/limit SQL — mysql/pg), `metaengine.PairsToScanResult` (the SortPaginate tail: limit-truncate + hasMore + value collection — memory/bbolt/pebble KV scans), and `metaengine.TypeName` (nil-safe reflect type name; `EventTypeName` becomes a forwarder); `benchkit`'s `SoakResult.FirstAndLastSample` dedupes the first/last-sample extraction shared by soak reporting and `cqrs-bench`. Unexported consolidations ship in the same sweep: the plan-rule prologue (`eachDeclaredQuery`), SQL row draining (`drainQuery`), fold constructors (`foldPrelude`), cqrs-lint's pragma-evidence + ancestor-config walkers and `lintutil.IsContextType`, and `scanDeprecations` in cqrs-upgrade; ~25 further intentional-similarity groups carry `//art-dupl:accept` directives instead of forced abstraction. (benchkit's `FirstAndLastSample` export rides benchkit's NEXT tag — the module was not in this wave)
+
+### Fixed
+
+- **`metaengine/tursoengine` binary garbage removed**: four accidental SQLite DB/WAL artifacts with control-character names (daemon-committed test droppings) deleted from the tree before the v4.15.0 cut — the zip-content guard would have rejected the tag; the `\006` pair is frozen inside the deleted `v4.2.0` tag's tree, which the proxy never ingested (verified 2026-09-28: `@v/v4.2.0.mod` 404s and `metaengine/v4.14.0`'s published zip is clean — no consumer ever received the junk).
+
+### Changed
+
+- **`middleware/v4.7.0`: one option universe (E6 unification).** `BundleOption` is a deprecated alias of `Option` (one config struct); `NewOTelBundle` takes `...Option` and `WithMetricsDisabled` returns `Option` — existing consumer signatures keep compiling through the alias.
+- **`event/v4.12.0` + `command/v4.12.0` + `query/v4.9.0`: middleware aliases unified on `dispatcher.Middleware`.** Their `Middleware` (and event's `PublishMiddleware`) types become aliases of the shared generic shape — no signature or behavior change; the releases exist so hermetic (`GOWORK=off`) consumers resolve `dispatcher/v4.5.0`.
 
 ## [system/v4.9.0, record/v4.6.0, projectionhost/v4.5.1, scheduling/sqlstore/v4.1.1] — 2026-09-21
 

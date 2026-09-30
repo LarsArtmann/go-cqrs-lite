@@ -125,10 +125,11 @@ func (e *duckdbEngine) VectorSearch(
 		return nil, fmt.Errorf("duckdbengine.VectorSearch: marshal query: %w", err)
 	}
 
-	rows, err := e.conn(ctx).QueryContext(ctx,
+	rows, err := e.conn(ctx).QueryContext(ctx, //nolint:rowserrcheck
 		"SELECT id, "+duckdbDistanceExpr(metric, len(query))+" AS d FROM meta_vector "+
 			"WHERE collection = ? ORDER BY d LIMIT ?",
 		string(queryJSON), collection, k)
+	//art-dupl:accept SQL vector-search head pair — cross-module engine idiom, dep-isolated go.mod
 	if err != nil {
 		return nil, fmt.Errorf("duckdbengine.VectorSearch: %w", err)
 	}

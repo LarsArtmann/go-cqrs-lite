@@ -165,6 +165,14 @@
           };
           deps = preparedDeps;
           subModules = preparedSubModules;
+          # cqrs-lint v4.13.0 gained public proxy-served deps (go-etag
+          # submodules, go-sqlitestore) — exclude them from private-dep
+          # validation (option 3 of the mkPreparedSource error guidance).
+          publicDeps = [
+            "github.com/larsartmann/go-etag/entitytag"
+            "github.com/larsartmann/go-etag/server"
+            "github.com/larsartmann/go-sqlitestore"
+          ];
         };
 
       # Prepared source for the md-go-validator docs gate binary.
@@ -847,7 +855,7 @@
 
               src = mkCqrsLintSource pkgs;
 
-              vendorHash = "sha256-De0v4pULiOcSS3ZEclwIbWh3IMeOQuLR4uL4MWEVuCc=";
+              vendorHash = "sha256-YHWDwUiUNwWEtnInfnqjWGfD5ljMqJN5pFVjNTMPihA=";
               proxyVendor = true;
 
               subPackages = [ "." ];
@@ -902,7 +910,9 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              vendorHash = "sha256-UNtccRM3x2dXVt18MiObqThfkGZpjwrF0JmA+Q2eTUs=";
+              # Re-pinned 2026-09-29: the prepared-deps replace set (go-finding
+              # family wave) shifted the module graph under the pinned rev.
+              vendorHash = "sha256-pRrHMB8ZRMS8wAoPAbDd1uvnsd/JOtB6ve7ob9ioKkE=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
@@ -1594,6 +1604,22 @@
                   bash "$PWD/scripts/ephemeral-redis.sh" "$@"
                 '';
 
+            # Ephemeral NATS JetStream broker (nixpkgs, no Docker/VM) for the
+            # watermill adapter tests (TestNatsJetStreamRoundtrip + the NATS
+            # broker-edge suite). Mirrors .#integration-redis.
+            # Usage: nix run .#integration-nats
+            #        nix run .#integration-nats -- go test -C watermill -run TestNats ./...
+            integration-nats =
+              mkApp "integration-nats"
+                [
+                  goPkg
+                  pkgs.nats-server
+                ]
+                ''
+                  export CGO_ENABLED=1
+                  bash "$PWD/scripts/ephemeral-nats.sh" "$@"
+                '';
+
             # NixOS VM integration tests — boot a QEMU VM with the database
             # service, forward the port, run Go tests on the host.
             # Hermetic, reproducible, cached by Nix. Requires x86_64-linux + KVM.
@@ -1790,7 +1816,7 @@
                   echo "=== API Stability ===" && nix run .#check-api-stability && \
                   echo "=== Check Error Taxonomy ===" && nix run .#check-error-taxonomy && \
                   echo "=== Check md-go ===" && nix run .#check-md-go && \
-                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
+                  echo "=== Doc Check ===" && (cd cmd/doc-check && GOWORK=off ${goPkg}/bin/go run . ../../SKILL.md ../../.agents/skills/go-cqrs-lite/references/*.md ../../AGENTS.md ../../README.md ../../*/README.md ../../*/*/README.md ../../*/*/*/README.md ../../TODO_LIST.md ../../ROADMAP.md ../../FEATURES.md ../../CONTRIBUTING.md ../../docs/DOMAIN_LANGUAGE.md ../../docs/METAENGINE_DOMAIN_LANGUAGE.md) && \
                   echo "✅ All verification checks passed"
                 '';
 
@@ -1805,6 +1831,9 @@
                 ../../.agents/skills/go-cqrs-lite/references/*.md \
                 ../../AGENTS.md \
                 ../../README.md \
+                ../../*/README.md \
+                ../../*/*/README.md \
+                ../../*/*/*/README.md \
                 ../../TODO_LIST.md \
                 ../../ROADMAP.md \
                 ../../FEATURES.md \

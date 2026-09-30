@@ -6,9 +6,10 @@ import (
 	"sync"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // CommandSubscriberAdapter wraps a go-cqrs-lite command.Subscriber as a
@@ -62,9 +63,7 @@ func (a *CommandSubscriberAdapter) Subscribe(
 
 	//cqrs-lint:ignore(C027) library code or intentional pattern
 	if err := a.subscriber.Subscribe(command.Type(topic), handler); err != nil {
-		return nil, errorfamily.WrapInfrastructure(
-			err, "watermill.subscribe_failed", "subscribe to "+topic,
-		)
+		return nil, wrapSubscribeError(err, topic)
 	}
 
 	registerSubscriberHandler(&a.handlersMu, a.handlers, topic, handler)

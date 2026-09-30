@@ -37,6 +37,8 @@ type CreateUser struct {
 }
 
 // 3. Wire: store + bus + decider → repository
+import "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+
 store := memory.NewMemoryStore()
 bus   := cqrswatermill.NewEventBus()
 repo, _ := decider.NewRepository(store, bus, d)
