@@ -38,6 +38,7 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 ## Section index
 
 [Legend](#legend) ·
+[GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
 [Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
@@ -77,6 +78,49 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
   was observed (numbers, commands, links) — verdicts like "confirmed / stale
   claim / already fixed" never live only in chat or session reports. Four
   stale claims were killed this way in one session; keep the discipline.
+
+---
+
+## GitHub issue backlog (2026-09-30 plan)
+
+> All 10 open issues reviewed and verified against master HEAD (`004298c1a`)
+> on 2026-09-30. Execution plan (27 tasks / 88 fine tasks, Pareto waves):
+> [`docs/planning/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html`](docs/planning/2026-09-30_14-28_SUPERB-github-issue-backlog-pareto-plan.html)
+> (graph: [`.d2`](docs/planning/2026-09-30_14-28_github-issue-plan.d2)).
+> Rows below are the living source; the plan is the point-in-time snapshot.
+
+- [ ] 🔥 **W1 — consumer unblock (the 1%):** #26 retract `stack/postgres/v4
+      v4.2.0` (no retract directive as of 2026-09-30) + #21 finish watermill
+      wire fix (typed `Causation` is fixed on master but UNRELEASED — v4.6.2
+      lacks it; scalar `CausationID`/`CorrelationID` still never written by
+      `eventToMessage`) + one release wave (watermill v4.7.0,
+      stack/postgres v4.4.2). — issues #21 #26 _(Effort: M, release mechanics)_
+- [ ] 🔥 **W0 — close #25:** requested tag `metaengine/projectionadapter/v4.5.0`
+      ALREADY EXISTS on remote (`8c87c48a6`, verified 2026-09-30) — verify
+      `OccurredAt` in tag, comment receipt, close. — issue #25 _(Effort: XS)_
+- [ ] **W2 — linter trust (the 4%):** #42 port CLI's none-import guard into
+      `toolspec.detect` (guard lives only at `cmd/cqrs-lint/run.go:326`;
+      provider path lints non-consumers, verified) + #43 D005 stops treating
+      the first version token on a go-cqrs-lite line as the doc's version
+      claim (`d003_d005.go:279` still `versions[0]`; positional-attachment
+      rule proposed). — issues #42 #43 _(Effort: S each)_
+- [ ] **W3 — consumer features (the 20%):** #32 `EventAdapter.LoadByEventID`
+      via `EventByIDBackend` capability (storage side exists; lost in wrapper
+      layer) · #35 ship `RequestContextEnricher` + shared context keys
+      (cqrs-htmx hand-rolls one today) · #27 committed module → latest-tag
+      manifest (versions.json) + tag-push CI + README matrix · #28 document
+      the consumer upgrade sweep pattern + bless `cmd/cqrs-upgrade` (exists,
+      tagged v4.0.0 2026-09-07 — ask reduces to docs). — issues #32 #35 #27
+      #28 _(Effort: M each)_
+- [ ] **W4 — structural tail:** #36 move `WithMetaEngine` + Bundle
+      registration into a `stack/metaengine` module (4 root files import
+      metaengine: options/bundle/accessors/materialize); deprecated root
+      forwarders until v5; full new-module gate sweep + hermetic
+      metaengine-free-graph probe. — issue #36 _(Effort: L)_
+- [ ] [BLOCKED] **#27 ask-3 (owner):** CI annotation of modules whose master
+      HEAD is ahead of their latest tag (helps consumers judge `replace`-to-
+      master pins). Deferred behind the manifest; needs owner nod on CI noise
+      budget. — issue #27 item 3 _(Effort: S)_
 
 ---
 
