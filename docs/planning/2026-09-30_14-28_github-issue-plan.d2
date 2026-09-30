@@ -1,0 +1,65 @@
+direction: right
+
+W0: Verify & Triage {
+  T01: "T01 close #25\n(tag v4.5.0 already exists)"
+}
+
+W1: "Wave 1 - Consumer unblock (1% -> 51%)" {
+  T02: "T02 #26 retract\nstack/postgres v4.2.0"
+  T03: "T03 #21 write scalar\nCorrelationID/CausationID"
+  T04: "T04 #21 parse precedence\n+ round-trip tests"
+  T05: "T05 #21 backward-compat\ntests"
+  T06: "T06 CHANGELOG entries"
+  T07: "T07 release wave:\nwatermill v4.7.0 + stack/postgres v4.4.2"
+  T08: "T08 close #21 + #26"
+
+  T03 -> T04: scalar keys on wire
+  T04 -> T05
+  T02 -> T07: rides tag
+  T05 -> T07
+  T06 -> T07
+  T07 -> T08: receipts
+}
+
+W2: "Wave 2 - Linter trust (4% -> 64%)" {
+  T09: "T09 #42 none-import\nguard in toolspec"
+  T10: "T10 #42 fixture test\n+ close"
+  T11: "T11 #43 D005 positional\nattachment rule"
+  T12: "T12 #43 FP-sentence tests"
+  T13: "T13 #43 verify + close"
+
+  T09 -> T10
+  T11 -> T12 -> T13
+}
+
+W3: "Wave 3 - Consumer features (20% -> 80%)" {
+  T14: "T14 #32 EventByIDBackend\ncapability"
+  T15: "T15 #32 fallback + tests"
+  T16: "T16 #32 verify + docs + close"
+  T17: "T17 #35 context keys +\nRequestContextEnricher"
+  T18: "T18 #35 enricher tests"
+  T19: "T19 #35 docs + close"
+  T20: "T20 #27 versions.json\ngenerator"
+  T21: "T21 #27 CI + README matrix"
+  T22: "T22 #27 docs + close"
+  T23: "T23 #28 upgrade-pattern docs"
+  T24: "T24 #28 bless cqrs-upgrade + close"
+
+  T14 -> T15 -> T16
+  T17 -> T18 -> T19
+  T20 -> T21 -> T22
+  T23 -> T24
+}
+
+W4: "Wave 4 - Structural tail (-> 100%)" {
+  T25: "T25 #36 stack/metaengine\nmodule split"
+  T26: "T26 #36 gates + golden\nregen"
+  T27: "T27 #36 hermetic probe\n+ docs + close"
+
+  T25 -> T26 -> T27
+}
+
+W0 -> W1
+W1 -> W2: linter fixes independent, can overlap
+W2 -> W3
+W3 -> W4
