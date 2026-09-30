@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/kv/v4"
