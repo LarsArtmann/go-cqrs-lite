@@ -668,6 +668,7 @@ cmd/cqrs-lint/pkg/analyzer/func LoadProjectConfig
 cmd/cqrs-lint/pkg/analyzer/func NewCQRSRegistry
 cmd/cqrs-lint/pkg/analyzer/func ReceiverIsEventBus
 cmd/cqrs-lint/pkg/analyzer/func ReceiverTypeName
+cmd/cqrs-lint/pkg/analyzer/func ResolveEmittedEventTypeConsts
 cmd/cqrs-lint/pkg/analyzer/func ResolveFeatureProfile
 cmd/cqrs-lint/pkg/analyzer/func ResolveHandlerMethods
 cmd/cqrs-lint/pkg/analyzer/func ResolvePreset
@@ -2782,6 +2783,7 @@ metaengine/func EncodeVectorF32
 metaengine/func EngineVersionsCells
 metaengine/func EvalFilterOp
 metaengine/func EventTypeName
+metaengine/func ExecDDLLocked
 metaengine/func ExecuteTyped
 metaengine/func ExecuteTypedByName
 metaengine/func ExtractFields
