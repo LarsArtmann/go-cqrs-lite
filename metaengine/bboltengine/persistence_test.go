@@ -4,9 +4,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	. "github.com/onsi/gomega"
 	bolt "go.etcd.io/bbolt"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 )
 
 func TestBboltPersistence_InMemoryIsVolatile(t *testing.T) {

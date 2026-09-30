@@ -7,8 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/onsi/gomega"
+
+	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // TestPebbleLayoutPlanner_EmptyFilterResults verifies that a filter matching

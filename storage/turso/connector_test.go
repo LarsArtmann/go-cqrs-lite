@@ -5,8 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/storage/turso/v4"
 )
 
 func TestOpenSync_MemoryWithRemote(t *testing.T) {

@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/larsartmann/go-cqrs-lite/command/v4"
-	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+
+	"github.com/larsartmann/go-cqrs-lite/command/v4"
+	"github.com/larsartmann/go-cqrs-lite/id/v4"
 )
 
 // BenchmarkOTelBundle_CommandOverhead measures the per-command cost of the
