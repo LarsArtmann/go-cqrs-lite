@@ -191,5 +191,14 @@ func correctnessRulesPart2() []RuleInfo {
 			Description: "Save called with expectedVersion=0 — optimistic concurrency bypassed for this write",
 			AutoFix:     false,
 		},
+		{
+			ID:          "C043",
+			Name:        "named-byte-slice-payload",
+			Category:    "correctness",
+			Severity:    "warning",
+			Confidence:  "high",
+			Description: "Named []byte type passed as event.New payload — codec-encoded instead of used directly (the direct-use fast path matches only unnamed []byte and jsontext.Value)",
+			AutoFix:     false,
+		},
 	}
 }

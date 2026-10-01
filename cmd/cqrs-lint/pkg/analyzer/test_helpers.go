@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"go/types"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -139,6 +140,10 @@ func BuildContextWithTypes(
 
 	for filename, content := range sources {
 		fullPath := dir + "/" + filename
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", filepath.Dir(fullPath), err)
+		}
+
 		if err := os.WriteFile(fullPath, []byte(content), 0o644); err != nil {
 			t.Fatalf("write %s: %v", fullPath, err)
 		}

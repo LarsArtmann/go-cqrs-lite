@@ -1000,6 +1000,7 @@ github.com/larsartmann/go-datastar/static v0.1.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5
 github.com/larsartmann/go-datastar/static v0.2.0/go.mod h1:Mkt7d9FrtMiiT3bGpJv+5RRX4+5x1/gJv9YWuFlWaD4=
 github.com/larsartmann/go-datastar/static v0.5.0/go.mod h1:J5d13HKqAKSH67hTgOcGTQQtv8UXmm5jm5tcM4+/tnM=
 github.com/larsartmann/go-datastar/static v0.6.0/go.mod h1:t981dvnOKLlKU/Bo8BXlQSgwnifi18t+qtOkFNPfba8=
+github.com/larsartmann/go-error-family v0.10.1/go.mod h1:SYSVwVMTkw2GcqXI4khjMYOg7ey39o8sh7rXC9LfNcY=
 github.com/larsartmann/go-output v0.38.1/go.mod h1:E8cCAWWBcND96zqS3Fc0jhRDmyjz43SPXrVNF5Qcg34=
 github.com/larsartmann/go-output/escape v0.38.1/go.mod h1:q4RijNjIZSffgE1Z7vCn9NaP2Zf8y4t02Re6wXl0tZ8=
 github.com/larsartmann/go-sse v0.2.0/go.mod h1:qFY1CWP8caGmjKwKG4JqNn5tfFRqU5yQGx3xUQ1tGj4=
