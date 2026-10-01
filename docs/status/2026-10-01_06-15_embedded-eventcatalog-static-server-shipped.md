@@ -25,50 +25,50 @@ the final README note was re-checked only after the report request.
 
 ## 1. FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | `StaticServer` + `Handler()` implemented | `catalog/eventcatalog/server.go` (263 lines, ≤350) |
-| 2 | `NewStaticServer(fsys, opts...)` with nil-FS → Rejection error | `server.go:71`, `TestNewStaticServerRejectsNilFS` |
-| 3 | Directory index routing (`/docs/foo/`) | `TestStaticServerRouting/directory_index` |
-| 4 | Canonical trailing-slash 301 (`/docs/foo` → `/docs/foo/`) | `resolveFile`/`redirectTarget`, routing test |
-| 5 | Extensionless `.html` resolution (`/legacy` → `legacy.html`) | routing test |
-| 6 | Custom `404.html` served at 404; plain-text fallback | `serveNotFound`, `TestStaticServerOptions/custom_not-found_file` |
-| 7 | No directory listings | `/docs` (dir without index) → 404 test |
-| 8 | Traversal rejection (`/docs/../404.html`) | `hasDotDotSegment`, routing test |
-| 9 | GET/HEAD only; 405 + `Allow` otherwise | `TestStaticServerRejectsNonGET` |
-| 10 | HEAD has no body | `TestStaticServerHeaders/head_has_no_body` |
-| 11 | `_astro/` → `Cache-Control: immutable`; HTML → `no-cache` | headers tests |
-| 12 | Content-Type by extension (HTML/JS/JSON) | headers tests |
-| 13 | Options: `WithNotFoundFile`, `WithImmutableAssetPrefixes` | `options` tests |
-| 14 | `//go:embed` end-to-end test | `server_embed_test.go` + `testdata/site/` |
-| 15 | **Real-build verification** against the render gate's `dist/` | see §8 receipts |
-| 16 | `doc.go` cross-reference to `NewStaticServer` | `catalog/eventcatalog/doc.go` |
-| 17 | `catalog/README.md` "Serving an embedded catalog" section | `catalog/README.md` |
-| 18 | `catalog/AGENTS.md` maintainer note (why `eventcatalog`, not `docserver`) | `catalog/AGENTS.md` |
-| 19 | Skill recipe §2.9 (compile-verified fence) + catalog entry | `recipes.md`, `recipes_catalog.go` |
-| 20 | CHANGELOG `[Unreleased] ### Added` entry | `CHANGELOG.md` |
-| 21 | API golden regenerated (7530 exports) | `docs/api_surface.txt` |
-| 22 | `golangci-lint` clean (fixed errcheck ×2, gosec G710, modernize/slicescontains) | 0 issues |
-| 23 | `go vet`, `gofmt`, `goimports -local`, `gofumpt` clean | no output |
-| 24 | File-size ratchet green; check-arch green (no new deps) | §8 |
-| 25 | Recipe coverage + compile gates green | §8 |
-| 26 | doc-check green on README/AGENTS/recipes | 801 refs valid |
+| #  | Item                                                                            | Evidence                                                         |
+| -- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1  | `StaticServer` + `Handler()` implemented                                        | `catalog/eventcatalog/server.go` (263 lines, ≤350)               |
+| 2  | `NewStaticServer(fsys, opts...)` with nil-FS → Rejection error                  | `server.go:71`, `TestNewStaticServerRejectsNilFS`                |
+| 3  | Directory index routing (`/docs/foo/`)                                          | `TestStaticServerRouting/directory_index`                        |
+| 4  | Canonical trailing-slash 301 (`/docs/foo` → `/docs/foo/`)                       | `resolveFile`/`redirectTarget`, routing test                     |
+| 5  | Extensionless `.html` resolution (`/legacy` → `legacy.html`)                    | routing test                                                     |
+| 6  | Custom `404.html` served at 404; plain-text fallback                            | `serveNotFound`, `TestStaticServerOptions/custom_not-found_file` |
+| 7  | No directory listings                                                           | `/docs` (dir without index) → 404 test                           |
+| 8  | Traversal rejection (`/docs/../404.html`)                                       | `hasDotDotSegment`, routing test                                 |
+| 9  | GET/HEAD only; 405 + `Allow` otherwise                                          | `TestStaticServerRejectsNonGET`                                  |
+| 10 | HEAD has no body                                                                | `TestStaticServerHeaders/head_has_no_body`                       |
+| 11 | `_astro/` → `Cache-Control: immutable`; HTML → `no-cache`                       | headers tests                                                    |
+| 12 | Content-Type by extension (HTML/JS/JSON)                                        | headers tests                                                    |
+| 13 | Options: `WithNotFoundFile`, `WithImmutableAssetPrefixes`                       | `options` tests                                                  |
+| 14 | `//go:embed` end-to-end test                                                    | `server_embed_test.go` + `testdata/site/`                        |
+| 15 | **Real-build verification** against the render gate's `dist/`                   | see §8 receipts                                                  |
+| 16 | `doc.go` cross-reference to `NewStaticServer`                                   | `catalog/eventcatalog/doc.go`                                    |
+| 17 | `catalog/README.md` "Serving an embedded catalog" section                       | `catalog/README.md`                                              |
+| 18 | `catalog/AGENTS.md` maintainer note (why `eventcatalog`, not `docserver`)       | `catalog/AGENTS.md`                                              |
+| 19 | Skill recipe §2.9 (compile-verified fence) + catalog entry                      | `recipes.md`, `recipes_catalog.go`                               |
+| 20 | CHANGELOG `[Unreleased] ### Added` entry                                        | `CHANGELOG.md`                                                   |
+| 21 | API golden regenerated (7530 exports)                                           | `docs/api_surface.txt`                                           |
+| 22 | `golangci-lint` clean (fixed errcheck ×2, gosec G710, modernize/slicescontains) | 0 issues                                                         |
+| 23 | `go vet`, `gofmt`, `goimports -local`, `gofumpt` clean                          | no output                                                        |
+| 24 | File-size ratchet green; check-arch green (no new deps)                         | §8                                                               |
+| 25 | Recipe coverage + compile gates green                                           | §8                                                               |
+| 26 | doc-check green on README/AGENTS/recipes                                        | 801 refs valid                                                   |
 
 ---
 
 ## 2. PARTIALLY DONE
 
-| # | Item | What's missing |
-|---|------|----------------|
-| 1 | Gate coverage | Did **not** run the composed `nix run .#verify` (exclusive, ~full workspace); ran targeted gates only. |
-| 2 | md-go gate | Could only run the **host** `md-go-validator` (rev `c541a5e`), not the flake pin (`7b677c5`) — the pin's FOD fails on `vendorHash` mismatch. Results are advisory. |
-| 3 | Real-dist coverage | Verified against **one** real build (default fixture profile). The changelog profile and the plain-refs profile were not served. |
-| 4 | Base-path mounting | Documented "mount at root (Astro root-absolute URLs)"; no `StripPrefix`/base-path support or test. |
-| 5 | Client-side routes | Did not probe EventCatalog's deep client routes (visualiser/client nav) for a static-hosting 404 edge case. |
-| 6 | HTTP correctness breadth | No conditional-request / range / gzip / `HEAD`-with-`Content-Length` tests. |
-| 7 | Example module | No self-contained `example/` app demonstrating embed; only tests + README/recipe. |
-| 8 | Integration with `docserver` | No helper to mount the static site alongside `DocsServer` (deliberately decoupled; documented). |
-| 9 | Fixture provenance | Fixture is hand-written minimal HTML, not a slice of a real build (kept small on purpose). |
+| # | Item                         | What's missing                                                                                                                                                     |
+| - | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | Gate coverage                | Did **not** run the composed `nix run .#verify` (exclusive, ~full workspace); ran targeted gates only.                                                             |
+| 2 | md-go gate                   | Could only run the **host** `md-go-validator` (rev `c541a5e`), not the flake pin (`7b677c5`) — the pin's FOD fails on `vendorHash` mismatch. Results are advisory. |
+| 3 | Real-dist coverage           | Verified against **one** real build (default fixture profile). The changelog profile and the plain-refs profile were not served.                                   |
+| 4 | Base-path mounting           | Documented "mount at root (Astro root-absolute URLs)"; no `StripPrefix`/base-path support or test.                                                                 |
+| 5 | Client-side routes           | Did not probe EventCatalog's deep client routes (visualiser/client nav) for a static-hosting 404 edge case.                                                        |
+| 6 | HTTP correctness breadth     | No conditional-request / range / gzip / `HEAD`-with-`Content-Length` tests.                                                                                        |
+| 7 | Example module               | No self-contained `example/` app demonstrating embed; only tests + README/recipe.                                                                                  |
+| 8 | Integration with `docserver` | No helper to mount the static site alongside `DocsServer` (deliberately decoupled; documented).                                                                    |
+| 9 | Fixture provenance           | Fixture is hand-written minimal HTML, not a slice of a real build (kept small on purpose).                                                                         |
 
 ---
 
@@ -92,14 +92,14 @@ the final README note was re-checked only after the report request.
 
 No breakage; honest sloppiness ledger:
 
-| # | Sloppiness | Impact |
-|---|-----------|--------|
-| 1 | **First fixture lived at `testdata/dist/`** — the global gitignore ignores `dist/`, so the embed test would have passed locally but been untracked/broken in CI. Caught only at final `git status`, renamed to `testdata/site/`. | High if shipped; caught. |
-| 2 | **Ran the render gate via raw `bash scripts/…` (previous session) and this session's md-go via host binary** rather than the Nix app. | Medium — not the canonical invocation. |
-| 3 | **Recipe compile first reported "(cached)"** after a doc edit; had to force `-count=1` because Go's test cache does not track the external `recipes.md`. | Low; re-ran correctly. |
-| 4 | **Pinned md-go gate cannot build** (`vendorHash` mismatch in md-go-validator's own flake). Job wasted ~a minute; left the gate's true state unknown. | Medium — external blocker, but I did not triage the hash. |
-| 5 | **Last README edit (gitignore note) was re-checked only after this report was requested**, not immediately. | Low — doc-check re-run green (801 refs). |
-| 6 | **Unrelated md-go red on master** (archived fence unbaselined) + I annotated a live §2.42 snippet; both pre-existing, neither caused by this feature. I did not fully root-cause the archived entry. | Medium — the gate stays red and I cannot pin-verify a fix. |
+| # | Sloppiness                                                                                                                                                                                                                       | Impact                                                     |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1 | **First fixture lived at `testdata/dist/`** — the global gitignore ignores `dist/`, so the embed test would have passed locally but been untracked/broken in CI. Caught only at final `git status`, renamed to `testdata/site/`. | High if shipped; caught.                                   |
+| 2 | **Ran the render gate via raw `bash scripts/…` (previous session) and this session's md-go via host binary** rather than the Nix app.                                                                                            | Medium — not the canonical invocation.                     |
+| 3 | **Recipe compile first reported "(cached)"** after a doc edit; had to force `-count=1` because Go's test cache does not track the external `recipes.md`.                                                                         | Low; re-ran correctly.                                     |
+| 4 | **Pinned md-go gate cannot build** (`vendorHash` mismatch in md-go-validator's own flake). Job wasted ~a minute; left the gate's true state unknown.                                                                             | Medium — external blocker, but I did not triage the hash.  |
+| 5 | **Last README edit (gitignore note) was re-checked only after this report was requested**, not immediately.                                                                                                                      | Low — doc-check re-run green (801 refs).                   |
+| 6 | **Unrelated md-go red on master** (archived fence unbaselined) + I annotated a live §2.42 snippet; both pre-existing, neither caused by this feature. I did not fully root-cause the archived entry.                             | Medium — the gate stays red and I cannot pin-verify a fix. |
 
 ---
 

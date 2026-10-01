@@ -64,7 +64,8 @@ var _ = Describe("Embedded EventCatalog server", func() {
 		})
 
 		Describe("routing GET requests to the built site", func() {
-			DescribeTable("resolving a request path",
+			DescribeTable(
+				"resolving a request path",
 				func(target string, wantStatus int, wantBody, wantLocation string) {
 					rec := request(http.MethodGet, target)
 
@@ -78,7 +79,13 @@ var _ = Describe("Embedded EventCatalog server", func() {
 				Entry("serves an explicit index", "/index.html", http.StatusOK, homeMarker, ""),
 				Entry("serves a directory index", "/docs/foo/", http.StatusOK, fooMarker, ""),
 				Entry("serves an extensionless page", "/legacy", http.StatusOK, legacyMarker, ""),
-				Entry("serves an explicit html page", "/legacy.html", http.StatusOK, legacyMarker, ""),
+				Entry(
+					"serves an explicit html page",
+					"/legacy.html",
+					http.StatusOK,
+					legacyMarker,
+					"",
+				),
 				Entry(
 					"redirects a slash-less directory to its canonical URL",
 					"/docs/foo", http.StatusMovedPermanently, "", "/docs/foo/",
@@ -147,7 +154,8 @@ var _ = Describe("Embedded EventCatalog server", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				rec := httptest.NewRecorder()
-				configured.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/nope", nil))
+				configured.Handler().
+					ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/nope", nil))
 
 				Expect(rec.Code).To(Equal(http.StatusNotFound))
 				Expect(rec.Body.String()).To(ContainSubstring("404 page not found"))

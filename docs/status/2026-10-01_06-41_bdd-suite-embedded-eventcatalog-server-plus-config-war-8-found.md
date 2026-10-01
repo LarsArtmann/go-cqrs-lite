@@ -15,19 +15,19 @@
 
 ## Session at a glance
 
-| Area | Result |
-| ---- | ------ |
-| BDD suite for `StaticServer` | ✅ DONE (18 specs, green) |
-| Plain tests replaced by BDD suite | ✅ DONE (2 files removed) |
-| `catalog/AGENTS.md` maintainer note | ✅ DONE (uncommitted in worktree) |
-| `go test ./eventcatalog/...` | ✅ green (18/18) |
-| `go test ./...` (catalog module) | ✅ green |
-| `golangci-lint` on new files | ✅ clean |
-| file-size ratchet | ✅ clean |
-| api-stability golden | ✅ unchanged (7530 exports) |
-| `nix run .#lint` (repo-wide) | ❌ RED — foreign cause (config-war #8) |
-| `nix run .#verify` / `#verify-fast` | ⬜ NOT RUN |
-| `check-duplication`, `-race`, `check-md-go` | ⬜ NOT RUN |
+| Area                                        | Result                                 |
+| ------------------------------------------- | -------------------------------------- |
+| BDD suite for `StaticServer`                | ✅ DONE (18 specs, green)              |
+| Plain tests replaced by BDD suite           | ✅ DONE (2 files removed)              |
+| `catalog/AGENTS.md` maintainer note         | ✅ DONE (uncommitted in worktree)      |
+| `go test ./eventcatalog/...`                | ✅ green (18/18)                       |
+| `go test ./...` (catalog module)            | ✅ green                               |
+| `golangci-lint` on new files                | ✅ clean                               |
+| file-size ratchet                           | ✅ clean                               |
+| api-stability golden                        | ✅ unchanged (7530 exports)            |
+| `nix run .#lint` (repo-wide)                | ❌ RED — foreign cause (config-war #8) |
+| `nix run .#verify` / `#verify-fast`         | ⬜ NOT RUN                             |
+| `check-duplication`, `-race`, `check-md-go` | ⬜ NOT RUN                             |
 
 ---
 
@@ -42,6 +42,7 @@ Ginkgo + Gomega BDD across ~11 modules (`event`, `command`, `query`, `decider`,
 `metaengine`) — so this was applying an existing convention, not inventing one.
 
 Conventions adopted from the skill + repo:
+
 - **Black-box** `package eventcatalog_test`.
 - **One bootstrap per package** with `RegisterFailHandler(Fail)` + `RunSpecs`.
 - **Fresh subject per spec** — server rebuilt in `BeforeEach`, never shared.
@@ -105,23 +106,23 @@ is flagged as a question in (g).** Confirmed committed by the daemon
 
 ### 5. Verification run (green legs)
 
-| Gate | Command | Result |
-| ---- | ------- | ------ |
-| Package tests | `cd catalog && GOWORK=off go test ./eventcatalog/... -count=1` | ✅ ok |
-| Spec count | `... -v` | ✅ **Ran 18 of 18 Specs, SUCCESS** |
-| Module tests | `cd catalog && GOWORK=off go test ./... -count=1` | ✅ all packages ok |
-| Lint (new files) | `golangci-lint run ./eventcatalog/...` | ✅ new files not flagged |
-| Format | `gofumpt -l`, `goimports -local … -l` | ✅ no output |
-| File size | `bash scripts/check-file-size.sh` | ✅ no new offenders |
-| API golden | `cmd/api-stability && go run .` | ✅ 7530 exports verified |
-| Dangling refs | grep for removed helpers | ✅ none |
-| Focus commits | grep `FIt`/`FDescribe` | ✅ none |
+| Gate             | Command                                                        | Result                             |
+| ---------------- | -------------------------------------------------------------- | ---------------------------------- |
+| Package tests    | `cd catalog && GOWORK=off go test ./eventcatalog/... -count=1` | ✅ ok                              |
+| Spec count       | `... -v`                                                       | ✅ **Ran 18 of 18 Specs, SUCCESS** |
+| Module tests     | `cd catalog && GOWORK=off go test ./... -count=1`              | ✅ all packages ok                 |
+| Lint (new files) | `golangci-lint run ./eventcatalog/...`                         | ✅ new files not flagged           |
+| Format           | `gofumpt -l`, `goimports -local … -l`                          | ✅ no output                       |
+| File size        | `bash scripts/check-file-size.sh`                              | ✅ no new offenders                |
+| API golden       | `cmd/api-stability && go run .`                                | ✅ 7530 exports verified           |
+| Dangling refs    | grep for removed helpers                                       | ✅ none                            |
+| Focus commits    | grep `FIt`/`FDescribe`                                         | ✅ none                            |
 
 ### 6. Documented the suite for maintainers
 
 `catalog/AGENTS.md:119` (the "Embedded serving" bullet) now states the behavior is
 pinned by the BDD suite and points maintainers at the two files (so nobody adds a
-third plain table test). **Currently uncommitted** (`git status` shows ` M`).
+third plain table test). **Currently uncommitted** (`git status` shows `M`).
 
 ---
 
@@ -129,7 +130,7 @@ third plain table test). **Currently uncommitted** (`git status` shows ` M`).
 
 1. **Scope coverage.** I built BDD specs for the **embedded `StaticServer` only**.
    The request ("PROPER bdd-testing … for this embedded catalog/eventcatalog/")
-   is ambiguous: it could mean the *whole* `eventcatalog` package (exporter,
+   is ambiguous: it could mean the _whole_ `eventcatalog` package (exporter,
    writer, frontmatter, index-manifest — ~20 existing plain test files). I chose
    the embedded-server reading because that is the feature just shipped and the
    word "embedded" points at `StaticServer`. **Owner confirmation needed (g#2).**
@@ -181,14 +182,15 @@ While running the session's lint verification, `nix run .#lint` returned
 ❌ Lint: findings in: command commandlifecycle … catalog middleware … systemtest
 ```
 
-Root-causing that (because lint findings in *untouched* packages are a smell)
+Root-causing that (because lint findings in _untouched_ packages are a smell)
 uncovered:
 
 **Evidence chain**
+
 - `.golangci.yml:831-832` — `formatters.enable` contains **`gci`**.
-- AGENTS.md internal-contract **#18** says: *"`gci` was REMOVED from `.golangci.yml`
+- AGENTS.md internal-contract **#18** says: _"`gci` was REMOVED from `.golangci.yml`
   formatters (2026-08-16) because two tools fighting over the same import blocks
-  re-broke 95+ files once."*
+  re-broke 95+ files once."_
 - Commit **`903232e3f`** (`chore: auto-commit …`, **2026-10-01 06:16:45**, the
   auto-commit daemon) touched 29 files, and its diff of `.golangci.yml`:
   - **deleted the entire `depguard:` settings block** (93 lines removed), and
@@ -206,6 +208,7 @@ uncovered:
   So this is **recurrence #8**, ~100 minutes after #7 was reportedly fixed.
 
 **Why it matters**
+
 - Two formatters (`gci` + `goimports`/`gofumpt`) fight over import blocks →
   repo-wide phantom lint failures (exactly the failure mode AGENTS #18 warns about).
 - `depguard` being deleted silently disables the dependency-budget allow-list.
@@ -279,6 +282,7 @@ claimed for this session** — only "lint clean on the new files".
 ## (f) Up to 50 things to get done next
 
 **Config-war (highest priority)**
+
 1. Inspect `git show 903232e3f -- .golangci.yml` fully and classify intentionally vs corruption.
 2. Repair `.golangci.yml`: restore `depguard`, remove `gci` (`scripts/restore-depguard.sh`).
 3. Restore `scripts/depguard-block.golden.yml` (corrupted in the same commit).
@@ -300,7 +304,7 @@ claimed for this session** — only "lint clean on the new files".
 15. Add unknown-extension (no Content-Type) spec.
 16. Add nested `_astro/sub/` immutable spec.
 17. Add `WithImmutableAssetPrefixes()` zero-arg spec.
-18. Add `WithNotFoundFile` pointing at an *existing* file spec (custom 404 body).
+18. Add `WithNotFoundFile` pointing at an _existing_ file spec (custom 404 body).
 19. Add explicit no-directory-listing assertion.
 20. Convert the options cases to `DescribeTable`.
 21. Commit a realistic Astro-shaped fixture + a spec over it.
@@ -327,7 +331,7 @@ claimed for this session** — only "lint clean on the new files".
 38. Add the `docs/status/README.md` index row for this report (done in this commit).
 39. Consider a `catalog/README.md` "Testing" line pointing at the BDD suite.
 40. Add a package `doc.go` sentence referencing the BDD suite.
-41. Add CHANGELOG entry only if a *consumer-visible* behavior changed (it did not).
+41. Add CHANGELOG entry only if a _consumer-visible_ behavior changed (it did not).
 42. Reconcile the pre-existing md-go baseline (blocked on pinned validator build).
 43. Report the pinned `md-go-validator` `vendorHash` break as a separate issue.
 44. Verify `.art-dupl-baseline.json` untouched by the test consolidation.
@@ -335,7 +339,7 @@ claimed for this session** — only "lint clean on the new files".
 
 **Structural / longer-term**
 46. Evaluate extracting `StaticServer` routing into a table-driven `route()` fn for
-    coverage of every branch.
+coverage of every branch.
 47. Add a spec for the documented root-mount-only limitation (sub-path hosting).
 48. Decide whether `StaticServer` should support `StripPrefix` sub-path hosting.
 49. Add a fuzz test for `requestKey`/`hasDotDotSegment` (traversal robustness).
@@ -347,7 +351,7 @@ claimed for this session** — only "lint clean on the new files".
 
 1. **Config-war #8 — intentional or repair it?**
    Commit `903232e3f` (06:16:45 today) added `gci` back and deleted `depguard` from
-   `.golangci.yml`; the hash tripwire now mismatches. Is that edit *intended*, or is
+   `.golangci.yml`; the hash tripwire now mismatches. Is that edit _intended_, or is
    it daemon corruption I should repair (restore depguard, drop gci, re-pin hash)?
    I deliberately did not touch a file I did not author.
 
@@ -363,4 +367,4 @@ claimed for this session** — only "lint clean on the new files".
 
 ---
 
-*Report generated 2026-10-01 06:41. Awaiting instructions.*
+_Report generated 2026-10-01 06:41. Awaiting instructions._
