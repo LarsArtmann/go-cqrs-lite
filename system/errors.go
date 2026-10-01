@@ -33,6 +33,12 @@ var (
 	ErrSeekableJournalMissing = errors.New(
 		"system: store does not implement event.SeekableJournal",
 	)
+	// ErrLoadByEventIDUnsupported is returned by EventAdapter.LoadByEventID
+	// when the backend does not implement metaengine.EventByIDBackend —
+	// callers keep their existing degrade path (sequential journal reads).
+	ErrLoadByEventIDUnsupported = errors.New(
+		"system: engine does not implement EventByIDBackend",
+	)
 	ErrShutdownDependencyInvalid = errors.New("system: invalid shutdown dependency")
 	ErrSystemStopped             = errors.New("system: already stopped")
 	ErrUnknownBusDriver          = errors.New("system: unknown bus driver")

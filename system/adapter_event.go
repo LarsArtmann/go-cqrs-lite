@@ -55,6 +55,11 @@ type EventAdapter struct {
 	// cache below stores true tokens rather than positions.
 	seqSeek metaengine.SeqSeekableStreamLog
 
+	// byID is non-nil when the backend implements EventByIDBackend (#32):
+	// LoadByEventID then resolves single events by their globally unique ID
+	// instead of forcing callers into sequential journal scans.
+	byID metaengine.EventByIDBackend
+
 	// seqCache maps event IDs to journal positions or engine seq tokens.
 	// Bounded (default 4096 entries, LRU eviction via otter) so long-running
 	// processes cannot grow it without limit; otter is safe for concurrent
@@ -97,6 +102,11 @@ func NewEventAdapter(
 	// position-based OFFSET skips to O(log n) seq-token index seeks.
 	if ss, ok := backend.(metaengine.SeqSeekableStreamLog); ok {
 		a.seqSeek = ss
+	}
+
+	// Detect single-event-by-ID resolution (EventByIDBackend, #32).
+	if eb, ok := backend.(metaengine.EventByIDBackend); ok {
+		a.byID = eb
 	}
 
 	return a
@@ -277,6 +287,41 @@ func (a *EventAdapter) LoadToTimestamp(
 	}
 
 	return result, nil
+}
+
+// LoadByEventID resolves one event by its globally unique ID (#32). It
+// delegates to the backend's EventByIDBackend capability (an indexed lookup
+// where the engine knows where the ID lives — e.g. the SQLite engine's
+// expression index over the JSON envelope) and returns
+// [event.ErrEventNotFound] when no such event exists.
+//
+// Backends without the capability return [ErrLoadByEventIDUnsupported] —
+// callers keep their existing degrade path (sequential journal reads); the
+// capability is NOT silently emulated, because a full-journal scan hidden
+// behind an O(1)-looking method is a latency trap.
+func (a *EventAdapter) LoadByEventID(
+	ctx context.Context,
+	eventID id.EventID,
+) (event.Event, error) {
+	if a.byID == nil {
+		return nil, ErrLoadByEventIDUnsupported
+	}
+
+	value, err := a.byID.StreamLoadByEventID(ctx, a.Collection, eventID.String())
+	if err != nil {
+		if errors.Is(err, metaengine.ErrNotFound) {
+			return nil, event.ErrEventNotFound
+		}
+
+		return nil, fmt.Errorf("event adapter: load by event ID: %w", err)
+	}
+
+	evt, err := a.decodeValue(value)
+	if err != nil {
+		return nil, fmt.Errorf("event adapter: decode event %s: %w", eventID, err)
+	}
+
+	return evt, nil
 }
 
 // ReadAll is promoted from AdapterCore and satisfies event.Journal.
