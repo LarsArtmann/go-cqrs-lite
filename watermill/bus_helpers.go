@@ -169,18 +169,18 @@ func wrapSubscribeError(err error, topic string) error {
 
 // publishAll converts each message via convert and publishes it through
 // publish. Conversion failures wrap as Corruption with the shared
-// convert_message code; publish failures wrap as Infrastructure with the
-// adapter's failure code and describe() rendering the failure message.
-// Shared between PublisherAdapter and CommandPublisherAdapter so the loop
-// and error families cannot fork.
+// convert_message code; publish failures wrap through the adapter's
+// wrapFailure closure — each adapter owns its Infrastructure code at a
+// LITERAL call site (the taxonomy gate extracts codes from errorfamily
+// calls, not helper parameters). Shared between PublisherAdapter and
+// CommandPublisherAdapter so the loop cannot fork.
 func publishAll[T any](
 	ctx context.Context,
 	publish func(context.Context, T) error,
 	topic string,
 	messages []*message.Message,
 	convert func(string, *message.Message) (T, error),
-	failureCode string,
-	describe func(T) string,
+	wrapFailure func(error, T) error,
 ) error {
 	for _, msg := range messages {
 		v, err := convert(topic, msg)
@@ -193,11 +193,7 @@ func publishAll[T any](
 		}
 
 		if err := publish(ctx, v); err != nil {
-			return errorfamily.WrapInfrastructure(
-				err,
-				failureCode,
-				describe(v),
-			)
+			return wrapFailure(err, v)
 		}
 	}
 

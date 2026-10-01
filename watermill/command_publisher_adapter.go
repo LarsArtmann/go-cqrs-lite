@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 )
@@ -31,8 +32,18 @@ func (a *CommandPublisherAdapter) Publish(topic string, messages ...*message.Mes
 		topic,
 		messages,
 		MessageToCommand,
+		wrapCommandPublishFailure,
+	)
+}
+
+// wrapCommandPublishFailure owns the adapter's Infrastructure code at a
+// literal call site — the taxonomy gate extracts codes from errorfamily
+// calls, not helper parameters.
+func wrapCommandPublishFailure(err error, cmd *command.BasicCommand) error {
+	return errorfamily.WrapInfrastructure(
+		err,
 		"watermill.publish_command_failed",
-		func(cmd *command.BasicCommand) string { return "publish command " + string(cmd.Type()) },
+		"publish command "+string(cmd.Type()),
 	)
 }
 

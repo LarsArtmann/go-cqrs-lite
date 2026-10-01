@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	errorfamily "github.com/larsartmann/go-error-family"
 
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 )
@@ -27,8 +28,18 @@ func (a *PublisherAdapter) Publish(topic string, messages ...*message.Message) e
 		topic,
 		messages,
 		MessageToEvent,
+		wrapEventPublishFailure,
+	)
+}
+
+// wrapEventPublishFailure owns the adapter's Infrastructure code at a
+// literal call site — the taxonomy gate extracts codes from errorfamily
+// calls, not helper parameters.
+func wrapEventPublishFailure(err error, evt event.Event) error {
+	return errorfamily.WrapInfrastructure(
+		err,
 		"watermill.publish_event_failed",
-		func(evt event.Event) string { return "publish event " + string(evt.Type()) },
+		"publish event "+string(evt.Type()),
 	)
 }
 
