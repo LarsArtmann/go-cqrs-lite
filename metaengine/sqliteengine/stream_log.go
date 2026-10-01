@@ -122,6 +122,29 @@ func (e *sqliteEngine) StreamAppendExpected(
 	})
 }
 
+// StreamLoadByEventID returns the single value whose JSON envelope carries
+// the given top-level "id" field. Implements metaengine.EventByIDBackend:
+// the partial expression index idx_stream_log_event_id serves the lookup in
+// O(log n) for JSON rows; non-JSON values are outside the index and the
+// json_valid guard keeps the scan branch from ever parsing them.
+func (e *sqliteEngine) StreamLoadByEventID(
+	ctx context.Context,
+	col, eventID string,
+) (any, error) {
+	var valStr string
+
+	err := e.xc(ctx).queryRow(ctx, e.queries.streamLoadByEventID, col, eventID).Scan(&valStr)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, metaengine.ErrNotFound
+		}
+
+		return nil, err //nolint:wrapcheck // passthrough
+	}
+
+	return metaengine.DecodeStreamValue(valStr), nil
+}
+
 // StreamReadAsOfVersion returns all values for a stream up to maxVersion.
 // This implements the metaengine.StreamTemporalReader optional interface.
 func (e *sqliteEngine) StreamReadAsOfVersion(

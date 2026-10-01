@@ -533,6 +533,22 @@ type StreamTemporalReader interface {
 	) ([]any, error)
 }
 
+// EventByIDBackend is an optional StreamLogBackend capability: resolving one
+// journal value by the event ID embedded in it (an indexed lookup instead of
+// a full journal scan). Engines can only implement this when their storage
+// knows where the ID lives (e.g. a JSON envelope with a top-level "id" field
+// and an expression index over it) — the engine tier is deliberately
+// type-blind about values otherwise.
+//
+// Not all engines implement this — check with a type assertion. Implementations
+// return [ErrNotFound] when no value in the collection carries the event ID.
+type EventByIDBackend interface {
+	// StreamLoadByEventID returns the single value whose embedded event ID
+	// equals eventID, within the collection. Engines that cannot resolve
+	// embedded IDs must not implement the interface.
+	StreamLoadByEventID(ctx context.Context, collection, eventID string) (any, error)
+}
+
 // SnapshotBackend is an optional interface for engines that support snapshot
 // storage (D12). Engines implement it to enable decider snapshotting —
 // storing a serialized aggregate state at a given version to avoid replaying

@@ -174,3 +174,56 @@ require (
 		t.Fatalf("readGoModCQRSVersion = %q, want %q", got, "v4.2.0")
 	}
 }
+
+// --- #43: positional attachment ---
+
+// TestExtractCQRSVersion_OtherModuleVersionFirst pins the #43 false positive
+// where a sibling module's version on the same line was picked as the
+// go-cqrs-lite claim: the FIRST version token belonged to go-finding, the
+// true claim sat after the go-cqrs-lite mention.
+func TestExtractCQRSVersion_OtherModuleVersionFirst(t *testing.T) {
+	t.Parallel()
+
+	content := "# App\n\nThis project pins go-finding v1.12.0 and go-cqrs-lite v4.12.1 for storage.\n"
+	got := extractCQRSVersion(content, "v4.12.1")
+	if got != "v4.12.1" {
+		t.Fatalf(
+			"extractCQRSVersion other-module-first = %q, want %q (attachment must skip go-finding's token)",
+			got,
+			"v4.12.1",
+		)
+	}
+}
+
+// TestExtractCQRSVersion_HistoricalMention pins the #43 false positive where
+// a past-state sentence ("upgraded from go-cqrs-lite v4.11.1") was reported
+// as the doc's current-version claim.
+func TestExtractCQRSVersion_HistoricalMention(t *testing.T) {
+	t.Parallel()
+
+	content := "# App\n\nUpgraded from go-cqrs-lite v4.11.1 to pick up storage fixes.\n"
+	got := extractCQRSVersion(content, "v4.12.1")
+	if got != "v4.12.1" {
+		t.Fatalf(
+			"extractCQRSVersion historical = %q, want %q ('from' cue must drop the claim)",
+			got,
+			"v4.12.1",
+		)
+	}
+}
+
+// TestExtractCQRSVersion_DirectAttachmentKept proves the rule still reads the
+// plain current-claim form — the stale-version detection depends on it.
+func TestExtractCQRSVersion_DirectAttachmentKept(t *testing.T) {
+	t.Parallel()
+
+	content := "# App\n\nUses go-cqrs-lite v3.1.0\n"
+	got := extractCQRSVersion(content, "v4.2.0")
+	if got != "v3.1.0" {
+		t.Fatalf(
+			"extractCQRSVersion direct = %q, want %q (adjacent claim must still count)",
+			got,
+			"v3.1.0",
+		)
+	}
+}

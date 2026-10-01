@@ -75,12 +75,13 @@ type sqliteQuerySet struct {
 	logAppend string
 	logTail   string
 	// Stream Log
-	streamAppend    string
-	streamRead      string
-	streamVersion   string
-	streamAppendExp string
-	journalReadAll  string
-	journalReadFrom string
+	streamAppend        string
+	streamRead          string
+	streamVersion       string
+	streamAppendExp     string
+	journalReadAll      string
+	journalReadFrom     string
+	streamLoadByEventID string
 	// Seq-resumable journal reads (SeqSeekableStreamLog)
 	journalReadAllWithSeq string
 	journalReadFromSeq    string
@@ -121,6 +122,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 	);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_stream ON meta_stream_log(collection, stream_id, seq);
 	CREATE INDEX IF NOT EXISTS idx_stream_log_journal ON meta_stream_log(collection, seq);
+	CREATE INDEX IF NOT EXISTS idx_stream_log_event_id ON meta_stream_log(collection, json_extract(value, '$.id')) WHERE json_valid(value);
 	CREATE TABLE IF NOT EXISTS meta_graph_edges (
 		collection TEXT NOT NULL, from_node TEXT NOT NULL, to_node TEXT NOT NULL,
 		PRIMARY KEY (collection, from_node, to_node)
@@ -150,6 +152,7 @@ func defaultSQLiteQueries() sqliteQuerySet {
 		// afterSeq is a journal position within the collection (seq is a
 		// global AUTOINCREMENT shared across collections — see JournalReadFrom).
 		journalReadFrom:       `SELECT value FROM meta_stream_log WHERE collection = ? ORDER BY seq LIMIT ? OFFSET ?`,
+		streamLoadByEventID:   `SELECT value FROM meta_stream_log WHERE collection = ? AND json_valid(value) AND json_extract(value, '$.id') = ? ORDER BY seq LIMIT 1`,
 		journalReadAllWithSeq: `SELECT seq, value FROM meta_stream_log WHERE collection = ? ORDER BY seq`,
 		// Token resumption: a pure index range seek on
 		// idx_stream_log_journal(collection, seq) — O(log n) per page, and

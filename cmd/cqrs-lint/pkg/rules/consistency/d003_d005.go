@@ -242,7 +242,9 @@ func extractCQRSVersion(content, modVersion string) string {
 			continue
 		}
 
-		for field := range strings.FieldsSeq(line) {
+		fields := strings.Fields(line)
+
+		for i, field := range fields {
 			if !looksLikeVersionToken(field) {
 				continue
 			}
@@ -268,6 +270,15 @@ func extractCQRSVersion(content, modVersion string) string {
 				continue
 			}
 
+			// Positional attachment (#43): only tokens textually attached to a
+			// go-cqrs-lite mention count — the first token on the line may belong
+			// to another module ("pins go-finding v1.12.0 and go-cqrs-lite
+			// v4.12.1") or describe a past state ("upgraded from go-cqrs-lite
+			// v4.11.1").
+			if !attachedToCQRSMention(fields, i) {
+				continue
+			}
+
 			versions = append(versions, field)
 		}
 	}
@@ -284,6 +295,56 @@ func extractCQRSVersion(content, modVersion string) string {
 	}
 
 	return docVersion
+}
+
+// connectorWords may sit between a module mention and its version token
+// without breaking textual attachment ("go-cqrs-lite at version v4.2.0").
+var connectorWords = map[string]struct{}{
+	"to": {}, "and": {}, "the": {}, "a": {}, "an": {}, "at": {}, "of": {},
+	"is": {}, "as": {}, "or": {}, "for": {}, "in": {}, "with": {},
+	"uses": {}, "on": {}, "version": {}, "v": {}, "module": {}, "package": {},
+}
+
+// historicalCues in a mention's lead-in mark the attached version token as a
+// past state, not the current claim.
+var historicalCues = map[string]struct{}{
+	"from": {}, "upgraded": {}, "upgrades": {}, "migrated": {},
+	"migration": {}, "previously": {}, "prior": {}, "before": {},
+	"was": {}, "were": {}, "older": {}, "earlier": {},
+}
+
+// attachedToCQRSMention reports whether the version token at fields[i] is
+// textually attached to a go-cqrs-lite mention: the nearest preceding
+// non-connector token contains "go-cqrs-lite", and the phrase introducing
+// that mention carries no historical cue.
+func attachedToCQRSMention(fields []string, i int) bool {
+	mentionIdx := -1
+
+	for j := i - 1; j >= 0 && i-j <= 4; j-- {
+		lower := strings.ToLower(fields[j])
+
+		if _, ok := connectorWords[lower]; ok {
+			continue
+		}
+
+		if strings.Contains(lower, "go-cqrs-lite") {
+			mentionIdx = j
+		}
+
+		break
+	}
+
+	if mentionIdx < 0 {
+		return false
+	}
+
+	for j := mentionIdx - 1; j >= 0 && mentionIdx-j <= 2; j-- {
+		if _, ok := historicalCues[strings.ToLower(fields[j])]; ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // isVersionCompatible checks whether a doc version reference is compatible
