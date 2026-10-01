@@ -180,6 +180,7 @@ The authoritative module index with README links lives in the **[project README]
 | [0146](adr/0146-no-federated-query-engine.md)                         | No Federated Query Engine — Replication Is the Cross-Domain Mechanism | Accepted                                            |
 | [0147](adr/0147-mesh-policy-enforcement-non-goal.md)                  | Mesh-Level Policy Enforcement Is an Explicit Non-Goal                 | Accepted                                            |
 | [0148](adr/0148-benchmark-gate-semantics.md)                          | Benchmark Gate Semantics — Noise, Provenance, and Refusal             | Accepted                                            |
+| [0149](adr/0149-durable-checkpoints-and-dlq-by-events.md)             | Durable Checkpoints and DLQ-by-Events in system.New                   | Accepted                                            |
 | [0100](adr/0100-redesign-scope-parallel.md)                           | Redesign scope: parallel (new alongside old)                          | Accepted                                            |
 | [0101](adr/0101-backend-abstraction-n-instance.md)                    | Backend abstraction: N-instance metaengine                            | Accepted                                            |
 | [0102](adr/0102-admin-interface-introspection-only.md)                | Admin web interface: introspection API only                           | Accepted                                            |
