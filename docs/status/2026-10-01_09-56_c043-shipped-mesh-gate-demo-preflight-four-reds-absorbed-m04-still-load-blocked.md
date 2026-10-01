@@ -117,18 +117,18 @@
   chain died at ~06:35 (1h timeout); I only noticed at 09:55 when the owner pinged. That is
   3h20m of dead time during which (a) the chain was not re-launched, (b) a re-launch with a
   longer `--max-wait` was never considered, (c) usable read-only work (grep|head audit,
-   fp-sweep review, seed-log pre-read for M05.4, flake.nix read-through for the flake check)
-   went undone, and (d) the near-quiet window around 09:40–09:50 arrived with no chain alive
-   to consume it. Lesson: background gates need a supervisor loop or periodic job_output
-   polling, not fire-and-forget.
+  fp-sweep review, seed-log pre-read for M05.4, flake.nix read-through for the flake check)
+  went undone, and (d) the near-quiet window around 09:40–09:50 arrived with no chain alive
+  to consume it. Lesson: background gates need a supervisor loop or periodic job_output
+  polling, not fire-and-forget.
 - **Root cause of the tree-stability failures found (post-hoc):** the status index shows TWO
-   concurrent sessions ran inside my wait-loop window —
-   `2026-10-01_05-54_catalog-eventcatalog-integration-research...` and
-   `2026-10-01_06-15_embedded-eventcatalog-static-server-shipped.md` (the latter shipped
-   `catalog/eventcatalog.StaticServer`!). Their edits explain the 6× "tree changed during
-   the 60s stability window" refusals. So the wait-loop wasn't only load-blocked — the repo
-   was genuinely mid-edit by other sessions. Any re-launch must expect this and the
-   supervision must poll, not assume.
+  concurrent sessions ran inside my wait-loop window —
+  `2026-10-01_05-54_catalog-eventcatalog-integration-research...` and
+  `2026-10-01_06-15_embedded-eventcatalog-static-server-shipped.md` (the latter shipped
+  `catalog/eventcatalog.StaticServer`!). Their edits explain the 6× "tree changed during
+  the 60s stability window" refusals. So the wait-loop wasn't only load-blocked — the repo
+  was genuinely mid-edit by other sessions. Any re-launch must expect this and the
+  supervision must poll, not assume.
 - **Inherited (not mine, absorbed): the prior session's close-out overstated cleanliness.**
   Its report claimed gates green, yet this session's first preflight found FOUR red gates
   (templ staleness, api golden drift, taxonomy drift, file-size NEW offenders) that predate
@@ -165,6 +165,7 @@ green in the same session.
 ## f) NEXT (prioritized, up to 50)
 
 **The M04 arc (blocking trust debt):**
+
 1. Re-launch `scripts/can-run-composed-gate.sh --wait-loop` (consider `--max-wait` beyond
    3600s, e.g. 10800) — supervised, polled.
 2. When GREEN: `nix run .#verify` EXCLUSIVE (no edits during).
@@ -186,27 +187,27 @@ green in the same session.
 14. grep|head-under-pipefail audit across scripts/ (3 sites fixed, class remains).
 15. turso pin-vs-constant gate leg (check-canonical-facts extension).
 16. cqrs-lint: consider C043 mutant-discrimination + suppression fixtures if the meta-suites
-    want them (suite currently green without).
+want them (suite currently green without).
 17. Re-run `scripts/fp-sweep.sh` 12-repo baseline to measure C043's real-world FP rate.
 18. watermill skill backends.md: note the publishAll wrapFailure shape (mint-site locality).
 19. cqrs-htmx: execute the audit_context.go TODO at next go-cqrs-lite bump (adapter +
-    `event.RequestScopeEnricher` swap) — sibling-repo change.
+`event.RequestScopeEnricher` swap) — sibling-repo change.
 20. mesh-demo: consider a `gate` mention in the data-mesh skill reference (§2.41) if the
-    demo should surface there too (currently only core.md §3.9 points at it).
+demo should surface there too (currently only core.md §3.9 points at it).
 21. Consider `--max-wait` and daemon-aware stability for `can-run-composed-gate.sh` (item 4
-    above as a code change, with --self-test).
+above as a code change, with --self-test).
 22. Load-sweep (`nix run .#load-sweep`) after the timing-path-adjacent refactors
-    (publishAll closure change is not timing-path, but cheap to confirm).
+(publishAll closure change is not timing-path, but cheap to confirm).
 23. Nightly-bench baseline sanity after this session's code lands (bench-gate preflight leg
-    already green, so low risk).
+already green, so low risk).
 
 **Release-train hygiene:**
 24. `nix run .#vulncheck` (per-module standalone build) — not run this session.
 25. `nix run .#check-arch` — not run this session (new deps: mesh-demo system/v4 — examples
-    are outside dep budgets, but verify).
+are outside dep budgets, but verify).
 26. `nix run .#check-coverage` ran green inside preflight; re-run after M04's full verify.
 27. Watermill module: after publishAll refactor, confirm no consumer pinned the old private
-    signature (impossible — unexported; tests green).
+signature (impossible — unexported; tests green).
 28. When owner answers push question: push master (currently ~30+ unpushed daemon commits).
 
 **Session close (after M04 resolves either way):**
@@ -217,21 +218,21 @@ green in the same session.
 
 **Backlog candidates (from this session's observations):**
 33. error-taxonomy gate: teach the scanner closure-owned mints OR document the
-    wrapFailure-locality convention for shared helpers.
+wrapFailure-locality convention for shared helpers.
 34. `analyzer.BuildContextWithTypes`: consider a `--self-test`-style fixture test proving
-    subdir support stays (I added MkdirAll without a dedicated regression test; covered
-    indirectly by c043 tests).
+subdir support stays (I added MkdirAll without a dedicated regression test; covered
+indirectly by c043 tests).
 35. doc-check: the json_report.go split leaves `main.go` at 290 — fine, but consider moving
-    findRepoRoot pair out too if it grows again.
+findRepoRoot pair out too if it grows again.
 36. C042/C043 share the "positional arg index" fragility (arg 4/arg 3) — if event.New's
-    signature ever grows, both rules need review; a comment or test fixture per constructor
-    shape would pin it.
+signature ever grows, both rules need review; a comment or test fixture per constructor
+shape would pin it.
 37. The `#integration-nats` flake tally: log today's second green run in the M22 watch notes
-    when the CI leg exists.
+when the CI leg exists.
 38. Langserver lifecycle: propose a systemd user timer or Crush hook that reaps
-    langserver instances older than N hours (owner-gated).
+langserver instances older than N hours (owner-gated).
 39. Re-check the three "absorbed breakage" scripts under the NEXT daemon config-war
-    recurrence (tripwire trio mutation test still green per preflight lint-config).
+recurrence (tripwire trio mutation test still green per preflight lint-config).
 40. M27 (goal-shaped-app activation + catalog pin tail) — still gated on M09 owner go-ahead.
 
 ## g) QUESTIONS FOR THE OWNER (cannot be resolved from inside the session)
@@ -252,7 +253,7 @@ green in the same session.
 
 ---
 
-*Arte in Aeternum — the window existed; the chain was dead. Fix the supervision, not the gate.*
+_Arte in Aeternum — the window existed; the chain was dead. Fix the supervision, not the gate._
 
 ---
 

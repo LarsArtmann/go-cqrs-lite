@@ -68,7 +68,10 @@ check_zip() {
 		# bytes, so unzip SIGPIPEs (141) on any entry larger than the pipe
 		# buffer; under pipefail a DETECTED ELF would flip to false "clean"
 		# (mutation-verified 2026-10-01: 300KB entry -> 141 without this).
-		if (set +o pipefail; unzip -p "$zip" "$entry" 2>/dev/null | head -c 4 | grep -qa $'\x7fELF'); then
+		if (
+			set +o pipefail
+			unzip -p "$zip" "$entry" 2>/dev/null | head -c 4 | grep -qa $'\x7fELF'
+		); then
 			echo "✗ $mod@latest: zip entry $entry is an ELF binary (junk class)" >&2
 			failures=$((failures + 1))
 			return
