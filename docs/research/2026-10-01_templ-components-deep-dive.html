@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS LIGHT — Editorial template
+         Design language: form follows function. Primary colors on warm paper.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Light) --- */
+        --color-paper: #f4f4f0;
+        --color-paper-2: #ffffff;
+        --color-paper-3: #e8e8e2;
+        --color-ink: #111111;
+        --color-red: #e63946;
+        --color-blue: #1d3557;
+        --color-yellow: #f4d35e;
+        --color-hairline: rgba(17, 17, 17, 0.14);
+        --color-hairline-strong: rgba(17, 17, 17, 0.3);
+
+        /* --- Semantic layer (shared vocabulary with dark template) --- */
+        --surface: var(--color-paper);
+        --surface-raised: var(--color-paper-2);
+        --surface-sunken: var(--color-paper-3);
+        --text: var(--color-ink);
+        --text-muted: rgba(17, 17, 17, 0.72);
+        --text-faint: rgba(17, 17, 17, 0.5);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-red);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber: var(--warning);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 22%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 12%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 12%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px;
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 16px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--text);
+      }
+      .sidebar a {
+        font-size: 0.86rem;
+        color: var(--text);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-left: 4px solid transparent;
+        font-weight: 600;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+        color: var(--accent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
+        line-height: 1.05;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 3px solid var(--text);
+        display: flex;
+        align-items: baseline;
+        gap: 0.7rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      h3 {
+        font-size: 1.15rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 1rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 2rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid var(--text);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent);
+        margin-bottom: 0.9rem;
+      }
+      .subtitle {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0 0 1rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.25rem 0.6rem;
+        background: var(--surface-sunken);
+        color: var(--text);
+        border: 1px solid var(--border-strong);
+      }
+      .tag.amber {
+        background: var(--warning);
+        border-color: var(--warning);
+        color: var(--text);
+      }
+      .tag.teal {
+        background: var(--solution);
+        border-color: var(--solution);
+        color: var(--surface);
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 90px;
+        margin-bottom: 1.2rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        right: 180px;
+        width: 64px;
+        height: 64px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 26px;
+        right: 90px;
+        width: 56px;
+        height: 56px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 32px solid transparent;
+        border-right: 32px solid transparent;
+        border-bottom: 56px solid var(--warning);
+      }
+      .hero-shapes .bar {
+        position: absolute;
+        bottom: 0;
+        right: 230px;
+        width: 100px;
+        height: 14px;
+        background: var(--text);
+      }
+
+      /* --- Scorecard / stat cards --- */
+      .scorecard,
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0;
+        margin: 1.5rem 0 2rem;
+        border: 3px solid var(--text);
+      }
+      .score-card,
+      .stat-card {
+        padding: 1.3rem 1rem;
+        text-align: center;
+        border-right: 3px solid var(--text);
+        background: var(--surface-raised);
+      }
+      .score-card:last-child,
+      .stat-card:last-child {
+        border-right: none;
+      }
+
+      .score,
+      .stat-value {
+        font-family: var(--font-heading);
+        font-size: 2.6rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+      .score-card .label,
+      .stat-label {
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-top: 0.5rem;
+      }
+      /* Semantic state classes — no nth-child decoration, no !important */
+      .score-good,
+      .stat-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .score-warn,
+      .stat-warn {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .score-bad,
+      .stat-bad {
+        background: var(--problem);
+        color: var(--surface);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 1rem;
+        border-left: 8px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.22rem 0.6rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+        color: var(--text);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border: 1px solid var(--text);
+        color: var(--text);
+      }
+      .badge-critical {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .badge-high {
+        background: var(--warning);
+      }
+      .badge-medium {
+        background: var(--surface-sunken);
+      }
+      .badge-low {
+        background: var(--surface-raised);
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        background: var(--solution);
+        color: var(--surface);
+      }
+
+      /* --- Callouts --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.8rem 1rem;
+        border: 1px solid var(--border-strong);
+        border-left: 4px solid var(--border-strong);
+        background: var(--surface-sunken);
+        font-size: 0.92rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-teal,
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 10%,
+          var(--surface-raised)
+        );
+      }
+      .callout-amber,
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 18%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Strengths --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        padding: 0.75rem 0;
+        border-bottom: 2px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        color: var(--solution);
+        font-size: 1.3rem;
+        line-height: 1.3;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.92rem;
+        border: 2px solid var(--text);
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--text);
+        color: var(--surface);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-right: 1px solid var(--border-strong);
+      }
+      th:last-child {
+        border-right: none;
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-top: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+      td:last-child {
+        border-right: none;
+      }
+      tr:nth-child(even) td {
+        background: var(--surface-sunken);
+      }
+      table.compare td.yes {
+        color: var(--solution);
+        font-weight: 700;
+      }
+      table.compare td.no {
+        color: var(--problem);
+        font-weight: 700;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--text);
+        color: var(--surface);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+        border: 2px solid var(--text);
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--warning);
+      }
+      .tok-type {
+        color: var(--warning);
+      }
+      .tok-string {
+        color: #95e1d3;
+      }
+      .tok-comment {
+        color: rgba(244, 244, 240, 0.45);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #6eb5ff;
+      }
+      .tok-number {
+        color: var(--warning);
+      }
+      .tok-generic {
+        color: var(--problem);
+      }
+      .tok-builtin {
+        color: #6eb5ff;
+      }
+      .tok-punct {
+        color: rgba(244, 244, 240, 0.7);
+      }
+      .tok-attr {
+        color: var(--warning);
+      }
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 2px solid var(--text);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.4rem 0.75rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--surface-sunken);
+        border: 1px solid var(--text);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1.1rem;
+        background: var(--surface-raised);
+        border: 2px solid var(--text);
+        border-left: 6px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 900;
+        font-size: 1.8rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.94rem;
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 3px solid var(--text);
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .scorecard,
+        .stat-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-right: none;
+        }
+        .score-card:nth-child(1),
+        .stat-card:nth-child(1),
+        .score-card:nth-child(2),
+        .stat-card:nth-child(2) {
+          border-bottom: 3px solid var(--text);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+        .hero-shapes {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>LIBRARY DEEP DIVE</span>
+      <span>2026-10-01</span>
+      <span>CV &times; templ-components</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">Summary</a>
+          <a href="#scorecard">Scorecard</a>
+          <a href="#strengths">Strengths</a>
+          <a href="#findings">Findings</a>
+          <a href="#versions">Version Currency</a>
+          <a href="#opportunities">Top Opportunities</a>
+          <a href="#appendix">Appendix</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="hero">
+          <div class="hero-shapes">
+            <div class="bar"></div>
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-10-01</div>
+          <h1>templ-components &mdash; Adoption &amp; Utilization Audit</h1>
+          <p class="subtitle">
+            Is CV getting the most out of its own UI component library? Verdict:
+            adoption where it is pinned is deep, disciplined, and test-pinned
+            &mdash; but the pin is three minor releases stale, and one of CV's
+            own recorded re-entry triggers has already fired.
+          </p>
+          <div class="meta">
+            <span class="tag amber">Pinned: v1.16.0</span>
+            <span class="tag">Latest: v1.19.4</span>
+            <span class="tag teal">Adoption Score: 78/100</span>
+          </div>
+        </header>
+
+        <section id="scorecard" class="scorecard">
+          <div class="score-card score-warn">
+            <div class="score">78</div>
+            <div class="label">Adoption score /100</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">3</div>
+            <div class="label">Minor versions behind</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">7</div>
+            <div class="label">Missed / partial findings</div>
+          </div>
+          <div class="score-card score-bad">
+            <div class="score">1</div>
+            <div class="label">Production impurity</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">8</div>
+            <div class="label">Deliberate rulings held</div>
+          </div>
+        </section>
+
+        <section id="summary">
+          <h2><span class="num">00</span>Summary</h2>
+          <p>
+            CV consumes <code>github.com/larsartmann/templ-components</code>
+            across 29 <code>.templ</code> sources and 7 Go files, touching eight
+            packages and roughly 90 distinct exported symbols. The adoption is
+            not casual: it is governed by a maintained adoption table with
+            per-component rulings and re-entry triggers, integrated through a
+            committed Tailwind safelist and an <code>@theme</code> tone bridge,
+            and pinned by library-aware tests. Where the library is used, it is
+            used <em>superbly</em>.
+          </p>
+          <p>
+            The weakness is currency, not depth. CV pins
+            <strong>v1.16.0 (2026-09-09)</strong>; the library is at
+            <strong>v1.19.4 (2026-09-25)</strong> &mdash; 665 commits of
+            accessibility hardening, an errorpage overhaul, form-decoding and
+            relative-time APIs, and one production-purity fix that CV is
+            currently <em>without</em>: the <code>cv</code> binary links the Go
+            <code>testing</code> framework through
+            <code>utils@v1.16.0</code>. The library's own changelog flags
+            v1.19.3's tag tree as poisoned &mdash; the upgrade target must be
+            v1.19.4 or newer.
+          </p>
+          <div class="callout callout-amber">
+            <strong>The bottom line</strong>
+            One version bump unlocks nearly every finding in this report:
+            testing-delinked production binaries, the accessibility pack, the
+            errorpage surface, <code>wire.DecodeForm</code>, and
+            <code>RelativeTime</code>'s injected clock &mdash; which satisfies
+            the exact re-entry trigger CV recorded on 2026-09-05 when it
+            rejected the component ("re-entry trigger: an upstream
+            injected-clock prop").
+          </div>
+        </section>
+
+        <section id="strengths">
+          <h2><span class="num">&#9670;</span>What's already excellent</h2>
+          <p>
+            Evidence from the audit greps and the repo's own pins &mdash; this
+            is the baseline the findings build on.
+          </p>
+
+          <div class="strengths">
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Deep shell adoption with full CSP/nonce integration</strong>
+                <span>All 8 screen pages render through a CV-local
+                <code>ScreenBase</code> wrapping the library's
+                <code>layout.Base</code> &mdash; SEO meta, ThemeScript, htmx
+                self-hosting, nonce threading, and CSRF meta all flow through
+                it (<code>internal/ui/components/layout/screen_base.templ</code>).
+                The print/Typst path is deliberately 100% library-free.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Broad primitive coverage</strong>
+                <span>24+ named components in active use:
+                <code>display</code> (StatCard, Table, Badge, Button,
+                EmptyState, CopyButton, CollapsibleSection, Eyebrow, Grid),
+                <code>forms</code> (Form, FormField, Input, Textarea, Select,
+                Checkbox, ValidationSummary), <code>feedback</code> (Alert,
+                Spinner, Skeleton, ToastContainer, ProgressBar),
+                <code>htmx</code> (GlobalErrorHandling, LoadingButton),
+                <code>errorpage.NotFound</code>, and ~40 <code>icons</code>
+                symbols.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Exemplary governance</strong>
+                <span>AGENTS.md carries a grep-able adoption table where every
+                non-adopted component has a recorded decision and re-entry
+                trigger (KanbanBoard, TagsInput, PolledRegion, RelativeTime,
+                navigation, charts). Zero hand-rolled duplicates of adopted
+                components were found &mdash; the table is doing its job.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Integration hygiene</strong>
+                <span>Committed 39 KB <code>tc-safelist.css</code> regenerated
+                against the pinned tag
+                (<code>scripts/gen-tc-safelist.sh</code>), an
+                <code>@theme</code> bridge mapping library tones onto CV's
+                emerald/amber/slate semantics
+                (<code>assets/css/input.css:63</code> maps
+                <code>--color-blue-600: #059669</code>), and byte-verified
+                fresh-clone CSS parity.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Library-aware test pins</strong>
+                <span><code>TestAdminPage_ResponsiveGridsRideLibrary</code>,
+                keyed <code>utils.BaseProps</code> literals (break-proof against
+                library field growth), the templ text-leak canary, and axe
+                gates on every adopted surface.</span>
+              </div>
+            </div>
+            <div class="strength">
+              <div class="check">+</div>
+              <div class="text">
+                <strong>Correct concern split</strong>
+                <span>Brand logos (simple-icons policy in
+                <code>primitives/icons</code>) and UI glyphs (library
+                <code>icons</code>) never conflate; the library's
+                <code>datastar</code> module stays transitive-only in an htmx
+                shop.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <h2><span class="num">01</span>Findings</h2>
+          <p>Ordered by impact. Every claim is verifiable at the cited path.</p>
+
+          <div class="issue issue-critical" id="version-pin">
+            <span class="severity severity-critical"
+              >Missed Opportunity &middot; High impact &middot; gate for all
+              below</span
+            >
+            <h3>Pinned three minors behind: v1.16.0 vs v1.19.4</h3>
+            <div class="where">
+              go.mod:44-48,199 &middot; 665 commits between pins &middot;
+              v1.19.3 tag poisoned per the library changelog
+            </div>
+            <p>
+              CV requires the root module plus the errorpage, htmx, icons, and
+              utils submodules at v1.16.0 (datastar v1.16.0 indirect). Since
+              then the library shipped its accessibility pack (v1.18.0), the
+              errorpage overhaul with trace IDs (v1.18.1), the Popover
+              positioner and Kanban hardening fixes (v1.19.0&ndash;.1), and two
+              PolledRegion request-storm fixes (v1.19.3). The v1.19.4 notes
+              explicitly instruct consumers to skip v1.19.3 (a nix
+              <code>result*</code> symlink poisoned that tag tree).
+            </p>
+            <pre><code># Upgrade (never v1.19.3 — poisoned tag tree):
+go get github.com/larsartmann/templ-components@v1.19.4 \
+       github.com/larsartmann/templ-components/errorpage@v1.19.4 \
+       github.com/larsartmann/templ-components/htmx@v1.19.4 \
+       github.com/larsartmann/templ-components/icons@v1.19.4 \
+       github.com/larsartmann/templ-components/utils@v1.19.4
+
+# Then, in the same change:
+TC_SRC=$GOMODCACHE/github.com/larsartmann/templ-components@v1.19.4 \
+  bash scripts/gen-tc-safelist.sh && bun run css:build</code></pre>
+            <div class="callout callout-teal">
+              <strong>Upgrade checklist</strong>
+              Decide the card-corner question first: since v1.18.1,
+              <code>Card</code>/<code>SimpleCard</code>/<code>StatCard</code>
+              render sharp by default &mdash; the admin hub's four landmark
+              <code>display.Card</code> sections will lose their rounding
+              unless each passes <code>Class: "rounded-lg"</code>. Then
+              regenerate HTML goldens that embed library bytes (the
+              <code>ats_dashboard</code> equivalence golden), re-run the axe
+              gates, and run <code>tc doctor</code> once.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="testing-link">
+            <span class="severity severity-critical"
+              >Production impurity &middot; fixed upstream in v1.18.1</span
+            >
+            <h3>The cv binary links the Go testing framework</h3>
+            <div class="where">
+              utils@v1.16.0/test_helpers.go (non-test file importing
+              "testing") &middot; verified via
+              <code>go list -deps ./cmd/cv</code> containing
+              <code>testing</code>
+            </div>
+            <p>
+              The v1.16.0 utils render/assert helpers take
+              <code>*testing.T</code>, so the package imports
+              <code>testing</code> in production code &mdash; and any consumer
+              binary that imports utils (CV's <code>badges.go</code>,
+              <code>fields_helpers.go</code>) links the whole test framework.
+              The library fixed this in v1.18.1 by moving the helpers onto a
+              local <code>TestReporter</code> interface (found in dnsblockd via
+              <code>go tool nm</code>). CV is carrying a defect its own
+              dependency already fixed.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Rides the upgrade for free. Verify after:
+              <code>go list -deps ./cmd/cv | grep -x testing</code> must return
+              nothing.
+            </div>
+          </div>
+
+          <div class="issue issue-critical" id="relative-time">
+            <span class="severity severity-critical"
+              >Re-entry trigger FIRED &middot; recorded 2026-09-05</span
+            >
+            <h3>RelativeTime's injected clock exists &mdash; the T25 rejection
+            is obsolete</h3>
+            <div class="where">
+              CV: internal/features/admin/handlers/admin_handler.go:341
+              (hand-rolled <code>relativeAge</code>) &middot; Library:
+              display.RelativeTimeProps.Now + AutoRefresh (v1.17.0)
+            </div>
+            <p>
+              CV rejected <code>display.RelativeTime</code> because "the
+              library hardcodes <code>time.Now()</code>" and its AutoRefresh
+              script breaks byte-deterministic rendering, naming the upstream
+              injected-clock prop as the re-entry trigger. v1.17.0 shipped
+              exactly that: <code>Now</code> pins the reference instant and
+              <code>AutoRefresh: false</code> renders fully static &mdash;
+              both blockers are gone, and the trigger CV wrote down has fired.
+            </p>
+            <pre><code>// Before: hand-rolled phrasing, tested by hand
+stats.LastActivityRelative = relativeAge(snap.UpdatedAt, time.Now().UTC())
+
+// After: library component, deterministic, i18n-formatted
+@display.RelativeTime(display.RelativeTimeProps{
+    Time:        snap.UpdatedAt,
+    Now:         h.now.UTC(),
+    AutoRefresh: false,
+})</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Adopt on the admin hub's last-activity stamps. Small effort, and
+              it retires hand-rolled bucket logic (plus its unit test) in favor
+              of the library's 26-case boundary-tested implementation.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="errorpage-depth">
+            <span class="severity severity-important"
+              >Partially Used &middot; 1 of 4 error components</span
+            >
+            <h3>errorpage adoption stops at NotFound</h3>
+            <div class="where">
+              Used: errorpage.NotFound (internal/ui/not_found.templ)
+              &middot; Unused: ErrorAlert, ErrorDetail, ErrorPage, FromError,
+              ErrorHandler
+            </div>
+            <p>
+              Since v1.18.1 the errorpage package is a full error-rendering
+              system: family-derived titles/status codes, oops-style
+              <code>Public()</code> message safety, trace-ID footers,
+              retry-aware way-outs, neutral ErrorDetail variants, and
+              copyable error codes. CV hand-rolls its HTML error moments: the
+              GraphRAG-disabled console alert parses a 503 JSON envelope into
+              a bespoke inline alert, and typed error responses (404
+              VARIANT_NOT_FOUND etc.) have no HTML face.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Render the GraphRAG enable-hint through
+              <code>ErrorDetail</code> (Neutral variant fits the console), and
+              give guarded-JSON 4xx/5xx surfaces an
+              <code>ErrorPage</code>/<code>FromError</code> HTML face.
+              Correlation IDs already exist in CV's command metadata &mdash;
+              the new <code>Trace</code> field is a natural fit.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="a11y-pack">
+            <span class="severity severity-important"
+              >Missed Opportunity &middot; rides the upgrade + one CSS
+              import</span
+            >
+            <h3>The accessibility pack and component CSS never landed</h3>
+            <div class="where">
+              CV ships no <code>templates/custom.css</code> import (only
+              utility safelisting) &middot; Library: v1.17.0&ndash;v1.18.0
+              a11y waves
+            </div>
+            <p>
+              Three layers of upstream accessibility work are absent from
+              CV's output: (1) component-behavior fixes to adopted components
+              &mdash; labeled form controls derive their DOM id from
+              <code>Name</code> (WCAG 1.3.1/4.1.2), Table scroll wrappers
+              became keyboard-focusable, StatCard trend colors hit WCAG
+              contrast; (2) the touch-target/zoom-reflow audits that reshaped
+              NavLink, Toast dismiss, and Table sort links; (3) the
+              <code>templates/custom.css</code> rules &mdash; forced-colors
+              focus restoration, prefers-contrast border hardening &mdash;
+              which CV does not import at all, so no amount of version
+              bumping delivers them.
+            </p>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Import <code>templates/custom.css</code> into
+              <code>assets/css/input.css</code> in the upgrade change and
+              re-run the axe gates; the forced-colors and prefers-contrast
+              rules are consumer-side imports by design.
+            </div>
+          </div>
+
+          <div class="issue issue-important" id="decode-form">
+            <span class="severity severity-important"
+              >Partially Used &middot; typed decoding unused</span
+            >
+            <h3>wire.DecodeForm vs hand-rolled PostForm decoding</h3>
+            <div class="where">
+              CV: internal/features/ateam/handlers/field_validation.go:28,84
+              (<code>c.Request.PostForm</code> +
+              <code>handleFullValidation(c, form url.Values)</code>)
+            </div>
+            <p>
+              v1.17.0 added <code>utils/wire.DecodeForm[T]</code>: typed
+              request structs with <code>form:</code> tags, checkbox
+              handling, loud failures on malformed values &mdash; the same
+              make-impossible-states-unrepresentable discipline CV applies to
+              its JSON wire contracts. The A-Team validation endpoint still
+              passes raw <code>url.Values</code> around.
+            </p>
+            <pre><code>type ateamValidateForm struct {
+    KeySkills   string `form:"keySkills"`
+    Rate        string `form:"rate"`
+}
+form, err := wire.DecodeForm[ateamValidateForm](c.Request)</code></pre>
+            <div class="callout callout-teal">
+              <strong>Recommendation</strong>
+              Adopt where forms decode into fixed field sets (A-Team
+              validation, contact). Low priority &mdash; the current code
+              works and is validated &mdash; but it is the library's stated
+              answer to this exact shape.
+            </div>
+          </div>
+
+          <div class="issue issue-nice" id="htmx-none">
+            <span class="severity severity-nice"
+              >Nice to have &middot; explicitness, not bytes</span
+            >
+            <h3>Five htmx-free pages could declare HTMXNone</h3>
+            <div class="where">
+              landing.templ, chat_page.templ, coaching_page.templ,
+              dashboard_page.templ (pipeline), not_found.templ &mdash; zero
+              <code>hx-*</code> attributes each; HTMXSrc left at ""
+            </div>
+            <p>
+              These pages already ship no htmx bytes (ScreenBase only emits
+              the script when HTMXSrc is non-empty), so v1.19.3's
+              <code>layout.HTMXNone</code> is a documentation win, not a
+              payload win: it states the intent in types and guards against
+              accidental reintroduction. The three real htmx pages (admin, ats
+              dashboard, ateam form) correctly self-host the vendored runtime.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="ruling-refresh">
+            <span class="severity severity-nice"
+              >Governance note &middot; facts changed under a parked
+              ruling</span
+            >
+            <h3>KanbanBoard's park predates its hardening wave</h3>
+            <div class="where">
+              Ruling: 2026-09-13 "let it age" &middot; Library since:
+              CSRFToken prop, column Tone/Action, optimistic pending register
+              with honest failure revert (v1.18.0&ndash;.1), mobile overflow
+              fix
+            </div>
+            <p>
+              The park decision remains correct &mdash; notably because the
+              new optimistic-move behavior mutates the DOM client-side, which
+              directly conflicts with CV's pinned F38 board contract ("the JS
+              NEVER mutates the DOM; the SSE swap re-renders truth"). But the
+              recorded rationale should note the new facts so the next board
+              change starts from today's library, not v1.16's.
+            </p>
+          </div>
+        </section>
+
+        <section id="versions">
+          <h2><span class="num">02</span>Version Currency</h2>
+          <p>
+            What v1.16.0 &rarr; v1.19.4 contains, and what it means for CV.
+            (Full detail: the library CHANGELOG, sections 1.17.0&ndash;1.19.4.)
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Version</th>
+                <th>Type</th>
+                <th>Notable change</th>
+                <th>CV relevance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>v1.17.0</td>
+                <td>Feature</td>
+                <td>
+                  <code>RelativeTimeProps.Now</code>,
+                  <code>wire.DecodeForm</code>, Minimal SEO tags, labeled
+                  control auto-IDs, zero-panic/class-override guarantees
+                </td>
+                <td class="no">High &mdash; fired re-entry trigger</td>
+              </tr>
+              <tr>
+                <td>v1.18.0</td>
+                <td>Feature</td>
+                <td>
+                  Accessibility pack (touch targets, zoom-reflow,
+                  forced-colors, aria-live policy), NavLink Wire, AppShell
+                  theming tokens, Kanban Tone/Action/CSRF
+                </td>
+                <td class="no">High &mdash; adopted components hardened</td>
+              </tr>
+              <tr>
+                <td>v1.18.1</td>
+                <td>Mixed</td>
+                <td>
+                  utils delinks <code>testing</code>; errorpage overhaul
+                  (Trace, way-outs, MaxWidth, Neutral detail); cards sharp by
+                  default (visual change); Kanban optimistic moves
+                </td>
+                <td class="no">High &mdash; incl. one visual break</td>
+              </tr>
+              <tr>
+                <td>v1.19.0</td>
+                <td>Fix</td>
+                <td>
+                  Popover/Dropdown positioner fix (panels at 0,0; capture
+                  listener), Dropdown custom trigger slot
+                </td>
+                <td>Low &mdash; components unused</td>
+              </tr>
+              <tr>
+                <td>v1.19.1</td>
+                <td>Fix</td>
+                <td>
+                  CopyButton label contrast fix, ListNote count variant,
+                  Grid/PolledRegion WithChildren docs
+                </td>
+                <td>Medium &mdash; CopyButton adopted</td>
+              </tr>
+              <tr>
+                <td>v1.19.2</td>
+                <td>Feature</td>
+                <td><code>PageProps.NoThemeScript</code> opt-out</td>
+                <td>Low &mdash; CV nonces ThemeScript</td>
+              </tr>
+              <tr>
+                <td>v1.19.3</td>
+                <td>Fix</td>
+                <td>
+                  PolledRegion 1 ms-poll-storm + eager self-refetch fixes,
+                  templ fmt canonicalization &mdash; tag tree POISONED
+                </td>
+                <td class="no">Skip &mdash; target v1.19.4</td>
+              </tr>
+              <tr>
+                <td>v1.19.4</td>
+                <td>Fix</td>
+                <td>
+                  Repairs the poisoned v1.19.3 tag tree; ships the
+                  PolledRegion fixes for real
+                </td>
+                <td class="yes">The upgrade target</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="opportunities">
+          <h2><span class="num">03</span>Top Opportunities</h2>
+          <p>Pareto-ranked by impact &times; ease.</p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Opportunity</th>
+                <th>Impact</th>
+                <th>Ease</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>
+                  Upgrade to v1.19.4 (+ safelist regen + card-corner decision
+                  + golden regen)
+                </td>
+                <td class="yes">5</td>
+                <td>3</td>
+                <td><span class="highlight">15</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Testing-delink of the cv binary (rides #1)</td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>
+                  Import templates/custom.css (forced-colors +
+                  prefers-contrast a11y)
+                </td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">20</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>
+                  Adopt RelativeTime{Now, AutoRefresh:false} on admin hub
+                  stamps
+                </td>
+                <td>3</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">12</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>HTMXNone on the five htmx-free screen pages</td>
+                <td>2</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">10</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>
+                  Run <code>tc doctor</code> once post-upgrade (trap
+                  diagnostics)
+                </td>
+                <td>2</td>
+                <td class="yes">5</td>
+                <td><span class="highlight">10</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>
+                  ErrorDetail/FromError for the GraphRAG alert + typed error
+                  HTML faces
+                </td>
+                <td>3</td>
+                <td>3</td>
+                <td><span class="highlight">9</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>wire.DecodeForm for the A-Team validation endpoint</td>
+                <td>2</td>
+                <td>3</td>
+                <td><span class="highlight">6</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>
+                  Refresh the KanbanBoard park note with v1.18/1.19 facts
+                </td>
+                <td>1</td>
+                <td class="yes">4</td>
+                <td><span class="highlight">4</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">04</span>Appendix</h2>
+          <p>
+            <strong>Method.</strong> Pins read from go.mod (root + submodules)
+            and the module cache at
+            <code>templ-components@v1.16.0</code>; latest from the sibling
+            checkout's tags (v1.19.4, 2026-09-25); capability map from the
+            library CHANGELOG v1.16.0&rarr;HEAD plus source verification of
+            each claimed API at the sibling HEAD; usage map from repo-wide
+            symbol greps over <code>*.templ</code> and non-test Go files;
+            production-link claim from
+            <code>go list -deps ./cmd/cv</code>.
+          </p>
+          <p>
+            <strong>Deliberately out of scope (rulings upheld).</strong>
+            Navigation shells (CV-local, pre-date the library),
+            PolledRegion (C2.2), charts (Chart.js scriptable),
+            charts/echarts + datastar modules (no consumer),
+            TagsInput (A-T2, 2026-09-28), Minimal/AppShell shells (CV-local
+            ScreenBase owns the seam; AppShell's new theming tokens noted for
+            any future consolidation).
+          </p>
+          <p>
+            <strong>Compatibility.</strong> Library go directive
+            (1.26.0&ndash;1.26.7 across the range) satisfies CV's 1.26.7
+            floor; templ generator pin v0.3.1020 applies to the library's
+            committed <code>*_templ.go</code>, not to CV's own templates; the
+            vendored htmx 2.0.3 + checksum guard stays authoritative for
+            CV's self-hosted copy.
+          </p>
+          <table class="compare">
+            <thead>
+              <tr>
+                <th>Finding</th>
+                <th>Grade</th>
+                <th>Effort</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Version pin v1.16.0 &rarr; v1.19.4</td>
+                <td class="no">Critical</td>
+                <td>Medium</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>testing linked into cv binary</td>
+                <td class="no">Critical</td>
+                <td>Rides upgrade</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>RelativeTime trigger fired</td>
+                <td class="no">Critical</td>
+                <td>Small</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>errorpage depth</td>
+                <td class="no">Important</td>
+                <td>Medium</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>Accessibility pack + custom.css</td>
+                <td class="no">Important</td>
+                <td>Small</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>wire.DecodeForm</td>
+                <td class="no">Important</td>
+                <td>Medium</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>HTMXNone declarations</td>
+                <td class="yes">Nice</td>
+                <td>Trivial</td>
+                <td class="no">Open</td>
+              </tr>
+              <tr>
+                <td>Kanban ruling fact-refresh</td>
+                <td class="yes">Nice</td>
+                <td>Trivial</td>
+                <td class="no">Open</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <footer class="footer">
+          <p>
+            Generated 2026-10-01 &middot; CV pins templ-components v1.16.0,
+            audited against sibling HEAD v1.19.4 &middot; All claims verified
+            against go.mod, module cache, library changelog, and source where
+            noted
+          </p>
+        </footer>
+      </main>
+    </div>
+
+    <script>
+      (function () {
+        if (!("IntersectionObserver" in window)) return;
+        var nav = document.querySelector("[data-nav]");
+        if (!nav) return;
+        var links = nav.querySelectorAll('a[href^="#"]');
+        var ids = Array.from(links).map(function (l) {
+          return l.getAttribute("href").slice(1);
+        });
+        var sections = ids
+          .map(function (id) {
+            return document.getElementById(id);
+          })
+          .filter(Boolean);
+        if (!sections.length) return;
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                links.forEach(function (link) {
+                  link.classList.toggle(
+                    "active",
+                    link.getAttribute("href") === "#" + entry.target.id,
+                  );
+                });
+              }
+            });
+          },
+          { rootMargin: "-80px 0px -60% 0px", threshold: 0 },
+        );
+        sections.forEach(function (s) {
+          observer.observe(s);
+        });
+      })();
+    </script>
+  </body>
+</html>
