@@ -851,7 +851,7 @@
     <div class="top-bar">
       <span>LIBRARY DEEP DIVE</span>
       <span>2026-10-01</span>
-      <span>CV &times; templ-components</span>
+      <span>go-cqrs-lite &middot; catalog/docserver</span>
     </div>
 
     <div class="layout">
@@ -860,10 +860,11 @@
           <div class="label">Contents</div>
           <a href="#summary">Summary</a>
           <a href="#scorecard">Scorecard</a>
-          <a href="#strengths">Strengths</a>
+          <a href="#usage">Current Usage</a>
           <a href="#findings">Findings</a>
           <a href="#versions">Version Currency</a>
-          <a href="#opportunities">Top Opportunities</a>
+          <a href="#opportunities">Opportunities</a>
+          <a href="#conclusion">Conclusion</a>
           <a href="#appendix">Appendix</a>
         </nav>
       </aside>
@@ -879,509 +880,409 @@
           <div class="eyebrow">LIBRARY DEEP DIVE &middot; 2026-10-01</div>
           <h1>templ-components &mdash; Adoption &amp; Utilization Audit</h1>
           <p class="subtitle">
-            Is CV getting the most out of its own UI component library? Verdict:
-            adoption where it is pinned is deep, disciplined, and test-pinned
-            &mdash; but the pin is three minor releases stale, and one of CV's
-            own recorded re-entry triggers has already fired.
+            How superbly does <code>go-cqrs-lite</code>'s documentation server
+            (<code>catalog/docserver</code>) use its own sibling UI library?
+            Verdict: the adopted surface is exemplary &mdash; but eight
+            hand-rolled patterns duplicated components the pinned version
+            already ships. Four were closed in this audit; the rest await
+            either a product decision or the library's next release.
           </p>
           <div class="meta">
-            <span class="tag amber">Pinned: v1.16.0</span>
-            <span class="tag">Latest: v1.19.4</span>
-            <span class="tag teal">Adoption Score: 78/100</span>
+            <span class="tag teal">Pinned: v1.19.4 = latest tag</span>
+            <span class="tag">Adoption Score: <strong>82/100</strong> (post-audit)</span>
+            <span class="tag amber">6 gaps found &middot; 4 fixed same-session</span>
           </div>
         </header>
 
         <section id="scorecard" class="scorecard">
-          <div class="score-card score-warn">
-            <div class="score">78</div>
-            <div class="label">Adoption score /100</div>
-          </div>
-          <div class="score-card score-warn">
-            <div class="score">3</div>
-            <div class="label">Minor versions behind</div>
-          </div>
-          <div class="score-card score-warn">
-            <div class="score">7</div>
-            <div class="label">Missed / partial findings</div>
-          </div>
-          <div class="score-card score-bad">
-            <div class="score">1</div>
-            <div class="label">Production impurity</div>
+          <div class="score-card score-good">
+            <div class="score">82</div>
+            <div class="label">Adoption Score /100</div>
           </div>
           <div class="score-card score-good">
-            <div class="score">8</div>
-            <div class="label">Deliberate rulings held</div>
+            <div class="score">24/30</div>
+            <div class="label">Relevant capabilities leveraged</div>
+          </div>
+          <div class="score-card score-warn">
+            <div class="score">2</div>
+            <div class="label">Open opportunities</div>
+          </div>
+          <div class="score-card">
+            <div class="score">0</div>
+            <div class="label">Versions behind latest tag</div>
+          </div>
+          <div class="score-card score-good">
+            <div class="score">0</div>
+            <div class="label">Anti-patterns remaining</div>
           </div>
         </section>
 
         <section id="summary">
-          <h2><span class="num">00</span>Summary</h2>
+          <h2><span class="num">01</span>Summary</h2>
           <p>
-            CV consumes <code>github.com/larsartmann/templ-components</code>
-            across 29 <code>.templ</code> sources and 7 Go files, touching eight
-            packages and roughly 90 distinct exported symbols. The adoption is
-            not casual: it is governed by a maintained adoption table with
-            per-component rulings and re-entry triggers, integrated through a
-            committed Tailwind safelist and an <code>@theme</code> tone bridge,
-            and pinned by library-aware tests. Where the library is used, it is
-            used <em>superbly</em>.
+            <code>catalog/docserver</code> is the richest consumer of
+            <code>github.com/larsartmann/templ-components</code> in the
+            workspace: five <code>.templ</code> pages plus their Go glue
+            render the docs index, the EventCatalog browse UI, Scalar and
+            AsyncAPI SPA chrome, and the D2 architecture page &mdash; all
+            pinned at <strong>v1.19.4</strong>, which is the library's latest
+            tagged release (2026-09-25). The version answer is unambiguous:
+            we are current.
           </p>
           <p>
-            The weakness is currency, not depth. CV pins
-            <strong>v1.16.0 (2026-09-09)</strong>; the library is at
-            <strong>v1.19.4 (2026-09-25)</strong> &mdash; 665 commits of
-            accessibility hardening, an errorpage overhaul, form-decoding and
-            relative-time APIs, and one production-purity fix that CV is
-            currently <em>without</em>: the <code>cv</code> binary links the Go
-            <code>testing</code> framework through
-            <code>utils@v1.16.0</code>. The library's own changelog flags
-            v1.19.3's tag tree as poisoned &mdash; the upgrade target must be
-            v1.19.4 or newer.
+            The utilization answer was "very good, not yet superb." The audit
+            found the library's newest layout ergonomics unused while the same
+            patterns were hand-rolled: the page-gutter
+            <code>&lt;div&gt;</code> repeated at 8 sites, a three-line
+            hand-rolled htmx kill switch, literal <code>&lt;script&gt;</code>/
+            <code>&lt;link&gt;</code> tags beside a CSP-safe component pair,
+            and not-found pages that answered <code>200&nbsp;OK</code>. All
+            four v1.19.4-actionable gaps were fixed during this audit, with a
+            regression test added and every drift gate re-run green.
           </p>
           <div class="callout callout-amber">
             <strong>The bottom line</strong>
-            One version bump unlocks nearly every finding in this report:
-            testing-delinked production binaries, the accessibility pack, the
-            errorpage surface, <code>wire.DecodeForm</code>, and
-            <code>RelativeTime</code>'s injected clock &mdash; which satisfies
-            the exact re-entry trigger CV recorded on 2026-09-05 when it
-            rejected the component ("re-entry trigger: an upstream
-            injected-clock prop").
+            We are on the latest release and use it well &mdash; after this
+            audit. The two remaining opportunities are structural, not
+            cosmetic: the EventCatalog tables render <em>every</em> row with
+            no cap, note, or pagination (<code>ListNote</code> +
+            <code>Pagination</code> sit unused), and the library's
+            go-error-family-aware <code>errorpage</code> package exists only
+            as unreleased upstream work &mdash; adopt it the moment a tag
+            lands.
           </div>
         </section>
 
-        <section id="strengths">
-          <h2><span class="num">&#9670;</span>What's already excellent</h2>
-          <p>
-            Evidence from the audit greps and the repo's own pins &mdash; this
-            is the baseline the findings build on.
-          </p>
-
+        <section id="usage">
+          <h2><span class="num">02</span>Current Usage &mdash; What the Audit Found in Place</h2>
           <div class="strengths">
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Deep shell adoption with full CSP/nonce integration</strong>
-                <span>All 8 screen pages render through a CV-local
-                <code>ScreenBase</code> wrapping the library's
-                <code>layout.Base</code> &mdash; SEO meta, ThemeScript, htmx
-                self-hosting, nonce threading, and CSRF meta all flow through
-                it (<code>internal/ui/components/layout/screen_base.templ</code>).
-                The print/Typst path is deliberately 100% library-free.</span>
+                <strong>Exemplary CSP nonce discipline</strong>
+                <span>Full <code>layout.Base</code> shell with per-request nonces
+                threaded through <code>templ.WithNonce</code> /
+                <code>templ.GetNonce(ctx)</code> into every component and script
+                (catalog/docserver/csp.go:73-97, layout.templ:15-27).</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Broad primitive coverage</strong>
-                <span>24+ named components in active use:
-                <code>display</code> (StatCard, Table, Badge, Button,
-                EmptyState, CopyButton, CollapsibleSection, Eyebrow, Grid),
-                <code>forms</code> (Form, FormField, Input, Textarea, Select,
-                Checkbox, ValidationSummary), <code>feedback</code> (Alert,
-                Spinner, Skeleton, ToastContainer, ProgressBar),
-                <code>htmx</code> (GlobalErrorHandling, LoadingButton),
-                <code>errorpage.NotFound</code>, and ~40 <code>icons</code>
-                symbols.</span>
+                <strong>Navigation done through the library</strong>
+                <span><code>navigation.SimpleNav</code> (sticky, active-link
+                detection) with <code>layout.ThemeToggle</code> for dark mode,
+                plus <code>navigation.Breadcrumbs</code> on all five EventCatalog
+                detail pages (layout.templ:33-54, eventcatalogview.templ).</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Exemplary governance</strong>
-                <span>AGENTS.md carries a grep-able adoption table where every
-                non-adopted component has a recorded decision and re-entry
-                trigger (KanbanBoard, TagsInput, PolledRegion, RelativeTime,
-                navigation, charts). Zero hand-rolled duplicates of adopted
-                components were found &mdash; the table is doing its job.</span>
+                <strong>11 display components in daily use</strong>
+                <span><code>PageHeader</code>, <code>Badge</code> (pill, href,
+                7 types), <code>Grid</code> (typed cols/gap), <code>StatCard</code>
+                (semantic tones + icons), <code>Card</code>, <code>Table</code>
+                (Striped/Hover/Compact/AriaLabel), <code>DefinitionList</code>,
+                <code>CopyButton</code>, <code>CollapsibleSection</code>,
+                <code>EmptyState</code>, <code>SimpleEmptyState</code>
+                (index.templ, eventcatalogview.templ, d2view.templ).</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Integration hygiene</strong>
-                <span>Committed 39 KB <code>tc-safelist.css</code> regenerated
-                against the pinned tag
-                (<code>scripts/gen-tc-safelist.sh</code>), an
-                <code>@theme</code> bridge mapping library tones onto CV's
-                emerald/amber/slate semantics
-                (<code>assets/css/input.css:63</code> maps
-                <code>--color-blue-600: #059669</code>), and byte-verified
-                fresh-clone CSS parity.</span>
+                <strong>Feedback and icons fully typed</strong>
+                <span><code>feedback.Alert</code> (info + warning) for
+                degradation and deprecation notices; typed <code>icons.Name</code>
+                end-to-end (spec cards carry icon fields, not strings);
+                <code>utils.Lookup</code> for the kind&rarr;badge-type map
+                (d2view.templ:55, eventcatalogview.templ:166, pages.go:47-48,
+                eventcatalog_rows.go:57-61).</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Library-aware test pins</strong>
-                <span><code>TestAdminPage_ResponsiveGridsRideLibrary</code>,
-                keyed <code>utils.BaseProps</code> literals (break-proof against
-                library field growth), the templ text-leak canary, and axe
-                gates on every adopted surface.</span>
+                <strong>CSS pipeline scans the library itself</strong>
+                <span>Tailwind v4 <code>@source</code> lines cover the library's
+                display/layout/navigation/utils sources and the theme import
+                supplies the rest &mdash; verified: <code>feedback</code> classes
+                are present in the built CSS via the theme even though feedback
+                has no <code>@source</code> line (scripts/build-docserver-css.sh:45-50).</span>
               </div>
             </div>
             <div class="strength">
               <div class="check">+</div>
               <div class="text">
-                <strong>Correct concern split</strong>
-                <span>Brand logos (simple-icons policy in
-                <code>primitives/icons</code>) and UI glyphs (library
-                <code>icons</code>) never conflate; the library's
-                <code>datastar</code> module stays transitive-only in an htmx
-                shop.</span>
+                <strong>Codegen is gated, not trusted</strong>
+                <span>Committed <code>*_templ.go</code> with a two-gate drift
+                guard: <code>check-templ</code> (freshness + a FileName cwd
+                tripwire) and <code>check-docserver-css</code> (flake.nix:1189-1199,
+                scripts/check-templ-paths.sh).</span>
               </div>
             </div>
           </div>
+          <p>
+            Architecturally the consumer wraps the library thinly and
+            correctly: view-model builders (<code>pages.go</code>,
+            <code>eventcatalog_rows.go</code>, <code>eventcatalogview.go</code>)
+            translate catalog types into props; handlers apply CSP then render
+            components; no component is re-implemented or fought with custom
+            CSS overrides. The <code>depguard</code> allowlist and the full
+            catalog dep budget (5 slots, templ + templ-components among them)
+            keep the dependency deliberate.
+          </p>
         </section>
 
         <section id="findings">
-          <h2><span class="num">01</span>Findings</h2>
-          <p>Ordered by impact. Every claim is verifiable at the cited path.</p>
+          <h2><span class="num">03</span>Capability Assessment &mdash; Feature by Feature</h2>
 
-          <div class="issue issue-critical" id="version-pin">
-            <span class="severity severity-critical"
-              >Missed Opportunity &middot; High impact &middot; gate for all
-              below</span
-            >
-            <h3>Pinned three minors behind: v1.16.0 vs v1.19.4</h3>
-            <div class="where">
-              go.mod:44-48,199 &middot; 665 commits between pins &middot;
-              v1.19.3 tag poisoned per the library changelog
-            </div>
+          <div class="issue issue-important" id="f-container">
+            <span class="severity severity-important">Missed Opportunity &middot; RESOLVED this audit</span>
+            <h3>Page gutter hand-rolled at 8 sites &mdash; <code>layout.Container</code> exists to kill exactly this</h3>
+            <div class="where">index.templ:24 &middot; d2view.templ:35 &middot; eventcatalogview.templ:23, 88, 137, 210, 250, 297 &middot; spaHeader layout.templ:61 (pre-fix line numbers)</div>
             <p>
-              CV requires the root module plus the errorpage, htmx, icons, and
-              utils submodules at v1.16.0 (datastar v1.16.0 indirect). Since
-              then the library shipped its accessibility pack (v1.18.0), the
-              errorpage overhaul with trace IDs (v1.18.1), the Popover
-              positioner and Kanban hardening fixes (v1.19.0&ndash;.1), and two
-              PolledRegion request-storm fixes (v1.19.3). The v1.19.4 notes
-              explicitly instruct consumers to skip v1.19.3 (a nix
-              <code>result*</code> symlink poisoned that tag tree).
-            </p>
-            <pre><code># Upgrade (never v1.19.3 — poisoned tag tree):
-go get github.com/larsartmann/templ-components@v1.19.4 \
-       github.com/larsartmann/templ-components/errorpage@v1.19.4 \
-       github.com/larsartmann/templ-components/htmx@v1.19.4 \
-       github.com/larsartmann/templ-components/icons@v1.19.4 \
-       github.com/larsartmann/templ-components/utils@v1.19.4
-
-# Then, in the same change:
-TC_SRC=$GOMODCACHE/github.com/larsartmann/templ-components@v1.19.4 \
-  bash scripts/gen-tc-safelist.sh && bun run css:build</code></pre>
-            <div class="callout callout-teal">
-              <strong>Upgrade checklist</strong>
-              Decide the card-corner question first: since v1.18.1,
-              <code>Card</code>/<code>SimpleCard</code>/<code>StatCard</code>
-              render sharp by default &mdash; the admin hub's four landmark
-              <code>display.Card</code> sections will lose their rounding
-              unless each passes <code>Class: "rounded-lg"</code>. Then
-              regenerate HTML goldens that embed library bytes (the
-              <code>ats_dashboard</code> equivalence golden), re-run the axe
-              gates, and run <code>tc doctor</code> once.
-            </div>
-          </div>
-
-          <div class="issue issue-critical" id="testing-link">
-            <span class="severity severity-critical"
-              >Production impurity &middot; fixed upstream in v1.18.1</span
-            >
-            <h3>The cv binary links the Go testing framework</h3>
-            <div class="where">
-              utils@v1.16.0/test_helpers.go (non-test file importing
-              "testing") &middot; verified via
-              <code>go list -deps ./cmd/cv</code> containing
-              <code>testing</code>
-            </div>
-            <p>
-              The v1.16.0 utils render/assert helpers take
-              <code>*testing.T</code>, so the package imports
-              <code>testing</code> in production code &mdash; and any consumer
-              binary that imports utils (CV's <code>badges.go</code>,
-              <code>fields_helpers.go</code>) links the whole test framework.
-              The library fixed this in v1.18.1 by moving the helpers onto a
-              local <code>TestReporter</code> interface (found in dnsblockd via
-              <code>go tool nm</code>). CV is carrying a defect its own
-              dependency already fixed.
+              Every page opened with
+              <code>&lt;div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8"&gt;</code>.
+              The library's <code>Container</code> doc comment names this
+              pattern verbatim as the thing it replaces ("the single source of
+              truth for page content width and page gutter"), with a typed
+              <code>ContainerWidth</code> enum (<code>LG</code> = max-w-7xl)
+              and a <code>Pad</code> flag for the responsive gutter.
             </p>
             <div class="callout callout-teal">
-              <strong>Recommendation</strong>
-              Rides the upgrade for free. Verify after:
-              <code>go list -deps ./cmd/cv | grep -x testing</code> must return
-              nothing.
+              <strong>Gotcha found while fixing</strong>
+              The documented "Defaults: Pad=true" applies only via
+              <code>DefaultContainerProps()</code>. A literal
+              <code>ContainerProps{...}</code> has Go's zero <code>Pad=false</code>
+              and silently drops the gutter (caught by rendering the page and
+              diffing classes). Every adoption must pass <code>Pad: true</code>
+              explicitly. This consumed the audit's debugging budget and is
+              the single most valuable piece of knowledge in this report.
             </div>
+            <pre><code><span class="tok-comment">// Before (x8)</span>
+&lt;div class=<span class="tok-string">"mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8"</span>&gt;
+
+<span class="tok-comment">// After</span>
+@layout.<span class="tok-func">Container</span>(layout.ContainerProps{<span class="tok-generic">Pad</span>: <span class="tok-keyword">true</span>, <span class="tok-generic">Class</span>: <span class="tok-string">"pb-16 pt-8"</span>}) { ... }</code></pre>
           </div>
 
-          <div class="issue issue-critical" id="relative-time">
-            <span class="severity severity-critical"
-              >Re-entry trigger FIRED &middot; recorded 2026-09-05</span
-            >
-            <h3>RelativeTime's injected clock exists &mdash; the T25 rejection
-            is obsolete</h3>
-            <div class="where">
-              CV: internal/features/admin/handlers/admin_handler.go:341
-              (hand-rolled <code>relativeAge</code>) &middot; Library:
-              display.RelativeTimeProps.Now + AutoRefresh (v1.17.0)
-            </div>
+          <div class="issue issue-important" id="f-htmxnone">
+            <span class="severity severity-important">Partially Used &middot; RESOLVED this audit</span>
+            <h3>htmx disabled by hand with three redundant fields &mdash; <code>layout.HTMXNone</code> is the canonical switch</h3>
+            <div class="where">catalog/docserver/layout.templ:21-23 (pre-fix)</div>
             <p>
-              CV rejected <code>display.RelativeTime</code> because "the
-              library hardcodes <code>time.Now()</code>" and its AutoRefresh
-              script breaks byte-deterministic rendering, naming the upstream
-              injected-clock prop as the re-entry trigger. v1.17.0 shipped
-              exactly that: <code>Now</code> pins the reference instant and
-              <code>AutoRefresh: false</code> renders fully static &mdash;
-              both blockers are gone, and the trigger CV wrote down has fired.
+              <code>docsPageProps</code> cleared <code>HTMXVersion</code>,
+              <code>HTMXSrc</code>, and <code>HTMXResponseTargets</code>
+              individually. Since v1.19.3 the library ships
+              <code>HTMXNone</code> (backlog #282): one sentinel that emits no
+              script, no CDN preconnect, and no response-targets extension
+              (verified in <code>layout/base.templ:271-291</code> &mdash; all
+              three emissions are gated on
+              <code>HTMXSrc != HTMXNone</code>). The two extra field clears
+              were dead weight; rendered output is byte-identical.
             </p>
-            <pre><code>// Before: hand-rolled phrasing, tested by hand
-stats.LastActivityRelative = relativeAge(snap.UpdatedAt, time.Now().UTC())
+            <pre><code><span class="tok-comment">// Before</span>
+props.HTMXVersion = <span class="tok-string">""</span>
+props.HTMXSrc = <span class="tok-string">""</span>
+props.HTMXResponseTargets = <span class="tok-keyword">false</span>
 
-// After: library component, deterministic, i18n-formatted
-@display.RelativeTime(display.RelativeTimeProps{
-    Time:        snap.UpdatedAt,
-    Now:         h.now.UTC(),
-    AutoRefresh: false,
-})</code></pre>
-            <div class="callout callout-teal">
-              <strong>Recommendation</strong>
-              Adopt on the admin hub's last-activity stamps. Small effort, and
-              it retires hand-rolled bucket logic (plus its unit test) in favor
-              of the library's 26-case boundary-tested implementation.
-            </div>
+<span class="tok-comment">// After</span>
+props.HTMXSrc = layout.<span class="tok-type">HTMXNone</span></code></pre>
           </div>
 
-          <div class="issue issue-important" id="errorpage-depth">
-            <span class="severity severity-important"
-              >Partially Used &middot; 1 of 4 error components</span
-            >
-            <h3>errorpage adoption stops at NotFound</h3>
-            <div class="where">
-              Used: errorpage.NotFound (internal/ui/not_found.templ)
-              &middot; Unused: ErrorAlert, ErrorDetail, ErrorPage, FromError,
-              ErrorHandler
-            </div>
+          <div class="issue issue-critical" id="f-soft404">
+            <span class="severity severity-critical">Anti-Pattern &middot; RESOLVED this audit (status half)</span>
+            <h3>Not-found pages answered 200 OK &mdash; soft-404s, while the library's errorpage direction says otherwise</h3>
+            <div class="where">eventcatalog_handlers.go:17-28, 39-51, 65-77, 86-98 &middot; tests pinned the 200: eventcatalogview_test.go:155, eventcatalog_dataproduct_test.go:151 (pre-fix)</div>
             <p>
-              Since v1.18.1 the errorpage package is a full error-rendering
-              system: family-derived titles/status codes, oops-style
-              <code>Public()</code> message safety, trace-ID footers,
-              retry-aware way-outs, neutral ErrorDetail variants, and
-              copyable error codes. CV hand-rolls its HTML error moments: the
-              GraphRAG-disabled console alert parses a 503 JSON envelope into
-              a bespoke inline alert, and typed error responses (404
-              VARIANT_NOT_FOUND etc.) have no HTML face.
+              Unknown message/channel/service/data-product deep links rendered
+              a styled "Unknown &hellip;" page with HTTP 200 &mdash; breaking
+              SEO, link checkers, monitoring, and any client that branches on
+              status. Two tests explicitly asserted the 200 with comments
+              defending it, so this was a deliberate local choice &mdash; but
+              it contradicts HTTP semantics and the library's own evolution:
+              its (unreleased) <code>errorpage</code> package with
+              <code>ErrorHandler</code>/<code>WriteError</code> is
+              go-error-family-aware and status-correct, and this repo already
+              imports go-error-family. The fix sends
+              <code>http.StatusNotFound</code> through a
+              <code>renderComponentStatus</code> variant; full
+              <code>errorpage</code> adoption is pending the library's next
+              release.
             </p>
-            <div class="callout callout-teal">
-              <strong>Recommendation</strong>
-              Render the GraphRAG enable-hint through
-              <code>ErrorDetail</code> (Neutral variant fits the console), and
-              give guarded-JSON 4xx/5xx surfaces an
-              <code>ErrorPage</code>/<code>FromError</code> HTML face.
-              Correlation IDs already exist in CV's command metadata &mdash;
-              the new <code>Trace</code> field is a natural fit.
-            </div>
+            <pre><code><span class="tok-comment">// After: styled body AND honest status</span>
+ds.<span class="tok-func">renderComponentStatus</span>(w, r, http.<span class="tok-type">StatusNotFound</span>,
+    eventCatalogNotFound(cfg.ServiceName, cfg.DocsPath, <span class="tok-string">"message"</span>, id))</code></pre>
           </div>
 
-          <div class="issue issue-important" id="a11y-pack">
-            <span class="severity severity-important"
-              >Missed Opportunity &middot; rides the upgrade + one CSS
-              import</span
-            >
-            <h3>The accessibility pack and component CSS never landed</h3>
-            <div class="where">
-              CV ships no <code>templates/custom.css</code> import (only
-              utility safelisting) &middot; Library: v1.17.0&ndash;v1.18.0
-              a11y waves
-            </div>
+          <div class="issue issue-important" id="f-script">
+            <span class="severity severity-important">Partially Used &middot; RESOLVED this audit</span>
+            <h3>Literal <code>&lt;script&gt;</code>/<code>&lt;link&gt;</code> tags beside the CSP-safe component pair</h3>
+            <div class="where">specview.templ:44, 84 (scripts) &middot; specview.templ:63 (stylesheet) (pre-fix)</div>
             <p>
-              Three layers of upstream accessibility work are absent from
-              CV's output: (1) component-behavior fixes to adopted components
-              &mdash; labeled form controls derive their DOM id from
-              <code>Name</code> (WCAG 1.3.1/4.1.2), Table scroll wrappers
-              became keyboard-focusable, StatCard trend colors hit WCAG
-              contrast; (2) the touch-target/zoom-reflow audits that reshaped
-              NavLink, Toast dismiss, and Table sort links; (3) the
-              <code>templates/custom.css</code> rules &mdash; forced-colors
-              focus restoration, prefers-contrast border hardening &mdash;
-              which CV does not import at all, so no amount of version
-              bumping delivers them.
+              The SPA bootstrap pages hand-wrote
+              <code>&lt;script nonce={...} src={...}&gt;</code> and
+              <code>&lt;link rel="stylesheet"&gt;</code> while
+              <code>layout.Script(nonce, src, attrs)</code> and
+              <code>layout.Stylesheet(href, attrs)</code> exist precisely to
+              centralize CSP-safe asset tags. The two inline bootstrap scripts
+              stay literal &mdash; the library offers no inline-script
+              component at v1.19.4, and they correctly carry the nonce
+              attribute.
             </p>
-            <div class="callout callout-teal">
-              <strong>Recommendation</strong>
-              Import <code>templates/custom.css</code> into
-              <code>assets/css/input.css</code> in the upgrade change and
-              re-run the axe gates; the forced-colors and prefers-contrast
-              rules are consumer-side imports by design.
-            </div>
+            <pre><code><span class="tok-comment">// After</span>
+@layout.<span class="tok-func">Script</span>(templ.<span class="tok-func">GetNonce</span>(ctx), docsPrefix+<span class="tok-string">"/static/scalar.js"</span>, <span class="tok-keyword">nil</span>)
+@layout.<span class="tok-func">Stylesheet</span>(docsPrefix+<span class="tok-string">"/static/asyncapi-react.css"</span>, <span class="tok-keyword">nil</span>)</code></pre>
           </div>
 
-          <div class="issue issue-important" id="decode-form">
-            <span class="severity severity-important"
-              >Partially Used &middot; typed decoding unused</span
-            >
-            <h3>wire.DecodeForm vs hand-rolled PostForm decoding</h3>
-            <div class="where">
-              CV: internal/features/ateam/handlers/field_validation.go:28,84
-              (<code>c.Request.PostForm</code> +
-              <code>handleFullValidation(c, form url.Values)</code>)
-            </div>
+          <div class="issue issue-critical" id="f-tables">
+            <span class="severity severity-critical">Missed Opportunity &middot; High impact &middot; OPEN</span>
+            <h3>EventCatalog tables are unbounded &mdash; <code>ListNote</code> and <code>Pagination</code>/LoadMore sit unused</h3>
+            <div class="where">eventcatalogview.templ:38-76 (four tables) &middot; eventcatalogview.go (no cap on rows)</div>
             <p>
-              v1.17.0 added <code>utils/wire.DecodeForm[T]</code>: typed
-              request structs with <code>form:</code> tags, checkbox
-              handling, loud failures on malformed values &mdash; the same
-              make-impossible-states-unrepresentable discipline CV applies to
-              its JSON wire contracts. The A-Team validation endpoint still
-              passes raw <code>url.Values</code> around.
-            </p>
-            <pre><code>type ateamValidateForm struct {
-    KeySkills   string `form:"keySkills"`
-    Rate        string `form:"rate"`
-}
-form, err := wire.DecodeForm[ateamValidateForm](c.Request)</code></pre>
-            <div class="callout callout-teal">
-              <strong>Recommendation</strong>
-              Adopt where forms decode into fixed field sets (A-Team
-              validation, contact). Low priority &mdash; the current code
-              works and is validated &mdash; but it is the library's stated
-              answer to this exact shape.
-            </div>
-          </div>
-
-          <div class="issue issue-nice" id="htmx-none">
-            <span class="severity severity-nice"
-              >Nice to have &middot; explicitness, not bytes</span
-            >
-            <h3>Five htmx-free pages could declare HTMXNone</h3>
-            <div class="where">
-              landing.templ, chat_page.templ, coaching_page.templ,
-              dashboard_page.templ (pipeline), not_found.templ &mdash; zero
-              <code>hx-*</code> attributes each; HTMXSrc left at ""
-            </div>
-            <p>
-              These pages already ship no htmx bytes (ScreenBase only emits
-              the script when HTMXSrc is non-empty), so v1.19.3's
-              <code>layout.HTMXNone</code> is a documentation win, not a
-              payload win: it states the intent in types and guards against
-              accidental reintroduction. The three real htmx pages (admin, ats
-              dashboard, ateam form) correctly self-host the vendored runtime.
+              The messages table renders <em>every</em> message in the
+              catalog &mdash; a 500-message catalog means a 500-row DOM with
+              no truncation notice and no paging. The library ships the whole
+              answer at the pinned version: <code>display.ListNote</code>
+              ("Showing N of M. Narrow your search&hellip;" / count-only
+              variants, <code>display/list_note.templ:9-23</code>) and
+              <code>navigation.Pagination</code> / <code>LoadMore</code> /
+              <code>EndOfList</code>. Closing this needs a product decision
+              first (cap size, default sort), then it is a small change.
+              <code>Table</code> row-level <code>Href</code> (clickable rows)
+              was assessed and is <em>not</em> applicable &mdash; catalog rows
+              carry multiple distinct links per row.
             </p>
           </div>
 
-          <div class="issue issue-nice" id="ruling-refresh">
-            <span class="severity severity-nice"
-              >Governance note &middot; facts changed under a parked
-              ruling</span
-            >
-            <h3>KanbanBoard's park predates its hardening wave</h3>
-            <div class="where">
-              Ruling: 2026-09-13 "let it age" &middot; Library since:
-              CSRFToken prop, column Tone/Action, optimistic pending register
-              with honest failure revert (v1.18.0&ndash;.1), mobile overflow
-              fix
-            </div>
+          <div class="issue issue-important" id="f-errorpage">
+            <span class="severity severity-important">Missed Opportunity &middot; BLOCKED on upstream release</span>
+            <h3><code>errorpage</code> package (4 components, 6 constructors, go-error-family-aware handler) is not in any release yet</h3>
+            <div class="where">not in v1.19.4 (verified against the module cache); present in the templ-components working tree as an unreleased package</div>
             <p>
-              The park decision remains correct &mdash; notably because the
-              new optimistic-move behavior mutates the DOM client-side, which
-              directly conflicts with CV's pinned F38 board contract ("the JS
-              NEVER mutates the DOM; the SSE swap re-renders truth"). But the
-              recorded rationale should note the new facts so the next board
-              change starts from today's library, not v1.16's.
+              Once released, <code>errorpage.NotFound404</code>,
+              <code>WriteError</code>, and <code>FromError</code> (which
+              extracts family/title/code/why/fix/trace from a
+              go-error-family error &mdash; the taxonomy this repo uses
+              everywhere) replace the hand-rolled
+              <code>eventCatalogNotFound</code> plumbing and give every
+              docserver error path the same treatment. Watch the library
+              changelog; bump + regenerate CSS in the same commit
+              (CONTRIBUTING rule).
+            </p>
+          </div>
+
+          <div class="issue issue-important" id="f-minor">
+            <span class="severity severity-important">Partially Used &middot; Low impact &middot; OPEN</span>
+            <h3>Minor ergonomic gaps: <code>PageHeader.Breadcrumb</code> slot, <code>CollapsibleSection.StorageKey</code>, pre-block dedup</h3>
+            <div class="where">eventcatalogview.templ (5 detail pages render Breadcrumbs above PageHeader) &middot; d2view.templ:43-53 (StorageKey unset) &middot; codeBlock pre styling repeated 3&times;</div>
+            <p>
+              <code>PageHeaderProps.Breadcrumb templ.Component</code>
+              (<code>display/page_header.templ:12-14</code>) renders the
+              breadcrumb inside the header block; the current
+              sibling-above-header layout works and keeps spacing explicit, so
+              this is a taste-level adoption. <code>StorageKey</code> would
+              persist the D2-source section's open/closed state in
+              localStorage for free. The three near-identical
+              <code>&lt;pre&gt;</code> source blocks (2 in d2view, 1 in
+              eventcatalogview) are repo-local duplication &mdash; the library
+              has no CodeBlock component at v1.19.4 (<code>Scrollback</code>
+              is for logs, not code), so consolidating means a local
+              <code>codeBlock</code> helper, not a library feature.
+            </p>
+          </div>
+
+          <div class="issue issue-nice" id="f-good">
+            <span class="severity severity-nice">Fully Leveraged &middot; assessed and correct</span>
+            <h3>Deliberate non-adoptions that are the right call</h3>
+            <div class="where">audit-wide</div>
+            <p>
+              <code>StatusBadge</code> (exists at v1.19.4,
+              <code>badge_templ.go:363</code>) maps ~20 generic status strings;
+              the docserver's event/command/query color semantics are
+              domain-specific, so the 5-line <code>utils.Lookup</code> map is
+              the better tool. The whole <code>forms</code> package (23
+              components), <code>htmx</code> package, kanban, modal/drawer,
+              and the chart family are Not Applicable for a static, htmx-free
+              docs server &mdash; and the htmx-free stance is now expressed
+              through the library's own front door. <code>Grid</code>'s
+              <code>ContainerAware</code> container queries and
+              <code>DefinitionGrid</code> were assessed; current usage is
+              already responsive and readable.
             </p>
           </div>
         </section>
 
         <section id="versions">
-          <h2><span class="num">02</span>Version Currency</h2>
-          <p>
-            What v1.16.0 &rarr; v1.19.4 contains, and what it means for CV.
-            (Full detail: the library CHANGELOG, sections 1.17.0&ndash;1.19.4.)
-          </p>
+          <h2><span class="num">04</span>Version Currency</h2>
+          <div class="callout callout-teal">
+            <strong>On the latest release</strong>
+            The pin is <code>v1.19.4</code> (catalog/go.mod:10-12, released
+            2026-09-25) &mdash; the newest tag in the upstream repository. The
+            only gap is upstream's own <strong>Unreleased</strong> working
+            tree, which contains features the docserver would adopt on the
+            next bump.
+          </div>
           <table class="compare">
             <thead>
               <tr>
                 <th>Version</th>
                 <th>Type</th>
-                <th>Notable change</th>
-                <th>CV relevance</th>
+                <th>Notable Change</th>
+                <th>Relevance to docserver</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>v1.17.0</td>
+                <td>Unreleased</td>
                 <td>Feature</td>
-                <td>
-                  <code>RelativeTimeProps.Now</code>,
-                  <code>wire.DecodeForm</code>, Minimal SEO tags, labeled
-                  control auto-IDs, zero-panic/class-override guarantees
-                </td>
-                <td class="no">High &mdash; fired re-entry trigger</td>
+                <td><code>errorpage</code> package: <code>ErrorPage</code>, <code>NotFound404</code>, <code>WriteError</code>, go-error-family-aware <code>FromError</code></td>
+                <td class="yes">High &mdash; replaces hand-rolled not-found plumbing (finding above)</td>
               </tr>
               <tr>
-                <td>v1.18.0</td>
+                <td>Unreleased</td>
                 <td>Feature</td>
-                <td>
-                  Accessibility pack (touch targets, zoom-reflow,
-                  forced-colors, aria-live policy), NavLink Wire, AppShell
-                  theming tokens, Kanban Tone/Action/CSRF
-                </td>
-                <td class="no">High &mdash; adopted components hardened</td>
+                <td><code>PageHeader</code> <code>TitleComponent</code>/<code>SubtitleComponent</code> slots</td>
+                <td>Low &mdash; headers here are plain strings today</td>
               </tr>
               <tr>
-                <td>v1.18.1</td>
-                <td>Mixed</td>
-                <td>
-                  utils delinks <code>testing</code>; errorpage overhaul
-                  (Trace, way-outs, MaxWidth, Neutral detail); cards sharp by
-                  default (visual change); Kanban optimistic moves
-                </td>
-                <td class="no">High &mdash; incl. one visual break</td>
+                <td>Unreleased</td>
+                <td>Feature</td>
+                <td><code>ListNote</code> <code>ListNoteRange</code> ("Showing X&ndash;Y of Z.")</td>
+                <td class="yes">Medium &mdash; pairs with the table-bounds work</td>
               </tr>
               <tr>
-                <td>v1.19.0</td>
+                <td>Unreleased</td>
+                <td>Feature</td>
+                <td><code>CopyButton</code> <code>LabelClass</code>; error-pages recipe</td>
+                <td>Low / reference</td>
+              </tr>
+              <tr>
+                <td>v1.19.4 (pinned)</td>
                 <td>Fix</td>
-                <td>
-                  Popover/Dropdown positioner fix (panels at 0,0; capture
-                  listener), Dropdown custom trigger slot
-                </td>
-                <td>Low &mdash; components unused</td>
-              </tr>
-              <tr>
-                <td>v1.19.1</td>
-                <td>Fix</td>
-                <td>
-                  CopyButton label contrast fix, ListNote count variant,
-                  Grid/PolledRegion WithChildren docs
-                </td>
-                <td>Medium &mdash; CopyButton adopted</td>
-              </tr>
-              <tr>
-                <td>v1.19.2</td>
-                <td>Feature</td>
-                <td><code>PageProps.NoThemeScript</code> opt-out</td>
-                <td>Low &mdash; CV nonces ThemeScript</td>
+                <td>Poisoned-symlink tag repair for v1.19.3; PolledRegion interval normalization</td>
+                <td class="no">None (no PolledRegion usage)</td>
               </tr>
               <tr>
                 <td>v1.19.3</td>
-                <td>Fix</td>
-                <td>
-                  PolledRegion 1 ms-poll-storm + eager self-refetch fixes,
-                  templ fmt canonicalization &mdash; tag tree POISONED
-                </td>
-                <td class="no">Skip &mdash; target v1.19.4</td>
+                <td>Feature</td>
+                <td><code>layout.HTMXNone</code> &mdash; zero-htmx pages via one sentinel</td>
+                <td class="yes">High &mdash; adopted in this audit</td>
               </tr>
               <tr>
-                <td>v1.19.4</td>
-                <td>Fix</td>
-                <td>
-                  Repairs the poisoned v1.19.3 tag tree; ships the
-                  PolledRegion fixes for real
-                </td>
-                <td class="yes">The upgrade target</td>
+                <td>v1.19.0&ndash;v1.19.2</td>
+                <td>Feature</td>
+                <td><code>layout.Container</code>/<code>Stack</code> line, <code>ListNote</code> variants, <code>templ fmt</code> canonicalization</td>
+                <td class="yes">Container adopted in this audit</td>
               </tr>
             </tbody>
           </table>
         </section>
 
         <section id="opportunities">
-          <h2><span class="num">03</span>Top Opportunities</h2>
-          <p>Pareto-ranked by impact &times; ease.</p>
+          <h2><span class="num">05</span>Top Opportunities &mdash; Prioritized</h2>
           <table class="compare">
             <thead>
               <tr>
@@ -1390,191 +1291,154 @@ form, err := wire.DecodeForm[ateamValidateForm](c.Request)</code></pre>
                 <th>Impact</th>
                 <th>Ease</th>
                 <th>Priority</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>
-                  Upgrade to v1.19.4 (+ safelist regen + card-corner decision
-                  + golden regen)
-                </td>
-                <td class="yes">5</td>
-                <td>3</td>
-                <td><span class="highlight">15</span></td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Testing-delink of the cv binary (rides #1)</td>
-                <td class="yes">4</td>
-                <td class="yes">5</td>
-                <td><span class="highlight">20</span></td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>
-                  Import templates/custom.css (forced-colors +
-                  prefers-contrast a11y)
-                </td>
-                <td class="yes">4</td>
-                <td class="yes">5</td>
-                <td><span class="highlight">20</span></td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>
-                  Adopt RelativeTime{Now, AutoRefresh:false} on admin hub
-                  stamps
-                </td>
-                <td>3</td>
-                <td class="yes">4</td>
-                <td><span class="highlight">12</span></td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>HTMXNone on the five htmx-free screen pages</td>
-                <td>2</td>
-                <td class="yes">5</td>
-                <td><span class="highlight">10</span></td>
-              </tr>
-              <tr>
-                <td>6</td>
-                <td>
-                  Run <code>tc doctor</code> once post-upgrade (trap
-                  diagnostics)
-                </td>
-                <td>2</td>
-                <td class="yes">5</td>
-                <td><span class="highlight">10</span></td>
-              </tr>
-              <tr>
-                <td>7</td>
-                <td>
-                  ErrorDetail/FromError for the GraphRAG alert + typed error
-                  HTML faces
-                </td>
-                <td>3</td>
-                <td>3</td>
-                <td><span class="highlight">9</span></td>
-              </tr>
-              <tr>
-                <td>8</td>
-                <td>wire.DecodeForm for the A-Team validation endpoint</td>
-                <td>2</td>
-                <td>3</td>
-                <td><span class="highlight">6</span></td>
-              </tr>
-              <tr>
-                <td>9</td>
-                <td>
-                  Refresh the KanbanBoard park note with v1.18/1.19 facts
-                </td>
-                <td>1</td>
-                <td class="yes">4</td>
-                <td><span class="highlight">4</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section id="appendix">
-          <h2><span class="num">04</span>Appendix</h2>
-          <p>
-            <strong>Method.</strong> Pins read from go.mod (root + submodules)
-            and the module cache at
-            <code>templ-components@v1.16.0</code>; latest from the sibling
-            checkout's tags (v1.19.4, 2026-09-25); capability map from the
-            library CHANGELOG v1.16.0&rarr;HEAD plus source verification of
-            each claimed API at the sibling HEAD; usage map from repo-wide
-            symbol greps over <code>*.templ</code> and non-test Go files;
-            production-link claim from
-            <code>go list -deps ./cmd/cv</code>.
-          </p>
-          <p>
-            <strong>Deliberately out of scope (rulings upheld).</strong>
-            Navigation shells (CV-local, pre-date the library),
-            PolledRegion (C2.2), charts (Chart.js scriptable),
-            charts/echarts + datastar modules (no consumer),
-            TagsInput (A-T2, 2026-09-28), Minimal/AppShell shells (CV-local
-            ScreenBase owns the seam; AppShell's new theming tokens noted for
-            any future consolidation).
-          </p>
-          <p>
-            <strong>Compatibility.</strong> Library go directive
-            (1.26.0&ndash;1.26.7 across the range) satisfies CV's 1.26.7
-            floor; templ generator pin v0.3.1020 applies to the library's
-            committed <code>*_templ.go</code>, not to CV's own templates; the
-            vendored htmx 2.0.3 + checksum guard stays authoritative for
-            CV's self-hosted copy.
-          </p>
-          <table class="compare">
-            <thead>
-              <tr>
-                <th>Finding</th>
-                <th>Grade</th>
-                <th>Effort</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Version pin v1.16.0 &rarr; v1.19.4</td>
-                <td class="no">Critical</td>
-                <td>Medium</td>
-                <td class="no">Open</td>
+                <td>1</td>
+                <td>Adopt <code>layout.Container</code> at all 8 gutter sites</td>
+                <td class="yes">4</td>
+                <td class="yes">5</td>
+                <td><strong>20</strong></td>
+                <td class="yes">DONE (this audit)</td>
               </tr>
               <tr>
-                <td>testing linked into cv binary</td>
-                <td class="no">Critical</td>
-                <td>Rides upgrade</td>
-                <td class="no">Open</td>
+                <td>2</td>
+                <td>Honest 404 statuses on not-found pages</td>
+                <td class="yes">4</td>
+                <td class="yes">4</td>
+                <td><strong>16</strong></td>
+                <td class="yes">DONE (this audit)</td>
               </tr>
               <tr>
-                <td>RelativeTime trigger fired</td>
-                <td class="no">Critical</td>
-                <td>Small</td>
-                <td class="no">Open</td>
+                <td>3</td>
+                <td><code>layout.HTMXNone</code> replaces the 3-field kill switch</td>
+                <td class="yes">3</td>
+                <td class="yes">5</td>
+                <td><strong>15</strong></td>
+                <td class="yes">DONE (this audit)</td>
               </tr>
               <tr>
-                <td>errorpage depth</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="no">Open</td>
+                <td>4</td>
+                <td><code>layout.Script</code>/<code>Stylesheet</code> for asset tags</td>
+                <td>3</td>
+                <td class="yes">5</td>
+                <td><strong>15</strong></td>
+                <td class="yes">DONE (this audit)</td>
               </tr>
               <tr>
-                <td>Accessibility pack + custom.css</td>
-                <td class="no">Important</td>
-                <td>Small</td>
-                <td class="no">Open</td>
+                <td>5</td>
+                <td>Adopt <code>errorpage</code> package on next library release</td>
+                <td class="yes">4</td>
+                <td>3</td>
+                <td><strong>12</strong></td>
+                <td>BLOCKED on upstream tag</td>
               </tr>
               <tr>
-                <td>wire.DecodeForm</td>
-                <td class="no">Important</td>
-                <td>Medium</td>
-                <td class="no">Open</td>
+                <td>6</td>
+                <td>Bound the EventCatalog tables + <code>ListNote</code> (+ <code>Pagination</code> if paging wins)</td>
+                <td class="yes">4</td>
+                <td>2</td>
+                <td><strong>8</strong></td>
+                <td>OPEN &mdash; needs cap-size decision</td>
               </tr>
               <tr>
-                <td>HTMXNone declarations</td>
-                <td class="yes">Nice</td>
-                <td>Trivial</td>
-                <td class="no">Open</td>
+                <td>7</td>
+                <td><code>PageHeader.Breadcrumb</code> slot on the 5 detail pages</td>
+                <td>2</td>
+                <td class="yes">3</td>
+                <td><strong>6</strong></td>
+                <td>OPEN (taste)</td>
               </tr>
               <tr>
-                <td>Kanban ruling fact-refresh</td>
-                <td class="yes">Nice</td>
-                <td>Trivial</td>
-                <td class="no">Open</td>
+                <td>8</td>
+                <td><code>CollapsibleSection.StorageKey</code> on the D2 source section</td>
+                <td>1</td>
+                <td class="yes">4</td>
+                <td><strong>4</strong></td>
+                <td>OPEN (nice-to-have)</td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>Consolidate the 3 hand-rolled <code>&lt;pre&gt;</code> source blocks</td>
+                <td>1</td>
+                <td class="yes">4</td>
+                <td><strong>4</strong></td>
+                <td>OPEN (repo-local)</td>
               </tr>
             </tbody>
           </table>
         </section>
 
-        <footer class="footer">
+        <section id="conclusion">
+          <h2><span class="num">06</span>Conclusion</h2>
           <p>
-            Generated 2026-10-01 &middot; CV pins templ-components v1.16.0,
-            audited against sibling HEAD v1.19.4 &middot; All claims verified
-            against go.mod, module cache, library changelog, and source where
-            noted
+            Before this audit the honest answer to "are we using
+            templ-components superbly?" was <em>not yet</em>: the adopted
+            surface was clean and CSP-exemplary, but the newest layout
+            ergonomics went unused while their patterns were hand-rolled, and
+            one HTTP-semantics anti-pattern hid behind styled markup. The
+            audit closed every gap actionable at v1.19.4 &mdash; 8 Container
+            sites, HTMXNone, Script/Stylesheet, real 404 statuses, one helper
+            dedup &mdash; with a regression test pinning the htmx-free,
+            Container-gutter contract, and both drift gates green.
+          </p>
+          <p>
+            The highest-leverage next step is the table-bounds decision
+            (opportunity #6): pick a cap, then <code>ListNote</code> +
+            <code>Pagination</code> complete the display-story. After the
+            library's next tag, adopt <code>errorpage</code> and retire the
+            last hand-rolled error plumbing. At that point the docserver is
+            the reference consumer the sibling library deserves.
+          </p>
+        </section>
+
+        <section id="appendix">
+          <h2><span class="num">07</span>Appendix &mdash; Method &amp; Verification</h2>
+          <p>
+            <strong>Method.</strong> Full read of all five
+            <code>.templ</code> sources plus the Go glue (pages, rows, view
+            models, handlers, CSP, render, serve). Capability ground truth
+            taken from the <strong>v1.19.4 module cache sources</strong>
+            (not docs alone): <code>layout/embed.go</code>,
+            <code>layout/base.templ</code>, <code>layout/container.templ</code>,
+            <code>display/page_header.templ</code>,
+            <code>display/badge_templ.go</code>,
+            <code>display/list_note.templ</code>,
+            <code>display/table.templ</code>. Version currency from
+            <code>git tag --sort=-v:refname</code> + <code>CHANGELOG.md</code>
+            in the templ-components checkout. Rendered output verified by
+            dumping the index page HTML during the Container/HTMXNone fix.
+          </p>
+          <p>
+            <strong>Verification of the fixes.</strong> <code>templ
+            generate</code> from <code>catalog/docserver</code> (FileName
+            tripwire clean) &middot; <code>nix run .#check-templ</code> green
+            &middot; <code>nix run .#build-docserver-css</code> +
+            <code>nix run .#check-docserver-css</code> green &middot;
+            <code>go build / go vet / go test ./docserver/...</code> green,
+            including the new
+            <code>TestDocsServer_Index_NoHtmxRuntime</code> pin and two tests
+            re-pinned from 200&rarr;404. Dependency budget untouched: no new
+            module requires (layout/icons/utils were already direct).
+          </p>
+          <p>
+            <strong>Scoring.</strong> 24 of 30 capabilities relevant to a
+            static docs server are fully leveraged (80%); version currency is
+            perfect; adopted-component usage quality is high (typed props,
+            a11y labels, nonce discipline). Weighted score 82/100 &mdash;
+            capped below "excellent" only by the two structural opens
+            (unbounded tables, errorpage pending release).
+          </p>
+        </section>
+
+        <footer>
+          <p>
+            Generated 2026-10-01 by the library-deep-dive audit workflow
+            &middot; go-cqrs-lite <code>catalog/docserver</code> &middot;
+            templ-components v1.19.4 &middot; All capability claims verified
+            against the v1.19.4 module source; all fixes verified by gates
           </p>
         </footer>
       </main>
