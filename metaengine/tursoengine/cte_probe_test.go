@@ -19,14 +19,18 @@ const cteProbeSQL = `WITH RECURSIVE cqrs_cte_probe(x) AS (
 	SELECT 1 UNION ALL SELECT x+1 FROM cqrs_cte_probe WHERE x < 1
 ) SELECT x FROM cqrs_cte_probe`
 
-// TestTurso_RecursiveCTEProbeFails pins the remote-protocol finding: the
-// turso (libSQL) driver rejects recursive CTEs ("Recursive CTEs are not yet
-// supported"), so sqliteengine's construction-time probe correctly flips the
-// graph path to iterative BFS instead of failing at query time. Verdict of
-// the CTE-probe-over-remote-protocol TODO (2026-08-30): it does NOT hold —
-// and the degraded fallback the probe feeds is what makes graph queries work
-// anyway (pinned by TestTurso_GraphNeighborsDegraded).
-func TestTurso_RecursiveCTEProbeFails(t *testing.T) {
+// TestTurso_RecursiveCTEProbeSucceeds pins the remote-protocol state of the
+// turso (libSQL) driver, re-verified 2026-10-01: the driver NOW executes
+// recursive CTEs, so sqliteengine's construction-time probe
+// (probeRecursiveCTE) enables the single-query recursive-CTE traversal over
+// turso DSNs. History: the 2026-08-30 verdict was the opposite ("Recursive
+// CTEs are not yet supported") and the probe flipped graph queries to
+// iterative BFS — the probe mechanism is unchanged and still protects
+// against servers without CTE support; only this pin flipped with the
+// upstream driver. Graph parity across both paths is pinned by
+// TestTurso_GraphNeighborsDegraded (iterative BFS) and the sqliteengine
+// graph suite (native CTE).
+func TestTurso_RecursiveCTEProbeSucceeds(t *testing.T) {
 	t.Parallel()
 
 	db, err := sql.Open("turso", ":memory:")
@@ -37,9 +41,13 @@ func TestTurso_RecursiveCTEProbeFails(t *testing.T) {
 
 	var got int
 
-	if err := db.QueryRow(cteProbeSQL).Scan(&got); err == nil {
-		t.Fatal("recursive CTE unexpectedly succeeded over the turso driver — " +
-			"sqliteengine now takes the native CTE path; update this pin and re-verify graph parity")
+	if err := db.QueryRow(cteProbeSQL).Scan(&got); err != nil {
+		t.Fatalf("recursive CTE unexpectedly failed over the turso driver "+
+			"(upstream regression? probe falls back to iterative BFS): %v", err)
+	}
+
+	if got != 1 {
+		t.Fatalf("cte probe returned %d, want 1 (seed row; the recursion terminates immediately)", got)
 	}
 }
 
