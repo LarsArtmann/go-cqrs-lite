@@ -101,8 +101,6 @@ github.com/knadh/koanf/providers/env v1.1.0 h1:U2VXPY0f+CsNDkvdsG8GcsnK4ah85WwWy
 github.com/knadh/koanf/providers/env v1.1.0/go.mod h1:QhHHHZ87h9JxJAn2czdEl6pdkNnDh/JS1Vtsyt65hTY=
 github.com/knadh/koanf/providers/file v1.2.1 h1:bEWbtQwYrA+W2DtdBrQWyXqJaJSG3KrP3AESOJYp9wM=
 github.com/knadh/koanf/providers/file v1.2.1/go.mod h1:bp1PM5f83Q+TOUu10J/0ApLBd9uIzg+n9UgthfY+nRA=
-github.com/knadh/koanf/v2 v2.3.6 h1:JoQPSJmvS4aP0xNc8xMDr5tcrkSEInL23/Il7pITAKo=
-github.com/knadh/koanf/v2 v2.3.6/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
 github.com/knadh/koanf/v2 v2.3.7 h1:amceufOeoQcq6VFKjm7/ggJ3t0Dkqaxy5fza4j3YgTA=
 github.com/knadh/koanf/v2 v2.3.7/go.mod h1:gRb40VRAbd4iJMYYD5IxZ6hfuopFcXBpc9bbQpZwo28=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
@@ -177,8 +175,6 @@ github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1 h1:GR/+dc
 github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.1/go.mod h1:Wdh1Uu5QM/9NBdt7ds/7iUfLX2bvI/kawLT8di8fJcs=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1 h1:uzk5GupxNvWDFD1kTVV5UbIZTH98oyXEylRH4nKnWOo=
 github.com/larsartmann/go-cqrs-lite/testutil/v4 v4.3.1/go.mod h1:kagbYtWmFZlkelwKzKQWzBz7bQy4Vvbbnm3UQOYdiVk=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1 h1:gnXM/21tPWUKf0qd01CbRrvWryXs/iGCfnlgDO84y2E=
-github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.1/go.mod h1:G8H+ScY5BNvAs8F3Gp9e7uVXFaXgx5jIfv8dy4jICOQ=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2 h1:mZ21VsNdtGLjhbfIOYyH3SKOhlH80qaDo0YRrWIZC18=
 github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.2/go.mod h1:6TYWCw0LCkwBWrS0IVzvY24JVq+l7iN93pssTHdw2X4=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
@@ -191,8 +187,6 @@ github.com/larsartmann/go-retry v0.7.1 h1:e3MwEB8SvR0p1XMOtkFofFOS2y5rITzNLmbgZf
 github.com/larsartmann/go-retry v0.7.1/go.mod h1:jIPlAHcD/D+lqBo9CLWAEaJQqDgyFtvDE2RoG1SbZL4=
 github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
 github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykWdmJLnm8K8LdmH2JzU8=
-github.com/larsartmann/go-sse v0.6.0 h1:ITsMQi4Cfg+cXE5YYChk3p6wYsn33AxKJPVwd5hsiBY=
-github.com/larsartmann/go-sse v0.6.0/go.mod h1:ndYQ/lEnJVzTWqvF/h4+XMG/hJK/bEn6zSkfpkBAuUg=
 github.com/larsartmann/go-sse v0.6.1 h1:GSc2ueXIjNAsYlZjOR8kfOlm/UwiOh5eNwVmnrqyGVw=
 github.com/larsartmann/go-sse v0.6.1/go.mod h1:yN/gsqxOYwt9aqfcsfnIAzENNk+libcm2t3M4ByW1KU=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
