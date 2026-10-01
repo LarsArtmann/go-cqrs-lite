@@ -64,7 +64,7 @@ low-load repeat isolates the CPU+IO cost: **each maintained view adds a fixed
 collection size. Guidance: declare views for hot aggregates only; a
 write-heavy collection with three rollup views pays ~3× the base write cost.
 
-## CORRECTNESS WARNING (upstream turso-go v0.7.2 through v0.8.0-pre.10, verified 2026-09-07, re-verified on pre.10 2026-09-11)
+## CORRECTNESS WARNING (upstream turso-go v0.7.2 through v0.8.1, verified 2026-09-07, re-verified on v0.8.1 2026-10-01)
 
 **GROUPED materialized views return silently wrong SUMs once a group is
 updated by a second transaction** — exact within one transaction, then

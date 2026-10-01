@@ -77,7 +77,7 @@ declared by the OPERATOR, not the developer.
 - v1 scope limits: `meta_map` (standard-path) collections only; planned-table
   acceleration would need view creation to be ordered with `ApplyLayout`
   (and backfill semantics) — deferred until a deployment needs it.
-- Upstream constraints (turso-go v0.7.2 through v0.8.0-pre.10, repros
+- Upstream constraints (turso-go v0.7.2 through v0.8.1, repros
   verified; re-verified on pre.10 2026-09-11; see AGENTS.md and
   `docs/research/2026-09-07_turso-go-ivm-commit-failure-issue-draft.md`):
   (1) GROUPED views return silently wrong SUMs once a group is updated by a
