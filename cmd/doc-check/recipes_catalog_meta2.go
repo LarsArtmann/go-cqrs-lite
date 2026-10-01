@@ -210,8 +210,7 @@ var recipeCatalogB2 = map[string]recipeSpec{
 			`"github.com/larsartmann/go-cqrs-lite/id/v4"`,
 		},
 		preamble: "type State struct{}\nvar store event.Store\nvar bus event.Publisher\n" +
-			"var d decider.Decider[State]\nvar cid id.CorrelationID\nvar rid id.RequestID\n" +
-			"var clientID id.ClientID\n",
+			"var d decider.Decider[State]\n",
 		trailers: "_ = repo\n_ = err",
 	},
 }

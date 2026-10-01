@@ -383,7 +383,7 @@ ctx = event.WithRequestScope(ctx, event.RequestScope{
     UserAgent:     event.UserAgent(r.Header.Get("User-Agent")),
 })
 repo, _ := decider.NewRepository[State](store, bus, d,
-    decider.WithEnricher(event.CompositeEnricher(          // compose the full audit trail
+    decider.WithEnricher[State](event.CompositeEnricher( // compose the audit trail
         event.ActorEnricher, event.RequestScopeEnricher)))
 ```
 

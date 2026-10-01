@@ -106,8 +106,10 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       rule proposed). — issues #42 #43 _(Effort: S each)_
 - [ ] **W3 — consumer features (the 20%):** #32 `EventAdapter.LoadByEventID`
       via `EventByIDBackend` capability (storage side exists; lost in wrapper
-      layer) · #35 ship `RequestContextEnricher` + shared context keys
-      (cqrs-htmx hand-rolls one today) · #27 committed module → latest-tag
+      layer) · #35 DONE 2026-10-01 (M24, shipped as `event.RequestScope` +
+      `WithRequestScope` + `RequestScopeEnricher`, recipes §2.42 — cqrs-htmx
+      carries the drop-local-copy TODO for its next bump) · #27 committed
+      module → latest-tag
       manifest (versions.json) + tag-push CI + README matrix · #28 document
       the consumer upgrade sweep pattern + bless `cmd/cqrs-upgrade` (exists,
       tagged v4.0.0 2026-09-07 — ask reduces to docs). — issues #32 #35 #27
@@ -668,8 +670,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       (a) is quiet-window-gated (`can-run-composed-gate`, load storm 163 at
       2026-09-28 22:00); (d)-mysql = `#integration-mysql-vm` cowLookup leg.
       — source: archived 2026-09-28 04-04 §b/§f1-14 _(Effort: S remainder)_
-- [ ] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
-      — core's degraded-path BFS (graph_fallback.go) still carries its own
+- [x] **Unify `metaengine.graphNeighborsFallback` onto `metaengine.GraphBFS`**
+      — DONE 2026-10-01 (M21): `metaengine.GraphBFSNodes[N any]` is the typed-key
+      generic core (never-nil result); `GraphBFS` is a thin string-specialized
+      delegate (signature unchanged) and `graphNeighborsFallback` maps through
+      the core. Nil-vs-empty unified to never-nil; covered by the existing
+      fallback tests.
+      Original: core's degraded-path BFS (graph_fallback.go) still carries its own
       copy of the loop with different semantics: `[]any` frontier,
       `typedNodeKey` dedup, `nil` result for depth<=0 (engines normalize to
       `[]any{}`). Merging needs a deliberate nil-vs-empty behavior decision
@@ -702,7 +709,12 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       an analogous transient-abort class worth the same treatment. — source:
       02-16 §f19
       _(Effort: M)_
-- [ ] **Unify ephemeral-script passthrough conventions** — ephemeral-pg.sh
+- [x] **Unify ephemeral-script passthrough conventions** — DONE 2026-10-01
+      (M21): ephemeral-pg.sh + ephemeral-dgraph.sh now exec verbatim `"$@"`
+      when args present (pg's go-prefix special case and EXTRA_ARGS append
+      mode removed); redis/nats raw passthrough unchanged — one convention.
+      Documented in gotchas-testing.
+      Original: ephemeral-pg.sh
       uses positional EXTRA_ARGS, ephemeral-dgraph.sh uses
       TEST_ARGS/TEST_ARGS2, redis/nats use raw passthrough; three
       conventions for the same job complicate evaluations. — source: 02-16

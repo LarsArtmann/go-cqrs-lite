@@ -2736,18 +2736,18 @@ the decider saves. Zero-valued fields are skipped — absent values never overwr
 metadata — and the enricher returns nil when no scope is set, so it composes cleanly:
 
 ```go
-func withRequestFields(ctx context.Context, r *http.Request) context.Context {
+func withRequestFields(ctx context.Context, r *http.Request, cid id.CorrelationID, clientID id.ClientID) context.Context {
     return event.WithRequestScope(ctx, event.RequestScope{
-        CorrelationID: cid,   // id.CorrelationID, from your tracing middleware
-        RequestID:     rid,   // id.RequestID, minted per request
+        CorrelationID: cid,              // from your tracing middleware / inbound header
+        RequestID:     id.NewRequestID(), // minted per request
         IPAddress:     event.IPAddress(r.RemoteAddr),
         UserAgent:     event.UserAgent(r.Header.Get("User-Agent")),
-        ClientID:      clientID, // id.ClientID, stable device/app identifier
+        ClientID:      clientID, // stable device/app identifier
     })
 }
 
 repo, err := decider.NewRepository[State](store, bus, d,
-    decider.WithEnricher(event.CompositeEnricher(
+    decider.WithEnricher[State](event.CompositeEnricher(
         event.ActorEnricher,
         event.CommandCausalityEnricher,
         event.RequestScopeEnricher,
