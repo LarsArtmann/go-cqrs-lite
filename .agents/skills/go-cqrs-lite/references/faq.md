@@ -441,6 +441,35 @@ Nothing else in the tier-0/1 core (`id`, `record`, `event`, `command`,
 metaengine fold surfaces above; v5 renames (`StreamRef` → `StreamKey`,
 stricter constructors) are migration-guide items, not deletions.
 
+## How do I upgrade many go-cqrs-lite modules at once? (the supported sweep)
+
+Modules release on independent per-module trains, so a consumer pinning
+several of them upgrades with a sweep — this is the supported pattern (issue
+#28, proven on a 16-module consumer across 14 consumer modules, zero
+failures):
+
+1. **Per consumer module**: `go get github.com/larsartmann/go-cqrs-lite/<mod>/v4@latest`
+   for every pinned module, then `go mod tidy`.
+2. **Hermetic check per module**: `GOWORK=off go build ./... && GOWORK=off go vet ./...`.
+   `go build` does not compile `_test.go` files — `go vet` (or `go test`)
+   catches test-only upstream API drift; build-only checks have missed this
+   twice in the wild.
+3. **Gate on tag existence, not just resolution**: after a partial sweep the
+   module graph can reference tags that do not exist yet (the
+   phantom-require failure mode — ONE workspace member requiring a sibling at
+   an unpublished version breaks module loading for the entire graph, and the
+   errors surface on unrelated imports where `go get` cannot fix them). Verify
+   each `larsartmann/*` require resolves to a tag that exists on the remote
+   (`git ls-remote --tags`), or consume the committed
+   `versions.json` manifest (#27) once your wave ships it.
+
+`cmd/cqrs-upgrade` (run inside this repo or via `go run`) is the
+deprecation-scan half of this story: it reports which of your modules still
+touch v5-removed surfaces (`--strict` fails CI, `--json` for tooling), so run
+it BEFORE a sweep to know your v5 exposure. It does not bump pins — the
+sweep recipe above stays manual until a demand-gated tool materializes
+(#28 tracks the contribution offer).
+
 ## stack vs system — which composition layer should I import?
 
 **`system/v4` — full stop, for new code.** The `stack/` presets (Bundle,

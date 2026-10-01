@@ -261,7 +261,14 @@ at construction time (no silent fallback).
 | `System.WorkerStatus()`           | Projection worker states.                                 |
 | `System.ProjectionPlan()`         | Serializable plan for projection engines.                 |
 | `System.ProjectionExplain()`      | Human-readable projection plan explanation.               |
-| `System.VerifyProjections(ctx)`   | Verify projection stores match source-of-truth.           |
+| `System.VerifyProjections(ctx)`   | Verify projection stores match source-of-truth.          |
+
+### Event Store (EventAdapter)
+
+| Symbol                                  | Description                                                                                                        |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `EventStore().Load(ctx, ref)`           | All events of one stream (see Quick Start).                                                                        |
+| `EventStore().LoadByEventID(ctx, eid)`  | One event by its globally unique ID — indexed lookup when the engine implements `metaengine.EventByIDBackend` (the SQLite engine does, via a JSON-envelope expression index); `event.ErrEventNotFound` on a miss; `system.ErrLoadByEventIDUnsupported` on engines without the capability, so callers can degrade to journal reads. |
 
 ### Safety Checks
 
