@@ -38,7 +38,7 @@ for archfile in $(find "$PROJECT_ROOT" -name ".go-arch-lint.yml" -not -path "*/v
 
 	if (cd "$moddir" && go-arch-lint check --project-path "$moddir" 2>&1) | grep -q "shouldn't depend\|not attached"; then
 		echo "    ✗ $modname has architecture violations"
-		(cd "$moddir" && go-arch-lint check --project-path "$moddir" 2>&1) | grep "shouldn't depend\|not attached" | head -10
+		(cd "$moddir" && go-arch-lint check --project-path "$moddir" 2>&1) | grep "shouldn't depend\|not attached" | head -10 || true
 		FAILED=1
 	else
 		echo "    ✓ $modname passed"

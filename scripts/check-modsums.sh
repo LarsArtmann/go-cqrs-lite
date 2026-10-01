@@ -24,7 +24,7 @@ while IFS= read -r gomod; do
 	out="$(cd "$moddir" && GOWORK=off go mod tidy -diff 2>&1)" || {
 		failed=1
 		echo "❌ $moddir: go.mod/go.sum not tidy (cold-cache builds will fail)"
-		echo "$out" | head -20
+		echo "$out" | head -20 || true
 		echo ""
 	}
 done < <(find . -name go.mod -not -path './vendor/*' | sort)

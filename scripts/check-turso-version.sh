@@ -72,6 +72,43 @@ scan_citations() {
 	return "$status"
 }
 
+# scan_pins <root>: fails when any go.mod pins tursogo AHEAD of the
+# verified-through constant. The 2026-09-30 incident class: the pin moved to
+# v0.8.1 while the constant still said v0.7.2-pre.10 and nothing failed,
+# because citation scanning never looked at the pins themselves.
+scan_pins() {
+	local root="$1"
+
+	local canon
+	canon="$(read_canonical "$root")"
+	if [ -z "$canon" ]; then
+		echo "FAIL: cannot read TursoGoIVMVerifiedThrough from $root/metaengine/materialized_view_versions.go (pin scan)"
+		return 1
+	fi
+
+	local status=0 hit gomod content pin highest
+	while IFS= read -r hit; do
+		[ -n "$hit" ] || continue
+		gomod=${hit%%:*}
+		gomod=${gomod#"$root"/}
+		content=${hit#*:}
+		pin=${content##*tursogo }
+		pin=${pin%% *}
+		case "$pin" in
+		v[0-9]*) ;;
+		*) continue ;;
+		esac
+		highest=$(printf '%s\n%s\n' "$canon" "$pin" | sort -V | tail -1)
+		if [ "$pin" != "$canon" ] && [ "$highest" = "$pin" ]; then
+			echo "FAIL: $gomod pins tursogo $pin, AHEAD of TursoGoIVMVerifiedThrough=$canon"
+			echo "       re-run the ivmrepro suite behind -tags ivmrepro, then bump the constant in the same change"
+			status=1
+		fi
+	done < <(grep -rn "turso.tech/database/tursogo v" "$root" --include=go.mod --exclude-dir=vendor 2>/dev/null || true)
+
+	return "$status"
+}
+
 LIVE_FILES=(
 	metaengine/materialized_view_doctor_test.go
 	metaengine/tursoengine/matview_property_test.go
@@ -98,6 +135,10 @@ self_test() {
 	printf 'The caveat holds through v0.7.2-pre.10.\n' >"$tmp/docs/clean.md"
 	printf 'Older doc says the caveat holds through v0.7.2-pre.8.\n' >"$tmp/docs/stale.md"
 
+	mkdir -p "$tmp/mod_a" "$tmp/mod_b"
+	printf 'module example.com/a\n\nrequire turso.tech/database/tursogo v0.7.2-pre.10\n' >"$tmp/mod_a/go.mod"
+	printf 'module example.com/b\n\nrequire turso.tech/database/tursogo v0.9.0\n' >"$tmp/mod_b/go.mod"
+
 	if scan_citations "$tmp" docs/clean.md >/dev/null 2>&1; then
 		echo "  ✓ PASS: clean citation accepted"
 	else
@@ -111,6 +152,21 @@ self_test() {
 		echo "  ✓ PASS: planted stale citation caught"
 	else
 		echo "  ✗ FAIL: stale citation NOT caught (out: $out)"
+		return 1
+	fi
+
+	if scan_pins "$tmp" >/dev/null 2>&1; then
+		echo "  ✗ FAIL: ahead-of-verified pin (v0.9.0) was accepted"
+		return 1
+	else
+		echo "  ✓ PASS: ahead-of-verified pin caught"
+	fi
+
+	rm "$tmp/mod_b/go.mod"
+	if scan_pins "$tmp" >/dev/null 2>&1; then
+		echo "  ✓ PASS: at-constant pin accepted"
+	else
+		echo "  ✗ FAIL: at-constant pin was rejected"
 		return 1
 	fi
 
@@ -135,6 +191,12 @@ if ! scan_citations "$ROOT" "${LIVE_FILES[@]}"; then
 	echo "Fix: re-verify live (metaengine/tursoengine suite behind -tags ivmrepro), then"
 	echo "bump TursoGoIVMVerifiedThrough in metaengine/materialized_view_versions.go and"
 	echo "update the files above in the same change — see docs/turso-go-ivm-fix-flip-runbook.md."
+	exit 1
+fi
+
+if ! scan_pins "$ROOT"; then
+	echo ""
+	echo "Fix: a go.mod pins tursogo ahead of the verified-through constant."
 	exit 1
 fi
 

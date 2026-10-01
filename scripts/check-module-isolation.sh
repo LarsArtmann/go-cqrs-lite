@@ -43,7 +43,7 @@ for mod in $(find . -name go.mod -not -path './vendor/*' | sed 's|/go.mod||' | s
 		failures=$((failures + 1))
 		failed_modules="$failed_modules\n  $mod_name"
 		echo "  FAIL: $mod_name"
-		echo "$result" | head -3 | sed 's/^/    /'
+		echo "$result" | head -3 | sed 's/^/    /' || true
 	else
 		echo "  OK:   $mod_name"
 	fi

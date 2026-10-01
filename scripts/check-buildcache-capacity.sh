@@ -81,7 +81,7 @@ usage_pct() {
 }
 
 du_root() {
-	du -h --max-depth=1 "${CBC_DU_DIR:-$MOUNT}" 2>/dev/null | sort -rh | head -10
+	du -h --max-depth=1 "${CBC_DU_DIR:-$MOUNT}" 2>/dev/null | sort -rh | head -10 || true
 }
 
 pct="$(usage_pct)"

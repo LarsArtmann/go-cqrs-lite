@@ -148,7 +148,7 @@ for mod in "${MODULES[@]}"; do
 	# Use exit code for FAIL detection (not grep — grep false-positives on benchmark names)
 	if [[ $exit_code -ne 0 ]]; then
 		echo "  FAIL   $mod_name ($bench_count benchmarks, exit=$exit_code)"
-		echo "$output" | grep -E '(FAIL|panic:|--- FAIL|Error)' | head -5 | sed 's/^/         /'
+		echo "$output" | grep -E '(FAIL|panic:|--- FAIL|Error)' | head -5 | sed 's/^/         /' || true
 		((TOTAL_FAILED++)) || true
 		FAILED_MODULES+=("$mod_name")
 	elif echo "$output" | grep -qE '(--- SKIP|no benchmarks|no Go files)'; then
