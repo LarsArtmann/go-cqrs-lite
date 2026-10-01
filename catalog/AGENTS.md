@@ -11,7 +11,7 @@ which are **committed**. Consumers of `catalog` need no templ CLI.
 ### Regenerate after editing a .templ file
 
 ```bash
-cd catalog && GOWORK=off go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate ./docserver/...
+cd catalog/docserver && GOWORK=off go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
 ```
 
 - The CLI version MUST match the `a-h/templ` pin in `go.mod` (v0.3.1020). A newer
@@ -33,11 +33,10 @@ cd catalog && GOWORK=off go run github.com/a-h/templ/cmd/templ@v0.3.1020 generat
   - Disable htmx with `props.HTMXSrc = layout.HTMXNone` (v1.19.3+) — never clear
     `HTMXVersion`/`HTMXResponseTargets` by hand; the sentinel suppresses script,
     preconnect, and the response-targets extension in one switch.
-  - Regenerate `*_templ.go` from `catalog/docserver` as the cwd, not with
-    `./docserver/...` from `catalog/` — templ bakes the invocation cwd into the
-    FileName metadata and `check-templ`'s tripwire fails on path-carrying names.
-    (The regen command above predates the tripwire; use it only as a version pin
-    reference.)
+  - Regenerate from `catalog/docserver` as the cwd (command above): templ bakes
+    the invocation cwd into the FileName metadata and `check-templ`'s tripwire
+    fails on path-carrying names (`./docserver/...` from `catalog/` was the old
+    broken form).
 
 ### Stylesheet
 
