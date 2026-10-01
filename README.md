@@ -84,6 +84,8 @@ go get github.com/larsartmann/go-cqrs-lite/id/v4
 
 Each module has its own `go.mod` — import only what you need and your dependency tree stays lean.
 
+Modules release on independent version trains. If you pin several, upgrade with the supported sweep pattern (per-module `go get …@latest` + `go mod tidy` + hermetic `GOWORK=off go build`/`go vet`, gated on tag existence) — see the skill FAQ's "How do I upgrade many go-cqrs-lite modules at once?". `cmd/cqrs-upgrade` scans your modules for v5-removed surfaces before you sweep.
+
 ## Quick Start (3 steps)
 
 ### 1. Define your domain

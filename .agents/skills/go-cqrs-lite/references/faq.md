@@ -332,8 +332,8 @@ err := decider.ExecuteCommandRef(ctx, repo, ref, cmd,
     })
 ```
 
-Any command with `ID() id.CommandID` works — no embedding. Recipe: recipes
-§2.1b; convention: core §3.8.
+Any command with `ID() id.CommandID` works — no embedding. Recipe:
+[recipes.md](recipes.md) §2.1b; convention: core §3.8.
 
 ### "My decide function captured the command in a closure — is that wrong?"
 
@@ -370,8 +370,8 @@ recorder := commandlifecycle.NewRecorder(upcasted) // reads see v2, writes pass 
 ```
 
 Reads see the evolved payload and `SchemaVersion()` bump; raw bytes and the
-write path stay untouched. Full recipe with the preservation rules: recipes
-§2.19b.
+write path stay untouched. Full recipe with the preservation rules:
+[recipes.md](recipes.md) §2.19b.
 
 ## How do I write a minimal third-party engine for `system.New`?
 
