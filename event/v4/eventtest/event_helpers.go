@@ -36,7 +36,7 @@ func MakeTimelineEvents(
 			aggID,
 			aggType,
 			e.Version,
-			nil,
+			[]byte{},
 			event.WithOccurredAt(now.Add(e.Offset)),
 		)
 		if err != nil {

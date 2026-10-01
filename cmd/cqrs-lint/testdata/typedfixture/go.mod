@@ -6,7 +6,7 @@ require github.com/larsartmann/go-cqrs-lite/schema/v4 v4.4.1
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
-	github.com/larsartmann/go-branded-id v0.6.0 // indirect
+	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-codec v0.3.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0 // indirect
