@@ -75,6 +75,16 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 		return nil, fmt.Errorf("cqrs-lint: load packages: %w", err)
 	}
 
+	// Non-consumer guard (CLI parity, #42): packages loaded but none import
+	// go-cqrs-lite means the rule set has nothing to say — every detector
+	// would run on code the library does not touch and fire findings the CLI
+	// path already suppresses. Zero findings, NOT an error: BuildFlow treats
+	// provider errors as health-check failures, and "not a consumer" is a
+	// clean verdict.
+	if len(actx.Packages) > 0 && len(actx.GoFiles) == 0 {
+		return nil, nil
+	}
+
 	effective, err := loadEffectiveRules(wd)
 	if err != nil {
 		return nil, err

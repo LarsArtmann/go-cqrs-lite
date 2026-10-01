@@ -210,6 +210,55 @@ func TestDetectRejectsMalformedConfig(t *testing.T) {
 	}
 }
 
+// TestDetectSkipsNonConsumers pins the #42 guard: a repo with Go files that
+// imports NO go-cqrs-lite gets zero findings through the provider path (the
+// CLI already aborts cleanly with "none import go-cqrs-lite" — BuildFlow
+// pointed at a non-consumer repo used to get A009/A018 findings anyway).
+// Zero findings AND no error: "not a consumer" is a clean verdict, not a
+// health-check failure.
+func TestDetectSkipsNonConsumers(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	gomod := `module nonconsumer
+
+go 1.26
+`
+	src := `package main
+
+import "strings"
+
+func shout(s string) string { return strings.ToUpper(s) }
+`
+	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte(src), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// A markdown file a docs rule could latch onto — proves the guard zeroes
+	// the whole pipeline, not just the Go-analysis rules.
+	if err := os.WriteFile(
+		filepath.Join(dir, "README.md"),
+		[]byte("# App\n\nUses go-cqrs-lite v0.0.1 maybe.\n"),
+		0o600,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx := finding.WithWorkingDir(context.Background(), dir)
+
+	findings, err := Spec().Detect.Detect(ctx)
+	if err != nil {
+		t.Fatalf("non-consumer Detect must not error: %v", err)
+	}
+	if len(findings) != 0 {
+		t.Fatalf("non-consumer Detect must return zero findings, got: %+v", findings)
+	}
+}
+
 func writeFixableFixture(t *testing.T) string {
 	t.Helper()
 
