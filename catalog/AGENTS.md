@@ -119,6 +119,10 @@ fallbacks — keep both when adding pages.
   stdlib-only (no new deps) and lives in `eventcatalog`, not `docserver`, so
   importers don't pull templ. It complements, not replaces, the native
   `docserver` EventCatalog view (which renders from the live catalog object).
+  Its behavior is pinned by the package's Ginkgo BDD suite
+  (`eventcatalog_bdd_suite_test.go` bootstrap + `server_bdd_test.go` specs,
+  black-box `package eventcatalog_test`) — extend the specs there rather than
+  adding plain table tests.
 
 ## Golden tests
 
