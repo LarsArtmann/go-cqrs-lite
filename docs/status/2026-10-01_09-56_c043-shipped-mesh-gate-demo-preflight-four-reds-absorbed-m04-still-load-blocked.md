@@ -117,10 +117,18 @@
   chain died at ~06:35 (1h timeout); I only noticed at 09:55 when the owner pinged. That is
   3h20m of dead time during which (a) the chain was not re-launched, (b) a re-launch with a
   longer `--max-wait` was never considered, (c) usable read-only work (grep|head audit,
-  fp-sweep review, seed-log pre-read for M05.4, flake.nix read-through for the flake check)
-  went undone, and (d) the near-quiet window around 09:40–09:50 arrived with no chain alive
-  to consume it. Lesson: background gates need a supervisor loop or periodic job_output
-  polling, not fire-and-forget.
+   fp-sweep review, seed-log pre-read for M05.4, flake.nix read-through for the flake check)
+   went undone, and (d) the near-quiet window around 09:40–09:50 arrived with no chain alive
+   to consume it. Lesson: background gates need a supervisor loop or periodic job_output
+   polling, not fire-and-forget.
+- **Root cause of the tree-stability failures found (post-hoc):** the status index shows TWO
+   concurrent sessions ran inside my wait-loop window —
+   `2026-10-01_05-54_catalog-eventcatalog-integration-research...` and
+   `2026-10-01_06-15_embedded-eventcatalog-static-server-shipped.md` (the latter shipped
+   `catalog/eventcatalog.StaticServer`!). Their edits explain the 6× "tree changed during
+   the 60s stability window" refusals. So the wait-loop wasn't only load-blocked — the repo
+   was genuinely mid-edit by other sessions. Any re-launch must expect this and the
+   supervision must poll, not assume.
 - **Inherited (not mine, absorbed): the prior session's close-out overstated cleanliness.**
   Its report claimed gates green, yet this session's first preflight found FOUR red gates
   (templ staleness, api golden drift, taxonomy drift, file-size NEW offenders) that predate
@@ -245,3 +253,13 @@ green in the same session.
 ---
 
 *Arte in Aeternum — the window existed; the chain was dead. Fix the supervision, not the gate.*
+
+---
+
+## Postscript 11:01 CEST (owner re-pinged)
+
+- Load at 11:01: **11.45 / 7.49 / 9.67** — load5 is UNDER the ceiling (10); load1 is 1.45
+  over. A window is actively forming; with the three owner questions answered (push?
+  kill langservers? fallback?), a supervised re-launch could plausibly catch it.
+- Row-ownership: this report supersedes nothing substantive — the 05-54 and 06-15 reports
+  belong to OTHER sessions and keep their own rows.
