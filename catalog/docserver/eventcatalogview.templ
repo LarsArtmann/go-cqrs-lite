@@ -20,7 +20,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 	{{ base := docsPageProps(data.Brand+" — Event Catalog", "Browse every service, channel, and message in the catalog", data.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(data.Brand, data.DocsPath, data.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@display.PageHeader(display.PageHeaderProps{
 				Title:    eventCatalogTitle,
 				Subtitle: "Every message, channel, and service in this catalog — browsable without a separate toolchain.",
@@ -85,7 +85,7 @@ templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
 	{{ base := docsPageProps(d.Name+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
 					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
@@ -134,7 +134,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 	{{ base := docsPageProps(d.Name+" — "+d.Kind+" · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
 					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
@@ -207,7 +207,7 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 	{{ base := docsPageProps(d.Name+" — Channel · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
 					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
@@ -247,7 +247,7 @@ templ EventCatalogServicePage(d eventCatalogServiceDetail) {
 	{{ base := docsPageProps(d.Name+" — Service · Event Catalog", d.Summary, d.DocsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(d.Brand, d.DocsPath, d.DocsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@navigation.Breadcrumbs(navigation.BreadcrumbsProps{
 				Items: []navigation.BreadcrumbItem{
 					{Text: eventCatalogTitle, Href: eventCatalogHref(d.DocsPath)},
@@ -294,7 +294,7 @@ templ eventCatalogNotFound(brand, docsPath, kind, id string) {
 	{{ base := docsPageProps("Not found — Event Catalog", "The requested catalog resource does not exist", docsPath, templ.GetNonce(ctx)) }}
 	@layout.Base(base) {
 		@docsNav(brand, docsPath, docsPath+"/eventcatalog")
-		<div class="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@display.EmptyState(display.EmptyStateProps{
 				Title:       "Unknown " + kind,
 				Description: "No " + kind + " with identifier \"" + id + "\" exists in this catalog.",
@@ -307,9 +307,9 @@ templ eventCatalogNotFound(brand, docsPath, kind, id string) {
 }
 
 // catalogSection is the shared h2 spacing helper for event catalog pages.
-templ catalogSection(text string) {
-	<h2 class="mb-4 mt-12 text-lg font-semibold text-gray-900 dark:text-gray-100">{ text }</h2>
-}
+// It forwards to sectionHeading (layout.templ) — one heading helper for all
+// docserver pages.
+var catalogSection = sectionHeading
 
 // messageKindBadge maps a message kind to a colored badge.
 templ messageKindBadge(kind string) {

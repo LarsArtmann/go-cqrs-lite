@@ -18,9 +18,7 @@ func docsPageProps(title, description, docsPrefix, nonce string) layout.PageProp
 	props.Description = description
 	props.CSSPath = docsPrefix + "/static/docs-ui.css"
 	props.Favicon = docsPrefix + "/static/favicon.svg"
-	props.HTMXVersion = ""
-	props.HTMXSrc = ""
-	props.HTMXResponseTargets = false
+	props.HTMXSrc = layout.HTMXNone
 	props.Nonce = nonce
 
 	return props
@@ -58,13 +56,13 @@ templ docsNav(brand, docsPrefix, currentPath string) {
 // chrome.
 templ spaHeader(brand, docsPrefix, pageTitle string) {
 	<header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-		<div class="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+		@layout.Container(layout.ContainerProps{Class: "flex h-14 items-center justify-between gap-4"}) {
 			<a
 				href={ templ.SafeURL(docsPrefix) }
 				class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
 			>Back to documentation</a>
 			<span class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{ brand } · { pageTitle }</span>
-		</div>
+		}
 	</header>
 }
 
