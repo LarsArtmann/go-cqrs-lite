@@ -53,7 +53,12 @@ else
 fi
 
 echo "━━━ Test 5: CALIB_ALLOW_COW=1 proceeds past the CoW gate ━━━"
-out="$(CALIB_MAX_LOAD=1000 CALIB_FAKE_TMPFS_TYPE=zfs CALIB_ALLOW_COW=1 bash "$SCRIPT" --baseline /tmp/does-not-exist-calib 2>&1 || true)"
+# A VALID baseline artifact: since artifact validation moved before the env
+# gates (2026-10-01), a missing file would exit before the CoW check runs.
+valid=$(mktemp)
+printf 'badgerengine|point_lookup|100\n' >"$valid"
+out="$(CALIB_MAX_LOAD=1000 CALIB_FAKE_TMPFS_TYPE=zfs CALIB_ALLOW_COW=1 bash "$SCRIPT" --baseline "$valid" 2>&1 || true)"
+rm -f "$valid"
 if echo "$out" | grep -q "proceeding via CALIB_ALLOW_COW"; then
 	echo "  ✓ PASS: override proceeds past the CoW gate"
 else

@@ -61,6 +61,33 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# CI-baseline artifact: rows `module|label|ns_per_unit`. In --baseline mode
+# these rows replace the shipped constants as the comparison target.
+# Validated BEFORE the load/CoW gates and the constants dump so a bad
+# invocation fails fast (and the self-test does not depend on ambient
+# TMPDIR/go availability — 2026-10-01: a go-env TMPDIR on btrfs used to
+# preempt these messages with the CoW refusal).
+declare -A BASELINE # key: "<module>|<label>" → ns_per_unit
+
+if [ -n "$BASELINE_FILE" ]; then
+	if [ ! -f "$BASELINE_FILE" ]; then
+		echo "::error::baseline artifact not found: $BASELINE_FILE" >&2
+		exit 2
+	fi
+
+	baseline_rows=0
+	while IFS='|' read -r bmod blabel bns; do
+		[ -z "$bmod" ] && continue
+		BASELINE["$bmod|$blabel"]="$bns"
+		baseline_rows=$((baseline_rows + 1))
+	done <"$BASELINE_FILE"
+
+	if [ "$baseline_rows" -eq 0 ]; then
+		echo "::error::baseline artifact has no rows: $BASELINE_FILE" >&2
+		exit 2
+	fi
+fi
+
 # Load gate (protocol §6, added 2026-09-11): drift medians are load-sensitive
 # on the shared host — a compile storm skews them past the warn threshold for
 # reasons that are not drift. Abort before benching; ceiling defaults wider
@@ -115,29 +142,6 @@ dump_constants() {
 for mod in "${MODULES[@]}"; do
 	dump_constants "$mod"
 done
-
-# CI-baseline artifact: rows `module|label|ns_per_unit`. In --baseline mode
-# these rows replace the shipped constants as the comparison target.
-declare -A BASELINE # key: "<module>|<label>" → ns_per_unit
-
-if [ -n "$BASELINE_FILE" ]; then
-	if [ ! -f "$BASELINE_FILE" ]; then
-		echo "::error::baseline artifact not found: $BASELINE_FILE" >&2
-		exit 2
-	fi
-
-	baseline_rows=0
-	while IFS='|' read -r bmod blabel bns; do
-		[ -z "$bmod" ] && continue
-		BASELINE["$bmod|$blabel"]="$bns"
-		baseline_rows=$((baseline_rows + 1))
-	done <"$BASELINE_FILE"
-
-	if [ "$baseline_rows" -eq 0 ]; then
-		echo "::error::baseline artifact has no rows: $BASELINE_FILE" >&2
-		exit 2
-	fi
-fi
 
 if [ -n "$WRITE_BASELINE_FILE" ]; then
 	: >"$WRITE_BASELINE_FILE"
