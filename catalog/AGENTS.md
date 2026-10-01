@@ -111,6 +111,14 @@ fallbacks — keep both when adding pages.
   (default + changelog) and asserts schema-clean logs plus semantic artifacts
   (channel message links, rendered changelog page). Extend `cmd/ec-fixture`
   when adding new exported frontmatter.
+- **Embedded serving** — `StaticServer` (`server.go`) serves a BUILT
+  `dist/` tree from any `fs.FS` (consumers `//go:embed` it), so a site needs
+  no Node at deploy time. It routes Astro's directory-index output, redirects
+  slash-less directory paths, resolves extensionless `.html`, serves a custom
+  `404.html`, and marks `_astro/` immutable; it never lists directories. It is
+  stdlib-only (no new deps) and lives in `eventcatalog`, not `docserver`, so
+  importers don't pull templ. It complements, not replaces, the native
+  `docserver` EventCatalog view (which renders from the live catalog object).
 
 ## Golden tests
 

@@ -217,4 +217,11 @@ var recipeCatalogA = map[string]recipeSpec{
 		preamble: "var reg *catalog.Registry\n",
 		trailers: "_ = ds\n_ = mux",
 	},
+	"### 2.9 Auto-Documentation (catalog) #3": {
+		imports: []string{
+			`"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"`,
+		},
+		preamble: "var dist fs.FS\nvar mux *http.ServeMux\n",
+		trailers: "_ = dist\n_ = mux",
+	},
 }

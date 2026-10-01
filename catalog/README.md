@@ -434,6 +434,43 @@ fails unless the plain profile is clean at full severity). Object-form
 refs (`{id, version}`) are not an alternative — core's schema rejects
 them outright.
 
+#### Serving an embedded catalog (no Node at deploy time)
+
+Once a catalog is built (`npm install && npx eventcatalog build`), the static
+site in `dist/` can be baked into your Go binary and served from it —
+`catalog/eventcatalog` ships [`StaticServer`](eventcatalog/server.go) for
+exactly this:
+
+```go
+import (
+    "embed"
+    "io/fs"
+    "net/http"
+
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+)
+
+//go:embed eventcatalog/dist
+var dist embed.FS
+
+func main() {
+    sub, _ := fs.Sub(dist, "eventcatalog/dist")
+    srv, _ := eventcatalog.NewStaticServer(sub)
+    http.Handle("/", srv.Handler())
+    _ = http.ListenAndServe(":8080", nil)
+}
+```
+
+`StaticServer` does the static-site routing the Astro output expects:
+directory indexes (`/docs/foo/`), the canonical trailing-slash redirect
+(`/docs/foo` → `/docs/foo/`), extensionless HTML (`/docs/foo` →
+`docs/foo.html`), a custom `404.html`, and long-lived caching for the
+content-hashed `_astro/` bundles. Directory listings are never generated.
+
+Options: `WithNotFoundFile(name)` (default `404.html`) and
+`WithImmutableAssetPrefixes(prefixes...)` (default `_astro/`). Astro emits
+root-absolute asset URLs, so mount the handler at a root path.
+
 #### Versioning your catalog
 
 EventCatalog renders per-resource versions and changelogs; the exporter maps

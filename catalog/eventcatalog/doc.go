@@ -8,4 +8,8 @@
 //
 //	exp := eventcatalog.NewExporter("./eventcatalog")
 //	_ = exp.Export(cat) // writes the full output tree to disk
+//
+// A built site (the `dist/` directory produced by `npx eventcatalog build`)
+// can be embedded in a Go binary and served without Node: wrap the tree with
+// [NewStaticServer] and mount [StaticServer.Handler].
 package eventcatalog

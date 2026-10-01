@@ -747,6 +747,40 @@ mux := http.NewServeMux()
 ds.RegisterRoutes(mux) // /docs index, /docs/openapi (Scalar), /docs/asyncapi, /docs/d2, raw specs
 ```
 
+An exported tree can also be EMBEDDED and served straight from your binary —
+no Node, npm, or EventCatalog preview server at deploy time. Build once
+(`npm install && npx eventcatalog build`), then `//go:embed` the `dist/`
+directory and mount it:
+
+```go
+import (
+    "io/fs"
+    "net/http"
+
+    "github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
+)
+
+// dist is the built EventCatalog tree; declare it beside the directive:
+//   //go:embed eventcatalog/dist
+//   var dist embed.FS
+func mountEventCatalog(dist fs.FS, mux *http.ServeMux) error {
+    srv, err := eventcatalog.NewStaticServer(dist)
+    if err != nil {
+        return err
+    }
+    mux.Handle("/", srv.Handler())
+
+    return nil
+}
+```
+
+`StaticServer` routes Astro's output (directory indexes `/docs/foo/`, the
+`/docs/foo` → `/docs/foo/` trailing-slash redirect, extensionless `.html`, a
+custom `404.html`) and marks content-hashed `_astro/` bundles immutable;
+directory listings are never generated. Options: `WithNotFoundFile` (default
+`404.html`) and `WithImmutableAssetPrefixes` (default `_astro/`). Mount at a
+root path — Astro emits root-absolute asset URLs.
+
 ### 2.10 Cost-Based Storage Planning (metaengine)
 
 The metaengine picks the cheapest backend per query — memory for small collections, SQLite for large ones.
