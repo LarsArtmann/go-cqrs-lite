@@ -308,6 +308,8 @@ fixed with a boundary conversion: `[]byte(msg.Payload)`. Rule: convert
 named byte-slice types to plain `[]byte` at the bridge boundary before
 they reach `event.New` / `command.New` / `query.New`.
 (`jsontext.Value` from encoding/json/v2 IS handled natively.)
+cqrs-lint rule **C043** flags this at the call site (type-aware: named
+`[]byte` payloads, `jsontext.Value` exempt).
 
 ## Command-side pitfalls
 
