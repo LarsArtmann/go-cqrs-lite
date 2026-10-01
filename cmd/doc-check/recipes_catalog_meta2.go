@@ -201,4 +201,17 @@ var recipeCatalogB2 = map[string]recipeSpec{
 		},
 		preamble: "type OrderPlaced struct{ OrderID string }\n",
 	},
+	"### 2.42 Request Correlation — RequestScope Enricher (event + decider) #1": {
+		imports: []string{
+			`"context"`,
+			`"net/http"`,
+			`"github.com/larsartmann/go-cqrs-lite/decider/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/event/v4"`,
+			`"github.com/larsartmann/go-cqrs-lite/id/v4"`,
+		},
+		preamble: "type State struct{}\nvar store event.Store\nvar bus event.Publisher\n" +
+			"var d decider.Decider[State]\nvar cid id.CorrelationID\nvar rid id.RequestID\n" +
+			"var clientID id.ClientID\n",
+		trailers: "_ = repo\n_ = err",
+	},
 }

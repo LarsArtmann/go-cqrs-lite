@@ -2726,3 +2726,39 @@ indexes bare frontmatter IDs; the default composite refs are what
 @eventcatalog/core renders); for hub CI, `WithSkipBootstrapFiles()` omits
 the per-source `package.json`/`eventcatalog.config.js`. The full two-context
 walkthrough is `example/mesh-demo`.
+
+### 2.42 Request Correlation — RequestScope Enricher (event + decider)
+
+Causation answers *which command*, the actor answers *who*, the request scope answers *which
+request*. HTTP bridges (net/http handlers, cqrs-htmx-style apps) store the correlation fields
+once at the edge via `event.WithRequestScope`; the enricher propagates them onto every event
+the decider saves. Zero-valued fields are skipped — absent values never overwrite present
+metadata — and the enricher returns nil when no scope is set, so it composes cleanly:
+
+```go
+func withRequestFields(ctx context.Context, r *http.Request) context.Context {
+    return event.WithRequestScope(ctx, event.RequestScope{
+        CorrelationID: cid,   // id.CorrelationID, from your tracing middleware
+        RequestID:     rid,   // id.RequestID, minted per request
+        IPAddress:     event.IPAddress(r.RemoteAddr),
+        UserAgent:     event.UserAgent(r.Header.Get("User-Agent")),
+        ClientID:      clientID, // id.ClientID, stable device/app identifier
+    })
+}
+
+repo, err := decider.NewRepository[State](store, bus, d,
+    decider.WithEnricher(event.CompositeEnricher(
+        event.ActorEnricher,
+        event.CommandCausalityEnricher,
+        event.RequestScopeEnricher,
+    )))
+
+// After dispatch, the correlation trail is on the stored event:
+// evt.Metadata().CorrelationID, .RequestID, .IPAddress, .UserAgent, .ClientID
+```
+
+Read the scope back anywhere (`RequestScopeFromContext` returns false when nothing is set or
+every field is zero). `IPAddress` and `UserAgent` are plain string types; the three IDs are
+branded (`id.CorrelationID`, `id.RequestID`, `id.ClientID`) — mint with `id.New...` or parse
+with the `idtest` helpers. This ships the enricher that apps previously had to hand-roll
+per project (the cqrs-htmx gap, GitHub issue #35).

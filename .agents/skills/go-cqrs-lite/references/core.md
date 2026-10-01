@@ -371,6 +371,25 @@ The actor wire format is `"kind:raw"` (kinds: `user`, `bot`, `system`, `service`
 `Tracing.ActorID` (JSON `actorId`, `omitzero`). `id.ActorID.Validate()` rejects a raw value
 without a kind. Full recipe: recipes §2.21.
 
+Record **which request** caused the change — the correlation counterpart to actor (who) and
+causation (which command). Bridges from HTTP frameworks store a `RequestScope` once at the edge;
+`RequestScopeEnricher` propagates the non-zero fields into event metadata:
+
+```go
+ctx = event.WithRequestScope(ctx, event.RequestScope{
+    CorrelationID: cid,                                   // id.CorrelationID
+    RequestID:     rid,                                   // id.RequestID
+    IPAddress:     event.IPAddress(r.RemoteAddr),         // plain string types
+    UserAgent:     event.UserAgent(r.Header.Get("User-Agent")),
+})
+repo, _ := decider.NewRepository[State](store, bus, d,
+    decider.WithEnricher(event.CompositeEnricher(          // compose the full audit trail
+        event.ActorEnricher, event.RequestScopeEnricher)))
+```
+
+Zero-valued fields are skipped, so a partially filled scope enriches only what is known.
+Full recipe: recipes §2.42.
+
 ### 3.9 Declare the event universe — catch subscription typos at composition
 
 Deciders emit at runtime, so `system.New` cannot infer your event types — declare them
