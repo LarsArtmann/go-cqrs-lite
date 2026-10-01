@@ -172,11 +172,11 @@ func capturePayloadTypeFromVar(
 	}
 
 	if typeName, ok := varAssigns[ident.Name]; ok {
-			ctx.Registry.EventPayloadTypes[typeName] = true
-		}
+		ctx.Registry.EventPayloadTypes[typeName] = true
 	}
+}
 
-	// isCommandOrQueryType reports whether expr is a typed event/command/query
+// isCommandOrQueryType reports whether expr is a typed event/command/query
 // type: "command.Type", "query.Type", or "event.Type" (a SelectorExpr whose
 // Sel is "Type" and whose qualifier names one of those packages).
 func isCommandOrQueryType(expr ast.Expr) bool {
@@ -193,4 +193,3 @@ func isCommandOrQueryType(expr ast.Expr) bool {
 
 	return pkg == "command" || pkg == "query" || pkg == "event"
 }
-
