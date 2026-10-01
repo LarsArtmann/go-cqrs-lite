@@ -35,18 +35,23 @@ func TestStreamLoadByEventID(t *testing.T) {
 		t.Fatal("sqlite engine must implement metaengine.EventByIDBackend")
 	}
 
+	slb, ok := eng.(metaengine.StreamLogBackend)
+	if !ok {
+		t.Fatal("sqlite engine must implement metaengine.StreamLogBackend")
+	}
+
 	ctx := context.Background()
 	envelopes := []any{
 		`{"id":"e1","type":"order.created","stream_id":"s1"}`,
 		`{"id":"e2","type":"order.shipped","stream_id":"s1"}`,
 	}
-	if err := eng.StreamAppend(ctx, "events", "s1", envelopes); err != nil {
+	if err := slb.StreamAppend(ctx, "events", "s1", envelopes); err != nil {
 		t.Fatalf("append: %v", err)
 	}
 
 	// Non-JSON values in another collection: outside the partial index, and
 	// the json_valid guard must keep lookups on OTHER collections working.
-	if err := eng.StreamAppend(ctx, "raw", "x", []any{"plain not json"}); err != nil {
+	if err := slb.StreamAppend(ctx, "raw", "x", []any{"plain not json"}); err != nil {
 		t.Fatalf("raw append: %v", err)
 	}
 

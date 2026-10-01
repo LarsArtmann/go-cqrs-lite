@@ -2989,6 +2989,7 @@ metaengine/interface DueClaimer
 metaengine/interface DurabilityReporter
 metaengine/interface Engine
 metaengine/interface EngineResetter
+metaengine/interface EventByIDBackend
 metaengine/interface ExplainableAggregate
 metaengine/interface ExplainableScan
 metaengine/interface FactSink
@@ -4172,6 +4173,8 @@ metaengine/sqliteengine/method StreamAppend
 metaengine/sqliteengine/method StreamAppend
 metaengine/sqliteengine/method StreamAppendExpected
 metaengine/sqliteengine/method StreamAppendExpected
+metaengine/sqliteengine/method StreamLoadByEventID
+metaengine/sqliteengine/method StreamLoadByEventID
 metaengine/sqliteengine/method StreamRead
 metaengine/sqliteengine/method StreamRead
 metaengine/sqliteengine/method StreamReadAsOfVersion
@@ -7138,6 +7141,7 @@ system/method Load
 system/method Load
 system/method Load
 system/method LoadAtVersion
+system/method LoadByEventID
 system/method LoadFromTimestamp
 system/method LoadFromVersion
 system/method LoadFromVersion
@@ -7252,6 +7256,7 @@ system/var ErrDurabilityConflict
 system/var ErrEventSaveNotAtomic
 system/var ErrEventStoreMissing
 system/var ErrJournalMissing
+system/var ErrLoadByEventIDUnsupported
 system/var ErrNoDecider
 system/var ErrNoProjectionHost
 system/var ErrNoProjections
