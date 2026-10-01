@@ -7,22 +7,22 @@
 
 ## Part A — Quick rulings (one-liners)
 
-| # | Question | Recommendation | Unblocks |
-| --- | --- | --- | --- |
-| A1 | **M22/Q3 report-artifact policy**: narrow skill trigger (1–2 modules) — chat answer + "report on request", or always write the full artifact? | Sanction the deviation for narrow triggers; codify in the skill | M22/Q3 row |
-| A2 | **Push cadence**: push `master` after daemon-absorbed sessions, or only at release tags? | Push at each session close (tags are already public; master lag is pure drift risk) | this session Q1 |
-| A3 | **claiming V006 advisory**: content-identical `claiming/v4.0.1` re-tag, or teach V006 to skip pins at a module's newest tag? | Linter-semantics fix (skip at newest existing tag) — no re-tag of a content-identical module | claiming V006 row |
-| A4 | **iroh P99 bound 50→150ms** (worst-of-30 under gate load) — ratify? | Ratify (documented provenance; sample methodology inflates tail) | iroh P99 row |
-| A5 | **T18b (a) deadline-lapse policy**: auto-re-arm vs one-shot | Auto-re-arm (the armed-pipeline mechanics are retired; policy only affects future re-arms) | T18b tail |
-| A6 | **T18b (b) benchmark-ceiling**: keep strict load1<5? | Keep strict (M11's re-runs exist to be honest, not cheap) | T18b tail |
-| A7 | **Turso DSN strict-vs-lenient**: reject unknown `*encrypt*`/`*key*` params at construction? | STRICT — silent-unencrypted DBs are the unacceptable state; behavior change is v4.x-warn/v5-hard | Turso DSN row |
-| A8 | **Turso sync/embedded-replica first-class support**: real consumer need or out of scope? | Defer until a consumer asks (matview-v2-style demand gate) | sync/embedded row |
-| A9 | **dgraph one-RPC scope (Q1)**: flip Set/Multimap/Log/StreamLog to O1 in one wave, or incremental? | Authorize one wave AFTER per-ADT reassessment benches pass (ADTMap precedent) | dgraph Q1 row |
-| A10 | **CapabilityGaps → Doctor (Q2)**: should documented gaps also silence Doctor's `--- Capability ---` violation lines? | Yes — one gap source, two silencers is a split brain | CapabilityGaps row |
-| A11 | **`#test-examples` joins blocking `#verify`?** | Yes for CI, keep local `#verify` without it (fast loops); the projectionhost bug class lived in the build-vs-tested gap | #test-examples row |
-| A12 | **docs-health cadence**: weekly? | Weekly, Sundays, alongside the existing nightly-gates Sunday legs | docs-health (c) |
-| A13 | **benchkit tag wave**: cut under the blanket "GET SHIT DONE" sanction (M09 precedent) or hold for explicit sign-off? | Cut under sanction (mechanics-only, same class as M09) | this session Q2 |
-| A14 | **Quiet-window strategy** while load1 stays ≥14: (a) auto-poll opportunistically, (b) owner names a window, (c) raise the ceiling? | (a) auto-poll as today + (b) name a Sunday window for the composed verify if polling keeps missing | this session Q3 |
+| #   | Question                                                                                                                                      | Recommendation                                                                                                          | Unblocks           |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| A1  | **M22/Q3 report-artifact policy**: narrow skill trigger (1–2 modules) — chat answer + "report on request", or always write the full artifact? | Sanction the deviation for narrow triggers; codify in the skill                                                         | M22/Q3 row         |
+| A2  | **Push cadence**: push `master` after daemon-absorbed sessions, or only at release tags?                                                      | Push at each session close (tags are already public; master lag is pure drift risk)                                     | this session Q1    |
+| A3  | **claiming V006 advisory**: content-identical `claiming/v4.0.1` re-tag, or teach V006 to skip pins at a module's newest tag?                  | Linter-semantics fix (skip at newest existing tag) — no re-tag of a content-identical module                            | claiming V006 row  |
+| A4  | **iroh P99 bound 50→150ms** (worst-of-30 under gate load) — ratify?                                                                           | Ratify (documented provenance; sample methodology inflates tail)                                                        | iroh P99 row       |
+| A5  | **T18b (a) deadline-lapse policy**: auto-re-arm vs one-shot                                                                                   | Auto-re-arm (the armed-pipeline mechanics are retired; policy only affects future re-arms)                              | T18b tail          |
+| A6  | **T18b (b) benchmark-ceiling**: keep strict load1<5?                                                                                          | Keep strict (M11's re-runs exist to be honest, not cheap)                                                               | T18b tail          |
+| A7  | **Turso DSN strict-vs-lenient**: reject unknown `*encrypt*`/`*key*` params at construction?                                                   | STRICT — silent-unencrypted DBs are the unacceptable state; behavior change is v4.x-warn/v5-hard                        | Turso DSN row      |
+| A8  | **Turso sync/embedded-replica first-class support**: real consumer need or out of scope?                                                      | Defer until a consumer asks (matview-v2-style demand gate)                                                              | sync/embedded row  |
+| A9  | **dgraph one-RPC scope (Q1)**: flip Set/Multimap/Log/StreamLog to O1 in one wave, or incremental?                                             | Authorize one wave AFTER per-ADT reassessment benches pass (ADTMap precedent)                                           | dgraph Q1 row      |
+| A10 | **CapabilityGaps → Doctor (Q2)**: should documented gaps also silence Doctor's `--- Capability ---` violation lines?                          | Yes — one gap source, two silencers is a split brain                                                                    | CapabilityGaps row |
+| A11 | **`#test-examples` joins blocking `#verify`?**                                                                                                | Yes for CI, keep local `#verify` without it (fast loops); the projectionhost bug class lived in the build-vs-tested gap | #test-examples row |
+| A12 | **docs-health cadence**: weekly?                                                                                                              | Weekly, Sundays, alongside the existing nightly-gates Sunday legs                                                       | docs-health (c)    |
+| A13 | **benchkit tag wave**: cut under the blanket "GET SHIT DONE" sanction (M09 precedent) or hold for explicit sign-off?                          | Cut under sanction (mechanics-only, same class as M09)                                                                  | this session Q2    |
+| A14 | **Quiet-window strategy** while load1 stays ≥14: (a) auto-poll opportunistically, (b) owner names a window, (c) raise the ceiling?            | (a) auto-poll as today + (b) name a Sunday window for the composed verify if polling keeps missing                      | this session Q3    |
 
 ## Part B — ADR-level rulings (paragraph each)
 
@@ -51,6 +51,7 @@ Skeleton ADR shipped: `docs/adr/0139-v5-encryption-at-rest-configuration.md`
 (`DriverConfig.Encryption` + `KeyProvider func(ctx) ([]byte, error)` +
 DeploymentConfig key-reference slot; engines fail construction loudly).
 **Rulings needed:**
+
 1. Provider call semantics — per-operation, per-connection, or construction-time-only?
 2. Reference validation timing — construction (fail-loud) or first use?
 3. Read-model scope — encrypt projections/checkpoints too, or journals only?

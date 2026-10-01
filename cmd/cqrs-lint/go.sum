@@ -18,6 +18,8 @@ github.com/charmbracelet/colorprofile v0.4.3 h1:QPa1IWkYI+AOB+fE+mg/5/4HRMZcaXex
 github.com/charmbracelet/colorprofile v0.4.3/go.mod h1:/zT4BhpD5aGFpqQQqw7a+VtHCzu+zrQtt1zhMt9mR4Q=
 github.com/charmbracelet/ultraviolet v0.0.0-20260929091141-666ce5eec9fc h1:Yyb+lhCj3++k6/TAiacL5JMwYEQNcYfZxz33LnpMD4Q=
 github.com/charmbracelet/ultraviolet v0.0.0-20260929091141-666ce5eec9fc/go.mod h1:D9SVXVpAsD1pP6xR6BiERbe4+dUU6EW9US1TFrNutGA=
+github.com/charmbracelet/ultraviolet v0.0.0-20260930135840-270558f35f71 h1:DMlIR5G/XKGv8W5rJwivfVRuWbMsycFtuNKYhTlq+s4=
+github.com/charmbracelet/ultraviolet v0.0.0-20260930135840-270558f35f71/go.mod h1:D9SVXVpAsD1pP6xR6BiERbe4+dUU6EW9US1TFrNutGA=
 github.com/charmbracelet/x/ansi v0.11.8 h1:JMFwp0CgDC2+jcOB162HH5k7I3FVbgFSMMYg7dSPBQQ=
 github.com/charmbracelet/x/ansi v0.11.8/go.mod h1:ZNN+3mXny/516oTQPLMPIBeSINvNJJQ8uQXDgbeJxY0=
 github.com/charmbracelet/x/exp/charmtone v0.1.0 h1:SbNJx4QUx048funlaNu5Ip4ON3H8+ZLGUeNIy4/ng6c=
@@ -79,6 +81,8 @@ github.com/larsartmann/go-finding/pipeline v1.13.0 h1:IZlbUEiR3JZT1Hx11DBhatePUe
 github.com/larsartmann/go-finding/pipeline v1.13.0/go.mod h1:lLH6bjnSgQaXiGj859Ft32YHYBDIFy0uTdUNBPAVauQ=
 github.com/larsartmann/go-finding/toolsdk v1.13.1 h1:CHwOfUGb/xZXYt/5L7bruORcKV6I/XuwSChmvdjsTxE=
 github.com/larsartmann/go-finding/toolsdk v1.13.1/go.mod h1:Ic6n6qgRLxjFvju1cDveWYryGdBjAgUDT7Macoj5gpk=
+github.com/larsartmann/go-finding/toolsdk v1.14.0 h1:s1wjnsO8t2Zb2tUuUZ0sp2G6nQCIjO7x5PI5ilizchc=
+github.com/larsartmann/go-finding/toolsdk v1.14.0/go.mod h1:RMK+HdgF++/e6HpVJfReGJwb8QlScbbeZ9mcGjcyggQ=
 github.com/larsartmann/go-ndjson v0.0.1 h1:wchwH5pv+0ZnFem/WrlGZA8dDGvZumT+OcVn5dbou3A=
 github.com/larsartmann/go-ndjson v0.0.1/go.mod h1:ueEJJ39Jei+zfPCEx455kpunYWZf/pkwn7HqETHrQkU=
 github.com/larsartmann/go-output v0.38.2 h1:8uWXanLinSOS5KiN+7X3n+0QKuPkUpJf+so5lNbL5tI=

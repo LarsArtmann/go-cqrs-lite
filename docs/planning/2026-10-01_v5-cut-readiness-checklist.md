@@ -9,11 +9,11 @@
 
 ## Layer 0 — Owner rulings that gate implementation (PRE-CUT, blocking)
 
-| Ruling | Blocks | State 2026-10-01 |
-| --- | --- | --- |
-| ADR-0139 encryption-at-rest: 4 open questions (provider call semantics, reference validation timing, read-model scope, plaintext→encrypted migration) | Layer 12 | pending (M15.2 pack re-asks) |
-| Sweep §4(a): SQL `events`/`commands` column renames — v5.x expand-contract vs v5.0 cut | Layer 13 | recommendation on table (expand-contract); owner ruling pending |
-| ADR-0146 SingleWriter / ADR-0147 Direction | Layer 10 scope | pending (M15.2 pack) |
+| Ruling                                                                                                                                                | Blocks         | State 2026-10-01                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------------------------------------- |
+| ADR-0139 encryption-at-rest: 4 open questions (provider call semantics, reference validation timing, read-model scope, plaintext→encrypted migration) | Layer 12       | pending (M15.2 pack re-asks)                                    |
+| Sweep §4(a): SQL `events`/`commands` column renames — v5.x expand-contract vs v5.0 cut                                                                | Layer 13       | recommendation on table (expand-contract); owner ruling pending |
+| ADR-0146 SingleWriter / ADR-0147 Direction                                                                                                            | Layer 10 scope | pending (M15.2 pack)                                            |
 
 ## Layer 1 — Pre-cut verifications (v4.x, quiet-window)
 

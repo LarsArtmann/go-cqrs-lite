@@ -262,7 +262,7 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | C040 | dead-fold-case                            | Warning  | Fold switch case handles an event type that is never emitted via event.New — dead code or a typo       |
 | C041 | save-ignores-expectedversion              | Warning  | Store.Save called without checking expected version — optimistic concurrency violation                 |
 | C042 | save-with-literal-zero-version            | Warning  | Store.Save with literal 0 as expected version — bypasses concurrency check                             |
-| C043 | named-byte-slice-payload                  | Warning  | Named []byte passed as event.New payload — codec-encoded instead of used directly                     |
+| C043 | named-byte-slice-payload                  | Warning  | Named []byte passed as event.New payload — codec-encoded instead of used directly                      |
 
 ## API Misuse Rules
 

@@ -61,12 +61,33 @@ func TestStaticServerRouting(t *testing.T) {
 		{"root index", http.MethodGet, "/", http.StatusOK, "home", ""},
 		{"explicit index", http.MethodGet, "/index.html", http.StatusOK, "home", ""},
 		{"directory index", http.MethodGet, "/docs/foo/", http.StatusOK, "foo", ""},
-		{"trailing slash redirect", http.MethodGet, "/docs/foo", http.StatusMovedPermanently, "", "/docs/foo/"},
+		{
+			"trailing slash redirect",
+			http.MethodGet,
+			"/docs/foo",
+			http.StatusMovedPermanently,
+			"",
+			"/docs/foo/",
+		},
 		{"extensionless html", http.MethodGet, "/legacy", http.StatusOK, "legacy", ""},
 		{"explicit html", http.MethodGet, "/legacy.html", http.StatusOK, "legacy", ""},
 		{"custom 404", http.MethodGet, "/missing", http.StatusNotFound, "custom not found", ""},
-		{"directory without index", http.MethodGet, "/docs", http.StatusNotFound, "custom not found", ""},
-		{"traversal rejected", http.MethodGet, "/docs/../404.html", http.StatusNotFound, "custom not found", ""},
+		{
+			"directory without index",
+			http.MethodGet,
+			"/docs",
+			http.StatusNotFound,
+			"custom not found",
+			"",
+		},
+		{
+			"traversal rejected",
+			http.MethodGet,
+			"/docs/../404.html",
+			http.StatusNotFound,
+			"custom not found",
+			"",
+		},
 	}
 
 	for _, tt := range tests {

@@ -47,7 +47,10 @@ func TestTurso_RecursiveCTEProbeSucceeds(t *testing.T) {
 	}
 
 	if got != 1 {
-		t.Fatalf("cte probe returned %d, want 1 (seed row; the recursion terminates immediately)", got)
+		t.Fatalf(
+			"cte probe returned %d, want 1 (seed row; the recursion terminates immediately)",
+			got,
+		)
 	}
 }
 

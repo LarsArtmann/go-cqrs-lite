@@ -15,15 +15,15 @@ query federation — see
 
 ## Layout
 
-| File            | What it shows                                                                                               |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `orders.go`     | Orders context: commands, events, state, deciders; consumes `invoice.issued`                                |
-| `billing.go`    | Billing context: consumes `order.placed`, issues `invoice.issued` (idempotently)                            |
-| `flow.go`       | The load→fold→decide→save loop, bare — what `decider.Repository` automates against a store                  |
-| `catalog.go`    | Per-context catalog declarations: bilateral `Sends`/`Receives`, data products, teams, owners                |
+| File            | What it shows                                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `orders.go`     | Orders context: commands, events, state, deciders; consumes `invoice.issued`                                         |
+| `billing.go`    | Billing context: consumes `order.placed`, issues `invoice.issued` (idempotently)                                     |
+| `flow.go`       | The load→fold→decide→save loop, bare — what `decider.Repository` automates against a store                           |
+| `catalog.go`    | Per-context catalog declarations: bilateral `Sends`/`Receives`, data products, teams, owners                         |
 | `gate.go`       | The RUNTIME twin of the catalog coeffect gate: orders composed via `system.New`, typo'd import caught at composition |
-| `mesh_test.go`  | Domain tests: folds, rejection, idempotency, the full cross-domain round trip                               |
-| `merge_test.go` | Hub dry-run: coeffects dangling-free per source, bilateral copies carry both sides, manifests union cleanly |
+| `mesh_test.go`  | Domain tests: folds, rejection, idempotency, the full cross-domain round trip                                        |
+| `merge_test.go` | Hub dry-run: coeffects dangling-free per source, bilateral copies carry both sides, manifests union cleanly          |
 
 ## Run it
 

@@ -2,7 +2,7 @@
 
 **Timestamp:** 2026-10-01 05:54 CEST
 **Session scope:** answer "How is the `catalog/` integration with eventcatalog.dev?"
-and *verify* it end-to-end rather than assert it.
+and _verify_ it end-to-end rather than assert it.
 **Production code touched:** none. This was a read + verify session.
 
 ---
@@ -14,7 +14,7 @@ strongest verification gates** the repo already ships: the `catalog/eventcatalog
 package test suite (offline, green) and the full `check-eventcatalog` render gate
 (generate fixture → `npm install` → `npx eventcatalog build` → `@eventcatalog/linter`),
 which passed clean including the plain-refs lint profile. No code was changed, so
-nothing regressed. The main weaknesses were: the answer mostly *read the docs* and
+nothing regressed. The main weaknesses were: the answer mostly _read the docs_ and
 only spot-checked code; several sub-claims (manifest determinism, the linter pin,
 `GenerateEventCatalog` wiring) were left unverified; and the verification was done
 by invoking `scripts/check-eventcatalog.sh` directly rather than through `nix run .#check-eventcatalog`.
@@ -23,35 +23,35 @@ by invoking `scripts/check-eventcatalog.sh` directly rather than through `nix ru
 
 ## 1. FULLY DONE
 
-| # | Item | Evidence |
-|---|------|----------|
-| 1 | Answered the architecture question coherently | final answer mapped pipeline, contract, ref-split, hub role, known bugs |
-| 2 | Located the integration surface | `catalog/eventcatalog/` (28 non-test `.go` files), `catalog/cmd/ec-fixture`, `catalog/cmd/catalog-export`, `catalog/docserver/eventcatalog.go` |
-| 3 | Read the canonical maintainer contract | `catalog/AGENTS.md:57-113` (EventCatalog exporter section) |
-| 4 | Read the consumer docs | `catalog/README.md:328-502`, `catalog/eventcatalog/doc.go`, `CATALOG_ARCHITECTURE.md` |
-| 5 | Confirmed the core version pin | `eventCatalogCoreVersion = "^4.6.3"` at `catalog/eventcatalog/exporter.go:19`; generated `package.json` at `writer.go:263` |
-| 6 | Confirmed the stable `cId` mechanism | `stableCatalogID` at `catalogid.go:44` (UUIDv5 under frozen namespace) |
-| 7 | Confirmed the two-consumer ref split | `options.go:23` (`WithPlainRefIDs`), `options.go:7` (`WithSkipBootstrapFiles`) |
-| 8 | Confirmed changelog guard | `shouldEnableChangelog` at `writer.go:238` (skips agents, upstream 4.6.3 crash) |
-| 9 | Ran the package test suite | `GOWORK=off go test ./eventcatalog/...` → `ok ... 0.043s` |
-| 10 | Ran the **full render gate** | `CHECK_EVENTCATALOG_DIR=/tmp/ec-verify bash scripts/check-eventcatalog.sh` → `OK: eventcatalog build clean + linter clean` |
-| 11 | Verified default profile build | 88 pages, schema-clean logs, no `InvalidContentEntryDataError` |
-| 12 | Verified changelog profile build | 94 pages, `changelog.mdx` rendered; only the documented cosmetic 4-link WARN |
-| 13 | Verified `@eventcatalog/linter` on plain-refs profile | `✔ No problems found! (15 files checked)` at full severity |
-| 14 | Confirmed network + toolchain availability | `node`/`npm`/`npx` present; `registry.npmjs.org:443` reachable |
+| #  | Item                                                  | Evidence                                                                                                                                       |
+| -- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1  | Answered the architecture question coherently         | final answer mapped pipeline, contract, ref-split, hub role, known bugs                                                                        |
+| 2  | Located the integration surface                       | `catalog/eventcatalog/` (28 non-test `.go` files), `catalog/cmd/ec-fixture`, `catalog/cmd/catalog-export`, `catalog/docserver/eventcatalog.go` |
+| 3  | Read the canonical maintainer contract                | `catalog/AGENTS.md:57-113` (EventCatalog exporter section)                                                                                     |
+| 4  | Read the consumer docs                                | `catalog/README.md:328-502`, `catalog/eventcatalog/doc.go`, `CATALOG_ARCHITECTURE.md`                                                          |
+| 5  | Confirmed the core version pin                        | `eventCatalogCoreVersion = "^4.6.3"` at `catalog/eventcatalog/exporter.go:19`; generated `package.json` at `writer.go:263`                     |
+| 6  | Confirmed the stable `cId` mechanism                  | `stableCatalogID` at `catalogid.go:44` (UUIDv5 under frozen namespace)                                                                         |
+| 7  | Confirmed the two-consumer ref split                  | `options.go:23` (`WithPlainRefIDs`), `options.go:7` (`WithSkipBootstrapFiles`)                                                                 |
+| 8  | Confirmed changelog guard                             | `shouldEnableChangelog` at `writer.go:238` (skips agents, upstream 4.6.3 crash)                                                                |
+| 9  | Ran the package test suite                            | `GOWORK=off go test ./eventcatalog/...` → `ok ... 0.043s`                                                                                      |
+| 10 | Ran the **full render gate**                          | `CHECK_EVENTCATALOG_DIR=/tmp/ec-verify bash scripts/check-eventcatalog.sh` → `OK: eventcatalog build clean + linter clean`                     |
+| 11 | Verified default profile build                        | 88 pages, schema-clean logs, no `InvalidContentEntryDataError`                                                                                 |
+| 12 | Verified changelog profile build                      | 94 pages, `changelog.mdx` rendered; only the documented cosmetic 4-link WARN                                                                   |
+| 13 | Verified `@eventcatalog/linter` on plain-refs profile | `✔ No problems found! (15 files checked)` at full severity                                                                                     |
+| 14 | Confirmed network + toolchain availability            | `node`/`npm`/`npx` present; `registry.npmjs.org:443` reachable                                                                                 |
 
 ---
 
 ## 2. PARTIALLY DONE
 
-| # | Item | What's missing |
-|---|------|----------------|
-| 1 | The explanation itself | Mostly derived from `README.md` + `AGENTS.md`; only ~10 code sites were opened to spot-check. The full resource-coverage table was NOT independently re-derived from `exporter_*.go`, so a doc-vs-code drift there would have gone unseen. |
-| 2 | Verification breadth | 2 gates run (package tests + render gate). The recipes compile harness (`TestRecipes*`), `check-md-go`, `check-eventcatalog` via **nix** (uses the flake's node/bash wiring), and `docserver.GenerateEventCatalog` were not exercised. |
-| 3 | `catalog.index.json` claim | Repeated the README's determinism claim (canonical order, written last) but never opened a generated manifest to confirm field shape / byte-stability. |
-| 4 | "Every resource kind" claim | Backed by the fixture's existence, not by enumerating `exporter_resources*.go` against the EventCatalog 4.6.3 collection list. |
-| 5 | Linter pin | Noted `scripts/testdata/eventcatalog-linter/` is lockfile-pinned; did not read the `package.json` version or check it against upstream. |
-| 6 | Duplication state of the report sources | Did not check whether README/AGENTS/skill rows for EventCatalog have drifted from each other (three copies of similar tables). |
+| # | Item                                    | What's missing                                                                                                                                                                                                                             |
+| - | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | The explanation itself                  | Mostly derived from `README.md` + `AGENTS.md`; only ~10 code sites were opened to spot-check. The full resource-coverage table was NOT independently re-derived from `exporter_*.go`, so a doc-vs-code drift there would have gone unseen. |
+| 2 | Verification breadth                    | 2 gates run (package tests + render gate). The recipes compile harness (`TestRecipes*`), `check-md-go`, `check-eventcatalog` via **nix** (uses the flake's node/bash wiring), and `docserver.GenerateEventCatalog` were not exercised.     |
+| 3 | `catalog.index.json` claim              | Repeated the README's determinism claim (canonical order, written last) but never opened a generated manifest to confirm field shape / byte-stability.                                                                                     |
+| 4 | "Every resource kind" claim             | Backed by the fixture's existence, not by enumerating `exporter_resources*.go` against the EventCatalog 4.6.3 collection list.                                                                                                             |
+| 5 | Linter pin                              | Noted `scripts/testdata/eventcatalog-linter/` is lockfile-pinned; did not read the `package.json` version or check it against upstream.                                                                                                    |
+| 6 | Duplication state of the report sources | Did not check whether README/AGENTS/skill rows for EventCatalog have drifted from each other (three copies of similar tables).                                                                                                             |
 
 ---
 
@@ -74,20 +74,20 @@ by invoking `scripts/check-eventcatalog.sh` directly rather than through `nix ru
 
 Nothing materially broken. Honest ledger of the sloppy bits:
 
-| # | Sloppiness | Impact |
-|---|-----------|--------|
-| 1 | **Answered from docs first, verified second.** I read `README.md` before opening code, then spot-checked. Risk: doc drift presented as fact. | Medium — mitigation: the two gates passed, so the *behavior* is real even if a doc row is stale. |
-| 2 | **`lsp_symbols` timed out twice** (`context deadline exceeded`) and I fell back to `grep`. Worked, but suggests an LSP that is unhealthy on this repo. | Low — no correctness impact, but worth a `lsp_restart`. |
-| 3 | **Ran the gate via `bash scripts/...` not `nix run .#check-eventcatalog`.** The nix app injects the pinned node/bash; the ambient env happened to work. | Low — result is valid this run, but not the *canonical* invocation; not reproducible-by-construction. |
-| 4 | **Produced no artifact until this report.** The research answer lived only in chat. | Low now (this file exists), was medium mid-session. |
-| 5 | **Did not diff the three doc copies** of the EventCatalog surface (README vs AGENTS vs skill) against the code. | Medium — this is exactly the "split brain" class the repo polices. |
+| # | Sloppiness                                                                                                                                              | Impact                                                                                                |
+| - | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1 | **Answered from docs first, verified second.** I read `README.md` before opening code, then spot-checked. Risk: doc drift presented as fact.            | Medium — mitigation: the two gates passed, so the _behavior_ is real even if a doc row is stale.      |
+| 2 | **`lsp_symbols` timed out twice** (`context deadline exceeded`) and I fell back to `grep`. Worked, but suggests an LSP that is unhealthy on this repo.  | Low — no correctness impact, but worth a `lsp_restart`.                                               |
+| 3 | **Ran the gate via `bash scripts/...` not `nix run .#check-eventcatalog`.** The nix app injects the pinned node/bash; the ambient env happened to work. | Low — result is valid this run, but not the _canonical_ invocation; not reproducible-by-construction. |
+| 4 | **Produced no artifact until this report.** The research answer lived only in chat.                                                                     | Low now (this file exists), was medium mid-session.                                                   |
+| 5 | **Did not diff the three doc copies** of the EventCatalog surface (README vs AGENTS vs skill) against the code.                                         | Medium — this is exactly the "split brain" class the repo polices.                                    |
 
 ---
 
 ## 5. WHAT WE SHOULD IMPROVE
 
 1. **Verify before you narrate.** For an integration question, open the code that
-   proves each table row *before* writing the row. The repo has a whole
+   proves each table row _before_ writing the row. The repo has a whole
    `verify-before-filing` / `verify-external-claims` culture; apply it inward too.
 2. **Use the sanctioned gate command.** `nix run .#check-eventcatalog`, not the raw
    script, so the toolchain is pinned.

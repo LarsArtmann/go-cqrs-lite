@@ -27,7 +27,7 @@ unreleased-upstream `errorpage` package. Full evidence report:
 ## a) FULLY DONE
 
 1. **Version currency check** — `git tag` + CHANGELOG vs `catalog/go.mod:10-12`:
-   v1.19.4 is the newest tag; also inventoried upstream's *Unreleased* work
+   v1.19.4 is the newest tag; also inventoried upstream's _Unreleased_ work
    (errorpage pkg, PageHeader component slots, CopyButton.LabelClass,
    ListNote range, error-pages recipe).
 2. **Phase 1 usage inventory** — all five `.templ` sources + Go glue read in
@@ -63,7 +63,7 @@ unreleased-upstream `errorpage` package. Full evidence report:
 12. **Memory updated**: `catalog/AGENTS.md` — Container `Pad` zero-value
     gotcha, `HTMXNone` rule, and the regen-cwd command corrected (the
     documented `cd catalog && … ./docserver/...` form produced path-carrying
-    FileNames; a past changelog entry fixed the *behavior* in 2026-09 but
+    FileNames; a past changelog entry fixed the _behavior_ in 2026-09 but
     left the doc command stale — that split brain is now closed).
 13. **Dep budget untouched** — no new module requires (layout/icons/utils
     were already direct in `catalog/go.mod`).
@@ -81,14 +81,14 @@ unreleased-upstream `errorpage` package. Full evidence report:
    this session never touched (9× golangci-lint: stack/pebble, storage,
    metaengine/irohengine/quic, metaengine/sqliteengine, stack/bench,
    stack/postgres, idempotency/kvstore, testutil/pgtestcontainer; 4-5×
-   govalid transient tool timeouts). Failure set *shrank between runs*
+   govalid transient tool timeouts). Failure set _shrank between runs_
    (16→15→3 rerun), so flakiness is proven; foreignness is proven by zero
    overlap with the changed module — but root-cause triage was NOT done
    (out of session scope).
 4. **Change history quality** — the daemon absorbed all work into `chore:`
    commits, including intermediate known-broken states (wrong-cwd regen,
    Pad-missing Container, stale-body report). Tree state is correct; the
-   *history* is not bisectable. Authored per-phase commits were skipped.
+   _history_ is not bisectable. Authored per-phase commits were skipped.
 5. **Rendered-page verification** — HTML dump + string assertions verified
    structure, but no browser/screenshot pass was done on the changed pages
    (Scalar/AsyncAPI/D2 visual parity assumed from class-set identity).
@@ -150,7 +150,7 @@ silently produced wrong artifacts before being caught:
    read" must halt the pipeline until re-read. (Cost this session: 3 tool
    calls of confidently-wrong work.)
 2. **Commit at phase boundaries** when history matters — the daemon is
-   documented, so authored commits must happen *during*, not after.
+   documented, so authored commits must happen _during_, not after.
 3. **Respect gate exclusivity mechanically**: never launch background heavy
    builds (buildflow) while planning to run nix gates; serialize them.
 4. **Don't overclaim**: "byte-identical output" was analytically argued, not
@@ -170,6 +170,7 @@ silently produced wrong artifacts before being caught:
 ## f) NEXT 50 (brainstorm — ROADMAP fuel, not a commitment list)
 
 **This-week, this-repo (high impact × low effort):**
+
 1. Add CHANGELOG `[Unreleased]` entry: docserver not-found pages now 404.
 2. Decide EventCatalog table cap size (50/100/200?) → implement `ListNote`
    (+ `Pagination`/`LoadMore` if paging wins).
@@ -192,27 +193,27 @@ silently produced wrong artifacts before being caught:
 **Upstream templ-components (sibling repo):**
 13. File the `ContainerProps` Pad-default doc-comment gotcha upstream.
 14. Request `layout.InlineScript` (CSP-safe inline script component) —
-    docserver keeps 2 literal nonce'd scripts.
+docserver keeps 2 literal nonce'd scripts.
 15. Watch for the `errorpage` release; bump + CSS regen + adoption in one
-    commit when it lands.
+commit when it lands.
 16. Evaluate `PageHeader.TitleComponent`/`SubtitleComponent` on release
-    (low need today).
+(low need today).
 17. Evaluate `ListNote.ListNoteRange` pairing with table bounds.
 18. Consider upstreaming the docserver's `renderComponentStatus` pattern
-    into the error-pages recipe as a reference consumer.
+into the error-pages recipe as a reference consumer.
 19. Sync the repo's templ-components skill copy with upstream's
-    canonicalization (templ fmt) cadence.
+canonicalization (templ fmt) cadence.
 20. Ask upstream whether `DefaultContainerProps()` should become the
-    documented-only path (kill the literal-struct trap).
+documented-only path (kill the literal-struct trap).
 
 **docserver product/UX:**
 21. Sort/normalize EventCatalog message rows (currently catalog order).
 22. Per-kind filter tabs on the messages table (htmx-free: query param).
 23. `DefinitionGrid` trial on detail pages (current DefinitionList is fine —
-    taste check).
+taste check).
 24. Deep-link anchors for table rows.
 25. `<noscript>` parity check for the EventCatalog pages (SPAs have it; do
-    the server pages need anything?).
+the server pages need anything?).
 26. Favicon/OG image for the docs pages (Base supports it).
 27. `ExternalLink` for the repository/badge URLs (data-product badges).
 28. Cap `propertyRows` schema tables separately from message tables.
@@ -221,46 +222,46 @@ silently produced wrong artifacts before being caught:
 
 **Repo hygiene adjacent to this session:**
 31. Sweep `docs/status/archived/` mentions of "regen from catalog/" for the
-    stale command (I fixed AGENTS.md only).
+stale command (I fixed AGENTS.md only).
 32. Consider gating doc-command freshness: run documented commands in a
-    nightly smoke (the md-go gate parses, it doesn't execute).
+nightly smoke (the md-go gate parses, it doesn't execute).
 33. Add `check-templ` tripwire story to `gotchas-tooling-build.md` if not
-    already there (verify).
+already there (verify).
 34. Re-check `catalog` dep budget comment (5, full) still accurate post-
-    audit (it is — no new requires).
+audit (it is — no new requires).
 35. Confirm `check-md-go` passes over the edited `catalog/AGENTS.md` fence.
 
 **Testing:**
 36. Table-bounds tests once cap decided (rows ≤ N + ListNote text).
 37. A 404 regression test for channel/service/data-product parity
-    (message + data-product are pinned; channel/service only assert body).
+(message + data-product are pinned; channel/service only assert body).
 38. HTML-diff golden for the index page (small, deterministic fixture) —
-    weight vs. the existing string assertions.
+weight vs. the existing string assertions.
 39. Visual-regression screenshots for docserver pages (library has
-    visualtest infra to borrow).
+visualtest infra to borrow).
 40. CSP browser test coverage for `layout.Script`-emitted tags.
 
 **Docs:**
 41. `catalog/README.md`: mention Container/HTMXNone usage as the consumer
-    pattern (it is the sales page).
+pattern (it is the sales page).
 42. Root `AGENTS.md` Quick Reference: nothing needed (no new gate), but the
-    docserver gotchas now live in `catalog/AGENTS.md` — cross-link from the
-    skill references if recipes mention docserver.
+docserver gotchas now live in `catalog/AGENTS.md` — cross-link from the
+skill references if recipes mention docserver.
 43. Update `references/modules.md` docserver row if it predates the 404
-    behavior (verify).
+behavior (verify).
 44. Record the audit's scorecard in `FEATURES.md` docserver row (optional).
 
 **Bigger swings (ROADMAP):**
 45. Docserver pagination infrastructure (beyond ListNote) if catalogs grow.
 46. i18n: `Base.Locale` is hardcoded default "en" — expose config?
 47. Theme-color config pass-through (`PageProps.ThemeColor`) for brand
-    customization.
+customization.
 48. Streaming/lazy rendering for very large catalogs (templ streaming).
 49. EventCatalog detail pages: JSON-LD via Breadcrumbs' built-in support —
-    verify it renders and is valid.
+verify it renders and is valid.
 50. Template a "new docserver page" recipe in `catalog/AGENTS.md` (Base +
-    Container(Pad:true) + PageHeader + docsNav) so the audit's contract is
-    copy-paste.
+Container(Pad:true) + PageHeader + docsNav) so the audit's contract is
+copy-paste.
 
 ## g) QUESTIONS I CANNOT FIGURE OUT MYSELF
 
@@ -268,7 +269,7 @@ silently produced wrong artifacts before being caught:
    cap rows for large consumer catalogs — and at what N (50? 100? 200?) — or
    is unbounded rendering an accepted v4 contract? This is a product call
    about consumer docs I cannot derive from code.
-2. **The 200→404 semantic (validates d-4):** Two tests *deliberately* pinned
+2. **The 200→404 semantic (validates d-4):** Two tests _deliberately_ pinned
    200 for not-found pages before this session. Was that a real product
    requirement (e.g., a monitor treats non-200 on docs as an outage), or an
    artifact of hand-rolling the page? I chose 404 (HTTP-correct, matches the
