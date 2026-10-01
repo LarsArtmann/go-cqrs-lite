@@ -183,11 +183,9 @@ echo "==> Logs in $DGRAPH_DIR"
 source "$(dirname "$0")/lib/shuffle-seed.sh"
 
 # Run the requested command, or default to running dgraphengine tests.
-if [ $# -gt 0 ] && [ "$1" = "go" ]; then
-	shift
-	echo "==> Running: go $*"
-	go "$@"
-elif [ $# -gt 0 ]; then
+# Unified ephemeral-script contract (2026-10-01): args → verbatim exec with
+# the broker env exported; no args → the curated default suite.
+if [ $# -gt 0 ]; then
 	echo "==> Running: $*"
 	"$@"
 else

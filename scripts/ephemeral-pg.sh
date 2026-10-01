@@ -104,12 +104,14 @@ PG_MODULES="${PG_MODULES:-storage stack/postgres metaengine/pgengine projectionh
 # shellcheck disable=SC1091  # dynamic path; syntax-checked separately
 source "$(dirname "$0")/lib/shuffle-seed.sh"
 
-if [ $# -gt 0 ] && [ "$1" = "go" ]; then
-	shift
-	echo "==> Running: go $*"
-	go "$@"
+# Unified ephemeral-script contract (2026-10-01): args → verbatim exec with
+# the broker env exported (ephemeral-redis/nats style); no args → the curated
+# module loop below. Targeted loops: PG_MODULES="storage" with an explicit
+# command, e.g. PG_MODULES=storage ./scripts/ephemeral-pg.sh go test -run X ./...
+if [ $# -gt 0 ]; then
+	echo "==> Running: $*"
+	"$@"
 else
-	EXTRA_ARGS=("$@")
 	FAILED=0
 	TEST_TIMEOUT="${TEST_TIMEOUT:-300}"
 	for mod in $PG_MODULES; do
@@ -122,7 +124,7 @@ else
 			CGO_ENABLED=1 GOWORK=off \
 				timeout "$TEST_TIMEOUT" \
 				go test -tags "integration" -shuffle="$SEED" ./... \
-				-count=1 -v "${EXTRA_ARGS[@]}" 2>&1
+				-count=1 -v 2>&1
 		) || FAILED=1
 	done
 	if [ "$FAILED" -ne 0 ]; then
