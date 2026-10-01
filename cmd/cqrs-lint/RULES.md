@@ -7,7 +7,7 @@ Detectors per category (severities: `error` blocks CI, `warning` reports, `info`
 
 | Category | Rules | Section |
 |---|---|---|
-| [Correctness](#correctness) | 42 | C001–C042 |
+| [Correctness](#correctness) | 43 | C001–C043 |
 | [API](#api) | 32 | A001–A034 |
 | [Boilerplate](#boilerplate) | 31 | B001–B031 |
 | [Performance](#performance) | 10 | P001–P014 |
@@ -355,6 +355,14 @@ Custom Save method does not reference expectedVersion — optimistic concurrency
 Severity: `info` · Confidence: `low` · Auto-fix: no · Category: `correctness`
 
 Save called with expectedVersion=0 — optimistic concurrency bypassed for this write
+
+<a id="c043"></a>
+
+#### C043 — `named-byte-slice-payload`
+
+Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `correctness`
+
+Named []byte type passed as event.New payload — codec-encoded instead of used directly (the direct-use fast path matches only unnamed []byte and jsontext.Value)
 
 
 ## API

@@ -213,7 +213,7 @@ catalog severity — nothing silently demotes to `info`).
 
 ## Rule Count
 
-**208 rules** across 10 categories: correctness (42), API misuse (32), boilerplate (31), consistency (18), architecture (19), security (10), performance (10), version (7), testing (8), adoption (31).
+**209 rules** across 10 categories: correctness (43), API misuse (32), boilerplate (31), consistency (18), architecture (19), security (10), performance (10), version (7), testing (8), adoption (31).
 
 The tables below are curated highlights. The complete, generated catalog —
 every rule with severity, confidence, auto-fix support, and doc links — lives
@@ -262,6 +262,7 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | C040 | dead-fold-case                            | Warning  | Fold switch case handles an event type that is never emitted via event.New — dead code or a typo       |
 | C041 | save-ignores-expectedversion              | Warning  | Store.Save called without checking expected version — optimistic concurrency violation                 |
 | C042 | save-with-literal-zero-version            | Warning  | Store.Save with literal 0 as expected version — bypasses concurrency check                             |
+| C043 | named-byte-slice-payload                  | Warning  | Named []byte passed as event.New payload — codec-encoded instead of used directly                     |
 
 ## API Misuse Rules
 

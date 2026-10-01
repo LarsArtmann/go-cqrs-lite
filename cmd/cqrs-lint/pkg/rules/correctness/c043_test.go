@@ -30,7 +30,9 @@ func TestC043_DetectsNamedByteSlicePayload(t *testing.T) {
 
 import "test.example/stub/go-cqrs-lite/event"
 
-type Message struct{ Payload []byte }
+type RawPayload []byte
+
+type Message struct{ Payload RawPayload }
 
 func bridge(msg Message) {
 	_, _ = event.New("user.created", "s", "User", 1, msg.Payload)
