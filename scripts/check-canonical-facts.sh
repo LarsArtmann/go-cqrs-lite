@@ -117,7 +117,7 @@ check_recipes_count() {
 	derived=$(grep -hE '^\s*"[^"]+":\s*\{' "$dir"/cmd/doc-check/recipes_catalog*.go | awk 'END {print NR}')
 
 	local cited
-	cited=$(grep -oE '[0-9]+/[0-9]+ classified' "$dir/AGENTS.md" | head -1 | grep -oE '^[0-9]+')
+	cited=$(grep -oE '[0-9]+/[0-9]+ classified' "$dir/AGENTS.md" | head -1 | grep -oE '^[0-9]+' || true)
 	if [[ -z "$cited" ]]; then
 		echo "✗ AGENTS.md carries no '<N>/<N> classified' recipes claim — gate cannot verify it" >&2
 		failures=$((failures + 1))
@@ -174,7 +174,7 @@ check_status_index() {
 	if [[ -d "$arch_dir" ]]; then
 		local actual claimed
 		actual=$(find "$arch_dir" -maxdepth 1 -type f ! -name 'README.md' | wc -l | tr -d ' ')
-		claimed=$(grep -oE 'across the [0-9,]+ archived' "$arch_dir/README.md" | head -1 | grep -oE '[0-9,]+' | tr -d ',')
+		claimed=$(grep -oE 'across the [0-9,]+ archived' "$arch_dir/README.md" | head -1 | grep -oE '[0-9,]+' | tr -d ',' || true)
 		if [[ -n "$claimed" && "$claimed" != "$actual" ]]; then
 			echo "✗ archived/README.md claims $claimed snapshots but the dir holds $actual" >&2
 			failures=$((failures + 1))

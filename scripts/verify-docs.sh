@@ -28,7 +28,10 @@ fi
 # A daemon-absorbed orphan (the [Unreleased] heading re-inserted mid-file while
 # a cut was in flight) still passes the exactly-one count; position pins it.
 echo "=== CHANGELOG [Unreleased] position ==="
-first_section=$(grep -nE '^## ' CHANGELOG.md | head -1 | cut -d: -f2-)
+# Single-process awk instead of `grep | head -1`: under `set -o pipefail`, a
+# grep|head pipe races SIGPIPE once the file outgrows the pipe buffer (observed
+# 2026-10-01 on CHANGELOG.md) and aborts the whole gate with exit 141.
+first_section=$(awk '/^## /{print; exit}' CHANGELOG.md)
 if [ "$first_section" != "## [Unreleased]" ]; then
 	echo "FAIL: first '## ' section is '${first_section}' — [Unreleased] must sit directly under the '# Changelog' header block"
 	errors=$((errors + 1))
