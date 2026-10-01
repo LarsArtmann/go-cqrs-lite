@@ -21,7 +21,7 @@ query federation — see
 | `billing.go`    | Billing context: consumes `order.placed`, issues `invoice.issued` (idempotently)                            |
 | `flow.go`       | The load→fold→decide→save loop, bare — what `decider.Repository` automates against a store                  |
 | `catalog.go`    | Per-context catalog declarations: bilateral `Sends`/`Receives`, data products, teams, owners                |
-| `mesh_test.go`  | Domain tests: folds, rejection, idempotency, the full cross-domain round trip                               |
+| `gate.go`       | The RUNTIME twin of the catalog coeffect gate: orders composed via `system.New`, typo'd import caught at composition |\n| `mesh_test.go`  | Domain tests: folds, rejection, idempotency, the full cross-domain round trip                               |
 | `merge_test.go` | Hub dry-run: coeffects dangling-free per source, bilateral copies carry both sides, manifests union cleanly |
 
 ## Run it
@@ -30,6 +30,22 @@ query federation — see
 go run . demo
 # order:  placed=true total=9900 invoice="inv-order-42" completed=true
 # billing: order=order-42 amount=9900 invoice="inv-order-42"
+```
+
+## The runtime coeffect gate (catalog twin)
+
+The catalogs validate the mesh statically (`ValidateCoeffects` on export);
+`system.New` runs the SAME class of check at composition time — declare the
+context's event universe (`DomainConfig.Events`: own emissions + the
+bilateral import) and a typo'd subscription fails construction instead of
+shipping a silently dead projection:
+
+```bash
+go run . gate
+# ==> composing orders with a typo'd import (invoice.issud)...
+#     caught at composition: system: dangling event subscription (coeffect gate): ...
+# ==> composing orders with the contract universe...
+#     composed cleanly — folds wired, lookup routed
 ```
 
 ## Ship each context's export to the federation hub

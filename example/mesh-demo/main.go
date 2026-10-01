@@ -5,6 +5,7 @@
 // Usage:
 //
 //	mesh-demo demo                                     # run the cross-domain lifecycle in-process
+//	mesh-demo gate                                     # runtime coeffect-gate demo (system.New)
 //	mesh-demo export -domain orders -out work/out/orders [-plain] [-skip-bootstrap]
 //	mesh-demo export -domain billing -out work/out/billing [-plain] [-skip-bootstrap]
 package main
@@ -31,6 +32,8 @@ func main() {
 	switch os.Args[1] {
 	case "demo":
 		err = runDemo()
+	case "gate":
+		err = runGate()
 	case "export":
 		err = runExportCmd(os.Args[2:])
 	default:
@@ -46,7 +49,7 @@ func main() {
 func usage() {
 	fmt.Fprintln(
 		os.Stderr,
-		"usage: mesh-demo demo | export -domain orders|billing -out DIR [-plain] [-skip-bootstrap]",
+		"usage: mesh-demo demo | gate | export -domain orders|billing -out DIR [-plain] [-skip-bootstrap]",
 	)
 }
 

@@ -416,7 +416,8 @@ summary — producers, consumers, dangling rows). Leave `Events` empty to skip t
 entirely (default, v4-compatible). The mesh-facing counterpart of this gate is the
 data-product declaration story — see recipes.md §2.41 (typed `DataProduct`/`DataContract`
 with owners, inputs, and bilateral producers/consumers) and `example/mesh-demo` for the
-full two-context walkthrough.
+full two-context walkthrough (`mesh-demo gate` runs the runtime-gate twin of the catalog
+check).
 
 ### 3.10 AsOf is a meta field — point-in-time reads (ADR-0141)
 
