@@ -9,6 +9,34 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 
+// TestDocsServer_Index_NoHtmxRuntime pins the layout.HTMXNone contract: the
+// docserver ships no htmx runtime artifacts (script, preconnect, response-
+// targets extension), and the page gutter comes from layout.Container.
+func TestDocsServer_Index_NoHtmxRuntime(t *testing.T) {
+	srv := testServer(t)
+
+	req := newTestRequest("/docs")
+	recorder := httptest.NewRecorder()
+	srv.Index()(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+
+	body := recorder.Body.String()
+	for _, forbidden := range []string{"htmx.min.js", "preconnect", "response-targets"} {
+		if strings.Contains(body, forbidden) {
+			t.Errorf("expected no %q artifact: HTMXNone must ship zero htmx bytes", forbidden)
+		}
+	}
+
+	for _, gutter := range []string{"max-w-7xl", "px-4", "sm:px-6", "lg:px-8", "pb-16", "pt-8"} {
+		if !strings.Contains(body, gutter) {
+			t.Errorf("expected page gutter class %q from layout.Container", gutter)
+		}
+	}
+}
+
 func TestDocsServer_Index(t *testing.T) {
 	srv := testServer(t)
 	handler := srv.Index()

@@ -13,7 +13,7 @@ func TestRequestScopeRoundTrip(t *testing.T) {
 
 	scope := RequestScope{
 		CorrelationID: idtest.ParseCorrelationID(t, "01JBCORR0LATI0ON0ID0000001"),
-		RequestID:     idtest.ParseRequestID(t, "01JBR3QVST1D0000000000000"),
+		RequestID:     idtest.ParseRequestID(t, "01JBR3QVST1D00000000000000"),
 		IPAddress:     "203.0.113.7",
 		UserAgent:     "cqrs-test/1.0",
 		ClientID:      id.NewClientID(),
@@ -55,7 +55,7 @@ func TestRequestScopeEnricher(t *testing.T) {
 
 	scope := RequestScope{
 		CorrelationID: idtest.ParseCorrelationID(t, "01JBCORR0LATI0ON0ID0000001"),
-		RequestID:     idtest.ParseRequestID(t, "01JBR3QVST1D0000000000000"),
+		RequestID:     idtest.ParseRequestID(t, "01JBR3QVST1D00000000000000"),
 		IPAddress:     "203.0.113.7",
 		UserAgent:     "cqrs-test/1.0",
 		ClientID:      id.NewClientID(),

@@ -56,7 +56,7 @@ templ docsNav(brand, docsPrefix, currentPath string) {
 // chrome.
 templ spaHeader(brand, docsPrefix, pageTitle string) {
 	<header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-		@layout.Container(layout.ContainerProps{Class: "flex h-14 items-center justify-between gap-4"}) {
+		@layout.Container(layout.ContainerProps{Pad: true, Class: "flex h-14 items-center justify-between gap-4"}) {
 			<a
 				href={ templ.SafeURL(docsPrefix) }
 				class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"

@@ -1456,6 +1456,8 @@ event/func ReconstructEventWithAdoptedPayload
 event/func ReconstructEventWithMetadata
 event/func RejectingHandlerMiddleware
 event/func RejectingPublishMiddleware
+event/func RequestScopeEnricher
+event/func RequestScopeFromContext
 event/func Single
 event/func SliceFromVersion
 event/func SliceToVersion
@@ -1479,6 +1481,7 @@ event/func WithMetadata
 event/func WithOccurredAt
 event/func WithProcessingMode
 event/func WithRequestID
+event/func WithRequestScope
 event/func WithSchemaVersion
 event/func WithSource
 event/func WithUserAgent
@@ -1622,6 +1625,7 @@ event/struct ImmutableEvent
 event/struct Instant
 event/struct Metadata
 event/struct MultiBatchEntry
+event/struct RequestScope
 event/struct SliceIterator
 event/struct TombstoneMark
 event/struct WallTime
