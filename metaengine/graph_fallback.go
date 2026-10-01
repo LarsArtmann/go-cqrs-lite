@@ -32,7 +32,10 @@ func graphAddEdgeFallback(
 // graphNeighborsFallback performs BFS traversal via MultimapBackend when the
 // engine does not implement graphBackend natively. Each level of the traversal
 // issues one MultiGet per node, making this O(N * degree^depth) — functional
-// but slow compared to native graph backends.
+// but slow compared to native graph backends. Delegates to GraphBFSNodes
+// with typedNodeKey as the dedup key, so returned neighbors keep their
+// original dynamic types (the string-keyed GraphBFS is the SQL-engine form).
+// Result is never nil (the shared nil-vs-empty contract, 2026-10-01).
 func graphNeighborsFallback(
 	ctx context.Context,
 	eng Engine,
@@ -45,39 +48,22 @@ func graphNeighborsFallback(
 		return nil, unsupportedEngine(errUnsupportedGraphReads, eng.Profile().Name)
 	}
 
-	if depth <= 0 {
-		return nil, nil
-	}
-
-	visited := map[string]bool{typedNodeKey(node): true}
-	frontier := []any{node}
-	var result []any
-
-	for level := 0; level < depth && len(frontier) > 0; level++ {
-		var next []any
-
-		for _, n := range frontier {
+	//nolint:wrapcheck // GraphBFSNodes wraps expand errors with the label prefix
+	return GraphBFSNodes(
+		ctx,
+		node,
+		depth,
+		"metaengine.graphNeighborsFallback",
+		typedNodeKey,
+		func(ctx context.Context, n any) ([]any, error) {
 			neighbors, err := mb.MultiGet(ctx, col, n)
 			if err != nil {
 				return nil, fmt.Errorf("graph fallback neighbors %s: %w", col, err)
 			}
 
-			for _, nb := range neighbors {
-				key := typedNodeKey(nb)
-				if visited[key] {
-					continue
-				}
-
-				visited[key] = true
-				result = append(result, nb)
-				next = append(next, nb)
-			}
-		}
-
-		frontier = next
-	}
-
-	return result, nil
+			return neighbors, nil
+		},
+	)
 }
 
 // typedNodeKey builds a dedup key that includes the dynamic type, so

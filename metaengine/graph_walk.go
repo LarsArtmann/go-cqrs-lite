@@ -5,27 +5,26 @@ import (
 	"fmt"
 )
 
-// GraphBFS walks a graph breadth-first from node up to depth levels,
-// expanding each frontier node with expand (directed: one neighbor query;
-// undirected: outgoing+incoming). encode turns the caller's node value into
-// the adjacency key; label prefixes traversal errors. The visited set
-// deduplicates across levels; the result is never nil. SQL engines whose
-// servers lack WITH RECURSIVE use this as their iterative fallback.
-func GraphBFS(
+// GraphBFSNodes is the generic iterative breadth-first walk core: from node,
+// up to depth levels, expanding each frontier element with expand. key turns
+// a node into its dedup identity (SQL engines: the encoded adjacency key;
+// value-faithful engines: a typed key so int(1) and "1" stay distinct nodes).
+// label prefixes traversal errors. The visited set deduplicates across
+// levels; the result is never nil (the nil-vs-empty contract, 2026-10-01).
+func GraphBFSNodes[N any](
 	ctx context.Context,
-	node any,
+	node N,
 	depth int,
 	label string,
-	encode func(any) string,
-	expand func(ctx context.Context, n string) ([]string, error),
-) ([]any, error) {
-	startNode := encode(node)
-	visited := map[string]bool{startNode: true}
-	frontier := []string{startNode}
-	var result []any
+	key func(N) string,
+	expand func(ctx context.Context, n N) ([]N, error),
+) ([]N, error) {
+	visited := map[string]bool{key(node): true}
+	frontier := []N{node}
+	var result []N
 
 	for level := 0; level < depth && len(frontier) > 0; level++ {
-		var next []string
+		var next []N
 
 		for _, n := range frontier {
 			neighbors, err := expand(ctx, n)
@@ -34,11 +33,12 @@ func GraphBFS(
 			}
 
 			for _, nb := range neighbors {
-				if visited[nb] {
+				k := key(nb)
+				if visited[k] {
 					continue
 				}
 
-				visited[nb] = true
+				visited[k] = true
 				result = append(result, nb)
 				next = append(next, nb)
 			}
@@ -48,7 +48,40 @@ func GraphBFS(
 	}
 
 	if result == nil {
-		result = []any{}
+		result = []N{}
+	}
+
+	return result, nil
+}
+
+// GraphBFS is the string-keyed form of GraphBFSNodes for SQL engines whose
+// adjacency space is stringly (one neighbor query per frontier node). encode
+// turns the caller's node value into the adjacency key. The result is never
+// nil. SQL engines whose servers lack WITH RECURSIVE use this as their
+// iterative fallback.
+func GraphBFS(
+	ctx context.Context,
+	node any,
+	depth int,
+	label string,
+	encode func(any) string,
+	expand func(ctx context.Context, n string) ([]string, error),
+) ([]any, error) {
+	keys, err := GraphBFSNodes(
+		ctx,
+		encode(node),
+		depth,
+		label,
+		func(s string) string { return s },
+		expand,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]any, len(keys))
+	for i, k := range keys {
+		result[i] = k
 	}
 
 	return result, nil

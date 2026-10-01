@@ -2791,6 +2791,7 @@ metaengine/func FilterOn
 metaengine/func FilterOnField
 metaengine/func FormatLiveLatency
 metaengine/func GraphBFS
+metaengine/func GraphBFSNodes
 metaengine/func GroupedAggregateScan
 metaengine/func HasGraphEdgeRemoval
 metaengine/func HasGraphSupport
