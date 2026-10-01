@@ -2770,6 +2770,7 @@ the decider saves. Zero-valued fields are skipped — absent values never overwr
 metadata — and the enricher returns nil when no scope is set, so it composes cleanly:
 
 ```go
+// skip-validate
 func withRequestFields(ctx context.Context, r *http.Request, cid id.CorrelationID, clientID id.ClientID) context.Context {
     return event.WithRequestScope(ctx, event.RequestScope{
         CorrelationID: cid,              // from your tracing middleware / inbound header

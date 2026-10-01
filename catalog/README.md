@@ -471,6 +471,11 @@ Options: `WithNotFoundFile(name)` (default `404.html`) and
 `WithImmutableAssetPrefixes(prefixes...)` (default `_astro/`). Astro emits
 root-absolute asset URLs, so mount the handler at a root path.
 
+`//go:embed` needs the files on disk at compile time, and Astro's `dist/` is
+normally gitignored — so either commit the built site or copy it to a
+non-ignored directory (e.g. `eventcatalog-site/`) in your build step before
+`go build`.
+
 #### Versioning your catalog
 
 EventCatalog renders per-resource versions and changelogs; the exporter maps

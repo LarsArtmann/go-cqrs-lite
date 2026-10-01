@@ -11,7 +11,7 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4/eventcatalog"
 )
 
-//go:embed testdata/dist
+//go:embed testdata/site
 var embeddedDist embed.FS
 
 // TestStaticServerServesEmbeddedFS proves the //go:embed -> fs.Sub -> server
@@ -20,7 +20,7 @@ var embeddedDist embed.FS
 func TestStaticServerServesEmbeddedFS(t *testing.T) {
 	t.Parallel()
 
-	sub, err := fs.Sub(embeddedDist, "testdata/dist")
+	sub, err := fs.Sub(embeddedDist, "testdata/site")
 	if err != nil {
 		t.Fatalf("fs.Sub: %v", err)
 	}
