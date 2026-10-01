@@ -94,6 +94,19 @@
   FAILURE branch on a successful match. Gate self-tests must capture output
   first (`out="$(producer)" || true; grep -q … <<<"$out"`), never race a
   pipe against `grep -q`. Bit the check-readme-deprecated self-test leg 1.
+- **`| head` under pipefail is the same landmine, audited 2026-10-01**:
+  the scripts-wide sweep found 9 sites; the one REAL correctness bug was
+  `probe-proxy-tags.sh`'s ELF sniff — `unzip -p | head -c 4 | grep` closes
+  the pipe after 4 BYTES, so any zip entry larger than the pipe buffer
+  SIGPIPEs unzip (141) and a DETECTED poisoned ELF read as "clean"
+  (mutation-verified 300KB entry). Fix pattern: `(set +o pipefail; …)`
+  around pipelines whose producer's early death is expected and irrelevant,
+  `|| true` on failure-reporting lines. Also fixed same day:
+  `fp-sweep.sh`'s `| tee /dev/stdout >/dev/null` (fd1 redirected first, so
+  /dev/stdout resolves to /dev/null — stdout mode NEVER printed) and
+  `calibration-drift.sh` validating its baseline artifact below the
+  load/CoW gates and four go-test dumps (fail fast; self-test was
+  env-dependent on TMPDIR-btrfs).
 - **GNU sed 4.10: `"${n}i\\"` is a silent no-op** (2026-09-20): in double
   quotes the script text arrives as `16i\` which inserts NOTHING (and still
   rewrites the file — mtime moves, so the edit "looks done"); the working
