@@ -6,6 +6,7 @@ import (
 	"mime"
 	"net/http"
 	"path"
+	"slices"
 	"strings"
 
 	errorfamily "github.com/larsartmann/go-error-family"
@@ -114,6 +115,7 @@ func (s *StaticServer) serveHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if dest, ok := s.redirectTarget(rel); ok {
+		//nolint:gosec // dest is a validated path within the embedded tree
 		http.Redirect(w, r, dest+r.URL.RawQuery, http.StatusMovedPermanently)
 
 		return
@@ -143,13 +145,7 @@ func requestKey(urlPath string) (string, bool) {
 }
 
 func hasDotDotSegment(rel string) bool {
-	for _, seg := range strings.Split(rel, "/") {
-		if seg == ".." {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(strings.Split(rel, "/"), "..")
 }
 
 // redirectTarget yields the canonical trailing-slash URL when a directory
@@ -199,7 +195,7 @@ func (s *StaticServer) serveFile(w http.ResponseWriter, r *http.Request, file st
 
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	s.setHeaders(w, file)
 	if r.Method == http.MethodHead {
@@ -241,7 +237,7 @@ func (s *StaticServer) serveNotFound(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w.Header().Set("Content-Type", htmlContentType)
 	w.Header().Set("Cache-Control", htmlCacheControl)

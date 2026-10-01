@@ -188,11 +188,17 @@ catalog/docserver/struct DocsServer
 catalog/docserver/type CatalogProvider
 catalog/docserver/type D2Option
 catalog/eventcatalog/func NewExporter
+catalog/eventcatalog/func NewStaticServer
+catalog/eventcatalog/func WithImmutableAssetPrefixes
+catalog/eventcatalog/func WithNotFoundFile
 catalog/eventcatalog/func WithPlainRefIDs
 catalog/eventcatalog/func WithSkipBootstrapFiles
 catalog/eventcatalog/method Export
+catalog/eventcatalog/method Handler
 catalog/eventcatalog/struct Exporter
+catalog/eventcatalog/struct StaticServer
 catalog/eventcatalog/type Option
+catalog/eventcatalog/type StaticOption
 catalog/func ChannelAddress
 catalog/func ChannelBadges
 catalog/func ChannelDeliveryGuarantee
