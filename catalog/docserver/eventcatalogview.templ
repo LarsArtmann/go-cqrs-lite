@@ -75,7 +75,7 @@ templ EventCatalogPage(data eventCatalogOverview) {
 					Rows:        dataProductRows(data.DataProducts),
 				})
 			}
-		</div>
+		}
 	}
 }
 
@@ -124,7 +124,7 @@ templ EventCatalogDataProductPage(d eventCatalogDataProductDetail) {
 					Rows:        portRowsWithContract(d.Outputs),
 				})
 			}
-		</div>
+		}
 	}
 }
 
@@ -197,7 +197,7 @@ templ EventCatalogMessagePage(d eventCatalogMessageDetail) {
 					}
 				</ul>
 			}
-		</div>
+		}
 	}
 }
 
@@ -237,7 +237,7 @@ templ EventCatalogChannelPage(d eventCatalogChannelDetail) {
 					}
 				</div>
 			}
-		</div>
+		}
 	}
 }
 
@@ -271,7 +271,7 @@ templ EventCatalogServicePage(d eventCatalogServiceDetail) {
 			@messageRefSection("Commands", d.CommandRefs)
 			@messageRefSection("Events", d.EventRefs)
 			@messageRefSection("Queries", d.QueryRefs)
-		</div>
+		}
 	}
 }
 
@@ -302,7 +302,7 @@ templ eventCatalogNotFound(brand, docsPath, kind, id string) {
 				ActionText:  "Back to the Event Catalog",
 				ActionHref:  eventCatalogHref(docsPath),
 			})
-		</div>
+		}
 	}
 }
 

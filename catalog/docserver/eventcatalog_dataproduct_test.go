@@ -148,8 +148,8 @@ func TestDocsServer_EventCatalog_DataProductNotFound(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	srv.serveEventCatalogDataProduct(recorder, req)
 
-	if recorder.Code != http.StatusOK {
-		t.Fatalf("not-found page should render 200 with a message, got %d", recorder.Code)
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("not-found page should render 404 with a message, got %d", recorder.Code)
 	}
 
 	if body := recorder.Body.String(); !strings.Contains(body, "nope") {

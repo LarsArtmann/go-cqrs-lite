@@ -41,7 +41,7 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 				<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
 			</p>
 		</noscript>
-		<script nonce={ templ.GetNonce(ctx) } src={ templ.SafeURL(docsPrefix + "/static/scalar.js") }></script>
+		@layout.Script(templ.GetNonce(ctx), docsPrefix+"/static/scalar.js", nil)
 		<script nonce={ templ.GetNonce(ctx) }>
 			(function () {
 				var mount = document.getElementById('app');
@@ -60,7 +60,7 @@ templ ScalarPage(brand, docsPrefix, specURL string) {
 // asyncAPIExtraHead loads the AsyncAPI React stylesheet alongside the shared
 // docs stylesheet.
 templ asyncAPIExtraHead(docsPrefix string) {
-	<link rel="stylesheet" href={ templ.SafeURL(docsPrefix + "/static/asyncapi-react.css") }/>
+	@layout.Stylesheet(docsPrefix+"/static/asyncapi-react.css", nil)
 }
 
 // AsyncAPIPage wraps the embedded AsyncAPI React SPA with a slim chrome.
@@ -81,7 +81,7 @@ templ AsyncAPIPage(brand, docsPrefix, specURL string) {
 				<a href={ templ.SafeURL(specURL) } class="font-medium text-blue-600 hover:underline dark:text-blue-400">the JSON endpoint</a>.
 			</p>
 		</noscript>
-		<script nonce={ templ.GetNonce(ctx) } src={ templ.SafeURL(docsPrefix + "/static/asyncapi-react.js") }></script>
+		@layout.Script(templ.GetNonce(ctx), docsPrefix+"/static/asyncapi-react.js", nil)
 		<script nonce={ templ.GetNonce(ctx) }>
 			(function () {
 				var mount = document.getElementById('asyncapi');

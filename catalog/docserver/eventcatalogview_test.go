@@ -152,8 +152,8 @@ func TestDocsServer_EventCatalog_MessageDetail_NotFound(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	srv.serveEventCatalogMessage(recorder, req)
 
-	if recorder.Code != http.StatusOK {
-		t.Fatalf("expected rendered not-found page with 200, got %d", recorder.Code)
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected rendered not-found page with 404, got %d", recorder.Code)
 	}
 
 	if body := recorder.Body.String(); !strings.Contains(body, "Unknown message") {

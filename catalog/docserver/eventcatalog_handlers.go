@@ -14,9 +14,10 @@ func (ds *DocsServer) serveEventCatalogMessage(w http.ResponseWriter, r *http.Re
 
 	detail, ok := newEventCatalogMessageDetail(ds.config, ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(
+		ds.renderComponentStatus(
 			w,
 			r,
+			http.StatusNotFound,
 			eventCatalogNotFound(
 				ds.config.ServiceName,
 				ds.config.DocsPath,
@@ -36,9 +37,10 @@ func (ds *DocsServer) serveEventCatalogChannel(w http.ResponseWriter, r *http.Re
 
 	ch, ok := findChannel(ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(
+		ds.renderComponentStatus(
 			w,
 			r,
+			http.StatusNotFound,
 			eventCatalogNotFound(
 				ds.config.ServiceName,
 				ds.config.DocsPath,
@@ -62,9 +64,10 @@ func (ds *DocsServer) serveEventCatalogService(w http.ResponseWriter, r *http.Re
 
 	svc, ok := findService(ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(
+		ds.renderComponentStatus(
 			w,
 			r,
+			http.StatusNotFound,
 			eventCatalogNotFound(
 				ds.config.ServiceName,
 				ds.config.DocsPath,
@@ -84,9 +87,10 @@ func (ds *DocsServer) serveEventCatalogDataProduct(w http.ResponseWriter, r *htt
 
 	detail, ok := newEventCatalogDataProductDetail(ds.config, ds.provider(), r.PathValue("id"))
 	if !ok {
-		ds.renderComponent(
+		ds.renderComponentStatus(
 			w,
 			r,
+			http.StatusNotFound,
 			eventCatalogNotFound(
 				ds.config.ServiceName,
 				ds.config.DocsPath,

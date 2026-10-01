@@ -14,7 +14,20 @@ func (ds *DocsServer) renderComponent(
 	r *http.Request,
 	component templ.Component,
 ) {
+	ds.renderComponentStatus(w, r, http.StatusOK, component)
+}
+
+// renderComponentStatus writes a templ component with an explicit HTTP
+// status. Not-found pages use it so the styled body does not soften a 404
+// into a 200.
+func (ds *DocsServer) renderComponentStatus(
+	w http.ResponseWriter,
+	r *http.Request,
+	status int,
+	component templ.Component,
+) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
 
 	if err := component.Render(r.Context(), w); err != nil {
 		http.Error(w, "failed to render documentation page", http.StatusInternalServerError)
