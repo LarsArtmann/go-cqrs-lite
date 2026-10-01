@@ -917,6 +917,7 @@ cmd/cqrs-lint/pkg/rules/correctness/func NewC039Detector
 cmd/cqrs-lint/pkg/rules/correctness/func NewC040Detector
 cmd/cqrs-lint/pkg/rules/correctness/func NewC041Detector
 cmd/cqrs-lint/pkg/rules/correctness/func NewC042Detector
+cmd/cqrs-lint/pkg/rules/correctness/func NewC043Detector
 cmd/cqrs-lint/pkg/rules/func AllRules
 cmd/cqrs-lint/pkg/rules/func FilterByCategory
 cmd/cqrs-lint/pkg/rules/func FilterByRuleIDs

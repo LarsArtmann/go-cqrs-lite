@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "threshold": 3,
-  "recordedAt": "2026-09-28T01:02:41.231880822Z",
+  "recordedAt": "2026-10-01T03:33:36.1505265Z",
   "entries": [
     {
       "hash": "009086edf885236e",
@@ -758,14 +758,6 @@
       "tokens": 6
     },
     {
-      "hash": "845d0eddf24912c5",
-      "files": [
-        "metaengine/duckdbengine/engine.go",
-        "metaengine/pgengine/engine.go"
-      ],
-      "tokens": 6
-    },
-    {
       "hash": "852f2f6a8aa256e4",
       "files": [
         "system/system_test.go",
@@ -859,14 +851,6 @@
       "files": [
         "metaengine/memory_graph.go",
         "metaengine/memory_graph.go"
-      ],
-      "tokens": 6
-    },
-    {
-      "hash": "9945afa26e05f0e8",
-      "files": [
-        "catalog/docserver/specview.templ",
-        "catalog/docserver/specview.templ"
       ],
       "tokens": 6
     },
@@ -1332,6 +1316,14 @@
         "metaengine/pgengine/stream_log.go"
       ],
       "tokens": 12
+    },
+    {
+      "hash": "e9a4d61e591df95e",
+      "files": [
+        "catalog/docserver/specview.templ",
+        "catalog/docserver/specview.templ"
+      ],
+      "tokens": 6
     },
     {
       "hash": "ebd84280614ccfa2",
