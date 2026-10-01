@@ -724,6 +724,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > `MigrateSnapshotColumnsToStream` (auto-run by every InitSchema). Error-family
 > codes renamed to stream vocabulary 2026-09-08 (17 codes, 9 modules; E4 of the
 > extended review thereby RESOLVED).
+>
+> **Execution order + dependencies (M26, 2026-10-01):** every row below is
+> sequenced with its blockers in
+> [`docs/planning/2026-10-01_v5-cut-readiness-checklist.md`](docs/planning/2026-10-01_v5-cut-readiness-checklist.md)
+> (Layer 0 rulings → quiet-window legs → pre-cut migrations → branch →
+> deletions in cascade order → flips → docs → tag). The scan-default flip
+> (G-T14) executes ON the v5 branch there.
 
 - [ ] **Delete `stack.Materialize`** — auto-projection replaces it. _(Effort: S)_
 - [ ] **Delete `storage.RelationalProjection` + `storage/view` (SQLViewStore)** —
