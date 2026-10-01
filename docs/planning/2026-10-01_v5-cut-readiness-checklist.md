@@ -23,9 +23,9 @@
 
 ## Layer 2 — Pre-cut call-site migrations (v4.x-safe, do BEFORE the branch)
 
-- [ ] Type-driven status in `listing` replacing the `DetectTombstone` call at `listing/in_memory.go:155` (via `listing.StatusMiddleware(deleteTypes, rebirthTypes)` or a `StatusOf(Type)` hook).
-- [ ] Migrate `example/taskmanager` off `stack.Materialize.OnTombstone`/`OnRebirth` to the domain-event style (branch on `evt.Type()` in `OnUpdate`).
-- [ ] `record.NewStreamRef` empty-entityID rejection: audit + migrate in-repo call sites (the breaking signature itself is Layer 9).
+- [x] Type-driven status in `listing` replacing the `DetectTombstone` call (via `listing.StatusMiddleware(deleteTypes, rebirthTypes)` or a `StatusOf(Type)` hook). DONE in-tree 2026-10-01: `listing.StatusClassifier`/`WithStatusClassifier`/`ClassifyLast` are live (listing/status.go), `buildRefs` classifies by last-event type (listing/in_memory.go:164); the only remaining `DetectTombstone` references are the deprecated API itself (event/tombstone.go, removed Layer 4), deliberate legacy-equivalence tests (listing/status_test.go:160), and the cqrs-lint v007 removal census.
+- [x] Migrate `example/taskmanager` off `stack.Materialize.OnTombstone`/`OnRebirth` to the domain-event style (branch on `evt.Type()` in `OnUpdate`). DONE in-tree 2026-10-01: taskmanager already uses the `task.deleted` domain event (events.go:28, decider.go:111) with zero `OnTombstone`/`OnRebirth` references anywhere under example/; the only remaining users are stack's own bridge-pinning test (stack/materialize_tombstone_bridge_test.go).
+- [x] `record.NewStreamRef` empty-entityID rejection: audit + migrate in-repo call sites. AUDITED 2026-10-01: boundary call sites (example/, transport/) pass typed `id.StreamID`/command stream IDs — no site constructs refs from unvalidated raw strings; `record.NewStreamRefOrZero` (record/record.go:178) already exists as the empty-explicit escape hatch. No v4.x migration needed; the signature change itself stays Layer 9.
 - [ ] Consumer grep for old wire strings in sibling alert/dashboard configs (sweep §4(b)) — run once more at the cut.
 
 ## Layer 3 — Branch mechanics
