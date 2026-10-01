@@ -6,6 +6,7 @@
 <a href="https://pkg.go.dev/github.com/larsartmann/go-cqrs-lite/event/v4"><img src="https://pkg.go.dev/badge/github.com/larsartmann/go-cqrs-lite/event/v4.svg" alt="Go Reference"></a>
 <a href="https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml"><img src="https://github.com/LarsArtmann/go-cqrs-lite/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-Proprietary-red.svg" alt="License: Proprietary"></a>
+<a href="https://github.com/larsartmann/templ-components"><img src="https://img.shields.io/badge/GOTH-stack-8A2BE2?style=flat-square" alt="Part of the GOTH stack"></a>
 </p>
 
 <p align="center">
@@ -17,6 +18,13 @@
 A composable library of 90+ independently-versioned modules. Import exactly what you need: nothing is forced on you — no transport, no broker, no database driver. Wire your own stack, or grab a zero-config preset.
 
 > Using this library with an AI assistant? [`SKILL.md`](SKILL.md) is the single-source guide — module decision matrix, copy-paste recipes, and conventions.
+
+> **Part of the GOTH stack** — pair with
+> [templ-components](https://github.com/larsartmann/templ-components) (UI components
+> for templ + HTMX + Tailwind v4) and
+> [cqrs-htmx](https://github.com/larsartmann/cqrs-htmx) (HTTP → CQRS wiring, auth,
+> HTMX response building) for a complete server-rendered Go web stack with zero
+> framework lock-in.
 
 ## Why go-cqrs-lite?
 
