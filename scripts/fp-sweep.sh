@@ -99,4 +99,8 @@ trap 'rm -f "$BIN"' EXIT
 	done
 	echo
 	echo "Total: $total finding(s), $suspects low-confidence suspect(s)"
-} | tee "${OUT:-/dev/stdout}" >/dev/null
+# tee to /dev/null without --out: tee's OWN stdout carries the report; the
+# old `tee /dev/stdout >/dev/null` redirected fd1 to /dev/null first, so
+# /dev/stdout resolved to the same /dev/null and NOTHING was printed
+# (found 2026-10-01: stdout mode had silently never worked).
+} | tee "${OUT:-/dev/null}"
