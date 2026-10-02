@@ -75,13 +75,13 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 		return nil, fmt.Errorf("cqrs-lint: load packages: %w", err)
 	}
 
-	// Non-consumer guard (CLI parity, #42): packages loaded but none import
-	// go-cqrs-lite means the rule set has nothing to say — every detector
-	// would run on code the library does not touch and fire findings the CLI
-	// path already suppresses. Zero findings, NOT an error: BuildFlow treats
-	// provider errors as health-check failures, and "not a consumer" is a
-	// clean verdict.
-	if len(actx.Packages) > 0 && len(actx.GoFiles) == 0 {
+	// Non-consumer / unanalyzable guard (CLI parity, #42).
+	clean, err := loadVerdict(actx)
+	if err != nil {
+		return nil, err
+	}
+
+	if clean {
 		return nil, nil
 	}
 
@@ -106,6 +106,44 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 	all = analyzer.ApplySeverityOverrides(all, effective.SeverityOverrides)
 
 	return analyzer.FilterDisabledFindings(all, effective.DisabledSet()), nil
+}
+
+// loadVerdict implements CLI parity for the toolsdk boundary (issue #42).
+// The loader fills GoFiles only from packages importing go-cqrs-lite, so
+// zero GoFiles means one of two states, and collapsing them into one verdict
+// would be wrong in opposite directions:
+//
+//   - Not a consumer (packages loaded, no load errors): the rule set has
+//     nothing to say — every detector would run on code the library does not
+//     touch. Zero findings, NOT an error: BuildFlow treats provider errors as
+//     health-check failures, and a library that does not use go-cqrs-lite is
+//     a valid project. Returns clean=true.
+//   - Load errors with nothing analyzable: the project likely does not
+//     compile. A loud error, never a silent green — "could not analyze" is
+//     not a clean bill of health (the CLI's handleLoadErrors refuses the same
+//     state). Returning clean=false plus the error.
+//
+// GoFiles > 0 (consumer, possibly with partial load errors): proceed.
+func loadVerdict(actx *analyzer.AnalysisContext) (clean bool, err error) {
+	if len(actx.GoFiles) > 0 {
+		return false, nil
+	}
+
+	if len(actx.LoadErrors) > 0 {
+		detail := ""
+		if first := actx.LoadErrors[0]; len(first.Errors) > 0 {
+			detail = first.Errors[0]
+		}
+
+		return false, fmt.Errorf(
+			"cqrs-lint: could not analyze any packages: %d package(s) failed to load (first: %s) — "+
+				"the project likely does not compile; fix the build errors (try `go build ./...`) and re-run. "+
+				"This is NOT a clean bill of health",
+			len(actx.LoadErrors), detail,
+		)
+	}
+
+	return true, nil
 }
 
 // loadEffectiveRules resolves the project's .cqrs-lint.json (preset + rules)
@@ -133,6 +171,18 @@ func repair(ctx context.Context, wd string) (int, error) {
 	actx, err := analyzer.BuildContext(wd)
 	if err != nil {
 		return 0, fmt.Errorf("cqrs-lint repair: load packages: %w", err)
+	}
+
+	// Non-consumer / unanalyzable guard (CLI parity, #42): a clean verdict has
+	// nothing to fix, and an unanalyzable tree must not report a successful
+	// zero-fix pass (the detect path already failed loudly for the same state).
+	clean, err := loadVerdict(actx)
+	if err != nil {
+		return 0, err
+	}
+
+	if clean {
+		return 0, nil
 	}
 
 	effective, err := loadEffectiveRules(wd)

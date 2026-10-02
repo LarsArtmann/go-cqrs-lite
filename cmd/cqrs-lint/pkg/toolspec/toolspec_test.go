@@ -259,6 +259,72 @@ func shout(s string) string { return strings.ToUpper(s) }
 	}
 }
 
+// TestDetectFailsLoudWhenNothingLoads pins the other half of the #42 verdict:
+// load errors with ZERO analyzable files mean the project likely does not
+// compile — Detect must fail loudly, never return a silent green. The CLI
+// refuses the same state in handleLoadErrors ("not a clean bill of health").
+func TestDetectFailsLoudWhenNothingLoads(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	gomod := "module broken\n\ngo 1.26\n"
+	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	// One fine non-consumer package plus one syntax-broken package: packages
+	// load (some with errors), none import go-cqrs-lite, zero GoFiles —
+	// exactly the state the guard must refuse to call clean.
+	ok := "package main\n\nimport \"strings\"\n\nfunc shout(s string) string { return strings.ToUpper(s) }\n"
+	if err := os.WriteFile(filepath.Join(dir, "ok.go"), []byte(ok), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "broken.go"), []byte("package main\n\nfunc {{{ broken\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	findings, err := Spec().Detect.Detect(finding.WithWorkingDir(context.Background(), dir))
+	if err == nil {
+		t.Fatalf("unanalyzable project must fail loudly, got %d findings", len(findings))
+	}
+
+	if !strings.Contains(err.Error(), "could not analyze any packages") {
+		t.Fatalf("error must explain the unanalyzable state: %v", err)
+	}
+}
+
+// TestDetectConsumerWithPartialLoadErrorsStillAnalyzes pins the guard's upper
+// bound: GoFiles > 0 (a real consumer) with SOME packages failing to load
+// must NOT be silenced — the guard is for non-consumers, not an excuse to
+// skip analysis on partially-broken consumer repos (the CLI proceeds with a
+// partial-analysis warning in the same state).
+func TestDetectConsumerWithPartialLoadErrorsStillAnalyzes(t *testing.T) {
+	t.Parallel()
+
+	dir := writeFixableFixture(t)
+
+	if err := os.WriteFile(filepath.Join(dir, "broken.go"), []byte("package main\n\nfunc {{{ broken\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	findings, err := Spec().Detect.Detect(finding.WithWorkingDir(context.Background(), dir))
+	if err != nil {
+		t.Fatalf("consumer with partial load errors must still analyze: %v", err)
+	}
+
+	found := false
+	for _, f := range findings {
+		if string(f.Rule) == "A018" {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatalf("A018 must still fire for a consumer despite partial load errors: %+v", findings)
+	}
+}
+
 func writeFixableFixture(t *testing.T) string {
 	t.Helper()
 
