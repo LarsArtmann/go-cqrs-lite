@@ -35,6 +35,13 @@ func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	return pkgs, nil
 }
 
+// analysisSkipDir reports whether a directory name is excluded from analysis
+// walks (shared by findGoModDirs and hasGoSourceFiles).
+func analysisSkipDir(base string) bool {
+	return base == "vendor" || base == ".git" || base == "node_modules" ||
+		base == "testdata" || base == "dist" || base == "build"
+}
+
 // findGoModDirs walks the directory tree under root and returns all directories
 // containing a go.mod file. Skips vendor, .git, node_modules, and similar dirs.
 func findGoModDirs(root string) ([]string, error) {
@@ -46,9 +53,7 @@ func findGoModDirs(root string) ([]string, error) {
 		}
 
 		if d.IsDir() {
-			base := d.Name()
-			if base == "vendor" || base == ".git" || base == "node_modules" ||
-				base == "testdata" || base == "dist" || base == "build" {
+			if analysisSkipDir(d.Name()) {
 				return filepath.SkipDir
 			}
 
@@ -67,6 +72,43 @@ func findGoModDirs(root string) ([]string, error) {
 	}
 
 	return dirs, nil
+}
+
+// hasGoSourceFiles reports whether any .go file exists under the given module
+// directories (stopping at the first hit). Used by the silent-empty guard to
+// tell "repo has no Go code" (legitimate clean verdict) from "Go code exists
+// but go/packages returned nothing" (swallowed driver failure — loud error).
+func hasGoSourceFiles(dirs []string) bool {
+	for _, dir := range dirs {
+		found := false
+
+		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || found {
+				return nil //nolint:nilerr // skip inaccessible paths, continue walking
+			}
+
+			if d.IsDir() {
+				if analysisSkipDir(d.Name()) {
+					return filepath.SkipDir
+				}
+
+				return nil
+			}
+
+			if strings.HasSuffix(d.Name(), ".go") {
+				found = true
+
+				return filepath.SkipAll
+			}
+
+			return nil
+		})
+		if err != nil || found {
+			return found
+		}
+	}
+
+	return false
 }
 
 // BuildContext loads packages, builds the CQRSRegistry, and creates an AnalysisContext.
@@ -158,6 +200,20 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 				}
 			}
 		}
+	}
+
+	// Silent-empty guard: go/packages can return ZERO packages with NO error
+	// when the module graph is broken (stale go.sum, unresolvable requires —
+	// the 2026-10-02 fixture rot). An empty context here would render a clean
+	// bill of health for a project cqrs-lint never actually read. A repo with
+	// no Go sources at all is still a legitimate clean verdict.
+	if len(ctx.Packages) == 0 && len(ctx.LoadErrors) == 0 && hasGoSourceFiles(modDirs) {
+		return nil, fmt.Errorf(
+			"no packages loaded from %d module dir(s) under %s with zero load errors — "+
+				"the module graph is likely broken (stale go.sum or missing deps; try `go mod tidy` per module); "+
+				"analyzing nothing must not report clean",
+			len(modDirs), projectRoot,
+		)
 	}
 
 	filterEventPayloads(ctx)

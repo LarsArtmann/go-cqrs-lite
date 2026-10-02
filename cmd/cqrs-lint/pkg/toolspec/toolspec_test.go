@@ -3,6 +3,7 @@ package toolspec
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -28,11 +29,15 @@ func TestRegisteredInDefaultRegistry(t *testing.T) {
 
 // TestDetectRunsFullPipelineOnCQRSProject drives the Spec's Detect over a
 // module importing go-cqrs-lite and asserts real rule findings come back
-// through the toolsdk boundary (A018-style import analysis proves the
-// analyzer, registry, and rule set all ran). Fold-level fixables need the
-// full decider wiring real consumer projects have; that path is covered by
-// fix_e2e_test and the runPipeline integration tests, which share the same
-// pipeline and fix provider this Spec calls.
+// through the toolsdk boundary. C003 proves deep fold analysis ran (the
+// fixture's apply fold silently drops unknown events); B005/B021 fire on the
+// same fold. NOTE: A018 deliberately does NOT fire here — the fixture IS a
+// fold, and A018 only flags go-cqrs-lite imports with NO event sourcing at
+// all. (When the fixture silently failed to load, A018's consumer-coaching
+// false positive was the only visible rule — the 2026-10-02 fixture rot.)
+// Fold-level fixables need the full decider wiring real consumer projects
+// have; that path is covered by fix_e2e_test and the runPipeline integration
+// tests, which share the same pipeline and fix provider this Spec calls.
 func TestDetectRunsFullPipelineOnCQRSProject(t *testing.T) {
 	t.Parallel()
 
@@ -46,13 +51,13 @@ func TestDetectRunsFullPipelineOnCQRSProject(t *testing.T) {
 
 	found := false
 	for _, f := range findings {
-		if string(f.Rule) == "A018" {
+		if string(f.Rule) == "C003" {
 			found = true
 		}
 	}
 
 	if !found {
-		t.Fatalf("Detect missed the A018 dead-import finding: %+v", findings)
+		t.Fatalf("Detect missed the C003 fold-analysis finding: %+v", findings)
 	}
 }
 
@@ -76,7 +81,7 @@ func TestRepairRunsEndToEnd(t *testing.T) {
 }
 
 // TestDetectHonorsProjectConfig proves the Spec's Detect path reads
-// .cqrs-lint.json from the working directory: a config disabling A018
+// .cqrs-lint.json from the working directory: a config disabling A009
 // suppresses exactly that finding while the same fixture without a config
 // reports it. Before the embedded path honored config, hosts (e.g. BuildFlow)
 // silently ignored every setting the CLI honored — a no-op config lie.
@@ -86,10 +91,10 @@ func TestDetectHonorsProjectConfig(t *testing.T) {
 	dir := writeFixableFixture(t)
 	ctx := finding.WithWorkingDir(context.Background(), dir)
 
-	countA018 := func(findings []finding.Finding) int {
+	countA009 := func(findings []finding.Finding) int {
 		n := 0
 		for _, f := range findings {
-			if string(f.Rule) == "A018" {
+			if string(f.Rule) == "A009" {
 				n++
 			}
 		}
@@ -101,13 +106,14 @@ func TestDetectHonorsProjectConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect without config: %v", err)
 	}
-	if countA018(baseline) == 0 {
-		t.Fatal("fixture must produce A018 without config (test precondition)")
+	if countA009(baseline) == 0 {
+		t.Fatal("fixture must produce A009 without config (test precondition)")
 	}
 
 	config := `{
-		// A018 is intentional here: the import registers a tool, it is not dead.
-		"rules": {"disable": ["A018"]},
+		// The custom storage wiring is intentional: the shared *sql.DB design
+		// that stack/ presets do not support.
+		"rules": {"disable": ["A009"]},
 	}`
 	if err := os.WriteFile(
 		filepath.Join(dir, ".cqrs-lint.json"),
@@ -121,15 +127,15 @@ func TestDetectHonorsProjectConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Detect with config: %v", err)
 	}
-	if countA018(configured) != 0 {
-		t.Fatalf("A018 must be suppressed by rules.disable, got %d", countA018(configured))
+	if countA009(configured) != 0 {
+		t.Fatalf("A009 must be suppressed by rules.disable, got %d", countA009(configured))
 	}
 }
 
 // TestDetectHonorsPresetFromConfig proves the embedded path parses and
 // expands a preset config: the preset name is validated and its rule
 // defaults merge with explicit config disables (the same union the CLI
-// computes). A018 fires on the fixture and is suppressed through the merged
+// computes). C003 fires on the fixture and is suppressed through the merged
 // disable list.
 func TestDetectHonorsPresetFromConfig(t *testing.T) {
 	t.Parallel()
@@ -141,7 +147,7 @@ func TestDetectHonorsPresetFromConfig(t *testing.T) {
 		// Preset features are pinned for parity with the CLI; the explicit
 		// disable exercises the preset+config union through Detect.
 		"preset": "read-only",
-		"rules": {"disable": ["A018"]},
+		"rules": {"disable": ["C003"]},
 	}`
 	if err := os.WriteFile(
 		filepath.Join(dir, ".cqrs-lint.json"),
@@ -157,8 +163,8 @@ func TestDetectHonorsPresetFromConfig(t *testing.T) {
 	}
 
 	for _, f := range findings {
-		if string(f.Rule) == "A018" {
-			t.Fatal("A018 must be suppressed via the preset+config disable union")
+		if string(f.Rule) == "C003" {
+			t.Fatal("C003 must be suppressed via the preset+config disable union")
 		}
 	}
 }
@@ -304,7 +310,17 @@ func TestDetectConsumerWithPartialLoadErrorsStillAnalyzes(t *testing.T) {
 
 	dir := writeFixableFixture(t)
 
-	if err := os.WriteFile(filepath.Join(dir, "broken.go"), []byte("package main\n\nfunc {{{ broken\n"), 0o600); err != nil {
+	// The broken file lives in its OWN package: a syntax error in package
+	// main would fail the whole package (GoFiles back to zero → loud error,
+	// the TestDetectFailsLoudWhenNothingLoads state). A broken SIBLING
+	// package gives GoFiles > 0 with a partial load error — the state the
+	// CLI proceeds on with a warning.
+	if err := os.MkdirAll(filepath.Join(dir, "broken"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	broken := "package broken\n\nfunc {{{ broken\n"
+	if err := os.WriteFile(filepath.Join(dir, "broken", "broken.go"), []byte(broken), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -315,13 +331,13 @@ func TestDetectConsumerWithPartialLoadErrorsStillAnalyzes(t *testing.T) {
 
 	found := false
 	for _, f := range findings {
-		if string(f.Rule) == "A018" {
+		if string(f.Rule) == "C003" {
 			found = true
 		}
 	}
 
 	if !found {
-		t.Fatalf("A018 must still fire for a consumer despite partial load errors: %+v", findings)
+		t.Fatalf("C003 must still fire for a consumer despite partial load errors: %+v", findings)
 	}
 }
 
@@ -330,7 +346,10 @@ func writeFixableFixture(t *testing.T) string {
 
 	// C003 needs a compilable module whose `event` import resolves to the
 	// real go-cqrs-lite event package; a replace to this checkout keeps the
-	// fixture hermetic (no network, no go.sum entries).
+	// fixture source hermetic. go.sum is GENERATED below: event/v4 has real
+	// transitive deps, and without go.sum the go/packages driver fails and
+	// silently yields an EMPTY analysis — which degraded every consumer
+	// assertion here into a passing-looking no-op (2026-10-02 fixture rot).
 	repoRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
@@ -370,6 +389,13 @@ func apply(state state, evt event.Event) (state, error) {
 
 	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte(src), 0o600); err != nil {
 		t.Fatal(err)
+	}
+
+	tidy := exec.Command("go", "mod", "tidy")
+	tidy.Dir = dir
+	tidy.Env = append(os.Environ(), "GOFLAGS=-mod=mod")
+	if out, err := tidy.CombinedOutput(); err != nil {
+		t.Fatalf("fixture go mod tidy: %v\n%s", err, out)
 	}
 
 	return dir
