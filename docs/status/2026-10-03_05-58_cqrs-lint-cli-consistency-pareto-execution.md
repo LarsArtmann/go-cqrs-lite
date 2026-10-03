@@ -9,47 +9,58 @@
 ## a) FULLY DONE
 
 ### M01 — Contract-enforcement test pack (Critical)
+
 - `cmd/cqrs-lint/contract_enforcement_test.go` (251 lines): config-file `"format":"json"` parity e2e for scorecard+doctor (temp `.cqrs-lint.json` + `t.Chdir` — cmdguard reads config from CWD, verified in cmdguard source); help-drift golden (usage block extracted to `rootLongHelp` in new `root_help.go`, set-equality vs registered subcommands — the `changelog` omission class now fails mechanically); `completion bash` + `help doctor` surface tests (prune flag surfaced); changelog honest-fallback test.
 - Root long help extracted from `main()` inline string to package-level `rootLongHelp` — the drift seed is now reachable by tests.
 
 ### M02 — Single-source format vocabularies (High)
+
 - New `cmd/cqrs-lint/formats.go`: `formatsLint/Scorecard/Doctor/Rules` slices + `formatList` + `withFormatsSuffix`.
 - Wired: `run.go` validation, scorecard/doctor validate+`WithShort`, `rulesFormat` default branch, `explain` top-level-keys row, `init` default template. **Killed two live doc lies:** explain + init templates said "text, json, sarif, markdown" (missing csv/tsv).
 - Pinned by `TestCommandShortsDeriveFromVocabularies` (Shorts + the root `--format` help tag) and `TestFormatVocabulariesAreSubsets` (no command advertises what the root rejects).
 
 ### M03 — Binary contract probes + exit-code table (High)
+
 - New `scripts/check-cqrs-lint-cli.sh`: builds the real binary, 8 probes (`rules --format json` → stdout starts `[`; `scorecard --format csv` / `doctor --format yaml` / `version --fix` / `doctor --fix` → rc≠0; `init --path` writes the file; scorecard below `--scorecard-threshold` → rc≠0; valid no-import module → rc 0). Fault-injection `--self-test` (stub binaries, positive+negative controls) — **wired into `nix run .#check-release-scripts`** via flake.nix.
 - README exit-code table (all failures → 1, clean → 0; verified against cmdguard's `ExitCode`).
 
 ### M04 — Flag-consumption audit matrix (Medium)
+
 - `flag_contract_test.go` (223 lines): `TestPersistentFlagAcceptanceMatrix` (7 subcommands × 5 shared flags accepted), `TestLocalFlagsRejectedOnEverySubcommand` (7 × 14 lint-only flags = unknown-flag errors), `TestRulesBooleanFlagPrecedence` (markdown wins, documented).
 - README flag-consumption matrix (which command consumes vs accepts-and-ignores each shared flag).
 
 ### M05 — Doctor JSON schema + explain tri-state row (Medium)
+
 - advanced.md: full `doctor --format json` field table (16 fields incl. audit/fix subshapes, derived from `doctorJSONReport`).
 - `explain` FEATURES section now teaches why `tracing`=on/off but `server`=true/false (Kind tri-state: unset/`unknown` defers to heuristics; bools are binary facts) — the question that started this whole arc, now answered in-product.
 
 ### M08 — Daemon-bypasses-lint gate (Critical)
+
 - Options memo (in script header + nightly README): pre-commit hook REJECTED (would stall/fail-loop the daemon on concurrent agents' transiently broken trees); nightly timer CHOSEN.
 - `scripts/nightly-lint.sh` + `scripts/nightly/go-cqrs-nightly-lint.{service,timer}` (03:30, after the bench window): runs `nix run .#lint`, logs to `/var/tmp/cqrs-nightly/<date>-lint.log`, `LINT-ROT` triage marker. Self-test (fault injection via `NIGHTLY_LINT_CMD`) wired into `#check-release-scripts`. **Caught a real rc-after-`if` bug in my own first draft via the self-test.**
 - Install: `cp scripts/nightly/go-cqrs-nightly-lint.{service,timer} ~/.config/systemd/user/ && systemctl --user enable --now go-cqrs-nightly-lint.timer` (owner action, not done).
 
 ### M09 — Preset e2e + precedence (Medium)
+
 - `TestInitPresetE2e`: all 6 presets driven through the full CLI; written configs round-trip through the REAL `JSONCLoader` (found: `Preset` has no `flag:` tag so `FilterSetFields` never tracks it — config-only keys are invisible to set-field tracking; assertion adjusted to what's structurally true).
 - `TestFormatFlagBeatsConfigFile`: `--format json` over config `"format":"text"` → JSON output.
 
 ### M12 — Doctor `--color` (Low)
+
 - Decision: dedocument. README matrix states "Doctor prints the resolved `--color` value but does not colorize its output" (verified: `parseColorMode` absent from doctor render paths). Inert-flag surface is now honest.
 
 ### M13 — Changelog fallback (Low)
+
 - `setupChangelogCommand` refactored to testable `computeChangelog`: distinguishes "release tag missing" (stderr notice "no release tag … yet — showing the last 20 commits") from real git failure. Pinned by `TestChangelogFallbackDistinguishesMissingTag`.
 
 ### M14 — Doc-trust sweep + CONTRIBUTING (Medium)
+
 - **Three live doc lies found + fixed in CONTRIBUTING.md** (all empirically verified against the binary first): `cqrs-lint explain c008` (explain takes no args → rc=1 today), top-level `"disabled": ["c008"]` key (inert — real key is `rules.disable`, verified 209→208 active), "186 rules" (actual 209 → now "200+"). Corrected config example (`rules.disable` + `c008-ignore-fields`/`c008-ignore-structs` under `rules`, tags verified in `rules_config.go`) round-trips through doctor.
 - rc-safe probe snippet section (the `$?`-after-`| head` trap that bit this session twice).
 - CHANGELOG `[Unreleased]`: 1 Fixed (cqrs-gen) + 3 Added entries.
 
 ### M06 (half) — cqrs-gen FIXED (real user-facing bug)
+
 - **`cqrs-gen ./...` — the documented invocation — was completely broken**: every positional path rejected as `Unknown command` (cobra's default Args validator fires once help/completion register as subcommands; the RunE paths handling was unreachable dead code).
 - Fix: `rootCmd.Args = cobra.ArbitraryArgs`; `buildCLI()` extracted for testability; `cli_contract_test.go` (3 tests: positional-scan e2e with marker fixture → generated file, invalid `--type` fail-fast, no-markers clean). Module build+vet+tests green.
 - Also repaired cqrs-gen + cqrs-upgrade + doc-check go.sum (stale after the go-output v0.38.3 sweep).
@@ -59,10 +70,12 @@
 ## b) PARTIALLY DONE
 
 ### M06 (cqrs-bench half) — audited, fix BLOCKED by the release train
+
 - **Finding (static, from source):** `renderComparison`'s `default:` branch (`cmd/cqrs-bench/render.go:91`) silently renders TEXT for any invalid `--format` — the exact silent-fallback class cqrs-lint just killed, but AFTER paying the full benchmark cost. Same pattern likely in the run path.
 - **Blocked from fixing:** the module cannot build right now — its go.mod (and benchkit's/system's) pins `projectionhost/v4@v4.5.2` + `commandlifecycle/projections/v4@v4.2.1`, tags that DO NOT EXIST (latest: v4.5.1/v4.2.0) — a fleet-wide pin wave waiting for the in-flight release train's tags. Editing render code without the ability to build/test violates the verschlimmbesser guard. Fix is ~15min once the module builds.
 
 ### M10/M11 — drafts complete, filing USER-GATED (by design)
+
 - `docs/planning/2026-10-03_cmdguard-upstream-proposals-draft.md`: 4 proposals (WithSharedFlagSubset with verify-need sample; validator-derived help; unused-persistent-flag analyzer; `local:"true"` docs section), all claims verified against cmdguard v4.0.2 source today. Filing checklist included; awaiting owner review.
 
 ---

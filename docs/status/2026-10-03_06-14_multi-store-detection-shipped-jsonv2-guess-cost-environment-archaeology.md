@@ -61,32 +61,32 @@ All 11 tracked steps completed, each verified at its boundary:
 
 ## f) Next tasks (up to 50 — 24 new + carryover)
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Run `nix run .#verify` (exclusive) once the tree settles — full gate incl. lint/race/doc-check | Critical | M | Quality |
-| 2 | Run `nix run .#check-duplication` (dirty-tree guard: commit-adjacent run) | High | S | Quality |
-| 3 | Repo-level pin test: doctor profiles of system/metaengine stay `store: memory, metaengine: true` | High | S | Quality |
-| 4 | Engine self-detection: seed detection with the module's own import path (pkg.Module.Path) so engine modules report their real backend, not memory-with-caveat | Medium | M | Feature |
-| 5 | Scorecard: render `Stores` alongside engines | Medium | S | Feature |
-| 6 | doctor `--evidence`: print the import/call site behind each store signal | Medium | M | Feature |
-| 7 | doctor partial-load loudness: per-profile `partial` tag or hard-fail flag (this session re-demonstrated silent profile garbage under load errors — third occurrence) | High | S | Quality |
-| 8 | Register foreign `cmd/cqrs-lint/testdata/scanfixture` in the three gates (api-stability modules slice + exclusion maps, check-module-layers LAYER/DEP_BUDGET, cqrs-lint module catalog) | High | S | Cleanup |
-| 9 | Foreign stale.go shrank-to-fit (489→533 violates ratchet) + stale_test.go `finding.New` vet fix | High | S | Cleanup |
-| 10 | Taskmanager golden drift (C026 ×2 + F009 + count mismatch) — triage rule vs fixture | High | S | Bug |
-| 11 | Repo-wide go.sum tidy sweep (only deriver + system repaired; TestEveryModuleGoSumIsTidy still red) | High | M | Cleanup |
-| 12 | `query/go.mod` dirty file — confirm the concurrent session owns/absorbs it | Low | S | Cleanup |
-| 13 | Decide + document v5 list-only config (scalar deprecated?) at the v5 migration doc | Low | M | Decision |
-| 14 | Engine-module doctor UX: suppress memory inference when the analyzed module path IS an engine dir (cheap complement to #4) | Medium | S | Feature |
-| 15 | CHANGELOG follow-up if #4 lands (engine self-detection semantics) | Low | S | Documentation |
-| 16 | Explain: mention `stores` doctor line + scorecard rendering once #5 lands | Low | S | Documentation |
-| 17 | Config discovery upward-search decision (carried from report 1 f-6/f-7; now also affects multi-store pins) | Medium | M | Decision |
-| 18 | Empty `monetary:` doctor line (carried, report 1 f-8) | Low | S | Bug |
-| 19 | Stale untracked go1.26 binary `cmd/cqrs-lint/cqrs-lint` + committed-binary policy (carried, report 1 f-1) | Medium | S | Cleanup |
-| 20 | `cqrs-lint version` prints build Go version (carried, report 1 f-2) | Medium | S | Feature |
-| 21 | HARVEST all three reports' (f) into TODO_LIST.md/ROADMAP.md via docs-health | High | S | Documentation |
-| 22 | Skill/reference sweep: does any skill reference document `store` config behavior that needs the multi-store update? (`rg "features.*store" .agents/`) | Medium | S | Documentation |
-| 23 | Consider a fixture-based golden for doctor's multi-store rendering (stores line ordering) | Low | S | Quality |
-| 24 | Session retrospective: add "isolation worktree + throwaway cache" recipe to docs/agents/gotchas-testing.md (concurrent-session verification pattern) | Medium | S | Documentation |
+| #  | Task                                                                                                                                                                                    | Impact   | Effort | Category      |
+| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Run `nix run .#verify` (exclusive) once the tree settles — full gate incl. lint/race/doc-check                                                                                          | Critical | M      | Quality       |
+| 2  | Run `nix run .#check-duplication` (dirty-tree guard: commit-adjacent run)                                                                                                               | High     | S      | Quality       |
+| 3  | Repo-level pin test: doctor profiles of system/metaengine stay `store: memory, metaengine: true`                                                                                        | High     | S      | Quality       |
+| 4  | Engine self-detection: seed detection with the module's own import path (pkg.Module.Path) so engine modules report their real backend, not memory-with-caveat                           | Medium   | M      | Feature       |
+| 5  | Scorecard: render `Stores` alongside engines                                                                                                                                            | Medium   | S      | Feature       |
+| 6  | doctor `--evidence`: print the import/call site behind each store signal                                                                                                                | Medium   | M      | Feature       |
+| 7  | doctor partial-load loudness: per-profile `partial` tag or hard-fail flag (this session re-demonstrated silent profile garbage under load errors — third occurrence)                    | High     | S      | Quality       |
+| 8  | Register foreign `cmd/cqrs-lint/testdata/scanfixture` in the three gates (api-stability modules slice + exclusion maps, check-module-layers LAYER/DEP_BUDGET, cqrs-lint module catalog) | High     | S      | Cleanup       |
+| 9  | Foreign stale.go shrank-to-fit (489→533 violates ratchet) + stale_test.go `finding.New` vet fix                                                                                         | High     | S      | Cleanup       |
+| 10 | Taskmanager golden drift (C026 ×2 + F009 + count mismatch) — triage rule vs fixture                                                                                                     | High     | S      | Bug           |
+| 11 | Repo-wide go.sum tidy sweep (only deriver + system repaired; TestEveryModuleGoSumIsTidy still red)                                                                                      | High     | M      | Cleanup       |
+| 12 | `query/go.mod` dirty file — confirm the concurrent session owns/absorbs it                                                                                                              | Low      | S      | Cleanup       |
+| 13 | Decide + document v5 list-only config (scalar deprecated?) at the v5 migration doc                                                                                                      | Low      | M      | Decision      |
+| 14 | Engine-module doctor UX: suppress memory inference when the analyzed module path IS an engine dir (cheap complement to #4)                                                              | Medium   | S      | Feature       |
+| 15 | CHANGELOG follow-up if #4 lands (engine self-detection semantics)                                                                                                                       | Low      | S      | Documentation |
+| 16 | Explain: mention `stores` doctor line + scorecard rendering once #5 lands                                                                                                               | Low      | S      | Documentation |
+| 17 | Config discovery upward-search decision (carried from report 1 f-6/f-7; now also affects multi-store pins)                                                                              | Medium   | M      | Decision      |
+| 18 | Empty `monetary:` doctor line (carried, report 1 f-8)                                                                                                                                   | Low      | S      | Bug           |
+| 19 | Stale untracked go1.26 binary `cmd/cqrs-lint/cqrs-lint` + committed-binary policy (carried, report 1 f-1)                                                                               | Medium   | S      | Cleanup       |
+| 20 | `cqrs-lint version` prints build Go version (carried, report 1 f-2)                                                                                                                     | Medium   | S      | Feature       |
+| 21 | HARVEST all three reports' (f) into TODO_LIST.md/ROADMAP.md via docs-health                                                                                                             | High     | S      | Documentation |
+| 22 | Skill/reference sweep: does any skill reference document `store` config behavior that needs the multi-store update? (`rg "features.*store" .agents/`)                                   | Medium   | S      | Documentation |
+| 23 | Consider a fixture-based golden for doctor's multi-store rendering (stores line ordering)                                                                                               | Low      | S      | Quality       |
+| 24 | Session retrospective: add "isolation worktree + throwaway cache" recipe to docs/agents/gotchas-testing.md (concurrent-session verification pattern)                                    | Medium   | S      | Documentation |
 
 **Carryover status from earlier reports:** report-1 f-13/f-15 pins superseded by #3 above; f-4/f-5 (engine self-detection) = #4; f-11 (evidence mode) = #6; f-3 (partial-load loudness) = #7. Report-2 items 1–21: #1 (implement) DONE this session; #2 (coordinate) resolved — their tree settled; #3/#5/#6/#7/#8/#9 DONE; #4 (verify system default engine) still open (below, Q2-adjacent); #10 = #3 above; #12/#13 (caveat hints) DONE in doctor render; #14 = #4/#14; #15/#16 DONE (explain); #17 engine-fold = #4; #18 (api-stability check) DONE (golden in sync); #19 (v5 timing) = #13; #20 scorecard survey = #5; #21 DONE (rules migrated); #22 (known-facts checklist) — recurred once more this session (d-2).
 
@@ -98,4 +98,4 @@ All 11 tracked steps completed, each verified at its boundary:
 
 ---
 
-*Point-in-time snapshot. Section (f) across three reports still NOT harvested into TODO_LIST.md/ROADMAP.md — third deferral, awaiting user instruction per docs-health HARVEST.*
+_Point-in-time snapshot. Section (f) across three reports still NOT harvested into TODO_LIST.md/ROADMAP.md — third deferral, awaiting user instruction per docs-health HARVEST._

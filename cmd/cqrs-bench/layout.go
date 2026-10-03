@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	"github.com/larsartmann/go-output"
+	gotable "github.com/larsartmann/go-output/table"
 
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
@@ -122,6 +124,8 @@ func parseLayoutFilter(s string) (string, bool) {
 }
 
 func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
+	validateFormat("layout", flags.Format, layoutFormats)
+
 	priorities := allPriorities()
 
 	if flags.Priority != "" {
@@ -204,12 +208,41 @@ func layoutHandler(_ context.Context, _ *AppConfig, flags *LayoutFlags) error {
 		case formatJSON:
 			enc := jsontext.NewEncoder(w, jsontext.WithIndent("  "))
 			_ = json.MarshalEncode(enc, groups)
+		case formatTable:
+			if err := gotable.Write(
+				w,
+				buildLayoutTable(groups),
+				gotable.WithColorMode(output.ColorModeAuto),
+			); err != nil {
+				fatalf("render table: %v", err)
+			}
 		default:
 			renderLayoutText(w, groups, flags.Verbose)
 		}
 	})
 
 	return nil
+}
+
+// buildLayoutTable renders all layout groups as one bordered table — the
+// tabular twin of renderLayoutText (same columns the text renderer prints).
+func buildLayoutTable(groups []layoutGroup) *output.Table {
+	t := output.NewTable([]string{"Layout", "Priority", "Selected", "Embed", "Normalize", "Margin"})
+
+	for _, grp := range groups {
+		for _, e := range grp.Entries {
+			t.AddRow([]string{
+				grp.Layout,
+				e.Priority,
+				e.Selected,
+				fmt.Sprintf("%.2f", e.EmbedScore),
+				fmt.Sprintf("%.2f", e.NormScore),
+				fmt.Sprintf("%.1f%%", e.MarginPct),
+			})
+		}
+	}
+
+	return t
 }
 
 func renderLayoutText(w *os.File, groups []layoutGroup, verbose bool) {

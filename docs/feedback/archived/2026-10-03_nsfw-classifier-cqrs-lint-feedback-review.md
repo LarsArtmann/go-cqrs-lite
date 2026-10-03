@@ -23,6 +23,7 @@ constant. A012 additionally fired on ANY switch-fold in a soft-delete module —
 it never inspected case-clause contents at all.
 
 **Fixed:**
+
 - `scanner_emit_helpers.go`: `scanEmitHelperFunc` registers helpers whose
   `event.New` type argument is one of their own parameters;
   `ResolveHelperEmitCalls` walks helper call sites post-scan and feeds the
@@ -144,15 +145,15 @@ test-suite item, not a rule change.
 
 ## Scorecard
 
-| Feedback area                          | Verdict                                                        |
-| -------------------------------------- | -------------------------------------------------------------- |
-| Helper indirection + A012 const cases  | Fixed (registry machinery + case-value resolution + tests)     |
-| Scope blindness                        | Suggestion-harm removed; load-scope widening deferred          |
-| A011 / F031 / F026 / A009              | Fixed, each with a regression test                             |
-| F003 decline semantics                 | Fixed at the detection layer (absence ≠ off)                   |
-| Stale anchor naming                    | Fixed                                                          |
-| `--config`                             | Already supported via cmdguard v4.0.2                          |
-| F010 / F005 anchor / B005              | Declined or noted, with rationale                              |
+| Feedback area                         | Verdict                                                    |
+| ------------------------------------- | ---------------------------------------------------------- |
+| Helper indirection + A012 const cases | Fixed (registry machinery + case-value resolution + tests) |
+| Scope blindness                       | Suggestion-harm removed; load-scope widening deferred      |
+| A011 / F031 / F026 / A009             | Fixed, each with a regression test                         |
+| F003 decline semantics                | Fixed at the detection layer (absence ≠ off)               |
+| Stale anchor naming                   | Fixed                                                      |
+| `--config`                            | Already supported via cmdguard v4.0.2                      |
+| F010 / F005 anchor / B005             | Declined or noted, with rationale                          |
 
 The "one root cause" thesis held: indirection + scope blindness accounted for
 the bulk of the false positives, and both now have structural fixes.

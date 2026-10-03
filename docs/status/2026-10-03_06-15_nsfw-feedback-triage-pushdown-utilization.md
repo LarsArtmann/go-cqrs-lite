@@ -139,6 +139,7 @@ green except the items in (d).
 ## e) WHAT WE SHOULD IMPROVE — brutal self-review of this session
 
 **What did I forget?**
+
 - The md-go gate before archiving: moving files with pseudo-code fences
   re-keys the path-keyed baseline. I should have run the gate pre-move.
 - In the first F031 test I wrote hand-rolled `contains`/`indexOf` helpers
@@ -147,6 +148,7 @@ green except the items in (d).
   extended the fixture; it should assert on snippet/message content instead.
 
 **What could I have done better?**
+
 - `--config`: I implemented it (pre-scan + dynamic loader paths + cobra flag)
   BEFORE checking cmdguard's current surface — and hit "flag redefined"
   because v4.0.2 already ships it natively. The verify-external-claims
@@ -163,6 +165,7 @@ green except the items in (d).
   to local replaces. Local replaces from the start would have been robust.
 
 **What could still improve (in the shipped work)?**
+
 - Utilization coaching sees importer packages only — the reporter's actual
   grid lives in `internal/server` and stays invisible until scope widens.
 - Volume is only read from integer literals; `Volume(someConst)` is
