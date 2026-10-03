@@ -32,13 +32,18 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > the open tail is the section below. **Current plan (2026-09-28 01:26):**
 > [`docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md`](docs/planning/2026-09-28_01-26_SUPERB-publish-integrity-pareto-plan.md)
 > (M-tasks; M1–M4, M6, M14–M16, M19, M23–M25 done with receipts in this file;
-> open: M5+M20 quiet-window campaign, M22 owner Q3). This file remains the
+> open: M5+M20 quiet-window campaign, M22 owner Q3). **Current plan (2026-10-03 17:20):**
+> [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html)
+> (full-list Pareto master plan: 27 medium tasks / 118 fine tasks over all 112
+> open rows + 9 open issues; truth-strike + #49/#50/#51 triage executed same
+> day; §07 = the 28-ruling owner decision bundle). This file remains the
 > living source of truth.
 
 ## Section index
 
 [Legend](#legend) ·
 [GitHub issue backlog](#github-issue-backlog-2026-09-30-plan) ·
+[New consumer issues](#new-consumer-issues-2026-10-03-triage) ·
 [Data-mesh & federation tail](#data-mesh--federation-tail-2026-09-24) ·
 [Metaengine Universal Storage Substrate](#metaengine-universal-storage-substrate-proposed-2026-09-18) ·
 [Durable Work Queue](#durable-work-queue-module-proposed-2026-09-13) ·
@@ -95,25 +100,37 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       lacks it; scalar `CausationID`/`CorrelationID` still never written by
       `eventToMessage`) + one release wave (watermill v4.7.0,
       stack/postgres v4.4.2). — issues #21 #26 _(Effort: M, release mechanics)_
-- [ ] 🔥 **W0 — close #25:** requested tag `metaengine/projectionadapter/v4.5.0`
+- [x] 🔥 ~~**W0 — close #25:** requested tag `metaengine/projectionadapter/v4.5.0`
       ALREADY EXISTS on remote (`8c87c48a6`, verified 2026-09-30) — verify
-      `OccurredAt` in tag, comment receipt, close. — issue #25 _(Effort: XS)_
-- [ ] **W2 — linter trust (the 4%):** #42 port CLI's none-import guard into
+      `OccurredAt` in tag, comment receipt, close. — issue #25~~ — **DONE 2026-10-01
+      (stale-row receipt 2026-10-03): issue #25 CLOSED 2026-10-01T15:13:53Z**
+      (`gh issue view 25`: state CLOSED — the 2026-10-01 session tagged, verified,
+      and closed). Delete at next docs-health pass.
+- [ ] **W2 — linter trust (the 4%):** ~~#42 port CLI's none-import guard into
       `toolspec.detect` (guard lives only at `cmd/cqrs-lint/run.go:326`;
-      provider path lints non-consumers, verified) + #43 D005 stops treating
-      the first version token on a go-cqrs-lite line as the doc's version
-      claim (`d003_d005.go:279` still `versions[0]`; positional-attachment
-      rule proposed). — issues #42 #43 _(Effort: S each)_
-- [ ] **W3 — consumer features (the 20%):** #32 `EventAdapter.LoadByEventID`
+      provider path lints non-consumers, verified)~~ DONE 2026-10-03 (issue #42
+      CLOSED 01:34:38Z; shipped as the cqrs-lint v4.13.1 clean-verdict wave,
+      CHANGELOG `[Unreleased]` receipt: toolspec detect/repair share the CLI's
+      `loadVerdict`, `TestBuildContext_SilentEmptyBrokenGraphFailsLoudly`
+      regression) + #43 D005 stops treating the first version token on a
+      go-cqrs-lite line as the doc's version claim (rule now lives at
+      `cmd/cqrs-lint/pkg/rules/consistency/d005_version.go`; positional-attachment
+      rule proposed). — issue #43 _(Effort: S)_
+- [ ] **W3 — consumer features (the 20%):** ~~#32 `EventAdapter.LoadByEventID`
       via `EventByIDBackend` capability (storage side exists; lost in wrapper
-      layer) · #35 DONE 2026-10-01 (M24, shipped as `event.RequestScope` +
+      layer)~~ DONE 2026-10-01 (issue #32 CLOSED 16:16:39Z; CHANGELOG
+      `[Unreleased]` receipt: `metaengine.EventByIDBackend` capability + sqlite
+      partial expression index + `systemtest` E2E) · ~~#35 request-context
+      enricher~~ DONE 2026-10-01 (M24, shipped as `event.RequestScope` +
       `WithRequestScope` + `RequestScopeEnricher`, recipes §2.42 — cqrs-htmx
       carries the drop-local-copy TODO for its next bump) · #27 committed
       module → latest-tag
-      manifest (versions.json) + tag-push CI + README matrix · #28 document
+      manifest (versions.json) + tag-push CI + README matrix · ~~#28 document
       the consumer upgrade sweep pattern + bless `cmd/cqrs-upgrade` (exists,
-      tagged v4.0.0 2026-09-07 — ask reduces to docs). — issues #32 #35 #27
-      #28 _(Effort: M each)_
+      tagged v4.0.0 2026-09-07 — ask reduces to docs)~~ DONE 2026-10-01 (issue
+      #28 CLOSED 16:24:01Z; the cqrs-upgrade `--json --strict` holes (a)(b)(c)
+      + NoPins scan shipped in the same CHANGELOG `[Unreleased]` wave).
+      — issue #27 _(Effort: M)_
 - [ ] **W4 — structural tail:** #36 move `WithMetaEngine` + Bundle
       registration into a `stack/metaengine` module (4 root files import
       metaengine: options/bundle/accessors/materialize); deprecated root
@@ -123,6 +140,41 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       HEAD is ahead of their latest tag (helps consumers judge `replace`-to-
       master pins). Deferred behind the manifest; needs owner nod on CI noise
       budget. — issue #27 item 3 _(Effort: S)_
+
+---
+
+## New consumer issues (2026-10-03 triage)
+
+> Filed 2026-10-03 by consumer sessions (nsfw-classifier / go-aichat chatstore);
+> not previously tracked here. Execution slots live in the 2026-10-03 plan
+> (T06/T08/T10, fine tasks f28–f58).
+
+- [ ] **#49 `middleware.CommandRetry` never retries Conflict — undocumented** —
+      `Family.IsRetryable` is Transient-only and `RetryConfig.IsRetryable`
+      defaults to it, but the archived architecture roadmap claims conflicts are
+      retried; consumers hand-roll per-stream dispatch mutexes instead. Fix:
+      document the default + the sound `IsRetryable` override at the declaration
+      site, FAQ entry, dated correction note on the archived roadmap row
+      (doc-first; reclassifying Conflict stays a design question). — issue #49
+      _(Effort: XS docs)_
+- [ ] **#50 `time.Time` payload fields drift sub-µs through system+sqliteengine
+      journals** — ADR-0056 claims nano-exact round-trips; consumer measures up
+      to 611ns drift over 20 dispatches (`encodeJSON` journal path;
+      `TimeUnixDynamic` is only configured on iroh transports). Fix: in-repo repro
+      → trace the loss point → nano-exact fix or scoped ADR-0056 consequence
+      amendment + documented tolerance. — issue #50 _(Effort: M)_
+- [ ] **#51 A013 suggests value-embedding `BasicCommand`, which cannot satisfy
+      `command.Command`** — every `BasicCommand` method is pointer-receiver, so
+      following the suggestion breaks compilation, and real consumers emit A013
+      on the sanctioned pointer pattern (7/7 example embeds + the cqrs-gen
+      template). Fix: invert the rule (fire on VALUE embeds), reword the
+      suggestion, RULES.md + goldens. — issue #51 _(Effort: S)_
+- [ ] **Owner decision bundle (28 rulings)** — consolidated table at
+      [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html) §07
+      (R1–R28): one place to answer the 34 [BLOCKED] rows (G-T02 direction
+      ruling, M20 a/b/c, release-policy Q3, F153 license, billing, evals
+      tooling, filing approvals, …). Answers land back on their home rows.
+      _(Effort: XS per reply)_
 
 ---
 
@@ -138,8 +190,13 @@ mesh-demo onboarding) lives in the eventcatalog-hub repo. Execution evidence:
 [18-14 hub-phase report](docs/status/archived/2026-09-24_18-14_hub-phase-and-final-gate-session.md)
 (all archived 2026-09-28, RESOLVED-BY-ROUTING). Open tail:
 
-- [ ] **mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
-      demo is pure deciders). — source: 12-26 §f22, 13-32 §f20 _(Effort: M)_
+- [x] ~~**mesh-demo: system.New-backed variant** — runtime coeffect-gate demo (current
+      demo is pure deciders).~~ DONE 2026-10-03 (M25): `mesh-demo gate` composes
+      the orders context through `system.New` — a typo'd import is rejected at
+      construction with `ErrDanglingEventSubscription` naming the dangling
+      subscription, and the contract universe composes cleanly over a memory
+      engine (`TestGate_TypoCaught`/`TestGate_ContractUniverseComposes`; CHANGELOG
+      `[Unreleased]` receipt). — source: 12-26 §f22, 13-32 §f20
 
 ---
 
@@ -945,19 +1002,6 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `scripts/calibration-gate.sh` PASS, re-run the compare command from the
       capture header, then annotate. — source: archived 15-37 §f3/§f30
 
-- [ ] **Benchkit polish-tail verification debts (harvested 2026-09-21)** — ALL
-      CLOSED 2026-09-29 (receipts in CHANGELOG `[Unreleased]`): ~~(a) RunSuiteRepeated test~~
-      (testing.Benchmark-driven CoV + delegation pins), ~~(b) cov% through real benchstat
-      output~~ (subprocess `go test -bench` parses real stdout columns), ~~(c) startProfiling
-      teardown-order test~~ (gzip-magic pins flush-before-close on both profile files),
-      ~~(d) NOISE_HEADLINE tripwire~~ (script-literal sync test), ~~(e) list-phases
-      metric-map~~ (core-suffix universe pin), ~~(f) README --progress default~~ (5s),
-      ~~(g) README+doc.go API tours~~ (RunSuiteRepeated/HeadlineMetricNames/ReservoirSize),
-      ~~(h) noise_target_guard identifier-grade~~ (`--exclude='*_test.go'` ×3 greps),
-      ~~(i) testcontainers teardown noise~~ (TRIAGED: Docker lifecycle teardown of the
-      daemon, zero residual containers after run — expected cleanup, not a leak).
-      Row kept struck one cycle for context; delete at next docs-health pass.
-      — source: archived 15-57-benchkit §b/§d/§e1-2/§f1-10
 - [ ] [BLOCKED] **Benchkit tag wave (owner go-ahead)** — cut benchkit with
       the statistical-rigor + polish-tail APIs (~+17 untagged exports deep),
       bump `cmd/cqrs-bench` pin, strip the sibling replace; batch with the
@@ -1077,10 +1121,15 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > `.agents/skills/watermill/` shipped (broker powers/tradeoffs/limits). Report:
 > [`docs/status/archived/2026-09-15_19-45_watermill-skill-session.md`](docs/status/archived/2026-09-15_19-45_watermill-skill-session.md)
 
-- [ ] **NATS JetStream roundtrip test leg** — `watermill-nats/v2` +
+- [x] ~~**NATS JetStream roundtrip test leg** — `watermill-nats/v2` +
       `scripts/ephemeral-nats.sh`, mirroring `TestRedisStreamRoundtrip`; if it
       lands, an `.#integration-nats`-style flake app + CI leg analog to
-      `#integration-redis`. — source: 19-45 §c1/§f2/§f10 _(Effort: M)_
+      `#integration-redis`.~~ DONE 2026-10-01 (M19): `TestNatsJetStreamRoundtrip`
+      + edge suite (Nack redelivery, consumer-group exactly-once, 2 MiB payloads)
+      over `watermill-nats/v2`, runnable via `scripts/ephemeral-nats.sh` or the
+      `nix run .#integration-nats` flake app (CHANGELOG `[Unreleased]` receipt;
+      upstream plugin gaps documented in the watermill skill). — source: 19-45
+      §c1/§f2/§f10
 
 ## Temporal versioned cells — ADR-0141 follow-ups (harvested 2026-09-18)
 
@@ -1227,7 +1276,13 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 
 ## Upstream asks from cqrs-htmx (harvested 2026-09-22, docs-health D1)
 
-- [ ] **Upstream `requestContextEnricher` into `event/`** — cqrs-htmx's usermgmt carries a local copy (correlation/request-ID metadata enricher, `audit_context.go`) because no upstream enricher covers it. Upstreaming it lets the local copy drop at the next family train. Source: cqrs-htmx TODO_LIST P3 ask (3); verify pass there 2026-09-22.
+- [x] ~~**Upstream `requestContextEnricher` into `event/`**~~ — DONE 2026-10-01
+      (M24, GitHub #35): shipped as `event.RequestScope` + `event.WithRequestScope`
+      + `event.RequestScopeEnricher` (+ `RequestScopeFromContext`), recipe
+      recipes §2.42 (CHANGELOG `[Unreleased]` receipt). The cqrs-htmx local copy
+      (`audit_context.go`) can drop at its next family bump — reminder drafted in
+      the 2026-10-03 plan T26. Source: cqrs-htmx TODO_LIST P3 ask (3); verify pass
+      there 2026-09-22.
   - ~~`system.New` checkpoint/DLQ store options~~ CLOSED 2026-09-28 as ALREADY SHIPPED (ADR-0149: `NewEngineCheckpointStore` durable checkpoints; DLQ-by-events per ADR-0117; receipts in CHANGELOG `[Unreleased]` + ADR-0149) — deleted as a row; residual = publishing (`system/v4.10.0` uncut in the stalled wave).
   - ~~`System.Explain` per-query Volume/placement~~ DONE 2026-09-28 (`Store.QueryPlacements()` + Explain rendering; CHANGELOG `[Unreleased]` receipt) — deleted as a row.
 

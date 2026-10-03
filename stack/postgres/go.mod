@@ -2,6 +2,12 @@ module github.com/larsartmann/go-cqrs-lite/stack/postgres/v4
 
 go 1.27
 
+// v4.2.0 is broken in isolation: it references sqlopt.OpenDBOrErr, which is
+// absent from the sibling versions it pins, so consumers resolving exactly
+// v4.2.0 get a non-compiling graph (GitHub #26). Fixed from v4.4.0 on; the
+// retract directive reaches the module proxy with the next tagged release.
+retract v4.2.0
+
 require (
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
