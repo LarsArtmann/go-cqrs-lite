@@ -7,6 +7,7 @@ package toolspec
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/larsartmann/go-finding"
@@ -124,6 +125,14 @@ func detect(ctx context.Context) ([]finding.Finding, error) {
 //     state). Returning clean=false plus the error.
 //
 // GoFiles > 0 (consumer, possibly with partial load errors): proceed.
+// errNoPackagesAnalyzed is the static sentinel behind the loud-failure path:
+// zero analyzable Go files PLUS load errors means the project does not
+// compile — that must never render as a clean bill of health.
+var errNoPackagesAnalyzed = errors.New("cqrs-lint: could not analyze any packages")
+
+// loadVerdict decides whether a non-consumer verdict is clean (nothing to
+// lint) or an error (broken build). GoFiles > 0 (consumer, possibly with
+// partial load errors): proceed.
 func loadVerdict(actx *analyzer.AnalysisContext) (clean bool, err error) {
 	if len(actx.GoFiles) > 0 {
 		return false, nil
@@ -136,9 +145,10 @@ func loadVerdict(actx *analyzer.AnalysisContext) (clean bool, err error) {
 		}
 
 		return false, fmt.Errorf(
-			"cqrs-lint: could not analyze any packages: %d package(s) failed to load (first: %s) — "+
+			"%w: %d package(s) failed to load (first: %s) — "+
 				"the project likely does not compile; fix the build errors (try `go build ./...`) and re-run. "+
 				"This is NOT a clean bill of health",
+			errNoPackagesAnalyzed,
 			len(actx.LoadErrors),
 			detail,
 		)

@@ -152,6 +152,8 @@ func extractCQRSVersion(content, modVersion string) string {
 
 // connectorWords may sit between a module mention and its version token
 // without breaking textual attachment ("go-cqrs-lite at version v4.2.0").
+//
+//nolint:gochecknoglobals // read-only lookup table
 var connectorWords = map[string]struct{}{
 	"to": {}, "and": {}, "the": {}, "a": {}, "an": {}, "at": {}, "of": {},
 	"is": {}, "as": {}, "or": {}, "for": {}, "in": {}, "with": {},
@@ -160,6 +162,8 @@ var connectorWords = map[string]struct{}{
 
 // historicalCues in a mention's lead-in mark the attached version token as a
 // past state, not the current claim.
+//
+//nolint:gochecknoglobals // read-only lookup table
 var historicalCues = map[string]struct{}{
 	"from": {}, "upgraded": {}, "upgrades": {}, "migrated": {},
 	"migration": {}, "previously": {}, "prior": {}, "before": {},

@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"errors"
 	"fmt"
 	"go/token"
 	"io/fs"
@@ -15,6 +16,13 @@ import (
 // against concurrent Load invocations (go/types state races under -race), and
 // nothing here benefits from overlapping them — BuildContext is sequential.
 var loadMu sync.Mutex //nolint:gochecknoglobals // serializes packages.Load; x/tools loader is not goroutine-safe
+
+// errSilentEmptyLoad guards the silent-empty case: go/packages can return
+// ZERO packages with NO error when the module graph is broken (stale go.sum,
+// unresolvable requires — the 2026-10-02 fixture rot). An empty context here
+// would render a clean bill of health for a project cqrs-lint never actually
+// read. A repo with no Go sources at all is still a legitimate clean verdict.
+var errSilentEmptyLoad = errors.New("analyzing nothing must not report clean")
 
 func loadFromDir(dir string, fset *token.FileSet) ([]*packages.Package, error) {
 	cfg := &packages.Config{
@@ -82,7 +90,7 @@ func hasGoSourceFiles(dirs []string) bool {
 	for _, dir := range dirs {
 		found := false
 
-		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		err := filepath.WalkDir(dir, func(_ string, d fs.DirEntry, err error) error {
 			if err != nil || found {
 				return nil //nolint:nilerr // skip inaccessible paths, continue walking
 			}
@@ -202,17 +210,11 @@ func BuildContext(projectRoot string) (*AnalysisContext, error) {
 		}
 	}
 
-	// Silent-empty guard: go/packages can return ZERO packages with NO error
-	// when the module graph is broken (stale go.sum, unresolvable requires —
-	// the 2026-10-02 fixture rot). An empty context here would render a clean
-	// bill of health for a project cqrs-lint never actually read. A repo with
-	// no Go sources at all is still a legitimate clean verdict.
 	if len(ctx.Packages) == 0 && len(ctx.LoadErrors) == 0 && hasGoSourceFiles(modDirs) {
 		return nil, fmt.Errorf(
-			"no packages loaded from %d module dir(s) under %s with zero load errors — "+
-				"the module graph is likely broken (stale go.sum or missing deps; try `go mod tidy` per module); "+
-				"analyzing nothing must not report clean",
-			len(modDirs), projectRoot,
+			"%w: no packages loaded from %d module dir(s) under %s with zero load errors — "+
+				"the module graph is likely broken (stale go.sum or missing deps; try `go mod tidy` per module)",
+			errSilentEmptyLoad, len(modDirs), projectRoot,
 		)
 	}
 
