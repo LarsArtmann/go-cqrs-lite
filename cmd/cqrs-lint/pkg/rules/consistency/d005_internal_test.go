@@ -109,7 +109,7 @@ func TestExtractCQRSVersion_SkipsCodeBlocks(t *testing.T) {
 		"```go\n" +
 		"import \"go-cqrs-lite/command/v4.2.0\"\n" +
 		"```\n"
-	got := extractCQRSVersion(content, "v4.3.0")
+	got := extractCQRSVersion(content, "v4.3.0", nil)
 	if got != "v4.3.0" {
 		t.Fatalf(
 			"extractCQRSVersion with code block = %q, want %q (code blocks must be skipped)",
@@ -123,7 +123,7 @@ func TestExtractCQRSVersion_SkipsImportPaths(t *testing.T) {
 	t.Parallel()
 
 	content := "go-cqrs-lite/command/v4.2.0 provides commands."
-	got := extractCQRSVersion(content, "v4.3.0")
+	got := extractCQRSVersion(content, "v4.3.0", nil)
 	if got != "v4.3.0" {
 		t.Fatalf(
 			"extractCQRSVersion with import path = %q, want %q (version preceded by / must be skipped)",
@@ -137,7 +137,7 @@ func TestExtractCQRSVersion_SkipsPseudoVersions(t *testing.T) {
 	t.Parallel()
 
 	content := "go-cqrs-lite v4.2.1-0.20260808200723-546259830b28 is used."
-	got := extractCQRSVersion(content, "v4.3.0")
+	got := extractCQRSVersion(content, "v4.3.0", nil)
 	if got != "v4.3.0" {
 		t.Fatalf(
 			"extractCQRSVersion with pseudo-version = %q, want %q (pseudo-versions must be skipped)",
@@ -185,7 +185,7 @@ func TestExtractCQRSVersion_OtherModuleVersionFirst(t *testing.T) {
 	t.Parallel()
 
 	content := "# App\n\nThis project pins go-finding v1.12.0 and go-cqrs-lite v4.12.1 for storage.\n"
-	got := extractCQRSVersion(content, "v4.12.1")
+	got := extractCQRSVersion(content, "v4.12.1", nil)
 	if got != "v4.12.1" {
 		t.Fatalf(
 			"extractCQRSVersion other-module-first = %q, want %q (attachment must skip go-finding's token)",
@@ -202,7 +202,7 @@ func TestExtractCQRSVersion_HistoricalMention(t *testing.T) {
 	t.Parallel()
 
 	content := "# App\n\nUpgraded from go-cqrs-lite v4.11.1 to pick up storage fixes.\n"
-	got := extractCQRSVersion(content, "v4.12.1")
+	got := extractCQRSVersion(content, "v4.12.1", nil)
 	if got != "v4.12.1" {
 		t.Fatalf(
 			"extractCQRSVersion historical = %q, want %q ('from' cue must drop the claim)",
@@ -218,12 +218,122 @@ func TestExtractCQRSVersion_DirectAttachmentKept(t *testing.T) {
 	t.Parallel()
 
 	content := "# App\n\nUses go-cqrs-lite v3.1.0\n"
-	got := extractCQRSVersion(content, "v4.2.0")
+	got := extractCQRSVersion(content, "v4.2.0", nil)
 	if got != "v3.1.0" {
 		t.Fatalf(
 			"extractCQRSVersion direct = %q, want %q (adjacent claim must still count)",
 			got,
 			"v3.1.0",
 		)
+	}
+}
+
+// --- per-module pins (go-cqrs-lite tags are per-module; CV feedback
+// 2026-10-03: accurate per-module doc references misread as stale) ---
+
+// TestExtractCQRSVersion_PerModuleReferencesFresh: a doc listing each
+// module's own pinned version ("pinned: system v4.7.0, decider v4.6.0,
+// metaengine v4.13.0") is fully accurate and must NOT report a stale
+// version, even though the versions differ from each other.
+func TestExtractCQRSVersion_PerModuleReferencesFresh(t *testing.T) {
+	t.Parallel()
+
+	pins := map[string]string{
+		"system":     "v4.7.0",
+		"decider":    "v4.6.0",
+		"metaengine": "v4.13.0",
+	}
+
+	content := "# App\n\nUses go-cqrs-lite (pinned: system v4.7.0, " +
+		"decider v4.6.0, metaengine v4.13.0 — the Phase-0-proven set).\n"
+	got := extractCQRSVersion(content, "v4.7.0", pins)
+	if got != "v4.7.0" {
+		t.Fatalf(
+			"extractCQRSVersion per-module fresh = %q, want %q (all references match their pins)",
+			got,
+			"v4.7.0",
+		)
+	}
+}
+
+// TestExtractCQRSVersion_PerModuleStaleReference: a doc claiming a version
+// for a NAMED module that differs from that module's pin stays a finding.
+func TestExtractCQRSVersion_PerModuleStaleReference(t *testing.T) {
+	t.Parallel()
+
+	pins := map[string]string{
+		"system":  "v4.7.0",
+		"decider": "v4.6.0",
+	}
+
+	content := "# App\n\nUses go-cqrs-lite system v4.5.0 and decider v4.6.0.\n"
+	got := extractCQRSVersion(content, "v4.7.0", pins)
+	if got != "v4.5.0" {
+		t.Fatalf(
+			"extractCQRSVersion per-module stale = %q, want %q (system v4.5.0 vs pin v4.7.0)",
+			got,
+			"v4.5.0",
+		)
+	}
+}
+
+// TestExtractCQRSVersion_AnyPinMatchFresh: a version token with no adjacent
+// module name is fresh when it matches ANY pinned module version — several
+// different current versions are the ecosystem's normal shape.
+func TestExtractCQRSVersion_AnyPinMatchFresh(t *testing.T) {
+	t.Parallel()
+
+	pins := map[string]string{
+		"event":   "v4.12.0",
+		"decider": "v4.7.0",
+	}
+
+	content := "# App\n\ngo-cqrs-lite v4.7.0 powers the decider fold.\n"
+	got := extractCQRSVersion(content, "v4.12.0", pins)
+	if got != "v4.12.0" {
+		t.Fatalf(
+			"extractCQRSVersion any-pin = %q, want %q (v4.7.0 matches the decider pin)",
+			got,
+			"v4.12.0",
+		)
+	}
+}
+
+// TestReadGoModCQRSVersionSet_PrefersDirectOverIndirect pins the per-module
+// direct-over-indirect preference and the shortname derivation.
+func TestReadGoModCQRSVersionSet_PrefersDirectOverIndirect(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	goMod := `module example.com/app
+
+go 1.26
+
+require (
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.11.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.9.0 // indirect
+)
+`
+	path := filepath.Join(dir, "go.mod")
+	if err := os.WriteFile(path, []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	got := readGoModCQRSVersionSet(path)
+	want := map[string]string{
+		"system":  "v4.10.0",
+		"event":   "v4.11.0",
+		"decider": "v4.9.0",
+	}
+
+	if len(got) != len(want) {
+		t.Fatalf("readGoModCQRSVersionSet = %v, want %v", got, want)
+	}
+
+	for k, v := range want {
+		if got[k] != v {
+			t.Fatalf("readGoModCQRSVersionSet[%q] = %q, want %q", k, got[k], v)
+		}
 	}
 }

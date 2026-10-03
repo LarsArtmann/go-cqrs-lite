@@ -109,6 +109,12 @@ func NewD005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				return nil, nil
 			}
 
+			// Per-module pins: go-cqrs-lite tags are per-module, so docs may
+			// legitimately reference several different current versions
+			// ("event v4.12.0, decider v4.7.0"). A doc token is judged
+			// against the module it names, falling back to any-pin matching.
+			pins := readGoModCQRSVersionSet(ctx.ProjectRoot + "/go.mod")
+
 			var findings []finding.Finding
 
 			docFiles := []string{"README.md", "AGENTS.md", "MIGRATION.md"}
@@ -121,7 +127,7 @@ func NewD005Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				docVersion := extractCQRSVersion(string(content), modVersion)
+				docVersion := extractCQRSVersion(string(content), modVersion, pins)
 				if docVersion == "" || docVersion == modVersion {
 					continue
 				}

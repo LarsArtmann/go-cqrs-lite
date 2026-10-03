@@ -68,7 +68,87 @@ func readGoModCQRSVersion(path string) string {
 	return indirectVersion
 }
 
-func extractCQRSVersion(content, modVersion string) string {
+// readGoModCQRSVersionSet reads ALL go-cqrs-lite module pins from go.mod
+// as a shortname → version map (e.g. "event" → "v4.12.0"), preferring a
+// module's DIRECT pin over an `// indirect` one. go-cqrs-lite tags are
+// PER-MODULE (no unified release numbers), so documentation legitimately
+// references several different current versions — one per module. D005 uses
+// this set to judge a doc token against the module it names instead of a
+// single max/first version (the per-module-tags misread, CV feedback
+// 2026-10-03).
+func readGoModCQRSVersionSet(path string) map[string]string {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+
+	const cqrsPrefix = "github.com/larsartmann/go-cqrs-lite/"
+
+	pins := make(map[string]string)
+	indirectPins := make(map[string]string)
+
+	lines := strings.SplitSeq(string(data), "\n")
+	for line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		if strings.HasPrefix(trimmed, "module ") || strings.Contains(line, "replace") {
+			continue
+		}
+
+		if !strings.Contains(line, cqrsPrefix) {
+			continue
+		}
+
+		isIndirect := strings.Contains(line, "// indirect")
+
+		if idx := strings.Index(line, "//"); idx >= 0 {
+			line = line[:idx]
+		}
+
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+
+		modPath, version := parts[0], parts[len(parts)-1]
+		if !strings.HasPrefix(modPath, cqrsPrefix) || !strings.HasPrefix(version, "v") {
+			continue
+		}
+
+		rest := modPath[len(cqrsPrefix):]
+		short := rest
+		if idx := strings.Index(short, "/"); idx >= 0 {
+			short = short[:idx]
+		}
+		if short == "" {
+			continue
+		}
+
+		if isIndirect {
+			if indirectPins[short] == "" {
+				indirectPins[short] = version
+			}
+
+			continue
+		}
+
+		pins[short] = version
+	}
+
+	for short, version := range indirectPins {
+		if pins[short] == "" {
+			pins[short] = version
+		}
+	}
+
+	if len(pins) == 0 {
+		return nil
+	}
+
+	return pins
+}
+
+func extractCQRSVersion(content, modVersion string, pinned map[string]string) string {
 	versions := []string{}
 	inCodeBlock := false
 
@@ -128,7 +208,11 @@ func extractCQRSVersion(content, modVersion string) string {
 			// to another module ("pins go-finding v1.12.0 and go-cqrs-lite
 			// v4.12.1") or describe a past state ("upgraded from go-cqrs-lite
 			// v4.11.1").
-			if !attachedToCQRSMention(fields, i) {
+			if !attachedToCQRSMention(fields, i, pinned) {
+				continue
+			}
+
+			if versionTokenIsFresh(field, fields, i, modVersion, pinned) {
 				continue
 			}
 
@@ -140,14 +224,10 @@ func extractCQRSVersion(content, modVersion string) string {
 		return modVersion
 	}
 
-	docVersion := versions[0]
-
-	// Wildcard compatibility: "v4.0.x" matches any "v4.0.N" in go.mod.
-	if isVersionCompatible(docVersion, modVersion) {
-		return modVersion
-	}
-
-	return docVersion
+	// Freshness (wildcard compatibility against the pin set) was already
+	// applied per token inside the loop; the first survivor is the stale
+	// claim.
+	return versions[0]
 }
 
 // connectorWords may sit between a module mention and its version token
@@ -172,10 +252,13 @@ var historicalCues = map[string]struct{}{
 
 // attachedToCQRSMention reports whether the version token at fields[i] is
 // textually attached to a go-cqrs-lite mention: the nearest preceding
-// non-connector token contains "go-cqrs-lite", and the phrase introducing
-// that mention carries no historical cue.
-func attachedToCQRSMention(fields []string, i int) bool {
+// non-connector token contains "go-cqrs-lite", or — with a per-module pin
+// set — is a pinned module shortname ("system v4.7.0", "decider v4.6.0");
+// the caller's line-level go-cqrs-lite gate scopes that form to cqrs
+// lines. The phrase introducing the mention carries no historical cue.
+func attachedToCQRSMention(fields []string, i int, pinned map[string]string) bool {
 	mentionIdx := -1
+	moduleMention := false
 
 	for j := i - 1; j >= 0 && i-j <= 4; j-- {
 		lower := strings.ToLower(fields[j])
@@ -186,9 +269,18 @@ func attachedToCQRSMention(fields []string, i int) bool {
 
 		if strings.Contains(lower, "go-cqrs-lite") {
 			mentionIdx = j
+		} else if len(pinned) > 0 {
+			short := strings.Trim(lower, ".,;:!?")
+			if _, ok := pinned[short]; ok {
+				moduleMention = true
+			}
 		}
 
 		break
+	}
+
+	if moduleMention {
+		return true
 	}
 
 	if mentionIdx < 0 {
@@ -202,6 +294,45 @@ func attachedToCQRSMention(fields []string, i int) bool {
 	}
 
 	return true
+}
+
+// versionTokenIsFresh judges one doc version token against the go.mod pins.
+//
+// With a per-module pin set (go-cqrs-lite tags are PER-MODULE — there is no
+// unified release), two tiers apply:
+//  1. Module-attached: the token immediately before the version names a
+//     pinned module ("event v4.12.0", "pinned: system v4.7.0, decider
+//     v4.6.0") — the token is fresh iff it is compatible with THAT module's
+//     pin.
+//  2. Otherwise the token is fresh iff it is compatible with ANY pinned
+//     module version (several different current versions are legitimate).
+//
+// A nil pin set falls back to the legacy single-version comparison.
+func versionTokenIsFresh(
+	token string,
+	fields []string, i int,
+	modVersion string,
+	pinned map[string]string,
+) bool {
+	if len(pinned) == 0 {
+		return isVersionCompatible(token, modVersion)
+	}
+
+	if i > 0 {
+		prev := strings.ToLower(strings.Trim(fields[i-1], ".,;:!?"))
+
+		if pin, ok := pinned[prev]; ok {
+			return isVersionCompatible(token, pin)
+		}
+	}
+
+	for _, pin := range pinned {
+		if isVersionCompatible(token, pin) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // isVersionCompatible checks whether a doc version reference is compatible
