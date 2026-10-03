@@ -85,7 +85,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.8 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
@@ -115,15 +115,3 @@ require (
 )
 
 retract v4.7.0 // does not compile: sql/keyset.go:43 assigns undeclared err; use v4.7.1
-
-replace github.com/larsartmann/go-cqrs-lite/encryption/v4 => ../encryption
-
-replace github.com/larsartmann/go-cqrs-lite/snapshot/v4 => ../snapshot
-
-// Sibling replace for the unpublished otel symbol (DBSystem); stripped by
-// scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/otel/v4 => ../otel
-
-// Sibling replace for unpublished record symbols (DeferClose, ADR-0144);
-// stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/record/v4 => ../record

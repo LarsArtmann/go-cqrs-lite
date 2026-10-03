@@ -27,7 +27,4 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	modernc.org/libc v1.77.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 => ../
