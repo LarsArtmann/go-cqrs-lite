@@ -26,8 +26,3 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 )
-
-// Sibling replace for unpublished metaengine symbols (health hooks:
-// OnQuarantined/OnReactivated/OnProbe/OnCatchUp, Hooks.Merge, CurrentHooks);
-// stripped by scripts/tag-release.sh at cut time.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ../

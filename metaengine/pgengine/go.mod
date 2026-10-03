@@ -56,7 +56,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/power-devops/perfstat v0.0.0-20260916203055-22a1a467d9f0 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.8 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.9 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
 	github.com/testcontainers/testcontainers-go v0.44.0 // indirect
@@ -76,9 +76,3 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 )
-
-// Unpublished sibling symbols (ErrPlannedColumnTypeMismatch, PlannedColumnType*) —
-// stripped by scripts/tag-release.sh when metaengine is tagged.
-replace github.com/larsartmann/go-cqrs-lite/metaengine/v4 => ..
-
-replace github.com/larsartmann/go-cqrs-lite/claiming/v4 => ../../claiming
