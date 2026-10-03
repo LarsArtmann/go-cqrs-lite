@@ -1234,7 +1234,24 @@
 
         <h2 id="receipts"><span class="num">11</span>Session receipts (2026-10-03)</h2>
         <div class="card card-solution">
-          <p>To be filled at session close &mdash; every executed fine task lands here with evidence (commands, numbers, links), per the 2026-09-28 receipt convention.</p>
+          <h4>Executed this session (Waves 1&ndash;2 core, all verified)</h4>
+          <table>
+            <thead><tr><th>Task</th><th>Receipt</th><th>Evidence</th></tr></thead>
+            <tbody>
+              <tr><td>T01 truth-strike</td><td>7 rows struck + 1 deleted + W1/W2/W3 rewritten; #49/#50/#51 + owner-bundle rows added; header repointed</td><td>TODO_LIST.md diff; issue states via gh</td></tr>
+              <tr><td>T02 #21</td><td>Found ALREADY FIXED + RELEASED: watermill/v4.6.3 (tagged 10-03 05:49, 11-module batch) writes scalar correlation_id/causation_id via shared writeTracing; proxy resolves v4.6.3; round-trip test green; issue closed</td><td>gh issue close 21; go list -m @latest = v4.6.3</td></tr>
+              <tr><td>T03 #26</td><td>retract v4.2.0 added to stack/postgres/go.mod (+rationale); go mod tidy + build green; 6-line diff; reaches proxy with next tag; issue commented, stays open</td><td>git diff stack/postgres/go.mod; GOWORK=off go build OK</td></tr>
+              <tr><td>T04 wave prep</td><td>NOT NEEDED &mdash; both planned tags (watermill v4.7.0&nearr;v4.6.3, stack/postgres v4.4.2) already existed; CHANGELOG retract entry added</td><td>git ls-remote tags</td></tr>
+              <tr><td>T05 #35</td><td>Closed with receipt: event/v4.13.0 carries RequestScope (6 symbol hits in tag tree request_context.go), proxy-resolvable</td><td>gh issue close 35</td></tr>
+              <tr><td>T06 #51</td><td>A013 inverted (value-embed fires, warning; pointer silent); RULES.md regen-verified in sync; taskmanager golden 10&rarr;0 A013; full cqrs-lint suite 19/19 packages green; issue commented</td><td>go test ./... EXIT=0; rules --markdown diff empty</td></tr>
+              <tr><td>T07 #43</td><td>Found ALREADY FIXED in-tree (positional attachment + historical cues, CHANGELOG entry present); D005 tests green; issue closed with receipt</td><td>go test -run TestD005 ok</td></tr>
+              <tr><td>T08 #49</td><td>CommandRetry + RetryConfig.IsRetryable doc&rsquo;d (Transient-only default + override recipe); FAQ entry; dated correction on archived roadmap; middleware tests green; doc-check 1,169 refs green; changelog-symbols gate green; issue closed</td><td>go test middleware ok; doc-check &check; check-changelog-symbols.sh &check;</td></tr>
+              <tr><td>T11 f59</td><td>SOAK_SKIP_BOLT already documented (gotchas-testing.md:19) &mdash; stale sub-item, no edit needed</td><td>grep</td></tr>
+              <tr><td>T11 f60</td><td>LSP GOTOOLCHAIN: no crush.json/lsp key at expected path; needs a crush-config skill pass &mdash; stays NEXT with finding recorded</td><td>ls ~/.config/crush</td></tr>
+            </tbody>
+          </table>
+          <p><strong>Issues board delta:</strong> 9 open &rarr; 4 open (#26 retract-publish, #27 manifest, #36 stack split, #50 nano-drift); #21 #35 #43 #49 #51 closed with receipts.<br>
+          <strong>Quality gates run:</strong> watermill tests, cqrs-lint full suite (19 pkgs), middleware tests, doc-check (1,169 refs), changelog-symbols (60 citations), stack/postgres tidy+build, BuildFlow fast mode exit 0. Quiet-window legs (T15&ndash;T18) correctly parked: load 12&ndash;22 vs &lt;5 ceiling.</p>
         </div>
 
         <div class="footer">

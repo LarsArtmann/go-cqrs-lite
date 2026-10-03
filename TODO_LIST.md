@@ -94,12 +94,18 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > (graph: [`.d2`](docs/planning/2026-09-30_14-28_github-issue-plan.d2)).
 > Rows below are the living source; the plan is the point-in-time snapshot.
 
-- [ ] 🔥 **W1 — consumer unblock (the 1%):** #26 retract `stack/postgres/v4
-      v4.2.0` (no retract directive as of 2026-09-30) + #21 finish watermill
-      wire fix (typed `Causation` is fixed on master but UNRELEASED — v4.6.2
-      lacks it; scalar `CausationID`/`CorrelationID` still never written by
-      `eventToMessage`) + one release wave (watermill v4.7.0,
-      stack/postgres v4.4.2). — issues #21 #26 _(Effort: M, release mechanics)_
+- [x] 🔥 ~~**W1 — consumer unblock (the 1%):** #26 retract `stack/postgres/v4
+      v4.2.0` + #21 finish watermill wire fix + one release wave (watermill
+      v4.7.0, stack/postgres v4.4.2)~~ — **DONE 2026-10-03 (receipt):** #21 was
+      already fixed AND released — `watermill/v4.6.3` exists on remote + proxy
+      (tagged 2026-10-03 05:49 in the 11-module batch; `eventToMessage` writes
+      scalar `correlation_id`/`causation_id` via shared `writeTracing`,
+      `TestEventToMessage_TypedCausationRoundtrip` green; issue closed with
+      receipt). `stack/postgres/v4.4.2` also already tagged; the missing half —
+      the `retract v4.2.0` directive — added to `stack/postgres/go.mod` this
+      session (tidy+build green; reaches the proxy with the next tag; #26
+      commented, stays open until published). No new wave needed. — issues #21 #26
+      ~~_(Effort: M)_~~ actual: XS
 - [x] 🔥 ~~**W0 — close #25:** requested tag `metaengine/projectionadapter/v4.5.0`
       ALREADY EXISTS on remote (`8c87c48a6`, verified 2026-09-30) — verify
       `OccurredAt` in tag, comment receipt, close. — issue #25~~ — **DONE 2026-10-01
@@ -112,10 +118,12 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       CLOSED 01:34:38Z; shipped as the cqrs-lint v4.13.1 clean-verdict wave,
       CHANGELOG `[Unreleased]` receipt: toolspec detect/repair share the CLI's
       `loadVerdict`, `TestBuildContext_SilentEmptyBrokenGraphFailsLoudly`
-      regression) + #43 D005 stops treating the first version token on a
-      go-cqrs-lite line as the doc's version claim (rule now lives at
-      `cmd/cqrs-lint/pkg/rules/consistency/d005_version.go`; positional-attachment
-      rule proposed). — issue #43 _(Effort: S)_
+      regression) + ~~#43 D005 stops treating the first version token on a
+      go-cqrs-lite line as the doc's version claim~~ DONE 2026-10-03:
+      positional attachment shipped by the same-day CV-feedback session
+      (CHANGELOG `[Unreleased]` entry — connector words + historical lead-ins,
+      both issue repros pinned as unit tests); D005 tests re-run green this
+      session; issue #43 closed with receipt.
 - [ ] **W3 — consumer features (the 20%):** ~~#32 `EventAdapter.LoadByEventID`
       via `EventByIDBackend` capability (storage side exists; lost in wrapper
       layer)~~ DONE 2026-10-01 (issue #32 CLOSED 16:16:39Z; CHANGELOG
@@ -149,26 +157,27 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
 > not previously tracked here. Execution slots live in the 2026-10-03 plan
 > (T06/T08/T10, fine tasks f28–f58).
 
-- [ ] **#49 `middleware.CommandRetry` never retries Conflict — undocumented** —
-      `Family.IsRetryable` is Transient-only and `RetryConfig.IsRetryable`
-      defaults to it, but the archived architecture roadmap claims conflicts are
-      retried; consumers hand-roll per-stream dispatch mutexes instead. Fix:
-      document the default + the sound `IsRetryable` override at the declaration
-      site, FAQ entry, dated correction note on the archived roadmap row
-      (doc-first; reclassifying Conflict stays a design question). — issue #49
-      _(Effort: XS docs)_
+- [x] ~~**#49 `middleware.CommandRetry` never retries Conflict — undocumented**~~ —
+      **DONE 2026-10-03 (same session as triage):** documented on
+      `middleware.CommandRetry` + the `RetryConfig.IsRetryable` field (default is
+      Transient-only; explicit override recipe shown for journal-reloading
+      pipelines), FAQ entry added (command-side pitfalls), dated correction note
+      on the archived 2026-05-01 roadmap family table; middleware module tests
+      green, doc-check 1,169 refs green, CHANGELOG entry gated. Issue closed with
+      receipt. The classification change stays a tracked design question.
 - [ ] **#50 `time.Time` payload fields drift sub-µs through system+sqliteengine
       journals** — ADR-0056 claims nano-exact round-trips; consumer measures up
       to 611ns drift over 20 dispatches (`encodeJSON` journal path;
       `TimeUnixDynamic` is only configured on iroh transports). Fix: in-repo repro
       → trace the loss point → nano-exact fix or scoped ADR-0056 consequence
       amendment + documented tolerance. — issue #50 _(Effort: M)_
-- [ ] **#51 A013 suggests value-embedding `BasicCommand`, which cannot satisfy
-      `command.Command`** — every `BasicCommand` method is pointer-receiver, so
-      following the suggestion breaks compilation, and real consumers emit A013
-      on the sanctioned pointer pattern (7/7 example embeds + the cqrs-gen
-      template). Fix: invert the rule (fire on VALUE embeds), reword the
-      suggestion, RULES.md + goldens. — issue #51 _(Effort: S)_
+- [x] ~~**#51 A013 suggests value-embedding `BasicCommand`, which cannot satisfy
+      `command.Command`**~~ — **DONE 2026-10-03 (same session as triage):** rule
+      inverted (fires on VALUE embeds at warning severity with the
+      compile-failure rationale + pointer-form suggestion; pointer embeds
+      silent), RULES.md/README/catalog re-pinned, taskmanager golden regenerated
+      (10 → 0 A013 findings), both directions unit-pinned, full cqrs-lint suite
+      green (19 packages). Issue closed with receipt.
 - [ ] **Owner decision bundle (28 rulings)** — consolidated table at
       [`docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html`](docs/planning/2026-10-03_17-20_SUPERB-full-todo-pareto-plan.html) §07
       (R1–R28): one place to answer the 34 [BLOCKED] rows (G-T02 direction
