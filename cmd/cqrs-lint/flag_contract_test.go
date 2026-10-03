@@ -98,7 +98,6 @@ func TestPersistentFlagAcceptanceMatrix(t *testing.T) {
 
 	for _, cmdName := range allSubcommands() {
 		for _, fw := range flagsWithValue {
-			cmdName, fw := cmdName, fw
 			t.Run(cmdName+" "+fw[0], func(t *testing.T) {
 				t.Parallel()
 
@@ -129,7 +128,6 @@ func TestLocalFlagsRejectedOnEverySubcommand(t *testing.T) {
 
 	for _, cmdName := range allSubcommands() {
 		for _, flag := range localOnly {
-			cmdName, flag := cmdName, flag
 			t.Run(cmdName+" "+flag, func(t *testing.T) {
 				t.Parallel()
 
@@ -169,7 +167,6 @@ func TestInitPresetE2e(t *testing.T) {
 	t.Parallel()
 
 	for _, name := range presetNamesForTest(t) {
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

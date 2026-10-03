@@ -161,7 +161,7 @@ func TestSQLCheckpointStore_Save_ZeroCheckpointDeletes(t *testing.T) {
 		context.Background(),
 		"my-projection",
 		event.Checkpoint{},
-	) //nolint:exhaustruct_v5 // zero-value is the cleared-checkpoint intent
+	)
 	if err != nil {
 		t.Fatalf("Save zero checkpoint: %v", err)
 	}
