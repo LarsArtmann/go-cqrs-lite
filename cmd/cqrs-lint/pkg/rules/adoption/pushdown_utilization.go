@@ -66,7 +66,8 @@ func (p pushdownScope) detectPushdownSortMisses() []finding.Finding {
 			matched := slices.ContainsFunc(manualSortPatterns, func(pt struct {
 				pkg  string
 				name string
-			}) bool {
+			},
+			) bool {
 				return pkg.Name == pt.pkg && sel.Sel.Name == pt.name
 			})
 			if !matched || len(call.Args) == 0 {
@@ -173,9 +174,9 @@ func (p pushdownScope) sortFinding(call *ast.CallExpr, query analyzer.QueryDeclI
 		WithConfidence(finding.ConfidenceMedium).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion(
-			"Add metaengine.SortOnField["+query.ResultType+"](\"column\", false) to the "+
-				collection+" Query declaration — the declaration allow-lists the sort "+
-				"column; the planner pushes ORDER BY to the engine. "+memoryEngineNote,
+			"Add metaengine.SortOnField[" + query.ResultType + "](\"column\", false) to the " +
+				collection + " Query declaration — the declaration allow-lists the sort " +
+				"column; the planner pushes ORDER BY to the engine. " + memoryEngineNote,
 		).
 		WithSnippet(p.ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()
@@ -211,11 +212,11 @@ func (p pushdownScope) filterFinding(
 		WithConfidence(finding.ConfidenceMedium).
 		WithFixStrategy(finding.FixStrategySuggest).
 		WithSuggestion(
-			"Two layers — the declaration allow-lists columns, read-time binds values: "+
-				"metaengine.FilterOnField["+query.ResultType+"](\""+primary+"\", metaengine.FilterGe) "+
-				"in the declaration, then reader.Scan(ctx, metaengine.WithFilter(\""+primary+
-				"\", metaengine.FilterGe, value), metaengine.WithLimit(pageSize)) at the call site. "+
-				"Filter values are runtime data — never put them in the declaration. "+memoryEngineNote,
+			"Two layers — the declaration allow-lists columns, read-time binds values: " +
+				"metaengine.FilterOnField[" + query.ResultType + "](\"" + primary + "\", metaengine.FilterGe) " +
+				"in the declaration, then reader.Scan(ctx, metaengine.WithFilter(\"" + primary +
+				"\", metaengine.FilterGe, value), metaengine.WithLimit(pageSize)) at the call site. " +
+				"Filter values are runtime data — never put them in the declaration. " + memoryEngineNote,
 		).
 		WithSnippet(p.ctx.SourceLine(pos.Filename, pos.Line)).
 		Build()

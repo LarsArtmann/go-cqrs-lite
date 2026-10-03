@@ -71,63 +71,63 @@ All verified by: `GOWORK=off go build/vet/test ./...` (19/19 packages ok, `cmd/c
 
 **Group A — close this session's loops**
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 1 | Add e2e test: temp `.cqrs-lint.json` with `"format": "json"` → `scorecard`/`doctor` emit JSON (pins README claim) | High | S | Quality |
-| 2 | Single-source per-command supported-format lists (constant feeds validate + WithShort) | High | S | Cleanup |
-| 3 | Document or resolve doctor `--fix`/`--dry-run` name collision with root autofix flags (needs g1 answer) | High | S/M | Bug |
-| 4 | Decide + pin behavior of `--format` on single-render commands (version/explain/changelog): reject loudly vs documented ignore (needs g2 answer) | Medium | S | Feature |
-| 5 | Extend `scripts/smoke-probes.txt` with binary-level consistency probes (rules --format json, scorecard --format csv → rc≠0, version --fix → rc≠0, init --path) | Medium | S | Quality |
-| 6 | Test the `completion` + `help [command]` flag surface under the new scoping | Medium | S | Quality |
-| 7 | Colorize doctor's section headers (or drop `--color` from its documented surface) | Low | M | Feature |
-| 8 | Add `unknown`-sentinel explanation row to `explain` features table (why tracing=on/off but server=true/false) | Medium | S | Documentation |
+| # | Task                                                                                                                                                           | Impact | Effort | Cat           |
+| - | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 1 | Add e2e test: temp `.cqrs-lint.json` with `"format": "json"` → `scorecard`/`doctor` emit JSON (pins README claim)                                              | High   | S      | Quality       |
+| 2 | Single-source per-command supported-format lists (constant feeds validate + WithShort)                                                                         | High   | S      | Cleanup       |
+| 3 | Document or resolve doctor `--fix`/`--dry-run` name collision with root autofix flags (needs g1 answer)                                                        | High   | S/M    | Bug           |
+| 4 | Decide + pin behavior of `--format` on single-render commands (version/explain/changelog): reject loudly vs documented ignore (needs g2 answer)                | Medium | S      | Feature       |
+| 5 | Extend `scripts/smoke-probes.txt` with binary-level consistency probes (rules --format json, scorecard --format csv → rc≠0, version --fix → rc≠0, init --path) | Medium | S      | Quality       |
+| 6 | Test the `completion` + `help [command]` flag surface under the new scoping                                                                                    | Medium | S      | Quality       |
+| 7 | Colorize doctor's section headers (or drop `--color` from its documented surface)                                                                              | Low    | M      | Feature       |
+| 8 | Add `unknown`-sentinel explanation row to `explain` features table (why tracing=on/off but server=true/false)                                                  | Medium | S      | Documentation |
 
 **Group B — cqrs-lint CLI polish**
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 9 | `doctor --format json` schema doc (field table) in advanced.md | Medium | S | Documentation |
-| 10 | Audit remaining accepted-but-ignored flag/command pairs (e.g. `--min-severity` on rules? `--typed-info` on version) and either consume or scope them out | Medium | M | Quality |
-| 11 | `cqrs-lint init` should print the resolved target path with `--preset` presets summary | Low | S | Feature |
-| 12 | Consider `--scorecard-threshold` availability on the root flag path (currently subcommand-only, help says so) | Low | S | Feature |
-| 13 | Add `changelog` fallback message quality check (currently silent `git log -20` fallback if tag missing) | Low | S | Quality |
+| #  | Task                                                                                                                                                     | Impact | Effort | Cat           |
+| -- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 9  | `doctor --format json` schema doc (field table) in advanced.md                                                                                           | Medium | S      | Documentation |
+| 10 | Audit remaining accepted-but-ignored flag/command pairs (e.g. `--min-severity` on rules? `--typed-info` on version) and either consume or scope them out | Medium | M      | Quality       |
+| 11 | `cqrs-lint init` should print the resolved target path with `--preset` presets summary                                                                   | Low    | S      | Feature       |
+| 12 | Consider `--scorecard-threshold` availability on the root flag path (currently subcommand-only, help says so)                                            | Low    | S      | Feature       |
+| 13 | Add `changelog` fallback message quality check (currently silent `git log -20` fallback if tag missing)                                                  | Low    | S      | Quality       |
 
 **Group C — siblings & repo**
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 14 | Run the same subcommand-consistency audit on `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/cqrs-upgrade`, `cmd/doc-check` | High | M | Quality |
-| 15 | Extract the audit method into a reusable checklist (probe matrix: format vocabulary, flag scoping, exit codes, config-file parity, help drift) | Medium | S | Documentation |
-| 16 | Archive finished `docs/status/` reports (gate warning: 21 live > 10 — move to `docs/status/archived/`, index rest) | Medium | S | Cleanup |
-| 17 | Root-cause the daemon-bypasses-lint hole (e1) — pre-commit gate or nightly alert | High | M | Quality |
+| #  | Task                                                                                                                                           | Impact | Effort | Cat           |
+| -- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 14 | Run the same subcommand-consistency audit on `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/cqrs-upgrade`, `cmd/doc-check`                             | High   | M      | Quality       |
+| 15 | Extract the audit method into a reusable checklist (probe matrix: format vocabulary, flag scoping, exit codes, config-file parity, help drift) | Medium | S      | Documentation |
+| 16 | Archive finished `docs/status/` reports (gate warning: 21 live > 10 — move to `docs/status/archived/`, index rest)                             | Medium | S      | Cleanup       |
+| 17 | Root-cause the daemon-bypasses-lint hole (e1) — pre-commit gate or nightly alert                                                               | High   | M      | Quality       |
 
 **Group D — cmdguard upstream (external repo)**
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 18 | Proposal: `WithSharedFlagSubset(cmd, "format", "color", …)` helper so subcommands declare which persistent flags they consume | Medium | M | Feature |
-| 19 | Proposal: derive `WithShort` format lists from a validator declaration (kills list duplication at the framework level) | Medium | M | Feature |
-| 20 | Docs: cmdguard README section on `local:"true"` scoping semantics (currently source-only knowledge) | Medium | S | Documentation |
-| 21 | Proposal: lint-time detector for "persistent flag never read by any subcommand" in host CLIs | Low | L | Feature |
+| #  | Task                                                                                                                          | Impact | Effort | Cat           |
+| -- | ----------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------------- |
+| 18 | Proposal: `WithSharedFlagSubset(cmd, "format", "color", …)` helper so subcommands declare which persistent flags they consume | Medium | M      | Feature       |
+| 19 | Proposal: derive `WithShort` format lists from a validator declaration (kills list duplication at the framework level)        | Medium | M      | Feature       |
+| 20 | Docs: cmdguard README section on `local:"true"` scoping semantics (currently source-only knowledge)                           | Medium | S      | Documentation |
+| 21 | Proposal: lint-time detector for "persistent flag never read by any subcommand" in host CLIs                                  | Low    | L      | Feature       |
 
 **Group E — testing depth**
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 22 | Golden test: root `--help` hand-written usage block vs cobra COMMANDS section (kills help drift class permanently) | High | S | Quality |
-| 23 | Property-ish test: every `validateFormatFlag` supported value actually renders (no supported-value → runtime panic/fallback gap) | Medium | M | Quality |
-| 24 | Add `init --preset <each>` e2e covering all 6 presets generate valid JSONC | Medium | S | Quality |
-| 25 | Test config-file + CLI-flag precedence for `format` on root (flag should win over file) | Medium | S | Quality |
+| #  | Task                                                                                                                             | Impact | Effort | Cat     |
+| -- | -------------------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ------- |
+| 22 | Golden test: root `--help` hand-written usage block vs cobra COMMANDS section (kills help drift class permanently)               | High   | S      | Quality |
+| 23 | Property-ish test: every `validateFormatFlag` supported value actually renders (no supported-value → runtime panic/fallback gap) | Medium | M      | Quality |
+| 24 | Add `init --preset <each>` e2e covering all 6 presets generate valid JSONC                                                       | Medium | S      | Quality |
+| 25 | Test config-file + CLI-flag precedence for `format` on root (flag should win over file)                                          | Medium | S      | Quality |
 
 **Group F — residual observations from the session (smaller)**
 
-| # | Task | Impact | Effort | Cat |
-|---|------|--------|--------|-----|
-| 26 | `rules --json` + `--markdown` both set → markdown wins silently; define + test precedence (or error) | Low | S | Quality |
-| 27 | Search docs for other `--format`-family claims that lack tests (doc-trust sweep, cqrs-lint scope only) | Medium | M | Documentation |
-| 28 | CONTRIBUTING: add "probe snippet" section with the rc-safe pattern from e5 | Low | S | Documentation |
-| 29 | Consider exit-code doc (which errors → which rc) in README CI section | Low | S | Documentation |
-| 30 | Check `--typed-info` surface: keep persistent (correct today) but document why in CONTRIBUTING flag contract | Low | S | Documentation |
+| #  | Task                                                                                                         | Impact | Effort | Cat           |
+| -- | ------------------------------------------------------------------------------------------------------------ | ------ | ------ | ------------- |
+| 26 | `rules --json` + `--markdown` both set → markdown wins silently; define + test precedence (or error)         | Low    | S      | Quality       |
+| 27 | Search docs for other `--format`-family claims that lack tests (doc-trust sweep, cqrs-lint scope only)       | Medium | M      | Documentation |
+| 28 | CONTRIBUTING: add "probe snippet" section with the rc-safe pattern from e5                                   | Low    | S      | Documentation |
+| 29 | Consider exit-code doc (which errors → which rc) in README CI section                                        | Low    | S      | Documentation |
+| 30 | Check `--typed-info` surface: keep persistent (correct today) but document why in CONTRIBUTING flag contract | Low    | S      | Documentation |
 
 ---
 
@@ -139,4 +139,4 @@ All verified by: `GOWORK=off go build/vet/test ./...` (19/19 packages ok, `cmd/c
 
 ---
 
-*Snapshot only — point-in-time report. Waiting for instructions.*
+_Snapshot only — point-in-time report. Waiting for instructions._

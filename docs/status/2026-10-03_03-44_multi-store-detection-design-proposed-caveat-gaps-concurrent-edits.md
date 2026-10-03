@@ -19,7 +19,7 @@
    - Conclusion delivered: `store: "metaengine"` rejected (planner, not a backend; would split-brain with the existing `metaengine: true` feature key + `MetaengineEngines` list); instead infer `store: memory` when metaengine is imported and no other store signal exists.
 2. **"Single or multiple stores?" — answered: runtime is multi-store, the lint model is single.**
    - Verified: `system`'s `DeploymentConfig.Engines` is `map[string]EngineConfig` — named mixed pools (`system/config_types.go:128-130`); journal (stack preset) and projection engines are independent axes.
-   - Identified the semantic mismatch: rule consumers (`IsSQL()` gating F022 etc.) want *exists*-semantics over all stores, not "primary".
+   - Identified the semantic mismatch: rule consumers (`IsSQL()` gating F022 etc.) want _exists_-semantics over all stores, not "primary".
 3. **Concrete 4-point proposal delivered:** (1) engine-less metaengine ⇒ `memory` + engines list augmented; (2) `Stores []StoreKind` with `Store` kept as compat primary; (3) exists-quantified `IsSQL/IsEmbedded/IsDistributed`; (4) config accepts `"store": "x" | ["x","y"]` + explain docs; noted the self-lint side effect (system/metaengine flip none→memory).
 
 ## b) PARTIALLY DONE
@@ -37,7 +37,7 @@
 
 ## d) TOTALLY FUCKED UP
 
-1. **Overclaim in the design answer: called the metaengine⇒memory inference "SOUND, not a heuristic".** It is not airtight: an app can implement `metaengine.Engine` itself (this repo's own test fixtures do exactly that) and persist with zero engine-module imports — that app is `custom`, not `memory`. Correct claim: "memory is the only import-invisible *shipped* backend; in-app custom engines are the standing exception." The worst part: I reasoned about this exact hole while composing the answer and then dropped the caveat from the final text.
+1. **Overclaim in the design answer: called the metaengine⇒memory inference "SOUND, not a heuristic".** It is not airtight: an app can implement `metaengine.Engine` itself (this repo's own test fixtures do exactly that) and persist with zero engine-module imports — that app is `custom`, not `memory`. Correct claim: "memory is the only import-invisible _shipped_ backend; in-app custom engines are the standing exception." The worst part: I reasoned about this exact hole while composing the answer and then dropped the caveat from the final text.
 2. **Repeated report 1's d-4 mistake class within the same session.** Wrote the none→memory flip is "harmless (library preset silences F-rules)" for system/metaengine — but report 1 itself established that submodule runs do NOT inherit the root `.cqrs-lint.json`. The harmlessness claim is therefore directory-dependent (holds only when linting from repo root). A known session fact, inconsistently applied one hour later.
 3. **(Near-miss) Proposed module changes without checking for in-flight work.** The part-2 answer proposes edits to `cmd/cqrs-lint` — the one module with concurrent foreign edits in the tree right now. Caught only by the accidental `git status` before writing THIS report, not before proposing. No damage (nothing implemented), but the collision risk was unchecked.
 
@@ -53,30 +53,30 @@
 
 **New (design-implementation batch), impact-ranked:**
 
-| # | Task | Impact | Effort | Category |
-|---|------|--------|--------|----------|
-| 1 | Resolve blocking decision: implement the 4-point proposal now vs settle config shape first | Critical | — | Decision |
-| 2 | Coordinate with the in-flight `cmd/cqrs-lint` `--format`-consistency work before touching the module | Critical | S | Cleanup |
-| 3 | Blast-radius scan: enumerate every consumer of `fp.Store`, `IsSQL()`, `IsEmbedded()`, `IsDistributed()` (rules, scorecard, presets) | Critical | S | Quality |
-| 4 | Implement memory inference: engine-less metaengine import ⇒ `store: memory`, `MetaengineEngines += "memory"` | High | M | Feature |
-| 5 | Implement `Stores []StoreKind` (detected list; `Store` stays compat primary) | High | M | Feature |
-| 6 | Exists-quantify `IsSQL/IsEmbedded/IsDistributed` over `Stores` | High | S | Feature |
-| 7 | Config union parsing `"store": "x" \| ["x","y"]` + error messages + parse tests | High | M | Feature |
-| 8 | Fixture test: metaengine-core-only consumer ⇒ `store: memory`, `engines: ["memory"]` | High | S | Quality |
-| 9 | Fixture test: `stack/postgres` + `sqliteengine` mixed consumer ⇒ `Stores=[postgres,sqlite]`, primary postgres, exists-SQL true | High | S | Quality |
-| 10 | Verify `system.New` empty-`Engines` default (memory driver?) — closes the proposal premise | Medium | S | Quality |
-| 11 | Update report-1 pins (f-13/f-15): system/metaengine profiles flip none→memory after implementation | High | S | Quality |
-| 12 | Doctor hint for the inference caveat: "memory (built-in driver) OR in-app custom engine" | Medium | S | Feature |
-| 13 | Decide `MetaengineEngines` purity: strictly import-observed vs inference-augmented | Low | S | Decision |
-| 14 | In-app custom-engine fixture: document the known `memory` misdetection or scan for `Engine` implementations | Medium | M | Quality |
-| 15 | `explain`: document multi-store semantics + full precedence chain incl. the memory rule | Medium | S | Documentation |
-| 16 | RULES.md store-detection section (extends report-1 f-12) with the new precedence | Medium | S | Documentation |
-| 17 | Fold report-1 f-4/f-5 (engine self-detection) into the same `detectImports` change if wanted — one coherent edit | Medium | M | Feature |
-| 18 | Check whether `FeatureProfile`/`StoreKind` are golden-tracked by api-stability (tooling exclusion maps) before export changes | Low | S | Quality |
-| 19 | `doctor --evidence` mode (report-1 f-11) — now more valuable with two inference rules | Medium | M | Feature |
-| 20 | Consider v5 migration point: list-only config, scalar deprecated | Low | M | Decision |
-| 21 | Survey non-rule `StoreKind.IsSQL` consumers (scorecard/presets) for exists-semantics fallout | Medium | S | Quality |
-| 22 | Process fix: session known-facts checklist — both d-items this half were recurrences of report-1 lessons | Low | S | Documentation |
+| #  | Task                                                                                                                                | Impact   | Effort | Category      |
+| -- | ----------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------------- |
+| 1  | Resolve blocking decision: implement the 4-point proposal now vs settle config shape first                                          | Critical | —      | Decision      |
+| 2  | Coordinate with the in-flight `cmd/cqrs-lint` `--format`-consistency work before touching the module                                | Critical | S      | Cleanup       |
+| 3  | Blast-radius scan: enumerate every consumer of `fp.Store`, `IsSQL()`, `IsEmbedded()`, `IsDistributed()` (rules, scorecard, presets) | Critical | S      | Quality       |
+| 4  | Implement memory inference: engine-less metaengine import ⇒ `store: memory`, `MetaengineEngines += "memory"`                        | High     | M      | Feature       |
+| 5  | Implement `Stores []StoreKind` (detected list; `Store` stays compat primary)                                                        | High     | M      | Feature       |
+| 6  | Exists-quantify `IsSQL/IsEmbedded/IsDistributed` over `Stores`                                                                      | High     | S      | Feature       |
+| 7  | Config union parsing `"store": "x" \| ["x","y"]` + error messages + parse tests                                                     | High     | M      | Feature       |
+| 8  | Fixture test: metaengine-core-only consumer ⇒ `store: memory`, `engines: ["memory"]`                                                | High     | S      | Quality       |
+| 9  | Fixture test: `stack/postgres` + `sqliteengine` mixed consumer ⇒ `Stores=[postgres,sqlite]`, primary postgres, exists-SQL true      | High     | S      | Quality       |
+| 10 | Verify `system.New` empty-`Engines` default (memory driver?) — closes the proposal premise                                          | Medium   | S      | Quality       |
+| 11 | Update report-1 pins (f-13/f-15): system/metaengine profiles flip none→memory after implementation                                  | High     | S      | Quality       |
+| 12 | Doctor hint for the inference caveat: "memory (built-in driver) OR in-app custom engine"                                            | Medium   | S      | Feature       |
+| 13 | Decide `MetaengineEngines` purity: strictly import-observed vs inference-augmented                                                  | Low      | S      | Decision      |
+| 14 | In-app custom-engine fixture: document the known `memory` misdetection or scan for `Engine` implementations                         | Medium   | M      | Quality       |
+| 15 | `explain`: document multi-store semantics + full precedence chain incl. the memory rule                                             | Medium   | S      | Documentation |
+| 16 | RULES.md store-detection section (extends report-1 f-12) with the new precedence                                                    | Medium   | S      | Documentation |
+| 17 | Fold report-1 f-4/f-5 (engine self-detection) into the same `detectImports` change if wanted — one coherent edit                    | Medium   | M      | Feature       |
+| 18 | Check whether `FeatureProfile`/`StoreKind` are golden-tracked by api-stability (tooling exclusion maps) before export changes       | Low      | S      | Quality       |
+| 19 | `doctor --evidence` mode (report-1 f-11) — now more valuable with two inference rules                                               | Medium   | M      | Feature       |
+| 20 | Consider v5 migration point: list-only config, scalar deprecated                                                                    | Low      | M      | Decision      |
+| 21 | Survey non-rule `StoreKind.IsSQL` consumers (scorecard/presets) for exists-semantics fallout                                        | Medium   | S      | Quality       |
+| 22 | Process fix: session known-facts checklist — both d-items this half were recurrences of report-1 lessons                            | Low      | S      | Documentation |
 
 **Carryover:** report-1 items f-1..f-25 remain open except superseded/extended by #11 (f-13/f-15), #15 (f-12), #17 (f-4/f-5). Highest still-open: f-1 stale untracked binary, f-3 partial-load loudness, f-6/f-7 config-discovery semantics (now doubly relevant — the proposal's "harmless" claim leans on it), f-25 HARVEST of both reports.
 
@@ -88,4 +88,4 @@
 
 ---
 
-*Point-in-time snapshot. Sections (f) of this report and the 02-12 report are NOT yet harvested into TODO_LIST.md/ROADMAP.md — awaiting user instruction per docs-health HARVEST.*
+_Point-in-time snapshot. Sections (f) of this report and the 02-12 report are NOT yet harvested into TODO_LIST.md/ROADMAP.md — awaiting user instruction per docs-health HARVEST._

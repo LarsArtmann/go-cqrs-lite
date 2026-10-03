@@ -87,16 +87,16 @@ the shared flags — but each consumes only its row. Everything else is
 accepted-and-ignored (a config file's `"format": "json"` therefore never
 breaks `cqrs-lint version` in CI):
 
-| Command     | Consumes                     | Accepted-and-ignored                                    |
-| ----------- | ---------------------------- | ------------------------------------------------------- |
-| lint (root) | all shared flags             | —                                                       |
-| `rules`     | `--format`, `--color`        | `--path`, `--min-severity`, `--min-confidence`, `--typed-info` |
-| `doctor`    | `--format`, `--path`         | `--color`, `--min-severity`, `--min-confidence`, `--typed-info` |
-| `scorecard` | `--format`, `--color`, `--path` | `--min-severity`, `--min-confidence`, `--typed-info` |
-| `init`      | `--path`                     | `--format`, `--color`, `--min-severity`, `--min-confidence`, `--typed-info` |
-| `version`   | — (`--verbose` is its own)   | all shared flags                                        |
-| `changelog` | —                            | all shared flags                                        |
-| `explain`   | —                            | all shared flags                                        |
+| Command     | Consumes                        | Accepted-and-ignored                                                        |
+| ----------- | ------------------------------- | --------------------------------------------------------------------------- |
+| lint (root) | all shared flags                | —                                                                           |
+| `rules`     | `--format`, `--color`           | `--path`, `--min-severity`, `--min-confidence`, `--typed-info`              |
+| `doctor`    | `--format`, `--path`            | `--color`, `--min-severity`, `--min-confidence`, `--typed-info`             |
+| `scorecard` | `--format`, `--color`, `--path` | `--min-severity`, `--min-confidence`, `--typed-info`                        |
+| `init`      | `--path`                        | `--format`, `--color`, `--min-severity`, `--min-confidence`, `--typed-info` |
+| `version`   | — (`--verbose` is its own)      | all shared flags                                                            |
+| `changelog` | —                               | all shared flags                                                            |
+| `explain`   | —                               | all shared flags                                                            |
 
 Doctor prints the resolved `--color` value as part of its effective-settings
 panel but does not colorize its output.
@@ -105,15 +105,15 @@ panel but does not colorize its output.
 
 Every failure mode maps to exit 1; only a clean run maps to 0:
 
-| Condition                                             | Exit |
-| ----------------------------------------------------- | ---- |
-| Clean run (no error/critical findings)                | 0    |
-| Error or critical findings                            | 1    |
-| Invalid `--format` value (any command, validated up front) | 1 |
-| Scorecard coverage below `--scorecard-threshold`      | 1    |
-| Stale suppression directives with `--fail-on-stale-suppressions` | 1 |
-| Package load errors (broken build, unreadable path)   | 1    |
-| Unknown flag on a subcommand                          | 1    |
+| Condition                                                        | Exit |
+| ---------------------------------------------------------------- | ---- |
+| Clean run (no error/critical findings)                           | 0    |
+| Error or critical findings                                       | 1    |
+| Invalid `--format` value (any command, validated up front)       | 1    |
+| Scorecard coverage below `--scorecard-threshold`                 | 1    |
+| Stale suppression directives with `--fail-on-stale-suppressions` | 1    |
+| Package load errors (broken build, unreadable path)              | 1    |
+| Unknown flag on a subcommand                                     | 1    |
 
 These are pinned at the binary level by `scripts/check-cqrs-lint-cli.sh`
 (run directly, or via its `--self-test` inside `nix run .#check-release-scripts`).

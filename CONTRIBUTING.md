@@ -350,9 +350,9 @@ readings instead of fragmentation noise.
 
 ## cqrs-lint — Domain-Aware Linter
 
-The linter (`cmd/cqrs-lint`) enforces go-cqrs-lite best practices with 186 rules
-across 10 categories. It auto-detects which modules a consumer uses and adapts
-context-dependent rules accordingly.
+The linter (`cmd/cqrs-lint`) enforces go-cqrs-lite best practices with 200+
+rules across 10 categories. It auto-detects which modules a consumer uses and
+adapts context-dependent rules accordingly.
 
 ```bash
 # Self-lint (library mode — skips consumer-coaching rules)
@@ -363,27 +363,49 @@ cqrs-lint ./...
 cqrs-lint --scorecard ./...        # module-adoption scorecard
 cqrs-lint --health-score ./...     # 0-100 health score with breakdown
 cqrs-lint rules                    # list all rules
-cqrs-lint explain c008             # interactive rule/preset docs
+cqrs-lint explain                  # full config/preset/feature docs
 cqrs-lint doctor                   # detected feature profile
 cqrs-lint init                     # generate .cqrs-lint.json config
 ```
 
 ### Config File (`.cqrs-lint.json`)
 
-JSONC format (comments allowed). Supports presets, disabled rules, and
+JSONC format (comments allowed). Supports presets, rule disables, and
 per-rule config overrides:
 
 ```jsonc
 {
-  // Preset: local-cli | production | library | read-only
+  // Preset: local-cli | production | library | library-framework | read-only | v5-ready
   "preset": "production",
-  // Disable specific rules by ID
-  "disabled": ["c008"],
-  // Per-rule config
-  "c008-ignore-fields": ["ID", "CreatedAt"],
-  "c008-ignore-structs": ["TestEvent"],
+  // Disable rules / per-rule config (under "rules", NOT top-level keys)
+  "rules": {
+    "disable": ["C008"],
+    // C008 (float64-for-money) escapes — field names and whole structs:
+    "c008-ignore-fields": ["CostEstimate", "PriceIndex"],
+    "c008-ignore-structs": ["PricingMetrics"]
+  }
 }
 ```
+
+### Probing the CLI safely (exit codes)
+
+When scripting against the binary, capture the exit code BEFORE any pipe —
+`$(cqrs-lint --format json | head -5)` makes `$?` carry head's status, not
+the linter's:
+
+```bash
+# WRONG: rc is head's exit status
+out=$(cqrs-lint --format json | head -5); rc=$?
+
+# RIGHT: capture first, pipe after
+out=$(cqrs-lint --format json); rc=$?
+printf '%s\n' "$out" | head -5
+```
+
+Exit 0 = clean run; exit 1 = error-severity findings, invalid `--format`,
+scorecard below `--scorecard-threshold`, stale suppressions with
+`--fail-on-stale-suppressions`, or package-load errors. Binary-level pins:
+`scripts/check-cqrs-lint-cli.sh`.
 
 ### Output Formats
 

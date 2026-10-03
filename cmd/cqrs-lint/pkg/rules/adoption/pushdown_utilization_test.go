@@ -50,8 +50,8 @@ func TestF023_UtilizationFiresNamingFilteredFields(t *testing.T) {
 	suggestion := findings[0].Suggestion
 	for _, want := range []string{
 		"FilterOnField[itemView]",
-		"WithFilter",   // read-time binding layer
-		"runtime data", // values never go in the declaration
+		"WithFilter",    // read-time binding layer
+		"runtime data",  // values never go in the declaration
 		"memory engine", // declare-anyway framing
 	} {
 		if !strings.Contains(suggestion, want) {

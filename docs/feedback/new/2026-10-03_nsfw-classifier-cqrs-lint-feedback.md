@@ -167,13 +167,13 @@ different packages could confuse it. Not hit here — noted for the test suite.
 
 ## Summary Scorecard
 
-| Area | Verdict |
-| ---- | ------- |
+| Area                     | Verdict                                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
 | Coaching value (adopted) | 5 adoptions, all genuinely good (StrictApply, schema stamps, Volume, value embed, must*) |
-| False-positive rate | ~10 of ~33 original findings, mostly one root cause (indirection + scope blindness) |
-| Suppression system | Best-in-class; stale detection is a gate we now run always |
-| Config ergonomics | JSONC + doctor + explain: excellent; doctor suggestions need confidence gating |
-| Verdict | Keep in the dev loop; every FP above is fixable without weakening the rules |
+| False-positive rate      | ~10 of ~33 original findings, mostly one root cause (indirection + scope blindness)      |
+| Suppression system       | Best-in-class; stale detection is a gate we now run always                               |
+| Config ergonomics        | JSONC + doctor + explain: excellent; doctor suggestions need confidence gating           |
+| Verdict                  | Keep in the dev loop; every FP above is fixable without weakening the rules              |
 
 — Filed from the nsfw-classifier sessions; full evidence trail:
 `nsfw-classifier/docs/status/2026-10-03_00-56_cqrs-lint-remediation.md`,

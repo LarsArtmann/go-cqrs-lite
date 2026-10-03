@@ -67,7 +67,7 @@ type FeatureProfile struct {
 	// FilterOnField or SortOnField. They make the pushdown profile line
 	// actionable instead of a bare boolean (nsfw-classifier feedback,
 	// 2026-10-03).
-	MetaengineQueryCount        int `json:"metaengineQueryCount,omitempty"`
+	MetaengineQueryCount         int `json:"metaengineQueryCount,omitempty"`
 	MetaengineDeclarativeQueries int `json:"metaengineDeclarativeQueries,omitempty"`
 	// Monetary declares whether the project handles monetary values.
 	// Unknown (the default) lets money rules infer the signal from source

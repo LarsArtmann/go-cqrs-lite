@@ -14,7 +14,7 @@ directory) — this file expands one item into a concrete fix plan.
 ## The gap in one sentence
 
 The entire pushdown coaching family (F022 sort, F023 filter, F024
-pagination, F025 count) treats "imports metaengine" as *adopted* and skips
+pagination, F025 count) treats "imports metaengine" as _adopted_ and skips
 the project — but adopting metaengine and adopting **pushdown** are
 different steps, and the second one is never coached.
 
@@ -138,7 +138,7 @@ aren't)" would give the F0xx findings a landing doc.
 On nsfw-classifier's current tree, after the fix:
 
 - `pushdown: false` remains correct (our readers are point-`Get`; grid is
-  legacy-memory — nothing coachable *yet*, and the profile line should say
+  legacy-memory — nothing coachable _yet_, and the profile line should say
   so per Fix 3).
 - If the grid moves onto `roomItemsQuery` reads with Go-side threshold
   filtering, F023 fires naming `score`/`room_id` with the two-layer
