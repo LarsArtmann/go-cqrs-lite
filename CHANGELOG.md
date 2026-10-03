@@ -4,6 +4,136 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+<!-- release-train 2026-10-03: go-directive minor-form floor wave (92 tags, 13 dependency-ordered batches).
+     Every tagged module ships `go 1.27` (minor-only). The 8 cycle members
+     (command, event, query, schema, snapshot, storage/memory, metaengine,
+     metaengine/sqliteengine) carry minor bumps: their test-only cycle back-edge
+     requires pin pre-1.27.1 sibling tags so tag-time tidy does not re-lift the
+     directive; the pinned floors are all <= 1.26.7. -->
+## [v4.16.0] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `metaengine`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.13.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `cmd/cqrs-lint`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.13.0] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `command`, `event`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.10.3] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `storage`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.10.1] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `system`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.10.0] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `query`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.7.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `metadata`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.7.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `decider`, `middleware`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.3] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `watermill`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `id`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.1] — 2026-10-03
+
+- **go-directive minor-form floor (3 modules: `benchkit`, `catalog`, `record`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.6.0] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `snapshot`, `storage/memory`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.5.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `projectionhost`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.5.1] — 2026-10-03
+
+- **go-directive minor-form floor (4 modules: `dispatcher`, `metaengine/projectionadapter`, `otel`, `scheduling`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.5.0] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `metaengine/sqliteengine`, `schema`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.4.2] — 2026-10-03
+
+- **go-directive minor-form floor (8 modules: `encryption`, `listing`, `stack`, `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `storage/pebble`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.4.1] — 2026-10-03
+
+- **go-directive minor-form floor (6 modules: `cmd/api-stability`, `idempotency/sqlstore`, `metaengine/pebbleengine`, `metaengine/pgengine`, `projection`, `scenario`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.3.3] — 2026-10-03
+
+- **go-directive minor-form floor (3 modules: `stack/sqlite`, `storage/turso`, `transport/http`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.3.2] — 2026-10-03
+
+- **go-directive minor-form floor (10 modules: `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/doc-check`, `deriver`, `graph`, `kv`, `prometheus`, `signing`, `testutil`, `transport/grpc`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.3.1] — 2026-10-03
+
+- **go-directive minor-form floor (8 modules: `idempotency/kvstore`, `metaengine/badgerengine`, `metaengine/bboltengine`, `metaengine/dgraphengine`, `metaengine/duckdbengine`, `metaengine/irohengine`, `metaengine/mysqlengine`, `stack/bench`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.2.3] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `dedup`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.2.2] — 2026-10-03
+
+- **go-directive minor-form floor (9 modules: `integration`, `metaengine/irohengine/quic`, `metaengine/tursoengine`, `stack/bbolt`, `stack/duckdb`, `stack/mysql`, `storage/backuptest`, `storage/bbolt`, `testutil/pgtestcontainer`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.2.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `commandlifecycle`, `commandlifecycle/projections`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.1.2] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `metaengine/graphadapter`, `scheduling/sqlstore`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.1.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.0.4] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `metaengine/irohengine/loopback`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v4.0.1] — 2026-10-03
+
+- **go-directive minor-form floor (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.2.2] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `example/readme-quickstart`, `example/taskmanager`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.2.1] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `example/getting-started`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.1.2] — 2026-10-03
+
+- **go-directive minor-form floor (1 module: `example/metaengine-quickstart`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
+## [v0.1.1] — 2026-10-03
+
+- **go-directive minor-form floor (2 modules: `example/goal-shaped-app`, `example/scheduler-otel-status`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
+
 ## [Unreleased]
 
 ### Changed
