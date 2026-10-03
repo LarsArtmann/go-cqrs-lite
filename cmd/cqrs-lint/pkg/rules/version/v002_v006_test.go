@@ -255,9 +255,44 @@ type FakeStore struct{}
 	ruletest.AssertRule(t, findings, "V005", 0)
 }
 
-// --- V006: mixed-version-pins ---
+// --- V006: divergent-module-pins ---
 
-func TestV006_DetectsMixedVersions(t *testing.T) {
+// ctxWithGoMods writes a temp project root with the given files (path →
+// content, relative to the root) and returns an AnalysisContext over it.
+func ctxWithGoMods(t *testing.T, files map[string]string) *analyzer.AnalysisContext {
+	t.Helper()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+var _ = event.New
+`,
+	})
+
+	root := t.TempDir()
+	for rel, content := range files {
+		full := filepath.Join(root, rel)
+		if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			t.Fatalf("mkdir %s: %v", rel, err)
+		}
+
+		if err := os.WriteFile(full, []byte(content), 0o644); err != nil {
+			t.Fatalf("write %s: %v", rel, err)
+		}
+	}
+
+	ctx.ProjectRoot = root
+
+	return ctx
+}
+
+// TestV006_NoFindingForPerModuleVersionDifferences pins the per-module-tags
+// semantics: different minor/patch versions ACROSS modules in one go.mod are
+// the ecosystem's normal shape (tags are per-module; no unified release
+// exists) and must NOT fire (CV feedback, 2026-10-03).
+func TestV006_NoFindingForPerModuleVersionDifferences(t *testing.T) {
 	t.Parallel()
 
 	ctx := ctxWithGoMod(t, `module example.com/app
@@ -265,26 +300,72 @@ func TestV006_DetectsMixedVersions(t *testing.T) {
 go 1.26.4
 
 require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.1.0
+	github.com/larsartmann/go-cqrs-lite/event/v4 v4.12.0
+	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.0
+	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.0
 )
 `)
 	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
-	ruletest.AssertRule(t, findings, "V006", 1)
+	ruletest.AssertRule(t, findings, "V006", 0)
 }
 
-func TestV006_NoFindingForConsistentVersions(t *testing.T) {
+// TestV006_DetectsCrossModuleDivergentPin pins the workspace-lockstep class:
+// the SAME module path pinned at different versions in different go.mod
+// files must fire, anchored on the stale (lowest) pin.
+func TestV006_DetectsCrossModuleDivergentPin(t *testing.T) {
 	t.Parallel()
 
-	ctx := ctxWithGoMod(t, `module example.com/app
+	ctx := ctxWithGoMods(t, map[string]string{
+		"go.mod": `module example.com/app
 
 go 1.26.4
 
-require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.2.0
-)
-`)
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0
+`,
+		"sub/go.mod": `module example.com/app/sub
+
+go 1.26.4
+
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
+`,
+	})
+	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
+	ruletest.AssertRule(t, findings, "V006", 1)
+
+	for _, f := range findings {
+		if !strings.Contains(f.Message, "event/v4 is pinned at v4.9.0") {
+			t.Errorf("finding must anchor on the stale pin v4.9.0, got: %s", f.Message)
+		}
+
+		if !strings.Contains(f.Message, "sub/go.mod") {
+			t.Errorf("finding must name the divergent file, got: %s", f.Message)
+		}
+
+		if !strings.Contains(f.Suggestion, "@v4.10.0") {
+			t.Errorf("align suggestion must target v4.10.0, got: %s", f.Suggestion)
+		}
+	}
+}
+
+// TestV006_NoFindingForConsistentVersions: the same module pinned at the
+// same version across two go.mod files is the aligned (healthy) shape.
+func TestV006_NoFindingForConsistentVersions(t *testing.T) {
+	t.Parallel()
+
+	ctx := ctxWithGoMods(t, map[string]string{
+		"go.mod": `module example.com/app
+
+go 1.26.4
+
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
+`,
+		"sub/go.mod": `module example.com/app/sub
+
+go 1.26.4
+
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.2.0
+`,
+	})
 	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
 	ruletest.AssertRule(t, findings, "V006", 0)
 }
@@ -305,32 +386,35 @@ require (
 }
 
 // TestV006_MultiDigitMinorAnchorsLowestVersion is the semver-ordering
-// regression: lexicographic sorting ranks v4.10.0 BELOW v4.9.0, which used to
-// anchor the finding on the wrong (newest) line and suggest the older
-// release. With numeric ordering the finding must anchor on v4.9.0 and
-// suggest v4.10.0.
+// regression: lexicographic sorting ranks v4.10.0 BELOW v4.9.0. With numeric
+// ordering the cross-file finding must anchor on v4.9.0 and suggest v4.10.0.
 func TestV006_MultiDigitMinorAnchorsLowestVersion(t *testing.T) {
 	t.Parallel()
 
-	ctx := ctxWithGoMod(t, `module example.com/app
+	ctx := ctxWithGoMods(t, map[string]string{
+		"go.mod": `module example.com/app
 
 go 1.26.4
 
-require (
-	github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
-	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.10.0
-)
-`)
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.10.0
+`,
+		"sub/go.mod": `module example.com/app/sub
+
+go 1.26.4
+
+require github.com/larsartmann/go-cqrs-lite/event/v4 v4.9.0
+`,
+	})
 	findings := ruletest.RunDetector(t, version.NewV006Detector(ctx))
 	ruletest.AssertRule(t, findings, "V006", 1)
 
 	for _, f := range findings {
-		if !strings.Contains(f.Message, "event/v4 is on v4.9.0") {
+		if !strings.Contains(f.Message, "event/v4 is pinned at v4.9.0") {
 			t.Errorf("finding must anchor on the lowest version v4.9.0, got: %s", f.Message)
 		}
 
 		if !strings.Contains(f.Suggestion, "@v4.10.0") {
-			t.Errorf("upgrade suggestion must target v4.10.0, got: %s", f.Suggestion)
+			t.Errorf("align suggestion must target v4.10.0, got: %s", f.Suggestion)
 		}
 	}
 }
