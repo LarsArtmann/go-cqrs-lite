@@ -114,6 +114,26 @@ func main() {}
 	ruletest.AssertRule(t, findings, "F003", 0)
 }
 
+func TestF003_TracingOffPinIsADecline(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import "net/http"
+
+func main() {
+	http.ListenAndServe(":8080", nil)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+	ctx.FeatureProfile.Tracing = analyzer.TracingOff
+
+	findings := ruletest.RunDetector(t, adoption.NewF003Detector(ctx))
+	ruletest.AssertRule(t, findings, "F003", 0)
+}
+
 func TestF004_ServerWithoutPrometheus(t *testing.T) {
 	t.Parallel()
 

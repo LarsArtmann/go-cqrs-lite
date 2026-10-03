@@ -11,9 +11,12 @@ import (
 )
 
 // F026 detects CQRS projects that use metaengine.NewReader but never call
-// metaengine.WithPrefetch. Without prefetch, every Scan/Get call hits the
-// underlying store individually. WithPrefetch batches reads to reduce
-// round-trips, especially important for SQL-backed engines.
+// metaengine.WithPrefetch. Without prefetch, every Scan page fetch hits the
+// underlying store individually. WithPrefetch batches cursor-page reads to
+// reduce round-trips, especially important for SQL-backed engines. Point-Get
+// reads do not use the prefetch cache (typed_reader.go), so readers that only
+// Get are not coached — the gate is an actual .Scan call site
+// (nsfw-classifier feedback, 2026-10-03).
 //
 // Fires only when the project imports metaengine (HasMetaengine).
 //
@@ -38,6 +41,10 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				if !hasScanCall(sc.files) {
+					continue
+				}
+
 				pos, ok := firstNewReaderPosIn(ctx.Fset, sc.files)
 				if !ok {
 					continue
@@ -46,10 +53,11 @@ func NewF026Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				out = append(out, singleInfoFinding(
 					ctx,
 					"F026",
-					"metaengine.NewReader used but WithPrefetch never called — "+
-						"every Scan/Get hits the underlying store individually",
-					"Pass metaengine.WithPrefetch(n) to reader.Scan/Get calls to "+
-						"batch reads and reduce round-trips, especially for SQL engines. "+
+					"metaengine.NewReader used for Scans but WithPrefetch never called — "+
+						"every Scan page fetch hits the underlying store individually",
+					"Pass metaengine.WithPrefetch(n) to reader.Scan calls to "+
+						"batch cursor-page reads and reduce round-trips, especially "+
+						"for SQL engines. Point-Get only readers need no prefetch. "+
 						"Example: reader.Scan(ctx, metaengine.WithPrefetch(100), "+
 						"metaengine.WithLimit(50))",
 					pos, finding.ConfidenceLow,

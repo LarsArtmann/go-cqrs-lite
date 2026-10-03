@@ -145,13 +145,12 @@ func detectFeatureSignals(
 	fp.HasSoftDelete = detectSoftDeleteRegistry(registry)
 	fp.Domain = detectDomainRegistry(registry)
 
-	// Resolve tracing.
-	if fp.Tracing == TracingUnknown {
-		if hasOTelImport {
-			fp.Tracing = TracingOn
-		} else {
-			fp.Tracing = TracingOff
-		}
+	// Resolve tracing. Absence of OTel evidence stays Unknown: only a config
+	// pin produces TracingOff, so "off" is always an explicit decline that
+	// adoption coaching (F003) honors — the same contract features.monetary
+	// uses for C008 (nsfw-classifier feedback, 2026-10-03).
+	if fp.Tracing == TracingUnknown && hasOTelImport {
+		fp.Tracing = TracingOn
 	}
 
 	// Resolve snapshot.
