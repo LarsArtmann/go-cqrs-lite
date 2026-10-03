@@ -116,15 +116,36 @@ func TestPersistentFlagAcceptanceMatrix(t *testing.T) {
 // TestLocalFlagsRejectedOnEverySubcommand pins the scoping half: lint-run
 // flags without a subcommand counterpart are unknown-flag errors on EVERY
 // subcommand. (--dry-run exists on doctor, --verbose on version, --json/
-// --markdown on rules — those are command-local and excluded here.)
+// --markdown on rules, --fail-on-stale-suppressions on doctor — those are
+// command-local and excluded here.)
 func TestLocalFlagsRejectedOnEverySubcommand(t *testing.T) {
 	t.Parallel()
 
+	// --fail-on-stale-suppressions is excluded from this matrix: doctor
+	// defines its OWN flag of the same name with REAL semantics (audit plus
+	// non-zero exit on stale suppressions). The root-local copy stays
+	// lint-run-only; the name collision is deliberate so the documented CI
+	// invocation `cqrs-lint doctor --fail-on-stale-suppressions` enforces
+	// instead of erroring — binaries between the root-flag scoping change
+	// and this doctor flag silently no-op'd that invocation, which is the
+	// worst outcome for a gate.
 	localOnly := []string{
 		"--fix", "--fast", "--only", "--exclude", "--exclude-rules", "--quiet",
 		"--scorecard", "--fp-suspects", "--show-suppressed", "--strict-load",
-		"--fail-on-stale-suppressions", "--adoption", "--health-score", "--group-by",
+		"--adoption", "--health-score", "--group-by",
 	}
+
+	// Doctor + fail-on-stale must still REJECT a root-local flag name that
+	// doctor does not define — pin with a sibling lint-only flag instead.
+	t.Run("doctor --strict-load", func(t *testing.T) {
+		t.Parallel()
+
+		cli := newTestCLI(t)
+		err := cli.ExecuteWithArgs(context.Background(), []string{"doctor", "--strict-load"})
+		if err == nil || !strings.Contains(strings.ToLower(err.Error()), "unknown flag") {
+			t.Errorf("doctor --strict-load: expected unknown-flag error, got: %v", err)
+		}
+	})
 
 	for _, cmdName := range allSubcommands() {
 		for _, flag := range localOnly {
