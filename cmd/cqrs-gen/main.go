@@ -127,6 +127,8 @@ func run(handlerType, outputFile, pkg string, paths []string) error {
 
 	fmt.Printf("generated %d handlers → %s\n", len(entries), outputFile)
 	return nil
+}
+
 const (
 	commandImports = `import (
 	"context"

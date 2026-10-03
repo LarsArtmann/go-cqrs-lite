@@ -126,3 +126,16 @@ Nothing of mine shipped broken. Honest ledger of mid-session damage control:
 1. **Go-directive floor:** the release train ships `go 1.27` (minor) while `check-go-version.sh` demands `1.27.1` — which is the intended steady state? (Determines whether the gate's floor or ~97 go.mods change.)
 2. **cmdguard upstream:** green light to file the 4 proposals (docs PR + 3 issues) from `docs/planning/2026-10-03_cmdguard-upstream-proposals-draft.md`?
 3. **Taskmanager golden during trains:** filter V-series from the golden, accept regen-per-train, or move V003/V006 to a version-stable message shape?
+
+---
+
+## Post-train addendum (2026-10-03 ~07:20, follow-up session)
+
+The train parked (both fiction tags exist); §f items 1–2 are DONE:
+
+1. **cqrs-bench format validation — SHIPPED.** `cmd/cqrs-bench/formats.go` (per-command vocabularies: run / compare+sweep / soak subset / layout) + `validateFormat` as the FIRST handler statement in run/compare/sweep/layout — typos now fail in milliseconds with `invalid --format "xmml" for run (supported: …)` instead of silently rendering text after the benchmark. Also fixed the advertised-but-fake combos: `run --format markdown` (and soak markdown) render real markdown tables via shared `writeMarkdownTable` (the dedup killed the new art-dupl clone group rather than annotating it), `layout --format table` renders a real bordered table (`buildLayoutTable`). Flag help + longDesc now scope benchstat/manifest to run. 8 new tests in `formats_test.go` (unit accept-walk + e2e per subcommand incl. soak-subset rejection). Full suite green (81s), lint 0 issues.
+2. **Taskmanager golden — REGENERATED** post-train: exactly one line churned (V006 version list), as predicted in §g.3; full cqrs-lint suite green (112s).
+3. **Incident found + repaired en route:** the 06:57 auto-commit had absorbed a corrupted `.golangci.yml` (depguard allow-list deleted, gci re-added to formatters — no settings). The `#check-lint-config` hash-golden tripwire caught it; restored from the last golden-matching commit (`git restore --source=18fceb808`), gate green again.
+4. **md-go baseline re-pinned** (105): the nsfw-classifier feedback doc was archived by its owner with 2 unparseable fences + one archived planning doc error — both archived-path errors, the gate's documented remedy.
+5. **cqrs-gen/main.go split** (357 → 157 + `scan.go` 205): the M06 fix had pushed it past the 350-line ratchet; scan family extracted, all tests green.
+6. Still red / still owner-gated: `stale.go` 489→533 (concurrent agent's growth, untouched), `check-go-version.sh` (§g.1 decision), cmdguard filing (§g.2), nightly-lint timer install.
