@@ -43,11 +43,16 @@ func parseColorMode(s string) output.ColorMode {
 // values (case-insensitive). Every command that consumes the shared --format
 // flag calls this BEFORE any package loading so an out-of-vocabulary value
 // fails fast and loudly instead of silently falling back to text rendering.
-// The empty string is rejected too: the flag always carries a default
-// ("text"), so an empty value means a scripting bug, not intent.
+// The empty string is the AppConfig zero value and means "default text" —
+// programmatic callers constructing AppConfig{} must stay valid.
 func validateFormatFlag(format string, supported ...string) error {
+	f := strings.ToLower(strings.TrimSpace(format))
+	if f == "" {
+		return nil
+	}
+
 	for _, s := range supported {
-		if strings.EqualFold(strings.TrimSpace(format), s) {
+		if f == s {
 			return nil
 		}
 	}
