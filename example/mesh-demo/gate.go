@@ -94,20 +94,24 @@ func runGate() error {
 	defer cancel()
 
 	fmt.Println("==> composing orders with a typo'd import (invoice.issud)...")
+
 	_, err := system.New(ctx, ordersGateDomain(typoUniverse()), gateDeployment())
 	if !errors.Is(err, system.ErrDanglingEventSubscription) {
 		return fmt.Errorf(
-			"gate demo: typo composition: want ErrDanglingEventSubscription, got %v",
+			"gate demo: typo composition: want ErrDanglingEventSubscription, got %w",
 			err,
 		)
 	}
+
 	fmt.Printf("    caught at composition: %v\n", err)
 
 	fmt.Println("==> composing orders with the contract universe...")
+
 	sys, err := system.New(ctx, ordersGateDomain(contractUniverse()), gateDeployment())
 	if err != nil {
 		return fmt.Errorf("gate demo: contract composition: %w", err)
 	}
+
 	fmt.Println("    composed cleanly — folds wired, lookup routed")
 
 	return sys.Close()

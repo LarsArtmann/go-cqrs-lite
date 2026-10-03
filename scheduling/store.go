@@ -15,6 +15,8 @@ import (
 // TimerMarker is a phantom type for branding [TimerID].
 type TimerMarker struct{}
 
+func (TimerMarker) Name() string { return "TimerMarker" }
+
 // TimerID uniquely identifies a scheduled timer.
 //
 // It is string-backed (the id.StreamID pattern), NOT ULID-backed: timer IDs

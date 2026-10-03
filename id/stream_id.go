@@ -14,6 +14,8 @@ import (
 // Export it so domain packages can create domain-specific IDs interoperable with StreamID.
 type StreamMarker struct{}
 
+func (StreamMarker) Name() string { return "StreamMarker" }
+
 // StreamID is a strongly-typed identifier for an event stream.
 //
 // # Why string-backed, not ULID-backed

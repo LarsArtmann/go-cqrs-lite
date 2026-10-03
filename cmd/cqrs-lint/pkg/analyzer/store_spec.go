@@ -2,7 +2,9 @@ package analyzer
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	jsonv2 "encoding/json/v2"
@@ -45,9 +47,7 @@ func (s StoreSpec) String() string {
 func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 	trimmed := bytes.TrimLeft(data, " \t\r\n")
 	if len(trimmed) == 0 {
-		return fmt.Errorf(
-			"store: expected a store name string or an array of store names, got empty value",
-		)
+		return errors.New("store: expected a store name string or an array of store names, got empty value")
 	}
 	switch trimmed[0] {
 	case '"':
@@ -66,7 +66,7 @@ func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 			return fmt.Errorf("store: %w", err)
 		}
 		if len(kinds) == 0 {
-			return fmt.Errorf("store: array form must list at least one backend")
+			return errors.New("store: array form must list at least one backend")
 		}
 		for _, kind := range kinds {
 			if err := validateStoreKind(kind); err != nil {
@@ -84,10 +84,8 @@ func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 }
 
 func validateStoreKind(kind StoreKind) error {
-	for _, valid := range AllStoreKinds() {
-		if kind == valid {
-			return nil
-		}
+	if slices.Contains(AllStoreKinds(), kind) {
+		return nil
 	}
 	return fmt.Errorf(
 		"store: unknown backend %q (valid: %s)",
