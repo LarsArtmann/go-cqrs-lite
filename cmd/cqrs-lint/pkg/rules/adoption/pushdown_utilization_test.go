@@ -38,8 +38,10 @@ func TestF023_UtilizationFiresNamingFilteredFields(t *testing.T) {
 	ruletest.AssertRule(t, findings, "F023", 1)
 
 	if len(findings) != 1 {
-		t.Fatalf("expected exactly 1 finding (small-volume and declarative queries are negative controls), got %d",
-			len(findings))
+		t.Fatalf(
+			"expected exactly 1 finding (small-volume and declarative queries are negative controls), got %d",
+			len(findings),
+		)
 	}
 	message := findings[0].Message
 	for _, want := range []string{"roomItemsCollection", "RoomID", "Score"} {

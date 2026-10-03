@@ -127,7 +127,10 @@ func fold(s State, evt event.Event) (State, error) {
 	}
 
 	if len(findings) != 0 {
-		t.Errorf("expected 0 findings (fold handles deletion via const case), got %d", len(findings))
+		t.Errorf(
+			"expected 0 findings (fold handles deletion via const case), got %d",
+			len(findings),
+		)
 	}
 }
 

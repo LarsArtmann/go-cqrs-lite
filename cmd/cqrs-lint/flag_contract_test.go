@@ -186,7 +186,12 @@ func TestInitPresetE2e(t *testing.T) {
 
 			var cfg AppConfig
 			if _, err := (JSONCLoader{}).Load(data, &cfg); err != nil {
-				t.Fatalf("preset %q config rejected by JSONCLoader: %v\nconfig:\n%s", name, err, data)
+				t.Fatalf(
+					"preset %q config rejected by JSONCLoader: %v\nconfig:\n%s",
+					name,
+					err,
+					data,
+				)
 			}
 			if string(cfg.Preset) != name {
 				t.Errorf("preset %q: loaded config carries %q", name, cfg.Preset)

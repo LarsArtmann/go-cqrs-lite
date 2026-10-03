@@ -126,7 +126,10 @@ func (p pushdownScope) detectPushdownFilterMisses() []finding.Finding {
 // is by R type name: when several declarations share the same R the site
 // cannot be attributed to one collection, so coaching stays silent (a missed
 // hint, never a wrong-collection finding).
-func (p pushdownScope) queryForElement(gf *analyzer.GoFile, expr ast.Expr) (analyzer.QueryDeclInfo, bool) {
+func (p pushdownScope) queryForElement(
+	gf *analyzer.GoFile,
+	expr ast.Expr,
+) (analyzer.QueryDeclInfo, bool) {
 	typeName := elementTypeName(gf, expr)
 	if typeName == "" {
 		return analyzer.QueryDeclInfo{}, false
@@ -156,7 +159,10 @@ func (p pushdownScope) queryForElement(gf *analyzer.GoFile, expr ast.Expr) (anal
 	return match, found
 }
 
-func (p pushdownScope) sortFinding(call *ast.CallExpr, query analyzer.QueryDeclInfo) finding.Finding {
+func (p pushdownScope) sortFinding(
+	call *ast.CallExpr,
+	query analyzer.QueryDeclInfo,
+) finding.Finding {
 	pos := p.ctx.Fset.Position(call.Pos())
 	collection := query.Collection
 	if collection == "" {
