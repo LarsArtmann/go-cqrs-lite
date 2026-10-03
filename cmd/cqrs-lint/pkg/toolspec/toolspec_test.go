@@ -286,7 +286,11 @@ func TestDetectFailsLoudWhenNothingLoads(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := os.WriteFile(filepath.Join(dir, "broken.go"), []byte("package main\n\nfunc {{{ broken\n"), 0o600); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, "broken.go"),
+		[]byte("package main\n\nfunc {{{ broken\n"),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -320,7 +324,11 @@ func TestDetectConsumerWithPartialLoadErrorsStillAnalyzes(t *testing.T) {
 	}
 
 	broken := "package broken\n\nfunc {{{ broken\n"
-	if err := os.WriteFile(filepath.Join(dir, "broken", "broken.go"), []byte(broken), 0o600); err != nil {
+	if err := os.WriteFile(
+		filepath.Join(dir, "broken", "broken.go"),
+		[]byte(broken),
+		0o600,
+	); err != nil {
 		t.Fatal(err)
 	}
 

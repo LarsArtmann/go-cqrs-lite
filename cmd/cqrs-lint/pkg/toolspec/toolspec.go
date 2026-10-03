@@ -139,7 +139,8 @@ func loadVerdict(actx *analyzer.AnalysisContext) (clean bool, err error) {
 			"cqrs-lint: could not analyze any packages: %d package(s) failed to load (first: %s) — "+
 				"the project likely does not compile; fix the build errors (try `go build ./...`) and re-run. "+
 				"This is NOT a clean bill of health",
-			len(actx.LoadErrors), detail,
+			len(actx.LoadErrors),
+			detail,
 		)
 	}
 

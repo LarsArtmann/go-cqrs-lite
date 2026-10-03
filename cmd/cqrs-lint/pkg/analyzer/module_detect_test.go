@@ -178,8 +178,12 @@ func TestMatchModule_EvidenceDeterministic(t *testing.T) {
 	const wantEvidence = "github.com/larsartmann/go-cqrs-lite/catalog/v4"
 
 	orders := [][]int{
-		{0, 1, 2}, {0, 2, 1}, {1, 0, 2},
-		{1, 2, 0}, {2, 0, 1}, {2, 1, 0},
+		{0, 1, 2},
+		{0, 2, 1},
+		{1, 0, 2},
+		{1, 2, 0},
+		{2, 0, 1},
+		{2, 1, 0},
 	}
 
 	for _, order := range orders {
