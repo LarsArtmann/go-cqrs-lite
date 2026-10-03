@@ -65,9 +65,10 @@ func NewF031Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 // firstScanWithoutLimitPosIn returns the position of the first non-test
 // method call named Scan whose arguments carry no WithLimit option. The
-// check is syntactic (no type info): a `X.Scan(...)` without WithLimit in
-// a metaengine-importing project is the reader scan with overwhelming
-// probability, hence the low catalog confidence.
+// receiver's static type is consulted when type info is available: only
+// metaengine readers (*TypedReader and friends) are coached — bufio.Scanner
+// and database/sql rows.Scan loops must not fire (nsfw-classifier feedback,
+// 2026-10-03). Unresolvable receivers keep the legacy syntactic behavior.
 func firstScanWithoutLimitPosIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
@@ -94,6 +95,10 @@ func firstScanWithoutLimitPosIn(
 				return true
 			}
 
+			if !scanReceiverIsMetaengine(gf, sel) {
+				return true
+			}
+
 			if slices.ContainsFunc(call.Args, callsWithLimit) {
 				return true
 			}
@@ -109,6 +114,23 @@ func firstScanWithoutLimitPosIn(
 	}
 
 	return token.Position{}, false
+}
+
+// scanReceiverIsMetaengine reports whether the Scan receiver resolves to a
+// metaengine type. Unresolvable receivers (no type info for the expression)
+// are conservatively treated as metaengine candidates to preserve the rule's
+// legacy syntactic coverage.
+func scanReceiverIsMetaengine(gf *analyzer.GoFile, sel *ast.SelectorExpr) bool {
+	if gf.Pkg == nil || gf.Pkg.TypesInfo == nil {
+		return true
+	}
+
+	recvType := gf.Pkg.TypesInfo.TypeOf(sel.X)
+	if recvType == nil {
+		return true
+	}
+
+	return strings.Contains(recvType.String(), "metaengine.")
 }
 
 // callsWithLimit reports whether the expression references a WithLimit

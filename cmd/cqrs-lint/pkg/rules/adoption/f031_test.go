@@ -30,6 +30,32 @@ func readAll(ctx context.Context, r *metaengine.TypedReader[int]) {
 	ruletest.AssertRule(t, findings, "F031", 1)
 }
 
+func TestF031_BufioScannerScanDoesNotFire(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+import (
+	"bufio"
+	"os"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
+
+func readLines() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		_ = scanner.Text()
+	}
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF031Detector(ctx))
+	ruletest.AssertRule(t, findings, "F031", 0)
+}
+
 func TestF031_WithLimitPresentStaysSilent(t *testing.T) {
 	t.Parallel()
 

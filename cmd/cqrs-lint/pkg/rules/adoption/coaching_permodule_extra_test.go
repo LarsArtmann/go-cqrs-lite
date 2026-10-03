@@ -347,9 +347,14 @@ func TestF026_PerModuleMetaengineIsolation(t *testing.T) {
 import _ "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 `
 	exampleSrc := `package main
-import "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+import (
+	"context"
+
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
+)
 func main() {
-	metaengine.NewReader[string](nil, "col")
+	r := metaengine.NewReader[string](nil, "col")
+	_, _ = r.Scan(context.Background())
 }
 `
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
