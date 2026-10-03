@@ -16,7 +16,12 @@ func TestStoreSpecUnmarshalScalarAndArray(t *testing.T) {
 		fails bool
 	}{
 		{"scalar", `{"store":"sqlite"}`, []StoreKind{StoreSQLite}, false},
-		{"array", `{"store":["postgres","sqlite"]}`, []StoreKind{StorePostgres, StoreSQLite}, false},
+		{
+			"array",
+			`{"store":["postgres","sqlite"]}`,
+			[]StoreKind{StorePostgres, StoreSQLite},
+			false,
+		},
 		{"array single", `{"store":["pebble"]}`, []StoreKind{StorePebble}, false},
 		{"empty array", `{"store":[]}`, nil, true},
 		{"number", `{"store":42}`, nil, true},

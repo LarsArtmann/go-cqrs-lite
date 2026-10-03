@@ -19,8 +19,15 @@ import (
 // because the pushdown requires a SQL engine. Memory and Pebble stores cannot
 // push sort to the storage layer.
 //
+// Metaengine IMPORTERS switch to utilization coaching (pushdown_utilization.go):
+// sort sites over a registered Query's R type whose declaration lacks
+// SortOnField, gated on the declaration's Volume (nsfw-classifier feedback,
+// 2026-10-03).
+//
 //nolint:ireturn // factory returns public interface
 func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	scope := newPushdownScope(ctx)
+
 	return finding.NamedDetectorFunc(
 		"F022-manual-sort-no-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
@@ -28,6 +35,7 @@ func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, sc := range coachingScopes(ctx) {
 				if importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					out = append(out, scope.detectPushdownSortMisses()...)
 					continue
 				}
 

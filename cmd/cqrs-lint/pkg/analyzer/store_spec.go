@@ -45,7 +45,9 @@ func (s StoreSpec) String() string {
 func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 	trimmed := bytes.TrimLeft(data, " \t\r\n")
 	if len(trimmed) == 0 {
-		return fmt.Errorf("store: expected a store name string or an array of store names, got empty value")
+		return fmt.Errorf(
+			"store: expected a store name string or an array of store names, got empty value",
+		)
 	}
 	switch trimmed[0] {
 	case '"':
@@ -74,7 +76,10 @@ func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 		s.Kinds = kinds
 		return nil
 	default:
-		return fmt.Errorf("store: expected a store name string or an array of store names, got %q", trimmed[0])
+		return fmt.Errorf(
+			"store: expected a store name string or an array of store names, got %q",
+			trimmed[0],
+		)
 	}
 }
 
@@ -84,7 +89,11 @@ func validateStoreKind(kind StoreKind) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("store: unknown backend %q (valid: %s)", kind, joinStoreKindNames(AllStoreKinds()))
+	return fmt.Errorf(
+		"store: unknown backend %q (valid: %s)",
+		kind,
+		joinStoreKindNames(AllStoreKinds()),
+	)
 }
 
 func joinStoreKindNames(kinds []StoreKind) string {

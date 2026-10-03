@@ -62,6 +62,13 @@ type FeatureProfile struct {
 	// MetaenginePushdown is true when the project uses FilterOnField or
 	// SortOnField — indicating it has adopted declarative pushdown.
 	MetaenginePushdown bool `json:"metaenginePushdown"`
+	// MetaengineQueryCount is the number of metaengine.Query declarations
+	// found; MetaengineDeclarativeQueries counts those carrying
+	// FilterOnField or SortOnField. They make the pushdown profile line
+	// actionable instead of a bare boolean (nsfw-classifier feedback,
+	// 2026-10-03).
+	MetaengineQueryCount        int `json:"metaengineQueryCount,omitempty"`
+	MetaengineDeclarativeQueries int `json:"metaengineDeclarativeQueries,omitempty"`
 	// Monetary declares whether the project handles monetary values.
 	// Unknown (the default) lets money rules infer the signal from source
 	// heuristics; "on"/"off" are explicit user declarations that override
@@ -100,10 +107,23 @@ func (fp FeatureProfile) String() string {
 	if len(fp.MetaengineEngines) > 0 {
 		_, _ = fmt.Fprintf(&b, "  engines:     %s\n", strings.Join(fp.MetaengineEngines, ", "))
 		if len(fp.MetaengineEngines) == 1 && fp.MetaengineEngines[0] == "memory" {
-			_, _ = fmt.Fprintln(&b, "               (built-in driver, inferred — or an in-app custom engine)")
+			_, _ = fmt.Fprintln(
+				&b,
+				"               (built-in driver, inferred — or an in-app custom engine)",
+			)
 		}
 	}
-	_, _ = fmt.Fprintf(&b, "  pushdown:    %t\n", fp.MetaenginePushdown)
+	if fp.MetaengineQueryCount > 0 {
+		if fp.MetaenginePushdown {
+			_, _ = fmt.Fprintf(&b, "  pushdown:    %t (%d/%d queries declarative)\n",
+				fp.MetaenginePushdown, fp.MetaengineDeclarativeQueries, fp.MetaengineQueryCount)
+		} else {
+			_, _ = fmt.Fprintf(&b, "  pushdown:    false (%d queries, 0 declarative — declare "+
+				"FilterOnField/SortOnField; free on the memory engine)\n", fp.MetaengineQueryCount)
+		}
+	} else {
+		_, _ = fmt.Fprintf(&b, "  pushdown:    %t\n", fp.MetaenginePushdown)
+	}
 	_, _ = fmt.Fprintf(&b, "monetary:      %s\n", fp.Monetary)
 	return b.String()
 }

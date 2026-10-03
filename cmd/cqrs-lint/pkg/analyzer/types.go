@@ -62,6 +62,15 @@ type FoldInfo struct {
 	// SwitchTagExpr is the source text of the switch tag (e.g.
 	// "evt.Type()"), reused inside the generated fmt.Errorf argument.
 	SwitchTagExpr string
+	// SwitchCaseValues lists the raw values of the switch's case clauses —
+	// string literals verbatim, identifier arguments by name (resolved
+	// against TypeConstValues in ResolveFoldTombstoneCases).
+	SwitchCaseValues []string
+	// HandlesTombstoneEvent is set by ResolveFoldTombstoneCases when any case
+	// clause (after const resolution) names a tombstone-like event type.
+	// A012 must not coach folds that already handle deletion (ADR-0114
+	// event-type-based detection; nsfw-classifier feedback, 2026-10-03).
+	HandlesTombstoneEvent bool
 }
 
 // DeciderInfo describes a decider construct.

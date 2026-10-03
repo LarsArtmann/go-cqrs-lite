@@ -25,6 +25,7 @@ func scanFile(ctx *AnalysisContext, gf *GoFile) {
 			trackVarAssignments(node, varAssigns)
 		case *ast.CallExpr:
 			scanCallExpr(ctx, gf, node)
+			scanMetaengineQueryDecl(ctx, gf, node)
 			capturePayloadTypeFromVar(ctx, gf, node, varAssigns)
 		case *ast.TypeAssertExpr:
 			scanTypeAssertion(ctx, node)

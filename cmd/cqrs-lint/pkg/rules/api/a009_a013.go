@@ -202,6 +202,15 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				// The fold's switch already handles a tombstone-like event type
+				// (case values resolved against event.Type constants in
+				// ResolveFoldTombstoneCases) — ADR-0114's event-type-based
+				// deletion handling is present; coaching would be a false
+				// positive (nsfw-classifier feedback, 2026-10-03).
+				if fold.HandlesTombstoneEvent {
+					continue
+				}
+
 				// Evaluate per-module: only flag folds in modules that emit
 				// tombstone-like events. Using the primary profile would flag
 				// library folds when an example sub-module has soft-delete.

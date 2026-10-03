@@ -50,7 +50,9 @@ func BuildContextFromSource(t *testing.T, sources map[string]string) *AnalysisCo
 
 	ctx.FeatureProfile = DetectFeatures(ctx)
 	ResolveRegisteredTypeConsts(ctx.Registry)
+	ResolveHelperEmitCalls(ctx)
 	ResolveEmittedEventTypeConsts(ctx.Registry)
+	ResolveFoldTombstoneCases(ctx.Registry)
 	ResolveHandlerMethods(ctx)
 	ResolveTransportAdapters(ctx)
 

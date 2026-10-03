@@ -356,7 +356,10 @@ func FormatStaleWarning(s StaleSuppression) string {
 	if s.FiresAt != "" {
 		return fmt.Sprintf(
 			"warning: stale suppression at %s:%d — rule %s does not fire here (fires at %s); safe to remove or move",
-			filepath.Base(s.File), s.Line, s.Rule, s.FiresAt,
+			filepath.Base(s.File),
+			s.Line,
+			s.Rule,
+			s.FiresAt,
 		)
 	}
 

@@ -19,6 +19,8 @@ func scanFuncDecl(ctx *AnalysisContext, gf *GoFile, fn *ast.FuncDecl) {
 		}
 	}
 
+	scanEmitHelperFunc(ctx, gf, fn)
+
 	if foldInfo := detectFoldFunc(ctx, gf, fn, pos); foldInfo != nil {
 		ctx.Registry.Folds = append(ctx.Registry.Folds, *foldInfo)
 	}
@@ -182,6 +184,7 @@ func detectFoldFunc(
 
 		info.HasSwitch = true
 		info.SwitchTagExpr = typeCallText(sw.Tag)
+		info.SwitchCaseValues = append(info.SwitchCaseValues, collectSwitchCaseValues(sw)...)
 
 		for _, stmt := range sw.Body.List {
 			cc, ok := stmt.(*ast.CaseClause)

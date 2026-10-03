@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/json/v2"
+	"strings"
 	"testing"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
 func mustStripAndParse(t *testing.T, input string) map[string]any {
@@ -186,4 +189,71 @@ func TestJSONCLoader_GroupByFromConfig(t *testing.T) {
 	if !found {
 		t.Errorf("GroupBy not in setFields %v", setFields)
 	}
+}
+
+// TestJSONCLoader_StoreScalarAndArray pins the multi-store config contract
+// end-to-end through the JSONC loader: "store" accepts a single backend
+// string or an array for mixed pools, and unknown names fail loudly.
+func TestJSONCLoader_StoreScalarAndArray(t *testing.T) {
+	t.Parallel()
+
+	t.Run("scalar", func(t *testing.T) {
+		t.Parallel()
+
+		var cfg AppConfig
+		if _, err := (JSONCLoader{}).Load(
+			[]byte(`{"features": {"store": "sqlite"}}`), &cfg,
+		); err != nil {
+			t.Fatalf("Load scalar: %v", err)
+		}
+		if cfg.Features.Store == nil || cfg.Features.Store.Primary() != analyzer.StoreSQLite {
+			t.Fatalf("store = %+v, want sqlite", cfg.Features.Store)
+		}
+	})
+
+	t.Run("array", func(t *testing.T) {
+		t.Parallel()
+
+		var cfg AppConfig
+		if _, err := (JSONCLoader{}).Load(
+			[]byte(`{"features": {"store": ["postgres", "sqlite"]}}`), &cfg,
+		); err != nil {
+			t.Fatalf("Load array: %v", err)
+		}
+		spec := cfg.Features.Store
+		if spec == nil || len(spec.Kinds) != 2 ||
+			spec.Kinds[0] != analyzer.StorePostgres || spec.Kinds[1] != analyzer.StoreSQLite {
+			t.Fatalf("store = %+v, want [postgres sqlite]", spec)
+		}
+	})
+
+	t.Run("unknown name rejected", func(t *testing.T) {
+		t.Parallel()
+
+		var cfg AppConfig
+		_, err := (JSONCLoader{}).Load(
+			[]byte(`{"features": {"store": ["postgres", "oracle"]}}`), &cfg,
+		)
+		if err == nil {
+			t.Fatal("unknown backend must fail config load with the valid list")
+		}
+		if !strings.Contains(err.Error(), "oracle") || !strings.Contains(err.Error(), "sqlite") {
+			t.Fatalf("error should name the bad value and the valid list, got: %v", err)
+		}
+	})
+
+	t.Run("commented JSONC array", func(t *testing.T) {
+		t.Parallel()
+
+		var cfg AppConfig
+		if _, err := (JSONCLoader{}).Load([]byte(`{
+			// mixed pool: distributed journal + embedded projections
+			"features": {"store": ["postgres", "pebble"]}
+		}`), &cfg); err != nil {
+			t.Fatalf("Load JSONC array: %v", err)
+		}
+		if spec := cfg.Features.Store; spec == nil || spec.Primary() != analyzer.StorePostgres {
+			t.Fatalf("store = %+v, want postgres primary", spec)
+		}
+	})
 }

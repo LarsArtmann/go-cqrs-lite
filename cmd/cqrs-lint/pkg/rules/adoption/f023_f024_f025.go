@@ -18,8 +18,16 @@ import (
 // Only fires for SQL-backed stores (SQLite, Postgres, MySQL, DuckDB, Custom)
 // because the pushdown requires a SQL engine.
 //
+// Metaengine IMPORTERS switch to utilization coaching (pushdown_utilization.go):
+// range loops over a registered Query's R type with field comparisons whose
+// declaration lacks FilterOnField, gated on Volume (nsfw-classifier feedback,
+// 2026-10-03). The non-importer suggestion shows the two-layer shape: the
+// declaration allow-lists columns, read-time options bind values.
+//
 //nolint:ireturn // factory returns public interface
 func NewF023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
+	scope := newPushdownScope(ctx)
+
 	return finding.NamedDetectorFunc(
 		"F023-manual-filter-no-pushdown",
 		func(_ context.Context) ([]finding.Finding, error) {
@@ -27,6 +35,7 @@ func NewF023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for _, sc := range coachingScopes(ctx) {
 				if importsPathIn(sc.files, "go-cqrs-lite/metaengine") {
+					out = append(out, scope.detectPushdownFilterMisses()...)
 					continue
 				}
 
@@ -45,9 +54,12 @@ func NewF023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					"Manual in-memory filtering (for-range + if + append) with a SQL "+
 						"store but no metaengine — all rows loaded into Go memory for filtering",
 					"Use metaengine.FilterOnField for declarative WHERE-clause pushdown. "+
-						"Declare queries with metaengine.Query[Q,R](name, folds..., "+
-						"metaengine.FilterOnField[R](\"column\", metaengine.FilterEq, value)) "+
-						"and the planner pushes the filter to the SQL engine. "+
+						"The declaration allow-lists columns — "+
+						"metaengine.Query[Q,R](name, folds..., "+
+						"metaengine.FilterOnField[R](\"column\", metaengine.FilterEq)) — "+
+						"and read-time options bind the values: reader.Scan(ctx, "+
+						"metaengine.WithFilter(\"column\", metaengine.FilterEq, value)). "+
+						"Filter values are runtime data; never put them in the declaration. "+
 						"For SQLite: sqliteengine.PlanFromDSN(dsn, queries...) is a one-call setup.",
 					pos, finding.ConfidenceLow,
 				)...)

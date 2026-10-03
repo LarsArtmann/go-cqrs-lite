@@ -163,6 +163,15 @@ func detectFeatureSignals(
 	fp.HasSoftDelete = detectSoftDeleteRegistry(registry)
 	fp.Domain = detectDomainRegistry(registry)
 
+	// Metaengine Query declaration census: makes the pushdown profile line
+	// actionable (nsfw-classifier feedback, 2026-10-03).
+	fp.MetaengineQueryCount = len(registry.MetaengineQueries)
+	for _, q := range registry.MetaengineQueries {
+		if q.HasFilterOnField || q.HasSortOnField {
+			fp.MetaengineDeclarativeQueries++
+		}
+	}
+
 	// Resolve tracing. Absence of OTel evidence stays Unknown: only a config
 	// pin produces TracingOff, so "off" is always an explicit decline that
 	// adoption coaching (F003) honors — the same contract features.monetary

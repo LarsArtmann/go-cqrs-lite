@@ -42,7 +42,10 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 			return runScorecard(ctx, cfg, actx, flags.Threshold)
 		},
 		cmdguard.WithShort(
-			withFormatsSuffix("Show module adoption scorecard (used/missing/coverage)", formatsScorecard),
+			withFormatsSuffix(
+				"Show module adoption scorecard (used/missing/coverage)",
+				formatsScorecard,
+			),
 		),
 		cmdguard.WithNoArgs(),
 	)

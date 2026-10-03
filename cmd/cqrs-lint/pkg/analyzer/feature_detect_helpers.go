@@ -88,15 +88,27 @@ func detectDomainRegistry(registry *CQRSRegistry) DomainKind {
 	return DomainUnknown
 }
 
+// IsTombstoneLikeEventType reports whether an event type string carries a
+// soft-delete meaning (contains deleted/removed/archived/tombstoned). Shared
+// by soft-delete feature detection and A012's fold case resolution so the
+// vocabulary can never drift between them.
+func IsTombstoneLikeEventType(eventType string) bool {
+	lower := strings.ToLower(eventType)
+	for _, keyword := range []string{"deleted", "removed", "archived", "tombstoned"} {
+		if strings.Contains(lower, keyword) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // detectSoftDeleteRegistry returns true if any emitted event type name contains
 // words associated with soft-delete (Deleted, Removed, Archived, Tombstoned).
 func detectSoftDeleteRegistry(registry *CQRSRegistry) bool {
 	for eventType := range registry.EventTypesEmitted {
-		lower := strings.ToLower(eventType)
-		for _, keyword := range []string{"deleted", "removed", "archived", "tombstoned"} {
-			if strings.Contains(lower, keyword) {
-				return true
-			}
+		if IsTombstoneLikeEventType(eventType) {
+			return true
 		}
 	}
 
@@ -227,10 +239,13 @@ func scanASTCalls(
 					switch {
 					case strings.Contains(method, "SQLite"):
 						fp.Store = StoreSQLite
+						fp.refineStore(StoreCustom, StoreSQLite)
 					case strings.Contains(method, "Postgres"):
 						fp.Store = StorePostgres
+						fp.refineStore(StoreCustom, StorePostgres)
 					case strings.Contains(method, "Pebble"):
 						fp.Store = StorePebble
+						fp.refineStore(StoreCustom, StorePebble)
 					}
 				}
 			}

@@ -79,14 +79,45 @@ type CQRSRegistry struct {
 	pendingEmittedEventTypeRefs []pendingEventTypeRef
 	pendingCatalogEventTypeRefs []pendingEventTypeRef
 
+	// emitHelperParams records constructor helpers whose event.New call
+	// passes one of the helper's own PARAMETERS as the event type
+	// (func newRoomEvent(t event.Type, ...) { event.New(t, ...) }). The
+	// parameter cannot be resolved at the emission site; call sites of the
+	// helper carry the constant. Maps helper function name → parameter
+	// index. Name-matched like StrictApplyFolds (cross-package collisions
+	// are a documented limitation). See nsfw-classifier feedback (2026-10-03):
+	// helper indirection made soft-delete detection blind.
+	emitHelperParams map[string]int
+
 	// TypesWithTypeMethod records struct type names that have a Type() method.
 	// Used by E007 to distinguish real CQRS query types (which implement
 	// query.Query's Type() method) from DTOs whose name happens to end in "Query".
 	TypesWithTypeMethod map[string]bool
 
+	// MetaengineQueries records every metaengine.Query[I,R](collection, ...)
+	// declaration with its pushdown capabilities — the utilization rules
+	// (F022/F023) coach Go-side sort/filter sites over a registered R type
+	// whose declaration lacks SortOnField/FilterOnField (nsfw-classifier
+	// feedback, 2026-10-03).
+	MetaengineQueries []QueryDeclInfo
+
 	// DataProducts records every catalog.AddDataProduct declaration site
 	// with its contract completeness, for the E019 advisory.
 	DataProducts []DataProductInfo
+}
+
+// QueryDeclInfo is one metaengine.Query declaration as seen at its call site.
+type QueryDeclInfo struct {
+	Collection string // first argument (string literal or constant name)
+	ResultType string // R type name from the generic instantiation
+	Volume     int    // metaengine.Volume(n) literal; 0 when absent
+	HasVolume  bool
+	// HasFilterOnField/HasSortOnField report declarative pushdown options on
+	// the declaration.
+	HasFilterOnField bool
+	HasSortOnField   bool
+	File             string
+	Line             int
 }
 
 // DataProductInfo is one catalog data-product declaration as seen at its
@@ -112,6 +143,7 @@ func NewCQRSRegistry() *CQRSRegistry {
 		pendingHandlerMethods:  make(map[string]bool),
 		constAliasExprs:        make(map[string]ast.Expr),
 		TypesWithTypeMethod:    make(map[string]bool),
+		emitHelperParams:       make(map[string]int),
 	}
 }
 

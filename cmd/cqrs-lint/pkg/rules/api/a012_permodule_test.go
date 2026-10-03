@@ -90,6 +90,47 @@ func fold(s State, evt event.Event) (State, error) {
 	}
 }
 
+// TestA012_SkipsFoldHandlingTombstoneViaConstCase verifies A012 does not fire
+// on a fold whose switch handles deletion through a CONSTANT case identifier
+// resolved to a tombstone-like event type — the nsfw-classifier false positive
+// (case evtRoomItemDeleted:, 2026-10-03 feedback).
+func TestA012_SkipsFoldHandlingTombstoneViaConstCase(t *testing.T) {
+	t.Parallel()
+
+	source := `package test
+
+import "github.com/larsartmann/go-cqrs-lite/event/v4"
+
+const evtItemDeleted event.Type = "item.deleted"
+
+type State struct{ Count int }
+
+func fold(s State, evt event.Event) (State, error) {
+	switch evt.Type() {
+	case evtItemDeleted:
+		return State{}, nil
+	case "created":
+		s.Count++
+	}
+	return s, nil
+}`
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"/repo/app/fold.go": source,
+	})
+	ctx.FeatureProfile = analyzer.FeatureProfile{HasSoftDelete: true}
+
+	det := NewA012Detector(ctx)
+	findings, err := det.Detect(context.Background())
+	if err != nil {
+		t.Fatalf("A012 detect: %v", err)
+	}
+
+	if len(findings) != 0 {
+		t.Errorf("expected 0 findings (fold handles deletion via const case), got %d", len(findings))
+	}
+}
+
 // TestA012_SingleModuleFallback verifies backward compatibility: a
 // single-module project falls back to the primary profile.
 func TestA012_SingleModuleFallback(t *testing.T) {

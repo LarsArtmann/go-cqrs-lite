@@ -99,7 +99,7 @@ func defaultConfigTemplate() string {
   // Minimum confidence to show: low, medium, high
   "min-confidence": "low",
 
-  // Output format: text, json, sarif, markdown
+  // Output format: ` + formatList(formatsLint) + `
   "format": "text",
 
   // Group findings by: none, module, aggregate
