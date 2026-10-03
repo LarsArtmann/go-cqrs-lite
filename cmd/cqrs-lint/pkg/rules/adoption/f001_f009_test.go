@@ -7,7 +7,6 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestF001_DeleteWithoutTombstone(t *testing.T) {
@@ -258,15 +257,21 @@ func _() {
 	ruletest.AssertRule(t, findings, "F007", 1)
 
 	for _, f := range findings {
-		if f.Rule.ID != "F007" {
+		if string(f.Rule) != "F007" {
 			continue
 		}
 
 		suggestion := strings.ToLower(f.Suggestion)
-		assert.Contains(t, suggestion, "deprecated",
-			"suggestion must name the MemoryStore deprecation")
-		assert.NotContains(t, suggestion, "memorystore for single-process",
-			"suggestion must not endorse MemoryStore as a viable backend")
+		if !strings.Contains(suggestion, "deprecated") {
+			t.Errorf("F007 suggestion must name the MemoryStore deprecation, got: %s", f.Suggestion)
+		}
+
+		if strings.Contains(suggestion, "memorystore for single-process") {
+			t.Errorf(
+				"F007 suggestion must not endorse MemoryStore as a viable backend, got: %s",
+				f.Suggestion,
+			)
+		}
 	}
 }
 

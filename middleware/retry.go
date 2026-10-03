@@ -53,9 +53,9 @@ func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Opti
 // reloads journal state per attempt, retrying conflicts is sound via an
 // explicit override:
 //
-// 	IsRetryable: func(err error) bool {
-// 		return errorfamily.IsRetryable(err) || errors.Is(err, event.ErrVersionConflict)
-// 	}
+//	IsRetryable: func(err error) bool {
+//		return errorfamily.IsRetryable(err) || errors.Is(err, event.ErrVersionConflict)
+//	}
 func CommandRetry(config RetryConfig, opts ...Option) command.Middleware {
 	return AsCommand(NewRetry(CommandAdapter, config, opts...))
 }
