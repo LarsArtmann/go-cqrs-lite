@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
-	"github.com/larsartmann/go-output/markdown"
 	gotable "github.com/larsartmann/go-output/table"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
@@ -75,15 +73,7 @@ func renderRunResult(
 		}
 	case formatMarkdown:
 		data := buildRunSummaryTable(result)
-
-		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
-		if err != nil {
-			fatalf("render markdown: %v", err)
-		}
-
-		rendered = strings.TrimPrefix(rendered, "|")
-		fmt.Fprint(w, rendered)
-		fmt.Fprintln(w)
+		writeMarkdownTable(w, data)
 	default:
 		benchkit.PrintReport(w, result)
 	}

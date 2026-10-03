@@ -45,6 +45,20 @@ func resolveFormat(format string) string {
 	return format
 }
 
+// writeMarkdownTable renders a go-output table as a markdown pipe table —
+// the shared tail of every --format markdown case (TrimPrefix drops the
+// leading border pipe go-output emits).
+func writeMarkdownTable(w io.Writer, data *output.Table) {
+	rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
+	if err != nil {
+		fatalf("render markdown: %v", err)
+	}
+
+	rendered = strings.TrimPrefix(rendered, "|")
+	fmt.Fprint(w, rendered)
+	fmt.Fprintln(w)
+}
+
 // ── comparison rendering ──
 
 func renderComparison(w io.Writer, format string, results map[string]*benchkit.Result) {
@@ -66,15 +80,7 @@ func renderComparison(w io.Writer, format string, results map[string]*benchkit.R
 		benchkit.PrintComparisonVariation(w, results)
 	case formatMarkdown:
 		data := buildComparisonTable(results)
-
-		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
-		if err != nil {
-			fatalf("render markdown: %v", err)
-		}
-
-		rendered = strings.TrimPrefix(rendered, "|")
-		fmt.Fprint(w, rendered)
-		fmt.Fprintln(w)
+		writeMarkdownTable(w, data)
 		benchkit.PrintComparisonVariation(w, results)
 	case formatCSV:
 		data := buildComparisonTable(results)
@@ -280,14 +286,7 @@ func renderSweep(w io.Writer, format string, results []benchkit.SweepResult) {
 		}
 	case formatMarkdown:
 		data := buildSweepTable(results)
-
-		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
-		if err != nil {
-			fatalf("render markdown: %v", err)
-		}
-
-		rendered = strings.TrimPrefix(rendered, "|")
-		fmt.Fprint(w, rendered)
+		writeMarkdownTable(w, data)
 	case formatCSV:
 		data := buildSweepTable(results)
 
@@ -411,15 +410,7 @@ func renderSoakResult(w io.Writer, format string, result *benchkit.SoakResult) {
 		}
 	case formatMarkdown:
 		data := buildSoakTable(result)
-
-		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
-		if err != nil {
-			fatalf("render markdown: %v", err)
-		}
-
-		rendered = strings.TrimPrefix(rendered, "|")
-		fmt.Fprint(w, rendered)
-		fmt.Fprintln(w)
+		writeMarkdownTable(w, data)
 
 		printSoakSummary(w, result)
 	default:
