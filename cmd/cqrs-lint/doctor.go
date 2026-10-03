@@ -38,7 +38,7 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 		func(ctx context.Context, cfg *AppConfig, flags doctorFlags) error {
 			// Validate before the package load: an invalid format must fail
 			// fast, not after paying the full analysis cost.
-			if err := validateFormatFlag(cfg.Format, "text", "json"); err != nil {
+			if err := validateFormatFlag(cfg.Format, formatsDoctor...); err != nil {
 				return err
 			}
 
@@ -72,7 +72,10 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			return nil
 		},
 		cmdguard.WithShort(
-			"Show the project's full resolved cqrs-lint configuration and detected profile; formats: text, json",
+			withFormatsSuffix(
+				"Show the project's full resolved cqrs-lint configuration and detected profile",
+				formatsDoctor,
+			),
 		),
 		cmdguard.WithNoArgs(),
 	)

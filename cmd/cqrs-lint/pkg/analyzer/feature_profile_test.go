@@ -35,8 +35,10 @@ func save(store event.Store) {
 	if fp.Store != StoreNone {
 		t.Errorf("no store import should give StoreNone, got %s", fp.Store)
 	}
-	if fp.Tracing != TracingOff {
-		t.Errorf("no otel should give TracingOff, got %s", fp.Tracing)
+	// Absence of OTel evidence stays Unknown — TracingOff is reserved for an
+	// explicit config pin so F003 can honor it as a decline (Monetary contract).
+	if fp.Tracing != TracingUnknown {
+		t.Errorf("no otel should give TracingUnknown, got %s", fp.Tracing)
 	}
 }
 
@@ -300,11 +302,15 @@ func TestToConfigFeatures_OmitsUnknownFields(t *testing.T) {
 	if cf.Monetary != nil {
 		t.Errorf("unknown Monetary should be omitted, got %v", *cf.Monetary)
 	}
-	if cf.Server == nil || *cf.Server != false {
-		t.Error("server is a meaningful bool and should always be included")
+	// Server/SoftDelete are suggested only as positive evidence: a false is
+	// absence-of-evidence inside the scan scope (non-importer packages are
+	// invisible), and pinning it as project truth caused the nsfw-classifier
+	// misconfiguration (2026-10-03 feedback).
+	if cf.Server != nil {
+		t.Error("scope-limited Server=false should be omitted from suggestions")
 	}
-	if cf.SoftDelete == nil || *cf.SoftDelete != false {
-		t.Error("soft-delete is a meaningful bool and should always be included")
+	if cf.SoftDelete != nil {
+		t.Error("scope-limited SoftDelete=false should be omitted from suggestions")
 	}
 }
 

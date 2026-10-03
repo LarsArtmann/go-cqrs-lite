@@ -43,7 +43,7 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				// sub-module or, conversely, flag files in a purely in-memory
 				// example module.
 				profile := ctx.ProfileForFile(gf.Path)
-				if !isPersistentStore(profile.Store) {
+				if !profile.AnyStorePersistent() {
 					continue
 				}
 
@@ -105,12 +105,6 @@ func NewC017Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 			return findings, nil
 		},
 	)
-}
-
-func isPersistentStore(s analyzer.StoreKind) bool {
-	// Any non-memory, non-unknown, non-none store is considered persistent.
-	// Custom stores typically wrap SQLite/Postgres and would also lose data.
-	return s != analyzer.StoreMemory && s != analyzer.StoreUnknown && s != analyzer.StoreNone
 }
 
 func describeInMemStore(fnName string) string {

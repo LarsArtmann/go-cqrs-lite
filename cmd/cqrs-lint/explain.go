@@ -169,7 +169,7 @@ var topLevelKeys = []topLevelKey{
 		"Minimum severity to show: info, warning, error, critical",
 	},
 	{"min-confidence", "string", `"low"`, "Minimum confidence to show: low, medium, high"},
-	{"format", "string", `"text"`, "Output format: text, json, sarif, markdown"},
+	{"format", "string", `"text"`, "Output format: " + formatList(formatsLint)},
 	{
 		"exclude",
 		"string",

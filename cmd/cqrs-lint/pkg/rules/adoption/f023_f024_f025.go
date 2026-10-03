@@ -30,7 +30,7 @@ func NewF023Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !sc.profile.Store.IsSQL() {
+				if !sc.profile.AnyStoreSQL() {
 					continue
 				}
 
@@ -77,7 +77,7 @@ func NewF024Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !sc.profile.Store.IsSQL() {
+				if !sc.profile.AnyStoreSQL() {
 					continue
 				}
 
@@ -124,7 +124,7 @@ func NewF025Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !sc.profile.Store.IsSQL() {
+				if !sc.profile.AnyStoreSQL() {
 					continue
 				}
 

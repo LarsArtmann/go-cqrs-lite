@@ -1,9 +1,9 @@
 module github.com/larsartmann/go-cqrs-lite/cmd/cqrs-upgrade/v4
 
-go 1.27.1
+go 1.27
 
 require (
-	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.1
+	github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.2
 	golang.org/x/mod v0.41.0
 )
 

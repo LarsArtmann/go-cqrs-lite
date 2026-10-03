@@ -48,12 +48,11 @@ func NewC036Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 				// workspace-wide primary profile. Using the primary profile
 				// would flag secondary stores in a library module against
 				// an example module's backend.
-				eventBackend := ctx.ProfileForFile(gf.Path).Store
-				if eventBackend == analyzer.StoreUnknown ||
-					eventBackend == analyzer.StoreNone ||
-					eventBackend == analyzer.StoreMemory {
+				profile := ctx.ProfileForFile(gf.Path)
+				if !profile.AnyStorePersistent() {
 					continue
 				}
+				eventBackend := profile.Store
 
 				ast.Inspect(gf.AST, func(n ast.Node) bool {
 					call, ok := n.(*ast.CallExpr)

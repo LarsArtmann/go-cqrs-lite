@@ -7,7 +7,7 @@ import "slices"
 // detection passes, not here); Stores accumulates every distinct signal so
 // mixed pools (journal backend + projection engines) stay visible.
 func (fp *FeatureProfile) addStore(kind StoreKind) {
-	if kind == StoreUnknown || kind == StoreNone {
+	if kind == StoreUnknown || kind == StoreNone || kind == "" {
 		return
 	}
 	if !slices.Contains(fp.Stores, kind) {
@@ -55,11 +55,11 @@ func (fp *FeatureProfile) dedupeStores() {
 // suggest otherwise.
 func (fp FeatureProfile) EffectiveStores() []StoreKind {
 	kinds := fp.Stores
-	if len(kinds) == 0 && fp.Store != StoreUnknown && fp.Store != StoreNone {
+	if len(kinds) == 0 && fp.Store != StoreUnknown && fp.Store != StoreNone && fp.Store != "" {
 		kinds = []StoreKind{fp.Store}
 	}
 	return slices.DeleteFunc(slices.Clone(kinds), func(kind StoreKind) bool {
-		return kind == StoreUnknown || kind == StoreNone
+		return kind == StoreUnknown || kind == StoreNone || kind == ""
 	})
 }
 

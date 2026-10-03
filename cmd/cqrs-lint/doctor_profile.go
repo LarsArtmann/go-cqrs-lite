@@ -5,6 +5,7 @@ import (
 	"encoding/json/v2"
 	"fmt"
 	"io"
+	"slices"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
@@ -55,6 +56,27 @@ func renderDoctorSuggestedConfig(w io.Writer, cfg *AppConfig, actx *analyzer.Ana
 	}
 	_, _ = fmt.Fprintln(w, string(raw))
 
+	// Absence-valued Server/SoftDelete detections are deliberately NOT pinned
+	// in the suggestion (ToConfigFeatures omits them): the analyzer only sees
+	// packages that import go-cqrs-lite, so a "false" may be a scope artifact.
+	// Say so next to the suggestion instead of letting users discover it via
+	// silenced rules (nsfw-classifier feedback, 2026-10-03).
+	if !profile.HasServer || !profile.HasSoftDelete {
+		_, _ = fmt.Fprintln(w)
+		_, _ = fmt.Fprintln(
+			w,
+			"  NOTE: \"server\"/\"softDelete\" are pinned only when detected as TRUE —",
+		)
+		_, _ = fmt.Fprintln(
+			w,
+			"  detection sees go-cqrs-lite-importing packages only; confirm a false",
+		)
+		_, _ = fmt.Fprintln(
+			w,
+			"  before pinning it yourself (a pinned false silences those rules).",
+		)
+	}
+
 	// Show rules overrides if loaded
 	if len(cfg.Rules.ExternalAPIStructPrefixes) > 0 {
 		rulesRaw, err := json.Marshal(
@@ -92,8 +114,16 @@ func mergeMostPermissiveProfile(
 		result.HasMetaengine = result.HasMetaengine || p.HasMetaengine
 		result.MetaenginePushdown = result.MetaenginePushdown || p.MetaenginePushdown
 
-		if len(p.MetaengineEngines) > 0 {
-			result.MetaengineEngines = append(result.MetaengineEngines, p.MetaengineEngines...)
+		for _, engine := range p.MetaengineEngines {
+			if !slices.Contains(result.MetaengineEngines, engine) {
+				result.MetaengineEngines = append(result.MetaengineEngines, engine)
+			}
+		}
+
+		for _, kind := range p.Stores {
+			if !slices.Contains(result.Stores, kind) {
+				result.Stores = append(result.Stores, kind)
+			}
 		}
 
 		result.CommandFlow = mostPermissiveCommandFlow(result.CommandFlow, p.CommandFlow)

@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/badgerengine/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.6
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
 	github.com/onsi/gomega v1.43.1
 )
 
@@ -18,9 +18,9 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/oklog/ulid/v2 v2.1.2 // indirect

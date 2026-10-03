@@ -26,9 +26,7 @@ var errStaleSuppressions = errors.New("stale or unknown suppression directive(s)
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
-	if err := validateFormatFlag(cfg.Format,
-		"text", "json", "sarif", "markdown", "csv", "tsv",
-	); err != nil {
+	if err := validateFormatFlag(cfg.Format, formatsLint...); err != nil {
 		return err
 	}
 

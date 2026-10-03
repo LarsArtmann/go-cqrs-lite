@@ -1,11 +1,11 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/otelobserver/v4
 
-go 1.27.1
+go 1.27
 
 require (
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.11.0
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/sdk/metric v1.46.0
@@ -17,7 +17,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.46.0 // indirect

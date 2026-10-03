@@ -1,14 +1,14 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1
-	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.4.0
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.1
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2
+	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.3.0
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-sse v0.6.2
 	github.com/onsi/ginkgo/v2 v2.33.0

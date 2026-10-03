@@ -1,9 +1,9 @@
 module github.com/larsartmann/go-cqrs-lite/idempotency/kvstore/v4
 
-go 1.27.1
+go 1.27
 
 require (
-	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.1
+	github.com/larsartmann/go-cqrs-lite/kv/v4 v4.3.2
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-idempotency v0.3.0
 )

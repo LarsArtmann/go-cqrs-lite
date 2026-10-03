@@ -1,12 +1,12 @@
 module github.com/larsartmann/go-cqrs-lite/example/scheduler-otel-status
 
-go 1.27.1
+go 1.27
 
 require (
-	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.0
-	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.1
-	github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4 v4.1.1
-	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.0
+	github.com/larsartmann/go-cqrs-lite/otel/v4 v4.5.1
+	github.com/larsartmann/go-cqrs-lite/prometheus/v4 v4.3.2
+	github.com/larsartmann/go-cqrs-lite/scheduling/sqlstore/v4 v4.1.2
+	github.com/larsartmann/go-cqrs-lite/scheduling/v4 v4.5.1
 	modernc.org/sqlite v1.60.1
 )
 
@@ -21,9 +21,9 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.1 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/claiming/v4 v4.0.1 // indirect
+	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/magiconair/properties v1.18.12 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect

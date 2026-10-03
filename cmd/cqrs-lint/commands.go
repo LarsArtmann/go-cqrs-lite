@@ -48,7 +48,7 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 			return nil
 		},
-		cmdguard.WithShort("List all available rules; formats: text, json, markdown"),
+		cmdguard.WithShort(withFormatsSuffix("List all available rules", formatsRules)),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "rules", cmd, err)
@@ -72,7 +72,7 @@ func rulesFormat(flags rulesFlags, cfg *AppConfig) (string, error) {
 	case "json", "markdown":
 		return f, nil
 	default:
-		return "", validateFormatFlag(cfg.Format, "text", "json", "markdown")
+		return "", validateFormatFlag(cfg.Format, formatsRules...)
 	}
 }
 

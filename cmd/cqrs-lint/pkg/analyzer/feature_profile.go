@@ -85,7 +85,14 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "soft-delete:   %t\n", fp.HasSoftDelete)
 	_, _ = fmt.Fprintf(&b, "tracing:       %s\n", fp.Tracing)
 	_, _ = fmt.Fprintf(&b, "snapshot:      %s\n", fp.Snapshot)
-	_, _ = fmt.Fprintf(&b, "domain:        %s\n", fp.Domain)
+	if fp.Domain == DomainUnknown {
+		// Surface the pinnable vocabulary — detection only ever returns
+		// financial or unknown, so internal/security are otherwise
+		// undiscoverable (nsfw-classifier feedback, 2026-10-03).
+		_, _ = fmt.Fprintf(&b, "domain:        unknown (pinnable: internal, security, financial)\n")
+	} else {
+		_, _ = fmt.Fprintf(&b, "domain:        %s\n", fp.Domain)
+	}
 	_, _ = fmt.Fprintf(&b, "transport:     %t\n", fp.HasTransport)
 	_, _ = fmt.Fprintf(&b, "server-local:  %t\n", fp.ServerLocal)
 	_, _ = fmt.Fprintf(&b, "async-bus:     %t\n", fp.HasAsyncBus)
@@ -198,10 +205,20 @@ func mergeConfigFeatures(dst *ConfigFeatures, src ConfigFeatures) {
 // result is built from explicit pointers and serialized via encoding/json,
 // it can never produce the trailing-comma corruption that hand-formatted JSON
 // is prone to.
+//
+// Server and SoftDelete are suggested only as POSITIVE evidence (true): a
+// false detection is absence-of-evidence within analyzed packages, and
+// packages that don't import go-cqrs-lite are outside the scan scope —
+// pinning "server": false as project truth silenced real server rules for a
+// consumer whose server lived in a non-importer package (nsfw-classifier
+// feedback, 2026-10-03).
 func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
-	cf := ConfigFeatures{
-		Server:     &fp.HasServer,
-		SoftDelete: &fp.HasSoftDelete,
+	cf := ConfigFeatures{}
+	if fp.HasServer {
+		cf.Server = &fp.HasServer
+	}
+	if fp.HasSoftDelete {
+		cf.SoftDelete = &fp.HasSoftDelete
 	}
 	if effective := fp.EffectiveStores(); len(effective) > 0 {
 		spec := StoreSpec{Kinds: effective}

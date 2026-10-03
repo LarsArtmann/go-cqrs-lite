@@ -1,10 +1,10 @@
 module github.com/larsartmann/go-cqrs-lite/metaengine/bigtableengine/v4
 
-go 1.27.1
+go 1.27
 
 require (
 	cloud.google.com/go/bigtable v1.58.0
-	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.15.0
+	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
 	google.golang.org/api v0.299.0
 	google.golang.org/grpc v1.84.0
 )
@@ -35,8 +35,8 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.22 // indirect
 	github.com/googleapis/gax-go/v2 v2.26.2 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
-	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
+	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect
+	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
