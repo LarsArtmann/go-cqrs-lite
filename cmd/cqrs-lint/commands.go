@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -147,26 +148,57 @@ func setupChangelogCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"changelog",
 		cmdguard.NoFlags{},
 		func(ctx context.Context, _ *AppConfig, _ cmdguard.NoFlags) error {
-			out, err := exec.CommandContext(
-				ctx,
-				"git", "log", "--oneline",
-				"cmd/cqrs-lint/v"+resolvedVersion()+"..HEAD",
-			).Output()
+			result, err := computeChangelog(ctx, resolvedVersion())
 			if err != nil {
-				// Fall back to last 20 commits if tag doesn't exist yet.
-				out, err = exec.CommandContext(ctx, "git", "log", "--oneline", "-20").Output()
-				if err != nil {
-					return fmt.Errorf("git log: %w", err)
-				}
+				return err
 			}
 
-			fmt.Print(string(out))
+			if result.fallback {
+				fmt.Fprintf(os.Stderr,
+					"no release tag cmd/cqrs-lint/v%s yet — showing the last 20 commits instead\n",
+					resolvedVersion())
+			}
+
+			fmt.Print(result.commits)
 			return nil
 		},
 		cmdguard.WithShort("Print changelog (commits since last release tag)"),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "changelog", cmd, err)
+}
+
+// changelogResult carries the git log output plus whether the release-tag
+// range was unusable (tag missing or git refused) and the last-20 fallback
+// ran — the caller turns that into an honest stderr notice instead of
+// silently truncating.
+type changelogResult struct {
+	commits  string
+	fallback bool
+}
+
+// computeChangelog resolves the changelog for the module's release tag:
+// commits since cmd/cqrs-lint/v<version>..HEAD. When that range fails
+// (typically: the tag does not exist yet for a dev build), it falls back to
+// the last 20 commits and reports fallback=true.
+func computeChangelog(ctx context.Context, version string) (changelogResult, error) {
+	tag := "cmd/cqrs-lint/v" + version
+
+	out, err := exec.CommandContext(ctx, "git", "log", "--oneline", tag+"..HEAD").Output()
+	if err == nil {
+		return changelogResult{commits: string(out)}, nil
+	}
+
+	tagPresent := exec.CommandContext(
+		ctx, "git", "rev-parse", "--verify", "--quiet", "refs/tags/"+tag,
+	).Run() == nil
+
+	out, err = exec.CommandContext(ctx, "git", "log", "--oneline", "-20").Output()
+	if err != nil {
+		return changelogResult{}, fmt.Errorf("git log: %w", err)
+	}
+
+	return changelogResult{commits: string(out), fallback: !tagPresent}, nil
 }
 
 // versionString returns the full version string, including commit hash and

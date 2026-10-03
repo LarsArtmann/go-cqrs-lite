@@ -853,6 +853,27 @@ DETERMINISTIC since the 2026-09-08 wave (`encoding/json/v2` emits map
 iteration order, unlike v1 which sorted — the severity-override map now
 marshals with sorted keys), so consumer scripts can diff outputs byte-for-byte.
 
+Schema (top level; `omitempty` fields absent unless noted):
+
+| Field               | Type     | Meaning                                                        |
+| ------------------- | -------- | -------------------------------------------------------------- |
+| `path`              | string   | Analyzed directory (absolute)                                  |
+| `configFile`        | string   | Resolved `.cqrs-lint.json` path (present when `configFound`)    |
+| `configFound`       | bool     | Config file existed                                            |
+| `parentConfigs`     | []string | Ancestor-dir configs merged for rule disables (monorepos)      |
+| `preset`            | string   | Active preset name                                             |
+| `severityFloor`     | string   | Effective min severity (preset floor applies)                  |
+| `minConfidence`     | string   | Effective min confidence                                       |
+| `rulesTotal`        | int      | Catalog size                                                   |
+| `rulesActive`       | int      | After preset/config disables                                   |
+| `rulesDisabled`     | int      | Total disabled                                                 |
+| `disabledFromPreset`| []string | Rule IDs the preset disabled                                   |
+| `disabledFromConfig`| []string | Rule IDs config disabled                                       |
+| `severityOverrides` | map      | ruleID → severity (sorted keys)                                |
+| `features`          | object   | Detected feature profile (same shape as config `features`)     |
+| `modules`           | []object | Per-`go.mod` profiles: `{module, profile}`                     |
+| `audit`             | object   | With `--audit-suppressions`/`--prune-suppressions`: `{total, active, stale, unknownRule, entries[], fix?}`; `fix` (prune mode) carries `{dryRun, removed[], skipped[], files[]}` |
+
 **Repo verification apps** (contributors; run via `nix run .#<app>`):
 
 - `#check-csp` — browser validation of the docserver CSP policy (nix chromium, no npm network).

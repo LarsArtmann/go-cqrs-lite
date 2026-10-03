@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
-	"slices"
 	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
+
+	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
 
-// This file mechanically enforces the shipped CLI contract claims that
-// subcommand_consistency_test.go does not cover:
+// This file mechanically enforces the shipped CLI contract claims:
 //
 //  1. Config-file format parity: a .cqrs-lint.json setting "format": "json"
 //     switches EVERY multi-format command to JSON, not just the lint run
@@ -25,8 +25,34 @@ import (
 //     the `changelog` omission class can never recur silently.
 //  3. Surface tests for cobra's auto-added `completion` and `help [cmd]`
 //     under the local-flag scoping.
-//  4. Format vocabularies are single-sourced: every command's Short string
-//     and the root --format help tag derive from the formats* slices.
+//  4. The changelog fallback reports honestly when no release tag exists.
+//
+// Flag vocabulary/acceptance matrices live in flag_contract_test.go.
+
+// allSubcommands lists every user-registered subcommand (cobra's auto-added
+// help/completion excluded — they get their own surface tests).
+func allSubcommands() []string {
+	return []string{"rules", "version", "init", "doctor", "scorecard", "changelog", "explain"}
+}
+
+// presetNamesForTest returns every named preset the init command accepts.
+func presetNamesForTest(t *testing.T) []string {
+	t.Helper()
+
+	return analyzer.ValidPresetNames()
+}
+
+// formatFlagHelpTag returns the help text of the root --format flag.
+func formatFlagHelpTag(t *testing.T) string {
+	t.Helper()
+
+	field, ok := reflect.TypeOf(AppConfig{}).FieldByName("Format")
+	if !ok {
+		t.Fatal("AppConfig.Format field not found")
+	}
+
+	return field.Tag.Get("help")
+}
 
 // tempDirWithConfig creates a temp dir containing a .cqrs-lint.json with the
 // given content and returns the dir path. Config-parity tests chdir into it
@@ -163,7 +189,8 @@ func TestHelpListsEveryRegisteredCommand(t *testing.T) {
 
 // TestCompletionBashSucceeds pins that cobra's auto-added completion command
 // still executes under the local-flag scoping (an unknown-flag regression
-// here would break shell setup for every user).
+// here would break shell setup for every user). Not parallel: captureStdout
+// swaps the process-wide os.Stdout.
 func TestCompletionBashSucceeds(t *testing.T) {
 	cli := newTestCLI(t)
 
@@ -202,158 +229,23 @@ func TestHelpSubcommandSurface(t *testing.T) {
 	}
 }
 
-// TestCommandShortsDeriveFromVocabularies pins M02's single-sourcing: each
-// multi-format command's Short advertises exactly its vocabulary slice, and
-// the root --format help tag carries the full lint vocabulary.
-func TestCommandShortsDeriveFromVocabularies(t *testing.T) {
+// TestChangelogFallbackDistinguishesMissingTag pins the honest-fallback
+// contract: with a version that has no release tag (dev/test builds), the
+// changelog still emits the last 20 commits but REPORTS fallback=true so the
+// CLI can tell the user — instead of silently truncating.
+func TestChangelogFallbackDistinguishesMissingTag(t *testing.T) {
 	t.Parallel()
 
-	cli := newTestCLI(t)
-	root := cli.RootCommand()
-
-	cases := []struct {
-		cmd     string
-		formats []string
-	}{
-		{"doctor", formatsDoctor},
-		{"scorecard", formatsScorecard},
-		{"rules", formatsRules},
-	}
-
-	for _, tc := range cases {
-		cmd, _, err := root.Find([]string{tc.cmd})
-		if err != nil || cmd == nil || cmd.Name() != tc.cmd {
-			t.Fatalf("find %s: %v", tc.cmd, err)
-		}
-
-		want := "formats: " + formatList(tc.formats)
-		if !strings.Contains(cmd.Short, want) {
-			t.Errorf("%s Short should advertise %q, got: %q", tc.cmd, want, cmd.Short)
-		}
-	}
-
-	field, ok := reflect.TypeOf(AppConfig{}).FieldByName("Format")
-	if !ok {
-		t.Fatal("AppConfig.Format field not found")
-	}
-
-	help := field.Tag.Get("help")
-	for _, format := range formatsLint {
-		if !strings.Contains(help, format) {
-			t.Errorf("root --format help tag should list %q, got: %q", format, help)
-		}
-	}
-}
-
-// TestFormatVocabulariesAreSubsets pins the structural contract: every
-// command vocabulary must be a subset of the lint vocabulary (the root
-// validates the full set; a command advertising something the root rejects
-// — or vice versa — is a split brain).
-func TestFormatVocabulariesAreSubsets(t *testing.T) {
-	t.Parallel()
-
-	for _, tc := range []struct {
-		name    string
-		formats []string
-	}{
-		{"scorecard", formatsScorecard},
-		{"doctor", formatsDoctor},
-		{"rules", formatsRules},
-	} {
-		for _, format := range tc.formats {
-			if !slices.Contains(formatsLint, format) {
-				t.Errorf(
-					"%s vocabulary contains %q which the lint vocabulary rejects",
-					tc.name,
-					format,
-				)
-			}
-		}
-	}
-}
-
-// TestPersistentFlagAcceptanceMatrix pins the shared vocabulary: every
-// subcommand ACCEPTS the persistent flags (path, format, min-severity,
-// min-confidence, color, typed-info). Which of them each command actually
-// CONSUMES is documented in the README flag-consumption matrix — cmdguard
-// persistence is all-or-nothing, so acceptance is the mechanically
-// enforceable half of that contract.
-func TestPersistentFlagAcceptanceMatrix(t *testing.T) {
-	t.Parallel()
-
-	flagsWithValue := [][2]string{
-		{"--format", "text"},
-		{"--min-severity", "info"},
-		{"--min-confidence", "low"},
-		{"--color", "never"},
-		{"--typed-info", "auto"},
-	}
-
-	for _, cmdName := range []string{
-		"rules", "version", "init", "doctor", "scorecard", "changelog", "explain",
-	} {
-		for _, fw := range flagsWithValue {
-			cmdName, fw := cmdName, fw
-			t.Run(cmdName+" "+fw[0], func(t *testing.T) {
-				t.Parallel()
-
-				cli := newTestCLI(t)
-				err := cli.ExecuteWithArgs(context.Background(), []string{
-					cmdName, fw[0], fw[1], "--path", t.TempDir(),
-				})
-				if err != nil && strings.Contains(strings.ToLower(err.Error()), "unknown flag") {
-					t.Errorf("%s %s: shared flag must be accepted, got: %v", cmdName, fw[0], err)
-				}
-			})
-		}
-	}
-}
-
-// TestLocalFlagsRejectedOnEverySubcommand pins the scoping half: lint-run
-// flags without a subcommand counterpart are unknown-flag errors on EVERY
-// subcommand. (--dry-run exists on doctor, --verbose on version, --json/
-// --markdown on rules — those are command-local and excluded here.)
-func TestLocalFlagsRejectedOnEverySubcommand(t *testing.T) {
-	t.Parallel()
-
-	localOnly := []string{
-		"--fix", "--fast", "--only", "--exclude", "--exclude-rules", "--quiet",
-		"--scorecard", "--fp-suspects", "--show-suppressed", "--strict-load",
-		"--fail-on-stale-suppressions", "--adoption", "--health-score", "--group-by",
-	}
-
-	for _, cmdName := range []string{
-		"rules", "version", "init", "doctor", "scorecard", "changelog", "explain",
-	} {
-		for _, flag := range localOnly {
-			cmdName, flag := cmdName, flag
-			t.Run(cmdName+" "+flag, func(t *testing.T) {
-				t.Parallel()
-
-				cli := newTestCLI(t)
-				err := cli.ExecuteWithArgs(context.Background(), []string{cmdName, flag})
-				if err == nil {
-					t.Fatalf("%s %s: expected unknown-flag error, got nil", cmdName, flag)
-				}
-				if !strings.Contains(strings.ToLower(err.Error()), "unknown flag") {
-					t.Errorf("%s %s: expected unknown-flag error, got: %v", cmdName, flag, err)
-				}
-			})
-		}
-	}
-}
-
-// TestRulesBooleanFlagPrecedence pins the documented precedence: when rules
-// gets both --json and --markdown, markdown wins (byte-compatible with the
-// pre-shared-format behavior where markdown printed last).
-func TestRulesBooleanFlagPrecedence(t *testing.T) {
-	t.Parallel()
-
-	format, err := rulesFormat(rulesFlags{JSON: true, Markdown: true}, &AppConfig{})
+	// "9.9.9" has no cmd/cqrs-lint/v9.9.9 tag in this repo; the test runs
+	// inside the real git worktree so git log works.
+	result, err := computeChangelog(context.Background(), "9.9.9")
 	if err != nil {
-		t.Fatalf("both booleans set: unexpected error: %v", err)
+		t.Fatalf("computeChangelog for missing tag: %v", err)
 	}
-	if format != "markdown" {
-		t.Errorf("rules --json --markdown: markdown must win, got %q", format)
+	if !result.fallback {
+		t.Error("missing tag must set fallback=true")
+	}
+	if len(result.commits) == 0 {
+		t.Error("fallback must still emit the last 20 commits")
 	}
 }
