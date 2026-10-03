@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report Title</title>
+    <style>
+      /* =========================================================================
+         BAUHAUS DARK — Dashboard template
+         Design language: form follows function. Primary colors on graphite.
+         Zero external dependencies: system fonts, no CDN, no build step.
+         Token architecture: see references/bauhaus-tokens.md
+         ========================================================================= */
+
+      :root {
+        /* --- Primitive palette (Bauhaus Dark) --- */
+        --color-graphite: #0e0e10;
+        --color-graphite-2: #18181d;
+        --color-graphite-3: #16161a;
+        --color-bone: #f4f4f0;
+        --color-red: #ff6b6b;
+        --color-blue: #6eb5ff;
+        --color-yellow: #f4d35e;
+        --color-amber: #ffb347;
+        --color-hairline: rgba(244, 244, 240, 0.12);
+        --color-hairline-strong: rgba(244, 244, 240, 0.25);
+
+        /* --- Semantic layer (shared vocabulary with editorial template) --- */
+        --surface: var(--color-graphite);
+        --surface-raised: var(--color-graphite-2);
+        --surface-sunken: var(--color-graphite-3);
+        --text: var(--color-bone);
+        --text-muted: rgba(244, 244, 240, 0.72);
+        --text-faint: rgba(244, 244, 240, 0.45);
+        --border: var(--color-hairline);
+        --border-strong: var(--color-hairline-strong);
+        --accent: var(--color-amber);
+        --problem: var(--color-red);
+        --solution: var(--color-blue);
+        --warning: var(--color-yellow);
+
+        /* --- Backward-compatible aliases (do not break consumer skills) --- */
+        --bg: var(--surface);
+        --bg-elevated: var(--surface-raised);
+        --bg-sunken: var(--surface-sunken);
+        --bg-card: var(--surface-raised);
+        --bg-code: var(--surface-sunken);
+        --ink: var(--text);
+        --ink-secondary: var(--text-muted);
+        --ink-muted: var(--text-faint);
+        --rose: var(--problem);
+        --rose-glow: color-mix(in srgb, var(--problem) 15%, transparent);
+        --emerald: var(--solution);
+        --emerald-glow: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-glow: color-mix(in srgb, var(--warning) 15%, transparent);
+        --coral: var(--problem);
+        --coral-light: color-mix(in srgb, var(--problem) 15%, transparent);
+        --teal: var(--solution);
+        --teal-light: color-mix(in srgb, var(--solution) 15%, transparent);
+        --amber-light: color-mix(in srgb, var(--warning) 20%, transparent);
+
+        /* --- Shape --- */
+        --radius: 0px; /* Bauhaus default: sharp corners */
+        --radius-sm: 0px;
+
+        /* --- Type stacks (system only — zero external fonts) --- */
+        --font-heading:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-body:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --font-mono:
+          ui-monospace, "Cascadia Code", "Source Code Pro", "JetBrains Mono",
+          Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      /* Sticky-header offset for anchor jumps */
+      section[id],
+      [id] {
+        scroll-margin-top: 60px;
+      }
+
+      body {
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* --- Accessibility: keyboard focus --- */
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      a:focus-visible {
+        outline-offset: -1px;
+      }
+
+      /* --- Full-bleed top bar --- */
+      .top-bar {
+        background: var(--text);
+        color: var(--surface);
+        padding: 0.6rem 2rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* --- Layout: optional sticky sidebar TOC --- */
+      .layout {
+        display: flex;
+        gap: 2.5rem;
+        padding: 2rem;
+      }
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 1rem;
+        align-self: flex-start;
+        height: calc(100vh - 2rem);
+        overflow-y: auto;
+        display: none;
+      }
+      .sidebar nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .sidebar .label {
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--accent);
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .sidebar a {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 0.45rem 0.75rem;
+        border-left: 2px solid transparent;
+        transition: all 0.15s ease;
+        line-height: 1.4;
+        font-weight: 500;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        color: var(--accent);
+        border-left-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, transparent);
+      }
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* --- Headings --- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.1;
+        margin: 0 0 0.6rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid var(--border-strong);
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      h2 .num {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+      }
+      h4 {
+        font-size: 0.98rem;
+        margin: 0 0 0.3rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1rem;
+      }
+
+      /* --- Hero --- */
+      .hero {
+        padding: 1.5rem 0 1.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid var(--border-strong);
+      }
+      .hero-badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--surface);
+        background: var(--accent);
+        padding: 0.3rem 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+      .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        max-width: 70ch;
+        margin: 0;
+      }
+
+      /* Bauhaus signature: geometric shape cluster (optional) */
+      .hero-shapes {
+        position: relative;
+        height: 80px;
+        margin-bottom: 1rem;
+      }
+      .hero-shapes .circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 56px;
+        height: 56px;
+        background: var(--problem);
+        border-radius: 50%;
+      }
+      .hero-shapes .square {
+        position: absolute;
+        top: 24px;
+        left: 72px;
+        width: 48px;
+        height: 48px;
+        background: var(--solution);
+      }
+      .hero-shapes .tri {
+        position: absolute;
+        top: 8px;
+        left: 140px;
+        width: 0;
+        height: 0;
+        border-left: 28px solid transparent;
+        border-right: 28px solid transparent;
+        border-bottom: 48px solid var(--warning);
+      }
+
+      /* --- General cards --- */
+      .card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .card-problem {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-solution {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .card-warning {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+
+      /* --- Issue cards --- */
+      .issue {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1.3rem;
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--border-strong);
+      }
+      .issue-critical {
+        border-left-color: var(--problem);
+        background: color-mix(
+          in srgb,
+          var(--problem) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-important {
+        border-left-color: var(--warning);
+        background: color-mix(
+          in srgb,
+          var(--warning) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue-nice {
+        border-left-color: var(--solution);
+        background: color-mix(
+          in srgb,
+          var(--solution) 8%,
+          var(--surface-raised)
+        );
+      }
+      .issue h3 {
+        margin-bottom: 0.3rem;
+      }
+      .issue .where {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin: 0.2rem 0 0.6rem;
+      }
+      .issue p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* --- Severity badges (used inside issue cards) --- */
+      .severity {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        margin-bottom: 0.6rem;
+        color: var(--surface);
+      }
+      .severity-critical {
+        background: var(--problem);
+      }
+      .severity-important {
+        background: var(--warning);
+      }
+      .severity-nice {
+        background: var(--solution);
+      }
+
+      /* --- Inline badges (used in tables) --- */
+      .badge {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid var(--border-strong);
+        color: var(--text-muted);
+      }
+      .badge-critical {
+        color: var(--problem);
+        border-color: var(--problem);
+      }
+      .badge-high {
+        color: var(--warning);
+        border-color: var(--warning);
+      }
+      .badge-medium {
+        color: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge-low {
+        color: var(--text-muted);
+      }
+      .badge-fixed {
+        color: var(--solution);
+        border-color: var(--solution);
+      }
+
+      /* --- Callouts (used inside issues or standalone) --- */
+      .callout {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid var(--border-strong);
+        background: color-mix(in srgb, var(--text) 5%, transparent);
+        font-size: 0.9rem;
+      }
+      .callout strong {
+        display: inline-block;
+        margin-right: 0.4rem;
+      }
+      .callout-solution {
+        border-left-color: var(--solution);
+        background: color-mix(in srgb, var(--solution) 10%, transparent);
+      }
+      .callout-warning {
+        border-left-color: var(--warning);
+        background: color-mix(in srgb, var(--warning) 10%, transparent);
+      }
+
+      /* --- Stat cards / scorecards (aliased vocabulary) --- */
+      .stat-grid,
+      .scorecard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .stat-card,
+      .score-card {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        padding: 1.1rem 1rem;
+        position: relative;
+      }
+      .stat-card::before,
+      .score-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--border-strong);
+      }
+      .stat-bad,
+      .score-bad {
+        /* default top bar already set */
+      }
+      .stat-bad::before,
+      .score-bad::before {
+        background: var(--problem);
+      }
+      .stat-good::before,
+      .score-good::before {
+        background: var(--solution);
+      }
+      .stat-warn::before,
+      .score-warn::before {
+        background: var(--warning);
+      }
+      .stat-value,
+      .score {
+        font-family: var(--font-heading);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .stat-bad .stat-value,
+      .score-bad .score {
+        color: var(--problem);
+      }
+      .stat-good .stat-value,
+      .score-good .score {
+        color: var(--solution);
+      }
+      .stat-warn .stat-value,
+      .score-warn .score {
+        color: var(--warning);
+      }
+      .stat-label,
+      .score-card .label {
+        font-family: var(--font-mono);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-faint);
+        margin-top: 0.5rem;
+      }
+
+      /* --- Strengths list --- */
+      .strengths {
+        display: grid;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .strength {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .strength .check {
+        font-family: var(--font-mono);
+        font-weight: 700;
+        color: var(--solution);
+        font-size: 1.1rem;
+        line-height: 1.4;
+      }
+      .strength .text strong {
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .strength .text span {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* --- Tables --- */
+      .table-wrap {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.9rem;
+        background: var(--surface-raised);
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-strong);
+      }
+      td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:hover td {
+        background: var(--surface-raised);
+      }
+
+      /* --- Before/After comparison --- */
+      .compare-header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin: 1rem 0 0.5rem;
+      }
+      .compare-before,
+      .compare-after {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.4rem 0.7rem;
+        color: var(--surface);
+      }
+      .compare-before {
+        background: var(--problem);
+      }
+      .compare-after {
+        background: var(--solution);
+      }
+      .compare-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+      .compare-row pre {
+        margin: 0;
+      }
+
+      /* --- Code blocks + syntax highlighting --- */
+      pre {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.65;
+        overflow-x: auto;
+      }
+      code {
+        font-family: var(--font-mono);
+      }
+      p code,
+      li code,
+      td code {
+        font-size: 0.88em;
+        background: var(--surface-sunken);
+        padding: 0.1rem 0.35rem;
+      }
+      .tok-keyword {
+        color: var(--accent);
+      } /* func, type, struct, if, return */
+      .tok-type {
+        color: var(--warning);
+      } /* int, string, bool, error */
+      .tok-string {
+        color: var(--solution);
+      } /* "quoted strings" */
+      .tok-comment {
+        color: var(--text-faint);
+        font-style: italic;
+      }
+      .tok-func {
+        color: #74a9ff;
+      } /* function names */
+      .tok-number {
+        color: var(--accent);
+      } /* 42, 3.14 */
+      .tok-generic {
+        color: var(--problem);
+      } /* T, ID in generics */
+      .tok-builtin {
+        color: #4dd9ff;
+      } /* make, len, append */
+      .tok-punct {
+        color: var(--text-muted);
+      } /* { } ( ) ; = : */
+      .tok-attr {
+        color: var(--accent);
+      } /* Nix attribute names */
+
+      /* --- Dependency tree / ASCII diagrams --- */
+      .dep-tree {
+        background: var(--surface-sunken);
+        border: 1px solid var(--border);
+        padding: 1rem 1.2rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        line-height: 1.7;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      .dep-tree .root {
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .dep-tree .ok {
+        color: var(--solution);
+      }
+      .dep-tree .unwanted {
+        color: var(--problem);
+      }
+
+      /* --- Inline node-and-arrow diagrams --- */
+      .diagram {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+      }
+      .node {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-strong);
+      }
+      .node-core {
+        background: var(--accent);
+        color: var(--surface);
+        border-color: var(--accent);
+      }
+      .node-problem {
+        background: var(--problem);
+        color: var(--surface);
+        border-color: var(--problem);
+      }
+      .node-good {
+        background: var(--solution);
+        color: var(--surface);
+        border-color: var(--solution);
+      }
+      .arrow {
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Grids (responsive) --- */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      /* --- Inline TOC (alternative to sidebar) --- */
+      .toc {
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 1rem 1.3rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .toc h3 {
+        margin-bottom: 0.5rem;
+      }
+      .toc ul {
+        list-style: none;
+        padding: 0;
+      }
+      .toc li {
+        margin: 0.25rem 0;
+      }
+      .toc a {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .toc a:hover {
+        color: var(--accent);
+      }
+
+      /* --- Migration / numbered steps --- */
+      .migration-step {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        margin: 1rem 0;
+        padding: 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+      }
+      .migration-num {
+        font-family: var(--font-mono);
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .migration-content h4 {
+        margin-bottom: 0.2rem;
+      }
+      .migration-content p {
+        margin-bottom: 0;
+        color: var(--text-muted);
+        font-size: 0.92rem;
+      }
+
+      /* --- Footer --- */
+      .footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-faint);
+        font-family: var(--font-mono);
+      }
+
+      /* --- Responsive --- */
+      @media (min-width: 1024px) {
+        .sidebar {
+          display: block;
+        }
+      }
+      @media (max-width: 768px) {
+        .layout {
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .top-bar {
+          padding: 0.6rem 1rem;
+          flex-wrap: wrap;
+          gap: 0.3rem;
+        }
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+        .compare-header,
+        .compare-row {
+          grid-template-columns: 1fr;
+        }
+        .stat-grid,
+        .scorecard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .migration-step {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <span>PARETO EXECUTION PLAN</span>
+      <span>2026-10-03 17:20</span>
+      <span>go-cqrs-lite &middot; master 0d3cec827</span>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar" data-nav>
+        <nav>
+          <div class="label">Contents</div>
+          <a href="#summary">00 Summary</a>
+          <a href="#method">01 Method</a>
+          <a href="#wave1">02 Wave 1 &middot; 1%</a>
+          <a href="#wave2">03 Wave 2 &middot; 4%</a>
+          <a href="#wave3">04 Wave 3 &middot; 20%</a>
+          <a href="#wave4">05 Wave 4 &middot; gated</a>
+          <a href="#fine">06 Fine breakdown</a>
+          <a href="#owner">07 Owner decision bundle</a>
+          <a href="#ondemand">08 Route-on-demand</a>
+          <a href="#observe">09 Observe / watch</a>
+          <a href="#graph">10 Execution graph</a>
+          <a href="#receipts">11 Session receipts</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="hero">
+          <div class="hero-shapes">
+            <div class="circle"></div>
+            <div class="square"></div>
+            <div class="tri"></div>
+          </div>
+          <div class="hero-badge">Full TODO List &middot; Pareto Master Plan</div>
+          <h1>Every open TODO, ranked and sliced</h1>
+          <p class="hero-subtitle">
+            112 open TODO_LIST rows + 9 open GitHub issues (&#35;21 &#35;26 &#35;27 &#35;35 &#35;36 &#35;43 &#35;49 &#35;50 &#35;51)
+            consolidated into 27 medium tasks (30&ndash;100&nbsp;min) and 118 fine tasks (&le;12&nbsp;min each),
+            sorted by importance / impact / effort / customer value.
+          </p>
+        </div>
+
+        <h2 id="summary"><span class="num">00</span>Summary</h2>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value">112</div><div class="stat-label">open rows audited</div></div>
+          <div class="stat-card stat-warn"><div class="stat-value">9</div><div class="stat-label">stale rows killed by T01</div></div>
+          <div class="stat-card"><div class="stat-value">27</div><div class="stat-label">medium tasks (30&ndash;100 min)</div></div>
+          <div class="stat-card"><div class="stat-value">118</div><div class="stat-label">fine tasks (&le;12 min)</div></div>
+          <div class="stat-card stat-bad"><div class="stat-value">34</div><div class="stat-label">blocked rows &rarr; 28 owner rulings</div></div>
+          <div class="stat-card stat-good"><div class="stat-value">5+4</div><div class="stat-label">executable today + next up</div></div>
+        </div>
+
+        <div class="card card-solution">
+          <h4>The 1% that delivers 51%</h4>
+          <p>Consumers are broken on released artifacts right now: watermill v4.6.2 drops
+          CorrelationID/CausationID on the wire (<code>#21</code>), stack/postgres v4.2.0 is broken in
+          isolation (<code>#26</code>), and the TODO list itself lies &mdash; 9 rows describe work already
+          shipped by the 2026-10-01/03 sessions, while 3 fresh consumer-filed issues (<code>#49</code> <code>#50</code> <code>#51</code>)
+          are not tracked at all. Fix the truth, fix the wire, prep the release wave.</p>
+        </div>
+        <div class="card card-warning">
+          <h4>Hard gates respected</h4>
+          <p>Load average at planning time: 12&ndash;22 (ceiling for quiet-window work is &lt;5) &mdash; all
+          window-gated legs stay parked. Tag <strong>pushes</strong> are owner-gated (never push without an
+          explicit ask). v5 deletions ride the v5 branch per the 2026-10-01 readiness checklist. The
+          Declined section is a guard list and is excluded by design.</p>
+        </div>
+
+        <h2 id="method"><span class="num">01</span>Method</h2>
+        <p>
+          Full re-audit of <code>TODO_LIST.md</code> (1,305 lines) against live state: GitHub issue
+          states via <code>gh</code>, CHANGELOG <code>[Unreleased]</code> receipts, and source inspection
+          (e.g. <code>watermill/protocol.go</code> <code>eventToMessage</code> confirmed to still drop the
+          scalar IDs). Rows already satisfied were reclassified as stale (T01 kills them with dated
+          receipts per the 2026-09-28 receipt convention). Everything else is ranked into Pareto waves
+          by customer value: consumer unblock &gt; consumer features &gt; trust (linter/docs truth) &gt;
+          structural/tooling &gt; gated strategic work. Coverage is total: every open row maps to exactly
+          one medium task, one owner ruling, one route-on-demand entry, or one observe entry.
+        </p>
+
+        <h2 id="wave1"><span class="num">02</span>Wave 1 &mdash; the 1% (51%): consumer unblock + truth</h2>
+        <table>
+          <thead><tr><th>ID</th><th>Task</th><th>Customer value / why</th><th>Effort</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>T01</td><td><strong>TODO truth-strike + new-issue triage</strong> &mdash; strike 9 stale rows with dated receipts (<code>#25</code> closed 10-01, <code>#42</code> shipped+closed, <code>#32</code> shipped+closed, <code>#28</code> closed, <code>#35</code> shipped, mesh-demo M25, NATS JetStream M19, requestContextEnricher M24, benchkit closed row); add <code>#49</code>/<code>#50</code>/<code>#51</code> rows; repoint the header plan link here</td><td>Every future session plans against reality; 3 live consumer bugs get tracked</td><td>S</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>T02</td><td><strong>#21 watermill scalar IDs on the wire</strong> &mdash; <code>eventToMessage</code> writes <code>m.CorrelationID</code>/<code>m.CausationID</code> (mirrors <code>command_protocol.go:102</code>); round-trip + zero-value tests; typed Causation already fixed on master</td><td>Released v4.6.2 silently drops correlation &mdash; tracing/sagas break for every broker consumer</td><td>S</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>T03</td><td><strong>#26 retract stack/postgres v4.2.0</strong> &mdash; <code>retract</code> directive in stack/postgres go.mod (+ rationale comment); directive publishes with v4.4.2</td><td>Consumers resolving v4.2.0 get a broken build today</td><td>XS</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>T04</td><td><strong>Release-wave prep</strong> &mdash; CHANGELOG sections for watermill v4.7.0 + stack/postgres v4.4.2; <code>tag-release.sh</code> dry-runs; <strong>push owner-gated</strong></td><td>Unreleased fixes help nobody; wave makes both issues real</td><td>M</td><td><span class="badge badge-fixed">TODAY (prep)</span></td></tr>
+            <tr><td>T05</td><td><strong>Close #35 with receipt</strong> &mdash; shipped 2026-10-01 as <code>event.RequestScope</code> + <code>WithRequestScope</code> + <code>RequestScopeEnricher</code> (recipes &sect;2.42); comment + close</td><td>Open issue missignals an open ask</td><td>XS</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="wave2"><span class="num">03</span>Wave 2 &mdash; the 4% (64%): consumer features + linter trust</h2>
+        <table>
+          <thead><tr><th>ID</th><th>Task</th><th>Customer value / why</th><th>Effort</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>T06</td><td><strong>#51 invert A013</strong> &mdash; fire on <em>value</em> embedding of <code>BasicCommand</code> (the form that silently drops <code>command.Command</code> satisfaction); keep pointer-embed silent; reword suggestion; RULES.md + goldens + testdata</td><td>Real consumer (go-aichat/chatstore) emits A013 on its sanctioned pattern; following the suggestion breaks compilation</td><td>S</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>T07</td><td><strong>#43 D005 positional version-claim rule</strong> &mdash; a version token counts as the doc&rsquo;s claim only in claim position, not &ldquo;first token on any go-cqrs-lite line&rdquo;; FP sentence tests + goldens</td><td>False version-drift findings erode lint trust</td><td>S</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>T08</td><td><strong>#49 CommandRetry conflict-retry docs</strong> &mdash; doc comment on <code>CommandRetry</code>: conflicts are NOT retried by default + the sound <code>IsRetryable</code> override recipe; FAQ entry; dated correction note on the archived roadmap row</td><td>nsfw-classifier hand-rolls per-stream mutexes because no doc answers whether conflict-retry is sound</td><td>XS</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>T09</td><td><strong>#27 module&darr;latest-tag manifest</strong> &mdash; <code>versions.json</code> generator from git tags; nightly CI freshness leg; README compatibility matrix</td><td>Per-module trains drift invisibly for consumers choosing pins</td><td>M</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>T10</td><td><strong>#50 time.Time nano-drift</strong> &mdash; in-repo repro (systemtest + sqlite); trace the sub-&micro;s loss between fold and <code>encodeJSON</code> journal; fix to nano-exact or scope ADR-0056&rsquo;s claim + document tolerance</td><td>Consumers doing exact timestamp compares (dedupe/idempotency) fail non-deterministically</td><td>M</td><td><span class="badge badge-high">NEXT</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="wave3"><span class="num">04</span>Wave 3 &mdash; the 20% (80%): structural + tooling</h2>
+        <table>
+          <thead><tr><th>ID</th><th>Task</th><th>Customer value / why</th><th>Effort</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>T11</td><td><strong>Release-tooling polish slices A</strong> &mdash; <code>SOAK_SKIP_BOLT=1</code> doc row; LSP/gopls <code>GOTOOLCHAIN=auto</code> config (~95 noise diagnostics/session); cqrs-upgrade dogfood sentinel on goal-shaped-app; check-templ leg-first error summary</td><td>Operator/agent ergonomics; each was a documented friction incident</td><td>S</td><td><span class="badge badge-fixed">TODAY (slices)</span></td></tr>
+            <tr><td>T12</td><td><strong>CI yml train-tail fixes</strong> &mdash; (a) benchkit load-gate fixture env propagation; (b) coverage-gate pinned setup-go toolchain; (c) auto-retry-once for cancelled infra legs</td><td>Remote CI legs stay red on classes already root-caused locally</td><td>S</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>T13</td><td><strong>#36 stack/metaengine module split (slice 1)</strong> &mdash; new <code>stack/metaengine</code> module owning WithMetaEngine + Bundle registration (4 root files); deprecated root forwarders until v5; full 6-place registration sweep + hermetic metaengine-free-graph probe</td><td>Unblocks the metaengine-free stack consumer path; last structural decoupling before v5</td><td>L</td><td><span class="badge badge-high">NEXT (sliced)</span></td></tr>
+            <tr><td>T14</td><td><strong>Bench-gate tooling tail</strong> &mdash; <code>--explain</code> per-sample diagnostics; <code>--json</code> evidence for quiet-window-run; auto-embed noise verdict + CoV + GOVERSION into <code>--save</code> headers; README ops section</td><td>Benchmark evidence quality; slices of the 16-37 &sect;f backlog</td><td>M</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>T15</td><td><strong>M13 remainder: fresh-run stamps</strong> &mdash; per-module fresh-run last-verified stamps (count derivation itself SHIPPED as canonical-facts M14 legs; only quiet-CPU stamps remain)</td><td>FEATURES guarantee rows stay honest</td><td>S</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>T16</td><td><strong>Soak + observe batch</strong> &mdash; bigtableengine soak env-var run; nightly weekly load-sweep leg observation; dgraph/redis shuffled-run watch; 3 baselined templ clone groups watch</td><td>Cheap assurance runs that need only a quieter box than today&rsquo;s 12&ndash;22 load</td><td>S</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>T17</td><td><strong>Quiet-window verification batch</strong> &mdash; composed <code>#verify</code> re-record (S03 chain re-proof) + dedup tail (a) + <code>#integration-mysql-vm</code> hardened leg + mysql-VM shuffled seeds + T18 snapshot MySQL migration leg</td><td>The end-to-end green that gates the v5 cut (checklist Layer 1)</td><td>M</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>T18</td><td><strong>Calibration campaign</strong> &mdash; SearchQuery count=5 re-run; benchmark-baseline re-pin check; dgraph constant re-anchor; supersede-note on the 09-19 oversubscribed capture &mdash; all behind <code>calibration-gate.sh</code> PASS</td><td>Routing honesty: live-latency model fed by calibrated constants</td><td>M</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>T19</td><td><strong>350-line split wave 1</strong> &mdash; typed_reader 1127, store 935, execute 778 (baseline shrink-only ratchet rewards each); rides the ratified policy (T25 ruling 16)</td><td>File-size gate stops being decorative; reviewability</td><td>L</td><td><span class="badge badge-high">NEXT (post-ruling)</span></td></tr>
+            <tr><td>T20</td><td><strong>cqrs-lint heuristic-gates batch 1</strong> &mdash; import-scope substring gates (V001/V004/V005, T001&ndash;T007, E016, A008) FP analysis + goldens; b022_b025/a020 splits</td><td>Remaining FP/FN vectors behind lint trust</td><td>M</td><td><span class="badge badge-high">NEXT</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="wave4"><span class="num">05</span>Wave 4 &mdash; gated / strategic (to 100%)</h2>
+        <table>
+          <thead><tr><th>ID</th><th>Task</th><th>Customer value / why</th><th>Effort</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>T21</td><td><strong>v5 cut execution</strong> &mdash; per <a href="../../2026-10-01_v5-cut-readiness-checklist.md">the 2026-10-01 readiness checklist</a>: branch &rarr; deletion cascade (Materialize, RelationalProjection+view, GraphProjection, Bundle+8 presets, ADR-0126 shells, BuildWhereClause, transport/http+grpc, tombstone metadata API) &rarr; flips (G-T14 scan default, NewStreamRef validation) &rarr; docs &rarr; tag</td><td>The unification payoff: one composition root, half the surface</td><td>XL</td><td><span class="badge badge-critical">V5-BRANCH</span></td></tr>
+            <tr><td>T22</td><td><strong>v5 prep executable now</strong> &mdash; V5-MIGRATION-GUIDE before/after slices (relational&rarr;metaengine); ADR-0139 open-questions memo packaging; <code>NewStreamRef</code> call-site census; v5-item golden/meta-test pass</td><td>Cut-day risk reduction</td><td>M</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>T23</td><td><strong>FilterContains/FilterPrefix + ApplyBatch atomicity design</strong> &mdash; FilterOp extension design (native LIKE/prefix + closure fallback; CV measured 2.3&ndash;28&nbsp;ms vs 326&nbsp;&micro;s hand-rolled) for the v5 window; ApplyBatch atomicity note (ADR-0123 &sect;10; CV&rsquo;s 3.4&nbsp;s&rarr;109&nbsp;ms argument)</td><td>The most-requested read-model query gap</td><td>M</td><td><span class="badge badge-low">V5-WINDOW</span></td></tr>
+            <tr><td>T24</td><td><strong>Turso upstream watch protocol</strong> &mdash; trigger check for a tagged tursogo release carrying <a href="https://github.com/tursodatabase/turso/pull/9392">#9392</a>; then flip per <code>docs/turso-go-ivm-fix-flip-runbook.md</code>, re-verify v0.7.2 reopen-crash, re-check A+B onset matrix; A+B filing stays owner-gated (draft + onset matrix ready)</td><td>IVM correctness for every matview consumer</td><td>S</td><td><span class="badge badge-low">UPSTREAM</span></td></tr>
+            <tr><td>T25</td><td><strong>Owner decision bundle</strong> &mdash; the 28 consolidated rulings in &sect;07 (incl. &#128293; G-T02 direction ruling, M20 a/b/c, release-policy Q3, F153 license, billing, evals tooling). Delivered as part of THIS plan; TODO anchor row added by T01</td><td>34 blocked rows unblock through ~28 answers; most are one-line replies</td><td>XS/each</td><td><span class="badge badge-fixed">DELIVERED</span></td></tr>
+            <tr><td>T26</td><td><strong>Consumer comms batch</strong> &mdash; CV 8-module bump (operator); go-graph-rag &ldquo;fixed in v4.9.0&rdquo; note (github-voice); cqrs-htmx drop-local-copy reminder &mdash; rides the next release wave</td><td>Fixed-and-released but uncommunicated helps nobody</td><td>S</td><td><span class="badge badge-critical">OWNER</span></td></tr>
+            <tr><td>T27</td><td><strong>Goal-closure stamps</strong> &mdash; G-T25 FEATURES maturity flip (&#129514;&rarr;&#9989;) once gates A&ndash;D earned (ruling ADR + &ge;2-engine routing tests + parity bench + release wave + two-engine example proof); CHANGELOG Goal-story</td><td>The north-star metric: &ldquo;declare ONLY Commands+Events+Queries&rdquo;</td><td>S</td><td><span class="badge badge-critical">GATED</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="fine"><span class="num">06</span>Fine breakdown &mdash; 118 tasks, each &le;12 minutes</h2>
+        <p>Sorted within waves by impact/effort. Status legend: <span class="badge badge-fixed">TODAY</span>
+        <span class="badge badge-high">NEXT</span> <span class="badge badge-low">GATED-ENV</span> <span class="badge badge-critical">OWNER/V5</span></p>
+
+        <h3>Wave 1</h3>
+        <table>
+          <thead><tr><th>#</th><th>Fine task</th><th>&larr; Task</th><th>Est</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>f01</td><td>Receipt-verify issue close states (#25/#42/#32/#28/#35) via gh &mdash; capture dates + closing links</td><td>T01</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f02</td><td>Strike W0 row (close-#25) with dated receipt</td><td>T01</td><td>4m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f03</td><td>Rewrite W2 row: #42 half struck (shipped, v4.13.1, issue closed), keep #43</td><td>T01</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f04</td><td>Rewrite W3 row: strike #32/#35/#28 halves with receipts; keep #27</td><td>T01</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f05</td><td>Strike mesh-demo row (M25 runtime coeffect-gate twin shipped, CHANGELOG receipt)</td><td>T01</td><td>4m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f06</td><td>Delete Watermill NATS row (M19 shipped: TestNatsJetStreamRoundtrip + #integration-nats)</td><td>T01</td><td>3m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f07</td><td>Strike requestContextEnricher row (shipped as event.RequestScope, M24/#35)</td><td>T01</td><td>4m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f08</td><td>Delete the fully-closed benchkit polish-tail row (sanctioned by its own text)</td><td>T01</td><td>3m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f09</td><td>Add #49 row (CommandRetry conflict docs) under a new-issues section</td><td>T01</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f10</td><td>Add #50 row (time.Time nano-drift)</td><td>T01</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f11</td><td>Add #51 row (A013 inversion)</td><td>T01</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f12</td><td>Repoint TODO header &ldquo;current plan&rdquo; link to this plan; update section index</td><td>T01</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f13</td><td>eventToMessage: write scalar CorrelationID/CausationID (zero-value guarded, mirror command side)</td><td>T02</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f14</td><td>Round-trip test: event&rarr;message&rarr;event preserves both scalar IDs</td><td>T02</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f15</td><td>Negative test: zero-value IDs write no metadata keys (wire stays lean)</td><td>T02</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f16</td><td>Coexist test: scalar IDs + typed Causation + legacy keys all present</td><td>T02</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f17</td><td>Module tests: source go-env.sh; cd watermill &amp;&amp; GOWORK=off go test ./... -count=1</td><td>T02</td><td>12m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f18</td><td>CHANGELOG [Unreleased] Fixed entry citing the #21 fix</td><td>T02</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f19</td><td>Inspect stack/postgres go.mod + tag history; confirm v4.2.0 broken-in-isolation facts</td><td>T03</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f20</td><td>Add retract v4.2.0 block + rationale comment</td><td>T03</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f21</td><td>Verify: GOWORK=off go build + tidy check for stack/postgres</td><td>T03</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f22</td><td>CHANGELOG entry (retract notice)</td><td>T03</td><td>4m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f23</td><td>Draft CHANGELOG version sections: watermill v4.7.0, stack/postgres v4.4.2</td><td>T04</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f24</td><td>tag-release.sh dry-run watermill v4.7.0 (no push)</td><td>T04</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f25</td><td>tag-release.sh dry-run stack/postgres v4.4.2 (no push)</td><td>T04</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f26</td><td>TODO rows updated: wave marked cut-ready, push owner-gated</td><td>T04</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f27</td><td>gh: receipt comment on #35 + close</td><td>T05</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Wave 2</h3>
+        <table>
+          <thead><tr><th>#</th><th>Fine task</th><th>&larr; Task</th><th>Est</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>f28</td><td>Read a009_a013.go detector + command.BasicCommand method set (confirm pointer-only)</td><td>T06</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f29</td><td>Invert trigger: value-embed fires, pointer-embed silent</td><td>T06</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f30</td><td>Reword finding: compile-failure rationale + ApplyOptions mutation contract</td><td>T06</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f31</td><td>Testdata fixture: value-embedded command triggers inverted rule</td><td>T06</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f32</td><td>RULES.md A013 rewrite</td><td>T06</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f33</td><td>Regen taskmanager golden; check rule-count gates (209 unchanged)</td><td>T06</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f34</td><td>Run cqrs-lint over example/ tree &mdash; must stay clean</td><td>T06</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f35</td><td>Module tests GOWORK=off</td><td>T06</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f36</td><td>CHANGELOG entry + issue #51 comment (receipt)</td><td>T06</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f37</td><td>Read d005_version.go versions[0] site; enumerate real FP shapes from #43</td><td>T07</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f38</td><td>Design claim-position rule (module-path/version-literal adjacency whitelist)</td><td>T07</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f39</td><td>Implement positional attachment in D005</td><td>T07</td><td>12m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f40</td><td>FP sentence tests: module paths, unrelated tokens, mid-sentence versions</td><td>T07</td><td>12m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f41</td><td>Goldens + module tests</td><td>T07</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f42</td><td>CHANGELOG + #43 comment</td><td>T07</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f43</td><td>middleware.CommandRetry doc comment: default no-conflict-retry + override recipe</td><td>T08</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f44</td><td>RetryConfig.IsRetryable doc note</td><td>T08</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f45</td><td>FAQ entry (skill references) + doc-check run</td><td>T08</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f46</td><td>Dated correction note on archived roadmap&rsquo;s Conflict-retry row</td><td>T08</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f47</td><td>Module build/test (middleware)</td><td>T08</td><td>8m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f48</td><td>CHANGELOG + #49 comment</td><td>T08</td><td>5m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f49</td><td>versions.json generator script (git tags &rarr; manifest, sorted)</td><td>T09</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f50</td><td>Commit manifest + nightly freshness leg (fail when tag ahead of manifest)</td><td>T09</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f51</td><td>README compatibility-matrix section rendered from manifest</td><td>T09</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f52</td><td>Self-test (mutation: stale manifest must fail)</td><td>T09</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f53</td><td>CHANGELOG + #27 comment</td><td>T09</td><td>5m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f54</td><td>Repro test: systemtest sqlite, time.Time payload &rarr; read back, assert exact</td><td>T10</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f55</td><td>Run + measure drift distribution (ns)</td><td>T10</td><td>8m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f56</td><td>Trace loss point (encodeJSON marshal path vs fold snapshot)</td><td>T10</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f57</td><td>Fix (codec tag / RFC3339Nano) or ADR-0056 consequence amendment + tolerance doc</td><td>T10</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f58</td><td>CHANGELOG/FAQ + #50 comment</td><td>T10</td><td>6m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Wave 3</h3>
+        <table>
+          <thead><tr><th>#</th><th>Fine task</th><th>&larr; Task</th><th>Est</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>f59</td><td>SOAK_SKIP_BOLT=1 doc row in gotchas-testing soak conventions</td><td>T11</td><td>6m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f60</td><td>LSP/gopls GOTOOLCHAIN=auto config (kills ~95 noise diagnostics/session)</td><td>T11</td><td>10m</td><td><span class="badge badge-fixed">TODAY</span></td></tr>
+            <tr><td>f61</td><td>cqrs-upgrade dogfood sentinel on goal-shaped-app (script + README row)</td><td>T11</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f62</td><td>check-templ leg-first error summary</td><td>T11</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f63</td><td>smoke-all: per-module timing + --resume checkpoint + ~/.cache artifacts</td><td>T11</td><td>12m&times;3</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f64</td><td>CI (a): benchkit load-gate fixture env propagation fix + self-test</td><td>T12</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f65</td><td>CI (b): coverage-gate job gains setup-go with go-version-file</td><td>T12</td><td>8m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f66</td><td>CI (c): auto-retry-once for cancelled/failed infra legs (CGo/coverage)</td><td>T12</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f67</td><td>actionlint + shellcheck local pass over edited workflows</td><td>T12</td><td>8m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f68</td><td>#36: create stack/metaengine module + go.mod (module-path convention)</td><td>T13</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f69</td><td>#36: move WithMetaEngine/Bundle registration (4 files: options/bundle/accessors/materialize)</td><td>T13</td><td>12m&times;3</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f70</td><td>#36: deprecated root forwarders (v5 removal census sync: v007 tables)</td><td>T13</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f71</td><td>#36: 6-place registration sweep (go.work, flake, layers, api-exclusions, cqrs-lint catalog) + meta-test</td><td>T13</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f72</td><td>#36: hermetic metaengine-free-graph probe (build stack without metaengine import)</td><td>T13</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f73</td><td>#36: api golden regen + CHANGELOG + issue comment</td><td>T13</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f74</td><td>--explain &lt;bench&gt; per-sample diagnostics</td><td>T14</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f75</td><td>--json evidence output for quiet-window-run</td><td>T14</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f76</td><td>Auto-embed noise verdict + CoV + GOVERSION into --save headers</td><td>T14</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f77</td><td>README ops section for quiet-window-run/nightly-bench</td><td>T14</td><td>8m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f78</td><td>Fresh-run stamps: N modules &times; run-and-stamp (quiet CPU, sliceable)</td><td>T15</td><td>10m&times;N</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f79</td><td>bigtableengine soak env-var run per conventions</td><td>T16</td><td>12m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f80</td><td>Observe: nightly weekly load-sweep leg fired + logged cleanly?</td><td>T16</td><td>6m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f81</td><td>Observe: dgraph+redis shuffled CI runs (~10) &mdash; record any failing seed</td><td>T16</td><td>8m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f82</td><td>Observe: 3 baselined templ clone groups &mdash; still no suppression lever upstream?</td><td>T16</td><td>6m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f83</td><td>Preflight: preflight-composed.sh + can-run-composed-gate --wait-loop</td><td>T17</td><td>10m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f84</td><td>Composed #verify run (exclusive; nothing concurrent)</td><td>T17</td><td>12m+</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f85</td><td>#integration-mysql-vm hardened leg + mysql-VM shuffled seeds replay + snapshot-migration MySQL leg</td><td>T17</td><td>12m&times;3</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f86</td><td>Receipts: TODO rows struck with evidence</td><td>T17</td><td>8m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f87</td><td>calibration-gate.sh PASS check (&lt;5 load)</td><td>T18</td><td>6m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f88</td><td>SearchQuery count=5 re-run (+supersede if medians move &gt;5%)</td><td>T18</td><td>12m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f89</td><td>benchmark-baseline re-pin check (titled provenance)</td><td>T18</td><td>10m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f90</td><td>dgraph constants re-anchor campaign</td><td>T18</td><td>12m&times;2</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f91</td><td>Supersede-note on 2026-09-19 oversubscribed capture</td><td>T18</td><td>6m</td><td><span class="badge badge-low">WINDOW</span></td></tr>
+            <tr><td>f92</td><td>Split typed_reader.go (1127) &rarr; cohesive files; baseline shrink</td><td>T19</td><td>12m&times;4</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f93</td><td>Split metaengine/store.go (935) &rarr; mechanics/config/docs</td><td>T19</td><td>12m&times;3</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f94</td><td>Split execute.go (778) + engines pair (725/722)</td><td>T19</td><td>12m&times;3</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f95</td><td>File-size baseline shrink regen + gate green proof</td><td>T19</td><td>8m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f96</td><td>Heuristic batch 1a: V001/V004/V005 eventtest//v3//v4 substring gates FP analysis + tests</td><td>T20</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f97</td><td>Heuristic batch 1b: T001&ndash;T007/E016/A008 scope gates</td><td>T20</td><td>12m&times;2</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f98</td><td>Split b022_b025.go (495) + a020 quad (~357 over convention)</td><td>T20</td><td>12m&times;2</td><td><span class="badge badge-high">NEXT</span></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Wave 4 (gated)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Fine task</th><th>&larr; Task</th><th>Est</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>f99</td><td>v5: create branch; run readiness checklist Layer 0 (rulings present?)</td><td>T21</td><td>10m</td><td><span class="badge badge-critical">V5</span></td></tr>
+            <tr><td>f100</td><td>v5: deletion cascade slices (Materialize; RelationalProjection+view; GraphProjection; Bundle+presets; ADR-0126 shells; BuildWhereClause; tombstone API) &mdash; one PR-sized slice each</td><td>T21</td><td>12m&times;8</td><td><span class="badge badge-critical">V5</span></td></tr>
+            <tr><td>f101</td><td>v5: G-T14 scan-default flip + cqrs-lint nudge + NewStreamRef validation + migrations</td><td>T21</td><td>12m&times;3</td><td><span class="badge badge-critical">V5</span></td></tr>
+            <tr><td>f102</td><td>v5: migration-guide sweep + README/SKILL/CHANGELOG + full verify + tag wave</td><td>T21</td><td>12m&times;3</td><td><span class="badge badge-critical">V5</span></td></tr>
+            <tr><td>f103</td><td>Guide slice: relational&rarr;metaengine before/after</td><td>T22</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f104</td><td>ADR-0139 open-questions memo packaging (4 questions, options)</td><td>T22</td><td>10m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f105</td><td>NewStreamRef call-site census (empty-entityID guards)</td><td>T22</td><td>12m</td><td><span class="badge badge-high">NEXT</span></td></tr>
+            <tr><td>f106</td><td>FilterContains/FilterPrefix design note (LIKE/prefix + closure fallback)</td><td>T23</td><td>12m</td><td><span class="badge badge-low">V5-WINDOW</span></td></tr>
+            <tr><td>f107</td><td>ApplyBatch atomicity design note (ADR-0123 &sect;10)</td><td>T23</td><td>10m</td><td><span class="badge badge-low">V5-WINDOW</span></td></tr>
+            <tr><td>f108</td><td>tursogo release watch: check for tagged fix carrying #9392</td><td>T24</td><td>6m</td><td><span class="badge badge-low">UPSTREAM</span></td></tr>
+            <tr><td>f109</td><td>On fix: flip per runbook; re-verify reopen-crash; re-check A+B matrix</td><td>T24</td><td>12m&times;2</td><td><span class="badge badge-low">UPSTREAM</span></td></tr>
+            <tr><td>f110</td><td>Owner bundle published (this &sect;07) + TODO anchor row</td><td>T25</td><td>6m</td><td><span class="badge badge-fixed">DELIVERED</span></td></tr>
+            <tr><td>f111</td><td>CV bump execution (8 modules + vendorHash cascade + verify)</td><td>T26</td><td>12m&times;3</td><td><span class="badge badge-critical">OWNER</span></td></tr>
+            <tr><td>f112</td><td>go-graph-rag re-test invite (github-voice draft)</td><td>T26</td><td>10m</td><td><span class="badge badge-critical">OWNER</span></td></tr>
+            <tr><td>f113</td><td>cqrs-htmx drop-local-copy reminder draft</td><td>T26</td><td>8m</td><td><span class="badge badge-critical">OWNER</span></td></tr>
+            <tr><td>f114</td><td>Gates A&ndash;D evidence collection + FEATURES flip + Goal-story CHANGELOG</td><td>T27</td><td>12m&times;2</td><td><span class="badge badge-critical">GATED</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="owner"><span class="num">07</span>Owner decision bundle &mdash; 28 rulings parked in one place</h2>
+        <p>34 [BLOCKED] rows consolidate to these rulings. Most are one-line replies; each names its evidence artifact.</p>
+        <table>
+          <thead><tr><th>#</th><th>Ruling</th><th>Evidence / artifact</th><th>Unblocks</th></tr></thead>
+          <tbody>
+            <tr><td>R1</td><td>&#128293; Goal &ldquo;declare ONLY&rdquo; direction (reframe / revive / hybrid) &mdash; G-T02</td><td>decision memo 2026-09-21</td><td>ADR-0147, G-T25, Goal story</td></tr>
+            <tr><td>R2</td><td>M20(a) SingleWriter lease (ADR-0146 candidate)</td><td>one-pager 2026-09-21</td><td>CV cutover, engine locks</td></tr>
+            <tr><td>R3</td><td>M20(b/c) AggregateOn + routing v1 scope</td><td>one-pager 2026-09-21</td><td>matview routing</td></tr>
+            <tr><td>R4</td><td>T18b deadline-lapse + bench-ceiling policies</td><td>t18b record</td><td>campaign re-arm</td></tr>
+            <tr><td>R5</td><td>Queue dep-validation semantics (A: ratify / B: donor-faithful)</td><td>ratification memo</td><td>queue tag freeze</td></tr>
+            <tr><td>R6</td><td>Release-policy Q3: severity tightening in a minor</td><td>02-40 &sect;g3</td><td>S008/S009/S011 consumers</td></tr>
+            <tr><td>R7</td><td>Doctor-JSON raw vs effective semantics</td><td>05-31 &sect;g2</td><td>doctor scripting contract</td></tr>
+            <tr><td>R8</td><td>Daemon Q2: .golangci.yml formatter exclusion (self-heal vs upstream fix)</td><td>02-40 &sect;d1</td><td>config-war class</td></tr>
+            <tr><td>R9</td><td>F040 branch protection (which checks, exceptions)</td><td>06-58 &sect;g1</td><td>master integrity</td></tr>
+            <tr><td>R10</td><td>350-line policy: ratify ratchet vs split waves vs harness exemptions</td><td>shipped gate</td><td>T19 program</td></tr>
+            <tr><td>R11</td><td>claiming V006 advisory (re-tag v4.0.1 vs linter fix)</td><td>closeout &sect;f10</td><td>examples advisory</td></tr>
+            <tr><td>R12</td><td>Iroh P99 bound 50&rarr;150ms keep/revisit</td><td>shipped + gated green</td><td>calibration truth</td></tr>
+            <tr><td>R13</td><td>benchkit LICENSE &ldquo;Unknown Author&rdquo; (legal file)</td><td>M1 &sect;a</td><td>publish integrity</td></tr>
+            <tr><td>R14</td><td>Turso strict-vs-lenient DSN param policy</td><td>20-57 &sect;g3</td><td>silently-unencrypted class</td></tr>
+            <tr><td>R15</td><td>Turso sync/embedded-replica scope (BYOK path)</td><td>20-18 &sect;g1</td><td>L-design gate</td></tr>
+            <tr><td>R16</td><td>dgraph one-RPC scope Q1 (+ per-ADT benches)</td><td>22-33 &sect;g1</td><td>ADT cost truth</td></tr>
+            <tr><td>R17</td><td>CapabilityGaps into Doctor Q2</td><td>22-33 &sect;g2</td><td>doctor honesty</td></tr>
+            <tr><td>R18</td><td>Push cadence: batch vs phase-boundary</td><td>delta &sect;f1</td><td>remote CI evidence</td></tr>
+            <tr><td>R19</td><td>F153: relicense OSS vs accept hidden pkg.go.dev docs</td><td>2026-09-25 verification</td><td>public docs surface</td></tr>
+            <tr><td>R20</td><td>GitHub Actions billing fix (user action)</td><td>3&ndash;7s failures</td><td>ALL remote CI legs</td></tr>
+            <tr><td>R21</td><td>ERRAUDIT_PAT secret (user action)</td><td>08-05 &sect;f12</td><td>error-audit job</td></tr>
+            <tr><td>R22</td><td>M22/Q3 report-artifact policy for narrow triggers</td><td>3 sessions asked</td><td>skill behavior</td></tr>
+            <tr><td>R23</td><td>Weekly docs-health cadence</td><td>23-31 &sect;e</td><td>rot prevention</td></tr>
+            <tr><td>R24</td><td>Pebble/bbolt versioned cells scope (A/B/C/D)</td><td>decision note 2026-09-29</td><td>temporal engines</td></tr>
+            <tr><td>R25</td><td>BigTable real-GCP validation tag-blocking? (+ access)</td><td>14-07 &sect;g2</td><td>bigtable maturity</td></tr>
+            <tr><td>R26</td><td>Upstream filings approvals: turso A+B, turso-go trio, exhaustruct, go/types race, md-go-validator pair, cmdguard proposals, BuildFlow cwd</td><td>drafts verified</td><td>external trust</td></tr>
+            <tr><td>R27</td><td>Daemon pre-commit sanity gate (infra)</td><td>3 sessions asked</td><td>corruption class</td></tr>
+            <tr><td>R28</td><td>Skill evals execution (claude CLI access) + #test-examples gate ownership + goal-shaped-app PG CI leg cost</td><td>report &sect;f7 etc.</td><td>validation coverage</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="ondemand"><span class="num">08</span>Route-on-demand (kept open, consumer-triggered)</h2>
+        <table>
+          <thead><tr><th>Row</th><th>Trigger</th></tr></thead>
+          <tbody>
+            <tr><td>Matview v2 surface (8 features: planned-table matviews, filtered specs, multi-aggregate, Drop, write-amp counter, Introspection, lint rules, example)</td><td>a consumer asks for each feature</td></tr>
+            <tr><td>ADR-0138 command-sourcing draft</td><td>consumer demand</td></tr>
+            <tr><td>scheduling/sqlstore RenewLease ownership tokens</td><td>design ruling inside module</td></tr>
+            <tr><td>macOS ephemeral-PG verification; mysql-nspawn root leg</td><td>runner/root access</td></tr>
+            <tr><td>Shuffle for composite test runners</td><td>ROADMAP OQ #9</td></tr>
+            <tr><td>Contention-retry backport (turso/badger)</td><td>transient-abort evidence</td></tr>
+            <tr><td>benchkit cross-tier parity gate; tuned-tier benchmark</td><td>next tier-vs-tier claim</td></tr>
+            <tr><td>go-idempotency Forever mapping</td><td>upstream v0.4.0</td></tr>
+            <tr><td>Pre-commit tree-wide gate scoping design</td><td>next concurrent-session incident</td></tr>
+            <tr><td>Analyzer load-scope widening; F024/F025 utilization; F005 re-anchor; B005 hardening; pushdown cookbook recipe</td><td>next nsfw-classifier feedback wave</td></tr>
+            <tr><td>C015/F005 watch: stale-suppression gate catches drift</td><td>more consumers hit it</td></tr>
+            <tr><td>asyncapi-react CSP (page-scoped relax vs bundle swap)</td><td>owner pick (R26-adjacent)</td></tr>
+            <tr><td>Release-train remaining waves (queue/mysql pair, scheduling/engine, encryption goldens, cqrs-lint typed-info tier, cqrs-upgrade --strict, benchkit)</td><td>each rides T04-class mechanics</td></tr>
+            <tr><td>systemtest sibling-replace strip</td><td>at system tag time (XS)</td></tr>
+            <tr><td>Composed-verify obligations already green; only window missing (T17)</td><td>load &lt; 5</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="observe"><span class="num">09</span>Observe-only</h2>
+        <table>
+          <thead><tr><th>Row</th><th>Cadence</th></tr></thead>
+          <tbody>
+            <tr><td>TestEngineHealth_CatchUpUnderConcurrentApplies load-sensitivity (15/15 green 09-28)</td><td>on recurrence only</td></tr>
+            <tr><td>First real CI runs (Examples Test, md-go leg, nightly Go contract, README push leg)</td><td>post-billing (R20)</td></tr>
+            <tr><td>cqrs-lint self-lint leg re-run</td><td>post-billing</td></tr>
+            <tr><td>CI-train remote confirmation (six legs&rsquo; local fixes land via T12)</td><td>post-billing</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="graph"><span class="num">10</span>Execution graph</h2>
+        <div class="card">
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" data-d2-version="v0.9.0" preserveAspectRatio="xMinYMin meet" viewBox="0 0 3356 1704"><svg class="d2-2391203807 d2-svg" width="3356" height="1704" viewBox="-28 -85 3356 1704"><rect x="-28" y="-85" width="3356" height="1704" rx="0" fill="#FFFFFF" class=" fill-N7" stroke-width="0" /><style type="text/css"><![CDATA[
+.d2-2391203807 .text {
+	font-family: "d2-2391203807-font-regular";
+}
+@font-face {
+	font-family: d2-2391203807-font-regular;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-2391203807 .text-bold {
+	font-family: "d2-2391203807-font-bold";
+}
+@font-face {
+	font-family: d2-2391203807-font-bold;
+	src: url("data:application/font-woff;base64,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");
+}
+.d2-2391203807 .text-italic {
+	font-family: "d2-2391203807-font-italic";
+}
+@font-face {
+	font-family: d2-2391203807-font-italic;
+	src: url("data:application/font-woff;base64,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");
+}]]></style><style type="text/css"><![CDATA[.shape {
+  shape-rendering: geometricPrecision;
+  stroke-linejoin: round;
+}
+.connection {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.blend {
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+}
+
+		.d2-2391203807 .fill-N1{fill:#0A0F25;}
+		.d2-2391203807 .fill-N2{fill:#676C7E;}
+		.d2-2391203807 .fill-N7{fill:#FFFFFF;}
+		.d2-2391203807 .fill-B1{fill:#0D32B2;}
+		.d2-2391203807 .fill-B4{fill:#E3E9FD;}
+		.d2-2391203807 .fill-B5{fill:#EDF0FD;}
+		.d2-2391203807 .fill-B6{fill:#F7F8FE;}
+		.d2-2391203807 .stroke-B1{stroke:#0D32B2;}
+		.d2-2391203807 .stroke-B2{stroke:#0D32B2;}.appendix text.text{fill:#0A0F25}.md{--color-fg-default:#0A0F25;--color-fg-muted:#676C7E;--color-fg-subtle:#9499AB;--color-canvas-default:#FFFFFF;--color-canvas-subtle:#EEF1F8;--color-border-default:#0D32B2;--color-border-muted:#0D32B2;--color-neutral-muted:#EEF1F8;--color-accent-fg:#0D32B2;--color-accent-emphasis:#0D32B2;--color-attention-subtle:#676C7E;--color-danger-fg:red;}.light-code{display: block}.dark-code{display: none}]]></style><g class="VzE="><g class="shape" ><rect x="73" y="708" width="915" height="442" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="530.5" y="695" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Wave 1 - 1%: consumer unblock + truth (51%)</text></g><g class="VzI="><g class="shape" ><rect x="1496" y="528" width="280" height="710" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="1636" y="515" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Wave 2 - 4%: features + linter trust (64%)</text></g><g class="VzM="><g class="shape" ><rect x="2128" y="56" width="290" height="1420" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="2273" y="43" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Wave 3 - 20%: structural + tooling (80%)</text></g><g class="VzQ="><g class="shape" ><rect x="2880" y="340" width="288" height="994" stroke="#0D32B2" fill="#E3E9FD" class=" stroke-B1 fill-B4" style="stroke-width:2;" /></g><text x="3024" y="327" fill="#0A0F25" class="text fill-N1" style="text-anchor:middle;font-size:28px">Wave 4 - gated / strategic (to 100%)</text></g><g class="VDI1"><g class="shape" ><rect x="184" y="1200" width="71" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="219.5" y="1238.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T25</text></g><g class="VDIx"><g class="shape" ><rect x="797" y="1263" width="71" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="832.5" y="1301.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T21</text></g><g class="VDE3"><g class="shape" ><rect x="184" y="1326" width="71" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="219.5" y="1364.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T17</text></g><g class="VDA0"><g class="shape" ><rect x="183" y="1452" width="72" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="219" y="1490.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T04</text></g><g class="VDI2"><g class="shape" ><rect x="797" y="1452" width="71" height="66" stroke="#0D32B2" fill="#F7F8FE" class=" stroke-B1 fill-B6" style="stroke-width:2;" /></g><text x="832.5" y="1490.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px">T26</text></g><g class="VzEuVDAx"><g class="shape" ><rect x="712" y="738" width="242" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="833" y="776.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="833" dy="0">T01 TODO truth-strike</tspan><tspan x="833" dy="18.5">(9 stale rows + #49/#50/#51)</tspan></text></g><g class="VzEuVDAy"><g class="shape" ><rect x="103" y="813" width="232" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="219" y="851.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="219" dy="0">T02 #21 watermill scalar</tspan><tspan x="219" dy="18.5">CorrelationID/CausationID</tspan></text></g><g class="VzEuVDAz"><g class="shape" ><rect x="121" y="963" width="196" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="219" y="1001.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="219" dy="0">T03 #26 retract</tspan><tspan x="219" dy="18.5">stack/postgres v4.2.0</tspan></text></g><g class="VzEuVDA0"><g class="shape" ><rect x="707" y="880" width="251" height="98" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="832.5" y="918.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="832.5" dy="0">T04 release-wave PREP</tspan><tspan x="832.5" dy="17.666667">(watermill v4.7.0 + pg v4.4.2;</tspan><tspan x="832.5" dy="17.666667">push owner-gated)</tspan></text></g><g class="VzEuVDA1"><g class="shape" ><rect x="763" y="1038" width="139" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="832.5" y="1076.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="832.5" dy="0">T05 close #35</tspan><tspan x="832.5" dy="18.5">with receipt</tspan></text></g><g class="VzIuVDA2"><g class="shape" ><rect x="1544" y="558" width="184" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1636" y="596.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1636" dy="0">T06 #51 invert A013</tspan><tspan x="1636" dy="18.5">(value-embed fires)</tspan></text></g><g class="VzIuVDA3"><g class="shape" ><rect x="1530" y="700" width="213" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1636.5" y="738.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1636.5" dy="0">T07 #43 D005 positional</tspan><tspan x="1636.5" dy="18.5">version-claim rule</tspan></text></g><g class="VzIuVDA4"><g class="shape" ><rect x="1529" y="842" width="215" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1636.5" y="880.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1636.5" dy="0">T08 #49 CommandRetry</tspan><tspan x="1636.5" dy="18.5">conflict-retry docs</tspan></text></g><g class="VzIuVDA5"><g class="shape" ><rect x="1531" y="984" width="210" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1636" y="1022.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1636" dy="0">T09 #27 versions.json</tspan><tspan x="1636" dy="18.5">manifest + CI + README</tspan></text></g><g class="VzIuVDEw"><g class="shape" ><rect x="1526" y="1126" width="220" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="1636" y="1164.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="1636" dy="0">T10 #50 time.Time nano-</tspan><tspan x="1636" dy="18.5">drift: repro+trace+fix</tspan></text></g><g class="VzMuVDEx"><g class="shape" ><rect x="2182" y="86" width="182" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="124.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T11 release-tooling</tspan><tspan x="2273" dy="18.5">polish slices A</tspan></text></g><g class="VzMuVDEy"><g class="shape" ><rect x="2181" y="228" width="185" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273.5" y="266.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273.5" dy="0">T12 CI yml train-tail</tspan><tspan x="2273.5" dy="18.5">fixes (a)(b)(c)</tspan></text></g><g class="VzMuVDEz"><g class="shape" ><rect x="2158" y="370" width="230" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="408.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T13 #36 stack/metaengine</tspan><tspan x="2273" dy="18.5">module split (slice 1)</tspan></text></g><g class="VzMuVDE0"><g class="shape" ><rect x="2196" y="512" width="154" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="550.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T14 bench-gate</tspan><tspan x="2273" dy="18.5">tooling tail</tspan></text></g><g class="VzMuVDE1"><g class="shape" ><rect x="2187" y="654" width="173" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273.5" y="692.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273.5" dy="0">T15 M13 fresh-run</tspan><tspan x="2273.5" dy="18.5">stamps (quiet)</tspan></text></g><g class="VzMuVDE2"><g class="shape" ><rect x="2187" y="796" width="172" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="834.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T16 soak+observe</tspan><tspan x="2273" dy="18.5">batch</tspan></text></g><g class="VzMuVDE3"><g class="shape" ><rect x="2164" y="938" width="218" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="976.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T17 quiet-window verify</tspan><tspan x="2273" dy="18.5">batch (#verify+mysql)</tspan></text></g><g class="VzMuVDE4"><g class="shape" ><rect x="2197" y="1080" width="152" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="1118.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T18 calibration</tspan><tspan x="2273" dy="18.5">campaign</tspan></text></g><g class="VzMuVDE5"><g class="shape" ><rect x="2190" y="1222" width="166" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="1260.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T19 350-line split</tspan><tspan x="2273" dy="18.5">wave 1</tspan></text></g><g class="VzMuVDIw"><g class="shape" ><rect x="2173" y="1364" width="200" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="2273" y="1402.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="2273" dy="0">T20 cqrs-lint heuristic</tspan><tspan x="2273" dy="18.5">gates batch 1</tspan></text></g><g class="VzQuVDIx"><g class="shape" ><rect x="2929" y="370" width="191" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024.5" y="408.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024.5" dy="0">T21 v5 cut execution</tspan><tspan x="3024.5" dy="18.5">(readiness checklist)</tspan></text></g><g class="VzQuVDIy"><g class="shape" ><rect x="2910" y="512" width="228" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024" y="550.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024" dy="0">T22 v5 prep slices</tspan><tspan x="3024" dy="18.5">(guide, ADR-0139, census)</tspan></text></g><g class="VzQuVDIz"><g class="shape" ><rect x="2931" y="654" width="187" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024.5" y="692.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024.5" dy="0">T23 FilterContains +</tspan><tspan x="3024.5" dy="18.5">ApplyBatch design</tspan></text></g><g class="VzQuVDI0"><g class="shape" ><rect x="2946" y="796" width="157" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024.5" y="834.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024.5" dy="0">T24 turso #9392</tspan><tspan x="3024.5" dy="18.5">watch protocol</tspan></text></g><g class="VzQuVDI1"><g class="shape" ><rect x="2933" y="938" width="182" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024" y="976.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024" dy="0">T25 owner decision</tspan><tspan x="3024" dy="18.5">bundle (28 rulings)</tspan></text></g><g class="VzQuVDI2"><g class="shape" ><rect x="2925" y="1080" width="199" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024.5" y="1118.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024.5" dy="0">T26 consumer comms</tspan><tspan x="3024.5" dy="18.5">batch</tspan></text></g><g class="VzQuVDI3"><g class="shape" ><rect x="2943" y="1222" width="163" height="82" stroke="#0D32B2" fill="#EDF0FD" class=" stroke-B1 fill-B5" style="stroke-width:2;" /></g><text x="3024.5" y="1260.5" fill="#0A0F25" class="text-bold fill-N1" style="text-anchor:middle;font-size:16px"><tspan x="3024.5" dy="0">T27 Goal-closure</tspan><tspan x="3024.5" dy="18.5">stamps</tspan></text></g><g class="VzEuKFQwMiAtJmd0OyBUMDQpWzBd"><marker id="mk-d2-2391203807-3488378134" markerWidth="10" markerHeight="12" refX="7" refY="6" viewBox="0 0 10 12" orient="auto" markerUnits="userSpaceOnUse"> <polygon points="0,0 10,6 0,12" fill="#0D32B2" class="connection fill-B1" stroke-width="2" /> </marker><path d="M 337 854 C 483.799988 854 558.200012 863 703.112165 898.059395" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="523.5" y="864" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">rides tag</text></g><g class="VzEuKFQwMyAtJmd0OyBUMDQpWzBd"><path d="M 319 1004 C 480.200012 1004 558.200012 995 703.112165 959.940605" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="514.5" y="1006" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">rides tag</text></g><g class="KFcxIC0mZ3Q7IFcyKVswXQ=="><path d="M 990 929 C 1191.199951 929 1292.800049 929 1492 929" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="1242" y="935" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">truth first, then features</text></g><g class="KFcyIC0mZ3Q7IFczKVswXQ=="><path d="M 1778 883 C 1916.800049 883 1987.199951 883 2124 883" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /></g><g class="KFczIC0mZ3Q7IFc0KVswXQ=="><path d="M 2420 837 C 2602.800049 837 2695.199951 837 2876 837" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="2649" y="843" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">park gated work</text></g><g class="KFQyNSAtJmd0OyBUMjEpWzBd"><path d="M 257.5 1233 C 467.899994 1233 576.200012 1244.199951 793.079878 1288.204612" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="528" y="1245" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">rulings unblock the cut</text></g><g class="KFQxNyAtJmd0OyBUMjEpWzBd"><path d="M 257.5 1359 C 467.899994 1359 576.200012 1347.800049 793.079878 1303.795388" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="528" y="1358" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">green verify gates the cut</text></g><g class="KFQwNCAtJmd0OyBUMjYpWzBd"><path d="M 257 1485 C 467.799988 1485 576.200012 1485 793 1485" stroke="#0D32B2" fill="none" class="connection stroke-B1" style="stroke-width:2;" marker-end="url(#mk-d2-2391203807-3488378134)" mask="url(#d2-2391203807)" /><text x="526.5" y="1491" fill="#676C7E" class="text-italic fill-N2" style="text-anchor:middle;font-size:16px">releases feed comms</text></g><mask id="d2-2391203807" maskUnits="userSpaceOnUse" x="-28" y="-85" width="3356" height="1704">
+<rect x="-28" y="-85" width="3356" height="1704" fill="white"></rect>
+<rect x="493" y="848" width="61" height="21" fill="black"></rect>
+<rect x="484" y="990" width="61" height="21" fill="black"></rect>
+<rect x="1162" y="919" width="160" height="21" fill="black"></rect>
+<rect x="2592" y="827" width="114" height="21" fill="black"></rect>
+<rect x="451" y="1229" width="154" height="21" fill="black"></rect>
+<rect x="443" y="1342" width="170" height="21" fill="black"></rect>
+<rect x="456" y="1475" width="141" height="21" fill="black"></rect>
+</mask></svg></svg>
+
+        </div>
+
+        <h2 id="receipts"><span class="num">11</span>Session receipts (2026-10-03)</h2>
+        <div class="card card-solution">
+          <p>To be filled at session close &mdash; every executed fine task lands here with evidence (commands, numbers, links), per the 2026-09-28 receipt convention.</p>
+        </div>
+
+        <div class="footer">
+          go-cqrs-lite &middot; Pareto master plan &middot; input: TODO_LIST.md @ 0d3cec827 + 9 open issues &middot; generated 2026-10-03 17:20
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
