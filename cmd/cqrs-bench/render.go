@@ -409,6 +409,19 @@ func renderSoakResult(w io.Writer, format string, result *benchkit.SoakResult) {
 		if err := delimited.WriteTSV(w, data); err != nil {
 			fatalf("render TSV: %v", err)
 		}
+	case formatMarkdown:
+		data := buildSoakTable(result)
+
+		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
+		if err != nil {
+			fatalf("render markdown: %v", err)
+		}
+
+		rendered = strings.TrimPrefix(rendered, "|")
+		fmt.Fprint(w, rendered)
+		fmt.Fprintln(w)
+
+		printSoakSummary(w, result)
 	default:
 		benchkit.PrintSoakReport(w, result)
 	}

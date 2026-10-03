@@ -108,6 +108,12 @@ func main() {
 // ── run subcommand ──
 
 func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
+	if flags.Soak.Duration() > 0 {
+		validateFormat("run --soak", flags.Format, soakFormats)
+	} else {
+		validateFormat("run", flags.Format, runFormats)
+	}
+
 	defer startProfiling(flags.CPUProfile, flags.MemProfile)()
 
 	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
@@ -212,6 +218,8 @@ func runHandler(ctx context.Context, _ *AppConfig, flags *RunFlags) error {
 // ── compare subcommand ──
 
 func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) error {
+	validateFormat("compare", flags.Format, compareFormats)
+
 	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
 	names := strings.Split(flags.Backends, ",")
@@ -264,6 +272,8 @@ func compareHandler(ctx context.Context, _ *AppConfig, flags *CompareFlags) erro
 // ── sweep subcommand ──
 
 func sweepHandler(ctx context.Context, _ *AppConfig, flags *SweepFlags) error {
+	validateFormat("sweep", flags.Format, compareFormats)
+
 	profile, codec := loadProfileAndCodec(flags.Profile, flags.Codec)
 
 	values, err := parsePayloadSizes(flags.Values)

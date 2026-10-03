@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
+	"github.com/larsartmann/go-output/markdown"
 	gotable "github.com/larsartmann/go-output/table"
 
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
@@ -71,6 +73,17 @@ func renderRunResult(
 		if err := delimited.WriteTSV(w, data); err != nil {
 			fatalf("render TSV: %v", err)
 		}
+	case formatMarkdown:
+		data := buildRunSummaryTable(result)
+
+		rendered, err := markdown.Render(data, markdown.WithColorMode(output.ColorModeNever))
+		if err != nil {
+			fatalf("render markdown: %v", err)
+		}
+
+		rendered = strings.TrimPrefix(rendered, "|")
+		fmt.Fprint(w, rendered)
+		fmt.Fprintln(w)
 	default:
 		benchkit.PrintReport(w, result)
 	}
