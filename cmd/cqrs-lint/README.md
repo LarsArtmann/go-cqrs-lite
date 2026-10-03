@@ -148,6 +148,17 @@ cqrs-lint warns on unknown preset names (typos), unknown disabled rule IDs,
 and unknown severity-override rule IDs, so misconfigurations surface
 immediately instead of silently doing nothing.
 
+### Non-consumer projects
+
+A repository that does not import go-cqrs-lite at all is not a CQRS
+project: detect and the toolsdk/BuildFlow provider path agree on a
+zero-findings clean verdict (since v4.13.1, issue #42) instead of firing
+the adoption-coaching rules A009/A018 at it. Only load errors are loud —
+a broken module graph must never render as a clean bill of health. A
+repo that imports go-cqrs-lite only through TOOLING (cqrs-lint's own
+repo does, via the toolsdk self-registration import) still counts as a
+consumer for A009/A018, so keep those two disables in its config.
+
 ## Configuration Reference
 
 All keys are optional. The file is auto-loaded from `.cqrs-lint.json` in the

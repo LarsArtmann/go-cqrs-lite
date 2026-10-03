@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **cqrs-lint v4.13.1: non-consumer projects get a CLEAN verdict (issue #42).** A library that does not import go-cqrs-lite (e.g. a BuildFlow toolsdk tool with zero go-cqrs-lite requires) used to receive A009 ("does not use a stack/ preset") + A018 ("imports go-cqrs-lite but never calls Save/Publish/Dispatch") info findings — and A018 asserted an import it never checked. toolspec detect and repair now share the CLI's `loadVerdict` (`cmd/cqrs-lint/pkg/toolspec/toolspec.go:111`): zero GoFiles + zero load errors = not a consumer = zero findings; load errors with nothing analyzable error LOUDLY ("could not analyze any packages", never a clean bill). `analyzer.BuildContext` additionally refuses a silently-empty analysis: go/packages can return ZERO packages with ZERO errors for a broken module graph (stale go.sum, unresolvable requires), which previously rendered as clean. Regression: `TestBuildContext_SilentEmptyBrokenGraphFailsLoudly` (cmd/cqrs-lint/pkg/analyzer/loader_test.go).
+
 ### Added
 
 - **`EventAdapter.LoadByEventID` — single events by globally unique ID (#32, `metaengine.EventByIDBackend`).** `system/v4` exposed only stream-shaped reads; "render event X" dashboards degraded to sequential journal scans. New optional `metaengine.EventByIDBackend` capability (`StreamLoadByEventID`, `ErrNotFound` on a miss) + adapter method returning `event.ErrEventNotFound` on misses and `system.ErrLoadByEventIDUnsupported` on backends without the capability (degrade paths stay intact — a journal scan is never hidden behind an O(1)-looking method). The SQLite engine implements it first: a partial expression index over the JSON envelope (`json_extract(value, '$.id') WHERE json_valid(value)`) serves indexed lookups while non-JSON stream values stay outside the index and un-parsed. Pinned E2E in `systemtest` (real sqlite + serialization round-trip) plus capability-present/absent unit tests; api golden regenerated.
