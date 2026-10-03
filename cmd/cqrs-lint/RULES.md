@@ -1454,11 +1454,11 @@ Vendored eventtest alongside go-cqrs-lite imports — version mismatch workaroun
 
 <a id="v006"></a>
 
-#### V006 — `mixed-version-pins`
+#### V006 — `divergent-module-pins`
 
 Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `version`
 
-go-cqrs-lite modules within the same major version pinned to different releases
+The same go-cqrs-lite module pinned to different versions across a repo's go.mod files — breaks GOWORK=off and FOD builds (per-module lockstep)
 
 <a id="v007"></a>
 

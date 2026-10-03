@@ -146,6 +146,7 @@
   `scripts/md-go-baseline.txt` may only reference `*/archive*/` paths
   (enforced); wrong-language fences are fenced as text, not go (``
   fences for non-Go content use the right tag: `go.mod`/`go.work` files are fenced as `text`, JSON as `json`).
+- **BuildFlow#30: full-run golangci step can self-deadlock on multi-module repos (upstream, 2026-10-03)** — with 24+ modules, `buildflow`'s full-run golangci step fans out per-module child invocations CONCURRENTLY, and the loser aborts on golangci-lint's own file lock ("parallel golangci-lint is running"; `--max-concurrency 1` does NOT help — the fan-out is intra-step). Verified diagnosis on go-aichat (LarsArtmann/BuildFlow#30); this repo is the largest exposure in the fleet. This repo's CANONICAL gate is unaffected (`nix run .#verify` / `#lint-module` apps do their own per-module serialization). If you run `buildflow --build-mode full` here anyway, use the serial-primed resume recipe (from go-aichat AGENTS.md): prime each module's result cache with serial scoped runs (`buildflow -s "golangci-lint [root]"`, then per-module qualifiers), then `buildflow --build-mode full --resume` — the cached children satisfy the aggregate step. When upstream fixes #30, delete this bullet.
 
 ## go.work directive must lead (or match) the member sweep — ambient-go gates fail quietly otherwise (2026-09-21)
 
