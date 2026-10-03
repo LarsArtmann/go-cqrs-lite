@@ -11,5 +11,5 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-finding v1.13.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 )

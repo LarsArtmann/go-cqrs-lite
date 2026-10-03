@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-output/delimited v0.38.3
 	github.com/larsartmann/go-output/table v0.38.3
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/tools v0.50.0
+	golang.org/x/tools v0.51.0
 )
 
 require (
@@ -22,7 +22,7 @@ require (
 	github.com/bmatcuk/doublestar/v4 v4.10.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260930135840-270558f35f71 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/exp/charmtone v0.1.0 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect

@@ -18,6 +18,8 @@ github.com/charmbracelet/colorprofile v0.4.3 h1:QPa1IWkYI+AOB+fE+mg/5/4HRMZcaXex
 github.com/charmbracelet/colorprofile v0.4.3/go.mod h1:/zT4BhpD5aGFpqQQqw7a+VtHCzu+zrQtt1zhMt9mR4Q=
 github.com/charmbracelet/ultraviolet v0.0.0-20260930135840-270558f35f71 h1:DMlIR5G/XKGv8W5rJwivfVRuWbMsycFtuNKYhTlq+s4=
 github.com/charmbracelet/ultraviolet v0.0.0-20260930135840-270558f35f71/go.mod h1:D9SVXVpAsD1pP6xR6BiERbe4+dUU6EW9US1TFrNutGA=
+github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd h1:W0HOPGkwRaAmV20plE/f+Rk6Xn+IdR8G0qHsGXcOnF8=
+github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd/go.mod h1:D9SVXVpAsD1pP6xR6BiERbe4+dUU6EW9US1TFrNutGA=
 github.com/charmbracelet/x/ansi v0.11.8 h1:JMFwp0CgDC2+jcOB162HH5k7I3FVbgFSMMYg7dSPBQQ=
 github.com/charmbracelet/x/ansi v0.11.8/go.mod h1:ZNN+3mXny/516oTQPLMPIBeSINvNJJQ8uQXDgbeJxY0=
 github.com/charmbracelet/x/exp/charmtone v0.1.0 h1:SbNJx4QUx048funlaNu5Ip4ON3H8+ZLGUeNIy4/ng6c=
@@ -176,4 +178,6 @@ golang.org/x/text v0.42.0 h1:JbOZXgfeCPU9gacVtYliJqOhD+zhrEqK4LfdpmlUZqI=
 golang.org/x/text v0.42.0/go.mod h1:ojzP1Z+2QtioaF8DTtO8K5q7JWVVYwZKenzujK0Zd0E=
 golang.org/x/tools v0.50.0 h1:c2ifzfcuY7L90lZ2aKd8S4K2NpASF08SZx9ZuJkHmSU=
 golang.org/x/tools v0.50.0/go.mod h1:7ulVMw3831Mwi5EZD6RomGyffr4VFjuNYXf2BbCEAV0=
+golang.org/x/tools v0.51.0 h1:k4Xc/1Om9jwkBJBo4NVLMSARBoWtK10mx+W5BnXCeAI=
+golang.org/x/tools v0.51.0/go.mod h1:9eEncMayCV6zRMGhR5eZEC2iBx98qWcF1HZ9Z7wJOoA=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

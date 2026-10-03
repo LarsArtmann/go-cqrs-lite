@@ -29,5 +29,5 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
-	modernc.org/sqlite v1.60.0 // indirect
+	modernc.org/sqlite v1.60.1 // indirect
 )
