@@ -1,13 +1,3 @@
-A013 Command AddBlockerCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command ArchiveTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command AssignTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command ChangePriorityCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command CompleteTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command CreateTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command DeleteTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command SetDueDateCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command StartTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
-A013 Command UpdateTitleCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
 A032 Field AssignTask.AssigneeID is string/int — use id.Of[T] branded ID for type safety
 A032 Field AssignTaskCmd.AssigneeID is string/int — use id.Of[T] branded ID for type safety
 A032 Field AssignmentJob.AssigneeID is string/int — use id.Of[T] branded ID for type safety
