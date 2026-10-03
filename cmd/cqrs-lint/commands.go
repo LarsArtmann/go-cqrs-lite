@@ -67,7 +67,9 @@ func rulesFormat(flags rulesFlags, cfg *AppConfig) (string, error) {
 	}
 
 	switch f := strings.ToLower(strings.TrimSpace(cfg.Format)); f {
-	case "", "text", "json", "markdown":
+	case "", "text":
+		return "text", nil
+	case "json", "markdown":
 		return f, nil
 	default:
 		return "", validateFormatFlag(cfg.Format, "text", "json", "markdown")

@@ -55,10 +55,28 @@ cqrs-lint doctor --audit-suppressions # active vs stale vs unknown-rule suppress
 cqrs-lint doctor --fix              # auto-remove stale whole-line suppressions
 cqrs-lint scorecard                  # module adoption scorecard (Used/Missing/Irrelevant)
 cqrs-lint scorecard --format sarif   # SARIF output for CI/Code Scanning integration
-cqrs-lint --scorecard                # same via flag
+cqrs-lint --scorecard                # same via flag (identical output, no --scorecard-threshold gate)
 cqrs-lint --group-by aggregate ./... # group findings by aggregate/domain
 cqrs-lint ./...
 ```
+
+### Subcommand flag contract
+
+The CLI has one shared flag vocabulary; every command honors it the same way:
+
+- `--path`, `--format` (`-o`), `--color`, `--min-severity`, `--min-confidence`
+  are global: they work on every command and are also read from
+  `.cqrs-lint.json`. Each command validates `--format` against the formats it
+  supports and rejects anything else up front
+  (lint: text/json/sarif/markdown/csv/tsv · scorecard: text/json/markdown/sarif ·
+  doctor: text/json · rules: text/json/markdown, plus the legacy `--json`/
+  `--markdown` shorthands).
+- Lint-run-only flags (`--fix`, `--dry-run`, `--fast`, `--only`, `--exclude`,
+  `--exclude-rules`, `--group-by`, `--quiet`, `--scorecard`, …) exist on the
+  root command only: passing them to a subcommand is an unknown-flag error,
+  never a silently ignored no-op.
+- `cqrs-lint init --path DIR` writes `DIR/.cqrs-lint.json` (error if DIR is
+  missing), instead of always writing to the current directory.
 
 ## Feature Profiles
 

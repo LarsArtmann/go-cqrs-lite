@@ -8,6 +8,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- **cqrs-lint: subcommand flag consistency.** Five classes of silent
+  divergence between the root command and its subcommands: (1) `rules
+  --format json` and `scorecard --format csv` silently rendered TEXT — the
+  inherited `--format` flag was parsed then ignored, and renderers fell back
+  to text on unknown values; every multi-format command now validates its
+  format subset up front and fails loudly (`invalid --format "csv"
+  (supported: …)`), before any package loading (doctor previously paid the
+  full analysis cost before noticing a bad format). (2) The root `--scorecard`
+  flag and the `scorecard` subcommand were split brains — the flag path
+  omitted the deprecated-modules panel; both now route through one shared
+  runner and produce byte-identical output. (3) Sixteen lint-run-only flags
+  (`--fix`, `--dry-run`, `--fast`, `--only`, `--exclude`, `--exclude-rules`,
+  `--group-by`, `--quiet`, `--scorecard`, …) were persistent and therefore
+  silently accepted as no-ops on every subcommand (`version --fix` exited 0);
+  they are now local to the root command and produce unknown-flag errors.
+  Shared knobs (`--path`, `--format`/`-o`, `--color`, `--min-severity`,
+  `--min-confidence`) stay global and now also flow from `.cqrs-lint.json`
+  into scorecard/doctor/rules, which previously ignored the config-file
+  values. (4) `init --path DIR` wrote `.cqrs-lint.json` to the CWD while
+  accepting any `--path`; it now writes into DIR and errors when DIR is
+  missing. (5) `rules` keeps its `--json`/`--markdown` shorthands (byte-
+  identical output, `rules --markdown > RULES.md` unchanged) and additionally
+  honors the shared `--format` flag. Regression tests:
+  `cmd/cqrs-lint/subcommand_consistency_test.go`.
+
 - **cqrs-lint v4.13.1: non-consumer projects get a CLEAN verdict (issue #42).** A library that does not import go-cqrs-lite (e.g. a BuildFlow toolsdk tool with zero go-cqrs-lite requires) used to receive A009 ("does not use a stack/ preset") + A018 ("imports go-cqrs-lite but never calls Save/Publish/Dispatch") info findings — and A018 asserted an import it never checked. toolspec detect and repair now share the CLI's `loadVerdict` (`cmd/cqrs-lint/pkg/toolspec/toolspec.go:111`): zero GoFiles + zero load errors = not a consumer = zero findings; load errors with nothing analyzable error LOUDLY ("could not analyze any packages", never a clean bill). `analyzer.BuildContext` additionally refuses a silently-empty analysis: go/packages can return ZERO packages with ZERO errors for a broken module graph (stale go.sum, unresolvable requires), which previously rendered as clean. Regression: `TestBuildContext_SilentEmptyBrokenGraphFailsLoudly` (cmd/cqrs-lint/pkg/analyzer/loader_test.go).
 
 ### Added
