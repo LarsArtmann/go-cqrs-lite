@@ -162,6 +162,46 @@ func init() {}
 	checkStatus(t, usage, "signing", UsageImported)
 }
 
+// TestMatchModule_EvidenceDeterministic pins the evidence contract when
+// several distinct imports match one catalog entry (module root plus
+// subpackages). Callers iterate pkg.Imports — a map with randomized order —
+// so the recorded evidence must be order-independent: the lexicographically
+// smallest matched path, regardless of arrival order.
+func TestMatchModule_EvidenceDeterministic(t *testing.T) {
+	t.Parallel()
+
+	paths := []string{
+		"github.com/larsartmann/go-cqrs-lite/catalog/v4",
+		"github.com/larsartmann/go-cqrs-lite/catalog/v4/docserver",
+		"github.com/larsartmann/go-cqrs-lite/catalog/v4/simple",
+	}
+	const wantEvidence = "github.com/larsartmann/go-cqrs-lite/catalog/v4"
+
+	orders := [][]int{
+		{0, 1, 2}, {0, 2, 1}, {1, 0, 2},
+		{1, 2, 0}, {2, 0, 1}, {2, 1, 0},
+	}
+
+	for _, order := range orders {
+		usage := make(map[ModuleKey]ModuleUsage, len(DefaultCatalog.Scored()))
+		for _, e := range DefaultCatalog.Scored() {
+			usage[e.Key] = ModuleUsage{Key: e.Key, Status: UsageAbsent}
+		}
+
+		for _, idx := range order {
+			matchModule(usage, DefaultCatalog, paths[idx])
+		}
+
+		got := usage["catalog"]
+		if got.Status != UsageImported {
+			t.Fatalf("order %v: catalog status = %s, want used", order, got.Status)
+		}
+		if got.Evidence != wantEvidence {
+			t.Fatalf("order %v: evidence = %q, want %q", order, got.Evidence, wantEvidence)
+		}
+	}
+}
+
 func TestPathBoundaryMatch(t *testing.T) {
 	t.Parallel()
 

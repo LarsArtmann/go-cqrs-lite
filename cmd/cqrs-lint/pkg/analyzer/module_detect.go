@@ -97,6 +97,12 @@ func DetectUsedModules(
 // hints at a path boundary, and if so, upgrades the usage status to
 // UsageImported. Uses path-boundary matching to prevent false matches
 // (e.g. "go-cqrs-lite/id" must not match "go-cqrs-lite/idempotency").
+//
+// Several distinct imports can match the same entry (module root plus
+// subpackages, e.g. catalog/v4, catalog/v4/simple, catalog/v4/docserver).
+// Callers iterate maps with randomized order, so the evidence records the
+// lexicographically smallest matched path — the scorecard output stays
+// deterministic no matter which import the scan sees first.
 func matchModule(usage map[ModuleKey]ModuleUsage, catalog Catalog, importPath string) {
 	for _, e := range catalog.Scored() {
 		for _, hint := range e.ImportHints {
@@ -110,6 +116,9 @@ func matchModule(usage map[ModuleKey]ModuleUsage, catalog Catalog, importPath st
 					Status:   UsageImported,
 					Evidence: importPath,
 				}
+			} else if importPath < entry.Evidence {
+				entry.Evidence = importPath
+				usage[e.Key] = entry
 			}
 			break // one match per module is enough
 		}
