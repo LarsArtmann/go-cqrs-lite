@@ -29,6 +29,14 @@ type doctorFlags struct {
 	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
 	Prune             bool `default:"false" flag:"prune-suppressions" help:"Remove stale whole-line suppressions (implies audit)"`
 	DryRun            bool `default:"false" flag:"dry-run"            help:"With --prune-suppressions: show what would be removed without changing any file"`
+	// FailOnStale makes the doctor exit non-zero when stale inline
+	// suppressions or unknown-rule suppressions exist (implies audit). The
+	// root command's flag of the same name is lint-run-only, but CI documented
+	// `cqrs-lint doctor --fail-on-stale-suppressions` — on binaries before
+	// this flag existed the root flag leaked onto subcommands as a silent
+	// no-op, so doctor honors its own copy instead of breaking the documented
+	// invocation.
+	FailOnStale bool `default:"false" flag:"fail-on-stale-suppressions" help:"Exit non-zero if any //cqrs-lint:ignore directives are stale (not suppressing anything; implies audit-suppressions)"`
 }
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -51,8 +59,25 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 				return runDoctorJSON(ctx, cfg, actx, flags)
 			}
 
-			if flags.AuditSuppressions || flags.Prune {
-				return runSuppressionAudit(ctx, cfg, actx, flags.Prune, flags.DryRun)
+			if flags.AuditSuppressions || flags.Prune || flags.FailOnStale {
+				renderDoctorLoadErrors(os.Stderr, actx)
+				renderDoctorConfigFile(os.Stdout, cfg)
+
+				// The effective settings include the machine-readable
+				// disable-reasons rendering; CI gates still want to see WHY a
+				// rule is suppressed next to the stale-suppression verdict.
+				applyConfigOverrides(cfg, actx)
+				renderDoctorEffectiveSettings(os.Stdout, cfg)
+
+				if err := runSuppressionAudit(ctx, cfg, actx, flags.Prune, flags.DryRun); err != nil {
+					return err
+				}
+
+				if flags.FailOnStale {
+					return failOnStaleSuppressions(ctx, cfg, actx)
+				}
+
+				return nil
 			}
 
 			renderDoctorLoadErrors(os.Stderr, actx)

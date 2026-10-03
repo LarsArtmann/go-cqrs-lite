@@ -261,3 +261,37 @@ func shortenPath(path string) string {
 	}
 	return strings.Join(parts[len(parts)-2:], "/")
 }
+
+// failOnStaleSuppressions re-runs the suppression classification and returns
+// a non-nil error when stale or unknown-rule inline suppressions exist. It
+// backs `doctor --fail-on-stale-suppressions` (the CI gate); the audit has
+// already rendered the human-readable breakdown by the time this runs.
+func failOnStaleSuppressions(
+	ctx context.Context,
+	cfg *AppConfig,
+	actx *analyzer.AnalysisContext,
+) error {
+	entries, err := computeSuppressionAudit(ctx, cfg, actx)
+	if err != nil {
+		return err
+	}
+
+	var stale, unknown int
+	for _, e := range entries {
+		switch e.Status {
+		case suppression.AuditStale:
+			stale++
+		case suppression.AuditUnknownRule:
+			unknown++
+		}
+	}
+
+	if stale == 0 && unknown == 0 {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"%d stale and %d unknown-rule suppressions found — remove them or fix the rule IDs (see the audit above)",
+		stale, unknown,
+	)
+}
