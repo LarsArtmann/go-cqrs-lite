@@ -1,0 +1,11 @@
+[Unit]
+Description=Nightly go-cqrs-lite lint gate
+
+[Timer]
+# 03:30 local (after the bench leg has claimed its window); Persistent=true
+# catches missed runs after downtime.
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

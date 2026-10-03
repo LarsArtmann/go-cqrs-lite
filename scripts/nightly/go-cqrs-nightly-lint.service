@@ -1,0 +1,8 @@
+[Unit]
+Description=go-cqrs-lite nightly lint gate (daemon-bypasses-lint hole)
+
+[Service]
+Type=oneshot
+# Adjust the path if the repo moves. Catches lint rot the auto-commit daemon
+# absorbs without linting; see scripts/nightly-lint.sh for the design memo.
+ExecStart=%h/projects/go-cqrs-lite/scripts/nightly-lint.sh

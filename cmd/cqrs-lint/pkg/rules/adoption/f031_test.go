@@ -78,8 +78,8 @@ func TestF031_BufioScannerScanDoesNotFire(t *testing.T) {
 		t.Errorf("finding anchored at %s, want %s (the TypedReader scan, not the bufio loop)",
 			findings[0].Position.File, want)
 	}
-	if line := findings[0].Position.Line; line < 25 || line > 30 {
-		t.Errorf("finding anchored at line %d, want the readAll body (25-30)", line)
+	if line := findings[0].Position.Line; line < 30 || line > 32 {
+		t.Errorf("finding anchored at line %d, want the readAll body (30-32)", line)
 	}
 }
 

@@ -32,6 +32,8 @@
     "hasMetaengine": false,
     "metaengineEngines": [],
     "metaenginePushdown": false,
+    "metaengineQueryCount": 0,
+    "metaengineDeclarativeQueries": 0,
     "monetary": "unknown"
   },
   "modules": [
@@ -51,6 +53,8 @@
         "hasMetaengine": false,
         "metaengineEngines": [],
         "metaenginePushdown": false,
+        "metaengineQueryCount": 0,
+        "metaengineDeclarativeQueries": 0,
         "monetary": ""
       }
     },
@@ -70,6 +74,8 @@
         "hasMetaengine": false,
         "metaengineEngines": [],
         "metaenginePushdown": false,
+        "metaengineQueryCount": 0,
+        "metaengineDeclarativeQueries": 0,
         "monetary": ""
       }
     }
