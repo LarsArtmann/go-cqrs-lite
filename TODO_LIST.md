@@ -281,6 +281,47 @@ replace-free — 10-25 §a2/§a3, now archived).
 
 ## cqrs-lint
 
+> CLI subcommand-consistency follow-ups (2026-10-03 harvest): full Pareto plan
+> at [`docs/planning/2026-10-03_05-16_SUPERB-cqrs-lint-cli-consistency-pareto-plan.md`](docs/planning/2026-10-03_05-16_SUPERB-cqrs-lint-cli-consistency-pareto-plan.md)
+> (M01–M14 / 58 micro-tasks). EXECUTED-THIS-SESSION (in CHANGELOG `[Unreleased]`,
+> not tasks): doctor `--fix` → `--prune-suppressions` rename; single-render
+> commands' documented-ignore of `--format` (both regression-pinned in
+> `cmd/cqrs-lint/subcommand_consistency_test.go`). NOTE:
+> `pkg/analyzer/store_spec.go` lint debt belongs to the concurrent multi-store
+> session — deliberately not harvested here.
+
+- [ ] **M01 contract-enforcement test pack** — config-parity e2e (temp
+      `.cqrs-lint.json` `"format":"json"` → scorecard/doctor emit JSON; README
+      currently claims this untested), help-drift golden (hand-written usage ≡
+      cobra COMMANDS), `completion`/`help [cmd]` surface tests. Critical, 90min.
+- [ ] **M02 single-source format vocabularies** — per-command supported-format
+      `[]string` feeding validate + `WithShort` + explain (lists duplicated
+      2–3× today; drift seed). High, 60min.
+- [ ] **M03 binary smoke probes + exit-code docs** — extend
+      `scripts/smoke-probes.txt` (rules --format json, scorecard csv rc≠0,
+      doctor yaml rc≠0, version --fix rc≠0, init --path, doctor --fix rc≠0) +
+      README exit-code table. High, 45min.
+- [ ] **M04 flag-consumption audit matrix** — enumerate subcommand×flag
+      acceptance; consume / scope-local / document-ignore; `rules
+      --json`+`--markdown` precedence defined+tested. Medium, 90min.
+- [ ] **M05 doctor JSON schema + explain tri-state row** — advanced.md field
+      table; explain teaches why tracing=on/off but server=true/false
+      (Kind tri-state `unknown` defers to heuristics). Medium, 60min.
+- [ ] **M06/M07 sibling CLI audits** — cqrs-bench, cqrs-gen, cqrs-upgrade,
+      doc-check: same probe→fix→pin loop (cmdguard patterns likely share the
+      disease). High, 180min combined.
+- [ ] **M08 daemon-bypasses-lint gate** — root cause of master shipping 5 lint
+      findings via auto-commits; reproduce, options memo, implement pre-commit
+      or nightly gate + self-test. Critical, 100min.
+- [ ] **M09 preset e2e + precedence tests** — `init --preset` ×6 valid JSONC;
+      root `--format` flag beats config-file value. Medium, 50min.
+- [ ] **M10–M11 cmdguard upstream proposals** (USER-GATED filing):
+      WithSharedFlagSubset helper, validator-derived help lists,
+      unused-persistent-flag detector, `local:"true"` docs. Medium/Low, 190min.
+- [ ] **M12–M14 polish** — doctor colorize-or-dedocument `--color`; changelog
+      fallback message; doc-trust sweep; CONTRIBUTING rc-safe probe snippet.
+      Low/Medium, 130min.
+
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
 > T01–T12, T20–T24, F089, F090(a+b), F091 Tiers 1–3 (incl. P014 ApplyLayout)
