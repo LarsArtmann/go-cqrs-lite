@@ -49,11 +49,11 @@ func versionRules() []RuleInfo {
 		},
 		{
 			ID:          "V006",
-			Name:        "mixed-version-pins",
+			Name:        "divergent-module-pins",
 			Category:    "version",
 			Severity:    "warning",
 			Confidence:  "high",
-			Description: "go-cqrs-lite modules within the same major version pinned to different releases",
+			Description: "The same go-cqrs-lite module pinned to different versions across a repo's go.mod files — breaks GOWORK=off and FOD builds (per-module lockstep)",
 			AutoFix:     false,
 		},
 		{

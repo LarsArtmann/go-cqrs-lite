@@ -125,6 +125,72 @@ func hasBusMethodCall(ctx *analyzer.AnalysisContext, varName string) bool {
 	return false
 }
 
+// subscribeOnlyBusMethods are the read-side subscription calls: a project
+// variable whose ENTIRE bus-method surface is these is consuming an
+// in-process journal/notification tail, not dispatching through the bus.
+//
+//nolint:gochecknoglobals // read-only lookup table
+var subscribeOnlyBusMethods = map[string]bool{
+	"Subscribe":    true,
+	"SubscribeAll": true,
+}
+
+// busIsReadOnlySubscriber reports whether every CQRS bus method the project
+// calls on varName is a subscription (Subscribe/SubscribeAll). Such a
+// variable is an in-process journal/notification TAIL the project only
+// READS — the engine publishes internally after appends; no dispatch to
+// downstream services flows through the variable — so retry/circuit-breaker
+// middleware advice is category confusion for it (CV feedback, 2026-10-03).
+// Any dispatch-side call (Publish, Dispatch, Handle, Use, Register*) makes
+// it a dispatch pipeline and returns false.
+func busIsReadOnlySubscriber(ctx *analyzer.AnalysisContext, varName string) bool {
+	observed := 0
+
+	for _, gf := range ctx.GoFiles {
+		if gf.IsTest {
+			continue
+		}
+
+		onlySubscribe := true
+
+		ast.Inspect(gf.AST, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+
+			ident, ok := sel.X.(*ast.Ident)
+			if !ok || ident.Name != varName {
+				return true
+			}
+
+			if !receiverIsCQRSBus(gf.Pkg, sel) {
+				return true
+			}
+
+			observed++
+
+			if !subscribeOnlyBusMethods[sel.Sel.Name] {
+				onlySubscribe = false
+				return false
+			}
+
+			return true
+		})
+
+		if !onlySubscribe {
+			return false
+		}
+	}
+
+	return observed > 0
+}
+
 // hasMiddlewareKeyword scans all non-test files for x.Use(...) or x.UsePublish(...)
 // calls where any argument or the method name contains keyword (case-insensitive).
 func hasMiddlewareKeyword(ctx *analyzer.AnalysisContext, varName, keyword string) bool {

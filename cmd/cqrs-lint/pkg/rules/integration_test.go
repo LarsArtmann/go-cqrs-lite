@@ -81,7 +81,11 @@ var taskmanagerGoldenProfile = map[string]int{
 	"F031": 1,
 	"S010": 1,
 	"V003": 2,
-	"V006": 1,
+	// V006 (divergent-module-pins) intentionally absent: the 2026-10-03
+	// per-module-tags rework fires only on the SAME module pinned to
+	// different versions across MULTIPLE go.mod files; taskmanager is a
+	// single-module project, so it can never fire here. Cross-file
+	// divergence coverage lives in v002_v006_test.go.
 }
 
 // TestIntegration_TaskmanagerExpectedFindings runs all rules against example/taskmanager

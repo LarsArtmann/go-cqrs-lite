@@ -86,6 +86,70 @@ func main() {
 	ruletest.AssertRule(t, findings, "B029", 0)
 }
 
+// TestB029_NoFindingForReadOnlySubscriber pins the bus-kind discrimination:
+// a bus variable whose only calls are Subscribe/SubscribeAll is an
+// in-process journal tail the project READS — retry middleware is category
+// confusion for it (CV feedback, 2026-10-03).
+func TestB029_NoFindingForReadOnlySubscriber(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	bus := engine.Bus()
+	bus.SubscribeAll(handler)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
+	ruletest.AssertRule(t, findings, "B029", 0)
+}
+
+// TestB029_StillFiresWhenPublishing: any dispatch-side call on the bus makes
+// it a dispatch pipeline again — the read-only skip must not over-suppress.
+func TestB029_StillFiresWhenPublishing(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	bus := engine.Bus()
+	bus.SubscribeAll(handler)
+	bus.Publish(evt)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB029Detector(ctx))
+	ruletest.AssertRule(t, findings, "B029", 1)
+}
+
+// TestB030_NoFindingForReadOnlySubscriber is the B030 twin of the bus-kind
+// discrimination: a Subscribe-only bus variable is a journal tail, not a
+// dispatch path to downstream services.
+func TestB030_NoFindingForReadOnlySubscriber(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func main() {
+	bus := engine.Bus()
+	bus.Subscribe(topic, handler)
+}
+`,
+	})
+	ctx.FeatureProfile.HasServer = true
+
+	findings := ruletest.RunDetector(t, resilience.NewB030Detector(ctx))
+	ruletest.AssertRule(t, findings, "B030", 0)
+}
+
 func TestB030_BusWithoutCircuitBreaker(t *testing.T) {
 	t.Parallel()
 

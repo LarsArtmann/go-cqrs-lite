@@ -11,7 +11,10 @@ import (
 // B030: Circuit breaker absence.
 // Detects a bus/dispatcher that lacks circuit breaker middleware. Without a
 // circuit breaker, cascading failures from downstream services can overwhelm
-// the system.
+// the system. Read-only subscribers (a variable whose only bus calls are
+// Subscribe/SubscribeAll — an in-process journal tail) are skipped: nothing
+// is dispatched through them, so circuit breaker middleware is category
+// confusion (CV feedback, 2026-10-03).
 //
 //nolint:ireturn // factory returns public interface
 func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -28,6 +31,10 @@ func NewB030Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 
 			for name, pos := range buses {
 				if !ctx.ProfileForFile(pos.Filename).HasServer {
+					continue
+				}
+
+				if busIsReadOnlySubscriber(ctx, name) {
 					continue
 				}
 
