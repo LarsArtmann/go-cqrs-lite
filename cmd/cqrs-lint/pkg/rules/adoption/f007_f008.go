@@ -49,7 +49,10 @@ func NewF007Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						"at-least-once delivery",
 					"Add middleware.CommandIdempotency(store, ttl, nil) to your "+
 						"command dispatcher's Use() chain. Requires an idempotency.Store "+
-						"(MemoryStore for single-process, KVStore/SQLStore for distributed).",
+						"backed by YOUR durable storage — memory.MemoryStore is DEPRECATED "+
+						"(claims die on restart; go-idempotency ADR-001 ships no production "+
+						"backend): an atomic SQL claim (INSERT ... ON CONFLICT DO NOTHING) "+
+						"or Redis SET NX is the reference primitive.",
 					pos, finding.ConfidenceLow,
 				)...)
 			}

@@ -1,11 +1,13 @@
 package adoption_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/adoption"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/ruletest"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestF001_DeleteWithoutTombstone(t *testing.T) {
@@ -233,6 +235,39 @@ func _() {
 
 	findings := ruletest.RunDetector(t, adoption.NewF007Detector(ctx))
 	ruletest.AssertRule(t, findings, "F007", 1)
+}
+
+// TestF007_SuggestionIsDeprecationAware pins that the F007 suggestion no
+// longer recommends memory.MemoryStore as a viable backend: go-idempotency
+// deprecated MemoryStore (ADR-001 ships no production backend), and a
+// suggestion that steers new adopters into a deprecated surface is a linter
+// lying by recommendation.
+func TestF007_SuggestionIsDeprecationAware(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func _() {
+	disp.Dispatch(ctx, cmd)
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF007Detector(ctx))
+	ruletest.AssertRule(t, findings, "F007", 1)
+
+	for _, f := range findings {
+		if f.Rule.ID != "F007" {
+			continue
+		}
+
+		suggestion := strings.ToLower(f.Suggestion)
+		assert.Contains(t, suggestion, "deprecated",
+			"suggestion must name the MemoryStore deprecation")
+		assert.NotContains(t, suggestion, "memorystore for single-process",
+			"suggestion must not endorse MemoryStore as a viable backend")
+	}
 }
 
 func TestF008_JSONCodecWithManyEvents(t *testing.T) {
