@@ -134,13 +134,16 @@ func TestResolveFeatureProfile_ConfigOverridesDetect(t *testing.T) {
 
 	postgres := StorePostgres
 	cfg := ConfigFeatures{
-		Store: &postgres,
+		Store: &StoreSpec{Kinds: []StoreKind{postgres}},
 	}
 
 	resolved := ResolveFeatureProfile(cfg, PresetNone, detected)
 
 	if resolved.Store != StorePostgres {
 		t.Errorf("config store override should win, got %s", resolved.Store)
+	}
+	if len(resolved.Stores) != 1 || resolved.Stores[0] != StorePostgres {
+		t.Errorf("config store override should set Stores, got %v", resolved.Stores)
 	}
 	if resolved.CommandFlow != CommandFlowCommands {
 		t.Errorf("non-overridden field should stay detected, got %s", resolved.CommandFlow)
@@ -320,7 +323,7 @@ func TestToConfigFeatures_IncludesKnownFields(t *testing.T) {
 
 	cf := fp.ToConfigFeatures()
 
-	if cf.Store == nil || *cf.Store != StorePostgres {
+	if cf.Store == nil || cf.Store.Primary() != StorePostgres {
 		t.Error("detected Store should be included")
 	}
 	if cf.CommandFlow == nil || *cf.CommandFlow != CommandFlowCommands {

@@ -1,4 +1,3 @@
-A009 Project does not use a stack/ preset — manual wiring is error-prone and misses defaults
 A013 Command AddBlockerCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
 A013 Command ArchiveTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
 A013 Command AssignTaskCmd embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation
@@ -38,7 +37,7 @@ F009 Time-based patterns detected (timers, deadlines, expirations) but schedulin
 F013 Manual HTTP handlers for dispatch but no delivery module is used — hand-rolled HTTP lacks broker fanout, SSE delivery, and trace-context propagation
 F021 metaengine query "task_counts_by_status" has 4 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
 F021 metaengine query "task_views" has 11 fold declarations — high write amplification may degrade ingest throughput (each event triggers multiple engine writes)
-F026 metaengine.NewReader used but WithPrefetch never called — every Scan/Get hits the underlying store individually
+F026 metaengine.NewReader used for Scans but WithPrefetch never called — every Scan page fetch hits the underlying store individually
 F028 Project uses slog but never calls slog.SetDefault — the default logger is unconfigured (Text to stderr)
 F031 Scan without WithLimit silently truncates at 100 rows — larger collections return wrong (partial) results
 S010 Bus has encryption/signing middleware but store is not wrapped — events stored in cleartext

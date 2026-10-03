@@ -31,7 +31,7 @@ func NewF022Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
-				if !sc.profile.Store.IsSQL() {
+				if !sc.profile.AnyStoreSQL() {
 					continue
 				}
 

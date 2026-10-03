@@ -86,6 +86,39 @@ func AllStoreKinds() []StoreKind {
 	}
 }
 
+// storeKindForEngine maps a short metaengine engine name to its StoreKind.
+// Returns StoreUnknown for the core module and non-engine subpackages.
+// Every shipped engine must appear here (T20-1);
+// TestMetaengineEngineFromImport_CoversShippedEngines pins both mappings.
+func storeKindForEngine(engine string) StoreKind {
+	switch engine {
+	case "sqlite":
+		return StoreSQLite
+	case "pebble":
+		return StorePebble
+	case "duckdb":
+		return StoreDuckDB
+	case "postgres":
+		return StorePostgres
+	case "mysql":
+		return StoreMySQL
+	case "turso":
+		return StoreTurso
+	case "bbolt":
+		return StoreBolt
+	case "badger":
+		return StoreBadger
+	case "dgraph":
+		return StoreDgraph
+	case "iroh":
+		return StoreIroh
+	case "bigtable":
+		return StoreBigTable
+	default:
+		return StoreUnknown
+	}
+}
+
 // CommandFlowKind classifies the command-dispatch pattern.
 type CommandFlowKind string
 

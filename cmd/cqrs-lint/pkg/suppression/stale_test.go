@@ -3,6 +3,7 @@ package suppression_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/larsartmann/go-finding"
@@ -32,6 +33,48 @@ func TestDetectStaleSuppressions_FindsStaleComment(t *testing.T) {
 
 	if stale[0].Line != 3 {
 		t.Errorf("line = %d, want 3", stale[0].Line)
+	}
+
+	if stale[0].FiresAt != "" {
+		t.Errorf("FiresAt = %q, want empty when the rule fires nowhere", stale[0].FiresAt)
+	}
+}
+
+// A stale suppression whose rule DOES fire elsewhere must name that anchor,
+// so relocating the directive is zero-think (nsfw-classifier feedback).
+func TestDetectStaleSuppressions_NamesActualFireAnchor(t *testing.T) {
+	tmp := t.TempDir()
+	src := filepath.Join(tmp, "misplaced.go")
+	_ = os.WriteFile(
+		src,
+		[]byte("package main\n\n//cqrs-lint:ignore(F021)\ntype Foo struct{}\n"),
+		0o644,
+	)
+
+	other := filepath.Join(tmp, "domain_projections.go")
+	_ = os.WriteFile(other, []byte("package main\n"), 0o644)
+
+	firePos := finding.Pos(finding.FilePath(other), 92, 1)
+	f, err := finding.NewBuilder(
+		finding.RuleName("F021"), "cqrs-lint", "fires elsewhere", finding.SeverityInfo,
+		firePos,
+	).Build()
+	if err != nil {
+		t.Fatalf("build finding: %v", err)
+	}
+
+	stale := suppression.DetectStaleSuppressions([]string{src}, []finding.Finding{f})
+	if len(stale) != 1 {
+		t.Fatalf("got %d stale suppressions, want 1", len(stale))
+	}
+
+	if want := "domain_projections.go:92"; stale[0].FiresAt != want {
+		t.Errorf("FiresAt = %q, want %q", stale[0].FiresAt, want)
+	}
+
+	warning := suppression.FormatStaleWarning(stale[0])
+	if want := "(fires at domain_projections.go:92)"; !strings.Contains(warning, want) {
+		t.Errorf("warning %q missing anchor %q", warning, want)
 	}
 }
 

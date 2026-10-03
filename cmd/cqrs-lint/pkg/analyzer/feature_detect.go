@@ -111,9 +111,27 @@ func detectFeatureSignals(
 	// If no stack preset was found but SQLite driver is imported, infer SQLite.
 	if fp.Store == StoreUnknown && hasSQLiteImport {
 		fp.Store = StoreSQLite
+		fp.addStore(StoreSQLite)
 	}
 	if fp.Store == StoreUnknown {
 		fp.Store = StoreNone
+	}
+
+	// Engine-less metaengine: the only registered driver is the built-in
+	// memory engine — metaengine core init-registers "memory"
+	// (metaengine/register.go), and shipped engines register ONLY via their
+	// module imports (per-engine init()). So an engine-less metaengine
+	// import implies the memory driver is available; when no other backend
+	// was detected it is also the primary store. Caveat: an in-app custom
+	// Engine implementation would also persist without any engine import;
+	// import analysis cannot distinguish that case (doctor renders the
+	// caveat next to the inferred engine).
+	if fp.HasMetaengine && len(fp.MetaengineEngines) == 0 {
+		fp.MetaengineEngines = append(fp.MetaengineEngines, "memory")
+		fp.addStore(StoreMemory)
+		if fp.Store == StoreNone {
+			fp.Store = StoreMemory
+		}
 	}
 
 	// Pass 2: AST-based detection (server, command-flow, snapshot usage, tracing wiring).
@@ -173,31 +191,15 @@ func detectImports(
 	fp *FeatureProfile,
 	hasSQLiteImport, hasOTelImport, hasSnapshotImport *bool,
 ) {
-	// Stack presets are explicit deployment choices; first-wins (the caller
-	// iterates imports in sorted order) so a package importing two presets
-	// resolves deterministically instead of overwriting in map order (T20-3).
-	// StoreNone is unreachable mid-pass (assigned after all imports), kept in
-	// the guard for symmetry with the metaengine branch below.
-	if fp.Store == StoreUnknown || fp.Store == StoreNone {
-		switch {
-		case strings.Contains(path, "go-cqrs-lite/stack/sqlite"):
-			fp.Store = StoreSQLite
-		case strings.Contains(path, "go-cqrs-lite/stack/postgres"):
-			fp.Store = StorePostgres
-		case strings.Contains(path, "go-cqrs-lite/stack/mysql"):
-			fp.Store = StoreMySQL
-		case strings.Contains(path, "go-cqrs-lite/stack/pebble"):
-			fp.Store = StorePebble
-		case strings.Contains(path, "go-cqrs-lite/stack/memory"):
-			fp.Store = StoreMemory
-		case strings.Contains(path, "go-cqrs-lite/stack/turso"):
-			fp.Store = StoreTurso
-		case strings.Contains(path, "go-cqrs-lite/stack/duckdb"):
-			fp.Store = StoreDuckDB
-		case strings.Contains(path, "go-cqrs-lite/stack/bbolt"):
-			fp.Store = StoreBolt
-		case strings.Contains(path, "go-cqrs-lite/storage/"):
-			fp.Store = StoreCustom
+	// Stack presets and storage/ imports are explicit deployment choices;
+	// first-wins primary resolution (the caller iterates imports in sorted
+	// order) so a package importing two presets resolves deterministically
+	// instead of overwriting in map order (T20-3). Every signal is still
+	// recorded into Stores — mixed pools keep all their backends visible.
+	if kind := storeKindFromImportPath(path); kind != StoreUnknown {
+		fp.addStore(kind)
+		if fp.Store == StoreUnknown || fp.Store == StoreNone {
+			fp.Store = kind
 		}
 	}
 
@@ -239,33 +241,42 @@ func detectImports(
 			fp.MetaengineEngines = append(fp.MetaengineEngines, engine)
 		}
 
-		// Engine subpackages imply a store backend.
-		if fp.Store == StoreUnknown || fp.Store == StoreNone {
-			switch engine {
-			case "sqlite":
-				fp.Store = StoreSQLite
-			case "pebble":
-				fp.Store = StorePebble
-			case "duckdb":
-				fp.Store = StoreDuckDB
-			case "postgres":
-				fp.Store = StorePostgres
-			case "mysql":
-				fp.Store = StoreMySQL
-			case "turso":
-				fp.Store = StoreTurso
-			case "bbolt":
-				fp.Store = StoreBolt
-			case "badger":
-				fp.Store = StoreBadger
-			case "dgraph":
-				fp.Store = StoreDgraph
-			case "iroh":
-				fp.Store = StoreIroh
-			case "bigtable":
-				fp.Store = StoreBigTable
+		// Engine subpackages imply a store backend (recorded even when the
+		// primary was already chosen by a stack preset — mixed pools keep
+		// every backend visible).
+		if kind := storeKindForEngine(engine); kind != StoreUnknown {
+			fp.addStore(kind)
+			if fp.Store == StoreUnknown || fp.Store == StoreNone {
+				fp.Store = kind
 			}
 		}
+	}
+}
+
+// storeKindFromImportPath maps stack-preset and storage/ import paths to
+// their StoreKind. Returns StoreUnknown for unrelated paths.
+func storeKindFromImportPath(path string) StoreKind {
+	switch {
+	case strings.Contains(path, "go-cqrs-lite/stack/sqlite"):
+		return StoreSQLite
+	case strings.Contains(path, "go-cqrs-lite/stack/postgres"):
+		return StorePostgres
+	case strings.Contains(path, "go-cqrs-lite/stack/mysql"):
+		return StoreMySQL
+	case strings.Contains(path, "go-cqrs-lite/stack/pebble"):
+		return StorePebble
+	case strings.Contains(path, "go-cqrs-lite/stack/memory"):
+		return StoreMemory
+	case strings.Contains(path, "go-cqrs-lite/stack/turso"):
+		return StoreTurso
+	case strings.Contains(path, "go-cqrs-lite/stack/duckdb"):
+		return StoreDuckDB
+	case strings.Contains(path, "go-cqrs-lite/stack/bbolt"):
+		return StoreBolt
+	case strings.Contains(path, "go-cqrs-lite/storage/"):
+		return StoreCustom
+	default:
+		return StoreUnknown
 	}
 }
 
@@ -273,7 +284,7 @@ func detectImports(
 // Returns "" for the core metaengine module (no specific engine) and for
 // non-engine subpackages (projectionadapter, keycodec, …). The full
 // shipped-engine list lives in metaengine/*engine — every engine module
-// MUST appear here and in the engine→StoreKind switch above (T20-1);
+// MUST appear here and in storeKindForEngine (T20-1);
 // TestMetaengineEngineFromImport_CoversShippedEngines pins both.
 func metaengineEngineFromImport(path string) string {
 	switch {

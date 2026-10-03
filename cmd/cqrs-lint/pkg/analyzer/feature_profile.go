@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -14,8 +15,16 @@ import (
 // deployment archetypes — so each flag is unambiguous and auto-detectable from
 // import + constructor scans.
 type FeatureProfile struct {
-	// Store is the persistence backend the consumer wires up.
+	// Store is the primary persistence backend: the first signal in the
+	// historical first-wins detection order (stack preset > engine import >
+	// storage/ custom > sqlite-driver fallback > metaengine memory
+	// inference). Kept as a scalar for single-store consumers and rule
+	// suggestion text; multi-backend systems should consult Stores.
 	Store StoreKind `json:"store"`
+	// Stores lists every distinct detected backend signal (deduplicated,
+	// detection order) — mixed pools such as a postgres journal plus
+	// sqlite projection engines. Empty when no backend signal was found.
+	Stores []StoreKind `json:"stores,omitempty"`
 	// CommandFlow classifies how (or if) the consumer dispatches commands.
 	CommandFlow CommandFlowKind `json:"commandFlow"`
 	// HasServer is true when a network listener (HTTP or gRPC) is present.
@@ -64,6 +73,13 @@ type FeatureProfile struct {
 func (fp FeatureProfile) String() string {
 	var b strings.Builder
 	_, _ = fmt.Fprintf(&b, "store:         %s\n", fp.Store)
+	if effective := fp.EffectiveStores(); len(effective) > 1 {
+		names := make([]string, len(effective))
+		for i, kind := range effective {
+			names[i] = string(kind)
+		}
+		_, _ = fmt.Fprintf(&b, "stores:        %s\n", strings.Join(names, ", "))
+	}
 	_, _ = fmt.Fprintf(&b, "command-flow:  %s\n", fp.CommandFlow)
 	_, _ = fmt.Fprintf(&b, "server:        %t\n", fp.HasServer)
 	_, _ = fmt.Fprintf(&b, "soft-delete:   %t\n", fp.HasSoftDelete)
@@ -76,6 +92,9 @@ func (fp FeatureProfile) String() string {
 	_, _ = fmt.Fprintf(&b, "metaengine:    %t\n", fp.HasMetaengine)
 	if len(fp.MetaengineEngines) > 0 {
 		_, _ = fmt.Fprintf(&b, "  engines:     %s\n", strings.Join(fp.MetaengineEngines, ", "))
+		if len(fp.MetaengineEngines) == 1 && fp.MetaengineEngines[0] == "memory" {
+			_, _ = fmt.Fprintln(&b, "               (built-in driver, inferred — or an in-app custom engine)")
+		}
 	}
 	_, _ = fmt.Fprintf(&b, "  pushdown:    %t\n", fp.MetaenginePushdown)
 	_, _ = fmt.Fprintf(&b, "monetary:      %s\n", fp.Monetary)
@@ -98,7 +117,8 @@ func ResolveFeatureProfile(
 	result := detected
 
 	if merged.Store != nil {
-		result.Store = *merged.Store
+		result.Store = merged.Store.Primary()
+		result.Stores = slices.Clone(merged.Store.Kinds)
 	}
 	if merged.CommandFlow != nil {
 		result.CommandFlow = *merged.CommandFlow
@@ -183,8 +203,9 @@ func (fp FeatureProfile) ToConfigFeatures() ConfigFeatures {
 		Server:     &fp.HasServer,
 		SoftDelete: &fp.HasSoftDelete,
 	}
-	if fp.Store != "" && fp.Store != StoreUnknown && fp.Store != StoreNone {
-		cf.Store = &fp.Store
+	if effective := fp.EffectiveStores(); len(effective) > 0 {
+		spec := StoreSpec{Kinds: effective}
+		cf.Store = &spec
 	}
 	if fp.CommandFlow != "" && fp.CommandFlow != CommandFlowUnknown {
 		cf.CommandFlow = &fp.CommandFlow

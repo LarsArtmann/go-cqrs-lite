@@ -24,6 +24,11 @@ type StaleSuppression struct {
 	Line   int // 1-based
 	Rule   string
 	Reason string
+	// FiresAt names where the rule actually fires ("file.go:42"), when it
+	// fires anywhere in the analyzed tree — makes relocating a misplaced
+	// suppression zero-think (nsfw-classifier feedback, 2026-10-03). Empty
+	// when the rule fires nowhere (config-disabled or fully fixed).
+	FiresAt string
 }
 
 // suppressionLocation identifies a (file, line, rule) triple where a
@@ -44,6 +49,7 @@ func DetectStaleSuppressions(
 	findings []finding.Finding,
 ) []StaleSuppression {
 	var stale []StaleSuppression
+	firstFire := firstFireByRule(findings)
 
 	for _, path := range goFiles {
 		if !strings.HasSuffix(path, ".go") {
@@ -71,7 +77,35 @@ func DetectStaleSuppressions(
 		stale = append(stale, detectStaleBlocks(path, lines, findings)...)
 	}
 
+	for i := range stale {
+		stale[i].FiresAt = firstFire[stale[i].Rule]
+	}
+
 	return stale
+}
+
+// firstFireByRule maps each rule ID to the location ("file.go:line", base
+// name) of its first finding, sorted deterministically by full path and line.
+func firstFireByRule(findings []finding.Finding) map[string]string {
+	sorted := make([]finding.Finding, len(findings))
+	copy(sorted, findings)
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].Position.File != sorted[j].Position.File {
+			return sorted[i].Position.File < sorted[j].Position.File
+		}
+		return sorted[i].Position.Line < sorted[j].Position.Line
+	})
+
+	first := make(map[string]string, len(sorted))
+	for _, f := range sorted {
+		rule := string(f.Rule)
+		if _, seen := first[rule]; seen {
+			continue
+		}
+		first[rule] = fmt.Sprintf("%s:%d", filepath.Base(string(f.Position.File)), f.Position.Line)
+	}
+
+	return first
 }
 
 // matchedSuppressionsForFile marks every (file, line, rule) location whose
@@ -316,6 +350,13 @@ func FormatStaleWarning(s StaleSuppression) string {
 		return fmt.Sprintf(
 			"warning: block suppression issue at %s:%d — %s; add an ignore-end or delete the start",
 			filepath.Base(s.File), s.Line, s.Reason,
+		)
+	}
+
+	if s.FiresAt != "" {
+		return fmt.Sprintf(
+			"warning: stale suppression at %s:%d — rule %s does not fire here (fires at %s); safe to remove or move",
+			filepath.Base(s.File), s.Line, s.Rule, s.FiresAt,
 		)
 	}
 

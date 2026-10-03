@@ -42,6 +42,42 @@ func TestA009_NoFindingForStorageFacadeArchitecture(t *testing.T) {
 	ruletest.AssertRule(t, findings, "A009", 0)
 }
 
+// The system/ composition root (ADR-0123) is the adopted path — A009 must not
+// coach stack/ presets at system.New users (nsfw-classifier feedback, 2026-10-03).
+func TestA009_NoFindingForSystemCompositionRoot(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.Packages = []*packages.Package{{
+		PkgPath: "example.com/myapp",
+		Imports: map[string]*packages.Package{
+			"github.com/larsartmann/go-cqrs-lite/system/v4": {
+				PkgPath: "github.com/larsartmann/go-cqrs-lite/system/v4",
+			},
+		},
+	}}
+	findings := ruletest.RunDetector(t, api.NewA009Detector(ctx))
+	ruletest.AssertRule(t, findings, "A009", 0)
+}
+
+// systemtest/ (Tier 6 test utilities) is NOT the composition root — the
+// trailing-slash match must not bleed into it.
+func TestA009_StillFiresForSystemtestOnlyImport(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main`,
+	})
+	ctx.Packages = []*packages.Package{{
+		PkgPath: "example.com/myapp",
+		Imports: map[string]*packages.Package{
+			"github.com/larsartmann/go-cqrs-lite/systemtest/v4": {
+				PkgPath: "github.com/larsartmann/go-cqrs-lite/systemtest/v4",
+			},
+		},
+	}}
+	findings := ruletest.RunDetector(t, api.NewA009Detector(ctx))
+	ruletest.AssertRule(t, findings, "A009", 1)
+}
+
 // --- A010: Custom error types ---
 
 func TestA010_DetectsCustomErrorInterface(t *testing.T) {
