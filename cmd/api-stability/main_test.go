@@ -343,14 +343,22 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 		}
 	}
 
-	// Train-section threshold (release-tooling tail; calibrated 2026-09-25):
-	// a section with <5 tags is an abandoned train — ERROR. 5-9 is a small
-	// coordinated wave (v4.7.0 shipped 9 legitimately) — log the aspiration
-	// toward >=10 without failing it; single-module patches routinely land
-	// under 10.
+	// Train-section threshold (release-tooling tail; recalibrated 2026-10-03):
+	// a section that declares its module count ("(N modules: ...)", the
+	// per-module version wave convention) is checked against its own
+	// declaration — fewer tags than declared cars is an abandoned train.
+	// Legacy sections without a declaration keep the flat <5 floor
+	// (calibrated 2026-09-25). Either way, <10 logs the aspiration toward
+	// full coordinated waves without failing.
 	latestChangelogVer := matches[0][1]
-	switch n := taggedVersions[latestChangelogVer]; {
-	case n < 5:
+	n := taggedVersions[latestChangelogVer]
+	declared := declaredModuleCount(string(changelogBytes), latestChangelogVer)
+	switch {
+	case declared > 0 && n < declared:
+		t.Errorf("latest CHANGELOG version %s declares %d modules but has "+
+			"only %d tags at that version (the release train left its cars behind)",
+			latestChangelogVer, declared, n)
+	case declared == 0 && n < 5:
 		t.Errorf("latest CHANGELOG version %s has only %d module tags "+
 			"(<5 — the release train left its cars behind)",
 			latestChangelogVer, n)
@@ -359,6 +367,28 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 			"(aspiration >=10 for full coordinated waves; small waves are legal)",
 			latestChangelogVer, n)
 	}
+}
+
+// declaredModuleCount extracts the "(N modules: ...)" declaration from a
+// version section, returning 0 for legacy sections that do not declare one.
+func declaredModuleCount(changelog, version string) int {
+	sectionRe := regexp.MustCompile(
+		`(?s)## \[` + regexp.QuoteMeta(version) + `\][^\n]*\n(.*?)(?=\n## \[|\z)`,
+	)
+	m := sectionRe.FindStringSubmatch(changelog)
+	if m == nil {
+		return 0
+	}
+	declRe := regexp.MustCompile(`\((\d+) modules?:`)
+	d := declRe.FindStringSubmatch(m[1])
+	if d == nil {
+		return 0
+	}
+	n, err := strconv.Atoi(d[1])
+	if err != nil {
+		return 0
+	}
+	return n
 }
 
 func normalizeLayerKey(key string) string {

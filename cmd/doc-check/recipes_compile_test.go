@@ -228,7 +228,7 @@ func TestRecipesCompile(t *testing.T) {
 		t.Setenv("RECIPES_COMPILE_DIR", dir)
 		t.Logf("keeping snippet module at %s", dir)
 	}
-	gomod := "module recipescompile\n\ngo 1.27.1\n"
+	gomod := "module recipescompile\n\ngo 1.27\n"
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}
