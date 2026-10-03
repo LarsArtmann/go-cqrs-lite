@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// FixResult reports the outcome of a --doctor --fix run.
+// FixResult reports the outcome of a doctor --prune-suppressions run.
 type FixResult struct {
 	// Removed holds one entry per deleted stale directive LINE, deduplicated
 	// by line (a combined ignore(A,B) directive that went fully stale emits
@@ -44,7 +44,7 @@ func RemoveStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 // [RemoveStaleInlineSuppressions] would, WITHOUT touching any file:
 // Removed holds the lines that WOULD be deleted, Skipped those that would
 // be left for manual removal, and Files the files that would be rewritten.
-// It backs `doctor --fix --dry-run`.
+// It backs `doctor --prune-suppressions --dry-run`.
 func PlanStaleInlineSuppressions(entries []SuppressionAuditEntry) FixResult {
 	var res FixResult
 

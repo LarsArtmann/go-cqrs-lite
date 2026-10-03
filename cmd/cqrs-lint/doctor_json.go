@@ -25,7 +25,7 @@ func fileExists(path string) bool {
 
 // doctorJSONReport is the machine-readable `doctor --format json` surface:
 // the resolved configuration, the detected feature profile, and — with
-// --audit-suppressions / --fix — the suppression audit and fix outcome.
+// --audit-suppressions / --prune-suppressions — the suppression audit and fix outcome.
 // sortedOverrideMap renders a severity-override map with SORTED keys.
 // encoding/json/v2 emits map iteration order (unlike v1, which sorted),
 // so an unsorted map made `doctor --format json` byte-nondeterministic —
@@ -101,8 +101,8 @@ func runDoctorJSON(
 	actx *analyzer.AnalysisContext,
 	flags doctorFlags,
 ) error {
-	if flags.AuditSuppressions || flags.Fix {
-		audit, err := buildSuppressionAuditJSON(ctx, cfg, actx, flags.Fix, flags.DryRun)
+	if flags.AuditSuppressions || flags.Prune {
+		audit, err := buildSuppressionAuditJSON(ctx, cfg, actx, flags.Prune, flags.DryRun)
 		if err != nil {
 			return err
 		}
@@ -203,7 +203,7 @@ func splitDisabledRules(report *doctorJSONReport, presetDisabled, disabled []str
 }
 
 // buildSuppressionAuditJSON runs the suppression audit pipeline and shapes
-// the outcome for JSON output, including the fix plan/result when --fix.
+// the outcome for JSON output, including the fix plan/result when --prune-suppressions.
 func buildSuppressionAuditJSON(
 	ctx context.Context,
 	cfg *AppConfig,

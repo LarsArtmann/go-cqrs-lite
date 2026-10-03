@@ -106,8 +106,8 @@ func dropRemovedEntries(
 	return kept
 }
 
-// renderFixSummary reports what --fix rewrote (or, in dry-run, WOULD rewrite)
-// and what was left for manual removal.
+// renderFixSummary reports what --prune-suppressions rewrote (or, in dry-run,
+// WOULD rewrite) and what was left for manual removal.
 func renderFixSummary(w io.Writer, res suppression.FixResult, dryRun bool) {
 	if len(res.Removed) == 0 && len(res.Skipped) == 0 {
 		if dryRun {

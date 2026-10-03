@@ -20,10 +20,15 @@ import (
 // doctorFlags adds subcommand-level flags to the doctor command.
 // --format is inherited from the root command so doctor honors the same
 // output knob (flag and config file) as every other command.
+//
+// The prune flag is deliberately NOT named --fix: the root command's --fix
+// applies findings autofixes, and the same name doing suppression cleanup
+// here was a semantic collision (users could not tell which "fix" a docs
+// example meant).
 type doctorFlags struct {
-	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
-	Fix               bool `default:"false" flag:"fix"                help:"Remove stale whole-line suppressions (implies audit)"`
-	DryRun            bool `default:"false" flag:"dry-run"            help:"With --fix: show what would be removed without changing any file"`
+	AuditSuppressions bool `default:"false" flag:"audit-suppressions"  help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
+	Prune             bool `default:"false" flag:"prune-suppressions" help:"Remove stale whole-line suppressions (implies audit)"`
+	DryRun            bool `default:"false" flag:"dry-run"            help:"With --prune-suppressions: show what would be removed without changing any file"`
 }
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -46,8 +51,8 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 				return runDoctorJSON(ctx, cfg, actx, flags)
 			}
 
-			if flags.AuditSuppressions || flags.Fix {
-				return runSuppressionAudit(ctx, cfg, actx, flags.Fix, flags.DryRun)
+			if flags.AuditSuppressions || flags.Prune {
+				return runSuppressionAudit(ctx, cfg, actx, flags.Prune, flags.DryRun)
 			}
 
 			renderDoctorLoadErrors(os.Stderr, actx)

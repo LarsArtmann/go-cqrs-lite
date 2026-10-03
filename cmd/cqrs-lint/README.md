@@ -52,7 +52,7 @@ cqrs-lint init                       # generate a default config skeleton
 cqrs-lint explain                    # full documentation of every config key
 cqrs-lint doctor                     # show resolved config + detected profile
 cqrs-lint doctor --audit-suppressions # active vs stale vs unknown-rule suppressions
-cqrs-lint doctor --fix              # auto-remove stale whole-line suppressions
+cqrs-lint doctor --prune-suppressions # auto-remove stale whole-line suppressions
 cqrs-lint scorecard                  # module adoption scorecard (Used/Missing/Irrelevant)
 cqrs-lint scorecard --format sarif   # SARIF output for CI/Code Scanning integration
 cqrs-lint --scorecard                # same via flag (identical output, no --scorecard-threshold gate)
@@ -634,7 +634,7 @@ To review all suppressions at once and clean up the stale ones:
 
 ```bash
 cqrs-lint doctor --audit-suppressions   # report: active vs stale vs unknown
-cqrs-lint doctor --fix                  # delete stale whole-line directives
+cqrs-lint doctor --prune-suppressions   # delete stale whole-line directives
 ```
 
 `--fix` only removes directives that occupy an entire line. Trailing-on-code
