@@ -290,37 +290,16 @@ replace-free — 10-25 §a2/§a3, now archived).
 > `pkg/analyzer/store_spec.go` lint debt belongs to the concurrent multi-store
 > session — deliberately not harvested here.
 
-- [ ] **M01 contract-enforcement test pack** — config-parity e2e (temp
-      `.cqrs-lint.json` `"format":"json"` → scorecard/doctor emit JSON; README
-      currently claims this untested), help-drift golden (hand-written usage ≡
-      cobra COMMANDS), `completion`/`help [cmd]` surface tests. Critical, 90min.
-- [ ] **M02 single-source format vocabularies** — per-command supported-format
-      `[]string` feeding validate + `WithShort` + explain (lists duplicated
-      2–3× today; drift seed). High, 60min.
-- [ ] **M03 binary smoke probes + exit-code docs** — extend
-      `scripts/smoke-probes.txt` (rules --format json, scorecard csv rc≠0,
-      doctor yaml rc≠0, version --fix rc≠0, init --path, doctor --fix rc≠0) +
-      README exit-code table. High, 45min.
-- [ ] **M04 flag-consumption audit matrix** — enumerate subcommand×flag
-      acceptance; consume / scope-local / document-ignore; `rules
-      --json`+`--markdown` precedence defined+tested. Medium, 90min.
-- [ ] **M05 doctor JSON schema + explain tri-state row** — advanced.md field
-      table; explain teaches why tracing=on/off but server=true/false
-      (Kind tri-state `unknown` defers to heuristics). Medium, 60min.
-- [ ] **M06/M07 sibling CLI audits** — cqrs-bench, cqrs-gen, cqrs-upgrade,
-      doc-check: same probe→fix→pin loop (cmdguard patterns likely share the
-      disease). High, 180min combined.
-- [ ] **M08 daemon-bypasses-lint gate** — root cause of master shipping 5 lint
-      findings via auto-commits; reproduce, options memo, implement pre-commit
-      or nightly gate + self-test. Critical, 100min.
-- [ ] **M09 preset e2e + precedence tests** — `init --preset` ×6 valid JSONC;
-      root `--format` flag beats config-file value. Medium, 50min.
-- [ ] **M10–M11 cmdguard upstream proposals** (USER-GATED filing):
-      WithSharedFlagSubset helper, validator-derived help lists,
-      unused-persistent-flag detector, `local:"true"` docs. Medium/Low, 190min.
-- [ ] **M12–M14 polish** — doctor colorize-or-dedocument `--color`; changelog
-      fallback message; doc-trust sweep; CONTRIBUTING rc-safe probe snippet.
-      Low/Medium, 130min.
+- [x] **M01 contract-enforcement test pack** — DONE 2026-10-03 (`contract_enforcement_test.go`: config-parity e2e ×2, help-drift golden via extracted `rootLongHelp`, completion/help surfaces; report §`2026-10-03_05-58`).
+- [x] **M02 single-source format vocabularies** — DONE 2026-10-03 (`formats.go` slices feed validate+WithShort+explain+init; killed 2 csv/tsv doc omissions; subset test).
+- [x] **M03 binary smoke probes + exit-code docs** — DONE 2026-10-03 (`scripts/check-cqrs-lint-cli.sh` 8 probes + fault-injection self-test wired into `#check-release-scripts`; README exit-code table).
+- [x] **M04 flag-consumption audit matrix** — DONE 2026-10-03 (`flag_contract_test.go` acceptance 7×5 + rejection 7×14 + rules precedence; README consumption matrix).
+- [x] **M05 doctor JSON schema + explain tri-state row** — DONE 2026-10-03 (advanced.md 16-field table; tri-state teaching note in explain).
+- [ ] **M06/M07 sibling CLI audits** — cqrs-gen DONE 2026-10-03 (real bug: positional paths dead code → `ArbitraryArgs` + `cli_contract_test.go`); doc-check CLEAN; cqrs-upgrade = stdlib-flag family (no cmdguard patterns, noted); **cqrs-bench BLOCKED**: `render.go:91` default-branch silent text fallback confirmed but module unbuildable (go.mod pins `projectionhost/v4.5.2`+`commandlifecycle/projections/v4.2.1`, tags don't exist — waiting on the 2026-10-03 release train). Fix is ~15min post-train.
+- [x] **M08 daemon-bypasses-lint gate** — DONE 2026-10-03 (`scripts/nightly-lint.sh` + systemd units 03:30 + LINT-ROT marker; self-test wired into `#check-release-scripts`; pre-commit option rejected in memo). INSTALL PENDING (owner): `systemctl --user enable --now go-cqrs-nightly-lint.timer`.
+- [x] **M09 preset e2e + precedence tests** — DONE 2026-10-03 (`TestInitPresetE2e` ×6 via real JSONCLoader; `TestFormatFlagBeatsConfigFile`).
+- [ ] **M10–M11 cmdguard upstream proposals** — DRAFTS DONE 2026-10-03 (`docs/planning/2026-10-03_cmdguard-upstream-proposals-draft.md`, 4 proposals, claims verified vs v4.0.2 source). FILING REMAINS USER-GATED.
+- [x] **M12–M14 polish** — DONE 2026-10-03 (M12 dedocumented: README states doctor doesn't colorize; M13 `computeChangelog` + missing-tag stderr notice + test; M14 three CONTRIBUTING doc lies fixed (`explain c008`, `disabled` key, 186-rule count) + rc-safe probe snippet + CHANGELOG entries).
 
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
