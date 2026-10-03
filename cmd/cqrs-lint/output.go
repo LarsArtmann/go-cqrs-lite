@@ -39,6 +39,25 @@ func parseColorMode(s string) output.ColorMode {
 	return cm
 }
 
+// validateFormatFlag reports an error when format is not one of the supported
+// values (case-insensitive). Every command that consumes the shared --format
+// flag calls this BEFORE any package loading so an out-of-vocabulary value
+// fails fast and loudly instead of silently falling back to text rendering.
+// The empty string is rejected too: the flag always carries a default
+// ("text"), so an empty value means a scripting bug, not intent.
+func validateFormatFlag(format string, supported ...string) error {
+	for _, s := range supported {
+		if strings.EqualFold(strings.TrimSpace(format), s) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf(
+		"invalid --format %q (supported: %s)",
+		format, strings.Join(supported, ", "),
+	)
+}
+
 // ANSI color codes for terminal output.
 const (
 	ansiReset   = "\033[0m"

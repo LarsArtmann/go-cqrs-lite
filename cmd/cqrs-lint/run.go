@@ -26,6 +26,12 @@ var errStaleSuppressions = errors.New("stale or unknown suppression directive(s)
 func run(ctx context.Context, cfg *AppConfig) error {
 	start := time.Now()
 
+	if err := validateFormatFlag(cfg.Format,
+		"text", "json", "sarif", "markdown", "csv", "tsv",
+	); err != nil {
+		return err
+	}
+
 	actx, err := analyzer.BuildContext(cfg.Path)
 	if err != nil {
 		return fmt.Errorf("load packages: %w", err)
