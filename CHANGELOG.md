@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **go-directive minor-form floor (1 module: `metaengine`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
 
+## [v4.13.3] — 2026-10-03
+
+- **cqrs-lint v4.13.3: F031 database/sql exemption pinned by typed-path fixture.** `*sql.Rows.Scan` loops (raw SQL iteration, the CV sqlite event store shape) no longer fire scan-without-limit — `scanReceiverIsMetaengine` consults the receiver's static type, so only metaengine reader reads are coached (bufio was already excluded; unresolvable receivers keep legacy syntactic coverage). Regression: `TestF031_SqlRowsScanDoesNotFire` (cmd/cqrs-lint/pkg/rules/adoption/f031_test.go) over the committed scanfixture module — the `*sql.Rows` loop shares the fixture file with the coached TypedReader Scan, so exactly one finding may fire and it must anchor at the reader scan (exclusion proven by type, not by absence of Scan calls).
+
 ## [v4.13.2] — 2026-10-03
 
 - **go-directive minor-form floor (1 module: `cmd/cqrs-lint`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
