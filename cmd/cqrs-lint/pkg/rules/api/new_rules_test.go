@@ -177,9 +177,26 @@ func TestA012_NoFindingWithoutFolds(t *testing.T) {
 	ruletest.AssertRule(t, findings, "A012", 0)
 }
 
-// --- A013: Pointer vs value BasicCommand ---
+// --- A013: Value-embedded BasicCommand (inverted per GitHub #51) ---
 
-func TestA013_DetectsPointerBasicCommand(t *testing.T) {
+func TestA013_DetectsValueBasicCommand(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"cmd.go": `package main
+
+type CreateCmd struct {
+	BasicCommand
+	Name string
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA013Detector(ctx))
+	ruletest.AssertRule(t, findings, "A013", 1)
+}
+
+// TestA013_PointerEmbedStaysSilent: pointer embedding is the sanctioned
+// form — every BasicCommand method has a pointer receiver, so firing here
+// (the pre-#51 behavior) coached consumers into compile errors.
+func TestA013_PointerEmbedStaysSilent(t *testing.T) {
 	ctx := analyzer.BuildContextFromSource(t, map[string]string{
 		"cmd.go": `package main
 
@@ -190,7 +207,7 @@ type CreateCmd struct {
 `,
 	})
 	findings := ruletest.RunDetector(t, api.NewA013Detector(ctx))
-	ruletest.AssertRule(t, findings, "A013", 1)
+	ruletest.AssertRule(t, findings, "A013", 0)
 }
 
 // --- A014: Deprecated API usage ---

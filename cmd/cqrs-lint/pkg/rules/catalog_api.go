@@ -114,9 +114,9 @@ func apiRules() []RuleInfo {
 			ID:          "A013",
 			Name:        "pointer-vs-value-basic-command",
 			Category:    "api",
-			Severity:    "info",
+			Severity:    "warning",
 			Confidence:  "high",
-			Description: "Command embeds *BasicCommand (pointer) instead of value",
+			Description: "Command embeds BasicCommand by value — cannot satisfy command.Command (pointer-receiver methods; use *BasicCommand)",
 			AutoFix:     false,
 		},
 		{

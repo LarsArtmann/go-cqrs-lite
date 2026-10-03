@@ -244,7 +244,13 @@ func NewA012Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 	)
 }
 
-// A013: Pointer vs value BasicCommand embedding.
+// A013: Value-embedded BasicCommand (inverted 2026-10-03, GitHub #51).
+//
+// Every BasicCommand method has a pointer receiver, so promoted methods
+// only enter a struct's method set through a pointer: a value embed cannot
+// satisfy command.Command and fails to compile when dispatched. Pointer
+// embedding is additionally load-bearing for ApplyOptions, which mutates
+// through the embedded pointer so pipeline enrichment reaches the command.
 //
 //nolint:ireturn // factory returns public interface
 func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
@@ -275,40 +281,41 @@ func NewA013Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						}
 
 						for _, field := range st.Fields.List {
-							if se, ok := field.Type.(*ast.StarExpr); ok {
-								// Accept both `*BasicCommand` (bare ident) and the
-								// canonical real-world embed `*command.BasicCommand`
-								// (selector) — the old ident-only check silently
-								// skipped the dominant qualified form.
-								basic := false
+							// Pointer embedding is the sanctioned form — silent.
+							if _, ok := field.Type.(*ast.StarExpr); ok {
+								continue
+							}
 
-								switch inner := se.X.(type) {
-								case *ast.Ident:
-									basic = inner.Name == "BasicCommand"
-								case *ast.SelectorExpr:
-									basic = inner.Sel.Name == "BasicCommand"
+							// Accept both `BasicCommand` (bare ident) and the
+							// qualified real-world embed `command.BasicCommand`.
+							basic := false
+
+							switch inner := field.Type.(type) {
+							case *ast.Ident:
+								basic = inner.Name == "BasicCommand"
+							case *ast.SelectorExpr:
+								basic = inner.Sel.Name == "BasicCommand"
+							}
+
+							if basic {
+								pos := ctx.Fset.Position(ts.Pos())
+
+								f, err := findingTemplate.Builder(
+									"A013",
+									fmt.Sprintf("Command %s embeds BasicCommand by value — its methods are pointer-receiver, so %s does not satisfy command.Command", cmd.Name, cmd.Name),
+									finding.SeverityWarning,
+									finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
+								).
+									WithCategory(finding.CategoryBestPractice).
+									WithConfidence(finding.ConfidenceHigh).
+									WithSuggestion("Embed *command.BasicCommand (pointer): required while every BasicCommand method has a pointer receiver, and ApplyOptions mutates through the embedded pointer so pipeline enrichment reaches the dispatched command").
+									WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
+									Build()
+								if err != nil {
+									return true
 								}
 
-								if basic {
-									pos := ctx.Fset.Position(ts.Pos())
-
-									f, err := findingTemplate.Builder(
-										"A013",
-										fmt.Sprintf("Command %s embeds *BasicCommand (pointer) — value embedding is recommended for stack allocation", cmd.Name),
-										finding.SeverityInfo,
-										finding.Pos(finding.FilePath(pos.Filename), pos.Line, pos.Column),
-									).
-										WithCategory(finding.CategoryBestPractice).
-										WithConfidence(finding.ConfidenceHigh).
-										WithSuggestion("Embed BasicCommand by value (not pointer) for better cache locality and simpler nil-safety").
-										WithSnippet(ctx.SourceLine(pos.Filename, pos.Line)).
-										Build()
-									if err != nil {
-										return true
-									}
-
-									findings = append(findings, f)
-								}
+								findings = append(findings, f)
 							}
 						}
 

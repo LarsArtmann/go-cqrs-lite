@@ -467,9 +467,9 @@ Fold function does not check for tombstone events
 
 #### A013 — `pointer-vs-value-basic-command`
 
-Severity: `info` · Confidence: `high` · Auto-fix: no · Category: `api`
+Severity: `warning` · Confidence: `high` · Auto-fix: no · Category: `api`
 
-Command embeds *BasicCommand (pointer) instead of value
+Command embeds BasicCommand by value — cannot satisfy command.Command (pointer-receiver methods; use *BasicCommand)
 
 <a id="a014"></a>
 
