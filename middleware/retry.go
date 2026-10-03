@@ -45,6 +45,17 @@ func NewRetry[M any](adapter MessageAdapter[M], config RetryConfig, opts ...Opti
 
 // CommandRetry returns a command middleware that retries on retryable errors.
 // Returns a middleware that always fails if config is invalid.
+//
+// Version conflicts (event.ErrVersionConflict, Conflict family) are NOT
+// retried by default: the default IsRetryable (errorfamily.IsRetryable)
+// classifies only Transient errors as retryable, and a Conflict verdict is a
+// domain answer, not an infrastructure failure. If your dispatch pipeline
+// reloads journal state per attempt, retrying conflicts is sound via an
+// explicit override:
+//
+// 	IsRetryable: func(err error) bool {
+// 		return errorfamily.IsRetryable(err) || errors.Is(err, event.ErrVersionConflict)
+// 	}
 func CommandRetry(config RetryConfig, opts ...Option) command.Middleware {
 	return AsCommand(NewRetry(CommandAdapter, config, opts...))
 }

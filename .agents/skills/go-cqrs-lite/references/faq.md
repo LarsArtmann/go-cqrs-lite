@@ -373,6 +373,30 @@ Reads see the evolved payload and `SchemaVersion()` bump; raw bytes and the
 write path stay untouched. Full recipe with the preservation rules:
 [recipes.md](recipes.md) §2.19b.
 
+### "Why doesn't `middleware.CommandRetry` retry version conflicts?"
+
+**Cause:** `RetryConfig.IsRetryable` defaults to `errorfamily.IsRetryable`,
+which classifies only `Transient` errors as retryable. A version conflict
+(`event.ErrVersionConflict`, Conflict family) is a domain answer — the state
+you decided against moved — so the default treats it as final, not as
+infrastructure noise.
+
+**Fix:** nothing is broken; decide which semantics your pipeline has. If every
+retry attempt reloads the journal fresh (the decider repository does), a
+conflict genuinely is transient for you — opt in explicitly:
+
+```go
+middleware.CommandRetry(middleware.RetryConfig{
+	IsRetryable: func(err error) bool {
+		return errorfamily.IsRetryable(err) || errors.Is(err, event.ErrVersionConflict)
+	},
+	// MaxAttempts/InitialDelay/... as usual
+})
+```
+
+If your handler caches loaded state across attempts, keep the default —
+retrying against stale state just burns the attempt budget.
+
 ## How do I write a minimal third-party engine for `system.New`?
 
 An engine is a `metaengine.Engine` (Profile + Closer). For anything beyond

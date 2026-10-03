@@ -55,6 +55,14 @@ The brainstorm identified 9 error families. Not all belong in the library. The l
 | Transport      | ❌ No                    | Application-level SSE/WS concern                             |
 | Infrastructure | ✅ Yes                   | `ErrStoreClosed`, `ErrBusClosed` already exist               |
 
+> **Correction (2026-10-03, GitHub #49):** the Conflict row above must not be
+> read as "conflicts are retried by middleware". `errorfamily.IsRetryable`
+> classifies only `Transient` as retryable, and `middleware.RetryConfig`
+> defaults to it — so `event.ErrVersionConflict` is never retried by
+> `middleware.CommandRetry` out of the box. Retrying conflicts is sound only
+> when the dispatch pipeline reloads journal state per attempt (explicit
+> `IsRetryable` override; documented on `middleware.CommandRetry`).
+
 ### Actionable Steps
 
 #### Step A1: Create `core/pkg/errors/` package
