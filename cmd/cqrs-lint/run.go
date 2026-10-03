@@ -47,18 +47,10 @@ func run(ctx context.Context, cfg *AppConfig) error {
 	// Scorecard mode: compute module adoption and exit early. Runs before
 	// handleLoadErrors because the scorecard only needs import paths (AST),
 	// not compiled types — it works even when the project has build errors.
+	// Delegates to the SAME runner as the scorecard subcommand so both entry
+	// points stay behavior-identical (deprecated panel, formats, threshold).
 	if cfg.Scorecard {
-		usage := analyzer.DetectUsedModules(actx.Packages, actx.GoFiles, analyzer.DefaultCatalog)
-		result := ComputeScorecard(
-			analyzer.DefaultCatalog, usage,
-			actx.FeatureProfile, cfg.Preset,
-		)
-		out, err := renderScorecard(result, cfg.Format, parseColorMode(cfg.Color))
-		if err != nil {
-			return fmt.Errorf("render scorecard: %w", err)
-		}
-		fmt.Print(out)
-		return nil
+		return runScorecard(ctx, cfg, actx, 0)
 	}
 
 	if err := handleLoadErrors(cfg, actx); err != nil {

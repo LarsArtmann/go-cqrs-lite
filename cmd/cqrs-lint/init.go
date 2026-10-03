@@ -24,9 +24,17 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 	cmd, err := cmdguard.NewCommand(
 		"init",
 		initPresetFlags{},
-		func(_ context.Context, _ *AppConfig, flags initPresetFlags) error {
-			if _, err := os.Stat(".cqrs-lint.json"); err == nil {
-				return errConfigExists
+		func(_ context.Context, cfg *AppConfig, flags initPresetFlags) error {
+			// --path is honored (the root command's default "."): the config
+			// lands in the directory the user pointed at, not silently in
+			// the CWD. A missing directory is an error, not a mkdir.
+			if _, err := os.Stat(cfg.Path); err != nil {
+				return fmt.Errorf("--path %s: %w", cfg.Path, err)
+			}
+
+			target := filepath.Join(cfg.Path, ".cqrs-lint.json")
+			if _, err := os.Stat(target); err == nil {
+				return fmt.Errorf("%w: %s", errConfigExists, target)
 			}
 
 			preset := strings.TrimSpace(flags.Preset)
@@ -36,15 +44,15 @@ func setupInitCommand(cli *cmdguard.CLI[AppConfig]) error {
 				return err
 			}
 
-			if err := os.WriteFile(".cqrs-lint.json", []byte(content), 0o644); err != nil {
+			if err := os.WriteFile(target, []byte(content), 0o644); err != nil {
 				return fmt.Errorf("write config: %w", err)
 			}
 
 			if preset == "" {
-				fmt.Println("Created .cqrs-lint.json with default settings")
+				fmt.Printf("Created %s with default settings\n", target)
 				fmt.Println("Run 'cqrs-lint explain' for full documentation of all config keys.")
 			} else {
-				fmt.Printf("Created .cqrs-lint.json with preset %q\n", preset)
+				fmt.Printf("Created %s with preset %q\n", target, preset)
 				fmt.Println("Run 'cqrs-lint doctor' to see the resolved feature profile.")
 				fmt.Println("Run 'cqrs-lint explain' for full documentation of all config keys.")
 			}

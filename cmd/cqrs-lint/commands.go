@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
+	output "github.com/larsartmann/go-output"
 )
 
 // registerCommand wraps the create-and-add pattern shared by every subcommand:
@@ -33,36 +34,69 @@ func setupRulesCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"rules",
 		rulesFlags{},
 		func(_ context.Context, cfg *AppConfig, flags rulesFlags) error {
-			if flags.Markdown {
-				fmt.Print(renderRulesMarkdown())
-
-				return nil
-			}
-
-			if flags.JSON {
-				out, err := renderRulesJSON()
-				if err != nil {
-					return fmt.Errorf("render rules json: %w", err)
-				}
-
-				fmt.Println(out)
-
-				return nil
-			}
-
-			out, err := renderRulesTable(parseColorMode(cfg.Color))
+			format, err := rulesFormat(flags, cfg)
 			if err != nil {
-				return fmt.Errorf("render rules: %w", err)
+				return err
 			}
 
-			fmt.Println(out)
+			out, err := renderRules(format, parseColorMode(cfg.Color))
+			if err != nil {
+				return err
+			}
+
+			fmt.Print(out)
 
 			return nil
 		},
-		cmdguard.WithShort("List all available rules"),
+		cmdguard.WithShort("List all available rules; formats: text, json, markdown"),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "rules", cmd, err)
+}
+
+// rulesFormat resolves the rules command's output format. The legacy
+// --json/--markdown booleans win when set; otherwise the shared --format
+// flag (or config file) decides — the same vocabulary as every other
+// command, restricted to the formats the rules catalog supports.
+func rulesFormat(flags rulesFlags, cfg *AppConfig) (string, error) {
+	switch {
+	case flags.Markdown:
+		return "markdown", nil
+	case flags.JSON:
+		return "json", nil
+	}
+
+	switch f := strings.ToLower(strings.TrimSpace(cfg.Format)); f {
+	case "", "text", "json", "markdown":
+		return f, nil
+	default:
+		return "", validateFormatFlag(cfg.Format, "text", "json", "markdown")
+	}
+}
+
+// renderRules renders the rule catalog in the given format. Each branch
+// reproduces the exact byte layout the previous per-format print calls
+// produced (Println for json/table, raw Print for markdown) so redirected
+// output such as `rules --markdown > RULES.md` stays identical.
+func renderRules(format string, colorMode output.ColorMode) (string, error) {
+	switch format {
+	case "json":
+		out, err := renderRulesJSON()
+		if err != nil {
+			return "", fmt.Errorf("render rules json: %w", err)
+		}
+
+		return out + "\n", nil
+	case "markdown":
+		return renderRulesMarkdown(), nil
+	default:
+		out, err := renderRulesTable(colorMode)
+		if err != nil {
+			return "", fmt.Errorf("render rules: %w", err)
+		}
+
+		return out + "\n", nil
+	}
 }
 
 // rulesFlags carries the rules subcommand's output-format flag.

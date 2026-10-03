@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -18,14 +17,13 @@ import (
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules"
 )
 
-var errInvalidDoctorFormat = errors.New("invalid --format: want \"text\" or \"json\"")
-
 // doctorFlags adds subcommand-level flags to the doctor command.
+// --format is inherited from the root command so doctor honors the same
+// output knob (flag and config file) as every other command.
 type doctorFlags struct {
-	AuditSuppressions bool   `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
-	Fix               bool   `default:"false" flag:"fix"                help:"Remove stale whole-line suppressions (implies audit)"`
-	DryRun            bool   `default:"false" flag:"dry-run"            help:"With --fix: show what would be removed without changing any file"`
-	Format            string `default:"text"  flag:"format"             help:"Output format: text or json"`
+	AuditSuppressions bool `default:"false" flag:"audit-suppressions" help:"Audit all inline suppressions: show active vs stale vs unknown-rule status"`
+	Fix               bool `default:"false" flag:"fix"                help:"Remove stale whole-line suppressions (implies audit)"`
+	DryRun            bool `default:"false" flag:"dry-run"            help:"With --fix: show what would be removed without changing any file"`
 }
 
 func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
@@ -33,16 +31,18 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"doctor",
 		doctorFlags{},
 		func(ctx context.Context, cfg *AppConfig, flags doctorFlags) error {
+			// Validate before the package load: an invalid format must fail
+			// fast, not after paying the full analysis cost.
+			if err := validateFormatFlag(cfg.Format, "text", "json"); err != nil {
+				return err
+			}
+
 			actx, err := analyzer.BuildContext(cfg.Path)
 			if err != nil {
 				return fmt.Errorf("load packages: %w", err)
 			}
 
-			if flags.Format != "text" && flags.Format != "json" {
-				return fmt.Errorf("%w: got %q", errInvalidDoctorFormat, flags.Format)
-			}
-
-			if flags.Format == "json" {
+			if strings.EqualFold(cfg.Format, "json") {
 				return runDoctorJSON(ctx, cfg, actx, flags)
 			}
 
@@ -67,7 +67,7 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 			return nil
 		},
 		cmdguard.WithShort(
-			"Show the project's full resolved cqrs-lint configuration and detected profile",
+			"Show the project's full resolved cqrs-lint configuration and detected profile; formats: text, json",
 		),
 		cmdguard.WithNoArgs(),
 	)
