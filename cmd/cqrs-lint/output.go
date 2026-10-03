@@ -12,6 +12,7 @@ package main
 
 import (
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -39,6 +40,11 @@ func parseColorMode(s string) output.ColorMode {
 	return cm
 }
 
+// errInvalidFormat is the static sentinel behind every --format rejection.
+// Wrapped with the offending value and the command's supported list so all
+// commands report format errors in the same shape.
+var errInvalidFormat = errors.New("invalid --format")
+
 // validateFormatFlag reports an error when format is not one of the supported
 // values (case-insensitive). Every command that consumes the shared --format
 // flag calls this BEFORE any package loading so an out-of-vocabulary value
@@ -47,19 +53,13 @@ func parseColorMode(s string) output.ColorMode {
 // programmatic callers constructing AppConfig{} must stay valid.
 func validateFormatFlag(format string, supported ...string) error {
 	f := strings.ToLower(strings.TrimSpace(format))
-	if f == "" {
+	if f == "" || slices.Contains(supported, f) {
 		return nil
 	}
 
-	for _, s := range supported {
-		if f == s {
-			return nil
-		}
-	}
-
 	return fmt.Errorf(
-		"invalid --format %q (supported: %s)",
-		format, strings.Join(supported, ", "),
+		"%w %q (supported: %s)",
+		errInvalidFormat, format, strings.Join(supported, ", "),
 	)
 }
 

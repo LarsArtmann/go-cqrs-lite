@@ -105,27 +105,27 @@ var errFindingsWithErrors = errors.New("findings with error severity")
 type AppConfig struct {
 	cmdguard.Config
 
-	Path          string `default:"."     flag:"path"           help:"Path to lint"`
-	Format        string `default:"text"  flag:"format"         help:"Output format: text, json, sarif, markdown, csv, tsv (per-command subsets)" short:"o"`
-	MinSeverity   string `default:"info"  flag:"min-severity"   help:"Minimum severity"`
-	MinConfidence string `default:"low"   flag:"min-confidence" help:"Minimum confidence: none|low|medium|high|full or decimal; keeps >= floor"`
-	Color         string `default:"auto"  flag:"color"          help:"Colored output: auto,always,never"`
+	Path          string `default:"."    flag:"path"           help:"Path to lint"`
+	Format        string `default:"text" flag:"format"         help:"Output format: text, json, sarif, markdown, csv, tsv (per-command subsets)" short:"o"`
+	MinSeverity   string `default:"info" flag:"min-severity"   help:"Minimum severity"`
+	MinConfidence string `default:"low"  flag:"min-confidence" help:"Minimum confidence: none|low|medium|high|full or decimal; keeps >= floor"`
+	Color         string `default:"auto" flag:"color"          help:"Colored output: auto,always,never"`
 
-	Fix                     bool   `default:"false" flag:"fix"                        help:"Apply auto-fixes"                                                                        local:"true"`
-	DryRun                  bool   `default:"false" flag:"dry-run"                    help:"Show fixes without applying"                                                              local:"true"`
-	FastMode                bool   `default:"false" flag:"fast"                       help:"Critical correctness rules only"                                                          local:"true"`
-	HealthScore             bool   `default:"false" flag:"health-score"               help:"Print only the health score"                                                              local:"true"`
-	Categories              string `default:""      flag:"only"                       help:"Filter by category or rule IDs"                                                           local:"true"`
-	ExcludeRules            string `default:""      flag:"exclude-rules"              help:"Exclude rule IDs (comma-separated)"                                                        local:"true"`
-	Exclude                 string `default:""      flag:"exclude"                    help:"Exclude paths (comma-separated)"                                                           local:"true"`
-	Verbose                 bool   `default:"false" flag:"verbose"                    help:"Verbose output"                                                                           local:"true"`
-	GroupBy                 string `default:""      flag:"group-by"                   help:"Group findings by: none, module, aggregate"                                               local:"true" json:"group-by,omitempty"` //nolint:tagalign,tagliatelle
-	Quiet                   bool   `default:"false" flag:"quiet"                      help:"Suppress non-finding output"                                                              local:"true" short:"q"`
-	FPSuspects              bool   `default:"false" flag:"fp-suspects"                help:"Show only low-confidence findings (likely false positives)"                              local:"true"`
-	ShowSuppressed          bool   `default:"false" flag:"show-suppressed"            help:"Show suppressed findings with their suppression reason"                                  local:"true"`
-	StrictLoad              bool   `default:"false" flag:"strict-load"                help:"Exit non-zero if any packages failed to load (partial analysis)"                          local:"true"`
-	FailOnStaleSuppressions bool   `default:"false" flag:"fail-on-stale-suppressions" help:"Exit non-zero if any //cqrs-lint:ignore directives are stale (not suppressing anything)"   local:"true"`
-	Adoption                bool   `default:"false" flag:"adoption"                   help:"Show F-series adoption coaching but exclude them from health score"                      local:"true"`
+	Fix                     bool   `default:"false" flag:"fix"                        help:"Apply auto-fixes"                                                                                             local:"true"`
+	DryRun                  bool   `default:"false" flag:"dry-run"                    help:"Show fixes without applying"                                                                                  local:"true"`
+	FastMode                bool   `default:"false" flag:"fast"                       help:"Critical correctness rules only"                                                                              local:"true"`
+	HealthScore             bool   `default:"false" flag:"health-score"               help:"Print only the health score"                                                                                  local:"true"`
+	Categories              string `default:""      flag:"only"                       help:"Filter by category or rule IDs"                                                                               local:"true"`
+	ExcludeRules            string `default:""      flag:"exclude-rules"              help:"Exclude rule IDs (comma-separated)"                                                                           local:"true"`
+	Exclude                 string `default:""      flag:"exclude"                    help:"Exclude paths (comma-separated)"                                                                              local:"true"`
+	Verbose                 bool   `default:"false" flag:"verbose"                    help:"Verbose output"                                                                                               local:"true"`
+	GroupBy                 string `default:""      flag:"group-by"                   help:"Group findings by: none, module, aggregate"                                                                   local:"true" json:"group-by,omitempty"` //nolint:tagalign,tagliatelle
+	Quiet                   bool   `default:"false" flag:"quiet"                      help:"Suppress non-finding output"                                                                                  local:"true"                           short:"q"`
+	FPSuspects              bool   `default:"false" flag:"fp-suspects"                help:"Show only low-confidence findings (likely false positives)"                                                   local:"true"`
+	ShowSuppressed          bool   `default:"false" flag:"show-suppressed"            help:"Show suppressed findings with their suppression reason"                                                       local:"true"`
+	StrictLoad              bool   `default:"false" flag:"strict-load"                help:"Exit non-zero if any packages failed to load (partial analysis)"                                              local:"true"`
+	FailOnStaleSuppressions bool   `default:"false" flag:"fail-on-stale-suppressions" help:"Exit non-zero if any //cqrs-lint:ignore directives are stale (not suppressing anything)"                      local:"true"`
+	Adoption                bool   `default:"false" flag:"adoption"                   help:"Show F-series adoption coaching but exclude them from health score"                                           local:"true"`
 	Scorecard               bool   `default:"false" flag:"scorecard"                  help:"Print module adoption scorecard (used/missing/coverage); the scorecard subcommand adds --scorecard-threshold" local:"true"`
 
 	// Features declares which go-cqrs-lite modules the consumer uses.

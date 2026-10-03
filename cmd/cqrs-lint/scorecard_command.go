@@ -20,7 +20,7 @@ var errScorecardBelowThreshold = errors.New("scorecard coverage below threshold"
 // file) so every command honors the SAME output knobs — no per-subcommand
 // shadow copies with divergent defaults.
 type scorecardFlags struct {
-	Threshold int `default:"0"    flag:"scorecard-threshold" help:"Exit non-zero if coverage is below N% (CI gate)"`
+	Threshold int `default:"0" flag:"scorecard-threshold" help:"Exit non-zero if coverage is below N% (CI gate)"`
 }
 
 func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
