@@ -168,7 +168,6 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/testcontainers/testcontainers-go/modules/mysql v0.44.0 // indirect
 	github.com/tursodatabase/turso-go-platform-libs v0.8.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xo/terminfo v1.2.0 // indirect
@@ -196,5 +195,3 @@ require (
 	modernc.org/sqlite v1.60.1 // indirect
 	turso.tech/database/tursogo v0.8.1 // indirect
 )
-
-replace github.com/larsartmann/go-cqrs-lite/benchkit/v4 => ../../benchkit
