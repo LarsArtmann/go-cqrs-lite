@@ -372,15 +372,17 @@ func TestTagContentMatchesChangelog(t *testing.T) {
 // declaredModuleCount extracts the "(N modules: ...)" declaration from a
 // version section, returning 0 for legacy sections that do not declare one.
 func declaredModuleCount(changelog, version string) int {
-	sectionRe := regexp.MustCompile(
-		`(?s)## \[` + regexp.QuoteMeta(version) + `\][^\n]*\n(.*?)(?=\n## \[|\z)`,
-	)
-	m := sectionRe.FindStringSubmatch(changelog)
-	if m == nil {
+	headerRe := regexp.MustCompile(`## \[` + regexp.QuoteMeta(version) + `\][^\n]*\n`)
+	loc := headerRe.FindStringIndex(changelog)
+	if loc == nil {
 		return 0
 	}
+	body := changelog[loc[1]:]
+	if next := strings.Index(body, "\n## ["); next >= 0 {
+		body = body[:next]
+	}
 	declRe := regexp.MustCompile(`\((\d+) modules?:`)
-	d := declRe.FindStringSubmatch(m[1])
+	d := declRe.FindStringSubmatch(body)
 	if d == nil {
 		return 0
 	}

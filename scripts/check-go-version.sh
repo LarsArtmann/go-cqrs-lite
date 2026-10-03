@@ -5,9 +5,10 @@
 # Three failure classes, all once-silent:
 #   1. Selected toolchain older than the go.work contract (GOTOOLCHAIN trap
 #      that produced "0 findings in seconds" and phantom-green runs).
-#   2. go.work directive below the dependency floor (deps require >= 1.27.1;
-#      a uniform downgrade of every file stays internally consistent and only
-#      explodes at build time — struck 3x: waves 4a540b02c et al).
+#   2. go.work directive below the dependency floor (published floors are
+#      minor-form since the 2026-10-03 fleet convergence wave, so the floor
+#      is 1.27; a uniform downgrade of every file stays internally consistent
+#      and only explodes at build time — struck 3x: waves 4a540b02c et al).
 #   3. go-directive drift: any go.mod whose `go` differs from go.work's
 #      (single-file downgrade/upgrade; the workspace sweeps are supposed to
 #      be lockstep — this makes them mechanically so).
@@ -28,7 +29,7 @@ set -uo pipefail
 ROOT="${CHECK_GO_VERSION_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 GO_BIN="${CHECK_GO_VERSION_BIN:-go}"
 CONTRACT_OVERRIDE="${CHECK_GO_VERSION_CONTRACT:-}"
-FLOOR_VERSION="${CHECK_GO_VERSION_FLOOR:-1.27.1}"
+FLOOR_VERSION="${CHECK_GO_VERSION_FLOOR:-1.27}"
 
 contract_version() {
 	if [[ -n "$CONTRACT_OVERRIDE" ]]; then
@@ -204,10 +205,10 @@ case "${1:-}" in
 		fails=$((fails + 1))
 	}
 
-	fixture 1.27 1.27 1.27 1.27
+	fixture 1.26 1.26 1.26 1.26
 	out=$(CHECK_GO_VERSION_ROOT="$TMP/repo" CHECK_GO_VERSION_BIN="$TMP/go-new" bash "$SELF" 2>&1)
 	check "uniform downgrade below floor fails" 1 "$?"
-	grep -q "< floor go1.27.1" <<<"$out" || {
+	grep -q "< floor go1.27" <<<"$out" || {
 		echo "  ✗ FAIL: floor message missing"
 		fails=$((fails + 1))
 	}
