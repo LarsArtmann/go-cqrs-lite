@@ -11,6 +11,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"database/sql"
 	"os"
 	"slices"
 
@@ -29,6 +30,24 @@ func readLines(f *os.File) {
 // readAll is the coached shape: an unbounded TypedReader Scan.
 func readAll(ctx context.Context, r *metaengine.TypedReader[int]) {
 	_, _ = r.Scan(ctx)
+}
+
+// scanRows is the false-positive shape from the CV sqlite event store
+// (database/sql raw iteration): a *sql.Rows.Scan loop must not fire F031 —
+// WithLimit does not apply to raw SQL, only to metaengine reader reads.
+func scanRows(ctx context.Context, db *sql.DB) error {
+	rows, err := db.QueryContext(ctx, "SELECT id FROM items")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return err
+		}
+	}
+	return rows.Err()
 }
 
 type itemScan struct {

@@ -83,6 +83,27 @@ func TestF031_BufioScannerScanDoesNotFire(t *testing.T) {
 	}
 }
 
+func TestF031_SqlRowsScanDoesNotFire(t *testing.T) {
+	// Not parallel: buildScanFixtureContext sets GOWORK via t.Setenv.
+
+	// Typed-path proof: the database/sql iteration loop (the CV sqlite event
+	// store shape) lives in the same fixture file as the coached TypedReader
+	// Scan — exactly one finding may fire, and it must anchor at the reader
+	// scan (30-32), proving the *sql.Rows receiver was excluded by type,
+	// not by absence of Scan calls.
+	ctx := buildScanFixtureContext(t)
+
+	findings := ruletest.RunDetector(t, adoption.NewF031Detector(ctx))
+	ruletest.AssertRule(t, findings, "F031", 1)
+
+	if len(findings) != 1 {
+		t.Fatalf("expected exactly 1 finding, got %d", len(findings))
+	}
+	if line := findings[0].Position.Line; line < 30 || line > 32 {
+		t.Errorf("finding anchored at line %d, want the readAll body (30-32) — the *sql.Rows loop must be excluded by type", line)
+	}
+}
+
 func TestF031_WithLimitPresentStaysSilent(t *testing.T) {
 	t.Parallel()
 
