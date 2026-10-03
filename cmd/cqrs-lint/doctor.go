@@ -274,6 +274,14 @@ func renderDoctorEffectiveSettings(w io.Writer, cfg *AppConfig) {
 		if len(fromConfig) > 0 {
 			_, _ = fmt.Fprintf(w, "    from config:   %s\n", strings.Join(fromConfig, ", "))
 		}
+
+		// Machine-readable suppression reasons (disable-reasons), rendered so
+		// six months later nobody archaeologizes WHY a rule is off.
+		for _, r := range cfg.Rules.Disable {
+			if reason, ok := cfg.Rules.DisableReasons[r]; ok {
+				_, _ = fmt.Fprintf(w, "    why %s:        %s\n", r, reason)
+			}
+		}
 	}
 
 	// Rules overrides

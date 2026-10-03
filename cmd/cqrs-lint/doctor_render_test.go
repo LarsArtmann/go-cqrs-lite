@@ -263,3 +263,30 @@ func TestDropRemovedEntries(t *testing.T) {
 		t.Errorf("kept[1] = %+v, want b.go:5 (same line, different file)", kept[1])
 	}
 }
+
+func TestRenderDoctorEffectiveSettings_DisableReasons(t *testing.T) {
+	t.Parallel()
+
+	cfg := &AppConfig{
+		Format:        "text",
+		MinSeverity:   "info",
+		MinConfidence: "low",
+		Color:         "auto",
+		Rules: analyzer.RulesConfig{
+			Disable: []string{"A009", "F015"},
+			DisableReasons: map[string]string{
+				"A009": "stack presets removed in v5 (ADR-0123)",
+			},
+		},
+	}
+	buf := &bytes.Buffer{}
+	renderDoctorEffectiveSettings(buf, cfg)
+
+	out := buf.String()
+	if !strings.Contains(out, "why A009:") || !strings.Contains(out, "stack presets removed in v5") {
+		t.Errorf("expected disable-reasons rendering for A009, got:\n%s", out)
+	}
+	if strings.Contains(out, "why F015:") {
+		t.Errorf("F015 has no reason and must not render a why-line, got:\n%s", out)
+	}
+}

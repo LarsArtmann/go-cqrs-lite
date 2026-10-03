@@ -28,6 +28,19 @@ type RulesConfig struct {
 	//	{"rules": {"disable": ["P012", "P013"]}}
 	Disable []string `json:"disable,omitempty"`
 
+	// DisableReasons records WHY each rule in Disable is suppressed, keyed by
+	// rule ID (same ID set as Disable; extra keys warn). Machine-readable
+	// reasons survive refactors and tooling in a way JSONC comments next to
+	// the entry cannot: `cqrs-lint doctor` renders them next to the disabled
+	// rule, so six months later nobody has to archaeologize WHY a rule is
+	// off. Reasons are optional — plain string entries in Disable stay valid.
+	//
+	// Example:
+	//
+	//	{"rules": {"disable": ["A009"],
+	//	           "disable-reasons": {"A009": "stack presets are removed in v5; migration is ROADMAP-scale"}}}
+	DisableReasons map[string]string `json:"disable-reasons,omitempty"` //nolint:tagliatelle // CLI config key
+
 	// ExternalAPIStructPrefixes lists struct-name prefixes whose JSON tags
 	// mirror an external API (Discord, Stripe, GitHub, ...) and must NOT count
 	// toward D002's mixed-casing check. Example: ["Discord", "Stripe"] marks
@@ -102,6 +115,7 @@ func (rc *RulesConfig) DisabledSet() map[string]bool {
 //nolint:gochecknoglobals // read-only lookup table
 var knownRulesConfigKeys = map[string]bool{
 	"disable":                      true,
+	"disable-reasons":              true,
 	"external-api-struct-prefixes": true,
 	"c008-ignore-fields":           true,
 	"c008-ignore-structs":          true,
@@ -218,6 +232,33 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 		rc.SeverityOverrides = cleanedOverrides
 	}
 
+	// Normalize disable-reasons: uppercase rule IDs, trim reasons, drop
+	// empties, and warn when a reason references a rule that is NOT disabled
+	// (a typo'd ID would otherwise silently never render in doctor output).
+	if rc.DisableReasons != nil {
+		disabled := rc.DisabledSet()
+		cleanedReasons := make(map[string]string, len(rc.DisableReasons))
+
+		for id, reason := range rc.DisableReasons {
+			id = strings.ToUpper(strings.TrimSpace(id))
+			reason = strings.TrimSpace(reason)
+			if id == "" || reason == "" {
+				continue
+			}
+			if !disabled[id] {
+				_, _ = fmt.Fprintf(
+					w,
+					"warning: disable-reasons has an entry for %q but that rule is not in disable — reason dropped (typo?)\n",
+					id,
+				)
+				continue
+			}
+			cleanedReasons[id] = reason
+		}
+
+		rc.DisableReasons = cleanedReasons
+	}
+
 	// Check for unknown keys in the raw JSON (catches typos).
 	if len(rawRulesJSON) > 0 {
 		var raw map[string]any
@@ -226,7 +267,7 @@ func (rc *RulesConfig) Validate(w io.Writer, rawRulesJSON []byte) {
 				if !knownRulesConfigKeys[key] {
 					_, _ = fmt.Fprintf(
 						w,
-						"warning: unknown rules config key %q (known: disable, external-api-struct-prefixes, c008-ignore-fields, c008-ignore-structs, severity-overrides)\n",
+						"warning: unknown rules config key %q (known: disable, disable-reasons, external-api-struct-prefixes, c008-ignore-fields, c008-ignore-structs, severity-overrides)\n",
 						key,
 					)
 				}

@@ -117,3 +117,30 @@ func TestRulesConfig_Validate_DropsInvalidSeverityWithWarning(t *testing.T) {
 		t.Errorf("valid override for S001 must survive, got: %v", rc.SeverityOverrides)
 	}
 }
+
+func TestRulesConfig_Validate_NormalizesDisableReasons(t *testing.T) {
+	t.Parallel()
+
+	rc := &RulesConfig{
+		Disable: []string{"a009", "F015"},
+		DisableReasons: map[string]string{
+			" a009 ": "  stack presets removed in v5  ",
+			"F015":   "",
+			"C007":   "orphaned: rule is not disabled",
+		},
+	}
+	var buf bytes.Buffer
+	rc.Validate(&buf, nil)
+
+	if len(rc.DisableReasons) != 1 {
+		t.Fatalf("got %d cleaned reasons (%v), want 1", len(rc.DisableReasons), rc.DisableReasons)
+	}
+	if rc.DisableReasons["A009"] != "stack presets removed in v5" {
+		t.Errorf("reason = %q, want trimmed+uppercased key", rc.DisableReasons["A009"])
+	}
+
+	out := buf.String()
+	if !strings.Contains(out, "not in disable") || !strings.Contains(out, "C007") {
+		t.Errorf("expected orphaned-reason warning naming C007, got: %s", out)
+	}
+}
