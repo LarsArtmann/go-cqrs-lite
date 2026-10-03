@@ -670,13 +670,16 @@ cmd/cqrs-lint/pkg/analyzer/func IsExampleModulePath
 cmd/cqrs-lint/pkg/analyzer/func IsInsideUpcasterClosure
 cmd/cqrs-lint/pkg/analyzer/func IsKnownPreset
 cmd/cqrs-lint/pkg/analyzer/func IsQualifierFor
+cmd/cqrs-lint/pkg/analyzer/func IsTombstoneLikeEventType
 cmd/cqrs-lint/pkg/analyzer/func LoadProjectConfig
 cmd/cqrs-lint/pkg/analyzer/func NewCQRSRegistry
 cmd/cqrs-lint/pkg/analyzer/func ReceiverIsEventBus
 cmd/cqrs-lint/pkg/analyzer/func ReceiverTypeName
 cmd/cqrs-lint/pkg/analyzer/func ResolveEmittedEventTypeConsts
 cmd/cqrs-lint/pkg/analyzer/func ResolveFeatureProfile
+cmd/cqrs-lint/pkg/analyzer/func ResolveFoldTombstoneCases
 cmd/cqrs-lint/pkg/analyzer/func ResolveHandlerMethods
+cmd/cqrs-lint/pkg/analyzer/func ResolveHelperEmitCalls
 cmd/cqrs-lint/pkg/analyzer/func ResolvePreset
 cmd/cqrs-lint/pkg/analyzer/func ResolvePresetDefinition
 cmd/cqrs-lint/pkg/analyzer/func ResolveQualifierTyped
@@ -690,6 +693,9 @@ cmd/cqrs-lint/pkg/analyzer/func StripJSONC
 cmd/cqrs-lint/pkg/analyzer/func UsedKeys
 cmd/cqrs-lint/pkg/analyzer/func ValidPresetNames
 cmd/cqrs-lint/pkg/analyzer/method All
+cmd/cqrs-lint/pkg/analyzer/method AnyStoreDistributed
+cmd/cqrs-lint/pkg/analyzer/method AnyStorePersistent
+cmd/cqrs-lint/pkg/analyzer/method AnyStoreSQL
 cmd/cqrs-lint/pkg/analyzer/method ByCategory
 cmd/cqrs-lint/pkg/analyzer/method CategoryPriority
 cmd/cqrs-lint/pkg/analyzer/method CollectFoldCaseStrings
@@ -698,6 +704,7 @@ cmd/cqrs-lint/pkg/analyzer/method CommandByName
 cmd/cqrs-lint/pkg/analyzer/method Core
 cmd/cqrs-lint/pkg/analyzer/method DisabledSet
 cmd/cqrs-lint/pkg/analyzer/method EffectiveRules
+cmd/cqrs-lint/pkg/analyzer/method EffectiveStores
 cmd/cqrs-lint/pkg/analyzer/method Get
 cmd/cqrs-lint/pkg/analyzer/method IsCommandRegistered
 cmd/cqrs-lint/pkg/analyzer/method IsDistributed
@@ -706,6 +713,8 @@ cmd/cqrs-lint/pkg/analyzer/method IsEventInCatalog
 cmd/cqrs-lint/pkg/analyzer/method IsLibrarySelfLint
 cmd/cqrs-lint/pkg/analyzer/method IsSQL
 cmd/cqrs-lint/pkg/analyzer/method Keys
+cmd/cqrs-lint/pkg/analyzer/method MarshalJSON
+cmd/cqrs-lint/pkg/analyzer/method Primary
 cmd/cqrs-lint/pkg/analyzer/method ProfileForFile
 cmd/cqrs-lint/pkg/analyzer/method RelevantFor
 cmd/cqrs-lint/pkg/analyzer/method RelevantForProfile
@@ -713,8 +722,10 @@ cmd/cqrs-lint/pkg/analyzer/method Scored
 cmd/cqrs-lint/pkg/analyzer/method SourceLine
 cmd/cqrs-lint/pkg/analyzer/method String
 cmd/cqrs-lint/pkg/analyzer/method String
+cmd/cqrs-lint/pkg/analyzer/method String
 cmd/cqrs-lint/pkg/analyzer/method ToConfigFeatures
 cmd/cqrs-lint/pkg/analyzer/method TypedConfirmations
+cmd/cqrs-lint/pkg/analyzer/method UnmarshalJSON
 cmd/cqrs-lint/pkg/analyzer/method Validate
 cmd/cqrs-lint/pkg/analyzer/struct AnalysisContext
 cmd/cqrs-lint/pkg/analyzer/struct CQRSRegistry
@@ -735,7 +746,9 @@ cmd/cqrs-lint/pkg/analyzer/struct PackageLoadError
 cmd/cqrs-lint/pkg/analyzer/struct PresetDefinition
 cmd/cqrs-lint/pkg/analyzer/struct ProjectConfig
 cmd/cqrs-lint/pkg/analyzer/struct ProjectionInfo
+cmd/cqrs-lint/pkg/analyzer/struct QueryDeclInfo
 cmd/cqrs-lint/pkg/analyzer/struct RulesConfig
+cmd/cqrs-lint/pkg/analyzer/struct StoreSpec
 cmd/cqrs-lint/pkg/analyzer/type CommandFlowKind
 cmd/cqrs-lint/pkg/analyzer/type ConfigPreset
 cmd/cqrs-lint/pkg/analyzer/type DomainKind

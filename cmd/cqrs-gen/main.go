@@ -51,6 +51,19 @@ type AppConfig struct {
 }
 
 func main() {
+	cli, err := buildCLI()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
+		os.Exit(1)
+	}
+
+	cli.ExecuteAndExit(context.Background())
+}
+
+// buildCLI wires the cqrs-gen CLI (root command with positional scan paths).
+// Extracted from main so the CLI-level regression tests can drive the exact
+// production wiring via ExecuteWithArgs.
+func buildCLI() (*cmdguard.CLI[AppConfig], error) {
 	cli, err := cmdguard.NewCLI(
 		"cqrs-gen",
 		"Generate typed handler registration code from cqrs annotations",
@@ -65,12 +78,17 @@ func main() {
 	)
 	//art-dupl:accept cobra CLI bootstrap guard — identical by design across cmd tools
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating CLI: %v\n", err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	rootCmd := cli.RootCommand()
 	rootCmd.Use = "cqrs-gen [-type=command] [-output=handlers_gen.go] [paths...]"
+	// ArbitraryArgs: the positional arguments are SCAN PATHS, not
+	// subcommands. Without this, cobra's default validator (active because
+	// help/completion are registered subcommands) rejects every positional
+	// as "Unknown command" — the documented `cqrs-gen ./...` invocation was
+	// unreachable dead code.
+	rootCmd.Args = cobra.ArbitraryArgs
 	rootCmd.RunE = func(_ *cobra.Command, args []string) error {
 		cfg := cli.Config()
 
@@ -82,7 +100,7 @@ func main() {
 		return run(cfg.Type, cfg.Output, cfg.Pkg, paths)
 	}
 
-	cli.ExecuteAndExit(context.Background())
+	return cli, nil
 }
 
 func run(handlerType, outputFile, pkg string, paths []string) error {
