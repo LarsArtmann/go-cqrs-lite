@@ -28,7 +28,13 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 		"scorecard",
 		scorecardFlags{},
 		func(ctx context.Context, cfg *AppConfig, flags scorecardFlags) error {
-			if err := validateFormatFlag(cfg.Format, "text", "json", "markdown", "sarif"); err != nil {
+			if err := validateFormatFlag(
+				cfg.Format,
+				"text",
+				"json",
+				"markdown",
+				"sarif",
+			); err != nil {
 				return err
 			}
 
@@ -41,7 +47,9 @@ func setupScorecardCommand(cli *cmdguard.CLI[AppConfig]) error {
 
 			return runScorecard(ctx, cfg, actx, flags.Threshold)
 		},
-		cmdguard.WithShort("Show module adoption scorecard (used/missing/coverage); formats: text, json, markdown, sarif"),
+		cmdguard.WithShort(
+			"Show module adoption scorecard (used/missing/coverage); formats: text, json, markdown, sarif",
+		),
 		cmdguard.WithNoArgs(),
 	)
 	return registerCommand(cli, "scorecard", cmd, err)

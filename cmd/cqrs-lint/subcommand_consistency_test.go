@@ -129,11 +129,11 @@ func TestRulesFormatResolvesSharedFormatFlag(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		flags    rulesFlags
+		name      string
+		flags     rulesFlags
 		cfgFormat string
-		want     string
-		wantErr  bool
+		want      string
+		wantErr   bool
 	}{
 		{"json boolean wins", rulesFlags{JSON: true}, "markdown", "json", false},
 		{"markdown boolean wins", rulesFlags{Markdown: true}, "json", "markdown", false},
@@ -273,7 +273,10 @@ func TestInitHonorsPathFlag(t *testing.T) {
 	dir := t.TempDir()
 	cli := newTestCLI(t)
 
-	if err := cli.ExecuteWithArgs(context.Background(), []string{"init", "--path", dir}); err != nil {
+	if err := cli.ExecuteWithArgs(
+		context.Background(),
+		[]string{"init", "--path", dir},
+	); err != nil {
 		t.Fatalf("init --path %s: %v", dir, err)
 	}
 
@@ -283,7 +286,13 @@ func TestInitHonorsPathFlag(t *testing.T) {
 	}
 
 	// Second init into the same dir must fail on the existing file.
-	if err := cli.ExecuteWithArgs(context.Background(), []string{"init", "--path", dir}); !errors.Is(err, errConfigExists) {
+	if err := cli.ExecuteWithArgs(
+		context.Background(),
+		[]string{"init", "--path", dir},
+	); !errors.Is(
+		err,
+		errConfigExists,
+	) {
 		t.Errorf("second init should fail with errConfigExists, got: %v", err)
 	}
 }
@@ -334,7 +343,10 @@ func main() {}
 	captureStdout(t, func() {
 		err := runScorecard(context.Background(), cfg, actx, 101)
 		if !errors.Is(err, errScorecardBelowThreshold) {
-			t.Errorf("runScorecard with threshold 101: got %v, want errScorecardBelowThreshold", err)
+			t.Errorf(
+				"runScorecard with threshold 101: got %v, want errScorecardBelowThreshold",
+				err,
+			)
 		}
 	})
 }
