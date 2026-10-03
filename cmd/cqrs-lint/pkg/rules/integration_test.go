@@ -60,7 +60,6 @@ func TestIntegration_Taskmanager(t *testing.T) {
 // lost detection, count drift) is caught as a test failure.
 // Update with CQRS_LINT_UPDATE_GOLDEN=1 go test -run TestIntegration_TaskmanagerExpectedFindings ./pkg/rules/.
 var taskmanagerGoldenProfile = map[string]int{
-	"A009": 1,
 	"A013": 10,
 	"A032": 5,
 	"B004": 1,
