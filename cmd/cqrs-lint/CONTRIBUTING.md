@@ -126,6 +126,32 @@ GOWORK=off go build ./...
 GOWORK=off go test ./... -count=1
 ```
 
+## Subcommand Flag Contract
+
+Adding or changing CLI flags? Follow the contract pinned by
+`subcommand_consistency_test.go` (see README "Subcommand flag contract" for
+the user-facing version):
+
+- **Shared flags stay minimal and truly shared.** Only `--path`, `--format`
+  (`-o`), `--color`, `--min-severity`, `--min-confidence` are persistent on
+  the root `AppConfig`. A flag may only be persistent if a subcommand
+  actually reads it.
+- **Lint-run-only flags get `local:"true"`.** `--fix`, `--dry-run`,
+  `--fast`, `--only`, `--exclude`, `--exclude-rules`, `--group-by`,
+  `--quiet`, `--scorecard`, … exist on the root command only. Passing them
+  to a subcommand must be an unknown-flag error, never a silently accepted
+  no-op — cmdguard skips local root flags on subcommands, cobra rejects them.
+- **Every multi-format command validates `--format` up front** via
+  `validateFormatFlag(cfg.Format, …)` BEFORE `analyzer.BuildContext`, and
+  lists its supported subset in its `WithShort`. No `default:` text
+  fallbacks in format switches — unknown values must fail loudly.
+- **One behavior, one code path.** The root `--scorecard` flag and the
+  `scorecard` subcommand both route through `runScorecard`; do not fork
+  per-entry-point renderers or panels.
+- **Config-file parity:** persistent flags flow from `.cqrs-lint.json` into
+  every command through `cfg` — subcommands read `cfg.Format`/`cfg.Color`,
+  never private flag-struct copies with their own defaults.
+
 ## CI Constraints
 
 - Max 350 lines per Go file (split proactively)
