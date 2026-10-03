@@ -21,7 +21,7 @@ func TestStoreSpecUnmarshalScalarAndArray(t *testing.T) {
 		{"empty array", `{"store":[]}`, nil, true},
 		{"number", `{"store":42}`, nil, true},
 		{"object", `{"store":{"a":1}}`, nil, true},
-		{"bad kind", `{"store":"oracle"}`, nil, false}, // unknown kinds are allowed (forward compat); predicates treat them as non-SQL
+		{"bad kind", `{"store":"oracle"}`, nil, true}, // unknown names rejected with the valid list
 	}
 
 	for _, tc := range tests {

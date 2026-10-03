@@ -32,6 +32,15 @@ func NewA009Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 						hasStackPreset = true
 					}
 
+					// The system/ composition root (ADR-0123: system.New auto-wires
+					// store, bus, projections, queries) supersedes stack/ presets —
+					// the sanctioned composition path. Importing it is adoption,
+					// not a missing preset (nsfw-classifier feedback, 2026-10-03;
+					// presets are legacy and removed at v5).
+					if strings.Contains(imp.PkgPath, "go-cqrs-lite/system/") {
+						hasStackPreset = true
+					}
+
 					// Using the storage/ facade directly (NewSQLBackend, RelationalProjection,
 					// SQLViewStore, ...) signals an intentional custom-wiring architecture
 					// (shared *sql.DB across CQRS + relational reads) that stack/ presets

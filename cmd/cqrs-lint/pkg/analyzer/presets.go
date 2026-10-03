@@ -6,7 +6,7 @@ import "sort"
 // loader can distinguish "user did not set this" (nil) from "user set the zero
 // value". Each non-nil field overrides the auto-detected value.
 type ConfigFeatures struct {
-	Store       *StoreKind       `json:"store,omitempty"`
+	Store       *StoreSpec       `json:"store,omitempty"`
 	CommandFlow *CommandFlowKind `json:"command-flow,omitempty"` //nolint:tagliatelle // CLI config key
 	Server      *bool            `json:"server,omitempty"`
 	SoftDelete  *bool            `json:"soft-delete,omitempty"` //nolint:tagliatelle // CLI config key
