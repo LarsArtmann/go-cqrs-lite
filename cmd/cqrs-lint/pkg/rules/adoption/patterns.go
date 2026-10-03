@@ -139,9 +139,12 @@ func hasTraversalPatternsIn(
 	fset *token.FileSet,
 	files []*analyzer.GoFile,
 ) (token.Position, bool) {
+	// No bare "Path": it contains-matches unrelated identifiers such as
+	// ChromePath/file-path setters (CV feedback, 2026-10-03); the graph
+	// path-finding case stays covered by the dedicated "ShortestPath" entry.
 	keywords := []string{
 		"Traverse", "Ancestor", "Descendant", "ShortestPath",
-		"Path", "Neighbor", "Adjacency", "Hierarchy",
+		"Neighbor", "Adjacency", "Hierarchy",
 	}
 
 	for _, gf := range files {

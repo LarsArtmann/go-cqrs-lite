@@ -42,6 +42,48 @@ func GetUser(id string) *User {
 	ruletest.AssertRule(t, findings, "F010", 0)
 }
 
+// TestF010_NoFindingOnFilePathSetter pins the bare-"Path" removal: an
+// identifier like ChromePath (a file-path option setter, no graph work)
+// must not trip the traversal heuristic (CV feedback, 2026-10-03).
+func TestF010_NoFindingOnFilePathSetter(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+type Options struct {
+	ChromePath string
+}
+
+func WithChromePath(p string) Options {
+	return Options{ChromePath: p}
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 0)
+}
+
+// TestF010_StillFiresOnShortestPath pins that the dedicated ShortestPath
+// entry keeps covering real graph path-finding after bare "Path" was
+// removed from the keyword list.
+func TestF010_StillFiresOnShortestPath(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func ShortestPath(from, to string) []string {
+	return nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 1)
+}
+
 func TestF011_MultiExecWithoutRelationalProjection(t *testing.T) {
 	t.Parallel()
 
