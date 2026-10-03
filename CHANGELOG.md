@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **cqrs-lint: `doctor --fix` renamed to `doctor --prune-suppressions` (breaking).** The root command's `--fix` applies findings autofixes; doctor's `--fix` removed stale suppression directives — the same flag name doing two unrelated destructive things per subcommand made every docs example ambiguous. The new name is parallel to `--audit-suppressions` and still implies the audit; `--dry-run` keeps its doctor-local meaning (preview the prune). Migration: replace `cqrs-lint doctor --fix` with `cqrs-lint doctor --prune-suppressions` (add `--dry-run` to preview). The old name is an unknown-flag error, not a silent alias.
+
 ### Fixed
 
 - **cqrs-lint: subcommand flag consistency.** Five classes of silent

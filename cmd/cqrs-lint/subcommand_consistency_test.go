@@ -311,6 +311,53 @@ func TestInitErrorsOnMissingPath(t *testing.T) {
 	}
 }
 
+// TestDoctorFixFlagRenamedToPrune: doctor's suppression-cleanup flag was
+// renamed from --fix to --prune-suppressions because the root --fix
+// (findings autofix) collision made every docs example ambiguous. The old
+// name must now be an unknown-flag error — silently keeping a second
+// meaning for --fix is the exact class this file pins out.
+func TestDoctorFixFlagRenamedToPrune(t *testing.T) {
+	t.Parallel()
+
+	cli := newTestCLI(t)
+
+	err := cli.ExecuteWithArgs(context.Background(), []string{"doctor", "--fix"})
+	if err == nil {
+		t.Fatal("expected unknown-flag error for doctor --fix, got nil")
+	}
+	if !strings.Contains(strings.ToLower(err.Error()), "unknown flag") {
+		t.Errorf("expected unknown-flag error, got: %v", err)
+	}
+
+	// --prune-suppressions is accepted (audit on an empty temp dir).
+	dir := t.TempDir()
+	err = cli.ExecuteWithArgs(context.Background(), []string{
+		"doctor", "--prune-suppressions", "--dry-run", "--path", dir,
+	})
+	if err != nil {
+		t.Errorf("doctor --prune-suppressions --dry-run on empty dir: %v", err)
+	}
+}
+
+// TestSingleRenderCommandsIgnoreSharedFormat: version/explain/changelog
+// render exactly one format each; the shared --format flag is part of the
+// global vocabulary and is deliberately IGNORED (not rejected) here — a
+// config file setting "format": "json" for lint output must not break
+// `cqrs-lint version` in CI scripts.
+func TestSingleRenderCommandsIgnoreSharedFormat(t *testing.T) {
+	t.Parallel()
+
+	cli := newTestCLI(t)
+
+	for _, cmd := range []string{"version", "explain"} {
+		if err := cli.ExecuteWithArgs(
+			context.Background(), []string{cmd, "--format", "json"},
+		); err != nil {
+			t.Errorf("%s --format json should be accepted-and-ignored, got: %v", cmd, err)
+		}
+	}
+}
+
 // TestRunScorecardThresholdGate: the threshold CI gate lives in the shared
 // runner, so both the subcommand and the root --scorecard flag route
 // through it (the root flag passes 0 = gate off).
