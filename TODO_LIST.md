@@ -301,6 +301,16 @@ replace-free — 10-25 §a2/§a3, now archived).
 - [ ] **M10–M11 cmdguard upstream proposals** — DRAFTS DONE 2026-10-03 (`docs/planning/2026-10-03_cmdguard-upstream-proposals-draft.md`, 4 proposals, claims verified vs v4.0.2 source). FILING REMAINS USER-GATED.
 - [x] **M12–M14 polish** — DONE 2026-10-03 (M12 dedocumented: README states doctor doesn't colorize; M13 `computeChangelog` + missing-tag stderr notice + test; M14 three CONTRIBUTING doc lies fixed (`explain c008`, `disabled` key, 186-rule count) + rc-safe probe snippet + CHANGELOG entries).
 
+> nsfw-classifier feedback harvest (2026-10-03): the fixed items live in
+> CHANGELOG `[Unreleased]` + the reviews under `docs/feedback/archived/2026-10-03_*`.
+> Deliberately deferred:
+
+- [ ] **F024/F025 pushdown UTILIZATION variants** — pagination-window and manual-count detection over Query-R collections needs reader→slice dataflow to avoid FPs; adoption-time behavior unchanged for importers (feedback file 2, Fix 1 remainder).
+- [ ] **Pushdown cookbook recipe** — "legacy in-memory grid → read model + pushdown + pagination" as a skill-references recipe, giving F022/F023 findings a landing doc (feedback file 2, Fix 5).
+- [ ] **Analyzer load-scope widening** — non-importer packages (HTTP servers, slog setup, metrics) are invisible to feature detection; F028/F004 can fire on scope-blind absence. Doctor no longer pins absence-valued booleans (fixed), but honest detection needs either a wider load or an explicit "scope-limited" confidence tier (companion feedback, FP item 2).
+- [ ] **F005 stable anchor** — alphabetically-first-package anchor moves when that package drops `WithSchemaVersion`; stale-suppression gate catches the drift loudly. Re-anchor (go.mod, A009 precedent) only if more consumers hit it.
+- [ ] **B005 StrictApplyFolds disambiguation** — name-matched registry; same-named folds across packages could confuse it. Test-suite hardening item, not a rule change.
+
 > Point-in-time execution plan (T01–T24 / F001–F096) with per-row resolution
 > markers: `docs/planning/archived/2026-09-06_00-31_cqrs-lint-v5-hardening-pareto-plan.md`.
 > T01–T12, T20–T24, F089, F090(a+b), F091 Tiers 1–3 (incl. P014 ApplyLayout)
