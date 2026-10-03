@@ -1,0 +1,50 @@
+direction: right
+
+W1: "Wave 1 - 1%: consumer unblock + truth (51%)" {
+  T01: "T01 TODO truth-strike\n(9 stale rows + #49/#50/#51)"
+  T02: "T02 #21 watermill scalar\nCorrelationID/CausationID"
+  T03: "T03 #26 retract\nstack/postgres v4.2.0"
+  T04: "T04 release-wave PREP\n(watermill v4.7.0 + pg v4.4.2;\npush owner-gated)"
+  T05: "T05 close #35\nwith receipt"
+
+  T02 -> T04: rides tag
+  T03 -> T04: rides tag
+}
+
+W2: "Wave 2 - 4%: features + linter trust (64%)" {
+  T06: "T06 #51 invert A013\n(value-embed fires)"
+  T07: "T07 #43 D005 positional\nversion-claim rule"
+  T08: "T08 #49 CommandRetry\nconflict-retry docs"
+  T09: "T09 #27 versions.json\nmanifest + CI + README"
+  T10: "T10 #50 time.Time nano-\ndrift: repro+trace+fix"
+}
+
+W3: "Wave 3 - 20%: structural + tooling (80%)" {
+  T11: "T11 release-tooling\npolish slices A"
+  T12: "T12 CI yml train-tail\nfixes (a)(b)(c)"
+  T13: "T13 #36 stack/metaengine\nmodule split (slice 1)"
+  T14: "T14 bench-gate\ntooling tail"
+  T15: "T15 M13 fresh-run\nstamps (quiet)"
+  T16: "T16 soak+observe\nbatch"
+  T17: "T17 quiet-window verify\nbatch (#verify+mysql)"
+  T18: "T18 calibration\ncampaign"
+  T19: "T19 350-line split\nwave 1"
+  T20: "T20 cqrs-lint heuristic\ngates batch 1"
+}
+
+W4: "Wave 4 - gated / strategic (to 100%)" {
+  T21: "T21 v5 cut execution\n(readiness checklist)"
+  T22: "T22 v5 prep slices\n(guide, ADR-0139, census)"
+  T23: "T23 FilterContains +\nApplyBatch design"
+  T24: "T24 turso #9392\nwatch protocol"
+  T25: "T25 owner decision\nbundle (28 rulings)"
+  T26: "T26 consumer comms\nbatch"
+  T27: "T27 Goal-closure\nstamps"
+}
+
+W1 -> W2: truth first, then features
+W2 -> W3
+W3 -> W4: park gated work
+T25 -> T21: rulings unblock the cut
+T17 -> T21: green verify gates the cut
+T04 -> T26: releases feed comms
