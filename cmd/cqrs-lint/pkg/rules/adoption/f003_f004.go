@@ -23,6 +23,14 @@ func NewF003Detector(ctx *analyzer.AnalysisContext) finding.Detector {
 					continue
 				}
 
+				// A pinned "tracing": "off" is an explicit decline — feature
+				// pins act as declines, not just overrides (nsfw-classifier
+				// feedback, 2026-10-03). Same contract as features.monetary
+				// downgrading C008.
+				if sc.profile.Tracing == analyzer.TracingOff {
+					continue
+				}
+
 				if importsPathIn(sc.files, "go.opentelemetry.io") ||
 					importsPathIn(sc.files, "go-cqrs-lite/otel") {
 					continue

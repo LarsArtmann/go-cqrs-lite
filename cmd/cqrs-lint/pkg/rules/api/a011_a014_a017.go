@@ -102,12 +102,27 @@ func countJSONKeyCasings(st *ast.StructType) (int, int) {
 
 		if strings.Contains(jsonTag, "_") {
 			snake++
-		} else if len(jsonTag) > 0 && jsonTag[0] >= 'a' && jsonTag[0] <= 'z' {
+		} else if hasCamelHump(jsonTag) {
 			camel++
 		}
 	}
 
 	return camel, snake
+}
+
+// hasCamelHump reports whether the JSON key contains a lowercase→uppercase
+// transition (the camelCase hump, as in "createdAt"). Single-word keys ("id",
+// "kind") and screaming-case keys ("ID") carry no case convention — counting
+// them as camelCase manufactures a mixed-casing signal where none exists
+// (nsfw-classifier feedback, 2026-10-03).
+func hasCamelHump(s string) bool {
+	for i := 1; i < len(s); i++ {
+		if s[i] >= 'A' && s[i] <= 'Z' && s[i-1] >= 'a' && s[i-1] <= 'z' {
+			return true
+		}
+	}
+
+	return false
 }
 
 // A014: Deprecated API usage.

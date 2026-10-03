@@ -101,6 +101,36 @@ type UserCreated struct {
 	ruletest.AssertRule(t, findings, "A011", 0)
 }
 
+func TestA011_NoFindingForSingleWordKeysBesideSnake(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+type ItemScannedEvent struct {
+	ID        string  ` + "`json:\"id\"`" + `
+	SourceDir string  ` + "`json:\"source_dir\"`" + `
+	Score     float64 ` + "`json:\"score\"`" + `
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA011Detector(ctx))
+	ruletest.AssertRule(t, findings, "A011", 0)
+}
+
+func TestA011_FiresWhenTrueCamelMixesWithSnake(t *testing.T) {
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"events.go": `package main
+
+type ItemScannedEvent struct {
+	ID        string  ` + "`json:\"id\"`" + `
+	CreatedAt int64   ` + "`json:\"createdAt\"`" + `
+	SourceDir string  ` + "`json:\"source_dir\"`" + `
+}
+`,
+	})
+	findings := ruletest.RunDetector(t, api.NewA011Detector(ctx))
+	ruletest.AssertRule(t, findings, "A011", 1)
+}
+
 // --- A012: Missing tombstone handling ---
 
 func TestA012_NoFindingWithoutFolds(t *testing.T) {
