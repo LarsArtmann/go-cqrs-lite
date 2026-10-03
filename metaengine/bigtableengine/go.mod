@@ -38,7 +38,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.0 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
-	github.com/larsartmann/go-sse v0.6.1 // indirect
+	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

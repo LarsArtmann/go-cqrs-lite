@@ -17,7 +17,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/stack/turso/v4 v4.4.1
 	github.com/larsartmann/go-cqrs-lite/stack/v4 v4.4.1
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-output v0.38.2
+	github.com/larsartmann/go-output v0.38.3
 	github.com/larsartmann/go-output/delimited v0.38.2
 	github.com/larsartmann/go-output/markdown v0.38.2
 	github.com/larsartmann/go-output/table v0.38.2
@@ -132,7 +132,7 @@ require (
 	github.com/larsartmann/go-output/serialization v0.38.2 // indirect
 	github.com/larsartmann/go-output/tree v0.38.2 // indirect
 	github.com/larsartmann/go-sqlitestore v0.1.0 // indirect
-	github.com/larsartmann/go-sse v0.6.1 // indirect
+	github.com/larsartmann/go-sse v0.6.2 // indirect
 	github.com/larsartmann/samber-do-auditlog v0.10.0 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.1 // indirect

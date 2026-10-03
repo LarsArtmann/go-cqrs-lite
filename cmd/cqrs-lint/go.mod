@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-finding v1.13.0
 	github.com/larsartmann/go-finding/pipeline v1.13.0
 	github.com/larsartmann/go-finding/toolsdk v1.14.0
-	github.com/larsartmann/go-output v0.38.2
+	github.com/larsartmann/go-output v0.38.3
 	github.com/larsartmann/go-output/delimited v0.38.2
 	github.com/larsartmann/go-output/table v0.38.2
 	github.com/spf13/cobra v1.10.2

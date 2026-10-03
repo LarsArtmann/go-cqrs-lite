@@ -36,7 +36,7 @@ require (
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
 	github.com/larsartmann/go-error-family v0.11.0 // indirect
 	github.com/larsartmann/go-ndjson v0.0.1 // indirect
-	github.com/larsartmann/go-output v0.38.2 // indirect
+	github.com/larsartmann/go-output v0.38.3 // indirect
 	github.com/larsartmann/go-output/d2 v0.38.2 // indirect
 	github.com/larsartmann/go-output/daghtml v0.38.2 // indirect
 	github.com/larsartmann/go-output/delimited v0.38.2 // indirect
