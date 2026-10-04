@@ -6,13 +6,12 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	memorystore "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
+	. "github.com/onsi/gomega"
 )
 
 func newTestCommand(t *testing.T) *command.BasicCommand {

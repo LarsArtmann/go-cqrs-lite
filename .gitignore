@@ -170,6 +170,7 @@ cmd/cqrs-upgrade/cqrs-upgrade
 # Compiled binaries (go-structure-linter ERROR class, 18-15 items 41/42)
 catalog/ec-fixture
 cmd/cqrs-lint/testdata/typedfixture/typedfixture
+cmd/cqrs-lint/testdata/scanfixture/scanfixture
 example/goal-shaped-app/goal-shaped-app
 example/scheduler-otel-status/scheduler-otel-status
 catalog/cmd/ec-fixture/ec-fixture

@@ -227,7 +227,11 @@ func TestExporter_Export_Query(t *testing.T) {
 	}
 
 	if op.Reply.Channel.Ref != "#/channels/"+replyChannelKey {
-		t.Errorf("reply channel ref = %q, want %q", op.Reply.Channel.Ref, "#/channels/"+replyChannelKey)
+		t.Errorf(
+			"reply channel ref = %q, want %q",
+			op.Reply.Channel.Ref,
+			"#/channels/"+replyChannelKey,
+		)
 	}
 
 	const replyMessageKey = "query.GetProduct.reply"
