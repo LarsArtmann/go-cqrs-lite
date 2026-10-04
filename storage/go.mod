@@ -7,7 +7,7 @@ require (
 	github.com/gkampitakis/go-snaps v0.5.23
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.2
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0

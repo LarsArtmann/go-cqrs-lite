@@ -292,6 +292,7 @@ func failOnStaleSuppressions(
 
 	return fmt.Errorf(
 		"%d stale and %d unknown-rule suppressions found — remove them or fix the rule IDs (see the audit above)",
-		stale, unknown,
+		stale,
+		unknown,
 	)
 }

@@ -33,7 +33,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.0 // indirect
+	github.com/larsartmann/go-codec v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/listing/v4 v4.4.2 // indirect
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2 // indirect

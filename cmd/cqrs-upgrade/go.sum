@@ -10,6 +10,8 @@ github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 h1:LMLX+LgTNWpfvCBdFe
 github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3/go.mod h1:jl5iWTm0/hd5PjEYEOuwAJ57L/CibdZfrqZ5XA5GrCk=
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.2 h1:kw2PyPYQrGCbs8shEtLMIPhrJvTwyosrQb/Uq5oiSmc=
 github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.2/go.mod h1:5KpJLMSrVQBO4dTiJDWacXPEOrpbV7jJ0xTO5+ZA4RQ=
+github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.3 h1:DlZYtqfLJ2JviW0djJ3IVND3gs0ZgHKgtmf7BiN/Qyg=
+github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4 v4.13.3/go.mod h1:HzhTA63Kd9T3Sk5BCLKkr0RDVBR9Hc/++yiKJvpP4co=
 github.com/larsartmann/go-error-family v0.11.0 h1:xqXLKrTMznStmHUapxd/6Fj5/878sb4SIZiy4JvCItQ=
 github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW28i/NrQ07OsE9Dffhx29c=
 github.com/larsartmann/go-finding v1.13.0 h1:JTLKvlNb6C9Yldwu1Iojyte7c6ng8frzGTdq5DNEvcc=

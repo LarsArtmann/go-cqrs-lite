@@ -47,7 +47,9 @@ func (s StoreSpec) String() string {
 func (s *StoreSpec) UnmarshalJSON(data []byte) error {
 	trimmed := bytes.TrimLeft(data, " \t\r\n")
 	if len(trimmed) == 0 {
-		return errors.New("store: expected a store name string or an array of store names, got empty value")
+		return errors.New(
+			"store: expected a store name string or an array of store names, got empty value",
+		)
 	}
 	switch trimmed[0] {
 	case '"':

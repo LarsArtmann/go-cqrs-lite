@@ -283,7 +283,8 @@ func TestRenderDoctorEffectiveSettings_DisableReasons(t *testing.T) {
 	renderDoctorEffectiveSettings(buf, cfg)
 
 	out := buf.String()
-	if !strings.Contains(out, "why A009:") || !strings.Contains(out, "stack presets removed in v5") {
+	if !strings.Contains(out, "why A009:") ||
+		!strings.Contains(out, "stack presets removed in v5") {
 		t.Errorf("expected disable-reasons rendering for A009, got:\n%s", out)
 	}
 	if strings.Contains(out, "why F015:") {

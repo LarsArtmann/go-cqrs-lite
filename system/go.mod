@@ -7,7 +7,7 @@ require (
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.7
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/projections/v4 v4.2.1
 	github.com/larsartmann/go-cqrs-lite/commandlifecycle/v4 v4.2.1
@@ -27,7 +27,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/watermill/v4 v4.6.3
 	github.com/maypok86/otter/v2 v2.3.0
-	github.com/onsi/gomega v1.43.1
+	github.com/onsi/gomega v1.44.0
 	go.uber.org/goleak v1.3.0
 	pgregory.net/rapid v1.3.0
 )

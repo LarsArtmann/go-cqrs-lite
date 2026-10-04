@@ -349,7 +349,7 @@ are not detectors; listing one in `rules.disable` is a silent no-op.
 | A010 | custom-error-types                          | Warning  | Custom error interface duplicating go-error-family                                  |
 | A011 | inconsistent-json-key-casing-event-payloads | Info     | Event payload structs with mixed JSON key casing                                    |
 | A012 | missing-tombstone-handling                  | Info     | Fold function does not check for tombstone events                                   |
-| A013 | pointer-vs-value-basic-command              | Warning  | Embeds BasicCommand by value — cannot satisfy command.Command                        |
+| A013 | pointer-vs-value-basic-command              | Warning  | Embeds BasicCommand by value — cannot satisfy command.Command                       |
 | A014 | deprecated-api-usage                        | Warning  | Calls to deprecated APIs (event.NewEvent, Register)                                 |
 | A015 | global-mutable-state                        | Error    | Global mutable variable — race condition risk                                       |
 | A016 | missing-idempotency-middleware              | Warning  | Command dispatcher lacks idempotency middleware                                     |

@@ -100,7 +100,10 @@ func TestF031_SqlRowsScanDoesNotFire(t *testing.T) {
 		t.Fatalf("expected exactly 1 finding, got %d", len(findings))
 	}
 	if line := findings[0].Position.Line; line < 30 || line > 32 {
-		t.Errorf("finding anchored at line %d, want the readAll body (30-32) — the *sql.Rows loop must be excluded by type", line)
+		t.Errorf(
+			"finding anchored at line %d, want the readAll body (30-32) — the *sql.Rows loop must be excluded by type",
+			line,
+		)
 	}
 }
 

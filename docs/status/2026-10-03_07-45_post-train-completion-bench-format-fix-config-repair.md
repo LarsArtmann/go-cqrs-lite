@@ -141,6 +141,7 @@ Scope: THIS session only (07:00–07:45 CEST). Resumed the 05:58 execution hando
 ## f) NEXT — up to 50 things, impact-sorted
 
 **Fix my own session's debts first:**
+
 1. Fix `TestCLI_Layout_Table` to assert a table-only token (borders/box-drawing chars).
 2. Strengthen `TestCLI_Run_FormatMarkdown` (assert markdown separator row, not just "|").
 3. Add soak-markdown happy-path e2e (`run --soak 10ms --format markdown` renders pipes).
@@ -156,11 +157,11 @@ Scope: THIS session only (07:00–07:45 CEST). Resumed the 05:58 execution hando
 
 **Coordination / other-agent:**
 11. Flag `stale.go` growth + 7 analyzer lint findings to their owner (repo `#lint` is red;
-    the nightly-lint timer would fire LINT-ROT on day one once installed).
+the nightly-lint timer would fire LINT-ROT on day one once installed).
 12. nsfw-classifier doc owner: fences at `docs/feedback/archived/…nsfw…:65` are now
-    baselined — if the doc is ever un-archived, fix or `// skip-validate` them.
+baselined — if the doc is ever un-archived, fix or `// skip-validate` them.
 13. Daemon hardening: exclude hash-golden'd configs from auto-absorb, or hook
-    `check-lint-config` pre-commit (see e.4).
+`check-lint-config` pre-commit (see e.4).
 
 **User-gated then executable:**
 14. g.1 answer → sweep ~97 go.mods to the chosen directive form (or retarget the gate).
@@ -177,11 +178,11 @@ Scope: THIS session only (07:00–07:45 CEST). Resumed the 05:58 execution hando
 
 **Repo hygiene:**
 23. Reconcile M07's row in TODO_LIST if it still says "audited-only" anywhere (verify all
-    M-rows post-addendum).
+M-rows post-addendum).
 24. Consider a CHANGELOG Unreleased note for the .golangci.yml corruption repair (ops
-    visibility for anyone who pulled between 06:57 and the restore).
+visibility for anyone who pulled between 06:57 and the restore).
 25. Sweep ALL cmd/* render switches for remaining `default:`-as-text branches
-    (grep `resolveFormat|case format`) — prove the class is extinct repo-wide.
+(grep `resolveFormat|case format`) — prove the class is extinct repo-wide.
 26. Post-train `check-example-standalone.sh` run (examples ride the train too).
 27. `#verify-ci` (GOWORK=off per-module matrix) once, to mirror CI exactly.
 28. Decide cqrs-bench tagging: patch release (v4.x+1) with the format fix vs ride next train.
@@ -203,4 +204,4 @@ Scope: THIS session only (07:00–07:45 CEST). Resumed the 05:58 execution hando
 
 ---
 
-*Written 07:45 CEST; waiting for instructions.*
+_Written 07:45 CEST; waiting for instructions._

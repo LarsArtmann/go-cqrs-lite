@@ -69,7 +69,13 @@ func setupDoctorCommand(cli *cmdguard.CLI[AppConfig]) error {
 				applyConfigOverrides(cfg, actx)
 				renderDoctorEffectiveSettings(os.Stdout, cfg)
 
-				if err := runSuppressionAudit(ctx, cfg, actx, flags.Prune, flags.DryRun); err != nil {
+				if err := runSuppressionAudit(
+					ctx,
+					cfg,
+					actx,
+					flags.Prune,
+					flags.DryRun,
+				); err != nil {
 					return err
 				}
 
