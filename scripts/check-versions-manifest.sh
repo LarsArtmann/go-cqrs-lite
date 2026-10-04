@@ -54,7 +54,7 @@ if [ "${1:-}" = "--self-test" ]; then
 		mkdir -p "$TMP/repo"
 		git -C "$TMP/repo" init -q
 		git -C "$TMP/repo" config user.email t@t && git -C "$TMP/repo" config user.name t
-	cat >"$TMP/repo/README.md" <<RMD
+		cat >"$TMP/repo/README.md" <<RMD
 # fixture
 
 ${BEGIN_SENTINEL}
@@ -110,9 +110,9 @@ WANT
 	grep -q '| alpha | `alpha/v4.10.0` |' "$TMP/repo/README.md" &&
 		grep -qF '| . | `v2.0.0` |' "$TMP/repo/README.md" &&
 		echo "  ✓ PASS: README table rendered between sentinels" || {
-			echo "  ✗ FAIL: README table render"
-			fails=$((fails + 1))
-		}
+		echo "  ✗ FAIL: README table render"
+		fails=$((fails + 1))
+	}
 
 	rc=0
 	(cd "$TMP/repo" && bash "$SELF" --check) >/dev/null 2>&1 || rc=$?
@@ -135,9 +135,9 @@ WANT
 	check "update heals after new tag" 0 "$rc"
 	grep -q 'alpha/v4.11.0' "$TMP/repo/versions.json" &&
 		echo "  ✓ PASS: healed manifest carries new tag" || {
-			echo "  ✗ FAIL: healed manifest missing new tag"
-			fails=$((fails + 1))
-		}
+		echo "  ✗ FAIL: healed manifest missing new tag"
+		fails=$((fails + 1))
+	}
 
 	if [ "$fails" -eq 0 ]; then
 		echo "check-versions-manifest self-test passed."
@@ -185,10 +185,10 @@ newer_than() { # newer_than <candidate> <incumbent> → rc 0 iff candidate wins
 	case "$cand" in
 	*-*) case "$incumbent" in
 		*-*) [ "$(printf '%s\n%s\n' "$cand" "$incumbent" | sort -V | tail -1)" = "$cand" ] ;; # both prereleases: -V orders rc1 < rc2
-		*) return 1 ;; # candidate is the prerelease, incumbent the release
+		*) return 1 ;;                                                                        # candidate is the prerelease, incumbent the release
 		esac ;;
 	*) case "$incumbent" in
-		*-*) return 0 ;; # candidate is the release, incumbent the prerelease
+		*-*) return 0 ;;                                                                    # candidate is the release, incumbent the prerelease
 		*) [ "$(printf '%s\n%s\n' "$cand" "$incumbent" | sort -V | tail -1)" = "$cand" ] ;; # both releases
 		esac ;;
 	esac
@@ -211,7 +211,7 @@ while IFS= read -r tag; do
 done < <(list_tags)
 
 if [ "${#latest[@]}" -eq 0 ]; then
-	echo "::error::no semver tags found ($( [ "$REMOTE" = 1 ] && echo 'on origin' || echo 'locally')) — refusing to write an empty manifest" >&2
+	echo "::error::no semver tags found ($([ "$REMOTE" = 1 ] && echo 'on origin' || echo 'locally')) — refusing to write an empty manifest" >&2
 	exit 1
 fi
 
@@ -254,7 +254,7 @@ if [ "$MODE" = "update" ]; then
 		start { print; next }
 		index($0, end) > 0 { start = 1; print }' "$README" >>"$tmp_readme"
 	mv "$tmp_readme" "$README"
-	echo "✓ wrote $MANIFEST (${#latest[@]} module trains) + refreshed README section ($( [ "$REMOTE" = 1 ] && echo 'from origin' || echo 'from local tags'))"
+	echo "✓ wrote $MANIFEST (${#latest[@]} module trains) + refreshed README section ($([ "$REMOTE" = 1 ] && echo 'from origin' || echo 'from local tags'))"
 	exit 0
 fi
 
@@ -264,7 +264,7 @@ gen=$(mktemp)
 trap 'rm -f "$gen"' EXIT
 render_manifest >"$gen"
 if ! diff -u "$MANIFEST" "$gen" >"$gen.diff"; then
-	echo "::error::$MANIFEST is stale vs $( [ "$REMOTE" = 1 ] && echo 'origin' || echo 'local') tags."
+	echo "::error::$MANIFEST is stale vs $([ "$REMOTE" = 1 ] && echo 'origin' || echo 'local') tags."
 	echo "::error::If a tag row is MISSING below (-), publish flow skipped the refresh — run: bash scripts/check-versions-manifest.sh --update"
 	echo "::error::If a tag row is EXTRA below (+), it is not on the tag source (unpushed or deleted tag) — push it or regen after removal."
 	sed 's/^/  /' "$gen.diff"
@@ -291,6 +291,6 @@ else
 fi
 rm -f "$gen_table" "$gen.sec"
 if [ "$rc" = 0 ]; then
-	echo "✅ versions manifest fresh (${#latest[@]} module trains, $( [ "$REMOTE" = 1 ] && echo 'origin' || echo 'local') tags)."
+	echo "✅ versions manifest fresh (${#latest[@]} module trains, $([ "$REMOTE" = 1 ] && echo 'origin' || echo 'local') tags)."
 fi
 exit "$rc"

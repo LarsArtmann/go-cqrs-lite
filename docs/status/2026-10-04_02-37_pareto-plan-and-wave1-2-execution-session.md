@@ -134,7 +134,7 @@ stack/postgres tag), **#27** (manifest), **#36** (stack split), **#50**
    violated:** verify state-changing operations by re-reading state, never by
    trusting chained-command output. I got lucky that a later check caught it.
 2. **T01 mega-multiedit: 1 of 10 edits failed AND a successful edit carried my
-   typo** (`` `event/`` `` double backtick in the requestContextEnricher
+   typo** (`` `event/ `` `` double backtick in the requestContextEnricher
    strike) — both because I typed `old_string`s from memory of the earlier
    `cat` instead of viewing the exact region first. Two repair rounds that
    the view-first rule exists to prevent.
@@ -194,6 +194,7 @@ stack/postgres tag), **#27** (manifest), **#36** (stack split), **#50**
 ## f) Next up to 50 (from the plan; sorted by wave — the plan file is authoritative)
 
 **Wave 2 remainder (next session, executable now):**
+
 1. T09/#27: `versions.json` generator from git tags (f49).
 2. T09/#27: nightly freshness CI leg (f50).
 3. T09/#27: README compatibility matrix from manifest (f51).
@@ -222,12 +223,12 @@ stack/postgres tag), **#27** (manifest), **#36** (stack split), **#50**
 24. T14: auto-embed noise verdict + CoV + GOVERSION in `--save` (f76).
 25. T14: README ops section (f77).
 26. T11 remainder: cqrs-upgrade dogfood sentinel (f61), check-templ
-    leg-first summary (f62), smoke-all timing/resume/cache (f63).
+leg-first summary (f62), smoke-all timing/resume/cache (f63).
 27. T19: split typed_reader.go (1127) — 4 slices (f92).
 28. T19: split metaengine/store.go (935) (f93), execute.go (778) (f94),
-    baseline shrink regen (f95).
+baseline shrink regen (f95).
 29. T20: heuristic batch V001/V004/V005 (f96), T001–T007/E016/A008 (f97),
-    b022_b025 + a020 splits (f98).
+b022_b025 + a020 splits (f98).
 
 **Quiet-window batch (single window, sequential — T15–T18):**
 30. Preflight composed gate (f83).
@@ -243,16 +244,16 @@ stack/postgres tag), **#27** (manifest), **#36** (stack split), **#50**
 38. Answer R1 (🔥 G-T02 direction ruling) — unblocks ADR-0147 + G-T25.
 39. Answer R2/R3 (SingleWriter lease, AggregateOn) — unblocks M20.
 40. Answer R19 (F153 license) + R20 (Actions billing) — unblocks all remote
-    CI evidence + pkg.go.dev docs.
+CI evidence + pkg.go.dev docs.
 41. Cut/push next stack/postgres tag to publish the retract (R-adjacent, Q2).
 42. Turso watch: tagged tursogo release carrying #9392 → flip runbook (f108–f109).
 43. T22 v5-prep slices: migration-guide relational→metaengine (f103),
-    ADR-0139 memo (f104), NewStreamRef census (f105).
+ADR-0139 memo (f104), NewStreamRef census (f105).
 44. T23: FilterContains/FilterPrefix design (f106) + ApplyBatch note (f107).
 45. T26: CV bump, go-graph-rag re-test invite, cqrs-htmx reminder (f111–f113).
 46. T27: G-T25 FEATURES flip after gates A–D (f114).
 47. Owner filing approvals (R26): turso A+B, exhaustruct, go/types race,
-    md-go-validator pair, cmdguard proposals, BuildFlow cwd.
+md-go-validator pair, cmdguard proposals, BuildFlow cwd.
 48. T21 v5 cut per readiness checklist (f99–f102) — after rulings + window.
 49. LSP/gopls `GOTOOLCHAIN=auto` via crush-config pass (f60).
 50. Skill evals execution once the `claude` CLI is available (R28).
@@ -273,7 +274,7 @@ stack/postgres tag), **#27** (manifest), **#36** (stack split), **#50**
 
 ---
 
-*Point-in-time snapshot per the status-report convention; the plan file and
+_Point-in-time snapshot per the status-report convention; the plan file and
 TODO_LIST.md are the living sources. Concurrent-session note: tree at writing
 time carries another session's in-flight work (cqrs-lint doctor/store_spec/
-F031, .golangci.yml, a broad go.mod/go.sum sweep) — observed, untouched.*
+F031, .golangci.yml, a broad go.mod/go.sum sweep) — observed, untouched._

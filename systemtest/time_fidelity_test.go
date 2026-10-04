@@ -190,8 +190,13 @@ func TestSystem_TimePayloadFidelity_SQLite(t *testing.T) {
 						if leg.exact && drift != 0 {
 							t.Fatalf("JSON codec must be nano-exact, drifted %d ns", drift)
 						}
-						if !leg.exact && (drift < -nanoDriftTolerance || drift > nanoDriftTolerance) {
-							t.Fatalf("CBOR default drift %d ns exceeds %v bound", drift, nanoDriftTolerance)
+						if !leg.exact &&
+							(drift < -nanoDriftTolerance || drift > nanoDriftTolerance) {
+							t.Fatalf(
+								"CBOR default drift %d ns exceeds %v bound",
+								drift,
+								nanoDriftTolerance,
+							)
 						}
 
 						return
@@ -236,7 +241,9 @@ func TestTimeCodecFidelity(t *testing.T) {
 	cborDrift := cborBack.At.Sub(orig)
 	t.Logf("cbor single-hop drift: %d ns (float64 unix quantization)", cborDrift)
 	if cborDrift == 0 {
-		t.Log("NOTE: cbor drift measured 0 — go-codec default may have flipped to a nano-exact time mode")
+		t.Log(
+			"NOTE: cbor drift measured 0 — go-codec default may have flipped to a nano-exact time mode",
+		)
 	}
 	if cborDrift < -nanoDriftTolerance || cborDrift > nanoDriftTolerance {
 		t.Fatalf("cbor drift %d ns exceeds %v bound", cborDrift, nanoDriftTolerance)

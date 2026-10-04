@@ -13,11 +13,11 @@ Fractional-seconds `time.Time` values encode as float64 unix seconds (tag 1), so
 
 Measured 2026-10-04 (go-cqrs-lite systemtest, timestamp `…02:55:00.123456789Z`):
 
-| path                                              | drift    |
-| ------------------------------------------------- | -------- |
-| CBORCodec single round-trip                       | 165 ns   |
-| full system + sqliteengine e2e (dispatch → view)  | 165 ns   |
-| JSONCodec, same paths                             | 0 ns     |
+| path                                             | drift  |
+| ------------------------------------------------ | ------ |
+| CBORCodec single round-trip                      | 165 ns |
+| full system + sqliteengine e2e (dispatch → view) | 165 ns |
+| JSONCodec, same paths                            | 0 ns   |
 
 Consumer impact: LarsArtmann/go-cqrs-lite#50 — dedupe/idempotency comparisons on `time.Time` payload fields fail nondeterministically; that consumer now enforces ±2 µs tolerances in every domain test.
 

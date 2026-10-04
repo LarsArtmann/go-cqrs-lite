@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
-
-	"encoding/json/jsontext"
 
 	"github.com/spf13/cobra"
 
