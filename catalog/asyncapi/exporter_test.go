@@ -76,6 +76,10 @@ func TestExporter_Export_BasicCommand(t *testing.T) {
 		t.Errorf("operation action = %q, want %q", op.Action, "receive")
 	}
 
+	if op.Reply != nil {
+		t.Errorf("command operation must not carry a reply, got %+v", op.Reply)
+	}
+
 	msg, ok := doc.Components.Messages["command.CreateOrder"]
 	if !ok {
 		t.Fatal("missing CreateOrder message component")
@@ -206,6 +210,46 @@ func TestExporter_Export_Query(t *testing.T) {
 
 	if op.Action != "receive" {
 		t.Errorf("query action = %q, want %q", op.Action, "receive")
+	}
+
+	if op.Reply == nil {
+		t.Fatal("query operation missing reply (request/reply contract)")
+	}
+
+	if op.Reply.Address == nil || op.Reply.Address.Location != "$message.header#/replyTo" {
+		t.Errorf("reply address = %+v, want $message.header#/replyTo", op.Reply.Address)
+	}
+
+	const replyChannelKey = "queries.GetProduct.replies"
+	replyChannel, ok := doc.Channels[replyChannelKey]
+	if !ok {
+		t.Fatal("missing reply channel")
+	}
+
+	if op.Reply.Channel.Ref != "#/channels/"+replyChannelKey {
+		t.Errorf("reply channel ref = %q, want %q", op.Reply.Channel.Ref, "#/channels/"+replyChannelKey)
+	}
+
+	const replyMessageKey = "query.GetProduct.reply"
+	if _, ok := doc.Components.Messages[replyMessageKey]; !ok {
+		t.Fatal("missing reply message component")
+	}
+
+	if _, ok := doc.Components.Schemas[replyMessageKey]; !ok {
+		t.Fatal("missing reply schema component")
+	}
+
+	if _, ok := replyChannel.Messages[replyMessageKey]; !ok {
+		t.Errorf("reply channel must register %q (Reply scoping contract)", replyMessageKey)
+	}
+
+	wantReplyRef := "#/channels/" + replyChannelKey + "/messages/" + replyMessageKey
+	if len(op.Reply.Messages) != 1 || op.Reply.Messages[0].Ref != wantReplyRef {
+		t.Errorf("reply messages = %+v, want [%s]", op.Reply.Messages, wantReplyRef)
+	}
+
+	if replyChannel.Address != "catalog-svc.queries.get.product.replies" {
+		t.Errorf("reply channel address = %q", replyChannel.Address)
 	}
 }
 

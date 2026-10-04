@@ -163,7 +163,7 @@ func ensureChannel(
 			kind,
 			dotSeparated(string(catalog.Key(msg))),
 		),
-		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
+		Title:       string(msg.Name) + " " + singularKind(kind) + " Channel",
 		Description: string(msg.Summary),
 		Messages:    map[string]Ref{componentKey: {Ref: ref}},
 	}
@@ -241,7 +241,7 @@ func addChannel(
 			kind,
 			dotSeparated(string(catalog.Key(msg))),
 		),
-		Title:       string(msg.Name) + " " + strings.TrimSuffix(string(kind), "s") + " Channel",
+		Title:       string(msg.Name) + " " + singularKind(kind) + " Channel",
 		Description: string(msg.Summary),
 		Messages:    map[string]Ref{componentKey: {Ref: ref}},
 	}
@@ -265,7 +265,7 @@ func addOperation(
 		Channel:  Ref{Ref: "#/channels/" + channelKey},
 		Messages: []Ref{{Ref: ref}},
 		Tags:     buildTags(kind, serviceID, msg),
-		Reply:    nil,
+		Reply:    queryReplyFor(doc, serviceID, msg, kind, messageID),
 	}
 }
 
