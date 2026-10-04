@@ -20,7 +20,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/queue/v4 v4.0.1
 	github.com/larsartmann/go-cqrs-lite/record/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/scenario/v4 v4.4.1
-	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.2
+	github.com/larsartmann/go-cqrs-lite/signing/v4 v4.3.3
 	github.com/larsartmann/go-cqrs-lite/snapshot/v4 v4.6.0
 	github.com/larsartmann/go-cqrs-lite/system/v4 v4.10.1
 	github.com/larsartmann/go-error-family v0.11.0
