@@ -3,6 +3,7 @@ package id
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	cbid "github.com/larsartmann/go-branded-id"
@@ -59,8 +60,14 @@ func NewStreamID() StreamID {
 // Accepts any non-empty string — not limited to ULID format.
 // This supports ULID-based IDs, SHA-256 derived IDs, and domain-specific IDs.
 //
+// A leading brand prefix from String() ("StreamMarker:...") is stripped, so
+// the round-trip law holds: ParseStreamID(id.String()) == id. String() is a
+// display form; the underlying value (and MarshalText wire form) is bare.
+//
 // For ULID validation, use ParseStreamIDStrict.
 func ParseStreamID(s string) (StreamID, error) {
+	s = strings.TrimPrefix(s, StreamMarker{}.Name()+":")
+
 	if s == "" {
 		var zero StreamID
 
@@ -83,6 +90,8 @@ func ParseStreamID(s string) (StreamID, error) {
 //
 // For a lenient parse that accepts any non-empty string, use ParseStreamID.
 func ParseStreamIDStrict(s string) (StreamID, error) {
+	s = strings.TrimPrefix(s, StreamMarker{}.Name()+":")
+
 	if s == "" {
 		var zero StreamID
 
