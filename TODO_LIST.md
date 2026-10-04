@@ -131,9 +131,18 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       partial expression index + `systemtest` E2E) · ~~#35 request-context
       enricher~~ DONE 2026-10-01 (M24, shipped as `event.RequestScope` +
       `WithRequestScope` + `RequestScopeEnricher`, recipes §2.42 — cqrs-htmx
-      carries the drop-local-copy TODO for its next bump) · #27 committed
-      module → latest-tag
-      manifest (versions.json) + tag-push CI + README matrix · ~~#28 document
+      carries the drop-local-copy TODO for its next bump) · ~~#27 committed
+      module → latest-tag manifest (versions.json) + tag-push CI + README
+      matrix~~ DONE 2026-10-04 (T09: `scripts/check-versions-manifest.sh`
+      regenerates BOTH artifacts — versions.json (108 trains, key `.` = root
+      train, semver-aware latest pick) + a collapsed README section between
+      sentinels; nightly `--check --remote` leg fails on BOTH drift directions
+      (missing published tag, or manifest citing an unpushed tag);
+      `tag-release.sh` refreshes the manifest at tag time — the "updated on
+      tag push" equivalent; hermetic `--self-test` with stale-manifest +
+      unmanifested-tag mutation legs runs in the nightly leg; local vs
+      origin tags verified identical at landing; issue #27 CLOSED 2026-10-04
+      with receipt, ask-3 stays owner-gated below) · ~~#28 document
       the consumer upgrade sweep pattern + bless `cmd/cqrs-upgrade` (exists,
       tagged v4.0.0 2026-09-07 — ask reduces to docs)~~ DONE 2026-10-01 (issue
       #28 CLOSED 16:24:01Z; the cqrs-upgrade `--json --strict` holes (a)(b)(c)
@@ -146,7 +155,8 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       metaengine-free-graph probe. — issue #36 _(Effort: L)_
 - [ ] [BLOCKED] **#27 ask-3 (owner):** CI annotation of modules whose master
       HEAD is ahead of their latest tag (helps consumers judge `replace`-to-
-      master pins). Deferred behind the manifest; needs owner nod on CI noise
+      master pins). Manifest landed 2026-10-04 (row above) — the remaining
+      question is only the annotation leg itself; needs owner nod on CI noise
       budget. — issue #27 item 3 _(Effort: S)_
 
 ---
@@ -165,12 +175,22 @@ The Declined section at the bottom is a do-not-re-litigate guard, not a backlog.
       on the archived 2026-05-01 roadmap family table; middleware module tests
       green, doc-check 1,169 refs green, CHANGELOG entry gated. Issue closed with
       receipt. The classification change stays a tracked design question.
-- [ ] **#50 `time.Time` payload fields drift sub-µs through system+sqliteengine
-      journals** — ADR-0056 claims nano-exact round-trips; consumer measures up
-      to 611ns drift over 20 dispatches (`encodeJSON` journal path;
-      `TimeUnixDynamic` is only configured on iroh transports). Fix: in-repo repro
-      → trace the loss point → nano-exact fix or scoped ADR-0056 consequence
-      amendment + documented tolerance. — issue #50 _(Effort: M)_
+- [x] ~~**#50 `time.Time` payload fields drift sub-µs through system+sqliteengine
+      journals**~~ — **DONE 2026-10-04 (T10):** traced NOT to the journal —
+      `encodeStreamValue` stores exact JSON strings; the loss is the DEFAULT
+      CBOR event codec (go-codec `canonicalEncMode` sets `TimeUnixDynamic` →
+      fractional times become float64 unix seconds → ~22 fraction bits at
+      2026 epochs = ≤256ns/hop; measured 165ns single-hop, the consumer's
+      611ns is multi-hop). Pinned by `systemtest/time_fidelity_test.go`
+      (JSON-codec leg nano-EXACT 0ns end-to-end through system+sqlite; CBOR
+      default leg bounded sub-µs with measured drift logged; codec-level
+      subtests pin 165ns/0ns). ADR-0056 carries a dated amendment (wrong
+      parenthetical + consumer guidance: JSON codec / `Instant` /
+      ±256ns-per-hop tolerance); upstream default-flip filed as
+      LarsArtmann/go-codec#4 (`TimeRFC3339Nano`: 0ns, 36B, decode-compatible;
+      `TimeRFC3339` rejected — truncates to seconds); iroh `opEncMode` keeps
+      `TimeUnixDynamic` deliberately (LWW ordering survives quantization).
+      FAQ entry added; issue #50 CLOSED 2026-10-04 with receipt. — issue #50 _(Effort: M)_
 - [x] ~~**#51 A013 suggests value-embedding `BasicCommand`, which cannot satisfy
       `command.Command`**~~ — **DONE 2026-10-03 (same session as triage):** rule
       inverted (fires on VALUE embeds at warning severity with the

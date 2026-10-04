@@ -105,7 +105,7 @@ run_probes() {
 }
 
 self_test() {
-	local tmp stub failed=0
+	local tmp failed=0
 	tmp="$(mktemp -d)"
 
 	# Fault injection: stub binaries that simulate each violation class.

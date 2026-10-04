@@ -50,6 +50,18 @@ events, _ := event.NewEvents(aggID, "User", 0,
     []event.Type{"user.created"}, []any{UserCreated{Name: "Alice"}})
 ```
 
+### "Why do my `time.Time` payload fields drift by a few hundred nanoseconds?"
+
+The default CBOR event codec encodes fractional-seconds `time.Time` values as float64 unix seconds (go-codec's `TimeUnixDynamic`): at 2026-era epochs the mantissa leaves ~22 fraction bits, quantizing every round-trip to ≤256 ns (measured 165 ns single-hop, ≤611 ns multi-hop). The SQL journals are NOT the loss point — they store exact JSON strings — the loss enters at the CBOR event hop. Nanosecond-exact options:
+
+```go
+// Per event: pin the JSON codec (RFC3339 string, 0 ns end-to-end)
+evt, _ := event.New("room.item_completed", streamID, "Room", ver+1,
+    ItemCompleted{ProcessedAt: at}, event.WithCodec(codec.JSONCodec{}))
+```
+
+or use the ADR-0056 `Instant` payload type (bare int64 UnixNano, exact in both codecs), or carry a ±256 ns-per-hop tolerance in exact comparisons. Pinned by `systemtest/time_fidelity_test.go`; upstream default-flip proposal: LarsArtmann/go-codec#4.
+
 ### "My decider Repository won't load — type parameter error"
 
 **Cause:** Go infers the type parameter from the `Decider[State]` argument, so you rarely need to specify it explicitly.
