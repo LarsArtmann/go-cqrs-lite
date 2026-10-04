@@ -1244,16 +1244,28 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
 > and the verify-arc reports; items since done are struck inline there. The
 > owner questions ride the W3 bundle section below.
 
-- [ ] **CI tail from the train (six legs, all root-caused)** — (a) benchkit
-      load-gate fixture env propagation (actionlint+shellcheck leg red on GH
-      runners: fixture expects the planted-loadavg PASS message, runner output
-      shape differs; 12/12 pass locally); (b) coverage-gate pinned/setup Go
-      toolchain (three consecutive deaths on `go: downloading go1.27.1` — the
-      job has no setup-go step); (c) auto-retry-once for cancelled/failed infra
-      legs (CGo/coverage transient class); (d) triage the 04:12 nightly-gates
-      failure; (e) Module Isolation Build leg-set instability; (f) one clean
-      post-fetch-depth-fix run confirming `TestTagContentMatchesChangelog`.
-      Remote confirmation of the whole set is billing-gated (row above). —
+- [ ] **CI tail from the train (six legs, all root-caused)** — ~~(a) benchkit
+      load-gate fixture env propagation~~ DONE-BY-VERIFICATION 2026-10-04
+      (T12: the fix already landed — `flake.nix` `#check-release-scripts` and
+      `calibration-gate.sh` self_run both force `CI=false` into the fixture
+      invocations; full harness re-run under `CI=true nix run
+      .#check-release-scripts` = EXIT 0, zero failing checks, runner env
+      simulated locally) · ~~(b) coverage-gate pinned/setup Go toolchain~~
+      DONE-BY-VERIFICATION 2026-10-04 (T12: the `coverage-gate` job already
+      carries `actions/setup-go` v7 with `go-version-file: go.mod`, comment
+      cites the exact `go: downloading go1.27.1` triple-death trap) ·
+      ~~(c) auto-retry-once for cancelled/failed infra legs~~ DECLINED
+      2026-10-04 (T12 ruling): the failure half ALREADY exists (autoretry.yml
+      reruns failed jobs once, attempt==1 bound — infra evictions that mark
+      jobs failed are covered); extending to `cancelled` runs would fight
+      `cancel-in-progress: true` on BOTH CI and Nightly (every superseded
+      push/dispatch would get an unwanted retry); the motivating
+      toolchain-download class died with (b)'s setup-go. Overturnable in one
+      edit if a genuinely-infra cancelled class is ever observed. ·
+      (d) triage the 04:12 nightly-gates failure; (e) Module Isolation Build
+      leg-set instability; (f) one clean post-fetch-depth-fix run confirming
+      `TestTagContentMatchesChangelog`. Remote confirmation of the whole set
+      is billing-gated (row above). —
       source: archived 10-25 §b1/§f5-10 _(Effort: M total)_
 - [ ] [BLOCKED] **Upstream filings (owner approval; verify-before-filing
       first)** — (a) turso-go native-lib hash-mismatch + lazy-init failure
