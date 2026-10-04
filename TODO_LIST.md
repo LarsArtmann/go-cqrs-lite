@@ -672,6 +672,24 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       `ThemeToggle` + `SimpleNav` `BaseProps`). A future eval-free bundle swap
       would let the relaxation be dropped entirely (nice-to-have, not tracked).
 
+- [ ] **AsyncAPI exporter: response schemas for query replies.** The 2026-10-04
+      request/reply implementation emits an opaque reply message (the catalog
+      does not model query response types) — consumers get reply addressing and
+      channel topology but no response schema. Requires a `catalog.Message`
+      response-schema field (`ResponseSchema *Schema` or generics-backed
+      `SchemaFromResponse[R]`), which is an API surface addition — pair with
+      the openapi exporter's response side for one design pass. — source:
+      2026-10-04 asyncapi request/reply work _(Effort: M)_
+
+- [ ] **AsyncAPI exporter: protocol bindings + security schemes.** Watermill
+      backends (kafka/nats/amqp/redis) are only reflected as a bare
+      `WithServer(name, host, protocol)` server object today; AsyncAPI 3.0
+      channel/message `bindings` (topic names, delivery guarantees) and
+      `components.securitySchemes` (catalog.Message.Security is parsed by the
+      openapi exporter but ignored by asyncapi) would make the document honest
+      about HOW messages move. Keep bindings dep-free (string-typed options),
+      no watermill import. — source: 2026-10-04 asyncapi review _(Effort: M-L)_
+
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED
       2026-09-13 (run 34747274058, full log triage): (a) FIXED same-day —
