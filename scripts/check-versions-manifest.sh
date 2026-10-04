@@ -177,16 +177,20 @@ newer_than() { # newer_than <candidate> <incumbent> → rc 0 iff candidate wins
 	local cand="$1" incumbent="$2" cand_base inc_base max_base
 	cand_base="${cand%%-*}"
 	inc_base="${incumbent%%-*}"
-	max_base="$(printf '%s\n%s\n' "$cand_base" "$inc_base" | sort -V | tail -1)"
 	if [ "$cand_base" != "$inc_base" ]; then
+		max_base="$(printf '%s\n%s\n' "$cand_base" "$inc_base" | sort -V | tail -1)"
 		[ "$cand_base" = "$max_base" ]
 		return
 	fi
-	case "$cand:$incumbent" in
-	*-*) [ "$cand" = "$incumbent" ] ||
-		[ "$(printf '%s\n%s\n' "$cand" "$incumbent" | sort -V | tail -1)" = "$cand" ] ;;
-	*:*) return 0 ;; # candidate is the plain release, incumbent carries a prerelease
-	*) return 1 ;;    # incumbent is the plain release
+	case "$cand" in
+	*-*) case "$incumbent" in
+		*-*) [ "$(printf '%s\n%s\n' "$cand" "$incumbent" | sort -V | tail -1)" = "$cand" ] ;; # both prereleases: -V orders rc1 < rc2
+		*) return 1 ;; # candidate is the prerelease, incumbent the release
+		esac ;;
+	*) case "$incumbent" in
+		*-*) return 0 ;; # candidate is the release, incumbent the prerelease
+		*) [ "$(printf '%s\n%s\n' "$cand" "$incumbent" | sort -V | tail -1)" = "$cand" ] ;; # both releases
+		esac ;;
 	esac
 }
 

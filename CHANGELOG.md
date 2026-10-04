@@ -140,6 +140,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **repo: `versions.json` module→latest-published-tag manifest + README matrix + freshness gate (GitHub #27).** Consumers had to `git ls-remote` per module to spot stale pins; now a committed manifest (108 trains, key `.` = the repo-root train, full tag per module — semver-aware latest pick that ranks `v2.0.0` above `v2.0.0-rc1`, which plain `sort -V` gets wrong) plus a generated collapsed table in the README answer it in one read. `scripts/check-versions-manifest.sh --update` regenerates both artifacts; the nightly gate compares them against origin tags and fails on BOTH drift directions (a published tag missing from the manifest, or a manifest citing an unpushed/deleted tag); `tag-release.sh` refreshes the manifest at tag time so every release lands with it. Hermetic `--self-test` (stale-manifest and unmanifested-tag mutation legs) runs in the nightly leg before the gate.
+
 ### Changed
 
 - **cqrs-lint: A013 inverted — fires on VALUE-embedded `BasicCommand`, silent on the sanctioned pointer form (GitHub #51).** The old rule flagged `*command.BasicCommand` embeds and suggested value embedding "for cache locality" — but every `BasicCommand` method has a pointer receiver, so a value embed cannot satisfy `command.Command` (compile error when dispatched), and `ApplyOptions` mutates through the embedded pointer so pipeline enrichment reaches the command. Following the old suggestion broke compilation; real consumers (go-aichat/chatstore) emitted A013 on their sanctioned pattern. Now: value embeds fire at warning severity with the compile-failure rationale and the pointer-form suggestion; pointer embeds are silent (all 7 example embeds + the cqrs-gen template use the pointer form). RULES.md/README/catalog re-pinned, taskmanager golden re-generated (10 A013 findings dropped to 0), `TestA013_DetectsValueBasicCommand`/`TestA013_PointerEmbedStaysSilent` pin the inversion.

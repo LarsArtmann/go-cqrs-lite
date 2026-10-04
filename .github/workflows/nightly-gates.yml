@@ -123,6 +123,15 @@ jobs:
           bash scripts/check-md-go.sh --self-test
           bash scripts/check-md-go.sh
 
+      # GitHub #27: versions.json + the README matrix must never lag the
+      # published tag surface. Remote source of truth (ls-remote) — fails on
+      # BOTH directions: a published tag missing from the manifest, and a
+      # manifest citing a tag origin does not have (unpushed/deleted).
+      - name: Versions manifest freshness (#27)
+        run: |
+          bash scripts/check-versions-manifest.sh --self-test
+          bash scripts/check-versions-manifest.sh --check --remote
+
       # Report-only per the 2026-09-18 trigger-policy decision: push-blocking
       # stays on the per-push CI leg; the nightly only surfaces drift.
       - name: Pin sweep (report-only)

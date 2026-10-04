@@ -696,6 +696,17 @@ echo ""
 undo_temp_commit
 
 echo "Original ${gomod} restored (working tree clean)."
+
+# Freshness contract (GitHub #27): every created tag lands with a refreshed
+# versions.json + README matrix so consumers never need per-module ls-remote
+# sweeps. Runs AFTER the tree restore; the new (still-local) tag is already
+# visible to the manifest. Guarded: fixture repos (test-tag-release.sh) build
+# no scripts/ dir. The nightly gates treat a manifest citing an unpushed tag
+# as drift — push promptly, same spirit as check-retracts-shipped.sh.
+if [ -f scripts/check-versions-manifest.sh ]; then
+	bash scripts/check-versions-manifest.sh --update
+fi
+
 echo ""
 echo "To push: git push origin ${tag}"
 echo "After pushing, verify the proxy serves it:"
