@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
+	errorfamily "github.com/larsartmann/go-error-family"
+
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/projectionhost/v4"
-	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 // A Rejection-classified handler error is non-retryable: the worker must

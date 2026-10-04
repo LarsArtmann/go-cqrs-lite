@@ -3,9 +3,10 @@ package stack_test
 import (
 	"testing"
 
+	flightrecorder "github.com/larsartmann/go-flightrecorder"
+
 	"github.com/larsartmann/go-cqrs-lite/stack/v4"
 	memory "github.com/larsartmann/go-cqrs-lite/storage/memory/v4"
-	flightrecorder "github.com/larsartmann/go-flightrecorder"
 )
 
 func TestWithFlightRecorder(t *testing.T) {

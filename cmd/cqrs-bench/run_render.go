@@ -5,10 +5,11 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 	"github.com/larsartmann/go-output"
 	"github.com/larsartmann/go-output/delimited"
 	gotable "github.com/larsartmann/go-output/table"
+
+	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
 )
 
 // ── run result rendering ──

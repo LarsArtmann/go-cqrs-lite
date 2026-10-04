@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
+
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 // Count returns the total number of dead-letter entries across all projections.
