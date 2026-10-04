@@ -21,7 +21,7 @@ templ IndexPage(data indexPageData) {
 	}}
 	@layout.Base(base) {
 		@docsNav(data.Brand, data.DocsPath, data.DocsPath)
-		@layout.Container(layout.ContainerProps{Pad: true, Class: "pb-16 pt-8"}) {
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@display.PageHeader(headerProps)
 			@statGrid(data)
 			@sectionHeading("Documentation")

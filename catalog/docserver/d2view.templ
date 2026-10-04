@@ -32,7 +32,7 @@ templ D2Page(brand, docsPrefix, diagram, svg string) {
 	}}
 	@layout.Base(base) {
 		@docsNav(brand, docsPrefix, docsPrefix+"/d2")
-		@layout.Container(layout.ContainerProps{Pad: true, Class: "pb-16 pt-8"}) {
+		@layout.Container(layout.ContainerProps{Class: "pb-16 pt-8"}) {
 			@display.PageHeader(headerProps)
 			if svg != "" {
 				@display.Card(display.CardProps{Title: "Rendered diagram", Subtitle: "Rendered by the server-side D2 hook"}) {
