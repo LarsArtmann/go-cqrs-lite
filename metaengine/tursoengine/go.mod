@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/sqliteengine/v4 v4.5.0
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
-	github.com/onsi/gomega v1.43.1
+	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	pgregory.net/rapid v1.3.0
 	turso.tech/database/tursogo v0.8.1
