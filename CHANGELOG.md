@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      metaengine/sqliteengine) carry minor bumps: their test-only cycle back-edge
      requires pin pre-1.27.1 sibling tags so tag-time tidy does not re-lift the
      directive; the pinned floors are all <= 1.26.7. -->
+## [v4.3.3] — 2026-10-04
+
+- **signing: `CloneEvent` preserves the source event's payload encoding (1 module: `signing`; GitHub #52).** The v4.3.2 `event.NewEvent` → `event.New` migration dropped the encoding carry-over, so every signed clone was re-stamped with the default CBOR encoding while its payload bytes stayed whatever the producer wrote — JSON events labeled `encoding=cbor` failed downstream decodes and signed events silently never reached read models (cqrs-htmx's signing battery, isolated by bump-bisection over the 43-module wave). `signing.CloneEvent` now passes `event.WithEncoding(evt.Encoding())`, mirroring `encryption`'s attach/decrypt reconstruction paths; regression `TestCloneEvent_PreservesPayloadEncoding` pins JSON-in/JSON-out (payload still decodes as stamped JSON), CBOR-in/CBOR-out, and the `AttachSignature` path. v4.3.1 was the last good tag; v4.3.2 is broken for non-CBOR producers — pin v4.3.3 (or stay on v4.3.1).
+
 ## [v4.16.0] — 2026-10-03
 
 - **go-directive minor-form floor (1 module: `metaengine`).** Tagged go.mod ships `go 1.27` instead of `go 1.27.1` — the patch-form directive was lifting every consumer's `go` line on tidy (MVS floor propagation). Part of the 2026-10-03 fleet convergence wave.
