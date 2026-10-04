@@ -595,6 +595,7 @@ wrong content, poisoned by a bad replace):
    `go.mod` in the fix-forward version, then re-tag:
 
    ```go
+   // skip-validate: go.mod directive, not Go source
    retract (
        // Broken standalone build — use v4.2.1.
        v4.2.0 // regression: undefined pgtestcontainer.AfterRun

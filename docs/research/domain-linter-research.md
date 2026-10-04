@@ -2105,6 +2105,7 @@ func parseSuppression(file *ast.File) map[int][]string {
 **Scope:** Suppression applies to the next statement after the comment (same as `//nolint` in golangci-lint). For function-level suppression, place the comment on the function declaration:
 
 ```go
+// skip-validate: illustrative pseudo-code (elided parameters)
 //cqrs-lint:ignore(C009) must-constructor panics by design
 func MustNewRepository(...) *Repository {
     if err != nil { panic(err) }
