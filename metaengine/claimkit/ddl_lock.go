@@ -4,9 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
-
 	"github.com/larsartmann/go-cqrs-lite/claiming/v4"
+	"github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 )
 
 // claimsIndexDDL carries the Postgres index DDL every claims schema needs;

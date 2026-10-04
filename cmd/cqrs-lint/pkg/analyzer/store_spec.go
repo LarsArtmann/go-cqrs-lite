@@ -2,12 +2,11 @@ package analyzer
 
 import (
 	"bytes"
+	jsonv2 "encoding/json/v2"
 	"errors"
 	"fmt"
 	"slices"
 	"strings"
-
-	jsonv2 "encoding/json/v2"
 )
 
 // StoreSpec is the config representation of one or more persistence

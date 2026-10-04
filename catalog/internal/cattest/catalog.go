@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
 )
 

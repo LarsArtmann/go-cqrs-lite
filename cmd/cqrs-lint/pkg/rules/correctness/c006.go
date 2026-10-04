@@ -6,9 +6,8 @@ import (
 	"go/ast"
 	"go/token"
 
-	"github.com/larsartmann/go-finding"
-
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
+	"github.com/larsartmann/go-finding"
 )
 
 // Detects manual event version arithmetic (+1) instead of Version.Increment().

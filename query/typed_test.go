@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	"github.com/larsartmann/go-cqrs-lite/metadata/v4"
 	"github.com/larsartmann/go-cqrs-lite/query/v4"

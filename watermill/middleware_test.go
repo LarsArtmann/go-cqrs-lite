@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
-
 	cqrswatermill "github.com/larsartmann/go-cqrs-lite/watermill/v4"
 )
 

@@ -79,7 +79,7 @@
     "scheduling/engine": "scheduling/engine/v4.0.1",
     "scheduling/sqlstore": "scheduling/sqlstore/v4.1.2",
     "schema": "schema/v4.5.0",
-    "signing": "signing/v4.3.2",
+    "signing": "signing/v4.3.3",
     "snapshot": "snapshot/v4.6.0",
     "stack": "stack/v4.4.2",
     "stack/bbolt": "stack/bbolt/v4.2.2",

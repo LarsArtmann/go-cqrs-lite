@@ -1,9 +1,8 @@
 package analyzer
 
 import (
-	"testing"
-
 	jsonv2 "encoding/json/v2"
+	"testing"
 )
 
 func TestStoreSpecUnmarshalScalarAndArray(t *testing.T) {
