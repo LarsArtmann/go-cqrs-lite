@@ -659,21 +659,18 @@ release-train tail row below. — source: archived 06-47 §f6-8, 12-02 §f9/11/1
       (it is the daemon-commit safety net). — source: 2026-09-18 18-12
       report §e/9 _(Effort: M)_
 
-- [ ] **asyncapi-react bundle requires `unsafe-eval` — interactive AsyncAPI
-      UI is DEAD under strict CSP** (found 2026-09-18 via the repaired
-      `#check-csp` browser gate): the vendored bundle evaluates strings at
-      runtime and throws `Uncaught EvalError` under the eval-free `script-src`
-      policy, so `EnableCSP: true` leaves `/docs/asyncapi` non-interactive
-      (raw JSON endpoint + noscript fallback still serve). The gate currently
-      classifies the eval refusal as a known degradation
-      (`csp_browser_test.go`, cross-referenced). Real fix is an owner
-      decision: upgrade/replace the bundle for an eval-free build, or add a
-      PAGE-SCOPED CSP relaxation for `/docs/asyncapi` only (never a global
-      `'unsafe-eval'`). Same session also fixed the REAL root causes the gate
-      had never seen: nav scripts now nonce-gated
-      (`docsNavProps` threads the nonce into `ThemeToggle` + `SimpleNav`
-      `BaseProps`; previously blocked silently). _(Effort: M for page-scoped,
-      S+upstream for bundle swap)_
+- [x] ~~**asyncapi-react bundle requires `unsafe-eval` — interactive AsyncAPI
+      UI is DEAD under strict CSP**~~ — RESOLVED 2026-09-18 via the page-scoped
+      option: `serveAsyncAPIHTML` applies `applyCSPAllowingEval`, adding
+      `'unsafe-eval'` to `script-src` for `/docs/asyncapi` ONLY (never global;
+      verified scoped to that one handler). The vendored bundle's ajv compiler
+      needs `new Function`, which the eval-free policy blocked. The browser
+      gate no longer classifies eval refusal as a known degradation —
+      `TestCSPBrowser_NoViolations` requires the `aui-root` DOM to render and
+      fails on ANY fatal CSP refusal; `#check-csp` re-verified green 2026-10-04.
+      Nav scripts are nonce-gated (`docsNavProps` threads the nonce into
+      `ThemeToggle` + `SimpleNav` `BaseProps`). A future eval-free bundle swap
+      would let the relaxation be dropped entirely (nice-to-have, not tracked).
 
 - [ ] 🔥 **CI triage: master red across ~15+ jobs, no green run in the last
       30.** Classified 2026-09-11 (run 34548534824), RE-CLASSIFIED

@@ -142,7 +142,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **catalog/asyncapi: queries export as real AsyncAPI 3.0 request/reply operations.** The package doc claimed "queries become request/reply operations", but the exporter never emitted one — `asyncapi.Reply`/`asyncapi.ReplyAddress` were dead types and queries shipped as plain `receive` operations with no response contract. Every query operation now carries a `reply` addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the reply message (opaque schema — the catalog does not model query response types) is registered in that channel's messages map, following the Reply scoping contract documented on `asyncapi.Reply`. Commands and events never gain a reply. AsyncAPI tooling (Microcks, generators, the AsyncAPI React view) can now surface query response semantics. Goldens re-pinned (`catalog/testdata/golden/asyncapi*.snap`); `TestExporter_Export_Query` pins the full reply shape (address, channel ref, registered reply message, ref scoping).
+
 - **repo: `versions.json` module→latest-published-tag manifest + README matrix + freshness gate (GitHub #27).** Consumers had to `git ls-remote` per module to spot stale pins; now a committed manifest (108 trains, key `.` = the repo-root train, full tag per module — semver-aware latest pick that ranks `v2.0.0` above `v2.0.0-rc1`, which plain `sort -V` gets wrong) plus a generated collapsed table in the README answer it in one read. `scripts/check-versions-manifest.sh --update` regenerates both artifacts; the nightly gate compares them against origin tags and fails on BOTH drift directions (a published tag missing from the manifest, or a manifest citing an unpushed/deleted tag); `tag-release.sh` refreshes the manifest at tag time so every release lands with it. Hermetic `--self-test` (stale-manifest and unmanifested-tag mutation legs) runs in the nightly leg before the gate.
+
+### Fixed
+
+- **catalog/asyncapi: channel titles no longer mangle "queries" into "querie".** The singular noun for channel titles was computed with `strings.TrimSuffix(kind, "s")`, so query channels rendered "Get Order querie Channel". A real singular map fixes queries (and is exact for commands/events); applied on both the service and agent channel paths.
 
 ### Changed
 

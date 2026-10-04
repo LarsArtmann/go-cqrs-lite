@@ -2000,6 +2000,7 @@ id/method IsZero
 id/method Kind
 id/method MarshalBinary
 id/method MarshalJSON
+id/method Name
 id/method PrefixedString
 id/method Raw
 id/method StreamKey
@@ -5192,6 +5193,7 @@ scheduling/interface TimerStore
 scheduling/method Cancel
 scheduling/method Due
 scheduling/method MarkFired
+scheduling/method Name
 scheduling/method Schedule
 scheduling/method Start
 scheduling/sqlstore/const DefaultClaimLease
