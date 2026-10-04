@@ -910,9 +910,10 @@
 
               src = mkMdGoValidatorSource pkgs;
 
-              # Re-pinned 2026-09-29: the prepared-deps replace set (go-finding
-              # family wave) shifted the module graph under the pinned rev.
-              vendorHash = "sha256-pRrHMB8ZRMS8wAoPAbDd1uvnsd/JOtB6ve7ob9ioKkE=";
+              # Re-pinned 2026-10-04: md-go-validator input moved on master
+              # (flake.lock refresh without a vendorHash re-pin — same class
+              # as the 2026-09-29 shift).
+              vendorHash = "sha256-rrfMI/LXbmHdyz6nJLwAYVRfExKkBvMvjalpOG+ms6I=";
               proxyVendor = true;
 
               subPackages = [ "cmd/md-go-validator" ];
