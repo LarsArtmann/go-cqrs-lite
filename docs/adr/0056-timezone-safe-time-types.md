@@ -67,3 +67,23 @@ handle both "when did this happen?" (instant) and "9am for whom?" (wall time).
 - Existing `time.Time` fields continue to work (CBOR `TimeUnixDynamic` preserves nanos)
 - The C013 lint rule detects `time.Time` fields in event payloads and suggests replacements
 - `time.Time` fields that are genuinely instants can use `.UTC()` as a stopgap
+
+> **Amendment (2026-10-04, GitHub #50):** The second bullet's parenthetical is
+> wrong. `cbor.TimeUnixDynamic` encodes fractional-seconds times as float64
+> unix seconds (CBOR tag 1) — the same lossy form the "Alternatives" section
+> above already rejects. At 2026-era epochs the float64 mantissa leaves ~22
+> fraction bits, quantizing every round-trip to ≤256 ns (measured 165 ns
+> single-hop; ≤611 ns in the consumer's multi-hop repro). Scoped guidance:
+>
+> - `Instant` payloads stay exact by design (bare int64 UnixNano).
+> - `time.Time` payloads needing nanosecond fidelity must use the JSON event
+>   codec (`event.WithCodec(JSONCodec{})`, RFC3339 string) — measured 0 ns
+>   end-to-end through `system` + sqliteengine, pinned by
+>   `systemtest/time_fidelity_test.go` — or carry a sub-microsecond tolerance
+>   (~±256 ns per CBOR hop) in exact comparisons.
+> - The sqliteengine journal is NOT a loss point: `encodeStreamValue` stores
+>   JSON strings (exact); the loss enters at the CBOR event hop before it.
+> - Canonical fix proposed upstream: LarsArtmann/go-codec#4 (default to
+>   `cbor.TimeRFC3339Nano` — 0 ns, decode-compatible with stored data).
+> - The iroh loopback transport keeps `TimeUnixDynamic` deliberately: LWW
+>   sub-second ORDERING survives float64 quantization (transport.go `opEncMode`).
