@@ -7,7 +7,7 @@ require (
 	github.com/ThreeDotsLabs/watermill-nats/v2 v2.2.0
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/gkampitakis/go-snaps v0.5.23
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0

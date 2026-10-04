@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/storage/bbolt/v4
 go 1.27
 
 require (
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/event/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/event/v4/eventtest v0.4.0

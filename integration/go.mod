@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/cockroachdb/pebble v1.1.5
 	github.com/duckdb/duckdb-go/v2 v2.10505.0
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.1
 	github.com/larsartmann/go-cqrs-lite/encryption/v4 v4.4.2
@@ -33,7 +33,7 @@ require (
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/larsartmann/go-idempotency v0.3.0
 	github.com/onsi/ginkgo/v2 v2.33.0
-	github.com/onsi/gomega v1.43.1
+	github.com/onsi/gomega v1.44.0
 	github.com/samber/lo v1.53.0
 	go.opentelemetry.io/otel v1.46.0
 	go.opentelemetry.io/otel/sdk v1.46.0

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
 	"os"
 	"path/filepath"
 	"slices"
@@ -240,7 +240,7 @@ func TestFormatFlagBeatsConfigFile(t *testing.T) {
 	})
 
 	trimmed := strings.TrimSpace(out)
-	if !strings.HasPrefix(trimmed, "{") || !json.Valid([]byte(trimmed)) {
+	if !strings.HasPrefix(trimmed, "{") || !jsontext.Value([]byte(trimmed)).IsValid() {
 		t.Errorf("--format flag must beat config file value, got: %.120s", trimmed)
 	}
 }

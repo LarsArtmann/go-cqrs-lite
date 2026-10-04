@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/larsartmann/cmdguard/v4 v4.0.2
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/benchkit/v4 v4.6.1
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
 	github.com/larsartmann/go-cqrs-lite/stack/bbolt/v4 v4.2.2
@@ -36,7 +36,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20260930135840-270558f35f71 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20261001125412-878653296cfd // indirect
 	github.com/charmbracelet/x/ansi v0.11.8 // indirect
 	github.com/charmbracelet/x/exp/charmtone v0.1.0 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
@@ -152,7 +152,7 @@ require (
 	github.com/oklog/ulid/v2 v2.1.2 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
-	github.com/pierrec/lz4/v4 v4.1.31 // indirect
+	github.com/pierrec/lz4/v4 v4.1.33 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.24.1 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect

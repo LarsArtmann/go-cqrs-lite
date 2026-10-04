@@ -41,7 +41,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.20.1 // indirect
 	github.com/larsartmann/go-branded-id v0.7.0 // indirect
-	github.com/larsartmann/go-codec v0.3.0 // indirect
+	github.com/larsartmann/go-codec v0.3.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/command/v4 v4.13.0 // indirect
 	github.com/larsartmann/go-cqrs-lite/decider/v4 v4.7.1 // indirect
 	github.com/larsartmann/go-cqrs-lite/dedup/v4 v4.2.3 // indirect

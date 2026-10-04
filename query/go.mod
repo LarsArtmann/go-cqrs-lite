@@ -3,7 +3,7 @@ module github.com/larsartmann/go-cqrs-lite/query/v4
 go 1.27
 
 require (
-	github.com/larsartmann/go-codec v0.3.0
+	github.com/larsartmann/go-codec v0.3.1
 	github.com/larsartmann/go-cqrs-lite/dispatcher/v4 v4.5.1
 	github.com/larsartmann/go-cqrs-lite/id/v4 v4.6.2
 	github.com/larsartmann/go-cqrs-lite/metadata/v4 v4.7.2
@@ -11,7 +11,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/storage/memory/v4 v4.6.0
 	github.com/larsartmann/go-error-family v0.11.0
 	github.com/onsi/ginkgo/v2 v2.33.0
-	github.com/onsi/gomega v1.43.1
+	github.com/onsi/gomega v1.44.0
 	pgregory.net/rapid v1.3.0
 )
 

@@ -12,14 +12,9 @@ require (
 
 require (
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
-	github.com/onsi/gomega v1.44.0 // indirect
-	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/stretchr/testify v1.12.1 // indirect
-	github.com/tidwall/match v1.2.0 // indirect
-	github.com/tidwall/pretty v1.2.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/net v0.59.0 // indirect
 )
 
 // Sibling replace for unpublished record symbols (DeferClose, ADR-0144);

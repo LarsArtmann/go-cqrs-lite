@@ -7,7 +7,7 @@ require (
 	github.com/larsartmann/go-cqrs-lite/metaengine/v4 v4.16.0
 	github.com/larsartmann/go-cqrs-lite/testutil/pgtestcontainer/v4 v4.2.2
 	github.com/larsartmann/go-error-family v0.11.0
-	github.com/larsartmann/go-idempotency v0.3.0
+	github.com/larsartmann/go-idempotency v0.3.1
 	modernc.org/sqlite v1.60.1
 	pgregory.net/rapid v1.3.0
 )

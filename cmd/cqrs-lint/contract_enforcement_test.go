@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
 	"testing"
+
+	"encoding/json/jsontext"
 
 	"github.com/spf13/cobra"
 
@@ -92,7 +93,7 @@ func TestScorecardConfigFileFormatParity(t *testing.T) {
 	if !strings.HasPrefix(trimmed, "{") {
 		t.Errorf("config file format json should make scorecard emit JSON, got: %.120s", trimmed)
 	}
-	if !json.Valid([]byte(trimmed)) {
+	if !jsontext.Value([]byte(trimmed)).IsValid() {
 		t.Errorf("scorecard output should be valid JSON, got: %.120s", trimmed)
 	}
 }
@@ -116,7 +117,7 @@ func TestDoctorConfigFileFormatParity(t *testing.T) {
 	if !strings.HasPrefix(trimmed, "{") {
 		t.Errorf("config file format json should make doctor emit JSON, got: %.120s", trimmed)
 	}
-	if !json.Valid([]byte(trimmed)) {
+	if !jsontext.Value([]byte(trimmed)).IsValid() {
 		t.Errorf("doctor output should be valid JSON, got: %.120s", trimmed)
 	}
 }
