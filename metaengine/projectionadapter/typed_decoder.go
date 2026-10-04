@@ -66,7 +66,7 @@ func Register[E any](eventType event.Type, _ E) EventRegistration {
 			}
 
 			return EventWithID[E]{
-				ID:         evt.StreamID().String(),
+				ID:         evt.StreamID().Get(),
 				Payload:    p,
 				OccurredAt: evt.OccurredAt(),
 			}, nil
@@ -91,7 +91,7 @@ func RegisterString[E any](eventType string, _ E) EventRegistration {
 			}
 
 			return EventWithID[E]{
-				ID:         evt.StreamID().String(),
+				ID:         evt.StreamID().Get(),
 				Payload:    p,
 				OccurredAt: evt.OccurredAt(),
 			}, nil
