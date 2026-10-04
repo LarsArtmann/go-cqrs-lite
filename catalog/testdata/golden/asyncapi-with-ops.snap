@@ -38,11 +38,20 @@
     },
     "queries.GetOrder": {
       "address": "order-svc.queries.get.order",
-      "title": "Get Order querie Channel",
+      "title": "Get Order query Channel",
       "description": "Get order by ID",
       "messages": {
         "query.GetOrder": {
           "$ref": "#/components/messages/query.GetOrder"
+        }
+      }
+    },
+    "queries.GetOrder.replies": {
+      "address": "order-svc.queries.get.order.replies",
+      "title": "Get Order Reply Channel",
+      "messages": {
+        "query.GetOrder.reply": {
+          "$ref": "#/components/messages/query.GetOrder.reply"
         }
       }
     }
@@ -70,7 +79,20 @@
         {
           "name": "http:GET"
         }
-      ]
+      ],
+      "reply": {
+        "address": {
+          "location": "$message.header#/replyTo"
+        },
+        "channel": {
+          "$ref": "#/channels/queries.GetOrder.replies"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/queries.GetOrder.replies/messages/query.GetOrder.reply"
+          }
+        ]
+      }
     },
     "publishOrderCreated": {
       "title": "Publish Order Created",
@@ -131,6 +153,9 @@
       },
       "query.GetOrder": {
         "type": "object"
+      },
+      "query.GetOrder.reply": {
+        "type": "object"
       }
     },
     "messages": {
@@ -171,6 +196,20 @@
         "contentType": "application/json",
         "payload": {
           "$ref": "#/components/schemas/query.GetOrder"
+        },
+        "tags": [
+          {
+            "name": "queries"
+          }
+        ],
+        "deprecated": false
+      },
+      "query.GetOrder.reply": {
+        "name": "GetOrder",
+        "title": "Get Order Response",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/query.GetOrder.reply"
         },
         "tags": [
           {

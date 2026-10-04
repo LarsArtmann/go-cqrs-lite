@@ -324,6 +324,7 @@ Maps CQRS types to AsyncAPI operations:
 - Commands → `action: receive`
 - Events with `Sends` → `action: send`
 - Events with `Receives` → `action: receive`
+- Queries → `action: receive` **+ `reply`** (request/reply: replies are addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the response message's schema is intentionally opaque because the catalog does not model query response types)
 
 ### EventCatalog
 

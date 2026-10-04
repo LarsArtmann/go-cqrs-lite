@@ -38,11 +38,20 @@
     },
     "queries.GetOrder": {
       "address": "order-svc.queries.get.order",
-      "title": "Get Order querie Channel",
+      "title": "Get Order query Channel",
       "description": "Get order by ID",
       "messages": {
         "query.GetOrder": {
           "$ref": "#/components/messages/query.GetOrder"
+        }
+      }
+    },
+    "queries.GetOrder.replies": {
+      "address": "order-svc.queries.get.order.replies",
+      "title": "Get Order Reply Channel",
+      "messages": {
+        "query.GetOrder.reply": {
+          "$ref": "#/components/messages/query.GetOrder.reply"
         }
       }
     }
@@ -67,7 +76,20 @@
         {
           "name": "order-svc"
         }
-      ]
+      ],
+      "reply": {
+        "address": {
+          "location": "$message.header#/replyTo"
+        },
+        "channel": {
+          "$ref": "#/channels/queries.GetOrder.replies"
+        },
+        "messages": [
+          {
+            "$ref": "#/channels/queries.GetOrder.replies/messages/query.GetOrder.reply"
+          }
+        ]
+      }
     },
     "publishOrderCreated": {
       "title": "Publish Order Created",
@@ -129,6 +151,9 @@
       },
       "query.GetOrder": {
         "type": "object"
+      },
+      "query.GetOrder.reply": {
+        "type": "object"
       }
     },
     "messages": {
@@ -176,6 +201,20 @@
           }
         ],
         "deprecated": false
+      },
+      "query.GetOrder.reply": {
+        "name": "GetOrder",
+        "title": "Get Order Response",
+        "contentType": "application/json",
+        "payload": {
+          "$ref": "#/components/schemas/query.GetOrder.reply"
+        },
+        "tags": [
+          {
+            "name": "queries"
+          }
+        ],
+        "deprecated": false
       }
     }
   }
@@ -211,11 +250,17 @@ channels:
                 $ref: '#/components/messages/event.OrderCreated'
     queries.GetOrder:
         address: order-svc.queries.get.order
-        title: Get Order querie Channel
+        title: Get Order query Channel
         description: Get order by ID
         messages:
             query.GetOrder:
                 $ref: '#/components/messages/query.GetOrder'
+    queries.GetOrder.replies:
+        address: order-svc.queries.get.order.replies
+        title: Get Order Reply Channel
+        messages:
+            query.GetOrder.reply:
+                $ref: '#/components/messages/query.GetOrder.reply'
 operations:
     handleGetOrder:
         title: Handle Get Order
@@ -228,6 +273,13 @@ operations:
         tags:
             -   name: queries
             -   name: order-svc
+        reply:
+            address:
+                location: $message.header#/replyTo
+            channel:
+                $ref: '#/channels/queries.GetOrder.replies'
+            messages:
+                -   $ref: '#/channels/queries.GetOrder.replies/messages/query.GetOrder.reply'
     publishOrderCreated:
         title: Publish Order Created
         summary: Order was created
@@ -263,6 +315,8 @@ components:
             type: object
         query.GetOrder:
             type: object
+        query.GetOrder.reply:
+            type: object
     messages:
         command.CreateOrder:
             name: CreateOrder
@@ -289,6 +343,14 @@ components:
             contentType: application/json
             payload:
                 $ref: '#/components/schemas/query.GetOrder'
+            tags:
+                -   name: queries
+        query.GetOrder.reply:
+            name: GetOrder
+            title: Get Order Response
+            contentType: application/json
+            payload:
+                $ref: '#/components/schemas/query.GetOrder.reply'
             tags:
                 -   name: queries
 

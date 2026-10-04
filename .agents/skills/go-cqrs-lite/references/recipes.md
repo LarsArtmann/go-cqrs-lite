@@ -735,6 +735,20 @@ _ = eventcatalog.NewExporter("./eventcatalog").Export(cat) // MDX files, deduped
 d2Text := d2.NewExporter("My API", "1.0.0").Export(cat)
 ```
 
+Two contract details worth knowing:
+
+- **Queries export as request/reply.** The query operation carries a `reply`
+  addressed to `$message.header#/replyTo` on a dedicated `<query>.replies`
+  channel; the response message's schema is opaque (the catalog does not model
+  query response types). Commands/events never carry a reply.
+- **Point `WithServer` at your REAL watermill backend.** The exporter defaults
+  to a kafka server on localhost:9092, but the document is only honest when the
+  server mirrors what the service actually runs — pass the watermill backend's
+  coordinates explicitly (`asyncapi.WithServer("production", "nats.example:4222",
+  "nats")` for NATS JetStream, `"redis"` for Redis Streams, `"amqp"` for
+  RabbitMQ; `WithServer("production", "", "kafka")` suppresses servers
+  entirely for REST-only catalogs).
+
 Serve everything over HTTP with the docserver (templ-components UI, embedded
 assets, dark mode):
 
