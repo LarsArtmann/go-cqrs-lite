@@ -35,8 +35,8 @@ func FuzzParseAggregateID(f *testing.F) {
 			return
 		}
 
-		if parsed.String() != input {
-			t.Errorf("String(): got %q, want %q", parsed.String(), input)
+		if parsed.Get() != input {
+			t.Errorf("String(): got %q, want %q", parsed.Get(), input)
 		}
 
 		if parsed.IsZero() {
@@ -147,8 +147,8 @@ func FuzzAggregateIDFrom(f *testing.F) {
 		s := stringerFunc(func() string { return input })
 		got := id.StreamIDFrom(s)
 
-		if got.String() != input {
-			t.Errorf("StreamIDFrom: got %q, want %q", got.String(), input)
+		if got.Get() != input {
+			t.Errorf("StreamIDFrom: got %q, want %q", got.Get(), input)
 		}
 	})
 }

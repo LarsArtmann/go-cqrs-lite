@@ -73,8 +73,8 @@ func TestAggregateIDFrom(t *testing.T) {
 	s := mockStringer{s: "custom-domain-id-123"}
 	got := id.StreamIDFrom(s)
 
-	if got.String() != "custom-domain-id-123" {
-		t.Errorf("got %q, want custom-domain-id-123", got.String())
+	if got.Get() != "custom-domain-id-123" {
+		t.Errorf("got %q, want custom-domain-id-123", got.Get())
 	}
 }
 

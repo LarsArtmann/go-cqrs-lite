@@ -45,9 +45,9 @@ func TestIDStringLength(t *testing.T) {
 		evtID := id.NewEventID()
 		cmdID := id.NewCommandID()
 
-		// ULID strings are always 26 characters
-		if len(aggID.String()) != 26 {
-			t.Fatalf("aggregate ID length %d != 26", len(aggID.String()))
+		// ULID identity strings are always 26 characters (Get is the bare wire/identity form)
+		if len(aggID.Get()) != 26 {
+			t.Fatalf("aggregate ID length %d != 26", len(aggID.Get()))
 		}
 		if len(evtID.String()) != 26 {
 			t.Fatalf("event ID length %d != 26", len(evtID.String()))

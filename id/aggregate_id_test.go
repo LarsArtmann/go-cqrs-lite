@@ -63,8 +63,8 @@ func TestParseAggregateID_LenientAcceptsNonULID(t *testing.T) {
 		t.Fatalf("lenient parse should accept non-ULID: %v", err)
 	}
 
-	if got.String() != "lock_user1_user2" {
-		t.Errorf("got %q, want lock_user1_user2", got)
+	if got.Get() != "lock_user1_user2" {
+		t.Errorf("got %q, want lock_user1_user2", got.Get())
 	}
 }
 

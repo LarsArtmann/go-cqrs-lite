@@ -34,8 +34,8 @@ func TestJSON(t *testing.T) {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
-		if id.String() != testULID {
-			t.Errorf("Unmarshal() = %q, want %q", id.String(), testULID)
+		if id.Get() != testULID {
+			t.Errorf("Unmarshal() = %q, want %q", id.Get(), testULID)
 		}
 	})
 
@@ -72,7 +72,7 @@ func TestJSON(t *testing.T) {
 	t.Run("roundtrip", func(t *testing.T) {
 		t.Parallel()
 
-		original := New[StreamID]()
+		original := NewStreamID()
 
 		data, err := json.Marshal(original)
 		if err != nil {
@@ -86,8 +86,8 @@ func TestJSON(t *testing.T) {
 			t.Fatalf("Unmarshal() error = %v", err)
 		}
 
-		if original.String() != restored.String() {
-			t.Errorf("roundtrip: %q != %q", original, restored)
+		if restored != original {
+			t.Errorf("roundtrip: %q != %q", restored.Get(), original.Get())
 		}
 	})
 }
@@ -244,8 +244,8 @@ func TestSQLScan(t *testing.T) {
 			t.Fatalf("Scan() error = %v", err)
 		}
 
-		if id.String() != testULID {
-			t.Errorf("Scan() = %q, want %q", id.String(), testULID)
+		if id.Get() != testULID {
+			t.Errorf("Scan() = %q, want %q", id.Get(), testULID)
 		}
 	})
 
@@ -259,8 +259,8 @@ func TestSQLScan(t *testing.T) {
 			t.Fatalf("Scan() error = %v", err)
 		}
 
-		if id.String() != "01HK154ANGZHV2ZW0X3SKSNEN2" {
-			t.Errorf("Scan() = %q, want %q", id.String(), "01HK154ANGZHV2ZW0X3SKSNEN2")
+		if id.Get() != "01HK154ANGZHV2ZW0X3SKSNEN2" {
+			t.Errorf("Scan() = %q, want %q", id.Get(), "01HK154ANGZHV2ZW0X3SKSNEN2")
 		}
 	})
 

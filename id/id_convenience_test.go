@@ -37,8 +37,8 @@ func TestAggregateID(t *testing.T) {
 		t.Fatalf("ParseAggregateID() error = %v", err)
 	}
 
-	if parsed.String() != testULID {
-		t.Errorf("ParseAggregateID() = %q, want %q", parsed.String(), testULID)
+	if parsed.Get() != testULID {
+		t.Errorf("ParseAggregateID() = %q, want %q", parsed.Get(), testULID)
 	}
 
 	t.Run("accepts non-ULID strings", func(t *testing.T) {
@@ -50,8 +50,8 @@ func TestAggregateID(t *testing.T) {
 			t.Fatalf("ParseAggregateID(%q) error = %v", domainID, err)
 		}
 
-		if parsed.String() != domainID {
-			t.Errorf("ParseAggregateID(%q) = %q, want %q", domainID, parsed.String(), domainID)
+		if parsed.Get() != domainID {
+			t.Errorf("ParseAggregateID(%q) = %q, want %q", domainID, parsed.Get(), domainID)
 		}
 
 		if parsed.IsZero() {
