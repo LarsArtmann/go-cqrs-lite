@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/larsartmann/go-output"
-
 	"github.com/larsartmann/go-cqrs-lite/benchkit/v4"
+	"github.com/larsartmann/go-output"
 )
 
 // addVariationRows extends the run summary table with cross-run dispersion for

@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"sync"
 
+	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
+	"github.com/larsartmann/go-cqrs-lite/record/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-
-	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
-	"github.com/larsartmann/go-cqrs-lite/record/v4"
 )
 
 var (

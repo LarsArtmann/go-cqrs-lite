@@ -3,11 +3,10 @@ package decider_test
 import (
 	"testing"
 
-	"pgregory.net/rapid"
-
 	"github.com/larsartmann/go-cqrs-lite/decider/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
+	"pgregory.net/rapid"
 )
 
 // rapidCounterState is a simple state for property testing.

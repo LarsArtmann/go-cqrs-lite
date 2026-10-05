@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	errorfamily "github.com/larsartmann/go-error-family"
-
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
 	cqrsotel "github.com/larsartmann/go-cqrs-lite/otel/v4"
 	sqlpkg "github.com/larsartmann/go-cqrs-lite/storage/v4/sql"
+	errorfamily "github.com/larsartmann/go-error-family"
 )
 
 var eventQueryConfig = sqlpkg.QueryConfig[event.Event]{ //nolint:gochecknoglobals // contains closures, cannot be const

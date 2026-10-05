@@ -3,11 +3,10 @@ package bboltengine_test
 import (
 	"testing"
 
-	"github.com/onsi/gomega"
-
 	"github.com/larsartmann/go-cqrs-lite/metaengine/bboltengine/v4"
 	metaengine "github.com/larsartmann/go-cqrs-lite/metaengine/v4"
 	"github.com/larsartmann/go-cqrs-lite/metaengine/v4/adttest"
+	"github.com/onsi/gomega"
 )
 
 func TestBboltADTMatrix(t *testing.T) {

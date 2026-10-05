@@ -110,6 +110,9 @@ func TestRepro_DirectiveSuppressedThroughToolspec(t *testing.T) {
 		t.Fatalf("Detect: %v", err)
 	}
 	if hasC003(findings) {
-		t.Fatalf("REPRO CONFIRMED: //cqrs-lint:ignore(C003) is DROPPED at the toolsdk boundary; C003 still reported. findings: %+v", findings)
+		t.Fatalf(
+			"REPRO CONFIRMED: //cqrs-lint:ignore(C003) is DROPPED at the toolsdk boundary; C003 still reported. findings: %+v",
+			findings,
+		)
 	}
 }

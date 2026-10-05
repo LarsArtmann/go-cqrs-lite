@@ -26,7 +26,6 @@ import (
 	"time"
 
 	"github.com/larsartmann/go-codec"
-
 	"github.com/larsartmann/go-cqrs-lite/command/v4"
 	"github.com/larsartmann/go-cqrs-lite/event/v4"
 	"github.com/larsartmann/go-cqrs-lite/id/v4"
@@ -104,7 +103,7 @@ func TestSystem_TimePayloadFidelity_SQLite(t *testing.T) {
 					"task.created",
 					TaskCreated{},
 					func(_ record.Record, e TaskCreated) (string, nanoView) {
-						return e.Title, nanoView{Title: e.Title, At: e.At}
+						return e.Title, nanoView(e)
 					},
 				),
 			)
