@@ -84,6 +84,71 @@ func ShortestPath(from, to string) []string {
 	ruletest.AssertRule(t, findings, "F010", 1)
 }
 
+// TestF010_NoFindingOnBuriedKeywordIdentifier pins identifier-part edge
+// matching: a keyword buried mid-name (gitHierarchyDump: git plumbing, no
+// graph work) must not coach graph adoption (CV feedback, 2026-10-05).
+// The old substring model fired on any contained keyword.
+func TestF010_NoFindingOnBuriedKeywordIdentifier(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func gitHierarchyDump(repo string) []string {
+	return nil
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 0)
+}
+
+// TestF010_StillFiresOnLeadingTraversalWord pins the leading-run arm: a name
+// that opens with traversal vocabulary keeps coaching even with a trailing
+// noun (TraverseGraph). The ShortestPathHelper-style residual (keyword leads
+// a name that is not graph work) is inherent to any name-only model and is
+// accepted for a low-confidence hint.
+func TestF010_StillFiresOnLeadingTraversalWord(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func TraverseGraph(nodes []string) {
+	_ = nodes
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 1)
+}
+
+// TestF010_FiresOnUnexportedTraversalNames pins the case-insensitive arm:
+// idiomatic unexported traversal names (lowercase leading word) were
+// invisible to the old case-sensitive substring match, so real graph code
+// in unexported functions never drew the hint.
+func TestF010_FiresOnUnexportedTraversalNames(t *testing.T) {
+	t.Parallel()
+
+	ctx := analyzer.BuildContextFromSource(t, map[string]string{
+		"main.go": `package main
+
+func walkHierarchy(node string) []string {
+	return nil
+}
+
+func traverseGraph(edges map[string][]string) {
+	_ = edges
+}
+`,
+	})
+
+	findings := ruletest.RunDetector(t, adoption.NewF010Detector(ctx))
+	ruletest.AssertRule(t, findings, "F010", 1)
+}
+
 func TestF011_MultiExecWithoutRelationalProjection(t *testing.T) {
 	t.Parallel()
 

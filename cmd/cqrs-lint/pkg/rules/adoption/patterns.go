@@ -4,6 +4,7 @@ import (
 	"go/ast"
 	"go/token"
 	"strings"
+	"unicode"
 
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/rules/lintutil"
@@ -142,6 +143,13 @@ func hasTraversalPatternsIn(
 	// No bare "Path": it contains-matches unrelated identifiers such as
 	// ChromePath/file-path setters (CV feedback, 2026-10-03); the graph
 	// path-finding case stays covered by the dedicated "ShortestPath" entry.
+	// Keywords match at identifier-part EDGES (the leading or trailing
+	// CamelCase word run, case-insensitively) instead of as raw substrings,
+	// so a keyword buried mid-name (gitHierarchyDump) no longer coaches
+	// graph adoption. A keyword that LEADS the name still fires with a
+	// trailing noun (ShortestPathHelper): no name-only model can separate
+	// that shape from TraverseGraph, and F010 is a low-confidence hint
+	// while the WITH RECURSIVE branch below carries the strong signal.
 	keywords := []string{
 		"Traverse", "Ancestor", "Descendant", "ShortestPath",
 		"Neighbor", "Adjacency", "Hierarchy",
@@ -159,7 +167,7 @@ func hasTraversalPatternsIn(
 			}
 
 			for _, kw := range keywords {
-				if strings.Contains(fn.Name.Name, kw) {
+				if keywordAtIdentifierEdge(fn.Name.Name, kw) {
 					return fset.Position(fn.Pos()), true
 				}
 			}
@@ -198,6 +206,79 @@ func hasTraversalPatternsIn(
 	}
 
 	return token.Position{}, false
+}
+
+// keywordAtIdentifierEdge reports whether keyword's CamelCase word parts
+// align with the name's leading or trailing word parts, case-insensitively.
+// A keyword part may extend into its word ("Ancestor" matches "Ancestors"),
+// keeping the plural/variant recall that exact part equality would drop.
+func keywordAtIdentifierEdge(name, keyword string) bool {
+	nameParts := identifierParts(name)
+	kwParts := identifierParts(keyword)
+	if len(nameParts) < len(kwParts) {
+		return false
+	}
+
+	partHasPrefix := func(part, kw string) bool {
+		return strings.HasPrefix(strings.ToLower(part), strings.ToLower(kw))
+	}
+
+	lead := true
+	for i, kw := range kwParts {
+		if !partHasPrefix(nameParts[i], kw) {
+			lead = false
+
+			break
+		}
+	}
+	if lead {
+		return true
+	}
+
+	base := len(nameParts) - len(kwParts)
+	for i, kw := range kwParts {
+		if !partHasPrefix(nameParts[base+i], kw) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// identifierParts splits a Go identifier into CamelCase word parts:
+// lower→upper humps, acronym-run ends ("URLToken" → URL, Token),
+// letter↔digit boundaries, and non-alphanumeric separators.
+func identifierParts(name string) []string {
+	parts := make([]string, 0, 2)
+
+	for _, tok := range strings.FieldsFunc(name, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	}) {
+		parts = append(parts, splitCamelToken(tok)...)
+	}
+
+	return parts
+}
+
+// splitCamelToken splits one non-empty alphanumeric token at its CamelCase
+// humps.
+func splitCamelToken(tok string) []string {
+	rs := []rune(tok)
+	parts := make([]string, 0, 2)
+	start := 0
+
+	for i := 1; i < len(rs); i++ {
+		hump := unicode.IsLower(rs[i-1]) && unicode.IsUpper(rs[i])
+		acronymEnd := unicode.IsUpper(rs[i-1]) && unicode.IsUpper(rs[i]) &&
+			i+1 < len(rs) && unicode.IsLower(rs[i+1])
+		digitEdge := unicode.IsDigit(rs[i-1]) != unicode.IsDigit(rs[i])
+		if hump || acronymEnd || digitEdge {
+			parts = append(parts, string(rs[start:i]))
+			start = i
+		}
+	}
+
+	return append(parts, string(rs[start:]))
 }
 
 // manualSortPatterns are the function calls that indicate in-memory sorting.
