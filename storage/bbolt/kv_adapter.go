@@ -8,10 +8,9 @@ import (
 	"slices"
 	"sync/atomic"
 
+	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 	errorfamily "github.com/larsartmann/go-error-family"
 	bolt "go.etcd.io/bbolt"
-
-	"github.com/larsartmann/go-cqrs-lite/kv/v4"
 )
 
 // KVAdapter adapts a *bbolt.DB to the kv.Store interface using the cqrs_kv

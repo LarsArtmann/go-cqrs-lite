@@ -3,9 +3,8 @@ package docserver
 import (
 	"cmp"
 
-	"github.com/larsartmann/templ-components/icons"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/templ-components/icons"
 )
 
 // eventCatalogTitle is the display name of the Event Catalog surface; used by

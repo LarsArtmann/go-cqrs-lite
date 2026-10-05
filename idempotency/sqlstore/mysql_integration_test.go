@@ -23,9 +23,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/larsartmann/go-idempotency"
-
 	"github.com/larsartmann/go-cqrs-lite/idempotency/sqlstore/v4"
+	"github.com/larsartmann/go-idempotency"
 )
 
 // mysqlDSN returns MYSQL_TEST_DSN or skips the test.

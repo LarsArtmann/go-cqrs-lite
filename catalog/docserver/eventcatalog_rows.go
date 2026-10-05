@@ -5,9 +5,8 @@ import (
 	"strconv"
 
 	"github.com/a-h/templ"
-	"github.com/larsartmann/templ-components/display"
-
 	"github.com/larsartmann/go-cqrs-lite/catalog/v4"
+	"github.com/larsartmann/templ-components/display"
 )
 
 // Display glue for the event catalog pages: URL builders and the

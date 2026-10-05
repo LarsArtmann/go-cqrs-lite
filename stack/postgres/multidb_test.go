@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // register pgx driver
-
 	"github.com/larsartmann/go-cqrs-lite/stack/postgres/v4"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/contracttest"
 	"github.com/larsartmann/go-cqrs-lite/stack/v4/sqlopt"
