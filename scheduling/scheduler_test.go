@@ -41,8 +41,8 @@ func TestMemoryTimerStore_ScheduleAndDue(t *testing.T) {
 	if len(due) != 1 {
 		t.Fatalf("expected 1 due timer, got %d", len(due))
 	}
-	if due[0].ID.String() != "a" {
-		t.Fatalf("expected 'a', got %q", due[0].ID)
+	if due[0].ID.Get() != "a" {
+		t.Fatalf("expected 'a', got %q", due[0].ID.Get())
 	}
 }
 
@@ -127,8 +127,8 @@ func TestScheduler_DispatchesDueTimers(t *testing.T) {
 	sched := scheduling.New(
 		store,
 		func(_ context.Context, timer scheduling.Timer[string]) error {
-			if timer.ID.String() != "task-1" {
-				t.Errorf("expected task-1, got %s", timer.ID)
+			if timer.ID.Get() != "task-1" {
+				t.Errorf("expected task-1, got %s", timer.ID.Get())
 			}
 			dispatched.Add(1)
 
@@ -370,8 +370,8 @@ func TestMemoryTimerStore_DueOrderedByFireAt(t *testing.T) {
 
 	want := []string{"a", "b", "c"}
 	for i, id := range want {
-		if due[i].ID.String() != id {
-			t.Fatalf("due[%d]: expected %q, got %q", i, id, due[i].ID)
+		if due[i].ID.Get() != id {
+			t.Fatalf("due[%d]: expected %q, got %q", i, id, due[i].ID.Get())
 		}
 	}
 }

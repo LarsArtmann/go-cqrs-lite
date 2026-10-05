@@ -8,11 +8,28 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	cmdguard "github.com/larsartmann/cmdguard/v4/pkg/cmdguard/v4"
 	"github.com/larsartmann/go-cqrs-lite/cmd/cqrs-lint/v4/pkg/analyzer"
 )
+
+// stdoutMu serializes every touch of the process-global os.Stdout: fang and
+// cobra read it (OutOrStdout) inside ExecuteWithArgs, and captureStdout swaps
+// it. Without the lock, t.Parallel tests data-race on the os.Stdout variable.
+var stdoutMu sync.Mutex
+
+// runCLI executes the CLI under stdoutMu; all in-process CLI executions in
+// tests must go through it (see stdoutMu).
+func runCLI(t *testing.T, cli *cmdguard.CLI[AppConfig], args []string) error {
+	t.Helper()
+
+	stdoutMu.Lock()
+	defer stdoutMu.Unlock()
+
+	return cli.ExecuteWithArgs(context.Background(), args)
+}
 
 // This file pins the subcommand-consistency contract:
 //
@@ -62,6 +79,9 @@ func newTestCLI(t *testing.T) *cmdguard.CLI[AppConfig] {
 // was written. NOT safe for parallel tests.
 func captureStdout(t *testing.T, fn func()) string {
 	t.Helper()
+
+	stdoutMu.Lock()
+	defer stdoutMu.Unlock()
 
 	r, w, err := os.Pipe()
 	if err != nil {
@@ -196,7 +216,7 @@ func TestDoctorRejectsUnsupportedFormatBeforeLoad(t *testing.T) {
 	t.Parallel()
 
 	cli := newTestCLI(t)
-	err := cli.ExecuteWithArgs(context.Background(), []string{
+	err := runCLI(t, cli, []string{
 		"doctor", "--format", "yaml",
 		"--path", filepath.Join(t.TempDir(), "missing"),
 	})
@@ -215,7 +235,7 @@ func TestScorecardRejectsUnsupportedFormat(t *testing.T) {
 	t.Parallel()
 
 	cli := newTestCLI(t)
-	err := cli.ExecuteWithArgs(context.Background(), []string{
+	err := runCLI(t, cli, []string{
 		"scorecard", "--format", "csv",
 		"--path", t.TempDir(),
 	})
@@ -238,7 +258,7 @@ func TestVersionRejectsLintOnlyFlags(t *testing.T) {
 			t.Parallel()
 
 			cli := newTestCLI(t)
-			err := cli.ExecuteWithArgs(context.Background(), []string{"version", flag})
+			err := runCLI(t, cli, []string{"version", flag})
 			if err == nil {
 				t.Fatalf("version %s: expected unknown-flag error, got nil", flag)
 			}
@@ -257,7 +277,7 @@ func TestSubcommandsKeepSharedFlags(t *testing.T) {
 
 	dir := t.TempDir()
 	cli := newTestCLI(t)
-	err := cli.ExecuteWithArgs(context.Background(), []string{"init", "--path", dir})
+	err := runCLI(t, cli, []string{"init", "--path", dir})
 	if err != nil {
 		t.Fatalf("init --path should stay supported: %v", err)
 	}
@@ -272,8 +292,7 @@ func TestInitHonorsPathFlag(t *testing.T) {
 	dir := t.TempDir()
 	cli := newTestCLI(t)
 
-	if err := cli.ExecuteWithArgs(
-		context.Background(),
+	if err := runCLI(t, cli,
 		[]string{"init", "--path", dir},
 	); err != nil {
 		t.Fatalf("init --path %s: %v", dir, err)
@@ -285,8 +304,7 @@ func TestInitHonorsPathFlag(t *testing.T) {
 	}
 
 	// Second init into the same dir must fail on the existing file.
-	if err := cli.ExecuteWithArgs(
-		context.Background(),
+	if err := runCLI(t, cli,
 		[]string{"init", "--path", dir},
 	); !errors.Is(
 		err,
@@ -301,7 +319,7 @@ func TestInitErrorsOnMissingPath(t *testing.T) {
 
 	cli := newTestCLI(t)
 	missing := filepath.Join(t.TempDir(), "no-such-dir")
-	err := cli.ExecuteWithArgs(context.Background(), []string{"init", "--path", missing})
+	err := runCLI(t, cli, []string{"init", "--path", missing})
 	if err == nil {
 		t.Fatal("expected error for init --path <missing>, got nil")
 	}
@@ -320,7 +338,7 @@ func TestDoctorFixFlagRenamedToPrune(t *testing.T) {
 
 	cli := newTestCLI(t)
 
-	err := cli.ExecuteWithArgs(context.Background(), []string{"doctor", "--fix"})
+	err := runCLI(t, cli, []string{"doctor", "--fix"})
 	if err == nil {
 		t.Fatal("expected unknown-flag error for doctor --fix, got nil")
 	}
@@ -330,7 +348,7 @@ func TestDoctorFixFlagRenamedToPrune(t *testing.T) {
 
 	// --prune-suppressions is accepted (audit on an empty temp dir).
 	dir := t.TempDir()
-	err = cli.ExecuteWithArgs(context.Background(), []string{
+	err = runCLI(t, cli, []string{
 		"doctor", "--prune-suppressions", "--dry-run", "--path", dir,
 	})
 	if err != nil {
@@ -349,8 +367,8 @@ func TestSingleRenderCommandsIgnoreSharedFormat(t *testing.T) {
 	cli := newTestCLI(t)
 
 	for _, cmd := range []string{"version", "explain"} {
-		if err := cli.ExecuteWithArgs(
-			context.Background(), []string{cmd, "--format", "json"},
+		if err := runCLI(t, cli,
+			[]string{cmd, "--format", "json"},
 		); err != nil {
 			t.Errorf("%s --format json should be accepted-and-ignored, got: %v", cmd, err)
 		}

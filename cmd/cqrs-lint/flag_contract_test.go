@@ -102,7 +102,7 @@ func TestPersistentFlagAcceptanceMatrix(t *testing.T) {
 				t.Parallel()
 
 				cli := newTestCLI(t)
-				err := cli.ExecuteWithArgs(context.Background(), []string{
+				err := runCLI(t, cli, []string{
 					cmdName, fw[0], fw[1], "--path", t.TempDir(),
 				})
 				if err != nil && strings.Contains(strings.ToLower(err.Error()), "unknown flag") {
@@ -141,7 +141,7 @@ func TestLocalFlagsRejectedOnEverySubcommand(t *testing.T) {
 		t.Parallel()
 
 		cli := newTestCLI(t)
-		err := cli.ExecuteWithArgs(context.Background(), []string{"doctor", "--strict-load"})
+		err := runCLI(t, cli, []string{"doctor", "--strict-load"})
 		if err == nil || !strings.Contains(strings.ToLower(err.Error()), "unknown flag") {
 			t.Errorf("doctor --strict-load: expected unknown-flag error, got: %v", err)
 		}
@@ -153,7 +153,7 @@ func TestLocalFlagsRejectedOnEverySubcommand(t *testing.T) {
 				t.Parallel()
 
 				cli := newTestCLI(t)
-				err := cli.ExecuteWithArgs(context.Background(), []string{cmdName, flag})
+				err := runCLI(t, cli, []string{cmdName, flag})
 				if err == nil {
 					t.Fatalf("%s %s: expected unknown-flag error, got nil", cmdName, flag)
 				}
@@ -194,8 +194,8 @@ func TestInitPresetE2e(t *testing.T) {
 			dir := t.TempDir()
 			cli := newTestCLI(t)
 
-			if err := cli.ExecuteWithArgs(
-				context.Background(), []string{"init", "--preset", name, "--path", dir},
+			if err := runCLI(t, cli,
+				[]string{"init", "--preset", name, "--path", dir},
 			); err != nil {
 				t.Fatalf("init --preset %s: %v", name, err)
 			}
