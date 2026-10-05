@@ -4,6 +4,172 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+<!-- release-train 2026-10-05: dependency-sweep wave (93 tags, single batch —
+     same-batch sibling pins are sound: the four content modules' additions
+     are additive and nothing outside id/ and scheduling/ calls the new
+     Name() methods). Common content: per-module PROPRIETARY LICENSE copy
+     (inert restatement of the root license — the pkg.go.dev hidden-docs
+     policy is unchanged; copies do NOT unhide docs, verified 2026-09-25/-28),
+     dependency refresh (otel v1.47, grpc stable v1.84, x/* and general
+     bumps), Go 1.27 modernize rewrites, and the stale-go.sum prune across
+     8 modules (cmd/cqrs-gen, cmd/cqrs-lint, cmd/cqrs-upgrade, cmd/doc-check,
+     decider, metaengine/badgerengine, metaengine/otelobserver, otel/otlp —
+     otel v1.46/x/tools v0.50.0/ultraviolet superseded rows from the 10-03
+     sweeps, plus the otel/metric/x v0.69.0 checksums the v1.47 graph
+     requires). Four modules carry content beyond the sweep: catalog,
+     id, scheduling, cmd/cqrs-lint (minor bumps); stack/postgres publishes
+     the v4.2.0 retraction. The 10-03 floor-wave rationale did NOT retag the
+     root module (doc.go unchanged since v4.0.0; zero importable packages) —
+     root stays v4.0.0. -->
+## [v4.16.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `metaengine`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for this module).
+
+## [v4.14.0] — 2026-10-05
+
+- **cqrs-lint v4.14.0: A013 inverted — fires on VALUE-embedded `BasicCommand`, silent on the sanctioned pointer form (GitHub #51).** The old rule flagged `*command.BasicCommand` embeds and suggested value embedding "for cache locality" — but every `BasicCommand` method has a pointer receiver, so a value embed cannot satisfy `command.Command` (compile error when dispatched), and `ApplyOptions` mutates through the embedded pointer so pipeline enrichment reaches the command. Following the old suggestion broke compilation; real consumers (go-aichat/chatstore) emitted A013 on their sanctioned pattern. Now: value embeds fire at warning severity with the compile-failure rationale and the pointer-form suggestion; pointer embeds are silent (all 7 example embeds + the cqrs-gen template use the pointer form). RULES.md/README/catalog re-pinned, taskmanager golden re-generated (10 A013 findings dropped to 0), `TestA013_DetectsValueBasicCommand`/`TestA013_PointerEmbedStaysSilent` pin the inversion.
+- **cqrs-lint v4.14.0: `doctor --fix` renamed to `doctor --prune-suppressions` (breaking).** The root command's `--fix` applies findings autofixes; doctor's `--fix` removed stale suppression directives — the same flag name doing two unrelated destructive things per subcommand made every docs example ambiguous. The new name is parallel to `--audit-suppressions` and still implies the audit; `--dry-run` keeps its doctor-local meaning (preview the prune). Migration: replace `cqrs-lint doctor --fix` with `cqrs-lint doctor --prune-suppressions` (add `--dry-run` to preview). The old name is an unknown-flag error, not a silent alias.
+- **cqrs-lint v4.14.0: F022/F023 coach pushdown UTILIZATION for metaengine importers (nsfw-classifier feedback, 2026-10-03).** Adopting metaengine and adopting pushdown are different steps; the rules used to skip importers entirely, hiding the population that needs coaching most. Importers now get type-linked findings: `slices.SortFunc`/`sort.Slice` over a registered `metaengine.Query` R type lacking `SortOnField` (F022), and range loops with field comparisons over an R lacking `FilterOnField` (F023) — gated on the declaration's `Volume(n)` (≥1000; absent/unresolvable stays silent), with exactly-one-R attribution (shared R types stay silent rather than guess the collection). Suggestions show the two-layer shape (declaration allow-lists columns, `metaengine.WithFilter` binds values at read time) and the memory-engine framing (declaring is free — it activates with a SQL DSN). New analyzer surface: `CQRSRegistry.MetaengineQueries` (`analyzer.QueryDeclInfo`), `FeatureProfile.MetaengineQueryCount`/`MetaengineDeclarativeQueries`; the profile line is now actionable (`pushdown: false (3 queries, 0 declarative — …)`). Backed by the committed typed fixture `cmd/cqrs-lint/testdata/scanfixture`.
+- **cqrs-lint v4.14.0: `tracing: "off"` is an explicit decline (F003).** Detection no longer collapses absence-of-OTel-evidence to `TracingOff` (it stays `TracingUnknown`), so a pinned `"off"` uniquely means "deliberately declined" and F003 honors it — the same contract `features.monetary` uses for C008. Doctor consequently stops suggesting `tracing` pins for un-traced projects.
+- **cqrs-lint v4.14.0: doctor suggestions pin Server/SoftDelete only as positive evidence.** A detected `false` is absence-of-evidence within importer packages (non-importer packages are outside the scan scope); pinning it as project truth silenced real server rules for a consumer whose server lived elsewhere. `FeatureProfile.ToConfigFeatures` emits the booleans only when true, and doctor prints a scope NOTE beside the suggestion.
+- **2026-10-05 dependency sweep content rides this minor** (PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites; the stale-go.sum prune).
+
+## [v4.13.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `command`, `event`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites (import ordering, embedded-literal elision). No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.10.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `storage`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.10.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `system`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.10.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `query`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.7.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `metadata`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.7.2] — 2026-10-05
+
+- **middleware: `CommandRetry` conflict-retry semantics documented (GitHub #49).** `RetryConfig.IsRetryable` defaults to go-error-family's retryability classifier, which classifies only `Transient` errors as retryable — version conflicts (`event.ErrVersionConflict`, Conflict family) are NOT retried by default, and nothing documented that. Now stated on `middleware.CommandRetry` and the `RetryConfig.IsRetryable` field, including the sound explicit override for pipelines that reload journal state per attempt; FAQ entry added (command-side pitfalls); dated correction note added to the archived 2026-05-01 architecture roadmap's family table, which implied the opposite. Reclassifying Conflict itself remains a tracked design question.
+- **2026-10-05 dependency sweep (2 modules: `decider`, `middleware`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `decider`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.7.0] — 2026-10-05
+
+- **catalog/asyncapi: queries export as real AsyncAPI 3.0 request/reply operations.** The package doc claimed "queries become request/reply operations", but the exporter never emitted one — `asyncapi.Reply`/`asyncapi.ReplyAddress` were dead types and queries shipped as plain `receive` operations with no response contract. Every query operation now carries a `reply` addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the reply message (opaque schema — the catalog does not model query response types) is registered in that channel's messages map, following the Reply scoping contract documented on `asyncapi.Reply`. Commands and events never gain a reply. AsyncAPI tooling (Microcks, generators, the AsyncAPI React view) can now surface query response semantics. Goldens re-pinned (`catalog/testdata/golden/asyncapi*.snap`); `TestExporter_Export_Query` pins the full reply shape (address, channel ref, registered reply message, ref scoping).
+- **catalog/asyncapi: channel titles no longer mangle "queries" into "querie".** The singular noun for channel titles was computed with `strings.TrimSuffix(kind, "s")`, so query channels rendered "Get Order querie Channel". A real singular map fixes queries (and is exact for commands/events); applied on both the service and agent channel paths.
+- **id: `StreamMarker.Name()` (new method).** The stream marker type gains `Name() string` returning `"StreamMarker"` — marker self-identification for diagnostics without type switches (api-stability golden: `id/method Name`).
+- **2026-10-05 dependency sweep (2 modules: `catalog`, `id`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No further API changes (api-stability golden deltas for this wave are exactly `id/method Name` and `scheduling/method Name`).
+
+## [v4.6.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `watermill`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.6.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `benchkit`, `record`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.6.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `snapshot`, `storage/memory`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.6.0] — 2026-10-05
+
+- **scheduling: `TimerMarker.Name()` (new method).** The timer marker type gains `Name() string` returning `"TimerMarker"` — marker self-identification for diagnostics without type switches (api-stability golden: `scheduling/method Name`).
+- **2026-10-05 dependency sweep (1 module: `scheduling`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No further API changes.
+
+## [v4.5.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `projectionhost`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.5.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (3 modules: `dispatcher`, `metaengine/projectionadapter`, `otel`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.5.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `metaengine/sqliteengine`, `schema`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.4.3] — 2026-10-05
+
+- **stack/postgres: `v4.2.0` retracted (GitHub #26).** v4.2.0 references `sqlopt.OpenDBOrErr`, absent from the sibling versions it pins — consumers resolving exactly v4.2.0 get a non-compiling graph. The `retract` directive lands on the module proxy with this tagged release; fixed from v4.4.0 on.
+- **2026-10-05 dependency sweep (8 modules: `encryption`, `listing`, `stack`, `stack/memory`, `stack/pebble`, `stack/postgres`, `stack/turso`, `storage/pebble`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.4.2] — 2026-10-05
+
+- **api-stability: `TestTagContentMatchesChangelog` recalibrated for per-module version-wave trains.** The flat "<5 tags at the latest CHANGELOG version = abandoned train" rule (calibrated 2026-09-25 for same-version coordinated waves) false-positived on the 92-tag campaign's per-module tails: v4.16.0 legitimately carries exactly 1 tag and declares so ("(1 module: …)"). Sections declaring their module count are now checked against their own declaration (tags ≥ declared = pass; fewer = abandoned-train ERROR — strictly stronger for the new convention); legacy sections without a declaration keep the flat <5 floor; the <10 aspiration NOTE is unchanged.
+- **2026-10-05 dependency sweep (6 modules: `cmd/api-stability`, `idempotency/sqlstore`, `metaengine/pebbleengine`, `metaengine/pgengine`, `projection`, `scenario`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/badgerengine`… no — badgerengine rides v4.3.2; this group's prune member is `cmd/api-stability` (none — the prune's 8 modules land in v4.14.0/v4.7.2/v4.3.3/v4.3.2/v4.1.2/v4.0.2). No API changes.
+
+## [v4.3.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (4 modules: `signing`, `stack/sqlite`, `storage/turso`, `transport/http`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.3.3] — 2026-10-05
+
+- **doc-check: recipes compile snippet no longer poisons the workspace floor.** `TestRecipesCompile` built its snippet module at `go 1.27.1` (patch-form) while the synthesized go.work — inheriting the repo's now-minor-form `go 1.27` — requires the workspace floor to cover every member ("module recipescompile listed in go.work requires go >= 1.27.1"). Snippet module now `go 1.27`; the harness carried the exact directive shape this repo's campaign exists to eliminate.
+- **2026-10-05 dependency sweep (9 modules: `cmd/cqrs-bench`, `cmd/cqrs-gen`, `cmd/doc-check`, `deriver`, `graph`, `kv`, `prometheus`, `testutil`, `transport/grpc`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-gen` and `cmd/doc-check`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.3.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (8 modules: `idempotency/kvstore`, `metaengine/badgerengine`, `metaengine/bboltengine`, `metaengine/dgraphengine`, `metaengine/duckdbengine`, `metaengine/irohengine`, `metaengine/mysqlengine`, `stack/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/badgerengine`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.2.4] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `dedup`).** PROPRIETARY LICENSE copy, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for this module).
+
+## [v4.2.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (9 modules: `integration`, `metaengine/irohengine/quic`, `metaengine/tursoengine`, `stack/bbolt`, `stack/duckdb`, `stack/mysql`, `storage/backuptest`, `storage/bbolt`, `testutil/pgtestcontainer`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.2.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `commandlifecycle`, `commandlifecycle/projections`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.1.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `metaengine/graphadapter`, `scheduling/sqlstore`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.1.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-upgrade`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v4.1.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `example/getting-started`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v4.0.5] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `metaengine/irohengine/loopback`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v4.0.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/otelobserver` and `otel/otlp`. No API changes (api-stability golden carries no delta for these modules).
+
+## [v3.7.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `example/taskmanager`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v0.4.1] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `event/v4/eventtest`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v0.2.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `example/readme-quickstart`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v0.1.3] — 2026-10-05
+
+- **2026-10-05 dependency sweep (1 module: `example/metaengine-quickstart`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
+## [v0.1.2] — 2026-10-05
+
+- **2026-10-05 dependency sweep (2 modules: `example/goal-shaped-app`, `example/scheduler-otel-status`).** PROPRIETARY LICENSE copies, dependency refresh, Go 1.27 modernize rewrites. No API changes.
+
 <!-- release-train 2026-10-03: go-directive minor-form floor wave (92 tags, 13 dependency-ordered batches).
      Every tagged module ships `go 1.27` (minor-only). The 8 cycle members
      (command, event, query, schema, snapshot, storage/memory, metaengine,
@@ -155,13 +321,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- **catalog/asyncapi: queries export as real AsyncAPI 3.0 request/reply operations.** The package doc claimed "queries become request/reply operations", but the exporter never emitted one — `asyncapi.Reply`/`asyncapi.ReplyAddress` were dead types and queries shipped as plain `receive` operations with no response contract. Every query operation now carries a `reply` addressed to `$message.header#/replyTo` on a dedicated `<query>.replies` channel; the reply message (opaque schema — the catalog does not model query response types) is registered in that channel's messages map, following the Reply scoping contract documented on `asyncapi.Reply`. Commands and events never gain a reply. AsyncAPI tooling (Microcks, generators, the AsyncAPI React view) can now surface query response semantics. Goldens re-pinned (`catalog/testdata/golden/asyncapi*.snap`); `TestExporter_Export_Query` pins the full reply shape (address, channel ref, registered reply message, ref scoping).
-
 - **repo: `versions.json` module→latest-published-tag manifest + README matrix + freshness gate (GitHub #27).** Consumers had to `git ls-remote` per module to spot stale pins; now a committed manifest (108 trains, key `.` = the repo-root train, full tag per module — semver-aware latest pick that ranks `v2.0.0` above `v2.0.0-rc1`, which plain `sort -V` gets wrong) plus a generated collapsed table in the README answer it in one read. `scripts/check-versions-manifest.sh --update` regenerates both artifacts; the nightly gate compares them against origin tags and fails on BOTH drift directions (a published tag missing from the manifest, or a manifest citing an unpushed/deleted tag); `tag-release.sh` refreshes the manifest at tag time so every release lands with it. Hermetic `--self-test` (stale-manifest and unmanifested-tag mutation legs) runs in the nightly leg before the gate.
 
 ### Fixed
-
-- **catalog/asyncapi: channel titles no longer mangle "queries" into "querie".** The singular noun for channel titles was computed with `strings.TrimSuffix(kind, "s")`, so query channels rendered "Get Order querie Channel". A real singular map fixes queries (and is exact for commands/events); applied on both the service and agent channel paths.
 
 ### Changed
 
@@ -172,8 +334,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **cqrs-lint: `doctor --fix` renamed to `doctor --prune-suppressions` (breaking).** The root command's `--fix` applies findings autofixes; doctor's `--fix` removed stale suppression directives — the same flag name doing two unrelated destructive things per subcommand made every docs example ambiguous. The new name is parallel to `--audit-suppressions` and still implies the audit; `--dry-run` keeps its doctor-local meaning (preview the prune). Migration: replace `cqrs-lint doctor --fix` with `cqrs-lint doctor --prune-suppressions` (add `--dry-run` to preview). The old name is an unknown-flag error, not a silent alias.
 - **cqrs-lint: F022/F023 coach pushdown UTILIZATION for metaengine importers (nsfw-classifier feedback, 2026-10-03).** Adopting metaengine and adopting pushdown are different steps; the rules used to skip importers entirely, hiding the population that needs coaching most. Importers now get type-linked findings: `slices.SortFunc`/`sort.Slice` over a registered `metaengine.Query` R type lacking `SortOnField` (F022), and range loops with field comparisons over an R lacking `FilterOnField` (F023) — gated on the declaration's `Volume(n)` (≥1000; absent/unresolvable stays silent), with exactly-one-R attribution (shared R types stay silent rather than guess the collection). Suggestions show the two-layer shape (declaration allow-lists columns, `metaengine.WithFilter` binds values at read time) and the memory-engine framing (declaring is free — it activates with a SQL DSN). New analyzer surface: `CQRSRegistry.MetaengineQueries` (`analyzer.QueryDeclInfo`), `FeatureProfile.MetaengineQueryCount`/`MetaengineDeclarativeQueries`; the profile line is now actionable (`pushdown: false (3 queries, 0 declarative — …)`). Backed by the committed typed fixture `cmd/cqrs-lint/testdata/scanfixture`.
 - **cqrs-lint: `tracing: "off"` is an explicit decline (F003).** Detection no longer collapses absence-of-OTel-evidence to `TracingOff` (it stays `TracingUnknown`), so a pinned `"off"` uniquely means "deliberately declined" and F003 honors it — the same contract `features.monetary` uses for C008. Doctor consequently stops suggesting `tracing` pins for un-traced projects.
-- **cqrs-lint: doctor suggestions pin Server/SoftDelete only as positive evidence.** A detected `false` is absence-of-evidence within importer packages (non-importer packages are outside the scan scope); pinning it as project truth silenced real server rules for a consumer whose server lived elsewhere. `FeatureProfile.ToConfigFeatures` emits the booleans only when true, and doctor prints a scope NOTE beside the suggestion.
-
 ### Fixed
 
 - **ci: the `actionlint + shellcheck` leg is green again — dead `stub` local removed from `check-cqrs-lint-cli.sh` (SC2034).** The leg's `shellcheck scripts/*.sh` exits 1 on ANY finding; the unused local in `self_test` (the stubs are `$tmp`-path files, not variables) was the only repo-wide finding. Local pass now mirrors the leg exactly: `actionlint` clean (including the new Nightly Gates versions-manifest step), `shellcheck scripts/*.sh` exit 0.
