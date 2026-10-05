@@ -111,6 +111,7 @@ github.com/golang/snappy v1.0.0/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEW
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
 github.com/google/pprof v0.0.0-20260926063103-aaccee046517 h1:joNby64wfCIWh0HXBMrjZc6ii70nntnG9u3CQSXXwiA=
+github.com/google/pprof v0.0.0-20260926063103-aaccee046517/go.mod h1:jl5iWTm0/hd5PjEYEOuwAJ57L/CibdZfrqZ5XA5GrCk=
 github.com/google/uuid v1.2.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
@@ -231,6 +232,7 @@ github.com/larsartmann/go-error-family v0.11.0/go.mod h1:CAzjAVWjAFDUXEaaRqIgjW2
 github.com/larsartmann/go-flightrecorder v0.2.0 h1:vCyd+jXA5SsJxTS7zaOvlzJiNPqy+79fJ24irY+adGA=
 github.com/larsartmann/go-flightrecorder v0.2.0/go.mod h1:KOAVyRuxUX0eeKPc3mjAwOKsenSS1SjBqnJ0KKPxyhA=
 github.com/larsartmann/go-idempotency v0.3.1 h1:LzCg+4DI/RrqPJvR6bmmxMUE/jfUK2quREj0/2exSXI=
+github.com/larsartmann/go-idempotency v0.3.1/go.mod h1:cgc4TyjWbLh8qG+7iNgl3qrjfDhvjjzKkfVblVm9cTQ=
 github.com/larsartmann/go-retry v0.7.1 h1:e3MwEB8SvR0p1XMOtkFofFOS2y5rITzNLmbgZfCtO0c=
 github.com/larsartmann/go-retry v0.7.1/go.mod h1:jIPlAHcD/D+lqBo9CLWAEaJQqDgyFtvDE2RoG1SbZL4=
 github.com/larsartmann/go-sqlitestore v0.1.0 h1:+u9nCNdyHZPjduUXWdfy087b9tSeo8GVXrsK4NieVWA=
@@ -238,6 +240,7 @@ github.com/larsartmann/go-sqlitestore v0.1.0/go.mod h1:CH198vEnbz2tqlnJGpQCjDykW
 github.com/larsartmann/go-sse v0.6.2 h1:a1f/EnjhWlsNnxo0U1DygpYMy2XbUfyGBuKMWhwQg0U=
 github.com/larsartmann/go-sse v0.6.2/go.mod h1:PVVDLkzjkTR2MvqcqL3/XmWY8cdSUpEe8YWaouHVVz4=
 github.com/lib/pq v1.12.3 h1:tTWxr2YLKwIvK90ZXEw8GP7UFHtcbTtty8zsI+YjrfQ=
+github.com/lib/pq v1.12.3/go.mod h1:/p+8NSbOcwzAEI7wiMXFlgydTwcgTr3OSKMsD2BitpA=
 github.com/lithammer/shortuuid/v3 v3.0.7 h1:trX0KTHy4Pbwo/6ia8fscyHoGA+mf1jWbPJVuvyJQQ8=
 github.com/lithammer/shortuuid/v3 v3.0.7/go.mod h1:vMk8ke37EmiewwolSO1NLW8vP4ZaKlRuDIi8tWWmAts=
 github.com/lufia/plan9stats v0.0.0-20260802145828-341c2f0c90b5 h1:eveIIGn4BGM3qknO74omf6HYr30/exH+eVUTuAgwjZ0=
@@ -261,7 +264,9 @@ github.com/moby/docker-image-spec v1.3.1/go.mod h1:eKmb5VW8vQEh/BAr2yvVNvuiJuY6U
 github.com/moby/go-archive v0.3.3 h1:OxxR9paxsluYi+zDUEXTTaIxtkK3viymW+Ka7vRhhME=
 github.com/moby/go-archive v0.3.3/go.mod h1:Npdv43fFqlhZW7Xo8fbm3ZMYFvAGNviUPqX21VERbcE=
 github.com/moby/moby/api v1.56.1 h1:PpWkvVPB7Fr/No8w+TfyJ/I6rWZ2YPZhT3JorIg+06c=
+github.com/moby/moby/api v1.56.1/go.mod h1:sZ+THbVWkjOmBPPfbnzdD/G1LuIexWhqlSHHPTDQ1Uk=
 github.com/moby/moby/client v0.6.1 h1:gvfKmdcWw+9MzXYP0vAUKQtBTGu1L8475K2nsmL7O98=
+github.com/moby/moby/client v0.6.1/go.mod h1:XHgTFqz9NCgS/VuoxXMmEDVmVgXQ4vFEc15wsCIwb24=
 github.com/moby/patternmatcher v0.6.1 h1:qlhtafmr6kgMIJjKJMDmMWq7WLkKIo23hsrpR3x084U=
 github.com/moby/patternmatcher v0.6.1/go.mod h1:hDPoyOpDY7OrrMDLaYoY3hf52gNCR/YOUYxkhApJIxc=
 github.com/moby/sys/mount v0.3.5 h1:eS3fsZTjHaBihwjp4/+5Z3jxqLXYsbwxqpVSfFv3M00=
@@ -368,6 +373,7 @@ github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQ
 go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/auto/sdk v1.2.1/go.mod h1:KRTj+aOaElaLi+wW1kO/DZRXwkF4C5xPbEe3ZiIhN7Y=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0 h1:LxwW/9ctSCv+QkE/cLR7M91ZIkXNMqJtEMi1vCw9U8s=
+go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0/go.mod h1:tOsftB4SslBwwErVEPaenU2RpThXWPIU8DoJHEC4dyw=
 go.opentelemetry.io/otel v1.47.0 h1:j7ALJ/zgkS7Z6aeJW09p8VC9804bC+PpeTfCD4XPnOM=
 go.opentelemetry.io/otel v1.47.0/go.mod h1:8wS9O2qfXrYrzp6hIF/HOYJJf/wIhFPhR2xLuP+iXQU=
 go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.47.0 h1:N3YQCxjxQ/bMjyc3heladfRm9t9RTksGQH8z4w6yU/0=
@@ -385,6 +391,7 @@ go.opentelemetry.io/otel/sdk/metric v1.47.0/go.mod h1:ypLp+mW1Nt2x+Szt3b5/i1syod
 go.opentelemetry.io/otel/trace v1.47.0 h1:JOjX/Oci8K94QHddo+bbfya/Ai/nf6/dt9ZfrFNWSrM=
 go.opentelemetry.io/otel/trace v1.47.0/go.mod h1:jNaSLa2PZEYFG6fRjJABAu+bw4FS08uDmPg28lTghu0=
 go.uber.org/atomic v1.12.0 h1:BvcXdFKuviU4fTL/f+SxdQ5qJX/Jix8pAkgdUcb3XOE=
+go.uber.org/atomic v1.12.0/go.mod h1:I6c4cg+6HCxRjfjSsYtApoFILnpc0CGUdGkXVqbYVNk=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
 go.yaml.in/yaml/v2 v2.4.4 h1:tuyd0P+2Ont/d6e2rl3be67goVK4R6deVxCUX5vyPaQ=
@@ -433,6 +440,7 @@ golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtn
 golang.org/x/tools v0.0.0-20200619180055-7c47624df98f/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/tools v0.0.0-20210106214847-113979e3529a/go.mod h1:emZCQorbCU4vsT4fOWvOPXz4eW1wZW4PmDk9uLelYpA=
 golang.org/x/tools v0.51.0 h1:k4Xc/1Om9jwkBJBo4NVLMSARBoWtK10mx+W5BnXCeAI=
+golang.org/x/tools v0.51.0/go.mod h1:9eEncMayCV6zRMGhR5eZEC2iBx98qWcF1HZ9Z7wJOoA=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

@@ -71,6 +71,7 @@ require (
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0 // indirect
+	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	golang.org/x/exp v0.0.0-20260908205506-85c1c2202aba // indirect
 	golang.org/x/sync v0.23.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
@@ -79,7 +80,6 @@ require (
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-	pgregory.net/rapid v1.3.0 // indirect
 )
 
 // Local siblings for UNPUBLISHED symbols (ReadCosts calibration constants,

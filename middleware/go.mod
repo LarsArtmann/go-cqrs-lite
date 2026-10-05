@@ -28,7 +28,7 @@ require (
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
-	github.com/bits-and-blooms/bitset v1.25.0 // indirect
+	github.com/bits-and-blooms/bitset v1.26.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.4 // indirect
