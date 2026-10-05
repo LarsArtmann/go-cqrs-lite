@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-<!-- release-train 2026-10-05: dependency-sweep wave (93 tags, single batch —
+<!-- release-train 2026-10-05: dependency-sweep wave (90 tags, single batch —
      same-batch sibling pins are sound: the four content modules' additions
      are additive and nothing outside id/ and scheduling/ calls the new
      Name() methods). Common content: per-module PROPRIETARY LICENSE copy
@@ -18,8 +18,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
      sweeps, plus the otel/metric/x v0.69.0 checksums the v1.47 graph
      requires). Four modules carry content beyond the sweep: catalog,
      id, scheduling, cmd/cqrs-lint (minor bumps); stack/postgres publishes
-     the v4.2.0 retraction. The 10-03 floor-wave rationale did NOT retag the
-     root module (doc.go unchanged since v4.0.0; zero importable packages) —
+     the v4.2.0 retraction. NOT tagged (path-vs-tag guard, legacy mistagged
+     series, deltas stay untagged until a correct-series release): event/
+     v4/eventtest (/v4 path carrying v0.x tags), example/getting-started and
+     example/taskmanager (bare paths carrying v4.x/v3.x tags — their 10-03
+     floor tags were already proxy-invisible). The 10-03 floor-wave rationale
+     did NOT retag the root module (doc.go unchanged since v4.0.0; zero
+     importable packages) — root stays v4.0.0. -->
      root stays v4.0.0. -->
 ## [v4.16.1] — 2026-10-05
 
@@ -149,10 +154,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - **2026-10-05 dependency sweep (2 modules: `cmd/cqrs-upgrade`, `metaengine/bench`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `cmd/cqrs-upgrade`. No API changes (api-stability golden carries no delta for these modules).
 
-## [v4.1.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `example/getting-started`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
-
 ## [v4.0.5] — 2026-10-05
 
 - **2026-10-05 dependency sweep (1 module: `metaengine/irohengine/loopback`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
@@ -160,14 +161,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [v4.0.2] — 2026-10-05
 
 - **2026-10-05 dependency sweep (10 modules: `claiming`, `metaengine/bigtableengine`, `metaengine/otelobserver`, `otel/otlp`, `queue`, `queue/mysql`, `queue/postgres`, `queue/sqlite`, `scheduling/engine`, `system/integration`).** PROPRIETARY LICENSE copies, dependency refresh (otel v1.47, grpc stable v1.84, x/* and general bumps), Go 1.27 modernize rewrites; the stale-go.sum prune reaches `metaengine/otelobserver` and `otel/otlp`. No API changes (api-stability golden carries no delta for these modules).
-
-## [v3.7.2] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `example/taskmanager`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
-
-## [v0.4.1] — 2026-10-05
-
-- **2026-10-05 dependency sweep (1 module: `event/v4/eventtest`).** PROPRIETARY LICENSE copy, dependency refresh, Go 1.27 modernize rewrites. No API changes.
 
 ## [v0.2.3] — 2026-10-05
 
